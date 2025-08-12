@@ -1,142 +1,144 @@
 #include <token.h>
 
-#pragma region [Misc]
+static char_type_t _get_char_type(unsigned char ch) {
+    if (isalpha(ch) || ch == '_')          return CHAR_ALPHA;
+    else if (str_isdigit(ch) || ch == '-') return CHAR_DIGIT;
+    else if (ch == '"')                    return CHAR_QUOTE;
+    else if (ch == '\'')                   return CHAR_SING_QUOTE;
+    else if (ch == '\n')                   return CHAR_NEWLINE;
+    else if (ch == ' ')                    return CHAR_SPACE;
+    else if (ch == ';')                    return CHAR_DELIMITER;
+    else if (ch == ',')                    return CHAR_COMMA;
+    else if (ch == ':')                    return CHAR_COMMENT;
+    else if (
+        ch == '(' || ch == ')' || 
+        ch == '[' || ch == ']' || 
+        ch == '{' || ch == '}'
+    )                                      return CHAR_BRACKET;
+    return CHAR_OTHER;
+}
 
-    static char_type_t _get_char_type(unsigned char ch) {
-        if (isalpha(ch) || ch == '_') return CHAR_ALPHA;
-        else if (str_isdigit(ch) || ch == '-') return CHAR_DIGIT;
-        else if (ch == '"')  return CHAR_QUOTE;
-        else if (ch == '\'') return CHAR_SING_QUOTE;
-        else if (ch == '\n') return CHAR_NEWLINE;
-        else if (ch == ' ')  return CHAR_SPACE;
-        else if (ch == ';')  return CHAR_DELIMITER;
-        else if (ch == ',')  return CHAR_COMMA;
-        else if (ch == ':')  return CHAR_COMMENT;
-        else if (
-            ch == '(' || ch == ')' || 
-            ch == '[' || ch == ']' || 
-            ch == '{' || ch == '}'
-        ) return CHAR_BRACKET;
-        return CHAR_OTHER;
-    }
-
-    static int _add_token(token_t** head, token_t** tail, token_type_t type, const unsigned char* buffer, size_t len, int line) {
-        token_t* new_token = create_token(type, buffer, len, line);
-        if (!new_token) return 0;
-        if (!*head) *head = new_token;
-        else (*tail)->next = new_token;
-        *tail = new_token; 
+static int _add_token(
+    token_t** h, token_t** t, 
+    token_type_t type, const unsigned char* buffer, size_t len, int line
+) {
+    token_t* nt = TKN_create_token(type, buffer, len, line);
+    if (!nt) return 0;
+    if (!*h) {
+        *h = nt;
+        *t = nt;
         return 1;
     }
 
-#pragma endregion
-
-
-token_t* create_token(token_type_t type, const unsigned char* value, size_t len, int line) {
-    if (len > TOKEN_MAX_SIZE) return NULL;
-    token_t* token = mm_malloc(sizeof(token_t));
-    if (!token) return NULL;
-
-    token->t_type = type;
-    if (value) {
-        str_strncpy((char*)token->value, (char*)value, len);
-        token->value[len] = '\0';
-    }
-    
-    token->next = NULL;
-    token->line_number = line;
-    
-    token->ro  = 0;
-    token->ptr = 0;
-    if (type == UNKNOWN_NUMERIC_TOKEN) token->glob = 1;
-    else token->glob = 0;
-    return token;
+    (*t)->next = nt;
+    *t = (*t)->next;
+    return 1;
 }
 
-token_t* tokenize(int fd) {
-    token_t* head = NULL;
-    token_t* tail = NULL;
-    unsigned char buffer[BUFFER_SIZE]       = { 0 };
-    unsigned char token_buf[TOKEN_MAX_SIZE] = { 0 };
-    
-    int in_token       = 0;
-    int file_offset    = 0;
-    size_t token_len   = 0;
-    ssize_t bytes_read = 0;
-    token_type_t current_type = UNKNOWN_STRING_TOKEN;
+token_t* TKN_create_token(token_type_t type, const unsigned char* value, size_t len, int line) {
+    if (len > TOKEN_MAX_SIZE) return NULL;
+    token_t* tkn = mm_malloc(sizeof(token_t));
+    if (!tkn) return NULL;
+    str_memset(tkn, 0, sizeof(token_t));
 
-    int line = 1;
+    tkn->t_type = type;
+    if (value) {
+        str_strncpy((char*)tkn->value, (char*)value, len);
+    }
+    
+    tkn->line_number = line;
+    if (type == UNKNOWN_NUMERIC_TOKEN) tkn->glob = 1;
+    return tkn;
+}
+
+typedef struct {
+    char         cmt;  // comment
+    char         squt; // single quote
+    char         mqut; // multiple quote
+    int          line;
+    char         in_token;
+    short        token_len;
+    token_type_t ttype;
+} tkn_ctx_t;
+
+token_t* TKN_tokenize(int fd) {
+    tkn_ctx_t curr_ctx = { .ttype = UNKNOWN_STRING_TOKEN };
+    token_t *head = NULL, *tail = NULL;
+    unsigned char buffer[BUFFER_SIZE] = { 0 };
+    unsigned char token_buf[TOKEN_MAX_SIZE] = { 0 };
+
+    int file_offset = 0;
+    ssize_t bytes_read = 0;
     while ((bytes_read = pread(fd, buffer, BUFFER_SIZE, file_offset)) > 0) {
         file_offset += bytes_read;
-
-        int comment_open = 0;
-        int quotes_open  = 0;
-        int sing_quotes_open = 0;
-        
         for (ssize_t i = 0; i < bytes_read; ++i) {
             unsigned char ch = buffer[i];
             char_type_t ct = _get_char_type(ch);
-            if (ct == CHAR_SING_QUOTE) {
-                sing_quotes_open = !sing_quotes_open;
-                continue;
-            }
-            else if (ct == CHAR_QUOTE) {
-                quotes_open = !quotes_open;
-                continue;
-            }
-            else if (ct == CHAR_COMMENT && !quotes_open && !sing_quotes_open) {
-                comment_open = !comment_open;
+
+            /* Markdown routine (quotes and comment flags handler) */
+            if (ct == CHAR_SING_QUOTE || ct == CHAR_QUOTE || (ct == CHAR_COMMENT && !curr_ctx.squt && !curr_ctx.mqut)) {
+                if (ct == CHAR_SING_QUOTE) curr_ctx.squt = !curr_ctx.squt;
+                else if (ct == CHAR_QUOTE) curr_ctx.mqut = !curr_ctx.mqut;
+                else curr_ctx.cmt = !curr_ctx.cmt;
                 continue;
             }
 
-            if (comment_open && !quotes_open) continue;
-            if ((ct != CHAR_SPACE && ct != CHAR_NEWLINE) || quotes_open || sing_quotes_open) {
-                token_type_t new_type = UNKNOWN_STRING_TOKEN;
-                if (quotes_open) new_type = STRING_VALUE_TOKEN;
-                else if (sing_quotes_open) new_type = CHAR_VALUE_TOKEN;
+            /* Skip character if this is comment section */
+            if (curr_ctx.cmt && !curr_ctx.squt && !curr_ctx.mqut) continue;
+
+            /* If don't reach space or new line (or we in quotes), append character and correct token type */
+            if ((ct != CHAR_SPACE && ct != CHAR_NEWLINE) || curr_ctx.squt || curr_ctx.mqut) {
+                token_type_t curr_type;
+                if (curr_ctx.squt)                 curr_type = CHAR_VALUE_TOKEN;
+                else if (curr_ctx.mqut)            curr_type = STRING_VALUE_TOKEN;
                 else {
-                    if (ct == CHAR_ALPHA)          new_type = UNKNOWN_STRING_TOKEN;
-                    else if (ct == CHAR_DIGIT)     new_type = UNKNOWN_NUMERIC_TOKEN;
-                    else if (ct == CHAR_DELIMITER) new_type = DELIMITER_TOKEN;
-                    else if (ct == CHAR_COMMA)     new_type = COMMA_TOKEN;
-                    else if (ct == CHAR_BRACKET)   new_type = UNKNOWN_CHAR_VALUE;
-                    else new_type = UNKNOWN_CHAR_VALUE;
+                    if (ct == CHAR_ALPHA)          curr_type = UNKNOWN_STRING_TOKEN;
+                    else if (ct == CHAR_DIGIT)     curr_type = UNKNOWN_NUMERIC_TOKEN;
+                    else if (ct == CHAR_DELIMITER) curr_type = DELIMITER_TOKEN;
+                    else if (ct == CHAR_COMMA)     curr_type = COMMA_TOKEN;
+                    else if (ct == CHAR_BRACKET)   curr_type = UNKNOWN_BRACKET_VALUE;
+                    else                           curr_type = UNKNOWN_CHAR_VALUE;
                 }
                 
-                if (in_token) {
-                    if ((current_type != new_type ||
-                        (current_type == UNKNOWN_CHAR_VALUE && new_type == UNKNOWN_CHAR_VALUE && ct == CHAR_BRACKET))) {
-                        if (!_add_token(&head, &tail, current_type, token_buf, token_len, line)) {
-                            print_error("Can't add token! type=%i token_buf=[%s], token_len=%i", current_type, token_buf, token_len);
-                            goto error;
-                        }
-
-                        in_token = 0;
+                /* If we still in existed token end formation and move to next */
+                if (curr_ctx.in_token && curr_ctx.ttype != curr_type) {
+                    if (!_add_token(&head, &tail, curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line)) {
+                        print_error(
+                            "Can't add token! type=%i token_buf=[%s], token_len=%i", 
+                            curr_ctx.ttype, token_buf, curr_ctx.token_len
+                        );
+                        goto error;
                     }
+
+                    curr_ctx.in_token = 0;
                 }
                 
-                if (!in_token) {
-                    current_type = new_type;
-                    token_len = 0;
-                    in_token = 1;
+                /* If we are not in token, switch type and mark state via flags */
+                if (!curr_ctx.in_token) {
+                    curr_ctx.ttype     = curr_type;
+                    curr_ctx.token_len = 0;
+                    curr_ctx.in_token  = 1;
                 }
                 
-                if (token_len >= TOKEN_MAX_SIZE) {
+                if (curr_ctx.token_len + 1 > TOKEN_MAX_SIZE) {
                     print_error("Token too large!");
                     goto error;
                 }
 
-                token_buf[token_len++] = ch;
-            } 
+                token_buf[curr_ctx.token_len++] = ch;
+            }
             else {
-                if (in_token) {
-                    if (ct == CHAR_NEWLINE) line++;
-                    if (!_add_token(&head, &tail, current_type, token_buf, token_len, line)) {
-                        print_error("Can't add token! type=%i token_buf=[%s], token_len=%i", current_type, token_buf, token_len);
+                if (curr_ctx.in_token) {
+                    if (ct == CHAR_NEWLINE) curr_ctx.line++;
+                    if (!_add_token(&head, &tail, curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line)) {
+                        print_error(
+                            "Can't add token! type=%i token_buf=[%s], token_len=%i", 
+                            curr_ctx.ttype, token_buf, curr_ctx.token_len
+                        );
                         goto error;
                     }
 
-                    in_token = 0;
+                    curr_ctx.in_token = 0;
                 }
             }
         }
@@ -147,9 +149,13 @@ token_t* tokenize(int fd) {
         goto error;
     }
 
-    if (in_token) {
-        if (!_add_token(&head, &tail, current_type, token_buf, token_len, line)) {
-            print_error("Can't add token! type=%i token_buf=[%s], token_len=%i", current_type, token_buf, token_len);
+    /* Force token close and save */
+    if (curr_ctx.in_token) {
+        if (!_add_token(&head, &tail, curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line)) {
+            print_error(
+                "Can't add token! type=%i token_buf=[%s], token_len=%i", 
+                curr_ctx.ttype, token_buf, curr_ctx.token_len
+            );
             goto error;
         }
     }
@@ -157,11 +163,11 @@ token_t* tokenize(int fd) {
     return head;
 
 error:
-    unload_tokens(head);
+    TKN_unload(head);
     return NULL;
 }
 
-int unload_tokens(token_t* head) {
+int TKN_unload(token_t* head) {
     while (head) {
         token_t* next = head->next;
         mm_free(head);

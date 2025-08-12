@@ -34,7 +34,7 @@ static int _generate_raw_ast(object_t* obj) {
     int fd = open(obj->path, O_RDONLY);
     if (fd < 0) return -1;
 
-    token_t* tokens = tokenize(fd);
+    token_t* tokens = TKN_tokenize(fd);
     if (!tokens) {
         close(fd);
         return -2;
@@ -43,7 +43,7 @@ static int _generate_raw_ast(object_t* obj) {
     int markup_res = command_markup(tokens);
     markup_res = variable_markup(tokens);
     if (!markup_res) {
-        unload_tokens(tokens);
+        TKN_unload(tokens);
         close(fd);
         return -3;
     }
@@ -51,7 +51,7 @@ static int _generate_raw_ast(object_t* obj) {
     tree_t* parse_tree = create_syntax_tree(tokens);
     if (!check_semantic(parse_tree)) {
         unload_syntax_tree(parse_tree);
-        unload_tokens(tokens);
+        TKN_unload(tokens);
         close(fd);
         return -4;
     }
@@ -118,7 +118,7 @@ static int _compile_object(object_t* obj) {
     system(compile_command);
 
     unload_syntax_tree(obj->ast);
-    unload_tokens(obj->tokens);
+    TKN_unload(obj->tokens);
     unload_arrmap(obj->ast_arrinfo);
     unload_varmap(obj->ast_varinfo);
     print_log("Optimization of [%s] complete", obj->path);

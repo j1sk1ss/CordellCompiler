@@ -108,13 +108,13 @@ static int _find_string(tree_t* root) {
 static int _declare_strings(tree_t* root) {
     string_info_t* h = _str_h;
     while (h) {
-        tree_t* decl_root = create_tree_node(create_token(STR_TYPE_TOKEN, (unsigned char*)STR_VARIABLE, str_strlen(STR_VARIABLE), 0));
+        tree_t* decl_root = create_tree_node(TKN_create_token(STR_TYPE_TOKEN, (unsigned char*)STR_VARIABLE, str_strlen(STR_VARIABLE), 0));
         if (!decl_root) return 0;
         
-        tree_t* name_node = create_tree_node(create_token(STR_VARIABLE_TOKEN, (unsigned char*)h->str_name, str_strlen(h->str_name), 0));
+        tree_t* name_node = create_tree_node(TKN_create_token(STR_VARIABLE_TOKEN, (unsigned char*)h->str_name, str_strlen(h->str_name), 0));
         if (!name_node) return 0;
         
-        tree_t* value_node = create_tree_node(create_token(STRING_VALUE_TOKEN, (unsigned char*)h->str_body, str_strlen(h->str_body), 0));
+        tree_t* value_node = create_tree_node(TKN_create_token(STRING_VALUE_TOKEN, (unsigned char*)h->str_body, str_strlen(h->str_body), 0));
         if (!value_node) return 0;
 
         add_child_node(decl_root, name_node);

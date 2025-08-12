@@ -1,0 +1,5 @@
+test data for tokenization!
+Or? ? I dont know! 'Quotes? -123 == 1+2 Its a long way to Tipperary File'
+"Multiple Quotes are: strong way for determine your ability to live here!";
+123(number) {brackets} [index]
+[]] index

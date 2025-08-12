@@ -1,0 +1,32 @@
+#include <stdio.h>
+#include <token.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int main() {
+    mm_init();
+    
+    int fd = open("test_text.txt", O_RDONLY);
+    char data[512] = { 0 };
+    pread(fd, data, 512, 0);
+    printf("Source data: %s\n", data);
+
+    token_t* tkn = TKN_tokenize(fd);
+    if (!tkn) {
+        fprintf(stderr, "ERROR! tkn==NULL!\n");
+        return 1;
+    }
+
+    token_t* h = tkn;
+    while (h) {
+        printf(
+            "glob=%i, line=%i, ptr=%i, ro=%i, type=%i, data=%s\n", 
+            h->glob, h->line_number, h->ptr, h->ro, h->t_type, h->value
+        );
+        h = h->next;
+    }
+
+    TKN_unload(tkn);
+    close(fd);
+    return 0;
+}

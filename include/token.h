@@ -15,6 +15,7 @@
 typedef enum {
     // Unknowns
     UNKNOWN_CHAR_VALUE,
+    UNKNOWN_BRACKET_VALUE,
     UNKNOWN_STRING_TOKEN,
     UNKNOWN_NUMERIC_TOKEN,
     UNKNOWN_COMMAND_TOKEN,
@@ -132,7 +133,7 @@ Params:
 
 Return pointer to token, or NULL if malloc error.
 */
-token_t* create_token(token_type_t type, const unsigned char* value, size_t len, int line);
+token_t* TKN_create_token(token_type_t type, const unsigned char* value, size_t len, int line);
 
 /*
 Tokenize input file by provided FD.
@@ -142,7 +143,7 @@ Params:
 Return NULL or pointer to linked list of tokens.
 Note: Function don't close file.
 */
-token_t* tokenize(int fd);
+token_t* TKN_tokenize(int fd);
 
 /*
 Unload linked list of tokens.
@@ -151,6 +152,6 @@ Params:
 
 Return 1 if unload success.
 */
-int unload_tokens(token_t* head);
+int TKN_unload(token_t* head);
 
 #endif
