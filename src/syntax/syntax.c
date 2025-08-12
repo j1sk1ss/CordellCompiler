@@ -1,5 +1,4 @@
-#include "../../include/syntax.h"
-
+#include <syntax.h>
 
 static char* _current_function_name = NULL;
 static tree_t* _parser_dummy(               token_t**);

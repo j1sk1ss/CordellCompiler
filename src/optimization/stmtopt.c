@@ -1,5 +1,4 @@
-#include "../../include/optimization.h"
-
+#include <optimization.h>
 
 static int _find_stmt(tree_t* root) {
     if (!root) return 0;

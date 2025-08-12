@@ -1,5 +1,4 @@
-#include "../include/vars.h"
-
+#include <vars.h>
 
 /*
 Return 1 if variable is an array-like data object.

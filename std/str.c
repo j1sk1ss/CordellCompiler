@@ -1,5 +1,4 @@
-#include "../include/str.h"
-
+#include <str.h>
 
 void* str_memcpy(void* destination, const void* source, size_t num) {
     unsigned int num_dwords = num / 4;

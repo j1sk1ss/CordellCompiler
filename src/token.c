@@ -1,5 +1,4 @@
-#include "../include/token.h"
-
+#include <token.h>
 
 #pragma region [Misc]
 

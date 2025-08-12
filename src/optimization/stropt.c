@@ -1,5 +1,4 @@
-#include "../../include/optimization.h"
-
+#include <optimization.h>
 
 typedef struct string_info {
     char str_body[TOKEN_MAX_SIZE];

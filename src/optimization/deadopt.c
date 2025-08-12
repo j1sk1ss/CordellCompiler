@@ -1,5 +1,4 @@
-#include "../../include/optimization.h"
-
+#include <optimization.h>
 
 typedef struct code_node {
     tree_t* start;

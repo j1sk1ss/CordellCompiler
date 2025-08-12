@@ -1,5 +1,4 @@
-#include "../include/builder.h"
-
+#include <builder.h>
 
 static int _print_parse_tree(tree_t* node, int depth) {
     if (!node) return 0;
