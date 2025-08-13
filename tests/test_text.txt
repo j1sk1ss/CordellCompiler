@@ -4,9 +4,15 @@ Or? ? I dont know! 'Quotes? -123 == 1+2. Its a long way to Tipperary, Its a long
 123(number) {brackets} [index]
 []] index
 
+: Comment in one line :
+:
+Multiline 
+comment
+:
+
 int a = 0;
 int b = 1;
-while a < 10; {
+while a < 10 && b > 10; {
     break;
     return;
 }

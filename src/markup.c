@@ -6,14 +6,6 @@ typedef struct {
     token_type_t type;
 } markup_token_t;
 
-typedef struct {
-    int           ro;
-    int           ptr;
-    int           glob;
-    token_type_t  type;
-    unsigned char name[TOKEN_MAX_SIZE];
-} variable_t;
-
 static const markup_token_t _markups[] = {
     /* Special single place tokens. */
     { .value = IMPORT_SELECT_COMMAND,  .type = IMPORT_SELECT_TOKEN },
@@ -73,7 +65,6 @@ static const markup_token_t _markups[] = {
     { .value = OR_STATEMENT,           .type = OR_TOKEN            }
 };
 
-
 int MRKP_mnemonics(token_t* head) {
     token_t* curr = head;
     while (curr) {
@@ -90,34 +81,56 @@ int MRKP_mnemonics(token_t* head) {
     return 1;
 }
 
-int MRKP_variables(token_t* head) {
-    token_t* curr = head;
-    variable_t* variables = NULL;
-    size_t var_count = 0;
+typedef struct {
+    int           ro;
+    int           ptr;
+    int           glob;
+    token_type_t  type;
+    unsigned char name[TOKEN_MAX_SIZE];
+} variable_t;
 
-    int is_ro   = 0;
-    int is_glob = 0;
-    int is_ptr  = 0;
+typedef struct {
+    char         ro;
+    char         glob;
+    char         ptr;
+    token_type_t ttype;
+} markp_ctx;
+
+static int _add_variable(
+    variable_t** vars, const char* name, markp_ctx* ctx, int* count
+) {
+    *vars = mm_realloc(*vars, (*count + 1) * sizeof(variable_t));
+    str_memset(&((*vars)[*count]), 0, sizeof(variable_t));
+    str_strncpy((char*)((*vars)[*count]).name, name, TOKEN_MAX_SIZE);
+    ((*vars)[*count]).ro   = ctx->ro;
+    ((*vars)[*count]).ptr  = ctx->ptr;
+    ((*vars)[*count]).glob = ctx->glob;
+    ((*vars)[*count]).type = ctx->ttype;
+    (*count)++;
+    return 1;
+}
+
+int MRKP_variables(token_t* head) {
+    markp_ctx curr_ctx = { 0 };
+    token_t* curr = head;
+    int var_count = 0;
+    variable_t* vars = NULL;
+
     while (curr) {
         switch (curr->t_type) {
+            /* Simple solution is mark all imported functions as call tokens  */
             case IMPORT_TOKEN:
                 curr = curr->next;
+                curr_ctx.ttype = CALL_TOKEN;
                 while (curr->t_type != DELIMITER_TOKEN) {
-                    variables = mm_realloc(variables, (var_count + 1) * sizeof(variable_t));
-                    str_strncpy((char*)variables[var_count].name, (char*)curr->value, TOKEN_MAX_SIZE);
-                    variables[var_count].type = CALL_TOKEN;
-                    variables[var_count].ptr  = 0;
-                    variables[var_count].glob = 0;
-                    variables[var_count].ro   = 0;
-                    var_count++;
-
+                    _add_variable(&vars, (const char*)curr->value, &curr_ctx, &var_count);
                     curr = curr->next;
                 }
             break;
 
-            case GLOB_TYPE_TOKEN: is_glob = 1; break;
-            case RO_TYPE_TOKEN:   is_ro   = 1; break;
-            case PTR_TYPE_TOKEN:  is_ptr  = 1; break;
+            case RO_TYPE_TOKEN:   curr_ctx.ro   = 1; break;
+            case GLOB_TYPE_TOKEN: curr_ctx.glob = 1; break;
+            case PTR_TYPE_TOKEN:  curr_ctx.ptr  = 1; break;
 
             case FUNC_TOKEN:
             case INT_TYPE_TOKEN:
@@ -128,32 +141,27 @@ int MRKP_variables(token_t* head) {
             case ARRAY_TYPE_TOKEN: {
                 token_t* next = curr->next;
                 if (next && (next->t_type == UNKNOWN_STRING_TOKEN || next->t_type == UNKNOWN_CHAR_VALUE)) {
-                    variables = mm_realloc(variables, (var_count + 1) * sizeof(variable_t));
-                    str_strncpy((char*)variables[var_count].name, (char*)next->value, TOKEN_MAX_SIZE);
-
                     switch (curr->t_type) {
-                        case FUNC_TOKEN:        variables[var_count].type = CALL_TOKEN;           break;
-                        case INT_TYPE_TOKEN:    variables[var_count].type = INT_VARIABLE_TOKEN;   break;
-                        case STR_TYPE_TOKEN:    variables[var_count].type = STR_VARIABLE_TOKEN;   break;
-                        case LONG_TYPE_TOKEN:   variables[var_count].type = LONG_VARIABLE_TOKEN;  break;
-                        case CHAR_TYPE_TOKEN:   variables[var_count].type = CHAR_VARIABLE_TOKEN;  break;
-                        case SHORT_TYPE_TOKEN:  variables[var_count].type = SHORT_VARIABLE_TOKEN; break;
-                        case ARRAY_TYPE_TOKEN:  variables[var_count].type = ARR_VARIABLE_TOKEN;   break;
+                        case FUNC_TOKEN:       curr_ctx.ttype = CALL_TOKEN;           break;
+                        case INT_TYPE_TOKEN:   curr_ctx.ttype = INT_VARIABLE_TOKEN;   break;
+                        case STR_TYPE_TOKEN:   curr_ctx.ttype = STR_VARIABLE_TOKEN;   break;
+                        case LONG_TYPE_TOKEN:  curr_ctx.ttype = LONG_VARIABLE_TOKEN;  break;
+                        case CHAR_TYPE_TOKEN:  curr_ctx.ttype = CHAR_VARIABLE_TOKEN;  break;
+                        case SHORT_TYPE_TOKEN: curr_ctx.ttype = SHORT_VARIABLE_TOKEN; break;
+                        case ARRAY_TYPE_TOKEN: curr_ctx.ttype = ARR_VARIABLE_TOKEN;   break;
                         default: break;
                     }
 
-                    curr->ro   = is_ro;
-                    curr->glob = is_glob;
-                    curr->ptr  = is_ptr;
-                    variables[var_count].ro   = is_ro;
-                    variables[var_count].glob = is_glob;
-                    variables[var_count].ptr  = is_ptr;
-                    var_count++;
+                    _add_variable(&vars, (const char*)next->value, &curr_ctx, &var_count);
+                    curr->ro   = curr_ctx.ro;
+                    curr->ptr  = curr_ctx.ptr;
+                    curr->glob = curr_ctx.glob;
                 }
 
-                is_ro   = 0;
-                is_ptr  = 0;
-                is_glob = 0;
+                curr_ctx.ro    = 0;
+                curr_ctx.ptr   = 0;
+                curr_ctx.glob  = 0;
+                curr_ctx.ttype = 0;
             }
             break;
             default: break;
@@ -165,12 +173,12 @@ int MRKP_variables(token_t* head) {
     curr = head;
     while (curr) {
         if (curr->t_type == UNKNOWN_STRING_TOKEN || curr->t_type == UNKNOWN_CHAR_VALUE) {
-            for (size_t i = 0; i < var_count; i++) {
-                if (str_strncmp((char*)curr->value, (char*)variables[i].name, TOKEN_MAX_SIZE) == 0) {
-                    curr->t_type = variables[i].type;
-                    curr->glob   = variables[i].glob;
-                    curr->ro     = variables[i].ro;
-                    curr->ptr    = variables[i].ptr;
+            for (int i = 0; i < var_count; i++) {
+                if (!str_strncmp((const char*)curr->value, (const char*)vars[i].name, TOKEN_MAX_SIZE)) {
+                    curr->t_type = vars[i].type;
+                    curr->ro     = vars[i].ro;
+                    curr->glob   = vars[i].glob;
+                    curr->ptr    = vars[i].ptr;
                     break;
                 }
             }
@@ -179,6 +187,6 @@ int MRKP_variables(token_t* head) {
         curr = curr->next;
     }
 
-    mm_free(variables);
+    mm_free(vars);
     return 1;
 }

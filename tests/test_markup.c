@@ -40,6 +40,17 @@ int main(int argc, char* argv[]) {
         h = h->next;
     }
 
+    MRKP_variables(tkn);
+    printf("Variables markup:\n");
+    h = tkn;
+    while (h) {
+        printf(
+            "glob=%i, line=%i, ptr=%i, ro=%i, type=%i, data=%s\n", 
+            h->glob, h->line_number, h->ptr, h->ro, h->t_type, h->value
+        );
+        h = h->next;
+    }
+
     TKN_unload(tkn);
     close(fd);
     return 0;
