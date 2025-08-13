@@ -1,12 +1,26 @@
 #include <token.h>
 
+typedef enum {
+    CHAR_ALPHA,
+    CHAR_DIGIT,
+    CHAR_QUOTE,
+    CHAR_SING_QUOTE,
+    CHAR_BRACKET,
+    CHAR_OTHER,
+    CHAR_SPACE,
+    CHAR_DELIMITER,
+    CHAR_COMMA,
+    CHAR_COMMENT,
+    CHAR_NEWLINE
+} char_type_t;
+
 static char_type_t _get_char_type(unsigned char ch) {
     if (isalpha(ch) || ch == '_')          return CHAR_ALPHA;
     else if (str_isdigit(ch) || ch == '-') return CHAR_DIGIT;
     else if (ch == '"')                    return CHAR_QUOTE;
     else if (ch == '\'')                   return CHAR_SING_QUOTE;
     else if (ch == '\n')                   return CHAR_NEWLINE;
-    else if (ch == ' ')                    return CHAR_SPACE;
+    else if (ch == ' ' || ch == '\t')      return CHAR_SPACE;
     else if (ch == ';')                    return CHAR_DELIMITER;
     else if (ch == ',')                    return CHAR_COMMA;
     else if (ch == ':')                    return CHAR_COMMENT;
@@ -79,92 +93,64 @@ token_t* TKN_tokenize(int fd) {
             if (ct == CHAR_SING_QUOTE || ct == CHAR_QUOTE || (ct == CHAR_COMMENT && !curr_ctx.squt && !curr_ctx.mqut)) {
                 if (ct == CHAR_SING_QUOTE) curr_ctx.squt = !curr_ctx.squt;
                 else if (ct == CHAR_QUOTE) curr_ctx.mqut = !curr_ctx.mqut;
-                else curr_ctx.cmt = !curr_ctx.cmt;
+                else                       curr_ctx.cmt = !curr_ctx.cmt;
                 continue;
             }
 
             /* Skip character if this is comment section */
             if (curr_ctx.cmt && !curr_ctx.squt && !curr_ctx.mqut) continue;
 
-            /* If don't reach space or new line (or we in quotes), append character and correct token type */
-            if ((ct != CHAR_SPACE && ct != CHAR_NEWLINE) || curr_ctx.squt || curr_ctx.mqut) {
-                token_type_t curr_type;
-                if (curr_ctx.squt)                 curr_type = CHAR_VALUE_TOKEN;
-                else if (curr_ctx.mqut)            curr_type = STRING_VALUE_TOKEN;
-                else {
-                    if (ct == CHAR_ALPHA)          curr_type = UNKNOWN_STRING_TOKEN;
-                    else if (ct == CHAR_DIGIT)     curr_type = UNKNOWN_NUMERIC_TOKEN;
-                    else if (ct == CHAR_DELIMITER) curr_type = DELIMITER_TOKEN;
-                    else if (ct == CHAR_COMMA)     curr_type = COMMA_TOKEN;
-                    else if (ct == CHAR_BRACKET)   curr_type = UNKNOWN_BRACKET_VALUE;
-                    else                           curr_type = UNKNOWN_CHAR_VALUE;
-                }
-                
-                /* If we still in existed token end formation and move to next */
-                if (curr_ctx.in_token && curr_ctx.ttype != curr_type) {
-                    if (!_add_token(&head, &tail, curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line)) {
-                        print_error(
-                            "Can't add token! type=%i token_buf=[%s], token_len=%i", 
-                            curr_ctx.ttype, token_buf, curr_ctx.token_len
-                        );
-                        goto error;
-                    }
-
-                    curr_ctx.in_token = 0;
-                }
-                
-                /* If we are not in token, switch type and mark state via flags */
-                if (!curr_ctx.in_token) {
-                    curr_ctx.ttype     = curr_type;
-                    curr_ctx.token_len = 0;
-                    curr_ctx.in_token  = 1;
-                }
-                
-                if (curr_ctx.token_len + 1 > TOKEN_MAX_SIZE) {
-                    print_error("Token too large!");
-                    goto error;
-                }
-
-                token_buf[curr_ctx.token_len++] = ch;
-            }
+            /* Determine character type */
+            token_type_t char_type;
+            if (curr_ctx.squt)                 char_type = CHAR_VALUE_TOKEN;
+            else if (curr_ctx.mqut)            char_type = STRING_VALUE_TOKEN;
             else {
-                if (curr_ctx.in_token) {
-                    if (ct == CHAR_NEWLINE) curr_ctx.line++;
-                    if (!_add_token(&head, &tail, curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line)) {
-                        print_error(
-                            "Can't add token! type=%i token_buf=[%s], token_len=%i", 
-                            curr_ctx.ttype, token_buf, curr_ctx.token_len
-                        );
-                        goto error;
-                    }
-
-                    curr_ctx.in_token = 0;
-                }
+                if (ct == CHAR_ALPHA)          char_type = UNKNOWN_STRING_TOKEN;
+                else if (ct == CHAR_DIGIT)     char_type = UNKNOWN_NUMERIC_TOKEN;
+                else if (ct == CHAR_DELIMITER) char_type = DELIMITER_TOKEN;
+                else if (ct == CHAR_COMMA)     char_type = COMMA_TOKEN;
+                else if (ct == CHAR_BRACKET)   char_type = UNKNOWN_BRACKET_VALUE;
+                else if (
+                    ct == CHAR_SPACE || 
+                    ct == CHAR_NEWLINE
+                )                              char_type = LINE_BREAK_TOKEN;
+                else                           char_type = UNKNOWN_CHAR_VALUE;
             }
-        }
-    }
+            
+            if (
+                curr_ctx.in_token && 
+                (
+                    char_type == LINE_BREAK_TOKEN ||
+                    char_type == UNKNOWN_CHAR_VALUE ||     /* Chars can't be larger then 1 symbol */
+                    char_type == UNKNOWN_BRACKET_VALUE ||  /* Same with the brackets */
+                    curr_ctx.token_len + 1 > TOKEN_MAX_SIZE ||
+                    curr_ctx.ttype != char_type
+                )
+            ) {
+                if (!_add_token(&head, &tail, curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line)) {
+                    print_error(
+                        "Can't add token! type=%i, token_buf=[%s], token_len=%i", 
+                        curr_ctx.ttype, token_buf, curr_ctx.token_len
+                    );
+                    TKN_unload(head);
+                    return NULL;
+                }
 
-    if (bytes_read < 0) {
-        print_error("Invalid read size!");
-        goto error;
-    }
+                curr_ctx.in_token = 0;
+                curr_ctx.token_len = 0;
+            }
 
-    /* Force token close and save */
-    if (curr_ctx.in_token) {
-        if (!_add_token(&head, &tail, curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line)) {
-            print_error(
-                "Can't add token! type=%i token_buf=[%s], token_len=%i", 
-                curr_ctx.ttype, token_buf, curr_ctx.token_len
-            );
-            goto error;
+            if (char_type == LINE_BREAK_TOKEN) continue;
+            if (!curr_ctx.in_token) {
+                curr_ctx.ttype = char_type;
+                curr_ctx.in_token = 1;
+            }
+
+            token_buf[curr_ctx.token_len++] = ch;
         }
     }
     
     return head;
-
-error:
-    TKN_unload(head);
-    return NULL;
 }
 
 int TKN_unload(token_t* head) {

@@ -2,6 +2,7 @@
 #include <token.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <syntax.h>
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
@@ -18,7 +19,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    printf("Tokenizer:\n");
     token_t* h = tkn;
+    while (h) {
+        printf(
+            "glob=%i, line=%i, ptr=%i, ro=%i, type=%i, data=%s\n", 
+            h->glob, h->line_number, h->ptr, h->ro, h->t_type, h->value
+        );
+        h = h->next;
+    }
+
+    MRKP_mnemonics(tkn);
+    printf("Mnemonic markup:\n");
+    h = tkn;
     while (h) {
         printf(
             "glob=%i, line=%i, ptr=%i, ro=%i, type=%i, data=%s\n", 

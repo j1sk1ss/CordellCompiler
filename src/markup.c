@@ -2,70 +2,58 @@
 #include <syntax.h>
 
 typedef struct {
-    char* value;
+    char*        value;
     token_type_t type;
 } markup_token_t;
 
 typedef struct {
-    int ro;
-    int ptr;
-    int glob;
-    token_type_t type;
+    int           ro;
+    int           ptr;
+    int           glob;
+    token_type_t  type;
     unsigned char name[TOKEN_MAX_SIZE];
 } variable_t;
 
 static const markup_token_t _markups[] = {
-    /*
-    Special single place tokens.
-    */
-    { .value = IMPORT_SELECT_COMMAND, .type = IMPORT_SELECT_TOKEN },
-    { .value = IMPORT_COMMAND,        .type = IMPORT_TOKEN        },
-    { .value = START_COMMAND,         .type = START_TOKEN         },
-    { .value = EXIT_COMMAND,          .type = EXIT_TOKEN          },
+    /* Special single place tokens. */
+    { .value = IMPORT_SELECT_COMMAND,  .type = IMPORT_SELECT_TOKEN },
+    { .value = IMPORT_COMMAND,         .type = IMPORT_TOKEN        },
+    { .value = START_COMMAND,          .type = START_TOKEN         },
+    { .value = EXIT_COMMAND,           .type = EXIT_TOKEN          },
 
-    /*
-    Bracket tokens.
-    */
-    { .value = OPEN_BLOCK,    .type = OPEN_BLOCK_TOKEN    },
-    { .value = CLOSE_BLOCK,   .type = CLOSE_BLOCK_TOKEN   },
-    { .value = OPEN_INDEX,    .type = OPEN_INDEX_TOKEN    },
-    { .value = CLOSE_INDEX,   .type = CLOSE_INDEX_TOKEN   },
-    { .value = OPEN_BRACKET,  .type = OPEN_BRACKET_TOKEN  },
-    { .value = CLOSE_BRACKET, .type = CLOSE_BRACKET_TOKEN },
+    /* Bracket tokens. */
+    { .value = OPEN_BLOCK,             .type = OPEN_BLOCK_TOKEN    },
+    { .value = CLOSE_BLOCK,            .type = CLOSE_BLOCK_TOKEN   },
+    { .value = OPEN_INDEX,             .type = OPEN_INDEX_TOKEN    },
+    { .value = CLOSE_INDEX,            .type = CLOSE_INDEX_TOKEN   },
+    { .value = OPEN_BRACKET,           .type = OPEN_BRACKET_TOKEN  },
+    { .value = CLOSE_BRACKET,          .type = CLOSE_BRACKET_TOKEN },
 
-    /*
-    Function and jmp tokens.
-    */
-    { .value = FUNCTION_COMMAND, .type = FUNC_TOKEN    },
-    { .value = RETURN_COMMAND,   .type = RETURN_TOKEN  },
-    { .value = SYSCALL_COMMAND,  .type = SYSCALL_TOKEN },
+    /* Function and jmp tokens. */
+    { .value = FUNCTION_COMMAND,       .type = FUNC_TOKEN          },
+    { .value = RETURN_COMMAND,         .type = RETURN_TOKEN        },
+    { .value = SYSCALL_COMMAND,        .type = SYSCALL_TOKEN       },
 
-    /*
-    Variable tokens.
-    */
-    { .value = PTR_COMMAND,    .type = PTR_TYPE_TOKEN   },
-    { .value = RO_COMMAND,     .type = RO_TYPE_TOKEN    },
-    { .value = GLOB_COMMAND,   .type = GLOB_TYPE_TOKEN  },
-    { .value = LONG_VARIABLE,  .type = LONG_TYPE_TOKEN  },
-    { .value = INT_VARIABLE,   .type = INT_TYPE_TOKEN   },
-    { .value = SHORT_VARIABLE, .type = SHORT_TYPE_TOKEN },
-    { .value = CHAR_VARIABLE,  .type = CHAR_TYPE_TOKEN  },
-    { .value = STR_VARIABLE,   .type = STR_TYPE_TOKEN   },
-    { .value = ARR_VARIABLE,   .type = ARRAY_TYPE_TOKEN },
+    /* Variable tokens. */
+    { .value = PTR_COMMAND,            .type = PTR_TYPE_TOKEN      },
+    { .value = RO_COMMAND,             .type = RO_TYPE_TOKEN       },
+    { .value = GLOB_COMMAND,           .type = GLOB_TYPE_TOKEN     },
+    { .value = LONG_VARIABLE,          .type = LONG_TYPE_TOKEN     },
+    { .value = INT_VARIABLE,           .type = INT_TYPE_TOKEN      },
+    { .value = SHORT_VARIABLE,         .type = SHORT_TYPE_TOKEN    },
+    { .value = CHAR_VARIABLE,          .type = CHAR_TYPE_TOKEN     },
+    { .value = STR_VARIABLE,           .type = STR_TYPE_TOKEN      },
+    { .value = ARR_VARIABLE,           .type = ARRAY_TYPE_TOKEN    },
 
-    /*
-    Little jump tokens.
-    */
-    { .value = SWITCH_COMMAND,  .type = SWITCH_TOKEN  },
-    { .value = CASE_COMMAND,    .type = CASE_TOKEN    },
-    { .value = DEFAULT_COMMAND, .type = DEFAULT_TOKEN },
-    { .value = WHILE_COMAND,    .type = WHILE_TOKEN   },
-    { .value = IF_COMMAND,      .type = IF_TOKEN      },
-    { .value = ELSE_COMMAND,    .type = ELSE_TOKEN    },
+    /* Little jump tokens. */
+    { .value = SWITCH_COMMAND,         .type = SWITCH_TOKEN        },
+    { .value = CASE_COMMAND,           .type = CASE_TOKEN          },
+    { .value = DEFAULT_COMMAND,        .type = DEFAULT_TOKEN       },
+    { .value = WHILE_COMAND,           .type = WHILE_TOKEN         },
+    { .value = IF_COMMAND,             .type = IF_TOKEN            },
+    { .value = ELSE_COMMAND,           .type = ELSE_TOKEN          },
 
-    /*
-    Binary operands.
-    */
+    /* Binary operands. */
     { .value = ASIGN_STATEMENT,        .type = ASIGN_TOKEN         },
     { .value = COMPARE_STATEMENT,      .type = COMPARE_TOKEN       },
     { .value = NCOMPARE_STATEMENT,     .type = NCOMPARE_TOKEN      },
@@ -86,7 +74,7 @@ static const markup_token_t _markups[] = {
 };
 
 
-int command_markup(token_t* head) {
+int MRKP_mnemonics(token_t* head) {
     token_t* curr = head;
     while (curr) {
         for (int i = 0; i < (int)(sizeof(_markups) / sizeof(_markups[0])); i++) {
@@ -102,7 +90,7 @@ int command_markup(token_t* head) {
     return 1;
 }
 
-int variable_markup(token_t* head) {
+int MRKP_variables(token_t* head) {
     token_t* curr = head;
     variable_t* variables = NULL;
     size_t var_count = 0;

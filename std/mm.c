@@ -68,7 +68,7 @@ static void* _malloc_s(size_t size, int prepare_mem) {
 
 void* mm_malloc(size_t size) {
     void* ptr = _malloc_s(size, 0);
-    if (!ptr) print_mm("Allocation error! I can't allocate [%i]!", size);
+    if (!ptr) { print_mm("Allocation error! I can't allocate [%i]!", size); }
     return ptr;
 }
 

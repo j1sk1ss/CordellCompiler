@@ -1,5 +1,5 @@
-#ifndef PARSER_H_
-#define PARSER_H_
+#ifndef SYNTAX_H_
+#define SYNTAX_H_
 
 #include "regs.h"
 #include "arrmem.h"
@@ -18,7 +18,6 @@ typedef struct tree {
     int          variable_size;
 } tree_t;
 
-
 /*
 Preparing tokens list for parsing tree.
 We mark every token by command / symbol ar value type.
@@ -28,7 +27,7 @@ Params:
 Return -1 if somehing goes wrong.
 Return 1 if markup success.
 */
-int command_markup(token_t* head);
+int MRKP_mnemonics(token_t* head);
 
 /*
 Iterate throught tokens and mark variables. 
@@ -38,7 +37,7 @@ Params:
 Return -1 if somehing goes wrong.
 Return 1 if markup success.
 */
-int variable_markup(token_t* head);
+int MRKP_variables(token_t* head);
 
 /*
 Generate AST from tokens list.

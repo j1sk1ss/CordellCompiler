@@ -9,8 +9,8 @@
 #include "mm.h"
 #include "str.h"
 
-#define TOKEN_MAX_SIZE  128
-#define BUFFER_SIZE     8192
+#define TOKEN_MAX_SIZE 128
+#define BUFFER_SIZE    8192
 
 typedef enum {
     // Unknowns
@@ -19,6 +19,7 @@ typedef enum {
     UNKNOWN_STRING_TOKEN,
     UNKNOWN_NUMERIC_TOKEN,
     UNKNOWN_COMMAND_TOKEN,
+    LINE_BREAK_TOKEN,
 
     COMMENT_TOKEN,
     DELIMITER_TOKEN,
@@ -93,20 +94,6 @@ typedef enum {
     CHAR_VALUE_TOKEN
 } token_type_t;
 
-typedef enum {
-    CHAR_ALPHA,
-    CHAR_DIGIT,
-    CHAR_QUOTE,
-    CHAR_SING_QUOTE,
-    CHAR_BRACKET,
-    CHAR_OTHER,
-    CHAR_SPACE,
-    CHAR_DELIMITER,
-    CHAR_COMMA,
-    CHAR_COMMENT,
-    CHAR_NEWLINE
-} char_type_t;
-
 typedef struct token {
     // Token compiler information
     int ro;   // ReadOnly flag
@@ -121,7 +108,6 @@ typedef struct token {
     // Symantic information
     int line_number;
 } token_t;
-
 
 /*
 Allocate and create token.

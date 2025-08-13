@@ -40,8 +40,8 @@ static int _generate_raw_ast(object_t* obj) {
         return -2;
     }
 
-    int markup_res = command_markup(tokens);
-    markup_res = variable_markup(tokens);
+    int markup_res = MRKP_mnemonics(tokens);
+    markup_res = MRKP_variables(tokens);
     if (!markup_res) {
         TKN_unload(tokens);
         close(fd);

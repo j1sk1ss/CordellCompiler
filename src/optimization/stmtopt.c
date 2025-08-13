@@ -36,7 +36,7 @@ static int _find_stmt(tree_t* root) {
 
             case WHILE_TOKEN: {
                 tree_t* condition = t->first_child;
-                tree_t* body = condition->next_sibling->first_child;
+                // tree_t* body = condition->next_sibling->first_child;
                 if (condition->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
                     int true_or_false = str_atoi((char*)condition->token->value);
                     if (!true_or_false) {
