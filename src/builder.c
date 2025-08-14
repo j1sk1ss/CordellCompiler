@@ -48,22 +48,17 @@ static int _generate_raw_ast(object_t* obj) {
         return -3;
     }
 
-    tree_t* parse_tree = STX_create(tokens);
-    if (!check_semantic(parse_tree)) {
-        STX_unload(parse_tree);
+    obj->syntax.arrs = mm_malloc(sizeof(arrmem_ctx_t));
+    obj->syntax.vars = mm_malloc(sizeof(varmem_ctx_t));
+    STX_create(tokens, &obj->syntax);
+    if (!check_semantic(obj->syntax.r)) {
+        STX_unload(obj->syntax.r);
         TKN_unload(tokens);
         close(fd);
         return -4;
     }
 
-    obj->tokens = tokens;
-    obj->ast = parse_tree;
-
-    obj->ast_arrinfo = get_arrmap_head();
-    set_arrmap_head(NULL);
-
-    obj->ast_varinfo = get_varmap_head();
-    set_varmap_head(NULL);
+    obj->toks = tokens;
     close(fd);
     return 1;
 }
@@ -79,36 +74,33 @@ static int _add_object(char* path) {
 }
 
 static int _compile_object(object_t* obj) {
-    int str_opt_res = string_optimization(obj->ast);
+    int str_opt_res = string_optimization(&obj->syntax);
     print_log("String optimization of [%s]... [%s (%i)]", obj->path, RESULT(str_opt_res));
 
     int assign_opt_res = 0;
     int is_fold_vars = 0;
     do {
-        assign_opt_res = assign_optimization(obj->ast);
-        is_fold_vars = muldiv_optimization(obj->ast);
+        assign_opt_res = assign_optimization(&obj->syntax);
+        is_fold_vars = muldiv_optimization(&obj->syntax);
     } while (is_fold_vars);
     print_log("Assign and muldiv optimization... [Code: %i/%i]", assign_opt_res, is_fold_vars);
     
-    VRM_unload(obj->ast_varinfo);
-
-    int stmt_opt_res = stmt_optimization(obj->ast);
+    int stmt_opt_res = stmt_optimization(&obj->syntax);
     print_log("Statement optimization... [%s (%i)]", RESULT(stmt_opt_res));
 
-    int varuse_opt_res = varuse_optimization(obj->ast);
+    int varuse_opt_res = varuse_optimization(&obj->syntax);
     print_log("Var usage optimization... [%s (%i)]", RESULT(varuse_opt_res));
 
-    int offset_recalc_res = offset_optimization(obj->ast);
+    int offset_recalc_res = offset_optimization(&obj->syntax);
     print_log("Offset recalculation... [%s (%i)]", RESULT(offset_recalc_res));
 
     char save_path[128] = { 0 };
     sprintf(save_path, "%s.asm", obj->path);
-    FILE* output = fopen(save_path, "w");
-    if (_params.syntax) _print_parse_tree(obj->ast, 0);
 
-    set_varmap_head(obj->ast_varinfo);
-    set_arrmap_head(obj->ast_arrinfo);
-    generate_asm(obj->ast, output);
+    FILE* output = fopen(save_path, "w");
+    if (_params.syntax) _print_parse_tree(&obj->syntax, 0);
+    gen_ctx_t gctx = { .synt = &obj->syntax, .label = 0 };
+    GEN_generate(&gctx, output);
     fclose(output);
 
     char compile_command[128] = { 0 };
@@ -117,10 +109,10 @@ static int _compile_object(object_t* obj) {
     print_debug("COMPILING: system(%s)", compile_command);
     system(compile_command);
 
-    STX_unload(obj->ast);
-    TKN_unload(obj->tokens);
-    ARM_unload(obj->ast_arrinfo);
-    VRM_unload(obj->ast_varinfo);
+    STX_unload(obj->syntax.r);
+    TKN_unload(obj->toks);
+    ARM_unload(obj->syntax.arrs);
+    VRM_unload(obj->syntax.vars);
     print_log("Optimization of [%s] complete", obj->path);
     return 1;
 }
@@ -131,7 +123,7 @@ int builder_add_file(char* input) {
 
 int builder_compile() {
     if (!_current_file) return 0;
-    for (int i = 0; i < _current_file; i++) funcopt_add_ast(_files[i].ast);
+    for (int i = 0; i < _current_file; i++) funcopt_add_ast(&_files[i].syntax);
     func_optimization();
 
     /*
