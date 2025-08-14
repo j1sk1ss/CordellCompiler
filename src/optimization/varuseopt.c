@@ -84,8 +84,8 @@ static int _find_decl(tree_t* root, tree_t* entry, int* delete) {
 
             if (!is_used) {
                 *delete = 1;
-                remove_child_node(root, t);
-                unload_syntax_tree(t);
+                STX_remove_node(root, t);
+                STX_unload(t);
             }
         }
     }
@@ -94,12 +94,12 @@ static int _find_decl(tree_t* root, tree_t* entry, int* delete) {
 }
 
 
-int varuse_optimization(tree_t* root) {
-    if (!root) return 0;
+int varuse_optimization(syntax_ctx_t* ctx) {
+    if (!ctx->r) return 0;
     int delete = 0;
     do {
         delete = 0;
-        _find_decl(root, root, &delete);
+        _find_decl(ctx->r, ctx->r, &delete);
     } while (delete);
     return 1;
 }

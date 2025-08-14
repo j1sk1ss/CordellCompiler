@@ -121,7 +121,7 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
         if (!node->first_child) iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), GET_ASMVAR(node));
         else {
             variable_info_t info;
-            if (get_var_info((char*)node->token->value, func, &info)) {
+            if (VRM_get_info((char*)node->token->value, func, &info)) {
                 _generate_expression(node->first_child, output, func);
 
                 int ptr_type_size = get_variable_size_wt(node->token) / 8;
@@ -156,7 +156,7 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
             const tree_t* name   = t_type->next_sibling;
 
             array_info_t arr_info = { .el_size = 1 };
-            if (get_array_info((char*)name->token->value, func, &arr_info)) {
+            if (ARM_get_info((char*)name->token->value, func, &arr_info)) {
                 tree_t* vals = name->next_sibling;
                 if (vals && vals->token->t_type != DELIMITER_TOKEN) {
                     fprintf(output, "\n ; --------------- Array setup %s --------------- \n", name->token->value);
@@ -173,7 +173,7 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
                             output, "mov%s[%s - %d], %d\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, *v->token->value
                         );
                         else {
-                            int is_ptr = (get_array_info((char*)v->token->value, func, NULL) && !(v->token->ro || v->token->glob));
+                            int is_ptr = (ARM_get_info((char*)v->token->value, func, NULL) && !(v->token->ro || v->token->glob));
                             iprintf(output, "%s %s, %s ; int %s \n", !is_ptr ? "mov" : "lea", reg.name, GET_ASMVAR(v), v->token->value);
                             iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, reg.name);
                         }
@@ -207,7 +207,7 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
         if (!node->first_child) iprintf(output, "%s %s, %s\n", reg.move, GET_RAW_REG(BASE_BITNESS, RAX), GET_ASMVAR(node));
         else {
             array_info_t arr_info = { .el_size = 1 };
-            get_array_info((char*)node->token->value, func, &arr_info);
+            ARM_get_info((char*)node->token->value, func, &arr_info);
             _generate_expression(node->first_child, output, func);
 
             if (arr_info.el_size > 1) iprintf(output, "imul %s, %d\n", GET_RAW_REG(BASE_BITNESS, RAX), arr_info.el_size);
@@ -381,13 +381,13 @@ static int _get_variables_size(tree_t* head, const char* func) {
         if (expression->token->ro || expression->token->glob) continue;
         if (expression->token->t_type == ARRAY_TYPE_TOKEN) {
             array_info_t arr_info = { .el_size = 1 };
-            if (get_array_info((char*)expression->first_child->next_sibling->next_sibling->token->value, func, &arr_info)) {
+            if (ARM_get_info((char*)expression->first_child->next_sibling->next_sibling->token->value, func, &arr_info)) {
                 size +=  ALIGN(arr_info.size * arr_info.el_size);
             }
         }
         else if (expression->token->t_type == STR_TYPE_TOKEN) {
             array_info_t arr_info = { .el_size = 1 };
-            if (get_array_info((char*)expression->first_child->token->value, func, &arr_info)) {
+            if (ARM_get_info((char*)expression->first_child->token->value, func, &arr_info)) {
                 size += ALIGN(arr_info.size * arr_info.el_size);
             }
         }
@@ -653,7 +653,7 @@ static int _generate_syscall(const tree_t* node, FILE* output, const char* func)
     while (args) {
         regs_t reg;
         int is_ptr = (
-            get_array_info((char*)args->token->value, func, NULL) && 
+            ARM_get_info((char*)args->token->value, func, NULL) && 
             !(args->token->ro || args->token->glob)
         );
         
@@ -684,7 +684,7 @@ static int _generate_assignment(const tree_t* node, FILE* output, const char* fu
         If left is array or string (array too) with elem size info.
         */
         array_info_t arr_info = { .el_size = 1 };
-        int is_ptr = (get_array_info((char*)node->first_child->token->value, func, &arr_info) && !(node->first_child->token->ro || node->first_child->token->glob));
+        int is_ptr = (ARM_get_info((char*)node->first_child->token->value, func, &arr_info) && !(node->first_child->token->ro || node->first_child->token->glob));
 
         /*
         Generate offset movement in this array-like data type.

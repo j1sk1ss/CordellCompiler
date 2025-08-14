@@ -108,17 +108,17 @@ static int _find_string(tree_t* root) {
 static int _declare_strings(tree_t* root) {
     string_info_t* h = _str_h;
     while (h) {
-        tree_t* decl_root = create_tree_node(TKN_create_token(STR_TYPE_TOKEN, (unsigned char*)STR_VARIABLE, str_strlen(STR_VARIABLE), 0));
+        tree_t* decl_root = STX_create_node(TKN_create_token(STR_TYPE_TOKEN, (unsigned char*)STR_VARIABLE, str_strlen(STR_VARIABLE), 0));
         if (!decl_root) return 0;
         
-        tree_t* name_node = create_tree_node(TKN_create_token(STR_VARIABLE_TOKEN, (unsigned char*)h->str_name, str_strlen(h->str_name), 0));
+        tree_t* name_node = STX_create_node(TKN_create_token(STR_VARIABLE_TOKEN, (unsigned char*)h->str_name, str_strlen(h->str_name), 0));
         if (!name_node) return 0;
         
-        tree_t* value_node = create_tree_node(TKN_create_token(STRING_VALUE_TOKEN, (unsigned char*)h->str_body, str_strlen(h->str_body), 0));
+        tree_t* value_node = STX_create_node(TKN_create_token(STRING_VALUE_TOKEN, (unsigned char*)h->str_body, str_strlen(h->str_body), 0));
         if (!value_node) return 0;
 
-        add_child_node(decl_root, name_node);
-        add_child_node(decl_root, value_node);
+        STX_add_node(decl_root, name_node);
+        STX_add_node(decl_root, value_node);
         
         name_node->token->ro = 1;
         decl_root->token->ro = 1;
@@ -133,9 +133,9 @@ static int _declare_strings(tree_t* root) {
     return 1;
 }
 
-int string_optimization(tree_t* root) {
-    if (!root) return 0;
-    tree_t* program_body = root->first_child;
+int string_optimization(syntax_ctx_t* ctx) {
+    if (!ctx->r) return 0;
+    tree_t* program_body = ctx->r->first_child;
     tree_t* prestart     = program_body;
     tree_t* main_body    = prestart->next_sibling;
     _find_string(prestart);

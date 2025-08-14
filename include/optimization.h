@@ -9,15 +9,14 @@
 
 #include <stdio.h>
 
+int string_optimization(syntax_ctx_t* ctx);
+int assign_optimization(syntax_ctx_t* ctx);
+int varuse_optimization(syntax_ctx_t* ctx);
+int muldiv_optimization(syntax_ctx_t* ctx);
+int offset_optimization(syntax_ctx_t* ctx);
+int stmt_optimization(syntax_ctx_t* ctx);
 
-int string_optimization(tree_t* root);
-int assign_optimization(tree_t* root);
-int varuse_optimization(tree_t* root);
-int muldiv_optimization(tree_t* root);
-int offset_optimization(tree_t* root);
-int stmt_optimization(tree_t* root);
-
-int funcopt_add_ast(tree_t* root);
+int funcopt_add_ast(syntax_ctx_t* ctx);
 int func_optimization();
 
 #endif

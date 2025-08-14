@@ -6,22 +6,32 @@
 #include "token.h"
 
 typedef struct variable_info {
-    int size;
-    int offset;
-    char name[TOKEN_MAX_SIZE];
-    char func[TOKEN_MAX_SIZE];
+    int                   size;
+    int                   offset;
+    char                  name[TOKEN_MAX_SIZE];
+    char                  func[TOKEN_MAX_SIZE];
     struct variable_info* next;
 } variable_info_t;
 
+typedef struct {
+    unsigned int offset;
+    variable_info_t* h;
+} varmem_ctx_t;
 
-int get_vars_offset();
-int set_vars_offset(int off);
-variable_info_t* get_varmap_head();
-int set_varmap_head(variable_info_t* h);
+/*
+Get variable info from context by varname and function scope.
+*/
+int VRM_get_info(const char* vname, const char* func, variable_info_t* info, varmem_ctx_t* ctx);
 
-int get_var_info(const char* variable, const char* func, variable_info_t* info);
-int add_variable_info(const char* name, int size, const char* func);
+/*
+Add variable to context. 
+Note: Will use ALIGN to variable size for offset calculation.
+*/
+int VRM_add_info(const char* vname, int size, const char* func, varmem_ctx_t* ctx);
 
-int unload_varmap(variable_info_t* h);
+/*
+Unload context.
+*/
+int VRM_unload(varmem_ctx_t* ctx);
 
 #endif

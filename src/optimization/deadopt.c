@@ -156,9 +156,9 @@ dead_flow:
     return head;
 }
 
-int deadcode_optimization(tree_t* root) {
-    if (!root) return 0;
-    code_node_t* program = _generate_blocks(root->first_child);
+int deadcode_optimization(syntax_ctx_t* ctx) {
+    if (!ctx->r) return 0;
+    code_node_t* program = _generate_blocks(ctx->r->first_child);
     _unload_func_node_map();
     _unload_code_block(program);
     return 1;

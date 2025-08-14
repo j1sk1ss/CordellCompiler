@@ -55,8 +55,8 @@ static int _find_muldiv(tree_t* root, int* fold) {
             snprintf((char*)t->token->value, TOKEN_MAX_SIZE, "%d", result);
             t->token->t_type = UNKNOWN_NUMERIC_TOKEN;
             t->token->glob = 1;
-            unload_syntax_tree(t->first_child->next_sibling);
-            unload_syntax_tree(t->first_child);
+            STX_unload(t->first_child->next_sibling);
+            STX_unload(t->first_child);
             t->first_child = NULL;
         }
         
@@ -82,9 +82,9 @@ static int _find_muldiv(tree_t* root, int* fold) {
     return 1;
 }
 
-int muldiv_optimization(tree_t* root) {
-    if (!root) return 0;
+int muldiv_optimization(syntax_ctx_t* ctx) {
+    if (!ctx->r) return 0;
     int is_fold = 0;
-    _find_muldiv(root, &is_fold);
+    _find_muldiv(ctx->r, &is_fold);
     return is_fold;
 }

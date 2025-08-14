@@ -18,6 +18,13 @@ typedef struct tree {
     int          variable_size;
 } tree_t;
 
+typedef struct {
+    const char*   fname;
+    tree_t*       r;
+    varmem_ctx_t* vars;
+    arrmem_ctx_t* arrs;
+} syntax_ctx_t;
+
 /*
 Preparing tokens list for parsing tree.
 We mark every token by command / symbol ar value type.
@@ -43,11 +50,12 @@ int MRKP_variables(token_t* head);
 Generate AST from tokens list.
 Params: 
 - head - Tokens list head.
+- ctx - Parser context.
 
-Return NULL if somehing goes wrong.
-Return pointer to tree head if markup success.
+Return 0 if somehing goes wrong.
+Return 1 if markup success.
 */
-tree_t* create_syntax_tree(token_t* head);
+int STX_create(token_t* head, syntax_ctx_t* ctx);
 
 /*
 Create new tree node with token.
@@ -57,7 +65,7 @@ Params:
 
 Return pointer to tree.
 */
-tree_t* create_tree_node(token_t* token);
+tree_t* STX_create_node(token_t* token);
 
 /*
 Add clild tree node to parent.
@@ -68,7 +76,7 @@ Params:
 Return 1 if addition was success.
 Return -1 if something goes wrong.
 */
-int add_child_node(tree_t* parent, tree_t* child);
+int STX_add_node(tree_t* parent, tree_t* child);
 
 /*
 Remove clild tree node to parent.
@@ -79,7 +87,7 @@ Params:
 Return 1 if remove was success.
 Return -1 if something goes wrong.
 */
-int remove_child_node(tree_t* parent, tree_t* child);
+int STX_remove_node(tree_t* parent, tree_t* child);
 
 /*
 Unload syntax tree with all childs and siblings.
@@ -89,6 +97,6 @@ Params:
 Return 1 if free success.
 Return -1 if something goes wrong.
 */
-int unload_syntax_tree(tree_t* node);
+int STX_unload(tree_t* node);
 
 #endif

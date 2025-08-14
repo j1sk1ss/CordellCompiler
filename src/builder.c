@@ -48,9 +48,9 @@ static int _generate_raw_ast(object_t* obj) {
         return -3;
     }
 
-    tree_t* parse_tree = create_syntax_tree(tokens);
+    tree_t* parse_tree = STX_create(tokens);
     if (!check_semantic(parse_tree)) {
-        unload_syntax_tree(parse_tree);
+        STX_unload(parse_tree);
         TKN_unload(tokens);
         close(fd);
         return -4;
@@ -90,7 +90,7 @@ static int _compile_object(object_t* obj) {
     } while (is_fold_vars);
     print_log("Assign and muldiv optimization... [Code: %i/%i]", assign_opt_res, is_fold_vars);
     
-    unload_varmap(obj->ast_varinfo);
+    VRM_unload(obj->ast_varinfo);
 
     int stmt_opt_res = stmt_optimization(obj->ast);
     print_log("Statement optimization... [%s (%i)]", RESULT(stmt_opt_res));
@@ -117,10 +117,10 @@ static int _compile_object(object_t* obj) {
     print_debug("COMPILING: system(%s)", compile_command);
     system(compile_command);
 
-    unload_syntax_tree(obj->ast);
+    STX_unload(obj->ast);
     TKN_unload(obj->tokens);
-    unload_arrmap(obj->ast_arrinfo);
-    unload_varmap(obj->ast_varinfo);
+    ARM_unload(obj->ast_arrinfo);
+    VRM_unload(obj->ast_varinfo);
     print_log("Optimization of [%s] complete", obj->path);
     return 1;
 }

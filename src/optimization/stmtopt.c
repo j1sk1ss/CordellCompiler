@@ -16,16 +16,16 @@ static int _find_stmt(tree_t* root) {
                 if (condition->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
                     int true_or_false = str_atoi((char*)condition->token->value);
                     if (true_or_false && else_body) {
-                        remove_child_node(t, else_body);
-                        unload_syntax_tree(else_body);
+                        STX_remove_node(t, else_body);
+                        STX_unload(else_body);
                     }
                     else if (!true_or_false && else_body) {
-                        remove_child_node(t, body);
-                        unload_syntax_tree(body);
+                        STX_remove_node(t, body);
+                        STX_unload(body);
                     }
                     else if (!true_or_false && !else_body) {
-                        remove_child_node(root, t);
-                        unload_syntax_tree(t);
+                        STX_remove_node(root, t);
+                        STX_unload(t);
                         _find_stmt(root);
                         return 1;
                     }
@@ -40,8 +40,8 @@ static int _find_stmt(tree_t* root) {
                 if (condition->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
                     int true_or_false = str_atoi((char*)condition->token->value);
                     if (!true_or_false) {
-                        remove_child_node(root, t);
-                        unload_syntax_tree(t);
+                        STX_remove_node(root, t);
+                        STX_unload(t);
                         _find_stmt(root);
                         return 1;
                     }
@@ -59,8 +59,8 @@ static int _find_stmt(tree_t* root) {
                         if (curr_case->token->t_type == DEFAULT_TOKEN) continue;
                         int case_value = str_atoi((char*)curr_case->token->value);
                         if (option_case != case_value) {
-                            remove_child_node(cases, curr_case);
-                            unload_syntax_tree(curr_case);
+                            STX_remove_node(cases, curr_case);
+                            STX_unload(curr_case);
                             _find_stmt(root);
                             return 1;
                         }
@@ -79,7 +79,7 @@ static int _find_stmt(tree_t* root) {
     return 1;
 }
 
-int stmt_optimization(tree_t* root) {
-    if (!root) return 0;
-    return _find_stmt(root);
+int stmt_optimization(syntax_ctx_t* ctx) {
+    if (!ctx->r) return 0;
+    return _find_stmt(ctx->r);
 }

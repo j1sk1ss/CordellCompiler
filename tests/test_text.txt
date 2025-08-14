@@ -1,18 +1,25 @@
-test data for tokenization!
-Or? ? I dont know! 'Quotes? -123 == 1+2. Its a long way to Tipperary, Its a long way to go!'
-"Multiple Quotes are: strong way for determine your ability to live here!";
-123(number) {brackets} [index]
-[]] index
+from "stdio.cpl" import puts putc;
 
-: Comment in one line :
-:
-Multiline 
-comment
-:
+function memset ptr char buffer; int val; long size; {
+    long index = 0;
+    while index < size; {
+        buffer[index] = val;
+        index = index + 1;
+    }
 
-int a = 0;
-int b = 1;
-while a < 10 && b > 10; {
-    break;
-    return;
-}
+    return 1;
+} 
+
+start
+:
+    arr hello_str 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 10, 0 };
+    puts(hello_str);
+:
+    arr hello_str 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 10, 0 };
+    int a = 0;
+    int b = 10;
+    int c = a * c + (a * b);
+    putc('H');
+    putc(0);
+    memset(0, 0, 10);
+exit 1 + 1;
