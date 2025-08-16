@@ -25,6 +25,9 @@ typedef struct {
     arrmem_ctx_t* arrs;
 } syntax_ctx_t;
 
+syntax_ctx_t* STX_create_ctx();
+int STX_destroy_ctx(syntax_ctx_t* ctx);
+
 /*
 Preparing tokens list for parsing tree.
 We mark every token by command / symbol ar value type.

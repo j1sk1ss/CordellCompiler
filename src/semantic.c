@@ -15,7 +15,7 @@ int check_semantic(tree_t* node) {
                 tree_t* body = args->next_sibling;
 
                 for (tree_t* param = args->first_child; param; param = param->next_sibling) {
-                    if (!is_variable_decl(param->token->t_type)) {
+                    if (!VRS_isdecl(param->token->t_type)) {
                         print_error("Unknown variable type at %i, (%s)", param->token->line_number, param->token->value);
                         result = 0;
                         break;
@@ -85,14 +85,14 @@ int check_semantic(tree_t* node) {
                     break;
                 }
 
-                if (is_operand(right->token->t_type)) {
+                if (VRS_isoperand(right->token->t_type)) {
                     result = check_semantic(right) && result;
                     right = right->first_child;
                 }
 
                 if (result) {
-                    int left_size = get_variable_size(left->token);
-                    int right_size = get_variable_size(right->token);
+                    int left_size = VRS_variable_bitness(left->token, 1);
+                    int right_size = VRS_variable_bitness(right->token, 1);
                     if (left_size != right_size) {
                         print_warn(
                             "Danger shadow type cast at line %i. Different size [%i] (%s) and [%i] (%s). Did you expect this?", 

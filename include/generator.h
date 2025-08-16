@@ -15,6 +15,9 @@ typedef struct {
     syntax_ctx_t* synt;
 } gen_ctx_t;
 
+gen_ctx_t* GEN_create_ctx();
+int GEN_destroy_ctx(gen_ctx_t* ctx);
+
 /*
 GEN_generate function generates ASM code for target platform.
 Params:

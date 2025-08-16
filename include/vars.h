@@ -1,13 +1,15 @@
 #ifndef VARS_H_
 #define VARS_H_
 
+#include "regs.h"
 #include "token.h"
 
-int get_variable_type(token_t* token);
-int get_variable_size(token_t* token);
-int get_variable_size_wt(token_t* token);
-int is_variable_decl(token_type_t token);
-int is_operand(token_type_t token);
-int get_token_priority(token_type_t type);
+int VRS_variable_bitness(token_t* token, char ptr);
+int VRS_isptr(token_t* token);
+int VRS_one_slot(token_t* token);
+int VRS_intext(token_t* token);
+int VRS_isdecl(token_type_t token);
+int VRS_isoperand(token_type_t token);
+int VRS_token_priority(token_type_t type);
 
 #endif

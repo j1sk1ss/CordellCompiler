@@ -1,94 +1,96 @@
 #include <vars.h>
 
-/*
-Return 1 if variable is an array-like data object.
-Return 64 if 64bit variable.
-Return 32 if 32bit variable.
-Return 16 if 16bit variable.
-Return 8 if 8bit variable.
+/* 
+ptr - 0 we ignore ptr flag.
+Return variable bitness (size in bits). 
 */
-int get_variable_type(token_t* token) {
+int VRS_variable_bitness(token_t* token, char ptr) {
+    if (!token) return 0;
+    if (ptr && token->ptr) return BASE_BITNESS;
+    switch (token->t_type) {
+        case INT_VARIABLE_TOKEN:   return 32;
+        case SHORT_VARIABLE_TOKEN: return 16;
+        case CHAR_VALUE_TOKEN:
+        case CHAR_VARIABLE_TOKEN:  return 8;
+        default:                   return BASE_BITNESS;
+    }
+
+    return 0;
+} 
+
+/* Return 1 if token is pointer (arr, string, ptr). Otherwise return 0. */
+int VRS_isptr(token_t* token) {
+    if (!token) return 0;
     if (token->ptr) return 1;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
+        case INT_VARIABLE_TOKEN:
+        case SHORT_VARIABLE_TOKEN:
+        case CHAR_VALUE_TOKEN:
+        case CHAR_VARIABLE_TOKEN:  return 0;
+        case STRING_VALUE_TOKEN:
+        case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:
-        case ARR_VARIABLE_TOKEN:
-        case STRING_VALUE_TOKEN: return 1;
-        case LONG_VARIABLE_TOKEN: return 64;
-        case INT_VARIABLE_TOKEN: return 32;
-        case SHORT_VARIABLE_TOKEN: return 16;
-        case CHAR_VALUE_TOKEN:
-        case CHAR_VARIABLE_TOKEN: return 8;
-        default: return 0;
+        default:                   return 1;
     }
-} 
 
-/*
-With token handling
-*/
-int get_variable_size(token_t* token) {
-    if (token->ptr) return 64;
-    switch (token->t_type) {
-        case UNKNOWN_NUMERIC_TOKEN:
-        case STRING_VALUE_TOKEN:
-        case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN: 
-        case LONG_VARIABLE_TOKEN: return 64;
-        case INT_VARIABLE_TOKEN: return 32;
-        case SHORT_VARIABLE_TOKEN: return 16;
-        case CHAR_VALUE_TOKEN:
-        case CHAR_VARIABLE_TOKEN: return 8;
-        default: return 1;
-    }
+    return 0;
 }
 
-/*
-Without token handling
-*/
-int get_variable_size_wt(token_t* token) {
-    switch (token->t_type) {
-        case UNKNOWN_NUMERIC_TOKEN:
-        case STRING_VALUE_TOKEN:
-        case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN: 
-        case LONG_VARIABLE_TOKEN: return 64;
-        case INT_VARIABLE_TOKEN: return 32;
-        case SHORT_VARIABLE_TOKEN: return 16;
-        case CHAR_VALUE_TOKEN:
-        case CHAR_VARIABLE_TOKEN: return 8;
-        default: return 1;
-    }
+/* Is token in text segment */
+int VRS_intext(token_t* token) {
+    if (!token) return 0;
+    return !token->glob && !token->ro;
 }
 
-int is_variable_decl(token_type_t token) {
+/* Is variable occupie one slot in stack? */
+int VRS_one_slot(token_t* token) {
+    if (!token) return 0;
+    if (token->ptr) return 1;
+    switch (token->t_type) {
+        case UNKNOWN_NUMERIC_TOKEN:
+        case INT_VARIABLE_TOKEN:
+        case SHORT_VARIABLE_TOKEN:
+        case CHAR_VALUE_TOKEN:
+        case CHAR_VARIABLE_TOKEN:  return 1;
+        case STRING_VALUE_TOKEN:
+        case ARR_VARIABLE_TOKEN:
+        case STR_VARIABLE_TOKEN:
+        default:                   return 0;
+    }
+
+    return 0;
+}
+
+int VRS_isdecl(token_type_t token) {
     switch (token) {
-        case ARRAY_TYPE_TOKEN:
-        case LONG_TYPE_TOKEN:
         case INT_TYPE_TOKEN:
-        case SHORT_TYPE_TOKEN:
+        case STR_TYPE_TOKEN:
         case CHAR_TYPE_TOKEN:
-        case STR_TYPE_TOKEN: return 1;
-        default: return 0;
+        case LONG_TYPE_TOKEN:
+        case ARRAY_TYPE_TOKEN:
+        case SHORT_TYPE_TOKEN:     return 1;
+        default:                   return 0;
     }
 }
 
-int is_operand(token_type_t token) {
+int VRS_isoperand(token_type_t token) {
     switch (token) {
-        case NCOMPARE_TOKEN:
-        case COMPARE_TOKEN:
         case PLUS_TOKEN:
         case MINUS_TOKEN:
-        case MULTIPLY_TOKEN:
+        case BITOR_TOKEN:
         case DIVIDE_TOKEN:
         case BITAND_TOKEN:
-        case BITOR_TOKEN:
+        case COMPARE_TOKEN:
+        case NCOMPARE_TOKEN:
+        case MULTIPLY_TOKEN:
         case BITMOVE_LEFT_TOKEN:
-        case BITMOVE_RIGHT_TOKEN: return 1;
-        default: return 0;
+        case BITMOVE_RIGHT_TOKEN:  return 1;
+        default:                   return 0;
     }
 }
 
-int get_token_priority(token_type_t type) {
+int VRS_token_priority(token_type_t type) {
     switch (type) {
         case OR_TOKEN:             return 1;
         case AND_TOKEN:            return 2;

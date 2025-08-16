@@ -1,5 +1,18 @@
 #include <arrmem.h>
 
+arrmem_ctx_t* ARM_create_ctx() {
+    arrmem_ctx_t* ctx = (arrmem_ctx_t*)mm_malloc(sizeof(arrmem_ctx_t));
+    if (!ctx) return NULL;
+    str_memset(ctx, 0, sizeof(arrmem_ctx_t));
+    return ctx;
+}
+
+int ARM_destroy_ctx(arrmem_ctx_t* ctx) {
+    if (!ctx) return 0;
+    mm_free(ctx);
+    return 1;
+}
+
 int ARM_get_info(const char* name, const char* func, array_info_t* info, arrmem_ctx_t* ctx) {
     array_info_t* h = ctx->h;
     while (h) {

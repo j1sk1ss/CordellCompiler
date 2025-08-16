@@ -18,6 +18,9 @@ typedef struct {
     variable_info_t* h;
 } varmem_ctx_t;
 
+varmem_ctx_t* VRM_create_ctx();
+int VRM_destroy_ctx(varmem_ctx_t* ctx);
+
 /*
 Get variable info from context by varname and function scope.
 */

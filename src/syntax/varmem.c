@@ -1,5 +1,18 @@
 #include <varmem.h>
 
+varmem_ctx_t* VRM_create_ctx() {
+    varmem_ctx_t* ctx = (varmem_ctx_t*)mm_malloc(sizeof(varmem_ctx_t));
+    if (!ctx) return NULL;
+    str_memset(ctx, 0, sizeof(varmem_ctx_t));
+    return ctx;
+}
+
+int VRM_destroy_ctx(varmem_ctx_t* ctx) {
+    if (!ctx) return 0;
+    mm_free(ctx);
+    return 1;
+}
+
 int VRM_get_info(const char* variable, const char* func, variable_info_t* info, varmem_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {

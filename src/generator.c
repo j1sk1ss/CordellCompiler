@@ -1,14 +1,27 @@
 #include <generator.h>
 
-static int _generate_declaration(const tree_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_assignment( const tree_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_function(   const tree_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_syscall(    const tree_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_switch(     const tree_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_while(      const tree_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_if(         const tree_t*, FILE*, const char*, gen_ctx_t*);
+gen_ctx_t* GEN_create_ctx() {
+    gen_ctx_t* ctx = (gen_ctx_t*)mm_malloc(sizeof(gen_ctx_t));
+    if (!ctx) return NULL;
+    str_memset(ctx, 0, sizeof(gen_ctx_t));
+    return ctx;
+}
 
-static int _generate_raw(token_type_t t_type, const tree_t* entry, FILE* output) {
+int GEN_destroy_ctx(gen_ctx_t* ctx) {
+    if (!ctx) return 0;
+    mm_free(ctx);
+    return 1;
+}
+
+static int _generate_declaration(tree_t*, FILE*, const char*, gen_ctx_t*);
+static int _generate_assignment( tree_t*, FILE*, const char*, gen_ctx_t*);
+static int _generate_function(   tree_t*, FILE*, const char*, gen_ctx_t*);
+static int _generate_syscall(    tree_t*, FILE*, const char*, gen_ctx_t*);
+static int _generate_switch(     tree_t*, FILE*, const char*, gen_ctx_t*);
+static int _generate_while(      tree_t*, FILE*, const char*, gen_ctx_t*);
+static int _generate_if(         tree_t*, FILE*, const char*, gen_ctx_t*);
+
+static int _generate_raw(token_type_t t_type, tree_t* entry, FILE* output) {
     if (!entry->first_child) return 0;
     switch (t_type) {
         case LONG_TYPE_TOKEN:  iprintf(output, "__%s__: resq 1\n", (char*)entry->first_child->token->value); break;
@@ -16,9 +29,9 @@ static int _generate_raw(token_type_t t_type, const tree_t* entry, FILE* output)
         case SHORT_TYPE_TOKEN: iprintf(output, "__%s__: resw 1\n", (char*)entry->first_child->token->value); break;
         case CHAR_TYPE_TOKEN:  iprintf(output, "__%s__: resb 1\n", (char*)entry->first_child->token->value); break;
         case ARRAY_TYPE_TOKEN: {
-            const tree_t* size   = entry->first_child;
-            const tree_t* t_type = size->next_sibling;
-            const tree_t* name   = t_type->next_sibling;
+            tree_t* size   = entry->first_child;
+            tree_t* t_type = size->next_sibling;
+            tree_t* name   = t_type->next_sibling;
             if (!name->next_sibling) {
                 char* directive = "resb";
                 if (t_type->token->t_type == SHORT_TYPE_TOKEN)     directive = "resw";
@@ -34,7 +47,7 @@ static int _generate_raw(token_type_t t_type, const tree_t* entry, FILE* output)
     return 1;
 }
 
-static int _generate_init(token_type_t t_type, const tree_t* entry, FILE* output) {
+static int _generate_init(token_type_t t_type, tree_t* entry, FILE* output) {
     switch (t_type) {
         case STR_TYPE_TOKEN:   iprintf(output, "__%s__ db '%s', 0\n", (char*)entry->first_child->token->value, (char*)entry->first_child->next_sibling->token->value); break;
         case LONG_TYPE_TOKEN:  iprintf(output, "__%s__ dq %s\n", (char*)entry->first_child->token->value, (char*)entry->first_child->next_sibling->token->value); break;
@@ -42,16 +55,16 @@ static int _generate_init(token_type_t t_type, const tree_t* entry, FILE* output
         case SHORT_TYPE_TOKEN: iprintf(output, "__%s__ dw %s\n", (char*)entry->first_child->token->value, (char*)entry->first_child->next_sibling->token->value); break;
         case CHAR_TYPE_TOKEN:  iprintf(output, "__%s__ db %s\n", (char*)entry->first_child->token->value, (char*)entry->first_child->next_sibling->token->value); break;
         case ARRAY_TYPE_TOKEN: {
-            const tree_t* size   = entry->first_child;
-            const tree_t* t_type = size->next_sibling;
-            const tree_t* name   = t_type->next_sibling;
+            tree_t* size   = entry->first_child;
+            tree_t* t_type = size->next_sibling;
+            tree_t* name   = t_type->next_sibling;
             if (name->next_sibling) {
                 char* directive = "db";
                 if (t_type->token->t_type == SHORT_TYPE_TOKEN)     directive = "dw";
                 else if (t_type->token->t_type == INT_TYPE_TOKEN)  directive = "dd";
                 else if (t_type->token->t_type == LONG_TYPE_TOKEN) directive = "dq";
                 iprintf(output, "%s %s ", name->token->value, directive);
-                for (const tree_t* elem = name->next_sibling; elem; elem = elem->next_sibling) {
+                for (tree_t* elem = name->next_sibling; elem; elem = elem->next_sibling) {
                     if (elem->token->t_type == UNKNOWN_NUMERIC_TOKEN) fprintf(output, "%s%s", elem->token->value, elem->next_sibling ? "," : "\n");
                     else {
                         int value = 0;
@@ -80,9 +93,11 @@ section 2 is a rodata section
 */
 #define DATA_SECTION   1
 #define RODATA_SECTION 2
-static int _generate_data_section(const tree_t* node, FILE* output, int section, int (*data_gen)(token_type_t, const tree_t*, FILE*)) {
+static int _generate_data_section(
+    tree_t* node, FILE* output, int section, int (*data_gen)(token_type_t, tree_t*, FILE*)
+) {
     if (!node) return 0;
-    for (const tree_t* child = node->first_child; child; child = child->next_sibling) {
+    for (tree_t* child = node->first_child; child; child = child->next_sibling) {
         if (!child->token) {
             _generate_data_section(child, output, section, data_gen);
             continue;
@@ -91,7 +106,7 @@ static int _generate_data_section(const tree_t* node, FILE* output, int section,
         if (
             (section == DATA_SECTION && child->token->glob) || (section == RODATA_SECTION && child->token->ro)
         ) data_gen(child->token->t_type, child, output);
-        else if (!child->token->ro && !child->token->glob) {
+        else if (VRS_intext(child->token)) {
             switch (child->token->t_type) {
                 case IF_TOKEN:
                 case SYSCALL_TOKEN:
@@ -108,7 +123,7 @@ static int _generate_data_section(const tree_t* node, FILE* output, int section,
     return 1;
 }
 
-static int _generate_expression(const tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
+static int _generate_expression(tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     if (!node) return 0;
     if (node->token->t_type == IF_TOKEN)           _generate_if(node, output, func, ctx);
     else if (node->token->t_type == SWITCH_TOKEN)  _generate_switch(node, output, func, ctx);
@@ -118,22 +133,22 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
     else if (node->token->t_type == ASIGN_TOKEN)   _generate_assignment(node, output, func, ctx);
     else if (node->token->t_type == UNKNOWN_NUMERIC_TOKEN) iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), node->token->value);
     else if (node->token->t_type == CHAR_VALUE_TOKEN)      iprintf(output, "mov %s, %i\n", GET_RAW_REG(8, RAX), *node->token->value);
-    else if (node->token->ptr && is_variable_decl(node->token->t_type)) _generate_declaration(node, output, func, ctx);
-    else if (node->token->ptr && !is_variable_decl(node->token->t_type) && get_variable_type(node->token)) {
+    else if (node->token->ptr && VRS_isdecl(node->token->t_type)) _generate_declaration(node, output, func, ctx);
+    else if (node->token->ptr && !VRS_isdecl(node->token->t_type) && VRS_isptr(node->token)) {
         if (!node->first_child) iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), GET_ASMVAR(node));
         else {
             variable_info_t info;
             if (VRM_get_info((char*)node->token->value, func, &info, ctx->synt->vars)) {
                 _generate_expression(node->first_child, output, func, ctx);
 
-                int ptr_type_size = get_variable_size_wt(node->token) / 8;
-                if (ptr_type_size > 1) iprintf(output, "imul %s, %d\n", GET_RAW_REG(BASE_BITNESS, RAX), ptr_type_size);
+                int raw_bitness = VRS_variable_bitness(node->token, 0) / 8;
+                if (raw_bitness > 1) iprintf(output, "imul %s, %d\n", GET_RAW_REG(BASE_BITNESS, RAX), raw_bitness);
                 iprintf(output, "add %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), GET_ASMVAR(node));
 
                 regs_t reg;
-                get_reg(&reg, ptr_type_size, RAX, 0);
+                get_reg(&reg, raw_bitness, RAX, 0);
                 iprintf(
-                    output, "%s %s,%s[%s]\n", ptr_type_size <= 2 ? "movzx" : "mov",
+                    output, "%s %s,%s[%s]\n", raw_bitness <= 2 ? "movzx" : "mov",
                     GET_RAW_REG(BASE_BITNESS, RAX), reg.operation, GET_RAW_REG(BASE_BITNESS, RAX)
                 );
             }
@@ -143,19 +158,24 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
     else if (node->token->t_type == INT_TYPE_TOKEN)   _generate_declaration(node, output, func, ctx);
     else if (node->token->t_type == SHORT_TYPE_TOKEN) _generate_declaration(node, output, func, ctx);
     else if (node->token->t_type == CHAR_TYPE_TOKEN)  _generate_declaration(node, output, func, ctx);
-    else if (node->token->t_type == CHAR_VARIABLE_TOKEN  ||
-             node->token->t_type == SHORT_VARIABLE_TOKEN ||
-             node->token->t_type == INT_VARIABLE_TOKEN   ||
-             node->token->t_type == LONG_VARIABLE_TOKEN
+    else if (
+        node->token->t_type == CHAR_VARIABLE_TOKEN  ||
+        node->token->t_type == SHORT_VARIABLE_TOKEN ||
+        node->token->t_type == INT_VARIABLE_TOKEN   ||
+        node->token->t_type == LONG_VARIABLE_TOKEN
     ) {
-        iprintf(output, "mov %s, %s ; int %s\n", GET_RAW_REG(get_variable_size(node->token), RAX), GET_ASMVAR(node), node->token->value);
+        iprintf(
+            output, "mov %s, %s ; int %s\n", 
+            GET_RAW_REG(VRS_variable_bitness(node->token, 1), RAX), GET_ASMVAR(node), node->token->value
+        );
+
         _generate_expression(node->first_child, output, func, ctx);
     }
     else if (node->token->t_type == ARRAY_TYPE_TOKEN) {
-        if (node->first_child && !node->token->ro && !node->token->glob) {
-            const tree_t* size   = node->first_child;
-            const tree_t* t_type = size->next_sibling;
-            const tree_t* name   = t_type->next_sibling;
+        if (node->first_child && VRS_intext(node->token)) {
+            tree_t* size   = node->first_child;
+            tree_t* t_type = size->next_sibling;
+            tree_t* name   = t_type->next_sibling;
 
             array_info_t arr_info = { .el_size = 1 };
             if (ARM_get_info((char*)name->token->value, func, &arr_info, ctx->synt->arrs)) {
@@ -166,7 +186,7 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
                     regs_t reg;
                     get_reg(&reg, arr_info.el_size, RAX, 0);
 
-                    int base_off = name->variable_offset;
+                    int base_off = node->variable_offset;
                     for (tree_t* v = vals; v && v->token->t_type != DELIMITER_TOKEN; v = v->next_sibling) {
                         if (v->token->t_type == UNKNOWN_NUMERIC_TOKEN) iprintf(
                             output, "mov%s[%s - %d], %d\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, str_atoi((char*)v->token->value)
@@ -177,7 +197,7 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
                         else {
                             int is_ptr = (
                                 ARM_get_info((char*)v->token->value, func, NULL, ctx->synt->arrs) && 
-                                !(v->token->ro || v->token->glob)
+                                VRS_intext(v->token)
                             );
 
                             iprintf(output, "%s %s, %s ; int %s \n", !is_ptr ? "mov" : "lea", reg.name, GET_ASMVAR(v), v->token->value);
@@ -193,8 +213,8 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
         }
     }
     else if (node->token->t_type == STR_TYPE_TOKEN) {
-        const tree_t* name_node = node->first_child;
-        if (name_node->next_sibling && !name_node->token->ro && !name_node->token->glob) {
+        tree_t* name_node = node->first_child;
+        if (name_node->next_sibling && VRS_intext(name_node->token)) {
             fprintf(output, "\n ; --------------- String setup %s --------------- \n", name_node->token->value);
             tree_t* val_node = name_node->next_sibling;
             char* val_head = (char*)val_node->token->value;
@@ -209,7 +229,7 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
     }
     else if (node->token->t_type == ARR_VARIABLE_TOKEN || node->token->t_type == STR_VARIABLE_TOKEN) {
         regs_t reg;
-        get_reg(&reg, 8, RAX, !(node->token->ro || node->token->glob));
+        get_reg(&reg, 8, RAX, VRS_intext(node->token));
         if (!node->first_child) iprintf(output, "%s %s, %s\n", reg.move, GET_RAW_REG(BASE_BITNESS, RAX), GET_ASMVAR(node));
         else {
             array_info_t arr_info = { .el_size = 1 };
@@ -328,8 +348,8 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
         2) Put args to the stack.
         */
         int variables_size = 0;
-        const tree_t* func_name_node = node;
-        const tree_t* args_node = func_name_node->first_child;
+        tree_t* func_name_node = node;
+        tree_t* args_node = func_name_node->first_child;
 
         /*
         Saving params in stack.
@@ -382,9 +402,9 @@ static int _generate_expression(const tree_t* node, FILE* output, const char* fu
 static int _get_variables_size(tree_t* head, const char* func, gen_ctx_t* ctx) {
     int size = 0;
     if (!head) return 0;
-    for (const tree_t* expression = head; expression; expression = expression->next_sibling) {
+    for (tree_t* expression = head; expression; expression = expression->next_sibling) {
         if (!expression->token) continue;
-        if (expression->token->ro || expression->token->glob) continue;
+        if (!VRS_intext(expression->token)) continue;
         if (expression->token->t_type == ARRAY_TYPE_TOKEN) {
             array_info_t arr_info = { .el_size = 1 };
             if (ARM_get_info(
@@ -412,21 +432,24 @@ static int _get_variables_size(tree_t* head, const char* func, gen_ctx_t* ctx) {
     return size;
 }
 
-static int _generate_declaration(const tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
+static int _generate_declaration(tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     int val = 0;
     int type = 0;
 
-    const tree_t* name_node = node->first_child;
-    if (name_node->token->ro || name_node->token->glob) return 0;
+    tree_t* name_node = node->first_child;
+    if (!VRS_intext(name_node->token)) return 0;
 
     char* derictive = " ";
-    if (name_node->next_sibling->token->t_type != UNKNOWN_NUMERIC_TOKEN && name_node->next_sibling->token->t_type != CHAR_VALUE_TOKEN) {
+    if (
+        name_node->next_sibling->token->t_type != UNKNOWN_NUMERIC_TOKEN && 
+        name_node->next_sibling->token->t_type != CHAR_VALUE_TOKEN
+    ) {
         type = 0;
         _generate_expression(name_node->next_sibling, output, func, ctx);
     }
     else {
         type = 1;
-        switch (get_variable_size(name_node->token)) {
+        switch (VRS_variable_bitness(name_node->token, 1)) {
             default:
             case 64: derictive = " qword "; break;
             case 32: derictive = " dword "; break;
@@ -446,10 +469,10 @@ static int _generate_declaration(const tree_t* node, FILE* output, const char* f
     return 1;
 }
 
-static int _generate_function(const tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    const tree_t* name_node   = node->first_child;
-    const tree_t* params_node = name_node->next_sibling;
-    const tree_t* body_node   = params_node->next_sibling;
+static int _generate_function(tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
+    tree_t* name_node   = node->first_child;
+    tree_t* params_node = name_node->next_sibling;
+    tree_t* body_node   = params_node->next_sibling;
 
     fprintf(output, "\n ; --------------- Function %s --------------- \n", name_node->token->value);
     iprintf(output, "jmp __end_%s__\n", name_node->token->value);
@@ -478,17 +501,17 @@ static int _generate_function(const tree_t* node, FILE* output, const char* func
     int stack_offset = 8;
 
     static const int args_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
-    for (const tree_t* param = params_node->first_child; param; param = param->next_sibling) {
+    for (tree_t* param = params_node->first_child; param; param = param->next_sibling) {
         int param_size = param->variable_size;
         char* param_name = (char*)param->first_child->token->value;
 
         regs_t reg;
 #if (BASE_BITNESS == BIT64)
-        get_reg(&reg, get_variable_size(param->first_child->token) / 8, args_regs[pop_params], 0);
+        get_reg(&reg, VRS_variable_bitness(param->first_child->token, 1) / 8, args_regs[pop_params], 0);
         if (pop_params < 6) iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->first_child->variable_offset, reg.name);
         else
 #else
-        get_reg(&reg, get_variable_size(param->first_child->token) / 8, RAX, 0);
+        get_reg(&reg, VRS_variable_bitness(param->first_child->token, 1) / 8, RAX, 0);
 #endif
         {
             iprintf(output, "mov %s, [%s + %d] ; int64 %s \n", reg.name, GET_RAW_REG(BASE_BITNESS, RBP), stack_offset, param_name);
@@ -503,7 +526,7 @@ static int _generate_function(const tree_t* node, FILE* output, const char* func
     Function body without return statement.
     All expressions will use one shared register EAX.
     */
-    for (const tree_t* part = body_node->first_child; part; part = part->next_sibling) {
+    for (tree_t* part = body_node->first_child; part; part = part->next_sibling) {
         _generate_expression(part, output, (char*)name_node->token->value, ctx);
     }
 
@@ -512,10 +535,10 @@ static int _generate_function(const tree_t* node, FILE* output, const char* func
     return 1;
 }
 
-static int _generate_while(const tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
+static int _generate_while(tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     int current_label = ctx->label++;
-    const tree_t* condition = node->first_child;
-    const tree_t* body = condition->next_sibling->first_child;
+    tree_t* condition = node->first_child;
+    tree_t* body = condition->next_sibling->first_child;
 
     fprintf(output, "\n ; --------------- while cycle [%i] --------------- \n", current_label);
     iprintf(output, "__while_%d__:\n", current_label);
@@ -563,10 +586,10 @@ static int _generate_case_binary_jump(FILE* output, int* values, int left, int r
     return 1;
 }
 
-static int _generate_switch(const tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
+static int _generate_switch(tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     int current_label = ctx->label++;
-    const tree_t* stmt = node->first_child;
-    const tree_t* cases = stmt->next_sibling;
+    tree_t* stmt = node->first_child;
+    tree_t* cases = stmt->next_sibling;
 
     int cases_count = 0;
     int values[128] = { -1 };
@@ -575,7 +598,7 @@ static int _generate_switch(const tree_t* node, FILE* output, const char* func, 
 
     int have_default = 0;
     iprintf(output, "jmp __end_cases_%d__\n", current_label);
-    for (const tree_t* curr_case = cases->first_child; curr_case; curr_case = curr_case->next_sibling) {
+    for (tree_t* curr_case = cases->first_child; curr_case; curr_case = curr_case->next_sibling) {
         if (curr_case->token->t_type == DEFAULT_TOKEN) {
             have_default = 1;
             iprintf(output, "__default_%d__:\n", current_label);
@@ -586,7 +609,7 @@ static int _generate_switch(const tree_t* node, FILE* output, const char* func, 
             values[cases_count++] = case_value;
         }
 
-        for (const tree_t* part = curr_case->first_child->first_child; part; part = part->next_sibling) {
+        for (tree_t* part = curr_case->first_child->first_child; part; part = part->next_sibling) {
             _generate_expression(part, output, func, ctx);
         }
 
@@ -603,11 +626,11 @@ static int _generate_switch(const tree_t* node, FILE* output, const char* func, 
     return 1;
 }
 
-static int _generate_if(const tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
+static int _generate_if(tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     int current_label = ctx->label++;
-    const tree_t* condition = node->first_child;
-    const tree_t* body = condition->next_sibling;
-    const tree_t* else_body = body->next_sibling;
+    tree_t* condition = node->first_child;
+    tree_t* body = condition->next_sibling;
+    tree_t* else_body = body->next_sibling;
 
     fprintf(output, "\n ; --------------- if statement [%i] --------------- \n", current_label);
     _generate_expression(condition, output, func, ctx);
@@ -615,7 +638,7 @@ static int _generate_if(const tree_t* node, FILE* output, const char* func, gen_
     if (else_body) iprintf(output, "je __else_%d__\n", current_label);
     else iprintf(output, "je __end_if_%d__\n", current_label);
 
-    const tree_t* body_exp = body->first_child;
+    tree_t* body_exp = body->first_child;
     while (body_exp) {
         _generate_expression(body_exp, output, func, ctx);
         body_exp = body_exp->next_sibling;
@@ -625,7 +648,7 @@ static int _generate_if(const tree_t* node, FILE* output, const char* func, gen_
 
     if (else_body) {
         iprintf(output, "__else_%d__:\n", current_label);
-        const tree_t* else_body_exp = else_body->first_child;
+        tree_t* else_body_exp = else_body->first_child;
         while (else_body_exp) {
             _generate_expression(else_body_exp, output, func, ctx);
             else_body_exp = else_body_exp->next_sibling;
@@ -640,7 +663,7 @@ static int _generate_if(const tree_t* node, FILE* output, const char* func, gen_
 /* https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/ */
 /* https://gist.github.com/GabriOliv/a9411fa771a1e5d94105cb05cbaebd21 */
 /* https://math.hws.edu/eck/cs220/f22/registers.html */
-static int _generate_syscall(const tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
+static int _generate_syscall(tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     static const int args_regs[] = { 
 #if (BASE_BITNESS == BIT64)
         RAX, RDI, RSI, RDX, R10, R8, R9
@@ -652,15 +675,15 @@ static int _generate_syscall(const tree_t* node, FILE* output, const char* func,
     fprintf(output, "\n ; --------------- system call --------------- \n");
 
     int arg_index = 0;
-    const tree_t* args = node->first_child;
+    tree_t* args = node->first_child;
     while (args) {
         regs_t reg;
         int is_ptr = (
             ARM_get_info((char*)args->token->value, func, NULL, ctx->synt->arrs) && 
-            !(args->token->ro || args->token->glob)
+            !VRS_intext(args->token)
         );
         
-        get_reg(&reg, get_variable_size(args->token) / 8, args_regs[arg_index++], is_ptr);
+        get_reg(&reg, VRS_variable_bitness(args->token, 1) / 8, args_regs[arg_index++], is_ptr);
         iprintf(output, "%s%s%s, %s\n", reg.move, reg.operation, reg.name, GET_ASMVAR(args));
         args = args->next_sibling;
     }
@@ -671,9 +694,9 @@ static int _generate_syscall(const tree_t* node, FILE* output, const char* func,
     return 1;
 }
 
-static int _generate_assignment(const tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    const tree_t* left  = node->first_child;
-    const tree_t* right = left->next_sibling;
+static int _generate_assignment(tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
+    tree_t* left  = node->first_child;
+    tree_t* right = left->next_sibling;
 
     fprintf(output, "\n; --------------- Assignment: %s = %s --------------- \n", left->token->value, right->token->value);
 
@@ -682,12 +705,12 @@ static int _generate_assignment(const tree_t* node, FILE* output, const char* fu
     Pointer assignment. Also we check if this variable is ptr, array or etc.
     Markers are 64 bits size and first child.
     */
-    if ((get_variable_size(left->token) == 64) && left->first_child) {
+    if ((VRS_variable_bitness(left->token, 1) == BASE_BITNESS) && left->first_child) {
         /* If left node is array or string (array too) with elem size info. */
         array_info_t arr_info = { .el_size = 1 };
         int is_ptr = (
             ARM_get_info((char*)node->first_child->token->value, func, &arr_info, ctx->synt->arrs) && 
-            !(node->first_child->token->ro || node->first_child->token->glob)
+            VRS_intext(node->first_child->token)
         );
 
         /*
@@ -717,9 +740,9 @@ static int _generate_assignment(const tree_t* node, FILE* output, const char* fu
     return 1;
 }
 
-static int _generate_text_section(const tree_t* node, FILE* output, gen_ctx_t* ctx) {
+static int _generate_text_section(tree_t* node, FILE* output, gen_ctx_t* ctx) {
     if (!node) return 0;
-    for (const tree_t* child = node->first_child; child; child = child->next_sibling) {
+    for (tree_t* child = node->first_child; child; child = child->next_sibling) {
         _generate_expression(child, output, NULL, ctx);
     }
 
@@ -756,11 +779,11 @@ int GEN_generate(gen_ctx_t* ctx, FILE* output) {
     fprintf(output, "\nsection .text\n");
     /* Generate prefix section code */
     if (prefix_node) {
-        for (const tree_t* child = prefix_node->first_child; child; child = child->next_sibling) {
+        for (tree_t* child = prefix_node->first_child; child; child = child->next_sibling) {
             if (!child->token) continue;
             switch (child->token->t_type) {
                 case IMPORT_SELECT_TOKEN:
-                    for (const tree_t* func = child->first_child->first_child; func; func = func->next_sibling)
+                    for (tree_t* func = child->first_child->first_child; func; func = func->next_sibling)
                         fprintf(output, "    extern __%s__\n", func->token->value);
                 break;
 

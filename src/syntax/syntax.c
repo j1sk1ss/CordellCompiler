@@ -1,5 +1,18 @@
 #include <syntax.h>
 
+syntax_ctx_t* STX_create_ctx() {
+    syntax_ctx_t* ctx = (syntax_ctx_t*)mm_malloc(sizeof(syntax_ctx_t));
+    if (!ctx) return NULL;
+    str_memset(ctx, 0, sizeof(syntax_ctx_t));
+    return ctx;
+}
+
+int STX_destroy_ctx(syntax_ctx_t* ctx) {
+    if (!ctx) return 0;
+    mm_free(ctx);
+    return 1;
+}
+
 static tree_t* _parser_dummy(               token_t**, syntax_ctx_t*);
 static tree_t* _parse_import(               token_t**, syntax_ctx_t*);
 static tree_t* _parse_variable_declaration( token_t**, syntax_ctx_t*);
@@ -235,7 +248,7 @@ static tree_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx) {
     }
 
     while (!*curr || (*curr)->t_type != OPEN_BLOCK_TOKEN) {
-        if (is_variable_decl((*curr)->t_type)) {
+        if (VRS_isdecl((*curr)->t_type)) {
             tree_t* param_node = _parse_variable_declaration(curr, ctx);
             if (!param_node) {
                 STX_unload(func_node);
@@ -273,10 +286,8 @@ static tree_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
     
     token_t* assign_token = name_token->next;
     if (!assign_token) return NULL;
-
     token_t* value_token = assign_token->next;
     if (!value_token) return NULL;
-
     tree_t* decl_node = STX_create_node(type_token);
     if (!decl_node) return NULL;
     
@@ -286,25 +297,24 @@ static tree_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
         return NULL;
     }
     
-    while (*curr && (*curr)->t_type != DELIMITER_TOKEN) {
-        (*curr) = (*curr)->next;
-    }
-    
-    if ((name_token->ptr || get_variable_type(name_token) != 1) && !decl_node->token->ro && !decl_node->token->glob) {
-        int var_size = 8;
-        if (!name_token->ptr) {
-            if (type_token->t_type == CHAR_TYPE_TOKEN) var_size = 1;
-            else if (type_token->t_type == SHORT_TYPE_TOKEN) var_size = 2;
-            else if (type_token->t_type == INT_TYPE_TOKEN) var_size = 4;
-        }
-
+    if (
+        VRS_one_slot(name_token) &&  /* Pointer or variable (String and array occupie several stack slots) */
+        VRS_intext(decl_node->token) /* Global and RO variables placed not in stack */
+    ) {
+        int var_size = VRS_variable_bitness(name_token, 1) / 8;
         decl_node->variable_offset = VRM_add_info((char*)name_node->token->value, var_size, ctx->fname, ctx->vars);
-        decl_node->variable_size = var_size;
+        decl_node->variable_size   = var_size;
         _fill_variable(name_node, ctx);
     }
 
+    while (*curr && (*curr)->t_type != DELIMITER_TOKEN) {
+        (*curr) = (*curr)->next;
+    }
+
     STX_add_node(decl_node, name_node);
-    if (!assign_token || assign_token->t_type != ASIGN_TOKEN) return decl_node;
+    if (!assign_token || assign_token->t_type != ASIGN_TOKEN) {
+        return decl_node;
+    }
 
     tree_t* value_node = _parse_expression(&value_token, ctx);
     if (!value_node) {
@@ -313,9 +323,11 @@ static tree_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
         return NULL;
     }
 
-    if (type_token->t_type == STR_TYPE_TOKEN && !decl_node->token->ro && !decl_node->token->glob) {
-        int str_size = str_strlen((char*)value_node->token->value);
-        decl_node->variable_size = ALIGN(str_size);
+    if (
+        type_token->t_type == STR_TYPE_TOKEN && 
+        VRS_intext(decl_node->token) /* Global and RO strings placed in .rodata or .data section */
+    ) {
+        decl_node->variable_size   = ALIGN(str_strlen((char*)value_node->token->value));
         decl_node->variable_offset = VRM_add_info((char*)name_node->token->value, decl_node->variable_size, ctx->fname, ctx->vars);
         ARM_add_info((char*)name_node->token->value, ctx->fname, 1, decl_node->variable_size, ctx->arrs);
         _fill_variable(name_node, ctx);
@@ -413,7 +425,7 @@ static tree_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, int m
 
     while (*curr) {
         token_type_t op_type = (*curr)->t_type;
-        int priority = get_token_priority(op_type);
+        int priority = VRS_token_priority(op_type);
         if (priority < min_priority || priority == -1) break;
 
         token_t* op_token = *curr;

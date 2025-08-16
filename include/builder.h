@@ -20,10 +20,10 @@
 #define LINKER_FLAGS            "-z relro -z now"
 
 typedef struct {
-    token_t*     toks;
-    gen_ctx_t    gen;
-    syntax_ctx_t syntax;
-    char*        path;
+    token_t*      toks;
+    gen_ctx_t*    gen;
+    syntax_ctx_t* syntax;
+    char*         path;
 } object_t;
 
 typedef struct {

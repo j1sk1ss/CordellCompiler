@@ -47,7 +47,7 @@ Mapping:
 5 - RBP EBP .. ..
 6 - RSP ESP .. ..
 */
-#define GET_REG(source, register) __get_register__(get_variable_size((node)->token), register)
+#define GET_REG(source, register) __get_register__(VRS_variable_bitness((node)->token, 1), register)
 #define GET_RAW_REG(size, register) __get_register__(size, register)
 static inline const char* __get_register__(int size, int pos) {
     switch (size) {
