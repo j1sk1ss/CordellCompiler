@@ -1,0 +1,16 @@
+start
+    str str1 = "String value";
+    ptr str strptr = str1;
+
+    long a = 0;
+    int b = 1;
+    short c = 2;
+    char d = 'a';
+
+    a = b;
+    c = b;
+    d = c;
+    
+    d = strptr;
+    strptr = c;
+exit 0;

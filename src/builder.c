@@ -88,7 +88,7 @@ static int _compile_object(object_t* obj) {
     int stmt_opt_res = stmt_optimization(obj->syntax);
     print_log("Statement optimization... [%s (%i)]", RESULT(stmt_opt_res));
 
-    int varuse_opt_res = varuse_optimization(obj->syntax);
+    int varuse_opt_res = OPT_varuse(obj->syntax);
     print_log("Var usage optimization... [%s (%i)]", RESULT(varuse_opt_res));
 
     int offset_recalc_res = OPT_offrecalc(obj->syntax);

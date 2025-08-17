@@ -93,8 +93,7 @@ static int _find_decl(tree_t* root, tree_t* entry, int* delete) {
     return 1;
 }
 
-
-int varuse_optimization(syntax_ctx_t* ctx) {
+int OPT_varuse(syntax_ctx_t* ctx) {
     if (!ctx->r) return 0;
     int delete = 0;
     do {

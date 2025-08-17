@@ -1,6 +1,7 @@
 #ifndef SEMANTIC_H_
 #define SEMANTIC_H_
 
+#include "mm.h"
 #include "str.h"
 #include "vars.h"
 #include "logg.h"

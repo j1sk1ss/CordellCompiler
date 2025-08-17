@@ -1,0 +1,11 @@
+start
+    int a = 0;
+    short b = 0;
+    char c = 'a';
+
+    while a; {
+        b = c;
+    }
+
+    c = b;
+exit c;

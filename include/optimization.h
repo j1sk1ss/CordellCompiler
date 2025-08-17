@@ -11,7 +11,7 @@
 
 int OPT_strpack(syntax_ctx_t* ctx);
 int assign_optimization(syntax_ctx_t* ctx);
-int varuse_optimization(syntax_ctx_t* ctx);
+int OPT_varuse(syntax_ctx_t* ctx);
 int OPT_muldiv(syntax_ctx_t* ctx);
 int OPT_offrecalc(syntax_ctx_t* ctx);
 int stmt_optimization(syntax_ctx_t* ctx);

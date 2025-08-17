@@ -112,6 +112,12 @@ static tree_t* _parser_dummy(token_t** curr, syntax_ctx_t* ctx) { return NULL; }
 /*
 Main parse function, that parse whole scope.
 For parsing we have registered parsers for every token.
+
+Arch:
+scope
+|_ exp1 (val | exp)
+|_ exp2 (val | exp)
+|_ ...
 */
 static tree_t* _parse_scope(token_t** curr, syntax_ctx_t* ctx, token_type_t exit_token) {
     if (!curr || !*curr) return NULL;
@@ -132,6 +138,13 @@ from "src.cpl" import func1 func2;
 Where "from" - import_node.
 "src.cpl" - source_node.
 And then adding to source_node func1 and func2.
+
+Arch:
+import_token
+|_ src
+   |_ fname1 (str)
+   |_ fname2 (str)
+   |_ ...
 */
 static tree_t* _parse_import(token_t** curr, syntax_ctx_t* ctx) {
     if (!curr || !*curr || (*curr)->t_type != IMPORT_SELECT_TOKEN) return NULL;
@@ -169,6 +182,12 @@ func1 arg1 arg2;
 "func1" - call_node.
 And then adding to scope arg1 and arg2.
 Example: name(arg1, arg2, arg3, ...);
+
+Arch:
+call_token
+|_ scope
+   |_ arg1 (val | exp)
+   |_ ...
 */
 static tree_t* _parse_function_call(token_t** curr, syntax_ctx_t* ctx) {
     if (!curr || !*curr || (*curr)->t_type != CALL_TOKEN) return NULL;
@@ -203,6 +222,9 @@ static tree_t* _parse_function_call(token_t** curr, syntax_ctx_t* ctx) {
 /*
 Parser for "return <exp>;" expression.
 Same as for "end <exp>;".
+Arch:
+return_token
+|_ ret_val (val | exp)
 */
 static tree_t* _parse_return_declaration(token_t** curr, syntax_ctx_t* ctx) {
     if (!curr || !*curr || (*curr)->t_type != RETURN_TOKEN) return NULL;
@@ -220,12 +242,20 @@ static tree_t* _parse_return_declaration(token_t** curr, syntax_ctx_t* ctx) {
     return return_node;
 }
 
+/*
+Arch:
+func_token
+|_ scope
+|  |_ arg1
+|  |  |_ type
+|  |    |_ name (str)
+|  |_ ...
+|_ scope
+   |_ body1 (exp)
+   |_ ...
+*/
 static tree_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx) {
     if (!curr || !*curr || (*curr)->t_type != FUNC_TOKEN) return NULL;
-    int temp_off = ctx->vars->offset;
-    const char* temp_fname = ctx->fname;
-    ctx->vars->offset = 0;
-
     tree_t* func_node = STX_create_node(*curr);
     if (!func_node) return NULL;
     
@@ -236,7 +266,6 @@ static tree_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx) {
         return NULL;
     }
 
-    ctx->fname = (char*)name_node->token->value;
     STX_add_node(func_node, name_node);
 
     *curr = (*curr)->next;
@@ -246,6 +275,11 @@ static tree_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx) {
         STX_unload(name_node);
         return NULL;
     }
+
+    int temp_off = ctx->vars->offset;
+    const char* temp_fname = ctx->fname;
+    ctx->vars->offset = 0;
+    ctx->fname = (char*)name_node->token->value;
 
     while (!*curr || (*curr)->t_type != OPEN_BLOCK_TOKEN) {
         if (VRS_isdecl((*curr)->t_type)) {
@@ -279,6 +313,12 @@ static tree_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx) {
     return func_node;
 }
 
+/*
+Arch:
+type_token
+|_ name (arch)
+|_ decl_val (val | exp)
+*/
 static tree_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
     token_t* type_token = *curr;
     token_t* name_token = type_token->next;
@@ -337,6 +377,15 @@ static tree_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
     return decl_node;
 }
 
+/*
+Arch:
+arr_token
+|_ size (int)
+|_ el_size (int)
+|_ name (str)
+|_ element (val | exp)
+|_ ...
+*/
 static tree_t* _parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
     token_t* arr_token       = *curr;
     token_t* name_token      = arr_token->next;
@@ -419,6 +468,12 @@ static tree_t* _parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
     return arr_node;
 }
 
+/*
+Arch:
+operator_token
+|_ left_var (val | exp)
+|_ right_var (val | exp)
+*/
 static tree_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, int min_priority) {
     tree_t* left = _parse_primary(curr, ctx);
     if (!left) return NULL;
@@ -469,9 +524,11 @@ static tree_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx) {
         return node;
     }
 
-    if ((*curr)->t_type == ARR_VARIABLE_TOKEN || 
+    if (
+        (*curr)->t_type == ARR_VARIABLE_TOKEN || 
         (*curr)->t_type == STR_VARIABLE_TOKEN || 
-        (*curr)->ptr) return _parse_array_expression(curr, ctx);
+        (*curr)->ptr
+    )                                           return _parse_array_expression(curr, ctx);
     else if ((*curr)->t_type == CALL_TOKEN)     return _parse_function_call(curr, ctx);
     else if ((*curr)->t_type == SYSCALL_TOKEN)  return _parse_syscall(curr, ctx);
 
@@ -485,6 +542,23 @@ static tree_t* _parse_expression(token_t** curr, syntax_ctx_t* ctx) {
     return _parse_binary_expression(curr, ctx, 0);
 }
 
+/*
+Arch (with indexing, assign):
+assign_op
+|_ arr_name (str)
+|  |_ offset (val | exp)
+|_ assign_val (val | exp)
+
+Arch (without indexing, assign):
+assign_op
+|_ arr_name (str)
+|_ assign_val (val | exp)
+
+Arch (no assign):
+name / 
+name
+|_ offset (val | exp)
+*/
 static tree_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx) {
     if (!curr || !*curr) return NULL;
     tree_t* arr_name_node = STX_create_node(*curr);
@@ -502,37 +576,42 @@ static tree_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx) {
 
         while (*curr && (*curr)->t_type != CLOSE_INDEX_TOKEN) (*curr) = (*curr)->next;
         STX_add_node(arr_name_node, offset_exp);
-
         *curr = (*curr)->next;
-        token_t* assign_token = *curr;
-        if (!assign_token || assign_token->t_type == DELIMITER_TOKEN) {
-            return arr_name_node;
-        }
-
-        tree_t* assign_node = STX_create_node(assign_token);
-        if (!assign_node) {
-            STX_unload(arr_name_node);
-            STX_unload(offset_exp);
-            return NULL;
-        }
-
-        *curr = (*curr)->next;
-        tree_t* right = _parse_expression(curr, ctx);
-        if (!right) {
-            STX_unload(arr_name_node);
-            STX_unload(offset_exp);
-            STX_unload(assign_node);
-            return NULL;
-        }
-
-        STX_add_node(assign_node, arr_name_node);
-        STX_add_node(assign_node, right);
-        return assign_node;
     }
 
-    return arr_name_node;
+    token_t* assign_token = *curr;
+    if (!assign_token || assign_token->t_type == DELIMITER_TOKEN) {
+        return arr_name_node;
+    }
+
+    tree_t* assign_node = STX_create_node(assign_token);
+    if (!assign_node) {
+        STX_unload(arr_name_node);
+        return NULL;
+    }
+
+    *curr = (*curr)->next;
+    tree_t* right = _parse_expression(curr, ctx);
+    if (!right) {
+        STX_unload(arr_name_node);
+        STX_unload(assign_node);
+        return NULL;
+    }
+
+    STX_add_node(assign_node, arr_name_node);
+    STX_add_node(assign_node, right);
+    return assign_node;
 }
 
+/*
+Arch:
+switch_token
+|_ stmt (val | exp)
+|_ cases (scope)
+   |_ case_stmt (val | exp | default)
+      |_ case_body (scope)
+         |_ ...
+*/
 static tree_t* _parse_switch_expression(token_t** curr, syntax_ctx_t* ctx) {
     if (!curr || !*curr) return NULL;
     tree_t* body_node = STX_create_node(*curr);
@@ -556,35 +635,35 @@ static tree_t* _parse_switch_expression(token_t** curr, syntax_ctx_t* ctx) {
     if (*curr && (*curr)->t_type == OPEN_BLOCK_TOKEN) {
         *curr = (*curr)->next;
         while ((*curr)->t_type == CASE_TOKEN || (*curr)->t_type == DEFAULT_TOKEN) {
-            tree_t* case_val = NULL;
+            tree_t* case_stmt = NULL;
             if ((*curr)->t_type == CASE_TOKEN) {
                 *curr = (*curr)->next;
-                case_val = _parse_expression(curr, ctx);
-                case_val->token->t_type = CASE_TOKEN;
+                case_stmt = _parse_expression(curr, ctx);
+                case_stmt->token->t_type = CASE_TOKEN;
             }
             else {
                 *curr = (*curr)->next;
-                case_val = STX_create_node(TKN_create_token(DEFAULT_TOKEN, NULL, 0, 0));
+                case_stmt = STX_create_node(TKN_create_token(DEFAULT_TOKEN, NULL, 0, 0));
             }
             
-            if (!case_val) {
+            if (!case_stmt) {
                 STX_unload(body_node);
                 return NULL;
             }
 
             *curr = (*curr)->next;
-            tree_t* case_scope = _parse_scope(curr, ctx, CLOSE_BLOCK_TOKEN);
-            if (!case_scope) {
-                STX_unload(case_val);
+            tree_t* case_body = _parse_scope(curr, ctx, CLOSE_BLOCK_TOKEN);
+            if (!case_body) {
+                STX_unload(case_stmt);
                 STX_unload(body_node);
                 return NULL;
             }
 
-            case_val->token->glob = 0;
-            case_val->token->ro   = 0;
+            case_stmt->token->glob = 0;
+            case_stmt->token->ro   = 0;
 
-            STX_add_node(case_val, case_scope);
-            STX_add_node(cases_scope, case_val);
+            STX_add_node(case_stmt, case_body);
+            STX_add_node(cases_scope, case_stmt);
             *curr = (*curr)->next;
         }
     }
@@ -594,6 +673,15 @@ static tree_t* _parse_switch_expression(token_t** curr, syntax_ctx_t* ctx) {
     return body_node;
 }
 
+/*
+Arch:
+cond_node_token
+|_ condition (val | exp)
+|_ true_branch (scope)
+|  |_ ...
+|_ false_branch (scope)
+   |_ ...
+*/
 static tree_t* _parse_condition_scope(token_t** curr, syntax_ctx_t* ctx) {
     if (!curr || !*curr) return NULL;
     tree_t* body_node = STX_create_node(*curr);
@@ -635,6 +723,12 @@ static tree_t* _parse_condition_scope(token_t** curr, syntax_ctx_t* ctx) {
     return body_node;
 }
 
+/*
+Arch:
+syscall_token
+|_ arg1 (val | exp)
+|_ ...
+*/
 static tree_t* _parse_syscall(token_t** curr, syntax_ctx_t* ctx) {
     if (!curr || !*curr || (*curr)->t_type != SYSCALL_TOKEN) return NULL;
     tree_t* syscall_node = STX_create_node(*curr);

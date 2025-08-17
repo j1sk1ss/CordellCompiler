@@ -1,5 +1,76 @@
 #include <semantic.h>
 
+/*
+Example: val op val;
+Node arch:
+op
+|_ val | exp
+|_ val | exp
+
+Codes:
+-1, -2 - Operand without variables
+*/
+static int _check_exp_bitness(tree_t* r) {
+    if (!r || !r->token) return 1;
+    if (VRS_isoperand(r->token)) {
+        if (!r->first_child) return -1;
+        char lbitness = _check_exp_bitness(r->first_child);
+        if (!r->first_child->next_sibling) return -2;
+        char rbitness = _check_exp_bitness(r->first_child->next_sibling);
+        if (lbitness != rbitness) {
+            print_warn(
+                "Danger shadow type cast at line %i. Different size [%i] (%s) and [%i] (%s). Did you expect this?",
+                r->first_child->token->line_number, 
+                lbitness, r->first_child->token->value, 
+                rbitness, r->first_child->next_sibling->token->value
+            );
+        }
+
+        return MAX(lbitness, rbitness);
+    }
+
+    return VRS_variable_bitness(r->token, 1);
+}
+
+/*
+Example: type name = value;
+Node arch:
+type
+|_ name
+|_ value | exp
+
+Codes:
+-1 - No name and value
+-2 - No value
+*/
+static int _check_decl(tree_t* r) {
+    tree_t* type = r;
+    tree_t* name = type->first_child;
+    if (!name) return -1;
+    tree_t* value = name->next_sibling;
+    if (!value) return -2;
+
+    char tbitness = VRS_variable_bitness(name, 1);
+    char vbitness = _check_exp_bitness(value);
+
+    if (tbitness != vbitness) {
+        if (tbitness > vbitness) {
+            print_warn(
+                "Variable %s at line %i assign to wrong size value (%i!=%i). Did you expect this?",
+                name->token->value, name->token->line_number tbitness, vbitness
+            );
+        }
+        else {
+            print_warn(
+                "Variable %s at line %i assign with info loss (%i!=%i)!",
+                name->token->value, name->token->line_number tbitness, vbitness
+            );
+        }
+    }
+
+    return 1;
+}
+
 int check_semantic(tree_t* node) {
     if (!node) return 1;
     int result = 1;
