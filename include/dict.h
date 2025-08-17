@@ -40,7 +40,7 @@
 #define SYSCALL_COMMAND         "syscall"
 
 // Symbols and statements (Operands)
-#define ASIGN_STATEMENT         "="
+#define ASSIGN_STATEMENT         "="
 #define COMPARE_STATEMENT       "=="
 #define NCOMPARE_STATEMENT      "!="
 #define PLUS_STATEMENT          "+"

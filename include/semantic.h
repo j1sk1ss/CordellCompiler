@@ -9,13 +9,13 @@
 #include "syntax.h"
 
 /*
-check_semantic function iterate throught AST and check semantic.
+SMT_check function iterate throught AST and check semantic.
 Params:
 - root - AST head.
 
 Return 1 if semantic is true.
 Return 0 if semantic is wrong.
 */
-int check_semantic(tree_t* root);
+int SMT_check(tree_t* root);
 
 #endif

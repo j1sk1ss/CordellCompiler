@@ -130,11 +130,11 @@ static int _generate_expression(tree_t* node, FILE* output, const char* func, ge
     else if (node->token->t_type == WHILE_TOKEN)   _generate_while(node, output, func, ctx);
     else if (node->token->t_type == FUNC_TOKEN)    _generate_function(node, output, func, ctx);
     else if (node->token->t_type == SYSCALL_TOKEN) _generate_syscall(node, output, func, ctx);
-    else if (node->token->t_type == ASIGN_TOKEN)   _generate_assignment(node, output, func, ctx);
+    else if (node->token->t_type == ASSIGN_TOKEN)   _generate_assignment(node, output, func, ctx);
     else if (node->token->t_type == UNKNOWN_NUMERIC_TOKEN) iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), node->token->value);
     else if (node->token->t_type == CHAR_VALUE_TOKEN)      iprintf(output, "mov %s, %i\n", GET_RAW_REG(8, RAX), *node->token->value);
-    else if (node->token->ptr && VRS_isdecl(node->token->t_type)) _generate_declaration(node, output, func, ctx);
-    else if (node->token->ptr && !VRS_isdecl(node->token->t_type) && VRS_isptr(node->token)) {
+    else if (node->token->ptr && VRS_isdecl(node->token)) _generate_declaration(node, output, func, ctx);
+    else if (node->token->ptr && !VRS_isdecl(node->token) && VRS_isptr(node->token)) {
         if (!node->first_child) iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), GET_ASMVAR(node));
         else {
             variable_info_t info;

@@ -51,7 +51,7 @@ static int _generate_raw_ast(object_t* obj) {
     obj->syntax->arrs = ARM_create_ctx();
     obj->syntax->vars = VRM_create_ctx();
     STX_create(tokens, obj->syntax);
-    if (!check_semantic(obj->syntax->r)) {
+    if (!SMT_check(obj->syntax->r)) {
         STX_unload(obj->syntax->r);
         TKN_unload(tokens);
         close(fd);

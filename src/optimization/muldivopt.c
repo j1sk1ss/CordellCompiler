@@ -24,7 +24,7 @@ static int _find_muldiv(tree_t* root, int* fold) {
         }
 
         /* Constant folding */
-        if (VRS_isoperand(t->token->t_type)) {
+        if (VRS_isoperand(t->token)) {
             _find_muldiv(t, fold);
             tree_t* left = t->first_child;
             tree_t* right = left->next_sibling;

@@ -1,6 +1,6 @@
 start
-    str str1 = "String value";
-    ptr str strptr = str1;
+    str stack_str = "String value";
+    ptr str str_ptr = stack_str;
 
     long a = 0;
     int b = 1;
@@ -13,4 +13,6 @@ start
     
     d = strptr;
     strptr = c;
+
+    arr large_arr 5 char = {1,2,3,4,5,6,7,8,9,10};
 exit 0;

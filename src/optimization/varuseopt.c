@@ -25,7 +25,7 @@ static int _find_usage(tree_t* root, const char* varname, int* status, int local
             case EXIT_TOKEN:
             case CALL_TOKEN:
             case PLUS_TOKEN:
-            case ASIGN_TOKEN:
+            case ASSIGN_TOKEN:
             case MINUS_TOKEN:
             case BITOR_TOKEN:
             case WHILE_TOKEN:
@@ -76,7 +76,7 @@ static int _find_decl(tree_t* root, tree_t* entry, int* delete) {
             default: break;
         }
 
-        if (VRS_isdecl(t->token->t_type)) {
+        if (VRS_isdecl(t->token)) {
             int is_used = 0;
             tree_t* name_node = t->first_child;
             if (t->token->ro || t->token->glob) _find_usage(entry, (char*)name_node->token->value, &is_used, 0, 0);

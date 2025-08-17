@@ -282,7 +282,7 @@ static tree_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx) {
     ctx->fname = (char*)name_node->token->value;
 
     while (!*curr || (*curr)->t_type != OPEN_BLOCK_TOKEN) {
-        if (VRS_isdecl((*curr)->t_type)) {
+        if (VRS_isdecl((*curr))) {
             tree_t* param_node = _parse_variable_declaration(curr, ctx);
             if (!param_node) {
                 STX_unload(func_node);
@@ -352,7 +352,7 @@ static tree_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
     }
 
     STX_add_node(decl_node, name_node);
-    if (!assign_token || assign_token->t_type != ASIGN_TOKEN) {
+    if (!assign_token || assign_token->t_type != ASSIGN_TOKEN) {
         return decl_node;
     }
 
@@ -397,7 +397,7 @@ static tree_t* _parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
         !size_token || !elem_size_token || !name_token || !assign_token ||
         size_token->t_type != UNKNOWN_NUMERIC_TOKEN || 
         name_token->t_type != ARR_VARIABLE_TOKEN ||
-        assign_token->t_type != ASIGN_TOKEN
+        assign_token->t_type != ASSIGN_TOKEN
     ) {
         return NULL;
     }
@@ -479,15 +479,14 @@ static tree_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, int m
     if (!left) return NULL;
 
     while (*curr) {
-        token_type_t op_type = (*curr)->t_type;
-        int priority = VRS_token_priority(op_type);
+        int priority = VRS_token_priority(*curr);
         if (priority < min_priority || priority == -1) break;
 
         token_t* op_token = *curr;
         *curr = (*curr)->next;
 
         int next_min_priority = priority + 1;
-        if (op_type == ASIGN_TOKEN) next_min_priority = priority;
+        if ((*curr)->t_type == ASSIGN_TOKEN) next_min_priority = priority;
 
         tree_t* right = _parse_binary_expression(curr, ctx, next_min_priority);
         if (!right) {

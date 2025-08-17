@@ -62,8 +62,9 @@ int VRS_one_slot(token_t* token) {
     return 0;
 }
 
-int VRS_isdecl(token_type_t token) {
-    switch (token) {
+int VRS_isdecl(token_t* token) {
+    if (!token) return 0;
+    switch (token->t_type) {
         case INT_TYPE_TOKEN:
         case STR_TYPE_TOKEN:
         case CHAR_TYPE_TOKEN:
@@ -74,8 +75,9 @@ int VRS_isdecl(token_type_t token) {
     }
 }
 
-int VRS_isoperand(token_type_t token) {
-    switch (token) {
+int VRS_isoperand(token_t* token) {
+    if (!token) return 0;
+    switch (token->t_type) {
         case PLUS_TOKEN:
         case MINUS_TOKEN:
         case BITOR_TOKEN:
@@ -90,8 +92,9 @@ int VRS_isoperand(token_type_t token) {
     }
 }
 
-int VRS_token_priority(token_type_t type) {
-    switch (type) {
+int VRS_token_priority(token_t* token) {
+    if (!token) return 0;
+    switch (token->t_type) {
         case OR_TOKEN:             return 1;
         case AND_TOKEN:            return 2;
         case BITOR_TOKEN:          return 3;
@@ -108,7 +111,7 @@ int VRS_token_priority(token_type_t type) {
         case MULTIPLY_TOKEN:
         case DIVIDE_TOKEN:
         case MODULO_TOKEN:         return 9;
-        case ASIGN_TOKEN:          return 0;
+        case ASSIGN_TOKEN:          return 0;
         default:                   return -1;
     }
 }

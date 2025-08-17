@@ -1,6 +1,5 @@
-#include "include/builder.h"
-#include "include/mm.h"
-
+#include <mm.h>
+#include <builder.h>
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
