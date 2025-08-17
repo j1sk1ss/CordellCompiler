@@ -1,50 +1,42 @@
 #include <optimization.h>
 
 typedef struct code_node {
-    tree_t* start;
-    tree_t* end;
+    tree_t*           start;
+    tree_t*           end;
     struct code_node* parent;
     struct code_node* first_child;
     struct code_node* next_sibling;
-    int is_reachable;
-    int is_function;
+    int               is_reachable;
+    int               is_function;
 } code_node_t;
 
 static code_node_t* _code_block_h = NULL;
 
 typedef struct func_code_node {
-    char name[TOKEN_MAX_SIZE];
-    code_node_t* head;
+    char                   name[TOKEN_MAX_SIZE];
+    code_node_t*           head;
     struct func_code_node* next;
 } func_code_node_t;
 
 static func_code_node_t* _func_code_block_h = NULL;
 
-
 static code_node_t* _create_code_node(tree_t* start) {
     if (!start) return NULL;
     code_node_t* node = (code_node_t*)mm_malloc(sizeof(code_node_t));
     if (!node) return NULL;
-
+    str_memset(node, 0, sizeof(code_node_t));
     node->start = start;
-    node->end = NULL;
-
-    node->is_reachable = 0;
-    node->parent       = NULL;
-    node->first_child  = NULL;
-    node->next_sibling = NULL;
-
     return node;
 }
 
-static int _add_child_to_block(code_node_t* parent, code_node_t* child) {
-    if (!parent || !child) return 0;
-    child->parent = parent;
-    if (!parent->first_child) parent->first_child = child;
+static int _add_child_to_block(code_node_t* p, code_node_t* c) {
+    if (!p || !c) return 0;
+    c->parent = p;
+    if (!p->first_child) p->first_child = c;
     else {
-        code_node_t* sibling = parent->first_child;
+        code_node_t* sibling = p->first_child;
         while (sibling->next_sibling) sibling = sibling->next_sibling;
-        sibling->next_sibling = child;
+        sibling->next_sibling = c;
     }
 
     return 1;
@@ -112,16 +104,12 @@ static code_node_t* _generate_blocks(tree_t* curr) {
     code_node_t* head = _create_code_node(curr);
     if (!head) return NULL;
     
-    /*
-    We don't go deeper, and only catch changes in flow.
-    */
+    /* We don't go deeper, and only catch changes in flow. */
     tree_t* curr_node = curr;
     for (tree_t* t = curr; t; t = t->next_sibling, curr_node = curr_node->next_sibling) {
         if (!t->token) continue;
         switch (t->token->t_type) {
-            /*
-            Generating block and linking to function name.
-            */
+            /* Generating block and linking to function name. */
             case FUNC_TOKEN:
                 tree_t* name_node   = t->first_child;
                 tree_t* params_node = name_node->next_sibling;
@@ -132,9 +120,7 @@ static code_node_t* _generate_blocks(tree_t* curr) {
                 }
             break;
 
-            /*
-            Flow go deeper without flow changing.
-            */
+            /* Flow go deeper without flow changing. */
             case SWITCH_TOKEN:
             case WHILE_TOKEN:
             case IF_TOKEN: break;
@@ -142,9 +128,7 @@ static code_node_t* _generate_blocks(tree_t* curr) {
                 _add_child_to_block(head, _find_func_block((char*)t->token->value)->head);
             break;
 
-            /*
-            Flow kill point.
-            */
+            /* Flow kill point. */
             case RETURN_TOKEN:
             case EXIT_TOKEN: goto dead_flow;
             default: break;

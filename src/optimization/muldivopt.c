@@ -9,23 +9,21 @@ static int _find_muldiv(tree_t* root, int* fold) {
         }
 
         switch (t->token->t_type) {
-            case LONG_TYPE_TOKEN:
-            case INT_TYPE_TOKEN:
-            case SHORT_TYPE_TOKEN:
-            case CHAR_TYPE_TOKEN: 
             case CALL_TOKEN:
             case SYSCALL_TOKEN:
+            case INT_TYPE_TOKEN:
+            case LONG_TYPE_TOKEN:
+            case CHAR_TYPE_TOKEN: 
+            case SHORT_TYPE_TOKEN:
             case ARRAY_TYPE_TOKEN:
             case RETURN_TOKEN: _find_muldiv(t, fold); continue;
             case IF_TOKEN:
-            case WHILE_TOKEN:  _find_muldiv(t->first_child->next_sibling, fold); continue;
             case FUNC_TOKEN:   _find_muldiv(t->first_child->next_sibling->next_sibling, fold); continue;
+            case WHILE_TOKEN:  _find_muldiv(t->first_child->next_sibling, fold); continue;
             default: break;
         }
 
-        /*
-        Constant folding
-        */
+        /* Constant folding */
         if (VRS_isoperand(t->token->t_type)) {
             _find_muldiv(t, fold);
             tree_t* left = t->first_child;
@@ -43,8 +41,8 @@ static int _find_muldiv(tree_t* root, int* fold) {
                     if (r_val == 0) break;
                     result = l_val / r_val; 
                     break;
-                case BITAND_TOKEN:        result = l_val & r_val; break;
                 case BITOR_TOKEN:         result = l_val | r_val; break;
+                case BITAND_TOKEN:        result = l_val & r_val; break;
                 case BITMOVE_LEFT_TOKEN:  result = l_val << r_val; break;
                 case BITMOVE_RIGHT_TOKEN: result = l_val >> r_val; break;
                 default: break;
@@ -60,16 +58,13 @@ static int _find_muldiv(tree_t* root, int* fold) {
             t->first_child = NULL;
         }
         
-        /*
-        Mult and div optimisation after folding
-        */
+        /* Mult and div optimisation after folding */
         if (t->token->t_type == MULTIPLY_TOKEN || t->token->t_type == DIVIDE_TOKEN) {
             tree_t* left = t->first_child;
             tree_t* right = left->next_sibling;
             if (right->token->t_type != UNKNOWN_NUMERIC_TOKEN) continue;
 
             int right_val = str_atoi((char*)right->token->value);
-            // Is power of 2
             if ((right_val & (right_val - 1)) != 0) continue;
             
             int shift = 0;
@@ -82,7 +77,7 @@ static int _find_muldiv(tree_t* root, int* fold) {
     return 1;
 }
 
-int muldiv_optimization(syntax_ctx_t* ctx) {
+int OPT_muldiv(syntax_ctx_t* ctx) {
     if (!ctx->r) return 0;
     int is_fold = 0;
     _find_muldiv(ctx->r, &is_fold);

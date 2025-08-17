@@ -18,10 +18,10 @@ static int _recalc_offs(tree_t* r, const char* func, syntax_ctx_t* ctx) {
             break;
             case ARR_VARIABLE_TOKEN:
             case STR_VARIABLE_TOKEN:
-            case LONG_VARIABLE_TOKEN:
             case INT_VARIABLE_TOKEN:
-            case SHORT_VARIABLE_TOKEN:
             case CHAR_VARIABLE_TOKEN:
+            case LONG_VARIABLE_TOKEN:
+            case SHORT_VARIABLE_TOKEN:
                 if (!t->token->ro && !t->token->glob) {
                     variable_info_t info;
                     if (VRM_get_info((char*)t->token->value, func, &info, ctx->vars)) t->variable_offset = info.offset;
@@ -37,9 +37,9 @@ static int _recalc_offs(tree_t* r, const char* func, syntax_ctx_t* ctx) {
     return 1;
 }
 
-
-int offset_optimization(syntax_ctx_t* ctx) {
+int OPT_offrecalc(syntax_ctx_t* ctx) {
     if (!ctx || !ctx->r) return 0;
+    VRM_destroy_ctx(ctx->vars);
     _recalc_offs(ctx->r, NULL, ctx);
     return 1;
 }

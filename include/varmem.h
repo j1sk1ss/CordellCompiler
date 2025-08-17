@@ -14,7 +14,7 @@ typedef struct variable_info {
 } variable_info_t;
 
 typedef struct {
-    unsigned int offset;
+    unsigned int     offset;
     variable_info_t* h;
 } varmem_ctx_t;
 

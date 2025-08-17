@@ -13,9 +13,9 @@
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
 typedef struct mm_block {
-    unsigned int magic;
-    size_t size;
-    unsigned char free;
+    unsigned int     magic;
+    size_t           size;
+    unsigned char    free;
     struct mm_block* next;
 } mm_block_t;
 

@@ -81,7 +81,7 @@ static int _compile_object(object_t* obj) {
     int is_fold_vars = 0;
     do {
         assign_opt_res = assign_optimization(obj->syntax);
-        is_fold_vars = muldiv_optimization(obj->syntax);
+        is_fold_vars = OPT_muldiv(obj->syntax);
     } while (is_fold_vars);
     print_log("Assign and muldiv optimization... [Code: %i/%i]", assign_opt_res, is_fold_vars);
     
@@ -91,7 +91,7 @@ static int _compile_object(object_t* obj) {
     int varuse_opt_res = varuse_optimization(obj->syntax);
     print_log("Var usage optimization... [%s (%i)]", RESULT(varuse_opt_res));
 
-    int offset_recalc_res = offset_optimization(obj->syntax);
+    int offset_recalc_res = OPT_offrecalc(obj->syntax);
     print_log("Offset recalculation... [%s (%i)]", RESULT(offset_recalc_res));
 
     char save_path[128] = { 0 };

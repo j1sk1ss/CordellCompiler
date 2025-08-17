@@ -11,7 +11,7 @@
 #define iprintf(out, fmt, ...) fprintf(out, fmt, ##__VA_ARGS__)
 
 typedef struct {
-    short label;
+    short         label;
     syntax_ctx_t* synt;
 } gen_ctx_t;
 
