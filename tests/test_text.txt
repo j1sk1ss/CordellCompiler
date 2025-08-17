@@ -1,25 +1,23 @@
-from "stdio.cpl" import puts putc;
+function puts ptr char string; {
+    long strSize = strlen(string);
+    return syscall(1, 1, string, strSize);
+}
 
-function memset ptr char buffer; int val; long size; {
-    long index = 0;
-    while index < size; {
-        buffer[index] = val;
-        index = index + 1;
-    }
-
-    return 1;
-} 
+function putc char c; {
+    arr tmp 2 char = { c, 0 };
+    return syscall(1, 1, tmp, 2);
+}
 
 start
 :
-    arr hello_str 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 10, 0 };
-    puts(hello_str);
+    Comment in several lines
+    Yes, This is a comment in several lines!
+    It'a a long way to Tipperary. It's a long way to go...
 :
-    arr hello_str 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 10, 0 };
+    arr str_arr 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 10, 0 };
     int a = 0;
     int b = 10;
-    int c = a * c + (a * b);
-    putc('H');
-    putc(0);
-    memset(0, 0, 10);
-exit 1 + 1;
+    int c = (a + c) * a;
+    putc('H'); putc(0); : One line comment and one line commands! :
+    puts("Hello there from puts!");
+exit c;

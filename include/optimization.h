@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 
-int string_optimization(syntax_ctx_t* ctx);
+int OPT_strpack(syntax_ctx_t* ctx);
 int assign_optimization(syntax_ctx_t* ctx);
 int varuse_optimization(syntax_ctx_t* ctx);
 int muldiv_optimization(syntax_ctx_t* ctx);

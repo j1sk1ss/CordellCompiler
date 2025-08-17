@@ -784,11 +784,11 @@ int GEN_generate(gen_ctx_t* ctx, FILE* output) {
             switch (child->token->t_type) {
                 case IMPORT_SELECT_TOKEN:
                     for (tree_t* func = child->first_child->first_child; func; func = func->next_sibling)
-                        fprintf(output, "    extern __%s__\n", func->token->value);
+                        fprintf(output, "extern __%s__\n", func->token->value);
                 break;
 
                 case FUNC_TOKEN:
-                    fprintf(output, "    global __%s__\n", child->first_child->token->value);
+                    fprintf(output, "global __%s__\n", child->first_child->token->value);
                 break;
                 default: break;
             }
@@ -800,7 +800,7 @@ int GEN_generate(gen_ctx_t* ctx, FILE* output) {
     /* Generate main section code */
     if (main_node) {
         fprintf(output, "\nglobal _start\n\n");
-        fprintf(output, "    _start:\n");
+        fprintf(output, "_start:\n");
 
         /* Save old stack and reserve new one */
         iprintf(output, "push %s\n", GET_RAW_REG(BASE_BITNESS, RBP));

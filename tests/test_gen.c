@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <syntax.h>
+#include <optimization.h>
 #include <generator.h>
 
 static int _print_ast(tree_t* node, int depth) {
@@ -30,8 +31,8 @@ int main(int argc, char* argv[]) {
     mm_init();
     
     int fd = open("tests/test_text.txt", O_RDONLY);
-    char data[512] = { 0 };
-    pread(fd, data, 512, 0);
+    char data[1024] = { 0 };
+    pread(fd, data, 1024, 0);
     printf("Source data: %s\n", data);
 
     token_t* tkn = TKN_tokenize(fd);
@@ -48,6 +49,7 @@ int main(int argc, char* argv[]) {
     syntax_ctx_t sctx = { .arrs = &actx, .vars = &vctx };
     STX_create(tkn, &sctx);
     _print_ast(sctx.r, 0);
+    OPT_strpack(&sctx);
 
     fprintf(stdout, "Generated code:\n");
 

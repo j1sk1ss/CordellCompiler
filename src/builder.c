@@ -74,7 +74,7 @@ static int _add_object(char* path) {
 }
 
 static int _compile_object(object_t* obj) {
-    int str_opt_res = string_optimization(obj->syntax);
+    int str_opt_res = OPT_strpack(obj->syntax);
     print_log("String optimization of [%s]... [%s (%i)]", obj->path, RESULT(str_opt_res));
 
     int assign_opt_res = 0;
