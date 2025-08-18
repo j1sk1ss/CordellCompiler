@@ -275,13 +275,26 @@ static int _generate_expression(tree_t* node, FILE* output, const char* func, ge
         node->token->t_type == AND_TOKEN ||
         node->token->t_type == OR_TOKEN
     ) {
+        int lbl_id = ctx->label++;
+
         _generate_expression(node->first_child, output, func, ctx);
-        iprintf(output, "push %s\n",        GET_RAW_REG(BASE_BITNESS, RAX));
+        iprintf(output, "cmp %s, 0\n", GET_RAW_REG(BASE_BITNESS, RAX));
+        if (node->token->t_type == AND_TOKEN) iprintf(output, "je L_false_%d\n", lbl_id);
+        else iprintf(output, "jne L_true_%d\n", lbl_id);
+
         _generate_expression(node->first_child->next_sibling, output, func, ctx);
-        iprintf(output, "mov %s, %s\n",     GET_RAW_REG(BASE_BITNESS, RBX), GET_RAW_REG(BASE_BITNESS, RAX));
-        iprintf(output, "pop %s\n",         GET_RAW_REG(BASE_BITNESS, RAX));
-        if (node->token->t_type == AND_TOKEN) iprintf(output, "and %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), GET_RAW_REG(BASE_BITNESS, RBX));
-        else iprintf(output, "or %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), GET_RAW_REG(BASE_BITNESS, RBX));
+        iprintf(output, "cmp %s, 0\n", GET_RAW_REG(BASE_BITNESS, RAX));
+        iprintf(output, "jne L_true_%d\n", lbl_id);
+        iprintf(output, "jmp L_false_%d\n", lbl_id);
+
+        iprintf(output, "L_true_%d:\n", lbl_id);
+        iprintf(output, "mov %s, 1\n", GET_RAW_REG(BASE_BITNESS, RAX));
+        iprintf(output, "jmp L_end_%d\n", lbl_id);
+
+        iprintf(output, "L_false_%d:\n", lbl_id);
+        iprintf(output, "mov %s, 0\n", GET_RAW_REG(BASE_BITNESS, RAX));
+        
+        iprintf(output, "L_end_%d:\n", lbl_id);
     }
     else if (node->token->t_type == PLUS_TOKEN) {
         _generate_expression(node->first_child, output, func, ctx);
