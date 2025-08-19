@@ -9,6 +9,7 @@
 
 #define ARRAYS_MAX_TOKEN 100
 #define iprintf(out, fmt, ...) fprintf(out, fmt, ##__VA_ARGS__)
+#define iprint_line(out) fprintf(out, "; --------------- \n");
 
 typedef struct {
     short         label;

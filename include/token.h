@@ -96,17 +96,13 @@ typedef enum {
 
 typedef struct token {
     // Token compiler information
-    int ro;   // ReadOnly flag
-    int glob; // Global flag
-    int ptr;  // Is pointer flag
-    token_type_t t_type;
-    unsigned char value[TOKEN_MAX_SIZE];
-
-    // Arch information
+    int           ro;   // ReadOnly flag
+    int           glob; // Global flag
+    int           ptr;  // Is pointer flag
+    token_type_t  t_type;
+    char          value[TOKEN_MAX_SIZE];
     struct token* next;
-    
-    // Symantic information
-    int line_number;
+    int           lnum;
 } token_t;
 
 /*

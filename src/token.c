@@ -60,7 +60,7 @@ token_t* TKN_create_token(token_type_t type, const unsigned char* value, size_t 
         str_strncpy((char*)tkn->value, (char*)value, len);
     }
     
-    tkn->line_number = line;
+    tkn->lnum = line;
     if (type == UNKNOWN_NUMERIC_TOKEN) tkn->glob = 1;
     return tkn;
 }
@@ -99,6 +99,7 @@ token_t* TKN_tokenize(int fd) {
 
             /* Skip character if this is comment section */
             if (curr_ctx.cmt && !curr_ctx.squt && !curr_ctx.mqut) continue;
+            if (ct == CHAR_NEWLINE) curr_ctx.line++;
 
             /* Determine character type */
             token_type_t char_type;
@@ -136,7 +137,7 @@ token_t* TKN_tokenize(int fd) {
                     return NULL;
                 }
 
-                curr_ctx.in_token = 0;
+                curr_ctx.in_token  = 0;
                 curr_ctx.token_len = 0;
             }
 

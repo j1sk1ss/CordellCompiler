@@ -8,6 +8,8 @@
 #include "token.h"
 #include "syntax.h"
 
+#include <math.h>
+
 /*
 SMT_check function iterate throught AST and check semantic.
 Params:

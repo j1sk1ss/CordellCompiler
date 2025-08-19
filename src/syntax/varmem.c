@@ -13,10 +13,10 @@ int VRM_destroy_ctx(varmem_ctx_t* ctx) {
     return 1;
 }
 
-int VRM_get_info(const char* variable, const char* func, variable_info_t* info, varmem_ctx_t* ctx) {
+int VRM_get_info(const char* variable, const char* scope, variable_info_t* info, varmem_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
-        if (((!func && !h->func[0]) || !str_strcmp(func, h->func)) && !str_strcmp(variable, h->name)) {
+        if (((!scope && !h->scope[0]) || !str_strcmp(scope, h->scope)) && !str_strcmp(variable, h->name)) {
             if (info) str_memcpy(info, h, sizeof(variable_info_t));
             return 1;
         }
@@ -27,13 +27,13 @@ int VRM_get_info(const char* variable, const char* func, variable_info_t* info, 
     return 0;
 }
 
-static variable_info_t* _create_variable_info(const char* name, int size, const char* func, varmem_ctx_t* ctx) {
+static variable_info_t* _create_variable_info(const char* name, int size, const char* scope, varmem_ctx_t* ctx) {
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
     str_memset(var, 0, sizeof(variable_info_t));
 
-    if (func) str_strncpy(var->func, func, TOKEN_MAX_SIZE);
-    if (name) str_strncpy(var->name, name, TOKEN_MAX_SIZE);
+    if (scope) str_strncpy(var->scope, scope, TOKEN_MAX_SIZE);
+    if (name)  str_strncpy(var->name, name, TOKEN_MAX_SIZE);
 
     ctx->offset = ALIGN(ctx->offset + size);
     var->offset = ctx->offset;
@@ -42,8 +42,8 @@ static variable_info_t* _create_variable_info(const char* name, int size, const 
     return var;
 }
 
-int VRM_add_info(const char* name, int size, const char* func, varmem_ctx_t* ctx) {
-    variable_info_t* nnd = _create_variable_info(name, size, func, ctx);
+int VRM_add_info(const char* name, int size, const char* scope, varmem_ctx_t* ctx) {
+    variable_info_t* nnd = _create_variable_info(name, size, scope, ctx);
     if (!nnd) return 0;
     if (!ctx->h) {
         ctx->h = nnd;

@@ -188,12 +188,18 @@ static int _generate_expression(tree_t* node, FILE* output, const char* func, ge
 
                     int base_off = node->variable_offset;
                     for (tree_t* v = vals; v && v->token->t_type != DELIMITER_TOKEN; v = v->next_sibling) {
-                        if (v->token->t_type == UNKNOWN_NUMERIC_TOKEN) iprintf(
-                            output, "mov%s[%s - %d], %d\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, str_atoi((char*)v->token->value)
-                        );
-                        else if (v->token->t_type == CHAR_VALUE_TOKEN) iprintf(
-                            output, "mov%s[%s - %d], %d\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, *v->token->value
-                        );
+                        if (v->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
+                            iprintf(
+                                output, "mov%s[%s - %d], %d\n", 
+                                reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, str_atoi((char*)v->token->value)
+                            );
+                        }
+                        else if (v->token->t_type == CHAR_VALUE_TOKEN) {
+                            iprintf(
+                                output, "mov%s[%s - %d], %d\n", 
+                                reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, *v->token->value
+                            );
+                        }
                         else {
                             int is_ptr = (
                                 ARM_get_info((char*)v->token->value, func, NULL, ctx->synt->arrs) && 
@@ -338,8 +344,8 @@ static int _generate_expression(tree_t* node, FILE* output, const char* func, ge
         iprintf(output, "mov %s, %s\n",     GET_RAW_REG(BASE_BITNESS, RAX), GET_RAW_REG(BASE_BITNESS, RDX));
     }
     else if (
-        node->token->t_type == LARGER_TOKEN ||
-        node->token->t_type == LOWER_TOKEN ||
+        node->token->t_type == LARGER_TOKEN  ||
+        node->token->t_type == LOWER_TOKEN   ||
         node->token->t_type == COMPARE_TOKEN ||
         node->token->t_type == NCOMPARE_TOKEN
     ) {
@@ -435,7 +441,7 @@ static int _get_variables_size(tree_t* head, const char* func, gen_ctx_t* ctx) {
         }
         else if (
             expression->token->t_type == SWITCH_TOKEN ||
-            expression->token->t_type == WHILE_TOKEN ||
+            expression->token->t_type == WHILE_TOKEN  ||
             expression->token->t_type == IF_TOKEN
         ) size += _get_variables_size(expression->first_child->next_sibling->first_child, func, ctx);
         else if (expression->token->t_type == CASE_TOKEN) size += _get_variables_size(expression->first_child->first_child, func, ctx);
@@ -446,22 +452,22 @@ static int _get_variables_size(tree_t* head, const char* func, gen_ctx_t* ctx) {
 }
 
 static int _generate_declaration(tree_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    int val = 0;
-    int type = 0;
-
     tree_t* name_node = node->first_child;
     if (!VRS_intext(name_node->token)) return 0;
 
+    int val = 0;
+    int is_const = 0;
     char* derictive = " ";
+
     if (
         name_node->next_sibling->token->t_type != UNKNOWN_NUMERIC_TOKEN && 
         name_node->next_sibling->token->t_type != CHAR_VALUE_TOKEN
     ) {
-        type = 0;
+        is_const = 0;
         _generate_expression(name_node->next_sibling, output, func, ctx);
     }
     else {
-        type = 1;
+        is_const = 1;
         switch (VRS_variable_bitness(name_node->token, 1)) {
             default:
             case 64: derictive = " qword "; break;
@@ -475,10 +481,14 @@ static int _generate_declaration(tree_t* node, FILE* output, const char* func, g
     }
 
     char source[36] = { 0 };
-    if (type) sprintf(source, "%d", val);
+    if (is_const) sprintf(source, "%d", val); /* If this is constant value, we can store it in stack */
     else sprintf(source, "%s", GET_RAW_REG(BASE_BITNESS, RAX));
 
-    iprintf(output, "mov%s%s, %s ; decl %s = %s\n", derictive, GET_ASMVAR(name_node), source, (char*)name_node->token->value, source);
+    iprintf(
+        output, "mov%s%s, %s ; decl %s = %s\n", 
+        derictive, GET_ASMVAR(name_node), source, (char*)name_node->token->value, source
+    );
+
     return 1;
 }
 
@@ -507,21 +517,19 @@ static int _generate_function(tree_t* node, FILE* output, const char* func, gen_
 
     iprintf(output, "sub %s, %d\n", GET_RAW_REG(BASE_BITNESS, RSP), ALIGN(local_vars_size));
 
-    /*
-    Loading input args to stack.
-    */
+    /* Loading input args to stack */
     int pop_params = 0;
     int stack_offset = 8;
 
-    static const int args_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
     for (tree_t* param = params_node->first_child; param; param = param->next_sibling) {
         int param_size = param->variable_size;
         char* param_name = (char*)param->first_child->token->value;
 
         regs_t reg;
 #if (BASE_BITNESS == BIT64)
+        static const int args_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
         get_reg(&reg, VRS_variable_bitness(param->first_child->token, 1) / 8, args_regs[pop_params], 0);
-        if (pop_params < 6) iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->first_child->variable_offset, reg.name);
+        if (pop_params++ < 6) iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->first_child->variable_offset, reg.name);
         else
 #else
         get_reg(&reg, VRS_variable_bitness(param->first_child->token, 1) / 8, RAX, 0);
@@ -531,8 +539,6 @@ static int _generate_function(tree_t* node, FILE* output, const char* func, gen_
             iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->first_child->variable_offset, reg.name);
             stack_offset += param_size;
         }
-
-        pop_params++;
     }
 
     /*
@@ -543,7 +549,7 @@ static int _generate_function(tree_t* node, FILE* output, const char* func, gen_
         _generate_expression(part, output, (char*)name_node->token->value, ctx);
     }
 
-    fprintf(output, " ; --------------- \n");
+    iprint_line(output);
     iprintf(output, "__end_%s__:\n", name_node->token->value);
     return 1;
 }
@@ -566,8 +572,8 @@ static int _generate_while(tree_t* node, FILE* output, const char* func, gen_ctx
     }
 
     iprintf(output, "jmp __while_%d__\n", current_label);
+    iprint_line(output);
 
-    fprintf(output, " ; --------------- \n");
     iprintf(output, "__end_while_%d__:\n", current_label);
     return 1;
 }
@@ -635,7 +641,7 @@ static int _generate_switch(tree_t* node, FILE* output, const char* func, gen_ct
     _generate_case_binary_jump(output, values, 0, cases_count - 1, current_label, have_default);
 
     iprintf(output, "__end_switch_%d__:\n", current_label);
-    fprintf(output, " ; --------------- \n");
+    iprint_line(output);
     return 1;
 }
 
@@ -668,7 +674,7 @@ static int _generate_if(tree_t* node, FILE* output, const char* func, gen_ctx_t*
         }
     }
 
-    fprintf(output, " ; --------------- \n");
+    iprint_line(output);
     iprintf(output, "__end_if_%d__:\n", current_label);
     return 1;
 }
@@ -702,7 +708,7 @@ static int _generate_syscall(tree_t* node, FILE* output, const char* func, gen_c
     }
 
     iprintf(output, "%s\n", SYSCALL);
-    fprintf(output, " ; --------------- \n");
+    iprint_line(output);
 
     return 1;
 }
@@ -749,7 +755,7 @@ static int _generate_assignment(tree_t* node, FILE* output, const char* func, ge
         iprintf(output, "mov %s, %s\n", GET_ASMVAR(left), GET_RAW_REG(BASE_BITNESS, RAX));
     }
 
-    fprintf(output, " ; --------------- \n");
+    iprint_line(output);
     return 1;
 }
 

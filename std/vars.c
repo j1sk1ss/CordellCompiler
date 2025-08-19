@@ -8,8 +8,11 @@ int VRS_variable_bitness(token_t* token, char ptr) {
     if (!token) return 0;
     if (ptr && token->ptr) return BASE_BITNESS;
     switch (token->t_type) {
+        case INT_TYPE_TOKEN:
         case INT_VARIABLE_TOKEN:   return 32;
+        case SHORT_TYPE_TOKEN:
         case SHORT_VARIABLE_TOKEN: return 16;
+        case CHAR_TYPE_TOKEN:
         case CHAR_VALUE_TOKEN:
         case CHAR_VARIABLE_TOKEN:  return 8;
         default:                   return BASE_BITNESS;

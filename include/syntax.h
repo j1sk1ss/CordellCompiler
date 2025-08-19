@@ -19,7 +19,7 @@ typedef struct tree {
 } tree_t;
 
 typedef struct {
-    const char*   fname;
+    const char*   scope;
     tree_t*       r;
     varmem_ctx_t* vars;
     arrmem_ctx_t* arrs;

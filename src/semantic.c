@@ -20,7 +20,7 @@ static int _check_exp_bitness(tree_t* r) {
         if (lbitness != rbitness) {
             print_warn(
                 "Danger shadow type cast at line %i. Different size [%i] (%s) and [%i] (%s). Did you expect this?",
-                r->first_child->token->line_number, 
+                r->first_child->token->lnum, 
                 lbitness, r->first_child->token->value, 
                 rbitness, r->first_child->next_sibling->token->value
             );
@@ -56,7 +56,7 @@ int SMT_check(tree_t* node) {
 
                 for (tree_t* param = args->first_child; param; param = param->next_sibling) {
                     if (!VRS_isdecl(param->token)) {
-                        print_error("Unknown variable type at %i, (%s)", param->token->line_number, param->token->value);
+                        print_error("Unknown variable type at %i, (%s)", param->token->lnum, param->token->value);
                         result = 0;
                         break;
                     }
@@ -78,9 +78,21 @@ int SMT_check(tree_t* node) {
                 tree_t* arr_name = el_size->next_sibling;
                 tree_t* elems    = arr_name->next_sibling;
 
+                unsigned long long el_msize = (unsigned long long)pow(2, VRS_variable_bitness(el_size->token, 1));
+
                 if (elems) {
                     int count = 0;
-                    for (tree_t* el = elems; el; el = el->next_sibling) count++;
+                    for (tree_t* el = elems; el; el = el->next_sibling) {
+                        if (str_atoi(el->token->value) >= el_msize) {
+                            print_warn(
+                                "Value %s at line [%i] too large for array [%s]!", 
+                                el->token->value, 0, arr_name->token->value
+                            );
+                        }
+
+                        count++;
+                    }
+
                     if (count > str_atoi((char*)arr_size->token->value)) {
                         print_error("Array [%s] larger than expected size %i > %s!", arr_name->token->value, count, arr_size->token->value);
                         result = 0;
