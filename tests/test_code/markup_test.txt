@@ -1,11 +1,30 @@
-start
-    int a = 0;
-    short b = 0;
-    char c = 'a';
+{
+    start {
+        int a = 0;
+        short b = 0;
+        char c = 'a';
 
-    while a; {
-        b = c;
-    }
+        while a; {
+            b = c;
+        }
 
-    c = b;
-exit c;
+        { : Should have different types : 
+            short k = 0;
+            short kl = 2;
+            long kll = 123;
+        }
+
+        : Should have different types : 
+        char k = 0;
+        char kl = 2;
+        short kll = 123;
+
+        { : Should have different types : 
+            long k = 0;
+            long kl = 2;
+            int kll = 123;
+        }
+
+        c = b;
+    } exit c;
+}

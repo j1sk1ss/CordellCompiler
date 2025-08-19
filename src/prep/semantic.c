@@ -86,7 +86,7 @@ int SMT_check(ast_node_t* node) {
                         if (str_atoi(el->token->value) >= el_msize) {
                             print_warn(
                                 "Value %s at line [%i] too large for array [%s]!", 
-                                el->token->value, 0, arr_name->token->value
+                                el->token->value, el->token->lnum, arr_name->token->value
                             );
                         }
 

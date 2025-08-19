@@ -46,7 +46,7 @@ static const markup_token_t _markups[] = {
     { .value = ELSE_COMMAND,           .type = ELSE_TOKEN          },
 
     /* Binary operands. */
-    { .value = ASSIGN_STATEMENT,        .type = ASSIGN_TOKEN         },
+    { .value = ASSIGN_STATEMENT,       .type = ASSIGN_TOKEN        },
     { .value = COMPARE_STATEMENT,      .type = COMPARE_TOKEN       },
     { .value = NCOMPARE_STATEMENT,     .type = NCOMPARE_TOKEN      },
     { .value = PLUS_STATEMENT,         .type = PLUS_TOKEN          },
@@ -82,11 +82,12 @@ int MRKP_mnemonics(token_t* head) {
 }
 
 typedef struct {
-    int           ro;
-    int           ptr;
-    int           glob;
-    token_type_t  type;
-    unsigned char name[TOKEN_MAX_SIZE];
+    int          ro;
+    int          ptr;
+    int          glob;
+    token_type_t type;
+    short        scope;
+    char         name[TOKEN_MAX_SIZE];
 } variable_t;
 
 typedef struct {
@@ -97,20 +98,24 @@ typedef struct {
 } markp_ctx;
 
 static int _add_variable(
-    variable_t** vars, const char* name, markp_ctx* ctx, int* count
+    variable_t** vars, const char* name, short scope, markp_ctx* ctx, int* count
 ) {
     *vars = mm_realloc(*vars, (*count + 1) * sizeof(variable_t));
     str_memset(&((*vars)[*count]), 0, sizeof(variable_t));
-    str_strncpy((char*)((*vars)[*count]).name, name, TOKEN_MAX_SIZE);
-    ((*vars)[*count]).ro   = ctx->ro;
-    ((*vars)[*count]).ptr  = ctx->ptr;
-    ((*vars)[*count]).glob = ctx->glob;
-    ((*vars)[*count]).type = ctx->ttype;
+    str_strncpy(((*vars)[*count]).name, name, TOKEN_MAX_SIZE);
+    ((*vars)[*count]).scope = scope;
+    ((*vars)[*count]).ro    = ctx->ro;
+    ((*vars)[*count]).ptr   = ctx->ptr;
+    ((*vars)[*count]).glob  = ctx->glob;
+    ((*vars)[*count]).type  = ctx->ttype;
     (*count)++;
     return 1;
 }
 
 int MRKP_variables(token_t* head) {
+    int scope_id = 0;
+    scope_stack_t scope_stack = { .top = -1 };
+
     markp_ctx curr_ctx = { 0 };
     token_t* curr = head;
     int var_count = 0;
@@ -118,12 +123,17 @@ int MRKP_variables(token_t* head) {
 
     while (curr) {
         switch (curr->t_type) {
-            /* Simple solution is mark all imported functions as call tokens  */
+            case OPEN_BLOCK_TOKEN: scope_push(&scope_stack, ++scope_id); break;
+            case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack); break;
+
             case IMPORT_TOKEN:
                 curr = curr->next;
                 curr_ctx.ttype = CALL_TOKEN;
                 while (curr->t_type != DELIMITER_TOKEN) {
-                    _add_variable(&vars, (const char*)curr->value, &curr_ctx, &var_count);
+                    _add_variable(
+                        &vars, curr->value, scope_top(&scope_stack), &curr_ctx, &var_count
+                    );
+
                     curr = curr->next;
                 }
             break;
@@ -152,7 +162,10 @@ int MRKP_variables(token_t* head) {
                         default: break;
                     }
 
-                    _add_variable(&vars, (const char*)next->value, &curr_ctx, &var_count);
+                    _add_variable(
+                        &vars, next->value, scope_top(&scope_stack), &curr_ctx, &var_count
+                    );
+
                     curr->ro   = curr_ctx.ro;
                     curr->ptr  = curr_ctx.ptr;
                     curr->glob = curr_ctx.glob;
@@ -162,26 +175,37 @@ int MRKP_variables(token_t* head) {
                 curr_ctx.ptr   = 0;
                 curr_ctx.glob  = 0;
                 curr_ctx.ttype = 0;
-            }
-            break;
+            } break;
+
             default: break;
         }
-
         curr = curr->next;
     }
 
     curr = head;
+    scope_stack.top = -1;
+    scope_id = 0;
+
     while (curr) {
+        if (curr->t_type == OPEN_BLOCK_TOKEN) scope_push(&scope_stack, ++scope_id);
+        else if (curr->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&scope_stack);
         if (curr->t_type == UNKNOWN_STRING_TOKEN || curr->t_type == UNKNOWN_CHAR_VALUE) {
-            for (int i = 0; i < var_count; i++) {
-                if (!str_strncmp((const char*)curr->value, (const char*)vars[i].name, TOKEN_MAX_SIZE)) {
-                    curr->t_type = vars[i].type;
-                    curr->ro     = vars[i].ro;
-                    curr->glob   = vars[i].glob;
-                    curr->ptr    = vars[i].ptr;
-                    break;
+            for (int s = scope_stack.top; s >= 0; s--) {
+                int s_id = scope_stack.data[s];
+                for (int i = 0; i < var_count; i++) {
+                    if (
+                        !str_strncmp(curr->value, vars[i].name, TOKEN_MAX_SIZE) &&
+                        vars[i].scope == s_id
+                    ) {
+                        curr->t_type = vars[i].type;
+                        curr->ro     = vars[i].ro;
+                        curr->glob   = vars[i].glob;
+                        curr->ptr    = vars[i].ptr;
+                        goto resolved;
+                    }
                 }
             }
+            resolved:;
         }
 
         curr = curr->next;

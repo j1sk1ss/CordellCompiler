@@ -2,7 +2,7 @@
 set -e
 
 INCLUDES="-Iinclude"
-SRC="src/*.c src/syntax/*.c src/optimization/*.c std/*.c"
+SRC="src/*.c src/*/*.c std/*.c"
 
 cd "$(dirname "$0")/.."
 

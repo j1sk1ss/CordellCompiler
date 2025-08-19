@@ -1,23 +1,25 @@
-function puts ptr char string; {
-    long strSize = strlen(string);
-    return syscall(1, 1, string, strSize);
-}
+{
+    function puts ptr char string; {
+        long strSize = strlen(string);
+        return syscall(1, 1, string, strSize);
+    }
 
-function putc char c; {
-    arr tmp 2 char = { c, 0 };
-    return syscall(1, 1, tmp, 2);
-}
+    function putc char c; {
+        arr tmp 2 char = { c, 0 };
+        return syscall(1, 1, tmp, 2);
+    }
 
-start
-:
-    Comment in several lines
-    Yes, This is a comment in several lines!
-    It'a a long way to Tipperary. It's a long way to go...
-:
-    arr str_arr 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 10, 0 };
-    int a = 0;
-    int b = 10;
-    int c = (a + c) * a;
-    putc('H'); putc(0); : One line comment and one line commands! :
-    puts("Hello there from puts!");
-exit c;
+    start {
+    :
+        Comment in several lines
+        Yes, This is a comment in several lines!
+        It'a a long way to Tipperary. It's a long way to go...
+    :
+        arr str_arr 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 10, 0 };
+        int a = 0;
+        int b = 10;
+        int c = (a + c) * a;
+        putc('H'); putc(0); : One line comment and one line commands! :
+        puts("Hello there from puts!");
+    } exit c;
+}
