@@ -64,9 +64,9 @@ static int _unload_stringmap(stropt_ctx_t* ctx) {
 }
 
 
-static int _find_string(tree_t* root, stropt_ctx_t* ctx) {
+static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
     if (!root) return 0;
-    for (tree_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
         if (!t->token) {
             _find_string(t, ctx);
             continue;
@@ -104,32 +104,32 @@ static int _find_string(tree_t* root, stropt_ctx_t* ctx) {
     return 1;
 }
 
-static int _declare_strings(tree_t* root, stropt_ctx_t* ctx) {
+static int _declare_strings(ast_node_t* root, stropt_ctx_t* ctx) {
     string_info_t* h = ctx->h;
     while (h) {
-        tree_t* decl_root = STX_create_node(TKN_create_token(STR_TYPE_TOKEN, (unsigned char*)STR_VARIABLE, str_strlen(STR_VARIABLE), 0));
+        ast_node_t* decl_root = AST_create_node(TKN_create_token(STR_TYPE_TOKEN, (unsigned char*)STR_VARIABLE, str_strlen(STR_VARIABLE), 0));
         if (!decl_root) return 0;
 
-        tree_t* name_node = STX_create_node(TKN_create_token(STR_VARIABLE_TOKEN, (unsigned char*)h->name, str_strlen(h->name), 0));
+        ast_node_t* name_node = AST_create_node(TKN_create_token(STR_VARIABLE_TOKEN, (unsigned char*)h->name, str_strlen(h->name), 0));
         if (!name_node) {
-            STX_unload(decl_root);
+            AST_unload(decl_root);
             return 0;
         }
 
-        tree_t* value_node = STX_create_node(TKN_create_token(STRING_VALUE_TOKEN, (unsigned char*)h->body, str_strlen(h->body), 0));
+        ast_node_t* value_node = AST_create_node(TKN_create_token(STRING_VALUE_TOKEN, (unsigned char*)h->body, str_strlen(h->body), 0));
         if (!value_node) {
-            STX_unload(decl_root);
-            STX_unload(name_node);
+            AST_unload(decl_root);
+            AST_unload(name_node);
             return 0;
         }
 
-        STX_add_node(decl_root, name_node);
-        STX_add_node(decl_root, value_node);
+        AST_add_node(decl_root, name_node);
+        AST_add_node(decl_root, value_node);
         
         name_node->token->ro = 1;
         decl_root->token->ro = 1;
 
-        tree_t* old = root->first_child;
+        ast_node_t* old = root->first_child;
         root->first_child = decl_root;
         decl_root->next_sibling = old;
 
@@ -141,9 +141,9 @@ static int _declare_strings(tree_t* root, stropt_ctx_t* ctx) {
 
 int OPT_strpack(syntax_ctx_t* ctx) {
     if (!ctx->r) return 0;
-    tree_t* program_body = ctx->r->first_child;
-    tree_t* prestart     = program_body;
-    tree_t* main_body    = prestart->next_sibling;
+    ast_node_t* program_body = ctx->r->first_child;
+    ast_node_t* prestart     = program_body;
+    ast_node_t* main_body    = prestart->next_sibling;
 
     stropt_ctx_t strctx = { .num = 0, .h = NULL };
     _find_string(prestart, &strctx);

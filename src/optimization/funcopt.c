@@ -1,6 +1,6 @@
 #include <optimization.h>
 
-static tree_t* _ast[100] = { NULL };
+static ast_node_t* _ast[100] = { NULL };
 static int _ast_count = 0;
 
 int funcopt_add_ast(syntax_ctx_t* ctx) {
@@ -9,9 +9,9 @@ int funcopt_add_ast(syntax_ctx_t* ctx) {
     return 1;
 }
 
-static int _find_func_usage_file(tree_t* root, const char* func, int* is_used) {
+static int _find_func_usage_file(ast_node_t* root, const char* func, int* is_used) {
     if (!root) return 0;
-    for (tree_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
         if (!t->token) {
             _find_func_usage_file(t, func, is_used);
             continue;
@@ -43,9 +43,9 @@ static int _find_func_usage(const char* func, int* is_used) {
     return 1;
 }
 
-static int _find_func(tree_t* root, int* delete) {
+static int _find_func(ast_node_t* root, int* delete) {
     if (!root) return 0;
-    for (tree_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
         if (!t->token) {
             _find_func(t, delete);
             continue;
@@ -56,8 +56,8 @@ static int _find_func(tree_t* root, int* delete) {
                 int used = 0;    
                 _find_func_usage((char*)t->first_child->token->value, &used);
                 if (!used) {
-                    STX_remove_node(root, t);
-                    STX_unload(t);
+                    AST_remove_node(root, t);
+                    AST_unload(t);
                     *delete = 1;
                 }
                 else _find_func(t->first_child->next_sibling->next_sibling, delete);

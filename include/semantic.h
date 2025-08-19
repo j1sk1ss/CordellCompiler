@@ -18,6 +18,6 @@ Params:
 Return 1 if semantic is true.
 Return 0 if semantic is wrong.
 */
-int SMT_check(tree_t* root);
+int SMT_check(ast_node_t* root);
 
 #endif

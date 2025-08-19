@@ -1,8 +1,8 @@
 #include <optimization.h>
 
-static int _find_muldiv(tree_t* root, int* fold) {
+static int _find_muldiv(ast_node_t* root, int* fold) {
     if (!root) return 0;
-    for (tree_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
         if (!t->token) {
             _find_muldiv(t, fold);
             continue;
@@ -26,8 +26,8 @@ static int _find_muldiv(tree_t* root, int* fold) {
         /* Constant folding */
         if (VRS_isoperand(t->token)) {
             _find_muldiv(t, fold);
-            tree_t* left = t->first_child;
-            tree_t* right = left->next_sibling;
+            ast_node_t* left = t->first_child;
+            ast_node_t* right = left->next_sibling;
             if (left->token->t_type != UNKNOWN_NUMERIC_TOKEN || right->token->t_type != UNKNOWN_NUMERIC_TOKEN) break;
 
             int l_val = str_atoi((char*)left->token->value);
@@ -53,15 +53,15 @@ static int _find_muldiv(tree_t* root, int* fold) {
             snprintf((char*)t->token->value, TOKEN_MAX_SIZE, "%d", result);
             t->token->t_type = UNKNOWN_NUMERIC_TOKEN;
             t->token->glob = 1;
-            STX_unload(t->first_child->next_sibling);
-            STX_unload(t->first_child);
+            AST_unload(t->first_child->next_sibling);
+            AST_unload(t->first_child);
             t->first_child = NULL;
         }
         
         /* Mult and div optimisation after folding */
         if (t->token->t_type == MULTIPLY_TOKEN || t->token->t_type == DIVIDE_TOKEN) {
-            tree_t* left = t->first_child;
-            tree_t* right = left->next_sibling;
+            ast_node_t* left = t->first_child;
+            ast_node_t* right = left->next_sibling;
             if (right->token->t_type != UNKNOWN_NUMERIC_TOKEN) continue;
 
             int right_val = str_atoi((char*)right->token->value);

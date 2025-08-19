@@ -1,8 +1,8 @@
 #include <optimization.h>
 
-static int _recalc_offs(tree_t* r, const char* func, syntax_ctx_t* ctx) {
+static int _recalc_offs(ast_node_t* r, const char* func, syntax_ctx_t* ctx) {
     if (!r) return 0;
-    for (tree_t* t = r->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = r->first_child; t; t = t->next_sibling) {
         if (!t->token) {
             _recalc_offs(t, func, ctx);
             continue;

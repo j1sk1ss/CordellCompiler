@@ -65,6 +65,19 @@ int VRS_one_slot(token_t* token) {
     return 0;
 }
 
+/* Is close token? */
+int VRS_isclose(token_t* token) {
+    if (!token) return 1;
+    switch (token->t_type) {
+        case COMMA_TOKEN:
+        case DELIMITER_TOKEN:
+        case CLOSE_INDEX_TOKEN:
+        case CLOSE_BLOCK_TOKEN:
+        case CLOSE_BRACKET_TOKEN: return 1;
+        default: return 0;
+    }
+}
+
 int VRS_isdecl(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
@@ -96,7 +109,7 @@ int VRS_isoperand(token_t* token) {
 }
 
 int VRS_token_priority(token_t* token) {
-    if (!token) return 0;
+    if (!token) return -1;
     switch (token->t_type) {
         case OR_TOKEN:             return 1;
         case AND_TOKEN:            return 2;
@@ -114,7 +127,7 @@ int VRS_token_priority(token_t* token) {
         case MULTIPLY_TOKEN:
         case DIVIDE_TOKEN:
         case MODULO_TOKEN:         return 9;
-        case ASSIGN_TOKEN:          return 0;
+        case ASSIGN_TOKEN:         return 0;
         default:                   return -1;
     }
 }

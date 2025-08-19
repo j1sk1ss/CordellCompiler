@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <syntax.h>
 
-static int _print_ast(tree_t* node, int depth) {
+static int _print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
     for (int i = 0; i < depth; i++) printf("\t");
     if (node->token) printf(
@@ -15,7 +15,7 @@ static int _print_ast(tree_t* node, int depth) {
     );
     else printf("{ scope }\n");
     
-    tree_t* child = node->first_child;
+    ast_node_t* child = node->first_child;
     while (child) {
         _print_ast(child, depth + 1);
         child = child->next_sibling;
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     STX_create(tkn, &sctx);
     _print_ast(sctx.r, 0);
 
-    STX_unload(sctx.r);
+    AST_unload(sctx.r);
     TKN_unload(tkn);
     close(fd);
     return 0;

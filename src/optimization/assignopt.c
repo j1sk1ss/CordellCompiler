@@ -1,8 +1,8 @@
 #include <optimization.h>
 
-static int _find_assign(tree_t* root, char* varname, int* status, int local) {
+static int _find_assign(ast_node_t* root, char* varname, int* status, int local) {
     if (!root) return 0;
-    for (tree_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
         if (!t->token) {
             _find_assign(t, varname, status, local);
             continue;
@@ -19,7 +19,7 @@ static int _find_assign(tree_t* root, char* varname, int* status, int local) {
         }
 
         if (t->token->t_type == ASSIGN_TOKEN) {
-            tree_t* left = t->first_child;
+            ast_node_t* left = t->first_child;
             if (!str_strncmp(varname, (char*)left->token->value, TOKEN_MAX_SIZE)) {
                 *status = 1;
                 return 1;
@@ -30,11 +30,11 @@ static int _find_assign(tree_t* root, char* varname, int* status, int local) {
     return 1;
 }
 
-static int _change_decl(tree_t* root, char* varname, int value, int local, int offset) {
+static int _change_decl(ast_node_t* root, char* varname, int value, int local, int offset) {
     if (!root) return 0;
 
     int index = 0;
-    for (tree_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
         if (index++ < offset) continue;
         if (!t->token) {
             _change_decl(t, varname, value, local, 0);
@@ -83,9 +83,9 @@ static int _change_decl(tree_t* root, char* varname, int value, int local, int o
     return 1;
 }
 
-static int _find_decl(tree_t* root, tree_t* entry, int* change) {
+static int _find_decl(ast_node_t* root, ast_node_t* entry, int* change) {
     if (!root) return 0;
-    for (tree_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
         if (!t->token) {
             _find_decl(t, entry, change);
             continue;
@@ -101,12 +101,12 @@ static int _find_decl(tree_t* root, tree_t* entry, int* change) {
 
         if (VRS_isdecl(t->token) && t->token->t_type != STR_TYPE_TOKEN && t->token->t_type != ARRAY_TYPE_TOKEN) {
             int is_changed = 0;
-            tree_t* name_node = t->first_child;
+            ast_node_t* name_node = t->first_child;
             if (t->token->ro || t->token->glob) _find_assign(entry, (char*)name_node->token->value, &is_changed, 0);
             else _find_assign(root, (char*)name_node->token->value, &is_changed, 1);
 
             if (!is_changed) {
-                tree_t* val_node = name_node->next_sibling;
+                ast_node_t* val_node = name_node->next_sibling;
                 if (val_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) continue;
                 int value = str_atoi((char*)val_node->token->value);
                 if (t->token->ro || t->token->glob) _change_decl(entry, (char*)name_node->token->value, value, 0, 0);

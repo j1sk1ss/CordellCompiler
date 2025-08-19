@@ -1,8 +1,8 @@
 #include <optimization.h>
 
 typedef struct code_node {
-    tree_t*           start;
-    tree_t*           end;
+    ast_node_t*           start;
+    ast_node_t*           end;
     struct code_node* parent;
     struct code_node* first_child;
     struct code_node* next_sibling;
@@ -20,7 +20,7 @@ typedef struct func_code_node {
 
 static func_code_node_t* _func_code_block_h = NULL;
 
-static code_node_t* _create_code_node(tree_t* start) {
+static code_node_t* _create_code_node(ast_node_t* start) {
     if (!start) return NULL;
     code_node_t* node = (code_node_t*)mm_malloc(sizeof(code_node_t));
     if (!node) return NULL;
@@ -99,21 +99,21 @@ static int _unload_func_node_map() {
 }
 
 
-static code_node_t* _generate_blocks(tree_t* curr) {
+static code_node_t* _generate_blocks(ast_node_t* curr) {
     if (!curr) return NULL;
     code_node_t* head = _create_code_node(curr);
     if (!head) return NULL;
     
     /* We don't go deeper, and only catch changes in flow. */
-    tree_t* curr_node = curr;
-    for (tree_t* t = curr; t; t = t->next_sibling, curr_node = curr_node->next_sibling) {
+    ast_node_t* curr_node = curr;
+    for (ast_node_t* t = curr; t; t = t->next_sibling, curr_node = curr_node->next_sibling) {
         if (!t->token) continue;
         switch (t->token->t_type) {
             /* Generating block and linking to function name. */
             case FUNC_TOKEN:
-                tree_t* name_node   = t->first_child;
-                tree_t* params_node = name_node->next_sibling;
-                tree_t* body_node   = params_node->next_sibling;
+                ast_node_t* name_node   = t->first_child;
+                ast_node_t* params_node = name_node->next_sibling;
+                ast_node_t* body_node   = params_node->next_sibling;
                 code_node_t* func_blocks = _generate_blocks(body_node);
                 if (func_blocks) {
                     _add_func_code_block((char*)name_node->token->value, func_blocks);

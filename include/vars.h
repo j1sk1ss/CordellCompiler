@@ -9,6 +9,7 @@ int VRS_isptr(token_t* token);
 int VRS_one_slot(token_t* token);
 int VRS_intext(token_t* token);
 int VRS_isdecl(token_t* token);
+int VRS_isclose(token_t* token);
 int VRS_isoperand(token_t* token);
 int VRS_token_priority(token_t* token);
 

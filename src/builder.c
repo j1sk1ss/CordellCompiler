@@ -1,6 +1,6 @@
 #include <builder.h>
 
-static int _print_parse_tree(tree_t* node, int depth) {
+static int _print_parse_tree(ast_node_t* node, int depth) {
     if (!node) return 0;
     for (int i = 0; i < depth; i++) printf("\t");
     if (node->token) printf(
@@ -10,7 +10,7 @@ static int _print_parse_tree(tree_t* node, int depth) {
     );
     else printf("{ scope }\n");
     
-    tree_t* child = node->first_child;
+    ast_node_t* child = node->first_child;
     while (child) {
         _print_parse_tree(child, depth + 1);
         child = child->next_sibling;
@@ -52,7 +52,7 @@ static int _generate_raw_ast(object_t* obj) {
     obj->syntax->vars = VRM_create_ctx();
     STX_create(tokens, obj->syntax);
     if (!SMT_check(obj->syntax->r)) {
-        STX_unload(obj->syntax->r);
+        AST_unload(obj->syntax->r);
         TKN_unload(tokens);
         close(fd);
         return -4;
@@ -112,7 +112,7 @@ static int _compile_object(object_t* obj) {
     print_debug("COMPILING: system(%s)", compile_command);
     system(compile_command);
 
-    STX_unload(obj->syntax->r);
+    AST_unload(obj->syntax->r);
     TKN_unload(obj->toks);
     ARM_unload(obj->syntax->arrs);
     ARM_destroy_ctx(obj->syntax->arrs);
