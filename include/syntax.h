@@ -3,6 +3,7 @@
 
 #include "ast.h"
 #include "regs.h"
+#include "stack.h"
 #include "arrmem.h"
 #include "varmem.h"
 #include "token.h"
@@ -10,33 +11,24 @@
 #include "vars.h"
 #include "str.h"
 
-#define MAX_SCOPE_DEPTH 1024
-
 typedef struct {
-    int data[MAX_SCOPE_DEPTH];
-    int top;
-} scope_stack_t;
-
-static inline void scope_push(scope_stack_t* st, int id) {
-    st->data[++st->top] = id;
-}
-
-static inline void scope_pop(scope_stack_t* st) {
-    if (st->top >= 0) st->top--;
-}
-
-static inline int scope_top(scope_stack_t* st) {
-    return (st->top >= 0) ? st->data[st->top] : -1;
-}
-
-typedef struct {
-    const char*   scope;
     ast_node_t*   r;
     varmem_ctx_t* vars;
     arrmem_ctx_t* arrs;
+    int           scope_id;
+    scope_stack_t scope;
 } syntax_ctx_t;
 
+/*
+Create syntax context in heap.
+Return pointer to context.
+*/
 syntax_ctx_t* STX_create_ctx();
+
+/*
+Unload syntax context from heap.
+Return 1 if unload was success.
+*/
 int STX_destroy_ctx(syntax_ctx_t* ctx);
 
 /*

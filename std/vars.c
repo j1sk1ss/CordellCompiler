@@ -52,6 +52,7 @@ int VRS_one_slot(token_t* token) {
     if (token->ptr) return 1;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
+        case LONG_VARIABLE_TOKEN:
         case INT_VARIABLE_TOKEN:
         case SHORT_VARIABLE_TOKEN:
         case CHAR_VALUE_TOKEN:

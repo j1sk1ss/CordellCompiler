@@ -11,11 +11,32 @@
     }
 
     start {
-        arr str_arr 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 10, 0 };
+        arr str_arr 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0 };
         int a = 0;
         int b = 10;
         int c = (a + c) * a;
         
+        {
+            short asd = 0;
+            short sdf = 1;
+            short dfg = 2;
+        }
+
+        char asd = 0;
+        char sdf = 1;
+        char dfg = 2;
+
+        if sdf == 1; {
+            char utu = a;
+        }
+
+        if asd == 0; {
+            char utu = b;
+        }
+
+        long rer = 345;
+        long utu = 321;
+
         putc('H'); putc(0); : One line comment and one line commands! :
         puts("Hello there from puts!");
 

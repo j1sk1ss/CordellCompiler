@@ -29,9 +29,9 @@ int main(int argc, char* argv[]) {
     mm_init();
     
     int fd = open("tests/test_code/ast_test.txt", O_RDONLY);
-    char data[512] = { 0 };
-    pread(fd, data, 512, 0);
-    printf("Source data: %s\n", data);
+    char data[2048] = { 0 };
+    pread(fd, data, 2048, 0);
+    printf("Source data: %s\n\n", data);
 
     token_t* tkn = TKN_tokenize(fd);
     if (!tkn) {
