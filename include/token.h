@@ -48,11 +48,12 @@ typedef enum {
     START_TOKEN,         // start
     RETURN_TOKEN,        // return
     EXIT_TOKEN,          // exit
-    SYSCALL_TOKEN,       // syscall
-    CALL_TOKEN,
-    
+    SCOPE_TOKEN,
+
     // Function
+    SYSCALL_TOKEN,       // syscall
     FUNC_TOKEN,          // function
+    CALL_TOKEN,
     
     // Condition scope
     SWITCH_TOKEN,        // switch

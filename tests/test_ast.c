@@ -8,7 +8,7 @@
 static int _print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
     for (int i = 0; i < depth; i++) printf("    ");
-    if (node->token) {
+    if (node->token && node->token->t_type != SCOPE_TOKEN) {
         printf(
             "[%s] (t=%d, size=%i,%soff=%i, s_id=%i%s%s)\n", 
             node->token->value, node->token->t_type, node->info.size, 
@@ -17,8 +17,11 @@ static int _print_ast(ast_node_t* node, int depth) {
             node->token->ro ? ", ro" : "", node->token->glob ? ", glob" : ""
         );
     }
-    else {
+    else if (node->token && node->token->t_type == SCOPE_TOKEN) {
         printf("{ scope }\n");
+    }
+    else {
+        printf("[ block ]\n");
     }
     
     ast_node_t* child = node->child;

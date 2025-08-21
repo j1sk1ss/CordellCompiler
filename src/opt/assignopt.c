@@ -1,26 +1,31 @@
 #include <optimization.h>
 
-static int _find_assign(ast_node_t* root, char* varname, int* status, int local) {
+static int _find_assign(
+    ast_node_t* root, char* varname, short s_id, int* status, int local
+) {
     if (!root) return 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (!t->token) {
-            _find_assign(t, varname, status, local);
+            _find_assign(t, varname, s_id, status, local);
             continue;
         }
 
         switch (t->token->t_type) {
             case CASE_TOKEN:
             case SWITCH_TOKEN:
-            case DEFAULT_TOKEN: _find_assign(t, varname, status, local); continue;
+            case DEFAULT_TOKEN: _find_assign(t, varname, s_id, status, local);                 continue;
             case IF_TOKEN:
-            case WHILE_TOKEN: _find_assign(t->child->sibling, varname, status, local); continue;
-            case FUNC_TOKEN: if (!local) _find_assign(t->child->sibling->sibling, varname, status, local); continue;
+            case WHILE_TOKEN:   _find_assign(t->child->sibling, varname, s_id, status, local); continue;
+            case FUNC_TOKEN: 
+                if (!local) {
+                    _find_assign(t->child->sibling->sibling, varname, s_id, status, local);
+                }
+            continue;
             default: break;
         }
 
         if (t->token->t_type == ASSIGN_TOKEN) {
-            ast_node_t* left = t->child;
-            if (!str_strncmp(varname, (char*)left->token->value, TOKEN_MAX_SIZE)) {
+            if (!str_strncmp(varname, t->child->token->value, TOKEN_MAX_SIZE)) {
                 *status = 1;
                 return 1;
             }
@@ -42,19 +47,19 @@ static int _change_decl(ast_node_t* root, char* varname, int value, int local, i
         }
         
         switch (t->token->t_type) {
-            case CASE_TOKEN: _change_decl(t, varname, value, local, 0); break;
-            case LONG_TYPE_TOKEN:
+            case CASE_TOKEN:       _change_decl(t, varname, value, local, 0); break;
             case INT_TYPE_TOKEN:
+            case LONG_TYPE_TOKEN:
             case CHAR_TYPE_TOKEN: 
             case SHORT_TYPE_TOKEN: _change_decl(t, varname, value, local, 1); continue;
             case IF_TOKEN:
             case EXIT_TOKEN:
             case CALL_TOKEN:
             case PLUS_TOKEN:
-            case ASSIGN_TOKEN:
             case MINUS_TOKEN:
             case BITOR_TOKEN:
             case WHILE_TOKEN:
+            case ASSIGN_TOKEN:
             case DIVIDE_TOKEN:
             case BITAND_TOKEN:
             case RETURN_TOKEN:
@@ -69,7 +74,11 @@ static int _change_decl(ast_node_t* root, char* varname, int value, int local, i
             case BITMOVE_LEFT_TOKEN:
             case BITMOVE_RIGHT_TOKEN:
             case ARRAY_TYPE_TOKEN: _change_decl(t, varname, value, local, 0); continue;
-            case FUNC_TOKEN: if (!local) _change_decl(t->child->sibling->sibling, varname, value, local, 0); continue;
+            case FUNC_TOKEN: 
+                if (!local) {
+                    _change_decl(t->child->sibling->sibling, varname, value, local, 0);
+                }
+            continue;
             default: break;
         }
 
@@ -93,24 +102,27 @@ static int _find_decl(ast_node_t* root, ast_node_t* entry, int* change) {
 
         switch (t->token->t_type) {
             case IF_TOKEN:
-            case SWITCH_TOKEN:
-            case WHILE_TOKEN: _find_decl(t->child->sibling, entry, change); continue;
-            case FUNC_TOKEN: _find_decl(t->child->sibling->sibling, entry, change); continue;
+            case WHILE_TOKEN: 
+            case SWITCH_TOKEN: _find_decl(t->child->sibling, entry, change);          continue;
+            case FUNC_TOKEN:   _find_decl(t->child->sibling->sibling, entry, change); continue;
             default: break;
         }
 
-        if (VRS_isdecl(t->token) && t->token->t_type != STR_TYPE_TOKEN && t->token->t_type != ARRAY_TYPE_TOKEN) {
+        if (VRS_isdecl(t->token) && VRS_one_slot(t->token)) { /* Can be optimized */
             int is_changed = 0;
             ast_node_t* name_node = t->child;
-            if (t->token->ro || t->token->glob) _find_assign(entry, (char*)name_node->token->value, &is_changed, 0);
-            else _find_assign(root, (char*)name_node->token->value, &is_changed, 1);
+            if (!VRS_intext(t->token)) _find_assign(entry, name_node->token->value, &is_changed, name_node->info.s_id, 0);
+            else _find_assign(root, name_node->token->value, &is_changed, name_node->info.s_id, 1);
 
             if (!is_changed) {
                 ast_node_t* val_node = name_node->sibling;
-                if (val_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) continue;
-                int value = str_atoi((char*)val_node->token->value);
-                if (t->token->ro || t->token->glob) _change_decl(entry, (char*)name_node->token->value, value, 0, 0);
-                else _change_decl(root, (char*)name_node->token->value, value, 1, 0);
+                if (val_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) {
+                    continue; /* Can be replaced by value */
+                }
+                
+                int value = str_atoi(val_node->token->value);
+                if (!VRS_intext(t->token)) _change_decl(entry, name_node->token->value, value, 0, 0);
+                else _change_decl(root, name_node->token->value, value, 1, 0);
                 *change = 1;
             }
         }
