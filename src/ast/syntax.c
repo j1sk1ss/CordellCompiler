@@ -123,6 +123,7 @@ static ast_node_t* _parse_scope(token_t** curr, syntax_ctx_t* ctx) {
         node = _parse_block(curr, ctx, CLOSE_BLOCK_TOKEN);
         if (node) {
             node->token = TKN_create_token(SCOPE_TOKEN, NULL, 0, 0);
+            node->info.s_id = scope_id_top(&ctx->scope.stack);
             _forward_token(curr, 1);
         }
     }

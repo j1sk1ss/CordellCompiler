@@ -1,18 +1,27 @@
 #include <builder.h>
 
-static int _print_parse_tree(ast_node_t* node, int depth) {
+static int _print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
-    for (int i = 0; i < depth; i++) printf("\t");
-    if (node->token) printf(
-        "[%s] (t=%d, size=%i, is_ptr=%i, off=%i, ro=%i glob=%i)\n", 
-        (char*)node->token->value, node->token->t_type, node->variable_size, node->token->ptr, 
-        node->variable_offset, node->token->ro, node->token->glob
-    );
-    else printf("{ scope }\n");
+    for (int i = 0; i < depth; i++) printf("    ");
+    if (node->token && node->token->t_type != SCOPE_TOKEN) {
+        printf(
+            "[%s] (t=%d, size=%i,%soff=%i, s_id=%i%s%s)\n", 
+            node->token->value, node->token->t_type, node->info.size, 
+            node->token->ptr ? " ptr, " : " ", 
+            node->info.offset, node->info.s_id,
+            node->token->ro ? ", ro" : "", node->token->glob ? ", glob" : ""
+        );
+    }
+    else if (node->token && node->token->t_type == SCOPE_TOKEN) {
+        printf("{ scope, id=%i }\n", node->info.s_id);
+    }
+    else {
+        printf("[ block ]\n");
+    }
     
     ast_node_t* child = node->child;
     while (child) {
-        _print_parse_tree(child, depth + 1);
+        _print_ast(child, depth + 1);
         child = child->sibling;
     }
     
@@ -80,7 +89,7 @@ static int _compile_object(object_t* obj) {
     int assign_opt_res = 0;
     int is_fold_vars = 0;
     do {
-        assign_opt_res = assign_optimization(obj->syntax);
+        assign_opt_res = OPT_force_assign(obj->syntax);
         is_fold_vars = OPT_muldiv(obj->syntax);
     } while (is_fold_vars);
     print_log("Assign and muldiv optimization... [Code: %i/%i]", assign_opt_res, is_fold_vars);

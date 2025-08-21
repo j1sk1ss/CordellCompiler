@@ -1,0 +1,24 @@
+{
+    start {
+        int a = 10;
+        int b = 20;
+        int c = a + b;
+        int d = c * a;
+
+        int f = 0;
+        f = a;
+        f = b;
+
+        switch a + b; {
+            case c; {
+
+            }
+            case d; {
+
+            }
+            default {
+
+            }
+        }
+    } exit c;
+}
