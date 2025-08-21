@@ -4,6 +4,7 @@
 #include "token.h"
 
 typedef struct {
+    short s_id;
     int   offset;
     int   size;
 } syntax_info_t;

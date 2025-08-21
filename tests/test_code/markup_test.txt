@@ -10,24 +10,61 @@
         return syscall(1, 1, string, strSize);
     }
 
+    glob int glint = 1;
+    glob ro int glroint = 2;
+
     start {
-        arr str_arr 0 char = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0 };
+        str hello_msg = "Hello there!";
+        arr str_arr[12, char] = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0 };
+        ptr char chrptr = str_arr;
+        ptr int intptr = str_arr;
+
+        chrptr[0] = 'R';
+        intptr[0] = 123;
+
         int a = 0;
         int b = 10;
         int c = (a + c) * a;
         
         {
+            arr buff[2, char] = { 0, 0 };
             short asd = 0;
             short sdf = 1;
             short dfg = 2;
         }
 
+        arr buff[2, char] = { 0, 0 };
         char asd = 0;
         char sdf = 1;
         char dfg = 2;
 
         if sdf == 1; {
-            char utu = 123;
+            char utu = a;
+        }
+
+        if asd == 0; {
+            char utu = b;
+        }
+        else {
+            char utu = a;
+        }
+
+        while asd; {
+            asd = 1;
+        }
+        else {
+            asd = 0;
+        }
+
+        switch asd; {
+            case 0; {
+                char fst = 0;
+                char sec = 1;
+            }
+            default {
+                char fst = 0;
+                char sec = 1;
+            }
         }
 
         long rer = 345;

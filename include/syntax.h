@@ -12,7 +12,7 @@
 #include "str.h"
 
 typedef struct {
-    int           scope_id;
+    int           s_id;
     scope_stack_t stack;
 } scope_info_t;
 

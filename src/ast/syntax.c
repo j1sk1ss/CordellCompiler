@@ -80,6 +80,7 @@ static int _var_lookup(ast_node_t* node, syntax_ctx_t* ctx) {
     if (varinfo.offset == -1) return 0;
     node->info.offset = varinfo.offset;
     node->info.size   = varinfo.size;
+    node->info.s_id   = varinfo.scope;
     return 1;
 }
 
@@ -89,7 +90,7 @@ Handle only scopes. Don't handle scopes included to special structs like if, whi
 */
 static ast_node_t* _parse_scope(token_t** curr, syntax_ctx_t* ctx) {
     if ((*curr)->t_type == OPEN_BLOCK_TOKEN) {
-        scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset);
+        scope_push(&ctx->scope.stack, ++ctx->scope.s_id, ctx->vars->offset);
     }
     else if ((*curr)->t_type == CLOSE_BLOCK_TOKEN) {
         scope_elem_t el;
@@ -178,8 +179,8 @@ call_token
 static ast_node_t* _parse_function_call(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
-    _forward_token(curr, 1);
 
+    _forward_token(curr, 1);
     if (*curr && (*curr)->t_type == OPEN_BRACKET_TOKEN) {
         _forward_token(curr, 1);
         while (*curr && (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
@@ -241,9 +242,9 @@ static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx
         return NULL;
     }
 
+    _forward_token(curr, 1);
     AST_add_node(node, name_node);
 
-    _forward_token(curr, 1);
     ast_node_t* args_node = AST_create_node(NULL);
     if (!args_node) {
         AST_unload(node);
@@ -251,7 +252,7 @@ static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx
     }
 
     /* Manual stack push instead parser */
-    scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset); /* Function uniqe scope ID before arguments */
+    scope_push(&ctx->scope.stack, ++ctx->scope.s_id, ctx->vars->offset); /* Function uniqe scope ID before arguments */
     ctx->vars->offset = 0;
 
     while (!*curr || (*curr)->t_type != OPEN_BLOCK_TOKEN) {
@@ -269,7 +270,9 @@ static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx
         _forward_token(curr, 1);
     }
 
+    _forward_token(curr, 1);
     AST_add_node(node, args_node);
+
     ast_node_t* body_node = _parse_block(curr, ctx, CLOSE_BLOCK_TOKEN);
     if (!body_node) {
         AST_unload(node);
@@ -293,59 +296,50 @@ type_token
 |_ decl_val (val | exp)
 */
 static ast_node_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
-    token_t* type_token = *curr;
-    token_t* name_token = type_token->next;
-    if (!type_token || !name_token) return NULL;
-    
-    token_t* assign_token = name_token->next;
-    if (!assign_token) return NULL;
-    token_t* value_token = assign_token->next;
-    if (!value_token) return NULL;
+    ast_node_t* node = AST_create_node(*curr);
+    if (!node) return NULL;
 
-    ast_node_t* decl_node = AST_create_node(type_token);
-    if (!decl_node) return NULL;
-    ast_node_t* name_node = AST_create_node(name_token);
+    _forward_token(curr, 1);
+    ast_node_t* name_node = AST_create_node(*curr);
     if (!name_node) {
-        AST_unload(decl_node);
+        AST_unload(node);
         return NULL;
     }
     
     if (
-        VRS_one_slot(name_token) &&  /* Pointer or variable (String and array occupie several stack slots) */
-        VRS_intext(decl_node->token) /* Global and RO variables placed not in stack */
+        VRS_one_slot(name_node->token) &&  /* Pointer or variable (String and array occupie several stack slots) */
+        VRS_intext(node->token)            /* Global and RO variables placed not in stack */
     ) {
-        int var_size = VRS_variable_bitness(name_token, 1) / 8;
-        _var_update(decl_node, ctx, name_node->token->value, var_size);
+        int var_size = VRS_variable_bitness(name_node->token, 1) / 8;
+        _var_update(node, ctx, name_node->token->value, var_size);
         _var_lookup(name_node, ctx);
     }
 
-    while (*curr && (*curr)->t_type != DELIMITER_TOKEN) {
-        _forward_token(curr, 1);
+    _forward_token(curr, 1);
+    AST_add_node(node, name_node);
+
+    if (!*curr || (*curr)->t_type != ASSIGN_TOKEN) { /* If this is uninitilized variable */
+        return node;
     }
 
-    AST_add_node(decl_node, name_node);
-    if (!assign_token || assign_token->t_type != ASSIGN_TOKEN) {
-        return decl_node;
-    }
-
-    ast_node_t* value_node = _parse_expression(&value_token, ctx);
+    _forward_token(curr, 1);
+    ast_node_t* value_node = _parse_expression(curr, ctx);
     if (!value_node) {
-        AST_unload(decl_node);
-        AST_unload(name_node);
+        AST_unload(node);
         return NULL;
     }
-
+    
     if (
-        type_token->t_type == STR_TYPE_TOKEN && 
-        VRS_intext(decl_node->token) /* Global and RO strings placed in .rodata or .data section */
+        node->token->t_type == STR_TYPE_TOKEN && 
+        VRS_intext(node->token) /* Global and RO strings placed in .rodata or .data section */
     ) {
-        _var_update(decl_node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)));
-        ARM_add_info(name_node->token->value, scope_id_top(&ctx->scope.stack), 1, decl_node->info.size, ctx->arrs);
+        _var_update(node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)));
+        ARM_add_info(name_node->token->value, scope_id_top(&ctx->scope.stack), 1, node->info.size, ctx->arrs);
         _var_lookup(name_node, ctx);
     }
 
-    AST_add_node(decl_node, value_node);
-    return decl_node;
+    AST_add_node(node, value_node);
+    return node;
 }
 
 /*
@@ -436,7 +430,7 @@ operator_token
 static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, int min_priority) {
     ast_node_t* left = _parse_primary(curr, ctx);
     if (!left) return NULL;
-    
+
     while (*curr) {
         int priority = VRS_token_priority(*curr);
         if (priority < min_priority || priority == -1) break;
@@ -482,7 +476,7 @@ static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx) {
         _forward_token(curr, 1);
         return node;
     }
-
+    
     if (VRS_isptr(*curr))                      return _parse_array_expression(curr, ctx);
     else if ((*curr)->t_type == CALL_TOKEN)    return _parse_function_call(curr, ctx);
     else if ((*curr)->t_type == SYSCALL_TOKEN) return _parse_syscall(curr, ctx);
@@ -590,7 +584,7 @@ static ast_node_t* _parse_switch_expression(token_t** curr, syntax_ctx_t* ctx) {
         _forward_token(curr, 1);
         while ((*curr)->t_type == CASE_TOKEN || (*curr)->t_type == DEFAULT_TOKEN) {
             /* Separated scope for block */
-            scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset);
+            scope_push(&ctx->scope.stack, ++ctx->scope.s_id, ctx->vars->offset);
 
             ast_node_t* case_stmt = NULL;
             if ((*curr)->t_type != CASE_TOKEN) case_stmt = AST_create_node(TKN_create_token(DEFAULT_TOKEN, NULL, 0, 0));
@@ -658,7 +652,7 @@ static ast_node_t* _parse_condition_scope(token_t** curr, syntax_ctx_t* ctx) {
 
     if (*curr && (*curr)->t_type == OPEN_BLOCK_TOKEN) { /* Main branch scope */
         /* Separated scope for block */
-        scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset);
+        scope_push(&ctx->scope.stack, ++ctx->scope.s_id, ctx->vars->offset);
 
         _forward_token(curr, 1);
         ast_node_t* branch = _parse_block(curr, ctx, CLOSE_BLOCK_TOKEN);
@@ -679,7 +673,7 @@ static ast_node_t* _parse_condition_scope(token_t** curr, syntax_ctx_t* ctx) {
 
     if (*curr && (*curr)->t_type == ELSE_TOKEN) { /* Else branch scope */
         /* Separated scope for block */
-        scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset);
+        scope_push(&ctx->scope.stack, ++ctx->scope.s_id, ctx->vars->offset);
 
         _forward_token(curr, 2);
         ast_node_t* branch = _parse_block(curr, ctx, CLOSE_BLOCK_TOKEN);

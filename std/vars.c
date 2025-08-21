@@ -33,8 +33,8 @@ int VRS_isptr(token_t* token) {
         case CHAR_VARIABLE_TOKEN:  return 0;
         case STRING_VALUE_TOKEN:
         case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN:
-        default:                   return 1;
+        case STR_VARIABLE_TOKEN:   return 1;
+        default:                   return 0;
     }
 
     return 0;

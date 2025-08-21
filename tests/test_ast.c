@@ -10,9 +10,11 @@ static int _print_ast(ast_node_t* node, int depth) {
     for (int i = 0; i < depth; i++) printf("    ");
     if (node->token) {
         printf(
-            "[%s] (t=%d, size=%i,%soff=%i%s%s)\n", 
-            node->token->value, node->token->t_type, node->info.size, node->token->ptr ? " ptr, " : " ", 
-            node->info.offset, node->token->ro ? ", ro" : "", node->token->glob ? ", glob" : ""
+            "[%s] (t=%d, size=%i,%soff=%i, s_id=%i%s%s)\n", 
+            node->token->value, node->token->t_type, node->info.size, 
+            node->token->ptr ? " ptr, " : " ", 
+            node->info.offset, node->info.s_id,
+            node->token->ro ? ", ro" : "", node->token->glob ? ", glob" : ""
         );
     }
     else {

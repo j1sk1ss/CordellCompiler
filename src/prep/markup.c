@@ -113,7 +113,7 @@ static int _add_variable(
 }
 
 int MRKP_variables(token_t* head) {
-    int scope_id = 0;
+    int s_id = 0;
     scope_stack_t scope_stack = { .top = -1 };
 
     markp_ctx curr_ctx = { 0 };
@@ -123,7 +123,7 @@ int MRKP_variables(token_t* head) {
 
     while (curr) {
         switch (curr->t_type) {
-            case OPEN_BLOCK_TOKEN: scope_push(&scope_stack, ++scope_id, 0); break;
+            case OPEN_BLOCK_TOKEN: scope_push(&scope_stack, ++s_id, 0); break;
             case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack); break;
 
             case IMPORT_TOKEN:
@@ -184,18 +184,18 @@ int MRKP_variables(token_t* head) {
 
     curr = head;
     scope_stack.top = -1;
-    scope_id = 0;
+    s_id = 0;
 
     while (curr) {
-        if (curr->t_type == OPEN_BLOCK_TOKEN) scope_push(&scope_stack, ++scope_id, 0);
+        if (curr->t_type == OPEN_BLOCK_TOKEN) scope_push(&scope_stack, ++s_id, 0);
         else if (curr->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&scope_stack);
         if (curr->t_type == UNKNOWN_STRING_TOKEN || curr->t_type == UNKNOWN_CHAR_VALUE) {
             for (int s = scope_stack.top; s >= 0; s--) {
-                int s_id = scope_stack.data[s].id;
+                int curr_s = scope_stack.data[s].id;
                 for (int i = 0; i < var_count; i++) {
                     if (
                         !str_strncmp(curr->value, vars[i].name, TOKEN_MAX_SIZE) &&
-                        vars[i].scope == s_id
+                        vars[i].scope == curr_s
                     ) {
                         curr->t_type = vars[i].type;
                         curr->ro     = vars[i].ro;

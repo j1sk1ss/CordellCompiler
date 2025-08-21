@@ -18,7 +18,14 @@ typedef struct {
     variable_info_t* h;
 } varmem_ctx_t;
 
+/*
+Create variable table context.
+*/
 varmem_ctx_t* VRM_create_ctx();
+
+/*
+Destroy variable table.
+*/
 int VRM_destroy_ctx(varmem_ctx_t* ctx);
 
 /*
