@@ -12,11 +12,15 @@
 #include "str.h"
 
 typedef struct {
+    int           scope_id;
+    scope_stack_t stack;
+} scope_info_t;
+
+typedef struct {
     ast_node_t*   r;
     varmem_ctx_t* vars;
     arrmem_ctx_t* arrs;
-    int           scope_id;
-    scope_stack_t scope;
+    scope_info_t  scope;
 } syntax_ctx_t;
 
 /*

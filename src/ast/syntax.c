@@ -56,7 +56,8 @@ static ast_node_t* (*_get_parser(token_type_t t_type))(token_t**, syntax_ctx_t*)
 static int _var_update(
     ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size
 ) {
-    node->info.offset = VRM_add_info(name, size, scope_top(&ctx->scope), ctx->vars);
+    if (!node) return 0;
+    node->info.offset = VRM_add_info(name, size, scope_id_top(&ctx->scope.stack), ctx->vars);
     node->info.size   = size;
     return 1;
 }
@@ -67,9 +68,10 @@ static int _var_lookup(ast_node_t* node, syntax_ctx_t* ctx) {
     _var_lookup(node->sibling, ctx);
     _var_lookup(node->child, ctx);
 
+    if (!node->token) return 0;
     variable_info_t varinfo = { .offset = -1 };
-    for (int s = ctx->scope.top; s >= 0; s--) {
-        int s_id = ctx->scope.data[s];
+    for (int s = ctx->scope.stack.top; s >= 0; s--) {
+        int s_id = ctx->scope.stack.data[s].id;
         if (VRM_get_info((char*)node->token->value, s_id, &varinfo, ctx->vars)) {
             break;
         }
@@ -86,8 +88,15 @@ Dummy parser for scope stack managment
 Handle only scopes. Don't handle scopes included to special structs like if, while, function and etc.
 */
 static ast_node_t* _parse_scope(token_t** curr, syntax_ctx_t* ctx) {
-    if ((*curr)->t_type == OPEN_BLOCK_TOKEN)       scope_push(&ctx->scope, ++ctx->scope_id);
-    else if ((*curr)->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&ctx->scope);
+    if ((*curr)->t_type == OPEN_BLOCK_TOKEN) {
+        scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset);
+    }
+    else if ((*curr)->t_type == CLOSE_BLOCK_TOKEN) {
+        scope_elem_t el;
+        scope_pop_top(&ctx->scope.stack, &el);
+        ctx->vars->offset = el.offset;
+    }
+
     return NULL;
 }
 
@@ -126,15 +135,14 @@ import_token
    |_ ...
 */
 static ast_node_t* _parse_import(token_t** curr, syntax_ctx_t* ctx) {
-    if (!curr || !*curr || (*curr)->t_type != IMPORT_SELECT_TOKEN) return NULL;
-    ast_node_t* import_node = AST_create_node(*curr);
-    if (!import_node) return NULL;
+    ast_node_t* node = AST_create_node(*curr);
+    if (!node) return NULL;
     
     /* "from" statement -> "source path" */
     _forward_token(curr, 1);
     ast_node_t* source_node = AST_create_node(*curr); // example: src.cpl
     if (!source_node) {
-        AST_unload(import_node);
+        AST_unload(node);
         return NULL;
     }
 
@@ -143,7 +151,7 @@ static ast_node_t* _parse_import(token_t** curr, syntax_ctx_t* ctx) {
     while (*curr && (*curr)->t_type != DELIMITER_TOKEN) {
         ast_node_t* fname = AST_create_node(*curr); // example: func1
         if (!fname) {
-            AST_unload(import_node);
+            AST_unload(node);
             AST_unload(source_node);
             return NULL;
         }
@@ -152,8 +160,8 @@ static ast_node_t* _parse_import(token_t** curr, syntax_ctx_t* ctx) {
         _forward_token(curr, 1);
     }
 
-    AST_add_node(import_node, source_node);
-    return import_node;
+    AST_add_node(node, source_node);
+    return node;
 }
 
 /*
@@ -196,19 +204,18 @@ return_token
 |_ ret_val (val | exp)
 */
 static ast_node_t* _parse_return_declaration(token_t** curr, syntax_ctx_t* ctx) {
-    if (!curr || !*curr || (*curr)->t_type != RETURN_TOKEN) return NULL;
-    ast_node_t* return_node = AST_create_node(*curr);
-    if (!return_node) return NULL;
+    ast_node_t* node = AST_create_node(*curr);
+    if (!node) return NULL;
     
     _forward_token(curr, 1);
     ast_node_t* exp_node = _parse_expression(curr, ctx);
     if (!exp_node) {
-        AST_unload(return_node);
+        AST_unload(node);
         return NULL;
     }
 
-    AST_add_node(return_node, exp_node);
-    return return_node;
+    AST_add_node(node, exp_node);
+    return node;
 }
 
 /*
@@ -244,8 +251,7 @@ static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx
     }
 
     /* Manual stack push instead parser */
-    scope_push(&ctx->scope, ++ctx->scope_id); /* Function uniqe scope ID before arguments */
-    int outer_offset = ctx->vars->offset;     /* Reset variables offset */
+    scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset); /* Function uniqe scope ID before arguments */
     ctx->vars->offset = 0;
 
     while (!*curr || (*curr)->t_type != OPEN_BLOCK_TOKEN) {
@@ -273,8 +279,9 @@ static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx
     _forward_token(curr, 1);
     AST_add_node(node, body_node);
 
-    ctx->vars->offset = outer_offset; /* Restore scope and variables offset */
-    scope_pop(&ctx->scope);
+    scope_elem_t el;
+    scope_pop_top(&ctx->scope.stack, &el); /* Restore scope and offset */
+    ctx->vars->offset = el.offset;
 
     return node;
 }
@@ -333,7 +340,7 @@ static ast_node_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx
         VRS_intext(decl_node->token) /* Global and RO strings placed in .rodata or .data section */
     ) {
         _var_update(decl_node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)));
-        ARM_add_info(name_node->token->value, scope_top(&ctx->scope), 1, decl_node->info.size, ctx->arrs);
+        ARM_add_info(name_node->token->value, scope_id_top(&ctx->scope.stack), 1, decl_node->info.size, ctx->arrs);
         _var_lookup(name_node, ctx);
     }
 
@@ -408,11 +415,13 @@ static ast_node_t* _parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
         _forward_token(curr, 1);
     }
     
-    ARM_add_info(name_node->token->value, scope_top(&ctx->scope), el_size, array_size, ctx->arrs);
+    ARM_add_info(name_node->token->value, scope_id_top(&ctx->scope.stack), el_size, array_size, ctx->arrs);
     if (VRS_intext(node->token)) {
         node->info.size = ALIGN(array_size * el_size);
         name_node->info.size = node->info.size;
-        node->info.offset = VRM_add_info(name_node->token->value, node->info.size, scope_top(&ctx->scope), ctx->vars);
+        node->info.offset = VRM_add_info(
+            name_node->token->value, node->info.size, scope_id_top(&ctx->scope.stack), ctx->vars
+        );
     }
 
     return node;
@@ -581,8 +590,7 @@ static ast_node_t* _parse_switch_expression(token_t** curr, syntax_ctx_t* ctx) {
         _forward_token(curr, 1);
         while ((*curr)->t_type == CASE_TOKEN || (*curr)->t_type == DEFAULT_TOKEN) {
             /* Separated scope for block */
-            scope_push(&ctx->scope, ++ctx->scope_id);
-            int outer_offset = ctx->vars->offset; /* Saving start offset */
+            scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset);
 
             ast_node_t* case_stmt = NULL;
             if ((*curr)->t_type != CASE_TOKEN) case_stmt = AST_create_node(TKN_create_token(DEFAULT_TOKEN, NULL, 0, 0));
@@ -614,8 +622,9 @@ static ast_node_t* _parse_switch_expression(token_t** curr, syntax_ctx_t* ctx) {
             AST_add_node(cases_scope, case_stmt);
             _forward_token(curr, 1);
 
-            ctx->vars->offset = outer_offset;
-            scope_pop(&ctx->scope); /* Restore scope and offset */
+            scope_elem_t el;
+            scope_pop_top(&ctx->scope.stack, &el); /* Restore scope and offset */
+            ctx->vars->offset = el.offset;
         }
     }
 
@@ -649,8 +658,7 @@ static ast_node_t* _parse_condition_scope(token_t** curr, syntax_ctx_t* ctx) {
 
     if (*curr && (*curr)->t_type == OPEN_BLOCK_TOKEN) { /* Main branch scope */
         /* Separated scope for block */
-        scope_push(&ctx->scope, ++ctx->scope_id);
-        int outer_offset = ctx->vars->offset; /* Saving start offset */
+        scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset);
 
         _forward_token(curr, 1);
         ast_node_t* branch = _parse_block(curr, ctx, CLOSE_BLOCK_TOKEN);
@@ -664,14 +672,14 @@ static ast_node_t* _parse_condition_scope(token_t** curr, syntax_ctx_t* ctx) {
             _forward_token(curr, 1);
         }
 
-        ctx->vars->offset = outer_offset;
-        scope_pop(&ctx->scope); /* Restore scope and offset */
+        scope_elem_t el;
+        scope_pop_top(&ctx->scope.stack, &el); /* Restore scope and offset */
+        ctx->vars->offset = el.offset;
     }
 
     if (*curr && (*curr)->t_type == ELSE_TOKEN) { /* Else branch scope */
         /* Separated scope for block */
-        scope_push(&ctx->scope, ++ctx->scope_id);
-        int outer_offset = ctx->vars->offset; /* Saving start offset */
+        scope_push(&ctx->scope.stack, ++ctx->scope.scope_id, ctx->vars->offset);
 
         _forward_token(curr, 2);
         ast_node_t* branch = _parse_block(curr, ctx, CLOSE_BLOCK_TOKEN);
@@ -685,8 +693,9 @@ static ast_node_t* _parse_condition_scope(token_t** curr, syntax_ctx_t* ctx) {
             _forward_token(curr, 1);
         }
 
-        ctx->vars->offset = outer_offset;
-        scope_pop(&ctx->scope); /* Restore scope and offset */
+        scope_elem_t el;
+        scope_pop_top(&ctx->scope.stack, &el); /* Restore scope and offset */
+        ctx->vars->offset = el.offset;
     }
     
     return node;
