@@ -4,7 +4,7 @@ static int _find_usage(ast_node_t* root, const char* varname, int* status, int l
     if (!root) return 0;
 
     int index = 0;
-    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (index++ < offset) continue;
         if (!t->token) {
             _find_usage(t, varname, status, local, 0);
@@ -45,7 +45,7 @@ static int _find_usage(ast_node_t* root, const char* varname, int* status, int l
             case BITMOVE_RIGHT_TOKEN: _find_usage(t, varname, status, local, 0); continue;
             case CASE_TOKEN:
             case ARRAY_TYPE_TOKEN: _find_usage(t, varname, status, local, 0); break;
-            case FUNC_TOKEN: if (!local) _find_usage(t->first_child->next_sibling->next_sibling, varname, status, local, 0); continue;
+            case FUNC_TOKEN: if (!local) _find_usage(t->child->sibling->sibling, varname, status, local, 0); continue;
             default: break;
         }
         
@@ -61,7 +61,7 @@ static int _find_usage(ast_node_t* root, const char* varname, int* status, int l
 
 static int _find_decl(ast_node_t* root, ast_node_t* entry, int* delete) {
     if (!root) return 0;
-    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (!t->token) {
             _find_decl(t, entry, delete);
             continue;
@@ -69,16 +69,16 @@ static int _find_decl(ast_node_t* root, ast_node_t* entry, int* delete) {
 
         switch (t->token->t_type) {
             case CASE_TOKEN:   _find_decl(t, entry, delete); break; 
-            case SWITCH_TOKEN: _find_decl(t->first_child->next_sibling, entry, delete); continue; 
+            case SWITCH_TOKEN: _find_decl(t->child->sibling, entry, delete); continue; 
             case IF_TOKEN:
-            case WHILE_TOKEN:  _find_decl(t->first_child->next_sibling, entry, delete); continue;
-            case FUNC_TOKEN:   _find_decl(t->first_child->next_sibling->next_sibling, entry, delete); continue;
+            case WHILE_TOKEN:  _find_decl(t->child->sibling, entry, delete); continue;
+            case FUNC_TOKEN:   _find_decl(t->child->sibling->sibling, entry, delete); continue;
             default: break;
         }
 
         if (VRS_isdecl(t->token)) {
             int is_used = 0;
-            ast_node_t* name_node = t->first_child;
+            ast_node_t* name_node = t->child;
             if (t->token->ro || t->token->glob) _find_usage(entry, (char*)name_node->token->value, &is_used, 0, 0);
             else _find_usage(root, (char*)name_node->token->value, &is_used, 1, 0);
 

@@ -11,7 +11,7 @@ int funcopt_add_ast(syntax_ctx_t* ctx) {
 
 static int _find_func_usage_file(ast_node_t* root, const char* func, int* is_used) {
     if (!root) return 0;
-    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (!t->token) {
             _find_func_usage_file(t, func, is_used);
             continue;
@@ -19,8 +19,8 @@ static int _find_func_usage_file(ast_node_t* root, const char* func, int* is_use
 
         switch (t->token->t_type) {
             case FUNC_TOKEN: 
-                if (str_strcmp((char*)t->first_child->token->value, func)) {
-                    _find_func_usage_file(t->first_child->next_sibling->next_sibling, func, is_used);
+                if (str_strcmp((char*)t->child->token->value, func)) {
+                    _find_func_usage_file(t->child->sibling->sibling, func, is_used);
                 }
             break;
             case IMPORT_SELECT_TOKEN: continue;
@@ -45,7 +45,7 @@ static int _find_func_usage(const char* func, int* is_used) {
 
 static int _find_func(ast_node_t* root, int* delete) {
     if (!root) return 0;
-    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (!t->token) {
             _find_func(t, delete);
             continue;
@@ -54,13 +54,13 @@ static int _find_func(ast_node_t* root, int* delete) {
         switch (t->token->t_type) {
             case FUNC_TOKEN: 
                 int used = 0;    
-                _find_func_usage((char*)t->first_child->token->value, &used);
+                _find_func_usage((char*)t->child->token->value, &used);
                 if (!used) {
                     AST_remove_node(root, t);
                     AST_unload(t);
                     *delete = 1;
                 }
-                else _find_func(t->first_child->next_sibling->next_sibling, delete);
+                else _find_func(t->child->sibling->sibling, delete);
             break;
             default: _find_func(t, delete); break;
         }

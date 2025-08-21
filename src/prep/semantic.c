@@ -13,16 +13,16 @@ Codes:
 static int _check_exp_bitness(ast_node_t* r) {
     if (!r || !r->token) return 1;
     if (r->token->t_type == ASSIGN_TOKEN || VRS_isoperand(r->token) || VRS_isdecl(r->token)) {
-        if (!r->first_child) return -1;
-        char lbitness = _check_exp_bitness(r->first_child);
-        if (!r->first_child->next_sibling) return -2;
-        char rbitness = _check_exp_bitness(r->first_child->next_sibling);
+        if (!r->child) return -1;
+        char lbitness = _check_exp_bitness(r->child);
+        if (!r->child->sibling) return -2;
+        char rbitness = _check_exp_bitness(r->child->sibling);
         if (lbitness != rbitness) {
             print_warn(
                 "Danger shadow type cast at line %i. Different size [%i] (%s) and [%i] (%s). Did you expect this?",
-                r->first_child->token->lnum, 
-                lbitness, r->first_child->token->value, 
-                rbitness, r->first_child->next_sibling->token->value
+                r->child->token->lnum, 
+                lbitness, r->child->token->value, 
+                rbitness, r->child->sibling->token->value
             );
         }
 
@@ -36,7 +36,7 @@ int SMT_check(ast_node_t* node) {
     if (!node) return 1;
     int result = 1;
     
-    for (ast_node_t* t = node->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = node->child; t; t = t->sibling) {
         if (!t->token) {
             SMT_check(t);
             continue;
@@ -45,16 +45,16 @@ int SMT_check(ast_node_t* node) {
         switch (t->token->t_type) {
             case CALL_TOKEN: 
             case SYSCALL_TOKEN:
-                if (t->next_sibling) result = SMT_check(t->next_sibling) && result; 
+                if (t->sibling) result = SMT_check(t->sibling) && result; 
             break;
 
-            case START_TOKEN: SMT_check(t->first_child); break;
+            case START_TOKEN: SMT_check(t->child); break;
             case FUNC_TOKEN: {
-                ast_node_t* name = t->first_child;
-                ast_node_t* args = name->next_sibling;
-                ast_node_t* body = args->next_sibling;
+                ast_node_t* name = t->child;
+                ast_node_t* args = name->sibling;
+                ast_node_t* body = args->sibling;
 
-                for (ast_node_t* param = args->first_child; param; param = param->next_sibling) {
+                for (ast_node_t* param = args->child; param; param = param->sibling) {
                     if (!VRS_isdecl(param->token)) {
                         print_error("Unknown variable type at %i, (%s)", param->token->lnum, param->token->value);
                         result = 0;
@@ -63,7 +63,7 @@ int SMT_check(ast_node_t* node) {
                 }
 
                 result = SMT_check(body) && result;
-                if (t->next_sibling) result = SMT_check(t->next_sibling) && result;
+                if (t->sibling) result = SMT_check(t->sibling) && result;
                 break;
             }
 
@@ -73,16 +73,16 @@ int SMT_check(ast_node_t* node) {
             break;
 
             case ARRAY_TYPE_TOKEN: {
-                ast_node_t* arr_size = t->first_child;
-                ast_node_t* el_size  = arr_size->next_sibling;
-                ast_node_t* arr_name = el_size->next_sibling;
-                ast_node_t* elems    = arr_name->next_sibling;
+                ast_node_t* arr_size = t->child;
+                ast_node_t* el_size  = arr_size->sibling;
+                ast_node_t* arr_name = el_size->sibling;
+                ast_node_t* elems    = arr_name->sibling;
 
                 unsigned long long el_msize = (unsigned long long)pow(2, VRS_variable_bitness(el_size->token, 1));
 
                 if (elems) {
                     int count = 0;
-                    for (ast_node_t* el = elems; el; el = el->next_sibling) {
+                    for (ast_node_t* el = elems; el; el = el->sibling) {
                         if (str_atoi(el->token->value) >= el_msize) {
                             print_warn(
                                 "Value %s at line [%i] too large for array [%s]!", 
@@ -100,7 +100,7 @@ int SMT_check(ast_node_t* node) {
                     }
                 }
 
-                if (t->next_sibling) result = SMT_check(t->next_sibling) && result;
+                if (t->sibling) result = SMT_check(t->sibling) && result;
                 break;
             }
 

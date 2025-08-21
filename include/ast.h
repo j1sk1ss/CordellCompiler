@@ -3,13 +3,17 @@
 
 #include "token.h"
 
+typedef struct {
+    int   offset;
+    int   size;
+} syntax_info_t;
+
 typedef struct ast_node {
     token_t*         token;
     struct ast_node* parent;
-    struct ast_node* first_child;
-    struct ast_node* next_sibling;
-    int              variable_offset;
-    int              variable_size;
+    struct ast_node* child;
+    struct ast_node* sibling;
+    syntax_info_t    info;
 } ast_node_t;
 
 /*

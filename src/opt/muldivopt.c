@@ -2,7 +2,7 @@
 
 static int _find_muldiv(ast_node_t* root, int* fold) {
     if (!root) return 0;
-    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (!t->token) {
             _find_muldiv(t, fold);
             continue;
@@ -18,16 +18,16 @@ static int _find_muldiv(ast_node_t* root, int* fold) {
             case ARRAY_TYPE_TOKEN:
             case RETURN_TOKEN: _find_muldiv(t, fold); continue;
             case IF_TOKEN:
-            case FUNC_TOKEN:   _find_muldiv(t->first_child->next_sibling->next_sibling, fold); continue;
-            case WHILE_TOKEN:  _find_muldiv(t->first_child->next_sibling, fold); continue;
+            case FUNC_TOKEN:   _find_muldiv(t->child->sibling->sibling, fold); continue;
+            case WHILE_TOKEN:  _find_muldiv(t->child->sibling, fold); continue;
             default: break;
         }
 
         /* Constant folding */
         if (VRS_isoperand(t->token)) {
             _find_muldiv(t, fold);
-            ast_node_t* left = t->first_child;
-            ast_node_t* right = left->next_sibling;
+            ast_node_t* left = t->child;
+            ast_node_t* right = left->sibling;
             if (left->token->t_type != UNKNOWN_NUMERIC_TOKEN || right->token->t_type != UNKNOWN_NUMERIC_TOKEN) break;
 
             int l_val = str_atoi((char*)left->token->value);
@@ -53,15 +53,15 @@ static int _find_muldiv(ast_node_t* root, int* fold) {
             snprintf((char*)t->token->value, TOKEN_MAX_SIZE, "%d", result);
             t->token->t_type = UNKNOWN_NUMERIC_TOKEN;
             t->token->glob = 1;
-            AST_unload(t->first_child->next_sibling);
-            AST_unload(t->first_child);
-            t->first_child = NULL;
+            AST_unload(t->child->sibling);
+            AST_unload(t->child);
+            t->child = NULL;
         }
         
         /* Mult and div optimisation after folding */
         if (t->token->t_type == MULTIPLY_TOKEN || t->token->t_type == DIVIDE_TOKEN) {
-            ast_node_t* left = t->first_child;
-            ast_node_t* right = left->next_sibling;
+            ast_node_t* left = t->child;
+            ast_node_t* right = left->sibling;
             if (right->token->t_type != UNKNOWN_NUMERIC_TOKEN) continue;
 
             int right_val = str_atoi((char*)right->token->value);

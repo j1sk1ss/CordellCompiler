@@ -1,17 +1,5 @@
+/* LL(1) parser */
 #include <syntax.h>
-
-syntax_ctx_t* STX_create_ctx() {
-    syntax_ctx_t* ctx = (syntax_ctx_t*)mm_malloc(sizeof(syntax_ctx_t));
-    if (!ctx) return NULL;
-    str_memset(ctx, 0, sizeof(syntax_ctx_t));
-    return ctx;
-}
-
-int STX_destroy_ctx(syntax_ctx_t* ctx) {
-    if (!ctx) return 0;
-    mm_free(ctx);
-    return 1;
-}
 
 static inline int _forward_token(token_t** tkn, int steps) {
     while (steps-- > 0) *tkn = (*tkn)->next;
@@ -66,18 +54,18 @@ static ast_node_t* (*_get_parser(token_type_t t_type))(token_t**, syntax_ctx_t*)
 
 /* Save variable to ctx varmem list */
 static int _var_update(
-    ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size, short scope_id
+    ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size
 ) {
-    node->variable_offset = VRM_add_info(name, size, scope_id, ctx->vars);
-    node->variable_size   = size;
+    node->info.offset = VRM_add_info(name, size, scope_top(&ctx->scope), ctx->vars);
+    node->info.size   = size;
     return 1;
 }
 
 /* Lookup variable from vartable in ctx varmem list, save offset and size */
 static int _var_lookup(ast_node_t* node, syntax_ctx_t* ctx) {
     if (!node) return 0;
-    _var_lookup(node->next_sibling, ctx);
-    _var_lookup(node->first_child, ctx);
+    _var_lookup(node->sibling, ctx);
+    _var_lookup(node->child, ctx);
 
     variable_info_t varinfo = { .offset = -1 };
     for (int s = ctx->scope.top; s >= 0; s--) {
@@ -88,8 +76,8 @@ static int _var_lookup(ast_node_t* node, syntax_ctx_t* ctx) {
     }
     
     if (varinfo.offset == -1) return 0;
-    node->variable_offset = varinfo.offset;
-    node->variable_size   = varinfo.size;
+    node->info.offset = varinfo.offset;
+    node->info.size   = varinfo.size;
     return 1;
 }
 
@@ -320,8 +308,7 @@ static ast_node_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx
         VRS_intext(decl_node->token) /* Global and RO variables placed not in stack */
     ) {
         int var_size = VRS_variable_bitness(name_token, 1) / 8;
-        decl_node->variable_offset = VRM_add_info((char*)name_node->token->value, var_size, scope_top(&ctx->scope), ctx->vars);
-        decl_node->variable_size   = var_size;
+        _var_update(decl_node, ctx, name_node->token->value, var_size);
         _var_lookup(name_node, ctx);
     }
 
@@ -345,9 +332,8 @@ static ast_node_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx
         type_token->t_type == STR_TYPE_TOKEN && 
         VRS_intext(decl_node->token) /* Global and RO strings placed in .rodata or .data section */
     ) {
-        decl_node->variable_size   = ALIGN(str_strlen((char*)value_node->token->value));
-        decl_node->variable_offset = VRM_add_info((char*)name_node->token->value, decl_node->variable_size, scope_top(&ctx->scope), ctx->vars);
-        ARM_add_info(name_node->token->value, scope_top(&ctx->scope), 1, decl_node->variable_size, ctx->arrs);
+        _var_update(decl_node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)));
+        ARM_add_info(name_node->token->value, scope_top(&ctx->scope), 1, decl_node->info.size, ctx->arrs);
         _var_lookup(name_node, ctx);
     }
 
@@ -368,26 +354,6 @@ static ast_node_t* _parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     _forward_token(curr, 1);
-    
-    int array_size = str_atoi((*curr)->value);
-    ast_node_t* size_node = AST_create_node(*curr);
-    if (!size_node) {
-        AST_unload(node);
-        return NULL;
-    }
-    
-    AST_add_node(node, size_node);
-    _forward_token(curr, 1);
-
-    int el_size = VRS_variable_bitness(*curr, 1) / 8;
-    ast_node_t* elem_size_node = AST_create_node(*curr);
-    if (!elem_size_node) {
-        AST_unload(node);
-        return NULL;
-    }
-
-    AST_add_node(node, elem_size_node);
-    _forward_token(curr, 1);
 
     ast_node_t* name_node = AST_create_node(*curr);
     if (!name_node) {
@@ -396,7 +362,34 @@ static ast_node_t* _parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
     }
     
     AST_add_node(node, name_node);
-    _forward_token(curr, 2); /* Skip assign token */
+    _forward_token(curr, 1);
+
+    int array_size = 0;
+    int el_size = 1;
+
+    if ((*curr)->t_type == OPEN_INDEX_TOKEN) {
+        _forward_token(curr, 1);
+
+        array_size = str_atoi((*curr)->value);
+        ast_node_t* size_node = AST_create_node(*curr);
+        if (!size_node) {
+            AST_unload(node);
+            return NULL;
+        }
+        
+        AST_add_node(node, size_node);
+        _forward_token(curr, 2);
+
+        el_size = VRS_variable_bitness(*curr, 1) / 8;
+        ast_node_t* elem_size_node = AST_create_node(*curr);
+        if (!elem_size_node) {
+            AST_unload(node);
+            return NULL;
+        }
+
+        AST_add_node(node, elem_size_node);
+        _forward_token(curr, 3);
+    }
 
     int act_size = 0;
     if (*curr && (*curr)->t_type == OPEN_BLOCK_TOKEN) {
@@ -417,9 +410,9 @@ static ast_node_t* _parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
     
     ARM_add_info(name_node->token->value, scope_top(&ctx->scope), el_size, array_size, ctx->arrs);
     if (VRS_intext(node->token)) {
-        node->variable_size = ALIGN(array_size * el_size);
-        name_node->variable_size = node->variable_size;
-        node->variable_offset = VRM_add_info(name_node->token->value, node->variable_size, scope_top(&ctx->scope), ctx->vars);
+        node->info.size = ALIGN(array_size * el_size);
+        name_node->info.size = node->info.size;
+        node->info.offset = VRM_add_info(name_node->token->value, node->info.size, scope_top(&ctx->scope), ctx->vars);
     }
 
     return node;
@@ -443,7 +436,9 @@ static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, i
         _forward_token(curr, 1);
 
         int next_min_priority = priority + 1;
-        if ((*curr)->t_type == ASSIGN_TOKEN) next_min_priority = priority;
+        if ((*curr)->t_type == ASSIGN_TOKEN) {
+            next_min_priority = priority;
+        }
 
         ast_node_t* right = _parse_binary_expression(curr, ctx, next_min_priority);
         if (!right) {
@@ -479,15 +474,13 @@ static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx) {
         return node;
     }
 
-    if (
-        (*curr)->t_type == ARR_VARIABLE_TOKEN || 
-        (*curr)->t_type == STR_VARIABLE_TOKEN || 
-        (*curr)->ptr
-    )                                          return _parse_array_expression(curr, ctx);
+    if (VRS_isptr(*curr))                      return _parse_array_expression(curr, ctx);
     else if ((*curr)->t_type == CALL_TOKEN)    return _parse_function_call(curr, ctx);
     else if ((*curr)->t_type == SYSCALL_TOKEN) return _parse_syscall(curr, ctx);
 
     ast_node_t* node = AST_create_node(*curr);
+    if (!node) return NULL;
+
     _var_lookup(node, ctx);
     _forward_token(curr, 1);
     return node;
@@ -591,11 +584,10 @@ static ast_node_t* _parse_switch_expression(token_t** curr, syntax_ctx_t* ctx) {
             scope_push(&ctx->scope, ++ctx->scope_id);
             int outer_offset = ctx->vars->offset; /* Saving start offset */
 
-            _forward_token(curr, 1);
-
             ast_node_t* case_stmt = NULL;
             if ((*curr)->t_type != CASE_TOKEN) case_stmt = AST_create_node(TKN_create_token(DEFAULT_TOKEN, NULL, 0, 0));
             else {
+                _forward_token(curr, 1);
                 case_stmt = _parse_expression(curr, ctx);
                 case_stmt->token->t_type = CASE_TOKEN;
             }
@@ -725,6 +717,19 @@ static ast_node_t* _parse_syscall(token_t** curr, syntax_ctx_t* ctx) {
     }
 
     return node;
+}
+
+syntax_ctx_t* STX_create_ctx() {
+    syntax_ctx_t* ctx = (syntax_ctx_t*)mm_malloc(sizeof(syntax_ctx_t));
+    if (!ctx) return NULL;
+    str_memset(ctx, 0, sizeof(syntax_ctx_t));
+    return ctx;
+}
+
+int STX_destroy_ctx(syntax_ctx_t* ctx) {
+    if (!ctx) return 0;
+    mm_free(ctx);
+    return 1;
 }
 
 int STX_create(token_t* head, syntax_ctx_t* ctx) {

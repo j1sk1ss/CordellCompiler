@@ -16,10 +16,10 @@ static int _print_ast(ast_node_t* node, int depth) {
     );
     else printf("{ scope }\n");
     
-    ast_node_t* child = node->first_child;
+    ast_node_t* child = node->child;
     while (child) {
         _print_ast(child, depth + 1);
-        child = child->next_sibling;
+        child = child->sibling;
     }
     
     return 1;

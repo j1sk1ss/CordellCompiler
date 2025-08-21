@@ -66,7 +66,7 @@ static int _unload_stringmap(stropt_ctx_t* ctx) {
 
 static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
     if (!root) return 0;
-    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (!t->token) {
             _find_string(t, ctx);
             continue;
@@ -78,10 +78,10 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
             case RETURN_TOKEN:  
             case IF_TOKEN:      _find_string(t, ctx); continue;
             case DEFAULT_TOKEN:
-            case CASE_TOKEN:    _find_string(t->first_child, ctx); continue;
-            case SWITCH_TOKEN:  _find_string(t->first_child->next_sibling, ctx); continue;
-            case WHILE_TOKEN:   _find_string(t->first_child->next_sibling, ctx); continue;
-            case FUNC_TOKEN:    _find_string(t->first_child->next_sibling->next_sibling, ctx); continue;
+            case CASE_TOKEN:    _find_string(t->child, ctx); continue;
+            case SWITCH_TOKEN:  _find_string(t->child->sibling, ctx); continue;
+            case WHILE_TOKEN:   _find_string(t->child->sibling, ctx); continue;
+            case FUNC_TOKEN:    _find_string(t->child->sibling->sibling, ctx); continue;
             default: break;
         }
         
@@ -129,9 +129,9 @@ static int _declare_strings(ast_node_t* root, stropt_ctx_t* ctx) {
         name_node->token->ro = 1;
         decl_root->token->ro = 1;
 
-        ast_node_t* old = root->first_child;
-        root->first_child = decl_root;
-        decl_root->next_sibling = old;
+        ast_node_t* old = root->child;
+        root->child = decl_root;
+        decl_root->sibling = old;
 
         h = h->next;
     }
@@ -141,9 +141,9 @@ static int _declare_strings(ast_node_t* root, stropt_ctx_t* ctx) {
 
 int OPT_strpack(syntax_ctx_t* ctx) {
     if (!ctx->r) return 0;
-    ast_node_t* program_body = ctx->r->first_child;
+    ast_node_t* program_body = ctx->r->child;
     ast_node_t* prestart     = program_body;
-    ast_node_t* main_body    = prestart->next_sibling;
+    ast_node_t* main_body    = prestart->sibling;
 
     stropt_ctx_t strctx = { .num = 0, .h = NULL };
     _find_string(prestart, &strctx);

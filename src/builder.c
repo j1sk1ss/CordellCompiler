@@ -10,10 +10,10 @@ static int _print_parse_tree(ast_node_t* node, int depth) {
     );
     else printf("{ scope }\n");
     
-    ast_node_t* child = node->first_child;
+    ast_node_t* child = node->child;
     while (child) {
         _print_parse_tree(child, depth + 1);
-        child = child->next_sibling;
+        child = child->sibling;
     }
     
     return 1;

@@ -2,7 +2,7 @@
 
 static int _find_stmt(ast_node_t* root) {
     if (!root) return 0;
-    for (ast_node_t* t = root->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (!t->token) {
             _find_stmt(t);
             continue;
@@ -10,9 +10,9 @@ static int _find_stmt(ast_node_t* root) {
 
         switch (t->token->t_type) {
             case IF_TOKEN: {
-                ast_node_t* condition = t->first_child;
-                ast_node_t* body = condition->next_sibling;
-                ast_node_t* else_body = body->next_sibling;
+                ast_node_t* condition = t->child;
+                ast_node_t* body = condition->sibling;
+                ast_node_t* else_body = body->sibling;
                 if (condition->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
                     int true_or_false = str_atoi((char*)condition->token->value);
                     if (true_or_false && else_body) {
@@ -35,8 +35,8 @@ static int _find_stmt(ast_node_t* root) {
             }
 
             case WHILE_TOKEN: {
-                ast_node_t* condition = t->first_child;
-                // ast_node_t* body = condition->next_sibling->first_child;
+                ast_node_t* condition = t->child;
+                // ast_node_t* body = condition->sibling->child;
                 if (condition->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
                     int true_or_false = str_atoi((char*)condition->token->value);
                     if (!true_or_false) {
@@ -51,11 +51,11 @@ static int _find_stmt(ast_node_t* root) {
             }
 
             case SWITCH_TOKEN: {
-                ast_node_t* stmt  = t->first_child;
-                ast_node_t* cases = stmt->next_sibling;
+                ast_node_t* stmt  = t->child;
+                ast_node_t* cases = stmt->sibling;
                 if (stmt->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
                     int option_case = str_atoi((char*)stmt->token->value);
-                    for (ast_node_t* curr_case = cases->first_child; curr_case; curr_case = curr_case->next_sibling) {
+                    for (ast_node_t* curr_case = cases->child; curr_case; curr_case = curr_case->sibling) {
                         if (curr_case->token->t_type == DEFAULT_TOKEN) continue;
                         int case_value = str_atoi((char*)curr_case->token->value);
                         if (option_case != case_value) {
@@ -70,7 +70,7 @@ static int _find_stmt(ast_node_t* root) {
                 break;
             }
             
-            case FUNC_TOKEN: _find_stmt(t->first_child->next_sibling->next_sibling); continue;
+            case FUNC_TOKEN: _find_stmt(t->child->sibling->sibling); continue;
             default: break;
         }
 

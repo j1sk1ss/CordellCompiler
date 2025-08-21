@@ -1,11 +1,11 @@
 #include <optimization.h>
 
 typedef struct code_node {
-    ast_node_t*           start;
-    ast_node_t*           end;
+    ast_node_t*       start;
+    ast_node_t*       end;
     struct code_node* parent;
-    struct code_node* first_child;
-    struct code_node* next_sibling;
+    struct code_node* child;
+    struct code_node* sibling;
     int               is_reachable;
     int               is_function;
 } code_node_t;
@@ -32,11 +32,11 @@ static code_node_t* _create_code_node(ast_node_t* start) {
 static int _add_child_to_block(code_node_t* p, code_node_t* c) {
     if (!p || !c) return 0;
     c->parent = p;
-    if (!p->first_child) p->first_child = c;
+    if (!p->child) p->child = c;
     else {
-        code_node_t* sibling = p->first_child;
-        while (sibling->next_sibling) sibling = sibling->next_sibling;
-        sibling->next_sibling = c;
+        code_node_t* sibling = p->child;
+        while (sibling->sibling) sibling = sibling->sibling;
+        sibling->sibling = c;
     }
 
     return 1;
@@ -44,8 +44,8 @@ static int _add_child_to_block(code_node_t* p, code_node_t* c) {
 
 static int _unload_code_block(code_node_t* node) {
     if (!node) return 0;
-    _unload_code_block(node->first_child);
-    _unload_code_block(node->next_sibling);
+    _unload_code_block(node->child);
+    _unload_code_block(node->sibling);
     mm_free(node);
     return 1;
 }
@@ -106,14 +106,14 @@ static code_node_t* _generate_blocks(ast_node_t* curr) {
     
     /* We don't go deeper, and only catch changes in flow. */
     ast_node_t* curr_node = curr;
-    for (ast_node_t* t = curr; t; t = t->next_sibling, curr_node = curr_node->next_sibling) {
+    for (ast_node_t* t = curr; t; t = t->sibling, curr_node = curr_node->sibling) {
         if (!t->token) continue;
         switch (t->token->t_type) {
             /* Generating block and linking to function name. */
             case FUNC_TOKEN:
-                ast_node_t* name_node   = t->first_child;
-                ast_node_t* params_node = name_node->next_sibling;
-                ast_node_t* body_node   = params_node->next_sibling;
+                ast_node_t* name_node   = t->child;
+                ast_node_t* params_node = name_node->sibling;
+                ast_node_t* body_node   = params_node->sibling;
                 code_node_t* func_blocks = _generate_blocks(body_node);
                 if (func_blocks) {
                     _add_func_code_block((char*)name_node->token->value, func_blocks);
@@ -142,7 +142,7 @@ dead_flow:
 
 int deadcode_optimization(syntax_ctx_t* ctx) {
     if (!ctx->r) return 0;
-    code_node_t* program = _generate_blocks(ctx->r->first_child);
+    code_node_t* program = _generate_blocks(ctx->r->child);
     _unload_func_node_map();
     _unload_code_block(program);
     return 1;

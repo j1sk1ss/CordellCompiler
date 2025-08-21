@@ -2,7 +2,7 @@
 
 static int _recalc_offs(ast_node_t* r, const char* func, syntax_ctx_t* ctx) {
     if (!r) return 0;
-    for (ast_node_t* t = r->first_child; t; t = t->next_sibling) {
+    for (ast_node_t* t = r->child; t; t = t->sibling) {
         if (!t->token) {
             _recalc_offs(t, func, ctx);
             continue;
@@ -13,7 +13,7 @@ static int _recalc_offs(ast_node_t* r, const char* func, syntax_ctx_t* ctx) {
             case FUNC_TOKEN:
                 int tmp_off = ctx->vars->offset;
                 ctx->vars->offset = 0;
-                _recalc_offs(t, (char*)t->first_child->token->value, ctx);
+                _recalc_offs(t, (char*)t->child->token->value, ctx);
                 ctx->vars->offset = tmp_off;
             break;
             case ARR_VARIABLE_TOKEN:
