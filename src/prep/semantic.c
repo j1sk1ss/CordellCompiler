@@ -37,18 +37,9 @@ int SMT_check(ast_node_t* node) {
     int result = 1;
     
     for (ast_node_t* t = node->child; t; t = t->sibling) {
-        if (!t->token) {
-            SMT_check(t);
-            continue;
-        }
+        SMT_check(t);
 
         switch (t->token->t_type) {
-            case CALL_TOKEN: 
-            case SYSCALL_TOKEN:
-                if (t->sibling) result = SMT_check(t->sibling) && result; 
-            break;
-
-            case START_TOKEN: SMT_check(t->child); break;
             case FUNC_TOKEN: {
                 ast_node_t* name = t->child;
                 ast_node_t* args = name->sibling;
@@ -67,16 +58,11 @@ int SMT_check(ast_node_t* node) {
                 break;
             }
 
-            case IF_TOKEN:
-            case WHILE_TOKEN: 
-                result = SMT_check(t) && result;
-            break;
-
             case ARRAY_TYPE_TOKEN: {
-                ast_node_t* arr_size = t->child;
+                ast_node_t* arr_name = t->child;
+                ast_node_t* arr_size = arr_name->sibling;
                 ast_node_t* el_size  = arr_size->sibling;
-                ast_node_t* arr_name = el_size->sibling;
-                ast_node_t* elems    = arr_name->sibling;
+                ast_node_t* elems    = el_size->sibling;
 
                 unsigned long long el_msize = (unsigned long long)pow(2, VRS_variable_bitness(el_size->token, 1));
 
@@ -94,7 +80,7 @@ int SMT_check(ast_node_t* node) {
                     }
 
                     if (count > str_atoi((char*)arr_size->token->value)) {
-                        print_error("Array [%s] larger than expected size %i > %s!", arr_name->token->value, count, arr_size->token->value);
+                        print_warn("Array [%s] larger than expected size %i > %s!", arr_name->token->value, count, arr_size->token->value);
                         result = 0;
                         break;
                     }

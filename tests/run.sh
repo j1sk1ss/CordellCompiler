@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 declare -A TEST_SRCS
 TEST_SRCS[test_tok]="src/prep/token.c std/*.c"
 TEST_SRCS[test_mrk]="src/prep/token.c src/prep/markup.c std/*.c"
-TEST_SRCS[test_sem]="src/prep/*.c std/*.c"
+TEST_SRCS[test_sem]="src/prep/*.c src/ast/*.c std/*.c"
 TEST_SRCS[test_ast]="src/prep/*.c src/ast/*.c std/*.c"
 TEST_SRCS[test_opt_assign]="src/prep/*.c src/ast/*.c src/opt/varinline.c std/*.c"
 TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/opt/*.c src/generator.c std/*.c"
