@@ -13,6 +13,7 @@ TEST_SRCS[test_ast]="src/prep/*.c src/ast/*.c std/*.c"
 TEST_SRCS[test_varinline]="src/prep/*.c src/ast/*.c src/opt/varinline.c std/*.c"
 TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/opt/varinline.c src/opt/constopt.c std/*.c"
 TEST_SRCS[test_strdecl]="src/prep/*.c src/ast/*.c src/opt/strdecl.c std/*.c"
+TEST_SRCS[test_deadfunc]="src/prep/*.c src/ast/*.c src/opt/deadfunc.c std/*.c"
 TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/opt/*.c src/generator.c std/*.c"
 
 # ======================================

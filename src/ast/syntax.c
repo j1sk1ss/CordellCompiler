@@ -236,6 +236,7 @@ static ast_node_t* _parse_return_declaration(token_t** curr, syntax_ctx_t* ctx) 
 /*
 Arch:
 func_token
+|_ name
 |_ scope
 |  |_ arg1
 |  |  |_ type
@@ -248,16 +249,20 @@ func_token
 static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
-    
     _forward_token(curr, 1);
+    
     ast_node_t* name_node = AST_create_node(*curr);
     if (!name_node) {
         AST_unload(node);
         return NULL;
     }
 
-    _forward_token(curr, 1);
     AST_add_node(node, name_node);
+    _forward_token(curr, 1);
+
+    /* Manual stack push instead parser */
+    scope_push(&ctx->scope.stack, ++ctx->scope.s_id, ctx->vars->offset); /* Function uniqe scope ID before arguments */
+    ctx->vars->offset = 0;
 
     ast_node_t* args_node = AST_create_node(NULL);
     if (!args_node) {
@@ -265,35 +270,37 @@ static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx
         return NULL;
     }
 
-    /* Manual stack push instead parser */
-    scope_push(&ctx->scope.stack, ++ctx->scope.s_id, ctx->vars->offset); /* Function uniqe scope ID before arguments */
-    ctx->vars->offset = 0;
+    _forward_token(curr, 1);
+    while (!*curr || (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
+        if ((*curr)->t_type == COMMA_TOKEN) {
+            _forward_token(curr, 1);
+            continue;
+        }
 
-    while (!*curr || (*curr)->t_type != OPEN_BLOCK_TOKEN) {
         if (VRS_isdecl((*curr))) {
-            ast_node_t* param_node = _parse_variable_declaration(curr, ctx);
-            if (!param_node) {
+            ast_node_t* arg = _parse_variable_declaration(curr, ctx);
+            if (!arg) {
                 AST_unload(node);
                 AST_unload(args_node);
                 return NULL;
             }
 
-            AST_add_node(args_node, param_node);
+            AST_add_node(args_node, arg);
         }
-
-        _forward_token(curr, 1);
+        else {
+            _forward_token(curr, 1);
+        }
     }
 
-    _forward_token(curr, 1);
     AST_add_node(node, args_node);
+    _forward_token(curr, 1);
 
-    ast_node_t* body_node = _parse_block(curr, ctx, CLOSE_BLOCK_TOKEN);
+    ast_node_t* body_node = _parse_scope(curr, ctx);
     if (!body_node) {
         AST_unload(node);
         return NULL;
     }
 
-    _forward_token(curr, 1);
     AST_add_node(node, body_node);
 
     scope_elem_t el;

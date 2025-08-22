@@ -1,31 +1,33 @@
-from "string.cpl" import strlen;
+{
+    from "string.cpl" import strlen;
 
-function puts ptr char string; {
-    long strSize = strlen(string);
-    return syscall(1, 1, string, strSize);
-}
+    function puts(ptr char string) {
+        long strSize = strlen(string);
+        return syscall(1, 1, string, strSize);
+    }
 
-function putc char c; {
-    arr tmp 2 char = { c, 0 };
-    return syscall(1, 1, tmp, 2);
-}
+    function putc(char c) {
+        arr tmp 2 char = { c, 0 };
+        return syscall(1, 1, tmp, 2);
+    }
 
-function gets ptr char buffer; long size; {
-    return syscall(0, 0, buffer, size);
-}
+    function gets(ptr char buffer, long size) {
+        return syscall(0, 0, buffer, size);
+    }
 
-function open ptr char path; int flags; int mode; {
-    return syscall(2, path, flags, mode);
-}
+    function open(ptr char path, int flags, int mode) {
+        return syscall(2, path, flags, mode);
+    }
 
-function fwrite int fd; ptr char buffer; int size; {
-    return syscall(1, fd, buffer, size);
-}
+    function fwrite(int fd, ptr char buffer, int size) {
+        return syscall(1, fd, buffer, size);
+    }
 
-function fread int fd; ptr char buffer; int size; {
-    return syscall(0, fd, buffer, size);
-}
+    function fread(int fd, ptr char buffer, int size) {
+        return syscall(0, fd, buffer, size);
+    }
 
-function close int fd; {
-    return syscall(3, fd);
+    function close(int fd) {
+        return syscall(3, fd);
+    }
 }

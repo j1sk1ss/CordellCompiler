@@ -12,7 +12,4 @@ int OPT_varuse(syntax_ctx_t* ctx);
 int OPT_offrecalc(syntax_ctx_t* ctx);
 int stmt_optimization(syntax_ctx_t* ctx);
 
-int funcopt_add_ast(syntax_ctx_t* ctx);
-int func_optimization();
-
 #endif

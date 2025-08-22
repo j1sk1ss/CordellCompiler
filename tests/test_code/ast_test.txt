@@ -1,11 +1,11 @@
 {
     from "string.cpl" import strlen;
 
-    function putc char sym; {
+    function putc(char sym) {
         return 1;
     }
 
-    function puts ptr char string; {
+    function puts(ptr char string) {
         long strSize = strlen(string);
         return syscall(1, 1, string, strSize);
     }

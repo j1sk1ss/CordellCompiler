@@ -1,0 +1,21 @@
+{
+    from "asd.cpl" import strlen;
+
+    function itoa(char a) {
+        return 1;
+    }
+
+    function puts(ptr char string) {
+        long strSize = strlen(string);
+        return syscall(1, 1, string, strSize);
+    }
+
+    function putc(char c) {
+        arr tmp 2 char = { c, 0 };
+        return syscall(1, 1, tmp, 2);
+    }
+
+    start {
+        puts("Hello there!");
+    } exit 1;
+}

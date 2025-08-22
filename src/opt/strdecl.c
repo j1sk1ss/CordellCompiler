@@ -72,7 +72,7 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
             continue;
         }
 
-        if (VRS_isoperand(t->token)) {
+        if (VRS_isoperand(t->token) || (VRS_isdecl(t->token) && t->token->ptr)) {
             _find_string(t, ctx);
             continue;
         }
@@ -123,14 +123,14 @@ static int _declare_strings(ast_node_t* root, stropt_ctx_t* ctx) {
             return 0;
         }
 
+        AST_add_node(decl_root, name_node);
+
         ast_node_t* value_node = AST_create_node(TKN_create_token(STRING_VALUE_TOKEN, h->body, str_strlen(h->body), 0));
         if (!value_node) {
             AST_unload(decl_root);
-            AST_unload(name_node);
             return 0;
         }
 
-        AST_add_node(decl_root, name_node);
         AST_add_node(decl_root, value_node);
         
         name_node->token->ro = 1;

@@ -139,8 +139,8 @@ int builder_add_file(char* input) {
 
 int builder_compile() {
     if (!_current_file) return 0;
-    for (int i = 0; i < _current_file; i++) funcopt_add_ast(_files[i].syntax);
-    func_optimization();
+    for (int i = 0; i < _current_file; i++) OPT_deadfunc_add(_files[i].syntax);
+    OPT_deadfunc_clear();
 
     /*
     Production of .asm files with temporary saving in files directory.

@@ -124,7 +124,7 @@ The following types are supported:
     : Pointers can be used as arrays :
     strPtr[0] = 'B';
 
-    arr farr 100 char =; // Will allocate array with size 100 and elem size 1 byte
+    arr farr[100, char] =; // Will allocate array with size 100 and elem size 1 byte
     arr sarr[5, int] = { 1, 2, 3, 4, 5 }; // Will allocate array for provided elements
 ```
 
@@ -182,6 +182,9 @@ Basic arithmetic and logical operations are supported:
     while (x < 10) && (y > 20); {
         : ... loop body : 
     }
+    else {
+        : At the end of the loop :
+    }
 ```
 
 ## Functions
@@ -191,7 +194,7 @@ Functions are declared using the `function` keyword.
 ### Function Signature:
 
 ```
-    function [name] [type1] arg1; [type2] arg2; ...; {
+    function [name]([type1] [name1], [type2] [name2], ...) {
         : function body :
         return something;
     }
@@ -200,7 +203,7 @@ Functions are declared using the `function` keyword.
 ### Example:
 
 ```
-    function sumfunc int a; int b; {
+    function sumfunc(int a, int b) {
         return a + b;
     }
 ```
@@ -225,11 +228,11 @@ Functions are declared using the `function` keyword.
 ### Wrapping in a function:
 
 ```
-    function printStr ptr char buffer; int size; {
+    function printStr(ptr char buffer, int size) {
         return syscall(4, 1, buffer, size); 
     }
 
-    function getStr ptr char buffer; int size; {
+    function getStr(ptr char buffer, int size) {
         return syscall(3, 0, buffer, size); 
     }
 ```
@@ -255,7 +258,7 @@ If you want see more examples, please look into the folder `examples`.
 ### Example of Printing a Number:
 
 ```
-    function itoa ptr char buffer; int dsize; int num; {
+    function itoa(ptr char buffer, int dsize, int num) {
         int index = dsize - 1;
         int tmp = 0;
 
@@ -305,11 +308,11 @@ If you want see more examples, please look into the folder `examples`.
 ### Example of simple memory manager:
 
 ```
-    glob arr _mm_head 100000 char = {};
-    glob arr _blocks_info 100000 int = {};
+    glob arr _mm_head[100000, char] =;
+    glob arr _blocks_info[100000, int] =;
     glob long _head = 0;
 
-    function memset ptr char buffer; int val; long size; {
+    function memset(ptr char buffer, int val, long size) {
         long index = 0;
         while index < size; {
             buffer[index] = val;
@@ -319,7 +322,7 @@ If you want see more examples, please look into the folder `examples`.
         return 1;
     }
 
-    function malloc long size; {
+    function malloc(long size) {
         if size > 0; {
             ptr int curr_mem = _mm_head;
             int block_index = 0;
@@ -339,7 +342,7 @@ If you want see more examples, please look into the folder `examples`.
         return -1;
     }
 
-    function free ptr int mem; {
+    function free(ptr int mem) {
         int block_index = 0;
         while block_index < 100000; {
             if _blocks_info[block_index + 2] == mem; {
