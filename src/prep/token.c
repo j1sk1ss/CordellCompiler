@@ -49,7 +49,7 @@ static int _add_token(
     return 1;
 }
 
-token_t* TKN_create_token(token_type_t type, const unsigned char* value, size_t len, int line) {
+token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int line) {
     if (len > TOKEN_MAX_SIZE) return NULL;
     token_t* tkn = mm_malloc(sizeof(token_t));
     if (!tkn) return NULL;
@@ -57,7 +57,7 @@ token_t* TKN_create_token(token_type_t type, const unsigned char* value, size_t 
 
     tkn->t_type = type;
     if (value) {
-        str_strncpy((char*)tkn->value, (char*)value, len);
+        str_strncpy(tkn->value, value, len);
     }
     
     tkn->lnum = line;

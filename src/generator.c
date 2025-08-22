@@ -186,7 +186,7 @@ static int _generate_expression(ast_node_t* node, FILE* output, const char* func
                     regs_t reg;
                     get_reg(&reg, arr_info.el_size, RAX, 0);
 
-                    int base_off = node->variable_offset;
+                    int base_off = node->info.offset;
                     for (ast_node_t* v = vals; v && v->token->t_type != DELIMITER_TOKEN; v = v->sibling) {
                         if (v->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
                             iprintf(
@@ -224,7 +224,7 @@ static int _generate_expression(ast_node_t* node, FILE* output, const char* func
             fprintf(output, "\n ; --------------- String setup %s --------------- \n", name_node->token->value);
             ast_node_t* val_node = name_node->sibling;
             char* val_head = (char*)val_node->token->value;
-            int base_off = name_node->variable_offset;
+            int base_off = name_node->info.offset;
             while (*val_head) {
                 iprintf(output, "mov byte [%s - %d], %i\n", GET_RAW_REG(BASE_BITNESS, RBP), base_off--, *val_head);
                 val_head++;
@@ -444,7 +444,7 @@ static int _get_variables_size(ast_node_t* head, const char* func, gen_ctx_t* ct
             expression->token->t_type == IF_TOKEN
         ) size += _get_variables_size(expression->child->sibling->child, func, ctx);
         else if (expression->token->t_type == CASE_TOKEN) size += _get_variables_size(expression->child->child, func, ctx);
-        else size += ALIGN(expression->variable_size);
+        else size += ALIGN(expression->info.offset);
     }
 
     return size;
@@ -521,21 +521,21 @@ static int _generate_function(ast_node_t* node, FILE* output, const char* func, 
     int stack_offset = 8;
 
     for (ast_node_t* param = params_node->child; param; param = param->sibling) {
-        int param_size = param->variable_size;
+        int param_size = param->info.offset;
         char* param_name = (char*)param->child->token->value;
 
         regs_t reg;
 #if (BASE_BITNESS == BIT64)
         static const int args_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
         get_reg(&reg, VRS_variable_bitness(param->child->token, 1) / 8, args_regs[pop_params], 0);
-        if (pop_params++ < 6) iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->child->variable_offset, reg.name);
+        if (pop_params++ < 6) iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->child->info.offset, reg.name);
         else
 #else
         get_reg(&reg, VRS_variable_bitness(param->child->token, 1) / 8, RAX, 0);
 #endif
         {
             iprintf(output, "mov %s, [%s + %d] ; int64 %s \n", reg.name, GET_RAW_REG(BASE_BITNESS, RBP), stack_offset, param_name);
-            iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->child->variable_offset, reg.name);
+            iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->child->info.offset, reg.name);
             stack_offset += param_size;
         }
     }

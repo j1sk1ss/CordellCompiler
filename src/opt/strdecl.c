@@ -1,4 +1,4 @@
-#include <optimization.h>
+#include <strdecl.h>
 
 typedef struct string_info {
     char                body[TOKEN_MAX_SIZE];
@@ -63,41 +63,48 @@ static int _unload_stringmap(stropt_ctx_t* ctx) {
     return 1;
 }
 
-
 static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
     if (!root) return 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
-        if (!t->token) {
+#pragma region Navigation
+        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
+            _find_string(t, ctx);
+            continue;
+        }
+
+        if (VRS_isoperand(t->token)) {
             _find_string(t, ctx);
             continue;
         }
 
         switch (t->token->t_type) {
+            case IF_TOKEN:
+            case CASE_TOKEN:
+            case EXIT_TOKEN:
             case CALL_TOKEN:
+            case WHILE_TOKEN:
+            case RETURN_TOKEN:
+            case SWITCH_TOKEN:
             case SYSCALL_TOKEN:
-            case RETURN_TOKEN:  
-            case IF_TOKEN:      _find_string(t, ctx); continue;
             case DEFAULT_TOKEN:
-            case CASE_TOKEN:    _find_string(t->child, ctx); continue;
-            case SWITCH_TOKEN:  _find_string(t->child->sibling, ctx); continue;
-            case WHILE_TOKEN:   _find_string(t->child->sibling, ctx); continue;
-            case FUNC_TOKEN:    _find_string(t->child->sibling->sibling, ctx); continue;
+            case ARRAY_TYPE_TOKEN: _find_string(t, ctx);                          continue;
+            case FUNC_TOKEN:       _find_string(t->child->sibling->sibling, ctx); continue;
             default: break;
         }
-        
+#pragma endregion
         if (t->token->t_type == STRING_VALUE_TOKEN) {
             string_info_t info;
-            if (_get_string((char*)t->token->value, &info, ctx)) {
-                sprintf((char*)t->token->value, "%s", info.name);
-            }
+            if (_get_string((char*)t->token->value, &info, ctx)) sprintf(t->token->value, "%s", info.name);
             else {
-                _add_string((char*)t->token->value, ctx);
-                _get_string((char*)t->token->value, &info, ctx);
-                sprintf((char*)t->token->value, "%s", info.name);
+                _add_string(t->token->value, ctx);
+                _get_string(t->token->value, &info, ctx);
+                sprintf(t->token->value, "%s", info.name);
             }
             
             t->token->t_type = STR_VARIABLE_TOKEN;
-            t->token->ro = 1;
+            t->token->glob   = 1;
+            t->token->ro     = 1;
+            t->info.size     = VRS_variable_bitness(t->token, 1) / 8;
         }
     }
 
@@ -107,16 +114,16 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
 static int _declare_strings(ast_node_t* root, stropt_ctx_t* ctx) {
     string_info_t* h = ctx->h;
     while (h) {
-        ast_node_t* decl_root = AST_create_node(TKN_create_token(STR_TYPE_TOKEN, (unsigned char*)STR_VARIABLE, str_strlen(STR_VARIABLE), 0));
+        ast_node_t* decl_root = AST_create_node(TKN_create_token(STR_TYPE_TOKEN, STR_VARIABLE, str_strlen(STR_VARIABLE), 0));
         if (!decl_root) return 0;
 
-        ast_node_t* name_node = AST_create_node(TKN_create_token(STR_VARIABLE_TOKEN, (unsigned char*)h->name, str_strlen(h->name), 0));
+        ast_node_t* name_node = AST_create_node(TKN_create_token(STR_VARIABLE_TOKEN, h->name, str_strlen(h->name), 0));
         if (!name_node) {
             AST_unload(decl_root);
             return 0;
         }
 
-        ast_node_t* value_node = AST_create_node(TKN_create_token(STRING_VALUE_TOKEN, (unsigned char*)h->body, str_strlen(h->body), 0));
+        ast_node_t* value_node = AST_create_node(TKN_create_token(STRING_VALUE_TOKEN, h->body, str_strlen(h->body), 0));
         if (!value_node) {
             AST_unload(decl_root);
             AST_unload(name_node);
@@ -141,15 +148,9 @@ static int _declare_strings(ast_node_t* root, stropt_ctx_t* ctx) {
 
 int OPT_strpack(syntax_ctx_t* ctx) {
     if (!ctx->r) return 0;
-    ast_node_t* program_body = ctx->r->child;
-    ast_node_t* prestart     = program_body;
-    ast_node_t* main_body    = prestart->sibling;
-
     stropt_ctx_t strctx = { .num = 0, .h = NULL };
-    _find_string(prestart, &strctx);
-    _find_string(main_body, &strctx);
-    if (strctx.h) _declare_strings(prestart, &strctx);
+    _find_string(ctx->r, &strctx);
+    if (strctx.h) _declare_strings(ctx->r->child, &strctx);
     _unload_stringmap(&strctx);
-
     return 1;
 }

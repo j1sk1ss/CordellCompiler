@@ -1,13 +1,14 @@
 #include <varinline.h>
 
 static int _find_usage(
-    ast_node_t* root, char* varname, short s_id, int* status, int offset
+    ast_node_t* root, char* varname, short s_id, int* assign, int offset
 ) {
     if (!root) return 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (offset-- > 0) continue;
+#pragma region Navigation
         if (!t->token || t->token->t_type == SCOPE_TOKEN) {
-            _find_usage(t, varname, s_id, status, 0);
+            _find_usage(t, varname, s_id, assign, 0);
             continue;
         }
 
@@ -21,26 +22,25 @@ static int _find_usage(
             case SWITCH_TOKEN:
             case SYSCALL_TOKEN:
             case DEFAULT_TOKEN:
-            case ARRAY_TYPE_TOKEN: _find_usage(t, varname, s_id, status, 0);                          continue;
-            case FUNC_TOKEN:       _find_usage(t->child->sibling->sibling, varname, s_id, status, 0); continue;
+            case ARRAY_TYPE_TOKEN: _find_usage(t, varname, s_id, assign, 0);                          continue;
+            case FUNC_TOKEN:       _find_usage(t->child->sibling->sibling, varname, s_id, assign, 0); continue;
             default: break;
         }
-
+#pragma endregion
         if (VRS_isdecl(t->token) || VRS_isoperand(t->token)) {
             if (
                 t->token->t_type == ASSIGN_TOKEN && /* If variable assign somewhere, we can't tell that we able inline */
                 !str_strncmp(varname, t->child->token->value, TOKEN_MAX_SIZE)
             ) {
-                *status = 0;
-                return 0;
+                *assign = 1;
+                return 1;
             }
 
-            _find_usage(t, varname, s_id, status, VRS_isdecl(t->token));
+            _find_usage(t, varname, s_id, assign, VRS_isdecl(t->token));
             continue;
         }
 
         if (!str_strncmp(varname, t->token->value, TOKEN_MAX_SIZE) && t->info.s_id == s_id) {
-            *status = 1;
             return 1;
         }
     }
@@ -55,6 +55,7 @@ static int _inline_var(
     int index = 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (index++ < offset) continue;
+#pragma region Navigation
         if (!t->token || t->token->t_type == SCOPE_TOKEN) {
             _inline_var(t, varname, s_id, value, 0);
             continue;
@@ -74,7 +75,7 @@ static int _inline_var(
             case FUNC_TOKEN:       _inline_var(t->child->sibling->sibling, varname, s_id, value, 0); continue;
             default: break;
         }
-
+#pragma endregion
         if (VRS_isdecl(t->token) || VRS_isoperand(t->token)) {
             _inline_var(t, varname, s_id, value, (VRS_isdecl(t->token) || t->token->t_type == ASSIGN_TOKEN));
             continue;
@@ -113,9 +114,10 @@ static int _find_decl(ast_node_t* root, ast_node_t* entry, int* change) {
                 continue; /* Can be replaced by value */
             }
 
-            int is_used = 0;
-            _find_usage(entry, name_node->token->value, name_node->info.s_id, &is_used, 0);
-            if (is_used) {                
+            int is_updates = 0;
+            _find_usage(entry, name_node->token->value, name_node->info.s_id, &is_updates, 0);
+            
+            if (!is_updates) {                
                 int value = str_atoi(val_node->token->value);
                 _inline_var(entry, name_node->token->value, name_node->info.s_id, value, 0);
                 *change = 1;

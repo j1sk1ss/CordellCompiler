@@ -60,8 +60,8 @@ static inline const char* __get_register__(int size, int pos) {
 }
 
 #define GET_ASMVAR(node) \
-    (!((node)->token->ro || (node)->token->glob) ? \
-        format_from_stack((node)->variable_offset) : \
+    (!((node)->token->ro || (node)->token->ro) ? \
+        format_from_stack((node)->info.offset) : \
         format_from_data((node)->token->value, (node)->token->t_type))      
 
 static inline char* format_from_stack(int offset) {

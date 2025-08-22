@@ -1,0 +1,12 @@
+{
+    from "asd.cpl" import printf;
+    start {
+        ptr str string = "String in section!";
+        str stack_string = "String in stack!";
+        printf("String in print function");
+
+        if "Hello there!" == string; {
+            exit 1;
+        }
+    } exit c;
+}

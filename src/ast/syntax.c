@@ -35,25 +35,26 @@ static ast_node_t* (*_get_parser(token_type_t t_type))(token_t**, syntax_ctx_t*)
         case INT_TYPE_TOKEN:
         case CHAR_TYPE_TOKEN:
         case LONG_TYPE_TOKEN:
-        case SHORT_TYPE_TOKEN:     return _parse_variable_declaration;
-        case SWITCH_TOKEN:         return _parse_switch_expression;
+        case SHORT_TYPE_TOKEN:      return _parse_variable_declaration;
+        case SWITCH_TOKEN:          return _parse_switch_expression;
         case IF_TOKEN:              
-        case WHILE_TOKEN:          return _parse_condition_scope;
+        case WHILE_TOKEN:           return _parse_condition_scope;
         case INT_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case CHAR_VARIABLE_TOKEN:
         case LONG_VARIABLE_TOKEN:
         case SHORT_VARIABLE_TOKEN:
-        case UNKNOWN_STRING_TOKEN: return _parse_expression;
-        case SYSCALL_TOKEN:        return _parse_syscall;
-        case IMPORT_SELECT_TOKEN:  return _parse_import;
-        case ARRAY_TYPE_TOKEN:     return _parse_array_declaration;
-        case CALL_TOKEN:           return _parse_function_call;
-        case FUNC_TOKEN:           return _parse_function_declaration;
+        case UNKNOWN_STRING_TOKEN: 
+        case UNKNOWN_NUMERIC_TOKEN: return _parse_expression;
+        case SYSCALL_TOKEN:         return _parse_syscall;
+        case IMPORT_SELECT_TOKEN:   return _parse_import;
+        case ARRAY_TYPE_TOKEN:      return _parse_array_declaration;
+        case CALL_TOKEN:            return _parse_function_call;
+        case FUNC_TOKEN:            return _parse_function_declaration;
         case EXIT_TOKEN:
-        case RETURN_TOKEN:         return _parse_return_declaration;
-        default:                   return _dummy_parser;
+        case RETURN_TOKEN:          return _parse_return_declaration;
+        default:                    return _dummy_parser;
     }
 }
 
@@ -665,9 +666,6 @@ static ast_node_t* _parse_condition_scope(token_t** curr, syntax_ctx_t* ctx) {
         }
         
         AST_add_node(node, branch);
-        if (*curr && (*curr)->t_type == CLOSE_BLOCK_TOKEN) {
-            _forward_token(curr, 1);
-        }
     }
 
     if (*curr && (*curr)->t_type == ELSE_TOKEN) { /* Else branch scope */
@@ -680,9 +678,6 @@ static ast_node_t* _parse_condition_scope(token_t** curr, syntax_ctx_t* ctx) {
         }
         
         AST_add_node(node, branch);
-        if (*curr && (*curr)->t_type == CLOSE_BLOCK_TOKEN) {
-            _forward_token(curr, 1);
-        }
     }
     
     return node;
