@@ -3,8 +3,8 @@
 #include <token.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <assignopt.h>
 #include <syntax.h>
+#include <varinline.h>
 
 static int _print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     syntax_ctx_t sctx = { .arrs = &actx, .vars = &vctx };
 
     STX_create(tkn, &sctx);
-    OPT_force_assign(&sctx);
+    OPT_varinline(&sctx);
     _print_ast(sctx.r, 0);
 
     AST_unload(sctx.r);

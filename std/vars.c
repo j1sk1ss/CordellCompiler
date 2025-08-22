@@ -104,6 +104,9 @@ int VRS_isoperand(token_t* token) {
         case PLUS_TOKEN:
         case MINUS_TOKEN:
         case BITOR_TOKEN:
+        case LOWER_TOKEN:
+        case ASSIGN_TOKEN:
+        case LARGER_TOKEN:
         case DIVIDE_TOKEN:
         case BITAND_TOKEN:
         case COMPARE_TOKEN:

@@ -89,7 +89,7 @@ static int _compile_object(object_t* obj) {
     int assign_opt_res = 0;
     int is_fold_vars = 0;
     do {
-        assign_opt_res = OPT_force_assign(obj->syntax);
+        assign_opt_res = OPT_varinline(obj->syntax);
         is_fold_vars = OPT_muldiv(obj->syntax);
     } while (is_fold_vars);
     print_log("Assign and muldiv optimization... [Code: %i/%i]", assign_opt_res, is_fold_vars);

@@ -12,7 +12,7 @@ Codes:
 */
 static int _check_exp_bitness(ast_node_t* r) {
     if (!r || !r->token) return 1;
-    if (r->token->t_type == ASSIGN_TOKEN || VRS_isoperand(r->token) || VRS_isdecl(r->token)) {
+    if (VRS_isoperand(r->token) || VRS_isdecl(r->token)) {
         if (!r->child) return -1;
         char lbitness = _check_exp_bitness(r->child);
         if (!r->child->sibling) return -2;
