@@ -94,7 +94,7 @@ static int _compile_object(object_t* obj) {
     } while (is_fold_vars);
     print_log("Assign and muldiv optimization... [Code: %i/%i]", assign_opt_res, is_fold_vars);
     
-    int stmt_opt_res = stmt_optimization(obj->syntax);
+    int stmt_opt_res = OPT_condunroll(obj->syntax);
     print_log("Statement optimization... [%s (%i)]", RESULT(stmt_opt_res));
 
     int varuse_opt_res = OPT_varuse(obj->syntax);

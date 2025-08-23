@@ -13,11 +13,25 @@ int VRM_destroy_ctx(varmem_ctx_t* ctx) {
     return 1;
 }
 
-int VRM_get_info(const char* variable, short scope, variable_info_t* info, varmem_ctx_t* ctx) {
+int VRM_get_info(const char* varname, short scope, variable_info_t* info, varmem_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
-        if (((scope < 0) || scope == h->scope) && !str_strcmp(variable, h->name)) {
+        if (((scope < 0) || scope == h->scope) && !str_strcmp(varname, h->name)) {
             if (info) str_memcpy(info, h, sizeof(variable_info_t));
+            return 1;
+        }
+
+        h = h->next;
+    }
+    
+    return 0;
+}
+
+int VRM_update_value(const char* varname, short scope, const char* value, varmem_ctx_t* ctx) {
+    variable_info_t* h = ctx->h;
+    while (h) {
+        if (((scope < 0) || scope == h->scope) && !str_strcmp(varname, h->name)) {
+            str_strcpy(h->value, value);
             return 1;
         }
 

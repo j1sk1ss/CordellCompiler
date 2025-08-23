@@ -15,6 +15,10 @@ typedef struct {
     int          top;
 } scope_stack_t;
 
+static inline void scope_reset(scope_stack_t* st) {
+    st->top = 0;
+}
+
 static inline void scope_push(scope_stack_t* st, short id, int offset) {
     st->data[++st->top].id = id;
     st->data[st->top].offset = offset;

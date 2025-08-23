@@ -9,6 +9,7 @@ typedef struct variable_info {
     int                   size;
     int                   offset;
     char                  name[TOKEN_MAX_SIZE];
+    char                  value[TOKEN_MAX_SIZE];
     short                 scope;
     struct variable_info* next;
 } variable_info_t;
@@ -32,6 +33,11 @@ int VRM_destroy_ctx(varmem_ctx_t* ctx);
 Get variable info from context by varname and function scope.
 */
 int VRM_get_info(const char* vname, short scope, variable_info_t* info, varmem_ctx_t* ctx);
+
+/*
+Update value of variable by name.
+*/
+int VRM_update_value(const char* varname, short scope, const char* value, varmem_ctx_t* ctx);
 
 /*
 Add variable to context. 

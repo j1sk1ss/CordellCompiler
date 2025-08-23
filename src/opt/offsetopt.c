@@ -8,7 +8,7 @@ static int _recalc_offs(ast_node_t* r, const char* func, syntax_ctx_t* ctx) {
             continue;
         }
 
-        t->variable_offset = 0;
+        t->info.offset = 0;
         switch (t->token->t_type) {
             case FUNC_TOKEN:
                 int tmp_off = ctx->vars->offset;
@@ -24,8 +24,8 @@ static int _recalc_offs(ast_node_t* r, const char* func, syntax_ctx_t* ctx) {
             case SHORT_VARIABLE_TOKEN:
                 if (!t->token->ro && !t->token->glob) {
                     variable_info_t info;
-                    if (VRM_get_info((char*)t->token->value, func, &info, ctx->vars)) t->variable_offset = info.offset;
-                    else t->variable_offset = VRM_add_info((char*)t->token->value, t->variable_size, func, ctx->vars);
+                    if (VRM_get_info((char*)t->token->value, func, &info, ctx->vars)) t->info.offset = info.offset;
+                    else t->info.offset = VRM_add_info((char*)t->token->value, t->info.size, func, ctx->vars);
                 }
 
                 _recalc_offs(t, func, ctx);
