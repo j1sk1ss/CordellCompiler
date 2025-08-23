@@ -83,31 +83,36 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
 Every program begins with the `start` entrypoint and ends with the `exit [return_code];` statement.
 
 ```
-    start 
+{
+    start {
         ... // code 
-    exit 0;
+    } exit 0;
+}
 ```
 
 Also every program can contain `pre-implemented` code blocks and data segments:
 
 ```
-    function a ; { }
+{
+    function foo() { }
     glob int b = 0;
 
-    start
-    exit 0;
+    start {
+        foo();
+    } exit 0;
+}
 ```
 
 ## Variables and Types
 
 The following types are supported:
 
-- `long` — Integer (64-bit).
-- `int` — Integer (32-bit).
+- `long`  — Integer (64-bit).
+- `int`   — Integer (32-bit).
 - `short` — Integer (16-bit).
-- `char` — Integer (8-bit).
-- `str` — String (Array of characters).
-- `arr` — Array.
+- `char`  — Integer (8-bit).
+- `str`   — String (Array of characters).
+- `arr`   — Array.
 
 ### Declaring Variables
 
@@ -119,10 +124,11 @@ The following types are supported:
     short b = 1234 + (432 * (2 + 12)) / 87;
     char c = 'X';
 
-    str name = "Hello, World!";
+    str name = "Hello, World!"; : Placed in stack :
     ptr char strPtr = name; : Pointer to name string :
-    : Pointers can be used as arrays :
     strPtr[0] = 'B';
+
+    ptr str data_name = "Hello, World!"; : Placed in data section :
 
     arr farr[100, char] =; // Will allocate array with size 100 and elem size 1 byte
     arr sarr[5, int] = { 1, 2, 3, 4, 5 }; // Will allocate array for provided elements
@@ -258,6 +264,7 @@ If you want see more examples, please look into the folder `examples`.
 ### Example of Printing a Number:
 
 ```
+{
     function itoa(ptr char buffer, int dsize, int num) {
         int index = dsize - 1;
         int tmp = 0;
@@ -281,12 +288,19 @@ If you want see more examples, please look into the folder `examples`.
 
         return 1;
     }
+
+    start {
+        arr buff[32, char] =;
+        itoa(buff, 10, 1234567890)
+    } exit 0;
+}
 ```
 
 ### Example of Fibonacci N-number print:
 
 ```
-    start
+{
+    start {
         int a = 0;
         int b = 1;
         int c = 0;
@@ -302,12 +316,14 @@ If you want see more examples, please look into the folder `examples`.
 
             count = count + 1;
         }
-    exit 1;
+    } exit 1;
+}
 ```
 
 ### Example of simple memory manager:
 
 ```
+{
     glob arr _mm_head[100000, char] =;
     glob arr _blocks_info[100000, int] =;
     glob long _head = 0;
@@ -355,6 +371,7 @@ If you want see more examples, please look into the folder `examples`.
 
         return 1;
     }
+}
 ```
 
 ---
