@@ -13,7 +13,7 @@
             d = d + 123;
         }
 
-        { : Shouldn't be deleted :
+        { : Shouldnt be deleted :
             short d = 20 + c;
             c = d + 10;
         }
@@ -23,7 +23,7 @@
             k = k + 1;
         }
 
-        if a; { : Shouldn't be deleted :
+        if a; { : Shouldnt be deleted :
             a = a + 1;
         }
 
@@ -32,13 +32,13 @@
                 short kk = 10;
                 kk = kk + 10;
             }
-            default { : Shouldn't be deleted :
+            default { : Shouldnt be deleted :
                 short dd = 12;
                 foo();
             }
         }
 
-        { : Shouldn't be deleted :
+        { : Shouldnt be deleted :
             foo();
         }
     } exit 0;

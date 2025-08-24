@@ -11,6 +11,7 @@ static inline int _forward_token(token_t** tkn, int steps) {
 }
 
 static ast_node_t* _parse_import(              token_t**, syntax_ctx_t*);
+static ast_node_t* _parse_entry(               token_t**, syntax_ctx_t*);
 static ast_node_t* _parse_variable_declaration(token_t**, syntax_ctx_t*);
 static ast_node_t* _parse_array_declaration(   token_t**, syntax_ctx_t*);
 static ast_node_t* _parse_binary_expression(   token_t**, syntax_ctx_t*, int);
@@ -29,6 +30,7 @@ static ast_node_t* _dummy_parser(token_t** curr, syntax_ctx_t* ctx) { return NUL
 /* Get parser for token type */
 static ast_node_t* (*_get_parser(token_type_t t_type))(token_t**, syntax_ctx_t*) {
     switch (t_type) {
+        case START_TOKEN:          return _parse_entry;
         case OPEN_BLOCK_TOKEN:
         case CLOSE_BLOCK_TOKEN:    return _parse_scope;
         case STR_TYPE_TOKEN:
@@ -110,6 +112,17 @@ static ast_node_t* _parse_block(token_t** curr, syntax_ctx_t* ctx, token_type_t 
         }
     }
     
+    return node;
+}
+
+static ast_node_t* _parse_entry(token_t** curr, syntax_ctx_t* ctx) {
+    ast_node_t* node = AST_create_node(*curr);
+    if (!node) return NULL;
+    _forward_token(curr, 2); /* skip start and open block */
+
+    ast_node_t* body = _parse_block(curr, ctx, CLOSE_BLOCK_TOKEN);
+    AST_add_node(node, body);
+
     return node;
 }
 

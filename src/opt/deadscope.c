@@ -15,11 +15,9 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
             continue;
         }
 
-        if (VRS_isdecl(curr->token) || VRS_isoperand(curr->token)) {
+        if (curr->token->t_type == START_TOKEN) {
+            *affect = 1;
             _find_scope(curr, affect, s_id);
-            prev = curr;
-            curr = next;
-            continue;
         }
 
         if (curr->token->t_type == SCOPE_TOKEN) {
@@ -37,9 +35,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
                 continue;
             }
 
-            prev = curr;
-            curr = next;
-            continue;
+            *affect = 1;
         }
 
         switch (curr->token->t_type) {
@@ -48,7 +44,6 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
             case SWITCH_TOKEN: {
                 int is_affect = 0;
                 _find_scope(curr, &is_affect, s_id);
-
                 if (!is_affect) {
                     AST_remove_node(root, curr);
                     AST_unload(curr);
@@ -60,17 +55,41 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
                     continue;
                 }
 
-                prev = curr;
-                curr = next;
-                continue;
+                break;
+            }
+            case CASE_TOKEN:
+            case DEFAULT_TOKEN: {
+                int is_affect = 0;
+                _find_scope(curr, &is_affect, s_id);
+                if (!is_affect) {
+                    AST_remove_node(root, curr);
+                    AST_unload(curr);
+
+                    if (prev) prev->sibling = next;
+                    else root->child = next;
+
+                    curr = next;
+                    continue;
+                }
+
+                *affect = 1;
+                break;
             }
             case FUNC_TOKEN: {
-                _find_scope(curr->child->sibling->sibling, affect, s_id);
-                prev = curr;
-                curr = next;
-                continue;
+                _find_scope(curr, affect, s_id);
+                break;
             }
             default: break;
+        }
+
+        if (
+            VRS_isdecl(curr->token) || 
+            (VRS_isoperand(curr->token) && curr->token->t_type != ASSIGN_TOKEN)
+        ) {
+            _find_scope(curr, affect, s_id);
+            prev = curr;
+            curr = next;
+            continue;
         }
 
         if (curr->token->t_type == ASSIGN_TOKEN) {
