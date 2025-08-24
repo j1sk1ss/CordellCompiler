@@ -61,7 +61,10 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
     }
     
     tkn->lnum = line;
-    if (type == UNKNOWN_NUMERIC_TOKEN) tkn->glob = 1;
+    if (type == UNKNOWN_NUMERIC_TOKEN) {
+        tkn->vinfo.glob = 1;
+    }
+    
     return tkn;
 }
 

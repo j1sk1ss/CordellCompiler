@@ -80,7 +80,7 @@ static int _find_muldiv(ast_node_t* root, int* fold) {
 
             snprintf(t->token->value, TOKEN_MAX_SIZE, "%d", result);
             t->token->t_type = UNKNOWN_NUMERIC_TOKEN;
-            t->token->glob = 1;
+            t->token->vinfo.glob = 1;
             AST_unload(t->child);
             t->child = NULL;
         }

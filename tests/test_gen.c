@@ -6,25 +6,7 @@
 #include <syntax.h>
 #include <optimization.h>
 #include <generator.h>
-
-static int _print_ast(ast_node_t* node, int depth) {
-    if (!node) return 0;
-    for (int i = 0; i < depth; i++) printf("\t");
-    if (node->token) printf(
-        "[%s] (t=%d, size=%i, is_ptr=%i, off=%i, ro=%i glob=%i)\n", 
-        (char*)node->token->value, node->token->t_type, node->variable_size, node->token->ptr, 
-        node->variable_offset, node->token->ro, node->token->glob
-    );
-    else printf("{ scope }\n");
-    
-    ast_node_t* child = node->child;
-    while (child) {
-        _print_ast(child, depth + 1);
-        child = child->sibling;
-    }
-    
-    return 1;
-}
+#include "ast_helper.h"
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
@@ -48,7 +30,7 @@ int main(int argc, char* argv[]) {
     varmem_ctx_t vctx = { .h = NULL, .offset = 0 };
     syntax_ctx_t sctx = { .arrs = &actx, .vars = &vctx };
     STX_create(tkn, &sctx);
-    _print_ast(sctx.r, 0);
+    print_ast(sctx.r, 0);
     OPT_strpack(&sctx);
 
     fprintf(stdout, "Generated code:\n");

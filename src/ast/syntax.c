@@ -629,8 +629,8 @@ static ast_node_t* _parse_switch_expression(token_t** curr, syntax_ctx_t* ctx) {
                 return NULL;
             }
 
-            case_stmt->token->glob = 0;
-            case_stmt->token->ro   = 0;
+            case_stmt->token->vinfo.glob = 0;
+            case_stmt->token->vinfo.ro   = 0;
 
             AST_add_node(case_stmt, case_body);
             AST_add_node(cases_scope, case_stmt);

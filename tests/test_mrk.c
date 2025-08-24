@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     while (h) {
         printf(
             "glob=%i, line=%i, ptr=%i, ro=%i, type=%i, data=%s\n", 
-            h->glob, h->lnum, h->ptr, h->ro, h->t_type, h->value
+            h->vinfo.glob, h->lnum, h->vinfo.ptr, h->vinfo.ro, h->t_type, h->value
         );
         h = h->next;
     }
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
     while (h) {
         printf(
             "glob=%i, line=%i, ptr=%i, ro=%i, type=%i, data=%s\n", 
-            h->glob, h->lnum, h->ptr, h->ro, h->t_type, h->value
+            h->vinfo.glob, h->lnum, h->vinfo.ptr, h->vinfo.ro, h->t_type, h->value
         );
         h = h->next;
     }
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     while (h) {
         printf(
             "glob=%i, line=%i, ptr=%i, ro=%i, type=%i, data=%s\n", 
-            h->glob, h->lnum, h->ptr, h->ro, h->t_type, h->value
+            h->vinfo.glob, h->lnum, h->vinfo.ptr, h->vinfo.ro, h->t_type, h->value
         );
         h = h->next;
     }

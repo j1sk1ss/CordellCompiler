@@ -22,7 +22,7 @@ static int _recalc_offs(ast_node_t* r, const char* func, syntax_ctx_t* ctx) {
             case CHAR_VARIABLE_TOKEN:
             case LONG_VARIABLE_TOKEN:
             case SHORT_VARIABLE_TOKEN:
-                if (!t->token->ro && !t->token->glob) {
+                if (VRS_intext(t->token)) {
                     variable_info_t info;
                     if (VRM_get_info((char*)t->token->value, func, &info, ctx->vars)) t->info.offset = info.offset;
                     else t->info.offset = VRM_add_info((char*)t->token->value, t->info.size, func, ctx->vars);

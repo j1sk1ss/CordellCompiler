@@ -95,15 +95,18 @@ typedef enum {
     CHAR_VALUE_TOKEN
 } token_type_t;
 
+typedef struct {
+    char ro;   /* Is read only flag */
+    char glob; /* Is global flag */
+    char ptr;  /* Is pointer flag */
+} tkn_var_info_t;
+
 typedef struct token {
-    // Token compiler information
-    int           ro;   // ReadOnly flag
-    int           glob; // Global flag
-    int           ptr;  // Is pointer flag
-    token_type_t  t_type;
-    char          value[TOKEN_MAX_SIZE];
-    struct token* next;
-    int           lnum;
+    tkn_var_info_t vinfo;
+    token_type_t   t_type;
+    char           value[TOKEN_MAX_SIZE];
+    struct token*  next;
+    int            lnum; /* Line in source file */
 } token_t;
 
 /*

@@ -65,6 +65,7 @@ static int _find_func(ast_node_t* root, int* delete, deadfunc_ctx_t* dctx) {
 
 int OPT_deadfunc_add(syntax_ctx_t* ctx, deadfunc_ctx_t* dctx) {
     if (!ctx->r) return 0;
+    if (dctx->size + 1 >= DCTX_AST_MAX) return 0;
     dctx->ctx[dctx->size++] = ctx;
     return 1;
 }

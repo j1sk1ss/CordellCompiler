@@ -1,10 +1,13 @@
 # Cordell Compiler Reference
-
 ## Navigation
 - [Summary](#summary)
 - [Architecture](#architecture)
-    - [Optimization summary](#frontend-optimization-and-backend)
+    - [Token generation](#token-generation)
+    - [Tokens markup](#tokens-markup)
     - [AST generating](#ast)
+    - [Semantic check](#semantic-check)
+    - [Optimization](#optimization)
+    - [Micro-code generation](#micro-code-generation)
 - [Documentation](#documentation)
     - [Structure](#program-structure)
     - [Variables and Types](#variables-and-types)
@@ -19,32 +22,165 @@
 - [Links](#links)
 
 # Summary
-
-**Cordell Compiler** is a compact hobby compiler for `Cordell Programming Language` with a simple syntax, inspired by C and assembly. It is designed for studying compilation, code optimization, translation, and low-level microcode generation. </br>
-**Main goal** of this project is learning of compilers architecture and porting one to `CordellOS` project.
-
----
+**Cordell Compiler** is a compact hobby compiler for `Cordell Programming Language` with a simple syntax, inspired by C and Rust. It is designed for studying compilation, code optimization, translation, and low-level microcode generation. </br>
+**Main goal** of this project is learning of compilers architecture and porting one to `CordellOS` project (I want to code apps for OS inside this OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
 
 # Architecture
+## Token generation
+Before any work, compiler should split all input text into a list of tokens. In nutshell, [tokens](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/prep/token.c), in this Compiler, looks like this structure:
 
-## Frontend, optimization and Backend
+```C
+typedef struct {
+    char ro;   /* Is read only flag */
+    char glob; /* Is global flag */
+    char ptr;  /* Is pointer flag */
+} tkn_var_info_t;
 
-Main idea of this compiler is simplification of architecture of real compilers like `gcc` or `CMake`. This project splitted into two parts: `frontend` and `backend`. </br>
-`frontend` part, like frontend part in real compilers, takes files with .CPL extention, generates abstract syntax tree (AST), and optimize code with next algorithms: </br>
-- funcopt - First optimization algorithm, that takes care about unused functions, iterate through files from input, register all used functions, and delete all unregistered.
-- stropt - Second optimization algorithm takes care about strings that read only. If user uses strings with ro flag somewhere, this algorithm will allocate memory for them in the .rodata section.
-- assignopt - Third optimization works in group with fourth. This is a constant folding algorithm implementation. If we can use value of the variable, instead the variable itself, we replace it and remove the variable declaration.
-- muldivopt - The fourth algorithm always called after the third, and extends the constant folding cycle by convolution of constants. For example, if the expression was looks like: `5 + 5`, it convolve it into `10`.
-- stmtopt - The fifth algorithm always works only with `switch`, `if` and `while`, and looks similar to `funcopt`. The main idea is to remove all unreacheble code. For example, we can always say, that the code in `while (0)` never called.
-- varuseopt - The sixth algorithm continues code cleaning. At this point we try to remove all unused variables.
-- offsetopt - The seventh algorithm completes all the work described above work by recalculating local and global offsets for variables and arrays.
-- deadopt - [WIP algorithm. See description here: https://en.wikipedia.org/wiki/Control_flow]
+#define TOKEN_MAX_SIZE 128
+typedef struct token {
+    tkn_var_info_t vinfo;
+    token_type_t   t_type;
+    char           value[TOKEN_MAX_SIZE];
+    struct token*  next;
+    int            lnum; /* Line in source file */
+} token_t;
+```
 
-After compiler optimization, we go into the `backend`.</br>
-In backend we generate ASM microcode (WIP opcodes and ELF executable), whose architecture depends on the target system architecture, such as `x86_64` or `x86_32`.
+Rules of token generation are simple. Here is the list of events, when we cut line and create token:
+- If we in token and we met an a line break token (new line or space). 
+- If we in token and we met an Unknown bracket (`[`, `]`, `(`, `)`, `{`, `}`). 
+- If we in token and we met a different character type (`int` != `char`, `char` != `delim`, `delim` != `comma` and etc.).
+
+Now lets take a look on work example, where we translate this text:
+```
+This is sorce file for token generator!
+I'm im i:m "squirrel is climbing" \\ // !!!
+"''" '""' "'"' '"''""''"' 123asd123asd123asd
+Over there! Over there! Over there! 
+In the beauty of the Lilies Christ was born across the sea
+with the glory in his bossom that transfigures you and me
+As he died to make man holy, Let us die to make man free!
+While God is marching on!
+```
+
+into a list of the tokens:
+```
+glob=0, line=0, ptr=0, ro=0, type=2, data=This
+glob=0, line=0, ptr=0, ro=0, type=2, data=is
+glob=0, line=0, ptr=0, ro=0, type=2, data=sorce
+glob=0, line=0, ptr=0, ro=0, type=2, data=file
+glob=0, line=0, ptr=0, ro=0, type=2, data=for
+glob=0, line=0, ptr=0, ro=0, type=2, data=token
+glob=0, line=0, ptr=0, ro=0, type=2, data=generator
+glob=0, line=1, ptr=0, ro=0, type=0, data=!
+glob=0, line=1, ptr=0, ro=0, type=2, data=I
+glob=0, line=4, ptr=0, ro=0, type=63, data=m im i:m squirrel is climbing \\ // !!!
+    123asd123asd123asd
+Over there! Over there! Over there! 
+In the beauty of the Lilies  ...
+glob=0, line=6, ptr=0, ro=0, type=63, data=Christ was born across the sea
+with the glory in his bossom that transfigures you and me
+As he died to make man holy, Let us die
+```
+
+## Tokens markup
+In this section, we must label the tokens with their base types. For example, variables must be labeled as variables, functions as function definitions, function calls as calls, etc. In short, in this module, we complete the token generation with the final type assignment. An example of how it works is below:
+```
+glob=0, line=1, ptr=0, ro=0, type=1, data={
+glob=0, line=1, ptr=0, ro=0, type=2, data=from
+glob=0, line=1, ptr=0, ro=0, type=61, data=string.cpl
+glob=0, line=1, ptr=0, ro=0, type=2, data=import
+glob=0, line=1, ptr=0, ro=0, type=2, data=strlen
+glob=0, line=2, ptr=0, ro=0, type=7, data=;
+glob=0, line=3, ptr=0, ro=0, type=2, data=function
+glob=0, line=3, ptr=0, ro=0, type=2, data=putc
+glob=0, line=3, ptr=0, ro=0, type=2, data=char
+glob=0, line=3, ptr=0, ro=0, type=2, data=sym
+glob=0, line=3, ptr=0, ro=0, type=7, data=;
+glob=0, line=4, ptr=0, ro=0, type=1, data={
+glob=0, line=4, ptr=0, ro=0, type=2, data=return
+glob=1, line=4, ptr=0, ro=0, type=3, data=1
+glob=0, line=5, ptr=0, ro=0, type=7, data=;
+glob=0, line=6, ptr=0, ro=0, type=1, data=}
+glob=0, line=7, ptr=0, ro=0, type=2, data=function
+glob=0, line=7, ptr=0, ro=0, type=2, data=puts
+glob=0, line=7, ptr=0, ro=0, type=2, data=ptr
+glob=0, line=7, ptr=0, ro=0, type=2, data=char
+glob=0, line=7, ptr=0, ro=0, type=2, data=string
+glob=0, line=7, ptr=0, ro=0, type=7, data=;
+glob=0, line=8, ptr=0, ro=0, type=1, data={
+glob=0, line=8, ptr=0, ro=0, type=2, data=long
+glob=0, line=8, ptr=0, ro=0, type=2, data=strSize
+glob=0, line=8, ptr=0, ro=0, type=0, data==
+glob=0, line=8, ptr=0, ro=0, type=2, data=strlen
+glob=0, line=8, ptr=0, ro=0, type=1, data=(
+glob=0, line=8, ptr=0, ro=0, type=2, data=string
+glob=0, line=8, ptr=0, ro=0, type=1, data=)
+glob=0, line=9, ptr=0, ro=0, type=7, data=;
+glob=0, line=9, ptr=0, ro=0, type=2, data=return
+glob=0, line=9, ptr=0, ro=0, type=2, data=syscall
+glob=0, line=9, ptr=0, ro=0, type=1, data=(
+glob=1, line=9, ptr=0, ro=0, type=3, data=1
+glob=0, line=9, ptr=0, ro=0, type=8, data=,
+glob=1, line=9, ptr=0, ro=0, type=3, data=1
+glob=0, line=9, ptr=0, ro=0, type=8, data=,
+glob=0, line=9, ptr=0, ro=0, type=2, data=string
+glob=0, line=9, ptr=0, ro=0, type=8, data=,
+glob=0, line=9, ptr=0, ro=0, type=2, data=strSize
+glob=0, line=9, ptr=0, ro=0, type=1, data=)
+glob=0, line=10, ptr=0, ro=0, type=7, data=;
+glob=0, line=11, ptr=0, ro=0, type=1, data=}
+```
+
+Result:
+```
+glob=0, line=1, ptr=0, ro=0, type=13, data={
+glob=0, line=1, ptr=0, ro=0, type=25, data=from
+glob=0, line=1, ptr=0, ro=0, type=61, data=string.cpl
+glob=0, line=1, ptr=0, ro=0, type=24, data=import
+glob=0, line=1, ptr=0, ro=0, type=2, data=strlen
+glob=0, line=2, ptr=0, ro=0, type=7, data=;
+glob=0, line=3, ptr=0, ro=0, type=31, data=function
+glob=0, line=3, ptr=0, ro=0, type=2, data=putc
+glob=0, line=3, ptr=0, ro=0, type=21, data=char
+glob=0, line=3, ptr=0, ro=0, type=2, data=sym
+glob=0, line=3, ptr=0, ro=0, type=7, data=;
+glob=0, line=4, ptr=0, ro=0, type=13, data={
+glob=0, line=4, ptr=0, ro=0, type=27, data=return
+glob=1, line=4, ptr=0, ro=0, type=3, data=1
+glob=0, line=5, ptr=0, ro=0, type=7, data=;
+glob=0, line=6, ptr=0, ro=0, type=14, data=}
+glob=0, line=7, ptr=0, ro=0, type=31, data=function
+glob=0, line=7, ptr=0, ro=0, type=2, data=puts
+glob=0, line=7, ptr=0, ro=0, type=15, data=ptr
+glob=0, line=7, ptr=0, ro=0, type=21, data=char
+glob=0, line=7, ptr=0, ro=0, type=2, data=string
+glob=0, line=7, ptr=0, ro=0, type=7, data=;
+glob=0, line=8, ptr=0, ro=0, type=13, data={
+glob=0, line=8, ptr=0, ro=0, type=18, data=long
+glob=0, line=8, ptr=0, ro=0, type=2, data=strSize
+glob=0, line=8, ptr=0, ro=0, type=43, data==
+glob=0, line=8, ptr=0, ro=0, type=2, data=strlen
+glob=0, line=8, ptr=0, ro=0, type=11, data=(
+glob=0, line=8, ptr=0, ro=0, type=2, data=string
+glob=0, line=8, ptr=0, ro=0, type=12, data=)
+glob=0, line=9, ptr=0, ro=0, type=7, data=;
+glob=0, line=9, ptr=0, ro=0, type=27, data=return
+glob=0, line=9, ptr=0, ro=0, type=29, data=syscall
+glob=0, line=9, ptr=0, ro=0, type=11, data=(
+glob=1, line=9, ptr=0, ro=0, type=3, data=1
+glob=0, line=9, ptr=0, ro=0, type=8, data=,
+glob=1, line=9, ptr=0, ro=0, type=3, data=1
+glob=0, line=9, ptr=0, ro=0, type=8, data=,
+glob=0, line=9, ptr=0, ro=0, type=2, data=string
+glob=0, line=9, ptr=0, ro=0, type=8, data=,
+glob=0, line=9, ptr=0, ro=0, type=2, data=strSize
+glob=0, line=9, ptr=0, ro=0, type=12, data=)
+glob=0, line=10, ptr=0, ro=0, type=7, data=;
+glob=0, line=11, ptr=0, ro=0, type=14, data=}
+```
 
 ## AST
-
 A number of compilers generate an Abstract Syntax Tree (next `AST`), and this one of them. The alghorithm is simple. Before generating the tree, we already tokenize the entire file, and now we only need register a bunch of parsers for each token type (We will speak about several types of tokens): </br>
 - `LONG_TYPE_TOKEN` - This token indicates, that the following sequence of tokens is an expression that will be placed into the variable of type `long`. If we print this structure, it will looks like: </br>
 
@@ -56,10 +192,9 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
 - `CALL_TOKEN` - This token tells us, that the next few tokens are the function name and the function's input arguments. Token itself is the function name: </br>
 
         [CALL_TOKEN (name)]
-            [SCOPE]
-                [ARG1 expression]
-                [ARG2 expression]
-                ...
+            [ARG1 expression]
+            [ARG2 expression]
+            ...
 
 - `WHILE_TOKEN` - This token similar to `IF_TOKEN`, and tells us about the structure of following tokens: </br>
 
@@ -74,15 +209,195 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
             [LEFT expression]
             [RIGHT expression]
 
----
+Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/ast/README.md). Instead of wasting space, lets take a look on the visual example with translation of this code below:
+```CPL
+{
+    start {
+        str stack_str = "String value";
+        ptr str str_ptr = stack_str;
+
+        long a  = 0;
+        int b   = 1;
+        short c = 2;
+        char d  = 'a';
+
+        a = b;
+        c = b;
+        d = c;
+        
+        d = strptr;
+        strptr = c;
+
+        arr large_arr[5, char] = {1,2,256,4,5,6,7,8,9,10};
+    } exit 0;
+}
+```
+
+into the AST:
+```
+[ block ]
+    { scope, id=1 }
+        { scope, id=2 }
+            [str] (t=22, size=16, off=16, s_id=0)
+                [stack_str] (t=60, size=16, off=16, s_id=2)
+                [String value] (t=62, size=0, off=0, s_id=0)
+            [str] (t=22, size=16, ptr, off=40, s_id=0)
+                [str_ptr] (t=60, size=8, ptr, off=24, s_id=2)
+                [stack_str] (t=60, size=16, off=16, s_id=2)
+            [long] (t=18, size=8, off=48, s_id=0)
+                [a] (t=56, size=8, off=48, s_id=2)
+                [0] (t=3, size=0, off=0, s_id=0, glob)
+            [int] (t=19, size=4, off=56, s_id=0)
+                [b] (t=57, size=4, off=56, s_id=2)
+                [1] (t=3, size=0, off=0, s_id=0, glob)
+            [short] (t=20, size=2, off=64, s_id=0)
+                [c] (t=58, size=2, off=64, s_id=2)
+                [2] (t=3, size=0, off=0, s_id=0, glob)
+            [char] (t=21, size=1, off=72, s_id=0)
+                [d] (t=59, size=1, off=72, s_id=2)
+                [a] (t=63, size=8, off=48, s_id=2)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [a] (t=56, size=8, off=48, s_id=2)
+                [b] (t=57, size=4, off=56, s_id=2)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [c] (t=58, size=2, off=64, s_id=2)
+                [b] (t=57, size=4, off=56, s_id=2)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [d] (t=59, size=1, off=72, s_id=2)
+                [c] (t=58, size=2, off=64, s_id=2)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [d] (t=59, size=1, off=72, s_id=2)
+                [strptr] (t=2, size=0, off=0, s_id=0)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [strptr] (t=2, size=0, off=0, s_id=0)
+                [c] (t=58, size=2, off=64, s_id=2)
+            [arr] (t=23, size=16, off=88, s_id=0)
+                [large_arr] (t=61, size=16, off=0, s_id=0)
+                [5] (t=3, size=0, off=0, s_id=0, glob)
+                [char] (t=21, size=0, off=0, s_id=0)
+                [1] (t=3, size=0, off=0, s_id=0, glob)
+                [2] (t=3, size=0, off=0, s_id=0, glob)
+                [256] (t=3, size=0, off=0, s_id=0, glob)
+                [4] (t=3, size=0, off=0, s_id=0, glob)
+                [5] (t=3, size=0, off=0, s_id=0, glob)
+                [6] (t=3, size=0, off=0, s_id=0, glob)
+                [7] (t=3, size=0, off=0, s_id=0, glob)
+                [8] (t=3, size=0, off=0, s_id=0, glob)
+                [9] (t=3, size=0, off=0, s_id=0, glob)
+                [10] (t=3, size=0, off=0, s_id=0, glob)
+        [exit] (t=28, size=0, off=0, s_id=0)
+            [0] (t=3, size=0, off=0, s_id=0, glob)
+```
+
+# Semantic check
+Semantic module takes care under size, operation and commands correctness. In other words, this module check if code `well-typed`. For instance here is the code:
+```CPL
+{
+    start {
+        str stack_str = "String value";
+        ptr str str_ptr = stack_str;
+
+        long a = 0;
+        int b = 1;
+        short c = 2;
+        char d = 'a';
+
+        a = b;
+        c = b;
+        d = c;
+        
+        d = strptr;
+        strptr = c;
+
+        arr large_arr[5, char] = {1,2,256,4,5,6,7,8,9,10};
+    } exit 0;
+}
+[ block ]
+    { scope, id=1 }
+        { scope, id=2 }
+            [str] (t=22, size=16, off=16, s_id=0)
+                [stack_str] (t=60, size=16, off=16, s_id=2)
+                [String value] (t=62, size=0, off=0, s_id=0)
+            [str] (t=22, size=16, ptr, off=40, s_id=0)
+                [str_ptr] (t=60, size=8, ptr, off=24, s_id=2)
+                [stack_str] (t=60, size=16, off=16, s_id=2)
+            [long] (t=18, size=8, off=48, s_id=0)
+                [a] (t=56, size=8, off=48, s_id=2)
+                [0] (t=3, size=0, off=0, s_id=0, glob)
+            [int] (t=19, size=4, off=56, s_id=0)
+                [b] (t=57, size=4, off=56, s_id=2)
+                [1] (t=3, size=0, off=0, s_id=0, glob)
+            [short] (t=20, size=2, off=64, s_id=0)
+                [c] (t=58, size=2, off=64, s_id=2)
+                [2] (t=3, size=0, off=0, s_id=0, glob)
+            [char] (t=21, size=1, off=72, s_id=0)
+                [d] (t=59, size=1, off=72, s_id=2)
+                [a] (t=63, size=8, off=48, s_id=2)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [a] (t=56, size=8, off=48, s_id=2)
+                [b] (t=57, size=4, off=56, s_id=2)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [c] (t=58, size=2, off=64, s_id=2)
+                [b] (t=57, size=4, off=56, s_id=2)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [d] (t=59, size=1, off=72, s_id=2)
+                [c] (t=58, size=2, off=64, s_id=2)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [d] (t=59, size=1, off=72, s_id=2)
+                [strptr] (t=2, size=0, off=0, s_id=0)
+            [=] (t=44, size=0, off=0, s_id=0)
+                [strptr] (t=2, size=0, off=0, s_id=0)
+                [c] (t=58, size=2, off=64, s_id=2)
+            [arr] (t=23, size=16, off=88, s_id=0)
+                [large_arr] (t=61, size=16, off=0, s_id=0)
+                [5] (t=3, size=0, off=0, s_id=0, glob)
+                [char] (t=21, size=0, off=0, s_id=0)
+                [1] (t=3, size=0, off=0, s_id=0, glob)
+                [2] (t=3, size=0, off=0, s_id=0, glob)
+                [256] (t=3, size=0, off=0, s_id=0, glob)
+                [4] (t=3, size=0, off=0, s_id=0, glob)
+                [5] (t=3, size=0, off=0, s_id=0, glob)
+                [6] (t=3, size=0, off=0, s_id=0, glob)
+                [7] (t=3, size=0, off=0, s_id=0, glob)
+                [8] (t=3, size=0, off=0, s_id=0, glob)
+                [9] (t=3, size=0, off=0, s_id=0, glob)
+                [10] (t=3, size=0, off=0, s_id=0, glob)
+        [exit] (t=28, size=0, off=0, s_id=0)
+            [0] (t=3, size=0, off=0, s_id=0, glob)
+```
+
+Code above will produce next list of warnings:
+```
+[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 6. Different size [32] (b) and [64] (1). Did you expect this?
+[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 7. Different size [16] (c) and [64] (2). Did you expect this?
+[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 10. Different size [64] (a) and [32] (b). Did you expect this?
+[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 11. Different size [16] (c) and [32] (b). Did you expect this?
+[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 12. Different size [8] (d) and [16] (c). Did you expect this?
+[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 14. Different size [8] (d) and [64] (strptr). Did you expect this?
+[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 15. Different size [64] (strptr) and [16] (c). Did you expect this?
+[WARN] (src/prep/semantic.c:73) Value 256 at line [17] too large for array [large_arr]!
+[WARN] (src/prep/semantic.c:83) Array [large_arr] larger than expected size 10 > 5!
+```
+
+# Optimization
+- [deadfunc](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadfunc.c) - First optimization algorithm, that takes care about unused functions, iterate through files from input, register all used functions, and delete all unregistered.
+- [strdecl](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/strdecl.c) - Second optimization algorithm takes care about strings that read only. If user uses strings with ro flag somewhere, this algorithm will allocate memory for them in the .rodata section.
+- [varinline](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/varinline.c) - Third optimization works in group with fourth. This is a constant folding algorithm implementation. If we can use value of the variable, instead the variable itself, we replace it and remove the variable declaration.
+- [constopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/constopt.c) - The fourth algorithm always called after the third, and extends the constant folding cycle by convolution of constants. For example, if the expression was looks like: `5 + 5`, it convolve it into `10`.
+- [condunroll](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/condunroll.c) - The fifth algorithm always works only with `switch`, `if` and `while`, and looks similar to `funcopt`. The main idea is to remove all unreacheble code. For example, we can always say, that the code in `while (0)` never called.
+- [varuseopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/varuseopt.c)  - The sixth algorithm continues code cleaning. At this point we try to remove all unused variables.
+- [offsetopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/offsetopt.c)  - The seventh algorithm completes all the work described above work by recalculating local and global offsets for variables and arrays.
+- [deadopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadopt.c)  - [WIP algorithm. See description [here](https://en.wikipedia.org/wiki/Control_flow)]
+
+Detailed description of every noted algorithms placed [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/README.md)
+
+# Micro-code generation
 
 # .CPL Documentation
-
 ## Program Structure
-
 Every program begins with the `start` entrypoint and ends with the `exit [return_code];` statement.
 
-```
+```CPL
 {
     start {
         ... // code 
@@ -92,7 +407,7 @@ Every program begins with the `start` entrypoint and ends with the `exit [return
 
 Also every program can contain `pre-implemented` code blocks and data segments:
 
-```
+```CPL
 {
     function foo() { }
     glob int b = 0;
@@ -104,7 +419,6 @@ Also every program can contain `pre-implemented` code blocks and data segments:
 ```
 
 ## Variables and Types
-
 The following types are supported:
 
 - `long`  — Integer (64-bit).
@@ -115,8 +429,7 @@ The following types are supported:
 - `arr`   — Array.
 
 ### Declaring Variables
-
-```
+```CPL
     int a = 5;
     ro int aReadOnly = 5; : Const and global :
     glob int aGlobal = 5; : Global :
@@ -135,7 +448,6 @@ The following types are supported:
 ```
 
 ## Operations
-
 Basic arithmetic and logical operations are supported:
 
 | Operation | Description         |
@@ -152,10 +464,8 @@ Basic arithmetic and logical operations are supported:
 | `>>` `<<` `&`  `\|` `^` | Bit operations   |
 
 ## Loops and Conditions
-
 ### Switch expression
-
-```
+```CPL
     switch (a) {
         case 1; {
         }
@@ -172,8 +482,7 @@ Basic arithmetic and logical operations are supported:
 **Note:** Switch statement based on binary search algorithm, thats why, prefer switch in situations with many cases. In other hand, with three or less options, use if for avoiding overhead.
 
 ### If Condition
-
-```
+```CPL
     if a > b; {
         : ... if code :
     }
@@ -183,8 +492,7 @@ Basic arithmetic and logical operations are supported:
 ```
 
 ### While Loop
-
-```
+```CPL
     while (x < 10) && (y > 20); {
         : ... loop body : 
     }
@@ -194,12 +502,10 @@ Basic arithmetic and logical operations are supported:
 ```
 
 ## Functions
-
 Functions are declared using the `function` keyword.
 
 ### Function Signature:
-
-```
+```CPL
     function [name]([type1] [name1], [type2] [name2], ...) {
         : function body :
         return something;
@@ -207,33 +513,28 @@ Functions are declared using the `function` keyword.
 ```
 
 ### Example:
-
-```
+```CPL
     function sumfunc(int a, int b) {
         return a + b;
     }
 ```
 
 ### Calling the function
-
-```
+```CPL
     int result = sumfunc(5, 10);
     : Functions without return values can be called directly :
     printStr(strptr, size);
 ```
 
 ## Input/Output (via system calls)
-
 ### String Input/Output
-
-```
+```CPL
     syscall(4, 1, ptr, size);
     syscall(3, 0, ptr, size);
 ```
 
 ### Wrapping in a function:
-
-```
+```CPL
     function printStr(ptr char buffer, int size) {
         return syscall(4, 1, buffer, size); 
     }
@@ -244,10 +545,9 @@ Functions are declared using the `function` keyword.
 ```
 
 ## Comments
-
 Comments are written as annotations `:` within functions and code blocks:
 
-```
+```CPL
     : Comment in one line :
 
     :
@@ -258,12 +558,10 @@ Comments are written as annotations `:` within functions and code blocks:
 ```
 
 # Examples
-
 If you want see more examples, please look into the folder `examples`. 
 
 ### Example of Printing a Number:
-
-```
+```CPL
 {
     function itoa(ptr char buffer, int dsize, int num) {
         int index = dsize - 1;
@@ -297,8 +595,7 @@ If you want see more examples, please look into the folder `examples`.
 ```
 
 ### Example of Fibonacci N-number print:
-
-```
+```CPL
 {
     start {
         int a = 0;
@@ -321,8 +618,7 @@ If you want see more examples, please look into the folder `examples`.
 ```
 
 ### Example of simple memory manager:
-
-```
+```CPL
 {
     glob arr _mm_head[100000, char] =;
     glob arr _blocks_info[100000, int] =;
@@ -374,12 +670,12 @@ If you want see more examples, please look into the folder `examples`.
 }
 ```
 
----
-
-# Links
-
-- [Compiler architecture](https://cs.lmu.edu/~ray/notes/compilerarchitecture/) </br>
-- [GCC architecture](https://en.wikibooks.org/wiki/GNU_C_Compiler_Internals/GNU_C_Compiler_Architecture) </br>
-- [AST tips](https://dev.to/balapriya/abstract-syntax-tree-ast-explained-in-plain-english-1h38) </br>
-- [Control flow algorithm](https://en.wikipedia.org/wiki/Control_flow) </br>
-- [Summary about optimization](https://en.wikipedia.org/wiki/Optimizing_compiler) </br>
+# Used links and literature
+- [Compiler architecture](https://cs.lmu.edu/~ray/notes/compilerarchitecture/)
+- [GCC architecture](https://en.wikibooks.org/wiki/GNU_C_Compiler_Internals/GNU_C_Compiler_Architecture)
+- [AST tips](https://dev.to/balapriya/abstract-syntax-tree-ast-explained-in-plain-english-1h38)
+- [Control flow algorithm](https://en.wikipedia.org/wiki/Control_flow)
+- [Summary about optimization](https://en.wikipedia.org/wiki/Optimizing_compiler)
+- [acwj. A Compiler Writing Journey](https://github.com/DoctorWkt/acwj)
+- Implementing Programming Languages. An Introduction to Compilers and Interpreters. Aarne Ranta.
+- Compilers Principles, Techniques, and Tools. Second Edition. Aho Lam Sethi Ullman.

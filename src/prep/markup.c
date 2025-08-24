@@ -166,9 +166,9 @@ int MRKP_variables(token_t* head) {
                         &vars, next->value, scope_id_top(&scope_stack), &curr_ctx, &var_count
                     );
 
-                    curr->ro   = curr_ctx.ro;
-                    curr->ptr  = curr_ctx.ptr;
-                    curr->glob = curr_ctx.glob;
+                    curr->vinfo.ro   = curr_ctx.ro;
+                    curr->vinfo.ptr  = curr_ctx.ptr;
+                    curr->vinfo.glob = curr_ctx.glob;
                 }
 
                 curr_ctx.ro    = 0;
@@ -198,9 +198,9 @@ int MRKP_variables(token_t* head) {
                         vars[i].scope == curr_s
                     ) {
                         curr->t_type = vars[i].type;
-                        curr->ro     = vars[i].ro;
-                        curr->glob   = vars[i].glob;
-                        curr->ptr    = vars[i].ptr;
+                        curr->vinfo.ro     = vars[i].ro;
+                        curr->vinfo.glob   = vars[i].glob;
+                        curr->vinfo.ptr    = vars[i].ptr;
                         goto resolved;
                     }
                 }

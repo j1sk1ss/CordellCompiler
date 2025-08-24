@@ -11,7 +11,7 @@ static int _find_usage(ast_node_t* root, const char* varname, int* status, int l
             continue;
         }
         
-        if (t->token->ptr) {
+        if (t->token->vinfo.ptr) {
             _find_usage(t, varname, status, local, 0);
         }
         
@@ -79,7 +79,7 @@ static int _find_decl(ast_node_t* root, ast_node_t* entry, int* delete) {
         if (VRS_isdecl(t->token)) {
             int is_used = 0;
             ast_node_t* name_node = t->child;
-            if (t->token->ro || t->token->glob) _find_usage(entry, (char*)name_node->token->value, &is_used, 0, 0);
+            if (!VRS_intext(t->token)) _find_usage(entry, (char*)name_node->token->value, &is_used, 0, 0);
             else _find_usage(root, (char*)name_node->token->value, &is_used, 1, 0);
 
             if (!is_used) {
