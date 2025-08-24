@@ -81,15 +81,15 @@ typedef struct {
 token_t* TKN_tokenize(int fd) {
     tkn_ctx_t curr_ctx = { .ttype = UNKNOWN_STRING_TOKEN };
     token_t *head = NULL, *tail = NULL;
-    unsigned char buffer[BUFFER_SIZE] = { 0 };
-    unsigned char token_buf[TOKEN_MAX_SIZE] = { 0 };
+    char buffer[BUFFER_SIZE] = { 0 };
+    char token_buf[TOKEN_MAX_SIZE] = { 0 };
 
     int file_offset = 0;
     ssize_t bytes_read = 0;
     while ((bytes_read = pread(fd, buffer, BUFFER_SIZE, file_offset)) > 0) {
         file_offset += bytes_read;
         for (ssize_t i = 0; i < bytes_read; ++i) {
-            unsigned char ch = buffer[i];
+            char ch = buffer[i];
             char_type_t ct = _get_char_type(ch);
 
             /* Markdown routine (quotes and comment flags handler) */

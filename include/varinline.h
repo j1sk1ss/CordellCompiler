@@ -7,8 +7,8 @@
 #include "syntax.h"
 
 /*
-Force assign delete all local constants and inline them.
-Optimization gives opportunity to reduce stack usage.
+Force assign deletes all local constants and inline them.
+Optimization reduces stack usage via declaration elemination.
 */
 int OPT_varinline(syntax_ctx_t* ctx);
 

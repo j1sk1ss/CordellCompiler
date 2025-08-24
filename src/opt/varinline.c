@@ -93,36 +93,65 @@ static int _inline_var(
 
 static int _find_decl(ast_node_t* root, ast_node_t* entry, int* change) {
     if (!root) return 0;
-    for (ast_node_t* t = root->child; t; t = t->sibling) {
-        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
-            _find_decl(t, entry, change);
+    
+    ast_node_t* prev = NULL;
+    ast_node_t* curr = root->child;
+
+    while (curr) {
+        ast_node_t* next = curr->sibling;
+        if (!curr->token || curr->token->t_type == SCOPE_TOKEN) {
+            _find_decl(curr, entry, change);
+            prev = curr;
+            curr = next;
             continue;
         }
 
-        switch (t->token->t_type) {
+        switch (curr->token->t_type) {
             case IF_TOKEN:
-            case WHILE_TOKEN: 
-            case SWITCH_TOKEN: _find_decl(t->child->sibling, entry, change);          continue;
-            case FUNC_TOKEN:   _find_decl(t->child->sibling->sibling, entry, change); continue;
+            case WHILE_TOKEN:
+            case SWITCH_TOKEN:
+                _find_decl(curr->child->sibling, entry, change);
+                prev = curr;
+                curr = next;
+            continue;
+            case FUNC_TOKEN:
+                _find_decl(curr->child->sibling->sibling, entry, change);
+                prev = curr;
+                curr = next;
+            continue;
             default: break;
         }
-        
-        if (VRS_isdecl(t->token) && VRS_one_slot(t->token)) { /* Can be optimized */
-            ast_node_t* name_node = t->child;
-            ast_node_t* val_node = name_node->sibling;
+
+        if (VRS_isdecl(curr->token) && VRS_one_slot(curr->token)) {
+            ast_node_t* name_node = curr->child;
+            ast_node_t* val_node  = name_node->sibling;
+
             if (val_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) {
-                continue; /* Can be replaced by value */
+                prev = curr;
+                curr = next;
+                continue;
             }
 
             int is_updates = 0;
             _find_usage(entry, name_node->token->value, name_node->info.s_id, &is_updates, 0);
-            
-            if (!is_updates) {                
+
+            if (!is_updates) { /* If variable never updates, we can replace it by value and remove declaration node */
                 int value = str_atoi(val_node->token->value);
                 _inline_var(entry, name_node->token->value, name_node->info.s_id, value, 0);
                 *change = 1;
+
+                AST_remove_node(root, curr);
+                AST_unload(curr);
+
+                if (prev) prev->sibling = next;
+                else root->child = next;
+                curr = next;
+                continue;
             }
         }
+
+        prev = curr;
+        curr = next;
     }
 
     return 1;

@@ -606,7 +606,9 @@ static ast_node_t* _parse_switch_expression(token_t** curr, syntax_ctx_t* ctx) {
         while ((*curr)->t_type == CASE_TOKEN || (*curr)->t_type == DEFAULT_TOKEN) {
             ast_node_t* case_stmt = NULL;
             if ((*curr)->t_type != CASE_TOKEN) {
-                case_stmt = AST_create_node(TKN_create_token(DEFAULT_TOKEN, NULL, 0, 0));
+                case_stmt = AST_create_node(
+                    TKN_create_token(DEFAULT_TOKEN, DEFAULT_COMMAND, str_strlen(DEFAULT_COMMAND), 0)
+                );
             }
             else {
                 _forward_token(curr, 1);
