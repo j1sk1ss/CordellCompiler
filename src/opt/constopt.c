@@ -30,6 +30,7 @@ static int _find_muldiv(ast_node_t* root, int* fold) {
             ast_node_t* left = t->child;
             ast_node_t* right = left->sibling;
 
+            /* Peephole optimization */
             if ( /* Multiplication and division optimisation after folding with bitmove operations */
                 t->token->t_type == MULTIPLY_TOKEN || 
                 t->token->t_type == DIVIDE_TOKEN
@@ -53,6 +54,7 @@ static int _find_muldiv(ast_node_t* root, int* fold) {
                 right->token->t_type != UNKNOWN_NUMERIC_TOKEN
             ) continue;
 
+            /* Constant folding */
             int result = 0;
             int l_val = str_atoi(left->token->value);
             int r_val = str_atoi(right->token->value);

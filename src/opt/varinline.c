@@ -110,7 +110,7 @@ static int _find_decl(ast_node_t* root, ast_node_t* entry, int* change) {
             case IF_TOKEN:
             case WHILE_TOKEN:
             case SWITCH_TOKEN:
-                _find_decl(curr->child->sibling, entry, change);
+                _find_decl(curr, entry, change);
                 prev = curr;
                 curr = next;
             continue;

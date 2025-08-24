@@ -8,8 +8,6 @@
 #include "syntax.h"
 #include "varmem.h"
 
-int OPT_varuse(syntax_ctx_t* ctx);
 int OPT_offrecalc(syntax_ctx_t* ctx);
-int OPT_condunroll(syntax_ctx_t* ctx);
 
 #endif
