@@ -2,14 +2,14 @@
 #define SYNTAX_H_
 
 #include "ast.h"
+#include "str.h"
 #include "regs.h"
-#include "stack.h"
-#include "arrmem.h"
-#include "varmem.h"
-#include "token.h"
 #include "dict.h"
 #include "vars.h"
-#include "str.h"
+#include "stack.h"
+#include "token.h"
+#include "varmem.h"
+#include "arrmem.h"
 
 typedef struct {
     int           s_id;

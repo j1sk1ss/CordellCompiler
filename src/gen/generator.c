@@ -266,39 +266,6 @@ static int _generate_expression(ast_node_t* node, FILE* output, const char* func
     return 1;
 }
 
-static int _get_variables_size(ast_node_t* head, const char* func, gen_ctx_t* ctx) {
-    int size = 0;
-    if (!head) return 0;
-    for (ast_node_t* expression = head; expression; expression = expression->sibling) {
-        if (!expression->token) continue;
-        if (!VRS_intext(expression->token)) continue;
-        if (expression->token->t_type == ARRAY_TYPE_TOKEN) {
-            array_info_t arr_info = { .el_size = 1 };
-            if (ARM_get_info(
-                (char*)expression->child->sibling->sibling->token->value, 
-                func, &arr_info, ctx->synt->arrs
-            )) {
-                size +=  ALIGN(arr_info.size * arr_info.el_size);
-            }
-        }
-        else if (expression->token->t_type == STR_TYPE_TOKEN) {
-            array_info_t arr_info = { .el_size = 1 };
-            if (ARM_get_info((char*)expression->child->token->value, func, &arr_info, ctx->synt->arrs)) {
-                size += ALIGN(arr_info.size * arr_info.el_size);
-            }
-        }
-        else if (
-            expression->token->t_type == SWITCH_TOKEN ||
-            expression->token->t_type == WHILE_TOKEN  ||
-            expression->token->t_type == IF_TOKEN
-        ) size += _get_variables_size(expression->child->sibling->child, func, ctx);
-        else if (expression->token->t_type == CASE_TOKEN) size += _get_variables_size(expression->child->child, func, ctx);
-        else size += ALIGN(expression->info.offset);
-    }
-
-    return size;
-}
-
 static int _generate_declaration(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     ast_node_t* name_node = node->child;
     if (!VRS_intext(name_node->token)) return 0;
@@ -409,65 +376,5 @@ int GEN_destroy_ctx(gen_ctx_t* ctx) {
 }
 
 int GEN_generate(gen_ctx_t* ctx, FILE* output) {
-    ast_node_t* program_body = ctx->synt->r->child;
-    ast_node_t* prefix_node  = program_body;
-    ast_node_t* main_node    = prefix_node->sibling;
-
-    /*
-    Generate data section. Here we store static arrays,
-    static strings and etc.
-    Also we store here global vars.
-    */
-    fprintf(output, "\nsection .data\n");
-    _generate_data_section(prefix_node, output, DATA_SECTION, _generate_init);
-    _generate_data_section(main_node, output, DATA_SECTION, _generate_init);
-
-    /*
-    Generate rodata section. Here we store strings, that
-    not assign to any variable.
-    */
-    fprintf(output, "\nsection .rodata\n");
-    _generate_data_section(prefix_node, output, RODATA_SECTION, _generate_init);
-    _generate_data_section(main_node, output, RODATA_SECTION, _generate_init);
-
-    /* Generate .bss section for not pre-init arrays. */
-    fprintf(output, "\nsection .bss\n");
-    _generate_data_section(prefix_node, output, DATA_SECTION, _generate_raw);
-    _generate_data_section(main_node, output, DATA_SECTION, _generate_raw);
-
-    fprintf(output, "\nsection .text\n");
-    /* Generate prefix section code */
-    if (prefix_node) {
-        for (ast_node_t* child = prefix_node->child; child; child = child->sibling) {
-            if (!child->token) continue;
-            switch (child->token->t_type) {
-                case IMPORT_SELECT_TOKEN:
-                    for (ast_node_t* func = child->child->child; func; func = func->sibling)
-                        fprintf(output, "extern __%s__\n", func->token->value);
-                break;
-
-                case FUNC_TOKEN:
-                    fprintf(output, "global __%s__\n", child->child->token->value);
-                break;
-                default: break;
-            }
-        }
-
-        _generate_text_section(prefix_node, output, ctx);
-    }
-
-    /* Generate main section code */
-    if (main_node) {
-        fprintf(output, "\nglobal _start\n\n");
-        fprintf(output, "_start:\n");
-
-        /* Save old stack and reserve new one */
-        iprintf(output, "push %s\n", GET_RAW_REG(BASE_BITNESS, RBP));
-        iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RBP), GET_RAW_REG(BASE_BITNESS, RSP));
-        iprintf(output, "sub %s, %d\n", GET_RAW_REG(BASE_BITNESS, RSP), ALIGN(_get_variables_size(main_node->child, NULL, ctx)));
-       
-        _generate_text_section(main_node, output, ctx);
-    }
-
     return 1;
 }

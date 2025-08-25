@@ -45,8 +45,8 @@ int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
 
     /* Function local variables size */
     int lvsize = (
-        get_stack_size(params_node->child, name_node->token->value, ctx) + /* arguments size */
-        get_stack_size(body_node->child, name_node->token->value, ctx)     /* used variables in function */
+        get_stack_size(params_node->child, ctx) + /* arguments size */
+        get_stack_size(body_node->child, ctx)     /* used variables in function */
     );
 
     /* Stack reservation */

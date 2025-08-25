@@ -1,5 +1,57 @@
 #include <generator.h>
 
+int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
+    int size = 0;
+    if (!root) return 0;
+    for (ast_node_t* t = root->child; t; t = t->sibling) {
+#pragma region Navigation
+        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
+            get_stack_size(t, ctx);
+            continue;
+        }
+
+        switch (t->token->t_type) {
+            case IF_TOKEN:
+            case CASE_TOKEN:
+            case EXIT_TOKEN:
+            case CALL_TOKEN:
+            case WHILE_TOKEN:
+            case RETURN_TOKEN:
+            case SWITCH_TOKEN:
+            case SYSCALL_TOKEN:
+            case DEFAULT_TOKEN:
+                get_stack_size(t, ctx);                          
+            continue;
+            case FUNC_TOKEN:       
+                get_stack_size(t->child->sibling->sibling, ctx); 
+            continue;
+            default: break;
+        }
+#pragma endregion
+        if (t->token->t_type == ARRAY_TYPE_TOKEN) {
+            array_info_t arr_info = { .el_size = 1 };
+            if (ARM_get_info(
+                t->child->sibling->sibling->token->value, t->child->sibling->sibling->info.s_id,
+                &arr_info, ctx->synt->arrs
+            )) {
+                size += ALIGN(arr_info.size * arr_info.el_size);
+            }
+        }
+        else if (t->token->t_type == STR_TYPE_TOKEN) {
+            array_info_t str_info = { .el_size = 1 };
+            if (ARM_get_info(t->child->token->value, t->child->info.s_id, &str_info, ctx->synt->arrs)) {
+                size += ALIGN(str_info.size * str_info.el_size);
+            }
+        }
+        else {
+            size += ALIGN(t->info.size);
+        }
+    }
+
+    return size;
+}
+
+/* Variable just reserve space */
 static int _generate_raw(ast_node_t* entry, FILE* output) {
     if (!entry->child || !entry->token) return 0;
     switch (entry->token->t_type) {
@@ -26,6 +78,7 @@ static int _generate_raw(ast_node_t* entry, FILE* output) {
     return 1;
 }
 
+/* Variable has init value */
 static int _generate_init(ast_node_t* entry, FILE* output) {
     if (!entry->child || !entry->token) return 0;
     switch (entry->token->t_type) {
@@ -63,18 +116,38 @@ static int _generate_init(ast_node_t* entry, FILE* output) {
 
 #define DATA_SECTION   1
 #define RODATA_SECTION 2
-int x86_64_generate_data(syntax_ctx_t* sctx, FILE* output, int section, int bss) {
-    variable_info_t* curr = sctx->vars->h;
-    while (curr) {
-        if (
-            (section == DATA_SECTION)   && curr->glob || 
-            (section == RODATA_SECTION) && curr->ro
-        ) {
-            if (!bss) _generate_init(child, output);
-            else _generate_raw(child, output);
+int x86_64_generate_data(ast_node_t* node, FILE* output, int section) {
+    if (!node) return 0;
+    for (ast_node_t* t = node->child; t; t = t->sibling) {
+        if (!t->token || !t->token->t_type == SCOPE_TOKEN) {
+            x86_64_generate_data(t, output, section);
+            continue;
         }
 
-        curr = curr->next;
+        if (
+            VRS_isdecl(t->token) && /* This is declaration */
+            ((section == DATA_SECTION)  && t->token->vinfo.glob || /* And this is filter two types */
+            (section == RODATA_SECTION) && t->token->vinfo.ro)
+        ) {
+            if (t->child->sibling) _generate_init(t, output); /* Has init value */
+            else _generate_raw(t, output);
+        }
+        else if (VRS_intext(t->token)) {
+            switch (t->token->t_type) {
+                case IF_TOKEN:
+                case CASE_TOKEN:
+                case EXIT_TOKEN:
+                case CALL_TOKEN:
+                case WHILE_TOKEN:
+                case RETURN_TOKEN:
+                case SWITCH_TOKEN:
+                case SYSCALL_TOKEN:
+                case DEFAULT_TOKEN:
+                case ARRAY_TYPE_TOKEN: x86_64_generate_data(t, output, section);                          continue;
+                case FUNC_TOKEN:       x86_64_generate_data(t->child->sibling->sibling, output, section); continue;
+                default: break;
+            }
+        }
     }
 
     return 1;

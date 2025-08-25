@@ -8,11 +8,11 @@
 typedef struct variable_info {
     char                  ro;
     char                  glob;
-    int                   size;
-    int                   offset;
     char                  name[TOKEN_MAX_SIZE];
     char                  value[TOKEN_MAX_SIZE];
     short                 scope;
+    int                   size;
+    int                   offset;
     struct variable_info* next;
 } variable_info_t;
 

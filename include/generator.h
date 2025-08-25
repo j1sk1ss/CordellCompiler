@@ -39,7 +39,8 @@ Return 0 if something goes wrong.
 int GEN_generate(gen_ctx_t* ctx, FILE* output);
 
 /* x86_64_datagen.c */
-int x86_64_generate_data(syntax_ctx_t* sctx, FILE* output, int section, int bss);
+int get_stack_size(ast_node_t* root, gen_ctx_t* ctx);
+int x86_64_generate_data(ast_node_t* node, FILE* output, int section);
 
 /* x86_64_sysclgen.c */
 int x86_64_generate_syscall(ast_node_t* node, FILE* output, gen_ctx_t* ctx);

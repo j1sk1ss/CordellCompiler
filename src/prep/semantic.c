@@ -38,7 +38,7 @@ int SMT_check(ast_node_t* node) {
     
     for (ast_node_t* t = node->child; t; t = t->sibling) {
         SMT_check(t);
-
+        if (!t->token) continue;
         switch (t->token->t_type) {
             case FUNC_TOKEN: {
                 ast_node_t* name = t->child;

@@ -361,10 +361,7 @@ static ast_node_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx
         return NULL;
     }
     
-    if (
-        node->token->t_type == STR_TYPE_TOKEN && 
-        VRS_intext(node->token) /* Global and RO strings placed in .rodata or .data section */
-    ) {
+    if (node->token->t_type == STR_TYPE_TOKEN) { // TODO: ro glob
         _var_update(node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)));
         ARM_add_info(name_node->token->value, scope_id_top(&ctx->scope.stack), 1, node->info.size, ctx->arrs);
         _var_lookup(name_node, ctx);
@@ -441,14 +438,9 @@ static ast_node_t* _parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
         _forward_token(curr, 1);
     }
     
-    ARM_add_info(name_node->token->value, scope_id_top(&ctx->scope.stack), el_size, array_size, ctx->arrs);
-    if (VRS_intext(node->token)) {
-        node->info.size = ALIGN(array_size * el_size);
-        name_node->info.size = node->info.size;
-        node->info.offset = VRM_add_info(
-            name_node->token->value, node->info.size, scope_id_top(&ctx->scope.stack), ctx->vars
-        );
-    }
+    ARM_add_info(name_node->token->value, scope_id_top(&ctx->scope.stack), el_size, array_size, ctx->arrs); // TODO: ro glob 
+    _var_update(node, ctx, name_node->token->value, ALIGN(array_size * el_size));
+    _var_lookup(name_node, ctx);
 
     return node;
 }
