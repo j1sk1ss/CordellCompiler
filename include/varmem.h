@@ -6,6 +6,8 @@
 #include "token.h"
 
 typedef struct variable_info {
+    char                  ro;
+    char                  glob;
     int                   size;
     int                   offset;
     char                  name[TOKEN_MAX_SIZE];

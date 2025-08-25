@@ -4,6 +4,7 @@
 #include "regs.h"
 #include "vars.h"
 #include "qsort.h"
+#include "varmem.h"
 #include "arrmem.h"
 #include "syntax.h"
 
@@ -16,7 +17,14 @@ typedef struct {
     syntax_ctx_t* synt;
 } gen_ctx_t;
 
+/*
+Allocate memory for generator context
+*/
 gen_ctx_t* GEN_create_ctx();
+
+/*
+Unload generator context
+*/
 int GEN_destroy_ctx(gen_ctx_t* ctx);
 
 /*
@@ -29,5 +37,20 @@ Return 1 if generation success.
 Return 0 if something goes wrong.
 */
 int GEN_generate(gen_ctx_t* ctx, FILE* output);
+
+/* x86_64_datagen.c */
+int x86_64_generate_data(syntax_ctx_t* sctx, FILE* output, int section, int bss);
+
+/* x86_64_sysclgen.c */
+int x86_64_generate_syscall(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+
+/* x86_64_funcgen.c */
+int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+
+/* x86_64_condgen.c */
+int x86_64_generate_if(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+int x86_64_generate_while(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+int x86_64_generate_switch(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
 
 #endif

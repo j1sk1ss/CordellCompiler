@@ -105,3 +105,11 @@ call_token
 ├─ arg2 (val | exp)
 └─ ...
 ```
+
+- Syscall token (`syscall`)
+```
+syscall_token
+├─ arg1 (val | exp)
+├─ arg2 (val | exp)
+└─ ...
+```

@@ -1,18 +1,5 @@
 #include <generator.h>
 
-gen_ctx_t* GEN_create_ctx() {
-    gen_ctx_t* ctx = (gen_ctx_t*)mm_malloc(sizeof(gen_ctx_t));
-    if (!ctx) return NULL;
-    str_memset(ctx, 0, sizeof(gen_ctx_t));
-    return ctx;
-}
-
-int GEN_destroy_ctx(gen_ctx_t* ctx) {
-    if (!ctx) return 0;
-    mm_free(ctx);
-    return 1;
-}
-
 static int _generate_declaration(ast_node_t*, FILE*, const char*, gen_ctx_t*);
 static int _generate_assignment( ast_node_t*, FILE*, const char*, gen_ctx_t*);
 static int _generate_function(   ast_node_t*, FILE*, const char*, gen_ctx_t*);
@@ -20,108 +7,6 @@ static int _generate_syscall(    ast_node_t*, FILE*, const char*, gen_ctx_t*);
 static int _generate_switch(     ast_node_t*, FILE*, const char*, gen_ctx_t*);
 static int _generate_while(      ast_node_t*, FILE*, const char*, gen_ctx_t*);
 static int _generate_if(         ast_node_t*, FILE*, const char*, gen_ctx_t*);
-
-static int _generate_raw(token_type_t t_type, ast_node_t* entry, FILE* output) {
-    if (!entry->child) return 0;
-    switch (t_type) {
-        case LONG_TYPE_TOKEN:  iprintf(output, "__%s__: resq 1\n", (char*)entry->child->token->value); break;
-        case INT_TYPE_TOKEN:   iprintf(output, "__%s__: resd 1\n", (char*)entry->child->token->value); break;
-        case SHORT_TYPE_TOKEN: iprintf(output, "__%s__: resw 1\n", (char*)entry->child->token->value); break;
-        case CHAR_TYPE_TOKEN:  iprintf(output, "__%s__: resb 1\n", (char*)entry->child->token->value); break;
-        case ARRAY_TYPE_TOKEN: {
-            ast_node_t* size   = entry->child;
-            ast_node_t* t_type = size->sibling;
-            ast_node_t* name   = t_type->sibling;
-            if (!name->sibling) {
-                char* directive = "resb";
-                if (t_type->token->t_type == SHORT_TYPE_TOKEN)     directive = "resw";
-                else if (t_type->token->t_type == INT_TYPE_TOKEN)  directive = "resd";
-                else if (t_type->token->t_type == LONG_TYPE_TOKEN) directive = "resq";
-                iprintf(output, "__%s__: %s %s\n", name->token->value, directive, size->token->value);
-            }
-        }
-        break;
-        default: break;
-    }
-
-    return 1;
-}
-
-static int _generate_init(token_type_t t_type, ast_node_t* entry, FILE* output) {
-    switch (t_type) {
-        case STR_TYPE_TOKEN:   iprintf(output, "__%s__ db '%s', 0\n", (char*)entry->child->token->value, (char*)entry->child->sibling->token->value); break;
-        case LONG_TYPE_TOKEN:  iprintf(output, "__%s__ dq %s\n", (char*)entry->child->token->value, (char*)entry->child->sibling->token->value); break;
-        case INT_TYPE_TOKEN:   iprintf(output, "__%s__ dd %s\n", (char*)entry->child->token->value, (char*)entry->child->sibling->token->value); break;
-        case SHORT_TYPE_TOKEN: iprintf(output, "__%s__ dw %s\n", (char*)entry->child->token->value, (char*)entry->child->sibling->token->value); break;
-        case CHAR_TYPE_TOKEN:  iprintf(output, "__%s__ db %s\n", (char*)entry->child->token->value, (char*)entry->child->sibling->token->value); break;
-        case ARRAY_TYPE_TOKEN: {
-            ast_node_t* size   = entry->child;
-            ast_node_t* t_type = size->sibling;
-            ast_node_t* name   = t_type->sibling;
-            if (name->sibling) {
-                char* directive = "db";
-                if (t_type->token->t_type == SHORT_TYPE_TOKEN)     directive = "dw";
-                else if (t_type->token->t_type == INT_TYPE_TOKEN)  directive = "dd";
-                else if (t_type->token->t_type == LONG_TYPE_TOKEN) directive = "dq";
-                iprintf(output, "%s %s ", name->token->value, directive);
-                for (ast_node_t* elem = name->sibling; elem; elem = elem->sibling) {
-                    if (elem->token->t_type == UNKNOWN_NUMERIC_TOKEN) fprintf(output, "%s%s", elem->token->value, elem->sibling ? "," : "\n");
-                    else {
-                        int value = 0;
-                        char* token_start = (char*)elem->token->value;
-                        while (*token_start) {
-                            value += *token_start;
-                            token_start++;
-                        }
-
-                        fprintf(output, "%i%s", value, elem->sibling ? "," : "\n");
-                    }
-                }
-            }
-
-            break;
-        }
-        default: break;
-    }
-
-    return 1;
-}
-
-/*
-section 1 is a data section
-section 2 is a rodata section
-*/
-#define DATA_SECTION   1
-#define RODATA_SECTION 2
-static int _generate_data_section(
-    ast_node_t* node, FILE* output, int section, int (*data_gen)(token_type_t, ast_node_t*, FILE*)
-) {
-    if (!node) return 0;
-    for (ast_node_t* child = node->child; child; child = child->sibling) {
-        if (!child->token) {
-            _generate_data_section(child, output, section, data_gen);
-            continue;
-        }
-
-        if (
-            (section == DATA_SECTION && child->token->glob) || (section == RODATA_SECTION && child->token->ro)
-        ) data_gen(child->token->t_type, child, output);
-        else if (VRS_intext(child->token)) {
-            switch (child->token->t_type) {
-                case IF_TOKEN:
-                case SYSCALL_TOKEN:
-                case WHILE_TOKEN:  _generate_data_section(child, output, section, data_gen);                                          break;
-                case SWITCH_TOKEN: _generate_data_section(child->child->sibling, output, section, data_gen);               break;
-                case DEFAULT_TOKEN:
-                case CASE_TOKEN:   _generate_data_section(child->child->child, output, section, data_gen);                break;
-                case FUNC_TOKEN:   _generate_data_section(child->child->sibling->sibling, output, section, data_gen); break;
-                default: break;
-            }
-        }
-    }
-
-    return 1;
-}
 
 static int _generate_expression(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     if (!node) return 0;
@@ -133,8 +18,8 @@ static int _generate_expression(ast_node_t* node, FILE* output, const char* func
     else if (node->token->t_type == ASSIGN_TOKEN)   _generate_assignment(node, output, func, ctx);
     else if (node->token->t_type == UNKNOWN_NUMERIC_TOKEN) iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), node->token->value);
     else if (node->token->t_type == CHAR_VALUE_TOKEN)      iprintf(output, "mov %s, %i\n", GET_RAW_REG(8, RAX), *node->token->value);
-    else if (node->token->ptr && VRS_isdecl(node->token)) _generate_declaration(node, output, func, ctx);
-    else if (node->token->ptr && !VRS_isdecl(node->token) && VRS_isptr(node->token)) {
+    else if (node->token->vinfo.ptr && VRS_isdecl(node->token)) _generate_declaration(node, output, func, ctx);
+    else if (node->token->vinfo.ptr && !VRS_isdecl(node->token) && VRS_isptr(node->token)) {
         if (!node->child) iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), GET_ASMVAR(node));
         else {
             variable_info_t info;
@@ -361,43 +246,7 @@ static int _generate_expression(ast_node_t* node, FILE* output, const char* func
         iprintf(output, "movzx %s, al\n", GET_RAW_REG(BASE_BITNESS, RAX));
     }
     else if (node->token->t_type == CALL_TOKEN) {
-        /*
-        Generating function preparations.
-        1) Getting function name and args.
-        2) Put args to the stack.
-        */
-        int variables_size = 0;
-        ast_node_t* func_name_node = node;
-
-        /*
-        Saving params in stack.
-        */
-        int arg_count = 0;
-        ast_node_t* args[128] = { NULL };
-        for (ast_node_t* arg = func_name_node->child; arg; arg = arg->sibling) {
-            args[arg_count++] = arg;
-        }
-
-        fprintf(output, "\n ; --------------- Call function %s --------------- \n", func_name_node->token->value);
-        int pushed_args = 0;
-
-#if (BASE_BITNESS == BIT64)
-        static const int args_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
-        for (pushed_args = 0; pushed_args < MIN(arg_count, 6); pushed_args++) {
-            _generate_expression(args[pushed_args], output, func, ctx);
-            iprintf(output, "mov %s, %s \n", GET_RAW_REG(BASE_BITNESS, args_regs[pushed_args]), GET_RAW_REG(BASE_BITNESS, RAX));
-        }
-#endif
-
-        int stack_args = arg_count - pushed_args - 1;
-        while (stack_args >= 0) {
-            _generate_expression(args[stack_args--], output, func, ctx);
-            iprintf(output, "push %s\n", GET_RAW_REG(BASE_BITNESS, RAX));
-        }
-
-        iprintf(output, "call __%s__\n", func_name_node->token->value);
-        if (stack_args > 0) iprintf(output, "add %s, %d\n", GET_RAW_REG(BASE_BITNESS, RSP), stack_args * 8);
-        fprintf(output, " ; --------------- \n");
+        
     }
     else if (node->token->t_type == EXIT_TOKEN) {
         fprintf(output, "\n ; --------------- Exit --------------- \n");
@@ -491,227 +340,6 @@ static int _generate_declaration(ast_node_t* node, FILE* output, const char* fun
     return 1;
 }
 
-static int _generate_function(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    ast_node_t* name_node   = node->child;
-    ast_node_t* params_node = name_node->sibling;
-    ast_node_t* body_node   = params_node->sibling;
-
-    fprintf(output, "\n ; --------------- Function %s --------------- \n", name_node->token->value);
-    iprintf(output, "jmp __end_%s__\n", name_node->token->value);
-    iprintf(output, "__%s__:\n", name_node->token->value);
-
-    iprintf(output, "push %s\n", GET_RAW_REG(BASE_BITNESS, RBP));
-    iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RBP), GET_RAW_REG(BASE_BITNESS, RSP));
-
-    /*
-    Reserving stack memory for local variables. (Creating stack frame).
-    We should go into function body and find all local variables.
-    Also we remember input variables.
-    */
-    int local_vars_size = _get_variables_size(
-        params_node->child, (char*)name_node->token->value, ctx
-    ) + _get_variables_size(
-        body_node->child, (char*)name_node->token->value, ctx
-    );
-
-    iprintf(output, "sub %s, %d\n", GET_RAW_REG(BASE_BITNESS, RSP), ALIGN(local_vars_size));
-
-    /* Loading input args to stack */
-    int pop_params = 0;
-    int stack_offset = 8;
-
-    for (ast_node_t* param = params_node->child; param; param = param->sibling) {
-        int param_size = param->info.offset;
-        char* param_name = (char*)param->child->token->value;
-
-        regs_t reg;
-#if (BASE_BITNESS == BIT64)
-        static const int args_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
-        get_reg(&reg, VRS_variable_bitness(param->child->token, 1) / 8, args_regs[pop_params], 0);
-        if (pop_params++ < 6) iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->child->info.offset, reg.name);
-        else
-#else
-        get_reg(&reg, VRS_variable_bitness(param->child->token, 1) / 8, RAX, 0);
-#endif
-        {
-            iprintf(output, "mov %s, [%s + %d] ; int64 %s \n", reg.name, GET_RAW_REG(BASE_BITNESS, RBP), stack_offset, param_name);
-            iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), param->child->info.offset, reg.name);
-            stack_offset += param_size;
-        }
-    }
-
-    /*
-    Function body without return statement.
-    All expressions will use one shared register EAX.
-    */
-    for (ast_node_t* part = body_node->child; part; part = part->sibling) {
-        _generate_expression(part, output, (char*)name_node->token->value, ctx);
-    }
-
-    iprint_line(output);
-    iprintf(output, "__end_%s__:\n", name_node->token->value);
-    return 1;
-}
-
-static int _generate_while(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    int current_label = ctx->label++;
-    ast_node_t* condition = node->child;
-    ast_node_t* body = condition->sibling->child;
-
-    fprintf(output, "\n ; --------------- while cycle [%i] --------------- \n", current_label);
-    iprintf(output, "__while_%d__:\n", current_label);
-
-    _generate_expression(condition, output, func, ctx);
-    iprintf(output, "cmp rax, 0\n");
-    iprintf(output, "je __end_while_%d__\n", current_label);
-
-    while (body) {
-        _generate_expression(body, output, func, ctx);
-        body = body->sibling;
-    }
-
-    iprintf(output, "jmp __while_%d__\n", current_label);
-    iprint_line(output);
-
-    iprintf(output, "__end_while_%d__:\n", current_label);
-    return 1;
-}
-
-static int _cmp(const void* a, const void* b) {
-    return (*(int*)a - *(int*)b);
-}
-
-static int _generate_case_binary_jump(FILE* output, int* values, int left, int right, int label_id, int default_scope) {
-    if (left > right) {
-        if (default_scope) iprintf(output, "jmp __default_%d__\n", label_id);
-        else iprintf(output, "jmp __end_switch_%d__\n", label_id);
-        return 0;
-    }
-
-    int mid = (left + right) / 2;
-    int val = values[mid];
-
-    iprintf(output, "cmp %s, %d\n", GET_RAW_REG(BASE_BITNESS, RAX), val);
-    iprintf(output, "jl __case_l_%d_%d__\n", val, label_id);
-    iprintf(output, "jg __case_r_%d_%d__\n", val, label_id);
-    iprintf(output, "jmp __case_%d_%d__\n", val, label_id);
-
-    iprintf(output, "__case_l_%d_%d__:\n", val, label_id);
-    _generate_case_binary_jump(output, values, left, mid - 1, label_id, default_scope);
-
-    iprintf(output, "__case_r_%d_%d__:\n", val, label_id);
-    _generate_case_binary_jump(output, values, mid + 1, right, label_id, default_scope);
-    return 1;
-}
-
-static int _generate_switch(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    int current_label = ctx->label++;
-    ast_node_t* stmt = node->child;
-    ast_node_t* cases = stmt->sibling;
-
-    int cases_count = 0;
-    int values[128] = { -1 };
-
-    fprintf(output, "\n ; --------------- switch [%i] --------------- \n", current_label);
-
-    int have_default = 0;
-    iprintf(output, "jmp __end_cases_%d__\n", current_label);
-    for (ast_node_t* curr_case = cases->child; curr_case; curr_case = curr_case->sibling) {
-        if (curr_case->token->t_type == DEFAULT_TOKEN) {
-            have_default = 1;
-            iprintf(output, "__default_%d__:\n", current_label);
-        }
-        else {
-            int case_value = str_atoi((char*)curr_case->token->value);
-            iprintf(output, "__case_%d_%d__:\n", case_value, current_label);
-            values[cases_count++] = case_value;
-        }
-
-        for (ast_node_t* part = curr_case->child->child; part; part = part->sibling) {
-            _generate_expression(part, output, func, ctx);
-        }
-
-        iprintf(output, "jmp __end_switch_%d__\n", current_label);
-    }
-
-    sort_qsort(values, cases_count, sizeof(int), _cmp);
-    iprintf(output, "__end_cases_%d__:\n", current_label);
-    _generate_expression(stmt, output, func, ctx);
-    _generate_case_binary_jump(output, values, 0, cases_count - 1, current_label, have_default);
-
-    iprintf(output, "__end_switch_%d__:\n", current_label);
-    iprint_line(output);
-    return 1;
-}
-
-static int _generate_if(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    int current_label = ctx->label++;
-    ast_node_t* condition = node->child;
-    ast_node_t* body = condition->sibling;
-    ast_node_t* else_body = body->sibling;
-
-    fprintf(output, "\n ; --------------- if statement [%i] --------------- \n", current_label);
-    _generate_expression(condition, output, func, ctx);
-    iprintf(output, "cmp %s, 0\n", GET_RAW_REG(BASE_BITNESS, RAX));
-    if (else_body) iprintf(output, "je __else_%d__\n", current_label);
-    else iprintf(output, "je __end_if_%d__\n", current_label);
-
-    ast_node_t* body_exp = body->child;
-    while (body_exp) {
-        _generate_expression(body_exp, output, func, ctx);
-        body_exp = body_exp->sibling;
-    }
-
-    iprintf(output, "jmp __end_if_%d__\n", current_label);
-
-    if (else_body) {
-        iprintf(output, "__else_%d__:\n", current_label);
-        ast_node_t* else_body_exp = else_body->child;
-        while (else_body_exp) {
-            _generate_expression(else_body_exp, output, func, ctx);
-            else_body_exp = else_body_exp->sibling;
-        }
-    }
-
-    iprint_line(output);
-    iprintf(output, "__end_if_%d__:\n", current_label);
-    return 1;
-}
-
-/* https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/ */
-/* https://gist.github.com/GabriOliv/a9411fa771a1e5d94105cb05cbaebd21 */
-/* https://math.hws.edu/eck/cs220/f22/registers.html */
-static int _generate_syscall(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    static const int args_regs[] = { 
-#if (BASE_BITNESS == BIT64)
-        RAX, RDI, RSI, RDX, R10, R8, R9
-#else
-        RAX, RBX, RCX, RDX, RSI, RDI, RBP
-#endif
-    };
-
-    fprintf(output, "\n ; --------------- system call --------------- \n");
-
-    int arg_index = 0;
-    ast_node_t* args = node->child;
-    while (args) {
-        regs_t reg;
-        int is_ptr = (
-            ARM_get_info((char*)args->token->value, func, NULL, ctx->synt->arrs) && 
-            !VRS_intext(args->token)
-        );
-        
-        get_reg(&reg, VRS_variable_bitness(args->token, 1) / 8, args_regs[arg_index++], is_ptr);
-        iprintf(output, "%s%s%s, %s\n", reg.move, reg.operation, reg.name, GET_ASMVAR(args));
-        args = args->sibling;
-    }
-
-    iprintf(output, "%s\n", SYSCALL);
-    iprint_line(output);
-
-    return 1;
-}
-
 static int _generate_assignment(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     ast_node_t* left  = node->child;
     ast_node_t* right = left->sibling;
@@ -764,6 +392,19 @@ static int _generate_text_section(ast_node_t* node, FILE* output, gen_ctx_t* ctx
         _generate_expression(child, output, NULL, ctx);
     }
 
+    return 1;
+}
+
+gen_ctx_t* GEN_create_ctx() {
+    gen_ctx_t* ctx = (gen_ctx_t*)mm_malloc(sizeof(gen_ctx_t));
+    if (!ctx) return NULL;
+    str_memset(ctx, 0, sizeof(gen_ctx_t));
+    return ctx;
+}
+
+int GEN_destroy_ctx(gen_ctx_t* ctx) {
+    if (!ctx) return 0;
+    mm_free(ctx);
     return 1;
 }
 

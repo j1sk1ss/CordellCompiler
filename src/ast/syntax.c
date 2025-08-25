@@ -30,9 +30,9 @@ static ast_node_t* _dummy_parser(token_t** curr, syntax_ctx_t* ctx) { return NUL
 /* Get parser for token type */
 static ast_node_t* (*_get_parser(token_type_t t_type))(token_t**, syntax_ctx_t*) {
     switch (t_type) {
-        case START_TOKEN:          return _parse_entry;
+        case START_TOKEN:           return _parse_entry;
         case OPEN_BLOCK_TOKEN:
-        case CLOSE_BLOCK_TOKEN:    return _parse_scope;
+        case CLOSE_BLOCK_TOKEN:     return _parse_scope;
         case STR_TYPE_TOKEN:
         case INT_TYPE_TOKEN:
         case CHAR_TYPE_TOKEN:
@@ -61,9 +61,7 @@ static ast_node_t* (*_get_parser(token_type_t t_type))(token_t**, syntax_ctx_t*)
 }
 
 /* Save variable to ctx varmem list */
-static int _var_update(
-    ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size
-) {
+static int _var_update(ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size) {
     if (!node) return 0;
     node->info.offset = VRM_add_info(name, size, scope_id_top(&ctx->scope.stack), ctx->vars);
     node->info.size   = size;
