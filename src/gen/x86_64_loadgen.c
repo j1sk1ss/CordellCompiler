@@ -57,10 +57,16 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
             iprintf(output, "mov rax, %s\n", node->token->value);
         break;
         case LONG_VARIABLE_TOKEN:
-        case INT_VARIABLE_TOKEN:
-        case SHORT_VARIABLE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:
             iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
+        break;
+        case INT_VARIABLE_TOKEN:
+            iprintf(output, "mov eax, %s\n", GET_ASMVAR(node));
+        break;
+        case SHORT_VARIABLE_TOKEN:
+            iprintf(output, "mov ax, %s\n", GET_ASMVAR(node));
+        break;
+        case CHAR_VARIABLE_TOKEN:
+            iprintf(output, "mov al, %s\n", GET_ASMVAR(node));
         break;
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: {

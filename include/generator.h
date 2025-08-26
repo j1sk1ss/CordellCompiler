@@ -39,7 +39,6 @@ Return 0 if something goes wrong.
 int GEN_generate(gen_ctx_t* ctx, FILE* output);
 
 /* x86_64_storegen.c */
-int x86_64_generate_ptr_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
 int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
 
 /* x86_64_loadgen.c */
