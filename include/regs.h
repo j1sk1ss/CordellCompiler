@@ -57,30 +57,31 @@ static inline const char* __get_register__(int size, int pos) {
         case 64:
         default: return regs[0][pos];
     }
-}
-
-#define GET_ASMVAR(node) \
-    (!((node)->token->vinfo.ro || (node)->token->vinfo.ro) ? \
-        format_from_stack((node)->info.offset) : \
-        format_from_data((node)->token->value, (node)->token->t_type))      
+}   
 
 static inline char* format_from_stack(int offset) {
     static char stack_buff[64] = { 0 };
-    snprintf(stack_buff, sizeof(stack_buff), "[%s - %d]", GET_RAW_REG(BASE_BITNESS, RBP), ALIGN(offset));
+    snprintf(stack_buff, sizeof(stack_buff), "[%s - %d]", GET_RAW_REG(BASE_BITNESS, RBP), offset);
     return stack_buff;
 }
 
-static inline char* format_from_data(unsigned char* name, token_type_t type) {
-    if (type != UNKNOWN_NUMERIC_TOKEN) {
-        static char data_buff[64] = { 0 };
-        if (type == ARR_VARIABLE_TOKEN || type == STR_VARIABLE_TOKEN) snprintf(data_buff, sizeof(data_buff), "__%s__", name);
+static inline char* format_from_data(char* name, token_type_t type) {
+    if (type == UNKNOWN_NUMERIC_TOKEN) return name; 
+    else {
+        char data_buff[64] = { 0 };
+        if (
+            type == ARR_VARIABLE_TOKEN || 
+            type == STR_VARIABLE_TOKEN
+        ) snprintf(data_buff, sizeof(data_buff), "__%s__", name);
         else snprintf(data_buff, sizeof(data_buff), "[__%s__]", name);
         return data_buff;
     }
-    else {
-        return (char*)name;
-    }
 }
+
+#define GET_ASMVAR(node) \
+    VRS_intext((node)->token) ? \
+    format_from_stack((node)->info.offset) : \
+    format_from_data((node)->token->value, (node)->token->t_type)
 
 typedef struct {
     const char* name;
