@@ -1,5 +1,5 @@
-#ifndef OPTIMIZATION_H_
-#define OPTIMIZATION_H_
+#ifndef OFFSETOPT_H_
+#define OFFSETOPT_H_
 
 #include "mm.h"
 #include "str.h"

@@ -38,6 +38,20 @@ Return 0 if something goes wrong.
 */
 int GEN_generate(gen_ctx_t* ctx, FILE* output);
 
+/* x86_64_storegen.c */
+int x86_64_generate_ptr_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+
+/* x86_64_loadgen.c */
+int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+
+/* x86_64_assigngen.c */
+int x86_64_generate_assignment(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+
+/* x86_64_declgen.c */
+int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
+
 /* x86_64_datagen.c */
 int get_stack_size(ast_node_t* root, gen_ctx_t* ctx);
 int x86_64_generate_data(ast_node_t* node, FILE* output, int section);

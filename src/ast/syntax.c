@@ -61,10 +61,13 @@ static ast_node_t* (*_get_parser(token_type_t t_type))(token_t**, syntax_ctx_t*)
 }
 
 /* Save variable to ctx varmem list */
-static int _var_update(ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size) {
+static int _var_update(ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size, char ro, char glob) {
     if (!node) return 0;
-    node->info.offset = VRM_add_info(name, size, scope_id_top(&ctx->scope.stack), ctx->vars);
-    node->info.size   = size;
+    node->info.size = size;
+    node->info.offset = VRM_add_info(
+        name, size, ro, glob, scope_id_top(&ctx->scope.stack), ctx->vars
+    );
+
     return 1;
 }
 
@@ -271,15 +274,16 @@ static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx
     AST_add_node(node, name_node);
     _forward_token(curr, 1);
 
-    /* Manual stack push instead parser */
-    scope_push(&ctx->scope.stack, ++ctx->scope.s_id, ctx->vars->offset); /* Function uniqe scope ID before arguments */
-    ctx->vars->offset = 0;
-
-    ast_node_t* args_node = AST_create_node(NULL);
+    ast_node_t* args_node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, 0, 0));
     if (!args_node) {
         AST_unload(node);
         return NULL;
     }
+
+    /* Manual stack push instead parser */
+    scope_push(&ctx->scope.stack, ++ctx->scope.s_id, ctx->vars->offset); /* Function uniqe scope ID before arguments */
+    ctx->vars->offset = 0;
+    args_node->info.s_id = ctx->scope.s_id;
 
     _forward_token(curr, 1);
     while (!*curr || (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
@@ -303,7 +307,6 @@ static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx
         }
     }
 
-    AST_add_node(node, args_node);
     _forward_token(curr, 1);
 
     ast_node_t* body_node = _parse_scope(curr, ctx);
@@ -312,7 +315,8 @@ static ast_node_t* _parse_function_declaration(token_t** curr, syntax_ctx_t* ctx
         return NULL;
     }
 
-    AST_add_node(node, body_node);
+    AST_add_node(args_node, body_node);
+    AST_add_node(node, args_node);
 
     scope_elem_t el;
     scope_pop_top(&ctx->scope.stack, &el); /* Restore scope and offset */
@@ -343,7 +347,7 @@ static ast_node_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx
         VRS_intext(node->token)            /* Global and RO variables placed not in stack */
     ) {
         int var_size = VRS_variable_bitness(name_node->token, 1) / 8;
-        _var_update(node, ctx, name_node->token->value, var_size);
+        _var_update(node, ctx, name_node->token->value, var_size, name_node->token->vinfo.ro, name_node->token->vinfo.glob);
         _var_lookup(name_node, ctx);
     }
 
@@ -362,7 +366,7 @@ static ast_node_t* _parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx
     }
     
     if (node->token->t_type == STR_TYPE_TOKEN) { // TODO: ro glob
-        _var_update(node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)));
+        _var_update(node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)), name_node->token->vinfo.ro, name_node->token->vinfo.glob);
         ARM_add_info(name_node->token->value, scope_id_top(&ctx->scope.stack), 1, node->info.size, ctx->arrs);
         _var_lookup(name_node, ctx);
     }
@@ -439,7 +443,7 @@ static ast_node_t* _parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
     }
     
     ARM_add_info(name_node->token->value, scope_id_top(&ctx->scope.stack), el_size, array_size, ctx->arrs); // TODO: ro glob 
-    _var_update(node, ctx, name_node->token->value, ALIGN(array_size * el_size));
+    _var_update(node, ctx, name_node->token->value, ALIGN(array_size * el_size), name_node->token->vinfo.ro, name_node->token->vinfo.glob);
     _var_lookup(name_node, ctx);
 
     return node;

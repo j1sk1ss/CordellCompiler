@@ -20,6 +20,7 @@ TEST_SRCS[test_strdecl]="src/prep/*.c src/ast/*.c src/opt/strdecl.c std/*.c"
 TEST_SRCS[test_deadfunc]="src/prep/*.c src/ast/*.c src/opt/deadfunc.c std/*.c"
 TEST_SRCS[test_condunroll]="src/prep/*.c src/ast/*.c src/opt/condunroll.c std/*.c"
 TEST_SRCS[test_deadscope]="src/prep/*.c src/ast/*.c src/opt/deadscope.c std/*.c"
+TEST_SRCS[test_offsetopt]="src/prep/*.c src/ast/*.c src/opt/offsetopt.c std/*.c"
 
 # ==== Generation testing ====
 TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/opt/*.c src/generator.c std/*.c"

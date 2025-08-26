@@ -1,13 +1,5 @@
 #include <generator.h>
 
-static int _generate_declaration(ast_node_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_assignment( ast_node_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_function(   ast_node_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_syscall(    ast_node_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_switch(     ast_node_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_while(      ast_node_t*, FILE*, const char*, gen_ctx_t*);
-static int _generate_if(         ast_node_t*, FILE*, const char*, gen_ctx_t*);
-
 static int _generate_expression(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
     if (!node) return 0;
     if (node->token->t_type == IF_TOKEN)           _generate_if(node, output, func, ctx);
@@ -15,7 +7,7 @@ static int _generate_expression(ast_node_t* node, FILE* output, const char* func
     else if (node->token->t_type == WHILE_TOKEN)   _generate_while(node, output, func, ctx);
     else if (node->token->t_type == FUNC_TOKEN)    _generate_function(node, output, func, ctx);
     else if (node->token->t_type == SYSCALL_TOKEN) _generate_syscall(node, output, func, ctx);
-    else if (node->token->t_type == ASSIGN_TOKEN)   _generate_assignment(node, output, func, ctx);
+    else if (node->token->t_type == ASSIGN_TOKEN)  _generate_assignment(node, output, func, ctx);
     else if (node->token->t_type == UNKNOWN_NUMERIC_TOKEN) iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), node->token->value);
     else if (node->token->t_type == CHAR_VALUE_TOKEN)      iprintf(output, "mov %s, %i\n", GET_RAW_REG(8, RAX), *node->token->value);
     else if (node->token->vinfo.ptr && VRS_isdecl(node->token)) _generate_declaration(node, output, func, ctx);
@@ -263,93 +255,6 @@ static int _generate_expression(ast_node_t* node, FILE* output, const char* func
         iprintf(output, "ret\n");
     }
 
-    return 1;
-}
-
-static int _generate_declaration(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    ast_node_t* name_node = node->child;
-    if (!VRS_intext(name_node->token)) return 0;
-
-    int val = 0;
-    int is_const = 0;
-    char* derictive = " ";
-
-    if (
-        name_node->sibling->token->t_type != UNKNOWN_NUMERIC_TOKEN && 
-        name_node->sibling->token->t_type != CHAR_VALUE_TOKEN
-    ) {
-        is_const = 0;
-        _generate_expression(name_node->sibling, output, func, ctx);
-    }
-    else {
-        is_const = 1;
-        switch (VRS_variable_bitness(name_node->token, 1)) {
-            default:
-            case 64: derictive = " qword "; break;
-            case 32: derictive = " dword "; break;
-            case 16: derictive = " word ";  break;
-            case 8: derictive  = " byte ";  break;
-        }
-
-        if (name_node->sibling->token->t_type == UNKNOWN_NUMERIC_TOKEN) val = str_atoi((char*)name_node->sibling->token->value);
-        else if (name_node->sibling->token->t_type == CHAR_VALUE_TOKEN) val = *name_node->sibling->token->value;
-    }
-
-    char source[36] = { 0 };
-    if (is_const) sprintf(source, "%d", val); /* If this is constant value, we can store it in stack */
-    else sprintf(source, "%s", GET_RAW_REG(BASE_BITNESS, RAX));
-
-    iprintf(
-        output, "mov%s%s, %s ; decl %s = %s\n", 
-        derictive, GET_ASMVAR(name_node), source, (char*)name_node->token->value, source
-    );
-
-    return 1;
-}
-
-static int _generate_assignment(ast_node_t* node, FILE* output, const char* func, gen_ctx_t* ctx) {
-    ast_node_t* left  = node->child;
-    ast_node_t* right = left->sibling;
-
-    fprintf(output, "\n; --------------- Assignment: %s = %s --------------- \n", left->token->value, right->token->value);
-
-    /*
-    We store right result to RAX, and move it to stack with offset of left.
-    Pointer assignment. Also we check if this variable is ptr, array or etc.
-    Markers are 64 bits size and first child.
-    */
-    if ((VRS_variable_bitness(left->token, 1) == BASE_BITNESS) && left->child) {
-        /* If left node is array or string (array too) with elem size info. */
-        array_info_t arr_info = { .el_size = 1 };
-        int is_ptr = (
-            ARM_get_info((char*)node->child->token->value, func, &arr_info, ctx->synt->arrs) && 
-            VRS_intext(node->child->token)
-        );
-
-        /*
-        Generate offset movement in this array-like data type.
-        Then multiply it by arr el_size.
-        */
-        _generate_expression(left->child, output, func, ctx);
-        if (arr_info.el_size > 1) iprintf(output, "imul %s, %d\n", GET_RAW_REG(BASE_BITNESS, RAX), arr_info.el_size);
-        iprintf(output, "%s %s, %s\n", !is_ptr ? "mov" : "lea", GET_REG(node, 1), GET_ASMVAR(left));
-
-        iprintf(output, "add %s, %s\n", GET_RAW_REG(BASE_BITNESS, RAX), GET_RAW_REG(BASE_BITNESS, RBX));
-        iprintf(output, "push %s\n", GET_RAW_REG(BASE_BITNESS, RAX));
-
-        _generate_expression(right, output, func, ctx);
-        iprintf(output, "pop %s\n", GET_RAW_REG(BASE_BITNESS, RBX));
-
-        regs_t reg;
-        get_reg(&reg, arr_info.el_size, RAX, 0);
-        iprintf(output, "mov%s[%s], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBX), reg.name);
-    }
-    else {
-        _generate_expression(right, output, func, ctx);
-        iprintf(output, "mov %s, %s\n", GET_ASMVAR(left), GET_RAW_REG(BASE_BITNESS, RAX));
-    }
-
-    iprint_line(output);
     return 1;
 }
 

@@ -45,7 +45,7 @@ int VRM_update_value(const char* varname, short scope, const char* value, varmem
 Add variable to context. 
 Note: Will use ALIGN to variable size for offset calculation.
 */
-int VRM_add_info(const char* vname, int size, short scope, varmem_ctx_t* ctx);
+int VRM_add_info(const char* name, int size, char ro, char glob, short scope, varmem_ctx_t* ctx);
 
 /*
 Unload context.

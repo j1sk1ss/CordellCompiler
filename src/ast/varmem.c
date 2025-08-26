@@ -41,7 +41,9 @@ int VRM_update_value(const char* varname, short scope, const char* value, varmem
     return 0;
 }
 
-static variable_info_t* _create_variable_info(const char* name, int size, short scope, varmem_ctx_t* ctx) {
+static variable_info_t* _create_variable_info(
+    const char* name, int size, char ro, char glob, short scope, varmem_ctx_t* ctx
+) {
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
     str_memset(var, 0, sizeof(variable_info_t));
@@ -58,8 +60,10 @@ static variable_info_t* _create_variable_info(const char* name, int size, short 
     return var;
 }
 
-int VRM_add_info(const char* name, int size, short scope, varmem_ctx_t* ctx) {
-    variable_info_t* nnd = _create_variable_info(name, size, scope, ctx);
+int VRM_add_info(
+    const char* name, int size, char ro, char glob, short scope, varmem_ctx_t* ctx
+) {
+    variable_info_t* nnd = _create_variable_info(name, size, ro, glob, scope, ctx);
     if (!nnd) return 0;
     if (!ctx->h) {
         ctx->h = nnd;
