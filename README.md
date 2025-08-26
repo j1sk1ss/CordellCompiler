@@ -603,3 +603,4 @@ If you want see more examples, please look into the folder `examples`.
 - [acwj. A Compiler Writing Journey](https://github.com/DoctorWkt/acwj)
 - Implementing Programming Languages. An Introduction to Compilers and Interpreters. Aarne Ranta.
 - Compilers Principles, Techniques, and Tools. Second Edition. Aho Lam Sethi Ullman.
+- Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition. Daniel Kusswurm.
