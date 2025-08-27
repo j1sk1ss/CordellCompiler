@@ -50,6 +50,7 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     if (!node->token) return 0;
     if (node->token->vinfo.ptr) {
         iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
+        if (node->child) goto indexing;
         return 1;
     }
 
@@ -74,6 +75,7 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         break;
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: {
+indexing:
             ast_node_t* off = node->child;
             if (off) { /* Loading data from array by offset */
                 array_info_t arr_info = { .el_size = 1 };

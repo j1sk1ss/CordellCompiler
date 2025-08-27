@@ -2,7 +2,12 @@
 
 int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     if (!node->token) return 0;
-    if (VRS_isptr(node->token)) goto stackable;
+    if (VRS_isptr(node->token)) {
+        iprintf(output, "mov qword ptr %s, rax\n", GET_ASMVAR(node));
+        if (node->child) goto indexing;
+        return 1;
+    }
+
     switch (node->token->t_type) {
         case LONG_VARIABLE_TOKEN: 
             iprintf(output, "mov qword ptr %s, rax\n", GET_ASMVAR(node));
@@ -18,7 +23,7 @@ int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         break;
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: {
-stackable:
+indexing:
             ast_node_t* off = node->child;
             if (off) { /* Loading data from array by offset */
                 iprintf(output, "mov rdx, rax\n");
