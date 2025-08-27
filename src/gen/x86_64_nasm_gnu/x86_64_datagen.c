@@ -6,46 +6,12 @@ int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
     for (ast_node_t* t = root->child; t; t = t->sibling) {
 #pragma region Navigation
         if (!t->token || t->token->t_type == SCOPE_TOKEN) {
-            get_stack_size(t, ctx);
+            size = MAX(size, get_stack_size(t, ctx));
             continue;
         }
 
-        switch (t->token->t_type) {
-            case IF_TOKEN:
-            case CASE_TOKEN:
-            case EXIT_TOKEN:
-            case CALL_TOKEN:
-            case WHILE_TOKEN:
-            case RETURN_TOKEN:
-            case SWITCH_TOKEN:
-            case SYSCALL_TOKEN:
-            case DEFAULT_TOKEN:
-                get_stack_size(t, ctx);                          
-            continue;
-            case FUNC_TOKEN:       
-                get_stack_size(t->child->sibling->sibling, ctx); 
-            continue;
-            default: break;
-        }
-#pragma endregion
-        if (t->token->t_type == ARRAY_TYPE_TOKEN) {
-            array_info_t arr_info = { .el_size = 1 };
-            if (ARM_get_info(
-                t->child->sibling->sibling->token->value, t->child->sibling->sibling->info.s_id,
-                &arr_info, ctx->synt->arrs
-            )) {
-                size += ALIGN(arr_info.size * arr_info.el_size);
-            }
-        }
-        else if (t->token->t_type == STR_TYPE_TOKEN) {
-            array_info_t str_info = { .el_size = 1 };
-            if (ARM_get_info(t->child->token->value, t->child->info.s_id, &str_info, ctx->synt->arrs)) {
-                size += ALIGN(str_info.size * str_info.el_size);
-            }
-        }
-        else {
-            size += ALIGN(t->info.size);
-        }
+        if (t->token->t_type == FUNC_TOKEN) continue;
+        size = MAX(size, t->info.offset);
     }
 
     return size;
@@ -114,13 +80,11 @@ static int _generate_init(ast_node_t* entry, FILE* output) {
     return 1;
 }
 
-#define DATA_SECTION   1
-#define RODATA_SECTION 2
-int x86_64_generate_data(ast_node_t* node, FILE* output, int section) {
+int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss) {
     if (!node) return 0;
     for (ast_node_t* t = node->child; t; t = t->sibling) {
         if (!t->token || !t->token->t_type == SCOPE_TOKEN) {
-            x86_64_generate_data(t, output, section);
+            x86_64_generate_data(t, output, section, bss);
             continue;
         }
 
@@ -129,8 +93,8 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section) {
             ((section == DATA_SECTION)  && t->token->vinfo.glob || /* And this is filter two types */
             (section == RODATA_SECTION) && t->token->vinfo.ro)
         ) {
-            if (t->child->sibling) _generate_init(t, output); /* Has init value */
-            else _generate_raw(t, output);
+            if (t->child->sibling && !bss) _generate_init(t, output); /* Has init value */
+            else if (!t->child->sibling && bss) _generate_raw(t, output);
         }
         else if (VRS_intext(t->token)) {
             switch (t->token->t_type) {
@@ -143,8 +107,8 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section) {
                 case SWITCH_TOKEN:
                 case SYSCALL_TOKEN:
                 case DEFAULT_TOKEN:
-                case ARRAY_TYPE_TOKEN: x86_64_generate_data(t, output, section);                          continue;
-                case FUNC_TOKEN:       x86_64_generate_data(t->child->sibling->sibling, output, section); continue;
+                case ARRAY_TYPE_TOKEN: x86_64_generate_data(t, output, section, bss);                          continue;
+                case FUNC_TOKEN:       x86_64_generate_data(t->child->sibling->sibling, output, section, bss); continue;
                 default: break;
             }
         }

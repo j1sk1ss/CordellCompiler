@@ -1,5 +1,31 @@
 #include <generator.h>
 
+int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+    for (ast_node_t* t = node; t; t = t->sibling) {
+        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
+            x86_64_generate_funcdef(t, output, ctx);
+            continue;
+        }
+
+        if (t->token->t_type == FUNC_TOKEN) iprintf(output, "global __%s__\n", t->child->token->value);
+        else if (t->token->t_type == IMPORT_TOKEN) {
+            for (ast_node_t* func = t->child->child; func; func = func->sibling) {
+                iprintf(output, "extern __%s__\n", func->token->value);
+            }
+        }
+    }
+
+    return 1;
+}
+
+int x86_64_generate_return(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+    x86_64_generate_block(node->child, output, ctx);
+    iprintf(output, "mov rsp, rbp\n");
+    iprintf(output, "pop rbp\n");
+    iprintf(output, "ret\n");
+    return 1;
+}
+
 static const int args_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
 
 int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {

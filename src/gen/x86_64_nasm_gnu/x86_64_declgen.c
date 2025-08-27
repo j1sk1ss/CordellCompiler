@@ -47,8 +47,8 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
 }
 
 static _stack_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
-    if (node->token->t_type == ARRAY_TYPE_TOKEN)      return _arrdeclaration(node, output, ctx);
-    else if (node->token->t_type == ARRAY_TYPE_TOKEN) return _strdeclaration(node, output, ctx);
+    if (node->token->t_type == ARRAY_TYPE_TOKEN)    return _arrdeclaration(node, output, ctx);
+    else if (node->token->t_type == STR_TYPE_TOKEN) return _strdeclaration(node, output, ctx);
     return 1;
 }
 
