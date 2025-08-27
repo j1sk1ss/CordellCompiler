@@ -118,14 +118,14 @@ token_t* TKN_tokenize(int fd) {
                     ct == CHAR_SPACE || 
                     ct == CHAR_NEWLINE
                 )                              char_type = LINE_BREAK_TOKEN;
-                else                           char_type = UNKNOWN_CHAR_VALUE;
+                else                           char_type = UNKNOWN_CHAR_TOKEN;
             }
             
             if (
                 curr_ctx.in_token && 
                 (
                     char_type == LINE_BREAK_TOKEN ||
-                    // char_type == UNKNOWN_CHAR_VALUE ||  /* Chars can't be larger then 1 symbol */
+                    // char_type == UNKNOWN_CHAR_TOKEN ||  /* Chars can't be larger then 1 symbol */
                     char_type == UNKNOWN_BRACKET_VALUE ||  /* Same with the brackets */
                     curr_ctx.token_len + 1 > TOKEN_MAX_SIZE ||
                     curr_ctx.ttype != char_type

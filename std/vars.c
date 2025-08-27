@@ -101,6 +101,10 @@ int VRS_isdecl(token_t* token) {
     }
 }
 
+int VRS_isblock(token_t* token) {
+    return !token || (token->t_type == SCOPE_TOKEN) || (token->t_type == START_TOKEN);
+}
+
 int VRS_isoperand(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {

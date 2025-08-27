@@ -22,20 +22,18 @@ int x86_64_generate_exit(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
 /* https://gist.github.com/GabriOliv/a9411fa771a1e5d94105cb05cbaebd21 */
 /* https://math.hws.edu/eck/cs220/f22/registers.html */
 int x86_64_generate_syscall(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
-    static const int args_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
+    static const char* args_regs[] = { "rax", "rdi", "rsi", "rdx", "r10", "r8", "r9" };
 
-    int arg_index = 0;
-    ast_node_t* args = node->child;
+    int arg_index = 1;
+    ast_node_t* syscall = node->child;
+    ast_node_t* args    = syscall->sibling;
     while (args) {
-        x86_64_generate_block(args, output, ctx);
-
-        regs_t reg;
-        get_reg(&reg, BASE_BITNESS, args_regs[arg_index++], 0);
-        iprintf(output, "mov %s%s, rax\n", reg.operation, reg.name);
-        
+        x86_64_generate_elem(args, output, ctx);
+        iprintf(output, "mov %s, rax\n", args_regs[arg_index++]);
         args = args->sibling;
     }
 
+    x86_64_generate_elem(syscall, output, ctx);
     iprintf(output, "%s\n", SYSCALL);
     return 1;
 }

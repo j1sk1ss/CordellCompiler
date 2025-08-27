@@ -150,7 +150,7 @@ int MRKP_variables(token_t* head) {
             case SHORT_TYPE_TOKEN:
             case ARRAY_TYPE_TOKEN: {
                 token_t* next = curr->next;
-                if (next && (next->t_type == UNKNOWN_STRING_TOKEN || next->t_type == UNKNOWN_CHAR_VALUE)) {
+                if (next && (next->t_type == UNKNOWN_STRING_TOKEN || next->t_type == UNKNOWN_CHAR_TOKEN)) {
                     switch (curr->t_type) {
                         case FUNC_TOKEN:       curr_ctx.ttype = CALL_TOKEN;           break;
                         case INT_TYPE_TOKEN:   curr_ctx.ttype = INT_VARIABLE_TOKEN;   break;
@@ -189,7 +189,7 @@ int MRKP_variables(token_t* head) {
     while (curr) {
         if (curr->t_type == OPEN_BLOCK_TOKEN) scope_push(&scope_stack, ++s_id, 0);
         else if (curr->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&scope_stack);
-        if (curr->t_type == UNKNOWN_STRING_TOKEN || curr->t_type == UNKNOWN_CHAR_VALUE) {
+        if (curr->t_type == UNKNOWN_STRING_TOKEN || curr->t_type == UNKNOWN_CHAR_TOKEN) {
             for (int s = scope_stack.top; s >= 0; s--) {
                 int curr_s = scope_stack.data[s].id;
                 for (int i = 0; i < var_count; i++) {

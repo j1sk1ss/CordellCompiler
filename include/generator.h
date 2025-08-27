@@ -37,6 +37,7 @@ Return 0 if something goes wrong.
 int GEN_generate(gen_ctx_t* ctx, FILE* output);
 
 /* x86_64_blockgen.c */
+int x86_64_generate_elem(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
 int x86_64_generate_block(ast_node_t* node, FILE* output, gen_ctx_t* ctx);
 
 /* x86_64_opgen.c */

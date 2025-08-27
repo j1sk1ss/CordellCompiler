@@ -4,7 +4,7 @@ static int _find_muldiv(ast_node_t* root, int* fold) {
     if (!root) return 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
 #pragma region Navigation
-        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(t->token)) {
             _find_muldiv(t, fold);
             continue;
         }

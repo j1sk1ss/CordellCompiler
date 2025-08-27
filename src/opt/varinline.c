@@ -99,7 +99,7 @@ static int _find_decl(ast_node_t* root, ast_node_t* entry, int* change) {
 
     while (curr) {
         ast_node_t* next = curr->sibling;
-        if (!curr->token || curr->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(curr->token)) {
             _find_decl(curr, entry, change);
             prev = curr;
             curr = next;

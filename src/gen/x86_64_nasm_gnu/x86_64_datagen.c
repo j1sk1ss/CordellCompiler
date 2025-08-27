@@ -83,7 +83,7 @@ static int _generate_init(ast_node_t* entry, FILE* output) {
 int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss) {
     if (!node) return 0;
     for (ast_node_t* t = node->child; t; t = t->sibling) {
-        if (!t->token || !t->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(t->token)) {
             x86_64_generate_data(t, output, section, bss);
             continue;
         }

@@ -99,7 +99,7 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
             continue;
         }
 
-        if (t->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(t->token)) {
             scope_push(&ctx->scope.stack, ++ctx->scope.s_id, offset);
             _recalc_offs(t, ctx);
             scope_pop(&ctx->scope.stack);

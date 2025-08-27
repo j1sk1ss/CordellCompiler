@@ -3,7 +3,7 @@
 int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
-        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(t->token)) {
             x86_64_generate_funcdef(t->child, output, ctx);
             continue;
         }

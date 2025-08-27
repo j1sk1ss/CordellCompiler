@@ -35,7 +35,7 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
                 );
             }
             else {
-                x86_64_generate_block(t, output, ctx);
+                x86_64_generate_elem(t, output, ctx);
                 iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, reg.name);
             }
 

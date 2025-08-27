@@ -67,7 +67,7 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
     if (!root) return 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
 #pragma region Navigation
-        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(t->token)) {
             _find_string(t, ctx);
             continue;
         }
@@ -97,7 +97,7 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
 #pragma endregion
         if (t->token->t_type == STRING_VALUE_TOKEN) {
             string_info_t info;
-            if (_get_string((char*)t->token->value, &info, ctx)) sprintf(t->token->value, "%s", info.name);
+            if (_get_string(t->token->value, &info, ctx)) sprintf(t->token->value, "%s", info.name);
             else {
                 _add_string(t->token->value, ctx);
                 _get_string(t->token->value, &info, ctx);
@@ -136,9 +136,9 @@ static int _declare_strings(ast_node_t* root, stropt_ctx_t* ctx) {
 
         AST_add_node(decl_root, value_node);
         
+        decl_root->token->vinfo.ro = 1;
+        name_node->token->vinfo.ro = 1;
         name_node->info.size = VRS_variable_bitness(name_node->token, 1) / 8;
-        name_node->token->vinfo.ro   = 1;
-        name_node->token->vinfo.glob = 1;
 
         ast_node_t* old = root->child;
         root->child = decl_root;

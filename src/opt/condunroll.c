@@ -8,12 +8,7 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
     if (!root) return 0;
     ast_node_t* tprev = NULL;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
-        if (!t->token) {
-            _clean_blocks(t, ctx);
-            continue;
-        }
-        
-        if (t->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(t->token)) {
             _clean_blocks(t, ctx);
             continue;
         }
