@@ -37,7 +37,5 @@ int x86_64_generate_syscall(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     }
 
     iprintf(output, "%s\n", SYSCALL);
-    iprint_line(output);
-
     return 1;
 }

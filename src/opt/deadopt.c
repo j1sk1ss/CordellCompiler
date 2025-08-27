@@ -109,7 +109,7 @@ static code_node_t* _generate_blocks(deadopt_ctx_t* dctx, ast_node_t* curr) {
             case IF_TOKEN: break;
 
             case CALL_TOKEN: {
-                func_code_node_t* fn = _find_func_block(dctx, t->token->value);
+                func_code_node_t* fn = _find_func_block(t->token->value, dctx);
                 if (fn && fn->head) _add_child_to_block(head, fn->head);
                 break;
             }

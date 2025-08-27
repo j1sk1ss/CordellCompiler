@@ -1,14 +1,15 @@
 #include <generator.h>
 
 int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+    if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (!t->token || t->token->t_type == SCOPE_TOKEN) {
-            x86_64_generate_funcdef(t, output, ctx);
+            x86_64_generate_funcdef(t->child, output, ctx);
             continue;
         }
 
         if (t->token->t_type == FUNC_TOKEN) iprintf(output, "global __%s__\n", t->child->token->value);
-        else if (t->token->t_type == IMPORT_TOKEN) {
+        else if (t->token->t_type == IMPORT_SELECT_TOKEN) {
             for (ast_node_t* func = t->child->child; func; func = func->sibling) {
                 iprintf(output, "extern __%s__\n", func->token->value);
             }
@@ -76,9 +77,8 @@ int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     int pop_params = 0;
     int stack_offset = 8;
 
-    ast_node_t* p = body_node->child;
-    while (p->token->t_type != SCOPE_TOKEN) p = p->sibling;
-    for (ast_node_t* t = p->child; t; t = t->sibling) {
+    ast_node_t* t = NULL;
+    for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
         int param_size = t->info.offset;
 
         regs_t reg;
@@ -97,7 +97,7 @@ int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         }
     }
 
-    x86_64_generate_block(body_node, output, ctx);
+    x86_64_generate_block(t, output, ctx);
     iprintf(output, "__end_%s__:\n", name_node->token->value);
     return 1;
 }

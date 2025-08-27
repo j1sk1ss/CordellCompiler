@@ -4,7 +4,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <syntax.h>
-#include <optimization.h>
+#include <strdecl.h>
+#include <deadscope.h>
+#include <offsetopt.h>
 #include <generator.h>
 #include "ast_helper.h"
 
@@ -30,11 +32,14 @@ int main(int argc, char* argv[]) {
     varmem_ctx_t vctx = { .h = NULL, .offset = 0 };
     syntax_ctx_t sctx = { .arrs = &actx, .vars = &vctx };
     STX_create(tkn, &sctx);
-    print_ast(sctx.r, 0);
+    
     OPT_strpack(&sctx);
+    OPT_deadscope(&sctx);
+    OPT_offrecalc(&sctx);
+
+    print_ast(sctx.r, 0);
 
     fprintf(stdout, "Generated code:\n");
-
     gen_ctx_t gctx = { .label = 0, .synt = &sctx };
     GEN_generate(&gctx, stdout);
 

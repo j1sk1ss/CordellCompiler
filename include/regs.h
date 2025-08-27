@@ -68,7 +68,7 @@ static inline char* format_from_stack(int offset) {
 static inline char* format_from_data(char* name, token_type_t type) {
     if (type == UNKNOWN_NUMERIC_TOKEN) return name; 
     else {
-        char data_buff[64] = { 0 };
+        static char data_buff[64] = { 0 };
         if (
             type == ARR_VARIABLE_TOKEN || 
             type == STR_VARIABLE_TOKEN

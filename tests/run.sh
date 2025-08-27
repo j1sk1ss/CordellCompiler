@@ -23,7 +23,7 @@ TEST_SRCS[test_deadscope]="src/prep/*.c src/ast/*.c src/opt/deadscope.c std/*.c"
 TEST_SRCS[test_offsetopt]="src/prep/*.c src/ast/*.c src/opt/offsetopt.c std/*.c"
 
 # ==== Generation testing ====
-TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/opt/*.c src/generator.c std/*.c"
+TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
 
 # ======================================
 

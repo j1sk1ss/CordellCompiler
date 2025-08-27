@@ -17,8 +17,8 @@ static int _strdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
 static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* name_node    = node->child;
     ast_node_t* size_node    = name_node->sibling;
-    ast_node_t* el_size_node = el_size_node->sibling;
-    ast_node_t* elems_node   = elems_node->sibling;
+    ast_node_t* el_size_node = size_node->sibling;
+    ast_node_t* elems_node   = el_size_node->sibling;
 
     array_info_t arr_info = { .el_size = 1 };
     if (ARM_get_info(name_node->token->value, name_node->info.s_id, &arr_info, ctx->synt->arrs)) {
@@ -46,7 +46,7 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     return 1;
 }
 
-static _stack_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+static int _stack_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     if (node->token->t_type == ARRAY_TYPE_TOKEN)    return _arrdeclaration(node, output, ctx);
     else if (node->token->t_type == STR_TYPE_TOKEN) return _strdeclaration(node, output, ctx);
     return 1;
