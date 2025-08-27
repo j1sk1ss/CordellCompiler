@@ -82,14 +82,14 @@ cond_node_token
 ```
 func_token
 ├─ name (str)
-├─ scope (scope)
-│ ├─ arg1
-│ │ └─ type
-│ │ └─ name (str)
-│ └─ ...
 └─ scope (scope)
-  ├─ body1 (exp)
-  └─ ...
+  ├─ arg1
+  │ ├─ type
+  │ └─ name (str)
+  ├─ ...
+  └─ scope (scope)
+    ├─ body1 (exp)
+    └─ ...
 ```
 
 - Return / exit statement (`return`, `exit`)
