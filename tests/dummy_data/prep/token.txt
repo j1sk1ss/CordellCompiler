@@ -1,6 +1,6 @@
-This is sorce file for token generator!
-I'm im i:m "squirrel is climbing" \\ // !!!
-"''" '""' "'"' '"''""''"' 123asd123asd123asd
+: This is sorce file for token generator! :
+I'm im i:m: "squirrel is climbing" \\ // !!!
+"123asd123asd123asd"
 Over there! Over there! Over there! 
 In the beauty of the Lilies Christ was born across the sea
 with the glory in his bossom that transfigures you and me

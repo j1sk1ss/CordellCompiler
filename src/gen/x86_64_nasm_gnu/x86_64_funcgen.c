@@ -53,7 +53,7 @@ int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
 
     iprintf(output, "call __%s__\n", name->token->value);
     if (stack_args > 0) {
-        iprintf(output, "add %s, %d\n", GET_RAW_REG(BASE_BITNESS, RSP), stack_args * (BASE_BITNESS / 8));
+        iprintf(output, "add rsp, %d\n", stack_args * (BASE_BITNESS / 8));
     }
 }
 
@@ -66,12 +66,12 @@ int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     iprintf(output, "__%s__:\n", name_node->token->value);
 
     /* Stack save */
-    iprintf(output, "push %s\n", GET_RAW_REG(BASE_BITNESS, RBP));
-    iprintf(output, "mov %s, %s\n", GET_RAW_REG(BASE_BITNESS, RBP), GET_RAW_REG(BASE_BITNESS, RSP));
+    iprintf(output, "push rbp\n");
+    iprintf(output, "mov rbp, rsp\n");
 
     /* Function local variables size */
     int lvsize = get_stack_size(body_node, ctx);
-    iprintf(output, "sub %s, %d\n", GET_RAW_REG(BASE_BITNESS, RSP), ALIGN(lvsize));
+    iprintf(output, "sub rsp, %d\n", ALIGN(lvsize));
 
     /* Loading input args to stack */
     int pop_params = 0;
@@ -80,20 +80,15 @@ int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* t = NULL;
     for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
         int param_size = t->info.offset;
-
-        regs_t reg;
-        get_reg(&reg, VRS_variable_bitness(t->child->token, 1) / 8, args_regs[pop_params], 0);
-
         if (pop_params++ < 6) {
-            iprintf( /* x86_64 argument from register */
-                output, "mov%s[%s - %d], %s\n", 
-                reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), t->child->info.offset, reg.name
-            );
+            regs_t reg;
+            get_reg(&reg, VRS_variable_bitness(t->child->token, 1) / 8, args_regs[pop_params], 0);
+            iprintf(output, "mov%s[rbp - %d], %s\n", reg.operation, t->child->info.offset, reg.name);
         }
         else { /* argument from stack */
-            iprintf(output, "mov %s, [%s + %d]\n", reg.name, GET_RAW_REG(BASE_BITNESS, RBP), stack_offset);
-            iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), t->child->info.offset, reg.name);
-            stack_offset += param_size;
+            iprintf(output, "mov rax, [rbp + %d]\n", stack_offset);
+            iprintf(output, "mov qword ptr [rbp - %d], rax\n", t->child->info.offset);
+            stack_offset += BASE_BITNESS / 8;
         }
     }
 

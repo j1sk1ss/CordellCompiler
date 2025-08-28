@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
     mm_init();
     
-    int fd = open("tests/test_code/gen_test.txt", O_RDONLY);
+    int fd = open(argv[1], O_RDONLY);
     char data[2048] = { 0 };
     pread(fd, data, 2048, 0);
     printf("Source data: %s\n", data);
@@ -34,7 +34,6 @@ int main(int argc, char* argv[]) {
     STX_create(tkn, &sctx);
     
     OPT_strpack(&sctx);
-    OPT_deadscope(&sctx);
     OPT_offrecalc(&sctx);
 
     print_ast(sctx.r, 0);

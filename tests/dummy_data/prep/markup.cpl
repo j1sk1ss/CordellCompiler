@@ -75,5 +75,6 @@
 
         str_arr = a;
         a = str_arr[0];
-    } exit c;
+        exit c;
+    }
 }

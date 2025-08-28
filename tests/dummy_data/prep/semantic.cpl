@@ -16,5 +16,6 @@
         strptr = c;
 
         arr large_arr[5, char] = {1,2,256,4,5,6,7,8,9,10};
-    } exit 0;
+        exit 0;
+    }
 }
