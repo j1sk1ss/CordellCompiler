@@ -14,5 +14,5 @@
         ptr char b = buff;
 
         exit 0;
-    };
+    }
 }

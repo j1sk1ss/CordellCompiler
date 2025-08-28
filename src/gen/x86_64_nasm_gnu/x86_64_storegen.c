@@ -13,7 +13,7 @@ int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
             iprintf(output, "mov qword ptr %s, rax\n", GET_ASMVAR(node));
         break;
         case INT_VARIABLE_TOKEN:  
-            iprintf(output, "mov word ptr %s, eax\n", GET_ASMVAR(node));
+            iprintf(output, "mov dword ptr %s, eax\n", GET_ASMVAR(node));
         break;
         case SHORT_VARIABLE_TOKEN:
             iprintf(output, "mov word ptr %s, ax\n", GET_ASMVAR(node));
