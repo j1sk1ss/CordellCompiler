@@ -1,4 +1,4 @@
-#include <generator.h>
+#include <x86_64_gnu_nasm.h>
 
 int x86_64_generate_start(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     iprintf(output, "global _start\n");
@@ -6,12 +6,12 @@ int x86_64_generate_start(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     iprintf(output, "push rbp\n");
     iprintf(output, "mov rbp, rsp\n");
     iprintf(output, "sub rsp, %d\n", ALIGN(get_stack_size(node, ctx)));
-    x86_64_generate_block(node->child, output, ctx);
+    ctx->blockgen(node->child, output, ctx);
     return 1;
 }
 
 int x86_64_generate_exit(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
-    x86_64_generate_block(node->child, output, ctx);
+    ctx->elemegen(node->child, output, ctx);
     iprintf(output, "mov rdi, rax\n");
     iprintf(output, "mov rax, 60\n");
     iprintf(output, "%s\n", SYSCALL);
@@ -28,12 +28,12 @@ int x86_64_generate_syscall(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* syscall = node->child;
     ast_node_t* args    = syscall->sibling;
     while (args) {
-        x86_64_generate_elem(args, output, ctx);
+        ctx->elemegen(args, output, ctx);
         iprintf(output, "mov %s, rax\n", args_regs[arg_index++]);
         args = args->sibling;
     }
 
-    x86_64_generate_elem(syscall, output, ctx);
+    ctx->elemegen(syscall, output, ctx);
     iprintf(output, "%s\n", SYSCALL);
     return 1;
 }

@@ -1,4 +1,4 @@
-#include <generator.h>
+#include <x86_64_gnu_nasm.h>
 
 /* Load to pointer destination */
 int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
@@ -26,7 +26,7 @@ stackable:
                 ARM_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
                 
-                x86_64_generate_block(off, output, ctx);
+                ctx->elemegen(off, output, ctx);
                 if (elsize > 1) {
                     iprintf(output, "imul rax, %d\n", elsize);
                 }
@@ -49,8 +49,8 @@ stackable:
 int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     if (!node->token) return 0;
     if (node->token->vinfo.ptr) {
-        iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
         if (node->child) goto indexing;
+        else iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
         return 1;
     }
 

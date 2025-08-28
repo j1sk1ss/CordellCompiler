@@ -1,17 +1,17 @@
-#include <generator.h>
+#include <x86_64_gnu_nasm.h>
 
 int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* op    = node;
     ast_node_t* left  = node->child;
     ast_node_t* right = left->sibling;
 
-    x86_64_generate_elem(left, output, ctx);
+    ctx->elemegen(left, output, ctx);
 
     switch (op->token->t_type) {
         case BITMOVE_LEFT_TOKEN:
         case BITMOVE_RIGHT_TOKEN: {
             iprintf(output, "push rax\n");
-            x86_64_generate_elem(right, output, ctx);
+            ctx->elemegen(right, output, ctx);
             iprintf(output, "pop rbx\n");
             iprintf(output, "mov rcx, rax\n");
             if (node->token->t_type == BITMOVE_LEFT_TOKEN) iprintf(output, "shl rax, cl\n");
@@ -23,7 +23,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         case BITOR_TOKEN:
         case BITXOR_TOKEN: {
             iprintf(output, "push rax\n");
-            x86_64_generate_elem(right, output, ctx);
+            ctx->elemegen(right, output, ctx);
             iprintf(output, "pop rbx\n");
             if (node->token->t_type == BITAND_TOKEN) iprintf(output, "and rax, rbx\n");
             else if (node->token->t_type == BITOR_TOKEN) iprintf(output, "or rax, rbx\n");
@@ -37,7 +37,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
             if (node->token->t_type == AND_TOKEN) iprintf(output, "je L_false_%d\n", lbl_id);
             else iprintf(output, "jne L_true_%d\n", lbl_id);
 
-            x86_64_generate_elem(right, output, ctx);
+            ctx->elemegen(right, output, ctx);
             iprintf(output, "cmp rax, 0\n");
             iprintf(output, "jne L_true_%d\n", lbl_id);
             iprintf(output, "jmp L_false_%d\n", lbl_id);
@@ -53,14 +53,14 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         }
         case PLUS_TOKEN: {
             iprintf(output, "push rax\n");
-            x86_64_generate_elem(right, output, ctx);
+            ctx->elemegen(right, output, ctx);
             iprintf(output, "pop rbx\n");
             iprintf(output, "add rax, rbx\n");
             break;
         }
         case MINUS_TOKEN: {
             iprintf(output, "push rax\n");
-            x86_64_generate_elem(right, output, ctx);
+            ctx->elemegen(right, output, ctx);
             iprintf(output, "pop rbx\n");
             iprintf(output, "sub rbx, rax\n");
             iprintf(output, "mov rax, rbx\n");
@@ -68,14 +68,14 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         }
         case MULTIPLY_TOKEN: {
             iprintf(output, "push rax\n");
-            x86_64_generate_elem(right, output, ctx);
+            ctx->elemegen(right, output, ctx);
             iprintf(output, "pop rbx\n");
             iprintf(output, "imul rax, rbx\n");
             break;
         }
         case DIVIDE_TOKEN: {
             iprintf(output, "push rax\n");
-            x86_64_generate_elem(right, output, ctx);
+            ctx->elemegen(right, output, ctx);
             iprintf(output, "mov rbx, rax\n");
             iprintf(output, "pop rax\n");
             iprintf(output, "cdq\n");
@@ -84,7 +84,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         }
         case MODULO_TOKEN: {
             iprintf(output, "push rax\n");
-            x86_64_generate_elem(right, output, ctx);
+            ctx->elemegen(right, output, ctx);
             iprintf(output, "mov rbx, rax\n");
             iprintf(output, "pop rax\n");
             iprintf(output, "cdq\n");
@@ -97,7 +97,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         case COMPARE_TOKEN:
         case NCOMPARE_TOKEN: {
             iprintf(output, "push rax\n");
-            x86_64_generate_elem(right, output, ctx);
+            ctx->elemegen(right, output, ctx);
             iprintf(output, "pop rbx\n");
             iprintf(output, "cmp rbx, rax\n");
             if (node->token->t_type == LARGER_TOKEN) iprintf(output, "setg al\n");

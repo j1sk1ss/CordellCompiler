@@ -1,10 +1,10 @@
-#include <generator.h>
+#include <x86_64_gnu_nasm.h>
 
 int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            x86_64_generate_funcdef(t->child, output, ctx);
+            ctx->funcdef(t->child, output, ctx);
             continue;
         }
 
@@ -20,7 +20,7 @@ int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
 }
 
 int x86_64_generate_return(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
-    x86_64_generate_block(node->child, output, ctx);
+    ctx->elemegen(node->child, output, ctx);
     iprintf(output, "mov rsp, rbp\n");
     iprintf(output, "pop rbp\n");
     iprintf(output, "ret\n");
@@ -41,13 +41,13 @@ int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
 
     int pushed_args = 0;
     for (pushed_args = 0; pushed_args < MIN(arg_count, 6); pushed_args++) {
-        x86_64_generate_block(args[pushed_args], output, ctx);
+        ctx->elemegen(args[pushed_args], output, ctx);
         iprintf(output, "mov %s, %s \n", GET_RAW_REG(BASE_BITNESS, args_regs[pushed_args]), GET_RAW_REG(BASE_BITNESS, RAX));
     }
 
     int stack_args = arg_count - pushed_args - 1;
     while (stack_args >= 0) {
-        x86_64_generate_block(args[stack_args--], output, ctx);
+        ctx->elemegen(args[stack_args--], output, ctx);
         iprintf(output, "push %s\n", GET_RAW_REG(BASE_BITNESS, RAX));
     }
 
@@ -97,7 +97,7 @@ int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         }
     }
 
-    x86_64_generate_block(t, output, ctx);
+    ctx->blockgen(t, output, ctx);
     iprintf(output, "__end_%s__:\n", name_node->token->value);
     return 1;
 }

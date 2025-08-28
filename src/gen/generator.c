@@ -15,14 +15,14 @@ int GEN_destroy_ctx(gen_ctx_t* ctx) {
 
 int GEN_generate(gen_ctx_t* ctx, FILE* output) {
     iprintf(output, "section .data\n");
-    x86_64_generate_data(ctx->synt->r, output, DATA_SECTION, NO_BSS);
+    ctx->datagen(ctx->synt->r, output, DATA_SECTION, NO_BSS, ctx);
     iprintf(output, "section .rodata\n");
-    x86_64_generate_data(ctx->synt->r, output, RODATA_SECTION, NO_BSS);
+    ctx->datagen(ctx->synt->r, output, RODATA_SECTION, NO_BSS, ctx);
     iprintf(output, "section .bss\n");
-    x86_64_generate_data(ctx->synt->r, output, DATA_SECTION, BSS);
+    ctx->datagen(ctx->synt->r, output, DATA_SECTION, BSS, ctx);
 
     iprintf(output, "section .text\n");
-    x86_64_generate_funcdef(ctx->synt->r, output, ctx);
-    x86_64_generate_block(ctx->synt->r, output, ctx);
+    ctx->funcdef(ctx->synt->r, output, ctx);
+    ctx->blockgen(ctx->synt->r, output, ctx);
     return 1;
 }

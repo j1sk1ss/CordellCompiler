@@ -1,4 +1,4 @@
-#include <generator.h>
+#include <x86_64_gnu_nasm.h>
 
 int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
     int size = 0;
@@ -80,11 +80,11 @@ static int _generate_init(ast_node_t* entry, FILE* output) {
     return 1;
 }
 
-int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss) {
+int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, gen_ctx_t* ctx) {
     if (!node) return 0;
     for (ast_node_t* t = node->child; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            x86_64_generate_data(t, output, section, bss);
+            ctx->datagen(t, output, section, bss, ctx);
             continue;
         }
 
@@ -107,8 +107,8 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss) {
                 case SWITCH_TOKEN:
                 case SYSCALL_TOKEN:
                 case DEFAULT_TOKEN:
-                case ARRAY_TYPE_TOKEN: x86_64_generate_data(t, output, section, bss);                          continue;
-                case FUNC_TOKEN:       x86_64_generate_data(t->child->sibling->sibling, output, section, bss); continue;
+                case ARRAY_TYPE_TOKEN: ctx->datagen(t, output, section, bss, ctx);                          continue;
+                case FUNC_TOKEN:       ctx->datagen(t->child->sibling->sibling, output, section, bss, ctx); continue;
                 default: break;
             }
         }

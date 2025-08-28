@@ -1,4 +1,4 @@
-#include <generator.h>
+#include <x86_64_gnu_nasm.h>
 
 int x86_64_generate_if(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     int current_label   = ctx->label++;
@@ -6,17 +6,17 @@ int x86_64_generate_if(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* lbranch = cond->sibling;
     ast_node_t* rbranch = lbranch->sibling;
 
-    x86_64_generate_block(cond, output, ctx); /* Condition gen */
+    ctx->elemegen(cond, output, ctx); /* Condition gen */
     iprintf(output, "cmp %s, 0\n", GET_RAW_REG(BASE_BITNESS, RAX));
     if (rbranch) iprintf(output, "je __else_%d__\n", current_label);
     else iprintf(output, "je __end_if_%d__\n", current_label);
 
-    x86_64_generate_block(lbranch, output, ctx); /* Main block gen */
+    ctx->blockgen(lbranch, output, ctx); /* Main block gen */
     iprintf(output, "jmp __end_if_%d__\n", current_label);
 
     if (rbranch) { /* Else block gen */
         iprintf(output, "__else_%d__:\n", current_label);
-        x86_64_generate_block(rbranch, output, ctx);
+        ctx->blockgen(rbranch, output, ctx);
     }
 
     iprintf(output, "__end_if_%d__:\n", current_label);
@@ -30,16 +30,16 @@ int x86_64_generate_while(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* rbranch = lbranch->sibling;
 
     iprintf(output, "__while_%d__:\n", current_label);
-    x86_64_generate_block(cond, output, ctx);
+    ctx->elemegen(cond, output, ctx);
     iprintf(output, "cmp rax, 0\n");
     iprintf(output, "je __end_while_%d__\n", current_label);
 
-    x86_64_generate_block(lbranch, output, ctx); /* Main body gen */
+    ctx->blockgen(lbranch, output, ctx); /* Main body gen */
     iprintf(output, "jmp __while_%d__\n", current_label);
 
     iprintf(output, "__end_while_%d__:\n", current_label);
     if (rbranch) {
-        x86_64_generate_block(rbranch, output, ctx);
+        ctx->blockgen(rbranch, output, ctx);
     }
 
     return 1;

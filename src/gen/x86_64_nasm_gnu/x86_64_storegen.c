@@ -1,10 +1,10 @@
-#include <generator.h>
+#include <x86_64_gnu_nasm.h>
 
 int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
-        iprintf(output, "mov qword ptr %s, rax\n", GET_ASMVAR(node));
         if (node->child) goto indexing;
+        else iprintf(output, "mov qword ptr %s, rax\n", GET_ASMVAR(node));
         return 1;
     }
 
@@ -32,7 +32,7 @@ indexing:
                 ARM_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
 
-                x86_64_generate_block(off, output, ctx);
+                ctx->elemegen(off, output, ctx);
                 if (elsize > 1) {
                     iprintf(output, "imul rax, %d\n", elsize);
                 }

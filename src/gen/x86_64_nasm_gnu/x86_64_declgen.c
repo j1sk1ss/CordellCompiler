@@ -1,4 +1,4 @@
-#include <generator.h>
+#include <x86_64_gnu_nasm.h>
 
 static int _strdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* name_node = node->child;
@@ -35,7 +35,7 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
                 );
             }
             else {
-                x86_64_generate_elem(t, output, ctx);
+                ctx->elemegen(t, output, ctx);
                 iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, reg.name);
             }
 
@@ -67,7 +67,7 @@ int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) 
     if (
         val_node->token->t_type != UNKNOWN_NUMERIC_TOKEN && 
         val_node->token->t_type != CHAR_VALUE_TOKEN
-    ) x86_64_generate_block(val_node, output, ctx);
+    ) ctx->elemegen(val_node, output, ctx);
     else {
         is_const = 1;
         switch (VRS_variable_bitness(name_node->token, 1)) {
