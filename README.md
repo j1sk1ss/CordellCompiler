@@ -316,6 +316,7 @@ Semantic module takes care under size, operation and commands correctness. In ot
 Detailed description of every noted algorithms placed [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/README.md)
 
 # Micro-code generation
+Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/gen/x86_64_nasm_gnu/README.md)
 
 # .CPL Documentation
 ## Program Structure
