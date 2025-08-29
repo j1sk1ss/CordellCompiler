@@ -3,14 +3,21 @@
 
 #include <stdlib.h>
 
-#include "optimization.h"
-#include "generator.h"
-#include "semantic.h"
+#include "logg.h"
+#include "token.h"
 #include "syntax.h"
 #include "arrmem.h"
 #include "varmem.h"
-#include "token.h"
-#include "logg.h"
+#include "semantic.h"
+#include "generator.h"
+#include "constopt.h"
+#include "condunroll.h"
+#include "deadfunc.h"
+#include "deadscope.h"
+#include "deadopt.h"
+#include "offsetopt.h"
+#include "strdecl.h"
+#include "varinline.h"
 
 #define MAX_FILES               100
 #define DEFAULT_ASM_COMPILER    "nasm"
@@ -38,8 +45,8 @@ typedef struct {
 } params_t;
 
 
-int builder_add_file(char* input);
-int builder_compile();
+int BLD_add_target(char* input);
+int BLD_build();
 int set_params(params_t* params);
 
 #endif

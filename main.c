@@ -59,12 +59,12 @@ int main(int argc, char* argv[]) {
             else print_warn("Wrong usage of --la command. Usage: --la <linker arch (default - elf_x86_64)>.");
         }
         else {
-            builder_add_file(argv[i]);
+            BLD_add_target(argv[i]);
         }
     }
 
     set_params(&p);
-    int build_res = builder_compile();
+    int build_res = BLD_build();
     if (!build_res) {
         print_error("Error via compilation! Code: %i", build_res);
         return EXIT_FAILURE;
