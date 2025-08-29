@@ -63,6 +63,7 @@ TEST_CODES[test_gen]="
     tests/dummy_data/gen/cond.cpl
     tests/dummy_data/gen/oper.cpl
     tests/dummy_data/gen/stat.cpl
+    tests/dummy_data/gen/print.cpl
 "
 
 # ======================================
@@ -112,7 +113,6 @@ for i in "${!test_names[@]}"; do
         exit 1
     fi
 
-    # разбиваем строку в массив
     codes=(${TEST_CODES[$test_name]})
     if [[ ${#codes[@]} -eq 0 ]]; then
         echo "No code files for $test_name, append it to TEST_CODES"
@@ -127,7 +127,7 @@ for i in "${!test_names[@]}"; do
     code_file="${codes[$CODE_IDX]}"
 
     echo "== Compilation: $test_file =="
-    gcc-14 $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
+    gcc $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
         -DWARNING_LOGS -DERROR_LOGS -g -O0 -o "tests/$test_name"
 
     if [[ -n "$DEBUGGER" ]]; then

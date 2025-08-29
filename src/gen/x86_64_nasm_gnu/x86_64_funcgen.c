@@ -80,16 +80,18 @@ int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* t = NULL;
     for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
         int param_size = t->info.offset;
-        if (pop_params++ < 6) {
+        if (pop_params < 6) {
             regs_t reg;
             get_reg(&reg, VRS_variable_bitness(t->child->token, 1) / 8, args_regs[pop_params], 0);
             iprintf(output, "mov%s[rbp - %d], %s\n", reg.operation, t->child->info.offset, reg.name);
         }
         else { /* argument from stack */
             iprintf(output, "mov rax, [rbp + %d]\n", stack_offset);
-            iprintf(output, "mov qword ptr [rbp - %d], rax\n", t->child->info.offset);
+            iprintf(output, "mov qword [rbp - %d], rax\n", t->child->info.offset);
             stack_offset += BASE_BITNESS / 8;
         }
+
+        pop_params++;
     }
 
     ctx->blockgen(t, output, ctx);

@@ -31,7 +31,8 @@ stackable:
                     iprintf(output, "imul rax, %d\n", elsize);
                 }
                 
-                iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
+                if (!node->token->vinfo.ptr) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
+                else iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
                 iprintf(output, "add rax, rbx\n");
             }
             else { /* Loading array address to rax */
@@ -87,7 +88,8 @@ indexing:
                     iprintf(output, "imul rax, %d\n", elsize);
                 }
                 
-                iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
+                if (!node->token->vinfo.ptr) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
+                else iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
                 iprintf(output, "add rax, rbx\n");
                 iprintf(output, "mov rax, [rax]\n");
             }

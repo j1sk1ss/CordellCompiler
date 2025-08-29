@@ -1,11 +1,7 @@
 #include <x86_64_gnu_nasm.h>
 
-int x86_64_generate_elem(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
-    if (!node) return 0;
-    if (VRS_isblock(node->token)) {
-        return ctx->elemegen(node->child, output, ctx);
-    }
-
+static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+    if (!node->token) return 0;
     if (VRS_isdecl(node->token)) ctx->decl(node, output, ctx);
     if (
         VRS_isoperand(node->token) && 
@@ -36,14 +32,22 @@ int x86_64_generate_elem(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     return 1;
 }
 
+int x86_64_generate_elem(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+    if (!node) return 0;
+    if (VRS_isblock(node->token)) {
+        return ctx->elemegen(node->child, output, ctx);
+    }
+
+    return _navigation_handler(node, output, ctx);
+}
+
 int x86_64_generate_block(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     for (ast_node_t* t = node; t; t = t->sibling) {
-        if (VRS_isblock(t->token)) {
+        if (VRS_isblock(t->token) && (!t->token || t->token->t_type != START_TOKEN)) {
             ctx->blockgen(t->child, output, ctx);
-            continue;
         }
 
-        ctx->elemegen(t, output, ctx);
+        _navigation_handler(t, output, ctx);
     }
 
     return 1;
