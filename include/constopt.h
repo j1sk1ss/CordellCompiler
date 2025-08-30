@@ -6,7 +6,7 @@
 #include "stack.h"
 #include "token.h"
 #include "syntax.h"
-#include "varmem.h"
+#include "vartb.h"
 
 int OPT_constfold(syntax_ctx_t* ctx);
 

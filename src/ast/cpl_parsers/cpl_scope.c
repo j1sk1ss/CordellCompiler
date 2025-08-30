@@ -1,0 +1,21 @@
+#include <cpl_parser.h>
+
+ast_node_t* cpl_parse_scope(token_t** curr, syntax_ctx_t* ctx) {
+    ast_node_t* node = NULL;
+    if ((*curr)->t_type == OPEN_BLOCK_TOKEN) {
+        forward_token(curr, 1);
+        scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, ctx->vars->offset);
+        node = ctx->block(curr, ctx, CLOSE_BLOCK_TOKEN);
+        if (node) {
+            node->token = TKN_create_token(SCOPE_TOKEN, NULL, 0, 0);
+            node->info.s_id = scope_id_top(&ctx->scopes.stack);
+            forward_token(curr, 1);
+        }
+    }
+
+    scope_elem_t el;
+    scope_pop_top(&ctx->scopes.stack, &el);
+    ctx->vars->offset = el.offset;
+
+    return node;
+}

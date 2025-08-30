@@ -15,14 +15,14 @@ TEST_CODES[test_tok]="tests/dummy_data/prep/token.txt"
 TEST_SRCS[test_mrk]="src/prep/token.c src/prep/markup.c std/*.c"
 TEST_CODES[test_mrk]="tests/dummy_data/prep/markup.cpl"
 
-TEST_SRCS[test_sem]="src/prep/*.c src/ast/*.c std/*.c"
+TEST_SRCS[test_sem]="src/prep/*.c src/ast/*.c src/ast/*/*.c std/*.c"
 TEST_CODES[test_sem]="
     tests/dummy_data/sem/arrs.cpl
     tests/dummy_data/sem/vars.cpl
     tests/dummy_data/sem/func.cpl
 "
 
-TEST_SRCS[test_ast]="src/prep/*.c src/ast/*.c std/*.c"
+TEST_SRCS[test_ast]="src/prep/*.c src/ast/*.c src/ast/*/*.c std/*.c"
 TEST_CODES[test_ast]="
     tests/dummy_data/ast/vars.cpl
     tests/dummy_data/ast/arrs.cpl
@@ -33,29 +33,29 @@ TEST_CODES[test_ast]="
 "
 
 # ==== Optimization testing ====
-TEST_SRCS[test_varinline]="src/prep/*.c src/ast/*.c src/opt/varinline.c std/*.c"
+TEST_SRCS[test_varinline]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/varinline.c std/*.c"
 TEST_CODES[test_varinline]="tests/dummy_data/opt/varinline.cpl"
 
-TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/opt/varinline.c src/opt/constopt.c std/*.c"
+TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/varinline.c src/opt/constopt.c std/*.c"
 TEST_CODES[test_constopt]="tests/dummy_data/opt/constopt.cpl"
 
-TEST_SRCS[test_strdecl]="src/prep/*.c src/ast/*.c src/opt/strdecl.c std/*.c"
+TEST_SRCS[test_strdecl]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/strdecl.c std/*.c"
 TEST_CODES[test_strdecl]="tests/dummy_data/opt/strdecl.cpl"
 
-TEST_SRCS[test_deadfunc]="src/prep/*.c src/ast/*.c src/opt/deadfunc.c std/*.c"
+TEST_SRCS[test_deadfunc]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/deadfunc.c std/*.c"
 TEST_CODES[test_deadfunc]="tests/dummy_data/opt/deadfunc.cpl"
 
-TEST_SRCS[test_condunroll]="src/prep/*.c src/ast/*.c src/opt/condunroll.c std/*.c"
+TEST_SRCS[test_condunroll]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/condunroll.c std/*.c"
 TEST_CODES[test_condunroll]="tests/dummy_data/opt/condunroll.cpl"
 
-TEST_SRCS[test_deadscope]="src/prep/*.c src/ast/*.c src/opt/deadscope.c std/*.c"
+TEST_SRCS[test_deadscope]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/deadscope.c std/*.c"
 TEST_CODES[test_deadscope]="tests/dummy_data/opt/deadscope.cpl"
 
-TEST_SRCS[test_offsetopt]="src/prep/*.c src/ast/*.c src/opt/offsetopt.c std/*.c"
+TEST_SRCS[test_offsetopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/offsetopt.c std/*.c"
 TEST_CODES[test_offsetopt]="tests/dummy_data/opt/offsetopt.cpl"
 
 # ==== Generation testing ====
-TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
+TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
 TEST_CODES[test_gen]="
     tests/dummy_data/gen/vars.cpl
     tests/dummy_data/gen/arrs.cpl

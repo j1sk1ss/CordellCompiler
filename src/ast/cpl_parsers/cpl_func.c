@@ -1,0 +1,100 @@
+#include <cpl_parser.h>
+
+ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx) {
+    ast_node_t* node = AST_create_node(*curr);
+    if (!node) return NULL;
+    
+    forward_token(curr, 1);
+    ast_node_t* exp_node = ctx->expr(curr, ctx);
+    if (!exp_node) {
+        AST_unload(node);
+        return NULL;
+    }
+
+    AST_add_node(node, exp_node);
+    return node;
+}
+
+ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx) {
+    ast_node_t* node = AST_create_node(*curr);
+    if (!node) return NULL;
+
+    forward_token(curr, 1);
+    if (*curr && (*curr)->t_type == OPEN_BRACKET_TOKEN) {
+        forward_token(curr, 1);
+        while (*curr && (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
+            if ((*curr)->t_type == COMMA_TOKEN) { /* Skip comma */
+                forward_token(curr, 1);
+                continue;
+            }
+
+            ast_node_t* arg = ctx->expr(curr, ctx);
+            if (arg) AST_add_node(node, arg); /* Parse expressions between commas. Example a + b, c + y, ... */
+        }
+    }
+
+    return node;
+}
+
+ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx) {
+    ast_node_t* node = AST_create_node(*curr);
+    if (!node) return NULL;
+    forward_token(curr, 1);
+    
+    ast_node_t* name_node = AST_create_node(*curr);
+    if (!name_node) {
+        AST_unload(node);
+        return NULL;
+    }
+
+    AST_add_node(node, name_node);
+    forward_token(curr, 1);
+
+    ast_node_t* args_node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, 0, 0));
+    if (!args_node) {
+        AST_unload(node);
+        return NULL;
+    }
+
+    /* Manual stack push instead parser */
+    scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, ctx->vars->offset); /* Function uniqe scope ID before arguments */
+    ctx->vars->offset = 0;
+    args_node->info.s_id = ctx->scopes.s_id;
+
+    forward_token(curr, 1);
+    while (!*curr || (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
+        if ((*curr)->t_type == COMMA_TOKEN) {
+            forward_token(curr, 1);
+            continue;
+        }
+
+        if (!VRS_isdecl((*curr))) forward_token(curr, 1);
+        else {
+            ast_node_t* arg = ctx->vardecl(curr, ctx);
+            if (!arg) {
+                AST_unload(node);
+                AST_unload(args_node);
+                return NULL;
+            }
+
+            AST_add_node(args_node, arg);
+        }
+    }
+
+    forward_token(curr, 1);
+
+    ast_node_t* body_node = ctx->scope(curr, ctx);
+    if (!body_node) {
+        AST_unload(node);
+        return NULL;
+    }
+
+    AST_add_node(args_node, body_node);
+    AST_add_node(node, args_node);
+
+    scope_elem_t el;
+    scope_pop_top(&ctx->scopes.stack, &el); /* Restore scope and offset */
+    ctx->vars->offset = el.offset;
+
+    return node;
+}

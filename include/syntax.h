@@ -2,26 +2,8 @@
 #define SYNTAX_H_
 
 #include "ast.h"
-#include "str.h"
-#include "regs.h"
-#include "dict.h"
-#include "vars.h"
-#include "stack.h"
 #include "token.h"
-#include "varmem.h"
-#include "arrmem.h"
-
-typedef struct {
-    int           s_id;
-    scope_stack_t stack;
-} scope_info_t;
-
-typedef struct {
-    ast_node_t*   r;
-    varmem_ctx_t* vars;
-    arrmem_ctx_t* arrs;
-    scope_info_t  scope;
-} syntax_ctx_t;
+#include "synctx.h"
 
 /*
 Create syntax context in heap.
@@ -34,27 +16,6 @@ Unload syntax context from heap.
 Return 1 if unload was success.
 */
 int STX_destroy_ctx(syntax_ctx_t* ctx);
-
-/*
-Preparing tokens list for parsing tree.
-We mark every token by command / symbol ar value type.
-Params:
-- head - Tokens list head.
-
-Return -1 if somehing goes wrong.
-Return 1 if markup success.
-*/
-int MRKP_mnemonics(token_t* head);
-
-/*
-Iterate throught tokens and mark variables. 
-Params:
-- head - Tokens list head.
-
-Return -1 if somehing goes wrong.
-Return 1 if markup success.
-*/
-int MRKP_variables(token_t* head);
 
 /*
 Generate AST from tokens list.

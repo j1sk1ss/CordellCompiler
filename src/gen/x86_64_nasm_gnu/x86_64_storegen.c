@@ -29,7 +29,7 @@ indexing:
                 iprintf(output, "mov rdx, rax\n");
 
                 array_info_t arr_info = { .el_size = 1 };
-                ARM_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
+                ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
 
                 ctx->elemegen(off, output, ctx);

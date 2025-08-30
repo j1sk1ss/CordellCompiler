@@ -1,5 +1,5 @@
 
-#include <syntax.h>
+#include <markup.h>
 
 typedef struct {
     char*        value;

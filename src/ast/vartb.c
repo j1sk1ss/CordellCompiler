@@ -1,19 +1,19 @@
-#include <varmem.h>
+#include <vartb.h>
 
-varmem_ctx_t* VRM_create_ctx() {
+varmem_ctx_t* VRT_create_ctx() {
     varmem_ctx_t* ctx = (varmem_ctx_t*)mm_malloc(sizeof(varmem_ctx_t));
     if (!ctx) return NULL;
     str_memset(ctx, 0, sizeof(varmem_ctx_t));
     return ctx;
 }
 
-int VRM_destroy_ctx(varmem_ctx_t* ctx) {
+int VRT_destroy_ctx(varmem_ctx_t* ctx) {
     if (!ctx) return 0;
     mm_free(ctx);
     return 1;
 }
 
-int VRM_get_info(const char* varname, short scope, variable_info_t* info, varmem_ctx_t* ctx) {
+int VRT_get_info(const char* varname, short scope, variable_info_t* info, varmem_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
         if (((scope < 0) || scope == h->scope) && !str_strcmp(varname, h->name)) {
@@ -27,7 +27,7 @@ int VRM_get_info(const char* varname, short scope, variable_info_t* info, varmem
     return 0;
 }
 
-int VRM_update_value(const char* varname, short scope, const char* value, varmem_ctx_t* ctx) {
+int VRT_update_value(const char* varname, short scope, const char* value, varmem_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
         if (((scope < 0) || scope == h->scope) && !str_strcmp(varname, h->name)) {
@@ -60,7 +60,7 @@ static variable_info_t* _create_variable_info(
     return var;
 }
 
-int VRM_add_info(
+int VRT_add_info(
     const char* name, int size, char ro, char glob, short scope, varmem_ctx_t* ctx
 ) {
     variable_info_t* nnd = _create_variable_info(name, size, ro, glob, scope, ctx);
@@ -79,7 +79,7 @@ int VRM_add_info(
     return nnd->offset;
 }
 
-int VRM_unload(varmem_ctx_t* ctx) {
+int VRT_unload(varmem_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
         variable_info_t* n = h->next;

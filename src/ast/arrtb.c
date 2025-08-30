@@ -1,19 +1,19 @@
-#include <arrmem.h>
+#include <arrtb.h>
 
-arrmem_ctx_t* ARM_create_ctx() {
+arrmem_ctx_t* ART_create_ctx() {
     arrmem_ctx_t* ctx = (arrmem_ctx_t*)mm_malloc(sizeof(arrmem_ctx_t));
     if (!ctx) return NULL;
     str_memset(ctx, 0, sizeof(arrmem_ctx_t));
     return ctx;
 }
 
-int ARM_destroy_ctx(arrmem_ctx_t* ctx) {
+int ART_destroy_ctx(arrmem_ctx_t* ctx) {
     if (!ctx) return 0;
     mm_free(ctx);
     return 1;
 }
 
-int ARM_get_info(const char* name, short scope, array_info_t* info, arrmem_ctx_t* ctx) {
+int ART_get_info(const char* name, short scope, array_info_t* info, arrmem_ctx_t* ctx) {
     array_info_t* h = ctx->h;
     while (h) {
         if (!str_strcmp(h->name, (char*)name) && ((scope < 0) || scope == h->scope)) {
@@ -41,7 +41,7 @@ static array_info_t* _create_info_array_entry(const char* name, short scope, int
     return entry;
 }
 
-int ARM_add_info(const char* name, short scope, int el_size, int size, arrmem_ctx_t* ctx) {
+int ART_add_info(const char* name, short scope, int el_size, int size, arrmem_ctx_t* ctx) {
     array_info_t* nnd = _create_info_array_entry(name, scope, el_size, size);
     if (!nnd) return 0;
 
@@ -59,7 +59,7 @@ int ARM_add_info(const char* name, short scope, int el_size, int size, arrmem_ct
     return 1;
 }
 
-int ARM_unload(arrmem_ctx_t* ctx) {
+int ART_unload(arrmem_ctx_t* ctx) {
     array_info_t* h = ctx->h;
     while (h) {
         array_info_t* n = h->next;

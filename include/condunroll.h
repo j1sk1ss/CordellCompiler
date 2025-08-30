@@ -6,7 +6,7 @@
 #include "stack.h"
 #include "token.h"
 #include "syntax.h"
-#include "varmem.h"
+#include "vartb.h"
 
 /*
 Unroll [IF], [WHILE] and [SWITCH] statements. 

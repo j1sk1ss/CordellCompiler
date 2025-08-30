@@ -1,4 +1,6 @@
 # Syntax trees
+This directory contains parsers for `CPL` language. CordellCompiler itself support different parsers for different languages. Parser should use default `API` and should be integrated into source code.
+
 ## Terminology
 - exp - Expression presented as another `AST` node.
 - val - Single value (Numeric, string or character). `AST` nodes not permitted.

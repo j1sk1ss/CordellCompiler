@@ -50,8 +50,8 @@ static int _generate_raw_ast(object_t* obj) {
         return -3;
     }
 
-    obj->syntax->arrs = ARM_create_ctx();
-    obj->syntax->vars = VRM_create_ctx();
+    obj->syntax->arrs = ART_create_ctx();
+    obj->syntax->vars = VRT_create_ctx();
     STX_create(tokens, obj->syntax);
     if (!SMT_check(obj->syntax->r)) {
         AST_unload(obj->syntax->r);
@@ -114,10 +114,10 @@ static int _compile_object(object_t* obj) {
 
     AST_unload(obj->syntax->r);
     TKN_unload(obj->toks);
-    ARM_unload(obj->syntax->arrs);
-    ARM_destroy_ctx(obj->syntax->arrs);
-    VRM_unload(obj->syntax->vars);
-    VRM_destroy_ctx(obj->syntax->vars);
+    ART_unload(obj->syntax->arrs);
+    ART_destroy_ctx(obj->syntax->arrs);
+    VRT_unload(obj->syntax->vars);
+    VRT_destroy_ctx(obj->syntax->vars);
     GEN_destroy_ctx(gctx);
 
     print_log("Optimization of [%s] complete", obj->path);

@@ -16,10 +16,10 @@ typedef struct {
     array_info_t* h;
 } arrmem_ctx_t;
 
-arrmem_ctx_t* ARM_create_ctx();
-int ARM_destroy_ctx(arrmem_ctx_t* ctx);
-int ARM_add_info(const char* name, short scope, int el_size, int size, arrmem_ctx_t* ctx);
-int ARM_get_info(const char* name, short scope, array_info_t* info, arrmem_ctx_t* ctx);
-int ARM_unload(arrmem_ctx_t* ctx);
+arrmem_ctx_t* ART_create_ctx();
+int ART_destroy_ctx(arrmem_ctx_t* ctx);
+int ART_add_info(const char* name, short scope, int el_size, int size, arrmem_ctx_t* ctx);
+int ART_get_info(const char* name, short scope, array_info_t* info, arrmem_ctx_t* ctx);
+int ART_unload(arrmem_ctx_t* ctx);
 
 #endif

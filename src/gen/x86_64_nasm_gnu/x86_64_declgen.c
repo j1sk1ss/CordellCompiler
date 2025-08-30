@@ -21,7 +21,7 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* elems_node   = el_size_node->sibling;
 
     array_info_t arr_info = { .el_size = 1 };
-    if (ARM_get_info(name_node->token->value, name_node->info.s_id, &arr_info, ctx->synt->arrs)) {
+    if (ART_get_info(name_node->token->value, name_node->info.s_id, &arr_info, ctx->synt->arrs)) {
         regs_t reg;
         get_reg(&reg, arr_info.el_size, RAX, 0);
 

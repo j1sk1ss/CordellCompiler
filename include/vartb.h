@@ -24,32 +24,32 @@ typedef struct {
 /*
 Create variable table context.
 */
-varmem_ctx_t* VRM_create_ctx();
+varmem_ctx_t* VRT_create_ctx();
 
 /*
 Destroy variable table.
 */
-int VRM_destroy_ctx(varmem_ctx_t* ctx);
+int VRT_destroy_ctx(varmem_ctx_t* ctx);
 
 /*
 Get variable info from context by varname and function scope.
 */
-int VRM_get_info(const char* vname, short scope, variable_info_t* info, varmem_ctx_t* ctx);
+int VRT_get_info(const char* vname, short scope, variable_info_t* info, varmem_ctx_t* ctx);
 
 /*
 Update value of variable by name.
 */
-int VRM_update_value(const char* varname, short scope, const char* value, varmem_ctx_t* ctx);
+int VRT_update_value(const char* varname, short scope, const char* value, varmem_ctx_t* ctx);
 
 /*
 Add variable to context. 
 Note: Will use ALIGN to variable size for offset calculation.
 */
-int VRM_add_info(const char* name, int size, char ro, char glob, short scope, varmem_ctx_t* ctx);
+int VRT_add_info(const char* name, int size, char ro, char glob, short scope, varmem_ctx_t* ctx);
 
 /*
 Unload context.
 */
-int VRM_unload(varmem_ctx_t* ctx);
+int VRT_unload(varmem_ctx_t* ctx);
 
 #endif

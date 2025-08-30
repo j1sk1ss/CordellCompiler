@@ -34,7 +34,7 @@ static char_type_t _get_char_type(unsigned char ch) {
 
 static int _add_token(
     token_t** h, token_t** t, 
-    token_type_t type, const unsigned char* buffer, size_t len, int line
+    token_type_t type, const char* buffer, size_t len, int line
 ) {
     token_t* nt = TKN_create_token(type, buffer, len, line);
     if (!nt) return 0;
