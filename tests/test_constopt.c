@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <syntax.h>
 #include <varinline.h>
+#include <cpl_parser.h>
 #include <constopt.h>
 #include "ast_helper.h"
 
@@ -28,7 +29,22 @@ int main(int argc, char* argv[]) {
 
     arrmem_ctx_t actx = { .h = NULL };
     varmem_ctx_t vctx = { .h = NULL, .offset = 0 };
-    syntax_ctx_t sctx = { .arrs = &actx, .vars = &vctx };
+    syntax_ctx_t sctx = { 
+        .arrs = &actx, .vars = &vctx,
+        .block      = cpl_parse_block,
+        .switchstmt = cpl_parse_switch,
+        .condop     = cpl_parse_condop,
+        .arraydecl  = cpl_parse_array_declaration,
+        .vardecl    = cpl_parse_variable_declaration,
+        .rexit      = cpl_parse_rexit,
+        .funccall   = cpl_parse_funccall,
+        .function   = cpl_parse_function,
+        .import     = cpl_parse_import,
+        .expr       = cpl_parse_expression,
+        .scope      = cpl_parse_scope,
+        .start      = cpl_parse_start,
+        .syscall    = cpl_parse_syscall
+    };
 
     STX_create(tkn, &sctx);
     

@@ -59,8 +59,8 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
     }
     
     ART_add_info(name_node->token->value, scope_id_top(&ctx->scopes.stack), el_size, array_size, ctx->arrs); // TODO: ro glob 
-    var_update(node, ctx, name_node->token->value, ALIGN(array_size * el_size), name_node->token->vinfo.ro, name_node->token->vinfo.glob);
-    var_lookup(name_node, ctx);
+    STX_var_update(node, ctx, name_node->token->value, ALIGN(array_size * el_size), name_node->token->vinfo.ro, name_node->token->vinfo.glob);
+    STX_var_lookup(name_node, ctx);
 
     return node;
 }
@@ -81,8 +81,8 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
         VRS_intext(node->token)            /* Global and RO variables placed not in stack */
     ) {
         int var_size = VRS_variable_bitness(name_node->token, 1) / 8;
-        var_update(node, ctx, name_node->token->value, var_size, name_node->token->vinfo.ro, name_node->token->vinfo.glob);
-        var_lookup(name_node, ctx);
+        STX_var_update(node, ctx, name_node->token->value, var_size, name_node->token->vinfo.ro, name_node->token->vinfo.glob);
+        STX_var_lookup(name_node, ctx);
     }
 
     forward_token(curr, 1);
@@ -100,8 +100,8 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
     
     if (node->token->t_type == STR_TYPE_TOKEN) { // TODO: ro glob
         ART_add_info(name_node->token->value, scope_id_top(&ctx->scopes.stack), 1, node->info.size, ctx->arrs);
-        var_update(node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)), name_node->token->vinfo.ro, name_node->token->vinfo.glob);
-        var_lookup(name_node, ctx);
+        STX_var_update(node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)), name_node->token->vinfo.ro, name_node->token->vinfo.glob);
+        STX_var_lookup(name_node, ctx);
     }
 
     AST_add_node(node, value_node);

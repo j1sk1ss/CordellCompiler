@@ -5,26 +5,26 @@
 
 #include "logg.h"
 #include "token.h"
-#include "syntax.h"
 #include "arrtb.h"
 #include "vartb.h"
-#include "semantic.h"
-#include "generator.h"
-#include "constopt.h"
-#include "condunroll.h"
-#include "deadfunc.h"
-#include "deadscope.h"
+#include "syntax.h"
 #include "deadopt.h"
-#include "offsetopt.h"
 #include "strdecl.h"
+#include "semantic.h"
+#include "constopt.h"
+#include "deadfunc.h"
+#include "generator.h"
+#include "deadscope.h"
+#include "offsetopt.h"
 #include "varinline.h"
+#include "condunroll.h"
 
-#define MAX_FILES               100
-#define DEFAULT_ASM_COMPILER    "nasm"
-#define DEFAULT_LINKER          "ld"
-#define DEFAULT_ARCH            "elf64"
-#define DEFAULT_LINKER_ARCH     "elf_x86_64"
-#define LINKER_FLAGS            "-z relro -z now"
+#define MAX_FILES            100
+#define DEFAULT_ASM_COMPILER "nasm"
+#define DEFAULT_LINKER       "ld"
+#define DEFAULT_ARCH         "elf64"
+#define DEFAULT_LINKER_ARCH  "elf_x86_64"
+#define LINKER_FLAGS         "-z relro -z now"
 
 typedef struct {
     token_t*      toks;
@@ -44,9 +44,8 @@ typedef struct {
     char* save_path;
 } params_t;
 
-
+int BLD_set_params(params_t* params);
 int BLD_add_target(char* input);
 int BLD_build();
-int set_params(params_t* params);
 
 #endif

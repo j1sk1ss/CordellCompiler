@@ -4,9 +4,9 @@
 #include "regs.h"
 #include "vars.h"
 #include "qsort.h"
-#include "genctx.h"
 #include "vartb.h"
 #include "arrtb.h"
+#include "genctx.h"
 #include "syntax.h"
 
 #define iprintf(out, fmt, ...) fprintf(out, fmt, ##__VA_ARGS__)

@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    set_params(&p);
+    BLD_set_params(&p);
     int build_res = BLD_build();
     if (!build_res) {
         print_error("Error via compilation! Code: %i", build_res);

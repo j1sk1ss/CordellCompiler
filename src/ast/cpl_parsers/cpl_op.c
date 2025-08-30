@@ -41,7 +41,7 @@ static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, i
 static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
-    var_lookup(node, ctx);
+    STX_var_lookup(node, ctx);
     
     forward_token(curr, 1);
     if ((*curr)->t_type == OPEN_INDEX_TOKEN) { /* Indexing? */
@@ -99,7 +99,7 @@ static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
 
-    var_lookup(node, ctx);
+    STX_var_lookup(node, ctx);
     forward_token(curr, 1);
     return node;
 }

@@ -41,34 +41,9 @@ static inline int forward_token(token_t** tkn, int steps) {
     return 1;
 }
 
-/* Save variable to ctx varmem list */
-static inline int var_update(ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size, char ro, char glob) {
-    if (!node) return 0;
-    node->info.size   = size;
-    node->info.offset = VRT_add_info(name, size, ro, glob, scope_id_top(&ctx->scopes.stack), ctx->vars);
-    return 1;
-}
-
-/* Lookup variable from vartable in ctx varmem list, save offset and size */
-static inline int var_lookup(ast_node_t* node, syntax_ctx_t* ctx) {
-    if (!node) return 0;
-    var_lookup(node->sibling, ctx);
-    var_lookup(node->child, ctx);
-
-    if (!node->token) return 0;
-    variable_info_t varinfo = { .offset = -1 };
-    for (int s = ctx->scopes.stack.top; s >= 0; s--) {
-        int s_id = ctx->scopes.stack.data[s].id;
-        if (VRT_get_info(node->token->value, s_id, &varinfo, ctx->vars)) {
-            break;
-        }
-    }
-    
-    if (varinfo.offset == -1) return 0;
-    node->info.offset = varinfo.offset;
-    node->info.size   = varinfo.size;
-    node->info.s_id   = varinfo.scope;
-    return 1;
-}
+syntax_ctx_t* STX_create_ctx();
+int STX_destroy_ctx(syntax_ctx_t* ctx);
+int STX_var_lookup(ast_node_t* node, syntax_ctx_t* ctx);
+int STX_var_update(ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size, char ro, char glob);
 
 #endif

@@ -28,7 +28,7 @@ static int _print_ast(ast_node_t* node, int depth) {
     return 1;
 }
 
-static params_t _params = { 0 };
+static params_t _params;
 static object_t _files[MAX_FILES];
 static int _current_file = 0;
 
@@ -66,15 +66,6 @@ static int _generate_raw_ast(object_t* obj) {
 }
 
 #define RESULT(code) code > 0 ? "OK" : "ERROR", code 
-static int _add_object(char* path) {
-    _files[_current_file].path = path;
-    print_log("Raw AST generation for [%s]...", path);
-
-    int res_code = _generate_raw_ast(&_files[_current_file++]);
-    print_log("AST-gen result [%s (%i)]", RESULT(res_code));
-    return 1;
-}
-
 static int _compile_object(object_t* obj) {
     int optres = OPT_strpack(obj->syntax);
     print_log("String optimization of [%s]... [%s (%i)]", obj->path, RESULT(optres));
@@ -124,8 +115,13 @@ static int _compile_object(object_t* obj) {
     return 1;
 }
 
-int BLD_add_target(char* input) {
-    return _add_object(input);
+int BLD_add_target(char* input, syntax_ctx_t* ctx) {
+    _files[_current_file].path = input;
+    str_memcpy(_files[_current_file].syntax, ctx, sizeof(syntax_ctx_t));
+    print_log("Raw AST generation for [%s]...", input);
+    int res_code = _generate_raw_ast(&_files[_current_file++]);
+    print_log("AST-gen result [%s (%i)]", RESULT(res_code));
+    return 1;
 }
 
 int BLD_build() {
@@ -169,7 +165,7 @@ int BLD_build() {
     return 1;
 }
 
-int set_params(params_t* params) {
+int BLD_set_params(params_t* params) {
     str_memcpy(&_params, params, sizeof(params_t));
     return 1;
 }

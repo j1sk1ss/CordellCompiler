@@ -1,6 +1,7 @@
 #ifndef GENCTX_H_
 #define GENCTX_H_
 
+#include "mm.h"
 #include "syntax.h"
 
 typedef struct gen_ctx {
@@ -27,10 +28,7 @@ typedef struct gen_ctx {
     int           (*switchgen)(ast_node_t*, FILE*, struct gen_ctx*);
 } gen_ctx_t;
 
-/* Allocate memory for generator context */
 gen_ctx_t* GEN_create_ctx();
-
-/* Unload generator context */
 int GEN_destroy_ctx(gen_ctx_t* ctx);
 
 #endif
