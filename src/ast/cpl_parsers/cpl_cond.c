@@ -1,11 +1,11 @@
 #include <cpl_parser.h>
 
-ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx) {
+ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
 
     forward_token(curr, 1);
-    ast_node_t* stmt = ctx->expr(curr, ctx);
+    ast_node_t* stmt = p->expr(curr, ctx, p);
     if (!stmt) {
         AST_unload(node);
         return NULL;
@@ -30,7 +30,7 @@ ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx) {
             }
             else {
                 forward_token(curr, 1);
-                case_stmt = ctx->expr(curr, ctx);
+                case_stmt = p->expr(curr, ctx, p);
                 case_stmt->token->t_type = CASE_TOKEN;
             }
             
@@ -41,7 +41,7 @@ ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx) {
             }
 
             forward_token(curr, 1);
-            ast_node_t* case_body = ctx->scope(curr, ctx);
+            ast_node_t* case_body = p->scope(curr, ctx, p);
             if (!case_body) {
                 AST_unload(case_stmt);
                 AST_unload(cases_scope);
@@ -62,12 +62,12 @@ ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx) {
     return node;
 }
 
-ast_node_t* cpl_parse_condop(token_t** curr, syntax_ctx_t* ctx) {
+ast_node_t* cpl_parse_condop(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     
     forward_token(curr, 1);
-    ast_node_t* cond = ctx->expr(curr, ctx);
+    ast_node_t* cond = p->expr(curr, ctx, p);
     if (!cond) {
         AST_unload(node);
         return NULL;
@@ -77,7 +77,7 @@ ast_node_t* cpl_parse_condop(token_t** curr, syntax_ctx_t* ctx) {
     forward_token(curr, 1);
 
     if (*curr && (*curr)->t_type == OPEN_BLOCK_TOKEN) {
-        ast_node_t* branch = ctx->scope(curr, ctx);
+        ast_node_t* branch = p->scope(curr, ctx, p);
         if (!branch) {
             AST_unload(node);
             return NULL;
@@ -88,7 +88,7 @@ ast_node_t* cpl_parse_condop(token_t** curr, syntax_ctx_t* ctx) {
 
     if (*curr && (*curr)->t_type == ELSE_TOKEN) {
         forward_token(curr, 1);
-        ast_node_t* branch = ctx->scope(curr, ctx);
+        ast_node_t* branch = p->scope(curr, ctx, p);
         if (!branch) {
             AST_unload(node);
             return NULL;

@@ -15,75 +15,47 @@
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
     mm_init();
-    
-    int fd = open(argv[1], O_RDONLY);
-    char data[2048] = { 0 };
-    pread(fd, data, 2048, 0);
-    printf("Source data: %s\n", data);
 
-    token_t* tkn = TKN_tokenize(fd);
-    if (!tkn) {
-        fprintf(stderr, "ERROR! tkn==NULL!\n");
-        return 1;
-    }
-
-    MRKP_mnemonics(tkn);
-    MRKP_variables(tkn);
-
-    arrmem_ctx_t actx = { .h = NULL };
-    varmem_ctx_t vctx = { .h = NULL, .offset = 0 };
-    syntax_ctx_t sctx = { 
-        .arrs = &actx, .vars = &vctx,
-        .block      = cpl_parse_block,
-        .switchstmt = cpl_parse_switch,
-        .condop     = cpl_parse_condop,
-        .arraydecl  = cpl_parse_array_declaration,
-        .vardecl    = cpl_parse_variable_declaration,
-        .rexit      = cpl_parse_rexit,
-        .funccall   = cpl_parse_funccall,
-        .function   = cpl_parse_function,
-        .import     = cpl_parse_import,
-        .expr       = cpl_parse_expression,
-        .scope      = cpl_parse_scope,
-        .start      = cpl_parse_start,
-        .syscall    = cpl_parse_syscall
+    builder_ctx_t bctx = { 
+        .p = {
+            .block      = cpl_parse_block,
+            .switchstmt = cpl_parse_switch,
+            .condop     = cpl_parse_condop,
+            .arraydecl  = cpl_parse_array_declaration,
+            .vardecl    = cpl_parse_variable_declaration,
+            .rexit      = cpl_parse_rexit,
+            .funccall   = cpl_parse_funccall,
+            .function   = cpl_parse_function,
+            .import     = cpl_parse_import,
+            .expr       = cpl_parse_expression,
+            .scope      = cpl_parse_scope,
+            .start      = cpl_parse_start,
+            .syscall    = cpl_parse_syscall
+        },
+        .g = {
+            .datagen  = x86_64_generate_data,
+            .funcdef  = x86_64_generate_funcdef,
+            .funcret  = x86_64_generate_return,
+            .funccall = x86_64_generate_funccall,
+            .function = x86_64_generate_function,
+            .blockgen = x86_64_generate_block,
+            .elemegen = x86_64_generate_elem,
+            .operand  = x86_64_generate_operand,
+            .store    = x86_64_generate_store,
+            .ptrload  = x86_64_generate_ptr_load,
+            .load     = x86_64_generate_load,
+            .assign   = x86_64_generate_assignment,
+            .decl     = x86_64_generate_declaration,
+            .start    = x86_64_generate_start,
+            .exit     = x86_64_generate_exit,
+            .syscall  = x86_64_generate_syscall,
+            .ifgen    = x86_64_generate_if,
+            .whilegen = x86_64_generate_while,
+            .switchgen= x86_64_generate_switch
+        }
     };
-    
-    STX_create(tkn, &sctx);
-    
-    OPT_strpack(&sctx);
-    OPT_offrecalc(&sctx);
 
-    print_ast(sctx.r, 0);
-    
-    gen_ctx_t gctx = {
-        .label    = 0, .synt     = &sctx,
-        .datagen  = x86_64_generate_data,
-        .funcdef  = x86_64_generate_funcdef,
-        .funcret  = x86_64_generate_return,
-        .funccall = x86_64_generate_funccall,
-        .function = x86_64_generate_function,
-        .blockgen = x86_64_generate_block,
-        .elemegen = x86_64_generate_elem,
-        .operand  = x86_64_generate_operand,
-        .store    = x86_64_generate_store,
-        .ptrload  = x86_64_generate_ptr_load,
-        .load     = x86_64_generate_load,
-        .assign   = x86_64_generate_assignment,
-        .decl     = x86_64_generate_declaration,
-        .start    = x86_64_generate_start,
-        .exit     = x86_64_generate_exit,
-        .syscall  = x86_64_generate_syscall,
-        .ifgen    = x86_64_generate_if,
-        .whilegen = x86_64_generate_while,
-        .switchgen= x86_64_generate_switch,
-    };
-    
-    fprintf(stdout, "Generated code:\n");
-    GEN_generate(&gctx, stdout);
-
-    AST_unload(sctx.r);
-    TKN_unload(tkn);
-    close(fd);
+    BLD_add_target(argv[1], &bctx);
+    BLD_build(&bctx);
     return 0;
 }

@@ -13,6 +13,6 @@ Params:
 Return 1 if generation success.
 Return 0 if something goes wrong.
 */
-int GEN_generate(gen_ctx_t* ctx, FILE* output);
+int GEN_generate(gen_ctx_t* ctx, gen_t* g, FILE* output);
 
 #endif

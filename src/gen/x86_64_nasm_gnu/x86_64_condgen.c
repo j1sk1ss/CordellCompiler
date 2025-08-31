@@ -1,45 +1,45 @@
 #include <x86_64_gnu_nasm.h>
 
-int x86_64_generate_if(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+int x86_64_generate_if(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     int current_label   = ctx->label++;
     ast_node_t* cond    = node->child;
     ast_node_t* lbranch = cond->sibling;
     ast_node_t* rbranch = lbranch->sibling;
 
-    ctx->elemegen(cond, output, ctx); /* Condition gen */
+    g->elemegen(cond, output, ctx, g); /* Condition gen */
     iprintf(output, "cmp %s, 0\n", GET_RAW_REG(BASE_BITNESS, RAX));
     if (rbranch) iprintf(output, "je __else_%d__\n", current_label);
     else iprintf(output, "je __end_if_%d__\n", current_label);
 
-    ctx->blockgen(lbranch, output, ctx); /* Main block gen */
+    g->blockgen(lbranch, output, ctx, g); /* Main block gen */
     iprintf(output, "jmp __end_if_%d__\n", current_label);
 
     if (rbranch) { /* Else block gen */
         iprintf(output, "__else_%d__:\n", current_label);
-        ctx->blockgen(rbranch, output, ctx);
+        g->blockgen(rbranch, output, ctx, g);
     }
 
     iprintf(output, "__end_if_%d__:\n", current_label);
     return 1;
 }
 
-int x86_64_generate_while(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+int x86_64_generate_while(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     int current_label   = ctx->label++;
     ast_node_t* cond    = node->child;
     ast_node_t* lbranch = cond->sibling;
     ast_node_t* rbranch = lbranch->sibling;
 
     iprintf(output, "__while_%d__:\n", current_label);
-    ctx->elemegen(cond, output, ctx);
+    g->elemegen(cond, output, ctx, g);
     iprintf(output, "cmp rax, 0\n");
     iprintf(output, "je __end_while_%d__\n", current_label);
 
-    ctx->blockgen(lbranch, output, ctx); /* Main body gen */
+    g->blockgen(lbranch, output, ctx, g); /* Main body gen */
     iprintf(output, "jmp __while_%d__\n", current_label);
 
     iprintf(output, "__end_while_%d__:\n", current_label);
     if (rbranch) {
-        ctx->blockgen(rbranch, output, ctx);
+        g->blockgen(rbranch, output, ctx, g);
     }
 
     return 1;
@@ -72,7 +72,7 @@ static int _cmp(const void* a, const void* b) {
     return (*(int*)a - *(int*)b);
 }
 
-int x86_64_generate_switch(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+int x86_64_generate_switch(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     int current_label = ctx->label++;
     ast_node_t* cond  = node->child;
     ast_node_t* cases = cond->sibling;
@@ -93,13 +93,13 @@ int x86_64_generate_switch(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
             values[cases_count++] = case_value;
         }
 
-        x86_64_generate_block(curr_case->child, output, ctx);
+        g->blockgen(curr_case->child, output, ctx, g);
         iprintf(output, "jmp __end_switch_%d__\n", current_label);
     }
 
     sort_qsort(values, cases_count, sizeof(int), _cmp);
     iprintf(output, "__end_cases_%d__:\n", current_label);
-    x86_64_generate_block(cond, output, ctx);
+    g->blockgen(cond, output, ctx, g);
     _generate_case_binary_jump(output, values, 0, cases_count - 1, current_label, def);
 
     iprintf(output, "__end_switch_%d__:\n", current_label);

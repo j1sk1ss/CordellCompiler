@@ -28,8 +28,8 @@ int main(int argc, char* argv[]) {
 
     arrmem_ctx_t actx = { .h = NULL };
     varmem_ctx_t vctx = { .h = NULL, .offset = 0 };
-    syntax_ctx_t sctx = { 
-        .arrs = &actx, .vars = &vctx,
+    syntax_ctx_t sctx = { .arrs = &actx, .vars = &vctx };
+    parser_t p = {
         .block      = cpl_parse_block,
         .switchstmt = cpl_parse_switch,
         .condop     = cpl_parse_condop,
@@ -44,8 +44,8 @@ int main(int argc, char* argv[]) {
         .start      = cpl_parse_start,
         .syscall    = cpl_parse_syscall
     };
-    
-    STX_create(tkn, &sctx);
+
+    STX_create(tkn, &sctx, &p);
 
     deadfunc_ctx_t dctx = { .ctx = { NULL }, .size = 0 };
     OPT_deadfunc_add(&sctx, &dctx);

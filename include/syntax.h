@@ -14,6 +14,6 @@ Params:
 Return 0 if somehing goes wrong.
 Return 1 if markup success.
 */
-int STX_create(token_t* head, syntax_ctx_t* ctx);
+int STX_create(token_t* head, syntax_ctx_t* ctx, parser_t* p);
 
 #endif

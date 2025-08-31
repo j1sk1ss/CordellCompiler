@@ -1,8 +1,8 @@
 #include <cpl_parser.h>
 
-static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx);
-static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, int min_priority) {
-    ast_node_t* left = _parse_primary(curr, ctx);
+static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx, parser_t* p);
+static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, int min_priority, parser_t* p) {
+    ast_node_t* left = _parse_primary(curr, ctx, p);
     if (!left) return NULL;
 
     while (*curr) {
@@ -17,7 +17,7 @@ static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, i
             next_min_priority = priority;
         }
 
-        ast_node_t* right = _parse_binary_expression(curr, ctx, next_min_priority);
+        ast_node_t* right = _parse_binary_expression(curr, ctx, next_min_priority, p);
         if (!right) {
             AST_unload(left);
             return NULL;
@@ -38,7 +38,7 @@ static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, i
     return left;
 }
 
-static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx) {
+static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     STX_var_lookup(node, ctx);
@@ -46,7 +46,7 @@ static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx) {
     forward_token(curr, 1);
     if ((*curr)->t_type == OPEN_INDEX_TOKEN) { /* Indexing? */
         token_t* offset_token = (*curr)->next;
-        ast_node_t* offset_exp = ctx->expr(&offset_token, ctx);
+        ast_node_t* offset_exp = p->expr(&offset_token, ctx, p);
         if (!offset_exp) {
             AST_unload(node);
             return NULL;
@@ -67,7 +67,7 @@ static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx) {
     }
 
     forward_token(curr, 1);
-    ast_node_t* right = cpl_parse_expression(curr, ctx);
+    ast_node_t* right = cpl_parse_expression(curr, ctx, p);
     if (!right) {
         AST_unload(node);
         AST_unload(opnode);
@@ -79,10 +79,10 @@ static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx) {
     return opnode;
 }
 
-static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx) {
+static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     if ((*curr)->t_type == OPEN_BRACKET_TOKEN) {
         forward_token(curr, 1);
-        ast_node_t* node = _parse_binary_expression(curr, ctx, 0);
+        ast_node_t* node = _parse_binary_expression(curr, ctx, 0, p);
         if (!node || !*curr || (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
             AST_unload(node);
             return NULL;
@@ -92,9 +92,9 @@ static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx) {
         return node;
     }
     
-    if (VRS_isptr(*curr))                      return _parse_array_expression(curr, ctx);
-    else if ((*curr)->t_type == CALL_TOKEN)    return ctx->funccall(curr, ctx);
-    else if ((*curr)->t_type == SYSCALL_TOKEN) return ctx->syscall(curr, ctx);
+    if (VRS_isptr(*curr))                      return _parse_array_expression(curr, ctx, p);
+    else if ((*curr)->t_type == CALL_TOKEN)    return p->funccall(curr, ctx, p);
+    else if ((*curr)->t_type == SYSCALL_TOKEN) return p->syscall(curr, ctx, p);
 
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
@@ -104,6 +104,6 @@ static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx) {
     return node;
 }
 
-ast_node_t* cpl_parse_expression(token_t** curr, syntax_ctx_t* ctx) {
-    return _parse_binary_expression(curr, ctx, 0);
+ast_node_t* cpl_parse_expression(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+    return _parse_binary_expression(curr, ctx, 0, p);
 }

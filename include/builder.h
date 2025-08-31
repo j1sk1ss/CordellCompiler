@@ -34,8 +34,8 @@ typedef struct {
 } object_t;
 
 typedef struct {
-    int   syntax;
-    int   save_asm;
+    char  syntax;
+    char  save_asm;
     char* arch;
     char* linker;
     char* linker_arch;
@@ -44,8 +44,15 @@ typedef struct {
     char* save_path;
 } params_t;
 
-int BLD_set_params(params_t* params);
-int BLD_add_target(char* input);
-int BLD_build();
+typedef struct {
+    params_t prms;
+    object_t files[MAX_FILES];
+    char     fcount;
+    parser_t p;
+    gen_t    g;
+} builder_ctx_t;
+
+int BLD_add_target(char* input, builder_ctx_t* ctx);
+int BLD_build(builder_ctx_t* ctx);
 
 #endif

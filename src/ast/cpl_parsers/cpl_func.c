@@ -1,11 +1,11 @@
 #include <cpl_parser.h>
 
-ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx) {
+ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     
     forward_token(curr, 1);
-    ast_node_t* exp_node = ctx->expr(curr, ctx);
+    ast_node_t* exp_node = p->expr(curr, ctx, p);
     if (!exp_node) {
         AST_unload(node);
         return NULL;
@@ -15,7 +15,7 @@ ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx) {
     return node;
 }
 
-ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx) {
+ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
 
@@ -28,7 +28,7 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx) {
                 continue;
             }
 
-            ast_node_t* arg = ctx->expr(curr, ctx);
+            ast_node_t* arg = p->expr(curr, ctx, p);
             if (arg) AST_add_node(node, arg); /* Parse expressions between commas. Example a + b, c + y, ... */
         }
     }
@@ -36,7 +36,7 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx) {
     return node;
 }
 
-ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx) {
+ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     forward_token(curr, 1);
@@ -70,7 +70,7 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx) {
 
         if (!VRS_isdecl((*curr))) forward_token(curr, 1);
         else {
-            ast_node_t* arg = ctx->vardecl(curr, ctx);
+            ast_node_t* arg = p->vardecl(curr, ctx, p);
             if (!arg) {
                 AST_unload(node);
                 AST_unload(args_node);
@@ -83,7 +83,7 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx) {
 
     forward_token(curr, 1);
 
-    ast_node_t* body_node = ctx->scope(curr, ctx);
+    ast_node_t* body_node = p->scope(curr, ctx, p);
     if (!body_node) {
         AST_unload(node);
         return NULL;

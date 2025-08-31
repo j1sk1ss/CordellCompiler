@@ -1,10 +1,10 @@
 #include <x86_64_gnu_nasm.h>
 
-int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            ctx->funcdef(t->child, output, ctx);
+            g->funcdef(t->child, output, ctx, g);
             continue;
         }
 
@@ -19,8 +19,8 @@ int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     return 1;
 }
 
-int x86_64_generate_return(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
-    ctx->elemegen(node->child, output, ctx);
+int x86_64_generate_return(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
+    g->elemegen(node->child, output, ctx, g);
     iprintf(output, "mov rsp, rbp\n");
     iprintf(output, "pop rbp\n");
     iprintf(output, "ret\n");
@@ -29,7 +29,7 @@ int x86_64_generate_return(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
 
 static const int args_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
 
-int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     int variables_size = 0;
     ast_node_t* name = node;
 
@@ -41,13 +41,13 @@ int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
 
     int pushed_args = 0;
     for (pushed_args = 0; pushed_args < MIN(arg_count, 6); pushed_args++) {
-        ctx->elemegen(args[pushed_args], output, ctx);
+        g->elemegen(args[pushed_args], output, ctx, g);
         iprintf(output, "mov %s, %s \n", GET_RAW_REG(BASE_BITNESS, args_regs[pushed_args]), GET_RAW_REG(BASE_BITNESS, RAX));
     }
 
     int stack_args = arg_count - pushed_args - 1;
     while (stack_args >= 0) {
-        ctx->elemegen(args[stack_args--], output, ctx);
+        g->elemegen(args[stack_args--], output, ctx, g);
         iprintf(output, "push %s\n", GET_RAW_REG(BASE_BITNESS, RAX));
     }
 
@@ -57,7 +57,7 @@ int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     }
 }
 
-int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     ast_node_t* name_node = node->child;
     ast_node_t* body_node = name_node->sibling;
 
@@ -94,7 +94,7 @@ int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
         pop_params++;
     }
 
-    ctx->blockgen(t, output, ctx);
+    g->blockgen(t, output, ctx, g);
     iprintf(output, "__end_%s__:\n", name_node->token->value);
     return 1;
 }

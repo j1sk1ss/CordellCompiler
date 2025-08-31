@@ -80,11 +80,11 @@ static int _generate_init(ast_node_t* entry, FILE* output) {
     return 1;
 }
 
-int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, gen_ctx_t* ctx) {
+int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, gen_ctx_t* ctx, gen_t* g) {
     if (!node) return 0;
     for (ast_node_t* t = node->child; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            ctx->datagen(t, output, section, bss, ctx);
+            g->datagen(t, output, section, bss, ctx, g);
             continue;
         }
 
@@ -107,8 +107,8 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, g
                 case SWITCH_TOKEN:
                 case SYSCALL_TOKEN:
                 case DEFAULT_TOKEN:
-                case ARRAY_TYPE_TOKEN: ctx->datagen(t, output, section, bss, ctx);                          continue;
-                case FUNC_TOKEN:       ctx->datagen(t->child->sibling->sibling, output, section, bss, ctx); continue;
+                case ARRAY_TYPE_TOKEN: g->datagen(t, output, section, bss, ctx, g);                          continue;
+                case FUNC_TOKEN:       g->datagen(t->child->sibling->sibling, output, section, bss, ctx, g); continue;
                 default: break;
             }
         }

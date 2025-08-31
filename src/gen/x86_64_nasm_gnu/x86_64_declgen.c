@@ -14,7 +14,7 @@ static int _strdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     return 1;
 }
 
-static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     ast_node_t* name_node    = node->child;
     ast_node_t* size_node    = name_node->sibling;
     ast_node_t* el_size_node = size_node->sibling;
@@ -35,7 +35,7 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
                 );
             }
             else {
-                ctx->elemegen(t, output, ctx);
+                g->elemegen(t, output, ctx, g);
                 iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, reg.name);
             }
 
@@ -46,17 +46,17 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     return 1;
 }
 
-static int _stack_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
-    if (node->token->t_type == ARRAY_TYPE_TOKEN)    return _arrdeclaration(node, output, ctx);
+static int _stack_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
+    if (node->token->t_type == ARRAY_TYPE_TOKEN)    return _arrdeclaration(node, output, ctx, g);
     else if (node->token->t_type == STR_TYPE_TOKEN) return _strdeclaration(node, output, ctx);
     return 1;
 }
 
-int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     ast_node_t* name_node = node->child;
     if (!VRS_intext(name_node->token)) return 0;
     if (!VRS_one_slot(name_node->token)) {
-        return _stack_declaration(node, output, ctx);
+        return _stack_declaration(node, output, ctx, g);
     }
 
     int val = 0;
@@ -67,7 +67,7 @@ int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) 
     if (
         val_node->token->t_type != UNKNOWN_NUMERIC_TOKEN && 
         val_node->token->t_type != CHAR_VALUE_TOKEN
-    ) ctx->elemegen(val_node, output, ctx);
+    ) g->elemegen(val_node, output, ctx, g);
     else {
         is_const = 1;
         switch (VRS_variable_bitness(name_node->token, 1)) {

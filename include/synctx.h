@@ -17,20 +17,23 @@ typedef struct syntax_ctx {
     varmem_ctx_t* vars;
     arrmem_ctx_t* arrs;
     scope_info_t  scopes;
-    ast_node_t*   (*block)(token_t**, struct syntax_ctx*, token_type_t);
-    ast_node_t*   (*switchstmt)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*condop)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*arraydecl)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*vardecl)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*rexit)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*funccall)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*function)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*import)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*expr)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*scope)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*start)(token_t**, struct syntax_ctx*);
-    ast_node_t*   (*syscall)(token_t**, struct syntax_ctx*);
 } syntax_ctx_t;
+
+typedef struct parser {
+    ast_node_t* (*block)(token_t**, syntax_ctx_t*, token_type_t, struct parser*);
+    ast_node_t* (*switchstmt)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*condop)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*arraydecl)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*vardecl)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*rexit)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*funccall)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*function)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*import)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*expr)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*scope)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*start)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*syscall)(token_t**, syntax_ctx_t*, struct parser*);
+} parser_t;
 
 static inline int forward_token(token_t** tkn, int steps) {
     while (steps-- > 0) {

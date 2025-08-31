@@ -31,8 +31,8 @@ int main(int argc, char* argv[]) {
 
     arrmem_ctx_t actx = { .h = NULL };
     varmem_ctx_t vctx = { .h = NULL, .offset = 0 };
-    syntax_ctx_t sctx = { 
-        .arrs = &actx, .vars = &vctx,
+    syntax_ctx_t sctx = { .arrs = &actx, .vars = &vctx };
+    parser_t p = {
         .block      = cpl_parse_block,
         .switchstmt = cpl_parse_switch,
         .condop     = cpl_parse_condop,
@@ -47,16 +47,16 @@ int main(int argc, char* argv[]) {
         .start      = cpl_parse_start,
         .syscall    = cpl_parse_syscall
     };
-    
-    STX_create(tkn, &sctx);
+
+    STX_create(tkn, &sctx, &p);
     
     OPT_strpack(&sctx);
     OPT_offrecalc(&sctx);
 
     print_ast(sctx.r, 0);
     
-    gen_ctx_t gctx = {
-        .label    = 0, .synt     = &sctx,
+    gen_ctx_t gctx = { .label = 0, .synt = &sctx };
+    gen_t g = {
         .datagen  = x86_64_generate_data,
         .funcdef  = x86_64_generate_funcdef,
         .funcret  = x86_64_generate_return,
@@ -75,11 +75,11 @@ int main(int argc, char* argv[]) {
         .syscall  = x86_64_generate_syscall,
         .ifgen    = x86_64_generate_if,
         .whilegen = x86_64_generate_while,
-        .switchgen= x86_64_generate_switch,
+        .switchgen= x86_64_generate_switch
     };
-    
+
     fprintf(stdout, "Generated code:\n");
-    GEN_generate(&gctx, stdout);
+    GEN_generate(&gctx, &g, stdout);
 
     AST_unload(sctx.r);
     TKN_unload(tkn);

@@ -1,6 +1,6 @@
 #include <x86_64_gnu_nasm.h>
 
-int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
+int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
         if (node->child) goto indexing;
@@ -32,7 +32,7 @@ indexing:
                 ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
 
-                ctx->elemegen(off, output, ctx);
+                g->elemegen(off, output, ctx, g);
                 if (elsize > 1) {
                     iprintf(output, "imul rax, %d\n", elsize);
                 }
