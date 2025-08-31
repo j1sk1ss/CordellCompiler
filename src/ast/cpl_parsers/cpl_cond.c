@@ -7,6 +7,7 @@ ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     forward_token(curr, 1);
     ast_node_t* stmt = p->expr(curr, ctx, p);
     if (!stmt) {
+        print_error("AST error during switch stmt parsing! line=%i", (*curr)->lnum);
         AST_unload(node);
         return NULL;
     }
@@ -35,6 +36,7 @@ ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
             }
             
             if (!case_stmt) {
+                print_error("AST error during switch case stmt parsing! line=%i", (*curr)->lnum);
                 AST_unload(cases_scope);
                 AST_unload(node);
                 return NULL;
@@ -43,6 +45,7 @@ ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
             forward_token(curr, 1);
             ast_node_t* case_body = p->scope(curr, ctx, p);
             if (!case_body) {
+                print_error("AST error during switch case body parsing! line=%i", (*curr)->lnum);
                 AST_unload(case_stmt);
                 AST_unload(cases_scope);
                 AST_unload(node);
@@ -69,6 +72,7 @@ ast_node_t* cpl_parse_condop(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     forward_token(curr, 1);
     ast_node_t* cond = p->expr(curr, ctx, p);
     if (!cond) {
+        print_error("AST error during cond stmt parsing! line=%i", (*curr)->lnum);
         AST_unload(node);
         return NULL;
     }
@@ -79,6 +83,7 @@ ast_node_t* cpl_parse_condop(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     if (*curr && (*curr)->t_type == OPEN_BLOCK_TOKEN) {
         ast_node_t* branch = p->scope(curr, ctx, p);
         if (!branch) {
+            print_error("AST error during if lbranch parsing! line=%i", (*curr)->lnum);
             AST_unload(node);
             return NULL;
         }
@@ -90,6 +95,7 @@ ast_node_t* cpl_parse_condop(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
         forward_token(curr, 1);
         ast_node_t* branch = p->scope(curr, ctx, p);
         if (!branch) {
+            print_error("AST error during if rbranch parsing! line=%i", (*curr)->lnum);
             AST_unload(node);
             return NULL;
         }

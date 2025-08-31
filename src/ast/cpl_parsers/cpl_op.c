@@ -19,6 +19,7 @@ static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, i
 
         ast_node_t* right = _parse_binary_expression(curr, ctx, next_min_priority, p);
         if (!right) {
+            print_error("AST error during expression parsing! line=%i", (*curr)->lnum);
             AST_unload(left);
             return NULL;
         }
@@ -48,6 +49,7 @@ static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx, pa
         token_t* offset_token = (*curr)->next;
         ast_node_t* offset_exp = p->expr(&offset_token, ctx, p);
         if (!offset_exp) {
+            print_error("AST error during index parsing! line=%i", (*curr)->lnum);
             AST_unload(node);
             return NULL;
         }
@@ -69,6 +71,7 @@ static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx, pa
     forward_token(curr, 1);
     ast_node_t* right = cpl_parse_expression(curr, ctx, p);
     if (!right) {
+        print_error("AST error during right expression parsing! line=%i", (*curr)->lnum);
         AST_unload(node);
         AST_unload(opnode);
         return NULL;
@@ -84,6 +87,7 @@ static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx, parser_t* p
         forward_token(curr, 1);
         ast_node_t* node = _parse_binary_expression(curr, ctx, 0, p);
         if (!node || !*curr || (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
+            print_error("AST error during expression parsing! line=%i", (*curr)->lnum);
             AST_unload(node);
             return NULL;
         }

@@ -7,6 +7,7 @@ ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     forward_token(curr, 1);
     ast_node_t* exp_node = p->expr(curr, ctx, p);
     if (!exp_node) {
+        print_error("AST error during return parsing! line=%i", (*curr)->lnum);
         AST_unload(node);
         return NULL;
     }
@@ -72,6 +73,7 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
         else {
             ast_node_t* arg = p->vardecl(curr, ctx, p);
             if (!arg) {
+                print_error("AST error during function arg parsing! line=%i", (*curr)->lnum);
                 AST_unload(node);
                 AST_unload(args_node);
                 return NULL;
@@ -85,6 +87,7 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
 
     ast_node_t* body_node = p->scope(curr, ctx, p);
     if (!body_node) {
+        print_error("AST error during function body parsing! line=%i", (*curr)->lnum);
         AST_unload(node);
         return NULL;
     }

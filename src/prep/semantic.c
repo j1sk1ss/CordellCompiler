@@ -48,6 +48,14 @@ int SMT_check(ast_node_t* node) {
         }
 
         switch (t->token->t_type) {
+            case ASSIGN_TOKEN:
+                if (t->child->token->vinfo.ro) {
+                    print_error("Read only value assigned here=%i", t->token->lnum);
+                    result = 0;
+                    return 1;
+                }
+            break;
+            
             case FUNC_TOKEN: {
                 ast_node_t* name = t->child;
                 if (!name) {

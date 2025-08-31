@@ -304,14 +304,14 @@ Semantic module takes care under size, operation and commands correctness. In ot
 ```
 
 # Optimization
-- [deadfunc](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadfunc.c) - First optimization algorithm, that takes care about unused functions, iterate through files from input, register all used functions, and delete all unregistered.
-- [strdecl](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/strdecl.c) - Second optimization algorithm takes care about strings that read only. If user uses strings with ro flag somewhere, this algorithm will allocate memory for them in the .rodata section.
-- [varinline](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/varinline.c) - Third optimization works in group with fourth. This is a constant folding algorithm implementation. If we can use value of the variable, instead the variable itself, we replace it and remove the variable declaration.
-- [constopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/constopt.c) - The fourth algorithm always called after the third, and extends the constant folding cycle by convolution of constants. For example, if the expression was looks like: `5 + 5`, it convolve it into `10`.
-- [condunroll](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/condunroll.c) - The fifth algorithm always works only with `switch`, `if` and `while`, and looks similar to `funcopt`. The main idea is to remove all unreacheble code. For example, we can always say, that the code in `while (0)` never called.
-- [varuseopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/varuseopt.c)  - The sixth algorithm continues code cleaning. At this point we try to remove all unused variables.
-- [offsetopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/offsetopt.c)  - The seventh algorithm completes all the work described above work by recalculating local and global offsets for variables and arrays.
-- [deadopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadopt.c)  - [WIP algorithm. See description [here](https://en.wikipedia.org/wiki/Control_flow)]
+- [deadfunc](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadfunc.c)
+- [strdecl](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/strdecl.c)
+- [varinline](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/varinline.c)
+- [constopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/constopt.c)
+- [condunroll](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/condunroll.c)
+- [varuseopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/varuseopt.c)
+- [offsetopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/offsetopt.c)
+- [deadopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadopt.c)
 
 Detailed description of every noted algorithms placed [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/README.md)
 
