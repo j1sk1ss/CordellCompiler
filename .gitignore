@@ -6,3 +6,5 @@ builds/
 *.asm
 *.o
 *.log
+vscode/node_modules
+vscode/out

@@ -1,0 +1,14 @@
+{
+  "program-start": {
+    "scope": "cpl",
+    "prefix": "start",
+    "body": [
+      "{",
+      "\tstart {",
+      "\t\t$0",
+      "\t} exit ${1:0};",
+      "}"
+    ],
+    "description": "CPL program skeleton"
+  }
+}

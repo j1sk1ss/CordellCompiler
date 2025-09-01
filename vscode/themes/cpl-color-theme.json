@@ -1,0 +1,31 @@
+{
+  "name": "CPL Theme",
+  "type": "dark",
+  "colors": {},
+  "tokenColors": [
+    {
+      "scope": "keyword.control.cpl",
+      "settings": { "foreground": "#FF00FF" }
+    },
+    {
+      "scope": "keyword.declaration.cpl",
+      "settings": { "foreground": "#FF00FF" }
+    },
+    {
+      "scope": "entity.name.function.cpl, entity.name.function.call.cpl",
+      "settings": { "foreground": "#FFD700" }
+    },
+    {
+      "scope": "variable.other.cpl",
+      "settings": { "foreground": "#00FF00" }
+    },
+    {
+      "scope": "storage.type.cpl",
+      "settings": { "foreground": "#00BFFF" }
+    },
+    {
+      "scope": "constant.numeric.cpl",
+      "settings": { "foreground": "#FF4500" } 
+    }
+  ]
+}
