@@ -8,3 +8,4 @@ builds/
 *.log
 vscode/node_modules
 vscode/out
+package-lock.json
