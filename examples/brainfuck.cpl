@@ -1,5 +1,5 @@
 {
-    from "string.cpl" import puts gets itoa;
+    from "string.cpl" import puts, gets, itoa;
 
     :
     Brainfuck interpriter on CPL

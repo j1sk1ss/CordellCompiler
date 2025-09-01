@@ -13,6 +13,7 @@
         char a = buff[0];
         ptr char b = buff;
 
+        b[0] = 1;
         exit 0;
     };
 }

@@ -6,6 +6,7 @@
 #define EXIT_COMMAND            "exit"
 #define IMPORT_COMMAND          "import"
 #define IMPORT_SELECT_COMMAND   "from"
+#define EXTERN_COMMAND          "extern"
 
 #define OPEN_INDEX              "["
 #define CLOSE_INDEX             "]"
@@ -17,6 +18,7 @@
 #define CLOSE_BLOCK             "}"
 
 // Function
+#define EXFUNCTION_COMMAND      "exfunc"
 #define FUNCTION_COMMAND        "function"
 
 // Types

@@ -46,8 +46,8 @@ static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx, pa
     
     forward_token(curr, 1);
     if ((*curr)->t_type == OPEN_INDEX_TOKEN) { /* Indexing? */
-        token_t* offset_token = (*curr)->next;
-        ast_node_t* offset_exp = p->expr(&offset_token, ctx, p);
+        forward_token(curr, 1);
+        ast_node_t* offset_exp = p->expr(curr, ctx, p);
         if (!offset_exp) {
             print_error("AST error during index parsing! line=%i", (*curr)->lnum);
             AST_unload(node);
@@ -58,7 +58,7 @@ static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx, pa
         forward_token(curr, 1);
     }
 
-    if (VRS_isclose(*curr)) { /* End of expression? */
+    if (VRS_isclose(*curr)) {
         return node;
     }
 

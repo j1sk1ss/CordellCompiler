@@ -36,6 +36,7 @@ int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, 
 #define NO_BSS         0
 #define DATA_SECTION   1
 #define RODATA_SECTION 2
+#define EXT_SECTION    3
 int get_stack_size(ast_node_t* root, gen_ctx_t* ctx);
 int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, gen_ctx_t* ctx, gen_t* g);
 

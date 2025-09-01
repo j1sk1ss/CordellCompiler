@@ -65,15 +65,15 @@ static inline char* format_from_stack(int offset) {
     return stack_buff;
 }
 
-static inline char* format_from_data(char* name, token_type_t type) {
-    if (type == UNKNOWN_NUMERIC_TOKEN) return name; 
+static inline char* format_from_data(token_t* tkn) {
+    if (tkn->t_type == UNKNOWN_NUMERIC_TOKEN) return tkn->value; 
     else {
         static char data_buff[64] = { 0 };
         if (
-            type == ARR_VARIABLE_TOKEN || 
-            type == STR_VARIABLE_TOKEN
-        ) snprintf(data_buff, sizeof(data_buff), "__%s__", name);
-        else snprintf(data_buff, sizeof(data_buff), "[__%s__]", name);
+            tkn->t_type == ARR_VARIABLE_TOKEN || 
+            tkn->t_type == STR_VARIABLE_TOKEN
+        ) snprintf(data_buff, sizeof(data_buff), tkn->vinfo.ext ? "%s" : "__%s__", tkn->value);
+        else snprintf(data_buff, sizeof(data_buff), tkn->vinfo.ext ? "[rel %s]" : "[rel __%s__]", tkn->value);
         return data_buff;
     }
 }
@@ -81,7 +81,7 @@ static inline char* format_from_data(char* name, token_type_t type) {
 #define GET_ASMVAR(node) \
     VRS_intext((node)->token) ? \
     format_from_stack((node)->info.offset) : \
-    format_from_data((node)->token->value, (node)->token->t_type)
+    format_from_data((node)->token)
 
 typedef struct {
     const char* name;

@@ -42,10 +42,10 @@ indexing:
                 iprintf(output, "add rax, rbx\n");
 
                 switch (elsize) {
-                    case 1: iprintf(output, "mov byte [rax], rdx\n");  break;
-                    case 2: iprintf(output, "mov word [rax], dx\n");   break;
-                    case 4: iprintf(output, "mov dword [rax], rdx\n"); break;
-                    case 8: iprintf(output, "mov qword [rax], rdx\n"); break;
+                    case 1: iprintf(output, "mov [rax], dl\n");  break;
+                    case 2: iprintf(output, "mov [rax], dx\n");   break;
+                    case 4: iprintf(output, "mov [rax], edx\n"); break;
+                    case 8: iprintf(output, "mov [rax], rdx\n"); break;
                 }
             }
             else { /* Loading array address to rax */
@@ -54,7 +54,7 @@ indexing:
 
             break;
         }
-        
+        default: break;
     }
 
     return 1;

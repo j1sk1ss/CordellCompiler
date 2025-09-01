@@ -45,6 +45,7 @@ typedef enum {
     // Commands
     IMPORT_TOKEN,        // import
     IMPORT_SELECT_TOKEN, // from
+    EXTERN_TOKEN,        // extern
     START_TOKEN,         // start
     RETURN_TOKEN,        // return
     EXIT_TOKEN,          // exit
@@ -52,6 +53,7 @@ typedef enum {
 
     // Function
     SYSCALL_TOKEN,       // syscall
+    EXFUNC_TOKEN,
     FUNC_TOKEN,          // function
     CALL_TOKEN,
     
@@ -99,6 +101,7 @@ typedef struct {
     char ro;   /* Is read only flag */
     char glob; /* Is global flag */
     char ptr;  /* Is pointer flag */
+    char ext;  /* Is extern flag */
 } tkn_var_info_t;
 
 typedef struct token {

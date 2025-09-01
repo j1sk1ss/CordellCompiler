@@ -25,6 +25,7 @@ typedef struct parser {
     ast_node_t* (*condop)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*arraydecl)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*vardecl)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*extrn)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*rexit)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*funccall)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*function)(token_t**, syntax_ctx_t*, struct parser*);

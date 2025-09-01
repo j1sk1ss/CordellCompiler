@@ -6,11 +6,13 @@ static int print_ast(ast_node_t* node, int depth) {
     for (int i = 0; i < depth; i++) printf("    ");
     if (node->token && node->token->t_type != SCOPE_TOKEN) {
         printf(
-            "[%s] (t=%d, size=%i,%soff=%i, s_id=%i%s%s)\n", 
+            "[%s] (t=%d, size=%i,%soff=%i, s_id=%i%s%s%s)\n", 
             node->token->value, node->token->t_type, node->info.size, 
             node->token->vinfo.ptr ? " ptr, " : " ", 
             node->info.offset, node->info.s_id,
-            node->token->vinfo.ro ? ", ro" : "", node->token->vinfo.glob ? ", glob" : ""
+            node->token->vinfo.ro ? ", ro" : "",
+            node->token->vinfo.ext ? ", ext" : "",
+            node->token->vinfo.glob ? ", glob" : ""
         );
     }
     else if (node->token && node->token->t_type == SCOPE_TOKEN) {

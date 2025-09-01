@@ -3,6 +3,7 @@
 
 #include "mm.h"
 #include "str.h"
+#include "dict.h"
 #include "vars.h"
 #include "token.h"
 #include "syntax.h"

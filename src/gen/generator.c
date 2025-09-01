@@ -1,6 +1,7 @@
 #include <generator.h>
 
 int GEN_generate(gen_ctx_t* ctx, gen_t* g, FILE* output) {
+    g->datagen(ctx->synt->r, output, EXT_SECTION, NO_BSS, ctx, g);
     iprintf(output, "section .data\n");
     g->datagen(ctx->synt->r, output, DATA_SECTION, NO_BSS, ctx, g);
     iprintf(output, "section .rodata\n");

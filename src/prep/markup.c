@@ -10,6 +10,7 @@ static const markup_token_t _markups[] = {
     /* Special single place tokens. */
     { .value = IMPORT_SELECT_COMMAND,  .type = IMPORT_SELECT_TOKEN },
     { .value = IMPORT_COMMAND,         .type = IMPORT_TOKEN        },
+    { .value = EXTERN_COMMAND,         .type = EXTERN_TOKEN        },
     { .value = START_COMMAND,          .type = START_TOKEN         },
     { .value = EXIT_COMMAND,           .type = EXIT_TOKEN          },
 
@@ -22,6 +23,7 @@ static const markup_token_t _markups[] = {
     { .value = CLOSE_BRACKET,          .type = CLOSE_BRACKET_TOKEN },
 
     /* Function and jmp tokens. */
+    { .value = EXFUNCTION_COMMAND,     .type = EXFUNC_TOKEN        },
     { .value = FUNCTION_COMMAND,       .type = FUNC_TOKEN          },
     { .value = RETURN_COMMAND,         .type = RETURN_TOKEN        },
     { .value = SYSCALL_COMMAND,        .type = SYSCALL_TOKEN       },
@@ -69,8 +71,8 @@ int MRKP_mnemonics(token_t* head) {
     token_t* curr = head;
     while (curr) {
         for (int i = 0; i < (int)(sizeof(_markups) / sizeof(_markups[0])); i++) {
-            if (((char*)curr->value)[0] != _markups[i].value[0]) continue;
-            else if (!str_strcmp((char*)curr->value, _markups[i].value)) {
+            if ((curr->value)[0] != _markups[i].value[0]) continue;
+            else if (!str_strcmp(curr->value, _markups[i].value)) {
                 curr->t_type = _markups[i].type;
             }
         }
@@ -82,9 +84,10 @@ int MRKP_mnemonics(token_t* head) {
 }
 
 typedef struct {
-    int          ro;
-    int          ptr;
-    int          glob;
+    char         ro;
+    char         ptr;
+    char         glob;
+    char         ext;
     token_type_t type;
     short        scope;
     char         name[TOKEN_MAX_SIZE];
@@ -94,16 +97,16 @@ typedef struct {
     char         ro;
     char         glob;
     char         ptr;
+    char         ext;
     token_type_t ttype;
 } markp_ctx;
 
-static int _add_variable(
-    variable_t** vars, const char* name, short scope, markp_ctx* ctx, int* count
-) {
+static int _add_variable(variable_t** vars, const char* name, short scope, markp_ctx* ctx, int* count) {
     *vars = mm_realloc(*vars, (*count + 1) * sizeof(variable_t));
     str_memset(&((*vars)[*count]), 0, sizeof(variable_t));
     str_strncpy(((*vars)[*count]).name, name, TOKEN_MAX_SIZE);
     ((*vars)[*count]).scope = scope;
+    ((*vars)[*count]).ext   = ctx->ext;
     ((*vars)[*count]).ro    = ctx->ro;
     ((*vars)[*count]).ptr   = ctx->ptr;
     ((*vars)[*count]).glob  = ctx->glob;
@@ -123,26 +126,28 @@ int MRKP_variables(token_t* head) {
 
     while (curr) {
         switch (curr->t_type) {
-            case OPEN_BLOCK_TOKEN: scope_push(&scope_stack, ++s_id, 0); break;
-            case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack); break;
+            case OPEN_BLOCK_TOKEN:  scope_push(&scope_stack, ++s_id, 0); break;
+            case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack);             break;
 
-            case IMPORT_TOKEN:
+            case IMPORT_TOKEN: {
                 curr = curr->next;
                 curr_ctx.ttype = CALL_TOKEN;
                 while (curr->t_type != DELIMITER_TOKEN) {
-                    _add_variable(
-                        &vars, curr->value, scope_id_top(&scope_stack), &curr_ctx, &var_count
-                    );
-
+                    if (curr->t_type == COMMA_TOKEN) continue;
+                    _add_variable(&vars, curr->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
                     curr = curr->next;
                 }
-            break;
+                
+                break;
+            }
 
             case RO_TYPE_TOKEN:   curr_ctx.ro   = 1; break;
+            case EXTERN_TOKEN:    curr_ctx.ext  = 1;
             case GLOB_TYPE_TOKEN: curr_ctx.glob = 1; break;
             case PTR_TYPE_TOKEN:  curr_ctx.ptr  = 1; break;
 
             case FUNC_TOKEN:
+            case EXFUNC_TOKEN:
             case INT_TYPE_TOKEN:
             case STR_TYPE_TOKEN:
             case LONG_TYPE_TOKEN:
@@ -152,7 +157,8 @@ int MRKP_variables(token_t* head) {
                 token_t* next = curr->next;
                 if (next && (next->t_type == UNKNOWN_STRING_TOKEN || next->t_type == UNKNOWN_CHAR_TOKEN)) {
                     switch (curr->t_type) {
-                        case FUNC_TOKEN:       curr_ctx.ttype = CALL_TOKEN;           break;
+                        case FUNC_TOKEN:
+                        case EXFUNC_TOKEN:     curr_ctx.ttype = CALL_TOKEN;           break;
                         case INT_TYPE_TOKEN:   curr_ctx.ttype = INT_VARIABLE_TOKEN;   break;
                         case STR_TYPE_TOKEN:   curr_ctx.ttype = STR_VARIABLE_TOKEN;   break;
                         case LONG_TYPE_TOKEN:  curr_ctx.ttype = LONG_VARIABLE_TOKEN;  break;
@@ -162,29 +168,30 @@ int MRKP_variables(token_t* head) {
                         default: break;
                     }
 
-                    _add_variable(
-                        &vars, next->value, scope_id_top(&scope_stack), &curr_ctx, &var_count
-                    );
-
+                    _add_variable(&vars, next->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
+                    curr->vinfo.ext  = curr_ctx.ext;
                     curr->vinfo.ro   = curr_ctx.ro;
                     curr->vinfo.ptr  = curr_ctx.ptr;
                     curr->vinfo.glob = curr_ctx.glob;
                 }
 
+                curr_ctx.ext   = 0;
                 curr_ctx.ro    = 0;
                 curr_ctx.ptr   = 0;
                 curr_ctx.glob  = 0;
                 curr_ctx.ttype = 0;
-            } break;
+                break;
+            }
 
             default: break;
         }
+
         curr = curr->next;
     }
 
+    s_id = 0;
     curr = head;
     scope_stack.top = -1;
-    s_id = 0;
 
     while (curr) {
         if (curr->t_type == OPEN_BLOCK_TOKEN) scope_push(&scope_stack, ++s_id, 0);
@@ -197,10 +204,11 @@ int MRKP_variables(token_t* head) {
                         !str_strncmp(curr->value, vars[i].name, TOKEN_MAX_SIZE) &&
                         vars[i].scope == curr_s
                     ) {
-                        curr->t_type = vars[i].type;
-                        curr->vinfo.ro     = vars[i].ro;
-                        curr->vinfo.glob   = vars[i].glob;
-                        curr->vinfo.ptr    = vars[i].ptr;
+                        curr->t_type     = vars[i].type;
+                        curr->vinfo.ext  = vars[i].ext;
+                        curr->vinfo.ro   = vars[i].ro;
+                        curr->vinfo.glob = vars[i].glob;
+                        curr->vinfo.ptr  = vars[i].ptr;
                         goto resolved;
                     }
                 }

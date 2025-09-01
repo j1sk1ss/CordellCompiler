@@ -32,6 +32,7 @@ TEST_CODES[test_ast]="
     tests/dummy_data/ast/oper.cpl
     tests/dummy_data/ast/stat.cpl
     tests/dummy_data/ast/error.cpl
+    tests/dummy_data/ast/ext.cpl
 "
 
 # ==== Optimization testing ====
@@ -66,6 +67,7 @@ TEST_CODES[test_gen]="
     tests/dummy_data/gen/oper.cpl
     tests/dummy_data/gen/stat.cpl
     tests/dummy_data/gen/print.cpl
+    tests/dummy_data/ast/ext.cpl
 "
 
 # ======================================
@@ -129,7 +131,7 @@ for i in "${!test_names[@]}"; do
     code_file="${codes[$CODE_IDX]}"
 
     echo "== Compilation: $test_file =="
-    gcc $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
+    gcc-14 $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
         -DWARNING_LOGS -DERROR_LOGS -g -O0 -o "tests/$test_name"
 
     if [[ -n "$DEBUGGER" ]]; then

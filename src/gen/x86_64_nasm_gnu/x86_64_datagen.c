@@ -80,6 +80,12 @@ static int _generate_init(ast_node_t* entry, FILE* output) {
     return 1;
 }
 
+static int _generate_extern(ast_node_t* entry, FILE* output) {
+    if (VRS_isdecl(entry->token)) iprintf(output, "extern %s\n", entry->child->token->value);
+    else iprintf(output, "extern %s\n", entry->token->value);
+    return 1;
+}
+
 int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, gen_ctx_t* ctx, gen_t* g) {
     if (!node) return 0;
     for (ast_node_t* t = node->child; t; t = t->sibling) {
@@ -98,6 +104,11 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, g
         }
         else if (VRS_intext(t->token)) {
             switch (t->token->t_type) {
+                case EXTERN_TOKEN: {
+                    if (section == EXT_SECTION) _generate_extern(t->child, output);
+                    continue;
+                }
+
                 case IF_TOKEN:
                 case CASE_TOKEN:
                 case EXIT_TOKEN:

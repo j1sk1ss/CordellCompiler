@@ -51,7 +51,8 @@ int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
         iprintf(output, "push %s\n", GET_RAW_REG(BASE_BITNESS, RAX));
     }
 
-    iprintf(output, "call __%s__\n", name->token->value);
+    if (!name->token->vinfo.ext) iprintf(output, "call __%s__\n", name->token->value);
+    else iprintf(output, "call %s\n", name->token->value);
     if (stack_args > 0) {
         iprintf(output, "add rsp, %d\n", stack_args * (BASE_BITNESS / 8));
     }

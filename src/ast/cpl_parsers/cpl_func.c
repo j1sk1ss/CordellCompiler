@@ -1,5 +1,32 @@
 #include <cpl_parser.h>
 
+ast_node_t* cpl_parse_extern(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+    ast_node_t* node = AST_create_node(*curr);
+    if (!node) return NULL;
+    
+    forward_token(curr, 1);
+    while (*curr && (*curr)->t_type != DELIMITER_TOKEN) {
+        if (!VRS_isdecl(*curr) && (*curr)->t_type != CALL_TOKEN) forward_token(curr, 1);
+        else if (VRS_isdecl(*curr)) {
+            ast_node_t* arg = p->vardecl(curr, ctx, p);
+            if (!arg) {
+                print_error("AST error during function arg parsing! line=%i", (*curr)->lnum);
+                AST_unload(node);
+                return NULL;
+            }
+
+            AST_add_node(node, arg);
+        }
+        else if ((*curr)->t_type == CALL_TOKEN) {
+            ast_node_t* name_node = AST_create_node(*curr);
+            AST_add_node(node, name_node);
+            forward_token(curr, 1);
+        }
+    }
+
+    return node;
+}
+
 ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
@@ -24,13 +51,13 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     if (*curr && (*curr)->t_type == OPEN_BRACKET_TOKEN) {
         forward_token(curr, 1);
         while (*curr && (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
-            if ((*curr)->t_type == COMMA_TOKEN) { /* Skip comma */
+            if ((*curr)->t_type == COMMA_TOKEN) {
                 forward_token(curr, 1);
                 continue;
             }
 
             ast_node_t* arg = p->expr(curr, ctx, p);
-            if (arg) AST_add_node(node, arg); /* Parse expressions between commas. Example a + b, c + y, ... */
+            if (arg) AST_add_node(node, arg);
         }
     }
 
@@ -63,7 +90,7 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     args_node->info.s_id = ctx->scopes.s_id;
 
     forward_token(curr, 1);
-    while (!*curr || (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
+    while (*curr && (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
         if ((*curr)->t_type == COMMA_TOKEN) {
             forward_token(curr, 1);
             continue;

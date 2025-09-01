@@ -88,7 +88,7 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
     if (!r) return 0;
 
     scope_elem_t el;
-    scope_top(&ctx->scope.stack, &el);
+    scope_top(&ctx->scopes.stack, &el);
     int offset = el.offset;
 
     recalcoff_ctx_t scope_ctx = { .h = NULL };
@@ -100,9 +100,9 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
         }
 
         if (VRS_isblock(t->token)) {
-            scope_push(&ctx->scope.stack, ++ctx->scope.s_id, offset);
+            scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, offset);
             _recalc_offs(t, ctx);
-            scope_pop(&ctx->scope.stack);
+            scope_pop(&ctx->scopes.stack);
             continue;
         }
 #pragma endregion
@@ -160,8 +160,8 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
 int OPT_offrecalc(syntax_ctx_t* ctx) {
     if (!ctx || !ctx->r) return 0;
     VRT_destroy_ctx(ctx->vars);
-    scope_reset(&ctx->scope.stack);
-    ctx->scope.s_id = 0;
+    scope_reset(&ctx->scopes.stack);
+    ctx->scopes.s_id = 0;
     _recalc_offs(ctx->r, ctx);
     return 1;
 }

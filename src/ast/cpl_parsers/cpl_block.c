@@ -23,6 +23,7 @@ static ast_node_t* (*_get_parser(syntax_ctx_t* ctx, token_type_t t_type, parser_
         case UNKNOWN_STRING_TOKEN: 
         case UNKNOWN_NUMERIC_TOKEN: return p->expr;
         case SYSCALL_TOKEN:         return p->syscall;
+        case EXTERN_TOKEN:          return p->extrn;
         case IMPORT_SELECT_TOKEN:   return p->import;
         case ARRAY_TYPE_TOKEN:      return p->arraydecl;
         case CALL_TOKEN:            return p->funccall;
