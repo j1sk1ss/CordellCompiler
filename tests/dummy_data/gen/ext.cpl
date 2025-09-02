@@ -2,7 +2,7 @@
     extern ptr char frame_buffer;
     extern exfunc printf;
 
-    start {
+    start() {
         frame_buffer[0] = 'R';
         printf("Hello there! %s", "Hello!!!!");
         exit 0;

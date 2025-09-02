@@ -15,7 +15,8 @@
         return syscall(1, 1, tmp, 2);
     }
 
-    start {
+    start() {
         puts("Hello there!");
-    } exit 1;
+        exit 0;
+    }
 }

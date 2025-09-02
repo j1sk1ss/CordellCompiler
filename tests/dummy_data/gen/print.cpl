@@ -14,7 +14,7 @@
         return syscall(1, 1, string, strSize);
     }
 
-    start {
+    start() {
         puts("Hello there!");
         exit 0;
     }

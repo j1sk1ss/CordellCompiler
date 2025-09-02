@@ -3,8 +3,13 @@
         return 1;
     }
 
-    start {
+    glob function foo(int a) {
+        return a;
+    }
+
+    start() {
         int b = 10;
+        foo(1);
         exit pow(b, 2);
     };
 }

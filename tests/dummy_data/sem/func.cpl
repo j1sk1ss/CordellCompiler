@@ -7,7 +7,7 @@
         return d;
     }
 
-    start {
+    start() {
         foo('A');
         bar(100);
         exit 0;

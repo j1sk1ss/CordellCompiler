@@ -1,5 +1,5 @@
 {
-    start {
+    start() {
         if 1; {
             int a = 10;
             a = a + 20;
@@ -36,5 +36,7 @@
                 k = k + 10;
             }
         }
-    } exit c;
+        
+        exit c;
+    }
 }

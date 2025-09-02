@@ -5,7 +5,7 @@
         return a;
     }
 
-    start {
+    start() {
         int a = 0; : 8 :
         int b = 10; : 16 :
 
@@ -22,5 +22,5 @@
         int k = 10; : 8  :
         int f = 10; : 16 :
         exit k;
-    } exit 0;
+    }
 }

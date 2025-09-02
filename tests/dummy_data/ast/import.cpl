@@ -1,7 +1,7 @@
 from "string.cpl" import strlen;
 
 {
-    start {
+    start() {
         exit strlen("Hello world!");
     }
 }

@@ -6,7 +6,17 @@ int x86_64_generate_start(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
     iprintf(output, "push rbp\n");
     iprintf(output, "mov rbp, rsp\n");
     iprintf(output, "sub rsp, %d\n", ALIGN(get_stack_size(node, ctx)));
-    g->blockgen(node->child, output, ctx, g);
+
+    int arg_count = 0;
+    static char* args[] = { "[rsp]", "[rsp + 8]" };
+    for (ast_node_t* t = node->child; t; t = t->sibling) {
+        if (VRS_isblock(t->token)) g->blockgen(t, output, ctx, g);
+        else if (VRS_isdecl(t->token) && arg_count < 2) {
+            iprintf(output, "mov rax, %s\n", args[arg_count++]);
+            g->store(t->child, output, ctx, g);   
+        }
+    }
+
     return 1;
 }
 

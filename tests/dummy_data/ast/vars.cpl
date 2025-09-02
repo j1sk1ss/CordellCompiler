@@ -2,7 +2,7 @@
     glob int glint = 1;
     ro int glroint = 2;
 
-    start {
+    start() {
         long ow = 1234354576;
         int a = 0;
         int b = 10;

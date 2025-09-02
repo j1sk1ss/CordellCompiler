@@ -16,7 +16,7 @@ from "string.cpl" import puts, gets, itoa;
     glob arr bracketmap[10000, int] =;
     glob arr stack[10000, int] =;
 
-    start {
+    start() {
         puts("Brainfuck interpriter! Input code: ");
 
         int codelength = gets(code, 10000);

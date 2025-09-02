@@ -102,23 +102,7 @@ glob=0, line=4, ptr=0, ro=0, type=2, data=return
 glob=1, line=4, ptr=0, ro=0, type=3, data=1
 glob=0, line=5, ptr=0, ro=0, type=7, data=;
 glob=0, line=6, ptr=0, ro=0, type=1, data=}
-glob=0, line=7, ptr=0, ro=0, type=2, data=function
-glob=0, line=7, ptr=0, ro=0, type=2, data=puts
-glob=0, line=7, ptr=0, ro=0, type=2, data=ptr
-glob=0, line=7, ptr=0, ro=0, type=2, data=char
-glob=0, line=7, ptr=0, ro=0, type=2, data=string
-glob=0, line=7, ptr=0, ro=0, type=7, data=;
-glob=0, line=8, ptr=0, ro=0, type=1, data={
-glob=0, line=8, ptr=0, ro=0, type=2, data=long
-glob=0, line=8, ptr=0, ro=0, type=2, data=strSize
-glob=0, line=8, ptr=0, ro=0, type=0, data==
-glob=0, line=8, ptr=0, ro=0, type=2, data=strlen
-glob=0, line=8, ptr=0, ro=0, type=1, data=(
-glob=0, line=8, ptr=0, ro=0, type=2, data=string
-glob=0, line=8, ptr=0, ro=0, type=1, data=)
-glob=0, line=9, ptr=0, ro=0, type=7, data=;
-glob=0, line=9, ptr=0, ro=0, type=2, data=return
-glob=0, line=9, ptr=0, ro=0, type=2, data=syscall
+...
 glob=0, line=9, ptr=0, ro=0, type=1, data=(
 glob=1, line=9, ptr=0, ro=0, type=3, data=1
 glob=0, line=9, ptr=0, ro=0, type=8, data=,
@@ -151,20 +135,7 @@ glob=1, line=4, ptr=0, ro=0, type=3, data=1
 glob=0, line=5, ptr=0, ro=0, type=7, data=;
 glob=0, line=6, ptr=0, ro=0, type=14, data=}
 glob=0, line=7, ptr=0, ro=0, type=31, data=function
-glob=0, line=7, ptr=0, ro=0, type=2, data=puts
-glob=0, line=7, ptr=0, ro=0, type=15, data=ptr
-glob=0, line=7, ptr=0, ro=0, type=21, data=char
-glob=0, line=7, ptr=0, ro=0, type=2, data=string
-glob=0, line=7, ptr=0, ro=0, type=7, data=;
-glob=0, line=8, ptr=0, ro=0, type=13, data={
-glob=0, line=8, ptr=0, ro=0, type=18, data=long
-glob=0, line=8, ptr=0, ro=0, type=2, data=strSize
-glob=0, line=8, ptr=0, ro=0, type=43, data==
-glob=0, line=8, ptr=0, ro=0, type=2, data=strlen
-glob=0, line=8, ptr=0, ro=0, type=11, data=(
-glob=0, line=8, ptr=0, ro=0, type=2, data=string
-glob=0, line=8, ptr=0, ro=0, type=12, data=)
-glob=0, line=9, ptr=0, ro=0, type=7, data=;
+...
 glob=0, line=9, ptr=0, ro=0, type=27, data=return
 glob=0, line=9, ptr=0, ro=0, type=29, data=syscall
 glob=0, line=9, ptr=0, ro=0, type=11, data=(
@@ -212,7 +183,7 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
 Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/ast/cpl_parsers/README.md). Instead of wasting space, lets take a look on the visual example with translation of this code below:
 ```CPL
 {
-    start {
+    start(long argc, ptr char argv) {
         str stack_str = "String value";
         ptr str str_ptr = stack_str;
 
@@ -233,7 +204,7 @@ Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler
 }
 ```
 
-into the AST:
+into the `AST`:
 ```
 [ block ]
     { scope, id=1 }
@@ -324,9 +295,10 @@ Every program begins with the `start` entrypoint and ends with the `exit [return
 
 ```CPL
 {
-    start {
+    start() {
         ... // code 
-    } exit 0;
+        exit 0;
+    }
 }
 ```
 
@@ -337,9 +309,10 @@ Also every program can contain `pre-implemented` code blocks and data segments:
     function foo() { }
     glob int b = 0;
 
-    start {
+    start() {
         foo();
-    } exit 0;
+        exit 0;
+    }
 }
 ```
 
@@ -355,6 +328,7 @@ The following types are supported:
 
 ### Declaring Variables
 ```CPL
+{
     int a = 5;
     ro int aReadOnly = 5; : Const and global :
     glob int aGlobal = 5; : Global :
@@ -368,8 +342,9 @@ The following types are supported:
 
     ptr str data_name = "Hello, World!"; : Placed in data section :
 
-    arr farr[100, char] =; // Will allocate array with size 100 and elem size 1 byte
-    arr sarr[5, int] = { 1, 2, 3, 4, 5 }; // Will allocate array for provided elements
+    arr farr[100, char] =; : Will allocate array with size 100 and elem size 1 byte :
+    arr sarr[5, int] = { 1, 2, 3, 4, 5 }; : Will allocate array for provided elements :
+}
 ```
 
 ## Operations
@@ -385,12 +360,13 @@ Basic arithmetic and logical operations are supported:
 | `==`      | Equality            |
 | `!=`      | Inequality          |
 | `>` `<`   | Comparison          |
-| `&&` `\|\|`             | Logic operations |
-| `>>` `<<` `&`  `\|` `^` | Bit operations   |
+| `&&` `\|\|`             | Logic operations (Lazy Evaluations support) |
+| `>>` `<<` `&`  `\|` `^` | Bit operations                              |
 
 ## Loops and Conditions
 ### Switch expression
 ```CPL
+{
     switch (a) {
         case 1; {
         }
@@ -402,28 +378,33 @@ Basic arithmetic and logical operations are supported:
         default {
         }
     }
+}
 ```
 
 **Note:** Switch statement based on binary search algorithm, thats why, prefer switch in situations with many cases. In other hand, with three or less options, use if for avoiding overhead.
 
 ### If Condition
 ```CPL
+{
     if a > b; {
         : ... if code :
     }
     else {
         : ... else code :
     }
+}
 ```
 
 ### While Loop
 ```CPL
+{
     while (x < 10) && (y > 20); {
         : ... loop body : 
     }
     else {
         : At the end of the loop :
     }
+}
 ```
 
 ## Functions
@@ -431,42 +412,50 @@ Functions are declared using the `function` keyword.
 
 ### Function Signature:
 ```CPL
-    function [name]([type1] [name1], [type2] [name2], ...) {
-        : function body :
-        return something;
-    }
+[modifier] function [name]([type1] [name1], [type2] [name2], ...) {
+    : function body :
+    return something;
+}
 ```
 
 ### Example:
 ```CPL
-    function sumfunc(int a, int b) {
+{
+    glob function sumfunc(int a, int b) {
         return a + b;
     }
+}
 ```
 
 ### Calling the function
 ```CPL
+{
     int result = sumfunc(5, 10);
     : Functions without return values can be called directly :
     printStr(strptr, size);
+}
 ```
 
 ## Input/Output (via system calls)
 ### String Input/Output
 ```CPL
+{
     syscall(4, 1, ptr, size);
     syscall(3, 0, ptr, size);
+}
 ```
 
 ### Wrapping in a function:
 ```CPL
-    function printStr(ptr char buffer, int size) {
+{
+    glob function printStr(ptr char buffer, int size) {
         return syscall(4, 1, buffer, size); 
     }
 
-    function getStr(ptr char buffer, int size) {
+    glob function getStr(ptr char buffer, int size) {
         return syscall(3, 0, buffer, size); 
     }
+}
 ```
 
 ## Comments
@@ -487,6 +476,8 @@ If you want see more examples, please look into the folder `examples`.
 
 ### Example of Printing a Number:
 ```CPL
+extern exfunc printf;
+
 {
     function itoa(ptr char buffer, int dsize, int num) {
         int index = dsize - 1;
@@ -512,17 +503,22 @@ If you want see more examples, please look into the folder `examples`.
         return 1;
     }
 
-    start {
+    start() {
         arr buff[32, char] =;
         itoa(buff, 10, 1234567890)
-    } exit 0;
+        printf("%s", buff);
+        exit 0;
+    }
 }
 ```
 
 ### Example of Fibonacci N-number print:
 ```CPL
+from "string.cpl" import itoa;
+from "stdio.cpl" import prints;
+
 {
-    start {
+    start() {
         int a = 0;
         int b = 1;
         int c = 0;
@@ -532,13 +528,15 @@ If you want see more examples, please look into the folder `examples`.
             a = b;
             b = c;
             
-            arr buffer 40 char =;
+            arr buffer[40, char] =;
             itoa(buffer, 40, c);
             prints(buffer, 40);
 
             count = count + 1;
         }
-    } exit 1;
+
+        exit 0;
+    }
 }
 ```
 
@@ -549,7 +547,7 @@ If you want see more examples, please look into the folder `examples`.
     glob arr _blocks_info[100000, int] =;
     glob long _head = 0;
 
-    function memset(ptr char buffer, int val, long size) {
+    glob function memset(ptr char buffer, int val, long size) {
         long index = 0;
         while index < size; {
             buffer[index] = val;
@@ -559,7 +557,7 @@ If you want see more examples, please look into the folder `examples`.
         return 1;
     }
 
-    function malloc(long size) {
+    glob function malloc(long size) {
         if size > 0; {
             ptr int curr_mem = _mm_head;
             int block_index = 0;
@@ -579,7 +577,7 @@ If you want see more examples, please look into the folder `examples`.
         return -1;
     }
 
-    function free(ptr int mem) {
+    glob function free(ptr int mem) {
         int block_index = 0;
         while block_index < 100000; {
             if _blocks_info[block_index + 2] == mem; {

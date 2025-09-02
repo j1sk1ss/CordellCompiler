@@ -8,7 +8,7 @@ int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
             continue;
         }
 
-        if (t->token->t_type == FUNC_TOKEN) iprintf(output, "global __%s__\n", t->child->token->value);
+        if (t->token->t_type == FUNC_TOKEN && t->token->vinfo.glob) iprintf(output, "global __%s__\n", t->child->token->value);
         else if (t->token->t_type == IMPORT_SELECT_TOKEN) {
             for (ast_node_t* func = t->child->child; func; func = func->sibling) {
                 iprintf(output, "extern __%s__\n", func->token->value);

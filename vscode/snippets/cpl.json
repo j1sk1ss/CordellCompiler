@@ -4,7 +4,7 @@
     "prefix": "start",
     "body": [
       "{",
-      "\tstart {",
+      "\tstart(long argc, ptr char argv) {",
       "\t\t$0",
       "\t\texit ${1:0};",
       "\t}",

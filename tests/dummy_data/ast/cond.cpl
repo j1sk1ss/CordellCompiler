@@ -1,5 +1,5 @@
 {
-    start {
+    start() {
         while 1; {
             exit 1;
         }

@@ -194,7 +194,7 @@ int MRKP_variables(token_t* head) {
     scope_stack.top = -1;
 
     while (curr) {
-        if (curr->t_type == OPEN_BLOCK_TOKEN) scope_push(&scope_stack, ++s_id, 0);
+        if (curr->t_type == OPEN_BLOCK_TOKEN)       scope_push(&scope_stack, ++s_id, 0);
         else if (curr->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&scope_stack);
         if (curr->t_type == UNKNOWN_STRING_TOKEN || curr->t_type == UNKNOWN_CHAR_TOKEN) {
             for (int s = scope_stack.top; s >= 0; s--) {

@@ -1,5 +1,5 @@
 {
-    start {
+    start() {
         char a  = 256;
         short b = 100000;
         int c   = 100000;

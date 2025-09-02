@@ -106,7 +106,7 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
             continue;
         }
 #pragma endregion
-        if (VRS_isdecl(t->token)) {
+        if (VRS_isdecl(t->token) && VRS_intext(t->token)) {
             int varoff = -1;
             def_t* vars = scope_ctx.h;
             while (vars) {

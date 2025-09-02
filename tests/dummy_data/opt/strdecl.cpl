@@ -1,6 +1,6 @@
 {
     from "asd.cpl" import printf;
-    start {
+    start() {
         ro str rostring = "Read only string!";
         glob str globstring = "Global string!";
 
@@ -11,5 +11,7 @@
         if "Hello there!" == string; {
             exit 1;
         }
-    } exit c;
+
+        exit c;
+    }
 }
