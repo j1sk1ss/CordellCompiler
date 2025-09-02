@@ -6,9 +6,65 @@
       "{",
       "\tstart {",
       "\t\t$0",
-      "\t} exit ${1:0};",
+      "\t\texit ${1:0};",
+      "\t}",
       "}"
     ],
     "description": "CPL program skeleton"
+  },
+  "function-definition": {
+    "scope": "cpl",
+    "prefix": "function",
+    "body": [
+      "function name(...) {",
+      "\t: ... :",
+      "\treturn 0;",
+      "}"
+    ]
+  },
+  "if-statement": {
+    "scope": "cpl",
+    "prefix": "if",
+    "body": [
+      "if cond; {",
+      "\t: ... :",
+      "}",
+      "else {",
+      "\t: ... :",
+      "}"
+    ]
+  },
+  "while-loop": {
+    "scope": "cpl",
+    "prefix": "while",
+    "body": [
+      "while cond; {",
+      "\t: ... :",
+      "}",
+      "else {",
+      "\t: ... :",
+      "}"
+    ]
+  },
+  "syscall-invoke": {
+    "scope": "cpl",
+    "prefix": "syscall",
+    "body": [
+      "syscall(arg, ...);"
+    ]
+  },
+  "switch-statement": {
+    "scope": "cpl",
+    "prefix": "switch",
+    "body": [
+      "switch cond; {",
+      "\tcase ...; {",
+      "\t\t: ... :",
+      "\t}",
+      "\tdefault {",
+      "\t\t: ... :",
+      "\t}",
+      "}"
+    ]
   }
 }

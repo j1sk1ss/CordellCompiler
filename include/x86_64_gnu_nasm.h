@@ -9,8 +9,6 @@
 #include "genctx.h"
 #include "syntax.h"
 
-#define iprintf(out, fmt, ...) fprintf(out, fmt, ##__VA_ARGS__)
-
 /* x86_64_blockgen.c */
 int x86_64_generate_elem(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g);
 int x86_64_generate_block(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g);
@@ -32,11 +30,6 @@ int x86_64_generate_assignment(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
 int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g);
 
 /* x86_64_datagen.c */
-#define BSS            1
-#define NO_BSS         0
-#define DATA_SECTION   1
-#define RODATA_SECTION 2
-#define EXT_SECTION    3
 int get_stack_size(ast_node_t* root, gen_ctx_t* ctx);
 int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, gen_ctx_t* ctx, gen_t* g);
 

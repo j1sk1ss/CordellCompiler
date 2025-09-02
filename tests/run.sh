@@ -33,6 +33,7 @@ TEST_CODES[test_ast]="
     tests/dummy_data/ast/stat.cpl
     tests/dummy_data/ast/error.cpl
     tests/dummy_data/ast/ext.cpl
+    tests/dummy_data/ast/import.cpl
 "
 
 # ==== Optimization testing ====
@@ -68,6 +69,7 @@ TEST_CODES[test_gen]="
     tests/dummy_data/gen/stat.cpl
     tests/dummy_data/gen/print.cpl
     tests/dummy_data/ast/ext.cpl
+    tests/dummy_data/ast/import.cpl
 "
 
 # ======================================

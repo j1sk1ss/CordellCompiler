@@ -1,23 +1,8 @@
 FROM node:20-alpine
 
-RUN apk add --no-cache bash
-RUN apk add --no-cache \
-    git \
-    python3 \
-    make \
-    g++
-
+RUN apk add --no-cache bash git python3 make g++
 RUN npm install -g @vscode/vsce
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY . .
-
-RUN npm install
-RUN npm run build
-
-RUN vsce package
-RUN mkdir /output && mv *.vsix /output/
-
-VOLUME /output
+ENTRYPOINT [ "sh", "-c", "npm install && npm run build && vsce package --allow-missing-repository -o /output/extension.vsix" ]

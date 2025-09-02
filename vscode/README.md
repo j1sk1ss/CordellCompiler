@@ -10,5 +10,5 @@ vsce package
 ## Docker
 ```bash
 docker build -t cpl-extension .
-docker run --rm -v $(pwd)/output:/output cpl-extension
+docker run --rm -v $(pwd):/app -v $(pwd)/output:/output cpl-extension
 ```

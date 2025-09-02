@@ -2,7 +2,6 @@
 #define GENERATOR_H_
 
 #include "genctx.h"
-#include "x86_64_gnu_nasm.h"
 
 /*
 GEN_generate function generates ASM code for target platform.

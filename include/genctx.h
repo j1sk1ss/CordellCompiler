@@ -2,7 +2,15 @@
 #define GENCTX_H_
 
 #include "mm.h"
+#include "logg.h"
 #include "syntax.h"
+
+#define BSS            1
+#define NO_BSS         0
+#define DATA_SECTION   1
+#define RODATA_SECTION 2
+#define EXT_SECTION    3
+#define iprintf(out, fmt, ...) fprintf(out, fmt, ##__VA_ARGS__)
 
 typedef struct gen_ctx {
     short         label;
