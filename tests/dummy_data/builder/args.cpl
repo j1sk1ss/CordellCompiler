@@ -1,7 +1,7 @@
 {
     function strlen(ptr char string) {
         long s = 0;
-        while string; {
+        while string[0]; {
             string = string + 1;
             s = s + 1;
         }
@@ -15,7 +15,7 @@
     }
 
     start(long argc, ptr long argv) {
-        puts(argv[0]);
+        puts(argv[1]);
         exit 0;
     }
 }

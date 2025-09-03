@@ -57,10 +57,13 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
 
     switch (node->token->t_type) {
         case CHAR_VALUE_TOKEN:
-            iprintf(output, "mov al, %i\n", node->token->value[0]);
+            if (node->token->value[0]) iprintf(output, "mov al, %i\n", node->token->value[0]);
+            else iprintf(output, "xor rax, rax\n");
         break;
         case UNKNOWN_NUMERIC_TOKEN:
-            iprintf(output, "mov rax, %s\n", node->token->value);
+            int value = str_atoi(node->token->value);
+            if (value) iprintf(output, "mov rax, %d\n", value);
+            else iprintf(output, "xor rax, rax\n");
         break;
         case LONG_VARIABLE_TOKEN:
             iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
@@ -91,7 +94,13 @@ indexing:
                 if (!node->token->vinfo.ptr) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
                 else iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
                 iprintf(output, "add rax, rbx\n");
-                iprintf(output, "mov rax, [rax]\n");
+                
+                switch (elsize) {
+                    case 1: iprintf(output, "movzx rax, byte [rax]\n"); break;
+                    case 2: iprintf(output, "movzx rax, word [rax]\n"); break;
+                    case 4: iprintf(output, "mov eax, [rax]\n"); break;
+                    case 8: iprintf(output, "mov rax, [rax]\n"); break;
+                }
             }
             else { /* Loading array address to rax */
                 iprintf(output, "lea rax, %s\n", GET_ASMVAR(node));

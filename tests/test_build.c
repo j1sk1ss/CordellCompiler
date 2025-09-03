@@ -59,10 +59,10 @@ int main(int argc, char* argv[]) {
         .prms = {
             .save_asm = 1, .syntax = 1, 
             .asm_compiler = DEFAULT_ASM_COMPILER, 
-            .arch         = "macho64",
+            .arch         = DEFAULT_ARCH,
             .linker       = DEFAULT_LINKER, 
-            .linker_arch  = "-macosx_version_min 10.15", 
-            .linker_flags = "-lSystem -e _start", 
+            .linker_arch  = DEFAULT_LINKER_ARCH, 
+            .linker_flags = LINKER_FLAGS, 
             .save_path    = output
         }
     };
