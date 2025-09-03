@@ -13,9 +13,12 @@ int main(int argc, char* argv[]) {
     mm_init();
     params_t p = { 
         .save_asm = 0, .syntax = 0, 
-        .asm_compiler = DEFAULT_ASM_COMPILER, .arch = DEFAULT_ARCH,
-        .linker = DEFAULT_LINKER, .linker_arch = DEFAULT_LINKER_ARCH, .linker_flags = LINKER_FLAGS, 
-        .save_path = NULL 
+        .asm_compiler = DEFAULT_ASM_COMPILER, 
+        .arch         = DEFAULT_ARCH,
+        .linker       = DEFAULT_LINKER, 
+        .linker_arch  = DEFAULT_LINKER_ARCH, 
+        .linker_flags = LINKER_FLAGS, 
+        .save_path    = NULL 
     };
 
     builder_ctx_t bctx = { 
@@ -54,12 +57,13 @@ int main(int argc, char* argv[]) {
             .ifgen    = x86_64_generate_if,
             .whilegen = x86_64_generate_while,
             .switchgen= x86_64_generate_switch
-        }
+        },
+        .prms = &p
     };
 
     for (int i = 1; i < argc; i++) {
         if (!str_strcmp(argv[i], "-h")) {
-            printf("|==============================================\n");
+            printf("|=============================================\n");
             printf("|| Usage:\n"                                     );
             printf("|| Print syntax tree: --syntax\n"                );
             printf("|| Output location: -o / --output\n"             );
@@ -73,7 +77,7 @@ int main(int argc, char* argv[]) {
             printf("|=============================================\n");
             return EXIT_SUCCESS;
         }
-        else if (!str_strcmp(argv[i], "--syntax")) p.syntax = 1;
+        else if (!str_strcmp(argv[i], "--syntax"))   p.syntax = 1;
         else if (!str_strcmp(argv[i], "--save-asm")) p.save_asm = 1;
         else if (!str_strcmp(argv[i], "-o") || !str_strcmp(argv[i], "--output")) {
             if (i + 1 < argc) p.save_path = argv[++i];
@@ -106,7 +110,7 @@ int main(int argc, char* argv[]) {
 
     BLD_set_params(&p);
     int build_res = BLD_build(&bctx);
-    if (!build_res) {
+    if (build_res != 1) {
         print_error("Error via compilation! Code: %i", build_res);
         return EXIT_FAILURE;
     }

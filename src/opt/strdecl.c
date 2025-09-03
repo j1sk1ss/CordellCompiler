@@ -66,7 +66,6 @@ static int _unload_stringmap(stropt_ctx_t* ctx) {
 static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
     if (!root) return 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
-#pragma region Navigation
         if (VRS_isblock(t->token)) {
             _find_string(t, ctx);
             continue;
@@ -80,21 +79,6 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
             continue;
         }
 
-        switch (t->token->t_type) {
-            case IF_TOKEN:
-            case CASE_TOKEN:
-            case EXIT_TOKEN:
-            case CALL_TOKEN:
-            case WHILE_TOKEN:
-            case RETURN_TOKEN:
-            case SWITCH_TOKEN:
-            case SYSCALL_TOKEN:
-            case DEFAULT_TOKEN:
-            case ARRAY_TYPE_TOKEN: _find_string(t, ctx);                          continue;
-            case FUNC_TOKEN:       _find_string(t->child->sibling->sibling, ctx); continue;
-            default: break;
-        }
-#pragma endregion
         if (t->token->t_type == STRING_VALUE_TOKEN) {
             string_info_t info;
             if (_get_string(t->token->value, &info, ctx)) sprintf(t->token->value, "%s", info.name);
@@ -109,6 +93,8 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
             t->token->vinfo.glob = 1;
             t->token->vinfo.ro   = 1;
         }
+
+        _find_string(t, ctx);
     }
 
     return 1;

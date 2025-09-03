@@ -1,8 +1,8 @@
-/* gcc -Iinclude tests/test_ast.c src/markup.c src/syntax/*.c src/token.c std/*.c -g -O2 -o tests/test_ast */
 #include <stdio.h>
 #include <token.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <markup.h>
 #include <syntax.h>
 #include <cpl_parser.h>
 #include <deadscope.h>

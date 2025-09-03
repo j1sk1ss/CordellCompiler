@@ -1,12 +1,15 @@
 {
-    glob int glint = 1;
-    ro int glroint = 2;
+    function foo() {
+        glob int fg = 1;
+        return fg;
+    }
+
+    glob int g = 1;
+    ro int j = 2;
 
     start() {
         long ow = 1234354576;
-        int a = 0;
-        int b = 10;
-        int c = (a + c) * a;
+        int c = (1 + 2) * 3;
         
         {
             short dfg = 2;

@@ -111,6 +111,7 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, g
 
                 case IF_TOKEN:
                 case CASE_TOKEN:
+                case FUNC_TOKEN:
                 case EXIT_TOKEN:
                 case CALL_TOKEN:
                 case WHILE_TOKEN:
@@ -118,8 +119,7 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, g
                 case SWITCH_TOKEN:
                 case SYSCALL_TOKEN:
                 case DEFAULT_TOKEN:
-                case ARRAY_TYPE_TOKEN: g->datagen(t, output, section, bss, ctx, g);                          continue;
-                case FUNC_TOKEN:       g->datagen(t->child->sibling->sibling, output, section, bss, ctx, g); continue;
+                case ARRAY_TYPE_TOKEN: g->datagen(t, output, section, bss, ctx, g); continue;
                 default: break;
             }
         }

@@ -8,6 +8,7 @@
 #include "arrtb.h"
 #include "vartb.h"
 #include "syntax.h"
+#include "markup.h"
 #include "deadopt.h"
 #include "strdecl.h"
 #include "semantic.h"

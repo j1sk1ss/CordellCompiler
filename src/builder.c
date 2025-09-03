@@ -28,8 +28,8 @@ static int _print_ast(ast_node_t* node, int depth) {
     return 1;
 }
 
-static int _generate_raw_ast(builder_ctx_t* ctx, char index) {
-    int fd = open(ctx->files[index].path, O_RDONLY);
+static int _generate_raw_ast(builder_ctx_t* ctx) {
+    int fd = open(ctx->files[ctx->fcount].path, O_RDONLY);
     if (fd < 0) return -1;
 
     token_t* tokens = TKN_tokenize(fd);
@@ -46,17 +46,31 @@ static int _generate_raw_ast(builder_ctx_t* ctx, char index) {
         return -3;
     }
 
-    ctx->files[index].syntax->arrs = ART_create_ctx();
-    ctx->files[index].syntax->vars = VRT_create_ctx();
-    STX_create(tokens, ctx->files[index].syntax, &ctx->p);
-    if (!SMT_check(ctx->files[index].syntax->r)) {
-        AST_unload(ctx->files[index].syntax->r);
+    ctx->files[ctx->fcount].syntax = STX_create_ctx();
+    ctx->files[ctx->fcount].syntax->arrs = ART_create_ctx();
+    ctx->files[ctx->fcount].syntax->vars = VRT_create_ctx();
+    if (!STX_create(tokens, ctx->files[ctx->fcount].syntax, &ctx->p)) {
+        ART_destroy_ctx(ctx->files[ctx->fcount].syntax->arrs);
+        VRT_destroy_ctx(ctx->files[ctx->fcount].syntax->vars);
+        STX_destroy_ctx(ctx->files[ctx->fcount].syntax);
         TKN_unload(tokens);
         close(fd);
         return -4;
     }
 
-    ctx->files[index].toks = tokens;
+    if (!SMT_check(ctx->files[ctx->fcount].syntax->r)) {
+        AST_unload(ctx->files[ctx->fcount].syntax->r);
+        ART_destroy_ctx(ctx->files[ctx->fcount].syntax->arrs);
+        VRT_destroy_ctx(ctx->files[ctx->fcount].syntax->vars);
+        STX_destroy_ctx(ctx->files[ctx->fcount].syntax);
+        TKN_unload(tokens);
+        close(fd);
+        return -5;
+    }
+
+    ctx->files[ctx->fcount].toks = tokens;
+    ctx->fcount++;
+
     close(fd);
     return 1;
 }
@@ -64,7 +78,7 @@ static int _generate_raw_ast(builder_ctx_t* ctx, char index) {
 #define RESULT(code) code > 0 ? "OK" : "ERROR", code 
 static int _compile_object(builder_ctx_t* ctx, char index) {
     int optres = OPT_strpack(ctx->files[index].syntax);
-    print_log("String optimization of [%s]... [%s (%i)]", obj->path, RESULT(optres));
+    print_log("String optimization of [%s]... [%s (%i)]", ctx->files[index].path, RESULT(optres));
 
     int is_fold_vars = 0;
     do {
@@ -106,6 +120,7 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
     ART_destroy_ctx(ctx->files[index].syntax->arrs);
     VRT_unload(ctx->files[index].syntax->vars);
     VRT_destroy_ctx(ctx->files[index].syntax->vars);
+    STX_destroy_ctx(ctx->files[index].syntax);
 
     print_log("Optimization of [%s] complete", ctx->files[index].path);
     return 1;
@@ -114,7 +129,7 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
 int BLD_add_target(char* input, builder_ctx_t* ctx) {
     ctx->files[ctx->fcount].path = input;
     print_log("Raw AST generation for [%s]...", input);
-    int res = _generate_raw_ast(ctx, ctx->fcount++);
+    int res = _generate_raw_ast(ctx);
     print_log("AST-gen result [%s (%i)]", RESULT(res));
     return 1;
 }
@@ -129,8 +144,8 @@ int BLD_build(builder_ctx_t* ctx) {
     OPT_deadfunc_clear(&dfctx);
 
     /* Production of .asm files with temporary saving in files directory */
-    for (int i = ctx->fcount - 1; i >= 0; i--) {
-        int res = _compile_object(&ctx->files[i], i);
+    for (int i = 0; i < ctx->fcount; i++) {
+        int res = _compile_object(ctx, i);
         if (!res) return res;
     }
 

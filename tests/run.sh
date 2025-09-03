@@ -72,6 +72,12 @@ TEST_CODES[test_gen]="
     tests/dummy_data/ast/import.cpl
 "
 
+TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
+TEST_CODES[test_build]="
+    tests/dummy_data/builder/args.cpl
+    tests/dummy_data/builder/print.cpl
+"
+
 # ======================================
 
 DEBUGGER=""
@@ -134,7 +140,7 @@ for i in "${!test_names[@]}"; do
 
     echo "== Compilation: $test_file =="
     gcc-14 $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
-        -DWARNING_LOGS -DERROR_LOGS -g -O0 -o "tests/$test_name"
+        -DWARNING_LOGS -DERROR_LOGS -DLOGGING_LOGS -DINFO_LOGS -DDEBUG_LOGS -g -O0 -o "tests/$test_name"
 
     if [[ -n "$DEBUGGER" ]]; then
         echo "== Debugging with $DEBUGGER: $test_name ($code_file) =="

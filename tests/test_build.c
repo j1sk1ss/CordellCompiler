@@ -16,6 +16,9 @@ int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
     mm_init();
 
+    char output[256] = { 0 };
+    sprintf(output, "%s.bin", argv[1]);
+
     builder_ctx_t bctx = { 
         .p = {
             .block      = cpl_parse_block,
@@ -52,6 +55,15 @@ int main(int argc, char* argv[]) {
             .ifgen    = x86_64_generate_if,
             .whilegen = x86_64_generate_while,
             .switchgen= x86_64_generate_switch
+        },
+        .prms = {
+            .save_asm = 1, .syntax = 1, 
+            .asm_compiler = DEFAULT_ASM_COMPILER, 
+            .arch         = "macho64",
+            .linker       = DEFAULT_LINKER, 
+            .linker_arch  = "-macosx_version_min 10.15", 
+            .linker_flags = "-lSystem -e _start", 
+            .save_path    = output
         }
     };
 

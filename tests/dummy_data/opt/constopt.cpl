@@ -21,16 +21,15 @@
         }
 
         while (a - b) > 0; {
-            a = a + a;
-            b = b + b;
+            
         }
 
         switch a + b; {
             case c; {
-                a = b;
+                
             }
             case d; {
-                b = a;
+                
             }
             default {
                 f = b + a;

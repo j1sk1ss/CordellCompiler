@@ -3,27 +3,11 @@
 static int _find_muldiv(ast_node_t* root, int* fold) {
     if (!root) return 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
-#pragma region Navigation
         if (VRS_isblock(t->token)) {
             _find_muldiv(t, fold);
             continue;
         }
 
-        switch (t->token->t_type) {
-            case IF_TOKEN:
-            case CASE_TOKEN:
-            case EXIT_TOKEN:
-            case CALL_TOKEN:
-            case WHILE_TOKEN:
-            case RETURN_TOKEN:
-            case SWITCH_TOKEN:
-            case SYSCALL_TOKEN:
-            case DEFAULT_TOKEN:
-            case ARRAY_TYPE_TOKEN: _find_muldiv(t, fold);                          continue;
-            case FUNC_TOKEN:       _find_muldiv(t->child->sibling->sibling, fold); continue;
-            default: break;
-        }
-#pragma endregion
         if (VRS_isoperand(t->token) || VRS_isdecl(t->token)) {
             _find_muldiv(t, fold);
 
@@ -86,6 +70,8 @@ static int _find_muldiv(ast_node_t* root, int* fold) {
             AST_unload(t->child);
             t->child = NULL;
         }
+
+        _find_muldiv(t, fold);
     }
 
     return 1;
