@@ -3,7 +3,7 @@
     glob arr _blocks_info[100000, int] =;
     glob long _head = 0;
 
-    function memset(ptr char buffer, int val, long size) {
+    glob function memset(ptr char buffer, int val, long size) {
         long index = 0;
         while index < size; {
             buffer[index] = val;
@@ -13,7 +13,7 @@
         return 1;
     }
 
-    function malloc(long size) {
+    glob function malloc(long size) {
         if size > 0; {
             ptr int curr_mem = _mm_head;
             int block_index = 0;
@@ -33,7 +33,7 @@
         return -1;
     }
 
-    function free(ptr int mem) {
+    glob function free(ptr int mem) {
         int block_index = 0;
         while block_index < 100000; {
             if _blocks_info[block_index + 2] == mem; {

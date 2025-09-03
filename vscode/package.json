@@ -2,7 +2,8 @@
   "name": "cpl-lang-simple",
   "displayName": "CPL (Cordell) — Language support",
   "description": "VS Code syntax highlighting + simple autocomplete for Cordell (CPL)",
-  "version": "0.0.1",
+  "icon": "./cpl.png",
+  "version": "0.0.2",
   "publisher": "j1sk1ss",
   "engines": {
     "vscode": "^1.80.0"

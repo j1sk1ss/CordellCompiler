@@ -4,7 +4,7 @@
     "prefix": "start",
     "body": [
       "{",
-      "\tstart(long argc, ptr char argv) {",
+      "\tstart(long argc, ptr long argv) {",
       "\t\t$0",
       "\t\texit ${1:0};",
       "\t}",
@@ -16,7 +16,7 @@
     "scope": "cpl",
     "prefix": "function",
     "body": [
-      "function name(...) {",
+      "function name(: ... :) {",
       "\t: ... :",
       "\treturn 0;",
       "}"
@@ -66,5 +66,80 @@
       "\t}",
       "}"
     ]
+  },
+  "CPL Keywords Extern": {
+    "prefix": "extern",
+    "body": "extern",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords Exfunc": {
+    "prefix": "exfunc",
+    "body": "exfunc",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords From": {
+    "prefix": "from",
+    "body": "from",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords Import": {
+    "prefix": "import",
+    "body": "import",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords Exit": {
+    "prefix": "exit",
+    "body": "exit",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords Return": {
+    "prefix": "return",
+    "body": "return",
+    "description": "CPL keyword"
+  },
+  "CPL Modifiers RO": {
+    "prefix": "ro",
+    "body": "ro",
+    "description": "CPL modifier"
+  },
+  "CPL Modifiers GLOB": {
+    "prefix": "glob",
+    "body": "glob",
+    "description": "CPL modifier"
+  },
+  "CPL Types PTR": {
+    "prefix": "ptr",
+    "body": "ptr",
+    "description": "CPL u64 type"
+  },
+  "CPL Types String": {
+    "prefix": "str",
+    "body": "str",
+    "description": "CPL str type"
+  },
+  "CPL Types Long": {
+    "prefix": "long",
+    "body": "long",
+    "description": "CPL i64 type"
+  },
+  "CPL Types Int": {
+    "prefix": "int",
+    "body": "int",
+    "description": "CPL i32 type"
+  },
+  "CPL Types Short": {
+    "prefix": "short",
+    "body": "short",
+    "description": "CPL i16 type"
+  },
+  "CPL Types Char": {
+    "prefix": "char",
+    "body": "char",
+    "description": "CPL i8 type"
+  },
+  "CPL Types Array": {
+    "prefix": "arr",
+    "body": "arr name[type, size] =;",
+    "description": "CPL array type"
   }
 }

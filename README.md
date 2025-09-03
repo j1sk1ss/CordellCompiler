@@ -183,7 +183,7 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
 Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/ast/cpl_parsers/README.md). Instead of wasting space, lets take a look on the visual example with translation of this code below:
 ```CPL
 {
-    start(long argc, ptr char argv) {
+    start(long argc, ptr long argv) {
         str stack_str = "String value";
         ptr str str_ptr = stack_str;
 
@@ -200,7 +200,8 @@ Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler
         strptr = c;
 
         arr large_arr[5, char] = {1,2,256,4,5,6,7,8,9,10};
-    } exit 0;
+        exit 0;
+    }
 }
 ```
 
@@ -256,8 +257,8 @@ into the `AST`:
                 [8] (t=3, size=0, off=0, s_id=0, glob)
                 [9] (t=3, size=0, off=0, s_id=0, glob)
                 [10] (t=3, size=0, off=0, s_id=0, glob)
-        [exit] (t=28, size=0, off=0, s_id=0)
-            [0] (t=3, size=0, off=0, s_id=0, glob)
+            [exit] (t=28, size=0, off=0, s_id=0)
+                [0] (t=3, size=0, off=0, s_id=0, glob)
 ```
 
 # Semantic check
@@ -296,7 +297,7 @@ Every program begins with the `start` entrypoint and ends with the `exit [return
 ```CPL
 {
     start() {
-        ... // code 
+        ...
         exit 0;
     }
 }

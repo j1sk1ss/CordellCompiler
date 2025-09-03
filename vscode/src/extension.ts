@@ -26,10 +26,14 @@ export function activate(context: vscode.ExtensionContext) {
 
         Example:
         
-        start {
-          int a = 10;
-          short b = a + 20;
-          exit a;
+        start(long argc, ptr long argv) {
+          long a = 0;
+          while a < argc; {
+            ptr char arg = argv[a];
+            a = a + 1;
+          }
+
+          exit 0;
         }
         `,
           ptr: `**ptr** — Pointer data type.

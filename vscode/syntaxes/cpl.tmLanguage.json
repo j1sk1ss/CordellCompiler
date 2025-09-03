@@ -23,11 +23,7 @@
       "patterns": [
         {
           "name": "keyword.control.cpl",
-          "match": "\\b(from|import|start|exit|return|if|else|while|switch|case|default|syscall)\\b"
-        },
-        {
-          "name": "keyword.declaration.cpl",
-          "match": "\\b(function|extern|exfunc)\\b"
+          "match": "\\b(extern|from|import|start|exit|function|return|if|else|while|switch|case|default|syscall)\\b"
         },
         {
           "name": "entity.name.function.cpl",
@@ -43,7 +39,7 @@
       "patterns": [
         {
           "name": "storage.type.cpl",
-          "match": "\\b(long|int|short|char|str|arr|ptr)\\b"
+          "match": "\\b(long|int|short|char|str|arr|ptr|exfunc)\\b"
         }
       ]
     },
