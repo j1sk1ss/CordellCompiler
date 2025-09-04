@@ -68,8 +68,9 @@ TEST_CODES[test_gen]="
     tests/dummy_data/gen/oper.cpl
     tests/dummy_data/gen/stat.cpl
     tests/dummy_data/gen/print.cpl
-    tests/dummy_data/ast/ext.cpl
-    tests/dummy_data/ast/import.cpl
+    tests/dummy_data/gen/ext.cpl
+    tests/dummy_data/gen/import.cpl
+    tests/dummy_data/gen/crc32.cpl
 "
 
 TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
@@ -77,6 +78,7 @@ TEST_CODES[test_build]="
     tests/dummy_data/builder/args.cpl
     tests/dummy_data/builder/print.cpl
     tests/dummy_data/builder/brfck.cpl
+    tests/dummy_data/builder/crc32.cpl
 "
 
 # ======================================

@@ -19,7 +19,7 @@
       "function name(: ... :) {",
       "\t: ... :",
       "\treturn 0;",
-      "}"
+      "} : -> type :"
     ]
   },
   "if-statement": {
@@ -139,7 +139,7 @@
   },
   "CPL Types Array": {
     "prefix": "arr",
-    "body": "arr name[type, size] =;",
+    "body": "arr name[0, type] =;",
     "description": "CPL array type"
   }
 }

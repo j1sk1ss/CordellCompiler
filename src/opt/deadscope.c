@@ -15,6 +15,11 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
             continue;
         }
 
+        if (
+            curr->token->t_type == EXIT_TOKEN ||
+            curr->token->t_type == RETURN_TOKEN
+        ) *affect = 1;
+
         if (curr->token->t_type == START_TOKEN) {
             *affect = 1;
             _find_scope(curr, affect, s_id);

@@ -76,8 +76,8 @@ typedef enum {
     NCOMPARE_TOKEN,      // !=
     LOWER_TOKEN,         // <
     LARGER_TOKEN,        // >
-    BITMOVE_LEFT_TOKEN,  // >>
-    BITMOVE_RIGHT_TOKEN, // <<
+    BITMOVE_LEFT_TOKEN,  // <<
+    BITMOVE_RIGHT_TOKEN, // >>
     BITAND_TOKEN,        // &
     BITOR_TOKEN,         // |
     BITXOR_TOKEN,        // ^

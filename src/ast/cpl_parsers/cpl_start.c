@@ -25,7 +25,6 @@ ast_node_t* cpl_parse_start(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     }
 
     forward_token(curr, 1);
-
     ast_node_t* body = p->block(curr, ctx, CLOSE_BLOCK_TOKEN, p);
     AST_add_node(node, body);
 
