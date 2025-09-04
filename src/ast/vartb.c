@@ -53,8 +53,11 @@ static variable_info_t* _create_variable_info(
         str_strncpy(var->name, name, TOKEN_MAX_SIZE);
     }
 
-    ctx->offset = ALIGN(ctx->offset + size);
-    var->offset = ctx->offset;
+    if (!ro && !glob) {
+        ctx->offset = ALIGN(ctx->offset + size);
+        var->offset = ctx->offset;
+    }
+
     var->size = size;
     var->next = NULL;
     return var;

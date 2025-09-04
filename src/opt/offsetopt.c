@@ -2,8 +2,10 @@
 
 typedef struct def {
     char        name[TOKEN_MAX_SIZE];
+    token_t*    token;
     int         size;
     int         offset;
+    short       s_id;
     struct def* next;
 } def_t;
 
@@ -11,19 +13,20 @@ typedef struct {
     def_t* h;
 } recalcoff_ctx_t;
 
-static def_t* _create_def(const char* name, int size, int offset) {
+static def_t* _create_def(const char* name, int size, int offset, token_t* tkn) {
     def_t* def = (def_t*)mm_malloc(sizeof(def_t));
     if (!def) return NULL;
     str_strncpy(def->name, name, TOKEN_MAX_SIZE);
     def->size   = size;
     def->offset = offset;
+    def->token  = tkn;
     def->next   = NULL;
     return def;
 }
 
-static int _register_var(const char* name, int size, int offset, recalcoff_ctx_t* ctx) {
+static int _register_var(const char* name, int size, int offset, token_t* tkn, recalcoff_ctx_t* ctx) {
     def_t* h = ctx->h;
-    def_t* def = _create_def(name, size, offset);
+    def_t* def = _create_def(name, size, offset, tkn);
     if (!def) return 0;
 
     if (!h) {
@@ -52,16 +55,12 @@ static int _unload_ctx(recalcoff_ctx_t* ctx) {
 static int _update_offsets(ast_node_t* r, const char* name, int offset) {
     if (!r) return 0;
     for (ast_node_t* t = r; t; t = t->sibling) {
-#pragma region Navigation
-        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(t->token)) {
             _update_offsets(t->child, name, offset);
             continue;
         }
-#pragma endregion
-        if (!str_strcmp(t->token->value, name)) {
-            t->info.offset = offset;
-        }
 
+        if (!str_strcmp(t->token->value, name)) t->info.offset = offset;
         _update_offsets(t->child, name, offset);
     }
 
@@ -71,12 +70,11 @@ static int _update_offsets(ast_node_t* r, const char* name, int offset) {
 static int _find_usage(ast_node_t* r, const char* name) {
     if (!r) return 0;
     for (ast_node_t* t = r; t; t = t->sibling) {
-#pragma region Navigation
-        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(t->token)) {
             if (_find_usage(t->child, name)) return 1;
             continue;
         }
-#pragma endregion
+
         if (!str_strcmp(t->token->value, name)) return 1;
         if (_find_usage(t->child, name)) return 1;
     }
@@ -89,24 +87,18 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
 
     scope_elem_t el;
     scope_top(&ctx->scopes.stack, &el);
-    int offset = el.offset;
+    int offset = el.id >= 0 ? el.offset : 0;
 
     recalcoff_ctx_t scope_ctx = { .h = NULL };
     for (ast_node_t* t = r->child; t; t = t->sibling) {
-#pragma region Navigation
-        if (!t->token) {
-            _recalc_offs(t, ctx);
-            continue;
-        }
-
         if (VRS_isblock(t->token)) {
             scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, offset);
             _recalc_offs(t, ctx);
             scope_pop(&ctx->scopes.stack);
             continue;
         }
-#pragma endregion
-        if (VRS_isdecl(t->token) && VRS_intext(t->token)) {
+        
+        if (VRS_isdecl(t->token) && t->child && VRS_intext(t->token)) {
             int varoff = -1;
             def_t* vars = scope_ctx.h;
             while (vars) {
@@ -117,9 +109,8 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
                     def_t* nvars = scope_ctx.h;
                     while (nvars) {
                         if (
-                            vars != nvars && 
-                            varoff == nvars->offset && 
-                            _find_usage(t, nvars->name)
+                            (vars != nvars && varoff == nvars->offset && _find_usage(t, nvars->name)) || 
+                            !VRS_one_slot(vars->token)
                         ) {
                             occupied = 1;
                             break;
@@ -142,15 +133,17 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
                 varoff = offset;
             }
 
-            offset = varoff;
+            // offset = varoff;
             t->info.offset = varoff;
 
-            _register_var(name->token->value, name->info.size, varoff, &scope_ctx);
+            _register_var(name->token->value, name->info.size, varoff, name->token, &scope_ctx);
             _update_offsets(t, name->token->value, varoff);
             continue;
         }
 
+        scope_push(&ctx->scopes.stack, ctx->scopes.s_id, offset);
         _recalc_offs(t, ctx);
+        scope_pop(&ctx->scopes.stack);
     }
 
     _unload_ctx(&scope_ctx);

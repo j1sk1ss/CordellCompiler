@@ -8,7 +8,7 @@ static int _find_muldiv(ast_node_t* root, int* fold) {
             continue;
         }
 
-        if (VRS_isoperand(t->token) || VRS_isdecl(t->token)) {
+        if (VRS_isoperand(t->token) || (VRS_isdecl(t->token) && t->child)) {
             _find_muldiv(t, fold);
 
             ast_node_t* left = t->child;

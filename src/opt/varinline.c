@@ -53,8 +53,12 @@ static int _inline_var(
 
         if (!str_strncmp(varname, t->token->value, TOKEN_MAX_SIZE) && t->info.s_id == s_id) {
             snprintf(t->token->value, TOKEN_MAX_SIZE, "%d", value);
+            
             t->token->t_type = t->token->t_type != CASE_TOKEN ? UNKNOWN_NUMERIC_TOKEN : CASE_TOKEN;
             t->token->vinfo.glob = t->token->t_type != CASE_TOKEN ? 1 : 0;
+            
+            t->info.offset = 0;
+            t->info.size   = BASE_BITNESS / 8;
         }   
     }
 

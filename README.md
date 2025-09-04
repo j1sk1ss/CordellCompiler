@@ -425,6 +425,10 @@ Functions are declared using the `function` keyword.
     glob function sumfunc(int a, int b) {
         return a + b;
     }
+
+    function foo(: no args :) {
+        return;
+    }
 }
 ```
 
@@ -473,7 +477,7 @@ Comments are written as annotations `:` within functions and code blocks:
 ```
 
 # Examples
-If you want see more examples, please look into the folder `examples`. 
+If you want see more examples, please look into the folder `examples`. Also [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/vscode/README.md) is a VSCode extension for this hobby language.
 
 ### Example of Printing a Number:
 ```CPL

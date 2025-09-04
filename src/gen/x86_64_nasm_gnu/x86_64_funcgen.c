@@ -20,7 +20,7 @@ int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
 }
 
 int x86_64_generate_return(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
-    g->elemegen(node->child, output, ctx, g);
+    if (node->child) g->elemegen(node->child, output, ctx, g);
     iprintf(output, "mov rsp, rbp\n");
     iprintf(output, "pop rbp\n");
     iprintf(output, "ret\n");

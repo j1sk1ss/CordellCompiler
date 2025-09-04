@@ -32,6 +32,10 @@ ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     if (!node) return NULL;
     
     forward_token(curr, 1);
+    if (VRS_isclose(*curr)) {
+        return node;
+    }
+
     ast_node_t* exp_node = p->expr(curr, ctx, p);
     if (!exp_node) {
         print_error("AST error during return parsing! line=%i", (*curr)->lnum);

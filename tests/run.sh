@@ -76,6 +76,7 @@ TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/ast/*.c src/ast/*/*.c src/
 TEST_CODES[test_build]="
     tests/dummy_data/builder/args.cpl
     tests/dummy_data/builder/print.cpl
+    tests/dummy_data/builder/brfck.cpl
 "
 
 # ======================================

@@ -1,17 +1,18 @@
 #include <x86_64_gnu_nasm.h>
 
 int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
-    int size = 0;
     if (!root) return 0;
+
+    int size = 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
-#pragma region Navigation
-        if (!t->token || t->token->t_type == SCOPE_TOKEN) {
+        if (VRS_isblock(t->token)) {
             size = MAX(size, get_stack_size(t, ctx));
             continue;
         }
 
-        if (t->token->t_type == FUNC_TOKEN) continue;
-        size = MAX(size, t->info.offset);
+        if (t->token && t->token->t_type == FUNC_TOKEN) continue;
+        if (!VRS_intext(t->token)) continue;
+        size = MAX(MAX(t->info.offset, get_stack_size(t, ctx)), size);
     }
 
     return size;
@@ -26,16 +27,15 @@ static int _generate_raw(ast_node_t* entry, FILE* output) {
         case SHORT_TYPE_TOKEN: iprintf(output, "__%s__: resw 1\n", entry->child->token->value); break;
         case CHAR_TYPE_TOKEN:  iprintf(output, "__%s__: resb 1\n", entry->child->token->value); break;
         case ARRAY_TYPE_TOKEN: {
-            ast_node_t* size   = entry->child;
+            ast_node_t* name   = entry->child;
+            ast_node_t* size   = name->sibling;
             ast_node_t* t_type = size->sibling;
-            ast_node_t* name   = t_type->sibling;
-            if (!name->sibling) {
-                char* directive = "resb";
-                if (t_type->token->t_type == SHORT_TYPE_TOKEN)     directive = "resw";
-                else if (t_type->token->t_type == INT_TYPE_TOKEN)  directive = "resd";
-                else if (t_type->token->t_type == LONG_TYPE_TOKEN) directive = "resq";
-                iprintf(output, "__%s__: %s %s\n", name->token->value, directive, size->token->value);
-            }
+
+            char* directive = "resb";
+            if (t_type->token->t_type == SHORT_TYPE_TOKEN)     directive = "resw";
+            else if (t_type->token->t_type == INT_TYPE_TOKEN)  directive = "resd";
+            else if (t_type->token->t_type == LONG_TYPE_TOKEN) directive = "resq";
+            iprintf(output, "__%s__: %s %s\n", name->token->value, directive, size->token->value);
         }
         break;
         default: break;
@@ -99,8 +99,14 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, g
             ((section == DATA_SECTION)  && t->token->vinfo.glob || /* And this is filter two types */
             (section == RODATA_SECTION) && t->token->vinfo.ro)
         ) {
-            if (t->child->sibling && !bss) _generate_init(t, output); /* Has init value */
-            else if (!t->child->sibling && bss) _generate_raw(t, output);
+            if (t->token->t_type != ARRAY_TYPE_TOKEN) {
+                if (t->child->sibling && !bss)      _generate_init(t, output);
+                else if (!t->child->sibling && bss) _generate_raw(t, output);
+            }
+            else {
+                if (t->child->sibling->sibling->sibling && !bss)      _generate_init(t, output);
+                else if (!t->child->sibling->sibling->sibling && bss) _generate_raw(t, output);
+            }
         }
         else if (VRS_intext(t->token)) {
             switch (t->token->t_type) {
