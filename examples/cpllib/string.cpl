@@ -1,8 +1,9 @@
 {
     glob function strlen(ptr char string) {
         long index = 0;
-        while string[index] != 0; {
+        while dref string; {
             index = index + 1;
+            string = string + 1;
         }
 
         return index;
