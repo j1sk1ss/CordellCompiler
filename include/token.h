@@ -32,6 +32,8 @@ typedef enum {
     CLOSE_BLOCK_TOKEN,
 
     // Types
+    DREF_TYPE_TOKEN,  // dref
+    REF_TYPE_TOKEN,   // ref
     PTR_TYPE_TOKEN,   // ptr
     RO_TYPE_TOKEN,    // ro
     GLOB_TYPE_TOKEN,  // glob
@@ -98,10 +100,12 @@ typedef enum {
 } token_type_t;
 
 typedef struct {
-    char ro;   /* Is read only flag */
-    char glob; /* Is global flag */
-    char ptr;  /* Is pointer flag */
-    char ext;  /* Is extern flag */
+    char ro;   /* Is read only flag   */
+    char glob; /* Is global flag      */
+    char ptr;  /* Is pointer flag     */
+    char ref;  /* Is reference flag   */
+    char dref; /* Is dereference flag */
+    char ext;  /* Is extern flag      */
 } tkn_var_info_t;
 
 typedef struct token {

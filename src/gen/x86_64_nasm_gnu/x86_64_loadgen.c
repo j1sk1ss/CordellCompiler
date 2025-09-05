@@ -3,7 +3,12 @@
 /* Load to pointer destination */
 int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node->token) return 0;
-    if (VRS_isptr(node->token)) goto stackable;
+    if (VRS_isptr(node->token)) {
+        if (node->token->vinfo.dref) iprintf(output, "mov rax, [%s]\n", GET_ASMVAR(node));
+        else goto indexing;
+        return 1;
+    }
+
     switch (node->token->t_type) {
         case CHAR_VALUE_TOKEN:
             iprintf(output, "mov rax, %i\n", node->token->value[0]);
@@ -19,7 +24,7 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
         break;
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: {
-stackable:
+indexing:
             ast_node_t* off = node->child;
             if (off) { /* Loading data from array by offset */
                 array_info_t arr_info = { .el_size = 1 };
@@ -49,9 +54,13 @@ stackable:
 /* Load to destination */
 int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node->token) return 0;
-    if (node->token->vinfo.ptr) {
+    if (VRS_isptr(node->token)) {
         if (node->child) goto indexing;
-        else iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
+        else {
+            if (node->token->vinfo.dref) iprintf(output, "mov rax, [%s]\n", GET_ASMVAR(node));
+            else iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
+        }
+
         return 1;
     }
 

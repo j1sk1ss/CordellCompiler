@@ -334,6 +334,9 @@ The following types are supported:
     ro int aReadOnly = 5; : Const and global :
     glob int aGlobal = 5; : Global :
 
+    ptr int g = ref a; : Pointer to a variable :
+    dref g = 6;
+
     short b = 1234 + (432 * (2 + 12)) / 87;
     char c = 'X';
 

@@ -1,7 +1,7 @@
 {
     function strlen(ptr char string) {
         long s = 0;
-        while string[0]; {
+        while dref string; {
             string = string + 1;
             s = s + 1;
         }

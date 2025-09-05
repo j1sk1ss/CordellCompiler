@@ -107,6 +107,16 @@
     "body": "glob",
     "description": "CPL modifier"
   },
+  "CPL Types REF": {
+    "prefix": "ref",
+    "body": "ref",
+    "description": "CPL reference operation"
+  },
+  "CPL Types DREF": {
+    "prefix": "dref",
+    "body": "dref",
+    "description": "CPL de-reference operation"
+  },
   "CPL Types PTR": {
     "prefix": "ptr",
     "body": "ptr",

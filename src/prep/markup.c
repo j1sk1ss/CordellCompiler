@@ -29,6 +29,8 @@ static const markup_token_t _markups[] = {
     { .value = SYSCALL_COMMAND,        .type = SYSCALL_TOKEN       },
 
     /* Variable tokens. */
+    { .value = DREF_COMMAND,           .type = DREF_TYPE_TOKEN     },
+    { .value = REF_COMMAND,            .type = REF_TYPE_TOKEN      },
     { .value = PTR_COMMAND,            .type = PTR_TYPE_TOKEN      },
     { .value = RO_COMMAND,             .type = RO_TYPE_TOKEN       },
     { .value = GLOB_COMMAND,           .type = GLOB_TYPE_TOKEN     },
@@ -120,9 +122,11 @@ int MRKP_variables(token_t* head) {
     scope_stack_t scope_stack = { .top = -1 };
 
     markp_ctx curr_ctx = { 0 };
-    token_t* curr = head;
     int var_count = 0;
     variable_t* vars = NULL;
+
+    token_t* prev = NULL;
+    token_t* curr = head;
 
     while (curr) {
         switch (curr->t_type) {
@@ -141,10 +145,19 @@ int MRKP_variables(token_t* head) {
                 break;
             }
 
-            case RO_TYPE_TOKEN:   curr_ctx.ro   = 1; break;
             case EXTERN_TOKEN:    curr_ctx.ext  = 1;
-            case GLOB_TYPE_TOKEN: curr_ctx.glob = 1; break;
-            case PTR_TYPE_TOKEN:  curr_ctx.ptr  = 1; break;
+            case GLOB_TYPE_TOKEN: curr_ctx.glob = 1; goto _f_remove_token;
+            case PTR_TYPE_TOKEN:  curr_ctx.ptr  = 1; goto _f_remove_token;
+            case RO_TYPE_TOKEN: {
+                curr_ctx.ro = 1;
+_f_remove_token:
+                if (prev) prev->next = curr->next;
+                else head = curr->next;
+                token_t* to_free = curr;
+                curr = curr->next;
+                mm_free(to_free);
+                continue;
+            }
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:
@@ -186,16 +199,38 @@ int MRKP_variables(token_t* head) {
             default: break;
         }
 
+        prev = curr;
         curr = curr->next;
     }
 
     s_id = 0;
-    curr = head;
     scope_stack.top = -1;
 
+    prev = NULL;
+    curr = head;
+    
+    int dref = 0;
+    int ref  = 0;
     while (curr) {
         if (curr->t_type == OPEN_BLOCK_TOKEN)       scope_push(&scope_stack, ++s_id, 0);
         else if (curr->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&scope_stack);
+
+        if (curr->t_type == DREF_TYPE_TOKEN) {
+            dref = 1;
+            goto _s_remove_token;
+        }
+
+        if (curr->t_type == REF_TYPE_TOKEN) {
+            ref = 1;
+_s_remove_token:
+            if (prev) prev->next = curr->next;
+            else head = curr->next;
+            token_t* to_free = curr;
+            curr = curr->next;
+            mm_free(to_free);
+            continue;
+        }
+
         if (curr->t_type == UNKNOWN_STRING_TOKEN || curr->t_type == UNKNOWN_CHAR_TOKEN) {
             for (int s = scope_stack.top; s >= 0; s--) {
                 int curr_s = scope_stack.data[s].id;
@@ -209,6 +244,8 @@ int MRKP_variables(token_t* head) {
                         curr->vinfo.ro   = vars[i].ro;
                         curr->vinfo.glob = vars[i].glob;
                         curr->vinfo.ptr  = vars[i].ptr;
+                        curr->vinfo.ref  = ref;
+                        curr->vinfo.dref = dref;
                         goto resolved;
                     }
                 }
@@ -216,7 +253,11 @@ int MRKP_variables(token_t* head) {
             resolved:;
         }
 
+        prev = curr;
         curr = curr->next;
+
+        ref  = 0;
+        dref = 0;
     }
 
     mm_free(vars);

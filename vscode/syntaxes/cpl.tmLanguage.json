@@ -39,7 +39,7 @@
       "patterns": [
         {
           "name": "storage.type.cpl",
-          "match": "\\b(long|int|short|char|str|arr|ptr|exfunc)\\b"
+          "match": "\\b(long|int|short|char|str|arr|dref|ref|ptr|exfunc)\\b"
         }
       ]
     },

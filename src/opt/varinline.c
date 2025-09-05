@@ -10,7 +10,7 @@ static int _find_usage(
             _find_usage(t, varname, s_id, assign, 0);
             continue;
         }
-
+        
         _find_usage(t, varname, s_id, assign, 0);
         if (VRS_isdecl(t->token) || VRS_isoperand(t->token)) {
             if (
@@ -26,6 +26,7 @@ static int _find_usage(
         }
 
         if (!str_strncmp(varname, t->token->value, TOKEN_MAX_SIZE) && t->info.s_id == s_id) {
+            if (t->token->vinfo.ref) *assign = 1;
             return 1;
         }
     }

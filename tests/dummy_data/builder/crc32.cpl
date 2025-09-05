@@ -17,7 +17,7 @@
     
     function crc(int init, ptr char buff, long len) {
         while len > 0; {
-            init = (init << 8) ^ crc_table[((init >> 24) ^ buff[0]) & 255];
+            init = (init << 8) ^ crc_table[((init >> 24) ^ dref buff) & 255];
             buff = buff + 1;
             len = len - 1;
         }

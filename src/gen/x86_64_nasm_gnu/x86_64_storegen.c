@@ -4,7 +4,11 @@ int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
         if (node->child) goto indexing;
-        else iprintf(output, "mov qword %s, rax\n", GET_ASMVAR(node));
+        else {
+            if (node->token->vinfo.dref) iprintf(output, "mov qword [%s], rax\n", GET_ASMVAR(node));
+            else iprintf(output, "mov qword %s, rax\n", GET_ASMVAR(node));
+        }
+
         return 1;
     }
 

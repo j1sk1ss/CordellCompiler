@@ -22,6 +22,8 @@
 #define FUNCTION_COMMAND        "function"
 
 // Types
+#define DREF_COMMAND            "dref"
+#define REF_COMMAND             "ref"
 #define PTR_COMMAND             "ptr"
 #define RO_COMMAND              "ro"
 #define GLOB_COMMAND            "glob"
@@ -42,7 +44,7 @@
 #define SYSCALL_COMMAND         "syscall"
 
 // Symbols and statements (Operands)
-#define ASSIGN_STATEMENT         "="
+#define ASSIGN_STATEMENT        "="
 #define COMPARE_STATEMENT       "=="
 #define NCOMPARE_STATEMENT      "!="
 #define PLUS_STATEMENT          "+"

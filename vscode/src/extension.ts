@@ -7,10 +7,10 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
   const keywords = [
-    'start','exit', 'exfunc', 'function','return',
-    'if','else','while','switch','case','default',
-    'glob','ro','ptr','arr','extern','from','import', 'extern', 'syscall',
-    'long','int','short','char','str'
+    'start', 'exit', 'exfunc', 'function', 'return',
+    'if', 'else', 'while', 'switch', 'case', 'default',
+    'glob', 'ro', 'dref', 'ref', 'ptr', 'arr', 'extern', 'from', 'import', 'extern', 'syscall',
+    'long', 'int', 'short', 'char', 'str'
   ];
 
   const hoverProvider = vscode.languages.registerHoverProvider(
@@ -23,8 +23,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         const docs: Record<string, string> = {
           start: `**start** — Program entry point.
-
-        Example:
         
         start(long argc, ptr long argv) {
           long a = 0;
@@ -36,30 +34,42 @@ export function activate(context: vscode.ExtensionContext) {
           exit 0;
         }
         `,
-          ptr: `**ptr** — Pointer data type.
+          ref: `**ref** — Reference keyword. Get element address.
 
-        Example:
+        start() {
+          int a = 10;
+          ptr long b = ref a;
+          b[0] = 11;
+          exit a; : 11 :
+        }
+        `,
+        dref: `**dref** — De-reference keyword. Get element value by address.
+
+        start() {
+          int a = 10;
+          ptr long b = ref a;
+          dref b = 11;
+          exit a; : 11 :
+        }
+        `,
+          ptr: `**ptr** — Pointer data type.
         
-        start {
+        start() {
           ptr char a = 0;
           ptr short b = a + 255;
           exit 0;
         }
         `,
           glob: `**glob** — Global data type. Can be used in every scope and all linked files.
-
-        Example:
         
-        start {
+        start() {
           glob char a = 0;
           exit 0;
         }
         `,
           ro: `**ro** — Read only (const) data type. Can't be changed, but can be used in every scope and linked file.
-
-        Example:
         
-        start {
+        start() {
           ro char a = 0;
           exit 0;
         }
@@ -67,60 +77,46 @@ export function activate(context: vscode.ExtensionContext) {
 
           exit: `**exit** — Program exit statement. Will invoke exit syscall and terminate program.
 
-        Example:
-        
         int a = 0;
         exit a;
         `,
           
           extern: `**extern** — Extern function or variable from outer space.
 
-        Example:
-        
         extern exfunc printf;
         extern ptr char frame_buffer;
         `,
           
           exfunc: `**exfunc** — External function type.
 
-        Example:
-        
         extern exfunc printf;
         `,
           
           syscall: `**syscall** — Invoke system call with optional argument count.
           Will push arguments to stack / registers according their position in function call.
 
-        Example:
-        
         syscall(arg1, arg2, arg3, ...);
         `,
           
           function: `**function** — Function definition keyword. CPL language don't provide return type selection.
 
-        Example:
-        
         function abs(int n) {
             return n;
-        }
+        } : -> int :
         `,
           long: `**long** - Long variable type. On 64-bit machines equals 64-bit value. Max: 9,223,372,036,854,775,807`,
           int: `**int** - Integer variable type. Size equals to 32-bit value. Max: 2,147,483,647`,
           short: `**short** - Short integer variable type. Size equals to 16-bit value. Max: 32,767`,
           char: `**char** - Character integer variable type. Size equals to 8-bit value. Max: 128`,
             
-            arr: `**arr** - Array variable type. Allocate array on stack.
+          arr: `**arr** - Array variable type. Allocate array on stack.
 
-          Example:
-
-          arr name[size, type] = { ... };
+        arr name[size, type] = { ... };
           `,
           
-            str: `**str** - String variable type. Allocate string array on stack.
+          str: `**str** - String variable type. Allocate string array on stack.
 
-          Example:
-
-          str name = "Hello, World!";
+        str name = "Hello, World!";
           `
         };
 

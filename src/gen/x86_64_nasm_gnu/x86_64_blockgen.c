@@ -26,7 +26,10 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
         case SHORT_VARIABLE_TOKEN:
         case CHAR_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN: g->load(node, output, ctx, g); break;
+        case STR_VARIABLE_TOKEN: 
+            if (node->token->vinfo.ref) g->ptrload(node, output, ctx, g);
+            else g->load(node, output, ctx, g);
+        break;
     }
 
     return 1;
