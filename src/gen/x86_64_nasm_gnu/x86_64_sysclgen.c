@@ -21,8 +21,12 @@ int x86_64_generate_start(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
 }
 
 int x86_64_generate_exit(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
-    g->elemegen(node->child, output, ctx, g);
-    iprintf(output, "mov rdi, rax\n");
+    if (VRS_instant_movable(node->child->token)) iprintf(output, "mov rdi, %s\n", GET_ASMVAR(node->child));
+    else {
+        g->elemegen(node->child, output, ctx, g);
+        iprintf(output, "mov rdi, rax\n");
+    }
+
     iprintf(output, "mov rax, 60\n");
     iprintf(output, "%s\n", SYSCALL);
     return 1;
@@ -38,8 +42,12 @@ int x86_64_generate_syscall(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
     ast_node_t* syscall = node->child;
     ast_node_t* args    = syscall->sibling;
     while (args && arg_index < 7) {
-        g->elemegen(args, output, ctx, g);
-        iprintf(output, "mov %s, rax\n", args_regs[arg_index++]);
+        if (VRS_instant_movable(args->token)) iprintf(output, "mov %s, %s\n", args_regs[arg_index++], GET_ASMVAR(args));
+        else {
+            g->elemegen(args, output, ctx, g);
+            iprintf(output, "mov %s, rax\n", args_regs[arg_index++]);
+        }
+
         args = args->sibling;
     }
 

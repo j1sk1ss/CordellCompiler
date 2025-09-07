@@ -13,5 +13,8 @@ int VRS_isdecl(token_t* token);
 int VRS_isclose(token_t* token);
 int VRS_isoperand(token_t* token);
 int VRS_token_priority(token_t* token);
+int VRS_isnumeric(token_t* token);
+int VRS_isvariable(token_t* token);
+int VRS_instant_movable(token_t* token);
 
 #endif

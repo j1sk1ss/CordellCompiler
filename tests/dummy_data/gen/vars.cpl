@@ -1,9 +1,4 @@
 {
-    function foo() {
-        glob int fg = 1;
-        return fg;
-    }
-
     glob int g = 1;
     ro int j = 2;
 
@@ -16,6 +11,8 @@
         }
 
         char dfg = 2;
-        exit 0;
+        c = 11;
+        c = dfg;
+        exit c;
     };
 }

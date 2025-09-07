@@ -5,38 +5,37 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
     ast_node_t* left  = node->child;
     ast_node_t* right = left->sibling;
 
-    g->elemegen(left, output, ctx, g);
-    if (
-        op->token->t_type != AND_TOKEN && 
-        op->token->t_type != OR_TOKEN
-    ) {
-        iprintf(output, "push rax\n");
-        g->elemegen(right, output, ctx, g);
+    if (VRS_instant_movable(left->token)) iprintf(output, "mov rbx, %s\n", GET_ASMVAR(left));
+    else {
+        g->elemegen(left, output, ctx, g);
+        iprintf(output, "mov rbx, rax\n");
     }
 
+    if (VRS_instant_movable(right->token)) iprintf(output, "mov rax, %s\n", GET_ASMVAR(right));
+    else g->elemegen(right, output, ctx, g);
+    
     switch (op->token->t_type) {
         case BITMOVE_LEFT_TOKEN:
         case BITMOVE_RIGHT_TOKEN: {
-            iprintf(output, "pop rbx\n");
             iprintf(output, "mov rcx, rax\n");
-            if (node->token->t_type == BITMOVE_LEFT_TOKEN) iprintf(output, "shl rax, cl\n");
-            else iprintf(output, "shr rbx, cl\n");
+            iprintf(
+                output, "%s rbx, cl\n", node->token->t_type == BITMOVE_LEFT_TOKEN ? "shl" : "shr"
+            );
             iprintf(output, "mov rax, rbx\n");
             break;
         }
-        case BITAND_TOKEN:
         case BITOR_TOKEN:
+        case BITAND_TOKEN:
         case BITXOR_TOKEN: {
-            iprintf(output, "pop rbx\n");
-            if (node->token->t_type == BITAND_TOKEN) iprintf(output, "and rax, rbx\n");
+            if (node->token->t_type == BITAND_TOKEN)     iprintf(output, "and rax, rbx\n");
             else if (node->token->t_type == BITOR_TOKEN) iprintf(output, "or rax, rbx\n");
-            else iprintf(output, "xor rax, rbx\n");
+            else                                         iprintf(output, "xor rax, rbx\n");
             break;
         }
-        case AND_TOKEN:
-        case OR_TOKEN: {
+        case OR_TOKEN:
+        case AND_TOKEN: {
             int lbl_id = ctx->label++;
-            iprintf(output, "cmp rax, 0\n");
+            iprintf(output, "cmp rbx, 0\n");
             if (node->token->t_type == AND_TOKEN) iprintf(output, "je L_false_%d\n", lbl_id);
             else iprintf(output, "jne L_true_%d\n", lbl_id);
 
@@ -55,46 +54,47 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
             break;
         }
         case PLUS_TOKEN: {
-            iprintf(output, "pop rbx\n");
             iprintf(output, "add rax, rbx\n");
             break;
         }
         case MINUS_TOKEN: {
-            iprintf(output, "pop rbx\n");
             iprintf(output, "sub rbx, rax\n");
             iprintf(output, "mov rax, rbx\n");
             break;
         }
         case MULTIPLY_TOKEN: {
-            iprintf(output, "pop rbx\n");
             iprintf(output, "imul rax, rbx\n");
             break;
         }
         case DIVIDE_TOKEN: {
-            iprintf(output, "mov rbx, rax\n");
-            iprintf(output, "pop rax\n");
+            iprintf(output, "xchg rax, rbx\n");
             iprintf(output, "cdq\n");
             iprintf(output, "idiv rbx\n");
             break;
         }
         case MODULO_TOKEN: {
-            iprintf(output, "mov rbx, rax\n");
-            iprintf(output, "pop rax\n");
+            iprintf(output, "xchg rax, rbx\n");
             iprintf(output, "cdq\n");
             iprintf(output, "idiv rbx\n");
             iprintf(output, "mov rax, rdx\n");
             break;
         }
-        case LARGER_TOKEN:
         case LOWER_TOKEN:
+        case LARGER_TOKEN:
+        case LOWEREQ_TOKEN:
         case COMPARE_TOKEN:
+        case LARGEREQ_TOKEN:
         case NCOMPARE_TOKEN: {
-            iprintf(output, "pop rbx\n");
             iprintf(output, "cmp rbx, rax\n");
-            if (node->token->t_type == LARGER_TOKEN) iprintf(output, "setg al\n");
-            else if (node->token->t_type == LOWER_TOKEN) iprintf(output, "setl al\n");
-            else if (node->token->t_type == COMPARE_TOKEN) iprintf(output, "sete al\n");
-            else iprintf(output, "setne al\n");
+            switch (node->token->t_type) {
+                case LARGER_TOKEN:   iprintf(output, "setg al\n");  break;
+                case LARGEREQ_TOKEN: iprintf(output, "setge al\n"); break;
+                case LOWER_TOKEN:    iprintf(output, "setl al\n");  break;
+                case LOWEREQ_TOKEN:  iprintf(output, "setle al\n"); break;
+                case COMPARE_TOKEN:  iprintf(output, "sete al\n");  break;
+                case NCOMPARE_TOKEN: iprintf(output, "setne al\n"); break;
+            }
+
             iprintf(output, "movzx rax, al\n");
             break;
         }

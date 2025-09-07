@@ -77,7 +77,9 @@ typedef enum {
     COMPARE_TOKEN,       // ==
     NCOMPARE_TOKEN,      // !=
     LOWER_TOKEN,         // <
+    LOWEREQ_TOKEN,       // <=
     LARGER_TOKEN,        // >
+    LARGEREQ_TOKEN,      // >=
     BITMOVE_LEFT_TOKEN,  // <<
     BITMOVE_RIGHT_TOKEN, // >>
     BITAND_TOKEN,        // &

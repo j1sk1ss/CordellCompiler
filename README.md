@@ -363,7 +363,7 @@ Basic arithmetic and logical operations are supported:
 | `%`       | Module (int)        |
 | `==`      | Equality            |
 | `!=`      | Inequality          |
-| `>` `<`   | Comparison          |
+| `>` `>=` `<` `<=`       | Comparison                                  |
 | `&&` `\|\|`             | Logic operations (Lazy Evaluations support) |
 | `>>` `<<` `&`  `\|` `^` | Bit operations                              |
 

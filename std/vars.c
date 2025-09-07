@@ -149,3 +149,29 @@ int VRS_token_priority(token_t* token) {
         default:                   return -1;
     }
 }
+
+int VRS_isnumeric(token_t* token) {
+    if (!token) return 0;
+    if (
+        token->t_type == UNKNOWN_NUMERIC_TOKEN || 
+        token->t_type == UNKNOWN_CHAR_TOKEN
+    ) return 1;
+    return 0;
+}
+
+int VRS_isvariable(token_t* token) {
+    if (!token) return 0;
+    switch (token->t_type) {
+        case ARR_VARIABLE_TOKEN:
+        case STR_VARIABLE_TOKEN:
+        case LONG_VARIABLE_TOKEN:
+        case INT_VARIABLE_TOKEN:
+        case SHORT_VARIABLE_TOKEN:
+        case CHAR_VARIABLE_TOKEN: return 1;
+        default: return 0;
+    }
+}
+
+int VRS_instant_movable(token_t* token) {
+    return VRS_isnumeric(token) || (VRS_isvariable(token) && VRS_one_slot(token));
+}

@@ -27,7 +27,7 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
 
         int base_off = node->info.offset;
         for (ast_node_t* t = elems_node; t; t = t->sibling) {
-            if (t->token->t_type == UNKNOWN_NUMERIC_TOKEN || t->token->t_type == CHAR_VALUE_TOKEN) {
+            if (VRS_isnumeric(t->token)) {
                 int val = t->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(t->token->value) : t->token->value[0];
                 iprintf(
                     output, "mov%s[%s - %d], %d\n", reg.operation,
@@ -64,10 +64,7 @@ int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, 
     char* derictive = " ";
 
     ast_node_t* val_node = name_node->sibling;
-    if (
-        val_node->token->t_type != UNKNOWN_NUMERIC_TOKEN && 
-        val_node->token->t_type != CHAR_VALUE_TOKEN
-    ) g->elemegen(val_node, output, ctx, g);
+    if (!VRS_isnumeric(val_node->token)) g->elemegen(val_node, output, ctx, g);
     else {
         is_const = 1;
         switch (VRS_variable_bitness(name_node->token, 1)) {
