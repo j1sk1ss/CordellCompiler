@@ -13,7 +13,7 @@
         int l = 0;
         int r = size;
         while l < r; {
-            if string[r] != 0; {
+            if string[r]; {
                 char tmp = string[l];
                 string[l] = string[r];
                 string[r] = tmp;

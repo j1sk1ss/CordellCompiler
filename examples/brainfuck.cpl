@@ -1,7 +1,7 @@
-from "string.cpl" import puts, gets, itoa;
+from "stdio.cpl" import putc, gets;
 
 {
-    :
+:
     Brainfuck interpriter on CPL
     For work test, input ++++++++[>++++++++<-]>+. sequence. Interpriter should return 'A' character.
     Also hello world program
@@ -9,7 +9,7 @@ from "string.cpl" import puts, gets, itoa;
 
     Or tick-tac-toe
     --->--->>>>->->->>>>>-->>>>>>>>>>>>>>>>>>+>>++++++++++[  <<++[    --<+<<+<<+>>>>[      >[<->>+++>>[-]+++<<<+[<++>>+<--]]+>+++++[>>+++++++++<<-]      >>++++.[-]>>+[<<<<+>>+>>-]<<<<<<[>+<-]<<    ]++++++++++.[-]>++  ]-->>[-->[-]>]<<[    >>--[      -[        -[          -----[>+>+++++++<<+]-->>-.----->,[<->-]<[[<]+[->>]<-]<[<<,[-]]>>>>        ]>      ]<[        >-[+<+++]+<+++[+[---->]+<<<<<<[>>]<[-]]        >[<+[---->]++[<]<[>]>[[>]+>+++++++++<<-[<]]]>[>>>>]      ]<[        -[[>+>+<<-]>[<+>-]++>+>>]<[<<++[-->>[-]]>[[-]>[<<+>>-]>]]      ]<[        [[<<]-[>>]<+<-]>[-<+]<<[<<]-<[>[+>>]>[>]>[-]]        >[[+>>]<-->>[>]+>>>]      ]<[        -[          --[+<<<<--[+>[-]>[<<+>+>-]<<[>>+<<-]]++[>]]          <<[>+>+<<-]>--[<+>-]++>>>        ]<[<<<[-]+++>[-]>[<+>>>+<<-]+>>>]      ]<[        +[[<]<<[<<]-<->>+>[>>]>[>]<-]+[-<+]<++[[>+<-]++<[<<->>+]<++]<        <<<<<<      +> > >+> > >+[        <<<               ->+>+>+[        <<<<<<<   +>->+> > >->->+[        <<<<<         ->+>+> >+>+[        <<<<            ->->+>->+[        <<<<<<<<+>-> >+> > >->+>+[        <<<<<         -> >+> >->+[        <<<<            +>->+> >+]]]]]]]        +++[[>+<-]<+++]--->>[-[<->-]<++>>]++[[<->-]>>]>[>]      ]<    ]  ]<]
-    :
+:
 
     glob arr tape[30000, char] =;
     glob arr code[10000, char] =;
@@ -19,20 +19,19 @@ from "string.cpl" import puts, gets, itoa;
     start() {
         puts("Brainfuck interpriter! Input code: ");
 
-        int codelength = gets(code, 10000);
-        int stackptr = 0;
+        char brk           = 0;  : 0 :
+        char plus          = 43; : + :
+        char minus         = 45; : - :
+        char dot           = 46; : . :
+        char comma         = 44; : , :
+        char leftMove      = 60; : < :
+        char rightMove     = 62; : > :
+        char openBracket   = 91; : [ :
+        char closedBracket = 93; : ] :
+
         int pos = 0;
-
-        char brk            = 0;  : 0 :
-        char plus           = 43; : + :
-        char minus          = 45; : - :
-        char dot            = 46; : . :
-        char comma          = 44; : , :
-        char leftMove       = 60; : < :
-        char rightMove      = 62; : > :
-        char openBracket    = 91; : [ :
-        char closedBracket  = 93; : ] :
-
+        int stackptr = 0;
+        int codelength = gets(code, 10000);
         while pos < codelength; {
             char c = code[pos];
             int handled = 0;
@@ -55,8 +54,8 @@ from "string.cpl" import puts, gets, itoa;
             pos = pos + 1;
         }
         
-        int pointer = 0;
         int pc = 0;
+        int pointer = 0;
 
         while pc < codelength; {
             switch code[pc]; {
@@ -77,15 +76,13 @@ from "string.cpl" import puts, gets, itoa;
                     pc = pc + 1;
                 }
                 case dot; {
-                    arr fbuf[2, char] = { ' ', 0 };
-                    fbuf[0] = tape[pointer];
-                    puts(fbuf);
+                    putc(tape[pointer]);
                     pc = pc + 1;
                 }
                 case comma; {
-                    arr sbuf[2, char] = { ' ', 0 };
-                    gets(sbuf, 2);
-                    tape[pointer] = sbuf[0];
+                    arr buf[2, char] = { ' ', 0 };
+                    gets(buf, 2);
+                    tape[pointer] = buf[0];
                     pc = pc + 1;
                 }
                 case openBracket; {

@@ -13,10 +13,11 @@ typedef struct {
     def_t* h;
 } recalcoff_ctx_t;
 
-static def_t* _create_def(const char* name, int size, int offset, token_t* tkn) {
+static def_t* _create_def(const char* name, int size, int offset, short s_id, token_t* tkn) {
     def_t* def = (def_t*)mm_malloc(sizeof(def_t));
     if (!def) return NULL;
     str_strncpy(def->name, name, TOKEN_MAX_SIZE);
+    def->s_id   = s_id,
     def->size   = size;
     def->offset = offset;
     def->token  = tkn;
@@ -24,9 +25,9 @@ static def_t* _create_def(const char* name, int size, int offset, token_t* tkn) 
     return def;
 }
 
-static int _register_var(const char* name, int size, int offset, token_t* tkn, recalcoff_ctx_t* ctx) {
+static int _register_var(const char* name, int size, int offset, short s_id, token_t* tkn, recalcoff_ctx_t* ctx) {
     def_t* h = ctx->h;
-    def_t* def = _create_def(name, size, offset, tkn);
+    def_t* def = _create_def(name, size, offset, s_id, tkn);
     if (!def) return 0;
 
     if (!h) {
@@ -102,15 +103,13 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
             int varoff = -1;
             def_t* vars = scope_ctx.h;
             while (vars) {
-                if (!_find_usage(t, vars->name)) {
-                    varoff = vars->offset;
-
+                if (!_find_usage(t, vars->name) && t->child->info.s_id == vars->s_id) {
                     int occupied = 0;
                     def_t* nvars = scope_ctx.h;
                     while (nvars) {
                         if (
-                            (vars != nvars && varoff == nvars->offset && _find_usage(t, nvars->name)) || 
-                            !VRS_one_slot(vars->token)
+                            vars != nvars && vars->offset == nvars->offset && 
+                            _find_usage(t, nvars->name) && t->child->info.s_id == vars->s_id
                         ) {
                             occupied = 1;
                             break;
@@ -120,23 +119,23 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
                     }
 
                     if (!occupied) {
+                        varoff = vars->offset;
                         break;
                     }
                 }
 
                 vars = vars->next;
             }
-
+            
             ast_node_t* name = t->child;
             if (varoff < 0) {
                 offset += ALIGN(name->info.size);
                 varoff = offset;
             }
 
-            // offset = varoff;
             t->info.offset = varoff;
 
-            _register_var(name->token->value, name->info.size, varoff, name->token, &scope_ctx);
+            _register_var(name->token->value, name->info.size, varoff, name->info.s_id, name->token, &scope_ctx);
             _update_offsets(t, name->token->value, varoff);
             continue;
         }

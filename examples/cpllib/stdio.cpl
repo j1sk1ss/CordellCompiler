@@ -2,12 +2,11 @@ from "string.cpl" import strlen;
 
 {
     glob function puts(ptr char string) {
-        long strSize = strlen(string);
-        return syscall(1, 1, string, strSize);
+        return syscall(1, 1, string, strlen(string));
     }
 
     glob function putc(char c) {
-        arr tmp 2 char = { c, 0 };
+        arr tmp[2, char] = { c, 0 };
         return syscall(1, 1, tmp, 2);
     }
 
