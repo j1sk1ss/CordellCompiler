@@ -7,10 +7,11 @@ static int _strdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     char* string = val_node->token->value;
     int base_off = name_node->info.offset;
     while (*string) {
-        iprintf(output, "mov byte [%s - %d], %i\n", GET_RAW_REG(BASE_BITNESS, RBP), base_off--, *string);
+        iprintf(output, "mov byte [rbp - %d], %i\n", base_off--, *string);
         string++;
     }
 
+    iprintf(output, "mov byte [rbp - %d], 0\n", base_off--);
     return 1;
 }
 
@@ -27,16 +28,10 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
 
         int base_off = node->info.offset;
         for (ast_node_t* t = elems_node; t; t = t->sibling) {
-            if (VRS_isnumeric(t->token)) {
-                int val = t->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(t->token->value) : t->token->value[0];
-                iprintf(
-                    output, "mov%s[%s - %d], %d\n", reg.operation,
-                    GET_RAW_REG(BASE_BITNESS, RBP), base_off, val
-                );
-            }
+            if (VRS_isnumeric(t->token)) iprintf(output, "mov%s[rbp - %d], %s\n", reg.operation, base_off, GET_ASMVAR(t));
             else {
                 g->elemegen(t, output, ctx, g);
-                iprintf(output, "mov%s[%s - %d], %s\n", reg.operation, GET_RAW_REG(BASE_BITNESS, RBP), base_off, reg.name);
+                iprintf(output, "mov%s[rbp - %d], %s\n", reg.operation, base_off, reg.name);
             }
 
             base_off -= arr_info.el_size;

@@ -48,7 +48,18 @@ static int _generate_raw(ast_node_t* entry, FILE* output) {
 static int _generate_init(ast_node_t* entry, FILE* output) {
     if (!entry->child || !entry->token) return 0;
     switch (entry->token->t_type) {
-        case STR_TYPE_TOKEN:   iprintf(output, "__%s__ db '%s', 0\n", entry->child->token->value, entry->child->sibling->token->value); break;
+        case STR_TYPE_TOKEN: {
+            iprintf(output, "__%s__ db ", entry->child->token->value);
+            char* data = entry->child->sibling->token->value;
+            while (*data) {
+                iprintf(output, "%i,", *data);
+                data++;
+            }
+
+            iprintf(output, "0\n");
+            break;
+        }
+
         case LONG_TYPE_TOKEN:  iprintf(output, "__%s__ dq %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
         case INT_TYPE_TOKEN:   iprintf(output, "__%s__ dd %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
         case SHORT_TYPE_TOKEN: iprintf(output, "__%s__ dw %s\n", entry->child->token->value, entry->child->sibling->token->value); break;

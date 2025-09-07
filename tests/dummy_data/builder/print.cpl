@@ -15,7 +15,7 @@
     } : -> int :
 
     start(long argc, ptr long argv) {
-        puts("Hello, World!");
+        puts("Hello, World!\n");
         exit 0;
     }
 }

@@ -11,11 +11,13 @@ typedef enum {
     CHAR_DELIMITER,
     CHAR_COMMA,
     CHAR_COMMENT,
-    CHAR_NEWLINE
+    CHAR_NEWLINE,
+    CHAR_BACKSLASH,
 } char_type_t;
 
 static char_type_t _get_char_type(unsigned char ch) {
     if (isalpha(ch) || ch == '_')          return CHAR_ALPHA;
+    else if (ch == '\\')                   return CHAR_BACKSLASH;
     else if (str_isdigit(ch) || ch == '-') return CHAR_DIGIT;
     else if (ch == '"')                    return CHAR_QUOTE;
     else if (ch == '\'')                   return CHAR_SING_QUOTE;
@@ -73,6 +75,7 @@ typedef struct {
     char         squt; // single quote
     char         mqut; // multiple quote
     int          line;
+    char         is_spec;
     char         in_token;
     short        token_len;
     token_type_t ttype;
@@ -92,6 +95,27 @@ token_t* TKN_tokenize(int fd) {
             char ch = buffer[i];
             char_type_t ct = _get_char_type(ch);
 
+            /* Special characters handler */
+            if (ct == CHAR_BACKSLASH) {
+                curr_ctx.is_spec = !curr_ctx.is_spec;
+                continue;
+            }
+
+            if (curr_ctx.is_spec) {
+                switch (ch) {
+                    case '0':  ch = 0;    break;
+                    case 'n':  ch = 10;   break;
+                    case 't':  ch = 9;    break;
+                    case 'r':  ch = 13;   break;
+                    case '\\': ch = '\\'; break;
+                    case '\'': ch = '\''; break;
+                    case '\"': ch = '\"'; break;
+                    default: break;
+                }
+                
+                curr_ctx.is_spec = !curr_ctx.is_spec;
+            }
+
             /* Markdown routine (quotes and comment flags handler) */
             if (ct == CHAR_SING_QUOTE || ct == CHAR_QUOTE || (ct == CHAR_COMMENT && !curr_ctx.squt && !curr_ctx.mqut)) {
                 if (ct == CHAR_SING_QUOTE) curr_ctx.squt = !curr_ctx.squt;
@@ -102,7 +126,6 @@ token_t* TKN_tokenize(int fd) {
 
             /* Skip character if this is comment section */
             if (curr_ctx.cmt && !curr_ctx.squt && !curr_ctx.mqut) continue;
-            if (ct == CHAR_NEWLINE) curr_ctx.line++;
 
             /* Determine character type */
             token_type_t char_type;
@@ -119,6 +142,7 @@ token_t* TKN_tokenize(int fd) {
                     ct == CHAR_NEWLINE
                 )                              char_type = LINE_BREAK_TOKEN;
                 else                           char_type = UNKNOWN_CHAR_TOKEN;
+                if (ct == CHAR_NEWLINE)        curr_ctx.line++;
             }
             
             if (

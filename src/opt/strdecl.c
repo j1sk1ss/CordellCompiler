@@ -94,7 +94,14 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
             t->token->vinfo.ro   = 1;
         }
 
-        _find_string(t, ctx);
+        if (
+            t->token->t_type == FUNC_TOKEN || 
+            t->token->t_type == CALL_TOKEN || 
+            t->token->t_type == WHILE_TOKEN || 
+            t->token->t_type == IF_TOKEN
+        ) {
+            _find_string(t, ctx);
+        }
     }
 
     return 1;
