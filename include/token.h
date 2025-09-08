@@ -31,22 +31,24 @@ typedef enum {
     OPEN_BLOCK_TOKEN,
     CLOSE_BLOCK_TOKEN,
 
+    // Modifiers
+    DREF_TYPE_TOKEN,     // dref
+    REF_TYPE_TOKEN,      // ref
+    PTR_TYPE_TOKEN,      // ptr
+    RO_TYPE_TOKEN,       // ro
+    GLOB_TYPE_TOKEN,     // glob
+
     // Types
-    DREF_TYPE_TOKEN,  // dref
-    REF_TYPE_TOKEN,   // ref
-    PTR_TYPE_TOKEN,   // ptr
-    RO_TYPE_TOKEN,    // ro
-    GLOB_TYPE_TOKEN,  // glob
-    LONG_TYPE_TOKEN,
-    INT_TYPE_TOKEN,
-    SHORT_TYPE_TOKEN,
-    CHAR_TYPE_TOKEN,
-    ULONG_TYPE_TOKEN,
-    UINT_TYPE_TOKEN,
-    USHORT_TYPE_TOKEN,
-    UCHAR_TYPE_TOKEN,
-    STR_TYPE_TOKEN,
-    ARRAY_TYPE_TOKEN,
+    I64_TYPE_TOKEN,      // i64
+    I32_TYPE_TOKEN,      // i32
+    I16_TYPE_TOKEN,      // i16
+    I8_TYPE_TOKEN,       // i8
+    U64_TYPE_TOKEN,      // u64
+    U32_TYPE_TOKEN,      // u32
+    U16_TYPE_TOKEN,      // u16
+    U8_TYPE_TOKEN,       // u8
+    STR_TYPE_TOKEN,      // str
+    ARRAY_TYPE_TOKEN,    // arr
     
     // Commands
     IMPORT_TOKEN,        // import
@@ -55,11 +57,11 @@ typedef enum {
     START_TOKEN,         // start
     RETURN_TOKEN,        // return
     EXIT_TOKEN,          // exit
-    SCOPE_TOKEN,
+    SCOPE_TOKEN,         // {  }
 
     // Function
     SYSCALL_TOKEN,       // syscall
-    EXFUNC_TOKEN,
+    EXFUNC_TOKEN,        // exfunc
     FUNC_TOKEN,          // function
     CALL_TOKEN,
     
@@ -93,16 +95,16 @@ typedef enum {
     OR_TOKEN,            // ||
     
     // Vars
-    LONG_VARIABLE_TOKEN,   // long
-    INT_VARIABLE_TOKEN,    // int
-    SHORT_VARIABLE_TOKEN,  // short
-    CHAR_VARIABLE_TOKEN,   // char
-    ULONG_VARIABLE_TOKEN,  // ulong
-    UINT_VARIABLE_TOKEN,   // uint
-    USHORT_VARIABLE_TOKEN, // ushort
-    UCHAR_VARIABLE_TOKEN,  // uchar
-    STR_VARIABLE_TOKEN,    // str
-    ARR_VARIABLE_TOKEN,    // arr
+    I64_VARIABLE_TOKEN,  // i64
+    I32_VARIABLE_TOKEN,  // i32
+    I16_VARIABLE_TOKEN,  // i16
+    I8_VARIABLE_TOKEN,   // i8
+    U64_VARIABLE_TOKEN,  // u64
+    U32_VARIABLE_TOKEN,  // u32
+    U16_VARIABLE_TOKEN,  // u16
+    U8_VARIABLE_TOKEN,   // u8
+    STR_VARIABLE_TOKEN,  // str
+    ARR_VARIABLE_TOKEN,  // arr
 
     // Values
     STRING_VALUE_TOKEN,

@@ -9,24 +9,24 @@ int VRS_variable_bitness(token_t* token, char ptr) {
     if (ptr && token->vinfo.ptr) return BASE_BITNESS;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
-        case LONG_TYPE_TOKEN:
-        case ULONG_TYPE_TOKEN:
-        case LONG_VARIABLE_TOKEN:  
-        case ULONG_VARIABLE_TOKEN:  return 64;
-        case INT_TYPE_TOKEN:
-        case UINT_TYPE_TOKEN:
-        case INT_VARIABLE_TOKEN:   
-        case UINT_VARIABLE_TOKEN:   return 32;
-        case SHORT_TYPE_TOKEN:
-        case USHORT_TYPE_TOKEN:
-        case SHORT_VARIABLE_TOKEN: 
-        case USHORT_VARIABLE_TOKEN: return 16;
-        case CHAR_TYPE_TOKEN:
-        case UCHAR_TYPE_TOKEN:
+        case I64_TYPE_TOKEN:
+        case U64_TYPE_TOKEN:
+        case I64_VARIABLE_TOKEN:  
+        case U64_VARIABLE_TOKEN: return 64;
+        case I32_TYPE_TOKEN:
+        case U32_TYPE_TOKEN:
+        case I32_VARIABLE_TOKEN:   
+        case U32_VARIABLE_TOKEN: return 32;
+        case I16_TYPE_TOKEN:
+        case U16_TYPE_TOKEN:
+        case I16_VARIABLE_TOKEN: 
+        case U16_VARIABLE_TOKEN: return 16;
+        case I8_TYPE_TOKEN:
+        case U8_TYPE_TOKEN:
         case CHAR_VALUE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:  
-        case UCHAR_VARIABLE_TOKEN:  return 8;
-        default:                    return 8;
+        case I8_VARIABLE_TOKEN:  
+        case U8_VARIABLE_TOKEN:  return 8;
+        default:                 return 8;
     }
 
     return 8;
@@ -38,15 +38,15 @@ int VRS_isptr(token_t* token) {
     if (token->vinfo.ptr) return 1;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
-        case LONG_VARIABLE_TOKEN:
-        case INT_VARIABLE_TOKEN:
-        case SHORT_VARIABLE_TOKEN:
-        case ULONG_VARIABLE_TOKEN:
-        case UINT_VARIABLE_TOKEN:
-        case USHORT_VARIABLE_TOKEN:
-        case UCHAR_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN:
         case CHAR_VALUE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:  return 0;
+        case I8_VARIABLE_TOKEN:    return 0;
         case STRING_VALUE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:   return 1;
@@ -67,23 +67,23 @@ int VRS_one_slot(token_t* token) {
     if (!token) return 0;
     if (token->vinfo.ptr) return 1;
     switch (token->t_type) {
-        case INT_TYPE_TOKEN:
-        case LONG_TYPE_TOKEN:
-        case CHAR_TYPE_TOKEN:
-        case SHORT_TYPE_TOKEN:
-        case UINT_TYPE_TOKEN:
-        case ULONG_TYPE_TOKEN:
-        case UCHAR_TYPE_TOKEN:
-        case USHORT_TYPE_TOKEN:
+        case I32_TYPE_TOKEN:
+        case I64_TYPE_TOKEN:
+        case I8_TYPE_TOKEN:
+        case I16_TYPE_TOKEN:
+        case U32_TYPE_TOKEN:
+        case U64_TYPE_TOKEN:
+        case U8_TYPE_TOKEN:
+        case U16_TYPE_TOKEN:
         case CHAR_VALUE_TOKEN:
-        case INT_VARIABLE_TOKEN:
-        case LONG_VARIABLE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:
-        case SHORT_VARIABLE_TOKEN:
-        case UINT_VARIABLE_TOKEN:
-        case ULONG_VARIABLE_TOKEN:
-        case UCHAR_VARIABLE_TOKEN:
-        case USHORT_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case I8_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN: return 1;
         case STR_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN:
@@ -112,17 +112,17 @@ int VRS_isclose(token_t* token) {
 int VRS_isdecl(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
-        case INT_TYPE_TOKEN:
+        case I32_TYPE_TOKEN:
         case STR_TYPE_TOKEN:
-        case CHAR_TYPE_TOKEN:
-        case LONG_TYPE_TOKEN:
+        case I8_TYPE_TOKEN:
+        case I64_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN:
-        case SHORT_TYPE_TOKEN:
-        case UINT_TYPE_TOKEN:
-        case UCHAR_TYPE_TOKEN:
-        case ULONG_TYPE_TOKEN:
-        case USHORT_TYPE_TOKEN:    return 1;
-        default:                   return 0;
+        case I16_TYPE_TOKEN:
+        case U32_TYPE_TOKEN:
+        case U8_TYPE_TOKEN:
+        case U64_TYPE_TOKEN:
+        case U16_TYPE_TOKEN:    return 1;
+        default:                return 0;
     }
 }
 
@@ -189,14 +189,14 @@ int VRS_isvariable(token_t* token) {
     switch (token->t_type) {
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:
-        case LONG_VARIABLE_TOKEN:
-        case INT_VARIABLE_TOKEN:
-        case SHORT_VARIABLE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:
-        case ULONG_VARIABLE_TOKEN:
-        case UINT_VARIABLE_TOKEN:
-        case USHORT_VARIABLE_TOKEN:
-        case UCHAR_VARIABLE_TOKEN: return 1;
+        case I64_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case I8_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN: return 1;
         default: return 0;
     }
 }
@@ -208,22 +208,22 @@ int VRS_instant_movable(token_t* token) {
 int VRS_issign(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
-        case LONG_VARIABLE_TOKEN:
-        case INT_VARIABLE_TOKEN:
-        case SHORT_VARIABLE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:
-        case LONG_TYPE_TOKEN:
-        case INT_TYPE_TOKEN:
-        case SHORT_TYPE_TOKEN:
-        case CHAR_TYPE_TOKEN:      return 1;
-        case ULONG_VARIABLE_TOKEN:
-        case UINT_VARIABLE_TOKEN:
-        case USHORT_VARIABLE_TOKEN:
-        case UCHAR_VARIABLE_TOKEN:
-        case ULONG_TYPE_TOKEN:
-        case UINT_TYPE_TOKEN:
-        case USHORT_TYPE_TOKEN:
-        case UCHAR_TYPE_TOKEN:     return 0;
+        case I64_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case I8_VARIABLE_TOKEN:
+        case I64_TYPE_TOKEN:
+        case I32_TYPE_TOKEN:
+        case I16_TYPE_TOKEN:
+        case I8_TYPE_TOKEN:      return 1;
+        case U64_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN:
+        case U64_TYPE_TOKEN:
+        case U32_TYPE_TOKEN:
+        case U16_TYPE_TOKEN:
+        case U8_TYPE_TOKEN:     return 0;
         default: return 1;
     }
 }

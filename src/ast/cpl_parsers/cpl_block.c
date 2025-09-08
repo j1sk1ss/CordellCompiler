@@ -7,27 +7,27 @@ static ast_node_t* (*_get_parser(syntax_ctx_t* ctx, token_type_t t_type, parser_
         case OPEN_BLOCK_TOKEN:
         case CLOSE_BLOCK_TOKEN:     return p->scope;
         case STR_TYPE_TOKEN:
-        case INT_TYPE_TOKEN:
-        case CHAR_TYPE_TOKEN:
-        case LONG_TYPE_TOKEN:
-        case SHORT_TYPE_TOKEN:      
-        case UINT_TYPE_TOKEN:
-        case UCHAR_TYPE_TOKEN:
-        case ULONG_TYPE_TOKEN:
-        case USHORT_TYPE_TOKEN:     return p->vardecl;
+        case I32_TYPE_TOKEN:
+        case I8_TYPE_TOKEN:
+        case I64_TYPE_TOKEN:
+        case I16_TYPE_TOKEN:      
+        case U32_TYPE_TOKEN:
+        case U8_TYPE_TOKEN:
+        case U64_TYPE_TOKEN:
+        case U16_TYPE_TOKEN:     return p->vardecl;
         case SWITCH_TOKEN:          return p->switchstmt;
         case IF_TOKEN:              
         case WHILE_TOKEN:           return p->condop;
-        case INT_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:
-        case LONG_VARIABLE_TOKEN:
-        case SHORT_VARIABLE_TOKEN:
-        case UINT_VARIABLE_TOKEN:
-        case UCHAR_VARIABLE_TOKEN:
-        case ULONG_VARIABLE_TOKEN:
-        case USHORT_VARIABLE_TOKEN:
+        case I8_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
         case UNKNOWN_STRING_TOKEN: 
         case UNKNOWN_NUMERIC_TOKEN: return p->expr;
         case SYSCALL_TOKEN:         return p->syscall;

@@ -156,9 +156,9 @@ glob=0, line=11, ptr=0, ro=0, type=14, data=}
 
 ## AST
 A number of compilers generate an Abstract Syntax Tree (next `AST`), and this one of them. The LL(x) alghorithm is simple. Before generating the tree, we already tokenize the entire file, and now we only need register a bunch of parsers for each token type (We will speak about several types of tokens): </br>
-- `LONG_TYPE_TOKEN` - This token indicates, that the following sequence of tokens is an expression that will be placed into the variable of type `i64`. If we print this structure, it will looks like: </br>
+- `I64_TYPE_TOKEN` - This token indicates, that the following sequence of tokens is an expression that will be placed into the variable of type `i64`. If we print this structure, it will looks like: </br>
 
-        [LONG_TYPE_TOKEN]
+        [I64_TYPE_TOKEN]
             [NAME]
             [expression]
                 [...]

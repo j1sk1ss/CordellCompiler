@@ -21,14 +21,14 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
         case ASSIGN_TOKEN:  g->assign(node, output, ctx, g);    break;
         case UNKNOWN_NUMERIC_TOKEN:
         case CHAR_VALUE_TOKEN:
-        case LONG_VARIABLE_TOKEN:
-        case INT_VARIABLE_TOKEN:
-        case SHORT_VARIABLE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:
-        case ULONG_VARIABLE_TOKEN:
-        case UINT_VARIABLE_TOKEN:
-        case USHORT_VARIABLE_TOKEN:
-        case UCHAR_VARIABLE_TOKEN:
+        case I8_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: 
             if (node->token->vinfo.ref) g->ptrload(node, output, ctx, g);

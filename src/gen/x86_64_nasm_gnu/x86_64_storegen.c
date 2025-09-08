@@ -24,16 +24,20 @@ int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
     }
 
     switch (node->token->t_type) {
-        case LONG_VARIABLE_TOKEN: 
+        case I64_VARIABLE_TOKEN: 
+        case U64_VARIABLE_TOKEN: 
             iprintf(output, "mov qword %s, rax\n", GET_ASMVAR(node));
         break;
-        case INT_VARIABLE_TOKEN:  
+        case I32_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:  
             iprintf(output, "mov dword %s, eax\n", GET_ASMVAR(node));
         break;
-        case SHORT_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
             iprintf(output, "mov word %s, ax\n", GET_ASMVAR(node));
         break;
-        case CHAR_VARIABLE_TOKEN: 
+        case I8_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN: 
             iprintf(output, "mov byte %s, al\n", GET_ASMVAR(node));
         break;
         case ARR_VARIABLE_TOKEN:

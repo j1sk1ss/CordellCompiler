@@ -36,14 +36,14 @@ static const markup_token_t _markups[] = {
     { .value = GLOB_COMMAND,           .type = GLOB_TYPE_TOKEN     },
 
     /* Variable tokens. */
-    { .value = LONG_VARIABLE,          .type = LONG_TYPE_TOKEN     },
-    { .value = INT_VARIABLE,           .type = INT_TYPE_TOKEN      },
-    { .value = SHORT_VARIABLE,         .type = SHORT_TYPE_TOKEN    },
-    { .value = CHAR_VARIABLE,          .type = CHAR_TYPE_TOKEN     },
-    { .value = ULONG_VARIABLE,         .type = ULONG_TYPE_TOKEN     },
-    { .value = UINT_VARIABLE,          .type = UINT_TYPE_TOKEN      },
-    { .value = USHORT_VARIABLE,        .type = USHORT_TYPE_TOKEN    },
-    { .value = UCHAR_VARIABLE,         .type = UCHAR_TYPE_TOKEN     },
+    { .value = LONG_VARIABLE,          .type = I64_TYPE_TOKEN      },
+    { .value = INT_VARIABLE,           .type = I32_TYPE_TOKEN      },
+    { .value = SHORT_VARIABLE,         .type = I16_TYPE_TOKEN      },
+    { .value = CHAR_VARIABLE,          .type = I8_TYPE_TOKEN       },
+    { .value = ULONG_VARIABLE,         .type = U64_TYPE_TOKEN      },
+    { .value = UINT_VARIABLE,          .type = U32_TYPE_TOKEN      },
+    { .value = USHORT_VARIABLE,        .type = U16_TYPE_TOKEN      },
+    { .value = UCHAR_VARIABLE,         .type = U8_TYPE_TOKEN       },
     { .value = STR_VARIABLE,           .type = STR_TYPE_TOKEN      },
     { .value = ARR_VARIABLE,           .type = ARRAY_TYPE_TOKEN    },
 
@@ -169,31 +169,31 @@ _f_remove_token:
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:
-            case INT_TYPE_TOKEN:
-            case UINT_TYPE_TOKEN:
+            case I8_TYPE_TOKEN:
+            case U8_TYPE_TOKEN:
+            case I32_TYPE_TOKEN:
+            case U32_TYPE_TOKEN:
+            case I64_TYPE_TOKEN:
+            case U64_TYPE_TOKEN:
+            case I16_TYPE_TOKEN:
+            case U16_TYPE_TOKEN:
             case STR_TYPE_TOKEN:
-            case LONG_TYPE_TOKEN:
-            case ULONG_TYPE_TOKEN:
-            case CHAR_TYPE_TOKEN:
-            case UCHAR_TYPE_TOKEN:
-            case SHORT_TYPE_TOKEN:
-            case USHORT_TYPE_TOKEN:
             case ARRAY_TYPE_TOKEN: {
                 token_t* next = curr->next;
                 if (next && (next->t_type == UNKNOWN_STRING_TOKEN || next->t_type == UNKNOWN_CHAR_TOKEN)) {
                     switch (curr->t_type) {
                         case FUNC_TOKEN:
-                        case EXFUNC_TOKEN:      curr_ctx.ttype = CALL_TOKEN;            break;
-                        case INT_TYPE_TOKEN:    curr_ctx.ttype = INT_VARIABLE_TOKEN;    break;
-                        case STR_TYPE_TOKEN:    curr_ctx.ttype = STR_VARIABLE_TOKEN;    break;
-                        case UINT_TYPE_TOKEN:   curr_ctx.ttype = UINT_VARIABLE_TOKEN;   break;
-                        case LONG_TYPE_TOKEN:   curr_ctx.ttype = LONG_VARIABLE_TOKEN;   break;
-                        case CHAR_TYPE_TOKEN:   curr_ctx.ttype = CHAR_VARIABLE_TOKEN;   break;
-                        case UCHAR_TYPE_TOKEN:  curr_ctx.ttype = UCHAR_VARIABLE_TOKEN;  break;
-                        case ULONG_TYPE_TOKEN:  curr_ctx.ttype = ULONG_VARIABLE_TOKEN;  break;
-                        case SHORT_TYPE_TOKEN:  curr_ctx.ttype = SHORT_VARIABLE_TOKEN;  break;
-                        case ARRAY_TYPE_TOKEN:  curr_ctx.ttype = ARR_VARIABLE_TOKEN;    break;
-                        case USHORT_TYPE_TOKEN: curr_ctx.ttype = USHORT_VARIABLE_TOKEN; break;
+                        case EXFUNC_TOKEN:     curr_ctx.ttype = CALL_TOKEN;         break;
+                        case I8_TYPE_TOKEN:    curr_ctx.ttype = I8_VARIABLE_TOKEN;  break;
+                        case U8_TYPE_TOKEN:    curr_ctx.ttype = U8_VARIABLE_TOKEN;  break;
+                        case I32_TYPE_TOKEN:   curr_ctx.ttype = I32_VARIABLE_TOKEN; break;
+                        case U32_TYPE_TOKEN:   curr_ctx.ttype = U32_VARIABLE_TOKEN; break;
+                        case I64_TYPE_TOKEN:   curr_ctx.ttype = I64_VARIABLE_TOKEN; break;
+                        case U64_TYPE_TOKEN:   curr_ctx.ttype = U64_VARIABLE_TOKEN; break;
+                        case I16_TYPE_TOKEN:   curr_ctx.ttype = I16_VARIABLE_TOKEN; break;
+                        case U16_TYPE_TOKEN:   curr_ctx.ttype = U16_VARIABLE_TOKEN; break;
+                        case STR_TYPE_TOKEN:   curr_ctx.ttype = STR_VARIABLE_TOKEN; break;
+                        case ARRAY_TYPE_TOKEN: curr_ctx.ttype = ARR_VARIABLE_TOKEN; break;
                         default: break;
                     }
 

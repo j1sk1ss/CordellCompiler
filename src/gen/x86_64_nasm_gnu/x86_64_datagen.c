@@ -22,19 +22,19 @@ int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
 static int _generate_raw(ast_node_t* entry, FILE* output) {
     if (!entry->child || !entry->token) return 0;
     switch (entry->token->t_type) {
-        case LONG_TYPE_TOKEN:  iprintf(output, "__%s__: resq 1\n", entry->child->token->value); break;
-        case INT_TYPE_TOKEN:   iprintf(output, "__%s__: resd 1\n", entry->child->token->value); break;
-        case SHORT_TYPE_TOKEN: iprintf(output, "__%s__: resw 1\n", entry->child->token->value); break;
-        case CHAR_TYPE_TOKEN:  iprintf(output, "__%s__: resb 1\n", entry->child->token->value); break;
+        case I64_TYPE_TOKEN: iprintf(output, "__%s__: resq 1\n", entry->child->token->value); break;
+        case I32_TYPE_TOKEN: iprintf(output, "__%s__: resd 1\n", entry->child->token->value); break;
+        case I16_TYPE_TOKEN: iprintf(output, "__%s__: resw 1\n", entry->child->token->value); break;
+        case I8_TYPE_TOKEN:  iprintf(output, "__%s__: resb 1\n", entry->child->token->value); break;
         case ARRAY_TYPE_TOKEN: {
             ast_node_t* name   = entry->child;
             ast_node_t* size   = name->sibling;
             ast_node_t* t_type = size->sibling;
 
             char* directive = "resb";
-            if (t_type->token->t_type == SHORT_TYPE_TOKEN)     directive = "resw";
-            else if (t_type->token->t_type == INT_TYPE_TOKEN)  directive = "resd";
-            else if (t_type->token->t_type == LONG_TYPE_TOKEN) directive = "resq";
+            if (t_type->token->t_type == I16_TYPE_TOKEN)      directive = "resw";
+            else if (t_type->token->t_type == I32_TYPE_TOKEN) directive = "resd";
+            else if (t_type->token->t_type == I64_TYPE_TOKEN) directive = "resq";
             iprintf(output, "__%s__: %s %s\n", name->token->value, directive, size->token->value);
         }
         break;
@@ -60,19 +60,19 @@ static int _generate_init(ast_node_t* entry, FILE* output) {
             break;
         }
 
-        case LONG_TYPE_TOKEN:  iprintf(output, "__%s__ dq %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
-        case INT_TYPE_TOKEN:   iprintf(output, "__%s__ dd %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
-        case SHORT_TYPE_TOKEN: iprintf(output, "__%s__ dw %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
-        case CHAR_TYPE_TOKEN:  iprintf(output, "__%s__ db %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
+        case I64_TYPE_TOKEN: iprintf(output, "__%s__ dq %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
+        case I32_TYPE_TOKEN: iprintf(output, "__%s__ dd %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
+        case I16_TYPE_TOKEN: iprintf(output, "__%s__ dw %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
+        case I8_TYPE_TOKEN:  iprintf(output, "__%s__ db %s\n", entry->child->token->value, entry->child->sibling->token->value); break;
         case ARRAY_TYPE_TOKEN: {
             ast_node_t* name   = entry->child;
             ast_node_t* size   = name->sibling;
             ast_node_t* t_type = size->sibling;
             
             char* directive = "db";
-            if (t_type->token->t_type == SHORT_TYPE_TOKEN)     directive = "dw";
-            else if (t_type->token->t_type == INT_TYPE_TOKEN)  directive = "dd";
-            else if (t_type->token->t_type == LONG_TYPE_TOKEN) directive = "dq";
+            if (t_type->token->t_type == I16_TYPE_TOKEN)      directive = "dw";
+            else if (t_type->token->t_type == I32_TYPE_TOKEN) directive = "dd";
+            else if (t_type->token->t_type == I64_TYPE_TOKEN) directive = "dq";
             iprintf(output, "__%s__ %s ", name->token->value, directive);
             for (ast_node_t* elem = t_type->sibling; elem; elem = elem->sibling) {
                 if (elem->token->t_type == UNKNOWN_NUMERIC_TOKEN) fprintf(output, "%s%s", elem->token->value, elem->sibling ? "," : "\n");

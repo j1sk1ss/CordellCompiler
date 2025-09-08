@@ -28,10 +28,14 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
         case UNKNOWN_NUMERIC_TOKEN:
             iprintf(output, "mov rax, %s\n", node->token->value);
         break;
-        case LONG_VARIABLE_TOKEN:
-        case INT_VARIABLE_TOKEN:
-        case SHORT_VARIABLE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:
+        case I8_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
             iprintf(output, "lea rax, %s\n", GET_ASMVAR(node));
         break;
         case ARR_VARIABLE_TOKEN:
@@ -97,16 +101,20 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
             if (value) iprintf(output, "mov rax, %d\n", value);
             else iprintf(output, "xor rax, rax\n");
         break;
-        case LONG_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
             iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
         break;
-        case INT_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
             iprintf(output, "mov eax, %s\n", GET_ASMVAR(node));
         break;
-        case SHORT_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
             iprintf(output, "mov ax, %s\n", GET_ASMVAR(node));
         break;
-        case CHAR_VARIABLE_TOKEN:
+        case I8_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN:
             iprintf(output, "mov al, %s\n", GET_ASMVAR(node));
         break;
         case ARR_VARIABLE_TOKEN:
