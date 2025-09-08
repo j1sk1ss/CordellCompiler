@@ -1,5 +1,5 @@
 {
-    glob arr crc_table[0, int] = {
+    glob arr crc_table[0, i32] = {
         0, 79764919, 159529838, 222504665, 319059676, 
         398814059, 445009330, 507990021, 638119352, 
         583659535, 797628118, 726387553, 890018660, 
@@ -15,17 +15,18 @@
         3505614887
     };
     
-    function crc(int init, ptr char buff, long len) {
+    function crc(i64 init, ptr i8 buff, i64 len) {
         while len > 0; {
-            init = (init << 8) ^ crc_table[((init >> 24) ^ dref buff) & 255];
+            init = (init << 8) ^ crc_table[(init >> 24) & 255];
             buff = buff + 1;
             len = len - 1;
         }
 
         return init;
-    } : -> int :
+    }
 
-    start(long argc, ptr long argv) {
-        exit crc(34562, argv[1], strlen(argv[1]));
+    start(i64 argc, ptr i64 argv) {
+        exit crc(0, "Hello world!", 13);
     }
 }
+:

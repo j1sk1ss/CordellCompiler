@@ -1,21 +1,21 @@
 {
     function foo() {
-        glob int fg = 1;
+        glob i32 fg = 1;
         return fg;
     }
 
-    glob int g = 1;
-    ro int j = 2;
+    glob i32 g = 1;
+    ro i32 j = 2;
 
     start() {
-        long ow = 1234354576;
-        int c = (1 + 2) * 3;
+        i64 ow = 1234354576;
+        i32 c = (1 + 2) * 3;
         
         {
-            short dfg = 2;
+            i16 dfg = 2;
         }
 
-        char dfg = 2;
+        i8 dfg = 2;
         exit 0;
     };
 }

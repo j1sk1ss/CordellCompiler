@@ -143,6 +143,9 @@ token_t* TKN_tokenize(int fd) {
                 )                              char_type = LINE_BREAK_TOKEN;
                 else                           char_type = UNKNOWN_CHAR_TOKEN;
                 if (ct == CHAR_NEWLINE)        curr_ctx.line++;
+                if (curr_ctx.ttype == UNKNOWN_STRING_TOKEN && char_type == UNKNOWN_NUMERIC_TOKEN) {
+                    char_type = UNKNOWN_STRING_TOKEN;
+                }
             }
             
             if (

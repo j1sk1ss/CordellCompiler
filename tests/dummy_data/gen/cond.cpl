@@ -4,7 +4,7 @@
             exit 1;
         }
         else {
-            int a = 10;
+            i32 a = 10;
             exit a;
         }
 
@@ -12,7 +12,7 @@
             exit 1;
         }
         else {
-            int a = 10;
+            i32 a = 10;
             exit a;
         }
 
@@ -21,7 +21,7 @@
                 exit 1;
             }
             default {
-                int a = 10;
+                i32 a = 10;
                 exit a;
             }
         }

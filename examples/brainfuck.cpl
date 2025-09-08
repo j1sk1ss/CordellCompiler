@@ -11,30 +11,30 @@ from "stdio.cpl" import putc, gets;
     --->--->>>>->->->>>>>-->>>>>>>>>>>>>>>>>>+>>++++++++++[  <<++[    --<+<<+<<+>>>>[      >[<->>+++>>[-]+++<<<+[<++>>+<--]]+>+++++[>>+++++++++<<-]      >>++++.[-]>>+[<<<<+>>+>>-]<<<<<<[>+<-]<<    ]++++++++++.[-]>++  ]-->>[-->[-]>]<<[    >>--[      -[        -[          -----[>+>+++++++<<+]-->>-.----->,[<->-]<[[<]+[->>]<-]<[<<,[-]]>>>>        ]>      ]<[        >-[+<+++]+<+++[+[---->]+<<<<<<[>>]<[-]]        >[<+[---->]++[<]<[>]>[[>]+>+++++++++<<-[<]]]>[>>>>]      ]<[        -[[>+>+<<-]>[<+>-]++>+>>]<[<<++[-->>[-]]>[[-]>[<<+>>-]>]]      ]<[        [[<<]-[>>]<+<-]>[-<+]<<[<<]-<[>[+>>]>[>]>[-]]        >[[+>>]<-->>[>]+>>>]      ]<[        -[          --[+<<<<--[+>[-]>[<<+>+>-]<<[>>+<<-]]++[>]]          <<[>+>+<<-]>--[<+>-]++>>>        ]<[<<<[-]+++>[-]>[<+>>>+<<-]+>>>]      ]<[        +[[<]<<[<<]-<->>+>[>>]>[>]<-]+[-<+]<++[[>+<-]++<[<<->>+]<++]<        <<<<<<      +> > >+> > >+[        <<<               ->+>+>+[        <<<<<<<   +>->+> > >->->+[        <<<<<         ->+>+> >+>+[        <<<<            ->->+>->+[        <<<<<<<<+>-> >+> > >->+>+[        <<<<<         -> >+> >->+[        <<<<            +>->+> >+]]]]]]]        +++[[>+<-]<+++]--->>[-[<->-]<++>>]++[[<->-]>>]>[>]      ]<    ]  ]<]
 :
 
-    glob arr tape[30000, char] =;
-    glob arr code[10000, char] =;
-    glob arr bracketmap[10000, int] =;
-    glob arr stack[10000, int] =;
+    glob arr tape[30000, i8] =;
+    glob arr code[10000, i8] =;
+    glob arr bracketmap[10000, i32] =;
+    glob arr stack[10000, i32] =;
 
     start() {
         puts("Brainfuck interpriter! Input code: ");
 
-        char brk           = 0;  : 0 :
-        char plus          = 43; : + :
-        char minus         = 45; : - :
-        char dot           = 46; : . :
-        char comma         = 44; : , :
-        char leftMove      = 60; : < :
-        char rightMove     = 62; : > :
-        char openBracket   = 91; : [ :
-        char closedBracket = 93; : ] :
+        i8 brk           = 0;  : 0 :
+        i8 plus          = 43; : + :
+        i8 minus         = 45; : - :
+        i8 dot           = 46; : . :
+        i8 comma         = 44; : , :
+        i8 leftMove      = 60; : < :
+        i8 rightMove     = 62; : > :
+        i8 openBracket   = 91; : [ :
+        i8 closedBracket = 93; : ] :
 
-        int pos = 0;
-        int stackptr = 0;
-        int codelength = gets(code, 10000);
+        i32 pos = 0;
+        i32 stackptr = 0;
+        i32 codelength = gets(code, 10000);
         while pos < codelength; {
-            char c = code[pos];
-            int handled = 0;
+            i8 c = code[pos];
+            i32 handled = 0;
 
             switch c; {
                 case openBracket; {
@@ -44,7 +44,7 @@ from "stdio.cpl" import putc, gets;
                 case closedBracket; {
                     if stackptr > 0; {
                         stackptr = stackptr - 1;
-                        int matchpos = stack[stackptr];
+                        i32 matchpos = stack[stackptr];
                         bracketmap[pos] = matchpos;
                         bracketmap[matchpos] = pos;
                     }
@@ -54,8 +54,8 @@ from "stdio.cpl" import putc, gets;
             pos = pos + 1;
         }
         
-        int pc = 0;
-        int pointer = 0;
+        i32 pc = 0;
+        i32 pointer = 0;
 
         while pc < codelength; {
             switch code[pc]; {
@@ -80,7 +80,7 @@ from "stdio.cpl" import putc, gets;
                     pc = pc + 1;
                 }
                 case comma; {
-                    arr buf[2, char] = { ' ', 0 };
+                    arr buf[2, i8] = { ' ', 0 };
                     gets(buf, 2);
                     tape[pointer] = buf[0];
                     pc = pc + 1;

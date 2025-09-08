@@ -1,8 +1,8 @@
 {
-    glob arr array[100, char] =;
-    function strlen(ptr char string) {
-        int length = 0;
-        while string[0]; {
+    glob arr array[100, i8] =;
+    function strlen(ptr i8 string) {
+        i32 length = 0;
+        while dref string; {
             length = length + 1;
             string = string + 1;
         }

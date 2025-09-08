@@ -1,14 +1,14 @@
 {
-    function foo(ptr int a) {
+    function foo(ptr i32 a) {
         dref a = 100;
         return;
     } : -> void :
 
-    start(long argc, ptr long argv) {
-        int a = 0;
+    start(i64 argc, ptr i64 argv) {
+        i32 a = 0;
         foo(ref a);
 
-        arr array[10, int] =;
+        arr array[10, i32] =;
         foo(ref array[0]);
         exit a;
     }

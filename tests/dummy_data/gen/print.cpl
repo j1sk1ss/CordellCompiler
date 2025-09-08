@@ -1,6 +1,6 @@
 {
-    function strlen(ptr char string) {
-        int length = 0;
+    function strlen(ptr i8 string) {
+        i32 length = 0;
         while dref string; {
             length = length + 1;
             string = string + 1;
@@ -9,9 +9,8 @@
         return length;
     }
 
-    function puts(ptr char string) {
-        long strSize = strlen(string);
-        return syscall(1, 1, string, strSize);
+    function puts(ptr i8 string) {
+        return syscall(1, 1, string, strlen(string));
     }
 
     start() {

@@ -1,6 +1,6 @@
 {
-    function strlen(ptr char string) {
-        long s = 0;
+    function strlen(ptr i8 string) {
+        i64 s = 0;
         while dref string; {
             string = string + 1;
             s = s + 1;
@@ -9,40 +9,40 @@
         return s;
     }
 
-    function puts(ptr char string) {
-        long size = strlen(string);
+    function puts(ptr i8 string) {
+        i64 size = strlen(string);
         return syscall(1, 1, string, size);
     }
 
-    function gets(ptr char buffer, long size) {
+    function gets(ptr i8 buffer, i64 size) {
         return syscall(0, 0, buffer, size);
     }
 
-    glob arr tape[30000, char] =;
-    glob arr code[10000, char] =;
-    glob arr bracketmap[10000, int] =;
-    glob arr stack[10000, int] =;
+    glob arr tape[30000, i8] =;
+    glob arr code[10000, i8] =;
+    glob arr bracketmap[10000, i32] =;
+    glob arr stack[10000, i32] =;
 
     start() {
         puts("Brainfuck interpriter! Input code: ");
 
-        int codelength = gets(code, 10000);
-        int stackptr = 0;
-        int pos = 0;
+        i32 codelength = gets(code, 10000);
+        i32 stackptr = 0;
+        i32 pos = 0;
 
-        char brk            = 0;  : 0 :
-        char plus           = 43; : + :
-        char minus          = 45; : - :
-        char dot            = 46; : . :
-        char comma          = 44; : , :
-        char leftMove       = 60; : < :
-        char rightMove      = 62; : > :
-        char openBracket    = 91; : [ :
-        char closedBracket  = 93; : ] :
+        i8 brk           = 0;  : 0 :
+        i8 plus          = 43; : + :
+        i8 minus         = 45; : - :
+        i8 dot           = 46; : . :
+        i8 comma         = 44; : , :
+        i8 leftMove      = 60; : < :
+        i8 rightMove     = 62; : > :
+        i8 openBracket   = 91; : [ :
+        i8 closedBracket = 93; : ] :
 
         while pos < codelength; {
-            char c = code[pos];
-            int handled = 0;
+            i8 c = code[pos];
+            i32 handled = 0;
 
             switch c; {
                 case openBracket; {
@@ -52,7 +52,7 @@
                 case closedBracket; {
                     if stackptr > 0; {
                         stackptr = stackptr - 1;
-                        int matchpos = stack[stackptr];
+                        i32 matchpos = stack[stackptr];
                         bracketmap[pos] = matchpos;
                         bracketmap[matchpos] = pos;
                     }
@@ -62,8 +62,8 @@
             pos = pos + 1;
         }
         
-        int pointer = 0;
-        int pc = 0;
+        i32 pointer = 0;
+        i32 pc = 0;
 
         while pc < codelength; {
             switch code[pc]; {
@@ -84,13 +84,13 @@
                     pc = pc + 1;
                 }
                 case dot; {
-                    arr fbuf[2, char] = { ' ', 0 };
+                    arr fbuf[2, i8] = { ' ', 0 };
                     fbuf[0] = tape[pointer];
                     puts(fbuf);
                     pc = pc + 1;
                 }
                 case comma; {
-                    arr sbuf[2, char] = { ' ', 0 };
+                    arr sbuf[2, i8] = { ' ', 0 };
                     gets(sbuf, 2);
                     tape[pointer] = sbuf[0];
                     pc = pc + 1;

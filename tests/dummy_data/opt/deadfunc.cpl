@@ -5,13 +5,13 @@
         return 1;
     }
 
-    function puts(ptr char string) {
-        long strSize = strlen(string);
+    function puts(ptr i8 string) {
+        i64 strSize = strlen(string);
         return syscall(1, 1, string, strSize);
     }
 
-    function putc(char c) {
-        arr tmp 2 char = { c, 0 };
+    function putc(i8 c) {
+        arr tmp[2, i8] = { c, 0 };
         return syscall(1, 1, tmp, 2);
     }
 

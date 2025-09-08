@@ -11,7 +11,7 @@
         arr buff[2, char] = { 0, 0 };
         buff[0] = 'A';
         char a = buff[0];
-        ptr char b = buff;
+        ptr i8 b = buff;
 
         b[0] = 1;
         exit 0;

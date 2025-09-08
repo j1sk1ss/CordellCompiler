@@ -41,6 +41,10 @@ typedef enum {
     INT_TYPE_TOKEN,
     SHORT_TYPE_TOKEN,
     CHAR_TYPE_TOKEN,
+    ULONG_TYPE_TOKEN,
+    UINT_TYPE_TOKEN,
+    USHORT_TYPE_TOKEN,
+    UCHAR_TYPE_TOKEN,
     STR_TYPE_TOKEN,
     ARRAY_TYPE_TOKEN,
     
@@ -73,7 +77,7 @@ typedef enum {
     MULTIPLY_TOKEN,      // *
     DIVIDE_TOKEN,        // /
     MODULO_TOKEN,        // %
-    ASSIGN_TOKEN,         // =
+    ASSIGN_TOKEN,        // =
     COMPARE_TOKEN,       // ==
     NCOMPARE_TOKEN,      // !=
     LOWER_TOKEN,         // <
@@ -89,12 +93,16 @@ typedef enum {
     OR_TOKEN,            // ||
     
     // Vars
-    LONG_VARIABLE_TOKEN,  // long
-    INT_VARIABLE_TOKEN,   // int
-    SHORT_VARIABLE_TOKEN, // short
-    CHAR_VARIABLE_TOKEN,  // char
-    STR_VARIABLE_TOKEN,   // str
-    ARR_VARIABLE_TOKEN,   // arr
+    LONG_VARIABLE_TOKEN,   // long
+    INT_VARIABLE_TOKEN,    // int
+    SHORT_VARIABLE_TOKEN,  // short
+    CHAR_VARIABLE_TOKEN,   // char
+    ULONG_VARIABLE_TOKEN,  // ulong
+    UINT_VARIABLE_TOKEN,   // uint
+    USHORT_VARIABLE_TOKEN, // ushort
+    UCHAR_VARIABLE_TOKEN,  // uchar
+    STR_VARIABLE_TOKEN,    // str
+    ARR_VARIABLE_TOKEN,    // arr
 
     // Values
     STRING_VALUE_TOKEN,

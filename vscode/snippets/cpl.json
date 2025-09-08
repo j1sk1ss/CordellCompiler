@@ -128,24 +128,44 @@
     "description": "CPL str type"
   },
   "CPL Types Long": {
-    "prefix": "long",
-    "body": "long",
+    "prefix": "i64",
+    "body": "i64",
     "description": "CPL i64 type"
   },
   "CPL Types Int": {
-    "prefix": "int",
-    "body": "int",
+    "prefix": "i32",
+    "body": "i32",
     "description": "CPL i32 type"
   },
   "CPL Types Short": {
-    "prefix": "short",
-    "body": "short",
+    "prefix": "i16",
+    "body": "i16",
     "description": "CPL i16 type"
   },
   "CPL Types Char": {
-    "prefix": "char",
-    "body": "char",
+    "prefix": "i8",
+    "body": "i8",
     "description": "CPL i8 type"
+  },
+  "CPL Types uLong": {
+    "prefix": "u64",
+    "body": "u64",
+    "description": "CPL u64 type"
+  },
+  "CPL Types uInt": {
+    "prefix": "u32",
+    "body": "u32",
+    "description": "CPL u32 type"
+  },
+  "CPL Types uShort": {
+    "prefix": "u16",
+    "body": "u16",
+    "description": "CPL u16 type"
+  },
+  "CPL Types uChar": {
+    "prefix": "u8",
+    "body": "u8",
+    "description": "CPL u8 type"
   },
   "CPL Types Array": {
     "prefix": "arr",

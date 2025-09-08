@@ -1,17 +1,17 @@
 {
     start() {
-        int a = 10;
-        int b = 20;
-        int c = a + b;
-        int d = c * a;
+        i32 a = 10;
+        i32 b = 20;
+        i32 c = a + b;
+        i32 d = c * a;
 
         short k = a;
 
-        int f = 0;
+        i32 f = 0;
         f = a;
         f = b;
 
-        int g = f + a + b;
+        i32 g = f + a + b;
 
         if a; {
             f = b;

@@ -4,22 +4,22 @@
     }
 
     start() {
-        int a = 0;
-        int b = 1;
-        int c = 2;
+        i32 a = 0;
+        i32 b = 1;
+        i32 c = 2;
 
         { : Should be deleted :
-            short d = 10 + a;
+            i16 d = 10 + a;
             d = d + 123;
         }
 
         { : Shouldnt be deleted :
-            short d = 20 + c;
+            i16 d = 20 + c;
             c = d + 10;
         }
 
         if (a + 1) > 10; { : Should be deleted :
-            short k = 12;
+            i16 k = 12;
             k = k + 1;
         }
 
@@ -29,11 +29,11 @@
 
         switch c + a; {
             case c; { : Should be deleted :
-                short kk = 10;
+                i16 kk = 10;
                 kk = kk + 10;
             }
             default { : Shouldnt be deleted :
-                short dd = 12;
+                i16 dd = 12;
                 foo();
             }
         }

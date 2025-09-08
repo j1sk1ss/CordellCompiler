@@ -9,8 +9,8 @@ export function activate(context: vscode.ExtensionContext) {
   const keywords = [
     'start', 'exit', 'exfunc', 'function', 'return',
     'if', 'else', 'while', 'switch', 'case', 'default',
-    'glob', 'ro', 'dref', 'ref', 'ptr', 'arr', 'extern', 'from', 'import', 'extern', 'syscall',
-    'long', 'int', 'short', 'char', 'str'
+    'glob', 'ro', 'dref', 'ref', 'ptr', 'extern', 'from', 'import', 'extern', 'syscall',
+    'i64', 'i32', 'i16', 'i8', 'u64', 'u32', 'u16', 'u8', 'str', 'arr'
   ];
 
   const hoverProvider = vscode.languages.registerHoverProvider(
@@ -104,10 +104,14 @@ export function activate(context: vscode.ExtensionContext) {
             return n;
         } : -> int :
         `,
-          long: `**long** - Long variable type. On 64-bit machines equals 64-bit value. Max: 9,223,372,036,854,775,807`,
-          int: `**int** - Integer variable type. Size equals to 32-bit value. Max: 2,147,483,647`,
-          short: `**short** - Short integer variable type. Size equals to 16-bit value. Max: 32,767`,
-          char: `**char** - Character integer variable type. Size equals to 8-bit value. Max: 128`,
+          i64: `**long** - Long variable type. On 64-bit machines equals 64-bit value. Max: 9,223,372,036,854,775,807`,
+          i32: `**int** - Integer variable type. Size equals to 32-bit value. Max: 2,147,483,647`,
+          i16: `**short** - Short integer variable type. Size equals to 16-bit value. Max: 32,767`,
+          i8: `**char** - Character integer variable type. Size equals to 8-bit value. Max: 128`,
+          u64: `**long** - Long variable type. On 64-bit machines equals 64-bit value. Max: 9,223,372,036,854,775,807`,
+          u32: `**int** - Integer variable type. Size equals to 32-bit value. Max: 2,147,483,647`,
+          u16: `**short** - Short integer variable type. Size equals to 16-bit value. Max: 32,767`,
+          u8: `**char** - Character integer variable type. Size equals to 8-bit value. Max: 128`,
             
           arr: `**arr** - Array variable type. Allocate array on stack.
 

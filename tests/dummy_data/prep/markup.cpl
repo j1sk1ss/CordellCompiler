@@ -1,52 +1,52 @@
 from "string.cpl" import strlen;
 
 {
-    function putc(char sym) {
+    function putc(i8 sym) {
         return 1;
     }
 
-    function puts(ptr char string) {
-        long strSize = strlen(string);
+    function puts(ptr i8 string) {
+        i64 strSize = strlen(string);
         return syscall(1, 1, string, strSize);
     }
 
-    glob int glint = 1;
-    glob ro int glroint = 2;
+    glob i32 glint = 1;
+    glob ro i32 glroint = 2;
 
     start() {
         str hello_msg = "Hello there!";
-        arr str_arr[12, char] = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0 };
-        ptr char chrptr = str_arr;
-        ptr int intptr = str_arr;
+        arr str_arr[12, i8] = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0 };
+        ptr i8 chrptr = str_arr;
+        ptr i32 intptr = str_arr;
 
         chrptr[0] = 'R';
         intptr[0] = 123;
 
-        int a = 0;
-        int b = 10;
-        int c = (a + c) * a;
+        i32 a = 0;
+        i32 b = 10;
+        i32 c = (a + c) * a;
         
         {
-            arr buff[2, char] = { 0, 0 };
+            arr buff[2, i8] = { 0, 0 };
             short asd = 0;
             short sdf = 1;
             short dfg = 2;
         }
 
-        arr buff[2, char] = { 0, 0 };
-        char asd = 0;
-        char sdf = 1;
-        char dfg = 2;
+        arr buff[2, i8] = { 0, 0 };
+        i8 asd = 0;
+        i8 sdf = 1;
+        i8 dfg = 2;
 
         if sdf == 1; {
-            char utu = a;
+            i8 utu = a;
         }
 
         if asd == 0; {
-            char utu = b;
+            i8 utu = b;
         }
         else {
-            char utu = a;
+            i8 utu = a;
         }
 
         while asd; {
@@ -58,17 +58,17 @@ from "string.cpl" import strlen;
 
         switch asd; {
             case 0; {
-                char fst = 0;
-                char sec = 1;
+                i8 fst = 0;
+                i8 sec = 1;
             }
             default {
-                char fst = 0;
-                char sec = 1;
+                i8 fst = 0;
+                i8 sec = 1;
             }
         }
 
-        long rer = 345;
-        long utu = 321;
+        i64 rer = 345;
+        i64 utu = 321;
 
         putc('H'); putc(0); : One line comment and one line commands! :
         puts("Hello there from puts!");

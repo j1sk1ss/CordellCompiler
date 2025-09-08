@@ -21,16 +21,22 @@
 #define EXFUNCTION_COMMAND      "exfunc"
 #define FUNCTION_COMMAND        "function"
 
-// Types
+// Modifiers
 #define DREF_COMMAND            "dref"
 #define REF_COMMAND             "ref"
 #define PTR_COMMAND             "ptr"
 #define RO_COMMAND              "ro"
 #define GLOB_COMMAND            "glob"
-#define LONG_VARIABLE           "long"
-#define INT_VARIABLE            "int"
-#define SHORT_VARIABLE          "short"
-#define CHAR_VARIABLE           "char"
+
+// Types
+#define LONG_VARIABLE           "i64"
+#define INT_VARIABLE            "i32"
+#define SHORT_VARIABLE          "i16"
+#define CHAR_VARIABLE           "i8"
+#define ULONG_VARIABLE          "u64"
+#define UINT_VARIABLE           "u32"
+#define USHORT_VARIABLE         "u16"
+#define UCHAR_VARIABLE          "u8"
 #define STR_VARIABLE            "str"
 #define ARR_VARIABLE            "arr"
 

@@ -31,9 +31,12 @@ Before any work, compiler should split all input text into a list of tokens. In 
 
 ```C
 typedef struct {
-    char ro;   /* Is read only flag */
-    char glob; /* Is global flag */
-    char ptr;  /* Is pointer flag */
+    char ro;   /* Is read only flag   */
+    char glob; /* Is global flag      */
+    char ptr;  /* Is pointer flag     */
+    char ref;  /* Is reference flag   */
+    char dref; /* Is dereference flag */
+    char ext;  /* Is extern flag      */
 } tkn_var_info_t;
 
 #define TOKEN_MAX_SIZE 128
@@ -49,7 +52,7 @@ typedef struct token {
 Rules of token generation are simple. Here is the list of events, when we cut line and create token:
 - If we in token and we met an a line break token (new line or space). 
 - If we in token and we met an Unknown bracket (`[`, `]`, `(`, `)`, `{`, `}`). 
-- If we in token and we met a different character type (`int` != `char`, `char` != `delim`, `delim` != `comma` and etc.).
+- If we in token and we met a different character type (`i32` != `i8`, `i8` != `delim`, `delim` != `comma` and etc.).
 
 Now lets take a look on work example, where we translate this text:
 ```
@@ -84,7 +87,7 @@ As he died to make man holy, Let us die
 ```
 
 ## Tokens markup
-In this section, we must label the tokens with their base types. For example, variables must be labeled as variables, functions as function definitions, function calls as calls, etc. In short, in this module, we complete the token generation with the final type assignment. An example of how it works is below:
+In this section, we must label the tokens with their base types. For example, variables must be labeled as variables, functions as function definitions, function calls as calls, etc. In i16, in this module, we complete the token generation with the final type assignment. An example of how it works is below:
 ```
 glob=0, line=1, ptr=0, ro=0, type=1, data={
 glob=0, line=1, ptr=0, ro=0, type=2, data=from
@@ -94,7 +97,7 @@ glob=0, line=1, ptr=0, ro=0, type=2, data=strlen
 glob=0, line=2, ptr=0, ro=0, type=7, data=;
 glob=0, line=3, ptr=0, ro=0, type=2, data=function
 glob=0, line=3, ptr=0, ro=0, type=2, data=putc
-glob=0, line=3, ptr=0, ro=0, type=2, data=char
+glob=0, line=3, ptr=0, ro=0, type=2, data=i8
 glob=0, line=3, ptr=0, ro=0, type=2, data=sym
 glob=0, line=3, ptr=0, ro=0, type=7, data=;
 glob=0, line=4, ptr=0, ro=0, type=1, data={
@@ -126,7 +129,7 @@ glob=0, line=1, ptr=0, ro=0, type=2, data=strlen
 glob=0, line=2, ptr=0, ro=0, type=7, data=;
 glob=0, line=3, ptr=0, ro=0, type=31, data=function
 glob=0, line=3, ptr=0, ro=0, type=2, data=putc
-glob=0, line=3, ptr=0, ro=0, type=21, data=char
+glob=0, line=3, ptr=0, ro=0, type=21, data=i8
 glob=0, line=3, ptr=0, ro=0, type=2, data=sym
 glob=0, line=3, ptr=0, ro=0, type=7, data=;
 glob=0, line=4, ptr=0, ro=0, type=13, data={
@@ -153,7 +156,7 @@ glob=0, line=11, ptr=0, ro=0, type=14, data=}
 
 ## AST
 A number of compilers generate an Abstract Syntax Tree (next `AST`), and this one of them. The LL(x) alghorithm is simple. Before generating the tree, we already tokenize the entire file, and now we only need register a bunch of parsers for each token type (We will speak about several types of tokens): </br>
-- `LONG_TYPE_TOKEN` - This token indicates, that the following sequence of tokens is an expression that will be placed into the variable of type `long`. If we print this structure, it will looks like: </br>
+- `LONG_TYPE_TOKEN` - This token indicates, that the following sequence of tokens is an expression that will be placed into the variable of type `i64`. If we print this structure, it will looks like: </br>
 
         [LONG_TYPE_TOKEN]
             [NAME]
@@ -183,14 +186,14 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
 Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/ast/cpl_parsers/README.md). Instead of wasting space, lets take a look on the visual example with translation of this code below:
 ```CPL
 {
-    start(long argc, ptr long argv) {
+    start(i64 argc, ptr i64 argv) {
         str stack_str = "String value";
         ptr str str_ptr = stack_str;
 
-        long a  = 0;
-        int b   = 1;
-        short c = 2;
-        char d  = 'a';
+        i64 a  = 0;
+        i32 b   = 1;
+        i16 c = 2;
+        i8 d  = 'a';
 
         a = b;
         c = b;
@@ -199,7 +202,7 @@ Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler
         d = strptr;
         strptr = c;
 
-        arr large_arr[5, char] = {1,2,256,4,5,6,7,8,9,10};
+        arr large_arr[5, i8] = {1,2,256,4,5,6,7,8,9,10};
         exit 0;
     }
 }
@@ -216,16 +219,16 @@ into the `AST`:
             [str] (t=22, size=16, ptr, off=40, s_id=0)
                 [str_ptr] (t=60, size=8, ptr, off=24, s_id=2)
                 [stack_str] (t=60, size=16, off=16, s_id=2)
-            [long] (t=18, size=8, off=48, s_id=0)
+            [i64] (t=18, size=8, off=48, s_id=0)
                 [a] (t=56, size=8, off=48, s_id=2)
                 [0] (t=3, size=0, off=0, s_id=0, glob)
-            [int] (t=19, size=4, off=56, s_id=0)
+            [i32] (t=19, size=4, off=56, s_id=0)
                 [b] (t=57, size=4, off=56, s_id=2)
                 [1] (t=3, size=0, off=0, s_id=0, glob)
-            [short] (t=20, size=2, off=64, s_id=0)
+            [i16] (t=20, size=2, off=64, s_id=0)
                 [c] (t=58, size=2, off=64, s_id=2)
                 [2] (t=3, size=0, off=0, s_id=0, glob)
-            [char] (t=21, size=1, off=72, s_id=0)
+            [i8] (t=21, size=1, off=72, s_id=0)
                 [d] (t=59, size=1, off=72, s_id=2)
                 [a] (t=63, size=8, off=48, s_id=2)
             [=] (t=44, size=0, off=0, s_id=0)
@@ -246,7 +249,7 @@ into the `AST`:
             [arr] (t=23, size=16, off=88, s_id=0)
                 [large_arr] (t=61, size=16, off=0, s_id=0)
                 [5] (t=3, size=0, off=0, s_id=0, glob)
-                [char] (t=21, size=0, off=0, s_id=0)
+                [i8] (t=21, size=0, off=0, s_id=0)
                 [1] (t=3, size=0, off=0, s_id=0, glob)
                 [2] (t=3, size=0, off=0, s_id=0, glob)
                 [256] (t=3, size=0, off=0, s_id=0, glob)
@@ -308,7 +311,7 @@ Also every program can contain `pre-implemented` code blocks and data segments:
 ```CPL
 {
     function foo() { }
-    glob int b = 0;
+    glob i32 b = 0;
 
     start() {
         foo();
@@ -320,34 +323,34 @@ Also every program can contain `pre-implemented` code blocks and data segments:
 ## Variables and Types
 The following types are supported:
 
-- `long`  — Integer (64-bit).
-- `int`   — Integer (32-bit).
-- `short` — Integer (16-bit).
-- `char`  — Integer (8-bit).
+- `i64` / `u64` — Integer (64-bit).
+- `i32` / `u32` — Integer (32-bit).
+- `i16` / `u16` — Integer (16-bit).
+- `i8` / `u8`   — Integer (8-bit).
 - `str`   — String (Array of characters).
 - `arr`   — Array.
 
 ### Declaring Variables
 ```CPL
 {
-    int a = 5;
-    ro int aReadOnly = 5; : Const and global :
-    glob int aGlobal = 5; : Global :
+    i32 a = 5;
+    ro i32 aReadOnly = 5; : Const and global :
+    glob i32 aGlobal = 5; : Global :
 
-    ptr int g = ref a; : Pointer to a variable :
+    ptr i32 g = ref a; : Pointer to a variable :
     dref g = 6;
 
-    short b = 1234 + (432 * (2 + 12)) / 87;
-    char c = 'X';
+    i16 b = 1234 + (432 * (2 + 12)) / 87;
+    i8 c = 'X';
 
     str name = "Hello, World!"; : Placed in stack :
-    ptr char strPtr = name; : Pointer to name string :
+    ptr i8 strPtr = name; : Pointer to name string :
     strPtr[0] = 'B';
 
     ptr str data_name = "Hello, World!"; : Placed in data section :
 
-    arr farr[100, char] =; : Will allocate array with size 100 and elem size 1 byte :
-    arr sarr[5, int] = { 1, 2, 3, 4, 5 }; : Will allocate array for provided elements :
+    arr farr[100, i8] =; : Will allocate array with size 100 and elem size 1 byte :
+    arr sarr[5, i32] = { 1, 2, 3, 4, 5 }; : Will allocate array for provided elements :
 }
 ```
 
@@ -359,8 +362,8 @@ Basic arithmetic and logical operations are supported:
 | `+`       | Addition            |
 | `-`       | Subtraction         |
 | `*`       | Multiplication      |
-| `/`       | Division (int)      |
-| `%`       | Module (int)        |
+| `/`       | Division (i32)      |
+| `%`       | Module (i32)        |
 | `==`      | Equality            |
 | `!=`      | Inequality          |
 | `>` `>=` `<` `<=`       | Comparison                                  |
@@ -425,7 +428,7 @@ Functions are declared using the `function` keyword.
 ### Example:
 ```CPL
 {
-    glob function sumfunc(int a, int b) {
+    glob function sumfunc(i32 a, i32 b) {
         return a + b;
     }
 
@@ -438,7 +441,7 @@ Functions are declared using the `function` keyword.
 ### Calling the function
 ```CPL
 {
-    int result = sumfunc(5, 10);
+    i32 result = sumfunc(5, 10);
     : Functions without return values can be called directly :
     printStr(strptr, size);
 }
@@ -456,11 +459,11 @@ Functions are declared using the `function` keyword.
 ### Wrapping in a function:
 ```CPL
 {
-    glob function printStr(ptr char buffer, int size) {
+    glob function printStr(ptr i8 buffer, i32 size) {
         return syscall(4, 1, buffer, size); 
     }
 
-    glob function getStr(ptr char buffer, int size) {
+    glob function getStr(ptr i8 buffer, i32 size) {
         return syscall(3, 0, buffer, size); 
     }
 }
@@ -487,11 +490,11 @@ If you want see more examples, please look into the folder `examples`. Also [her
 extern exfunc printf;
 
 {
-    function itoa(ptr char buffer, int dsize, int num) {
-        int index = dsize - 1;
-        int tmp = 0;
+    function itoa(ptr i8 buffer, i32 dsize, i32 num) {
+        i32 index = dsize - 1;
+        i32 tmp = 0;
 
-        int isNegative = 0;
+        i32 isNegative = 0;
         if num < 0; {
             isNegative = 1;
             num = num * -1;
@@ -512,7 +515,7 @@ extern exfunc printf;
     }
 
     start() {
-        arr buff[32, char] =;
+        arr buff[32, i8] =;
         itoa(buff, 10, 1234567890)
         printf("%s", buff);
         exit 0;
@@ -527,16 +530,16 @@ from "stdio.cpl" import prints;
 
 {
     start() {
-        int a = 0;
-        int b = 1;
-        int c = 0;
-        int count = 0;
+        i32 a = 0;
+        i32 b = 1;
+        i32 c = 0;
+        i32 count = 0;
         while count < 20; {
             c = a + b;
             a = b;
             b = c;
             
-            arr buffer[40, char] =;
+            arr buffer[40, i8] =;
             itoa(buffer, 40, c);
             prints(buffer, 40);
 
@@ -551,12 +554,12 @@ from "stdio.cpl" import prints;
 ### Example of simple memory manager:
 ```CPL
 {
-    glob arr _mm_head[100000, char] =;
-    glob arr _blocks_info[100000, int] =;
-    glob long _head = 0;
+    glob arr _mm_head[100000, i8] =;
+    glob arr _blocks_info[100000, i32] =;
+    glob i64 _head = 0;
 
-    glob function memset(ptr char buffer, int val, long size) {
-        long index = 0;
+    glob function memset(ptr i8 buffer, i32 val, i64 size) {
+        i64 index = 0;
         while index < size; {
             buffer[index] = val;
             index = index + 1;
@@ -565,10 +568,10 @@ from "stdio.cpl" import prints;
         return 1;
     }
 
-    glob function malloc(long size) {
+    glob function malloc(i64 size) {
         if size > 0; {
-            ptr int curr_mem = _mm_head;
-            int block_index = 0;
+            ptr i32 curr_mem = _mm_head;
+            i32 block_index = 0;
             while block_index < 100000; {
                 if _blocks_info[block_index] == 0; {
                     _blocks_info[block_index] = 1;
@@ -585,8 +588,8 @@ from "stdio.cpl" import prints;
         return -1;
     }
 
-    glob function free(ptr int mem) {
-        int block_index = 0;
+    glob function free(ptr i32 mem) {
+        i32 block_index = 0;
         while block_index < 100000; {
             if _blocks_info[block_index + 2] == mem; {
                 _blocks_info[block_index] = 0;

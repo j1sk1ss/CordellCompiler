@@ -10,15 +10,23 @@ int VRS_variable_bitness(token_t* token, char ptr) {
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
         case LONG_TYPE_TOKEN:
-        case LONG_VARIABLE_TOKEN:  return 64;
+        case ULONG_TYPE_TOKEN:
+        case LONG_VARIABLE_TOKEN:  
+        case ULONG_VARIABLE_TOKEN:  return 64;
         case INT_TYPE_TOKEN:
-        case INT_VARIABLE_TOKEN:   return 32;
+        case UINT_TYPE_TOKEN:
+        case INT_VARIABLE_TOKEN:   
+        case UINT_VARIABLE_TOKEN:   return 32;
         case SHORT_TYPE_TOKEN:
-        case SHORT_VARIABLE_TOKEN: return 16;
+        case USHORT_TYPE_TOKEN:
+        case SHORT_VARIABLE_TOKEN: 
+        case USHORT_VARIABLE_TOKEN: return 16;
         case CHAR_TYPE_TOKEN:
+        case UCHAR_TYPE_TOKEN:
         case CHAR_VALUE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:  return 8;
-        default:                   return 8;
+        case CHAR_VARIABLE_TOKEN:  
+        case UCHAR_VARIABLE_TOKEN:  return 8;
+        default:                    return 8;
     }
 
     return 8;
@@ -30,8 +38,13 @@ int VRS_isptr(token_t* token) {
     if (token->vinfo.ptr) return 1;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
+        case LONG_VARIABLE_TOKEN:
         case INT_VARIABLE_TOKEN:
         case SHORT_VARIABLE_TOKEN:
+        case ULONG_VARIABLE_TOKEN:
+        case UINT_VARIABLE_TOKEN:
+        case USHORT_VARIABLE_TOKEN:
+        case UCHAR_VARIABLE_TOKEN:
         case CHAR_VALUE_TOKEN:
         case CHAR_VARIABLE_TOKEN:  return 0;
         case STRING_VALUE_TOKEN:
@@ -58,11 +71,19 @@ int VRS_one_slot(token_t* token) {
         case LONG_TYPE_TOKEN:
         case CHAR_TYPE_TOKEN:
         case SHORT_TYPE_TOKEN:
+        case UINT_TYPE_TOKEN:
+        case ULONG_TYPE_TOKEN:
+        case UCHAR_TYPE_TOKEN:
+        case USHORT_TYPE_TOKEN:
         case CHAR_VALUE_TOKEN:
         case INT_VARIABLE_TOKEN:
         case LONG_VARIABLE_TOKEN:
         case CHAR_VARIABLE_TOKEN:
         case SHORT_VARIABLE_TOKEN:
+        case UINT_VARIABLE_TOKEN:
+        case ULONG_VARIABLE_TOKEN:
+        case UCHAR_VARIABLE_TOKEN:
+        case USHORT_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN: return 1;
         case STR_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN:
@@ -96,7 +117,11 @@ int VRS_isdecl(token_t* token) {
         case CHAR_TYPE_TOKEN:
         case LONG_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN:
-        case SHORT_TYPE_TOKEN:     return 1;
+        case SHORT_TYPE_TOKEN:
+        case UINT_TYPE_TOKEN:
+        case UCHAR_TYPE_TOKEN:
+        case ULONG_TYPE_TOKEN:
+        case USHORT_TYPE_TOKEN:    return 1;
         default:                   return 0;
     }
 }
@@ -167,11 +192,30 @@ int VRS_isvariable(token_t* token) {
         case LONG_VARIABLE_TOKEN:
         case INT_VARIABLE_TOKEN:
         case SHORT_VARIABLE_TOKEN:
-        case CHAR_VARIABLE_TOKEN: return 1;
+        case CHAR_VARIABLE_TOKEN:
+        case ULONG_VARIABLE_TOKEN:
+        case UINT_VARIABLE_TOKEN:
+        case USHORT_VARIABLE_TOKEN:
+        case UCHAR_VARIABLE_TOKEN: return 1;
         default: return 0;
     }
 }
 
 int VRS_instant_movable(token_t* token) {
     return VRS_isnumeric(token) || (VRS_isvariable(token) && VRS_one_slot(token));
+}
+
+int VRS_issign(token_t* token) {
+    if (!token) return 0;
+    switch (token->t_type) {
+        case LONG_VARIABLE_TOKEN:
+        case INT_VARIABLE_TOKEN:
+        case SHORT_VARIABLE_TOKEN:
+        case CHAR_VARIABLE_TOKEN:  return 1;
+        case ULONG_VARIABLE_TOKEN:
+        case UINT_VARIABLE_TOKEN:
+        case USHORT_VARIABLE_TOKEN:
+        case UCHAR_VARIABLE_TOKEN: return 0;
+        default: return 1;
+    }
 }
