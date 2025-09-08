@@ -4,7 +4,7 @@
     "prefix": "start",
     "body": [
       "{",
-      "\tstart(long argc, ptr long argv) {",
+      "\tstart(i64 argc, ptr u64 argv) {",
       "\t\t$0",
       "\t\texit ${1:0};",
       "\t}",
@@ -16,8 +16,7 @@
     "scope": "cpl",
     "prefix": "function",
     "body": [
-      "function name(: ... :) {",
-      "\t: ... :",
+      "function foo() {",
       "\treturn 0;",
       "} : -> type :"
     ]
@@ -58,11 +57,9 @@
     "prefix": "switch",
     "body": [
       "switch cond; {",
-      "\tcase ...; {",
-      "\t\t: ... :",
+      "\tcase val; {",
       "\t}",
       "\tdefault {",
-      "\t\t: ... :",
       "\t}",
       "}"
     ]

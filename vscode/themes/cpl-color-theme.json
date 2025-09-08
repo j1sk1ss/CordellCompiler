@@ -2,30 +2,28 @@
   "name": "CPL Theme",
   "type": "dark",
   "colors": {},
+  "semanticHighlighting": false,
+  
   "tokenColors": [
     {
-      "scope": "keyword.control.cpl",
+      "scope": ["keyword.control.cpl"],
       "settings": { "foreground": "#FF00FF" }
     },
     {
-      "scope": "keyword.declaration.cpl",
+      "scope": ["keyword.declaration.cpl"],
       "settings": { "foreground": "#FF00FF" }
     },
     {
-      "scope": "entity.name.function.cpl, entity.name.function.call.cpl",
+      "scope": ["entity.name.function.cpl", "entity.name.function.call.cpl"],
       "settings": { "foreground": "#FFD700" }
     },
     {
-      "scope": "variable.other.cpl",
-      "settings": { "foreground": "#00FF00" }
-    },
-    {
-      "scope": "storage.type.cpl",
+      "scope": ["storage.type.cpl"],
       "settings": { "foreground": "#00BFFF" }
     },
     {
-      "scope": "constant.numeric.cpl",
-      "settings": { "foreground": "#FF4500" } 
+      "scope": ["storage.type.primitive.cpl", "source.cpl storage.type.primitive", "storage.type"],
+      "settings": { "foreground": "#4fbf4f" }
     }
   ]
 }

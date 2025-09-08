@@ -211,11 +211,19 @@ int VRS_issign(token_t* token) {
         case LONG_VARIABLE_TOKEN:
         case INT_VARIABLE_TOKEN:
         case SHORT_VARIABLE_TOKEN:
-        case CHAR_VARIABLE_TOKEN:  return 1;
+        case CHAR_VARIABLE_TOKEN:
+        case LONG_TYPE_TOKEN:
+        case INT_TYPE_TOKEN:
+        case SHORT_TYPE_TOKEN:
+        case CHAR_TYPE_TOKEN:      return 1;
         case ULONG_VARIABLE_TOKEN:
         case UINT_VARIABLE_TOKEN:
         case USHORT_VARIABLE_TOKEN:
-        case UCHAR_VARIABLE_TOKEN: return 0;
+        case UCHAR_VARIABLE_TOKEN:
+        case ULONG_TYPE_TOKEN:
+        case UINT_TYPE_TOKEN:
+        case USHORT_TYPE_TOKEN:
+        case UCHAR_TYPE_TOKEN:     return 0;
         default: return 1;
     }
 }

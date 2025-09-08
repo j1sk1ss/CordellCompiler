@@ -18,9 +18,13 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         case BITMOVE_LEFT_TOKEN:
         case BITMOVE_RIGHT_TOKEN: {
             iprintf(output, "mov rcx, rax\n");
-            iprintf(
-                output, "%s rbx, cl\n", node->token->t_type == BITMOVE_LEFT_TOKEN ? "shl" : "shr"
-            );
+            if (VRS_issign(left->token)) {
+                iprintf(output, "%s rbx, cl\n", node->token->t_type == BITMOVE_LEFT_TOKEN ? "shl" : "shr");
+            }
+            else {
+                iprintf(output, "%s rbx, cl\n", node->token->t_type == BITMOVE_LEFT_TOKEN ? "shl" : "sar");
+            }
+
             iprintf(output, "mov rax, rbx\n");
             break;
         }
@@ -68,14 +72,28 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         }
         case DIVIDE_TOKEN: {
             iprintf(output, "xchg rax, rbx\n");
-            iprintf(output, "cdq\n");
-            iprintf(output, "idiv rbx\n");
+            if (VRS_issign(left->token)) {
+                iprintf(output, "cdq\n");
+                iprintf(output, "idiv rbx\n");
+            } 
+            else {
+                iprintf(output, "xor rdx, rdx\n");
+                iprintf(output, "div rbx\n");
+            }
+
             break;
         }
         case MODULO_TOKEN: {
             iprintf(output, "xchg rax, rbx\n");
-            iprintf(output, "cdq\n");
-            iprintf(output, "idiv rbx\n");
+            if (VRS_issign(left->token)) {
+                iprintf(output, "cdq\n");
+                iprintf(output, "idiv rbx\n");
+            } 
+            else {
+                iprintf(output, "xor rdx, rdx\n");
+                iprintf(output, "div rbx\n");
+            }
+
             iprintf(output, "mov rax, rdx\n");
             break;
         }
@@ -86,13 +104,17 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         case LARGEREQ_TOKEN:
         case NCOMPARE_TOKEN: {
             iprintf(output, "cmp rbx, rax\n");
-            switch (node->token->t_type) {
-                case LARGER_TOKEN:   iprintf(output, "setg al\n");  break;
-                case LARGEREQ_TOKEN: iprintf(output, "setge al\n"); break;
-                case LOWER_TOKEN:    iprintf(output, "setl al\n");  break;
-                case LOWEREQ_TOKEN:  iprintf(output, "setle al\n"); break;
-                case COMPARE_TOKEN:  iprintf(output, "sete al\n");  break;
-                case NCOMPARE_TOKEN: iprintf(output, "setne al\n"); break;
+            if (VRS_issign(left->token)) {
+                if (node->token->t_type == LOWER_TOKEN)    iprintf(output, "setl al\n");
+                if (node->token->t_type == LARGER_TOKEN)   iprintf(output, "setg al\n");
+                if (node->token->t_type == LOWEREQ_TOKEN)  iprintf(output, "setle al\n");
+                if (node->token->t_type == LARGEREQ_TOKEN) iprintf(output, "setge al\n");
+            } 
+            else {
+                if (node->token->t_type == LOWER_TOKEN)    iprintf(output, "setb al\n");
+                if (node->token->t_type == LARGER_TOKEN)   iprintf(output, "seta al\n");
+                if (node->token->t_type == LOWEREQ_TOKEN)  iprintf(output, "setbe al\n");
+                if (node->token->t_type == LARGEREQ_TOKEN) iprintf(output, "setae al\n");
             }
 
             iprintf(output, "movzx rax, al\n");

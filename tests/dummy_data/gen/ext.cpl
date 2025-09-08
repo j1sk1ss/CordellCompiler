@@ -1,5 +1,5 @@
 {
-    extern ptr i8 frame_buffer;
+    extern ptr u8 frame_buffer;
     extern exfunc printf;
 
     start() {

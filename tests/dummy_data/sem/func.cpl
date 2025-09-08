@@ -1,9 +1,9 @@
 {
-    function foo(char a = 10) {
+    function foo(i8 a = 10) {
         return 1;
     }
 
-    function bar(long d) {
+    function bar(i64 d) {
         return d;
     }
 

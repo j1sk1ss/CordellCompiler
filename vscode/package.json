@@ -49,6 +49,13 @@
         "language": "cpl",
         "path": "./snippets/cpl.json"
       }
+    ],
+    "themes": [
+      {
+        "label": "CPL Theme",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cpl-color-theme.json"
+      }
     ]
   },
   "scripts": {

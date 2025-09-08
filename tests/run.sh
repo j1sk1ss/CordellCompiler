@@ -15,10 +15,11 @@ TEST_CODES[test_tok]="tests/dummy_data/prep/token.txt"
 TEST_SRCS[test_mrk]="src/prep/token.c src/prep/markup.c std/*.c"
 TEST_CODES[test_mrk]="tests/dummy_data/prep/markup.cpl"
 
-TEST_SRCS[test_sem]="src/prep/*.c src/ast/*.c src/ast/*/*.c std/*.c"
+TEST_SRCS[test_sem]="src/sem/*.c src/prep/*.c src/ast/*.c src/ast/*/*.c std/*.c"
 TEST_CODES[test_sem]="
-    tests/dummy_data/sem/arrs.cpl
+    tests/dummy_data/sem/size.cpl
     tests/dummy_data/sem/vars.cpl
+    tests/dummy_data/sem/arrs.cpl
     tests/dummy_data/sem/func.cpl
     tests/dummy_data/sem/ro.cpl
 "
@@ -75,7 +76,7 @@ TEST_CODES[test_gen]="
     tests/dummy_data/gen/ptr.cpl
 "
 
-TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
+TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/sem/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
 TEST_CODES[test_build]="
     tests/dummy_data/builder/args.cpl
     tests/dummy_data/builder/print.cpl

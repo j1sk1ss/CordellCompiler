@@ -24,10 +24,10 @@ export function activate(context: vscode.ExtensionContext) {
         const docs: Record<string, string> = {
           start: `**start** — Program entry point.
         
-        start(long argc, ptr long argv) {
-          long a = 0;
+        start(i64 argc, ptr u64 argv) {
+          i64 a = 0;
           while a < argc; {
-            ptr char arg = argv[a];
+            ptr i8 arg = argv[a];
             a = a + 1;
           }
 
@@ -37,8 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
           ref: `**ref** — Reference keyword. Get element address.
 
         start() {
-          int a = 10;
-          ptr long b = ref a;
+          i32 a = 10;
+          ptr u64 b = ref a;
           b[0] = 11;
           exit a; : 11 :
         }
@@ -46,8 +46,8 @@ export function activate(context: vscode.ExtensionContext) {
         dref: `**dref** — De-reference keyword. Get element value by address.
 
         start() {
-          int a = 10;
-          ptr long b = ref a;
+          i32 a = 10;
+          ptr u64 b = ref a;
           dref b = 11;
           exit a; : 11 :
         }
@@ -55,36 +55,37 @@ export function activate(context: vscode.ExtensionContext) {
           ptr: `**ptr** — Pointer data type.
         
         start() {
-          ptr char a = 0;
-          ptr short b = a + 255;
+          ptr i8 a = 0;
+          ptr i16 b = a + 255;
           exit 0;
         }
         `,
           glob: `**glob** — Global data type. Can be used in every scope and all linked files.
         
         start() {
-          glob char a = 0;
+          glob i8 a = 0;
           exit 0;
         }
         `,
           ro: `**ro** — Read only (const) data type. Can't be changed, but can be used in every scope and linked file.
         
         start() {
-          ro char a = 0;
+          ro i8 a = 0;
           exit 0;
         }
         `,
 
           exit: `**exit** — Program exit statement. Will invoke exit syscall and terminate program.
+          Exit code is u8 value.
 
-        int a = 0;
+        u8 a = 0;
         exit a;
         `,
           
           extern: `**extern** — Extern function or variable from outer space.
 
         extern exfunc printf;
-        extern ptr char frame_buffer;
+        extern ptr u8 frame_buffer;
         `,
           
           exfunc: `**exfunc** — External function type.
@@ -100,18 +101,18 @@ export function activate(context: vscode.ExtensionContext) {
           
           function: `**function** — Function definition keyword. CPL language don't provide return type selection.
 
-        function abs(int n) {
+        function abs(i32 n) {
             return n;
-        } : -> int :
+        } : -> i32 :
         `,
-          i64: `**long** - Long variable type. On 64-bit machines equals 64-bit value. Max: 9,223,372,036,854,775,807`,
-          i32: `**int** - Integer variable type. Size equals to 32-bit value. Max: 2,147,483,647`,
-          i16: `**short** - Short integer variable type. Size equals to 16-bit value. Max: 32,767`,
-          i8: `**char** - Character integer variable type. Size equals to 8-bit value. Max: 128`,
-          u64: `**long** - Long variable type. On 64-bit machines equals 64-bit value. Max: 9,223,372,036,854,775,807`,
-          u32: `**int** - Integer variable type. Size equals to 32-bit value. Max: 2,147,483,647`,
-          u16: `**short** - Short integer variable type. Size equals to 16-bit value. Max: 32,767`,
-          u8: `**char** - Character integer variable type. Size equals to 8-bit value. Max: 128`,
+          i64: `**i64** - Long variable type. On 64-bit machines equals 64-bit value. Max: 9,223,372,036,854,775,807`,
+          i32: `**i32** - Integer variable type. Size equals to 32-bit value. Max: 2,147,483,647`,
+          i16: `**i16** - Short integer variable type. Size equals to 16-bit value. Max: 32,767`,
+          i8: `**i8** - Character integer variable type. Size equals to 8-bit value. Max: 128`,
+          u64: `**u64** - Long variable type. On 64-bit machines equals 64-bit value. Max: 18,446,744,073,709,551,615`,
+          u32: `**u32** - Integer variable type. Size equals to 32-bit value. Max: 4,294,967,295`,
+          u16: `**u16** - Short integer variable type. Size equals to 16-bit value. Max: 65,535`,
+          u8: `**u8** - Character integer variable type. Size equals to 8-bit value. Max: 256`,
             
           arr: `**arr** - Array variable type. Allocate array on stack.
 

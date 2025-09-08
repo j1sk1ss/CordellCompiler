@@ -7,17 +7,18 @@
 #include "logg.h"
 #include "token.h"
 #include "syntax.h"
+#include <limits.h>
 
-#include <math.h>
+/* ro.c */
+int SMT_check_ro(ast_node_t* node);
 
-/*
-SMT_check function iterate throught AST and check semantic.
-Params:
-- root - AST head.
+/* size.c */
+int SMT_check_sizes(ast_node_t* node);
 
-Return 1 if semantic is true.
-Return 0 if semantic is wrong.
-*/
-int SMT_check(ast_node_t* root);
+/* bitness.c */
+int SMT_check_bitness(ast_node_t* node);
+
+/* semantic.c */
+int SMT_check(ast_node_t* node);
 
 #endif
