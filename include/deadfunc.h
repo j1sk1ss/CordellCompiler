@@ -10,7 +10,7 @@
 #define DCTX_AST_MAX 100
 typedef struct {
     syntax_ctx_t* ctx[DCTX_AST_MAX];
-    char size;
+    char          size;
 } deadfunc_ctx_t;
 
 /*

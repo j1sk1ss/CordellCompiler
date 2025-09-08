@@ -1,6 +1,6 @@
 {
-    glob function strlen(ptr char string) {
-        long index = 0;
+    glob function strlen(ptr i8 string) {
+        i64 index = 0;
         while dref string; {
             index = index + 1;
             string = string + 1;
@@ -9,9 +9,9 @@
         return index;
     }
 
-    glob function reverse(ptr char string, int size) {
-        int l = 0;
-        int r = size;
+    glob function reverse(ptr i8 string, i32 size) {
+        i32 l = 0;
+        i32 r = size;
         while l < r; {
             if string[r]; {
                 char tmp = string[l];
@@ -26,8 +26,8 @@
         return 1;
     }
 
-    glob function atoi(ptr char buffer, int bsize) {
-        int num = 0;
+    glob function atoi(ptr i8 buffer, i32 bsize) {
+        i32 num = 0;
         bsize = bsize - 1;
 
         while bsize > 0; {
@@ -39,9 +39,9 @@
         return num;
     }
 
-    glob function itoa(ptr char buffer, long buffer_size, int num) {
-        int index = 0;
-        int is_negative = 0;
+    glob function itoa(ptr i8 buffer, i64 buffer_size, i32 num) {
+        i32 index = 0;
+        i32 is_negative = 0;
         if num == 0; {
             buffer[0] = '0';
             buffer[1] = 0;
@@ -53,7 +53,7 @@
             num = num * -1;
         }
 
-        int tmp = 0;
+        i32 tmp = 0;
         while (num > 0) && (index < buffer_size); {
             tmp = num % 10;
             buffer[index] = tmp + 48;

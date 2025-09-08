@@ -185,27 +185,27 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
 
 Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/ast/cpl_parsers/README.md). Instead of wasting space, lets take a look on the visual example with translation of this code below:
 ```CPL
-{
-    start(i64 argc, ptr i64 argv) {
-        str stack_str = "String value";
-        ptr str str_ptr = stack_str;
-
-        i64 a  = 0;
-        i32 b   = 1;
-        i16 c = 2;
-        i8 d  = 'a';
-
-        a = b;
-        c = b;
-        d = c;
-        
-        d = strptr;
-        strptr = c;
-
-        arr large_arr[5, i8] = {1,2,256,4,5,6,7,8,9,10};
-        exit 0;
-    }
-}
+1  {
+2      start(i64 argc, ptr i64 argv) {
+3          str stack_str = "String value";
+4          ptr str str_ptr = stack_str;
+5  
+6          i64 a = 0;
+7          i32 b = 1;
+8          i16 c = 2;
+9          i8 d  = 'a';
+10 
+11         a = b;
+12         c = b;
+13         d = c;
+14         
+15         d = strptr;
+16         strptr = c;
+17 
+18         arr large_arr[5, i8] = {1,2,256,4,5,6,7,8,9,10};
+19         exit 0;
+20     }
+21 }
 ```
 
 into the `AST`:
@@ -298,26 +298,26 @@ Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here
 Every program begins with the `start` entrypoint and ends with the `exit [return_code];` statement.
 
 ```CPL
-{
-    start() {
-        ...
-        exit 0;
-    }
-}
+1  {
+2      start() {
+3          ...
+4          exit 0;
+5      }
+6  }
 ```
 
 Also every program can contain `pre-implemented` code blocks and data segments:
 
 ```CPL
-{
-    function foo() { }
-    glob i32 b = 0;
-
-    start() {
-        foo();
-        exit 0;
-    }
-}
+1  {
+2      function foo() { }
+3      glob i32 b = 0;
+4  
+5      start() {
+6          foo();
+7          exit 0;
+8      }
+9  }
 ```
 
 ## Variables and Types
@@ -332,26 +332,26 @@ The following types are supported:
 
 ### Declaring Variables
 ```CPL
-{
-    i32 a = 5;
-    ro i32 aReadOnly = 5; : Const and global :
-    glob i32 aGlobal = 5; : Global :
-
-    ptr i32 g = ref a; : Pointer to a variable :
-    dref g = 6;
-
-    i16 b = 1234 + (432 * (2 + 12)) / 87;
-    i8 c = 'X';
-
-    str name = "Hello, World!"; : Placed in stack :
-    ptr i8 strPtr = name; : Pointer to name string :
-    strPtr[0] = 'B';
-
-    ptr str data_name = "Hello, World!"; : Placed in data section :
-
-    arr farr[100, i8] =; : Will allocate array with size 100 and elem size 1 byte :
-    arr sarr[5, i32] = { 1, 2, 3, 4, 5 }; : Will allocate array for provided elements :
-}
+1  {
+2      i32 a = 5;
+3      ro i32 aReadOnly = 5; : Const and global :
+4      glob i32 aGlobal = 5; : Global :
+5  
+6      ptr i32 g = ref a; : Pointer to a variable :
+7      dref g = 6;
+8  
+9      i16 b = 1234 + (432 * (2 + 12)) / 87;
+10     i8 c = 'X';
+11 
+12     str name = "Hello, World!"; : Placed in stack :
+13     ptr i8 strPtr = name; : Pointer to name string :
+14     strPtr[0] = 'B';
+15 
+16     ptr str data_name = "Hello, World!"; : Placed in data section :
+17 
+18     arr farr[100, i8] =; : Will allocate array with size 100 and elem size 1 byte :
+19     arr sarr[5, i32] = { 1, 2, 3, 4, 5 }; : Will allocate array for provided elements :
+20 }
 ```
 
 ## Operations
@@ -373,45 +373,45 @@ Basic arithmetic and logical operations are supported:
 ## Loops and Conditions
 ### Switch expression
 ```CPL
-{
-    switch (a) {
-        case 1; {
-        }
-        case 111; {
-        }
-        case 1111; {
-        }
-        : ... :
-        default {
-        }
-    }
-}
+1  {
+2      switch (a) {
+3          case 1; {
+4          }
+5          case 111; {
+6          }
+7          case 1111; {
+8          }
+9          : ... :
+10         default {
+11         }
+12     }
+13 }
 ```
 
 **Note:** Switch statement based on binary search algorithm, thats why, prefer switch in situations with many cases. In other hand, with three or less options, use if for avoiding overhead.
 
 ### If Condition
 ```CPL
-{
-    if a > b; {
-        : ... if code :
-    }
-    else {
-        : ... else code :
-    }
-}
+1  {
+2      if a > b; {
+3          : ... if code :
+4      }
+5      else {
+6          : ... else code :
+7      }
+8  }
 ```
 
 ### While Loop
 ```CPL
-{
-    while (x < 10) && (y > 20); {
-        : ... loop body : 
-    }
-    else {
-        : At the end of the loop :
-    }
-}
+1  {
+2      while (x < 10) && (y > 20); {
+3          : ... loop body : 
+4      }
+5      else {
+6          : At the end of the loop :
+7      }
+8  }
 ```
 
 ## Functions
@@ -427,46 +427,46 @@ Functions are declared using the `function` keyword.
 
 ### Example:
 ```CPL
-{
-    glob function sumfunc(i32 a, i32 b) {
-        return a + b;
-    }
-
-    function foo(: no args :) {
-        return;
-    }
-}
+1  {
+2      glob function sumfunc(i32 a, i32 b) {
+3          return a + b;
+4      }
+5  
+6      function foo(: no args :) {
+7          return;
+8      }
+9  }
 ```
 
 ### Calling the function
 ```CPL
-{
-    i32 result = sumfunc(5, 10);
-    : Functions without return values can be called directly :
-    printStr(strptr, size);
-}
+1  {
+2      i32 result = sumfunc(5, 10);
+3      : Functions without return values can be called directly :
+4      printStr(strptr, size);
+5  }
 ```
 
 ## Input/Output (via system calls)
 ### String Input/Output
 ```CPL
-{
-    syscall(4, 1, ptr, size);
-    syscall(3, 0, ptr, size);
-}
+1  {
+2      syscall(4, 1, ptr, size);
+3      syscall(3, 0, ptr, size);
+4  }
 ```
 
 ### Wrapping in a function:
 ```CPL
-{
-    glob function printStr(ptr i8 buffer, i32 size) {
-        return syscall(4, 1, buffer, size); 
-    }
-
-    glob function getStr(ptr i8 buffer, i32 size) {
-        return syscall(3, 0, buffer, size); 
-    }
-}
+1  {
+2      glob function printStr(ptr i8 buffer, i32 size) {
+3          return syscall(4, 1, buffer, size); 
+4      }
+5  
+6      glob function getStr(ptr i8 buffer, i32 size) {
+7          return syscall(3, 0, buffer, size); 
+8      }
+9  }
 ```
 
 ## Comments

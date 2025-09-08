@@ -227,3 +227,14 @@ int VRS_issign(token_t* token) {
         default: return 1;
     }
 }
+
+int VRS_is_control_change(token_t* token) {
+    if (!token) return 0;
+    switch (token->t_type) {
+        case IF_TOKEN:
+        case CALL_TOKEN:
+        case WHILE_TOKEN:
+        case SWITCH_TOKEN: return 1;
+        default:           return 0;
+    }
+}

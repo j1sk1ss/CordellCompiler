@@ -1,32 +1,32 @@
 from "string.cpl" import strlen;
 
 {
-    glob function puts(ptr char string) {
+    glob function puts(ptr i8 string) {
         return syscall(1, 1, string, strlen(string));
     }
 
-    glob function putc(char c) {
+    glob function putc(i8 c) {
         arr tmp[2, char] = { c, 0 };
         return syscall(1, 1, tmp, 2);
     }
 
-    glob function gets(ptr char buffer, long size) {
+    glob function gets(ptr i8 buffer, i64 size) {
         return syscall(0, 0, buffer, size);
     }
 
-    glob function open(ptr char path, int flags, int mode) {
+    glob function open(ptr i8 path, i32 flags, i32 mode) {
         return syscall(2, path, flags, mode);
     }
 
-    glob function fwrite(int fd, ptr char buffer, int size) {
+    glob function fwrite(i32 fd, ptr u8 buffer, i32 size) {
         return syscall(1, fd, buffer, size);
     }
 
-    glob function fread(int fd, ptr char buffer, int size) {
+    glob function fread(i32 fd, ptr u8 buffer, i32 size) {
         return syscall(0, fd, buffer, size);
     }
 
-    glob function close(int fd) {
+    glob function close(i32 fd) {
         return syscall(3, fd);
     }
 }

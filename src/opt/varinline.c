@@ -1,8 +1,6 @@
 #include <varinline.h>
 
-static int _find_usage(
-    ast_node_t* root, char* varname, short s_id, int* assign, int offset
-) {
+static int _find_usage(ast_node_t* root, char* varname, short s_id, int* assign, int offset) {
     if (!root) return 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
         if (offset-- > 0) continue;
@@ -34,9 +32,7 @@ static int _find_usage(
     return 1;
 }
 
-static int _inline_var(
-    ast_node_t* root, char* varname, short s_id, int value, int offset
-) {
+static int _inline_var(ast_node_t* root, char* varname, short s_id, int value, int offset) {
     if (!root) return 0;
     int index = 0;
     for (ast_node_t* t = root->child; t; t = t->sibling) {
