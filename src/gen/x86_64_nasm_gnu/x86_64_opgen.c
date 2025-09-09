@@ -18,7 +18,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         case BITMOVE_LEFT_TOKEN:
         case BITMOVE_RIGHT_TOKEN: {
             iprintf(output, "mov rcx, rax\n");
-            if (VRS_issign(left->token)) {
+            if (VRS_issign(right->token) && VRS_issign(left->token)) {
                 iprintf(output, "%s rbx, cl\n", node->token->t_type == BITMOVE_LEFT_TOKEN ? "shl" : "shr");
             }
             else {
@@ -72,7 +72,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         }
         case DIVIDE_TOKEN: {
             iprintf(output, "xchg rax, rbx\n");
-            if (VRS_issign(left->token)) {
+            if (VRS_issign(right->token) && VRS_issign(left->token)) {
                 iprintf(output, "cdq\n");
                 iprintf(output, "idiv rbx\n");
             } 
@@ -85,7 +85,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         }
         case MODULO_TOKEN: {
             iprintf(output, "xchg rax, rbx\n");
-            if (VRS_issign(left->token)) {
+            if (VRS_issign(right->token) && VRS_issign(left->token)) {
                 iprintf(output, "cdq\n");
                 iprintf(output, "idiv rbx\n");
             } 
@@ -104,7 +104,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         case LARGEREQ_TOKEN:
         case NCOMPARE_TOKEN: {
             iprintf(output, "cmp rbx, rax\n");
-            if (VRS_issign(left->token)) {
+            if (VRS_issign(right->token) && VRS_issign(left->token)) {
                 if (node->token->t_type == LOWER_TOKEN)    iprintf(output, "setl al\n");
                 if (node->token->t_type == LARGER_TOKEN)   iprintf(output, "setg al\n");
                 if (node->token->t_type == LOWEREQ_TOKEN)  iprintf(output, "setle al\n");
