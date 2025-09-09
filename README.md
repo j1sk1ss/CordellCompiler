@@ -333,25 +333,20 @@ The following types are supported:
 ### Declaring Variables
 ```CPL
 1  {
-2      i32 a = 5;
-3      ro i32 aReadOnly = 5; : Const and global :
-4      glob i32 aGlobal = 5; : Global :
-5  
-6      ptr i32 g = ref a; : Pointer to a variable :
-7      dref g = 6;
-8  
-9      i16 b = 1234 + (432 * (2 + 12)) / 87;
-10     i8 c = 'X';
-11 
-12     str name = "Hello, World!"; : Placed in stack :
-13     ptr i8 strPtr = name; : Pointer to name string :
-14     strPtr[0] = 'B';
-15 
-16     ptr str data_name = "Hello, World!"; : Placed in data section :
-17 
-18     arr farr[100, i8] =; : Will allocate array with size 100 and elem size 1 byte :
-19     arr sarr[5, i32] = { 1, 2, 3, 4, 5 }; : Will allocate array for provided elements :
-20 }
+2       i8 a1 = 'C';
+3       u8 a2 = 253;
+4       i16 a3 = 25093;
+5
+6       ro u32 a4 = 123123;
+7       glob i64 a5 = 31232;
+8
+9       str msg = "Hello world!";
+10      ptr u32 msg_ptr = msg;
+11      ptr u64 msg_msg_ptr = ref msg_ptr;
+12
+13      arr array[10, i32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+14      arr array1[10, u64] =;
+15 }
 ```
 
 ## Operations
@@ -487,121 +482,121 @@ If you want see more examples, please look into the folder `examples`. Also [her
 
 ### Example of Printing a Number:
 ```CPL
-extern exfunc printf;
-
-{
-    function itoa(ptr i8 buffer, i32 dsize, i32 num) {
-        i32 index = dsize - 1;
-        i32 tmp = 0;
-
-        i32 isNegative = 0;
-        if num < 0; {
-            isNegative = 1;
-            num = num * -1;
-        }
-
-        while num > 0; {
-            tmp = num % 10;
-            buffer[index] = tmp + 48;
-            index = index - 1;
-            num = num / 10;
-        }
-
-        if isNegative; {
-            buffer[index - 1] = '-';
-        }
-
-        return 1;
-    }
-
-    start() {
-        arr buff[32, i8] =;
-        itoa(buff, 10, 1234567890)
-        printf("%s", buff);
-        exit 0;
-    }
-}
+1  extern exfunc printf;
+2  
+3  {
+4      function itoa(ptr i8 buffer, i32 dsize, i32 num) {
+5          i32 index = dsize - 1;
+6          i32 tmp = 0;
+7  
+8          i32 isNegative = 0;
+9          if num < 0; {
+10             isNegative = 1;
+11             num = num * -1;
+12         }
+13 
+14         while num > 0; {
+15             tmp = num % 10;
+16             buffer[index] = tmp + 48;
+17             index = index - 1;
+18             num = num / 10;
+19         }
+20 
+21         if isNegative; {
+22             buffer[index - 1] = '-';
+23         }
+24 
+25         return 1;
+26     }
+27 
+28     start() {
+29         arr buff[32, i8] =;
+30         itoa(buff, 10, 1234567890)
+31         printf("%s", buff);
+32         exit 0;
+33     }
+34 }
 ```
 
 ### Example of Fibonacci N-number print:
 ```CPL
-from "string.cpl" import itoa;
-from "stdio.cpl" import prints;
-
-{
-    start() {
-        i32 a = 0;
-        i32 b = 1;
-        i32 c = 0;
-        i32 count = 0;
-        while count < 20; {
-            c = a + b;
-            a = b;
-            b = c;
-            
-            arr buffer[40, i8] =;
-            itoa(buffer, 40, c);
-            prints(buffer, 40);
-
-            count = count + 1;
-        }
-
-        exit 0;
-    }
-}
+1  from "string.cpl" import itoa;
+2  from "stdio.cpl" import prints;
+3  
+4  {
+5      start() {
+6          i32 a = 0;
+7          i32 b = 1;
+8          i32 c = 0;
+9          i32 count = 0;
+10         while count < 20; {
+11             c = a + b;
+12             a = b;
+13             b = c;
+14             
+15             arr buffer[40, i8] =;
+16             itoa(buffer, 40, c);
+17             prints(buffer, 40);
+18 
+19             count = count + 1;
+20         }
+21 
+22         exit 0;
+23     }
+24 }
 ```
 
 ### Example of simple memory manager:
 ```CPL
-{
-    glob arr _mm_head[100000, i8] =;
-    glob arr _blocks_info[100000, i32] =;
-    glob i64 _head = 0;
-
-    glob function memset(ptr i8 buffer, i32 val, i64 size) {
-        i64 index = 0;
-        while index < size; {
-            buffer[index] = val;
-            index = index + 1;
-        }
-
-        return 1;
-    }
-
-    glob function malloc(i64 size) {
-        if size > 0; {
-            ptr i32 curr_mem = _mm_head;
-            i32 block_index = 0;
-            while block_index < 100000; {
-                if _blocks_info[block_index] == 0; {
-                    _blocks_info[block_index] = 1;
-                    _blocks_info[block_index + 1] = size;
-                    _blocks_info[block_index + 2] = curr_mem;
-                    return curr_mem;
-                }
-
-                curr_mem = curr_mem + _blocks_info[block_index + 1];
-                block_index = block_index + 3;
-            }
-        }
-
-        return -1;
-    }
-
-    glob function free(ptr i32 mem) {
-        i32 block_index = 0;
-        while block_index < 100000; {
-            if _blocks_info[block_index + 2] == mem; {
-                _blocks_info[block_index] = 0;
-                return 1;
-            }
-
-            block_index = block_index + 3;
-        }
-
-        return 1;
-    }
-}
+1  {
+2      glob arr _mm_head[100000, i8] =;
+3      glob arr _blocks_info[100000, i32] =;
+4      glob i64 _head = 0;
+5  
+6      glob function memset(ptr i8 buffer, i32 val, i64 size) {
+7           i64 index = 0;
+8          while index < size; {
+9              buffer[index] = val;
+10             index = index + 1;
+11         }
+12 
+13         return 1;
+14     }
+15 
+16     glob function malloc(i64 size) {
+17         if size > 0; {
+18             ptr i32 curr_mem = _mm_head;
+19             i32 block_index = 0;
+20             while block_index < 100000; {
+21                 if _blocks_info[block_index] == 0; {
+22                     _blocks_info[block_index] = 1;
+23                     _blocks_info[block_index + 1] = size;
+24                     _blocks_info[block_index + 2] = curr_mem;
+25                     return curr_mem;
+26                 }
+27 
+28                 curr_mem = curr_mem + _blocks_info[block_index + 1];
+29                 block_index = block_index + 3;
+30             }
+31         }
+32 
+33         return -1;
+34     }
+35 
+36     glob function free(ptr i32 mem) {
+37         i32 block_index = 0;
+38         while block_index < 100000; {
+39             if _blocks_info[block_index + 2] == mem; {
+40                 _blocks_info[block_index] = 0;
+41                 return 1;
+42             }
+43 
+44             block_index = block_index + 3;
+45         }
+46 
+47         return 1;
+48     }
+49 }
 ```
 
 # Used links and literature
