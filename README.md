@@ -466,15 +466,15 @@ Functions are declared using the `function` keyword.
 
 ### ASM Block
 ```CPL
-{
-    u8 a = 0;
-    u8 b = 0;
-    asm(a, b) {
-        "mov rax. &a",
-        "syscall",
-        "mov &b, rax"
-    }
-}
+1  {
+2      u8 a = 0;
+3      u8 b = 0;
+4      asm(a, b) {
+5          "mov rax, &a",
+6          "syscall",
+7          "mov &b, rax"
+8      }
+9  }
 ```
 
 ## Comments
