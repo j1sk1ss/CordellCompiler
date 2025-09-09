@@ -39,12 +39,12 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         case OR_TOKEN:
         case AND_TOKEN: {
             int lbl_id = ctx->label++;
-            iprintf(output, "cmp rbx, 0\n");
+            iprintf(output, "test rbx, rbx\n");
             if (node->token->t_type == AND_TOKEN) iprintf(output, "je L_false_%d\n", lbl_id);
             else iprintf(output, "jne L_true_%d\n", lbl_id);
 
             g->elemegen(right, output, ctx, g);
-            iprintf(output, "cmp rax, 0\n");
+            iprintf(output, "test rax, rax\n");
             iprintf(output, "jne L_true_%d\n", lbl_id);
             iprintf(output, "jmp L_false_%d\n", lbl_id);
 

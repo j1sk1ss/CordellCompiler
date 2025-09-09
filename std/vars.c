@@ -127,7 +127,12 @@ int VRS_isdecl(token_t* token) {
 }
 
 int VRS_isblock(token_t* token) {
-    return !token || (token->t_type == SCOPE_TOKEN) || (token->t_type == START_TOKEN);
+    return (
+        !token || 
+        (token->t_type == SCOPE_TOKEN) || 
+        (token->t_type == START_TOKEN) ||
+        (token->t_type == FUNC_TOKEN)
+    );
 }
 
 int VRS_isoperand(token_t* token) {
@@ -233,6 +238,7 @@ int VRS_is_control_change(token_t* token) {
     switch (token->t_type) {
         case IF_TOKEN:
         case CALL_TOKEN:
+        case EXIT_TOKEN:
         case WHILE_TOKEN:
         case SWITCH_TOKEN: return 1;
         default:           return 0;

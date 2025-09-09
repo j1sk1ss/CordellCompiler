@@ -2,9 +2,9 @@
 
 static int _find_func_usage_file(ast_node_t* root, const char* func, int* is_used) {
     if (!root) return 0;
-    for (ast_node_t* t = root->child; t; t = t->sibling) {
+    for (ast_node_t* t = root; t; t = t->sibling) {
         if (!t->token) {
-            _find_func_usage_file(t, func, is_used);
+            _find_func_usage_file(t->child, func, is_used);
             continue;
         }
 
@@ -13,14 +13,14 @@ static int _find_func_usage_file(ast_node_t* root, const char* func, int* is_use
                 if (str_strcmp(t->child->token->value, func)) {
                     ast_node_t* b = t->child;
                     for (; b && b->token->t_type != SCOPE_TOKEN; b = b->sibling);
-                    _find_func_usage_file(b, func, is_used);
+                    _find_func_usage_file(b->child, func, is_used);
                 }
 
                 break;
             }
 
             case IMPORT_SELECT_TOKEN: continue;
-            default: _find_func_usage_file(t, func, is_used); break;
+            default: _find_func_usage_file(t->child, func, is_used); break;
         }
 
         if (t->token->t_type == CALL_TOKEN) {
@@ -51,7 +51,30 @@ static int _find_func(ast_node_t* root, int* delete, deadfunc_ctx_t* dctx) {
         }
 
         switch (t->token->t_type) {
-            case FUNC_TOKEN: 
+            case IMPORT_SELECT_TOKEN: {
+                ast_node_t* f = t->child->child;
+                while (f) {
+                    ast_node_t* next = f->sibling;
+                    int used = 0;    
+                    _find_func_usage(f->token->value, &used, dctx);
+                    if (!used) {
+                        AST_remove_node(t->child, f);
+                        AST_unload(f);
+                        *delete = 1;
+                    }
+
+                    f = next;
+                }
+
+                if (!t->child->child) {
+                    AST_remove_node(root, t);
+                    AST_unload(t);
+                }
+
+                break;
+            }
+
+            case FUNC_TOKEN: {
                 int used = 0;    
                 _find_func_usage(t->child->token->value, &used, dctx);
                 if (used) {
@@ -64,7 +87,10 @@ static int _find_func(ast_node_t* root, int* delete, deadfunc_ctx_t* dctx) {
                     AST_unload(t);
                     *delete = 1;
                 }
-            break;
+
+                break;
+            }
+
             default: _find_func(t, delete, dctx); break;
         }
     }

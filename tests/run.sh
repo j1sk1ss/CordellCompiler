@@ -50,10 +50,16 @@ TEST_CODES[test_constopt]="
 "
 
 TEST_SRCS[test_strdecl]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/strdecl.c std/*.c"
-TEST_CODES[test_strdecl]="tests/dummy_data/opt/strdecl.cpl"
+TEST_CODES[test_strdecl]="
+    tests/dummy_data/opt/strdecl/strdecl_1.cpl
+    tests/dummy_data/opt/strdecl/strdecl_2.cpl
+"
 
 TEST_SRCS[test_deadfunc]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/deadfunc.c std/*.c"
-TEST_CODES[test_deadfunc]="tests/dummy_data/opt/deadfunc.cpl"
+TEST_CODES[test_deadfunc]="
+    tests/dummy_data/opt/deadfunc/deadfunc_1.cpl
+    tests/dummy_data/opt/deadfunc/deadfunc_2.cpl
+"
 
 TEST_SRCS[test_condunroll]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/condunroll.c std/*.c"
 TEST_CODES[test_condunroll]="
@@ -63,7 +69,11 @@ TEST_CODES[test_condunroll]="
 "
 
 TEST_SRCS[test_deadscope]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/deadscope.c std/*.c"
-TEST_CODES[test_deadscope]="tests/dummy_data/opt/deadscope.cpl"
+TEST_CODES[test_deadscope]="
+    tests/dummy_data/opt/deadscope/deadscope_1.cpl
+    tests/dummy_data/opt/deadscope/deadscope_2.cpl
+    tests/dummy_data/opt/deadscope/deadscope_3.cpl
+"
 
 TEST_SRCS[test_offsetopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/offsetopt.c std/*.c"
 TEST_CODES[test_offsetopt]="

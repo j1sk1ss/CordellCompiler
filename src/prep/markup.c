@@ -220,7 +220,7 @@ _f_remove_token:
     }
 
     s_id = 0;
-    scope_stack.top = -1;
+    scope_reset(&scope_stack);
 
     prev = NULL;
     curr = head;
@@ -235,8 +235,7 @@ _f_remove_token:
             dref = 1;
             goto _s_remove_token;
         }
-
-        if (curr->t_type == REF_TYPE_TOKEN) {
+        else if (curr->t_type == REF_TYPE_TOKEN) {
             ref = 1;
 _s_remove_token:
             if (prev) prev->next = curr->next;

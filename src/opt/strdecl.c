@@ -65,17 +65,17 @@ static int _unload_stringmap(stropt_ctx_t* ctx) {
 
 static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
     if (!root) return 0;
-    for (ast_node_t* t = root->child; t; t = t->sibling) {
+    for (ast_node_t* t = root; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            _find_string(t, ctx);
+            _find_string(t->child, ctx);
             continue;
         }
 
         if (
             VRS_isoperand(t->token) || 
-            (VRS_isdecl(t->token) && (t->token->vinfo.ptr || !VRS_intext(t->token))) /* Is declaration and it's pointer or ntext */
+            (VRS_isdecl(t->token) && (t->token->vinfo.ptr || !VRS_intext(t->token)))  /* Is declaration and it's pointer or ntext */
         ) {
-            _find_string(t, ctx);
+            _find_string(t->child, ctx);
             continue;
         }
 
@@ -88,20 +88,13 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
                 sprintf(t->token->value, "%s", info.name);
             }
             
-            t->token->t_type = STR_VARIABLE_TOKEN;
-            t->info.size     = VRS_variable_bitness(t->token, 1) / 8;
-            t->token->vinfo.glob = 1;
+            t->info.size         = VRS_variable_bitness(t->token, 1) / 8;
+            t->token->t_type     = STR_VARIABLE_TOKEN;
             t->token->vinfo.ro   = 1;
+            t->token->vinfo.glob = 1;
         }
 
-        if (
-            t->token->t_type == FUNC_TOKEN || 
-            t->token->t_type == CALL_TOKEN || 
-            t->token->t_type == WHILE_TOKEN || 
-            t->token->t_type == IF_TOKEN
-        ) {
-            _find_string(t, ctx);
-        }
+        if (VRS_is_control_change(t->token)) _find_string(t->child, ctx);
     }
 
     return 1;
