@@ -13,6 +13,9 @@
 int x86_64_generate_elem(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g);
 int x86_64_generate_block(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g);
 
+/* x86_64_asmgen.c */
+int x86_64_generate_asm(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g);
+
 /* x86_64_opgen.c */
 int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g);
 

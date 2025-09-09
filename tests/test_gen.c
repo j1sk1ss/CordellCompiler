@@ -47,7 +47,8 @@ int main(int argc, char* argv[]) {
         .expr       = cpl_parse_expression,
         .scope      = cpl_parse_scope,
         .start      = cpl_parse_start,
-        .syscall    = cpl_parse_syscall
+        .syscall    = cpl_parse_syscall,
+        .asmer      = cpl_parse_asm
     };
 
     STX_create(tkn, &sctx, &p);
@@ -59,25 +60,26 @@ int main(int argc, char* argv[]) {
     
     gen_ctx_t gctx = { .label = 0, .synt = &sctx };
     gen_t g = {
-        .datagen  = x86_64_generate_data,
-        .funcdef  = x86_64_generate_funcdef,
-        .funcret  = x86_64_generate_return,
-        .funccall = x86_64_generate_funccall,
-        .function = x86_64_generate_function,
-        .blockgen = x86_64_generate_block,
-        .elemegen = x86_64_generate_elem,
-        .operand  = x86_64_generate_operand,
-        .store    = x86_64_generate_store,
-        .ptrload  = x86_64_generate_ptr_load,
-        .load     = x86_64_generate_load,
-        .assign   = x86_64_generate_assignment,
-        .decl     = x86_64_generate_declaration,
-        .start    = x86_64_generate_start,
-        .exit     = x86_64_generate_exit,
-        .syscall  = x86_64_generate_syscall,
-        .ifgen    = x86_64_generate_if,
-        .whilegen = x86_64_generate_while,
-        .switchgen= x86_64_generate_switch
+        .datagen   = x86_64_generate_data,
+        .funcdef   = x86_64_generate_funcdef,
+        .funcret   = x86_64_generate_return,
+        .funccall  = x86_64_generate_funccall,
+        .function  = x86_64_generate_function,
+        .blockgen  = x86_64_generate_block,
+        .elemegen  = x86_64_generate_elem,
+        .operand   = x86_64_generate_operand,
+        .store     = x86_64_generate_store,
+        .ptrload   = x86_64_generate_ptr_load,
+        .load      = x86_64_generate_load,
+        .assign    = x86_64_generate_assignment,
+        .decl      = x86_64_generate_declaration,
+        .start     = x86_64_generate_start,
+        .exit      = x86_64_generate_exit,
+        .syscall   = x86_64_generate_syscall,
+        .ifgen     = x86_64_generate_if,
+        .whilegen  = x86_64_generate_while,
+        .switchgen = x86_64_generate_switch,
+        .asmer     = x86_64_generate_asm
     };
 
     fprintf(stdout, "Generated code:\n");

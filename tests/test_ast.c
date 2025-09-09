@@ -42,7 +42,8 @@ int main(int argc, char* argv[]) {
         .expr       = cpl_parse_expression,
         .scope      = cpl_parse_scope,
         .start      = cpl_parse_start,
-        .syscall    = cpl_parse_syscall
+        .syscall    = cpl_parse_syscall,
+        .asmer      = cpl_parse_asm
     };
 
     STX_create(tkn, &sctx, &p);

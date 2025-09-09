@@ -32,6 +32,7 @@ typedef struct parser {
     ast_node_t* (*import)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*expr)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*scope)(token_t**, syntax_ctx_t*, struct parser*);
+    ast_node_t* (*asmer)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*start)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*syscall)(token_t**, syntax_ctx_t*, struct parser*);
 } parser_t;

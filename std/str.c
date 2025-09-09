@@ -116,6 +116,16 @@ char* str_strcpy(char* dst, const char* src) {
 	return (dst);
 }
 
+const char* str_strchr(const char* str, char chr) {
+    if (!str) return NULL;
+    while (*str) {
+        if (*str == chr) return str;
+        ++str;
+    }
+
+    return NULL;
+}
+
 char* str_strcat(char* dest, const char* src) {
     str_strcpy(dest + str_strlen(dest), src);
     return dest;
@@ -132,4 +142,8 @@ int is_number(char* s) {
 
 int str_isdigit(int c) {
     return (c >= '0' && c <= '9');
+}
+
+int str_isspace(int c) {
+    return (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\b');
 }

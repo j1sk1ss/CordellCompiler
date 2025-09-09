@@ -4,6 +4,7 @@ static ast_node_t* _dummy_parser(token_t** curr, syntax_ctx_t* ctx, parser_t* p)
 static ast_node_t* (*_get_parser(syntax_ctx_t* ctx, token_type_t t_type, parser_t* p))(token_t**, syntax_ctx_t*, parser_t*) {
     switch (t_type) {
         case START_TOKEN:           return p->start;
+        case ASM_TOKEN:             return p->asmer;
         case OPEN_BLOCK_TOKEN:
         case CLOSE_BLOCK_TOKEN:     return p->scope;
         case STR_TYPE_TOKEN:
@@ -14,7 +15,7 @@ static ast_node_t* (*_get_parser(syntax_ctx_t* ctx, token_type_t t_type, parser_
         case U32_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
-        case U16_TYPE_TOKEN:     return p->vardecl;
+        case U16_TYPE_TOKEN:        return p->vardecl;
         case SWITCH_TOKEN:          return p->switchstmt;
         case IF_TOKEN:              
         case WHILE_TOKEN:           return p->condop;

@@ -48,6 +48,7 @@
 #define IF_COMMAND              "if"
 #define ELSE_COMMAND            "else"
 #define SYSCALL_COMMAND         "syscall"
+#define ASM_COMMAND             "asm"
 
 // Symbols and statements (Operands)
 #define ASSIGN_STATEMENT        "="

@@ -12,6 +12,15 @@
     ],
     "description": "CPL program skeleton"
   },
+  "asm-block": {
+    "scope": "cpl",
+    "prefix": "asm",
+    "body": [
+      "asm (var1, var2, ...) {",
+      "\t\"mov rax, &var1\"",
+      "}"
+    ]
+  },
   "function-definition": {
     "scope": "cpl",
     "prefix": "function",

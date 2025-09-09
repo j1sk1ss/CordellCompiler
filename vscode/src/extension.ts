@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
   const keywords = [
     'start', 'exit', 'exfunc', 'function', 'return',
     'if', 'else', 'while', 'switch', 'case', 'default',
-    'glob', 'ro', 'dref', 'ref', 'ptr', 'extern', 'from', 'import', 'extern', 'syscall',
+    'glob', 'ro', 'dref', 'ref', 'ptr', 'extern', 'from', 'import', 'extern', 'syscall', 'asm',
     'i64', 'i32', 'i16', 'i8', 'u64', 'u32', 'u16', 'u8', 'str', 'arr'
   ];
 
@@ -97,6 +97,19 @@ export function activate(context: vscode.ExtensionContext) {
           Will push arguments to stack / registers according their position in function call.
 
         syscall(arg1, arg2, arg3, ...);
+        `,
+          
+          asm: `**asm** — ASM block.
+
+        u8 arg1 = 0;
+        u8 arg2 = 0;
+        u8 arg3 = 0;
+        asm(arg1, arg2, arg3, ...) {
+          "xor rax, rax",
+          "mov rax, &arg1",
+          "syscall",
+          "mov &arg3, rax"
+        }
         `,
           
           function: `**function** — Function definition keyword. CPL language don't provide return type selection.

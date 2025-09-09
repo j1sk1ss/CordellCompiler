@@ -32,6 +32,7 @@ typedef struct gen {
     int  (*assign)(ast_node_t*, FILE*, gen_ctx_t*, struct gen*);
     int  (*decl)(ast_node_t*, FILE*, gen_ctx_t*, struct gen*);
     int  (*start)(ast_node_t*, FILE*, gen_ctx_t*, struct gen*);
+    int  (*asmer)(ast_node_t*, FILE*, gen_ctx_t*, struct gen*);
     int  (*exit)(ast_node_t*, FILE*, gen_ctx_t*, struct gen*);
     int  (*syscall)(ast_node_t*, FILE*, gen_ctx_t*, struct gen*);
     int  (*ifgen)(ast_node_t*, FILE*, gen_ctx_t*, struct gen*);

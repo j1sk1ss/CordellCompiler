@@ -464,6 +464,19 @@ Functions are declared using the `function` keyword.
 9  }
 ```
 
+### ASM Block
+```CPL
+{
+    u8 a = 0;
+    u8 b = 0;
+    asm(a, b) {
+        "mov rax. &a",
+        "syscall",
+        "mov &b, rax"
+    }
+}
+```
+
 ## Comments
 Comments are written as annotations `:` within functions and code blocks:
 

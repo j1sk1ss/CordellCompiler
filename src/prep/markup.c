@@ -27,6 +27,7 @@ static const markup_token_t _markups[] = {
     { .value = FUNCTION_COMMAND,       .type = FUNC_TOKEN          },
     { .value = RETURN_COMMAND,         .type = RETURN_TOKEN        },
     { .value = SYSCALL_COMMAND,        .type = SYSCALL_TOKEN       },
+    { .value = ASM_COMMAND,            .type = ASM_TOKEN           },
 
     /* Variable modifiers */
     { .value = DREF_COMMAND,           .type = DREF_TYPE_TOKEN     },
@@ -82,7 +83,7 @@ int MRKP_mnemonics(token_t* head) {
     while (curr) {
         for (int i = 0; i < (int)(sizeof(_markups) / sizeof(_markups[0])); i++) {
             if ((curr->value)[0] != _markups[i].value[0]) continue;
-            else if (!str_strcmp(curr->value, _markups[i].value)) {
+            else if (!str_strcmp(curr->value, _markups[i].value) && curr->t_type != STRING_VALUE_TOKEN) {
                 curr->t_type = _markups[i].type;
             }
         }

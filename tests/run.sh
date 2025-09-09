@@ -13,7 +13,10 @@ TEST_SRCS[test_tok]="src/prep/token.c std/*.c"
 TEST_CODES[test_tok]="tests/dummy_data/prep/token.txt"
 
 TEST_SRCS[test_mrk]="src/prep/token.c src/prep/markup.c std/*.c"
-TEST_CODES[test_mrk]="tests/dummy_data/prep/markup.cpl"
+TEST_CODES[test_mrk]="
+    tests/dummy_data/prep/markup/markup_1.cpl
+    tests/dummy_data/prep/markup/markup_2.cpl
+"
 
 TEST_SRCS[test_sem]="src/sem/*.c src/prep/*.c src/ast/*.c src/ast/*/*.c std/*.c"
 TEST_CODES[test_sem]="
@@ -36,6 +39,7 @@ TEST_CODES[test_ast]="
     tests/dummy_data/ast/ext.cpl
     tests/dummy_data/ast/import.cpl
     tests/dummy_data/ast/ptr.cpl
+    tests/dummy_data/ast/asm.cpl
 "
 
 # ==== Optimization testing ====
@@ -96,6 +100,7 @@ TEST_CODES[test_gen]="
     tests/dummy_data/gen/import.cpl
     tests/dummy_data/gen/crc32.cpl
     tests/dummy_data/gen/ptr.cpl
+    tests/dummy_data/gen/asm.cpl
 "
 
 TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/sem/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"

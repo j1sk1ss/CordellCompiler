@@ -60,6 +60,7 @@ typedef enum {
     SCOPE_TOKEN,         // {  }
 
     // Function
+    ASM_TOKEN,           // asm
     SYSCALL_TOKEN,       // syscall
     EXFUNC_TOKEN,        // exfunc
     FUNC_TOKEN,          // function

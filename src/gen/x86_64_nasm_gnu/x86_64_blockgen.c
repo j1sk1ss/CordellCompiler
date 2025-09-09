@@ -9,6 +9,7 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
     ) g->operand(node, output, ctx, g);
 
     switch (node->token->t_type) {
+        case ASM_TOKEN:     g->asmer(node, output, ctx, g);     break;
         case IF_TOKEN:      g->ifgen(node, output, ctx, g);     break;
         case SWITCH_TOKEN:  g->switchgen(node, output, ctx, g); break;
         case WHILE_TOKEN:   g->whilegen(node, output, ctx, g);  break;
