@@ -1,11 +1,9 @@
 #include <offsetopt.h>
 
 typedef struct def {
-    char        name[TOKEN_MAX_SIZE];
-    token_t*    token;
-    int         size;
+    ast_node_t* nnode;
+    char        ref;
     int         offset;
-    short       s_id;
     struct def* next;
 } def_t;
 
@@ -13,21 +11,18 @@ typedef struct {
     def_t* h;
 } recalcoff_ctx_t;
 
-static def_t* _create_def(const char* name, int size, int offset, short s_id, token_t* tkn) {
+static def_t* _create_def(int offset, ast_node_t* n) {
     def_t* def = (def_t*)mm_malloc(sizeof(def_t));
     if (!def) return NULL;
-    str_strncpy(def->name, name, TOKEN_MAX_SIZE);
-    def->s_id   = s_id,
-    def->size   = size;
     def->offset = offset;
-    def->token  = tkn;
+    def->nnode  = n;
     def->next   = NULL;
     return def;
 }
 
-static int _register_var(const char* name, int size, int offset, short s_id, token_t* tkn, recalcoff_ctx_t* ctx) {
+static int _register_var(int offset, ast_node_t* n, recalcoff_ctx_t* ctx) {
     def_t* h = ctx->h;
-    def_t* def = _create_def(name, size, offset, s_id, tkn);
+    def_t* def = _create_def(offset, n);
     if (!def) return 0;
 
     if (!h) {
@@ -41,6 +36,25 @@ static int _register_var(const char* name, int size, int offset, short s_id, tok
 
     h->next = def;
     return 1;
+}
+
+static int _unregister_var(const char* name, recalcoff_ctx_t* ctx) {
+    def_t* h = ctx->h;
+    def_t* prev = NULL;
+
+    while (h) {
+        if (!str_strcmp(h->nnode->token->value, name)) {
+            if (!prev) ctx->h = h->next;
+            else prev->next = h->next;
+            mm_free(h);
+            return 1;
+        }
+
+        prev = h;
+        h = h->next;
+    }
+
+    return 0;
 }
 
 static int _unload_ctx(recalcoff_ctx_t* ctx) {
@@ -68,16 +82,20 @@ static int _update_offsets(ast_node_t* r, const char* name, int offset) {
     return 0;    
 }
 
-static int _find_usage(ast_node_t* r, const char* name) {
+static int _find_usage(ast_node_t* r, const char* name, int* ref) {
     if (!r) return 0;
     for (ast_node_t* t = r; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            if (_find_usage(t->child, name)) return 1;
+            if (_find_usage(t->child, name, ref)) return 1;
             continue;
         }
 
-        if (!str_strcmp(t->token->value, name)) return 1;
-        if (_find_usage(t->child, name)) return 1;
+        if (!str_strcmp(t->token->value, name)) {
+            if (t->token->vinfo.ref) *ref = 1;
+            return 1;
+        }
+
+        if (_find_usage(t->child, name, ref)) return 1;
     }
 
     return 0;
@@ -91,10 +109,10 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
     int offset = el.id >= 0 ? el.offset : 0;
 
     recalcoff_ctx_t scope_ctx = { .h = NULL };
-    for (ast_node_t* t = r->child; t; t = t->sibling) {
+    for (ast_node_t* t = r; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
             scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, offset);
-            _recalc_offs(t, ctx);
+            _recalc_offs(t->child, ctx);
             scope_pop(&ctx->scopes.stack);
             continue;
         }
@@ -103,27 +121,14 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
             int varoff = -1;
             def_t* vars = scope_ctx.h;
             while (vars) {
-                if (!_find_usage(t, vars->name) && t->child->info.s_id == vars->s_id) {
-                    int occupied = 0;
-                    def_t* nvars = scope_ctx.h;
-                    while (nvars) {
-                        if (
-                            vars != nvars && vars->offset == nvars->offset && 
-                            _find_usage(t, nvars->name) && t->child->info.s_id == vars->s_id
-                        ) {
-                            occupied = 1;
-                            break;
-                        }
-
-                        nvars = nvars->next;
-                    }
-
-                    if (!occupied) {
-                        varoff = vars->offset;
-                        break;
-                    }
+                int is_ref = 0;
+                if (!_find_usage(t, vars->nnode->token->value, &is_ref) && !is_ref && !vars->ref) {
+                    varoff = vars->offset;
+                    _unregister_var(vars->nnode->token->value, &scope_ctx);
+                    break;
                 }
 
+                if (is_ref) vars->ref = 1;
                 vars = vars->next;
             }
             
@@ -135,13 +140,13 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
 
             t->info.offset = varoff;
 
-            _register_var(name->token->value, name->info.size, varoff, name->info.s_id, name->token, &scope_ctx);
+            _register_var(varoff, name, &scope_ctx);
             _update_offsets(t, name->token->value, varoff);
             continue;
         }
 
         scope_push(&ctx->scopes.stack, ctx->scopes.s_id, offset);
-        _recalc_offs(t, ctx);
+        _recalc_offs(t->child, ctx);
         scope_pop(&ctx->scopes.stack);
     }
 

@@ -43,7 +43,11 @@ TEST_SRCS[test_varinline]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/varinl
 TEST_CODES[test_varinline]="tests/dummy_data/opt/varinline.cpl"
 
 TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/varinline.c src/opt/constopt.c std/*.c"
-TEST_CODES[test_constopt]="tests/dummy_data/opt/constopt.cpl"
+TEST_CODES[test_constopt]="
+    tests/dummy_data/opt/constopt/constopt_1.cpl
+    tests/dummy_data/opt/constopt/constopt_2.cpl
+    tests/dummy_data/opt/constopt/constopt_3.cpl
+"
 
 TEST_SRCS[test_strdecl]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/strdecl.c std/*.c"
 TEST_CODES[test_strdecl]="tests/dummy_data/opt/strdecl.cpl"
@@ -52,13 +56,21 @@ TEST_SRCS[test_deadfunc]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/deadfun
 TEST_CODES[test_deadfunc]="tests/dummy_data/opt/deadfunc.cpl"
 
 TEST_SRCS[test_condunroll]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/condunroll.c std/*.c"
-TEST_CODES[test_condunroll]="tests/dummy_data/opt/condunroll.cpl"
+TEST_CODES[test_condunroll]="
+    tests/dummy_data/opt/condunroll/condunroll_1.cpl
+    tests/dummy_data/opt/condunroll/condunroll_2.cpl
+    tests/dummy_data/opt/condunroll/condunroll_3.cpl
+"
 
 TEST_SRCS[test_deadscope]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/deadscope.c std/*.c"
 TEST_CODES[test_deadscope]="tests/dummy_data/opt/deadscope.cpl"
 
 TEST_SRCS[test_offsetopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/offsetopt.c std/*.c"
-TEST_CODES[test_offsetopt]="tests/dummy_data/opt/offsetopt.cpl"
+TEST_CODES[test_offsetopt]="
+    tests/dummy_data/opt/offsetopt/offsetopt_1.cpl
+    tests/dummy_data/opt/offsetopt/offsetopt_2.cpl
+    tests/dummy_data/opt/offsetopt/offsetopt_3.cpl
+"
 
 # ==== Generation testing ====
 TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"

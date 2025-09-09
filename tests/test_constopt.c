@@ -47,14 +47,7 @@ int main(int argc, char* argv[]) {
     };
 
     STX_create(tkn, &sctx, &p);
-    
-    int assign_opt_res = 0;
-    int is_fold_vars = 0;
-    do {
-        assign_opt_res = OPT_varinline(&sctx);
-        is_fold_vars = OPT_constfold(&sctx);
-    } while (assign_opt_res || is_fold_vars);
-    
+    OPT_constfold(&sctx);
     print_ast(sctx.r, 0);
 
     AST_unload(sctx.r);

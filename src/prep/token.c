@@ -169,6 +169,7 @@ token_t* TKN_tokenize(int fd) {
 
                 curr_ctx.in_token  = 0;
                 curr_ctx.token_len = 0;
+                curr_ctx.ttype     = LINE_BREAK_TOKEN;
             }
 
             if (char_type == LINE_BREAK_TOKEN) continue;
