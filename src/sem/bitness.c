@@ -18,7 +18,7 @@ static int _check_exp_bitness(ast_node_t* r) {
     }
 
     if (VRS_isnumeric(r->token)) {
-        unsigned long val = r->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(r->token->value) : r->token->value[0];
+        long val = r->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(r->token->value) : r->token->value[0];
         if (val <= UCHAR_MAX) return 8;
         if (val <= USHRT_MAX) return 16;
         if (val <= UINT_MAX)  return 32;

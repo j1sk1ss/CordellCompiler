@@ -4,6 +4,7 @@
 #include "mm.h"
 #include "str.h"
 #include "vars.h"
+#include "math.h"
 #include "logg.h"
 #include "token.h"
 #include "syntax.h"

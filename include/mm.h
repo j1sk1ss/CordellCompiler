@@ -1,16 +1,14 @@
 #ifndef MM_H_
 #define MM_H_
 
-#include <stddef.h>
-#include "logg.h"
 #include "str.h"
+#include "math.h"
+#include "logg.h"
+#include <stddef.h>
 
-#define ALIGNMENT           8
-#define ALLOC_BUFFER_SIZE   350000
-#define MM_BLOCK_MAGIC      0xC07DEL
-
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define ALIGNMENT         8
+#define ALLOC_BUFFER_SIZE 350000
+#define MM_BLOCK_MAGIC    0xC07DEL
 
 typedef struct mm_block {
     unsigned int     magic;

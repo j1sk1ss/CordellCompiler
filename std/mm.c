@@ -4,7 +4,6 @@ static unsigned char _buffer[ALLOC_BUFFER_SIZE];
 static mm_block_t* _mm_head = (mm_block_t*)_buffer;
 static int _allocated = 0;
 
-
 int mm_init() {
     _mm_head->magic = MM_BLOCK_MAGIC;
     _mm_head->size  = ALLOC_BUFFER_SIZE - sizeof(mm_block_t);

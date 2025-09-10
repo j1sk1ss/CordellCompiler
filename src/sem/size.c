@@ -21,7 +21,14 @@ int SMT_check_sizes(ast_node_t* node) {
                 el_msize = VRS_issign(t->child->token) ? el_msize / 2 : el_msize;
 
                 long val = value->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(value->token->value) : value->token->value[0];
-                if (val >= el_msize) {
+                if (!VRS_issign(t->child->token) && val < 0) {
+                    print_warn(
+                        "Value %i at line=%i lower then 0 for unsigned type %s, %i < 0!", 
+                        val, value->token->lnum, t->token->value, val
+                    );
+                }
+                
+                if (ABS(val) >= el_msize) {
                     print_warn(
                         "Value %i at line=%i too large for type %s (%i >= %i)!", 
                         val, value->token->lnum, t->token->value, val, el_msize
@@ -45,7 +52,14 @@ int SMT_check_sizes(ast_node_t* node) {
                     for (ast_node_t* el = elems; el; el = el->sibling) {
                         if (el->token->t_type != UNKNOWN_NUMERIC_TOKEN) continue;
                         long val = el->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(el->token->value) : el->token->value[0];
-                        if (val >= el_msize) {
+                        if (!VRS_issign(el_size->token) && val < 0) {
+                            print_warn(
+                                "Value %i at line=%i lower then 0 for unsigned type %s, %i < 0!", 
+                                el->token->value, el->token->lnum, el_size->token->value, val
+                            );
+                        }
+                        
+                        if (ABS(val) >= el_msize) {
                             print_warn(
                                 "Value %s at line=%i too large for array %s (%i >= %i)!", 
                                 el->token->value, el->token->lnum, el_size->token->value, val, el_msize
