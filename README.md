@@ -87,7 +87,7 @@ As he died to make man holy, Let us die
 ```
 
 ## Tokens markup
-In this section, we must label the tokens with their base types. For example, variables must be labeled as variables, functions as function definitions, function calls as calls, etc. In i16, in this module, we complete the token generation with the final type assignment. An example of how it works is below:
+In this section, we must label the tokens with their base types. For example, variables must be labeled as variables, functions as function definitions, function calls as calls, etc. In `i16`, in this module, we complete the token generation with the final type assignment. An example of how it works is below:
 ```
 glob=0, line=1, ptr=0, ro=0, type=1, data={
 glob=0, line=1, ptr=0, ro=0, type=2, data=from
@@ -168,7 +168,7 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
         [CALL_TOKEN (name)]
             [ARG1 expression]
             [ARG2 expression]
-            ...
+            [...]
 
 - `WHILE_TOKEN` - This token similar to `IF_TOKEN`, and tells us about the structure of following tokens: </br>
 
@@ -300,7 +300,7 @@ Every program begins with the `start` entrypoint and ends with the `exit [return
 ```CPL
 1  {
 2      start() {
-3          ...
+3          : ... :
 4          exit 0;
 5      }
 6  }
@@ -310,7 +310,7 @@ Also every program can contain `pre-implemented` code blocks and data segments:
 
 ```CPL
 1  {
-2      function foo() { }
+2      function foo() { return; }
 3      glob i32 b = 0;
 4  
 5      start() {
@@ -327,8 +327,8 @@ The following types are supported:
 - `i32` / `u32` — Integer (32-bit).
 - `i16` / `u16` — Integer (16-bit).
 - `i8` / `u8`   — Integer (8-bit).
-- `str`   — String (Array of characters).
-- `arr`   — Array.
+- `str` — String (Array of characters).
+- `arr` — Array.
 
 ### Declaring Variables
 ```CPL
@@ -352,18 +352,18 @@ The following types are supported:
 ## Operations
 Basic arithmetic and logical operations are supported:
 
-| Operation | Description         |
-|-----------|---------------------|
-| `+`       | Addition            |
-| `-`       | Subtraction         |
-| `*`       | Multiplication      |
-| `/`       | Division (i32)      |
-| `%`       | Module (i32)        |
-| `==`      | Equality            |
-| `!=`      | Inequality          |
-| `>` `>=` `<` `<=`       | Comparison                                  |
-| `&&` `\|\|`             | Logic operations (Lazy Evaluations support) |
-| `>>` `<<` `&`  `\|` `^` | Bit operations                              |
+| Operation | Description    |
+|-----------|----------------|
+| `+`       | Addition       |
+| `-`       | Subtraction    |
+| `*`       | Multiplication |
+| `/`       | Division       |
+| `%`       | Module         |
+| `==`      | Equality       |
+| `!=`      | Inequality     |
+| `>` `>=` `<` `<=`      | Comparison                                  |
+| `&&` `\|\|`            | Logic operations (Lazy Evaluations support) |
+| `>>` `<<` `&` `\|` `^` | Bit operations                              |
 
 ## Loops and Conditions
 ### Switch expression
@@ -389,10 +389,10 @@ Basic arithmetic and logical operations are supported:
 ```CPL
 1  {
 2      if a > b; {
-3          : ... if code :
+3      
 4      }
 5      else {
-6          : ... else code :
+6      
 7      }
 8  }
 ```
@@ -414,7 +414,7 @@ Functions are declared using the `function` keyword.
 
 ### Function Signature:
 ```CPL
-[modifier] function [name]([type1] [name1], [type2] [name2], ...) {
+[modifier] function [name]([type1] [name1], [type2] [name2], ...) => [ret_type] {
     : function body :
     return something;
 }
@@ -423,11 +423,11 @@ Functions are declared using the `function` keyword.
 ### Example:
 ```CPL
 1  {
-2      glob function sumfunc(i32 a, i32 b) {
+2      glob function sumfunc(i32 a, i32 b) => i32 {
 3          return a + b;
 4      }
 5  
-6      function foo(: no args :) {
+6      function foo() {
 7          return;
 8      }
 9  }
@@ -481,13 +481,13 @@ Functions are declared using the `function` keyword.
 Comments are written as annotations `:` within functions and code blocks:
 
 ```CPL
-    : Comment in one line :
-
-    :
-    Function description.
-    Params
-        - name Description
-    :
+1      : Comment in one line :
+2       
+3      :
+4      Function description.
+5      Params
+6          - name Description
+7      :
 ```
 
 # Examples
@@ -498,7 +498,7 @@ If you want see more examples, please look into the folder `examples`. Also [her
 1  extern exfunc printf;
 2  
 3  {
-4      function itoa(ptr i8 buffer, i32 dsize, i32 num) {
+4      function itoa(ptr i8 buffer, i32 dsize, i32 num) => i32 {
 5          i32 index = dsize - 1;
 6          i32 tmp = 0;
 7  
@@ -566,8 +566,8 @@ If you want see more examples, please look into the folder `examples`. Also [her
 3      glob arr _blocks_info[100000, i32] =;
 4      glob i64 _head = 0;
 5  
-6      glob function memset(ptr i8 buffer, i32 val, i64 size) {
-7           i64 index = 0;
+6      glob function memset(ptr i8 buffer, i32 val, i64 size) => i32 {
+7          i64 index = 0;
 8          while index < size; {
 9              buffer[index] = val;
 10             index = index + 1;
@@ -576,7 +576,7 @@ If you want see more examples, please look into the folder `examples`. Also [her
 13         return 1;
 14     }
 15 
-16     glob function malloc(i64 size) {
+16     glob function malloc(i64 size) => ptr i32 {
 17         if size > 0; {
 18             ptr i32 curr_mem = _mm_head;
 19             i32 block_index = 0;
@@ -596,7 +596,7 @@ If you want see more examples, please look into the folder `examples`. Also [her
 33         return -1;
 34     }
 35 
-36     glob function free(ptr i32 mem) {
+36     glob function free(ptr i32 mem) => i32 {
 37         i32 block_index = 0;
 38         while block_index < 100000; {
 39             if _blocks_info[block_index + 2] == mem; {

@@ -57,6 +57,7 @@ typedef enum {
     START_TOKEN,         // start
     RETURN_TOKEN,        // return
     EXIT_TOKEN,          // exit
+    RETURN_TYPE_TOKEN,   // =>
     SCOPE_TOKEN,         // {  }
 
     // Function

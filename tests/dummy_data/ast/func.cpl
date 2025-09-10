@@ -1,9 +1,9 @@
 {
-    function pow(i32 num, i8 power) {
+    function pow(i32 num, i8 power) => u64 {
         return 1;
     }
 
-    glob function foo(i32 a) {
+    glob function foo(i32 a) => i32 {
         return a;
     }
 

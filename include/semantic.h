@@ -9,6 +9,9 @@
 #include "syntax.h"
 #include <limits.h>
 
+/* rettype.c */
+int SMT_check_rettype(ast_node_t* node);
+
 /* ro.c */
 int SMT_check_ro(ast_node_t* node);
 

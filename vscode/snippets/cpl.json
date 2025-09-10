@@ -25,9 +25,9 @@
     "scope": "cpl",
     "prefix": "function",
     "body": [
-      "function foo() {",
+      "function foo() => i32 {",
       "\treturn 0;",
-      "} : -> type :"
+      "}"
     ]
   },
   "if-statement": {

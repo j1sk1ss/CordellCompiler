@@ -1,6 +1,16 @@
 #include <x86_64_gnu_nasm.h>
 
-/* Load to pointer destination */
+static int _deref_rax(FILE* output, int size) {
+    switch (size) {
+        case 1:  iprintf(output, "movzx rax, byte [rax]\n"); break;
+        case 2:  iprintf(output, "movzx rax, word [rax]\n"); break;
+        case 4:  iprintf(output, "mov eax, [rax]\n");        break;
+        default: iprintf(output, "mov rax, [rax]\n");        break;
+    }
+
+    return 1;
+}
+
 int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
@@ -8,14 +18,8 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
         else {
             array_info_t arr_info = { .el_size = 1 };
             ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
-            int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
             iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
-            switch (elsize) {
-                case 1: iprintf(output, "movzx rax, byte [rax]\n"); break;
-                case 2: iprintf(output, "movzx rax, word [rax]\n"); break;
-                case 4: iprintf(output, "mov eax, [rax]\n"); break;
-                case 8: iprintf(output, "mov rax, [rax]\n"); break;
-            }
+            _deref_rax(output, MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size));
         }
 
         return 1;
@@ -42,7 +46,8 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
         case STR_VARIABLE_TOKEN: {
 indexing:
             ast_node_t* off = node->child;
-            if (off) { /* Loading data from array by offset */
+            if (!off) iprintf(output, "lea rax, %s\n", GET_ASMVAR(node));
+            else {
                 array_info_t arr_info = { .el_size = 1 };
                 ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
@@ -55,9 +60,6 @@ indexing:
                 if (!node->token->vinfo.ptr) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
                 else iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
                 iprintf(output, "add rax, rbx\n");
-            }
-            else { /* Loading array address to rax */
-                iprintf(output, "lea rax, %s\n", GET_ASMVAR(node));
             }
 
             break;
@@ -77,14 +79,8 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
             else {
                 array_info_t arr_info = { .el_size = 1 };
                 ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
-                int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
                 iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
-                switch (elsize) {
-                    case 1: iprintf(output, "movzx rax, byte [rax]\n"); break;
-                    case 2: iprintf(output, "movzx rax, word [rax]\n"); break;
-                    case 4: iprintf(output, "mov eax, [rax]\n"); break;
-                    case 8: iprintf(output, "mov rax, [rax]\n"); break;
-                }
+                _deref_rax(output, MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size));
             }
         }
 
@@ -121,7 +117,8 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
         case STR_VARIABLE_TOKEN: {
 indexing:
             ast_node_t* off = node->child;
-            if (off) { /* Loading data from array by offset */
+            if (!off) iprintf(output, "lea rax, %s\n", GET_ASMVAR(node)); 
+            else {
                 array_info_t arr_info = { .el_size = 1 };
                 ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
@@ -134,16 +131,7 @@ indexing:
                 if (!node->token->vinfo.ptr) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
                 else iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
                 iprintf(output, "add rax, rbx\n");
-                
-                switch (elsize) {
-                    case 1: iprintf(output, "movzx rax, byte [rax]\n"); break;
-                    case 2: iprintf(output, "movzx rax, word [rax]\n"); break;
-                    case 4: iprintf(output, "mov eax, [rax]\n"); break;
-                    case 8: iprintf(output, "mov rax, [rax]\n"); break;
-                }
-            }
-            else { /* Loading array address to rax */
-                iprintf(output, "lea rax, %s\n", GET_ASMVAR(node));
+                _deref_rax(output, elsize);
             }
 
             break;

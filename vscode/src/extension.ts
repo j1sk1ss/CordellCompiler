@@ -114,9 +114,9 @@ export function activate(context: vscode.ExtensionContext) {
           
           function: `**function** — Function definition keyword. CPL language don't provide return type selection.
 
-        function abs(i32 n) {
+        function abs(i32 n) => i32 {
             return n;
-        } : -> i32 :
+        }
         `,
           i64: `**i64** - Long variable type. On 64-bit machines equals 64-bit value. Max: 9,223,372,036,854,775,807`,
           i32: `**i32** - Integer variable type. Size equals to 32-bit value. Max: 2,147,483,647`,

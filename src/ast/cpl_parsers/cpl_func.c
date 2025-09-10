@@ -115,6 +115,12 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     }
 
     forward_token(curr, 1);
+    if (*curr && (*curr)->t_type == RETURN_TYPE_TOKEN) {
+        forward_token(curr, 1);
+        ast_node_t* ret_type = AST_create_node(*curr);
+        AST_add_node(name_node, ret_type);
+        forward_token(curr, 1);
+    }
 
     ast_node_t* body_node = p->scope(curr, ctx, p);
     if (!body_node) {

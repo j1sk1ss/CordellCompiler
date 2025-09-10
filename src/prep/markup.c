@@ -13,6 +13,7 @@ static const markup_token_t _markups[] = {
     { .value = EXTERN_COMMAND,         .type = EXTERN_TOKEN        },
     { .value = START_COMMAND,          .type = START_TOKEN         },
     { .value = EXIT_COMMAND,           .type = EXIT_TOKEN          },
+    { .value = RETURN_TYPE_COMMAND,    .type = RETURN_TYPE_TOKEN   },
 
     /* Bracket tokens. */
     { .value = OPEN_BLOCK,             .type = OPEN_BLOCK_TOKEN    },
@@ -82,7 +83,7 @@ int MRKP_mnemonics(token_t* head) {
     token_t* curr = head;
     while (curr) {
         for (int i = 0; i < (int)(sizeof(_markups) / sizeof(_markups[0])); i++) {
-            if ((curr->value)[0] != _markups[i].value[0]) continue;
+            if (curr->value[0] != _markups[i].value[0]) continue;
             else if (!str_strcmp(curr->value, _markups[i].value) && curr->t_type != STRING_VALUE_TOKEN) {
                 curr->t_type = _markups[i].type;
             }
@@ -199,17 +200,17 @@ _f_remove_token:
                     }
 
                     _add_variable(&vars, next->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
-                    curr->vinfo.ext  = curr_ctx.ext;
-                    curr->vinfo.ro   = curr_ctx.ro;
-                    curr->vinfo.ptr  = curr_ctx.ptr;
-                    curr->vinfo.glob = curr_ctx.glob;
                 }
 
-                curr_ctx.ext   = 0;
-                curr_ctx.ro    = 0;
-                curr_ctx.ptr   = 0;
-                curr_ctx.glob  = 0;
-                curr_ctx.ttype = 0;
+                curr->vinfo.ro   = curr_ctx.ro;
+                curr->vinfo.ptr  = curr_ctx.ptr;
+                curr->vinfo.ext  = curr_ctx.ext;
+                curr->vinfo.glob = curr_ctx.glob;
+                curr_ctx.ext     = 0;
+                curr_ctx.ro      = 0;
+                curr_ctx.ptr     = 0;
+                curr_ctx.glob    = 0;
+                curr_ctx.ttype   = 0;
                 break;
             }
 
