@@ -78,6 +78,8 @@ static int _find_func(ast_node_t* node) {
             continue;
         }
     }
+
+    return 1;
 }
 
 int SMT_check_rettype(ast_node_t* node) {

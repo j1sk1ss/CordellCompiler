@@ -20,9 +20,9 @@ int SMT_check_ro(ast_node_t* node);
 int SMT_check_sizes(ast_node_t* node);
 
 /* bitness.c */
-int SMT_check_bitness(ast_node_t* node);
+int SMT_check_bitness(ast_node_t* node, sym_tables_t* smt);
 
 /* semantic.c */
-int SMT_check(ast_node_t* node);
+int SMT_check(ast_node_t* node, sym_tables_t* smt);
 
 #endif

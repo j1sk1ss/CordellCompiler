@@ -1,12 +1,12 @@
 #include <semantic.h>
 
-static int _check_exp_bitness(ast_node_t* r) {
+static int _check_exp_bitness(ast_node_t* r, sym_tables_t* smt) {
     if (!r || !r->token) return 1;
     if (VRS_isoperand(r->token) || VRS_isdecl(r->token)) {
         if (!r->child) return -1;
-        char lbitness = _check_exp_bitness(r->child);
+        char lbitness = _check_exp_bitness(r->child, smt);
         if (!r->child->sibling) return -2;
-        char rbitness = _check_exp_bitness(r->child->sibling);
+        char rbitness = _check_exp_bitness(r->child->sibling, smt);
         if (lbitness < rbitness) {
             print_warn(
                 "Danger shadow type cast at line %i. Different size [%i] (%s) and [%i] (%s). Did you expect this?",
@@ -24,19 +24,24 @@ static int _check_exp_bitness(ast_node_t* r) {
         if (val <= UINT_MAX)  return 32;
         return 64;
     }
+    else if (r->token->t_type == CALL_TOKEN) {
+        func_info_t finfo;
+        if (FNT_get_info(r->token->value, &finfo, smt->funcs)) return VRS_variable_bitness(finfo.rtype->token, 1);
+        else return BASE_BITNESS / 8;
+    }
     else {
         return VRS_variable_bitness(r->token, 1);
     }
 }
 
-int SMT_check_bitness(ast_node_t* node) {
+int SMT_check_bitness(ast_node_t* node, sym_tables_t* smt) {
     if (!node) return 1;
     int result = 1;
     
     for (ast_node_t* t = node; t; t = t->sibling) {
-        SMT_check_bitness(t->child);
+        SMT_check_bitness(t->child, smt);
         if (!t->token) continue;
-        _check_exp_bitness(t);
+        _check_exp_bitness(t, smt);
     }
     
     return result;

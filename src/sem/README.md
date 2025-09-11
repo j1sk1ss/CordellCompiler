@@ -162,3 +162,31 @@ Produced errors:
 [WARN] (src/sem/size.c:25) Value -1 at line=2 lower then 0 for unsigned type u8, -1 < 0!
 [WARN] (src/sem/size.c:32) Value 240 at line=5 too large for type i8 (240 >= 127)!
 ```
+
+------------------------------
+
+Source code:
+```CPL
+1  {
+2      function foo() => i32 {
+3          return 0;
+4      }
+5  
+6      function bar() => i64 {
+7          return 0;
+8      }
+9  
+10     start(i64 argc, ptr u64 argv) {
+11         i32 a = foo();
+12         i32 b = bar();
+13         exit 0;
+14     }
+15 }
+```
+
+Produced errors:
+```
+[WARN] (src/sem/bitness.c:11) Danger shadow type cast at line 11. Different size [32] (b) and [64] (bar). Did you expect this?
+[WARN] (src/sem/rettype.c:37) Unmatched return type in line=2. Should return bitness=32, but provide bitness=8
+[WARN] (src/sem/rettype.c:37) Unmatched return type in line=6. Should return bitness=64, but provide bitness=8
+```

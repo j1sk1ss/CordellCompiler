@@ -1,22 +1,22 @@
 {
-    glob function strlen(ptr i8 string) {
+    glob function strlen(ptr i8 s) {
         i64 index = 0;
-        while dref string; {
+        while dref s; {
             index = index + 1;
-            string = string + 1;
+            s = s + 1;
         }
 
         return index;
     }
 
-    glob function reverse(ptr i8 string, i32 size) {
+    glob function reverse(ptr i8 s, i32 size) {
         i32 l = 0;
         i32 r = size;
         while l < r; {
-            if string[r]; {
-                char tmp = string[l];
-                string[l] = string[r];
-                string[r] = tmp;
+            if s[r]; {
+                char tmp = s[l];
+                s[l] = s[r];
+                s[r] = tmp;
                 l = l + 1;
             }
 
