@@ -65,6 +65,7 @@ typedef enum {
     SYSCALL_TOKEN,       // syscall
     EXFUNC_TOKEN,        // exfunc
     FUNC_TOKEN,          // function
+    FUNC_NAME_TOKEN,
     CALL_TOKEN,
     
     // Condition scope

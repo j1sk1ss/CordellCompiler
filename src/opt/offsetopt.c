@@ -156,7 +156,7 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
 
 int OPT_offrecalc(syntax_ctx_t* ctx) {
     if (!ctx || !ctx->r) return 0;
-    VRT_destroy_ctx(ctx->vars);
+    VRT_destroy_ctx(ctx->symtb.vars);
     scope_reset(&ctx->scopes.stack);
     ctx->scopes.s_id = 0;
     _recalc_offs(ctx->r, ctx);

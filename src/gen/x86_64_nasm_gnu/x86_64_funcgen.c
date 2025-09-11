@@ -40,6 +40,7 @@ int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
 
     int pushed_args = 0;
     for (pushed_args = 0; pushed_args < MIN(arg_count, 6); pushed_args++) {
+        if (!args[pushed_args]) continue;
         g->elemegen(args[pushed_args], output, ctx, g);
         iprintf(output, "mov %s, rax\n", GET_RAW_REG(BASE_BITNESS, args_regs[pushed_args]));
     }

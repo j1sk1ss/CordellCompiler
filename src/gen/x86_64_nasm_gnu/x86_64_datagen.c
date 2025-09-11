@@ -4,15 +4,15 @@ int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
     if (!root) return 0;
 
     int size = 0;
-    for (ast_node_t* t = root->child; t; t = t->sibling) {
+    for (ast_node_t* t = root; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            size = MAX(size, get_stack_size(t, ctx));
+            size = MAX(size, get_stack_size(t->child, ctx));
             continue;
         }
 
         if (t->token && t->token->t_type == FUNC_TOKEN) continue;
         if (!VRS_instack(t->token)) continue;
-        size = MAX(MAX(t->info.offset, get_stack_size(t, ctx)), size);
+        size = MAX(MAX(t->info.offset, get_stack_size(t->child, ctx)), size);
     }
 
     return size;

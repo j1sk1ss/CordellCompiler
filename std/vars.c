@@ -59,7 +59,7 @@ int VRS_isptr(token_t* token) {
 /* Is token in text segment */
 int VRS_instack(token_t* token) {
     if (!token) return 0;
-    return !token->vinfo.glob && !token->vinfo.ro;
+    return !token->vinfo.glob && !token->vinfo.ro && !token->vinfo.ext;
 }
 
 /* Is variable occupie one slot in stack? */
@@ -67,23 +67,23 @@ int VRS_one_slot(token_t* token) {
     if (!token) return 0;
     if (token->vinfo.ptr) return 1;
     switch (token->t_type) {
-        case I32_TYPE_TOKEN:
-        case I64_TYPE_TOKEN:
         case I8_TYPE_TOKEN:
-        case I16_TYPE_TOKEN:
-        case U32_TYPE_TOKEN:
-        case U64_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
+        case I16_TYPE_TOKEN:
         case U16_TYPE_TOKEN:
+        case I32_TYPE_TOKEN:
+        case U32_TYPE_TOKEN:
+        case I64_TYPE_TOKEN:
+        case U64_TYPE_TOKEN:
         case CHAR_VALUE_TOKEN:
-        case I32_VARIABLE_TOKEN:
-        case I64_VARIABLE_TOKEN:
         case I8_VARIABLE_TOKEN:
-        case I16_VARIABLE_TOKEN:
-        case U32_VARIABLE_TOKEN:
-        case U64_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
         case U16_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN: return 1;
         case STR_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN:
@@ -112,16 +112,16 @@ int VRS_isclose(token_t* token) {
 int VRS_isdecl(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
-        case I32_TYPE_TOKEN:
-        case STR_TYPE_TOKEN:
         case I8_TYPE_TOKEN:
-        case I64_TYPE_TOKEN:
-        case ARRAY_TYPE_TOKEN:
-        case I16_TYPE_TOKEN:
-        case U32_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
+        case I16_TYPE_TOKEN:
+        case U16_TYPE_TOKEN:
+        case I32_TYPE_TOKEN:
+        case U32_TYPE_TOKEN:
+        case I64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
-        case U16_TYPE_TOKEN:    return 1;
+        case STR_TYPE_TOKEN:
+        case ARRAY_TYPE_TOKEN:  return 1;
         default:                return 0;
     }
 }
@@ -130,8 +130,7 @@ int VRS_isblock(token_t* token) {
     return (
         !token || 
         (token->t_type == SCOPE_TOKEN) || 
-        (token->t_type == START_TOKEN) ||
-        (token->t_type == FUNC_TOKEN)
+        (token->t_type == START_TOKEN)
     );
 }
 

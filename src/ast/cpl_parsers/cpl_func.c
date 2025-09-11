@@ -6,7 +6,7 @@ ast_node_t* cpl_parse_extern(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     
     forward_token(curr, 1);
     while (*curr && (*curr)->t_type != DELIMITER_TOKEN) {
-        if (!VRS_isdecl(*curr) && (*curr)->t_type != CALL_TOKEN) forward_token(curr, 1);
+        if (!VRS_isdecl(*curr) && (*curr)->t_type != FUNC_NAME_TOKEN) forward_token(curr, 1);
         else if (VRS_isdecl(*curr)) {
             ast_node_t* arg = p->vardecl(curr, ctx, p);
             if (!arg) {
@@ -17,7 +17,7 @@ ast_node_t* cpl_parse_extern(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
 
             AST_add_node(node, arg);
         }
-        else if ((*curr)->t_type == CALL_TOKEN) {
+        else if ((*curr)->t_type == FUNC_NAME_TOKEN) {
             ast_node_t* name_node = AST_create_node(*curr);
             AST_add_node(node, name_node);
             forward_token(curr, 1);

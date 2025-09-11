@@ -155,7 +155,7 @@ int MRKP_variables(token_t* head) {
                 break;
             }
 
-            case EXTERN_TOKEN:    curr_ctx.ext  = 1;
+            case EXTERN_TOKEN:    curr_ctx.ext  = 1; break;
             case GLOB_TYPE_TOKEN: curr_ctx.glob = 1; goto _f_remove_token;
             case PTR_TYPE_TOKEN:  curr_ctx.ptr  = 1; goto _f_remove_token;
             case RO_TYPE_TOKEN: {
@@ -185,7 +185,13 @@ _f_remove_token:
                 if (next && (next->t_type == UNKNOWN_STRING_TOKEN || next->t_type == UNKNOWN_CHAR_TOKEN)) {
                     switch (curr->t_type) {
                         case FUNC_TOKEN:
-                        case EXFUNC_TOKEN:     curr_ctx.ttype = CALL_TOKEN;         break;
+                        case EXFUNC_TOKEN: {
+                            curr_ctx.ttype  = CALL_TOKEN;
+                            next->t_type    = FUNC_NAME_TOKEN;
+                            next->vinfo.ext = curr_ctx.ext;
+                            break;
+                        }
+
                         case I8_TYPE_TOKEN:    curr_ctx.ttype = I8_VARIABLE_TOKEN;  break;
                         case U8_TYPE_TOKEN:    curr_ctx.ttype = U8_VARIABLE_TOKEN;  break;
                         case I32_TYPE_TOKEN:   curr_ctx.ttype = I32_VARIABLE_TOKEN; break;

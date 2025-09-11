@@ -25,10 +25,10 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    arrtab_ctx_t actx = { .h = NULL };
-    vartab_ctx_t vctx = { .h = NULL, .offset = 0 };
+    arrtab_ctx_t actx  = { .h = NULL };
+    vartab_ctx_t vctx  = { .h = NULL, .offset = 0 };
     functab_ctx_t fctx = { .h = NULL };
-    syntax_ctx_t sctx = { 
+    syntax_ctx_t sctx  = { 
         .symtb = {
             .arrs  = &actx,
             .vars  = &vctx,
