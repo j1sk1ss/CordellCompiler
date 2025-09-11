@@ -73,7 +73,7 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
 
         if (
             VRS_isoperand(t->token) || 
-            (VRS_isdecl(t->token) && (t->token->vinfo.ptr || !VRS_intext(t->token)))  /* Is declaration and it's pointer or ntext */
+            (VRS_isdecl(t->token) && (t->token->vinfo.ptr || !VRS_instack(t->token)))  /* Is declaration and it's pointer or ntext */
         ) {
             _find_string(t->child, ctx);
             continue;

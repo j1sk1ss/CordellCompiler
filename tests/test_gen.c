@@ -30,8 +30,8 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    arrmem_ctx_t actx = { .h = NULL };
-    varmem_ctx_t vctx = { .h = NULL, .offset = 0 };
+    arrtab_ctx_t actx = { .h = NULL };
+    vartab_ctx_t vctx = { .h = NULL, .offset = 0 };
     syntax_ctx_t sctx = { .arrs = &actx, .vars = &vctx };
     parser_t p = {
         .block      = cpl_parse_block,

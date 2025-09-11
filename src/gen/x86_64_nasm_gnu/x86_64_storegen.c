@@ -8,7 +8,7 @@ int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
             if (!node->token->vinfo.dref) iprintf(output, "mov qword %s, rax\n", GET_ASMVAR(node));
             else {
                 array_info_t arr_info = { .el_size = 1 };
-                ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
+                ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->symtb.arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
                 iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
                 switch (elsize) {
@@ -48,7 +48,7 @@ indexing:
                 iprintf(output, "mov rdx, rax\n");
 
                 array_info_t arr_info = { .el_size = 1 };
-                ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->arrs);
+                ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->symtb.arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
 
                 g->elemegen(off, output, ctx, g);

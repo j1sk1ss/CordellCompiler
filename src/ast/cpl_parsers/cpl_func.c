@@ -51,6 +51,7 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
 
+    int args = 0;
     forward_token(curr, 1);
     if (*curr && (*curr)->t_type == OPEN_BRACKET_TOKEN) {
         forward_token(curr, 1);
@@ -62,6 +63,15 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
 
             ast_node_t* arg = p->expr(curr, ctx, p);
             if (arg) AST_add_node(node, arg);
+            args++;
+        }
+    }
+
+    func_info_t finfo;
+    if (FNT_get_info(node->token->value, &finfo, ctx->symtb.funcs)) {
+        for (ast_node_t* arg = finfo.args->child; arg; arg = arg->sibling) {
+            if (args-- > 0) continue;
+            AST_add_node(node, AST_copy_node(arg->child->sibling, 0, 1));
         }
     }
 
@@ -88,9 +98,8 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
         return NULL;
     }
 
-    /* Manual stack push instead parser */
-    scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, ctx->vars->offset); /* Function uniqe scope ID before arguments */
-    ctx->vars->offset = 0;
+    scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, ctx->symtb.vars->offset);
+    ctx->symtb.vars->offset = 0;
     args_node->info.s_id = ctx->scopes.s_id;
 
     forward_token(curr, 1);
@@ -99,7 +108,7 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
             forward_token(curr, 1);
             continue;
         }
-
+        
         if (!VRS_isdecl((*curr))) forward_token(curr, 1);
         else {
             ast_node_t* arg = p->vardecl(curr, ctx, p);
@@ -133,8 +142,9 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     AST_add_node(node, args_node);
 
     scope_elem_t el;
-    scope_pop_top(&ctx->scopes.stack, &el); /* Restore scope and offset */
-    ctx->vars->offset = el.offset;
+    scope_pop_top(&ctx->scopes.stack, &el);
+    ctx->symtb.vars->offset = el.offset;
 
+    FNT_add_info(name_node->token->value, args_node, name_node->child, ctx->symtb.funcs);
     return node;
 }

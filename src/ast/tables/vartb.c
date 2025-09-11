@@ -1,19 +1,19 @@
 #include <vartb.h>
 
-varmem_ctx_t* VRT_create_ctx() {
-    varmem_ctx_t* ctx = (varmem_ctx_t*)mm_malloc(sizeof(varmem_ctx_t));
+vartab_ctx_t* VRT_create_ctx() {
+    vartab_ctx_t* ctx = (vartab_ctx_t*)mm_malloc(sizeof(vartab_ctx_t));
     if (!ctx) return NULL;
-    str_memset(ctx, 0, sizeof(varmem_ctx_t));
+    str_memset(ctx, 0, sizeof(vartab_ctx_t));
     return ctx;
 }
 
-int VRT_destroy_ctx(varmem_ctx_t* ctx) {
+int VRT_destroy_ctx(vartab_ctx_t* ctx) {
     if (!ctx) return 0;
     mm_free(ctx);
     return 1;
 }
 
-int VRT_get_info(const char* varname, short scope, variable_info_t* info, varmem_ctx_t* ctx) {
+int VRT_get_info(const char* varname, short scope, variable_info_t* info, vartab_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
         if (((scope < 0) || scope == h->scope) && !str_strcmp(varname, h->name)) {
@@ -27,7 +27,7 @@ int VRT_get_info(const char* varname, short scope, variable_info_t* info, varmem
     return 0;
 }
 
-int VRT_update_value(const char* varname, short scope, const char* value, varmem_ctx_t* ctx) {
+int VRT_update_value(const char* varname, short scope, const char* value, vartab_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
         if (((scope < 0) || scope == h->scope) && !str_strcmp(varname, h->name)) {
@@ -42,7 +42,7 @@ int VRT_update_value(const char* varname, short scope, const char* value, varmem
 }
 
 static variable_info_t* _create_variable_info(
-    const char* name, int size, char ro, char glob, short scope, varmem_ctx_t* ctx
+    const char* name, int size, char ro, char glob, short scope, vartab_ctx_t* ctx
 ) {
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
@@ -64,7 +64,7 @@ static variable_info_t* _create_variable_info(
 }
 
 int VRT_add_info(
-    const char* name, int size, char ro, char glob, short scope, varmem_ctx_t* ctx
+    const char* name, int size, char ro, char glob, short scope, vartab_ctx_t* ctx
 ) {
     variable_info_t* nnd = _create_variable_info(name, size, ro, glob, scope, ctx);
     if (!nnd) return 0;
@@ -82,7 +82,7 @@ int VRT_add_info(
     return nnd->offset;
 }
 
-int VRT_unload(varmem_ctx_t* ctx) {
+int VRT_unload(vartab_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
         variable_info_t* n = h->next;

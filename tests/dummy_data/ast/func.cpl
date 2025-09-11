@@ -1,9 +1,9 @@
 {
-    function pow(i32 num, i8 power) => u64 {
+    function pow(i32 num = 1, i8 power = 2) => u64 {
         return 1;
     }
 
-    glob function foo(i32 a) => i32 {
+    glob function foo(i32 a = 1) => i32 {
         return a;
     }
 
@@ -12,9 +12,14 @@
     }
 
     start() {
-        i32 b = 10;
-        foo(1);
+        pow();
+        pow(10);
+        pow(10, 20);
+
+        foo();
+        foo(10);
+
         void();
-        exit pow(b, 2);
+        exit 0;
     };
 }

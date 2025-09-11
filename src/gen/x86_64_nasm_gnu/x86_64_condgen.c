@@ -34,13 +34,11 @@ int x86_64_generate_while(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
     iprintf(output, "cmp rax, 0\n");
     iprintf(output, "je __end_while_%d__\n", current_label);
 
-    g->blockgen(lbranch, output, ctx, g); /* Main body gen */
+    g->blockgen(lbranch, output, ctx, g);
     iprintf(output, "jmp __while_%d__\n", current_label);
 
     iprintf(output, "__end_while_%d__:\n", current_label);
-    if (rbranch) {
-        g->blockgen(rbranch, output, ctx, g);
-    }
+    g->blockgen(rbranch, output, ctx, g);
 
     return 1;
 }

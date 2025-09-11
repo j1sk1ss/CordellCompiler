@@ -83,7 +83,7 @@ static inline char* format_from_data(token_t* tkn) {
 }
 
 #define GET_ASMVAR(node) \
-    VRS_intext((node)->token) ? \
+    VRS_instack((node)->token) ? \
     format_from_stack((node)->info.offset) : \
     format_from_data((node)->token)
 

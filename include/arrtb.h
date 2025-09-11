@@ -14,12 +14,12 @@ typedef struct array_info {
 
 typedef struct {
     array_info_t* h;
-} arrmem_ctx_t;
+} arrtab_ctx_t;
 
-arrmem_ctx_t* ART_create_ctx();
-int ART_destroy_ctx(arrmem_ctx_t* ctx);
-int ART_add_info(const char* name, short scope, int el_size, int size, arrmem_ctx_t* ctx);
-int ART_get_info(const char* name, short scope, array_info_t* info, arrmem_ctx_t* ctx);
-int ART_unload(arrmem_ctx_t* ctx);
+arrtab_ctx_t* ART_create_ctx();
+int ART_destroy_ctx(arrtab_ctx_t* ctx);
+int ART_add_info(const char* name, short scope, int el_size, int size, arrtab_ctx_t* ctx);
+int ART_get_info(const char* name, short scope, array_info_t* info, arrtab_ctx_t* ctx);
+int ART_unload(arrtab_ctx_t* ctx);
 
 #endif

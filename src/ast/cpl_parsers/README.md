@@ -84,15 +84,18 @@ cond_node_token
 ```
 func_token
 ├─ name (str)
+│ └─ type (str)
 └─ scope (scope)
-  ├─ arg1
-  │ ├─ type
-  │ └─ name (str)
+  ├─ arg1 (type)
+  │ ├─ name (str)
+  │ └─ def_val (exp)
   ├─ ...
   └─ scope (scope)
     ├─ body1 (exp)
     └─ ...
 ```
+
+>> Note: Default values saved in function table. When we call this function, all "empty" cells in args wil be replaced by arguments from default.
 
 - Return / exit statement (`return`, `exit`)
 ```

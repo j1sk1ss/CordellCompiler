@@ -9,18 +9,17 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
     ) g->operand(node, output, ctx, g);
 
     switch (node->token->t_type) {
-        case ASM_TOKEN:     g->asmer(node, output, ctx, g);     break;
-        case IF_TOKEN:      g->ifgen(node, output, ctx, g);     break;
-        case SWITCH_TOKEN:  g->switchgen(node, output, ctx, g); break;
-        case WHILE_TOKEN:   g->whilegen(node, output, ctx, g);  break;
-        case CALL_TOKEN:    g->funccall(node, output, ctx, g);  break;
-        case FUNC_TOKEN:    g->function(node, output, ctx, g);  break;
-        case RETURN_TOKEN:  g->funcret(node, output, ctx, g);   break;
-        case START_TOKEN:   g->start(node, output, ctx, g);     break;
-        case EXIT_TOKEN:    g->exit(node, output, ctx, g);      break;
-        case SYSCALL_TOKEN: g->syscall(node, output, ctx, g);   break;
-        case ASSIGN_TOKEN:  g->assign(node, output, ctx, g);    break;
-        case UNKNOWN_NUMERIC_TOKEN:
+        case ASM_TOKEN:          g->asmer(node, output, ctx, g);     break;
+        case IF_TOKEN:           g->ifgen(node, output, ctx, g);     break;
+        case SWITCH_TOKEN:       g->switchgen(node, output, ctx, g); break;
+        case WHILE_TOKEN:        g->whilegen(node, output, ctx, g);  break;
+        case CALL_TOKEN:         g->funccall(node, output, ctx, g);  break;
+        case FUNC_TOKEN:         g->function(node, output, ctx, g);  break;
+        case RETURN_TOKEN:       g->funcret(node, output, ctx, g);   break;
+        case START_TOKEN:        g->start(node, output, ctx, g);     break;
+        case EXIT_TOKEN:         g->exit(node, output, ctx, g);      break;
+        case SYSCALL_TOKEN:      g->syscall(node, output, ctx, g);   break;
+        case ASSIGN_TOKEN:       g->assign(node, output, ctx, g);    break;
         case CHAR_VALUE_TOKEN:
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
@@ -32,6 +31,7 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
         case U16_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: 
+        case UNKNOWN_NUMERIC_TOKEN:
             if (node->token->vinfo.ref) g->ptrload(node, output, ctx, g);
             else g->load(node, output, ctx, g);
         break;

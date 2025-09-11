@@ -16,7 +16,7 @@ int STX_destroy_ctx(syntax_ctx_t* ctx) {
 int STX_var_update(ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size, char ro, char glob) {
     if (!node) return 0;
     node->info.size   = size;
-    node->info.offset = VRT_add_info(name, size, ro, glob, scope_id_top(&ctx->scopes.stack), ctx->vars);
+    node->info.offset = VRT_add_info(name, size, ro, glob, scope_id_top(&ctx->scopes.stack), ctx->symtb.vars);
     return 1;
 }
 
@@ -29,7 +29,7 @@ int STX_var_lookup(ast_node_t* node, syntax_ctx_t* ctx) {
     variable_info_t varinfo = { .offset = -1 };
     for (int s = ctx->scopes.stack.top; s >= 0; s--) {
         int s_id = ctx->scopes.stack.data[s].id;
-        if (VRT_get_info(node->token->value, s_id, &varinfo, ctx->vars)) {
+        if (VRT_get_info(node->token->value, s_id, &varinfo, ctx->symtb.vars)) {
             break;
         }
     }

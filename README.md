@@ -310,14 +310,13 @@ Also every program can contain `pre-implemented` code blocks and data segments:
 
 ```CPL
 1  {
-2      function foo() { return; }
+2      function foo(i64 a = 100) => i64 { return a; }
 3      glob i32 b = 0;
 4  
 5      start() {
-6          foo();
-7          exit 0;
-8      }
-9  }
+6          exit foo();
+7      }
+8  }
 ```
 
 ## Variables and Types
@@ -414,7 +413,7 @@ Functions are declared using the `function` keyword.
 
 ### Function Signature:
 ```CPL
-[modifier] function [name]([type1] [name1], [type2] [name2], ...) => [ret_type] {
+[modifier] function [name]([type1] [name1] [= def_val], [type2] [name2] [= def_val], ...) => [ret_type] {
     : function body :
     return something;
 }
@@ -423,7 +422,7 @@ Functions are declared using the `function` keyword.
 ### Example:
 ```CPL
 1  {
-2      glob function sumfunc(i32 a, i32 b) => i32 {
+2      glob function sumfunc(i32 a, i32 b = 1) => i32 {
 3          return a + b;
 4      }
 5  

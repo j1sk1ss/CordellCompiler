@@ -11,7 +11,7 @@ int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
         }
 
         if (t->token && t->token->t_type == FUNC_TOKEN) continue;
-        if (!VRS_intext(t->token)) continue;
+        if (!VRS_instack(t->token)) continue;
         size = MAX(MAX(t->info.offset, get_stack_size(t, ctx)), size);
     }
 
@@ -118,7 +118,7 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, g
                 else if (!t->child->sibling->sibling->sibling && bss) _generate_raw(t, output);
             }
         }
-        else if (VRS_intext(t->token)) {
+        else if (VRS_instack(t->token)) {
             switch (t->token->t_type) {
                 case EXTERN_TOKEN: {
                     if (section == EXT_SECTION) _generate_extern(t->child, output);

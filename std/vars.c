@@ -57,7 +57,7 @@ int VRS_isptr(token_t* token) {
 }
 
 /* Is token in text segment */
-int VRS_intext(token_t* token) {
+int VRS_instack(token_t* token) {
     if (!token) return 0;
     return !token->vinfo.glob && !token->vinfo.ro;
 }

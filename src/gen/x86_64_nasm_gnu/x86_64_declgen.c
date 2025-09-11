@@ -4,11 +4,11 @@ static int _strdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* name_node = node->child;
     ast_node_t* val_node  = name_node->sibling;
 
-    char* string = val_node->token->value;
+    char* s = val_node->token->value;
     int base_off = name_node->info.offset;
-    while (*string) {
-        iprintf(output, "mov byte [rbp - %d], %i\n", base_off--, *string);
-        string++;
+    while (*s) {
+        iprintf(output, "mov byte [rbp - %d], %i\n", base_off--, *s);
+        s++;
     }
 
     iprintf(output, "mov byte [rbp - %d], 0\n", base_off--);
@@ -22,7 +22,7 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
     ast_node_t* elems_node   = el_size_node->sibling;
 
     array_info_t arr_info = { .el_size = 1 };
-    if (ART_get_info(name_node->token->value, name_node->info.s_id, &arr_info, ctx->synt->arrs)) {
+    if (ART_get_info(name_node->token->value, name_node->info.s_id, &arr_info, ctx->synt->symtb.arrs)) {
         regs_t reg;
         get_reg(&reg, arr_info.el_size, RAX, 0);
 
@@ -49,7 +49,7 @@ static int _stack_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, ge
 
 int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     ast_node_t* name_node = node->child;
-    if (!VRS_intext(name_node->token)) return 0;
+    if (!VRS_instack(name_node->token)) return 0;
     if (!VRS_one_slot(name_node->token)) {
         return _stack_declaration(node, output, ctx, g);
     }

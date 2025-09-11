@@ -6,17 +6,23 @@
 #include "token.h"
 #include "vartb.h"
 #include "arrtb.h"
+#include "functb.h"
 
 typedef struct {
     int           s_id;
     scope_stack_t stack;
 } scope_info_t;
 
+typedef struct {
+    vartab_ctx_t*  vars;
+    arrtab_ctx_t*  arrs;
+    functab_ctx_t* funcs;
+} sym_tables_t;
+
 typedef struct syntax_ctx {
-    ast_node_t*   r;
-    varmem_ctx_t* vars;
-    arrmem_ctx_t* arrs;
-    scope_info_t  scopes;
+    ast_node_t*  r;
+    sym_tables_t symtb;
+    scope_info_t scopes;
 } syntax_ctx_t;
 
 typedef struct parser {

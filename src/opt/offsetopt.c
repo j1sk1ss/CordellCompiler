@@ -117,7 +117,7 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
             continue;
         }
         
-        if (VRS_isdecl(t->token) && t->child && VRS_intext(t->token)) {
+        if (VRS_isdecl(t->token) && t->child && VRS_instack(t->token)) {
             int varoff = -1;
             def_t* vars = scope_ctx.h;
             while (vars) {
