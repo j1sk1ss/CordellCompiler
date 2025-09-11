@@ -32,6 +32,23 @@ static int _print_ast(ast_node_t* node, int depth) {
     return 1;
 }
 
+static int _unload_file(object_t* f) {
+    TKN_unload(f->toks);
+    AST_unload(f->syntax->r);
+
+    ART_unload(f->syntax->symtb.arrs);
+    ART_destroy_ctx(f->syntax->symtb.arrs);
+
+    FNT_unload(f->syntax->symtb.funcs);
+    FNT_destroy_ctx(f->syntax->symtb.funcs);
+
+    VRT_unload(f->syntax->symtb.vars);
+    VRT_destroy_ctx(f->syntax->symtb.vars);
+
+    STX_destroy_ctx(f->syntax);
+    return 1;
+}
+
 static int _generate_raw_ast(builder_ctx_t* ctx) {
     int fd = open(ctx->files[ctx->fcount].path, O_RDONLY);
     if (fd < 0) return -1;
@@ -51,23 +68,17 @@ static int _generate_raw_ast(builder_ctx_t* ctx) {
     }
 
     ctx->files[ctx->fcount].syntax = STX_create_ctx();
-    ctx->files[ctx->fcount].syntax->arrs = ART_create_ctx();
-    ctx->files[ctx->fcount].syntax->vars = VRT_create_ctx();
+    ctx->files[ctx->fcount].syntax->symtb.arrs  = ART_create_ctx();
+    ctx->files[ctx->fcount].syntax->symtb.vars  = VRT_create_ctx();
+    ctx->files[ctx->fcount].syntax->symtb.funcs = FNT_create_ctx();
     if (!STX_create(tokens, ctx->files[ctx->fcount].syntax, &ctx->p)) {
-        ART_destroy_ctx(ctx->files[ctx->fcount].syntax->arrs);
-        VRT_destroy_ctx(ctx->files[ctx->fcount].syntax->vars);
-        STX_destroy_ctx(ctx->files[ctx->fcount].syntax);
-        TKN_unload(tokens);
+        _unload_file(&ctx->files[ctx->fcount]);
         close(fd);
         return -4;
     }
 
-    if (!SMT_check(ctx->files[ctx->fcount].syntax->r)) {
-        AST_unload(ctx->files[ctx->fcount].syntax->r);
-        ART_destroy_ctx(ctx->files[ctx->fcount].syntax->arrs);
-        VRT_destroy_ctx(ctx->files[ctx->fcount].syntax->vars);
-        STX_destroy_ctx(ctx->files[ctx->fcount].syntax);
-        TKN_unload(tokens);
+    if (!SMT_check(ctx->files[ctx->fcount].syntax->r, &ctx->files[ctx->fcount].syntax->symtb)) {
+        _unload_file(&ctx->files[ctx->fcount]);
         close(fd);
         return -5;
     }
@@ -90,7 +101,7 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
         is_fold_vars = OPT_constfold(ctx->files[index].syntax);
     } while (is_fold_vars);
     print_log("Assign and muldiv optimization... [Code: %i/%i]", RESULT(optres), RESULT(is_fold_vars));
-    
+
     optres = OPT_condunroll(ctx->files[index].syntax);
     print_log("Branches optimization... [%s (%i)]", RESULT(optres));
 
@@ -118,13 +129,7 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
     print_debug("COMPILING: system(%s)", compile_command);
     system(compile_command);
 
-    AST_unload(ctx->files[index].syntax->r);
-    TKN_unload(ctx->files[index].toks);
-    ART_unload(ctx->files[index].syntax->arrs);
-    ART_destroy_ctx(ctx->files[index].syntax->arrs);
-    VRT_unload(ctx->files[index].syntax->vars);
-    VRT_destroy_ctx(ctx->files[index].syntax->vars);
-    STX_destroy_ctx(ctx->files[index].syntax);
+    _unload_file(&ctx->files[index]);
 
     print_log("Optimization of [%s] complete", ctx->files[index].path);
     return 1;

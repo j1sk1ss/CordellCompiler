@@ -42,8 +42,6 @@
 
         while pos < codelength; {
             i8 c = code[pos];
-            i32 handled = 0;
-
             switch c; {
                 case openBracket; {
                     stack[stackptr] = pos;
@@ -84,15 +82,11 @@
                     pc = pc + 1;
                 }
                 case dot; {
-                    arr fbuf[2, i8] = { ' ', 0 };
-                    fbuf[0] = tape[pointer];
-                    puts(fbuf);
+                    syscall(1, 1, tape + pointer, 1);
                     pc = pc + 1;
                 }
                 case comma; {
-                    arr sbuf[2, i8] = { ' ', 0 };
-                    gets(sbuf, 2);
-                    tape[pointer] = sbuf[0];
+                    syscall(0, 0, ref tape[pointer], 1);
                     pc = pc + 1;
                 }
                 case openBracket; {

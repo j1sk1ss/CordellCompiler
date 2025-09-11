@@ -34,8 +34,6 @@ from "stdio.cpl" import putc, gets;
         i32 codelength = gets(code, 10000);
         while pos < codelength; {
             i8 c = code[pos];
-            i32 handled = 0;
-
             switch c; {
                 case openBracket; {
                     stack[stackptr] = pos;

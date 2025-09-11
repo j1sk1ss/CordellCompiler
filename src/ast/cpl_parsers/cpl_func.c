@@ -69,8 +69,8 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
 
     func_info_t finfo;
     if (FNT_get_info(node->token->value, &finfo, ctx->symtb.funcs)) {
-        for (ast_node_t* arg = finfo.args->child; arg; arg = arg->sibling) {
-            if (args-- > 0) continue;
+        for (ast_node_t* arg = finfo.args->child; arg && arg->token->t_type != SCOPE_TOKEN; arg = arg->sibling) {
+            if (args-- > 0 || !arg->child->sibling || !arg->child->sibling->token) continue;
             AST_add_node(node, AST_copy_node(arg->child->sibling, 0, 1));
         }
     }

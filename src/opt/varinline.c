@@ -35,16 +35,16 @@ static int _find_usage(ast_node_t* root, char* varname, short s_id, int* assign,
 static int _inline_var(ast_node_t* root, char* varname, short s_id, int value, int offset) {
     if (!root) return 0;
     int index = 0;
-    for (ast_node_t* t = root->child; t; t = t->sibling) {
+    for (ast_node_t* t = root; t; t = t->sibling) {
         if (index++ < offset) continue;
-        if (VRS_isblock(t->token)) {
-            _inline_var(t, varname, s_id, value, 0);
+        if (VRS_isblock(t->token) || VRS_is_control_change(t->token)) {
+            _inline_var(t->child, varname, s_id, value, 0);
             continue;
         }
-              
-        _inline_var(t, varname, s_id, value, 0);
+
+        _inline_var(t->child, varname, s_id, value, 0);
         if (VRS_isdecl(t->token) || VRS_isoperand(t->token)) {
-            _inline_var(t, varname, s_id, value, (VRS_isdecl(t->token) || t->token->t_type == ASSIGN_TOKEN));
+            _inline_var(t->child, varname, s_id, value, (VRS_isdecl(t->token) || t->token->t_type == ASSIGN_TOKEN));
             continue;
         }
 
@@ -55,7 +55,7 @@ static int _inline_var(ast_node_t* root, char* varname, short s_id, int value, i
             t->token->vinfo.glob = t->token->t_type != CASE_TOKEN ? 1 : 0;
             
             t->info.offset = 0;
-            t->info.size   = BASE_BITNESS / 8;
+            t->info.size = BASE_BITNESS / 8;
         }   
     }
 
@@ -113,7 +113,7 @@ static int _find_decl(ast_node_t* root, ast_node_t* entry, int* change) {
                 AST_unload(curr);
 
                 int value = str_atoi(val_node->token->value);
-                _inline_var(entry, varname, name_node->info.s_id, value, 0);
+                _inline_var(entry->child, varname, name_node->info.s_id, value, 0);
                 *change = 1;
 
                 if (prev) prev->sibling = next;

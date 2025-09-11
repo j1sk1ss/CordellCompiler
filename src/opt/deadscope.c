@@ -17,12 +17,13 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
 
         if (
             curr->token->t_type == EXIT_TOKEN ||
-            curr->token->t_type == RETURN_TOKEN
+            curr->token->t_type == RETURN_TOKEN ||
+            curr->token->t_type == CALL_TOKEN
         ) *affect = 1;
 
         if (curr->token->t_type == START_TOKEN) {
-            *affect = 1;
             _find_scope(curr, affect, s_id);
+            *affect = 1;
         }
 
         if (curr->token->t_type == SCOPE_TOKEN) {
@@ -48,7 +49,8 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
             case WHILE_TOKEN:
             case SWITCH_TOKEN: {
                 int is_affect = 0;
-                _find_scope(curr, &is_affect, s_id);
+                _find_scope(curr, &is_affect, curr->info.s_id);
+
                 if (!is_affect) {
                     AST_remove_node(root, curr);
                     AST_unload(curr);
@@ -60,6 +62,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
                     continue;
                 }
 
+                *affect = 1;
                 break;
             }
             case CASE_TOKEN:
@@ -103,11 +106,6 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
                 *affect = 1;
                 break;
             }
-        }
-
-        if (curr->token->t_type == CALL_TOKEN) { /* This scope invokes some function, that can affect outer env */
-            *affect = 1;
-            break;
         }
 
         prev = curr;

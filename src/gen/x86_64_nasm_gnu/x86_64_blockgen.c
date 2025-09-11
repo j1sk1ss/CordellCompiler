@@ -1,7 +1,7 @@
 #include <x86_64_gnu_nasm.h>
 
 static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
-    if (!node->token) return 0;
+    if (!node || !node->token) return 0;
     if (VRS_isdecl(node->token)) g->decl(node, output, ctx, g);
     if (
         VRS_isoperand(node->token) && 
@@ -51,6 +51,7 @@ int x86_64_generate_elem(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
 }
 
 int x86_64_generate_block(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
+    if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (VRS_isblock(t->token) && (!t->token || t->token->t_type != START_TOKEN)) {
             g->blockgen(t->child, output, ctx, g);

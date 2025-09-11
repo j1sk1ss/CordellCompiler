@@ -14,7 +14,7 @@ static int _find_op(ast_node_t* root, int* fold) {
         }
 
         if (VRS_isoperand(t->token)) {
-            ast_node_t* left = t->child;
+            ast_node_t* left  = t->child;
             ast_node_t* right = left->sibling;
 
             _find_op(left, fold);

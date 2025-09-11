@@ -83,7 +83,7 @@ static int _find_func(ast_node_t* node) {
 }
 
 int SMT_check_rettype(ast_node_t* node) {
-    if (!node) return 1;
+    if (!node) return 0;
     _find_func(node);
-    return 0;
+    return 1;
 }

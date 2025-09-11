@@ -112,11 +112,17 @@ TEST_CODES[test_gen]="
 
 TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/sem/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
 TEST_CODES[test_build]="
-    tests/dummy_data/builder/args.cpl
-    tests/dummy_data/builder/print.cpl
-    tests/dummy_data/builder/brfck.cpl
-    tests/dummy_data/builder/crc32.cpl
-    tests/dummy_data/builder/ptr.cpl
+    tests/dummy_data/builder/builder_1.cpl
+    tests/dummy_data/builder/builder_2.cpl
+    tests/dummy_data/builder/builder_3.cpl
+    tests/dummy_data/builder/builder_4.cpl
+    tests/dummy_data/builder/builder_5.cpl
+    tests/dummy_data/builder/builder_6.cpl
+    tests/dummy_data/builder/builder_7.cpl
+    tests/dummy_data/builder/builder_8.cpl
+    tests/dummy_data/builder/builder_9.cpl
+    tests/dummy_data/builder/builder_10.cpl
+    tests/dummy_data/builder/builder_11.cpl
 "
 
 # ======================================
@@ -180,7 +186,7 @@ for i in "${!test_names[@]}"; do
     code_file="${codes[$CODE_IDX]}"
 
     echo "== Compilation: $test_file =="
-    gcc-14 $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
+    gcc $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
         -DWARNING_LOGS -DERROR_LOGS -DLOGGING_LOGS -DINFO_LOGS -DDEBUG_LOGS -g -O0 -o "tests/$test_name"
 
     if [[ -n "$DEBUGGER" ]]; then

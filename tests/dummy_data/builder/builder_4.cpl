@@ -7,14 +7,14 @@
         }
 
         return s;
-    } : -> int :
+    }
 
     function puts(ptr i8 string) {
         return syscall(1, 1, string, strlen(string));
-    } : -> int :
+    }
 
     start(i64 argc, ptr i64 argv) {
-        puts(argv[1]);
+        puts("Hello, World!\n");
         exit 0;
     }
 }

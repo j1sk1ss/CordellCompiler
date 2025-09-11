@@ -6,17 +6,17 @@ int x86_64_generate_if(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g)
     ast_node_t* lbranch = cond->sibling;
     ast_node_t* rbranch = lbranch->sibling;
 
-    g->elemegen(cond, output, ctx, g); /* Condition gen */
+    g->elemegen(cond, output, ctx, g);
     iprintf(output, "cmp %s, 0\n", GET_RAW_REG(BASE_BITNESS, RAX));
     if (rbranch) iprintf(output, "je __else_%d__\n", current_label);
     else iprintf(output, "je __end_if_%d__\n", current_label);
 
-    g->blockgen(lbranch, output, ctx, g); /* Main block gen */
+    g->blockgen(lbranch->child, output, ctx, g);
     iprintf(output, "jmp __end_if_%d__\n", current_label);
 
-    if (rbranch) { /* Else block gen */
+    if (rbranch) {
         iprintf(output, "__else_%d__:\n", current_label);
-        g->blockgen(rbranch, output, ctx, g);
+        g->blockgen(rbranch->child, output, ctx, g);
     }
 
     iprintf(output, "__end_if_%d__:\n", current_label);
@@ -28,18 +28,17 @@ int x86_64_generate_while(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
     ast_node_t* cond    = node->child;
     ast_node_t* lbranch = cond->sibling;
     ast_node_t* rbranch = lbranch->sibling;
-
+    
     iprintf(output, "__while_%d__:\n", current_label);
     g->elemegen(cond, output, ctx, g);
     iprintf(output, "cmp rax, 0\n");
     iprintf(output, "je __end_while_%d__\n", current_label);
-
-    g->blockgen(lbranch, output, ctx, g);
+    
+    g->blockgen(lbranch->child, output, ctx, g);
     iprintf(output, "jmp __while_%d__\n", current_label);
-
+    
     iprintf(output, "__end_while_%d__:\n", current_label);
-    g->blockgen(rbranch, output, ctx, g);
-
+    if (rbranch) g->blockgen(rbranch->child, output, ctx, g);
     return 1;
 }
 
@@ -53,7 +52,7 @@ static int _generate_case_binary_jump(FILE* output, int* values, int left, int r
     int mid = (left + right) / 2;
     int val = values[mid];
 
-    iprintf(output, "cmp %s, %d\n", GET_RAW_REG(BASE_BITNESS, RAX), val);
+    iprintf(output, "cmp rax, %d\n", val);
     iprintf(output, "jl __case_l_%d_%d__\n", val, label_id);
     iprintf(output, "jg __case_r_%d_%d__\n", val, label_id);
     iprintf(output, "jmp __case_%d_%d__\n", val, label_id);

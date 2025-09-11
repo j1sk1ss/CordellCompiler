@@ -26,7 +26,7 @@ static int _check_exp_bitness(ast_node_t* r, sym_tables_t* smt) {
     }
     else if (r->token->t_type == CALL_TOKEN) {
         func_info_t finfo;
-        if (FNT_get_info(r->token->value, &finfo, smt->funcs)) return VRS_variable_bitness(finfo.rtype->token, 1);
+        if (FNT_get_info(r->token->value, &finfo, smt->funcs) && finfo.rtype) return VRS_variable_bitness(finfo.rtype->token, 1);
         else return BASE_BITNESS / 8;
     }
     else {

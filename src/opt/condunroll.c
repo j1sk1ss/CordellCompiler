@@ -7,19 +7,20 @@ Also unroll if, while and switch statements.
 static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
     if (!root) return 0;
     ast_node_t* tprev = NULL;
-    for (ast_node_t* t = root->child; t; t = t->sibling) {
+    for (ast_node_t* t = root; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            _clean_blocks(t, ctx);
+            _clean_blocks(t->child, ctx);
             continue;
         }
 
         switch (t->token->t_type) {
             case IF_TOKEN: {
-                _clean_blocks(t, ctx);
-
                 ast_node_t* condition = t->child;
-                ast_node_t* lbranch   = condition->sibling; // main
-                ast_node_t* rbranch   = lbranch->sibling;   // else
+                ast_node_t* lbranch   = condition->sibling;
+                ast_node_t* rbranch   = lbranch->sibling;
+
+                _clean_blocks(lbranch, ctx);
+                _clean_blocks(rbranch, ctx);
 
                 ast_node_t* unrolled_if = NULL;
                 if (condition->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
@@ -56,8 +57,6 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
             }
 
             case SWITCH_TOKEN: {
-                _clean_blocks(t, ctx);
-
                 ast_node_t* stmt  = t->child;
                 ast_node_t* cases = stmt->sibling;
                 
@@ -69,6 +68,7 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
                     ast_node_t* prev = NULL;
                     int val = str_atoi(stmt->token->value);
                     for (ast_node_t* curr_case = cases->child; curr_case; curr_case = curr_case->sibling) {
+                        _clean_blocks(curr_case->child, ctx);
                         if (curr_case->token->t_type == DEFAULT_TOKEN) {
                             if (!unrolled_switch) unrolled_switch = curr_case->child;
                             defcase = curr_case;
@@ -111,23 +111,24 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
             }
             
             case WHILE_TOKEN: {
-                _clean_blocks(t, ctx);
-
                 ast_node_t* condition = t->child;
-                ast_node_t* lbranch   = condition->sibling; // main
-                ast_node_t* rbranch   = lbranch->sibling;   // else
+                ast_node_t* lbranch   = condition->sibling;
+                ast_node_t* rbranch   = lbranch->sibling;
+
+                _clean_blocks(lbranch, ctx);
+                _clean_blocks(rbranch, ctx);
 
                 if (condition->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
                     int val = str_atoi(condition->token->value);
-                    if (!val && !rbranch) { /* Delete entire while block */
+                    if (!val && !rbranch) {
                         AST_remove_node(root, t);
                         AST_unload(t);
                     }
-                    else if (!val && rbranch) { /* Unroll while to straightforward code if main block unreacheble */
+                    else if (!val && rbranch) {
                         rbranch->sibling = t->sibling;
 
-                        t->sibling = NULL; /* Saving last AST */
-                        t->child->sibling = NULL; /* Saving rbranch */
+                        t->sibling = NULL;
+                        t->child->sibling = NULL;
                         AST_unload(t);
 
                         t = rbranch;
