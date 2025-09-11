@@ -19,19 +19,19 @@
     }
 
     start() {
-        glob arr tape[1, i8] = { 5 };
-        glob arr code[4, i8] = { 91, 45, 46, 93 };
+        glob arr tape[1, i8] = { 10 };
+        glob arr code[4, i8] = { '[', '-', '.', ']' };
 
-        i32 pointer = 0;
         i32 pc = 0;
+        i32 pointer = 0;
         i32 codelength = 4;
 
         while pc < codelength; {
             switch code[pc]; {
-                case 45; { tape[pointer] = tape[pointer] - 1; pc = pc + 1; }
-                case 46; { arr buf[2, i8] = {0,0}; buf[0] = tape[pointer] + 48; puts(buf); pc = pc + 1; }
-                case 91; { if tape[pointer] == 0; { pc = 3; } else { pc = pc + 1; } }
-                case 93; { if tape[pointer] != 0; { pc = 0; } else { pc = pc + 1; } }
+                case '-'; { tape[pointer] = tape[pointer] - 1; pc = pc + 1; }
+                case '.'; { arr buf[2, i8] = {0,0}; buf[0] = tape[pointer] + 48; puts(buf); pc = pc + 1; }
+                case '['; { if tape[pointer] == 0; { pc = 3; } else { pc = pc + 1; } }
+                case ']'; { if tape[pointer] != 0; { pc = 0; } else { pc = pc + 1; } }
             }
         }
 

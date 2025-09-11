@@ -28,7 +28,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
 
         if (curr->token->t_type == SCOPE_TOKEN) {
             int is_affect = 0;
-            _find_scope(curr, &is_affect, curr->info.s_id);
+            _find_scope(curr, &is_affect, MAX(curr->info.s_id, s_id));
 
             if (!is_affect) {
                 AST_remove_node(root, curr);
@@ -49,9 +49,9 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
             case WHILE_TOKEN:
             case SWITCH_TOKEN: {
                 int is_affect = 0;
-                _find_scope(curr, &is_affect, curr->info.s_id);
+                _find_scope(curr, &is_affect, MAX(curr->info.s_id, s_id));
 
-                if (!is_affect) {
+                if (!is_affect) { 
                     AST_remove_node(root, curr);
                     AST_unload(curr);
 

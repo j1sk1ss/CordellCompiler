@@ -26,13 +26,15 @@ ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
         while ((*curr)->t_type == CASE_TOKEN || (*curr)->t_type == DEFAULT_TOKEN) {
             ast_node_t* case_stmt = NULL;
             if ((*curr)->t_type != CASE_TOKEN) {
-                case_stmt = AST_create_node(
-                    TKN_create_token(DEFAULT_TOKEN, DEFAULT_COMMAND, str_strlen(DEFAULT_COMMAND), 0)
-                );
+                case_stmt = AST_create_node(TKN_create_token(DEFAULT_TOKEN, DEFAULT_COMMAND, str_strlen(DEFAULT_COMMAND), 0));
             }
             else {
                 forward_token(curr, 1);
                 case_stmt = p->expr(curr, ctx, p);
+                if (case_stmt->token->t_type == CHAR_VALUE_TOKEN) {
+                    snprintf(case_stmt->token->value, TOKEN_MAX_SIZE, "%i", case_stmt->token->value[0]);
+                }
+                
                 case_stmt->token->t_type = CASE_TOKEN;
             }
             

@@ -30,7 +30,6 @@
         i32 stackptr = 0;
         i32 pos = 0;
 
-        i8 brk           = 0;  : 0 :
         i8 plus          = 43; : + :
         i8 minus         = 45; : - :
         i8 dot           = 46; : . :
@@ -90,7 +89,7 @@
                     pc = pc + 1;
                 }
                 case openBracket; {
-                    if tape[pointer] == brk; {
+                    if tape[pointer] == 0; {
                         pc = bracketmap[pc];
                     }
                     else {
@@ -98,7 +97,7 @@
                     }
                 }
                 case closedBracket; {
-                    if tape[pointer] != brk; {
+                    if tape[pointer]; {
                         pc = bracketmap[pc];
                     }
                     else {

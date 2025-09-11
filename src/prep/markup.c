@@ -84,7 +84,7 @@ int MRKP_mnemonics(token_t* head) {
     while (curr) {
         for (int i = 0; i < (int)(sizeof(_markups) / sizeof(_markups[0])); i++) {
             if (curr->value[0] != _markups[i].value[0]) continue;
-            else if (!str_strcmp(curr->value, _markups[i].value) && curr->t_type != STRING_VALUE_TOKEN) {
+            else if (!str_strcmp(curr->value, _markups[i].value) && curr->t_type != STRING_VALUE_TOKEN && curr->t_type != CHAR_VALUE_TOKEN) {
                 curr->t_type = _markups[i].type;
             }
         }

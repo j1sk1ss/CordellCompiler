@@ -109,12 +109,16 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
                 if (node->token->t_type == LARGER_TOKEN)   iprintf(output, "setg al\n");
                 if (node->token->t_type == LOWEREQ_TOKEN)  iprintf(output, "setle al\n");
                 if (node->token->t_type == LARGEREQ_TOKEN) iprintf(output, "setge al\n");
+                if (node->token->t_type == COMPARE_TOKEN)  iprintf(output, "sete al\n");
+                if (node->token->t_type == NCOMPARE_TOKEN) iprintf(output, "setne al\n");
             } 
             else {
                 if (node->token->t_type == LOWER_TOKEN)    iprintf(output, "setb al\n");
                 if (node->token->t_type == LARGER_TOKEN)   iprintf(output, "seta al\n");
                 if (node->token->t_type == LOWEREQ_TOKEN)  iprintf(output, "setbe al\n");
                 if (node->token->t_type == LARGEREQ_TOKEN) iprintf(output, "setae al\n");
+                if (node->token->t_type == COMPARE_TOKEN)  iprintf(output, "sete al\n");
+                if (node->token->t_type == NCOMPARE_TOKEN) iprintf(output, "setne al\n");
             }
 
             iprintf(output, "movzx rax, al\n");
