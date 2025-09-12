@@ -4,7 +4,7 @@
         i32 a = 10;
         i32 b = a; 
 
-        a = 12;
+        a = exval;
         i32 c = a;
 
         a = 13;
@@ -26,7 +26,7 @@
         }
 
         i32 d1 = a;
-        exit a;
+        exit c;
     }
 }
 
@@ -44,7 +44,7 @@
             a = exval;
         }
 
-        exit a;
+        exit exval;
     }
 }
 :

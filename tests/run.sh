@@ -52,6 +52,9 @@ TEST_CODES[test_varinline]="
     tests/dummy_data/opt/varinline/varinline_2.cpl
     tests/dummy_data/opt/varinline/varinline_3.cpl
     tests/dummy_data/opt/varinline/varinline_4.cpl
+    tests/dummy_data/opt/varinline/varinline_5.cpl
+    tests/dummy_data/opt/varinline/varinline_6.cpl
+    tests/dummy_data/opt/varinline/varinline_7.cpl
 "
 
 TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/varinline.c src/opt/constopt.c std/*.c"

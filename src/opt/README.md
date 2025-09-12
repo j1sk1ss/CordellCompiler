@@ -49,6 +49,76 @@ Will be transformed into:
 }
 ```
 
+Also this method implements something similar to data flow analyze. We track variable value in scope and stop inline operations if we can't predict future. For example this code below:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        i32 a = 10;
+        i32 c = a;
+
+        a = 15;
+        i32 d = a;
+
+        switch a; { 
+            case 1; {
+                a = 15;
+                i8 b = a;
+            }
+            case 2; {
+                a = 20;
+                i8 b = a;
+            }
+            case 3; {
+                a = 25;
+                i8 b = a;
+            }
+            default {
+                a = 30;
+                i8 b = a;
+            }
+        }
+
+        exit a;
+    }
+}
+```
+
+Will become:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        i32 a = 10;
+        i32 c = 10;
+
+        a = 15;                    <= Variabe "a" value update
+        i32 d = 15;
+
+_________________                  <= Now variable "a" is unpredicted in compile time (This is an example, don't look at constant switch condition).
+
+        switch 15; { 
+            case 1; {
+                a = 15;
+                i8 b = 15;
+            }
+            case 2; {
+                a = 20;
+                i8 b = 20;
+            }
+            case 3; {
+                a = 25;
+                i8 b = 25;
+            }
+            default {
+                a = 30;
+                i8 b = 30;
+            }
+        }
+
+        exit a;                     <= We can't say that switch was ignored, that's why we don't know value here.
+    }
+}
+```
+
 ## Constant folding
 - [constopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/constopt.c) - The fourth optimization is always executed after the third one and continues constant propagation by folding constant expressions. Example:
 ```CPL
