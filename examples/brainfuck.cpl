@@ -1,6 +1,6 @@
-from "stdio.cpl" import putc, gets;
-
 {
+    from "stdio.cpl" import putc, gets;
+
 :
     Brainfuck interpriter on CPL
     For work test, input ++++++++[>++++++++<-]>+. sequence. Interpriter should return 'A' character.
@@ -19,27 +19,17 @@ from "stdio.cpl" import putc, gets;
     start() {
         puts("Brainfuck interpriter! Input code: ");
 
-        i8 brk           = 0;  : 0 :
-        i8 plus          = 43; : + :
-        i8 minus         = 45; : - :
-        i8 dot           = 46; : . :
-        i8 comma         = 44; : , :
-        i8 leftMove      = 60; : < :
-        i8 rightMove     = 62; : > :
-        i8 openBracket   = 91; : [ :
-        i8 closedBracket = 93; : ] :
-
         i32 pos = 0;
         i32 stackptr = 0;
         i32 codelength = gets(code, 10000);
         while pos < codelength; {
             i8 c = code[pos];
             switch c; {
-                case openBracket; {
+                case '['; {
                     stack[stackptr] = pos;
                     stackptr = stackptr + 1;
                 }
-                case closedBracket; {
+                case ']'; {
                     if stackptr > 0; {
                         stackptr = stackptr - 1;
                         i32 matchpos = stack[stackptr];
@@ -57,42 +47,40 @@ from "stdio.cpl" import putc, gets;
 
         while pc < codelength; {
             switch code[pc]; {
-                case rightMove; {
+                case '>'; {
                     pointer = pointer + 1;
                     pc = pc + 1;
                 }
-                case leftMove; {
+                case '<'; {
                     pointer = pointer - 1;
                     pc = pc + 1;
                 }
-                case plus; {
+                case '+'; {
                     tape[pointer] = tape[pointer] + 1;
                     pc = pc + 1;
                 }
-                case minus; {
+                case '-'; {
                     tape[pointer] = tape[pointer] - 1;
                     pc = pc + 1;
                 }
-                case dot; {
+                case '.'; {
                     putc(tape[pointer]);
                     pc = pc + 1;
                 }
-                case comma; {
-                    arr buf[2, i8] = { ' ', 0 };
-                    gets(buf, 2);
-                    tape[pointer] = buf[0];
+                case ','; {
+                    gets(ref tape[pointer], 1);
                     pc = pc + 1;
                 }
-                case openBracket; {
-                    if tape[pointer] == brk; {
+                case '['; {
+                    if not tape[pointer]; {
                         pc = bracketmap[pc];
                     }
                     else {
                         pc = pc + 1;
                     }
                 }
-                case closedBracket; {
-                    if tape[pointer] != brk; {
+                case ']'; {
+                    if tape[pointer]; {
                         pc = bracketmap[pc];
                     }
                     else {

@@ -244,3 +244,13 @@ int VRS_is_control_change(token_t* token) {
         default:           return 0;
     }
 }
+
+int VRS_is_unpredicted(token_t* token) {
+    if (!token) return 0;
+    switch (token->t_type) {
+        case IF_TOKEN:
+        case WHILE_TOKEN:
+        case SWITCH_TOKEN: return 1;
+        default:           return 0;
+    }
+}

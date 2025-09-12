@@ -33,20 +33,22 @@ int AST_add_node(ast_node_t* parent, ast_node_t* child) {
 int AST_remove_node(ast_node_t* parent, ast_node_t* child) {
     if (!parent || !child) return 0;
 
-    ast_node_t* prev = NULL;
+    int found = 0;
+    ast_node_t* prev    = NULL;
     ast_node_t* current = parent->child;
     while (current) {
         if (current == child) {
             if (prev) prev->sibling = current->sibling;
             else parent->child = current->sibling;
+            found = 1;
             break;
         }
 
-        prev = current;
+        prev    = current;
         current = current->sibling;
     }
 
-    child->sibling = NULL;
+    if (found) child->sibling = NULL;
     return 1;
 }
 

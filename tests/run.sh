@@ -50,6 +50,8 @@ TEST_SRCS[test_varinline]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/varinl
 TEST_CODES[test_varinline]="
     tests/dummy_data/opt/varinline/varinline_1.cpl
     tests/dummy_data/opt/varinline/varinline_2.cpl
+    tests/dummy_data/opt/varinline/varinline_3.cpl
+    tests/dummy_data/opt/varinline/varinline_4.cpl
 "
 
 TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/varinline.c src/opt/constopt.c std/*.c"

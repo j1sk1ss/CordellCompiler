@@ -1,138 +1,171 @@
 #include <varinline.h>
 
-static int _find_usage(ast_node_t* root, char* varname, short s_id, int* assign, int offset) {
-    if (!root) return 0;
-    for (ast_node_t* t = root->child; t; t = t->sibling) {
-        if (offset-- > 0) continue;
-        if (VRS_isblock(t->token)) {
-            _find_usage(t, varname, s_id, assign, 0);
+/* Check binary tree for variable usage */
+static int _inline_binary(ast_node_t* r, const char* v, int* value) {
+    if (r->child && r->child->sibling) {
+        return _inline_binary(r->child, v, value) || _inline_binary(r->child->sibling, v, value);
+    }
+    
+    if (!str_strncmp(r->token->value, v, TOKEN_MAX_SIZE)) {
+        snprintf(r->token->value, TOKEN_MAX_SIZE, "%d", *value);
+        r->token->t_type = UNKNOWN_NUMERIC_TOKEN;
+        r->token->vinfo.glob = 1;
+        return 1;
+    }
+
+    return 0;
+}
+
+static int _find_variable_update(ast_node_t* d, const char* v) {
+    if (!d) return 0;
+    for (ast_node_t* t = d; t; t = t->sibling) {
+        if (!t->token) {
+            if (_find_variable_update(t->child, v)) return 1;
             continue;
         }
-        
-        _find_usage(t, varname, s_id, assign, 0);
-        if (VRS_isdecl(t->token) || VRS_isoperand(t->token)) {
-            if (
-                t->token->t_type == ASSIGN_TOKEN && /* If variable assign somewhere, we can't tell that we able inline */
-                !str_strncmp(varname, t->child->token->value, TOKEN_MAX_SIZE)
-            ) {
-                *assign = 1;
-                return 1;
-            }
 
-            _find_usage(t, varname, s_id, assign, VRS_isdecl(t->token));
-            continue;
+        if (t->token->t_type == ASSIGN_TOKEN) {
+            if (!str_strncmp(t->child->token->value, v, TOKEN_MAX_SIZE)) return 1;
         }
 
-        if (!str_strncmp(varname, t->token->value, TOKEN_MAX_SIZE) && t->info.s_id == s_id) {
-            if (t->token->vinfo.ref) *assign = 1;
+        if (_find_variable_update(t->child, v)) {
             return 1;
         }
     }
 
-    return 1;
+    return 0;
 }
 
-static int _inline_var(ast_node_t* root, char* varname, short s_id, int value, int offset) {
-    if (!root) return 0;
-    int index = 0;
-    for (ast_node_t* t = root; t; t = t->sibling) {
-        if (index++ < offset) continue;
-        if (VRS_isblock(t->token) || VRS_is_control_change(t->token)) {
-            _inline_var(t->child, varname, s_id, value, 0);
-            continue;
-        }
+/* Check scope and sub-scopes (without control flow changes) */
+static int _inline_block(ast_node_t* d, const char* v, int* value) {
+    if (!d) return 0;
 
-        _inline_var(t->child, varname, s_id, value, 0);
-        if (VRS_isdecl(t->token) || VRS_isoperand(t->token)) {
-            _inline_var(t->child, varname, s_id, value, (VRS_isdecl(t->token) || t->token->t_type == ASSIGN_TOKEN));
-            continue;
-        }
-
-        if (!str_strncmp(varname, t->token->value, TOKEN_MAX_SIZE) && t->info.s_id == s_id) {
-            snprintf(t->token->value, TOKEN_MAX_SIZE, "%d", value);
-            
-            t->token->t_type = t->token->t_type != CASE_TOKEN ? UNKNOWN_NUMERIC_TOKEN : CASE_TOKEN;
-            t->token->vinfo.glob = t->token->t_type != CASE_TOKEN ? 1 : 0;
-            
-            t->info.offset = 0;
-            t->info.size = BASE_BITNESS / 8;
-        }   
-    }
-
-    return 1;
-}
-
-static int _find_decl(ast_node_t* root, ast_node_t* entry, int* change) {
-    if (!root) return 0;
-    
-    ast_node_t* prev = NULL;
-    ast_node_t* curr = root->child;
+    int result = 0;
+    ast_node_t* prev    = NULL;
+    ast_node_t* curr    = d;
+    ast_node_t* lchange = NULL;
 
     while (curr) {
         ast_node_t* next = curr->sibling;
-        if (VRS_isblock(curr->token)) {
-            _find_decl(curr, entry, change);
+        if (VRS_is_unpredicted(curr->token) && _find_variable_update(curr->child, v)) {
+            result = 1;
+            switch (curr->token->t_type) {
+                case IF_TOKEN:
+                case WHILE_TOKEN: {
+                    _inline_binary(curr->child, v, value);
+
+                    int pval = *value;
+                    result = _inline_block(curr->child->sibling->child, v, value) || result;
+                    if (curr->child->sibling->sibling) {
+                        *value = pval;
+                        result = _inline_block(curr->child->sibling->sibling->child, v, value) || result;
+                    }
+
+                    break;
+                }
+
+                case SWITCH_TOKEN: {
+                    _inline_binary(curr->child, v, value);
+                    for (ast_node_t* c = curr->child->sibling->child; c; c = c->sibling) {
+                        int pval = *value;
+                        result = _inline_block(c->child, v, value) || result;
+                        *value = pval;
+                    }
+
+                    break;
+                }
+
+                default: break;
+            }
+
+            break;
+        }
+
+        if (
+            VRS_isblock(curr->token) || 
+            curr->token->t_type == EXIT_TOKEN || 
+            curr->token->t_type == CALL_TOKEN
+        ) {
+            result = _inline_block(curr->child, v, value) || result;
             prev = curr;
             curr = next;
             continue;
         }
-
-        switch (curr->token->t_type) {
-            case IF_TOKEN:
-            case WHILE_TOKEN:
-            case SWITCH_TOKEN:
-                _find_decl(curr, entry, change);
-                prev = curr;
-                curr = next;
-            continue;
-            case FUNC_TOKEN:
-                _find_decl(curr->child->sibling->sibling, entry, change);
-                prev = curr;
-                curr = next;
-            continue;
-            default: break;
+        
+        if (VRS_isdecl(curr->token) || curr->token->t_type == ASSIGN_TOKEN) { 
+            if (str_strncmp(curr->child->token->value, v, TOKEN_MAX_SIZE)) _inline_binary(curr->child->sibling, v, value);
+            else if (VRS_isnumeric(curr->child->sibling->token)) {
+                *value = str_atoi(curr->child->sibling->token->value); 
+                lchange = curr;
+            }
+            else {
+                lchange = curr;
+                break;
+            }
         }
-
-        if (VRS_isdecl(curr->token) && VRS_one_slot(curr->token)) {
-            ast_node_t* name_node = curr->child;
-            ast_node_t* val_node  = name_node->sibling;
-
-            if (!val_node || val_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) {
-                prev = curr;
-                curr = next;
-                continue;
-            }
-
-            int is_updates = 0;
-            _find_usage(entry, name_node->token->value, name_node->info.s_id, &is_updates, 0);
-            if (!is_updates) { /* If variable never updates, we can replace it by value and remove declaration node */
-                char varname[TOKEN_MAX_SIZE] = { 0 };
-                str_strncpy(varname, name_node->token->value, TOKEN_MAX_SIZE);
-
-                AST_remove_node(root, curr);
-                AST_unload(curr);
-
-                int value = str_atoi(val_node->token->value);
-                _inline_var(entry->child, varname, name_node->info.s_id, value, 0);
-                *change = 1;
-
-                if (prev) prev->sibling = next;
-                else root->child = next;
-                curr = next;
-                continue;
-            }
+        else if (VRS_isoperand(curr->token) || VRS_isvariable(curr->token)) {
+            _inline_binary(curr, v, value);
         }
 
         prev = curr;
         curr = next;
     }
 
+    if (lchange) {
+        prev = NULL;
+        curr = d;
+        while (curr) {
+            ast_node_t* next = curr->sibling;
+            if (
+                curr->token->t_type == ASSIGN_TOKEN &&
+                !str_strncmp(curr->child->token->value, v, TOKEN_MAX_SIZE) &&
+                VRS_isnumeric(curr->child->sibling->token) &&
+                curr != lchange
+            ) {
+                AST_remove_node(d, curr);
+                AST_unload(curr);
+
+                if (prev) prev->sibling = next;
+                else {
+                    curr->parent->child = next;
+                    d = next;
+                }
+
+                curr = next;
+                continue;
+            }
+            
+            prev = curr;
+            curr = next;
+        }
+    }
+
+    return result;
+}
+
+/* Bruteforce declaration search */
+static int _find_declrations(ast_node_t* r) {
+    if (!r) return 0;
+    for (ast_node_t* t = r; t; t = t->sibling) {
+        _find_declrations(t->child);
+        if (!t->token) continue;
+
+        /* We found variable that can be inlined */
+        if (
+            VRS_isdecl(t->token) && t->child && t->child->sibling && 
+            VRS_isnumeric(t->child->sibling->token)
+        ) {
+            int inval = str_atoi(t->child->sibling->token->value);
+            if (!_inline_block(t->sibling, t->child->token->value, &inval)) {
+                /* Remove variable declaration */
+            }
+        }
+    }
+
     return 1;
 }
 
 int OPT_varinline(syntax_ctx_t* ctx) {
-    if (!ctx->r) return 0;
-    int is_changed = 0;
-    _find_decl(ctx->r, ctx->r, &is_changed);
-    return is_changed;
+    _find_declrations(ctx->r);
+    return 1;
 }

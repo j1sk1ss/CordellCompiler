@@ -1,9 +1,25 @@
 #include <deadvar.h>
 
+static int _affect_outer(ast_node_t* root, char* varname, int* affect, short scope) {
+    if (!root) return 0;
+    for (ast_node_t* t = root; t; t = t->sibling) {
+        if (!t->token) continue;
+        _affect_outer(t->child, varname, affect, scope);
+        if (t->token->t_type == ASSIGN_TOKEN) {
+            if (str_strncmp(t->child->token->value, varname, TOKEN_MAX_SIZE) && t->info.s_id > scope) {
+                *affect = 1;
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
 static int _find_variable(ast_node_t* root, char* varname, int* found) {
     if (!root) return 0;
-
     for (ast_node_t* t = root; t; t = t->sibling) {
+        if (!t->token) continue;
         _find_variable(t->child, varname, found);
         if (!VRS_isvariable(t->token)) return 0;
         if (!str_strncmp(t->token->value, varname, TOKEN_MAX_SIZE)) {
@@ -28,12 +44,7 @@ static int _find_usage(ast_node_t* root, char* varname, int* used) {
             VRS_isdecl(t->token) ||
             (t->token->t_type == ASSIGN_TOKEN && str_strncmp(t->child->token->value, varname, TOKEN_MAX_SIZE))
         ) {
-            int is_affect = 0;
-            _find_variable(t->child->sibling, varname, &is_affect);
-            if (is_affect) {
-                *used = 1;
-                return 1;
-            }
+            _find_variable(t->child->sibling, varname, used);
         }
 
         /* This variable is responsible for env. change in future? */
@@ -41,23 +52,25 @@ static int _find_usage(ast_node_t* root, char* varname, int* used) {
             switch (t->token->t_type) {
                 case IF_TOKEN:
                 case WHILE_TOKEN: {
+                    int is_used = 0;
+                    _find_variable(t->child, varname, &is_used);
+
+                    int is_affect = 0;
+                    _affect_outer(t->child->sibling, varname, &is_affect, t->info.s_id);
+                    _affect_outer(t->child->sibling->sibling, varname, &is_affect, t->info.s_id);
                     break;
                 }
 
                 case SWITCH_TOKEN: {
+                    int is_used = 0;
+                    _find_variable(t->child, varname, &is_used);
+
+                    int is_affect = 0;
+                    _affect_outer(t->child->sibling, varname, &is_affect, t->info.s_id);
                     break;
                 }
 
-                case CALL_TOKEN: {
-                    int is_used = 0;
-                    _find_variable(t->child, varname, &is_used);
-                    if (is_used) {
-                        *used = 1;
-                        return 1;
-                    }
-                    
-                    break;
-                }
+                case CALL_TOKEN: _find_variable(t->child, varname, used); break;
             }
         }
     }
@@ -118,5 +131,5 @@ static int _find_decl(ast_node_t* root, int* change) {
 }
 
 int OPT_deadvar(syntax_ctx_t* ctx) {
-
+    return 1;
 }

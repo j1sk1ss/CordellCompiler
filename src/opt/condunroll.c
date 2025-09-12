@@ -25,12 +25,12 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
                 ast_node_t* unrolled_if = NULL;
                 if (condition->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
                     int val = str_atoi(condition->token->value);
-                    if (val && rbranch) { /* delete else branch */
+                    if (val && rbranch) {        /* delete else branch     */
                         unrolled_if = lbranch;
                         AST_remove_node(t, rbranch);
                         AST_unload(rbranch);
                     }
-                    else if (!val && rbranch) { /* delete main branch */
+                    else if (!val && rbranch) {  /* delete main branch     */
                         unrolled_if = rbranch;
                         AST_remove_node(t, lbranch);
                         AST_unload(lbranch);
@@ -41,10 +41,10 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
                     }
                 }
 
-                if (unrolled_if) { /* If unrolling with scope saving */
+                if (unrolled_if) {            /* If unrolling with scope saving */
                     unrolled_if->sibling = t->sibling;
 
-                    t->sibling = NULL; /* Saving last AST */
+                    t->sibling = NULL;        /* Saving last AST    */
                     t->child->sibling = NULL; /* Saving last branch */
                     AST_unload(t);
 
@@ -97,7 +97,7 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
                     if (unrolled_switch) { /* Unroll last case to default code */
                         unrolled_switch->sibling = t->sibling;
 
-                        t->sibling = NULL; /* Saving last AST */
+                        t->sibling = NULL;                      /* Saving last AST  */
                         t->child->sibling->child->child = NULL; /* Saving last case */
                         AST_unload(t);
 

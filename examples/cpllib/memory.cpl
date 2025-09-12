@@ -1,7 +1,6 @@
 {
     glob arr _mm_head[100000, i8] =;
     glob arr _blocks_info[100000, i32] =;
-    glob long _head = 0;
 
     glob function memset(ptr u8 buffer, i32 val, i64 size) {
         i64 index = 0;
@@ -15,10 +14,10 @@
 
     glob function malloc(i64 size) {
         if size > 0; {
-            ptr u8 curr_mem = _mm_head;
             i32 block_index = 0;
+            ptr u8 curr_mem = _mm_head;
             while block_index < 100000; {
-                if _blocks_info[block_index] == 0; {
+                if not _blocks_info[block_index]; {
                     _blocks_info[block_index] = 1;
                     _blocks_info[block_index + 1] = size;
                     _blocks_info[block_index + 2] = curr_mem;

@@ -44,8 +44,8 @@ static int _find_op(ast_node_t* root, int* fold) {
 
             /* Constant folding */
             int result = 0;
-            int l_val = str_atoi(left->token->value);
-            int r_val = str_atoi(right->token->value);
+            int l_val  = str_atoi(left->token->value);
+            int r_val  = str_atoi(right->token->value);
             switch (t->token->t_type) {
                 case PLUS_TOKEN:          result = l_val + r_val;  break;
                 case MINUS_TOKEN:         result = l_val - r_val;  break;

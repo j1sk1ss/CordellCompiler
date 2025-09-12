@@ -16,7 +16,7 @@ int ART_destroy_ctx(arrtab_ctx_t* ctx) {
 int ART_get_info(const char* name, short scope, array_info_t* info, arrtab_ctx_t* ctx) {
     array_info_t* h = ctx->h;
     while (h) {
-        if (!str_strcmp(h->name, (char*)name) && ((scope < 0) || scope == h->scope)) {
+        if (!str_strcmp(h->name, name) && ((scope < 0) || scope == h->scope)) {
             if (info) str_memcpy(info, h, sizeof(array_info_t));
             return 1;
         }

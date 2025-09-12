@@ -26,9 +26,17 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    arrtab_ctx_t actx = { .h = NULL };
-    vartab_ctx_t vctx = { .h = NULL, .offset = 0 };
-    syntax_ctx_t sctx = { .arrs = &actx, .vars = &vctx };
+    arrtab_ctx_t actx  = { .h = NULL };
+    vartab_ctx_t vctx  = { .h = NULL, .offset = 0 };
+    functab_ctx_t fctx = { .h = NULL };
+    syntax_ctx_t sctx  = { 
+        .symtb = {
+            .arrs  = &actx,
+            .vars  = &vctx,
+            .funcs = &fctx
+        }
+    };
+    
     parser_t p = {
         .block      = cpl_parse_block,
         .switchstmt = cpl_parse_switch,
@@ -42,7 +50,8 @@ int main(int argc, char* argv[]) {
         .expr       = cpl_parse_expression,
         .scope      = cpl_parse_scope,
         .start      = cpl_parse_start,
-        .syscall    = cpl_parse_syscall
+        .syscall    = cpl_parse_syscall,
+        .extrn      = cpl_parse_extern
     };
 
     STX_create(tkn, &sctx, &p);

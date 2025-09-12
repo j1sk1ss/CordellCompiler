@@ -18,5 +18,6 @@ int VRS_isvariable(token_t* token);
 int VRS_instant_movable(token_t* token);
 int VRS_issign(token_t* token);
 int VRS_is_control_change(token_t* token);
+int VRS_is_unpredicted(token_t* token);
 
 #endif
