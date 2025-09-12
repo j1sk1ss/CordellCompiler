@@ -113,6 +113,11 @@
     "body": "glob",
     "description": "CPL modifier"
   },
+  "CPL Modifiers NOT": {
+    "prefix": "not",
+    "body": "not",
+    "description": "CPL modifier"
+  },
   "CPL Types REF": {
     "prefix": "ref",
     "body": "ref",

@@ -111,7 +111,7 @@ export function activate(context: vscode.ExtensionContext) {
           "mov &arg3, rax"
         }
         `,
-          
+          not: `**not** — NOT keyword. If 0 - will modify to 1. If not 0, will modify to 0.`,
           function: `**function** — Function definition keyword. CPL language don't provide return type selection.
 
         function abs(i32 n) => i32 {

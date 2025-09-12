@@ -75,6 +75,6 @@ int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, 
     }
 
     if (is_const) iprintf(output, "mov%s%s, %d\n", derictive, GET_ASMVAR(name_node), val);
-    else iprintf(output, "mov%s%s, %s\n", derictive, GET_ASMVAR(name_node), GET_RAW_REG(BASE_BITNESS, RAX));
+    else iprintf(output, "mov%s%s, rax\n", derictive, GET_ASMVAR(name_node));
     return 1;
 }

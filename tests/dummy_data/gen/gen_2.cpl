@@ -4,8 +4,6 @@
         asm(a) {
             "mov rax, &a",
             "xor rax, rax",
-            "mov &a, rax",
-            ".label:",
             "jmp .label",
             "mov rax, 0x60",
             "syscall"

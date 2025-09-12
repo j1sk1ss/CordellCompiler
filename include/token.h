@@ -37,6 +37,7 @@ typedef enum {
     PTR_TYPE_TOKEN,      // ptr
     RO_TYPE_TOKEN,       // ro
     GLOB_TYPE_TOKEN,     // glob
+    NEGATIVE_TOKEN,      // not
 
     // Types
     I64_TYPE_TOKEN,      // i64
@@ -121,6 +122,7 @@ typedef struct {
     char ref;  /* Is reference flag   */
     char dref; /* Is dereference flag */
     char ext;  /* Is extern flag      */
+    char neg;  /* Is negative flag */
 } tkn_var_info_t;
 
 typedef struct token {

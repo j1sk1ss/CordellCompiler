@@ -15,7 +15,7 @@ This directory contains parsers for `CPL` language. CordellCompiler itself suppo
 scope (scope)
 ├─ exp1 (exp)
 ├─ exp2 (exp)
-├─ ...
+├─ [...]
 ```
 
 - Import token (`import`)
@@ -24,7 +24,7 @@ import_token
 └─ src
    ├─ fname1 (str)
    ├─ fname2 (str)
-   └─ ...
+   └─ [...]
 ```
 
 - Variable declaration (`str`, `long`, `int`, `short`, `char`)
@@ -41,7 +41,7 @@ arr_token
 ├─ el_size (int)
 ├─ name (str)
 ├─ element (val | exp)
-└─ ...
+└─ [...]
 ```
 
 - Binary operation (`+`, `-`, `=`, `/`, `%`, `*`, `&&`, `||`, `|`, `&`, `>`, `<`, `!=`, `==`)
@@ -66,8 +66,8 @@ switch_token
 └─ cases (scope)
    ├─ case_stmt (val | exp)
    │ └─ case_body (scope)
-   │    └─ ...
-   └─ ...
+   │    └─ [...]
+   └─ [...]
 ```
 
 - Condition scope (`if`, `while`)
@@ -75,9 +75,9 @@ switch_token
 cond_node_token
 ├─ condition (val | exp)
 ├─ true_branch (scope)
-│  └─ ...
+│  └─ [...]
 └─ false_branch (scope)
-   └─ ...
+   └─ [...]
 ```
 
 - Function definition token (`function`)
@@ -89,10 +89,10 @@ func_token
   ├─ arg1 (type)
   │ ├─ name (str)
   │ └─ def_val (exp)
-  ├─ ...
+  ├─ [...]
   └─ scope (scope)
     ├─ body1 (exp)
-    └─ ...
+    └─ [...]
 ```
 
 >> Note: Default values saved in function table. When we call this function, all "empty" cells in args wil be replaced by arguments from default.
@@ -108,7 +108,7 @@ exit/return_token
 call_token
 ├─ arg1 (val | exp)
 ├─ arg2 (val | exp)
-└─ ...
+└─ [...]
 ```
 
 - Syscall token (`syscall`)
@@ -116,5 +116,15 @@ call_token
 syscall_token
 ├─ arg1 (val | exp)
 ├─ arg2 (val | exp)
-└─ ...
+└─ [...]
+```
+
+- ASM block token (`asm`)
+```
+asm_token
+├ arg1 (val)
+├ [...]
+└ body (scope)
+ ├─ body1 (exp)
+ └─ [...]
 ```

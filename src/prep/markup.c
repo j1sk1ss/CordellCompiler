@@ -36,6 +36,7 @@ static const markup_token_t _markups[] = {
     { .value = PTR_COMMAND,            .type = PTR_TYPE_TOKEN      },
     { .value = RO_COMMAND,             .type = RO_TYPE_TOKEN       },
     { .value = GLOB_COMMAND,           .type = GLOB_TYPE_TOKEN     },
+    { .value = NEGATIVE_COMMAND,       .type = NEGATIVE_TOKEN      },
 
     /* Variable tokens. */
     { .value = LONG_VARIABLE,          .type = I64_TYPE_TOKEN      },
@@ -235,10 +236,16 @@ _f_remove_token:
     
     int dref = 0;
     int ref  = 0;
+    int neg  = 0;
+
     while (curr) {
         if (curr->t_type == OPEN_BLOCK_TOKEN)       scope_push(&scope_stack, ++s_id, 0);
         else if (curr->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&scope_stack);
 
+        if (curr->t_type == NEGATIVE_TOKEN) {
+            neg = 1;
+            goto _s_remove_token;
+        }
         if (curr->t_type == DREF_TYPE_TOKEN) {
             dref = 1;
             goto _s_remove_token;
@@ -269,6 +276,7 @@ _s_remove_token:
                         curr->vinfo.ptr  = vars[i].ptr;
                         curr->vinfo.ref  = ref;
                         curr->vinfo.dref = dref;
+                        curr->vinfo.neg  = neg;
                         goto resolved;
                     }
                 }
@@ -281,6 +289,7 @@ _s_remove_token:
 
         ref  = 0;
         dref = 0;
+        neg  = 0;
     }
 
     mm_free(vars);

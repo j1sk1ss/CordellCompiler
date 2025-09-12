@@ -7,7 +7,7 @@ int x86_64_generate_if(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g)
     ast_node_t* rbranch = lbranch->sibling;
 
     g->elemegen(cond, output, ctx, g);
-    iprintf(output, "cmp %s, 0\n", GET_RAW_REG(BASE_BITNESS, RAX));
+    iprintf(output, "cmp rax, 0\n");
     if (rbranch) iprintf(output, "je __else_%d__\n", current_label);
     else iprintf(output, "je __end_if_%d__\n", current_label);
 

@@ -28,6 +28,7 @@
 #define PTR_COMMAND             "ptr"
 #define RO_COMMAND              "ro"
 #define GLOB_COMMAND            "glob"
+#define NEGATIVE_COMMAND        "not"
 
 // Types
 #define LONG_VARIABLE           "i64"

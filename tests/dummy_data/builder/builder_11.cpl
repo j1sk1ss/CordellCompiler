@@ -30,8 +30,8 @@
             switch code[pc]; {
                 case '-'; { tape[pointer] = tape[pointer] - 1; pc = pc + 1; }
                 case '.'; { arr buf[2, i8] = {0,0}; buf[0] = tape[pointer] + 48; puts(buf); pc = pc + 1; }
-                case '['; { if tape[pointer] == 0; { pc = 3; } else { pc = pc + 1; } }
-                case ']'; { if tape[pointer] != 0; { pc = 0; } else { pc = pc + 1; } }
+                case '['; { if not tape[pointer]; { pc = 3; } else { pc = pc + 1; } }
+                case ']'; { if tape[pointer]; { pc = 0; } else { pc = pc + 1; } }
             }
         }
 

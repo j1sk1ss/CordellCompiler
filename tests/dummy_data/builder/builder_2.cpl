@@ -89,7 +89,7 @@
                     pc = pc + 1;
                 }
                 case openBracket; {
-                    if tape[pointer] == 0; {
+                    if not tape[pointer]; {
                         pc = bracketmap[pc];
                     }
                     else {

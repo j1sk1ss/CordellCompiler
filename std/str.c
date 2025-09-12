@@ -145,5 +145,5 @@ int str_isdigit(int c) {
 }
 
 int str_isspace(int c) {
-    return (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\b');
+    return (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\b' || c == '\0');
 }

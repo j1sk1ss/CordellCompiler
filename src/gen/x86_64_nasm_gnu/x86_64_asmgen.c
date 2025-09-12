@@ -18,7 +18,7 @@ int x86_64_generate_asm(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g
     for (ast_node_t* l = h->child; l; l = l->sibling) {
         const char* line = l->token->value;
         const char* amp  = str_strchr(line, '&');
-        if (amp) iprintf(output, "%s\n", line);
+        if (!amp) iprintf(output, "%s\n", line);
         else {
             iprintf(output, "%.*s", (int)(amp - line), line);
 

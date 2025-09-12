@@ -278,6 +278,8 @@ Semantic module takes care under size, operation and commands correctness. In ot
 [WARN] (src/prep/semantic.c:83) Array [large_arr] larger than expected size 10 > 5!
 ```
 
+Additional examples of semantic check can be found [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/sem/README.md)
+
 # Optimization
 - [deadfunc](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadfunc.c)
 - [strdecl](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/strdecl.c)
@@ -360,6 +362,7 @@ Basic arithmetic and logical operations are supported:
 | `%`       | Module         |
 | `==`      | Equality       |
 | `!=`      | Inequality     |
+| `not`     | Negation       |
 | `>` `>=` `<` `<=`      | Comparison                                  |
 | `&&` `\|\|`            | Logic operations (Lazy Evaluations support) |
 | `>>` `<<` `&` `\|` `^` | Bit operations                              |
@@ -453,11 +456,11 @@ Functions are declared using the `function` keyword.
 ### Wrapping in a function:
 ```CPL
 1  {
-2      glob function printStr(ptr i8 buffer, i32 size) {
+2      glob function printStr(ptr i8 buffer, i32 size) => i32 {
 3          return syscall(4, 1, buffer, size); 
 4      }
 5  
-6      glob function getStr(ptr i8 buffer, i32 size) {
+6      glob function getStr(ptr i8 buffer, i32 size) => i32 {
 7          return syscall(3, 0, buffer, size); 
 8      }
 9  }
@@ -580,7 +583,7 @@ If you want see more examples, please look into the folder `examples`. Also [her
 18             ptr i32 curr_mem = _mm_head;
 19             i32 block_index = 0;
 20             while block_index < 100000; {
-21                 if _blocks_info[block_index] == 0; {
+21                 if not _blocks_info[block_index]; {
 22                     _blocks_info[block_index] = 1;
 23                     _blocks_info[block_index + 1] = size;
 24                     _blocks_info[block_index + 2] = curr_mem;

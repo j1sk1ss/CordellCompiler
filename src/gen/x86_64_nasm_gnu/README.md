@@ -154,85 +154,90 @@ section .data
 section .rodata
 section .bss
 section .text
-mov rax, 10
-push rax
-mov rax, 12
-pop rbx
-imul rax, rbx
-push rax
-mov rax, 13
-push rax
-mov rax, 14
-pop rbx
-add rax, rbx
-push rax
-mov rax, 15
-pop rbx
-imul rax, rbx
-pop rbx
-add rax, rbx
-mov [rbp - 8], rax
-mov rax, 10
-push rax
-mov rax, 12
-push rax
-mov rax, 13
-pop rbx
-add rax, rbx
-push rax
-mov rax, 14
-pop rbx
-add rax, rbx
-pop rbx
-imul rax, rbx
-push rax
-mov rax, 15
-pop rbx
-imul rax, rbx
-mov [rbp - 8], rax
-mov rax, 10
-push rax
-mov rax, 12
-pop rbx
-imul rax, rbx
-push rax
-mov rax, 13
-pop rbx
-add rax, rbx
-push rax
-mov rax, 14
-push rax
-mov rax, 15
-pop rbx
-imul rax, rbx
-pop rbx
-add rax, rbx
-mov [rbp - 8], rax
-mov rax, 10
-push rax
-mov rax, 12
-mov rbx, rax
-pop rax
-cdq
-idiv rbx
-push rax
-push rax
-mov rax, 15
-pop rbx
-imul rax, rbx
-pop rbx
-add rax, rbx
-mov [rbp - 8], rax
-push rax
-mov rax, 15
-pop rbx
-imul rax, rbx
-mov [rbp - 8], rax
-mov [rbp - 8], rax
-mov eax, [rbp - 8]
-mov rdi, rax
-mov rax, 60
-syscall
+
+    mov rax, 10
+    push rax
+    mov rax, 12
+    pop rbx
+    imul rax, rbx
+    push rax
+    mov rax, 13
+    push rax
+    mov rax, 14
+    pop rbx
+    add rax, rbx
+    push rax
+    mov rax, 15
+    pop rbx
+    imul rax, rbx
+    pop rbx
+    add rax, rbx
+    mov [rbp - 8], rax
+
+    mov rax, 10
+    push rax
+    mov rax, 12
+    push rax
+    mov rax, 13
+    pop rbx
+    add rax, rbx
+    push rax
+    mov rax, 14
+    pop rbx
+    add rax, rbx
+    pop rbx
+    imul rax, rbx
+    push rax
+    mov rax, 15
+    pop rbx
+    imul rax, rbx
+    mov [rbp - 8], rax
+
+    mov rax, 10
+    push rax
+    mov rax, 12
+    pop rbx
+    imul rax, rbx
+    push rax
+    mov rax, 13
+    pop rbx
+    add rax, rbx
+    push rax
+    mov rax, 14
+    push rax
+    mov rax, 15
+    pop rbx
+    imul rax, rbx
+    pop rbx
+    add rax, rbx
+    mov [rbp - 8], rax
+
+    mov rax, 10
+    push rax
+    mov rax, 12
+    mov rbx, rax
+    pop rax
+    cdq
+    idiv rbx
+    push rax
+    push rax
+    mov rax, 15
+    pop rbx
+    imul rax, rbx
+    pop rbx
+    add rax, rbx
+    mov [rbp - 8], rax
+
+    push rax
+    mov rax, 15
+    pop rbx
+    imul rax, rbx
+    mov [rbp - 8], rax
+    mov [rbp - 8], rax
+    mov eax, [rbp - 8]
+    mov rdi, rax
+    mov rax, 60
+    syscall
 ```
 
 ## Branch generation
@@ -275,26 +280,31 @@ section .data
 section .rodata
 section .bss
 section .text
+
+; while 1;
 __while_0__:
-mov rax, 1
-cmp rax, 0
-je __end_while_0__
-mov rax, 1
-mov rdi, rax
-mov rax, 60
-syscall
-mov dword [rbp - 8], 10
-mov eax, [rbp - 8]
-mov rdi, rax
-mov rax, 60
-syscall
-jmp __while_0__
-__end_while_0__:
-mov dword [rbp - 8], 10
-mov eax, [rbp - 8]
-mov rdi, rax
-mov rax, 60
-syscall
+    mov rax, 1
+    cmp rax, 0
+    je __end_while_0__
+    mov rax, 1
+    mov rdi, rax
+    mov rax, 60
+    syscall
+    mov dword [rbp - 8], 10
+    mov eax, [rbp - 8]
+    mov rdi, rax
+    mov rax, 60
+    syscall
+    jmp __while_0__
+    __end_while_0__:
+
+    mov dword [rbp - 8], 10
+    mov eax, [rbp - 8]
+    mov rdi, rax
+    mov rax, 60
+    syscall
+
+; if 1;
 mov rax, 1
 cmp rax, 0
 je __else_1__
@@ -315,31 +325,35 @@ mov rdi, rax
 mov rax, 60
 syscall
 __end_if_1__:
-jmp __end_cases_2__
-__case_1_2__:
-mov rax, 1
-mov rdi, rax
-mov rax, 60
-syscall
-jmp __end_switch_2__
-__default_2__:
-mov dword [rbp - 8], 10
-mov eax, [rbp - 8]
-mov rdi, rax
-mov rax, 60
-syscall
-jmp __end_switch_2__
+
+; switch 1;
+    jmp __end_cases_2__
+        __case_1_2__:
+        mov rax, 1
+        mov rdi, rax
+        mov rax, 60
+        syscall
+
+    jmp __end_switch_2__
+        __default_2__:
+        mov dword [rbp - 8], 10
+        mov eax, [rbp - 8]
+        mov rdi, rax
+        mov rax, 60
+        syscall
+
+    jmp __end_switch_2__
 __end_cases_2__:
-mov rax, 1
-cmp rax, 1
-jl __case_l_1_2__
-jg __case_r_1_2__
-jmp __case_1_2__
-__case_l_1_2__:
-jmp __default_2__
-__case_r_1_2__:
-jmp __default_2__
-__end_switch_2__:
+    mov rax, 1
+    cmp rax, 1
+    jl __case_l_1_2__
+    jg __case_r_1_2__
+    jmp __case_1_2__
+    __case_l_1_2__:
+    jmp __default_2__
+    __case_r_1_2__:
+    jmp __default_2__
+    __end_switch_2__:
 ```
 
 ## strlen function generation
@@ -392,4 +406,52 @@ __strlen__:
     pop rbp
     ret
 __end_strlen__:
+```
+
+## ASM block generation
+Source code:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        i32 a = 0;
+        asm(a) {
+            "mov rax, &a",
+            "xor rax, rax",
+            "jmp .label",
+            "mov rax, 0x60",
+            "syscall"
+        }
+
+        exit 0;
+    }
+}
+```
+
+NASM microcode:
+```ASM
+section .data
+section .rodata
+section .bss
+section .text
+
+global _start
+_start:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 16
+    mov rax, [rbp + 8]
+    mov qword [rbp - 8], rax
+    lea rax, [rbp + 16]
+    mov qword [rbp - 8], rax
+    mov dword [rbp - 16], 0
+
+        mov rax, [rbp - 16]
+        xor rax, rax
+        jmp .label
+        mov rax, 0x60
+        syscall
+
+    mov rdi, 0
+    mov rax, 60
+    syscall
 ```
