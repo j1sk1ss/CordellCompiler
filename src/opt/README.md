@@ -259,22 +259,25 @@ After eliminating dead scopes:
 - [deadvar](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadvar.c)
 
 ## Stack reusage
-- [offsetopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/offsetopt.c) - The seventh optimization finalizes the previous ones by recalculating local and global variable/array offsets. It also implements stack reuse by reassigning memory slots of variables that are no longer `live`. Example:
+- [offsetopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/offsetopt.c) - This optimization pass finalizes the previous ones by recalculating local and global variable/array offsets. It implements stack slot reuse by reassigning memory locations of variables that are no longer live.
 ```CPL
 {
-    start() {
-        i32 a = 0;  : offset 8 :
-        i32 b = 10; : offset 8, since variable a is never used below :
-
-        {
-            i16 k = 1;     : offset 16 :
-            i16 g = 1 + k; : offset 24 :
-        }
-
-        exit b;
+    start(i64 argc, ptr u64 argv) {
+        i8 val = 0;                             <= Allocation of 8 bytes in stack
+        ptr u64 val_ptr = ref val;              <= We can't rewrite "val" due usage below and in declaration. Also we remember, that "val_ptr" now is "val" owner (ref keyword).
+        ptr u64 val_ptr_1 = ref val;            <= Same situation as above.
+        ptr u64 val_ptr_ptr = ref val_ptr;      <= "val" variable not appeared below, but "val_ptr" is owner of "val". We can't reuse this offset.
+        i32 sec_val = 0;                        <= "val_ptr_ptr" is dead, "val_ptr_1" and "val_ptr" is dead too, this means that val finally can be reused. 
+        exit sec_val;
     }
 }
 ```
+
+Main idea of this module is to track variable usage and ownership (similar to the Rust compiler’s borrow checker, but in a simplified form).
+1) Every variable can have a list of owners (ownership is acquired with the `ref` keyword).
+2) When a new declaration is encountered, the module checks all existing variables for usage below this declaration (or within it).
+3) If a variable is unused and has no owners, its offset can be safely reused.
+4) When a variable’s offset is reused, the variable is unregistered and also removed from all owner lists where it appears.
 
 ## Example
 For visual example, let's optimize this code:
