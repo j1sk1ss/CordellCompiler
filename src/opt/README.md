@@ -25,7 +25,23 @@
 }
 ```
 
-The `ptr` keyword signals that this is a pointer to the string `"ptrstring"`. Therefore, the data is placed into the `.rodata` section.
+Final output:
+```CPL
+{
+    glob ro str str_0 = "Global";
+    ro str str_1 = "ReadOnly";
+    ro str str_2 = "ptrstring";
+    start() {
+        glob str fstring = str_0;
+        ro str sstring   = str_1;
+        ptr str tstring  = str_2;
+        exit 1;
+    }
+}
+```
+
+Note 1: The `ptr` keyword signals that this is a pointer to the string `"ptrstring"`. Therefore, the data is placed into the `.rodata` section. </br>
+Note 2: Strings with same data will be united into one shadow variable under `ro` flag. This will reduce memory usage during run-time.
 
 ## Variable inline
 - [varinline](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/varinline.c) - The third optimization works together with the fourth one. It implements variable inlining and constant propagation. If the value of a variable is known, it replaces all occurrences with the value and removes the declaration. Example:
@@ -98,7 +114,7 @@ _________________                  <= Now variable "a" is unpredicted in compile
         switch 15; { 
             case 1; {
                 a = 15;
-                i8 b = 15;
+                i8 b = 15;         <= Used updated "a" value from this scope
             }
             case 2; {
                 a = 20;
@@ -115,6 +131,33 @@ _________________                  <= Now variable "a" is unpredicted in compile
         }
 
         exit a;                     <= We can't say that switch was ignored, that's why we don't know value here.
+    }
+}
+```
+
+After variable inline, this module remove all unused variables (that never assign elsewhere). This will produce final output:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        i32 a = 10;
+        a = 15;
+
+        switch 15; { 
+            case 1; {
+                a = 15;
+            }
+            case 2; {
+                a = 20;
+            }
+            case 3; {
+                a = 25;
+            }
+            default {
+                a = 30;
+            }
+        }
+
+        exit a;
     }
 }
 ```
@@ -139,7 +182,7 @@ Becomes:
 ```
 
 ## Conditional branches unroll
-- [condunroll](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/condunroll.c) - The fifth optimization works with `switch`, `if`, and `while` statements, similarly to funcopt. Its main goal is to remove unreachable code. For example, code inside `while (0)` is never executed. Example:
+- [condunroll](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/condunroll.c) - The fifth optimization works with `switch`, `if`, and `while` statements, similarly to funcopt. Its main goal is removing unreachable code in condition scopes. For instance, code inside `while (0)` is never executed, same situation with `else` block in `if 1;` statement. Example:
 ```CPL
 {
     start() {

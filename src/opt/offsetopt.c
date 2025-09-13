@@ -1,9 +1,9 @@
 #include <offsetopt.h>
 
 typedef struct def {
-    ast_node_t* nnode;
-    char        ref;
     int         offset;
+    char        name[TOKEN_MAX_SIZE];
+    struct def* owners;
     struct def* next;
 } def_t;
 
@@ -11,18 +11,84 @@ typedef struct {
     def_t* h;
 } recalcoff_ctx_t;
 
-static def_t* _create_def(int offset, ast_node_t* n) {
+static def_t* _create_def(int offset, const char* name) {
     def_t* def = (def_t*)mm_malloc(sizeof(def_t));
     if (!def) return NULL;
+    if (name) str_strncpy(def->name, name, TOKEN_MAX_SIZE);
     def->offset = offset;
-    def->nnode  = n;
     def->next   = NULL;
+    def->owners = NULL;
     return def;
 }
 
-static int _register_var(int offset, ast_node_t* n, recalcoff_ctx_t* ctx) {
+static def_t* _get_var(const char* name, recalcoff_ctx_t* ctx) {
+    if (!ctx || !ctx->h) return NULL;
     def_t* h = ctx->h;
-    def_t* def = _create_def(offset, n);
+    while (h) {
+        if (!str_strcmp(h->name, name)) return h;
+        h = h->next;
+    }
+
+    return NULL;
+}
+
+static int _add_owner(const char* name, def_t* var) {
+    if (!var) return 0;
+
+    def_t* h = var->owners;
+    while (h) {
+        if (!str_strcmp(h->name, name)) return 0;
+        h = h->next;
+    }
+
+    def_t* owner = _create_def(0, name);
+    if (!owner) return 0;
+
+    if (!var->owners) {
+        var->owners = owner;
+        return 1;
+    }
+
+    h = var->owners;
+    while (h->next) {
+        h = h->next;
+    }
+
+    h->next = owner;
+    return 1;
+}
+
+static int _remove_owner(const char* name, def_t* var) {
+    if (!var || !var->owners) return 0;
+
+    def_t* h = var->owners;
+    def_t* prev = NULL;
+
+    while (h) {
+        if (!str_strcmp(h->name, name)) {
+            if (!prev) var->owners = h->next;
+            else prev->next = h->next;
+
+            mm_free(h);
+            return 1;
+        }
+
+        prev = h;
+        h = h->next;
+    }
+
+    return 0;
+}
+
+static int _register_var(int offset, const char* name, recalcoff_ctx_t* ctx) {
+    def_t* h = ctx->h;
+    while (h) {
+        if (!str_strcmp(h->name, name)) return 0;
+        h = h->next;
+    }
+
+    h = ctx->h;
+    def_t* def = _create_def(offset, name);
     if (!def) return 0;
 
     if (!h) {
@@ -43,10 +109,21 @@ static int _unregister_var(const char* name, recalcoff_ctx_t* ctx) {
     def_t* prev = NULL;
 
     while (h) {
-        if (!str_strcmp(h->nnode->token->value, name)) {
+        if (!str_strcmp(h->name, name)) {
+            if (h->owners) return 0;
             if (!prev) ctx->h = h->next;
             else prev->next = h->next;
+
+            def_t* tmp = h->next;
             mm_free(h);
+            h = tmp;
+
+            def_t* cur = ctx->h;
+            while (cur) {
+                _remove_owner(name, cur);
+                cur = cur->next;
+            }
+
             return 1;
         }
 
@@ -67,38 +144,57 @@ static int _unload_ctx(recalcoff_ctx_t* ctx) {
     return 1;
 }
 
-static int _update_offsets(ast_node_t* r, const char* name, int offset) {
+/* Find variable usage in scope below */
+static int _find_usage(ast_node_t* r, def_t* v, int* used, int* ref) {
     if (!r) return 0;
     for (ast_node_t* t = r; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            _update_offsets(t->child, name, offset);
+            _find_usage(t->child, v, used, ref);
+            continue;
+        }
+
+        if (
+            (VRS_isdecl(t->token) || t->token->t_type == ASSIGN_TOKEN) &&
+            t->child->token->vinfo.ptr
+        ) {
+            int is_used = 0, is_ref = 0;
+            _find_usage(t->child->sibling, v, &is_used, &is_ref);
+            if (!is_used) continue;
+
+            *used = 1;
+            *ref  = 0;
+
+            if (is_ref) {
+                _add_owner(t->child->token->value, v);
+            }
+        }
+
+        if (!str_strncmp(t->token->value, v->name, TOKEN_MAX_SIZE)) {
+            *used = 1;
+            *ref  = t->token->vinfo.ref;
+            continue;
+        }
+
+        _find_usage(t->child, v, used, ref);
+    }
+
+    return 1;
+}
+
+/* Update variable offset in current scope */
+static int _change_varoff_scope(ast_node_t* r, const char* name, int offset) {
+    if (!r) return 0;
+    for (ast_node_t* t = r; t; t = t->sibling) {
+        if (VRS_isblock(t->token)) {
+            _change_varoff_scope(t->child, name, offset);
             continue;
         }
 
         if (!str_strcmp(t->token->value, name)) t->info.offset = offset;
-        _update_offsets(t->child, name, offset);
+        _change_varoff_scope(t->child, name, offset);
     }
 
     return 0;    
-}
-
-static int _find_usage(ast_node_t* r, const char* name, int* ref) {
-    if (!r) return 0;
-    for (ast_node_t* t = r; t; t = t->sibling) {
-        if (VRS_isblock(t->token)) {
-            if (_find_usage(t->child, name, ref)) return 1;
-            continue;
-        }
-
-        if (!str_strcmp(t->token->value, name)) {
-            if (t->token->vinfo.ref) *ref = 1;
-            return 1;
-        }
-
-        if (_find_usage(t->child, name, ref)) return 1;
-    }
-
-    return 0;
 }
 
 static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
@@ -119,17 +215,16 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
         
         if (VRS_isdecl(t->token) && t->child && VRS_instack(t->token)) {
             int varoff = -1;
-            def_t* vars = scope_ctx.h;
-            while (vars) {
-                int is_ref = 0;
-                if (!_find_usage(t, vars->nnode->token->value, &is_ref) && !is_ref && !vars->ref) {
-                    varoff = vars->offset;
-                    _unregister_var(vars->nnode->token->value, &scope_ctx);
+            def_t* vh = scope_ctx.h;
+            while (vh) {
+                int is_used = 0, is_ref = 0;
+                _find_usage(t, vh, &is_used, &is_ref);
+                if (!is_used && _unregister_var(vh->name, &scope_ctx)) {
+                    varoff = vh->offset;
                     break;
                 }
 
-                if (is_ref) vars->ref = 1;
-                vars = vars->next;
+                vh = vh->next;
             }
             
             ast_node_t* name = t->child;
@@ -140,8 +235,8 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
 
             t->info.offset = varoff;
 
-            _register_var(varoff, name, &scope_ctx);
-            _update_offsets(t, name->token->value, varoff);
+            _register_var(varoff, name->token->value, &scope_ctx);
+            _change_varoff_scope(t, name->token->value, varoff);
             continue;
         }
 
@@ -156,7 +251,6 @@ static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
 
 int OPT_offrecalc(syntax_ctx_t* ctx) {
     if (!ctx || !ctx->r) return 0;
-    VRT_destroy_ctx(ctx->symtb.vars);
     scope_reset(&ctx->scopes.stack);
     ctx->scopes.s_id = 0;
     _recalc_offs(ctx->r, ctx);
