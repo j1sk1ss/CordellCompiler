@@ -138,31 +138,32 @@ export function activate(context: vscode.ExtensionContext) {
           `
         };
 
-        if (/^(0x[0-9a-fA-F]+|0b[01]+|0[0-7]*|[0-9]+)$/.test(word)) {
-          let value = 0;
-        
-          if (word.startsWith("0x") || word.startsWith("0X")) {
-            value = parseInt(word, 16);
+        if (/^(0x[0-9a-fA-F]+|0b[01]+|0[0-7]*|[0-9]+|'.')$/.test(word)) {
+          let value: number;
+
+          if (word.startsWith("'") && word.endsWith("'")) {
+              value = word.charCodeAt(1);
+          } else if (word.startsWith("0x") || word.startsWith("0X")) {
+              value = parseInt(word, 16);
           } else if (word.startsWith("0b") || word.startsWith("0B")) {
-            value = parseInt(word.slice(2), 2);
+              value = parseInt(word.slice(2), 2);
           } else if (word.startsWith("0") && word.length > 1) {
-            value = parseInt(word, 8);
+              value = parseInt(word, 8);
           } else {
-            value = parseInt(word, 10);
+              value = parseInt(word, 10);
           }
         
-          const md = new vscode.MarkdownString();
           let type = 'u8';
-          
           if (value > 0xFFFFFFFF) type = 'u64';
           else if (value > 0xFFFF) type = 'u32';
           else if (value > 0xFF) type = 'u16';
           
+          const md = new vscode.MarkdownString();
           md.appendMarkdown(`(${type}) ${value}\n\n`);
           md.appendMarkdown(`(${type}) 0x${value.toString(16).toUpperCase()}\n\n`);
           md.appendMarkdown(`(${type}) 0b${value.toString(2)}\n`);
           
-          return new vscode.Hover(md);          
+          return new vscode.Hover(md);         
         }
 
         if (docs[word]) {
