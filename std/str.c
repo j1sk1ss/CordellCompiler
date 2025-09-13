@@ -151,15 +151,17 @@ int str_isspace(int c) {
 unsigned long long str_strtoull(const char* str, int l, int base) {
     unsigned long long result = 0;
 
-    char c;
-    while ((c = *str++) && l-- > 0) {
-        int digit = 0;
+    for (int i = 0; i < l && *str; ++i, ++str) {
+        char c = *str;
+        int digit = -1;
+
         if (c >= '0' && c <= '9') digit = c - '0';
         else if (c >= 'a' && c <= 'f') digit = c - 'a' + 10;
         else if (c >= 'A' && c <= 'F') digit = c - 'A' + 10;
         else break;
 
         if (digit >= base) break;
+
         result = result * base + digit;
     }
 

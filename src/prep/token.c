@@ -59,10 +59,10 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
     tkn->t_type = type;
     if (type == UNKNOWN_NUMERIC_TOKEN) {
         unsigned long long val = 0;
-        if (value[0] == '0' && (value[1] == 'x' || value[1] == 'X'))      val = str_strtoull(value + 2, len - 1, 16);
-        else if (value[0] == '0' && (value[1] == 'b' || value[1] == 'B')) val = str_strtoull(value + 2, len - 1, 2);
+        if (value[0] == '0' && (value[1] == 'x' || value[1] == 'X'))      val = str_strtoull(value + 2, len - 2, 16);
+        else if (value[0] == '0' && (value[1] == 'b' || value[1] == 'B')) val = str_strtoull(value + 2, len - 2, 2);
         else if (value[0] == '0' && value[1])                             val = str_strtoull(value + 1, len - 1, 8);
-        else                                                              val = str_strtoull(value, len - 1, 10);
+        else                                                              val = str_strtoull(value, len, 10);
         snprintf(tkn->value, TOKEN_MAX_SIZE, "%llu", val);
     }
     else if (type == CHAR_VALUE_TOKEN) {

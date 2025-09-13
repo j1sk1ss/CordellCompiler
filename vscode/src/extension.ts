@@ -152,10 +152,17 @@ export function activate(context: vscode.ExtensionContext) {
           }
         
           const md = new vscode.MarkdownString();
-          md.appendMarkdown(`**dec:** ${value}\n\n`);
-          md.appendMarkdown(`**hex:** 0x${value.toString(16).toUpperCase()}\n\n`);
-          md.appendMarkdown(`**bin:** 0b${value.toString(2)}\n`);
-          return new vscode.Hover(md);
+          let type = 'u8';
+          
+          if (value > 0xFFFFFFFF) type = 'u64';
+          else if (value > 0xFFFF) type = 'u32';
+          else if (value > 0xFF) type = 'u16';
+          
+          md.appendMarkdown(`(${type}) ${value}\n\n`);
+          md.appendMarkdown(`(${type}) 0x${value.toString(16).toUpperCase()}\n\n`);
+          md.appendMarkdown(`(${type}) 0b${value.toString(2)}\n`);
+          
+          return new vscode.Hover(md);          
         }
 
         if (docs[word]) {
