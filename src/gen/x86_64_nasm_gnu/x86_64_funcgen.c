@@ -56,6 +56,8 @@ int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
     if (stack_args > 0) {
         iprintf(output, "add rsp, %d\n", stack_args * (BASE_BITNESS / 8));
     }
+
+    return 1;
 }
 
 int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {

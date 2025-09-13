@@ -42,7 +42,7 @@ int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
         break;
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: {
-indexing:
+indexing: {}
             ast_node_t* off = node->child;
             if (off) { /* Loading data from array by offset */
                 iprintf(output, "mov rdx, rax\n");

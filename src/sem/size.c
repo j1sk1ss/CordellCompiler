@@ -79,6 +79,8 @@ int SMT_check_sizes(ast_node_t* node) {
 
                 break;
             }
+
+            default: break;
         }
     }
     

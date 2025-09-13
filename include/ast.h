@@ -32,12 +32,13 @@ ast_node_t* AST_create_node(token_t* token);
 Cope ast noe.
 Params:
 - n - Source target node
+- sp - Save parent link
 - sib - Copy siblings
 - chld - Copy childrens
 
 Return pointer to new deep copied node.
 */
-ast_node_t* AST_copy_node(ast_node_t* n, int sib, int chld);
+ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld);
 
 /*
 Add clild tree node to parent.

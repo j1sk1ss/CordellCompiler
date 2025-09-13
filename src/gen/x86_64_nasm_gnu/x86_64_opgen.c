@@ -124,6 +124,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
             iprintf(output, "movzx rax, al\n");
             break;
         }
+        default: break;
     }
 
     return 1;

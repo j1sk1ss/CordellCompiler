@@ -71,6 +71,7 @@ static int _find_usage(ast_node_t* root, char* varname, int* used) {
                 }
 
                 case CALL_TOKEN: _find_variable(t->child, varname, used); break;
+                default: break;
             }
         }
     }

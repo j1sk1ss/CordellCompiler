@@ -42,7 +42,7 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
             break;
             case ARR_VARIABLE_TOKEN:
             case STR_VARIABLE_TOKEN: {
-    indexing:
+    indexing: {}
                 ast_node_t* off = node->child;
                 if (!off) iprintf(output, "lea rax, %s\n", GET_ASMVAR(node));
                 else {
@@ -62,6 +62,7 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
 
                 break;
             }
+            default: break;
         }
     }
 
@@ -95,11 +96,12 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
                 if (node->token->value[0]) iprintf(output, "mov al, %i\n", node->token->value[0]);
                 else iprintf(output, "xor rax, rax\n");
             break;
-            case UNKNOWN_NUMERIC_TOKEN:
+            case UNKNOWN_NUMERIC_TOKEN: {
                 int value = str_atoi(node->token->value);
                 if (value) iprintf(output, "mov rax, %d\n", value);
                 else iprintf(output, "xor rax, rax\n");
-            break;
+                break;
+            }
             case I64_VARIABLE_TOKEN:
             case U64_VARIABLE_TOKEN:
                 iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
@@ -118,7 +120,7 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
             break;
             case ARR_VARIABLE_TOKEN:
             case STR_VARIABLE_TOKEN: {
-    indexing:
+    indexing: {}
                 ast_node_t* off = node->child;
                 if (!off) iprintf(output, "lea rax, %s\n", GET_ASMVAR(node)); 
                 else {
@@ -139,6 +141,7 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
 
                 break;
             }
+            default: break;
         }
     }
 

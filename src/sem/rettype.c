@@ -54,6 +54,8 @@ static int _find_ret(ast_node_t* n, token_t* rtype, int* match) {
             }
         }
     }
+
+    return 1;
 }
 
 static int _check_function(ast_node_t* f) {

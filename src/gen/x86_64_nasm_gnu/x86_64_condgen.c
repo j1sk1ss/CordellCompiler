@@ -85,7 +85,7 @@ int x86_64_generate_switch(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
             def = 1;
         }
         else {
-            int case_value = str_atoi(curr_case->token->value);
+            int case_value = str_atoi(curr_case->child->token->value);
             iprintf(output, "__case_%d_%d__:\n", case_value, current_label);
             values[cases_count++] = case_value;
         }
