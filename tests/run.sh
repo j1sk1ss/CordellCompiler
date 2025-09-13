@@ -55,6 +55,8 @@ TEST_CODES[test_varinline]="
     tests/dummy_data/opt/varinline/varinline_5.cpl
     tests/dummy_data/opt/varinline/varinline_6.cpl
     tests/dummy_data/opt/varinline/varinline_7.cpl
+    tests/dummy_data/opt/varinline/varinline_8.cpl
+    tests/dummy_data/opt/varinline/varinline_9.cpl
 "
 
 TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/varinline.c src/opt/constopt.c std/*.c"
@@ -192,7 +194,7 @@ for i in "${!test_names[@]}"; do
     code_file="${codes[$CODE_IDX]}"
 
     echo "== Compilation: $test_file =="
-    gcc-14 $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
+    gcc $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
         -DWARNING_LOGS -DERROR_LOGS -DLOGGING_LOGS -DINFO_LOGS -DDEBUG_LOGS -g -O0 -o "tests/$test_name"
 
     if [[ -n "$DEBUGGER" ]]; then
