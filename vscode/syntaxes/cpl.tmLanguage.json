@@ -71,10 +71,10 @@
       "patterns": [
         {
           "name": "constant.numeric.cpl",
-          "match": "\\b[0-9]+\\b"
+          "match": "\\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]+)\\b"
         }
       ]
-    },
+    },    
     "variables": {
       "patterns": [
         {

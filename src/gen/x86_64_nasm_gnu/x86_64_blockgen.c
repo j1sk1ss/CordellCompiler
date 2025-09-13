@@ -20,7 +20,6 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
         case EXIT_TOKEN:         g->exit(node, output, ctx, g);      break;
         case SYSCALL_TOKEN:      g->syscall(node, output, ctx, g);   break;
         case ASSIGN_TOKEN:       g->assign(node, output, ctx, g);    break;
-        case CHAR_VALUE_TOKEN:
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
         case I64_VARIABLE_TOKEN:

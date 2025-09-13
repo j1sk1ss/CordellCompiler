@@ -24,9 +24,6 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
     }
     else {
         switch (node->token->t_type) {
-            case CHAR_VALUE_TOKEN:
-                iprintf(output, "mov rax, %i\n", node->token->value[0]);
-            break;
             case UNKNOWN_NUMERIC_TOKEN:
                 iprintf(output, "mov rax, %s\n", node->token->value);
             break;
@@ -92,10 +89,6 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
     }
     else {
         switch (node->token->t_type) {
-            case CHAR_VALUE_TOKEN:
-                if (node->token->value[0]) iprintf(output, "mov al, %i\n", node->token->value[0]);
-                else iprintf(output, "xor rax, rax\n");
-            break;
             case UNKNOWN_NUMERIC_TOKEN: {
                 int value = str_atoi(node->token->value);
                 if (value) iprintf(output, "mov rax, %d\n", value);

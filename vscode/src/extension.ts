@@ -138,6 +138,25 @@ export function activate(context: vscode.ExtensionContext) {
           `
         };
 
+        if (/^(0x[0-9a-fA-F]+|0b[01]+|0[0-7]*|[0-9]+)$/.test(word)) {
+          let value = 0;
+        
+          if (word.startsWith("0x") || word.startsWith("0X")) {
+            value = parseInt(word, 16);
+          } else if (word.startsWith("0b") || word.startsWith("0B")) {
+            value = parseInt(word.slice(2), 2);
+          } else if (word.startsWith("0") && word.length > 1) {
+            value = parseInt(word, 8);
+          } else {
+            value = parseInt(word, 10);
+          }
+        
+          const md = new vscode.MarkdownString();
+          md.appendMarkdown(`**dec:** ${value}\n\n`);
+          md.appendMarkdown(`**hex:** 0x${value.toString(16).toUpperCase()}\n\n`);
+          md.appendMarkdown(`**bin:** 0b${value.toString(2)}\n`);
+          return new vscode.Hover(md);
+        }
 
         if (docs[word]) {
           return new vscode.Hover(new vscode.MarkdownString(docs[word]));

@@ -28,11 +28,6 @@ ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
             if ((*curr)->t_type == CASE_TOKEN) {
                 forward_token(curr, 1);
                 ast_node_t* case_stmt = p->expr(curr, ctx, p);
-                if (case_stmt->token->t_type == CHAR_VALUE_TOKEN) {
-                    snprintf(case_stmt->token->value, TOKEN_MAX_SIZE, "%i", case_stmt->token->value[0]);
-                    case_stmt->token->t_type = UNKNOWN_NUMERIC_TOKEN;
-                }
-
                 AST_add_node(case_node, case_stmt);
             }
 

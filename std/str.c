@@ -147,3 +147,21 @@ int str_isdigit(int c) {
 int str_isspace(int c) {
     return (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\b' || c == '\0');
 }
+
+unsigned long long str_strtoull(const char* str, int l, int base) {
+    unsigned long long result = 0;
+
+    char c;
+    while ((c = *str++) && l-- > 0) {
+        int digit = 0;
+        if (c >= '0' && c <= '9') digit = c - '0';
+        else if (c >= 'a' && c <= 'f') digit = c - 'a' + 10;
+        else if (c >= 'A' && c <= 'F') digit = c - 'A' + 10;
+        else break;
+
+        if (digit >= base) break;
+        result = result * base + digit;
+    }
+
+    return result;
+}

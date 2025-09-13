@@ -70,8 +70,9 @@ int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, 
             case 8:  derictive = " byte ";  break;
         }
 
-        if (val_node->token->t_type == UNKNOWN_NUMERIC_TOKEN) val = str_atoi(val_node->token->value);
-        else if (val_node->token->t_type == CHAR_VALUE_TOKEN) val = val_node->token->value[0];
+        if (val_node->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
+            val = str_atoi(val_node->token->value);
+        }
     }
 
     if (is_const) iprintf(output, "mov%s%s, %d\n", derictive, GET_ASMVAR(name_node), val);

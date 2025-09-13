@@ -18,6 +18,7 @@ unsigned int str_strlen(const char* str);
 char* str_strcpy(char* dst, const char* src);
 char* str_strcat(char* dest, const char* src);
 const char* str_strchr(const char* str, char chr);
+unsigned long long str_strtoull(const char* str, int l, int base);
 
 /* ctype special functions. */
 int is_number(char* s);

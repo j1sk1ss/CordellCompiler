@@ -35,8 +35,7 @@ static char_type_t _get_char_type(unsigned char ch) {
 }
 
 static int _add_token(
-    token_t** h, token_t** t, 
-    token_type_t type, const char* buffer, size_t len, int line
+    token_t** h, token_t** t, token_type_t type, const char* buffer, size_t len, int line
 ) {
     token_t* nt = TKN_create_token(type, buffer, len, line);
     if (!nt) return 0;
@@ -58,19 +57,27 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
     str_memset(tkn, 0, sizeof(token_t));
 
     tkn->t_type = type;
-    if (value) {
+    if (type == UNKNOWN_NUMERIC_TOKEN) {
+        unsigned long long val = 0;
+        if (value[0] == '0' && (value[1] == 'x' || value[1] == 'X'))      val = str_strtoull(value + 2, len - 1, 16);
+        else if (value[0] == '0' && (value[1] == 'b' || value[1] == 'B')) val = str_strtoull(value + 2, len - 1, 2);
+        else if (value[0] == '0' && value[1])                             val = str_strtoull(value + 1, len - 1, 8);
+        else                                                              val = str_strtoull(value, len - 1, 10);
+        snprintf(tkn->value, TOKEN_MAX_SIZE, "%llu", val);
+    }
+    else if (type == CHAR_VALUE_TOKEN) {
+        snprintf(tkn->value, TOKEN_MAX_SIZE, "%i", value[0]);
+        tkn->t_type = UNKNOWN_NUMERIC_TOKEN;
+    }
+    else {
         str_strncpy(tkn->value, value, len);
     }
     
     tkn->lnum = line;
     if (
-        type == UNKNOWN_NUMERIC_TOKEN || 
-        type == CHAR_VALUE_TOKEN ||
+        type == UNKNOWN_NUMERIC_TOKEN ||
         type == STRING_VALUE_TOKEN
-    ) {
-        tkn->vinfo.glob = 1;
-    }
-    
+    ) tkn->vinfo.glob = 1;
     return tkn;
 }
 
@@ -147,8 +154,12 @@ token_t* TKN_tokenize(int fd) {
                 )                              char_type = LINE_BREAK_TOKEN;
                 else                           char_type = UNKNOWN_CHAR_TOKEN;
                 if (ct == CHAR_NEWLINE)        curr_ctx.line++;
+
                 if (curr_ctx.ttype == UNKNOWN_STRING_TOKEN && char_type == UNKNOWN_NUMERIC_TOKEN) {
                     char_type = UNKNOWN_STRING_TOKEN;
+                }
+                else if (curr_ctx.ttype == UNKNOWN_NUMERIC_TOKEN && char_type == UNKNOWN_STRING_TOKEN) {
+                    char_type = UNKNOWN_NUMERIC_TOKEN;
                 }
             }
             
