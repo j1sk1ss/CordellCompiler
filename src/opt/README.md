@@ -162,6 +162,51 @@ After variable inline, this module remove all unused variables (that never assig
 }
 ```
 
+`while` loops change some logic. For example:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        i8 a = 10;
+        i8 c = a;                     <= We can say that "a" == 10
+
+        a = 15;
+        i8 d = a;                     <= Same as above
+
+        while a < 100; {              <= Here is a loop condition and unpredicted block at the same time
+            a = a + 1;                <= We update value in loop block, that's why we can't perform inline operation
+        }
+
+        exit d;
+    }
+}
+```
+
+Produced code:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        i8 a = 10;
+        a = 15;
+        while a < 100; {
+            a = a + 1;
+        }
+
+        exit 15;
+    }
+}
+```
+
+Note: If we remove `a = a + 1;` line from while, it will invoke inline to `while 15 < 100; {`:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        while 15 < 100; {
+        }
+        exit 15;
+    }
+}
+```
+
 ## Constant folding
 - [constopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/constopt.c) - The fourth optimization is always executed after the third one and continues constant propagation by folding constant expressions. Example:
 ```CPL
