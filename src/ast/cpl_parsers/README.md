@@ -128,3 +128,87 @@ asm_token
  ├─ body1 (exp)
  └─ [...]
 ```
+
+# EBNF
+```
+program         = "{" , { global_decl | function_def | start_function } , "}" ;
+
+global_decl     = [ "glob" | "ro" ] , ( var_decl | function_def ) ;
+
+function_def    = [ "glob" ] , "function" , identifier , "(" , [ param_list ] , ")" , "=>" , type , block ;
+
+start_function  = "start" , "(" , [ param_list ] , ")" , block ;
+
+param_list      = param , { "," , param } ;
+param           = type , identifier , [ "=" , literal ] ;
+
+block           = "{" , { statement } , "}" ;
+
+statement       = var_decl
+                | assignment
+                | if_statement
+                | while_statement
+                | switch_statement
+                | return_statement
+                | exit_statement
+                | expression_statement
+                | asm_block
+                | comment ;
+
+var_decl        = type , identifier , [ "=" , expression ] , ";" ;
+assignment      = identifier , "=" , expression , ";" ;
+
+if_statement    = "if" , expression , ";" , block , [ "else" , block ] ;
+while_statement = "while" , expression , ";" , block , [ "else" , block ] ;
+
+switch_statement = "switch" , "(" , expression , ")" , "{" , { case_block } , [ default_block ] , "}" ;
+case_block       = "case" , literal , ";" , block ;
+default_block    = "default" , block ;
+
+return_statement   = "return" , [ expression ] , ";" ;
+exit_statement     = "exit" , literal , ";" ;
+expression_statement = expression , ";" ;
+
+asm_block       = "asm" , "(" , { identifier | literal } , ")" , "{" , { asm_line } , "}" ;
+asm_line        = string_literal , [ "," ] ;
+
+comment         = ":" , { any_char_except_colon } , ":" ;
+
+expression      = literal
+                | identifier
+                | "(" , expression , ")"
+                | expression , binary_op , expression
+                | unary_op , expression
+                | function_call
+                | array_access ;
+
+function_call   = identifier , "(" , [ arg_list ] , ")" ;
+arg_list        = expression , { "," , expression } ;
+array_access    = identifier , "[" , expression , { "," , expression } , "]" ;
+
+binary_op       = "+" | "-" | "*" | "/" | "%" 
+                | "==" | "!=" | "<" | "<=" | ">" | ">="
+                | "&&" | "||"
+                | ">>" | "<<" | "&" | "|" | "^" ;
+
+unary_op        = "not" | "-" | "+" ;
+
+type            = "i64" | "u64" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+                | "str"
+                | "arr" , "[" , integer_literal , "," , type , "]"
+                | "ptr" , type ;
+
+literal         = integer_literal | string_literal | boolean_literal ;
+
+identifier      = letter , { letter | digit | "_" } ;
+integer_literal = digit , { digit } ;
+string_literal  = '"' , { any_char_except_quote } , '"' ;
+boolean_literal = "true" | "false" ;
+
+letter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" 
+       | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+       | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
+       | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" ;
+
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+```
