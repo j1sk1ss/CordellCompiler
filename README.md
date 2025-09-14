@@ -190,8 +190,8 @@ Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler
 3          str stack_str = "String value";
 4          ptr str str_ptr = stack_str;
 5  
-6          i64 a = 0;
-7          i32 b = 1;
+6          i64 a = 0x0;
+7          i32 b = 0b1;
 8          i16 c = 2;
 9          i8 d  = 'a';
 10 
@@ -296,6 +296,92 @@ Detailed description of every noted algorithms placed [here](https://github.com/
 Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/gen/x86_64_nasm_gnu/README.md)
 
 # .CPL Documentation
+## EBHF
+```
+program         = "{" , { global_decl | function_def | start_function } , "}" ;
+
+global_decl     = [ "glob" | "ro" ] , ( var_decl | function_def ) ;
+
+function_def    = [ "glob" ] , "function" , identifier , "(" , [ param_list ] , ")" , "=>" , type , block ;
+
+start_function  = "start" , "(" , [ param_list ] , ")" , block ;
+
+param_list      = param , { "," , param } ;
+param           = type , identifier , [ "=" , literal ] ;
+
+block           = "{" , { statement } , "}" ;
+
+statement       = var_decl
+                | assignment
+                | if_statement
+                | while_statement
+                | switch_statement
+                | return_statement
+                | exit_statement
+                | expression_statement
+                | asm_block
+                | comment ;
+
+var_decl        = type , identifier , [ "=" , expression ] , ";" ;
+assignment      = identifier , "=" , expression , ";" ;
+
+if_statement    = "if" , expression , ";" , block , [ "else" , block ] ;
+while_statement = "while" , expression , ";" , block , [ "else" , block ] ;
+
+switch_statement = "switch" , "(" , expression , ")" , "{" , { case_block } , [ default_block ] , "}" ;
+case_block       = "case" , literal , ";" , block ;
+default_block    = "default" , block ;
+
+return_statement   = "return" , [ expression ] , ";" ;
+exit_statement     = "exit" , literal , ";" ;
+expression_statement = expression , ";" ;
+
+asm_block       = "asm" , "(" , { identifier | literal } , ")" , "{" , { asm_line } , "}" ;
+asm_line        = string_literal , [ "," ] ;
+
+comment         = ":" , { any_char_except_colon } , ":" ;
+
+expression      = literal
+                | identifier
+                | "(" , expression , ")"
+                | expression , binary_op , expression
+                | unary_op , expression
+                | function_call
+                | array_access ;
+
+function_call   = identifier , "(" , [ arg_list ] , ")" ;
+arg_list        = expression , { "," , expression } ;
+array_access    = identifier , "[" , expression , { "," , expression } , "]" ;
+
+binary_op       = "+" | "-" | "*" | "/" | "%" 
+                | "==" | "!=" | "<" | "<=" | ">" | ">="
+                | "&&" | "||"
+                | ">>" | "<<" | "&" | "|" | "^" ;
+
+unary_op        = "not" | "-" | "+" ;
+
+type            = "i64" | "u64" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+                | "str"
+                | "arr" , "[" , integer_literal , "," , type , "]"
+                | "ptr" , type ;
+
+literal         = integer_literal | string_literal | boolean_literal ;
+
+identifier      = letter , { letter | digit | "_" } ;
+integer_literal = digit , { digit } ;
+string_literal  = '"' , { any_char_except_quote } , '"' ;
+boolean_literal = "true" | "false" ;
+
+letter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" 
+       | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+       | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
+       | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" ;
+
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+```
+
+![EBNF](EBNF.png)
+
 ## Program Structure
 Every program begins with the `start` entrypoint and ends with the `exit [return_code];` statement.
 
@@ -335,10 +421,10 @@ The following types are supported:
 ```CPL
 1  {
 2       i8 a1 = 'C';
-3       u8 a2 = 253;
-4       i16 a3 = 25093;
+3       u8 a2 = 0xFF;
+4       i16 a3 = 0b1100110011001100;
 5
-6       ro u32 a4 = 123123;
+6       ro u32 a4 = 0777;
 7       glob i64 a5 = 31232;
 8
 9       str msg = "Hello world!";
@@ -414,7 +500,6 @@ Basic arithmetic and logical operations are supported:
 ## Functions
 Functions are declared using the `function` keyword.
 
-### Function Signature:
 ```CPL
 [modifier] function [name]([type1] [name1] [= def_val], [type2] [name2] [= def_val], ...) => [ret_type] {
     : function body :
@@ -422,7 +507,8 @@ Functions are declared using the `function` keyword.
 }
 ```
 
-### Example:
+### Examples:
+- Definition:
 ```CPL
 1  {
 2      glob function sumfunc(i32 a, i32 b = 1) => i32 {
@@ -435,7 +521,7 @@ Functions are declared using the `function` keyword.
 9  }
 ```
 
-### Calling the function
+- Function call:
 ```CPL
 1  {
 2      i32 result = sumfunc(5, 10);
@@ -445,15 +531,31 @@ Functions are declared using the `function` keyword.
 ```
 
 ## Input/Output (via system calls)
-### String Input/Output
+- Inbuild `syscall` function:
 ```CPL
 1  {
-2      syscall(4, 1, ptr, size);
-3      syscall(3, 0, ptr, size);
+2      syscall(1, 1, ptr, size);
+3      syscall(0, 0, ptr, size);
 4  }
 ```
 
-### Wrapping in a function:
+- `ASM` block:
+```CPL
+1  {
+2      i32 sysnum = 60;
+3      ptr u8 msg = "Hello world!";
+4      i32 slen = strlen(msg);
+5      asm(sysnum, msg, slen) {
+6          "mov rax, &sysnum",
+7          "mov rdi, 1",
+8          "mov rsi, 1",
+9          "mov rdx, &msg",
+10         "mov r10, &slen"
+11     }
+12 }
+```
+
+- Function wrap:
 ```CPL
 1  {
 2      glob function printStr(ptr i8 buffer, i32 size) => i32 {
@@ -466,7 +568,8 @@ Functions are declared using the `function` keyword.
 9  }
 ```
 
-### ASM Block
+## ASM Block
+Compiler will inline `ASM` block into produced code with minimal changes (Optimisation don't affect on `ASM` blocks). Main feature here, is variable usage via `&` symbol.
 ```CPL
 1  {
 2      u8 a = 0;
@@ -493,9 +596,9 @@ Comments are written as annotations `:` within functions and code blocks:
 ```
 
 # Examples
-If you want see more examples, please look into the folder `examples`. Also [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/vscode/README.md) is a VSCode extension for this hobby language.
+If you want see more examples, please look into the folder `examples` or `tests`. Also [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/vscode/README.md) is a VSCode extension for this hobby language.
 
-### Example of Printing a Number:
+## Example of Printing a Number:
 ```CPL
 1  extern exfunc printf;
 2  
@@ -533,7 +636,7 @@ If you want see more examples, please look into the folder `examples`. Also [her
 34 }
 ```
 
-### Example of Fibonacci N-number print:
+## Example of Fibonacci N-number print:
 ```CPL
 1  from "string.cpl" import itoa;
 2  from "stdio.cpl" import prints;
@@ -561,7 +664,7 @@ If you want see more examples, please look into the folder `examples`. Also [her
 24 }
 ```
 
-### Example of simple memory manager:
+## Example of simple memory manager:
 ```CPL
 1  {
 2      glob arr _mm_head[100000, i8] =;

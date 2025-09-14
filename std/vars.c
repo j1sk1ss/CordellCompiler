@@ -147,6 +147,8 @@ int VRS_isoperand(token_t* token) {
         case DIVIDE_TOKEN:
         case BITAND_TOKEN:
         case COMPARE_TOKEN:
+        case LOWEREQ_TOKEN:
+        case LARGEREQ_TOKEN:
         case NCOMPARE_TOKEN:
         case MULTIPLY_TOKEN:
         case BITMOVE_LEFT_TOKEN:
@@ -165,7 +167,9 @@ int VRS_token_priority(token_t* token) {
         case BITAND_TOKEN:         return 5;
         case COMPARE_TOKEN:
         case NCOMPARE_TOKEN:
+        case LOWEREQ_TOKEN:
         case LOWER_TOKEN:
+        case LARGEREQ_TOKEN:
         case LARGER_TOKEN:         return 6;
         case BITMOVE_LEFT_TOKEN:
         case BITMOVE_RIGHT_TOKEN:  return 7;

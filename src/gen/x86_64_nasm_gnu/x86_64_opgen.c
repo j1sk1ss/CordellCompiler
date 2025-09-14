@@ -11,8 +11,12 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         iprintf(output, "mov rbx, rax\n");
     }
 
+    iprintf(output, "push rbx\n");
+
     if (VRS_instant_movable(right->token)) iprintf(output, "mov rax, %s\n", GET_ASMVAR(right));
     else g->elemegen(right, output, ctx, g);
+
+    iprintf(output, "pop rbx\n");
     
     switch (op->token->t_type) {
         case BITMOVE_LEFT_TOKEN:

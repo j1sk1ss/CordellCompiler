@@ -5,7 +5,7 @@ int x86_64_generate_start(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
     iprintf(output, "_start:\n");
     iprintf(output, "push rbp\n");
     iprintf(output, "mov rbp, rsp\n");
-    iprintf(output, "sub rsp, %d\n", ALIGN(get_stack_size(node, ctx)));
+    iprintf(output, "sub rsp, %d\n", get_stack_size(node, ctx));
 
     int arg_count = 0;
     static char* input_args[] = { "mov rax, [rbp + 8]", "lea rax, [rbp + 16]" };;

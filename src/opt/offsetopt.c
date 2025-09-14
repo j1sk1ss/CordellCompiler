@@ -152,10 +152,10 @@ static int _find_usage(ast_node_t* r, def_t* v, int* used, int* ref) {
             _find_usage(t->child, v, used, ref);
             continue;
         }
-
+        
         if (
             (VRS_isdecl(t->token) || t->token->t_type == ASSIGN_TOKEN) &&
-            t->child->token->vinfo.ptr
+            t->child && t->child->token->vinfo.ptr
         ) {
             int is_used = 0, is_ref = 0;
             _find_usage(t->child->sibling, v, &is_used, &is_ref);

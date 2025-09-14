@@ -1,5 +1,5 @@
 {
-    from "stdio.cpl" import putc, gets;
+    from "stdio.cpl" import puts, putc, gets;
 
 :
     Brainfuck interpriter on CPL

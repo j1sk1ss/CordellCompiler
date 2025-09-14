@@ -13,24 +13,26 @@ typedef enum {
     CHAR_COMMENT,
     CHAR_NEWLINE,
     CHAR_BACKSLASH,
+    CHAR_SIGN
 } char_type_t;
 
 static char_type_t _get_char_type(unsigned char ch) {
-    if (isalpha(ch) || ch == '_')          return CHAR_ALPHA;
-    else if (ch == '\\')                   return CHAR_BACKSLASH;
-    else if (str_isdigit(ch) || ch == '-') return CHAR_DIGIT;
-    else if (ch == '"')                    return CHAR_QUOTE;
-    else if (ch == '\'')                   return CHAR_SING_QUOTE;
-    else if (ch == '\n')                   return CHAR_NEWLINE;
-    else if (ch == ' ' || ch == '\t')      return CHAR_SPACE;
-    else if (ch == ';')                    return CHAR_DELIMITER;
-    else if (ch == ',')                    return CHAR_COMMA;
-    else if (ch == ':')                    return CHAR_COMMENT;
+    if (isalpha(ch) || ch == '_')     return CHAR_ALPHA;
+    else if (ch == '\\')              return CHAR_BACKSLASH;
+    else if (str_isdigit(ch))         return CHAR_DIGIT;
+    else if (ch == '-' || ch == '+')  return CHAR_SIGN;
+    else if (ch == '"')               return CHAR_QUOTE;
+    else if (ch == '\'')              return CHAR_SING_QUOTE;
+    else if (ch == '\n')              return CHAR_NEWLINE;
+    else if (ch == ' ' || ch == '\t') return CHAR_SPACE;
+    else if (ch == ';')               return CHAR_DELIMITER;
+    else if (ch == ',')               return CHAR_COMMA;
+    else if (ch == ':')               return CHAR_COMMENT;
     else if (
         ch == '(' || ch == ')' || 
         ch == '[' || ch == ']' || 
         ch == '{' || ch == '}'
-    )                                      return CHAR_BRACKET;
+    )                                 return CHAR_BRACKET;
     return CHAR_OTHER;
 }
 
@@ -158,7 +160,7 @@ token_t* TKN_tokenize(int fd) {
                 if (curr_ctx.ttype == UNKNOWN_STRING_TOKEN && char_type == UNKNOWN_NUMERIC_TOKEN) {
                     char_type = UNKNOWN_STRING_TOKEN;
                 }
-                else if (curr_ctx.ttype == UNKNOWN_NUMERIC_TOKEN && char_type == UNKNOWN_STRING_TOKEN) {
+                else if (curr_ctx.ttype == UNKNOWN_NUMERIC_TOKEN && (char_type == UNKNOWN_STRING_TOKEN || ct == CHAR_SIGN)) {
                     char_type = UNKNOWN_NUMERIC_TOKEN;
                 }
             }
