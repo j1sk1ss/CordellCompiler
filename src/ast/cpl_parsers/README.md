@@ -193,7 +193,7 @@ binary_op       = "+" | "-" | "*" | "/" | "%"
 
 unary_op        = "not" | "-" | "+" ;
 
-type            = "i64" | "u64" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+type            = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
                 | "str"
                 | "arr" , "[" , integer_literal , "," , type , "]"
                 | "ptr" , type ;
