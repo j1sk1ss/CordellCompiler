@@ -136,9 +136,16 @@ static int _unregister_var(const char* name, recalcoff_ctx_t* ctx) {
 
 static int _unload_ctx(recalcoff_ctx_t* ctx) {
     while (ctx->h) {
-        def_t* n = ctx->h->next;
-        mm_free(ctx->h);
-        ctx->h = n;
+        def_t* cur = ctx->h;
+        ctx->h = cur->next;
+
+        while (cur->owners) {
+            def_t* o = cur->owners;
+            cur->owners = o->next;
+            mm_free(o);
+        }
+
+        mm_free(cur);
     }
 
     return 1;

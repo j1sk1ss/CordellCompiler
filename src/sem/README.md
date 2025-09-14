@@ -4,8 +4,11 @@
 - [ro](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/sem/ro.c)
 - [semantic](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/sem/semantic.c)
 - [size](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/sem/size.c)
+- [ownership](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/sem/ownership.c)
 
 # Examples
+
+- size
 
 Source code:
 ```CPL
@@ -29,6 +32,8 @@ Produced errors:
 ```
 
 ------------------------------
+
+- rettype
 
 Source code:
 ```CPL
@@ -70,6 +75,8 @@ Produced errors:
 
 ------------------------------
 
+- ro
+
 Source code:
 ```CPL
 1  {
@@ -88,6 +95,8 @@ Produced errors:
 ```
 
 ------------------------------
+
+- bitness / size
 
 Source code:
 ```CPL
@@ -118,6 +127,8 @@ Produced errors:
 
 ------------------------------
 
+- bitness / size
+
 Source code:
 ```CPL
 0  {
@@ -144,6 +155,8 @@ Produced errors:
 
 ------------------------------
 
+- size
+
 Source code:
 ```CPL
 0  {
@@ -164,6 +177,8 @@ Produced errors:
 ```
 
 ------------------------------
+
+- rettype
 
 Source code:
 ```CPL
@@ -190,3 +205,30 @@ Produced errors:
 [WARN] (src/sem/rettype.c:37) Unmatched return type in line=2. Should return bitness=32, but provide bitness=8
 [WARN] (src/sem/rettype.c:37) Unmatched return type in line=6. Should return bitness=64, but provide bitness=8
 ```
+
+------------------------------
+
+- ownership
+
+Source code:
+```CPL
+1  {
+2      start(i64 argc, ptr u64 argv) {
+3          i32 a = 10;
+4          ptr u32 a_owner = ref a;
+5  
+6          i32 b = 10;
+7          ptr u32 b_owner = ref b;
+8          ptr u32 b_owner_owner = ref b_owner;
+9          exit 0;
+10     }
+11 }
+```
+
+Produced errors:
+```
+[WARN] (src/sem/ownership.c:204) Owner own another owner! b -> b_owner -> b_owner_owner
+[WARN] (src/sem/ownership.c:209) Variable b owned multiple times! Did you expect this?
+```
+
+

@@ -161,7 +161,7 @@ static int _inline_block(ast_node_t* d, const char* v, ast_node_t** nv, int loop
 }
 
 /* Bruteforce declaration search */
-static int _find_declrations(ast_node_t* r) {
+static int _find_declarations(ast_node_t* r) {
     if (!r) return 0;
 
     ast_node_t* prev = NULL;
@@ -169,7 +169,7 @@ static int _find_declrations(ast_node_t* r) {
 
     while (curr) {
         ast_node_t* next = curr->sibling;
-        _find_declrations(curr->child);
+        _find_declarations(curr->child);
 
         if (
             curr->token &&

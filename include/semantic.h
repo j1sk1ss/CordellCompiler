@@ -10,6 +10,9 @@
 #include "syntax.h"
 #include <limits.h>
 
+/* ownership.c */
+int SMT_check_ownership(ast_node_t* node);
+
 /* rettype.c */
 int SMT_check_rettype(ast_node_t* node);
 
