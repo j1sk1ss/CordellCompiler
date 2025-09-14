@@ -296,7 +296,7 @@ Detailed description of every noted algorithms placed [here](https://github.com/
 Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/gen/x86_64_nasm_gnu/README.md)
 
 # .CPL Documentation
-## EBHF
+## EBNF
 ![EBNF](EBNF.png)
 
 ## Program Structure
