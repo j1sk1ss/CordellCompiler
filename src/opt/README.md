@@ -308,11 +308,11 @@ After eliminating dead scopes:
 ```CPL
 {
     start(i64 argc, ptr u64 argv) {
-        i8 val = 0;                             <= Allocation of 8 bytes in stack
-        ptr u64 val_ptr = ref val;              <= We can't rewrite "val" due usage below and in declaration. Also we remember, that "val_ptr" now is "val" owner (ref keyword).
-        ptr u64 val_ptr_1 = ref val;            <= Same situation as above.
-        ptr u64 val_ptr_ptr = ref val_ptr;      <= "val" variable not appeared below, but "val_ptr" is owner of "val". We can't reuse this offset.
-        i32 sec_val = 0;                        <= "val_ptr_ptr" is dead, "val_ptr_1" and "val_ptr" is dead too, this means that val finally can be reused. 
+        : 24 : i8 val = 0;                             <= Allocation of 8 bytes in stack
+        : 32 : ptr u64 val_ptr = ref val;              <= We can't rewrite "val" due usage below and in declaration. Also we remember, that "val_ptr" now is "val" owner (ref keyword).
+        : 40 : ptr u64 val_ptr_1 = ref val;            <= Same situation as above.
+        : 40 : ptr u64 val_ptr_ptr = ref val_ptr;      <= "val" variable not appeared below, but "val_ptr" is owner of "val". We can't reuse this offset.
+        : 24 : i32 sec_val = 0;                        <= "val_ptr_ptr" is dead, "val_ptr_1" and "val_ptr" is dead too, this means that val finally can be reused. 
         exit sec_val;
     }
 }
@@ -323,6 +323,37 @@ Main idea of this module is to track variable usage and ownership (similar to th
 2) When a new declaration is encountered, the module checks all existing variables for usage below this declaration (or within it).
 3) If a variable is unused and has no owners, its offset can be safely reused.
 4) When a variable’s offset is reused, the variable is unregistered and also removed from all owner lists where it appears.
+
+Stack offset managing based on bitmap allocator (similar to Linux Physical Memory Manager). This mean, that we can handle next case with arrays in stack:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        : 24 : i32 a = 0;               <= Allocate 8 bytes
+        : 24 : arr name[10, i32] =;     <= Free above 8 bytes and allocate another 40
+        : 64 : i32 b = 0;               <= Allocate 8 bytes
+        : 64 : i32 b1 = name[0];        <= Free above and allocate another 8
+        : 24 : i32 b2 = 0;              <= Free array's 40 bytes and allocate 8
+        exit b2;
+    }
+}
+```
+
+And one last example:
+```CPL
+{
+    start() {
+        : 16 : i32 a = 0;               <= Allocate 8 bytes
+        : 24 : ptr i32 p;               <= Allocate 8 bytes
+        if 1; {
+            p = ref a;                  <= "p" is new owner of "a"
+        }
+
+        : 32 : i32 c = 0;               <= "p" used below, "p" is owner of "a". Allocate another 8 bytes
+        exit p;
+    }
+}
+
+```
 
 ## Example
 For visual example, let's optimize this code:

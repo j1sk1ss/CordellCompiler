@@ -1,8 +1,10 @@
 #include <offsetopt.h>
 
 typedef struct def {
+    int         size;
     int         offset;
     char        name[TOKEN_MAX_SIZE];
+    short       s_id;
     struct def* owners;
     struct def* next;
 } def_t;
@@ -11,28 +13,19 @@ typedef struct {
     def_t* h;
 } recalcoff_ctx_t;
 
-static def_t* _create_def(int offset, const char* name) {
+static def_t* _create_def(int size, int offset, const char* name, short s_id) {
     def_t* def = (def_t*)mm_malloc(sizeof(def_t));
     if (!def) return NULL;
     if (name) str_strncpy(def->name, name, TOKEN_MAX_SIZE);
     def->offset = offset;
+    def->size   = size;
+    def->s_id   = s_id;
     def->next   = NULL;
     def->owners = NULL;
     return def;
 }
 
-static def_t* _get_var(const char* name, recalcoff_ctx_t* ctx) {
-    if (!ctx || !ctx->h) return NULL;
-    def_t* h = ctx->h;
-    while (h) {
-        if (!str_strcmp(h->name, name)) return h;
-        h = h->next;
-    }
-
-    return NULL;
-}
-
-static int _add_owner(const char* name, def_t* var) {
+static int _add_owner(const char* name, short s_id, def_t* var) {
     if (!var) return 0;
 
     def_t* h = var->owners;
@@ -41,7 +34,7 @@ static int _add_owner(const char* name, def_t* var) {
         h = h->next;
     }
 
-    def_t* owner = _create_def(0, name);
+    def_t* owner = _create_def(0, 0, name, s_id);
     if (!owner) return 0;
 
     if (!var->owners) {
@@ -58,7 +51,7 @@ static int _add_owner(const char* name, def_t* var) {
     return 1;
 }
 
-static int _remove_owner(const char* name, def_t* var) {
+static int _remove_owner(const char* name, short s_id, def_t* var) {
     if (!var || !var->owners) return 0;
 
     def_t* h = var->owners;
@@ -80,7 +73,7 @@ static int _remove_owner(const char* name, def_t* var) {
     return 0;
 }
 
-static int _register_var(int offset, const char* name, recalcoff_ctx_t* ctx) {
+static int _register_var(int size, int offset, const char* name, short s_id, recalcoff_ctx_t* ctx) {
     def_t* h = ctx->h;
     while (h) {
         if (!str_strcmp(h->name, name)) return 0;
@@ -88,7 +81,7 @@ static int _register_var(int offset, const char* name, recalcoff_ctx_t* ctx) {
     }
 
     h = ctx->h;
-    def_t* def = _create_def(offset, name);
+    def_t* def = _create_def(size, offset, name, s_id);
     if (!def) return 0;
 
     if (!h) {
@@ -104,7 +97,7 @@ static int _register_var(int offset, const char* name, recalcoff_ctx_t* ctx) {
     return 1;
 }
 
-static int _unregister_var(const char* name, recalcoff_ctx_t* ctx) {
+static int _unregister_var(const char* name, short s_id, recalcoff_ctx_t* ctx) {
     def_t* h = ctx->h;
     def_t* prev = NULL;
 
@@ -120,7 +113,7 @@ static int _unregister_var(const char* name, recalcoff_ctx_t* ctx) {
 
             def_t* cur = ctx->h;
             while (cur) {
-                _remove_owner(name, cur);
+                _remove_owner(name, s_id, cur);
                 cur = cur->next;
             }
 
@@ -172,7 +165,8 @@ static int _find_usage(ast_node_t* r, def_t* v, int* used, int* ref) {
             *ref  = 0;
 
             if (is_ref) {
-                _add_owner(t->child->token->value, v);
+                print_debug("Variable %s.%i owned by %s.%i", v->name, v->s_id, t->child->token->value, t->child->info.s_id);
+                _add_owner(t->child->token->value, t->child->info.s_id, v);
             }
         }
 
@@ -204,62 +198,72 @@ static int _change_varoff_scope(ast_node_t* r, const char* name, int offset) {
     return 0;    
 }
 
-static int _recalc_offs(ast_node_t* r, syntax_ctx_t* ctx) {
+static int _recalc_offs(ast_node_t* r, stack_map_t* stack, recalcoff_ctx_t* rctx, syntax_ctx_t* ctx) {
     if (!r) return 0;
 
     scope_elem_t el;
     scope_top(&ctx->scopes.stack, &el);
-    int offset = el.id >= 0 ? el.offset : 0;
+    int offset = el.id >= 0 ? el.offset : 8;
+    stack_map_move(offset, stack);
 
-    recalcoff_ctx_t scope_ctx = { .h = NULL };
     for (ast_node_t* t = r; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
             scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, offset);
-            _recalc_offs(t->child, ctx);
+            _recalc_offs(t->child, stack, rctx, ctx);
             scope_pop(&ctx->scopes.stack);
             continue;
         }
         
         if (VRS_isdecl(t->token) && t->child && VRS_instack(t->token)) {
-            int varoff = -1;
-            def_t* vh = scope_ctx.h;
-            while (vh) {
-                int is_used = 0, is_ref = 0;
-                _find_usage(t, vh, &is_used, &is_ref);
-                if (!is_used && _unregister_var(vh->name, &scope_ctx)) {
-                    varoff = vh->offset;
-                    break;
+            int unreg_var = 0;
+            do {
+                unreg_var = 0;
+                def_t* vh = rctx->h;
+                while (vh) {
+                    int is_used = 0, is_ref = 0;
+                    _find_usage(t, vh, &is_used, &is_ref);
+                    if (!is_used) {
+                        int foffset = vh->offset, fsize = vh->size;
+                        print_debug("Try to free %s, size=%i, off=%i", vh->name, vh->size, vh->offset);
+                        if (_unregister_var(vh->name, vh->s_id, rctx)) {
+                            print_debug("Free success size=%i, off=%i", fsize, foffset);
+                            stack_map_free(foffset, fsize, stack);
+                            unreg_var = 1;
+                        }
+                    }
+                    
+                    vh = vh->next;
                 }
-
-                vh = vh->next;
-            }
+            } while (unreg_var);
             
             ast_node_t* name = t->child;
-            if (varoff < 0) {
-                offset += ALIGN(name->info.size);
-                varoff = offset;
-            }
+            t->info.offset = stack_map_alloc(name->info.size, stack);
+            print_debug("Alloc for %s size=%i, off=%i", name->token->value, name->info.size, t->info.offset);
+            offset = MAX(offset, t->info.offset);
 
-            t->info.offset = varoff;
-
-            _register_var(varoff, name->token->value, &scope_ctx);
-            _change_varoff_scope(t, name->token->value, varoff);
+            _register_var(name->info.size, t->info.offset, name->token->value, name->info.s_id, rctx);
+            _change_varoff_scope(t, name->token->value, t->info.offset);
             continue;
         }
 
-        scope_push(&ctx->scopes.stack, ctx->scopes.s_id, offset);
-        _recalc_offs(t->child, ctx);
-        scope_pop(&ctx->scopes.stack);
+        _recalc_offs(t->child, stack, rctx, ctx);
     }
-
-    _unload_ctx(&scope_ctx);
+    
     return 1;
 }
 
 int OPT_offrecalc(syntax_ctx_t* ctx) {
     if (!ctx || !ctx->r) return 0;
+    
     scope_reset(&ctx->scopes.stack);
     ctx->scopes.s_id = 0;
-    _recalc_offs(ctx->r, ctx);
+
+    stack_map_t stack;
+    stack_map_init(8, &stack);
+
+    recalcoff_ctx_t rctx = { .h = NULL };
+    _recalc_offs(ctx->r, &stack, &rctx, ctx);
+    _unload_ctx(&rctx);
+    
     return 1;
 }
