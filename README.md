@@ -327,6 +327,8 @@ Also every program can contain `pre-implemented` code blocks and data segments:
 ## Variables and Types
 The following types are supported:
 
+- `f64` - Double value
+- `f32` - Float value
 - `i64` / `u64` — Integer (64-bit).
 - `i32` / `u32` — Integer (32-bit).
 - `i16` / `u16` — Integer (16-bit).
@@ -340,17 +342,18 @@ The following types are supported:
 2       i8 a1 = 'C';
 3       u8 a2 = 0xFF;
 4       i16 a3 = 0b1100110011001100;
-5
-6       ro u32 a4 = 0777;
-7       glob i64 a5 = 31232;
-8
-9       str msg = "Hello world!";
-10      ptr u32 msg_ptr = msg;
-11      ptr u64 msg_msg_ptr = ref msg_ptr;
-12
-13      arr array[10, i32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-14      arr array1[10, u64] =;
-15 }
+5       f64 a4 = 0.001;
+6
+7       ro u32 a5 = 0777;
+8       glob i64 a6 = 31232;
+9
+10      str msg = "Hello world!";
+11      ptr u32 msg_ptr = msg;
+12      ptr u64 msg_msg_ptr = ref msg_ptr;
+13
+14      arr array[10, i32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+15      arr array1[10, u64] =;
+16 }
 ```
 
 ## Operations

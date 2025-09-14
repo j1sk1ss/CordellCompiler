@@ -167,3 +167,53 @@ unsigned long long str_strtoull(const char* str, int l, int base) {
 
     return result;
 }
+
+double str_strtod(const char* s, int l) {
+    double result = 0.0;
+    int sign = 1;
+    int exp_sign = 1;
+    int exponent = 0;
+    int i = 0;
+
+    while (i < l && (s[i] == ' ' || s[i] == '\t')) i++;
+
+    if (i < l && s[i] == '-') { sign = -1; i++; }
+    else if (i < l && s[i] == '+') { i++; }
+
+    while (i < l && s[i] >= '0' && s[i] <= '9') {
+        result = result * 10.0 + (s[i] - '0');
+        i++;
+    }
+
+    if (i < l && s[i] == '.') {
+        i++;
+        double frac = 0.0;
+        double base = 0.1;
+        while (i < l && s[i] >= '0' && s[i] <= '9') {
+            frac += (s[i] - '0') * base;
+            base *= 0.1;
+            i++;
+        }
+        result += frac;
+    }
+
+    if (i < l && (s[i] == 'e' || s[i] == 'E')) {
+        i++;
+        if (i < l && s[i] == '-') { exp_sign = -1; i++; }
+        else if (i < l && s[i] == '+') { i++; }
+
+        while (i < l && s[i] >= '0' && s[i] <= '9') {
+            exponent = exponent * 10 + (s[i] - '0');
+            i++;
+        }
+    }
+
+    result *= mth_pow(10.0, exp_sign * exponent);
+    return sign * result;
+}
+
+unsigned long long str_dob2bits(double d) {
+    unsigned long long bits;
+    str_memcpy(&bits, &d, sizeof(d));
+    return bits;
+}

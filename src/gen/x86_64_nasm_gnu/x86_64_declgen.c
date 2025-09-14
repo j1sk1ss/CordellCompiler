@@ -54,7 +54,6 @@ int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, 
         return _stack_declaration(node, output, ctx, g);
     }
 
-    int val = 0;
     int is_const = 0;
     char* derictive = " ";
 
@@ -69,13 +68,9 @@ int x86_64_generate_declaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, 
             case 16: derictive = " word ";  break;
             case 8:  derictive = " byte ";  break;
         }
-
-        if (val_node->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
-            val = str_atoi(val_node->token->value);
-        }
     }
 
-    if (is_const) iprintf(output, "mov%s%s, %d\n", derictive, GET_ASMVAR(name_node), val);
+    if (is_const) iprintf(output, "mov%s%s, %s\n", derictive, GET_ASMVAR(name_node), val_node->token->value);
     else iprintf(output, "mov%s%s, rax\n", derictive, GET_ASMVAR(name_node));
     return 1;
 }

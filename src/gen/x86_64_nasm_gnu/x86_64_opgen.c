@@ -5,19 +5,30 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
     ast_node_t* left  = node->child;
     ast_node_t* right = left->sibling;
 
+    int simd = VRS_is_float(left->token) || VRS_is_float(right->token);
     if (VRS_instant_movable(left->token)) iprintf(output, "mov rbx, %s\n", GET_ASMVAR(left));
     else {
         g->elemegen(left, output, ctx, g);
         iprintf(output, "mov rbx, rax\n");
     }
 
-    iprintf(output, "push rbx\n");
+    if (simd) {
+        if (VRS_is_float(left->token)) iprintf(output, "movq xmm1, rbx\n");
+        else iprintf(output, "cvtsi2sd xmm1, rbx\n");
+    }
 
     if (VRS_instant_movable(right->token)) iprintf(output, "mov rax, %s\n", GET_ASMVAR(right));
-    else g->elemegen(right, output, ctx, g);
-
-    iprintf(output, "pop rbx\n");
+    else {
+        iprintf(output, "push rbx\n");
+        g->elemegen(right, output, ctx, g);
+        iprintf(output, "pop rbx\n");
+    }
     
+    if (simd) {
+        if (VRS_is_float(left->token)) iprintf(output, "movq xmm0, rax\n");
+        else iprintf(output, "cvtsi2sd xmm0, rax\n");
+    }
+
     switch (op->token->t_type) {
         case BITMOVE_LEFT_TOKEN:
         case BITMOVE_RIGHT_TOKEN: {
@@ -62,16 +73,34 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
             break;
         }
         case PLUS_TOKEN: {
-            iprintf(output, "add rax, rbx\n");
+            if (!simd) iprintf(output, "add rax, rbx\n"); 
+            else {
+                iprintf(output, "addsd xmm0, xmm1\n");
+                iprintf(output, "movq rax, xmm0\n");
+            }
+            
             break;
         }
         case MINUS_TOKEN: {
-            iprintf(output, "sub rbx, rax\n");
-            iprintf(output, "mov rax, rbx\n");
+            if (!simd) {
+                iprintf(output, "sub rbx, rax\n");
+                iprintf(output, "mov rax, rbx\n");
+            }
+            else {
+                iprintf(output, "subsd xmm1, xmm0\n");
+                iprintf(output, "movaps xmm0, xmm1\n");
+                iprintf(output, "movq rax, xmm0\n");
+            }
+
             break;
         }
         case MULTIPLY_TOKEN: {
-            iprintf(output, "imul rax, rbx\n");
+            if (!simd) iprintf(output, "imul rax, rbx\n");
+            else {
+                iprintf(output, "mulsd xmm0, xmm1\n");
+                iprintf(output, "movq rax, xmm0\n");
+            }
+
             break;
         }
         case DIVIDE_TOKEN: {
@@ -81,8 +110,15 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
                 iprintf(output, "idiv rbx\n");
             } 
             else {
-                iprintf(output, "xor rdx, rdx\n");
-                iprintf(output, "div rbx\n");
+                if (!simd) {
+                    iprintf(output, "xor rdx, rdx\n");
+                    iprintf(output, "div rbx\n");
+                }
+                else {
+                    iprintf(output, "divsd xmm1, xmm0\n");
+                    iprintf(output, "movaps xmm0, xmm1\n");
+                    iprintf(output, "movq rax, xmm0\n");
+                }
             }
 
             break;
@@ -107,7 +143,8 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         case COMPARE_TOKEN:
         case LARGEREQ_TOKEN:
         case NCOMPARE_TOKEN: {
-            iprintf(output, "cmp rbx, rax\n");
+            if (simd) iprintf(output, "ucomisd xmm0, xmm1\n");
+            else iprintf(output, "cmp rbx, rax\n");
             if (VRS_issign(right->token) && VRS_issign(left->token)) {
                 if (node->token->t_type == LOWER_TOKEN)    iprintf(output, "setl al\n");
                 if (node->token->t_type == LARGER_TOKEN)   iprintf(output, "setg al\n");

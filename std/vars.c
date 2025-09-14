@@ -11,12 +11,16 @@ int VRS_variable_bitness(token_t* token, char ptr) {
         case UNKNOWN_NUMERIC_TOKEN:
         case I64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
+        case F64_TYPE_TOKEN:
         case I64_VARIABLE_TOKEN:  
-        case U64_VARIABLE_TOKEN: return 64;
+        case U64_VARIABLE_TOKEN: 
+        case F64_VARIABLE_TOKEN: return 64;
         case I32_TYPE_TOKEN:
         case U32_TYPE_TOKEN:
+        case F32_TYPE_TOKEN:
         case I32_VARIABLE_TOKEN:   
-        case U32_VARIABLE_TOKEN: return 32;
+        case U32_VARIABLE_TOKEN: 
+        case F32_VARIABLE_TOKEN: return 32;
         case I16_TYPE_TOKEN:
         case U16_TYPE_TOKEN:
         case I16_VARIABLE_TOKEN: 
@@ -41,12 +45,14 @@ int VRS_isptr(token_t* token) {
         case I64_VARIABLE_TOKEN:
         case I32_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:
+        case I8_VARIABLE_TOKEN:
         case U64_VARIABLE_TOKEN:
         case U32_VARIABLE_TOKEN:
         case U16_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
-        case CHAR_VALUE_TOKEN:
-        case I8_VARIABLE_TOKEN:    return 0;
+        case F64_VARIABLE_TOKEN:
+        case F32_VARIABLE_TOKEN:
+        case CHAR_VALUE_TOKEN:     return 0;
         case STRING_VALUE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:   return 1;
@@ -73,8 +79,10 @@ int VRS_one_slot(token_t* token) {
         case U16_TYPE_TOKEN:
         case I32_TYPE_TOKEN:
         case U32_TYPE_TOKEN:
+        case F32_TYPE_TOKEN:
         case I64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
+        case F64_TYPE_TOKEN:
         case CHAR_VALUE_TOKEN:
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
@@ -82,8 +90,10 @@ int VRS_one_slot(token_t* token) {
         case U16_VARIABLE_TOKEN:
         case I32_VARIABLE_TOKEN:
         case U32_VARIABLE_TOKEN:
+        case F32_VARIABLE_TOKEN:
         case I64_VARIABLE_TOKEN:
         case U64_VARIABLE_TOKEN:
+        case F64_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN: return 1;
         case STR_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN:
@@ -118,8 +128,10 @@ int VRS_isdecl(token_t* token) {
         case U16_TYPE_TOKEN:
         case I32_TYPE_TOKEN:
         case U32_TYPE_TOKEN:
+        case F32_TYPE_TOKEN:
         case I64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
+        case F64_TYPE_TOKEN:
         case STR_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN:  return 1;
         default:                return 0;
@@ -198,6 +210,8 @@ int VRS_isvariable(token_t* token) {
     switch (token->t_type) {
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:
+        case F64_VARIABLE_TOKEN:
+        case F32_VARIABLE_TOKEN:
         case I64_VARIABLE_TOKEN:
         case I32_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:
@@ -225,6 +239,12 @@ int VRS_issign(token_t* token) {
         case I32_TYPE_TOKEN:
         case I16_TYPE_TOKEN:
         case I8_TYPE_TOKEN:      return 1;
+
+        case F64_VARIABLE_TOKEN:
+        case F32_VARIABLE_TOKEN:
+        case F64_TYPE_TOKEN:
+        case F32_TYPE_TOKEN:     return 0;
+
         case U64_VARIABLE_TOKEN:
         case U32_VARIABLE_TOKEN:
         case U16_VARIABLE_TOKEN:
@@ -232,7 +252,7 @@ int VRS_issign(token_t* token) {
         case U64_TYPE_TOKEN:
         case U32_TYPE_TOKEN:
         case U16_TYPE_TOKEN:
-        case U8_TYPE_TOKEN:     return 0;
+        case U8_TYPE_TOKEN:      return 0;
         default: return 1;
     }
 }
@@ -256,5 +276,16 @@ int VRS_is_unpredicted(token_t* token) {
         case WHILE_TOKEN:
         case SWITCH_TOKEN: return 1;
         default:           return 0;
+    }
+}
+
+int VRS_is_float(token_t* token) {
+    if (!token) return 0;
+    switch (token->t_type) {
+        case F64_VARIABLE_TOKEN:
+        case F32_VARIABLE_TOKEN:
+        case F64_TYPE_TOKEN:
+        case F32_TYPE_TOKEN:    return 1;
+        default:                return 0;
     }
 }

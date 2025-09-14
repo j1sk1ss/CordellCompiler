@@ -204,6 +204,6 @@ static int _find_declarations(ast_node_t* r) {
 }
 
 int OPT_varinline(syntax_ctx_t* ctx) {
-    _find_declrations(ctx->r);
+    _find_declarations(ctx->r);
     return 1;
 }

@@ -22,12 +22,14 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
         case ASSIGN_TOKEN:       g->assign(node, output, ctx, g);    break;
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
-        case I64_VARIABLE_TOKEN:
-        case U64_VARIABLE_TOKEN:
-        case I32_VARIABLE_TOKEN:
-        case U32_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:
         case U16_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case F32_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
+        case F64_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: 
         case UNKNOWN_NUMERIC_TOKEN:

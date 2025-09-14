@@ -8,27 +8,31 @@ static ast_node_t* _navigation_handler(token_t** curr, syntax_ctx_t* ctx, parser
         case OPEN_BLOCK_TOKEN:
         case CLOSE_BLOCK_TOKEN:     return p->scope(curr, ctx, p);
         case STR_TYPE_TOKEN:
-        case I32_TYPE_TOKEN:
+        case F32_TYPE_TOKEN:
+        case F64_TYPE_TOKEN:
         case I8_TYPE_TOKEN:
-        case I64_TYPE_TOKEN:
         case I16_TYPE_TOKEN:      
-        case U32_TYPE_TOKEN:
+        case I32_TYPE_TOKEN:
+        case I64_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
-        case U64_TYPE_TOKEN:
-        case U16_TYPE_TOKEN:        return p->vardecl(curr, ctx, p);
+        case U16_TYPE_TOKEN:
+        case U32_TYPE_TOKEN:
+        case U64_TYPE_TOKEN:        return p->vardecl(curr, ctx, p);
         case SWITCH_TOKEN:          return p->switchstmt(curr, ctx, p);
         case IF_TOKEN:              
         case WHILE_TOKEN:           return p->condop(curr, ctx, p);
-        case I32_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case I8_VARIABLE_TOKEN:
-        case I64_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:
-        case U32_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case F32_VARIABLE_TOKEN:
+        case F64_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
-        case U64_VARIABLE_TOKEN:
         case U16_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
         case UNKNOWN_STRING_TOKEN: 
         case UNKNOWN_NUMERIC_TOKEN: return p->expr(curr, ctx, p);
         case SYSCALL_TOKEN:         return p->syscall(curr, ctx, p);

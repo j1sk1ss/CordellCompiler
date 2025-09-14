@@ -39,14 +39,16 @@ static const markup_token_t _markups[] = {
     { .value = NEGATIVE_COMMAND,       .type = NEGATIVE_TOKEN      },
 
     /* Variable tokens. */
-    { .value = LONG_VARIABLE,          .type = I64_TYPE_TOKEN      },
-    { .value = INT_VARIABLE,           .type = I32_TYPE_TOKEN      },
-    { .value = SHORT_VARIABLE,         .type = I16_TYPE_TOKEN      },
-    { .value = CHAR_VARIABLE,          .type = I8_TYPE_TOKEN       },
-    { .value = ULONG_VARIABLE,         .type = U64_TYPE_TOKEN      },
-    { .value = UINT_VARIABLE,          .type = U32_TYPE_TOKEN      },
-    { .value = USHORT_VARIABLE,        .type = U16_TYPE_TOKEN      },
-    { .value = UCHAR_VARIABLE,         .type = U8_TYPE_TOKEN       },
+    { .value = F64_VARIABLE,           .type = F64_TYPE_TOKEN      },
+    { .value = F32_VARIABLE,           .type = F32_TYPE_TOKEN      },
+    { .value = I64_VARIABLE,           .type = I64_TYPE_TOKEN      },
+    { .value = I32_VARIABLE,           .type = I32_TYPE_TOKEN      },
+    { .value = I16_VARIABLE,           .type = I16_TYPE_TOKEN      },
+    { .value = I8_VARIABLE,            .type = I8_TYPE_TOKEN       },
+    { .value = U64_VARIABLE,           .type = U64_TYPE_TOKEN      },
+    { .value = U32_VARIABLE,           .type = U32_TYPE_TOKEN      },
+    { .value = U16_VARIABLE,           .type = U16_TYPE_TOKEN      },
+    { .value = U8_VARIABLE,            .type = U8_TYPE_TOKEN       },
     { .value = STR_VARIABLE,           .type = STR_TYPE_TOKEN      },
     { .value = ARR_VARIABLE,           .type = ARRAY_TYPE_TOKEN    },
 
@@ -174,12 +176,14 @@ _f_remove_token:
             case EXFUNC_TOKEN:
             case I8_TYPE_TOKEN:
             case U8_TYPE_TOKEN:
-            case I32_TYPE_TOKEN:
-            case U32_TYPE_TOKEN:
-            case I64_TYPE_TOKEN:
-            case U64_TYPE_TOKEN:
             case I16_TYPE_TOKEN:
             case U16_TYPE_TOKEN:
+            case I32_TYPE_TOKEN:
+            case U32_TYPE_TOKEN:
+            case F32_TYPE_TOKEN:
+            case I64_TYPE_TOKEN:
+            case U64_TYPE_TOKEN:
+            case F64_TYPE_TOKEN:
             case STR_TYPE_TOKEN:
             case ARRAY_TYPE_TOKEN: {
                 token_t* next = curr->next;
@@ -197,8 +201,10 @@ _f_remove_token:
                         case U8_TYPE_TOKEN:    curr_ctx.ttype = U8_VARIABLE_TOKEN;  break;
                         case I32_TYPE_TOKEN:   curr_ctx.ttype = I32_VARIABLE_TOKEN; break;
                         case U32_TYPE_TOKEN:   curr_ctx.ttype = U32_VARIABLE_TOKEN; break;
+                        case F32_TYPE_TOKEN:   curr_ctx.ttype = F32_VARIABLE_TOKEN; break;
                         case I64_TYPE_TOKEN:   curr_ctx.ttype = I64_VARIABLE_TOKEN; break;
                         case U64_TYPE_TOKEN:   curr_ctx.ttype = U64_VARIABLE_TOKEN; break;
+                        case F64_TYPE_TOKEN:   curr_ctx.ttype = F64_VARIABLE_TOKEN; break;
                         case I16_TYPE_TOKEN:   curr_ctx.ttype = I16_VARIABLE_TOKEN; break;
                         case U16_TYPE_TOKEN:   curr_ctx.ttype = U16_VARIABLE_TOKEN; break;
                         case STR_TYPE_TOKEN:   curr_ctx.ttype = STR_VARIABLE_TOKEN; break;

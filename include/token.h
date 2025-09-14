@@ -40,6 +40,8 @@ typedef enum {
     NEGATIVE_TOKEN,      // not
 
     // Types
+    F64_TYPE_TOKEN,      // f64
+    F32_TYPE_TOKEN,      // f32
     I64_TYPE_TOKEN,      // i64
     I32_TYPE_TOKEN,      // i32
     I16_TYPE_TOKEN,      // i16
@@ -99,6 +101,8 @@ typedef enum {
     OR_TOKEN,            // ||
     
     // Vars
+    F64_VARIABLE_TOKEN,  // f64
+    F32_VARIABLE_TOKEN,  // f32
     I64_VARIABLE_TOKEN,  // i64
     I32_VARIABLE_TOKEN,  // i32
     I16_VARIABLE_TOKEN,  // i16

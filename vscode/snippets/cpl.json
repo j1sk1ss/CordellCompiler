@@ -128,15 +128,25 @@
     "body": "dref",
     "description": "CPL de-reference operation"
   },
+  "CPL Types String": {
+    "prefix": "str",
+    "body": "str",
+    "description": "CPL str type"
+  },
   "CPL Types PTR": {
     "prefix": "ptr",
     "body": "ptr",
     "description": "CPL u64 type"
   },
-  "CPL Types String": {
-    "prefix": "str",
-    "body": "str",
-    "description": "CPL str type"
+  "CPL Types F64": {
+    "prefix": "f64",
+    "body": "f64",
+    "description": "CPL f64 type"
+  },
+  "CPL Types F32": {
+    "prefix": "f32",
+    "body": "f32",
+    "description": "CPL f32 type"
   },
   "CPL Types Long": {
     "prefix": "i64",

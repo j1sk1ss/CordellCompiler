@@ -13,7 +13,8 @@ typedef enum {
     CHAR_COMMENT,
     CHAR_NEWLINE,
     CHAR_BACKSLASH,
-    CHAR_SIGN
+    CHAR_SIGN,
+    CHAR_DOT
 } char_type_t;
 
 static char_type_t _get_char_type(unsigned char ch) {
@@ -21,6 +22,7 @@ static char_type_t _get_char_type(unsigned char ch) {
     else if (ch == '\\')              return CHAR_BACKSLASH;
     else if (str_isdigit(ch))         return CHAR_DIGIT;
     else if (ch == '-' || ch == '+')  return CHAR_SIGN;
+    else if (ch == '.')               return CHAR_DOT;
     else if (ch == '"')               return CHAR_QUOTE;
     else if (ch == '\'')              return CHAR_SING_QUOTE;
     else if (ch == '\n')              return CHAR_NEWLINE;
@@ -60,11 +62,23 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
 
     tkn->t_type = type;
     if (type == UNKNOWN_NUMERIC_TOKEN) {
+        int isfloat = 0;
         unsigned long long val = 0;
-        if (value[0] == '0' && (value[1] == 'x' || value[1] == 'X'))      val = str_strtoull(value + 2, len - 2, 16);
-        else if (value[0] == '0' && (value[1] == 'b' || value[1] == 'B')) val = str_strtoull(value + 2, len - 2, 2);
-        else if (value[0] == '0' && value[1])                             val = str_strtoull(value + 1, len - 1, 8);
-        else                                                              val = str_strtoull(value, len, 10);
+        for (int i = 0; i < len; i++) {
+            if (value[i] == '.') {
+                isfloat = 1;
+                val = str_dob2bits(str_strtod(value, len));
+                break;
+            }
+        }
+
+        if (!isfloat) {
+            if (value[0] == '0' && (value[1] == 'x' || value[1] == 'X'))      val = str_strtoull(value + 2, len - 2, 16);
+            else if (value[0] == '0' && (value[1] == 'b' || value[1] == 'B')) val = str_strtoull(value + 2, len - 2, 2);
+            else if (value[0] == '0' && value[1] && value[1] != '.')          val = str_strtoull(value + 1, len - 1, 8);
+            else                                                              val = str_strtoull(value, len, 10);
+        }
+
         snprintf(tkn->value, TOKEN_MAX_SIZE, "%llu", val);
     }
     else if (type == CHAR_VALUE_TOKEN) {
@@ -160,7 +174,10 @@ token_t* TKN_tokenize(int fd) {
                 if (curr_ctx.ttype == UNKNOWN_STRING_TOKEN && char_type == UNKNOWN_NUMERIC_TOKEN) {
                     char_type = UNKNOWN_STRING_TOKEN;
                 }
-                else if (curr_ctx.ttype == UNKNOWN_NUMERIC_TOKEN && (char_type == UNKNOWN_STRING_TOKEN || ct == CHAR_SIGN)) {
+                else if (
+                    curr_ctx.ttype == UNKNOWN_NUMERIC_TOKEN && 
+                    (char_type == UNKNOWN_STRING_TOKEN || ct == CHAR_SIGN || ct == CHAR_DOT)
+                ) {
                     char_type = UNKNOWN_NUMERIC_TOKEN;
                 }
             }

@@ -29,8 +29,10 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
             break;
             case I8_VARIABLE_TOKEN:
             case U8_VARIABLE_TOKEN:
+            case F64_VARIABLE_TOKEN:
             case I64_VARIABLE_TOKEN:
             case U64_VARIABLE_TOKEN:
+            case F32_VARIABLE_TOKEN:
             case I32_VARIABLE_TOKEN:
             case U32_VARIABLE_TOKEN:
             case I16_VARIABLE_TOKEN:
@@ -91,14 +93,16 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
         switch (node->token->t_type) {
             case UNKNOWN_NUMERIC_TOKEN: {
                 int value = str_atoi(node->token->value);
-                if (value) iprintf(output, "mov rax, %d\n", value);
+                if (value) iprintf(output, "mov rax, %s\n", node->token->value);
                 else iprintf(output, "xor rax, rax\n");
                 break;
             }
+            case F64_VARIABLE_TOKEN:
             case I64_VARIABLE_TOKEN:
             case U64_VARIABLE_TOKEN:
                 iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
             break;
+            case F32_VARIABLE_TOKEN:
             case I32_VARIABLE_TOKEN:
             case U32_VARIABLE_TOKEN:
                 iprintf(output, "mov eax, %s\n", GET_ASMVAR(node));
