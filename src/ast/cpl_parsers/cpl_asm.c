@@ -35,6 +35,7 @@ ast_node_t* cpl_parse_asm(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
         }
     }
 
+    forward_token(curr, 1);
     AST_add_node(node, body);
     return node;
 }

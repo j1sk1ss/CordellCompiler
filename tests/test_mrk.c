@@ -24,8 +24,15 @@ int main(int argc, char* argv[]) {
     token_t* h = tkn;
     while (h) {
         printf(
-            "glob=%i, line=%i, ptr=%i, ro=%i, type=%i, data=%s\n", 
-            h->vinfo.glob, h->lnum, h->vinfo.ptr, h->vinfo.ro, h->t_type, h->value
+            "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
+            h->vinfo.glob ? "glob " : "", 
+            h->lnum, 
+            h->t_type, 
+            h->value,
+            h->vinfo.ptr  ? "ptr "  : "", 
+            h->vinfo.ro   ? "ro "   : "",
+            h->vinfo.dref ? "dref " : "",
+            h->vinfo.ref  ? "ref "  : ""
         );
         h = h->next;
     }
@@ -35,8 +42,15 @@ int main(int argc, char* argv[]) {
     h = tkn;
     while (h) {
         printf(
-            "glob=%i, line=%i, ptr=%i, ro=%i, type=%i, data=%s\n", 
-            h->vinfo.glob, h->lnum, h->vinfo.ptr, h->vinfo.ro, h->t_type, h->value
+            "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
+            h->vinfo.glob ? "glob " : "", 
+            h->lnum, 
+            h->t_type, 
+            h->value,
+            h->vinfo.ptr  ? "ptr "  : "", 
+            h->vinfo.ro   ? "ro "   : "",
+            h->vinfo.dref ? "dref " : "",
+            h->vinfo.ref  ? "ref "  : ""
         );
         h = h->next;
     }
@@ -46,8 +60,8 @@ int main(int argc, char* argv[]) {
     h = tkn;
     while (h) {
         printf(
-            "glob=%i, line=%i, type=%i, data=[%s], %s%s%s%s\n", 
-            h->vinfo.glob, 
+            "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
+            h->vinfo.glob ? "glob " : "", 
             h->lnum, 
             h->t_type, 
             h->value,

@@ -97,7 +97,36 @@ static int _register_var(int size, int offset, const char* name, short s_id, rec
     return 1;
 }
 
+static void _clean_by_sid(short s_id, stack_map_t* stack, recalcoff_ctx_t* ctx) {
+    print_debug("_clean_by_sid(s_id=%i)", s_id);
+
+    def_t* h = ctx->h;
+    def_t* prev = NULL;
+
+    while (h) {
+        def_t* next = h->next;
+        if (h->s_id != s_id) prev = h;
+        else {
+            if (!prev) ctx->h = h->next;
+            else prev->next = h->next;
+
+            stack_map_free(h->offset, h->size, stack);
+            mm_free(h);
+
+            def_t* cur = ctx->h;
+            while (cur) {
+                _remove_owner(h->name, s_id, cur);
+                cur = cur->next;
+            }
+        }
+
+        h = next;
+    }
+}
+
 static int _unregister_var(const char* name, short s_id, recalcoff_ctx_t* ctx) {
+    print_debug("_unregister_var(name=%s, s_id=%i)", name, s_id);
+
     def_t* h = ctx->h;
     def_t* prev = NULL;
 
@@ -107,9 +136,7 @@ static int _unregister_var(const char* name, short s_id, recalcoff_ctx_t* ctx) {
             if (!prev) ctx->h = h->next;
             else prev->next = h->next;
 
-            def_t* tmp = h->next;
             mm_free(h);
-            h = tmp;
 
             def_t* cur = ctx->h;
             while (cur) {
@@ -204,12 +231,13 @@ static int _recalc_offs(ast_node_t* r, stack_map_t* stack, recalcoff_ctx_t* rctx
     scope_elem_t el;
     scope_top(&ctx->scopes.stack, &el);
     int offset = el.id >= 0 ? el.offset : 8;
-    stack_map_move(offset, stack);
 
     for (ast_node_t* t = r; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, offset);
+            scope_push(&ctx->scopes.stack, t->info.s_id, offset);
             _recalc_offs(t->child, stack, rctx, ctx);
+            int scvars = scope_id_top(&ctx->scopes.stack);
+            _clean_by_sid(scvars, stack, rctx);
             scope_pop(&ctx->scopes.stack);
             continue;
         }
@@ -220,9 +248,10 @@ static int _recalc_offs(ast_node_t* r, stack_map_t* stack, recalcoff_ctx_t* rctx
                 unreg_var = 0;
                 def_t* vh = rctx->h;
                 while (vh) {
+                    def_t* next = vh->next;
                     int is_used = 0, is_ref = 0;
                     _find_usage(t, vh, &is_used, &is_ref);
-                    if (!is_used) {
+                    if (!is_used && t->child->info.s_id <= vh->s_id) {
                         int foffset = vh->offset, fsize = vh->size;
                         print_debug("Try to free %s, size=%i, off=%i", vh->name, vh->size, vh->offset);
                         if (_unregister_var(vh->name, vh->s_id, rctx)) {
@@ -232,7 +261,7 @@ static int _recalc_offs(ast_node_t* r, stack_map_t* stack, recalcoff_ctx_t* rctx
                         }
                     }
                     
-                    vh = vh->next;
+                    vh = next;
                 }
             } while (unreg_var);
             

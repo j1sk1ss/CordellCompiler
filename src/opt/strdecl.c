@@ -92,6 +92,7 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
             t->token->t_type     = STR_VARIABLE_TOKEN;
             t->token->vinfo.ro   = 1;
             t->token->vinfo.glob = 1;
+            t->token->vinfo.ref  = 1;
         }
 
         if (VRS_is_control_change(t->token)) _find_string(t->child, ctx);

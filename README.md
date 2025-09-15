@@ -55,103 +55,98 @@ Rules of token generation are simple. Here is the list of events, when we cut li
 - If we in token and we met a different character type (`i32` != `i8`, `i8` != `delim`, `delim` != `comma` and etc.).
 
 Now lets take a look on work example, where we translate this text:
-```
-This is sorce file for token generator!
-I'm im i:m "squirrel is climbing" \\ // !!!
-"''" '""' "'"' '"''""''"' 123asd123asd123asd
-Over there! Over there! Over there! 
-In the beauty of the Lilies Christ was born across the sea
-with the glory in his bossom that transfigures you and me
-As he died to make man holy, Let us die to make man free!
-While God is marching on!
+```CPL
+{
+    extern exfunc printf;
+    start(i64 argc, ptr u64 argv) {
+        printf("God Bless America! Land that I love! Stand beside her and guide her\nThrough the night with the light from above!")
+        exit 0;
+    }
+}
 ```
 
 into a list of the tokens:
 ```
-glob=0, line=0, ptr=0, ro=0, type=2, data=This
-glob=0, line=0, ptr=0, ro=0, type=2, data=is
-glob=0, line=0, ptr=0, ro=0, type=2, data=sorce
-glob=0, line=0, ptr=0, ro=0, type=2, data=file
-glob=0, line=0, ptr=0, ro=0, type=2, data=for
-glob=0, line=0, ptr=0, ro=0, type=2, data=token
-glob=0, line=0, ptr=0, ro=0, type=2, data=generator
-glob=0, line=1, ptr=0, ro=0, type=0, data=!
-glob=0, line=1, ptr=0, ro=0, type=2, data=I
-glob=0, line=4, ptr=0, ro=0, type=63, data=m im i:m squirrel is climbing \\ // !!!
-    123asd123asd123asd
-Over there! Over there! Over there! 
-In the beauty of the Lilies  ...
-glob=0, line=6, ptr=0, ro=0, type=63, data=Christ was born across the sea
-with the glory in his bossom that transfigures you and me
-As he died to make man holy, Let us die
+line=1, type=1, data=[{], 
+line=1, type=2, data=[extern], 
+line=1, type=2, data=[exfunc], 
+line=1, type=2, data=[printf], 
+line=2, type=7, data=[;], 
+line=2, type=2, data=[start], 
+line=2, type=1, data=[(], 
+line=2, type=2, data=[i64], 
+line=2, type=2, data=[argc], 
+line=2, type=8, data=[,], 
+line=2, type=2, data=[ptr], 
+line=2, type=2, data=[u64], 
+line=2, type=2, data=[argv], 
+line=2, type=1, data=[)], 
+line=3, type=1, data=[{], 
+line=3, type=2, data=[printf], 
+line=3, type=1, data=[(], 
+glob line=3, type=84, data=[God Bless America! Land that I love! Stand beside her and guide her
+Through the night with the light from above!], 
+line=4, type=1, data=[)], 
+line=4, type=2, data=[exit], 
+glob line=4, type=3, data=[0], 
+line=5, type=7, data=[;], 
+line=6, type=1, data=[}],
 ```
 
 ## Tokens markup
 In this section, we must label the tokens with their base types. For example, variables must be labeled as variables, functions as function definitions, function calls as calls, etc. In `i16`, in this module, we complete the token generation with the final type assignment. An example of how it works is below:
 ```
-glob=0, line=1, ptr=0, ro=0, type=1, data={
-glob=0, line=1, ptr=0, ro=0, type=2, data=from
-glob=0, line=1, ptr=0, ro=0, type=61, data=string.cpl
-glob=0, line=1, ptr=0, ro=0, type=2, data=import
-glob=0, line=1, ptr=0, ro=0, type=2, data=strlen
-glob=0, line=2, ptr=0, ro=0, type=7, data=;
-glob=0, line=3, ptr=0, ro=0, type=2, data=function
-glob=0, line=3, ptr=0, ro=0, type=2, data=putc
-glob=0, line=3, ptr=0, ro=0, type=2, data=i8
-glob=0, line=3, ptr=0, ro=0, type=2, data=sym
-glob=0, line=3, ptr=0, ro=0, type=7, data=;
-glob=0, line=4, ptr=0, ro=0, type=1, data={
-glob=0, line=4, ptr=0, ro=0, type=2, data=return
-glob=1, line=4, ptr=0, ro=0, type=3, data=1
-glob=0, line=5, ptr=0, ro=0, type=7, data=;
-glob=0, line=6, ptr=0, ro=0, type=1, data=}
-...
-glob=0, line=9, ptr=0, ro=0, type=1, data=(
-glob=1, line=9, ptr=0, ro=0, type=3, data=1
-glob=0, line=9, ptr=0, ro=0, type=8, data=,
-glob=1, line=9, ptr=0, ro=0, type=3, data=1
-glob=0, line=9, ptr=0, ro=0, type=8, data=,
-glob=0, line=9, ptr=0, ro=0, type=2, data=string
-glob=0, line=9, ptr=0, ro=0, type=8, data=,
-glob=0, line=9, ptr=0, ro=0, type=2, data=strSize
-glob=0, line=9, ptr=0, ro=0, type=1, data=)
-glob=0, line=10, ptr=0, ro=0, type=7, data=;
-glob=0, line=11, ptr=0, ro=0, type=1, data=}
+line=1, type=1, data=[{], 
+line=1, type=2, data=[extern], 
+line=1, type=2, data=[exfunc], 
+line=1, type=2, data=[printf], 
+line=2, type=7, data=[;], 
+line=2, type=2, data=[start], 
+line=2, type=1, data=[(], 
+line=2, type=2, data=[i64], 
+line=2, type=2, data=[argc], 
+line=2, type=8, data=[,], 
+line=2, type=2, data=[ptr], 
+line=2, type=2, data=[u64], 
+line=2, type=2, data=[argv], 
+line=2, type=1, data=[)], 
+line=3, type=1, data=[{], 
+line=3, type=2, data=[printf], 
+line=3, type=1, data=[(], 
+glob line=3, type=84, data=[God Bless America! Land that I love! Stand beside her and guide her
+Through the night with the light from above!], 
+line=4, type=1, data=[)], 
+line=4, type=2, data=[exit], 
+glob line=4, type=3, data=[0], 
+line=5, type=7, data=[;], 
+line=6, type=1, data=[}],
 ```
 
 Result:
 ```
-glob=0, line=1, ptr=0, ro=0, type=13, data={
-glob=0, line=1, ptr=0, ro=0, type=25, data=from
-glob=0, line=1, ptr=0, ro=0, type=61, data=string.cpl
-glob=0, line=1, ptr=0, ro=0, type=24, data=import
-glob=0, line=1, ptr=0, ro=0, type=2, data=strlen
-glob=0, line=2, ptr=0, ro=0, type=7, data=;
-glob=0, line=3, ptr=0, ro=0, type=31, data=function
-glob=0, line=3, ptr=0, ro=0, type=2, data=putc
-glob=0, line=3, ptr=0, ro=0, type=21, data=i8
-glob=0, line=3, ptr=0, ro=0, type=2, data=sym
-glob=0, line=3, ptr=0, ro=0, type=7, data=;
-glob=0, line=4, ptr=0, ro=0, type=13, data={
-glob=0, line=4, ptr=0, ro=0, type=27, data=return
-glob=1, line=4, ptr=0, ro=0, type=3, data=1
-glob=0, line=5, ptr=0, ro=0, type=7, data=;
-glob=0, line=6, ptr=0, ro=0, type=14, data=}
-glob=0, line=7, ptr=0, ro=0, type=31, data=function
-...
-glob=0, line=9, ptr=0, ro=0, type=27, data=return
-glob=0, line=9, ptr=0, ro=0, type=29, data=syscall
-glob=0, line=9, ptr=0, ro=0, type=11, data=(
-glob=1, line=9, ptr=0, ro=0, type=3, data=1
-glob=0, line=9, ptr=0, ro=0, type=8, data=,
-glob=1, line=9, ptr=0, ro=0, type=3, data=1
-glob=0, line=9, ptr=0, ro=0, type=8, data=,
-glob=0, line=9, ptr=0, ro=0, type=2, data=string
-glob=0, line=9, ptr=0, ro=0, type=8, data=,
-glob=0, line=9, ptr=0, ro=0, type=2, data=strSize
-glob=0, line=9, ptr=0, ro=0, type=12, data=)
-glob=0, line=10, ptr=0, ro=0, type=7, data=;
-glob=0, line=11, ptr=0, ro=0, type=14, data=}
+line=1, type=13, data=[{], 
+line=1, type=35, data=[extern], 
+line=1, type=43, data=[exfunc], 
+line=1, type=45, data=[printf], 
+line=2, type=7, data=[;], 
+line=2, type=36, data=[start], 
+line=2, type=11, data=[(], 
+line=2, type=23, data=[i64], 
+line=2, type=74, data=[argc], 
+line=2, type=8, data=[,], 
+line=2, type=27, data=[u64], ptr 
+line=2, type=78, data=[argv], ptr 
+line=2, type=12, data=[)], 
+line=3, type=13, data=[{], 
+line=3, type=46, data=[printf], 
+line=3, type=11, data=[(], 
+glob line=3, type=84, data=[God Bless America! Land that I love! Stand beside her and guide her
+Through the night with the light from above!], 
+line=4, type=12, data=[)], 
+line=4, type=38, data=[exit], 
+glob line=4, type=3, data=[0], 
+line=5, type=7, data=[;], 
+line=6, type=14, data=[}],
 ```
 
 ## AST
@@ -189,23 +184,24 @@ Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler
 2      start(i64 argc, ptr i64 argv) {
 3          str stack_str = "String value";
 4          ptr str str_ptr = stack_str;
-5  
-6          i64 a = 0x0;
-7          i32 b = 0b1;
-8          i16 c = 2;
-9          i8 d  = 'a';
-10 
-11         a = b;
-12         c = b;
-13         d = c;
-14         
-15         d = strptr;
-16         strptr = c;
-17 
-18         arr large_arr[5, i8] = {1,2,256,4,5,6,7,8,9,10};
-19         exit 0;
-20     }
-21 }
+5          ptr u8 str_ptr_ptr = ref str_ptr;
+6  
+7          i64 a = 0x0;
+8          i32 b = 0b1;
+9          i16 c = 2;
+10         i8 d  = 'a';
+11 
+12         a = b;
+13         c = b;
+14         d = c;
+15         
+16         d = strptr;
+17         strptr = c;
+18 
+19         arr large_arr[5, i8] = {1,2,256,4,5,6,7,8,9,10};
+20         exit 0;
+21     }
+22 }
 ```
 
 into the `AST`:
@@ -290,12 +286,192 @@ Additional examples of semantic check can be found [here](https://github.com/j1s
 - [offsetopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/offsetopt.c)
 - [deadopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadopt.c)
 
-Detailed description of every noted algorithms placed [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/README.md)
+Detailed description of every noted algorithms placed [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/README.md).
 
 # Micro-code generation
-Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/gen/x86_64_nasm_gnu/README.md)
+Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/gen/x86_64_nasm_gnu/README.md). Main examples of microcode generation is `switch` generation, `asm` block generation and float point arithmetic generation.
+
+- `switch`, in comprarision with `if` generates a binary search structure. For example this code below:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        switch argc; {
+            case 1;    { exit 1; }
+            case 100;  { exit 3; }
+            case 1000; { exit 4; }
+            default    { exit 2; }
+        }
+
+        exit 0;
+    }
+}
+```
+
+will invoke generation of next asmx86_64 code:
+```ASM
+section .data
+section .rodata
+section .bss
+section .text
+global _start
+    _start:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 24
+    mov rax, [rbp + 8]
+    mov qword [rbp - 16], rax
+    lea rax, [rbp + 16]
+    mov qword [rbp - 24], rax
+    jmp __end_cases_0__
+
+    __case_1_0__:
+        mov rax, 1
+        mov rdi, 1
+        mov rax, 60
+        syscall
+    jmp __end_switch_0__
+
+    __case_100_0__:
+        mov rax, 100
+        mov rdi, 3
+        mov rax, 60
+        syscall
+    jmp __end_switch_0__
+
+    __case_1000_0__:
+        mov rax, 1000
+        mov rdi, 4
+        mov rax, 60
+        syscall
+    jmp __end_switch_0__
+
+    __default_0__:
+        mov rdi, 2
+        mov rax, 60
+        syscall
+    jmp __end_switch_0__
+
+    __end_cases_0__:
+    mov rax, [rbp - 16]
+    cmp rax, 100
+    jl __case_l_100_0__
+    jg __case_r_100_0__
+    jmp __case_100_0__
+    __case_l_100_0__:
+    cmp rax, 1
+    jl __case_l_1_0__
+    jg __case_r_1_0__
+    jmp __case_1_0__
+    __case_l_1_0__:
+    jmp __default_0__
+    __case_r_1_0__:
+    jmp __default_0__
+    __case_r_100_0__:
+    cmp rax, 1000
+    jl __case_l_1000_0__
+    jg __case_r_1000_0__
+    jmp __case_1000_0__
+    __case_l_1000_0__:
+    jmp __default_0__
+    __case_r_1000_0__:
+    jmp __default_0__
+    
+    __end_switch_0__:
+    mov rdi, 0
+    mov rax, 60
+    syscall
+```
+
+- `asm` block inline assembly code into produced generation without any optimization. For instance this code:
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        i32 a = 0;
+        asm(a) {
+            "mov rax, &a",
+            "xor rax, rax",
+            "mov rax, 0x60",
+            "syscall"
+        }
+
+        exit 0;
+    }
+}
+```
+
+Will inline assembly:
+```ASM
+section .data
+section .rodata
+section .bss
+section .text
+global _start
+_start:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 24
+    mov rax, [rbp + 8]
+    mov qword [rbp - 16], rax
+    lea rax, [rbp + 16]
+    mov qword [rbp - 16], rax
+    mov dword [rbp - 24], 0
+
+    mov rax, [rbp - 24] ; Inlined block
+    xor rax, rax
+    mov rax, 0x60
+    syscall
+
+    mov rdi, 0
+    mov rax, 60
+    syscall
+```
+
+- `float`/`double` arithmetic based on SIMD registers. Main difference here, that we should save `0.01` in `float`/`double` representation, that's why any operation with those values should go through `SIMD` registers. For example: 
+
+```CPL
+{
+    start(i64 argc, ptr u64 argv) {
+        f64 a = 0.001;
+        f64 b = 0.001;
+        f64 c = a + b;
+        exit 0;
+    }
+}
+```
+
+produce next code:
+
+```ASM
+section .data
+section .rodata
+section .bss
+section .text
+global _start
+_start:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 40
+    mov rax, [rbp + 8]
+    mov qword [rbp - 16], rax
+    lea rax, [rbp + 16]
+    mov qword [rbp - 16], rax
+    mov qword [rbp - 24], 4562254508917369341 ; 0.01 
+    mov qword [rbp - 32], 4562254508917369341 ; 0.01
+    mov rbx, [rbp - 24]
+    movq xmm1, rbx ; load first value to SIMD register
+    mov rax, [rbp - 32]
+    movq xmm0, rax ; load second value to SIMD register
+    addsd xmm0, xmm1
+    movq rax, xmm0
+    mov [rbp - 40], rax
+    mov rdi, 0
+    mov rax, 60
+    syscall
+```
 
 # .CPL Documentation
+This is a short version of the language documentation. If you are interested, you can find extended document [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/docs/README.md).
+
 ## EBNF
 ![EBNF](EBNF.png)
 
