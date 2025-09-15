@@ -27,11 +27,11 @@
             switch c; {
                 case '['; {
                     stack[stackptr] = pos;
-                    stackptr = stackptr + 1;
+                    stackptr += 1;
                 }
                 case ']'; {
                     if stackptr > 0; {
-                        stackptr = stackptr - 1;
+                        stackptr -= 1;
                         i32 matchpos = stack[stackptr];
                         bracketmap[pos] = matchpos;
                         bracketmap[matchpos] = pos;
@@ -39,7 +39,7 @@
                 }
             }
             
-            pos = pos + 1;
+            pos += 1;
         }
         
         i32 pc = 0;
@@ -48,35 +48,35 @@
         while pc < codelength; {
             switch code[pc]; {
                 case '>'; {
-                    pointer = pointer + 1;
-                    pc = pc + 1;
+                    pointer += 1;
+                    pc += 1;
                 }
                 case '<'; {
-                    pointer = pointer - 1;
-                    pc = pc + 1;
+                    pointer -= 1;
+                    pc += 1;
                 }
                 case '+'; {
-                    tape[pointer] = tape[pointer] + 1;
-                    pc = pc + 1;
+                    tape[pointer] += 1;
+                    pc += 1;
                 }
                 case '-'; {
-                    tape[pointer] = tape[pointer] - 1;
-                    pc = pc + 1;
+                    tape[pointer] -= 1;
+                    pc += 1;
                 }
                 case '.'; {
                     putc(tape[pointer]);
-                    pc = pc + 1;
+                    pc += 1;
                 }
                 case ','; {
                     gets(ref tape[pointer], 1);
-                    pc = pc + 1;
+                    pc += 1;
                 }
                 case '['; {
                     if not tape[pointer]; {
                         pc = bracketmap[pc];
                     }
                     else {
-                        pc = pc + 1;
+                        pc += 1;
                     }
                 }
                 case ']'; {
@@ -84,11 +84,11 @@
                         pc = bracketmap[pc];
                     }
                     else {
-                        pc = pc + 1;
+                        pc += 1;
                     }
                 }
                 default {
-                    pc = pc + 1;
+                    pc += 1;
                 }
             }
         }

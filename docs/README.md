@@ -3,11 +3,11 @@
 1. **Introduction**  
    1.1. [Overview](#overview)  
    1.2. [Hello, World! example](#hello-world-example)  
-   1.3. [Code conventions](#code-conventions)  
+   1.3. [Code conventions](#code-conventions)
 2. **Types**  
    2.1. [Primitives](#primitives)  
    2.2. [Strings and arrays](#strings-and-arrays)  
-   2.3. [Pointers](#pointers)  
+   2.3. [Pointers](#pointers)
 3. **Casting**  
    - [Type casting rules](#casting)  
 4. **Binary operations**  
@@ -21,10 +21,12 @@
    6.3. [switch statement](#switch-statement)  
 7. **Functions and inbuild macros**  
    7.1. [Functions](#functions)  
-   7.2. [Inbuild macros](#inbuild-macros)  
-8. **Ownership rules**  
-   - [Memory ownership model](#ownership-rules)  
-9. **Examples**  
+   7.2. [Inbuild macros](#inbuild-macros)
+8. **Final language syntax**
+   - [EBNF](#ebnf)
+9. **Ownership rules**  
+   - [Memory ownership model](#ownership-rules)
+10. **Examples**  
    - [Practical code samples](#examples)  
 
 # Introduction
@@ -48,8 +50,8 @@ CPL is intended for:
     function strlen(ptr i8 s) => i64 {
         i64 l = 0;
         while dref s; {
-            s = s + 1;
-            l = l + 1;
+            s += 1;
+            l += 1;
         }
 
         return l;
@@ -193,6 +195,7 @@ u8 f = -1;                                            : <= Will produce a warnin
 | `==`      | Equality       |
 | `!=`      | Inequality     |
 | `not`     | Negation       |
+| `+=` `-=` `*=` `/=`    | Assign operations                           |
 | `>` `>=` `<` `<=`      | Comparison                                  |
 | `&&` `\|\|`            | Logic operations (Lazy Evaluations support) |
 | `>>` `<<` `&` `\|` `^` | Bit operations                              |
@@ -204,7 +207,7 @@ Variables live in their declared scopes. You cannot point to variables from an o
 start() {
    ptr u64 p;
    {
-      arr t[10; i32] =;
+      arr t[10; i32];
       p = ref t;                 : <= No warning here, but it still illegal :
    }                             : <= array "t" died here                   :
 
@@ -285,7 +288,7 @@ There is two inbuild functions that can be usefull for system programmer. First 
 - `syscall` function called similar to default user functions, but can handler variate number of arguments. For example here is the write syscall:
 ```CPL
 str msg = "Hello, World!";
-syscall(1, 1, msg, strlen(msg));
+syscall(1, 1, ref msg, strlen(ref msg));
 ```
 
 - `asm` - Second usefull function that allows inline assembly code. Main feature here is variables line, where you can pass any number of arguments, then use them in assembly code block via `&` symbol.
@@ -300,6 +303,9 @@ asm(a, ret) {
 ```
 
 Note: Inlined assembly block don't optimized by any alghorithms.
+
+# EBNF
+![EBNF](EBNF.png)
 
 # Ownership rules
 ## Ownership model vs Rust
@@ -363,7 +369,7 @@ CPL introduces a lightweight ownership model that resembles Rust’s borrow chec
             switch c; {
                 case '['; {
                     stack[stackptr] = pos;
-                    stackptr = stackptr + 1;
+                    stackptr += 1;
                 }
                 case ']'; {
                     if stackptr > 0; {
@@ -384,35 +390,35 @@ CPL introduces a lightweight ownership model that resembles Rust’s borrow chec
         while pc < codelength; {
             switch code[pc]; {
                 case '>'; {
-                    pointer = pointer + 1;
-                    pc = pc + 1;
+                    pointer += 1;
+                    pc += 1;
                 }
                 case '<'; {
-                    pointer = pointer - 1;
-                    pc = pc + 1;
+                    pointer -= 1;
+                    pc += 1;
                 }
                 case '+'; {
-                    tape[pointer] = tape[pointer] + 1;
-                    pc = pc + 1;
+                    tape[pointer] += 1;
+                    pc += 1;
                 }
                 case '-'; {
-                    tape[pointer] = tape[pointer] - 1;
-                    pc = pc + 1;
+                    tape[pointer] -= 1;
+                    pc += 1;
                 }
                 case '.'; {
                     putc(tape[pointer]);
-                    pc = pc + 1;
+                    pc += 1;
                 }
                 case ','; {
                     gets(ref tape[pointer], 1);
-                    pc = pc + 1;
+                    pc += 1;
                 }
                 case '['; {
                     if not tape[pointer]; {
                         pc = bracketmap[pc];
                     }
                     else {
-                        pc = pc + 1;
+                        pc += 1;
                     }
                 }
                 case ']'; {
@@ -420,11 +426,11 @@ CPL introduces a lightweight ownership model that resembles Rust’s borrow chec
                         pc = bracketmap[pc];
                     }
                     else {
-                        pc = pc + 1;
+                        pc += 1;
                     }
                 }
                 default {
-                    pc = pc + 1;
+                    pc += 1;
                 }
             }
         }

@@ -63,7 +63,7 @@ static int _find_op(ast_node_t* root, int* fold) {
                     if (!r_val) continue;
                     result = l_val / r_val; 
                 break;
-                default: break;
+                default: goto _unsupported_operand;
             }
 
             *fold = 1;
@@ -73,6 +73,7 @@ static int _find_op(ast_node_t* root, int* fold) {
             t->token->vinfo.glob = 1;
             AST_unload(t->child);
             t->child = NULL;
+_unsupported_operand: {}
         }
 
         _find_op(t->child, fold);

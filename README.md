@@ -180,101 +180,37 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
 
 Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/ast/cpl_parsers/README.md). Instead of wasting space, lets take a look on the visual example with translation of this code below:
 ```CPL
-1  {
-2      start(i64 argc, ptr i64 argv) {
-3          str stack_str = "String value";
-4          ptr str str_ptr = stack_str;
-5          ptr u8 str_ptr_ptr = ref str_ptr;
-6  
-7          i64 a = 0x0;
-8          i32 b = 0b1;
-9          i16 c = 2;
-10         i8 d  = 'a';
-11 
-12         a = b;
-13         c = b;
-14         d = c;
-15         
-16         d = strptr;
-17         strptr = c;
-18 
-19         arr large_arr[5, i8] = {1,2,256,4,5,6,7,8,9,10};
-20         exit 0;
-21     }
-22 }
+{
+    extern exfunc printf;
+    start(i64 argc, ptr u64 argv) {
+        printf("God Bless America! Land that I love! Stand beside her and guide her\nThrough the night with the light from above!")
+        exit 0;
+    }
+}
 ```
 
 into the `AST`:
 ```
 [ block ]
     { scope, id=1 }
-        { scope, id=2 }
-            [str] (t=22, size=16, off=16, s_id=0)
-                [stack_str] (t=60, size=16, off=16, s_id=2)
-                [String value] (t=62, size=0, off=0, s_id=0)
-            [str] (t=22, size=16, ptr, off=40, s_id=0)
-                [str_ptr] (t=60, size=8, ptr, off=24, s_id=2)
-                [stack_str] (t=60, size=16, off=16, s_id=2)
-            [i64] (t=18, size=8, off=48, s_id=0)
-                [a] (t=56, size=8, off=48, s_id=2)
-                [0] (t=3, size=0, off=0, s_id=0, glob)
-            [i32] (t=19, size=4, off=56, s_id=0)
-                [b] (t=57, size=4, off=56, s_id=2)
-                [1] (t=3, size=0, off=0, s_id=0, glob)
-            [i16] (t=20, size=2, off=64, s_id=0)
-                [c] (t=58, size=2, off=64, s_id=2)
-                [2] (t=3, size=0, off=0, s_id=0, glob)
-            [i8] (t=21, size=1, off=72, s_id=0)
-                [d] (t=59, size=1, off=72, s_id=2)
-                [a] (t=63, size=8, off=48, s_id=2)
-            [=] (t=44, size=0, off=0, s_id=0)
-                [a] (t=56, size=8, off=48, s_id=2)
-                [b] (t=57, size=4, off=56, s_id=2)
-            [=] (t=44, size=0, off=0, s_id=0)
-                [c] (t=58, size=2, off=64, s_id=2)
-                [b] (t=57, size=4, off=56, s_id=2)
-            [=] (t=44, size=0, off=0, s_id=0)
-                [d] (t=59, size=1, off=72, s_id=2)
-                [c] (t=58, size=2, off=64, s_id=2)
-            [=] (t=44, size=0, off=0, s_id=0)
-                [d] (t=59, size=1, off=72, s_id=2)
-                [strptr] (t=2, size=0, off=0, s_id=0)
-            [=] (t=44, size=0, off=0, s_id=0)
-                [strptr] (t=2, size=0, off=0, s_id=0)
-                [c] (t=58, size=2, off=64, s_id=2)
-            [arr] (t=23, size=16, off=88, s_id=0)
-                [large_arr] (t=61, size=16, off=0, s_id=0)
-                [5] (t=3, size=0, off=0, s_id=0, glob)
-                [i8] (t=21, size=0, off=0, s_id=0)
-                [1] (t=3, size=0, off=0, s_id=0, glob)
-                [2] (t=3, size=0, off=0, s_id=0, glob)
-                [256] (t=3, size=0, off=0, s_id=0, glob)
-                [4] (t=3, size=0, off=0, s_id=0, glob)
-                [5] (t=3, size=0, off=0, s_id=0, glob)
-                [6] (t=3, size=0, off=0, s_id=0, glob)
-                [7] (t=3, size=0, off=0, s_id=0, glob)
-                [8] (t=3, size=0, off=0, s_id=0, glob)
-                [9] (t=3, size=0, off=0, s_id=0, glob)
-                [10] (t=3, size=0, off=0, s_id=0, glob)
-            [exit] (t=28, size=0, off=0, s_id=0)
-                [0] (t=3, size=0, off=0, s_id=0, glob)
+        [extern] (t=35, size=0, off=0, s_id=0)
+            [printf] (t=45, size=0, off=0, s_id=0, ext)
+        [start] (t=36, size=0, off=0, s_id=0)
+            [i64] (t=23, size=8, off=8, s_id=0)
+                [argc] (t=74, size=8, off=8, s_id=1)
+            [u64] (t=27, size=8, ptr, off=16, s_id=0)
+                [argv] (t=78, size=8, ptr, off=16, s_id=1)
+            [ block ]
+                { scope, id=2 }
+                    [printf] (t=46, size=0, off=0, s_id=0, ext)
+                        [God Bless America! Land that I love! Stand beside her and guide her
+Through the night with the light from above!] (t=84, size=0, off=0, s_id=0, glob)
+                    [exit] (t=38, size=0, off=0, s_id=0)
+                        [0] (t=3, size=0, off=0, s_id=0, glob)
 ```
 
 # Semantic check
-Semantic module takes care under size, operation and commands correctness. In other words, this module check if code `well-typed`. For instance code above will generate next list of warnings:
-```
-[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 6. Different size [32] (b) and [64] (1). Did you expect this?
-[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 7. Different size [16] (c) and [64] (2). Did you expect this?
-[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 10. Different size [64] (a) and [32] (b). Did you expect this?
-[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 11. Different size [16] (c) and [32] (b). Did you expect this?
-[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 12. Different size [8] (d) and [16] (c). Did you expect this?
-[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 14. Different size [8] (d) and [64] (strptr). Did you expect this?
-[WARN] (src/prep/semantic.c:21) Danger shadow type cast at line 15. Different size [64] (strptr) and [16] (c). Did you expect this?
-[WARN] (src/prep/semantic.c:73) Value 256 at line [17] too large for array [large_arr]!
-[WARN] (src/prep/semantic.c:83) Array [large_arr] larger than expected size 10 > 5!
-```
-
-Additional examples of semantic check can be found [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/sem/README.md)
+Semantic module takes care under size, operation and commands correctness. In other words, this module check if code `well-typed`. Additional examples of semantic check can be found [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/sem/README.md)
 
 # Optimization
 - [deadfunc](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadfunc.c)
@@ -469,11 +405,8 @@ _start:
     syscall
 ```
 
-# .CPL Documentation
+# Short .CPL Documentation
 This is a short version of the language documentation. If you are interested, you can find extended document [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/docs/README.md).
-
-## EBNF
-![EBNF](EBNF.png)
 
 ## Program Structure
 Every program begins with the `start` entrypoint and ends with the `exit [return_code];` statement.
@@ -481,10 +414,9 @@ Every program begins with the `start` entrypoint and ends with the `exit [return
 ```CPL
 1  {
 2      start() {
-3          : ... :
-4          exit 0;
-5      }
-6  }
+3          exit 0;
+4      }
+5  }
 ```
 
 Also every program can contain `pre-implemented` code blocks and data segments:
@@ -528,7 +460,7 @@ The following types are supported:
 12      ptr u64 msg_msg_ptr = ref msg_ptr;
 13
 14      arr array[10, i32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-15      arr array1[10, u64] =;
+15      arr array1[10, u64];
 16 }
 ```
 
@@ -545,6 +477,7 @@ Basic arithmetic and logical operations are supported:
 | `==`      | Equality       |
 | `!=`      | Inequality     |
 | `not`     | Negation       |
+| `+=` `-=` `*=` `/=`    | Assign operations                           |
 | `>` `>=` `<` `<=`      | Comparison                                  |
 | `&&` `\|\|`            | Logic operations (Lazy Evaluations support) |
 | `>>` `<<` `&` `\|` `^` | Bit operations                              |
@@ -597,7 +530,7 @@ Basic arithmetic and logical operations are supported:
 Functions are declared using the `function` keyword.
 
 ```CPL
-[modifier] function [name]([type1] [name1] [= def_val], [type2] [name2] [= def_val], ...) => [ret_type] {
+[modifier] function [name]([type1] [name1] [= def_val], [type2] [name2] [= def_val], ...) [=> ret_type] {
     : function body :
     return something;
 }
@@ -706,14 +639,14 @@ If you want see more examples, please look into the folder `examples` or `tests`
 8          i32 isNegative = 0;
 9          if num < 0; {
 10             isNegative = 1;
-11             num = num * -1;
+11             num *= -1;
 12         }
 13 
 14         while num > 0; {
 15             tmp = num % 10;
 16             buffer[index] = tmp + 48;
-17             index = index - 1;
-18             num = num / 10;
+17             index -= 1;
+18             num /= 10;
 19         }
 20 
 21         if isNegative; {
@@ -724,7 +657,7 @@ If you want see more examples, please look into the folder `examples` or `tests`
 26     }
 27 
 28     start() {
-29         arr buff[32, i8] =;
+29         arr buff[32, i8];
 30         itoa(buff, 10, 1234567890)
 31         printf("%s", buff);
 32         exit 0;
@@ -748,11 +681,11 @@ If you want see more examples, please look into the folder `examples` or `tests`
 12             a = b;
 13             b = c;
 14             
-15             arr buffer[40, i8] =;
+15             arr buffer[40, i8];
 16             itoa(buffer, 40, c);
 17             prints(buffer, 40);
 18 
-19             count = count + 1;
+19             count += 1;
 20         }
 21 
 22         exit 0;
@@ -771,7 +704,7 @@ If you want see more examples, please look into the folder `examples` or `tests`
 7          i64 index = 0;
 8          while index < size; {
 9              buffer[index] = val;
-10             index = index + 1;
+10             index += 1;
 11         }
 12 
 13         return 1;
@@ -790,7 +723,7 @@ If you want see more examples, please look into the folder `examples` or `tests`
 26                 }
 27 
 28                 curr_mem = curr_mem + _blocks_info[block_index + 1];
-29                 block_index = block_index + 3;
+29                 block_index += 3;
 30             }
 31         }
 32 
@@ -805,7 +738,7 @@ If you want see more examples, please look into the folder `examples` or `tests`
 41                 return 1;
 42             }
 43 
-44             block_index = block_index + 3;
+44             block_index += 3;
 45         }
 46 
 47         return 1;

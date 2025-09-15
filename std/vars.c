@@ -163,6 +163,10 @@ int VRS_isoperand(token_t* token) {
         case LARGEREQ_TOKEN:
         case NCOMPARE_TOKEN:
         case MULTIPLY_TOKEN:
+        case ADDASSIGN_TOKEN:
+        case SUBASSIGN_TOKEN:
+        case MULASSIGN_TOKEN:
+        case DIVASSIGN_TOKEN:
         case BITMOVE_LEFT_TOKEN:
         case BITMOVE_RIGHT_TOKEN:  return 1;
         default:                   return 0;
@@ -190,6 +194,10 @@ int VRS_token_priority(token_t* token) {
         case MULTIPLY_TOKEN:
         case DIVIDE_TOKEN:
         case MODULO_TOKEN:         return 9;
+        case ADDASSIGN_TOKEN:
+        case SUBASSIGN_TOKEN:
+        case MULASSIGN_TOKEN:
+        case DIVASSIGN_TOKEN:
         case ASSIGN_TOKEN:         return 0;
         default:                   return -1;
     }

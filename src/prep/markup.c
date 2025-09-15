@@ -61,6 +61,10 @@ static const markup_token_t _markups[] = {
     { .value = ELSE_COMMAND,           .type = ELSE_TOKEN          },
 
     /* Binary operands. */
+    { .value = ADDASSIGN_STATEMENT,    .type = ADDASSIGN_TOKEN     },
+    { .value = SUBASSIGN_STATEMENT,    .type = SUBASSIGN_TOKEN     },
+    { .value = MULASSIGN_STATEMENT,    .type = MULASSIGN_TOKEN     },
+    { .value = DIVASSIGN_STATEMENT,    .type = DIVASSIGN_TOKEN     },
     { .value = ASSIGN_STATEMENT,       .type = ASSIGN_TOKEN        },
     { .value = COMPARE_STATEMENT,      .type = COMPARE_TOKEN       },
     { .value = NCOMPARE_STATEMENT,     .type = NCOMPARE_TOKEN      },

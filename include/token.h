@@ -85,6 +85,10 @@ typedef enum {
     MULTIPLY_TOKEN,      // *
     DIVIDE_TOKEN,        // /
     MODULO_TOKEN,        // %
+    ADDASSIGN_TOKEN,     // +=
+    SUBASSIGN_TOKEN,     // -=
+    MULASSIGN_TOKEN,     // *=
+    DIVASSIGN_TOKEN,     // /=
     ASSIGN_TOKEN,        // =
     COMPARE_TOKEN,       // ==
     NCOMPARE_TOKEN,      // !=

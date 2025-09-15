@@ -72,6 +72,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
             iprintf(output, "L_end_%d:\n", lbl_id);
             break;
         }
+        case ADDASSIGN_TOKEN:
         case PLUS_TOKEN: {
             if (!simd) iprintf(output, "add rax, rbx\n"); 
             else {
@@ -81,6 +82,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
             
             break;
         }
+        case SUBASSIGN_TOKEN:
         case MINUS_TOKEN: {
             if (!simd) {
                 iprintf(output, "sub rbx, rax\n");
@@ -94,6 +96,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
 
             break;
         }
+        case MULASSIGN_TOKEN:
         case MULTIPLY_TOKEN: {
             if (!simd) iprintf(output, "imul rax, rbx\n");
             else {
@@ -103,6 +106,7 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
 
             break;
         }
+        case DIVASSIGN_TOKEN:
         case DIVIDE_TOKEN: {
             iprintf(output, "xchg rax, rbx\n");
             if (VRS_issign(right->token) && VRS_issign(left->token)) {
@@ -168,5 +172,12 @@ int x86_64_generate_operand(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
         default: break;
     }
 
+    if (
+        node->token->t_type == ADDASSIGN_TOKEN ||
+        node->token->t_type == SUBASSIGN_TOKEN ||
+        node->token->t_type == MULASSIGN_TOKEN ||
+        node->token->t_type == DIVASSIGN_TOKEN
+    ) g->store(left, output, ctx, g);
+    
     return 1;
 }

@@ -57,6 +57,10 @@
 #define ASM_COMMAND             "asm"
 
 // Symbols and statements (Operands)
+#define ADDASSIGN_STATEMENT     "+="
+#define SUBASSIGN_STATEMENT     "-="
+#define MULASSIGN_STATEMENT     "*="
+#define DIVASSIGN_STATEMENT     "/="
 #define ASSIGN_STATEMENT        "="
 #define COMPARE_STATEMENT       "=="
 #define NCOMPARE_STATEMENT      "!="
