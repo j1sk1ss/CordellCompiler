@@ -8,7 +8,7 @@
         i32 a = 0;
         foo(ref a);
 
-        arr array[10, i32] =;
+        arr array[10, i32];
         foo(ref array[0]);
         exit a;
     }

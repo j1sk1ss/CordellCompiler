@@ -38,24 +38,27 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, parse
         }
 
         AST_add_node(node, elem_size_node);
-        forward_token(curr, 3);
+        forward_token(curr, 2);
     }
 
-    int act_size = 0;
-    if (*curr && (*curr)->t_type == OPEN_BLOCK_TOKEN) {
+    if ((*curr)->t_type == ASSIGN_TOKEN) {
         forward_token(curr, 1);
-        while (*curr && (*curr)->t_type != CLOSE_BLOCK_TOKEN) {
-            if ((*curr)->t_type == COMMA_TOKEN) {
-                forward_token(curr, 1);
-                continue;
+        int act_size = 0;
+        if (*curr && (*curr)->t_type == OPEN_BLOCK_TOKEN) {
+            forward_token(curr, 1);
+            while (*curr && (*curr)->t_type != CLOSE_BLOCK_TOKEN) {
+                if ((*curr)->t_type == COMMA_TOKEN) {
+                    forward_token(curr, 1);
+                    continue;
+                }
+
+                ast_node_t* arg = p->expr(curr, ctx, p);
+                if (arg) AST_add_node(node, arg);
+                array_size = MAX(array_size, ++act_size);
             }
 
-            ast_node_t* arg = p->expr(curr, ctx, p);
-            if (arg) AST_add_node(node, arg);
-            array_size = MAX(array_size, ++act_size);
+            forward_token(curr, 1);
         }
-
-        forward_token(curr, 1);
     }
     
     ART_add_info(name_node->token->value, scope_id_top(&ctx->scopes.stack), el_size, array_size, ctx->symtb.arrs); // TODO: ro glob 
