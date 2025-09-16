@@ -31,6 +31,7 @@ ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     
+    node->info.s_id = scope_id_top(&ctx->scopes.stack);
     forward_token(curr, 1);
     if (VRS_isclose(*curr)) {
         return node;

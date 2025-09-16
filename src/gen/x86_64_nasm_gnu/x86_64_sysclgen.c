@@ -21,6 +21,7 @@ int x86_64_generate_start(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
 }
 
 int x86_64_generate_exit(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
+    deallocate_scope_heap(node, output, ctx, g);
     if (VRS_instant_movable(node->child->token)) iprintf(output, "mov rdi, %s\n", GET_ASMVAR(node->child));
     else {
         g->elemegen(node->child, output, ctx, g);

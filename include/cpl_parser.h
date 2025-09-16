@@ -12,7 +12,7 @@
 #include "arrtb.h"
 
 /* cpl_block.c */
-ast_node_t* cpl_parse_block(token_t** curr, syntax_ctx_t* ctx, token_type_t ex, parser_t* p);
+ast_node_t* cpl_parse_block(token_t** curr, syntax_ctx_t* ctx, unsigned long long stop_mask, parser_t* p);
 
 /* cpl_asm.c */
 ast_node_t* cpl_parse_asm(token_t** curr, syntax_ctx_t* ctx, parser_t* p);

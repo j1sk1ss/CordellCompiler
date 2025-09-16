@@ -122,6 +122,7 @@ typedef enum {
     STRING_VALUE_TOKEN,
     CHAR_VALUE_TOKEN
 } token_type_t;
+#define TOKEN_MASK(t) ((unsigned long long)1 << (t))
 
 typedef struct {
     char ro;   /* Is read only flag   */

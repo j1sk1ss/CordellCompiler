@@ -22,7 +22,7 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
     ast_node_t* elems_node   = el_size_node->sibling;
 
     if (name_node->token->vinfo.heap) {
-        print_debug("Heap allocation in scope=%i, [rbp - %i]", name_node->info.s_id, node->info.offset);
+        print_debug("Heap allocation, var=%s in scope=%i, [rbp - %i]", name_node->token->value, name_node->info.s_id, node->info.offset);
         g->elemegen(size_node, output, ctx, g);
         iprintf(output, "push rax\n");
 
