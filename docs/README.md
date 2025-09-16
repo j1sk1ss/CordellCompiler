@@ -110,6 +110,21 @@ start() {
 }
 ```
 
+- **Comments**: Comments can be in one line with start and end symbol `:` and in several lines with same logic.
+```CPL
+: Hello there
+:
+
+:
+Hello there :
+
+: Hello there :
+
+:
+Hello there
+:
+```
+
 # Types
 ## Primitives
 - `f64`, `f32` - double and float; non-floating values are converted to double if used in double operations.

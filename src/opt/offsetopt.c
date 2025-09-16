@@ -1,6 +1,7 @@
 #include <offsetopt.h>
 
 typedef struct def {
+    int         heap;
     int         size;
     int         offset;
     char        name[TOKEN_MAX_SIZE];
@@ -13,10 +14,11 @@ typedef struct {
     def_t* h;
 } recalcoff_ctx_t;
 
-static def_t* _create_def(int size, int offset, const char* name, short s_id) {
+static def_t* _create_def(int size, int offset, const char* name, short s_id, int heap) {
     def_t* def = (def_t*)mm_malloc(sizeof(def_t));
     if (!def) return NULL;
     if (name) str_strncpy(def->name, name, TOKEN_MAX_SIZE);
+    def->heap   = heap;
     def->offset = offset;
     def->size   = size;
     def->s_id   = s_id;
@@ -25,7 +27,7 @@ static def_t* _create_def(int size, int offset, const char* name, short s_id) {
     return def;
 }
 
-static int _add_owner(const char* name, short s_id, def_t* var) {
+static int _add_owner(const char* name, short s_id, int heap, def_t* var) {
     if (!var) return 0;
 
     def_t* h = var->owners;
@@ -34,7 +36,7 @@ static int _add_owner(const char* name, short s_id, def_t* var) {
         h = h->next;
     }
 
-    def_t* owner = _create_def(0, 0, name, s_id);
+    def_t* owner = _create_def(0, 0, name, s_id, heap);
     if (!owner) return 0;
 
     if (!var->owners) {
@@ -73,7 +75,7 @@ static int _remove_owner(const char* name, short s_id, def_t* var) {
     return 0;
 }
 
-static int _register_var(int size, int offset, const char* name, short s_id, recalcoff_ctx_t* ctx) {
+static int _register_var(int size, int offset, const char* name, short s_id, int heap, recalcoff_ctx_t* ctx) {
     def_t* h = ctx->h;
     while (h) {
         if (!str_strcmp(h->name, name)) return 0;
@@ -81,7 +83,7 @@ static int _register_var(int size, int offset, const char* name, short s_id, rec
     }
 
     h = ctx->h;
-    def_t* def = _create_def(size, offset, name, s_id);
+    def_t* def = _create_def(size, offset, name, s_id, heap);
     if (!def) return 0;
 
     if (!h) {
@@ -193,7 +195,7 @@ static int _find_usage(ast_node_t* r, def_t* v, int* used, int* ref) {
 
             if (is_ref) {
                 print_debug("Variable %s.%i owned by %s.%i", v->name, v->s_id, t->child->token->value, t->child->info.s_id);
-                _add_owner(t->child->token->value, t->child->info.s_id, v);
+                _add_owner(t->child->token->value, t->child->info.s_id, t->child->token->vinfo.heap, v);
             }
         }
 
@@ -251,7 +253,7 @@ static int _recalc_offs(ast_node_t* r, stack_map_t* stack, recalcoff_ctx_t* rctx
                     def_t* next = vh->next;
                     int is_used = 0, is_ref = 0;
                     _find_usage(t, vh, &is_used, &is_ref);
-                    if (!is_used && t->child->info.s_id <= vh->s_id) {
+                    if (!is_used && t->child->info.s_id <= vh->s_id && !vh->heap) {
                         int foffset = vh->offset, fsize = vh->size;
                         print_debug("Try to free %s, size=%i, off=%i", vh->name, vh->size, vh->offset);
                         if (_unregister_var(vh->name, vh->s_id, rctx)) {
@@ -270,7 +272,7 @@ static int _recalc_offs(ast_node_t* r, stack_map_t* stack, recalcoff_ctx_t* rctx
             print_debug("Alloc for %s size=%i, off=%i", name->token->value, name->info.size, t->info.offset);
             offset = MAX(offset, t->info.offset);
 
-            _register_var(name->info.size, t->info.offset, name->token->value, name->info.s_id, rctx);
+            _register_var(name->info.size, t->info.offset, name->token->value, name->info.s_id, name->token->vinfo.heap, rctx);
             _change_varoff_scope(t, name->token->value, t->info.offset);
             continue;
         }

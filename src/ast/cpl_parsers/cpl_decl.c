@@ -20,11 +20,17 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, parse
     if ((*curr)->t_type == OPEN_INDEX_TOKEN) {
         forward_token(curr, 1);
 
-        array_size = str_atoi((*curr)->value);
         ast_node_t* size_node = AST_create_node(*curr);
-        if (!size_node) {
-            AST_unload(node);
-            return NULL;
+        if ((*curr)->t_type == UNKNOWN_NUMERIC_TOKEN) {
+            array_size = str_atoi((*curr)->value);
+            if (!size_node) {
+                AST_unload(node);
+                return NULL;
+            }
+        }
+        else {
+            array_size = 1;
+            name_node->token->vinfo.heap = 1;
         }
         
         AST_add_node(node, size_node);

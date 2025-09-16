@@ -130,7 +130,8 @@ typedef struct {
     char ref;  /* Is reference flag   */
     char dref; /* Is dereference flag */
     char ext;  /* Is extern flag      */
-    char neg;  /* Is negative flag */
+    char neg;  /* Is negative flag    */
+    char heap; /* Is heap allocated   */
 } tkn_var_info_t;
 
 typedef struct token {

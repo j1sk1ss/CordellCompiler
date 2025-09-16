@@ -14,7 +14,7 @@ int VRS_variable_bitness(token_t* token, char ptr) {
         case F64_TYPE_TOKEN:
         case I64_VARIABLE_TOKEN:  
         case U64_VARIABLE_TOKEN: 
-        case F64_VARIABLE_TOKEN: return 64;
+        case F64_VARIABLE_TOKEN: return BASE_BITNESS;
         case I32_TYPE_TOKEN:
         case U32_TYPE_TOKEN:
         case F32_TYPE_TOKEN:
@@ -33,7 +33,7 @@ int VRS_variable_bitness(token_t* token, char ptr) {
         default:                 return 8;
     }
 
-    return 8;
+    return BASE_BITNESS;
 } 
 
 /* Return 1 if token is pointer (arr, string, ptr). Otherwise return 0. */

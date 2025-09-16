@@ -57,6 +57,7 @@ TEST_CODES[test_ast]="
     tests/dummy_data/ast/ast_12.cpl
     tests/dummy_data/ast/ast_13.cpl
     tests/dummy_data/ast/ast_14.cpl
+    tests/dummy_data/ast/ast_15.cpl
 "
 
 # ==== Optimization testing ====
@@ -140,6 +141,7 @@ TEST_CODES[test_gen]="
     tests/dummy_data/gen/gen_15.cpl
     tests/dummy_data/gen/gen_16.cpl
     tests/dummy_data/gen/gen_17.cpl
+    tests/dummy_data/gen/gen_18.cpl
 "
 
 TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/sem/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
