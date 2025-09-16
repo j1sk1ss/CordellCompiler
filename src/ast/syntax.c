@@ -1,4 +1,3 @@
-/* LL(1) parser */
 #include <syntax.h>
 
 int STX_create(token_t* head, syntax_ctx_t* ctx, parser_t* p) {

@@ -18,17 +18,18 @@
         return syscall(0, 0, buffer, size);
     }
 
-    glob arr tape[30000, i8] =;
-    glob arr code[10000, i8] =;
-    glob arr bracketmap[10000, i32] =;
-    glob arr stack[10000, i32] =;
+    glob arr tape[30000, i8];
+    glob arr bracketmap[10000, i32];
+    glob arr stack[10000, i32];
 
     start() {
         puts("Brainfuck interpriter! Input code: ");
 
         i32 codelength = gets(code, 10000);
-        i32 stackptr = 0;
+        arr code[codelength, i8];
+
         i32 pos = 0;
+        i32 stackptr = 0;
 
         i8 plus          = 43; : + :
         i8 minus         = 45; : - :

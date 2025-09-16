@@ -42,10 +42,25 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
     return 1;
 }
 
+int _deallocate_scope_heap(ast_node_t* t, FILE* output, gen_ctx_t* ctx, gen_t* g) {
+    if (scope_id_top(&ctx->heap) == t->info.s_id) {
+        scope_elem_t hinfo;
+        scope_pop_top(&ctx->heap, &hinfo);
+        print_debug("Heap deallocation for scope %i, return to [rbp - %i]", t->info.s_id, hinfo.offset);
+        iprintf(output, "mov rdi, [rbp - %d]\n", hinfo.offset);
+        iprintf(output, "mov rax, 12\n");
+        iprintf(output, "syscall\n");
+    }
+
+    return 1;
+}
+
 int x86_64_generate_elem(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node) return 0;
     if (VRS_isblock(node->token)) {
-        return g->elemegen(node->child, output, ctx, g);
+        int res = g->elemegen(node->child, output, ctx, g);
+        _deallocate_scope_heap(node, output, ctx, g);
+        return res;
     }
 
     return _navigation_handler(node, output, ctx, g);
@@ -56,6 +71,7 @@ int x86_64_generate_block(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (VRS_isblock(t->token) && (!t->token || t->token->t_type != START_TOKEN)) {
             g->blockgen(t->child, output, ctx, g);
+            _deallocate_scope_heap(t, output, ctx, g);
         }
 
         _navigation_handler(t, output, ctx, g);

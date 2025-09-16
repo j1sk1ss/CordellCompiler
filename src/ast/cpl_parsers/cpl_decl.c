@@ -14,35 +14,31 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, parse
     AST_add_node(node, name_node);
     forward_token(curr, 1);
 
-    int el_size = 1;
-    int array_size = 0;
+    int el_size    = 1;
+    int array_size = 1;
 
     if ((*curr)->t_type == OPEN_INDEX_TOKEN) {
         forward_token(curr, 1);
 
         ast_node_t* size_node = AST_create_node(*curr);
-        if ((*curr)->t_type == UNKNOWN_NUMERIC_TOKEN) {
-            array_size = str_atoi((*curr)->value);
-            if (!size_node) {
-                AST_unload(node);
-                return NULL;
-            }
+        if (!size_node) {
+            AST_unload(node);
+            return NULL;
         }
-        else {
-            array_size = 1;
-            name_node->token->vinfo.heap = 1;
-        }
+        
+        if (size_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) name_node->token->vinfo.heap = 1; 
+        else array_size = str_atoi(size_node->token->value);
         
         AST_add_node(node, size_node);
         forward_token(curr, 2);
 
-        el_size = VRS_variable_bitness(*curr, 1) / 8;
         ast_node_t* elem_size_node = AST_create_node(*curr);
         if (!elem_size_node) {
             AST_unload(node);
             return NULL;
         }
 
+        el_size = VRS_variable_bitness(elem_size_node->token, 1) / 8;
         AST_add_node(node, elem_size_node);
         forward_token(curr, 2);
     }
@@ -67,7 +63,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, parse
         }
     }
     
-    ART_add_info(name_node->token->value, scope_id_top(&ctx->scopes.stack), el_size, array_size, ctx->symtb.arrs); // TODO: ro glob 
+    ART_add_info(name_node->token->value, scope_id_top(&ctx->scopes.stack), el_size, array_size, ctx->symtb.arrs);
     STX_var_update(node, ctx, name_node->token->value, ALIGN(array_size * el_size), name_node->token->vinfo.ro, name_node->token->vinfo.glob);
     STX_var_lookup(name_node, ctx);
     return node;
@@ -106,7 +102,7 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, pa
         return NULL;
     }
     
-    if (node->token->t_type == STR_TYPE_TOKEN) { // TODO: ro glob
+    if (node->token->t_type == STR_TYPE_TOKEN) {
         ART_add_info(name_node->token->value, scope_id_top(&ctx->scopes.stack), 1, node->info.size, ctx->symtb.arrs);
         STX_var_update(node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)), name_node->token->vinfo.ro, name_node->token->vinfo.glob);
         STX_var_lookup(name_node, ctx);

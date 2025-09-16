@@ -11,6 +11,8 @@ int GEN_generate(gen_ctx_t* ctx, gen_t* g, FILE* output) {
 
     iprintf(output, "section .text\n");
     g->funcdef(ctx->synt->r, output, ctx, g);
+
+    scope_reset(&ctx->heap);
     g->blockgen(ctx->synt->r, output, ctx, g);
     return 1;
 }

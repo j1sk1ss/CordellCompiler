@@ -21,11 +21,31 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
     ast_node_t* el_size_node = size_node->sibling;
     ast_node_t* elems_node   = el_size_node->sibling;
 
+    if (name_node->token->vinfo.heap) {
+        print_debug("Heap allocation in scope=%i, [rbp - %i]", name_node->info.s_id, node->info.offset);
+        g->elemegen(size_node, output, ctx, g);
+        iprintf(output, "push rax\n");
+
+        iprintf(output, "mov rax, 12\n");
+        iprintf(output, "mov rdi, 0\n");
+        iprintf(output, "syscall\n");
+        iprintf(output, "mov %s, rax\n", GET_ASMVAR(node));
+        iprintf(output, "mov rax, 12\n");
+        iprintf(output, "mov rdi, %s\n", GET_ASMVAR(node));
+        iprintf(output, "pop rdi\n");
+        iprintf(output, "syscall\n");
+
+        if (scope_id_top(&ctx->heap) != name_node->info.s_id) {
+            scope_push(&ctx->heap, name_node->info.s_id, node->info.offset);
+        }
+
+        return 1;
+    }
+
     array_info_t arr_info = { .el_size = 1 };
     if (ART_get_info(name_node->token->value, name_node->info.s_id, &arr_info, ctx->synt->symtb.arrs)) {
         regs_t reg;
         get_reg(&reg, arr_info.el_size, RAX, 0);
-
         int base_off = node->info.offset;
         for (ast_node_t* t = elems_node; t; t = t->sibling) {
             if (VRS_isnumeric(t->token)) iprintf(output, "mov%s[rbp - %d], %s\n", reg.operation, base_off, GET_ASMVAR(t));
