@@ -24,7 +24,7 @@ static int _find_op(ast_node_t* root, int* fold) {
                 t->token->t_type == MULTIPLY_TOKEN || 
                 t->token->t_type == DIVIDE_TOKEN
             ) {
-                if (right->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
+                if (VRS_isnumeric(right->token)) {
                     int right_val = str_atoi(right->token->value);
                     if (!(right_val & (right_val - 1))) {
                         int shift = 0;

@@ -123,7 +123,7 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
                     _clean_blocks(lbranch, ctx);
                     _clean_blocks(rbranch, ctx);
 
-                    if (condition->token->t_type == UNKNOWN_NUMERIC_TOKEN) {
+                    if (VRS_isnumeric(condition->token)) {
                         int val = str_atoi(condition->token->value);
                         if (!val && !rbranch) {
                             AST_remove_node(root, t);

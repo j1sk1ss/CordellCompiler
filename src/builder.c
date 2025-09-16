@@ -110,6 +110,9 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
     optres = OPT_deadscope(ctx->files[index].syntax);
     print_log("Dead scope optimization... [%s (%i)]", RESULT(optres));
 
+    optres = OPT_deadcode(ctx->files[index].syntax);
+    print_log("Dead code elimination... [%s (%i)]", RESULT(optres));
+
     optres = OPT_offrecalc(ctx->files[index].syntax);
     print_log("Offset recalculation and stack optimization... [%s (%i)]", RESULT(optres));
 

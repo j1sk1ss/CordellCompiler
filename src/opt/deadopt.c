@@ -1,139 +1,142 @@
 #include <deadopt.h>
 
+typedef struct deadfunc_info {
+    struct deadfunc_info* next;
+    char                  name[TOKEN_MAX_SIZE];
+    int                   deadend;
+} deadfunc_info_t;
+
 typedef struct {
-    code_node_t*      bh;
-    func_code_node_t* fh;
+    deadfunc_info_t* h;
 } deadopt_ctx_t;
 
-static code_node_t* _create_code_node(ast_node_t* start) {
-    if (!start) return NULL;
-    code_node_t* node = (code_node_t*)mm_malloc(sizeof(code_node_t));
-    if (!node) return NULL;
-    str_memset(node, 0, sizeof(code_node_t));
-    node->start = start;
-    return node;
+deadfunc_info_t* _create_func_info(const char* name, int deadend, deadopt_ctx_t* ctx) {
+    deadfunc_info_t* fi = (deadfunc_info_t*)mm_malloc(sizeof(deadfunc_info_t));
+    if (!fi) return NULL;
+    str_strncpy(fi->name, name, TOKEN_MAX_SIZE);
+    fi->deadend = deadend;
+    fi->next    = NULL;
+    return fi;
 }
 
-static int _add_child_to_block(code_node_t* p, code_node_t* c) {
-    if (!p || !c) return 0;
-    c->parent = p;
-    if (!p->child) p->child = c;
-    else {
-        code_node_t* sibling = p->child;
-        while (sibling->sibling) sibling = sibling->sibling;
-        sibling->sibling = c;
-    }
-
+int _register_func(const char* name, int deadend, deadopt_ctx_t* ctx) {
+    print_debug("_register_func(name=%s, deadend=%i)", name, deadend);
+    if (!ctx) return 0;
+    deadfunc_info_t* fi = _create_func_info(name, deadend, ctx);
+    if (!fi) return 0;
+    fi->next = ctx->h;
+    ctx->h   = fi;
     return 1;
 }
 
-static int _unload_code_block(code_node_t* node) {
-    if (!node) return 0;
-    _unload_code_block(node->child);
-    _unload_code_block(node->sibling);
-    mm_free(node);
+int _unload_ctx(deadopt_ctx_t* ctx) {
+    if (!ctx) return 0;
+    deadfunc_info_t* curr = ctx->h;
+    while (curr) {
+        deadfunc_info_t* next = curr->next;
+        mm_free(curr);
+        curr = next;
+    }
+
+    ctx->h = NULL;
     return 1;
 }
 
-static func_code_node_t* _create_func_code_block(char* name, code_node_t* head) {
-    if (!name || !head) return NULL;
-    func_code_node_t* node = (func_code_node_t*)mm_malloc(sizeof(func_code_node_t));
-    if (!node) return NULL;
-
-    str_strncpy(node->name, name, TOKEN_MAX_SIZE);
-    node->head = head;
-    node->next = NULL;
-    return node;
-}
-
-static int _add_func_code_block(char* name, code_node_t* head, deadopt_ctx_t* dctx) {
-    func_code_node_t* node = _create_func_code_block(name, head);
-    if (!node) return 0;
-
-    if (!dctx->fh) dctx->fh = node;
-    else {
-        func_code_node_t* h = dctx->fh;
-        while (h->next) h = h->next;
-        h->next = node;
+int _get_func(const char* name, deadopt_ctx_t* ctx) {
+    if (!ctx) return 0;
+    deadfunc_info_t* curr = ctx->h;
+    while (curr) {
+        if (!str_strncmp(curr->name, name, TOKEN_MAX_SIZE)) return curr->deadend;
+        curr = curr->next;
     }
 
-    return 1;
+    return 0;
 }
 
-static func_code_node_t* _find_func_block(char* name, deadopt_ctx_t* dctx) {
-    func_code_node_t* h = dctx->fh;
-    while (h) {
-        if (!str_strncmp(h->name, name, TOKEN_MAX_SIZE)) return h;
-        h = h->next;
-    }
-    return NULL;
-}
+static int _block_walk(ast_node_t* r, int* dead, int* ret, deadopt_ctx_t* ctx) {
+    if (!r) return 0;
 
-static int _unload_func_node_map(deadopt_ctx_t* dctx) {
-    while (dctx->fh) {
-        func_code_node_t* n = dctx->fh->next;
-        _unload_code_block(dctx->fh->head);
-        mm_free(dctx->fh);
-        dctx->fh = n;
-    }
-
-    return 1;
-}
-
-static int _collect_func_table(deadopt_ctx_t* dctx, ast_node_t* curr) {
-    if (!curr) return 0;
-    for (ast_node_t* t = curr; t; t = t->sibling) {
-        if (!t->token) continue;
-        if (t->token->t_type == FUNC_TOKEN) {
-            ast_node_t* name_node   = t->child;
-            ast_node_t* params_node = name_node->sibling;
-            ast_node_t* body_node   = params_node->sibling;
-            code_node_t* stub = _create_code_node(body_node);
-            _add_func_code_block(name_node->token->value, stub, dctx);
+    ast_node_t* end = NULL;
+    for (end = r; end; end = end->sibling) {
+        if (!end->token || end->token->t_type == START_TOKEN) {
+            _block_walk(end->child, dead, ret, ctx);
+            continue;
         }
-    }
-    return 1;
-}
 
-static code_node_t* _generate_blocks(deadopt_ctx_t* dctx, ast_node_t* curr) {
-    if (!curr) return NULL;
-    code_node_t* head = _create_code_node(curr);
-    if (!head) return NULL;
-
-    ast_node_t* curr_node = curr;
-    for (ast_node_t* t = curr; t; t = t->sibling, curr_node = curr_node->sibling) {
-        if (!t->token) continue;
-        switch (t->token->t_type) {
-            case SWITCH_TOKEN:
-            case WHILE_TOKEN:
-            case IF_TOKEN: break;
-
-            case CALL_TOKEN: {
-                func_code_node_t* fn = _find_func_block(t->token->value, dctx);
-                if (fn && fn->head) _add_child_to_block(head, fn->head);
+        switch (end->token->t_type) {
+            case SCOPE_TOKEN: {
+                _block_walk(end->child, dead, ret, ctx);
                 break;
             }
+            case FUNC_TOKEN: {
+                int killfunc = 0;
+                _block_walk(end->child->sibling, &killfunc, ret, ctx);
+                _register_func(end->child->token->value, killfunc, ctx);
+                break;
+            }
+            case IF_TOKEN:
+            case WHILE_TOKEN: {
+                int ldead_sc = 0, lret_sc = 0;
+                int rdead_sc = 0, rret_sc = 0;
+                ast_node_t* lbranch = end->child->sibling;
+                ast_node_t* rbranch = lbranch->sibling;
 
-            case RETURN_TOKEN:
-            case EXIT_TOKEN: goto dead_flow;
-            default: break;
+                if (lbranch) _block_walk(lbranch, &ldead_sc, &lret_sc, ctx);
+                if (rbranch) _block_walk(rbranch, &rdead_sc, &rret_sc, ctx);
+                if (lbranch && lbranch && ldead_sc && rdead_sc) *dead = 1;
+                else if (
+                    lbranch && lbranch && 
+                    ((rdead_sc || rret_sc )&& (ldead_sc || lret_sc))
+                ) *ret = 1;
+
+                if (lbranch && rbranch && (*dead || *ret)) goto _deadend;
+                break;
+            }
+            case SWITCH_TOKEN: {
+                int dead_switch = 1, ret_switch = 1;
+                ast_node_t* cases = end->child->sibling->child;
+                for (ast_node_t* c = cases; c; c = c->sibling) {
+                    int dead_case = 0, ret_case = 0;
+                    if (c->token->t_type == DEFAULT_TOKEN) _block_walk(c->child, &dead_case, &ret_case, ctx);
+                    else _block_walk(c->child->sibling, &dead_case, &ret_case, ctx);
+                    dead_switch = dead_switch && dead_case;
+                    ret_switch  = ret_switch && ret_case;
+                }
+
+                if (dead_switch) *dead = 1;
+                else if (ret_switch) *ret = 1;
+                if ((*dead || *ret)) goto _deadend;
+                break;
+            }
+            case CALL_TOKEN: {
+                int iskiller = _get_func(end->token->value, ctx);
+                if (iskiller) goto _deadend;
+                break;
+            }
         }
+
+        if (end->token->t_type == RETURN_TOKEN) *ret = 1;
+        else if (end->token->t_type == EXIT_TOKEN) *dead = 1;
+    }
+_deadend: {}
+    if (end && end->sibling) {
+        ast_node_t* next = end->sibling;
+        while (next) {
+            ast_node_t* tmp = next->sibling;
+            AST_unload(next);
+            next = tmp;
+        }
+
+        end->sibling = NULL;
     }
 
-dead_flow:
-    head->end = curr_node;
-    return head;
+    return 1;
 }
 
 int OPT_deadcode(syntax_ctx_t* ctx) {
-    if (!ctx->r) return 0;
-    deadopt_ctx_t dctx = { .bh = NULL, .fh = NULL };
-
-    _collect_func_table(&dctx, ctx->r->child);
-    dctx.bh = _generate_blocks(&dctx, ctx->r->child);
-
-    _unload_func_node_map(&dctx);
-    _unload_code_block(dctx.bh);
-
+    deadopt_ctx_t dctx = { .h = NULL };
+    int dead = 0, ret = 0;
+    _block_walk(ctx->r, &dead, &ret, &dctx);
+    _unload_ctx(&dctx);
     return 1;
 }
