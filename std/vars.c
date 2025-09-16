@@ -297,3 +297,16 @@ int VRS_is_float(token_t* token) {
         default:                return 0;
     }
 }
+
+int VRS_update_operator(token_t* token) {
+    if (!token) return 0;
+    switch (token->t_type) {
+        case ASSIGN_TOKEN:
+        case ADDASSIGN_TOKEN:
+        case SUBASSIGN_TOKEN:
+        case DIVASSIGN_TOKEN:
+        case MULASSIGN_TOKEN:   return 1;
+        default:                return 0;
+    }
+}
+

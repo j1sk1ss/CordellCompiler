@@ -179,6 +179,22 @@ arr arr2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; : <= Allocated data with i
 arr matrix[2, u64] = { arr1, arr2 };                  : <= Simple matrix                         :
 ```
 
+Also array can have a unkkown in compile-time size. This will generate code that allocates memory in heap. 
+```CPL
+extern i8 size;
+arr arr1[size, i32];
+```
+
+Runtime-size arrays will die when code returns from their home scope. That's why this code below still illegal:
+```CPL
+extern i8 size;
+ptr u8 a;
+{
+    arr arr1[size, i32];
+    a = ref arr1;
+}                                                       : <= "arr1" is deallocated. Work with this "a" will cause a SF :
+```
+
 ## Pointers
 - `ptr` - Pointer modifier that can be add to every primitive (and `str`) type.
 ```CPL

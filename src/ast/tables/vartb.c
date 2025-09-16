@@ -42,7 +42,7 @@ int VRT_update_value(const char* varname, short scope, const char* value, vartab
 }
 
 static variable_info_t* _create_variable_info(
-    const char* name, int size, char ro, char glob, short scope, vartab_ctx_t* ctx
+    const char* name, int size, char ro, char glob, short scope, int heap, vartab_ctx_t* ctx
 ) {
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
@@ -58,15 +58,14 @@ static variable_info_t* _create_variable_info(
         var->offset = ctx->offset;
     }
 
+    var->heap = heap;
     var->size = size;
     var->next = NULL;
     return var;
 }
 
-int VRT_add_info(
-    const char* name, int size, char ro, char glob, short scope, vartab_ctx_t* ctx
-) {
-    variable_info_t* nnd = _create_variable_info(name, size, ro, glob, scope, ctx);
+int VRT_add_info(const char* name, int size, char ro, char glob, short scope, int heap, vartab_ctx_t* ctx) {
+    variable_info_t* nnd = _create_variable_info(name, size, ro, glob, scope, heap, ctx);
     if (!nnd) return 0;
     if (!ctx->h) {
         ctx->h = nnd;

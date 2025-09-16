@@ -4,8 +4,7 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
     if (!node || !node->token) return 0;
     if (VRS_isdecl(node->token)) g->decl(node, output, ctx, g);
     if (
-        VRS_isoperand(node->token) && 
-        node->token->t_type != ASSIGN_TOKEN
+        VRS_isoperand(node->token) && node->token->t_type != ASSIGN_TOKEN
     ) g->operand(node, output, ctx, g);
 
     switch (node->token->t_type) {

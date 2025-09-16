@@ -5,7 +5,7 @@ static int _affect_outer(ast_node_t* root, char* varname, int* affect, short sco
     for (ast_node_t* t = root; t; t = t->sibling) {
         if (!t->token) continue;
         _affect_outer(t->child, varname, affect, scope);
-        if (t->token->t_type == ASSIGN_TOKEN) {
+        if (VRS_update_operator(t->token)) {
             if (str_strncmp(t->child->token->value, varname, TOKEN_MAX_SIZE) && t->info.s_id > scope) {
                 *affect = 1;
                 return 1;
@@ -42,7 +42,7 @@ static int _find_usage(ast_node_t* root, char* varname, int* used) {
         /* This variable participate in another variable declaration or updating? */
         if (
             VRS_isdecl(t->token) ||
-            (t->token->t_type == ASSIGN_TOKEN && str_strncmp(t->child->token->value, varname, TOKEN_MAX_SIZE))
+            (VRS_update_operator(t->token) && str_strncmp(t->child->token->value, varname, TOKEN_MAX_SIZE))
         ) {
             _find_variable(t->child->sibling, varname, used);
         }

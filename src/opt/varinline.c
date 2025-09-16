@@ -1,6 +1,5 @@
 #include <varinline.h>
 
-/* Check binary tree for variable usage */
 static int _inline_binary(ast_node_t* r, const char* v, ast_node_t** nv, int inl) {
     if (!inl) return 0;
     if (r->child && r->child->sibling) {
@@ -26,7 +25,7 @@ static int _find_variable_update(ast_node_t* d, const char* v) {
             continue;
         }
 
-        if (t->token->t_type == ASSIGN_TOKEN) {
+        if (VRS_update_operator(t->token)) {
             if (!str_strncmp(t->child->token->value, v, TOKEN_MAX_SIZE)) return 1;
         }
 
@@ -38,7 +37,6 @@ static int _find_variable_update(ast_node_t* d, const char* v) {
     return 0;
 }
 
-/* Check scope and sub-scopes (without control flow changes) */
 static int _inline_block(ast_node_t* d, const char* v, ast_node_t** nv, int loop, int* updated, int inl, int sl) {
     if (!d) return 0;
 
@@ -160,7 +158,6 @@ static int _inline_block(ast_node_t* d, const char* v, ast_node_t** nv, int loop
     return result;
 }
 
-/* Bruteforce declaration search */
 static int _find_declarations(ast_node_t* r) {
     if (!r) return 0;
 
@@ -173,7 +170,7 @@ static int _find_declarations(ast_node_t* r) {
 
         if (
             curr->token &&
-            VRS_isdecl(curr->token) && curr->child && curr->child->sibling &&
+            VRS_isdecl(curr->token) && curr->child && curr->child->sibling && VRS_one_slot(curr->token) &&
             VRS_instack(curr->token) &&
             VRS_one_slot(curr->child->sibling->token) && (
                 VRS_isnumeric(curr->child->sibling->token) || VRS_isvariable(curr->child->sibling->token)
@@ -187,7 +184,7 @@ static int _find_declarations(ast_node_t* r) {
                     if (curr->parent->child == curr) curr->parent->child = next;
                     else if (prev) prev->sibling = next;
                 }
-
+                
                 AST_remove_node(r, curr);
                 AST_unload(curr);
 

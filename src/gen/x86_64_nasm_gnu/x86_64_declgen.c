@@ -30,9 +30,11 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
         iprintf(output, "mov rdi, 0\n");
         iprintf(output, "syscall\n");
         iprintf(output, "mov %s, rax\n", GET_ASMVAR(node));
-        iprintf(output, "mov rax, 12\n");
         iprintf(output, "mov rdi, %s\n", GET_ASMVAR(node));
-        iprintf(output, "pop rdi\n");
+        iprintf(output, "pop rbx\n");
+        iprintf(output, "add rax, rbx\n");
+        iprintf(output, "mov rdi, rax\n");
+        iprintf(output, "mov rax, 12\n");
         iprintf(output, "syscall\n");
 
         if (scope_id_top(&ctx->heap) != name_node->info.s_id) {

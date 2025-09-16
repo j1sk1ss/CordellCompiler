@@ -5,7 +5,7 @@ static int _print_ast(ast_node_t* node, int depth) {
     for (int i = 0; i < depth; i++) printf("    ");
     if (node->token && node->token->t_type != SCOPE_TOKEN) {
         printf(
-            "[%s] (t=%d, size=%i,%s%s%soff=%i, s_id=%i%s%s%s%s)\n", 
+            "[%s] (t=%d, size=%i,%s%s%soff=%i, s_id=%i%s%s%s%s%s)\n", 
             node->token->value, node->token->t_type, node->info.size, 
             node->token->vinfo.ptr ? " ptr, " : " ",
             node->token->vinfo.ref ? "ref, " : "",
@@ -14,7 +14,8 @@ static int _print_ast(ast_node_t* node, int depth) {
             node->token->vinfo.ro ? ", ro" : "",
             node->token->vinfo.ext ? ", ext" : "",
             node->token->vinfo.glob ? ", glob" : "",
-            node->token->vinfo.neg ? ", neg" : ""
+            node->token->vinfo.neg ? ", neg" : "",
+            node->token->vinfo.heap ? ", heap" : ""
         );
     }
     else if (node->token && node->token->t_type == SCOPE_TOKEN) {

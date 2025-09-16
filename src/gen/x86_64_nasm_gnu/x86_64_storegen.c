@@ -46,7 +46,9 @@ int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
         case STR_VARIABLE_TOKEN: {
 indexing: {}
             ast_node_t* off = node->child;
-            if (off) {
+            if (!off && !node->token->vinfo.heap) iprintf(output, "lea %s, rax\n", GET_ASMVAR(node));
+            else if (!off && node->token->vinfo.heap) iprintf(output, "mov %s, rax\n", GET_ASMVAR(node));
+            else {
                 iprintf(output, "mov rdx, rax\n");
 
                 array_info_t arr_info = { .el_size = 1 };
@@ -58,7 +60,7 @@ indexing: {}
                     iprintf(output, "imul rax, %d\n", elsize);
                 }
 
-                if (!node->token->vinfo.ptr) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
+                if (!node->token->vinfo.ptr && !node->token->vinfo.heap) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
                 else iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
                 iprintf(output, "add rax, rbx\n");
 
@@ -68,9 +70,6 @@ indexing: {}
                     case 4: iprintf(output, "mov dword [rax], edx\n"); break;
                     case 8: iprintf(output, "mov qword [rax], rdx\n"); break;
                 }
-            }
-            else {
-                iprintf(output, "lea %s, rax\n", GET_ASMVAR(node));
             }
 
             break;

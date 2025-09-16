@@ -82,15 +82,16 @@ int x86_64_generate_switch(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
     for (ast_node_t* curr_case = cases->child; curr_case; curr_case = curr_case->sibling) {
         if (curr_case->token->t_type == DEFAULT_TOKEN) {
             iprintf(output, "__default_%d__:\n", current_label);
+            g->blockgen(curr_case->child, output, ctx, g);
             def = 1;
         }
         else {
             int case_value = str_atoi(curr_case->child->token->value);
             iprintf(output, "__case_%d_%d__:\n", case_value, current_label);
+            g->blockgen(curr_case->child->sibling, output, ctx, g);
             values[cases_count++] = case_value;
         }
 
-        g->blockgen(curr_case->child, output, ctx, g);
         iprintf(output, "jmp __end_switch_%d__\n", current_label);
     }
 

@@ -6,6 +6,7 @@
 #include "token.h"
 
 typedef struct variable_info {
+    char                  heap;
     char                  ro;
     char                  glob;
     char                  name[TOKEN_MAX_SIZE];
@@ -45,7 +46,7 @@ int VRT_update_value(const char* varname, short scope, const char* value, vartab
 Add variable to context. 
 Note: Will use ALIGN to variable size for offset calculation.
 */
-int VRT_add_info(const char* name, int size, char ro, char glob, short scope, vartab_ctx_t* ctx);
+int VRT_add_info(const char* name, int size, char ro, char glob, short scope, int heap, vartab_ctx_t* ctx);
 
 /*
 Unload context.
