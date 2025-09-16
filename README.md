@@ -225,7 +225,7 @@ Semantic module takes care under size, operation and commands correctness. In ot
 Detailed description of every noted algorithms placed [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/README.md).
 
 # Micro-code generation
-Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/gen/x86_64_nasm_gnu/README.md). Main examples of microcode generation is `switch` generation, `asm` block generation and float point arithmetic generation.
+Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/gen/x86_64_nasm_gnu/README.md). Main examples of microcode generation is `switch` generation, `asm` block generation, float point arithmetic generation and VLA in heap.
 
 - `switch`, in comprarision with `if` generates a binary search structure. For example this code below:
 ```CPL
@@ -363,7 +363,6 @@ _start:
 ```
 
 - `float`/`double` arithmetic based on SIMD registers. Main difference here, that we should save `0.01` in `float`/`double` representation, that's why any operation with those values should go through `SIMD` registers. For example: 
-
 ```CPL
 {
     start(i64 argc, ptr u64 argv) {
@@ -400,6 +399,107 @@ _start:
     addsd xmm0, xmm1
     movq rax, xmm0
     mov [rbp - 40], rax
+    mov rdi, 0
+    mov rax, 60
+    syscall
+```
+
+- `VLA` in heap base on `brk` syscall (`12` in x86_64). Next code:
+```CPL
+{
+    extern i32 size;
+    start(i64 argc, ptr u64 argv) {
+        
+        arr a[size, i32];
+
+        {
+            arr b[size, i32];
+            
+            {
+                arr c[10, i32];
+                i32 c1 = 10;
+            }
+        }
+
+        {
+            arr d[size, i32];
+        }
+
+        exit 0;
+    }
+}
+```
+
+Will produce next microcode:
+```ASM
+extern size
+section .data
+section .rodata
+section .bss
+section .text
+global _start
+_start:
+    push rbp
+    mov rbp, rsp
+    sub rsp, 64
+    mov rax, [rbp + 8]
+    mov qword [rbp - 8], rax
+    lea rax, [rbp + 16]
+    mov qword [rbp - 8], rax
+
+    mov eax, [rel size] ; arr a[size, i32] allocation
+    push rax
+    mov rax, 12
+    mov rdi, 0
+    syscall
+    mov [rbp - 16], rax
+    mov rdi, [rbp - 16]
+    pop rbx
+    add rax, rbx
+    mov rdi, rax
+    mov rax, 12
+    syscall
+
+    mov eax, [rel size] ; arr b[size, i32] allocation
+    push rax
+    mov rax, 12
+    mov rdi, 0
+    syscall
+    mov [rbp - 24], rax
+    mov rdi, [rbp - 24]
+    pop rbx
+    add rax, rbx
+    mov rdi, rax
+    mov rax, 12
+    syscall
+
+    mov dword [rbp - 32], 10
+
+    mov rdi, [rbp - 24] ; arr b[size, i32] deallocation
+    mov rax, 12
+    syscall
+
+    mov eax, [rel size] ; arr d[size, i32] allocation
+    push rax
+    mov rax, 12
+    mov rdi, 0
+    syscall
+    mov [rbp - 24], rax
+    mov rdi, [rbp - 24]
+    pop rbx
+    add rax, rbx
+    mov rdi, rax
+    mov rax, 12
+    syscall
+
+    mov rdi, [rbp - 24] ; arr d[size, i32] deallocation
+    mov rax, 12
+    syscall
+
+    mov rdi, [rbp - 16] ; arr a[size, i32] deallocation
+    mov rax, 12
+    syscall
+
     mov rdi, 0
     mov rax, 60
     syscall
