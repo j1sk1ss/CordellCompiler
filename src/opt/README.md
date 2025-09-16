@@ -300,6 +300,39 @@ After eliminating dead scopes:
 }
 ```
 
+## Dead code elimination
+- [deadopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadopt.c) - All code that unreacheble should be eliminated. For example:
+```CPL
+i32 a = 0;
+exit 0;
+i32 b = 1;              <= Unreachable code
+exit 1;
+```
+
+Or how function can "kill" code:
+```CPL
+function foo() {
+    exit 1;
+}
+
+i32 a = 1;
+foo();                  <= "Killer" function
+i32 b = 1;              <= Unreachable code
+exit 1;
+```
+
+Or how optimization work with branches:
+```CPL
+if 1; {                 <= "Unpredicted" section. Will "kill" code below only if all branches are "killers"
+    exit 1;
+}
+else {
+    i32 a = 1;
+}
+i32 b = 1;
+exit 0;                 <= Still reachable
+```
+
 ## Dead variables elimination
 - [deadvar](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadvar.c)
 

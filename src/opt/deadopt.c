@@ -66,6 +66,7 @@ static int _block_walk(ast_node_t* r, int* dead, int* ret, deadopt_ctx_t* ctx) {
         switch (end->token->t_type) {
             case SCOPE_TOKEN: {
                 _block_walk(end->child, dead, ret, ctx);
+                if (*dead || *ret) goto _deadend;
                 break;
             }
             case FUNC_TOKEN: {
