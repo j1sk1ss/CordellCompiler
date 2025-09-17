@@ -217,7 +217,7 @@ unsigned long long str_dob2bits(double d) {
     return bits;
 }
 
-int write_value(char* src, int src_size, const char* dst, int dst_size) {
+int write_value(const char* src, int src_size, char* dst, int dst_size) {
     int isfloat = 0;
     unsigned long long val = 0;
     for (int i = 0; i < src_size; i++) {

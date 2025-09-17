@@ -12,17 +12,13 @@ typedef enum {
     CHAR_COMMA,
     CHAR_COMMENT,
     CHAR_NEWLINE,
-    CHAR_BACKSLASH,
-    CHAR_SIGN,
-    CHAR_DOT
+    CHAR_BACKSLASH
 } char_type_t;
 
 static char_type_t _get_char_type(unsigned char ch) {
     if (isalpha(ch) || ch == '_')     return CHAR_ALPHA;
     else if (ch == '\\')              return CHAR_BACKSLASH;
     else if (str_isdigit(ch))         return CHAR_DIGIT;
-    else if (ch == '-' || ch == '+')  return CHAR_SIGN;
-    else if (ch == '.')               return CHAR_DOT;
     else if (ch == '"')               return CHAR_QUOTE;
     else if (ch == '\'')              return CHAR_SING_QUOTE;
     else if (ch == '\n')              return CHAR_NEWLINE;
@@ -38,10 +34,20 @@ static char_type_t _get_char_type(unsigned char ch) {
     return CHAR_OTHER;
 }
 
-static int _add_token(
-    token_t** h, token_t** t, token_type_t type, const char* buffer, size_t len, int line
-) {
-    token_t* nt = TKN_create_token(type, buffer, len, line);
+typedef struct {
+    char         neg;
+    char         cmt;  // comment
+    char         squt; // single quote
+    char         mqut; // multiple quote
+    int          line;
+    char         is_spec;
+    char         in_token;
+    short        token_len;
+    token_type_t ttype;
+} tkn_ctx_t;
+
+static int _add_token(token_t** h, token_t** t, const char* buffer, tkn_ctx_t* ctx) {
+    token_t* nt = TKN_create_token(ctx->ttype, buffer, ctx->token_len, ctx->line);
     if (!nt) return 0;
     if (!*h) {
         *h = nt;
@@ -78,17 +84,6 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
     return tkn;
 }
 
-typedef struct {
-    char         cmt;  // comment
-    char         squt; // single quote
-    char         mqut; // multiple quote
-    int          line;
-    char         is_spec;
-    char         in_token;
-    short        token_len;
-    token_type_t ttype;
-} tkn_ctx_t;
-
 token_t* TKN_tokenize(int fd) {
     tkn_ctx_t curr_ctx = { .ttype = LINE_BREAK_TOKEN };
     token_t *head = NULL, *tail = NULL;
@@ -101,6 +96,9 @@ token_t* TKN_tokenize(int fd) {
         file_offset += bytes_read;
         for (ssize_t i = 0; i < bytes_read; ++i) {
             char ch = buffer[i];
+            if (ch == '-') curr_ctx.neg = 1;
+            else curr_ctx.neg = 0;
+
             char_type_t ct = _get_char_type(ch);
 
             /* Special characters handler */
@@ -152,17 +150,17 @@ token_t* TKN_tokenize(int fd) {
                 else                           char_type = UNKNOWN_CHAR_TOKEN;
                 if (ct == CHAR_NEWLINE)        curr_ctx.line++;
 
-                if (curr_ctx.ttype == LINE_BREAK_TOKEN && (ct == CHAR_SIGN || ct == CHAR_DOT)) {
-                    char_type = UNKNOWN_NUMERIC_TOKEN;
-                } else if (curr_ctx.ttype == UNKNOWN_STRING_TOKEN && char_type == UNKNOWN_NUMERIC_TOKEN) {
-                    char_type = UNKNOWN_STRING_TOKEN;
-                }
+                if (curr_ctx.ttype == UNKNOWN_CHAR_TOKEN && 
+                    char_type == UNKNOWN_NUMERIC_TOKEN
+                ) curr_ctx.ttype = UNKNOWN_NUMERIC_TOKEN;
+                if (
+                    curr_ctx.ttype == UNKNOWN_STRING_TOKEN && 
+                    char_type == UNKNOWN_NUMERIC_TOKEN
+                ) char_type = UNKNOWN_STRING_TOKEN;
                 else if (
                     curr_ctx.ttype == UNKNOWN_NUMERIC_TOKEN && 
-                    (char_type == UNKNOWN_STRING_TOKEN || ct == CHAR_SIGN || ct == CHAR_DOT)
-                ) {
-                    char_type = UNKNOWN_NUMERIC_TOKEN;
-                }
+                    char_type == UNKNOWN_STRING_TOKEN
+                ) char_type = UNKNOWN_NUMERIC_TOKEN;
             }
             
             if (
@@ -175,11 +173,12 @@ token_t* TKN_tokenize(int fd) {
                     curr_ctx.ttype != char_type
                 )
             ) {
-                if (!_add_token(&head, &tail, curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line)) {
+                if (!_add_token(&head, &tail, token_buf, &curr_ctx)) {
                     print_error(
                         "Can't add token! type=%i, token_buf=[%s], token_len=%i", 
                         curr_ctx.ttype, token_buf, curr_ctx.token_len
                     );
+
                     TKN_unload(head);
                     return NULL;
                 }
@@ -187,6 +186,7 @@ token_t* TKN_tokenize(int fd) {
                 curr_ctx.in_token  = 0;
                 curr_ctx.token_len = 0;
                 curr_ctx.ttype     = LINE_BREAK_TOKEN;
+                curr_ctx.neg       = 0;
             }
 
             if (char_type == LINE_BREAK_TOKEN) continue;

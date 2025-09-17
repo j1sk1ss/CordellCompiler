@@ -26,6 +26,7 @@ TEST_CODES[test_mrk]="
     tests/dummy_data/prep/markup/markup_6.cpl
     tests/dummy_data/prep/markup/markup_7.cpl
     tests/dummy_data/prep/markup/markup_8.cpl
+    tests/dummy_data/prep/markup/markup_9.cpl
 "
 
 TEST_SRCS[test_sem]="src/sem/*.c src/prep/*.c src/ast/*.c src/ast/*/*.c std/*.c"
@@ -41,6 +42,7 @@ TEST_CODES[test_sem]="
     tests/dummy_data/sem/sem_9.cpl
     tests/dummy_data/sem/sem_10.cpl
     tests/dummy_data/sem/sem_11.cpl
+    tests/dummy_data/sem/sem_12.cpl
 "
 
 TEST_SRCS[test_ast]="src/prep/*.c src/ast/*.c src/ast/*/*.c std/*.c"
@@ -61,6 +63,7 @@ TEST_CODES[test_ast]="
     tests/dummy_data/ast/ast_14.cpl
     tests/dummy_data/ast/ast_15.cpl
     tests/dummy_data/ast/ast_16.cpl
+    tests/dummy_data/ast/ast_17.cpl
 "
 
 # ==== Optimization testing ====
@@ -234,7 +237,7 @@ for i in "${!test_names[@]}"; do
     code_file="${codes[$CODE_IDX]}"
 
     echo "== Compilation: $test_file =="
-    gcc-14 $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
+    gcc $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
         -DWARNING_LOGS -DERROR_LOGS -DLOGGING_LOGS -DINFO_LOGS -DDEBUG_LOGS -g -O0 -o "tests/$test_name"
 
     if [[ -n "$DEBUGGER" ]]; then

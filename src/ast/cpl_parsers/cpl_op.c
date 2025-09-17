@@ -4,19 +4,23 @@ static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx, parser_t* p
 static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, int min_priority, parser_t* p) {
     ast_node_t* left = _parse_primary(curr, ctx, p);
     if (!left) return NULL;
-
+    
     while (*curr) {
         int priority = VRS_token_priority(*curr);
         if (priority < min_priority || priority == -1) break;
 
-        token_t* op_token = *curr;
-        forward_token(curr, 1);
-
         int next_min_priority = priority + 1;
-        if ((*curr)->t_type == ASSIGN_TOKEN) {
+        if (VRS_update_operator(*curr)) {
             next_min_priority = priority;
         }
 
+        ast_node_t* op_node = AST_create_node(*curr);
+        if (!op_node) {
+            AST_unload(left);
+            return NULL;
+        }
+
+        forward_token(curr, 1);
         ast_node_t* right = _parse_binary_expression(curr, ctx, next_min_priority, p);
         if (!right) {
             print_error("AST error during expression parsing! line=%i", (*curr)->lnum);
@@ -24,18 +28,11 @@ static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, i
             return NULL;
         }
 
-        ast_node_t* op_node = AST_create_node(op_token);
-        if (!op_node) {
-            AST_unload(left);
-            AST_unload(right);
-            return NULL;
-        }
-
         AST_add_node(op_node, left);
         AST_add_node(op_node, right);
         left = op_node;
     }
-
+    
     return left;
 }
 
@@ -45,7 +42,7 @@ static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx, pa
     STX_var_lookup(node, ctx);
     
     forward_token(curr, 1);
-    if ((*curr)->t_type == OPEN_INDEX_TOKEN) { /* Indexing? */
+    if ((*curr)->t_type == OPEN_INDEX_TOKEN) {
         forward_token(curr, 1);
         ast_node_t* offset_exp = p->expr(curr, ctx, p);
         if (!offset_exp) {

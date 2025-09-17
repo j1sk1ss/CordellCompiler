@@ -23,7 +23,7 @@ char* str_strcat(char* dest, const char* src);
 const char* str_strchr(const char* str, char chr);
 unsigned long long str_strtoull(const char* str, int l, int base);
 double str_strtod(const char* s, int l);
-int write_value(char* src, int src_size, const char* dst, int dst_size);
+int write_value(const char* src, int src_size, char* dst, int dst_size);
 
 /* ctype special functions */
 int is_number(char* s);

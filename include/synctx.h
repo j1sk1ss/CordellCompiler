@@ -26,7 +26,7 @@ typedef struct syntax_ctx {
 } syntax_ctx_t;
 
 typedef struct parser {
-    ast_node_t* (*block)(token_t**, syntax_ctx_t*, unsigned long long, struct parser*);
+    ast_node_t* (*block)(token_t**, syntax_ctx_t*, token_type_t, struct parser*);
     ast_node_t* (*switchstmt)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*condop)(token_t**, syntax_ctx_t*, struct parser*);
     ast_node_t* (*arraydecl)(token_t**, syntax_ctx_t*, struct parser*);

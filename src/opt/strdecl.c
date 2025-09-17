@@ -95,7 +95,10 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
             t->token->flags.ref  = 1;
         }
 
-        if (VRS_is_control_change(t->token)) _find_string(t->child, ctx);
+        if (
+            VRS_is_control_change(t->token) ||
+            t->token->t_type == CASE_TOKEN || t->token->t_type == DEFAULT_TOKEN
+        ) _find_string(t->child, ctx);
     }
 
     return 1;

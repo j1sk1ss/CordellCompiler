@@ -47,11 +47,11 @@ static ast_node_t* _navigation_handler(token_t** curr, syntax_ctx_t* ctx, parser
     }
 }
 
-ast_node_t* cpl_parse_block(token_t** curr, syntax_ctx_t* ctx, unsigned long long stop_mask, parser_t* p) {
+ast_node_t* cpl_parse_block(token_t** curr, syntax_ctx_t* ctx, token_type_t ex, parser_t* p) {
     ast_node_t* node = AST_create_node(NULL);
     if (!node) return NULL;
 
-    while (*curr && !(stop_mask & TOKEN_MASK((*curr)->t_type))) {
+    while (*curr && (*curr)->t_type != ex) {
         ast_node_t* block = _navigation_handler(curr, ctx, p);
         if (block) AST_add_node(node, block);
         else {

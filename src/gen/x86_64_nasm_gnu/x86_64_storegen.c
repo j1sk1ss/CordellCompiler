@@ -1,16 +1,5 @@
 #include <x86_64_gnu_nasm.h>
 
-static int _deref_rbx(int elsize, FILE* output) {
-    switch (elsize) {
-        case 1: iprintf(output, "mov byte [rbx], al\n");  break;
-        case 2: iprintf(output, "mov word [rbx], ax\n");   break;
-        case 4: iprintf(output, "mov dword [rbx], eax\n"); break;
-        case 8: iprintf(output, "mov qword [rbx], rax\n"); break;
-    }
-
-    return 1;
-}
-
 int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
@@ -22,7 +11,12 @@ int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
                 ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
                 iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
-                _deref_rbx(elsize, output);
+                switch (elsize) {
+                    case 1: iprintf(output, "mov byte [rbx], al\n");  break;
+                    case 2: iprintf(output, "mov word [rbx], ax\n");   break;
+                    case 4: iprintf(output, "mov dword [rbx], eax\n"); break;
+                    case 8: iprintf(output, "mov qword [rbx], rax\n"); break;
+                }
             }
         }
 
@@ -67,7 +61,12 @@ indexing: {}
                 if (!node->token->flags.ptr && !node->token->flags.heap) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
                 else iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
                 iprintf(output, "add rax, rbx\n");
-                _deref_rbx(elsize, output);
+                switch (elsize) {
+                    case 1: iprintf(output, "mov byte [rax], dl\n");  break;
+                    case 2: iprintf(output, "mov word [rax], dx\n");   break;
+                    case 4: iprintf(output, "mov dword [rax], edx\n"); break;
+                    case 8: iprintf(output, "mov qword [rax], rdx\n"); break;
+                }
             }
 
             break;

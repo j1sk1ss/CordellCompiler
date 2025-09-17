@@ -44,6 +44,7 @@ int VRT_update_value(const char* varname, short scope, const char* value, vartab
 static variable_info_t* _create_variable_info(
     const char* name, int size, short scope, token_flags_t* flags, vartab_ctx_t* ctx
 ) {
+    print_debug("_create_variable_info(name=%s, size=%i, scope=%i)", name, size, scope);
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
     str_memset(var, 0, sizeof(variable_info_t));

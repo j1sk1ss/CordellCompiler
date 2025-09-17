@@ -18,7 +18,6 @@ typedef enum {
     UNKNOWN_BRACKET_VALUE,
     UNKNOWN_STRING_TOKEN,
     UNKNOWN_NUMERIC_TOKEN,
-    UNKNOWN_COMMAND_TOKEN,
     LINE_BREAK_TOKEN,
 
     COMMENT_TOKEN,
@@ -122,7 +121,6 @@ typedef enum {
     STRING_VALUE_TOKEN,
     CHAR_VALUE_TOKEN
 } token_type_t;
-#define TOKEN_MASK(t) ((unsigned long long)1 << (t))
 
 typedef struct {
     char ro;   /* Is read only flag   */
