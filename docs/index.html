@@ -15,6 +15,9 @@
     .token.string { color: hsl(44, 90%, 65%); }
     .token.number { color: #a4ad8d; }
     .token.function-name { color: #adc84b; }
+    .sidebar-nav { margin-top: 0; }
+    .sidebar-nav ul { list-style: none; padding-left: 0; }
+    .sidebar-nav a { text-decoration: none; }
   </style>    
 
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
@@ -45,9 +48,16 @@
     window.$docsify = {
       name: 'Cordell Programming Language',
       repo: 'https://github.com/j1sk1ss/CordellCompiler.PETPRJ',
+      loadNavbar: 'navbar.md',
       loadSidebar: 'sidebar.md',
       subMaxLevel: 2,
       routerMode: 'hash',
+      alias: {
+        '/src/ast/_sidebar.md': '/src/ast/sidebar.md',
+        '/src/gen/_sidebar.md': '/src/gen/sidebar.md',
+        '/src/opt/_sidebar.md': '/src/opt/sidebar.md',
+        '/src/sem/_sidebar.md': '/src/sem/sidebar.md'
+      },
       vueComponents: {},
       markdown: {
         renderer: {
@@ -61,6 +71,6 @@
         }
       }
     };
-  </script>
+  </script> 
 </body>
 </html>

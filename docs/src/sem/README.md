@@ -11,7 +11,7 @@
 - size
 
 Source code:
-```CPL
+```cpl
 0  {
 1      start() {
 2          arr fla[5, i8]  = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -36,7 +36,7 @@ Produced errors:
 - rettype
 
 Source code:
-```CPL
+```cpl
 1  {
 2      function foo(i8 a) {
 3          return 1;
@@ -78,7 +78,7 @@ Produced errors:
 - ro
 
 Source code:
-```CPL
+```cpl
 1  {
 2      start() {
 3          ro i32 a = 10;
@@ -99,7 +99,7 @@ Produced errors:
 - bitness / size
 
 Source code:
-```CPL
+```cpl
 0  {
 1      start(i64 argc, ptr u64 argv) {
 2          i8 a  = 126;
@@ -130,7 +130,7 @@ Produced errors:
 - bitness / size
 
 Source code:
-```CPL
+```cpl
 0  {
 1      start() {
 2          i8 a  = 129;
@@ -158,7 +158,7 @@ Produced errors:
 - size
 
 Source code:
-```CPL
+```cpl
 0  {
 1      start() {
 2          u8 a  = -1;
@@ -181,7 +181,7 @@ Produced errors:
 - rettype
 
 Source code:
-```CPL
+```cpl
 1  {
 2      function foo() => i32 {
 3          return 0;
@@ -211,7 +211,7 @@ Produced errors:
 - ownership
 
 Source code:
-```CPL
+```cpl
 1  {
 2      start(i64 argc, ptr u64 argv) {
 3          i32 a = 10;

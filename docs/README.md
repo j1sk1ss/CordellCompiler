@@ -175,13 +175,22 @@ ptr str b = "Hello world";
 CPL supports only implicit casting. This means, that any value or return type can be stored in any variable. But semantic module will inform, if it encounter an unexpected implicit casting.
 ```cpl
 i32 a = 0xFFFF;
-i8 b = a;                                             : <= Will produce a warning :
+i8 b = a;     : <= Will produce a warning :
 
 function a() => i64 { :...: }
-i8 c = a();                                           : <= Will produce a warning :
+i8 c = a();   : <= Will produce a warning :
 
-i8 d = 0xFFF;                                         : <= Will produce a warning :
-u8 f = -1;                                            : <= Will produce a warning :
+i8 d = 0xFFF; : <= Will produce a warning :
+u8 f = -1;    : <= Will produce a warning :
+```
+
+```bash
+[WARN] Value 4095 at line=8 too large for type i8 (4095 >= 127)!
+[WARN] Value -1 at line=9 lower then 0 for unsigned type u8, -1 < 0!
+[WARN] Danger shadow type cast at line 4. Different size [8] (b) and [32] (a). Did you expect this?
+[WARN] Danger shadow type cast at line 6. Different size [8] (c) and [64] (foo). Did you expect this?
+[WARN] Danger shadow type cast at line 8. Different size [8] (d) and [16] (4095). Did you expect this?
+[WARN] Unmatched return type in line=1. Should return bitness=64, but provide bitness=8
 ```
 
 # Binary and unary operations
@@ -216,7 +225,7 @@ start() {
 }
 ```
 
-Note: It will cause memmory corruption error instead SegFault due stack allocation method in CPL.
+Note: It will cause memmory corruption error instead `SF` due stack allocation method in CPL.
 
 ## Visibility rules
 Outer variables can be seen by current and nested scopes.

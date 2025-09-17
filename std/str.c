@@ -150,7 +150,6 @@ int str_isspace(int c) {
 
 unsigned long long str_strtoull(const char* str, int l, int base) {
     unsigned long long result = 0;
-
     for (int i = 0; i < l && *str; ++i, ++str) {
         char c = *str;
         int digit = -1;
@@ -216,4 +215,27 @@ unsigned long long str_dob2bits(double d) {
     unsigned long long bits;
     str_memcpy(&bits, &d, sizeof(d));
     return bits;
+}
+
+int write_value(char* src, int src_size, const char* dst, int dst_size) {
+    int isfloat = 0;
+    unsigned long long val = 0;
+    for (int i = 0; i < src_size; i++) {
+        if (src[i] == '.') {
+            isfloat = 1;
+            val = str_dob2bits(str_strtod(src, src_size));
+            break;
+        }
+    }
+
+    if (!isfloat) {
+        if (src[0] == '0' && (src[1] == 'x' || src[1] == 'X'))      val = str_strtoull(src + 2, src_size - 2, 16);
+        else if (src[0] == '0' && (src[1] == 'b' || src[1] == 'B')) val = str_strtoull(src + 2, src_size - 2, 2);
+        else if (src[0] == '0' && src[1] && src[1] != '.')          val = str_strtoull(src + 1, src_size - 1, 8);
+        else if (src[0] == '-')                                     val = str_strtoull(src + 1, src_size - 1, 10);
+        else                                                        val = str_strtoull(src, src_size, 10);
+    }
+
+    snprintf(dst, dst_size, "%s%llu", src[0] == '-' ? "-" : "", val);
+    return 1;
 }

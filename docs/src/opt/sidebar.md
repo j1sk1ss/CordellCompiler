@@ -1,0 +1,8 @@
+- [Dead functions elimination](#dead-functions-elimination)
+- [String declaration](#string-declaration)
+- [Variable inline](#variable-inline)
+- [Constant folding](#constant-folding)
+- [Conditional branches unroll](#conditional-branches-unroll)
+- [Dead scope elimination](#dead-scope-elimination)
+- [Stack reusage](#stack-reusage)
+- [Example](#example)

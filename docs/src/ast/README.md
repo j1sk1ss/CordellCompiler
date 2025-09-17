@@ -95,7 +95,7 @@ func_token
     └─ [...]
 ```
 
->> Note: Default values saved in function table. When we call this function, all "empty" cells in args wil be replaced by arguments from default.
+> Note: Default values saved in function table. When we call this function, all "empty" cells in args wil be replaced by arguments from default.
 
 - Return / exit statement (`return`, `exit`)
 ```

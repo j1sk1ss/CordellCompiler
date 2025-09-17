@@ -1,6 +1,7 @@
 #ifndef STR_H_
 #define STR_H_
 
+#include <logg.h>
 #include <math.h>
 #include <stddef.h>
 #include <limits.h>
@@ -22,6 +23,7 @@ char* str_strcat(char* dest, const char* src);
 const char* str_strchr(const char* str, char chr);
 unsigned long long str_strtoull(const char* str, int l, int base);
 double str_strtod(const char* s, int l);
+int write_value(char* src, int src_size, const char* dst, int dst_size);
 
 /* ctype special functions */
 int is_number(char* s);

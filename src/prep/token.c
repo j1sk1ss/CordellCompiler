@@ -61,26 +61,7 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
     str_memset(tkn, 0, sizeof(token_t));
 
     tkn->t_type = type;
-    if (type == UNKNOWN_NUMERIC_TOKEN) {
-        int isfloat = 0;
-        unsigned long long val = 0;
-        for (int i = 0; i < len; i++) {
-            if (value[i] == '.') {
-                isfloat = 1;
-                val = str_dob2bits(str_strtod(value, len));
-                break;
-            }
-        }
-
-        if (!isfloat) {
-            if (value[0] == '0' && (value[1] == 'x' || value[1] == 'X'))      val = str_strtoull(value + 2, len - 2, 16);
-            else if (value[0] == '0' && (value[1] == 'b' || value[1] == 'B')) val = str_strtoull(value + 2, len - 2, 2);
-            else if (value[0] == '0' && value[1] && value[1] != '.')          val = str_strtoull(value + 1, len - 1, 8);
-            else                                                              val = str_strtoull(value, len, 10);
-        }
-
-        snprintf(tkn->value, TOKEN_MAX_SIZE, "%llu", val);
-    }
+    if (type == UNKNOWN_NUMERIC_TOKEN) write_value(value, len, tkn->value, TOKEN_MAX_SIZE);
     else if (type == CHAR_VALUE_TOKEN) {
         snprintf(tkn->value, TOKEN_MAX_SIZE, "%i", value[0]);
         tkn->t_type = UNKNOWN_NUMERIC_TOKEN;
@@ -109,7 +90,7 @@ typedef struct {
 } tkn_ctx_t;
 
 token_t* TKN_tokenize(int fd) {
-    tkn_ctx_t curr_ctx = { .ttype = UNKNOWN_STRING_TOKEN };
+    tkn_ctx_t curr_ctx = { .ttype = LINE_BREAK_TOKEN };
     token_t *head = NULL, *tail = NULL;
     char buffer[BUFFER_SIZE] = { 0 };
     char token_buf[TOKEN_MAX_SIZE] = { 0 };
@@ -171,7 +152,9 @@ token_t* TKN_tokenize(int fd) {
                 else                           char_type = UNKNOWN_CHAR_TOKEN;
                 if (ct == CHAR_NEWLINE)        curr_ctx.line++;
 
-                if (curr_ctx.ttype == UNKNOWN_STRING_TOKEN && char_type == UNKNOWN_NUMERIC_TOKEN) {
+                if (curr_ctx.ttype == LINE_BREAK_TOKEN && (ct == CHAR_SIGN || ct == CHAR_DOT)) {
+                    char_type = UNKNOWN_NUMERIC_TOKEN;
+                } else if (curr_ctx.ttype == UNKNOWN_STRING_TOKEN && char_type == UNKNOWN_NUMERIC_TOKEN) {
                     char_type = UNKNOWN_STRING_TOKEN;
                 }
                 else if (

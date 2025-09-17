@@ -40,6 +40,7 @@ TEST_CODES[test_sem]="
     tests/dummy_data/sem/sem_8.cpl
     tests/dummy_data/sem/sem_9.cpl
     tests/dummy_data/sem/sem_10.cpl
+    tests/dummy_data/sem/sem_11.cpl
 "
 
 TEST_SRCS[test_ast]="src/prep/*.c src/ast/*.c src/ast/*/*.c std/*.c"
