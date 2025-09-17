@@ -6,7 +6,7 @@ static int _affect_outer(ast_node_t* root, char* varname, int* affect, short sco
         if (!t->token) continue;
         _affect_outer(t->child, varname, affect, scope);
         if (VRS_update_operator(t->token)) {
-            if (str_strncmp(t->child->token->value, varname, TOKEN_MAX_SIZE) && t->info.s_id > scope) {
+            if (str_strncmp(t->child->token->value, varname, TOKEN_MAX_SIZE) && t->sinfo.s_id > scope) {
                 *affect = 1;
                 return 1;
             }
@@ -56,8 +56,8 @@ static int _find_usage(ast_node_t* root, char* varname, int* used) {
                     _find_variable(t->child, varname, &is_used);
 
                     int is_affect = 0;
-                    _affect_outer(t->child->sibling, varname, &is_affect, t->info.s_id);
-                    _affect_outer(t->child->sibling->sibling, varname, &is_affect, t->info.s_id);
+                    _affect_outer(t->child->sibling, varname, &is_affect, t->sinfo.s_id);
+                    _affect_outer(t->child->sibling->sibling, varname, &is_affect, t->sinfo.s_id);
                     break;
                 }
 
@@ -66,7 +66,7 @@ static int _find_usage(ast_node_t* root, char* varname, int* used) {
                     _find_variable(t->child, varname, &is_used);
 
                     int is_affect = 0;
-                    _affect_outer(t->child->sibling, varname, &is_affect, t->info.s_id);
+                    _affect_outer(t->child->sibling, varname, &is_affect, t->sinfo.s_id);
                     break;
                 }
 

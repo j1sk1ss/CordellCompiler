@@ -10,6 +10,9 @@
 #include "syntax.h"
 #include <limits.h>
 
+/* heapper.c */
+int SMT_check_heap_usage(ast_node_t* node);
+
 /* ownership.c */
 int SMT_check_ownership(ast_node_t* node);
 

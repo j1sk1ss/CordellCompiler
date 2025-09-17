@@ -1,22 +1,28 @@
 #include <x86_64_gnu_nasm.h>
 
+static int _deref_rbx(int elsize, FILE* output) {
+    switch (elsize) {
+        case 1: iprintf(output, "mov byte [rbx], al\n");  break;
+        case 2: iprintf(output, "mov word [rbx], ax\n");   break;
+        case 4: iprintf(output, "mov dword [rbx], eax\n"); break;
+        case 8: iprintf(output, "mov qword [rbx], rax\n"); break;
+    }
+
+    return 1;
+}
+
 int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
         if (node->child) goto indexing;
         else {
-            if (!node->token->vinfo.dref) iprintf(output, "mov qword %s, rax\n", GET_ASMVAR(node));
+            if (!node->token->flags.dref) iprintf(output, "mov qword %s, rax\n", GET_ASMVAR(node));
             else {
                 array_info_t arr_info = { .el_size = 1 };
-                ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->symtb.arrs);
+                ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
                 iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
-                switch (elsize) {
-                    case 1: iprintf(output, "mov byte [rbx], al\n");  break;
-                    case 2: iprintf(output, "mov word [rbx], ax\n");   break;
-                    case 4: iprintf(output, "mov dword [rbx], eax\n"); break;
-                    case 8: iprintf(output, "mov qword [rbx], rax\n"); break;
-                }
+                _deref_rbx(elsize, output);
             }
         }
 
@@ -46,13 +52,11 @@ int x86_64_generate_store(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t*
         case STR_VARIABLE_TOKEN: {
 indexing: {}
             ast_node_t* off = node->child;
-            if (!off && !node->token->vinfo.heap) iprintf(output, "lea %s, rax\n", GET_ASMVAR(node));
-            else if (!off && node->token->vinfo.heap) iprintf(output, "mov %s, rax\n", GET_ASMVAR(node));
-            else {
+            if (off) {
                 iprintf(output, "mov rdx, rax\n");
 
                 array_info_t arr_info = { .el_size = 1 };
-                ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->symtb.arrs);
+                ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
 
                 g->elemegen(off, output, ctx, g);
@@ -60,16 +64,10 @@ indexing: {}
                     iprintf(output, "imul rax, %d\n", elsize);
                 }
 
-                if (!node->token->vinfo.ptr && !node->token->vinfo.heap) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
+                if (!node->token->flags.ptr && !node->token->flags.heap) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
                 else iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
                 iprintf(output, "add rax, rbx\n");
-
-                switch (elsize) {
-                    case 1: iprintf(output, "mov byte [rax], dl\n");  break;
-                    case 2: iprintf(output, "mov word [rax], dx\n");   break;
-                    case 4: iprintf(output, "mov dword [rax], edx\n"); break;
-                    case 8: iprintf(output, "mov qword [rax], rdx\n"); break;
-                }
+                _deref_rbx(elsize, output);
             }
 
             break;

@@ -73,7 +73,7 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
 
         if (
             VRS_isoperand(t->token) || 
-            (VRS_isdecl(t->token) && (t->token->vinfo.ptr || !VRS_instack(t->token)))  /* Is declaration and it's pointer or ntext */
+            (VRS_isdecl(t->token) && (t->token->flags.ptr || !VRS_instack(t->token)))  /* Is declaration and it's pointer or ntext */
         ) {
             _find_string(t->child, ctx);
             continue;
@@ -88,11 +88,11 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
                 sprintf(t->token->value, "%s", info.name);
             }
             
-            t->info.size         = VRS_variable_bitness(t->token, 1) / 8;
+            t->sinfo.size        = VRS_variable_bitness(t->token, 1) / 8;
             t->token->t_type     = STR_VARIABLE_TOKEN;
-            t->token->vinfo.ro   = 1;
-            t->token->vinfo.glob = 1;
-            t->token->vinfo.ref  = 1;
+            t->token->flags.ro   = 1;
+            t->token->flags.glob = 1;
+            t->token->flags.ref  = 1;
         }
 
         if (VRS_is_control_change(t->token)) _find_string(t->child, ctx);
@@ -123,9 +123,9 @@ static int _declare_strings(ast_node_t* root, stropt_ctx_t* ctx) {
 
         AST_add_node(decl_root, value_node);
         
-        decl_root->token->vinfo.ro = 1;
-        name_node->token->vinfo.ro = 1;
-        name_node->info.size = VRS_variable_bitness(name_node->token, 1) / 8;
+        decl_root->token->flags.ro = 1;
+        name_node->token->flags.ro = 1;
+        name_node->sinfo.size = VRS_variable_bitness(name_node->token, 1) / 8;
 
         ast_node_t* old = root->child;
         root->child = decl_root;

@@ -26,7 +26,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, parse
             return NULL;
         }
         
-        if (size_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) name_node->token->vinfo.heap = 1; 
+        if (size_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) name_node->token->flags.heap = 1; 
         else array_size = str_atoi(size_node->token->value);
         
         AST_add_node(node, size_node);
@@ -64,7 +64,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, parse
     }
     
     ART_add_info(name_node->token->value, scope_id_top(&ctx->scopes.stack), el_size, array_size, ctx->symtb.arrs);
-    STX_var_update(node, ctx, name_node->token->value, ALIGN(array_size * el_size), name_node->token->vinfo.ro, name_node->token->vinfo.glob, name_node->token->vinfo.heap);
+    STX_var_update(node, ctx, name_node->token->value, ALIGN(array_size * el_size), &name_node->token->flags);
     STX_var_lookup(name_node, ctx);
     return node;
 }
@@ -80,34 +80,27 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, pa
         return NULL;
     }
     
-    if (
-        VRS_one_slot(name_node->token) &&  /* Pointer or variable (String and array occupie several stack slots) */
-        VRS_instack(node->token)           /* Global and RO variables placed not in stack */
-    ) {
-        int var_size = VRS_variable_bitness(name_node->token, 1) / 8;
-        STX_var_update(node, ctx, name_node->token->value, var_size, name_node->token->vinfo.ro, name_node->token->vinfo.glob, 0);
-        STX_var_lookup(name_node, ctx);
-    }
-
-    forward_token(curr, 1);
     AST_add_node(node, name_node);
-    if (!*curr || (*curr)->t_type != ASSIGN_TOKEN) { /* If this is uninitilized variable */
-        return node;
-    }
-
     forward_token(curr, 1);
-    ast_node_t* value_node = p->expr(curr, ctx, p);
-    if (!value_node) {
-        AST_unload(node);
-        return NULL;
-    }
-    
-    if (node->token->t_type == STR_TYPE_TOKEN) {
-        ART_add_info(name_node->token->value, scope_id_top(&ctx->scopes.stack), 1, node->info.size, ctx->symtb.arrs);
-        STX_var_update(node, ctx, name_node->token->value, ALIGN(str_strlen(value_node->token->value)), name_node->token->vinfo.ro, name_node->token->vinfo.glob, 0);
-        STX_var_lookup(name_node, ctx);
+
+    int var_size = VRS_variable_bitness(name_node->token, 1) / 8;
+    if (!*curr || (*curr)->t_type == ASSIGN_TOKEN) {
+        forward_token(curr, 1);
+        ast_node_t* value_node = p->expr(curr, ctx, p);
+        if (!value_node) {
+            AST_unload(node);
+            return NULL;
+        }
+        
+        if (node->token->t_type == STR_TYPE_TOKEN) {
+            if (value_node->token->t_type == STRING_VALUE_TOKEN) var_size = ALIGN(str_strlen(value_node->token->value));
+            ART_add_info(name_node->token->value, scope_id_top(&ctx->scopes.stack), 1, node->sinfo.size, ctx->symtb.arrs);
+        }
+
+        AST_add_node(node, value_node);
     }
 
-    AST_add_node(node, value_node);
+    STX_var_update(node, ctx, name_node->token->value, var_size, &name_node->token->flags);
+    STX_var_lookup(name_node, ctx);
     return node;
 }

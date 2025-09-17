@@ -5,7 +5,7 @@ static int _strdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* val_node  = name_node->sibling;
 
     char* s = val_node->token->value;
-    int base_off = name_node->info.offset;
+    int base_off = name_node->sinfo.offset;
     while (*s) {
         iprintf(output, "mov byte [rbp - %d], %i\n", base_off--, *s);
         s++;
@@ -21,8 +21,12 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
     ast_node_t* el_size_node = size_node->sibling;
     ast_node_t* elems_node   = el_size_node->sibling;
 
-    if (name_node->token->vinfo.heap) {
-        print_debug("Heap allocation, var=%s in scope=%i, [rbp - %i]", name_node->token->value, name_node->info.s_id, node->info.offset);
+    if (name_node->token->flags.heap) {
+        print_debug(
+            "Heap allocation, var=%s in scope=%i, [rbp - %i]", 
+            name_node->token->value, name_node->sinfo.s_id, node->sinfo.offset
+        );
+        
         g->elemegen(size_node, output, ctx, g);
         iprintf(output, "push rax\n");
 
@@ -37,18 +41,18 @@ static int _arrdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t
         iprintf(output, "mov rax, 12\n");
         iprintf(output, "syscall\n");
 
-        if (scope_id_top(&ctx->heap) != name_node->info.s_id) {
-            scope_push(&ctx->heap, name_node->info.s_id, node->info.offset);
+        if (scope_id_top(&ctx->heap) != name_node->sinfo.s_id) {
+            scope_push(&ctx->heap, name_node->sinfo.s_id, node->sinfo.offset);
         }
 
         return 1;
     }
 
     array_info_t arr_info = { .el_size = 1 };
-    if (ART_get_info(name_node->token->value, name_node->info.s_id, &arr_info, ctx->synt->symtb.arrs)) {
+    if (ART_get_info(name_node->token->value, name_node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs)) {
         regs_t reg;
         get_reg(&reg, arr_info.el_size, RAX, 0);
-        int base_off = node->info.offset;
+        int base_off = node->sinfo.offset;
         for (ast_node_t* t = elems_node; t; t = t->sibling) {
             if (VRS_isnumeric(t->token)) iprintf(output, "mov%s[rbp - %d], %s\n", reg.operation, base_off, GET_ASMVAR(t));
             else {

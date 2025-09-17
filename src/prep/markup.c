@@ -197,7 +197,7 @@ _f_remove_token:
                         case EXFUNC_TOKEN: {
                             curr_ctx.ttype  = CALL_TOKEN;
                             next->t_type    = FUNC_NAME_TOKEN;
-                            next->vinfo.ext = curr_ctx.ext;
+                            next->flags.ext = curr_ctx.ext;
                             break;
                         }
 
@@ -219,10 +219,10 @@ _f_remove_token:
                     _add_variable(&vars, next->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
                 }
 
-                curr->vinfo.ro   = curr_ctx.ro;
-                curr->vinfo.ptr  = curr_ctx.ptr;
-                curr->vinfo.ext  = curr_ctx.ext;
-                curr->vinfo.glob = curr_ctx.glob;
+                curr->flags.ro   = curr_ctx.ro;
+                curr->flags.ptr  = curr_ctx.ptr;
+                curr->flags.ext  = curr_ctx.ext;
+                curr->flags.glob = curr_ctx.glob;
                 curr_ctx.ext     = 0;
                 curr_ctx.ro      = 0;
                 curr_ctx.ptr     = 0;
@@ -280,18 +280,18 @@ _s_remove_token:
                         vars[i].scope == curr_s
                     ) {
                         curr->t_type     = vars[i].type;
-                        curr->vinfo.ext  = vars[i].ext;
-                        curr->vinfo.ro   = vars[i].ro;
-                        curr->vinfo.glob = vars[i].glob;
-                        curr->vinfo.ptr  = vars[i].ptr;
-                        curr->vinfo.ref  = ref;
-                        curr->vinfo.dref = dref;
-                        curr->vinfo.neg  = neg;
+                        curr->flags.ext  = vars[i].ext;
+                        curr->flags.ro   = vars[i].ro;
+                        curr->flags.glob = vars[i].glob;
+                        curr->flags.ptr  = vars[i].ptr;
+                        curr->flags.ref  = ref;
+                        curr->flags.dref = dref;
+                        curr->flags.neg  = neg;
                         goto resolved;
                     }
                 }
             }
-            resolved:;
+            resolved: {}
         }
 
         prev = curr;

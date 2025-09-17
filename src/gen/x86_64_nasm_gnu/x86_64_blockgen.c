@@ -32,7 +32,7 @@ static int _navigation_handler(ast_node_t* node, FILE* output, gen_ctx_t* ctx, g
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: 
         case UNKNOWN_NUMERIC_TOKEN:
-            if (node->token->vinfo.ref) g->ptrload(node, output, ctx, g);
+            if (node->token->flags.ref) g->ptrload(node, output, ctx, g);
             else g->load(node, output, ctx, g);
         break;
         default: break;

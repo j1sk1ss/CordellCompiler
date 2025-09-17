@@ -184,7 +184,7 @@ static int _find_usage(ast_node_t* r, def_t* v, int* used, int* ref) {
         
         if (
             (VRS_isdecl(t->token) || VRS_update_operator(t->token)) &&
-            t->child && t->child->token->vinfo.ptr
+            t->child && t->child->token->flags.ptr
         ) {
             int is_used = 0, is_ref = 0;
             _find_usage(t->child->sibling, v, &is_used, &is_ref);
@@ -194,14 +194,14 @@ static int _find_usage(ast_node_t* r, def_t* v, int* used, int* ref) {
             *ref  = 0;
 
             if (is_ref) {
-                print_debug("Variable %s.%i owned by %s.%i", v->name, v->s_id, t->child->token->value, t->child->info.s_id);
-                _add_owner(t->child->token->value, t->child->info.s_id, t->child->token->vinfo.heap, v);
+                print_debug("Variable %s.%i owned by %s.%i", v->name, v->s_id, t->child->token->value, t->child->sinfo.s_id);
+                _add_owner(t->child->token->value, t->child->sinfo.s_id, t->child->token->flags.heap, v);
             }
         }
 
         if (!str_strncmp(t->token->value, v->name, TOKEN_MAX_SIZE)) {
             *used = 1;
-            *ref  = t->token->vinfo.ref;
+            *ref  = t->token->flags.ref;
             continue;
         }
 
@@ -220,7 +220,7 @@ static int _change_varoff_scope(ast_node_t* r, const char* name, int offset) {
             continue;
         }
 
-        if (!str_strcmp(t->token->value, name)) t->info.offset = offset;
+        if (!str_strcmp(t->token->value, name)) t->sinfo.offset = offset;
         _change_varoff_scope(t->child, name, offset);
     }
 
@@ -236,7 +236,7 @@ static int _recalc_offs(ast_node_t* r, stack_map_t* stack, recalcoff_ctx_t* rctx
 
     for (ast_node_t* t = r; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            scope_push(&ctx->scopes.stack, t->info.s_id, offset);
+            scope_push(&ctx->scopes.stack, t->sinfo.s_id, offset);
             _recalc_offs(t->child, stack, rctx, ctx);
             int scvars = scope_id_top(&ctx->scopes.stack);
             _clean_by_sid(scvars, stack, rctx);
@@ -253,7 +253,7 @@ static int _recalc_offs(ast_node_t* r, stack_map_t* stack, recalcoff_ctx_t* rctx
                     def_t* next = vh->next;
                     int is_used = 0, is_ref = 0;
                     _find_usage(t, vh, &is_used, &is_ref);
-                    if (!is_used && t->child->info.s_id <= vh->s_id && !vh->heap) {
+                    if (!is_used && t->child->sinfo.s_id <= vh->s_id && !vh->heap) {
                         int foffset = vh->offset, fsize = vh->size;
                         print_debug("Try to free %s, size=%i, off=%i", vh->name, vh->size, vh->offset);
                         if (_unregister_var(vh->name, vh->s_id, rctx)) {
@@ -268,12 +268,12 @@ static int _recalc_offs(ast_node_t* r, stack_map_t* stack, recalcoff_ctx_t* rctx
             } while (unreg_var);
             
             ast_node_t* name = t->child;
-            t->info.offset = stack_map_alloc(name->info.size, stack);
-            print_debug("Alloc for %s size=%i, off=%i", name->token->value, name->info.size, t->info.offset);
-            offset = MAX(offset, t->info.offset);
+            t->sinfo.offset = stack_map_alloc(name->sinfo.size, stack);
+            print_debug("Alloc for %s size=%i, off=%i", name->token->value, name->sinfo.size, t->sinfo.offset);
+            offset = MAX(offset, t->sinfo.offset);
 
-            _register_var(name->info.size, t->info.offset, name->token->value, name->info.s_id, name->token->vinfo.heap, rctx);
-            _change_varoff_scope(t, name->token->value, t->info.offset);
+            _register_var(name->sinfo.size, t->sinfo.offset, name->token->value, name->sinfo.s_id, name->token->flags.heap, rctx);
+            _change_varoff_scope(t, name->token->value, t->sinfo.offset);
             continue;
         }
 

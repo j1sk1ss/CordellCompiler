@@ -13,11 +13,11 @@ static int _deref_rax(FILE* output, int size) {
 
 static int _indexing(int deref, ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     ast_node_t* off = node->child;
-    if (!off && !node->token->vinfo.heap) iprintf(output, "lea rax, %s\n", GET_ASMVAR(node));
-    else if (!off && node->token->vinfo.heap) iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
+    if (!off && !node->token->flags.heap) iprintf(output, "lea rax, %s\n", GET_ASMVAR(node));
+    else if (!off && node->token->flags.heap) iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
     else {
         array_info_t arr_info = { .el_size = 1 };
-        ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->symtb.arrs);
+        ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
         int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
         
         g->elemegen(off, output, ctx, g);
@@ -25,7 +25,7 @@ static int _indexing(int deref, ast_node_t* node, FILE* output, gen_ctx_t* ctx, 
             iprintf(output, "imul rax, %d\n", elsize);
         }
         
-        if (!node->token->vinfo.ptr && !node->token->vinfo.heap) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
+        if (!node->token->flags.ptr && !node->token->flags.heap) iprintf(output, "lea rbx, %s\n", GET_ASMVAR(node));
         else iprintf(output, "mov rbx, %s\n", GET_ASMVAR(node));
         iprintf(output, "add rax, rbx\n");
         if (deref) _deref_rax(output, elsize);
@@ -37,10 +37,10 @@ static int _indexing(int deref, ast_node_t* node, FILE* output, gen_ctx_t* ctx, 
 int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
-        if (!node->token->vinfo.dref) goto indexing; 
+        if (!node->token->flags.dref) goto indexing; 
         else {
             array_info_t arr_info = { .el_size = 1 };
-            ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->symtb.arrs);
+            ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
             iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
             _deref_rax(output, MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size));
         }
@@ -72,7 +72,7 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
         }
     }
 
-    if (node->token->vinfo.neg) {
+    if (node->token->flags.neg) {
         iprintf(output, "test rax, rax\n");
         iprintf(output, "sete al\n");
         iprintf(output, "movzx rax, al\n");
@@ -83,13 +83,13 @@ int x86_64_generate_ptr_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
 
 int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (!node->token) return 0;
-    if (node->token->vinfo.ptr) {
+    if (node->token->flags.ptr) {
         if (node->child) goto indexing;
         else {
-            if (!node->token->vinfo.dref) iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
+            if (!node->token->flags.dref) iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
             else {
                 array_info_t arr_info = { .el_size = 1 };
-                ART_get_info(node->token->value, node->info.s_id, &arr_info, ctx->synt->symtb.arrs);
+                ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
                 iprintf(output, "mov rax, %s\n", GET_ASMVAR(node));
                 _deref_rax(output, MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size));
             }
@@ -131,7 +131,7 @@ int x86_64_generate_load(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* 
         }
     }
 
-    if (node->token->vinfo.neg) {
+    if (node->token->flags.neg) {
         iprintf(output, "test rax, rax\n");
         iprintf(output, "sete al\n");
         iprintf(output, "movzx rax, al\n");

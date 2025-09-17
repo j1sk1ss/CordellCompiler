@@ -8,7 +8,7 @@ int x86_64_generate_funcdef(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_
             continue;
         }
 
-        if (t->token->t_type == FUNC_TOKEN && t->token->vinfo.glob) iprintf(output, "global __%s__\n", t->child->token->value);
+        if (t->token->t_type == FUNC_TOKEN && t->token->flags.glob) iprintf(output, "global __%s__\n", t->child->token->value);
         else if (t->token->t_type == IMPORT_SELECT_TOKEN) {
             for (ast_node_t* func = t->child->child; func; func = func->sibling) {
                 iprintf(output, "extern __%s__\n", func->token->value);
@@ -52,7 +52,7 @@ int x86_64_generate_funccall(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
         iprintf(output, "push rax\n");
     }
 
-    if (!name->token->vinfo.ext) iprintf(output, "call __%s__\n", name->token->value);
+    if (!name->token->flags.ext) iprintf(output, "call __%s__\n", name->token->value);
     else iprintf(output, "call %s\n", name->token->value);
     if (stack_args > 0) {
         iprintf(output, "add rsp, %d\n", stack_args * (BASE_BITNESS / 8));
@@ -79,15 +79,15 @@ int x86_64_generate_function(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen
 
     ast_node_t* t = NULL;
     for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
-        int param_size = t->info.offset;
+        int param_size = t->sinfo.offset;
         if (pop_params < 6) {
             regs_t reg;
             get_reg(&reg, VRS_variable_bitness(t->child->token, 1) / 8, args_regs[pop_params], 0);
-            iprintf(output, "mov%s[rbp - %d], %s\n", reg.operation, t->child->info.offset, reg.name);
+            iprintf(output, "mov%s[rbp - %d], %s\n", reg.operation, t->child->sinfo.offset, reg.name);
         }
         else {
             iprintf(output, "mov rax, [rbp + %d]\n", stack_offset);
-            iprintf(output, "mov qword [rbp - %d], rax\n", t->child->info.offset);
+            iprintf(output, "mov qword [rbp - %d], rax\n", t->child->sinfo.offset);
             stack_offset += BASE_BITNESS / 8;
         }
 

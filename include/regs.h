@@ -72,15 +72,15 @@ static inline char* format_from_data(token_t* tkn) {
         if (
             tkn->t_type == ARR_VARIABLE_TOKEN || 
             tkn->t_type == STR_VARIABLE_TOKEN
-        ) snprintf(data_buff, sizeof(data_buff), tkn->vinfo.ext ? "%s" : "[rel __%s__]", tkn->value);
-        else snprintf(data_buff, sizeof(data_buff), tkn->vinfo.ext ? "[rel %s]" : "[rel __%s__]", tkn->value);
+        ) snprintf(data_buff, sizeof(data_buff), tkn->flags.ext ? "%s" : "[rel __%s__]", tkn->value);
+        else snprintf(data_buff, sizeof(data_buff), tkn->flags.ext ? "[rel %s]" : "[rel __%s__]", tkn->value);
         return data_buff;
     }
 }
 
 #define GET_ASMVAR(node) \
     VRS_instack((node)->token) ? \
-    format_from_stack((node)->info.offset) : \
+    format_from_stack((node)->sinfo.offset) : \
     format_from_data((node)->token)
 
 typedef struct {

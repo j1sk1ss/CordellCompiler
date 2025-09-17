@@ -12,7 +12,7 @@ int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
 
         if (t->token && t->token->t_type == FUNC_TOKEN) continue;
         if (!VRS_instack(t->token)) continue;
-        size = MAX(MAX(t->info.offset, get_stack_size(t->child, ctx)), size);
+        size = MAX(MAX(t->sinfo.offset, get_stack_size(t->child, ctx)), size);
     }
 
     return size;
@@ -106,8 +106,8 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, g
 
         if (
             VRS_isdecl(t->token) && /* This is declaration */
-            ((section == DATA_SECTION)  && t->token->vinfo.glob || /* And this is filter two types */
-            (section == RODATA_SECTION) && t->token->vinfo.ro)
+            ((section == DATA_SECTION)  && t->token->flags.glob || /* And this is filter two types */
+            (section == RODATA_SECTION) && t->token->flags.ro)
         ) {
             if (t->token->t_type != ARRAY_TYPE_TOKEN) {
                 if (t->child->sibling && !bss)      _generate_init(t, output);

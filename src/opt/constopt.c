@@ -70,7 +70,7 @@ static int _find_op(ast_node_t* root, int* fold) {
             
             snprintf(t->token->value, TOKEN_MAX_SIZE, "%d", result);
             t->token->t_type = UNKNOWN_NUMERIC_TOKEN;
-            t->token->vinfo.glob = 1;
+            t->token->flags.glob = 1;
             AST_unload(t->child);
             t->child = NULL;
 _unsupported_operand: {}

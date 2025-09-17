@@ -6,11 +6,11 @@ static int _inline_binary(ast_node_t* r, const char* v, ast_node_t** nv, int inl
         return _inline_binary(r->child, v, nv, inl) || _inline_binary(r->child->sibling, v, nv, inl);
     }
     
-    if (!str_strncmp(r->token->value, v, TOKEN_MAX_SIZE) && !r->token->vinfo.dref && !r->token->vinfo.ref) {
+    if (!str_strncmp(r->token->value, v, TOKEN_MAX_SIZE) && !r->token->flags.dref && !r->token->flags.ref) {
         r->token->t_type = (*nv)->token->t_type;
         str_strncpy(r->token->value, (*nv)->token->value, TOKEN_MAX_SIZE);
-        str_memcpy(&r->token->vinfo, &(*nv)->token->vinfo, sizeof(tkn_var_info_t));
-        str_memcpy(&r->info, &(*nv)->info, sizeof(syntax_info_t));
+        str_memcpy(&r->token->flags, &(*nv)->token->flags, sizeof(token_flags_t));
+        str_memcpy(&r->sinfo, &(*nv)->sinfo, sizeof(syntax_info_t));
         return 1;
     }
 

@@ -6,19 +6,20 @@ static int print_ast(ast_node_t* node, int depth) {
     for (int i = 0; i < depth; i++) printf("    ");
     if (node->token && node->token->t_type != SCOPE_TOKEN) {
         printf(
-            "[%s] (t=%d, size=%i,%s%s%soff=%i, s_id=%i%s%s%s)\n", 
-            node->token->value, node->token->t_type, node->info.size, 
-            node->token->vinfo.ptr ? " ptr, " : " ",
-            node->token->vinfo.ref ? "ref, " : "",
-            node->token->vinfo.dref ? "dref, " : "",
-            node->info.offset, node->info.s_id,
-            node->token->vinfo.ro ? ", ro" : "",
-            node->token->vinfo.ext ? ", ext" : "",
-            node->token->vinfo.glob ? ", glob" : ""
+            "[%s] (t=%d, size=%i,%s%s%soff=%i, s_id=%i%s%s%s%s)\n", 
+            node->token->value, node->token->t_type, node->sinfo.size, 
+            node->token->flags.ptr ? " ptr, " : " ",
+            node->token->flags.ref ? "ref, " : "",
+            node->token->flags.dref ? "dref, " : "",
+            node->sinfo.offset, node->sinfo.s_id,
+            node->token->flags.ro ? ", ro" : "",
+            node->token->flags.ext ? ", ext" : "",
+            node->token->flags.glob ? ", glob" : "",
+            node->token->flags.heap ? ", heap" : ""
         );
     }
     else if (node->token && node->token->t_type == SCOPE_TOKEN) {
-        printf("{ scope, id=%i }\n", node->info.s_id);
+        printf("{ scope, id=%i }\n", node->sinfo.s_id);
     }
     else {
         printf("[ block ]\n");

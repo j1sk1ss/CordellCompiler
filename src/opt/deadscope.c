@@ -28,7 +28,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
 
         if (curr->token->t_type == SCOPE_TOKEN) {
             int is_affect = 0;
-            _find_scope(curr, &is_affect, MAX(curr->info.s_id, s_id));
+            _find_scope(curr, &is_affect, MAX(curr->sinfo.s_id, s_id));
 
             if (!is_affect) {
                 AST_remove_node(root, curr);
@@ -49,7 +49,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
             case WHILE_TOKEN:
             case SWITCH_TOKEN: {
                 int is_affect = 0;
-                _find_scope(curr, &is_affect, MAX(curr->info.s_id, s_id));
+                _find_scope(curr, &is_affect, MAX(curr->sinfo.s_id, s_id));
 
                 if (!is_affect) { 
                     AST_remove_node(root, curr);
@@ -108,7 +108,7 @@ _check_case_scope: {}
 
         if (VRS_update_operator(curr->token)) {
             ast_node_t* var = curr->child;
-            if (var->info.s_id < s_id) { /* This scope affect to outer variable */
+            if (var->sinfo.s_id < s_id) { /* This scope affect to outer variable */
                 *affect = 1;
                 break;
             }

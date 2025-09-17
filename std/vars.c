@@ -6,7 +6,7 @@ Return variable bitness (size in bits).
 */
 int VRS_variable_bitness(token_t* token, char ptr) {
     if (!token) return 8;
-    if (ptr && token->vinfo.ptr) return BASE_BITNESS;
+    if (ptr && token->flags.ptr) return BASE_BITNESS;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
         case I64_TYPE_TOKEN:
@@ -39,7 +39,7 @@ int VRS_variable_bitness(token_t* token, char ptr) {
 /* Return 1 if token is pointer (arr, string, ptr). Otherwise return 0. */
 int VRS_isptr(token_t* token) {
     if (!token) return 0;
-    if (token->vinfo.ptr) return 1;
+    if (token->flags.ptr) return 1;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
         case I64_VARIABLE_TOKEN:
@@ -65,13 +65,13 @@ int VRS_isptr(token_t* token) {
 /* Is token in text segment */
 int VRS_instack(token_t* token) {
     if (!token) return 0;
-    return !token->vinfo.glob && !token->vinfo.ro && !token->vinfo.ext;
+    return !token->flags.glob && !token->flags.ro && !token->flags.ext;
 }
 
 /* Is variable occupie one slot in stack? */
 int VRS_one_slot(token_t* token) {
     if (!token) return 0;
-    if (token->vinfo.ptr) return 1;
+    if (token->flags.ptr) return 1;
     switch (token->t_type) {
         case I8_TYPE_TOKEN:
         case U8_TYPE_TOKEN:

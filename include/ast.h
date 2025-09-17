@@ -14,7 +14,7 @@ typedef struct ast_node {
     struct ast_node* parent;
     struct ast_node* child;
     struct ast_node* sibling;
-    syntax_info_t    info;
+    syntax_info_t    sinfo;
 } ast_node_t;
 
 /*

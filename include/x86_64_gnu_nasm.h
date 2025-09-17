@@ -10,10 +10,10 @@
 #include "syntax.h"
 
 static inline int deallocate_scope_heap(ast_node_t* t, FILE* output, gen_ctx_t* ctx, gen_t* g) {
-    if (scope_id_top(&ctx->heap) == t->info.s_id) {
+    if (scope_id_top(&ctx->heap) == t->sinfo.s_id) {
         scope_elem_t hinfo;
         scope_pop_top(&ctx->heap, &hinfo);
-        print_debug("Heap deallocation for scope=%i, return to [rbp - %i]", t->info.s_id, hinfo.offset);
+        print_debug("Heap deallocation for scope=%i, return to [rbp - %i]", t->sinfo.s_id, hinfo.offset);
         iprintf(output, "mov rdi, [rbp - %d]\n", hinfo.offset);
         iprintf(output, "mov rax, 12\n");
         iprintf(output, "syscall\n");

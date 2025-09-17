@@ -31,7 +31,7 @@ ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     
-    node->info.s_id = scope_id_top(&ctx->scopes.stack);
+    node->sinfo.s_id = scope_id_top(&ctx->scopes.stack);
     forward_token(curr, 1);
     if (VRS_isclose(*curr)) {
         return node;
@@ -101,7 +101,7 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
 
     scope_push(&ctx->scopes.stack, ++ctx->scopes.s_id, ctx->symtb.vars->offset);
     ctx->symtb.vars->offset = 0;
-    args_node->info.s_id = ctx->scopes.s_id;
+    args_node->sinfo.s_id = ctx->scopes.s_id;
 
     forward_token(curr, 1);
     while (*curr && (*curr)->t_type != CLOSE_BRACKET_TOKEN) {

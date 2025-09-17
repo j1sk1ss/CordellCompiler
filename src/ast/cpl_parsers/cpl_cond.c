@@ -3,7 +3,7 @@
 ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
-    node->info.s_id = scope_id_top(&ctx->scopes.stack);
+    node->sinfo.s_id = scope_id_top(&ctx->scopes.stack);
 
     forward_token(curr, 1);
     ast_node_t* stmt = p->expr(curr, ctx, p);
@@ -54,7 +54,7 @@ ast_node_t* cpl_parse_switch(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
 ast_node_t* cpl_parse_condop(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
-    node->info.s_id = scope_id_top(&ctx->scopes.stack);
+    node->sinfo.s_id = scope_id_top(&ctx->scopes.stack);
     
     forward_token(curr, 1);
     ast_node_t* cond = p->expr(curr, ctx, p);

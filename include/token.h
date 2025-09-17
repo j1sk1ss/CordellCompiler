@@ -133,10 +133,10 @@ typedef struct {
     char ext;  /* Is extern flag      */
     char neg;  /* Is negative flag    */
     char heap; /* Is heap allocated   */
-} tkn_var_info_t;
+} token_flags_t;
 
 typedef struct token {
-    tkn_var_info_t vinfo;
+    token_flags_t  flags;
     token_type_t   t_type;
     char           value[TOKEN_MAX_SIZE];
     struct token*  next;

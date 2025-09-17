@@ -55,6 +55,6 @@ static inline int forward_token(token_t** tkn, int steps) {
 syntax_ctx_t* STX_create_ctx();
 int STX_destroy_ctx(syntax_ctx_t* ctx);
 int STX_var_lookup(ast_node_t* node, syntax_ctx_t* ctx);
-int STX_var_update(ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size, char ro, char glob, int heap);
+int STX_var_update(ast_node_t* node, syntax_ctx_t* ctx, const char* name, int size, token_flags_t* flags);
 
 #endif

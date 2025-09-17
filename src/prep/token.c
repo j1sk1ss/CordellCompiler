@@ -93,7 +93,7 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
     if (
         type == UNKNOWN_NUMERIC_TOKEN ||
         type == STRING_VALUE_TOKEN
-    ) tkn->vinfo.glob = 1;
+    ) tkn->flags.glob = 1;
     return tkn;
 }
 
