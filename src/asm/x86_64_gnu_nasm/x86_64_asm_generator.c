@@ -13,11 +13,15 @@ int x86_64_generate_asm(ir_block_t* h, FILE* output) {
             }
             case SYSC: iprintf(output, "syscall\n"); break;
             case FRET: iprintf(output, "ret\n");     break;
-            case TDBL: break;
-            case TST: 
-                iprintf(output, "tst %s, %s", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); 
+            case TDBL:
+                iprintf(output, "cvtsi2sd %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));
             break;
-            case XCHG: break;
+            case TST:
+                iprintf(output, "test %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));
+            break;
+            case XCHG:
+                iprintf(output, "xchg %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));
+            break;
             case CDQ: iprintf(output, "cdq\n");                               break;
             case MKLB: iprintf(output, "%s:\n", GET_IRVAR(curr->farg));       break;
             case FDCL: iprintf(output, "_cpl_%s:\n", GET_IRVAR(curr->farg));  break;
@@ -41,50 +45,48 @@ int x86_64_generate_asm(ir_block_t* h, FILE* output) {
             case JG:  iprintf(output, "jg %s\n", GET_IRVAR(curr->farg));  break;
 
             case iMOV:  iprintf(output, "mov %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));       break;
-            case iMOVb: iprintf(output, "mov byte %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));  break;
-            case iMOVw: iprintf(output, "mov word %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));  break;
-            case iMOVd: iprintf(output, "mov dword %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
-            case iMOVq: iprintf(output, "mov qword %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
             case iMVZX: iprintf(output, "movzx %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));     break;
 
-            case fMOV: break;
-            case fMVf: break;
+            case fMOV:
+            case fMVf:  iprintf(output, "movsd %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
             case LEA: 
                 iprintf(output, "lea %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); 
             break;
             case PUSH: iprintf(output, "push %s\n", GET_IRVAR(curr->sarg)); break;
             case POP: iprintf(output, "pop %s\n", GET_IRVAR(curr->sarg));   break;
             
-            case iADD: break;
-            case iSUB: break;
-            case iMUL: break;
-            case DIV: break;
-            case iDIV: break;
-            case iMOD: break;
-            case iLRG: break;
-            case iLGE: break;
-            case iLWR: break;
-            case iLRE: break;
-            case iCMP: break;
+            case iADD: iprintf(output, "add %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));  break;
+            case iSUB: iprintf(output, "sub %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));  break;
+            case iMUL: iprintf(output, "imul %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
+            case DIV:  iprintf(output, "div %s\n", GET_IRVAR(curr->farg));   break;
+            case iDIV: iprintf(output, "idiv %s\n", GET_IRVAR(curr->farg));  break;
+            case iMOD: iprintf(output, "idiv %s\n", GET_IRVAR(curr->farg));  break;
+            case iLRG: iprintf(output, "cmp %s, %s\n\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
+            case iLGE: iprintf(output, "cmp %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));   break;
+            case iLWR: iprintf(output, "cmp %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));   break;
+            case iLRE: iprintf(output, "cmp %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));   break;
+            case iCMP: iprintf(output, "cmp %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));   break;
 
-            case iAND: break;
-            case iOR: break;
+            case iAND: iprintf(output, "and %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
+            case iOR:  iprintf(output, "or %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));  break;
 
-            case fADD: break;
-            case fSUB: break;
-            case fMUL: break;
-            case fDIV: break;
-            case fCMP: break;
+            case fADD: iprintf(output, "addsd %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));   break;
+            case fSUB: iprintf(output, "subsd %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));   break;
+            case fMUL: iprintf(output, "mulsd %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));   break;
+            case fDIV: iprintf(output, "divsd %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));   break;
+            case fCMP: iprintf(output, "ucomisd %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
 
-            case bAND: break;
-            case bOR: break;
-            case bXOR: break;
-            case bSHL: break;
-            case bSHR: break;
-            case bSAR: break;
+            case bAND: iprintf(output, "and %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
+            case bOR:  iprintf(output, "or %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg));  break;
+            case bXOR: iprintf(output, "xor %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
+            case bSHL: iprintf(output, "shl %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
+            case bSHR: iprintf(output, "shr %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
+            case bSAR: iprintf(output, "sar %s, %s\n", GET_IRVAR(curr->farg), GET_IRVAR(curr->sarg)); break;
 
             case RAW: iprintf("%s\n", GET_IRVAR(curr->farg)); break;
-            default: break;
+            default:
+                iprintf(output, "; unknown op %d\n", curr->op);
+            break;
         }
 
         curr = curr->next;

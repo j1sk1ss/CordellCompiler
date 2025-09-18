@@ -11,7 +11,7 @@
 
 #define IR_VAL_MSIZE 128
 typedef struct {
-    char size;
+    char glob;
     long obj_id;
 
     char instack;
@@ -30,6 +30,7 @@ typedef struct {
 
 typedef struct {
     char isreg;
+    char size;
     union storage {
         ir_vinfo_t vinfo;
         ir_rinfo_t rinfo;
@@ -175,7 +176,7 @@ static inline const char* _tmp_str(const char* fmt, ...) {
 #define IR_SUBJ_NOFF(o, s)   IR_create_subject(-1, 0, -o, NULL, -1, s)
 #define IR_SUBJ_VAR(var)     VRS_instack((var)->token) ? \
         /* Local variable */    IR_create_subject(-1, 0, (var)->sinfo.offset, NULL, -1, (var)->sinfo.size) : \
-        /* Global variable */   IR_create_subject(-1, 0, 0, (var)->token->value, -1, (var)->sinfo.size)
+        /* Global variable */   IR_create_subject(-1, !VRS_isnumeric((var)->token), 0, (var)->token->value, -1, (var)->sinfo.size)
 
 #define IR_BLOCK0(ctx, op) \
     IR_insert_block(IR_create_block((op), NULL, NULL, NULL), (ctx))

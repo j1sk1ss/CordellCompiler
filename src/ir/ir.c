@@ -26,17 +26,18 @@ ir_subject_t* IR_create_subject(int reg, int dref, int offset, const char* val1,
     ir_subject_t* subj = mm_malloc(sizeof(ir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(ir_subject_t));
-    subj->storage.rinfo.dref = dref;
+    subj->size = size;
 
     if (reg >= 0) {
         subj->isreg = 1;
         subj->storage.rinfo.reg_id = reg;
+        subj->storage.rinfo.dref = dref;
     } 
     else {
         subj->isreg                = 0;
         subj->storage.vinfo.obj_id = 0;
-        subj->storage.vinfo.size   = size;
         subj->storage.vinfo.cnstvl = val2;
+        subj->storage.vinfo.glob   = dref;
 
         if (offset == 0 || val1) {
             if (val1) str_strncpy(subj->storage.vinfo.pos.value, val1, IR_VAL_MSIZE);

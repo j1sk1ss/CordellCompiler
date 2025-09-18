@@ -49,8 +49,6 @@ static int _arrdeclaration(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
 
     array_info_t arr_info = { .el_size = 1 };
     if (ART_get_info(name_node->token->value, name_node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs)) {
-        regs_t reg;
-        get_reg(&reg, arr_info.el_size, RAX, 0);
         int base_off = node->sinfo.offset;
         for (ast_node_t* t = elems_node; t; t = t->sibling) {
             g->elemegen(t, g, ctx);
@@ -77,6 +75,13 @@ int IR_generate_declaration_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) 
 
     ast_node_t* val_node = name_node->sibling;
     g->elemegen(val_node, g, ctx);
-    IR_BLOCK2(ctx, iMOV, IR_SUBJ_VAR(name_node), IR_SUBJ_REG(RAX, 8));
+
+    switch (VRS_variable_bitness(name_node->token, 1)) {
+        case 8: IR_BLOCK2(ctx, iMOV, IR_SUBJ_VAR(name_node), IR_SUBJ_REG(AL, 1)); break;
+        case 16: IR_BLOCK2(ctx, iMOV, IR_SUBJ_VAR(name_node), IR_SUBJ_REG(AX, 2)); break;
+        case 32: IR_BLOCK2(ctx, iMOV, IR_SUBJ_VAR(name_node), IR_SUBJ_REG(EAX, 4)); break;
+        default: IR_BLOCK2(ctx, iMOV, IR_SUBJ_VAR(name_node), IR_SUBJ_REG(RAX, 8)); break;
+    }
+
     return 1;
 }

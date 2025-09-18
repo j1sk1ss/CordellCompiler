@@ -4,7 +4,7 @@ static int _deref_rax(ir_ctx_t* ctx, int size) {
     switch (size) {
         case 1:  IR_BLOCK2(ctx, iMVZX, IR_SUBJ_REG(RAX, 8), IR_SUBJ_DRFREG(RAX, 1)); break;
         case 2:  IR_BLOCK2(ctx, iMVZX, IR_SUBJ_REG(RAX, 8), IR_SUBJ_DRFREG(RAX, 2)); break;
-        case 4:  IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(EAX, 8), IR_SUBJ_DRFREG(RAX, 8));  break;
+        case 4:  IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(EAX, 8), IR_SUBJ_DRFREG(RAX, 4));  break;
         default: IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX, 8), IR_SUBJ_DRFREG(RAX, 8));  break;
     }
 

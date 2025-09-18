@@ -29,24 +29,47 @@ static const char* _ir_reg_names[] = {
 
 static inline const char* __format_ir_variable(ir_subject_t* v) {
     static char buffer[128] = { 0 };
+
     if (v->isreg) {
         int id = v->storage.rinfo.reg_id;
         const char* rname = "";
         size_t rn = sizeof(_ir_reg_names )/ sizeof(_ir_reg_names[0]);
         if (id >= 0 && id < (int)rn) rname = _ir_reg_names[id];
-        if (v->storage.rinfo.dref) snprintf(buffer, 128, "[%s]", rname);
-        else snprintf(buffer, 128, "%s", rname);
+        if (!v->storage.rinfo.dref) snprintf(buffer, 128, "%s", rname);
+        else {
+            switch (v->size) {
+                case 1: snprintf(buffer, 128, "byte [%s]", rname); break;
+                case 2: snprintf(buffer, 128, "word [%s]", rname); break;
+                case 4: snprintf(buffer, 128, "dword [%s]", rname); break;
+                case 8: snprintf(buffer, 128, "qword [%s]", rname); break;
+                default: snprintf(buffer, 128, "[%s]", rname);      break;
+            }
+        }
+
         return buffer;
     } 
 
     int cnst = v->storage.vinfo.cnstvl;
     char instack = v->storage.vinfo.instack;
-    if (!instack && v->storage.vinfo.pos.value[0]) snprintf(buffer, 128, "%s", v->storage.vinfo.pos.value);
+    if (!instack && v->storage.vinfo.glob) snprintf(buffer, 128, "[rel %s]", v->storage.vinfo.pos.value);
+    else if (!instack && !v->storage.vinfo.glob && cnst == -1) snprintf(buffer, 128, "%s", v->storage.vinfo.pos.value);
     else if (v->storage.vinfo.pos.offset != 0) {
-        if (v->storage.vinfo.pos.offset > 0) snprintf(buffer, 128, "[rbp - %i]", v->storage.vinfo.pos.offset);
-        else snprintf(buffer, 128, "[rbp + %i]", -1 * v->storage.vinfo.pos.offset);
+        const char* modifier = "";
+        switch (v->size) {
+            case 1: modifier = "byte ";  break;
+            case 2: modifier = "word ";  break;
+            case 4: modifier = "dword "; break;
+            case 8: modifier = "qword "; break;
+            default: break;
+        }
+
+        if (v->storage.vinfo.pos.offset > 0) snprintf(buffer, 128, "%s[rbp - %i]", modifier, v->storage.vinfo.pos.offset);
+        else snprintf(buffer, 128, "%s[rbp + %i]", modifier, -1 * v->storage.vinfo.pos.offset);
     }
-    else snprintf(buffer, 128, "%d", cnst);
+    else {
+        snprintf(buffer, 128, "%d", cnst);
+    }
+
     return buffer;
 }
 

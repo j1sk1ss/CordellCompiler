@@ -12,10 +12,10 @@ int IR_generate_store_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
                 IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RBX, 8), IR_SUBJ_VAR(node));
                 switch (elsize) {
-                    case 1: IR_BLOCK2(ctx, iMOVb, IR_SUBJ_DRFREG(RBX, 8), IR_SUBJ_REG(AL, 1));  break;
-                    case 2: IR_BLOCK2(ctx, iMOVw, IR_SUBJ_DRFREG(RBX, 8), IR_SUBJ_REG(AX, 2));  break;
-                    case 4: IR_BLOCK2(ctx, iMOVd, IR_SUBJ_DRFREG(RBX, 8), IR_SUBJ_REG(EAX, 4)); break;
-                    case 8: IR_BLOCK2(ctx, iMOVq, IR_SUBJ_DRFREG(RBX, 8), IR_SUBJ_REG(RAX, 8)); break;
+                    case 1: IR_BLOCK2(ctx, iMOV, IR_SUBJ_DRFREG(RBX, 1), IR_SUBJ_REG(AL, 1));  break;
+                    case 2: IR_BLOCK2(ctx, iMOV, IR_SUBJ_DRFREG(RBX, 2), IR_SUBJ_REG(AX, 2));  break;
+                    case 4: IR_BLOCK2(ctx, iMOV, IR_SUBJ_DRFREG(RBX, 4), IR_SUBJ_REG(EAX, 4)); break;
+                    case 8: IR_BLOCK2(ctx, iMOV, IR_SUBJ_DRFREG(RBX, 8), IR_SUBJ_REG(RAX, 8)); break;
                 }
             }
         }
@@ -27,20 +27,20 @@ int IR_generate_store_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
         case F64_VARIABLE_TOKEN:
         case I64_VARIABLE_TOKEN: 
         case U64_VARIABLE_TOKEN:
-            IR_BLOCK2(ctx, iMOVq, IR_SUBJ_VAR(node), IR_SUBJ_REG(RAX, 8));
+            IR_BLOCK2(ctx, iMOV, IR_SUBJ_VAR(node), IR_SUBJ_REG(RAX, 8));
         break;
         case F32_VARIABLE_TOKEN:
         case I32_VARIABLE_TOKEN:
         case U32_VARIABLE_TOKEN:  
-            IR_BLOCK2(ctx, iMOVd, IR_SUBJ_VAR(node), IR_SUBJ_REG(EAX, 4));
+            IR_BLOCK2(ctx, iMOV, IR_SUBJ_VAR(node), IR_SUBJ_REG(EAX, 4));
         break;
         case I16_VARIABLE_TOKEN:
         case U16_VARIABLE_TOKEN:
-            IR_BLOCK2(ctx, iMOVw, IR_SUBJ_VAR(node), IR_SUBJ_REG(AX, 2));
+            IR_BLOCK2(ctx, iMOV, IR_SUBJ_VAR(node), IR_SUBJ_REG(AX, 2));
         break;
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN: 
-            IR_BLOCK2(ctx, iMOVb, IR_SUBJ_VAR(node), IR_SUBJ_REG(AL, 1));
+            IR_BLOCK2(ctx, iMOV, IR_SUBJ_VAR(node), IR_SUBJ_REG(AL, 1));
         break;
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: {
