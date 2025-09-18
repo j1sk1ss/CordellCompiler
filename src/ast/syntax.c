@@ -1,4 +1,4 @@
-#include <syntax.h>
+#include <ast/syntax.h>
 
 int STX_create(token_t* head, syntax_ctx_t* ctx, parser_t* p) {
     token_t* curr_head = head;

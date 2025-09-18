@@ -1,4 +1,4 @@
-#include <ast.h>
+#include <ast/ast.h>
 
 ast_node_t* AST_create_node(token_t* tkn) {
     ast_node_t* node = mm_malloc(sizeof(ast_node_t));

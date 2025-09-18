@@ -1,6 +1,6 @@
 #ifndef ASTHELPER_H_
 #define ASTHELPER_H_
-#include <syntax.h>
+#include <ast/syntax.h>
 static int print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
     for (int i = 0; i < depth; i++) printf("    ");

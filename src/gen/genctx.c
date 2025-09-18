@@ -1,4 +1,4 @@
-#include <genctx.h>
+#include <gen/genctx.h>
 
 gen_ctx_t* GEN_create_ctx() {
     gen_ctx_t* ctx = (gen_ctx_t*)mm_malloc(sizeof(gen_ctx_t));

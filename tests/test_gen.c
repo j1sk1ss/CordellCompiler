@@ -1,15 +1,15 @@
 #include <stdio.h>
-#include <token.h>
+#include <prep/token.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <syntax.h>
-#include <markup.h>
-#include <strdecl.h>
-#include <deadscope.h>
-#include <offsetopt.h>
-#include <generator.h>
-#include <cpl_parser.h>
-#include <x86_64_gnu_nasm.h>
+#include <ast/syntax.h>
+#include <prep/markup.h>
+#include <ast/opt/strdecl.h>
+#include <ast/opt/deadscope.h>
+#include <ast/opt/offsetopt.h>
+#include <gen/asmgen.h>
+#include <ast/parsers/cpl_parser.h>
+#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm.h>
 #include "ast_helper.h"
 
 int main(int argc, char* argv[]) {

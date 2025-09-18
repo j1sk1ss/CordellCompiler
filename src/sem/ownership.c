@@ -1,4 +1,4 @@
-#include <semantic.h>
+#include <sem/semantic.h>
 
 typedef struct def {
     short       s_id;

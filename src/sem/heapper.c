@@ -1,4 +1,4 @@
-#include <semantic.h>
+#include <sem/semantic.h>
 
 int SMT_check_heap_usage(ast_node_t* node) {
     if (!node) return 1;

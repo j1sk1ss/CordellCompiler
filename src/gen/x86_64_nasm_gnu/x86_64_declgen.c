@@ -1,4 +1,4 @@
-#include <x86_64_gnu_nasm.h>
+#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm.h>
 
 static int _strdeclaration(ast_node_t* node, FILE* output, gen_ctx_t* ctx) {
     ast_node_t* name_node = node->child;

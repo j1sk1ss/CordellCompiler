@@ -1,4 +1,4 @@
-#include <semantic.h>
+#include <sem/semantic.h>
 
 static int _get_max_bitness(ast_node_t* r) {
     if (!r || !r->token) return 1;

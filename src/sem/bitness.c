@@ -1,4 +1,4 @@
-#include <semantic.h>
+#include <sem/semantic.h>
 
 static int _check_exp_bitness(ast_node_t* r, sym_tables_t* smt) {
     if (!r || !r->token) return 1;

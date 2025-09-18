@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include <token.h>
+#include <prep/token.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <syntax.h>
-#include <markup.h>
+#include <ast/syntax.h>
+#include <prep/markup.h>
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);

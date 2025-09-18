@@ -1,4 +1,4 @@
-#include <synctx.h>
+#include <ast/synctx.h>
 
 syntax_ctx_t* STX_create_ctx() {
     syntax_ctx_t* ctx = (syntax_ctx_t*)mm_malloc(sizeof(syntax_ctx_t));

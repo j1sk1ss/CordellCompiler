@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <token.h>
+#include <prep/token.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -23,14 +23,14 @@ int main(int argc, char* argv[]) {
     while (h) {
         printf(
             "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
-            h->vinfo.glob ? "glob " : "", 
+            h->flags.glob ? "glob " : "", 
             h->lnum, 
             h->t_type, 
             h->value,
-            h->vinfo.ptr  ? "ptr "  : "", 
-            h->vinfo.ro   ? "ro "   : "",
-            h->vinfo.dref ? "dref " : "",
-            h->vinfo.ref  ? "ref "  : ""
+            h->flags.ptr  ? "ptr "  : "", 
+            h->flags.ro   ? "ro "   : "",
+            h->flags.dref ? "dref " : "",
+            h->flags.ref  ? "ref "  : ""
         );
         h = h->next;
     }

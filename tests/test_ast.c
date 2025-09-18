@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include <token.h>
+#include <prep/token.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <markup.h>
-#include <syntax.h>
-#include <cpl_parser.h>
+#include <prep/markup.h>
+#include <ast/syntax.h>
+#include <ast/parsers/cpl_parser.h>
 #include "ast_helper.h"
 
 int main(int argc, char* argv[]) {

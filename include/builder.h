@@ -2,23 +2,22 @@
 #define BUILDER_H_
 
 #include <stdlib.h>
-
-#include "logg.h"
-#include "token.h"
-#include "arrtb.h"
-#include "vartb.h"
-#include "syntax.h"
-#include "markup.h"
-#include "deadopt.h"
-#include "strdecl.h"
-#include "semantic.h"
-#include "constopt.h"
-#include "deadfunc.h"
-#include "generator.h"
-#include "deadscope.h"
-#include "offsetopt.h"
-#include "varinline.h"
-#include "condunroll.h"
+#include <std/logg.h>
+#include <prep/token.h>
+#include <ast/tables/arrtb.h>
+#include <ast/tables/vartb.h>
+#include <ast/syntax.h>
+#include <prep/markup.h>
+#include <sem/semantic.h>
+#include <ast/opt/deadopt.h>
+#include <ast/opt/strdecl.h>
+#include <ast/opt/constopt.h>
+#include <ast/opt/deadfunc.h>
+#include <ast/opt/deadscope.h>
+#include <ast/opt/offsetopt.h>
+#include <ast/opt/varinline.h>
+#include <ast/opt/condunroll.h>
+#include <gen/asmgen.h>
 
 #define MAX_FILES            100
 #define DEFAULT_ASM_COMPILER "nasm"

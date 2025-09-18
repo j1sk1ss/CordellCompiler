@@ -1,4 +1,4 @@
-#include <math.h>
+#include <std/math.h>
 
 double mth_pow(double base, int exp) {
     double result = 1.0;

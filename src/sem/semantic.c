@@ -1,4 +1,4 @@
-#include <semantic.h>
+#include <sem/semantic.h>
 
 int SMT_check(ast_node_t* node, sym_tables_t* smt) {
     int result = 1;
