@@ -4,6 +4,7 @@
 #include <std/mm.h>
 #include <std/logg.h>
 #include <ast/syntax.h>
+#include <gen/asmgen.h>
 
 #define BSS            1
 #define NO_BSS         0
@@ -11,12 +12,6 @@
 #define RODATA_SECTION 2
 #define EXT_SECTION    3
 #define iprintf(out, fmt, ...) fprintf(out, fmt, ##__VA_ARGS__)
-
-typedef struct gen_ctx {
-    short         label;
-    scope_stack_t heap;
-    syntax_ctx_t* synt;
-} gen_ctx_t;
 
 typedef struct gen {
     int  (*datagen)(ast_node_t*, FILE*, int, int, gen_ctx_t*, struct gen*);
@@ -40,8 +35,5 @@ typedef struct gen {
     int  (*whilegen)(ast_node_t*, FILE*, gen_ctx_t*, struct gen*);
     int  (*switchgen)(ast_node_t*, FILE*, gen_ctx_t*, struct gen*);
 } gen_t;
-
-gen_ctx_t* GEN_create_ctx();
-int GEN_destroy_ctx(gen_ctx_t* ctx);
 
 #endif

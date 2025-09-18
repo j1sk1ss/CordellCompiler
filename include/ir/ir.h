@@ -18,7 +18,7 @@ typedef struct {
     union pos {
         int  offset;
         char value[IR_VAL_MSIZE];
-    };
+    } pos;
 
     int cnstvl;
 } ir_vinfo_t;
@@ -33,12 +33,14 @@ typedef struct {
     union storage {
         ir_vinfo_t vinfo;
         ir_rinfo_t rinfo;
-    };
+    } storage;
 } ir_subject_t;
 
 typedef enum {
     /* Operations */
-        CALL, // function call
+        /* Commands */
+        FCLL, // function call
+        ECLL, // extern function call
         STRT, // start macro
         SYSC, // syscall
         FRET, // function ret
@@ -47,11 +49,30 @@ typedef enum {
         XCHG, // xchg
         CDQ,  // cdq
         MKLB, // mk label
+        FDCL, // declare function
+        OEXT, // extern object
+
+        SETL,
+        SETG,
+        STLE,
+        STGE,
+        SETE,
+        STNE,
+        SETB,
+        SETA,
+        STBE,
+        STAE,
+
+        /* Data commands */
+        RESV,
+        VDCL,
 
         /* Jump instructions */
         JMP,  // jmp
         JE,
         JNE,
+        JL,
+        JG,
 
     /* Register */
         /* Operations */
@@ -92,6 +113,7 @@ typedef enum {
         fSUB, // substruction
         fMUL, // multiplication
         fDIV, // division
+        fCMP, // cmp for double
 
     /* Bits */
         /* Binary operations */
@@ -101,6 +123,9 @@ typedef enum {
         bSHL, // bitleft
         bSHR, // bitright
         bSAR, // bitleft unsgn
+
+    /* Other */
+    RAW,
 } ir_operation_t;
 
 typedef struct ir_block {
@@ -116,11 +141,13 @@ typedef struct {
     long          cid;
     int           lid;
     ir_block_t*   h;
+    ir_block_t*   t;
     syntax_ctx_t* synt;
     scope_stack_t heap;
 } ir_ctx_t;
 
-ir_subject_t* IR_create_subject(int reg, int dref, int offset, char* name, int val, int size);
+ir_ctx_t* IR_create_ctx();
+ir_subject_t* IR_create_subject(int reg, int dref, int offset, const char* val1, int val2, int size);
 ir_block_t* IR_create_block(ir_operation_t op, ir_subject_t* fa, ir_subject_t* sa, ir_subject_t* ta);
 int IR_insert_block(ir_block_t* block, ir_ctx_t* ctx);
 int IR_unload_blocks(ir_block_t* block);
@@ -135,17 +162,19 @@ static inline const char* _tmp_str(const char* fmt, ...) {
     return buf;
 }
 
-#define IR_SUBJ_STR(...) \
-    IR_create_subject(-1, 0, -1, _tmp_str(__VA_ARGS__), -1, -1)
+#define IR_SUBJ_DRFSTR(s, ...) \
+    IR_create_subject(-1, 1, -1, _tmp_str(__VA_ARGS__), -1, s)
+#define IR_SUBJ_STR(s, ...) \
+    IR_create_subject(-1, 0, -1, _tmp_str(__VA_ARGS__), -1, s)
 
-#define IR_SUBJ_REG(r)    IR_create_subject((r), 0, -1, NULL, -1, -1)
-#define IR_SUBJ_DRFREG(r) IR_create_subject((r), 1, -1, NULL, -1, -1)
-#define IR_SUBJ_CNST(v)   IR_create_subject(-1, 0, -1, NULL, v, 8)
-#define IR_SUBJ_NONE()    IR_create_subject(-1, 0, -1, NULL, -1, -1)
-#define IR_SUBJ_OFF(o, s) IR_create_subject(-1, 0, o, NULL, -1, s)
-#define IR_SUBJ_VAR(var)  VRS_instack((var)) ? \
-                            IR_create_subject(-1, 0, (var)->sinfo.offset, NULL, -1, (var)->sinfo.size) : \
-                            IR_create_subject(-1, 0, -1, (var)->token->value, -1, (var)->sinfo.size)
+#define IR_SUBJ_REG(r, s)    IR_create_subject((r), 0, -1, NULL, -1, s)
+#define IR_SUBJ_DRFREG(r, s) IR_create_subject((r), 1, -1, NULL, -1, s)
+#define IR_SUBJ_CNST(v)      IR_create_subject(-1, 0, -1, NULL, v, 8)
+#define IR_SUBJ_NONE()       IR_create_subject(-1, 0, -1, NULL, -1, -1)
+#define IR_SUBJ_OFF(o, s)    IR_create_subject(-1, 0, o, NULL, -1, s)
+#define IR_SUBJ_VAR(var)     VRS_instack((var)->token) ? \
+                                IR_create_subject(-1, 0, (var)->sinfo.offset, NULL, -1, (var)->sinfo.size) : \
+                                IR_create_subject(-1, 0, -1, (var)->token->value, -1, (var)->sinfo.size)
 
 #define IR_BLOCK0(ctx, op) \
     IR_insert_block(IR_create_block((op), NULL, NULL, NULL), (ctx))

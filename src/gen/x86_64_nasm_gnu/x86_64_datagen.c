@@ -1,4 +1,4 @@
-#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm.h>
+#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm_asm.h>
 
 int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
     if (!root) return 0;

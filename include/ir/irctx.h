@@ -1,7 +1,8 @@
-#ifndef IRGEN_H_
-#define IRGEN_H_
+#ifndef IRCTX_H_
+#define IRCTX_H_
 
 #include <ir/ir.h>
+#include <ast/ast.h>
 
 typedef struct ir_get {
     int (*datagen)(ast_node_t*, int, int, struct ir_get*, ir_ctx_t*);
@@ -24,19 +25,6 @@ typedef struct ir_get {
     int (*ifgen)(ast_node_t*, struct ir_get*, ir_ctx_t*);
     int (*whilegen)(ast_node_t*, struct ir_get*, ir_ctx_t*);
     int (*switchgen)(ast_node_t*, struct ir_get*, ir_ctx_t*);
-} ir_get_t;
-
-static inline int IR_deallocate_scope_heap(ast_node_t* t, ir_ctx_t* ctx) {
-    if (scope_id_top(&ctx->heap) == t->sinfo.s_id) {
-        scope_elem_t hinfo;
-        scope_pop_top(&ctx->heap, &hinfo);
-        print_debug("Heap deallocation for scope=%i, return to [rbp - %i]", t->sinfo.s_id, hinfo.offset);
-        IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RDI), IR_SUBJ_OFF(hinfo.offset));
-        IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX), IR_SUBJ_CNST(12));
-        IR_BLOCK0(ctx, SYSC);
-    }
-
-    return 1;
-}
+} ir_gen_t;
 
 #endif

@@ -2,15 +2,13 @@
 #include <prep/token.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <ast/syntax.h>
 #include <prep/markup.h>
-#include <ast/opt/strdecl.h>
-#include <ast/opt/deadscope.h>
-#include <ast/opt/offsetopt.h>
-#include <gen/asmgen.h>
+#include <ast/syntax.h>
 #include <ast/parsers/cpl_parser.h>
-#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm_asm.h>
+#include <ir/irgen.h>
+#include <ir/x86_64_gnu_nasm/x86_64_gnu_nasm_irgen.h>
 #include "ast_helper.h"
+#include "ir_helper.h"
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
@@ -19,7 +17,7 @@ int main(int argc, char* argv[]) {
     int fd = open(argv[1], O_RDONLY);
     char data[2048] = { 0 };
     pread(fd, data, 2048, 0);
-    printf("Source data: %s\n", data);
+    printf("Source data: %s\n\n", data);
 
     token_t* tkn = TKN_tokenize(fd);
     if (!tkn) {
@@ -40,7 +38,7 @@ int main(int argc, char* argv[]) {
             .funcs = &fctx
         }
     };
-    
+
     parser_t p = {
         .block      = cpl_parse_block,
         .switchstmt = cpl_parse_switch,
@@ -60,41 +58,46 @@ int main(int argc, char* argv[]) {
     };
 
     STX_create(tkn, &sctx, &p);
-    
-    OPT_strpack(&sctx);
-    OPT_offrecalc(&sctx);
-
     print_ast(sctx.r, 0);
-    
-    gen_ctx_t gctx = { .label = 0, .synt = &sctx };
-    gen_t g = {
-        .datagen   = x86_64_generate_data,
-        .funcdef   = x86_64_generate_funcdef,
-        .funcret   = x86_64_generate_return,
-        .funccall  = x86_64_generate_funccall,
-        .function  = x86_64_generate_function,
-        .blockgen  = x86_64_generate_block,
-        .elemegen  = x86_64_generate_elem,
-        .operand   = x86_64_generate_operand,
-        .store     = x86_64_generate_store,
-        .ptrload   = x86_64_generate_ptr_load,
-        .load      = x86_64_generate_load,
-        .assign    = x86_64_generate_assignment,
-        .decl      = x86_64_generate_declaration,
-        .start     = x86_64_generate_start,
-        .exit      = x86_64_generate_exit,
-        .syscall   = x86_64_generate_syscall,
-        .ifgen     = x86_64_generate_if,
-        .whilegen  = x86_64_generate_while,
-        .switchgen = x86_64_generate_switch,
-        .asmer     = x86_64_generate_asm
+
+    ir_gen_t irgen = {
+        .datagen   = IR_generate_data_block,
+        .funcdef   = IR_generate_funcdef_block,
+        .funcret   = IR_generate_return_block,
+        .funccall  = IR_generate_funccall_block,
+        .function  = IR_generate_function_block,
+        .blockgen  = IR_generate_block,
+        .elemegen  = IR_generate_elem_block,
+        .operand   = IR_generate_operand_block,
+        .store     = IR_generate_store_block,
+        .ptrload   = IR_generate_ptr_load_block,
+        .load      = IR_generate_load_block,
+        .assign    = IR_generate_assignment_block,
+        .decl      = IR_generate_declaration_block,
+        .start     = IR_generate_start_block,
+        .exit      = IR_generate_exit_block,
+        .syscall   = IR_generate_syscall_block,
+        .ifgen     = IR_generate_if_block,
+        .whilegen  = IR_generate_while_block,
+        .switchgen = IR_generate_switch_block,
+        .asmer     = IR_generate_asmblock
     };
 
-    fprintf(stdout, "Generated code:\n");
-    GEN_generate(&gctx, &g, stdout);
+    ir_ctx_t irctx = {
+        .cid = 0, .h = NULL, .lid = 0, .synt = &sctx, .t = NULL 
+    };
 
+    IR_generate(&irgen, &irctx);
+    ir_block_t* h = irctx.h;
+    while (h) {
+        print_irblock(h);
+        h = h->next;
+    }
+
+    IR_unload_blocks(irctx.h);
     AST_unload(sctx.r);
     TKN_unload(tkn);
     close(fd);
     return 0;
 }
+

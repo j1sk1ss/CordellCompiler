@@ -1,5 +1,5 @@
-#ifndef X86_64_GNU_NASM_
-#define X86_64_GNU_NASM_
+#ifndef X86_64_GNU_NASM_ASM_
+#define X86_64_GNU_NASM_ASM_
 
 #include <std/regs.h>
 #include <std/vars.h>

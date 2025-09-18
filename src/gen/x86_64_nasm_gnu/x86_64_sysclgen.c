@@ -1,4 +1,4 @@
-#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm.h>
+#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm_asm.h>
 
 int x86_64_generate_start(ast_node_t* node, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     iprintf(output, "global _start\n");

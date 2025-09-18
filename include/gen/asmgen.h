@@ -3,6 +3,15 @@
 
 #include <gen/genctx.h>
 
+typedef struct gen_ctx {
+    short         label;
+    scope_stack_t heap;
+    syntax_ctx_t* synt;
+} gen_ctx_t;
+
+gen_ctx_t* GEN_create_ctx();
+int GEN_destroy_ctx(gen_ctx_t* ctx);
+
 /*
 GEN_generate function generates ASM code for target platform.
 Params:

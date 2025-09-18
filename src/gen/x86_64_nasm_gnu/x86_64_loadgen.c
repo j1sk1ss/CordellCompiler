@@ -1,4 +1,4 @@
-#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm.h>
+#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm_asm.h>
 
 static int _deref_rax(FILE* output, int size) {
     switch (size) {
