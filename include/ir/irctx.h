@@ -4,6 +4,12 @@
 #include <ir/ir.h>
 #include <ast/ast.h>
 
+#define BSS            1
+#define NO_BSS         0
+#define DATA_SECTION   1
+#define RODATA_SECTION 2
+#define EXT_SECTION    3
+
 typedef struct ir_get {
     int (*datagen)(ast_node_t*, int, int, struct ir_get*, ir_ctx_t*);
     int (*funcdef)(ast_node_t*, struct ir_get*, ir_ctx_t*);

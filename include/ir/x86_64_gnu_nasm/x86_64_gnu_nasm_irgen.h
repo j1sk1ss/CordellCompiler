@@ -5,12 +5,6 @@
 #include <ir/irctx.h>
 #include <std/qsort.h>
 
-#define BSS            1
-#define NO_BSS         0
-#define DATA_SECTION   1
-#define RODATA_SECTION 2
-#define EXT_SECTION    3
-
 static inline int IR_deallocate_scope_heap(ast_node_t* t, ir_ctx_t* ctx) {
     if (scope_id_top(&ctx->heap) == t->sinfo.s_id) {
         scope_elem_t hinfo;

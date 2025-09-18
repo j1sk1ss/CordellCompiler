@@ -20,38 +20,36 @@ int get_stack_size(ast_node_t* root) {
 
 static int _generate_raw(ast_node_t* entry, ir_ctx_t* ctx) {
     if (!entry->child || !entry->token) return 0;
+    char buf[1024] = { 0 };
     switch (entry->token->t_type) {
-        case F64_TYPE_TOKEN:
-        case U64_TYPE_TOKEN:
         case I64_TYPE_TOKEN:
-        case U32_TYPE_TOKEN:
+            snprintf(buf, sizeof(buf), "__%s__: resq 1", entry->child->token->value);
+        break;
         case I32_TYPE_TOKEN:
-        case U16_TYPE_TOKEN:
+            snprintf(buf, sizeof(buf), "__%s__: resd 1", entry->child->token->value);
+        break;
         case I16_TYPE_TOKEN:
-        case U8_TYPE_TOKEN:
-        case I8_TYPE_TOKEN: {
-            IR_BLOCK2(
-                ctx, RESV, IR_SUBJ_STR(VRS_variable_bitness(entry->token, 1) / 8, entry->child->token->value),
-                IR_SUBJ_CNST(1)
-            );
-            
-            break;
-        }
-
+            snprintf(buf, sizeof(buf), "__%s__: resw 1", entry->child->token->value);
+        break;
+        case I8_TYPE_TOKEN:
+            snprintf(buf, sizeof(buf), "__%s__: resb 1", entry->child->token->value);
+        break;
         case ARRAY_TYPE_TOKEN: {
             ast_node_t* name   = entry->child;
             ast_node_t* size   = name->sibling;
             ast_node_t* t_type = size->sibling;
-            IR_BLOCK2(
-                ctx, RESV, IR_SUBJ_STR(VRS_variable_bitness(t_type->token, 1) / 8, name->token->value),
-                IR_SUBJ_STR(8, size->token->value)
-            );
 
+            const char* directive = "resb";
+            if (t_type->token->t_type == I16_TYPE_TOKEN)      directive = "resw";
+            else if (t_type->token->t_type == I32_TYPE_TOKEN) directive = "resd";
+            else if (t_type->token->t_type == I64_TYPE_TOKEN) directive = "resq";
+            snprintf(buf, sizeof(buf), "__%s__: %s %s", name->token->value, directive, size->token->value);
             break;
         }
-        default: break;
+        default: return 0;
     }
 
+    IR_BLOCK1(ctx, RAW, IR_SUBJ_STR(8, buf));
     return 1;
 }
 
@@ -59,15 +57,18 @@ static int _generate_init(ast_node_t* entry, ir_ctx_t* ctx) {
     if (!entry->child || !entry->token) return 0;
     switch (entry->token->t_type) {
         case STR_TYPE_TOKEN: {
-            // TODO:
-            // iprintf(output, "__%s__ db ", entry->child->token->value);
-            // char* data = entry->child->sibling->token->value;
-            // while (*data) {
-            //     iprintf(output, "%i,", *data);
-            //     data++;
-            // }
+            char buf[1024] = { 0 };  
+            char* out = buf;
 
-            // iprintf(output, "0\n");
+            out += snprintf(out, sizeof(buf) - (out - buf), "__%s__ db ", entry->child->token->value);
+            char* data = entry->child->sibling->token->value;
+            while (*data && (out - buf) < (int)sizeof(buf) - 10) {
+                out += snprintf(out, sizeof(buf) - (out - buf), "%d,", (unsigned char)*data);
+                data++;
+            }
+
+            snprintf(out, sizeof(buf) - (out - buf), "0");
+            IR_BLOCK1(ctx, RAW, IR_SUBJ_STR(8, buf));
             break;
         }
 
@@ -80,11 +81,25 @@ static int _generate_init(ast_node_t* entry, ir_ctx_t* ctx) {
         case I16_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
         case I8_TYPE_TOKEN: {
-            IR_BLOCK2(
-                ctx, VDCL, IR_SUBJ_STR(VRS_variable_bitness(entry->token, 1) / 8, entry->child->token->value),
-                IR_SUBJ_STR(8, entry->child->sibling->token->value)
-            );
-            
+            char buf[256] = { 0 };
+            const char* directive = "db";
+
+            switch (entry->token->t_type) {
+                case F64_TYPE_TOKEN:
+                case U64_TYPE_TOKEN:
+                case I64_TYPE_TOKEN: directive = "dq"; break;
+                case F32_TYPE_TOKEN:
+                case U32_TYPE_TOKEN:
+                case I32_TYPE_TOKEN: directive = "dd"; break;
+                case U16_TYPE_TOKEN:
+                case I16_TYPE_TOKEN: directive = "dw"; break;
+                case U8_TYPE_TOKEN:
+                case I8_TYPE_TOKEN:  directive = "db"; break;
+                default: return 0;
+            }
+
+            snprintf(buf, sizeof(buf), "__%s__ %s %s\n", entry->child->token->value, directive, entry->child->sibling->token->value);
+            IR_BLOCK1(ctx, RAW, IR_SUBJ_STR(8, buf));
             break;
         }
 
@@ -92,21 +107,21 @@ static int _generate_init(ast_node_t* entry, ir_ctx_t* ctx) {
             ast_node_t* name   = entry->child;
             ast_node_t* size   = name->sibling;
             ast_node_t* t_type = size->sibling;
-            IR_BLOCK2(
-                ctx, VDCL, IR_SUBJ_STR(VRS_variable_bitness(t_type->token, 1) / 8, name->token->value),
-                IR_SUBJ_STR(8, size->token->value)
-            );
-            
-            // TODO:
-            // char* directive = "db";
-            // if (t_type->token->t_type == I16_TYPE_TOKEN)      directive = "dw";
-            // else if (t_type->token->t_type == I32_TYPE_TOKEN) directive = "dd";
-            // else if (t_type->token->t_type == I64_TYPE_TOKEN) directive = "dq";
-            // iprintf(output, "__%s__ %s ", name->token->value, directive);
-            // for (ast_node_t* elem = t_type->sibling; elem; elem = elem->sibling) {
-            //     fprintf(output, "%s%s", elem->token->value, elem->sibling ? "," : "\n");
-            // }
 
+            const char* directive = "db";
+            if (t_type->token->t_type == I16_TYPE_TOKEN)      directive = "dw";
+            else if (t_type->token->t_type == I32_TYPE_TOKEN) directive = "dd";
+            else if (t_type->token->t_type == I64_TYPE_TOKEN) directive = "dq";
+
+            char buf[2048] = { 0 };
+            char* out = buf;
+
+            out += snprintf(out, sizeof(buf) - (out - buf), "__%s__ %s ", name->token->value, directive);
+            for (ast_node_t* elem = t_type->sibling; elem; elem = elem->sibling) {
+                out += snprintf(out, sizeof(buf) - (out - buf), "%s%s", elem->token->value, elem->sibling ? "," : "\n");
+            }
+
+            IR_BLOCK1(ctx, RAW, IR_SUBJ_STR(8, buf));
             break;
         }
         default: break;
