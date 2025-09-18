@@ -25,7 +25,12 @@ static const char* regs[4][8] = {
 #endif
 
 enum {
-    RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8, R9, R10
+    XMM0, XMM1,
+    RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8, R9, R10,
+    EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP, 
+    AX,  BX,  CX,  DX,  
+    AL,  BL,  CL,  DL,
+    AH,  BH,  CH,  DH
 };
 
 /*
