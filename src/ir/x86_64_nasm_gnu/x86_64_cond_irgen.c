@@ -1,4 +1,4 @@
-#include <ir/x86_64_gnu_nasm/x86_64_gnu_nasm_irgen.h>
+#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
 
 int IR_generate_if_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     int current_label   = ctx->lid++;

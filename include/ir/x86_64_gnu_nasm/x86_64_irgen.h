@@ -1,5 +1,5 @@
-#ifndef X86_64_GNU_NASM_IRGEN_H_
-#define X86_64_GNU_NASM_IRGEN_H_
+#ifndef X86_64_IRGEN_H_
+#define X86_64_IRGEN_H_
 
 #include <ir/ir.h>
 #include <ir/irctx.h>
@@ -32,10 +32,6 @@ int IR_generate_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx);
 int IR_generate_if_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx);
 int IR_generate_while_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx);
 int IR_generate_switch_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx);
-
-/* data_irgen.c */
-int get_stack_size(ast_node_t* root);
-int IR_generate_data_block(ast_node_t* node, int section, int bss, ir_gen_t* g, ir_ctx_t* ctx);
 
 /* decl_irgen.c */
 int IR_generate_declaration_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx);

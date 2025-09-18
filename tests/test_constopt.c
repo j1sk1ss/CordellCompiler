@@ -5,7 +5,7 @@
 #include <ast/syntax.h>
 #include <prep/markup.h>
 #include <ast/opt/varinline.h>
-#include <ast/parsers/cpl_parser.h>
+#include <ast/parsers/parser.h>
 #include <ast/opt/constopt.h>
 #include "ast_helper.h"
 

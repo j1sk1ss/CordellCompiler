@@ -1,15 +1,29 @@
 #ifndef GENERATOR_H_
 #define GENERATOR_H_
 
-#include <asm/genctx.h>
+#include <ir/ir.h>
+#include <ir/irctx.h>
+#include <ast/syntax.h>
 
 typedef struct gen_ctx {
-    short         label;
-    scope_stack_t heap;
     syntax_ctx_t* synt;
+    ir_ctx_t*     ir;
 } gen_ctx_t;
 
+/*
+Create generator context in heap.
+Return pointer to allocated context.
+*/
 gen_ctx_t* GEN_create_ctx();
+
+/*
+Unload generater that was allocated in heap.
+Params:
+- ctx - Pointer to generator context.
+
+Return 1 if free success.
+Return 0 if something goes wrong.
+*/
 int GEN_destroy_ctx(gen_ctx_t* ctx);
 
 /*
@@ -21,6 +35,8 @@ Params:
 Return 1 if generation success.
 Return 0 if something goes wrong.
 */
-int GEN_generate(gen_ctx_t* ctx, gen_t* g, FILE* output);
+int GEN_generate(
+    gen_ctx_t* ctx, int (*declarator)(ast_node_t*, FILE*), int (*generator)(ir_block_t*, FILE*), FILE* output
+);
 
 #endif

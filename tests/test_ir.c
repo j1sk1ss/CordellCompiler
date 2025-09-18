@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <prep/markup.h>
 #include <ast/syntax.h>
-#include <ast/parsers/cpl_parser.h>
+#include <ast/parsers/parser.h>
 #include <ir/irgen.h>
-#include <ir/x86_64_gnu_nasm/x86_64_gnu_nasm_irgen.h>
+#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
 #include "ast_helper.h"
 #include "ir_helper.h"
 
@@ -61,7 +61,6 @@ int main(int argc, char* argv[]) {
     print_ast(sctx.r, 0);
 
     ir_gen_t irgen = {
-        .datagen   = IR_generate_data_block,
         .funcdef   = IR_generate_funcdef_block,
         .funcret   = IR_generate_return_block,
         .funccall  = IR_generate_funccall_block,

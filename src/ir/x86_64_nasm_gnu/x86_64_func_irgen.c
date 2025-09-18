@@ -1,4 +1,4 @@
-#include <ir/x86_64_gnu_nasm/x86_64_gnu_nasm_irgen.h>
+#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
 
 int IR_generate_funcdef_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     if (!node) return 0;
@@ -72,7 +72,7 @@ int IR_generate_function_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     IR_BLOCK1(ctx, PUSH, IR_SUBJ_REG(RBP, 8));
     IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RBP, 8), IR_SUBJ_REG(RSP, 8));
 
-    int lvsize = get_stack_size(body_node);
+    int lvsize = AST_get_max_offset(body_node);
     IR_BLOCK2(ctx, iSUB, IR_SUBJ_REG(RSP, 8), IR_SUBJ_CNST(lvsize));
 
     int pop_params = 0;

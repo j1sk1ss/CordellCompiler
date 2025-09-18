@@ -1,4 +1,4 @@
-#include <ast/parsers/cpl_parser.h>
+#include <ast/parsers/parser.h>
 
 static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx, parser_t* p);
 static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, int min_priority, parser_t* p) {

@@ -125,7 +125,7 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
     FILE* output = fopen(save_path, "w");
     gen_ctx_t* gctx = GEN_create_ctx();
     gctx->synt = ctx->files[index].syntax;
-    GEN_generate(gctx, &ctx->g, output);
+    // GEN_generate(gctx, &ctx->g, output);
     GEN_destroy_ctx(gctx);
     fclose(output);
 

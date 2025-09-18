@@ -1,22 +1,4 @@
-#include <asm/x86_64_gnu_nasm/x86_64_gnu_nasm_asm.h>
-
-int get_stack_size(ast_node_t* root, gen_ctx_t* ctx) {
-    if (!root) return 0;
-
-    int size = 0;
-    for (ast_node_t* t = root; t; t = t->sibling) {
-        if (VRS_isblock(t->token)) {
-            size = MAX(size, get_stack_size(t->child, ctx));
-            continue;
-        }
-
-        if (t->token && t->token->t_type == FUNC_TOKEN) continue;
-        if (!VRS_instack(t->token)) continue;
-        size = MAX(MAX(t->sinfo.offset, get_stack_size(t->child, ctx)), size);
-    }
-
-    return size;
-}
+#include <asm/x86_64_gnu_nasm/x86_64_asm_generator.h>
 
 /* Variable just reserve space */
 static int _generate_raw(ast_node_t* entry, FILE* output) {
@@ -96,11 +78,16 @@ static int _generate_extern(ast_node_t* entry, FILE* output) {
     return 1;
 }
 
-int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, gen_ctx_t* ctx, gen_t* g) {
+#define BSS            1
+#define NO_BSS         0
+#define DATA_SECTION   1
+#define RODATA_SECTION 2
+#define EXT_SECTION    3
+int _generate_data(ast_node_t* node, FILE* output, int section, int bss) {
     if (!node) return 0;
     for (ast_node_t* t = node->child; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
-            g->datagen(t, output, section, bss, ctx, g);
+            _generate_data(t, output, section, bss);
             continue;
         }
 
@@ -135,11 +122,23 @@ int x86_64_generate_data(ast_node_t* node, FILE* output, int section, int bss, g
                 case SWITCH_TOKEN:
                 case SYSCALL_TOKEN:
                 case DEFAULT_TOKEN:
-                case ARRAY_TYPE_TOKEN: g->datagen(t, output, section, bss, ctx, g); continue;
+                case ARRAY_TYPE_TOKEN: _generate_data(t, output, section, bss); continue;
                 default: break;
             }
         }
     }
 
+    return 1;
+}
+
+int x86_64_generate_data(ast_node_t* node, FILE* output) {
+    _generate_data(node, output, EXT_SECTION, NO_BSS);
+    iprintf(output, "section .data\n");
+    _generate_data(node, output, DATA_SECTION, NO_BSS);
+    iprintf(output, "section .rodata\n");
+    _generate_data(node, output, RODATA_SECTION, NO_BSS);
+    iprintf(output, "section .bss\n");
+    _generate_data(node, output, DATA_SECTION, BSS);
+    iprintf(output, "section .text\n");
     return 1;
 }

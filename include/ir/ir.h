@@ -174,8 +174,8 @@ static inline const char* _tmp_str(const char* fmt, ...) {
 #define IR_SUBJ_OFF(o, s)    IR_create_subject(-1, 0, o, NULL, -1, s)
 #define IR_SUBJ_NOFF(o, s)   IR_create_subject(-1, 0, -o, NULL, -1, s)
 #define IR_SUBJ_VAR(var)     VRS_instack((var)->token) ? \
-                                IR_create_subject(-1, 0, (var)->sinfo.offset, NULL, -1, (var)->sinfo.size) : \
-                                IR_create_subject(-1, 0, 0, (var)->token->value, -1, (var)->sinfo.size)
+        /* Local variable */    IR_create_subject(-1, 0, (var)->sinfo.offset, NULL, -1, (var)->sinfo.size) : \
+        /* Global variable */   IR_create_subject(-1, 0, 0, (var)->token->value, -1, (var)->sinfo.size)
 
 #define IR_BLOCK0(ctx, op) \
     IR_insert_block(IR_create_block((op), NULL, NULL, NULL), (ctx))

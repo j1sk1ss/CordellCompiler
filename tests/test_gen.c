@@ -8,7 +8,7 @@
 #include <ast/opt/deadscope.h>
 #include <ast/opt/offsetopt.h>
 #include <asm/asmgen.h>
-#include <ast/parsers/cpl_parser.h>
+#include <ast/parsers/parser.h>
 #include <asm/x86_64_gnu_nasm/x86_64_gnu_nasm_asm.h>
 #include "ast_helper.h"
 

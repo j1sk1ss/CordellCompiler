@@ -1,4 +1,4 @@
-#include <ir/x86_64_gnu_nasm/x86_64_gnu_nasm_irgen.h>
+#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
 
 static ast_node_t* _find_variable(ast_node_t* n, const char* name) {
     for (ast_node_t* t = n; t && t->token; t = t->sibling) {
@@ -22,11 +22,11 @@ int IR_generate_asmblock(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
         const char* p = line;
 
         while (*p && (out - buf) < (int)sizeof(buf) - 1) {
-            if (*p == '&') {
+            if (*p == '{') {
                 p++;
-                char varname[TOKEN_MAX_SIZE] = {0};
+                char varname[TOKEN_MAX_SIZE] = { 0 };
                 int i = 0;
-                while (*p && *p != ',' && !str_isspace(*p) && i < TOKEN_MAX_SIZE - 1) {
+                while (*p && *p != '}' && i < TOKEN_MAX_SIZE - 1) {
                     varname[i++] = *p++;
                 }
 

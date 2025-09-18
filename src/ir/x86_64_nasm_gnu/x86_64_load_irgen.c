@@ -1,4 +1,4 @@
-#include <ir/x86_64_gnu_nasm/x86_64_gnu_nasm_irgen.h>
+#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
 
 static int _deref_rax(ir_ctx_t* ctx, int size) {
     switch (size) {

@@ -42,10 +42,13 @@ void print_irsub(const ir_subject_t* s) {
         int size = s->storage.vinfo.size;
         int cnst = s->storage.vinfo.cnstvl;
         char instack = s->storage.vinfo.instack;
-        if (!instack && s->storage.vinfo.pos.value[0]) printf("val(val=%s", s->storage.vinfo.pos.value);
-        else if (!instack) printf("val(noval");
-        else printf("val(offset=%i,stk", s->storage.vinfo.pos.offset);
-        printf(",size=%d,cnst=%d)", size, cnst);
+
+        if (!instack && s->storage.vinfo.pos.value[0]) printf("%s", s->storage.vinfo.pos.value);
+        else if (s->storage.vinfo.pos.offset != 0) {
+            if (s->storage.vinfo.pos.offset > 0) printf("[rbp - %i]", s->storage.vinfo.pos.offset);
+            else printf("[rbp + %i]", -1 * s->storage.vinfo.pos.offset);
+        }
+        else printf("%d", cnst);
     }
 }
 
@@ -56,7 +59,7 @@ void print_irblock(const ir_block_t* b) {
     size_t on = sizeof(_ir_op_names)/sizeof(_ir_op_names[0]);
     if (b->op >= 0 && b->op < (int)on) opname = _ir_op_names[b->op];
 
-    printf("[%s]", opname);
+    printf("%s", opname);
     if (b->args <= 0) {
         printf("\n");
         return;

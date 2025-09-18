@@ -1,4 +1,4 @@
-#include <ast/parsers/cpl_parser.h>
+#include <ast/parsers/parser.h>
 
 static ast_node_t* _navigation_handler(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     if (!curr || !*curr) return 0;

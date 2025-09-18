@@ -1,10 +1,10 @@
-#include <ir/x86_64_gnu_nasm/x86_64_gnu_nasm_irgen.h>
+#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
 
 int IR_generate_start_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     IR_BLOCK0(ctx, STRT);
     IR_BLOCK1(ctx, PUSH, IR_SUBJ_REG(RBP, 8));
     IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RBP, 8), IR_SUBJ_REG(RSP, 8));
-    IR_BLOCK2(ctx, iSUB, IR_SUBJ_REG(RSP, 8), IR_SUBJ_CNST(get_stack_size(node)));
+    IR_BLOCK2(ctx, iSUB, IR_SUBJ_REG(RSP, 8), IR_SUBJ_CNST(AST_get_max_offset(node)));
 
     int arg_count = 0;
     for (ast_node_t* t = node->child; t; t = t->sibling) {
