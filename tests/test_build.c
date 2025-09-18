@@ -6,10 +6,10 @@
 #include <ast/opt/strdecl.h>
 #include <ast/opt/deadscope.h>
 #include <ast/opt/offsetopt.h>
-#include <gen/asmgen.h>
+#include <asm/asmgen.h>
 #include <builder.h>
 #include <ast/parsers/cpl_parser.h>
-#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm.h>
+#include <asm/x86_64_gnu_nasm/x86_64_gnu_nasm_asm.h>
 #include "ast_helper.h"
 
 int main(int argc, char* argv[]) {

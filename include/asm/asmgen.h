@@ -1,7 +1,7 @@
 #ifndef GENERATOR_H_
 #define GENERATOR_H_
 
-#include <gen/genctx.h>
+#include <asm/genctx.h>
 
 typedef struct gen_ctx {
     short         label;

@@ -25,6 +25,7 @@ int IR_destroy_ctx(ir_ctx_t* ctx) {
 ir_subject_t* IR_create_subject(int reg, int dref, int offset, const char* val1, int val2, int size) {
     ir_subject_t* subj = mm_malloc(sizeof(ir_subject_t));
     if (!subj) return NULL;
+    str_memset(subj, 0, sizeof(ir_subject_t));
     subj->storage.rinfo.dref = dref;
 
     if (reg >= 0) {
@@ -32,14 +33,18 @@ ir_subject_t* IR_create_subject(int reg, int dref, int offset, const char* val1,
         subj->storage.rinfo.reg_id = reg;
     } 
     else {
-        subj->isreg = 0;
-        subj->storage.vinfo.obj_id  = 0;
-        subj->storage.vinfo.instack = 0;
-        subj->storage.vinfo.size    = size;
-        subj->storage.vinfo.cnstvl  = val2;
-        subj->storage.vinfo.pos.offset = offset;
-        if (val1) {
-            str_strncpy(subj->storage.vinfo.pos.value, val1, IR_VAL_MSIZE);
+        subj->isreg                = 0;
+        subj->storage.vinfo.obj_id = 0;
+        subj->storage.vinfo.size   = size;
+        subj->storage.vinfo.cnstvl = val2;
+
+        if (offset == 0 || val1) {
+            if (val1) str_strncpy(subj->storage.vinfo.pos.value, val1, IR_VAL_MSIZE);
+            subj->storage.vinfo.instack = 0;
+        }
+        else {
+            subj->storage.vinfo.pos.offset = offset;
+            subj->storage.vinfo.instack = 1;
         }
     }
 
@@ -62,9 +67,7 @@ ir_block_t* IR_create_block(ir_operation_t op, ir_subject_t* fa, ir_subject_t* s
 
 int IR_insert_block(ir_block_t* block, ir_ctx_t* ctx) {
     if (!ctx || !block) return -1;
-    if (!ctx->h) {
-        ctx->h = ctx->t = block;
-    } 
+    if (!ctx->h) ctx->h = ctx->t = block;
     else {
         ctx->t->next = block;
         ctx->t = block;

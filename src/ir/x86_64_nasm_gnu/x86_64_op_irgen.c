@@ -6,23 +6,17 @@ int IR_generate_operand_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     ast_node_t* right = left->sibling;
 
     int simd = VRS_is_float(left->token) || VRS_is_float(right->token);
-    if (VRS_instant_movable(left->token)) IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RBX, 8), IR_SUBJ_VAR(left));
-    else {
-        g->elemegen(left, g, ctx);
-        IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RBX, 8), IR_SUBJ_REG(RAX, 8));
-    }
+    g->elemegen(left, g, ctx);
+    IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RBX, 8), IR_SUBJ_REG(RAX, 8));
 
     if (simd) {
         if (VRS_is_float(left->token)) IR_BLOCK2(ctx, iMOVq, IR_SUBJ_REG(XMM1, 8), IR_SUBJ_REG(RBX, 8));
         else IR_BLOCK2(ctx, TDBL, IR_SUBJ_REG(XMM1, 8), IR_SUBJ_REG(RBX, 8));
     }
 
-    if (VRS_instant_movable(right->token)) IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX, 8), IR_SUBJ_VAR(left));
-    else {
-        IR_BLOCK1(ctx, PUSH, IR_SUBJ_REG(RBX, 8));
-        g->elemegen(right, g, ctx);
-        IR_BLOCK1(ctx, POP, IR_SUBJ_REG(RBX, 8));
-    }
+    IR_BLOCK1(ctx, PUSH, IR_SUBJ_REG(RBX, 8));
+    g->elemegen(right, g, ctx);
+    IR_BLOCK1(ctx, POP, IR_SUBJ_REG(RBX, 8));
     
     if (simd) {
         if (VRS_is_float(left->token)) IR_BLOCK2(ctx, iMOVq, IR_SUBJ_REG(XMM1, 8), IR_SUBJ_REG(RAX, 8));

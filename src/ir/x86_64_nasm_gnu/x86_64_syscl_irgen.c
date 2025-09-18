@@ -4,15 +4,15 @@ int IR_generate_start_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     IR_BLOCK0(ctx, STRT);
     IR_BLOCK1(ctx, PUSH, IR_SUBJ_REG(RBP, 8));
     IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RBP, 8), IR_SUBJ_REG(RSP, 8));
-    IR_BLOCK2(ctx, iSUB, IR_SUBJ_REG(RSP, 8), IR_SUBJ_CNST(10));
+    IR_BLOCK2(ctx, iSUB, IR_SUBJ_REG(RSP, 8), IR_SUBJ_CNST(get_stack_size(node)));
 
     int arg_count = 0;
     for (ast_node_t* t = node->child; t; t = t->sibling) {
         if (VRS_isblock(t->token)) g->blockgen(t, g, ctx);
         else if (VRS_isdecl(t->token) && arg_count < 2) {
             switch (arg_count++) {
-                case 0: IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX, 8), IR_SUBJ_OFF(8, 8)); break;
-                case 1: IR_BLOCK2(ctx, LEA, IR_SUBJ_REG(RAX, 8), IR_SUBJ_OFF(16, 8)); break;
+                case 0: IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX, 8), IR_SUBJ_NOFF(8, 8)); break;
+                case 1: IR_BLOCK2(ctx, LEA, IR_SUBJ_REG(RAX, 8), IR_SUBJ_NOFF(16, 8)); break;
             }
             
             g->store(t->child, g, ctx);   

@@ -33,18 +33,18 @@ void print_irsub(const ir_subject_t* s) {
     if (s->isreg) {
         int id = s->storage.rinfo.reg_id;
         const char* rname = "??";
-        size_t rn = sizeof(_ir_reg_names)/sizeof(_ir_reg_names[0]);
+        size_t rn = sizeof(_ir_reg_names )/ sizeof(_ir_reg_names[0]);
         if (id >= 0 && id < (int)rn) rname = _ir_reg_names[id];
         printf("%s", rname);
         if (s->storage.rinfo.dref) printf("[*]");
     } 
     else {
-        long id = s->storage.vinfo.obj_id;
         int size = s->storage.vinfo.size;
         int cnst = s->storage.vinfo.cnstvl;
         char instack = s->storage.vinfo.instack;
-        printf("val(id=%ld", id);
-        if (instack) printf(",stk");
+        if (!instack && s->storage.vinfo.pos.value[0]) printf("val(val=%s", s->storage.vinfo.pos.value);
+        else if (!instack) printf("val(noval");
+        else printf("val(offset=%i,stk", s->storage.vinfo.pos.offset);
         printf(",size=%d,cnst=%d)", size, cnst);
     }
 }

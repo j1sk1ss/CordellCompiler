@@ -7,7 +7,7 @@
 #include <ast/syntax.h>
 #include <ast/tables/vartb.h>
 #include <ast/tables/arrtb.h>
-#include <gen/genctx.h>
+#include <asm/genctx.h>
 
 static inline int deallocate_scope_heap(ast_node_t* t, FILE* output, gen_ctx_t* ctx, gen_t* g) {
     if (scope_id_top(&ctx->heap) == t->sinfo.s_id) {

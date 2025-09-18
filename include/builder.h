@@ -17,7 +17,7 @@
 #include <ast/opt/offsetopt.h>
 #include <ast/opt/varinline.h>
 #include <ast/opt/condunroll.h>
-#include <gen/asmgen.h>
+#include <asm/asmgen.h>
 
 #define MAX_FILES            100
 #define DEFAULT_ASM_COMPILER "nasm"

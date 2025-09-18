@@ -11,10 +11,10 @@
 
 #define IR_VAL_MSIZE 128
 typedef struct {
-    long obj_id;
-    char instack;
-
     char size;
+    long obj_id;
+
+    char instack;
     union pos {
         int  offset;
         char value[IR_VAL_MSIZE];
@@ -167,14 +167,15 @@ static inline const char* _tmp_str(const char* fmt, ...) {
 #define IR_SUBJ_STR(s, ...) \
     IR_create_subject(-1, 0, -1, _tmp_str(__VA_ARGS__), -1, s)
 
-#define IR_SUBJ_REG(r, s)    IR_create_subject((r), 0, -1, NULL, -1, s)
-#define IR_SUBJ_DRFREG(r, s) IR_create_subject((r), 1, -1, NULL, -1, s)
-#define IR_SUBJ_CNST(v)      IR_create_subject(-1, 0, -1, NULL, v, 8)
-#define IR_SUBJ_NONE()       IR_create_subject(-1, 0, -1, NULL, -1, -1)
+#define IR_SUBJ_REG(r, s)    IR_create_subject((r), 0, 0, NULL, -1, s)
+#define IR_SUBJ_DRFREG(r, s) IR_create_subject((r), 1, 0, NULL, -1, s)
+#define IR_SUBJ_CNST(v)      IR_create_subject(-1, 0, 0, NULL, v, 8)
+#define IR_SUBJ_NONE()       IR_create_subject(-1, 0, 0, NULL, -1, -1)
 #define IR_SUBJ_OFF(o, s)    IR_create_subject(-1, 0, o, NULL, -1, s)
+#define IR_SUBJ_NOFF(o, s)   IR_create_subject(-1, 0, -o, NULL, -1, s)
 #define IR_SUBJ_VAR(var)     VRS_instack((var)->token) ? \
                                 IR_create_subject(-1, 0, (var)->sinfo.offset, NULL, -1, (var)->sinfo.size) : \
-                                IR_create_subject(-1, 0, -1, (var)->token->value, -1, (var)->sinfo.size)
+                                IR_create_subject(-1, 0, 0, (var)->token->value, -1, (var)->sinfo.size)
 
 #define IR_BLOCK0(ctx, op) \
     IR_insert_block(IR_create_block((op), NULL, NULL, NULL), (ctx))

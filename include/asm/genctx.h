@@ -4,7 +4,7 @@
 #include <std/mm.h>
 #include <std/logg.h>
 #include <ast/syntax.h>
-#include <gen/asmgen.h>
+#include <asm/asmgen.h>
 
 #define BSS            1
 #define NO_BSS         0
