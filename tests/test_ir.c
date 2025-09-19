@@ -7,6 +7,8 @@
 #include <ast/parsers/parser.h>
 #include <ir/irgen.h>
 #include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <asm/asmgen.h>
+#include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
 #include "ast_helper.h"
 #include "ir_helper.h"
 
@@ -58,6 +60,7 @@ int main(int argc, char* argv[]) {
     };
 
     STX_create(tkn, &sctx, &p);
+    printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
 
     ir_gen_t irgen = {
@@ -87,11 +90,20 @@ int main(int argc, char* argv[]) {
     };
 
     IR_generate(&irgen, &irctx);
+    printf("\n\n========== IR ==========\n");
     ir_block_t* h = irctx.h;
     while (h) {
         print_irblock(h);
         h = h->next;
     }
+
+    gen_ctx_t gctx = {
+        .ir = &irctx,
+        .synt = &sctx
+    };
+
+    printf("\n\n========== ASM ==========\n");
+    ASM_generate(&gctx, x86_64_generate_data, x86_64_generate_asm, stdout);
 
     IR_unload_blocks(irctx.h);
     AST_unload(sctx.r);

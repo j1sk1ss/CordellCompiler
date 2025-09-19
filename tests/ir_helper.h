@@ -3,7 +3,7 @@
 #include <ir/ir.h>
 #include <stdio.h>
 
-static const char* _ir_op_names[] = {
+static const char* _irh_ir_op_names[] = {
     "FCLL","ECLL","STRT","SYSC","FRET","TDBL","TST","XCHG","CDQ",
     "MKLB","FDCL","OEXT",
     "SETL","SETG","STLE","STGE","SETE","STNE","SETB","SETA","STBE","STAE",
@@ -18,7 +18,7 @@ static const char* _ir_op_names[] = {
     "RAW"
 };
 
-static const char* _ir_reg_names[] = {
+static const char* _irh_ir_reg_names[] = {
     "XMM0","XMM1",
     "RAX","RBX","RCX","RDX","RSI","RDI","RBP","RSP","R8","R9","R10",
     "EAX","EBX","ECX","EDX","ESI","EDI","EBP","ESP",
@@ -27,32 +27,32 @@ static const char* _ir_reg_names[] = {
     "AH","BH","CH","DH"
 };
 
-static inline const char* __format_ir_variable(ir_subject_t* v) {
-    static char buffer[128] = { 0 };
-
+static inline const char* __irh_format_ir_variable(ir_subject_t* v) {
+    static char irh_buffer[128] = { 0 };
+    if (!v) return irh_buffer;
     if (v->isreg) {
         int id = v->storage.rinfo.reg_id;
         const char* rname = "";
-        size_t rn = sizeof(_ir_reg_names )/ sizeof(_ir_reg_names[0]);
-        if (id >= 0 && id < (int)rn) rname = _ir_reg_names[id];
-        if (!v->storage.rinfo.dref) snprintf(buffer, 128, "%s", rname);
+        size_t rn = sizeof(_irh_ir_reg_names )/ sizeof(_irh_ir_reg_names[0]);
+        if (id >= 0 && id < (int)rn) rname = _irh_ir_reg_names[id];
+        if (!v->storage.rinfo.dref) snprintf(irh_buffer, 128, "%s", rname);
         else {
             switch (v->size) {
-                case 1: snprintf(buffer, 128, "byte [%s]", rname); break;
-                case 2: snprintf(buffer, 128, "word [%s]", rname); break;
-                case 4: snprintf(buffer, 128, "dword [%s]", rname); break;
-                case 8: snprintf(buffer, 128, "qword [%s]", rname); break;
-                default: snprintf(buffer, 128, "[%s]", rname);      break;
+                case 1: snprintf(irh_buffer, 128, "byte [%s]", rname); break;
+                case 2: snprintf(irh_buffer, 128, "word [%s]", rname); break;
+                case 4: snprintf(irh_buffer, 128, "dword [%s]", rname); break;
+                case 8: snprintf(irh_buffer, 128, "qword [%s]", rname); break;
+                default: snprintf(irh_buffer, 128, "[%s]", rname);      break;
             }
         }
 
-        return buffer;
+        return irh_buffer;
     } 
 
     int cnst = v->storage.vinfo.cnstvl;
     char instack = v->storage.vinfo.instack;
-    if (!instack && v->storage.vinfo.glob) snprintf(buffer, 128, "[rel %s]", v->storage.vinfo.pos.value);
-    else if (!instack && !v->storage.vinfo.glob && cnst == -1) snprintf(buffer, 128, "%s", v->storage.vinfo.pos.value);
+    if (!instack && v->storage.vinfo.glob) snprintf(irh_buffer, 128, "[rel %s]", v->storage.vinfo.pos.value);
+    else if (!instack && !v->storage.vinfo.glob && cnst == -1) snprintf(irh_buffer, 128, "%s", v->storage.vinfo.pos.value);
     else if (v->storage.vinfo.pos.offset != 0) {
         const char* modifier = "";
         switch (v->size) {
@@ -63,29 +63,27 @@ static inline const char* __format_ir_variable(ir_subject_t* v) {
             default: break;
         }
 
-        if (v->storage.vinfo.pos.offset > 0) snprintf(buffer, 128, "%s[rbp - %i]", modifier, v->storage.vinfo.pos.offset);
-        else snprintf(buffer, 128, "%s[rbp + %i]", modifier, -1 * v->storage.vinfo.pos.offset);
+        if (v->storage.vinfo.pos.offset > 0) snprintf(irh_buffer, 128, "%s[rbp - %i]", modifier, v->storage.vinfo.pos.offset);
+        else snprintf(irh_buffer, 128, "%s[rbp + %i]", modifier, -1 * v->storage.vinfo.pos.offset);
     }
     else {
-        snprintf(buffer, 128, "%d", cnst);
+        snprintf(irh_buffer, 128, "%d", cnst);
     }
 
-    return buffer;
+    return irh_buffer;
 }
 
-#define GET_IRVAR(n) __format_ir_variable(n)
-
-void print_irsub(const ir_subject_t* s) {
+void print_irsub(ir_subject_t* s) {
     if (!s) { printf("null"); return; }
-    printf("%s", GET_IRVAR(s));
+    printf("%s", __irh_format_ir_variable(s));
 }
 
-void print_irblock(const ir_block_t* b) {
+void print_irblock(ir_block_t* b) {
     if (!b) { printf("<null block>\n"); return; }
 
     const char* opname = "??";
-    size_t on = sizeof(_ir_op_names)/sizeof(_ir_op_names[0]);
-    if (b->op >= 0 && b->op < (int)on) opname = _ir_op_names[b->op];
+    size_t on = sizeof(_irh_ir_op_names)/sizeof(_irh_ir_op_names[0]);
+    if (b->op >= 0 && b->op < (int)on) opname = _irh_ir_op_names[b->op];
 
     printf("%s", opname);
     if (b->args <= 0) {

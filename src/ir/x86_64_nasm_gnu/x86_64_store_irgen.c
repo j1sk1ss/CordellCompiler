@@ -67,10 +67,10 @@ indexing: {}
 
                 IR_BLOCK2(ctx, iADD, IR_SUBJ_REG(RAX, 8), IR_SUBJ_REG(RBX, 8));
                 switch (elsize) {
-                    case 1: IR_BLOCK2(ctx, iMOVb, IR_SUBJ_DRFREG(RAX, 8), IR_SUBJ_REG(DL, 1));  break;
-                    case 2: IR_BLOCK2(ctx, iMOVw, IR_SUBJ_DRFREG(RAX, 8), IR_SUBJ_REG(DX, 2));  break;
-                    case 4: IR_BLOCK2(ctx, iMOVd, IR_SUBJ_DRFREG(RAX, 8), IR_SUBJ_REG(EDX, 4)); break;
-                    case 8: IR_BLOCK2(ctx, iMOVq, IR_SUBJ_DRFREG(RAX, 8), IR_SUBJ_REG(RDX, 8)); break;
+                    case 1: IR_BLOCK2(ctx, iMOV, IR_SUBJ_DRFREG(RAX, 1), IR_SUBJ_REG(DL, 1));  break;
+                    case 2: IR_BLOCK2(ctx, iMOV, IR_SUBJ_DRFREG(RAX, 2), IR_SUBJ_REG(DX, 2));  break;
+                    case 4: IR_BLOCK2(ctx, iMOV, IR_SUBJ_DRFREG(RAX, 4), IR_SUBJ_REG(EDX, 4)); break;
+                    case 8: IR_BLOCK2(ctx, iMOV, IR_SUBJ_DRFREG(RAX, 8), IR_SUBJ_REG(RDX, 8)); break;
                 }
             }
 

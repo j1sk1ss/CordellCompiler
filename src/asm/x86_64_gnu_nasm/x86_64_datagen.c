@@ -1,4 +1,4 @@
-#include <asm/x86_64_gnu_nasm/x86_64_asm_generator.h>
+#include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
 
 /* Variable just reserve space */
 static int _generate_raw(ast_node_t* entry, FILE* output) {

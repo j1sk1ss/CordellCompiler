@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     };
 
     fprintf(stdout, "Generated code:\n");
-    GEN_generate(&gctx, &g, stdout);
+    ASM_generate(&gctx, &g, stdout);
 
     AST_unload(sctx.r);
     TKN_unload(tkn);

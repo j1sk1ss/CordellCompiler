@@ -137,7 +137,7 @@ TEST_CODES[test_deadopt]="
 "
 
 # ==== Generation testing ====
-TEST_SRCS[test_ir]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ir/*.c src/ir/*/*.c std/*.c"
+TEST_SRCS[test_ir]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ir/*.c src/ir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"
 TEST_CODES[test_ir]="
     tests/dummy_data/ir/ir_1.cpl
     tests/dummy_data/ir/ir_2.cpl

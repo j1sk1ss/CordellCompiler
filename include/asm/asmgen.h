@@ -14,7 +14,7 @@ typedef struct gen_ctx {
 Create generator context in heap.
 Return pointer to allocated context.
 */
-gen_ctx_t* GEN_create_ctx();
+gen_ctx_t* ASM_create_ctx();
 
 /*
 Unload generater that was allocated in heap.
@@ -24,10 +24,10 @@ Params:
 Return 1 if free success.
 Return 0 if something goes wrong.
 */
-int GEN_destroy_ctx(gen_ctx_t* ctx);
+int ASM_destroy_ctx(gen_ctx_t* ctx);
 
 /*
-GEN_generate function generates ASM code for target platform.
+ASM_generate function generates ASM code for target platform.
 Params:
 - root - AST tree root.
 - output - Output file.
@@ -35,7 +35,7 @@ Params:
 Return 1 if generation success.
 Return 0 if something goes wrong.
 */
-int GEN_generate(
+int ASM_generate(
     gen_ctx_t* ctx, int (*declarator)(ast_node_t*, FILE*), int (*generator)(ir_block_t*, FILE*), FILE* output
 );
 

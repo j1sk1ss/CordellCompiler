@@ -123,10 +123,10 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
     char save_path[128] = { 0 };
     sprintf(save_path, "%s.asm", ctx->files[index].path);
     FILE* output = fopen(save_path, "w");
-    gen_ctx_t* gctx = GEN_create_ctx();
+    gen_ctx_t* gctx = ASM_create_ctx();
     gctx->synt = ctx->files[index].syntax;
-    // GEN_generate(gctx, &ctx->g, output);
-    GEN_destroy_ctx(gctx);
+    // ASM_generate(gctx, &ctx->g, output);
+    ASM_destroy_ctx(gctx);
     fclose(output);
 
     char compile_command[128] = { 0 };
