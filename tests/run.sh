@@ -67,18 +67,20 @@ TEST_CODES[test_ast]="
 "
 
 # ==== Optimization testing ====
-TEST_SRCS[test_varinline]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/varinline.c std/*.c"
+TEST_SRCS[test_varinline]="src/prep/*.c src/ast/*.c src/ast/parsers/*.c src/ast/tables/*.c src/ast/opt/varinline.c std/*.c"
 TEST_CODES[test_varinline]="
-    tests/dummy_data/ast/opt/varinline/varinline_1.cpl
-    tests/dummy_data/ast/opt/varinline/varinline_2.cpl
-    tests/dummy_data/ast/opt/varinline/varinline_3.cpl
-    tests/dummy_data/ast/opt/varinline/varinline_4.cpl
-    tests/dummy_data/ast/opt/varinline/varinline_5.cpl
-    tests/dummy_data/ast/opt/varinline/varinline_6.cpl
-    tests/dummy_data/ast/opt/varinline/varinline_7.cpl
-    tests/dummy_data/ast/opt/varinline/varinline_8.cpl
-    tests/dummy_data/ast/opt/varinline/varinline_9.cpl
-    tests/dummy_data/ast/opt/varinline/varinline_10.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_1.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_2.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_3.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_4.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_5.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_6.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_7.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_8.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_9.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_10.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_11.cpl
+    tests/dummy_data/ast_opt/varinline/varinline_12.cpl
 "
 
 TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/varinline.c src/ast/opt/constopt.c std/*.c"
@@ -146,6 +148,7 @@ TEST_CODES[test_ir]="
     tests/dummy_data/ir/ir_5.cpl
     tests/dummy_data/ir/ir_6.cpl
     tests/dummy_data/ir/ir_7.cpl
+    tests/dummy_data/ir/ir_8.cpl
 "
 
 TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/*.c src/asm/*.c src/asm/*/*.c std/*.c"
@@ -248,7 +251,7 @@ for i in "${!test_names[@]}"; do
     code_file="${codes[$CODE_IDX]}"
 
     echo "== Compilation: $test_file =="
-    gcc-14 $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
+    gcc $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
         -DWARNING_LOGS -DERROR_LOGS -DLOGGING_LOGS -DINFO_LOGS -DDEBUG_LOGS -g -O0 -o "tests/$test_name"
 
     if [[ -n "$DEBUGGER" ]]; then

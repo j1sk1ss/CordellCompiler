@@ -4,6 +4,7 @@ ir_ctx_t* IR_create_ctx() {
     ir_ctx_t* ctx = mm_malloc(sizeof(ir_ctx_t));
     if (!ctx) return NULL;
     ctx->h = ctx->t = NULL;
+    ctx->synt = NULL;
     ctx->cid = 0;
     ctx->lid = 0;
     return ctx;

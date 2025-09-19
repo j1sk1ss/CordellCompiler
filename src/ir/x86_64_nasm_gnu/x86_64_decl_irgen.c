@@ -52,7 +52,14 @@ static int _arrdeclaration(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
         int base_off = node->sinfo.offset;
         for (ast_node_t* t = elems_node; t; t = t->sibling) {
             g->elemegen(t, g, ctx);
-            IR_BLOCK2(ctx, iMOV, IR_SUBJ_OFF(base_off, arr_info.el_size), IR_SUBJ_REG(RAX, 8));
+
+            switch (arr_info.el_size) {
+                case 1:  IR_BLOCK2(ctx, iMOV, IR_SUBJ_OFF(base_off, arr_info.el_size), IR_SUBJ_REG(AL, 1));  break;
+                case 2:  IR_BLOCK2(ctx, iMOV, IR_SUBJ_OFF(base_off, arr_info.el_size), IR_SUBJ_REG(AX, 2));  break;
+                case 4:  IR_BLOCK2(ctx, iMOV, IR_SUBJ_OFF(base_off, arr_info.el_size), IR_SUBJ_REG(EAX, 4)); break;
+                default: IR_BLOCK2(ctx, iMOV, IR_SUBJ_OFF(base_off, arr_info.el_size), IR_SUBJ_REG(RAX, 8)); break;
+            }
+
             base_off -= arr_info.el_size;
         }
     }

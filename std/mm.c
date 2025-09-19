@@ -25,7 +25,8 @@ static int _coalesce_memory() {
                 current->size += sizeof(mm_block_t) + current->next->size;
                 current->next = current->next->next;
                 merged = 1;
-            } else {
+            } 
+            else {
                 current = current->next;
             }
         }
@@ -34,7 +35,7 @@ static int _coalesce_memory() {
 }
 
 static void* _malloc_s(size_t size, int prepare_mem) {
-    if (size == 0) return NULL;
+    if (!size) return NULL;
     if (prepare_mem) _coalesce_memory();
 
     size = (size + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1);
@@ -86,11 +87,12 @@ void* mm_realloc(void* ptr, size_t elem) {
 }
 
 int mm_free(void* ptr) {
-    if (!ptr || ptr < (void*)_buffer || ptr >= (void*)(_buffer + ALLOC_BUFFER_SIZE)) return -1;
+    if (!ptr || ptr < (void*)_buffer || ptr >= (void*)(_buffer + ALLOC_BUFFER_SIZE)) return 0;
     
     mm_block_t* block = (mm_block_t*)((unsigned char*)ptr - sizeof(mm_block_t));
-    if (block->magic != MM_BLOCK_MAGIC) return -1;
-    if (block->free) return -1;
+    if (block->magic != MM_BLOCK_MAGIC) return 0;
+    if (block->free) return 0;
+    str_memset(ptr, 0, block->size);
 
     block->free = 1;
     _allocated -= block->size + sizeof(mm_block_t);

@@ -56,7 +56,12 @@ int main(int argc, char* argv[]) {
 
     STX_create(tkn, &sctx, &p);
     OPT_varinline(&sctx);
+
+    printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
+
+    printf("\n\n========== INFO ==========\n");
+    printf("Max offset: %i", AST_get_max_offset(sctx.r));
 
     AST_unload(sctx.r);
     TKN_unload(tkn);

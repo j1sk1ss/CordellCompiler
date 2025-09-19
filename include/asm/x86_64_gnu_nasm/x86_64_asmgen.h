@@ -51,7 +51,7 @@ static inline const char* __format_x86_64_ir_variable(ir_subject_t* v) {
     char isglob  = v->storage.vinfo.glob;
     int offset   = v->storage.vinfo.pos.offset;
 
-    if (!instack && isglob && cnst == -1) snprintf(irh_buffer, 128, "[rel %s]", v->storage.vinfo.pos.value);
+    if (!instack && isglob && cnst == -1) snprintf(irh_buffer, 128, "[rel __%s__]", v->storage.vinfo.pos.value);
     else if (!instack && !isglob && cnst == -1) snprintf(irh_buffer, 128, "%s", v->storage.vinfo.pos.value);
     else if (offset != 0) {
         const char* modifier = "";

@@ -6,19 +6,18 @@ static int _navigation_handler(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     if (
         VRS_isoperand(node->token) && node->token->t_type != ASSIGN_TOKEN
     ) g->operand(node, g, ctx);
-
     switch (node->token->t_type) {
-        case ASM_TOKEN:          g->asmer(node, g, ctx);     break;
         case IF_TOKEN:           g->ifgen(node, g, ctx);     break;
-        case SWITCH_TOKEN:       g->switchgen(node, g, ctx); break;
-        case WHILE_TOKEN:        g->whilegen(node, g, ctx);  break;
+        case ASM_TOKEN:          g->asmer(node, g, ctx);     break;
         case CALL_TOKEN:         g->funccall(node, g, ctx);  break;
         case FUNC_TOKEN:         g->function(node, g, ctx);  break;
-        case START_TOKEN:        g->start(node, g, ctx);     break;
-        case RETURN_TOKEN:       g->funcret(node, g, ctx);   break;
         case EXIT_TOKEN:         g->exit(node, g, ctx);      break;
-        case SYSCALL_TOKEN:      g->syscall(node, g, ctx);   break;
+        case WHILE_TOKEN:        g->whilegen(node, g, ctx);  break;
+        case START_TOKEN:        g->start(node, g, ctx);     break;
+        case SWITCH_TOKEN:       g->switchgen(node, g, ctx); break;
+        case RETURN_TOKEN:       g->funcret(node, g, ctx);   break;
         case ASSIGN_TOKEN:       g->assign(node, g, ctx);    break;
+        case SYSCALL_TOKEN:      g->syscall(node, g, ctx);   break;
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:

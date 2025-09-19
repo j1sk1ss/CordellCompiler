@@ -66,7 +66,11 @@ int AST_remove_node(ast_node_t* parent, ast_node_t* child) {
         current = current->sibling;
     }
 
-    if (found) child->sibling = NULL;
+    if (found) {
+        child->sibling = NULL;
+        child->parent  = NULL;
+    }
+
     return 1;
 }
 
