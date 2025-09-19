@@ -1,6 +1,7 @@
 #ifndef AST_H_
 #define AST_H_
 
+#include <std/vars.h>
 #include <prep/token.h>
 
 typedef struct {
@@ -16,6 +17,15 @@ typedef struct ast_node {
     struct ast_node* sibling;
     syntax_info_t    sinfo;
 } ast_node_t;
+
+/* 
+Help function for getting maximum offset in root scope.
+Params:
+- root - Root scope node.
+
+Return maximum offset in scope.
+*/
+int AST_get_max_offset(ast_node_t* root);
 
 /*
 Create new tree node with token.

@@ -6,7 +6,9 @@
     - [Tokens markup](#tokens-markup)
     - [AST generating](#ast)
     - [Semantic check](#semantic-check)
-    - [Optimization](#optimization)
+    - [AST optimization](#ast-optimization)
+    - [IR generation](#ir-generation)
+    - [IR optimization](#ir-optimization)
     - [Micro-code generation](#micro-code-generation)
 - [Documentation](#documentation)
     - [Structure](#program-structure)
@@ -27,7 +29,7 @@
 
 # Architecture
 ## Token generation
-Before any work, compiler should split all input text into a list of tokens. In nutshell, [tokens](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/prep/token.c), in this Compiler, looks like this structure:
+Before any work, compiler should split all input text into a list of tokens. In nutshell, [tokens](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/prep/token.c), in this Compiler, looks like this structure:
 
 ```C
 typedef struct {
@@ -178,7 +180,7 @@ A number of compilers generate an Abstract Syntax Tree (next `AST`), and this on
             [LEFT expression]
             [RIGHT expression]
 
-Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/ast/cpl_parsers/README.md). Instead of wasting space, lets take a look on the visual example with translation of this code below:
+Full text of all rules present [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/ast/cpl_parsers/README.md). Instead of wasting space, lets take a look on the visual example with translation of this code below:
 ```CPL
 {
     extern exfunc printf;
@@ -210,22 +212,26 @@ Through the night with the light from above!] (t=84, size=0, off=0, s_id=0, glob
 ```
 
 # Semantic check
-Semantic module takes care under size, operation and commands correctness. In other words, this module check if code `well-typed`. Additional examples of semantic check can be found [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/sem/README.md)
+Semantic module takes care under size, operation and commands correctness. In other words, this module check if code `well-typed`. Additional examples of semantic check can be found [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/sem/README.md)
 
-# Optimization
-- [deadfunc](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadfunc.c)
-- [strdecl](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/strdecl.c)
-- [varinline](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/varinline.c)
-- [constopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/constopt.c)
-- [condunroll](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/condunroll.c)
-- [varuseopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/varuseopt.c)
-- [offsetopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/offsetopt.c)
-- [deadopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/deadopt.c)
+# AST optimization
+- [deadfunc](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/ast/opt/deadfunc.c)
+- [strdecl](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/ast/opt/strdecl.c)
+- [varinline](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/ast/opt/varinline.c)
+- [constopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/ast/opt/constopt.c)
+- [condunroll](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/ast/opt/condunroll.c)
+- [varuseopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/ast/opt/varuseopt.c)
+- [offsetopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/ast/opt/offsetopt.c)
+- [deadopt](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/oast/pt/deadopt.c)
 
-Detailed description of every noted algorithms placed [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/opt/README.md).
+Detailed description of every noted algorithms placed [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/opt/README.md).
+
+# IR generation
+
+# IR optimization
 
 # Micro-code generation
-Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/src/gen/x86_64_nasm_gnu/README.md). Main examples of microcode generation is `switch` generation, `asm` block generation, float point arithmetic generation and VLA in heap.
+Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/gen/x86_64_nasm_gnu/README.md). Main examples of microcode generation is `switch` generation, `asm` block generation, float point arithmetic generation and VLA in heap.
 
 - `switch`, in comprarision with `if` generates a binary search structure. For example this code below:
 ```CPL
@@ -506,7 +512,7 @@ _start:
 ```
 
 # Short .CPL Documentation
-This is a short version of the language documentation. If you are interested, you can find extended document [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/docs/README.md).
+This is a short version of the language documentation. If you are interested, you can find extended document [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/docs/README.md).
 
 ## Program Structure
 Every program begins with the `start` entrypoint and ends with the `exit [return_code];` statement.
@@ -725,7 +731,7 @@ Comments are written as annotations `:` within functions and code blocks:
 ```
 
 # Examples
-If you want see more examples, please look into the folder `examples` or `tests`. Also [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/blob/x86_64/vscode/README.md) is a VSCode extension for this hobby language.
+If you want see more examples, please look into the folder `examples` or `tests`. Also [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/vscode/README.md) is a VSCode extension for this hobby language.
 
 ## Example of Printing a Number:
 ```CPL

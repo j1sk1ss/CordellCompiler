@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <prep/markup.h>
 #include <ast/syntax.h>
-#include <ast/parsers/cpl_parser.h>
+#include <ast/parsers/parser.h>
 #include <ast/opt/deadscope.h>
 #include "ast_helper.h"
 

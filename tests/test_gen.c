@@ -7,9 +7,9 @@
 #include <ast/opt/strdecl.h>
 #include <ast/opt/deadscope.h>
 #include <ast/opt/offsetopt.h>
-#include <gen/asmgen.h>
-#include <ast/parsers/cpl_parser.h>
-#include <gen/x86_64_nasm_gnu/x86_64_gnu_nasm.h>
+#include <asm/asmgen.h>
+#include <ast/parsers/parser.h>
+#include <asm/x86_64_gnu_nasm/x86_64_gnu_nasm_asm.h>
 #include "ast_helper.h"
 
 int main(int argc, char* argv[]) {
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     print_ast(sctx.r, 0);
     
-    gen_ctx_t gctx = { .label = 0, .synt = &sctx };
+    asmgen_ctx_t gctx = { .label = 0, .synt = &sctx };
     gen_t g = {
         .datagen   = x86_64_generate_data,
         .funcdef   = x86_64_generate_funcdef,
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     };
 
     fprintf(stdout, "Generated code:\n");
-    GEN_generate(&gctx, &g, stdout);
+    ASM_generate(&gctx, &g, stdout);
 
     AST_unload(sctx.r);
     TKN_unload(tkn);

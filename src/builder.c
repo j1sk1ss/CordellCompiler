@@ -7,15 +7,15 @@ static int _print_ast(ast_node_t* node, int depth) {
         printf(
             "[%s] (t=%d, size=%i,%s%s%soff=%i, s_id=%i%s%s%s%s%s)\n", 
             node->token->value, node->token->t_type, node->sinfo.size, 
-            node->token->flags.ptr ? " ptr, " : " ",
-            node->token->flags.ref ? "ref, " : "",
-            node->token->flags.dref ? "dref, " : "",
+            node->token->flags.ptr ?    " ptr, " : " ",
+            node->token->flags.ref ?    "ref, " : "",
+            node->token->flags.dref ?   "dref, " : "",
             node->sinfo.offset, node->sinfo.s_id,
-            node->token->flags.ro ? ", ro" : "",
-            node->token->flags.ext ? ", ext" : "",
-            node->token->flags.glob ? ", glob" : "",
-            node->token->flags.neg ? ", neg" : "",
-            node->token->flags.heap ? ", heap" : ""
+            node->token->flags.ro ?     ", ro" : "",
+            node->token->flags.ext ?    ", ext" : "",
+            node->token->flags.glob ?   ", glob" : "",
+            node->token->flags.neg ?    ", neg" : "",
+            node->token->flags.heap ?   ", heap" : ""
         );
     }
     else if (node->token && node->token->t_type == SCOPE_TOKEN) {
@@ -94,7 +94,8 @@ static int _generate_raw_ast(builder_ctx_t* ctx) {
 
 #define RESULT(code) code > 0 ? "OK" : "ERROR", code 
 static int _compile_object(builder_ctx_t* ctx, char index) {
-    int optres = OPT_strpack(ctx->files[index].syntax);
+    int optres = 0;
+    optres = OPT_strpack(ctx->files[index].syntax);
     print_log("String optimization of [%s]... [%s (%i)]", ctx->files[index].path, RESULT(optres));
 
     int is_fold_vars = 0;
@@ -117,16 +118,32 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
     print_log("Offset recalculation and stack optimization... [%s (%i)]", RESULT(optres));
 
     if (ctx->prms.syntax) {
+        print_log("\n\n========== AST ==========");
         _print_ast(ctx->files[index].syntax->r, 0);
     }
-    
+
+    ir_ctx_t* irctx = IR_create_ctx();
+    irctx->synt = ctx->files[index].syntax;
+    IR_generate(&ctx->ir, irctx);
+
+    if (ctx->prms.ir) {
+        print_log("\n\n========== IR ==========");
+        for (ir_block_t* b = irctx->h; b; b = b->next) {
+            printf("Command: %i\n", b->op);
+        }
+    }
+
+    asmgen_ctx_t* gctx = ASM_create_ctx();
+    gctx->synt = ctx->files[index].syntax;
+    gctx->ir   = irctx;
+
     char save_path[128] = { 0 };
     sprintf(save_path, "%s.asm", ctx->files[index].path);
     FILE* output = fopen(save_path, "w");
-    gen_ctx_t* gctx = GEN_create_ctx();
-    gctx->synt = ctx->files[index].syntax;
-    GEN_generate(gctx, &ctx->g, output);
-    GEN_destroy_ctx(gctx);
+    ASM_generate(gctx, &ctx->g, output);
+    
+    ASM_destroy_ctx(gctx);
+    IR_destroy_ctx(irctx);
     fclose(output);
 
     char compile_command[128] = { 0 };

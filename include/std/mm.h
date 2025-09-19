@@ -7,7 +7,7 @@
 #include <std/logg.h>
 
 #define ALIGNMENT         8
-#define ALLOC_BUFFER_SIZE 350000
+#define ALLOC_BUFFER_SIZE 500000
 #define MM_BLOCK_MAGIC    0xC07DEL
 
 typedef struct mm_block {
