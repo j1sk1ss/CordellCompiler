@@ -117,16 +117,30 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
     print_log("Offset recalculation and stack optimization... [%s (%i)]", RESULT(optres));
 
     if (ctx->prms.syntax) {
+        print_log("\n\n========== AST ==========");
         _print_ast(ctx->files[index].syntax->r, 0);
     }
-    
+
+    ir_ctx_t* irctx = IR_create_ctx();
+    irctx->synt = ctx->files[index].syntax;
+    IR_generate(&ctx->ir, irctx);
+
+    if (ctx->prms.ir) {
+        print_log("\n\n========== IR ==========");
+        // _print_ast(ctx->files[index].syntax->r, 0);
+    }
+
+    asmgen_ctx_t* gctx = ASM_create_ctx();
+    gctx->synt = ctx->files[index].syntax;
+    gctx->ir   = irctx;
+
     char save_path[128] = { 0 };
     sprintf(save_path, "%s.asm", ctx->files[index].path);
     FILE* output = fopen(save_path, "w");
-    gen_ctx_t* gctx = ASM_create_ctx();
-    gctx->synt = ctx->files[index].syntax;
-    // ASM_generate(gctx, &ctx->g, output);
+    ASM_generate(gctx, &ctx->g, output);
+    
     ASM_destroy_ctx(gctx);
+    IR_destroy_ctx(irctx);
     fclose(output);
 
     char compile_command[128] = { 0 };

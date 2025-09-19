@@ -148,7 +148,7 @@ TEST_CODES[test_ir]="
     tests/dummy_data/ir/ir_7.cpl
 "
 
-TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
+TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/*.c src/asm/*.c src/asm/*/*.c std/*.c"
 TEST_CODES[test_gen]="
     tests/dummy_data/gen/gen_1.cpl
     tests/dummy_data/gen/gen_2.cpl
@@ -171,7 +171,7 @@ TEST_CODES[test_gen]="
     tests/dummy_data/gen/gen_19.cpl
 "
 
-TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/sem/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"
+TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/sem/*.c src/ast/*.c src/ast/*/*.c src/ir/*.c src/ir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"
 TEST_CODES[test_build]="
     tests/dummy_data/builder/builder_1.cpl
     tests/dummy_data/builder/builder_2.cpl

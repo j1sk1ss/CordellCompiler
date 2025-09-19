@@ -60,6 +60,10 @@ int main(int argc, char* argv[]) {
             .switchgen = IR_generate_switch_block,
             .asmer     = IR_generate_asmblock
         },
+        .g = {
+            .declarator = x86_64_generate_data,
+            .generator  = x86_64_generate_asm
+        },
         .prms = {
             .save_asm = 1, .syntax = 1, 
             .asm_compiler = DEFAULT_ASM_COMPILER, 

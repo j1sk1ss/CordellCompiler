@@ -97,13 +97,18 @@ int main(int argc, char* argv[]) {
         h = h->next;
     }
 
-    gen_ctx_t gctx = {
+    asmgen_ctx_t gctx = {
         .ir = &irctx,
         .synt = &sctx
     };
 
+    asm_gen_t g = {
+        .declarator = x86_64_generate_data,
+        .generator  = x86_64_generate_asm
+    };
+
     printf("\n\n========== ASM ==========\n");
-    ASM_generate(&gctx, x86_64_generate_data, x86_64_generate_asm, stdout);
+    ASM_generate(&gctx, &g, stdout);
 
     IR_unload_blocks(irctx.h);
     AST_unload(sctx.r);

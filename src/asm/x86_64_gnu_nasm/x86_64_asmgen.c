@@ -44,7 +44,7 @@ int x86_64_generate_asm(ir_block_t* h, FILE* output) {
             case JL:  iprintf(output, "jl %s\n", GET_X86_64_IRVAR(curr->farg));  break;
             case JG:  iprintf(output, "jg %s\n", GET_X86_64_IRVAR(curr->farg));  break;
 
-            case iMOVq: iprintf(output, "movq %s, %s\n", GET_X86_64_IRVAR(curr->farg), GET_X86_64_IRVAR(curr->sarg));  break;
+            case iMOVq:
             case iMOV:  iprintf(output, "mov %s, %s\n", GET_X86_64_IRVAR(curr->farg), GET_X86_64_IRVAR(curr->sarg));   break;
             case iMVZX: iprintf(output, "movzx %s, %s\n", GET_X86_64_IRVAR(curr->farg), GET_X86_64_IRVAR(curr->sarg)); break;
 

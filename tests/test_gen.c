@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     print_ast(sctx.r, 0);
     
-    gen_ctx_t gctx = { .label = 0, .synt = &sctx };
+    asmgen_ctx_t gctx = { .label = 0, .synt = &sctx };
     gen_t g = {
         .datagen   = x86_64_generate_data,
         .funcdef   = x86_64_generate_funcdef,
