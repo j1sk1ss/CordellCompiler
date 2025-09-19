@@ -1,5 +1,6 @@
 - [Documentation](/)
 - [AST](src/ast/)
 - [Semantic](src/sem/)
-- [Optimization](src/opt/)
-- [Generation](src/gen/)
+- [AST Optimization](src/opt/)
+- [IR](src/ir/)
+- [ASM Generation](src/gen/)

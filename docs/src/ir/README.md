@@ -1,0 +1,2 @@
+# x86_64 GNU NASM IR generator
+This module generates NASM x86_64 GNU IR. Let's look at some concrete examples. Main idea of IR is presentation of code closer to machine, but with ability to optimization.

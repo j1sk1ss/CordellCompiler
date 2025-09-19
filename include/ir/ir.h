@@ -127,6 +127,32 @@ typedef enum {
 
     /* Other */
     RAW,
+
+    /* High level operations */
+        /* Stack */
+        RSVSTK, // Reserve stackframe
+    
+        /* Bin operations */
+        ADDOP,  // a = b + c
+        fADDOP, // fa = f/b + f/c
+        SUBOP,  // a = b - c
+        fSUBOP, // fa = f/b - f/c
+        DIVOP,  // a = b / c
+        fDIVOP, // fa = f/b / f/c
+        MODOP,  // a = b % c
+
+        /* Data */
+        LOADOP, // load value <= a
+        LDLINK, // load link <= a
+        STOP,   // store value a =>
+        STLINK, // store link a =>
+    
+        /* Heap */
+        ALLCH,  // allocate heap + save addr to farg
+        DEALLH, // deallocate heap, addr from farg
+
+        /* System */
+        EXITOP, // Exit with farg exit call
 } ir_operation_t;
 
 typedef struct ir_block {
