@@ -145,6 +145,7 @@ TEST_CODES[test_ir]="
     tests/dummy_data/ir/ir_4.cpl
     tests/dummy_data/ir/ir_5.cpl
     tests/dummy_data/ir/ir_6.cpl
+    tests/dummy_data/ir/ir_7.cpl
 "
 
 TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/opt/*.c src/gen/*.c src/gen/*/*.c std/*.c"

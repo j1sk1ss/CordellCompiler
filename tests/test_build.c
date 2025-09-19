@@ -2,14 +2,16 @@
 #include <prep/token.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <builder.h>
 #include <ast/syntax.h>
 #include <ast/opt/strdecl.h>
 #include <ast/opt/deadscope.h>
 #include <ast/opt/offsetopt.h>
-#include <asm/asmgen.h>
-#include <builder.h>
 #include <ast/parsers/parser.h>
-#include <asm/x86_64_gnu_nasm/x86_64_gnu_nasm_asm.h>
+#include <ir/irgen.h>
+#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <asm/asmgen.h>
+#include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
 #include "ast_helper.h"
 
 int main(int argc, char* argv[]) {
@@ -33,28 +35,30 @@ int main(int argc, char* argv[]) {
             .expr       = cpl_parse_expression,
             .scope      = cpl_parse_scope,
             .start      = cpl_parse_start,
-            .syscall    = cpl_parse_syscall
+            .syscall    = cpl_parse_syscall,
+            .extrn      = cpl_parse_extern,
+            .asmer      = cpl_parse_asm
         },
-        .g = {
-            .datagen  = x86_64_generate_data,
-            .funcdef  = x86_64_generate_funcdef,
-            .funcret  = x86_64_generate_return,
-            .funccall = x86_64_generate_funccall,
-            .function = x86_64_generate_function,
-            .blockgen = x86_64_generate_block,
-            .elemegen = x86_64_generate_elem,
-            .operand  = x86_64_generate_operand,
-            .store    = x86_64_generate_store,
-            .ptrload  = x86_64_generate_ptr_load,
-            .load     = x86_64_generate_load,
-            .assign   = x86_64_generate_assignment,
-            .decl     = x86_64_generate_declaration,
-            .start    = x86_64_generate_start,
-            .exit     = x86_64_generate_exit,
-            .syscall  = x86_64_generate_syscall,
-            .ifgen    = x86_64_generate_if,
-            .whilegen = x86_64_generate_while,
-            .switchgen= x86_64_generate_switch
+        .ir = {
+            .funcdef   = IR_generate_funcdef_block,
+            .funcret   = IR_generate_return_block,
+            .funccall  = IR_generate_funccall_block,
+            .function  = IR_generate_function_block,
+            .blockgen  = IR_generate_block,
+            .elemegen  = IR_generate_elem_block,
+            .operand   = IR_generate_operand_block,
+            .store     = IR_generate_store_block,
+            .ptrload   = IR_generate_ptr_load_block,
+            .load      = IR_generate_load_block,
+            .assign    = IR_generate_assignment_block,
+            .decl      = IR_generate_declaration_block,
+            .start     = IR_generate_start_block,
+            .exit      = IR_generate_exit_block,
+            .syscall   = IR_generate_syscall_block,
+            .ifgen     = IR_generate_if_block,
+            .whilegen  = IR_generate_while_block,
+            .switchgen = IR_generate_switch_block,
+            .asmer     = IR_generate_asmblock
         },
         .prms = {
             .save_asm = 1, .syntax = 1, 

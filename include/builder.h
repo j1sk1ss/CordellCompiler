@@ -4,11 +4,10 @@
 #include <stdlib.h>
 #include <std/logg.h>
 #include <prep/token.h>
-#include <ast/tables/arrtb.h>
-#include <ast/tables/vartb.h>
-#include <ast/syntax.h>
 #include <prep/markup.h>
-#include <sem/semantic.h>
+#include <ast/syntax.h>
+#include <ast/tables/vartb.h>
+#include <ast/tables/arrtb.h>
 #include <ast/opt/deadopt.h>
 #include <ast/opt/strdecl.h>
 #include <ast/opt/constopt.h>
@@ -17,6 +16,8 @@
 #include <ast/opt/offsetopt.h>
 #include <ast/opt/varinline.h>
 #include <ast/opt/condunroll.h>
+#include <sem/semantic.h>
+#include <ir/irgen.h>
 #include <asm/asmgen.h>
 
 #define MAX_FILES            100
@@ -49,7 +50,7 @@ typedef struct {
     object_t files[MAX_FILES];
     char     fcount;
     parser_t p;
-    gen_t    g;
+    ir_gen_t ir;
 } builder_ctx_t;
 
 int BLD_add_target(char* input, builder_ctx_t* ctx);
