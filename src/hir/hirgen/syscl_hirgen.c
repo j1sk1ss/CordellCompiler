@@ -2,7 +2,12 @@
 
 int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx) {
     HIR_BLOCK0(ctx, STRT);
-    return HIR_generate_block(node->child, ctx);
+    ast_node_t* st = node->child;
+    for (; st && st->token; st = st->sibling) {
+        HIR_BLOCK1(ctx, STARGLD, HIR_SUBJ_VAR(st));
+    }
+
+    return HIR_generate_block(st, ctx);
 }
 
 int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx) {
@@ -13,7 +18,7 @@ int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx) {
 hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx) {
     int args_count = 0;
     for (ast_node_t* e = node->child; e; e = e->sibling) {
-        HIR_BLOCK1(ctx, PARAM, HIR_generate_elem(e, ctx));
+        HIR_BLOCK1(ctx, PRMST, HIR_generate_elem(e, ctx));
         args_count++;
     }
 

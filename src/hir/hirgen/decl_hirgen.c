@@ -14,7 +14,7 @@ static int _arrdeclaration(ast_node_t* node, hir_ctx_t* ctx) {
     ast_node_t* elems_node   = el_type_node->sibling;
 
     for (ast_node_t* e = elems_node; e; e = e->sibling) {
-        HIR_BLOCK1(ctx, PARAM, HIR_generate_elem(e, ctx));
+        HIR_BLOCK1(ctx, PRMST, HIR_generate_elem(e, ctx));
     }
 
     HIR_BLOCK2(ctx, ARRDECL, HIR_SUBJ_VAR(name_node), HIR_generate_elem(size_node, ctx));

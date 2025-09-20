@@ -11,82 +11,86 @@
 
 static const char* hir_op_to_string(hir_operation_t op) {
     switch(op) {
-        case FCLL: return "FCLL";
-        case ECLL: return "ECLL";
-        case STRT: return "STRT";
-        case SYSC: return "SYSC";
-        case FRET: return "FRET";
-        case MKLB: return "MKLB";
-        case FDCL: return "FDCL";
-        case FEND: return "FEND";
-        case OEXT: return "OEXT";
-        case RESV: return "RESV";
-        case VDCL: return "VDCL";
-        case JMP:  return "JMP";
-        case JE:   return "JE";
-        case JNE:  return "JNE";
-        case JL:   return "JL";
-        case JG:   return "JG";
-        case iADD: return "iADD";
-        case iSUB: return "iSUB";
-        case iMUL: return "iMUL";
-        case DIV:  return "DIV";
-        case iDIV: return "iDIV";
-        case iMOD: return "iMOD";
-        case iLRG: return "iLRG";
-        case iLGE: return "iLGE";
-        case iLWR: return "iLWR";
-        case iLRE: return "iLRE";
-        case iCMP: return "iCMP";
-        case iNMP: return "iNMP";
-        case iAND: return "iAND";
-        case iOR:  return "iOR";
-        case fADD: return "fADD";
-        case fSUB: return "fSUB";
-        case fMUL: return "fMUL";
-        case fDIV: return "fDIV";
-        case fCMP: return "fCMP";
-        case iBLFT: return "iBLFT";
-        case iBRHT: return "iBRHT";
-        case bAND:  return "bAND";
-        case bOR:   return "bOR";
-        case bXOR:  return "bXOR";
-        case bSHL:  return "bSHL";
-        case bSHR:  return "bSHR";
-        case bSAR:  return "bSAR";
-        case RAW:   return "RAW";
-        case RSVSTK: return "RSVSTK";
-        case ADDOP:  return "ADDOP";
-        case fADDOP: return "fADDOP";
-        case SUBOP:  return "SUBOP";
-        case fSUBOP: return "fSUBOP";
-        case DIVOP:  return "DIVOP";
-        case fDIVOP: return "fDIVOP";
-        case MODOP:  return "MODOP";
-        case IFOP:   return "IFOP";
-        case WHILEOP: return "WHILEOP";
-        case SWITCHOP: return "SWITCHOP";
-        case MKCASE: return "MKCASE";
+        case STARGLD:   return "STARGLD";
+        case FARGST:    return "FARGST";
+        case FARGLD:    return "FARGLD";
+        case FCLL:      return "FCLL";
+        case ECLL:      return "ECLL";
+        case STRT:      return "STRT";
+        case SYSC:      return "SYSC";
+        case FRET:      return "FRET";
+        case MKLB:      return "MKLB";
+        case FDCL:      return "FDCL";
+        case FEND:      return "FEND";
+        case OEXT:      return "OEXT";
+        case RESV:      return "RESV";
+        case VDCL:      return "VDCL";
+        case JMP:       return "JMP";
+        case JE:        return "JE";
+        case JNE:       return "JNE";
+        case JL:        return "JL";
+        case JG:        return "JG";
+        case iADD:      return "iADD";
+        case iSUB:      return "iSUB";
+        case iMUL:      return "iMUL";
+        case DIV:       return "DIV";
+        case iDIV:      return "iDIV";
+        case iMOD:      return "iMOD";
+        case iLRG:      return "iLRG";
+        case iLGE:      return "iLGE";
+        case iLWR:      return "iLWR";
+        case iLRE:      return "iLRE";
+        case iCMP:      return "iCMP";
+        case iNMP:      return "iNMP";
+        case iAND:      return "iAND";
+        case iOR:       return "iOR";
+        case fADD:      return "fADD";
+        case fSUB:      return "fSUB";
+        case fMUL:      return "fMUL";
+        case fDIV:      return "fDIV";
+        case fCMP:      return "fCMP";
+        case iBLFT:     return "iBLFT";
+        case iBRHT:     return "iBRHT";
+        case bAND:      return "bAND";
+        case bOR:       return "bOR";
+        case bXOR:      return "bXOR";
+        case bSHL:      return "bSHL";
+        case bSHR:      return "bSHR";
+        case bSAR:      return "bSAR";
+        case RAW:       return "RAW";
+        case RSVSTK:    return "RSVSTK";
+        case ADDOP:     return "ADDOP";
+        case fADDOP:    return "fADDOP";
+        case SUBOP:     return "SUBOP";
+        case fSUBOP:    return "fSUBOP";
+        case DIVOP:     return "DIVOP";
+        case fDIVOP:    return "fDIVOP";
+        case MODOP:     return "MODOP";
+        case IFOP:      return "IFOP";
+        case WHILEOP:   return "WHILEOP";
+        case SWITCHOP:  return "SWITCHOP";
+        case MKCASE:    return "MKCASE";
         case MKDEFCASE: return "MKDEFCASE";
         case MKENDCASE: return "MKENDCASE";
-        case NOT: return "NOT";
-        case LOADOP: return "LOADOP";
-        case LDLINK: return "LDLINK";
-        case STORE:  return "STORE";
-        case STLINK: return "STLINK";
-        case VARDECL: return "VARDECL";
-        case ARRDECL: return "ARRDECL";
-        case STRDECL: return "STRDECL";
-        case PARAM: return "PARAM";
-        case GINDEX: return "GINDEX";
-        case LINDEX: return "LINDEX";
-        case GDREF: return "GDREF";
-        case LDREF: return "LDREF";
-        case REF: return "REF";
-        case ALLCH: return "ALLCH";
-        case DEALLH: return "DEALLH";
-        case EXITOP: return "EXITOP";
-        default: return "UNKNOWN_OP";
+        case NOT:       return "NOT";
+        case LOADOP:    return "LOADOP";
+        case LDLINK:    return "LDLINK";
+        case STORE:     return "STORE";
+        case STLINK:    return "STLINK";
+        case VARDECL:   return "VARDECL";
+        case ARRDECL:   return "ARRDECL";
+        case STRDECL:   return "STRDECL";
+        case PRMST:     return "PRMST";
+        case PRMLD:    return "PRMLD";
+        case GINDEX:    return "GINDEX";
+        case LINDEX:    return "LINDEX";
+        case GDREF:     return "GDREF";
+        case LDREF:     return "LDREF";
+        case REF:       return "REF";
+        case ALLCH:     return "ALLCH";
+        case DEALLH:    return "DEALLH";
+        case EXITOP:    return "EXITOP";
+        default:        return "UNKNOWN_OP";
     }
 }
 
@@ -96,7 +100,7 @@ static void print_hir_subject(const hir_subject_t* s) {
     }
 
     switch (s->t) {
-        case REGISTER: printf("REGISTER[%d]", s->storage.reg.reg); break;
+        case REGISTER: printf("reg: [%d]", s->storage.reg.reg); break;
 
         case STKVARSTR: printf("strs: [%d]", s->storage.var.offset); break;
         case STKVARARR: printf("arrs: [%d]", s->storage.var.offset); break;
@@ -140,19 +144,19 @@ static void print_hir_subject(const hir_subject_t* s) {
         case NUMBER:   printf("%s", s->storage.num.value);   break;
         case CONSTVAL: printf("%ld", s->storage.cnst.value); break;
 
-        case LABEL:  printf("lb: [%s/%d]", s->storage.str.value, s->id); break;
-        case RAWASM: printf("asm: [%s]", s->storage.str.value);          break;
-        case STRING: printf("str: [%s]", s->storage.str.value);          break;
+        case LABEL:  printf("lb: [id=%d]", s->id);              break;
+        case RAWASM: printf("asm: [%s]", s->storage.str.value); break;
+        case STRING: printf("str: [%s]", s->storage.str.value); break;
 
-        default: printf("UNKNOWN"); break;
+        default: printf("unknw"); break;
     }
 }
 
 void print_hir_block(const hir_block_t* block) {
     if (!block) return;
-    printf("[%s] ", hir_op_to_string(block->op), block->args);
-    print_hir_subject(block->farg); printf(" ");
-    print_hir_subject(block->sarg); printf(" ");
+    printf("%s ", hir_op_to_string(block->op), block->args);
+    print_hir_subject(block->farg); if (block->sarg) printf(", ");
+    print_hir_subject(block->sarg); if (block->targ) printf(", ");
     print_hir_subject(block->targ); printf("\n");
 }
 

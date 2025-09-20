@@ -11,7 +11,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx) {
 
     int arg_count = 0;
     for (ast_node_t* arg = name->child; arg; arg = arg->sibling) {
-        HIR_BLOCK1(ctx, PARAM, HIR_generate_elem(arg, ctx));
+        HIR_BLOCK1(ctx, FARGST, HIR_generate_elem(arg, ctx));
         arg_count++;
     }
 
@@ -30,7 +30,7 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx) {
     HIR_BLOCK1(ctx, FDCL, HIR_SUBJ_STRING(name_node->token->value));
     ast_node_t* t = NULL;
     for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
-        HIR_generate_declaration_block(t, ctx);
+        HIR_BLOCK1(ctx, FARGLD, HIR_SUBJ_VAR(t));
     }
 
     HIR_generate_block(t->child, ctx);

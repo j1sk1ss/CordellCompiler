@@ -165,7 +165,11 @@ typedef enum {
         VARDECL, // declaration
         ARRDECL, // arr declaration
         STRDECL,
-        PARAM,
+        PRMST,
+        PRMLD,   // load param
+        FARGST,  // store function argument
+        FARGLD,  // load function argument
+        STARGLD, // load start argument
         GINDEX,  // get data by index in array
         LINDEX,  // load data to array by index
         GDREF,   // get value by address
