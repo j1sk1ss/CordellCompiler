@@ -104,17 +104,6 @@ typedef enum {
         FDCL, // declare function
         OEXT, // extern object
 
-        SETL,
-        SETG,
-        STLE,
-        STGE,
-        SETE,
-        STNE,
-        SETB,
-        SETA,
-        STBE,
-        STAE,
-
         /* Data commands */
         RESV,
         VDCL,
@@ -195,6 +184,14 @@ typedef enum {
         fDIVOP, // fa = f/b / f/c
         MODOP,  // a = b % c
 
+        /* Condition operator */
+        IFOP,
+        WHILEOP,
+        SWITCHOP,
+        MKCASE,
+        MKDEFCASE,
+        MKENDCASE,
+
         /* Data */
         LOADOP, // load value <= a
         LDLINK, // load link <= a
@@ -263,8 +260,8 @@ static inline const char* _tmp_str(const char* fmt, ...) {
 #define HIR_SUBJ_VAR(off, sz, kind) \
     HIR_create_subject(kind, 0, 0, off, NULL, 0, sz)
 
-#define HIR_SUBJ_LABEL(...) \
-    HIR_create_subject(LABEL, 0, 0, 0, _tmp_str(__VA_ARGS__), 0, 0)
+#define HIR_SUBJ_LABEL() \
+    HIR_create_subject(LABEL, 0, 0, 0, NULL, 0, 0)
 
 #define HIR_SUBJ_RAWASM(l) \
     HIR_create_subject(RAWASM, 0, 0, 0, l, 0, 0)

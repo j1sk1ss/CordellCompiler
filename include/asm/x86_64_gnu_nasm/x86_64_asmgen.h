@@ -1,8 +1,8 @@
 #ifndef X86_64_ASM_GENERATOR_H_
 #define X86_64_ASM_GENERATOR_H_
 
-#include <ir/ir.h>
-#include <ir/irctx.h>
+#include <lir/lir.h>
+#include <lir/irctx.h>
 #include <ast/ast.h>
 #include <ast/synctx.h>
 
@@ -17,7 +17,7 @@ static const char* _x86_64_ir_reg_names[] = {
     "ah","bh","ch","dh"
 };
 
-static inline const char* __format_x86_64_ir_variable(ir_subject_t* v) {
+static inline const char* __format_x86_64_ir_variable(lir_subject_t* v) {
     static char buffers[4][128];
     static int idx = 0;
     char* irh_buffer = buffers[idx];
@@ -75,7 +75,7 @@ static inline const char* __format_x86_64_ir_variable(ir_subject_t* v) {
 
 #define GET_X86_64_IRVAR(n) __format_x86_64_ir_variable(n)
 
-int x86_64_generate_asm(ir_block_t* h, FILE* output);
+int x86_64_generate_asm(lir_block_t* h, FILE* output);
 int x86_64_generate_data(ast_node_t* node, FILE* output);
 
 #endif

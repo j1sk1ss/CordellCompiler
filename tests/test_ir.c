@@ -5,8 +5,8 @@
 #include <prep/markup.h>
 #include <ast/syntax.h>
 #include <ast/parsers/parser.h>
-#include <ir/irgen.h>
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_irgen.h>
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
 #include "ast_helper.h"
@@ -63,35 +63,35 @@ int main(int argc, char* argv[]) {
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
 
-    ir_gen_t irgen = {
-        .funcdef   = IR_generate_funcdef_block,
-        .funcret   = IR_generate_return_block,
-        .funccall  = IR_generate_funccall_block,
-        .function  = IR_generate_function_block,
-        .blockgen  = IR_generate_block,
-        .elemegen  = IR_generate_elem_block,
-        .operand   = IR_generate_operand_block,
-        .store     = IR_generate_store_block,
-        .ptrload   = IR_generate_ptr_load_block,
-        .load      = IR_generate_load_block,
-        .assign    = IR_generate_assignment_block,
-        .decl      = IR_generate_declaration_block,
-        .start     = IR_generate_start_block,
-        .exit      = IR_generate_exit_block,
-        .syscall   = IR_generate_syscall_block,
-        .ifgen     = IR_generate_if_block,
-        .whilegen  = IR_generate_while_block,
-        .switchgen = IR_generate_switch_block,
-        .asmer     = IR_generate_asmblock
+    lir_gen_t irgen = {
+        .funcdef   = LIR_generate_funcdef_block,
+        .funcret   = LIR_generate_return_block,
+        .funccall  = LIR_generate_funccall_block,
+        .function  = LIR_generate_function_block,
+        .blockgen  = LIR_generate_block,
+        .elemegen  = LIR_generate_elem_block,
+        .operand   = LIR_generate_operand_block,
+        .store     = LIR_generate_store_block,
+        .ptrload   = LIR_generate_ptr_load_block,
+        .load      = LIR_generate_load_block,
+        .assign    = LIR_generate_assignment_block,
+        .decl      = LIR_generate_declaration_block,
+        .start     = LIR_generate_start_block,
+        .exit      = LIR_generate_exit_block,
+        .syscall   = LIR_generate_syscall_block,
+        .ifgen     = LIR_generate_if_block,
+        .whilegen  = LIR_generate_while_block,
+        .switchgen = LIR_generate_switch_block,
+        .asmer     = LIR_generate_asmblock
     };
 
-    ir_ctx_t irctx = {
+    lir_ctx_t irctx = {
         .cid = 0, .h = NULL, .lid = 0, .synt = &sctx, .t = NULL 
     };
 
     IR_generate(&irgen, &irctx);
     printf("\n\n========== IR ==========\n");
-    ir_block_t* h = irctx.h;
+    lir_block_t* h = irctx.h;
     while (h) {
         print_irblock(h);
         h = h->next;

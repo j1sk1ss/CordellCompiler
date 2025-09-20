@@ -1,6 +1,6 @@
-#include <ir/hir/hir.h>
+#include <lir/hir/hir.h>
 
-ir_subject_t* HIR_generate_ptr_load_block(ast_node_t* node, ir_ctx_t* ctx) {
+lir_subject_t* HIR_generate_ptr_load_block(ast_node_t* node, lir_ctx_t* ctx) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
         if (!node->token->flags.dref) goto indexing; 
@@ -37,7 +37,7 @@ ir_subject_t* HIR_generate_ptr_load_block(ast_node_t* node, ir_ctx_t* ctx) {
     return 1;
 }
 
-ir_subject_t* HIR_generate_load_block(ast_node_t* node, ir_ctx_t* ctx) {
+lir_subject_t* HIR_generate_load_block(ast_node_t* node, lir_ctx_t* ctx) {
     if (!node->token) return 0;
     if (node->token->flags.ptr) {
         if (node->child) goto indexing;

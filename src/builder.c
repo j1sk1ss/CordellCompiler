@@ -122,13 +122,13 @@ static int _compile_object(builder_ctx_t* ctx, char index) {
         _print_ast(ctx->files[index].syntax->r, 0);
     }
 
-    ir_ctx_t* irctx = IR_create_ctx();
+    lir_ctx_t* irctx = IR_create_ctx();
     irctx->synt = ctx->files[index].syntax;
     IR_generate(&ctx->ir, irctx);
 
     if (ctx->prms.ir) {
         print_log("\n\n========== IR ==========");
-        for (ir_block_t* b = irctx->h; b; b = b->next) {
+        for (lir_block_t* b = irctx->h; b; b = b->next) {
             printf("Command: %i\n", b->op);
         }
     }

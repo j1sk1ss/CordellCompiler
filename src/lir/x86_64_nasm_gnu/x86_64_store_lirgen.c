@@ -1,6 +1,6 @@
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_irgen.h>
 
-int IR_generate_store_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_store_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
         if (node->child) goto indexing;

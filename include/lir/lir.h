@@ -12,19 +12,19 @@
 #define IR_VAL_MSIZE 128
 typedef struct {
     char value[IR_VAL_MSIZE];
-} ir_string_t;
+} lir_string_t;
 
 typedef struct {
     long value;
-} ir_constant_t;
+} lir_constant_t;
 
 typedef struct {
     int offset;
-} ir_variable_t;
+} lir_variable_t;
 
 typedef struct {
     registers_t reg;
-} ir_register_t;
+} lir_register_t;
 
 typedef enum {
     REGISTER,
@@ -33,21 +33,21 @@ typedef enum {
     CONSTVAL,
     LABEL,
     RAWASM,
-} ir_subject_type_t;
+} lir_subject_type_t;
 
 typedef struct {
-    long              id;
-    char              size;
-    char              dref;
-    char              ref;
-    ir_subject_type_t t;
+    long               id;
+    char               size;
+    char               dref;
+    char               ref;
+    lir_subject_type_t t;
     union {
-        ir_string_t   str;
-        ir_constant_t cnst;
-        ir_variable_t var;
-        ir_register_t reg;
+        lir_string_t   str;
+        lir_constant_t cnst;
+        lir_variable_t var;
+        lir_register_t reg;
     } storage;
-} ir_subject_t;
+} lir_subject_t;
 
 typedef enum {
     /* Operations */
@@ -169,29 +169,29 @@ typedef enum {
 
         /* System */
         EXITOP, // Exit with farg exit call
-} ir_operation_t;
+} lir_operation_t;
 
-typedef struct ir_block {
-    struct ir_block* prev;
-    struct ir_block* next;
-    ir_operation_t   op;
-    ir_subject_t*    farg;
-    ir_subject_t*    sarg;
-    ir_subject_t*    targ;
-    int              args;
-} ir_block_t;
+typedef struct lir_block {
+    struct lir_block* prev;
+    struct lir_block* next;
+    lir_operation_t   op;
+    lir_subject_t*    farg;
+    lir_subject_t*    sarg;
+    lir_subject_t*    targ;
+    int               args;
+} lir_block_t;
 
 typedef struct {
     long          cid;
     int           lid;
-    ir_block_t*   h;
-    ir_block_t*   t;
+    lir_block_t*  h;
+    lir_block_t*  t;
     syntax_ctx_t* synt;
     scope_stack_t heap;
-} ir_ctx_t;
+} lir_ctx_t;
 
-ir_subject_t* IR_create_subject(
-    ir_subject_type_t t,
+lir_subject_t* IR_create_subject(
+    lir_subject_type_t t,
     registers_t r,        
     int dref,             
     int offset,           
@@ -200,12 +200,12 @@ ir_subject_t* IR_create_subject(
     int size              
 );
 
-ir_ctx_t* IR_create_ctx();
-ir_block_t* IR_create_block(ir_operation_t op, ir_subject_t* fa, ir_subject_t* sa, ir_subject_t* ta);
-int IR_insert_block(ir_block_t* block, ir_ctx_t* ctx);
-int IR_remove_block(ir_block_t* block, ir_ctx_t* ctx);
-int IR_unload_blocks(ir_block_t* block);
-int IR_destroy_ctx(ir_ctx_t* ctx);
+lir_ctx_t* LIR_create_ctx();
+lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta);
+int LIR_insert_block(lir_block_t* block, lir_ctx_t* ctx);
+int LIR_remove_block(lir_block_t* block, lir_ctx_t* ctx);
+int LIR_unload_blocks(lir_block_t* block);
+int LIR_destroy_ctx(lir_ctx_t* ctx);
 
 static inline const char* _tmp_str(const char* fmt, ...) {
     static char buf[256] = { 0 };
@@ -216,31 +216,31 @@ static inline const char* _tmp_str(const char* fmt, ...) {
     return buf;
 }
 
-#define IR_SUBJ_REG(r, sz) \
-    IR_create_subject(REGISTER, r, 0, 0, NULL, 0, sz)
+#define LIR_SUBJ_REG(r, sz) \
+    LIR_create_subject(REGISTER, r, 0, 0, NULL, 0, sz)
 
-#define IR_SUBJ_CONST(val) \
-    IR_create_subject(CONSTVAL, 0, 0, 0, NULL, val, 0)
+#define LIR_SUBJ_CONST(val) \
+    LIR_create_subject(CONSTVAL, 0, 0, 0, NULL, val, 0)
 
-#define IR_SUBJ_VAR(off, sz, kind) \
-    IR_create_subject(kind, 0, 0, off, NULL, 0, sz)
+#define LIR_SUBJ_VAR(off, sz, kind) \
+    LIR_create_subject(kind, 0, 0, off, NULL, 0, sz)
 
-#define IR_SUBJ_LABEL(...) \
-    IR_create_subject(LABEL, 0, 0, 0, _tmp_str(__VA_ARGS__), 0, 0)
+#define LIR_SUBJ_LABEL(...) \
+    LIR_create_subject(LABEL, 0, 0, 0, _tmp_str(__VA_ARGS__), 0, 0)
 
-#define IR_SUBJ_RAWASM(l) \
-    IR_create_subject(RAWASM, 0, 0, 0, l, 0, 0)
+#define LIR_SUBJ_RAWASM(l) \
+    LIR_create_subject(RAWASM, 0, 0, 0, l, 0, 0)
 
-#define IR_BLOCK0(ctx, op) \
-    IR_insert_block(IR_create_block((op), NULL, NULL, NULL), (ctx))
+#define LIR_BLOCK0(ctx, op) \
+    LIR_insert_block(LIR_create_block((op), NULL, NULL, NULL), (ctx))
 
-#define IR_BLOCK1(ctx, op, fa) \
-    IR_insert_block(IR_create_block((op), (fa), NULL, NULL), (ctx))
+#define LIR_BLOCK1(ctx, op, fa) \
+    LIR_insert_block(LIR_create_block((op), (fa), NULL, NULL), (ctx))
 
-#define IR_BLOCK2(ctx, op, fa, sa) \
-    IR_insert_block(IR_create_block((op), (fa), (sa), NULL), (ctx))
+#define LIR_BLOCK2(ctx, op, fa, sa) \
+    LIR_insert_block(LIR_create_block((op), (fa), (sa), NULL), (ctx))
 
-#define IR_BLOCK3(ctx, op, fa, sa, ta) \
-    IR_insert_block(IR_create_block((op), (fa), (sa), (ta)), (ctx))
+#define LIR_BLOCK3(ctx, op, fa, sa, ta) \
+    LIR_insert_block(LIR_create_block((op), (fa), (sa), (ta)), (ctx))
 
 #endif

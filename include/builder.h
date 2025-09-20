@@ -21,8 +21,8 @@
 
 #include <sem/semantic.h>
 
-#include <ir/irgen.h>
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_irgen.h>
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
 
@@ -57,7 +57,7 @@ typedef struct {
     object_t  files[MAX_FILES];
     char      fcount;
     parser_t  p;
-    ir_gen_t  ir;
+    lir_gen_t  ir;
     asm_gen_t g;
 } builder_ctx_t;
 

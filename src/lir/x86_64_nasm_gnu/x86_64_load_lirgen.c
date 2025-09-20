@@ -1,6 +1,6 @@
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_irgen.h>
 
-static int _deref_rax(ir_ctx_t* ctx, int size) {
+static int _deref_rax(lir_ctx_t* ctx, int size) {
     switch (size) {
         case 1:  IR_BLOCK2(ctx, iMVZX, IR_SUBJ_REG(RAX, 8), IR_SUBJ_DRFREG(RAX, 1)); break;
         case 2:  IR_BLOCK2(ctx, iMVZX, IR_SUBJ_REG(RAX, 8), IR_SUBJ_DRFREG(RAX, 2)); break;
@@ -11,7 +11,7 @@ static int _deref_rax(ir_ctx_t* ctx, int size) {
     return 1;
 }
 
-static int _indexing(int deref, ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+static int _indexing(int deref, ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     ast_node_t* off = node->child;
     if (!off && !node->token->flags.heap) IR_BLOCK2(ctx, LEA, IR_SUBJ_REG(RAX, 8), IR_SUBJ_VAR(node));
     else if (!off && node->token->flags.heap) IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX, 8), IR_SUBJ_VAR(node));
@@ -36,7 +36,7 @@ static int _indexing(int deref, ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return 1;
 }
 
-int IR_generate_ptr_load_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_ptr_load_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
         if (!node->token->flags.dref) goto indexing; 
@@ -83,7 +83,7 @@ int IR_generate_ptr_load_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return 1;
 }
 
-int IR_generate_load_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_load_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     if (!node->token) return 0;
     if (node->token->flags.ptr) {
         if (node->child) goto indexing;

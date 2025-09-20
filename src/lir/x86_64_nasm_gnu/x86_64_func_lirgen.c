@@ -1,6 +1,6 @@
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_irgen.h>
 
-int IR_generate_funcdef_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_funcdef_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (VRS_isblock(t->token)) {
@@ -21,7 +21,7 @@ int IR_generate_funcdef_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return 1;
 }
 
-int IR_generate_return_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_return_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     IR_deallocate_scope_heap(node, ctx);
     if (node->child) g->elemegen(node->child, g, ctx);
     IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RSP, 8), IR_SUBJ_REG(RBP, 8));
@@ -31,7 +31,7 @@ int IR_generate_return_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
 }
 
 static const int args_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
-int IR_generate_funccall_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_funccall_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     int variables_size = 0;
     ast_node_t* name = node;
 
@@ -62,7 +62,7 @@ int IR_generate_funccall_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return 1;
 }
 
-int IR_generate_function_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_function_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     ast_node_t* name_node = node->child;
     ast_node_t* body_node = name_node->sibling;
 

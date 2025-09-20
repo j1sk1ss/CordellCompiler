@@ -1,6 +1,6 @@
 #ifndef IR_HELPER_H_
 #define IR_HELPER_H_
-#include <ir/ir.h>
+#include <lir/lir.h>
 #include <stdio.h>
 
 static const char* _irh_ir_op_names[] = {
@@ -27,7 +27,7 @@ static const char* _irh_ir_reg_names[] = {
     "AH","BH","CH","DH"
 };
 
-static inline const char* __irh_format_ir_variable(ir_subject_t* v) {
+static inline const char* __irh_format_ir_variable(lir_subject_t* v) {
     static char irh_buffer[128] = { 0 };
     if (!v) return irh_buffer;
     if (v->isreg) {
@@ -73,12 +73,12 @@ static inline const char* __irh_format_ir_variable(ir_subject_t* v) {
     return irh_buffer;
 }
 
-void print_irsub(ir_subject_t* s) {
+void print_irsub(lir_subject_t* s) {
     if (!s) { printf("null"); return; }
     printf("%s", __irh_format_ir_variable(s));
 }
 
-void print_irblock(ir_block_t* b) {
+void print_irblock(lir_block_t* b) {
     if (!b) { printf("<null block>\n"); return; }
 
     const char* opname = "??";

@@ -68,11 +68,11 @@ static inline hir_subject_type_t HIR_get_glbtype(token_t* token) {
 
 hir_subject_t* HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx);
 int HIR_generate_assignment_block(ast_node_t* node, hir_ctx_t* ctx);
-hir_subject_t* HIR_generate_elem_block(ast_node_t* node, hir_ctx_t* ctx);
+hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx);
 hir_subject_t* HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx);
-hir_subject_t* HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx);
-hir_subject_t* HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx);
-hir_subject_t* HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx);
+int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx);
+int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx);
+int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx);
 hir_subject_t* HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx);
 hir_subject_t* HIR_generate_return_block(ast_node_t* node, hir_ctx_t* ctx);
 hir_subject_t* HIR_generate_funccall_block(ast_node_t* node, hir_ctx_t* ctx);

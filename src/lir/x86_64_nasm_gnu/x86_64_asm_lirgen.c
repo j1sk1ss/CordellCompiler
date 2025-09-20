@@ -1,4 +1,4 @@
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
 static ast_node_t* _find_variable(ast_node_t* n, const char* name) {
     for (ast_node_t* t = n; t && t->token; t = t->sibling) {
@@ -10,7 +10,7 @@ static ast_node_t* _find_variable(ast_node_t* n, const char* name) {
     return NULL;
 }
 
-int IR_generate_asmblock(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_asmblock(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     if (!node) return 0;
     ast_node_t* h = node->child;
     for (; h->token; h = h->sibling);
@@ -53,7 +53,7 @@ int IR_generate_asmblock(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
         }
 
         *out = 0;
-        IR_BLOCK1(ctx, RAW, IR_SUBJ_STR(8, buf));
+        LIR_BLOCK1(ctx, RAW, LIR_SUBJ_RAWASM(buf));
     }
 
     return 1;

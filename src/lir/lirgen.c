@@ -1,6 +1,6 @@
-#include <ir/irgen.h>
+#include <lir/irgen.h>
 
-int IR_generate(ir_gen_t* g, ir_ctx_t* ctx) {
+int IR_generate(lir_gen_t* g, lir_ctx_t* ctx) {
     scope_reset(&ctx->heap);
     g->funcdef(ctx->synt->r, g, ctx);
     g->blockgen(ctx->synt->r, g, ctx);

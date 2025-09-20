@@ -2,5 +2,5 @@
 - [AST](src/ast/)
 - [Semantic](src/sem/)
 - [AST Optimization](src/opt/)
-- [IR](src/ir/)
+- [IR](src/lir/)
 - [ASM Generation](src/gen/)

@@ -1,6 +1,6 @@
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_irgen.h>
 
-static int _navigation_handler(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+static int _navigation_handler(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     if (!node || !node->token) return 0;
     if (VRS_isdecl(node->token)) g->decl(node, g, ctx);
     if (
@@ -40,7 +40,7 @@ static int _navigation_handler(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return 1;
 }
 
-int IR_generate_elem_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_elem_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     if (!node) return 0;
     if (VRS_isblock(node->token)) {
         int res = g->elemegen(node->child, g, ctx);
@@ -51,7 +51,7 @@ int IR_generate_elem_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return _navigation_handler(node, g, ctx);
 }
 
-int IR_generate_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (VRS_isblock(t->token) && (!t->token || t->token->t_type != START_TOKEN)) {

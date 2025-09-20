@@ -10,7 +10,7 @@ static ast_node_t* _find_variable(ast_node_t* n, const char* name) {
     return NULL;
 }
 
-hir_subject_t* HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx) {
+int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx) {
     if (!node) return 0;
     ast_node_t* h = node->child;
     for (; h->token; h = h->sibling);

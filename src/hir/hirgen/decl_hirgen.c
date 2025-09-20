@@ -1,12 +1,12 @@
-#include <ir/hir/hir.h>
+#include <hir/hirgen/hirgen.h>
 
-static ir_subject_t* _strdeclaration(ast_node_t* node, ir_ctx_t* ctx) {
+static int _strdeclaration(ast_node_t* node, hir_ctx_t* ctx) {
     ast_node_t* name_node = node->child;
     ast_node_t* val_node  = name_node->sibling;
     return 1;
 }
 
-static ir_subject_t* _arrdeclaration(ast_node_t* node, ir_ctx_t* ctx) {
+static int _arrdeclaration(ast_node_t* node, hir_ctx_t* ctx) {
     ast_node_t* name_node    = node->child;
     ast_node_t* size_node    = name_node->sibling;
     ast_node_t* el_size_node = size_node->sibling;
@@ -14,13 +14,13 @@ static ir_subject_t* _arrdeclaration(ast_node_t* node, ir_ctx_t* ctx) {
     return 1;
 }
 
-static ir_subject_t* _starr_declaration(ast_node_t* node, ir_ctx_t* ctx) {
+static int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx) {
     if (node->token->t_type == ARRAY_TYPE_TOKEN)    return _arrdeclaration(node, ctx);
     else if (node->token->t_type == STR_TYPE_TOKEN) return _strdeclaration(node, ctx);
     return 1;
 }
 
-ir_subject_t* HIR_generate_declaration_block(ast_node_t* node, ir_ctx_t* ctx) {
+int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx) {
     ast_node_t* name_node = node->child;
     if (!VRS_instack(name_node->token)) return 0;
     if (!VRS_one_slot(name_node->token)) {
@@ -28,7 +28,11 @@ ir_subject_t* HIR_generate_declaration_block(ast_node_t* node, ir_ctx_t* ctx) {
     }
 
     ast_node_t* val_node = name_node->sibling;
-    ir_subject_t* vt1 = HIR_generate_elem_block(val_node, ctx);
-    ir_subject_t* res = IR_SUBJ_VAR(0, 0, 0);
-    return res;
+    HIR_BLOCK2(
+        ctx, DECL, 
+        HIR_SUBJ_VAR(name_node->sinfo.offset, name_node->sinfo.size, HIR_get_stktype(name_node->token)), 
+        HIR_generate_elem(val_node, ctx)
+    );
+
+    return 1;
 }

@@ -1,7 +1,7 @@
 #include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
 
-int x86_64_generate_asm(ir_block_t* h, FILE* output) {
-    ir_block_t* curr = h;
+int x86_64_generate_asm(lir_block_t* h, FILE* output) {
+    lir_block_t* curr = h;
     while (curr) {
         switch (curr->op) {
             case FCLL: iprintf(output, "call _cpl_%s\n", GET_X86_64_IRVAR(curr->farg)); break;

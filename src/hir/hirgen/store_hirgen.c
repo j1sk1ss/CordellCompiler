@@ -1,6 +1,6 @@
-#include <ir/hir/hir.h>
+#include <lir/hir/hir.h>
 
-int HIR_generate_store_block(ast_node_t* node, ir_ctx_t* ctx) {
+int HIR_generate_store_block(ast_node_t* node, lir_ctx_t* ctx) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
         if (node->child) goto indexing;

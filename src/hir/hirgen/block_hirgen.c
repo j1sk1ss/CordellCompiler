@@ -45,7 +45,7 @@ hir_subject_t* HIR_generate_elem_block(ast_node_t* node, hir_ctx_t* ctx) {
     return _navigation_handler(node, ctx);
 }
 
-hir_subject_t* HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx) {
+int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx) {
     if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (VRS_isblock(t->token) && (!t->token || t->token->t_type != START_TOKEN)) {

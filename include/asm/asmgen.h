@@ -1,14 +1,14 @@
 #ifndef GENERATOR_H_
 #define GENERATOR_H_
 
-#include <ir/ir.h>
-#include <ir/irctx.h>
+#include <lir/lir.h>
+#include <lir/irctx.h>
 #include <ast/syntax.h>
 #include <asm/asmctx.h>
 
 typedef struct gen_ctx {
     syntax_ctx_t* synt;
-    ir_ctx_t*     ir;
+    lir_ctx_t*     ir;
 } asmgen_ctx_t;
 
 /*

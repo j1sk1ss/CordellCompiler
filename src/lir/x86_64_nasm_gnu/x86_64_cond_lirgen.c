@@ -1,6 +1,6 @@
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_irgen.h>
 
-int IR_generate_if_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_if_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     int current_label   = ctx->lid++;
     ast_node_t* cond    = node->child;
     ast_node_t* lbranch = cond->sibling;
@@ -23,7 +23,7 @@ int IR_generate_if_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return 1;
 }
 
-int IR_generate_while_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_while_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     int current_label   = ctx->lid++;
     ast_node_t* cond    = node->child;
     ast_node_t* lbranch = cond->sibling;
@@ -42,7 +42,7 @@ int IR_generate_while_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return 1;
 }
 
-static int _generate_case_binary_jump(int* values, int left, int right, int label_id, int default_scope, ir_ctx_t* ctx) {
+static int _generate_case_binary_jump(int* values, int left, int right, int label_id, int default_scope, lir_ctx_t* ctx) {
     if (left > right) {
         if (default_scope) IR_BLOCK1(ctx, JMP, IR_SUBJ_LABEL("_d%d", label_id));
         else IR_BLOCK1(ctx, JMP, IR_SUBJ_LABEL("_e%d", label_id));
@@ -69,7 +69,7 @@ static int _cmp(const void* a, const void* b) {
     return (*(int*)a - *(int*)b);
 }
 
-int IR_generate_switch_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_switch_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     int current_label = ctx->lid++;
     ast_node_t* cond  = node->child;
     ast_node_t* cases = cond->sibling;

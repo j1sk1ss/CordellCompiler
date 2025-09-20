@@ -1,7 +1,7 @@
-#include <ir/ir.h>
+#include <lir/lir.h>
 
-ir_ctx_t* IR_create_ctx() {
-    ir_ctx_t* ctx = mm_malloc(sizeof(ir_ctx_t));
+lir_ctx_t* IR_create_ctx() {
+    lir_ctx_t* ctx = mm_malloc(sizeof(lir_ctx_t));
     if (!ctx) return NULL;
     ctx->h = ctx->t = NULL;
     ctx->synt = NULL;
@@ -10,11 +10,11 @@ ir_ctx_t* IR_create_ctx() {
     return ctx;
 }
 
-int IR_destroy_ctx(ir_ctx_t* ctx) {
+int IR_destroy_ctx(lir_ctx_t* ctx) {
     if (!ctx) return -1;
-    ir_block_t* cur = ctx->h;
+    lir_block_t* cur = ctx->h;
     while (cur) {
-        ir_block_t* nxt = cur->next;
+        lir_block_t* nxt = cur->next;
         mm_free(cur);
         cur = nxt;
     }
@@ -23,15 +23,15 @@ int IR_destroy_ctx(ir_ctx_t* ctx) {
     return 0;
 }
 
-ir_subject_t* IR_create_subject(
-    ir_subject_type_t t, registers_t r,
+lir_subject_t* IR_create_subject(
+    lir_subject_type_t t, registers_t r,
     int dref, int offset, const char* strval,
     long intval, int size
 ) {
-    ir_subject_t* subj = mm_malloc(sizeof(ir_subject_t));
+    lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
     if (!subj) return NULL;
 
-    str_memset(subj, 0, sizeof(ir_subject_t));
+    str_memset(subj, 0, sizeof(lir_subject_t));
 
     subj->t    = t;
     subj->size = (char)size;
@@ -64,8 +64,8 @@ ir_subject_t* IR_create_subject(
     return subj;
 }
 
-ir_block_t* IR_create_block(ir_operation_t op, ir_subject_t* fa, ir_subject_t* sa, ir_subject_t* ta) {
-    ir_block_t* blk = mm_malloc(sizeof(ir_block_t));
+lir_block_t* IR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta) {
+    lir_block_t* blk = mm_malloc(sizeof(lir_block_t));
     if (!blk) return NULL;
     blk->op   = op;
     blk->farg = fa;
@@ -81,7 +81,7 @@ ir_block_t* IR_create_block(ir_operation_t op, ir_subject_t* fa, ir_subject_t* s
     return blk;
 }
 
-int IR_insert_block(ir_block_t* block, ir_ctx_t* ctx) {
+int IR_insert_block(lir_block_t* block, lir_ctx_t* ctx) {
     if (!ctx || !block) return -1;
     if (!ctx->h) ctx->h = ctx->t = block;
     else {
@@ -93,7 +93,7 @@ int IR_insert_block(ir_block_t* block, ir_ctx_t* ctx) {
     return 0;
 }
 
-int IR_remove_block(ir_block_t* block, ir_ctx_t* ctx) {
+int IR_remove_block(lir_block_t* block, lir_ctx_t* ctx) {
     block->prev->next = block->next;
     block->prev = NULL;
     block->next = NULL;
@@ -101,10 +101,10 @@ int IR_remove_block(ir_block_t* block, ir_ctx_t* ctx) {
     return 1;
 }
 
-int IR_unload_blocks(ir_block_t* block) {
+int IR_unload_blocks(lir_block_t* block) {
     if (!block) return -1;
     while (block) {
-        ir_block_t* nxt = block->next;
+        lir_block_t* nxt = block->next;
         mm_free(block);
         block = nxt;
     }

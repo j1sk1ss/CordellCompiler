@@ -1,11 +1,11 @@
-#include <ir/hir/hir.h>
+#include <lir/hir/hir.h>
 
-ir_subject_t* HIR_generate_return_block(ast_node_t* node, ir_ctx_t* ctx) {
+lir_subject_t* HIR_generate_return_block(ast_node_t* node, lir_ctx_t* ctx) {
     // node->child
     return 1;
 }
 
-ir_subject_t* HIR_generate_funccall_block(ast_node_t* node, ir_ctx_t* ctx) {
+lir_subject_t* HIR_generate_funccall_block(ast_node_t* node, lir_ctx_t* ctx) {
     int variables_size = 0;
     ast_node_t* name = node;
 
@@ -18,7 +18,7 @@ ir_subject_t* HIR_generate_funccall_block(ast_node_t* node, ir_ctx_t* ctx) {
     return 1;
 }
 
-ir_subject_t* HIR_generate_function_block(ast_node_t* node, ir_ctx_t* ctx) {
+lir_subject_t* HIR_generate_function_block(ast_node_t* node, lir_ctx_t* ctx) {
     ast_node_t* name_node = node->child;
     ast_node_t* body_node = name_node->sibling;
     return 1;

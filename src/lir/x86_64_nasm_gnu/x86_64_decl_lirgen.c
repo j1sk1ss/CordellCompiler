@@ -1,6 +1,6 @@
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_irgen.h>
 
-static int _strdeclaration(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+static int _strdeclaration(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     ast_node_t* name_node = node->child;
     ast_node_t* val_node  = name_node->sibling;
 
@@ -15,7 +15,7 @@ static int _strdeclaration(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return 1;
 }
 
-static int _arrdeclaration(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+static int _arrdeclaration(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     ast_node_t* name_node    = node->child;
     ast_node_t* size_node    = name_node->sibling;
     ast_node_t* el_size_node = size_node->sibling;
@@ -67,13 +67,13 @@ static int _arrdeclaration(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
     return 1;
 }
 
-static int _starr_declaration(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+static int _starr_declaration(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     if (node->token->t_type == ARRAY_TYPE_TOKEN)    return _arrdeclaration(node, g, ctx);
     else if (node->token->t_type == STR_TYPE_TOKEN) return _strdeclaration(node, g, ctx);
     return 1;
 }
 
-int IR_generate_declaration_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_declaration_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     ast_node_t* name_node = node->child;
     if (!VRS_instack(name_node->token)) return 0;
     if (!VRS_one_slot(name_node->token)) {

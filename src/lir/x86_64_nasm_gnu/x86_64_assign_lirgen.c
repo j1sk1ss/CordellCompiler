@@ -1,6 +1,6 @@
-#include <ir/x86_64_gnu_nasm/x86_64_irgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
-int IR_generate_assignment_block(ast_node_t* node, ir_gen_t* g, ir_ctx_t* ctx) {
+int LIR_generate_assignment_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     ast_node_t* left  = node->child;
     ast_node_t* right = left->sibling;
     g->elemegen(right, g, ctx);
