@@ -1,12 +1,12 @@
 #include <ast/parsers/parser.h>
 
-static ast_node_t* _navigation_handler(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+static ast_node_t* _navigation_handler(token_t** curr, syntax_ctx_t* ctx) {
     if (!curr || !*curr) return 0;
     switch ((*curr)->t_type) {
-        case START_TOKEN:           return p->start(curr, ctx, p);
-        case ASM_TOKEN:             return p->asmer(curr, ctx, p);
+        case START_TOKEN:           return cpl_parse_start(curr, ctx);
+        case ASM_TOKEN:             return cpl_parse_asm(curr, ctx);
         case OPEN_BLOCK_TOKEN:
-        case CLOSE_BLOCK_TOKEN:     return p->scope(curr, ctx, p);
+        case CLOSE_BLOCK_TOKEN:     return cpl_parse_scope(curr, ctx);
         case STR_TYPE_TOKEN:
         case F32_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
@@ -17,10 +17,10 @@ static ast_node_t* _navigation_handler(token_t** curr, syntax_ctx_t* ctx, parser
         case U8_TYPE_TOKEN:
         case U16_TYPE_TOKEN:
         case U32_TYPE_TOKEN:
-        case U64_TYPE_TOKEN:        return p->vardecl(curr, ctx, p);
-        case SWITCH_TOKEN:          return p->switchstmt(curr, ctx, p);
+        case U64_TYPE_TOKEN:        return cpl_parse_variable_declaration(curr, ctx);
+        case SWITCH_TOKEN:          return cpl_parse_switch(curr, ctx);
         case IF_TOKEN:              
-        case WHILE_TOKEN:           return p->condop(curr, ctx, p);
+        case WHILE_TOKEN:           return cpl_parse_condop(curr, ctx);
         case STR_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case I8_VARIABLE_TOKEN:
@@ -34,25 +34,25 @@ static ast_node_t* _navigation_handler(token_t** curr, syntax_ctx_t* ctx, parser
         case U32_VARIABLE_TOKEN:
         case U64_VARIABLE_TOKEN:
         case UNKNOWN_STRING_TOKEN: 
-        case UNKNOWN_NUMERIC_TOKEN: return p->expr(curr, ctx, p);
-        case SYSCALL_TOKEN:         return p->syscall(curr, ctx, p);
-        case EXTERN_TOKEN:          return p->extrn(curr, ctx, p);
-        case IMPORT_SELECT_TOKEN:   return p->import(curr, ctx, p);
-        case ARRAY_TYPE_TOKEN:      return p->arraydecl(curr, ctx, p);
-        case CALL_TOKEN:            return p->funccall(curr, ctx, p);
-        case FUNC_TOKEN:            return p->function(curr, ctx, p);
+        case UNKNOWN_NUMERIC_TOKEN: return cpl_parse_expression(curr, ctx);
+        case SYSCALL_TOKEN:         return cpl_parse_syscall(curr, ctx);
+        case EXTERN_TOKEN:          return cpl_parse_extern(curr, ctx);
+        case IMPORT_SELECT_TOKEN:   return cpl_parse_import(curr, ctx);
+        case ARRAY_TYPE_TOKEN:      return cpl_parse_array_declaration(curr, ctx);
+        case CALL_TOKEN:            return cpl_parse_funccall(curr, ctx);
+        case FUNC_TOKEN:            return cpl_parse_function(curr, ctx);
         case EXIT_TOKEN:
-        case RETURN_TOKEN:          return p->rexit(curr, ctx, p);
+        case RETURN_TOKEN:          return cpl_parse_rexit(curr, ctx);
         default:                    return NULL;
     }
 }
 
-ast_node_t* cpl_parse_block(token_t** curr, syntax_ctx_t* ctx, token_type_t ex, parser_t* p) {
+ast_node_t* cpl_parse_block(token_t** curr, syntax_ctx_t* ctx, token_type_t ex) {
     ast_node_t* node = AST_create_node(NULL);
     if (!node) return NULL;
 
     while (*curr && (*curr)->t_type != ex) {
-        ast_node_t* block = _navigation_handler(curr, ctx, p);
+        ast_node_t* block = _navigation_handler(curr, ctx);
         if (block) AST_add_node(node, block);
         else {
             if (!forward_token(curr, 1)) break;

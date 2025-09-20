@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_extern(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+ast_node_t* cpl_parse_extern(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     
@@ -8,7 +8,7 @@ ast_node_t* cpl_parse_extern(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     while (*curr && (*curr)->t_type != DELIMITER_TOKEN) {
         if (!VRS_isdecl(*curr) && (*curr)->t_type != FUNC_NAME_TOKEN) forward_token(curr, 1);
         else if (VRS_isdecl(*curr)) {
-            ast_node_t* arg = p->vardecl(curr, ctx, p);
+            ast_node_t* arg = cpl_parse_variable_declaration(curr, ctx);
             if (!arg) {
                 print_error("AST error during function arg parsing! line=%i", (*curr)->lnum);
                 AST_unload(node);
@@ -27,7 +27,7 @@ ast_node_t* cpl_parse_extern(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     return node;
 }
 
-ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     
@@ -37,7 +37,7 @@ ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
         return node;
     }
 
-    ast_node_t* exp_node = p->expr(curr, ctx, p);
+    ast_node_t* exp_node = cpl_parse_expression(curr, ctx);
     if (!exp_node) {
         print_error("AST error during return parsing! line=%i", (*curr)->lnum);
         AST_unload(node);
@@ -48,7 +48,7 @@ ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     return node;
 }
 
-ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
 
@@ -62,7 +62,7 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
                 continue;
             }
 
-            ast_node_t* arg = p->expr(curr, ctx, p);
+            ast_node_t* arg = cpl_parse_expression(curr, ctx);
             if (arg) AST_add_node(node, arg);
             args++;
         }
@@ -79,7 +79,7 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     return node;
 }
 
-ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     forward_token(curr, 1);
@@ -112,7 +112,7 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
         
         if (!VRS_isdecl((*curr))) forward_token(curr, 1);
         else {
-            ast_node_t* arg = p->vardecl(curr, ctx, p);
+            ast_node_t* arg = cpl_parse_variable_declaration(curr, ctx);
             if (!arg) {
                 print_error("AST error during function arg parsing! line=%i", (*curr)->lnum);
                 AST_unload(node);
@@ -132,7 +132,7 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
         forward_token(curr, 1);
     }
 
-    ast_node_t* body_node = p->scope(curr, ctx, p);
+    ast_node_t* body_node = cpl_parse_scope(curr, ctx);
     if (!body_node) {
         print_error("AST error during function body parsing! line=%i", (*curr)->lnum);
         AST_unload(node);

@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_start(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+ast_node_t* cpl_parse_start(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
 
@@ -13,7 +13,7 @@ ast_node_t* cpl_parse_start(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
 
         if (!VRS_isdecl((*curr))) forward_token(curr, 1);
         else {
-            ast_node_t* arg = p->vardecl(curr, ctx, p);
+            ast_node_t* arg = cpl_parse_variable_declaration(curr, ctx);
             if (!arg) {
                 print_error("AST error during function arg parsing! line=%i", (*curr)->lnum);
                 AST_unload(node);
@@ -25,7 +25,7 @@ ast_node_t* cpl_parse_start(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
     }
 
     forward_token(curr, 1);
-    ast_node_t* body = p->block(curr, ctx, CLOSE_BLOCK_TOKEN, p);
+    ast_node_t* body = cpl_parse_block(curr, ctx, CLOSE_BLOCK_TOKEN);
     AST_add_node(node, body);
 
     return node;

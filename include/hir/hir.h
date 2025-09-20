@@ -1,5 +1,5 @@
-#ifndef LIR_H_
-#define LIR_H_
+#ifndef HIR_H_
+#define HIR_H_
 
 #include <ast/ast.h>
 #include <ast/syntax.h>
@@ -12,42 +12,81 @@
 #define IR_VAL_MSIZE 128
 typedef struct {
     char value[IR_VAL_MSIZE];
-} ir_string_t;
+} hir_string_t;
 
 typedef struct {
     long value;
-} ir_constant_t;
+} hir_constant_t;
 
 typedef struct {
     int offset;
-} ir_variable_t;
+} hir_variable_t;
 
 typedef struct {
     registers_t reg;
-} ir_register_t;
+} hir_register_t;
 
 typedef enum {
     REGISTER,
-    STVARIABLE,
-    GLVARIABLE,
+
+    TMPVARSTR,
+    TMPVARARR,
+    TMPVARF64,
+    TMPVARU64,
+    TMPVARI64,
+    TMPVARF32,
+    TMPVARU32,
+    TMPVARI32,
+    TMPVARU16,
+    TMPVARI16,
+    TMPVARU8,
+    TMPVARI8,
+
+    GLBVARSTR,
+    GLBVARARR,
+    GLBVARF64,
+    GLBVARU64,
+    GLBVARI64,
+    GLBVARF32,
+    GLBVARU32,
+    GLBVARI32,
+    GLBVARU16,
+    GLBVARI16,
+    GLBVARU8,
+    GLBVARI8,
+
+    STKVARSTR,
+    STKVARARR,
+    STKVARF64,
+    STKVARU64,
+    STKVARI64,
+    STKVARF32,
+    STKVARU32,
+    STKVARI32,
+    STKVARU16,
+    STKVARI16,
+    STKVARU8,
+    STKVARI8,
+
     CONSTVAL,
+
     LABEL,
     RAWASM,
-} ir_subject_type_t;
+} hir_subject_type_t;
 
 typedef struct {
     long              id;
     char              size;
     char              dref;
     char              ref;
-    ir_subject_type_t t;
+    hir_subject_type_t t;
     union {
-        ir_string_t   str;
-        ir_constant_t cnst;
-        ir_variable_t var;
-        ir_register_t reg;
+        hir_string_t   str;
+        hir_constant_t cnst;
+        hir_variable_t var;
+        hir_register_t reg;
     } storage;
-} ir_subject_t;
+} hir_subject_t;
 
 typedef enum {
     /* Operations */
@@ -169,29 +208,28 @@ typedef enum {
 
         /* System */
         EXITOP, // Exit with farg exit call
-} ir_operation_t;
+} hir_operation_t;
 
-typedef struct ir_block {
-    struct ir_block* prev;
-    struct ir_block* next;
-    ir_operation_t   op;
-    ir_subject_t*    farg;
-    ir_subject_t*    sarg;
-    ir_subject_t*    targ;
+typedef struct hir_block {
+    struct hir_block* prev;
+    struct hir_block* next;
+    hir_operation_t   op;
+    hir_subject_t*    farg;
+    hir_subject_t*    sarg;
+    hir_subject_t*    targ;
     int              args;
-} ir_block_t;
+} hir_block_t;
 
 typedef struct {
     long          cid;
     int           lid;
-    ir_block_t*   h;
-    ir_block_t*   t;
+    hir_block_t*  h;
+    hir_block_t*  t;
     syntax_ctx_t* synt;
-    scope_stack_t heap;
-} ir_ctx_t;
+} hir_ctx_t;
 
-ir_subject_t* IR_create_subject(
-    ir_subject_type_t t,
+hir_subject_t* HIR_create_subject(
+    hir_subject_type_t t,
     registers_t r,        
     int dref,             
     int offset,           
@@ -200,12 +238,12 @@ ir_subject_t* IR_create_subject(
     int size              
 );
 
-ir_ctx_t* IR_create_ctx();
-ir_block_t* IR_create_block(ir_operation_t op, ir_subject_t* fa, ir_subject_t* sa, ir_subject_t* ta);
-int IR_insert_block(ir_block_t* block, ir_ctx_t* ctx);
-int IR_remove_block(ir_block_t* block, ir_ctx_t* ctx);
-int IR_unload_blocks(ir_block_t* block);
-int IR_destroy_ctx(ir_ctx_t* ctx);
+hir_ctx_t* HIR_create_ctx();
+hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
+int HIR_insert_block(hir_block_t* block, hir_ctx_t* ctx);
+int HIR_remove_block(hir_block_t* block, hir_ctx_t* ctx);
+int HIR_unload_blocks(hir_block_t* block);
+int HIR_destroy_ctx(hir_ctx_t* ctx);
 
 static inline const char* _tmp_str(const char* fmt, ...) {
     static char buf[256] = { 0 };
@@ -216,31 +254,31 @@ static inline const char* _tmp_str(const char* fmt, ...) {
     return buf;
 }
 
-#define IR_SUBJ_REG(r, sz) \
-    IR_create_subject(REGISTER, r, 0, 0, NULL, 0, sz)
+#define HIR_SUBJ_REG(r, sz) \
+    HIR_create_subject(REGISTER, r, 0, 0, NULL, 0, sz)
 
-#define IR_SUBJ_CONST(val) \
-    IR_create_subject(CONSTVAL, 0, 0, 0, NULL, val, 0)
+#define HIR_SUBJ_CONST(val) \
+    HIR_create_subject(CONSTVAL, 0, 0, 0, NULL, val, 0)
 
-#define IR_SUBJ_VAR(off, sz, kind) \
-    IR_create_subject(kind, 0, 0, off, NULL, 0, sz)
+#define HIR_SUBJ_VAR(off, sz, kind) \
+    HIR_create_subject(kind, 0, 0, off, NULL, 0, sz)
 
-#define IR_SUBJ_LABEL(...) \
-    IR_create_subject(LABEL, 0, 0, 0, _tmp_str(__VA_ARGS__), 0, 0)
+#define HIR_SUBJ_LABEL(...) \
+    HIR_create_subject(LABEL, 0, 0, 0, _tmp_str(__VA_ARGS__), 0, 0)
 
-#define IR_SUBJ_RAWASM(l) \
-    IR_create_subject(RAWASM, 0, 0, 0, l, 0, 0)
+#define HIR_SUBJ_RAWASM(l) \
+    HIR_create_subject(RAWASM, 0, 0, 0, l, 0, 0)
 
-#define IR_BLOCK0(ctx, op) \
-    IR_insert_block(IR_create_block((op), NULL, NULL, NULL), (ctx))
+#define HIR_BLOCK0(ctx, op) \
+    HIR_insert_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))
 
-#define IR_BLOCK1(ctx, op, fa) \
-    IR_insert_block(IR_create_block((op), (fa), NULL, NULL), (ctx))
+#define HIR_BLOCK1(ctx, op, fa) \
+    HIR_insert_block(HIR_create_block((op), (fa), NULL, NULL), (ctx))
 
-#define IR_BLOCK2(ctx, op, fa, sa) \
-    IR_insert_block(IR_create_block((op), (fa), (sa), NULL), (ctx))
+#define HIR_BLOCK2(ctx, op, fa, sa) \
+    HIR_insert_block(HIR_create_block((op), (fa), (sa), NULL), (ctx))
 
-#define IR_BLOCK3(ctx, op, fa, sa, ta) \
-    IR_insert_block(IR_create_block((op), (fa), (sa), (ta)), (ctx))
+#define HIR_BLOCK3(ctx, op, fa, sa, ta) \
+    HIR_insert_block(HIR_create_block((op), (fa), (sa), (ta)), (ctx))
 
 #endif

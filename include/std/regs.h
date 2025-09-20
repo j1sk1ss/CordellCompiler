@@ -17,14 +17,14 @@
     #define ALIGN(x) ((x + 3) & ~(3))
 #endif
 
-enum registers {
+typedef enum {
     XMM0, XMM1,
     RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8, R9, R10,
     EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP, 
     AX,  BX,  CX,  DX,  
     AL,  BL,  CL,  DL,
     AH,  BH,  CH,  DH
-};
+} registers_t;
 
 static inline char* format_from_stack(int offset) {
     static char stack_buff[64] = { 0 };

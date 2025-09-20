@@ -1,7 +1,7 @@
-#include <ir/ir.h>
+#include <hir/hir.h>
 
-ir_ctx_t* IR_create_ctx() {
-    ir_ctx_t* ctx = mm_malloc(sizeof(ir_ctx_t));
+hir_ctx_t* HIR_create_ctx() {
+    hir_ctx_t* ctx = mm_malloc(sizeof(hir_ctx_t));
     if (!ctx) return NULL;
     ctx->h = ctx->t = NULL;
     ctx->synt = NULL;
@@ -10,11 +10,11 @@ ir_ctx_t* IR_create_ctx() {
     return ctx;
 }
 
-int IR_destroy_ctx(ir_ctx_t* ctx) {
+int HIR_destroy_ctx(hir_ctx_t* ctx) {
     if (!ctx) return -1;
-    ir_block_t* cur = ctx->h;
+    hir_block_t* cur = ctx->h;
     while (cur) {
-        ir_block_t* nxt = cur->next;
+        hir_block_t* nxt = cur->next;
         mm_free(cur);
         cur = nxt;
     }
@@ -23,26 +23,33 @@ int IR_destroy_ctx(ir_ctx_t* ctx) {
     return 0;
 }
 
-ir_subject_t* IR_create_subject(
-    ir_subject_type_t t, registers_t r,
+static long _curr_id = 0;
+hir_subject_t* HIR_create_subject(
+    hir_subject_type_t t, registers_t r,
     int dref, int offset, const char* strval,
     long intval, int size
 ) {
-    ir_subject_t* subj = mm_malloc(sizeof(ir_subject_t));
+    hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
 
-    str_memset(subj, 0, sizeof(ir_subject_t));
+    str_memset(subj, 0, sizeof(hir_subject_t));
 
     subj->t    = t;
     subj->size = (char)size;
     subj->dref = (char)dref;
+    subj->id   = _curr_id++;
 
     switch (t) {
         case REGISTER:
             subj->storage.reg.reg = r;
             break;
 
-        case STVARIABLE:
+        case TMPVARSTR: case TMPVARARR: case TMPVARF64: case TMPVARU64:
+        case TMPVARI64: case TMPVARF32: case TMPVARU32: case TMPVARI32:
+        case TMPVARU16: case TMPVARI16: case TMPVARU8:  case TMPVARI8:
+        case STKVARSTR: case STKVARARR: case STKVARF64: case STKVARU64:
+        case STKVARI64: case STKVARF32: case STKVARU32: case STKVARI32:
+        case STKVARU16: case STKVARI16: case STKVARU8:  case STKVARI8:
             subj->storage.var.offset = offset;
             break;
 
@@ -51,7 +58,7 @@ ir_subject_t* IR_create_subject(
             break;
 
         case LABEL:
-        case GLVARIABLE:
+        // case TMPVARSTR:
             if (strval) {
                 str_strncpy(subj->storage.str.value, strval, IR_VAL_MSIZE-1);
             }
@@ -64,8 +71,8 @@ ir_subject_t* IR_create_subject(
     return subj;
 }
 
-ir_block_t* IR_create_block(ir_operation_t op, ir_subject_t* fa, ir_subject_t* sa, ir_subject_t* ta) {
-    ir_block_t* blk = mm_malloc(sizeof(ir_block_t));
+hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta) {
+    hir_block_t* blk = mm_malloc(sizeof(hir_block_t));
     if (!blk) return NULL;
     blk->op   = op;
     blk->farg = fa;
@@ -81,7 +88,7 @@ ir_block_t* IR_create_block(ir_operation_t op, ir_subject_t* fa, ir_subject_t* s
     return blk;
 }
 
-int IR_insert_block(ir_block_t* block, ir_ctx_t* ctx) {
+int HIR_insert_block(hir_block_t* block, hir_ctx_t* ctx) {
     if (!ctx || !block) return -1;
     if (!ctx->h) ctx->h = ctx->t = block;
     else {
@@ -93,7 +100,7 @@ int IR_insert_block(ir_block_t* block, ir_ctx_t* ctx) {
     return 0;
 }
 
-int IR_remove_block(ir_block_t* block, ir_ctx_t* ctx) {
+int HIR_remove_block(hir_block_t* block, hir_ctx_t* ctx) {
     block->prev->next = block->next;
     block->prev = NULL;
     block->next = NULL;
@@ -101,10 +108,10 @@ int IR_remove_block(ir_block_t* block, ir_ctx_t* ctx) {
     return 1;
 }
 
-int IR_unload_blocks(ir_block_t* block) {
+int HIR_unload_blocks(hir_block_t* block) {
     if (!block) return -1;
     while (block) {
-        ir_block_t* nxt = block->next;
+        hir_block_t* nxt = block->next;
         mm_free(block);
         block = nxt;
     }

@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     forward_token(curr, 1);
@@ -54,7 +54,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, parse
                     continue;
                 }
 
-                ast_node_t* arg = p->expr(curr, ctx, p);
+                ast_node_t* arg = cpl_parse_expression(curr, ctx);
                 if (arg) AST_add_node(node, arg);
                 array_size = MAX(array_size, ++act_size);
             }
@@ -69,7 +69,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, parse
     return node;
 }
 
-ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, parser_t* p) {
+ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
 
@@ -86,7 +86,7 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, pa
     int var_size = VRS_variable_bitness(name_node->token, 1) / 8;
     if (!*curr || (*curr)->t_type == ASSIGN_TOKEN) {
         forward_token(curr, 1);
-        ast_node_t* value_node = p->expr(curr, ctx, p);
+        ast_node_t* value_node = cpl_parse_expression(curr, ctx);
         if (!value_node) {
             AST_unload(node);
             return NULL;
