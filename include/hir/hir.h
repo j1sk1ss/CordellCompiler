@@ -175,6 +175,8 @@ typedef enum {
         GDREF,   // get value by address
         LDREF,   // load value to address
         REF,
+        IMPORT,
+        EXTERN,
     
         /* Heap */
         ALLCH,  // allocate heap + save addr to farg

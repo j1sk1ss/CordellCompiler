@@ -48,6 +48,8 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx) {
         case START_TOKEN:   HIR_generate_start_block(node, ctx);      break;
         case SWITCH_TOKEN:  HIR_generate_switch_block(node, ctx);     break;
         case RETURN_TOKEN:  HIR_generate_return_block(node, ctx);     break;
+        case EXTERN_TOKEN:  HIR_generate_extern_block(node, ctx);     break;
+        case IMPORT_TOKEN:  HIR_generate_import_block(node, ctx);     break;
         case ASSIGN_TOKEN:  HIR_generate_assignment_block(node, ctx); break;
         case SYSCALL_TOKEN: HIR_generate_syscall(node, ctx);          break;
         default: break;
