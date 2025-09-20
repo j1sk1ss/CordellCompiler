@@ -25,7 +25,7 @@ int HIR_destroy_ctx(hir_ctx_t* ctx) {
 
 static long _curr_id = 0;
 hir_subject_t* HIR_create_subject(
-    hir_subject_type_t t, registers_t r,
+    int t, registers_t r,
     int dref, int offset, const char* strval,
     long intval, int size
 ) {
@@ -42,7 +42,7 @@ hir_subject_t* HIR_create_subject(
     switch (t) {
         case REGISTER:
             subj->storage.reg.reg = r;
-            break;
+        break;
 
         case TMPVARSTR: case TMPVARARR: case TMPVARF64: case TMPVARU64:
         case TMPVARI64: case TMPVARF32: case TMPVARU32: case TMPVARI32:
@@ -51,21 +51,29 @@ hir_subject_t* HIR_create_subject(
         case STKVARI64: case STKVARF32: case STKVARU32: case STKVARI32:
         case STKVARU16: case STKVARI16: case STKVARU8:  case STKVARI8:
             subj->storage.var.offset = offset;
-            break;
+        break;
+
+        case GLBVARSTR: case GLBVARARR: case GLBVARF64: case GLBVARU64:
+        case GLBVARI64: case GLBVARF32: case GLBVARU32: case GLBVARI32:
+        case GLBVARU16: case GLBVARI16: case GLBVARU8:  case GLBVARI8:
+            if (strval) str_strncpy(subj->storage.gvar.name, strval, IR_VAL_MSIZE);
+        break;
+
+        case NUMBER:
+            if (strval) str_strncpy(subj->storage.num.value, strval, IR_VAL_MSIZE);
+        break;
 
         case CONSTVAL:
             subj->storage.cnst.value = intval;
-            break;
+        break;
 
         case LABEL:
-        // case TMPVARSTR:
-            if (strval) {
-                str_strncpy(subj->storage.str.value, strval, IR_VAL_MSIZE-1);
-            }
-            break;
+        case RAWASM:
+        case STRING:
+            if (strval) str_strncpy(subj->storage.str.value, strval, IR_VAL_MSIZE);
+        break;
 
-        default:
-            break;
+        default: break;
     }
 
     return subj;

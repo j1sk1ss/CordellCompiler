@@ -2,8 +2,8 @@
 #define IRGEN_H_
 
 #include <lir/lir.h>
-#include <lir/irctx.h>
+#include <lir/lirctx.h>
 
-int IR_generate(lir_gen_t* g, lir_ctx_t* ctx);
+int LIR_generate(lir_gen_t* g, lir_ctx_t* ctx);
 
 #endif

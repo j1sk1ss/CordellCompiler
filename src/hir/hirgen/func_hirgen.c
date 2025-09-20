@@ -1,11 +1,11 @@
-#include <hir/hirgen/hirgen.h>
+#include <hir/hirgens/hirgens.h>
 
 int HIR_generate_return_block(ast_node_t* node, hir_ctx_t* ctx) {
     HIR_BLOCK1(ctx, FRET, HIR_generate_elem(node->child, ctx));
     return 1;
 }
 
-hir_subject_t* HIR_generate_funccall_block(ast_node_t* node, hir_ctx_t* ctx) {
+hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx) {
     int variables_size = 0;
     ast_node_t* name = node;
 
@@ -18,7 +18,7 @@ hir_subject_t* HIR_generate_funccall_block(ast_node_t* node, hir_ctx_t* ctx) {
     func_info_t fi;
     FNT_get_info(name->token->value, &fi, ctx->synt->symtb.funcs);
 
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(fi.rtype->token));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(fi.rtype ? fi.rtype->token : NULL));
     HIR_BLOCK3(ctx, FCLL, res, HIR_SUBJ_STRING(name->token->value), HIR_SUBJ_CONST(arg_count));
     return res;
 }
@@ -35,6 +35,5 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx) {
 
     HIR_generate_block(t->child, ctx);
     HIR_BLOCK0(ctx, FEND);
-
     return 1;
 }

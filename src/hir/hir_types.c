@@ -79,6 +79,52 @@ hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b)
     else return b;
 }
 
+hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t) {
+    switch (t) {
+        case TMPVARI8: 
+        case STKVARI8: 
+        case GLBVARI8: return TMPVARI8;
+        
+        case TMPVARI16: 
+        case STKVARI16: 
+        case GLBVARI16: return TMPVARI16;
+        
+        case TMPVARI32: 
+        case STKVARI32: 
+        case GLBVARI32: return TMPVARI32;
+        
+        case TMPVARI64: 
+        case STKVARI64: 
+        case GLBVARI64: return TMPVARI64;
+
+        case TMPVARU8: 
+        case STKVARU8: 
+        case GLBVARU8: return TMPVARU8;
+        
+        case TMPVARU16: 
+        case STKVARU16: 
+        case GLBVARU16: return TMPVARU16;
+        
+        case TMPVARU32: 
+        case STKVARU32: 
+        case GLBVARU32: return TMPVARU32;
+        
+        case TMPVARU64: 
+        case STKVARU64: 
+        case GLBVARU64: return TMPVARU64;
+
+        case TMPVARF32: 
+        case STKVARF32: 
+        case GLBVARF32: return TMPVARF32;
+        
+        case TMPVARF64: 
+        case STKVARF64: 
+        case GLBVARF64: return TMPVARF64;
+
+        default: return TMPVARI64;
+    }
+}
+
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token) {
     if (!token) return TMPVARI64;
     int bitness  = VRS_variable_bitness(token, 1);
@@ -123,7 +169,7 @@ hir_subject_type_t HIR_get_stktype(token_t* token) {
     int isarr    = token->t_type == ARR_VARIABLE_TOKEN;
     int isstr    = token->t_type == STR_VARIABLE_TOKEN;
 
-    if (token->flags.glob) {
+    if (!VRS_instack(token)) {
         if (isarr) return GLBVARARR;
         if (isstr) return GLBVARSTR;
         return _get_glbtype(bitness, isfloat, issigned);

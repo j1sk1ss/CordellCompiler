@@ -1,13 +1,15 @@
-#include <hir/hirgen/hirgen.h>
+#include <hir/hirgens/hirgens.h>
 
-int HIR_generate_store_block(ast_node_t* node, hir_ctx_t* ctx) {
+int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ctx) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
         if (node->child) goto indexing;
         else {
             if (!node->token->flags.dref) {
+                HIR_BLOCK2(ctx, STORE, HIR_SUBJ_VAR(node), src);
             }
             else {
+                HIR_BLOCK2(ctx, LDREF, HIR_SUBJ_VAR(node), src);
             }
         }
 
@@ -15,32 +17,19 @@ int HIR_generate_store_block(ast_node_t* node, hir_ctx_t* ctx) {
     }
 
     switch (node->token->t_type) {
-        case F64_VARIABLE_TOKEN:
-        case I64_VARIABLE_TOKEN: 
-        case U64_VARIABLE_TOKEN:
-        break;
-        case F32_VARIABLE_TOKEN:
-        case I32_VARIABLE_TOKEN:
-        case U32_VARIABLE_TOKEN:  
-        break;
-        case I16_VARIABLE_TOKEN:
-        case U16_VARIABLE_TOKEN:
-        break;
-        case I8_VARIABLE_TOKEN:
-        case U8_VARIABLE_TOKEN: 
-        break;
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: {
 indexing: {}
             ast_node_t* off = node->child;
-            if (off) {
-            }
+            if (!off) HIR_BLOCK2(ctx, STORE, HIR_SUBJ_VAR(node), src);
             else {
+                hir_subject_t* offt1 = HIR_generate_elem(off, ctx);
+                HIR_BLOCK3(ctx, LINDEX, HIR_SUBJ_VAR(node), offt1, src);
             }
 
             break;
         }
-        default: break;
+        default: HIR_BLOCK2(ctx, STORE, HIR_SUBJ_VAR(node), src); break;
     }
 
     return 1;

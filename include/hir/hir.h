@@ -20,6 +20,14 @@ typedef struct {
 } hir_constant_t;
 
 typedef struct {
+     char value[IR_VAL_MSIZE];
+} hir_number_t;
+
+typedef struct {
+    char name[IR_VAL_MSIZE];
+} hir_global_variable_t;
+
+typedef struct {
     int offset;
 } hir_variable_t;
 
@@ -28,16 +36,18 @@ typedef struct {
 } hir_register_t;
 
 typedef struct {
-    long              id;
-    char              size;
-    char              dref;
-    char              ref;
-    hir_subject_type_t t;
+    long                      id;
+    char                      size;
+    char                      dref;
+    char                      ref;
+    int                       t;
     union {
-        hir_string_t   str;
-        hir_constant_t cnst;
-        hir_variable_t var;
-        hir_register_t reg;
+        hir_string_t          str;
+        hir_constant_t        cnst;
+        hir_number_t          num;
+        hir_variable_t        var;
+        hir_register_t        reg;
+        hir_global_variable_t gvar;
     } storage;
 } hir_subject_t;
 
@@ -150,14 +160,16 @@ typedef enum {
         NOT,
         LOADOP,  // load value <= a
         LDLINK,  // load link <= a
-        STOP,    // store value a =>
+        STORE,   // store value a =>
         STLINK,  // store link a =>
         VARDECL, // declaration
         ARRDECL, // arr declaration
         STRDECL,
         PARAM,
-        INDEX,   // index array
-        DREF,
+        GINDEX,  // get data by index in array
+        LINDEX,  // load data to array by index
+        GDREF,   // get value by address
+        LDREF,   // load value to address
         REF,
     
         /* Heap */
@@ -175,7 +187,7 @@ typedef struct hir_block {
     hir_subject_t*    farg;
     hir_subject_t*    sarg;
     hir_subject_t*    targ;
-    int              args;
+    int               args;
 } hir_block_t;
 
 typedef struct {
@@ -187,7 +199,7 @@ typedef struct {
 } hir_ctx_t;
 
 hir_subject_t* HIR_create_subject(
-    hir_subject_type_t t,
+    int t,
     registers_t r,        
     int dref,             
     int offset,           
@@ -203,15 +215,6 @@ int HIR_remove_block(hir_block_t* block, hir_ctx_t* ctx);
 int HIR_unload_blocks(hir_block_t* block);
 int HIR_destroy_ctx(hir_ctx_t* ctx);
 
-static inline const char* _tmp_str(const char* fmt, ...) {
-    static char buf[256] = { 0 };
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, args);
-    va_end(args);
-    return buf;
-}
-
 #define HIR_SUBJ_REG(r, sz) \
     HIR_create_subject(REGISTER, r, 0, 0, NULL, 0, sz)
 
@@ -219,13 +222,21 @@ static inline const char* _tmp_str(const char* fmt, ...) {
     HIR_create_subject(CONSTVAL, 0, 0, 0, NULL, val, 0)
 
 #define HIR_SUBJ_NUMBER(val) \
-    HIR_create_subject(CONSTVAL, 0, 0, 0, val, 0, 0)
+    HIR_create_subject(NUMBER, 0, 0, 0, val, 0, 0)
 
-#define HIR_SUBJ_VAR(off, kind) \
+#define HIR_SUBJ_STKVAR(off, kind) \
     HIR_create_subject(kind, 0, 0, off, NULL, 0, 0)
 
+#define HIR_SUBJ_GLBVAR(name, kind) \
+    HIR_create_subject(kind, 0, 0, 0, name, 0, 0)
+
+#define HIR_SUBJ_VAR(n) \
+    VRS_instack(n->token) ? \
+        HIR_SUBJ_STKVAR(n->sinfo.offset, HIR_get_stktype(n->token)) : \
+        HIR_SUBJ_GLBVAR(n->token->value, HIR_get_stktype(n->token))
+
 #define HIR_SUBJ_TMPVAR(kind) \
-    HIR_create_subject(kind, 0, 0, 0, NULL, 0, 0) /* offset allocation */
+    HIR_create_subject(HIR_get_tmp_type(kind), 0, 0, 0, NULL, 0, 0)
 
 #define HIR_SUBJ_LABEL() \
     HIR_create_subject(LABEL, 0, 0, 0, NULL, 0, 0)
@@ -233,8 +244,8 @@ static inline const char* _tmp_str(const char* fmt, ...) {
 #define HIR_SUBJ_RAWASM(l) \
     HIR_create_subject(RAWASM, 0, 0, 0, l, 0, 0)
 
-#define HIR_SUBJ_STRING(...) \
-    HIR_create_subject(STRING, 0, 0, 0, _tmp_str(##__VA_ARGS__), 0, 0)
+#define HIR_SUBJ_STRING(str) \
+    HIR_create_subject(STRING, 0, 0, 0, str, 0, 0)
 
 #define HIR_BLOCK0(ctx, op) \
     HIR_insert_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

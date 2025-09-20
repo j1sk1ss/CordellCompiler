@@ -1,4 +1,4 @@
-#include <hir/hirgen/hirgen.h>
+#include <hir/hirgens/hirgens.h>
 
 int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx) {
     HIR_BLOCK0(ctx, STRT);

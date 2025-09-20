@@ -3,7 +3,7 @@
 
 #include <hir/hir.h>
 
-typedef enum {
+typedef enum hir_subject_type {
     REGISTER,
 
     TMPVARSTR,
@@ -46,6 +46,7 @@ typedef enum {
     STKVARI8,
 
     CONSTVAL,
+    NUMBER,
 
     LABEL,
     RAWASM,
@@ -57,5 +58,6 @@ hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b)
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token);
 hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned);
 hir_subject_type_t HIR_get_stktype(token_t* token);
+hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
 
 #endif
