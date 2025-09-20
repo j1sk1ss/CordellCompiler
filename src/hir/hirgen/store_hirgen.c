@@ -1,11 +1,12 @@
-#include <lir/hir/hir.h>
+#include <hir/hirgen/hirgen.h>
 
-int HIR_generate_store_block(ast_node_t* node, lir_ctx_t* ctx) {
+int HIR_generate_store_block(ast_node_t* node, hir_ctx_t* ctx) {
     if (!node->token) return 0;
     if (VRS_isptr(node->token)) {
         if (node->child) goto indexing;
         else {
-            if (!node->token->flags.dref) {}
+            if (!node->token->flags.dref) {
+            }
             else {
             }
         }
@@ -33,6 +34,8 @@ int HIR_generate_store_block(ast_node_t* node, lir_ctx_t* ctx) {
 indexing: {}
             ast_node_t* off = node->child;
             if (off) {
+            }
+            else {
             }
 
             break;

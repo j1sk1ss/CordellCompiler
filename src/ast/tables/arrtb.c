@@ -27,7 +27,7 @@ int ART_get_info(const char* name, short scope, array_info_t* info, arrtab_ctx_t
     return 0;
 }
 
-static array_info_t* _create_info_array_entry(const char* name, short scope, int el_size, int size) {
+static array_info_t* _create_info_array_entry(const char* name, short scope, int el_size, token_type_t el_type, int size) {
     array_info_t* entry = (array_info_t*)mm_malloc(sizeof(array_info_t));
     if (!entry) return NULL;
     str_memset(entry, 0, sizeof(array_info_t));
@@ -36,13 +36,14 @@ static array_info_t* _create_info_array_entry(const char* name, short scope, int
     if (name) str_strncpy(entry->name, name, TOKEN_MAX_SIZE);
     
     entry->el_size = el_size;
+    entry->el_type = el_type;
     entry->size = size;
     entry->next = NULL;
     return entry;
 }
 
-int ART_add_info(const char* name, short scope, int el_size, int size, arrtab_ctx_t* ctx) {
-    array_info_t* nnd = _create_info_array_entry(name, scope, el_size, size);
+int ART_add_info(const char* name, short scope, int el_size, token_type_t el_type, int size, arrtab_ctx_t* ctx) {
+    array_info_t* nnd = _create_info_array_entry(name, scope, el_size, el_type, size);
     if (!nnd) return 0;
 
     if (!ctx->h) {

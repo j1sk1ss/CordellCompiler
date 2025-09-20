@@ -1,15 +1,14 @@
-#include <hir/hir.h>
+#include <hir/hirgen/hirgen.h>
 
 hir_subject_t* HIR_generate_operand_block(ast_node_t* node, hir_ctx_t* ctx) {
     ast_node_t* op = node;
     ast_node_t* left = node->child;
     ast_node_t* right = left->sibling;
     int simd = VRS_is_float(left->token) || VRS_is_float(right->token);
-    hir_subject_type_t tmpkind = simd ? TMPVARF64 : TMPVARI64;
-    hir_subject_t* res = HIR_SUBJ_VAR(0, 0, tmpkind);
 
     hir_subject_t* lt1 = HIR_generate_elem_block(left, ctx);
     hir_subject_t* lt2 = HIR_generate_elem_block(right, ctx);
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_promote_types(lt1->t, lt2->t));
 
     switch (op->token->t_type) {
         case BITMOVE_LEFT_TOKEN:  HIR_BLOCK3(ctx, iBLFT, res, lt1, lt2); break;

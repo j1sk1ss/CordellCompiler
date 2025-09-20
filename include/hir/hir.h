@@ -8,6 +8,7 @@
 #include <std/regs.h>
 #include <std/vars.h>
 #include <std/stack.h>
+#include <hir/hir_types.h>
 
 #define IR_VAL_MSIZE 128
 typedef struct {
@@ -25,54 +26,6 @@ typedef struct {
 typedef struct {
     registers_t reg;
 } hir_register_t;
-
-typedef enum {
-    REGISTER,
-
-    TMPVARSTR,
-    TMPVARARR,
-    TMPVARF64,
-    TMPVARU64,
-    TMPVARI64,
-    TMPVARF32,
-    TMPVARU32,
-    TMPVARI32,
-    TMPVARU16,
-    TMPVARI16,
-    TMPVARU8,
-    TMPVARI8,
-
-    GLBVARSTR,
-    GLBVARARR,
-    GLBVARF64,
-    GLBVARU64,
-    GLBVARI64,
-    GLBVARF32,
-    GLBVARU32,
-    GLBVARI32,
-    GLBVARU16,
-    GLBVARI16,
-    GLBVARU8,
-    GLBVARI8,
-
-    STKVARSTR,
-    STKVARARR,
-    STKVARF64,
-    STKVARU64,
-    STKVARI64,
-    STKVARF32,
-    STKVARU32,
-    STKVARI32,
-    STKVARU16,
-    STKVARI16,
-    STKVARU8,
-    STKVARI8,
-
-    CONSTVAL,
-
-    LABEL,
-    RAWASM,
-} hir_subject_type_t;
 
 typedef struct {
     long              id;
@@ -102,6 +55,7 @@ typedef enum {
         CDQ,  // cdq
         MKLB, // mk label
         FDCL, // declare function
+        FEND, // function end
         OEXT, // extern object
 
         /* Data commands */
@@ -193,11 +147,18 @@ typedef enum {
         MKENDCASE,
 
         /* Data */
-        LOADOP, // load value <= a
-        LDLINK, // load link <= a
-        STOP,   // store value a =>
-        STLINK, // store link a =>
-        DECL,   // declaration
+        NOT,
+        LOADOP,  // load value <= a
+        LDLINK,  // load link <= a
+        STOP,    // store value a =>
+        STLINK,  // store link a =>
+        VARDECL, // declaration
+        ARRDECL, // arr declaration
+        STRDECL,
+        PARAM,
+        INDEX,   // index array
+        DREF,
+        REF,
     
         /* Heap */
         ALLCH,  // allocate heap + save addr to farg
@@ -257,14 +218,23 @@ static inline const char* _tmp_str(const char* fmt, ...) {
 #define HIR_SUBJ_CONST(val) \
     HIR_create_subject(CONSTVAL, 0, 0, 0, NULL, val, 0)
 
-#define HIR_SUBJ_VAR(off, sz, kind) \
-    HIR_create_subject(kind, 0, 0, off, NULL, 0, sz)
+#define HIR_SUBJ_NUMBER(val) \
+    HIR_create_subject(CONSTVAL, 0, 0, 0, val, 0, 0)
+
+#define HIR_SUBJ_VAR(off, kind) \
+    HIR_create_subject(kind, 0, 0, off, NULL, 0, 0)
+
+#define HIR_SUBJ_TMPVAR(kind) \
+    HIR_create_subject(kind, 0, 0, 0, NULL, 0, 0) /* offset allocation */
 
 #define HIR_SUBJ_LABEL() \
     HIR_create_subject(LABEL, 0, 0, 0, NULL, 0, 0)
 
 #define HIR_SUBJ_RAWASM(l) \
     HIR_create_subject(RAWASM, 0, 0, 0, l, 0, 0)
+
+#define HIR_SUBJ_STRING(...) \
+    HIR_create_subject(STRING, 0, 0, 0, _tmp_str(##__VA_ARGS__), 0, 0)
 
 #define HIR_BLOCK0(ctx, op) \
     HIR_insert_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

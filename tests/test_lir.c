@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     };
 
     IR_generate(&irgen, &irctx);
-    printf("\n\n========== IR ==========\n");
+    printf("\n\n========== LIR ==========\n");
     lir_block_t* h = irctx.h;
     while (h) {
         print_irblock(h);
