@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_import(token_t** curr, syntax_ctx_t* ctx) {
+ast_node_t* cpl_parse_import(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     
@@ -21,7 +21,7 @@ ast_node_t* cpl_parse_import(token_t** curr, syntax_ctx_t* ctx) {
         }
 
         AST_add_node(source_node, fname);
-        forward_token(curr, 1);
+        forward_token(curr, 1); /* TODO: Symtab function add */
     }
 
     AST_add_node(node, source_node);

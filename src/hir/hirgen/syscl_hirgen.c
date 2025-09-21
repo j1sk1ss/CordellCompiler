@@ -1,6 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
-int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx) {
+int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     for (ast_node_t* func = node->child->child; func; func = func->sibling) {
         HIR_BLOCK1(ctx, IMPORT, HIR_SUBJ_STRING(func->token->value));
@@ -9,34 +9,34 @@ int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx) {
     return 1;
 }
 
-int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx) {
+int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     HIR_BLOCK1(ctx, EXTERN, HIR_SUBJ_STRING(node->child->token->value));
     return 1;
 }
 
-int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx) {
+int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     HIR_BLOCK0(ctx, STRT);
     ast_node_t* st = node->child;
     for (; st && st->token; st = st->sibling) {
-        HIR_BLOCK1(ctx, STARGLD, HIR_SUBJ_VAR(st));
+        HIR_BLOCK1(ctx, STARGLD, HIR_generate_load(st->child, ctx, smt));
     }
 
-    return HIR_generate_block(st, ctx);
+    return HIR_generate_block(st, ctx, smt);
 }
 
-int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx) {
+int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
-    HIR_BLOCK1(ctx, EXITOP, HIR_generate_elem(node->child, ctx));    
+    HIR_BLOCK1(ctx, EXITOP, HIR_generate_elem(node->child, ctx, smt));    
     return 1;
 }
 
-hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx) {
+hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     int args_count = 0;
     for (ast_node_t* e = node->child; e; e = e->sibling) {
-        HIR_BLOCK1(ctx, PRMST, HIR_generate_elem(e, ctx));
+        HIR_BLOCK1(ctx, PRMST, HIR_generate_elem(e, ctx, smt));
         args_count++;
     }
 

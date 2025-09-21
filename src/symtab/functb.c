@@ -1,19 +1,6 @@
 #include <symtab/functb.h>
 
-functab_ctx_t* FNT_create_ctx() {
-    functab_ctx_t* ctx = (functab_ctx_t*)mm_malloc(sizeof(functab_ctx_t));
-    if (!ctx) return NULL;
-    str_memset(ctx, 0, sizeof(functab_ctx_t));
-    return ctx;
-}
-
-int FNT_destroy_ctx(functab_ctx_t* ctx) {
-    if (!ctx) return 0;
-    mm_free(ctx);
-    return 1;
-}
-
-int FNT_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx) {
+int FNTB_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx) {
     func_info_t* h = ctx->h;
     while (h) {
         if (!str_strcmp(fname, h->name)) {
@@ -39,7 +26,7 @@ static func_info_t* _create_func_info(const char* name, ast_node_t* args, ast_no
     return fn;
 }
 
-int FNT_add_info(const char* name, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
+int FNTB_add_info(const char* name, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
     func_info_t* nnd = _create_func_info(name, args, rtype);
     if (!nnd) return 0;
     if (!ctx->h) {
@@ -56,7 +43,7 @@ int FNT_add_info(const char* name, ast_node_t* args, ast_node_t* rtype, functab_
     return 1;
 }
 
-int FNT_unload(functab_ctx_t* ctx) {
+int FNTB_unload(functab_ctx_t* ctx) {
     func_info_t* h = ctx->h;
     while (h) {
         func_info_t* n = h->next;

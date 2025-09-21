@@ -6,6 +6,6 @@
 #include <hir/hir.h>
 #include <hir/hirgens/hirgens.h>
 
-int HIR_generate(hir_ctx_t* ctx);
+int HIR_generate(syntax_ctx_t* sctx, hir_ctx_t* hctx, sym_table_t* smt);
 
 #endif

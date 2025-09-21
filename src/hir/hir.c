@@ -4,7 +4,6 @@ hir_ctx_t* HIR_create_ctx() {
     hir_ctx_t* ctx = mm_malloc(sizeof(hir_ctx_t));
     if (!ctx) return NULL;
     ctx->h = ctx->t = NULL;
-    ctx->synt = NULL;
     ctx->cid = 0;
     ctx->lid = 0;
     return ctx;
@@ -25,9 +24,9 @@ int HIR_destroy_ctx(hir_ctx_t* ctx) {
 
 static long _curr_id = 0;
 hir_subject_t* HIR_create_subject(
-    int t, registers_t r,
-    int dref, int offset, const char* strval,
-    long intval, int size
+    int t, registers_t r, int dref, 
+    int v_id, const char* strval,
+    long intval, int size, int s_id
 ) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
@@ -50,7 +49,8 @@ hir_subject_t* HIR_create_subject(
         case STKVARSTR: case STKVARARR: case STKVARF64: case STKVARU64:
         case STKVARI64: case STKVARF32: case STKVARU32: case STKVARI32:
         case STKVARU16: case STKVARI16: case STKVARU8:  case STKVARI8:
-            subj->storage.var.offset = offset;
+            subj->storage.var.v_id = v_id;
+            subj->storage.var.s_id = s_id;
         break;
 
         case GLBVARSTR: case GLBVARARR: case GLBVARF64: case GLBVARU64:

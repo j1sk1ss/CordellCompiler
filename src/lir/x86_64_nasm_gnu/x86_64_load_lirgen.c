@@ -17,7 +17,7 @@ static int _indexing(int deref, ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) 
     else if (!off && node->token->flags.heap) IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX, 8), IR_SUBJ_VAR(node));
     else {
         array_info_t arr_info = { .el_size = 1 };
-        ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
+        ARTB_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
         int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
         
         g->elemegen(off, g, ctx);
@@ -42,7 +42,7 @@ int LIR_generate_ptr_load_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) 
         if (!node->token->flags.dref) goto indexing; 
         else {
             array_info_t arr_info = { .el_size = 1 };
-            ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
+            ARTB_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
             IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX, 8), IR_SUBJ_VAR(node));
             _deref_rax(ctx, MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size));
         }
@@ -91,7 +91,7 @@ int LIR_generate_load_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
             if (!node->token->flags.dref) IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX, 8), IR_SUBJ_VAR(node));
             else {
                 array_info_t arr_info = { .el_size = 1 };
-                ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
+                ARTB_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
                 IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RAX, 8), IR_SUBJ_VAR(node));
                 _deref_rax(ctx, MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size));
             }

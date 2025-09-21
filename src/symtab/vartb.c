@@ -1,22 +1,9 @@
 #include <symtab/vartb.h>
 
-vartab_ctx_t* VRT_create_ctx() {
-    vartab_ctx_t* ctx = (vartab_ctx_t*)mm_malloc(sizeof(vartab_ctx_t));
-    if (!ctx) return NULL;
-    str_memset(ctx, 0, sizeof(vartab_ctx_t));
-    return ctx;
-}
-
-int VRT_destroy_ctx(vartab_ctx_t* ctx) {
-    if (!ctx) return 0;
-    mm_free(ctx);
-    return 1;
-}
-
-int VRT_get_info(const char* varname, short scope, variable_info_t* info, vartab_ctx_t* ctx) {
+int VRTB_get_info(const char* varname, short s_id, variable_info_t* info, vartab_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
-        if (((scope < 0) || scope == h->scope) && !str_strcmp(varname, h->name)) {
+        if (((s_id < 0) || s_id == h->s_id) && !str_strcmp(varname, h->name)) {
             if (info) str_memcpy(info, h, sizeof(variable_info_t));
             return 1;
         }
@@ -27,50 +14,33 @@ int VRT_get_info(const char* varname, short scope, variable_info_t* info, vartab
     return 0;
 }
 
-int VRT_update_value(const char* varname, short scope, const char* value, vartab_ctx_t* ctx) {
-    variable_info_t* h = ctx->h;
-    while (h) {
-        if (((scope < 0) || scope == h->scope) && !str_strcmp(varname, h->name)) {
-            str_strcpy(h->value, value);
-            return 1;
-        }
-
-        h = h->next;
-    }
-    
-    return 0;
-}
-
 static variable_info_t* _create_variable_info(
-    const char* name, int size, short scope, token_flags_t* flags, vartab_ctx_t* ctx
+    const char* name, token_type_t type, short s_id, token_flags_t* flags
 ) {
-    print_debug("_create_variable_info(name=%s, size=%i, scope=%i)", name, size, scope);
+    print_debug("_create_variable_info(name=%s, type=%i, s_id=%i)", name, type, s_id);
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
     str_memset(var, 0, sizeof(variable_info_t));
 
-    var->scope = scope;
+    var->s_id = s_id;
     if (name) {
         str_strncpy(var->name, name, TOKEN_MAX_SIZE);
     }
 
-    if (!flags->ro && !flags->glob) {
-        ctx->offset = ALIGN(ctx->offset + size);
-        var->offset = ctx->offset;
-    }
-
     var->heap = flags->heap;
-    var->size = size;
+    var->type = type;
     var->next = NULL;
     return var;
 }
 
-int VRT_add_info(const char* name, int size, short scope, token_flags_t* flags, vartab_ctx_t* ctx) {
-    variable_info_t* nnd = _create_variable_info(name, size, scope, flags, ctx);
+int VRTB_add_info(const char* name, token_type_t type, short s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
+    variable_info_t* nnd = _create_variable_info(name, type, s_id, flags);
     if (!nnd) return 0;
+
+    nnd->v_id = ctx->curr_id++;
     if (!ctx->h) {
         ctx->h = nnd;
-        return nnd->offset;
+        return 1;
     }
 
     variable_info_t* h = ctx->h;
@@ -79,10 +49,10 @@ int VRT_add_info(const char* name, int size, short scope, token_flags_t* flags, 
     }
 
     h->next = nnd;
-    return nnd->offset;
+    return 1;
 }
 
-int VRT_unload(vartab_ctx_t* ctx) {
+int VRTB_unload(vartab_ctx_t* ctx) {
     variable_info_t* h = ctx->h;
     while (h) {
         variable_info_t* n = h->next;

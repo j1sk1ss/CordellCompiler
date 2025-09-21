@@ -6,51 +6,23 @@
 #include <prep/token.h>
 
 typedef struct variable_info {
-    char                  heap;
+    long                  v_id;
     char                  ro;
+    char                  heap;
     char                  glob;
     char                  name[TOKEN_MAX_SIZE];
-    char                  value[TOKEN_MAX_SIZE];
-    short                 scope;
-    int                   size;
-    int                   offset;
+    short                 s_id;
+    token_type_t          type;
     struct variable_info* next;
 } variable_info_t;
 
 typedef struct {
-    unsigned int     offset;
+    long curr_id;
     variable_info_t* h;
 } vartab_ctx_t;
 
-/*
-Create variable table context.
-*/
-vartab_ctx_t* VRT_create_ctx();
-
-/*
-Destroy variable table.
-*/
-int VRT_destroy_ctx(vartab_ctx_t* ctx);
-
-/*
-Get variable info from context by varname and function scope.
-*/
-int VRT_get_info(const char* vname, short scope, variable_info_t* info, vartab_ctx_t* ctx);
-
-/*
-Update value of variable by name.
-*/
-int VRT_update_value(const char* varname, short scope, const char* value, vartab_ctx_t* ctx);
-
-/*
-Add variable to context. 
-Note: Will use ALIGN to variable size for offset calculation.
-*/
-int VRT_add_info(const char* name, int size, short scope, token_flags_t* flags, vartab_ctx_t* ctx);
-
-/*
-Unload context.
-*/
-int VRT_unload(vartab_ctx_t* ctx);
+int VRTB_get_info(const char* vname, short scope, variable_info_t* info, vartab_ctx_t* ctx);
+int VRTB_add_info(const char* name, token_type_t type, short scope, token_flags_t* flags, vartab_ctx_t* ctx);
+int VRTB_unload(vartab_ctx_t* ctx);
 
 #endif

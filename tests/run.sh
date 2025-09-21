@@ -45,25 +45,25 @@ TEST_CODES[test_sem]="
     tests/dummy_data/sem/sem_12.cpl
 "
 
-TEST_SRCS[test_ast]="src/prep/*.c src/ast/*.c src/ast/*/*.c std/*.c"
+TEST_SRCS[test_ast]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/*/*.c std/*.c"
 TEST_CODES[test_ast]="
-    tests/dummy_data/ast/ast_1.cpl
-    tests/dummy_data/ast/ast_2.cpl
-    tests/dummy_data/ast/ast_3.cpl
-    tests/dummy_data/ast/ast_4.cpl
-    tests/dummy_data/ast/ast_5.cpl
-    tests/dummy_data/ast/ast_6.cpl
-    tests/dummy_data/ast/ast_7.cpl
-    tests/dummy_data/ast/ast_8.cpl
-    tests/dummy_data/ast/ast_9.cpl
-    tests/dummy_data/ast/ast_10.cpl
-    tests/dummy_data/ast/ast_11.cpl
-    tests/dummy_data/ast/ast_12.cpl
-    tests/dummy_data/ast/ast_13.cpl
-    tests/dummy_data/ast/ast_14.cpl
-    tests/dummy_data/ast/ast_15.cpl
-    tests/dummy_data/ast/ast_16.cpl
-    tests/dummy_data/ast/ast_17.cpl
+    tests/dummy_data/ast/gen/astgen_1.cpl
+    tests/dummy_data/ast/gen/astgen_2.cpl
+    tests/dummy_data/ast/gen/astgen_3.cpl
+    tests/dummy_data/ast/gen/astgen_4.cpl
+    tests/dummy_data/ast/gen/astgen_5.cpl
+    tests/dummy_data/ast/gen/astgen_6.cpl
+    tests/dummy_data/ast/gen/astgen_7.cpl
+    tests/dummy_data/ast/gen/astgen_8.cpl
+    tests/dummy_data/ast/gen/astgen_9.cpl
+    tests/dummy_data/ast/gen/astgen_10.cpl
+    tests/dummy_data/ast/gen/astgen_11.cpl
+    tests/dummy_data/ast/gen/astgen_12.cpl
+    tests/dummy_data/ast/gen/astgen_13.cpl
+    tests/dummy_data/ast/gen/astgen_14.cpl
+    tests/dummy_data/ast/gen/astgen_15.cpl
+    tests/dummy_data/ast/gen/astgen_16.cpl
+    tests/dummy_data/ast/gen/astgen_17.cpl
 "
 
 # ==== Optimization testing ====
@@ -139,7 +139,7 @@ TEST_CODES[test_deadopt]="
 "
 
 # ==== Generation testing ====
-TEST_SRCS[test_hir]="src/prep/*.c src/ast/*.c src/symtab/*.c src/ast/*/*.c src/hir/*.c src/hir/*/*.c std/*.c"
+TEST_SRCS[test_hir]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/parsers/*.c src/ast/opt/strdecl.c src/hir/*.c src/hir/*/*.c std/*.c"
 TEST_CODES[test_hir]="
     tests/dummy_data/hir/gen/hirgen_1.cpl
     tests/dummy_data/hir/gen/hirgen_2.cpl

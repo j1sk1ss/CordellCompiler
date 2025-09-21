@@ -28,7 +28,8 @@ typedef struct {
 } hir_global_variable_t;
 
 typedef struct {
-    int offset;
+    int v_id; // variable id
+    int s_id; // scope id
 } hir_variable_t;
 
 typedef struct {
@@ -201,17 +202,12 @@ typedef struct {
     int           lid;
     hir_block_t*  h;
     hir_block_t*  t;
-    syntax_ctx_t* synt;
 } hir_ctx_t;
 
 hir_subject_t* HIR_create_subject(
-    int t,
-    registers_t r,        
-    int dref,             
-    int offset,           
-    const char* strval,   
-    long intval,          
-    int size              
+    int t, registers_t r, int dref,             
+    int v_id, const char* strval,   
+    long intval, int size, int s_id           
 );
 
 hir_ctx_t* HIR_create_ctx();
@@ -222,36 +218,36 @@ int HIR_unload_blocks(hir_block_t* block);
 int HIR_destroy_ctx(hir_ctx_t* ctx);
 
 #define HIR_SUBJ_REG(r, sz) \
-    HIR_create_subject(REGISTER, r, 0, 0, NULL, 0, sz)
+    HIR_create_subject(REGISTER, r, 0, 0, NULL, 0, sz, -1)
 
 #define HIR_SUBJ_CONST(val) \
-    HIR_create_subject(CONSTVAL, 0, 0, 0, NULL, val, 0)
+    HIR_create_subject(CONSTVAL, 0, 0, 0, NULL, val, 0, -1)
 
 #define HIR_SUBJ_NUMBER(val) \
-    HIR_create_subject(NUMBER, 0, 0, 0, val, 0, 0)
+    HIR_create_subject(NUMBER, 0, 0, 0, val, 0, 0, -1)
 
-#define HIR_SUBJ_STKVAR(off, kind) \
-    HIR_create_subject(kind, 0, 0, off, NULL, 0, 0)
+#define HIR_SUBJ_STKVAR(v_id, kind, s_id) \
+    HIR_create_subject(kind, 0, 0, v_id, NULL, 0, 0, s_id)
 
 #define HIR_SUBJ_GLBVAR(name, kind) \
-    HIR_create_subject(kind, 0, 0, 0, name, 0, 0)
+    HIR_create_subject(kind, 0, 0, 0, name, 0, 0, -1)
 
 #define HIR_SUBJ_VAR(n) \
     VRS_instack(n->token) ? \
-        HIR_SUBJ_STKVAR(n->sinfo.offset, HIR_get_stktype(n->token)) : \
+        HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_stktype(n->token), n->sinfo.s_id) : \
         HIR_SUBJ_GLBVAR(n->token->value, HIR_get_stktype(n->token))
 
 #define HIR_SUBJ_TMPVAR(kind) \
-    HIR_create_subject(HIR_get_tmp_type(kind), 0, 0, 0, NULL, 0, 0)
+    HIR_create_subject(HIR_get_tmp_type(kind), 0, 0, 0, NULL, 0, 0, -1)
 
 #define HIR_SUBJ_LABEL() \
-    HIR_create_subject(LABEL, 0, 0, 0, NULL, 0, 0)
+    HIR_create_subject(LABEL, 0, 0, 0, NULL, 0, 0, -1)
 
 #define HIR_SUBJ_RAWASM(l) \
-    HIR_create_subject(RAWASM, 0, 0, 0, l, 0, 0)
+    HIR_create_subject(RAWASM, 0, 0, 0, l, 0, 0, -1)
 
 #define HIR_SUBJ_STRING(str) \
-    HIR_create_subject(STRING, 0, 0, 0, str, 0, 0)
+    HIR_create_subject(STRING, 0, 0, 0, str, 0, 0, -1)
 
 #define HIR_BLOCK0(ctx, op) \
     HIR_insert_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

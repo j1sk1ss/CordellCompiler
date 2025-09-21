@@ -22,7 +22,7 @@
     glob arr stack[10000, i32];
     glob arr code[10000, i8];
 
-    start() {
+    start(i64 argc, ptr u64 argv) {
         puts("Brainfuck interpriter! Input code: ");
 
         i32 codelength = gets(code, 10000);

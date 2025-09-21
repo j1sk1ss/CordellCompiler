@@ -8,7 +8,7 @@ int LIR_generate_store_block(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
             if (!node->token->flags.dref) IR_BLOCK2(ctx, iMOVq, IR_SUBJ_VAR(node), IR_SUBJ_REG(RAX, 8));
             else {
                 array_info_t arr_info = { .el_size = 1 };
-                ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
+                ARTB_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
                 IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RBX, 8), IR_SUBJ_VAR(node));
                 switch (elsize) {
@@ -50,7 +50,7 @@ indexing: {}
                 IR_BLOCK2(ctx, iMOV, IR_SUBJ_REG(RDX, 8), IR_SUBJ_REG(RAX, 8));
 
                 array_info_t arr_info = { .el_size = 1 };
-                ART_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
+                ARTB_get_info(node->token->value, node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs);
                 int elsize = MAX(VRS_variable_bitness(node->token, 0) / 8, arr_info.el_size);
 
                 g->elemegen(off, g, ctx);

@@ -38,14 +38,14 @@ static int _unload_file(object_t* f) {
     TKN_unload(f->toks);
     AST_unload(f->syntax->r);
 
-    ART_unload(f->syntax->symtb.arrs);
-    ART_destroy_ctx(f->syntax->symtb.arrs);
+    ARTB_unload(f->syntax->symtb.arrs);
+    ARTB_destroy_ctx(f->syntax->symtb.arrs);
 
-    FNT_unload(f->syntax->symtb.funcs);
-    FNT_destroy_ctx(f->syntax->symtb.funcs);
+    FNTB_unload(f->syntax->symtb.funcs);
+    FNTB_destroy_ctx(f->syntax->symtb.funcs);
 
-    VRT_unload(f->syntax->symtb.vars);
-    VRT_destroy_ctx(f->syntax->symtb.vars);
+    VRTB_unload(f->syntax->symtb.vars);
+    VRTB_destroy_ctx(f->syntax->symtb.vars);
 
     STX_destroy_ctx(f->syntax);
     return 1;
@@ -70,9 +70,9 @@ static int _generate_raw_ast(builder_ctx_t* ctx) {
     }
 
     ctx->files[ctx->fcount].syntax = STX_create_ctx();
-    ctx->files[ctx->fcount].syntax->symtb.arrs  = ART_create_ctx();
-    ctx->files[ctx->fcount].syntax->symtb.vars  = VRT_create_ctx();
-    ctx->files[ctx->fcount].syntax->symtb.funcs = FNT_create_ctx();
+    ctx->files[ctx->fcount].syntax->symtb.arrs  = ARTB_create_ctx();
+    ctx->files[ctx->fcount].syntax->symtb.vars  = VRTB_create_ctx();
+    ctx->files[ctx->fcount].syntax->symtb.funcs = FNTB_create_ctx();
     if (!STX_create(tokens, ctx->files[ctx->fcount].syntax, &ctx->p)) {
         _unload_file(&ctx->files[ctx->fcount]);
         close(fd);

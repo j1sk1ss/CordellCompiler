@@ -88,7 +88,6 @@ static int _find_string(ast_node_t* root, stropt_ctx_t* ctx) {
                 sprintf(t->token->value, "%s", info.name);
             }
             
-            t->sinfo.size        = VRS_variable_bitness(t->token, 1) / 8;
             t->token->t_type     = STR_VARIABLE_TOKEN;
             t->token->flags.ro   = 1;
             t->token->flags.glob = 1;
@@ -128,7 +127,6 @@ static int _declare_strings(ast_node_t* root, stropt_ctx_t* ctx) {
         
         decl_root->token->flags.ro = 1;
         name_node->token->flags.ro = 1;
-        name_node->sinfo.size = VRS_variable_bitness(name_node->token, 1) / 8;
 
         ast_node_t* old = root->child;
         root->child = decl_root;

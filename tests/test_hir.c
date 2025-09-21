@@ -102,31 +102,31 @@ static void print_hir_subject(const hir_subject_t* s) {
     switch (s->t) {
         case REGISTER: printf("reg: [%d]", s->storage.reg.reg); break;
 
-        case STKVARSTR: printf("strs: [%d]", s->storage.var.offset); break;
-        case STKVARARR: printf("arrs: [%d]", s->storage.var.offset); break;
-        case STKVARF64: printf("f64s: [%d]", s->storage.var.offset); break;
-        case STKVARU64: printf("u64s: [%d]", s->storage.var.offset); break;
-        case STKVARI64: printf("i64s: [%d]", s->storage.var.offset); break;
-        case STKVARF32: printf("f32s: [%d]", s->storage.var.offset); break;
-        case STKVARU32: printf("u32s: [%d]", s->storage.var.offset); break;
-        case STKVARI32: printf("i32s: [%d]", s->storage.var.offset); break;
-        case STKVARU16: printf("u16s: [%d]", s->storage.var.offset); break;
-        case STKVARI16: printf("i16s: [%d]", s->storage.var.offset); break;
-        case STKVARU8:  printf("u8s: [%d]", s->storage.var.offset);  break;
-        case STKVARI8:  printf("i8s: [%d]", s->storage.var.offset); break;
+        case STKVARSTR: printf("strs: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARARR: printf("arrs: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARF64: printf("f64s: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARU64: printf("u64s: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARI64: printf("i64s: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARF32: printf("f32s: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARU32: printf("u32s: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARI32: printf("i32s: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARU16: printf("u16s: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARI16: printf("i16s: [vid=%d]", s->storage.var.v_id); break;
+        case STKVARU8:  printf("u8s: [vid=%d]", s->storage.var.v_id);  break;
+        case STKVARI8:  printf("i8s: [vid=%d]", s->storage.var.v_id); break;
 
-        case TMPVARSTR:  printf("strt: [id=%d]", s->id); break;
-        case TMPVARARR:  printf("arrt: [id=%d]", s->id); break;
-        case TMPVARF64:  printf("f64t: [id=%d]", s->id); break;
-        case TMPVARU64:  printf("u64t: [id=%d]", s->id); break;
-        case TMPVARI64:  printf("i64t: [id=%d]", s->id); break;
-        case TMPVARF32:  printf("f32t: [id=%d]", s->id); break;
-        case TMPVARU32:  printf("u32t: [id=%d]", s->id); break;
-        case TMPVARI32:  printf("i32t: [id=%d]", s->id); break;
-        case TMPVARU16:  printf("u16t: [id=%d]", s->id); break;
-        case TMPVARI16:  printf("i16t: [id=%d]", s->id); break;
-        case TMPVARU8:   printf("u8t: [id=%d]", s->id);  break;
-        case TMPVARI8:   printf("i8t: [id=%d]", s->id);  break;
+        case TMPVARSTR:  printf("strt: [tid=%d]", s->id); break;
+        case TMPVARARR:  printf("arrt: [tid=%d]", s->id); break;
+        case TMPVARF64:  printf("f64t: [tid=%d]", s->id); break;
+        case TMPVARU64:  printf("u64t: [tid=%d]", s->id); break;
+        case TMPVARI64:  printf("i64t: [tid=%d]", s->id); break;
+        case TMPVARF32:  printf("f32t: [tid=%d]", s->id); break;
+        case TMPVARU32:  printf("u32t: [tid=%d]", s->id); break;
+        case TMPVARI32:  printf("i32t: [tid=%d]", s->id); break;
+        case TMPVARU16:  printf("u16t: [tid=%d]", s->id); break;
+        case TMPVARI16:  printf("i16t: [tid=%d]", s->id); break;
+        case TMPVARU8:   printf("u8t: [tid=%d]", s->id);  break;
+        case TMPVARI8:   printf("i8t: [tid=%d]", s->id);  break;
 
         case GLBVARSTR:  printf("strg: [%s]", s->storage.gvar.name); break;
         case GLBVARARR:  printf("arrg: [%s]", s->storage.gvar.name); break;
@@ -178,28 +178,25 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    arrtab_ctx_t actx  = { .h = NULL };
-    vartab_ctx_t vctx  = { .h = NULL, .offset = 0 };
-    functab_ctx_t fctx = { .h = NULL };
-    syntax_ctx_t sctx  = { 
-        .symtb = {
-            .a = &actx,
-            .v = &vctx,
-            .f = &fctx
-        }
+    sym_table_t smt = {
+        .a = { .h = NULL },
+        .v = { .h = NULL },
+        .f = { .h = NULL }
     };
+    
+    syntax_ctx_t sctx  = { .r = NULL };
 
-    STX_create(tkn, &sctx);
+    STX_create(tkn, &sctx, &smt);
     OPT_strpack(&sctx);
 
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
 
     hir_ctx_t irctx = {
-        .cid = 0, .h = NULL, .lid = 0, .synt = &sctx, .t = NULL 
+        .cid = 0, .h = NULL, .lid = 0, .t = NULL 
     };
 
-    HIR_generate(&irctx);
+    HIR_generate(&sctx, &irctx, &smt);
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
     while (h) {
@@ -209,6 +206,7 @@ int main(int argc, char* argv[]) {
 
     HIR_unload_blocks(irctx.h);
     AST_unload(sctx.r);
+    SMT_unload(&smt);
     TKN_unload(tkn);
     close(fd);
     return 0;

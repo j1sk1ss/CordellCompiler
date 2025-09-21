@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
+ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
     forward_token(curr, 1);
@@ -26,8 +26,9 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
             return NULL;
         }
         
-        if (size_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) name_node->token->flags.heap = 1; 
-        else array_size = str_atoi(size_node->token->value);
+        if (size_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) {
+            name_node->token->flags.heap = 1;
+        }
         
         AST_add_node(node, size_node);
         forward_token(curr, 2);
@@ -38,13 +39,11 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
             return NULL;
         }
 
-        el_size = VRS_variable_bitness(elem_size_node->token, 1) / 8;
         AST_add_node(node, elem_size_node);
         forward_token(curr, 2);
 
-        ART_add_info(
-            name_node->token->value, scope_id_top(&ctx->scopes.stack), 
-            el_size, elem_size_node->token->t_type, array_size, ctx->symtb.a
+        ARTB_add_info(
+            name_node->token->value, scope_id_top(&ctx->scopes.stack), elem_size_node->token->t_type, &smt->a
         );
     }
 
@@ -59,7 +58,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
                     continue;
                 }
 
-                ast_node_t* arg = cpl_parse_expression(curr, ctx);
+                ast_node_t* arg = cpl_parse_expression(curr, ctx, smt);
                 if (arg) AST_add_node(node, arg);
                 array_size = MAX(array_size, ++act_size);
             }
@@ -68,12 +67,15 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
         }
     }
 
-    STX_var_update(node, ctx, name_node->token->value, ALIGN(array_size * el_size), &name_node->token->flags);
-    STX_var_lookup(name_node, ctx);
+    VRTB_add_info(
+        name_node->token->value, ARRAY_TYPE_TOKEN, scope_id_top(&ctx->scopes.stack), &name_node->token->flags, &smt->v
+    );
+
+    var_lookup(name_node, ctx, smt);
     return node;
 }
 
-ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
+ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
 
@@ -87,27 +89,27 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
     AST_add_node(node, name_node);
     forward_token(curr, 1);
 
-    int var_size = VRS_variable_bitness(name_node->token, 1) / 8;
     if (!*curr || (*curr)->t_type == ASSIGN_TOKEN) {
         forward_token(curr, 1);
-        ast_node_t* value_node = cpl_parse_expression(curr, ctx);
+        ast_node_t* value_node = cpl_parse_expression(curr, ctx, smt);
         if (!value_node) {
             AST_unload(node);
             return NULL;
         }
         
         if (node->token->t_type == STR_TYPE_TOKEN) {
-            if (value_node->token->t_type == STRING_VALUE_TOKEN) var_size = ALIGN(str_strlen(value_node->token->value));
-            ART_add_info(
-                name_node->token->value, scope_id_top(&ctx->scopes.stack), 
-                1, I8_TYPE_TOKEN, node->sinfo.size, ctx->symtb.a
+            ARTB_add_info(
+                name_node->token->value, scope_id_top(&ctx->scopes.stack), I8_TYPE_TOKEN, &smt->a
             );
         }
 
         AST_add_node(node, value_node);
     }
 
-    STX_var_update(node, ctx, name_node->token->value, var_size, &name_node->token->flags);
-    STX_var_lookup(name_node, ctx);
+    VRTB_add_info(
+        name_node->token->value, node->token->t_type, scope_id_top(&ctx->scopes.stack), &name_node->token->flags, &smt->v
+    );
+
+    var_lookup(name_node, ctx, smt);
     return node;
 }

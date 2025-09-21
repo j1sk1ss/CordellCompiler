@@ -25,39 +25,19 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    arrtab_ctx_t actx  = { .h = NULL };
-    vartab_ctx_t vctx  = { .h = NULL, .offset = 0 };
-    functab_ctx_t fctx = { .h = NULL };
-    syntax_ctx_t sctx  = { 
-        .symtb = {
-            .arrs  = &actx,
-            .vars  = &vctx,
-            .funcs = &fctx
-        }
+    sym_table_t smt = {
+        .a = { .h = NULL },
+        .v = { .h = NULL },
+        .f = { .h = NULL }
     };
+    
+    syntax_ctx_t sctx = { .r = NULL };
 
-    parser_t p = {
-        .block      = cpl_parse_block,
-        .switchstmt = cpl_parse_switch,
-        .condop     = cpl_parse_condop,
-        .arraydecl  = cpl_parse_array_declaration,
-        .vardecl    = cpl_parse_variable_declaration,
-        .extrn      = cpl_parse_extern,
-        .rexit      = cpl_parse_rexit,
-        .funccall   = cpl_parse_funccall,
-        .function   = cpl_parse_function,
-        .import     = cpl_parse_import,
-        .expr       = cpl_parse_expression,
-        .scope      = cpl_parse_scope,
-        .start      = cpl_parse_start,
-        .syscall    = cpl_parse_syscall,
-        .asmer      = cpl_parse_asm
-    };
-
-    STX_create(tkn, &sctx, &p);
+    STX_create(tkn, &sctx, &smt);
     print_ast(sctx.r, 0);
 
     AST_unload(sctx.r);
+    SMT_unload(&smt);
     TKN_unload(tkn);
     close(fd);
     return 0;

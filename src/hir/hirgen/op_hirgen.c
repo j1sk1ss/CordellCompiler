@@ -1,13 +1,13 @@
 #include <hir/hirgens/hirgens.h>
 
-int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx) {
+int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* op = node;
     ast_node_t* left = node->child;
     ast_node_t* right = left->sibling;
     int simd = VRS_is_float(left->token) || VRS_is_float(right->token);
 
-    hir_subject_t* dst = HIR_generate_elem(left, ctx);
-    hir_subject_t* upd = HIR_generate_elem(right, ctx);
+    hir_subject_t* dst = HIR_generate_elem(left, ctx, smt);
+    hir_subject_t* upd = HIR_generate_elem(right, ctx, smt);
 
     switch (op->token->t_type) {
         case ADDASSIGN_TOKEN:
@@ -28,14 +28,14 @@ int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx) {
     return 1;
 }
 
-hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx) {
+hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* op = node;
     ast_node_t* left = node->child;
     ast_node_t* right = left->sibling;
     int simd = VRS_is_float(left->token) || VRS_is_float(right->token);
 
-    hir_subject_t* lt1 = HIR_generate_elem(left, ctx);
-    hir_subject_t* lt2 = HIR_generate_elem(right, ctx);
+    hir_subject_t* lt1 = HIR_generate_elem(left, ctx, smt);
+    hir_subject_t* lt2 = HIR_generate_elem(right, ctx, smt);
     hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_promote_types(lt1->t, lt2->t));
 
     switch (op->token->t_type) {

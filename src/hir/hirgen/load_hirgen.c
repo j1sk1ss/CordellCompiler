@@ -1,6 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
-hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx) {
+hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node->token) return 0;
 
     hir_subject_t* res = NULL;
@@ -24,11 +24,11 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx) {
                 if (!off) res = HIR_SUBJ_VAR(node); 
                 else {
                     token_t tmp = { .t_type = node->token->t_type };
-                    hir_subject_t* offt1 = HIR_generate_elem(off, ctx);
+                    hir_subject_t* offt1 = HIR_generate_elem(off, ctx, smt);
                     hir_subject_t* base  = HIR_SUBJ_VAR(node);
                     
                     array_info_t ai;
-                    if (ART_get_info(node->token->value, node->sinfo.s_id, &ai, ctx->synt->symtb.a)) {
+                    if (ARTB_get_info(node->token->value, node->sinfo.s_id, &ai, &smt->a)) {
                         tmp.t_type = ai.el_type;
                     }
 

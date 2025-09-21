@@ -3,15 +3,15 @@
 #include <ast/syntax.h>
 static int print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
-    for (int i = 0; i < depth; i++) printf("    ");
+    for (int i = 0; i < depth; i++) printf("   ");
     if (node->token && node->token->t_type != SCOPE_TOKEN) {
         printf(
-            "[%s] (t=%d, size=%i,%s%s%soff=%i, s_id=%i%s%s%s%s)\n", 
-            node->token->value, node->token->t_type, node->sinfo.size, 
+            "[%s] (t=%d,%s%s%s s_id=%i%s%s%s%s)\n", 
+            node->token->value, node->token->t_type, 
             node->token->flags.ptr ? " ptr, " : " ",
             node->token->flags.ref ? "ref, " : "",
             node->token->flags.dref ? "dref, " : "",
-            node->sinfo.offset, node->sinfo.s_id,
+            node->sinfo.s_id,
             node->token->flags.ro ? ", ro" : "",
             node->token->flags.ext ? ", ext" : "",
             node->token->flags.glob ? ", glob" : "",

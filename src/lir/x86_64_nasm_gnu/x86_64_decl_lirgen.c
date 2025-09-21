@@ -48,7 +48,7 @@ static int _arrdeclaration(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx) {
     }
 
     array_info_t arr_info = { .el_size = 1 };
-    if (ART_get_info(name_node->token->value, name_node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs)) {
+    if (ARTB_get_info(name_node->token->value, name_node->sinfo.s_id, &arr_info, ctx->synt->symtb.arrs)) {
         int base_off = node->sinfo.offset;
         for (ast_node_t* t = elems_node; t; t = t->sibling) {
             g->elemegen(t, g, ctx);

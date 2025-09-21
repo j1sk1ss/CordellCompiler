@@ -6,8 +6,7 @@
 
 typedef struct {
     short s_id;
-    int   offset;
-    int   size;
+    int   v_id;
 } syntax_info_t;
 
 typedef struct ast_node {

@@ -20,8 +20,13 @@ static inline void scope_reset(scope_stack_t* st) {
 }
 
 static inline void scope_push(scope_stack_t* st, short id, int offset) {
-    st->data[++st->top].id = id;
+    st->data[++st->top].id   = id;
     st->data[st->top].offset = offset;
+}
+
+static inline void scope_push_id(scope_stack_t* st, short id) {
+    st->data[++st->top].id   = id;
+    st->data[st->top].offset = 0;
 }
 
 static inline void scope_pop(scope_stack_t* st) {

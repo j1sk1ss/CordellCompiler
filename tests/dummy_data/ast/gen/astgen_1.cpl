@@ -8,6 +8,10 @@
             arr buff[2, i8] = { 0, 0 };
         }
         
+        {
+            arr buff[2, i8] = { 0, 0 };
+        }
+
         arr buff[2, i8] = { 0, 0 };
         buff[0] = 'A';
         i8 a = buff[0];
