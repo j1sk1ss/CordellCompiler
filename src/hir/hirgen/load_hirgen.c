@@ -10,7 +10,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
             if (!node->token->flags.dref) res = HIR_SUBJ_VAR(node);
             else {
                 res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(node->token));
-                HIR_BLOCK2(ctx, GDREF, res, HIR_SUBJ_VAR(node));
+                HIR_BLOCK2(ctx, HIR_GDREF, res, HIR_SUBJ_VAR(node));
             }
         }
     }
@@ -34,7 +34,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
                     }
 
                     res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp));
-                    HIR_BLOCK3(ctx, GINDEX, res, base, offt1);
+                    HIR_BLOCK3(ctx, HIR_GINDEX, res, base, offt1);
                 }
 
                 break;
@@ -45,13 +45,13 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
 
     if (node->token->flags.ref) {
         hir_subject_t* ref = HIR_SUBJ_TMPVAR(TMPVARU64);
-        HIR_BLOCK2(ctx, REF, ref, res);
+        HIR_BLOCK2(ctx, HIR_REF, ref, res);
         res = ref;
     }
 
     if (node->token->flags.neg) {
         hir_subject_t* neg = HIR_SUBJ_TMPVAR(res->t);
-        HIR_BLOCK2(ctx, NOT, neg, res);
+        HIR_BLOCK2(ctx, HIR_NOT, neg, res);
         res = neg;
     }
 

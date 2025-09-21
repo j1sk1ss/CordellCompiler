@@ -1,6 +1,6 @@
 #include <lir/lir.h>
 
-lir_ctx_t* IR_create_ctx() {
+lir_ctx_t* LIR_create_ctx() {
     lir_ctx_t* ctx = mm_malloc(sizeof(lir_ctx_t));
     if (!ctx) return NULL;
     ctx->h = ctx->t = NULL;
@@ -10,7 +10,7 @@ lir_ctx_t* IR_create_ctx() {
     return ctx;
 }
 
-int IR_destroy_ctx(lir_ctx_t* ctx) {
+int LIR_destroy_ctx(lir_ctx_t* ctx) {
     if (!ctx) return -1;
     lir_block_t* cur = ctx->h;
     while (cur) {
@@ -23,7 +23,7 @@ int IR_destroy_ctx(lir_ctx_t* ctx) {
     return 0;
 }
 
-lir_subject_t* IR_create_subject(
+lir_subject_t* LIR_create_subject(
     lir_subject_type_t t, registers_t r,
     int dref, int offset, const char* strval,
     long intval, int size
@@ -64,7 +64,7 @@ lir_subject_t* IR_create_subject(
     return subj;
 }
 
-lir_block_t* IR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta) {
+lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta) {
     lir_block_t* blk = mm_malloc(sizeof(lir_block_t));
     if (!blk) return NULL;
     blk->op   = op;
@@ -81,7 +81,7 @@ lir_block_t* IR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_
     return blk;
 }
 
-int IR_insert_block(lir_block_t* block, lir_ctx_t* ctx) {
+int LIR_insert_block(lir_block_t* block, lir_ctx_t* ctx) {
     if (!ctx || !block) return -1;
     if (!ctx->h) ctx->h = ctx->t = block;
     else {
@@ -93,7 +93,7 @@ int IR_insert_block(lir_block_t* block, lir_ctx_t* ctx) {
     return 0;
 }
 
-int IR_remove_block(lir_block_t* block, lir_ctx_t* ctx) {
+int LIR_remove_block(lir_block_t* block, lir_ctx_t* ctx) {
     block->prev->next = block->next;
     block->prev = NULL;
     block->next = NULL;
@@ -101,7 +101,7 @@ int IR_remove_block(lir_block_t* block, lir_ctx_t* ctx) {
     return 1;
 }
 
-int IR_unload_blocks(lir_block_t* block) {
+int LIR_unload_blocks(lir_block_t* block) {
     if (!block) return -1;
     while (block) {
         lir_block_t* nxt = block->next;

@@ -4,8 +4,6 @@
 #include <hir/hir.h>
 
 typedef enum hir_subject_type {
-    REGISTER,
-
     TMPVARSTR,
     TMPVARARR,
     TMPVARF64,
@@ -18,7 +16,6 @@ typedef enum hir_subject_type {
     TMPVARI16,
     TMPVARU8,
     TMPVARI8,
-
     GLBVARSTR,
     GLBVARARR,
     GLBVARF64,
@@ -31,7 +28,6 @@ typedef enum hir_subject_type {
     GLBVARI16,
     GLBVARU8,
     GLBVARI8,
-
     STKVARSTR,
     STKVARARR,
     STKVARF64,
@@ -44,10 +40,8 @@ typedef enum hir_subject_type {
     STKVARI16,
     STKVARU8,
     STKVARI8,
-
     CONSTVAL,
     NUMBER,
-
     LABEL,
     RAWASM,
     STRING,

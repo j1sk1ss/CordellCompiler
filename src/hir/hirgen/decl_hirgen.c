@@ -3,7 +3,7 @@
 static int _strdeclaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name_node = node->child;
     ast_node_t* val_node  = name_node->sibling;
-    HIR_BLOCK2(ctx, STRDECL, HIR_SUBJ_VAR(name_node), HIR_SUBJ_STRING(val_node));
+    HIR_BLOCK2(ctx, HIR_STRDECL, HIR_SUBJ_VAR(name_node), HIR_SUBJ_STRING(val_node));
     return 1;
 }
 
@@ -14,10 +14,10 @@ static int _arrdeclaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* elems_node   = el_type_node->sibling;
 
     for (ast_node_t* e = elems_node; e; e = e->sibling) {
-        HIR_BLOCK1(ctx, PRMST, HIR_generate_elem(e, ctx, smt));
+        HIR_BLOCK1(ctx, HIR_PRMST, HIR_generate_elem(e, ctx, smt));
     }
 
-    HIR_BLOCK2(ctx, ARRDECL, HIR_SUBJ_VAR(name_node), HIR_generate_elem(size_node, ctx, smt));
+    HIR_BLOCK2(ctx, HIR_ARRDECL, HIR_SUBJ_VAR(name_node), HIR_generate_elem(size_node, ctx, smt));
     return 1;
 }
 
@@ -34,6 +34,6 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     }
 
     ast_node_t* val_node = name_node->sibling;
-    HIR_BLOCK2(ctx, VARDECL, HIR_SUBJ_VAR(name_node), HIR_generate_elem(val_node, ctx, smt));
+    HIR_BLOCK2(ctx, HIR_VARDECL, HIR_SUBJ_VAR(name_node), HIR_generate_elem(val_node, ctx, smt));
     return 1;
 }

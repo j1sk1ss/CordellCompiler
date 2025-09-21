@@ -145,6 +145,10 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, sym_table_t* s
     scope_elem_t el;
     scope_pop_top(&ctx->scopes.stack, &el);
 
-    name_node->sinfo.v_id = FNTB_add_info(name_node->token->value, args_node, name_node->child, &smt->f);
+    name_node->sinfo.v_id = FNTB_add_info(
+        name_node->token->value, name_node->token->flags.glob, name_node->token->flags.ext, 
+        args_node, name_node->child, &smt->f
+    );
+
     return node;
 }

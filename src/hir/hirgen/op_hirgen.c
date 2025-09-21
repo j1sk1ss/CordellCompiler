@@ -11,16 +11,16 @@ int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 
     switch (op->token->t_type) {
         case ADDASSIGN_TOKEN:
-            HIR_BLOCK3(ctx, iADD, dst, dst, upd);
+            HIR_BLOCK3(ctx, HIR_iADD, dst, dst, upd);
         break;
         case SUBASSIGN_TOKEN:
-            HIR_BLOCK3(ctx, iSUB, dst, dst, upd);
+            HIR_BLOCK3(ctx, HIR_iSUB, dst, dst, upd);
         break;
         case MULASSIGN_TOKEN:
-            HIR_BLOCK3(ctx, iMUL, dst, dst, upd);
+            HIR_BLOCK3(ctx, HIR_iMUL, dst, dst, upd);
         break;
         case DIVASSIGN_TOKEN:
-            HIR_BLOCK3(ctx, iDIV, dst, dst, upd);
+            HIR_BLOCK3(ctx, HIR_iDIV, dst, dst, upd);
         break;
         default: break;
     }
@@ -39,24 +39,24 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
     hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_promote_types(lt1->t, lt2->t));
 
     switch (op->token->t_type) {
-        case BITMOVE_LEFT_TOKEN:  HIR_BLOCK3(ctx, iBLFT, res, lt1, lt2); break;
-        case BITMOVE_RIGHT_TOKEN: HIR_BLOCK3(ctx, iBRHT, res, lt1, lt2); break;
-        case BITOR_TOKEN:         HIR_BLOCK3(ctx, bOR, res, lt1, lt2);   break;
-        case BITAND_TOKEN:        HIR_BLOCK3(ctx, bAND, res, lt1, lt2);  break;
-        case BITXOR_TOKEN:        HIR_BLOCK3(ctx, bXOR, res, lt1, lt2);  break;
-        case OR_TOKEN:            HIR_BLOCK3(ctx, iOR, res, lt1, lt2);   break;
-        case AND_TOKEN:           HIR_BLOCK3(ctx, iAND, res, lt1, lt2);  break;
-        case PLUS_TOKEN:          HIR_BLOCK3(ctx, iADD, res, lt1, lt2);  break;
-        case MINUS_TOKEN:         HIR_BLOCK3(ctx, iSUB, res, lt1, lt2);  break;
-        case MULTIPLY_TOKEN:      HIR_BLOCK3(ctx, iMUL, res, lt1, lt2);  break;
-        case LOWER_TOKEN:         HIR_BLOCK3(ctx, iLWR, res, lt1, lt2);  break;
-        case DIVIDE_TOKEN:        HIR_BLOCK3(ctx, iDIV, res, lt1, lt2);  break;
-        case MODULO_TOKEN:        HIR_BLOCK3(ctx, iMOD, res, lt1, lt2);  break;
-        case LARGER_TOKEN:        HIR_BLOCK3(ctx, iLRG, res, lt1, lt2);  break;
-        case LOWEREQ_TOKEN:       HIR_BLOCK3(ctx, iLRE, res, lt1, lt2);  break;
-        case COMPARE_TOKEN:       HIR_BLOCK3(ctx, iCMP, res, lt1, lt2);  break;
-        case LARGEREQ_TOKEN:      HIR_BLOCK3(ctx, iLGE, res, lt1, lt2);  break;
-        case NCOMPARE_TOKEN:      HIR_BLOCK3(ctx, iNMP, res, lt1, lt2);  break;
+        case BITMOVE_LEFT_TOKEN:  HIR_BLOCK3(ctx, HIR_iBLFT, res, lt1, lt2); break;
+        case BITMOVE_RIGHT_TOKEN: HIR_BLOCK3(ctx, HIR_iBRHT, res, lt1, lt2); break;
+        case BITOR_TOKEN:         HIR_BLOCK3(ctx, HIR_bOR, res, lt1, lt2);   break;
+        case BITAND_TOKEN:        HIR_BLOCK3(ctx, HIR_bAND, res, lt1, lt2);  break;
+        case BITXOR_TOKEN:        HIR_BLOCK3(ctx, HIR_bXOR, res, lt1, lt2);  break;
+        case OR_TOKEN:            HIR_BLOCK3(ctx, HIR_iOR, res, lt1, lt2);   break;
+        case AND_TOKEN:           HIR_BLOCK3(ctx, HIR_iAND, res, lt1, lt2);  break;
+        case PLUS_TOKEN:          HIR_BLOCK3(ctx, HIR_iADD, res, lt1, lt2);  break;
+        case MINUS_TOKEN:         HIR_BLOCK3(ctx, HIR_iSUB, res, lt1, lt2);  break;
+        case MULTIPLY_TOKEN:      HIR_BLOCK3(ctx, HIR_iMUL, res, lt1, lt2);  break;
+        case LOWER_TOKEN:         HIR_BLOCK3(ctx, HIR_iLWR, res, lt1, lt2);  break;
+        case DIVIDE_TOKEN:        HIR_BLOCK3(ctx, HIR_iDIV, res, lt1, lt2);  break;
+        case MODULO_TOKEN:        HIR_BLOCK3(ctx, HIR_iMOD, res, lt1, lt2);  break;
+        case LARGER_TOKEN:        HIR_BLOCK3(ctx, HIR_iLRG, res, lt1, lt2);  break;
+        case LOWEREQ_TOKEN:       HIR_BLOCK3(ctx, HIR_iLRE, res, lt1, lt2);  break;
+        case COMPARE_TOKEN:       HIR_BLOCK3(ctx, HIR_iCMP, res, lt1, lt2);  break;
+        case LARGEREQ_TOKEN:      HIR_BLOCK3(ctx, HIR_iLGE, res, lt1, lt2);  break;
+        case NCOMPARE_TOKEN:      HIR_BLOCK3(ctx, HIR_iNMP, res, lt1, lt2);  break;
         default: break;
     }
     

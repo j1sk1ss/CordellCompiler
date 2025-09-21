@@ -24,38 +24,27 @@ int HIR_destroy_ctx(hir_ctx_t* ctx) {
 
 static long _curr_id = 0;
 hir_subject_t* HIR_create_subject(
-    int t, registers_t r, int dref, 
-    int v_id, const char* strval,
-    long intval, int size, int s_id
+    int t, registers_t r, int v_id, const char* strval, long intval, int s_id
 ) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
 
     str_memset(subj, 0, sizeof(hir_subject_t));
 
-    subj->t    = t;
-    subj->size = (char)size;
-    subj->dref = (char)dref;
-    subj->id   = _curr_id++;
+    subj->t  = t;
+    subj->id = _curr_id++;
 
     switch (t) {
-        case REGISTER:
-            subj->storage.reg.reg = r;
-        break;
-
         case TMPVARSTR: case TMPVARARR: case TMPVARF64: case TMPVARU64:
         case TMPVARI64: case TMPVARF32: case TMPVARU32: case TMPVARI32:
         case TMPVARU16: case TMPVARI16: case TMPVARU8:  case TMPVARI8:
         case STKVARSTR: case STKVARARR: case STKVARF64: case STKVARU64:
         case STKVARI64: case STKVARF32: case STKVARU32: case STKVARI32:
         case STKVARU16: case STKVARI16: case STKVARU8:  case STKVARI8:
-            subj->storage.var.v_id = v_id;
-        break;
-
         case GLBVARSTR: case GLBVARARR: case GLBVARF64: case GLBVARU64:
         case GLBVARI64: case GLBVARF32: case GLBVARU32: case GLBVARI32:
         case GLBVARU16: case GLBVARI16: case GLBVARU8:  case GLBVARI8:
-            if (strval) str_strncpy(subj->storage.gvar.name, strval, IR_VAL_MSIZE);
+            subj->storage.var.v_id = v_id;
         break;
 
         case NUMBER:

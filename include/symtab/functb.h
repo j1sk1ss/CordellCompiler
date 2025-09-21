@@ -7,6 +7,8 @@
 typedef struct func_info {
     long              id;
     char              name[TOKEN_MAX_SIZE];
+    int               global;
+    int               external;
     ast_node_t*       args;
     ast_node_t*       rtype;
     struct func_info* next;
@@ -18,7 +20,7 @@ typedef struct func_ctx {
 } functab_ctx_t;
 
 int FNTB_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx);
-int FNTB_add_info(const char* name, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
+int FNTB_add_info(const char* name, int global, int external, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
 int FNTB_unload(functab_ctx_t* ctx);
 
 #endif

@@ -1,9 +1,13 @@
 #ifndef X86_64_IRGEN_H_
 #define X86_64_IRGEN_H_
 
+#include <hir/hir.h>
+#include <hir/hir_types.h>
 #include <lir/lir.h>
-#include <lir/lirctx.h>
+#include <lir/lirgen.h>
+#include <lir/lir_types.h>
 #include <std/qsort.h>
+#include <symtab/symtab.h>
 
 static inline int IR_deallocate_scope_heap(ast_node_t* t, lir_ctx_t* ctx) {
     if (scope_id_top(&ctx->heap) == t->sinfo.s_id) {
@@ -17,6 +21,8 @@ static inline int IR_deallocate_scope_heap(ast_node_t* t, lir_ctx_t* ctx) {
 
     return 1;
 }
+
+int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt);
 
 /* asm_irgen.c */
 int LIR_generate_asmblock(ast_node_t* node, lir_gen_t* g, lir_ctx_t* ctx);
