@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <prep/markup.h>
 #include <ast/syntax.h>
-#include <ast/opt/strdecl.h>
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include "ast_helper.h"
@@ -81,7 +80,10 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case ARRDECL:   return "ARRDECL";
         case STRDECL:   return "STRDECL";
         case PRMST:     return "PRMST";
-        case PRMLD:    return "PRMLD";
+        case PRMLD:     return "PRMLD";
+        case PRMPOP:    return "PRMPOP";
+        case STASM:     return "STASM";
+        case ENDASM:    return "ENDASM";
         case GINDEX:    return "GINDEX";
         case LINDEX:    return "LINDEX";
         case GDREF:     return "GDREF";
@@ -95,59 +97,51 @@ static const char* hir_op_to_string(hir_operation_t op) {
 }
 
 static void print_hir_subject(const hir_subject_t* s) {
-    if (!s) {
-        return;
-    }
-
+    if (!s) return;
     switch (s->t) {
-        case REGISTER: printf("reg: [%d]", s->storage.reg.reg); break;
-
-        case STKVARSTR: printf("strs: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARARR: printf("arrs: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARF64: printf("f64s: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARU64: printf("u64s: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARI64: printf("i64s: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARF32: printf("f32s: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARU32: printf("u32s: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARI32: printf("i32s: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARU16: printf("u16s: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARI16: printf("i16s: [vid=%d]", s->storage.var.v_id); break;
-        case STKVARU8:  printf("u8s: [vid=%d]", s->storage.var.v_id);  break;
-        case STKVARI8:  printf("i8s: [vid=%d]", s->storage.var.v_id); break;
-
-        case TMPVARSTR:  printf("strt: [tid=%d]", s->id); break;
-        case TMPVARARR:  printf("arrt: [tid=%d]", s->id); break;
-        case TMPVARF64:  printf("f64t: [tid=%d]", s->id); break;
-        case TMPVARU64:  printf("u64t: [tid=%d]", s->id); break;
-        case TMPVARI64:  printf("i64t: [tid=%d]", s->id); break;
-        case TMPVARF32:  printf("f32t: [tid=%d]", s->id); break;
-        case TMPVARU32:  printf("u32t: [tid=%d]", s->id); break;
-        case TMPVARI32:  printf("i32t: [tid=%d]", s->id); break;
-        case TMPVARU16:  printf("u16t: [tid=%d]", s->id); break;
-        case TMPVARI16:  printf("i16t: [tid=%d]", s->id); break;
-        case TMPVARU8:   printf("u8t: [tid=%d]", s->id);  break;
-        case TMPVARI8:   printf("i8t: [tid=%d]", s->id);  break;
-
-        case GLBVARSTR:  printf("strg: [%s]", s->storage.gvar.name); break;
-        case GLBVARARR:  printf("arrg: [%s]", s->storage.gvar.name); break;
-        case GLBVARF64:  printf("f64g: [%s]", s->storage.gvar.name); break;
-        case GLBVARU64:  printf("u64g: [%s]", s->storage.gvar.name); break;
-        case GLBVARI64:  printf("i64g: [%s]", s->storage.gvar.name); break;
-        case GLBVARF32:  printf("f32g: [%s]", s->storage.gvar.name); break;  
-        case GLBVARU32:  printf("u32g: [%s]", s->storage.gvar.name); break;
-        case GLBVARI32:  printf("i32g: [%s]", s->storage.gvar.name); break;
-        case GLBVARU16:  printf("u16g: [%s]", s->storage.gvar.name); break;
-        case GLBVARI16:  printf("i16g: [%s]", s->storage.gvar.name); break;
-        case GLBVARU8:   printf("i8g: [%s]", s->storage.gvar.name);  break;
-        case GLBVARI8:   printf("u8g: [%s]", s->storage.gvar.name);  break;
-
-        case NUMBER:   printf("%s", s->storage.num.value);   break;
-        case CONSTVAL: printf("%ld", s->storage.cnst.value); break;
-
-        case LABEL:  printf("lb: [id=%d]", s->id);              break;
-        case RAWASM: printf("asm: [%s]", s->storage.str.value); break;
-        case STRING: printf("str: [%s]", s->storage.str.value); break;
-
+        case REGISTER:   printf("reg: [%d]", s->storage.reg.reg);         break;
+        case STKVARSTR:  printf("strs: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARARR:  printf("arrs: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARF64:  printf("f64s: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARU64:  printf("u64s: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARI64:  printf("i64s: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARF32:  printf("f32s: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARU32:  printf("u32s: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARI32:  printf("i32s: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARU16:  printf("u16s: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARI16:  printf("i16s: [vid=%d]", s->storage.var.v_id);   break;
+        case STKVARU8:   printf("u8s: [vid=%d]", s->storage.var.v_id);    break;
+        case STKVARI8:   printf("i8s: [vid=%d]", s->storage.var.v_id);    break;
+        case TMPVARSTR:  printf("strt: [tid=%d]", s->id);                 break;
+        case TMPVARARR:  printf("arrt: [tid=%d]", s->id);                 break;
+        case TMPVARF64:  printf("f64t: [tid=%d]", s->id);                 break;
+        case TMPVARU64:  printf("u64t: [tid=%d]", s->id);                 break;
+        case TMPVARI64:  printf("i64t: [tid=%d]", s->id);                 break;
+        case TMPVARF32:  printf("f32t: [tid=%d]", s->id);                 break;
+        case TMPVARU32:  printf("u32t: [tid=%d]", s->id);                 break;
+        case TMPVARI32:  printf("i32t: [tid=%d]", s->id);                 break;
+        case TMPVARU16:  printf("u16t: [tid=%d]", s->id);                 break;
+        case TMPVARI16:  printf("i16t: [tid=%d]", s->id);                 break;
+        case TMPVARU8:   printf("u8t: [tid=%d]", s->id);                  break;
+        case TMPVARI8:   printf("i8t: [tid=%d]", s->id);                  break;
+        case GLBVARSTR:  printf("strg: [%s]", s->storage.gvar.name);      break;
+        case GLBVARARR:  printf("arrg: [%s]", s->storage.gvar.name);      break;
+        case GLBVARF64:  printf("f64g: [%s]", s->storage.gvar.name);      break;
+        case GLBVARU64:  printf("u64g: [%s]", s->storage.gvar.name);      break;
+        case GLBVARI64:  printf("i64g: [%s]", s->storage.gvar.name);      break;
+        case GLBVARF32:  printf("f32g: [%s]", s->storage.gvar.name);      break;  
+        case GLBVARU32:  printf("u32g: [%s]", s->storage.gvar.name);      break;
+        case GLBVARI32:  printf("i32g: [%s]", s->storage.gvar.name);      break;
+        case GLBVARU16:  printf("u16g: [%s]", s->storage.gvar.name);      break;
+        case GLBVARI16:  printf("i16g: [%s]", s->storage.gvar.name);      break;
+        case GLBVARU8:   printf("i8g: [%s]", s->storage.gvar.name);       break;
+        case GLBVARI8:   printf("u8g: [%s]", s->storage.gvar.name);       break;
+        case NUMBER:     printf("%s", s->storage.num.value);              break;
+        case CONSTVAL:   printf("%ld", s->storage.cnst.value);            break;
+        case LABEL:      printf("lb: [id=%d]", s->id);                    break;
+        case RAWASM:     printf("asm: [std_id=%i]", s->storage.str.s_id); break;
+        case STRING:     printf("str: [std_id=%i]", s->storage.str.s_id); break;
+        case FNAME:      printf("func: [fid=%i]", s->storage.str.s_id);   break;
         default: printf("unknw"); break;
     }
 }
@@ -187,7 +181,6 @@ int main(int argc, char* argv[]) {
     syntax_ctx_t sctx  = { .r = NULL };
 
     STX_create(tkn, &sctx, &smt);
-    OPT_strpack(&sctx);
 
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
@@ -202,6 +195,35 @@ int main(int argc, char* argv[]) {
     while (h) {
         print_hir_block(h);
         h = h->next;
+    }
+
+    printf("\n\n========== SYMTABLES ==========\n");
+    printf("==========   VARS  ==========\n");
+    variable_info_t* vh = smt.v.h;
+    while (vh) {
+        printf("id: %i, name: %s, scope: %i\n", vh->v_id, vh->name, vh->s_id);
+        vh = vh->next;
+    }
+
+    printf("==========   ARRS  ==========\n");
+    array_info_t* ah = smt.a.h;
+    while (ah) {
+        printf("id: %i, name: %s, scope: %i\n", ah->v_id, ah->name, ah->s_id);
+        ah = ah->next;
+    }
+
+    printf("==========  FUNCS  ==========\n");
+    func_info_t* fh = smt.f.h;
+    while (fh) {
+        printf("id: %i, name: %s\n", fh->id, fh->name);
+        fh = fh->next;
+    }
+
+    printf("========== STRINGS ==========\n");
+    str_info_t* sh = smt.s.h;
+    while (sh) {
+        printf("id: %i, val: %s\n", sh->id, sh->value);
+        sh = sh->next;
     }
 
     HIR_unload_blocks(irctx.h);

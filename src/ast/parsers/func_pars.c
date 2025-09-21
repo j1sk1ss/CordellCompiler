@@ -70,6 +70,7 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, sym_table_t* s
 
     func_info_t finfo;
     if (FNTB_get_info(node->token->value, &finfo, &smt->f)) {
+        node->sinfo.v_id = finfo.id;
         for (ast_node_t* arg = finfo.args->child; arg && arg->token->t_type != SCOPE_TOKEN; arg = arg->sibling) {
             if (args-- > 0 || !arg->child->sibling || !arg->child->sibling->token) continue;
             AST_add_node(node, AST_copy_node(arg->child->sibling, 0, 0, 1));
@@ -144,6 +145,6 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, sym_table_t* s
     scope_elem_t el;
     scope_pop_top(&ctx->scopes.stack, &el);
 
-    FNTB_add_info(name_node->token->value, args_node, name_node->child, &smt->f);
+    name_node->sinfo.v_id = FNTB_add_info(name_node->token->value, args_node, name_node->child, &smt->f);
     return node;
 }

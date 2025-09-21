@@ -19,7 +19,8 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case U64_VARIABLE_TOKEN:
         case F64_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN: 
+        case STR_VARIABLE_TOKEN:
+        case STRING_VALUE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN: return HIR_generate_load(node, ctx, smt);
         default: break;
     }

@@ -17,7 +17,6 @@ int VRTB_get_info(const char* varname, short s_id, variable_info_t* info, vartab
 static variable_info_t* _create_variable_info(
     const char* name, token_type_t type, short s_id, token_flags_t* flags
 ) {
-    print_debug("_create_variable_info(name=%s, type=%i, s_id=%i)", name, type, s_id);
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
     str_memset(var, 0, sizeof(variable_info_t));
@@ -34,13 +33,14 @@ static variable_info_t* _create_variable_info(
 }
 
 int VRTB_add_info(const char* name, token_type_t type, short s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
+    print_debug("VRTB_add_info(name=%s, type=%i, s_id=%i)", name, type, s_id);
     variable_info_t* nnd = _create_variable_info(name, type, s_id, flags);
     if (!nnd) return 0;
 
     nnd->v_id = ctx->curr_id++;
     if (!ctx->h) {
         ctx->h = nnd;
-        return 1;
+        return nnd->v_id;
     }
 
     variable_info_t* h = ctx->h;
@@ -49,7 +49,7 @@ int VRTB_add_info(const char* name, token_type_t type, short s_id, token_flags_t
     }
 
     h->next = nnd;
-    return 1;
+    return nnd->v_id;
 }
 
 int VRTB_unload(vartab_ctx_t* ctx) {

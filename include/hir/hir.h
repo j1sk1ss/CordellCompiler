@@ -3,6 +3,7 @@
 
 #include <ast/ast.h>
 #include <ast/syntax.h>
+#include <symtab/symtab.h>
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/regs.h>
@@ -12,7 +13,7 @@
 
 #define IR_VAL_MSIZE 128
 typedef struct {
-    char value[IR_VAL_MSIZE];
+    int s_id; /* String ID from strings symtab */
 } hir_string_t;
 
 typedef struct {
@@ -28,8 +29,7 @@ typedef struct {
 } hir_global_variable_t;
 
 typedef struct {
-    int v_id; // variable id
-    int s_id; // scope id
+    int v_id; // Variable ID from variables symtab
 } hir_variable_t;
 
 typedef struct {
@@ -135,6 +135,8 @@ typedef enum {
 
     /* Other */
     RAW,
+    STASM,
+    ENDASM,
 
     /* High level operations */
         /* Stack */
@@ -168,6 +170,7 @@ typedef enum {
         STRDECL,
         PRMST,
         PRMLD,   // load param
+        PRMPOP,  // pop params
         FARGST,  // store function argument
         FARGLD,  // load function argument
         STARGLD, // load start argument
@@ -243,11 +246,14 @@ int HIR_destroy_ctx(hir_ctx_t* ctx);
 #define HIR_SUBJ_LABEL() \
     HIR_create_subject(LABEL, 0, 0, 0, NULL, 0, 0, -1)
 
-#define HIR_SUBJ_RAWASM(l) \
-    HIR_create_subject(RAWASM, 0, 0, 0, l, 0, 0, -1)
+#define HIR_SUBJ_RAWASM(n) \
+    HIR_create_subject(RAWASM, 0, 0, n->sinfo.v_id, NULL, 0, 0, -1)
 
-#define HIR_SUBJ_STRING(str) \
-    HIR_create_subject(STRING, 0, 0, 0, str, 0, 0, -1)
+#define HIR_SUBJ_STRING(n) \
+    HIR_create_subject(STRING, 0, 0, n->sinfo.v_id, NULL, 0, 0, -1)
+
+#define HIR_SUBJ_FUNCNAME(n) \
+    HIR_create_subject(FNAME, 0, 0, n->sinfo.v_id, NULL, 0, 0, -1)
 
 #define HIR_BLOCK0(ctx, op) \
     HIR_insert_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

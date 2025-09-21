@@ -1,0 +1,22 @@
+#ifndef STRTB_H_
+#define STRTB_H_
+
+#include <std/str.h>
+#include <prep/token.h>
+
+typedef struct str_info {
+    int              id;
+    char             value[TOKEN_MAX_SIZE];
+    struct str_info* next;
+} str_info_t;
+
+typedef struct {
+    long        curr_id;
+    str_info_t* h;
+} strtb_ctx_t;
+
+int STTB_add_info(const char* name, strtb_ctx_t* ctx);
+int STTB_get_info(const char* name, str_info_t* info, strtb_ctx_t* ctx);
+int STTB_unload(strtb_ctx_t* ctx);
+
+#endif

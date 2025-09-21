@@ -139,7 +139,7 @@ TEST_CODES[test_deadopt]="
 "
 
 # ==== Generation testing ====
-TEST_SRCS[test_hir]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/parsers/*.c src/ast/opt/strdecl.c src/hir/*.c src/hir/*/*.c std/*.c"
+TEST_SRCS[test_hir]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/parsers/*.c src/hir/*.c src/hir/*/*.c std/*.c"
 TEST_CODES[test_hir]="
     tests/dummy_data/hir/gen/hirgen_1.cpl
     tests/dummy_data/hir/gen/hirgen_2.cpl

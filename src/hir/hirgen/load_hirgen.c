@@ -16,6 +16,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
     }
     else {
         switch (node->token->t_type) {
+            case STRING_VALUE_TOKEN:    res = HIR_SUBJ_STRING(node);               break;
             case UNKNOWN_NUMERIC_TOKEN: res = HIR_SUBJ_NUMBER(node->token->value); break;
             case ARR_VARIABLE_TOKEN:
             case STR_VARIABLE_TOKEN: {

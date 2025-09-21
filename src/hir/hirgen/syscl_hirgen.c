@@ -3,7 +3,7 @@
 int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     for (ast_node_t* func = node->child->child; func; func = func->sibling) {
-        HIR_BLOCK1(ctx, IMPORT, HIR_SUBJ_STRING(func->token->value));
+        HIR_BLOCK1(ctx, IMPORT, HIR_SUBJ_FUNCNAME(func));
     }
 
     return 1;
@@ -11,7 +11,7 @@ int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 
 int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
-    HIR_BLOCK1(ctx, EXTERN, HIR_SUBJ_STRING(node->child->token->value));
+    HIR_BLOCK1(ctx, EXTERN, HIR_SUBJ_STRING(node));
     return 1;
 }
 

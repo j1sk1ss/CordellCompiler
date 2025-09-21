@@ -5,6 +5,7 @@
 #include <prep/token.h>
 
 typedef struct func_info {
+    long              id;
     char              name[TOKEN_MAX_SIZE];
     ast_node_t*       args;
     ast_node_t*       rtype;
@@ -12,6 +13,7 @@ typedef struct func_info {
 } func_info_t;
 
 typedef struct func_ctx {
+    long         curr_id;
     func_info_t* h;
 } functab_ctx_t;
 

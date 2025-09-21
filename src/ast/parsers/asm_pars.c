@@ -29,9 +29,8 @@ ast_node_t* cpl_parse_asm(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
                 continue;
             }
 
-            ast_node_t* arg = AST_create_node(*curr);
+            ast_node_t* arg = cpl_parse_expression(curr, ctx, smt);
             if (arg) AST_add_node(body, arg);
-            forward_token(curr, 1);
         }
     }
 

@@ -11,6 +11,7 @@ int SMT_unload(sym_table_t* smt) {
     VRTB_unload(&smt->v);
     ARTB_unload(&smt->a);
     FNTB_unload(&smt->f);
+    STTB_unload(&smt->s);
     mm_free(smt);
     return 1;
 }

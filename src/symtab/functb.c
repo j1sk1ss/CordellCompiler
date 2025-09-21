@@ -27,11 +27,14 @@ static func_info_t* _create_func_info(const char* name, ast_node_t* args, ast_no
 }
 
 int FNTB_add_info(const char* name, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
+    print_debug("FNTB_add_info(name=%s)", name);
     func_info_t* nnd = _create_func_info(name, args, rtype);
     if (!nnd) return 0;
+
+    nnd->id = ctx->curr_id++;
     if (!ctx->h) {
         ctx->h = nnd;
-        return 1;
+        return nnd->id;
     }
 
     func_info_t* h = ctx->h;
@@ -40,7 +43,7 @@ int FNTB_add_info(const char* name, ast_node_t* args, ast_node_t* rtype, functab
     }
 
     h->next = nnd;
-    return 1;
+    return nnd->id;
 }
 
 int FNTB_unload(functab_ctx_t* ctx) {

@@ -67,7 +67,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_t
         }
     }
 
-    VRTB_add_info(
+    name_node->sinfo.v_id = VRTB_add_info(
         name_node->token->value, ARRAY_TYPE_TOKEN, scope_id_top(&ctx->scopes.stack), &name_node->token->flags, &smt->v
     );
 
@@ -106,7 +106,7 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, sy
         AST_add_node(node, value_node);
     }
 
-    VRTB_add_info(
+    name_node->sinfo.v_id = VRTB_add_info(
         name_node->token->value, node->token->t_type, scope_id_top(&ctx->scopes.stack), &name_node->token->flags, &smt->v
     );
 

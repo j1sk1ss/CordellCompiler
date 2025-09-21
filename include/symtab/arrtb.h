@@ -5,13 +5,15 @@
 #include <prep/token.h>
 
 typedef struct array_info {
+    long               v_id;
+    short              s_id;
     token_type_t       el_type;
-    short              scope;
     char               name[TOKEN_MAX_SIZE];
     struct array_info* next;
 } array_info_t;
 
 typedef struct {
+    long          curr_id;
     array_info_t* h;
 } arrtab_ctx_t;
 

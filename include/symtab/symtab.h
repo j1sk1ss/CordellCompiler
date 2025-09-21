@@ -5,11 +5,13 @@
 #include <symtab/arrtb.h>
 #include <symtab/vartb.h>
 #include <symtab/functb.h>
+#include <symtab/strtb.h>
 
 typedef struct {
     vartab_ctx_t  v;
     arrtab_ctx_t  a;
     functab_ctx_t f;
+    strtb_ctx_t   s;
 } sym_table_t;
 
 sym_table_t* SMT_create();

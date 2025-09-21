@@ -15,18 +15,29 @@ static int var_lookup(ast_node_t* node, syntax_ctx_t* ctx, sym_table_t* smt) {
     var_lookup(node->sibling, ctx, smt);
     var_lookup(node->child, ctx, smt);
     if (!node->token) return 0;
-    variable_info_t varinfo = { .type = UNKNOWN_NUMERIC_TOKEN };
-    for (int s = ctx->scopes.stack.top; s >= 0; s--) {
-        int s_id = ctx->scopes.stack.data[s].id;
-        if (VRTB_get_info(node->token->value, s_id, &varinfo, &smt->v)) {
-            break;
+
+    if (VRS_isvariable(node->token)) {
+        variable_info_t varinfo = { .type = UNKNOWN_NUMERIC_TOKEN };
+        for (int s = ctx->scopes.stack.top; s >= 0; s--) {
+            int s_id = ctx->scopes.stack.data[s].id;
+            if (VRTB_get_info(node->token->value, s_id, &varinfo, &smt->v)) {
+                node->sinfo.v_id        = varinfo.v_id;
+                node->sinfo.s_id        = varinfo.s_id;
+                node->token->flags.heap = varinfo.heap;
+                return 1;
+            }
         }
     }
-    
-    node->sinfo.v_id        = varinfo.v_id;
-    node->sinfo.s_id        = varinfo.s_id;
-    node->token->flags.heap = varinfo.heap;
-    return 1;
+
+    if (node->token->t_type == STRING_VALUE_TOKEN) {
+        str_info_t strinfo = { .id = -1 };
+        if (STTB_get_info(node->token->value, &strinfo, &smt->s)) {
+            node->sinfo.v_id = strinfo.id;
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 /* cpl_block.c */

@@ -39,6 +39,10 @@ static ast_node_t* _parse_binary_expression(token_t** curr, syntax_ctx_t* ctx, s
 static ast_node_t* _parse_array_expression(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
+    if (node->token->t_type == STRING_VALUE_TOKEN) {
+        node->sinfo.v_id = STTB_add_info(node->token->value, &smt->s);
+    }
+
     var_lookup(node, ctx, smt);
     
     forward_token(curr, 1);
@@ -99,6 +103,9 @@ static ast_node_t* _parse_primary(token_t** curr, syntax_ctx_t* ctx, sym_table_t
 
     ast_node_t* node = AST_create_node(*curr);
     if (!node) return NULL;
+    if (node->token->t_type == STRING_VALUE_TOKEN) {
+        node->sinfo.v_id = STTB_add_info(node->token->value, &smt->s);
+    }
 
     var_lookup(node, ctx, smt);
     forward_token(curr, 1);

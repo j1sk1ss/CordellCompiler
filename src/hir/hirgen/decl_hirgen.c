@@ -3,7 +3,7 @@
 static int _strdeclaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name_node = node->child;
     ast_node_t* val_node  = name_node->sibling;
-    HIR_BLOCK2(ctx, STRDECL, HIR_SUBJ_VAR(name_node), HIR_SUBJ_STRING(val_node->token->value));
+    HIR_BLOCK2(ctx, STRDECL, HIR_SUBJ_VAR(name_node), HIR_SUBJ_STRING(val_node));
     return 1;
 }
 

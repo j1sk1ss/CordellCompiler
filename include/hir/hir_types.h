@@ -51,6 +51,7 @@ typedef enum hir_subject_type {
     LABEL,
     RAWASM,
     STRING,
+    FNAME,
 } hir_subject_type_t;
 
 int HIR_get_type_size(hir_subject_type_t t);

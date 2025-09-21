@@ -50,7 +50,6 @@ hir_subject_t* HIR_create_subject(
         case STKVARI64: case STKVARF32: case STKVARU32: case STKVARI32:
         case STKVARU16: case STKVARI16: case STKVARU8:  case STKVARI8:
             subj->storage.var.v_id = v_id;
-            subj->storage.var.s_id = s_id;
         break;
 
         case GLBVARSTR: case GLBVARARR: case GLBVARF64: case GLBVARU64:
@@ -67,10 +66,10 @@ hir_subject_t* HIR_create_subject(
             subj->storage.cnst.value = intval;
         break;
 
-        case LABEL:
+        case FNAME:
         case RAWASM:
-        case STRING:
-            if (strval) str_strncpy(subj->storage.str.value, strval, IR_VAL_MSIZE);
+        case STRING: 
+            subj->storage.str.s_id = v_id;
         break;
 
         default: break;

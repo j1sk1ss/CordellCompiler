@@ -7,17 +7,17 @@
 
 typedef struct variable_info {
     long                  v_id;
+    short                 s_id;
     char                  ro;
-    char                  heap;
+    char                  heap; /* Point to heap, can't be reused */
     char                  glob;
     char                  name[TOKEN_MAX_SIZE];
-    short                 s_id;
     token_type_t          type;
     struct variable_info* next;
 } variable_info_t;
 
 typedef struct {
-    long curr_id;
+    long             curr_id;
     variable_info_t* h;
 } vartab_ctx_t;
 
