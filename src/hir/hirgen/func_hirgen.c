@@ -33,7 +33,7 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
         HIR_BLOCK1(ctx, FARGLD, HIR_SUBJ_VAR(t));
     }
 
-    HIR_generate_block(t->child, ctx, smt);
+    HIR_generate_block(t, ctx, smt);
     HIR_BLOCK0(ctx, FEND);
     return 1;
 }

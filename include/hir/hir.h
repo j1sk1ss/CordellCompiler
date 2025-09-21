@@ -188,6 +188,9 @@ typedef enum {
 
         /* System */
         EXITOP, // Exit with farg exit call
+
+        MKSCOPE,  // scope
+        ENDSCOPE, // end of scope
 } hir_operation_t;
 
 typedef struct hir_block {

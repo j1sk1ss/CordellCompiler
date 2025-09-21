@@ -10,12 +10,21 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     hir_subject_t* elb = HIR_SUBJ_LABEL();
     
     HIR_BLOCK2(ctx, IFOP, condtmp, flb);
-    if (lbranch) HIR_generate_block(lbranch->child, ctx, smt);
+    if (lbranch) {
+        HIR_BLOCK0(ctx, MKSCOPE);
+        HIR_generate_block(lbranch->child, ctx, smt);
+        HIR_BLOCK0(ctx, ENDSCOPE);
+    }
+
     HIR_BLOCK1(ctx, JMP, elb);
     HIR_BLOCK1(ctx, MKLB, flb);
-    if (rbranch) HIR_generate_block(rbranch->child, ctx, smt);
+    if (rbranch) {
+        HIR_BLOCK0(ctx, MKSCOPE);
+        HIR_generate_block(rbranch->child, ctx, smt);
+        HIR_BLOCK0(ctx, ENDSCOPE);
+    }
+
     HIR_BLOCK1(ctx, MKLB, elb);
-    
     return 1;
 }
 
@@ -30,10 +39,19 @@ int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt)
 
     HIR_BLOCK1(ctx, MKLB, entrylb);
     HIR_BLOCK2(ctx, IFOP, condtmp, elb);
-    if (lbranch) HIR_generate_block(lbranch->child, ctx, smt);
+    if (lbranch) {
+        HIR_BLOCK0(ctx, MKSCOPE);
+        HIR_generate_block(lbranch->child, ctx, smt);
+        HIR_BLOCK0(ctx, ENDSCOPE);
+    }
+
     HIR_BLOCK1(ctx, JMP, entrylb);
     HIR_BLOCK1(ctx, MKLB, elb);
-    if (rbranch) HIR_generate_block(rbranch->child, ctx, smt);
+    if (rbranch) {
+        HIR_BLOCK0(ctx, MKSCOPE);
+        HIR_generate_block(rbranch->child, ctx, smt);
+        HIR_BLOCK0(ctx, ENDSCOPE);
+    }
     
     return 1;
 }

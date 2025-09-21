@@ -63,7 +63,9 @@ int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (VRS_isblock(t->token) && (!t->token || t->token->t_type != START_TOKEN)) {
+            if (t->token && t->token->t_type == SCOPE_TOKEN) HIR_BLOCK0(ctx, MKSCOPE);
             HIR_generate_block(t->child, ctx, smt);
+            if (t->token && t->token->t_type == SCOPE_TOKEN) HIR_BLOCK0(ctx, ENDSCOPE);
         }
 
         _navigation_handler(t, ctx, smt);

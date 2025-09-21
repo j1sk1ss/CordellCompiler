@@ -8,6 +8,12 @@
         asm (a) {
             "mov {a}, rax"
         }
+
+        {
+            i32 b = 10;
+        }
+        i32 b = 11;
+
         exit foo(10);
     }
 }

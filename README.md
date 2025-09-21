@@ -231,169 +231,211 @@ Detailed description of every noted algorithms placed [here](https://github.com/
 # HIR generation
 `HIR` is the next presentation of program after `AST`. The main idea here is `AST` flattening for better and simpler optimization. This compiler uses 3AC (3-Address code) for `HIR`. Sample `HIR` of brfk interpreter:
 ```
-STRDECL strg: [str_0], str: [Brainfuck interpriter! Input code: ]
-FDCL str: [strlen]
-    FARGLD i64s: [8]
-    VARDECL i64s: [16], 0
-    GDREF i64t: [id=6], i64s: [8]
-    MKLB lb: [id=8]
-    IFOP i64t: [id=6], lb: [id=9]
-    iADD i64s: [8], i64s: [8], 1
-    iADD i64s: [16], i64s: [16], 1
-    JMP lb: [id=8]
-    MKLB lb: [id=9]
-    FRET i64s: [16]
-FEND
-
-FDCL str: [puts]
-    FARGLD i64s: [8]
-    PRMST 1
-    PRMST 1
-    PRMST i64s: [8]
-    FARGST i64s: [8]
-    FCLL i64t: [id=21], str: [strlen], 1
-    PRMST i64t: [id=21]
-    SYSC i64t: [id=24], 4
-    FRET i64t: [id=24]
-FEND 
-
-FDCL str: [gets]
-    FARGLD i64s: [8]
-    FARGLD i64s: [16]
-    PRMST 0
-    PRMST 0
-    PRMST i64s: [8]
-    PRMST i64s: [16]
-    SYSC i64t: [id=33], 4
-    FRET i64t: [id=33]
-FEND 
-
-ARRDECL arrg: [tape], 30000
-ARRDECL arrg: [bracketmap], 10000
-ARRDECL arrg: [stack], 10000
-ARRDECL arrg: [code], 10000
-
-STRT 
-    REF u64t: [id=44], strg: [str_0]
-    FARGST u64t: [id=44]
-    FCLL i64t: [id=45], str: [puts], 1
-    FARGST arrg: [code]
-    FARGST 10000
-    FCLL i64t: [id=50], str: [gets], 2
-
-    VARDECL i32s: [8], i64t: [id=50]
-    VARDECL i32s: [16], 0
-    VARDECL i32s: [24], 0
-    VARDECL i8s: [32], 43
-    VARDECL i8s: [40], 45
-    VARDECL i8s: [48], 46
-    VARDECL i8s: [56], 44
-    VARDECL i8s: [64], 60
-    VARDECL i8s: [72], 62
-    VARDECL i8s: [80], 91
-    VARDECL i8s: [88], 93
-
-    iLWR i32t: [id=76], i32s: [16], i32s: [8]
-    MKLB lb: [id=77]
-        IFOP i32t: [id=76], lb: [id=78]
-        GINDEX i8t: [id=81], arrg: [code], i32s: [16]
-        VARDECL i8s: [96], i8t: [id=81]
-
-        SWITCHOP i8s: [96], 2
-            MKCASE i8s: [80]
-                LINDEX arrg: [stack], i32s: [24], i32s: [16]
-                iADD i32s: [24], i32s: [24], 1
-            MKENDCASE 
-            MKCASE i8s: [88]
-                iLRG i64t: [id=94], i32s: [24], 0
-                IFOP i64t: [id=94], lb: [id=95]
-                iSUB i32s: [24], i32s: [24], 1
-                GINDEX i32t: [id=101], arrg: [stack], i32s: [24]
-                VARDECL i32s: [104], i32t: [id=101]
-                LINDEX arrg: [bracketmap], i32s: [16], i32s: [104]
-                LINDEX arrg: [bracketmap], i32s: [104], i32s: [16]
-                JMP lb: [id=96]
-                MKLB lb: [id=95]
-                MKLB lb: [id=96]
-            MKENDCASE 
-
-        iADD i64t: [id=111], i32s: [16], 1
-        STORE i32s: [16], i64t: [id=111]
-        JMP lb: [id=77]
-    MKLB lb: [id=78]
-
-    VARDECL i32s: [96], 0
-    VARDECL i32s: [104], 0
-
-    iLWR i32t: [id=119], i32s: [104], i32s: [8]
-    MKLB lb: [id=120]
-        IFOP i32t: [id=119], lb: [id=121]
-        GINDEX i8t: [id=124], arrg: [code], i32s: [104]
-        SWITCHOP i8t: [id=124], 9
-        MKCASE i8s: [72]
-            iADD i32s: [96], i32s: [96], 1
-            iADD i32s: [104], i32s: [104], 1
-        MKENDCASE 
-        MKCASE i8s: [64]
-            iSUB i32s: [96], i32s: [96], 1
-            iADD i32s: [104], i32s: [104], 1
-        MKENDCASE 
-        MKCASE i8s: [32]
-            GINDEX i8t: [id=139], arrg: [tape], i32s: [96]
-            iADD i8t: [id=139], i8t: [id=139], 1
-            iADD i32s: [104], i32s: [104], 1
-        MKENDCASE 
-        MKCASE i8s: [40]
-            GINDEX i8t: [id=146], arrg: [tape], i32s: [96]
-            iSUB i8t: [id=146], i8t: [id=146], 1
-            iADD i32s: [104], i32s: [104], 1
-        MKENDCASE 
-        MKCASE i8s: [48]
+========== HIR ==========
+MKSCOPE 
+   FDCL func: [fid=0]
+   FARGLD i64s: [vid=0]
+   MKSCOPE 
+      VARDECL i64s: [vid=1], 0
+      GDREF i64t: [tid=4], i64s: [vid=0]
+      MKLB lb: [id=6]
+      IFOP i64t: [tid=4], lb: [id=7]
+      MKSCOPE 
+         iADD i64s: [vid=0], i64s: [vid=0], 1
+         iADD i64s: [vid=1], i64s: [vid=1], 1
+         ENDSCOPE 
+      JMP lb: [id=6]
+      MKLB lb: [id=7]
+      FRET i64s: [vid=1]
+      ENDSCOPE 
+   FEND 
+   FDCL func: [fid=1]
+   FARGLD i64s: [vid=0]
+   MKSCOPE 
+      PRMST 1
+      PRMST 1
+      PRMST i64s: [vid=2]
+      FARGST i64s: [vid=2]
+      FCLL i64t: [tid=19], func: [fid=0], 1
+      PRMST i64t: [tid=19]
+      SYSC i64t: [tid=22], 4
+      FRET i64t: [tid=22]
+      ENDSCOPE 
+   FEND 
+   FDCL func: [fid=2]
+   FARGLD i64s: [vid=0]
+   FARGLD i64s: [vid=0]
+   MKSCOPE 
+      PRMST 0
+      PRMST 0
+      PRMST i64s: [vid=3]
+      PRMST i64s: [vid=4]
+      SYSC i64t: [tid=31], 4
+      FRET i64t: [tid=31]
+      ENDSCOPE 
+   FEND 
+   ARRDECL arrg: [tape], 30000
+   ARRDECL arrg: [bracketmap], 10000
+   ARRDECL arrg: [stack], 10000
+   ARRDECL arrg: [code], 10000
+   STRT 
+   STARGLD i64s: [vid=9]
+   STARGLD u64s: [vid=10]
+   MKSCOPE 
+      FARGST str: [std_id=0]
+      FCLL i64t: [tid=44], func: [fid=1], 1
+      FARGST arrg: [code]
+      FARGST 10000
+      FCLL i64t: [tid=49], func: [fid=2], 2
+      VARDECL i32s: [vid=11], i64t: [tid=49]
+      VARDECL i32s: [vid=12], 0
+      VARDECL i32s: [vid=13], 0
+      VARDECL i8s: [vid=14], 43
+      VARDECL i8s: [vid=15], 45
+      VARDECL i8s: [vid=16], 46
+      VARDECL i8s: [vid=17], 44
+      VARDECL i8s: [vid=18], 60
+      VARDECL i8s: [vid=19], 62
+      VARDECL i8s: [vid=20], 91
+      VARDECL i8s: [vid=21], 93
+      iLWR i32t: [tid=75], i32s: [vid=12], i32s: [vid=11]
+      MKLB lb: [id=76]
+      IFOP i32t: [tid=75], lb: [id=77]
+      MKSCOPE 
+         GINDEX i8t: [tid=80], arrg: [code], i32s: [vid=12]
+         VARDECL i8s: [vid=22], i8t: [tid=80]
+         SWITCHOP i8s: [vid=22], 2
+         MKCASE i8s: [vid=20]
+         MKSCOPE 
+            GINDEX i32t: [tid=89], arrg: [stack], i32s: [vid=13]
+            LINDEX i32t: [tid=89], i32s: [vid=13], i32s: [vid=12]
+            iADD i32s: [vid=13], i32s: [vid=13], 1
+            ENDSCOPE 
+         MKENDCASE 
+         MKCASE i8s: [vid=21]
+         MKSCOPE 
+            iLRG i64t: [tid=95], i32s: [vid=13], 0
+            IFOP i64t: [tid=95], lb: [id=96]
+            MKSCOPE 
+               iSUB i32s: [vid=13], i32s: [vid=13], 1
+               GINDEX i32t: [tid=102], arrg: [stack], i32s: [vid=13]
+               VARDECL i32s: [vid=23], i32t: [tid=102]
+               GINDEX i32t: [tid=108], arrg: [bracketmap], i32s: [vid=12]
+               LINDEX i32t: [tid=108], i32s: [vid=12], i32s: [vid=23]
+               GINDEX i32t: [tid=113], arrg: [bracketmap], i32s: [vid=23]
+               LINDEX i32t: [tid=113], i32s: [vid=23], i32s: [vid=12]
+               ENDSCOPE 
+            JMP lb: [id=97]
+            MKLB lb: [id=96]
+            MKLB lb: [id=97]
+            ENDSCOPE 
+         MKENDCASE 
+         iADD i64t: [tid=116], i32s: [vid=12], 1
+         STORE i32s: [vid=12], i64t: [tid=116]
+         ENDSCOPE 
+      JMP lb: [id=76]
+      MKLB lb: [id=77]
+      VARDECL i32s: [vid=24], 0
+      VARDECL i32s: [vid=25], 0
+      iLWR i32t: [tid=124], i32s: [vid=25], i32s: [vid=11]
+      MKLB lb: [id=125]
+      IFOP i32t: [tid=124], lb: [id=126]
+      MKSCOPE 
+         GINDEX i8t: [tid=129], arrg: [code], i32s: [vid=25]
+         SWITCHOP i8t: [tid=129], 9
+         MKCASE i8s: [vid=19]
+         MKSCOPE 
+            iADD i32s: [vid=24], i32s: [vid=24], 1
+            iADD i32s: [vid=25], i32s: [vid=25], 1
+            ENDSCOPE 
+         MKENDCASE 
+         MKCASE i8s: [vid=18]
+         MKSCOPE 
+            iSUB i32s: [vid=24], i32s: [vid=24], 1
+            iADD i32s: [vid=25], i32s: [vid=25], 1
+            ENDSCOPE 
+         MKENDCASE 
+         MKCASE i8s: [vid=14]
+         MKSCOPE 
+            GINDEX i8t: [tid=144], arrg: [tape], i32s: [vid=24]
+            iADD i8t: [tid=144], i8t: [tid=144], 1
+            iADD i32s: [vid=25], i32s: [vid=25], 1
+            ENDSCOPE 
+         MKENDCASE 
+         MKCASE i8s: [vid=15]
+         MKSCOPE 
+            GINDEX i8t: [tid=151], arrg: [tape], i32s: [vid=24]
+            iSUB i8t: [tid=151], i8t: [tid=151], 1
+            iADD i32s: [vid=25], i32s: [vid=25], 1
+            ENDSCOPE 
+         MKENDCASE 
+         MKCASE i8s: [vid=16]
+         MKSCOPE 
             PRMST 1
             PRMST 1
-            iADD i64t: [id=155], arrg: [tape], i32s: [96]
-            PRMST i64t: [id=155]
+            iADD i64t: [tid=160], arrg: [tape], i32s: [vid=24]
+            PRMST i64t: [tid=160]
             PRMST 1
-            SYSC i64t: [id=157], 4
-            iADD i32s: [104], i32s: [104], 1
-        MKENDCASE 
-        MKCASE i8s: [56]
+            SYSC i64t: [tid=162], 4
+            iADD i32s: [vid=25], i32s: [vid=25], 1
+            ENDSCOPE 
+         MKENDCASE 
+         MKCASE i8s: [vid=17]
+         MKSCOPE 
             PRMST 0
             PRMST 0
-            GINDEX i8t: [id=166], arrg: [tape], i32s: [96]
-            REF u64t: [id=167], i8t: [id=166]
-            PRMST u64t: [id=167]
+            GINDEX i8t: [tid=171], arrg: [tape], i32s: [vid=24]
+            REF u64t: [tid=172], i8t: [tid=171]
+            PRMST u64t: [tid=172]
             PRMST 1
-            SYSC i64t: [id=169], 4
-            iADD i32s: [104], i32s: [104], 1
-        MKENDCASE 
-        MKCASE i8s: [80]
-            GINDEX i8t: [id=176], arrg: [tape], i32s: [96]
-            NOT i8t: [id=177], i8t: [id=176]
-            IFOP i8t: [id=177], lb: [id=178]
-            GINDEX i32t: [id=182], arrg: [bracketmap], i32s: [104]
-            STORE i32s: [104], i32t: [id=182]
-            JMP lb: [id=179]
-            MKLB lb: [id=178]
-            iADD i32s: [104], i32s: [104], 1
-            MKLB lb: [id=179]
-        MKENDCASE 
-        MKCASE i8s: [88]
-            GINDEX i8t: [id=189], arrg: [tape], i32s: [96]
-            IFOP i8t: [id=189], lb: [id=190]
-            GINDEX i32t: [id=194], arrg: [bracketmap], i32s: [104]
-            STORE i32s: [104], i32t: [id=194]
-            JMP lb: [id=191]
-            MKLB lb: [id=190]
-            iADD i32s: [104], i32s: [104], 1
-            MKLB lb: [id=191]
-        MKENDCASE 
-        MKDEFCASE 
-            iADD i32s: [104], i32s: [104], 1
-        MKENDCASE 
-    JMP lb: [id=120]
-    MKLB lb: [id=121]
-EXITOP 1
+            SYSC i64t: [tid=174], 4
+            iADD i32s: [vid=25], i32s: [vid=25], 1
+            ENDSCOPE 
+         MKENDCASE 
+         MKCASE i8s: [vid=20]
+         MKSCOPE 
+            GINDEX i8t: [tid=181], arrg: [tape], i32s: [vid=24]
+            NOT i8t: [tid=182], i8t: [tid=181]
+            IFOP i8t: [tid=182], lb: [id=183]
+            MKSCOPE 
+               GINDEX i32t: [tid=187], arrg: [bracketmap], i32s: [vid=25]
+               STORE i32s: [vid=25], i32t: [tid=187]
+               ENDSCOPE 
+            JMP lb: [id=184]
+            MKLB lb: [id=183]
+            MKSCOPE 
+               iADD i32s: [vid=25], i32s: [vid=25], 1
+               ENDSCOPE 
+            MKLB lb: [id=184]
+            ENDSCOPE 
+         MKENDCASE 
+         MKCASE i8s: [vid=21]
+         MKSCOPE 
+            GINDEX i8t: [tid=194], arrg: [tape], i32s: [vid=24]
+            IFOP i8t: [tid=194], lb: [id=195]
+            MKSCOPE 
+               GINDEX i32t: [tid=199], arrg: [bracketmap], i32s: [vid=25]
+               STORE i32s: [vid=25], i32t: [tid=199]
+               ENDSCOPE 
+            JMP lb: [id=196]
+            MKLB lb: [id=195]
+            MKSCOPE 
+               iADD i32s: [vid=25], i32s: [vid=25], 1
+               ENDSCOPE 
+            MKLB lb: [id=196]
+            ENDSCOPE 
+         MKENDCASE 
+         MKDEFCASE 
+         MKSCOPE 
+            iADD i32s: [vid=25], i32s: [vid=25], 1
+            ENDSCOPE 
+         MKENDCASE 
+         ENDSCOPE 
+      JMP lb: [id=125]
+      MKLB lb: [id=126]
+      EXITOP 1
+      ENDSCOPE 
+   ENDSCOPE
 ```
 
 # HIR optimization

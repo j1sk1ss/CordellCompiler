@@ -8,6 +8,7 @@
 #include <hir/hirgens/hirgens.h>
 #include "ast_helper.h"
 
+static int _depth = 0;
 static const char* hir_op_to_string(hir_operation_t op) {
     switch(op) {
         case STARGLD:   return "STARGLD";
@@ -92,6 +93,8 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case ALLCH:     return "ALLCH";
         case DEALLH:    return "DEALLH";
         case EXITOP:    return "EXITOP";
+        case MKSCOPE:   _depth++; return "MKSCOPE";
+        case ENDSCOPE:  _depth--; return "ENDSCOPE";
         default:        return "UNKNOWN_OP";
     }
 }
@@ -148,6 +151,7 @@ static void print_hir_subject(const hir_subject_t* s) {
 
 void print_hir_block(const hir_block_t* block) {
     if (!block) return;
+    for (int i = 0; i < _depth; i++) printf("   ");
     printf("%s ", hir_op_to_string(block->op), block->args);
     print_hir_subject(block->farg); if (block->sarg) printf(", ");
     print_hir_subject(block->sarg); if (block->targ) printf(", ");
