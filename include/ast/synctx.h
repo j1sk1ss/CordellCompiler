@@ -1,12 +1,10 @@
 #ifndef SYNCTX_H_
 #define SYNCTX_H_
 
+#include <ast/ast.h>
 #include <std/stack.h>
 #include <prep/token.h>
-#include <ast/ast.h>
-#include <ast/tables/vartb.h>
-#include <ast/tables/arrtb.h>
-#include <ast/tables/functb.h>
+#include <symtab/symtab.h>
 
 typedef struct {
     int           s_id;
@@ -14,14 +12,8 @@ typedef struct {
 } scope_info_t;
 
 typedef struct {
-    vartab_ctx_t*  vars;
-    arrtab_ctx_t*  arrs;
-    functab_ctx_t* funcs;
-} sym_tables_t;
-
-typedef struct syntax_ctx {
     ast_node_t*  r;
-    sym_tables_t symtb;
+    sym_table_t  symtb;
     scope_info_t scopes;
 } syntax_ctx_t;
 

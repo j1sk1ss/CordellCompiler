@@ -8,8 +8,6 @@
 #include <prep/markup.h>
 
 #include <ast/syntax.h>
-#include <ast/tables/vartb.h>
-#include <ast/tables/arrtb.h>
 #include <ast/opt/deadopt.h>
 #include <ast/opt/strdecl.h>
 #include <ast/opt/constopt.h>

@@ -1,4 +1,4 @@
-#include <ast/tables/vartb.h>
+#include <symtab/vartb.h>
 
 vartab_ctx_t* VRT_create_ctx() {
     vartab_ctx_t* ctx = (vartab_ctx_t*)mm_malloc(sizeof(vartab_ctx_t));

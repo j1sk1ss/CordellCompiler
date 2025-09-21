@@ -28,7 +28,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx) {
                     hir_subject_t* base  = HIR_SUBJ_VAR(node);
                     
                     array_info_t ai;
-                    if (ART_get_info(node->token->value, node->sinfo.s_id, &ai, ctx->synt->symtb.arrs)) {
+                    if (ART_get_info(node->token->value, node->sinfo.s_id, &ai, ctx->synt->symtb.a)) {
                         tmp.t_type = ai.el_type;
                     }
 

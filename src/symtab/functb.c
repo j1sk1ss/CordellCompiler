@@ -1,4 +1,4 @@
-#include <ast/tables/functb.h>
+#include <symtab/functb.h>
 
 functab_ctx_t* FNT_create_ctx() {
     functab_ctx_t* ctx = (functab_ctx_t*)mm_malloc(sizeof(functab_ctx_t));

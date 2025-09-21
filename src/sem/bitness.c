@@ -1,6 +1,6 @@
 #include <sem/semantic.h>
 
-static int _check_exp_bitness(ast_node_t* r, sym_tables_t* smt) {
+static int _check_exp_bitness(ast_node_t* r, sym_table_t* smt) {
     if (!r || !r->token) return 1;
     if (VRS_isoperand(r->token) || VRS_isdecl(r->token)) {
         if (!r->child) return -1;
@@ -26,7 +26,7 @@ static int _check_exp_bitness(ast_node_t* r, sym_tables_t* smt) {
     }
     else if (r->token->t_type == CALL_TOKEN) {
         func_info_t finfo;
-        if (FNT_get_info(r->token->value, &finfo, smt->funcs) && finfo.rtype) return VRS_variable_bitness(finfo.rtype->token, 1);
+        if (FNT_get_info(r->token->value, &finfo, smt->f) && finfo.rtype) return VRS_variable_bitness(finfo.rtype->token, 1);
         else return BASE_BITNESS / 8;
     }
     else {
@@ -34,15 +34,18 @@ static int _check_exp_bitness(ast_node_t* r, sym_tables_t* smt) {
     }
 }
 
-int SMT_check_bitness(ast_node_t* node, sym_tables_t* smt) {
-    if (!node) return 1;
-    int result = 1;
-    
-    for (ast_node_t* t = node; t; t = t->sibling) {
-        SMT_check_bitness(t->child, smt);
+int _check_bitness(ast_node_t* r, sym_table_t* smt) {
+    if (!r) return 1;
+    for (ast_node_t* t = r; t; t = t->sibling) {
+        SMT_check_bitness(t->child);
         if (!t->token) continue;
         _check_exp_bitness(t, smt);
     }
-    
-    return result;
+
+    return 1;
+}
+
+int SMT_check_bitness(syntax_ctx_t* sctx) {
+    if (!sctx->r) return 0;
+    return _check_bitness(sctx->r, &sctx->symtb);
 }

@@ -1,4 +1,4 @@
-#include <ast/tables/arrtb.h>
+#include <symtab/arrtb.h>
 
 arrtab_ctx_t* ART_create_ctx() {
     arrtab_ctx_t* ctx = (arrtab_ctx_t*)mm_malloc(sizeof(arrtab_ctx_t));

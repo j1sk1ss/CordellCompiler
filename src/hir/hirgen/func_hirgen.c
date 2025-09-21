@@ -16,7 +16,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx) {
     }
 
     func_info_t fi;
-    FNT_get_info(name->token->value, &fi, ctx->synt->symtb.funcs);
+    FNT_get_info(name->token->value, &fi, ctx->synt->symtb.f);
 
     hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(fi.rtype ? fi.rtype->token : NULL));
     HIR_BLOCK3(ctx, FCLL, res, HIR_SUBJ_STRING(name->token->value), HIR_SUBJ_CONST(arg_count));

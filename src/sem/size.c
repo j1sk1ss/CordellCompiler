@@ -6,7 +6,7 @@ static inline unsigned long long _max_for_bits(int bitness) {
     return (1ULL << bitness) - 1;
 }
 
-int SMT_check_sizes(ast_node_t* node) {
+int _check_sizes(ast_node_t* node) {
     if (!node) return 1;
     int result = 1;
     
@@ -85,4 +85,9 @@ int SMT_check_sizes(ast_node_t* node) {
     }
     
     return result;
+}
+
+int SMT_check_sizes(syntax_ctx_t* sctx) {
+    if (!sctx->r) return 0;
+    return _check_sizes(sctx->r);
 }

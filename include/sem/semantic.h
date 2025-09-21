@@ -11,24 +11,24 @@
 #include <limits.h>
 
 /* heapper.c */
-int SMT_check_heap_usage(ast_node_t* node);
+int SMT_check_heap_usage(syntax_ctx_t* sctx);
 
 /* ownership.c */
-int SMT_check_ownership(ast_node_t* node);
+int SMT_check_ownership(syntax_ctx_t* sctx);
 
 /* rettype.c */
-int SMT_check_rettype(ast_node_t* node);
+int SMT_check_rettype(syntax_ctx_t* sctx);
 
 /* ro.c */
-int SMT_check_ro(ast_node_t* node);
+int SMT_check_ro(syntax_ctx_t* sctx);
 
 /* size.c */
-int SMT_check_sizes(ast_node_t* node);
+int SMT_check_sizes(syntax_ctx_t* sctx);
 
 /* bitness.c */
-int SMT_check_bitness(ast_node_t* node, sym_tables_t* smt);
+int SMT_check_bitness(syntax_ctx_t* sctx);
 
 /* semantic.c */
-int SMT_check(ast_node_t* node, sym_tables_t* smt);
+int SMT_check(syntax_ctx_t* sctx);
 
 #endif

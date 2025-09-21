@@ -8,8 +8,7 @@
 #include <prep/token.h>
 #include <ast/ast.h>
 #include <ast/synctx.h>
-#include <ast/tables/vartb.h>
-#include <ast/tables/arrtb.h>
+#include <symtab/symtab.h>
 
 /* cpl_block.c */
 ast_node_t* cpl_parse_block(token_t** curr, syntax_ctx_t* ctx, token_type_t ex);

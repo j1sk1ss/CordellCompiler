@@ -6,7 +6,7 @@
 #include <std/stack.h>
 #include <prep/token.h>
 #include <ast/syntax.h>
-#include <ast/tables/vartb.h>
+#include <symtab/symtab.h>
 
 /*
 Unroll [IF], [WHILE] and [SWITCH] statements. 

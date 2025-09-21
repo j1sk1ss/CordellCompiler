@@ -191,9 +191,9 @@ static int _find_declarations(ast_node_t* r, ownership_t* ctx) {
     return 1; 
 } 
 
-int SMT_check_ownership(ast_node_t* node) { 
+int SMT_check_ownership(syntax_ctx_t* sctx) { 
     ownership_t ctx = { .h = NULL };
-    _find_declarations(node, &ctx);
+    _find_declarations(sctx->r, &ctx);
 
     for (def_t* v = ctx.h; v; v = v->next) {
         int owners = 0;

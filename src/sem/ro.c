@@ -1,11 +1,10 @@
 #include <sem/semantic.h>
 
-int SMT_check_ro(ast_node_t* node) {
-    if (!node) return 1;
+static int _check_ro(ast_node_t* r) {
+    if (!r) return 1;
     int result = 1;
-    
-    for (ast_node_t* t = node; t; t = t->sibling) {
-        result = SMT_check_ro(t->child) && result;
+    for (ast_node_t* t = r; t; t = t->sibling) {
+        result = _check_ro(t->child) && result;
         if (!t->token) continue;
         if (t->token->t_type != ASSIGN_TOKEN) continue;
         if (t->child->token->flags.ro) {
@@ -16,4 +15,9 @@ int SMT_check_ro(ast_node_t* node) {
     }
     
     return result;
+}
+
+int SMT_check_ro(syntax_ctx_t* sctx) {
+    if (!sctx->r) return 0;
+    return _check_ro(sctx->r);
 }

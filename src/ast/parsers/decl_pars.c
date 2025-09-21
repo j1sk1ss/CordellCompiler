@@ -44,7 +44,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx) {
 
         ART_add_info(
             name_node->token->value, scope_id_top(&ctx->scopes.stack), 
-            el_size, elem_size_node->token->t_type, array_size, ctx->symtb.arrs
+            el_size, elem_size_node->token->t_type, array_size, ctx->symtb.a
         );
     }
 
@@ -100,7 +100,7 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx) {
             if (value_node->token->t_type == STRING_VALUE_TOKEN) var_size = ALIGN(str_strlen(value_node->token->value));
             ART_add_info(
                 name_node->token->value, scope_id_top(&ctx->scopes.stack), 
-                1, I8_TYPE_TOKEN, node->sinfo.size, ctx->symtb.arrs
+                1, I8_TYPE_TOKEN, node->sinfo.size, ctx->symtb.a
             );
         }
 

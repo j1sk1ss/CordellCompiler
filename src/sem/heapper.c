@@ -1,10 +1,9 @@
 #include <sem/semantic.h>
 
-int SMT_check_heap_usage(ast_node_t* node) {
-    if (!node) return 1;
+int _chech_heap_usage(ast_node_t* r) {
+    if (!r) return 1;
     int result = 1;
-    
-    for (ast_node_t* t = node; t; t = t->sibling) {
+    for (ast_node_t* t = r; t; t = t->sibling) {
         result = SMT_check_heap_usage(t->child) && result;
         if (!t->token) continue;
         if (t->token->t_type != ASSIGN_TOKEN) continue;
@@ -16,4 +15,9 @@ int SMT_check_heap_usage(ast_node_t* node) {
     }
     
     return result;
+}
+
+int SMT_check_heap_usage(syntax_ctx_t* sctx) {
+    if (!sctx->r) return 1;
+    return _chech_heap_usage(sctx->r);
 }

@@ -183,9 +183,9 @@ int main(int argc, char* argv[]) {
     functab_ctx_t fctx = { .h = NULL };
     syntax_ctx_t sctx  = { 
         .symtb = {
-            .arrs  = &actx,
-            .vars  = &vctx,
-            .funcs = &fctx
+            .a = &actx,
+            .v = &vctx,
+            .f = &fctx
         }
     };
 

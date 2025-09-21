@@ -7,8 +7,10 @@
     - [AST generating](#ast)
     - [Semantic check](#semantic-check)
     - [AST optimization](#ast-optimization)
-    - [IR generation](#ir-generation)
-    - [IR optimization](#ir-optimization)
+    - [HIR generation](#hir-generation)
+    - [HIR optimization](#hir-optimization)
+    - [LIR generation](#lir-generation)
+    - [LIR optimization](#lir-optimization)
     - [Micro-code generation](#micro-code-generation)
 - [Documentation](#documentation)
     - [Structure](#program-structure)
@@ -226,9 +228,179 @@ Semantic module takes care under size, operation and commands correctness. In ot
 
 Detailed description of every noted algorithms placed [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/opt/README.md).
 
-# IR generation
+# HIR generation
+`HIR` is the next presentation of program after `AST`. The main idea here is `AST` flattening for better and simpler optimization. This compiler uses 3AC (3-Address code) for `HIR`. Sample `HIR` of brfk interpreter:
+```
+STRDECL strg: [str_0], str: [Brainfuck interpriter! Input code: ]
+FDCL str: [strlen]
+    FARGLD i64s: [8]
+    VARDECL i64s: [16], 0
+    GDREF i64t: [id=6], i64s: [8]
+    MKLB lb: [id=8]
+    IFOP i64t: [id=6], lb: [id=9]
+    iADD i64s: [8], i64s: [8], 1
+    iADD i64s: [16], i64s: [16], 1
+    JMP lb: [id=8]
+    MKLB lb: [id=9]
+    FRET i64s: [16]
+FEND
 
-# IR optimization
+FDCL str: [puts]
+    FARGLD i64s: [8]
+    PRMST 1
+    PRMST 1
+    PRMST i64s: [8]
+    FARGST i64s: [8]
+    FCLL i64t: [id=21], str: [strlen], 1
+    PRMST i64t: [id=21]
+    SYSC i64t: [id=24], 4
+    FRET i64t: [id=24]
+FEND 
+
+FDCL str: [gets]
+    FARGLD i64s: [8]
+    FARGLD i64s: [16]
+    PRMST 0
+    PRMST 0
+    PRMST i64s: [8]
+    PRMST i64s: [16]
+    SYSC i64t: [id=33], 4
+    FRET i64t: [id=33]
+FEND 
+
+ARRDECL arrg: [tape], 30000
+ARRDECL arrg: [bracketmap], 10000
+ARRDECL arrg: [stack], 10000
+ARRDECL arrg: [code], 10000
+
+STRT 
+    REF u64t: [id=44], strg: [str_0]
+    FARGST u64t: [id=44]
+    FCLL i64t: [id=45], str: [puts], 1
+    FARGST arrg: [code]
+    FARGST 10000
+    FCLL i64t: [id=50], str: [gets], 2
+
+    VARDECL i32s: [8], i64t: [id=50]
+    VARDECL i32s: [16], 0
+    VARDECL i32s: [24], 0
+    VARDECL i8s: [32], 43
+    VARDECL i8s: [40], 45
+    VARDECL i8s: [48], 46
+    VARDECL i8s: [56], 44
+    VARDECL i8s: [64], 60
+    VARDECL i8s: [72], 62
+    VARDECL i8s: [80], 91
+    VARDECL i8s: [88], 93
+
+    iLWR i32t: [id=76], i32s: [16], i32s: [8]
+    MKLB lb: [id=77]
+        IFOP i32t: [id=76], lb: [id=78]
+        GINDEX i8t: [id=81], arrg: [code], i32s: [16]
+        VARDECL i8s: [96], i8t: [id=81]
+
+        SWITCHOP i8s: [96], 2
+            MKCASE i8s: [80]
+                LINDEX arrg: [stack], i32s: [24], i32s: [16]
+                iADD i32s: [24], i32s: [24], 1
+            MKENDCASE 
+            MKCASE i8s: [88]
+                iLRG i64t: [id=94], i32s: [24], 0
+                IFOP i64t: [id=94], lb: [id=95]
+                iSUB i32s: [24], i32s: [24], 1
+                GINDEX i32t: [id=101], arrg: [stack], i32s: [24]
+                VARDECL i32s: [104], i32t: [id=101]
+                LINDEX arrg: [bracketmap], i32s: [16], i32s: [104]
+                LINDEX arrg: [bracketmap], i32s: [104], i32s: [16]
+                JMP lb: [id=96]
+                MKLB lb: [id=95]
+                MKLB lb: [id=96]
+            MKENDCASE 
+
+        iADD i64t: [id=111], i32s: [16], 1
+        STORE i32s: [16], i64t: [id=111]
+        JMP lb: [id=77]
+    MKLB lb: [id=78]
+
+    VARDECL i32s: [96], 0
+    VARDECL i32s: [104], 0
+
+    iLWR i32t: [id=119], i32s: [104], i32s: [8]
+    MKLB lb: [id=120]
+        IFOP i32t: [id=119], lb: [id=121]
+        GINDEX i8t: [id=124], arrg: [code], i32s: [104]
+        SWITCHOP i8t: [id=124], 9
+        MKCASE i8s: [72]
+            iADD i32s: [96], i32s: [96], 1
+            iADD i32s: [104], i32s: [104], 1
+        MKENDCASE 
+        MKCASE i8s: [64]
+            iSUB i32s: [96], i32s: [96], 1
+            iADD i32s: [104], i32s: [104], 1
+        MKENDCASE 
+        MKCASE i8s: [32]
+            GINDEX i8t: [id=139], arrg: [tape], i32s: [96]
+            iADD i8t: [id=139], i8t: [id=139], 1
+            iADD i32s: [104], i32s: [104], 1
+        MKENDCASE 
+        MKCASE i8s: [40]
+            GINDEX i8t: [id=146], arrg: [tape], i32s: [96]
+            iSUB i8t: [id=146], i8t: [id=146], 1
+            iADD i32s: [104], i32s: [104], 1
+        MKENDCASE 
+        MKCASE i8s: [48]
+            PRMST 1
+            PRMST 1
+            iADD i64t: [id=155], arrg: [tape], i32s: [96]
+            PRMST i64t: [id=155]
+            PRMST 1
+            SYSC i64t: [id=157], 4
+            iADD i32s: [104], i32s: [104], 1
+        MKENDCASE 
+        MKCASE i8s: [56]
+            PRMST 0
+            PRMST 0
+            GINDEX i8t: [id=166], arrg: [tape], i32s: [96]
+            REF u64t: [id=167], i8t: [id=166]
+            PRMST u64t: [id=167]
+            PRMST 1
+            SYSC i64t: [id=169], 4
+            iADD i32s: [104], i32s: [104], 1
+        MKENDCASE 
+        MKCASE i8s: [80]
+            GINDEX i8t: [id=176], arrg: [tape], i32s: [96]
+            NOT i8t: [id=177], i8t: [id=176]
+            IFOP i8t: [id=177], lb: [id=178]
+            GINDEX i32t: [id=182], arrg: [bracketmap], i32s: [104]
+            STORE i32s: [104], i32t: [id=182]
+            JMP lb: [id=179]
+            MKLB lb: [id=178]
+            iADD i32s: [104], i32s: [104], 1
+            MKLB lb: [id=179]
+        MKENDCASE 
+        MKCASE i8s: [88]
+            GINDEX i8t: [id=189], arrg: [tape], i32s: [96]
+            IFOP i8t: [id=189], lb: [id=190]
+            GINDEX i32t: [id=194], arrg: [bracketmap], i32s: [104]
+            STORE i32s: [104], i32t: [id=194]
+            JMP lb: [id=191]
+            MKLB lb: [id=190]
+            iADD i32s: [104], i32s: [104], 1
+            MKLB lb: [id=191]
+        MKENDCASE 
+        MKDEFCASE 
+            iADD i32s: [104], i32s: [104], 1
+        MKENDCASE 
+    JMP lb: [id=120]
+    MKLB lb: [id=121]
+EXITOP 1
+```
+
+# HIR optimization
+
+# LIR generation
+
+# LIR optimization
 
 # Micro-code generation
 Additional micro-code generation for `NASM GNU x86_64` arch examples noted [here](https://github.com/j1sk1ss/CordellCompiler.PETPRJ/src/gen/x86_64_nasm_gnu/README.md). Main examples of microcode generation is `switch` generation, `asm` block generation, float point arithmetic generation and VLA in heap.
@@ -862,3 +1034,4 @@ If you want see more examples, please look into the folder `examples` or `tests`
 - Implementing Programming Languages. An Introduction to Compilers and Interpreters. Aarne Ranta.
 - Compilers Principles, Techniques, and Tools. Second Edition. Aho Lam Sethi Ullman.
 - Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition. Daniel Kusswurm.
+- Compilers Principles, Techniques, and Tools. Second Edition. Alfred V. Aho, Monica S. Lam, Ravi Sethi, Jeffrey D. Ullman
