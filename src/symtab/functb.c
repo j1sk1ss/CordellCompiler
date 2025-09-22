@@ -1,5 +1,19 @@
 #include <symtab/functb.h>
 
+int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx) {
+    func_info_t* h = ctx->h;
+    while (h) {
+        if (h->id == id) {
+            if (out) str_memcpy(out, h, sizeof(func_info_t));
+            return 1;
+        }
+        
+        h = h->next;
+    }
+
+    return 0;
+}
+
 int FNTB_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx) {
     func_info_t* h = ctx->h;
     while (h) {

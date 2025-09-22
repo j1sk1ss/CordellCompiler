@@ -19,6 +19,7 @@ typedef struct func_ctx {
     func_info_t* h;
 } functab_ctx_t;
 
+int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx);
 int FNTB_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx);
 int FNTB_add_info(const char* name, int global, int external, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
 int FNTB_unload(functab_ctx_t* ctx);

@@ -172,8 +172,8 @@ int HIR_destroy_ctx(hir_ctx_t* ctx);
 
 #define HIR_SUBJ_VAR(n) HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_stktype(n->token), n->sinfo.s_id)
 
-#define HIR_SUBJ_TMPVAR(kind) \
-    HIR_create_subject(HIR_get_tmp_type(kind), 0, 0, NULL, 0, -1)
+#define HIR_SUBJ_TMPVAR(kind, id) \
+    HIR_create_subject(HIR_get_tmp_type(kind), 0, id, NULL, 0, -1)
 
 #define HIR_SUBJ_LABEL() \
     HIR_create_subject(LABEL, 0, 0, NULL, 0, -1)

@@ -6,8 +6,8 @@
 #define MAX_SCOPE_DEPTH 1024
 
 typedef struct {
-    short id;
-    int   offset;
+    long id;
+    long offset;
 } scope_elem_t;
 
 typedef struct {
@@ -19,12 +19,12 @@ static inline void scope_reset(scope_stack_t* st) {
     st->top = -1;
 }
 
-static inline void scope_push(scope_stack_t* st, short id, int offset) {
+static inline void scope_push(scope_stack_t* st, long id, long offset) {
     st->data[++st->top].id   = id;
     st->data[st->top].offset = offset;
 }
 
-static inline void scope_push_id(scope_stack_t* st, short id) {
+static inline void scope_push_id(scope_stack_t* st, long id) {
     st->data[++st->top].id   = id;
     st->data[st->top].offset = 0;
 }
@@ -45,6 +45,28 @@ static inline void scope_pop_top(scope_stack_t* st, scope_elem_t* e) {
 
 static inline short scope_id_top(scope_stack_t* st) {
     return (st->top >= 0) ? st->data[st->top].id : -1;
+}
+
+typedef struct {
+    void* data;
+} stack_elem_t;
+
+typedef struct {
+    stack_elem_t data[MAX_SCOPE_DEPTH];
+    int          top;
+} sstack_t;
+
+static inline void stack_push(sstack_t* st, void* data) {
+    st->data[++st->top].data = data;
+}
+
+static inline void stack_pop(sstack_t* st) {
+    if (st->top >= 0) st->top--;
+}
+
+static inline void stack_top(sstack_t* st, stack_elem_t* e) {
+    if (st->top < 0) e->data = NULL;
+    else str_memcpy(e, &st->data[st->top], sizeof(scope_elem_t));
 }
 
 #endif

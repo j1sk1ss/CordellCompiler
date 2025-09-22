@@ -91,18 +91,18 @@ static void print_hir_subject(const hir_subject_t* s) {
         case STKVARI16:  printf("i16s: [vid=%d]", s->storage.var.v_id);   break;
         case STKVARU8:   printf("u8s: [vid=%d]", s->storage.var.v_id);    break;
         case STKVARI8:   printf("i8s: [vid=%d]", s->storage.var.v_id);    break;
-        case TMPVARSTR:  printf("strt: [tid=%d]", s->id);                 break;
-        case TMPVARARR:  printf("arrt: [tid=%d]", s->id);                 break;
-        case TMPVARF64:  printf("f64t: [tid=%d]", s->id);                 break;
-        case TMPVARU64:  printf("u64t: [tid=%d]", s->id);                 break;
-        case TMPVARI64:  printf("i64t: [tid=%d]", s->id);                 break;
-        case TMPVARF32:  printf("f32t: [tid=%d]", s->id);                 break;
-        case TMPVARU32:  printf("u32t: [tid=%d]", s->id);                 break;
-        case TMPVARI32:  printf("i32t: [tid=%d]", s->id);                 break;
-        case TMPVARU16:  printf("u16t: [tid=%d]", s->id);                 break;
-        case TMPVARI16:  printf("i16t: [tid=%d]", s->id);                 break;
-        case TMPVARU8:   printf("u8t: [tid=%d]", s->id);                  break;
-        case TMPVARI8:   printf("i8t: [tid=%d]", s->id);                  break;
+        case TMPVARSTR:  printf("strt: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARARR:  printf("arrt: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARF64:  printf("f64t: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARU64:  printf("u64t: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARI64:  printf("i64t: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARF32:  printf("f32t: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARU32:  printf("u32t: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARI32:  printf("i32t: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARU16:  printf("u16t: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARI16:  printf("i16t: [tid=%d]", s->storage.var.v_id);   break;
+        case TMPVARU8:   printf("u8t: [tid=%d]", s->storage.var.v_id);    break;
+        case TMPVARI8:   printf("i8t: [tid=%d]", s->storage.var.v_id);    break;
         case GLBVARSTR:  printf("strg: [gid=%i]", s->storage.var.v_id);   break;
         case GLBVARARR:  printf("arrg: [gid=%i]", s->storage.var.v_id);   break;
         case GLBVARF64:  printf("f64g: [gid=%i]", s->storage.var.v_id);   break;
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
     printf("==========   VARS  ==========\n");
     variable_info_t* vh = smt.v.h;
     while (vh) {
-        printf("id: %i, name: %s, scope: %i\n", vh->v_id, vh->name, vh->s_id);
+        printf("id: %i, %s, type: %i, s_id: %i\n", vh->v_id, vh->name, vh->type, vh->s_id);
         vh = vh->next;
     }
 

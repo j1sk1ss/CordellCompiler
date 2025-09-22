@@ -35,6 +35,9 @@ typedef struct {
 
 typedef enum {
     /* Operations */
+        /* x86_64 ASM commands */
+        LIR_MKGLB, // global keyword
+
         /* Commands */
         LIR_FCLL, // function call
         LIR_ECLL, // extern function call
@@ -82,7 +85,9 @@ typedef enum {
 
         LIR_fMOV, // float move
         LIR_fMVf, // float to float move
-        LIR_LEA,  // lea move
+        LIR_REF,  // lea move
+        LIR_GDREF, // get value from address
+        LIR_LDREF, // set valye by address
         LIR_PUSH, // push
         LIR_POP,  // pop
 
@@ -195,11 +200,17 @@ int LIR_destroy_ctx(lir_ctx_t* ctx);
 #define LIR_SUBJ_VAR(kind, off, sz) \
     LIR_create_subject(kind, 0, off, NULL, 0, sz, 0)
 
+#define LIR_SUBJ_OFF(off, sz) \
+    LIR_create_subject(MEMORY, 0, off, NULL, 0, sz, 0)
+
 #define LIR_SUBJ_LABEL() \
     LIR_create_subject(LABEL, 0, 0, NULL, 0, 0, 0)
 
 #define LIR_SUBJ_RAWASM(l) \
     LIR_create_subject(RAWASM, 0, l, NULL, 0, 0, 0)
+
+#define LIR_SUBJ_STRING(id) \
+    LIR_create_subject(FNAME, 0, id, NULL, 0, 0, -1)
 
 #define LIR_SUBJ_FUNCNAME(n) \
     LIR_create_subject(FNAME, 0, n->storage.str.s_id, NULL, 0, 0, -1)

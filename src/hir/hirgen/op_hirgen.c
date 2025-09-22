@@ -36,7 +36,12 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
 
     hir_subject_t* lt1 = HIR_generate_elem(left, ctx, smt);
     hir_subject_t* lt2 = HIR_generate_elem(right, ctx, smt);
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_promote_types(lt1->t, lt2->t));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(
+        HIR_promote_types(lt1->t, lt2->t), 
+        VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v)
+    );
+
+    HIR_BLOCK1(ctx, HIR_VARDECL, res);
 
     switch (op->token->t_type) {
         case BITMOVE_LEFT_TOKEN:  HIR_BLOCK3(ctx, HIR_iBLFT, res, lt1, lt2); break;
