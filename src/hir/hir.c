@@ -48,7 +48,7 @@ hir_subject_t* HIR_create_subject(
         break;
 
         case NUMBER:
-            if (strval) str_strncpy(subj->storage.num.value, strval, IR_VAL_MSIZE);
+            if (strval) str_strncpy(subj->storage.num.value, strval, HIR_VAL_MSIZE);
         break;
 
         case CONSTVAL:

@@ -6,13 +6,15 @@
 #define DEFAULT_TYPE_SIZE 8
 
 typedef enum {
-    REGISTER,
-    STVARIABLE,
-    GLVARIABLE,
-    CONSTVAL,
-    LABEL,
-    RAWASM,
-    MEMORY,
+    LIR_REGISTER,
+    LIR_STVARIABLE,
+    LIR_GLVARIABLE,
+    LIR_CONSTVAL,
+    LIR_NUMBER,
+    LIR_LABEL,
+    LIR_RAWASM,
+    LIR_MEMORY,
+    LIR_FNAME
 } lir_subject_type_t;
 
 int LIR_get_hirtype_size(hir_subject_type_t t);

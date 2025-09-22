@@ -10,6 +10,7 @@
 #include <std/vars.h>
 #include <std/stack.h>
 
+#define LIR_VAL_MSIZE 128
 typedef struct {
     long value;
 } lir_constant_t;
@@ -23,6 +24,10 @@ typedef struct {
 } lir_register_t;
 
 typedef struct {
+    char value[LIR_VAL_MSIZE];
+} lir_number_t;
+
+typedef struct {
     long               id;
     char               size;
     lir_subject_type_t t;
@@ -30,6 +35,7 @@ typedef struct {
         lir_constant_t cnst;
         lir_variable_t var;
         lir_register_t reg;
+        lir_number_t   num;
     } storage;
 } lir_subject_t;
 
@@ -192,28 +198,28 @@ int LIR_unload_blocks(lir_block_t* block);
 int LIR_destroy_ctx(lir_ctx_t* ctx);
 
 #define LIR_SUBJ_REG(r, sz) \
-    LIR_create_subject(REGISTER, r, 0, NULL, 0, sz, 0)
+    LIR_create_subject(LIR_REGISTER, r, 0, NULL, 0, sz, 0)
 
 #define LIR_SUBJ_CONST(val) \
-    LIR_create_subject(CONSTVAL, 0, 0, NULL, val, 0, 0)
+    LIR_create_subject(LIR_CONSTVAL, 0, 0, NULL, val, 0, 0)
 
 #define LIR_SUBJ_VAR(kind, off, sz) \
     LIR_create_subject(kind, 0, off, NULL, 0, sz, 0)
 
 #define LIR_SUBJ_OFF(off, sz) \
-    LIR_create_subject(MEMORY, 0, off, NULL, 0, sz, 0)
+    LIR_create_subject(LIR_MEMORY, 0, off, NULL, 0, sz, 0)
 
 #define LIR_SUBJ_LABEL() \
-    LIR_create_subject(LABEL, 0, 0, NULL, 0, 0, 0)
+    LIR_create_subject(LIR_LABEL, 0, 0, NULL, 0, 0, 0)
 
 #define LIR_SUBJ_RAWASM(l) \
-    LIR_create_subject(RAWASM, 0, l, NULL, 0, 0, 0)
+    LIR_create_subject(LIR_RAWASM, 0, l, NULL, 0, 0, 0)
 
 #define LIR_SUBJ_STRING(id) \
-    LIR_create_subject(FNAME, 0, id, NULL, 0, 0, -1)
+    LIR_create_subject(LIR_FNAME, 0, id, NULL, 0, 0, -1)
 
 #define LIR_SUBJ_FUNCNAME(n) \
-    LIR_create_subject(FNAME, 0, n->storage.str.s_id, NULL, 0, 0, -1)
+    LIR_create_subject(LIR_FNAME, 0, n->storage.str.s_id, NULL, 0, 0, -1)
 
 #define LIR_BLOCK0(ctx, op) \
     LIR_insert_block(LIR_create_block((op), NULL, NULL, NULL), (ctx))

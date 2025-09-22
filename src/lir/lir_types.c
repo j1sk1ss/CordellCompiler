@@ -2,54 +2,54 @@
 
 int LIR_is_global_hirtype(hir_subject_type_t t) {
     switch (t) {
-        case GLBVARSTR:
-        case GLBVARARR:
-        case GLBVARF64:
-        case GLBVARI64:
-        case GLBVARU64:
-        case GLBVARF32:
-        case GLBVARI32:
-        case GLBVARU32:
-        case GLBVARI16:
-        case GLBVARU16:
-        case GLBVARI8:
-        case GLBVARU8:  return 1;
-        default:        return 0;
+        case HIR_GLBVARSTR:
+        case HIR_GLBVARARR:
+        case HIR_GLBVARF64:
+        case HIR_GLBVARI64:
+        case HIR_GLBVARU64:
+        case HIR_GLBVARF32:
+        case HIR_GLBVARI32:
+        case HIR_GLBVARU32:
+        case HIR_GLBVARI16:
+        case HIR_GLBVARU16:
+        case HIR_GLBVARI8:
+        case HIR_GLBVARU8:  return 1;
+        default: return 0;
     }
 }
 
 int LIR_get_hirtype_size(hir_subject_type_t t) {
     switch (t) {
-        case TMPVARF64:
-        case TMPVARI64:
-        case TMPVARU64:
-        case STKVARF64:
-        case STKVARI64:
-        case STKVARU64:
-        case GLBVARF64:
-        case GLBVARI64:
-        case GLBVARU64: return DEFAULT_TYPE_SIZE;
-        case TMPVARF32:
-        case TMPVARI32:
-        case TMPVARU32:
-        case STKVARF32:
-        case STKVARI32:
-        case STKVARU32:
-        case GLBVARF32:
-        case GLBVARI32:
-        case GLBVARU32: return 4;
-        case TMPVARI16:
-        case TMPVARU16:
-        case STKVARI16:
-        case STKVARU16:
-        case GLBVARI16:
-        case GLBVARU16: return 2;
-        case TMPVARI8:
-        case TMPVARU8:
-        case STKVARI8:
-        case STKVARU8:
-        case GLBVARI8:
-        case GLBVARU8:  return 1;
-        default:        return DEFAULT_TYPE_SIZE;
+        case HIR_TMPVARF64:
+        case HIR_TMPVARI64:
+        case HIR_TMPVARU64:
+        case HIR_STKVARF64:
+        case HIR_STKVARI64:
+        case HIR_STKVARU64:
+        case HIR_GLBVARF64:
+        case HIR_GLBVARI64:
+        case HIR_GLBVARU64: return DEFAULT_TYPE_SIZE;
+        case HIR_TMPVARF32:
+        case HIR_TMPVARI32:
+        case HIR_TMPVARU32:
+        case HIR_STKVARF32:
+        case HIR_STKVARI32:
+        case HIR_STKVARU32:
+        case HIR_GLBVARF32:
+        case HIR_GLBVARI32:
+        case HIR_GLBVARU32: return 4;
+        case HIR_TMPVARI16:
+        case HIR_TMPVARU16:
+        case HIR_STKVARI16:
+        case HIR_STKVARU16:
+        case HIR_GLBVARI16:
+        case HIR_GLBVARU16: return 2;
+        case HIR_TMPVARI8:
+        case HIR_TMPVARU8:
+        case HIR_STKVARI8:
+        case HIR_STKVARU8:
+        case HIR_GLBVARI8:
+        case HIR_GLBVARU8:  return 1;
+        default: return DEFAULT_TYPE_SIZE;
     }
 }

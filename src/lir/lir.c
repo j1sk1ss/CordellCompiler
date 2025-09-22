@@ -4,7 +4,6 @@ lir_ctx_t* LIR_create_ctx() {
     lir_ctx_t* ctx = mm_malloc(sizeof(lir_ctx_t));
     if (!ctx) return NULL;
     ctx->h = ctx->t = NULL;
-    ctx->synt = NULL;
     ctx->cid = 0;
     ctx->lid = 0;
     return ctx;
@@ -25,7 +24,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx) {
 
 lir_subject_t* LIR_create_subject(
     lir_subject_type_t t, registers_t r,
-    int dref, int offset, const char* strval,
+    int offset, const char* strval,
     long intval, int size
 ) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
@@ -35,30 +34,18 @@ lir_subject_t* LIR_create_subject(
 
     subj->t    = t;
     subj->size = (char)size;
-    subj->dref = (char)dref;
 
     switch (t) {
-        case REGISTER:
-            subj->storage.reg.reg = r;
-            break;
+        case LIR_REGISTER:   subj->storage.reg.reg = r;         break;
+        case LIR_GLVARIABLE:
+        case LIR_STVARIABLE: subj->storage.var.offset = offset; break;
+        case LIR_CONSTVAL:   subj->storage.cnst.value = intval; break;
 
-        case STVARIABLE:
-            subj->storage.var.offset = offset;
-            break;
-
-        case CONSTVAL:
-            subj->storage.cnst.value = intval;
-            break;
-
-        case LABEL:
-        case GLVARIABLE:
-            if (strval) {
-                str_strncpy(subj->storage.str.value, strval, IR_VAL_MSIZE-1);
-            }
-            break;
-
-        default:
-            break;
+        case LIR_NUMBER: 
+            if (strval) str_strncpy(subj->storage.num.value, strval, LIR_VAL_MSIZE);
+        break;
+        
+        default: break;
     }
 
     return subj;

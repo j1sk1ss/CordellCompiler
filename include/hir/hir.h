@@ -11,7 +11,7 @@
 #include <ast/syntax.h>
 #include <hir/hir_types.h>
 
-#define IR_VAL_MSIZE 128
+#define HIR_VAL_MSIZE 128
 typedef struct {
     int s_id; /* String ID from strings symtab */
 } hir_string_t;
@@ -21,7 +21,7 @@ typedef struct {
 } hir_constant_t;
 
 typedef struct {
-     char value[IR_VAL_MSIZE];
+     char value[HIR_VAL_MSIZE];
 } hir_number_t;
 
 typedef struct {
@@ -159,10 +159,10 @@ int HIR_unload_blocks(hir_block_t* block);
 int HIR_destroy_ctx(hir_ctx_t* ctx);
 
 #define HIR_SUBJ_CONST(val) \
-    HIR_create_subject(CONSTVAL, 0, 0, NULL, val, -1)
+    HIR_create_subject(HIR_CONSTVAL, 0, 0, NULL, val, -1)
 
 #define HIR_SUBJ_NUMBER(val) \
-    HIR_create_subject(NUMBER, 0, 0, val, 0, -1)
+    HIR_create_subject(HIR_NUMBER, 0, 0, val, 0, -1)
 
 #define HIR_SUBJ_STKVAR(v_id, kind, s_id) \
     HIR_create_subject(kind, 0, v_id, NULL, 0, s_id)
@@ -176,16 +176,16 @@ int HIR_destroy_ctx(hir_ctx_t* ctx);
     HIR_create_subject(HIR_get_tmp_type(kind), 0, id, NULL, 0, -1)
 
 #define HIR_SUBJ_LABEL() \
-    HIR_create_subject(LABEL, 0, 0, NULL, 0, -1)
+    HIR_create_subject(HIR_LABEL, 0, 0, NULL, 0, -1)
 
 #define HIR_SUBJ_RAWASM(n) \
-    HIR_create_subject(RAWASM, 0, n->sinfo.v_id, NULL, 0, -1)
+    HIR_create_subject(HIR_RAWASM, 0, n->sinfo.v_id, NULL, 0, -1)
 
 #define HIR_SUBJ_STRING(n) \
-    HIR_create_subject(STRING, 0, n->sinfo.v_id, NULL, 0, -1)
+    HIR_create_subject(HIR_STRING, 0, n->sinfo.v_id, NULL, 0, -1)
 
 #define HIR_SUBJ_FUNCNAME(n) \
-    HIR_create_subject(FNAME, 0, n->sinfo.v_id, NULL, 0, -1)
+    HIR_create_subject(HIR_FNAME, 0, n->sinfo.v_id, NULL, 0, -1)
 
 #define HIR_BLOCK0(ctx, op) \
     HIR_insert_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

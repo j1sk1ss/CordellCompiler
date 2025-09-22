@@ -46,7 +46,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
     }
 
     if (node->token->flags.ref) {
-        hir_subject_t* ref = HIR_SUBJ_TMPVAR(TMPVARU64, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
+        hir_subject_t* ref = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
         HIR_BLOCK1(ctx, HIR_VARDECL, ref);
         HIR_BLOCK2(ctx, HIR_REF, ref, res);
         res = ref;
