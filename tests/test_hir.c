@@ -70,6 +70,7 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_LDREF:     return "LDREF";
         case HIR_REF:       return "REF";
         case HIR_EXITOP:    return "EXITOP";
+        case HIR_CLNVRS:    return "HIR_CLNVRS";
         case HIR_MKSCOPE:   _depth++; return "MKSCOPE";
         case HIR_ENDSCOPE:  _depth--; return "ENDSCOPE";
         default: return "unknwop";

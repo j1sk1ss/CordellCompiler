@@ -47,6 +47,10 @@ static inline short scope_id_top(scope_stack_t* st) {
     return (st->top >= 0) ? st->data[st->top].id : -1;
 }
 
+static inline long scope_offset_top(scope_stack_t* st) {
+    return (st->top >= 0) ? st->data[st->top].offset : -1;
+}
+
 typedef struct {
     void* data;
 } stack_elem_t;

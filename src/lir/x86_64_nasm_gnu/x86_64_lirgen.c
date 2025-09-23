@@ -5,13 +5,14 @@ typedef struct {
     int  size;
 } alloc_info_t;
 
-static int _allocate_var(hir_subject_t* v, stack_map_t* stk, sym_table_t* smt, alloc_info_t* i) {
+static int _allocate_var(hir_subject_t* v, stack_map_t* stk, sym_table_t* smt, alloc_info_t* i, long* off) {
     int vrsize = LIR_get_hirtype_size(v->t);
     int vroff  = stack_map_alloc(vrsize, stk);
     print_debug("_allocate_var, size=%i, off=%i", vrsize, vroff);
     if (VRTB_update_offset(v->storage.var.v_id, vroff, &smt->v)) {
         i->offset = vroff;
         i->size   = vrsize;
+        *off      = MAX(*off, vroff);
         return 1;
     }
 
@@ -29,26 +30,35 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     long offset = 0;
     while (h) {
         switch (h->op) {
-            case HIR_STRT: {
-                break;
-            }
+            case HIR_STRT: LIR_BLOCK0(ctx, LIR_STRT); break;
 
-            /* Load args from entry program stack, v_id - farg.storage.var.id */
+            /* Load args from entry program stack, v_id - farg.storage.var.id, argnum - sarg.storage.cnst.val */
             case HIR_STARGLD: {
+                int vrsize = LIR_get_hirtype_size(h->farg->t);
+                switch (h->sarg->storage.cnst.value) {
+                    case 0: LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, vrsize), LIR_SUBJ_OFF(-8, vrsize)); break;
+                    case 1: LIR_BLOCK2(ctx, LIR_REF, LIR_SUBJ_REG(RAX, vrsize), LIR_SUBJ_OFF(-16, vrsize)); break;
+                }
+
                 break;
             }
 
             /* make / end scope, scope_id - farg.cnst */
-            case HIR_MKSCOPE: {
-                scope_push(&scopes, h->farg->storage.cnst.value, offset);
-                break;
-            }
+            case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset); break;
 
             case HIR_FEND:
             case HIR_ENDSCOPE: {
-                /* heap deallocation for current scope */
                 scope_elem_t se;
                 scope_pop_top(&scopes, &se);
+
+                if (se.id == scope_id_top(&heap)) {
+                    scope_elem_t he;
+                    scope_pop_top(&heap, &he);
+                    print_debug("Heap deallocation after scope, heap_head=%i", he.offset);
+                }
+
+                print_debug("Stack deallocation after scope, off=%i", se.offset);
+                stack_map_free_range(se.offset, -1, &stackmap);
                 offset = se.offset;
                 break;
             }
@@ -67,7 +77,8 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
             /* Function return command, ret_val - farg */
             case HIR_FRET: {
-                // mov rax, ...
+                // int vrsize = LIR_get_hirtype_size(h->farg->t);
+                // LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, vrsize), )
                 LIR_BLOCK0(ctx, LIR_FRET);
                 break;
             }
@@ -75,20 +86,22 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             /* Function load arg, v_id - farg.var.id, argnum - sarg.cnst.val */
             case HIR_FARGLD: {
                 alloc_info_t alloc;
-                if (_allocate_var(h->farg, &stackmap, smt, &alloc)) {
+                if (_allocate_var(h->farg, &stackmap, smt, &alloc, &offset)) {
                     static const int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
                     LIR_BLOCK2(
                         ctx, LIR_iMOV, LIR_SUBJ_OFF(alloc.offset, alloc.size), 
                         LIR_SUBJ_REG(abi_regs[h->sarg->storage.cnst.value], alloc.size)
                     );
                 }
+
+                break;
             }
 
             /* Allocate stack memory for declaration, v_id - farg.var.id, val (opt) - sarg? */
             case HIR_VARDECL: {
                 if (LIR_is_global_hirtype(h->farg->t)) break;
                 alloc_info_t alloc;
-                if (_allocate_var(h->farg, &stackmap, smt, &alloc)) {
+                if (_allocate_var(h->farg, &stackmap, smt, &alloc, &offset)) {
                     if (h->sarg) {
                         LIR_BLOCK2(
                             ctx, LIR_iMOV, LIR_SUBJ_OFF(alloc.offset, alloc.size), 
@@ -108,14 +121,21 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 if (VRTB_get_info_id(h->farg->storage.var.v_id, &vi, &smt->v)) {
                     array_info_t ai;
                     if (ARTB_get_info(vi.name, vi.s_id, &ai, &smt->a)) {
+                        int arroff = -1;
                         int elsize = LIR_get_asttype_size(ai.el_type);
+
                         if (!ai.heap) {
                             int arrsize = elsize * h->sarg->storage.cnst.value;
-                            int arroff  = stack_map_alloc(arrsize, &stackmap);
-                            VRTB_update_offset(h->farg->storage.var.v_id, arroff, &smt->v);
+                            arroff = stack_map_alloc(arrsize, &stackmap);
                             print_debug("HIR_ARRDECL allocation, size=%i, off=%i", arrsize, arroff);
                         }
-                        else { /* Heap allocation */ }
+                        else {
+                            arroff = stack_map_alloc(DEFAULT_TYPE_SIZE, &stackmap);
+                            print_debug("Heap allocation in scope=%i, heap_head=%i", scope_id_top(&scopes), arroff);
+                            scope_push(&heap, scope_id_top(&scopes), arroff);
+                        }
+
+                        VRTB_update_offset(h->farg->storage.var.v_id, arroff, &smt->v);
                     }
 
                 }
@@ -168,8 +188,8 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_FARGST:
             case HIR_PRMST: stack_push(&params, h->farg); break;
 
-            case HIR_MKLB: HIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
-            case HIR_JMP:  HIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
+            case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
+            case HIR_JMP:  LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
 
             default: break;
         }

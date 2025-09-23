@@ -104,6 +104,7 @@ typedef enum {
         HIR_LDLINK,  // load link <= a
         HIR_STORE,   // store value a =>
         HIR_STLINK,  // store link a =>
+        HIR_CLNVRS,  // deallocate all unused variables
         HIR_VARDECL, // declaration
         HIR_ARRDECL, // arr declaration
         HIR_STRDECL,

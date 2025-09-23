@@ -4,13 +4,194 @@
 #include <stdlib.h>
 #include <prep/markup.h>
 #include <ast/syntax.h>
-#include <ast/parsers/parser.h>
-#include <lir/irgen.h>
-#include <lir/x86_64_gnu_nasm/x86_64_irgen.h>
-#include <asm/asmgen.h>
-#include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
+#include <hir/hirgen.h>
+#include <hir/hirgens/hirgens.h>
+#include <lir/lirgen.h>
+#include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 #include "ast_helper.h"
-#include "ir_helper.h"
+
+static int _hir_depth = 0;
+static const char* hir_op_to_string(hir_operation_t op) {
+    switch(op) {
+        case HIR_STARGLD:   return "STARGLD";
+        case HIR_FARGST:    return "FARGST";
+        case HIR_FARGLD:    return "FARGLD";
+        case HIR_FCLL:      return "FCLL";
+        case HIR_ECLL:      return "ECLL";
+        case HIR_STRT:      return "STRT";
+        case HIR_SYSC:      return "SYSC";
+        case HIR_FRET:      return "FRET";
+        case HIR_MKLB:      return "MKLB";
+        case HIR_FDCL:      return "FDCL";
+        case HIR_FEND:      return "FEND";
+        case HIR_OEXT:      return "OEXT";
+        case HIR_JMP:       return "JMP";
+        case HIR_iADD:      return "iADD";
+        case HIR_iSUB:      return "iSUB";
+        case HIR_iMUL:      return "iMUL";
+        case HIR_iDIV:      return "iDIV";
+        case HIR_iMOD:      return "iMOD";
+        case HIR_iLRG:      return "iLRG";
+        case HIR_iLGE:      return "iLGE";
+        case HIR_iLWR:      return "iLWR";
+        case HIR_iLRE:      return "iLRE";
+        case HIR_iCMP:      return "iCMP";
+        case HIR_iNMP:      return "iNMP";
+        case HIR_iAND:      return "iAND";
+        case HIR_iOR:       return "iOR";
+        case HIR_iBLFT:     return "iBLFT";
+        case HIR_iBRHT:     return "iBRHT";
+        case HIR_bAND:      return "bAND";
+        case HIR_bOR:       return "bOR";
+        case HIR_bXOR:      return "bXOR";
+        case HIR_bSHL:      return "bSHL";
+        case HIR_bSHR:      return "bSHR";
+        case HIR_bSAR:      return "bSAR";
+        case HIR_RAW:       return "RAW";
+        case HIR_IFOP:      return "IFOP";
+        case HIR_SWITCHOP:  return "SWITCHOP";
+        case HIR_MKCASE:    return "MKCASE";
+        case HIR_MKDEFCASE: return "MKDEFCASE";
+        case HIR_MKENDCASE: return "MKENDCASE";
+        case HIR_NOT:       return "NOT";
+        case HIR_LOADOP:    return "LOADOP";
+        case HIR_LDLINK:    return "LDLINK";
+        case HIR_STORE:     return "STORE";
+        case HIR_STLINK:    return "STLINK";
+        case HIR_VARDECL:   return "VARDECL";
+        case HIR_ARRDECL:   return "ARRDECL";
+        case HIR_STRDECL:   return "STRDECL";
+        case HIR_PRMST:     return "PRMST";
+        case HIR_PRMLD:     return "PRMLD";
+        case HIR_PRMPOP:    return "PRMPOP";
+        case HIR_STASM:     return "STASM";
+        case HIR_ENDASM:    return "ENDASM";
+        case HIR_GINDEX:    return "GINDEX";
+        case HIR_LINDEX:    return "LINDEX";
+        case HIR_GDREF:     return "GDREF";
+        case HIR_LDREF:     return "LDREF";
+        case HIR_REF:       return "REF";
+        case HIR_EXITOP:    return "EXITOP";
+        case HIR_MKSCOPE:   _hir_depth++; return "MKSCOPE";
+        case HIR_ENDSCOPE:  _hir_depth--; return "ENDSCOPE";
+        default: return "unknwop";
+    }
+}
+
+static void print_hir_subject(const hir_subject_t* s) {
+    if (!s) return;
+    switch (s->t) {
+        case HIR_STKVARSTR:  printf("strs: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARARR:  printf("arrs: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARF64:  printf("f64s: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARU64:  printf("u64s: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARI64:  printf("i64s: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARF32:  printf("f32s: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARU32:  printf("u32s: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARI32:  printf("i32s: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARU16:  printf("u16s: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARI16:  printf("i16s: [vid=%d]", s->storage.var.v_id);   break;
+        case HIR_STKVARU8:   printf("u8s: [vid=%d]", s->storage.var.v_id);    break;
+        case HIR_STKVARI8:   printf("i8s: [vid=%d]", s->storage.var.v_id);    break;
+        case HIR_TMPVARSTR:  printf("strt: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARARR:  printf("arrt: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARF64:  printf("f64t: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARU64:  printf("u64t: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARI64:  printf("i64t: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARF32:  printf("f32t: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARU32:  printf("u32t: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARI32:  printf("i32t: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARU16:  printf("u16t: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARI16:  printf("i16t: [tid=%d]", s->storage.var.v_id);   break;
+        case HIR_TMPVARU8:   printf("u8t: [tid=%d]", s->storage.var.v_id);    break;
+        case HIR_TMPVARI8:   printf("i8t: [tid=%d]", s->storage.var.v_id);    break;
+        case HIR_GLBVARSTR:  printf("strg: [gid=%i]", s->storage.var.v_id);   break;
+        case HIR_GLBVARARR:  printf("arrg: [gid=%i]", s->storage.var.v_id);   break;
+        case HIR_GLBVARF64:  printf("f64g: [gid=%i]", s->storage.var.v_id);   break;
+        case HIR_GLBVARU64:  printf("u64g: [gid=%i]", s->storage.var.v_id);   break;
+        case HIR_GLBVARI64:  printf("i64g: [gid=%i]", s->storage.var.v_id);   break;
+        case HIR_GLBVARF32:  printf("f32g: [gid=%i]", s->storage.var.v_id);   break;  
+        case HIR_GLBVARU32:  printf("u32g: [gid=%i]", s->storage.var.v_id);   break;
+        case HIR_GLBVARI32:  printf("i32g: [gid=%i]", s->storage.var.v_id);   break;
+        case HIR_GLBVARU16:  printf("u16g: [gid=%i]", s->storage.var.v_id);   break;
+        case HIR_GLBVARI16:  printf("i16g: [gid=%i]", s->storage.var.v_id);   break;
+        case HIR_GLBVARU8:   printf("i8g: [git=%i]", s->storage.var.v_id);    break;
+        case HIR_GLBVARI8:   printf("u8g: [git=%i]", s->storage.var.v_id);    break;
+        case HIR_NUMBER:     printf("%s", s->storage.num.value);              break;
+        case HIR_CONSTVAL:   printf("%ld", s->storage.cnst.value);            break;
+        case HIR_LABEL:      printf("lb: [id=%d]", s->id);                    break;
+        case HIR_RAWASM:     printf("asm: [std_id=%i]", s->storage.str.s_id); break;
+        case HIR_STRING:     printf("str: [std_id=%i]", s->storage.str.s_id); break;
+        case HIR_FNAME:      printf("func: [fid=%i]", s->storage.str.s_id);   break;
+        default: printf("unknw"); break;
+    }
+}
+
+void print_hir_block(const hir_block_t* block) {
+    if (!block) return;
+    for (int i = 0; i < _hir_depth; i++) printf("    ");
+    printf("%s ", hir_op_to_string(block->op), block->args);
+    print_hir_subject(block->farg); if (block->sarg) printf(", ");
+    print_hir_subject(block->sarg); if (block->targ) printf(", ");
+    print_hir_subject(block->targ); printf("\n");
+}
+
+static const char* hir_op_to_string(hir_operation_t op) {
+    switch(op) {
+        case LIR_FCLL:      return "FCLL";
+        case LIR_ECLL:      return "ECLL";
+        case LIR_STRT:      return "STRT";
+        case LIR_SYSC:      return "SYSC";
+        case LIR_FRET:      return "FRET";
+        case LIR_MKLB:      return "MKLB";
+        case LIR_FDCL:      return "FDCL";
+        case LIR_OEXT:      return "OEXT";
+        case LIR_JMP:       return "JMP";
+        case LIR_iADD:      return "iADD";
+        case LIR_iSUB:      return "iSUB";
+        case LIR_iMUL:      return "iMUL";
+        case LIR_iDIV:      return "iDIV";
+        case LIR_iMOD:      return "iMOD";
+        case LIR_iLRG:      return "iLRG";
+        case LIR_iLGE:      return "iLGE";
+        case LIR_iLWR:      return "iLWR";
+        case LIR_iLRE:      return "iLRE";
+        case LIR_iCMP:      return "iCMP";
+        case LIR_iNMP:      return "iNMP";
+        case LIR_iAND:      return "iAND";
+        case LIR_iOR:       return "iOR";
+        case LIR_iBLFT:     return "iBLFT";
+        case LIR_iBRHT:     return "iBRHT";
+        case LIR_bAND:      return "bAND";
+        case LIR_bOR:       return "bOR";
+        case LIR_bXOR:      return "bXOR";
+        case LIR_bSHL:      return "bSHL";
+        case LIR_bSHR:      return "bSHR";
+        case LIR_bSAR:      return "bSAR";
+        case LIR_RAW:       return "RAW";
+        case LIR_LOADOP:    return "LOADOP";
+        case LIR_LDLINK:    return "LDLINK";
+        case LIR_STLINK:    return "STLINK";
+        case LIR_GDREF:     return "GDREF";
+        case LIR_LDREF:     return "LDREF";
+        case LIR_REF:       return "REF";
+        case LIR_EXITOP:    return "EXITOP";
+        default: return "unknwop";
+    }
+}
+
+static void print_lir_subject(const hir_subject_t* s) {
+    if (!s) return;
+    
+}
+
+void print_hir_block(const hir_block_t* block) {
+    if (!block) return;
+    printf("%s ", hir_op_to_string(block->op), block->args);
+    print_hir_subject(block->farg); if (block->sarg) printf(", ");
+    print_hir_subject(block->sarg); if (block->targ) printf(", ");
+    print_hir_subject(block->targ); printf("\n");
+}
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
@@ -30,88 +211,81 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    arrtab_ctx_t actx  = { .h = NULL };
-    vartab_ctx_t vctx  = { .h = NULL, .offset = 0 };
-    functab_ctx_t fctx = { .h = NULL };
-    syntax_ctx_t sctx  = { 
-        .symtb = {
-            .arrs  = &actx,
-            .vars  = &vctx,
-            .funcs = &fctx
-        }
+    sym_table_t smt = {
+        .a = { .h = NULL },
+        .v = { .h = NULL },
+        .f = { .h = NULL }
     };
+    
+    syntax_ctx_t sctx  = { .r = NULL };
 
-    parser_t p = {
-        .block      = cpl_parse_block,
-        .switchstmt = cpl_parse_switch,
-        .condop     = cpl_parse_condop,
-        .arraydecl  = cpl_parse_array_declaration,
-        .vardecl    = cpl_parse_variable_declaration,
-        .extrn      = cpl_parse_extern,
-        .rexit      = cpl_parse_rexit,
-        .funccall   = cpl_parse_funccall,
-        .function   = cpl_parse_function,
-        .import     = cpl_parse_import,
-        .expr       = cpl_parse_expression,
-        .scope      = cpl_parse_scope,
-        .start      = cpl_parse_start,
-        .syscall    = cpl_parse_syscall,
-        .asmer      = cpl_parse_asm
-    };
+    STX_create(tkn, &sctx, &smt);
 
-    STX_create(tkn, &sctx, &p);
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
 
-    lir_gen_t irgen = {
-        .funcdef   = LIR_generate_funcdef_block,
-        .funcret   = LIR_generate_return_block,
-        .funccall  = LIR_generate_funccall_block,
-        .function  = LIR_generate_function_block,
-        .blockgen  = LIR_generate_block,
-        .elemegen  = LIR_generate_elem_block,
-        .operand   = LIR_generate_operand_block,
-        .store     = LIR_generate_store_block,
-        .ptrload   = LIR_generate_ptr_load_block,
-        .load      = LIR_generate_load_block,
-        .assign    = LIR_generate_assignment_block,
-        .decl      = LIR_generate_declaration_block,
-        .start     = LIR_generate_start_block,
-        .exit      = LIR_generate_exit_block,
-        .syscall   = LIR_generate_syscall_block,
-        .ifgen     = LIR_generate_if_block,
-        .whilegen  = LIR_generate_while_block,
-        .switchgen = LIR_generate_switch_block,
-        .asmer     = LIR_generate_asmblock
+    hir_ctx_t hirctx = {
+        .cid = 0, .h = NULL, .lid = 0, .t = NULL 
     };
 
-    lir_ctx_t irctx = {
-        .cid = 0, .h = NULL, .lid = 0, .synt = &sctx, .t = NULL 
-    };
-
-    IR_generate(&irgen, &irctx);
-    printf("\n\n========== LIR ==========\n");
-    lir_block_t* h = irctx.h;
+    HIR_generate(&sctx, &hirctx, &smt);
+    printf("\n\n========== HIR ==========\n");
+    hir_block_t* h = hirctx.h;
     while (h) {
-        print_irblock(h);
+        print_hir_block(h);
         h = h->next;
     }
 
-    asmgen_ctx_t gctx = {
-        .ir = &irctx,
-        .synt = &sctx
+    lir_ctx_t lirctx = {
+        .cid = 0, .h = NULL, .lid = 0, .t = NULL
     };
 
-    asm_gen_t g = {
-        .declarator = x86_64_generate_data,
-        .generator  = x86_64_generate_asm
+    lir_gen_t lirgen = {
+        
     };
 
-    printf("\n\n========== ASM ==========\n");
-    ASM_generate(&gctx, &g, stdout);
+    LIR_generate(&hirctx, &lirctx, &lirgen, &smt);
+    printf("\n\n========== LIR ==========\n");
+    lir_block_t* h = lirctx.h;
+    while (h) {
+        // print_hir_block(h);
+        h = h->next;
+    }
 
-    IR_unload_blocks(irctx.h);
+    LIR_unload_blocks(lirctx.h);
+    HIR_unload_blocks(hirctx.h);
+
+    printf("\n\n========== SYMTABLES ==========\n");
+    printf("==========   VARS  ==========\n");
+    variable_info_t* vh = smt.v.h;
+    while (vh) {
+        printf("id: %i, %s, type: %i, s_id: %i\n", vh->v_id, vh->name, vh->type, vh->s_id);
+        vh = vh->next;
+    }
+
+    printf("==========   ARRS  ==========\n");
+    array_info_t* ah = smt.a.h;
+    while (ah) {
+        printf("id: %i, name: %s, scope: %i\n", ah->v_id, ah->name, ah->s_id);
+        ah = ah->next;
+    }
+
+    printf("==========  FUNCS  ==========\n");
+    func_info_t* fh = smt.f.h;
+    while (fh) {
+        printf("id: %i, name: %s\n", fh->id, fh->name);
+        fh = fh->next;
+    }
+
+    printf("========== STRINGS ==========\n");
+    str_info_t* sh = smt.s.h;
+    while (sh) {
+        printf("id: %i, val: %s\n", sh->id, sh->value);
+        sh = sh->next;
+    }
+
     AST_unload(sctx.r);
+    SMT_unload(&smt);
     TKN_unload(tkn);
     close(fd);
     return 0;
