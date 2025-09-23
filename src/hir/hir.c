@@ -35,29 +35,29 @@ hir_subject_t* HIR_create_subject(
     subj->id = _curr_id++;
 
     switch (t) {
-        case TMPVARSTR: case TMPVARARR: case TMPVARF64: case TMPVARU64:
-        case TMPVARI64: case TMPVARF32: case TMPVARU32: case TMPVARI32:
-        case TMPVARU16: case TMPVARI16: case TMPVARU8:  case TMPVARI8:
-        case STKVARSTR: case STKVARARR: case STKVARF64: case STKVARU64:
-        case STKVARI64: case STKVARF32: case STKVARU32: case STKVARI32:
-        case STKVARU16: case STKVARI16: case STKVARU8:  case STKVARI8:
-        case GLBVARSTR: case GLBVARARR: case GLBVARF64: case GLBVARU64:
-        case GLBVARI64: case GLBVARF32: case GLBVARU32: case GLBVARI32:
-        case GLBVARU16: case GLBVARI16: case GLBVARU8:  case GLBVARI8:
+        case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
+        case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
+        case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
+        case HIR_STKVARSTR: case HIR_STKVARARR: case HIR_STKVARF64: case HIR_STKVARU64:
+        case HIR_STKVARI64: case HIR_STKVARF32: case HIR_STKVARU32: case HIR_STKVARI32:
+        case HIR_STKVARU16: case HIR_STKVARI16: case HIR_STKVARU8:  case HIR_STKVARI8:
+        case HIR_GLBVARSTR: case HIR_GLBVARARR: case HIR_GLBVARF64: case HIR_GLBVARU64:
+        case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
+        case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
             subj->storage.var.v_id = v_id;
         break;
 
-        case NUMBER:
+        case HIR_NUMBER:
             if (strval) str_strncpy(subj->storage.num.value, strval, HIR_VAL_MSIZE);
         break;
 
-        case CONSTVAL:
+        case HIR_CONSTVAL:
             subj->storage.cnst.value = intval;
         break;
 
-        case FNAME:
-        case RAWASM:
-        case STRING: 
+        case HIR_FNAME:
+        case HIR_RAWASM:
+        case HIR_STRING: 
             subj->storage.str.s_id = v_id;
         break;
 

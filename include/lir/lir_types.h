@@ -17,6 +17,7 @@ typedef enum {
     LIR_FNAME
 } lir_subject_type_t;
 
+int LIR_get_asttype_size(token_type_t t);
 int LIR_get_hirtype_size(hir_subject_type_t t);
 int LIR_is_global_hirtype(hir_subject_type_t t);
 

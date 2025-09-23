@@ -23,9 +23,9 @@ int LIR_destroy_ctx(lir_ctx_t* ctx) {
 }
 
 lir_subject_t* LIR_create_subject(
-    lir_subject_type_t t, registers_t r,
-    int offset, const char* strval,
-    long intval, int size
+    int t, registers_t r, 
+    int v_id, long offset, const char* strval, 
+    long intval, int size, int s_id
 ) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
     if (!subj) return NULL;

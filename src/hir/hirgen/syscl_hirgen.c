@@ -18,9 +18,11 @@ int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     HIR_BLOCK0(ctx, HIR_STRT);
+
+    int agrnum = 0;
     ast_node_t* st = node->child;
     for (; st && st->token; st = st->sibling) {
-        HIR_BLOCK1(ctx, HIR_STARGLD, HIR_generate_load(st->child, ctx, smt));
+        HIR_BLOCK2(ctx, HIR_STARGLD, HIR_generate_load(st->child, ctx, smt), HIR_SUBJ_CONST(agrnum++));
     }
 
     return HIR_generate_block(st, ctx, smt);

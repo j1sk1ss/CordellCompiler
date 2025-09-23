@@ -18,6 +18,23 @@ int LIR_is_global_hirtype(hir_subject_type_t t) {
     }
 }
 
+int LIR_get_asttype_size(token_type_t t) {
+    switch (t) {
+        case STR_TYPE_TOKEN:
+        case F64_TYPE_TOKEN:
+        case U64_TYPE_TOKEN:
+        case I64_TYPE_TOKEN: return DEFAULT_TYPE_SIZE;
+        case F32_TYPE_TOKEN:
+        case U32_TYPE_TOKEN:
+        case I32_TYPE_TOKEN: return 4;
+        case U16_TYPE_TOKEN:
+        case I16_TYPE_TOKEN: return 2;
+        case U8_TYPE_TOKEN:
+        case I8_TYPE_TOKEN:  return 1;
+        default: return DEFAULT_TYPE_SIZE;
+    }
+}
+
 int LIR_get_hirtype_size(hir_subject_type_t t) {
     switch (t) {
         case HIR_TMPVARF64:

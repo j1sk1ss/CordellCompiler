@@ -43,7 +43,8 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_t
         forward_token(curr, 2);
 
         ARTB_add_info(
-            name_node->token->value, scope_id_top(&ctx->scopes.stack), elem_size_node->token->t_type, &smt->a
+            name_node->token->value, scope_id_top(&ctx->scopes.stack), name_node->token->flags.heap,
+            elem_size_node->token->t_type, &smt->a
         );
     }
 
@@ -99,7 +100,7 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, sy
         
         if (node->token->t_type == STR_TYPE_TOKEN) {
             ARTB_add_info(
-                name_node->token->value, scope_id_top(&ctx->scopes.stack), I8_TYPE_TOKEN, &smt->a
+                name_node->token->value, scope_id_top(&ctx->scopes.stack), 0, I8_TYPE_TOKEN, &smt->a
             );
         }
 

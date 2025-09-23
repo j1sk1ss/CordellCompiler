@@ -1,5 +1,19 @@
 #include <symtab/arrtb.h>
 
+int ARTB_get_info_id(long id, array_info_t* info, arrtab_ctx_t* ctx) {
+    array_info_t* h = ctx->h;
+    while (h) {
+        if (h->v_id == id) {
+            if (info) str_memcpy(info, h, sizeof(array_info_t));
+            return 1;
+        }
+
+        h = h->next;
+    }
+
+    return 0;
+}
+
 int ARTB_get_info(const char* name, short scope, array_info_t* info, arrtab_ctx_t* ctx) {
     array_info_t* h = ctx->h;
     while (h) {
@@ -14,7 +28,7 @@ int ARTB_get_info(const char* name, short scope, array_info_t* info, arrtab_ctx_
     return 0;
 }
 
-static array_info_t* _create_info_array_entry(const char* name, short scope, token_type_t el_type) {
+static array_info_t* _create_info_array_entry(const char* name, short scope, int heap, token_type_t el_type) {
     array_info_t* entry = (array_info_t*)mm_malloc(sizeof(array_info_t));
     if (!entry) return NULL;
     str_memset(entry, 0, sizeof(array_info_t));
@@ -23,13 +37,14 @@ static array_info_t* _create_info_array_entry(const char* name, short scope, tok
     if (name) str_strncpy(entry->name, name, TOKEN_MAX_SIZE);
     
     entry->el_type = el_type;
+    entry->heap = heap;
     entry->next = NULL;
     return entry;
 }
 
-int ARTB_add_info(const char* name, short scope, token_type_t el_type, arrtab_ctx_t* ctx) {
-    print_debug("ARTB_add_info(name=%s, scope=%i, el_type=%i)", name, scope, el_type);
-    array_info_t* nnd = _create_info_array_entry(name, scope, el_type);
+int ARTB_add_info(const char* name, short scope, int heap, token_type_t el_type, arrtab_ctx_t* ctx) {
+    print_debug("ARTB_add_info(name=%s, scope=%i, heap=%i, el_type=%i)", name, scope, heap, el_type);
+    array_info_t* nnd = _create_info_array_entry(name, scope, heap, el_type);
     if (!nnd) return 0;
 
     nnd->v_id = ctx->curr_id++;

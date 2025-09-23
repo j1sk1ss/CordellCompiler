@@ -8,13 +8,6 @@ int stack_map_init(int offset, stack_map_t* smap) {
     return 1;
 }
 
-int stack_map_move(int offset, stack_map_t* smap) {
-    int size = (ALIGN(offset) / STACK_CELL_SIZE) + 1;
-    smap->offset      = size;
-    smap->last_offset = size;
-    return 1;
-}
-
 int stack_map_alloc(int n, stack_map_t* smap) {
     int size  = ALIGN(n) / STACK_CELL_SIZE;
     for (int i = 0; i < STACK_MAP_MAX; ++i) {
