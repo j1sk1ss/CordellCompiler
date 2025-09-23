@@ -1,6 +1,7 @@
 #ifndef HIRGENS_H_
 #define HIRGENS_H_
 
+#include <std/qsort.h>
 #include <ast/ast.h>
 #include <ast/syntax.h>
 #include <ast/synctx.h>

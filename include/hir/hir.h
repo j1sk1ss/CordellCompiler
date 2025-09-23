@@ -63,12 +63,12 @@ typedef enum {
         HIR_iMUL, // multiplication
         HIR_iDIV, // division
         HIR_iMOD, // module
-        HIR_iLRG, // larger
-        HIR_iLGE, // larger or equals
-        HIR_iLWR, // lower
-        HIR_iLRE, // lower or equals
-        HIR_iCMP, // comprarision
-        HIR_iNMP,
+        HIR_iLRG, // larger,            x = y > z
+        HIR_iLGE, // larger or equals,  x = y >= z
+        HIR_iLWR, // lower,             x = y < z
+        HIR_iLRE, // lower or equals,   x = y <= z
+        HIR_iCMP, // comprarision,      x = x == y
+        HIR_iNMP, // ncomprarision      x = x != y
 
         /* Logic */
         HIR_iAND, // and
@@ -92,7 +92,14 @@ typedef enum {
 
     /* High level operations */
         /* Condition operator */
-        HIR_IFOP,
+        HIR_IFOP,     // if X, jmp [lb]
+        HIR_IFLGOP,   // if X > Y, jmp [lb]
+        HIR_IFLGEOP,  // if X >= Y, jmp [lb]
+        HIR_IFLWOP,   // if X < Y, jmp [lb]
+        HIR_IFLWEOP,  // if X <= Y, jmp [lb]
+        HIR_IFCPOP,   // if X == Y, jmp [lb]
+        HIR_IFNCPOP,  // if X != Y, jmp [lb]
+
         HIR_SWITCHOP,
         HIR_MKCASE,
         HIR_MKDEFCASE,
@@ -140,8 +147,6 @@ typedef struct hir_block {
 } hir_block_t;
 
 typedef struct {
-    long         cid;
-    int          lid;
     hir_block_t* h;
     hir_block_t* t;
 } hir_ctx_t;

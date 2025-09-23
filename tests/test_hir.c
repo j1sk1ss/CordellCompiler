@@ -71,6 +71,8 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_REF:       return "REF";
         case HIR_EXITOP:    return "EXITOP";
         case HIR_CLNVRS:    return "HIR_CLNVRS";
+        case HIR_IFLWOP:    return "HIR_IFLWOP";
+        case HIR_IFLGOP:    return "HIR_IFLGOP";
         case HIR_MKSCOPE:   _depth++; return "MKSCOPE";
         case HIR_ENDSCOPE:  _depth--; return "ENDSCOPE";
         default: return "unknwop";
@@ -167,7 +169,7 @@ int main(int argc, char* argv[]) {
     print_ast(sctx.r, 0);
 
     hir_ctx_t irctx = {
-        .cid = 0, .h = NULL, .lid = 0, .t = NULL 
+        .h = NULL, .t = NULL 
     };
 
     HIR_generate(&sctx, &irctx, &smt);

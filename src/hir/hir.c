@@ -4,8 +4,6 @@ hir_ctx_t* HIR_create_ctx() {
     hir_ctx_t* ctx = mm_malloc(sizeof(hir_ctx_t));
     if (!ctx) return NULL;
     ctx->h = ctx->t = NULL;
-    ctx->cid = 0;
-    ctx->lid = 0;
     return ctx;
 }
 

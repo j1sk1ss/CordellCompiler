@@ -30,9 +30,6 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
 int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name_node = node->child;
     ast_node_t* body_node = name_node->sibling;
-
-    hir_subject_t* lguard = HIR_SUBJ_LABEL();
-    HIR_BLOCK1(ctx, HIR_JMP, lguard);
     HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(name_node));
 
     int argnum = 0;
@@ -43,6 +40,5 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
 
     HIR_generate_block(t, ctx, smt);
     HIR_BLOCK0(ctx, HIR_FEND);
-    HIR_BLOCK1(ctx, HIR_MKLB, lguard);
     return 1;
 }

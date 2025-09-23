@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
     print_ast(sctx.r, 0);
 
     hir_ctx_t hirctx = {
-        .cid = 0, .h = NULL, .lid = 0, .t = NULL 
+        .h = NULL, .t = NULL 
     };
 
     HIR_generate(&sctx, &hirctx, &smt);
