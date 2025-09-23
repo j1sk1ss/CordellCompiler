@@ -192,7 +192,7 @@ lir_subject_t* LIR_create_subject(
 
 lir_ctx_t* LIR_create_ctx();
 lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta);
-int LIR_insert_block(lir_block_t* block, lir_ctx_t* ctx);
+int LIR_append_block(lir_block_t* block, lir_ctx_t* ctx);
 int LIR_remove_block(lir_block_t* block, lir_ctx_t* ctx);
 int LIR_unload_blocks(lir_block_t* block);
 int LIR_destroy_ctx(lir_ctx_t* ctx);
@@ -222,12 +222,12 @@ int LIR_destroy_ctx(lir_ctx_t* ctx);
     LIR_create_subject(LIR_FNAME, 0, n->storage.str.s_id, 0, NULL, 0, 0, -1)
 
 #define LIR_BLOCK0(ctx, op) \
-    LIR_insert_block(LIR_create_block((op), NULL, NULL, NULL), (ctx))
+    LIR_append_block(LIR_create_block((op), NULL, NULL, NULL), (ctx))
 
 #define LIR_BLOCK1(ctx, op, fa) \
-    LIR_insert_block(LIR_create_block((op), (fa), NULL, NULL), (ctx))
+    LIR_append_block(LIR_create_block((op), (fa), NULL, NULL), (ctx))
 
 #define LIR_BLOCK2(ctx, op, fa, sa) \
-    LIR_insert_block(LIR_create_block((op), (fa), (sa), NULL), (ctx))
+    LIR_append_block(LIR_create_block((op), (fa), (sa), NULL), (ctx))
 
 #endif

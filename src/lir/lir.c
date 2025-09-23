@@ -68,7 +68,7 @@ lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject
     return blk;
 }
 
-int LIR_insert_block(lir_block_t* block, lir_ctx_t* ctx) {
+int LIR_append_block(lir_block_t* block, lir_ctx_t* ctx) {
     if (!ctx || !block) return -1;
     if (!ctx->h) ctx->h = ctx->t = block;
     else {

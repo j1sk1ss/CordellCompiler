@@ -154,7 +154,8 @@ hir_subject_t* HIR_create_subject(
 
 hir_ctx_t* HIR_create_ctx();
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
-int HIR_insert_block(hir_block_t* block, hir_ctx_t* ctx);
+int HIR_insert_block(hir_block_t* block, hir_block_t* pos);
+int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
 int HIR_remove_block(hir_block_t* block, hir_ctx_t* ctx);
 int HIR_unload_blocks(hir_block_t* block);
 int HIR_destroy_ctx(hir_ctx_t* ctx);
@@ -189,15 +190,15 @@ int HIR_destroy_ctx(hir_ctx_t* ctx);
     HIR_create_subject(HIR_FNAME, 0, n->sinfo.v_id, NULL, 0, -1)
 
 #define HIR_BLOCK0(ctx, op) \
-    HIR_insert_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))
+    HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))
 
 #define HIR_BLOCK1(ctx, op, fa) \
-    HIR_insert_block(HIR_create_block((op), (fa), NULL, NULL), (ctx))
+    HIR_append_block(HIR_create_block((op), (fa), NULL, NULL), (ctx))
 
 #define HIR_BLOCK2(ctx, op, fa, sa) \
-    HIR_insert_block(HIR_create_block((op), (fa), (sa), NULL), (ctx))
+    HIR_append_block(HIR_create_block((op), (fa), (sa), NULL), (ctx))
 
 #define HIR_BLOCK3(ctx, op, fa, sa, ta) \
-    HIR_insert_block(HIR_create_block((op), (fa), (sa), (ta)), (ctx))
+    HIR_append_block(HIR_create_block((op), (fa), (sa), (ta)), (ctx))
 
 #endif
