@@ -28,5 +28,6 @@ ast_node_t* cpl_parse_start(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt)
     ast_node_t* body = cpl_parse_block(curr, ctx, smt, CLOSE_BLOCK_TOKEN);
     AST_add_node(node, body);
 
+    node->sinfo.v_id = FNTB_add_info("start", 1, 0, NULL, NULL, &smt->f);
     return node;
 }

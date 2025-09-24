@@ -148,6 +148,12 @@ TEST_CODES[test_hir]="
     tests/dummy_data/hir/gen/hirgen_5.cpl
 "
 
+TEST_SRCS[test_cfg]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/parsers/*.c src/hir/*.c src/hir/*/*.c src/hir/opt/cfg/*.c std/*.c"
+TEST_CODES[test_cfg]="
+    tests/dummy_data/hir/opt/cfg/cfg_1.cpl
+    tests/dummy_data/hir/opt/cfg/cfg_2.cpl
+"
+
 TEST_SRCS[test_lir]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/lir/*.c src/lir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"
 TEST_CODES[test_lir]="
     tests/dummy_data/lir/gen/lirgen_1.cpl
@@ -160,27 +166,27 @@ TEST_CODES[test_lir]="
     tests/dummy_data/lir/gen/lirgen_8.cpl
 "
 
-TEST_SRCS[test_gen]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/*.c src/asm/*.c src/asm/*/*.c std/*.c"
-TEST_CODES[test_gen]="
-    tests/dummy_data/gen/gen_1.cpl
-    tests/dummy_data/gen/gen_2.cpl
-    tests/dummy_data/gen/gen_3.cpl
-    tests/dummy_data/gen/gen_4.cpl
-    tests/dummy_data/gen/gen_5.cpl
-    tests/dummy_data/gen/gen_6.cpl
-    tests/dummy_data/gen/gen_7.cpl
-    tests/dummy_data/gen/gen_8.cpl
-    tests/dummy_data/gen/gen_9.cpl
-    tests/dummy_data/gen/gen_10.cpl
-    tests/dummy_data/gen/gen_11.cpl
-    tests/dummy_data/gen/gen_12.cpl
-    tests/dummy_data/gen/gen_13.cpl
-    tests/dummy_data/gen/gen_14.cpl
-    tests/dummy_data/gen/gen_15.cpl
-    tests/dummy_data/gen/gen_16.cpl
-    tests/dummy_data/gen/gen_17.cpl
-    tests/dummy_data/gen/gen_18.cpl
-    tests/dummy_data/gen/gen_19.cpl
+TEST_SRCS[test_asm]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/*.c src/asm/*.c src/asm/*/*.c std/*.c"
+TEST_CODES[test_asm]="
+    tests/dummy_data/asm/asm_1.cpl
+    tests/dummy_data/asm/asm_2.cpl
+    tests/dummy_data/asm/asm_3.cpl
+    tests/dummy_data/asm/asm_4.cpl
+    tests/dummy_data/asm/asm_5.cpl
+    tests/dummy_data/asm/asm_6.cpl
+    tests/dummy_data/asm/asm_7.cpl
+    tests/dummy_data/asm/asm_8.cpl
+    tests/dummy_data/asm/asm_9.cpl
+    tests/dummy_data/asm/asm_10.cpl
+    tests/dummy_data/asm/asm_11.cpl
+    tests/dummy_data/asm/asm_12.cpl
+    tests/dummy_data/asm/asm_13.cpl
+    tests/dummy_data/asm/asm_14.cpl
+    tests/dummy_data/asm/asm_15.cpl
+    tests/dummy_data/asm/asm_16.cpl
+    tests/dummy_data/asm/asm_17.cpl
+    tests/dummy_data/asm/asm_18.cpl
+    tests/dummy_data/asm/asm_19.cpl
 "
 
 TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/sem/*.c src/ast/*.c src/ast/*/*.c src/lir/*.c src/lir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"

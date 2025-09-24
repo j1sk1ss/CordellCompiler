@@ -8,17 +8,17 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     hir_subject_t* condtmp = HIR_generate_elem(cond, ctx, smt);
     hir_subject_t* flb = HIR_SUBJ_LABEL();
     hir_subject_t* elb = HIR_SUBJ_LABEL();
-    
-    HIR_BLOCK2(ctx, HIR_IFOP, condtmp, flb);
+    if (rbranch) HIR_BLOCK2(ctx, HIR_IFOP, condtmp, flb);
+    else HIR_BLOCK2(ctx, HIR_IFOP, condtmp, elb);
+
     if (lbranch) {
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_generate_block(lbranch->child, ctx, smt);
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
     }
 
-    HIR_BLOCK1(ctx, HIR_JMP, elb);
-    HIR_BLOCK1(ctx, HIR_MKLB, flb);
     if (rbranch) {
+        HIR_BLOCK1(ctx, HIR_MKLB, flb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
         HIR_generate_block(rbranch->child, ctx, smt);
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));

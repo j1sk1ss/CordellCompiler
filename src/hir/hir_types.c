@@ -191,3 +191,40 @@ hir_subject_type_t HIR_get_stktype(token_t* token) {
         default: return HIR_STKVARF64;
     }
 }
+
+int HIR_isleader(hir_operation_t op) {
+    if (
+        op == HIR_FDCL ||
+        op == HIR_MKLB
+    ) return 1;
+    return 0;
+}
+
+int HIR_isjmp(hir_operation_t op) {
+    if (
+        op == HIR_FCLL    ||
+        op == HIR_JMP     ||
+        op == HIR_IFOP    ||
+        op == HIR_IFCPOP  ||
+        op == HIR_IFLGEOP ||
+        op == HIR_IFLGOP  ||
+        op == HIR_IFLWEOP ||
+        op == HIR_IFLWOP  ||
+        op == HIR_IFNCPOP ||
+        op == HIR_FRET
+    ) return 1;
+    return 0;
+}
+
+int HIR_iscondjmp(hir_operation_t op) {
+    if (
+        op == HIR_IFOP    ||
+        op == HIR_IFCPOP  ||
+        op == HIR_IFLGEOP ||
+        op == HIR_IFLGOP  ||
+        op == HIR_IFLWEOP ||
+        op == HIR_IFLWOP  ||
+        op == HIR_IFNCPOP
+    ) return 1;
+    return 0;
+}
