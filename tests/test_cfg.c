@@ -139,12 +139,31 @@ void print_hir_block(const hir_block_t* block, int ud) {
     print_hir_subject(block->targ); printf("\n");
 }
 
+static int _export_dot_func(cfg_func_t* f) {
+    printf("digraph CFG_func%d {\n", f->id);
+    printf("  rankdir=TB;\n");
+    cfg_block_t* b = f->cfg_head;
+    while (b) {
+        printf("  B%ld [label=\"B%ld:\\nentry=%s\\nexit=%s\"];\n",
+               b->id, b->id,
+               b->entry ? hir_op_to_string(b->entry->op) : "NULL",
+               b->exit  ? hir_op_to_string(b->exit->op)  : "NULL");
+        if (b->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", b->id, b->l->id);
+        if (b->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", b->id, b->jmp->id);
+        b = b->next;
+    }
+    printf("}\n");
+    return 1;
+}
+
 void cfg_print(cfg_ctx_t* ctx) {
     cfg_func_t* f = ctx->h;
     printf("==== CFG DUMP ====\n");
 
     while (f) {
-        printf("==== FUNC_ID [%i] ====\n", f->id);
+        printf("==== CFG DOT ====\n");
+        _export_dot_func(f);
+        printf("\n\n==== CFG VIS. FUNC_ID [%i] ====\n", f->id);
         cfg_block_t* b = f->cfg_head;
         while (b) {
             printf("Block %ld [\nentry=", b->id);

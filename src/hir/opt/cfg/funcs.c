@@ -36,6 +36,16 @@ cfg_func_t* HIR_CFG_find_function(long fid, cfg_ctx_t* ctx) {
     return NULL;
 }
 
+cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid) {
+    cfg_block_t* h = f->cfg_head;
+    while (h) {
+        if (h->entry->op == HIR_MKLB && h->entry->farg->id == lbid) return h;
+        h = h->next;
+    }
+
+    return NULL;
+}
+
 int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
     hir_block_t* h = hctx->h;
     hir_block_t* fentry = NULL;

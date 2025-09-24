@@ -39,6 +39,7 @@ typedef struct {
 
 int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx);
 cfg_func_t* HIR_CFG_find_function(long fid, cfg_ctx_t* ctx);
+cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid);
 
 int HIR_CFG_mark_leaders(cfg_ctx_t* ctx);
 int HIR_CFG_leaders_contains(hir_block_t* h, leader_ctx_t* ctx);

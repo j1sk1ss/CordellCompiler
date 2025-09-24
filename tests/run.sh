@@ -152,6 +152,7 @@ TEST_SRCS[test_cfg]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/parsers/*.c
 TEST_CODES[test_cfg]="
     tests/dummy_data/hir/opt/cfg/cfg_1.cpl
     tests/dummy_data/hir/opt/cfg/cfg_2.cpl
+    tests/dummy_data/hir/opt/cfg/cfg_3.cpl
 "
 
 TEST_SRCS[test_lir]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/lir/*.c src/lir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"

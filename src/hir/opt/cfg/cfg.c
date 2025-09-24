@@ -22,6 +22,7 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
     cfg_block_t* h = f->cfg_head;
     while (h->next) h = h->next;
     h->next = b;
+    h->l = b;
     return 1;
 }
 
@@ -44,18 +45,44 @@ int _create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
 int HIR_build_cfg(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
     if (!hctx || !ctx || !hctx->h) return 0;
 
-    /* Generate functions */
     HIR_CFG_split_by_functions(hctx, ctx);
     HIR_CFG_mark_leaders(ctx);
 
-    /* Basic blocks in functions */
     cfg_func_t* fh = ctx->h;
     while (fh) {
         _create_cfg_blocks(fh, ctx);
+        cfg_block_t* cb = fh->cfg_head;
+        while (cb) {
+            switch (cb->exit->op) {
+                case HIR_JMP: {
+                    cfg_block_t* lb = HIR_CFG_function_findlb(fh, cb->exit->farg->id);
+                    cb->jmp = lb;
+                    cb->l   = NULL;
+                    break;
+                }
+
+                case HIR_IFOP:
+                case HIR_IFLGOP:
+                case HIR_IFLGEOP:
+                case HIR_IFLWOP:
+                case HIR_IFLWEOP:
+                case HIR_IFCPOP:
+                case HIR_IFNCPOP: {
+                    cfg_block_t* lb = HIR_CFG_function_findlb(fh, cb->exit->sarg->id);
+                    cb->jmp = lb;
+                    break;
+                }
+
+                case HIR_FRET: 
+                case HIR_FEND:
+                case HIR_STEND: cb->l = NULL; break;
+            }
+
+            cb = cb->next;
+        }
+
         fh = fh->next;
     }
-
-    /* JMP linking */
 
     return 1;
 }
