@@ -7,6 +7,7 @@
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/opt/cfg.h>
+#include <hir/opt/ssa.h>
 #include "ast_helper.h"
 
 static int _depth = 0;
@@ -164,22 +165,6 @@ void cfg_print(cfg_ctx_t* ctx) {
     while (f) {
         printf("==== CFG DOT ====\n");
         _export_dot_func(f);
-        printf("\n\n==== CFG VIS. FUNC_ID [%i] ====\n", f->id);
-        cfg_block_t* b = f->cfg_head;
-        while (b) {
-            printf("Block %ld [\nentry=", b->id);
-            print_hir_block(b->entry, 0);
-            printf("exit=");
-            print_hir_block(b->exit, 0);
-            printf("]\n");
-
-            if (b->l)   printf("fallthrough -> Block %ld\n", b->l->id);
-            if (b->jmp) printf("jump -> Block %ld\n", b->jmp->id);
-
-            printf("\n");
-            b = b->next;
-        }
-
         f = f->next;
     }
 
@@ -228,6 +213,14 @@ int main(int argc, char* argv[]) {
     };
 
     HIR_generate(&sctx, &irctx, &smt);
+
+    cfg_ctx_t cfgctx = { .h = NULL };
+    HIR_build_cfg(&irctx, &cfgctx);
+    cfg_print(&cfgctx);
+
+    ssa_ctx_t ssactx = { .h = NULL };
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt);
+
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
     while (h) {
@@ -263,10 +256,6 @@ int main(int argc, char* argv[]) {
         printf("id: %i, val: %s\n", sh->id, sh->value);
         sh = sh->next;
     }
-
-    cfg_ctx_t cfgctx = { .h = NULL };
-    HIR_build_cfg(&irctx, &cfgctx);
-    cfg_print(&cfgctx);
 
     HIR_unload_blocks(irctx.h);
     AST_unload(sctx.r);

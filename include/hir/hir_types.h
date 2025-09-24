@@ -156,5 +156,6 @@ hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
 int HIR_isleader(hir_operation_t op);
 int HIR_isjmp(hir_operation_t op);
 int HIR_iscondjmp(hir_operation_t op);
+int HIR_is_vartype(hir_subject_type_t t);
 
 #endif

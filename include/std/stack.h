@@ -52,7 +52,10 @@ static inline long scope_offset_top(scope_stack_t* st) {
 }
 
 typedef struct {
-    void* data;
+    union {
+        void* addrdata;
+        long intdata;
+    } data;
 } stack_elem_t;
 
 typedef struct {
@@ -60,17 +63,26 @@ typedef struct {
     int          top;
 } sstack_t;
 
-static inline void stack_push(sstack_t* st, void* data) {
-    st->data[++st->top].data = data;
+static inline void stack_push_addr(sstack_t* st, void* data) {
+    st->data[++st->top].data.addrdata = data;
+}
+
+static inline void stack_push_int(sstack_t* st, long data) {
+    st->data[++st->top].data.intdata = data;
 }
 
 static inline void stack_pop(sstack_t* st) {
     if (st->top >= 0) st->top--;
 }
 
-static inline void stack_top(sstack_t* st, stack_elem_t* e) {
-    if (st->top < 0) e->data = NULL;
+static inline void stack_top_addr(sstack_t* st, stack_elem_t* e) {
+    if (st->top < 0) e->data.addrdata = NULL;
     else str_memcpy(e, &st->data[st->top], sizeof(scope_elem_t));
+}
+
+static inline void stack_top_int(sstack_t* st, stack_elem_t* e) {
+    if (st->top < 0) e->data.intdata = -1;
+    else str_memcpy(e, &st->data[st->top], sizeof(stack_elem_t));
 }
 
 #endif

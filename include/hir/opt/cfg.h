@@ -21,6 +21,7 @@ typedef struct cfg_block {
     struct cfg_block* l;
     struct cfg_block* jmp;
     struct cfg_block* next;
+    int               visited;
 } cfg_block_t;
 
 typedef struct cfg_func {

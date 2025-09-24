@@ -202,7 +202,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
             /* Push argument, arg - farg */
             case HIR_FARGST:
-            case HIR_PRMST: stack_push(&params, h->farg); break;
+            case HIR_PRMST: stack_push_addr(&params, h->farg); break;
 
             case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
             case HIR_JMP:  LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
