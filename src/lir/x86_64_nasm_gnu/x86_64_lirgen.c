@@ -19,6 +19,30 @@ static int _allocate_var(hir_subject_t* v, stack_map_t* stk, sym_table_t* smt, a
     return 0;
 }
 
+lir_subject_t* _format_variable(hir_subject_t* subj, sym_table_t* smt) {
+    switch (subj->t) {
+        case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value);
+        case HIR_CONSTVAL: return LIR_SUBJ_CONST(subj->storage.cnst.value);
+        case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
+        case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
+        case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
+        case HIR_STKVARSTR: case HIR_STKVARARR: case HIR_STKVARF64: case HIR_STKVARU64:
+        case HIR_STKVARI64: case HIR_STKVARF32: case HIR_STKVARU32: case HIR_STKVARI32:
+        case HIR_STKVARU16: case HIR_STKVARI16: case HIR_STKVARU8:  case HIR_STKVARI8:
+        case HIR_GLBVARSTR: case HIR_GLBVARARR: case HIR_GLBVARF64: case HIR_GLBVARU64:
+        case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
+        case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8: {
+            variable_info_t vi;
+            if (VRTB_get_info_id(subj->storage.var.v_id, &vi, &smt->v)) {
+                if (!vi.glob) return LIR_SUBJ_OFF(vi.offset, VRS_variable_bitness(vi.type, vi.ptr));
+                else return LIR_SUBJ_GLVAR(subj->storage.var.v_id);
+            }
+        }
+        
+        default: return NULL;
+    }
+}
+
 int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     hir_block_t* h = hctx->h;
 
@@ -77,8 +101,8 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
             /* Function return command, ret_val - farg */
             case HIR_FRET: {
-                // int vrsize = LIR_get_hirtype_size(h->farg->t);
-                // LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, vrsize), )
+                int vrsize = LIR_get_hirtype_size(h->farg->t);
+                LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, vrsize), _format_variable(h->farg, smt));
                 LIR_BLOCK0(ctx, LIR_FRET);
                 break;
             }
@@ -150,19 +174,15 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
             /* Ger dref value by link in sarg, move it to farg */
             case HIR_GDREF: {
-                variable_info_t src;
-                VRTB_get_info_id(h->sarg->storage.var.v_id, &src, &smt->v);
                 LIR_BLOCK2(
                     ctx, LIR_GDREF,
                     LIR_SUBJ_REG(RAX, LIR_get_hirtype_size(h->farg->t)),
-                    LIR_SUBJ_OFF(src.offset, LIR_get_hirtype_size(h->farg->t))
+                    _format_variable(h->sarg, smt)
                 );
 
-                variable_info_t dst;
-                VRTB_get_info_id(h->farg->storage.var.v_id, &dst, &smt->v);
                 LIR_BLOCK2(
                     ctx, LIR_iMOV,
-                    LIR_SUBJ_OFF(dst.offset, LIR_get_hirtype_size(h->sarg->t)),
+                    _format_variable(h->farg, smt),
                     LIR_SUBJ_REG(RAX, LIR_get_hirtype_size(h->sarg->t))
                 );
 
@@ -171,13 +191,9 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
             /* Store value from sarg to location with address from farg */
             case HIR_LDREF: {
-                /* mov rax, ... */
-
-                variable_info_t dst;
-                VRTB_get_info_id(h->farg->storage.var.v_id, &dst, &smt->v);
                 LIR_BLOCK2(
                     ctx, LIR_LDREF,
-                    LIR_SUBJ_OFF(dst.offset, LIR_get_hirtype_size(h->sarg->t)),
+                    _format_variable(h->farg, smt),
                     LIR_SUBJ_REG(RAX, LIR_get_hirtype_size(h->sarg->t))
                 );
 

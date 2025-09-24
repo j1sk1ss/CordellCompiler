@@ -37,6 +37,8 @@ int LIR_get_asttype_size(token_type_t t) {
 
 int LIR_get_hirtype_size(hir_subject_type_t t) {
     switch (t) {
+        case HIR_NUMBER:
+        case HIR_CONSTVAL:
         case HIR_TMPVARF64:
         case HIR_TMPVARI64:
         case HIR_TMPVARU64:

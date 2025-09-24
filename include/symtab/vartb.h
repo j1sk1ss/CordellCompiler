@@ -8,8 +8,9 @@
 typedef struct variable_info {
     long                  v_id;
     short                 s_id;
+    char                  heap; /* Point to heap, can't be reused   */
+    char                  ptr;  /* PTR type == maximum size in arch */
     char                  ro;
-    char                  heap; /* Point to heap, can't be reused */
     char                  glob;
     char                  name[TOKEN_MAX_SIZE];
     token_type_t          type;

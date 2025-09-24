@@ -53,7 +53,11 @@ static variable_info_t* _create_variable_info(const char* name, token_type_t typ
         str_strncpy(var->name, name, TOKEN_MAX_SIZE);
     }
 
-    if (flags) var->heap = flags->heap;
+    if (flags) {
+        var->heap = flags->heap;
+        var->ptr  = flags->ptr;
+    }
+
     var->type = type;
     var->next = NULL;
     return var;
