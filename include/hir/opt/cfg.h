@@ -21,9 +21,9 @@ typedef struct cfg_block {
     hir_block_t*      exit;
 
     struct cfg_block* l;
-    struct cfg_block* lpred;
     struct cfg_block* jmp;
-    struct cfg_block* jmppred;
+    struct cfg_block* lpred;
+    set_t             jmppred;
     
     struct cfg_block* next;
 
@@ -33,7 +33,7 @@ typedef struct cfg_block {
     struct cfg_block* idom;
     struct cfg_block* dom_c;
     struct cfg_block* dom_s;
-    set_t             df;
+    set_t             domf;
 } cfg_block_t;
 
 typedef struct cfg_func {

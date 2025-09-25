@@ -22,12 +22,21 @@ int HIR_CFG_compute_dom(cfg_func_t* func) {
             set_init(&nd);
 
             int first = 1;
-            cfg_block_t* preds[2] = { b->lpred, b->jmppred };
-            for (int i = 0; i < 2; i++) {
-                if (!preds[i]) continue;
-                if (!first) set_intersect_addr(&nd, &nd, &preds[i]->dom);
+            if (b->lpred) {
+                if (!first) set_intersect_addr(&nd, &nd, &b->lpred->dom);
                 else {
-                    set_copy_addr(&nd, &preds[i]->dom);
+                    set_copy_addr(&nd, &b->lpred->dom);
+                    first = 0;
+                }
+            }
+
+            set_iter_t it;
+            cfg_block_t* p;
+            set_iter_init(&b->jmppred, &it);
+            while ((p = set_iter_next_addr(&it))) {
+                if (first) set_intersect_addr(&nd, &nd, &p->dom); 
+                else {
+                    set_copy_addr(&nd, &p->dom);
                     first = 0;
                 }
             }
@@ -104,7 +113,7 @@ static int _compute_domf_rec(cfg_block_t* b) {
         cfg_block_t* s = succs[i];
         if (!s) continue;
         if (s->idom != b) {
-            set_add_addr(&b->df, s);
+            set_add_addr(&b->domf, s);
         }
     }
 
@@ -112,11 +121,11 @@ static int _compute_domf_rec(cfg_block_t* b) {
         _compute_domf_rec(c);
 
         set_iter_t it;
-        set_iter_init(&c->df, &it);
+        set_iter_init(&c->domf, &it);
         cfg_block_t* y;
         while ((y = set_iter_next_addr(&it))) {
             if (y->idom != b) {
-                set_add_addr(&b->df, y);
+                set_add_addr(&b->domf, y);
             }
         }
     }
@@ -126,7 +135,7 @@ static int _compute_domf_rec(cfg_block_t* b) {
 
 int HIR_CFG_compute_domf(cfg_func_t* func) {
     for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        set_init(&b->df);
+        set_init(&b->domf);
     }
 
     _build_domtree(func);

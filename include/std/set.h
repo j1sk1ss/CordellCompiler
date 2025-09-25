@@ -28,6 +28,7 @@ int set_has_int(set_t* s, long data);
 long set_iter_next_int(set_iter_t* it);
 
 int set_add_addr(set_t* s, void* data);
+int set_remove_addr(set_t* s, void* data);
 int set_has_addr(set_t* s, void* data);
 void* set_iter_next_addr(set_iter_t* it);
 int set_intersect_addr(set_t* dst, set_t* a, set_t* b);

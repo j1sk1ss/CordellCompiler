@@ -49,7 +49,7 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
             cfg_block_t* b;
             while ((b = (cfg_block_t*)set_iter_next_addr(&it))) {
                 set_iter_t fit;
-                set_iter_init(&b->df, &fit);
+                set_iter_init(&b->domf, &fit);
 
                 cfg_block_t* f;
                 while ((f = (cfg_block_t*)set_iter_next_addr(&fit))) {

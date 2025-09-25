@@ -26,6 +26,23 @@ int set_add_addr(set_t* s, void* data) {
     return 1;
 }
 
+int set_remove_addr(set_t* s, void* data) {
+    set_node_t* prev = NULL;
+    set_node_t* n = s->head;
+    while (n) {
+        if (n->stg.addrdata == data) {
+            if (!prev) s->head = n->next;
+            else prev->next = n->next;
+            mm_free(n);
+            return 1;
+        }
+
+        n = n->next;
+    }
+
+    return 0;
+}
+
 void* set_iter_next_addr(set_iter_t* it) {
     if (!it->current) return NULL;
     void* data = it->current->stg.addrdata;

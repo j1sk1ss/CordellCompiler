@@ -6,6 +6,7 @@ static cfg_block_t* _create_cfg_block(hir_block_t* e) {
     str_memset(block, 0, sizeof(cfg_block_t));
     block->entry   = e;
     block->visited = 0;
+    set_init(&block->jmppred);
     return block;
 }
 
@@ -64,21 +65,22 @@ int HIR_build_cfg(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
                     break;
                 }
 
-                case HIR_IFOP:
+                case HIR_IFOP: {
+                    cfg_block_t* lb = HIR_CFG_function_findlb(fh, cb->exit->sarg->id);
+                    cb->jmp     = lb;
+                    set_add_addr(&lb->jmppred, cb);
+                    break;
+                }
+
                 case HIR_IFLGOP:
                 case HIR_IFLGEOP:
                 case HIR_IFLWOP:
                 case HIR_IFLWEOP:
                 case HIR_IFCPOP:
                 case HIR_IFNCPOP: {
-                    cfg_block_t* lb = HIR_CFG_function_findlb(fh, cb->exit->sarg->id);
-                    if (!lb) {
-                        print_warn("!lb, lb_id=%i", cb->exit->sarg->id);
-                        break;
-                    }
-
+                    cfg_block_t* lb = HIR_CFG_function_findlb(fh, cb->exit->targ->id);
                     cb->jmp     = lb;
-                    lb->jmppred = cb;
+                    set_add_addr(&lb->jmppred, cb);
                     break;
                 }
 

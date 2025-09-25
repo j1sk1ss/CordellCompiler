@@ -41,11 +41,21 @@ static int _build_versions(ssa_ctx_t* ctx, sym_table_t* smt) {
     return 1;
 }
 
-static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
-    if (!b) return 0;
-    b->visited++;
+static int _unload_versions(ssa_ctx_t* ctx) {
+    varver_t* h = ctx->h;
+    while (h) {
+        varver_t* n = h->next;
+        mm_free(h);
+        h = n;
+    }
 
-    int phi = 0;
+    return 1;
+}
+
+static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
+    if (!b || b->visited) return 0;
+    b->visited = 1;
+
     hir_block_t* hh = b->entry;
     while (hh) {
         switch (hh->op) {
@@ -58,7 +68,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
                 if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
-                        hh->farg->storage.var.v_id = VRTB_add_copy(&vi, &smt->v);
+                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
                         stack_push_int(&vv->v, hh->farg->storage.var.v_id);
                     }
                 }
@@ -67,25 +77,24 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
             }
 
             case HIR_PHI: {
-                phi = 1;
-                variable_info_t vi;
-                if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
-                    varver_t* vv = _get_varver(vi.v_id, ctx);
-                    if (vv) {
-                        token_t tmptkn = { .t_type = vi.type };
-                        stack_elem_t se;
-                        stack_top_int(&vv->v, &se);
-                        if (!hh->sarg)      hh->sarg = HIR_SUBJ_STKVAR(se.data.intdata, HIR_get_stktype(&tmptkn), vi.s_id);
-                        else if (!hh->targ) hh->targ = HIR_SUBJ_STKVAR(se.data.intdata, HIR_get_stktype(&tmptkn), vi.s_id);
-                    }
-                }
+                // variable_info_t vi;
+                // if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
+                //     varver_t* vv = _get_varver(vi.v_id, ctx);
+                //     if (vv) {
+                //         token_t tmptkn = { .t_type = vi.type };
+                //         stack_elem_t se;
+                //         stack_top_int(&vv->v, &se);
+                //         if (!hh->sarg)      hh->sarg = HIR_SUBJ_STKVAR(se.data.intdata, HIR_get_stktype(&tmptkn), vi.s_id);
+                //         else if (!hh->targ) hh->targ = HIR_SUBJ_STKVAR(se.data.intdata, HIR_get_stktype(&tmptkn), vi.s_id);
+                //     }
+                // }
 
                 break;
             }
 
             default: {
-                hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
-                for (int i = 0; i < 3; i++) {
+                hir_subject_t* args[2] = { hh->sarg, hh->targ };
+                for (int i = 0; i < 2; i++) {
                     if (args[i] && HIR_is_vartype(args[i]->t)) {
                         varver_t* vv = _get_varver(args[i]->storage.var.v_id, ctx);
                         if (vv) {
@@ -104,7 +113,6 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
         hh = hh->next;
     }
 
-    if (phi && b->visited > 1) return 1;
     _iterate_block(b->jmp, ctx, smt);
     _iterate_block(b->l, ctx, smt);
     return 1;
@@ -112,10 +120,19 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
 
 static int _clean_phi_block(cfg_block_t* b) {
     while (b) {
-        if (b->entry->op == HIR_PHI && !b->entry->targ) {
-            hir_block_t* next = b->entry->next;
-            HIR_remove_block(b->entry);
-            b->entry = next;
+        hir_block_t* hh = b->entry;
+        while (hh) {
+            if (
+                hh->op == HIR_PHI && 
+                (!hh->targ || hh->sarg->storage.var.v_id == hh->targ->storage.var.v_id)
+            ) {
+                hir_block_t* next = hh->next;
+                HIR_remove_block(hh);
+                if (hh == b->entry) b->entry = next;
+            }
+
+            if (hh == b->exit) break;
+            hh = hh->next;
         }
 
         b = b->next;
@@ -134,5 +151,6 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
         fh = fh->next;
     }
 
+    _unload_versions(ctx);
     return 1;
 }
