@@ -16,8 +16,12 @@ typedef struct {
     int  size;
 } alloc_info_t;
 
+lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt);
+int LIR_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
+int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
+int LIR_reg_op(lir_ctx_t* ctx, int freg, int sreg, lir_operation_t op);
 int LIR_allocate_var(hir_subject_t* v, stack_map_t* stk, sym_table_t* smt, alloc_info_t* i, long* off);
-int LIR_deallocate_scope_heap(ast_node_t* t, lir_ctx_t* ctx);
+int LIR_deallocate_scope_heap(lir_ctx_t* ctx, int s_id, scope_stack_t* heap);
 int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

@@ -67,6 +67,7 @@ typedef enum hir_operation {
         HIR_IFNCPOP,  // if X != Y, jmp [lb]
 
         HIR_PHI,
+        HIR_VRDEALL,  // deallocate variable from stack
 
         /* Data */
         HIR_NOT,
