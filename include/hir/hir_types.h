@@ -66,10 +66,7 @@ typedef enum hir_operation {
         HIR_IFCPOP,   // if X == Y, jmp [lb]
         HIR_IFNCPOP,  // if X != Y, jmp [lb]
 
-        HIR_SWITCHOP,
-        HIR_MKCASE,
-        HIR_MKDEFCASE,
-        HIR_MKENDCASE,
+        HIR_PHI,
 
         /* Data */
         HIR_NOT,

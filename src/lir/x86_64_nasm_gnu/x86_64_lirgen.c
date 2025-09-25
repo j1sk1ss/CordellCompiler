@@ -1,24 +1,5 @@
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
-typedef struct {
-    long offset;
-    int  size;
-} alloc_info_t;
-
-static int _allocate_var(hir_subject_t* v, stack_map_t* stk, sym_table_t* smt, alloc_info_t* i, long* off) {
-    int vrsize = LIR_get_hirtype_size(v->t);
-    int vroff  = stack_map_alloc(vrsize, stk);
-    print_debug("_allocate_var, size=%i, off=%i", vrsize, vroff);
-    if (VRTB_update_offset(v->storage.var.v_id, vroff, &smt->v)) {
-        i->offset = vroff;
-        i->size   = vrsize;
-        *off      = MAX(*off, vroff);
-        return 1;
-    }
-
-    return 0;
-}
-
 lir_subject_t* _format_variable(hir_subject_t* subj, sym_table_t* smt) {
     switch (subj->t) {
         case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value);
@@ -43,6 +24,53 @@ lir_subject_t* _format_variable(hir_subject_t* subj, sym_table_t* smt) {
     }
 }
 
+/* Variable to register */
+static inline int _store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
+    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)), _format_variable(subj, smt));
+    return 1;
+}
+
+/* Variable from register */
+static inline int _load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
+    LIR_BLOCK2(ctx, op, _format_variable(subj, smt), LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)));
+    return 1;
+}
+
+static inline int _reg_op(lir_ctx_t* ctx, int freg, int sreg, lir_operation_t op) {
+    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
+    return 1;
+}
+
+static int _binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
+    _store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+    _store_var_reg(LIR_iMOV, ctx, h->targ, RBX, smt);
+    
+    switch (h->op) {
+        case HIR_iSUB: {
+            _reg_op(ctx, RBX, RAX, LIR_iSUB);
+            _reg_op(ctx, RAX, RBX, LIR_iMOV);
+            break;
+        }
+        
+        case HIR_iDIV: {
+            break;
+        }
+
+        case HIR_iMUL: {
+            _reg_op(ctx, RAX, RBX, LIR_iMUL);
+            break;
+        }
+
+        case HIR_iADD: {
+            _reg_op(ctx, RAX, RBX, LIR_iADD);
+            break;
+        }
+    }
+
+    _load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+    return 1;
+}
+
 int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     hir_block_t* h = hctx->h;
 
@@ -56,7 +84,6 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
         switch (h->op) {
             case HIR_STRT: LIR_BLOCK0(ctx, LIR_STRT); break;
 
-            /* Load args from entry program stack, v_id - farg.storage.var.id, argnum - sarg.storage.cnst.val */
             case HIR_STARGLD: {
                 int vrsize = LIR_get_hirtype_size(h->farg->t);
                 switch (h->sarg->storage.cnst.value) {
@@ -67,7 +94,6 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            /* make / end scope, scope_id - farg.cnst */
             case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset); break;
 
             case HIR_FEND:
@@ -87,7 +113,6 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            /* Generate function body and function declaration, func_id - farg.str.s_id */
             case HIR_FDCL: {
                 func_info_t fi;
                 if (FNTB_get_info_id(h->farg->storage.str.s_id, &fi, &smt->f)) {
@@ -99,18 +124,16 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            /* Function return command, ret_val - farg */
             case HIR_FRET: {
                 int vrsize = LIR_get_hirtype_size(h->farg->t);
-                LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, vrsize), _format_variable(h->farg, smt));
+                _store_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
                 LIR_BLOCK0(ctx, LIR_FRET);
                 break;
             }
 
-            /* Function load arg, v_id - farg.var.id, argnum - sarg.cnst.val */
             case HIR_FARGLD: {
                 alloc_info_t alloc;
-                if (_allocate_var(h->farg, &stackmap, smt, &alloc, &offset)) {
+                if (LIR_allocate_var(h->farg, &stackmap, smt, &alloc, &offset)) {
                     static const int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
                     LIR_BLOCK2(
                         ctx, LIR_iMOV, LIR_SUBJ_OFF(alloc.offset, alloc.size), 
@@ -121,11 +144,10 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            /* Allocate stack memory for declaration, v_id - farg.var.id, val (opt) - sarg? */
             case HIR_VARDECL: {
                 if (LIR_is_global_hirtype(h->farg->t)) break;
                 alloc_info_t alloc;
-                if (_allocate_var(h->farg, &stackmap, smt, &alloc, &offset)) {
+                if (LIR_allocate_var(h->farg, &stackmap, smt, &alloc, &offset)) {
                     if (h->sarg) {
                         LIR_BLOCK2(
                             ctx, LIR_iMOV, LIR_SUBJ_OFF(alloc.offset, alloc.size), 
@@ -137,7 +159,6 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            /* Allocate array in stack / in .data, v_id - farg.var.id, size - sarg? */
             case HIR_ARRDECL: {
                 if (LIR_is_global_hirtype(h->farg->t)) break;
 
@@ -172,41 +193,29 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            /* Ger dref value by link in sarg, move it to farg */
             case HIR_GDREF: {
-                LIR_BLOCK2(
-                    ctx, LIR_GDREF,
-                    LIR_SUBJ_REG(RAX, LIR_get_hirtype_size(h->farg->t)),
-                    _format_variable(h->sarg, smt)
-                );
-
-                LIR_BLOCK2(
-                    ctx, LIR_iMOV,
-                    _format_variable(h->farg, smt),
-                    LIR_SUBJ_REG(RAX, LIR_get_hirtype_size(h->sarg->t))
-                );
-
+                _store_var_reg(LIR_GDREF, ctx, h->sarg, RAX, smt);
+                _load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
                 break;
             }
 
-            /* Store value from sarg to location with address from farg */
             case HIR_LDREF: {
-                LIR_BLOCK2(
-                    ctx, LIR_LDREF,
-                    _format_variable(h->farg, smt),
-                    LIR_SUBJ_REG(RAX, LIR_get_hirtype_size(h->sarg->t))
-                );
-
+                _store_var_reg(LIR_REF, ctx, h->farg, RAX, smt);
+                _store_var_reg(LIR_LDREF, ctx, h->sarg, RAX, smt);
                 break;
             }
 
-            /* Push argument, arg - farg */
             case HIR_FARGST:
             case HIR_PRMST: stack_push_addr(&params, h->farg); break;
 
             case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
             case HIR_JMP:  LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
 
+            case HIR_iMOD:
+            case HIR_iSUB: 
+            case HIR_iDIV: 
+            case HIR_iMUL: 
+            case HIR_iADD: _binary_op(ctx, h, smt); break;
             default: break;
         }
         
