@@ -1,16 +1,10 @@
 {
-    function foo(i32 b = 10) => i32 {
-        if b == 10; {
-            return 0;
+    start(i64 argc, ptr u64 argv) {
+        i32 a = 0;
+        while a < 10; {
+            a += 1;
         }
 
-        b = 1;
-        exit b;
-    }
-
-    start(i64 argc, ptr u64 argv) {
-        i32 b = 10;
-        foo();
-        exit b;
+        exit a;
     }
 }
