@@ -47,10 +47,6 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_bSAR:      return "bSAR";
         case HIR_RAW:       return "RAW";
         case HIR_IFOP:      return "IFOP";
-        case HIR_SWITCHOP:  return "SWITCHOP";
-        case HIR_MKCASE:    return "MKCASE";
-        case HIR_MKDEFCASE: return "MKDEFCASE";
-        case HIR_MKENDCASE: return "MKENDCASE";
         case HIR_NOT:       return "NOT";
         case HIR_LOADOP:    return "LOADOP";
         case HIR_LDLINK:    return "LDLINK";

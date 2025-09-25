@@ -64,7 +64,7 @@ hir_ctx_t* HIR_create_ctx();
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
 int HIR_insert_block(hir_block_t* block, hir_block_t* pos);
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
-int HIR_remove_block(hir_block_t* block, hir_ctx_t* ctx);
+int HIR_remove_block(hir_block_t* block);
 int HIR_unload_blocks(hir_block_t* block);
 int HIR_destroy_ctx(hir_ctx_t* ctx);
 

@@ -4,7 +4,8 @@ static cfg_block_t* _create_cfg_block(hir_block_t* e) {
     cfg_block_t* block = (cfg_block_t*)mm_malloc(sizeof(cfg_block_t));
     if (!block) return NULL;
     str_memset(block, 0, sizeof(cfg_block_t));
-    block->entry = e;
+    block->entry   = e;
+    block->visited = 0;
     return block;
 }
 

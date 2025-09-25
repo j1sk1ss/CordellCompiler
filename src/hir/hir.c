@@ -103,10 +103,8 @@ int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
     return 0;
 }
 
-int HIR_remove_block(hir_block_t* block, hir_ctx_t* ctx) {
+int HIR_remove_block(hir_block_t* block) {
     block->prev->next = block->next;
-    block->prev = NULL;
-    block->next = NULL;
     mm_free(block);
     return 1;
 }

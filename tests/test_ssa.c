@@ -214,12 +214,12 @@ int main(int argc, char* argv[]) {
 
     cfg_ctx_t cfgctx = { .h = NULL };
     HIR_build_cfg(&irctx, &cfgctx);
-    cfg_print(&cfgctx);
-
+    
+    ssa_ctx_t ssactx = { .h = NULL };
     HIR_SSA_insert_phi(&cfgctx, &smt);
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt);
 
-    // ssa_ctx_t ssactx = { .h = NULL };
-    // HIR_SSA_rename(&cfgctx, &ssactx, &smt);
+    cfg_print(&cfgctx);
 
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;

@@ -42,7 +42,10 @@ static int _build_versions(ssa_ctx_t* ctx, sym_table_t* smt) {
 }
 
 static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
-    if (!b || b->visited) return 0;
+    if (!b) return 0;
+    b->visited++;
+
+    int phi = 0;
     hir_block_t* hh = b->entry;
     while (hh) {
         switch (hh->op) {
@@ -51,13 +54,29 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
             case HIR_iDIV:
             case HIR_iMUL: 
             case HIR_STORE: {
-                hir_subject_t* def = hh->farg;
                 variable_info_t vi;
-                if (VRTB_get_info_id(def->storage.var.v_id, &vi, &smt->v)) {
+                if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
-                        def->storage.var.v_id = VRTB_add_copy(&vi, &smt->v);
-                        stack_push_int(&vv->v, def->storage.var.v_id);
+                        hh->farg->storage.var.v_id = VRTB_add_copy(&vi, &smt->v);
+                        stack_push_int(&vv->v, hh->farg->storage.var.v_id);
+                    }
+                }
+
+                break;
+            }
+
+            case HIR_PHI: {
+                phi = 1;
+                variable_info_t vi;
+                if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
+                    varver_t* vv = _get_varver(vi.v_id, ctx);
+                    if (vv) {
+                        token_t tmptkn = { .t_type = vi.type };
+                        stack_elem_t se;
+                        stack_top_int(&vv->v, &se);
+                        if (!hh->sarg)      hh->sarg = HIR_SUBJ_STKVAR(se.data.intdata, HIR_get_stktype(&tmptkn), vi.s_id);
+                        else if (!hh->targ) hh->targ = HIR_SUBJ_STKVAR(se.data.intdata, HIR_get_stktype(&tmptkn), vi.s_id);
                     }
                 }
 
@@ -85,8 +104,23 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
         hh = hh->next;
     }
 
+    if (phi && b->visited > 1) return 1;
     _iterate_block(b->jmp, ctx, smt);
     _iterate_block(b->l, ctx, smt);
+    return 1;
+}
+
+static int _clean_phi_block(cfg_block_t* b) {
+    while (b) {
+        if (b->entry->op == HIR_PHI && !b->entry->targ) {
+            hir_block_t* next = b->entry->next;
+            HIR_remove_block(b->entry);
+            b->entry = next;
+        }
+
+        b = b->next;
+    }
+    
     return 1;
 }
 
@@ -96,6 +130,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     while (fh) {
         cfg_block_t* bh = fh->cfg_head;
         _iterate_block(bh, ctx, smt);
+        _clean_phi_block(bh);
         fh = fh->next;
     }
 
