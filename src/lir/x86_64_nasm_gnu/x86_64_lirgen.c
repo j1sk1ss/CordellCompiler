@@ -41,7 +41,12 @@ static inline int _reg_op(lir_ctx_t* ctx, int freg, int sreg, lir_operation_t op
     return 1;
 }
 
+static int _simd_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
+
+}
+
 static int _binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
+    if (HIR_is_floattype(h->sarg->t) || HIR_is_floattype(h->targ->t)) return _simd_binary_op(ctx, h, smt);
     _store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
     _store_var_reg(LIR_iMOV, ctx, h->targ, RBX, smt);
     
@@ -52,17 +57,38 @@ static int _binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
             break;
         }
         
+        case HIR_iMOD:
         case HIR_iDIV: {
+            LIR_BLOCK2(ctx, LIR_XCHG, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
+            if (HIR_is_signtype(h->sarg->t) && HIR_is_signtype(h->targ->t)) {
+                LIR_BLOCK0(ctx, LIR_CDQ);
+                LIR_BLOCK1(ctx, LIR_iDIV, LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
+            } 
+            else {
+                LIR_BLOCK2(ctx, LIR_bXOR, LIR_SUBJ_REG(RDX, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RDX, DEFAULT_TYPE_SIZE));
+                LIR_BLOCK1(ctx, LIR_DIV, LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
+            }
+
+            if (h->op == HIR_iMOD) _reg_op(ctx, RAX, RDX, LIR_iMOV);
             break;
         }
 
-        case HIR_iMUL: {
-            _reg_op(ctx, RAX, RBX, LIR_iMUL);
+        case HIR_iMUL: _reg_op(ctx, RAX, RBX, LIR_iMUL); break;
+        case HIR_iADD: _reg_op(ctx, RAX, RBX, LIR_iADD); break;
+
+        case HIR_iAND: {
             break;
         }
 
-        case HIR_iADD: {
-            _reg_op(ctx, RAX, RBX, LIR_iADD);
+        case HIR_iOR: {
+            break;
+        }
+
+        case HIR_bAND: {
+            break;
+        }
+
+        case HIR_bOR: {
             break;
         }
     }
@@ -211,8 +237,12 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
             case HIR_JMP:  LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
 
+            case HIR_iOR:
+            case HIR_iAND:
+            case HIR_bOR:
+            case HIR_bAND:
             case HIR_iMOD:
-            case HIR_iSUB: 
+            case HIR_iSUB:
             case HIR_iDIV: 
             case HIR_iMUL: 
             case HIR_iADD: _binary_op(ctx, h, smt); break;

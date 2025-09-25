@@ -80,6 +80,46 @@ int HIR_is_vartype(hir_subject_type_t t) {
     }
 }
 
+int HIR_is_floattype(hir_subject_type_t t) {
+    switch (t) {
+        case HIR_TMPVARF32:
+        case HIR_TMPVARF64: 
+        case HIR_STKVARF32: 
+        case HIR_STKVARF64: 
+        case HIR_GLBVARF32: 
+        case HIR_GLBVARF64: return 1;
+        default:            return 0;
+    }
+}
+
+int HIR_is_signtype(hir_subject_type_t t) {
+    switch (t) {
+        case HIR_TMPVARI8:  
+        case HIR_TMPVARI16: 
+        case HIR_TMPVARI32: 
+        case HIR_TMPVARF32: 
+        case HIR_TMPVARI64: 
+        case HIR_TMPVARF64: 
+        case HIR_STKVARI8:  
+        case HIR_STKVARI16: 
+        case HIR_STKVARI32: 
+        case HIR_STKVARF32: 
+        case HIR_STKVARI64: 
+        case HIR_STKVARF64: 
+        case HIR_GLBVARI8: 
+        case HIR_GLBVARI16: 
+        case HIR_GLBVARI32: 
+        case HIR_GLBVARF32: 
+        case HIR_GLBVARI64: 
+        case HIR_GLBVARF64: 
+        case HIR_STKVARSTR:
+        case HIR_GLBVARSTR:
+        case HIR_STKVARARR:
+        case HIR_GLBVARARR: return 1;
+        default:            return 0;
+    }
+}
+
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b) {
     int size_a = HIR_get_type_size(a);
     int size_b = HIR_get_type_size(b);

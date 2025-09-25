@@ -154,5 +154,7 @@ int HIR_isleader(hir_operation_t op);
 int HIR_isjmp(hir_operation_t op);
 int HIR_iscondjmp(hir_operation_t op);
 int HIR_is_vartype(hir_subject_type_t t);
+int HIR_is_floattype(hir_subject_type_t t);
+int HIR_is_signtype(hir_subject_type_t t);
 
 #endif
