@@ -19,6 +19,6 @@ typedef struct {
 } ssa_ctx_t;
 
 int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt);
-int HIR_SSA_insert_phi(ssa_ctx_t* ctx, cfg_ctx_t* cctx, sym_table_t* smt);
+int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt);
 
 #endif

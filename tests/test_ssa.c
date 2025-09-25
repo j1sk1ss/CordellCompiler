@@ -49,10 +49,6 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_bSAR:      return "bSAR";
         case HIR_RAW:       return "RAW";
         case HIR_IFOP:      return "IFOP";
-        case HIR_SWITCHOP:  return "SWITCHOP";
-        case HIR_MKCASE:    return "MKCASE";
-        case HIR_MKDEFCASE: return "MKDEFCASE";
-        case HIR_MKENDCASE: return "MKENDCASE";
         case HIR_NOT:       return "NOT";
         case HIR_LOADOP:    return "LOADOP";
         case HIR_LDLINK:    return "LDLINK";
@@ -72,10 +68,11 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_LDREF:     return "LDREF";
         case HIR_REF:       return "REF";
         case HIR_EXITOP:    return "EXITOP";
-        case HIR_CLNVRS:    return "HIR_CLNVRS";
-        case HIR_IFLWOP:    return "HIR_IFLWOP";
-        case HIR_IFLGOP:    return "HIR_IFLGOP";
-        case HIR_STEND:     return "HIR_STEND";
+        case HIR_CLNVRS:    return "CLNVRS";
+        case HIR_IFLWOP:    return "IFLWOP";
+        case HIR_IFLGOP:    return "IFLGOP";
+        case HIR_STEND:     return "STEND";
+        case HIR_PHI:       return "PHI";
         case HIR_MKSCOPE:   _depth++; return "MKSCOPE";
         case HIR_ENDSCOPE:  _depth--; return "ENDSCOPE";
         default: return "unknwop";
@@ -146,14 +143,15 @@ static int _export_dot_func(cfg_func_t* f) {
     printf("  rankdir=TB;\n");
     cfg_block_t* b = f->cfg_head;
     while (b) {
-        printf("  B%ld [label=\"B%ld:\\nentry=%s\\nexit=%s\"];\n",
+        printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s\"];\n",
                b->id, b->id,
-               b->entry ? hir_op_to_string(b->entry->op) : "NULL",
+               b->entry ? hir_op_to_string(b->entry->op) : "NULL", b->entry->op == HIR_MKLB ? b->entry->farg->id : -1,
                b->exit  ? hir_op_to_string(b->exit->op)  : "NULL");
         if (b->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", b->id, b->l->id);
         if (b->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", b->id, b->jmp->id);
         b = b->next;
     }
+    
     printf("}\n");
     return 1;
 }
@@ -218,8 +216,10 @@ int main(int argc, char* argv[]) {
     HIR_build_cfg(&irctx, &cfgctx);
     cfg_print(&cfgctx);
 
-    ssa_ctx_t ssactx = { .h = NULL };
-    HIR_SSA_rename(&cfgctx, &ssactx, &smt);
+    HIR_SSA_insert_phi(&cfgctx, &smt);
+
+    // ssa_ctx_t ssactx = { .h = NULL };
+    // HIR_SSA_rename(&cfgctx, &ssactx, &smt);
 
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;

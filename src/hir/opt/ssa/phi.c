@@ -20,42 +20,44 @@ static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
         HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_tmptype_tkn(&tmptkn), vi->s_id), NULL, NULL
     );
 
-    phi->next = b->entry;
-    if (b->entry) b->entry->prev = phi;
+    HIR_insert_block(phi, b->entry);
     b->entry = phi;
     if (!b->exit) b->exit = phi;
     return 1;
 }
 
-int HIR_SSA_insert_phi(ssa_ctx_t* ctx, cfg_ctx_t* cctx, sym_table_t* smt) {
+int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
+    for (cfg_func_t* f = cctx->h; f; f = f->next) {
+        HIR_CFG_compute_dom(f);
+        HIR_CFG_compute_idom(f);
+    }
+
+    for (cfg_func_t* f = cctx->h; f; f = f->next) {
+        HIR_CFG_compute_domf(f);
+    }
+
     variable_info_t* vh = smt->v.h;
     while (vh) {
         if (!vh->glob) {
             set_t defs;
             set_init(&defs);
-            _collect_defs(vh->v_id, cctx, &defs);
+            HIR_CFG_collect_defs(vh->v_id, cctx, &defs);
 
             set_iter_t it;
             set_iter_init(&defs, &it);
 
             cfg_block_t* b;
             while ((b = (cfg_block_t*)set_iter_next_addr(&it))) {
-                set_t frontier;
-                set_init(&frontier);
-                dominance_frontier(b, &frontier);
-
                 set_iter_t fit;
-                set_iter_init(&frontier, &fit);
+                set_iter_init(&b->df, &fit);
 
                 cfg_block_t* f;
                 while ((f = (cfg_block_t*)set_iter_next_addr(&fit))) {
                     if (!_has_phi(f, vh->v_id)) {
                         _insert_phi_instr(f, vh);
-                        set_add_addr(&defs, f);
+                        if (!set_has_addr(&defs, f)) set_add_addr(&defs, f);
                     }
                 }
-
-                set_free(&frontier);
             }
 
             set_free(&defs);

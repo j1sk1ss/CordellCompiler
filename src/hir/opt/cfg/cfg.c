@@ -21,8 +21,9 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
 
     cfg_block_t* h = f->cfg_head;
     while (h->next) h = h->next;
-    h->next = b;
-    h->l = b;
+    h->next  = b;
+    h->l     = b;
+    b->lpred = h;
     return 1;
 }
 
@@ -57,7 +58,8 @@ int HIR_build_cfg(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
                 case HIR_JMP: {
                     cfg_block_t* lb = HIR_CFG_function_findlb(fh, cb->exit->farg->id);
                     cb->jmp = lb;
-                    cb->l   = NULL;
+                    cb->l->lpred = NULL;
+                    cb->l        = NULL;
                     break;
                 }
 
@@ -69,13 +71,24 @@ int HIR_build_cfg(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
                 case HIR_IFCPOP:
                 case HIR_IFNCPOP: {
                     cfg_block_t* lb = HIR_CFG_function_findlb(fh, cb->exit->sarg->id);
-                    cb->jmp = lb;
+                    if (!lb) {
+                        print_warn("!lb, lb_id=%i", cb->exit->sarg->id);
+                        break;
+                    }
+
+                    cb->jmp     = lb;
+                    lb->jmppred = cb;
                     break;
                 }
 
                 case HIR_FRET: 
                 case HIR_FEND:
-                case HIR_STEND: cb->l = NULL; break;
+                case HIR_STEND: 
+                    if (cb->l) {
+                        cb->l->lpred = NULL;
+                        cb->l        = NULL; 
+                    }
+                break;
             }
 
             cb = cb->next;

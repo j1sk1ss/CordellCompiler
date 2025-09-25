@@ -16,7 +16,7 @@ int set_has_addr(set_t* s, void* data) {
 }
 
 int set_add_addr(set_t* s, void* data) {
-    if (set_has(s, data)) return 0;
+    if (set_has_addr(s, data)) return 0;
     set_node_t* n = (set_node_t*)mm_malloc(sizeof(set_node_t));
     if (!n) return 0;
 
@@ -44,7 +44,7 @@ int set_has_int(set_t* s, long data) {
 }
 
 int set_add_int(set_t* s, long data) {
-    if (set_has(s, data)) return 0;
+    if (set_has_int(s, data)) return 0;
     set_node_t* n = (set_node_t*)mm_malloc(sizeof(set_node_t));
     if (!n) return 0;
 
@@ -55,8 +55,8 @@ int set_add_int(set_t* s, long data) {
 }
 
 long set_iter_next_int(set_iter_t* it) {
-    if (!it->current) return NULL;
-    void* data = it->current->stg.intdata;
+    if (!it->current) return 0;
+    long data = it->current->stg.intdata;
     it->current = it->current->next;
     return data;
 }
@@ -66,11 +66,75 @@ int set_iter_init(set_t* s, set_iter_t* it) {
     return 1;
 }
 
+int set_copy_addr(set_t* dst, set_t* src) {
+    set_free(dst);
+    set_iter_t it;
+    set_iter_init(src, &it);
+    void* data;
+    while ((data = set_iter_next_addr(&it))) {
+        set_add_addr(dst, data);
+    }
+
+    return 1;
+}
+
+int set_intersect_addr(set_t* dst, set_t* a, set_t* b) {
+    set_free(dst);
+    set_iter_t it;
+    set_iter_init(a, &it);
+    void* data;
+    while ((data = set_iter_next_addr(&it))) {
+        if (set_has_addr(b, data)) {
+            set_add_addr(dst, data);
+        }
+    }
+    
+    return 1;
+}
+
+int set_equal_addr(set_t* a, set_t* b) {
+    set_iter_t it;
+    set_iter_init(a, &it);
+    void* data;
+    while ((data = set_iter_next_addr(&it))) {
+        if (!set_has_addr(b, data)) {
+            return 0;
+        }
+    }
+
+    set_iter_init(b, &it);
+    while ((data = set_iter_next_addr(&it))) {
+        if (!set_has_addr(a, data)) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+int set_union_addr(set_t* dst, set_t* a, set_t* b) {
+    set_free(dst);
+
+    set_iter_t it;
+    set_iter_init(a, &it);
+    void* data;
+    while ((data = set_iter_next_addr(&it))) {
+        set_add_addr(dst, data);
+    }
+
+    set_iter_init(b, &it);
+    while ((data = set_iter_next_addr(&it))) {
+        set_add_addr(dst, data);
+    }
+
+    return 1;
+}
+
 int set_free(set_t* s) {
     set_node_t* n = s->head;
     while (n) {
         set_node_t* next = n->next;
-        free(n);
+        mm_free(n);
         n = next;
     }
 
