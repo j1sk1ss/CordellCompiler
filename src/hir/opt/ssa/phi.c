@@ -32,29 +32,29 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
     }
 
     for (variable_info_t* vh = smt->v.h; vh; vh = vh->next) {
-        if (vh->glob) continue;
+        // if (vh->glob) continue;
 
         set_t defs;
         set_init(&defs);
         HIR_CFG_collect_defs_by_id(vh->v_id, cctx, &defs);
 
-        int changed;
+        int changed = 0;
         do {
             changed = 0;
             set_iter_t it;
             set_iter_init(&defs, &it);
 
-            cfg_block_t* b;
-            while ((b = (cfg_block_t*)set_iter_next_addr(&it))) {
+            cfg_block_t* defb = NULL;
+            while ((defb = (cfg_block_t*)set_iter_next_addr(&it))) {
                 set_iter_t fit;
-                set_iter_init(&b->domf, &fit);
+                set_iter_init(&defb->domf, &fit);
 
-                cfg_block_t* f;
-                while ((f = (cfg_block_t*)set_iter_next_addr(&fit))) {
-                    if (!_has_phi(f, vh->v_id)) {
-                        _insert_phi_instr(f, vh);
-                        if (!set_has_addr(&defs, f)) {
-                            set_add_addr(&defs, f);
+                cfg_block_t* front = NULL;
+                while ((front = (cfg_block_t*)set_iter_next_addr(&fit))) {
+                    if (!_has_phi(front, vh->v_id)) {
+                        _insert_phi_instr(front, vh);
+                        if (!set_has_addr(&defs, front)) {
+                            set_add_addr(&defs, front);
                             changed = 1;
                         }
                     }

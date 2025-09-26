@@ -34,13 +34,11 @@ typedef struct cfg_block {
     struct cfg_block* dom_s;
     set_t             domf;
 
+    set_t             def;
+    set_t             use;
     set_t             curr_in;
-    set_t             curr_def;
-    set_t             curr_use;
     set_t             curr_out;
     set_t             prev_in;
-    set_t             prev_def;
-    set_t             prev_use;
     set_t             prev_out;
 } cfg_block_t;
 

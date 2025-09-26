@@ -90,8 +90,8 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                         int_tuple_t* inf = inttuple_create(prev_bid, se.data.intdata);
                         if (!set_has_inttuple(&hh->sarg->storage.set.h, inf)) {
                             set_add_addr(&hh->sarg->storage.set.h, inf);
-                            b->jmp->visited = 0;
-                            b->l->visited   = 0;
+                            if (b->jmp) b->jmp->visited = 0;
+                            if (b->l)   b->l->visited   = 0;
                         }
 
                         if (!hh->targ) {

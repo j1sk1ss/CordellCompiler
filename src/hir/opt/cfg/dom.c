@@ -24,21 +24,32 @@ int HIR_CFG_compute_dom(cfg_func_t* func) {
             set_iter_t it;
             set_iter_init(&b->pred, &it);
             cfg_block_t* p = NULL;
+
             while ((p = set_iter_next_addr(&it))) {
-                if (!first) set_intersect_addr(&nd, &nd, &p->dom); 
-                else {
+                if (first) {
                     set_copy_addr(&nd, &p->dom);
-                    first = 0;
+                    first = 0;   
+                }
+                else {
+                    set_t tmp;
+                    set_init(&tmp);
+                    set_intersect_addr(&tmp, &nd, &p->dom);
+                    set_free(&nd);
+                    set_copy_addr(&nd, &tmp);
+                    set_free(&tmp);
                 }
             }
 
+            if (first) set_free(&nd);
             set_add_addr(&nd, b);
-            if (set_equal_addr(&nd, &b->dom)) set_free(&nd);
-            else {
+
+            if (!set_equal_addr(&nd, &b->dom)) {
                 set_free(&b->dom);
                 set_copy_addr(&b->dom, &nd);
                 changed = 1;
             }
+
+            set_free(&nd);
         }
     }
 
@@ -52,47 +63,38 @@ int HIR_CFG_compute_sdom(cfg_func_t* func) {
             continue;
         }
 
+        cfg_block_t* sdom = NULL;
+
         set_iter_t it;
         set_iter_init(&b->dom, &it);
+        cfg_block_t* d = NULL;
 
-        cfg_block_t* sdom = NULL;
-        cfg_block_t* dom = NULL;
-        
-        while ((dom = set_iter_next_addr(&it))) {
-            if (dom == b) continue;
-            if (dom == func->cfg_head) {
-                if (!sdom || set_has_addr(&dom->dom, sdom)) sdom = dom;
-                continue;
-            }
-            
-            int candidate = 1;
-            if (!set_has_addr(&b->dom, dom) || dom == b) {
-                candidate = 0;
-                continue;
-            }
-            
+        while ((d = set_iter_next_addr(&it))) {
+            if (d == b) continue;
+
+            int dominated_by_other = 0;
+
             set_iter_t it2;
             set_iter_init(&b->dom, &it2);
-            cfg_block_t* other_dom = NULL;
-            while ((other_dom = set_iter_next_addr(&it2))) {
-                if (other_dom == b || other_dom == dom) continue;
-                if (set_has_addr(&other_dom->dom, dom) && 
-                    set_has_addr(&b->dom, other_dom)) {
-                    candidate = 0;
+            cfg_block_t* other = NULL;
+
+            while ((other = set_iter_next_addr(&it2))) {
+                if (other == b || other == d) continue;
+                if (set_has_addr(&other->dom, d)) {
+                    dominated_by_other = 1;
                     break;
                 }
             }
-            
-            if (candidate) {
-                if (!sdom || set_has_addr(&sdom->dom, dom)) {
-                    sdom = dom;
-                }
+
+            if (!dominated_by_other) {
+                sdom = d;
+                break;
             }
         }
-        
+
         b->sdom = sdom;
     }
-    
+
     return 1;
 }
 
@@ -111,34 +113,30 @@ static int _build_domtree(cfg_func_t* func) {
     return 1;
 }
 
-static int _strictly_dominated_by(cfg_block_t* block, cfg_block_t* dominator) {
-    cfg_block_t* current = block;
-    while (current && current != dominator) current = current->sdom;
-    return current != dominator;
-}
+static void _compute_domf_rec(cfg_block_t* b) {
+    if (b->l && b->l->sdom != b)     set_add_addr(&b->domf, b->l);
+    if (b->jmp && b->jmp->sdom != b) set_add_addr(&b->domf, b->jmp);
 
-static int _compute_domf_rec(cfg_block_t* b) {
-    if (b->l && _strictly_dominated_by(b->l, b))     set_add_addr(&b->domf, b->l);
-    if (b->jmp && _strictly_dominated_by(b->jmp, b)) set_add_addr(&b->domf, b->jmp);
     for (cfg_block_t* c = b->dom_c; c; c = c->dom_s) {
         _compute_domf_rec(c);
+
         set_iter_t it;
         set_iter_init(&c->domf, &it);
-        cfg_block_t* y = NULL;
-        while ((y = set_iter_next_addr(&it))) {
-            if (_strictly_dominated_by(y, b)) set_add_addr(&b->domf, y);
+        cfg_block_t* w = NULL;
+        while ((w = set_iter_next_addr(&it))) {
+            if (w->sdom != b) {
+                set_add_addr(&b->domf, w);
+            }
         }
     }
-
-    return 1;
 }
 
 int HIR_CFG_compute_domf(cfg_func_t* func) {
+    _build_domtree(func);
     for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
         set_init(&b->domf);
     }
 
-    _build_domtree(func);
     _compute_domf_rec(func->cfg_head);
     return 1;
 }
@@ -155,7 +153,7 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
                     if (
                         hh->farg && 
                         HIR_is_vartype(hh->farg->t) && 
-                        !HIR_is_globtype(hh->farg->t) &&
+                        // !HIR_is_globtype(hh->farg->t) &&
                         !HIR_is_tmptype(hh->farg->t)    
                     ) {
                         if (hh->farg->storage.var.v_id == v_id) {
