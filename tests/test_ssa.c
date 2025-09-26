@@ -142,6 +142,42 @@ void print_hir_block(const hir_block_t* block, int ud) {
 }
 
 /* https://dreampuf.github.io/GraphvizOnline/?engine=dot */
+void _dump_domtree_dot(cfg_func_t* func) {
+    printf("digraph DomTree {\n");
+    printf("  rankdir=TB;\n");
+    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
+        printf("  B%i [label=\"B%i\"];\n", b->id, b->id);
+    }
+
+    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
+        if (!b->sdom) continue;
+        printf("  B%i -> B%i;\n", b->sdom->id, b->id);
+    }
+
+    printf("}\n");
+}
+
+void _dump_all_dom_dot(cfg_func_t* func) {
+    printf("digraph AllDom {\n");
+    printf("  rankdir=TB;\n");
+
+    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
+        printf("  B%i [label=\"B%i\"];\n", b->id, b->id);
+    }
+
+    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
+        set_iter_t it;
+        set_iter_init(&b->dom, &it);
+        cfg_block_t* d;
+        while ((d = set_iter_next_addr(&it))) {
+            if (d == b) continue;
+            printf("  B%i -> B%i;\n", d->id, b->id);
+        }
+    }
+
+    printf("}\n");
+}
+
 static int _export_dot_func(cfg_func_t* f) {
     printf("digraph CFG_func%d {\n", f->id);
     printf("  rankdir=TB;\n");
@@ -167,6 +203,10 @@ void cfg_print(cfg_ctx_t* ctx) {
     while (f) {
         printf("==== CFG DOT ====\n");
         _export_dot_func(f);
+        printf("==== DOM DOT ====\n");
+        _dump_all_dom_dot(f);
+        printf("==== SDOM DOT ====\n");
+        _dump_domtree_dot(f);
         f = f->next;
     }
 

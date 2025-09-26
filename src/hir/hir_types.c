@@ -347,6 +347,7 @@ int HIR_iscondjmp(hir_operation_t op) {
 
 int HIR_writeop(hir_operation_t op) {
     switch (op) {
+        case HIR_VARDECL:
         case HIR_iADD:
         case HIR_iSUB:
         case HIR_iMUL:

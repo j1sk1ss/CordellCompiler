@@ -22,15 +22,14 @@ typedef struct cfg_block {
 
     struct cfg_block* l;
     struct cfg_block* jmp;
-    struct cfg_block* lpred;
-    set_t             jmppred;
+    set_t             pred;
     
     struct cfg_block* next;
 
     int               visited;
 
     set_t             dom;
-    struct cfg_block* idom;
+    struct cfg_block* sdom;
     struct cfg_block* dom_c;
     struct cfg_block* dom_s;
     set_t             domf;
@@ -52,7 +51,7 @@ typedef struct {
 
 int HIR_CFG_compute_domf(cfg_func_t* func);
 int HIR_CFG_compute_dom(cfg_func_t* func);
-int HIR_CFG_compute_idom(cfg_func_t* func);
+int HIR_CFG_compute_sdom(cfg_func_t* func);
 int HIR_CFG_collect_defs(long v_id, cfg_ctx_t* cctx, set_t* out);
 
 int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx);

@@ -3,8 +3,11 @@
 ## Generation
 ## Examples
 # SSA
-## SSA renaming
+## Dominant calculation
+## Strict dominant blocks
+## Dominant frontier
 ## Phi function
+## SSA renaming
 # DFG
 # Optimization
 ## Constant folding and propagation

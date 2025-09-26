@@ -27,7 +27,7 @@ static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
 int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
     for (cfg_func_t* f = cctx->h; f; f = f->next) {
         HIR_CFG_compute_dom(f);
-        HIR_CFG_compute_idom(f);
+        HIR_CFG_compute_sdom(f);
         HIR_CFG_compute_domf(f);
     }
 

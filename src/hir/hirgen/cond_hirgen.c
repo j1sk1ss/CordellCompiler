@@ -73,7 +73,7 @@ static int _generate_case_binary_jump(
         return 0;
     }
 
-    int mid = (left + right) / 2;
+    int mid = (left + right) / 2; 
     int val = values[mid].v;
 
     hir_subject_t* lower   = HIR_SUBJ_LABEL();
@@ -81,7 +81,7 @@ static int _generate_case_binary_jump(
 
     HIR_BLOCK3(ctx, HIR_IFLWOP, cond, HIR_SUBJ_CONST(val), lower);
     HIR_BLOCK3(ctx, HIR_IFLGOP, cond, HIR_SUBJ_CONST(val), greater);
-    HIR_BLOCK1(ctx, HIR_JMP, values->l);
+    HIR_BLOCK1(ctx, HIR_JMP, values[mid].l);
 
     HIR_BLOCK1(ctx, HIR_MKLB, lower);
     _generate_case_binary_jump(values, cond, left, mid - 1, def, end, ctx);
@@ -118,7 +118,6 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
             hir_subject_t* clb = HIR_SUBJ_LABEL();
             HIR_BLOCK1(ctx, HIR_MKLB, clb);
             HIR_generate_block(curr_case->child->sibling, ctx, smt);
-
             cases_info[cases_count].v = str_atoi(curr_case->child->token->value);
             cases_info[cases_count].l = clb;
             cases_count++;

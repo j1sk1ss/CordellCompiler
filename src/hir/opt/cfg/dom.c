@@ -1,10 +1,9 @@
 #include <hir/opt/cfg.h>
 
 int HIR_CFG_compute_dom(cfg_func_t* func) {
-    cfg_block_t* entry = func->cfg_head;
     for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
         set_init(&b->dom);
-        if (b == entry) set_add_addr(&b->dom, b); 
+        if (b == func->cfg_head) set_add_addr(&b->dom, b);
         else {
             for (cfg_block_t* t = func->cfg_head; t; t = t->next) {
                 set_add_addr(&b->dom, t);
@@ -16,25 +15,17 @@ int HIR_CFG_compute_dom(cfg_func_t* func) {
     while (changed) {
         changed = 0;
         for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-            if (b == entry) continue;
+            if (b == func->cfg_head) continue;
 
             set_t nd;
             set_init(&nd);
 
             int first = 1;
-            if (b->lpred) {
-                if (!first) set_intersect_addr(&nd, &nd, &b->lpred->dom);
-                else {
-                    set_copy_addr(&nd, &b->lpred->dom);
-                    first = 0;
-                }
-            }
-
             set_iter_t it;
-            cfg_block_t* p;
-            set_iter_init(&b->jmppred, &it);
+            set_iter_init(&b->pred, &it);
+            cfg_block_t* p = NULL;
             while ((p = set_iter_next_addr(&it))) {
-                if (first) set_intersect_addr(&nd, &nd, &p->dom); 
+                if (!first) set_intersect_addr(&nd, &nd, &p->dom); 
                 else {
                     set_copy_addr(&nd, &p->dom);
                     first = 0;
@@ -45,7 +36,7 @@ int HIR_CFG_compute_dom(cfg_func_t* func) {
             if (set_equal_addr(&nd, &b->dom)) set_free(&nd);
             else {
                 set_free(&b->dom);
-                b->dom = nd;
+                set_copy_addr(&b->dom, &nd);
                 changed = 1;
             }
         }
@@ -54,39 +45,40 @@ int HIR_CFG_compute_dom(cfg_func_t* func) {
     return 1;
 }
 
-int HIR_CFG_compute_idom(cfg_func_t* func) {
+int HIR_CFG_compute_sdom(cfg_func_t* func) {
     for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
         if (b == func->cfg_head) {
-            b->idom = NULL;
+            b->sdom = NULL;
             continue;
         }
 
-        cfg_block_t* idom = NULL;
         set_iter_t it;
         set_iter_init(&b->dom, &it);
-        cfg_block_t* d;
-        while ((d = set_iter_next_addr(&it))) {
-            if (d == b) continue;
+
+        cfg_block_t* sdom = NULL;
+        cfg_block_t* dom  = NULL;
+        while ((dom = set_iter_next_addr(&it))) {
+            if (dom == b) continue;
 
             int candidate = 1;
             set_iter_t it2;
             set_iter_init(&b->dom, &it2);
-            cfg_block_t* d2;
-            while ((d2 = set_iter_next_addr(&it2))) {
-                if (d2 == b || d2 == d) continue;
-                if (set_has_addr(&d->dom, d2)) {
+            cfg_block_t* secdom = NULL;
+            while ((secdom = set_iter_next_addr(&it2))) {
+                if (secdom == b || secdom == dom) continue;
+                if (set_has_addr(&dom->dom, secdom)) {
                     candidate = 0;
                     break;
                 }
             }
 
             if (candidate) {
-                idom = d;
+                sdom = dom;
                 break;
             }
         }
 
-        b->idom = idom;
+        b->sdom = sdom;
     }
 
     return 1;
@@ -99,34 +91,30 @@ static int _build_domtree(cfg_func_t* func) {
     }
 
     for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        if (!b->idom) continue;
-        b->dom_s = b->idom->dom_c;
-        b->idom->dom_c = b;
+        if (!b->sdom || b->sdom == b) continue;
+        b->dom_s = b->sdom->dom_c;
+        b->sdom->dom_c = b;
     }
 
     return 1;
 }
 
-static int _compute_domf_rec(cfg_block_t* b) {
-    cfg_block_t* succs[2] = { b->l, b->jmp };
-    for (int i = 0; i < 2; i++) {
-        cfg_block_t* s = succs[i];
-        if (!s) continue;
-        if (s->idom != b) {
-            set_add_addr(&b->domf, s);
-        }
-    }
+static int _strictly_dominated_by(cfg_block_t* block, cfg_block_t* dominator) {
+    cfg_block_t* current = block;
+    while (current && current != dominator) current = current->sdom;
+    return current != dominator;
+}
 
+static int _compute_domf_rec(cfg_block_t* b) {
+    if (b->l && _strictly_dominated_by(b->l, b))     set_add_addr(&b->domf, b->l);
+    if (b->jmp && _strictly_dominated_by(b->jmp, b)) set_add_addr(&b->domf, b->jmp);
     for (cfg_block_t* c = b->dom_c; c; c = c->dom_s) {
         _compute_domf_rec(c);
-
         set_iter_t it;
         set_iter_init(&c->domf, &it);
-        cfg_block_t* y;
+        cfg_block_t* y = NULL;
         while ((y = set_iter_next_addr(&it))) {
-            if (y->idom != b) {
-                set_add_addr(&b->domf, y);
-            }
+            if (_strictly_dominated_by(y, b)) set_add_addr(&b->domf, y);
         }
     }
 
@@ -151,30 +139,20 @@ int HIR_CFG_collect_defs(long v_id, cfg_ctx_t* cctx, set_t* out) {
             int has_def = 0;
             hir_block_t* hh = bh->entry;
             while (hh) {
-                switch (hh->op) {
-                    case HIR_STORE:
-                    case HIR_iADD:
-                    case HIR_iSUB:
-                    case HIR_iMUL:
-                    case HIR_iDIV:
-                    case HIR_VARDECL: {
-                        if (
-                            hh->farg && 
-                            HIR_is_vartype(hh->farg->t) && 
-                            !HIR_is_globtype(hh->farg->t) &&
-                            !HIR_is_tmptype(hh->farg->t)    
-                        ) {
-                            if (hh->farg->storage.var.v_id == v_id) {
-                                has_def = 1;
-                                break;
-                            }
+                if (HIR_writeop(hh->op)) {
+                    if (
+                        hh->farg && 
+                        HIR_is_vartype(hh->farg->t) && 
+                        !HIR_is_globtype(hh->farg->t) &&
+                        !HIR_is_tmptype(hh->farg->t)    
+                    ) {
+                        if (hh->farg->storage.var.v_id == v_id) {
+                            has_def = 1;
+                            break;
                         }
-
-                        break;
                     }
-                    default: break;
                 }
-
+                
                 if (hh == bh->exit) break;
                 hh = hh->next;
             }

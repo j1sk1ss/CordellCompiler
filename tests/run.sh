@@ -160,6 +160,8 @@ TEST_CODES[test_ssa]="
     tests/dummy_data/hir/opt/ssa/ssa_1.cpl
     tests/dummy_data/hir/opt/ssa/ssa_2.cpl
     tests/dummy_data/hir/opt/ssa/ssa_3.cpl
+    tests/dummy_data/hir/opt/ssa/ssa_4.cpl
+    tests/dummy_data/hir/opt/ssa/ssa_5.cpl
 "
 
 TEST_SRCS[test_lir]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/lir/*.c src/lir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"

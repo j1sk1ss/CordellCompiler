@@ -63,7 +63,7 @@ typedef enum hir_operation {
         HIR_IFCPOP,   // if X == Y, jmp [lb]
         HIR_IFNCPOP,  // if X != Y, jmp [lb]
 
-        HIR_PHI,
+        HIR_PHI,      // base: x, union: y, new_var: z
         HIR_VRDEALL,  // deallocate variable from stack
 
         /* Data */

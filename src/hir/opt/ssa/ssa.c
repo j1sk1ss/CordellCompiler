@@ -84,6 +84,11 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
                     if (vv) {
                         stack_elem_t se;
                         stack_top_int(&vv->v, &se);
+                        if (hh->targ && se.data.intdata == hh->targ->storage.var.v_id) {
+                            b->visited = 1;
+                            break;
+                        }
+                        
                         if (!set_add_int(&hh->sarg->storage.set.h, se.data.intdata)) b->visited = 1;
                         if (!hh->targ) {
                             hh->targ = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
