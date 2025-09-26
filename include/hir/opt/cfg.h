@@ -33,6 +33,15 @@ typedef struct cfg_block {
     struct cfg_block* dom_c;
     struct cfg_block* dom_s;
     set_t             domf;
+
+    set_t             curr_in;
+    set_t             curr_def;
+    set_t             curr_use;
+    set_t             curr_out;
+    set_t             prev_in;
+    set_t             prev_def;
+    set_t             prev_use;
+    set_t             prev_out;
 } cfg_block_t;
 
 typedef struct cfg_func {
@@ -52,7 +61,7 @@ typedef struct {
 int HIR_CFG_compute_domf(cfg_func_t* func);
 int HIR_CFG_compute_dom(cfg_func_t* func);
 int HIR_CFG_compute_sdom(cfg_func_t* func);
-int HIR_CFG_collect_defs(long v_id, cfg_ctx_t* cctx, set_t* out);
+int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out);
 
 int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx);
 cfg_func_t* HIR_CFG_find_function(long fid, cfg_ctx_t* ctx);

@@ -122,9 +122,9 @@ static void print_hir_subject(hir_subject_t* s) {
         case HIR_SET: {
             set_iter_t it;
             set_iter_init(&s->storage.set.h, &it);
-            long vid = -1;
+            int_tuple_t* tpl = NULL;
             printf("set: ");
-            while ((vid = set_iter_next_int(&it)) >= 0) printf("%i ", vid);
+            while ((tpl = set_iter_next_addr(&it))) printf("b: %i, v: %i; ", tpl->x, tpl->y);
             break;
         }
 

@@ -6,8 +6,9 @@
 #include <prep/token.h>
 
 typedef struct variable_info {
-    long                  v_id;
-    short                 s_id;
+    long                  v_id; /* Variable ID                      */
+    long                  p_id; /* Parent variable ID (def: -1)     */
+    short                 s_id; /* Scope ID                         */
     char                  heap; /* Point to heap, can't be reused   */
     char                  ptr;  /* PTR type == maximum size in arch */
     char                  ro;

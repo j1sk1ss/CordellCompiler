@@ -4,6 +4,7 @@
 #include <std/mm.h>
 #include <std/stack.h>
 #include <std/set.h>
+#include <std/tuple.h>
 #include <symtab/symtab.h>
 #include <hir/hir.h>
 #include <hir/opt/cfg.h>

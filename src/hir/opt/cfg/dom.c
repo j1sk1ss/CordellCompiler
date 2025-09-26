@@ -56,31 +56,43 @@ int HIR_CFG_compute_sdom(cfg_func_t* func) {
         set_iter_init(&b->dom, &it);
 
         cfg_block_t* sdom = NULL;
-        cfg_block_t* dom  = NULL;
+        cfg_block_t* dom = NULL;
+        
         while ((dom = set_iter_next_addr(&it))) {
             if (dom == b) continue;
-
+            if (dom == func->cfg_head) {
+                if (!sdom || set_has_addr(&dom->dom, sdom)) sdom = dom;
+                continue;
+            }
+            
             int candidate = 1;
+            if (!set_has_addr(&b->dom, dom) || dom == b) {
+                candidate = 0;
+                continue;
+            }
+            
             set_iter_t it2;
             set_iter_init(&b->dom, &it2);
-            cfg_block_t* secdom = NULL;
-            while ((secdom = set_iter_next_addr(&it2))) {
-                if (secdom == b || secdom == dom) continue;
-                if (set_has_addr(&dom->dom, secdom)) {
+            cfg_block_t* other_dom = NULL;
+            while ((other_dom = set_iter_next_addr(&it2))) {
+                if (other_dom == b || other_dom == dom) continue;
+                if (set_has_addr(&other_dom->dom, dom) && 
+                    set_has_addr(&b->dom, other_dom)) {
                     candidate = 0;
                     break;
                 }
             }
-
+            
             if (candidate) {
-                sdom = dom;
-                break;
+                if (!sdom || set_has_addr(&sdom->dom, dom)) {
+                    sdom = dom;
+                }
             }
         }
-
+        
         b->sdom = sdom;
     }
-
+    
     return 1;
 }
 
@@ -131,7 +143,7 @@ int HIR_CFG_compute_domf(cfg_func_t* func) {
     return 1;
 }
 
-int HIR_CFG_collect_defs(long v_id, cfg_ctx_t* cctx, set_t* out) {
+int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
     cfg_func_t* fh = cctx->h;
     while (fh) {
         cfg_block_t* bh = fh->cfg_head;

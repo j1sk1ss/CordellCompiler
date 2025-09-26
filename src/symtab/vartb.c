@@ -59,6 +59,7 @@ static variable_info_t* _create_variable_info(const char* name, token_type_t typ
         var->glob = flags->glob;
     }
 
+    var->p_id = -1;
     var->type = type;
     var->next = NULL;
     return var;
@@ -70,6 +71,7 @@ int VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     nnd->heap = src->heap;
     nnd->ptr  = src->ptr;
     nnd->glob = src->glob;
+    nnd->p_id = src->v_id;
 
     nnd->v_id = ctx->curr_id++;
     if (!ctx->h) {

@@ -36,7 +36,7 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
 
         set_t defs;
         set_init(&defs);
-        HIR_CFG_collect_defs(vh->v_id, cctx, &defs);
+        HIR_CFG_collect_defs_by_id(vh->v_id, cctx, &defs);
 
         int changed;
         do {

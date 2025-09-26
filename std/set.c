@@ -5,6 +5,17 @@ int set_init(set_t* s) {
     return 1;
 }
 
+int set_has_inttuple(set_t* s, int_tuple_t* t) {
+    set_node_t* n = s->head;
+    while (n) {
+        int_tuple_t* tuple = (int_tuple_t*)n->stg.addrdata;
+        if (tuple->x == t->x && tuple->y == t->y) return 1;
+        n = n->next;
+    }
+
+    return 0;    
+}
+
 int set_has_addr(set_t* s, void* data) {
     set_node_t* n = s->head;
     while (n) {
