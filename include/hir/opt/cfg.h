@@ -22,11 +22,10 @@ typedef struct cfg_block {
 
     struct cfg_block* l;
     struct cfg_block* jmp;
+    set_t             visitors;
     set_t             pred;
     
     struct cfg_block* next;
-
-    int               visited;
 
     set_t             dom;
     struct cfg_block* sdom;

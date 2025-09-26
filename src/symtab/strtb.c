@@ -11,6 +11,22 @@ int STTB_add_info(const char* name, strtb_ctx_t* ctx) {
     return node->id;
 }
 
+int STTB_get_info_id(long id, str_info_t* info, strtb_ctx_t* ctx) {
+    if (!ctx || !info) return 0;
+    str_info_t* cur = ctx->h;
+    while (cur) {
+        if (cur->id == id) {
+            str_memcpy(info, cur, sizeof(str_info_t));
+            info->next = NULL;
+            return 1;
+        }
+
+        cur = cur->next;
+    }
+
+    return 0;
+}
+
 int STTB_get_info(const char* name, str_info_t* info, strtb_ctx_t* ctx) {
     if (!ctx || !name || !info) return 0;
     str_info_t* cur = ctx->h;

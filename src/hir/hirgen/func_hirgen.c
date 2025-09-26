@@ -5,7 +5,7 @@ int HIR_generate_return_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
     return 1;
 }
 
-hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
     int variables_size = 0;
     ast_node_t* name = node;
 
@@ -17,13 +17,20 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
 
     func_info_t fi;
     FNTB_get_info(name->token->value, &fi, &smt->f);
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(
-        HIR_get_tmptype_tkn(fi.rtype ? fi.rtype->token : NULL),
-        VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v)
-    );
-    
-    HIR_BLOCK3(ctx, HIR_FCLL, res, HIR_SUBJ_FUNCNAME(name), HIR_SUBJ_CONST(arg_count));
-    return res;
+
+    if (!ret) {
+        HIR_BLOCK2(ctx, HIR_FCLL, HIR_SUBJ_FUNCNAME(name), HIR_SUBJ_CONST(arg_count));
+        return NULL;
+    }
+    else {
+        hir_subject_t* res = HIR_SUBJ_TMPVAR(
+            HIR_get_tmptype_tkn(fi.rtype ? fi.rtype->token : NULL),
+            VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v)
+        );
+        
+        HIR_BLOCK3(ctx, HIR_FCLL, res, HIR_SUBJ_FUNCNAME(name), HIR_SUBJ_CONST(arg_count));
+        return res;
+    }
 }
 
 int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {

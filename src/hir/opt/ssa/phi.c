@@ -17,7 +17,7 @@ static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
 
     token_t tmptkn = { .t_type = vi->type };
     hir_block_t* phi = HIR_create_block(
-        HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(&tmptkn), vi->s_id), HIR_SUBJ_SET(), NULL
+        HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(&tmptkn), vi->s_id), NULL, HIR_SUBJ_SET()
     );
 
     if (b->entry) HIR_insert_block(phi, b->entry->next);

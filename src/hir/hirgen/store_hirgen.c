@@ -5,12 +5,8 @@ int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ct
     if (VRS_isptr(node->token)) {
         if (node->child) goto indexing;
         else {
-            if (!node->token->flags.dref) {
-                HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_VAR(node), src);
-            }
-            else {
-                HIR_BLOCK2(ctx, HIR_LDREF, HIR_SUBJ_VAR(node), src);
-            }
+            if (!node->token->flags.dref) HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_VAR(node), src);
+            else HIR_BLOCK2(ctx, HIR_LDREF, HIR_SUBJ_VAR(node), src);
         }
 
         return 1;

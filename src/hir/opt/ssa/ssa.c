@@ -69,34 +69,30 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
 }
 
 static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
-    if (!b || b->visited) return 0;
-    b->visited = 1;
+    if (!b || set_has_int(&b->visitors, prev_bid)) return 0;
 
     hir_block_t* hh = b->entry;
     while (hh) {
         switch (hh->op) {
             case HIR_PHI: {
-                b->visited = 0;
                 variable_info_t vi;
                 if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
                         stack_elem_t se;
                         stack_top_int(&vv->v, &se);
-                        if (hh->targ && se.data.intdata == hh->targ->storage.var.v_id) {
+                        if (hh->sarg && se.data.intdata == hh->sarg->storage.var.v_id) {
                             break;
                         }
                         
                         int_tuple_t* inf = inttuple_create(prev_bid, se.data.intdata);
-                        if (!set_has_inttuple(&hh->sarg->storage.set.h, inf)) {
-                            set_add_addr(&hh->sarg->storage.set.h, inf);
-                            if (b->jmp) b->jmp->visited = 0;
-                            if (b->l)   b->l->visited   = 0;
+                        if (!set_has_inttuple(&hh->targ->storage.set.h, inf)) {
+                            set_add_addr(&hh->targ->storage.set.h, inf);
                         }
 
-                        if (!hh->targ) {
-                            hh->targ = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
-                            stack_push_int(&vv->v, hh->targ->storage.var.v_id);
+                        if (!hh->sarg) {
+                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
+                            stack_push_int(&vv->v, hh->sarg->storage.var.v_id);
                         }
                     }
                 }
@@ -129,6 +125,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
         hh = hh->next;
     }
 
+    set_add_int(&b->visitors, prev_bid);
     _iterate_block(b->jmp, ctx, b->id, smt);
     _iterate_block(b->l, ctx, b->id, smt);
     return 1;

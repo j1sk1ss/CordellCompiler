@@ -80,9 +80,14 @@ static inline void stack_top_addr(sstack_t* st, stack_elem_t* e) {
     else str_memcpy(e, &st->data[st->top], sizeof(scope_elem_t));
 }
 
-static inline void stack_top_int(sstack_t* st, stack_elem_t* e) {
-    if (st->top < 0) e->data.intdata = -1;
-    else str_memcpy(e, &st->data[st->top], sizeof(stack_elem_t));
+static inline int stack_top_int(sstack_t* st, stack_elem_t* e) {
+    if (st->top < 0) {
+        e->data.intdata = -1;
+        return 0;
+    }
+    
+    str_memcpy(e, &st->data[st->top], sizeof(stack_elem_t));
+    return 1;
 }
 
 #endif

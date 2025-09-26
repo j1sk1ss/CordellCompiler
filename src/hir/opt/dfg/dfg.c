@@ -8,7 +8,7 @@ int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
             set_init(&bh->def);
             hir_block_t* hh = bh->entry;
             while (hh) {
-                if (hh->op == HIR_PHI && HIR_is_vartype(hh->targ->t)) set_add_int(&bh->def, hh->targ->storage.var.v_id);
+                if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t)) set_add_int(&bh->def, hh->sarg->storage.var.v_id);
                 else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t)) set_add_int(&bh->def, hh->farg->storage.var.v_id);
                 if (hh == bh->exit) break;
                 hh = hh->next;
