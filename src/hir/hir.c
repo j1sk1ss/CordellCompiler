@@ -33,6 +33,7 @@ hir_subject_t* HIR_create_subject(
     subj->id = _curr_id++;
 
     switch (t) {
+        case HIR_SET: set_init(&subj->storage.set.h); break;
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
         case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
@@ -75,20 +76,16 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
 
     blk->next = NULL;
     blk->prev = NULL;
-    
-    if (fa) blk->args = 1;
-    if (sa) blk->args = 2;
-    if (ta) blk->args = 3;
     return blk;
 }
 
 int HIR_insert_block(hir_block_t* block, hir_block_t* pos) {
-    if (!block || !pos) return -1;
+    if (!block || !pos) return 0;
     block->prev = pos->prev;
     block->next = pos;
     if (pos->prev) pos->prev->next = block;
     pos->prev = block;
-    return 0;
+    return 1;
 }
 
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {

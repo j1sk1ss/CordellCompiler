@@ -344,3 +344,28 @@ int HIR_iscondjmp(hir_operation_t op) {
     ) return 1;
     return 0;
 }
+
+int HIR_writeop(hir_operation_t op) {
+    switch (op) {
+        case HIR_iADD:
+        case HIR_iSUB:
+        case HIR_iMUL:
+        case HIR_iDIV:
+        case HIR_iMOD:
+        case HIR_iLRG:
+        case HIR_iLGE:
+        case HIR_iLWR:
+        case HIR_iLRE:
+        case HIR_iCMP:
+        case HIR_iNMP:
+        case HIR_iAND:
+        case HIR_iOR:
+        case HIR_iBLFT:
+        case HIR_iBRHT:
+        case HIR_bAND:
+        case HIR_bOR:
+        case HIR_bXOR:
+        case HIR_STORE: return 1;
+        default:        return 0;
+    }
+}

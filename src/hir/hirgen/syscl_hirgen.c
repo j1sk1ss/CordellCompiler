@@ -45,7 +45,6 @@ hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_
     }
 
     hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_TMPVARI64, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-    HIR_BLOCK1(ctx, HIR_VARDECL, res);
     HIR_BLOCK2(ctx, HIR_SYSC, res, HIR_SUBJ_CONST(args_count));
     return res;
 }

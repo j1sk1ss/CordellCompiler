@@ -24,11 +24,11 @@ typedef enum hir_operation {
 
     /* Integer */
         /* Binary operations */
-        HIR_iADD, // addition
-        HIR_iSUB, // substraction
-        HIR_iMUL, // multiplication
-        HIR_iDIV, // division
-        HIR_iMOD, // module
+        HIR_iADD, // addition           x = y + z
+        HIR_iSUB, // substraction       x = y - z
+        HIR_iMUL, // multiplication     x = y * z
+        HIR_iDIV, // division           x = y / z
+        HIR_iMOD, // module             x = y % z
         HIR_iLRG, // larger,            x = y > z
         HIR_iLGE, // larger or equals,  x = y >= z
         HIR_iLWR, // lower,             x = y < z
@@ -37,19 +37,16 @@ typedef enum hir_operation {
         HIR_iNMP, // ncomprarision      x = x != y
 
         /* Logic */
-        HIR_iAND, // and
-        HIR_iOR,  // or
+        HIR_iAND, // and                x = y && z
+        HIR_iOR,  // or                 x = y || z
 
     /* Bits */
         /* Binary operations */
-        HIR_iBLFT, // bit left
-        HIR_iBRHT, // bit right
-        HIR_bAND, // bit and
-        HIR_bOR,  // bit or
-        HIR_bXOR, // bit xor
-        HIR_bSHL, // bitleft
-        HIR_bSHR, // bitright
-        HIR_bSAR, // bitleft unsgn
+        HIR_iBLFT, // bit left          x = y << z
+        HIR_iBRHT, // bit right         x = y >> z
+        HIR_bAND, // bit and            x = y & z
+        HIR_bOR,  // bit or             x = y | z
+        HIR_bXOR, // bit xor            x = y ^ z
 
     /* Other */
     HIR_RAW,
@@ -71,10 +68,7 @@ typedef enum hir_operation {
 
         /* Data */
         HIR_NOT,
-        HIR_LOADOP,  // load value <= a
-        HIR_LDLINK,  // load link <= a
-        HIR_STORE,   // store value a =>
-        HIR_STLINK,  // store link a =>
+        HIR_STORE,   // store value; mov x, y
         HIR_CLNVRS,  // deallocate all unused variables
         HIR_VARDECL, // declaration
         HIR_ARRDECL, // arr declaration
@@ -143,6 +137,7 @@ typedef enum hir_subject_type {
     HIR_RAWASM,   // str.id
     HIR_STRING,   // str.id
     HIR_FNAME,    // str.id
+    HIR_SET,      // set.h
 } hir_subject_type_t;
 
 int HIR_get_type_size(hir_subject_type_t t);
@@ -159,5 +154,6 @@ int HIR_is_floattype(hir_subject_type_t t);
 int HIR_is_signtype(hir_subject_type_t t);
 int HIR_is_globtype(hir_subject_type_t t);
 int HIR_is_tmptype(hir_subject_type_t t);
+int HIR_writeop(hir_operation_t op);
 
 #endif

@@ -72,7 +72,7 @@ int set_add_int(set_t* s, long data) {
 }
 
 long set_iter_next_int(set_iter_t* it) {
-    if (!it->current) return 0;
+    if (!it->current) return -1;
     long data = it->current->stg.intdata;
     it->current = it->current->next;
     return data;
@@ -145,6 +145,17 @@ int set_union_addr(set_t* dst, set_t* a, set_t* b) {
     }
 
     return 1;
+}
+
+int set_size(set_t* s) {
+    int size = 0;
+    set_node_t* n = s->head;
+    while (n) {
+        n = n->next;
+        size++;
+    }
+
+    return size;
 }
 
 int set_free(set_t* s) {

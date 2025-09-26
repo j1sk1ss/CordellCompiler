@@ -44,16 +44,10 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_bAND:      return "bAND";
         case HIR_bOR:       return "bOR";
         case HIR_bXOR:      return "bXOR";
-        case HIR_bSHL:      return "bSHL";
-        case HIR_bSHR:      return "bSHR";
-        case HIR_bSAR:      return "bSAR";
         case HIR_RAW:       return "RAW";
         case HIR_IFOP:      return "IFOP";
         case HIR_NOT:       return "NOT";
-        case HIR_LOADOP:    return "LOADOP";
-        case HIR_LDLINK:    return "LDLINK";
         case HIR_STORE:     return "STORE";
-        case HIR_STLINK:    return "STLINK";
         case HIR_VARDECL:   return "VARDECL";
         case HIR_ARRDECL:   return "ARRDECL";
         case HIR_STRDECL:   return "STRDECL";
@@ -79,7 +73,7 @@ static const char* hir_op_to_string(hir_operation_t op) {
     }
 }
 
-static void print_hir_subject(const hir_subject_t* s) {
+static void print_hir_subject(hir_subject_t* s) {
     if (!s) return;
     switch (s->t) {
         case HIR_STKVARSTR:  printf("strs: [vid=%d]", s->storage.var.v_id);   break;
@@ -124,6 +118,16 @@ static void print_hir_subject(const hir_subject_t* s) {
         case HIR_RAWASM:     printf("asm: [std_id=%i]", s->storage.str.s_id); break;
         case HIR_STRING:     printf("str: [std_id=%i]", s->storage.str.s_id); break;
         case HIR_FNAME:      printf("func: [fid=%i]", s->storage.str.s_id);   break;
+
+        case HIR_SET: {
+            set_iter_t it;
+            set_iter_init(&s->storage.set.h, &it);
+            long vid = -1;
+            printf("set: ");
+            while ((vid = set_iter_next_int(&it)) >= 0) printf("%i ", vid);
+            break;
+        }
+
         default: printf("unknw"); break;
     }
 }

@@ -61,10 +61,6 @@ lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject
 
     blk->next = NULL;
     blk->prev = NULL;
-    
-    if (fa) blk->args = 1;
-    if (sa) blk->args = 2;
-    if (ta) blk->args = 3;
     return blk;
 }
 

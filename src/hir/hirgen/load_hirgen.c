@@ -10,7 +10,6 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
             if (!node->token->flags.dref) res = HIR_SUBJ_VAR(node);
             else {
                 res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(node->token), VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-                HIR_BLOCK1(ctx, HIR_VARDECL, res);
                 HIR_BLOCK2(ctx, HIR_GDREF, res, HIR_SUBJ_VAR(node));
             }
         }
@@ -35,7 +34,6 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
                     }
 
                     res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp), VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-                    HIR_BLOCK1(ctx, HIR_VARDECL, res);
                     HIR_BLOCK3(ctx, HIR_GINDEX, res, base, offt1);
                 }
 
@@ -47,14 +45,12 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
 
     if (node->token->flags.ref) {
         hir_subject_t* ref = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-        HIR_BLOCK1(ctx, HIR_VARDECL, ref);
         HIR_BLOCK2(ctx, HIR_REF, ref, res);
         res = ref;
     }
 
     if (node->token->flags.neg) {
         hir_subject_t* neg = HIR_SUBJ_TMPVAR(res->t, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-        HIR_BLOCK1(ctx, HIR_VARDECL, neg);
         HIR_BLOCK2(ctx, HIR_NOT, neg, res);
         res = neg;
     }

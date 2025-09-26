@@ -77,24 +77,27 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, sym_table_t* smt) {
             }
 
             case HIR_PHI: {
-                // variable_info_t vi;
-                // if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
-                //     varver_t* vv = _get_varver(vi.v_id, ctx);
-                //     if (vv) {
-                //         token_t tmptkn = { .t_type = vi.type };
-                //         stack_elem_t se;
-                //         stack_top_int(&vv->v, &se);
-                //         if (!hh->sarg)      hh->sarg = HIR_SUBJ_STKVAR(se.data.intdata, HIR_get_stktype(&tmptkn), vi.s_id);
-                //         else if (!hh->targ) hh->targ = HIR_SUBJ_STKVAR(se.data.intdata, HIR_get_stktype(&tmptkn), vi.s_id);
-                //     }
-                // }
+                b->visited = 0;
+                variable_info_t vi;
+                if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
+                    varver_t* vv = _get_varver(vi.v_id, ctx);
+                    if (vv) {
+                        stack_elem_t se;
+                        stack_top_int(&vv->v, &se);
+                        if (!set_add_int(&hh->sarg->storage.set.h, se.data.intdata)) b->visited = 1;
+                        if (!hh->targ) {
+                            hh->targ = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
+                            stack_push_int(&vv->v, hh->targ->storage.var.v_id);
+                        }
+                    }
+                }
 
                 break;
             }
 
             default: {
-                hir_subject_t* args[2] = { hh->sarg, hh->targ };
-                for (int i = 0; i < 2; i++) {
+                hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
+                for (int i = HIR_writeop(hh->op); i < 3; i++) {
                     if (args[i] && HIR_is_vartype(args[i]->t)) {
                         varver_t* vv = _get_varver(args[i]->storage.var.v_id, ctx);
                         if (vv) {
@@ -123,8 +126,7 @@ static int _clean_phi_block(cfg_block_t* b) {
         hir_block_t* hh = b->entry;
         while (hh) {
             if (
-                hh->op == HIR_PHI && 
-                (!hh->targ || hh->sarg->storage.var.v_id == hh->targ->storage.var.v_id)
+                hh->op == HIR_PHI && set_size(&hh->sarg->storage.set.h) <= 1
             ) {
                 hir_block_t* next = hh->next;
                 HIR_remove_block(hh);
@@ -147,7 +149,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     while (fh) {
         cfg_block_t* bh = fh->cfg_head;
         _iterate_block(bh, ctx, smt);
-        _clean_phi_block(bh);
+        // _clean_phi_block(bh);
         fh = fh->next;
     }
 

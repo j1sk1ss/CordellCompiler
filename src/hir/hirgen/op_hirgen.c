@@ -41,8 +41,6 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
         VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v)
     );
 
-    HIR_BLOCK1(ctx, HIR_VARDECL, res);
-
     switch (op->token->t_type) {
         case BITMOVE_LEFT_TOKEN:  HIR_BLOCK3(ctx, HIR_iBLFT, res, lt1, lt2); break;
         case BITMOVE_RIGHT_TOKEN: HIR_BLOCK3(ctx, HIR_iBRHT, res, lt1, lt2); break;

@@ -6,6 +6,7 @@
 #include <std/regs.h>
 #include <std/vars.h>
 #include <std/stack.h>
+#include <std/set.h>
 #include <symtab/symtab.h>
 #include <ast/ast.h>
 #include <ast/syntax.h>
@@ -29,6 +30,10 @@ typedef struct {
 } hir_variable_t;
 
 typedef struct {
+    set_t h;
+} hir_set_t;
+
+typedef struct {
     long               id;
     int                t;
     union {
@@ -36,6 +41,7 @@ typedef struct {
         hir_constant_t cnst;
         hir_number_t   num;
         hir_variable_t var;
+        hir_set_t      set;
     } storage;
 } hir_subject_t;
 
@@ -102,6 +108,9 @@ int HIR_destroy_ctx(hir_ctx_t* ctx);
 
 #define HIR_SUBJ_FNAMETB(id) \
     HIR_create_subject(HIR_FNAME, 0, id, NULL, 0, -1)
+
+#define HIR_SUBJ_SET() \
+    HIR_create_subject(HIR_SET, 0, 0, NULL, 0, -1)
 
 #define HIR_BLOCK0(ctx, op) \
     HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

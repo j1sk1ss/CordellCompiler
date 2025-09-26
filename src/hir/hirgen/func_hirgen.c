@@ -22,7 +22,6 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v)
     );
     
-    HIR_BLOCK1(ctx, HIR_VARDECL, res);
     HIR_BLOCK3(ctx, HIR_FCLL, res, HIR_SUBJ_FUNCNAME(name), HIR_SUBJ_CONST(arg_count));
     return res;
 }
