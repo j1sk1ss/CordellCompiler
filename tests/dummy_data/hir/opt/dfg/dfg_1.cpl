@@ -1,6 +1,5 @@
 {
     start(i64 argc, ptr u64 argv) {
-        i32 a = 1;
         i32 b = 1;
         i32 c = 1;
 
@@ -8,14 +7,17 @@
             c = 2;
         }
 
+        i32 a = 1;
         if c == 2; {
             a = 3;
         }
 
+        i8 d = 1;
         if a == 3; {
-            exit 1;
+            d = 2;
+            exit d;
         }
 
-        exit 0;
+        exit d;
     }
 }

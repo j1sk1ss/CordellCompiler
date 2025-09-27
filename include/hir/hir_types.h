@@ -7,11 +7,15 @@
 typedef enum hir_operation {
     /* Operations */
         /* Commands */
-        HIR_FCLL,  // function call
-        HIR_ECLL,  // extern function call
+        HIR_FCLL,        // x()
+        HIR_ECLL,        // ext x()
+        HIR_STORE_FCLL,  // x = y()
+        HIR_STORE_ECLL,  // x = ext y()
+        HIR_SYSC,        // syscall()
+        HIR_STORE_SYSC,  // x = syscall()
+
         HIR_STRT,  // start macro
         HIR_STEND, // end macro
-        HIR_SYSC,  // syscall
         HIR_FRET,  // function ret
         HIR_TDBL,  // convert to double
         HIR_MKLB,  // mk label

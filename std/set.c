@@ -26,6 +26,16 @@ int set_has_addr(set_t* s, void* data) {
     return 0;
 }
 
+int set_has_int(set_t* s, long data) {
+    set_node_t* n = s->head;
+    while (n) {
+        if (n->stg.intdata == data) return 1;
+        n = n->next;
+    }
+
+    return 0;
+}
+
 int set_add_addr(set_t* s, void* data) {
     if (set_has_addr(s, data)) return 0;
     set_node_t* n = (set_node_t*)mm_malloc(sizeof(set_node_t));
@@ -54,21 +64,32 @@ int set_remove_addr(set_t* s, void* data) {
     return 0;
 }
 
-void* set_iter_next_addr(set_iter_t* it) {
-    if (!it->current) return NULL;
-    void* data = it->current->stg.addrdata;
-    it->current = it->current->next;
-    return data;
-}
-
-int set_has_int(set_t* s, long data) {
+int set_remove_int(set_t* s, long data) {
+    set_node_t* prev = NULL;
     set_node_t* n = s->head;
     while (n) {
-        if (n->stg.intdata == data) return 1;
+        if (n->stg.intdata == data) {
+            if (!prev) s->head = n->next;
+            else prev->next = n->next;
+            mm_free(n);
+            return 1;
+        }
+
         n = n->next;
     }
 
     return 0;
+}
+
+int set_minus_int_set(set_t* trg, set_t* s) {
+    set_iter_t it;
+    set_iter_init(s, &it);
+    long data;
+    while ((data = set_iter_next_int(&it)) >= 0) {
+        set_remove_int(trg, data);
+    }
+
+    return 1;
 }
 
 int set_add_int(set_t* s, long data) {
@@ -82,16 +103,23 @@ int set_add_int(set_t* s, long data) {
     return 1;
 }
 
+int set_iter_init(set_t* s, set_iter_t* it) {
+    it->current = s->head;
+    return 1;
+}
+
+void* set_iter_next_addr(set_iter_t* it) {
+    if (!it->current) return NULL;
+    void* data = it->current->stg.addrdata;
+    it->current = it->current->next;
+    return data;
+}
+
 long set_iter_next_int(set_iter_t* it) {
     if (!it->current) return -1;
     long data = it->current->stg.intdata;
     it->current = it->current->next;
     return data;
-}
-
-int set_iter_init(set_t* s, set_iter_t* it) {
-    it->current = s->head;
-    return 1;
 }
 
 int set_copy_addr(set_t* dst, set_t* src) {
@@ -101,6 +129,18 @@ int set_copy_addr(set_t* dst, set_t* src) {
     void* data;
     while ((data = set_iter_next_addr(&it))) {
         set_add_addr(dst, data);
+    }
+
+    return 1;
+}
+
+int set_copy_int(set_t* dst, set_t* src) {
+    set_free(dst);
+    set_iter_t it;
+    set_iter_init(src, &it);
+    long data;
+    while ((data = set_iter_next_int(&it)) >= 0) {
+        set_add_int(dst, data);
     }
 
     return 1;
@@ -140,6 +180,26 @@ int set_equal_addr(set_t* a, set_t* b) {
     return 1;
 }
 
+int set_equal_int(set_t* a, set_t* b) {
+    set_iter_t it;
+    set_iter_init(a, &it);
+    long data;
+    while ((data = set_iter_next_int(&it)) >= 0) {
+        if (!set_has_int(b, data)) {
+            return 0;
+        }
+    }
+
+    set_iter_init(b, &it);
+    while ((data = set_iter_next_int(&it)) >= 0) {
+        if (!set_has_int(a, data)) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 int set_union_addr(set_t* dst, set_t* a, set_t* b) {
     set_free(dst);
 
@@ -153,6 +213,22 @@ int set_union_addr(set_t* dst, set_t* a, set_t* b) {
     set_iter_init(b, &it);
     while ((data = set_iter_next_addr(&it))) {
         set_add_addr(dst, data);
+    }
+
+    return 1;
+}
+
+int set_union_int(set_t* dst, set_t* a, set_t* b) {
+    set_iter_t it;
+    set_iter_init(a, &it);
+    long data;
+    while ((data = set_iter_next_int(&it)) >= 0) {
+        set_add_int(dst, data);
+    }
+
+    set_iter_init(b, &it);
+    while ((data = set_iter_next_int(&it)) >= 0) {
+        set_add_int(dst, data);
     }
 
     return 1;

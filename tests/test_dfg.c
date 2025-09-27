@@ -19,26 +19,12 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_FARGST:    return "store_arg(%s);\n";
         case HIR_FARGLD:    return "load_arg(%s);\n";
         
-        case HIR_FCLL: {
-            switch (state) {
-                case 0: return "%s = call %s, argc %s;\n";
-                default: return "call %s, argc %s;\n";
-            }
-        }
-        
-        case HIR_ECLL: {
-            switch (state) {
-                case 0: return "%s = excall %s, argc %s;\n";
-                default: return "excall %s, argc %s;\n";
-            }
-        }
-
-        case HIR_SYSC: {
-            switch (state) {
-                case 1: return "%s = syscall, argc: %s;\n";
-                default: return "syscall, argc: %s;\n";
-            }
-        }
+        case HIR_FCLL:       return "call %s, argc %s;\n";
+        case HIR_STORE_FCLL: return "%s = call %s, argc %s;\n";
+        case HIR_ECLL:       return "excall %s, argc %s;\n";
+        case HIR_STORE_ECLL: return "%s = excall %s, argc %s;\n";
+        case HIR_SYSC:       return "syscall, argc: %s;\n";
+        case HIR_STORE_SYSC: return "%s = syscall, argc: %s;\n";
 
         case HIR_STRT:      return "start {\n";
         case HIR_FRET:      return "return %s;\n";
@@ -74,7 +60,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_ARRDECL:
         case HIR_STRDECL: {
             switch (state) {
-                case 2: return "alloc %s;\n";
+                case 2:  return "alloc %s;\n";
                 default: return "alloc %s = %s;\n";
             }
         }
@@ -300,17 +286,45 @@ void _dump_all_dom_dot(cfg_func_t* func) {
     printf("}\n");
 }
 
+static void _print_set_int(FILE* out, set_t* s) {
+    set_iter_t it;
+    set_iter_init(s, &it);
+    long v;
+    int first = 1;
+    fprintf(out, "{");
+    while ((v = set_iter_next_int(&it)) != -1) {
+        if (!first) fprintf(out, ",");
+        fprintf(out, "%ld", v);
+        first = 0;
+    }
+    fprintf(out, "}");
+}
+
 static int _export_dot_func(cfg_func_t* f) {
     printf("digraph CFG_func%d {\n", f->id);
     printf("  rankdir=TB;\n");
     cfg_block_t* b = f->cfg_head;
     while (b) {
-        printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s\"];\n",
+        printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s",
                b->id, b->id,
-               b->entry ? hir_op_to_string(b->entry->op) : "NULL", b->entry->op == HIR_MKLB ? b->entry->farg->id : -1,
+               b->entry ? hir_op_to_string(b->entry->op) : "NULL", 
+               b->entry && b->entry->op == HIR_MKLB ? b->entry->farg->id : -1,
                b->exit  ? hir_op_to_string(b->exit->op)  : "NULL");
+
+        printf("\\nIN=");
+        _print_set_int(stdout, &b->curr_in);
+        printf("\\nDEF=");
+        _print_set_int(stdout, &b->def);
+        printf("\\nUSE=");
+        _print_set_int(stdout, &b->use);
+        printf("\\nOUT=");
+        _print_set_int(stdout, &b->curr_out);
+
+        printf("\"];\n");
+
         if (b->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", b->id, b->l->id);
         if (b->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", b->id, b->jmp->id);
+
         b = b->next;
     }
     
@@ -387,6 +401,7 @@ int main(int argc, char* argv[]) {
 
     HIR_DFG_collect_defs(&cfgctx);
     HIR_DFG_collect_uses(&cfgctx);
+    HIR_DFG_compute_inout(&cfgctx);
 
     cfg_print(&cfgctx);
 

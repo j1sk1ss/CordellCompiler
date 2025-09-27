@@ -6,6 +6,38 @@
 #include <std/mm.h>
 #include <hir/hir.h>
 
+typedef struct cfg_block {
+    /* Basic info and content */
+    long              id;
+    hir_block_t*      entry;
+    hir_block_t*      exit;
+
+    /* Block navigation */
+    struct cfg_block* l;
+    struct cfg_block* jmp;
+    set_t             pred;
+    set_t             visitors;
+    
+    /* Line navigation (Don't change it!) */
+    struct cfg_block* next;
+    struct cfg_block* prev;
+
+    /* Dominance frontier analysis */
+    set_t             dom;      /* Dominators               */
+    struct cfg_block* sdom;     /* Strict dominators        */
+    struct cfg_block* dom_c;    /* Dominator children       */
+    struct cfg_block* dom_s;    /* Dominator sibling        */
+    set_t             domf;     /* Dominance frontier       */
+
+    /* Liveness analysis */
+    set_t             def;      /* Set of defined variables */
+    set_t             use;      /* Set of used variables    */
+    set_t             curr_in;  /* Current IN{} set         */
+    set_t             curr_out; /* Current OUT{} set        */
+    set_t             prev_in;  /* Prev IN{} set            */
+    set_t             prev_out; /* Prev IN{} set            */
+} cfg_block_t;
+
 typedef struct leader {
     hir_block_t*   h;
     struct leader* next;
@@ -15,38 +47,16 @@ typedef struct {
     leader_t* h;
 } leader_ctx_t;
 
-typedef struct cfg_block {
-    long              id;
-    hir_block_t*      entry;
-    hir_block_t*      exit;
-
-    struct cfg_block* l;
-    struct cfg_block* jmp;
-    set_t             visitors;
-    set_t             pred;
-    
-    struct cfg_block* next;
-
-    set_t             dom;
-    struct cfg_block* sdom;
-    struct cfg_block* dom_c;
-    struct cfg_block* dom_s;
-    set_t             domf;
-
-    set_t             def;
-    set_t             use;
-    set_t             curr_in;
-    set_t             curr_out;
-    set_t             prev_in;
-    set_t             prev_out;
-} cfg_block_t;
-
 typedef struct cfg_func {
+    /* Basic info and content */
     long             id;
     hir_block_t*     entry;
     hir_block_t*     exit;
-    cfg_block_t*     cfg_head;
-    leader_ctx_t     leaders;
+
+    /* CFG data */
+    leader_ctx_t     leaders;   /* Leaders for block generation */
+    cfg_block_t*     cfg_head;  /* CFG list head                */
+    cfg_block_t*     cfg_tail;  /* CFG list tail                */
     struct cfg_func* next;
 } cfg_func_t;
 

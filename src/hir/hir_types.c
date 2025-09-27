@@ -318,15 +318,18 @@ int HIR_isleader(hir_operation_t op) {
 
 int HIR_isjmp(hir_operation_t op) {
     if (
-        op == HIR_FCLL    ||
-        op == HIR_JMP     ||
-        op == HIR_IFOP    ||
-        op == HIR_IFCPOP  ||
-        op == HIR_IFLGEOP ||
-        op == HIR_IFLGOP  ||
-        op == HIR_IFLWEOP ||
-        op == HIR_IFLWOP  ||
-        op == HIR_IFNCPOP ||
+        op == HIR_FCLL       ||
+        op == HIR_STORE_FCLL ||
+        op == HIR_ECLL       ||
+        op == HIR_STORE_ECLL ||
+        op == HIR_JMP        ||
+        op == HIR_IFOP       ||
+        op == HIR_IFCPOP     ||
+        op == HIR_IFLGEOP    ||
+        op == HIR_IFLGOP     ||
+        op == HIR_IFLWEOP    ||
+        op == HIR_IFLWOP     ||
+        op == HIR_IFNCPOP    ||
         op == HIR_FRET
     ) return 1;
     return 0;
@@ -347,6 +350,9 @@ int HIR_iscondjmp(hir_operation_t op) {
 
 int HIR_writeop(hir_operation_t op) {
     switch (op) {
+        case HIR_STORE_ECLL:
+        case HIR_STORE_FCLL:
+        case HIR_STORE_SYSC:
         case HIR_VARDECL:
         case HIR_ARRDECL:
         case HIR_STRDECL:
@@ -368,6 +374,7 @@ int HIR_writeop(hir_operation_t op) {
         case HIR_bAND:
         case HIR_bOR:
         case HIR_bXOR:
+        case HIR_PHI:
         case HIR_STORE: return 1;
         default:        return 0;
     }

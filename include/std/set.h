@@ -26,8 +26,13 @@ int set_size(set_t* s);
 int set_free(set_t* s);
 
 int set_add_int(set_t* s, long data);
+int set_remove_int(set_t* s, long data);
 int set_has_int(set_t* s, long data);
 long set_iter_next_int(set_iter_t* it);
+int set_union_int(set_t* dst, set_t* a, set_t* b);
+int set_copy_int(set_t* dst, set_t* src);
+int set_minus_int_set(set_t* trg, set_t* s);
+int set_equal_int(set_t* a, set_t* b);
 
 int set_add_addr(set_t* s, void* data);
 int set_remove_addr(set_t* s, void* data);
