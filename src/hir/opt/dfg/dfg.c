@@ -1,46 +1,50 @@
 #include <hir/opt/dfg.h>
 
 int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
-    cfg_func_t* fh = cctx->h;
-    while (fh) {
-        cfg_block_t* bh = fh->cfg_head;
-        while (bh) {
-            set_init(&bh->def);
-            hir_block_t* hh = bh->entry;
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            set_init(&cb->def);
+            hir_block_t* hh = cb->entry;
             while (hh) {
                 if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t) && !HIR_is_tmptype(hh->sarg->t)) {
-                    set_add_int(&bh->def, hh->sarg->storage.var.v_id);
+                    set_add_int(&cb->def, hh->sarg->storage.var.v_id);
                 }
                 else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t) && !HIR_is_tmptype(hh->farg->t)) {
-                    set_add_int(&bh->def, hh->farg->storage.var.v_id);
+                    set_add_int(&cb->def, hh->farg->storage.var.v_id);
                 }
 
-                if (hh == bh->exit) break;
+                if (hh == cb->exit) break;
                 hh = hh->next;
             }
-
-            bh = bh->next;
         }
-
-        fh = fh->next;
     }
 
     return 1;
 }
 
 int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
-    cfg_func_t* fh = cctx->h;
-    while (fh) {
-        cfg_block_t* bh = fh->cfg_head;
-        while (bh) {
-            set_init(&bh->use);
-            hir_block_t* hh = bh->entry;
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            set_init(&cb->use);
+            hir_block_t* hh = cb->entry;
             while (hh) {
                 if (hh->op != HIR_PHI) {
                     hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
                     for (int i = HIR_writeop(hh->op); i < 3; i++) {
                         if (args[i] && HIR_is_vartype(args[i]->t) && !HIR_is_tmptype(args[i]->t)) {
-                            set_add_int(&bh->use, args[i]->storage.var.v_id);
+                            set_add_int(&cb->use, args[i]->storage.var.v_id);
                         }
                     }
                 }
@@ -49,18 +53,14 @@ int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
                     set_iter_init(&hh->targ->storage.set.h, &it);
                     int_tuple_t* tpl;
                     while ((tpl = set_iter_next_addr(&it))) {
-                        set_add_int(&bh->use, tpl->y);
+                        set_add_int(&cb->use, tpl->y);
                     }
                 }
 
-                if (hh == bh->exit) break;
+                if (hh == cb->exit) break;
                 hh = hh->next;
             }
-
-            bh = bh->next;
         }
-
-        fh = fh->next;
     }
 
     return 1;
@@ -96,37 +96,35 @@ static int _compute_in(cfg_block_t* cfg) {
 }
 
 int HIR_DFG_compute_inout(cfg_ctx_t* cctx) {
-    cfg_func_t* fh = cctx->h;
-    while (fh) {
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
         while (1) {
-            cfg_block_t* bh = fh->cfg_tail;
-            while (bh) {
-                _compute_in(bh);
-                _compute_out(bh);
-                bh = bh->prev;
+            list_iter_t bit;
+            list_iter_tinit(&fb->blocks, &bit);
+            cfg_block_t* cb;
+            while ((cb = (cfg_block_t*)list_iter_prev(&bit))) {
+                _compute_in(cb);
+                _compute_out(cb);
             }
 
             int same = 1;
-            bh = fh->cfg_tail;
-            while (bh) {
-                if (!set_equal_int(&bh->curr_in, &bh->prev_in) || !set_equal_int(&bh->curr_out, &bh->prev_out)) {
+            list_iter_tinit(&fb->blocks, &bit);
+            while ((cb = (cfg_block_t*)list_iter_prev(&bit))) {
+                if (!set_equal_int(&cb->curr_in, &cb->prev_in) || !set_equal_int(&cb->curr_out, &cb->prev_out)) {
                     same = 0;
                     break;
                 }
-
-                bh = bh->prev;
             }
 
             if (same) break;
-            bh = fh->cfg_tail;
-            while (bh) {
-                set_copy_int(&bh->prev_in, &bh->curr_in);
-                set_copy_int(&bh->prev_out, &bh->curr_out);
-                bh = bh->prev;
+            list_iter_tinit(&fb->blocks, &bit);
+            while ((cb = (cfg_block_t*)list_iter_prev(&bit))) {
+                set_copy_int(&cb->prev_in, &cb->curr_in);
+                set_copy_int(&cb->prev_out, &cb->curr_out);
             }
         }
-
-        fh = fh->next;
     }
 
     return 1;
@@ -142,15 +140,5 @@ static int _get_var_parent(long v_id, sym_table_t* smt) {
 }
 
 int HIR_DFG_deallocate_vars(cfg_ctx_t* cctx) {
-    cfg_func_t* fh = cctx->h;
-    while (fh) {
-        cfg_block_t* bh = fh->cfg_tail;
-        while (bh) {
-            bh = bh->prev;
-        }
-
-        fh = fh->next;
-    }
-
     return 1;
 }

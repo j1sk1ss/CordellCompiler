@@ -1,22 +1,22 @@
 #ifndef FUNC_TB_H_
 #define FUNC_TB_H_
 
+#include <std/list.h>
 #include <ast/ast.h>
 #include <prep/token.h>
 
-typedef struct func_info {
-    long              id;
-    char              name[TOKEN_MAX_SIZE];
-    int               global;
-    int               external;
-    ast_node_t*       args;
-    ast_node_t*       rtype;
-    struct func_info* next;
+typedef struct {
+    long        id;
+    char        name[TOKEN_MAX_SIZE];
+    int         global;
+    int         external;
+    ast_node_t* args;
+    ast_node_t* rtype;
 } func_info_t;
 
 typedef struct func_ctx {
-    long         curr_id;
-    func_info_t* h;
+    long   curr_id;
+    list_t lst;
 } functab_ctx_t;
 
 int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx);

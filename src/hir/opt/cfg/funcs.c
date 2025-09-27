@@ -7,40 +7,24 @@ static cfg_func_t* _create_funcblock(hir_block_t* entry, hir_block_t* end) {
     b->entry = entry;
     b->exit  = end;
     b->id    = entry->farg->storage.str.s_id;
+    list_init(&b->blocks);
     return b;
 }
 
 static int _add_funcblock(hir_block_t* entry, hir_block_t* end, cfg_ctx_t* ctx) {
     cfg_func_t* b = _create_funcblock(entry, end);
     if (!b) return 0;
-
     b->id = ctx->cid++;
-    if (!ctx->h) {
-        ctx->h = b;
-        return 1;
-    }
-
-    cfg_func_t* h = ctx->h;
-    while (h->next) h = h->next;
-    h->next = b;
+    list_add(&ctx->funcs, b);
     return 1;
 }
 
-cfg_func_t* HIR_CFG_find_function(long fid, cfg_ctx_t* ctx) {
-    cfg_func_t* h = ctx->h;
-    while (h) {
-        if (fid == h->id) return h;
-        h = h->next;
-    }
-
-    return NULL;
-}
-
 cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid) {
-    cfg_block_t* h = f->cfg_head;
-    while (h) {
-        if (h->entry->op == HIR_MKLB && h->entry->farg->id == lbid) return h;
-        h = h->next;
+    list_iter_t bit;
+    list_iter_hinit(&f->blocks, &bit);
+    cfg_block_t* cb;
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        if (cb->entry->op == HIR_MKLB && cb->entry->farg->id == lbid) return cb;
     }
 
     return NULL;

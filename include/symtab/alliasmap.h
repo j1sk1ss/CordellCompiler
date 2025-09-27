@@ -4,16 +4,16 @@
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/set.h>
+#include <std/list.h>
 #include <std/logg.h>
 
-typedef struct allias {
-    long           v_id;
-    set_t          owners;
-    struct allias* next;
+typedef struct {
+    long  v_id;
+    set_t owners;
 } allias_t;
 
 typedef struct {
-    allias_t* h;
+    list_t lst;
 } allias_map_t;
 
 int ALLIAS_add_owner(long v_id, long owner_id, allias_map_t* ctx);

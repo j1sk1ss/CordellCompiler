@@ -2,42 +2,42 @@
 
 int VRTB_update_offset(long id, long offset, vartab_ctx_t* ctx) {
     print_debug("VRTB_update_offset(id=%i, offset=%i)", id, offset);
-    variable_info_t* h = ctx->h;
-    while (h) {
-        if (h->v_id == id) {
-            h->offset = offset;
+    list_iter_t it;
+    list_iter_hinit(&ctx->lst, &it);
+    variable_info_t* vi;
+    while ((vi = (variable_info_t*)list_iter_next(&it))) {
+        if (vi->v_id == id) {
+            vi->offset = offset;
             return 1;
         }
-
-        h = h->next;
     }
     
     return 0;    
 }
 
 int VRTB_get_info_id(long id, variable_info_t* info, vartab_ctx_t* ctx) {
-    variable_info_t* h = ctx->h;
-    while (h) {
-        if (h->v_id == id) {
-            if (info) str_memcpy(info, h, sizeof(variable_info_t));
+    list_iter_t it;
+    list_iter_hinit(&ctx->lst, &it);
+    variable_info_t* vi;
+    while ((vi = (variable_info_t*)list_iter_next(&it))) {
+        if (vi->v_id == id) {
+            if (info) str_memcpy(info, vi, sizeof(variable_info_t));
             return 1;
         }
-
-        h = h->next;
     }
     
     return 0;
 }
 
 int VRTB_get_info(const char* varname, short s_id, variable_info_t* info, vartab_ctx_t* ctx) {
-    variable_info_t* h = ctx->h;
-    while (h) {
-        if (((s_id < 0) || s_id == h->s_id) && !str_strcmp(varname, h->name)) {
-            if (info) str_memcpy(info, h, sizeof(variable_info_t));
+    list_iter_t it;
+    list_iter_hinit(&ctx->lst, &it);
+    variable_info_t* vi;
+    while ((vi = (variable_info_t*)list_iter_next(&it))) {
+        if (((s_id < 0) || s_id == vi->s_id) && !str_strcmp(varname, vi->name)) {
+            if (info) str_memcpy(info, vi, sizeof(variable_info_t));
             return 1;
         }
-
-        h = h->next;
     }
     
     return 0;
@@ -61,7 +61,6 @@ static variable_info_t* _create_variable_info(const char* name, token_type_t typ
 
     var->p_id = -1;
     var->type = type;
-    var->next = NULL;
     return var;
 }
 
@@ -69,23 +68,9 @@ int VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     print_debug("VRTB_add_copy(src=%s)", src->name);
     variable_info_t* nnd = _create_variable_info(src->name, src->type, src->s_id, NULL);
     if (!nnd) return 0;
-    nnd->heap = src->heap;
-    nnd->ptr  = src->ptr;
-    nnd->glob = src->glob;
-    nnd->p_id = src->v_id;
-
+    str_memcpy(nnd, src, sizeof(variable_info_t));
     nnd->v_id = ctx->curr_id++;
-    if (!ctx->h) {
-        ctx->h = nnd;
-        return nnd->v_id;
-    }
-
-    variable_info_t* h = ctx->h;
-    while (h->next) {
-        h = h->next;
-    }
-
-    h->next = nnd;
+    list_add(&ctx->lst, nnd);
     return nnd->v_id;
 }
 
@@ -99,27 +84,10 @@ int VRTB_add_info(const char* name, token_type_t type, short s_id, token_flags_t
         snprintf(nnd->name, TOKEN_MAX_SIZE, "tmp");
     }
     
-    if (!ctx->h) {
-        ctx->h = nnd;
-        return nnd->v_id;
-    }
-
-    variable_info_t* h = ctx->h;
-    while (h->next) {
-        h = h->next;
-    }
-
-    h->next = nnd;
+    list_add(&ctx->lst, nnd);
     return nnd->v_id;
 }
 
 int VRTB_unload(vartab_ctx_t* ctx) {
-    variable_info_t* h = ctx->h;
-    while (h) {
-        variable_info_t* n = h->next;
-        mm_free(h);
-        h = n;
-    }
-
-    return 1;
+    return list_free_force(&ctx->lst);
 }

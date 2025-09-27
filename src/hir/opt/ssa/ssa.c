@@ -27,15 +27,14 @@ static varver_t* _get_varver(long v_id, ssa_ctx_t* ctx) {
 }
 
 static int _build_versions(ssa_ctx_t* ctx, sym_table_t* smt) {
-    variable_info_t* vh = smt->v.h;
-    while (vh) {
-        if (!vh->glob) {
-            varver_t* vv = _add_varver(ctx);
-            stack_push_int(&vv->v, vh->v_id);
-            vv->v_id = vh->v_id;
-        }
-        
-        vh = vh->next;
+    list_iter_t it;
+    list_iter_hinit(&smt->v.lst, &it);
+    variable_info_t* vh;
+    while ((vh = (variable_info_t*)list_iter_next(&it))) {
+        if (vh->glob) continue;
+        varver_t* vv = _add_varver(ctx);
+        stack_push_int(&vv->v, vh->v_id);
+        vv->v_id = vh->v_id;
     }
 
     return 1;
@@ -133,11 +132,12 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
 
 int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     _build_versions(ctx, smt);
-    cfg_func_t* fh = cctx->h;
-    while (fh) {
-        cfg_block_t* bh = fh->cfg_head;
-        _iterate_block(bh, ctx, 0, smt);
-        fh = fh->next;
+
+    list_iter_t it;
+    list_iter_hinit(&cctx->funcs, &it);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+        _iterate_block(list_get_head(&fb->blocks), ctx, 0, smt);
     }
 
     _unload_versions(ctx);

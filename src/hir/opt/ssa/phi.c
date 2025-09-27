@@ -25,13 +25,18 @@ static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
 }
 
 int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
-    for (cfg_func_t* f = cctx->h; f; f = f->next) {
-        HIR_CFG_compute_dom(f);
-        HIR_CFG_compute_sdom(f);
-        HIR_CFG_compute_domf(f);
+    list_iter_t it;
+    list_iter_hinit(&cctx->funcs, &it);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+        HIR_CFG_compute_dom(fb);
+        HIR_CFG_compute_sdom(fb);
+        HIR_CFG_compute_domf(fb);
     }
 
-    for (variable_info_t* vh = smt->v.h; vh; vh = vh->next) {
+    list_iter_hinit(&smt->v.lst, &it);
+    variable_info_t* vh;
+    while ((vh = (variable_info_t*)list_iter_next(&it))) {
         // if (vh->glob) continue;
 
         set_t defs;

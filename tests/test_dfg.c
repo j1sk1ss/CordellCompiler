@@ -252,13 +252,17 @@ void _dump_domtree_dot(cfg_func_t* func) {
     printf("digraph DomTree {\n");
     printf("  rankdir=TB;\n");
 
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        printf("  B%i [label=\"B%i\"];\n", b->id, b->id);
+    list_iter_t bit;
+    list_iter_hinit(&func->blocks, &bit);
+    cfg_block_t* cb;
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        printf("  B%i [label=\"B%i\"];\n", cb->id, cb->id);
     }
 
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        if (!b->sdom) {
-            _dump_domtree_dot_rec(b);
+    list_iter_hinit(&func->blocks, &bit);
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        if (!cb->sdom) {
+            _dump_domtree_dot_rec(cb);
         }
     }
 
@@ -269,17 +273,21 @@ void _dump_all_dom_dot(cfg_func_t* func) {
     printf("digraph AllDom {\n");
     printf("  rankdir=TB;\n");
 
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        printf("  B%i [label=\"B%i\"];\n", b->id, b->id);
+    list_iter_t bit;
+    list_iter_hinit(&func->blocks, &bit);
+    cfg_block_t* cb;
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        printf("  B%i [label=\"B%i\"];\n", cb->id, cb->id);
     }
 
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
+    list_iter_hinit(&func->blocks, &bit);
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
         set_iter_t it;
-        set_iter_init(&b->dom, &it);
+        set_iter_init(&cb->dom, &it);
         cfg_block_t* d;
         while ((d = set_iter_next_addr(&it))) {
-            if (d == b) continue;
-            printf("  B%i -> B%i;\n", d->id, b->id);
+            if (d == cb) continue;
+            printf("  B%i -> B%i;\n", d->id, cb->id);
         }
     }
 
@@ -303,29 +311,30 @@ static void _print_set_int(FILE* out, set_t* s) {
 static int _export_dot_func(cfg_func_t* f) {
     printf("digraph CFG_func%d {\n", f->id);
     printf("  rankdir=TB;\n");
-    cfg_block_t* b = f->cfg_head;
-    while (b) {
+
+    list_iter_t bit;
+    list_iter_hinit(&f->blocks, &bit);
+    cfg_block_t* cb;
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
         printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s",
-               b->id, b->id,
-               b->entry ? hir_op_to_string(b->entry->op) : "NULL", 
-               b->entry && b->entry->op == HIR_MKLB ? b->entry->farg->id : -1,
-               b->exit  ? hir_op_to_string(b->exit->op)  : "NULL");
+               cb->id, cb->id,
+               cb->entry ? hir_op_to_string(cb->entry->op) : "NULL", 
+               cb->entry && cb->entry->op == HIR_MKLB ? cb->entry->farg->id : -1,
+               cb->exit  ? hir_op_to_string(cb->exit->op)  : "NULL");
 
         printf("\\nIN=");
-        _print_set_int(stdout, &b->curr_in);
+        _print_set_int(stdout, &cb->curr_in);
         printf("\\nDEF=");
-        _print_set_int(stdout, &b->def);
+        _print_set_int(stdout, &cb->def);
         printf("\\nUSE=");
-        _print_set_int(stdout, &b->use);
+        _print_set_int(stdout, &cb->use);
         printf("\\nOUT=");
-        _print_set_int(stdout, &b->curr_out);
+        _print_set_int(stdout, &cb->curr_out);
 
         printf("\"];\n");
 
-        if (b->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", b->id, b->l->id);
-        if (b->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", b->id, b->jmp->id);
-
-        b = b->next;
+        if (cb->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
+        if (cb->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
     }
     
     printf("}\n");
@@ -333,17 +342,18 @@ static int _export_dot_func(cfg_func_t* f) {
 }
 
 void cfg_print(cfg_ctx_t* ctx) {
-    cfg_func_t* f = ctx->h;
     printf("==== CFG DUMP ====\n");
 
-    while (f) {
+    list_iter_t fit;
+    list_iter_hinit(&ctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
         printf("==== CFG DOT ====\n");
-        _export_dot_func(f);
+        _export_dot_func(fb);
         printf("==== DOM DOT ====\n");
-        _dump_all_dom_dot(f);
+        _dump_all_dom_dot(fb);
         printf("==== SDOM DOT ====\n");
-        _dump_domtree_dot(f);
-        f = f->next;
+        _dump_domtree_dot(fb);
     }
 
     printf("==================\n");
@@ -373,15 +383,8 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    sym_table_t smt = {
-        .a = { .h = NULL },
-        .v = { .h = NULL },
-        .f = { .h = NULL },
-        .m = { .h = NULL },
-        .s = { .h = NULL }
-    };
-    
-    syntax_ctx_t sctx  = { .r = NULL };
+    sym_table_t smt;
+    syntax_ctx_t sctx = { .r = NULL };
 
     STX_create(tkn, &sctx, &smt);
 
@@ -394,7 +397,7 @@ int main(int argc, char* argv[]) {
 
     HIR_generate(&sctx, &irctx, &smt);
 
-    cfg_ctx_t cfgctx = { .h = NULL };
+    cfg_ctx_t cfgctx;
     HIR_build_cfg(&irctx, &cfgctx);
     
     ssa_ctx_t ssactx = { .h = NULL };
@@ -416,43 +419,45 @@ int main(int argc, char* argv[]) {
     }
 
     printf("\n\n========== SYMTABLES ==========\n");
-    if (smt.v.h) printf("==========   VARS  ==========\n");
-    variable_info_t* vh = smt.v.h;
-    while (vh) {
-        printf("id: %i, %s, type: %i, s_id: %i\n", vh->v_id, vh->name, vh->type, vh->s_id);
-        vh = vh->next;
+    list_iter_t it;
+
+    if (!list_isempty(&smt.v.lst)) printf("==========   VARS  ==========\n");
+    list_iter_hinit(&smt.v.lst, &it);
+    variable_info_t* vi;
+    while ((vi = (variable_info_t*)list_iter_next(&it))) {
+        printf("id: %i, %s, type: %i, s_id: %i\n", vi->v_id, vi->name, vi->type, vi->s_id);
     }
 
-    if (smt.a.h) printf("==========   ARRS  ==========\n");
-    array_info_t* ah = smt.a.h;
-    while (ah) {
-        printf("id: %i, name: %s, scope: %i\n", ah->v_id, ah->name, ah->s_id);
-        ah = ah->next;
+    if (!list_isempty(&smt.a.lst)) printf("==========   ARRS  ==========\n");
+    list_iter_hinit(&smt.a.lst, &it);
+    array_info_t* ai;
+    while ((ai = (array_info_t*)list_iter_next(&it))) {
+        printf("id: %i, name: %s, scope: %i\n", ai->v_id, ai->name, ai->s_id);
     }
 
-    if (smt.f.h) printf("==========  FUNCS  ==========\n");
-    func_info_t* fh = smt.f.h;
-    while (fh) {
-        printf("id: %i, name: %s\n", fh->id, fh->name);
-        fh = fh->next;
+    if (!list_isempty(&smt.f.lst)) printf("==========  FUNCS  ==========\n");
+    list_iter_hinit(&smt.f.lst, &it);
+    func_info_t* fi;
+    while ((fi = (func_info_t*)list_iter_next(&it))) {
+        printf("id: %i, name: %s\n", fi->id, fi->name);
     }
 
-    if (smt.s.h) printf("========== STRINGS ==========\n");
-    str_info_t* sh = smt.s.h;
-    while (sh) {
-        printf("id: %i, val: %s\n", sh->id, sh->value);
-        sh = sh->next;
+    if (!list_isempty(&smt.s.lst)) printf("========== STRINGS ==========\n");
+    list_iter_hinit(&smt.s.lst, &it);
+    str_info_t* si;
+    while ((si = (str_info_t*)list_iter_next(&it))) {
+        printf("id: %i, val: %s\n", si->id, si->value);
     }
 
-    if (smt.m.h) printf("========== ALLIAS ==========\n");
-    allias_t* alh = smt.m.h;
-    while (alh) {
-        printf("id: %i, owners: ", alh->v_id);
-        set_iter_t it;
-        set_iter_init(&alh->owners, &it);
+    if (!list_isempty(&smt.m.lst)) printf("========== ALLIAS ==========\n");
+    list_iter_hinit(&smt.m.lst, &it);
+    allias_t* mi;
+    while ((mi = (allias_t*)list_iter_next(&it))) {
+        printf("id: %i, owners: ", mi->v_id);
+        set_iter_t sit;
+        set_iter_init(&mi->owners, &sit);
         long own_id;
-        while ((own_id = set_iter_next_int(&it)) >= 0) printf("%i ", own_id);
-        alh = alh->next;
+        while ((own_id = set_iter_next_int(&sit)) >= 0) printf("%i ", own_id);
     }
 
     HIR_unload_blocks(irctx.h);

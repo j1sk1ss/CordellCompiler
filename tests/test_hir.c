@@ -45,10 +45,7 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_RAW:       return "RAW";
         case HIR_IFOP:      return "IFOP";
         case HIR_NOT:       return "NOT";
-        case HIR_LOADOP:    return "LOADOP";
-        case HIR_LDLINK:    return "LDLINK";
         case HIR_STORE:     return "STORE";
-        case HIR_STLINK:    return "STLINK";
         case HIR_VARDECL:   return "VARDECL";
         case HIR_ARRDECL:   return "ARRDECL";
         case HIR_STRDECL:   return "STRDECL";
@@ -149,13 +146,8 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    sym_table_t smt = {
-        .a = { .h = NULL },
-        .v = { .h = NULL },
-        .f = { .h = NULL }
-    };
-    
-    syntax_ctx_t sctx  = { .r = NULL };
+    sym_table_t smt;
+    syntax_ctx_t sctx = { .r = NULL };
 
     STX_create(tkn, &sctx, &smt);
 

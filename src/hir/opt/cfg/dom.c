@@ -1,12 +1,18 @@
 #include <hir/opt/cfg.h>
 
-int HIR_CFG_compute_dom(cfg_func_t* func) {
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        set_init(&b->dom);
-        if (b == func->cfg_head) set_add_addr(&b->dom, b);
+int HIR_CFG_compute_dom(cfg_func_t* fb) {
+    list_iter_t bit;
+    list_iter_hinit(&fb->blocks, &bit);
+    cfg_block_t* cb;
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        set_init(&cb->dom);
+        if (cb == list_get_head(&fb->blocks)) set_add_addr(&cb->dom, cb);
         else {
-            for (cfg_block_t* t = func->cfg_head; t; t = t->next) {
-                set_add_addr(&b->dom, t);
+            list_iter_t bbit;
+            list_iter_hinit(&fb->blocks, &bbit);
+            cfg_block_t* ccb;
+            while ((ccb = (cfg_block_t*)list_iter_next(&bbit))) {
+                set_add_addr(&cb->dom, ccb);
             }
         }
     }
@@ -14,15 +20,16 @@ int HIR_CFG_compute_dom(cfg_func_t* func) {
     int changed = 1;
     while (changed) {
         changed = 0;
-        for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-            if (b == func->cfg_head) continue;
+        list_iter_hinit(&fb->blocks, &bit);
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            if (cb == list_get_head(&fb->blocks)) continue;
 
             set_t nd;
             set_init(&nd);
 
             int first = 1;
             set_iter_t it;
-            set_iter_init(&b->pred, &it);
+            set_iter_init(&cb->pred, &it);
             cfg_block_t* p = NULL;
 
             while ((p = set_iter_next_addr(&it))) {
@@ -41,11 +48,11 @@ int HIR_CFG_compute_dom(cfg_func_t* func) {
             }
 
             if (first) set_free(&nd);
-            set_add_addr(&nd, b);
+            set_add_addr(&nd, cb);
 
-            if (!set_equal_addr(&nd, &b->dom)) {
-                set_free(&b->dom);
-                set_copy_addr(&b->dom, &nd);
+            if (!set_equal_addr(&nd, &cb->dom)) {
+                set_free(&cb->dom);
+                set_copy_addr(&cb->dom, &nd);
                 changed = 1;
             }
 
@@ -56,30 +63,33 @@ int HIR_CFG_compute_dom(cfg_func_t* func) {
     return 1;
 }
 
-int HIR_CFG_compute_sdom(cfg_func_t* func) {
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        if (b == func->cfg_head) {
-            b->sdom = NULL;
+int HIR_CFG_compute_sdom(cfg_func_t* fb) {
+    list_iter_t bit;
+    list_iter_hinit(&fb->blocks, &bit);
+    cfg_block_t* cb;
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        if (cb == list_get_head(&fb->blocks)) {
+            cb->sdom = NULL;
             continue;
         }
 
         cfg_block_t* sdom = NULL;
 
         set_iter_t it;
-        set_iter_init(&b->dom, &it);
+        set_iter_init(&cb->dom, &it);
         cfg_block_t* d = NULL;
 
         while ((d = set_iter_next_addr(&it))) {
-            if (d == b) continue;
+            if (d == cb) continue;
 
             int dominated_by_other = 0;
 
             set_iter_t it2;
-            set_iter_init(&b->dom, &it2);
+            set_iter_init(&cb->dom, &it2);
             cfg_block_t* other = NULL;
 
             while ((other = set_iter_next_addr(&it2))) {
-                if (other == b || other == d) continue;
+                if (other == cb || other == d) continue;
                 if (set_has_addr(&other->dom, d)) {
                     dominated_by_other = 1;
                     break;
@@ -92,22 +102,26 @@ int HIR_CFG_compute_sdom(cfg_func_t* func) {
             }
         }
 
-        b->sdom = sdom;
+        cb->sdom = sdom;
     }
 
     return 1;
 }
 
-static int _build_domtree(cfg_func_t* func) {
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        b->dom_c = NULL;
-        b->dom_s = NULL;
+static int _build_domtree(cfg_func_t* fb) {
+    list_iter_t bit;
+    list_iter_hinit(&fb->blocks, &bit);
+    cfg_block_t* cb;
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        cb->dom_c = NULL;
+        cb->dom_s = NULL;
     }
 
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        if (!b->sdom || b->sdom == b) continue;
-        b->dom_s = b->sdom->dom_c;
-        b->sdom->dom_c = b;
+    list_iter_hinit(&fb->blocks, &bit);
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        if (!cb->sdom || cb->sdom == cb) continue;
+        cb->dom_s = cb->sdom->dom_c;
+        cb->sdom->dom_c = cb;
     }
 
     return 1;
@@ -131,29 +145,36 @@ static void _compute_domf_rec(cfg_block_t* b) {
     }
 }
 
-int HIR_CFG_compute_domf(cfg_func_t* func) {
-    _build_domtree(func);
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        set_init(&b->domf);
+int HIR_CFG_compute_domf(cfg_func_t* fb) {
+    _build_domtree(fb);
+
+    list_iter_t bit;
+    list_iter_hinit(&fb->blocks, &bit);
+    cfg_block_t* cb;
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        set_init(&cb->domf);
     }
 
-    _compute_domf_rec(func->cfg_head);
+    _compute_domf_rec(list_get_head(&fb->blocks));
     return 1;
 }
 
 int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
-    cfg_func_t* fh = cctx->h;
-    while (fh) {
-        cfg_block_t* bh = fh->cfg_head;
-        while (bh) {
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             int has_def = 0;
-            hir_block_t* hh = bh->entry;
+            hir_block_t* hh = cb->entry;
             while (hh) {
                 if (HIR_writeop(hh->op)) {
                     if (
                         hh->farg && 
                         HIR_is_vartype(hh->farg->t) && 
-                        // !HIR_is_globtype(hh->farg->t) &&
                         !HIR_is_tmptype(hh->farg->t)    
                     ) {
                         if (hh->farg->storage.var.v_id == v_id) {
@@ -163,18 +184,14 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
                     }
                 }
                 
-                if (hh == bh->exit) break;
+                if (hh == cb->exit) break;
                 hh = hh->next;
             }
 
             if (has_def) {
-                set_add_addr(out, bh);
+                set_add_addr(out, cb);
             }
-
-            bh = bh->next;
         }
-
-        fh = fh->next;
     }
 
     return 1;

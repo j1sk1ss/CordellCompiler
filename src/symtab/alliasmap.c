@@ -12,22 +12,16 @@ static allias_t* _create_allias(long v_id) {
 static allias_t* _add_allias(long v_id, allias_map_t* ctx) {
     allias_t* a = _create_allias(v_id);
     if (!a) return NULL;
-    if (!ctx->h) {
-        ctx->h = a;
-        return a;
-    }
-
-    allias_t* h = ctx->h;
-    while (h->next) h = h->next;
-    h->next = a;
+    list_add(&ctx->lst, a);
     return a;
 }
 
 int ALLIAS_add_owner(long v_id, long owner_id, allias_map_t* ctx) {
-    allias_t* h = ctx->h;
-    while (h) {
-        if (h->v_id == v_id) return set_add_int(&h->owners, owner_id);
-        h = h->next;
+    list_iter_t it;
+    list_iter_hinit(&ctx->lst, &it);
+    allias_t* ai;
+    while ((ai = (allias_t*)list_iter_next(&it))) {
+        if (ai->v_id == v_id) return set_add_int(&ai->owners, owner_id);
     }
 
     allias_t* a = _add_allias(v_id, ctx);
@@ -36,13 +30,14 @@ int ALLIAS_add_owner(long v_id, long owner_id, allias_map_t* ctx) {
 }
 
 int ALLIAS_get_owners(long v_id, set_t* out, allias_map_t* ctx) {
-    allias_t* h = ctx->h;
-    while (h) {
-        if (h->v_id == v_id) {
-            set_copy_int(out, &h->owners);
+    list_iter_t it;
+    list_iter_hinit(&ctx->lst, &it);
+    allias_t* ai;
+    while ((ai = (allias_t*)list_iter_next(&it))) {
+        if (ai->v_id == v_id) {
+            set_copy_int(out, &ai->owners);
             return 1;
         }
-        h = h->next;
     }
 
     set_init(out);
@@ -50,14 +45,5 @@ int ALLIAS_get_owners(long v_id, set_t* out, allias_map_t* ctx) {
 }
 
 int ALLIAS_unload(allias_map_t* ctx) {
-    allias_t* h = ctx->h;
-    while (h) {
-        allias_t* n = h->next;
-        set_free(&h->owners);
-        mm_free(h);
-        h = n;
-    }
-    
-    ctx->h = NULL;
-    return 1;
+    return list_free_force(&ctx->lst);
 }

@@ -19,11 +19,15 @@ static int _mark_allias(long v_id, long owner_id, allias_map_t* ctx) {
 }
 
 int _mark_copies(long owner_id, long owned_id, cfg_ctx_t* cctx, sym_table_t* smt) {
-    cfg_func_t* fh = cctx->h;
-    while (fh) {
-        cfg_block_t* bh = fh->cfg_tail;
-        while (bh) {
-            hir_block_t* hh = bh->entry;
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            hir_block_t* hh = cb->entry;
             while (hh) {
                 if (hh->op == HIR_STORE) {
                     long src = hh->sarg->storage.var.v_id;
@@ -31,26 +35,25 @@ int _mark_copies(long owner_id, long owned_id, cfg_ctx_t* cctx, sym_table_t* smt
                     if (src == owner_id) ALLIAS_add_owner(owned_id, dst, &smt->m);
                 }
 
-                if (hh == bh->exit) break;
+                if (hh == cb->exit) break;
                 hh = hh->next;
             }
-
-            bh = bh->prev;
         }
-
-        fh = fh->next;
     }
 
     return 1;
 }
 
 int HIR_DFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt) {
-    cfg_func_t* fh = cctx->h;
-
-    while (fh) {
-        cfg_block_t* bh = fh->cfg_tail;
-        while (bh) {
-            hir_block_t* hh = bh->entry;
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            hir_block_t* hh = cb->entry;
             while (hh) {
                 if (hh->op == HIR_REF) {
                     long slave  = hh->sarg->storage.var.v_id;
@@ -59,14 +62,10 @@ int HIR_DFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt) {
                     _mark_copies(master, slave, cctx, smt);
                 }
 
-                if (hh == bh->exit) break;
+                if (hh == cb->exit) break;
                 hh = hh->next;
             }
-
-            bh = bh->prev;
         }
-        
-        fh = fh->next;
     }
 
     return 1;

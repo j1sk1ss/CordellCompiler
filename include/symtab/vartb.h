@@ -3,25 +3,25 @@
 
 #include <std/regs.h>
 #include <std/vars.h>
+#include <std/list.h>
 #include <prep/token.h>
 
-typedef struct variable_info {
-    long                  v_id; /* Variable ID                      */
-    long                  p_id; /* Parent variable ID (def: -1)     */
-    short                 s_id; /* Scope ID                         */
-    char                  heap; /* Point to heap, can't be reused   */
-    char                  ptr;  /* PTR type == maximum size in arch */
-    char                  ro;
-    char                  glob;
-    char                  name[TOKEN_MAX_SIZE];
-    token_type_t          type;
-    struct variable_info* next;
-    long                  offset;
+typedef struct {
+    long         v_id; /* Variable ID                      */
+    long         p_id; /* Parent variable ID (def: -1)     */
+    short        s_id; /* Scope ID                         */
+    char         heap; /* Point to heap, can't be reused   */
+    char         ptr;  /* PTR type == maximum size in arch */
+    char         ro;
+    char         glob;
+    char         name[TOKEN_MAX_SIZE];
+    token_type_t type;
+    long         offset;
 } variable_info_t;
 
 typedef struct {
-    long             curr_id;
-    variable_info_t* h;
+    long   curr_id;
+    list_t lst;
 } vartab_ctx_t;
 
 int VRTB_update_offset(long id, long offset, vartab_ctx_t* ctx);

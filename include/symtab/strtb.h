@@ -2,17 +2,17 @@
 #define STRTB_H_
 
 #include <std/str.h>
+#include <std/list.h>
 #include <prep/token.h>
 
-typedef struct str_info {
-    int              id;
-    char             value[TOKEN_MAX_SIZE];
-    struct str_info* next;
+typedef struct {
+    int  id;
+    char value[TOKEN_MAX_SIZE];
 } str_info_t;
 
 typedef struct {
-    long        curr_id;
-    str_info_t* h;
+    long   curr_id;
+    list_t lst;
 } strtb_ctx_t;
 
 int STTB_add_info(const char* name, strtb_ctx_t* ctx);
