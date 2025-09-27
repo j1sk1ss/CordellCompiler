@@ -9,8 +9,33 @@
 #include <hir/opt/cfg.h>
 #include <hir/opt/ssa.h>
 #include <hir/opt/dfg.h>
+#include <hir/opt/ra.h>
 #include "ast_helper.h"
 #include "hir_helper.h"
+
+void igraph_dump_dot(igraph_t* g) {
+    printf("graph InterferenceGraph {\n");
+    printf("  node [shape=circle];\n");
+
+    list_iter_t it;
+    list_iter_hinit(&g->nodes, &it);
+    igraph_node_t* n;
+    while ((n = (igraph_node_t*)list_iter_next(&it))) {
+        printf("  V%li;\n", n->v_id);
+    }
+
+    list_iter_hinit(&g->nodes, &it);
+    while ((n = (igraph_node_t*)list_iter_next(&it))) {
+        set_iter_t sit;
+        set_iter_init(&n->v, &sit);
+        long v;
+        while ((v = set_iter_next_int(&sit)) >= 0) {
+            if (n->v_id < v) printf("  V%li -- V%li;\n", n->v_id, v);
+        }
+    }
+
+    printf("}\n");
+}
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
@@ -64,6 +89,10 @@ int main(int argc, char* argv[]) {
 
     cfg_print(&cfgctx);
 
+    igraph_t ig;
+    HIR_RA_build_igraph(&cfgctx, &ig, &smt);
+    igraph_dump_dot(&ig);
+
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
     while (h) {
@@ -79,27 +108,6 @@ int main(int argc, char* argv[]) {
     variable_info_t* vi;
     while ((vi = (variable_info_t*)list_iter_next(&it))) {
         printf("id: %i, %s, type: %i, s_id: %i\n", vi->v_id, vi->name, vi->type, vi->s_id);
-    }
-
-    if (!list_isempty(&smt.a.lst)) printf("==========   ARRS  ==========\n");
-    list_iter_hinit(&smt.a.lst, &it);
-    array_info_t* ai;
-    while ((ai = (array_info_t*)list_iter_next(&it))) {
-        printf("id: %i, name: %s, scope: %i\n", ai->v_id, ai->name, ai->s_id);
-    }
-
-    if (!list_isempty(&smt.f.lst)) printf("==========  FUNCS  ==========\n");
-    list_iter_hinit(&smt.f.lst, &it);
-    func_info_t* fi;
-    while ((fi = (func_info_t*)list_iter_next(&it))) {
-        printf("id: %i, name: %s\n", fi->id, fi->name);
-    }
-
-    if (!list_isempty(&smt.s.lst)) printf("========== STRINGS ==========\n");
-    list_iter_hinit(&smt.s.lst, &it);
-    str_info_t* si;
-    while ((si = (str_info_t*)list_iter_next(&it))) {
-        printf("id: %i, val: %s\n", si->id, si->value);
     }
 
     if (!list_isempty(&smt.m.lst)) printf("========== ALLIAS ==========\n");

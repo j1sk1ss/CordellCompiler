@@ -179,6 +179,17 @@ TEST_CODES[test_dfg]="
     tests/dummy_data/hir/opt/dfg/dfg_5.cpl
 "
 
+TEST_SRCS[test_ra]="
+    src/prep/*.c src/symtab/*.c 
+    src/ast/*.c src/ast/parsers/*.c 
+    src/hir/*.c src/hir/*/*.c src/hir/opt/cfg/*.c src/hir/opt/ssa/*.c src/hir/opt/dfg/*.c src/hir/opt/ra/*.c 
+    std/*.c
+"
+
+TEST_CODES[test_ra]="
+    tests/dummy_data/hir/opt/ra/ra_1.cpl
+"
+
 TEST_SRCS[test_lir]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/lir/*.c src/lir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"
 TEST_CODES[test_lir]="
     tests/dummy_data/lir/gen/lirgen_1.cpl

@@ -4,19 +4,20 @@
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/set.h>
+#include <std/list.h>
 #include <symtab/symtab.h>
 #include <hir/opt/cfg.h>
 
 typedef struct igraph_node {
-    long                v_id;
-    set_t               v;
-    struct igraph_node* next;
+    long  v_id;
+    set_t v;
 } igraph_node_t;
 
 typedef struct {
-    igraph_node_t* h;
+    list_t nodes;
 } igraph_t;
 
 int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt);
+int HIR_RA_unload_igraph(igraph_t* g);
 
 #endif
