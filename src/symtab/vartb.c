@@ -66,6 +66,7 @@ static variable_info_t* _create_variable_info(const char* name, token_type_t typ
 }
 
 int VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
+    print_debug("VRTB_add_copy(src=%s)", src->name);
     variable_info_t* nnd = _create_variable_info(src->name, src->type, src->s_id, NULL);
     if (!nnd) return 0;
     nnd->heap = src->heap;

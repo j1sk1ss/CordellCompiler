@@ -376,7 +376,9 @@ int main(int argc, char* argv[]) {
     sym_table_t smt = {
         .a = { .h = NULL },
         .v = { .h = NULL },
-        .f = { .h = NULL }
+        .f = { .h = NULL },
+        .m = { .h = NULL },
+        .s = { .h = NULL }
     };
     
     syntax_ctx_t sctx  = { .r = NULL };
@@ -402,6 +404,7 @@ int main(int argc, char* argv[]) {
     HIR_DFG_collect_defs(&cfgctx);
     HIR_DFG_collect_uses(&cfgctx);
     HIR_DFG_compute_inout(&cfgctx);
+    HIR_DFG_make_allias(&cfgctx, &smt);
 
     cfg_print(&cfgctx);
 
@@ -439,6 +442,17 @@ int main(int argc, char* argv[]) {
     while (sh) {
         printf("id: %i, val: %s\n", sh->id, sh->value);
         sh = sh->next;
+    }
+
+    if (smt.m.h) printf("========== ALLIAS ==========\n");
+    allias_t* alh = smt.m.h;
+    while (alh) {
+        printf("id: %i, owners: ", alh->v_id);
+        set_iter_t it;
+        set_iter_init(&alh->owners, &it);
+        long own_id;
+        while ((own_id = set_iter_next_int(&it)) >= 0) printf("%i ", own_id);
+        alh = alh->next;
     }
 
     HIR_unload_blocks(irctx.h);

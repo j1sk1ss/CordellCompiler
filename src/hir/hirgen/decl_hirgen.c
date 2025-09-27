@@ -34,6 +34,8 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     }
 
     ast_node_t* val_node = name_node->sibling;
-    HIR_BLOCK2(ctx, HIR_VARDECL, HIR_SUBJ_VAR(name_node), HIR_generate_elem(val_node, ctx, smt));
+    hir_subject_t* var = HIR_SUBJ_VAR(name_node);
+    HIR_BLOCK1(ctx, HIR_VARDECL, var);
+    HIR_BLOCK2(ctx, HIR_STORE, var, HIR_generate_elem(val_node, ctx, smt));
     return 1;
 }
