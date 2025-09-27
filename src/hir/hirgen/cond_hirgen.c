@@ -34,12 +34,11 @@ int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt)
     ast_node_t* lbranch = cond->sibling;
     ast_node_t* rbranch = lbranch->sibling;
     
-    hir_subject_t* condtmp = HIR_generate_elem(cond, ctx, smt);
     hir_subject_t* entrylb = HIR_SUBJ_LABEL();
     hir_subject_t* elb = HIR_SUBJ_LABEL();
 
     HIR_BLOCK1(ctx, HIR_MKLB, entrylb);
-    HIR_BLOCK2(ctx, HIR_IFOP, condtmp, elb);
+    HIR_BLOCK2(ctx, HIR_IFOP, HIR_generate_elem(cond, ctx, smt), elb);
     if (lbranch) {
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_generate_block(lbranch->child, ctx, smt);

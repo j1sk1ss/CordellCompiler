@@ -241,9 +241,9 @@ hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t) {
     }
 }
 
-hir_subject_type_t HIR_get_tmptype_tkn(token_t* token) {
+hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
     if (!token) return HIR_TMPVARI64;
-    int bitness  = VRS_variable_bitness(token, 1);
+    int bitness  = VRS_variable_bitness(token, ptr);
     int isfloat  = VRS_is_float(token);
     int issigned = VRS_issign(token);
     if (!isfloat) {

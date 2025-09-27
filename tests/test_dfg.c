@@ -33,8 +33,14 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
             }
         }
 
+        case HIR_SYSC: {
+            switch (state) {
+                case 1: return "%s = syscall, argc: %s;\n";
+                default: return "syscall, argc: %s;\n";
+            }
+        }
+
         case HIR_STRT:      return "start {\n";
-        case HIR_SYSC:      return "syscall;\n";
         case HIR_FRET:      return "return %s;\n";
         case HIR_MKLB:      return "%s:\n";
         case HIR_FDCL:      return "fn %s {\n";
@@ -80,15 +86,15 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_ENDASM:    return "}\n";
         case HIR_GINDEX:    return "%s = %s[%s];\n";
         case HIR_LINDEX:    return "%s[%s] = %s;\n";
-        case HIR_GDREF:     return "%s = *%s;\n";
-        case HIR_LDREF:     return "*%s = %s;\n";
-        case HIR_REF:       return "%s = &%s;\n";
+        case HIR_GDREF:     return "%s = *(%s);\n";
+        case HIR_LDREF:     return "*(%s) = %s;\n";
+        case HIR_REF:       return "%s = &(%s);\n";
         case HIR_CLNVRS:    return "delete(%s);\n";
         case HIR_IFLWOP:    return "if %s < %s, goto %s;\n";
         case HIR_IFLGOP:    return "if %s > %s, goto %s;\n";
         case HIR_EXITOP:    return "exit %s;\n";
         case HIR_STEND:     return "}\n";
-        case HIR_PHI:       return "[base: %s] %s = phi(%s);\n";
+        case HIR_PHI:       return "[%s] %s = phi(%s);\n";
         case HIR_MKSCOPE:   return "{\n";
         case HIR_ENDSCOPE:  return "}\n";
         default: return "\n";
@@ -162,7 +168,22 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_FNAME: {
                 func_info_t fi;
                 if (FNTB_get_info_id(s->storage.str.s_id, &fi, &smt->f)) {
-                    dst += sprintf(dst, "%s", fi.name);
+                    dst += sprintf(dst, "%s(", fi.name);
+                }
+
+                if (fi.args) {
+                    for (ast_node_t* t = fi.args->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
+                        ast_node_t* type = t;
+                        ast_node_t* name = t->child;
+                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->token), name->token->value);
+                        if (t->sibling && t->sibling->token->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
+                    }
+                }
+
+                dst += sprintf(dst, ")");
+
+                if (fi.rtype) {
+                    dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->token));
                 }
 
                 break;
@@ -216,6 +237,7 @@ void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
 
     if (
         block->op == HIR_ENDSCOPE ||
+        block->op == HIR_FEND     ||
         block->op == HIR_STEND
     ) _depth--;
 
@@ -225,6 +247,7 @@ void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
 
     if (
         block->op == HIR_MKSCOPE ||
+        block->op == HIR_FDCL    ||
         block->op == HIR_STRT
     ) _depth++;
 

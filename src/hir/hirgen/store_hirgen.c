@@ -19,8 +19,7 @@ indexing: {}
             ast_node_t* off = node->child;
             if (!off) HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_VAR(node), src);
             else {
-                hir_subject_t* offt1 = HIR_generate_elem(off, ctx, smt);
-                HIR_BLOCK3(ctx, HIR_LINDEX, HIR_SUBJ_VAR(node), offt1, src);
+                HIR_BLOCK3(ctx, HIR_LINDEX, HIR_SUBJ_VAR(node), HIR_generate_elem(off, ctx, smt), src);
             }
 
             break;

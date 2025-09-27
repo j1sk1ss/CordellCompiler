@@ -9,7 +9,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
         else {
             if (!node->token->flags.dref) res = HIR_SUBJ_VAR(node);
             else {
-                res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(node->token), VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
+                res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(node->token, 0), VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
                 HIR_BLOCK2(ctx, HIR_GDREF, res, HIR_SUBJ_VAR(node));
             }
         }
@@ -33,7 +33,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
                         tmp.t_type = ai.el_type;
                     }
 
-                    res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp), VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
+                    res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
                     HIR_BLOCK3(ctx, HIR_GINDEX, res, base, offt1);
                 }
 

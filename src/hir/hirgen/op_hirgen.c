@@ -7,24 +7,26 @@ int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
     int simd = VRS_is_float(left->token) || VRS_is_float(right->token);
 
     hir_subject_t* dst = HIR_generate_elem(left, ctx, smt);
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
     hir_subject_t* upd = HIR_generate_elem(right, ctx, smt);
 
     switch (op->token->t_type) {
         case ADDASSIGN_TOKEN:
-            HIR_BLOCK3(ctx, HIR_iADD, dst, dst, upd);
+            HIR_BLOCK3(ctx, HIR_iADD, res, dst, upd);
         break;
         case SUBASSIGN_TOKEN:
-            HIR_BLOCK3(ctx, HIR_iSUB, dst, dst, upd);
+            HIR_BLOCK3(ctx, HIR_iSUB, res, dst, upd);
         break;
         case MULASSIGN_TOKEN:
-            HIR_BLOCK3(ctx, HIR_iMUL, dst, dst, upd);
+            HIR_BLOCK3(ctx, HIR_iMUL, res, dst, upd);
         break;
         case DIVASSIGN_TOKEN:
-            HIR_BLOCK3(ctx, HIR_iDIV, dst, dst, upd);
+            HIR_BLOCK3(ctx, HIR_iDIV, res, dst, upd);
         break;
         default: break;
     }
     
+    HIR_generate_store_block(left, res, ctx, smt);
     return 1;
 }
 

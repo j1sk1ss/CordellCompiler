@@ -95,7 +95,7 @@ int VRTB_add_info(const char* name, token_type_t type, short s_id, token_flags_t
 
     nnd->v_id = ctx->curr_id++;
     if (!name) {
-        snprintf(nnd->name, TOKEN_MAX_SIZE, "tmp_%d", nnd->v_id);
+        snprintf(nnd->name, TOKEN_MAX_SIZE, "tmp");
     }
     
     if (!ctx->h) {

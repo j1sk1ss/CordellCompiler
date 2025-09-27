@@ -7,7 +7,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
     ) return HIR_generate_operand(node, ctx, smt);
     switch (node->token->t_type) {
         case CALL_TOKEN:            return HIR_generate_funccall(node, ctx, smt, 1);
-        case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt);
+        case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 1);
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:
@@ -52,7 +52,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case EXTERN_TOKEN:  HIR_generate_extern_block(node, ctx, smt);     break;
         case IMPORT_TOKEN:  HIR_generate_import_block(node, ctx, smt);     break;
         case ASSIGN_TOKEN:  HIR_generate_assignment_block(node, ctx, smt); break;
-        case SYSCALL_TOKEN: HIR_generate_syscall(node, ctx, smt);          break;
+        case SYSCALL_TOKEN: HIR_generate_syscall(node, ctx, smt, 0);       break;
         default: break;
     }
 

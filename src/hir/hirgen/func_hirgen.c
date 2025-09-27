@@ -22,15 +22,14 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         HIR_BLOCK2(ctx, HIR_FCLL, HIR_SUBJ_FUNCNAME(name), HIR_SUBJ_CONST(arg_count));
         return NULL;
     }
-    else {
-        hir_subject_t* res = HIR_SUBJ_TMPVAR(
-            HIR_get_tmptype_tkn(fi.rtype ? fi.rtype->token : NULL),
-            VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v)
-        );
-        
-        HIR_BLOCK3(ctx, HIR_FCLL, res, HIR_SUBJ_FUNCNAME(name), HIR_SUBJ_CONST(arg_count));
-        return res;
-    }
+    
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(
+        HIR_get_tmptype_tkn(fi.rtype ? fi.rtype->token : NULL, fi.rtype ? fi.rtype->token->flags.ptr : 1),
+        VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v)
+    );
+    
+    HIR_BLOCK3(ctx, HIR_FCLL, res, HIR_SUBJ_FUNCNAME(name), HIR_SUBJ_CONST(arg_count));
+    return res;
 }
 
 int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
@@ -41,7 +40,7 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     int argnum = 0;
     ast_node_t* t = NULL;
     for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
-        HIR_BLOCK2(ctx, HIR_FARGLD, HIR_SUBJ_VAR(t), HIR_SUBJ_CONST(argnum++));
+        HIR_BLOCK2(ctx, HIR_FARGLD, HIR_SUBJ_VAR(t->child), HIR_SUBJ_CONST(argnum++));
     }
 
     HIR_generate_block(t, ctx, smt);

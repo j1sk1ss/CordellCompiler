@@ -174,6 +174,7 @@ TEST_SRCS[test_dfg]="
 TEST_CODES[test_dfg]="
     tests/dummy_data/hir/opt/dfg/dfg_1.cpl
     tests/dummy_data/hir/opt/dfg/dfg_2.cpl
+    tests/dummy_data/hir/opt/dfg/dfg_3.cpl
 "
 
 TEST_SRCS[test_lir]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/lir/*.c src/lir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"
