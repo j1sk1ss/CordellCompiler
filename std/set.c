@@ -40,7 +40,6 @@ int set_add_addr(set_t* s, void* data) {
     if (set_has_addr(s, data)) return 0;
     set_node_t* n = (set_node_t*)mm_malloc(sizeof(set_node_t));
     if (!n) return 0;
-
     n->stg.addrdata = data;
     n->next = s->head;
     s->head = n;
@@ -244,15 +243,23 @@ int set_size(set_t* s) {
 
     return size;
 }
-
-int set_free(set_t* s) {
+int _set_free(set_t* s, int force) {
     set_node_t* n = s->head;
     while (n) {
         set_node_t* next = n->next;
+        if (force) mm_free(n->stg.addrdata);
         mm_free(n);
         n = next;
     }
 
     s->head = NULL;
     return 1;
+}
+
+int set_free(set_t* s) {
+    return _set_free(s, 0);
+}
+
+int set_free_force(set_t* s) {
+    return _set_free(s, 1);
 }

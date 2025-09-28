@@ -5,6 +5,7 @@
 
         if b == 1; {
             c = 2;
+            exit c;
         }
 
         i32 a = 1;
@@ -15,7 +16,6 @@
         i8 d = 1;
         if a == 3; {
             d = 2;
-            exit d;
         }
 
         exit d;

@@ -24,6 +24,7 @@ int set_init(set_t* s);
 int set_iter_init(set_t* s, set_iter_t* it);
 int set_size(set_t* s);
 int set_free(set_t* s);
+int set_free_force(set_t* s);
 
 int set_add_int(set_t* s, long data);
 int set_remove_int(set_t* s, long data);

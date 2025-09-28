@@ -43,6 +43,42 @@ int list_add(list_t* l, void* data) {
     return 1;
 }
 
+int list_push_back(list_t* l, void* data) {
+    list_node_t* node = mm_malloc(sizeof(list_node_t));
+    if (!node) return -1;
+
+    node->data = data;
+    node->n = NULL;
+    node->p = l->t;
+
+    if (l->t) l->t->n = node;
+    else l->h = node;
+    l->t = node;
+    l->s++;
+
+    return 0;
+}
+
+int list_push_front(list_t* l, void* data) {
+    list_node_t* node = mm_malloc(sizeof(list_node_t));
+    if (!node) return -1;
+
+    node->data = data;
+    node->p = NULL;
+    node->n = l->h;
+
+    if (l->h) l->h->p = node;
+    else l->t = node;
+    l->h = node;
+    l->s++;
+    return 0;
+}
+
+void* list_iter_current(list_iter_t* it) {
+    if (!it->curr) return NULL;
+    return it->curr->data;
+}
+
 void* list_iter_next(list_iter_t* it) {
     if (!it->curr) return NULL;
     void* data = it->curr->data;
@@ -50,11 +86,21 @@ void* list_iter_next(list_iter_t* it) {
     return data;
 }
 
+void* list_iter_next_top(list_iter_t* it) {
+    if (!it->curr || !it->curr->n) return NULL;
+    return it->curr->n->data;
+}
+
 void* list_iter_prev(list_iter_t* it) {
     if (!it->curr) return NULL;
     void* data = it->curr->data;
     it->curr = it->curr->p;
     return data;
+}
+
+void* list_iter_prev_top(list_iter_t* it) {
+    if (!it->curr || !it->curr->p) return NULL;
+    return it->curr->p->data;
 }
 
 void* list_get_head(list_t* l) {

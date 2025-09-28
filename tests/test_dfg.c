@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     HIR_generate(&sctx, &irctx, &smt);
 
     cfg_ctx_t cfgctx;
-    HIR_build_cfg(&irctx, &cfgctx);
+    HIR_CFG_build(&irctx, &cfgctx);
     
     ssa_ctx_t ssactx = { .h = NULL };
     HIR_SSA_insert_phi(&cfgctx, &smt);

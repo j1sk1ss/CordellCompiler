@@ -318,10 +318,6 @@ int HIR_isleader(hir_operation_t op) {
 
 int HIR_isjmp(hir_operation_t op) {
     if (
-        op == HIR_FCLL       ||
-        op == HIR_STORE_FCLL ||
-        op == HIR_ECLL       ||
-        op == HIR_STORE_ECLL ||
         op == HIR_JMP        ||
         op == HIR_IFOP       ||
         op == HIR_IFCPOP     ||
@@ -329,7 +325,24 @@ int HIR_isjmp(hir_operation_t op) {
         op == HIR_IFLGOP     ||
         op == HIR_IFLWEOP    ||
         op == HIR_IFLWOP     ||
-        op == HIR_IFNCPOP    ||
+        op == HIR_IFNCPOP
+    ) return 1;
+    return 0;
+}
+
+int HIR_issyst(hir_operation_t op) {
+    if (
+        op == HIR_MKSCOPE  ||
+        op == HIR_ENDSCOPE ||
+        op == HIR_STEND    ||
+        op == HIR_FEND
+    ) return 1;
+    return 0;    
+}
+
+int HIR_isterm(hir_operation_t op) {
+    if (
+        op == HIR_EXITOP ||
         op == HIR_FRET
     ) return 1;
     return 0;

@@ -36,21 +36,14 @@ typedef struct cfg_block {
 } cfg_block_t;
 
 typedef struct {
-    hir_block_t* h;
-} leader_t;
-
-typedef struct {
-    list_t lst;
-} leader_ctx_t;
-
-typedef struct {
     /* Basic info and content */
     long         id;
     hir_block_t* entry;
     hir_block_t* exit;
 
     /* CFG data */
-    leader_ctx_t leaders;   /* Leaders for block generation */
+    set_t        leaders;     /* Leaders for block generation     */
+    set_t        terminators; /* Terminators for block generation */
     list_t       blocks;
 } cfg_func_t;
 
@@ -68,9 +61,7 @@ int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx);
 cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid);
 
 int HIR_CFG_mark_leaders(cfg_ctx_t* ctx);
-int HIR_CFG_leaders_contains(hir_block_t* h, leader_ctx_t* ctx);
-int HIR_CFG_unload_leaders(leader_ctx_t* ctx);
-
-int HIR_build_cfg(hir_ctx_t* hctx, cfg_ctx_t* ctx);
+int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx);
+int HIR_CFG_unload(cfg_ctx_t* ctx);
 
 #endif

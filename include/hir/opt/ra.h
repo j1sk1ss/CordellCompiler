@@ -10,6 +10,7 @@
 
 typedef struct igraph_node {
     long  v_id;
+    int   color;
     set_t v;
 } igraph_node_t;
 
@@ -19,5 +20,6 @@ typedef struct {
 
 int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt);
 int HIR_RA_unload_igraph(igraph_t* g);
+int HIR_RA_color_igraph(igraph_t* g, int max_colors);
 
 #endif

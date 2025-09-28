@@ -51,7 +51,6 @@ int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
         list_iter_t bit;
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
-
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             set_t live;
             set_init(&live);

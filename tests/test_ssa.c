@@ -11,89 +11,6 @@
 #include "ast_helper.h"
 #include "hir_helper.h"
 
-static int _depth = 0;
-
-void print_hir_block(const hir_block_t* block, int ud) {
-    if (!block) return;
-    if (ud) for (int i = 0; i < _depth; i++) printf("    ");
-    printf("%s ", hir_op_to_string(block->op), block->args);
-    print_hir_subject(block->farg); if (block->sarg) printf(", ");
-    print_hir_subject(block->sarg); if (block->targ) printf(", ");
-    print_hir_subject(block->targ); printf("\n");
-}
-
-/* https://dreampuf.github.io/GraphvizOnline/?engine=dot */
-void _dump_domtree_dot(cfg_func_t* func) {
-    printf("digraph DomTree {\n");
-    printf("  rankdir=TB;\n");
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        printf("  B%i [label=\"B%i\"];\n", b->id, b->id);
-    }
-
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        if (!b->sdom) continue;
-        printf("  B%i -> B%i;\n", b->sdom->id, b->id);
-    }
-
-    printf("}\n");
-}
-
-void _dump_all_dom_dot(cfg_func_t* func) {
-    printf("digraph AllDom {\n");
-    printf("  rankdir=TB;\n");
-
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        printf("  B%i [label=\"B%i\"];\n", b->id, b->id);
-    }
-
-    for (cfg_block_t* b = func->cfg_head; b; b = b->next) {
-        set_iter_t it;
-        set_iter_init(&b->dom, &it);
-        cfg_block_t* d;
-        while ((d = set_iter_next_addr(&it))) {
-            if (d == b) continue;
-            printf("  B%i -> B%i;\n", d->id, b->id);
-        }
-    }
-
-    printf("}\n");
-}
-
-static int _export_dot_func(cfg_func_t* f) {
-    printf("digraph CFG_func%d {\n", f->id);
-    printf("  rankdir=TB;\n");
-    cfg_block_t* b = f->cfg_head;
-    while (b) {
-        printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s\"];\n",
-               b->id, b->id,
-               b->entry ? hir_op_to_string(b->entry->op) : "NULL", b->entry->op == HIR_MKLB ? b->entry->farg->id : -1,
-               b->exit  ? hir_op_to_string(b->exit->op)  : "NULL");
-        if (b->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", b->id, b->l->id);
-        if (b->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", b->id, b->jmp->id);
-        b = b->next;
-    }
-    
-    printf("}\n");
-    return 1;
-}
-
-void cfg_print(cfg_ctx_t* ctx) {
-    cfg_func_t* f = ctx->h;
-    printf("==== CFG DUMP ====\n");
-
-    while (f) {
-        printf("==== CFG DOT ====\n");
-        _export_dot_func(f);
-        printf("==== DOM DOT ====\n");
-        _dump_all_dom_dot(f);
-        printf("==== SDOM DOT ====\n");
-        _dump_domtree_dot(f);
-        f = f->next;
-    }
-
-    printf("==================\n");
-}
-
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
     mm_init();
@@ -118,13 +35,8 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    sym_table_t smt = {
-        .a = { .h = NULL },
-        .v = { .h = NULL },
-        .f = { .h = NULL }
-    };
-    
-    syntax_ctx_t sctx  = { .r = NULL };
+    sym_table_t smt;
+    syntax_ctx_t sctx = { .r = NULL };
 
     STX_create(tkn, &sctx, &smt);
 
@@ -137,8 +49,8 @@ int main(int argc, char* argv[]) {
 
     HIR_generate(&sctx, &irctx, &smt);
 
-    cfg_ctx_t cfgctx = { .h = NULL };
-    HIR_build_cfg(&irctx, &cfgctx);
+    cfg_ctx_t cfgctx;
+    HIR_CFG_build(&irctx, &cfgctx);
     
     ssa_ctx_t ssactx = { .h = NULL };
     HIR_SSA_insert_phi(&cfgctx, &smt);
@@ -149,37 +61,50 @@ int main(int argc, char* argv[]) {
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
     while (h) {
-        print_hir_block(h, 1);
+        print_hir_block(h, 1, &smt);
         h = h->next;
     }
 
     printf("\n\n========== SYMTABLES ==========\n");
-    if (smt.v.h) printf("==========   VARS  ==========\n");
-    variable_info_t* vh = smt.v.h;
-    while (vh) {
-        printf("id: %i, %s, type: %i, s_id: %i\n", vh->v_id, vh->name, vh->type, vh->s_id);
-        vh = vh->next;
+    list_iter_t it;
+
+    if (!list_isempty(&smt.v.lst)) printf("==========   VARS  ==========\n");
+    list_iter_hinit(&smt.v.lst, &it);
+    variable_info_t* vi;
+    while ((vi = (variable_info_t*)list_iter_next(&it))) {
+        printf("id: %i, %s, type: %i, s_id: %i\n", vi->v_id, vi->name, vi->type, vi->s_id);
     }
 
-    if (smt.a.h) printf("==========   ARRS  ==========\n");
-    array_info_t* ah = smt.a.h;
-    while (ah) {
-        printf("id: %i, name: %s, scope: %i\n", ah->v_id, ah->name, ah->s_id);
-        ah = ah->next;
+    if (!list_isempty(&smt.a.lst)) printf("==========   ARRS  ==========\n");
+    list_iter_hinit(&smt.a.lst, &it);
+    array_info_t* ai;
+    while ((ai = (array_info_t*)list_iter_next(&it))) {
+        printf("id: %i, name: %s, scope: %i\n", ai->v_id, ai->name, ai->s_id);
     }
 
-    if (smt.f.h) printf("==========  FUNCS  ==========\n");
-    func_info_t* fh = smt.f.h;
-    while (fh) {
-        printf("id: %i, name: %s\n", fh->id, fh->name);
-        fh = fh->next;
+    if (!list_isempty(&smt.f.lst)) printf("==========  FUNCS  ==========\n");
+    list_iter_hinit(&smt.f.lst, &it);
+    func_info_t* fi;
+    while ((fi = (func_info_t*)list_iter_next(&it))) {
+        printf("id: %i, name: %s\n", fi->id, fi->name);
     }
 
-    if (smt.s.h) printf("========== STRINGS ==========\n");
-    str_info_t* sh = smt.s.h;
-    while (sh) {
-        printf("id: %i, val: %s\n", sh->id, sh->value);
-        sh = sh->next;
+    if (!list_isempty(&smt.s.lst)) printf("========== STRINGS ==========\n");
+    list_iter_hinit(&smt.s.lst, &it);
+    str_info_t* si;
+    while ((si = (str_info_t*)list_iter_next(&it))) {
+        printf("id: %i, val: %s\n", si->id, si->value);
+    }
+
+    if (!list_isempty(&smt.m.lst)) printf("========== ALLIAS ==========\n");
+    list_iter_hinit(&smt.m.lst, &it);
+    allias_t* mi;
+    while ((mi = (allias_t*)list_iter_next(&it))) {
+        printf("id: %i, owners: ", mi->v_id);
+        set_iter_t sit;
+        set_iter_init(&mi->owners, &sit);
+        long own_id;
+        while ((own_id = set_iter_next_int(&sit)) >= 0) printf("%i ", own_id);
     }
 
     HIR_unload_blocks(irctx.h);

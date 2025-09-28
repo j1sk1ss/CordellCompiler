@@ -16,12 +16,13 @@ typedef enum hir_operation {
 
         HIR_STRT,  // start macro
         HIR_STEND, // end macro
-        HIR_FRET,  // function ret
-        HIR_TDBL,  // convert to double
-        HIR_MKLB,  // mk label
-        HIR_FDCL,  // declare function
+        HIR_FRET,  // function ret       ret x
+        HIR_TDBL,  // convert to double  x = (double)y
+        HIR_TINT,  // convert to integer x = (int)y
+        HIR_MKLB,  // mk label           id:
+        HIR_FDCL,  // declare function   fn [str.id]:
         HIR_FEND,  // function end
-        HIR_OEXT,  // extern object
+        HIR_OEXT,  // extern object      extern [str.id]
 
         /* Jump instructions */
         HIR_JMP,
@@ -59,23 +60,23 @@ typedef enum hir_operation {
 
     /* High level operations */
         /* Condition operator */
-        HIR_IFOP,     // if X, jmp [lb]
-        HIR_IFLGOP,   // if X > Y, jmp [lb]
-        HIR_IFLGEOP,  // if X >= Y, jmp [lb]
-        HIR_IFLWOP,   // if X < Y, jmp [lb]
-        HIR_IFLWEOP,  // if X <= Y, jmp [lb]
-        HIR_IFCPOP,   // if X == Y, jmp [lb]
-        HIR_IFNCPOP,  // if X != Y, jmp [lb]
+        HIR_IFOP,     // if x, jmp z
+        HIR_IFLGOP,   // if x > y, jmp z
+        HIR_IFLGEOP,  // if x >= y, jmp z
+        HIR_IFLWOP,   // if x < y, jmp z
+        HIR_IFLWEOP,  // if x <= y, jmp z
+        HIR_IFCPOP,   // if x == y, jmp z
+        HIR_IFNCPOP,  // if x != y, jmp z
 
-        HIR_PHI,      // base: x, union: y, new_var: z
-        HIR_VRDEALL,  // deallocate variable from stack
+        HIR_PHI,      // base: x, new_var y, set: z (bb, v_id)
+        HIR_VRDEALL,  // dealloc x
 
         /* Data */
         HIR_NOT,
-        HIR_STORE,   // store value; mov x, y
+        HIR_STORE,   // x = y
         HIR_CLNVRS,  // deallocate all unused variables
-        HIR_VARDECL, // declaration
-        HIR_ARRDECL, // arr declaration
+        HIR_VARDECL, // alloc x
+        HIR_ARRDECL, // arralloc x, y (size)
         HIR_STRDECL,
         HIR_PRMST,
         HIR_PRMLD,   // load param
@@ -159,5 +160,7 @@ int HIR_is_signtype(hir_subject_type_t t);
 int HIR_is_globtype(hir_subject_type_t t);
 int HIR_is_tmptype(hir_subject_type_t t);
 int HIR_writeop(hir_operation_t op);
+int HIR_isterm(hir_operation_t op);
+int HIR_issyst(hir_operation_t op);
 
 #endif
