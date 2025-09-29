@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <ast/syntax.h>
 #include <prep/markup.h>
-#include <ast/opt/varinline.h>
 #include <ast/parsers/parser.h>
 #include <ast/opt/condunroll.h>
 #include "ast_helper.h"
@@ -27,34 +26,9 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    arrtab_ctx_t actx  = { .h = NULL };
-    vartab_ctx_t vctx  = { .h = NULL, .offset = 0 };
-    functab_ctx_t fctx = { .h = NULL };
-    syntax_ctx_t sctx  = { 
-        .symtb = {
-            .arrs  = &actx,
-            .vars  = &vctx,
-            .funcs = &fctx
-        }
-    };
-    
-    parser_t p = {
-        .block      = cpl_parse_block,
-        .switchstmt = cpl_parse_switch,
-        .condop     = cpl_parse_condop,
-        .arraydecl  = cpl_parse_array_declaration,
-        .vardecl    = cpl_parse_variable_declaration,
-        .rexit      = cpl_parse_rexit,
-        .funccall   = cpl_parse_funccall,
-        .function   = cpl_parse_function,
-        .import     = cpl_parse_import,
-        .expr       = cpl_parse_expression,
-        .scope      = cpl_parse_scope,
-        .start      = cpl_parse_start,
-        .syscall    = cpl_parse_syscall
-    };
-
-    STX_create(tkn, &sctx, &p);
+    syntax_ctx_t sctx;
+    sym_table_t smt;
+    STX_create(tkn, &sctx, &smt);
     OPT_condunroll(&sctx);
     
     print_ast(sctx.r, 0);
