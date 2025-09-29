@@ -42,7 +42,6 @@ void igraph_dump_dot(igraph_t* g) {
     fprintf(stdout, "}\n");
 }
 
-
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
     mm_init();
@@ -96,11 +95,9 @@ int main(int argc, char* argv[]) {
     cfg_print(&cfgctx);
 
     igraph_t ig;
-    list_t colors;
     HIR_RA_build_igraph(&cfgctx, &ig, &smt);
     HIR_RA_color_igraph(&ig, 8);
     igraph_dump_dot(&ig);
-    list_free_force(&colors);
 
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
@@ -130,6 +127,7 @@ int main(int argc, char* argv[]) {
         while ((own_id = set_iter_next_int(&sit)) >= 0) printf("%i ", own_id);
     }
 
+    HIR_RA_unload_igraph(&ig);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(irctx.h);
     AST_unload(sctx.r);

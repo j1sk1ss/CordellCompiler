@@ -20,7 +20,7 @@ static igraph_node_t* _find_ig_node(igraph_t* g, long v_id) {
     return NULL;
 }
 
-static int igraph_add_edge(igraph_t* g, long v1, long v2) {
+static int _igraph_add_edge(igraph_t* g, long v1, long v2) {
     if (v1 == v2) return 0;
     igraph_node_t* n1 = _find_ig_node(g, v1);
     igraph_node_t* n2 = _find_ig_node(g, v2);
@@ -64,13 +64,10 @@ int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
                 set_iter_init(&live, &lit);
                 long l;
                 while ((l = set_iter_next_int(&lit)) >= 0) {
-                    igraph_add_edge(g, d, l);
+                    _igraph_add_edge(g, d, l);
                 }
-
-                set_remove_int(&live, d);
             }
 
-            set_union_int(&live, &live, &cb->use);
             set_free(&live);
         }
     }

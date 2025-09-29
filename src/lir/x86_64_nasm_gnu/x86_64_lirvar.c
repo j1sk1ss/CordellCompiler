@@ -15,6 +15,7 @@ lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt) {
         case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8: {
             variable_info_t vi;
             if (VRTB_get_info_id(subj->storage.var.v_id, &vi, &smt->v)) {
+                if (vi.p_id >= 0 && !VRTB_get_info_id(vi.p_id, &vi, &smt->v)) return NULL;
                 if (!vi.glob) return LIR_SUBJ_OFF(vi.offset, VRS_variable_bitness(vi.type, vi.ptr));
                 else return LIR_SUBJ_GLVAR(subj->storage.var.v_id);
             }

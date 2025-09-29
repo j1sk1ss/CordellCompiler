@@ -1,21 +1,15 @@
 {
-    start(i64 argc, ptr u64 argv) {
-        i32 a = 10;
-        i32 k = 0;
-        if a == 12; {
-            a = 11;
-            if a == 13; {
-                a = 12;
-                i8 b = a;
-            }
-            
-            i8 c = a;
-            exit k;
-        }
-        else {
-            a = 14;
+    function foo(i32 n) => i32 {
+        i32 z = 10;
+        i32 x = 0;
+        i32 y = 1;
+
+        while x < n; {
+            z = x * 2 + y;
+            x += 1;
+            y = x + z;
         }
 
-        exit a;
+        return y;
     }
 }

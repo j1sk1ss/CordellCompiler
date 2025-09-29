@@ -118,10 +118,21 @@ static int _depth = 0;
 
 static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
     switch(op) {
-        case HIR_STARGLD:   return "load_starg(%s);\n";
-        case HIR_FARGST:    return "store_arg(%s);\n";
-        case HIR_FARGLD:    return "load_arg(%s);\n";
+        case HIR_STARGLD:    return "load_starg(%s);\n";
+        case HIR_FARGST:     return "store_arg(%s);\n";
+        case HIR_FARGLD:     return "load_arg(%s);\n";
         
+        case HIR_TF64:       return "%s = (f64)%s;\n";
+        case HIR_TF32:       return "%s = (f32)%s;\n";
+        case HIR_TI64:       return "%s = (i64)%s;\n";
+        case HIR_TI32:       return "%s = (i32)%s;\n";
+        case HIR_TI16:       return "%s = (i16)%s;\n";
+        case HIR_TI8:        return "%s = (i8)%s;\n";
+        case HIR_TU64:       return "%s = (u64)%s;\n";
+        case HIR_TU32:       return "%s = (u32)%s;\n";
+        case HIR_TU16:       return "%s = (u16)%s;\n";
+        case HIR_TU8:        return "%s = (u8)%s;\n";
+
         case HIR_FCLL:       return "call %s, argc %s;\n";
         case HIR_STORE_FCLL: return "%s = call %s, argc %s;\n";
         case HIR_ECLL:       return "excall %s, argc %s;\n";
@@ -129,35 +140,35 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_SYSC:       return "syscall, argc: %s;\n";
         case HIR_STORE_SYSC: return "%s = syscall, argc: %s;\n";
 
-        case HIR_STRT:      return "start {\n";
-        case HIR_FRET:      return "return %s;\n";
-        case HIR_MKLB:      return "%s:\n";
-        case HIR_FDCL:      return "fn %s {\n";
-        case HIR_FEND:      return "}\n";
-        case HIR_OEXT:      return "extern %s;\n";
-        case HIR_JMP:       return "goto %s;\n";
-        case HIR_iADD:      return "%s = %s + %s;\n";
-        case HIR_iSUB:      return "%s = %s - %s;\n";
-        case HIR_iMUL:      return "%s = %s * %s;\n";
-        case HIR_iDIV:      return "%s = %s / %s;\n";
-        case HIR_iMOD:      return "%s = %s mod %s;\n";
-        case HIR_iLRG:      return "%s = %s > %s;\n";
-        case HIR_iLGE:      return "%s = %s >= %s;\n";
-        case HIR_iLWR:      return "%s = %s < %s;\n";
-        case HIR_iLRE:      return "%s = %s <= %s;\n";
-        case HIR_iCMP:      return "%s = %s == %s;\n";
-        case HIR_iNMP:      return "%s = %s != %s;\n";
-        case HIR_iAND:      return "%s = %s && %s;\n";
-        case HIR_iOR:       return "%s = %s || %s;\n";
-        case HIR_iBLFT:     return "%s = %s << %s;\n";
-        case HIR_iBRHT:     return "%s = %s >> %s;\n";
-        case HIR_bAND:      return "%s = %s & %s;\n";
-        case HIR_bOR:       return "%s = %s | %s;\n";
-        case HIR_bXOR:      return "%s = %s ^ %s;\n";
-        case HIR_RAW:       return "[raw, \"%s\"]\n";
-        case HIR_IFOP:      return "if %s, goto %s;\n";
-        case HIR_NOT:       return "%s = not %s;\n";
-        case HIR_STORE:     return "%s = %s;\n";
+        case HIR_STRT:       return "start {\n";
+        case HIR_FRET:       return "return %s;\n";
+        case HIR_MKLB:       return "%s:\n";
+        case HIR_FDCL:       return "fn %s {\n";
+        case HIR_FEND:       return "}\n";
+        case HIR_OEXT:       return "extern %s;\n";
+        case HIR_JMP:        return "goto %s;\n";
+        case HIR_iADD:       return "%s = %s + %s;\n";
+        case HIR_iSUB:       return "%s = %s - %s;\n";
+        case HIR_iMUL:       return "%s = %s * %s;\n";
+        case HIR_iDIV:       return "%s = %s / %s;\n";
+        case HIR_iMOD:       return "%s = %s mod %s;\n";
+        case HIR_iLRG:       return "%s = %s > %s;\n";
+        case HIR_iLGE:       return "%s = %s >= %s;\n";
+        case HIR_iLWR:       return "%s = %s < %s;\n";
+        case HIR_iLRE:       return "%s = %s <= %s;\n";
+        case HIR_iCMP:       return "%s = %s == %s;\n";
+        case HIR_iNMP:       return "%s = %s != %s;\n";
+        case HIR_iAND:       return "%s = %s && %s;\n";
+        case HIR_iOR:        return "%s = %s || %s;\n";
+        case HIR_iBLFT:      return "%s = %s << %s;\n";
+        case HIR_iBRHT:      return "%s = %s >> %s;\n";
+        case HIR_bAND:       return "%s = %s & %s;\n";
+        case HIR_bOR:        return "%s = %s | %s;\n";
+        case HIR_bXOR:       return "%s = %s ^ %s;\n";
+        case HIR_RAW:        return "[raw, \"%s\"]\n";
+        case HIR_IFOP:       return "if %s, goto %s;\n";
+        case HIR_NOT:        return "%s = not %s;\n";
+        case HIR_STORE:      return "%s = %s;\n";
 
         case HIR_VARDECL:
         case HIR_ARRDECL:

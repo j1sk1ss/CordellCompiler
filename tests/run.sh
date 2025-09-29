@@ -189,6 +189,7 @@ TEST_SRCS[test_ra]="
 TEST_CODES[test_ra]="
     tests/dummy_data/hir/opt/ra/ra_1.cpl
     tests/dummy_data/hir/opt/ra/ra_2.cpl
+    tests/dummy_data/hir/opt/ra/ra_3.cpl
 "
 
 TEST_SRCS[test_lir]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/lir/*.c src/lir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"

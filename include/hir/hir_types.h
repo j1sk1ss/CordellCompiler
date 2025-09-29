@@ -14,11 +14,20 @@ typedef enum hir_operation {
         HIR_SYSC,        // syscall()
         HIR_STORE_SYSC,  // x = syscall()
 
+        HIR_TF64,  // x = (f64)y
+        HIR_TF32,  // x = (f32)y
+        HIR_TI64,  // x = (i64)y
+        HIR_TI32,  // x = (i32)y
+        HIR_TI16,  // x = (i16)y
+        HIR_TI8,   // x = (i8)y
+        HIR_TU64,  // x = (u64)y
+        HIR_TU32,  // x = (u32)y
+        HIR_TU16,  // x = (u16)y
+        HIR_TU8,   // x = (u8)y
+
         HIR_STRT,  // start macro
         HIR_STEND, // end macro
         HIR_FRET,  // function ret       ret x
-        HIR_TDBL,  // convert to double  x = (double)y
-        HIR_TINT,  // convert to integer x = (int)y
         HIR_MKLB,  // mk label           id:
         HIR_FDCL,  // declare function   fn [str.id]:
         HIR_FEND,  // function end
@@ -162,5 +171,7 @@ int HIR_is_tmptype(hir_subject_type_t t);
 int HIR_writeop(hir_operation_t op);
 int HIR_isterm(hir_operation_t op);
 int HIR_issyst(hir_operation_t op);
+hir_operation_t HIR_convop(hir_subject_type_t t);
+int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
 
 #endif

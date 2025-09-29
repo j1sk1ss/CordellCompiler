@@ -8,6 +8,7 @@
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 
+hir_subject_t* HIR_generate_conv(hir_ctx_t* ctx, hir_subject_t* trg, hir_subject_t* src, sym_table_t* smt);
 hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);

@@ -1,13 +1,35 @@
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
 static int _simd_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
+    LIR_reg_op(ctx, XMM0, RAX, LIR_iMOVq);
+    LIR_reg_op(ctx, XMM1, RBX, LIR_iMOVq);
 
+    switch (h->op) {
+        case HIR_iSUB: {
+            LIR_reg_op(ctx, XMM1, XMM0, LIR_fSUB);
+            LIR_reg_op(ctx, XMM0, XMM1, LIR_fMVf);
+            break;
+        }
+        
+        case HIR_iDIV: {
+            LIR_reg_op(ctx, XMM1, XMM0, LIR_fDIV);
+            LIR_reg_op(ctx, XMM0, XMM1, LIR_fMVf);
+            break;
+        }
+
+        case HIR_iMUL: LIR_reg_op(ctx, XMM0, XMM1, LIR_fMUL); break;
+        case HIR_iADD: LIR_reg_op(ctx, XMM0, XMM1, LIR_fADD); break;
+    }
+
+    LIR_reg_op(ctx, RAX, XMM0, LIR_iMOVq);
+    LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+    return 1;
 }
 
 static int _binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
-    if (HIR_is_floattype(h->sarg->t) || HIR_is_floattype(h->targ->t)) return _simd_binary_op(ctx, h, smt);
     LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
     LIR_store_var_reg(LIR_iMOV, ctx, h->targ, RBX, smt);
+    if (HIR_is_floattype(h->farg->t)) return _simd_binary_op(ctx, h, smt);
     
     switch (h->op) {
         case HIR_iSUB: {
