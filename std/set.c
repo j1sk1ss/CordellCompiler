@@ -43,6 +43,7 @@ int set_add_addr(set_t* s, void* data) {
     n->stg.addrdata = data;
     n->next = s->head;
     s->head = n;
+    s->size++;
     return 1;
 }
 
@@ -54,6 +55,7 @@ int set_remove_addr(set_t* s, void* data) {
             if (!prev) s->head = n->next;
             else prev->next = n->next;
             mm_free(n);
+            s->size--;
             return 1;
         }
 
@@ -61,6 +63,18 @@ int set_remove_addr(set_t* s, void* data) {
     }
 
     return 0;
+}
+
+int set_add_int(set_t* s, long data) {
+    if (set_has_int(s, data)) return 0;
+    set_node_t* n = (set_node_t*)mm_malloc(sizeof(set_node_t));
+    if (!n) return 0;
+
+    n->stg.intdata = data;
+    n->next = s->head;
+    s->head = n;
+    s->size++;
+    return 1;
 }
 
 int set_remove_int(set_t* s, long data) {
@@ -71,6 +85,7 @@ int set_remove_int(set_t* s, long data) {
             if (!prev) s->head = n->next;
             else prev->next = n->next;
             mm_free(n);
+            s->size--;
             return 1;
         }
 
@@ -88,17 +103,6 @@ int set_minus_int_set(set_t* trg, set_t* s) {
         set_remove_int(trg, data);
     }
 
-    return 1;
-}
-
-int set_add_int(set_t* s, long data) {
-    if (set_has_int(s, data)) return 0;
-    set_node_t* n = (set_node_t*)mm_malloc(sizeof(set_node_t));
-    if (!n) return 0;
-
-    n->stg.intdata = data;
-    n->next = s->head;
-    s->head = n;
     return 1;
 }
 
@@ -234,15 +238,9 @@ int set_union_int(set_t* dst, set_t* a, set_t* b) {
 }
 
 int set_size(set_t* s) {
-    int size = 0;
-    set_node_t* n = s->head;
-    while (n) {
-        n = n->next;
-        size++;
-    }
-
-    return size;
+    return s->size;
 }
+
 int _set_free(set_t* s, int force) {
     set_node_t* n = s->head;
     while (n) {
@@ -253,6 +251,7 @@ int _set_free(set_t* s, int force) {
     }
 
     s->head = NULL;
+    s->size = 0;
     return 1;
 }
 

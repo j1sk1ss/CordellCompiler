@@ -9,7 +9,7 @@ static igraph_node_t* _create_ig_node(long v_id) {
     return n;
 }
 
-static igraph_node_t* _find_ig_node(igraph_t* g, long v_id) {
+igraph_node_t* HIR_RA_find_ig_node(igraph_t* g, long v_id) {
     list_iter_t it;
     list_iter_hinit(&g->nodes, &it);
     igraph_node_t* n;
@@ -22,8 +22,8 @@ static igraph_node_t* _find_ig_node(igraph_t* g, long v_id) {
 
 static int _igraph_add_edge(igraph_t* g, long v1, long v2) {
     if (v1 == v2) return 0;
-    igraph_node_t* n1 = _find_ig_node(g, v1);
-    igraph_node_t* n2 = _find_ig_node(g, v2);
+    igraph_node_t* n1 = HIR_RA_find_ig_node(g, v1);
+    igraph_node_t* n2 = HIR_RA_find_ig_node(g, v2);
     if (!n1 || !n2) return 0;
     set_add_int(&n1->v, v2);
     set_add_int(&n2->v, v1);

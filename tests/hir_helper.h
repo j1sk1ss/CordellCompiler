@@ -122,16 +122,16 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_FARGST:     return "store_arg(%s);\n";
         case HIR_FARGLD:     return "load_arg(%s);\n";
         
-        case HIR_TF64:       return "%s = (f64)%s;\n";
-        case HIR_TF32:       return "%s = (f32)%s;\n";
-        case HIR_TI64:       return "%s = (i64)%s;\n";
-        case HIR_TI32:       return "%s = (i32)%s;\n";
-        case HIR_TI16:       return "%s = (i16)%s;\n";
-        case HIR_TI8:        return "%s = (i8)%s;\n";
-        case HIR_TU64:       return "%s = (u64)%s;\n";
-        case HIR_TU32:       return "%s = (u32)%s;\n";
-        case HIR_TU16:       return "%s = (u16)%s;\n";
-        case HIR_TU8:        return "%s = (u8)%s;\n";
+        case HIR_TF64:       return "%s = %s as f64;\n";
+        case HIR_TF32:       return "%s = %s as f32;\n";
+        case HIR_TI64:       return "%s = %s as i64;\n";
+        case HIR_TI32:       return "%s = %s as i32;\n";
+        case HIR_TI16:       return "%s = %s as i16;\n";
+        case HIR_TI8:        return "%s = %s as i8;\n";
+        case HIR_TU64:       return "%s = %s as u64;\n";
+        case HIR_TU32:       return "%s = %s as u32;\n";
+        case HIR_TU16:       return "%s = %s as u16;\n";
+        case HIR_TU8:        return "%s = %s as u8;\n";
 
         case HIR_FCLL:       return "call %s, argc %s;\n";
         case HIR_STORE_FCLL: return "%s = call %s, argc %s;\n";

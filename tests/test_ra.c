@@ -96,8 +96,11 @@ int main(int argc, char* argv[]) {
 
     igraph_t ig;
     HIR_RA_build_igraph(&cfgctx, &ig, &smt);
-    HIR_RA_color_igraph(&ig, 8);
+
+    map_t clrs;
+    HIR_RA_color_igraph(&ig, &clrs);
     igraph_dump_dot(&ig);
+    map_free(&clrs);
 
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;

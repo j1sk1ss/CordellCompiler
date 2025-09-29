@@ -318,6 +318,12 @@ int HIR_isleader(hir_operation_t op) {
 
 int HIR_isjmp(hir_operation_t op) {
     if (
+        op == HIR_FCLL       ||
+        op == HIR_STORE_FCLL ||
+        op == HIR_ECLL       ||
+        op == HIR_STORE_ECLL ||
+        op == HIR_SYSC       ||
+        op == HIR_STORE_SYSC ||
         op == HIR_JMP        ||
         op == HIR_IFOP       ||
         op == HIR_IFCPOP     ||

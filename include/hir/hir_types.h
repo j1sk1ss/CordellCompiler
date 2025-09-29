@@ -8,8 +8,8 @@ typedef enum hir_operation {
     /* Operations */
         /* Commands */
         HIR_FCLL,        // x()
-        HIR_ECLL,        // ext x()
         HIR_STORE_FCLL,  // x = y()
+        HIR_ECLL,        // ext x()
         HIR_STORE_ECLL,  // x = ext y()
         HIR_SYSC,        // syscall()
         HIR_STORE_SYSC,  // x = syscall()

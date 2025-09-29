@@ -13,6 +13,7 @@ typedef struct set_node {
 } set_node_t;
 
 typedef struct {
+    int         size;
     set_node_t* head;
 } set_t;
 
