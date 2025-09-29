@@ -48,7 +48,8 @@ typedef enum {
         LIR_STRT, // start macro
         LIR_SYSC, // syscall
         LIR_FRET, // function ret
-        LIR_TDBL, // convert to double
+        LIR_TINT, // convert to int from double
+        LIR_TDBL, // convert to double from int
         LIR_TST,  // test
         LIR_XCHG, // xchg
         LIR_CDQ,  // cdq
@@ -66,6 +67,17 @@ typedef enum {
         LIR_SETA,
         LIR_STBE,
         LIR_STAE,
+
+        LIR_JL,   // jump if less (signed)
+        LIR_JG,   // jump if greater (signed)
+        LIR_JLE,  // jump if less or equal (signed)
+        LIR_JGE,  // jump if greater or equal (signed)
+        LIR_JE,   // jump if equal / zero
+        LIR_JNE,  // jump if not equal / not zero
+        LIR_JB,   // jump if below (unsigned <)
+        LIR_JA,   // jump if above (unsigned >)
+        LIR_JBE,  // jump if below or equal (unsigned <=)
+        LIR_JAE,  // jump if above or equal (unsigned >=)
 
         /* Data commands */
         LIR_RESV,

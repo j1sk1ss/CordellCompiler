@@ -1,83 +1,5 @@
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
-static int _simd_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
-    LIR_reg_op(ctx, XMM0, RAX, LIR_iMOVq);
-    LIR_reg_op(ctx, XMM1, RBX, LIR_iMOVq);
-
-    switch (h->op) {
-        case HIR_iSUB: {
-            LIR_reg_op(ctx, XMM1, XMM0, LIR_fSUB);
-            LIR_reg_op(ctx, XMM0, XMM1, LIR_fMVf);
-            break;
-        }
-        
-        case HIR_iDIV: {
-            LIR_reg_op(ctx, XMM1, XMM0, LIR_fDIV);
-            LIR_reg_op(ctx, XMM0, XMM1, LIR_fMVf);
-            break;
-        }
-
-        case HIR_iMUL: LIR_reg_op(ctx, XMM0, XMM1, LIR_fMUL); break;
-        case HIR_iADD: LIR_reg_op(ctx, XMM0, XMM1, LIR_fADD); break;
-    }
-
-    LIR_reg_op(ctx, RAX, XMM0, LIR_iMOVq);
-    LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
-    return 1;
-}
-
-static int _binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
-    LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
-    LIR_store_var_reg(LIR_iMOV, ctx, h->targ, RBX, smt);
-    if (HIR_is_floattype(h->farg->t)) return _simd_binary_op(ctx, h, smt);
-    
-    switch (h->op) {
-        case HIR_iSUB: {
-            LIR_reg_op(ctx, RBX, RAX, LIR_iSUB);
-            LIR_reg_op(ctx, RAX, RBX, LIR_iMOV);
-            break;
-        }
-        
-        case HIR_iMOD:
-        case HIR_iDIV: {
-            LIR_BLOCK2(ctx, LIR_XCHG, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
-            if (HIR_is_signtype(h->sarg->t) && HIR_is_signtype(h->targ->t)) {
-                LIR_BLOCK0(ctx, LIR_CDQ);
-                LIR_BLOCK1(ctx, LIR_iDIV, LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
-            } 
-            else {
-                LIR_BLOCK2(ctx, LIR_bXOR, LIR_SUBJ_REG(RDX, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RDX, DEFAULT_TYPE_SIZE));
-                LIR_BLOCK1(ctx, LIR_DIV, LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
-            }
-
-            if (h->op == HIR_iMOD) LIR_reg_op(ctx, RAX, RDX, LIR_iMOV);
-            break;
-        }
-
-        case HIR_iMUL: LIR_reg_op(ctx, RAX, RBX, LIR_iMUL); break;
-        case HIR_iADD: LIR_reg_op(ctx, RAX, RBX, LIR_iADD); break;
-
-        case HIR_iAND: {
-            break;
-        }
-
-        case HIR_iOR: {
-            break;
-        }
-
-        case HIR_bAND: {
-            break;
-        }
-
-        case HIR_bOR: {
-            break;
-        }
-    }
-
-    LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
-    return 1;
-}
-
 int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     hir_block_t* h = hctx->h;
 
@@ -108,7 +30,6 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 scope_elem_t se;
                 scope_pop_top(&scopes, &se);
                 LIR_deallocate_scope_heap(ctx, se.id, &heap);
-                print_debug("Stack deallocation after scope, off=%i", se.offset);
                 stack_map_free_range(se.offset, -1, &stackmap);
                 offset = se.offset;
                 break;
@@ -183,11 +104,9 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                         if (!ai.heap) {
                             int arrsize = elsize * h->sarg->storage.cnst.value;
                             arroff = stack_map_alloc(arrsize, &stackmap);
-                            print_debug("HIR_ARRDECL allocation, size=%i, off=%i", arrsize, arroff);
                         }
                         else {
                             arroff = stack_map_alloc(DEFAULT_TYPE_SIZE, &stackmap);
-                            print_debug("Heap allocation in scope=%i, heap_head=%i", scope_id_top(&scopes), arroff);
                             scope_push(&heap, scope_id_top(&scopes), arroff);
                         }
 
@@ -216,12 +135,29 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
+            case HIR_TF64:
+            case HIR_TF32:
+            case HIR_TI64:
+            case HIR_TI32:
+            case HIR_TI16:
+            case HIR_TI8:
+            case HIR_TU64:
+            case HIR_TU32:
+            case HIR_TU16:
+            case HIR_TU8: x86_64_generate_conv(ctx, h, smt); break;
+
             case HIR_PRMST:
             case HIR_FARGST: stack_push_addr(&params, h->farg); break;
 
             case HIR_JMP:  LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
             case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
 
+            case HIR_iLWR:
+            case HIR_iLRE:
+            case HIR_iLRG:
+            case HIR_iLGE:
+            case HIR_iCMP:
+            case HIR_iNMP:
             case HIR_iOR:
             case HIR_iAND:
             case HIR_bOR:
@@ -233,14 +169,14 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_iMUL: 
             case HIR_iADD: x86_64_generate_binary_op(ctx, h, smt); break;
 
-            case HIR_IFOP: break; /* default cmp rax, 0; jmp X */
-
+            case HIR_IFOP:
             case HIR_IFCPOP:
             case HIR_IFNCPOP:
             case HIR_IFLWOP:
             case HIR_IFLWEOP:
             case HIR_IFLGOP:
-            case HIR_IFLGEOP: break; /* cmp with calculation */
+            case HIR_IFLGEOP: x86_64_generate_ifop(ctx, h, smt); break;
+
             default: break;
         }
         
