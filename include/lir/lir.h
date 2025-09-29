@@ -1,14 +1,12 @@
 #ifndef LIR_H_
 #define LIR_H_
 
-#include <ast/ast.h>
-#include <ast/syntax.h>
-#include <lir/lir_types.h>
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/regs.h>
 #include <std/vars.h>
 #include <std/stack.h>
+#include <lir/lir_types.h>
 
 #define LIR_VAL_MSIZE 128
 typedef struct {

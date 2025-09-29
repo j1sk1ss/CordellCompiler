@@ -149,6 +149,8 @@ int VRS_isblock(token_t* token) {
 int VRS_isoperand(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
+        case OR_TOKEN:
+        case AND_TOKEN:
         case PLUS_TOKEN:
         case MINUS_TOKEN:
         case BITOR_TOKEN:

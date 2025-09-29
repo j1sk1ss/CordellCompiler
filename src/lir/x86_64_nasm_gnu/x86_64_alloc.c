@@ -30,3 +30,7 @@ int LIR_deallocate_scope_heap(lir_ctx_t* ctx, int s_id, scope_stack_t* heap) {
 
     return 1;
 }
+
+int x86_64_generate_allocation() {
+
+}

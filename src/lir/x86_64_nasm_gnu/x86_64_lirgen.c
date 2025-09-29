@@ -216,21 +216,31 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            case HIR_FARGST:
-            case HIR_PRMST: stack_push_addr(&params, h->farg); break;
+            case HIR_PRMST:
+            case HIR_FARGST: stack_push_addr(&params, h->farg); break;
 
-            case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
             case HIR_JMP:  LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
+            case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
 
             case HIR_iOR:
             case HIR_iAND:
             case HIR_bOR:
+            case HIR_bXOR:
             case HIR_bAND:
             case HIR_iMOD:
             case HIR_iSUB:
             case HIR_iDIV: 
             case HIR_iMUL: 
-            case HIR_iADD: _binary_op(ctx, h, smt); break;
+            case HIR_iADD: x86_64_generate_binary_op(ctx, h, smt); break;
+
+            case HIR_IFOP: break; /* default cmp rax, 0; jmp X */
+
+            case HIR_IFCPOP:
+            case HIR_IFNCPOP:
+            case HIR_IFLWOP:
+            case HIR_IFLWEOP:
+            case HIR_IFLGOP:
+            case HIR_IFLGEOP: break; /* cmp with calculation */
             default: break;
         }
         

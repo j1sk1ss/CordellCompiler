@@ -58,6 +58,8 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_CLNVRS:     return "HIR_CLNVRS";
         case HIR_IFLWOP:     return "HIR_IFLWOP";
         case HIR_IFLGOP:     return "HIR_IFLGOP";
+        case HIR_IFNCPOP:    return "HIR_IFNCPOP";
+        case HIR_IFCPOP:     return "HIR_IFCPOP";
         case HIR_STEND:      return "HIR_STEND";
         case HIR_MKSCOPE:    return "MKSCOPE";
         case HIR_ENDSCOPE:   return "ENDSCOPE";
@@ -191,7 +193,11 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_REF:       return "%s = &(%s);\n";
         case HIR_CLNVRS:    return "delete(%s);\n";
         case HIR_IFLWOP:    return "if %s < %s, goto %s;\n";
+        case HIR_IFLWEOP:   return "if %s <= %s, goto %s;\n";
         case HIR_IFLGOP:    return "if %s > %s, goto %s;\n";
+        case HIR_IFLGEOP:   return "if %s >= %s, goto %s;\n";
+        case HIR_IFNCPOP:   return "if %s != %s, goto %s;\n";
+        case HIR_IFCPOP:    return "if %s == %s, goto %s;\n";
         case HIR_EXITOP:    return "exit %s;\n";
         case HIR_STEND:     return "}\n";
         case HIR_PHI:       return "[%s] %s = phi(%s);\n";

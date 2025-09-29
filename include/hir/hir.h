@@ -115,12 +115,15 @@ int HIR_destroy_ctx(hir_ctx_t* ctx);
 #define HIR_BLOCK0(ctx, op) \
     HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))
 
+/* ctx, op, x */
 #define HIR_BLOCK1(ctx, op, fa) \
     HIR_append_block(HIR_create_block((op), (fa), NULL, NULL), (ctx))
 
+/* ctx, op, x, y */
 #define HIR_BLOCK2(ctx, op, fa, sa) \
     HIR_append_block(HIR_create_block((op), (fa), (sa), NULL), (ctx))
 
+/* ctx, op, x, y, z */
 #define HIR_BLOCK3(ctx, op, fa, sa, ta) \
     HIR_append_block(HIR_create_block((op), (fa), (sa), (ta)), (ctx))
 

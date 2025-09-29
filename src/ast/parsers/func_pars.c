@@ -77,6 +77,7 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, sym_table_t* s
         }
     }
 
+    forward_token(curr, 1);
     return node;
 }
 
