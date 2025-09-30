@@ -17,8 +17,6 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            case HIR_STRT: LIR_BLOCK0(ctx, LIR_STRT); break;
-
             case HIR_STARGLD: {
                 int vrsize = LIR_get_hirtype_size(h->farg->t);
                 switch (h->sarg->storage.cnst.value) {
@@ -30,48 +28,25 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset); break;
+            case HIR_STRT:    LIR_BLOCK0(ctx, LIR_STRT);                                      break;
+            case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset);       break;
+            case HIR_EXITOP:  LIR_BLOCK1(ctx, LIR_EXITOP, LIR_format_variable(h->farg, smt)); break;
 
-            case HIR_FEND:
-            case HIR_ENDSCOPE: {
+            case HIR_ENDSCOPE: 
                 scope_elem_t se;
                 scope_pop_top(&scopes, &se);
                 LIR_deallocate_scope_heap(ctx, se.id, &heap);
                 stack_map_free_range(se.offset, -1, &stackmap);
                 offset = se.offset;
-                break;
-            }
-
-            case HIR_FDCL: {
-                func_info_t fi;
-                if (FNTB_get_info_id(h->farg->storage.str.s_id, &fi, &smt->f)) {
-                    if (fi.global) LIR_BLOCK1(ctx, LIR_MKGLB, LIR_SUBJ_STRING(h->farg->storage.str.s_id));
-                    LIR_BLOCK1(ctx, LIR_FDCL, LIR_SUBJ_FUNCNAME(h->farg));
-                    scope_push(&scopes, h->farg->storage.cnst.value, offset);
-                }
-
-                break;
-            }
-
-            case HIR_FRET: {
-                int vrsize = LIR_get_hirtype_size(h->farg->t);
-                LIR_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
-                LIR_BLOCK0(ctx, LIR_FRET);
-                break;
-            }
-
-            case HIR_FARGLD: {
-                alloc_info_t alloc;
-                if (LIR_allocate_var(h->farg, &stackmap, smt, &alloc, &offset)) {
-                    static const int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
-                    LIR_BLOCK2(
-                        ctx, LIR_iMOV, LIR_SUBJ_OFF(alloc.offset, alloc.size), 
-                        LIR_SUBJ_REG(abi_regs[h->sarg->storage.cnst.value], alloc.size)
-                    );
-                }
-
-                break;
-            }
+            break;
+            
+            case HIR_FCLL:
+            case HIR_ECLL:
+            case HIR_STORE_FCLL:
+            case HIR_STORE_ECLL:
+            case HIR_FDCL:
+            case HIR_FRET:
+            case HIR_FARGLD: x86_64_generate_func(ctx, h, smt, &params);
 
             case HIR_VARDECL:
             case HIR_ARRDECL:

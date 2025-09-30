@@ -2,11 +2,11 @@
 #define STACKMAP_H_
 
 #include <std/str.h>
-#include <std/regs.h>
 
 #define STACK_CELL_SIZE 8
 #define STACK_MAP_MAX   1024
 #define CELLS_PER_BLOCK sizeof(unsigned long) * 8
+#define ALIGN(x) ((x + 7) & ~(7))
 
 typedef struct {
     unsigned long bitmap[(STACK_MAP_MAX + (CELLS_PER_BLOCK - 1)) / CELLS_PER_BLOCK];

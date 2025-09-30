@@ -38,14 +38,17 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     ast_node_t* name_node = node->child;
     ast_node_t* body_node = name_node->sibling;
     HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(name_node));
+    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(body_node->sinfo.s_id));
 
     int argnum = 0;
     ast_node_t* t = NULL;
     for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
+        HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_VAR(t->child));
         HIR_BLOCK2(ctx, HIR_FARGLD, HIR_SUBJ_VAR(t->child), HIR_SUBJ_CONST(argnum++));
     }
 
     HIR_generate_block(t, ctx, smt);
+    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(body_node->sinfo.s_id));
     HIR_BLOCK0(ctx, HIR_FEND);
     return 1;
 }

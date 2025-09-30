@@ -61,6 +61,7 @@ typedef enum {
         LIR_iMOVd, // mov dword
         LIR_iMOVq, // mov qword
         LIR_iMVZX,
+        LIR_iMVSX,
 
         LIR_fMOV, // float move
         LIR_fMVf, // float to float move
@@ -152,8 +153,18 @@ typedef enum {
     LIR_STRING,
 } lir_subject_type_t;
 
+typedef enum {
+    XMM0, XMM1,
+    RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8, R9, R10,
+    EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP, 
+    AX,  BX,  CX,  DX,  
+    AL,  BL,  CL,  DL,
+    AH,  BH,  CH,  DH
+} registers_t;
+
 int LIR_get_asttype_size(token_type_t t);
 int LIR_get_hirtype_size(hir_subject_type_t t);
 int LIR_is_global_hirtype(hir_subject_type_t t);
+registers_t LIR_format_register(registers_t reg, int size);
 
 #endif

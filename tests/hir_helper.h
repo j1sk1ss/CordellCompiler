@@ -147,8 +147,8 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_STRT:       return "start {\n";
         case HIR_FRET:       return "return %s;\n";
         case HIR_MKLB:       return "%s:\n";
-        case HIR_FDCL:       return "fn %s {\n";
-        case HIR_FEND:       return "}\n";
+        case HIR_FDCL:       return "fn %s\n";
+        case HIR_FEND:       return "\n";
         case HIR_OEXT:       return "extern %s;\n";
         case HIR_JMP:        return "goto %s;\n";
         case HIR_iADD:       return "%s = %s + %s;\n";
@@ -345,7 +345,7 @@ void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
 
     if (
         block->op == HIR_ENDSCOPE ||
-        block->op == HIR_FEND     ||
+        // block->op == HIR_FEND     ||
         block->op == HIR_STEND
     ) _depth--;
 
@@ -355,7 +355,7 @@ void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
 
     if (
         block->op == HIR_MKSCOPE ||
-        block->op == HIR_FDCL    ||
+        // block->op == HIR_FDCL    ||
         block->op == HIR_STRT
     ) _depth++;
 

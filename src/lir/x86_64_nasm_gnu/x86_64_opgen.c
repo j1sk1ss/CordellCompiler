@@ -179,7 +179,15 @@ int x86_64_generate_conv(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
                 LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
             }
             else {
-                LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+                long src_size = HIR_get_type_size(h->sarg->t);
+                long dst_size = HIR_get_type_size(h->farg->t);
+                lir_operation_t lop = LIR_iMOV;
+                if (src_size < dst_size) {
+                    lop = HIR_is_signtype(h->sarg->t) ? LIR_iMVSX : LIR_iMVZX;
+                }
+
+                LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, src_size), LIR_format_variable(h->sarg, smt));
+                LIR_BLOCK2(ctx, lop, LIR_SUBJ_REG(RAX, dst_size), LIR_SUBJ_REG(RAX, src_size));
                 LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
             }
 

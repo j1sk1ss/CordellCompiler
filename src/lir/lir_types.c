@@ -72,3 +72,77 @@ int LIR_get_hirtype_size(hir_subject_type_t t) {
         default: return DEFAULT_TYPE_SIZE;
     }
 }
+
+registers_t LIR_format_register(registers_t reg, int size) {
+    switch (reg) {
+        case RAX: case EAX: case AX: case AL: case AH:
+            if (size == 8) return RAX;
+            if (size == 4) return EAX;
+            if (size == 2) return AX;
+            if (size == 1) return AL;
+            break;
+
+        case RBX: case EBX: case BX: case BL: case BH:
+            if (size == 8) return RBX;
+            if (size == 4) return EBX;
+            if (size == 2) return BX;
+            if (size == 1) return BL;
+            break;
+
+        case RCX: case ECX: case CX: case CL: case CH:
+            if (size == 8) return RCX;
+            if (size == 4) return ECX;
+            if (size == 2) return CX;
+            if (size == 1) return CL;
+            break;
+
+        case RDX: case EDX: case DX: case DL: case DH:
+            if (size == 8) return RDX;
+            if (size == 4) return EDX;
+            if (size == 2) return DX;
+            if (size == 1) return DL;
+            break;
+
+        case RSI: case ESI:
+            if (size == 8) return RSI;
+            if (size == 4) return ESI;
+            break;
+
+        case RDI: case EDI:
+            if (size == 8) return RDI;
+            if (size == 4) return EDI;
+            break;
+
+        case RBP: case EBP:
+            if (size == 8) return RBP;
+            if (size == 4) return EBP;
+            break;
+
+        case RSP: case ESP:
+            if (size == 8) return RSP;
+            if (size == 4) return ESP;
+            break;
+
+        case R8: 
+            if (size == 8) return R8; 
+            break;
+
+        case R9: 
+            if (size == 8) return R9; 
+            break;
+
+        case R10: 
+            if (size == 8) return R10; 
+            break;
+
+        case XMM0:
+            if (size == 16) return XMM0;
+            break;
+
+        case XMM1:
+            if (size == 16) return XMM1;
+            break;
+    }
+
+    return reg;
+}

@@ -6,8 +6,8 @@ lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt) {
         case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value);
         case HIR_CONSTVAL: return LIR_SUBJ_CONST(subj->storage.cnst.value);
         
-        case HIR_TMPVARI64: case HIR_TMPVARF32: return LIR_SUBJ_REG(XMM0, HIR_get_type_size(subj->t));
-        case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
+        case HIR_TMPVARF64: case HIR_TMPVARF32: return LIR_SUBJ_REG(XMM0, HIR_get_type_size(subj->t));
+        case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARI64: case HIR_TMPVARU64:
         case HIR_TMPVARU32: case HIR_TMPVARI32: case HIR_TMPVARU16: case HIR_TMPVARI16: 
         case HIR_TMPVARU8:  case HIR_TMPVARI8: return LIR_SUBJ_REG(RAX, HIR_get_type_size(subj->t));
         

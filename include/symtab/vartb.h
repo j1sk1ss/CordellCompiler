@@ -1,7 +1,6 @@
 #ifndef VARMEM_H_
 #define VARMEM_H_
 
-#include <std/regs.h>
 #include <std/vars.h>
 #include <std/list.h>
 #include <prep/token.h>

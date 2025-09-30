@@ -3,7 +3,6 @@
 
 #include <std/mm.h>
 #include <std/str.h>
-#include <std/regs.h>
 #include <std/vars.h>
 #include <std/stack.h>
 #include <lir/lir_types.h>

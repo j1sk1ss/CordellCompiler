@@ -1,7 +1,6 @@
 #ifndef VARS_H_
 #define VARS_H_
 
-#include <std/regs.h>
 #include <prep/token.h>
 
 int VRS_variable_bitness(token_t* token, char ptr);

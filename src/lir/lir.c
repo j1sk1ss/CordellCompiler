@@ -38,7 +38,7 @@ lir_subject_t* LIR_create_subject(
     subj->id   = _curr_id++;
 
     switch (t) {
-        case LIR_REGISTER: subj->storage.reg.reg = r; break;
+        case LIR_REGISTER: subj->storage.reg.reg = LIR_format_register(r, size); break;
         case LIR_GLVARIABLE:
         case LIR_STVARIABLE: 
             subj->storage.var.offset = offset;

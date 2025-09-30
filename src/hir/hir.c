@@ -22,7 +22,7 @@ int HIR_destroy_ctx(hir_ctx_t* ctx) {
 
 static long _curr_id = 0;
 hir_subject_t* HIR_create_subject(
-    int t, registers_t r, int v_id, const char* strval, long intval, int s_id
+    int t, int v_id, const char* strval, long intval, int s_id
 ) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;

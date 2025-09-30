@@ -3,7 +3,6 @@
 
 #include <std/mm.h>
 #include <std/str.h>
-#include <std/regs.h>
 #include <std/vars.h>
 #include <std/stack.h>
 #include <std/set.h>
@@ -61,7 +60,7 @@ typedef struct {
 } hir_ctx_t;
 
 hir_subject_t* HIR_create_subject(
-    int t, registers_t r, 
+    int t, 
     int v_id, const char* strval, 
     long intval, int s_id
 );
@@ -75,42 +74,42 @@ int HIR_unload_blocks(hir_block_t* block);
 int HIR_destroy_ctx(hir_ctx_t* ctx);
 
 #define HIR_SUBJ_CONST(val) \
-    HIR_create_subject(HIR_CONSTVAL, 0, 0, NULL, val, -1)
+    HIR_create_subject(HIR_CONSTVAL, 0, NULL, val, -1)
 
 #define HIR_SUBJ_NUMBER(val) \
-    HIR_create_subject(HIR_NUMBER, 0, 0, val, 0, -1)
+    HIR_create_subject(HIR_NUMBER, 0, val, 0, -1)
 
 #define HIR_SUBJ_STKVAR(v_id, kind, s_id) \
-    HIR_create_subject(kind, 0, v_id, NULL, 0, s_id)
+    HIR_create_subject(kind, v_id, NULL, 0, s_id)
 
 #define HIR_SUBJ_GLBVAR(name, kind) \
-    HIR_create_subject(kind, 0, 0, name, 0, -1)
+    HIR_create_subject(kind, 0, name, 0, -1)
 
 #define HIR_SUBJ_VAR(n) HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_stktype(n->token), n->sinfo.s_id)
 
 #define HIR_SUBJ_TMPVAR(kind, id) \
-    HIR_create_subject(HIR_get_tmp_type(kind), 0, id, NULL, 0, -1)
+    HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0, -1)
 
 #define HIR_SUBJ_LABEL() \
-    HIR_create_subject(HIR_LABEL, 0, 0, NULL, 0, -1)
+    HIR_create_subject(HIR_LABEL, 0, NULL, 0, -1)
 
 #define HIR_SUBJ_RAWASM(n) \
-    HIR_create_subject(HIR_RAWASM, 0, n->sinfo.v_id, NULL, 0, -1)
+    HIR_create_subject(HIR_RAWASM, n->sinfo.v_id, NULL, 0, -1)
 
 #define HIR_SUBJ_STRING(n) \
-    HIR_create_subject(HIR_STRING, 0, n->sinfo.v_id, NULL, 0, -1)
+    HIR_create_subject(HIR_STRING, n->sinfo.v_id, NULL, 0, -1)
 
 #define HIR_SUBJ_STRTB(id) \
-    HIR_create_subject(HIR_STRING, 0, id, NULL, 0, -1)
+    HIR_create_subject(HIR_STRING, id, NULL, 0, -1)
 
 #define HIR_SUBJ_FUNCNAME(n) \
-    HIR_create_subject(HIR_FNAME, 0, n->sinfo.v_id, NULL, 0, -1)
+    HIR_create_subject(HIR_FNAME, n->sinfo.v_id, NULL, 0, -1)
 
 #define HIR_SUBJ_FNAMETB(id) \
-    HIR_create_subject(HIR_FNAME, 0, id, NULL, 0, -1)
+    HIR_create_subject(HIR_FNAME, id, NULL, 0, -1)
 
 #define HIR_SUBJ_SET() \
-    HIR_create_subject(HIR_SET, 0, 0, NULL, 0, -1)
+    HIR_create_subject(HIR_SET, 0, NULL, 0, -1)
 
 #define HIR_BLOCK0(ctx, op) \
     HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

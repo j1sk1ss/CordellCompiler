@@ -49,8 +49,7 @@ int x86_64_generate_declaration(
                             if (!se.data.addrdata) break;
 
                             LIR_BLOCK2(
-                                ctx, LIR_iMOV, 
-                                LIR_SUBJ_OFF(arroff - elsize * i, elsize), 
+                                ctx, LIR_iMOV,  LIR_SUBJ_OFF(arroff - elsize * i, elsize), 
                                 LIR_format_variable(se.data.addrdata, smt)
                             );
 
@@ -60,6 +59,7 @@ int x86_64_generate_declaration(
                     else {
                         arroff = stack_map_alloc(DEFAULT_TYPE_SIZE, stk);
                         scope_push(heap, scope_id_top(scopes), arroff);
+                        print_debug("Heap allocation for [rbp - %i]", arroff);
                     }
 
                     *offset = MAX(*offset, arroff);

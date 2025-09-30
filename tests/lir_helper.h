@@ -6,6 +6,7 @@
 
 static const char* lir_op_to_string(lir_operation_t op) {
     switch(op) {
+        case LIR_iMVSX: return "iMVSX";
         case LIR_MKGLB: return "MKGLB";
         case LIR_FCLL:  return "FCLL";
         case LIR_ECLL:  return "ECLL";
@@ -172,7 +173,9 @@ static void print_lir_subject(const lir_subject_t* s) {
         case LIR_NUMBER:     printf("%s", s->storage.num.value);                   break;
         case LIR_LABEL:      printf("lb: [vid=%d]", s->id);                        break;
         case LIR_RAWASM:     printf("raw [id=%d]", s->storage.str.sid);            break;
-        case LIR_MEMORY:     printf("[RBP - %i]", s->storage.var.offset);          break;
+        case LIR_MEMORY:     s->storage.var.offset >= 0 ? 
+                                printf("[RBP - %i]", s->storage.var.offset) :
+                                printf("[RBP + %i]", -1 * s->storage.var.offset);  break;
         case LIR_FNAME:      printf("func [id=%d]", s->storage.str.sid);           break;
         case LIR_STRING:     printf("str [id=%d]", s->storage.str.sid);            break;
         default: return;
