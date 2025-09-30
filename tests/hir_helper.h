@@ -1,6 +1,9 @@
 #ifndef HIR_HELPER_H_
 #define HIR_HELPER_H_
 
+#include <hir/hir.h>
+#include <hir/hir_types.h>
+
 static const char* hir_op_to_string(hir_operation_t op) {
     switch(op) {
         case HIR_STARGLD:    return "STARGLD";
@@ -117,7 +120,6 @@ static void print_hir_subject(const hir_subject_t* s) {
 }
 
 static int _depth = 0;
-
 static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
     switch(op) {
         case HIR_STARGLD:    return "load_starg(%s);\n";

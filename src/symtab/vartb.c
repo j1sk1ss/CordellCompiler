@@ -70,6 +70,7 @@ int VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     if (!nnd) return 0;
     str_memcpy(nnd, src, sizeof(variable_info_t));
     nnd->v_id = ctx->curr_id++;
+    nnd->p_id = src->v_id;
     list_add(&ctx->lst, nnd);
     return nnd->v_id;
 }

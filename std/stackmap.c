@@ -30,6 +30,7 @@ int stack_map_alloc(int n, stack_map_t* smap) {
             return (i + size) * STACK_CELL_SIZE;
         }
     }
+    
     return -1;
 }
 

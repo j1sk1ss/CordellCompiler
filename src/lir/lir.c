@@ -22,6 +22,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx) {
     return 0;
 }
 
+static long _curr_id = 0;
 lir_subject_t* LIR_create_subject(
     int t, registers_t r, 
     int v_id, long offset, const char* strval, 
@@ -34,13 +35,21 @@ lir_subject_t* LIR_create_subject(
 
     subj->t    = t;
     subj->size = (char)size;
+    subj->id   = _curr_id++;
 
     switch (t) {
-        case LIR_REGISTER:   subj->storage.reg.reg = r;         break;
+        case LIR_REGISTER: subj->storage.reg.reg = r; break;
         case LIR_GLVARIABLE:
-        case LIR_STVARIABLE: subj->storage.var.offset = offset; break;
-        case LIR_CONSTVAL:   subj->storage.cnst.value = intval; break;
-
+        case LIR_STVARIABLE: 
+            subj->storage.var.offset = offset;
+            subj->storage.var.v_id   = v_id;
+        break;
+        case LIR_MEMORY:   subj->storage.var.offset = offset; break;
+        case LIR_CONSTVAL: subj->storage.cnst.value = intval; break;
+        case LIR_LABEL:    subj->storage.lb.lb_id   = v_id;   break;
+        case LIR_FNAME:
+        case LIR_RAWASM:
+        case LIR_STRING: subj->storage.str.sid = v_id; break;
         case LIR_NUMBER: 
             if (strval) str_strncpy(subj->storage.num.value, strval, LIR_VAL_MSIZE);
         break;

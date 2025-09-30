@@ -18,6 +18,7 @@
 
 #include "ast_helper.h"
 #include "hir_helper.h"
+#include "lir_helper.h"
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
@@ -69,24 +70,24 @@ int main(int argc, char* argv[]) {
     cfg_print(&cfgctx);
 
     printf("\n\n========== SSA HIR ==========\n");
-    hir_block_t* h = hirctx.h;
-    while (h) {
-        print_hir_block(h, 1, &smt);
-        h = h->next;
+    hir_block_t* hh = hirctx.h;
+    while (hh) {
+        print_hir_block(hh, 1, &smt);
+        hh = hh->next;
     }
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     lir_gen_t lirgen = {
-        
+        .generate = x86_64_generate_lir
     };
 
     LIR_generate(&hirctx, &lirgen, &lirctx, &smt);
 
     printf("\n\n========== x86_64 LIR ==========\n");
-    hir_block_t* h = lirctx.h;
-    while (h) {
-        // print_hir_block(h, 1, &smt);
-        h = h->next;
+    lir_block_t* lh = lirctx.h;
+    while (lh) {
+        print_lir_block(lh);
+        lh = lh->next;
     }
 
     printf("\n\n========== SYMTABLES ==========\n");
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
     list_iter_hinit(&smt.v.lst, &it);
     variable_info_t* vi;
     while ((vi = (variable_info_t*)list_iter_next(&it))) {
-        printf("id: %i, %s, type: %i, s_id: %i\n", vi->v_id, vi->name, vi->type, vi->s_id);
+        printf("id: %i (%i), %s, type: %i, s_id: %i\n", vi->v_id, vi->p_id, vi->name, vi->type, vi->s_id);
     }
 
     if (!list_isempty(&smt.a.lst)) printf("==========   ARRS  ==========\n");

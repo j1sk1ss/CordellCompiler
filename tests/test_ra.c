@@ -128,6 +128,7 @@ int main(int argc, char* argv[]) {
         set_iter_init(&mi->owners, &sit);
         long own_id;
         while ((own_id = set_iter_next_int(&sit)) >= 0) printf("%i ", own_id);
+        printf("\n");
     }
 
     HIR_RA_unload_igraph(&ig);

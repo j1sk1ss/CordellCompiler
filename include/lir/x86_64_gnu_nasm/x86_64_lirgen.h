@@ -24,6 +24,12 @@ int LIR_reg_op(lir_ctx_t* ctx, int freg, int sreg, lir_operation_t op);
 int LIR_allocate_var(hir_subject_t* v, stack_map_t* stk, sym_table_t* smt, alloc_info_t* i, long* off);
 int LIR_deallocate_scope_heap(lir_ctx_t* ctx, int s_id, scope_stack_t* heap);
 
+/* x86_64_declgen.c */
+int x86_64_generate_declaration(
+    lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstack_t* params,
+    scope_stack_t* scopes, scope_stack_t* heap, stack_map_t* stk, long* offset
+);
+
 /* x86_64_opgen.c */
 int x86_64_generate_simd_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
 int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);

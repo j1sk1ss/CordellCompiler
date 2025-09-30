@@ -240,6 +240,7 @@ int VRS_instant_movable(token_t* token) {
 
 int VRS_issign(token_t* token) {
     if (!token) return 0;
+    if (token->flags.ptr) return 0;
     switch (token->t_type) {
         case I64_VARIABLE_TOKEN:
         case I32_VARIABLE_TOKEN:

@@ -1,6 +1,7 @@
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
 lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt) {
+    if (!subj) return NULL;
     switch (subj->t) {
         case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value);
         case HIR_CONSTVAL: return LIR_SUBJ_CONST(subj->storage.cnst.value);
@@ -19,7 +20,8 @@ lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt) {
             variable_info_t vi;
             if (VRTB_get_info_id(subj->storage.var.v_id, &vi, &smt->v)) {
                 if (vi.p_id >= 0 && !VRTB_get_info_id(vi.p_id, &vi, &smt->v)) return NULL;
-                if (!vi.glob) return LIR_SUBJ_OFF(vi.offset, VRS_variable_bitness(vi.type, vi.ptr));
+                token_t tmptkn = { .t_type = vi.type };
+                if (!vi.glob) return LIR_SUBJ_OFF(vi.offset, VRS_variable_bitness(&tmptkn, vi.ptr) / DEFAULT_TYPE_SIZE);
                 else return LIR_SUBJ_GLVAR(subj->storage.var.v_id);
             }
         }

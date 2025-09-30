@@ -11,6 +11,12 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     long offset = 0;
     while (h) {
         switch (h->op) {
+            case HIR_STORE: {
+                LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+                LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                break;
+            }
+
             case HIR_STRT: LIR_BLOCK0(ctx, LIR_STRT); break;
 
             case HIR_STARGLD: {
@@ -20,6 +26,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                     case 1: LIR_BLOCK2(ctx, LIR_REF, LIR_SUBJ_REG(RAX, vrsize), LIR_SUBJ_OFF(-16, vrsize)); break;
                 }
 
+                LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
                 break;
             }
 
@@ -66,62 +73,9 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            case HIR_VRDEALL: {
-                if (LIR_is_global_hirtype(h->farg->t)) break;
-                variable_info_t vi;
-                if (VRTB_get_info_id(h->farg->storage.var.v_id, &vi, ctx)) {
-                    stack_map_free(vi.offset, LIR_get_hirtype_size(h->farg->t), &stackmap);
-                }
-
-                break;
-            }
-
-            case HIR_VARDECL: {
-                if (LIR_is_global_hirtype(h->farg->t)) break;
-                alloc_info_t alloc;
-                if (LIR_allocate_var(h->farg, &stackmap, smt, &alloc, &offset)) {
-                    if (h->sarg) {
-                        LIR_BLOCK2(
-                            ctx, LIR_iMOV, LIR_SUBJ_OFF(alloc.offset, alloc.size), 
-                            LIR_SUBJ_REG(RAX, alloc.size)
-                        );
-                    }
-                }
-
-                break;
-            }
-
-            case HIR_ARRDECL: {
-                if (LIR_is_global_hirtype(h->farg->t)) break;
-
-                variable_info_t vi;
-                if (VRTB_get_info_id(h->farg->storage.var.v_id, &vi, &smt->v)) {
-                    array_info_t ai;
-                    if (ARTB_get_info(vi.name, vi.s_id, &ai, &smt->a)) {
-                        int arroff = -1;
-                        int elsize = LIR_get_asttype_size(ai.el_type);
-
-                        if (!ai.heap) {
-                            int arrsize = elsize * h->sarg->storage.cnst.value;
-                            arroff = stack_map_alloc(arrsize, &stackmap);
-                        }
-                        else {
-                            arroff = stack_map_alloc(DEFAULT_TYPE_SIZE, &stackmap);
-                            scope_push(&heap, scope_id_top(&scopes), arroff);
-                        }
-
-                        VRTB_update_offset(h->farg->storage.var.v_id, arroff, &smt->v);
-                    }
-
-                }
-
-                break;
-            }
-
-            case HIR_STRDECL: {
-                if (LIR_is_global_hirtype(h->farg->t)) break;
-                break;
-            }
+            case HIR_VARDECL:
+            case HIR_ARRDECL:
+            case HIR_STRDECL: x86_64_generate_declaration(ctx, h, smt, &params, &scopes, &heap, &stackmap, &offset); break;
 
             case HIR_GDREF: {
                 LIR_store_var_reg(LIR_GDREF, ctx, h->sarg, RAX, smt);
