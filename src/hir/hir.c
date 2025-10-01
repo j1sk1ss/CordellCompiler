@@ -73,7 +73,6 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     blk->farg = fa;
     blk->sarg = sa;
     blk->targ = ta;
-
     blk->next = NULL;
     blk->prev = NULL;
     return blk;

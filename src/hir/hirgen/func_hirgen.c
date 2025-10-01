@@ -14,9 +14,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
 
     int arg_count = 0;
     for (ast_node_t *arg = name->child, *targ = fi.args->child; arg && targ; arg = arg->sibling, targ = targ->sibling) {
-        hir_subject_t* ld = HIR_generate_elem(arg, ctx, smt);
-        ld = HIR_generate_conv(ctx, HIR_get_tmptype_tkn(targ->child->token, targ->child->token->flags.ptr), ld, smt);
-        HIR_BLOCK1(ctx, HIR_FARGST, ld);
+        HIR_BLOCK1(ctx, HIR_FARGST, HIR_generate_elem(arg, ctx, smt));
         arg_count++;
     }
     
@@ -43,8 +41,8 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     int argnum = 0;
     ast_node_t* t = NULL;
     for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
-        HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_VAR(t->child));
-        HIR_BLOCK2(ctx, HIR_FARGLD, HIR_SUBJ_VAR(t->child), HIR_SUBJ_CONST(argnum++));
+        HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->child));
+        HIR_BLOCK2(ctx, HIR_FARGLD, HIR_SUBJ_ASTVAR(t->child), HIR_SUBJ_CONST(argnum++));
     }
 
     HIR_generate_block(t, ctx, smt);

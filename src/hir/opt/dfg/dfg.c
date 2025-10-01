@@ -12,10 +12,10 @@ int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
             set_init(&cb->def);
             hir_block_t* hh = cb->entry;
             while (hh) {
-                if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t) && !HIR_is_tmptype(hh->sarg->t)) {
+                if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t)) {
                     set_add_int(&cb->def, hh->sarg->storage.var.v_id);
                 }
-                else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t) && !HIR_is_tmptype(hh->farg->t)) {
+                else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t)) {
                     set_add_int(&cb->def, hh->farg->storage.var.v_id);
                 }
 
@@ -43,7 +43,7 @@ int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
                 if (hh->op != HIR_PHI) {
                     hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
                     for (int i = HIR_writeop(hh->op); i < 3; i++) {
-                        if (args[i] && HIR_is_vartype(args[i]->t) && !HIR_is_tmptype(args[i]->t)) {
+                        if (args[i] && HIR_is_vartype(args[i]->t)) {
                             set_add_int(&cb->use, args[i]->storage.var.v_id);
                         }
                     }

@@ -1,13 +1,14 @@
 #include <symtab/vartb.h>
 
-int VRTB_update_offset(long id, long offset, vartab_ctx_t* ctx) {
-    print_debug("VRTB_update_offset(id=%i, offset=%i)", id, offset);
+int VRTB_update_memory(long id, long offset, long size, vartab_ctx_t* ctx) {
+    print_debug("VRTB_update_memory(id=%i, offset=%i, size=%i)", id, offset, size);
     list_iter_t it;
     list_iter_hinit(&ctx->lst, &it);
     variable_info_t* vi;
     while ((vi = (variable_info_t*)list_iter_next(&it))) {
         if (vi->v_id == id) {
             vi->offset = offset;
+            vi->size   = size;
             return 1;
         }
     }

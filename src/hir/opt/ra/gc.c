@@ -1,3 +1,7 @@
+/*
+gc.c - Color interference graph with euristic approuch
+*/
+
 #include <hir/opt/ra.h>
 
 int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
@@ -6,9 +10,7 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     int node_count = list_size(&g->nodes);
     if (!node_count) return 1;
     
-    sstack_t stack;
-    stack.top = -1;
-    
+    sstack_t stack = { .top = -1 };
     int* degrees = (int*)mm_malloc(node_count * sizeof(int));
     long* v_ids = (long*)mm_malloc(node_count * sizeof(long));
     char* processed = (char*)mm_malloc(node_count * sizeof(char));

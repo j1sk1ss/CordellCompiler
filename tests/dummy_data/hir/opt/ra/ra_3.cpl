@@ -7,8 +7,8 @@
         f64 a = 10;
         i32 b = 10;
         f64 d = a + b;
+        
         b += a;
-
         b = a;
 
         i32 c = foo(a, b);

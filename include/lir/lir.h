@@ -3,7 +3,7 @@
 
 #include <std/mm.h>
 #include <std/str.h>
-#include <std/vars.h>
+#include <std/map.h>
 #include <std/stack.h>
 #include <lir/lir_types.h>
 
@@ -63,6 +63,7 @@ typedef struct {
     lir_block_t*  h;
     lir_block_t*  t;
     scope_stack_t heap;
+    map_t*        vars;
 } lir_ctx_t;
 
 lir_subject_t* LIR_create_subject(

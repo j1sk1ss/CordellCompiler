@@ -7,10 +7,10 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
     if (node->token->flags.ptr) {
         if (node->child) goto indexing;
         else {
-            if (!node->token->flags.dref) res = HIR_SUBJ_VAR(node);
+            if (!node->token->flags.dref) res = HIR_SUBJ_ASTVAR(node);
             else {
                 res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(node->token, 0), VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-                HIR_BLOCK2(ctx, HIR_GDREF, res, HIR_SUBJ_VAR(node));
+                HIR_BLOCK2(ctx, HIR_GDREF, res, HIR_SUBJ_ASTVAR(node));
             }
         }
     }
@@ -22,11 +22,11 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
             case STR_VARIABLE_TOKEN: {
     indexing: {}
                 ast_node_t* off = node->child;
-                if (!off) res = HIR_SUBJ_VAR(node); 
+                if (!off) res = HIR_SUBJ_ASTVAR(node); 
                 else {
                     token_t tmp = { .t_type = node->token->t_type };
                     hir_subject_t* offt1 = HIR_generate_elem(off, ctx, smt);
-                    hir_subject_t* base  = HIR_SUBJ_VAR(node);
+                    hir_subject_t* base  = HIR_SUBJ_ASTVAR(node);
                     
                     array_info_t ai;
                     if (ARTB_get_info(node->token->value, node->sinfo.s_id, &ai, &smt->a)) {
@@ -39,7 +39,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
 
                 break;
             }
-            default: res = HIR_SUBJ_VAR(node); break;
+            default: res = HIR_SUBJ_ASTVAR(node); break;
         }
     }
 

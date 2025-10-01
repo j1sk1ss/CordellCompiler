@@ -35,7 +35,7 @@ int _create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
             while (hh && hh != f->exit && !set_has_addr(&f->leaders, hh)) hh = hh->next;
             if (hh) {
                 entry = hh;
-                hh = hh->next;
+                if (hh != f->exit) hh = hh->next;
             }
 
             term = 0;

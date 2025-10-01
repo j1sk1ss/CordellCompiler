@@ -12,6 +12,7 @@
 #include <hir/opt/cfg.h>
 #include <hir/opt/ssa.h>
 #include <hir/opt/dfg.h>
+#include <hir/opt/ra.h>
 
 #include <lir/lirgen.h>
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
@@ -69,6 +70,13 @@ int main(int argc, char* argv[]) {
 
     cfg_print(&cfgctx);
 
+    igraph_t ig;
+    HIR_RA_build_igraph(&cfgctx, &ig, &smt);
+
+    map_t clrs;
+    HIR_RA_color_igraph(&ig, &clrs);
+    igraph_dump_dot(&ig);
+
     printf("\n\n========== SSA HIR ==========\n");
     hir_block_t* hh = hirctx.h;
     while (hh) {
@@ -76,7 +84,7 @@ int main(int argc, char* argv[]) {
         hh = hh->next;
     }
 
-    lir_ctx_t lirctx = { .h = NULL, .t = NULL };
+    lir_ctx_t lirctx = { .h = NULL, .t = NULL, .vars = &clrs };
     lir_gen_t lirgen = {
         .generate = x86_64_generate_lir
     };

@@ -4,9 +4,9 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     hir_block_t* h = hctx->h;
 
     stack_map_t stackmap = { .offset = 0 };
-    scope_stack_t scopes = { .top = -1 };
-    scope_stack_t heap   = { .top = -1 };
-    sstack_t params      = { .top = -1 };
+    scope_stack_t scopes = { .top = -1   };
+    scope_stack_t heap   = { .top = -1   };
+    sstack_t params      = { .top = -1   };
 
     long offset = 0;
     while (h) {

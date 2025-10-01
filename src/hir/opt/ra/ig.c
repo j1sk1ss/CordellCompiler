@@ -1,3 +1,7 @@
+/*
+ig.c - Create interference graph
+*/
+
 #include <hir/opt/ra.h>
 
 static igraph_node_t* _create_ig_node(long v_id) {

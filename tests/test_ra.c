@@ -100,6 +100,7 @@ int main(int argc, char* argv[]) {
     map_t clrs;
     HIR_RA_color_igraph(&ig, &clrs);
     igraph_dump_dot(&ig);
+    HIR_RA_create_deall(&cfgctx, &ig, &clrs);
     map_free(&clrs);
 
     printf("\n\n========== HIR ==========\n");
