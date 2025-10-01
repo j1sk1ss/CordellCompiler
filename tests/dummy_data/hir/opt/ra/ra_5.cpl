@@ -35,7 +35,7 @@
             j = j - z;         : z still alive :
         }
 
-        : still alize j and z :
+        : still alive j and z :
 
         i64 big1 = argc * 111; : lives till exit :
         i64 big2 = argc * 222; : lives till exit :

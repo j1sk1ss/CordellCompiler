@@ -176,11 +176,7 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
             hir_block_t* hh = cb->entry;
             while (hh) {
                 if (HIR_writeop(hh->op)) {
-                    if (
-                        hh->farg && 
-                        HIR_is_vartype(hh->farg->t) && 
-                        !HIR_is_tmptype(hh->farg->t)    
-                    ) {
+                    if (hh->farg && HIR_is_vartype(hh->farg->t) && !HIR_is_tmptype(hh->farg->t)) {
                         if (hh->farg->storage.var.v_id == v_id) {
                             has_def = 1;
                             break;

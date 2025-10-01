@@ -10,7 +10,7 @@ lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt) {
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARI64: case HIR_TMPVARU64:
         case HIR_TMPVARU32: case HIR_TMPVARI32: case HIR_TMPVARU16: case HIR_TMPVARI16: 
         case HIR_TMPVARU8:  case HIR_TMPVARI8: return LIR_SUBJ_REG(RAX, HIR_get_type_size(subj->t));
-        
+
         case HIR_STKVARSTR: case HIR_STKVARARR: case HIR_STKVARF64: case HIR_STKVARU64:
         case HIR_STKVARI64: case HIR_STKVARF32: case HIR_STKVARU32: case HIR_STKVARI32:
         case HIR_STKVARU16: case HIR_STKVARI16: case HIR_STKVARU8:  case HIR_STKVARI8:
@@ -43,6 +43,6 @@ int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, in
 }
 
 int LIR_reg_op(lir_ctx_t* ctx, int freg, int sreg, lir_operation_t op) {
-    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
+    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(freg, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(sreg, DEFAULT_TYPE_SIZE));
     return 1;
 }

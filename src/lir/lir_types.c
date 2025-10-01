@@ -123,16 +123,44 @@ registers_t LIR_format_register(registers_t reg, int size) {
             if (size == 4) return ESP;
             break;
 
-        case R8: 
+        case R8: case R8D:
             if (size == 8) return R8; 
+            if (size == 4) return R8D;
             break;
 
-        case R9: 
-            if (size == 8) return R9; 
+        case R9: case R9D:
+            if (size == 8) return R9;
+            if (size == 4) return R9D;
             break;
 
-        case R10: 
-            if (size == 8) return R10; 
+        case R10: case R10D:
+            if (size == 8) return R10;
+            if (size == 4) return R10D;
+            break;
+
+        case R11: case R11D:
+            if (size == 8) return R11; 
+            if (size == 4) return R11D;
+            break;
+
+        case R12: case R12D:
+            if (size == 8) return R12;
+            if (size == 4) return R12D;
+            break;
+
+        case R13: case R13D:
+            if (size == 8) return R13;
+            if (size == 4) return R13D;
+            break;
+
+        case R14: case R14D:
+            if (size == 8) return R14;
+            if (size == 4) return R14D;
+            break;
+
+        case R15: case R15D:
+            if (size == 8) return R15;
+            if (size == 4) return R15D;
             break;
 
         case XMM0:

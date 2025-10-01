@@ -6,7 +6,8 @@
 
 static const char* hir_op_to_string(hir_operation_t op) {
     switch(op) {
-        case HIR_VRDEALL:    return "HIR_VRDEALL";
+        case HIR_PHI:        return "PHI";
+        case HIR_VRDEALL:    return "VRDEALL";
         case HIR_STARGLD:    return "STARGLD";
         case HIR_FARGST:     return "FARGST";
         case HIR_FARGLD:     return "FARGLD";
@@ -67,7 +68,17 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_STEND:      return "HIR_STEND";
         case HIR_MKSCOPE:    return "MKSCOPE";
         case HIR_ENDSCOPE:   return "ENDSCOPE";
-        default: return "unknwop";
+        case HIR_TF64:       return "HIR_TF64";
+        case HIR_TF32:       return "HIR_TF32"; // x = (f32)y
+        case HIR_TI64:       return "HIR_TI64"; // x = (i64)y
+        case HIR_TI32:       return "HIR_TI32"; // x = (i32)y
+        case HIR_TI16:       return "HIR_TI16"; // x = (i16)y
+        case HIR_TI8:        return "HIR_TI8";  // x = (i8)y
+        case HIR_TU64:       return "HIR_TU64"; // x = (u64)y
+        case HIR_TU32:       return "HIR_TU32"; // x = (u32)y
+        case HIR_TU16:       return "HIR_TU16"; // x = (u16)y
+        case HIR_TU8:        return "HIR_TU8";  // x = (u8)y
+        default: printf("unkn=%i\n", op); return "<?>";
     }
 }
 

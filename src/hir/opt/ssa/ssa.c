@@ -48,10 +48,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                 if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
-                        if (hh->sarg && vv->curr_id == hh->sarg->storage.var.v_id) {
-                            break;
-                        }
-                        
+                        if (hh->sarg && vv->curr_id == hh->sarg->storage.var.v_id) break;
                         int_tuple_t* inf = inttuple_create(prev_bid, vv->curr_id);
                         if (!set_has_inttuple(&hh->targ->storage.set.h, inf)) {
                             set_add_addr(&hh->targ->storage.set.h, inf);

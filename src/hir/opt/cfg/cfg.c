@@ -4,11 +4,12 @@ cfg.c - Create CFG
 
 #include <hir/opt/cfg.h>
 
-static cfg_block_t* _create_cfg_block(hir_block_t* e) {
+cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
     cfg_block_t* block = (cfg_block_t*)mm_malloc(sizeof(cfg_block_t));
     if (!block) return NULL;
     str_memset(block, 0, sizeof(cfg_block_t));
     block->entry = e;
+    block->exit  = e;
     set_init(&block->visitors);
     set_init(&block->pred);
     set_init(&block->curr_in);
@@ -20,19 +21,44 @@ static cfg_block_t* _create_cfg_block(hir_block_t* e) {
     return block;
 }
 
+int CFG_insert_cfg_block(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next) {
+    if (!f || !b || !next) return 0;
+
+    list_add(&f->blocks, b);
+
+    b->l   = next;
+    b->jmp = NULL;
+
+    set_iter_t pit;
+    set_iter_init(&next->pred, &pit);
+    cfg_block_t* p;
+    while ((p = set_iter_next_addr(&pit))) {
+        if (p->l == next)   p->l   = b;
+        if (p->jmp == next) p->jmp = b;
+        set_add_addr(&b->pred, p);
+    }
+
+    set_free(&next->pred);
+    set_add_addr(&next->pred, b);
+    return 1;
+}
+
 static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, cfg_ctx_t* ctx) {
-    cfg_block_t* b = _create_cfg_block(entry);
+    cfg_block_t* b = CFG_create_cfg_block(entry);
     if (!b) return 0;
-    b->id   = ctx->cid++;
-    b->exit = exit;
+    b->id    = ctx->cid++;
+    b->exit  = exit;
+    b->pfunc = f;
     return list_add(&f->blocks, b);
 }
 
-int _create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
+int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     int term = 0;
     hir_block_t* hh = f->entry;
     while (hh) {
         hir_block_t* entry = hh;
+#ifdef DRAGONBOOK_CFG_LEADER
+        /* CFG generation based on leaders according to DragonBook */
         if (term) {
             while (hh && hh != f->exit && !set_has_addr(&f->leaders, hh)) hh = hh->next;
             if (hh) {
@@ -51,9 +77,10 @@ int _create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
 
             hh = hh->next;
         }
-
         _add_cfg_block(entry, hh, f, ctx);
-        // if (!HIR_issyst(entry->op)) _add_cfg_block(entry, entry, f, ctx);
+#else
+        if (!HIR_issyst(entry->op)) _add_cfg_block(entry, entry, f, ctx);
+#endif
         if (hh == f->exit) break;
         hh = hh->next;
     }
@@ -71,7 +98,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
     list_iter_hinit(&ctx->funcs, &fit);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        _create_cfg_blocks(fb, ctx);
+        CFG_create_cfg_blocks(fb, ctx);
 
         list_iter_t bit;
         list_iter_hinit(&fb->blocks, &bit);
