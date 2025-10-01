@@ -21,12 +21,9 @@ int HIR_destroy_ctx(hir_ctx_t* ctx) {
 }
 
 static long _curr_id = 0;
-hir_subject_t* HIR_create_subject(
-    int t, int v_id, const char* strval, long intval, int s_id
-) {
+hir_subject_t* HIR_create_subject(int t, int v_id, const char* strval, long intval, int s_id) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
-
     str_memset(subj, 0, sizeof(hir_subject_t));
 
     subj->t  = t;
@@ -93,7 +90,7 @@ int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
     else {
         block->prev  = ctx->t;
         ctx->t->next = block;
-        ctx->t = block;
+        ctx->t       = block;
     }
     
     return 0;

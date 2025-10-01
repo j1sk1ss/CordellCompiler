@@ -74,6 +74,17 @@ int list_push_front(list_t* l, void* data) {
     return 0;
 }
 
+int list_copy(list_t* src, list_t* dst) {
+    list_iter_t it;
+    list_iter_hinit(src, &it);
+    void* d;
+    while ((d = list_iter_next(&it))) {
+        list_add(dst, d);
+    }
+
+    return 1;
+}
+
 void* list_iter_current(list_iter_t* it) {
     if (!it->curr) return NULL;
     return it->curr->data;

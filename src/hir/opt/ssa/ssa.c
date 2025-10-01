@@ -4,12 +4,14 @@ ssa.c - Transfer input HIR program (with PHI placeholders) into the SSA form
 
 #include <hir/opt/ssa.h>
 
-static varver_t* _add_varver(ssa_ctx_t* ctx) {
+static int _add_varver(list_t* vers, long id, long cid) {
     varver_t* vv = (varver_t*)mm_malloc(sizeof(varver_t));
-    if (!vv) return NULL;
+    if (!vv) return 0;
     str_memset(vv, 0, sizeof(varver_t));
-    list_add(&ctx->vers, vv);
-    return vv;
+    vv->v_id    = id;
+    vv->curr_id = cid;
+    list_add(vers, vv);
+    return 1;
 }
 
 static varver_t* _get_varver(long v_id, ssa_ctx_t* ctx) {
@@ -28,11 +30,7 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
     for (int i = HIR_writeop(h->op); i < 3; i++) {
         if (args[i] && HIR_is_vartype(args[i]->t)) {
             varver_t* vv = _get_varver(args[i]->storage.var.v_id, ctx);
-            if (vv) {
-                stack_elem_t se;
-                stack_top_int(&vv->v, &se);
-                args[i]->storage.var.v_id = se.data.intdata;
-            }
+            if (vv) args[i]->storage.var.v_id = vv->curr_id;
         }
     }
 
@@ -50,20 +48,18 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                 if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
-                        stack_elem_t se;
-                        stack_top_int(&vv->v, &se);
-                        if (hh->sarg && se.data.intdata == hh->sarg->storage.var.v_id) {
+                        if (hh->sarg && vv->curr_id == hh->sarg->storage.var.v_id) {
                             break;
                         }
                         
-                        int_tuple_t* inf = inttuple_create(prev_bid, se.data.intdata);
+                        int_tuple_t* inf = inttuple_create(prev_bid, vv->curr_id);
                         if (!set_has_inttuple(&hh->targ->storage.set.h, inf)) {
                             set_add_addr(&hh->targ->storage.set.h, inf);
                         }
 
                         if (!hh->sarg) {
                             hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
-                            stack_push_int(&vv->v, hh->sarg->storage.var.v_id);
+                            vv->curr_id = hh->sarg->storage.var.v_id;
                         }
                     }
                 }
@@ -82,7 +78,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                     if (vv) {
                         hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
                         _rename_block(hh, ctx);
-                        stack_push_int(&vv->v, hh->farg->storage.var.v_id);
+                        vv->curr_id = hh->farg->storage.var.v_id;
                     }
                 }
 
@@ -97,8 +93,34 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
     }
 
     set_add_int(&b->visitors, prev_bid);
-    _iterate_block(b->jmp, ctx, b->id, smt);
-    _iterate_block(b->l, ctx, b->id, smt);
+
+    if (!b->jmp || !b->l) {
+        _iterate_block(b->jmp, ctx, b->id, smt);
+        _iterate_block(b->l, ctx, b->id, smt);
+    }
+    else {
+        list_t saved;
+        list_init(&saved);
+        
+        list_iter_t it;
+        list_iter_hinit(&ctx->vers, &it);
+        varver_t* s;
+        while ((s = (varver_t*)list_iter_next(&it))) {
+            _add_varver(&saved, s->v_id, s->curr_id);
+        }
+
+        _iterate_block(b->jmp, ctx, b->id, smt);
+        list_free_force(&ctx->vers);
+        
+        list_iter_hinit(&saved, &it);
+        while ((s = (varver_t*)list_iter_next(&it))) {
+            _add_varver(&ctx->vers, s->v_id, s->curr_id);
+        }
+        
+        _iterate_block(b->l, ctx, b->id, smt);
+        list_free_force(&saved);
+    }
+
     return 1;
 }
 
@@ -108,9 +130,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     variable_info_t* vh;
     while ((vh = (variable_info_t*)list_iter_next(&it))) {
         if (vh->glob) continue;
-        varver_t* vv = _add_varver(ctx);
-        stack_push_int(&vv->v, vh->v_id);
-        vv->v_id = vh->v_id;
+        _add_varver(&ctx->vers, vh->v_id, vh->v_id);
     }
 
     list_iter_hinit(&cctx->funcs, &it);

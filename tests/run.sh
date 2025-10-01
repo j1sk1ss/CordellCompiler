@@ -147,6 +147,7 @@ TEST_CODES[test_ra]="
     tests/dummy_data/hir/opt/ra/ra_2.cpl
     tests/dummy_data/hir/opt/ra/ra_3.cpl
     tests/dummy_data/hir/opt/ra/ra_4.cpl
+    tests/dummy_data/hir/opt/ra/ra_5.cpl
 "
 
 TEST_SRCS[test_lir]="

@@ -10,8 +10,8 @@
 #include <hir/opt/cfg.h>
 
 typedef struct {
-    sstack_t v;
-    long     v_id;
+    long curr_id;
+    long v_id;
 } varver_t;
 
 typedef struct {
