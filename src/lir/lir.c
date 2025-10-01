@@ -24,9 +24,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx) {
 
 static long _curr_id = 0;
 lir_subject_t* LIR_create_subject(
-    int t, registers_t r, 
-    int v_id, long offset, const char* strval, 
-    long intval, int size, int s_id
+    int t, registers_t r, int v_id, long offset, const char* strval, long intval, int size, int s_id
 ) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
     if (!subj) return NULL;
@@ -67,7 +65,6 @@ lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject
     blk->farg = fa;
     blk->sarg = sa;
     blk->targ = ta;
-
     blk->next = NULL;
     blk->prev = NULL;
     return blk;
@@ -79,7 +76,7 @@ int LIR_append_block(lir_block_t* block, lir_ctx_t* ctx) {
     else {
         block->prev  = ctx->t;
         ctx->t->next = block;
-        ctx->t = block;
+        ctx->t       = block;
     }
     
     return 0;

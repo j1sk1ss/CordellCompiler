@@ -157,12 +157,9 @@ typedef enum hir_subject_type {
 int HIR_get_type_size(hir_subject_type_t t);
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b);
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr);
-hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned);
 hir_subject_type_t HIR_get_stktype(token_t* token);
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
-int HIR_isleader(hir_operation_t op);
 int HIR_isjmp(hir_operation_t op);
-int HIR_iscondjmp(hir_operation_t op);
 int HIR_is_vartype(hir_subject_type_t t);
 int HIR_is_floattype(hir_subject_type_t t);
 int HIR_is_signtype(hir_subject_type_t t);

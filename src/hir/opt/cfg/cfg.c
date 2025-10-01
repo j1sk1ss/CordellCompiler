@@ -1,3 +1,7 @@
+/*
+cfg.c - Create CFG
+*/
+
 #include <hir/opt/cfg.h>
 
 static cfg_block_t* _create_cfg_block(hir_block_t* e) {

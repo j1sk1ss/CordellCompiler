@@ -67,9 +67,7 @@ typedef struct {
 } lir_ctx_t;
 
 lir_subject_t* LIR_create_subject(
-    int t, registers_t r, 
-    int v_id, long offset, const char* strval, 
-    long intval, int size, int s_id
+    int t, registers_t r, int v_id, long offset, const char* strval, long intval, int size, int s_id
 );
 
 lir_ctx_t* LIR_create_ctx();

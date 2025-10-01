@@ -7,24 +7,22 @@ phi.c - Calculate positions of PHI functions for variables and create placeholde
 static int _has_phi(cfg_block_t* b, long v_id) {
     hir_block_t* h = b->entry;
     while (h) {
-        if (h->op == HIR_PHI && h->farg && h->farg->storage.var.v_id == v_id) {
-            return 1;
-        }
+        if (h->op == HIR_PHI && h->farg && h->farg->storage.var.v_id == v_id) return 1;
         if (h == b->exit) break;
         h = h->next;
     }
+
     return 0;
 }
 
 static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
-    if (_has_phi(b, vi->v_id)) return 0;
-
+    if (_has_phi(b, vi->v_id) && !b->entry) return 0;
     token_t tmptkn = { .t_type = vi->type };
-    hir_block_t* phi = HIR_create_block(
-        HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(&tmptkn), vi->s_id), NULL, HIR_SUBJ_SET()
+    HIR_insert_block(
+        HIR_create_block(HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(&tmptkn), vi->s_id), NULL, HIR_SUBJ_SET()),
+        b->entry->next
     );
 
-    if (b->entry) HIR_insert_block(phi, b->entry->next);
     return 1;
 }
 
