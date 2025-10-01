@@ -4,14 +4,18 @@
     }
 
     start(i64 argc, ptr u64 argv) {
-        f64 a = 10;
-        i32 b = 10;
-        f64 d = a + b;
-        
-        b += a;
-        b = a;
+        i32 a = 10;
+        if a == 20; {
+            exit a;
+        }
 
-        i32 c = foo(a, b);
-        exit c;
+        i32 c = 20;
+        i32 d = 20;
+        if d == 20; {
+            exit 2;
+        }
+
+        i32 k = c;
+        exit k;
     }
 }

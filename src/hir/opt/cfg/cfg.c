@@ -5,7 +5,6 @@ static cfg_block_t* _create_cfg_block(hir_block_t* e) {
     if (!block) return NULL;
     str_memset(block, 0, sizeof(cfg_block_t));
     block->entry = e;
-
     set_init(&block->visitors);
     set_init(&block->pred);
     set_init(&block->curr_in);
@@ -14,7 +13,6 @@ static cfg_block_t* _create_cfg_block(hir_block_t* e) {
     set_init(&block->prev_out);
     set_init(&block->def);
     set_init(&block->use);
-    
     return block;
 }
 
@@ -51,6 +49,7 @@ int _create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
         }
 
         _add_cfg_block(entry, hh, f, ctx);
+        // if (!HIR_issyst(entry->op)) _add_cfg_block(entry, entry, f, ctx);
         if (hh == f->exit) break;
         hh = hh->next;
     }

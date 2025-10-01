@@ -13,7 +13,7 @@ typedef struct igraph_node {
     char  used;  /* deall.c field. Used for track current slot user */
     long  v_id;  /* v_id - Link to smt.v variable                   */
     int   color; /* gc.c field. Used for graph coloring             */
-    set_t v;     /* Vertexies                                       */
+    set_t v;     /* Neighbour vertexies                             */
 } igraph_node_t;
 
 typedef struct {

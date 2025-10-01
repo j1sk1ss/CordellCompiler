@@ -1,54 +1,26 @@
+/*
+ssa.c - Transfer input HIR program (with PHI placeholders) into the SSA form
+*/
+
 #include <hir/opt/ssa.h>
 
 static varver_t* _add_varver(ssa_ctx_t* ctx) {
     varver_t* vv = (varver_t*)mm_malloc(sizeof(varver_t));
     if (!vv) return NULL;
     str_memset(vv, 0, sizeof(varver_t));
-
-    if (!ctx->h) {
-        ctx->h = vv;
-        return vv;
-    }
-
-    varver_t* h = ctx->h;
-    while (h->next) h = h->next;
-    h->next = vv;
+    list_add(&ctx->vers, vv);
     return vv;
 }
 
 static varver_t* _get_varver(long v_id, ssa_ctx_t* ctx) {
-    varver_t* h = ctx->h;
-    while (h) {
-        if (h->v_id == v_id) return h;
-        h = h->next;
+    list_iter_t it;
+    list_iter_hinit(&ctx->vers, &it);
+    varver_t* hi;
+    while ((hi = (varver_t*)list_iter_next(&it))) {
+        if (hi->v_id == v_id) return hi;
     }
 
     return NULL;
-}
-
-static int _build_versions(ssa_ctx_t* ctx, sym_table_t* smt) {
-    list_iter_t it;
-    list_iter_hinit(&smt->v.lst, &it);
-    variable_info_t* vh;
-    while ((vh = (variable_info_t*)list_iter_next(&it))) {
-        if (vh->glob) continue;
-        varver_t* vv = _add_varver(ctx);
-        stack_push_int(&vv->v, vh->v_id);
-        vv->v_id = vh->v_id;
-    }
-
-    return 1;
-}
-
-static int _unload_versions(ssa_ctx_t* ctx) {
-    varver_t* h = ctx->h;
-    while (h) {
-        varver_t* n = h->next;
-        mm_free(h);
-        h = n;
-    }
-
-    return 1;
 }
 
 static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
@@ -131,15 +103,22 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
 }
 
 int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
-    _build_versions(ctx, smt);
-
     list_iter_t it;
+    list_iter_hinit(&smt->v.lst, &it);
+    variable_info_t* vh;
+    while ((vh = (variable_info_t*)list_iter_next(&it))) {
+        if (vh->glob) continue;
+        varver_t* vv = _add_varver(ctx);
+        stack_push_int(&vv->v, vh->v_id);
+        vv->v_id = vh->v_id;
+    }
+
     list_iter_hinit(&cctx->funcs, &it);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&it))) {
         _iterate_block(list_get_head(&fb->blocks), ctx, 0, smt);
     }
 
-    _unload_versions(ctx);
+    list_free_force(&ctx->vers);
     return 1;
 }

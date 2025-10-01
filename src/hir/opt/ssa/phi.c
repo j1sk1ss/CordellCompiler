@@ -1,3 +1,7 @@
+/*
+phi.c - Calculate positions of PHI functions for variables and create placeholders for SSA versions
+*/
+
 #include <hir/opt/ssa.h>
 
 static int _has_phi(cfg_block_t* b, long v_id) {
@@ -37,8 +41,6 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_hinit(&smt->v.lst, &it);
     variable_info_t* vh;
     while ((vh = (variable_info_t*)list_iter_next(&it))) {
-        // if (vh->glob) continue;
-
         set_t defs;
         set_init(&defs);
         HIR_CFG_collect_defs_by_id(vh->v_id, cctx, &defs);
@@ -49,12 +51,12 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
             set_iter_t it;
             set_iter_init(&defs, &it);
 
-            cfg_block_t* defb = NULL;
+            cfg_block_t* defb;
             while ((defb = (cfg_block_t*)set_iter_next_addr(&it))) {
                 set_iter_t fit;
                 set_iter_init(&defb->domf, &fit);
 
-                cfg_block_t* front = NULL;
+                cfg_block_t* front;
                 while ((front = (cfg_block_t*)set_iter_next_addr(&fit))) {
                     if (!_has_phi(front, vh->v_id)) {
                         _insert_phi_instr(front, vh);

@@ -1,8 +1,20 @@
 {
-    function foo() => i32 {
-        arr a[10, i32];
-        a[0] = 10;
-        i32 b = a[0];
-        return a[1];
+    function foo(i32 a) => i32 {
+        switch a; {
+            case 1; {
+                a = 1;
+            }
+            case 2; {
+                a = 2;
+            }
+            case 3; {
+                a = 3;
+            }
+            default {
+                a = 4;
+            }
+        }
+
+        return a;
     }
 }

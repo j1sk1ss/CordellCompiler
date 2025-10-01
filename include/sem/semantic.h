@@ -6,6 +6,7 @@
 #include <std/vars.h>
 #include <std/math.h>
 #include <std/logg.h>
+#include <symtab/symtab.h>
 #include <prep/token.h>
 #include <ast/syntax.h>
 #include <limits.h>

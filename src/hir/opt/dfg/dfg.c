@@ -1,3 +1,14 @@
+/*
+dfg.c - Compute all stuff for liveness analysis.
+IN  - Live variables from previous blocks
+OUT - Live variables after this block
+DEF - All new variables that defined first time
+USE - All variables that has been readed by someone
+
+IN  = union(USE, (DEF - OUT))
+OUT = union(IN successors)
+*/
+
 #include <hir/opt/dfg.h>
 
 int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
@@ -127,18 +138,5 @@ int HIR_DFG_compute_inout(cfg_ctx_t* cctx) {
         }
     }
 
-    return 1;
-}
-
-static int _get_var_parent(long v_id, sym_table_t* smt) {
-    variable_info_t vi;
-    if (VRTB_get_info_id(v_id, &vi, &smt->v)) {
-        return vi.p_id >= 0 ? vi.p_id : v_id;
-    }
-
-    return -1;
-}
-
-int HIR_DFG_deallocate_vars(cfg_ctx_t* cctx) {
     return 1;
 }

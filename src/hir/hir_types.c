@@ -31,11 +31,11 @@ int HIR_get_type_size(hir_subject_type_t t) {
         case HIR_GLBVARF32: return 4;
         case HIR_GLBVARI64: 
         case HIR_GLBVARU64: 
-        case HIR_GLBVARF64: return 8;
+        case HIR_GLBVARF64:
         case HIR_STKVARSTR:
         case HIR_GLBVARSTR:
         case HIR_STKVARARR:
-        case HIR_GLBVARARR: return 8;
+        case HIR_GLBVARARR:
         default:            return 8;
     }
 }
@@ -175,13 +175,10 @@ hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b)
     int issigned_a = (a == HIR_TMPVARI8 || a == HIR_TMPVARI16 || a == HIR_TMPVARI32 || a == HIR_TMPVARI64 ||
                       a == HIR_STKVARI8 || a == HIR_STKVARI16 || a == HIR_STKVARI32 || a == HIR_STKVARI64 ||
                       a == HIR_GLBVARI8 || a == HIR_GLBVARI16 || a == HIR_GLBVARI32 || a == HIR_GLBVARI64);
-
     int issigned_b = (b == HIR_TMPVARI8 || b == HIR_TMPVARI16 || b == HIR_TMPVARI32 || b == HIR_TMPVARI64 ||
                       b == HIR_STKVARI8 || b == HIR_STKVARI16 || b == HIR_STKVARI32 || b == HIR_STKVARI64 ||
                       b == HIR_GLBVARI8 || b == HIR_GLBVARI16 || b == HIR_GLBVARI32 || b == HIR_GLBVARI64);
-
     int max_size = size_a > size_b ? size_a : size_b;
-
     if (issigned_a != issigned_b && size_a == size_b) {
         switch (max_size) {
             case 1:  return HIR_TMPVARU8;
