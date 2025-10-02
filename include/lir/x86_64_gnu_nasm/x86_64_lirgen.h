@@ -21,7 +21,7 @@ int LIR_deallocate_scope_heap(lir_ctx_t* ctx, int s_id, scope_stack_t* heap);
 int LIR_allocate_var(hir_subject_t* v, stack_map_t* stk, sym_table_t* smt, long* off);
 int LIR_allocate_arr(
     lir_ctx_t* ctx, hir_subject_t* v, hir_subject_t* size, scope_stack_t* heap, 
-    scope_stack_t* scopes, sstack_t* params, stack_map_t* stk, sym_table_t* smt, long* offset
+    scope_stack_t* scopes, stack_map_t* stk, sym_table_t* smt, array_info_t* ai, long* offset
 );
 
 /* x86_64_funcgen.c */

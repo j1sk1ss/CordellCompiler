@@ -121,8 +121,8 @@ static void print_hir_subject(const hir_subject_t* s) {
         case HIR_GLBVARI16:  printf("i16g: [gid=%i]", s->storage.var.v_id);   break;
         case HIR_GLBVARU8:   printf("i8g: [git=%i]", s->storage.var.v_id);    break;
         case HIR_GLBVARI8:   printf("u8g: [git=%i]", s->storage.var.v_id);    break;
-        case HIR_NUMBER:     printf("%s", s->storage.num.value);              break;
-        case HIR_CONSTVAL:   printf("%ld", s->storage.cnst.value);            break;
+        case HIR_NUMBER:     printf("n%s", s->storage.num.value);             break;
+        case HIR_CONSTVAL:   printf("c%ld", s->storage.cnst.value);           break;
         case HIR_LABEL:      printf("lb: [id=%d]", s->id);                    break;
         case HIR_RAWASM:     printf("asm: [std_id=%i]", s->storage.str.s_id); break;
         case HIR_STRING:     printf("str: [std_id=%i]", s->storage.str.s_id); break;
@@ -272,9 +272,9 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
     }
     else {
         switch (s->t) {
-            case HIR_NUMBER:     dst += sprintf(dst, "%s", s->storage.num.value);              break;
-            case HIR_CONSTVAL:   dst += sprintf(dst, "%ld", s->storage.cnst.value);            break;
-            case HIR_LABEL:      dst += sprintf(dst, "%d", s->id);                            break;
+            case HIR_NUMBER:     dst += sprintf(dst, "n%s", s->storage.num.value);   break;
+            case HIR_CONSTVAL:   dst += sprintf(dst, "c%ld", s->storage.cnst.value); break;
+            case HIR_LABEL:      dst += sprintf(dst, "l%d", s->id);                  break;
 
             case HIR_RAWASM:
             case HIR_STRING: {

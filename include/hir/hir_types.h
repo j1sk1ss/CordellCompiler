@@ -14,53 +14,53 @@ typedef enum hir_operation {
         HIR_SYSC,        // syscall()
         HIR_STORE_SYSC,  // x = syscall()
 
-        HIR_TF64,  // x = (f64)y
-        HIR_TF32,  // x = (f32)y
-        HIR_TI64,  // x = (i64)y
-        HIR_TI32,  // x = (i32)y
-        HIR_TI16,  // x = (i16)y
-        HIR_TI8,   // x = (i8)y
-        HIR_TU64,  // x = (u64)y
-        HIR_TU32,  // x = (u32)y
-        HIR_TU16,  // x = (u16)y
-        HIR_TU8,   // x = (u8)y
+        HIR_TF64,        // x = (f64)y
+        HIR_TF32,        // x = (f32)y
+        HIR_TI64,        // x = (i64)y
+        HIR_TI32,        // x = (i32)y
+        HIR_TI16,        // x = (i16)y
+        HIR_TI8,         // x = (i8)y
+        HIR_TU64,        // x = (u64)y
+        HIR_TU32,        // x = (u32)y
+        HIR_TU16,        // x = (u16)y
+        HIR_TU8,         // x = (u8)y
 
-        HIR_STRT,  // start macro
-        HIR_STEND, // end macro
-        HIR_FRET,  // function ret       ret x
-        HIR_MKLB,  // mk label           id:
-        HIR_FDCL,  // declare function   fn [str.id]:
-        HIR_FEND,  // function end
-        HIR_OEXT,  // extern object      extern [str.id]
+        HIR_STRT,        // start macro
+        HIR_STEND,       // end macro
+        HIR_FRET,        // function ret       ret x
+        HIR_MKLB,        // mk label           id:
+        HIR_FDCL,        // declare function   fn [str.id]:
+        HIR_FEND,        // function end
+        HIR_OEXT,        // extern object      extern [str.id]
 
         /* Jump instructions */
         HIR_JMP,
 
     /* Integer */
         /* Binary operations */
-        HIR_iADD, // addition           x = y + z
-        HIR_iSUB, // substraction       x = y - z
-        HIR_iMUL, // multiplication     x = y * z
-        HIR_iDIV, // division           x = y / z
-        HIR_iMOD, // module             x = y % z
-        HIR_iLRG, // larger,            x = y > z
-        HIR_iLGE, // larger or equals,  x = y >= z
-        HIR_iLWR, // lower,             x = y < z
-        HIR_iLRE, // lower or equals,   x = y <= z
-        HIR_iCMP, // comprarision,      x = x == y
-        HIR_iNMP, // ncomprarision      x = x != y
+        HIR_iADD,        // addition           x = y + z
+        HIR_iSUB,        // substraction       x = y - z
+        HIR_iMUL,        // multiplication     x = y * z
+        HIR_iDIV,        // division           x = y / z
+        HIR_iMOD,        // module             x = y % z
+        HIR_iLRG,        // larger,            x = y > z
+        HIR_iLGE,        // larger or equals,  x = y >= z
+        HIR_iLWR,        // lower,             x = y < z
+        HIR_iLRE,        // lower or equals,   x = y <= z
+        HIR_iCMP,        // comprarision,      x = x == y
+        HIR_iNMP,        // ncomprarision      x = x != y
 
         /* Logic */
-        HIR_iAND, // and                x = y && z
-        HIR_iOR,  // or                 x = y || z
+        HIR_iAND,        // and                x = y && z
+        HIR_iOR,         // or                 x = y || z
 
     /* Bits */
         /* Binary operations */
-        HIR_iBLFT, // bit left          x = y << z
-        HIR_iBRHT, // bit right         x = y >> z
-        HIR_bAND, // bit and            x = y & z
-        HIR_bOR,  // bit or             x = y | z
-        HIR_bXOR, // bit xor            x = y ^ z
+        HIR_iBLFT,       // bit left          x = y << z
+        HIR_iBRHT,       // bit right         x = y >> z
+        HIR_bAND,        // bit and            x = y & z
+        HIR_bOR,         // bit or             x = y | z
+        HIR_bXOR,        // bit xor            x = y ^ z
 
     /* Other */
     HIR_RAW,
@@ -69,43 +69,42 @@ typedef enum hir_operation {
 
     /* High level operations */
         /* Condition operator */
-        HIR_IFOP,     // if x, jmp z
-        HIR_IFLGOP,   // if x > y, jmp z
-        HIR_IFLGEOP,  // if x >= y, jmp z
-        HIR_IFLWOP,   // if x < y, jmp z
-        HIR_IFLWEOP,  // if x <= y, jmp z
-        HIR_IFCPOP,   // if x == y, jmp z
-        HIR_IFNCPOP,  // if x != y, jmp z
+        HIR_IFOP,        // if x, jmp z
+        HIR_IFLGOP,      // if x > y, jmp z
+        HIR_IFLGEOP,     // if x >= y, jmp z
+        HIR_IFLWOP,      // if x < y, jmp z
+        HIR_IFLWEOP,     // if x <= y, jmp z
+        HIR_IFCPOP,      // if x == y, jmp z
+        HIR_IFNCPOP,     // if x != y, jmp z
 
-        HIR_PHI,      // base: x, new_var y, set: z (bb, v_id)
-        HIR_VRDEALL,  // dealloc x
+        HIR_PHI,         // base: x, new_var y, set: z (bb, v_id)
+        HIR_VRDEALL,     // dealloc x
 
         /* Data */
         HIR_NOT,
-        HIR_STORE,   // x = y
-        HIR_CLNVRS,  // deallocate all unused variables
-        HIR_VARDECL, // alloc x
-        HIR_ARRDECL, // arralloc x, y (size)
+        HIR_STORE,       // x = y
+        HIR_CLNVRS,      // deallocate all unused variables
+        HIR_VARDECL,     // alloc x
+        HIR_ARRDECL,     // arralloc x, y (size)
         HIR_STRDECL,
         HIR_PRMST,
-        HIR_PRMLD,   // load param
-        HIR_PRMPOP,  // pop params
-        HIR_FARGST,  // store function argument
-        HIR_FARGLD,  // load function argument
-        HIR_STARGLD, // load start argument
-        HIR_GINDEX,  // get data by index in array
-        HIR_LINDEX,  // load data to array by index
-        HIR_GDREF,   // get value by address
-        HIR_LDREF,   // load value to address
+        HIR_PRMLD,       // load param
+        HIR_PRMPOP,      // pop params
+        HIR_FARGST,      // store function argument
+        HIR_FARGLD,      // load function argument
+        HIR_STARGLD,     // load start argument
+        HIR_GINDEX,      // x = y[z]
+        HIR_LINDEX,      // x[y] = z
+        HIR_GDREF,       // get value by address
+        HIR_LDREF,       // load value to address
         HIR_REF,
         HIR_IMPORT,
-        HIR_EXTERN,
         
         /* System */
-        HIR_EXITOP, // Exit with farg exit call
+        HIR_EXITOP,      // Exit with farg exit call
 
-        HIR_MKSCOPE,  // scope
-        HIR_ENDSCOPE, // end of scope
+        HIR_MKSCOPE,     // scope
+        HIR_ENDSCOPE,    // end of scope
 } hir_operation_t;
 
 typedef enum hir_subject_type {

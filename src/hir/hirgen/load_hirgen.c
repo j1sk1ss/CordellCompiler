@@ -29,7 +29,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
                     hir_subject_t* base  = HIR_SUBJ_ASTVAR(node);
                     
                     array_info_t ai;
-                    if (ARTB_get_info(node->token->value, node->sinfo.s_id, &ai, &smt->a)) {
+                    if (ARTB_get_info(node->sinfo.v_id, &ai, &smt->a)) {
                         tmp.t_type = ai.el_type;
                     }
 

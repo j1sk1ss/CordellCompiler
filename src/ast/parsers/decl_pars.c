@@ -5,6 +5,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_t
     if (!node) return NULL;
     forward_token(curr, 1);
 
+    token_type_t eltype = I64_TYPE_TOKEN;
     ast_node_t* name_node = AST_create_node(*curr);
     if (!name_node) {
         AST_unload(node);
@@ -39,13 +40,9 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_t
             return NULL;
         }
 
+        eltype = elem_size_node->token->t_type;
         AST_add_node(node, elem_size_node);
         forward_token(curr, 2);
-
-        ARTB_add_info(
-            name_node->token->value, scope_id_top(&ctx->scopes.stack), name_node->token->flags.heap,
-            elem_size_node->token->t_type, &smt->a
-        );
     }
 
     if ((*curr)->t_type == ASSIGN_TOKEN) {
@@ -72,6 +69,7 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_t
         name_node->token->value, ARRAY_TYPE_TOKEN, scope_id_top(&ctx->scopes.stack), &name_node->token->flags, &smt->v
     );
 
+    ARTB_add_info(name_node->sinfo.v_id, name_node->token->flags.heap, eltype, &smt->a);
     var_lookup(name_node, ctx, smt);
     return node;
 }
@@ -97,12 +95,6 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, sy
             AST_unload(node);
             return NULL;
         }
-        
-        if (node->token->t_type == STR_TYPE_TOKEN) {
-            ARTB_add_info(
-                name_node->token->value, scope_id_top(&ctx->scopes.stack), 0, I8_TYPE_TOKEN, &smt->a
-            );
-        }
 
         AST_add_node(node, value_node);
     }
@@ -111,6 +103,10 @@ ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, sy
         name_node->token->value, node->token->t_type, scope_id_top(&ctx->scopes.stack), &name_node->token->flags, &smt->v
     );
 
+    if (node->token->t_type == STR_TYPE_TOKEN) {
+        ARTB_add_info(name_node->sinfo.v_id, 0, I8_TYPE_TOKEN, &smt->a);
+    }
+    
     var_lookup(name_node, ctx, smt);
     return node;
 }

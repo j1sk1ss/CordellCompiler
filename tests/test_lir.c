@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     list_iter_hinit(&smt.a.lst, &it);
     array_info_t* ai;
     while ((ai = (array_info_t*)list_iter_next(&it))) {
-        printf("id: %i, name: %s, scope: %i\n", ai->v_id, ai->name, ai->s_id);
+        printf("id: %i, eltype: %i%s\n", ai->v_id, ai->el_type, ai->heap ? ", heap" : "");
     }
 
     if (!list_isempty(&smt.f.lst)) printf("==========  FUNCS  ==========\n");

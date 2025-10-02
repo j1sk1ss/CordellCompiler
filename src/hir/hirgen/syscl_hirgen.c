@@ -11,7 +11,7 @@ int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 
 int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
-    HIR_BLOCK1(ctx, HIR_EXTERN, HIR_SUBJ_STRING(node));
+    HIR_BLOCK1(ctx, HIR_OEXT, HIR_SUBJ_STRING(node));
     return 1;
 }
 

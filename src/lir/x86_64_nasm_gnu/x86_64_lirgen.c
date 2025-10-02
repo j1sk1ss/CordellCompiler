@@ -28,17 +28,23 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            case HIR_STRT:    LIR_BLOCK0(ctx, LIR_STRT);                                           break;
-            case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset);            break;
-            case HIR_EXITOP:  LIR_BLOCK1(ctx, LIR_EXITOP, LIR_format_variable(ctx, h->farg, smt)); break;
+            case HIR_STRT:    LIR_BLOCK0(ctx, LIR_STRT);                                             break;
+            case HIR_STEND:   LIR_BLOCK0(ctx, LIR_STEND);                                            break;
+            case HIR_OEXT:    LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id)); break;
+            case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset);              break;
+            case HIR_EXITOP:  
+                // LIR_deallocate_scope_heap(ctx, h->farg->storage.cnst.value, &heap);
+                LIR_BLOCK1(ctx, LIR_EXITOP, LIR_format_variable(ctx, h->farg, smt));   
+            break;
 
-            case HIR_ENDSCOPE: 
+            case HIR_ENDSCOPE: {
                 scope_elem_t se;
                 scope_pop_top(&scopes, &se);
-                LIR_deallocate_scope_heap(ctx, se.id, &heap);
+                // LIR_deallocate_scope_heap(ctx, h->farg->storage.cnst.value, &heap);
                 stack_map_free_range(se.offset, -1, &stackmap);
                 offset = se.offset;
-            break;
+                break;
+            }
             
             case HIR_SYSC:
             case HIR_STORE_SYSC:
@@ -54,6 +60,12 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_ARRDECL:
             case HIR_STRDECL: x86_64_generate_declaration(ctx, h, smt, &params, &scopes, &heap, &stackmap, &offset); break;
 
+            case HIR_REF: {
+                LIR_store_var_reg(LIR_REF, ctx, h->sarg, RAX, smt);
+                LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                break;
+            }
+
             case HIR_GDREF: {
                 LIR_store_var_reg(LIR_GDREF, ctx, h->sarg, RAX, smt);
                 LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
@@ -61,8 +73,38 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             }
 
             case HIR_LDREF: {
-                LIR_store_var_reg(LIR_REF, ctx, h->farg, RAX, smt);
+                LIR_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
                 LIR_store_var_reg(LIR_LDREF, ctx, h->sarg, RAX, smt);
+                break;
+            }
+
+            case HIR_GINDEX: {
+                array_info_t ai;
+                if (ARTB_get_info(h->sarg->storage.var.v_id, &ai, &smt->a)) {
+                    LIR_store_var_reg(LIR_iMOV, ctx, h->targ, RAX, smt);
+                    LIR_BLOCK2(ctx, LIR_iMUL, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_CONST(HIR_get_type_size(h->farg->t)));
+                    if (!ai.heap) LIR_store_var_reg(LIR_REF, ctx, h->sarg, RBX, smt);
+                    else LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RBX, smt);
+                    LIR_reg_op(ctx, RAX, RBX, LIR_iADD);
+                    LIR_reg_op(ctx, RAX, RAX, LIR_GDREF);
+                    LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                }
+
+                break;
+            }
+
+            case HIR_LINDEX: {
+                array_info_t ai;
+                if (ARTB_get_info(h->farg->storage.var.v_id, &ai, &smt->a)) {
+                    LIR_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                    LIR_BLOCK2(ctx, LIR_iMUL, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_CONST(HIR_get_type_size(h->targ->t)));
+                    if (!ai.heap) LIR_store_var_reg(LIR_REF, ctx, h->farg, RBX, smt);
+                    else LIR_store_var_reg(LIR_iMOV, ctx, h->farg, RBX, smt);
+                    LIR_reg_op(ctx, RAX, RBX, LIR_iADD);
+                    LIR_store_var_reg(LIR_iMOV, ctx, h->targ, RBX, smt);
+                    LIR_reg_op(ctx, RAX, RBX, LIR_LDREF);
+                }
+
                 break;
             }
 
@@ -83,6 +125,9 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_JMP:  LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
             case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
 
+            case HIR_NOT:
+            case HIR_iBLFT:
+            case HIR_iBRHT:
             case HIR_iLWR:
             case HIR_iLRE:
             case HIR_iLRG:

@@ -11,19 +11,20 @@ typedef enum {
         LIR_MKGLB, // global keyword
 
         /* Commands */
-        LIR_FCLL, // function call
-        LIR_ECLL, // extern function call
-        LIR_STRT, // start macro
-        LIR_SYSC, // syscall
-        LIR_FRET, // function ret
-        LIR_TINT, // convert to int from double
-        LIR_TDBL, // convert to double from int
-        LIR_TST,  // test
-        LIR_XCHG, // xchg
-        LIR_CDQ,  // cdq
-        LIR_MKLB, // mk label
-        LIR_FDCL, // declare function
-        LIR_OEXT, // extern object
+        LIR_FCLL,  // function call
+        LIR_ECLL,  // extern function call
+        LIR_STRT,  // start macro
+        LIR_STEND, // end macro
+        LIR_SYSC,  // syscall
+        LIR_FRET,  // function ret
+        LIR_TINT,  // convert to int from double
+        LIR_TDBL,  // convert to double from int
+        LIR_TST,   // test
+        LIR_XCHG,  // xchg
+        LIR_CDQ,   // cdq
+        LIR_MKLB,  // mk label
+        LIR_FDCL,  // declare function
+        LIR_OEXT,  // extern object
 
         LIR_SETL,
         LIR_SETG,
@@ -55,7 +56,7 @@ typedef enum {
 
     /* Register */
         /* Operations */
-        LIR_iMOV, // integer move
+        LIR_iMOV,  // integer move, x = y
         LIR_iMOVb, // mov byte
         LIR_iMOVw, // mov word
         LIR_iMOVd, // mov dword
@@ -63,13 +64,13 @@ typedef enum {
         LIR_iMVZX,
         LIR_iMVSX,
 
-        LIR_fMOV, // float move
-        LIR_fMVf, // float to float move
-        LIR_REF,  // lea move
-        LIR_GDREF, // get value from address
-        LIR_LDREF, // set valye by address
-        LIR_PUSH, // push
-        LIR_POP,  // pop
+        LIR_fMOV,  // float move
+        LIR_fMVf,  // float to float move
+        LIR_REF,   // lea move
+        LIR_GDREF, // get value from address, x = *y
+        LIR_LDREF, // set valye by address,   *x = y
+        LIR_PUSH,  // push
+        LIR_POP,   // pop
 
     /* Integer */
         /* Binary operations */

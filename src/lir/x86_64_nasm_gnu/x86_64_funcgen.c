@@ -27,7 +27,10 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstac
             break;
         }
 
-        case HIR_FRET: LIR_BLOCK1(ctx, LIR_FRET, LIR_format_variable(ctx, h->farg, smt));                       break;
+        case HIR_FRET: 
+            // LIR_deallocate_scope_heap(ctx, h->farg->storage.cnst.value, &heap);
+            LIR_BLOCK1(ctx, LIR_FRET, LIR_format_variable(ctx, h->farg, smt));                       
+        break;
         case HIR_FARGLD: LIR_load_var_reg(LIR_iMOV, ctx, h->farg, _abi_regs[h->sarg->storage.cnst.value], smt); break;
 
         case HIR_FCLL:
