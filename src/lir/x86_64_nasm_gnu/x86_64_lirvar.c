@@ -1,6 +1,6 @@
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
-lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt) {
+lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt) {
     if (!subj) return NULL;
     switch (subj->t) {
         case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value);
@@ -9,7 +9,10 @@ lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt) {
         case HIR_TMPVARF64: case HIR_TMPVARF32: return LIR_SUBJ_REG(XMM0, HIR_get_type_size(subj->t));
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARI64: case HIR_TMPVARU64:
         case HIR_TMPVARU32: case HIR_TMPVARI32: case HIR_TMPVARU16: case HIR_TMPVARI16: 
-        case HIR_TMPVARU8:  case HIR_TMPVARI8: return LIR_SUBJ_REG(RAX, HIR_get_type_size(subj->t));
+        case HIR_TMPVARU8:  case HIR_TMPVARI8: {
+            long color = (long)map_get(ctx->vars, subj->storage.var.v_id);
+            return LIR_SUBJ_REG(R10 + color, HIR_get_type_size(subj->t));
+        }
 
         case HIR_STKVARSTR: case HIR_STKVARARR: case HIR_STKVARF64: case HIR_STKVARU64:
         case HIR_STKVARI64: case HIR_STKVARF32: case HIR_STKVARU32: case HIR_STKVARI32:
@@ -32,13 +35,13 @@ lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt) {
 
 /* Variable to register */
 int LIR_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
-    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)), LIR_format_variable(subj, smt));
+    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)), LIR_format_variable(ctx, subj, smt));
     return 1;
 }
 
 /* Variable from register */
 int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
-    LIR_BLOCK2(ctx, op, LIR_format_variable(subj, smt), LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)));
+    LIR_BLOCK2(ctx, op, LIR_format_variable(ctx, subj, smt), LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)));
     return 1;
 }
 

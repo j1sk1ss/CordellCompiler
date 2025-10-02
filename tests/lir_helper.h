@@ -131,6 +131,7 @@ static const char* register_to_string(int reg) {
         case RDI:  return "RDI";
         case RBP:  return "RBP";
         case RSP:  return "RSP";
+
         case R8:   return "R8";
         case R9:   return "R9";
         case R10:  return "R10";
@@ -139,6 +140,7 @@ static const char* register_to_string(int reg) {
         case R13:  return "R13";
         case R14:  return "R14";
         case R15:  return "R15";
+
         case R8D:  return "R8D";
         case R9D:  return "R9D";
         case R10D: return "R10D";
@@ -147,6 +149,24 @@ static const char* register_to_string(int reg) {
         case R13D: return "R13D";
         case R14D: return "R14D";
         case R15D: return "R15D";
+
+        case R8W:  return "R8W";
+        case R9W:  return "R9W";
+        case R10W: return "R10W";
+        case R11W: return "R11W";
+        case R12W: return "R12W";
+        case R13W: return "R13W";
+        case R14W: return "R14W";
+        case R15W: return "R15W";
+
+        case R8B:  return "R8B";
+        case R9B:  return "R9B";
+        case R10B: return "R10B";
+        case R11B: return "R11B";
+        case R12B: return "R12B";
+        case R13B: return "R13B";
+        case R14B: return "R14B";
+        case R15B: return "R15B";
 
         case EAX: return "EAX";
         case EBX: return "EBX";
@@ -184,7 +204,7 @@ static void print_lir_subject(const lir_subject_t* s) {
         case LIR_GLVARIABLE: printf("glb [id=%i]", s->storage.var.v_id);           break;
         case LIR_CONSTVAL:   printf("%i", s->storage.cnst.value);                  break;
         case LIR_NUMBER:     printf("%s", s->storage.num.value);                   break;
-        case LIR_LABEL:      printf("lb: [vid=%d]", s->id);                        break;
+        case LIR_LABEL:      printf("lb: [vid=%d]", s->storage.str);               break;
         case LIR_RAWASM:     printf("raw [id=%d]", s->storage.str.sid);            break;
         case LIR_MEMORY:     s->storage.var.offset >= 0 ? 
                                 printf("[RBP - %i]", s->storage.var.offset) :

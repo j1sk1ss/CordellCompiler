@@ -28,9 +28,9 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
-            case HIR_STRT:    LIR_BLOCK0(ctx, LIR_STRT);                                      break;
-            case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset);       break;
-            case HIR_EXITOP:  LIR_BLOCK1(ctx, LIR_EXITOP, LIR_format_variable(h->farg, smt)); break;
+            case HIR_STRT:    LIR_BLOCK0(ctx, LIR_STRT);                                           break;
+            case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset);            break;
+            case HIR_EXITOP:  LIR_BLOCK1(ctx, LIR_EXITOP, LIR_format_variable(ctx, h->farg, smt)); break;
 
             case HIR_ENDSCOPE: 
                 scope_elem_t se;

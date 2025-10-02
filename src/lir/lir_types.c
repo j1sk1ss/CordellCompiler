@@ -103,64 +103,88 @@ registers_t LIR_format_register(registers_t reg, int size) {
             if (size == 1) return DL;
             break;
 
-        case RSI: case ESI:
+        case RSI: case ESI: case SI: case SIL:
             if (size == 8) return RSI;
             if (size == 4) return ESI;
+            if (size == 2) return SI;
+            if (size == 1) return SIL;
             break;
 
-        case RDI: case EDI:
+        case RDI: case EDI: case DI: case DIL:
             if (size == 8) return RDI;
             if (size == 4) return EDI;
+            if (size == 2) return DI;
+            if (size == 1) return DIL;
             break;
 
-        case RBP: case EBP:
+        case RBP: case EBP: case BP: case BPL:
             if (size == 8) return RBP;
             if (size == 4) return EBP;
+            if (size == 2) return BP;
+            if (size == 1) return BPL;
             break;
 
-        case RSP: case ESP:
+        case RSP: case ESP: case SP: case SPL:
             if (size == 8) return RSP;
             if (size == 4) return ESP;
+            if (size == 2) return SP;
+            if (size == 1) return SPL;
             break;
 
-        case R8: case R8D:
+        case R8: case R8D: case R8W: case R8B:
             if (size == 8) return R8; 
             if (size == 4) return R8D;
+            if (size == 2) return R8W;
+            if (size == 1) return R8B;
             break;
 
-        case R9: case R9D:
+        case R9: case R9D: case R9W: case R9B:
             if (size == 8) return R9;
             if (size == 4) return R9D;
+            if (size == 2) return R9W;
+            if (size == 1) return R9B;
             break;
 
-        case R10: case R10D:
+        case R10: case R10D: case R10W: case R10B:
             if (size == 8) return R10;
             if (size == 4) return R10D;
+            if (size == 2) return R10W;
+            if (size == 1) return R10B;
             break;
 
-        case R11: case R11D:
+        case R11: case R11D: case R11W: case R11B:
             if (size == 8) return R11; 
             if (size == 4) return R11D;
+            if (size == 2) return R11W;
+            if (size == 1) return R11B;
             break;
 
-        case R12: case R12D:
+        case R12: case R12D: case R12W: case R12B:
             if (size == 8) return R12;
             if (size == 4) return R12D;
+            if (size == 2) return R12W;
+            if (size == 1) return R12B;
             break;
 
-        case R13: case R13D:
+        case R13: case R13D: case R13W: case R13B:
             if (size == 8) return R13;
             if (size == 4) return R13D;
+            if (size == 2) return R13W;
+            if (size == 1) return R13B;
             break;
 
-        case R14: case R14D:
+        case R14: case R14D: case R14W: case R14B:
             if (size == 8) return R14;
             if (size == 4) return R14D;
+            if (size == 2) return R14W;
+            if (size == 1) return R14B;
             break;
 
-        case R15: case R15D:
+        case R15: case R15D: case R15W: case R15B:
             if (size == 8) return R15;
             if (size == 4) return R15D;
+            if (size == 2) return R15W;
+            if (size == 1) return R15B;
             break;
 
         case XMM0:

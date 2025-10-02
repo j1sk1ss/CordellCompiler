@@ -7,10 +7,10 @@ int x86_64_generate_declaration(
     switch (h->op) {
         case HIR_VRDEALL: {
             if (LIR_is_global_hirtype(h->farg->t)) break;
-            variable_info_t vi;
-            if (VRTB_get_info_id(h->farg->storage.var.v_id, &vi, &smt->v)) {
-                stack_map_free(vi.offset, vi.size, stk);
-            }
+            // variable_info_t vi;
+            // if (VRTB_get_info_id(h->farg->storage.cnst.value, &vi, &smt->v)) {
+            //     stack_map_free(vi.offset, vi.size, stk);
+            // }
 
             break;
         }

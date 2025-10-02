@@ -66,10 +66,13 @@ int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) 
         case HIR_iLGE:
         case HIR_iCMP:
         case HIR_iNMP: {
-            LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
-            LIR_store_var_reg(LIR_iMOV, ctx, h->targ, RBX, smt);
-            if (HIR_is_floattype(h->farg->t)) LIR_reg_op(ctx, RAX, RBX, LIR_iCMP);
-            else LIR_reg_op(ctx, XMM0, XMM1, LIR_fCMP);
+            if (!HIR_is_floattype(h->farg->t)) LIR_reg_op(ctx, RAX, RBX, LIR_iCMP);
+            else {
+                LIR_reg_op(ctx, XMM0, RAX, LIR_fMOV);
+                LIR_reg_op(ctx, XMM1, RBX, LIR_fMOV);
+                LIR_reg_op(ctx, XMM0, XMM1, LIR_fCMP);
+            }
+    
             if (HIR_is_signtype(h->farg->t) && HIR_is_signtype(h->sarg->t)) {
                 switch (h->op) {
                     case HIR_IFCPOP:  LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, 1)); break;
@@ -103,7 +106,7 @@ int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) 
 int x86_64_generate_ifop(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
     switch (h->op) {
         case HIR_IFOP: {
-            LIR_BLOCK2(ctx, HIR_iCMP, LIR_format_variable(h->farg, smt), LIR_SUBJ_CONST(0));
+            LIR_BLOCK2(ctx, HIR_iCMP, LIR_format_variable(ctx, h->farg, smt), LIR_SUBJ_CONST(0));
             LIR_BLOCK1(ctx, HIR_JMP, LIR_SUBJ_LABEL(h->sarg->id));
             break;
         }
@@ -186,7 +189,7 @@ int x86_64_generate_conv(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
                     lop = HIR_is_signtype(h->sarg->t) ? LIR_iMVSX : LIR_iMVZX;
                 }
 
-                LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, src_size), LIR_format_variable(h->sarg, smt));
+                LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, src_size), LIR_format_variable(ctx, h->sarg, smt));
                 LIR_BLOCK2(ctx, lop, LIR_SUBJ_REG(RAX, dst_size), LIR_SUBJ_REG(RAX, src_size));
                 LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
             }

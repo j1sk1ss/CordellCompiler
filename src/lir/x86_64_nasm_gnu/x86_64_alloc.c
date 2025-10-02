@@ -34,8 +34,8 @@ int LIR_allocate_arr(
                     if (!se.data.addrdata) break;
 
                     LIR_BLOCK2(
-                        ctx, LIR_iMOV,  LIR_SUBJ_OFF(arroff - elsize * i, elsize), 
-                        LIR_format_variable(se.data.addrdata, smt)
+                        ctx, LIR_iMOV, LIR_SUBJ_OFF(arroff - elsize * i, elsize), 
+                        LIR_format_variable(ctx, se.data.addrdata, smt)
                     );
 
                     stack_pop(params);
@@ -49,7 +49,7 @@ int LIR_allocate_arr(
                 LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE), LIR_SUBJ_CONST(12));
                 LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RDI, DEFAULT_TYPE_SIZE), LIR_SUBJ_CONST(0));
                 LIR_BLOCK0(ctx, LIR_SYSC);
-                LIR_BLOCK2(ctx, LIR_iMOV, LIR_format_variable(size, smt), LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE));
+                LIR_BLOCK2(ctx, LIR_iMOV, LIR_format_variable(ctx, size, smt), LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE));
                 LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RDI, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE));
                 LIR_BLOCK1(ctx, LIR_POP, LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
                 LIR_BLOCK2(ctx, LIR_iADD, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
@@ -75,8 +75,4 @@ int LIR_deallocate_scope_heap(lir_ctx_t* ctx, int s_id, scope_stack_t* heap) {
     }
 
     return 1;
-}
-
-int x86_64_generate_allocation() {
-
 }

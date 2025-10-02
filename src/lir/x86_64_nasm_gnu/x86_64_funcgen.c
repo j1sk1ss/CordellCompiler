@@ -27,23 +27,14 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstac
             break;
         }
 
-        case HIR_FRET: {
-            int vrsize = LIR_get_hirtype_size(h->farg->t);
-            LIR_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
-            LIR_BLOCK0(ctx, LIR_FRET);
-            break;
-        }
-
-        case HIR_FARGLD: {
-            LIR_load_var_reg(LIR_iMOV, ctx, _abi_regs, _abi_regs[h->sarg->storage.cnst.value], smt);
-            break;
-        }
+        case HIR_FRET: LIR_BLOCK1(ctx, LIR_FRET, LIR_format_variable(ctx, h->farg, smt));                       break;
+        case HIR_FARGLD: LIR_load_var_reg(LIR_iMOV, ctx, h->farg, _abi_regs[h->sarg->storage.cnst.value], smt); break;
 
         case HIR_FCLL:
         case HIR_ECLL: 
         case HIR_STORE_FCLL:
         case HIR_STORE_ECLL: {
-            _load_registers(ctx, _abi_regs, params, h->sarg->storage.cnst.value, smt);
+            _load_registers(ctx, (int*)_abi_regs, params, h->sarg->storage.cnst.value, smt);
             LIR_BLOCK1(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->farg));
             if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) {
                 LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
@@ -54,7 +45,7 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstac
 
         case HIR_SYSC: 
         case HIR_STORE_SYSC: {
-            _load_registers(ctx, _sys_regs, params, h->sarg->storage.cnst.value, smt);
+            _load_registers(ctx, (int*)_sys_regs, params, h->sarg->storage.cnst.value, smt);
             LIR_BLOCK0(ctx, LIR_SYSC);
             if (h->op == HIR_STORE_SYSC) {
                 LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);

@@ -7,11 +7,12 @@
 #include <lir/lirgen.h>
 #include <lir/lir_types.h>
 #include <symtab/symtab.h>
+#include <std/map.h>
 #include <std/qsort.h>
 #include <std/stack.h>
 #include <std/stackmap.h>
 
-lir_subject_t* LIR_format_variable(hir_subject_t* subj, sym_table_t* smt);
+lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt);
 int LIR_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
 int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
 int LIR_reg_op(lir_ctx_t* ctx, int freg, int sreg, lir_operation_t op);

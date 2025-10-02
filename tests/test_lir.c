@@ -20,6 +20,7 @@
 #include "ast_helper.h"
 #include "hir_helper.h"
 #include "lir_helper.h"
+#include "ral_helper.h"
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
@@ -76,6 +77,7 @@ int main(int argc, char* argv[]) {
     map_t clrs;
     HIR_RA_color_igraph(&ig, &clrs);
     igraph_dump_dot(&ig);
+    HIR_RA_create_deall(&cfgctx, &ig, &clrs);
 
     printf("\n\n========== SSA HIR ==========\n");
     hir_block_t* hh = hirctx.h;

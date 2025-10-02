@@ -9,6 +9,7 @@
 #include <symtab/symtab.h>
 #include <hir/opt/cfg.h>
 
+#define COLOR_SPILLED -1
 typedef struct igraph_node {
     char  used;  /* deall.c field. Used for track current slot user */
     long  v_id;  /* v_id - Link to smt.v variable                   */
