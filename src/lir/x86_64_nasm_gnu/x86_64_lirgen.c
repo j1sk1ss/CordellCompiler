@@ -40,9 +40,11 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 offset = se.offset;
             break;
             
+            case HIR_SYSC:
+            case HIR_STORE_SYSC:
             case HIR_FCLL:
-            case HIR_ECLL:
             case HIR_STORE_FCLL:
+            case HIR_ECLL:
             case HIR_STORE_ECLL:
             case HIR_FDCL:
             case HIR_FRET:

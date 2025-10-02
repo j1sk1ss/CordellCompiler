@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&hirctx, &cfgctx);
     
-    ssa_ctx_t ssactx = { .h = NULL };
+    ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
 

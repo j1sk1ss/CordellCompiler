@@ -51,14 +51,13 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
     b->pfunc = f;
     return list_add(&f->blocks, b);
 }
-
+#define DRAGONBOOK_CFG_LEADER
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     int term = 0;
     hir_block_t* hh = f->entry;
     while (hh) {
         hir_block_t* entry = hh;
 #ifdef DRAGONBOOK_CFG_LEADER
-        /* CFG generation based on leaders according to DragonBook */
         if (term) {
             while (hh && hh != f->exit && !set_has_addr(&f->leaders, hh)) hh = hh->next;
             if (hh) {
