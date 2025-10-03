@@ -124,6 +124,7 @@ int HIR_DFG_compute_inout(cfg_ctx_t* cctx) {
             list_iter_tinit(&fb->blocks, &bit);
             while ((cb = (cfg_block_t*)list_iter_prev(&bit))) {
                 if (!set_equal_int(&cb->curr_in, &cb->prev_in) || !set_equal_int(&cb->curr_out, &cb->prev_out)) {
+                    print_debug("IN\' != IN && OUT\' != OUT. Repeating...");
                     same = 0;
                     break;
                 }

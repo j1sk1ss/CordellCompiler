@@ -75,12 +75,21 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     return blk;
 }
 
-int HIR_insert_block(hir_block_t* block, hir_block_t* pos) {
+int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos) {
     if (!block || !pos) return 0;
     block->prev = pos->prev;
     block->next = pos;
     if (pos->prev) pos->prev->next = block;
     pos->prev = block;
+    return 1;
+}
+
+int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos) {
+    if (!block || !pos) return 0;
+    block->prev = pos;
+    block->next = pos->next;
+    if (pos->next) pos->next->prev = block;
+    pos->next = block;
     return 1;
 }
 

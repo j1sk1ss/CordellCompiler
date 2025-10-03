@@ -30,7 +30,7 @@ static int _insert_phi_instr(cfg_ctx_t* cctx, cfg_block_t* b, variable_info_t* v
         HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(&tmptkn), vi->s_id), NULL, HIR_SUBJ_SET()
     );
 
-    HIR_insert_block(phi, b->entry);
+    HIR_insert_block_before(phi, b->entry);
     cfg_block_t* phiblock = CFG_create_cfg_block(phi);
     phiblock->id = cctx->cid++;
     CFG_insert_cfg_block(b->pfunc, phiblock, b);

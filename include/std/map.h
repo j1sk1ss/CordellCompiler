@@ -22,7 +22,7 @@ typedef struct {
 int map_init(map_t* m);
 int map_put(map_t* m, long k, void* v);
 int map_remove(map_t* m, long k);
-void* map_get(map_t* m, long k);
+int map_get(map_t* m, long k, void** v);
 int map_free(map_t* m);
 int map_free_force(map_t* m);
 

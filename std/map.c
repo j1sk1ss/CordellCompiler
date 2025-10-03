@@ -59,16 +59,21 @@ int map_put(map_t* m, long k, void* v) {
     }
 }
 
-void* map_get(map_t* m, long k) {
-    if (!m) return NULL;
+int map_get(map_t* m, long k, void** v) {
+    if (!m) return 0;
     long idx = _hash(k, m->capacity);
 
     for (;;) {
-        if (m->entries[idx].used == 0) return NULL;
-        if (m->entries[idx].used == 1 && m->entries[idx].key == k)
-            return m->entries[idx].value;
+        if (!m->entries[idx].used) return 0;
+        if (m->entries[idx].used && m->entries[idx].key == k) {
+            *v = m->entries[idx].value;
+            return 1;
+        }
+
         idx = (idx + 1) % m->capacity;
     }
+
+    return 0;
 }
 
 int map_remove(map_t* m, long k) {

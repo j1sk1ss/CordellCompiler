@@ -18,10 +18,9 @@ int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, in
 int LIR_reg_op(lir_ctx_t* ctx, int freg, int sreg, lir_operation_t op);
 
 int LIR_deallocate_scope_heap(lir_ctx_t* ctx, int s_id, scope_stack_t* heap);
-int LIR_allocate_var(hir_subject_t* v, stack_map_t* stk, sym_table_t* smt, long* off);
 int LIR_allocate_arr(
     lir_ctx_t* ctx, hir_subject_t* v, hir_subject_t* size, scope_stack_t* heap, 
-    scope_stack_t* scopes, stack_map_t* stk, sym_table_t* smt, array_info_t* ai, long* offset
+    scope_stack_t* scopes, sym_table_t* smt, array_info_t* ai, long* offset
 );
 
 /* x86_64_funcgen.c */
@@ -29,8 +28,7 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstac
 
 /* x86_64_declgen.c */
 int x86_64_generate_declaration(
-    lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstack_t* params,
-    scope_stack_t* scopes, scope_stack_t* heap, stack_map_t* stk, long* offset
+    lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstack_t* params, scope_stack_t* scopes, scope_stack_t* heap, long* offset
 );
 
 /* x86_64_opgen.c */

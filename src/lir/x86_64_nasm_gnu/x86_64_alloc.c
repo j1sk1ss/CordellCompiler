@@ -1,21 +1,8 @@
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
-int LIR_allocate_var(hir_subject_t* v, stack_map_t* stk, sym_table_t* smt, long* offset) {
-    int vrsize = LIR_get_hirtype_size(v->t);
-    int vroff  = stack_map_alloc(vrsize, stk);
-    print_debug("LIR_allocate_var, size=%i, off=%i", vrsize, vroff);
-
-    if (VRTB_update_memory(v->storage.var.v_id, vroff, HIR_get_type_size(v->t), &smt->v)) {
-        *offset = MAX(*offset, vroff);
-        return 1;
-    }
-
-    return 0;
-}
-
 int LIR_allocate_arr(
     lir_ctx_t* ctx, hir_subject_t* v, hir_subject_t* size, scope_stack_t* heap, 
-    scope_stack_t* scopes, stack_map_t* stk, sym_table_t* smt, array_info_t* ai, long* offset
+    scope_stack_t* scopes, sym_table_t* smt, array_info_t* ai, long* offset
 ) {
     if (ARTB_get_info(v->storage.var.v_id, ai, &smt->a)) {
         long arroff  = -1;
@@ -24,11 +11,11 @@ int LIR_allocate_arr(
 
         if (!ai->heap) {
             arrsize = elsize * str_atoi(size->storage.num.value);
-            arroff  = stack_map_alloc(arrsize, stk);
+            arroff  = stack_map_alloc(arrsize, &ctx->stk);
             print_debug("LIR_allocate_arr, size=%i, off=%i", arrsize, arroff);
         }
         else {
-            arroff = stack_map_alloc(DEFAULT_TYPE_SIZE, stk);
+            arroff = stack_map_alloc(DEFAULT_TYPE_SIZE, &ctx->stk);
             scope_push(heap, scope_id_top(scopes), arroff);
             print_debug("Heap allocation for [rbp - %i], scope=%i", arroff, scope_id_top(scopes));
 
@@ -47,7 +34,7 @@ int LIR_allocate_arr(
         }
 
         *offset = MAX(*offset, arroff);
-        VRTB_update_memory(v->storage.var.v_id, arroff, arrsize, &smt->v);
+        VRTB_update_memory(v->storage.var.v_id, arroff, arrsize, -1, &smt->v);
         return arroff;
     }
 

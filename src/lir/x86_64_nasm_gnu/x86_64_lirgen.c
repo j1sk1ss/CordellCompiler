@@ -3,7 +3,6 @@
 int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     hir_block_t* h = hctx->h;
 
-    stack_map_t stackmap = { .offset = 0 };
     scope_stack_t scopes = { .top = -1   };
     scope_stack_t heap   = { .top = -1   };
     sstack_t params      = { .top = -1   };
@@ -41,7 +40,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 scope_elem_t se;
                 scope_pop_top(&scopes, &se);
                 // LIR_deallocate_scope_heap(ctx, h->farg->storage.cnst.value, &heap);
-                stack_map_free_range(se.offset, -1, &stackmap);
+                stack_map_free_range(se.offset, -1, &ctx->stk);
                 offset = se.offset;
                 break;
             }
@@ -58,7 +57,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
             case HIR_VARDECL:
             case HIR_ARRDECL:
-            case HIR_STRDECL: x86_64_generate_declaration(ctx, h, smt, &params, &scopes, &heap, &stackmap, &offset); break;
+            case HIR_STRDECL: x86_64_generate_declaration(ctx, h, smt, &params, &scopes, &heap, &offset); break;
 
             case HIR_REF: {
                 LIR_store_var_reg(LIR_REF, ctx, h->sarg, RAX, smt);

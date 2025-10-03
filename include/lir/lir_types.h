@@ -154,6 +154,7 @@ typedef enum {
     LIR_STRING,
 } lir_subject_type_t;
 
+#define FREE_REGISTERS 5
 typedef enum {
     XMM0, XMM1,
     RAX,  RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8,  R9,  R10,  R11,  R12,  R13,  R14,  R15,

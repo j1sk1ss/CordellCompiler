@@ -5,6 +5,7 @@
 #include <std/str.h>
 #include <std/map.h>
 #include <std/stack.h>
+#include <std/stackmap.h>
 #include <lir/lir_types.h>
 
 #define LIR_VAL_MSIZE 128
@@ -63,6 +64,7 @@ typedef struct {
     lir_block_t*  h;
     lir_block_t*  t;
     scope_stack_t heap;
+    stack_map_t   stk;
     map_t*        vars;
 } lir_ctx_t;
 

@@ -107,7 +107,10 @@ int main(int argc, char* argv[]) {
     list_iter_hinit(&smt.v.lst, &it);
     variable_info_t* vi;
     while ((vi = (variable_info_t*)list_iter_next(&it))) {
-        printf("id: %i (%i), %s, type: %i, s_id: %i\n", vi->v_id, vi->p_id, vi->name, vi->type, vi->s_id);
+        printf("id: %i, %s, type: %i, s_id: %i", vi->v_id, vi->name, vi->type, vi->s_id);
+        if (vi->vmi.reg >= 0) printf(", reg=%s", register_to_string(vi->vmi.reg + R11));
+        else printf(", mem=[rbp - %i]", vi->vmi.offset);
+        printf("\n");
     }
 
     if (!list_isempty(&smt.a.lst)) printf("==========   ARRS  ==========\n");

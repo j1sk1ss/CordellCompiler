@@ -39,6 +39,7 @@ int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     list_iter_hinit(&smt->v.lst, &vit);
     variable_info_t* vi;
     while ((vi = (variable_info_t*)list_iter_next(&vit))) {
+        if (vi->glob || vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) continue;
         _add_ig_node(vi->v_id, g);
     }
 

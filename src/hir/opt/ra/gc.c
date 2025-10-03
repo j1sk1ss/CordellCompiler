@@ -84,12 +84,12 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         long neighbor_id;
         while ((neighbor_id = set_iter_next_int(&sit)) >= 0) {
             long neighbor_color;
-            if ((neighbor_color = (long)map_get(colors, neighbor_id))) {
+            if (map_get(colors, neighbor_id, (void**)&neighbor_color)) {
                 set_add_int(&used_colors, neighbor_color);
             }
         }
         
-        long color = 1;
+        long color = 0;
         while (set_has_int(&used_colors, color)) {
             color++;
         }
