@@ -32,19 +32,20 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_OEXT:    LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id)); break;
             case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset);              break;
             case HIR_EXITOP:  
-                // LIR_deallocate_scope_heap(ctx, h->farg->storage.cnst.value, &heap);
+                LIR_deallocate_scope_heap(ctx, scope_id_top(&scopes), &heap);
                 LIR_BLOCK1(ctx, LIR_EXITOP, LIR_format_variable(ctx, h->farg, smt));   
             break;
 
             case HIR_ENDSCOPE: {
                 scope_elem_t se;
                 scope_pop_top(&scopes, &se);
-                // LIR_deallocate_scope_heap(ctx, h->farg->storage.cnst.value, &heap);
+                LIR_deallocate_scope_heap(ctx, h->farg->storage.cnst.value, &heap);
                 stack_map_free_range(se.offset, -1, &ctx->stk);
                 offset = se.offset;
                 break;
             }
             
+            case HIR_FRET: LIR_deallocate_scope_heap(ctx, scope_id_top(&scopes), &heap);
             case HIR_SYSC:
             case HIR_STORE_SYSC:
             case HIR_FCLL:
@@ -52,7 +53,6 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_ECLL:
             case HIR_STORE_ECLL:
             case HIR_FDCL:
-            case HIR_FRET:
             case HIR_FARGLD: x86_64_generate_func(ctx, h, smt, &params);
 
             case HIR_VARDECL:
@@ -84,8 +84,8 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                     LIR_BLOCK2(ctx, LIR_iMUL, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_CONST(HIR_get_type_size(h->farg->t)));
                     if (!ai.heap) LIR_store_var_reg(LIR_REF, ctx, h->sarg, RBX, smt);
                     else LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RBX, smt);
-                    LIR_reg_op(ctx, RAX, RBX, LIR_iADD);
-                    LIR_reg_op(ctx, RAX, RAX, LIR_GDREF);
+                    LIR_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iADD);
+                    LIR_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_GDREF);
                     LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
                 }
 
@@ -99,9 +99,9 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                     LIR_BLOCK2(ctx, LIR_iMUL, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_CONST(HIR_get_type_size(h->targ->t)));
                     if (!ai.heap) LIR_store_var_reg(LIR_REF, ctx, h->farg, RBX, smt);
                     else LIR_store_var_reg(LIR_iMOV, ctx, h->farg, RBX, smt);
-                    LIR_reg_op(ctx, RAX, RBX, LIR_iADD);
+                    LIR_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iADD);
                     LIR_store_var_reg(LIR_iMOV, ctx, h->targ, RBX, smt);
-                    LIR_reg_op(ctx, RAX, RBX, LIR_LDREF);
+                    LIR_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_LDREF);
                 }
 
                 break;

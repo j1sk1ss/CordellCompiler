@@ -5,13 +5,8 @@ ig.c - Create interference graph
 #include <hir/opt/ra.h>
 
 igraph_node_t* HIR_RA_find_ig_node(igraph_t* g, long v_id) {
-    list_iter_t it;
-    list_iter_hinit(&g->nodes, &it);
     igraph_node_t* n;
-    while ((n = (igraph_node_t*)list_iter_next(&it))) {
-        if (n->v_id == v_id) return n;
-    }
-
+    if (map_get(&g->nodes, v_id, (void**)&n)) return n;
     return NULL;
 }
 
@@ -31,10 +26,12 @@ static int _add_ig_node(long v_id, igraph_t* g) {
     str_memset(n, 0, sizeof(igraph_node_t));
     n->v_id = v_id;
     set_init(&n->v);
-    return list_add(&g->nodes, n);
+    return map_put(&g->nodes, v_id, n);
 }
 
 int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
+    map_init(&g->nodes);
+
     list_iter_t vit;
     list_iter_hinit(&smt->v.lst, &vit);
     variable_info_t* vi;
@@ -75,5 +72,5 @@ int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
 }
 
 int HIR_RA_unload_igraph(igraph_t* g) {
-    return list_free_force(&g->nodes);
+    return map_free_force(&g->nodes);
 }

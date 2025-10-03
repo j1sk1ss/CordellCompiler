@@ -18,7 +18,7 @@ typedef struct igraph_node {
 } igraph_node_t;
 
 typedef struct {
-    list_t nodes;
+    map_t nodes;
 } igraph_t;
 
 int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, map_t* colors);

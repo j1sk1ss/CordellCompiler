@@ -5,7 +5,7 @@ static long _hash(long key, long capacity) {
 }
 
 int map_init(map_t* m) {
-    if (!m) return -1;
+    if (!m) return 0;
     m->capacity = MAP_INITIAL_CAPACITY;
     m->size     = 0;
     m->entries  = (map_entry_t*)mm_malloc(m->capacity * sizeof(map_entry_t));
@@ -19,7 +19,7 @@ static int _map_resize(map_t* m, long newcap) {
     m->entries = (map_entry_t*)mm_malloc(newcap * sizeof(map_entry_t));
     if (!m->entries) {
         m->entries = old_entries;
-        return -1;
+        return 0;
     }
 
     m->capacity = newcap;
@@ -32,27 +32,28 @@ static int _map_resize(map_t* m, long newcap) {
     }
 
     mm_free(old_entries);
-    return 0;
+    return 1;
 }
 
 int map_put(map_t* m, long k, void* v) {
     if (!m) return -1;
     if ((double)m->size / m->capacity > MAP_LOAD_FACTOR) {
-        if (_map_resize(m, m->capacity * 2) != 0) return -1;
+        if (!_map_resize(m, m->capacity * 2)) return 0;
     }
 
     long idx = _hash(k, m->capacity);
     for (;;) {
-        if (m->entries[idx].used != 1) {
+        if (!m->entries[idx].used) {
             m->entries[idx].key = k;
             m->entries[idx].value = v;
             m->entries[idx].used = 1;
             m->size++;
-            return 0;
+            return 1;
         }
-        if (m->entries[idx].used == 1 && m->entries[idx].key == k) {
+
+        if (m->entries[idx].used && m->entries[idx].key == k) {
             m->entries[idx].value = v;
-            return 0;
+            return 1;
         }
 
         idx = (idx + 1) % m->capacity;
@@ -77,32 +78,35 @@ int map_get(map_t* m, long k, void** v) {
 }
 
 int map_remove(map_t* m, long k) {
-    if (!m) return -1;
+    if (!m) return 0;
     long idx = _hash(k, m->capacity);
 
     for (;;) {
-        if (m->entries[idx].used == 0) return -1;
+        if (m->entries[idx].used == 0) return 0;
         if (m->entries[idx].used == 1 && m->entries[idx].key == k) {
             m->entries[idx].used = -1;
             m->entries[idx].value = NULL;
             m->size--;
-            return 0;
+            return 1;
         }
+
         idx = (idx + 1) % m->capacity;
     }
+
+    return 0;
 }
 
 int map_free(map_t* m) {
-    if (!m) return -1;
+    if (!m) return 0;
     mm_free(m->entries);
     m->entries = NULL;
     m->capacity = 0;
     m->size = 0;
-    return 0;
+    return 1;
 }
 
 int map_free_force(map_t* m) {
-    if (!m) return -1;
+    if (!m) return 0;
     for (long i = 0; i < m->capacity; i++) {
         if (m->entries[i].used && m->entries[i].value) {
             mm_free(m->entries[i].value);

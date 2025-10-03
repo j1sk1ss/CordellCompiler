@@ -10,7 +10,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     ast_node_t* name = node;
 
     func_info_t fi;
-    FNTB_get_info(name->token->value, &fi, &smt->f);
+    if (!FNTB_get_info_id(name->sinfo.v_id, &fi, &smt->f)) return NULL;
 
     int arg_count = 0;
     for (ast_node_t *arg = name->child, *targ = fi.args->child; arg && targ; arg = arg->sibling, targ = targ->sibling) {

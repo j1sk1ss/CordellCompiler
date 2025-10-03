@@ -19,7 +19,12 @@ int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, map_t* colors) {
             long vid;
             while ((vid = set_iter_next_int(&init)) >= 0) {
                 if (set_has_int(&cb->curr_out, vid)) continue;
-                HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->exit);
+                if (!set_has_int(&cb->use, vid)) HIR_insert_block_before(
+                    HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->exit
+                );
+                else HIR_insert_block_after(
+                    HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->exit
+                );
             }
 
             set_iter_t defit;

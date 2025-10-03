@@ -7,7 +7,7 @@ gc.c - Color interference graph with euristic approuch
 int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     if (!g || !colors) return 0;
     
-    int node_count = list_size(&g->nodes);
+    int node_count = g->nodes.size;
     if (!node_count) return 1;
     
     sstack_t stack  = { .top = -1 };
@@ -22,15 +22,16 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         return 0;
     }
     
-    list_iter_t it;
-    list_iter_hinit(&g->nodes, &it);
     igraph_node_t* n;
     int i = 0;
-    while ((n = (igraph_node_t*)list_iter_next(&it))) {
-        v_ids[i]     = n->v_id;
-        degrees[i]   = set_size(&n->v);
-        processed[i] = 0;
-        i++;
+    for (long idx = 0; idx < g->nodes.capacity; idx++) {
+        if (g->nodes.entries[idx].used == 1) {
+            n = (igraph_node_t*)g->nodes.entries[idx].value;
+            v_ids[i]     = n->v_id;
+            degrees[i]   = set_size(&n->v);
+            processed[i] = 0;
+            i++;
+        }
     }
     
     int remaining = node_count;

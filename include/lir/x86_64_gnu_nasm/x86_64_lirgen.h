@@ -15,7 +15,7 @@
 lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt);
 int LIR_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
 int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
-int LIR_reg_op(lir_ctx_t* ctx, int freg, int sreg, lir_operation_t op);
+int LIR_reg_op(lir_ctx_t* ctx, int freg, int fs, int sreg, int ss, lir_operation_t op);
 
 int LIR_deallocate_scope_heap(lir_ctx_t* ctx, int s_id, scope_stack_t* heap);
 int LIR_allocate_arr(

@@ -25,10 +25,10 @@ int LIR_allocate_arr(
             LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RDI, DEFAULT_TYPE_SIZE), LIR_SUBJ_CONST(0));
             LIR_BLOCK0(ctx, LIR_SYSC);
             LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_OFF(arroff, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE));
-            LIR_reg_op(ctx, RDI, RAX, LIR_iMOV);
+            LIR_reg_op(ctx, RDI, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_iMOV);
             LIR_BLOCK1(ctx, LIR_POP, LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
-            LIR_reg_op(ctx, RAX, RBX, LIR_iADD);
-            LIR_reg_op(ctx, RDI, RAX, LIR_iMOV);
+            LIR_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iADD);
+            LIR_reg_op(ctx, RDI, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_iMOV);
             LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE), LIR_SUBJ_CONST(12));
             LIR_BLOCK0(ctx, LIR_SYSC);
         }

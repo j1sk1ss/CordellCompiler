@@ -54,7 +54,7 @@ int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, in
     return 1;
 }
 
-int LIR_reg_op(lir_ctx_t* ctx, int freg, int sreg, lir_operation_t op) {
-    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(freg, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(sreg, DEFAULT_TYPE_SIZE));
+int LIR_reg_op(lir_ctx_t* ctx, int freg, int fs, int sreg, int ss, lir_operation_t op) {
+    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(freg, fs), LIR_SUBJ_REG(sreg, ss));
     return 1;
 }
