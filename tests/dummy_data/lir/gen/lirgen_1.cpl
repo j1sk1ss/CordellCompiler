@@ -1,6 +1,7 @@
 {
     function sum(i32 a, i32 b) => i32 {
-        return a + b;
+        arr c[2, i32] = { a, b };
+        return c[0] + c[1];
     }
 
     start(i64 argc, ptr u64 argv) {
@@ -14,7 +15,7 @@
             exit 1;
         }
         
-        i32 l = 1;
-        exit l;
+        i32 l = ref f;
+        exit dref l;
     }
 }

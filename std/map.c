@@ -28,7 +28,7 @@ static int _map_resize(map_t* m, long newcap) {
     m->size = 0;
 
     for (long i = 0; i < oldcap; i++) {
-        if (old_entries[i].used == 1) {
+        if (old_entries[i].used) {
             map_put(m, old_entries[i].key, old_entries[i].value);
         }
     }

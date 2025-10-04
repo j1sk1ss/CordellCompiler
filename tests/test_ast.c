@@ -25,12 +25,8 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    sym_table_t smt = {
-        .a = { .h = NULL },
-        .v = { .h = NULL },
-        .f = { .h = NULL }
-    };
-    
+    sym_table_t smt;
+    SMT_init(&smt);
     syntax_ctx_t sctx = { .r = NULL };
 
     STX_create(tkn, &sctx, &smt);

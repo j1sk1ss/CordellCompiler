@@ -2,7 +2,6 @@
 #include <prep/token.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <ast/syntax.h>
 #include <prep/markup.h>
 
 int main(int argc, char* argv[]) {

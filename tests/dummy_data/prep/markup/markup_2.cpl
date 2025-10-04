@@ -1,80 +1,21 @@
-from "string.cpl" import strlen;
-
 {
-    function putc(i8 sym) {
-        return 1;
+    function sum(i32 a, i32 b) => i32 {
+        arr c[2, i32] = { a, b };
+        return c[0] + c[1];
     }
 
-    function puts(ptr i8 string) {
-        i64 strSize = strlen(string);
-        return syscall(1, 1, string, strSize);
-    }
-
-    glob i32 glint = 1;
-    glob ro i32 glroint = 2;
-
-    start() {
-        str hello_msg = "Hello there!";
-        arr str_arr[12, i8] = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0 };
-        ptr i8 chrptr = str_arr;
-        ptr i32 intptr = str_arr;
-
-        chrptr[0] = 'R';
-        intptr[0] = 123;
-
-        i32 a = 0;
+    start(i64 argc, ptr u64 argv) {
+        i32 a = 10;
         i32 b = 10;
-        i32 c = (a + c) * a;
+        i32 c = 10;
+        i32 d = 10;
+        i32 k = 10;
+        i32 f = 10;
+        if sum(a, b) > (a * b + c + d + k + f); {
+            exit 1;
+        }
         
-        {
-            arr buff[2, i8] = { 0, 0 };
-            short asd = 0;
-            short sdf = 1;
-            short dfg = 2;
-        }
-
-        arr buff[2, i8] = { 0, 0 };
-        i8 asd = 0;
-        i8 sdf = 1;
-        i8 dfg = 2;
-
-        if sdf == 1; {
-            i8 utu = a;
-        }
-
-        if asd == 0; {
-            i8 utu = b;
-        }
-        else {
-            i8 utu = a;
-        }
-
-        while asd; {
-            asd = 1;
-        }
-        else {
-            asd = 0;
-        }
-
-        switch asd; {
-            case 0; {
-                i8 fst = 0;
-                i8 sec = 1;
-            }
-            default {
-                i8 fst = 0;
-                i8 sec = 1;
-            }
-        }
-
-        i64 rer = 345;
-        i64 utu = 321;
-
-        putc('H'); putc(0); : One line comment and one line commands! :
-        puts("Hello there from puts!");
-
-        str_arr = a;
-        a = str_arr[0];
-        exit c;
+        i32 l = ref f;
+        exit dref l;
     }
 }

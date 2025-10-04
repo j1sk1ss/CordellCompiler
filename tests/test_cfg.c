@@ -9,64 +9,7 @@
 #include <hir/opt/cfg.h>
 #include "ast_helper.h"
 #include "hir_helper.h"
-
-static int _depth = 0;
-
-void print_hir_block(const hir_block_t* block, int ud) {
-    if (!block) return;
-    if (ud) for (int i = 0; i < _depth; i++) printf("    ");
-    printf("%s ", hir_op_to_string(block->op), block->args);
-    print_hir_subject(block->farg); if (block->sarg) printf(", ");
-    print_hir_subject(block->sarg); if (block->targ) printf(", ");
-    print_hir_subject(block->targ); printf("\n");
-}
-
-/* https://dreampuf.github.io/GraphvizOnline/?engine=dot */
-static int _export_dot_func(cfg_func_t* f) {
-    printf("digraph CFG_func%d {\n", f->id);
-    printf("  rankdir=TB;\n");
-    cfg_block_t* b = f->cfg_head;
-    while (b) {
-        printf("  B%ld [label=\"B%ld:\\nentry=%s\\nexit=%s\"];\n",
-               b->id, b->id,
-               b->entry ? hir_op_to_string(b->entry->op) : "NULL",
-               b->exit  ? hir_op_to_string(b->exit->op)  : "NULL");
-        if (b->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", b->id, b->l->id);
-        if (b->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", b->id, b->jmp->id);
-        b = b->next;
-    }
-    printf("}\n");
-    return 1;
-}
-
-void cfg_print(cfg_ctx_t* ctx) {
-    cfg_func_t* f = ctx->h;
-    printf("==== CFG DUMP ====\n");
-
-    while (f) {
-        printf("==== CFG DOT ====\n");
-        _export_dot_func(f);
-        printf("\n\n==== CFG VIS. FUNC_ID [%i] ====\n", f->id);
-        cfg_block_t* b = f->cfg_head;
-        while (b) {
-            printf("Block %ld [\nentry=", b->id);
-            print_hir_block(b->entry, 0);
-            printf("exit=");
-            print_hir_block(b->exit, 0);
-            printf("]\n");
-
-            if (b->l)   printf("fallthrough -> Block %ld\n", b->l->id);
-            if (b->jmp) printf("jump -> Block %ld\n", b->jmp->id);
-
-            printf("\n");
-            b = b->next;
-        }
-
-        f = f->next;
-    }
-
-    printf("==================\n");
-}
+#include "hir_helper.h"
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
@@ -92,12 +35,8 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    sym_table_t smt = {
-        .a = { .h = NULL },
-        .v = { .h = NULL },
-        .f = { .h = NULL }
-    };
-    
+    sym_table_t smt;
+    SMT_init(&smt);
     syntax_ctx_t sctx  = { .r = NULL };
 
     STX_create(tkn, &sctx, &smt);
@@ -113,40 +52,53 @@ int main(int argc, char* argv[]) {
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
     while (h) {
-        print_hir_block(h, 1);
+        print_hir_block(h, 1, &smt);
         h = h->next;
     }
 
     printf("\n\n========== SYMTABLES ==========\n");
-    if (smt.v.h) printf("==========   VARS  ==========\n");
-    variable_info_t* vh = smt.v.h;
-    while (vh) {
-        printf("id: %i, %s, type: %i, s_id: %i\n", vh->v_id, vh->name, vh->type, vh->s_id);
-        vh = vh->next;
+    map_iter_t it;
+
+    if (!map_isempty(&smt.v.vartb)) printf("==========   VARS  ==========\n");
+    map_iter_init(&smt.v.vartb, &it);
+    variable_info_t* vi;
+    while ((vi = (variable_info_t*)map_iter_next(&it))) {
+        printf("id: %i, %s, type: %i, s_id: %i\n", vi->v_id, vi->name, vi->type, vi->s_id);
     }
 
-    if (smt.a.h) printf("==========   ARRS  ==========\n");
-    array_info_t* ah = smt.a.h;
-    while (ah) {
-        printf("id: %i, name: %s, scope: %i\n", ah->v_id, ah->name, ah->s_id);
-        ah = ah->next;
+    if (!map_isempty(&smt.a.arrtb)) printf("==========   ARRS  ==========\n");
+    map_iter_init(&smt.a.arrtb, &it);
+    array_info_t* ai;
+    while ((ai = (array_info_t*)map_iter_next(&it))) {
+        printf("id: %i, eltype: %i%s\n", ai->v_id, ai->el_type, ai->heap ? ", heap" : "");
     }
 
-    if (smt.f.h) printf("==========  FUNCS  ==========\n");
-    func_info_t* fh = smt.f.h;
-    while (fh) {
-        printf("id: %i, name: %s\n", fh->id, fh->name);
-        fh = fh->next;
+    if (!map_isempty(&smt.f.functb)) printf("==========  FUNCS  ==========\n");
+    map_iter_init(&smt.f.functb, &it);
+    func_info_t* fi;
+    while ((fi = (func_info_t*)map_iter_next(&it))) {
+        printf("id: %i, name: %s\n", fi->id, fi->name);
     }
 
-    if (smt.s.h) printf("========== STRINGS ==========\n");
-    str_info_t* sh = smt.s.h;
-    while (sh) {
-        printf("id: %i, val: %s\n", sh->id, sh->value);
-        sh = sh->next;
+    if (!map_isempty(&smt.s.strtb)) printf("========== STRINGS ==========\n");
+    map_iter_init(&smt.s.strtb, &it);
+    str_info_t* si;
+    while ((si = (str_info_t*)map_iter_next(&it))) {
+        printf("id: %i, val: %s\n", si->id, si->value);
     }
 
-    cfg_ctx_t cfgctx = { .h = NULL };
+    if (!map_isempty(&smt.m.allias)) printf("========== ALLIAS ==========\n");
+    map_iter_init(&smt.m.allias, &it);
+    allias_t* mi;
+    while ((mi = (allias_t*)map_iter_next(&it))) {
+        printf("id: %i, owners: ", mi->v_id);
+        set_iter_t sit;
+        set_iter_init(&mi->owners, &sit);
+        long own_id;
+        while ((own_id = set_iter_next_int(&sit)) >= 0) printf("%i ", own_id);
+    }
+
+    cfg_ctx_t cfgctx;
     HIR_CFG_build(&irctx, &cfgctx);
     cfg_print(&cfgctx);
 

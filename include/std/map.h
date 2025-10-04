@@ -5,7 +5,7 @@
 #include <std/str.h>
 
 #define MAP_INITIAL_CAPACITY 16
-#define MAP_LOAD_FACTOR      0.75
+#define MAP_LOAD_FACTOR      0.5
 
 typedef struct {
     long   key;

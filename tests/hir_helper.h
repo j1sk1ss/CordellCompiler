@@ -2,6 +2,7 @@
 #define HIR_HELPER_H_
 
 #include <hir/hir.h>
+#include <hir/opt/cfg.h>
 #include <hir/hir_types.h>
 
 static const char* hir_op_to_string(hir_operation_t op) {
