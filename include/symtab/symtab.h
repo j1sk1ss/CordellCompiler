@@ -17,6 +17,7 @@ typedef struct {
 } sym_table_t;
 
 sym_table_t* SMT_create();
+int SMT_init(sym_table_t* smt);
 int SMT_unload(sym_table_t* smt);
 
 #endif

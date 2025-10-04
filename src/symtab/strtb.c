@@ -1,24 +1,20 @@
 #include <symtab/strtb.h>
 
 int STTB_get_info_id(long id, str_info_t* info, strtb_ctx_t* ctx) {
-    list_iter_t it;
-    list_iter_hinit(&ctx->lst, &it);
     str_info_t* si;
-    while ((si = (str_info_t*)list_iter_next(&it))) {
-        if (si->id == id) {
-            if (info) str_memcpy(info, si, sizeof(str_info_t));
-            return 1;
-        }
+    if (map_get(&ctx->strtb, id, (void**)&si)) {
+        if (info) str_memcpy(info, si, sizeof(str_info_t));
+        return 1;
     }
 
     return 0;
 }
 
 int STTB_get_info(const char* name, str_info_t* info, strtb_ctx_t* ctx) {
-    list_iter_t it;
-    list_iter_hinit(&ctx->lst, &it);
+    map_iter_t it;
+    map_iter_init(&ctx->strtb, &it);
     str_info_t* si;
-    while ((si = (str_info_t*)list_iter_next(&it))) {
+    while ((si = (str_info_t*)map_iter_next(&it))) {
         if (!str_strncmp(si->value, name, TOKEN_MAX_SIZE)) {
             if (info) str_memcpy(info, si, sizeof(str_info_t));
             return 1;
@@ -33,11 +29,11 @@ int STTB_add_info(const char* name, strtb_ctx_t* ctx) {
     str_info_t* nnd = (str_info_t*)mm_malloc(sizeof(str_info_t));
     if (!nnd) return 0;
     nnd->id = ctx->curr_id++;
-    if (name) str_strncpy(nnd->value, name, TOKEN_MAX_SIZE);
-    list_add(&ctx->lst, nnd);
+    str_strncpy(nnd->value, name, TOKEN_MAX_SIZE);
+    map_put(&ctx->strtb, nnd->id, nnd);
     return nnd->id;
 }
 
 int STTB_unload(strtb_ctx_t* ctx) {
-    return list_free_force(&ctx->lst);
+    return map_free_force(&ctx->strtb);
 }

@@ -2,7 +2,7 @@
 #define ARRMEM_H_
 
 #include <std/str.h>
-#include <std/list.h>
+#include <std/map.h>
 #include <prep/token.h>
 
 typedef struct {
@@ -12,7 +12,7 @@ typedef struct {
 } array_info_t;
 
 typedef struct {
-    list_t lst;
+    map_t arrtb;
 } arrtab_ctx_t;
 
 int ARTB_get_info(long id, array_info_t* info, arrtab_ctx_t* ctx);

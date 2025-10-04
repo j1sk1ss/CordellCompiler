@@ -7,6 +7,15 @@ sym_table_t* SMT_create() {
     return smt;
 }
 
+int SMT_init(sym_table_t* smt) {
+    map_init(&smt->v.vartb);
+    map_init(&smt->s.strtb);
+    map_init(&smt->f.functb);
+    map_init(&smt->a.arrtb);
+    map_init(&smt->m.allias);
+    return 1;
+}
+
 int SMT_unload(sym_table_t* smt) {
     VRTB_unload(&smt->v);
     ARTB_unload(&smt->a);

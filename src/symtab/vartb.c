@@ -2,41 +2,33 @@
 
 int VRTB_update_memory(long id, long offset, long size, char reg, vartab_ctx_t* ctx) {
     print_debug("VRTB_update_memory(id=%i, offset=%i, size=%i, reg=%i)", id, offset, size, reg);
-    list_iter_t it;
-    list_iter_hinit(&ctx->lst, &it);
     variable_info_t* vi;
-    while ((vi = (variable_info_t*)list_iter_next(&it))) {
-        if (vi->v_id == id) {
-            vi->vmi.offset    = offset;
-            vi->vmi.size      = size;
-            vi->vmi.reg       = reg;
-            vi->vmi.allocated = 1;
-            return 1;
-        }
+    if (map_get(&ctx->vartb, id, (void**)&vi)) {
+        vi->vmi.offset    = offset;
+        vi->vmi.size      = size;
+        vi->vmi.reg       = reg;
+        vi->vmi.allocated = 1;
+        return 1;
     }
-    
+
     return 0;    
 }
 
 int VRTB_get_info_id(long id, variable_info_t* info, vartab_ctx_t* ctx) {
-    list_iter_t it;
-    list_iter_hinit(&ctx->lst, &it);
     variable_info_t* vi;
-    while ((vi = (variable_info_t*)list_iter_next(&it))) {
-        if (vi->v_id == id) {
-            if (info) str_memcpy(info, vi, sizeof(variable_info_t));
-            return 1;
-        }
+    if (map_get(&ctx->vartb, id, (void**)&vi)) {
+        if (info) str_memcpy(info, vi, sizeof(variable_info_t));
+        return 1;
     }
-    
+
     return 0;
 }
 
 int VRTB_get_info(const char* varname, short s_id, variable_info_t* info, vartab_ctx_t* ctx) {
-    list_iter_t it;
-    list_iter_hinit(&ctx->lst, &it);
+    map_iter_t it;
+    map_iter_init(&ctx->vartb, &it);
     variable_info_t* vi;
-    while ((vi = (variable_info_t*)list_iter_next(&it))) {
+    while ((vi = (variable_info_t*)map_iter_next(&it))) {
         if (((s_id < 0) || s_id == vi->s_id) && !str_strcmp(varname, vi->name)) {
             if (info) str_memcpy(info, vi, sizeof(variable_info_t));
             return 1;
@@ -77,7 +69,7 @@ int VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     str_memcpy(nnd, src, sizeof(variable_info_t));
     nnd->v_id = ctx->curr_id++;
     nnd->p_id = src->v_id;
-    list_add(&ctx->lst, nnd);
+    map_put(&ctx->vartb, nnd->v_id, nnd);
     return nnd->v_id;
 }
 
@@ -87,14 +79,11 @@ int VRTB_add_info(const char* name, token_type_t type, short s_id, token_flags_t
     if (!nnd) return 0;
 
     nnd->v_id = ctx->curr_id++;
-    if (!name) {
-        snprintf(nnd->name, TOKEN_MAX_SIZE, "tmp");
-    }
-    
-    list_add(&ctx->lst, nnd);
+    if (!name) snprintf(nnd->name, TOKEN_MAX_SIZE, "tmp");
+    map_put(&ctx->vartb, nnd->v_id, nnd);
     return nnd->v_id;
 }
 
 int VRTB_unload(vartab_ctx_t* ctx) {
-    return list_free_force(&ctx->lst);
+    return map_free_force(&ctx->vartb);
 }

@@ -4,7 +4,7 @@
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/set.h>
-#include <std/list.h>
+#include <std/map.h>
 #include <std/logg.h>
 
 typedef struct {
@@ -13,7 +13,7 @@ typedef struct {
 } allias_t;
 
 typedef struct {
-    list_t lst;
+    map_t allias;
 } allias_map_t;
 
 int ALLIAS_add_owner(long v_id, long owner_id, allias_map_t* ctx);

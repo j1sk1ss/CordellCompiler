@@ -55,6 +55,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_FDCL:
             case HIR_FARGLD: x86_64_generate_func(ctx, h, smt, &params);
 
+            case HIR_VRDEALL:
             case HIR_VARDECL:
             case HIR_ARRDECL:
             case HIR_STRDECL: x86_64_generate_declaration(ctx, h, smt, &params, &scopes, &heap, &offset); break;

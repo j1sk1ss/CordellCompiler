@@ -4,7 +4,7 @@ deall.c - Create deallocation points in HIR
 
 #include <hir/opt/ra.h>
 #define DEF_OUT_DEALLOC
-int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, map_t* colors) {
+int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt, map_t* colors) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -19,18 +19,21 @@ int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, map_t* colors) {
             long vid;
             while ((vid = set_iter_next_int(&init)) >= 0) {
                 if (set_has_int(&cb->curr_out, vid)) continue;
-                if (!set_has_int(&cb->use, vid)) HIR_insert_block_before(
-                    HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->exit
-                );
-                else HIR_insert_block_after(
-                    HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->exit
-                );
-            }
 
-            set_iter_t defit;
-            set_iter_init(&cb->def, &defit);
-            while ((vid = set_iter_next_int(&defit)) >= 0) {
-                if (set_has_int(&cb->curr_out, vid)) continue;
+                set_t owners;
+                int hasown = 0;
+                if (ALLIAS_get_owners(vid, &owners, &smt->m)) {
+                    set_iter_t ownersit;
+                    set_iter_init(&owners, &ownersit);
+                    while ((vid = set_iter_next_int(&ownersit)) >= 0) {
+                        if (set_has_int(&cb->curr_out, vid)) {
+                            hasown = 1;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasown) continue;
                 HIR_insert_block_after(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->exit);
             }
 #else

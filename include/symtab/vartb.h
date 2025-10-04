@@ -1,8 +1,8 @@
 #ifndef VARMEM_H_
 #define VARMEM_H_
 
+#include <std/map.h>
 #include <std/vars.h>
-#include <std/list.h>
 #include <prep/token.h>
 
 typedef struct {
@@ -26,8 +26,8 @@ typedef struct {
 } variable_info_t;
 
 typedef struct {
-    long   curr_id;
-    list_t lst;
+    long  curr_id;
+    map_t vartb;
 } vartab_ctx_t;
 
 int VRTB_update_memory(long id, long offset, long size, char reg, vartab_ctx_t* ctx);

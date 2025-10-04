@@ -122,14 +122,15 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
 }
 
 int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
-    list_iter_t it;
-    list_iter_hinit(&smt->v.lst, &it);
+    map_iter_t mit;
+    map_iter_init(&smt->v.vartb, &mit);
     variable_info_t* vh;
-    while ((vh = (variable_info_t*)list_iter_next(&it))) {
+    while ((vh = (variable_info_t*)map_iter_next(&mit))) {
         if (vh->glob) continue;
         _add_varver(&ctx->vers, vh->v_id, vh->v_id);
     }
 
+    list_iter_t it;
     list_iter_hinit(&cctx->funcs, &it);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&it))) {

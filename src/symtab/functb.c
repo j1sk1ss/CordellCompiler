@@ -1,24 +1,20 @@
 #include <symtab/functb.h>
 
 int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx) {
-    list_iter_t it;
-    list_iter_hinit(&ctx->lst, &it);
     func_info_t* fi;
-    while ((fi = (func_info_t*)list_iter_next(&it))) {
-        if (fi->id == id) {
-            if (out) str_memcpy(out, fi, sizeof(func_info_t));
-            return 1;
-        }
+    if (map_get(&ctx->functb, id, (void**)&fi)) {
+        if (out) str_memcpy(out, fi, sizeof(func_info_t));
+        return 1;
     }
 
     return 0;
 }
 
 int FNTB_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx) {
-    list_iter_t it;
-    list_iter_hinit(&ctx->lst, &it);
+    map_iter_t it;
+    map_iter_init(&ctx->functb, &it);
     func_info_t* fi;
-    while ((fi = (func_info_t*)list_iter_next(&it))) {
+    while ((fi = (func_info_t*)map_iter_next(&it))) {
         if (!str_strcmp(fname, fi->name)) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
             return 1;
@@ -45,10 +41,10 @@ int FNTB_add_info(const char* name, int global, int external, ast_node_t* args, 
     func_info_t* nnd = _create_func_info(name, global, external, args, rtype);
     if (!nnd) return 0;
     nnd->id = ctx->curr_id++;
-    list_add(&ctx->lst, nnd);
+    map_put(&ctx->functb, nnd->id, nnd);
     return nnd->id;
 }
 
 int FNTB_unload(functab_ctx_t* ctx) {
-    return list_free_force(&ctx->lst);
+    return map_free_force(&ctx->functb);
 }

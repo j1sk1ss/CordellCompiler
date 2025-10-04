@@ -32,11 +32,12 @@ static int _add_ig_node(long v_id, igraph_t* g) {
 int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     map_init(&g->nodes);
 
-    list_iter_t vit;
-    list_iter_hinit(&smt->v.lst, &vit);
+    map_iter_t vit;
+    map_iter_init(&smt->v.vartb, &vit);
     variable_info_t* vi;
-    while ((vi = (variable_info_t*)list_iter_next(&vit))) {
+    while ((vi = (variable_info_t*)map_iter_next(&vit))) {
         if (vi->glob || vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) continue;
+        if (ALLIAS_get_owners(vi->v_id, NULL, &smt->m)) continue;
         _add_ig_node(vi->v_id, g);
     }
 

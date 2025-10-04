@@ -22,16 +22,15 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         return 0;
     }
     
-    igraph_node_t* n;
     int i = 0;
-    for (long idx = 0; idx < g->nodes.capacity; idx++) {
-        if (g->nodes.entries[idx].used == 1) {
-            n = (igraph_node_t*)g->nodes.entries[idx].value;
-            v_ids[i]     = n->v_id;
-            degrees[i]   = set_size(&n->v);
-            processed[i] = 0;
-            i++;
-        }
+    map_iter_t it;
+    map_iter_init(&g->nodes, &it);
+    igraph_node_t* n;
+    while ((n = (igraph_node_t*)map_iter_next(&it))) {
+        v_ids[i]     = n->v_id;
+        degrees[i]   = set_size(&n->v);
+        processed[i] = 0;
+        i++;
     }
     
     int remaining = node_count;
@@ -51,7 +50,7 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         processed[max_index] = 1;
         remaining--;
         
-        n = HIR_RA_find_ig_node(g, v_ids[max_index]);
+        igraph_node_t* n = HIR_RA_find_ig_node(g, v_ids[max_index]);
         if (n) {
             set_iter_t sit;
             set_iter_init(&n->v, &sit);

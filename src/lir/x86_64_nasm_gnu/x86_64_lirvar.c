@@ -6,8 +6,7 @@ lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_tabl
         case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value);
         case HIR_CONSTVAL: return LIR_SUBJ_CONST(subj->storage.cnst.value);
         
-        case HIR_TMPVARF64: case HIR_TMPVARF32: return LIR_SUBJ_REG(XMM0, HIR_get_type_size(subj->t));
-        
+        case HIR_TMPVARF64: case HIR_TMPVARF32:
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARI64: case HIR_TMPVARU64:
         case HIR_TMPVARU32: case HIR_TMPVARI32: case HIR_TMPVARU16: case HIR_TMPVARI16: 
         case HIR_TMPVARU8:  case HIR_TMPVARI8:  case HIR_STKVARSTR: case HIR_STKVARARR: 
@@ -23,7 +22,10 @@ lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_tabl
                 if (!vi.vmi.allocated) {
                     long clr;
                     int vrsize = LIR_get_hirtype_size(subj->t);
-                    if (map_get(ctx->vars, subj->storage.var.v_id, (void**)&clr) && clr + 1 <= FREE_REGISTERS) vi.vmi.reg = clr;
+                    if (
+                        map_get(ctx->vars, subj->storage.var.v_id, (void**)&clr) && 
+                        clr + 1 <= FREE_REGISTERS
+                    ) vi.vmi.reg = clr;
                     else {
                         int vroff = stack_map_alloc(vrsize, &ctx->stk);
                         vi.vmi.offset = vroff;
@@ -33,8 +35,9 @@ lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_tabl
                     VRTB_update_memory(vi.v_id, vi.vmi.offset, vi.vmi.size, vi.vmi.reg, &smt->v);
                 }
 
-                if (vi.vmi.reg >= 0) return LIR_SUBJ_REG(R11 + vi.vmi.reg, vi.vmi.size);
-                return LIR_SUBJ_OFF(vi.vmi.offset, vi.vmi.size);
+                if (vi.vmi.reg < 0) return LIR_SUBJ_OFF(vi.vmi.offset, vi.vmi.size);
+                if (HIR_is_floattype(subj->t)) return LIR_SUBJ_REG(XMM0 + vi.vmi.reg, vi.vmi.size);
+                return LIR_SUBJ_REG(R11 + vi.vmi.reg, vi.vmi.size);
             }
         }
         

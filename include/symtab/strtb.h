@@ -2,7 +2,7 @@
 #define STRTB_H_
 
 #include <std/str.h>
-#include <std/list.h>
+#include <std/map.h>
 #include <prep/token.h>
 
 typedef struct {
@@ -11,8 +11,8 @@ typedef struct {
 } str_info_t;
 
 typedef struct {
-    long   curr_id;
-    list_t lst;
+    long  curr_id;
+    map_t strtb;
 } strtb_ctx_t;
 
 int STTB_add_info(const char* name, strtb_ctx_t* ctx);

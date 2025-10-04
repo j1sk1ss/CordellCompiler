@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     map_t clrs;
     HIR_RA_color_igraph(&ig, &clrs);
     igraph_dump_dot(&ig);
-    HIR_RA_create_deall(&cfgctx, &ig, &clrs);
+    HIR_RA_create_deall(&cfgctx, &ig, &smt, &clrs);
     map_free(&clrs);
 
     printf("\n\n========== HIR ==========\n");
@@ -96,16 +96,36 @@ int main(int argc, char* argv[]) {
         printf("id: %i, %s, type: %i, s_id: %i\n", vi->v_id, vi->name, vi->type, vi->s_id);
     }
 
-    if (!list_isempty(&smt.m.lst)) printf("========== ALLIAS ==========\n");
-    list_iter_hinit(&smt.m.lst, &it);
-    allias_t* mi;
-    while ((mi = (allias_t*)list_iter_next(&it))) {
+    if (smt.a.arrtb.size > 0) printf("==========   ARRS  ==========\n");
+    for (int i = 0; i < smt.a.arrtb.capacity; i++) {
+        if (!smt.a.arrtb.entries[i].used) continue;
+        array_info_t* ai = (array_info_t*)smt.a.arrtb.entries[i].value;
+        printf("id: %i, eltype: %i%s\n", ai->v_id, ai->el_type, ai->heap ? ", heap" : "");
+    }
+
+    if (smt.f.functb.size > 0) printf("==========  FUNCS  ==========\n");
+    for (int i = 0; i < smt.f.functb.capacity; i++) {
+        if (!smt.f.functb.entries[i].used) continue;
+        func_info_t* fi = (func_info_t*)smt.f.functb.entries[i].value;
+        printf("id: %i, name: %s\n", fi->id, fi->name);
+    }
+
+    if (smt.s.strtb.size > 0) printf("========== STRINGS ==========\n");
+    for (int i = 0; i < smt.s.strtb.capacity; i++) {
+        if (!smt.s.strtb.entries[i].used) continue;
+        str_info_t* si = (str_info_t*)smt.s.strtb.entries[i].value;
+        printf("id: %i, val: %s\n", si->id, si->value);
+    }
+
+    if (smt.m.allias.size > 0) printf("========== ALLIAS ==========\n");
+    for (int i = 0; i < smt.m.allias.capacity; i++) {
+        if (!smt.m.allias.entries[i].used) continue;
+        allias_t* mi = (allias_t*)smt.m.allias.entries[i].value;
         printf("id: %i, owners: ", mi->v_id);
         set_iter_t sit;
         set_iter_init(&mi->owners, &sit);
         long own_id;
         while ((own_id = set_iter_next_int(&sit)) >= 0) printf("%i ", own_id);
-        printf("\n");
     }
 
     HIR_RA_unload_igraph(&ig);

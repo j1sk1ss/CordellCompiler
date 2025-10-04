@@ -21,7 +21,7 @@ typedef struct {
     map_t nodes;
 } igraph_t;
 
-int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, map_t* colors);
+int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt, map_t* colors);
 igraph_node_t* HIR_RA_find_ig_node(igraph_t* g, long v_id);
 int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt);
 int HIR_RA_unload_igraph(igraph_t* g);

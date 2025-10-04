@@ -15,6 +15,12 @@ typedef struct {
 
 typedef struct {
     long         capacity;
+    long         index;
+    map_entry_t* entries;
+} map_iter_t;
+
+typedef struct {
+    long         capacity;
     long         size;
     map_entry_t* entries;
 } map_t;
@@ -23,6 +29,11 @@ int map_init(map_t* m);
 int map_put(map_t* m, long k, void* v);
 int map_remove(map_t* m, long k);
 int map_get(map_t* m, long k, void** v);
+
+int map_iter_init(map_t* m, map_iter_t* it);
+void* map_iter_next(map_iter_t* it);
+
+int map_isempty(map_t* m);
 int map_free(map_t* m);
 int map_free_force(map_t* m);
 

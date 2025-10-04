@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
     MRKP_variables(tkn);
 
     sym_table_t smt;
+    SMT_init(&smt);
     syntax_ctx_t sctx = { .r = NULL };
 
     STX_create(tkn, &sctx, &smt);
@@ -77,7 +78,7 @@ int main(int argc, char* argv[]) {
     map_t clrs;
     HIR_RA_color_igraph(&ig, &clrs);
     igraph_dump_dot(&ig);
-    HIR_RA_create_deall(&cfgctx, &ig, &clrs);
+    HIR_RA_create_deall(&cfgctx, &ig, &smt, &clrs);
 
     printf("\n\n========== SSA HIR ==========\n");
     hir_block_t* hh = hirctx.h;
@@ -101,43 +102,43 @@ int main(int argc, char* argv[]) {
     }
 
     printf("\n\n========== SYMTABLES ==========\n");
-    list_iter_t it;
+    map_iter_t it;
 
-    if (!list_isempty(&smt.v.lst)) printf("==========   VARS  ==========\n");
-    list_iter_hinit(&smt.v.lst, &it);
+    if (!map_isempty(&smt.v.vartb)) printf("==========   VARS  ==========\n");
+    map_iter_init(&smt.v.vartb, &it);
     variable_info_t* vi;
-    while ((vi = (variable_info_t*)list_iter_next(&it))) {
+    while ((vi = (variable_info_t*)map_iter_next(&it))) {
         printf("id: %i, %s, type: %i, s_id: %i", vi->v_id, vi->name, vi->type, vi->s_id);
         if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg + R11));
         else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %i]", vi->vmi.offset);
         printf("\n");
     }
 
-    if (!list_isempty(&smt.a.lst)) printf("==========   ARRS  ==========\n");
-    list_iter_hinit(&smt.a.lst, &it);
+    if (!map_isempty(&smt.a.arrtb)) printf("==========   ARRS  ==========\n");
+    map_iter_init(&smt.a.arrtb, &it);
     array_info_t* ai;
-    while ((ai = (array_info_t*)list_iter_next(&it))) {
+    while ((ai = (array_info_t*)map_iter_next(&it))) {
         printf("id: %i, eltype: %i%s\n", ai->v_id, ai->el_type, ai->heap ? ", heap" : "");
     }
 
-    if (!list_isempty(&smt.f.lst)) printf("==========  FUNCS  ==========\n");
-    list_iter_hinit(&smt.f.lst, &it);
+    if (!map_isempty(&smt.f.functb)) printf("==========  FUNCS  ==========\n");
+    map_iter_init(&smt.f.functb, &it);
     func_info_t* fi;
-    while ((fi = (func_info_t*)list_iter_next(&it))) {
+    while ((fi = (func_info_t*)map_iter_next(&it))) {
         printf("id: %i, name: %s\n", fi->id, fi->name);
     }
 
-    if (!list_isempty(&smt.s.lst)) printf("========== STRINGS ==========\n");
-    list_iter_hinit(&smt.s.lst, &it);
+    if (!map_isempty(&smt.s.strtb)) printf("========== STRINGS ==========\n");
+    map_iter_init(&smt.s.strtb, &it);
     str_info_t* si;
-    while ((si = (str_info_t*)list_iter_next(&it))) {
+    while ((si = (str_info_t*)map_iter_next(&it))) {
         printf("id: %i, val: %s\n", si->id, si->value);
     }
 
-    if (!list_isempty(&smt.m.lst)) printf("========== ALLIAS ==========\n");
-    list_iter_hinit(&smt.m.lst, &it);
+    if (!map_isempty(&smt.m.allias)) printf("========== ALLIAS ==========\n");
+    map_iter_init(&smt.m.allias, &it);
     allias_t* mi;
-    while ((mi = (allias_t*)list_iter_next(&it))) {
+    while ((mi = (allias_t*)map_iter_next(&it))) {
         printf("id: %i, owners: ", mi->v_id);
         set_iter_t sit;
         set_iter_init(&mi->owners, &sit);
