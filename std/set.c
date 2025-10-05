@@ -69,15 +69,20 @@ int set_equal(set_t* a, set_t* b) {
 }
 
 int set_union(set_t* dst, set_t* a, set_t* b) {
-    map_copy(&dst->body, &a->body);
+    set_t tmp;
+    set_init(&tmp);
 
+    map_copy(&tmp.body, &a->body);
     set_iter_t it;
     set_iter_init(b, &it);
     void* data;
     while (set_iter_next(&it, (void**)&data)) {
-        set_add(dst, data);
+        set_add(&tmp, data);
     }
 
+    set_free(dst);
+    set_copy(dst, &tmp);
+    set_free(&tmp);
     return 1;
 }
 

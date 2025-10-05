@@ -80,13 +80,8 @@ int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
 static int _compute_out(cfg_block_t* cfg) {
     set_t out;
     set_init(&out);
-
-    cfg_block_t* succ[2] = { cfg->l, cfg->jmp };
-    for (int i = 0; i < 2; i++) {
-        if (!succ[i]) continue;
-        set_union(&out, &out, &succ[i]->curr_in);
-    }
-
+    if (cfg->l)   set_union(&out, &out, &cfg->l->curr_in);
+    if (cfg->jmp) set_union(&out, &out, &cfg->jmp->curr_in);
     set_free(&cfg->curr_out);
     set_copy(&cfg->curr_out, &out);
     set_free(&out);
@@ -98,10 +93,8 @@ static int _compute_in(cfg_block_t* cfg) {
     set_init(&tmp);
     set_copy(&tmp, &cfg->curr_out);
     set_minus_set(&tmp, &cfg->def);
-
     set_free(&cfg->curr_in);
     set_union(&cfg->curr_in, &cfg->use, &tmp);
-
     set_free(&tmp);
     return 1;
 }
