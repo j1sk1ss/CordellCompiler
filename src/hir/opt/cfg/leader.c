@@ -13,13 +13,17 @@ int HIR_CFG_mark_leaders(cfg_ctx_t* ctx) {
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&it))) {
         hir_block_t* h = fb->entry;
-        set_add_addr(&fb->leaders, h);
+
+        set_init(&fb->leaders);
+        set_init(&fb->terminators);
+        
+        set_add(&fb->leaders, h);
         while (h) {
-            if (h->op == HIR_MKLB)      set_add_addr(&fb->leaders, h);
-            else if (HIR_isterm(h->op)) set_add_addr(&fb->terminators, h);
+            if (h->op == HIR_MKLB)      set_add(&fb->leaders, h);
+            else if (HIR_isterm(h->op)) set_add(&fb->terminators, h);
             else if (HIR_isjmp(h->op)) {
                 if (h->next) {
-                    set_add_addr(&fb->leaders, h->next);
+                    set_add(&fb->leaders, h->next);
                 }
             }
 

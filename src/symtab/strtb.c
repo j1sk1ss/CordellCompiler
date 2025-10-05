@@ -14,7 +14,7 @@ int STTB_get_info(const char* name, str_info_t* info, strtb_ctx_t* ctx) {
     map_iter_t it;
     map_iter_init(&ctx->strtb, &it);
     str_info_t* si;
-    while ((si = (str_info_t*)map_iter_next(&it))) {
+    while (map_iter_next(&it, (void**)&si)) {
         if (!str_strncmp(si->value, name, TOKEN_MAX_SIZE)) {
             if (info) str_memcpy(info, si, sizeof(str_info_t));
             return 1;

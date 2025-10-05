@@ -18,6 +18,8 @@ cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
     set_init(&block->prev_out);
     set_init(&block->def);
     set_init(&block->use);
+    set_init(&block->domf);
+    set_init(&block->dom);
     return block;
 }
 
@@ -32,14 +34,15 @@ int CFG_insert_cfg_block(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next) {
     set_iter_t pit;
     set_iter_init(&next->pred, &pit);
     cfg_block_t* p;
-    while ((p = set_iter_next_addr(&pit))) {
+    while (set_iter_next(&pit, (void**)&p)) {
         if (p->l == next)   p->l   = b;
         if (p->jmp == next) p->jmp = b;
-        set_add_addr(&b->pred, p);
+        set_add(&b->pred, p);
     }
 
     set_free(&next->pred);
-    set_add_addr(&next->pred, b);
+    set_init(&next->pred);
+    set_add(&next->pred, b);
     return 1;
 }
 
@@ -59,7 +62,7 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
         hir_block_t* entry = hh;
 #ifdef DRAGONBOOK_CFG_LEADER
         if (term) {
-            while (hh && hh != f->exit && !set_has_addr(&f->leaders, hh)) hh = hh->next;
+            while (hh && hh != f->exit && !set_has(&f->leaders, hh)) hh = hh->next;
             if (hh) {
                 entry = hh;
                 if (hh != f->exit) hh = hh->next;
@@ -68,8 +71,8 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
             term = 0;
         }
 
-        while (hh->next && hh != f->exit && !set_has_addr(&f->leaders, hh->next)) {
-            if (set_has_addr(&f->terminators, hh)) {
+        while (hh->next && hh != f->exit && !set_has(&f->leaders, hh->next)) {
+            if (set_has(&f->terminators, hh)) {
                 term = 1;
                 break;
             }
@@ -145,8 +148,8 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            if (cb->l)   set_add_addr(&cb->l->pred, cb);
-            if (cb->jmp) set_add_addr(&cb->jmp->pred, cb);
+            if (cb->l)   set_add(&cb->l->pred, cb);
+            if (cb->jmp) set_add(&cb->jmp->pred, cb);
         }
     }
 

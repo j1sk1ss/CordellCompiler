@@ -1,13 +1,36 @@
 #include <std/map.h>
 
-static long _hash(long key, long capacity) {
-    return ((unsigned long)key * 11400714819323198485llu) % capacity;
+static unsigned long __hash(long val) {
+    unsigned long x = (unsigned long)val;
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9UL;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111ebUL;
+    x = x ^ (x >> 31);
+    return x;
+}
+
+static long _get_index(long key, long capacity) {
+    return __hash(key) % capacity;
+}
+
+static int _map_update_hash(map_t* m) {
+    unsigned long h = 0;
+    for (long i = 0; i < m->capacity; i++) {
+        if (m->entries[i].used) {
+            h ^= __hash(m->entries[i].key);
+            h ^= __hash((long)m->entries[i].value);
+        }
+    }
+
+    h ^= m->size;
+    m->hash = h;
+    return 1;
 }
 
 int map_init(map_t* m) {
     if (!m) return 0;
     m->capacity = MAP_INITIAL_CAPACITY;
     m->size     = 0;
+    m->hash     = 0;
     m->entries  = (map_entry_t*)mm_malloc(m->capacity * sizeof(map_entry_t));
     str_memset(m->entries, 0, m->capacity * sizeof(map_entry_t));
     return m->entries ? 1 : 0;
@@ -43,18 +66,20 @@ int map_put(map_t* m, long k, void* v) {
         if (!_map_resize(m, m->capacity * 2)) return 0;
     }
 
-    long idx = _hash(k, m->capacity);
+    long idx = _get_index(k, m->capacity);
     for (;;) {
         if (!m->entries[idx].used) {
             m->entries[idx].key   = k;
             m->entries[idx].value = v;
             m->entries[idx].used  = 1;
             m->size++;
+            _map_update_hash(m);
             return 1;
         }
 
         if (m->entries[idx].used && m->entries[idx].key == k) {
             m->entries[idx].value = v;
+            _map_update_hash(m);
             return 1;
         }
 
@@ -62,9 +87,19 @@ int map_put(map_t* m, long k, void* v) {
     }
 }
 
+int map_copy(map_t* dst, map_t* src) {
+    if (!dst || !src) return 0;
+    dst->capacity = src->capacity;
+    dst->size     = src->size;
+    dst->hash     = src->hash;
+    dst->entries  = (map_entry_t*)mm_malloc(src->capacity * sizeof(map_entry_t));
+    str_memcpy(dst->entries, src->entries, src->capacity * sizeof(map_entry_t));
+    return 1;
+}
+
 int map_get(map_t* m, long k, void** v) {
     if (!m) return 0;
-    long idx = _hash(k, m->capacity);
+    long idx = _get_index(k, m->capacity);
 
     for (;;) {
         if (!m->entries[idx].used) return 0;
@@ -81,14 +116,15 @@ int map_get(map_t* m, long k, void** v) {
 
 int map_remove(map_t* m, long k) {
     if (!m) return 0;
-    long idx = _hash(k, m->capacity);
+    long idx = _get_index(k, m->capacity);
 
     for (;;) {
         if (!m->entries[idx].used) return 0;
         if (m->entries[idx].used && m->entries[idx].key == k) {
-            m->entries[idx].used  = -1;
+            m->entries[idx].used  = 0;
             m->entries[idx].value = NULL;
             m->size--;
+            _map_update_hash(m);
             return 1;
         }
 
@@ -106,23 +142,30 @@ int map_iter_init(map_t* m, map_iter_t* it) {
     return 1;
 }
 
-void* map_iter_next(map_iter_t* it) {
-    if (!it || it->index >= it->capacity) return NULL;
+int map_iter_next(map_iter_t* it, void** d) {
+    if (!it || it->index >= it->capacity) return 0;
     while (!it->entries[it->index].used && it->index < it->capacity) it->index++;
-    if (it->index >= it->capacity) return NULL;
-    return it->entries[it->index++].value;
+    if (it->index >= it->capacity) return 0;
+    *d = it->entries[it->index++].value;
+    return 1;
 }
 
 int map_isempty(map_t* m) {
     return !m->size;
 }
 
+int map_equals(map_t* a, map_t* b) {
+    if (!a || !b) return 0;
+    return a->hash == b->hash;
+}
+
 int map_free(map_t* m) {
     if (!m) return 0;
     mm_free(m->entries);
-    m->entries = NULL;
+    m->entries  = NULL;
     m->capacity = 0;
-    m->size = 0;
+    m->size     = 0;
+    m->hash     = 0;
     return 1;
 }
 

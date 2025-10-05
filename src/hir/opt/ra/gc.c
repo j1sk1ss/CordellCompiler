@@ -26,7 +26,7 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     map_iter_t it;
     map_iter_init(&g->nodes, &it);
     igraph_node_t* n;
-    while ((n = (igraph_node_t*)map_iter_next(&it))) {
+    while (map_iter_next(&it, (void**)&n)) {
         v_ids[i]     = n->v_id;
         degrees[i]   = set_size(&n->v);
         processed[i] = 0;
@@ -55,7 +55,7 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
             set_iter_t sit;
             set_iter_init(&n->v, &sit);
             long neighbor_id;
-            while ((neighbor_id = set_iter_next_int(&sit)) >= 0) {
+            while (set_iter_next(&sit, (void**)&neighbor_id)) {
                 for (i = 0; i < node_count; i++) {
                     if (v_ids[i] == neighbor_id && !processed[i]) {
                         degrees[i]--;
@@ -82,15 +82,15 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         set_iter_t sit;
         set_iter_init(&current_node->v, &sit);
         long neighbor_id;
-        while ((neighbor_id = set_iter_next_int(&sit)) >= 0) {
+        while (set_iter_next(&sit, (void**)&neighbor_id)) {
             long neighbor_color;
             if (map_get(colors, neighbor_id, (void**)&neighbor_color)) {
-                set_add_int(&used_colors, neighbor_color);
+                set_add(&used_colors, (void*)neighbor_color);
             }
         }
         
         long color = 0;
-        while (set_has_int(&used_colors, color)) {
+        while (set_has(&used_colors, (void*)color)) {
             color++;
         }
         

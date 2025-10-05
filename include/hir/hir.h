@@ -25,7 +25,7 @@ typedef struct {
 } hir_number_t;
 
 typedef struct {
-    int v_id; /* Variable ID from variables symtab */
+    long v_id; /* Variable ID from variables symtab */
 } hir_variable_t;
 
 typedef struct {

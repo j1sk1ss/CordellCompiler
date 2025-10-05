@@ -27,7 +27,7 @@ static void igraph_dump_dot(igraph_t* g) {
             set_iter_t sit;
             set_iter_init(&n->v, &sit);
             long neighbor;
-            while ((neighbor = set_iter_next_int(&sit)) >= 0) {
+            while (set_iter_next(&sit, (void**)&neighbor)) {
                 if (n->v_id < neighbor) {
                     fprintf(stdout, "  v%ld -- v%ld;\n", n->v_id, neighbor);
                 }

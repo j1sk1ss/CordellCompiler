@@ -312,16 +312,18 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             }
 
             case HIR_SET: {
+                dst += sprintf(dst, "set: ");
+
                 set_iter_t it;
                 set_iter_init(&s->storage.set.h, &it);
-                int_tuple_t* tpl = NULL;
-                dst += sprintf(dst, "set: ");
-                while ((tpl = set_iter_next_addr(&it))) {
+                int_tuple_t* tpl;
+                while (set_iter_next(&it, (void**)&tpl)) {
                     variable_info_t pvi;
                     if (VRTB_get_info_id(tpl->y, &pvi, &smt->v)) {
                         dst += sprintf(dst, "[%s%i, bb%d]", pvi.name, pvi.v_id, tpl->x);
                     }
                 }
+                
                 break;
             }
 
@@ -421,7 +423,7 @@ void _dump_all_dom_dot(cfg_func_t* func) {
         set_iter_t it;
         set_iter_init(&cb->dom, &it);
         cfg_block_t* d;
-        while ((d = set_iter_next_addr(&it))) {
+        while (set_iter_next(&it, (void**)&d)) {
             if (d == cb) continue;
             printf("  B%i -> B%i;\n", d->id, cb->id);
         }
@@ -436,7 +438,7 @@ static void _print_set_int(FILE* out, set_t* s) {
     long v;
     int first = 1;
     fprintf(out, "{");
-    while ((v = set_iter_next_int(&it)) != -1) {
+    while (set_iter_next(&it, (void**)&v)) {
         if (!first) fprintf(out, ",");
         fprintf(out, "%ld", v);
         first = 0;

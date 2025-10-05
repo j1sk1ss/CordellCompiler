@@ -15,8 +15,8 @@ static int _igraph_add_edge(igraph_t* g, long v1, long v2) {
     igraph_node_t* n1 = HIR_RA_find_ig_node(g, v1);
     igraph_node_t* n2 = HIR_RA_find_ig_node(g, v2);
     if (!n1 || !n2) return 0;
-    set_add_int(&n1->v, v2);
-    set_add_int(&n2->v, v1);
+    set_add(&n1->v, (void*)v2);
+    set_add(&n2->v, (void*)v1);
     return 1;
 }
 
@@ -35,7 +35,7 @@ int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     map_iter_t vit;
     map_iter_init(&smt->v.vartb, &vit);
     variable_info_t* vi;
-    while ((vi = (variable_info_t*)map_iter_next(&vit))) {
+    while (map_iter_next(&vit, (void**)&vi)) {
         if (vi->glob || vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) continue;
         if (ALLIAS_get_owners(vi->v_id, NULL, &smt->m)) continue;
         _add_ig_node(vi->v_id, g);
@@ -51,16 +51,16 @@ int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             set_t live;
             set_init(&live);
-            set_copy_int(&live, &cb->curr_out);
+            set_copy(&live, &cb->curr_out);
 
             set_iter_t dit;
             set_iter_init(&cb->def, &dit);
             long d;
-            while ((d = set_iter_next_int(&dit)) >= 0) {
+            while (set_iter_next(&dit, (void**)&d)) {
                 set_iter_t lit;
                 set_iter_init(&live, &lit);
                 long l;
-                while ((l = set_iter_next_int(&lit)) >= 0) {
+                while (set_iter_next(&lit, (void**)&l)) {
                     _igraph_add_edge(g, d, l);
                 }
             }

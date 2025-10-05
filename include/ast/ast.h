@@ -17,15 +17,6 @@ typedef struct ast_node {
     syntax_info_t    sinfo;
 } ast_node_t;
 
-/* 
-Help function for getting maximum offset in root scope.
-Params:
-- root - Root scope node.
-
-Return maximum offset in scope.
-*/
-int AST_get_max_offset(ast_node_t* root);
-
 /*
 Create new tree node with token.
 Note: Avoid token free before tree free.

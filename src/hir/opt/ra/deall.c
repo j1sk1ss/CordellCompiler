@@ -14,19 +14,23 @@ int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt, map_t* c
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
 #ifdef DEF_OUT_DEALLOC
+            set_t appeared;
+            set_init(&appeared);
+            set_union(&appeared, &cb->curr_in, &cb->def);
+
             set_iter_t init;
-            set_iter_init(&cb->curr_in, &init);
+            set_iter_init(&appeared, &init);
             long vid;
-            while ((vid = set_iter_next_int(&init)) >= 0) {
-                if (set_has_int(&cb->curr_out, vid)) continue;
+            while (set_iter_next(&init, (void**)&vid)) {
+                if (set_has(&cb->curr_out, (void*)vid)) continue;
 
                 set_t owners;
                 int hasown = 0;
                 if (ALLIAS_get_owners(vid, &owners, &smt->m)) {
                     set_iter_t ownersit;
                     set_iter_init(&owners, &ownersit);
-                    while ((vid = set_iter_next_int(&ownersit)) >= 0) {
-                        if (set_has_int(&cb->curr_out, vid)) {
+                    while (set_iter_next(&ownersit, (void**)&vid)) {
+                        if (set_has(&cb->curr_out, (void*)vid)) {
                             hasown = 1;
                             break;
                         }
@@ -37,6 +41,8 @@ int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt, map_t* c
                 HIR_insert_block_after(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->exit);
                 // TODO: HIR_VRDEALL of variables that owned by whis vid, track this 
             }
+
+            set_free(&appeared);
 #else
             hir_block_t* hh = cb->entry;
             while (hh) {

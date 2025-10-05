@@ -9,12 +9,12 @@ static int _mark_allias(long v_id, long owner_id, allias_map_t* ctx) {
     set_init(&owners);
 
     ALLIAS_get_owners(owner_id, &owners, ctx);    
-    set_add_int(&owners, owner_id);
+    set_add(&owners, (void*)owner_id);
 
     set_iter_t it;
     set_iter_init(&owners, &it);
     long oid;
-    while ((oid = set_iter_next_int(&it)) >= 0) {
+    while (set_iter_next(&it, (void**)&oid)) {
         ALLIAS_add_owner(v_id, oid, ctx);
     }
 

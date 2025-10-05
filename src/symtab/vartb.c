@@ -28,7 +28,7 @@ int VRTB_get_info(const char* varname, short s_id, variable_info_t* info, vartab
     map_iter_t it;
     map_iter_init(&ctx->vartb, &it);
     variable_info_t* vi;
-    while ((vi = (variable_info_t*)map_iter_next(&it))) {
+    while (map_iter_next(&it, (void**)&vi)) {
         if (((s_id < 0) || s_id == vi->s_id) && !str_strcmp(varname, vi->name)) {
             if (info) str_memcpy(info, vi, sizeof(variable_info_t));
             return 1;

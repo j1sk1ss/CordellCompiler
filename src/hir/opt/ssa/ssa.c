@@ -38,7 +38,7 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
 }
 
 static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
-    if (!b || set_has_int(&b->visitors, prev_bid)) return 0;
+    if (!b || set_has(&b->visitors, (void*)prev_bid)) return 0;
 
     hir_block_t* hh = b->entry;
     while (hh) {
@@ -50,9 +50,8 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                     if (vv) {
                         if (hh->sarg && vv->curr_id == hh->sarg->storage.var.v_id) break;
                         int_tuple_t* inf = inttuple_create(prev_bid, vv->curr_id);
-                        if (!set_has_inttuple(&hh->targ->storage.set.h, inf)) {
-                            set_add_addr(&hh->targ->storage.set.h, inf);
-                        }
+                        if (!set_has_inttuple(&hh->targ->storage.set.h, inf)) set_add(&hh->targ->storage.set.h, inf);
+                        else inttuple_free(inf);
 
                         if (!hh->sarg) {
                             hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
@@ -89,7 +88,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
         hh = hh->next;
     }
 
-    set_add_int(&b->visitors, prev_bid);
+    set_add(&b->visitors, (void*)prev_bid);
 
     if (!b->jmp || !b->l) {
         _iterate_block(b->jmp, ctx, b->id, smt);
@@ -125,7 +124,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     map_iter_t mit;
     map_iter_init(&smt->v.vartb, &mit);
     variable_info_t* vh;
-    while ((vh = (variable_info_t*)map_iter_next(&mit))) {
+    while (map_iter_next(&mit, (void**)&vh)) {
         if (vh->glob) continue;
         _add_varver(&ctx->vers, vh->v_id, vh->v_id);
     }

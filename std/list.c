@@ -74,6 +74,28 @@ int list_push_front(list_t* l, void* data) {
     return 0;
 }
 
+int list_remove(list_t* l, void* data) {
+    if (!l || !l->h) return 0;
+
+    list_node_t* cur = l->h;
+    while (cur) {
+        if (cur->data == data) {
+            if (cur->p) cur->p->n = cur->n;
+            else l->h = cur->n;
+            if (cur->n) cur->n->p = cur->p;
+            else l->t = cur->p;
+
+            mm_free(cur);
+            l->s--;
+            return 1;
+        }
+
+        cur = cur->n;
+    }
+
+    return 0;
+}
+
 int list_copy(list_t* src, list_t* dst) {
     list_iter_t it;
     list_iter_hinit(src, &it);

@@ -1,22 +1,5 @@
 #include <ast/ast.h>
 
-int AST_get_max_offset(ast_node_t* root) {
-    // if (!root) return 0;
-    // int size = 0;
-    // for (ast_node_t* t = root; t; t = t->sibling) {
-    //     if (VRS_isblock(t->token)) {
-    //         size = MAX(size, AST_get_max_offset(t->child));
-    //         continue;
-    //     }
-
-    //     if (t->token && t->token->t_type == FUNC_TOKEN) continue;
-    //     if (!VRS_instack(t->token)) continue;
-    //     size = MAX(MAX(t->sinfo.offset, AST_get_max_offset(t->child)), size);
-    // }
-
-    return 0;
-}
-
 ast_node_t* AST_create_node(token_t* tkn) {
     ast_node_t* node = mm_malloc(sizeof(ast_node_t));
     if (!node) return NULL;

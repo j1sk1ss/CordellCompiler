@@ -29,6 +29,7 @@ int list_isempty(list_t* l);
 int list_add(list_t* l, void* data);
 int list_push_back(list_t* l, void* data);
 int list_push_front(list_t* l, void* data);
+int list_remove(list_t* l, void* data);
 int list_copy(list_t* src, list_t* dst);
 
 void* list_iter_current(list_iter_t* it);

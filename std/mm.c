@@ -66,8 +66,9 @@ static void* _malloc_s(size_t size, int prepare_mem) {
     return prepare_mem ? NULL : _malloc_s(size, 1);
 }
 
-void* mm_malloc(size_t size) {
+void* mm_base_malloc(const char* f, int l, size_t size) {
     void* ptr = _malloc_s(size, 0);
+    print_mm("Allocation in %s on line=%i, size=%i, ptr=%p", f, l, size, ptr);
     if (!ptr) { print_mm("Allocation error! I can't allocate [%i]!", size); }
     return ptr;
 }
@@ -92,7 +93,7 @@ int mm_free(void* ptr) {
     mm_block_t* block = (mm_block_t*)((unsigned char*)ptr - sizeof(mm_block_t));
     if (block->magic != MM_BLOCK_MAGIC) return 0;
     if (block->free) return 0;
-    str_memset(ptr, 0, block->size);
+    str_memset(ptr, 0xDE, block->size);
 
     block->free = 1;
     _allocated -= block->size + sizeof(mm_block_t);

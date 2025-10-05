@@ -14,7 +14,7 @@ int FNTB_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx) {
     map_iter_t it;
     map_iter_init(&ctx->functb, &it);
     func_info_t* fi;
-    while ((fi = (func_info_t*)map_iter_next(&it))) {
+    while (map_iter_next(&it, (void**)&fi)) {
         if (!str_strcmp(fname, fi->name)) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
             return 1;

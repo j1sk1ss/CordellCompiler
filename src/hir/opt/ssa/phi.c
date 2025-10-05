@@ -21,7 +21,7 @@ static int _insert_phi_instr(cfg_ctx_t* cctx, cfg_block_t* b, variable_info_t* v
     set_iter_t pit;
     set_iter_init(&b->pred, &pit);
     cfg_block_t* p;
-    while ((p = set_iter_next_addr(&pit))) {
+    while (set_iter_next(&pit, (void**)&p)) {
         if (p->entry->op == HIR_PHI) return 0;
     }
 
@@ -50,7 +50,7 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
     map_iter_t mit;
     map_iter_init(&smt->v.vartb, &mit);
     variable_info_t* vh;
-    while ((vh = (variable_info_t*)map_iter_next(&mit))) {
+    while (map_iter_next(&mit, (void**)&vh)) {
         set_t defs;
         set_init(&defs);
         HIR_CFG_collect_defs_by_id(vh->v_id, cctx, &defs);
@@ -61,15 +61,15 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
             set_iter_t it;
             set_iter_init(&defs, &it);
             cfg_block_t* defb;
-            while ((defb = (cfg_block_t*)set_iter_next_addr(&it))) {
+            while (set_iter_next(&it, (void**)&defb)) {
                 set_iter_t fit;
                 set_iter_init(&defb->domf, &fit);
                 cfg_block_t* front;
-                while ((front = (cfg_block_t*)set_iter_next_addr(&fit))) {
+                while (set_iter_next(&fit, (void**)&front)) {
                     if (!_has_phi(front, vh->v_id)) {
                         _insert_phi_instr(cctx, front, vh);
-                        if (!set_has_addr(&defs, front)) {
-                            set_add_addr(&defs, front);
+                        if (!set_has(&defs, front)) {
+                            set_add(&defs, front);
                             changed = 1;
                         }
                     }

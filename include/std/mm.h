@@ -7,7 +7,7 @@
 #include <std/logg.h>
 
 #define ALIGNMENT         8
-#define ALLOC_BUFFER_SIZE 1000000
+#define ALLOC_BUFFER_SIZE 8388608
 #define MM_BLOCK_MAGIC    0xC07DEL
 
 typedef struct mm_block {
@@ -30,12 +30,15 @@ int mm_init();
 Allocate memory block.
 
 Params:
+    - f - __FILE__ macro.
+    - l - __LINE__ macro.
     - size - Memory block size.
 
 Return NULL if can't allocate memory.
 Return pointer to allocated memory.
 */
-void* mm_malloc(size_t size);
+void* mm_base_malloc(const char* f, int l, size_t size);
+#define mm_malloc(size) mm_base_malloc(__FILE__, __LINE__, size);
 
 /*
 Realloc pointer to new location with new size.
