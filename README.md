@@ -223,6 +223,10 @@ Now we have a correct `AST` representation of the input code. Before proceeding 
 Now we need to convert our `AST` into a simpler representation. A common approach here is to convert the `AST` into `Three-Address Code` (3AC).
 ![markup](media/HIR.png)
 
+### HIR optimization
+- Constant folding
+- HIR Peephole optimization
+
 ### Example of HIR
 ```
 {
@@ -318,8 +322,20 @@ The dominance frontier of a block `X` is the set of blocks where the dominance o
 ![fdom](media/dominance_frontier.png)
 
 ## SSA form
-### SSA idea
+Static Single Assignment (SSA) form requires renaming all assigned variables so that each assignment creates a new, unique variable. A simple example is shown below:
+![ssa](media/ssa_basic.png)
+
 ### Phi function
+But here we encounter a problem. What should we do in this specific case?
+![ssa_problem](media/ssa_problem.png)
+
+Which version of the variable `a` should be used in the declaration of `b`? The answer is simple — `both`. Here’s the twist: in `SSA` form, we can use a `φ (phi)` function, which tells the compiler which variable version to use. An example of a `φ` function is shown below:
+![phi_function](media/phi_function.png)
+But how do we determine where to place this function? Here, we use previously computed dominance information. We traverse the entire symbol table of variables. For each variable, we collect the set of blocks where it is defined (either declared or assigned). Then, for each block with a definition, we take its dominance frontier blocks and insert a `φ` function there.
+![phi_placement](media/phi_placement.png)
+Then, during the SSA renaming process, we keep track of each block that passes through a φ-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result:
+![phi_final](media/phi_final.png)
+
 ### Example of code
 ## Liveness analyzer part
 ### USE and DEF

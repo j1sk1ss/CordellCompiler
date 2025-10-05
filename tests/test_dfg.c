@@ -26,20 +26,21 @@ int main(int argc, char* argv[]) {
     pread(fd, data, 2048, 0);
     printf("Source data: %s\n\n", data);
 
-    token_t* tkn = TKN_tokenize(fd);
-    if (!tkn) {
+    list_t tokens;
+    list_init(&tokens);
+    if (!TKN_tokenize(fd, &tokens)) {
         fprintf(stderr, "ERROR! tkn==NULL!\n");
-        close(fd);
         return 1;
     }
 
-    MRKP_mnemonics(tkn);
-    MRKP_variables(tkn);
+    MRKP_mnemonics(&tokens);
+    MRKP_variables(&tokens);
 
     sym_table_t smt;
+    SMT_init(&smt);
     syntax_ctx_t sctx = { .r = NULL };
 
-    STX_create(tkn, &sctx, &smt);
+    STX_create(&tokens, &sctx, &smt);
 
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]) {
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&irctx, &cfgctx);
     
-    ssa_ctx_t ssactx = { .h = NULL };
+    ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
 
@@ -72,51 +73,51 @@ int main(int argc, char* argv[]) {
     }
 
     printf("\n\n========== SYMTABLES ==========\n");
-    list_iter_t it;
+    map_iter_t it;
 
-    if (!list_isempty(&smt.v.lst)) printf("==========   VARS  ==========\n");
-    list_iter_hinit(&smt.v.lst, &it);
+    if (!map_isempty(&smt.v.vartb)) printf("==========   VARS  ==========\n");
+    map_iter_init(&smt.v.vartb, &it);
     variable_info_t* vi;
-    while ((vi = (variable_info_t*)list_iter_next(&it))) {
+    while (map_iter_next(&it, (void**)&vi)) {
         printf("id: %i, %s, type: %i, s_id: %i\n", vi->v_id, vi->name, vi->type, vi->s_id);
     }
 
-    if (!list_isempty(&smt.a.lst)) printf("==========   ARRS  ==========\n");
-    list_iter_hinit(&smt.a.lst, &it);
+    if (!map_isempty(&smt.a.arrtb)) printf("==========   ARRS  ==========\n");
+    map_iter_init(&smt.a.arrtb, &it);
     array_info_t* ai;
-    while ((ai = (array_info_t*)list_iter_next(&it))) {
-        printf("id: %i, name: %s, scope: %i\n", ai->v_id, ai->name, ai->s_id);
+    while (map_iter_next(&it, (void**)&ai)) {
+        printf("id: %i, eltype: %i%s\n", ai->v_id, ai->el_type, ai->heap ? ", heap" : "");
     }
 
-    if (!list_isempty(&smt.f.lst)) printf("==========  FUNCS  ==========\n");
-    list_iter_hinit(&smt.f.lst, &it);
+    if (!map_isempty(&smt.f.functb)) printf("==========  FUNCS  ==========\n");
+    map_iter_init(&smt.f.functb, &it);
     func_info_t* fi;
-    while ((fi = (func_info_t*)list_iter_next(&it))) {
+    while (map_iter_next(&it, (void**)&fi)) {
         printf("id: %i, name: %s\n", fi->id, fi->name);
     }
 
-    if (!list_isempty(&smt.s.lst)) printf("========== STRINGS ==========\n");
-    list_iter_hinit(&smt.s.lst, &it);
+    if (!map_isempty(&smt.s.strtb)) printf("========== STRINGS ==========\n");
+    map_iter_init(&smt.s.strtb, &it);
     str_info_t* si;
-    while ((si = (str_info_t*)list_iter_next(&it))) {
+    while (map_iter_next(&it, (void**)&si)) {
         printf("id: %i, val: %s\n", si->id, si->value);
     }
 
-    if (!list_isempty(&smt.m.lst)) printf("========== ALLIAS ==========\n");
-    list_iter_hinit(&smt.m.lst, &it);
+    if (!map_isempty(&smt.m.allias)) printf("========== ALLIAS ==========\n");
+    map_iter_init(&smt.m.allias, &it);
     allias_t* mi;
-    while ((mi = (allias_t*)list_iter_next(&it))) {
+    while (map_iter_next(&it, (void**)&mi)) {
         printf("id: %i, owners: ", mi->v_id);
         set_iter_t sit;
         set_iter_init(&mi->owners, &sit);
         long own_id;
-        while ((own_id = set_iter_next_int(&sit)) >= 0) printf("%i ", own_id);
+        while (set_iter_next(&sit, (void**)&own_id)) printf("%i ", own_id);
     }
 
     HIR_unload_blocks(irctx.h);
+    list_free_force(&tokens);
     AST_unload(sctx.r);
     SMT_unload(&smt);
-    TKN_unload(tkn);
     close(fd);
     return 0;
 }

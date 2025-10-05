@@ -1,23 +1,21 @@
 {
+    function sum(i32 a, i32 b) => i32 {
+        arr c[2, i32] = { a, b };
+        return c[0] + c[1];
+    }
+
     start(i64 argc, ptr u64 argv) {
-        i32 b = 1;
-        i32 c = 1;
-
-        if b == 1; {
-            c = 2;
-            exit c;
+        i32 a = 10;
+        i32 b = 10;
+        i32 c = 10;
+        i32 d = 10;
+        i32 k = 10;
+        i32 f = 10;
+        if sum(a, b) > (a * b + c + d + k + f); {
+            exit 1;
         }
-
-        i32 a = 1;
-        if c == 2; {
-            a = 3;
-        }
-
-        i8 d = 1;
-        if a == 3; {
-            d = 2;
-        }
-
-        exit d;
+        
+        i32 l = ref f;
+        exit dref l;
     }
 }
