@@ -19,20 +19,25 @@ This `README` file contains the main information about this compiler and the dev
 - [EBNF](#ebnf)
 - [Code snippet](#sample-code-snippet)
 - [Tokenization part](#tokenization-part)
-    - [Example of tokenized code](#example-of-tokenized-code)
+   - [Example of tokenized code](#example-of-tokenized-code)
 - [Markup part](#markup-part)
-    - [Example of markup result](#example-of-markup-result)
+   - [Example of markup result](#example-of-markup-result)
 - [AST part](#ast-part)
-    - [Example of AST](#example-of-ast)
-    - [AST optimization](#ast-optimization)
+   - [Example of AST](#example-of-ast)
+   - [AST optimization](#ast-optimization)
 - [HIR part](#hir-part)
-    - [Example of HIR](#example-of-hir)
+   - [Example of HIR](#example-of-hir)
+- [CFG part](#cfg-part)
+   - [Example of CFG](#example-of-cfg)
+- [Dominant calculation](#dominant-calculation)
+   - [Strict dominance](#strict-dominance)
+   - [Dominance frontier](#dominance-frontier)
 
 ## Introduction
-For additional experience, I chose to take on an extra challenge — creating a programming language. This language has an `EBNF-defined` syntax, its own [VS Code extension](), and documentation. While explaining each layer of the compiler, I will also provide direct examples written in this language.
+For additional experience, I chose to take on an extra challenge — creating a programming language. This language has an `EBNF-defined` syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and documentation. While explaining each layer of the compiler, I will also provide direct examples written in this language.
 
 ## EBNF
-![EBNF](docs/EBNF.png)
+![EBNF](media/EBNF.jpg)
 
 ## Sample code snippet
 The code below demonstrates the main capabilities of the language, excluding features such as while loops, syscalls, strings, and other advanced constructs. This code will be referenced in other parts of this `README`, and is presented here as an initial example before all further explanations.
@@ -301,10 +306,17 @@ In this compiler, both approaches are implemented, but for the following explana
 ![markup](media/CFG_example.png)
 
 ## Dominant calculation
-### Dominant
+With the `CFG`, we can determine the dominators of each block. In simple terms, a dominator of a block `Y` is a block `X` that appears on every path from the entry block to `Y`. For example, the following figure illustrates how this works:
+![dominators](media/dominators.png)
+
 ### Strict dominance
+Strict dominance tells us which block strictly dominates another. A block `X` strictly dominates block `Y` if `X` dominates `Y` and `X` != `Y`. Why do we need this? The basic dominance relation marks all blocks that dominate a given block, but later analyses often require only the closest one. A block `X` is said to be the immediate dominator of `Y` if `X` strictly dominates `Y`, and there is no other block `Z` such that `Z` strictly dominates `Y` and is itself strictly dominated by `X`.
+![sdom](media/strict_dominance.png)
+
 ### Dominance frontier
-### Example of dominant frontier
+The dominance frontier of a block `X` is the set of blocks where the dominance of `X` ends. More precisely, it represents all the blocks that are partially influenced by `X`: `X` dominates at least one of their predecessors, but does not dominate the block itself. In other words, it marks the boundary where control flow paths from inside `X’s` dominance region meet paths coming from outside.
+![fdom](media/dominance_frontier.png)
+
 ## SSA form
 ### SSA idea
 ### Phi function
