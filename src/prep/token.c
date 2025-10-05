@@ -46,20 +46,6 @@ typedef struct {
     token_type_t ttype;
 } tkn_ctx_t;
 
-static int _add_token(token_t** h, token_t** t, const char* buffer, tkn_ctx_t* ctx) {
-    token_t* nt = TKN_create_token(ctx->ttype, buffer, ctx->token_len, ctx->line);
-    if (!nt) return 0;
-    if (!*h) {
-        *h = nt;
-        *t = nt;
-        return 1;
-    }
-
-    (*t)->next = nt;
-    *t = (*t)->next;
-    return 1;
-}
-
 token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int line) {
     if (len > TOKEN_MAX_SIZE) return NULL;
     token_t* tkn = mm_malloc(sizeof(token_t));
@@ -84,9 +70,8 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
     return tkn;
 }
 
-token_t* TKN_tokenize(int fd) {
+int TKN_tokenize(int fd, list_t* tkn) {
     tkn_ctx_t curr_ctx = { .ttype = LINE_BREAK_TOKEN };
-    token_t *head = NULL, *tail = NULL;
     char buffer[BUFFER_SIZE] = { 0 };
     char token_buf[TOKEN_MAX_SIZE] = { 0 };
 
@@ -173,14 +158,12 @@ token_t* TKN_tokenize(int fd) {
                     curr_ctx.ttype != char_type
                 )
             ) {
-                if (!_add_token(&head, &tail, token_buf, &curr_ctx)) {
-                    print_error(
-                        "Can't add token! type=%i, token_buf=[%s], token_len=%i", 
-                        curr_ctx.ttype, token_buf, curr_ctx.token_len
-                    );
-
-                    TKN_unload(head);
-                    return NULL;
+                token_t* nt = TKN_create_token(curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line);
+                if (!nt || !list_add(tkn, nt)) {
+                    print_error("Can't add token! tt=%i, tb=[%s], tl=%i", curr_ctx.ttype, token_buf, curr_ctx.token_len);
+                    mm_free(nt);
+                    list_free_force(tkn);
+                    return 0;
                 }
 
                 curr_ctx.in_token  = 0;
@@ -197,16 +180,6 @@ token_t* TKN_tokenize(int fd) {
 
             token_buf[curr_ctx.token_len++] = ch;
         }
-    }
-    
-    return head;
-}
-
-int TKN_unload(token_t* head) {
-    while (head) {
-        token_t* next = head->next;
-        mm_free(head);
-        head = next;
     }
     
     return 1;

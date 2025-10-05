@@ -111,10 +111,20 @@ int HIR_remove_block(hir_block_t* block) {
     return 1;
 }
 
+static int _unload_subject(hir_subject_t* s) {
+    if (!s) return 0;
+    if (s->t == HIR_SET) set_free_force(&s->storage.set.h);
+    mm_free(s);
+    return 1;
+}
+
 int HIR_unload_blocks(hir_block_t* block) {
     if (!block) return -1;
     while (block) {
         hir_block_t* nxt = block->next;
+        _unload_subject(block->farg);
+        _unload_subject(block->sarg);
+        _unload_subject(block->targ);
         mm_free(block);
         block = nxt;
     }

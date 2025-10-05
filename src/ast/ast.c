@@ -61,6 +61,7 @@ int AST_unload(ast_node_t* node) {
     if (!node) return 0;
     AST_unload(node->child);
     AST_unload(node->sibling);
+    mm_free(node->token);
     mm_free(node);
     return 1;
 }

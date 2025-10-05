@@ -15,9 +15,9 @@ typedef struct {
     scope_info_t scopes;
 } syntax_ctx_t;
 
-static inline int forward_token(token_t** tkn, int steps) {
+static inline int forward_token(list_iter_t* it, int steps) {
     while (steps-- > 0) {
-        if ((*tkn)->next) *tkn = (*tkn)->next;
+        if (list_iter_next_top(it)) list_iter_next(it);
         else return 0;
     }
 

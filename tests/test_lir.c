@@ -36,21 +36,21 @@ int main(int argc, char* argv[]) {
     pread(fd, data, 2048, 0);
     printf("Source data: %s\n\n", data);
 
-    token_t* tkn = TKN_tokenize(fd);
-    if (!tkn) {
+    list_t tokens;
+    list_init(&tokens);
+    if (!TKN_tokenize(fd, &tokens)) {
         fprintf(stderr, "ERROR! tkn==NULL!\n");
-        close(fd);
         return 1;
     }
 
-    MRKP_mnemonics(tkn);
-    MRKP_variables(tkn);
+    MRKP_mnemonics(&tokens);
+    MRKP_variables(&tokens);
 
     sym_table_t smt;
     SMT_init(&smt);
     syntax_ctx_t sctx = { .r = NULL };
 
-    STX_create(tkn, &sctx, &smt);
+    STX_create(&tokens, &sctx, &smt);
 
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
@@ -146,10 +146,12 @@ int main(int argc, char* argv[]) {
         while (set_iter_next(&sit, (void**)&own_id)) printf("%i ", own_id);
     }
 
+    HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.h);
+    LIR_unload_blocks(lirctx.h);
+    list_free_force(&tokens);
     AST_unload(sctx.r);
     SMT_unload(&smt);
-    TKN_unload(tkn);
     close(fd);
     return 0;
 }

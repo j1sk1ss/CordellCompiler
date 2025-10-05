@@ -1,6 +1,6 @@
 import re
 
-log_file = "test_ast.log"
+log_file = "test_lir.log"
 
 alloc_re = re.compile(
     r'\[MEM\]\s*(?:\[(.*?)\])?\s*\((.*?):(\d+)\)\s*Allocated node\s*\[(0x[0-9a-fA-F]+)\]\s*with\s*\[(\d+)\]\s*size'

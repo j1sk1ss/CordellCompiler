@@ -1,45 +1,45 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_extern(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* node = AST_create_node(*curr);
+ast_node_t* cpl_parse_extern(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+    ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
     
-    forward_token(curr, 1);
-    while (*curr && (*curr)->t_type != DELIMITER_TOKEN) {
-        if (!VRS_isdecl(*curr) && (*curr)->t_type != FUNC_NAME_TOKEN) forward_token(curr, 1);
-        else if (VRS_isdecl(*curr)) {
-            ast_node_t* arg = cpl_parse_variable_declaration(curr, ctx, smt);
+    forward_token(it, 1);
+    while ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type != DELIMITER_TOKEN) {
+        if (!VRS_isdecl((token_t*)list_iter_current(it)) && ((token_t*)list_iter_current(it))->t_type != FUNC_NAME_TOKEN) forward_token(it, 1);
+        else if (VRS_isdecl((token_t*)list_iter_current(it))) {
+            ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("AST error during function arg parsing! line=%i", (*curr)->lnum);
+                print_error("AST error during function arg parsing! line=%i", ((token_t*)list_iter_current(it))->lnum);
                 AST_unload(node);
                 return NULL;
             }
 
             AST_add_node(node, arg);
         }
-        else if ((*curr)->t_type == FUNC_NAME_TOKEN) {
-            ast_node_t* name_node = AST_create_node(*curr);
+        else if (((token_t*)list_iter_current(it))->t_type == FUNC_NAME_TOKEN) {
+            ast_node_t* name_node = AST_create_node((token_t*)list_iter_current(it));
             AST_add_node(node, name_node);
-            forward_token(curr, 1); // TODO: Functab add function
+            forward_token(it, 1); // TODO: Functab add function
         }
     }
 
     return node;
 }
 
-ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* node = AST_create_node(*curr);
+ast_node_t* cpl_parse_rexit(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+    ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
     
     node->sinfo.s_id = scope_id_top(&ctx->scopes.stack);
-    forward_token(curr, 1);
-    if (VRS_isclose(*curr)) {
+    forward_token(it, 1);
+    if (VRS_isclose((token_t*)list_iter_current(it))) {
         return node;
     }
 
-    ast_node_t* exp_node = cpl_parse_expression(curr, ctx, smt);
+    ast_node_t* exp_node = cpl_parse_expression(it, ctx, smt);
     if (!exp_node) {
-        print_error("AST error during return parsing! line=%i", (*curr)->lnum);
+        print_error("AST error during return parsing! line=%i", ((token_t*)list_iter_current(it))->lnum);
         AST_unload(node);
         return NULL;
     }
@@ -48,21 +48,21 @@ ast_node_t* cpl_parse_rexit(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt)
     return node;
 }
 
-ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* node = AST_create_node(*curr);
+ast_node_t* cpl_parse_funccall(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+    ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
 
     int args = 0;
-    forward_token(curr, 1);
-    if (*curr && (*curr)->t_type == OPEN_BRACKET_TOKEN) {
-        forward_token(curr, 1);
-        while (*curr && (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
-            if ((*curr)->t_type == COMMA_TOKEN) {
-                forward_token(curr, 1);
+    forward_token(it, 1);
+    if ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type == OPEN_BRACKET_TOKEN) {
+        forward_token(it, 1);
+        while ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type != CLOSE_BRACKET_TOKEN) {
+            if (((token_t*)list_iter_current(it))->t_type == COMMA_TOKEN) {
+                forward_token(it, 1);
                 continue;
             }
 
-            ast_node_t* arg = cpl_parse_expression(curr, ctx, smt);
+            ast_node_t* arg = cpl_parse_expression(it, ctx, smt);
             if (arg) AST_add_node(node, arg);
             args++;
         }
@@ -77,23 +77,23 @@ ast_node_t* cpl_parse_funccall(token_t** curr, syntax_ctx_t* ctx, sym_table_t* s
         }
     }
 
-    forward_token(curr, 1);
+    forward_token(it, 1);
     return node;
 }
 
-ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* node = AST_create_node(*curr);
+ast_node_t* cpl_parse_function(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+    ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
-    forward_token(curr, 1);
+    forward_token(it, 1);
     
-    ast_node_t* name_node = AST_create_node(*curr);
+    ast_node_t* name_node = AST_create_node((token_t*)list_iter_current(it));
     if (!name_node) {
         AST_unload(node);
         return NULL;
     }
 
     AST_add_node(node, name_node);
-    forward_token(curr, 1);
+    forward_token(it, 1);
 
     ast_node_t* args_node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, 0, 0));
     if (!args_node) {
@@ -104,18 +104,18 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, sym_table_t* s
     scope_push_id(&ctx->scopes.stack, ++ctx->scopes.s_id);
     args_node->sinfo.s_id = ctx->scopes.s_id;
 
-    forward_token(curr, 1);
-    while (*curr && (*curr)->t_type != CLOSE_BRACKET_TOKEN) {
-        if ((*curr)->t_type == COMMA_TOKEN) {
-            forward_token(curr, 1);
+    forward_token(it, 1);
+    while ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type != CLOSE_BRACKET_TOKEN) {
+        if (((token_t*)list_iter_current(it))->t_type == COMMA_TOKEN) {
+            forward_token(it, 1);
             continue;
         }
         
-        if (!VRS_isdecl((*curr))) forward_token(curr, 1);
+        if (!VRS_isdecl(((token_t*)list_iter_current(it)))) forward_token(it, 1);
         else {
-            ast_node_t* arg = cpl_parse_variable_declaration(curr, ctx, smt);
+            ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("AST error during function arg parsing! line=%i", (*curr)->lnum);
+                print_error("AST error during function arg parsing! line=%i", ((token_t*)list_iter_current(it))->lnum);
                 AST_unload(node);
                 AST_unload(args_node);
                 return NULL;
@@ -125,17 +125,17 @@ ast_node_t* cpl_parse_function(token_t** curr, syntax_ctx_t* ctx, sym_table_t* s
         }
     }
 
-    forward_token(curr, 1);
-    if (*curr && (*curr)->t_type == RETURN_TYPE_TOKEN) {
-        forward_token(curr, 1);
-        ast_node_t* ret_type = AST_create_node(*curr);
+    forward_token(it, 1);
+    if ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type == RETURN_TYPE_TOKEN) {
+        forward_token(it, 1);
+        ast_node_t* ret_type = AST_create_node((token_t*)list_iter_current(it));
         AST_add_node(name_node, ret_type);
-        forward_token(curr, 1);
+        forward_token(it, 1);
     }
 
-    ast_node_t* body_node = cpl_parse_scope(curr, ctx, smt);
+    ast_node_t* body_node = cpl_parse_scope(it, ctx, smt);
     if (!body_node) {
-        print_error("AST error during function body parsing! line=%i", (*curr)->lnum);
+        print_error("AST error during function body parsing! line=%i", ((token_t*)list_iter_current(it))->lnum);
         AST_unload(node);
         return NULL;
     }

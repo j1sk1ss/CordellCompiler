@@ -1,27 +1,27 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* node = AST_create_node(*curr);
+ast_node_t* cpl_parse_array_declaration(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+    ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
-    forward_token(curr, 1);
+    forward_token(it, 1);
 
     token_type_t eltype = I64_TYPE_TOKEN;
-    ast_node_t* name_node = AST_create_node(*curr);
+    ast_node_t* name_node = AST_create_node((token_t*)list_iter_current(it));
     if (!name_node) {
         AST_unload(node);
         return NULL;
     }
     
     AST_add_node(node, name_node);
-    forward_token(curr, 1);
+    forward_token(it, 1);
 
     int el_size    = 1;
     int array_size = 1;
 
-    if ((*curr)->t_type == OPEN_INDEX_TOKEN) {
-        forward_token(curr, 1);
+    if (((token_t*)list_iter_current(it))->t_type == OPEN_INDEX_TOKEN) {
+        forward_token(it, 1);
 
-        ast_node_t* size_node = AST_create_node(*curr);
+        ast_node_t* size_node = AST_create_node((token_t*)list_iter_current(it));
         if (!size_node) {
             AST_unload(node);
             return NULL;
@@ -32,9 +32,9 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_t
         }
         
         AST_add_node(node, size_node);
-        forward_token(curr, 2);
+        forward_token(it, 2);
 
-        ast_node_t* elem_size_node = AST_create_node(*curr);
+        ast_node_t* elem_size_node = AST_create_node((token_t*)list_iter_current(it));
         if (!elem_size_node) {
             AST_unload(node);
             return NULL;
@@ -42,26 +42,26 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_t
 
         eltype = elem_size_node->token->t_type;
         AST_add_node(node, elem_size_node);
-        forward_token(curr, 2);
+        forward_token(it, 2);
     }
 
-    if ((*curr)->t_type == ASSIGN_TOKEN) {
-        forward_token(curr, 1);
+    if (((token_t*)list_iter_current(it))->t_type == ASSIGN_TOKEN) {
+        forward_token(it, 1);
         int act_size = 0;
-        if (*curr && (*curr)->t_type == OPEN_BLOCK_TOKEN) {
-            forward_token(curr, 1);
-            while (*curr && (*curr)->t_type != CLOSE_BLOCK_TOKEN) {
-                if ((*curr)->t_type == COMMA_TOKEN) {
-                    forward_token(curr, 1);
+        if ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type == OPEN_BLOCK_TOKEN) {
+            forward_token(it, 1);
+            while ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type != CLOSE_BLOCK_TOKEN) {
+                if (((token_t*)list_iter_current(it))->t_type == COMMA_TOKEN) {
+                    forward_token(it, 1);
                     continue;
                 }
 
-                ast_node_t* arg = cpl_parse_expression(curr, ctx, smt);
+                ast_node_t* arg = cpl_parse_expression(it, ctx, smt);
                 if (arg) AST_add_node(node, arg);
                 array_size = MAX(array_size, ++act_size);
             }
 
-            forward_token(curr, 1);
+            forward_token(it, 1);
         }
     }
 
@@ -74,23 +74,23 @@ ast_node_t* cpl_parse_array_declaration(token_t** curr, syntax_ctx_t* ctx, sym_t
     return node;
 }
 
-ast_node_t* cpl_parse_variable_declaration(token_t** curr, syntax_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* node = AST_create_node(*curr);
+ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+    ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
 
-    forward_token(curr, 1);
-    ast_node_t* name_node = AST_create_node(*curr);
+    forward_token(it, 1);
+    ast_node_t* name_node = AST_create_node((token_t*)list_iter_current(it));
     if (!name_node) {
         AST_unload(node);
         return NULL;
     }
     
     AST_add_node(node, name_node);
-    forward_token(curr, 1);
+    forward_token(it, 1);
 
-    if (!*curr || (*curr)->t_type == ASSIGN_TOKEN) {
-        forward_token(curr, 1);
-        ast_node_t* value_node = cpl_parse_expression(curr, ctx, smt);
+    if (!(token_t*)list_iter_current(it) || ((token_t*)list_iter_current(it))->t_type == ASSIGN_TOKEN) {
+        forward_token(it, 1);
+        ast_node_t* value_node = cpl_parse_expression(it, ctx, smt);
         if (!value_node) {
             AST_unload(node);
             return NULL;

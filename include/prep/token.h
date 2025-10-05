@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <std/mm.h>
 #include <std/str.h>
+#include <std/list.h>
 
 #define TOKEN_MAX_SIZE 128
 #define BUFFER_SIZE    8192
@@ -133,11 +134,10 @@ typedef struct {
     char heap; /* Is heap allocated   */
 } token_flags_t;
 
-typedef struct token {
+typedef struct {
     token_flags_t flags;
     token_type_t  t_type;
     char          value[TOKEN_MAX_SIZE];
-    struct token* next;
     int           lnum; /* Line in source file */
 } token_t;
 
@@ -157,19 +157,11 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
 Tokenize input file by provided FD.
 Params:
     - fd - File descriptor of target file.
+    - tkn - Location of tokens list.
 
 Return NULL or pointer to linked list of tokens.
 Note: Function don't close file.
 */
-token_t* TKN_tokenize(int fd);
-
-/*
-Unload linked list of tokens.
-Params:
-    - head - Linked list head.
-
-Return 1 if unload success.
-*/
-int TKN_unload(token_t* head);
+int TKN_tokenize(int fd, list_t* tkn);
 
 #endif

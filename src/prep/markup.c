@@ -86,17 +86,17 @@ static const markup_token_t _markups[] = {
     { .value = OR_STATEMENT,           .type = OR_TOKEN            }
 };
 
-int MRKP_mnemonics(token_t* head) {
-    token_t* curr = head;
-    while (curr) {
+int MRKP_mnemonics(list_t* tkn) {
+    list_iter_t it;
+    list_iter_hinit(tkn, &it);
+    token_t* curr;
+    while ((curr = (token_t*)list_iter_next(&it))) {
         for (int i = 0; i < (int)(sizeof(_markups) / sizeof(_markups[0])); i++) {
             if (curr->value[0] != _markups[i].value[0]) continue;
             else if (!str_strcmp(curr->value, _markups[i].value) && curr->t_type != STRING_VALUE_TOKEN && curr->t_type != CHAR_VALUE_TOKEN) {
                 curr->t_type = _markups[i].type;
             }
         }
-
-        curr = curr->next;
     }
 
     return 1;
@@ -134,7 +134,7 @@ static int _add_variable(variable_t** vars, const char* name, short scope, markp
     return 1;
 }
 
-int MRKP_variables(token_t* head) {
+int MRKP_variables(list_t* tkn) {
     int s_id = 0;
     scope_stack_t scope_stack = { .top = -1 };
 
@@ -142,21 +142,20 @@ int MRKP_variables(token_t* head) {
     int var_count = 0;
     variable_t* vars = NULL;
 
-    token_t* prev = NULL;
-    token_t* curr = head;
-
-    while (curr) {
+    list_iter_t it;
+    list_iter_hinit(tkn, &it);
+    token_t* curr;
+    while ((curr = (token_t*)list_iter_next(&it))) {
         switch (curr->t_type) {
             case OPEN_BLOCK_TOKEN:  scope_push(&scope_stack, ++s_id, 0); break;
             case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack);             break;
 
             case IMPORT_TOKEN: {
-                curr = curr->next;
+                curr = (token_t*)list_iter_next(&it);
                 curr_ctx.ttype = CALL_TOKEN;
                 while (curr->t_type != DELIMITER_TOKEN) {
-                    if (curr->t_type == COMMA_TOKEN) continue;
-                    _add_variable(&vars, curr->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
-                    curr = curr->next;
+                    if (curr->t_type != COMMA_TOKEN) _add_variable(&vars, curr->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
+                    curr = (token_t*)list_iter_next(&it);
                 }
                 
                 break;
@@ -168,11 +167,8 @@ int MRKP_variables(token_t* head) {
             case RO_TYPE_TOKEN: {
                 curr_ctx.ro = 1;
 _f_remove_token:
-                if (prev) prev->next = curr->next;
-                else head = curr->next;
-                token_t* to_free = curr;
-                curr = curr->next;
-                mm_free(to_free);
+                list_remove(tkn, curr);
+                mm_free(curr);
                 continue;
             }
 
@@ -190,7 +186,7 @@ _f_remove_token:
             case F64_TYPE_TOKEN:
             case STR_TYPE_TOKEN:
             case ARRAY_TYPE_TOKEN: {
-                token_t* next = curr->next;
+                token_t* next = (token_t*)list_iter_current(&it);
                 if (next && (next->t_type == UNKNOWN_STRING_TOKEN || next->t_type == UNKNOWN_CHAR_TOKEN)) {
                     switch (curr->t_type) {
                         case FUNC_TOKEN:
@@ -233,22 +229,16 @@ _f_remove_token:
 
             default: break;
         }
-
-        prev = curr;
-        curr = curr->next;
     }
 
     s_id = 0;
     scope_reset(&scope_stack);
-
-    prev = NULL;
-    curr = head;
+    list_iter_hinit(tkn, &it);
     
     int dref = 0;
     int ref  = 0;
     int neg  = 0;
-
-    while (curr) {
+    while ((curr = (token_t*)list_iter_next(&it))) {
         if (curr->t_type == OPEN_BLOCK_TOKEN)       scope_push(&scope_stack, ++s_id, 0);
         else if (curr->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&scope_stack);
 
@@ -263,11 +253,8 @@ _f_remove_token:
         else if (curr->t_type == REF_TYPE_TOKEN) {
             ref = 1;
 _s_remove_token:
-            if (prev) prev->next = curr->next;
-            else head = curr->next;
-            token_t* to_free = curr;
-            curr = curr->next;
-            mm_free(to_free);
+            list_remove(tkn, curr);
+            mm_free(curr);
             continue;
         }
 
@@ -293,9 +280,6 @@ _s_remove_token:
             }
             resolved: {}
         }
-
-        prev = curr;
-        curr = curr->next;
 
         ref  = 0;
         dref = 0;

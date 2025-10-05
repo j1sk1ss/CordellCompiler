@@ -94,6 +94,9 @@ int LIR_unload_blocks(lir_block_t* block) {
     if (!block) return -1;
     while (block) {
         lir_block_t* nxt = block->next;
+        if (block->farg) mm_free(block->farg);
+        if (block->sarg) mm_free(block->sarg);
+        if (block->targ) mm_free(block->targ);
         mm_free(block);
         block = nxt;
     }

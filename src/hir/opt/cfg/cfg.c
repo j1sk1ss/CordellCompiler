@@ -180,10 +180,10 @@ int HIR_CFG_unload(cfg_ctx_t* ctx) {
 
         set_free(&fb->leaders);
         set_free(&fb->terminators);
-        list_free(&fb->blocks);
+        list_free_force(&fb->blocks);
         mm_free(fb);
     }
 
-    list_free(&ctx->funcs);
+    list_free_force(&ctx->funcs);
     return 1;
 }
