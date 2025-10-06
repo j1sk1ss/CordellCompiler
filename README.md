@@ -387,108 +387,116 @@ the variable `a` is owned by `b`, so we must not kill `a` while `b` is still ali
     {
         alloc i32s a0;
         kill c0
-        load_arg(i32s a0);
+        load_arg(i32s a30);
         alloc i32s b1;
         kill c1
-        load_arg(i32s b1);
+        load_arg(i32s b31);
         {
-            prm_st(i32s a0);
-            kill c0
-            prm_st(i32s b1);
-            kill c1
+            prm_st(i32s a30);
+            kill c30
+            prm_st(i32s b31);
+            kill c31
             alloc arrs c2, size: n2;
             i32t tmp12 = arrs c2[n0];
             i32t tmp13 = arrs c2[n1];
             kill c2
-            i32t tmp30 = i32t tmp12 + i32t tmp13;
+            i32t tmp32 = i32t tmp12 + i32t tmp13;
             kill c12
             kill c13
-            return i32t tmp30;
-            kill c30
+            return i32t tmp32;
+            kill c32
         }
     }
     
     start {
         alloc i64s argc3;
         kill c3
-        load_starg(i64s argc3);
-        kill c3
+        load_starg(i64s argc33);
+        kill c33
         alloc u64s argv4;
         kill c4
-        load_starg(u64s argv4);
-        kill c4
+        load_starg(u64s argv34);
+        kill c34
         {
             alloc i32s a5;
             kill c5
             i32t tmp15 = n10 as i32;
-            i32s a31 = i32t tmp15;
+            i32s a35 = i32t tmp15;
             kill c15
             alloc i32s b6;
             kill c6
             i32t tmp16 = n10 as i32;
-            i32s b32 = i32t tmp16;
+            i32s b36 = i32t tmp16;
             kill c16
             alloc i32s c7;
             kill c7
             i32t tmp17 = n10 as i32;
-            i32s c33 = i32t tmp17;
+            i32s c37 = i32t tmp17;
             kill c17
             alloc i32s d8;
             kill c8
             i32t tmp18 = n10 as i32;
-            i32s d34 = i32t tmp18;
+            i32s d38 = i32t tmp18;
             kill c18
             alloc i32s k9;
             kill c9
             i32t tmp19 = n10 as i32;
-            i32s k35 = i32t tmp19;
+            i32s k39 = i32t tmp19;
             kill c19
             alloc i32s f10;
             kill c10
             i32t tmp20 = n10 as i32;
-            i32s f36 = i32t tmp20;
+            i32s f40 = i32t tmp20;
             kill c20
-            store_arg(i32s a31);
-            store_arg(i32s b32);
-            i32t tmp21 = call sum(i32 a, i32 b) -> i32, argc c2;
-            i32t tmp37 = i32s a31 * i32s b32;
-            kill c32
-            kill c31
-            i32t tmp38 = i32t tmp37 + i32s c33;
-            kill c37
-            kill c33
-            i32t tmp39 = i32t tmp38 + i32s d34;
-            kill c38
-            kill c34
-            i32t tmp40 = i32t tmp39 + i32s k35;
+            store_arg(i32s a35);
+            store_arg(i32s b36);
+            i32t tmp41 = call sum(i32 a, i32 b) -> i32, argc c2;
+            i32t tmp42 = i32s a35 * i32s b36;
             kill c35
+            kill c36
+            i32t tmp43 = i32t tmp42 + i32s c37;
+            kill c37
+            kill c42
+            i32t tmp44 = i32t tmp43 + i32s d38;
+            kill c38
+            kill c43
+            i32t tmp45 = i32t tmp44 + i32s k39;
+            kill c44
             kill c39
-            i32t tmp41 = i32t tmp40 + i32s f36;
-            kill c40
-            i32t tmp27 = i32t tmp21 > i32t tmp41;
-            kill c21
+            i32t tmp46 = i32t tmp45 + i32s f40;
+            kill c45
+            i32t tmp47 = i32t tmp41 > i32t tmp46;
+            kill c46
             kill c41
-            if i32t tmp27, goto l73;
-            kill c27
+            if i32t tmp47, goto l73;
+            kill c47
             {
                 exit n1;
             }
             l73:
             alloc i32s l11;
             kill c11
-            u64t tmp28 = &(i32s f36);
+            u64t tmp28 = &(i32s f40);
             i32t tmp29 = u64t tmp28 as i32;
             kill c28
-            i32s l42 = i32t tmp29;
+            i32s l48 = i32t tmp29;
             kill c29
-            exit i32s l42;
-            kill c42
+            exit i32s l48;
+            kill c48
         }
     }
 }
 ```
 
 ## Register allocation part
+Now that we have the `IN`, `OUT`, `DEF`, and `USE` sets, we can construct an interference graph. The idea is straightforward: we create a vertex for each variable in the symbol table, and then, for every `CFG` block, we connect (i.e., add an edge between) each variable from the block’s `DEF` set with every variable from its `OUT` set. This connection represents that these two variables are live at the same time. The resulting structure is the interference graph, where:
+- Vertices represent program variables.
+- Edges represent liveness conflicts (interference) between variables.
+![ig](media/not_colored_ig.png)
+
 ### Graph coloring
+Now we can determine which variables can share the same register using graph coloring. The solution to this problem is purely mathematical, and there are many possible strategies to color a graph. In short, the goal is to assign a color to every node (variable) in such a way that no two connected nodes share the same color. The output of this algorithm is a colored interference graph, where each color represents a distinct physical register, and all variables with the same color can safely reuse the same register without overlapping lifetimes.
+![colored_ig](media/colored_ig.png)
+
 ## LIR (x86_64) part
 ## Codegen (nasm) part

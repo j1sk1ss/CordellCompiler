@@ -63,25 +63,19 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                 break;
             }
 
-            case HIR_iADD:
-            case HIR_iSUB:
-            case HIR_iDIV:
-            case HIR_iMUL: 
-            case HIR_STORE: {
+            default: {
                 variable_info_t vi;
-                if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v)) {
+                if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) && HIR_writeop(hh->op)) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
                         hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
-                        _rename_block(hh, ctx);
                         vv->curr_id = hh->farg->storage.var.v_id;
                     }
                 }
 
+                _rename_block(hh, ctx);
                 break;
             }
-
-            default: _rename_block(hh, ctx); break;
         }
 
         if (hh == b->exit) break;
