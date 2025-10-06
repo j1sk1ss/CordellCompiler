@@ -26,6 +26,7 @@ This `README` file contains the main information about this compiler and the dev
    - [Example of AST](#example-of-ast)
    - [AST optimization](#ast-optimization)
 - [HIR part](#hir-part)
+   - [HIR optimization](#hir-optimization)
    - [Example of HIR](#example-of-hir)
 - [CFG part](#cfg-part)
    - [Example of CFG](#example-of-cfg)
@@ -38,6 +39,10 @@ This `README` file contains the main information about this compiler and the dev
    - [USE and DEF](#use-and-def)
    - [IN and OUT](#in-and-out)
    - [Point of deallocation](#point-of-deallocation)
+- [LIR (x86_64) part](#lir-x86_64-part)
+   - [LIR x86_64 optimization](#lir-x86_64-optimization)
+   - [LIR x86_64 example](#lir-x86_64-example)
+- [Codegen (nasm) part](#codegen-nasm-part)
 
 ## Introduction
 For additional experience, I chose to take on an extra challenge — creating a programming language. This language has an `EBNF-defined` syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and documentation. While explaining each layer of the compiler, I will also provide direct examples written in this language.
@@ -445,6 +450,8 @@ Now we can determine which variables can share the same register using graph col
 ## LIR (x86_64) part
 In the same way as during `HIR` generation, we now produce an intermediate representation similar to `3AC` — but using only two addresses. This step is relatively straightforward, as it primarily involves adapting instructions to the target machine’s addressing model. Because the exact implementation depends heavily on the target architecture (register count, instruction set, addressing modes, etc.), we typically don’t spend much time optimizing or generalizing this layer. Its main goal is simply to bridge the high-level `HIR` representation and the target-specific assembly form, ensuring that each instruction can be directly translated to a valid machine instruction.
 ![lir_gen](docs/media/lir_gen.png)
+
+### LIR x86_64 optimization
 
 ### LIR x86_64 example
 ```

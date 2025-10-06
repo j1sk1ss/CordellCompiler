@@ -2,12 +2,11 @@
 #define ASMCTX_H_
 
 #include <stdio.h>
-#include <ast/ast.h>
 #include <lir/lir.h>
 
 typedef struct {
-    int (*declarator)(ast_node_t*, FILE*);
-    int (*generator)(lir_block_t*, FILE*);
+    int (*declarator)(lir_ctx_t*, FILE*);
+    int (*generator)(lir_ctx_t*, FILE*);
 } asm_gen_t;
 
 #endif
