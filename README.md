@@ -383,106 +383,50 @@ the variable `a` is owned by `b`, so we must not kill `a` while `b` is still ali
 ### Example code
 ```cpl
 {
-    fn sum(i32 a, i32 b) -> i32
-    {
-        alloc i32s a0;
-        kill c0
-        load_arg(i32s a30);
-        alloc i32s b1;
-        kill c1
-        load_arg(i32s b31);
-        {
-            prm_st(i32s a30);
-            kill c30
-            prm_st(i32s b31);
-            kill c31
-            alloc arrs c2, size: n2;
-            i32t tmp12 = arrs c2[n0];
-            i32t tmp13 = arrs c2[n1];
-            kill c2
-            i32t tmp32 = i32t tmp12 + i32t tmp13;
-            kill c12
-            kill c13
-            return i32t tmp32;
-            kill c32
-        }
+    start(i64 argc, ptr u64 argv) {
+        i32 a = 10;
+        ptr i32 b = ref a;
+        dref b = 11;
+        i32 c = 10;
+        exit c;
     }
-    
+}
+```
+->
+```
+{
     start {
-        alloc i64s argc3;
-        kill c3
-        load_starg(i64s argc33);
-        kill c33
-        alloc u64s argv4;
-        kill c4
-        load_starg(u64s argv34);
-        kill c34
+        alloc i64s argc0;
+        kill c0
+        load_starg(i64s argc9);
+        kill c9
+        alloc u64s argv1;
+        kill c1
+        load_starg(u64s argv10);
+        kill c10
         {
-            alloc i32s a5;
+            alloc i32s a2;
+            kill c2
+            i32t tmp5 = n10 as i32;
+            i32s a11 = i32t tmp5;
             kill c5
-            i32t tmp15 = n10 as i32;
-            i32s a35 = i32t tmp15;
-            kill c15
-            alloc i32s b6;
+            alloc u64s b3;
+            kill c3
+            u64t tmp6 = &(i32s a11);
+            u64s b12 = u64t tmp6;
             kill c6
-            i32t tmp16 = n10 as i32;
-            i32s b36 = i32t tmp16;
-            kill c16
-            alloc i32s c7;
-            kill c7
-            i32t tmp17 = n10 as i32;
-            i32s c37 = i32t tmp17;
-            kill c17
-            alloc i32s d8;
-            kill c8
-            i32t tmp18 = n10 as i32;
-            i32s d38 = i32t tmp18;
-            kill c18
-            alloc i32s k9;
-            kill c9
-            i32t tmp19 = n10 as i32;
-            i32s k39 = i32t tmp19;
-            kill c19
-            alloc i32s f10;
-            kill c10
-            i32t tmp20 = n10 as i32;
-            i32s f40 = i32t tmp20;
-            kill c20
-            store_arg(i32s a35);
-            store_arg(i32s b36);
-            i32t tmp41 = call sum(i32 a, i32 b) -> i32, argc c2;
-            i32t tmp42 = i32s a35 * i32s b36;
-            kill c35
-            kill c36
-            i32t tmp43 = i32t tmp42 + i32s c37;
-            kill c37
-            kill c42
-            i32t tmp44 = i32t tmp43 + i32s d38;
-            kill c38
-            kill c43
-            i32t tmp45 = i32t tmp44 + i32s k39;
-            kill c44
-            kill c39
-            i32t tmp46 = i32t tmp45 + i32s f40;
-            kill c45
-            i32t tmp47 = i32t tmp41 > i32t tmp46;
-            kill c46
-            kill c41
-            if i32t tmp47, goto l73;
-            kill c47
-            {
-                exit n1;
-            }
-            l73:
-            alloc i32s l11;
+            u64t tmp7 = n11 as u64;
+            *(u64s b12) = u64t tmp7;
             kill c11
-            u64t tmp28 = &(i32s f40);
-            i32t tmp29 = u64t tmp28 as i32;
-            kill c28
-            i32s l48 = i32t tmp29;
-            kill c29
-            exit i32s l48;
-            kill c48
+            kill c12
+            kill c7
+            alloc i32s c4;
+            kill c4
+            i32t tmp8 = n10 as i32;
+            i32s c13 = i32t tmp8;
+            kill c8
+            exit i32s c13;
+            kill c13
         }
     }
 }
