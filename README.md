@@ -32,6 +32,12 @@ This `README` file contains the main information about this compiler and the dev
 - [Dominant calculation](#dominant-calculation)
    - [Strict dominance](#strict-dominance)
    - [Dominance frontier](#dominance-frontier)
+- [SSA form](#ssa-form)
+   - [Phi function](#phi-function)
+- [Liveness analyzer part](#liveness-analyzer-part)
+   - [USE and DEF](#use-and-def)
+   - [IN and OUT](#in-and-out)
+   - [Point of deallocation](#point-of-deallocation)
 
 ## Introduction
 For additional experience, I chose to take on an extra challenge — creating a programming language. This language has an `EBNF-defined` syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and documentation. While explaining each layer of the compiler, I will also provide direct examples written in this language.
@@ -336,12 +342,152 @@ But how do we determine where to place this function? Here, we use previously co
 Then, during the SSA renaming process, we keep track of each block that passes through a φ-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result:
 ![phi_final](media/phi_final.png)
 
-### Example of code
 ## Liveness analyzer part
+Several optimization techniques are based on data-flow analysis. Data-flow analysis itself relies on liveness analysis, which in turn depends on the program’s `SSA` form and control-flow graph (CFG). Now that we have established these fundamental representations, we can proceed with the `USE–DEF–IN–OUT` computation process.
+
 ### USE and DEF
+`USE` and `DEF` are two sets associated with every `CFG` block. These sets represent all definitions and usages of variables within the block (recall that the code is already in `SSA` form). In short:
+- `DEF` contains all variables that are written (i.e., assigned a new value).
+- `USE` contains all variables that are read (i.e., their value is used).
+![use_def](media/use_def.png)
+
 ### IN and OUT
+`IN` and `OUT` is a little bit complex part here. 
+```
+OUT[B] = union(IN[S])
+IN[B]  = union(USE[B], OUT[B] − DEF[B])
+```
+
+First of all, to make the calculation much faster, we should traverse our list of `CFG` blocks in reverse order, computing `IN` and `OUT` for each block using the formulas above, and repeat this process until it stabilizes. Stabilization occurs when the previous sets (`primeIN` and `primeOUT`) are equal to the current sets (`currIN` and `currOUT`). This means that for every block we should maintain four sets:
+
+- primeIN
+- currIN
+- primeOUT
+- currOUT
+
+After each iteration, the current values are copied into the corresponding prime sets, preparing them for the next comparison cycle.
+![in_out](media/in_out.png)
+
 ### Point of deallocation
+At this point, we can determine where each variable dies. If a variable appears in the `IN` or `DEF` set but is not present in the `OUT` set, it means the variable is no longer used after this block, and we can safely insert a special `kill` instruction to mark it as dead. However, an important detail arises when dealing with pointer types. To handle them correctly, we construct a special structure called an `aliasmap`, which tracks ownership relationships between variables. This map records which variable owns another — meaning that one variable’s lifetime depends on another’s. For example, in code like this:
+```cpl
+{
+   i32 a0 = 10;
+   ptr i32 b0 = ref a0;
+   dref b0 = 20;
+}
+```
+the variable `a` is owned by `b`, so we must not kill `a` while `b` is still alive. In other words, the liveness of `a` depends on the liveness of `b`, and this dependency is preserved through the aliasmap.
+![kill_var](media/kill_var.png)
+
 ### Example code
+```cpl
+{
+    fn sum(i32 a, i32 b) -> i32
+    {
+        alloc i32s a0;
+        kill c0
+        load_arg(i32s a0);
+        alloc i32s b1;
+        kill c1
+        load_arg(i32s b1);
+        {
+            prm_st(i32s a0);
+            kill c0
+            prm_st(i32s b1);
+            kill c1
+            alloc arrs c2, size: n2;
+            i32t tmp12 = arrs c2[n0];
+            i32t tmp13 = arrs c2[n1];
+            kill c2
+            i32t tmp30 = i32t tmp12 + i32t tmp13;
+            kill c12
+            kill c13
+            return i32t tmp30;
+            kill c30
+        }
+    }
+    
+    start {
+        alloc i64s argc3;
+        kill c3
+        load_starg(i64s argc3);
+        kill c3
+        alloc u64s argv4;
+        kill c4
+        load_starg(u64s argv4);
+        kill c4
+        {
+            alloc i32s a5;
+            kill c5
+            i32t tmp15 = n10 as i32;
+            i32s a31 = i32t tmp15;
+            kill c15
+            alloc i32s b6;
+            kill c6
+            i32t tmp16 = n10 as i32;
+            i32s b32 = i32t tmp16;
+            kill c16
+            alloc i32s c7;
+            kill c7
+            i32t tmp17 = n10 as i32;
+            i32s c33 = i32t tmp17;
+            kill c17
+            alloc i32s d8;
+            kill c8
+            i32t tmp18 = n10 as i32;
+            i32s d34 = i32t tmp18;
+            kill c18
+            alloc i32s k9;
+            kill c9
+            i32t tmp19 = n10 as i32;
+            i32s k35 = i32t tmp19;
+            kill c19
+            alloc i32s f10;
+            kill c10
+            i32t tmp20 = n10 as i32;
+            i32s f36 = i32t tmp20;
+            kill c20
+            store_arg(i32s a31);
+            store_arg(i32s b32);
+            i32t tmp21 = call sum(i32 a, i32 b) -> i32, argc c2;
+            i32t tmp37 = i32s a31 * i32s b32;
+            kill c32
+            kill c31
+            i32t tmp38 = i32t tmp37 + i32s c33;
+            kill c37
+            kill c33
+            i32t tmp39 = i32t tmp38 + i32s d34;
+            kill c38
+            kill c34
+            i32t tmp40 = i32t tmp39 + i32s k35;
+            kill c35
+            kill c39
+            i32t tmp41 = i32t tmp40 + i32s f36;
+            kill c40
+            i32t tmp27 = i32t tmp21 > i32t tmp41;
+            kill c21
+            kill c41
+            if i32t tmp27, goto l73;
+            kill c27
+            {
+                exit n1;
+            }
+            l73:
+            alloc i32s l11;
+            kill c11
+            u64t tmp28 = &(i32s f36);
+            i32t tmp29 = u64t tmp28 as i32;
+            kill c28
+            i32s l42 = i32t tmp29;
+            kill c29
+            exit i32s l42;
+            kill c42
+        }
+    }
+}
+```
+
 ## Register allocation part
 ### Graph coloring
 ## LIR (x86_64) part

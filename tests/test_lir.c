@@ -21,6 +21,7 @@
 #include "hir_helper.h"
 #include "lir_helper.h"
 #include "ral_helper.h"
+#include "symtb_helper.h"
 
 int main(int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
@@ -101,50 +102,7 @@ int main(int argc, char* argv[]) {
         lh = lh->next;
     }
 
-    printf("\n\n========== SYMTABLES ==========\n");
-    map_iter_t it;
-
-    if (!map_isempty(&smt.v.vartb)) printf("==========   VARS  ==========\n");
-    map_iter_init(&smt.v.vartb, &it);
-    variable_info_t* vi;
-    while (map_iter_next(&it, (void**)&vi)) {
-        printf("id: %i, %s, type: %i, s_id: %i", vi->v_id, vi->name, vi->type, vi->s_id);
-        if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg + R11));
-        else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %i]", vi->vmi.offset);
-        printf("\n");
-    }
-
-    if (!map_isempty(&smt.a.arrtb)) printf("==========   ARRS  ==========\n");
-    map_iter_init(&smt.a.arrtb, &it);
-    array_info_t* ai;
-    while (map_iter_next(&it, (void**)&ai)) {
-        printf("id: %i, eltype: %i%s\n", ai->v_id, ai->el_type, ai->heap ? ", heap" : "");
-    }
-
-    if (!map_isempty(&smt.f.functb)) printf("==========  FUNCS  ==========\n");
-    map_iter_init(&smt.f.functb, &it);
-    func_info_t* fi;
-    while (map_iter_next(&it, (void**)&fi)) {
-        printf("id: %i, name: %s\n", fi->id, fi->name);
-    }
-
-    if (!map_isempty(&smt.s.strtb)) printf("========== STRINGS ==========\n");
-    map_iter_init(&smt.s.strtb, &it);
-    str_info_t* si;
-    while (map_iter_next(&it, (void**)&si)) {
-        printf("id: %i, val: %s\n", si->id, si->value);
-    }
-
-    if (!map_isempty(&smt.m.allias)) printf("========== ALLIAS ==========\n");
-    map_iter_init(&smt.m.allias, &it);
-    allias_t* mi;
-    while (map_iter_next(&it, (void**)&mi)) {
-        printf("id: %i, owners: ", mi->v_id);
-        set_iter_t sit;
-        set_iter_init(&mi->owners, &sit);
-        long own_id;
-        while (set_iter_next(&sit, (void**)&own_id)) printf("%i ", own_id);
-    }
+    print_symtab(&smt);
 
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.h);
