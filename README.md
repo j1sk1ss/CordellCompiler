@@ -43,7 +43,7 @@ This `README` file contains the main information about this compiler and the dev
 For additional experience, I chose to take on an extra challenge — creating a programming language. This language has an `EBNF-defined` syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and documentation. While explaining each layer of the compiler, I will also provide direct examples written in this language.
 
 ## EBNF
-![EBNF](media/EBNF.jpg)
+![EBNF](docs/media/EBNF.jpg)
 
 ## Sample code snippet
 The code below demonstrates the main capabilities of the language, excluding features such as while loops, syscalls, strings, and other advanced constructs. This code will be referenced in other parts of this `README`, and is presented here as an initial example before all further explanations.
@@ -73,7 +73,7 @@ The code below demonstrates the main capabilities of the language, excluding fea
 
 ## Tokenization part
 The tokenization part is responsible for splitting the input byte sequence into basic tokens. This module ignores all whitespace and separator symbols (such as newlines and tabs). It also classifies each token into one of the basic types: `number`, `string`, `delimiter`, `comma`, or `dot`.
-![tokenization](media/tokenization.png)
+![tokenization](docs/media/tokenization.png)
 
 ### Example of tokenized code
 Code above will produce next list of tokens.
@@ -106,7 +106,7 @@ line=20, type=1, data=[}]
 
 ## Markup part
 The markup stage is the second part of tokenization, but it is separated from the tokenizer in this compiler due to a different design approach. It operates only on the list of tokens and includes support for scopes. The main idea is to perform basic semantic markup of variables — for example, if we declare a variable `i32 a`, all occurrences of `a` within the corresponding scope can be marked as having the `i32` type.
-![markup](media/markup.png)
+![markup](docs/media/markup.png)
 
 ### Example of markup result
 ```
@@ -141,7 +141,7 @@ line=20, type=13, data=[}]
 
 ## AST part
 Next, we need to parse this sequence of marked tokens to construct an `AST` (Abstract Syntax Tree). There are many approaches to achieve this — for example, `LL` parsing, `LR` parsing, or even `hybrid` techniques that combine `LL` and `LR`. A more complete list of parser types can be found [here](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books.
-![markup](media/ast.png)
+![markup](docs/media/ast.png)
 
 ### Example of AST
 ```
@@ -227,7 +227,7 @@ Now we have a correct `AST` representation of the input code. Before proceeding 
 
 ## HIR part
 Now we need to convert our `AST` into a simpler representation. A common approach here is to convert the `AST` into `Three-Address Code` (3AC).
-![markup](media/HIR.png)
+![markup](docs/media/HIR.png)
 
 ### HIR optimization
 - Constant folding
@@ -310,37 +310,37 @@ With `3AC`, we can move on to `CFG` (Control Flow Graph) creation. There are sev
 
 In this compiler, both approaches are implemented, but for the following explanations, we will use the approach of creating a block for every command.
 
-![markup](media/CFG.png)
+![markup](docs/media/CFG.png)
 
 ### Example of CFG
-![markup](media/CFG_example.png)
+![markup](docs/media/CFG_example.png)
 
 ## Dominant calculation
 With the `CFG`, we can determine the dominators of each block. In simple terms, a dominator of a block `Y` is a block `X` that appears on every path from the entry block to `Y`. For example, the following figure illustrates how this works:
-![dominators](media/dominators.png)
+![dominators](docs/media/dominators.png)
 
 ### Strict dominance
 Strict dominance tells us which block strictly dominates another. A block `X` strictly dominates block `Y` if `X` dominates `Y` and `X` != `Y`. Why do we need this? The basic dominance relation marks all blocks that dominate a given block, but later analyses often require only the closest one. A block `X` is said to be the immediate dominator of `Y` if `X` strictly dominates `Y`, and there is no other block `Z` such that `Z` strictly dominates `Y` and is itself strictly dominated by `X`.
-![sdom](media/strict_dominance.png)
+![sdom](docs/media/strict_dominance.png)
 
 ### Dominance frontier
 The dominance frontier of a block `X` is the set of blocks where the dominance of `X` ends. More precisely, it represents all the blocks that are partially influenced by `X`: `X` dominates at least one of their predecessors, but does not dominate the block itself. In other words, it marks the boundary where control flow paths from inside `X’s` dominance region meet paths coming from outside.
-![fdom](media/dominance_frontier.png)
+![fdom](docs/media/dominance_frontier.png)
 
 ## SSA form
 Static Single Assignment (SSA) form requires renaming all assigned variables so that each assignment creates a new, unique variable. A simple example is shown below:
-![ssa](media/ssa_basic.png)
+![ssa](docs/media/ssa_basic.png)
 
 ### Phi function
 But here we encounter a problem. What should we do in this specific case?
-![ssa_problem](media/ssa_problem.png)
+![ssa_problem](docs/media/ssa_problem.png)
 
 Which version of the variable `a` should be used in the declaration of `b`? The answer is simple — `both`. Here’s the twist: in `SSA` form, we can use a `φ (phi)` function, which tells the compiler which variable version to use. An example of a `φ` function is shown below:
-![phi_function](media/phi_function.png)
+![phi_function](docs/media/phi_function.png)
 But how do we determine where to place this function? Here, we use previously computed dominance information. We traverse the entire symbol table of variables. For each variable, we collect the set of blocks where it is defined (either declared or assigned). Then, for each block with a definition, we take its dominance frontier blocks and insert a `φ` function there.
-![phi_placement](media/phi_placement.png)
+![phi_placement](docs/media/phi_placement.png)
 Then, during the SSA renaming process, we keep track of each block that passes through a φ-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result:
-![phi_final](media/phi_final.png)
+![phi_final](docs/media/phi_final.png)
 
 ## Liveness analyzer part
 Several optimization techniques are based on data-flow analysis. Data-flow analysis itself relies on liveness analysis, which in turn depends on the program’s `SSA` form and control-flow graph (CFG). Now that we have established these fundamental representations, we can proceed with the `USE–DEF–IN–OUT` computation process.
@@ -349,7 +349,7 @@ Several optimization techniques are based on data-flow analysis. Data-flow analy
 `USE` and `DEF` are two sets associated with every `CFG` block. These sets represent all definitions and usages of variables within the block (recall that the code is already in `SSA` form). In short:
 - `DEF` contains all variables that are written (i.e., assigned a new value).
 - `USE` contains all variables that are read (i.e., their value is used).
-![use_def](media/use_def.png)
+![use_def](docs/media/use_def.png)
 
 ### IN and OUT
 `IN` and `OUT` is a little bit complex part here. 
@@ -366,7 +366,7 @@ First of all, to make the calculation much faster, we should traverse our list o
 - currOUT
 
 After each iteration, the current values are copied into the corresponding prime sets, preparing them for the next comparison cycle.
-![in_out](media/in_out.png)
+![in_out](docs/media/in_out.png)
 
 ### Point of deallocation
 At this point, we can determine where each variable dies. If a variable appears in the `IN` or `DEF` set but is not present in the `OUT` set, it means the variable is no longer used after this block, and we can safely insert a special `kill` instruction to mark it as dead. However, an important detail arises when dealing with pointer types. To handle them correctly, we construct a special structure called an `aliasmap`, which tracks ownership relationships between variables. This map records which variable owns another — meaning that one variable’s lifetime depends on another’s. For example, in code like this:
@@ -378,7 +378,7 @@ At this point, we can determine where each variable dies. If a variable appears 
 }
 ```
 the variable `a` is owned by `b`, so we must not kill `a` while `b` is still alive. In other words, the liveness of `a` depends on the liveness of `b`, and this dependency is preserved through the aliasmap.
-![kill_var](media/kill_var.png)
+![kill_var](docs/media/kill_var.png)
 
 ### Example code
 ```cpl
@@ -436,15 +436,15 @@ the variable `a` is owned by `b`, so we must not kill `a` while `b` is still ali
 Now that we have the `IN`, `OUT`, `DEF`, and `USE` sets, we can construct an interference graph. The idea is straightforward: we create a vertex for each variable in the symbol table, and then, for every `CFG` block, we connect (i.e., add an edge between) each variable from the block’s `DEF` set with every variable from its `OUT` set. This connection represents that these two variables are live at the same time. The resulting structure is the interference graph, where:
 - Vertices represent program variables.
 - Edges represent liveness conflicts (interference) between variables.
-![ig](media/not_colored_ig.png)
+![ig](docs/media/not_colored_ig.png)
 
 ### Graph coloring
 Now we can determine which variables can share the same register using graph coloring. The solution to this problem is purely mathematical, and there are many possible strategies to color a graph. In short, the goal is to assign a color to every node (variable) in such a way that no two connected nodes share the same color. The output of this algorithm is a colored interference graph, where each color represents a distinct physical register, and all variables with the same color can safely reuse the same register without overlapping lifetimes.
-![colored_ig](media/colored_ig.png)
+![colored_ig](docs/media/colored_ig.png)
 
 ## LIR (x86_64) part
 In the same way as during `HIR` generation, we now produce an intermediate representation similar to `3AC` — but using only two addresses. This step is relatively straightforward, as it primarily involves adapting instructions to the target machine’s addressing model. Because the exact implementation depends heavily on the target architecture (register count, instruction set, addressing modes, etc.), we typically don’t spend much time optimizing or generalizing this layer. Its main goal is simply to bridge the high-level `HIR` representation and the target-specific assembly form, ensuring that each instruction can be directly translated to a valid machine instruction.
-![lir_gen](media/lir_gen.png)
+![lir_gen](docs/media/lir_gen.png)
 
 ### LIR x86_64 example
 ```

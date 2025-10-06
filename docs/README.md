@@ -1,23 +1,29 @@
-# Cordell Programming Language documentation
-**Cordell Compiler** is a compact hobby compiler for `Cordell Programming Language` with a simple syntax, inspired by C and Rust. It is designed for studying compilation, code optimization, translation, and low-level microcode generation. </br>
-**Main goal** of this project is learning of compilers architecture and porting one to `CordellOS` project (I want to code apps for OS inside this OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
-
-# Introduction
-## Overview
+# Cordell Compiler documentation
 The **Cordell Programming Language (CPL)** is a system-level programming language designed for learning and experimenting with modern compiler concepts. It combines low-level capabilities from `ASM` with practices inspired by modern languages like `Rust` and `C`.  
 
+## Summary
 CPL is intended for:
 - **Systems programming** — operating systems, compilers, interpreters, and embedded software.  
 - **Educational purposes** — a language to study compiler design, interpreters, and programming language concepts.  
 
-### Key Features
+## Key Features
 - **Flexible typing**: variables may hold values of different types; the compiler attempts implicit conversions when assigning.  
 - **Explicit memory model**: ownership rules and manual memory management are core features.  
 - **Minimalistic syntax**: designed for readability and precision.  
 - **Deterministic control flow**: no hidden behaviors; all execution paths are explicit.  
 - **Extensibility**: functions and inbuilt macros allow both low-level operations and high-level abstractions.  
 
-## Hello, World! example
+# Main idea of this project
+Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for OS inside this OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
+
+# Usefull links and literature
+- Aarne Ranta. *Implementing Programming Languages. An Introduction to Compilers and Interpreters*
+- Aho, Lam, Sethi, Ullman. *Compilers: Principles, Techniques, and Tools (Dragon Book)*
+- Andrew W. Appel. *Modern Compiler Implementation in C (Tiger Book)*
+- Cytron et al. *Efficiently Computing Static Single Assignment Form and the Control Dependence Graph* (1991)
+- Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
+
+# Hello, World! example
 ```cpl
 {
     function strlen(ptr i8 s) => i64 {
@@ -52,7 +58,6 @@ CPL is intended for:
 ## Code conventions
 CPL encourages consistent and readable code.
 
-### Naming conventions
 - **Variables**: use lowercase letters and underscores  
 ```cpl
 i32 counter = 0;
@@ -68,7 +73,7 @@ glob ro i32 WIN_Y = 1920;
 
 - **Functions**: use lowercase letters with underscores
 ```cpl
-function calculate_sum(ptr i32 arr, i64 length) { :...: }
+function calculate_sum(ptr i32 arr, i64 length) => i32 { return 0; }
 ```
 
 - **Scopes**: K&R style
@@ -77,7 +82,7 @@ if cond; {
 }
 while cond; {
 }
-start() {
+start(i64 argc, ptr u64 argv) {
 }
 ```
 
@@ -142,9 +147,9 @@ if msg == "Hello world!"; {
 
 - `arr` - Array data type. Can contain any primitive type.
 ```cpl
-arr arr1[10, i32];                                    : <= Allocated data without initialization :
-arr arr2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; : <= Allocated data with initialization    :
-arr matrix[2, u64] = { arr1, arr2 };                  : <= Simple matrix                         :
+arr arr1[10, i32];
+arr arr2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+arr matrix[2, u64] = { arr1, arr2 };
 ```
 
 Also array can have an unkown in `compile-time` size. This will generate code that allocates memory in heap. 
@@ -160,14 +165,15 @@ ptr u8 a;
 {
     arr arr1[size, i32];
     a = ref arr1;
-}                                 : <= "arr1" is deallocated. Work with this "a" will cause a SF :
-a[0] = 0;                         : <= SF! :
+}          : <= "arr1" is deallocated. Work with this "a" will cause a SF :
+a[0] = 0;  : <= SF! :
 ```
 
 ## Pointers
 - `ptr` - Pointer modifier that can be add to every primitive (and `str`) type.
 ```cpl
-ptr u64 a = 0;
+i32 f = 10;
+ptr u64 a = ref f;
 ptr str b = "Hello world";
 ```
 
@@ -175,13 +181,13 @@ ptr str b = "Hello world";
 CPL supports only implicit casting. This means, that any value or return type can be stored in any variable. But semantic module will inform, if it encounter an unexpected implicit casting.
 ```cpl
 i32 a = 0xFFFF;
-i8 b = a;     : <= Will produce a warning :
+i8 b = a; : <= Will produce a warning :
 
-function a() => i64 { :...: }
-i8 c = a();   : <= Will produce a warning :
+function a() => i64 { }
+i8 c = a(); : <= Will produce a warning :
 
 i8 d = 0xFFF; : <= Will produce a warning :
-u8 f = -1;    : <= Will produce a warning :
+u8 f = -1; : <= Will produce a warning :
 ```
 
 ```bash
@@ -217,10 +223,10 @@ start() {
    ptr u64 p;
    {
       arr t[10; i32];
-      p = ref t;                 : <= No warning here, but it still illegal :
-   }                             : <= array "t" died here                   :
+      p = ref t;     : <= No warning here, but it still illegal :
+   }                 : <= array "t" died here :
 
-   p[0] = 1;                     : <= Pointer to deallocated stack          :
+   p[0] = 1;         : <= Pointer to deallocated stack :
    exit 0;
 }
 ```
@@ -232,19 +238,19 @@ Outer variables can be seen by current and nested scopes.
 ```cpl
 {
    {
-      i32 a = 10;                   : <= Don't see any variables   :
+      i32 a = 10; : <= Don't see any variables :
    }
 
-   i64 b = 10;                      : <= Don't see any variables   :
+   i64 b = 10; : <= Don't see any variables :
 
    {
-      i8 c = 9;                     : <= See "b" variable          :
+      i8 c = 9; : <= See "b" variable :
 
       {
-         f32 a = 10;                : <= See "b" and "c" variables :
+         f32 a = 10; : <= See "b" and "c" variables :
       }
 
-      i8 a = 0;                     : <= See "b" and "c" variables :
+      i8 a = 0; : <= See "b" and "c" variables :
    }
 }
 ```
@@ -281,10 +287,10 @@ switch cond; {
 
 # Functions and inbuilt macros
 ## Functions
-Functions can be defined by `function` keyword. Also, if you want to use function in another `.cpl`/(or whatever language that support extern) file, you can append `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that CPL change function name by next pattern: `__{name}__`. 
+Functions can be defined by `function` keyword. Also, if you want to use function in another `.cpl`/(or whatever language that support extern) file, you can append `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that CPL change function name by next pattern: `__cpl_{name}__`. 
 ```cpl
-function foo() => i32 { :...: }
-glob function bar(i32 a = 10) => ptr u64 { :...: }
+function foo() => i32 { }
+glob function bar(i32 a = 10) => ptr u64 { }
 ```
 
 CPL support default values in functions. Compiler will pass this default args in function call if you don't provide enoght.
@@ -315,7 +321,7 @@ Note: Inlined assembly block don't optimized by any alghorithms.
 
 # Ownership rules
 ## Ownership model vs Rust
-CPL introduces a lightweight ownership model that resembles Rust’s borrow checker, but it serves a different purpose and operates with fewer restrictions.  
+CPL uses a lightweight ownership model with `register allocation` that resembles Rust’s borrow checker, but it serves a different purpose and operates with fewer restrictions.  
 
 ### Similarities
 - **Ownership tracking**:  
@@ -341,13 +347,13 @@ CPL introduces a lightweight ownership model that resembles Rust’s borrow chec
 ```cpl
 {
     start() {
-        i32 a = 0;        : <= Allocate 8 bytes :
-        ptr i32 p;        : <= Allocate 8 bytes :
+        i32 a = 0; : <= Allocate 8 bytes :
+        ptr i32 p; : <= Allocate 8 bytes :
         if 1; {
-            p = ref a;    : <= "p" becomes a new owner of "a" :
+            p = ref a; : <= "p" becomes a new owner of "a" :
         }
 
-        i32 c = 0;        : <= "p" is still alive, so "a" is not reusable yet :
+        i32 c = 0; : <= "p" is still alive, so "a" is not reusable yet :
         exit p;
     }
 }
@@ -379,7 +385,7 @@ CPL introduces a lightweight ownership model that resembles Rust’s borrow chec
                 }
                 case ']'; {
                     if stackptr > 0; {
-                        stackptr = stackptr - 1;
+                        stackptr -= 1;
                         i32 matchpos = stack[stackptr];
                         bracketmap[pos] = matchpos;
                         bracketmap[matchpos] = pos;
@@ -387,7 +393,7 @@ CPL introduces a lightweight ownership model that resembles Rust’s borrow chec
                 }
             }
             
-            pos = pos + 1;
+            pos += 1;
         }
         
         i32 pc = 0;

@@ -109,8 +109,8 @@ int HIR_DFG_compute_inout(cfg_ctx_t* cctx) {
             list_iter_tinit(&fb->blocks, &bit);
             cfg_block_t* cb;
             while ((cb = (cfg_block_t*)list_iter_prev(&bit))) {
-                _compute_in(cb);
                 _compute_out(cb);
+                _compute_in(cb);
             }
 
             int same = 1;
