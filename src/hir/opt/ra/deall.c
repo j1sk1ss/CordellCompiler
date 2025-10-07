@@ -48,6 +48,7 @@ int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt, map_t* c
                     if (ALLIAS_mark_owner(al->v_id, vid, &smt->m)) {
                         HIR_insert_block_after(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(al->v_id), NULL, NULL), cb->exit);
                         set_free_force(&al->delown);
+                        set_init(&al->delown);
                     }
 
                     break;

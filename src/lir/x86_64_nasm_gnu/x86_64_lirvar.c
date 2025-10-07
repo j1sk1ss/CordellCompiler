@@ -18,7 +18,7 @@ lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_tabl
         case HIR_GLBVARU8:  case HIR_GLBVARI8: {
             variable_info_t vi;
             if (VRTB_get_info_id(subj->storage.var.v_id, &vi, &smt->v)) {
-                if (vi.glob) LIR_SUBJ_GLVAR(subj->storage.var.v_id);
+                if (vi.glob) return LIR_SUBJ_GLVAR(subj->storage.var.v_id);
                 if (!vi.vmi.allocated) {
                     long clr;
                     int vrsize = LIR_get_hirtype_size(subj->t);
@@ -47,7 +47,7 @@ lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_tabl
 
 /* Variable to register */
 int LIR_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
-    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)), LIR_format_variable(ctx, subj, smt));
+    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), LIR_format_variable(ctx, subj, smt));
     return 1;
 }
 
