@@ -50,5 +50,13 @@ int ALLIAS_mark_owner(long v_id, long owner_id, allias_map_t* ctx) {
 }
 
 int ALLIAS_unload(allias_map_t* ctx) {
+    map_iter_t it;
+    map_iter_init(&ctx->allias, &it);
+    allias_t* ai;
+    while (map_iter_next(&it, (void**)&ai)) {
+        set_free_force(&ai->delown);
+        set_free_force(&ai->owners);
+    }
+
     return map_free_force(&ctx->allias);
 }
