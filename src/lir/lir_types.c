@@ -127,48 +127,56 @@ registers_t LIR_format_register(registers_t reg, int size) {
             if (size == 8) return R8; 
             if (size == 4) return R8D;
             if (size == 2) return R8W;
+            if (size == 1) return R8B;
             return R8B;
 
         case R9: case R9D: case R9W: case R9B:
             if (size == 8) return R9;
             if (size == 4) return R9D;
             if (size == 2) return R9W;
+            if (size == 1) return R9B;
             return R9B;
 
         case R10: case R10D: case R10W: case R10B:
             if (size == 8) return R10;
             if (size == 4) return R10D;
             if (size == 2) return R10W;
+            if (size == 1) return R10B;
             return R10B;
 
         case R11: case R11D: case R11W: case R11B:
             if (size == 8) return R11; 
             if (size == 4) return R11D;
             if (size == 2) return R11W;
+            if (size == 1) return R11B;
             return R11B;
 
         case R12: case R12D: case R12W: case R12B:
             if (size == 8) return R12;
             if (size == 4) return R12D;
             if (size == 2) return R12W;
+            if (size == 1) return R12B;
             return R12B;
 
         case R13: case R13D: case R13W: case R13B:
             if (size == 8) return R13;
             if (size == 4) return R13D;
             if (size == 2) return R13W;
+            if (size == 1) return R13B;
             return R13B;
 
         case R14: case R14D: case R14W: case R14B:
             if (size == 8) return R14;
             if (size == 4) return R14D;
             if (size == 2) return R14W;
+            if (size == 1) return R14B;
             return R14B;
 
         case R15: case R15D: case R15W: case R15B:
             if (size == 8) return R15;
             if (size == 4) return R15D;
             if (size == 2) return R15W;
+            if (size == 1) return R15B;
             return R15B;
 
         case XMM0: return XMM0;

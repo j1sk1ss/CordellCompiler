@@ -115,6 +115,8 @@ static const char* lir_op_to_string(lir_operation_t op) {
         case LIR_DEALLH: return "DEALLH";
         case LIR_EXITOP: return "EXITOP";
 
+        case LIR_STEND:  return "STEND";
+        case LIR_FEND:   return "FEND";
         default: return "[unkn]";
     }
 }

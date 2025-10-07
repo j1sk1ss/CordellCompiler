@@ -16,7 +16,7 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
 
         case LIR_MEMORY: {
             if (v->storage.var.offset > 0) snprintf(irh_buffer, 128, "[rbp - %d]", v->storage.var.offset);
-            else  snprintf(irh_buffer, 128, "[rbp + %d]", -1 * v->storage.var.offset);
+            else  snprintf(irh_buffer, 128, "[rbp + %d]", ABS(v->storage.var.offset));
             return irh_buffer;
         }
         

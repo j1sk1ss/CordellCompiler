@@ -24,6 +24,7 @@ typedef enum {
         LIR_CDQ,   // cdq
         LIR_MKLB,  // mk label
         LIR_FDCL,  // declare function
+        LIR_FEND,
         LIR_OEXT,  // extern object
 
         LIR_SETL,

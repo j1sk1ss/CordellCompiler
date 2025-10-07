@@ -12,6 +12,7 @@
 #include <std/stack.h>
 #include <std/stackmap.h>
 
+/* x86_64_lirvar.c */
 lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt);
 int LIR_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
 int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
@@ -22,6 +23,9 @@ int LIR_allocate_arr(
     lir_ctx_t* ctx, hir_subject_t* v, hir_subject_t* size, scope_stack_t* heap, 
     scope_stack_t* scopes, sym_table_t* smt, array_info_t* ai, long* offset
 );
+
+/* x86_64_refgen.c */
+int x86_64_generate_ref(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
 
 /* x86_64_funcgen.c */
 int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstack_t* params);
