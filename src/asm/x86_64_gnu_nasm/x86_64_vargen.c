@@ -4,45 +4,60 @@ static char _buffers[2][128];
 static int _idx = 0;
 
 const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
-    char* irh_buffer = _buffers[_idx];
+    char* curr_buffer = _buffers[_idx];
     _idx = (_idx + 1) % 2;
 
     switch (v->t) {
         case LIR_NUMBER: return v->storage.num.value;
         case LIR_CONSTVAL: {
-            snprintf(irh_buffer, 128, "%d", v->storage.cnst.value);
-            return irh_buffer;
+            snprintf(curr_buffer, 128, "%d", v->storage.cnst.value);
+            return curr_buffer;
         }
 
         case LIR_MEMORY: {
-            if (v->storage.var.offset > 0) snprintf(irh_buffer, 128, "[rbp - %d]", v->storage.var.offset);
-            else  snprintf(irh_buffer, 128, "[rbp + %d]", ABS(v->storage.var.offset));
-            return irh_buffer;
+            if (v->storage.var.offset > 0) snprintf(curr_buffer, 128, "[rbp - %d]", v->storage.var.offset);
+            else  snprintf(curr_buffer, 128, "[rbp + %d]", ABS(v->storage.var.offset));
+            return curr_buffer;
         }
         
         case LIR_GLVARIABLE: {
             variable_info_t vi;
             if (VRTB_get_info_id(v->storage.var.v_id, &vi, &smt->v)) {
-                snprintf(irh_buffer, 128, "[rel _%s_]", vi.name);
-                return irh_buffer;
+                snprintf(curr_buffer, 128, "[rel _%s_]", vi.name);
+                return curr_buffer;
             }
 
             break;
         }
 
+        case LIR_LABEL: {
+            snprintf(curr_buffer, 128, "lb%i", v->storage.lb.lb_id);
+            return curr_buffer;
+        }
+
         case LIR_STRING: {
             str_info_t si;
             if (STTB_get_info_id(v->storage.str.sid, &si, &smt->s)) {
-                snprintf(irh_buffer, 128, "\'%s\'", si.value);
-                return irh_buffer;
+                snprintf(curr_buffer, 128, "\'%s\'", si.value);
+                return curr_buffer;
             }
+        }
+
+        case LIR_FNAME: {
+            func_info_t fi;
+            if (FNTB_get_info_id(v->storage.str.sid, &fi, &smt->f)) {
+                snprintf(curr_buffer, 128, "%s", fi.name);
+                return curr_buffer;
+            }
+
+            break;
         }
 
         case LIR_RAWASM: {
             str_info_t si;
             if (STTB_get_info_id(v->storage.str.sid, &si, &smt->s)) {
-                snprintf(irh_buffer, 128, "%s", si.value);
-                return irh_buffer;
+                snprintf(curr_buffer, 128, "%s", si.value);
+                return curr_buffer;
             }
         }
 
@@ -58,7 +73,7 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
                 case RCX:  return "rcx";
                 case RDX:  return "rdx";
                 case RSI:  return "rsi";
-                case RDI:  return "rsi";
+                case RDI:  return "rdi";
                 case RBP:  return "rbp";
                 case RSP:  return "rsp";
 
@@ -135,5 +150,5 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
         default: break;
     }
 
-    return irh_buffer;
+    return curr_buffer;
 }

@@ -73,7 +73,7 @@ int LIR_get_hirtype_size(hir_subject_type_t t) {
     }
 }
 
-registers_t LIR_format_register(registers_t reg, int size) {
+lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     switch (reg) {
         case RAX: case EAX: case AX: case AL: case AH:
             if (size == 8) return RAX;

@@ -163,11 +163,11 @@ typedef enum {
     AX,   BX,  CX,  DX,  SI,  DI,  BP,  SP,  R8W, R9W, R10W, R11W, R12W, R13W, R14W, R15W,
     AL,   BL,  CL,  DL,  SIL, DIL, BPL, SPL, R8B, R9B, R10B, R11B, R12B, R13B, R14B, R15B,
     AH,   BH,  CH,  DH, 
-} registers_t;
+} lir_registers_t;
 
 int LIR_get_asttype_size(token_type_t t);
 int LIR_get_hirtype_size(hir_subject_type_t t);
 int LIR_is_global_hirtype(hir_subject_type_t t);
-registers_t LIR_format_register(registers_t reg, int size);
+lir_registers_t LIR_format_register(lir_registers_t reg, int size);
 
 #endif

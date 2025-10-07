@@ -19,7 +19,7 @@ typedef struct {
 } lir_variable_t;
 
 typedef struct {
-    registers_t reg;
+    lir_registers_t reg;
 } lir_register_t;
 
 typedef struct {
@@ -69,7 +69,7 @@ typedef struct {
 } lir_ctx_t;
 
 lir_subject_t* LIR_create_subject(
-    int t, registers_t r, int v_id, long offset, const char* strval, long intval, int size, int s_id
+    int t, lir_registers_t r, int v_id, long offset, const char* strval, long intval, int size, int s_id
 );
 
 lir_ctx_t* LIR_create_ctx();
@@ -104,7 +104,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx);
     LIR_create_subject(LIR_RAWASM, 0, l, 0, NULL, 0, 0, 0)
 
 #define LIR_SUBJ_STRING(id) \
-    LIR_create_subject(LIR_FNAME, 0, id, 0, NULL, 0, 0, -1)
+    LIR_create_subject(LIR_STRING, 0, id, 0, NULL, 0, 0, -1)
 
 #define LIR_SUBJ_FUNCNAME(n) \
     LIR_create_subject(LIR_FNAME, 0, n->storage.str.s_id, 0, NULL, 0, 0, -1)

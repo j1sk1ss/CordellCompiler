@@ -37,6 +37,34 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
     return 1;
 }
 
+static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_table_t* smt) {
+    if (a == b) return 1;
+
+    variable_info_t avi, bvi;
+    if (!VRTB_get_info_id(a, &avi, &smt->v) || !VRTB_get_info_id(b, &bvi, &smt->v)) {
+        return 0;
+    }
+
+    set_iter_t it;
+    set_iter_init(&block->pred, &it);
+    cfg_block_t* trg;
+    while (set_iter_next(&it, (void**)&trg)) {
+        if (trg->id != bid) continue;
+        hir_block_t* union_command = HIR_create_block(
+            HIR_PHI_PREAMBLE, 
+            HIR_SUBJ_STKVAR(avi.v_id, HIR_get_stktype(&avi), avi.s_id), 
+            HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi), bvi.s_id), 
+            NULL
+        );
+
+        if (trg->jmp) HIR_insert_block_before(union_command, trg->entry);
+        else HIR_insert_block_after(union_command, trg->entry);
+        break;
+    }
+
+    return 1;
+}
+
 static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
     if (!b || set_has(&b->visitors, (void*)prev_bid)) return 0;
 
@@ -53,10 +81,16 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                         if (!set_has_inttuple(&hh->targ->storage.set.h, inf)) set_add(&hh->targ->storage.set.h, inf);
                         else inttuple_free(inf);
 
-                        if (!hh->sarg) {
+                        int prev_id = vv->curr_id;
+                        int future_id = 0;
+                        if (hh->sarg) future_id = hh->sarg->storage.var.v_id;
+                        else {
                             hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
                             vv->curr_id = hh->sarg->storage.var.v_id;
+                            future_id = vv->curr_id;
                         }
+
+                        _insert_phi_preamble(b, prev_bid, future_id, prev_id, smt);
                     }
                 }
 

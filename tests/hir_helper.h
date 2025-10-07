@@ -207,7 +207,6 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_GDREF:     return "%s = *(%s);\n";
         case HIR_LDREF:     return "*(%s) = %s;\n";
         case HIR_REF:       return "%s = &(%s);\n";
-        case HIR_CLNVRS:    return "delete(%s);\n";
         case HIR_IFLWOP:    return "if %s < %s, goto %s;\n";
         case HIR_IFLWEOP:   return "if %s <= %s, goto %s;\n";
         case HIR_IFLGOP:    return "if %s > %s, goto %s;\n";
@@ -219,6 +218,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_PHI:       return "[%s] %s = phi(%s);\n";
         case HIR_MKSCOPE:   return "{\n";
         case HIR_ENDSCOPE:  return "}\n";
+        case HIR_PHI_PREAMBLE: return "future: %s = previous: %s;\n";
         default: return "\n";
     }
 }
@@ -273,9 +273,9 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
     }
     else {
         switch (s->t) {
-            case HIR_NUMBER:     dst += sprintf(dst, "n%s", s->storage.num.value);   break;
-            case HIR_CONSTVAL:   dst += sprintf(dst, "c%ld", s->storage.cnst.value); break;
-            case HIR_LABEL:      dst += sprintf(dst, "l%d", s->id);                  break;
+            case HIR_NUMBER:     dst += sprintf(dst, "num: %s", s->storage.num.value);   break;
+            case HIR_CONSTVAL:   dst += sprintf(dst, "const: %ld", s->storage.cnst.value); break;
+            case HIR_LABEL:      dst += sprintf(dst, "lb%d", s->id);                  break;
 
             case HIR_RAWASM:
             case HIR_STRING: {

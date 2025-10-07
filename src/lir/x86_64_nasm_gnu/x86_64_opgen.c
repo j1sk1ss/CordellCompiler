@@ -117,9 +117,9 @@ int x86_64_generate_ifop(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         case HIR_IFLWEOP:
         case HIR_IFLGOP:
         case HIR_IFLGEOP: {
-            LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
-            LIR_store_var_reg(LIR_iMOV, ctx, h->targ, RBX, smt);
-            if (HIR_is_floattype(h->farg->t)) LIR_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iCMP);
+            LIR_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+            LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RBX, smt);
+            if (!HIR_is_floattype(h->farg->t)) LIR_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iCMP);
             else LIR_reg_op(ctx, XMM0, DEFAULT_TYPE_SIZE, XMM1, DEFAULT_TYPE_SIZE, LIR_fCMP);
             if (HIR_is_signtype(h->farg->t) && HIR_is_signtype(h->sarg->t)) {
                 switch (h->op) {

@@ -274,15 +274,16 @@ hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
     }
 }
 
-hir_subject_type_t HIR_get_stktype(token_t* token) {
-    if (!token) return HIR_STKVARI64;
-    int bitness  = VRS_variable_bitness(token, 1);
-    int isfloat  = VRS_is_float(token);
-    int issigned = VRS_issign(token);
-    int isarr    = token->t_type == ARR_VARIABLE_TOKEN;
-    int isstr    = token->t_type == STR_VARIABLE_TOKEN;
+hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
+    if (!vi) return HIR_STKVARI64;
+    token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr } };
+    int bitness  = VRS_variable_bitness(&tmptkn, 1);
+    int isfloat  = VRS_is_float(&tmptkn);
+    int issigned = VRS_issign(&tmptkn);
+    int isarr    = vi->type == ARR_VARIABLE_TOKEN;
+    int isstr    = vi->type == STR_VARIABLE_TOKEN;
 
-    if (!VRS_instack(token)) {
+    if (!VRS_instack(&tmptkn)) {
         if (isarr) return HIR_GLBVARARR;
         if (isstr) return HIR_GLBVARSTR;
         return _get_glbtype(bitness, isfloat, issigned);
@@ -303,6 +304,11 @@ hir_subject_type_t HIR_get_stktype(token_t* token) {
         case 32: return HIR_STKVARF32;
         default: return HIR_STKVARF64;
     }
+}
+
+hir_subject_type_t HIR_get_token_stktype(token_t* tkn) {
+    variable_info_t vi = { .type = tkn->t_type, .ptr = tkn->flags.ptr };
+    return HIR_get_stktype(&vi);
 }
 
 int HIR_isjmp(hir_operation_t op) {

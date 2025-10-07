@@ -177,6 +177,8 @@ TEST_SRCS[test_asm]="
 
 TEST_CODES[test_asm]="
     tests/dummy_data/asm/asm_1.cpl
+    tests/dummy_data/asm/asm_2.cpl
+    tests/dummy_data/asm/asm_3.cpl
 "
 
 TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/sem/*.c src/ast/*.c src/ast/*/*.c src/lir/*.c src/lir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"

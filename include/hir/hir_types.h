@@ -1,6 +1,7 @@
 #ifndef HIR_TYPES_H_
 #define HIR_TYPES_H_
 
+#include <symtab/vartb.h>
 #include <prep/token.h>
 #include <std/vars.h>
 
@@ -69,42 +70,43 @@ typedef enum hir_operation {
 
     /* High level operations */
         /* Condition operator */
-        HIR_IFOP,        // if x, jmp z
-        HIR_IFLGOP,      // if x > y, jmp z
-        HIR_IFLGEOP,     // if x >= y, jmp z
-        HIR_IFLWOP,      // if x < y, jmp z
-        HIR_IFLWEOP,     // if x <= y, jmp z
-        HIR_IFCPOP,      // if x == y, jmp z
-        HIR_IFNCPOP,     // if x != y, jmp z
+        HIR_IFOP,         // if x, jmp z
+        HIR_IFLGOP,       // if x > y, jmp z
+        HIR_IFLGEOP,      // if x >= y, jmp z
+        HIR_IFLWOP,       // if x < y, jmp z
+        HIR_IFLWEOP,      // if x <= y, jmp z
+        HIR_IFCPOP,       // if x == y, jmp z
+        HIR_IFNCPOP,      // if x != y, jmp z
 
-        HIR_PHI,         // base: x, new_var y, set: z (bb, v_id)
-        HIR_VRDEALL,     // dealloc x
+        HIR_PHI_PREAMBLE, // x_future = x_this_block
+        HIR_PHI,          // base: x, new_var y, set: z (bb, v_id)
+        HIR_VRDEALL,      // dealloc x
 
         /* Data */
         HIR_NOT,
-        HIR_STORE,       // x = y
-        HIR_CLNVRS,      // deallocate all unused variables
-        HIR_VARDECL,     // alloc x
-        HIR_ARRDECL,     // arralloc x, y (size)
-        HIR_STRDECL,
+        HIR_STORE,        // x = y
+        HIR_CLNVRS,       // deallocate all unused variables
+        HIR_VARDECL,      // alloc x
+        HIR_ARRDECL,      // arralloc x, y (size)
+        HIR_STRDECL,      // arralloc x, strlen(x)
         HIR_PRMST,
-        HIR_PRMLD,       // load param
-        HIR_PRMPOP,      // pop params
-        HIR_FARGST,      // store function argument
-        HIR_FARGLD,      // load function argument
-        HIR_STARGLD,     // load start argument
-        HIR_GINDEX,      // x = y[z]
-        HIR_LINDEX,      // x[y] = z
-        HIR_GDREF,       // get value by address
-        HIR_LDREF,       // load value to address
+        HIR_PRMLD,        // load param
+        HIR_PRMPOP,       // pop params
+        HIR_FARGST,       // store function argument
+        HIR_FARGLD,       // load function argument
+        HIR_STARGLD,      // load start argument
+        HIR_GINDEX,       // x = y[z]
+        HIR_LINDEX,       // x[y] = z
+        HIR_GDREF,        // get value by address
+        HIR_LDREF,        // load value to address
         HIR_REF,
         HIR_IMPORT,
         
         /* System */
-        HIR_EXITOP,      // Exit with farg exit call
+        HIR_EXITOP,       // Exit with farg exit call
 
-        HIR_MKSCOPE,     // scope
-        HIR_ENDSCOPE,    // end of scope
+        HIR_MKSCOPE,      // scope
+        HIR_ENDSCOPE,     // end of scope
 } hir_operation_t;
 
 typedef enum hir_subject_type {
@@ -156,7 +158,8 @@ typedef enum hir_subject_type {
 int HIR_get_type_size(hir_subject_type_t t);
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b);
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr);
-hir_subject_type_t HIR_get_stktype(token_t* token);
+hir_subject_type_t HIR_get_stktype(variable_info_t* vi);
+hir_subject_type_t HIR_get_token_stktype(token_t* tkn);
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
 int HIR_isjmp(hir_operation_t op);
 int HIR_is_vartype(hir_subject_type_t t);

@@ -27,6 +27,12 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 break;
             }
 
+            case HIR_PHI_PREAMBLE: {
+                LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+                LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                break;
+            }
+
             case HIR_STRT:    LIR_BLOCK0(ctx, LIR_STRT);                                             break;
             case HIR_STEND:   LIR_BLOCK0(ctx, LIR_STEND);                                            break;
             case HIR_OEXT:    LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id)); break;
