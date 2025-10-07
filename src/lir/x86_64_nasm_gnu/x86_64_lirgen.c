@@ -3,9 +3,9 @@
 int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     hir_block_t* h = hctx->h;
 
-    scope_stack_t scopes = { .top = -1   };
-    scope_stack_t heap   = { .top = -1   };
-    sstack_t params      = { .top = -1   };
+    scope_stack_t scopes = { .top = -1 };
+    scope_stack_t heap   = { .top = -1 };
+    sstack_t params      = { .top = -1 };
 
     long offset = 0;
     while (h) {
@@ -91,7 +91,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_JMP:  LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
             case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;
 
-            case HIR_NOT:
+            case HIR_NOT: x86_64_generate_unary_op(ctx, h, smt); break;
             case HIR_iBLFT:
             case HIR_iBRHT:
             case HIR_iLWR:

@@ -36,7 +36,7 @@ int x86_64_generate_declaration(
 );
 
 /* x86_64_opgen.c */
-int x86_64_generate_simd_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
+int x86_64_generate_unary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
 int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
 int x86_64_generate_ifop(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
 int x86_64_generate_conv(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);

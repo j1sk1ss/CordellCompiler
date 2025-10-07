@@ -1,6 +1,19 @@
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
-int _simd_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
+int x86_64_generate_unary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
+    LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+    if (HIR_is_floattype(h->farg->t)) { }
+    switch (h->op) {
+        case HIR_NOT: {
+            LIR_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_TST);
+            LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, DEFAULT_TYPE_SIZE));
+            LIR_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, AL, 1, LIR_iMVZX);
+            break;
+        }
+    }
+}
+
+static int _simd_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
     LIR_reg_op(ctx, XMM0, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_iMOVq);
     LIR_reg_op(ctx, XMM1, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iMOVq);
 

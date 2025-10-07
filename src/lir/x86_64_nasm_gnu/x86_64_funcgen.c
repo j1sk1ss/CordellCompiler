@@ -5,6 +5,7 @@ static int _load_registers(lir_ctx_t* ctx, int* abi_regs, sstack_t* params, int 
     for (int i = 0; i < argc; i++) {
         stack_elem_t se;
         stack_top_addr(params, &se);
+        if (!se.data.addrdata) break;
         LIR_store_var_reg(LIR_iMOV, ctx, (hir_subject_t*)se.data.addrdata, abi_regs[i], smt);
         stack_pop(params);
     }
@@ -56,8 +57,8 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstac
 
         case HIR_SYSC: 
         case HIR_STORE_SYSC: {
-            int argc = h->sarg->storage.cnst.value;
-            if (h->op == HIR_STORE_SYSC) argc = h->targ->storage.cnst.value;
+            int argc = h->farg->storage.cnst.value;
+            if (h->op == HIR_STORE_SYSC) argc = h->sarg->storage.cnst.value;
             _load_registers(ctx, (int*)_sys_regs, params, argc, smt);
             LIR_BLOCK0(ctx, LIR_SYSC);
             if (h->op == HIR_STORE_SYSC) {

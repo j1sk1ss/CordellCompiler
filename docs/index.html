@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>CPL Docs</title>
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/buble.css">
 </head>
 <body>
   <div id="app"></div>
@@ -47,16 +47,20 @@
   <script>
     window.$docsify = {
       name: 'Cordell Programming Language',
-      repo: 'https://github.com/j1sk1ss/CordellCompiler.PETPRJ',
+      repo: 'https://github.com/j1sk1ss/CordellCompiler',
       loadNavbar: 'navbar.md',
       loadSidebar: 'sidebar.md',
       subMaxLevel: 2,
       routerMode: 'hash',
       alias: {
         '/src/ast/_sidebar.md': '/src/ast/sidebar.md',
-        '/src/gen/_sidebar.md': '/src/gen/sidebar.md',
-        '/src/opt/_sidebar.md': '/src/opt/sidebar.md',
-        '/src/sem/_sidebar.md': '/src/sem/sidebar.md'
+        '/src/asm/_sidebar.md': '/src/asm/sidebar.md',
+        '/src/sem/_sidebar.md': '/src/sem/sidebar.md',
+        '/src/hir/_sidebar.md': '/src/hir/sidebar.md',
+        '/src/lir/_sidebar.md': '/src/lir/sidebar.md',
+        '/src/cfg/_sidebar.md': '/src/cfg/sidebar.md',
+        '/src/ssa/_sidebar.md': '/src/ssa/sidebar.md',
+        '/src/ra/_sidebar.md': '/src/ra/sidebar.md',
       },
       vueComponents: {},
       markdown: {

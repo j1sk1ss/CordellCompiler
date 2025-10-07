@@ -1,0 +1,7 @@
+* [Tokenization part](#tokenization-part)
+  * [Example of tokenized code](#example-of-tokenized-code)
+* [Markup part](#markup-part)
+  * [Example of markup result](#example-of-markup-result)
+* [AST part](#ast-part)
+  * [Example of AST](#example-of-ast)
+  * [AST optimization](#ast-optimization)

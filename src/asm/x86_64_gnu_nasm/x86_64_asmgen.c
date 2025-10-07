@@ -1,6 +1,7 @@
 #include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
 
 int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
+    x86_64_generate_data(smt, output);
     lir_block_t* curr = lctx->h;
     while (curr) {
         switch (curr->op) {
@@ -62,6 +63,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_iMOVq:
             case LIR_iMOV:  fprintf(output, "mov %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));   break;
             case LIR_iMVZX: fprintf(output, "movzx %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt)); break;
+            case LIR_iMVSX: fprintf(output, "movsx %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt)); break;
 
             case LIR_fMOV:
             case LIR_fMVf:  fprintf(output, "movsd %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt)); break;

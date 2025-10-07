@@ -276,7 +276,7 @@ hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
 
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (!vi) return HIR_STKVARI64;
-    token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr } };
+    token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro, .glob = vi->glob } };
     int bitness  = VRS_variable_bitness(&tmptkn, 1);
     int isfloat  = VRS_is_float(&tmptkn);
     int issigned = VRS_issign(&tmptkn);
@@ -307,7 +307,7 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
 }
 
 hir_subject_type_t HIR_get_token_stktype(token_t* tkn) {
-    variable_info_t vi = { .type = tkn->t_type, .ptr = tkn->flags.ptr };
+    variable_info_t vi = { .type = tkn->t_type, .ptr = tkn->flags.ptr, .glob = tkn->flags.glob, .ro = tkn->flags.ro };
     return HIR_get_stktype(&vi);
 }
 
