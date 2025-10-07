@@ -21,7 +21,6 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstac
         case HIR_FDCL: {
             func_info_t fi;
             if (FNTB_get_info_id(h->farg->storage.str.s_id, &fi, &smt->f)) {
-                if (fi.global) LIR_BLOCK1(ctx, LIR_MKGLB, LIR_SUBJ_FUNCNAME(h->farg));
                 LIR_BLOCK1(ctx, LIR_FDCL, LIR_SUBJ_FUNCNAME(h->farg));
             }
 
@@ -43,8 +42,9 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstac
             if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) argc = h->targ->storage.cnst.value;
             _load_registers(ctx, (int*)_abi_regs, params, argc, smt);
 
-            LIR_BLOCK1(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->farg));
-            if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) {
+            if (h->op != HIR_STORE_FCLL && h->op != HIR_STORE_ECLL) LIR_BLOCK1(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->farg));
+            else {
+                LIR_BLOCK1(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->sarg));
                 LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
             }
 

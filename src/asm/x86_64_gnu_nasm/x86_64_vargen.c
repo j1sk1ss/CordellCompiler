@@ -23,7 +23,7 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
         case LIR_GLVARIABLE: {
             variable_info_t vi;
             if (VRTB_get_info_id(v->storage.var.v_id, &vi, &smt->v)) {
-                snprintf(curr_buffer, 128, "[rel _%s_]", vi.name);
+                snprintf(curr_buffer, 128, "[rel %s]", vi.name);
                 return curr_buffer;
             }
 
