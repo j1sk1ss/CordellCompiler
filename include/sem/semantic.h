@@ -3,7 +3,7 @@
 
 #include <std/mm.h>
 #include <std/str.h>
-#include <std/vars.h>
+#include <prep/token_types.h>
 #include <std/math.h>
 #include <std/logg.h>
 #include <symtab/symtab.h>

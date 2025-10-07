@@ -3,7 +3,7 @@
 
 #include <symtab/vartb.h>
 #include <prep/token.h>
-#include <std/vars.h>
+#include <prep/token_types.h>
 
 typedef enum hir_operation {
     /* Operations */

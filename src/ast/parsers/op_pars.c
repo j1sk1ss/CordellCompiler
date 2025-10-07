@@ -40,7 +40,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, syntax_ctx_t* ctx, s
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
     if (node->token->t_type == STRING_VALUE_TOKEN) {
-        node->sinfo.v_id = STTB_add_info(node->token->value, &smt->s);
+        node->sinfo.v_id = STTB_add_info(node->token->value, STR_ARRAY_VALUE, &smt->s);
     }
 
     var_lookup(node, ctx, smt);
@@ -104,7 +104,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, syntax_ctx_t* ctx, sym_table_
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
     if (node->token->t_type == STRING_VALUE_TOKEN) {
-        node->sinfo.v_id = STTB_add_info(node->token->value, &smt->s);
+        node->sinfo.v_id = STTB_add_info(node->token->value, STR_ARRAY_VALUE, &smt->s);
     }
 
     var_lookup(node, ctx, smt);

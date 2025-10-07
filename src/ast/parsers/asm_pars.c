@@ -29,6 +29,8 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) 
                 continue;
             }
 
+            token_t* asmline = (token_t*)list_iter_current(it);
+            STTB_add_info(asmline->value, STR_RAW_ASM, &smt->s);
             ast_node_t* arg = cpl_parse_expression(it, ctx, smt);
             if (arg) AST_add_node(body, arg);
         }

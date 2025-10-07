@@ -1,7 +1,7 @@
 #ifndef AST_H_
 #define AST_H_
 
-#include <std/vars.h>
+#include <prep/token_types.h>
 #include <prep/token.h>
 
 typedef struct {

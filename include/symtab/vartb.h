@@ -2,7 +2,7 @@
 #define VARMEM_H_
 
 #include <std/map.h>
-#include <std/vars.h>
+#include <prep/token_types.h>
 #include <prep/token.h>
 
 typedef struct {

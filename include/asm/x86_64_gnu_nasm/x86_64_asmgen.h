@@ -2,6 +2,7 @@
 #define X86_64_ASM_GENERATOR_H_
 
 #include <std/math.h>
+#include <prep/token_types.h>
 #include <symtab/symtab.h>
 #include <lir/lir.h>
 

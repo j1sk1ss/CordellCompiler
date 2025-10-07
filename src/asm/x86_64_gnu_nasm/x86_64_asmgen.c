@@ -5,8 +5,8 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
     lir_block_t* curr = lctx->h;
     while (curr) {
         switch (curr->op) {
-            case LIR_FCLL: fprintf(output, "call _cpl_%s\n", x86_64_asm_variable(curr->farg, smt)); break;
-            case LIR_ECLL: fprintf(output, "call %s\n", x86_64_asm_variable(curr->farg, smt));      break;
+            case LIR_FCLL:
+            case LIR_ECLL: fprintf(output, "call %s\n", x86_64_asm_variable(curr->farg, smt)); break;
             
             case LIR_STRT: {
                 fprintf(output, "global _start\n");
@@ -16,7 +16,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             }
 
             case LIR_FDCL: {
-                fprintf(output, "_cpl_%s:\n", x86_64_asm_variable(curr->farg, smt));
+                fprintf(output, "%s:\n", x86_64_asm_variable(curr->farg, smt));
                 x86_64_generate_stackframe(curr, LIR_FEND, output);
                 break;
             }

@@ -10,12 +10,12 @@ int STTB_get_info_id(long id, str_info_t* info, strtb_ctx_t* ctx) {
     return 0;
 }
 
-int STTB_get_info(const char* name, str_info_t* info, strtb_ctx_t* ctx) {
+int STTB_get_info(const char* value, str_info_t* info, strtb_ctx_t* ctx) {
     map_iter_t it;
     map_iter_init(&ctx->strtb, &it);
     str_info_t* si;
     while (map_iter_next(&it, (void**)&si)) {
-        if (!str_strncmp(si->value, name, TOKEN_MAX_SIZE)) {
+        if (!str_strncmp(si->value, value, 128)) {
             if (info) str_memcpy(info, si, sizeof(str_info_t));
             return 1;
         }
@@ -24,12 +24,14 @@ int STTB_get_info(const char* name, str_info_t* info, strtb_ctx_t* ctx) {
     return 0;
 }
 
-int STTB_add_info(const char* name, strtb_ctx_t* ctx) {
-    print_debug("STTB_add_info(name=%s)", name);
+int STTB_add_info(const char* value, str_type_t t, strtb_ctx_t* ctx) {
+    print_debug("STTB_add_info(value=%s, t=%i)", value, t);
     str_info_t* nnd = (str_info_t*)mm_malloc(sizeof(str_info_t));
     if (!nnd) return 0;
     nnd->id = ctx->curr_id++;
-    str_strncpy(nnd->value, name, TOKEN_MAX_SIZE);
+    nnd->t  = t;
+
+    str_strncpy(nnd->value, value, 128);
     map_put(&ctx->strtb, nnd->id, nnd);
     return nnd->id;
 }

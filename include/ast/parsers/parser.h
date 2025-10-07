@@ -2,7 +2,7 @@
 #define CPL_PARSER_H_
 
 #include <std/str.h>
-#include <std/vars.h>
+#include <prep/token_types.h>
 #include <std/stack.h>
 #include <prep/dict.h>
 #include <prep/token.h>
@@ -30,9 +30,13 @@ static int var_lookup(ast_node_t* node, syntax_ctx_t* ctx, sym_table_t* smt) {
     }
 
     if (node->token->t_type == STRING_VALUE_TOKEN) {
-        str_info_t strinfo = { .id = -1 };
+        str_info_t strinfo;
         if (STTB_get_info(node->token->value, &strinfo, &smt->s)) {
             node->sinfo.v_id = strinfo.id;
+            return 1;
+        }
+        else {
+            node->sinfo.v_id = STTB_add_info(node->token->value, STR_INDEPENDENT, &smt->s);
             return 1;
         }
     }

@@ -36,17 +36,15 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
         }
 
         case LIR_STRING: {
-            str_info_t si;
-            if (STTB_get_info_id(v->storage.str.sid, &si, &smt->s)) {
-                snprintf(curr_buffer, 128, "\'%s\'", si.value);
-                return curr_buffer;
-            }
+            snprintf(curr_buffer, 128, "[rel _str_%d_]", v->storage.str.sid);
+            return curr_buffer;
         }
 
         case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(v->storage.str.sid, &fi, &smt->f)) {
-                snprintf(curr_buffer, 128, "%s", fi.name);
+                if (fi.global) snprintf(curr_buffer, 128, "%s", fi.name);
+                else snprintf(curr_buffer, 128, "_cpl_%s", fi.name);
                 return curr_buffer;
             }
 

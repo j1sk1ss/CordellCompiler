@@ -105,6 +105,7 @@ int main(int argc, char* argv[]) {
         lh = lh->next;
     }
 
+    printf("\n\n========== x86_64 ASM ==========\n");
     asm_gen_t asmgen = { .generator = x86_64_generate_asm };
     ASM_generate(&lirctx, &smt, &asmgen, stdout);
 
