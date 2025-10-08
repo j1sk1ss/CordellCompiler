@@ -2,7 +2,7 @@
 gc.c - Color interference graph with euristic approuch
 */
 
-#include <hir/opt/ra.h>
+#include <hir/ra.h>
 
 int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     if (!g || !colors) return 0;

@@ -2,7 +2,7 @@
 funcs.c - Split input HIR instructions by function blocks.
 */
 
-#include <hir/opt/cfg.h>
+#include <hir/cfg.h>
 
 static cfg_func_t* _create_funcblock(hir_block_t* entry, hir_block_t* end) {
     cfg_func_t* b = (cfg_func_t*)mm_malloc(sizeof(cfg_func_t));

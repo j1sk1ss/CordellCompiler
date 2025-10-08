@@ -2,7 +2,7 @@
 phi.c - Calculate positions of PHI functions for variables and create placeholders for SSA versions
 */
 
-#include <hir/opt/ssa.h>
+#include <hir/ssa.h>
 
 static int _has_phi(cfg_block_t* b, long v_id) {
     hir_block_t* h = b->entry;

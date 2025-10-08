@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <std/set.h>
 #include <std/list.h>
-#include <hir/opt/ra.h>
+#include <hir/ra.h>
 
 static void igraph_dump_dot(igraph_t* g) {
     fprintf(stdout, "graph G {\n");

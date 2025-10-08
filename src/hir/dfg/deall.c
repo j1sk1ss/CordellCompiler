@@ -2,9 +2,9 @@
 deall.c - Create deallocation points in HIR
 */
 
-#include <hir/opt/ra.h>
+#include <hir/dfg.h>
 #define DEF_OUT_DEALLOC
-int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt, map_t* colors) {
+int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -57,37 +57,6 @@ int HIR_RA_create_deall(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt, map_t* c
 
             set_free(&appeared);
 #else
-            hir_block_t* hh = cb->entry;
-            while (hh) {
-                long vid = -1;
-                if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t))        vid = hh->sarg->storage.var.v_id;
-                else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t)) vid = hh->farg->storage.var.v_id;
-                
-                if (vid >= 0) {
-                    long vclr;
-                    if (map_get(colors, vid, (void**)&vclr)) {
-                        list_iter_t nit;
-                        list_iter_hinit(&g->nodes, &nit);
-                        igraph_node_t* n;
-                        while ((n = (igraph_node_t*)list_iter_next(&nit))) {
-                            if (n->v_id == vid) {
-                                n->used = 1;
-                                continue;
-                            }
-
-                            if (n->color != vclr) continue;
-                            if (n->used) {
-                                HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(n->v_id), NULL, NULL), hh);
-                                n->used = 0;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (hh == cb->exit) break;
-                hh = hh->next;
-            }
 #endif
         }
     }

@@ -2,7 +2,7 @@
 ig.c - Create interference graph
 */
 
-#include <hir/opt/ra.h>
+#include <hir/ra.h>
 
 igraph_node_t* HIR_RA_find_ig_node(igraph_t* g, long v_id) {
     igraph_node_t* n;

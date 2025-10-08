@@ -13,13 +13,14 @@
 #include <std/stackmap.h>
 
 /* x86_64_lirvar.c */
-lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt);
-int LIR_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
-int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
-int LIR_reg_op(lir_ctx_t* ctx, int freg, int fs, int sreg, int ss, lir_operation_t op);
+lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt);
+int x86_64_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
+int x86_64_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
+int x86_64_reg_op(lir_ctx_t* ctx, int freg, int fs, int sreg, int ss, lir_operation_t op);
 
-int LIR_deallocate_scope_heap(lir_ctx_t* ctx, int s_id, scope_stack_t* heap);
-int LIR_allocate_arr(
+/* x86_64_alloc.c */
+int x86_64_deallocate_heap(lir_ctx_t* ctx, int s_id, scope_stack_t* heap);
+int x86_64_allocate_arr(
     lir_ctx_t* ctx, hir_subject_t* v, hir_subject_t* size, scope_stack_t* heap, 
     scope_stack_t* scopes, sym_table_t* smt, array_info_t* ai, long* offset
 );

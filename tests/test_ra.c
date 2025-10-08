@@ -9,10 +9,10 @@
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
-#include <hir/opt/cfg.h>
-#include <hir/opt/ssa.h>
-#include <hir/opt/dfg.h>
-#include <hir/opt/ra.h>
+#include <hir/cfg.h>
+#include <hir/ssa.h>
+#include <hir/dfg.h>
+#include <hir/ra.h>
 
 #include "ast_helper.h"
 #include "hir_helper.h"
@@ -69,6 +69,7 @@ int main(int argc, char* argv[]) {
     HIR_DFG_collect_uses(&cfgctx);
     HIR_DFG_compute_inout(&cfgctx);
     HIR_DFG_make_allias(&cfgctx, &smt);
+    HIR_DFG_create_deall(&cfgctx, &smt);
 
     cfg_print(&cfgctx);
 
@@ -78,7 +79,6 @@ int main(int argc, char* argv[]) {
     map_t clrs;
     HIR_RA_color_igraph(&ig, &clrs);
     igraph_dump_dot(&ig);
-    HIR_RA_create_deall(&cfgctx, &ig, &smt, &clrs);
     map_free(&clrs);
 
     printf("\n\n========== HIR ==========\n");

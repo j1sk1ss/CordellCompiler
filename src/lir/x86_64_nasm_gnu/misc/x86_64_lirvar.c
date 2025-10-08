@@ -1,6 +1,6 @@
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
-lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt) {
+lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt) {
     if (!subj) return NULL;
     switch (subj->t) {
         case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value);
@@ -48,18 +48,18 @@ lir_subject_t* LIR_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_tabl
 }
 
 /* Variable to register */
-int LIR_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
-    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), LIR_format_variable(ctx, subj, smt));
+int x86_64_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
+    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), x86_64_format_variable(ctx, subj, smt));
     return 1;
 }
 
 /* Variable from register */
-int LIR_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
-    LIR_BLOCK2(ctx, op, LIR_format_variable(ctx, subj, smt), LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)));
+int x86_64_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
+    LIR_BLOCK2(ctx, op, x86_64_format_variable(ctx, subj, smt), LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)));
     return 1;
 }
 
-int LIR_reg_op(lir_ctx_t* ctx, int freg, int fs, int sreg, int ss, lir_operation_t op) {
+int x86_64_reg_op(lir_ctx_t* ctx, int freg, int fs, int sreg, int ss, lir_operation_t op) {
     LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(freg, fs), LIR_SUBJ_REG(sreg, ss));
     return 1;
 }

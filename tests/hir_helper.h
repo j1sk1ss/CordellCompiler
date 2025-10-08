@@ -2,7 +2,7 @@
 #define HIR_HELPER_H_
 
 #include <hir/hir.h>
-#include <hir/opt/cfg.h>
+#include <hir/cfg.h>
 #include <hir/hir_types.h>
 
 static const char* hir_op_to_string(hir_operation_t op) {
@@ -186,8 +186,8 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_IFOP:       return "if %s, goto %s;\n";
         case HIR_NOT:        return "%s = not %s;\n";
         case HIR_STORE:      return "%s = %s;\n";
-        case HIR_ARRDECL:
-        case HIR_STRDECL:    return "alloc %s, size: %s;\n";
+        case HIR_ARRDECL:    return "alloc %s, size: %s;\n";
+        case HIR_STRDECL:    return "alloc %s, content: %s;\n";
         case HIR_VRDEALL:    return "kill %s\n";
 
         case HIR_VARDECL: {

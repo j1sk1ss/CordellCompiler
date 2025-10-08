@@ -2,7 +2,7 @@
 ssa.c - Transfer input HIR program (with PHI placeholders) into the SSA form
 */
 
-#include <hir/opt/ssa.h>
+#include <hir/ssa.h>
 
 static int _add_varver(list_t* vers, long id, long cid) {
     varver_t* vv = (varver_t*)mm_malloc(sizeof(varver_t));

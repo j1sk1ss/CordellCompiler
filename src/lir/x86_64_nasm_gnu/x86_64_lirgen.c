@@ -11,8 +11,8 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     while (h) {
         switch (h->op) {
             case HIR_STORE: {
-                LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
-                LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
                 break;
             }
 
@@ -23,13 +23,13 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                     case 1: LIR_BLOCK2(ctx, LIR_REF, LIR_SUBJ_REG(RAX, vrsize), LIR_SUBJ_OFF(-16, vrsize)); break;
                 }
 
-                LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
                 break;
             }
 
             case HIR_PHI_PREAMBLE: {
-                LIR_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
-                LIR_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
                 break;
             }
 
@@ -38,21 +38,21 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_OEXT:    LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id)); break;
             case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset);              break;
             case HIR_EXITOP: {
-                LIR_deallocate_scope_heap(ctx, scope_id_top(&scopes), &heap);
-                LIR_BLOCK1(ctx, LIR_EXITOP, LIR_format_variable(ctx, h->farg, smt));   
+                x86_64_deallocate_heap(ctx, scope_id_top(&scopes), &heap);
+                LIR_BLOCK1(ctx, LIR_EXITOP, x86_64_format_variable(ctx, h->farg, smt));   
                 break;
             }
 
             case HIR_ENDSCOPE: {
                 scope_elem_t se;
                 scope_pop_top(&scopes, &se);
-                LIR_deallocate_scope_heap(ctx, h->farg->storage.cnst.value, &heap);
+                x86_64_deallocate_heap(ctx, h->farg->storage.cnst.value, &heap);
                 stack_map_free_range(se.offset, -1, &ctx->stk);
                 offset = se.offset;
                 break;
             }
             
-            case HIR_FRET: LIR_deallocate_scope_heap(ctx, scope_id_top(&scopes), &heap);
+            case HIR_FRET: x86_64_deallocate_heap(ctx, scope_id_top(&scopes), &heap);
             case HIR_SYSC:
             case HIR_STORE_SYSC:
             case HIR_FCLL:

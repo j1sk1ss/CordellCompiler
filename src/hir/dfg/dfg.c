@@ -9,7 +9,7 @@ IN  = union(USE, (DEF - OUT))
 OUT = union(IN successors)
 */
 
-#include <hir/opt/dfg.h>
+#include <hir/dfg.h>
 
 int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
     list_iter_t fit;

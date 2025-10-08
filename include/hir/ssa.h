@@ -7,7 +7,7 @@
 #include <std/tuple.h>
 #include <symtab/symtab.h>
 #include <hir/hir.h>
-#include <hir/opt/cfg.h>
+#include <hir/cfg.h>
 
 typedef struct {
     long curr_id;

@@ -5,7 +5,7 @@ Rule 2 - Target of JMP instruction
 Rule 3 - Next instruction after JMP instruction
 */
 
-#include <hir/opt/cfg.h>
+#include <hir/cfg.h>
 
 int HIR_CFG_mark_leaders(cfg_ctx_t* ctx) {
     list_iter_t it;

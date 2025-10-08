@@ -29,6 +29,7 @@ int ALLIAS_get_owners(long v_id, set_t* out, allias_map_t* ctx) {
 }
 
 int ALLIAS_add_owner(long v_id, long owner_id, allias_map_t* ctx) {
+    print_log("ALLIAS_add_owner(v_id=%i, owner=%i)", v_id, owner_id);
     allias_t* ai;
     if (map_get(&ctx->allias, v_id, (void**)&ai)) {
         return set_add(&ai->owners, (void*)owner_id);

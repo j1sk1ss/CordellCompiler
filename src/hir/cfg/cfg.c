@@ -2,7 +2,7 @@
 cfg.c - Create CFG
 */
 
-#include <hir/opt/cfg.h>
+#include <hir/cfg.h>
 
 cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
     cfg_block_t* block = (cfg_block_t*)mm_malloc(sizeof(cfg_block_t));

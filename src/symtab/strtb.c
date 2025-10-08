@@ -25,7 +25,7 @@ int STTB_get_info(const char* value, str_info_t* info, strtb_ctx_t* ctx) {
 }
 
 int STTB_add_info(const char* value, str_type_t t, strtb_ctx_t* ctx) {
-    print_debug("STTB_add_info(value=%s, t=%i)", value, t);
+    print_log("STTB_add_info(value=%s, t=%i)", value, t);
     str_info_t* nnd = (str_info_t*)mm_malloc(sizeof(str_info_t));
     if (!nnd) return 0;
     nnd->id = ctx->curr_id++;
