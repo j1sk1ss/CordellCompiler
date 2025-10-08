@@ -29,7 +29,7 @@ static int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 
 int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name_node = node->child;
-    if (!VRS_one_slot(name_node->token)) {
+    if (!TKN_one_slot(name_node->token)) {
         return _starr_declaration(node, ctx, smt);
     }
 

@@ -4,7 +4,7 @@
 ptr - 0 we ignore ptr flag.
 Return variable bitness (size in bits). 
 */
-int VRS_variable_bitness(token_t* token, char ptr) {
+int TKN_variable_bitness(token_t* token, char ptr) {
     if (!token) return 8;
     if (ptr && token->flags.ptr) return 64;
     switch (token->t_type) {
@@ -37,7 +37,7 @@ int VRS_variable_bitness(token_t* token, char ptr) {
 } 
 
 /* Return 1 if token is pointer (arr, string, ptr). Otherwise return 0. */
-int VRS_isptr(token_t* token) {
+int TKN_isptr(token_t* token) {
     if (!token) return 0;
     if (token->flags.ptr) return 1;
     switch (token->t_type) {
@@ -63,13 +63,13 @@ int VRS_isptr(token_t* token) {
 }
 
 /* Is token in text segment */
-int VRS_instack(token_t* token) {
+int TKN_instack(token_t* token) {
     if (!token) return 0;
     return !token->flags.glob && !token->flags.ro && !token->flags.ext;
 }
 
 /* Is variable occupie one slot in stack? */
-int VRS_one_slot(token_t* token) {
+int TKN_one_slot(token_t* token) {
     if (!token) return 0;
     if (token->flags.ptr) return 1;
     switch (token->t_type) {
@@ -107,7 +107,7 @@ int VRS_one_slot(token_t* token) {
 }
 
 /* Is close token? */
-int VRS_isclose(token_t* token) {
+int TKN_isclose(token_t* token) {
     if (!token) return 1;
     switch (token->t_type) {
         case COMMA_TOKEN:
@@ -119,7 +119,7 @@ int VRS_isclose(token_t* token) {
     }
 }
 
-int VRS_isdecl(token_t* token) {
+int TKN_isdecl(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case I8_TYPE_TOKEN:
@@ -138,7 +138,7 @@ int VRS_isdecl(token_t* token) {
     }
 }
 
-int VRS_isblock(token_t* token) {
+int TKN_isblock(token_t* token) {
     return (
         !token || 
         (token->t_type == SCOPE_TOKEN) || 
@@ -146,7 +146,7 @@ int VRS_isblock(token_t* token) {
     );
 }
 
-int VRS_isoperand(token_t* token) {
+int TKN_isoperand(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case OR_TOKEN:
@@ -175,7 +175,7 @@ int VRS_isoperand(token_t* token) {
     }
 }
 
-int VRS_token_priority(token_t* token) {
+int TKN_token_priority(token_t* token) {
     if (!token) return -1;
     switch (token->t_type) {
         case OR_TOKEN:             return 1;
@@ -205,7 +205,7 @@ int VRS_token_priority(token_t* token) {
     }
 }
 
-int VRS_isnumeric(token_t* token) {
+int TKN_isnumeric(token_t* token) {
     if (!token) return 0;
     if (
         token->t_type == UNKNOWN_NUMERIC_TOKEN || 
@@ -215,7 +215,7 @@ int VRS_isnumeric(token_t* token) {
     return 0;
 }
 
-int VRS_isvariable(token_t* token) {
+int TKN_isvariable(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case ARR_VARIABLE_TOKEN:
@@ -234,11 +234,7 @@ int VRS_isvariable(token_t* token) {
     }
 }
 
-int VRS_instant_movable(token_t* token) {
-    return VRS_isnumeric(token) || (VRS_isvariable(token) && VRS_one_slot(token));
-}
-
-int VRS_issign(token_t* token) {
+int TKN_issign(token_t* token) {
     if (!token) return 0;
     if (token->flags.ptr) return 0;
     switch (token->t_type) {
@@ -268,29 +264,7 @@ int VRS_issign(token_t* token) {
     }
 }
 
-int VRS_is_control_change(token_t* token) {
-    if (!token) return 0;
-    switch (token->t_type) {
-        case IF_TOKEN:
-        case CALL_TOKEN:
-        case EXIT_TOKEN:
-        case WHILE_TOKEN:
-        case SWITCH_TOKEN: return 1;
-        default:           return 0;
-    }
-}
-
-int VRS_is_unpredicted(token_t* token) {
-    if (!token) return 0;
-    switch (token->t_type) {
-        case IF_TOKEN:
-        case WHILE_TOKEN:
-        case SWITCH_TOKEN: return 1;
-        default:           return 0;
-    }
-}
-
-int VRS_is_float(token_t* token) {
+int TKN_is_float(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case F64_VARIABLE_TOKEN:
@@ -301,7 +275,7 @@ int VRS_is_float(token_t* token) {
     }
 }
 
-int VRS_update_operator(token_t* token) {
+int TKN_update_operator(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case ASSIGN_TOKEN:

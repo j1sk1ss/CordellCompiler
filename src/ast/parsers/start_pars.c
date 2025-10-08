@@ -11,7 +11,7 @@ ast_node_t* cpl_parse_start(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt
             continue;
         }
 
-        if (!VRS_isdecl(((token_t*)list_iter_current(it)))) forward_token(it, 1);
+        if (!TKN_isdecl(((token_t*)list_iter_current(it)))) forward_token(it, 1);
         else {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {

@@ -79,7 +79,7 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_TU32:       return "HIR_TU32"; // x = (u32)y
         case HIR_TU16:       return "HIR_TU16"; // x = (u16)y
         case HIR_TU8:        return "HIR_TU8";  // x = (u8)y
-        default: printf("unkn=%i\n", op); return "<?>";
+        default: return "";
     }
 }
 
@@ -273,9 +273,9 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
     }
     else {
         switch (s->t) {
-            case HIR_NUMBER:     dst += sprintf(dst, "num: %s", s->storage.num.value);   break;
-            case HIR_CONSTVAL:   dst += sprintf(dst, "const: %ld", s->storage.cnst.value); break;
-            case HIR_LABEL:      dst += sprintf(dst, "lb%d", s->id);                  break;
+            case HIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);     break;
+            case HIR_CONSTVAL: dst += sprintf(dst, "const: %ld", s->storage.cnst.value); break;
+            case HIR_LABEL:    dst += sprintf(dst, "lb%d", s->id);                       break;
 
             case HIR_RAWASM:
             case HIR_STRING: {
@@ -331,6 +331,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
         }
     }
 
+    // dst += sprintf(dst, " addr=%p", s);
     return dst;
 }
 

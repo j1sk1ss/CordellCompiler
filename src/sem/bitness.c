@@ -2,7 +2,7 @@
 
 static int _check_exp_bitness(ast_node_t* r, sym_table_t* smt) {
     if (!r || !r->token) return 1;
-    if (VRS_isoperand(r->token) || VRS_isdecl(r->token)) {
+    if (TKN_isoperand(r->token) || TKN_isdecl(r->token)) {
         if (!r->child) return -1;
         char lbitness = _check_exp_bitness(r->child, smt);
         if (!r->child->sibling) return -2;
@@ -17,7 +17,7 @@ static int _check_exp_bitness(ast_node_t* r, sym_table_t* smt) {
         return MAX(lbitness, rbitness);
     }
 
-    if (VRS_isnumeric(r->token)) {
+    if (TKN_isnumeric(r->token)) {
         long val = r->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(r->token->value) : r->token->value[0];
         if (val <= UCHAR_MAX) return 8;
         if (val <= USHRT_MAX) return 16;
@@ -26,11 +26,11 @@ static int _check_exp_bitness(ast_node_t* r, sym_table_t* smt) {
     }
     else if (r->token->t_type == CALL_TOKEN) {
         func_info_t finfo;
-        if (FNTB_get_info(r->token->value, &finfo, &smt->f) && finfo.rtype) return VRS_variable_bitness(finfo.rtype->token, 1);
+        if (FNTB_get_info(r->token->value, &finfo, &smt->f) && finfo.rtype) return TKN_variable_bitness(finfo.rtype->token, 1);
         else return 8;
     }
     else {
-        return VRS_variable_bitness(r->token, 1);
+        return TKN_variable_bitness(r->token, 1);
     }
 }
 

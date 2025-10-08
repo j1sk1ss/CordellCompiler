@@ -1,5 +1,63 @@
 #include <hir/hir.h>
 
+static inline unsigned long _mix64(unsigned long x) {
+    x ^= x >> 30;
+    x *= 0xbf58476d1ce4e5b9;
+    x ^= x >> 27;
+    x *= 0x94d049bb133111eb;
+    x ^= x >> 31;
+    return x;
+}
+
+long HIR_hash_subject(hir_subject_t* s) {
+    if (!s) return 0;
+
+    uint64_t h = (uint64_t)s->t;
+
+    switch (s->t) {
+        case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64:
+        case HIR_TMPVARU64: case HIR_TMPVARI64: case HIR_TMPVARF32:
+        case HIR_TMPVARU32: case HIR_TMPVARI32: case HIR_TMPVARU16:
+        case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
+        case HIR_STKVARSTR: case HIR_STKVARARR: case HIR_STKVARF64:
+        case HIR_STKVARU64: case HIR_STKVARI64: case HIR_STKVARF32:
+        case HIR_STKVARU32: case HIR_STKVARI32: case HIR_STKVARU16:
+        case HIR_STKVARI16: case HIR_STKVARU8:  case HIR_STKVARI8:
+        case HIR_GLBVARSTR: case HIR_GLBVARARR: case HIR_GLBVARF64:
+        case HIR_GLBVARU64: case HIR_GLBVARI64: case HIR_GLBVARF32:
+        case HIR_GLBVARU32: case HIR_GLBVARI32: case HIR_GLBVARU16:
+        case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
+            h ^= _mix64(s->storage.var.v_id);
+        break;
+
+        case HIR_NUMBER: {
+            const char* str = s->storage.num.value;
+            while (*str) h = _mix64(h ^ (unsigned char)(*str++));
+            break;
+        }
+
+        case HIR_CONSTVAL:
+            h ^= _mix64(s->storage.cnst.value);
+        break;
+
+        case HIR_FNAME:
+        case HIR_RAWASM:
+        case HIR_STRING:
+            h ^= _mix64(s->storage.str.s_id);
+        break;
+
+        case HIR_SET:
+            h ^= _mix64((uintptr_t)&s->storage.set.h);
+        break;
+
+        default:
+            h ^= _mix64(s->id);
+        break;
+    }
+
+    return (long)(h ^ (h >> 32));
+}
+
 hir_ctx_t* HIR_create_ctx() {
     hir_ctx_t* ctx = mm_malloc(sizeof(hir_ctx_t));
     if (!ctx) return NULL;

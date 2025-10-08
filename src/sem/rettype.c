@@ -2,7 +2,7 @@
 
 static int _get_max_bitness(ast_node_t* r) {
     if (!r || !r->token) return 1;
-    if (VRS_isoperand(r->token)) {
+    if (TKN_isoperand(r->token)) {
         if (!r->child) return -1;
         char lbitness = _get_max_bitness(r->child);
         if (!r->child->sibling) return -2;
@@ -10,7 +10,7 @@ static int _get_max_bitness(ast_node_t* r) {
         return MAX(lbitness, rbitness);
     }
 
-    if (!VRS_isnumeric(r->token)) return VRS_variable_bitness(r->token, 1); 
+    if (!TKN_isnumeric(r->token)) return TKN_variable_bitness(r->token, 1); 
     else {
         unsigned long val = r->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(r->token->value) : r->token->value[0];
         if (val <= UCHAR_MAX) return 8;
@@ -23,14 +23,14 @@ static int _get_max_bitness(ast_node_t* r) {
 static int _find_ret(ast_node_t* n, token_t* rtype, int* match) {
     if (!n) return 0;
     for (ast_node_t* t = n; t; t = t->sibling) {
-        if (VRS_isblock(t->token)) {
+        if (TKN_isblock(t->token)) {
             _find_ret(t->child, rtype, match);
             continue;
         }
 
         if (t->token->t_type == RETURN_TOKEN) {
             ast_node_t* rval = t->child;
-            int expected_bitness = VRS_variable_bitness(rtype, 1);
+            int expected_bitness = TKN_variable_bitness(rtype, 1);
             int provided_bitness = _get_max_bitness(rval);
 
             if (provided_bitness != expected_bitness) {
@@ -43,10 +43,10 @@ static int _find_ret(ast_node_t* n, token_t* rtype, int* match) {
                 return 1;
             }
 
-            if (VRS_isptr(rval->token) != VRS_isptr(rtype)) {
+            if (TKN_isptr(rval->token) != TKN_isptr(rtype)) {
                 print_warn(
                     "Unmatched pointer status at line=%i. Should be %s, but %s!",
-                    rval->token->lnum, VRS_isptr(rtype) ? "ptr" : "stack", VRS_isptr(rval->token) ? "ptr" : "stack"
+                    rval->token->lnum, TKN_isptr(rtype) ? "ptr" : "stack", TKN_isptr(rval->token) ? "ptr" : "stack"
                 );
 
                 *match = 0;
@@ -75,7 +75,7 @@ static int _find_func(ast_node_t* node) {
             _check_function(t);
         }
 
-        if (VRS_isblock(t->token)) {
+        if (TKN_isblock(t->token)) {
             _find_func(t->child);
             continue;
         }

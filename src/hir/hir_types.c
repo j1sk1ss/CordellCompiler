@@ -240,9 +240,9 @@ hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t) {
 
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
     if (!token) return HIR_TMPVARI64;
-    int bitness  = VRS_variable_bitness(token, ptr);
-    int isfloat  = VRS_is_float(token);
-    int issigned = VRS_issign(token);
+    int bitness  = TKN_variable_bitness(token, ptr);
+    int isfloat  = TKN_is_float(token);
+    int issigned = TKN_issign(token);
     if (!isfloat) {
         switch (bitness) {
             case 8:  return issigned ? HIR_TMPVARI8 : HIR_TMPVARU8;
@@ -277,13 +277,13 @@ hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (!vi) return HIR_STKVARI64;
     token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro, .glob = vi->glob } };
-    int bitness  = VRS_variable_bitness(&tmptkn, 1);
-    int isfloat  = VRS_is_float(&tmptkn);
-    int issigned = VRS_issign(&tmptkn);
+    int bitness  = TKN_variable_bitness(&tmptkn, 1);
+    int isfloat  = TKN_is_float(&tmptkn);
+    int issigned = TKN_issign(&tmptkn);
     int isarr    = vi->type == ARR_VARIABLE_TOKEN;
     int isstr    = vi->type == STR_VARIABLE_TOKEN;
 
-    if (!VRS_instack(&tmptkn)) {
+    if (!TKN_instack(&tmptkn)) {
         if (isarr) return HIR_GLBVARARR;
         if (isstr) return HIR_GLBVARSTR;
         return _get_glbtype(bitness, isfloat, issigned);

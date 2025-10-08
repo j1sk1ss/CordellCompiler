@@ -16,7 +16,7 @@ static int var_lookup(ast_node_t* node, syntax_ctx_t* ctx, sym_table_t* smt) {
     var_lookup(node->child, ctx, smt);
     if (!node->token) return 0;
 
-    if (VRS_isvariable(node->token)) {
+    if (TKN_isvariable(node->token)) {
         variable_info_t varinfo = { .type = UNKNOWN_NUMERIC_TOKEN };
         for (int s = ctx->scopes.stack.top; s >= 0; s--) {
             int s_id = ctx->scopes.stack.data[s].id;

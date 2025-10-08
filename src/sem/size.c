@@ -14,14 +14,14 @@ int _check_sizes(ast_node_t* node) {
         SMT_check_sizes(t->child);
         if (!t->token) continue;
 
-        if (VRS_isdecl(t->token) && t->child && t->child->sibling) {
+        if (TKN_isdecl(t->token) && t->child && t->child->sibling) {
             ast_node_t* value = t->child->sibling;
-            if (VRS_isnumeric(value->token)) {
-                unsigned long long el_msize = _max_for_bits(VRS_variable_bitness(t->token, 1));
-                el_msize = VRS_issign(t->child->token) ? el_msize / 2 : el_msize;
+            if (TKN_isnumeric(value->token)) {
+                unsigned long long el_msize = _max_for_bits(TKN_variable_bitness(t->token, 1));
+                el_msize = TKN_issign(t->child->token) ? el_msize / 2 : el_msize;
 
                 long val = value->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(value->token->value) : value->token->value[0];
-                if (!VRS_issign(t->child->token) && val < 0) {
+                if (!TKN_issign(t->child->token) && val < 0) {
                     print_warn(
                         "Value %i at line=%i lower then 0 for unsigned type %s, %i < 0!", 
                         val, value->token->lnum, t->token->value, val
@@ -43,8 +43,8 @@ int _check_sizes(ast_node_t* node) {
                 ast_node_t* arr_size = arr_name->sibling;
                 ast_node_t* el_size  = arr_size->sibling;
 
-                unsigned long long el_msize = _max_for_bits(VRS_variable_bitness(el_size->token, 1));
-                el_msize = VRS_issign(el_size->token) ? el_msize / 2 : el_msize;
+                unsigned long long el_msize = _max_for_bits(TKN_variable_bitness(el_size->token, 1));
+                el_msize = TKN_issign(el_size->token) ? el_msize / 2 : el_msize;
 
                 ast_node_t* elems = el_size->sibling;
                 if (elems) {
@@ -52,7 +52,7 @@ int _check_sizes(ast_node_t* node) {
                     for (ast_node_t* el = elems; el; el = el->sibling) {
                         if (el->token->t_type != UNKNOWN_NUMERIC_TOKEN) continue;
                         long val = el->token->t_type == UNKNOWN_NUMERIC_TOKEN ? str_atoi(el->token->value) : el->token->value[0];
-                        if (!VRS_issign(el_size->token) && val < 0) {
+                        if (!TKN_issign(el_size->token) && val < 0) {
                             print_warn(
                                 "Value %i at line=%i lower then 0 for unsigned type %s, %i < 0!", 
                                 el->token->value, el->token->lnum, el_size->token->value, val

@@ -10,7 +10,7 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
     while (map_iter_next(&it, (void**)&vi)) {
         if (!vi->glob || vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) continue;
         token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro, .glob = vi->glob } };
-        switch (VRS_variable_bitness(&tmptkn, 1)) {
+        switch (TKN_variable_bitness(&tmptkn, 1)) {
             case 64: fprintf(output, "%s dq 0\n", vi->name); break;
             case 32: fprintf(output, "%s dd 0\n", vi->name); break;
             case 16: fprintf(output, "%s dw 0\n", vi->name); break;

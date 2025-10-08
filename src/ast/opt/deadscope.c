@@ -97,8 +97,8 @@ _check_case_scope: {}
         }
 
         if (
-            VRS_isdecl(curr->token) || 
-            (VRS_isoperand(curr->token) && !VRS_update_operator(curr->token))
+            TKN_isdecl(curr->token) || 
+            (TKN_isoperand(curr->token) && !TKN_update_operator(curr->token))
         ) {
             _find_scope(curr, affect, s_id);
             prev = curr;
@@ -106,7 +106,7 @@ _check_case_scope: {}
             continue;
         }
 
-        if (VRS_update_operator(curr->token)) {
+        if (TKN_update_operator(curr->token)) {
             ast_node_t* var = curr->child;
             if (var->sinfo.s_id < s_id) { /* This scope affect to outer variable */
                 *affect = 1;

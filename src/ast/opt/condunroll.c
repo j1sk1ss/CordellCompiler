@@ -9,7 +9,7 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
     while (t) {
         ast_node_t* next = t->sibling;
 
-        if (VRS_isblock(t->token)) _clean_blocks(t->child, ctx);
+        if (TKN_isblock(t->token)) _clean_blocks(t->child, ctx);
         else {
             switch (t->token->t_type) {
                 case IF_TOKEN: {
@@ -22,7 +22,7 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
 
                     ast_node_t* unrolled_if = NULL;
 
-                    if (VRS_isnumeric(condition->token)) {
+                    if (TKN_isnumeric(condition->token)) {
                         int val = str_atoi(condition->token->value);
                         if (val && lbranch) {
                             unrolled_if = lbranch;
@@ -67,7 +67,7 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
                     ast_node_t* stmt  = t->child;
                     ast_node_t* cases = stmt->sibling;
 
-                    if (VRS_isnumeric(stmt->token)) {
+                    if (TKN_isnumeric(stmt->token)) {
                         ast_node_t* defcase = NULL;
                         ast_node_t* unrolled_switch = NULL;
                         ast_node_t* prev = NULL;
@@ -123,7 +123,7 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
                     _clean_blocks(lbranch, ctx);
                     _clean_blocks(rbranch, ctx);
 
-                    if (VRS_isnumeric(condition->token)) {
+                    if (TKN_isnumeric(condition->token)) {
                         int val = str_atoi(condition->token->value);
                         if (!val && !rbranch) {
                             AST_remove_node(root, t);

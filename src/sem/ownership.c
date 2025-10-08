@@ -168,7 +168,7 @@ static int _find_reference_var(ast_node_t* r, def_t* v) {
 static int _track_ownership(ast_node_t* r, def_t* v, ownership_t* ctx) {
     for (ast_node_t* t = r; t; t = t->sibling) { 
         _track_ownership(t->child, v, ctx); 
-        if (t->token && t->child && (VRS_isdecl(t->token) || t->token->t_type == ASSIGN_TOKEN)) {
+        if (t->token && t->child && (TKN_isdecl(t->token) || t->token->t_type == ASSIGN_TOKEN)) {
             if (_find_reference_var(t->child->sibling, v)) {
                 _add_owner(t->child->sinfo.s_id, t->child->token->value, v);
             } 
@@ -182,7 +182,7 @@ static int _find_declarations(ast_node_t* r, ownership_t* ctx) {
     if (!r) return 0; 
     for (ast_node_t* t = r; t; t = t->sibling) { 
         _find_declarations(t->child, ctx); 
-        if (t->token && VRS_isdecl(t->token) && t->child) {
+        if (t->token && TKN_isdecl(t->token) && t->child) {
             def_t* var = _register_var(t->child->sinfo.s_id, t->child->token->value, ctx);
             if (var) _track_ownership(t, var, ctx); 
         } 

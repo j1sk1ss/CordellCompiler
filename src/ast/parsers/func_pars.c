@@ -6,8 +6,8 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* sm
     
     forward_token(it, 1);
     while ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type != DELIMITER_TOKEN) {
-        if (!VRS_isdecl((token_t*)list_iter_current(it)) && ((token_t*)list_iter_current(it))->t_type != FUNC_NAME_TOKEN) forward_token(it, 1);
-        else if (VRS_isdecl((token_t*)list_iter_current(it))) {
+        if (!TKN_isdecl((token_t*)list_iter_current(it)) && ((token_t*)list_iter_current(it))->t_type != FUNC_NAME_TOKEN) forward_token(it, 1);
+        else if (TKN_isdecl((token_t*)list_iter_current(it))) {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
                 print_error("AST error during function arg parsing! line=%i", ((token_t*)list_iter_current(it))->lnum);
@@ -33,7 +33,7 @@ ast_node_t* cpl_parse_rexit(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt
     
     node->sinfo.s_id = scope_id_top(&ctx->scopes.stack);
     forward_token(it, 1);
-    if (VRS_isclose((token_t*)list_iter_current(it))) {
+    if (TKN_isclose((token_t*)list_iter_current(it))) {
         return node;
     }
 
@@ -111,7 +111,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* 
             continue;
         }
         
-        if (!VRS_isdecl(((token_t*)list_iter_current(it)))) forward_token(it, 1);
+        if (!TKN_isdecl(((token_t*)list_iter_current(it)))) forward_token(it, 1);
         else {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {

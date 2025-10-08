@@ -6,11 +6,11 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, syntax_ctx_t* ctx, 
     if (!left) return NULL;
     
     while ((token_t*)list_iter_current(it)) {
-        int priority = VRS_token_priority((token_t*)list_iter_current(it));
+        int priority = TKN_token_priority((token_t*)list_iter_current(it));
         if (priority < min_priority || priority == -1) break;
 
         int next_min_priority = priority + 1;
-        if (VRS_update_operator((token_t*)list_iter_current(it))) {
+        if (TKN_update_operator((token_t*)list_iter_current(it))) {
             next_min_priority = priority;
         }
 
@@ -59,7 +59,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, syntax_ctx_t* ctx, s
         forward_token(it, 1);
     }
 
-    if (VRS_isclose((token_t*)list_iter_current(it))) {
+    if (TKN_isclose((token_t*)list_iter_current(it))) {
         return node;
     }
 
@@ -97,7 +97,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, syntax_ctx_t* ctx, sym_table_
         return node;
     }
     
-    if (VRS_isptr((token_t*)list_iter_current(it)))                      return _parse_array_expression(it, ctx, smt);
+    if (TKN_isptr((token_t*)list_iter_current(it)))                      return _parse_array_expression(it, ctx, smt);
     else if (((token_t*)list_iter_current(it))->t_type == CALL_TOKEN)    return cpl_parse_funccall(it, ctx, smt);
     else if (((token_t*)list_iter_current(it))->t_type == SYSCALL_TOKEN) return cpl_parse_syscall(it, ctx, smt);
 

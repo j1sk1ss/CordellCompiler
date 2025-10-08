@@ -59,6 +59,7 @@ typedef struct {
     hir_block_t* t;
 } hir_ctx_t;
 
+long HIR_hash_subject(hir_subject_t* s);
 hir_ctx_t* HIR_create_ctx();
 int HIR_destroy_ctx(hir_ctx_t* ctx);
 hir_subject_t* HIR_create_subject(int t, int v_id, const char* strval, long intval, int s_id);

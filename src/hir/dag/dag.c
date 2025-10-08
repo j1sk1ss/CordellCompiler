@@ -1,30 +1,23 @@
 #include <hir/dag.h>
 
-dag_node_t* HIR_DAG_create_node(hir_subject_t* src, dag_node_t* farg, dag_node_t* sarg) {
+dag_node_t* HIR_DAG_create_node(hir_subject_t* src) {
     dag_node_t* nd = (dag_node_t*)mm_malloc(sizeof(dag_node_t));
     if (!nd) return NULL;
     str_memset(nd, 0, sizeof(dag_node_t));
     set_init(&nd->users);
-    nd->farg = farg;
-    nd->sarg = sarg;
-    nd->src  = src;
-    return nd;
-}
-
-int HIR_DAG_insert_node(dag_ctx_t* ctx, hir_operation_t op, hir_subject_t* src, dag_node_t* nd) {
-    if (!src) return 0;
-    nd->id  = ctx->curr_id++;
-    nd->op  = op;
+    set_init(&nd->args);
+    nd->op  = -1;
     nd->src = src;
-    return map_put(&ctx->dag, (long)nd->src, nd);
+    return nd;
 }
 
 dag_node_t* HIR_DAG_get_node(dag_ctx_t* ctx, hir_subject_t* src, int create) {
     dag_node_t* nd;
-    if (map_get(&ctx->dag, (long)src, (void**)&nd)) return nd;
-    if (create) {
-        nd = HIR_DAG_create_node(src, NULL, NULL);
-        map_put(&ctx->dag, (long)src, nd);
+    if (map_get(&ctx->dag, HIR_hash_subject(src), (void**)&nd)) return nd;
+    if (create && src) {
+        nd = HIR_DAG_create_node(src);
+        nd->id = ctx->curr_id++;
+        map_put(&ctx->dag, HIR_hash_subject(src), nd);
         return nd;
     }
 

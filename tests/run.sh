@@ -113,17 +113,6 @@ TEST_CODES[test_cfg]="
     tests/dummy_data/hir/cfg/cfg_3.cpl
 "
 
-TEST_SRCS[test_dag]="
-    src/prep/*.c src/symtab/*.c 
-    src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/dag/*.c 
-    std/*.c
-"
-
-TEST_CODES[test_dag]="
-    tests/dummy_data/hir/dag/dag_1.cpl
-"
-
 TEST_SRCS[test_ssa]="
     src/prep/*.c src/symtab/*.c 
     src/ast/*.c src/ast/parsers/*.c 
@@ -137,6 +126,17 @@ TEST_CODES[test_ssa]="
     tests/dummy_data/hir/ssa/ssa_3.cpl
     tests/dummy_data/hir/ssa/ssa_4.cpl
     tests/dummy_data/hir/ssa/ssa_5.cpl
+"
+
+TEST_SRCS[test_dag]="
+    src/prep/*.c src/symtab/*.c 
+    src/ast/*.c src/ast/parsers/*.c 
+    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dag/*.c 
+    std/*.c
+"
+
+TEST_CODES[test_dag]="
+    tests/dummy_data/hir/dag/dag_1.cpl
 "
 
 TEST_SRCS[test_dfg]="

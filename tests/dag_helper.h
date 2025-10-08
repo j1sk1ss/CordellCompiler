@@ -13,19 +13,23 @@ static void dump_dag_dot(dag_ctx_t* ctx, sym_table_t* smt) {
 
     dag_node_t* node;
     while (map_iter_next(&it, (void**)&node)) {
-        char buff[128];
+        if (!node->src) continue;
+        char buff[128] = { 0 };
         sprintf_hir_subject(buff, node->src, smt);
         const char* opname = hir_op_to_string(node->op);
-        printf("  lb%i [label=\"%s\\n%s\"];\n", node->id, opname, buff);
+        printf("  lb%i [label=\"%s \\n %s\"];\n", node->id, opname, buff);
     }
 
     printf("\n");
     map_iter_init(&ctx->dag, &it);
     while (map_iter_next(&it, (void**)&node)) {
-        if (node->farg) printf("  lb%i -> lb%i [label=\"farg\"];\n", node->id, node->farg->id);
-        if (node->sarg) printf("  lb%i -> lb%i [label=\"sarg\"];\n", node->id, node->sarg->id);
-
         set_iter_t sit;
+        set_iter_init(&node->args, &sit);
+        dag_node_t* arg;
+        while (set_iter_next(&sit, (void**)&arg)) {
+            printf("  lb%i -> lb%i [label=\"farg\"];\n", node->id, arg->id);
+        }
+
         dag_node_t* user;
         set_iter_init(&node->users, &sit);
         while (set_iter_next(&sit, (void**)&user)) {
