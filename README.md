@@ -26,7 +26,6 @@ This `README` file contains the main information about this compiler and the dev
    - [Example of AST](#example-of-ast)
    - [AST optimization](#ast-optimization)
 - [HIR part](#hir-part)
-   - [HIR optimization](#hir-optimization)
    - [Example of HIR](#example-of-hir)
 - [CFG part](#cfg-part)
    - [Example of CFG](#example-of-cfg)
@@ -39,9 +38,14 @@ This `README` file contains the main information about this compiler and the dev
    - [USE and DEF](#use-and-def)
    - [IN and OUT](#in-and-out)
    - [Point of deallocation](#point-of-deallocation)
+- [HIR optimization](#hir-optimization)
+   - [Constant folding / propagation](#constant-folding--propagation)
+   - [Unused variables kill](#unused-variables-kill)
+- [Register allocation part](#register-allocation-part)
+   - [Graph coloring](#graph-coloring)
 - [LIR (x86_64) part](#lir-x86_64-part)
-   - [LIR x86_64 optimization](#lir-x86_64-optimization)
    - [LIR x86_64 example](#lir-x86_64-example)
+- [LIR x86_64 optimization](#lir-x86_64-optimization)
 - [Codegen (nasm) part](#codegen-nasm-part)
 
 ## Introduction
@@ -233,10 +237,6 @@ Now we have a correct `AST` representation of the input code. Before proceeding 
 ## HIR part
 Now we need to convert our `AST` into a simpler representation. A common approach here is to convert the `AST` into `Three-Address Code` (3AC).
 ![markup](docs/media/HIR.png)
-
-### HIR optimization
-- Constant folding
-- HIR Peephole optimization
 
 ### Example of HIR
 ```
@@ -437,6 +437,10 @@ the variable `a` is owned by `b`, so we must not kill `a` while `b` is still ali
 }
 ```
 
+## HIR optimization
+### Constant folding / propagation
+### Unused variables kill
+
 ## Register allocation part
 Now that we have the `IN`, `OUT`, `DEF`, and `USE` sets, we can construct an interference graph. The idea is straightforward: we create a vertex for each variable in the symbol table, and then, for every `CFG` block, we connect (i.e., add an edge between) each variable from the block’s `DEF` set with every variable from its `OUT` set. This connection represents that these two variables are live at the same time. The resulting structure is the interference graph, where:
 - Vertices represent program variables.
@@ -450,8 +454,6 @@ Now we can determine which variables can share the same register using graph col
 ## LIR (x86_64) part
 In the same way as during `HIR` generation, we now produce an intermediate representation similar to `3AC` — but using only two addresses. This step is relatively straightforward, as it primarily involves adapting instructions to the target machine’s addressing model. Because the exact implementation depends heavily on the target architecture (register count, instruction set, addressing modes, etc.), we typically don’t spend much time optimizing or generalizing this layer. Its main goal is simply to bridge the high-level `HIR` representation and the target-specific assembly form, ensuring that each instruction can be directly translated to a valid machine instruction.
 ![lir_gen](docs/media/lir_gen.png)
-
-### LIR x86_64 optimization
 
 ### LIR x86_64 example
 ```
@@ -564,6 +566,8 @@ iMOV EAX, R12D
 iMOV R11D, EAX
 EXITOP R11D
 ```
+
+## LIR x86_64 optimization
 
 ## Codegen (nasm) part
 ### Example of generated code
