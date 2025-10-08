@@ -7,9 +7,9 @@
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
-#include <hir/ssa.h>
 #include "ast_helper.h"
 #include "hir_helper.h"
+#include "dag_helper.h"
 #include "symtb_helper.h"
 
 int main(int argc, char* argv[]) {
@@ -50,16 +50,6 @@ int main(int argc, char* argv[]) {
     };
 
     HIR_generate(&sctx, &irctx, &smt);
-
-    cfg_ctx_t cfgctx;
-    HIR_CFG_build(&irctx, &cfgctx);
-    
-    ssa_ctx_t ssactx;
-    HIR_SSA_insert_phi(&cfgctx, &smt);
-    HIR_SSA_rename(&cfgctx, &ssactx, &smt);
-
-    cfg_print(&cfgctx);
-
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
     while (h) {
@@ -69,6 +59,16 @@ int main(int argc, char* argv[]) {
 
     print_symtab(&smt);
 
+    cfg_ctx_t cfgctx;
+    HIR_CFG_build(&irctx, &cfgctx);
+    cfg_print(&cfgctx);
+
+    dag_ctx_t dagctx;
+    map_init(&dagctx.dag);
+    HIR_DAG_generate(&cfgctx, &dagctx);
+    dump_dag_dot(&dagctx, &smt);
+    
+    HIR_DAG_unload(&dagctx);
     HIR_unload_blocks(irctx.h);
     list_free_force(&tokens);
     AST_unload(sctx.r);
@@ -76,3 +76,4 @@ int main(int argc, char* argv[]) {
     close(fd);
     return 0;
 }
+

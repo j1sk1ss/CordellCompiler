@@ -356,9 +356,16 @@ int HIR_writeop(hir_operation_t op) {
         case HIR_STORE_ECLL:
         case HIR_STORE_FCLL:
         case HIR_STORE_SYSC:
-        // case HIR_VARDECL:
-        // case HIR_ARRDECL:
-        // case HIR_STRDECL:
+        case HIR_TF64:
+        case HIR_TF32:
+        case HIR_TI64:
+        case HIR_TI32:
+        case HIR_TI16:
+        case HIR_TI8:
+        case HIR_TU64:
+        case HIR_TU32:
+        case HIR_TU16:
+        case HIR_TU8:
         case HIR_iADD:
         case HIR_iSUB:
         case HIR_iMUL:

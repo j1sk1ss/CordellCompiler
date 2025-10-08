@@ -1,5 +1,6 @@
 # HIR
 - `cfg/` - All code for Control-Flow-Graph generation and dominant, strict dominance and dominance frontier calculation.
+- `dag/` - All code for Direct-Acyclic-Graph generation.
 - `dfg/` - All code for Data-Flow analysis (Liveness analyzer, Allias marker).
 - `ra/` - Register allocation code.
 - `ssa/` - All code for SSA-form generation.

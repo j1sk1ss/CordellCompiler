@@ -6,9 +6,8 @@
 #include <ast/syntax.h>
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
-#include <hir/opt/cfg.h>
+#include <hir/cfg.h>
 #include "ast_helper.h"
-#include "hir_helper.h"
 #include "hir_helper.h"
 #include "symtb_helper.h"
 

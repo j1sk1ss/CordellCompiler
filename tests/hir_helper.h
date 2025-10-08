@@ -135,9 +135,9 @@ static void print_hir_subject(const hir_subject_t* s) {
 static int _depth = 0;
 static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
     switch(op) {
-        case HIR_STARGLD:    return "load_starg(%s);\n";
+        case HIR_STARGLD:    return "%s = load_starg();\n";
         case HIR_FARGST:     return "store_arg(%s);\n";
-        case HIR_FARGLD:     return "load_arg(%s);\n";
+        case HIR_FARGLD:     return "%s = load_arg();\n";
         
         case HIR_TF64:       return "%s = %s as f64;\n";
         case HIR_TF32:       return "%s = %s as f32;\n";
@@ -496,5 +496,4 @@ void cfg_print(cfg_ctx_t* ctx) {
 
     printf("==================\n");
 }
-
 #endif
