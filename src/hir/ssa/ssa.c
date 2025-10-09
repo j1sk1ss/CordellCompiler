@@ -57,8 +57,15 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
             NULL
         );
 
-        if (trg->jmp) HIR_insert_block_before(union_command, trg->entry);
-        else HIR_insert_block_after(union_command, trg->entry);
+        if (trg->jmp) {
+            HIR_insert_block_before(union_command, trg->entry);
+            trg->entry = union_command;
+        }
+        else {
+            HIR_insert_block_after(union_command, trg->entry);
+            trg->exit = union_command;
+        }
+
         break;
     }
 

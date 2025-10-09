@@ -7,78 +7,79 @@
 
 static const char* hir_op_to_string(hir_operation_t op) {
     switch(op) {
-        case HIR_PHI:        return "PHI";
-        case HIR_VRDEALL:    return "VRDEALL";
-        case HIR_STARGLD:    return "STARGLD";
-        case HIR_FARGST:     return "FARGST";
-        case HIR_FARGLD:     return "FARGLD";
-        case HIR_FCLL:       return "FCLL";
-        case HIR_STORE_FCLL: return "HIR_STORE_FCLL";
-        case HIR_ECLL:       return "ECLL";
-        case HIR_STORE_ECLL: return "HIR_STORE_ECLL";
-        case HIR_STRT:       return "STRT";
-        case HIR_SYSC:       return "SYSC";
-        case HIR_STORE_SYSC: return "HIR_STORE_SYSC";
-        case HIR_FRET:       return "FRET";
-        case HIR_MKLB:       return "MKLB";
-        case HIR_FDCL:       return "FDCL";
-        case HIR_FEND:       return "FEND";
-        case HIR_OEXT:       return "OEXT";
-        case HIR_JMP:        return "JMP";
-        case HIR_iADD:       return "iADD";
-        case HIR_iSUB:       return "iSUB";
-        case HIR_iMUL:       return "iMUL";
-        case HIR_iDIV:       return "iDIV";
-        case HIR_iMOD:       return "iMOD";
-        case HIR_iLRG:       return "iLRG";
-        case HIR_iLGE:       return "iLGE";
-        case HIR_iLWR:       return "iLWR";
-        case HIR_iLRE:       return "iLRE";
-        case HIR_iCMP:       return "iCMP";
-        case HIR_iNMP:       return "iNMP";
-        case HIR_iAND:       return "iAND";
-        case HIR_iOR:        return "iOR";
-        case HIR_iBLFT:      return "iBLFT";
-        case HIR_iBRHT:      return "iBRHT";
-        case HIR_bAND:       return "bAND";
-        case HIR_bOR:        return "bOR";
-        case HIR_bXOR:       return "bXOR";
-        case HIR_RAW:        return "RAW";
-        case HIR_IFOP:       return "IFOP";
-        case HIR_NOT:        return "NOT";
-        case HIR_STORE:      return "STORE";
-        case HIR_VARDECL:    return "VARDECL";
-        case HIR_ARRDECL:    return "ARRDECL";
-        case HIR_STRDECL:    return "STRDECL";
-        case HIR_PRMST:      return "PRMST";
-        case HIR_PRMLD:      return "PRMLD";
-        case HIR_PRMPOP:     return "PRMPOP";
-        case HIR_STASM:      return "STASM";
-        case HIR_ENDASM:     return "ENDASM";
-        case HIR_GINDEX:     return "GINDEX";
-        case HIR_LINDEX:     return "LINDEX";
-        case HIR_GDREF:      return "GDREF";
-        case HIR_LDREF:      return "LDREF";
-        case HIR_REF:        return "REF";
-        case HIR_EXITOP:     return "EXITOP";
-        case HIR_CLNVRS:     return "HIR_CLNVRS";
-        case HIR_IFLWOP:     return "HIR_IFLWOP";
-        case HIR_IFLGOP:     return "HIR_IFLGOP";
-        case HIR_IFNCPOP:    return "HIR_IFNCPOP";
-        case HIR_IFCPOP:     return "HIR_IFCPOP";
-        case HIR_STEND:      return "HIR_STEND";
-        case HIR_MKSCOPE:    return "MKSCOPE";
-        case HIR_ENDSCOPE:   return "ENDSCOPE";
-        case HIR_TF64:       return "HIR_TF64";
-        case HIR_TF32:       return "HIR_TF32"; // x = (f32)y
-        case HIR_TI64:       return "HIR_TI64"; // x = (i64)y
-        case HIR_TI32:       return "HIR_TI32"; // x = (i32)y
-        case HIR_TI16:       return "HIR_TI16"; // x = (i16)y
-        case HIR_TI8:        return "HIR_TI8";  // x = (i8)y
-        case HIR_TU64:       return "HIR_TU64"; // x = (u64)y
-        case HIR_TU32:       return "HIR_TU32"; // x = (u32)y
-        case HIR_TU16:       return "HIR_TU16"; // x = (u16)y
-        case HIR_TU8:        return "HIR_TU8";  // x = (u8)y
+        case HIR_PHI:          return "PHI";
+        case HIR_VRDEALL:      return "VRDEALL";
+        case HIR_STARGLD:      return "STARGLD";
+        case HIR_FARGST:       return "FARGST";
+        case HIR_FARGLD:       return "FARGLD";
+        case HIR_FCLL:         return "FCLL";
+        case HIR_STORE_FCLL:   return "HIR_STORE_FCLL";
+        case HIR_ECLL:         return "ECLL";
+        case HIR_STORE_ECLL:   return "HIR_STORE_ECLL";
+        case HIR_STRT:         return "STRT";
+        case HIR_SYSC:         return "SYSC";
+        case HIR_STORE_SYSC:   return "HIR_STORE_SYSC";
+        case HIR_FRET:         return "FRET";
+        case HIR_MKLB:         return "MKLB";
+        case HIR_FDCL:         return "FDCL";
+        case HIR_FEND:         return "FEND";
+        case HIR_OEXT:         return "OEXT";
+        case HIR_JMP:          return "JMP";
+        case HIR_iADD:         return "iADD";
+        case HIR_iSUB:         return "iSUB";
+        case HIR_iMUL:         return "iMUL";
+        case HIR_iDIV:         return "iDIV";
+        case HIR_iMOD:         return "iMOD";
+        case HIR_iLRG:         return "iLRG";
+        case HIR_iLGE:         return "iLGE";
+        case HIR_iLWR:         return "iLWR";
+        case HIR_iLRE:         return "iLRE";
+        case HIR_iCMP:         return "iCMP";
+        case HIR_iNMP:         return "iNMP";
+        case HIR_iAND:         return "iAND";
+        case HIR_iOR:          return "iOR";
+        case HIR_iBLFT:        return "iBLFT";
+        case HIR_iBRHT:        return "iBRHT";
+        case HIR_bAND:         return "bAND";
+        case HIR_bOR:          return "bOR";
+        case HIR_bXOR:         return "bXOR";
+        case HIR_RAW:          return "RAW";
+        case HIR_IFOP:         return "IFOP";
+        case HIR_NOT:          return "NOT";
+        case HIR_STORE:        return "STORE";
+        case HIR_VARDECL:      return "VARDECL";
+        case HIR_ARRDECL:      return "ARRDECL";
+        case HIR_STRDECL:      return "STRDECL";
+        case HIR_PRMST:        return "PRMST";
+        case HIR_PRMLD:        return "PRMLD";
+        case HIR_PRMPOP:       return "PRMPOP";
+        case HIR_STASM:        return "STASM";
+        case HIR_ENDASM:       return "ENDASM";
+        case HIR_GINDEX:       return "GINDEX";
+        case HIR_LINDEX:       return "LINDEX";
+        case HIR_GDREF:        return "GDREF";
+        case HIR_LDREF:        return "LDREF";
+        case HIR_REF:          return "REF";
+        case HIR_EXITOP:       return "EXITOP";
+        case HIR_CLNVRS:       return "HIR_CLNVRS";
+        case HIR_IFLWOP:       return "HIR_IFLWOP";
+        case HIR_IFLGOP:       return "HIR_IFLGOP";
+        case HIR_IFNCPOP:      return "HIR_IFNCPOP";
+        case HIR_IFCPOP:       return "HIR_IFCPOP";
+        case HIR_STEND:        return "HIR_STEND";
+        case HIR_MKSCOPE:      return "MKSCOPE";
+        case HIR_ENDSCOPE:     return "ENDSCOPE";
+        case HIR_TF64:         return "HIR_TF64";
+        case HIR_TF32:         return "HIR_TF32"; // x = (f32)y
+        case HIR_TI64:         return "HIR_TI64"; // x = (i64)y
+        case HIR_TI32:         return "HIR_TI32"; // x = (i32)y
+        case HIR_TI16:         return "HIR_TI16"; // x = (i16)y
+        case HIR_TI8:          return "HIR_TI8";  // x = (i8)y
+        case HIR_TU64:         return "HIR_TU64"; // x = (u64)y
+        case HIR_TU32:         return "HIR_TU32"; // x = (u32)y
+        case HIR_TU16:         return "HIR_TU16"; // x = (u16)y
+        case HIR_TU8:          return "HIR_TU8";  // x = (u8)y
+        case HIR_PHI_PREAMBLE: return "PHI_PREAMBLE";
         default: return "";
     }
 }

@@ -11,6 +11,7 @@
 
 typedef struct dag_node {
     /* Misc info */
+    cfg_block_t*     home;
     unsigned long    hash;
     long             id;
     hir_operation_t  op;
