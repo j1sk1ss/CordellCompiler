@@ -11,6 +11,7 @@ static inline unsigned long _mix64(unsigned long x) {
 
 long HIR_hash_subject(hir_subject_t* s) {
     if (!s) return 0;
+    if (s->hash) return s->hash;
 
     uint64_t h = (uint64_t)s->t;
 
@@ -55,7 +56,8 @@ long HIR_hash_subject(hir_subject_t* s) {
         break;
     }
 
-    return (long)(h ^ (h >> 32));
+    s->hash = (long)(h ^ (h >> 32));
+    return s->hash;
 }
 
 hir_ctx_t* HIR_create_ctx() {
@@ -79,7 +81,7 @@ int HIR_destroy_ctx(hir_ctx_t* ctx) {
 }
 
 static long _curr_id = 0;
-hir_subject_t* HIR_create_subject(int t, int v_id, const char* strval, long intval, int s_id) {
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* strval, long intval, int s_id) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(hir_subject_t));

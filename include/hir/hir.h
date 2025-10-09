@@ -33,8 +33,9 @@ typedef struct {
 } hir_set_t;
 
 typedef struct {
+    unsigned long      hash;
     long               id;
-    int                t;
+    hir_subject_type_t t;
     union {
         hir_string_t   str;
         hir_constant_t cnst;
@@ -62,7 +63,7 @@ typedef struct {
 long HIR_hash_subject(hir_subject_t* s);
 hir_ctx_t* HIR_create_ctx();
 int HIR_destroy_ctx(hir_ctx_t* ctx);
-hir_subject_t* HIR_create_subject(int t, int v_id, const char* strval, long intval, int s_id);
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* strval, long intval, int s_id);
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
 int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
 int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);

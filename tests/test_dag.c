@@ -71,6 +71,7 @@ int main(int argc, char* argv[]) {
 
     dag_ctx_t dagctx;
     map_init(&dagctx.dag);
+    map_init(&dagctx.groups);
     HIR_DAG_generate(&cfgctx, &dagctx);
     dump_dag_dot(&dagctx, &smt);
     

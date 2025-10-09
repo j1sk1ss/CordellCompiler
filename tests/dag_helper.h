@@ -10,14 +10,22 @@ static void dump_dag_dot(dag_ctx_t* ctx, sym_table_t* smt) {
 
     map_iter_t it;
     map_iter_init(&ctx->dag, &it);
-
     dag_node_t* node;
     while (map_iter_next(&it, (void**)&node)) {
-        if (!node->src) continue;
+        // if (!node->src) continue;
+        set_iter_t lit;
+        set_iter_init(&node->link, &lit);
+        hir_subject_t* link;
+
         char buff[128] = { 0 };
-        sprintf_hir_subject(buff, node->src, smt);
+        char* bptr = (char*)buff;
+        while (set_iter_next(&lit, (void**)&link)) {
+            bptr = sprintf_hir_subject(bptr, link, smt);
+            bptr += sprintf(bptr, " ");
+        }
+
         const char* opname = hir_op_to_string(node->op);
-        printf("  lb%i [label=\"%s \\n %s\"];\n", node->id, opname, buff);
+        printf("  lb%i [label=\"%s \\n %s \\n %llu\"];\n", node->id, opname, buff, node->hash);
     }
 
     printf("\n");

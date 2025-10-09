@@ -1,19 +1,24 @@
 {
-    start(i64 argc, ptr u64 argv) {
+    start() {
         i32 a = 10;
-        i32 b = 20;
-
-        if argc == 1; {
-            a = 12;
-            b = 22;
+        switch a; {
+            case 1; {
+                a = 11;
+            }
+            case 2; {
+                a = 12;
+            }
+            case 3; {
+                a = 13;
+            }
+            default {
+                exit a;
+            }
         }
-        else {
-            a = 13;
-            b = 23;
-        }
 
+        i32 b = 11;
         i32 c = a + b;
         i32 d = a + b;
-        exit d;
+        exit a + b;
     }
 }

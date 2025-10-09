@@ -34,6 +34,8 @@ This `README` file contains the main information about this compiler and the dev
    - [Dominance frontier](#dominance-frontier)
 - [SSA form](#ssa-form)
    - [Phi function](#phi-function)
+- [DAG part](#dag-part)
+   - [Example of DAG](#example-of-dag)
 - [Liveness analyzer part](#liveness-analyzer-part)
    - [USE and DEF](#use-and-def)
    - [IN and OUT](#in-and-out)
@@ -346,6 +348,9 @@ But how do we determine where to place this function? Here, we use previously co
 ![phi_placement](docs/media/phi_placement.png)
 Then, during the SSA renaming process, we keep track of each block that passes through a φ-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result:
 ![phi_final](docs/media/phi_final.png)
+
+## DAG part
+### Example of DAG
 
 ## Liveness analyzer part
 Several optimization techniques are based on data-flow analysis. Data-flow analysis itself relies on liveness analysis, which in turn depends on the program’s `SSA` form and control-flow graph (CFG). Now that we have established these fundamental representations, we can proceed with the `USE–DEF–IN–OUT` computation process.

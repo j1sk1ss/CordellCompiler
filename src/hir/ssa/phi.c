@@ -18,21 +18,16 @@ static int _has_phi(cfg_block_t* b, long v_id) {
 static int _insert_phi_instr(cfg_ctx_t* cctx, cfg_block_t* b, variable_info_t* vi) {
     if (!b->entry) return 0;
 
-    set_iter_t pit;
-    set_iter_init(&b->pred, &pit);
-    cfg_block_t* p;
-    while (set_iter_next(&pit, (void**)&p)) {
-        if (p->entry->op == HIR_PHI) return 0;
+    hir_block_t* hh = b->entry;
+    while (hh) {
+        if (hh->op == HIR_PHI && hh->farg->storage.var.v_id == vi->v_id) return 0;
+        if (hh == b->exit) break;
+        hh = hh->next;
     }
 
-    hir_block_t* phi = HIR_create_block(
-        HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(vi), vi->s_id), NULL, HIR_SUBJ_SET()
-    );
-
+    hir_block_t* phi = HIR_create_block(HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(vi), vi->s_id), NULL, HIR_SUBJ_SET());
     HIR_insert_block_before(phi, b->entry);
-    cfg_block_t* phiblock = CFG_create_cfg_block(phi);
-    phiblock->id = cctx->cid++;
-    CFG_insert_cfg_block(b->pfunc, phiblock, b);
+    b->entry = phi;
     return 1;
 }
 
