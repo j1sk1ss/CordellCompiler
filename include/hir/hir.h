@@ -53,6 +53,7 @@ typedef struct hir_block {
     hir_subject_t*    sarg;
     hir_subject_t*    targ;
     int               args;
+    char              unused;
 } hir_block_t;
 
 typedef struct {
@@ -69,6 +70,7 @@ int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
 int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
 int HIR_remove_block(hir_block_t* block);
+int HIR_unload_subject(hir_subject_t* s);
 int HIR_unload_blocks(hir_block_t* block);
 
 #define HIR_SUBJ_CONST(val)               HIR_create_subject(HIR_CONSTVAL, 0, NULL, val, -1)

@@ -336,7 +336,9 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
 }
 
 void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
-    if (!block) return;
+    if (!block || block->unused) return;
+    // if (!block) return;
+    // print_debug("%i", block->unused);
 
     char arg1[256] = { 0 };
     char arg2[256] = { 0 };

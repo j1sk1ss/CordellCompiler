@@ -8,6 +8,8 @@
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
 #include <hir/ssa.h>
+#include <hir/dag.h>
+#include <hir/opt/hir_cleaner.h>
 #include "ast_helper.h"
 #include "hir_helper.h"
 #include "dag_helper.h"
@@ -46,10 +48,7 @@ int main(int argc, char* argv[]) {
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
 
-    hir_ctx_t irctx = {
-        .h = NULL, .t = NULL 
-    };
-
+    hir_ctx_t irctx = { .h = NULL, .t = NULL };
     HIR_generate(&sctx, &irctx, &smt);
 
     cfg_ctx_t cfgctx;
@@ -60,6 +59,14 @@ int main(int argc, char* argv[]) {
 
     cfg_print(&cfgctx);
 
+    dag_ctx_t dagctx;
+    map_init(&dagctx.dag);
+    map_init(&dagctx.groups);
+    HIR_DAG_generate(&cfgctx, &dagctx);
+    dump_dag_dot(&dagctx, &smt);
+    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
+    HIR_CLN_remove_unused_variables(&cfgctx);
+
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
     while (h) {
@@ -68,12 +75,6 @@ int main(int argc, char* argv[]) {
     }
 
     print_symtab(&smt);
-
-    dag_ctx_t dagctx;
-    map_init(&dagctx.dag);
-    map_init(&dagctx.groups);
-    HIR_DAG_generate(&cfgctx, &dagctx);
-    dump_dag_dot(&dagctx, &smt);
     
     HIR_DAG_unload(&dagctx);
     HIR_unload_blocks(irctx.h);

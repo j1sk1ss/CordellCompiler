@@ -28,7 +28,7 @@ dag_node_t* HIR_DAG_create_node(hir_subject_t* src) {
     set_init(&nd->args);
     set_init(&nd->link);
 
-    set_add(&nd->link, src);
+    set_add(&nd->link, (void*)HIR_hash_subject(src));
     nd->op  = -1;
     nd->src = src;
 
@@ -42,8 +42,9 @@ dag_node_t* HIR_DAG_get_node(dag_ctx_t* ctx, hir_subject_t* src, int create) {
 
     map_iter_t it;
     map_iter_init(&ctx->dag, &it);
+    unsigned long sh = HIR_hash_subject(src);
     while (map_iter_next(&it, (void**)&nd)) {
-        if (set_has(&nd->link, src)) return nd;
+        if (set_has(&nd->link, (void*)sh)) return nd;
     }
 
     if (create && src) {

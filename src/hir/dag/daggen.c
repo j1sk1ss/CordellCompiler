@@ -59,7 +59,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                     else {
                         map_remove(&dctx->dag, HIR_hash_subject(dst->src));
                         HIR_DAG_unload_node(dst);
-                        set_add(&existed->link, hh->farg);
+                        set_add(&existed->link, (void*)HIR_hash_subject(hh->farg));
                     }
 
                     break;
@@ -103,8 +103,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                     else {
                         map_remove(&dctx->dag, HIR_hash_subject(nd->src));
                         HIR_DAG_unload_node(nd);
-                        nd = existed;
-                        set_add(&nd->link, hh->farg);
+                        set_add(&existed->link, (void*)HIR_hash_subject(hh->farg));
                     }
 
                     break;

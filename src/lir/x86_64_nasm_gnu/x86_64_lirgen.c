@@ -9,7 +9,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
     long offset = 0;
     while (h) {
-        switch (h->op) {
+        if (!h->unused) switch (h->op) {
             case HIR_STORE: {
                 x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
                 x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);

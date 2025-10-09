@@ -131,13 +131,14 @@ TEST_CODES[test_ssa]="
 TEST_SRCS[test_dag]="
     src/prep/*.c src/symtab/*.c 
     src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dag/*.c 
+    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dag/*.c src/hir/opt/*.c 
     std/*.c
 "
 
 TEST_CODES[test_dag]="
     tests/dummy_data/hir/dag/dag_1.cpl
     tests/dummy_data/hir/dag/dag_2.cpl
+    tests/dummy_data/hir/dag/dag_3.cpl
 "
 
 TEST_SRCS[test_dfg]="
@@ -174,7 +175,7 @@ TEST_CODES[test_ra]="
 TEST_SRCS[test_lir]="
     src/prep/*.c src/symtab/*.c 
     src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/*/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dfg/*.c src/hir/ra/*.c
+    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dfg/*.c src/hir/ra/*.c src/hir/dag/*.c src/hir/opt/*.c 
     src/lir/*.c src/lir/*/*.c src/lir/*/*/*.c
     std/*.c
 "
@@ -184,6 +185,7 @@ TEST_CODES[test_lir]="
     tests/dummy_data/lir/gen/lirgen_2.cpl
     tests/dummy_data/lir/gen/lirgen_3.cpl
     tests/dummy_data/lir/gen/lirgen_4.cpl
+    tests/dummy_data/lir/gen/lirgen_5.cpl
 "
 
 TEST_SRCS[test_asm]="

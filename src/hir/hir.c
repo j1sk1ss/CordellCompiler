@@ -126,12 +126,13 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta) {
     hir_block_t* blk = mm_malloc(sizeof(hir_block_t));
     if (!blk) return NULL;
-    blk->op   = op;
-    blk->farg = fa;
-    blk->sarg = sa;
-    blk->targ = ta;
-    blk->next = NULL;
-    blk->prev = NULL;
+    blk->unused = 0;
+    blk->op     = op;
+    blk->farg   = fa;
+    blk->sarg   = sa;
+    blk->targ   = ta;
+    blk->next   = NULL;
+    blk->prev   = NULL;
     return blk;
 }
 
@@ -171,7 +172,7 @@ int HIR_remove_block(hir_block_t* block) {
     return 1;
 }
 
-static int _unload_subject(hir_subject_t* s) {
+int HIR_unload_subject(hir_subject_t* s) {
     if (!s) return 0;
     if (s->t == HIR_SET) set_free_force(&s->storage.set.h);
     mm_free(s);
@@ -182,9 +183,9 @@ int HIR_unload_blocks(hir_block_t* block) {
     if (!block) return -1;
     while (block) {
         hir_block_t* nxt = block->next;
-        _unload_subject(block->farg);
-        _unload_subject(block->sarg);
-        _unload_subject(block->targ);
+        HIR_unload_subject(block->farg);
+        HIR_unload_subject(block->sarg);
+        HIR_unload_subject(block->targ);
         mm_free(block);
         block = nxt;
     }

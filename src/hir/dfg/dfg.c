@@ -23,11 +23,9 @@ int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
             set_init(&cb->def);
             hir_block_t* hh = cb->entry;
             while (hh) {
-                if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t)) {
-                    set_add(&cb->def, (void*)hh->sarg->storage.var.v_id);
-                }
-                else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t)) {
-                    set_add(&cb->def, (void*)hh->farg->storage.var.v_id);
+                if (!hh->unused) {
+                    if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t)) set_add(&cb->def, (void*)hh->sarg->storage.var.v_id);
+                    else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t)) set_add(&cb->def, (void*)hh->farg->storage.var.v_id);
                 }
 
                 if (hh == cb->exit) break;
@@ -51,20 +49,22 @@ int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
             set_init(&cb->use);
             hir_block_t* hh = cb->entry;
             while (hh) {
-                if (hh->op != HIR_PHI) {
-                    hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
-                    for (int i = HIR_writeop(hh->op); i < 3; i++) {
-                        if (args[i] && HIR_is_vartype(args[i]->t)) {
-                            set_add(&cb->use, (void*)args[i]->storage.var.v_id);
+                if (!hh->unused) {
+                    if (hh->op != HIR_PHI) {
+                        hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
+                        for (int i = HIR_writeop(hh->op); i < 3; i++) {
+                            if (args[i] && HIR_is_vartype(args[i]->t)) {
+                                set_add(&cb->use, (void*)args[i]->storage.var.v_id);
+                            }
                         }
                     }
-                }
-                else {
-                    set_iter_t it;
-                    set_iter_init(&hh->targ->storage.set.h, &it);
-                    int_tuple_t* tpl;
-                    while (set_iter_next(&it, (void**)&tpl)) {
-                        set_add(&cb->use, (void*)tpl->y);
+                    else {
+                        set_iter_t it;
+                        set_iter_init(&hh->targ->storage.set.h, &it);
+                        int_tuple_t* tpl;
+                        while (set_iter_next(&it, (void**)&tpl)) {
+                            set_add(&cb->use, (void*)tpl->y);
+                        }
                     }
                 }
 
