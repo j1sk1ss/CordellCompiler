@@ -1,14 +1,13 @@
 {
-    start(i64 argc, ptr u64 argv) {
-        i32 a = 0;
-        asm(a) {
-            "mov rax, &a",
-            "xor rax, rax",
-            "jmp .label",
-            "mov rax, 0x60",
-            "syscall"
-        }
+    function foo(i32 a = 10) => i32 {
+        return 0;
+    }
 
-        exit 0;
+    function bar(i32 a = foo()) => i64 {
+        return a;
+    }
+
+    start(i64 argc, ptr u64 argv) {
+        exit bar();
     }
 }

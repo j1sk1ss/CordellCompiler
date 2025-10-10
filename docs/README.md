@@ -284,15 +284,17 @@ switch cond; {
 
 # Functions and inbuilt macros
 ## Functions
-Functions can be defined by `function` keyword. Also, if you want to use function in another `.cpl`/(or whatever language that support extern) file, you can append `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that CPL change function name by next pattern: `__cpl_{name}__`. 
+Functions can be defined by `function` keyword. Also, if you want to use function in another `.cpl`/(or whatever language that support extern) file, you can append `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that CPL change local function name by next pattern: `__cpl_{name}`, that's why prefer mark them with `glob` key. 
 ```cpl
 function foo() => i32 { }
 glob function bar(i32 a = 10) => ptr u64 { }
+function baz(i32 b = bar(11)) => u8 { }
 ```
 
 CPL support default values in functions. Compiler will pass this default args in function call if you don't provide enoght.
 ```cpl
 bar(); : => bar(10); :
+baz(); : => baz(bar(11)); :
 ```
 
 ## Inbuilt macros
@@ -303,14 +305,14 @@ str msg = "Hello, World!";
 syscall(1, 1, ref msg, strlen(ref msg));
 ```
 
-- `asm` - Second usefull function that allows inline assembly code. Main feature here is variables line, where you can pass any number of arguments, then use them in assembly code block via `&` symbol.
+- `asm` - Second usefull function that allows inline assembly code. Main feature here is variables line, where you can pass any number of arguments, then use them in assembly code block via `{}` symbols.
 ```cpl
 i32 a = 0;
 i32 ret = 0;
 asm(a, ret) {
-   "mov rax, &a",
+   "mov rax, {a}",
    "syscall",
-   "mov &ret, rax"
+   "mov {ret}, rax"
 }
 ```
 

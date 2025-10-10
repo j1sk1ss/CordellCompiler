@@ -4,6 +4,7 @@
 - [HIR](src/hir/)
 - [CFG](src/cfg/)
 - [SSA](src/ssa/)
+- [DAG](src/dag/)
 - [RA](src/ra/)
 - [LIR](src/lit/)
 - [ASM](src/asm/)

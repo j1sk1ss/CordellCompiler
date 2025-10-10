@@ -20,6 +20,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
             hir_block_t* hh = cb->entry;
             while (hh) {
                 switch (hh->op) {
+                    case HIR_PHI_PREAMBLE:
                     case HIR_STORE_ECLL:
                     case HIR_STORE_FCLL:
                     case HIR_STORE_SYSC:
@@ -27,17 +28,6 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                     case HIR_STARGLD: {
                         dag_node_t* dst = DAG_GET_NODE(dctx, hh->farg);
                         if (!dst) break;
-                        dst->op   = hh->op;
-                        dst->hash = HIR_DAG_compute_hash(dst);
-                        dst->home = cb;
-                        break;
-                    }
-
-                    case HIR_PHI_PREAMBLE: {
-                        dag_node_t* src = DAG_GET_NODE(dctx, hh->sarg);
-                        dag_node_t* dst = DAG_GET_NODE(dctx, hh->farg);
-                        if (!dst) break;
-                        if (src) set_add(&dst->args, src);
                         dst->op   = hh->op;
                         dst->hash = HIR_DAG_compute_hash(dst);
                         dst->home = cb;

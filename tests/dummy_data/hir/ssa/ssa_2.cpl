@@ -1,10 +1,11 @@
 {
-    start(i64 argc, ptr u64 argv) {
-        i32 a = 0;
-        while a < 10; {
-            a += 1;
+    function strlen(ptr i8 s) => i64 {
+        i64 l = 0;
+        while dref s; {
+            s += 1;
+            l += 1;
         }
 
-        exit a;
+        return l;
     }
 }

@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     cfg_print(&cfgctx);
 
     HIR_unload_blocks(irctx.h);
-    list_free_force(&smt);
+    list_free_force(&tokens);
     AST_unload(sctx.r);
     SMT_unload(&smt);
     close(fd);

@@ -1,13 +1,12 @@
 {
-    function foo(i32 a, i32 b) => i32 {
-        i32 c = a + b;
-        return a + b;
-    }
+    function strlen(ptr i8 s) => i64 {
+        i64 l = 0;
+        while dref s; {
+            s += 1;
+            l += 1;
+        }
 
-    start(i64 argc, ptr u64 argv) {
-        i32 a = 10;
-        i32 b = 10;
-        i32 c = a + b;
-        exit foo(a + b, a + b);
+        i32 a = l + s;
+        return a + l + s;
     }
 }
