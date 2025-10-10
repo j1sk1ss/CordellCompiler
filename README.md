@@ -35,7 +35,6 @@ This `README` file contains the main information about this compiler and the dev
 - [SSA form](#ssa-form)
    - [Phi function](#phi-function)
 - [DAG part](#dag-part)
-   - [Example of DAG](#example-of-dag)
 - [Liveness analyzer part](#liveness-analyzer-part)
    - [USE and DEF](#use-and-def)
    - [IN and OUT](#in-and-out)
@@ -350,7 +349,14 @@ Then, during the SSA renaming process, we keep track of each block that passes t
 ![phi_final](docs/media/phi_final.png)
 
 ## DAG part
-### Example of DAG
+With the complete `SSA` form, we can move on to the first optional optimizations. The first one requires building a `DAG` (Directed Acyclic Graph) representation of the code. In short, a `DAG` shows how every value in the program is derived. In other words, this graph illustrates how each variable obtains its value (with some exceptions for `arrays` and `strings`).
+![base_dag](docs/media/base_DAG.png)
+
+Then, when we build the "basic" DAG, we check and merge all nodes that share the same hash (computed as a hash of their child nodes). If the nodes are identical and the base node is located in a dominating block, we can safely merge them.
+![opt_dag](docs/media/opt_DAG.png)
+
+The result of using the DAG is optimized code with Common Subexpression Elimination applied.
+![res_dag](docs/media/res_DAG.png)
 
 ## Liveness analyzer part
 Several optimization techniques are based on data-flow analysis. Data-flow analysis itself relies on liveness analysis, which in turn depends on the program’s `SSA` form and control-flow graph (CFG). Now that we have established these fundamental representations, we can proceed with the `USE–DEF–IN–OUT` computation process.
