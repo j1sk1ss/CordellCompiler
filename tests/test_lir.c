@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     HIR_DFG_collect_defs(&cfgctx);
     HIR_DFG_collect_uses(&cfgctx);
     HIR_DFG_compute_inout(&cfgctx);
-    HIR_DFG_make_allias(&cfgctx, &smt);
+    HIR_CFG_make_allias(&cfgctx, &smt);
     HIR_DFG_create_deall(&cfgctx, &smt);
 
     cfg_print(&cfgctx);

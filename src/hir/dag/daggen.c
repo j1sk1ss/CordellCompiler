@@ -8,7 +8,7 @@ static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* src1, da
     return 1;
 }
 
-int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
+int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -67,12 +67,18 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                         dag_node_t* existed;
                         if (!map_get(&dctx->groups, dst->hash, (void**)&existed)) _register_node(dctx, dst, src1, src2);
                         else {
-                            if (!set_has(&dst->home->dom, existed->home)) _register_node(dctx, dst, src1, src2);
+                            set_t owners;
+                            if (
+                                !set_has(&dst->home->dom, existed->home) ||
+                                (ALLIAS_get_owners(existed->src->storage.var.v_id, &owners, &smt->m) && set_size(&owners))
+                            ) _register_node(dctx, dst, src1, src2);
                             else {
                                 map_remove(&dctx->dag, HIR_hash_subject(dst->src));
                                 HIR_DAG_unload_node(dst);
                                 set_add(&existed->link, (void*)HIR_hash_subject(hh->farg));
                             }
+
+                            set_free_force(&owners);
                         }
 
                         break;

@@ -56,13 +56,14 @@ int main(int argc, char* argv[]) {
     ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
+    HIR_CFG_make_allias(&cfgctx, &smt);
 
     cfg_print(&cfgctx);
 
     dag_ctx_t dagctx;
     map_init(&dagctx.dag);
     map_init(&dagctx.groups);
-    HIR_DAG_generate(&cfgctx, &dagctx);
+    HIR_DAG_generate(&cfgctx, &dagctx, &smt);
     dump_dag_dot(&dagctx, &smt);
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
     HIR_CLN_remove_unused_variables(&cfgctx);

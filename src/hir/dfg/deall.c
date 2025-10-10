@@ -37,6 +37,7 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                 }
 
+                set_free_force(&owners);
                 if (hasown) continue;
                 HIR_insert_block_after(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->exit);
 

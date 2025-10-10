@@ -1,9 +1,15 @@
 {
+    function foo(ptr i32 a) => i32 {
+        dref a = 1;
+        return 0;
+    }
     start() {
-        arr a[10, i32];
-        i32 b = a[0];
-        i32 b1 = a[0];
+        i32 a = 10;
+        i32 b = 10;
         ptr i32 c = ref a;
-        exit a[0];
+        dref c = 11;
+        i32 d = a + b;
+        foo(ref a);
+        exit d;
     }
 }

@@ -2,7 +2,7 @@
 allias.c - Track ownership of address to cell in memory
 */
 
-#include <hir/dfg.h>
+#include <hir/cfg.h>
 
 static int _mark_allias(long v_id, long owner_id, allias_map_t* ctx) {
     set_t owners;
@@ -48,7 +48,7 @@ int _mark_copies(long owner_id, long owned_id, cfg_ctx_t* cctx, sym_table_t* smt
     return 1;
 }
 
-int HIR_DFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt) {
+int HIR_CFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;

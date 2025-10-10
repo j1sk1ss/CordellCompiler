@@ -6,9 +6,9 @@
 #include <ast/syntax.h>
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
-#include <hir/opt/cfg.h>
-#include <hir/opt/ssa.h>
-#include <hir/opt/dfg.h>
+#include <hir/cfg.h>
+#include <hir/ssa.h>
+#include <hir/dfg.h>
 #include "ast_helper.h"
 #include "hir_helper.h"
 #include "symtb_helper.h"
@@ -58,11 +58,11 @@ int main(int argc, char* argv[]) {
     ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
+    HIR_CFG_make_allias(&cfgctx, &smt);
 
     HIR_DFG_collect_defs(&cfgctx);
     HIR_DFG_collect_uses(&cfgctx);
     HIR_DFG_compute_inout(&cfgctx);
-    HIR_DFG_make_allias(&cfgctx, &smt);
 
     cfg_print(&cfgctx);
 

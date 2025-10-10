@@ -1,15 +1,26 @@
 #include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
 
-int x86_64_generate_data(sym_table_t* smt, FILE* output) {
+static int _allocate_data(int glob, int ro, sym_table_t* smt, FILE* output) {
     map_iter_t it;
-    
-    fprintf(output, "section .data\n");
-
     map_iter_init(&smt->v.vartb, &it);
     variable_info_t* vi;
     while (map_iter_next(&it, (void**)&vi)) {
-        if (!vi->glob || vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) continue;
-        token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro, .glob = vi->glob } };
+        if (!vi->glob && glob || !vi->ro && ro) continue;
+        if (vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) {
+            array_info_t ai;
+            if (!ARTB_get_info(vi->v_id, &ai, &smt->a)) continue;
+            token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro } };
+            switch (TKN_variable_bitness(&tmptkn, 1)) {
+                case 64: fprintf(output, "%s resq %s\n", vi->name, ai.size); break;
+                case 32: fprintf(output, "%s resd %s\n", vi->name, ai.size); break;
+                case 16: fprintf(output, "%s resw %s\n", vi->name, ai.size); break;
+                default: fprintf(output, "%s resb %s\n", vi->name, ai.size); break;
+            }
+
+            continue;
+        }
+
+        token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro } };
         switch (TKN_variable_bitness(&tmptkn, 1)) {
             case 64: fprintf(output, "%s dq 0\n", vi->name); break;
             case 32: fprintf(output, "%s dd 0\n", vi->name); break;
@@ -18,7 +29,17 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
         }
     }
 
+    return 1;
+}
+
+int x86_64_generate_data(sym_table_t* smt, FILE* output) {
+    map_iter_t it;
+    
+    fprintf(output, "section .data\n");
+    _allocate_data(1, 0, smt, output);
+
     fprintf(output, "section .rodata\n");
+    _allocate_data(0, 1, smt, output);
     
     map_iter_init(&smt->s.strtb, &it);
     str_info_t* si;
