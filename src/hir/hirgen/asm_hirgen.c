@@ -14,6 +14,6 @@ int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
         HIR_BLOCK1(ctx, HIR_RAW, HIR_SUBJ_RAWASM(l));
     }
 
-    HIR_BLOCK0(ctx, HIR_ENDASM);
+    HIR_BLOCK1(ctx, HIR_ENDASM, HIR_SUBJ_CONST(args));
     return 1;
 }

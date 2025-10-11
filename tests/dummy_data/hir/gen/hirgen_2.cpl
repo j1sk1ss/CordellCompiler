@@ -1,7 +1,12 @@
 {
     start(i64 argc, ptr u64 argv) {
         i32 a = 10;
-        a += 10;
-        exit 0;
+        i32 b;
+        asm (a, b) {
+            "mov rax, {a}",
+            "mov {b}, rax"
+        }
+
+        exit b;
     }
 }

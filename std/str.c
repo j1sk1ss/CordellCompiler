@@ -77,7 +77,7 @@ int str_atoi(const char *str) {
     long long num = 0;
     size_t i = 0;
 
-    while (*str == ' ') str++;
+    while (str_isspace(*str)) str++;
     if (*str == '-' || *str == '+') {
         neg = *str == '-' ? -1 : 1;
         str++;

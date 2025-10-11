@@ -63,6 +63,10 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_FARGLD: x86_64_generate_func(ctx, h, smt, &params); break;
             case HIR_FEND:   LIR_BLOCK0(ctx, LIR_FEND); break;
 
+            case HIR_STASM:
+            case HIR_RAW:
+            case HIR_ENDASM: x86_64_generate_asmblock(ctx, h, smt, &params); break;
+
             case HIR_VRDEALL:
             case HIR_VARDECL:
             case HIR_ARRDECL:

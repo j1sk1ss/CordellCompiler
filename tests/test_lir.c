@@ -70,12 +70,12 @@ int main(int argc, char* argv[]) {
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
 
     dag_ctx_t dagctx;
-    map_init(&dagctx.dag);
-    map_init(&dagctx.groups);
-    HIR_DAG_generate(&cfgctx, &dagctx);
-    dump_dag_dot(&dagctx, &smt);
+    HIR_DAG_init(&dagctx);
+    HIR_DAG_generate(&cfgctx, &dagctx, &smt);
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
     HIR_CLN_remove_unused_variables(&cfgctx);
+    
+    dump_dag_dot(&dagctx, &smt);
 
     HIR_DFG_collect_defs(&cfgctx);
     HIR_DFG_collect_uses(&cfgctx);

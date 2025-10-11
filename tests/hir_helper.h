@@ -201,7 +201,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_PRMST:     return "prm_st(%s);\n";
         case HIR_PRMLD:     return "prm_ld();\n";
         case HIR_PRMPOP:    return "prm_pop();\n";
-        case HIR_STASM:     return "asm {\n";
+        case HIR_STASM:     return "asm, argc: %s {\n";
         case HIR_ENDASM:    return "}\n";
         case HIR_GINDEX:    return "%s = %s[%s];\n";
         case HIR_LINDEX:    return "%s[%s] = %s;\n";

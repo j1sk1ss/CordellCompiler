@@ -38,8 +38,8 @@ Main goal of this project is learning of compilers architecture and porting one 
         asm (s, l) {
             "mov rax, 1",
             "mov rdi, 1",
-            "mov rsi, &s",
-            "mov rdx, &l",
+            "mov rsi, %1 ; l",
+            "mov rdx, %0 ; s",
             "syscall"
         }
         return;
@@ -305,14 +305,14 @@ str msg = "Hello, World!";
 syscall(1, 1, ref msg, strlen(ref msg));
 ```
 
-- `asm` - Second usefull function that allows inline assembly code. Main feature here is variables line, where you can pass any number of arguments, then use them in assembly code block via `{}` symbols.
+- `asm` - Second usefull function that allows inline assembly code. Main feature here is variables line, where you can pass any number of arguments, then use them in assembly code block via `%<num>` symbols.
 ```cpl
 i32 a = 0;
 i32 ret = 0;
 asm(a, ret) {
-   "mov rax, {a}",
+   "mov rax, %1 ; mov rax, a",
    "syscall",
-   "mov {ret}, rax"
+   "mov %0, rax ; mov ret, rax"
 }
 ```
 

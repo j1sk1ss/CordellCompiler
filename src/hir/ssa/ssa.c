@@ -106,7 +106,11 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
 
             default: {
                 variable_info_t vi;
-                if (VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) && HIR_writeop(hh->op)) {
+                if (
+                    hh->farg && HIR_is_vartype(hh->farg->t) && 
+                    VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) && 
+                    HIR_writeop(hh->op)
+                ) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
                         hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);

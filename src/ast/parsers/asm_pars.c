@@ -30,9 +30,11 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) 
             }
 
             token_t* asmline = (token_t*)list_iter_current(it);
-            STTB_add_info(asmline->value, STR_RAW_ASM, &smt->s);
-            ast_node_t* arg = cpl_parse_expression(it, ctx, smt);
+            int sid = STTB_add_info(asmline->value, STR_RAW_ASM, &smt->s);
+            ast_node_t* arg = AST_create_node(asmline);
+            arg->sinfo.v_id = sid;
             if (arg) AST_add_node(body, arg);
+            forward_token(it, 1);
         }
     }
 

@@ -97,7 +97,31 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_bSHR: fprintf(output, "shr %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt)); break;
             case LIR_bSAR: fprintf(output, "sar %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt)); break;
 
-            case LIR_RAW:  fprintf(output, "%s\n", x86_64_asm_variable(curr->farg, smt)); break;
+            case LIR_RAW: {
+                char line[128] = { 0 };
+                snprintf(line, sizeof(line), "%s", x86_64_asm_variable(curr->farg, smt));
+                const char* p = str_strchr(line, '%');
+                if (!p || !str_isdigit((unsigned char)*(p + 1))) fprintf(output, "%s\n", line);
+                else {
+                    int argnum = str_atoi(p + 1);
+                    const char* replacement = x86_64_asm_variable(curr->sarg, smt);
+                    char replaced[256] = { 0 };
+
+                    long prefix_len = (long)(p - line);
+                    str_memcpy(replaced, line, prefix_len);
+
+                    str_strcat(replaced, replacement);
+
+                    const char* suffix = p + 1;
+                    while (isdigit((unsigned char)*suffix)) suffix++;
+
+                    str_strcat(replaced, suffix);
+                    fprintf(output, "%s\n", replaced);
+                }
+
+                break;
+            }
+
             case LIR_EXITOP: {
                 fprintf(output, "mov rax, 60\n");
                 fprintf(output, "mov rdi, %s\n", x86_64_asm_variable(curr->farg, smt));
