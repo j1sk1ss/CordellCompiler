@@ -13,8 +13,12 @@ static int _arrdeclaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* el_type_node = size_node->sibling;
     ast_node_t* elems_node   = el_type_node->sibling;
 
+    list_t* elems;
+    if (!(elems = ARTB_get_elems(name_node->sinfo.v_id, &smt->a))) return 0;
     for (ast_node_t* e = elems_node; e; e = e->sibling) {
-        HIR_BLOCK1(ctx, HIR_PRMST, HIR_generate_elem(e, ctx, smt));
+        hir_subject_t* el = HIR_generate_elem(e, ctx, smt);
+        list_add(elems, el);
+        HIR_BLOCK1(ctx, HIR_VRUSE, el);
     }
 
     HIR_BLOCK2(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(name_node), HIR_generate_elem(size_node, ctx, smt));

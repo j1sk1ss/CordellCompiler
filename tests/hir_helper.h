@@ -49,6 +49,7 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_STORE:        return "STORE";
         case HIR_VARDECL:      return "VARDECL";
         case HIR_ARRDECL:      return "ARRDECL";
+        case HIR_VRUSE:        return "VRUSE";
         case HIR_STRDECL:      return "STRDECL";
         case HIR_PRMST:        return "PRMST";
         case HIR_PRMLD:        return "PRMLD";
@@ -187,6 +188,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_IFOP:       return "if %s, goto %s;\n";
         case HIR_NOT:        return "%s = not %s;\n";
         case HIR_STORE:      return "%s = %s;\n";
+        case HIR_VRUSE:      return "use %s;\n";
         case HIR_ARRDECL:    return "alloc %s, size: %s;\n";
         case HIR_STRDECL:    return "alloc %s, content: %s;\n";
         case HIR_VRDEALL:    return "kill %s\n";

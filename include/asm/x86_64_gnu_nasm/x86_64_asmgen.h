@@ -4,6 +4,7 @@
 #include <std/math.h>
 #include <prep/token_types.h>
 #include <symtab/symtab.h>
+#include <hir/hir.h>
 #include <lir/lir.h>
 
 int x86_64_generate_asm(lir_ctx_t* h, sym_table_t* smt, FILE* output);

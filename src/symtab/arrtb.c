@@ -10,6 +10,15 @@ int ARTB_get_info(long id, array_info_t* info, arrtab_ctx_t* ctx) {
     return 0;
 }
 
+list_t* ARTB_get_elems(long id, arrtab_ctx_t* ctx) {
+    array_info_t* ai;
+    if (map_get(&ctx->arrtb, id, (void**)&ai)) {
+        return &ai->elems;
+    }
+
+    return NULL;
+} 
+
 static array_info_t* _create_info_array_entry(long id, long size, int heap, token_type_t el_type) {
     array_info_t* entry = (array_info_t*)mm_malloc(sizeof(array_info_t));
     if (!entry) return NULL;
@@ -18,6 +27,7 @@ static array_info_t* _create_info_array_entry(long id, long size, int heap, toke
     entry->el_type = el_type;
     entry->heap    = heap;
     entry->size    = size;
+    list_init(&entry->elems);
     return entry;
 }
 
@@ -30,5 +40,12 @@ int ARTB_add_info(long id, long size, int heap, token_type_t el_type, arrtab_ctx
 }
 
 int ARTB_unload(arrtab_ctx_t* ctx) {
+    map_iter_t it;
+    map_iter_init(&ctx->arrtb, &it);
+    array_info_t* ai;
+    while (map_iter_next(&it, (void**)&ai)) {
+        list_free(&ai->elems);
+    }
+    
     return map_free_force(&ctx->arrtb);
 }

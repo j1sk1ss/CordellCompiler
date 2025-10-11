@@ -44,16 +44,13 @@ int x86_64_generate_declaration(
                 int arroff = x86_64_allocate_arr(ctx, h->farg, h->sarg, heap, scopes, smt, &ai, offset);
                 int elsize = LIR_get_asttype_size(ai.el_type);
                 if (h->sarg->t != HIR_NUMBER) break;
-                for (int i = 0; i < h->sarg->storage.cnst.value; i++) {
-                    stack_elem_t se;
-                    stack_top_addr(params, &se);
-                    if (!se.data.addrdata) break;
 
-                    LIR_BLOCK2(
-                        ctx, LIR_iMOV, LIR_SUBJ_OFF(arroff - elsize * i, elsize), x86_64_format_variable(ctx, se.data.addrdata, smt)
-                    );
-
-                    stack_pop(params);
+                list_iter_t it;
+                list_iter_hinit(&ai.elems, &it);
+                int elnum = 0;
+                hir_subject_t* el;
+                while ((el = (hir_subject_t*)list_iter_next(&it))) {
+                    LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_OFF(arroff - elsize * elnum++, elsize), x86_64_format_variable(ctx, el, smt));
                 }
             }
 
