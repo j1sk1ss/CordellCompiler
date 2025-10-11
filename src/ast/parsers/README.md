@@ -1,0 +1,11 @@
+# AST parsers
+- `asm_pars.c` - Parser for `asm` keyword.
+- `block_pars.c` - Main navigation handler for parsers.
+- `cond_pars.c` - Parsers for `if` and `while` keywords.
+- `decl_pars.c` - Parsers for `arr`, `str`, `f64` ..., `u8` keywords.
+- `func_pars.c` - Parsers for `function`, `return`, `exit` and `funccall` keywords. 
+- `import_pars.c` - Parser for `import` keyword.
+- `op_pars.c` - Parser for binary and unary keywords (`+`, `not`, `*`, `>>` etc).
+- `scope_pars.c` - Parser for `{` block with navigation to `block_pars.c`.
+- `start_pars.c` - Parser for `start` keyword.
+- `syscl_pars.c` - Parser for `syscall` keyword.

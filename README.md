@@ -48,6 +48,7 @@ This `README` file contains the main information about this compiler and the dev
    - [LIR x86_64 example](#lir-x86_64-example)
 - [LIR x86_64 optimization](#lir-x86_64-optimization)
 - [Codegen (nasm) part](#codegen-nasm-part)
+   - [Example of generated code](#example-of-generated-code)
 
 ## Introduction
 For additional experience, I chose to take on an extra challenge — creating a programming language. This language has an `EBNF-defined` syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and documentation. While explaining each layer of the compiler, I will also provide direct examples written in this language.
@@ -581,6 +582,9 @@ EXITOP R11D
 ## LIR x86_64 optimization
 
 ## Codegen (nasm) part
+After completing the full code transformation pipeline, we can safely convert our `LIR` form into the `ASM` form, with a few small tricks applied during the unwrap process of special `LIR` instructions such as `EXITOP`, `STRT`, and others.
+![lir2asm](docs/media/LIR_to_ASM.png)
+
 ### Example of generated code
 ```
 section .data

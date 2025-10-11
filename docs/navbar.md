@@ -6,5 +6,5 @@
 - [SSA](src/ssa/)
 - [DAG](src/dag/)
 - [RA](src/ra/)
-- [LIR](src/lit/)
+- [LIR](src/lir/)
 - [ASM](src/asm/)
