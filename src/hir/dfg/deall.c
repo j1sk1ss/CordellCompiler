@@ -3,7 +3,7 @@ deall.c - Create deallocation points in HIR
 */
 
 #include <hir/dfg.h>
-#define DEF_OUT_DEALLOC
+
 int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
@@ -13,7 +13,6 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-#ifdef DEF_OUT_DEALLOC
             set_t appeared;
             set_init(&appeared);
             set_union(&appeared, &cb->curr_in, &cb->def);
@@ -57,8 +56,6 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
             }
 
             set_free(&appeared);
-#else
-#endif
         }
     }
 }

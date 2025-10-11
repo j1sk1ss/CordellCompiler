@@ -11,10 +11,10 @@ static int _allocate_data(int glob, int ro, sym_table_t* smt, FILE* output) {
             if (!ARTB_get_info(vi->v_id, &ai, &smt->a)) continue;
             token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro } };
             switch (TKN_variable_bitness(&tmptkn, 1)) {
-                case 64: fprintf(output, "%s resq %s\n", vi->name, ai.size); break;
-                case 32: fprintf(output, "%s resd %s\n", vi->name, ai.size); break;
-                case 16: fprintf(output, "%s resw %s\n", vi->name, ai.size); break;
-                default: fprintf(output, "%s resb %s\n", vi->name, ai.size); break;
+                case 64: fprintf(output, "%s resq %d\n", vi->name, ai.size); break;
+                case 32: fprintf(output, "%s resd %d\n", vi->name, ai.size); break;
+                case 16: fprintf(output, "%s resw %d\n", vi->name, ai.size); break;
+                default: fprintf(output, "%s resb %d\n", vi->name, ai.size); break;
             }
 
             continue;

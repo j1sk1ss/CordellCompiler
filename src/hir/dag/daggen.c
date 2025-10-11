@@ -8,6 +8,13 @@ static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* src1, da
     return 1;
 }
 
+int HIR_DAG_init(dag_ctx_t* dctx) {
+    if (!dctx) return 0;
+    map_init(&dctx->dag);
+    map_init(&dctx->groups);
+    return 1;
+}
+
 int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);

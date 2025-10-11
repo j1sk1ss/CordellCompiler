@@ -4,6 +4,7 @@
 #include <hir/hir_types.h>
 #include <hir/dag.h>
 static void dump_dag_dot(dag_ctx_t* ctx, sym_table_t* smt) {
+    printf("==== DAG DUMP ====\n");
     printf("digraph DAG {\n");
     printf("  rankdir=TB;\n");
     printf("  node [shape=box, style=filled, fillcolor=lightgray];\n\n");
@@ -40,5 +41,6 @@ static void dump_dag_dot(dag_ctx_t* ctx, sym_table_t* smt) {
     }
 
     printf("}\n");
+    printf("==================\n");
 }
 #endif
