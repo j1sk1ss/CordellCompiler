@@ -1,0 +1,11 @@
+# HIRgen
+- `asm_hirgen.c` - HIR generator functions for asm block AST node.
+- `assign_hirgen.c` - HIR generator functions for asm assign AST node.
+- `block_hirgen.c` - Main HIR generator navigator.
+- `cond_hirgen.c` - HIR generator functions for `while`, `if` and `switch` AST nodes.
+- `conv_hirgen.c` - HIR generator for variables and values casting.
+- `decl_hirgen.c` - HIR generator functions for declaration AST nodes.
+- `load_hirgen.c` - HIR generator functions for loading values from somewhere.
+- `op_hirgen.c` - HIR generator functions for unary and binary operator AST nodes.
+- `store_hirgen.c` - HIR generator functions for storing values to somewhere.
+- `syscl_hirgen.c` - HIR generator functions for `import`, `extern`, `start`, `exit` and `syscall` AST nodes.

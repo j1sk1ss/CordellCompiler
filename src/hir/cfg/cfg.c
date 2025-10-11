@@ -54,6 +54,7 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
     b->pfunc = f;
     return list_add(&f->blocks, b);
 }
+
 // #define DRAGONBOOK_CFG_LEADER
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     int term = 0;
