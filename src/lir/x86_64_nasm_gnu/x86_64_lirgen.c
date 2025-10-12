@@ -60,7 +60,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_ECLL:
             case HIR_STORE_ECLL:
             case HIR_FDCL:
-            case HIR_FARGLD: x86_64_generate_func(ctx, h, smt, &params); break;
+            case HIR_FARGLD: x86_64_generate_func(ctx, h, smt); break;
             case HIR_FEND:   LIR_BLOCK0(ctx, LIR_FEND); break;
 
             case HIR_STASM:
@@ -90,7 +90,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_TU8: x86_64_generate_conv(ctx, h, smt); break;
 
             case HIR_PRMST:
-            case HIR_FARGST: stack_push_addr(&params, h->farg); break;
+            case HIR_FARGST: stack_push(&params, h->farg); break;
 
             case HIR_JMP:  LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));  break;
             case HIR_MKLB: LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id)); break;

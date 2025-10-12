@@ -91,6 +91,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
 
     switch (t) {
         case HIR_SET: set_init(&subj->storage.set.h); break;
+        case HIR_LIST: list_init(&subj->storage.list.h); break;
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
         case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
@@ -175,6 +176,7 @@ int HIR_remove_block(hir_block_t* block) {
 int HIR_unload_subject(hir_subject_t* s) {
     if (!s) return 0;
     if (s->t == HIR_SET) set_free_force(&s->storage.set.h);
+    if (s->t == HIR_LIST) list_free(&s->storage.list.h);
     mm_free(s);
     return 1;
 }

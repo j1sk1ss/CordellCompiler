@@ -50,20 +50,26 @@ int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
             hir_block_t* hh = cb->entry;
             while (hh) {
                 if (!hh->unused) {
-                    if (hh->op != HIR_PHI) {
-                        hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
-                        for (int i = HIR_writeop(hh->op); i < 3; i++) {
-                            if (args[i] && HIR_is_vartype(args[i]->t)) {
-                                set_add(&cb->use, (void*)args[i]->storage.var.v_id);
+                    hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
+                    for (int i = HIR_writeop(hh->op); i < 3; i++) {
+                        if (!args[i]) continue;
+                        if (HIR_is_vartype(args[i]->t)) set_add(&cb->use, (void*)args[i]->storage.var.v_id);
+                        else if (args[i]->t == HIR_SET) { /* HIR_PHI (arguments in set) */
+                            set_iter_t it;
+                            set_iter_init(&hh->targ->storage.set.h, &it);
+                            int_tuple_t* tpl;
+                            while (set_iter_next(&it, (void**)&tpl)) {
+                                set_add(&cb->use, (void*)tpl->y);
                             }
                         }
-                    }
-                    else {
-                        set_iter_t it;
-                        set_iter_init(&hh->targ->storage.set.h, &it);
-                        int_tuple_t* tpl;
-                        while (set_iter_next(&it, (void**)&tpl)) {
-                            set_add(&cb->use, (void*)tpl->y);
+                        else if (args[i]->t == HIR_LIST) { /* ASM_CALL, FUNCCALL, SYSCALL (arguments in list) */
+                            list_iter_t it;
+                            list_iter_hinit(&hh->targ->storage.list.h, &it);
+                            hir_subject_t* s;
+                            while ((s = list_iter_next(&it))) {
+                                if (!HIR_is_vartype(s->t)) continue;
+                                set_add(&cb->use, (void*)s->storage.var.v_id);
+                            }
                         }
                     }
                 }

@@ -33,6 +33,10 @@ typedef struct {
 } hir_set_t;
 
 typedef struct {
+    list_t h;
+} hir_list_t;
+
+typedef struct {
     unsigned long      hash;
     long               id;
     hir_subject_type_t t;
@@ -42,6 +46,7 @@ typedef struct {
         hir_number_t   num;
         hir_variable_t var;
         hir_set_t      set;
+        hir_list_t     list;
     } storage;
 } hir_subject_t;
 
@@ -85,6 +90,7 @@ int HIR_unload_blocks(hir_block_t* block);
 #define HIR_SUBJ_FUNCNAME(n)              HIR_create_subject(HIR_FNAME, n->sinfo.v_id, NULL, 0, -1)
 #define HIR_SUBJ_FNAMETB(id)              HIR_create_subject(HIR_FNAME, id, NULL, 0, -1)
 #define HIR_SUBJ_SET()                    HIR_create_subject(HIR_SET, 0, NULL, 0, -1)
+#define HIR_SUBJ_LIST()                   HIR_create_subject(HIR_LIST, 0, NULL, 0, -1)
 
 /* ctx, op */
 #define HIR_BLOCK0(ctx, op) HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

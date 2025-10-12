@@ -152,11 +152,11 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_TU16:       return "%s = %s as u16;\n";
         case HIR_TU8:        return "%s = %s as u8;\n";
 
-        case HIR_FCLL:       return "call %s, argc %s;\n";
+        case HIR_FCLL:       return "call %s, argc %s%s;\n";
         case HIR_STORE_FCLL: return "%s = call %s, argc %s;\n";
-        case HIR_ECLL:       return "excall %s, argc %s;\n";
+        case HIR_ECLL:       return "excall %s, argc %s%s;\n";
         case HIR_STORE_ECLL: return "%s = excall %s, argc %s;\n";
-        case HIR_SYSC:       return "syscall, argc: %s;\n";
+        case HIR_SYSC:       return "syscall, argc: %s%s;\n";
         case HIR_STORE_SYSC: return "%s = syscall, argc: %s;\n";
 
         case HIR_STRT:       return "start {\n";
@@ -203,7 +203,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_PRMST:     return "prm_st(%s);\n";
         case HIR_PRMLD:     return "prm_ld();\n";
         case HIR_PRMPOP:    return "prm_pop();\n";
-        case HIR_STASM:     return "asm, argc: %s {\n";
+        case HIR_STASM:     return "asm, %s%s%s {\n";
         case HIR_ENDASM:    return "}\n";
         case HIR_GINDEX:    return "%s = %s[%s];\n";
         case HIR_LINDEX:    return "%s[%s] = %s;\n";
@@ -325,6 +325,20 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                     if (VRTB_get_info_id(tpl->y, &pvi, &smt->v)) {
                         dst += sprintf(dst, "[%s%i, bb%d]", pvi.name, pvi.v_id, tpl->x);
                     }
+                }
+                
+                break;
+            }
+
+            case HIR_LIST: {
+                dst += sprintf(dst, "list: ");
+
+                list_iter_t it;
+                list_iter_hinit(&s->storage.list.h, &it);
+                hir_subject_t* s;
+                while ((s = list_iter_next(&it))) {
+                    dst = sprintf_hir_subject(dst, s, smt);
+                    dst += sprintf(dst, " ");
                 }
                 
                 break;

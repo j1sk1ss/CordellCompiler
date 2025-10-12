@@ -39,18 +39,19 @@ int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
 
 hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
     if (!node) return 0;
-    int args_count = 0;
+    hir_subject_t* args = HIR_SUBJ_LIST();
     for (ast_node_t* e = node->child; e; e = e->sibling) {
-        HIR_BLOCK1(ctx, HIR_PRMST, HIR_generate_elem(e, ctx, smt));
-        args_count++;
+        hir_subject_t* arg = HIR_generate_elem(e, ctx, smt);
+        list_add(&args->storage.list.h, arg);
+        HIR_BLOCK1(ctx, HIR_VRUSE, arg);
     }
 
     if (!ret) {
-        HIR_BLOCK1(ctx, HIR_SYSC, HIR_SUBJ_CONST(args_count));
+        HIR_BLOCK3(ctx, HIR_SYSC, NULL, NULL, args);
         return NULL;    
     }
 
     hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_TMPVARI64, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-    HIR_BLOCK2(ctx, HIR_STORE_SYSC, res, HIR_SUBJ_CONST(args_count));
+    HIR_BLOCK3(ctx, HIR_STORE_SYSC, res, NULL, args);
     return res;
 }

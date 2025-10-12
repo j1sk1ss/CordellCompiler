@@ -8,12 +8,12 @@
 typedef enum hir_operation {
     /* Operations */
         /* Commands */
-        HIR_FCLL,        // x()
-        HIR_STORE_FCLL,  // x = y()
-        HIR_ECLL,        // ext x()
-        HIR_STORE_ECLL,  // x = ext y()
-        HIR_SYSC,        // syscall()
-        HIR_STORE_SYSC,  // x = syscall()
+        HIR_FCLL,        // x(), args - z
+        HIR_STORE_FCLL,  // x = y(), args - z
+        HIR_ECLL,        // ext x(), args - z
+        HIR_STORE_ECLL,  // x = ext y(), args - z
+        HIR_SYSC,        // syscall(), args - z
+        HIR_STORE_SYSC,  // x = syscall(), args - z
 
         HIR_TF64,        // x = (f64)y
         HIR_TF32,        // x = (f32)y
@@ -154,6 +154,7 @@ typedef enum hir_subject_type {
     HIR_STRING,   // str.id
     HIR_FNAME,    // str.id
     HIR_SET,      // set.h
+    HIR_LIST,     // list.h
 } hir_subject_type_t;
 
 int HIR_get_type_size(hir_subject_type_t t);

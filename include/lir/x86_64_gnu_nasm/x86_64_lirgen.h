@@ -32,7 +32,7 @@ int x86_64_generate_ref(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
 int x86_64_generate_asmblock(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstack_t* params);
 
 /* x86_64_funcgen.c */
-int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstack_t* params);
+int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
 
 /* x86_64_declgen.c */
 int x86_64_generate_declaration(

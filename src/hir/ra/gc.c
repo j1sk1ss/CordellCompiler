@@ -46,7 +46,7 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         }
         
         if (max_index == -1) break;
-        stack_push_int(&stack, v_ids[max_index]);
+        stack_push(&stack, (void*)v_ids[max_index]);
         processed[max_index] = 1;
         remaining--;
         
@@ -69,10 +69,10 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     map_init(colors);
     while (stack.top >= 0) {
         stack_elem_t e;
-        stack_top_int(&stack, &e);
+        stack_top(&stack, &e);
         stack_pop(&stack);
         
-        long current_id = e.data.intdata;
+        long current_id = (long)e.data;
         igraph_node_t* current_node = HIR_RA_find_ig_node(g, current_id);
         if (!current_node) continue;
         

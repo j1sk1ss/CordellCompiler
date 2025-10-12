@@ -2,18 +2,19 @@
 
 int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
-    int args = 0;
+    hir_subject_t* args = HIR_SUBJ_LIST();
     ast_node_t* h = node->child;
     for (; h->token; h = h->sibling) {
-        HIR_BLOCK1(ctx, HIR_PRMST, HIR_generate_load(h, ctx, smt));
-        args++;
+        hir_subject_t* arg = HIR_generate_load(h, ctx, smt);
+        list_add(&args->storage.list.h, arg);
+        HIR_BLOCK1(ctx, HIR_VRUSE, arg);
     }
 
-    HIR_BLOCK1(ctx, HIR_STASM, HIR_SUBJ_CONST(args));
+    HIR_BLOCK3(ctx, HIR_STASM, NULL, NULL, args);
     for (ast_node_t* l = h->child; l; l = l->sibling) {
         HIR_BLOCK1(ctx, HIR_RAW, HIR_SUBJ_RAWASM(l));
     }
 
-    HIR_BLOCK1(ctx, HIR_ENDASM, HIR_SUBJ_CONST(args));
+    HIR_BLOCK3(ctx, HIR_ENDASM, NULL, NULL, args);
     return 1;
 }
