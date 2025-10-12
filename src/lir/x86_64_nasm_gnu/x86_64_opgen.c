@@ -6,8 +6,9 @@ int x86_64_generate_unary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
     switch (h->op) {
         case HIR_NOT: {
             x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_TST);
-            LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, DEFAULT_TYPE_SIZE));
+            LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, 1));
             x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, AL, 1, LIR_iMVZX);
+            x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
             break;
         }
     }
@@ -46,14 +47,13 @@ int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) 
     
     switch (h->op) {
         case HIR_iSUB: {
-            x86_64_reg_op(ctx, RBX, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_iSUB);
-            x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iMOV);
+            x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iSUB);
+            x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
             break;
         }
         
         case HIR_iMOD:
         case HIR_iDIV: {
-            LIR_BLOCK2(ctx, LIR_XCHG, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
             if (HIR_is_signtype(h->sarg->t) && HIR_is_signtype(h->targ->t)) {
                 LIR_BLOCK0(ctx, LIR_CDQ);
                 LIR_BLOCK1(ctx, LIR_iDIV, LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
@@ -88,22 +88,22 @@ int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) 
     
             if (HIR_is_signtype(h->sarg->t) && HIR_is_signtype(h->targ->t)) {
                 switch (h->op) {
-                    case HIR_IFCPOP:  LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFNCPOP: LIR_BLOCK1(ctx, LIR_STNE, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFLWOP:  LIR_BLOCK1(ctx, LIR_SETL, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFLWEOP: LIR_BLOCK1(ctx, LIR_STLE, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFLGOP:  LIR_BLOCK1(ctx, LIR_SETG, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFLGEOP: LIR_BLOCK1(ctx, LIR_STGE, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iCMP: LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iNMP: LIR_BLOCK1(ctx, LIR_STNE, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iLWR: LIR_BLOCK1(ctx, LIR_SETL, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iLRE: LIR_BLOCK1(ctx, LIR_STLE, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iLRG: LIR_BLOCK1(ctx, LIR_SETG, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iLGE: LIR_BLOCK1(ctx, LIR_STGE, LIR_SUBJ_REG(AL, 1)); break;
                 }
             }
             else {
                 switch (h->op) {
-                    case HIR_IFCPOP:  LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFNCPOP: LIR_BLOCK1(ctx, LIR_STNE, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFLWOP:  LIR_BLOCK1(ctx, LIR_SETB, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFLWEOP: LIR_BLOCK1(ctx, LIR_STBE, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFLGOP:  LIR_BLOCK1(ctx, LIR_SETA, LIR_SUBJ_REG(AL, 1)); break;
-                    case HIR_IFLGEOP: LIR_BLOCK1(ctx, LIR_STAE, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iCMP: LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iNMP: LIR_BLOCK1(ctx, LIR_STNE, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iLWR: LIR_BLOCK1(ctx, LIR_SETB, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iLRE: LIR_BLOCK1(ctx, LIR_STBE, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iLRG: LIR_BLOCK1(ctx, LIR_SETA, LIR_SUBJ_REG(AL, 1)); break;
+                    case HIR_iLGE: LIR_BLOCK1(ctx, LIR_STAE, LIR_SUBJ_REG(AL, 1)); break;
                 }
             }
 
@@ -120,7 +120,7 @@ int x86_64_generate_ifop(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
     switch (h->op) {
         case HIR_IFOP: {
             LIR_BLOCK2(ctx, LIR_iCMP, x86_64_format_variable(ctx, h->farg, smt), LIR_SUBJ_CONST(0));
-            LIR_BLOCK1(ctx, LIR_JNE, LIR_SUBJ_LABEL(h->sarg->id));
+            LIR_BLOCK1(ctx, LIR_JE, LIR_SUBJ_LABEL(h->sarg->id));
             break;
         }
 
@@ -197,13 +197,13 @@ int x86_64_generate_conv(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
             else {
                 long src_size = HIR_get_type_size(h->sarg->t);
                 long dst_size = HIR_get_type_size(h->farg->t);
-                lir_operation_t lop = LIR_iMOV;
-                if (src_size < dst_size) {
-                    lop = HIR_is_signtype(h->sarg->t) ? LIR_iMVSX : LIR_iMVZX;
+                if (src_size >= dst_size && HIR_is_vartype(h->sarg->t)) break;
+                else if (!HIR_is_vartype(h->sarg->t)) x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+                else {
+                    lir_operation_t lop = HIR_is_signtype(h->sarg->t) ? LIR_iMVSX : LIR_iMVZX;
+                    LIR_BLOCK2(ctx, lop, LIR_SUBJ_REG(RAX, dst_size), x86_64_format_variable(ctx, h->sarg, smt));
                 }
 
-                LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, src_size), x86_64_format_variable(ctx, h->sarg, smt));
-                LIR_BLOCK2(ctx, lop, LIR_SUBJ_REG(RAX, dst_size), LIR_SUBJ_REG(RAX, src_size));
                 x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
             }
 

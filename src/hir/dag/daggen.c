@@ -73,9 +73,8 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                                 map_remove(&dctx->dag, HIR_hash_subject(dst->src));
                                 HIR_DAG_unload_node(dst);
                                 set_add(&existed->link, (void*)HIR_hash_subject(hh->farg));
+                                set_free_force(&owners);
                             }
-
-                            set_free_force(&owners);
                         }
 
                         break;

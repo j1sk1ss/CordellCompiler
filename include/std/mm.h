@@ -62,6 +62,7 @@ Params:
 Return -1 if something goes wrong.
 Return 1 if free success.
 */
-int mm_free(void* ptr);
+int mm_base_free(const char* f, int l, void* ptr);
+#define mm_free(size) mm_base_free(__FILE__, __LINE__, size);
 
 #endif

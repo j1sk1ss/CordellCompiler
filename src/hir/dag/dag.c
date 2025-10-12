@@ -37,6 +37,8 @@ dag_node_t* HIR_DAG_create_node(hir_subject_t* src) {
 }
 
 dag_node_t* HIR_DAG_get_node(dag_ctx_t* ctx, hir_subject_t* src, int create) {
+    if (!ctx || !src) return NULL;
+
     dag_node_t* nd;
     if (map_get(&ctx->dag, HIR_hash_subject(src), (void**)&nd)) return nd;
 
@@ -47,7 +49,7 @@ dag_node_t* HIR_DAG_get_node(dag_ctx_t* ctx, hir_subject_t* src, int create) {
         if (set_has(&nd->link, (void*)sh)) return nd;
     }
 
-    if (create && src) {
+    if (create) {
         nd = HIR_DAG_create_node(src);
         nd->id = ctx->curr_id++;
         map_put(&ctx->dag, HIR_hash_subject(src), nd);

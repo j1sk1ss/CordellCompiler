@@ -1,17 +1,22 @@
 {
-
-    start(i64 argc, ptr u64 argv) {
-        i32 pos = 0;
-        glob arr a[100, i8];
-
-        switch argc; {
-            case '*'; { syscall(1, 1, a + pos, 1); }
-            case '.'; { syscall(0, 0, ref a[pos], 1); }
-            case '<'; { pos -= 1; }
-            case '>'; { pos += 1; }
-            case '+'; { a[pos] += 1; }
+    function print_i32(i32 value) {
+        arr buf[20, i8];
+        i32 i = 18;
+        while value > 0; {
+            i32 digit = value % 10;
+            buf[i] = digit + '0';
+            value /= 10;
+            i -= 1;
         }
 
+        i += 1;
+        i64 len = 20 - i;
+        syscall(1, 1, ref buf + i, len);
+        return;
+    }
+
+    start(i64 argc, ptr u64 argv) {
+        print_i32(100);
         exit 0;
     }
 }

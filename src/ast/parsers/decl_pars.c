@@ -91,7 +91,7 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, syntax_ctx_t* ctx, s
         name_node->token->value, node->token->t_type, scope_id_top(&ctx->scopes.stack), &name_node->token->flags, &smt->v
     );
 
-    if (!(token_t*)list_iter_current(it) || ((token_t*)list_iter_current(it))->t_type == ASSIGN_TOKEN) {
+    if (((token_t*)list_iter_current(it))->t_type == ASSIGN_TOKEN) {
         forward_token(it, 1);
         ast_node_t* value_node = cpl_parse_expression(it, ctx, smt);
         if (!value_node) {

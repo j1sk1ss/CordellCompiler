@@ -156,8 +156,8 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_STORE_FCLL: return "%s = call %s, argc %s;\n";
         case HIR_ECLL:       return "excall %s, argc %s%s;\n";
         case HIR_STORE_ECLL: return "%s = excall %s, argc %s;\n";
-        case HIR_SYSC:       return "syscall, argc: %s%s;\n";
-        case HIR_STORE_SYSC: return "%s = syscall, argc: %s;\n";
+        case HIR_SYSC:       return "syscall, argc: %s%s%s;\n";
+        case HIR_STORE_SYSC: return "%s = syscall, argc: %s%s;\n";
 
         case HIR_STRT:       return "start {\n";
         case HIR_FRET:       return "return %s;\n";

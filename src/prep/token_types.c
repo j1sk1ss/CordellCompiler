@@ -160,6 +160,7 @@ int TKN_isoperand(token_t* token) {
         case LARGER_TOKEN:
         case DIVIDE_TOKEN:
         case BITAND_TOKEN:
+        case MODULO_TOKEN:
         case COMPARE_TOKEN:
         case LOWEREQ_TOKEN:
         case LARGEREQ_TOKEN:

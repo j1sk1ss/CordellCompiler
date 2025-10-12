@@ -9,7 +9,6 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_ECLL: fprintf(output, "call %s\n", x86_64_asm_variable(curr->farg, smt)); break;
             
             case LIR_STRT: {
-                fprintf(output, "global _start\n");
                 fprintf(output, "_start:\n");
                 x86_64_generate_stackframe(curr, LIR_STEND, output);
                 break;
@@ -24,7 +23,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_CDQ:  fprintf(output, "cdq\n");    break;
             case LIR_SYSC: fprintf(output, "syscall\n"); break;
             case LIR_FRET: {
-                fprintf(output, "mov rax, %s\n", x86_64_asm_variable(curr->farg, smt));
+                if (curr->farg) fprintf(output, "mov rax, %s\n", x86_64_asm_variable(curr->farg, smt));
                 x86_64_kill_stackframe(output);
                 fprintf(output, "ret\n");
                 break;

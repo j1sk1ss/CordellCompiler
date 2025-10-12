@@ -14,7 +14,7 @@
     }
 
     start(i64 argc, ptr u64 argv) {
-        str hello = "Hello world!";
+        str hello = "Hello world!\n";
         puts(ref hello);
         exit 0;
     }

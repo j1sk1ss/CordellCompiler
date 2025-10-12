@@ -87,7 +87,8 @@ void* mm_realloc(void* ptr, size_t elem) {
     return new_data;
 }
 
-int mm_free(void* ptr) {
+int mm_base_free(const char* f, int l, void* ptr) {
+    print_mm("Trying to free ptr=%p from file=%s, line=%i", ptr, f, l);
     if (!ptr || ptr < (void*)_buffer || ptr >= (void*)(_buffer + ALLOC_BUFFER_SIZE)) return 0;
     
     mm_block_t* block = (mm_block_t*)((unsigned char*)ptr - sizeof(mm_block_t));

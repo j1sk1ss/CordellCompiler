@@ -15,9 +15,22 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
         }
 
         case LIR_MEMORY: {
-            if (v->storage.var.offset > 0) snprintf(curr_buffer, 128, "[rbp - %d]", v->storage.var.offset);
-            else  snprintf(curr_buffer, 128, "[rbp + %d]", ABS(v->storage.var.offset));
-            return curr_buffer;
+            variable_info_t vi;
+            if (VRTB_get_info_id(v->storage.var.v_id, &vi, &smt->v)) {
+                const char* modifier = "qword";
+                switch (v->size) {
+                    case 4: modifier = "dword"; break;
+                    case 2: modifier = "word";  break;
+                    case 1: modifier = "byte";  break;
+                    default: break;
+                }
+
+                if (v->storage.var.offset > 0) snprintf(curr_buffer, 128, "%s [rbp - %d]", modifier, v->storage.var.offset);
+                else  snprintf(curr_buffer, 128, "%s [rbp + %d]", modifier, ABS(v->storage.var.offset));
+                return curr_buffer;
+            }
+
+            break;
         }
         
         case LIR_GLVARIABLE: {

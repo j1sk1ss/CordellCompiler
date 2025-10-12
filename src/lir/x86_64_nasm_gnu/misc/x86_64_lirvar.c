@@ -24,6 +24,7 @@ lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_t
                 if (!vi.vmi.allocated) {
                     long clr;
                     int vrsize = LIR_get_hirtype_size(subj->t);
+                    if (vi.ptr) vrsize = DEFAULT_TYPE_SIZE;
                     if (
                         map_get(ctx->vars, subj->storage.var.v_id, (void**)&clr) && 
                         clr + 1 <= FREE_REGISTERS
@@ -49,7 +50,7 @@ lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_t
 
 /* Variable to register */
 int x86_64_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
-    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), x86_64_format_variable(ctx, subj, smt));
+    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, HIR_get_type_size(subj->t)), x86_64_format_variable(ctx, subj, smt));
     return 1;
 }
 
