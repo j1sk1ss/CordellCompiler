@@ -19,7 +19,20 @@ indexing: {}
             ast_node_t* off = node->child;
             if (!off) HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_ASTVAR(node), src);
             else {
-                HIR_BLOCK3(ctx, HIR_LINDEX, HIR_SUBJ_ASTVAR(node), HIR_generate_elem(off, ctx, smt), src);
+                hir_subject_t* offval = HIR_generate_elem(off, ctx, smt);
+                hir_subject_t* base   = HIR_SUBJ_ASTVAR(node);
+
+                array_info_t ai;
+                if (!ARTB_get_info(node->sinfo.v_id, &ai, &smt->a)) break;
+
+                token_t tmp = { .t_type = ai.el_type };
+                hir_subject_t* addr = HIR_SUBJ_TMPVAR(offval->t, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
+                HIR_BLOCK3(ctx, HIR_iMUL, addr, offval, HIR_SUBJ_CONST(HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 1))));
+
+                hir_subject_t* head = HIR_SUBJ_TMPVAR(base->t, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
+                HIR_BLOCK3(ctx, HIR_iADD, head, base, addr);
+                HIR_BLOCK2(ctx, HIR_LDREF, head, src);
+                // HIR_BLOCK3(ctx, HIR_LINDEX, HIR_SUBJ_ASTVAR(node), HIR_generate_elem(off, ctx, smt), src);
             }
 
             break;

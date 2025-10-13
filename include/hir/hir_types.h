@@ -98,8 +98,8 @@ typedef enum hir_operation {
         HIR_STARGLD,      // load start argument
         HIR_GINDEX,       // x = y[z]
         HIR_LINDEX,       // x[y] = z
-        HIR_GDREF,        // get value by address
-        HIR_LDREF,        // load value to address
+        HIR_GDREF,        // x = [y]
+        HIR_LDREF,        // [x] = y
         HIR_REF,
         HIR_IMPORT,
         

@@ -1,17 +1,8 @@
 {
     start(i64 argc, ptr u64 argv) {
-        switch argv[argc]; {
-            case 1; {
-                exit 1;
-            }
-            case 2; {
-                exit 2;
-            }
-            default {
-                exit 3;
-            }
-        }
-
-        exit 0;
+        arr a[10, i32];
+        a[0] = 1;
+        a[5] = 1;
+        exit a[0];
     }
 }

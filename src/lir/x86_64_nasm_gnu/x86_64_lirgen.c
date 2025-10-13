@@ -74,9 +74,7 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
             case HIR_REF:
             case HIR_GDREF:
-            case HIR_LDREF:
-            case HIR_GINDEX:
-            case HIR_LINDEX: x86_64_generate_ref(ctx, h, smt); break;
+            case HIR_LDREF: x86_64_generate_ref(ctx, h, smt); break;
 
             case HIR_TF64:
             case HIR_TF32:
