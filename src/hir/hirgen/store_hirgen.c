@@ -20,7 +20,8 @@ indexing: {}
             if (!off) HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_ASTVAR(node), src);
             else {
                 hir_subject_t* offval = HIR_generate_elem(off, ctx, smt);
-                hir_subject_t* base   = HIR_SUBJ_ASTVAR(node);
+                hir_subject_t* base   = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
+                HIR_BLOCK2(ctx, HIR_REF, base, HIR_SUBJ_ASTVAR(node));
 
                 array_info_t ai;
                 if (!ARTB_get_info(node->sinfo.v_id, &ai, &smt->a)) break;

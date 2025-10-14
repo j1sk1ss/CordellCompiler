@@ -11,8 +11,8 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
     while (h) {
         if (!h->unused) switch (h->op) {
             case HIR_STORE: {
-                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
-                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, -1, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
                 break;
             }
 
@@ -23,13 +23,13 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                     case 1: LIR_BLOCK2(ctx, LIR_REF, LIR_SUBJ_REG(RAX, vrsize), LIR_SUBJ_OFF(-16, vrsize)); break;
                 }
 
-                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
                 break;
             }
 
             case HIR_PHI_PREAMBLE: {
-                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
-                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, -1, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
                 break;
             }
 

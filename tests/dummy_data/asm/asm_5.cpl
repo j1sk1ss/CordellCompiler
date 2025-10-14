@@ -10,7 +10,7 @@
     }
 
     function puts(ptr i8 s) => i64 {
-        return syscall(1, 1, s, strlen(s));
+        return syscall(0x2000004, 1, s, strlen(s));
     }
 
     start(i64 argc, ptr u64 argv) {

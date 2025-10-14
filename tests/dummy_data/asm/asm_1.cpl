@@ -11,7 +11,7 @@
 
         i += 1;
         i64 len = 20 - i;
-        syscall(1, 1, ref buf + i, len);
+        syscall(0x2000004, 1, ref buf + i, len - 1);
         return;
     }
 

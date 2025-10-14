@@ -6,7 +6,7 @@ static int _load_registers(lir_ctx_t* ctx, int* abi_regs, list_t* args, sym_tabl
     list_iter_hinit(args, &it);
     hir_subject_t* s;
     while ((s = list_iter_next(&it))) {
-        x86_64_store_var_reg(LIR_iMOV, ctx, s, abi_regs[argnum++], smt);
+        x86_64_store_var_reg(LIR_iMOV, ctx, s, abi_regs[argnum++], -1, smt);
     }
 
     return 1;
@@ -26,8 +26,8 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
             break;
         }
 
-        case HIR_FRET: LIR_BLOCK1(ctx, LIR_FRET, x86_64_format_variable(ctx, h->farg, smt));                       break;
-        case HIR_FARGLD: x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, _abi_regs[h->sarg->storage.cnst.value], smt); break;
+        case HIR_FRET: LIR_BLOCK1(ctx, LIR_FRET, x86_64_format_variable(ctx, h->farg, smt));                           break;
+        case HIR_FARGLD: x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, _abi_regs[h->sarg->storage.cnst.value], -1, smt); break;
 
         case HIR_FCLL:
         case HIR_ECLL: 
@@ -40,7 +40,7 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
             else LIR_BLOCK1(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->sarg));
 
             for (int i = FREE_REGISTERS - 1; i >= 0; i--) LIR_BLOCK1(ctx, LIR_POP, LIR_SUBJ_REG(R11 + i, DEFAULT_TYPE_SIZE));
-            if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+            if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             break;
         }
 
@@ -48,7 +48,7 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         case HIR_STORE_SYSC: {
             _load_registers(ctx, (int*)_sys_regs, &h->targ->storage.list.h, smt);
             LIR_BLOCK0(ctx, LIR_SYSC);
-            if (h->op == HIR_STORE_SYSC) x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+            if (h->op == HIR_STORE_SYSC) x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             break;
         }
 

@@ -130,6 +130,8 @@ int HIR_is_floattype(hir_subject_type_t t) {
 
 int HIR_is_signtype(hir_subject_type_t t) {
     switch (t) {
+        case HIR_NUMBER:
+        case HIR_CONSTVAL:
         case HIR_TMPVARI8:  
         case HIR_TMPVARI16: 
         case HIR_TMPVARI32: 

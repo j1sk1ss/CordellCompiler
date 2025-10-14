@@ -17,7 +17,7 @@ int x86_64_allocate_arr(
         arroff = stack_map_alloc(DEFAULT_TYPE_SIZE, &ctx->stk);
         print_debug("x86_64_allocate_arr, heap allocation for [rbp - %i], scope=%i", arroff, scope_id_top(scopes));
         scope_push(heap, scope_id_top(scopes), arroff);
-        x86_64_store_var_reg(LIR_iMOV, ctx, size, RAX, smt);
+        x86_64_store_var_reg(LIR_iMOV, ctx, size, RAX, -1, smt);
         LIR_BLOCK1(ctx, LIR_PUSH, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE));
         LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE), LIR_SUBJ_CONST(12));
         LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_REG(RDI, DEFAULT_TYPE_SIZE), LIR_SUBJ_CONST(0));

@@ -14,8 +14,8 @@
 
 /* x86_64_lirvar.c */
 lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt);
-int x86_64_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
-int x86_64_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt);
+int x86_64_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, int rs, sym_table_t* smt);
+int x86_64_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, int rs, sym_table_t* smt);
 int x86_64_reg_op(lir_ctx_t* ctx, int freg, int fs, int sreg, int ss, lir_operation_t op);
 
 /* x86_64_alloc.c */

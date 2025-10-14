@@ -49,14 +49,16 @@ lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_t
 }
 
 /* Variable to register */
-int x86_64_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
-    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, HIR_get_type_size(subj->t)), x86_64_format_variable(ctx, subj, smt));
+int x86_64_store_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, int rs, sym_table_t* smt) {
+    rs = rs < 0 ? HIR_get_type_size(subj->t) : rs;
+    LIR_BLOCK2(ctx, op, LIR_SUBJ_REG(reg, rs), x86_64_format_variable(ctx, subj, smt));
     return 1;
 }
 
 /* Variable from register */
-int x86_64_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, sym_table_t* smt) {
-    LIR_BLOCK2(ctx, op, x86_64_format_variable(ctx, subj, smt), LIR_SUBJ_REG(reg, LIR_get_hirtype_size(subj->t)));
+int x86_64_load_var_reg(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* subj, int reg, int rs, sym_table_t* smt) {
+    rs = rs < 0 ? HIR_get_type_size(subj->t) : rs;
+    LIR_BLOCK2(ctx, op, x86_64_format_variable(ctx, subj, smt), LIR_SUBJ_REG(reg, rs));
     return 1;
 }
 

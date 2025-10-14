@@ -1,14 +1,14 @@
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
 int x86_64_generate_unary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
-    x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+    x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, -1, smt);
     if (HIR_is_floattype(h->farg->t)) { }
     switch (h->op) {
         case HIR_NOT: {
             x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_TST);
             LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, 1));
             x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, AL, 1, LIR_iMVZX);
-            x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+            x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             break;
         }
     }
@@ -36,19 +36,19 @@ static int _simd_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
     }
 
     x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, XMM0, DEFAULT_TYPE_SIZE, LIR_iMOVq);
-    x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+    x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
     return 1;
 }
 
 int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
-    x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
-    x86_64_store_var_reg(LIR_iMOV, ctx, h->targ, RBX, smt);
+    x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, -1, smt);
+    x86_64_store_var_reg(LIR_iMOV, ctx, h->targ, RBX, -1, smt);
     if (HIR_is_floattype(h->farg->t)) return _simd_binary_op(ctx, h, smt);
     
     switch (h->op) {
         case HIR_iSUB: {
             x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iSUB);
-            x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+            x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             break;
         }
         
@@ -112,7 +112,7 @@ int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) 
         }
     }
 
-    x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+    x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
     return 1;
 }
 
@@ -130,8 +130,8 @@ int x86_64_generate_ifop(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         case HIR_IFLWEOP:
         case HIR_IFLGOP:
         case HIR_IFLGEOP: {
-            x86_64_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
-            x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RBX, smt);
+            x86_64_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
+            x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RBX, -1, smt);
             if (!HIR_is_floattype(h->farg->t)) x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iCMP);
             else x86_64_reg_op(ctx, XMM0, DEFAULT_TYPE_SIZE, XMM1, DEFAULT_TYPE_SIZE, LIR_fCMP);
             if (HIR_is_signtype(h->farg->t) && HIR_is_signtype(h->sarg->t)) {
@@ -169,13 +169,13 @@ int x86_64_generate_conv(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         case HIR_TF64:
         case HIR_TF32: {
             if (!HIR_is_floattype(h->sarg->t)) {
-                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, -1, smt);
                 x86_64_reg_op(ctx, XMM0, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_TDBL);
-                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, XMM0, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, XMM0, -1, smt);
             }
             else {
-                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, XMM0, smt);
-                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, XMM0, smt);
+                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, XMM0, -1, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, XMM0, -1, smt);
             }
 
             break;
@@ -190,21 +190,20 @@ int x86_64_generate_conv(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         case HIR_TU16:
         case HIR_TU8: {
             if (HIR_is_floattype(h->sarg->t)) {
-                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, XMM0, smt);
+                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, XMM0, -1, smt);
                 x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, XMM0, DEFAULT_TYPE_SIZE, LIR_TINT);
-                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             }
             else {
                 long src_size = HIR_get_type_size(h->sarg->t);
                 long dst_size = HIR_get_type_size(h->farg->t);
-                if (src_size >= dst_size && HIR_is_vartype(h->sarg->t)) break;
-                else if (!HIR_is_vartype(h->sarg->t)) x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, smt);
+                if (src_size >= dst_size) x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, -1, smt);
                 else {
                     lir_operation_t lop = HIR_is_signtype(h->sarg->t) ? LIR_iMVSX : LIR_iMVZX;
                     LIR_BLOCK2(ctx, lop, LIR_SUBJ_REG(RAX, dst_size), x86_64_format_variable(ctx, h->sarg, smt));
                 }
 
-                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, smt);
+                x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             }
 
             break;
