@@ -21,12 +21,15 @@ indexing: {}
             else {
                 hir_subject_t* offval = HIR_generate_elem(off, ctx, smt);
                 hir_subject_t* base   = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-                HIR_BLOCK2(ctx, HIR_REF, base, HIR_SUBJ_ASTVAR(node));
 
                 array_info_t ai;
-                if (!ARTB_get_info(node->sinfo.v_id, &ai, &smt->a)) break;
+                token_t tmp = { .t_type = node->token->t_type };
+                if (!ARTB_get_info(node->sinfo.v_id, &ai, &smt->a)) HIR_BLOCK2(ctx, HIR_STORE, base, HIR_SUBJ_ASTVAR(node));
+                else {
+                    HIR_BLOCK2(ctx, HIR_REF, base, HIR_SUBJ_ASTVAR(node));
+                    tmp.t_type = ai.el_type;
+                }
 
-                token_t tmp = { .t_type = ai.el_type };
                 hir_subject_t* addr = HIR_SUBJ_TMPVAR(offval->t, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
                 HIR_BLOCK3(ctx, HIR_iMUL, addr, offval, HIR_SUBJ_CONST(HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 1))));
 

@@ -9,7 +9,8 @@ int x86_64_generate_ref(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         }
 
         case HIR_GDREF: {
-            x86_64_store_var_reg(LIR_GDREF, ctx, h->sarg, RAX, DEFAULT_TYPE_SIZE, smt);
+            x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, DEFAULT_TYPE_SIZE, smt);
+            x86_64_reg_op(ctx, RAX, HIR_get_type_size(h->sarg->t), RAX, DEFAULT_TYPE_SIZE, LIR_GDREF);
             x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             break;
         }

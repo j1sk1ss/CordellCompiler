@@ -155,7 +155,6 @@ typedef enum {
     LIR_STRING,
 } lir_subject_type_t;
 
-#define FREE_REGISTERS 5
 typedef enum {
     XMM0, XMM1, XMM2, XMM3, XMM4, 
     RAX,  RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8,  R9,  R10,  R11,  R12,  R13,  R14,  R15,
@@ -164,6 +163,8 @@ typedef enum {
     AL,   BL,  CL,  DL,  SIL, DIL, BPL, SPL, R8B, R9B, R10B, R11B, R12B, R13B, R14B, R15B,
     AH,   BH,  CH,  DH, 
 } lir_registers_t;
+#define FREE_REGISTERS      4
+#define FIRST_FREE_REGISTER R12
 
 int LIR_get_asttype_size(token_type_t t);
 int LIR_get_hirtype_size(hir_subject_type_t t);

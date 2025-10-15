@@ -26,7 +26,12 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
             break;
         }
 
-        case HIR_FRET: LIR_BLOCK1(ctx, LIR_FRET, x86_64_format_variable(ctx, h->farg, smt));                           break;
+        case HIR_FRET: {
+            if (h->farg) x86_64_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
+            LIR_BLOCK0(ctx, LIR_FRET);
+            break;
+        }
+
         case HIR_FARGLD: x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, _abi_regs[h->sarg->storage.cnst.value], -1, smt); break;
 
         case HIR_FCLL:
@@ -34,12 +39,12 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         case HIR_STORE_FCLL:
         case HIR_STORE_ECLL: {
             _load_registers(ctx, (int*)_abi_regs, &h->targ->storage.list.h, smt);
-            for (int i = 0; i < FREE_REGISTERS; i++) LIR_BLOCK1(ctx, LIR_PUSH, LIR_SUBJ_REG(R11 + i, DEFAULT_TYPE_SIZE));
+            for (int i = 0; i < FREE_REGISTERS; i++) LIR_BLOCK1(ctx, LIR_PUSH, LIR_SUBJ_REG(FIRST_FREE_REGISTER + i, DEFAULT_TYPE_SIZE));
             
             if (h->op != HIR_STORE_FCLL && h->op != HIR_STORE_ECLL) LIR_BLOCK1(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->farg));
             else LIR_BLOCK1(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->sarg));
 
-            for (int i = FREE_REGISTERS - 1; i >= 0; i--) LIR_BLOCK1(ctx, LIR_POP, LIR_SUBJ_REG(R11 + i, DEFAULT_TYPE_SIZE));
+            for (int i = FREE_REGISTERS - 1; i >= 0; i--) LIR_BLOCK1(ctx, LIR_POP, LIR_SUBJ_REG(FIRST_FREE_REGISTER + i, DEFAULT_TYPE_SIZE));
             if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             break;
         }
@@ -47,7 +52,9 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         case HIR_SYSC: 
         case HIR_STORE_SYSC: {
             _load_registers(ctx, (int*)_sys_regs, &h->targ->storage.list.h, smt);
+            // for (int i = 0; i < FREE_REGISTERS; i++) LIR_BLOCK1(ctx, LIR_PUSH, LIR_SUBJ_REG(R11 + i, DEFAULT_TYPE_SIZE));
             LIR_BLOCK0(ctx, LIR_SYSC);
+            // for (int i = FREE_REGISTERS - 1; i >= 0; i--) LIR_BLOCK1(ctx, LIR_POP, LIR_SUBJ_REG(R11 + i, DEFAULT_TYPE_SIZE));
             if (h->op == HIR_STORE_SYSC) x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             break;
         }

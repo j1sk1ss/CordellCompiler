@@ -28,7 +28,13 @@ int HIR_CLN_remove_unused_variables(cfg_ctx_t* cctx) {
         while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
             hir_block_t* hh = fb->entry;
             while (hh) {
-                if (HIR_writeop(hh->op) && !hh->unused) {
+                if (
+                    HIR_writeop(hh->op) && 
+                    !hh->unused && 
+                    hh->op != HIR_STORE_FCLL && 
+                    hh->op != HIR_STORE_ECLL && 
+                    hh->op != HIR_STORE_SYSC
+                ) {
                     if (!_check_usage(fb, hh->farg->storage.var.v_id, hh)) {
                         hh->unused = 1;
                         removed = 1;

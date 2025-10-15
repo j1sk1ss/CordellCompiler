@@ -44,7 +44,7 @@ lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_t
 
                 if (vi.vmi.reg < 0) return LIR_SUBJ_OFF(vi.vmi.offset, vi.vmi.size);
                 if (HIR_is_floattype(subj->t)) return LIR_SUBJ_REG(XMM0 + vi.vmi.reg, vi.vmi.size);
-                return LIR_SUBJ_REG(R11 + vi.vmi.reg, vi.vmi.size);
+                return LIR_SUBJ_REG(FIRST_FREE_REGISTER + vi.vmi.reg, vi.vmi.size);
             }
         }
         

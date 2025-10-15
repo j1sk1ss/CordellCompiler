@@ -39,7 +39,8 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_MKSCOPE: scope_push(&scopes, h->farg->storage.cnst.value, offset);              break;
             case HIR_EXITOP: {
                 x86_64_deallocate_heap(ctx, scope_id_top(&scopes), &heap);
-                LIR_BLOCK1(ctx, LIR_EXITOP, x86_64_format_variable(ctx, h->farg, smt));   
+                if (h->farg) x86_64_store_var_reg(LIR_iMOV, ctx, h->farg, RDI, -1, smt);
+                LIR_BLOCK0(ctx, LIR_EXITOP);   
                 break;
             }
 

@@ -20,10 +20,9 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
                 break;
             }
 
-            case LIR_CDQ:  fprintf(output, "cdq\n");    break;
+            case LIR_CDQ:  fprintf(output, "cdq\n");     break;
             case LIR_SYSC: fprintf(output, "syscall\n"); break;
             case LIR_FRET: {
-                if (curr->farg) fprintf(output, "mov rax, %s\n", x86_64_asm_variable(curr->farg, smt));
                 x86_64_kill_stackframe(output);
                 fprintf(output, "ret\n");
                 break;
@@ -123,7 +122,6 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
 
             case LIR_EXITOP: {
                 fprintf(output, "mov rax, 0x2000001\n");
-                fprintf(output, "mov rdi, %s\n", x86_64_asm_variable(curr->farg, smt));
                 fprintf(output, "syscall\n");
                 break;
             }
