@@ -157,6 +157,8 @@ typedef enum hir_subject_type {
     HIR_LIST,     // list.h
 } hir_subject_type_t;
 
+int HIR_allocop(hir_operation_t op);
+int HIR_funccall(hir_operation_t op);
 int HIR_get_type_size(hir_subject_type_t t);
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b);
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr);

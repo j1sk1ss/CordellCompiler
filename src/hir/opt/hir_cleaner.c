@@ -7,6 +7,7 @@ static int _check_usage(cfg_func_t* f, long v_id, hir_block_t* decl) {
             hir_subject_t* nodes[3] = { hh->farg, hh->sarg, hh->targ };
             for (int i = HIR_writeop(hh->op); i < 3; i++) {
                 if (!nodes[i]) continue;
+                if (hh->op == HIR_PHI && i == 0) continue;
                 if (nodes[i]->storage.var.v_id == v_id) return 1;
             }
         }
@@ -29,11 +30,9 @@ int HIR_CLN_remove_unused_variables(cfg_ctx_t* cctx) {
             hir_block_t* hh = fb->entry;
             while (hh) {
                 if (
-                    HIR_writeop(hh->op) && 
-                    !hh->unused && 
-                    hh->op != HIR_STORE_FCLL && 
-                    hh->op != HIR_STORE_ECLL && 
-                    hh->op != HIR_STORE_SYSC
+                    !hh->unused &&
+                    (HIR_allocop(hh->op) || HIR_writeop(hh->op)) && 
+                    !HIR_funccall(hh->op)
                 ) {
                     if (!_check_usage(fb, hh->farg->storage.var.v_id, hh)) {
                         hh->unused = 1;

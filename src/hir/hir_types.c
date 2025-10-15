@@ -351,6 +351,27 @@ int HIR_isterm(hir_operation_t op) {
     return 0;
 }
 
+int HIR_funccall(hir_operation_t op) {
+    switch (op) {
+        case HIR_FCLL:
+        case HIR_STORE_FCLL:
+        case HIR_ECLL:
+        case HIR_STORE_ECLL:
+        case HIR_SYSC:
+        case HIR_STORE_SYSC: return 1;
+        return 0;
+    }
+}
+
+int HIR_allocop(hir_operation_t op) {
+    switch (op) {
+        case HIR_VARDECL:
+        case HIR_STRDECL:
+        case HIR_ARRDECL: return 1;
+        return 0;
+    }
+}
+
 int HIR_writeop(hir_operation_t op) {
     switch (op) {
         case HIR_FARGLD:
