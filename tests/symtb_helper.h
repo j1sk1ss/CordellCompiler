@@ -55,7 +55,7 @@ void print_symtab(sym_table_t* smt) {
     map_iter_init(&smt->s.strtb, &it);
     str_info_t* si;
     while (map_iter_next(&it, (void**)&si)) {
-        printf("id: %i, val: %s\n", si->id, si->value);
+        printf("id: %i, val: %s, t=%i\n", si->id, si->value, si->t);
     }
 
     if (!map_isempty(&smt->m.allias)) printf("========== ALLIAS ==========\n");
@@ -67,6 +67,7 @@ void print_symtab(sym_table_t* smt) {
         set_iter_init(&mi->owners, &sit);
         long own_id;
         while (set_iter_next(&sit, (void**)&own_id)) printf("%i ", own_id);
+        printf("\n");
     }
 }
 #endif

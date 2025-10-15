@@ -53,7 +53,6 @@ int TKN_isptr(token_t* token) {
         case F64_VARIABLE_TOKEN:
         case F32_VARIABLE_TOKEN:
         case CHAR_VALUE_TOKEN:     return 0;
-        case STRING_VALUE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:   return 1;
         default:                   return 0;

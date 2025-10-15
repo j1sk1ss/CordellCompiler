@@ -1,5 +1,16 @@
 #include <symtab/strtb.h>
 
+int STTB_update_info(long id, const char* value, str_type_t t, strtb_ctx_t* ctx) {
+    str_info_t* si;
+    if (map_get(&ctx->strtb, id, (void**)&si)) {
+        si->t = t;
+        if (value) str_strncpy(si->value, value, 128);
+        return 1;
+    }
+
+    return 0;    
+}
+
 int STTB_get_info_id(long id, str_info_t* info, strtb_ctx_t* ctx) {
     str_info_t* si;
     if (map_get(&ctx->strtb, id, (void**)&si)) {

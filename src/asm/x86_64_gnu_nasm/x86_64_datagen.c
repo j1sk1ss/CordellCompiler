@@ -77,7 +77,7 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
     map_iter_init(&smt->s.strtb, &it);
     str_info_t* si;
     while (map_iter_next(&it, (void**)&si)) {
-        if (si->t == STR_RAW_ASM) continue;
+        if (si->t != STR_INDEPENDENT) continue;
         fprintf(output, "_str_%i_ db ", si->id);
         char* data = si->value;
         while (*data) {

@@ -5,8 +5,12 @@ lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_t
     switch (subj->t) {
         case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value);
         case HIR_CONSTVAL: return LIR_SUBJ_CONST(subj->storage.cnst.value);
-        case HIR_STRING:   return LIR_SUBJ_STRING(subj->storage.str.s_id);
         case HIR_RAWASM:   return LIR_SUBJ_RAWASM(subj->storage.str.s_id);
+        case HIR_STRING: {
+            lir_subject_t* res = LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE);
+            LIR_BLOCK2(ctx, LIR_REF, res, LIR_SUBJ_STRING(subj->storage.str.s_id));
+            return res;
+        }
         
         case HIR_TMPVARF64: case HIR_TMPVARF32:
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARI64: case HIR_TMPVARU64:

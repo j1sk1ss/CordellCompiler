@@ -101,6 +101,7 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, syntax_ctx_t* ctx, s
 
         if (node->token->t_type == STR_TYPE_TOKEN) {
             ARTB_add_info(name_node->sinfo.v_id, str_strlen(value_node->token->value) + 1, 0, I8_TYPE_TOKEN, &smt->a);
+            STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }
 
         AST_add_node(node, value_node);
