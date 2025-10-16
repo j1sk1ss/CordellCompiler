@@ -252,7 +252,7 @@ _f_remove_token:
         }
         else if (curr->t_type == REF_TYPE_TOKEN) {
             ref = 1;
-_s_remove_token:
+_s_remove_token: {}
             list_remove(tkn, curr);
             mm_free(curr);
             continue;
@@ -274,11 +274,11 @@ _s_remove_token:
                         curr->flags.ref  = ref;
                         curr->flags.dref = dref;
                         curr->flags.neg  = neg;
-                        goto resolved;
+                        goto _resolved;
                     }
                 }
             }
-            resolved: {}
+            _resolved: {}
         }
 
         ref  = 0;

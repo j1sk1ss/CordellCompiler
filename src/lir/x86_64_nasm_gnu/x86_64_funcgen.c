@@ -52,9 +52,8 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         case HIR_SYSC: 
         case HIR_STORE_SYSC: {
             _load_registers(ctx, (int*)_sys_regs, &h->targ->storage.list.h, smt);
-            // for (int i = 0; i < FREE_REGISTERS; i++) LIR_BLOCK1(ctx, LIR_PUSH, LIR_SUBJ_REG(R11 + i, DEFAULT_TYPE_SIZE));
+            x86_64_store_var_reg(LIR_iMOV, ctx, h->targ->storage.list.h.h->data, RAX, -1, smt);
             LIR_BLOCK0(ctx, LIR_SYSC);
-            // for (int i = FREE_REGISTERS - 1; i >= 0; i--) LIR_BLOCK1(ctx, LIR_POP, LIR_SUBJ_REG(R11 + i, DEFAULT_TYPE_SIZE));
             if (h->op == HIR_STORE_SYSC) x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             break;
         }

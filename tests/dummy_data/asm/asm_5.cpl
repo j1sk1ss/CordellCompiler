@@ -46,7 +46,7 @@
                 }
             }
             
-            pos = pos + 1;
+            pos += 1;
         }
         
         i32 pointer = 0;
@@ -71,11 +71,11 @@
                     pc += 1;
                 }
                 case '.'; {
-                    syscall(1, 1, tape + pointer, 1);
+                    syscall(0x2000004, 1, ref tape[pointer], 1);
                     pc += 1;
                 }
                 case ','; {
-                    syscall(0, 0, ref tape[pointer], 1);
+                    syscall(0x2000003, 0, ref tape[pointer], 1);
                     pc += 1;
                 }
                 case '['; {

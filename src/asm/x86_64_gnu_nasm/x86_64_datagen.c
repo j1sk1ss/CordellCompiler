@@ -11,8 +11,7 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
         if (vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) {
             array_info_t ai;
             if (!ARTB_get_info(vi->v_id, &ai, &smt->a)) continue;
-            token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro } };
-
+            token_t tmptkn = { .t_type = ai.el_type, .flags = { .ptr = vi->ptr } };
             if (!list_size(&ai.elems) && !bss || list_size(&ai.elems) && bss) continue;
             if (!list_size(&ai.elems)) {
                 switch (TKN_variable_bitness(&tmptkn, 1)) {

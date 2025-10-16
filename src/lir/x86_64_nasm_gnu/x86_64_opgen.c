@@ -130,10 +130,17 @@ int x86_64_generate_ifop(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
         case HIR_IFLWEOP:
         case HIR_IFLGOP:
         case HIR_IFLGEOP: {
-            x86_64_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
-            x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RBX, -1, smt);
-            if (!HIR_is_floattype(h->farg->t)) x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iCMP);
-            else x86_64_reg_op(ctx, XMM0, DEFAULT_TYPE_SIZE, XMM1, DEFAULT_TYPE_SIZE, LIR_fCMP);
+            if (!HIR_is_floattype(h->farg->t)) {
+                x86_64_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
+                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RBX, -1, smt);
+                x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iCMP);
+            }
+            else {
+                x86_64_store_var_reg(LIR_fMOV, ctx, h->farg, XMM0, -1, smt);
+                x86_64_store_var_reg(LIR_fMOV, ctx, h->sarg, XMM1, -1, smt);
+                x86_64_reg_op(ctx, XMM0, DEFAULT_TYPE_SIZE, XMM1, DEFAULT_TYPE_SIZE, LIR_fCMP);
+            }
+
             if (HIR_is_signtype(h->farg->t) && HIR_is_signtype(h->sarg->t)) {
                 switch (h->op) {
                     case HIR_IFCPOP:  LIR_BLOCK1(ctx, LIR_JE,  LIR_SUBJ_LABEL(h->targ->id)); break;

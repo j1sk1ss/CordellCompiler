@@ -3,7 +3,7 @@
 int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node->token) return 0;
     if (TKN_isptr(node->token)) {
-        if (node->child) goto indexing;
+        if (node->child) goto _indexing;
         else {
             if (!node->token->flags.dref) HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_ASTVAR(node), src);
             else HIR_BLOCK2(ctx, HIR_LDREF, HIR_SUBJ_ASTVAR(node), src);
@@ -15,7 +15,7 @@ int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ct
     switch (node->token->t_type) {
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: {
-indexing: {}
+_indexing: {}
             ast_node_t* off = node->child;
             if (!off) HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_ASTVAR(node), src);
             else {
