@@ -4,7 +4,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
     x86_64_generate_data(smt, output);
     lir_block_t* curr = lctx->h;
     while (curr) {
-        switch (curr->op) {
+        if (!curr->unused) switch (curr->op) {
             case LIR_FCLL:
             case LIR_ECLL: fprintf(output, "call %s\n", x86_64_asm_variable(curr->farg, smt)); break;
             

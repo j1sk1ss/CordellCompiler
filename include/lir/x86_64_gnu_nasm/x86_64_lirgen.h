@@ -6,6 +6,7 @@
 #include <lir/lir.h>
 #include <lir/lirgen.h>
 #include <lir/lir_types.h>
+#include <lir/x86_64_gnu_nasm/opt/x86_64_movopt.h>
 #include <symtab/symtab.h>
 #include <std/map.h>
 #include <std/qsort.h>

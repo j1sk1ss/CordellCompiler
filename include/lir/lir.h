@@ -49,6 +49,7 @@ typedef struct {
 } lir_subject_t;
 
 typedef struct lir_block {
+    char              unused;
     struct lir_block* prev;
     struct lir_block* next;
     lir_operation_t   op;
@@ -76,6 +77,7 @@ lir_ctx_t* LIR_create_ctx();
 lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta);
 int LIR_append_block(lir_block_t* block, lir_ctx_t* ctx);
 int LIR_remove_block(lir_block_t* block, lir_ctx_t* ctx);
+int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b);
 int LIR_unload_blocks(lir_block_t* block);
 int LIR_destroy_ctx(lir_ctx_t* ctx);
 

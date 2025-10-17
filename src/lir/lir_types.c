@@ -73,6 +73,48 @@ int LIR_get_hirtype_size(hir_subject_type_t t) {
     }
 }
 
+int LIR_jmp_instruction(lir_operation_t op) {
+    switch (op) {
+        case LIR_JMP:
+        case LIR_JA:
+        case LIR_JAE:
+        case LIR_JB:
+        case LIR_JBE:
+        case LIR_JE:
+        case LIR_JNE:
+        case LIR_JL:
+        case LIR_JLE:
+        case LIR_JG:
+        case LIR_JGE: return 1;
+        default: return 0;
+    }
+}
+
+int LIR_sysc_reg(lir_registers_t reg) {
+    switch (reg) {
+        case RAX: 
+        case RDI: 
+        case RSI: 
+        case RDX: 
+        case R10: 
+        case R8: 
+        case R9: return 1;
+        default: return 0;
+    }
+}
+
+int LIR_funccall_reg(lir_registers_t reg) {
+    switch (reg) {
+        case RDI:
+        case RSI:
+        case RDX:
+        case RCX:
+        case R8:
+        case R9: return 1;
+        default: return 0;
+    }
+}
+
 lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     switch (reg) {
         case RAX: case EAX: case AX: case AL: case AH:
