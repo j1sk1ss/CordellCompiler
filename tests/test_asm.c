@@ -14,7 +14,6 @@
 #include <hir/dfg.h>
 #include <hir/ra.h>
 #include <hir/dag.h>
-#include <hir/opt/hir_cleaner.h>
 
 #include <lir/lirgen.h>
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
@@ -76,7 +75,6 @@ int main(int argc, char* argv[]) {
     HIR_DAG_init(&dagctx);
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
-    HIR_CLN_remove_unused_variables(&cfgctx);
     
     dump_dag_dot(&dagctx, &smt);
 

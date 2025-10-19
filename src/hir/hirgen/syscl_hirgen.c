@@ -43,7 +43,7 @@ hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_
     for (ast_node_t* e = node->child; e; e = e->sibling) {
         hir_subject_t* arg = HIR_generate_elem(e, ctx, smt);
         list_add(&args->storage.list.h, arg);
-        HIR_BLOCK1(ctx, HIR_VRUSE, arg);
+        // HIR_BLOCK1(ctx, HIR_VRUSE, arg);
     }
 
     if (!ret) {

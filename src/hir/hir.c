@@ -13,8 +13,7 @@ long HIR_hash_subject(hir_subject_t* s) {
     if (!s) return 0;
     if (s->hash) return s->hash;
 
-    uint64_t h = (uint64_t)s->t;
-
+    unsigned long h = (unsigned long)s->t;
     switch (s->t) {
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64:
         case HIR_TMPVARU64: case HIR_TMPVARI64: case HIR_TMPVARF32:
@@ -48,7 +47,7 @@ long HIR_hash_subject(hir_subject_t* s) {
         break;
 
         case HIR_SET:
-            h ^= _mix64((uintptr_t)&s->storage.set.h);
+            h ^= _mix64((unsigned long)&s->storage.set.h);
         break;
 
         default:

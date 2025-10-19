@@ -7,7 +7,7 @@ int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     for (; h->token; h = h->sibling) {
         hir_subject_t* arg = HIR_generate_load(h, ctx, smt);
         list_add(&args->storage.list.h, arg);
-        HIR_BLOCK1(ctx, HIR_VRUSE, arg);
+        // HIR_BLOCK1(ctx, HIR_VRUSE, arg);
     }
 
     HIR_BLOCK3(ctx, HIR_STASM, NULL, NULL, args);

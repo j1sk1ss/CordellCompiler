@@ -170,6 +170,7 @@ int LIR_get_asttype_size(token_type_t t);
 int LIR_get_hirtype_size(hir_subject_type_t t);
 int LIR_is_global_hirtype(hir_subject_type_t t);
 lir_registers_t LIR_format_register(lir_registers_t reg, int size);
+int LIR_move_instruction(lir_operation_t op);
 int LIR_sysc_reg(lir_registers_t reg);
 int LIR_funccall_reg(lir_registers_t reg);
 int LIR_jmp_instruction(lir_operation_t op);

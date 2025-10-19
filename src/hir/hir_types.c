@@ -359,7 +359,7 @@ int HIR_funccall(hir_operation_t op) {
         case HIR_STORE_ECLL:
         case HIR_SYSC:
         case HIR_STORE_SYSC: return 1;
-        return 0;
+        default: return 0;
     }
 }
 
@@ -374,6 +374,7 @@ int HIR_allocop(hir_operation_t op) {
 
 int HIR_writeop(hir_operation_t op) {
     switch (op) {
+        case HIR_REF:
         case HIR_FARGLD:
         case HIR_STARGLD:
         case HIR_STORE_ECLL:

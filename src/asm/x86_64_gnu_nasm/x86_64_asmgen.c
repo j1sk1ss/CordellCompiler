@@ -74,7 +74,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             
             case LIR_iADD: fprintf(output, "add %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));  break;
             case LIR_iSUB: fprintf(output, "sub %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));  break;
-            case LIR_iMUL: fprintf(output, "imul %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt)); break;
+            case LIR_iMUL: fprintf(output, "imul %s\n", x86_64_asm_variable(curr->farg, smt));                                           break;
             case LIR_DIV:  fprintf(output, "div %s\n", x86_64_asm_variable(curr->farg, smt));                                            break;
             case LIR_iDIV: fprintf(output, "idiv %s\n", x86_64_asm_variable(curr->farg, smt));                                           break;
             case LIR_iCMP: fprintf(output, "cmp %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));  break;

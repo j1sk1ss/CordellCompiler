@@ -73,6 +73,15 @@ int LIR_get_hirtype_size(hir_subject_type_t t) {
     }
 }
 
+int LIR_move_instruction(lir_operation_t op) {
+    switch (op) {
+        case LIR_iMOV:
+        case LIR_fMOV:
+        case LIR_REF: return 1;
+        default: return 0;
+    }
+}
+
 int LIR_jmp_instruction(lir_operation_t op) {
     switch (op) {
         case LIR_JMP:

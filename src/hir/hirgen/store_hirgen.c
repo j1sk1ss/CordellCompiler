@@ -31,12 +31,14 @@ _indexing: {}
                 }
 
                 hir_subject_t* addr = HIR_SUBJ_TMPVAR(offval->t, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-                HIR_BLOCK3(ctx, HIR_iMUL, addr, offval, HIR_SUBJ_CONST(HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 1))));
+                HIR_BLOCK3(
+                    ctx, HIR_iMUL, addr, offval, 
+                    HIR_generate_conv(ctx, offval->t, HIR_SUBJ_CONST(HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 1))), smt)
+                );
 
                 hir_subject_t* head = HIR_SUBJ_TMPVAR(base->t, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
-                HIR_BLOCK3(ctx, HIR_iADD, head, base, addr);
+                HIR_BLOCK3(ctx, HIR_iADD, head, base, HIR_generate_conv(ctx, base->t, addr, smt));
                 HIR_BLOCK2(ctx, HIR_LDREF, head, src);
-                // HIR_BLOCK3(ctx, HIR_LINDEX, HIR_SUBJ_ASTVAR(node), HIR_generate_elem(off, ctx, smt), src);
             }
 
             break;

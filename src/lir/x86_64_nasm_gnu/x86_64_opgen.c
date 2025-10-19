@@ -41,13 +41,15 @@ static int _simd_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
 }
 
 int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
+    int rax_size = LIR_get_hirtype_size(h->sarg->t);
+    int rbx_size = LIR_get_hirtype_size(h->targ->t);
     x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RAX, -1, smt);
     x86_64_store_var_reg(LIR_iMOV, ctx, h->targ, RBX, -1, smt);
     if (HIR_is_floattype(h->farg->t)) return _simd_binary_op(ctx, h, smt);
     
     switch (h->op) {
         case HIR_iSUB: {
-            x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iSUB);
+            x86_64_reg_op(ctx, RAX, rax_size, RBX, rbx_size, LIR_iSUB);
             x86_64_load_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
             break;
         }
@@ -56,22 +58,22 @@ int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) 
         case HIR_iDIV: {
             if (HIR_is_signtype(h->sarg->t) && HIR_is_signtype(h->targ->t)) {
                 LIR_BLOCK0(ctx, LIR_CDQ);
-                LIR_BLOCK1(ctx, LIR_iDIV, LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
+                LIR_BLOCK1(ctx, LIR_iDIV, LIR_SUBJ_REG(RBX, rbx_size));
             } 
             else {
                 LIR_BLOCK2(ctx, LIR_bXOR, LIR_SUBJ_REG(RDX, DEFAULT_TYPE_SIZE), LIR_SUBJ_REG(RDX, DEFAULT_TYPE_SIZE));
-                LIR_BLOCK1(ctx, LIR_DIV, LIR_SUBJ_REG(RBX, DEFAULT_TYPE_SIZE));
+                LIR_BLOCK1(ctx, LIR_DIV, LIR_SUBJ_REG(RBX, rbx_size));
             }
 
-            if (h->op == HIR_iMOD) x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RDX, DEFAULT_TYPE_SIZE, LIR_iMOV);
+            if (h->op == HIR_iMOD) x86_64_reg_op(ctx, RAX, rax_size, RDX, DEFAULT_TYPE_SIZE, LIR_iMOV);
             break;
         }
 
-        case HIR_iMUL: x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iMUL); break;
-        case HIR_iADD: x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iADD); break;
-        case HIR_bOR:  x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_bOR);  break;
-        case HIR_bXOR: x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_bXOR); break;
-        case HIR_bAND: x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_bAND); break;
+        case HIR_iMUL: LIR_BLOCK1(ctx, LIR_iMUL, LIR_SUBJ_REG(RBX, rbx_size));     break;
+        case HIR_iADD: x86_64_reg_op(ctx, RAX, rax_size, RBX, rbx_size, LIR_iADD); break;
+        case HIR_bOR:  x86_64_reg_op(ctx, RAX, rax_size, RBX, rbx_size, LIR_bOR);  break;
+        case HIR_bXOR: x86_64_reg_op(ctx, RAX, rax_size, RBX, rbx_size, LIR_bXOR); break;
+        case HIR_bAND: x86_64_reg_op(ctx, RAX, rax_size, RBX, rbx_size, LIR_bAND); break;
 
         case HIR_iLWR:
         case HIR_iLRE:
@@ -79,13 +81,7 @@ int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) 
         case HIR_iLGE:
         case HIR_iCMP:
         case HIR_iNMP: {
-            if (!HIR_is_floattype(h->farg->t)) x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iCMP);
-            else {
-                x86_64_reg_op(ctx, XMM0, DEFAULT_TYPE_SIZE, RAX, DEFAULT_TYPE_SIZE, LIR_fMOV);
-                x86_64_reg_op(ctx, XMM1, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_fMOV);
-                x86_64_reg_op(ctx, XMM0, DEFAULT_TYPE_SIZE, XMM1, DEFAULT_TYPE_SIZE, LIR_fCMP);
-            }
-    
+            x86_64_reg_op(ctx, RAX, rax_size, RBX, rbx_size, LIR_iCMP);
             if (HIR_is_signtype(h->sarg->t) && HIR_is_signtype(h->targ->t)) {
                 switch (h->op) {
                     case HIR_iCMP: LIR_BLOCK1(ctx, LIR_SETE, LIR_SUBJ_REG(AL, 1)); break;

@@ -16,7 +16,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     for (ast_node_t *arg = name->child, *targ = fi.args->child; arg && targ; arg = arg->sibling, targ = targ->sibling) {
         hir_subject_t* carg = HIR_generate_elem(arg, ctx, smt);
         list_add(&args->storage.list.h, carg);
-        HIR_BLOCK1(ctx, HIR_VRUSE, carg);
+        // HIR_BLOCK1(ctx, HIR_VRUSE, carg);
     }
     
     if (!ret) {
