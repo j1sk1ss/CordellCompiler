@@ -153,8 +153,8 @@ typedef enum hir_subject_type {
     HIR_RAWASM,   // str.id
     HIR_STRING,   // str.id
     HIR_FNAME,    // str.id
-    HIR_SET,      // set.h
-    HIR_LIST,     // list.h
+    HIR_PHISET,      // set.h
+    HIR_ARGLIST,     // list.h
 } hir_subject_type_t;
 
 int HIR_allocop(hir_operation_t op);

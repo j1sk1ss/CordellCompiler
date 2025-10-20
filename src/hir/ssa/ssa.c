@@ -28,9 +28,20 @@ static varver_t* _get_varver(long v_id, ssa_ctx_t* ctx) {
 static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
     hir_subject_t* args[3] = { h->farg, h->sarg, h->targ };
     for (int i = HIR_writeop(h->op); i < 3; i++) {
-        if (args[i] && HIR_is_vartype(args[i]->t)) {
+        if (!args[i]) continue;
+        if (HIR_is_vartype(args[i]->t)) {
             varver_t* vv = _get_varver(args[i]->storage.var.v_id, ctx);
             if (vv) args[i]->storage.var.v_id = vv->curr_id;
+        }
+        else if (args[i]->t == HIR_ARGLIST) {
+            list_iter_t it;
+            list_iter_hinit(&args[i]->storage.list.h, &it);
+            hir_subject_t* s;
+            while ((s = (hir_subject_t*)list_iter_next(&it))) {
+                if (!HIR_is_vartype(s->t)) continue;
+                varver_t* vv = _get_varver(s->storage.var.v_id, ctx);
+                if (vv) s->storage.var.v_id = vv->curr_id;
+            }
         }
     }
 

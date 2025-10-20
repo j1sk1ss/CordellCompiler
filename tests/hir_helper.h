@@ -316,7 +316,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                 break;
             }
 
-            case HIR_SET: {
+            case HIR_PHISET: {
                 dst += sprintf(dst, "set: ");
 
                 set_iter_t it;
@@ -332,7 +332,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                 break;
             }
 
-            case HIR_LIST: {
+            case HIR_ARGLIST: {
                 dst += sprintf(dst, "list: ");
 
                 list_iter_t it;

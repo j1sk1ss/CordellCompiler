@@ -89,8 +89,8 @@ int HIR_unload_blocks(hir_block_t* block);
 #define HIR_SUBJ_STRTB(id)                HIR_create_subject(HIR_STRING, id, NULL, 0, -1)
 #define HIR_SUBJ_FUNCNAME(n)              HIR_create_subject(HIR_FNAME, n->sinfo.v_id, NULL, 0, -1)
 #define HIR_SUBJ_FNAMETB(id)              HIR_create_subject(HIR_FNAME, id, NULL, 0, -1)
-#define HIR_SUBJ_SET()                    HIR_create_subject(HIR_SET, 0, NULL, 0, -1)
-#define HIR_SUBJ_LIST()                   HIR_create_subject(HIR_LIST, 0, NULL, 0, -1)
+#define HIR_SUBJ_SET()                    HIR_create_subject(HIR_PHISET, 0, NULL, 0, -1)
+#define HIR_SUBJ_LIST()                   HIR_create_subject(HIR_ARGLIST, 0, NULL, 0, -1)
 
 /* ctx, op */
 #define HIR_BLOCK0(ctx, op) HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))
