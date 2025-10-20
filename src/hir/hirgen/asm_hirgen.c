@@ -1,7 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
 int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (!node) return 0;
     hir_subject_t* args = HIR_SUBJ_LIST();
     ast_node_t* h = node->child;
     for (; h->token; h = h->sibling) {

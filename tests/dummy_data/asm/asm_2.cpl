@@ -2,17 +2,17 @@
     start() {
         arr a[64, i8];
 
-        syscall(0x2000004, 1, "Write command: ", 17);
-        i32 cmd_len = syscall(0x2000003, 0, ref a, 32);
+        syscall(0x2000004, 1, "Write command: ", 16);
+        i32 cmd_len = syscall(0x2000003, 0, ref a, 64);
 
         i8 pos = 0;
-        arr code[100, i8];
+        arr code[10, i8] = {0,0,0,0,0,0,0,0,0,0};
 
         i32 index = 0;
         while index < cmd_len; {
             switch a[index]; {
                 case '.'; {
-                    syscall(0x2000004, 1, ref code[pos], 1);
+                    syscall(0x2000004, 1, ref code, 2);
                 }
                 case '+'; { code[pos] += 1; }
                 case '-'; { code[pos] -= 1; }
@@ -23,6 +23,6 @@
             index += 1;
         }
 
-        exit 0;
+        exit pos;
     }
 }

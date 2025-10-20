@@ -43,12 +43,12 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
                 LIR_BLOCK0(ctx, LIR_EXITOP);   
                 break;
             }
-
+            
             case HIR_ENDSCOPE: {
                 scope_elem_t se;
                 scope_pop_top(&scopes, &se);
                 x86_64_deallocate_heap(ctx, h->farg->storage.cnst.value, &heap);
-                stack_map_free_range(se.offset, -1, &ctx->stk);
+                // stack_map_free_range(se.offset, -1, &ctx->stk);
                 offset = se.offset;
                 break;
             }
@@ -63,6 +63,8 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_FDCL:
             case HIR_FARGLD: x86_64_generate_func(ctx, h, smt); break;
             case HIR_FEND:   LIR_BLOCK0(ctx, LIR_FEND); break;
+
+            case HIR_BREAKPOINT: LIR_BLOCK0(ctx, LIR_BREAKPOINT); break;
 
             case HIR_STASM:
             case HIR_RAW:
@@ -128,6 +130,6 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
         h = h->next;
     }
 
-    x86_64_clean_mov(ctx);
+    // x86_64_clean_mov(ctx);
     return 1;
 }

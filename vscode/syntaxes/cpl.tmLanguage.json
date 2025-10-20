@@ -23,7 +23,7 @@
       "patterns": [
         {
           "name": "keyword.control.cpl",
-          "match": "\\b(extern|from|import|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not)\\b"
+          "match": "\\b(lis|extern|from|import|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not)\\b"
         },
         {
           "name": "entity.name.function.cpl",

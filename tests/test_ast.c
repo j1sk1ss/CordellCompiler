@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <prep/token.h>
+#include <prep/token_types.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <prep/markup.h>

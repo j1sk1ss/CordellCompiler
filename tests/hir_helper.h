@@ -81,6 +81,7 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_TU16:         return "HIR_TU16"; // x = (u16)y
         case HIR_TU8:          return "HIR_TU8";  // x = (u8)y
         case HIR_PHI_PREAMBLE: return "PHI_PREAMBLE";
+        case HIR_BREAKPOINT:   return "BREAKPOINT";
         default: return "";
     }
 }
@@ -151,6 +152,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_TU32:       return "%s = %s as u32;\n";
         case HIR_TU16:       return "%s = %s as u16;\n";
         case HIR_TU8:        return "%s = %s as u8;\n";
+        case HIR_BREAKPOINT: return "breakpoint;\n";
 
         case HIR_FCLL:       return "call %s, argc %s%s;\n";
         case HIR_STORE_FCLL: return "%s = call %s, argc %s;\n";

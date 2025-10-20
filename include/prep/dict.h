@@ -81,4 +81,7 @@
 #define AND_STATEMENT           "&&"
 #define OR_STATEMENT            "||"
 
+// Debug
+#define BREAKPOINT_COMMAND      "lis" /* ??? */
+
 #endif

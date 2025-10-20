@@ -4,7 +4,7 @@
 #include <std/str.h>
 #include <std/map.h>
 #include <std/list.h>
-#include <prep/token.h>
+#include <prep/token_types.h>
 
 typedef struct {
     char         heap;

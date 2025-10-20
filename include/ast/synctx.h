@@ -1,9 +1,10 @@
 #ifndef SYNCTX_H_
 #define SYNCTX_H_
 
+#include <prep/token_types.h>
 #include <ast/ast.h>
+#include <std/list.h>
 #include <std/stack.h>
-#include <prep/token.h>
 
 typedef struct {
     int           s_id;

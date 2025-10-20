@@ -1,8 +1,8 @@
 #ifndef AST_H_
 #define AST_H_
 
+#include <std/mm.h>
 #include <prep/token_types.h>
-#include <prep/token.h>
 
 typedef struct {
     short s_id;

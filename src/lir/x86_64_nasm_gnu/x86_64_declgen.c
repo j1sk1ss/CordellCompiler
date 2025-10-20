@@ -8,6 +8,7 @@ int x86_64_generate_declaration(
             if (LIR_is_global_hirtype(h->farg->t)) break;
             variable_info_t vi;
             if (VRTB_get_info_id(h->farg->storage.cnst.value, &vi, &smt->v) && vi.vmi.reg < 0) {
+                print_debug("var=%i, freed! size=%i, off=%i", vi.v_id, vi.vmi.size, vi.vmi.offset);
                 stack_map_free(vi.vmi.offset, vi.vmi.size, &ctx->stk);
             }
 

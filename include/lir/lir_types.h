@@ -113,6 +113,7 @@ typedef enum {
 
     /* Other */
     LIR_RAW,
+    LIR_BREAKPOINT,
 
     /* High level operations */
         /* Stack */

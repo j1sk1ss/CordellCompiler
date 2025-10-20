@@ -2,7 +2,7 @@
 #define MARKUP_H_
 
 #include <prep/dict.h>
-#include <prep/token.h>
+#include <prep/token_types.h>
 #include <std/list.h>
 #include <std/stack.h>
 

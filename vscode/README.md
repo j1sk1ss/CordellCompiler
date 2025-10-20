@@ -1,5 +1,6 @@
 
-# CPL (Cordell) — VS Code Extension
+# CPL — VS Code Extension
+This is a little extension for VScode for working with this hobby language. Source code can be found in `snippets/`, `src/` and `syntaxes/`.
 
 <p align="center">
     <img src="syntax_highlight.png" alt="Extension work example"/>

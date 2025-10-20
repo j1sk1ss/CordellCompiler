@@ -4,7 +4,7 @@
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/stack.h>
-#include <prep/token.h>
+#include <prep/token_types.h>
 #include <ast/syntax.h>
 #include <symtab/symtab.h>
 

@@ -3,7 +3,7 @@
 
 #include <std/list.h>
 #include <symtab/symtab.h>
-#include <prep/token.h>
+#include <prep/token_types.h>
 #include <ast/ast.h>
 #include <ast/synctx.h>
 #include <ast/parsers/parser.h>

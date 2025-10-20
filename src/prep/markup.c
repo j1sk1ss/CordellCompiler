@@ -83,7 +83,10 @@ static const markup_token_t _markups[] = {
     { .value = BITOR_STATEMENT,        .type = BITOR_TOKEN         },
     { .value = BITXOR_STATEMENT,       .type = BITXOR_TOKEN        },
     { .value = AND_STATEMENT,          .type = AND_TOKEN           },
-    { .value = OR_STATEMENT,           .type = OR_TOKEN            }
+    { .value = OR_STATEMENT,           .type = OR_TOKEN            },
+
+    /* Debug */
+    { .value = BREAKPOINT_COMMAND,     .type = BREAKPOINT_TOKEN    },
 };
 
 int MRKP_mnemonics(list_t* tkn) {

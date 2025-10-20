@@ -32,7 +32,7 @@ void print_symtab(sym_table_t* smt) {
     variable_info_t* vi;
     while (map_iter_next(&it, (void**)&vi)) {
         printf("id: %i, %s, %s, s_id: %i", vi->v_id, vi->name, format_tkntype(vi->type), vi->s_id);
-        if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg + R11));
+        if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg + R12));
         else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %i]", vi->vmi.offset);
         printf("\n");
     }

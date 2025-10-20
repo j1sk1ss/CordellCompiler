@@ -3,7 +3,6 @@
 
 #include <std/map.h>
 #include <prep/token_types.h>
-#include <prep/token.h>
 
 typedef struct {
     long offset;

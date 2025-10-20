@@ -35,6 +35,7 @@ lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_t
                     ) vi.vmi.reg = clr;
                     else {
                         int vroff = stack_map_alloc(vrsize, &ctx->stk);
+                        print_debug("var=%i, spilled! size=%i, off=%i", vi.v_id, vrsize, vroff);
                         vi.vmi.offset = vroff;
                     }
 

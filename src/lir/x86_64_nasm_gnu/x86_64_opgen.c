@@ -129,7 +129,7 @@ int x86_64_generate_ifop(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
             if (!HIR_is_floattype(h->farg->t)) {
                 x86_64_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
                 x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RBX, -1, smt);
-                x86_64_reg_op(ctx, RAX, DEFAULT_TYPE_SIZE, RBX, DEFAULT_TYPE_SIZE, LIR_iCMP);
+                x86_64_reg_op(ctx, RAX, LIR_get_hirtype_size(h->farg->t), RBX, LIR_get_hirtype_size(h->sarg->t), LIR_iCMP);
             }
             else {
                 x86_64_store_var_reg(LIR_fMOV, ctx, h->farg, XMM0, -1, smt);

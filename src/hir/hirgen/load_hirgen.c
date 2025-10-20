@@ -1,8 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
 hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (!node->token) return 0;
-
     hir_subject_t* res = NULL;
     if (node->token->flags.ptr) {
         if (node->child) goto _indexing;

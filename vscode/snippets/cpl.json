@@ -78,6 +78,11 @@
     "body": "extern",
     "description": "CPL keyword"
   },
+  "CPL Keywords Lis": {
+    "prefix": "lis",
+    "body": "lis",
+    "description": "CPL keyword"
+  },
   "CPL Keywords Exfunc": {
     "prefix": "exfunc",
     "body": "exfunc",

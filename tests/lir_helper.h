@@ -117,6 +117,7 @@ static const char* lir_op_to_string(lir_operation_t op) {
 
         case LIR_STEND:  return "STEND";
         case LIR_FEND:   return "FEND";
+        case LIR_BREAKPOINT: return "BREAKPOINT";
         default: return "[unkn]";
     }
 }

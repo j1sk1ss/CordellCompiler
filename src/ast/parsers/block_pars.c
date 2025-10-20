@@ -35,6 +35,7 @@ static ast_node_t* _navigation_handler(list_iter_t* it, syntax_ctx_t* ctx, sym_t
         case UNKNOWN_STRING_TOKEN: 
         case UNKNOWN_NUMERIC_TOKEN: return cpl_parse_expression(it, ctx, smt);
         case SYSCALL_TOKEN:         return cpl_parse_syscall(it, ctx, smt);
+        case BREAKPOINT_TOKEN:      return cpl_parse_breakpoint(it, ctx, smt);
         case EXTERN_TOKEN:          return cpl_parse_extern(it, ctx, smt);
         case IMPORT_SELECT_TOKEN:   return cpl_parse_import(it, ctx, smt);
         case ARRAY_TYPE_TOKEN:      return cpl_parse_array_declaration(it, ctx, smt);

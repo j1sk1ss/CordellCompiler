@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
   const keywords = [
     'start', 'exit', 'exfunc', 'function', 'return',
     'if', 'else', 'while', 'switch', 'case', 'default',
-    'glob', 'ro', 'dref', 'ref', 'ptr', 'extern', 'from', 'import', 'extern', 'syscall', 'asm',
+    'glob', 'ro', 'dref', 'ref', 'ptr', 'lis', 'extern', 'from', 'import', 'syscall', 'asm',
     'i64', 'i32', 'i16', 'i8', 'u64', 'u32', 'u16', 'u8', 'str', 'arr'
   ];
 
@@ -86,6 +86,13 @@ export function activate(context: vscode.ExtensionContext) {
 
         extern exfunc printf;
         extern ptr u8 frame_buffer;
+        `,
+            
+          lis: `**lis** — Insert break point for debug.
+
+        i32 a = 10;
+        lis;
+        syscall(a);
         `,
           
           exfunc: `**exfunc** — External function type.

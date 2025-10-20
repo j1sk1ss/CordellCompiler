@@ -28,6 +28,8 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
                 break;
             }
             
+            case LIR_BREAKPOINT: fprintf(output, "int3\n"); break;
+
             case LIR_TDBL: fprintf(output, "cvtsi2sd %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt)); break;
             case LIR_TST: fprintf(output, "test %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));      break;
             case LIR_XCHG: fprintf(output, "xchg %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));     break;
@@ -111,7 +113,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
                     str_strcat(replaced, replacement);
 
                     const char* suffix = p + 1;
-                    while (isdigit((unsigned char)*suffix)) suffix++;
+                    while (str_isdigit((unsigned char)*suffix)) suffix++;
 
                     str_strcat(replaced, suffix);
                     fprintf(output, "%s\n", replaced);

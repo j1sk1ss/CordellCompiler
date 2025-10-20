@@ -64,7 +64,7 @@ typedef struct {
 static int _generate_case_binary_jump(
     binary_cases_t* values, hir_subject_t* cond, 
     int left, int right,
-    hir_subject_t* def, hir_subject_t* end, hir_ctx_t* ctx
+    hir_subject_t* def, hir_subject_t* end, hir_ctx_t* ctx, sym_table_t* smt
 ) {
     if (left > right) {
         if (def) HIR_BLOCK1(ctx, HIR_JMP, def);
@@ -78,15 +78,15 @@ static int _generate_case_binary_jump(
     hir_subject_t* lower   = HIR_SUBJ_LABEL();
     hir_subject_t* greater = HIR_SUBJ_LABEL();
 
-    HIR_BLOCK3(ctx, HIR_IFLWOP, cond, HIR_SUBJ_CONST(val), lower);
-    HIR_BLOCK3(ctx, HIR_IFLGOP, cond, HIR_SUBJ_CONST(val), greater);
+    HIR_BLOCK3(ctx, HIR_IFLWOP, cond, HIR_generate_conv(ctx, cond->t, HIR_SUBJ_CONST(val), smt), lower);
+    HIR_BLOCK3(ctx, HIR_IFLGOP, cond, HIR_generate_conv(ctx, cond->t, HIR_SUBJ_CONST(val), smt), greater);
     HIR_BLOCK1(ctx, HIR_JMP, values[mid].l);
 
     HIR_BLOCK1(ctx, HIR_MKLB, lower);
-    _generate_case_binary_jump(values, cond, left, mid - 1, def, end, ctx);
+    _generate_case_binary_jump(values, cond, left, mid - 1, def, end, ctx, smt);
 
     HIR_BLOCK1(ctx, HIR_MKLB, greater);
-    _generate_case_binary_jump(values, cond, mid + 1, right, def, end, ctx);
+    _generate_case_binary_jump(values, cond, mid + 1, right, def, end, ctx, smt);
     return 1;
 }
 
@@ -129,7 +129,7 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
     HIR_BLOCK1(ctx, HIR_MKLB, cguards);
     
     hir_subject_t* condtmp = HIR_generate_elem(cond, ctx, smt);
-    _generate_case_binary_jump(cases_info, condtmp, 0, cases_count - 1, def, end, ctx);
+    _generate_case_binary_jump(cases_info, condtmp, 0, cases_count - 1, def, end, ctx, smt);
     HIR_BLOCK1(ctx, HIR_MKLB, end);
     return 1;
 }

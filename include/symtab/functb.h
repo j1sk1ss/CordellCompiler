@@ -2,7 +2,7 @@
 #define FUNC_TB_H_
 
 #include <std/map.h>
-#include <prep/token.h>
+#include <prep/token_types.h>
 #include <ast/ast.h>
 
 typedef struct {

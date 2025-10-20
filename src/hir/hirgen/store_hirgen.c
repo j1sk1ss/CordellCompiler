@@ -1,7 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
 int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (!node->token) return 0;
     if (TKN_isptr(node->token)) {
         if (node->child) goto _indexing;
         else {

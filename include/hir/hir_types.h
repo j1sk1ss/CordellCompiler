@@ -2,7 +2,6 @@
 #define HIR_TYPES_H_
 
 #include <symtab/vartb.h>
-#include <prep/token.h>
 #include <prep/token_types.h>
 
 typedef enum hir_operation {
@@ -67,6 +66,7 @@ typedef enum hir_operation {
     HIR_RAW,
     HIR_STASM,
     HIR_ENDASM,
+    HIR_BREAKPOINT,
 
     /* High level operations */
         /* Condition operator */
