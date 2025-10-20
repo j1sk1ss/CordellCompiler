@@ -25,7 +25,7 @@
     start(i64 argc, ptr u64 argv) {
         puts("Brainfuck interpriter! Input code: ");
 
-        i32 codelength = gets(code, 10000);
+        i32 codelength = gets(ref code, 10000);
         i32 pos = 0;
         i32 stackptr = 0;
 

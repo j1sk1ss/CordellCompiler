@@ -1,6 +1,5 @@
 - [DOCS](/)
 - [AST](src/ast/)
-- [SEM](src/sem/)
 - [HIR](src/hir/)
 - [CFG](src/cfg/)
 - [SSA](src/ssa/)
@@ -8,3 +7,4 @@
 - [RA](src/ra/)
 - [LIR](src/lir/)
 - [ASM](src/asm/)
+- [CHANGELOG](src/changelog/)
