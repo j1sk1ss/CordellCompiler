@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     list_init(&tokens);
     if (!TKN_tokenize(fd, &tokens)) {
         fprintf(stderr, "ERROR! tkn==NULL!\n");
-        return 1;
+        return EXIT_FAILURE;
     }
 
     printf("\nTokens:\n");
@@ -40,5 +40,5 @@ int main(int argc, char* argv[]) {
 
     list_free_force(&tokens);
     close(fd);
-    return 0;
+    return EXIT_SUCCESS;
 }

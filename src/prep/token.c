@@ -70,9 +70,18 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
     return tkn;
 }
 
+static inline int _permitted_character(const unsigned char* p) {
+    unsigned char b1 = p[0];
+    unsigned char b2 = p[1];
+    if (b1 == 0xD0 && b2 >= 0x90 && b2 <= 0xAF) return 1;
+    if (b1 == 0xD0 && b2 >= 0xB0 && b2 <= 0xBF) return 1;
+    if (b1 == 0xD1 && b2 >= 0x80 && b2 <= 0x8F) return 1;
+    return 0;
+}
+
 int TKN_tokenize(int fd, list_t* tkn) {
     tkn_ctx_t curr_ctx = { .ttype = LINE_BREAK_TOKEN };
-    char buffer[BUFFER_SIZE] = { 0 };
+    char buffer[BUFFER_SIZE]       = { 0 };
     char token_buf[TOKEN_MAX_SIZE] = { 0 };
 
     int file_offset = 0;
@@ -80,10 +89,15 @@ int TKN_tokenize(int fd, list_t* tkn) {
     while ((bytes_read = pread(fd, buffer, BUFFER_SIZE, file_offset)) > 0) {
         file_offset += bytes_read;
         for (ssize_t i = 0; i < bytes_read; ++i) {
+            if (i + 1 < bytes_read && _permitted_character(buffer + i)) {
+                print_error("Permitted symbol detected! %.2s", buffer + i);
+                list_free_force(tkn);
+                return 0;
+            }
+
             char ch = buffer[i];
             if (ch == '-') curr_ctx.neg = 1;
             else curr_ctx.neg = 0;
-
             char_type_t ct = _get_char_type(ch);
 
             /* Special characters handler */

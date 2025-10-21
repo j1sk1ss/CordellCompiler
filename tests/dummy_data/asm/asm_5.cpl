@@ -54,7 +54,7 @@
 
         while pc < codelength; {
             switch code[pc]; {
-                case '>'; { 
+                case '>'; {
                     pointer += 1;
                     pc += 1;
                 }
