@@ -133,6 +133,9 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     blk->targ   = ta;
     blk->next   = NULL;
     blk->prev   = NULL;
+    if (fa && !fa->home) fa->home = blk;
+    if (sa && !sa->home) sa->home = blk;
+    if (ta && !ta->home) ta->home = blk;
     return blk;
 }
 

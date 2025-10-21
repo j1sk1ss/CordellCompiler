@@ -15,9 +15,9 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                     if (!nd) continue;
                     if (HIR_hash_subject(nd->src) == HIR_hash_subject(nodes[i])) continue;
                     switch (i) {
-                        case 0: hh->farg = nd->src; break; /* !!! */
-                        case 1: hh->sarg = nd->src; break;
-                        case 2: hh->targ = nd->src; break;
+                        case 0: hh->farg->home->unused = 1; hh->farg = nd->src; break;
+                        case 1: hh->sarg->home->unused = 1; hh->sarg = nd->src; break;
+                        case 2: hh->targ->home->unused = 1; hh->targ = nd->src; break;
                     }
                 }
             }
