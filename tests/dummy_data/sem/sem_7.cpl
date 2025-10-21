@@ -1,0 +1,15 @@
+{
+    function foo() => i32 {
+        return 0;
+    }
+
+    function bar() => i64 {
+        return 0;
+    }
+
+    start(i64 argc, ptr u64 argv) {
+        i32 a = foo();
+        i32 b = bar();
+        exit 0;
+    }
+}

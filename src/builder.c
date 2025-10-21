@@ -1,151 +1,207 @@
-#include "../include/builder.h"
+#include <builder.h>
 
-
-static int _print_parse_tree(tree_t* node, int depth) {
+static int _print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
-    for (int i = 0; i < depth; i++) printf("  ");
-    if (node->token) printf(
-        "[%s] (t=%d, size=%i, is_ptr=%i, off=%i, ro=%i glob=%i)\n", 
-        (char*)node->token->value, node->token->t_type, node->variable_size, node->token->ptr, node->variable_offset, node->token->ro, node->token->glob
-    );
-    else printf("scope\n");
+    for (int i = 0; i < depth; i++) printf("    ");
+    if (node->token && node->token->t_type != SCOPE_TOKEN) {
+        printf(
+            "[%s] (t=%d, size=%i,%s%s%soff=%i, s_id=%i%s%s%s%s%s)\n", 
+            node->token->value, node->token->t_type, node->sinfo.size, 
+            node->token->flags.ptr ?    " ptr, " : " ",
+            node->token->flags.ref ?    "ref, " : "",
+            node->token->flags.dref ?   "dref, " : "",
+            node->sinfo.offset, node->sinfo.s_id,
+            node->token->flags.ro ?     ", ro" : "",
+            node->token->flags.ext ?    ", ext" : "",
+            node->token->flags.glob ?   ", glob" : "",
+            node->token->flags.neg ?    ", neg" : "",
+            node->token->flags.heap ?   ", heap" : ""
+        );
+    }
+    else if (node->token && node->token->t_type == SCOPE_TOKEN) {
+        printf("{ scope, id=%i }\n", node->sinfo.s_id);
+    }
+    else {
+        printf("[ block ]\n");
+    }
     
-    tree_t* child = node->first_child;
+    ast_node_t* child = node->child;
     while (child) {
-        _print_parse_tree(child, depth + 1);
-        child = child->next_sibling;
+        _print_ast(child, depth + 1);
+        child = child->sibling;
     }
     
     return 1;
 }
 
+static int _unload_file(object_t* f) {
+    TKN_unload(f->toks);
+    AST_unload(f->syntax->r);
 
-static params_t _params = { .syntax = 0, .save_asm = 0 };
-static object_t _files[MAX_FILES];
-static int _current_file = 0;
+    ARTB_unload(f->syntax->symtb.arrs);
+    ARTB_destroy_ctx(f->syntax->symtb.arrs);
 
+    FNTB_unload(f->syntax->symtb.funcs);
+    FNTB_destroy_ctx(f->syntax->symtb.funcs);
 
-static int _generate_raw_ast(object_t* obj) {
-    int fd = open(obj->path, O_RDONLY);
+    VRTB_unload(f->syntax->symtb.vars);
+    VRTB_destroy_ctx(f->syntax->symtb.vars);
+
+    STX_destroy_ctx(f->syntax);
+    return 1;
+}
+
+static int _generate_raw_ast(builder_ctx_t* ctx) {
+    int fd = open(ctx->files[ctx->fcount].path, O_RDONLY);
     if (fd < 0) return -1;
 
-    token_t* tokens = tokenize(fd);
+    token_t* tokens = TKN_tokenize(fd);
     if (!tokens) {
         close(fd);
         return -2;
     }
 
-    int markup_res = command_markup(tokens);
-    markup_res = variable_markup(tokens);
+    int markup_res = MRKP_mnemonics(tokens);
+    markup_res = MRKP_variables(tokens);
     if (!markup_res) {
-        unload_tokens(tokens);
+        TKN_unload(tokens);
         close(fd);
         return -3;
     }
 
-    tree_t* parse_tree = create_syntax_tree(tokens);
-    if (!check_semantic(parse_tree)) {
-        unload_syntax_tree(parse_tree);
-        unload_tokens(tokens);
+    ctx->files[ctx->fcount].syntax = STX_create_ctx();
+    ctx->files[ctx->fcount].syntax->symtb.arrs  = ARTB_create_ctx();
+    ctx->files[ctx->fcount].syntax->symtb.vars  = VRTB_create_ctx();
+    ctx->files[ctx->fcount].syntax->symtb.funcs = FNTB_create_ctx();
+    if (!STX_create(tokens, ctx->files[ctx->fcount].syntax, &ctx->p)) {
+        _unload_file(&ctx->files[ctx->fcount]);
         close(fd);
         return -4;
     }
 
-    obj->ast = parse_tree;
+    if (!SMT_check(ctx->files[ctx->fcount].syntax->r, &ctx->files[ctx->fcount].syntax->symtb)) {
+        _unload_file(&ctx->files[ctx->fcount]);
+        close(fd);
+        return -5;
+    }
 
-    obj->ast_arrinfo = get_arrmap_head();
-    set_arrmap_head(NULL);
+    ctx->files[ctx->fcount].toks = tokens;
+    ctx->fcount++;
 
-    obj->ast_varinfo = get_varmap_head();
-    set_varmap_head(NULL);
     close(fd);
     return 1;
 }
 
-static int _add_object(char* path) {
-    _files[_current_file].path = path;
-    _generate_raw_ast(&_files[_current_file]);
-    _current_file++;
-    return 1;
-}
-
-static int _compile_object(object_t* obj) {
-    string_optimization(obj->ast);
+#define RESULT(code) code > 0 ? "OK" : "ERROR", code 
+static int _compile_object(builder_ctx_t* ctx, char index) {
+    int optres = 0;
+    optres = OPT_strpack(ctx->files[index].syntax);
+    print_log("String optimization of [%s]... [%s (%i)]", ctx->files[index].path, RESULT(optres));
 
     int is_fold_vars = 0;
     do {
-        assign_optimization(obj->ast);
-        is_fold_vars = muldiv_optimization(obj->ast);
+        optres       = OPT_varinline(ctx->files[index].syntax);
+        is_fold_vars = OPT_constfold(ctx->files[index].syntax);
     } while (is_fold_vars);
-    
-    unload_varmap(obj->ast_varinfo);
-    varuse_optimization(obj->ast);
-    offset_optimization(obj->ast);
+    print_log("Assign and muldiv optimization... [Code: %i/%i]", RESULT(optres), RESULT(is_fold_vars));
+
+    optres = OPT_condunroll(ctx->files[index].syntax);
+    print_log("Branches optimization... [%s (%i)]", RESULT(optres));
+
+    optres = OPT_deadscope(ctx->files[index].syntax);
+    print_log("Dead scope optimization... [%s (%i)]", RESULT(optres));
+
+    optres = OPT_deadcode(ctx->files[index].syntax);
+    print_log("Dead code elimination... [%s (%i)]", RESULT(optres));
+
+    optres = OPT_offrecalc(ctx->files[index].syntax);
+    print_log("Offset recalculation and stack optimization... [%s (%i)]", RESULT(optres));
+
+    if (ctx->prms.syntax) {
+        print_log("\n\n========== AST ==========");
+        _print_ast(ctx->files[index].syntax->r, 0);
+    }
+
+    lir_ctx_t* irctx = IR_create_ctx();
+    irctx->synt = ctx->files[index].syntax;
+    IR_generate(&ctx->ir, irctx);
+
+    if (ctx->prms.ir) {
+        print_log("\n\n========== IR ==========");
+        for (lir_block_t* b = irctx->h; b; b = b->next) {
+            printf("Command: %i\n", b->op);
+        }
+    }
+
+    asmgen_ctx_t* gctx = ASM_create_ctx();
+    gctx->synt = ctx->files[index].syntax;
+    gctx->ir   = irctx;
 
     char save_path[128] = { 0 };
-    sprintf(save_path, "%s.asm", obj->path);
+    sprintf(save_path, "%s.asm", ctx->files[index].path);
     FILE* output = fopen(save_path, "w");
-    if (_params.syntax) _print_parse_tree(obj->ast, 0);
-
-    set_varmap_head(obj->ast_varinfo);
-    set_arrmap_head(obj->ast_arrinfo);
-    generate_asm(obj->ast, output);
+    ASM_generate(gctx, &ctx->g, output);
+    
+    ASM_destroy_ctx(gctx);
+    IR_destroy_ctx(irctx);
     fclose(output);
 
     char compile_command[128] = { 0 };
-    sprintf(compile_command, "%s -f%s %s -g -o %s.o", DEFAULT_ASM_COMPILER, DEFAULT_ARCH, save_path, save_path);
+    snprintf(compile_command, 128, "%s -f%s %s -g -o %s.o", ctx->prms.asm_compiler, ctx->prms.arch, save_path, save_path);
+    print_debug("COMPILING: system(%s)", compile_command);
     system(compile_command);
 
-    unload_syntax_tree(obj->ast);
-    unload_arrmap(obj->ast_arrinfo);
-    unload_varmap(obj->ast_varinfo);
+    _unload_file(&ctx->files[index]);
+
+    print_log("Optimization of [%s] complete", ctx->files[index].path);
     return 1;
 }
 
-int builder_add_file(char* input) {
-    return _add_object(input);
+int BLD_add_target(char* input, builder_ctx_t* ctx) {
+    ctx->files[ctx->fcount].path = input;
+    print_log("Raw AST generation for [%s]...", input);
+    int res = _generate_raw_ast(ctx);
+    print_log("AST-gen result [%s (%i)]", RESULT(res));
+    return 1;
 }
 
-int builder_compile(char* output) {
-    if (_current_file == 0) return 0;
+int BLD_build(builder_ctx_t* ctx) {
+    if (!ctx->fcount) return 0;
+    deadfunc_ctx_t dfctx = { .size = 0 };
+    for (int i = 0; i < ctx->fcount; i++) {
+        OPT_deadfunc_add(ctx->files[i].syntax, &dfctx);
+    }
 
-    /*
-    Production of .asm files with temporary saving in files directory.
-    */
-    for (int i = _current_file - 1; i >= 0; i--) {
-        int res = _compile_object(&_files[i]);
+    OPT_deadfunc_clear(&dfctx);
+
+    /* Production of .asm files with temporary saving in files directory */
+    for (int i = 0; i < ctx->fcount; i++) {
+        int res = _compile_object(ctx, i);
         if (!res) return res;
     }
 
-    /*
-    Linking output files
-    */
+    /* Linking output files */
     char link_command[256] = { 0 };
-    sprintf(link_command, "%s -m %s %s ", DEFAULT_LINKER, DEFAULT_LINKER_ARCH, LINKER_FLAGS);
-
-    for (int i = _current_file - 1; i >= 0; i--) {
+    snprintf(link_command, 256, "%s -m %s %s ", ctx->prms.linker, ctx->prms.linker_arch, ctx->prms.linker_flags);
+    for (int i = ctx->fcount - 1; i >= 0; i--) {
         char object_path[128] = { 0 };
-        sprintf(object_path, " %s.asm.o", _files[i].path);
+        snprintf(object_path, 128, " %s.asm.o", ctx->files[i].path);
         str_strcat(link_command, object_path);
     }
 
     str_strcat(link_command, " -o ");
-    str_strcat(link_command, output);
+    str_strcat(link_command, ctx->prms.save_path);
+    print_debug("LINKING: system(%s)", link_command);
     system(link_command);
 
-    /*
-    Cleanup
-    */
-    for (int i = _current_file - 1; i >= 0; i--) {
+    /* Cleanup .asm and .o files */
+    for (int i = ctx->fcount - 1; i >= 0; i--) {
         char delete_command[128] = { 0 };
-        if (!_params.save_asm) sprintf(delete_command, "rm %s.asm %s.asm.o", _files[i].path, _files[i].path);
+        if (!ctx->prms.save_asm) snprintf(delete_command, 128, "rm %s.asm %s.asm.o", ctx->files[i].path, ctx->files[i].path);
+        else snprintf(delete_command, 128, "rm %s.asm.o", ctx->files[i].path);
+        print_debug("CLEANUP: system(%s)", delete_command);
         system(delete_command);
     }
 
-    return 1;
-}
-
-int set_params(params_t* params) {
-    str_memcpy(&_params, params, sizeof(params_t));
     return 1;
 }

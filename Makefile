@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -Ikernel/include -Wcomment -Wno-unknown-pragmas -Wno-unused-result -Wno-empty-body -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-unused-variable -Wno-format-overflow
+CFLAGS = -Wall -Wextra -Iinclude -Wcomment -Wno-unknown-pragmas -Wno-unused-result -Wno-empty-body -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-unused-variable -Wno-format-overflow
 CC = gcc
 
 # Logger flags
@@ -10,6 +10,10 @@ IO_LOGS ?= 1
 MEM_LOGS ?= 0
 LOGGING_LOGS ?= 1
 SPECIAL_LOGS ?= 1
+
+# Memory flags
+AVALIABLE_MEMORY ?= 300000
+CFLAGS += -DALLOC_BUFFER_SIZE=$(AVALIABLE_MEMORY)
 
 ########
 # Logger flags
@@ -46,7 +50,7 @@ ifeq ($(SPECIAL_LOGS), 1)
 endif
 
 OUTPUT = builds/ccompiler
-SOURCES = main.c src/*.c src/syntax/*.c src/optimization/*.c std/*.c
+SOURCES = main.c src/**/*.c std/*.c
 
 all: force_build $(OUTPUT)
 

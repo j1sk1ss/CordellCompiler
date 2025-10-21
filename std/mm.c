@@ -1,10 +1,8 @@
-#include "../include/mm.h"
-
+#include <std/mm.h>
 
 static unsigned char _buffer[ALLOC_BUFFER_SIZE];
 static mm_block_t* _mm_head = (mm_block_t*)_buffer;
 static int _allocated = 0;
-
 
 int mm_init() {
     _mm_head->magic = MM_BLOCK_MAGIC;
@@ -27,7 +25,8 @@ static int _coalesce_memory() {
                 current->size += sizeof(mm_block_t) + current->next->size;
                 current->next = current->next->next;
                 merged = 1;
-            } else {
+            } 
+            else {
                 current = current->next;
             }
         }
@@ -36,7 +35,7 @@ static int _coalesce_memory() {
 }
 
 static void* _malloc_s(size_t size, int prepare_mem) {
-    if (size == 0) return NULL;
+    if (!size) return NULL;
     if (prepare_mem) _coalesce_memory();
 
     size = (size + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1);
@@ -67,9 +66,10 @@ static void* _malloc_s(size_t size, int prepare_mem) {
     return prepare_mem ? NULL : _malloc_s(size, 1);
 }
 
-void* mm_malloc(size_t size) {
+void* mm_base_malloc(const char* f, int l, size_t size) {
     void* ptr = _malloc_s(size, 0);
-    if (!ptr) print_mm("Allocation error! I can't allocate [%i]!", size);
+    print_mm("Allocation in %s on line=%i, size=%i, ptr=%p", f, l, size, ptr);
+    if (!ptr) { print_mm("Allocation error! I can't allocate [%i]!", size); }
     return ptr;
 }
 
@@ -87,12 +87,14 @@ void* mm_realloc(void* ptr, size_t elem) {
     return new_data;
 }
 
-int mm_free(void* ptr) {
-    if (!ptr || ptr < (void*)_buffer || ptr >= (void*)(_buffer + ALLOC_BUFFER_SIZE)) return -1;
+int mm_base_free(const char* f, int l, void* ptr) {
+    print_mm("Trying to free ptr=%p from file=%s, line=%i", ptr, f, l);
+    if (!ptr || ptr < (void*)_buffer || ptr >= (void*)(_buffer + ALLOC_BUFFER_SIZE)) return 0;
     
     mm_block_t* block = (mm_block_t*)((unsigned char*)ptr - sizeof(mm_block_t));
-    if (block->magic != MM_BLOCK_MAGIC) return -1;
-    if (block->free) return -1;
+    if (block->magic != MM_BLOCK_MAGIC) return 0;
+    if (block->free) return 0;
+    str_memset(ptr, 0xDE, block->size);
 
     block->free = 1;
     _allocated -= block->size + sizeof(mm_block_t);

@@ -1,0 +1,72 @@
+{
+  "name": "cpl-lang-simple",
+  "displayName": "CPL (Cordell) — Language support",
+  "description": "VS Code syntax highlighting + simple autocomplete for Cordell (CPL)",
+  "icon": "./cpl.png",
+  "version": "0.0.2",
+  "publisher": "j1sk1ss",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/j1sk1ss/CordellCompiler.PETPRJ.git"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onLanguage:cpl",
+    "onCommand:extension.sayHello"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "cpl",
+        "aliases": [
+          "CPL", "cpl"
+        ],
+        "extensions": [
+          ".cpl"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./cpl.png",
+          "dark": "./cpl.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "cpl",
+        "scopeName": "source.cpl",
+        "path": "./syntaxes/cpl.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "cpl",
+        "path": "./snippets/cpl.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "CPL Theme",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cpl-color-theme.json"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.9.0",
+    "@types/vscode": "^1.80.0",
+    "vsce": "^2.15.0"
+  }
+}

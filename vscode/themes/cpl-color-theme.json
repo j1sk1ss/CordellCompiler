@@ -1,0 +1,29 @@
+{
+  "name": "CPL Theme",
+  "type": "dark",
+  "colors": {},
+  "semanticHighlighting": false,
+  
+  "tokenColors": [
+    {
+      "scope": ["keyword.control.cpl"],
+      "settings": { "foreground": "#FF00FF" }
+    },
+    {
+      "scope": ["keyword.declaration.cpl"],
+      "settings": { "foreground": "#FF00FF" }
+    },
+    {
+      "scope": ["entity.name.function.cpl", "entity.name.function.call.cpl"],
+      "settings": { "foreground": "#FFD700" }
+    },
+    {
+      "scope": ["storage.type.cpl"],
+      "settings": { "foreground": "#00BFFF" }
+    },
+    {
+      "scope": ["storage.type.primitive.cpl", "source.cpl storage.type.primitive", "storage.type"],
+      "settings": { "foreground": "#4fbf4f" }
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "program-start": {
+    "scope": "cpl",
+    "prefix": "start",
+    "body": [
+      "{",
+      "\tstart(i64 argc, ptr u64 argv) {",
+      "\t\t$0",
+      "\t\texit ${1:0};",
+      "\t}",
+      "}"
+    ],
+    "description": "CPL program skeleton"
+  },
+  "asm-block": {
+    "scope": "cpl",
+    "prefix": "asm",
+    "body": [
+      "asm (var1, var2, ...) {",
+      "\t\"mov rax, &var1\"",
+      "}"
+    ]
+  },
+  "function-definition": {
+    "scope": "cpl",
+    "prefix": "function",
+    "body": [
+      "function foo() => i32 {",
+      "\treturn 0;",
+      "}"
+    ]
+  },
+  "if-statement": {
+    "scope": "cpl",
+    "prefix": "if",
+    "body": [
+      "if cond; {",
+      "\t: ... :",
+      "}",
+      "else {",
+      "\t: ... :",
+      "}"
+    ]
+  },
+  "while-loop": {
+    "scope": "cpl",
+    "prefix": "while",
+    "body": [
+      "while cond; {",
+      "\t: ... :",
+      "}",
+      "else {",
+      "\t: ... :",
+      "}"
+    ]
+  },
+  "syscall-invoke": {
+    "scope": "cpl",
+    "prefix": "syscall",
+    "body": [
+      "syscall(arg, ...);"
+    ]
+  },
+  "switch-statement": {
+    "scope": "cpl",
+    "prefix": "switch",
+    "body": [
+      "switch cond; {",
+      "\tcase val; {",
+      "\t}",
+      "\tdefault {",
+      "\t}",
+      "}"
+    ]
+  },
+  "CPL Keywords Extern": {
+    "prefix": "extern",
+    "body": "extern",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords Lis": {
+    "prefix": "lis",
+    "body": "lis",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords Exfunc": {
+    "prefix": "exfunc",
+    "body": "exfunc",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords From": {
+    "prefix": "from",
+    "body": "from",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords Import": {
+    "prefix": "import",
+    "body": "import",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords Exit": {
+    "prefix": "exit",
+    "body": "exit",
+    "description": "CPL keyword"
+  },
+  "CPL Keywords Return": {
+    "prefix": "return",
+    "body": "return",
+    "description": "CPL keyword"
+  },
+  "CPL Modifiers RO": {
+    "prefix": "ro",
+    "body": "ro",
+    "description": "CPL modifier"
+  },
+  "CPL Modifiers GLOB": {
+    "prefix": "glob",
+    "body": "glob",
+    "description": "CPL modifier"
+  },
+  "CPL Modifiers NOT": {
+    "prefix": "not",
+    "body": "not",
+    "description": "CPL modifier"
+  },
+  "CPL Types REF": {
+    "prefix": "ref",
+    "body": "ref",
+    "description": "CPL reference operation"
+  },
+  "CPL Types DREF": {
+    "prefix": "dref",
+    "body": "dref",
+    "description": "CPL de-reference operation"
+  },
+  "CPL Types String": {
+    "prefix": "str",
+    "body": "str",
+    "description": "CPL str type"
+  },
+  "CPL Types PTR": {
+    "prefix": "ptr",
+    "body": "ptr",
+    "description": "CPL u64 type"
+  },
+  "CPL Types F64": {
+    "prefix": "f64",
+    "body": "f64",
+    "description": "CPL f64 type"
+  },
+  "CPL Types F32": {
+    "prefix": "f32",
+    "body": "f32",
+    "description": "CPL f32 type"
+  },
+  "CPL Types Long": {
+    "prefix": "i64",
+    "body": "i64",
+    "description": "CPL i64 type"
+  },
+  "CPL Types Int": {
+    "prefix": "i32",
+    "body": "i32",
+    "description": "CPL i32 type"
+  },
+  "CPL Types Short": {
+    "prefix": "i16",
+    "body": "i16",
+    "description": "CPL i16 type"
+  },
+  "CPL Types Char": {
+    "prefix": "i8",
+    "body": "i8",
+    "description": "CPL i8 type"
+  },
+  "CPL Types uLong": {
+    "prefix": "u64",
+    "body": "u64",
+    "description": "CPL u64 type"
+  },
+  "CPL Types uInt": {
+    "prefix": "u32",
+    "body": "u32",
+    "description": "CPL u32 type"
+  },
+  "CPL Types uShort": {
+    "prefix": "u16",
+    "body": "u16",
+    "description": "CPL u16 type"
+  },
+  "CPL Types uChar": {
+    "prefix": "u8",
+    "body": "u8",
+    "description": "CPL u8 type"
+  },
+  "CPL Types Array": {
+    "prefix": "arr",
+    "body": "arr name[0, type] =;",
+    "description": "CPL array type"
+  }
+}

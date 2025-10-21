@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CPL Docs</title>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/buble.css">
+</head>
+<body>
+  <div id="app"></div>
+  
+  <style>
+    .token.keyword { color: #712073; font-weight: bold; }
+    .token.type { color: #3ea6d6; }
+    .token.comment { color: #167736; font-style: italic; }
+    .token.string { color: hsl(44, 90%, 65%); }
+    .token.number { color: #a4ad8d; }
+    .token.function-name { color: #adc84b; }
+    .sidebar-nav { margin-top: 0; }
+    .sidebar-nav ul { list-style: none; padding-left: 0; }
+    .sidebar-nav a { text-decoration: none; }
+  </style>    
+
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <script>
+    Prism.languages.cpl = {
+      'comment': {
+        pattern: /:([\s\S]*?):/,
+        greedy: true
+      },
+      'string': [
+        {
+          pattern: /"(?:\\.|[^"\\])*"/,
+          greedy: true
+        },
+        {
+          pattern: /'(?:\\.|[^'\\])*'/,
+          greedy: true
+        }
+      ],
+      'type': /\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|str|arr|dref|ref|ptr|exfunc)\b/,
+      'keyword': /\b(extern|from|import|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not|ro|glob)\b/,
+      'function-name': /\b[a-zA-Z_]\w*(?=\s*\()/,
+      'number': /\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)\b/,
+    };    
+  </script>
+  
+  <script>
+    window.$docsify = {
+      name: 'Cordell Programming Language v3',
+      repo: 'https://github.com/j1sk1ss/CordellCompiler',
+      loadNavbar: 'navbar.md',
+      loadSidebar: 'sidebar.md',
+      subMaxLevel: 2,
+      routerMode: 'hash',
+      alias: {
+        '/src/ast/_sidebar.md': '/src/ast/sidebar.md',
+        '/src/asm/_sidebar.md': '/src/asm/sidebar.md',
+        '/src/sem/_sidebar.md': '/src/sem/sidebar.md',
+        '/src/hir/_sidebar.md': '/src/hir/sidebar.md',
+        '/src/lir/_sidebar.md': '/src/lir/sidebar.md',
+        '/src/cfg/_sidebar.md': '/src/cfg/sidebar.md',
+        '/src/dag/_sidebar.md': '/src/dag/sidebar.md',
+        '/src/ssa/_sidebar.md': '/src/ssa/sidebar.md',
+        '/src/ra/_sidebar.md': '/src/ra/sidebar.md',
+      },
+      vueComponents: {},
+      markdown: {
+        renderer: {
+          code: function(code, lang) {
+            if (lang && Prism.languages[lang]) {
+              return '<pre><code>' + Prism.highlight(code, Prism.languages[lang], lang) + '</code></pre>';
+            }
+            
+            return '<pre><code>' + code + '</code></pre>';
+          }
+        }
+      }
+    };
+  </script> 
+</body>
+</html>

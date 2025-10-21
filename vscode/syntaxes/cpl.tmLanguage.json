@@ -1,0 +1,87 @@
+{
+  "scopeName": "source.cpl",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#modifiers" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#variables" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.cpl",
+          "begin": ":",
+          "end": ":"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.cpl",
+          "match": "\\b(lis|extern|from|import|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not)\\b"
+        },
+        {
+          "name": "entity.name.function.cpl",
+          "match": "(?<=\\bfunction\\s)\\w+"
+        },
+        {
+          "name": "entity.name.function.call.cpl",
+          "match": "\\b\\w+(?=\\s*\\()"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.primitive.cpl",
+          "match": "\\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8)\\b"
+        },
+        {
+          "name": "storage.type.cpl",
+          "match": "\\b(str|arr|dref|ref|ptr|exfunc)\\b"
+        }
+      ]
+    },
+    "modifiers": {
+      "patterns": [
+        {
+          "name": "storage.modifier.cpl",
+          "match": "\\b(ro|glob)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.cpl",
+          "match": "\\\"([^\\\"\\\\]|\\\\.)*\\\""
+        },
+        {
+          "name": "string.quoted.single.cpl",
+          "match": "'([^'\\\\]|\\\\.)*'"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.cpl",
+          "match": "\\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\\.?[0-9]+([eE][+-]?[0-9]+)?)\\b"
+        }
+      ]
+    },    
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.other.cpl",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}
