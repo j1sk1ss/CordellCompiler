@@ -4,3 +4,9 @@
 builds/
 .DS_Store
 *.asm
+*.o
+*.log
+vscode/node_modules
+vscode/out
+package-lock.json
+*.bin
