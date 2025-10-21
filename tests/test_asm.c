@@ -103,7 +103,8 @@ int main(int argc, char* argv[]) {
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL, .vars = &clrs };
     lir_gen_t lirgen = {
-        .generate = x86_64_generate_lir
+        .generate = x86_64_generate_lir,
+        .mvclean  = x86_64_clean_mov
     };
 
     LIR_generate(&hirctx, &lirgen, &lirctx, &smt);

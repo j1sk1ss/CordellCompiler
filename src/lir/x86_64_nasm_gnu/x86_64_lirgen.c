@@ -130,6 +130,6 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
         h = h->next;
     }
 
-    // x86_64_clean_mov(ctx);
+    x86_64_clean_mov(ctx);
     return 1;
 }

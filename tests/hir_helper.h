@@ -355,9 +355,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
 }
 
 void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
-    if (!block || block->unused) return;
-    // if (!block) return;
-    // print_debug("%i", block->unused);
+    if (!block) return;
 
     char arg1[256] = { 0 };
     char arg2[256] = { 0 };
@@ -388,6 +386,7 @@ void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
     ) _depth--;
 
     if (ud) for (int i = 0; i < _depth; i++) printf("    ");
+    if (block->unused) printf("[unused] ");
     const char* fmt = hir_op_to_fmtstring(block->op, args);
     sprintf(line, fmt, arg1, arg2, arg3);
 

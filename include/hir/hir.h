@@ -37,6 +37,7 @@ typedef struct {
 } hir_list_t;
 
 typedef struct {
+    int                users;
     struct hir_block*  home;
     unsigned long      hash;
     long               id;

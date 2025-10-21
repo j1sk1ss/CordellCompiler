@@ -5,7 +5,7 @@ static int _check_rewrite(lir_block_t* curr, lir_subject_t* src) {
     while (h) {
         if (LIR_move_instruction(h->op) && LIR_subj_equals(src, h->farg)) return 1;
         if (LIR_subj_equals(src, h->farg) || LIR_subj_equals(src, h->sarg)) break;
-        if (LIR_jmp_instruction(h->op)) break;
+        if (LIR_jmp_instruction(h->op) || h->op == LIR_FEND || h->op == LIR_MKLB) break;
         if (h->op == LIR_MKLB) break;
         if (src->t == LIR_REGISTER) {
             if (h->op == LIR_SYSC && LIR_sysc_reg(src->storage.reg.reg)) break;

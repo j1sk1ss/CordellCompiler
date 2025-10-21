@@ -87,6 +87,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
 
     subj->t  = t;
     subj->id = _curr_id++;
+    subj->users = 1;
 
     switch (t) {
         case HIR_PHISET: set_init(&subj->storage.set.h); break;
@@ -126,6 +127,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta) {
     hir_block_t* blk = mm_malloc(sizeof(hir_block_t));
     if (!blk) return NULL;
+    
     blk->unused = 0;
     blk->op     = op;
     blk->farg   = fa;
@@ -133,9 +135,14 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     blk->targ   = ta;
     blk->next   = NULL;
     blk->prev   = NULL;
+
     if (fa && !fa->home) fa->home = blk;
+    else if (fa) fa->users++;
     if (sa && !sa->home) sa->home = blk;
+    else if (sa) sa->users++;
     if (ta && !ta->home) ta->home = blk;
+    else if (ta) ta->users++;
+    
     return blk;
 }
 
