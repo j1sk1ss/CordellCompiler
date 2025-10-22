@@ -372,6 +372,17 @@ int HIR_allocop(hir_operation_t op) {
     }
 }
 
+int HIR_commutative_op(hir_operation_t op) {
+    switch (op) {
+        case HIR_iCMP:
+        case HIR_iOR:
+        case HIR_iAND:
+        case HIR_iADD:
+        case HIR_iMUL: return 1;
+        default: return 0;
+    }
+}
+
 int HIR_writeop(hir_operation_t op) {
     switch (op) {
         // case HIR_PHI_PREAMBLE:

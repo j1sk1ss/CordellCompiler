@@ -9,7 +9,6 @@
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/dag.h>
-#include <hir/opt/hir_cleaner.h>
 #include "ast_helper.h"
 #include "hir_helper.h"
 #include "dag_helper.h"
@@ -66,7 +65,6 @@ int main(int argc, char* argv[]) {
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);
     dump_dag_dot(&dagctx, &smt);
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
-    HIR_CLN_remove_unused_variables(&cfgctx);
 
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;

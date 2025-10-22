@@ -5,6 +5,7 @@
 #include <std/set.h>
 #include <std/map.h>
 #include <std/list.h>
+#include <std/qsort.h>
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 #include <hir/cfg.h>
