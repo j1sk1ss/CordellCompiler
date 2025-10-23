@@ -50,7 +50,6 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
 
 static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_table_t* smt) {
     if (a == b) return 1;
-
     variable_info_t avi, bvi;
     if (!VRTB_get_info_id(a, &avi, &smt->v) || !VRTB_get_info_id(b, &bvi, &smt->v)) {
         return 0;
@@ -68,15 +67,7 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
             NULL
         );
 
-        if (trg->jmp) {
-            HIR_insert_block_before(union_command, trg->entry);
-            trg->entry = union_command;
-        }
-        else {
-            HIR_insert_block_after(union_command, trg->entry);
-            trg->exit = union_command;
-        }
-
+        HIR_insert_block_before(union_command, trg->exit);
         break;
     }
 

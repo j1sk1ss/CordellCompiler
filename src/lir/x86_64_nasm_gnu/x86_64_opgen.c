@@ -114,50 +114,10 @@ int x86_64_generate_binary_op(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) 
 
 int x86_64_generate_ifop(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt) {
     switch (h->op) {
-        case HIR_IFOP: {
+        case HIR_IFOP2: {
             LIR_BLOCK2(ctx, LIR_iCMP, x86_64_format_variable(ctx, h->farg, smt), LIR_SUBJ_CONST(0));
             LIR_BLOCK1(ctx, LIR_JE, LIR_SUBJ_LABEL(h->sarg->id));
-            break;
-        }
-
-        case HIR_IFCPOP:
-        case HIR_IFNCPOP:
-        case HIR_IFLWOP:
-        case HIR_IFLWEOP:
-        case HIR_IFLGOP:
-        case HIR_IFLGEOP: {
-            if (!HIR_is_floattype(h->farg->t)) {
-                x86_64_store_var_reg(LIR_iMOV, ctx, h->farg, RAX, -1, smt);
-                x86_64_store_var_reg(LIR_iMOV, ctx, h->sarg, RBX, -1, smt);
-                x86_64_reg_op(ctx, RAX, LIR_get_hirtype_size(h->farg->t), RBX, LIR_get_hirtype_size(h->sarg->t), LIR_iCMP);
-            }
-            else {
-                x86_64_store_var_reg(LIR_fMOV, ctx, h->farg, XMM0, -1, smt);
-                x86_64_store_var_reg(LIR_fMOV, ctx, h->sarg, XMM1, -1, smt);
-                x86_64_reg_op(ctx, XMM0, DEFAULT_TYPE_SIZE, XMM1, DEFAULT_TYPE_SIZE, LIR_fCMP);
-            }
-
-            if (HIR_is_signtype(h->farg->t) && HIR_is_signtype(h->sarg->t)) {
-                switch (h->op) {
-                    case HIR_IFCPOP:  LIR_BLOCK1(ctx, LIR_JE,  LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFNCPOP: LIR_BLOCK1(ctx, LIR_JNE, LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFLWOP:  LIR_BLOCK1(ctx, LIR_JL,  LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFLWEOP: LIR_BLOCK1(ctx, LIR_JLE, LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFLGOP:  LIR_BLOCK1(ctx, LIR_JG,  LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFLGEOP: LIR_BLOCK1(ctx, LIR_JGE, LIR_SUBJ_LABEL(h->targ->id)); break;
-                }
-            }
-            else {
-                switch (h->op) {
-                    case HIR_IFCPOP:  LIR_BLOCK1(ctx, LIR_JE,  LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFNCPOP: LIR_BLOCK1(ctx, LIR_JNE, LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFLWOP:  LIR_BLOCK1(ctx, LIR_JB,  LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFLWEOP: LIR_BLOCK1(ctx, LIR_JBE, LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFLGOP:  LIR_BLOCK1(ctx, LIR_JA,  LIR_SUBJ_LABEL(h->targ->id)); break;
-                    case HIR_IFLGEOP: LIR_BLOCK1(ctx, LIR_JAE, LIR_SUBJ_LABEL(h->targ->id)); break;
-                }
-            }
-
+            LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->targ->id));
             break;
         }
 

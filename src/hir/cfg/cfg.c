@@ -55,23 +55,13 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
     return list_add(&f->blocks, b);
 }
 
-// #define DRAGONBOOK_CFG_LEADER
+#define DRAGONBOOK_CFG_LEADER
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     int term = 0;
     hir_block_t* hh = f->entry;
     while (hh) {
         hir_block_t* entry = hh;
 #ifdef DRAGONBOOK_CFG_LEADER
-        if (term) {
-            while (hh && hh != f->exit && !set_has(&f->leaders, hh)) hh = hh->next;
-            if (hh) {
-                entry = hh;
-                if (hh != f->exit) hh = hh->next;
-            }
-
-            term = 0;
-        }
-
         while (hh->next && hh != f->exit && !set_has(&f->leaders, hh->next)) {
             if (set_has(&f->terminators, hh)) {
                 term = 1;
@@ -80,6 +70,7 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
 
             hh = hh->next;
         }
+
         _add_cfg_block(entry, hh, f, ctx);
 #else
         if (!HIR_issyst(entry->op)) _add_cfg_block(entry, entry, f, ctx);
@@ -119,22 +110,9 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
                     break;
                 }
 
-                case HIR_IFOP: {
-                    cfg_block_t* lb = HIR_CFG_function_findlb(fb, cb->exit->sarg->id);
-                    cb->l   = (cfg_block_t*)list_iter_current(&bit);
-                    cb->jmp = lb;
-                    break;
-                }
-
-                case HIR_IFLGOP:
-                case HIR_IFLGEOP:
-                case HIR_IFLWOP:
-                case HIR_IFLWEOP:
-                case HIR_IFCPOP:
-                case HIR_IFNCPOP: {
-                    cfg_block_t* lb = HIR_CFG_function_findlb(fb, cb->exit->targ->id);
-                    cb->l   = (cfg_block_t*)list_iter_current(&bit);
-                    cb->jmp = lb;
+                case HIR_IFOP2: {
+                    cb->l   = HIR_CFG_function_findlb(fb, cb->exit->sarg->id);
+                    cb->jmp = HIR_CFG_function_findlb(fb, cb->exit->targ->id);
                     break;
                 }
 

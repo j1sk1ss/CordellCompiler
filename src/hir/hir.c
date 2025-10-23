@@ -90,7 +90,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
     subj->users = 1;
 
     switch (t) {
-        case HIR_PHISET: set_init(&subj->storage.set.h); break;
+        case HIR_PHISET:  set_init(&subj->storage.set.h); break;
         case HIR_ARGLIST: list_init(&subj->storage.list.h); break;
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
@@ -104,6 +104,16 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
             subj->storage.var.v_id = v_id;
         break;
 
+        case HIR_F64NUMBER:
+        case HIR_F32NUMBER:
+        case HIR_U64NUMBER:
+        case HIR_U32NUMBER:
+        case HIR_U16NUMBER:
+        case HIR_U8NUMBER:
+        case HIR_I64NUMBER:
+        case HIR_I32NUMBER:
+        case HIR_I16NUMBER:
+        case HIR_I8NUMBER:
         case HIR_NUMBER:
             if (strval) str_strncpy(subj->storage.num.value, strval, HIR_VAL_MSIZE);
         break;

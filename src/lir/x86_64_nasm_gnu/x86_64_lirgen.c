@@ -116,13 +116,8 @@ int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt) {
             case HIR_iMUL: 
             case HIR_iADD: x86_64_generate_binary_op(ctx, h, smt); break;
 
-            case HIR_IFOP:
-            case HIR_IFCPOP:
-            case HIR_IFNCPOP:
-            case HIR_IFLWOP:
-            case HIR_IFLWEOP:
-            case HIR_IFLGOP:
-            case HIR_IFLGEOP: x86_64_generate_ifop(ctx, h, smt); break;
+            // case HIR_IFOP:
+            case HIR_IFOP2: x86_64_generate_ifop(ctx, h, smt); break;
 
             default: break;
         }

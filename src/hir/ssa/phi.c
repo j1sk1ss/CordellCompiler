@@ -32,15 +32,6 @@ static int _insert_phi_instr(cfg_ctx_t* cctx, cfg_block_t* b, variable_info_t* v
 }
 
 int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
-    list_iter_t it;
-    list_iter_hinit(&cctx->funcs, &it);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&it))) {
-        HIR_CFG_compute_dom(fb);
-        HIR_CFG_compute_sdom(fb);
-        HIR_CFG_compute_domf(fb);
-    }
-
     map_iter_t mit;
     map_iter_init(&smt->v.vartb, &mit);
     variable_info_t* vh;

@@ -322,13 +322,7 @@ int HIR_isjmp(hir_operation_t op) {
         op == HIR_SYSC       ||
         op == HIR_STORE_SYSC ||
         op == HIR_JMP        ||
-        op == HIR_IFOP       ||
-        op == HIR_IFCPOP     ||
-        op == HIR_IFLGEOP    ||
-        op == HIR_IFLGOP     ||
-        op == HIR_IFLWEOP    ||
-        op == HIR_IFLWOP     ||
-        op == HIR_IFNCPOP
+        op == HIR_IFOP2
     ) return 1;
     return 0;
 }

@@ -5,27 +5,30 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* lbranch = cond->sibling;
     ast_node_t* rbranch = lbranch->sibling;
 
+    hir_subject_t* true_lb  = HIR_SUBJ_LABEL();
+    hir_subject_t* false_lb = HIR_SUBJ_LABEL();
+    hir_subject_t* end_lb   = HIR_SUBJ_LABEL();
+
     hir_subject_t* condtmp = HIR_generate_elem(cond, ctx, smt);
-    hir_subject_t* flb = HIR_SUBJ_LABEL();
-    hir_subject_t* elb = HIR_SUBJ_LABEL();
-    if (rbranch) HIR_BLOCK2(ctx, HIR_IFOP, condtmp, flb);
-    else HIR_BLOCK2(ctx, HIR_IFOP, condtmp, elb);
+    HIR_BLOCK3(ctx, HIR_IFOP2, condtmp, true_lb, rbranch ? false_lb : end_lb);
 
     if (lbranch) {
+        HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_generate_block(lbranch->child, ctx, smt);
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
-        if (rbranch) HIR_BLOCK1(ctx, HIR_JMP, elb);
+        HIR_BLOCK1(ctx, HIR_JMP, end_lb);
     }
 
     if (rbranch) {
-        HIR_BLOCK1(ctx, HIR_MKLB, flb);
+        HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
         HIR_generate_block(rbranch->child, ctx, smt);
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
+        HIR_BLOCK1(ctx, HIR_JMP, end_lb);
     }
 
-    HIR_BLOCK1(ctx, HIR_MKLB, elb);
+    HIR_BLOCK1(ctx, HIR_MKLB, end_lb);
     return 1;
 }
 
@@ -34,25 +37,21 @@ int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt)
     ast_node_t* lbranch = cond->sibling;
     ast_node_t* rbranch = lbranch->sibling;
     
-    hir_subject_t* entrylb = HIR_SUBJ_LABEL();
-    hir_subject_t* elb = HIR_SUBJ_LABEL();
+    hir_subject_t* entry_lb = HIR_SUBJ_LABEL();
+    hir_subject_t* body_lb  = HIR_SUBJ_LABEL();
+    hir_subject_t* end_lb   = HIR_SUBJ_LABEL();
 
-    HIR_BLOCK1(ctx, HIR_MKLB, entrylb);
-    HIR_BLOCK2(ctx, HIR_IFOP, HIR_generate_elem(cond, ctx, smt), elb);
+    HIR_BLOCK1(ctx, HIR_MKLB, entry_lb);
+    HIR_BLOCK3(ctx, HIR_IFOP2, HIR_generate_elem(cond, ctx, smt), body_lb, end_lb);
     if (lbranch) {
+        HIR_BLOCK1(ctx, HIR_MKLB, body_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_generate_block(lbranch->child, ctx, smt);
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
+        HIR_BLOCK1(ctx, HIR_JMP, entry_lb);
     }
 
-    HIR_BLOCK1(ctx, HIR_JMP, entrylb);
-    HIR_BLOCK1(ctx, HIR_MKLB, elb);
-    if (rbranch) {
-        HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
-        HIR_generate_block(rbranch->child, ctx, smt);
-        HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
-    }
-    
+    HIR_BLOCK1(ctx, HIR_MKLB, end_lb);
     return 1;
 }
 
@@ -75,18 +74,26 @@ static int _generate_case_binary_jump(
     int mid = (left + right) / 2; 
     int val = values[mid].v;
 
-    hir_subject_t* lower   = HIR_SUBJ_LABEL();
-    hir_subject_t* greater = HIR_SUBJ_LABEL();
+    hir_subject_t* lower         = HIR_SUBJ_LABEL();
+    hir_subject_t* eq_or_greater = HIR_SUBJ_LABEL();
+    hir_subject_t* greater       = HIR_SUBJ_LABEL();
+    hir_subject_t* equals        = HIR_SUBJ_LABEL();
 
-    HIR_BLOCK3(ctx, HIR_IFLWOP, cond, HIR_generate_conv(ctx, cond->t, HIR_SUBJ_CONST(val), smt), lower);
-    HIR_BLOCK3(ctx, HIR_IFLGOP, cond, HIR_generate_conv(ctx, cond->t, HIR_SUBJ_CONST(val), smt), greater);
-    HIR_BLOCK1(ctx, HIR_JMP, values[mid].l);
-
+    hir_subject_t* is_lwr = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
+    HIR_BLOCK3(ctx, HIR_iLWR, is_lwr, cond, HIR_generate_conv(ctx, cond->t, HIR_SUBJ_CONST(val), smt));
+    HIR_BLOCK3(ctx, HIR_IFOP2, is_lwr, lower, eq_or_greater);
     HIR_BLOCK1(ctx, HIR_MKLB, lower);
     _generate_case_binary_jump(values, cond, left, mid - 1, def, end, ctx, smt);
 
+    HIR_BLOCK1(ctx, HIR_MKLB, eq_or_greater);
+    hir_subject_t* is_grt = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
+    HIR_BLOCK3(ctx, HIR_iLRG, is_grt, cond, HIR_generate_conv(ctx, cond->t, HIR_SUBJ_CONST(val), smt));
+    HIR_BLOCK3(ctx, HIR_IFOP2, is_grt, greater, equals);
     HIR_BLOCK1(ctx, HIR_MKLB, greater);
     _generate_case_binary_jump(values, cond, mid + 1, right, def, end, ctx, smt);
+
+    HIR_BLOCK1(ctx, HIR_MKLB, equals);
+    HIR_BLOCK1(ctx, HIR_JMP, values[mid].l);
     return 1;
 }
 

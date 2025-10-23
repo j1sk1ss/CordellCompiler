@@ -21,7 +21,7 @@ typedef struct {
 
 #define HIR_VAL_MSIZE 128
 typedef struct {
-     char value[HIR_VAL_MSIZE];
+    char value[HIR_VAL_MSIZE];
 } hir_number_t;
 
 typedef struct {

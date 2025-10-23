@@ -70,14 +70,9 @@ typedef enum hir_operation {
 
     /* High level operations */
         /* Condition operator */
-        HIR_IFOP,         // if x, jmp z
-        HIR_IFLGOP,       // if x > y, jmp z
-        HIR_IFLGEOP,      // if x >= y, jmp z
-        HIR_IFLWOP,       // if x < y, jmp z
-        HIR_IFLWEOP,      // if x <= y, jmp z
-        HIR_IFCPOP,       // if x == y, jmp z
-        HIR_IFNCPOP,      // if x != y, jmp z
+        HIR_IFOP2,        // if x, jmp y, else z
 
+        /* System commands */
         HIR_PHI_PREAMBLE, // x_future = x_this_block
         HIR_PHI,          // base: x, new_var y, set: z (bb, v_id)
         HIR_VRDEALL,      // dealloc x
@@ -148,13 +143,25 @@ typedef enum hir_subject_type {
     HIR_STKVARU8,
     HIR_STKVARI8, // var.id
     HIR_CONSTVAL, // cnst.value
+    
     HIR_NUMBER,   // num.value
+    HIR_F64NUMBER,
+    HIR_F32NUMBER,
+    HIR_U64NUMBER,
+    HIR_U32NUMBER,
+    HIR_U16NUMBER,
+    HIR_U8NUMBER,
+    HIR_I64NUMBER,
+    HIR_I32NUMBER,
+    HIR_I16NUMBER,
+    HIR_I8NUMBER,
+
     HIR_LABEL,    // id
     HIR_RAWASM,   // str.id
     HIR_STRING,   // str.id
     HIR_FNAME,    // str.id
-    HIR_PHISET,      // set.h
-    HIR_ARGLIST,     // list.h
+    HIR_PHISET,   // set.h
+    HIR_ARGLIST,  // list.h
 } hir_subject_type_t;
 
 int HIR_allocop(hir_operation_t op);

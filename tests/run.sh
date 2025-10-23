@@ -146,7 +146,7 @@ TEST_CODES[test_dag]="
 TEST_SRCS[test_dfg]="
     src/prep/*.c src/symtab/*.c 
     src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/*/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dfg/*.c 
+    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dfg/*.c 
     std/*.c
 "
 

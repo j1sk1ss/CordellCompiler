@@ -44,7 +44,8 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_bOR:          return "bOR";
         case HIR_bXOR:         return "bXOR";
         case HIR_RAW:          return "RAW";
-        case HIR_IFOP:         return "IFOP";
+        // case HIR_IFOP:         return "IFOP";
+        case HIR_IFOP2:        return "IFOP2";
         case HIR_NOT:          return "NOT";
         case HIR_STORE:        return "STORE";
         case HIR_VARDECL:      return "VARDECL";
@@ -63,10 +64,6 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_REF:          return "REF";
         case HIR_EXITOP:       return "EXITOP";
         case HIR_CLNVRS:       return "HIR_CLNVRS";
-        case HIR_IFLWOP:       return "HIR_IFLWOP";
-        case HIR_IFLGOP:       return "HIR_IFLGOP";
-        case HIR_IFNCPOP:      return "HIR_IFNCPOP";
-        case HIR_IFCPOP:       return "HIR_IFCPOP";
         case HIR_STEND:        return "HIR_STEND";
         case HIR_MKSCOPE:      return "MKSCOPE";
         case HIR_ENDSCOPE:     return "ENDSCOPE";
@@ -187,7 +184,8 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_bOR:        return "%s = %s | %s;\n";
         case HIR_bXOR:       return "%s = %s ^ %s;\n";
         case HIR_RAW:        return "[raw, \"%s\"]\n";
-        case HIR_IFOP:       return "if %s, goto %s;\n";
+        // case HIR_IFOP:       return "if %s, goto %s;\n";
+        case HIR_IFOP2:      return "if %s, goto %s, else goto %s;\n";
         case HIR_NOT:        return "%s = not %s;\n";
         case HIR_STORE:      return "%s = %s;\n";
         case HIR_VRUSE:      return "use %s;\n";
@@ -212,12 +210,6 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_GDREF:     return "%s = *(%s);\n";
         case HIR_LDREF:     return "*(%s) = %s;\n";
         case HIR_REF:       return "%s = &(%s);\n";
-        case HIR_IFLWOP:    return "if %s < %s, goto %s;\n";
-        case HIR_IFLWEOP:   return "if %s <= %s, goto %s;\n";
-        case HIR_IFLGOP:    return "if %s > %s, goto %s;\n";
-        case HIR_IFLGEOP:   return "if %s >= %s, goto %s;\n";
-        case HIR_IFNCPOP:   return "if %s != %s, goto %s;\n";
-        case HIR_IFCPOP:    return "if %s == %s, goto %s;\n";
         case HIR_EXITOP:    return "exit %s;\n";
         case HIR_STEND:     return "}\n";
         case HIR_PHI:       return "[%s] %s = phi(%s);\n";

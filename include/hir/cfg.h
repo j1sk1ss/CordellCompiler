@@ -57,6 +57,7 @@ int HIR_CFG_compute_domf(cfg_func_t* func);
 int HIR_CFG_compute_dom(cfg_func_t* func);
 int HIR_CFG_compute_sdom(cfg_func_t* func);
 int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out);
+int HIR_CFG_create_domdata(cfg_ctx_t* cctx);
 
 int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx);
 cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid);
