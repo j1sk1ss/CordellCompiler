@@ -18,9 +18,9 @@ int x86_64_generate_asmblock(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, s
 
         case HIR_STASM: {
             list_iter_t it;
-            list_iter_hinit(&h->targ->storage.list.h, &it);
+            list_iter_tinit(&h->targ->storage.list.h, &it);
             hir_subject_t* s;
-            while ((s = list_iter_next(&it))) stack_push(params, s);
+            while ((s = list_iter_prev(&it))) stack_push(params, s);
             break;
         }
 

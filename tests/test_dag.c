@@ -60,9 +60,9 @@ int main(int argc, char* argv[]) {
     cfg_print(&cfgctx);
 
     dag_ctx_t dagctx;
-    map_init(&dagctx.dag);
-    map_init(&dagctx.groups);
+    HIR_DAG_init(&dagctx);
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);
+    HIR_DAG_sparse_const_propagation(&dagctx);
     dump_dag_dot(&dagctx, &smt);
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
 

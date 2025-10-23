@@ -21,7 +21,8 @@ ast_node_t* cpl_parse_import(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* sm
         }
 
         AST_add_node(source_node, fname);
-        forward_token(it, 1); /* TODO: Symtab function add */
+        FNTB_add_info(fname->token->value, 1, 0, NULL, NULL, &smt->f);
+        forward_token(it, 1);
     }
 
     AST_add_node(node, source_node);

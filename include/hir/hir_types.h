@@ -106,7 +106,7 @@ typedef enum hir_operation {
 } hir_operation_t;
 
 typedef enum hir_subject_type {
-    HIR_TMPVARSTR,
+    HIR_TMPVARSTR, // tmp variables
     HIR_TMPVARARR,
     HIR_TMPVARF64,
     HIR_TMPVARU64,
@@ -118,7 +118,8 @@ typedef enum hir_subject_type {
     HIR_TMPVARI16,
     HIR_TMPVARU8,
     HIR_TMPVARI8,
-    HIR_GLBVARSTR,
+
+    HIR_GLBVARSTR, // global variables
     HIR_GLBVARARR,
     HIR_GLBVARF64,
     HIR_GLBVARU64,
@@ -130,7 +131,8 @@ typedef enum hir_subject_type {
     HIR_GLBVARI16,
     HIR_GLBVARU8,
     HIR_GLBVARI8,
-    HIR_STKVARSTR,
+
+    HIR_STKVARSTR, // local (stack) variables
     HIR_STKVARARR,
     HIR_STKVARF64,
     HIR_STKVARU64,
@@ -141,9 +143,20 @@ typedef enum hir_subject_type {
     HIR_STKVARU16,
     HIR_STKVARI16,
     HIR_STKVARU8,
-    HIR_STKVARI8, // var.id
-    HIR_CONSTVAL, // cnst.value
-    
+    HIR_STKVARI8,  // var.id
+
+    HIR_CONSTVAL,  // cnst.value
+    HIR_F64CONSTVAL,
+    HIR_F32CONSTVAL,
+    HIR_U64CONSTVAL,
+    HIR_U32CONSTVAL,
+    HIR_U16CONSTVAL,
+    HIR_U8CONSTVAL,
+    HIR_I64CONSTVAL,
+    HIR_I32CONSTVAL,
+    HIR_I16CONSTVAL,
+    HIR_I8CONSTVAL,
+
     HIR_NUMBER,   // num.value
     HIR_F64NUMBER,
     HIR_F32NUMBER,
@@ -184,5 +197,6 @@ int HIR_issyst(hir_operation_t op);
 hir_operation_t HIR_convop(hir_subject_type_t t);
 int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
 int HIR_commutative_op(hir_operation_t op);
+int HIR_defined_type(hir_subject_type_t t);
 
 #endif

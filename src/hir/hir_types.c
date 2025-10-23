@@ -128,9 +128,33 @@ int HIR_is_floattype(hir_subject_type_t t) {
     }
 }
 
+int HIR_defined_type(hir_subject_type_t t) {
+    switch (t) {
+        case HIR_I64NUMBER:
+        case HIR_I32NUMBER:
+        case HIR_I16NUMBER:
+        case HIR_I8NUMBER:
+        case HIR_NUMBER:
+        case HIR_I64CONSTVAL:
+        case HIR_I32CONSTVAL:
+        case HIR_I16CONSTVAL:
+        case HIR_I8CONSTVAL:
+        case HIR_CONSTVAL: return 1;
+        default: return 0;
+    }
+}
+
 int HIR_is_signtype(hir_subject_type_t t) {
     switch (t) {
+        case HIR_I64NUMBER:
+        case HIR_I32NUMBER:
+        case HIR_I16NUMBER:
+        case HIR_I8NUMBER:
         case HIR_NUMBER:
+        case HIR_I64CONSTVAL:
+        case HIR_I32CONSTVAL:
+        case HIR_I16CONSTVAL:
+        case HIR_I8CONSTVAL:
         case HIR_CONSTVAL:
         case HIR_TMPVARI8:  
         case HIR_TMPVARI16: 

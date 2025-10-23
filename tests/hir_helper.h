@@ -83,55 +83,6 @@ static const char* hir_op_to_string(hir_operation_t op) {
     }
 }
 
-static void print_hir_subject(const hir_subject_t* s) {
-    if (!s) return;
-    switch (s->t) {
-        case HIR_STKVARSTR:  printf("strs: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARARR:  printf("arrs: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARF64:  printf("f64s: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARU64:  printf("u64s: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARI64:  printf("i64s: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARF32:  printf("f32s: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARU32:  printf("u32s: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARI32:  printf("i32s: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARU16:  printf("u16s: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARI16:  printf("i16s: [vid=%d]", s->storage.var.v_id);   break;
-        case HIR_STKVARU8:   printf("u8s: [vid=%d]", s->storage.var.v_id);    break;
-        case HIR_STKVARI8:   printf("i8s: [vid=%d]", s->storage.var.v_id);    break;
-        case HIR_TMPVARSTR:  printf("strt: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARARR:  printf("arrt: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARF64:  printf("f64t: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARU64:  printf("u64t: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARI64:  printf("i64t: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARF32:  printf("f32t: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARU32:  printf("u32t: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARI32:  printf("i32t: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARU16:  printf("u16t: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARI16:  printf("i16t: [tid=%d]", s->storage.var.v_id);   break;
-        case HIR_TMPVARU8:   printf("u8t: [tid=%d]", s->storage.var.v_id);    break;
-        case HIR_TMPVARI8:   printf("i8t: [tid=%d]", s->storage.var.v_id);    break;
-        case HIR_GLBVARSTR:  printf("strg: [gid=%i]", s->storage.var.v_id);   break;
-        case HIR_GLBVARARR:  printf("arrg: [gid=%i]", s->storage.var.v_id);   break;
-        case HIR_GLBVARF64:  printf("f64g: [gid=%i]", s->storage.var.v_id);   break;
-        case HIR_GLBVARU64:  printf("u64g: [gid=%i]", s->storage.var.v_id);   break;
-        case HIR_GLBVARI64:  printf("i64g: [gid=%i]", s->storage.var.v_id);   break;
-        case HIR_GLBVARF32:  printf("f32g: [gid=%i]", s->storage.var.v_id);   break;  
-        case HIR_GLBVARU32:  printf("u32g: [gid=%i]", s->storage.var.v_id);   break;
-        case HIR_GLBVARI32:  printf("i32g: [gid=%i]", s->storage.var.v_id);   break;
-        case HIR_GLBVARU16:  printf("u16g: [gid=%i]", s->storage.var.v_id);   break;
-        case HIR_GLBVARI16:  printf("i16g: [gid=%i]", s->storage.var.v_id);   break;
-        case HIR_GLBVARU8:   printf("i8g: [git=%i]", s->storage.var.v_id);    break;
-        case HIR_GLBVARI8:   printf("u8g: [git=%i]", s->storage.var.v_id);    break;
-        case HIR_NUMBER:     printf("n%s", s->storage.num.value);             break;
-        case HIR_CONSTVAL:   printf("c%ld", s->storage.cnst.value);           break;
-        case HIR_LABEL:      printf("lb: [id=%d]", s->id);                    break;
-        case HIR_RAWASM:     printf("asm: [std_id=%i]", s->storage.str.s_id); break;
-        case HIR_STRING:     printf("str: [std_id=%i]", s->storage.str.s_id); break;
-        case HIR_FNAME:      printf("func: [fid=%i]", s->storage.str.s_id);   break;
-        default: printf("unknw"); break;
-    }
-}
-
 static int _depth = 0;
 static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
     switch(op) {
@@ -270,10 +221,31 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
     }
     else {
         switch (s->t) {
-            case HIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);     break;
-            case HIR_CONSTVAL: dst += sprintf(dst, "const: %ld", s->storage.cnst.value); break;
-            case HIR_LABEL:    dst += sprintf(dst, "lb%d", s->id);                       break;
+            case HIR_F64NUMBER:  dst += sprintf(dst, "f64n: %s", s->storage.num.value); break;
+            case HIR_I64NUMBER:  dst += sprintf(dst, "i64n: %s", s->storage.num.value); break;
+            case HIR_U64NUMBER:  dst += sprintf(dst, "u64n: %s", s->storage.num.value); break;
+            case HIR_F32NUMBER:  dst += sprintf(dst, "f32n: %s", s->storage.num.value); break;
+            case HIR_I32NUMBER:  dst += sprintf(dst, "i32n: %s", s->storage.num.value); break;
+            case HIR_U32NUMBER:  dst += sprintf(dst, "u32n: %s", s->storage.num.value); break;
+            case HIR_I16NUMBER:  dst += sprintf(dst, "i16n: %s", s->storage.num.value); break;
+            case HIR_U16NUMBER:  dst += sprintf(dst, "u16n: %s", s->storage.num.value); break;  
+            case HIR_I8NUMBER:   dst += sprintf(dst, "i8n: %s", s->storage.num.value);  break;
+            case HIR_U8NUMBER:   dst += sprintf(dst, "u8n: %s", s->storage.num.value);  break;
+            case HIR_NUMBER:     dst += sprintf(dst, "num?: %s", s->storage.num.value); break;
 
+            case HIR_F64CONSTVAL: dst += sprintf(dst, "f64c: %s", s->storage.cnst.value);   break;
+            case HIR_I64CONSTVAL: dst += sprintf(dst, "i64c: %s", s->storage.cnst.value);   break;
+            case HIR_U64CONSTVAL: dst += sprintf(dst, "u64c: %s", s->storage.cnst.value);   break;
+            case HIR_F32CONSTVAL: dst += sprintf(dst, "f32c: %s", s->storage.cnst.value);   break;
+            case HIR_I32CONSTVAL: dst += sprintf(dst, "i32c: %s", s->storage.cnst.value);   break;
+            case HIR_U32CONSTVAL: dst += sprintf(dst, "u32c: %s", s->storage.cnst.value);   break;
+            case HIR_I16CONSTVAL: dst += sprintf(dst, "i16c: %s", s->storage.cnst.value);   break;
+            case HIR_U16CONSTVAL: dst += sprintf(dst, "u16c: %s", s->storage.cnst.value);   break;
+            case HIR_I8CONSTVAL:  dst += sprintf(dst, "i8c: %s", s->storage.cnst.value);    break;
+            case HIR_U8CONSTVAL:  dst += sprintf(dst, "u8c: %s", s->storage.cnst.value);    break;
+            case HIR_CONSTVAL:    dst += sprintf(dst, "cnst?: %ld", s->storage.cnst.value); break;
+
+            case HIR_LABEL: dst += sprintf(dst, "lb%d", s->id); break;
             case HIR_RAWASM:
             case HIR_STRING: {
                 str_info_t si;
@@ -325,7 +297,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             }
 
             case HIR_ARGLIST: {
-                dst += sprintf(dst, "list: ");
+                dst += sprintf(dst, "args: ");
 
                 list_iter_t it;
                 list_iter_hinit(&s->storage.list.h, &it);
@@ -342,7 +314,6 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
         }
     }
 
-    // dst += sprintf(dst, " addr=%p", s);
     return dst;
 }
 

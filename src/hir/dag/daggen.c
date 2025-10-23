@@ -47,7 +47,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                     case HIR_TU64: case HIR_TU32: case HIR_TU16: case HIR_TU8:
                     case HIR_iADD: case HIR_iSUB: case HIR_iMUL: case HIR_iDIV:
                     case HIR_iMOD: case HIR_iLRG: case HIR_iLGE: case HIR_iLWR:
-                    case HIR_iLRE: case HIR_iCMP: case HIR_iNMP:
+                    case HIR_iLRE: case HIR_iCMP: case HIR_iNMP: case HIR_NOT:
                     case HIR_iAND: case HIR_iOR: case HIR_iBLFT: case HIR_iBRHT:
                     case HIR_bAND: case HIR_bOR: case HIR_bXOR: {
                         dag_node_t* src1 = DAG_GET_NODE(dctx, hh->sarg);
@@ -55,19 +55,18 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         dag_node_t* dst  = DAG_GET_NODE(dctx, hh->farg);
                         if (!dst) break;
 
-                        dst->hash = hh->op * 1315423911UL;
-                        if (src1) {
-                            set_add(&dst->args, src1);
-                            dst->hash ^= HIR_DAG_compute_hash(src1) + (dst->hash << 6) + (dst->hash >> 2);
-                        }
+                        if (HIR_commutative_op(hh->op)) dst->hash = HIR_DAG_compute_hash(dst);
+                        else {
+                            dst->hash = hh->op * 1315423911UL;
+                            if (src1) {
+                                set_add(&dst->args, src1);
+                                dst->hash ^= HIR_DAG_compute_hash(src1) + (dst->hash << 6) + (dst->hash >> 2);
+                            }
 
-                        if (src2) {
-                            set_add(&dst->args, src2);
-                            dst->hash ^= HIR_DAG_compute_hash(src2) + (dst->hash << 6) + (dst->hash >> 2);
-                        }
-
-                        if (HIR_commutative_op(hh->op)) {
-                            dst->hash = HIR_DAG_compute_hash(dst);
+                            if (src2) {
+                                set_add(&dst->args, src2);
+                                dst->hash ^= HIR_DAG_compute_hash(src2) + (dst->hash << 6) + (dst->hash >> 2);
+                            }
                         }
 
                         dst->op   = hh->op;

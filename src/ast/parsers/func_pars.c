@@ -15,12 +15,13 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* sm
                 return NULL;
             }
 
-            AST_add_node(node, arg);
+            AST_add_node(node, arg); /* Add to symtab as external */
         }
         else if (((token_t*)list_iter_current(it))->t_type == FUNC_NAME_TOKEN) {
-            ast_node_t* name_node = AST_create_node((token_t*)list_iter_current(it));
-            AST_add_node(node, name_node);
-            forward_token(it, 1); // TODO: Functab add function
+            ast_node_t* fname = AST_create_node((token_t*)list_iter_current(it));
+            AST_add_node(node, fname);
+            FNTB_add_info(fname->token->value, 1, 1, NULL, NULL, &smt->f);
+            forward_token(it, 1);
         }
     }
 

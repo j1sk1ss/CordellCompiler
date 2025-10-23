@@ -3,8 +3,30 @@
 lir_subject_t* x86_64_format_variable(lir_ctx_t* ctx, hir_subject_t* subj, sym_table_t* smt) {
     if (!subj) return NULL;
     switch (subj->t) {
+        case HIR_F64NUMBER:
+        case HIR_I64NUMBER:
+        case HIR_U64NUMBER:
+        case HIR_F32NUMBER:
+        case HIR_I32NUMBER:
+        case HIR_U32NUMBER:
+        case HIR_I16NUMBER:
+        case HIR_U16NUMBER:
+        case HIR_I8NUMBER:
+        case HIR_U8NUMBER:
         case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value);
+
+        case HIR_F64CONSTVAL:
+        case HIR_I64CONSTVAL:
+        case HIR_U64CONSTVAL:
+        case HIR_F32CONSTVAL:
+        case HIR_I32CONSTVAL:
+        case HIR_U32CONSTVAL:
+        case HIR_I16CONSTVAL:
+        case HIR_U16CONSTVAL:
+        case HIR_I8CONSTVAL:
+        case HIR_U8CONSTVAL:
         case HIR_CONSTVAL: return LIR_SUBJ_CONST(subj->storage.cnst.value);
+        
         case HIR_RAWASM:   return LIR_SUBJ_RAWASM(subj->storage.str.s_id);
         case HIR_STRING: {
             lir_subject_t* res = LIR_SUBJ_REG(RAX, DEFAULT_TYPE_SIZE);
