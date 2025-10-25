@@ -111,6 +111,7 @@ TEST_CODES[test_cfg]="
     tests/dummy_data/hir/cfg/cfg_1.cpl
     tests/dummy_data/hir/cfg/cfg_2.cpl
     tests/dummy_data/hir/cfg/cfg_3.cpl
+    tests/dummy_data/hir/cfg/cfg_4.cpl
 "
 
 TEST_SRCS[test_ssa]="

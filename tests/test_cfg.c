@@ -61,6 +61,7 @@ int main(int argc, char* argv[]) {
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&irctx, &cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
+    HIR_CFG_loop_canonicalization(&cfgctx);
     cfg_print(&cfgctx);
 
     HIR_unload_blocks(irctx.h);

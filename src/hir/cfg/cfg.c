@@ -23,25 +23,24 @@ cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
     return block;
 }
 
-int CFG_insert_cfg_block(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next) {
-    if (!f || !b || !next) return 0;
+int CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* trg) {
+    if (!f || !b || !trg) return 0;
     list_add(&f->blocks, b);
+    b->l = trg;
 
-    b->l   = next;
-    b->jmp = NULL;
-
-    set_iter_t pit;
-    set_iter_init(&next->pred, &pit);
+    set_iter_t it;
+    set_iter_init(&trg->pred, &it);
     cfg_block_t* p;
-    while (set_iter_next(&pit, (void**)&p)) {
-        if (p->l == next)   p->l   = b;
-        if (p->jmp == next) p->jmp = b;
-        set_add(&b->pred, p);
+    while (set_iter_next(&it, (void**)&p)) {
+        if (p->l && p->l == trg)     p->l   = b;
+        if (p->jmp && p->jmp == trg) p->jmp = b;
     }
 
-    set_free(&next->pred);
-    set_init(&next->pred);
-    set_add(&next->pred, b);
+    set_copy(&b->pred, &trg->pred);
+    set_free(&trg->pred);
+
+    set_init(&trg->pred);
+    set_add(&trg->pred, b);
     return 1;
 }
 
