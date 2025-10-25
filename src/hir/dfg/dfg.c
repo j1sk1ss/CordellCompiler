@@ -21,14 +21,14 @@ int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             set_init(&cb->def);
-            hir_block_t* hh = cb->entry;
+            hir_block_t* hh = cb->hmap.entry;
             while (hh) {
                 if (!hh->unused) {
                     if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t)) set_add(&cb->def, (void*)hh->sarg->storage.var.v_id);
                     else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t)) set_add(&cb->def, (void*)hh->farg->storage.var.v_id);
                 }
 
-                if (hh == cb->exit) break;
+                if (hh == cb->hmap.exit) break;
                 hh = hh->next;
             }
         }
@@ -47,7 +47,7 @@ int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             set_init(&cb->use);
-            hir_block_t* hh = cb->entry;
+            hir_block_t* hh = cb->hmap.entry;
             while (hh) {
                 if (!hh->unused) {
                     hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
@@ -74,7 +74,7 @@ int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
                     }
                 }
 
-                if (hh == cb->exit) break;
+                if (hh == cb->hmap.exit) break;
                 hh = hh->next;
             }
         }

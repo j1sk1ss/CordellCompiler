@@ -156,7 +156,7 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             int has_def = 0;
-            hir_block_t* hh = cb->entry;
+            hir_block_t* hh = cb->hmap.entry;
             while (hh) {
                 if (HIR_writeop(hh->op)) {
                     if (hh->farg && HIR_is_vartype(hh->farg->t) && !HIR_is_tmptype(hh->farg->t)) {
@@ -167,7 +167,7 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
                     }
                 }
                 
-                if (hh == cb->exit) break;
+                if (hh == cb->hmap.exit) break;
                 hh = hh->next;
             }
 

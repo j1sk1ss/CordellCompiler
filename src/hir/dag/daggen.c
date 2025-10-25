@@ -24,7 +24,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            hir_block_t* hh = cb->entry;
+            hir_block_t* hh = cb->hmap.entry;
             while (hh) {
                 switch (hh->op) {
                     case HIR_PHI_PREAMBLE:
@@ -94,7 +94,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                     default: break;
                 }
 
-                if (hh == cb->exit) break;
+                if (hh == cb->hmap.exit) break;
                 hh = hh->next;
             }
         }

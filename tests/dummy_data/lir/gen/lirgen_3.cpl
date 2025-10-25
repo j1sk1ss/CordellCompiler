@@ -1,13 +1,13 @@
 {
     start(i64 argc, ptr u64 argv) {
         i32 a = 10;
-        i32 b;
-        asm (ref a, b) {
-            "mov rax, %0",
-            "mov rax, [rax]",
-            "mov %1, rax"
+        if argc == 1; {
+            a = 12;
+        }
+        else {
+            a = 13;
         }
 
-        exit b;
+        exit a;
     }
 }

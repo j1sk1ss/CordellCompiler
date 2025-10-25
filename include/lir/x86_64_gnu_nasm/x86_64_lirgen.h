@@ -47,6 +47,6 @@ int x86_64_generate_ifop(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
 int x86_64_generate_conv(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
 
 /* x86_64_lirgen.c */
-int x86_64_generate_lir(hir_ctx_t* hctx, lir_ctx_t* ctx, sym_table_t* smt);
+int x86_64_generate_lir(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

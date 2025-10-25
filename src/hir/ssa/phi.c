@@ -5,10 +5,10 @@ phi.c - Calculate positions of PHI functions for variables and create placeholde
 #include <hir/ssa.h>
 
 static int _has_phi(cfg_block_t* b, long v_id) {
-    hir_block_t* h = b->entry;
+    hir_block_t* h = b->hmap.entry;
     while (h) {
         if (h->op == HIR_PHI && h->farg && h->farg->storage.var.v_id == v_id) return 1;
-        if (h == b->exit) break;
+        if (h == b->hmap.exit) break;
         h = h->next;
     }
 
@@ -16,18 +16,18 @@ static int _has_phi(cfg_block_t* b, long v_id) {
 }
 
 static int _insert_phi_instr(cfg_ctx_t* cctx, cfg_block_t* b, variable_info_t* vi) {
-    if (!b->entry) return 0;
+    if (!b->hmap.entry) return 0;
 
-    hir_block_t* hh = b->entry;
+    hir_block_t* hh = b->hmap.entry;
     while (hh) {
         if (hh->op == HIR_PHI && hh->farg->storage.var.v_id == vi->v_id) return 0;
-        if (hh == b->exit) break;
+        if (hh == b->hmap.exit) break;
         hh = hh->next;
     }
 
     hir_block_t* phi = HIR_create_block(HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(vi), vi->s_id), NULL, HIR_SUBJ_SET());
-    HIR_insert_block_before(phi, b->entry);
-    b->entry = phi;
+    HIR_insert_block_before(phi, b->hmap.entry);
+    b->hmap.entry = phi;
     return 1;
 }
 

@@ -12,6 +12,9 @@ Third version of this compiler (WIP). Full structure refactoring (from `token` -
 ## CFG BB genration changed
 Previous version of BB generation includes complex if operations without two jmps support, that's why leaders from DragonBook works incorrect. Now there is no IFLWR, IFGRT and similar operations, only IFOP2.
 
+## LIR generation based on CFG instead raw HIR
+Now LIR generator works only with CFG data instead raw HIR list. Also, LIR generator produces not only raw LIR list. Now it produces updated meta information for base blocks in CFG (entry and exit for LIR list for asm generator).
+
 ## Constant propagation 
 HIR_DAG_sparse_const_propagation function implemented. Also there is a new types for numbers and contants (constants and numbers for f/u/i 64/32/16/8). 
 

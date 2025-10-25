@@ -67,7 +67,7 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
             NULL
         );
 
-        HIR_insert_block_before(union_command, trg->exit);
+        HIR_insert_block_before(union_command, trg->hmap.exit);
         break;
     }
 
@@ -77,7 +77,7 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
 static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
     if (!b || set_has(&b->visitors, (void*)prev_bid)) return 0;
 
-    hir_block_t* hh = b->entry;
+    hir_block_t* hh = b->hmap.entry;
     while (hh) {
         switch (hh->op) {
             case HIR_PHI: {
@@ -125,7 +125,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
             }
         }
 
-        if (hh == b->exit) break;
+        if (hh == b->hmap.exit) break;
         hh = hh->next;
     }
 

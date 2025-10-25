@@ -38,7 +38,7 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                 set_free_force(&owners);
                 if (hasown) continue;
-                HIR_insert_block_after(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->exit);
+                HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->hmap.exit);
 
                 map_iter_t mit;
                 map_iter_init(&smt->m.allias, &mit);
@@ -46,7 +46,7 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                 while (map_iter_next(&mit, (void**)&al)) {
                     if (!set_has(&al->owners, (void*)vid)) continue;
                     if (ALLIAS_mark_owner(al->v_id, vid, &smt->m)) {
-                        HIR_insert_block_after(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(al->v_id), NULL, NULL), cb->exit);
+                        HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(al->v_id), NULL, NULL), cb->hmap.exit);
                         set_free_force(&al->delown);
                         set_init(&al->delown);
                     }

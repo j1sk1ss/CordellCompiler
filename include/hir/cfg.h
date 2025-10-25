@@ -6,6 +6,7 @@
 #include <std/str.h>
 #include <std/list.h>
 #include <hir/hir.h>
+#include <lir/lir.h>
 
 typedef struct {
     /* Basic info and content */
@@ -19,12 +20,23 @@ typedef struct {
     list_t       blocks;
 } cfg_func_t;
 
+typedef struct {
+    hir_block_t* entry;
+    hir_block_t* exit;
+} hir_map_t;
+
+typedef struct {
+    lir_block_t* entry;
+    lir_block_t* exit;
+} lir_map_t;
+
 typedef struct cfg_block {
     /* Basic info and content */
     long              id;
     cfg_func_t*       pfunc; /* parent function */
-    hir_block_t*      entry;
-    hir_block_t*      exit;
+
+    hir_map_t         hmap; /* Mapping to exister HIR ctx */
+    lir_map_t         lmap; /* Mapping to existed LIR ctx */
 
     /* Block navigation */
     struct cfg_block* l;
@@ -52,6 +64,8 @@ typedef struct {
     long   cid;
     list_t funcs;
 } cfg_ctx_t;
+
+int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx);
 
 int HIR_CFG_compute_domf(cfg_func_t* func);
 int HIR_CFG_compute_dom(cfg_func_t* func);

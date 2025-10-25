@@ -430,20 +430,25 @@ static void _print_set_int(FILE* out, set_t* s) {
     fprintf(out, "}");
 }
 
-static int _export_dot_func(cfg_func_t* f) {
+static int _export_dot_func_hir(cfg_func_t* f) {
     printf("digraph CFG_func%d {\n", f->id);
     printf("  rankdir=TB;\n");
+    printf("  node [shape=box, fontname=\"monospace\"];\n");
+
+    int ishead = 1;
 
     list_iter_t bit;
     list_iter_hinit(&f->blocks, &bit);
     cfg_block_t* cb;
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s",
+        printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s%s",
                cb->id, cb->id,
-               cb->entry ? hir_op_to_string(cb->entry->op) : "NULL", 
-               cb->entry && cb->entry->op == HIR_MKLB ? cb->entry->farg->id : -1,
-               cb->exit  ? hir_op_to_string(cb->exit->op)  : "NULL");
+               cb->hmap.entry ? hir_op_to_string(cb->hmap.entry->op) : "NULL", 
+               cb->hmap.entry && cb->hmap.entry->op == HIR_MKLB ? cb->hmap.entry->farg->id : -1,
+               cb->hmap.exit  ? hir_op_to_string(cb->hmap.exit->op)  : "NULL",
+               ishead ? "\\nHEAD" : "");
 
+        ishead = 0;
         printf("\\nIN=");
         _print_set_int(stdout, &cb->curr_in);
         printf("\\nDEF=");
@@ -452,6 +457,7 @@ static int _export_dot_func(cfg_func_t* f) {
         _print_set_int(stdout, &cb->use);
         printf("\\nOUT=");
         _print_set_int(stdout, &cb->curr_out);
+        printf("\\nPREDS=%i", set_size(&cb->pred)); 
 
         printf("\"];\n");
 
@@ -470,8 +476,8 @@ void cfg_print(cfg_ctx_t* ctx) {
     list_iter_hinit(&ctx->funcs, &fit);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        printf("==== CFG DOT ====\n");
-        _export_dot_func(fb);
+        printf("==== CFG DOT (HIR) ====\n");
+        _export_dot_func_hir(fb);
         printf("==== DOM DOT ====\n");
         _dump_all_dom_dot(fb);
         printf("==== SDOM DOT ====\n");

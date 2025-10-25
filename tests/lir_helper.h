@@ -146,7 +146,51 @@ static void print_lir_block(lir_block_t* b) {
     print_lir_subject(b->farg); if (b->sarg) printf(", ");
     print_lir_subject(b->sarg); if (b->targ) printf(", ");
     print_lir_subject(b->targ);
-    printf("\n");
+    // printf("\n");
+}
+
+static int _export_dot_func_lir(cfg_func_t* f) {
+    printf("digraph CFG_func%d {\n", f->id);
+    printf("  rankdir=TB;\n");
+    printf("  node [shape=box, fontname=\"monospace\"];\n");
+
+    list_iter_t bit;
+    list_iter_hinit(&f->blocks, &bit);
+    cfg_block_t* cb;
+
+    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        printf("  B%ld [label=\"B%ld:\\n", cb->id, cb->id);
+
+        lir_block_t* instr = cb->lmap.entry;
+        while (instr) {
+            print_lir_block(instr);
+            if (instr->op == HIR_MKLB && instr->farg) printf(" %d", instr->farg->id);
+            printf("\\l");
+            if (instr == cb->lmap.exit) break;
+            instr = instr->next;
+        }
+
+        printf("\"];\n");
+
+        if (cb->l) printf("  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
+        if (cb->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
+    }
+
+    printf("}\n");
+    return 1;
+}
+
+void lir_cfg_print(cfg_ctx_t* ctx) {
+    printf("==== CFG (LIR) DUMP ====\n");
+
+    list_iter_t fit;
+    list_iter_hinit(&ctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        _export_dot_func_lir(fb);
+    }
+
+    printf("==================\n");
 }
 
 #endif

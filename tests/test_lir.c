@@ -14,7 +14,6 @@
 #include <hir/dag.h>
 #include <hir/dfg.h>
 #include <hir/ra.h>
-#include <hir/opt/hir_cleaner.h>
 
 #include <lir/lirgen.h>
 #include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
@@ -64,6 +63,7 @@ int main(int argc, char* argv[]) {
 
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&hirctx, &cfgctx);
+    HIR_CFG_create_domdata(&cfgctx);
     
     ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
@@ -73,7 +73,6 @@ int main(int argc, char* argv[]) {
     HIR_DAG_init(&dagctx);
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
-    HIR_CLN_remove_unused_variables(&cfgctx);
     
     dump_dag_dot(&dagctx, &smt);
 
@@ -101,17 +100,13 @@ int main(int argc, char* argv[]) {
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL, .vars = &clrs };
     lir_gen_t lirgen = {
-        .generate = x86_64_generate_lir
+        .generate = x86_64_generate_lir,
+        .mvclean  = x86_64_clean_mov
     };
 
-    LIR_generate(&hirctx, &lirgen, &lirctx, &smt);
-
-    printf("\n\n========== x86_64 LIR ==========\n");
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh);
-        lh = lh->next;
-    }
+    HIR_CFG_cleanup_blocks_temporaries(&cfgctx);
+    LIR_generate(&cfgctx, &lirgen, &lirctx, &smt);
+    lir_cfg_print(&cfgctx);
 
     print_symtab(&smt);
 

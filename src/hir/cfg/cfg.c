@@ -8,8 +8,8 @@ cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
     cfg_block_t* block = (cfg_block_t*)mm_malloc(sizeof(cfg_block_t));
     if (!block) return NULL;
     str_memset(block, 0, sizeof(cfg_block_t));
-    block->entry = e;
-    block->exit  = e;
+    block->hmap.entry = e;
+    block->hmap.exit  = e;
     set_init(&block->visitors);
     set_init(&block->pred);
     set_init(&block->curr_in);
@@ -25,7 +25,6 @@ cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
 
 int CFG_insert_cfg_block(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next) {
     if (!f || !b || !next) return 0;
-
     list_add(&f->blocks, b);
 
     b->l   = next;
@@ -49,9 +48,9 @@ int CFG_insert_cfg_block(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next) {
 static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, cfg_ctx_t* ctx) {
     cfg_block_t* b = CFG_create_cfg_block(entry);
     if (!b) return 0;
-    b->id    = ctx->cid++;
-    b->exit  = exit;
-    b->pfunc = f;
+    b->id        = ctx->cid++;
+    b->hmap.exit = exit;
+    b->pfunc     = f;
     return list_add(&f->blocks, b);
 }
 
@@ -98,21 +97,21 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            switch (cb->exit->op) {
+            switch (cb->hmap.exit->op) {
                 case HIR_FRET: 
                 case HIR_FEND:
                 case HIR_STEND: 
                 case HIR_EXITOP: break;
 
                 case HIR_JMP: {
-                    cfg_block_t* lb = HIR_CFG_function_findlb(fb, cb->exit->farg->id);
+                    cfg_block_t* lb = HIR_CFG_function_findlb(fb, cb->hmap.exit->farg->id);
                     cb->jmp = lb;
                     break;
                 }
 
                 case HIR_IFOP2: {
-                    cb->l   = HIR_CFG_function_findlb(fb, cb->exit->sarg->id);
-                    cb->jmp = HIR_CFG_function_findlb(fb, cb->exit->targ->id);
+                    cb->l   = HIR_CFG_function_findlb(fb, cb->hmap.exit->sarg->id);
+                    cb->jmp = HIR_CFG_function_findlb(fb, cb->hmap.exit->targ->id);
                     break;
                 }
 
@@ -129,6 +128,29 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             if (cb->l)   set_add(&cb->l->pred, cb);
             if (cb->jmp) set_add(&cb->jmp->pred, cb);
+        }
+    }
+
+    return 1;
+}
+
+int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            set_free(&cb->prev_in);
+            set_init(&cb->prev_in);
+            
+            set_free(&cb->prev_out);
+            set_init(&cb->prev_out);
+
+            set_free(&cb->visitors);
+            set_init(&cb->visitors);
         }
     }
 
