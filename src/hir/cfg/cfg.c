@@ -4,7 +4,28 @@ cfg.c - Create CFG
 
 #include <hir/cfg.h>
 
-cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
+int HIR_CFG_append_hir_block_front(cfg_block_t* bb, hir_block_t* hh) {
+    if (bb->hmap.entry && bb->hmap.exit) bb->hmap.entry = hh;
+    if (!bb->hmap.entry) bb->hmap.entry = hh;
+    if (!bb->hmap.exit)  bb->hmap.exit  = hh;
+    return 1;
+}
+
+int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh) {
+    if (bb->hmap.entry && bb->hmap.exit) bb->hmap.exit = hh;
+    if (!bb->hmap.entry) bb->hmap.entry = hh;
+    if (!bb->hmap.exit)  bb->hmap.exit  = hh;
+    return 1;
+}
+
+int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh) {
+    if (!bb || !hh) return 0;
+    if (bb->hmap.entry == hh) bb->hmap.entry = hh->next;
+    if (bb->hmap.exit == hh)  bb->hmap.exit = hh->prev;
+    return 1;
+}
+
+cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     cfg_block_t* block = (cfg_block_t*)mm_malloc(sizeof(cfg_block_t));
     if (!block) return NULL;
     str_memset(block, 0, sizeof(cfg_block_t));
@@ -23,7 +44,7 @@ cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
     return block;
 }
 
-int CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* trg) {
+int HIR_CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* trg) {
     if (!f || !b || !trg) return 0;
     list_add(&f->blocks, b);
     b->l = trg;
@@ -45,7 +66,7 @@ int CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* trg)
 }
 
 static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, cfg_ctx_t* ctx) {
-    cfg_block_t* b = CFG_create_cfg_block(entry);
+    cfg_block_t* b = HIR_CFG_create_cfg_block(entry);
     if (!b) return 0;
     b->id        = ctx->cid++;
     b->hmap.exit = exit;

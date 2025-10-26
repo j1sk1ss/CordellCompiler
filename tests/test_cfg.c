@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
     };
 
     HIR_generate(&sctx, &irctx, &smt);
+    HIR_compute_homes(&irctx);
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
     while (h) {
@@ -61,7 +62,7 @@ int main(int argc, char* argv[]) {
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&irctx, &cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
-    HIR_CFG_loop_canonicalization(&cfgctx);
+    HIR_CFG_loop_licm_canonicalization(&cfgctx);
     cfg_print(&cfgctx);
 
     HIR_unload_blocks(irctx.h);

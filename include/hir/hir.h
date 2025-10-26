@@ -3,9 +3,10 @@
 
 #include <std/mm.h>
 #include <std/str.h>
-#include <prep/token_types.h>
-#include <std/stack.h>
 #include <std/set.h>
+#include <std/map.h>
+#include <std/stack.h>
+#include <prep/token_types.h>
 #include <symtab/symtab.h>
 #include <ast/ast.h>
 #include <ast/syntax.h>
@@ -75,8 +76,10 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
 int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
 int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);
+int HIR_compute_homes(hir_ctx_t* ctx);
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
 int HIR_remove_block(hir_block_t* block);
+int HIR_unlink_block(hir_block_t* block);
 int HIR_unload_subject(hir_subject_t* s);
 int HIR_unload_blocks(hir_block_t* block);
 

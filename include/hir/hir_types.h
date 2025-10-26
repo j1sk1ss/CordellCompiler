@@ -198,5 +198,6 @@ hir_operation_t HIR_convop(hir_subject_type_t t);
 int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
 int HIR_commutative_op(hir_operation_t op);
 int HIR_defined_type(hir_subject_type_t t);
+int HIR_sideeffect_op(hir_operation_t op);
 
 #endif

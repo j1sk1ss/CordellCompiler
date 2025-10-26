@@ -401,6 +401,28 @@ int HIR_commutative_op(hir_operation_t op) {
     }
 }
 
+int HIR_sideeffect_op(hir_operation_t op) {
+    switch (op) {
+        case HIR_MKSCOPE:
+        case HIR_ENDSCOPE:
+        case HIR_JMP:
+        case HIR_MKLB:
+        case HIR_FRET:
+        case HIR_EXITOP:
+        case HIR_PHI:
+        case HIR_PHI_PREAMBLE:
+        case HIR_STORE_ECLL:
+        case HIR_ECLL:
+        case HIR_STORE_FCLL:
+        case HIR_FCLL:
+        case HIR_STORE_SYSC:
+        case HIR_SYSC:
+        case HIR_STORE:
+        case HIR_IFOP2: return 1;
+        default: return 0;
+    }
+}
+
 int HIR_writeop(hir_operation_t op) {
     switch (op) {
         // case HIR_PHI_PREAMBLE:

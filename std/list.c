@@ -2,6 +2,8 @@
 
 int list_init(list_t* l) {
     l->h = NULL;
+    l->t = NULL;
+    l->s = 0;
     return 1;
 }
 

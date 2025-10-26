@@ -216,6 +216,14 @@ int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
     return 0;
 }
 
+int HIR_unlink_block(hir_block_t* block) {
+    if (!block) return 0;
+    if (block->prev) block->prev->next = block->next;
+    if (block->next) block->next->prev = block->prev;
+    block->prev = block->next = NULL;
+    return 1;
+}
+
 int HIR_remove_block(hir_block_t* block) {
     block->prev->next = block->next;
     mm_free(block);
@@ -242,4 +250,33 @@ int HIR_unload_blocks(hir_block_t* block) {
     }
 
     return 0;
+}
+
+int HIR_compute_homes(hir_ctx_t* ctx) {
+    map_t homes;
+    map_init(&homes);
+
+    hir_block_t* hh = ctx->h;
+    while (hh) {
+        hir_subject_t* args[] = { hh->farg, hh->sarg, hh->targ };
+        for (int i = 0; i < 3; i++) {
+            if (!args[i]) continue;
+            args[i]->home = NULL;
+            if (!HIR_is_vartype(args[i]->t)) continue;
+
+            hir_block_t* home;
+            if (map_get(&homes, args[i]->storage.var.v_id, (void**)&home)) {
+                args[i]->home = home;
+                continue;
+            }
+
+            map_put(&homes, args[i]->storage.var.v_id, hh);
+            args[i]->home = hh;
+        }
+
+        hh = hh->next;
+    }
+
+    map_free(&homes);
+    return 1;
 }
