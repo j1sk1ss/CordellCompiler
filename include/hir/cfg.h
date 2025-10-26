@@ -5,6 +5,7 @@
 #include <std/set.h>
 #include <std/str.h>
 #include <std/list.h>
+#include <symtab/symtab.h>
 #include <hir/hir.h>
 #include <lir/lir.h>
 
@@ -30,8 +31,15 @@ typedef struct {
     lir_block_t* exit;
 } lir_map_t;
 
+typedef enum {
+    DEFAULT_BLOCK,
+    LOOP_PREHEADER,
+    LOOP_HEADER
+} cfg_block_type_t;
+
 typedef struct cfg_block {
     /* Basic info and content */
+    cfg_block_type_t  type;
     long              id;
     cfg_func_t*       pfunc; /* parent function */
 
@@ -66,7 +74,7 @@ typedef struct {
 } cfg_ctx_t;
 
 int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx);
-int HIR_CFG_loop_licm_canonicalization(cfg_ctx_t* cctx);
+int HIR_CFG_loop_licm_canonicalization(cfg_ctx_t* cctx, sym_table_t* smt);
 
 int HIR_CFG_compute_domf(cfg_func_t* func);
 int HIR_CFG_compute_dom(cfg_func_t* func);

@@ -6,8 +6,12 @@ Third version of this compiler (WIP). Full structure refactoring (from `token` -
 - HIR
     - Constant propagation
     - Constant folding
+    - LICM
 - LIR
     - MOV optimization
+
+## SSA LICM optimization
+Redundand calculations (instead basic inductions) now moved from loop body to loop preheader.
 
 ## CFG BB genration changed
 Previous version of BB generation includes complex if operations without two jmps support, that's why leaders from DragonBook works incorrect. Now there is no IFLWR, IFGRT and similar operations, only IFOP2.

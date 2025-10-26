@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
     
     HIR_compute_homes(&irctx);
-    HIR_CFG_loop_licm_canonicalization(&cfgctx);
+    HIR_CFG_loop_licm_canonicalization(&cfgctx, &smt);
     
     cfg_print(&cfgctx);
 
