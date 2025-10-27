@@ -1,19 +1,12 @@
 {
     start(i64 argc, ptr u64 argv) {
-        i32 a = 10;
-        switch 1; {
-            case 1; {
-                a = 11;
-            }
-            case 2; {
-                a = 12;
-            }
-            default {
-                a = 13;
-            }
+        arr b[10, i32];
+        i32 a = 0;
+        while a < 10; {
+            b[a] = b[0] + 1;
+            a += 1;
         }
 
-        i32 b = a;
-        exit b;
+        exit 0;
     }
 }

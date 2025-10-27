@@ -3,6 +3,7 @@
 
 #include <hir/hir.h>
 #include <hir/cfg.h>
+#include <hir/ltree.h>
 #include <hir/hir_types.h>
 
 static const char* hir_op_to_string(hir_operation_t op) {

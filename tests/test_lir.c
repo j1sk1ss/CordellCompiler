@@ -69,6 +69,9 @@ int main(int argc, char* argv[]) {
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
 
+    HIR_compute_homes(&hirctx);
+    HIR_CFG_loop_licm_canonicalization(&cfgctx, &smt);
+
     dag_ctx_t dagctx;
     HIR_DAG_init(&dagctx);
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);

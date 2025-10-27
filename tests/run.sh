@@ -117,7 +117,7 @@ TEST_CODES[test_cfg]="
 TEST_SRCS[test_ssa]="
     src/prep/*.c src/symtab/*.c 
     src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c 
+    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/loop/*.c 
     std/*.c
 "
 

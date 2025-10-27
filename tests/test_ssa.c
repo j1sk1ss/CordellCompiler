@@ -8,6 +8,7 @@
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
 #include <hir/ssa.h>
+#include <hir/ltree.h>
 #include "ast_helper.h"
 #include "hir_helper.h"
 #include "symtb_helper.h"
@@ -60,7 +61,7 @@ int main(int argc, char* argv[]) {
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
     
     HIR_compute_homes(&irctx);
-    HIR_CFG_loop_licm_canonicalization(&cfgctx, &smt);
+    HIR_LTREE_licm_canonicalization(&cfgctx, &smt);
     
     cfg_print(&cfgctx);
 

@@ -1,4 +1,4 @@
-#include <hir/cfg.h>
+#include <hir/ltree.h>
 
 static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b) {
     if (!set_add(b, entry)) return 0;
@@ -164,94 +164,112 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
     return 1;
 }
 
-int HIR_CFG_loop_licm_canonicalization(cfg_ctx_t* cctx, sym_table_t* smt) {
+static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt) {
     int changed = 0;
-    do {
-        changed = 0;
-        list_iter_t fit;
-        list_iter_hinit(&cctx->funcs, &fit);
-        cfg_func_t* fb;
-        while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-            list_iter_t bit;
-            list_iter_hinit(&fb->blocks, &bit);
-            cfg_block_t* cb;
-            while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-                if (cb->jmp && set_has(&cb->dom, cb->jmp)) {
-                    cfg_block_t* header = cb->jmp;
-                    cfg_block_t* latch  = cb;
-                    print_debug("LICM, loop header=%i, latch=%i", header->id, latch->id);
+    cfg_block_t* header = node->header;
+    cfg_block_t* latch  = node->latch;
 
-                    set_t loop_blocks;
-                    set_init(&loop_blocks);
-                    _get_loop_blocks(latch, header, &loop_blocks);
-                    set_add(&loop_blocks, header);
-                    print_debug("_get_loop_blocks complete, size(loop_blocks)=%i", set_size(&loop_blocks));
+    print_debug("LICM (tree), loop header=%i, latch=%i", header->id, latch->id);
+    cfg_block_t* preheader = _insert_preheader(cctx, header, &node->blocks);
+    if (!preheader) return 0;
 
-                    cfg_block_t* preheader = _insert_preheader(cctx, header, &loop_blocks);
-                    if (!preheader) {
-                        set_free(&loop_blocks);
-                        continue;
-                    }
+    set_t loop_hir;
+    set_init(&loop_hir);
+    _get_loop_hir_blocks(&node->blocks, &loop_hir);
+    print_debug("_get_loop_hir_blocks complete, size(loop_hir)=%i", set_size(&loop_hir));
 
-                    set_t loop_hir;
-                    set_init(&loop_hir);
-                    _get_loop_hir_blocks(&loop_blocks, &loop_hir);
-                    print_debug("_get_loop_hir_blocks complete, size(loop_hir)=%i", set_size(&loop_hir));
+    set_t inductive;
+    set_init(&inductive);
+    _get_inductive_variables(&loop_hir, &inductive, smt);
+    print_debug("_get_inductive_variables complete, size(inductive)=%i", set_size(&inductive));
 
-                    set_t inductive;
-                    set_init(&inductive);
-                    _get_inductive_variables(&loop_hir, &inductive, smt);
-                    print_debug("_get_inductive_variables complete, size(inductive)=%i", set_size(&inductive));
+    set_t invariant_defs;
+    set_init(&invariant_defs);
+    _get_invariant_defs(&loop_hir, &invariant_defs, &inductive);
+    print_debug("_get_invariant_defs complete, size(invariant_defs)=%i", set_size(&invariant_defs));
 
-                    set_t invariant_defs;
-                    set_init(&invariant_defs);
-                    _get_invariant_defs(&loop_hir, &invariant_defs, &inductive);
-                    print_debug("_get_invariant_defs complete, size(invariant_defs)=%i", set_size(&invariant_defs));
+    list_t linear;
+    list_init(&linear);
 
-                    list_t linear;
-                    list_init(&linear);
-                    
-                    list_iter_t it;
-                    list_iter_hinit(&fb->blocks, &it);
-                    cfg_block_t* cb3;
-                    while ((cb3 = (cfg_block_t*)list_iter_next(&it))) {
-                        if (!set_has(&loop_blocks, cb3)) continue;
-                        hir_block_t* hh = cb3->hmap.entry;
-                        while (hh) {
-                            if (set_has(&invariant_defs, hh)) list_push_back(&linear, hh);
-                            if (hh == cb3->hmap.exit) break;
-                            hh = hh->next;
-                        }
-                    }
-                    
-                    print_debug("set2linear complete, size(linear)=%i", list_size(&linear));
-
-                    list_iter_hinit(&linear, &it);
-                    hir_block_t* inv;
-                    while ((inv = (hir_block_t*)list_iter_next(&it))) {
-                        cfg_block_t* src_cfg = _get_hir_block_cfg(&loop_blocks, inv);
-                        if (!src_cfg) continue;
-                        HIR_CFG_remove_hir_block(src_cfg, inv);
-                        HIR_CFG_append_hir_block_back(preheader, inv);
-                        HIR_unlink_block(inv);
-                        HIR_insert_block_before(inv, preheader->l->hmap.entry);
-                        changed = 1;
-                    }
-
-                    print_debug("preheader move complete");
-
-                    set_free(&inductive);
-                    list_free(&linear);
-                    set_free(&invariant_defs);
-                    set_free(&loop_hir);
-                    set_free(&loop_blocks);
-
-                    print_debug("cleanup complete");
-                }
-            }
+    list_iter_t it;
+    list_iter_hinit(&node->header->pfunc->blocks, &it);
+    cfg_block_t* cb3;
+    while ((cb3 = (cfg_block_t*)list_iter_next(&it))) {
+        if (!set_has(&node->blocks, cb3)) continue;
+        hir_block_t* hh = cb3->hmap.entry;
+        while (hh) {
+            if (set_has(&invariant_defs, hh)) list_push_back(&linear, hh);
+            if (hh == cb3->hmap.exit) break;
+            hh = hh->next;
         }
-    } while (changed);
+    }
 
-    print_debug("HIR_CFG_loop_licm_canonicalization complete");
+    print_debug("set2linear complete, size(linear)=%i", list_size(&linear));
+
+    list_iter_hinit(&linear, &it);
+    hir_block_t* inv;
+    while ((inv = (hir_block_t*)list_iter_next(&it))) {
+        cfg_block_t* src_cfg = _get_hir_block_cfg(&node->blocks, inv);
+        if (!src_cfg) continue;
+        HIR_CFG_remove_hir_block(src_cfg, inv);
+        HIR_CFG_append_hir_block_back(preheader, inv);
+        HIR_unlink_block(inv);
+        HIR_insert_block_before(inv, preheader->l->hmap.entry);
+        changed = 1;
+    }
+
+    print_debug("preheader move complete for loop header=%i", header->id);
+
+    set_free(&inductive);
+    list_free(&linear);
+    set_free(&invariant_defs);
+    set_free(&loop_hir);
+
+    return changed;
+}
+
+int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt) {
+    int changed = 0;
+    list_iter_t it;
+    list_iter_hinit(&node->children, &it);
+    loop_node_t* ch;
+    while ((ch = (loop_node_t*)list_iter_next(&it))) {
+        changed |= _licm_loop_node_process(cctx, node, smt);
+    }
+
+    changed |= _licm_process(cctx, node, smt);
+    return changed;
+}
+
+int HIR_LTREE_licm_canonicalization(cfg_ctx_t* cctx, sym_table_t* smt) {
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        int changed = 0;
+        do {
+            changed = 0;
+            ltree_ctx_t lctx;
+            list_init(&lctx.loops);
+
+            HIR_LTREE_build_loop_tree(fb, &lctx);
+            print_debug("HIR_LTREE_build_loop_tree size(loops)=%i", list_size(&lctx.loops));
+            if (!list_size(&lctx.loops)) {
+                HIR_LTREE_unload_ctx(&lctx);
+                continue;
+            }
+
+            list_iter_t rit;
+            list_iter_hinit(&lctx.loops, &rit);
+            loop_node_t* root;
+            while ((root = (loop_node_t*)list_iter_next(&rit))) {
+                changed |= _licm_loop_node_process(cctx, root, smt);
+            }
+
+            HIR_LTREE_unload_ctx(&lctx);
+        } while (changed);
+    }
+
+    print_debug("HIR_CFG_loop_licm_canonicalization (with cycle tree) complete");
     return 1;
 }
