@@ -70,6 +70,8 @@ int main(int argc, char* argv[]) {
     
     cfg_print(&cfgctx);
 
+    HIR_CG_unload(&callctx);
+    HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(irctx.h);
     list_free_force(&tokens);
     AST_unload(sctx.r);

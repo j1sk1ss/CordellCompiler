@@ -63,3 +63,14 @@ int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt) {
     _register_functions(ctx, smt);
     return _connect_edges(cctx, ctx);
 }
+
+int HIR_CG_unload(call_graph_t* ctx) {
+    map_iter_t it;
+    map_iter_init(&ctx->verts, &it);
+    call_graph_node_t* node;
+    while (map_iter_next(&it, (void**)&node)) {
+        set_free(&node->edges);
+    }
+
+    return map_free_force(&ctx->verts);
+}

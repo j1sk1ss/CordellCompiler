@@ -19,5 +19,6 @@ typedef struct {
 } call_graph_t;
 
 int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt);
+int HIR_CG_unload(call_graph_t* ctx);
 
 #endif
