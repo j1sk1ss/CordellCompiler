@@ -3,6 +3,7 @@
 
 #include <hir/hir.h>
 #include <hir/cfg.h>
+#include <hir/func.h>
 #include <hir/ltree.h>
 #include <hir/hir_types.h>
 
@@ -487,4 +488,31 @@ void cfg_print(cfg_ctx_t* ctx) {
 
     printf("==================\n");
 }
+
+void call_graph_print_dot(call_graph_t* cg) {
+    if (!cg) {
+        printf("[call_graph_print_dot] Empty call graph.\n");
+        return;
+    }
+
+    printf("digraph CALL_GRAPH {\n");
+    printf("  rankdir=LR;\n");
+    printf("  node [shape=ellipse, fontname=\"monospace\"];\n");
+
+    map_iter_t it;
+    map_iter_init(&cg->verts, &it);
+    call_graph_node_t* node;
+    while (map_iter_next(&it, (void**)&node)) {
+        set_iter_t sit;
+        set_iter_init(&node->edges, &sit);
+        call_graph_node_t* callee;
+        while (set_iter_next(&sit, (void**)&callee)) {
+            printf("  F%ld -> F%ld;\n", node->fid, callee->fid);
+        }
+    }
+
+    printf("}\n");
+}
+
+
 #endif

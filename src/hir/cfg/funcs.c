@@ -18,7 +18,8 @@ static cfg_func_t* _create_funcblock(hir_block_t* entry, hir_block_t* end) {
 static int _add_funcblock(hir_block_t* entry, hir_block_t* end, cfg_ctx_t* ctx) {
     cfg_func_t* b = _create_funcblock(entry, end);
     if (!b) return 0;
-    b->id = ctx->cid++;
+    b->id  = ctx->cid++;
+    b->fid = entry->farg->storage.str.s_id; 
     list_add(&ctx->funcs, b);
     return 1;
 }

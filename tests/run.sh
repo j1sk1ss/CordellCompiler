@@ -106,7 +106,13 @@ TEST_CODES[test_hir]="
     tests/dummy_data/hir/gen/hirgen_5.cpl
 "
 
-TEST_SRCS[test_cfg]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/parsers/*.c src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c std/*.c"
+TEST_SRCS[test_cfg]="
+    src/prep/*.c src/symtab/*.c 
+    src/ast/*.c src/ast/parsers/*.c 
+    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/func/*.c 
+    std/*.c
+"
+
 TEST_CODES[test_cfg]="
     tests/dummy_data/hir/cfg/cfg_1.cpl
     tests/dummy_data/hir/cfg/cfg_2.cpl

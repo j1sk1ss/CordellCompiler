@@ -12,6 +12,7 @@
 typedef struct {
     /* Basic info and content */
     long         id;
+    long         fid;
     hir_block_t* entry;
     hir_block_t* exit;
 

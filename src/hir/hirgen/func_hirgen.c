@@ -20,7 +20,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     }
     
     if (!ret) {
-        HIR_BLOCK3(ctx, fi.external ? HIR_ECLL : HIR_FCLL, HIR_SUBJ_FUNCNAME(name), NULL, args);
+        HIR_BLOCK3(ctx, fi.external ? HIR_ECLL : HIR_FCLL, NULL, HIR_SUBJ_FUNCNAME(name), args);
         return NULL;
     }
     

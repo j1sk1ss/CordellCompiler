@@ -7,6 +7,7 @@
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
+#include <hir/func.h>
 #include "ast_helper.h"
 #include "hir_helper.h"
 #include "symtb_helper.h"
@@ -62,7 +63,11 @@ int main(int argc, char* argv[]) {
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&irctx, &cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
-    HIR_CFG_loop_licm_canonicalization(&cfgctx, &smt);
+
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);
+    call_graph_print_dot(&callctx);
+    
     cfg_print(&cfgctx);
 
     HIR_unload_blocks(irctx.h);
