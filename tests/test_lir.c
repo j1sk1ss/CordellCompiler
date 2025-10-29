@@ -9,6 +9,8 @@
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
+#include <hir/func.h>
+#include <hir/loop.h>
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/dag.h>
@@ -65,12 +67,17 @@ int main(int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
     
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);
+    HIR_CG_perform_dfe(&callctx, &smt);
+    call_graph_print_dot(&callctx);
+
     ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
 
     HIR_compute_homes(&hirctx);
-    HIR_CFG_loop_licm_canonicalization(&cfgctx, &smt);
+    HIR_LTREE_licm_canonicalization(&cfgctx, &smt);
 
     dag_ctx_t dagctx;
     HIR_DAG_init(&dagctx);
@@ -113,6 +120,7 @@ int main(int argc, char* argv[]) {
 
     print_symtab(&smt);
 
+    HIR_CG_unload(&callctx);
     HIR_DAG_unload(&dagctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.h);

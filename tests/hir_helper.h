@@ -4,7 +4,7 @@
 #include <hir/hir.h>
 #include <hir/cfg.h>
 #include <hir/func.h>
-#include <hir/ltree.h>
+#include <hir/loop.h>
 #include <hir/hir_types.h>
 
 static const char* hir_op_to_string(hir_operation_t op) {
@@ -142,7 +142,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_NOT:        return "%s = not %s;\n";
         case HIR_STORE:      return "%s = %s;\n";
         case HIR_VRUSE:      return "use %s;\n";
-        case HIR_ARRDECL:    return "%s = alloc(%s * 8);\n";
+        case HIR_ARRDECL:    return "%s = alloc(%s);\n";
         case HIR_STRDECL:    return "%s = alloc(%s);\n";
         case HIR_VRDEALL:    return "kill %s\n";
 
@@ -176,49 +176,49 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
 static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) {
     if (!s) return dst;
     if (HIR_is_vartype(s->t)) {
+        switch (s->t) {
+            case HIR_STKVARSTR:  dst += sprintf(dst, "strs");   break;
+            case HIR_STKVARARR:  dst += sprintf(dst, "arrs");   break;
+            case HIR_STKVARF64:  dst += sprintf(dst, "f64s");   break;
+            case HIR_STKVARU64:  dst += sprintf(dst, "u64s");   break;
+            case HIR_STKVARI64:  dst += sprintf(dst, "i64s");   break;
+            case HIR_STKVARF32:  dst += sprintf(dst, "f32s");   break;
+            case HIR_STKVARU32:  dst += sprintf(dst, "u32s");   break;
+            case HIR_STKVARI32:  dst += sprintf(dst, "i32s");   break;
+            case HIR_STKVARU16:  dst += sprintf(dst, "u16s");   break;
+            case HIR_STKVARI16:  dst += sprintf(dst, "i16s");   break;
+            case HIR_STKVARU8:   dst += sprintf(dst, "u8s");    break;
+            case HIR_STKVARI8:   dst += sprintf(dst, "i8s");    break;
+            case HIR_TMPVARSTR:  dst += sprintf(dst, "strt");   break;
+            case HIR_TMPVARARR:  dst += sprintf(dst, "arrt");   break;
+            case HIR_TMPVARF64:  dst += sprintf(dst, "f64t");   break;
+            case HIR_TMPVARU64:  dst += sprintf(dst, "u64t");   break;
+            case HIR_TMPVARI64:  dst += sprintf(dst, "i64t");   break;
+            case HIR_TMPVARF32:  dst += sprintf(dst, "f32t");   break;
+            case HIR_TMPVARU32:  dst += sprintf(dst, "u32t");   break;
+            case HIR_TMPVARI32:  dst += sprintf(dst, "i32t");   break;
+            case HIR_TMPVARU16:  dst += sprintf(dst, "u16t");   break;
+            case HIR_TMPVARI16:  dst += sprintf(dst, "i16t");   break;
+            case HIR_TMPVARU8:   dst += sprintf(dst, "u8t");    break;
+            case HIR_TMPVARI8:   dst += sprintf(dst, "i8t");    break;
+            case HIR_GLBVARSTR:  dst += sprintf(dst, "strg");   break;
+            case HIR_GLBVARARR:  dst += sprintf(dst, "arrg");   break;
+            case HIR_GLBVARF64:  dst += sprintf(dst, "f64g");   break;
+            case HIR_GLBVARU64:  dst += sprintf(dst, "u64g");   break;
+            case HIR_GLBVARI64:  dst += sprintf(dst, "i64g");   break;
+            case HIR_GLBVARF32:  dst += sprintf(dst, "f32g");   break;  
+            case HIR_GLBVARU32:  dst += sprintf(dst, "u32g");   break;
+            case HIR_GLBVARI32:  dst += sprintf(dst, "i32g");   break;
+            case HIR_GLBVARU16:  dst += sprintf(dst, "u16g");   break;
+            case HIR_GLBVARI16:  dst += sprintf(dst, "i16g");   break;
+            case HIR_GLBVARU8:   dst += sprintf(dst, "u8g");    break;
+            case HIR_GLBVARI8:   dst += sprintf(dst, "i8g");    break;
+            default: break;
+        }
+        
         variable_info_t vi;
         if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
-            switch (s->t) {
-                case HIR_STKVARSTR:  dst += sprintf(dst, "strs ");   break;
-                case HIR_STKVARARR:  dst += sprintf(dst, "arrs ");   break;
-                case HIR_STKVARF64:  dst += sprintf(dst, "f64s ");   break;
-                case HIR_STKVARU64:  dst += sprintf(dst, "u64s ");   break;
-                case HIR_STKVARI64:  dst += sprintf(dst, "i64s ");   break;
-                case HIR_STKVARF32:  dst += sprintf(dst, "f32s ");   break;
-                case HIR_STKVARU32:  dst += sprintf(dst, "u32s ");   break;
-                case HIR_STKVARI32:  dst += sprintf(dst, "i32s ");   break;
-                case HIR_STKVARU16:  dst += sprintf(dst, "u16s ");   break;
-                case HIR_STKVARI16:  dst += sprintf(dst, "i16s ");   break;
-                case HIR_STKVARU8:   dst += sprintf(dst, "u8s ");    break;
-                case HIR_STKVARI8:   dst += sprintf(dst, "i8s ");    break;
-                case HIR_TMPVARSTR:  dst += sprintf(dst, "strt ");   break;
-                case HIR_TMPVARARR:  dst += sprintf(dst, "arrt ");   break;
-                case HIR_TMPVARF64:  dst += sprintf(dst, "f64t ");   break;
-                case HIR_TMPVARU64:  dst += sprintf(dst, "u64t ");   break;
-                case HIR_TMPVARI64:  dst += sprintf(dst, "i64t ");   break;
-                case HIR_TMPVARF32:  dst += sprintf(dst, "f32t ");   break;
-                case HIR_TMPVARU32:  dst += sprintf(dst, "u32t ");   break;
-                case HIR_TMPVARI32:  dst += sprintf(dst, "i32t ");   break;
-                case HIR_TMPVARU16:  dst += sprintf(dst, "u16t ");   break;
-                case HIR_TMPVARI16:  dst += sprintf(dst, "i16t ");   break;
-                case HIR_TMPVARU8:   dst += sprintf(dst, "u8t ");    break;
-                case HIR_TMPVARI8:   dst += sprintf(dst, "i8t ");    break;
-                case HIR_GLBVARSTR:  dst += sprintf(dst, "strg ");   break;
-                case HIR_GLBVARARR:  dst += sprintf(dst, "arrg ");   break;
-                case HIR_GLBVARF64:  dst += sprintf(dst, "f64g ");   break;
-                case HIR_GLBVARU64:  dst += sprintf(dst, "u64g ");   break;
-                case HIR_GLBVARI64:  dst += sprintf(dst, "i64g ");   break;
-                case HIR_GLBVARF32:  dst += sprintf(dst, "f32g ");   break;  
-                case HIR_GLBVARU32:  dst += sprintf(dst, "u32g ");   break;
-                case HIR_GLBVARI32:  dst += sprintf(dst, "i32g ");   break;
-                case HIR_GLBVARU16:  dst += sprintf(dst, "u16g ");   break;
-                case HIR_GLBVARI16:  dst += sprintf(dst, "i16g ");   break;
-                case HIR_GLBVARU8:   dst += sprintf(dst, "u8g ");    break;
-                case HIR_GLBVARI8:   dst += sprintf(dst, "i8g ");    break;
-                default: break;
-            }
-
-            dst += sprintf(dst, "%s%i", vi.name, vi.v_id);
+            dst += sprintf(dst, " %s%i", vi.name, vi.v_id);
         }
     }
     else {

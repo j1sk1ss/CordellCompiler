@@ -1,14 +1,14 @@
 #include <std/stackmap.h>
 
 int stack_map_init(int offset, stack_map_t* smap) {
-    int size = (ALIGN(offset) / STACK_CELL_SIZE) + 1;
+    int size = offset; // (ALIGN(offset) / STACK_CELL_SIZE) + 1;
     smap->last_offset = size;
     str_memset(smap->bitmap, 0, sizeof(smap->bitmap));
     return 1;
 }
 
 int stack_map_alloc(int n, stack_map_t* smap) {
-    int size = ALIGN(n) / STACK_CELL_SIZE;
+    int size = n; // ALIGN(n) / STACK_CELL_SIZE;
     for (int i = smap->base_offset; i < STACK_MAP_MAX; ++i) {
         int free = 1;
         for (int j = 0; j < size; ++j) {
@@ -27,7 +27,7 @@ int stack_map_alloc(int n, stack_map_t* smap) {
                 smap->bitmap[idx / CELLS_PER_BLOCK] |= (1ULL << (idx % CELLS_PER_BLOCK));
             }
 
-            return (i + size) * STACK_CELL_SIZE;
+            return (i + size); // * STACK_CELL_SIZE;
         }
     }
     
@@ -35,16 +35,16 @@ int stack_map_alloc(int n, stack_map_t* smap) {
 }
 
 int stack_map_free(int offset, int n, stack_map_t* smap) {
-    int size  = ALIGN(n) / STACK_CELL_SIZE;
-    int start = (ALIGN(offset) - ALIGN(n)) / STACK_CELL_SIZE;
+    int size  = n; // ALIGN(n) / STACK_CELL_SIZE;
+    int start = offset - n; // (ALIGN(offset) - ALIGN(n)) / STACK_CELL_SIZE;
     for (int i = 0; i < size; ++i) {
         int idx = start + i;
         if (idx >= STACK_MAP_MAX) break;
         smap->bitmap[idx / CELLS_PER_BLOCK] &= ~(1ULL << (idx % CELLS_PER_BLOCK));
     }
 
-    if (start < smap->offset / STACK_CELL_SIZE) {
-        smap->offset = start * STACK_CELL_SIZE;
+    if (start < smap->offset) { // / STACK_CELL_SIZE) {
+        smap->offset = start; // * STACK_CELL_SIZE;
     }
 
     return 1;

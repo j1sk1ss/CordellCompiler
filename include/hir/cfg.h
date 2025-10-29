@@ -75,7 +75,6 @@ typedef struct {
 } cfg_ctx_t;
 
 int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx);
-int HIR_CFG_loop_licm_canonicalization(cfg_ctx_t* cctx, sym_table_t* smt);
 
 int HIR_CFG_compute_domf(cfg_func_t* func);
 int HIR_CFG_compute_dom(cfg_func_t* func);

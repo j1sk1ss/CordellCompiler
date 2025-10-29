@@ -178,7 +178,8 @@ TEST_CODES[test_ra]="
 TEST_SRCS[test_lir]="
     src/prep/*.c src/symtab/*.c 
     src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dfg/*.c src/hir/ra/*.c src/hir/dag/*.c
+    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c 
+    src/hir/dfg/*.c src/hir/ra/*.c src/hir/dag/*.c src/hir/loop/*.c src/hir/func/*.c 
     src/lir/*.c src/lir/*/*.c src/lir/*/*/*.c
     std/*.c
 "

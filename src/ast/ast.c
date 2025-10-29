@@ -5,6 +5,7 @@ ast_node_t* AST_create_node(token_t* tkn) {
     if (!node) return NULL;
     str_memset(node, 0, sizeof(ast_node_t));
     node->token = tkn;
+    node->sinfo.v_id = -1;
     return node;
 }
 

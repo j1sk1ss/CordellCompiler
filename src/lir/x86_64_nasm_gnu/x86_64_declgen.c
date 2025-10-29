@@ -51,7 +51,8 @@ int x86_64_generate_declaration(
                 int elnum = 0;
                 hir_subject_t* el;
                 while ((el = (hir_subject_t*)list_iter_next(&it))) {
-                    LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_OFF(arroff - elsize * elnum++, elsize), x86_64_format_variable(ctx, el, smt));
+                    x86_64_store_var_reg(LIR_iMOV, ctx, el, RAX, -1, smt);
+                    LIR_BLOCK2(ctx, LIR_iMOV, LIR_SUBJ_OFF(arroff - elsize * elnum++, elsize), LIR_SUBJ_REG(RAX, elsize));
                 }
             }
 

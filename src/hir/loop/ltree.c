@@ -1,4 +1,4 @@
-#include <hir/ltree.h>
+#include <hir/loop.h>
 
 static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, set_t* loop_blocks) {
     loop_node_t* n = (loop_node_t*)mm_malloc(sizeof(loop_node_t));

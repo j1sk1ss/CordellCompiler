@@ -8,7 +8,7 @@
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
 #include <hir/ssa.h>
-#include <hir/ltree.h>
+#include <hir/loop.h>
 #include "ast_helper.h"
 #include "hir_helper.h"
 #include "symtb_helper.h"

@@ -1,4 +1,4 @@
-#include <hir/ltree.h>
+#include <hir/loop.h>
 
 static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b) {
     if (!set_add(b, entry)) return 0;

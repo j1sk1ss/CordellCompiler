@@ -10,6 +10,9 @@ Third version of this compiler (WIP). Full structure refactoring (from `token` -
 - LIR
     - MOV optimization
 
+## IG fix
+Now Interference Graph calculated with `IN`, `DEF` and `OUT` instead only `DEF` and `OUT` sets according to [this](https://courses.cs.cornell.edu/cs4120/2022sp/notes/regalloc/index.html) article.
+
 ## AST opt deadfunc
 From AST level dead function elimination to HIR level based of call graph.
 
@@ -22,8 +25,21 @@ Previous version of BB generation includes complex if operations without two jmp
 ## LIR generation based on CFG instead raw HIR
 Now LIR generator works only with CFG data instead raw HIR list. Also, LIR generator produces not only raw LIR list. Now it produces updated meta information for base blocks in CFG (entry and exit for LIR list for asm generator).
 
-## Constant propagation 
+## Constant propagation [still WIP]
 HIR_DAG_sparse_const_propagation function implemented. Also there is a new types for numbers and contants (constants and numbers for f/u/i 64/32/16/8). 
+
+## Debug features of CPL
+Additional instruction called `lis` (Interesting abbreviation, isn't? This is a LinearIsStop? or is a LiveInputStage? Or... nevermind) and used for setting breakpoints in code. Example:
+```cpl
+start() {
+    i32 a = 10;
+    arr b[123, f64];
+    lis; <- Breakpoint
+    exit 1;
+}
+```
+
+For usage, run program (executable) with debug tool (like `gdb`, `lldb`).
 
 # Version v2 [CURRENT]
 Second version of this compiler (currentrly, 10.20.2025, is main work version). Main features is full refactoring of `token` part, `AST` generation cleanup and implementing of basic `LIR`. The main improvement was in syntax of the CP language.

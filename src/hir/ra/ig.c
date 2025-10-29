@@ -49,23 +49,22 @@ int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            set_t live;
-            set_init(&live);
-            set_copy(&live, &cb->curr_out);
-
             set_iter_t dit;
             set_iter_init(&cb->def, &dit);
             long d;
             while (set_iter_next(&dit, (void**)&d)) {
                 set_iter_t lit;
-                set_iter_init(&live, &lit);
+                set_iter_init(&cb->curr_in, &lit);
                 long l;
                 while (set_iter_next(&lit, (void**)&l)) {
                     _igraph_add_edge(g, d, l);
                 }
-            }
 
-            set_free(&live);
+                set_iter_init(&cb->curr_out, &lit);
+                while (set_iter_next(&lit, (void**)&l)) {
+                    _igraph_add_edge(g, d, l);
+                }
+            }
         }
     }
 
