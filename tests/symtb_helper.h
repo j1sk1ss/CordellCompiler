@@ -48,7 +48,10 @@ void print_symtab(sym_table_t* smt) {
     map_iter_init(&smt->f.functb, &it);
     func_info_t* fi;
     while (map_iter_next(&it, (void**)&fi)) {
-        printf("id: %i, name: %s\n", fi->id, fi->name);
+        printf(
+            "%sid: %i, name: %s, ext=%i, glob=%i, used=%i\n", 
+            fi->entry ? "[ENTRY] " : "", fi->id, fi->name, fi->external, fi->global, fi->used
+        );
     }
 
     if (!map_isempty(&smt->s.strtb)) printf("========== STRINGS ==========\n");

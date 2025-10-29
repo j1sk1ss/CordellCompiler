@@ -58,7 +58,6 @@ int main(int argc, char* argv[]) {
         h = h->next;
     }
 
-    print_symtab(&smt);
 
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&irctx, &cfgctx);
@@ -66,9 +65,11 @@ int main(int argc, char* argv[]) {
 
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);
+    HIR_CG_perform_dfe(&callctx, &smt);
+
     call_graph_print_dot(&callctx);
-    
     cfg_print(&cfgctx);
+    print_symtab(&smt);
 
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);

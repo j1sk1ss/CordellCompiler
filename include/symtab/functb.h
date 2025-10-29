@@ -8,8 +8,10 @@
 typedef struct {
     long        id;
     char        name[TOKEN_MAX_SIZE];
-    int         global;
-    int         external;
+    char        global;
+    char        external;
+    char        entry;
+    char        used;
     ast_node_t* args;
     ast_node_t* rtype;
 } func_info_t;
@@ -21,7 +23,8 @@ typedef struct func_ctx {
 
 int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx);
 int FNTB_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx);
-int FNTB_add_info(const char* name, int global, int external, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
+int FNTB_add_info(const char* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
+int FNTB_update_info(long id, int used, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
 int FNTB_unload(functab_ctx_t* ctx);
 
 #endif

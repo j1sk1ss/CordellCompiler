@@ -28,6 +28,7 @@ static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
     map_iter_init(&smt->f.functb, &it);
     func_info_t* fi;
     while (map_iter_next(&it, (void**)&fi)) {
+        if (fi->entry) ctx->e_fid = fi->id;
         _register_func(fi->id, ctx);
     }
 

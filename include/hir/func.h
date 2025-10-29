@@ -10,13 +10,17 @@
 #include <symtab/functb.h>
 
 typedef struct {
+    char  flag;
     long  fid;
     set_t edges;
 } call_graph_node_t;
 
 typedef struct {
-    map_t verts;
+    long   e_fid;
+    map_t  verts;
 } call_graph_t;
+
+int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt);
 
 int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt);
 int HIR_CG_unload(call_graph_t* ctx);

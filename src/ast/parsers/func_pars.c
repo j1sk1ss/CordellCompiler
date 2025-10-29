@@ -20,7 +20,7 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* sm
         else if (((token_t*)list_iter_current(it))->t_type == FUNC_NAME_TOKEN) {
             ast_node_t* fname = AST_create_node((token_t*)list_iter_current(it));
             AST_add_node(node, fname);
-            FNTB_add_info(fname->token->value, 1, 1, NULL, NULL, &smt->f);
+            FNTB_add_info(fname->token->value, 1, 1, 0, NULL, NULL, &smt->f);
             forward_token(it, 1);
         }
     }
@@ -148,7 +148,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* 
     scope_pop_top(&ctx->scopes.stack, &el);
 
     name_node->sinfo.v_id = FNTB_add_info(
-        name_node->token->value, name_node->token->flags.glob, name_node->token->flags.ext, 
+        name_node->token->value, name_node->token->flags.glob, name_node->token->flags.ext, 0,
         args_node, name_node->child, &smt->f
     );
 

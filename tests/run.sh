@@ -76,12 +76,6 @@ TEST_CODES[test_constopt]="
     tests/dummy_data/ast/opt/constopt/constopt_3.cpl
 "
 
-TEST_SRCS[test_deadfunc]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/deadfunc.c std/*.c"
-TEST_CODES[test_deadfunc]="
-    tests/dummy_data/ast/opt/deadfunc/deadfunc_1.cpl
-    tests/dummy_data/ast/opt/deadfunc/deadfunc_2.cpl
-"
-
 TEST_SRCS[test_condunroll]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/condunroll.c std/*.c"
 TEST_CODES[test_condunroll]="
     tests/dummy_data/ast/opt/condunroll/condunroll_1.cpl

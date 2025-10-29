@@ -10,6 +10,9 @@ Third version of this compiler (WIP). Full structure refactoring (from `token` -
 - LIR
     - MOV optimization
 
+## AST opt deadfunc
+From AST level dead function elimination to HIR level based of call graph.
+
 ## SSA LICM optimization
 Redundand calculations (instead basic inductions) now moved from loop body to loop preheader.
 
