@@ -134,6 +134,11 @@ ast_node_t* cpl_parse_function(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* 
         forward_token(it, 1);
     }
 
+    name_node->sinfo.v_id = FNTB_add_info(
+        name_node->token->value, name_node->token->flags.glob, name_node->token->flags.ext, 0,
+        args_node, name_node->child, &smt->f
+    );
+
     ast_node_t* body_node = cpl_parse_scope(it, ctx, smt);
     if (!body_node) {
         print_error("AST error during function body parsing! line=%i", ((token_t*)list_iter_current(it))->lnum);
@@ -146,11 +151,5 @@ ast_node_t* cpl_parse_function(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* 
 
     scope_elem_t el;
     scope_pop_top(&ctx->scopes.stack, &el);
-
-    name_node->sinfo.v_id = FNTB_add_info(
-        name_node->token->value, name_node->token->flags.glob, name_node->token->flags.ext, 0,
-        args_node, name_node->child, &smt->f
-    );
-
     return node;
 }

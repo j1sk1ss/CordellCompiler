@@ -1,14 +1,8 @@
 # CPL changelog
 Logs for the first and second versions are quite short because I don’t remember exactly what was introduced and when. However, this page lists most of the major changes. In fact, it was created mainly to document the project’s evolution in a clear way, without the need to read through all the commits.
 
-# Version v3 [WIP]
-Third version of this compiler (WIP). Full structure refactoring (from `token` -> `AST` -> `ASM`, that wasn't changed since first version was created, to `token` -> `AST` -> `HIR` (`CFG` -> `SSA` -> `DAG` -> `CFG`) -> `RA` -> `LIR` -> `ASM`). Also this page created during development of this version (10.20.2025). Also this version is optimization implementation version. List of implemented optimizations:
-- HIR
-    - Constant propagation
-    - Constant folding
-    - LICM
-- LIR
-    - MOV optimization
+## TRE (tail recursion elimination)
+TRE implementation simply do rrcursion elimination if next block after recursion is terminator block (without successors).
 
 ## IG fix
 Now Interference Graph calculated with `IN`, `DEF` and `OUT` instead only `DEF` and `OUT` sets according to [this](https://courses.cs.cornell.edu/cs4120/2022sp/notes/regalloc/index.html) article.
@@ -40,6 +34,15 @@ start() {
 ```
 
 For usage, run program (executable) with debug tool (like `gdb`, `lldb`).
+
+# Version v3 [WIP]
+Third version of this compiler (WIP). Full structure refactoring (from `token` -> `AST` -> `ASM`, that wasn't changed since first version was created, to `token` -> `AST` -> `HIR` (`CFG` -> `SSA` -> `DAG` -> `CFG`) -> `RA` -> `LIR` -> `ASM`). Also this page created during development of this version (10.20.2025). Also this version is optimization implementation version. List of implemented optimizations:
+- HIR
+    - Constant propagation
+    - Constant folding
+    - LICM
+- LIR
+    - MOV optimization
 
 # Version v2 [CURRENT]
 Second version of this compiler (currentrly, 10.20.2025, is main work version). Main features is full refactoring of `token` part, `AST` generation cleanup and implementing of basic `LIR`. The main improvement was in syntax of the CP language.

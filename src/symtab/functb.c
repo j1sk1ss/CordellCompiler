@@ -11,6 +11,7 @@ int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx) {
 }
 
 int FNTB_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx) {
+    print_log("FNTB_get_info(name=%s)", fname);
     map_iter_t it;
     map_iter_init(&ctx->functb, &it);
     func_info_t* fi;
@@ -21,6 +22,7 @@ int FNTB_get_info(const char* fname, func_info_t* out, functab_ctx_t* ctx) {
         }
     }
 
+    print_warn("FNTB_get_info -> NF!");
     return 0;
 }
 

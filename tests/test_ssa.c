@@ -60,8 +60,15 @@ int main(int argc, char* argv[]) {
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
     
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);
+    HIR_CG_perform_dfe(&callctx, &smt);
+
+    call_graph_print_dot(&callctx);
+
     HIR_compute_homes(&irctx);
     HIR_LTREE_licm_canonicalization(&cfgctx, &smt);
+    HIR_TRE_perform(&cfgctx, &smt);
     
     cfg_print(&cfgctx);
 
@@ -74,6 +81,8 @@ int main(int argc, char* argv[]) {
 
     print_symtab(&smt);
 
+    HIR_CG_unload(&callctx);
+    HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(irctx.h);
     list_free_force(&tokens);
     AST_unload(sctx.r);
