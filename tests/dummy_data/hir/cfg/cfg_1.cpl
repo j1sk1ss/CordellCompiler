@@ -8,7 +8,7 @@
     }
 
     start(i64 argc, ptr u64 argv) {
-        u8 a = sub(10 - 11);
+        u8 a = sub(10, 10);
         exit 0;    
     }
 }

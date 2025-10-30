@@ -51,17 +51,18 @@ int main(int argc, char* argv[]) {
 
     HIR_generate(&sctx, &irctx, &smt);
     HIR_compute_homes(&irctx);
+
+    cfg_ctx_t cfgctx;
+    HIR_CFG_build(&irctx, &cfgctx);
+    HIR_CFG_perform_tre(&cfgctx, &smt);
+    HIR_CFG_create_domdata(&cfgctx);
+
     printf("\n\n========== HIR ==========\n");
     hir_block_t* h = irctx.h;
     while (h) {
         print_hir_block(h, 1, &smt);
         h = h->next;
     }
-
-
-    cfg_ctx_t cfgctx;
-    HIR_CFG_build(&irctx, &cfgctx);
-    HIR_CFG_create_domdata(&cfgctx);
 
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);

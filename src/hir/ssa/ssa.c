@@ -107,6 +107,8 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
             }
 
             default: {
+                _rename_block(hh, ctx);
+                
                 variable_info_t vi;
                 if (
                     hh->farg && HIR_is_vartype(hh->farg->t) && 
@@ -120,7 +122,6 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                     }
                 }
 
-                _rename_block(hh, ctx);
                 break;
             }
         }

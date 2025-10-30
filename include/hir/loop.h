@@ -19,7 +19,6 @@ typedef struct {
     list_t loops;
 } ltree_ctx_t;
 
-int HIR_TRE_perform(cfg_ctx_t* cctx, sym_table_t* smt);
 int HIR_LTREE_licm_canonicalization(cfg_ctx_t* cctx, sym_table_t* smt);
 int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx);
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx);

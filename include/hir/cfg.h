@@ -74,6 +74,7 @@ typedef struct {
     list_t funcs;
 } cfg_ctx_t;
 
+int HIR_CFG_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt);
 int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx);
 
 int HIR_CFG_compute_domf(cfg_func_t* func);

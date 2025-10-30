@@ -1,6 +1,6 @@
-#include <hir/loop.h>
+#include <hir/cfg.h>
 
-int HIR_TRE_perform(cfg_ctx_t* cctx, sym_table_t* smt) {
+int HIR_CFG_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -27,7 +27,12 @@ int HIR_TRE_perform(cfg_ctx_t* cctx, sym_table_t* smt) {
                 if (exit->sarg->storage.str.s_id != fb->fid) continue;
                 hir_subject_t* lb = HIR_SUBJ_LABEL();
                 hir_block_t* hlb = HIR_create_block(HIR_MKLB, lb, NULL, NULL);
-                HIR_insert_block_after(hlb, fb->entry);
+
+                hir_block_t* hh = fb->entry;
+                while (hh->op != HIR_MKSCOPE) hh = hh->next;
+                hh = hh->next;
+                while (hh->op != HIR_MKSCOPE) hh = hh->next;
+                HIR_insert_block_after(hlb, hh);
 
                 hir_block_t* jmp = HIR_create_block(HIR_JMP, lb, NULL, NULL);
                 HIR_insert_block_before(jmp, exit);
@@ -41,13 +46,6 @@ int HIR_TRE_perform(cfg_ctx_t* cctx, sym_table_t* smt) {
                     HIR_insert_block_before(argload, jmp);
                     ast_arg = ast_arg->sibling;
                 }
-
-                p->hmap.exit = jmp;
-                p->l         = NULL;
-                p->jmp       = list_get_head(&fb->blocks);
-
-                HIR_unlink_block(exit);
-                HIR_unload_blocks(exit);
             }
         }
     }

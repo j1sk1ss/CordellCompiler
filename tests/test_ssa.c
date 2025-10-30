@@ -54,6 +54,10 @@ int main(int argc, char* argv[]) {
 
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&irctx, &cfgctx);
+    HIR_CFG_perform_tre(&cfgctx, &smt);
+    HIR_CFG_unload(&cfgctx);
+    HIR_CFG_build(&irctx, &cfgctx);
+    
     HIR_CFG_create_domdata(&cfgctx);
 
     ssa_ctx_t ssactx;
@@ -68,7 +72,6 @@ int main(int argc, char* argv[]) {
 
     HIR_compute_homes(&irctx);
     HIR_LTREE_licm_canonicalization(&cfgctx, &smt);
-    HIR_TRE_perform(&cfgctx, &smt);
     
     cfg_print(&cfgctx);
 
