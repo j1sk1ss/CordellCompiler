@@ -218,7 +218,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
         
         variable_info_t vi;
         if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
-            dst += sprintf(dst, " %s%i", vi.name, vi.v_id);
+            dst += sprintf(dst, " %%%i", vi.v_id);
         }
     }
     else {

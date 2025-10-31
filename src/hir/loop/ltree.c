@@ -19,6 +19,7 @@ static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b) {
     set_iter_init(&entry->pred, &it);
     cfg_block_t* bb;
     while (set_iter_next(&it, (void**)&bb)) {
+        bb->type = CFG_LOOP_BLOCK;
         _get_loop_blocks(bb, exit, b);
     }
 
@@ -33,6 +34,9 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
         if (cb->jmp && set_has(&cb->dom, cb->jmp)) {
             cfg_block_t* header = cb->jmp;
             cfg_block_t* latch  = cb;
+
+            header->type = CFG_LOOP_HEADER;
+            header->type = CFG_LOOP_LATCH;
 
             set_t loop_blocks;
             set_init(&loop_blocks);
@@ -83,6 +87,20 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
     }
 
     list_free(&rl);
+    return 1;
+}
+
+int HIR_LOOP_mark_loops(cfg_ctx_t* cctx) {
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        if (!fb->used) continue;
+        ltree_ctx_t lctx;
+        list_init(&lctx.loops);
+        HIR_LTREE_build_loop_tree(fb, &lctx);
+    }
+
     return 1;
 }
 

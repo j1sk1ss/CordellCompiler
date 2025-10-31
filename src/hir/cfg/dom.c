@@ -151,6 +151,7 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        if (!fb->used) continue;
         list_iter_t bit;
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
@@ -185,6 +186,7 @@ int HIR_CFG_create_domdata(cfg_ctx_t* cctx) {
     list_iter_hinit(&cctx->funcs, &it);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+        if (!fb->used) continue;
         HIR_CFG_compute_dom(fb);
         HIR_CFG_compute_sdom(fb);
         HIR_CFG_compute_domf(fb);

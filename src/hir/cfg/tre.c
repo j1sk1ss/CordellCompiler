@@ -5,6 +5,7 @@ int HIR_CFG_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        if (!fb->used) continue;
         list_iter_t bit;
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
@@ -19,19 +20,16 @@ int HIR_CFG_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
             set_iter_init(&cb->pred, &it);
             while (set_iter_next(&it, (void**)&p)) {
                 hir_block_t* exit = p->hmap.exit;
-                if (
-                    exit->op != HIR_FCLL && exit->op != HIR_STORE_FCLL &&
-                    exit->op != HIR_ECLL && exit->op != HIR_STORE_ECLL
-                ) continue;
+                if (!HIR_funccall(exit->op)) continue;
                 
                 if (exit->sarg->storage.str.s_id != fb->fid) continue;
                 hir_subject_t* lb = HIR_SUBJ_LABEL();
                 hir_block_t* hlb = HIR_create_block(HIR_MKLB, lb, NULL, NULL);
 
                 hir_block_t* hh = fb->entry;
-                while (hh->op != HIR_MKSCOPE) hh = hh->next;
+                while (hh && hh->op != HIR_MKSCOPE) hh = hh->next;
                 hh = hh->next;
-                while (hh->op != HIR_MKSCOPE) hh = hh->next;
+                while (hh && hh->op != HIR_MKSCOPE) hh = hh->next;
                 HIR_insert_block_after(hlb, hh);
 
                 hir_block_t* jmp = HIR_create_block(HIR_JMP, lb, NULL, NULL);
@@ -46,6 +44,8 @@ int HIR_CFG_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
                     HIR_insert_block_before(argload, jmp);
                     ast_arg = ast_arg->sibling;
                 }
+
+                exit->unused = 1;
             }
         }
     }

@@ -164,6 +164,76 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
     return subj;
 }
 
+hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
+    if (!s) return NULL;
+
+    hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value, 0);
+    if (!ns) return NULL;
+
+    ns->users = s->users;
+    switch (s->t) {
+        case HIR_PHISET:
+            set_init(&ns->storage.set.h);
+            set_copy(&ns->storage.set.h, &s->storage.set.h);
+        break;
+
+        case HIR_ARGLIST:
+            list_init(&ns->storage.list.h);
+            list_copy(&ns->storage.list.h, &s->storage.list.h);
+        break;
+
+        case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
+        case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
+        case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
+        case HIR_STKVARSTR: case HIR_STKVARARR: case HIR_STKVARF64: case HIR_STKVARU64:
+        case HIR_STKVARI64: case HIR_STKVARF32: case HIR_STKVARU32: case HIR_STKVARI32:
+        case HIR_STKVARU16: case HIR_STKVARI16: case HIR_STKVARU8:  case HIR_STKVARI8:
+        case HIR_GLBVARSTR: case HIR_GLBVARARR: case HIR_GLBVARF64: case HIR_GLBVARU64:
+        case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
+        case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
+            ns->storage.var.v_id = s->storage.var.v_id;
+        break;
+
+        case HIR_F64NUMBER:
+        case HIR_F32NUMBER:
+        case HIR_U64NUMBER:
+        case HIR_U32NUMBER:
+        case HIR_U16NUMBER:
+        case HIR_U8NUMBER:
+        case HIR_I64NUMBER:
+        case HIR_I32NUMBER:
+        case HIR_I16NUMBER:
+        case HIR_I8NUMBER:
+        case HIR_NUMBER:
+            str_strncpy(ns->storage.num.value, s->storage.num.value, HIR_VAL_MSIZE);
+        break;
+
+        case HIR_F64CONSTVAL:
+        case HIR_F32CONSTVAL:
+        case HIR_U64CONSTVAL:
+        case HIR_U32CONSTVAL:
+        case HIR_U16CONSTVAL:
+        case HIR_U8CONSTVAL:
+        case HIR_I64CONSTVAL:
+        case HIR_I32CONSTVAL:
+        case HIR_I16CONSTVAL:
+        case HIR_I8CONSTVAL:
+        case HIR_CONSTVAL:
+            ns->storage.cnst.value = s->storage.cnst.value;
+        break;
+
+        case HIR_FNAME:
+        case HIR_RAWASM:
+        case HIR_STRING:
+            ns->storage.str.s_id = s->storage.str.s_id;
+        break;
+
+        default: break;
+    }
+
+    return ns;
+}
+
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta) {
     hir_block_t* blk = mm_malloc(sizeof(hir_block_t));
     if (!blk) return NULL;
@@ -184,6 +254,14 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     else if (ta) ta->users++;
     
     return blk;
+}
+
+hir_block_t* HIR_copy_block(hir_block_t* b) {
+    hir_block_t* base = HIR_create_block(
+        b->op, HIR_copy_subject(b->farg), HIR_copy_subject(b->sarg), HIR_copy_subject(b->targ)
+    );
+    
+    return base;
 }
 
 int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos) {

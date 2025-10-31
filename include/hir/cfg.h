@@ -10,6 +10,9 @@
 #include <lir/lir.h>
 
 typedef struct {
+    /* Meta flags */
+    char         used;
+
     /* Basic info and content */
     long         id;
     long         fid;
@@ -18,7 +21,6 @@ typedef struct {
 
     /* CFG data */
     set_t        leaders;     /* Leaders for block generation     */
-    set_t        terminators; /* Terminators for block generation */
     list_t       blocks;
 } cfg_func_t;
 
@@ -33,9 +35,11 @@ typedef struct {
 } lir_map_t;
 
 typedef enum {
-    DEFAULT_BLOCK,
-    LOOP_PREHEADER,
-    LOOP_HEADER
+    CFG_DEFAULT_BLOCK,
+    CFG_LOOP_PREHEADER,
+    CFG_LOOP_HEADER,
+    CFG_LOOP_BLOCK,
+    CFG_LOOP_LATCH,
 } cfg_block_type_t;
 
 typedef struct cfg_block {

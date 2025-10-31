@@ -19,13 +19,13 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
     set_iter_init(&header->pred, &it);
     cfg_block_t* p;
     while (set_iter_next(&it, (void**)&p)) {
-        if (p->type == LOOP_PREHEADER) return p;
+        if (p->type == CFG_LOOP_PREHEADER) return p;
         break;
     }
 
     cfg_block_t* preheader = HIR_CFG_create_cfg_block(NULL);
     if (!preheader) return NULL;
-    preheader->type = LOOP_PREHEADER;
+    preheader->type = CFG_LOOP_PREHEADER;
 
     preheader->id = cctx->cid++;
     list_add(&header->pfunc->blocks, preheader);
@@ -246,6 +246,7 @@ int HIR_LTREE_licm_canonicalization(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        if (!fb->used) continue;
         int changed = 0;
         do {
             changed = 0;

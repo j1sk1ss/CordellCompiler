@@ -175,6 +175,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     list_iter_hinit(&cctx->funcs, &it);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+        if (!fb->used) continue;
         _iterate_block(list_get_head(&fb->blocks), ctx, 0, smt);
     }
 

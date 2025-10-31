@@ -29,7 +29,7 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     cfg_block_t* block = (cfg_block_t*)mm_malloc(sizeof(cfg_block_t));
     if (!block) return NULL;
     str_memset(block, 0, sizeof(cfg_block_t));
-    block->type       = DEFAULT_BLOCK;
+    block->type       = CFG_DEFAULT_BLOCK;
     block->hmap.entry = e;
     block->hmap.exit  = e;
     set_init(&block->visitors);
@@ -83,11 +83,6 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
         hir_block_t* entry = hh;
 #ifdef DRAGONBOOK_CFG_LEADER
         while (hh->next && hh != f->exit && !set_has(&f->leaders, hh->next)) {
-            if (set_has(&f->terminators, hh)) {
-                term = 1;
-                break;
-            }
-
             hh = hh->next;
         }
 
@@ -173,6 +168,9 @@ int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
             set_free(&cb->visitors);
             set_init(&cb->visitors);
         }
+
+        set_free(&fb->leaders);
+        set_init(&fb->leaders);
     }
 
     return 1;
@@ -201,7 +199,6 @@ int HIR_CFG_unload(cfg_ctx_t* ctx) {
         }
 
         set_free(&fb->leaders);
-        set_free(&fb->terminators);
         list_free_force(&fb->blocks);
         mm_free(fb);
     }

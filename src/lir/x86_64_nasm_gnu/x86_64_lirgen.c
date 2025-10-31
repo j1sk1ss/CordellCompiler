@@ -37,7 +37,7 @@ static int _iterate_block(
             case HIR_STRT:    LIR_BLOCK0(ctx, LIR_STRT);                                             break;
             case HIR_STEND:   LIR_BLOCK0(ctx, LIR_STEND);                                            break;
             case HIR_OEXT:    LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id)); break;
-            case HIR_MKSCOPE: scope_push(scopes, h->farg->storage.cnst.value, offset);              break;
+            case HIR_MKSCOPE: scope_push(scopes, h->farg->storage.cnst.value, offset);               break;
             case HIR_EXITOP: {
                 x86_64_deallocate_heap(ctx, scope_id_top(scopes), heap);
                 if (h->farg) x86_64_store_var_reg(LIR_iMOV, ctx, h->farg, RDI, -1, smt);

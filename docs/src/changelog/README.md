@@ -1,6 +1,29 @@
 # CPL changelog
 Logs for the first and second versions are quite short because I don’t remember exactly what was introduced and when. However, this page lists most of the major changes. In fact, it was created mainly to document the project’s evolution in a clear way, without the need to read through all the commits.
 
+## Inlining 
+Function inlined if it reach score higher than 2 points.
+```c
+static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
+    if (!f) return 0;
+    int score = 0;
+
+    if (
+        pos->type == CFG_LOOP_BLOCK ||
+        pos->type == CFG_LOOP_LATCH
+    ) score += 2;
+
+    int block_count = list_size(&f->blocks);
+
+    if (block_count <= 2)       score += 3;
+    else if (block_count <= 5)  score += 2;
+    else if (block_count <= 10) score += 1;
+    else if (block_count > 15)  score -= 2;
+    
+    return score > 2;
+}
+```
+
 ## TRE (tail recursion elimination)
 TRE implementation simply do rrcursion elimination if next block after recursion is terminator block (without successors).
 
