@@ -167,6 +167,7 @@ int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
 
             set_free(&cb->visitors);
             set_init(&cb->visitors);
+            cb->visited = 0;
         }
 
         set_free(&fb->leaders);

@@ -24,7 +24,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx) {
 
 static long _curr_id = 0;
 lir_subject_t* LIR_create_subject(
-    int t, lir_registers_t r, int v_id, long offset, const char* strval, long intval, int size, int s_id
+    int t, int v_id, long offset, const char* strval, long intval, int size, int s_id
 ) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
     if (!subj) return NULL;
@@ -35,7 +35,8 @@ lir_subject_t* LIR_create_subject(
     subj->id   = _curr_id++;
 
     switch (t) {
-        case LIR_REGISTER: subj->storage.reg.reg = LIR_format_register(r, size); break;
+        case LIR_REGISTER: subj->storage.reg.reg = subj->id; break;
+        case LIR_VARIABLE:
         case LIR_GLVARIABLE:
         case LIR_STVARIABLE: 
             subj->storage.var.offset = offset;

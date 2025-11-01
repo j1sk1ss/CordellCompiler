@@ -3,194 +3,201 @@
 
 #include <lir/lir.h>
 #include <lir/lir_types.h>
-#include "reg_helper.h"
 
-static const char* lir_op_to_string(lir_operation_t op) {
+static int _lir_depth = 0;
+static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
     switch(op) {
-        case LIR_iMVSX: return "iMVSX";
-        case LIR_MKGLB: return "MKGLB";
-        case LIR_FCLL:  return "FCLL";
-        case LIR_ECLL:  return "ECLL";
-        case LIR_STRT:  return "STRT";
-        case LIR_SYSC:  return "SYSC";
-        case LIR_FRET:  return "FRET";
-        case LIR_TINT:  return "TINT";
-        case LIR_TDBL:  return "TDBL";
-        case LIR_TST:   return "TST";
-        case LIR_XCHG:  return "XCHG";
-        case LIR_CDQ:   return "CDQ";
-        case LIR_MKLB:  return "MKLB";
-        case LIR_FDCL:  return "FDCL";
-        case LIR_OEXT:  return "OEXT";
+        case LIR_ECLL: 
+        case LIR_FCLL:  return "call %s;\n";
+        case LIR_STRT:  return "start {\n";
+        case LIR_STEND: return "}\n";
+        case LIR_SYSC:  return "syscall;\n";
+        case LIR_FRET:  return "return %s;\n";
+        case LIR_MKLB:  return "%s:\n";
+        case LIR_FDCL:  return "fn %s\n";
+        case LIR_FEND:  return "\n";
+        case LIR_OEXT:  return "extern %s;\n";
 
-        case LIR_SETL: return "SETL";
-        case LIR_SETG: return "SETG";
-        case LIR_STLE: return "STLE";
-        case LIR_STGE: return "STGE";
-        case LIR_SETE: return "SETE";
-        case LIR_STNE: return "STNE";
-        case LIR_SETB: return "SETB";
-        case LIR_SETA: return "SETA";
-        case LIR_STBE: return "STBE";
-        case LIR_STAE: return "STAE";
+        case LIR_JE:    return "je %s;\n";
+        case LIR_JMP:   return "jmp %s;\n";
+        case LIR_iMOV:  return "%s = %s;\n";
 
-        case LIR_JL:  return "JL";
-        case LIR_JG:  return "JG";
-        case LIR_JLE: return "JLE";
-        case LIR_JGE: return "JGE";
-        case LIR_JE:  return "JE";
-        case LIR_JNE: return "JNE";
-        case LIR_JB:  return "JB";
-        case LIR_JA:  return "JA";
-        case LIR_JBE: return "JBE";
-        case LIR_JAE: return "JAE";
+        case LIR_STARGLD: return "%s = strt_loadarg();\n";
+        case LIR_STARGRF: return "%s = strt_ref_loadarg();\n";
 
-        case LIR_RESV: return "RESV";
-        case LIR_VDCL: return "VDCL";
+        case LIR_VRDEALL: return "kill(%s);\n";
+        case LIR_STRDECL: return "%s = str_alloc(%s);\n";
+        case LIR_ARRDECL: return "%s = arr_alloc(X);\n";
 
-        case LIR_JMP: return "JMP";
+        case LIR_STFARG:   return "stparam(%s);\n";
+        case LIR_LOADFARG: return "%s = ldparam();\n";
+        case LIR_LOADFRET: return "%s = fret();\n";
 
-        case LIR_iMOV:  return "iMOV";
-        case LIR_iMOVb: return "iMOVb";
-        case LIR_iMOVw: return "iMOVw";
-        case LIR_iMOVd: return "iMOVd";
-        case LIR_iMOVq: return "iMOVq";
-        case LIR_iMVZX: return "iMVZX";
+        case LIR_TF64: return "%s = %s as f64;\n";
+        case LIR_TF32: return "%s = %s as f32;\n";
+        case LIR_TI64: return "%s = %s as i64;\n";
+        case LIR_TI32: return "%s = %s as i32;\n";
+        case LIR_TI16: return "%s = %s as i16;\n";
+        case LIR_TI8:  return "%s = %s as i8;\n";
+        case LIR_TU64: return "%s = %s as u64;\n";
+        case LIR_TU32: return "%s = %s as u32;\n";
+        case LIR_TU16: return "%s = %s as u16;\n";
+        case LIR_TU8:  return "%s = %s as u8;\n";
 
-        case LIR_fMOV:  return "fMOV";
-        case LIR_fMVf:  return "fMVf";
-        case LIR_REF:   return "REF";
-        case LIR_GDREF: return "GDREF";
-        case LIR_LDREF: return "LDREF";
-        case LIR_PUSH:  return "PUSH";
-        case LIR_POP:   return "POP";
+        case LIR_NOT: return "%s = !%s;\n";
 
-        case LIR_iADD: return "iADD";
-        case LIR_iSUB: return "iSUB";
-        case LIR_iMUL: return "iMUL";
-        case LIR_DIV:  return "DIV";
-        case LIR_iDIV: return "iDIV";
-        case LIR_iMOD: return "iMOD";
-        case LIR_iLRG: return "iLRG";
-        case LIR_iLGE: return "iLGE";
-        case LIR_iLWR: return "iLWR";
-        case LIR_iLRE: return "iLRE";
-        case LIR_iCMP: return "iCMP";
-        case LIR_iNMP: return "iNMP";
+        case LIR_IFOP2:  return "if %s == %s;\n";
+        case LIR_iBLFT: return "%s = %s << %s;\n";
+        case LIR_iBRHT: return "%s = %s >> %s;\n";
+        case LIR_iLWR:  return "%s = %s < %s;\n";
+        case LIR_iLRE:  return "%s = %s <= %s;\n";
+        case LIR_iLRG:  return "%s = %s > %s;\n";
+        case LIR_iLGE:  return "%s = %s >= %s;\n";
+        case LIR_iCMP:  return "%s = %s == %s;\n";
+        case LIR_iNMP:  return "%s = %s != %s;\n";
+        case LIR_iOR:   return "%s = %s || %s;\n";
+        case LIR_iAND:  return "%s = %s && %s;\n";
+        case LIR_bOR:   return "%s = %s | %s;\n";
+        case LIR_bXOR:  return "%s = %s ^ %s;\n";
+        case LIR_bAND:  return "%s = %s & %s;\n";
+        case LIR_iMOD:  return "%s = %s %% %s;\n";
+        case LIR_iSUB:  return "%s = %s - %s;\n";
+        case LIR_iDIV:  return "%s = %s / %s;\n";
+        case LIR_iMUL:  return "%s = %s * %s;\n";
+        case LIR_iADD:  return "%s = %s + %s;\n";
 
-        case LIR_iAND: return "iAND";
-        case LIR_iOR:  return "iOR";
+        case LIR_REF:   return "%s = &(%s);\n";
+        case LIR_GDREF: return "%s = *(%s);\n";
+        case LIR_LDREF: return "*(%s) = %s;\n";
 
-        case LIR_fADD: return "fADD";
-        case LIR_fSUB: return "fSUB";
-        case LIR_fMUL: return "fMUL";
-        case LIR_fDIV: return "fDIV";
-        case LIR_fCMP: return "fCMP";
+        case LIR_RAW:        return "[raw] (link: %s);\n";
+        case LIR_BREAKPOINT: return "== == brk == ==\n";
 
-        case LIR_iBLFT: return "iBLFT";
-        case LIR_iBRHT: return "iBRHT";
-        case LIR_bAND:  return "bAND";
-        case LIR_bOR:   return "bOR";
-        case LIR_bXOR:  return "bXOR";
-        case LIR_bSHL:  return "bSHL";
-        case LIR_bSHR:  return "bSHR";
-        case LIR_bSAR:  return "bSAR";
-
-        case LIR_RAW: return "RAW";
-
-        case LIR_RSVSTK: return "RSVSTK";
-        case LIR_ADDOP:  return "ADDOP";
-        case LIR_fADDOP: return "fADDOP";
-        case LIR_SUBOP:  return "SUBOP";
-        case LIR_fSUBOP: return "fSUBOP";
-        case LIR_DIVOP:  return "DIVOP";
-        case LIR_fDIVOP: return "fDIVOP";
-        case LIR_MODOP:  return "MODOP";
-        case LIR_LOADOP: return "LOADOP";
-        case LIR_LDLINK: return "LDLINK";
-        case LIR_STOP:   return "STOP";
-        case LIR_STLINK: return "STLINK";
-        case LIR_DECL:   return "DECL";
-        case LIR_ALLCH:  return "ALLCH";
-        case LIR_DEALLH: return "DEALLH";
-        case LIR_EXITOP: return "EXITOP";
-
-        case LIR_STEND:  return "STEND";
-        case LIR_FEND:   return "FEND";
-        case LIR_BREAKPOINT: return "BREAKPOINT";
-        default: return "[unkn]";
+        case LIR_MKSCOPE:  return "{\n";
+        case LIR_ENDSCOPE: return "}\n";
+    
+        case LIR_EXITOP: return "exit %s;\n";
     }
 }
 
-static void print_lir_subject(const lir_subject_t* s) {
-    if (!s) return;
+static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) {
+    if (!s) return dst;
     switch (s->t) {
-        case LIR_REGISTER:   printf("%s", register_to_string(s->storage.reg.reg)); break;
-        case LIR_STVARIABLE: printf("stk [id=%i]", s->storage.var.v_id);           break;
-        case LIR_GLVARIABLE: printf("glb [id=%i]", s->storage.var.v_id);           break;
-        case LIR_CONSTVAL:   printf("%i", s->storage.cnst.value);                  break;
-        case LIR_NUMBER:     printf("%s", s->storage.num.value);                   break;
-        case LIR_LABEL:      printf("lb: [vid=%d]", s->storage.str);               break;
-        case LIR_RAWASM:     printf("raw [id=%d]", s->storage.str.sid);            break;
-        case LIR_MEMORY:     s->storage.var.offset >= 0 ? 
-                                printf("[RBP - %i]", s->storage.var.offset) :
-                                printf("[RBP + %i]", -1 * s->storage.var.offset);  break;
-        case LIR_FNAME:      printf("func [id=%d]", s->storage.str.sid);           break;
-        case LIR_STRING:     printf("str [id=%d]", s->storage.str.sid);            break;
-        default: return;
-    }
-}
+        case LIR_VARIABLE: dst += sprintf(dst, "%%%i", s->storage.var.v_id);        break;
+        case LIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);    break;
+        case LIR_CONSTVAL: dst += sprintf(dst, "cnst: %ld", s->storage.cnst.value); break;
 
-static void print_lir_block(lir_block_t* b) {
-    printf("%s", lir_op_to_string(b->op)); if (b->farg) printf(" ");
-    print_lir_subject(b->farg); if (b->sarg) printf(", ");
-    print_lir_subject(b->sarg); if (b->targ) printf(", ");
-    print_lir_subject(b->targ);
-    // printf("\n");
-}
+        case LIR_LABEL: dst += sprintf(dst, "lb%d", s->storage.lb.lb_id); break;
+        case LIR_RAWASM:
+        case LIR_STRING: {
+            str_info_t si;
+            if (STTB_get_info_id(s->storage.str.sid, &si, &smt->s)) {
+                dst += sprintf(dst, "str(%s)", si.value);
+            }
 
-static int _export_dot_func_lir(cfg_func_t* f) {
-    printf("digraph CFG_func%d {\n", f->id);
-    printf("  rankdir=TB;\n");
-    printf("  node [shape=box, fontname=\"monospace\"];\n");
-
-    list_iter_t bit;
-    list_iter_hinit(&f->blocks, &bit);
-    cfg_block_t* cb;
-
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        printf("  B%ld [label=\"B%ld:\\n", cb->id, cb->id);
-
-        lir_block_t* instr = cb->lmap.entry;
-        while (instr) {
-            print_lir_block(instr);
-            if (instr->op == HIR_MKLB && instr->farg) printf(" %d", instr->farg->id);
-            printf("\\l");
-            if (instr == cb->lmap.exit) break;
-            instr = instr->next;
+            break;
         }
 
-        printf("\"];\n");
+        case LIR_FNAME: {
+            func_info_t fi;
+            if (FNTB_get_info_id(s->storage.str.sid, &fi, &smt->f)) {
+                dst += sprintf(dst, "%s(", fi.name);
+            }
 
-        if (cb->l) printf("  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
-        if (cb->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
+            if (fi.args) {
+                for (ast_node_t* t = fi.args->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
+                    ast_node_t* type = t;
+                    ast_node_t* name = t->child;
+                    dst += sprintf(dst, "%s %s", fmt_tkn_type(type->token), name->token->value);
+                    if (t->sibling && t->sibling->token->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
+                }
+            }
+
+            dst += sprintf(dst, ")");
+            if (fi.rtype) {
+                dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->token));
+            }
+
+            break;
+        }
+
+        default: dst += sprintf(dst, "unknw"); break;
     }
 
-    printf("}\n");
-    return 1;
+    return dst;
 }
 
-void lir_cfg_print(cfg_ctx_t* ctx) {
-    printf("==== CFG (LIR) DUMP ====\n");
+void print_lir_block(const lir_block_t* block, int ud, sym_table_t* smt) {
+    if (!block) return;
 
-    list_iter_t fit;
-    list_iter_hinit(&ctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        _export_dot_func_lir(fb);
+    char arg1[256] = { 0 };
+    char arg2[256] = { 0 };
+    char arg3[256] = { 0 };
+
+    int args = 3;
+    if (block->farg) {
+        sprintf_lir_subject(arg1, block->farg, smt);
+        args--;
     }
 
-    printf("==================\n");
+    if (block->sarg) {
+        sprintf_lir_subject(arg2, block->sarg, smt);
+        args--;
+    }
+
+    if (block->targ) {
+        sprintf_lir_subject(arg3, block->targ, smt);
+        args--;
+    }
+
+    char line[512] = { 0 };
+    if (
+        block->op == LIR_ENDSCOPE ||
+        // block->op == HIR_FEND     ||
+        block->op == LIR_STEND
+    ) _lir_depth--;
+
+    if (ud) for (int i = 0; i < _lir_depth; i++) printf("    ");
+    if (block->unused) printf("[unused] ");
+    const char* fmt = lir_op_to_fmtstring(block->op, args);
+    sprintf(line, fmt, arg1, arg2, arg3);
+
+    if (
+        block->op == LIR_MKSCOPE ||
+        // block->op == HIR_FDCL    ||
+        block->op == LIR_STRT
+    ) _lir_depth++;
+
+    fprintf(stdout, "%s", line);
 }
 
+// static int _export_dot_func_lir(cfg_func_t* f, sym_table_t* smt) {
+//     printf("digraph CFG_func%d {\n", f->id);
+//     printf("  rankdir=TB;\n");
+//     printf("  node [shape=box, fontname=\"monospace\"];\n");
+
+//     int ishead = 1;
+
+//     list_iter_t bit;
+//     list_iter_hinit(&f->blocks, &bit);
+//     cfg_block_t* cb;
+//     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+//         printf("  B%ld [label=\"B%ld:\\n", cb->id, cb->id);
+//         lir_block_t* cmd = cb->lmap.entry;
+//         while (cmd) {
+//             const char* fmt_cmd = print_lir_block(cmd, 0, smt);
+//             if (fmt_cmd) printf("%s\\n", fmt_cmd);
+//             if (cmd == cb->lmap.exit) break;
+//             cmd = cmd->next;
+//         }
+
+//         printf("\"];\n");
+
+//         if (cb->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
+//         if (cb->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
+//     }
+    
+//     printf("}\n");
+//     return 1;
+// }
 #endif

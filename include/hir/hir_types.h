@@ -79,7 +79,7 @@ typedef enum hir_operation {
         HIR_VRUSE,
 
         /* Data */
-        HIR_NOT,
+        HIR_NOT,          // x = !x
         HIR_STORE,        // x = y
         HIR_CLNVRS,       // deallocate all unused variables
         HIR_VARDECL,      // alloc x

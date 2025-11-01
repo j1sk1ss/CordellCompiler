@@ -39,6 +39,7 @@ typedef enum {
         LIR_STAE,
 
         /* Jump instructions */
+        LIR_IFOP2,
         LIR_JMP,  // jmp
         LIR_JL,   // jump if less (signed)
         LIR_JG,   // jump if greater (signed)
@@ -64,6 +65,30 @@ typedef enum {
         LIR_iMOVq, // mov qword
         LIR_iMVZX,
         LIR_iMVSX,
+
+        LIR_STARGLD, // st load
+        LIR_STARGRF, // st ref load
+
+        LIR_VRDEALL, // cnst_x=var_id
+        LIR_STRDECL, // cnst_x=var_id, cnst_y=str_id
+        LIR_ARRDECL, // cnst_x=var_id
+
+        LIR_STFARG,   // store parameter to function, x, cnst_y=index
+        LIR_LOADFARG, // load parameter in function, cnst_x=var_id, cnst_y=index
+        LIR_LOADFRET, // load funcret to dst, cnst_x=var_id
+
+        LIR_TF64,     // x = (f64)y
+        LIR_TF32,     // x = (f32)y
+        LIR_TI64,     // x = (i64)y
+        LIR_TI32,     // x = (i32)y
+        LIR_TI16,     // x = (i16)y
+        LIR_TI8,      // x = (i8)y
+        LIR_TU64,     // x = (u64)y
+        LIR_TU32,     // x = (u32)y
+        LIR_TU16,     // x = (u16)y
+        LIR_TU8,      // x = (u8)y
+
+        LIR_NOT,
 
         LIR_fMOV,  // float move
         LIR_fMVf,  // float to float move
@@ -118,6 +143,8 @@ typedef enum {
     /* High level operations */
         /* Stack */
         LIR_RSVSTK, // Reserve stackframe
+        LIR_MKSCOPE,
+        LIR_ENDSCOPE,
     
         /* Bin operations */
         LIR_ADDOP,  // a = b + c
@@ -146,6 +173,7 @@ typedef enum {
 typedef enum {
     LIR_REGISTER,
     LIR_STVARIABLE,
+    LIR_VARIABLE,
     LIR_GLVARIABLE,
     LIR_CONSTVAL,
     LIR_NUMBER,

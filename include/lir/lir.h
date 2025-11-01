@@ -70,7 +70,7 @@ typedef struct {
 } lir_ctx_t;
 
 lir_subject_t* LIR_create_subject(
-    int t, lir_registers_t r, int v_id, long offset, const char* strval, long intval, int size, int s_id
+    int t, int v_id, long offset, const char* strval, long intval, int size, int s_id
 );
 
 lir_ctx_t* LIR_create_ctx();
@@ -81,35 +81,35 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b);
 int LIR_unload_blocks(lir_block_t* block);
 int LIR_destroy_ctx(lir_ctx_t* ctx);
 
-#define LIR_SUBJ_REG(r, sz) \
-    LIR_create_subject(LIR_REGISTER, r, -1, 0, NULL, 0, sz, 0)
+#define LIR_SUBJ_REG(sz) \
+    LIR_create_subject(LIR_REGISTER, -1, 0, NULL, 0, sz, 0)
 
 #define LIR_SUBJ_CONST(val) \
-    LIR_create_subject(LIR_CONSTVAL, 0, -1, 0, NULL, val, 0, 0)
+    LIR_create_subject(LIR_CONSTVAL, -1, 0, NULL, val, 0, 0)
 
 #define LIR_SUBJ_NUMBER(val) \
-    LIR_create_subject(LIR_NUMBER, 0, -1, 0, val, 0, 0, 0)
+    LIR_create_subject(LIR_NUMBER, -1, 0, val, 0, 0, 0)
 
-#define LIR_SUBJ_VAR(kind, off, sz) \
-    LIR_create_subject(kind, 0, -1, off, NULL, 0, sz, 0)
+#define LIR_SUBJ_VAR(id, sz) \
+    LIR_create_subject(LIR_VARIABLE, id, -1, NULL, 0, sz, 0)
 
 #define LIR_SUBJ_GLVAR(id) \
-    LIR_create_subject(LIR_GLVARIABLE, 0, id, 0, NULL, 0, 0, 0)
+    LIR_create_subject(LIR_GLVARIABLE, id, 0, NULL, 0, 0, 0)
 
 #define LIR_SUBJ_OFF(off, sz) \
-    LIR_create_subject(LIR_MEMORY, 0, -1, off, NULL, 0, sz, 0)
+    LIR_create_subject(LIR_MEMORY, -1, off, NULL, 0, sz, 0)
 
 #define LIR_SUBJ_LABEL(id) \
-    LIR_create_subject(LIR_LABEL, 0, id, 0, NULL, 0, 0, 0)
+    LIR_create_subject(LIR_LABEL, id, 0, NULL, 0, 0, 0)
 
 #define LIR_SUBJ_RAWASM(l) \
-    LIR_create_subject(LIR_RAWASM, 0, l, 0, NULL, 0, 0, 0)
+    LIR_create_subject(LIR_RAWASM, l, 0, NULL, 0, 0, 0)
 
 #define LIR_SUBJ_STRING(id) \
-    LIR_create_subject(LIR_STRING, 0, id, 0, NULL, 0, 0, -1)
+    LIR_create_subject(LIR_STRING, id, 0, NULL, 0, 0, -1)
 
 #define LIR_SUBJ_FUNCNAME(n) \
-    LIR_create_subject(LIR_FNAME, 0, n->storage.str.s_id, 0, NULL, 0, 0, -1)
+    LIR_create_subject(LIR_FNAME, n->storage.str.s_id, 0, NULL, 0, 0, -1)
 
 #define LIR_BLOCK0(ctx, op) \
     LIR_append_block(LIR_create_block((op), NULL, NULL, NULL), (ctx))
@@ -119,5 +119,8 @@ int LIR_destroy_ctx(lir_ctx_t* ctx);
 
 #define LIR_BLOCK2(ctx, op, fa, sa) \
     LIR_append_block(LIR_create_block((op), (fa), (sa), NULL), (ctx))
+
+#define LIR_BLOCK3(ctx, op, fa, sa, ta) \
+    LIR_append_block(LIR_create_block((op), (fa), (sa), (ta)), (ctx))
 
 #endif

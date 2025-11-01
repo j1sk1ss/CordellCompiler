@@ -1,11 +1,16 @@
 {
-    function sum(i32 a, i32 b) => i32 {
-        arr c[2, i32] = { a, b };
-        return c[0] + c[1];
+    function strlen(ptr i8 s) => i64 {
+        i64 l = 0;
+        while dref s; {
+            s += 1;
+            l += 1;
+        }
+
+        return l;
     }
 
     start(i64 argc, ptr u64 argv) {
-        glob arr a[10, i32] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        exit 0;
+        str msg = "Hello world!";
+        exit strlen(ref msg);
     }
 }

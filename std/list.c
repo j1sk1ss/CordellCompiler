@@ -76,6 +76,45 @@ int list_push_front(list_t* l, void* data) {
     return 0;
 }
 
+int list_insert(list_t* l, void* data, void* before) {
+    if (!l) return -1;
+    list_node_t* node = mm_malloc(sizeof(list_node_t));
+    if (!node) return -1;
+
+    node->data = data;
+    node->p = NULL;
+    node->n = NULL;
+
+    if (!l->h) {
+        l->h = node;
+        l->t = node;
+        l->s = 1;
+        return 0;
+    }
+
+    list_node_t* cur = l->h;
+    while (cur) {
+        if (cur->data == before) break;
+        cur = cur->n;
+    }
+
+    if (!cur) {
+        node->p = l->t;
+        l->t->n = node;
+        l->t = node;
+    } 
+    else {
+        node->n = cur;
+        node->p = cur->p;
+        if (cur->p) cur->p->n = node;
+        else l->h = node;
+        cur->p = node;
+    }
+
+    l->s++;
+    return 0;
+}
+
 int list_remove(list_t* l, void* data) {
     if (!l || !l->h) return 0;
 

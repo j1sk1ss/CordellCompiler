@@ -56,6 +56,7 @@ typedef struct cfg_block {
     struct cfg_block* jmp;
     set_t             pred;
     set_t             visitors;
+    char              visited;
     
     /* Dominance frontier analysis */
     set_t             dom;      /* Dominators               */

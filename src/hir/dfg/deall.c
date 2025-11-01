@@ -4,6 +4,17 @@ deall.c - Create deallocation points in HIR
 
 #include <hir/dfg.h>
 
+static int _already_deallocated(long id, cfg_block_t* bb) {
+    hir_block_t* hh = bb->hmap.exit;
+    while (hh) {
+        if (hh->op == HIR_VRDEALL && hh->farg->storage.cnst.value == id) return 1;
+        if (hh == bb->hmap.entry) break;
+        hh = hh->prev;
+    }
+
+    return 0;
+}
+
 int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
@@ -38,7 +49,9 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                 set_free_force(&owners);
                 if (hasown) continue;
-                HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->hmap.exit);
+                if (!_already_deallocated(vid, cb)) {
+                    HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->hmap.exit);
+                }
 
                 map_iter_t mit;
                 map_iter_init(&smt->m.allias, &mit);
@@ -46,7 +59,10 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                 while (map_iter_next(&mit, (void**)&al)) {
                     if (!set_has(&al->owners, (void*)vid)) continue;
                     if (ALLIAS_mark_owner(al->v_id, vid, &smt->m)) {
-                        HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(al->v_id), NULL, NULL), cb->hmap.exit);
+                        if (!_already_deallocated(al->v_id, cb)) {
+                            HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(al->v_id), NULL, NULL), cb->hmap.exit);
+                        }
+
                         set_free_force(&al->delown);
                         set_init(&al->delown);
                     }

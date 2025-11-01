@@ -291,7 +291,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                 while (set_iter_next(&it, (void**)&tpl)) {
                     variable_info_t pvi;
                     if (VRTB_get_info_id(tpl->y, &pvi, &smt->v)) {
-                        dst += sprintf(dst, "[%s%i, bb%d]", pvi.name, pvi.v_id, tpl->x);
+                        dst += sprintf(dst, "[%%%i, bb%d]", pvi.v_id, tpl->x);
                     }
                 }
                 

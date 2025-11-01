@@ -28,7 +28,7 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
     preheader->type = CFG_LOOP_PREHEADER;
 
     preheader->id = cctx->cid++;
-    list_add(&header->pfunc->blocks, preheader);
+    list_insert(&header->pfunc->blocks, preheader, header);
     preheader->l = header;
 
     set_iter_init(&header->pred, &it);

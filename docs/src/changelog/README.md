@@ -1,7 +1,14 @@
 # CPL changelog
 Logs for the first and second versions are quite short because I don’t remember exactly what was introduced and when. However, this page lists most of the major changes. In fact, it was created mainly to document the project’s evolution in a clear way, without the need to read through all the commits.
 
-## Inlining 
+----------------------------------------
+
+# Version v3.1
+New LIR level. Instead straigthforward LIR generation, now this is a another 3AC level, suitable for instruction selection and instruction planning. Also, instead only register allocation based on graph coloring, this level support register allocation based both on linear scanning approach and graph coloring. 
+
+----------------------------------------
+
+### Inlining 
 Function inlined if it reach score higher than 2 points.
 ```c
 static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
@@ -24,28 +31,28 @@ static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
 }
 ```
 
-## TRE (tail recursion elimination)
+### TRE (tail recursion elimination)
 TRE implementation simply do rrcursion elimination if next block after recursion is terminator block (without successors).
 
-## IG fix
+### IG fix
 Now Interference Graph calculated with `IN`, `DEF` and `OUT` instead only `DEF` and `OUT` sets according to [this](https://courses.cs.cornell.edu/cs4120/2022sp/notes/regalloc/index.html) article.
 
-## AST opt deadfunc
+### AST opt deadfunc
 From AST level dead function elimination to HIR level based of call graph.
 
-## SSA LICM optimization
+### SSA LICM optimization
 Redundand calculations (instead basic inductions) now moved from loop body to loop preheader.
 
-## CFG BB genration changed
+### CFG BB genration changed
 Previous version of BB generation includes complex if operations without two jmps support, that's why leaders from DragonBook works incorrect. Now there is no IFLWR, IFGRT and similar operations, only IFOP2.
 
-## LIR generation based on CFG instead raw HIR
+### LIR generation based on CFG instead raw HIR
 Now LIR generator works only with CFG data instead raw HIR list. Also, LIR generator produces not only raw LIR list. Now it produces updated meta information for base blocks in CFG (entry and exit for LIR list for asm generator).
 
-## Constant propagation [still WIP]
+### Constant propagation [still WIP]
 HIR_DAG_sparse_const_propagation function implemented. Also there is a new types for numbers and contants (constants and numbers for f/u/i 64/32/16/8). 
 
-## Debug features of CPL
+### Debug features of CPL
 Additional instruction called `lis` (Interesting abbreviation, isn't? This is a LinearIsStop? or is a LiveInputStage? Or... nevermind) and used for setting breakpoints in code. Example:
 ```cpl
 start() {
@@ -58,7 +65,7 @@ start() {
 
 For usage, run program (executable) with debug tool (like `gdb`, `lldb`).
 
-# Version v3 [WIP]
+# Version v3
 Third version of this compiler (WIP). Full structure refactoring (from `token` -> `AST` -> `ASM`, that wasn't changed since first version was created, to `token` -> `AST` -> `HIR` (`CFG` -> `SSA` -> `DAG` -> `CFG`) -> `RA` -> `LIR` -> `ASM`). Also this page created during development of this version (10.20.2025). Also this version is optimization implementation version. List of implemented optimizations:
 - HIR
     - Constant propagation
@@ -67,7 +74,9 @@ Third version of this compiler (WIP). Full structure refactoring (from `token` -
 - LIR
     - MOV optimization
 
-# Version v2 [CURRENT]
+----------------------------------------
+
+# Version v2
 Second version of this compiler (currentrly, 10.20.2025, is main work version). Main features is full refactoring of `token` part, `AST` generation cleanup and implementing of basic `LIR`. The main improvement was in syntax of the CP language.
 
 ```cplv2
@@ -106,7 +115,9 @@ start() {
 
 Some improvements in typing (`i8`, `u8`, etc.), `asm` blocks, `external` functions, `heap` arrays, and other. This version also was tested with brainfuck interpreter.
 
-# Version v1 [Deprecated]
+----------------------------------------
+
+# Version v1
 First version of this compiler. Last commit before v2 was in the middle of summer 2025. Main features of this version is a `token` -> `AST` -> `ASM` structure of the compiler, basic support of a `NASM`, brainfuck interpreter and other stuff. Sample of syntax is here:
 ```cplv1
 function itoa ptr buffer; int dsize; int num; {

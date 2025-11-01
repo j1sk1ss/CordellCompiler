@@ -18,7 +18,7 @@
 #include <hir/ra.h>
 
 #include <lir/lirgen.h>
-#include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
+#include <lir/lirgens/lirgens.h>
 
 #include "ast_helper.h"
 #include "hir_helper.h"
@@ -28,9 +28,15 @@
 #include "symtb_helper.h"
 
 int main(int argc, char* argv[]) {
-    printf("RUNNING TEST %s...\n", argv[0]);
+    printf("Running test %s...\n", argv[0]);
     mm_init();
-    
+
+/*
+========================
+Source code reading...
+========================
+*/
+
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
         fprintf(stderr, "File %s not found!\n", argv[1]);
@@ -41,6 +47,12 @@ int main(int argc, char* argv[]) {
     pread(fd, data, 2048, 0);
     printf("Source data: %s\n\n", data);
 
+/*
+========================
+Tokenization...
+========================
+*/
+
     list_t tokens;
     list_init(&tokens);
     if (!TKN_tokenize(fd, &tokens)) {
@@ -48,43 +60,113 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+/*
+========================
+Tokens preparation...
+========================
+*/
+
     MRKP_mnemonics(&tokens);
     MRKP_variables(&tokens);
+
+/*
+========================
+AST generation...
+========================
+*/
 
     sym_table_t smt;
     SMT_init(&smt);
     syntax_ctx_t sctx = { .r = NULL };
-
     STX_create(&tokens, &sctx, &smt);
-
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
+
+/*
+========================
+AST -> HIR...
+========================
+*/
 
     hir_ctx_t hirctx = { .h = NULL, .t = NULL };
     HIR_generate(&sctx, &hirctx, &smt);
 
+/*
+========================
+CFGv1 from HIR...
+========================
+*/
+
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&hirctx, &cfgctx);
-    HIR_CFG_create_domdata(&cfgctx);
+    printf("CFGv1:\n"); cfg_print(&cfgctx);
     
+/*
+========================
+Call graph building...
+========================
+*/
+
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);
-    HIR_CG_perform_dfe(&callctx, &smt);
+    HIR_CG_perform_dfe(&cfgctx, &callctx, &smt);
+    HIR_CG_apply_dfe(&cfgctx, &callctx);
     call_graph_print_dot(&callctx);
 
+/*
+========================
+CFGv2 from HIR and call graph after TRE and inline optimization...
+========================
+*/
+
+    HIR_CFG_perform_tre(&cfgctx, &smt);
+    HIR_CFG_unload(&cfgctx);
+    HIR_CFG_build(&hirctx, &cfgctx);
+    HIR_CG_apply_dfe(&cfgctx, &callctx);
+
+    HIR_LOOP_mark_loops(&cfgctx);
+    HIR_FUNC_perform_inline(&cfgctx);
+    HIR_CFG_unload(&cfgctx);
+    HIR_CFG_build(&hirctx, &cfgctx);
+    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    
+/*
+========================
+SSA form building...
+========================
+*/
+
+    HIR_CFG_create_domdata(&cfgctx);
     ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
 
+/*
+========================
+Loop LICM opt...
+========================
+*/
+
     HIR_compute_homes(&hirctx);
     HIR_LTREE_licm_canonicalization(&cfgctx, &smt);
+
+/*
+========================
+CFG -> DAG
+========================
+*/
 
     dag_ctx_t dagctx;
     HIR_DAG_init(&dagctx);
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
-    
     dump_dag_dot(&dagctx, &smt);
+
+/*
+========================
+Variable deallocation
+========================
+*/
 
     HIR_DFG_collect_defs(&cfgctx);
     HIR_DFG_collect_uses(&cfgctx);
@@ -92,39 +174,64 @@ int main(int argc, char* argv[]) {
     HIR_CFG_make_allias(&cfgctx, &smt);
     HIR_DFG_create_deall(&cfgctx, &smt);
 
-    cfg_print(&cfgctx);
+/*
+========================
+HIR debug information...
+========================
+*/
 
-    igraph_t ig;
-    HIR_RA_build_igraph(&cfgctx, &ig, &smt);
-
-    map_t clrs;
-    HIR_RA_color_igraph(&ig, &clrs);
-    igraph_dump_dot(&ig);
-
-    printf("\n\n========== SSA HIR ==========\n");
+    printf("\n\n========== HIR ==========\n");
     hir_block_t* hh = hirctx.h;
     while (hh) {
         print_hir_block(hh, 1, &smt);
         hh = hh->next;
     }
 
-    lir_ctx_t lirctx = { .h = NULL, .t = NULL, .vars = &clrs };
-    lir_gen_t lirgen = {
-        .generate = x86_64_generate_lir,
-        .mvclean  = x86_64_clean_mov
-    };
+/*
+========================
+HIR -> LIR...
+========================
+*/
 
     HIR_CFG_cleanup_blocks_temporaries(&cfgctx);
-    LIR_generate(&cfgctx, &lirgen, &lirctx, &smt);
-    lir_cfg_print(&cfgctx);
+    lir_ctx_t lirctx = { .h = NULL, .t = NULL };
+    LIR_generate(&cfgctx, &lirctx, &smt);
 
+/*
+========================
+LIR debug information...
+========================
+*/
+
+    printf("\n\n========== LIR ==========\n");
+    lir_block_t* lh = lirctx.h;
+    while (lh) {
+        print_lir_block(lh, 1, &smt);
+        lh = lh->next;
+    }
+
+/*
+========================
+Debug information...
+========================
+*/
+
+    printf("CFGv2:\n"); cfg_print(&cfgctx);
     print_symtab(&smt);
 
-    HIR_CG_unload(&callctx);
+/*
+========================
+Cleanup...
+========================
+*/
+
+    LIR_unload_blocks(lirctx.h);
     HIR_DAG_unload(&dagctx);
+
+    HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.h);
-    LIR_unload_blocks(lirctx.h);
+
     list_free_force(&tokens);
     AST_unload(sctx.r);
     SMT_unload(&smt);

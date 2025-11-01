@@ -1,4 +1,4 @@
-#include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
+#include <lir/lirgens/lirgens.h>
 
 int x86_64_generate_asmblock(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstack_t* params) {
     switch (h->op) {
@@ -12,7 +12,7 @@ int x86_64_generate_asmblock(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, s
             const char* p = str_strchr(si.value, '%');
             if (p && str_isdigit((unsigned char)*(++p))) argnum = str_atoi(p);
             if (argnum >= 0) arg = params->data[params->top - argnum].data;
-            LIR_BLOCK2(ctx, LIR_RAW, LIR_SUBJ_RAWASM(h->farg->storage.str.s_id), x86_64_format_variable(ctx, arg, smt));
+            LIR_BLOCK2(ctx, LIR_RAW, LIR_SUBJ_RAWASM(h->farg->storage.str.s_id), x86_64_format_variable(arg));
             break;
         }
 
