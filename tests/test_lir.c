@@ -19,6 +19,8 @@
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
+#include <lir/instsel/instsel.h>
+#include <lir/instsel/x84_64_gnu_nasm.h>
 
 #include "ast_helper.h"
 #include "hir_helper.h"
@@ -203,8 +205,20 @@ LIR debug information...
 ========================
 */
 
-    printf("\n\n========== LIR ==========\n");
+    printf("\n\n========== LIRv1 ==========\n");
     lir_block_t* lh = lirctx.h;
+    while (lh) {
+        print_lir_block(lh, 1, &smt);
+        lh = lh->next;
+    }
+
+    inst_selector_h inst = {
+        .select_instructions = x86_64_gnu_nasm_instruction_selection
+    };
+    LIR_select_instructions(&cfgctx, &smt, &inst);
+
+    printf("\n\n========== LIR selected instructions ==========\n");
+    lh = lirctx.h;
     while (lh) {
         print_lir_block(lh, 1, &smt);
         lh = lh->next;

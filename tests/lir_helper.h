@@ -3,6 +3,7 @@
 
 #include <lir/lir.h>
 #include <lir/lir_types.h>
+#include "reg_helper.h"
 
 static int _lir_depth = 0;
 static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
@@ -20,6 +21,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
 
         case LIR_JE:    return "je %s;\n";
         case LIR_JMP:   return "jmp %s;\n";
+        case LIR_iMVZX: return "%s zx= %s;\n";
         case LIR_iMOV:  return "%s = %s;\n";
 
         case LIR_STARGLD: return "%s = strt_loadarg();\n";
@@ -46,7 +48,18 @@ static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
 
         case LIR_NOT: return "%s = !%s;\n";
 
-        case LIR_IFOP2:  return "if %s == %s;\n";
+        case LIR_CMP:  return "cmp %s, %s;\n";
+        case LIR_SETE: return "sete %s;\n";
+        case LIR_STNE: return "stne %s;\n";
+        case LIR_SETL: return "setl %s;\n";
+        case LIR_STLE: return "stle %s;\n";
+        case LIR_SETG: return "setg %s;\n";
+        case LIR_STGE: return "stge %s;\n";
+        case LIR_SETB: return "setb %s;\n";
+        case LIR_STBE: return "stbe %s;\n";
+        case LIR_SETA: return "seta %s;\n";
+        case LIR_STAE: return "stae %s;\n";
+
         case LIR_iBLFT: return "%s = %s << %s;\n";
         case LIR_iBRHT: return "%s = %s >> %s;\n";
         case LIR_iLWR:  return "%s = %s < %s;\n";
@@ -64,6 +77,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
         case LIR_iSUB:  return "%s = %s - %s;\n";
         case LIR_iDIV:  return "%s = %s / %s;\n";
         case LIR_iMUL:  return "%s = %s * %s;\n";
+        case LIR_fADD:  return "%s = %s f+ %s;\n";
         case LIR_iADD:  return "%s = %s + %s;\n";
 
         case LIR_REF:   return "%s = &(%s);\n";
@@ -83,6 +97,13 @@ static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
 static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) {
     if (!s) return dst;
     switch (s->t) {
+        case LIR_MEMORY: {
+            long off = s->storage.var.offset;
+            dst += sprintf(dst, "[rbp %s %d]", off > 0 ? "-" : "+", ABS(off)); break;
+        }
+
+        case LIR_REGISTER: dst += sprintf(dst, "%s", register_to_string(s->storage.reg.reg)); break;
+
         case LIR_VARIABLE: dst += sprintf(dst, "%%%i", s->storage.var.v_id);        break;
         case LIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);    break;
         case LIR_CONSTVAL: dst += sprintf(dst, "cnst: %ld", s->storage.cnst.value); break;

@@ -3,8 +3,6 @@
 
 #include <hir/hir_types.h>
 
-#define DEFAULT_TYPE_SIZE 8
-
 typedef enum {
     /* Operations */
         /* x86_64 ASM commands */
@@ -26,6 +24,8 @@ typedef enum {
         LIR_FDCL,  // declare function
         LIR_FEND,
         LIR_OEXT,  // extern object
+
+        LIR_CMP,
 
         LIR_SETL,
         LIR_SETG,
@@ -73,6 +73,7 @@ typedef enum {
         LIR_STRDECL, // cnst_x=var_id, cnst_y=str_id
         LIR_ARRDECL, // cnst_x=var_id
 
+        LIR_STSARG,   // store parameter to syscall, x, cnst_y=index
         LIR_STFARG,   // store parameter to function, x, cnst_y=index
         LIR_LOADFARG, // load parameter in function, cnst_x=var_id, cnst_y=index
         LIR_LOADFRET, // load funcret to dst, cnst_x=var_id
@@ -100,30 +101,30 @@ typedef enum {
 
     /* Integer */
         /* Binary operations */
-        LIR_iADD, // addition
-        LIR_iSUB, // substraction
-        LIR_iMUL, // multiplication
-        LIR_DIV,
-        LIR_iDIV, // division
-        LIR_iMOD, // module
-        LIR_iLRG, // larger
-        LIR_iLGE, // larger or equals
-        LIR_iLWR, // lower
-        LIR_iLRE, // lower or equals
-        LIR_iCMP, // comprarision
-        LIR_iNMP,
+        LIR_iADD, // x = y + z
+        LIR_iSUB, // x = y - z
+        LIR_iMUL, // x = y * z
+        LIR_DIV,  // x = y / z
+        LIR_iDIV, // x = y / z
+        LIR_iMOD, // x = y % z
+        LIR_iLRG, // x = y > z
+        LIR_iLGE, // x = y >= z
+        LIR_iLWR, // x = y < z
+        LIR_iLRE, // x = y <= z
+        LIR_iCMP, // x = y == z
+        LIR_iNMP, // x = y != z
 
         /* Logic */
-        LIR_iAND, // and
-        LIR_iOR,  // or
+        LIR_iAND, // x = y && z
+        LIR_iOR,  // x = y || z
 
     /* Float */
         /* Binary operations */
-        LIR_fADD, // addition
-        LIR_fSUB, // substruction
-        LIR_fMUL, // multiplication
-        LIR_fDIV, // division
-        LIR_fCMP, // cmp for double
+        LIR_fADD, // x = y f+ z
+        LIR_fSUB, // x = y f- z
+        LIR_fMUL, // x = y f* z
+        LIR_fDIV, // x = y f/ z
+        LIR_fCMP, // x = y f== z
 
     /* Bits */
         /* Binary operations */
@@ -145,22 +146,6 @@ typedef enum {
         LIR_RSVSTK, // Reserve stackframe
         LIR_MKSCOPE,
         LIR_ENDSCOPE,
-    
-        /* Bin operations */
-        LIR_ADDOP,  // a = b + c
-        LIR_fADDOP, // fa = f/b + f/c
-        LIR_SUBOP,  // a = b - c
-        LIR_fSUBOP, // fa = f/b - f/c
-        LIR_DIVOP,  // a = b / c
-        LIR_fDIVOP, // fa = f/b / f/c
-        LIR_MODOP,  // a = b % c
-
-        /* Data */
-        LIR_LOADOP, // load value <= a
-        LIR_LDLINK, // load link <= a
-        LIR_STOP,   // store value a =>
-        LIR_STLINK, // store link a =>
-        LIR_DECL,   // declaration
     
         /* Heap */
         LIR_ALLCH,  // allocate heap + save addr to farg
@@ -195,8 +180,6 @@ typedef enum {
 #define FREE_REGISTERS      4
 #define FIRST_FREE_REGISTER R12
 
-int LIR_get_asttype_size(token_type_t t);
-int LIR_get_hirtype_size(hir_subject_type_t t);
 int LIR_is_global_hirtype(hir_subject_type_t t);
 lir_registers_t LIR_format_register(lir_registers_t reg, int size);
 int LIR_move_instruction(lir_operation_t op);

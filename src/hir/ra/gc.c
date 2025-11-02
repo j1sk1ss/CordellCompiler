@@ -4,6 +4,10 @@ gc.c - Color interference graph with euristic approuch
 
 #include <hir/ra.h>
 
+int HIR_RA_precolor_node(map_t* colors, long vid, long color) {
+    return map_put(colors, vid, (void**)color);
+}
+
 int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     if (!g || !colors) return 0;
     

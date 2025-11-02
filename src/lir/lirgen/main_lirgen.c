@@ -10,14 +10,14 @@ static int _iterate_block(
     while (h) {
         if (!h->unused) switch (h->op) {
             case HIR_PHI_PREAMBLE:
-            case HIR_STORE:    x86_64_store_var2var(LIR_iMOV, ctx, h->farg, h->sarg);                      break;
-            case HIR_STARGLD:  LIR_BLOCK1(ctx, LIR_STARGLD, x86_64_format_variable(h->farg));              break;
-            case HIR_STRT:     LIR_BLOCK0(ctx, LIR_STRT);                                                  break;
-            case HIR_STEND:    LIR_BLOCK0(ctx, LIR_STEND);                                                 break;
-            case HIR_OEXT:     LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id));      break;
-            case HIR_MKSCOPE:  LIR_BLOCK1(ctx, LIR_MKSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value));  break;
-            case HIR_EXITOP:   LIR_BLOCK1(ctx, LIR_EXITOP, x86_64_format_variable(h->farg));               break;
-            case HIR_ENDSCOPE: LIR_BLOCK1(ctx, LIR_ENDSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value)); break;
+            case HIR_STORE:    x86_64_store_var2var(LIR_iMOV, ctx, h->farg, h->sarg);                                                      break;
+            case HIR_STARGLD:  LIR_BLOCK2(ctx, LIR_STARGLD, x86_64_format_variable(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value)); break;
+            case HIR_STRT:     LIR_BLOCK0(ctx, LIR_STRT);                                                                                  break;
+            case HIR_STEND:    LIR_BLOCK0(ctx, LIR_STEND);                                                                                 break;
+            case HIR_OEXT:     LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id));                                      break;
+            case HIR_MKSCOPE:  LIR_BLOCK1(ctx, LIR_MKSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value));                                  break;
+            case HIR_EXITOP:   LIR_BLOCK1(ctx, LIR_EXITOP, x86_64_format_variable(h->farg));                                               break;
+            case HIR_ENDSCOPE: LIR_BLOCK1(ctx, LIR_ENDSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value));                                 break;
             
             case HIR_FRET:
             case HIR_SYSC:
@@ -64,7 +64,7 @@ static int _iterate_block(
 
             case HIR_NOT: LIR_BLOCK2(ctx, LIR_NOT, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;
             case HIR_IFOP2: {
-                LIR_BLOCK2(ctx, LIR_IFOP2, x86_64_format_variable(h->farg), LIR_SUBJ_CONST(0));
+                LIR_BLOCK2(ctx, LIR_CMP, x86_64_format_variable(h->farg), LIR_SUBJ_CONST(0));
                 LIR_BLOCK1(ctx, LIR_JE, LIR_SUBJ_LABEL(h->sarg->id));
                 LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->targ->id));
                 break;

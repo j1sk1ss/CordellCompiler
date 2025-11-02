@@ -24,7 +24,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx) {
 
 static long _curr_id = 0;
 lir_subject_t* LIR_create_subject(
-    int t, int v_id, long offset, const char* strval, long intval, int size, int s_id
+    int t, int reg, int v_id, long offset, const char* strval, long intval, int size, int s_id
 ) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
     if (!subj) return NULL;
@@ -35,7 +35,7 @@ lir_subject_t* LIR_create_subject(
     subj->id   = _curr_id++;
 
     switch (t) {
-        case LIR_REGISTER: subj->storage.reg.reg = subj->id; break;
+        case LIR_REGISTER: subj->storage.reg.reg = reg; break;
         case LIR_VARIABLE:
         case LIR_GLVARIABLE:
         case LIR_STVARIABLE: 
@@ -98,6 +98,24 @@ int LIR_append_block(lir_block_t* block, lir_ctx_t* ctx) {
     return 0;
 }
 
+int LIR_insert_block_after(lir_block_t* block, lir_block_t* pos) {
+    if (!block || !pos) return 0;
+    block->prev = pos;
+    block->next = pos->next;
+    if (pos->next) pos->next->prev = block;
+    pos->next = block;
+    return 1;
+}
+
+int LIR_insert_block_before(lir_block_t* block, lir_block_t* pos) {
+    if (!block || !pos) return 0;
+    block->prev = pos->prev;
+    block->next = pos;
+    if (pos->prev) pos->prev->next = block;
+    pos->prev = block;
+    return 1;
+}
+
 int LIR_remove_block(lir_block_t* block, lir_ctx_t* ctx) {
     block->prev->next = block->next;
     block->prev = NULL;
@@ -106,13 +124,17 @@ int LIR_remove_block(lir_block_t* block, lir_ctx_t* ctx) {
     return 1;
 }
 
+int LIR_unload_subject(lir_subject_t* s) {
+    return mm_free(s);
+}
+
 int LIR_unload_blocks(lir_block_t* block) {
     if (!block) return -1;
     while (block) {
         lir_block_t* nxt = block->next;
-        if (block->farg) mm_free(block->farg);
-        if (block->sarg) mm_free(block->sarg);
-        if (block->targ) mm_free(block->targ);
+        if (block->farg) LIR_unload_subject(block->farg);
+        if (block->sarg) LIR_unload_subject(block->sarg);
+        if (block->targ) LIR_unload_subject(block->targ);
         mm_free(block);
         block = nxt;
     }
