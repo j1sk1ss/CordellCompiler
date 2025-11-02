@@ -2,9 +2,9 @@
 ig.c - Create interference graph
 */
 
-#include <hir/ra.h>
+#include <lir/regalloc/ra.h>
 
-igraph_node_t* HIR_RA_find_ig_node(igraph_t* g, long v_id) {
+igraph_node_t* LIR_RA_find_ig_node(igraph_t* g, long v_id) {
     igraph_node_t* n;
     if (map_get(&g->nodes, v_id, (void**)&n)) return n;
     return NULL;
@@ -12,8 +12,8 @@ igraph_node_t* HIR_RA_find_ig_node(igraph_t* g, long v_id) {
 
 static int _igraph_add_edge(igraph_t* g, long v1, long v2) {
     if (v1 == v2) return 0;
-    igraph_node_t* n1 = HIR_RA_find_ig_node(g, v1);
-    igraph_node_t* n2 = HIR_RA_find_ig_node(g, v2);
+    igraph_node_t* n1 = LIR_RA_find_ig_node(g, v1);
+    igraph_node_t* n2 = LIR_RA_find_ig_node(g, v2);
     if (!n1 || !n2) return 0;
     set_add(&n1->v, (void*)v2);
     set_add(&n2->v, (void*)v1);
@@ -29,7 +29,7 @@ static int _add_ig_node(long v_id, igraph_t* g) {
     return map_put(&g->nodes, v_id, n);
 }
 
-int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
+int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     map_init(&g->nodes);
 
     map_iter_t vit;
@@ -71,6 +71,6 @@ int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     return 1;
 }
 
-int HIR_RA_unload_igraph(igraph_t* g) {
+int LIR_RA_unload_igraph(igraph_t* g) {
     return map_free_force(&g->nodes);
 }

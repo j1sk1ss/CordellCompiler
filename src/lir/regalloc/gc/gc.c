@@ -2,13 +2,13 @@
 gc.c - Color interference graph with euristic approuch
 */
 
-#include <hir/ra.h>
+#include <lir/regalloc/ra.h>
 
-int HIR_RA_precolor_node(map_t* colors, long vid, long color) {
+int LIR_RA_precolor_node(map_t* colors, long vid, long color) {
     return map_put(colors, vid, (void**)color);
 }
 
-int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
+int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     if (!g || !colors) return 0;
     
     int node_count = g->nodes.size;
@@ -54,7 +54,7 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         processed[max_index] = 1;
         remaining--;
         
-        igraph_node_t* n = HIR_RA_find_ig_node(g, v_ids[max_index]);
+        igraph_node_t* n = LIR_RA_find_ig_node(g, v_ids[max_index]);
         if (n) {
             set_iter_t sit;
             set_iter_init(&n->v, &sit);
@@ -70,14 +70,13 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         }
     }
     
-    map_init(colors);
     while (stack.top >= 0) {
         stack_elem_t e;
         stack_top(&stack, &e);
         stack_pop(&stack);
         
         long current_id = (long)e.data;
-        igraph_node_t* current_node = HIR_RA_find_ig_node(g, current_id);
+        igraph_node_t* current_node = LIR_RA_find_ig_node(g, current_id);
         if (!current_node) continue;
         
         set_t used_colors;

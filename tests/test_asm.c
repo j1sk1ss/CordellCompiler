@@ -88,10 +88,10 @@ int main(int argc, char* argv[]) {
     cfg_print(&cfgctx);
 
     igraph_t ig;
-    HIR_RA_build_igraph(&cfgctx, &ig, &smt);
+    LIR_RA_build_igraph(&cfgctx, &ig, &smt);
 
     map_t clrs;
-    HIR_RA_color_igraph(&ig, &clrs);
+    LIR_RA_color_igraph(&ig, &clrs);
     igraph_dump_dot(&ig);
 
     printf("\n\n========== SSA HIR ==========\n");

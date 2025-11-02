@@ -74,10 +74,10 @@ int main(int argc, char* argv[]) {
     cfg_print(&cfgctx);
 
     igraph_t ig;
-    HIR_RA_build_igraph(&cfgctx, &ig, &smt);
+    LIR_RA_build_igraph(&cfgctx, &ig, &smt);
 
     map_t clrs;
-    HIR_RA_color_igraph(&ig, &clrs);
+    LIR_RA_color_igraph(&ig, &clrs);
     igraph_dump_dot(&ig);
     map_free(&clrs);
 
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     print_symtab(&smt);
 
-    HIR_RA_unload_igraph(&ig);
+    LIR_RA_unload_igraph(&ig);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(irctx.h);
     list_free_force(&tokens);

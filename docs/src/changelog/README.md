@@ -3,6 +3,97 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+### Regallocation
+Regallocation moved from HIR level to LIR level. Planning to add support of linear and graph register allocation. This move allows me usage of rdx, rdi, rsi... registers, without fear of re-writing (Now I'm able to precolor variables and link them to specific register like ABI registers in function call). 
+
+### Instruction selection
+Module for instruction selecting (template section) implemented. In few words: This module lower abstraction to be closer with target machine. Example below.
+```lirv1
+fn strlen(i8* s) -> i64
+{
+    %16 = ldparam();
+    {
+        %18 = %17;
+        %19 = %16;
+        kill(cnst: 0);
+        kill(cnst: 1);
+        %17 = num: 0;
+        %9 = num: 1 as u64;
+        %12 = num: 1 as u64;
+        lb10:
+        %5 = *(%19);
+        %7 = %5 as i64;
+        %6 = %7 > num: 10;
+        cmp %6, cnst: 0;
+        je lb11;
+        jmp lb12;
+        lb11:
+        {
+            %8 = %19 / %9;
+            %20 = %8;
+            %11 = %18 as u64;
+            %10 = %11 % %12;
+            %13 = %10 as i64;
+            %21 = %13;
+        }
+        %18 = %21;
+        %19 = %20;
+        jmp lb10;
+        lb12:
+        return %18;
+    }
+}
+```
+
+Transforms into the code with the support of ABI and specific machine registers (`rax`, `rbx`, `rcx`):
+```lirv2
+fn strlen(i8* s) -> i64
+{
+    %16 = rdi;
+    {
+        %18 = %17;
+        %19 = %16;
+        kill(cnst: 0);
+        kill(cnst: 1);
+        %17 = num: 0;
+        %9 = num: 1 as u64;
+        %12 = num: 1 as u64;
+        lb10:
+        %5 = *(%19);
+        %7 = %5 as i64;
+        rax = %7;
+        rbx = num: 10;
+        cmp rax, rbx;
+        setg al;
+        %6 zx= al;
+        cmp %6, cnst: 0;
+        je lb11;
+        jmp lb12;
+        lb11:
+        {
+            rax = %19;
+            rbx = %9;
+            rax = rax / rbx;
+            %8 = rax;
+            %20 = %8;
+            %11 = %18 as u64;
+            rax = %11;
+            rbx = %12;
+            rdx = rdx ^ rdx;
+            rdx = rax % rbx;
+            %10 = rdx;
+            %13 = %10 as i64;
+            %21 = %13;
+        }
+        %18 = %21;
+        %19 = %20;
+        jmp lb10;
+        lb12:
+        return %18;
+    }
+}
+```
+
 # Version v3.1
 New LIR level. Instead straigthforward LIR generation, now this is a another 3AC level, suitable for instruction selection and instruction planning. Also, instead only register allocation based on graph coloring, this level support register allocation based both on linear scanning approach and graph coloring. 
 
