@@ -4,7 +4,7 @@ static const int _abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9      };
 static const int _sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
 
 static int _is_sign_type(lir_subject_t* s, sym_table_t* smt) {
-    if (s->t != LIR_VARIABLE) return 1;
+    if (s->t != LIR_VARIABLE || s->t != LIR_GLVARIABLE) return 1;
     variable_info_t vi;
     if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
         switch (vi.type) {
@@ -233,6 +233,68 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
 
                     default: break;
+                }
+
+                if (lh == bb->lmap.exit) break;
+                lh = lh->next;
+            }
+        }
+    }
+
+    return 1;
+}
+
+static const int _registers[] = { RAX, RBX, RCX, RDX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14, R15 };
+static const int _registers_count = 14;
+
+int x86_64_gnu_nasm_register_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt) {
+    stack_map_t smp;
+    stack_map_init(0, &smp);
+
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        if (!fb->used) continue;
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* bb;
+        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
+            lir_block_t* lh = bb->lmap.entry;
+            while (lh) {
+                if (lh->op == LIR_VRDEALL) {
+
+                }
+
+                lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
+                for (int i = 0; i < 3; i++) {
+                    if (!args[i]) continue;
+                    if (args[i]->t != LIR_VARIABLE) continue;
+
+                    variable_info_t vi;
+                    if (!VRTB_get_info_id(args[i]->storage.var.v_id, &vi, &smt->v)) continue;
+                    if (vi.glob) {
+                        args[i]->t = LIR_GLVARIABLE;
+                        continue;
+                    }
+
+                    long color;
+                    vi.vmi.size = _get_variable_size(vi.v_id, smt);
+                    if (map_get(colors, args[i]->storage.var.v_id, (void**)&color)) {
+                        if (color < _registers_count) {
+                            args[i]->t = LIR_REGISTER;
+                            args[i]->storage.reg.reg = _registers[color];
+                            vi.vmi.reg = args[i]->storage.reg.reg;
+                        }
+                        else {
+                            args[i]->t = LIR_MEMORY;
+                            args[i]->storage.var.offset = !vi.vmi.allocated ? stack_map_alloc(vi.vmi.size, &smp) : vi.vmi.offset;
+                            vi.vmi.offset = args[i]->storage.var.offset;
+                        }
+
+                        if (vi.vmi.allocated) continue;
+                        VRTB_update_memory(vi.v_id, vi.vmi.offset, vi.vmi.size, vi.vmi.reg, &smt->v);
+                    }
                 }
 
                 if (lh == bb->lmap.exit) break;

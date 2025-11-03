@@ -15,12 +15,13 @@
 #include <hir/ssa.h>
 #include <hir/dag.h>
 #include <hir/dfg.h>
-#include <hir/ra.h>
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
 #include <lir/instsel/instsel.h>
 #include <lir/instsel/x84_64_gnu_nasm.h>
+#include <lir/regalloc/regalloc.h>
+#include <lir/regalloc/x84_64_gnu_nasm.h>
 
 #include "ast_helper.h"
 #include "hir_helper.h"
@@ -212,10 +213,20 @@ LIR debug information...
         lh = lh->next;
     }
 
-    inst_selector_h inst = {
-        .select_instructions = x86_64_gnu_nasm_instruction_selection
+    inst_selector_h inst = { 
+        .select_instructions = x86_64_gnu_nasm_instruction_selection,
+        .select_register     = x86_64_gnu_nasm_register_selection
     };
+
     LIR_select_instructions(&cfgctx, &smt, &inst);
+
+    map_t colors;
+    map_init(&colors);
+    regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
+    LIR_regalloc(&cfgctx, &smt, &colors, &regall);
+    printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);
+
+    LIR_select_registers(&cfgctx, &colors, &smt, &inst);
 
     printf("\n\n========== LIR selected instructions ==========\n");
     lh = lirctx.h;

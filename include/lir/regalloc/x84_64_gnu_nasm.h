@@ -12,4 +12,7 @@
 
 #include <lir/regalloc/ra.h>
 
+int x86_64_regalloc_graph(cfg_ctx_t* cctx, sym_table_t* smt, map_t* colors);
+int x86_64_regalloc_linear(cfg_ctx_t* cctx, sym_table_t* smt, map_t* colors);
+
 #endif

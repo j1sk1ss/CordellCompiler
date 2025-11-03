@@ -1,6 +1,6 @@
 #include <lir/regalloc/x84_64_gnu_nasm.h>
 
-static int _x86_64_GC_regalloc_precolor(cfg_ctx_t* cctx, map_t* cmap) {
+static int _regalloc_precolor(cfg_ctx_t* cctx, map_t* cmap) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -13,7 +13,19 @@ static int _x86_64_GC_regalloc_precolor(cfg_ctx_t* cctx, map_t* cmap) {
             lir_block_t* lh = bb->lmap.entry;
             while (lh) {
                 if (lh->op == LIR_iMOV) {
-                    
+                    long vid = -1, color = -1;
+                    if (lh->farg->t == LIR_REGISTER && lh->sarg->t == LIR_VARIABLE) {
+                        color = lh->farg->storage.reg.reg;
+                        vid = lh->sarg->storage.var.v_id;
+                    }
+                    else if (lh->farg->t == LIR_VARIABLE && lh->sarg->t == LIR_REGISTER) {
+                        color = lh->sarg->storage.reg.reg;
+                        vid = lh->farg->storage.var.v_id;
+                    }
+
+                    if (vid != -1 && color != -1) {
+                        LIR_RA_precolor_node(cmap, vid, color);
+                    }
                 }
 
                 if (lh == bb->lmap.exit) break;
@@ -25,19 +37,15 @@ static int _x86_64_GC_regalloc_precolor(cfg_ctx_t* cctx, map_t* cmap) {
     return 1;
 }
 
-int x86_64_regalloc_graph(cfg_ctx_t* cctx, sym_table_t* smt) {
+int x86_64_regalloc_graph(cfg_ctx_t* cctx, sym_table_t* smt, map_t* colors) {
     igraph_t ig;
-    LIR_RA_build_igraph(cctx, &ig, &smt);
-
-    map_t clrs;
-    map_init(&clrs);
-
-    _x86_64_GC_regalloc_precolor(cctx, &clrs);
-    LIR_RA_color_igraph(&ig, &clrs);
-
+    LIR_RA_build_igraph(cctx, &ig, smt);
+    _regalloc_precolor(cctx, colors);
+    LIR_RA_color_igraph(&ig, colors);
+    LIR_RA_unload_igraph(&ig);
     return 1;
 }
 
-int x86_64_regalloc_linear(cfg_ctx_t* cctx) {
+int x86_64_regalloc_linear(cfg_ctx_t* cctx, sym_table_t* smt, map_t* colors) {
     return 1;
 }

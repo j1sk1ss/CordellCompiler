@@ -13,11 +13,9 @@
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/dfg.h>
-#include <hir/ra.h>
 #include <hir/dag.h>
 
 #include <lir/lirgen.h>
-#include <lir/x86_64_gnu_nasm/x86_64_lirgen.h>
 
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
@@ -102,17 +100,12 @@ int main(int argc, char* argv[]) {
     }
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL, .vars = &clrs };
-    lir_gen_t lirgen = {
-        .generate = x86_64_generate_lir,
-        .mvclean  = x86_64_clean_mov
-    };
-
-    LIR_generate(&hirctx, &lirgen, &lirctx, &smt);
+    LIR_generate(&cfgctx, &lirctx, &smt);
 
     printf("\n\n========== x86_64 LIR ==========\n");
     lir_block_t* lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh);
+        print_lir_block(lh, 1, &smt);
         lh = lh->next;
     }
 

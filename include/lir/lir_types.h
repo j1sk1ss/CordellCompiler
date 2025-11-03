@@ -170,12 +170,12 @@ typedef enum {
 } lir_subject_type_t;
 
 typedef enum {
-    XMM0, XMM1, XMM2, XMM3, XMM4, 
     RAX,  RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8,  R9,  R10,  R11,  R12,  R13,  R14,  R15,
     EAX,  EBX, ECX, EDX, ESI, EDI, EBP, ESP, R8D, R9D, R10D, R11D, R12D, R13D, R14D, R15D,
     AX,   BX,  CX,  DX,  SI,  DI,  BP,  SP,  R8W, R9W, R10W, R11W, R12W, R13W, R14W, R15W,
     AL,   BL,  CL,  DL,  SIL, DIL, BPL, SPL, R8B, R9B, R10B, R11B, R12B, R13B, R14B, R15B,
     AH,   BH,  CH,  DH, 
+    XMM0, XMM1, XMM2, XMM3, XMM4, 
 } lir_registers_t;
 #define FREE_REGISTERS      4
 #define FIRST_FREE_REGISTER R12

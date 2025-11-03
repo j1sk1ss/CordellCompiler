@@ -104,6 +104,13 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
 
         case LIR_REGISTER: dst += sprintf(dst, "%s", register_to_string(s->storage.reg.reg)); break;
 
+        case LIR_GLVARIABLE: {
+            variable_info_t vi;
+            if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
+                dst += sprintf(dst, "%%%s", vi.name);
+            }
+        }
+
         case LIR_VARIABLE: dst += sprintf(dst, "%%%i", s->storage.var.v_id);        break;
         case LIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);    break;
         case LIR_CONSTVAL: dst += sprintf(dst, "cnst: %ld", s->storage.cnst.value); break;
@@ -191,34 +198,4 @@ void print_lir_block(const lir_block_t* block, int ud, sym_table_t* smt) {
 
     fprintf(stdout, "%s", line);
 }
-
-// static int _export_dot_func_lir(cfg_func_t* f, sym_table_t* smt) {
-//     printf("digraph CFG_func%d {\n", f->id);
-//     printf("  rankdir=TB;\n");
-//     printf("  node [shape=box, fontname=\"monospace\"];\n");
-
-//     int ishead = 1;
-
-//     list_iter_t bit;
-//     list_iter_hinit(&f->blocks, &bit);
-//     cfg_block_t* cb;
-//     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-//         printf("  B%ld [label=\"B%ld:\\n", cb->id, cb->id);
-//         lir_block_t* cmd = cb->lmap.entry;
-//         while (cmd) {
-//             const char* fmt_cmd = print_lir_block(cmd, 0, smt);
-//             if (fmt_cmd) printf("%s\\n", fmt_cmd);
-//             if (cmd == cb->lmap.exit) break;
-//             cmd = cmd->next;
-//         }
-
-//         printf("\"];\n");
-
-//         if (cb->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
-//         if (cb->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
-//     }
-    
-//     printf("}\n");
-//     return 1;
-// }
 #endif
