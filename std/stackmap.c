@@ -1,14 +1,15 @@
 #include <std/stackmap.h>
 
 int stack_map_init(int offset, stack_map_t* smap) {
-    int size = offset; // (ALIGN(offset) / STACK_CELL_SIZE) + 1;
-    smap->last_offset = size;
+    int size = offset;
+    smap->last_offset = offset;
+    smap->base_offset = offset;
     str_memset(smap->bitmap, 0, sizeof(smap->bitmap));
     return 1;
 }
 
 int stack_map_alloc(int n, stack_map_t* smap) {
-    int size = n; // ALIGN(n) / STACK_CELL_SIZE;
+    int size = n;
     for (int i = smap->base_offset; i < STACK_MAP_MAX; ++i) {
         int free = 1;
         for (int j = 0; j < size; ++j) {
@@ -27,7 +28,7 @@ int stack_map_alloc(int n, stack_map_t* smap) {
                 smap->bitmap[idx / CELLS_PER_BLOCK] |= (1ULL << (idx % CELLS_PER_BLOCK));
             }
 
-            return (i + size); // * STACK_CELL_SIZE;
+            return (i + size);
         }
     }
     

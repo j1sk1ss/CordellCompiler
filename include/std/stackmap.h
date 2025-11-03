@@ -4,7 +4,7 @@
 #include <std/str.h>
 
 #define STACK_CELL_SIZE 8
-#define STACK_MAP_MAX   4096
+#define STACK_MAP_MAX   16384
 #define CELLS_PER_BLOCK sizeof(unsigned long) * 8
 #define ALIGN(x) ((x + 7) & ~(7))
 

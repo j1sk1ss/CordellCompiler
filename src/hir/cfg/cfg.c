@@ -20,6 +20,11 @@ int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh) {
 
 int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh) {
     if (!bb || !hh) return 0;
+    if (bb->hmap.entry == bb->hmap.exit) {
+        bb->hmap.entry = bb->hmap.exit = NULL;
+        return 1;
+    }
+    
     if (bb->hmap.entry == hh) bb->hmap.entry = hh->next;
     if (bb->hmap.exit == hh)  bb->hmap.exit = hh->prev;
     return 1;

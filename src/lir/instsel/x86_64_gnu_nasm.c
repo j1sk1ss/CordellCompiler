@@ -35,6 +35,7 @@ static int _is_simd_type(long vid, sym_table_t* smt) {
 static int _get_variable_size(long vid, sym_table_t* smt) {
     variable_info_t vi;
     if (VRTB_get_info_id(vid, &vi, &smt->v)) {
+        if (vi.ptr) return DEFAULT_TYPE_SIZE;
         switch (vi.type) {
             case I64_TYPE_TOKEN:
             case U64_TYPE_TOKEN:
@@ -53,8 +54,12 @@ static int _get_variable_size(long vid, sym_table_t* smt) {
     return DEFAULT_TYPE_SIZE;
 }
 
-static lir_subject_t* _create_reg(int reg, int sz) {
+static inline lir_subject_t* _create_reg(int reg, int sz) {
     return LIR_SUBJ_REG(reg, sz);
+}
+
+static inline lir_subject_t* _create_mem(int off, int sz) {
+    return LIR_SUBJ_OFF(off, sz);
 }
 
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
@@ -263,8 +268,51 @@ int x86_64_gnu_nasm_register_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
             lir_block_t* lh = bb->lmap.entry;
             while (lh) {
                 if (lh->op == LIR_VRDEALL) {
+                    variable_info_t vi;
+                    if (
+                        !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
+                        vi.glob || vi.vmi.offset == -1
+                    ) {
+                        lir_block_t* nlh = lh->next;
+                        LIR_unlink_block(lh);
+                        LIR_unload_blocks(lh);
+                        lh = nlh;
+                        continue;
+                    }
 
+                    stack_map_free(vi.vmi.offset, vi.vmi.size, &smp);
+                    goto _next_instruction;
                 }
+                // else if (lh->op == LIR_STRDECL) {
+                //     variable_info_t vi;
+                //     if (!VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v)) goto _next_instruction;
+                //     if (vi.glob) goto _next_instruction;
+                //     str_info_t si;
+                //     array_info_t ai;
+                //     if (
+                //         STTB_get_info_id(lh->sarg->storage.str.sid, &si, &smt->s) &&
+                //         ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)
+                //     ) {
+                //         int pos = 0;
+                //         int arroff = stack_map_alloc(ai.size, &smp);
+                //         VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
+                //         char* string = si.value;
+                //         while (*string) {
+                //             LIR_insert_block_before(
+                //                 LIR_create_block(
+                //                     LIR_iMOV, 
+                //                     _create_mem(arroff - pos++, 1), 
+                //                     LIR_SUBJ_CONST(*(string++)), 
+                //                     NULL
+                //                 ), lh
+                //             );
+                //         }
+
+                //         LIR_insert_block_before(LIR_create_block(LIR_iMOV, _create_mem(arroff - pos++, 1), LIR_SUBJ_CONST(0), NULL), lh);
+                //     }
+
+                //     goto _next_instruction;
+                // }
 
                 lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
                 for (int i = 0; i < 3; i++) {
@@ -281,7 +329,7 @@ int x86_64_gnu_nasm_register_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
                     long color;
                     vi.vmi.size = _get_variable_size(vi.v_id, smt);
                     if (map_get(colors, args[i]->storage.var.v_id, (void**)&color)) {
-                        if (color < _registers_count) {
+                        if (color < _registers_count && color >= 0) {
                             args[i]->t = LIR_REGISTER;
                             args[i]->storage.reg.reg = _registers[color];
                             vi.vmi.reg = args[i]->storage.reg.reg;
@@ -297,6 +345,7 @@ int x86_64_gnu_nasm_register_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
                     }
                 }
 
+_next_instruction: {}
                 if (lh == bb->lmap.exit) break;
                 lh = lh->next;
             }

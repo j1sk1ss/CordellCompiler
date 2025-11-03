@@ -140,6 +140,8 @@ SSA form building...
 */
 
     HIR_CFG_create_domdata(&cfgctx);
+    HIR_LTREE_canonicalization(&cfgctx);
+    
     ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
@@ -151,7 +153,7 @@ Loop LICM opt...
 */
 
     HIR_compute_homes(&hirctx);
-    HIR_LTREE_licm_canonicalization(&cfgctx, &smt);
+    HIR_LTREE_licm(&cfgctx, &smt);
 
 /*
 ========================

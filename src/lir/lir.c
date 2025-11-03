@@ -124,6 +124,14 @@ int LIR_remove_block(lir_block_t* block, lir_ctx_t* ctx) {
     return 1;
 }
 
+int LIR_unlink_block(lir_block_t* block) {
+    if (!block) return 0;
+    if (block->prev) block->prev->next = block->next;
+    if (block->next) block->next->prev = block->prev;
+    block->prev = block->next = NULL;
+    return 1;
+}
+
 int LIR_unload_subject(lir_subject_t* s) {
     return mm_free(s);
 }

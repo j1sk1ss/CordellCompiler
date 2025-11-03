@@ -20,7 +20,6 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
     cfg_block_t* p;
     while (set_iter_next(&it, (void**)&p)) {
         if (p->type == CFG_LOOP_PREHEADER) return p;
-        break;
     }
 
     cfg_block_t* preheader = HIR_CFG_create_cfg_block(NULL);
@@ -39,9 +38,7 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
         set_add(&preheader->pred, p);
         set_remove(&header->pred, p);
     }
-
-    set_free(&header->pred);
-    set_init(&header->pred);
+    
     set_add(&header->pred, preheader);
     return preheader;
 }
@@ -164,7 +161,7 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
     return 1;
 }
 
-static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt) {
+static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, int licm) {
     int changed = 0;
     cfg_block_t* header = node->header;
     cfg_block_t* latch  = node->latch;
@@ -172,11 +169,12 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt) {
     print_debug("LICM (tree), loop header=%i, latch=%i", header->id, latch->id);
     cfg_block_t* preheader = _insert_preheader(cctx, header, &node->blocks);
     if (!preheader) return 0;
+    if (!licm) return 1;
 
     set_t loop_hir;
     set_init(&loop_hir);
     _get_loop_hir_blocks(&node->blocks, &loop_hir);
-    print_debug("_get_loop_hir_blocks complete, size(loop_hir)=%i", set_size(&loop_hir));
+    print_debug("_get_loop_hir_blocks complete, size(loop_blocks)=%i, size(loop_hir)=%i", set_size(&node->blocks), set_size(&loop_hir));
 
     set_t inductive;
     set_init(&inductive);
@@ -228,20 +226,20 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt) {
     return changed;
 }
 
-int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt) {
+int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, int licm) {
     int changed = 0;
     list_iter_t it;
     list_iter_hinit(&node->children, &it);
     loop_node_t* ch;
     while ((ch = (loop_node_t*)list_iter_next(&it))) {
-        changed |= _licm_loop_node_process(cctx, node, smt);
+        changed |= _licm_loop_node_process(cctx, node, smt, licm);
     }
 
-    changed |= _licm_process(cctx, node, smt);
+    changed |= _licm_process(cctx, node, smt, licm);
     return changed;
 }
 
-int HIR_LTREE_licm_canonicalization(cfg_ctx_t* cctx, sym_table_t* smt) {
+int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -264,13 +262,43 @@ int HIR_LTREE_licm_canonicalization(cfg_ctx_t* cctx, sym_table_t* smt) {
             list_iter_hinit(&lctx.loops, &rit);
             loop_node_t* root;
             while ((root = (loop_node_t*)list_iter_next(&rit))) {
-                changed |= _licm_loop_node_process(cctx, root, smt);
+                changed |= _licm_loop_node_process(cctx, root, smt, 1);
             }
 
             HIR_LTREE_unload_ctx(&lctx);
         } while (changed);
     }
 
-    print_debug("HIR_CFG_loop_licm_canonicalization (with cycle tree) complete");
+    print_debug("HIR_LTREE_licm (with cycle tree) complete");
+    return 1;
+}
+
+int HIR_LTREE_canonicalization(cfg_ctx_t* cctx) {
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        if (!fb->used) continue;
+        ltree_ctx_t lctx;
+        list_init(&lctx.loops);
+
+        HIR_LTREE_build_loop_tree(fb, &lctx);
+        print_debug("HIR_LTREE_build_loop_tree size(loops)=%i", list_size(&lctx.loops));
+        if (!list_size(&lctx.loops)) {
+            HIR_LTREE_unload_ctx(&lctx);
+            continue;
+        }
+
+        list_iter_t rit;
+        list_iter_hinit(&lctx.loops, &rit);
+        loop_node_t* root;
+        while ((root = (loop_node_t*)list_iter_next(&rit))) {
+            _licm_loop_node_process(cctx, root, NULL, 0);
+        }
+
+        HIR_LTREE_unload_ctx(&lctx);
+    }
+
+    print_debug("HIR_LTREE_canonicalization complete");
     return 1;
 }

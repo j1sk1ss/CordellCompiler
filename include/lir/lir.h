@@ -72,6 +72,7 @@ typedef struct {
 lir_ctx_t* LIR_create_ctx();
 lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta);
 lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, const char* strval, long intval, int size, int s_id);
+int LIR_unlink_block(lir_block_t* block);
 int LIR_insert_block_after(lir_block_t* block, lir_block_t* pos);
 int LIR_insert_block_before(lir_block_t* block, lir_block_t* pos);
 int LIR_append_block(lir_block_t* block, lir_ctx_t* ctx);
