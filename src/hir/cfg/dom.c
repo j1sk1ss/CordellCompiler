@@ -194,3 +194,26 @@ int HIR_CFG_create_domdata(cfg_ctx_t* cctx) {
 
     return 1;
 }
+
+int HIR_CFG_unload_domdata(cfg_ctx_t* cctx) {
+    list_iter_t it;
+    list_iter_hinit(&cctx->funcs, &it);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+        if (!fb->used) continue;
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            set_free(&cb->dom);
+            set_init(&cb->dom);
+
+            set_free(&cb->domf);
+            set_init(&cb->domf);
+            
+            cb->sdom = cb->dom_c = cb->dom_s = NULL;
+        }
+    }
+
+    return 1;
+}

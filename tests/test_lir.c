@@ -141,6 +141,8 @@ SSA form building...
 
     HIR_CFG_create_domdata(&cfgctx);
     HIR_LTREE_canonicalization(&cfgctx);
+    HIR_CFG_unload_domdata(&cfgctx);
+    HIR_CFG_create_domdata(&cfgctx);
 
     ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
