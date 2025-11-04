@@ -1,6 +1,18 @@
 #include <lir/instplan/targinfo.h>
 
 int TRGINF_load(char* path, map_t* s) {
+    FILE* f = fopen(path, "rb");
+    if (!f) return 0;
+
+    target_info_t trginfo;
+    fread(&trginfo, sizeof(trginfo.name) + sizeof(int), 1, f);
+    for (int i = 0; i < trginfo.op_count; i++) {
+        op_info_t* info = (op_info_t*)mm_malloc(sizeof(op_info_t));
+        fread(info, sizeof(op_info_t), 1, f);
+        map_put(s, info->op, info);
+    }
+
+    fclose(f);
     return 1;
 }
 
@@ -8,7 +20,6 @@ int TRGINF_unload(map_t* s) {
     return map_free_force(s);
 }
 
-#define TARGINFO_BUILD
 #ifdef TARGINFO_BUILD
 #include <string.h>
 #include <stdlib.h>
@@ -30,15 +41,20 @@ static op_info_t* _create_op_info(lir_operation_t op, int rm, int wm, int sf, in
 static int _save_target_info(const char* filename, target_info_t* trginfo) {
     FILE* f = fopen(filename, "wb");
     if (!f) return 0;
-    fwrite(trginfo->name, sizeof(char), 64, f);
-    fwrite(&trginfo->op_count, sizeof(uint32_t), 1, f);
-    fwrite(trginfo->ops, sizeof(op_info_t), trginfo->op_count, f);
+    fwrite(trginfo->name, sizeof(char), 32, f);
+    fwrite(&trginfo->op_count, sizeof(int), 1, f);
+    if (trginfo->op_count > 0 && trginfo->ops != NULL) {
+        fwrite(trginfo->ops, sizeof(op_info_t), trginfo->op_count, f);
+    }
+
     fclose(f);
     return 1;
 }
 
 #define ADD_OPINF(s, i) map_put(s, (i)->op, (void*)i)
 int main(int argc, char* argv[]) {
+    mm_init();
+
     map_t ops;
     map_init(&ops);
 
@@ -142,24 +158,25 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_OEXT, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // extern object
         ADD_OPINF(&ops, _create_op_info(LIR_RESV, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // reserve
         ADD_OPINF(&ops, _create_op_info(LIR_VDCL, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // variable declare
-
-        target_info_t trginfo = {
-            .name = "MacOS10_15_x86_64",
-            .op_count = ops.size,
-            .ops = calloc(ops.size, sizeof(op_info_t))
-        };
-
-        int index = 0;
-        map_iter_t it;
-        map_iter_init(&ops, &it);
-        op_info_t* i;
-        while (map_iter_next(&it, (void**)&i)) {
-            memcpy(&trginfo.ops[index++], i, sizeof(op_info_t));
-        }
-
-        _save_target_info("Ivy_Bridge.cpltrgt", &trginfo);
-        free(trginfo.ops);
     }
+
+    target_info_t trginfo = {
+        .op_count = ops.size,
+        .ops = calloc(ops.size, sizeof(op_info_t))
+    };
+
+    strcpy(trginfo.name, argv[1]);
+
+    int index = 0;
+    map_iter_t it;
+    map_iter_init(&ops, &it);
+    op_info_t* i;
+    while (map_iter_next(&it, (void**)&i)) {
+        memcpy(&trginfo.ops[index++], i, sizeof(op_info_t));
+    }
+
+    _save_target_info(argv[2], &trginfo);
+    free(trginfo.ops);
 
     map_free_force(&ops);
     #undef ADD_OPINF

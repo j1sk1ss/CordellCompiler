@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <std/mm.h>
 #include <std/map.h>
-#include <lir/lir.h>
 #include <lir/lir_types.h>
 
 typedef struct {
