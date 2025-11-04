@@ -19,6 +19,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
         case LIR_FEND:  return "\n";
         case LIR_OEXT:  return "extern %s;\n";
 
+        case LIR_JNE:   return "jne %s;\n";
         case LIR_JE:    return "je %s;\n";
         case LIR_JMP:   return "jmp %s;\n";
         case LIR_iMVZX: return "%s zx= %s;\n";

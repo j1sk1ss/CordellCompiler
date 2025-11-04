@@ -9,15 +9,25 @@ const char* format_tkntype(token_type_t t) {
     switch (t) {
         case ARRAY_TYPE_TOKEN: return "arr";
         case STR_TYPE_TOKEN:   return "str";
+        case TMP_F64_TYPE_TOKEN:
         case F64_TYPE_TOKEN:   return "f64";
+        case TMP_F32_TYPE_TOKEN:
         case F32_TYPE_TOKEN:   return "f32";
+        case TMP_I64_TYPE_TOKEN:
         case I64_TYPE_TOKEN:   return "i64";
+        case TMP_I32_TYPE_TOKEN:
         case I32_TYPE_TOKEN:   return "i32";
+        case TMP_I16_TYPE_TOKEN:
         case I16_TYPE_TOKEN:   return "i16";
+        case TMP_I8_TYPE_TOKEN:
         case I8_TYPE_TOKEN:    return "i8";
+        case TMP_U64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:   return "u64";
+        case TMP_U32_TYPE_TOKEN:
         case U32_TYPE_TOKEN:   return "u32";
+        case TMP_U16_TYPE_TOKEN:
         case U16_TYPE_TOKEN:   return "u16";
+        case TMP_U8_TYPE_TOKEN:
         case U8_TYPE_TOKEN:    return "u8";
         default: return "?";
     }

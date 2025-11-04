@@ -1,0 +1,3 @@
+#ifndef INSTPLAN_X86_64_GNU_NASM_
+#define INSTPLAN_X86_64_GNU_NASM_
+#endif

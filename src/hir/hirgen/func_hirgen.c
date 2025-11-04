@@ -25,7 +25,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     
     hir_subject_t* res = HIR_SUBJ_TMPVAR(
         HIR_get_tmptype_tkn(fi.rtype ? fi.rtype->token : NULL, fi.rtype ? fi.rtype->token->flags.ptr : 1),
-        VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v)
+        VRTB_add_info(NULL, TKN_get_tmp_type(fi.rtype ? fi.rtype->token->t_type : I64_TYPE_TOKEN), 0, NULL, &smt->v)
     );
     
     HIR_BLOCK3(ctx, fi.external ? HIR_STORE_ECLL : HIR_STORE_FCLL, res, HIR_SUBJ_FUNCNAME(name), args);

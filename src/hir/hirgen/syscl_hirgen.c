@@ -48,7 +48,7 @@ hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_
         return NULL;    
     }
 
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_TMPVARI64, VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_TMPVARI64, VRTB_add_info(NULL, I64_TYPE_TOKEN, 0, NULL, &smt->v));
     HIR_BLOCK3(ctx, HIR_STORE_SYSC, res, NULL, args);
     return res;
 }

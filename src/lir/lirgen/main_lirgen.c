@@ -40,8 +40,8 @@ static int _iterate_block(
             case HIR_STRDECL: 
                 LIR_BLOCK2(ctx, LIR_STRDECL, x86_64_format_variable(h->farg), LIR_SUBJ_STRING(h->sarg->storage.str.s_id)); 
             break;
-            case HIR_ARRDECL: 
-                LIR_BLOCK1(ctx, LIR_STRDECL, x86_64_format_variable(h->farg));
+            case HIR_ARRDECL:
+                LIR_BLOCK1(ctx, LIR_ARRDECL, x86_64_format_variable(h->farg));
             break;
 
             case HIR_REF:   x86_64_store_var2var(LIR_REF, ctx, h->farg, h->sarg);   break;
@@ -65,7 +65,7 @@ static int _iterate_block(
             case HIR_NOT: LIR_BLOCK2(ctx, LIR_NOT, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;
             case HIR_IFOP2: {
                 LIR_BLOCK2(ctx, LIR_CMP, x86_64_format_variable(h->farg), LIR_SUBJ_CONST(0));
-                LIR_BLOCK1(ctx, LIR_JE, LIR_SUBJ_LABEL(h->sarg->id));
+                LIR_BLOCK1(ctx, LIR_JNE, LIR_SUBJ_LABEL(h->sarg->id));
                 LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->targ->id));
                 break;
             }

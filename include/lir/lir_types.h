@@ -5,9 +5,6 @@
 
 typedef enum {
     /* Operations */
-        /* x86_64 ASM commands */
-        LIR_MKGLB, // global keyword
-
         /* Commands */
         LIR_FCLL,  // function call
         LIR_ECLL,  // extern function call
@@ -15,8 +12,6 @@ typedef enum {
         LIR_STEND, // end macro
         LIR_SYSC,  // syscall
         LIR_FRET,  // function ret
-        LIR_TINT,  // convert to int from double
-        LIR_TDBL,  // convert to double from int
         LIR_TST,   // test
         LIR_XCHG,  // xchg
         LIR_CDQ,   // cdq
@@ -39,7 +34,6 @@ typedef enum {
         LIR_STAE,
 
         /* Jump instructions */
-        LIR_IFOP2,
         LIR_JMP,  // jmp
         LIR_JL,   // jump if less (signed)
         LIR_JG,   // jump if greater (signed)
@@ -180,11 +174,6 @@ typedef enum {
 #define FREE_REGISTERS      4
 #define FIRST_FREE_REGISTER R12
 
-int LIR_is_global_hirtype(hir_subject_type_t t);
 lir_registers_t LIR_format_register(lir_registers_t reg, int size);
-int LIR_move_instruction(lir_operation_t op);
-int LIR_sysc_reg(lir_registers_t reg);
-int LIR_funccall_reg(lir_registers_t reg);
-int LIR_jmp_instruction(lir_operation_t op);
 
 #endif

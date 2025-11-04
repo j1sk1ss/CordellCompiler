@@ -172,7 +172,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     map_iter_init(&smt->v.vartb, &mit);
     variable_info_t* vh;
     while (map_iter_next(&mit, (void**)&vh)) {
-        if (vh->ro || vh->type == TMP_TYPE_TOKEN) continue;
+        if (vh->ro || TKN_istmp_type(vh->type)) continue;
         _add_varver(&ctx->vers, vh->v_id, vh->v_id);
     }
 

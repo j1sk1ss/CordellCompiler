@@ -28,7 +28,17 @@ typedef enum {
     NEGATIVE_TOKEN,      // not
 
     // Types
-    TMP_TYPE_TOKEN,
+    TMP_F64_TYPE_TOKEN,  // tmp_f64
+    TMP_F32_TYPE_TOKEN,  // tmp_f32
+    TMP_I64_TYPE_TOKEN,  // tmp_i64
+    TMP_I32_TYPE_TOKEN,  // tmp_i32
+    TMP_I16_TYPE_TOKEN,  // tmp_i16
+    TMP_I8_TYPE_TOKEN,   // tmp_i8
+    TMP_U64_TYPE_TOKEN,  // tmp_u64
+    TMP_U32_TYPE_TOKEN,  // tmp_u32
+    TMP_U16_TYPE_TOKEN,  // tmp_u16
+    TMP_U8_TYPE_TOKEN,   // tmp_u8
+
     F64_TYPE_TOKEN,      // f64
     F32_TYPE_TOKEN,      // f32
     I64_TYPE_TOKEN,      // i64
@@ -134,6 +144,8 @@ typedef struct {
     int           lnum; /* Line in source file */
 } token_t;
 
+token_type_t TKN_get_tmp_type(token_type_t t);
+int TKN_istmp_type(token_type_t t);
 int TKN_variable_bitness(token_t* token, char ptr);
 int TKN_isptr(token_t* token);
 int TKN_one_slot(token_t* token);

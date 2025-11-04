@@ -96,38 +96,6 @@ int HIR_is_vartype(hir_subject_type_t t) {
     }
 }
 
-int HIR_is_globtype(hir_subject_type_t t) {
-    switch (t) {
-        case HIR_GLBVARI8: 
-        case HIR_GLBVARU8:  
-        case HIR_GLBVARI16: 
-        case HIR_GLBVARU16: 
-        case HIR_GLBVARI32: 
-        case HIR_GLBVARU32: 
-        case HIR_GLBVARF32: 
-        case HIR_GLBVARI64: 
-        case HIR_GLBVARU64: 
-        case HIR_GLBVARF64: 
-        case HIR_STKVARSTR:
-        case HIR_GLBVARSTR:
-        case HIR_STKVARARR:
-        case HIR_GLBVARARR: return 1;
-        default:            return 0;
-    }
-}
-
-int HIR_is_floattype(hir_subject_type_t t) {
-    switch (t) {
-        case HIR_TMPVARF32:
-        case HIR_TMPVARF64: 
-        case HIR_STKVARF32: 
-        case HIR_STKVARF64: 
-        case HIR_GLBVARF32: 
-        case HIR_GLBVARF64: return 1;
-        default:            return 0;
-    }
-}
-
 int HIR_defined_type(hir_subject_type_t t) {
     switch (t) {
         case HIR_I64NUMBER:
@@ -141,44 +109,6 @@ int HIR_defined_type(hir_subject_type_t t) {
         case HIR_I8CONSTVAL:
         case HIR_CONSTVAL: return 1;
         default: return 0;
-    }
-}
-
-int HIR_is_signtype(hir_subject_type_t t) {
-    switch (t) {
-        case HIR_I64NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_I8NUMBER:
-        case HIR_NUMBER:
-        case HIR_I64CONSTVAL:
-        case HIR_I32CONSTVAL:
-        case HIR_I16CONSTVAL:
-        case HIR_I8CONSTVAL:
-        case HIR_CONSTVAL:
-        case HIR_TMPVARI8:  
-        case HIR_TMPVARI16: 
-        case HIR_TMPVARI32: 
-        case HIR_TMPVARF32: 
-        case HIR_TMPVARI64: 
-        case HIR_TMPVARF64: 
-        case HIR_STKVARI8:  
-        case HIR_STKVARI16: 
-        case HIR_STKVARI32: 
-        case HIR_STKVARF32: 
-        case HIR_STKVARI64: 
-        case HIR_STKVARF64: 
-        case HIR_GLBVARI8: 
-        case HIR_GLBVARI16: 
-        case HIR_GLBVARI32: 
-        case HIR_GLBVARF32: 
-        case HIR_GLBVARI64: 
-        case HIR_GLBVARF64: 
-        case HIR_STKVARSTR:
-        case HIR_GLBVARSTR:
-        case HIR_STKVARARR:
-        case HIR_GLBVARARR: return 1;
-        default:            return 0;
     }
 }
 
@@ -381,15 +311,6 @@ int HIR_funccall(hir_operation_t op) {
     }
 }
 
-int HIR_allocop(hir_operation_t op) {
-    switch (op) {
-        case HIR_VARDECL:
-        case HIR_STRDECL:
-        case HIR_ARRDECL: return 1;
-        return 0;
-    }
-}
-
 int HIR_commutative_op(hir_operation_t op) {
     switch (op) {
         case HIR_iCMP:
@@ -403,6 +324,7 @@ int HIR_commutative_op(hir_operation_t op) {
 
 int HIR_sideeffect_op(hir_operation_t op) {
     switch (op) {
+        case HIR_BREAKPOINT:
         case HIR_MKSCOPE:
         case HIR_ENDSCOPE:
         case HIR_JMP:
@@ -504,4 +426,49 @@ hir_operation_t HIR_convop(hir_subject_type_t t) {
 
 int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b) {
     return HIR_get_tmp_type(a) == HIR_get_tmp_type(b);
+}
+
+token_type_t HIR_get_tmptkn_type(hir_subject_type_t t) {
+    switch (t) {
+        case HIR_GLBVARF64:
+        case HIR_STKVARF64:
+        case HIR_TMPVARF64: return TMP_F64_TYPE_TOKEN;
+
+        case HIR_GLBVARF32:
+        case HIR_STKVARF32:
+        case HIR_TMPVARF32: return TMP_F32_TYPE_TOKEN;
+
+        case HIR_GLBVARI64:
+        case HIR_STKVARI64:
+        case HIR_TMPVARI64: return TMP_I64_TYPE_TOKEN;
+        
+        case HIR_GLBVARI32:
+        case HIR_STKVARI32:
+        case HIR_TMPVARI32: return TMP_I32_TYPE_TOKEN;
+
+        case HIR_GLBVARI16:
+        case HIR_STKVARI16:
+        case HIR_TMPVARI16: return TMP_I16_TYPE_TOKEN;
+
+        case HIR_GLBVARI8:
+        case HIR_STKVARI8:
+        case HIR_TMPVARI8:  return TMP_I8_TYPE_TOKEN;
+
+        case HIR_GLBVARU64:
+        case HIR_STKVARU64:
+        case HIR_TMPVARU64: return TMP_U64_TYPE_TOKEN;
+
+        case HIR_GLBVARU32:
+        case HIR_STKVARU32:
+        case HIR_TMPVARU32: return TMP_U32_TYPE_TOKEN;
+
+        case HIR_GLBVARU16:
+        case HIR_STKVARU16:
+        case HIR_TMPVARU16: return TMP_U16_TYPE_TOKEN;
+
+        case HIR_TMPVARU8:
+        case HIR_STKVARU8:
+        case HIR_GLBVARU8: return TMP_U8_TYPE_TOKEN; 
+        default: return TMP_F64_TYPE_TOKEN;
+    }
 }

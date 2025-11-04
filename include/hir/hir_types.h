@@ -177,7 +177,6 @@ typedef enum hir_subject_type {
     HIR_ARGLIST,  // list.h
 } hir_subject_type_t;
 
-int HIR_allocop(hir_operation_t op);
 int HIR_funccall(hir_operation_t op);
 int HIR_get_type_size(hir_subject_type_t t);
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b);
@@ -187,9 +186,6 @@ hir_subject_type_t HIR_get_token_stktype(token_t* tkn);
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
 int HIR_isjmp(hir_operation_t op);
 int HIR_is_vartype(hir_subject_type_t t);
-int HIR_is_floattype(hir_subject_type_t t);
-int HIR_is_signtype(hir_subject_type_t t);
-int HIR_is_globtype(hir_subject_type_t t);
 int HIR_is_tmptype(hir_subject_type_t t);
 int HIR_writeop(hir_operation_t op);
 int HIR_isterm(hir_operation_t op);
@@ -199,5 +195,6 @@ int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
 int HIR_commutative_op(hir_operation_t op);
 int HIR_defined_type(hir_subject_type_t t);
 int HIR_sideeffect_op(hir_operation_t op);
+token_type_t HIR_get_tmptkn_type(hir_subject_type_t t);
 
 #endif

@@ -141,7 +141,7 @@ SSA form building...
 
     HIR_CFG_create_domdata(&cfgctx);
     HIR_LTREE_canonicalization(&cfgctx);
-    
+
     ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);
     HIR_SSA_rename(&cfgctx, &ssactx, &smt);
@@ -215,20 +215,34 @@ LIR debug information...
         lh = lh->next;
     }
 
+/*
+========================
+LIR instruction selection and memory/register allocation...
+========================
+*/
+
     inst_selector_h inst = { 
         .select_instructions = x86_64_gnu_nasm_instruction_selection,
-        .select_register     = x86_64_gnu_nasm_register_selection
+        .select_memory       = x86_64_gnu_nasm_memory_selection
     };
 
     LIR_select_instructions(&cfgctx, &smt, &inst);
 
     map_t colors;
     map_init(&colors);
+    LIR_RA_init_colors(&colors, &smt);
+    
     regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
     LIR_regalloc(&cfgctx, &smt, &colors, &regall);
     printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);
 
-    LIR_select_registers(&cfgctx, &colors, &smt, &inst);
+    LIR_select_memory(&cfgctx, &colors, &smt, &inst);
+
+/*
+========================
+LIR debug information...
+========================
+*/
 
     printf("\n\n========== LIR selected instructions ==========\n");
     lh = lirctx.h;

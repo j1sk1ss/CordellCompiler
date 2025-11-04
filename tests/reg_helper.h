@@ -64,11 +64,19 @@ static const char* register_to_string(int reg) {
         case BX: return "bx";
         case CX: return "cx";
         case DX: return "dx";
+        case SI: return "si";
+        case DI: return "di";
+        case BP: return "bp";
+        case SP: return "sp";
 
-        case AL: return "al";
-        case BL: return "bl";
-        case CL: return "cl";
-        case DL: return "dl";
+        case AL:  return "al";
+        case BL:  return "bl";
+        case CL:  return "cl";
+        case DL:  return "dl";
+        case SIL: return "sil";
+        case DIL: return "dil";
+        case BPL: return "bpl";
+        case SPL: return "spl";
 
         case AH: return "ah";
         case BH: return "bh";
