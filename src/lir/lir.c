@@ -75,6 +75,7 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
     if (!a || !b) return 0;
     if (a->t != b->t) return 0;
     switch (a->t) {
+        case LIR_VARIABLE:   return a->storage.var.v_id == b->storage.var.v_id;
         case LIR_CONSTVAL:   return a->storage.cnst.value == b->storage.cnst.value;
         case LIR_GLVARIABLE:
         case LIR_STVARIABLE: return a->storage.var.offset == b->storage.var.offset && a->storage.var.v_id == b->storage.var.v_id;

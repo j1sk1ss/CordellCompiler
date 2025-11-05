@@ -181,7 +181,7 @@ TEST_SRCS[test_lir]="
     src/ast/*.c src/ast/parsers/*.c 
     src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c 
     src/hir/dfg/*.c src/hir/dag/*.c src/hir/loop/*.c src/hir/func/*.c 
-    src/lir/*.c src/lir/instsel/*.c src/lir/lirgen/*.c src/lir/lirgen/misc/*.c
+    src/lir/*.c src/lir/instsel/*.c src/lir/instplan/*.c src/lir/lirgen/*.c src/lir/lirgen/misc/*.c
     src/lir/regalloc/*.c src/lir/regalloc/gc/*.c 
     std/*.c
 "

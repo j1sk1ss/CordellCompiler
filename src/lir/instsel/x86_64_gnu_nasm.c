@@ -251,6 +251,19 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
 
+                    case LIR_TF64:
+                    case LIR_TF32:
+                    case LIR_TI64:
+                    case LIR_TI32:
+                    case LIR_TI16:
+                    case LIR_TI8:
+                    case LIR_TU64:
+                    case LIR_TU32:
+                    case LIR_TU16:
+                    case LIR_TU8: {
+                        break; // TODO
+                    }
+
                     default: break;
                 }
 

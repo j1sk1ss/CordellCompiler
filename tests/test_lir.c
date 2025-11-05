@@ -20,6 +20,9 @@
 #include <lir/lirgens/lirgens.h>
 #include <lir/instsel/instsel.h>
 #include <lir/instsel/x84_64_gnu_nasm.h>
+#include <lir/instplan/instplan.h>
+#include <lir/instplan/targinfo.h>
+#include <lir/instplan/x86_64_gnu_nasm.h>
 #include <lir/regalloc/regalloc.h>
 #include <lir/regalloc/x84_64_gnu_nasm.h>
 
@@ -30,6 +33,7 @@
 #include "ral_helper.h"
 #include "symtb_helper.h"
 
+#define DEBUG
 int main(int argc, char* argv[]) {
     printf("Running test %s...\n", argv[0]);
     mm_init();
@@ -219,16 +223,38 @@ LIR debug information...
 
 /*
 ========================
-LIR instruction selection and memory/register allocation...
+LIR instruction selection
 ========================
 */
 
-    inst_selector_h inst = { 
+    inst_selector_h inst_sel = { 
         .select_instructions = x86_64_gnu_nasm_instruction_selection,
         .select_memory       = x86_64_gnu_nasm_memory_selection
     };
 
-    LIR_select_instructions(&cfgctx, &smt, &inst);
+    LIR_select_instructions(&cfgctx, &smt, &inst_sel);
+
+/*
+========================
+LIR instruction planning
+========================
+*/
+
+    target_info_t trginfo;
+    TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
+
+    inst_planner_t inst_plan = {
+        .plan_instructions = NULL
+    };
+
+    LIR_plan_instructions(&cfgctx, &trginfo, &inst_plan);
+    TRGINF_unload(&trginfo);
+
+/*
+========================
+LIR register selection
+========================
+*/
 
     map_t colors;
     map_init(&colors);
@@ -238,7 +264,7 @@ LIR instruction selection and memory/register allocation...
     LIR_regalloc(&cfgctx, &smt, &colors, &regall);
     printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);
 
-    LIR_select_memory(&cfgctx, &colors, &smt, &inst);
+    LIR_select_memory(&cfgctx, &colors, &smt, &inst_sel);
 
 /*
 ========================

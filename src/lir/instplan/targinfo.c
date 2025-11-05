@@ -1,23 +1,22 @@
 #include <lir/instplan/targinfo.h>
 
-int TRGINF_load(char* path, map_t* s) {
+int TRGINF_load(char* path, target_info_t* s) {
     FILE* f = fopen(path, "rb");
     if (!f) return 0;
 
-    target_info_t trginfo;
-    fread(&trginfo, sizeof(trginfo.name) + sizeof(int), 1, f);
-    for (int i = 0; i < trginfo.op_count; i++) {
+    fread(s, sizeof(s->name) + sizeof(int), 1, f);
+    for (int i = 0; i < s->op_count; i++) {
         op_info_t* info = (op_info_t*)mm_malloc(sizeof(op_info_t));
         fread(info, sizeof(op_info_t), 1, f);
-        map_put(s, info->op, info);
+        map_put(&s->info, info->op, info);
     }
 
     fclose(f);
     return 1;
 }
 
-int TRGINF_unload(map_t* s) {
-    return map_free_force(s);
+int TRGINF_unload(target_info_t* s) {
+    return map_free_force(&s->info);
 }
 
 #ifdef TARGINFO_BUILD
@@ -59,22 +58,22 @@ int main(int argc, char* argv[]) {
     map_init(&ops);
 
     if (!strcmp(argv[1], "Ivy_Bridge")) {
-        ADD_OPINF(&ops, _create_op_info(LIR_FCLL, 1, 1, 0, 0, 100, 0.1f, 10, 0));    // function call
-        ADD_OPINF(&ops, _create_op_info(LIR_ECLL, 1, 1, 0, 0, 100, 0.1f, 10, 0));    // extern function call
-        ADD_OPINF(&ops, _create_op_info(LIR_SYSC, 1, 1, 0, 0, 200, 0.05f, 15, 0));   // syscall
-        ADD_OPINF(&ops, _create_op_info(LIR_FRET, 1, 0, 0, 0, 5, 0.5f, 3, 0));       // function ret
+        ADD_OPINF(&ops, _create_op_info(LIR_FCLL, 1, 1, 0, 0, 100, 0.1f, 10, 0));
+        ADD_OPINF(&ops, _create_op_info(LIR_ECLL, 1, 1, 0, 0, 100, 0.1f, 10, 0));
+        ADD_OPINF(&ops, _create_op_info(LIR_SYSC, 1, 1, 0, 0, 200, 0.05f, 15, 0));
+        ADD_OPINF(&ops, _create_op_info(LIR_FRET, 1, 0, 0, 0, 5, 0.5f, 3, 0));
         
-        ADD_OPINF(&ops, _create_op_info(LIR_JMP, 0, 0, 0, 0, 1, 2.0f, 1, 0));        // jmp
-        ADD_OPINF(&ops, _create_op_info(LIR_JL, 0, 0, 0, 1, 1, 2.0f, 1, 0));         // jump if less
-        ADD_OPINF(&ops, _create_op_info(LIR_JG, 0, 0, 0, 1, 1, 2.0f, 1, 0));         // jump if greater
-        ADD_OPINF(&ops, _create_op_info(LIR_JLE, 0, 0, 0, 1, 1, 2.0f, 1, 0));        // jump if less or equal
-        ADD_OPINF(&ops, _create_op_info(LIR_JGE, 0, 0, 0, 1, 1, 2.0f, 1, 0));        // jump if greater or equal
-        ADD_OPINF(&ops, _create_op_info(LIR_JE, 0, 0, 0, 1, 1, 2.0f, 1, 0));         // jump if equal
-        ADD_OPINF(&ops, _create_op_info(LIR_JNE, 0, 0, 0, 1, 1, 2.0f, 1, 0));        // jump if not equal
-        ADD_OPINF(&ops, _create_op_info(LIR_JB, 0, 0, 0, 1, 1, 2.0f, 1, 0));         // jump if below
-        ADD_OPINF(&ops, _create_op_info(LIR_JA, 0, 0, 0, 1, 1, 2.0f, 1, 0));         // jump if above
-        ADD_OPINF(&ops, _create_op_info(LIR_JBE, 0, 0, 0, 1, 1, 2.0f, 1, 0));        // jump if below or equal
-        ADD_OPINF(&ops, _create_op_info(LIR_JAE, 0, 0, 0, 1, 1, 2.0f, 1, 0));        // jump if above or equal
+        ADD_OPINF(&ops, _create_op_info(LIR_JMP, 0, 0, 0, 0, 1, 2.0f, 1, 0));
+        ADD_OPINF(&ops, _create_op_info(LIR_JL, 0, 0, 0, 1, 1, 2.0f, 1, 0)); 
+        ADD_OPINF(&ops, _create_op_info(LIR_JG, 0, 0, 0, 1, 1, 2.0f, 1, 0)); 
+        ADD_OPINF(&ops, _create_op_info(LIR_JLE, 0, 0, 0, 1, 1, 2.0f, 1, 0));
+        ADD_OPINF(&ops, _create_op_info(LIR_JGE, 0, 0, 0, 1, 1, 2.0f, 1, 0));
+        ADD_OPINF(&ops, _create_op_info(LIR_JE, 0, 0, 0, 1, 1, 2.0f, 1, 0)); 
+        ADD_OPINF(&ops, _create_op_info(LIR_JNE, 0, 0, 0, 1, 1, 2.0f, 1, 0));
+        ADD_OPINF(&ops, _create_op_info(LIR_JB, 0, 0, 0, 1, 1, 2.0f, 1, 0)); 
+        ADD_OPINF(&ops, _create_op_info(LIR_JA, 0, 0, 0, 1, 1, 2.0f, 1, 0)); 
+        ADD_OPINF(&ops, _create_op_info(LIR_JBE, 0, 0, 0, 1, 1, 2.0f, 1, 0));
+        ADD_OPINF(&ops, _create_op_info(LIR_JAE, 0, 0, 0, 1, 1, 2.0f, 1, 0));
         
         ADD_OPINF(&ops, _create_op_info(LIR_TST, 0, 0, 1, 0, 1, 2.0f, 1, 0));        // test
         ADD_OPINF(&ops, _create_op_info(LIR_CMP, 0, 0, 1, 0, 1, 2.0f, 1, 0));        // compare
@@ -128,36 +127,10 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_fDIV, 0, 0, 0, 0, 10, 0.2f, 4, 0));      // float divide
         ADD_OPINF(&ops, _create_op_info(LIR_fCMP, 0, 0, 1, 0, 3, 1.0f, 2, 1));       // float compare (commutative)
         
-        ADD_OPINF(&ops, _create_op_info(LIR_TF64, 0, 0, 0, 0, 3, 1.0f, 2, 0));       // to float64
-        ADD_OPINF(&ops, _create_op_info(LIR_TF32, 0, 0, 0, 0, 3, 1.0f, 2, 0));       // to float32
-        ADD_OPINF(&ops, _create_op_info(LIR_TI64, 0, 0, 0, 0, 2, 1.5f, 1, 0));       // to int64
-        ADD_OPINF(&ops, _create_op_info(LIR_TI32, 0, 0, 0, 0, 1, 2.0f, 1, 0));       // to int32
-        ADD_OPINF(&ops, _create_op_info(LIR_TI16, 0, 0, 0, 0, 1, 2.0f, 1, 0));       // to int16
-        ADD_OPINF(&ops, _create_op_info(LIR_TI8, 0, 0, 0, 0, 1, 2.0f, 1, 0));        // to int8
-        ADD_OPINF(&ops, _create_op_info(LIR_TU64, 0, 0, 0, 0, 2, 1.5f, 1, 0));       // to uint64
-        ADD_OPINF(&ops, _create_op_info(LIR_TU32, 0, 0, 0, 0, 1, 2.0f, 1, 0));       // to uint32
-        ADD_OPINF(&ops, _create_op_info(LIR_TU16, 0, 0, 0, 0, 1, 2.0f, 1, 0));       // to uint16
-        ADD_OPINF(&ops, _create_op_info(LIR_TU8, 0, 0, 0, 0, 1, 2.0f, 1, 0));        // to uint8
-        
         ADD_OPINF(&ops, _create_op_info(LIR_CDQ, 0, 0, 1, 0, 1, 2.0f, 1, 0));        // cdq
-        ADD_OPINF(&ops, _create_op_info(LIR_RSVSTK, 0, 1, 0, 0, 2, 1.0f, 2, 0));     // reserve stack
         ADD_OPINF(&ops, _create_op_info(LIR_ALLCH, 1, 1, 0, 0, 50, 0.3f, 5, 0));     // allocate heap
         ADD_OPINF(&ops, _create_op_info(LIR_DEALLH, 1, 0, 0, 0, 30, 0.4f, 4, 0));    // deallocate heap
         ADD_OPINF(&ops, _create_op_info(LIR_EXITOP, 0, 0, 0, 0, 1, 1.0f, 1, 0));     // exit operation
-        
-        ADD_OPINF(&ops, _create_op_info(LIR_STSARG, 0, 1, 0, 0, 2, 1.5f, 1, 0));     // store syscall arg
-        ADD_OPINF(&ops, _create_op_info(LIR_STFARG, 0, 1, 0, 0, 2, 1.5f, 1, 0));     // store function arg
-        ADD_OPINF(&ops, _create_op_info(LIR_LOADFARG, 1, 0, 0, 0, 2, 1.5f, 1, 0));   // load function arg
-        ADD_OPINF(&ops, _create_op_info(LIR_LOADFRET, 1, 0, 0, 0, 2, 1.5f, 1, 0));   // load function return
-        
-        ADD_OPINF(&ops, _create_op_info(LIR_STRT, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // start macro
-        ADD_OPINF(&ops, _create_op_info(LIR_STEND, 0, 0, 0, 0, 0, 0.0f, 0, 0));      // end macro
-        ADD_OPINF(&ops, _create_op_info(LIR_MKLB, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // make label
-        ADD_OPINF(&ops, _create_op_info(LIR_FDCL, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // function declare
-        ADD_OPINF(&ops, _create_op_info(LIR_FEND, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // function end
-        ADD_OPINF(&ops, _create_op_info(LIR_OEXT, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // extern object
-        ADD_OPINF(&ops, _create_op_info(LIR_RESV, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // reserve
-        ADD_OPINF(&ops, _create_op_info(LIR_VDCL, 0, 0, 0, 0, 0, 0.0f, 0, 0));       // variable declare
     }
 
     target_info_t trginfo = {

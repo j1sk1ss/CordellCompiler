@@ -3,6 +3,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+### Instruction Planning WIP
+Instruction planning will create DAG for each base block, then reorder some instruction depending on target info. Target info - special structure for target CPU arch and machine. For simplicity, I make some python scripts in `src/lir/instplan` directory (`build_targinfo.py` and `read_targinfo.py`).
+
 ### Regallocation
 Regallocation moved from HIR level to LIR level. Planning to add support of linear and graph register allocation. This move allows me usage of rdx, rdi, rsi... registers, without fear of re-writing (Now I'm able to precolor variables and link them to specific register like ABI registers in function call). 
 

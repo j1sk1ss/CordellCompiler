@@ -19,12 +19,13 @@ typedef struct {
 } __attribute__((packed)) op_info_t;
 
 typedef struct {
-    char name[32];
-    int op_count;
+    char       name[32];
+    int        op_count;
     op_info_t* ops;
+    map_t      info;
 } __attribute__((packed)) target_info_t;
 
-int TRGINF_load(char* path, map_t* s);
-int TRGINF_unload(map_t* s);
+int TRGINF_load(char* path, target_info_t* s);
+int TRGINF_unload(target_info_t* s);
 
 #endif
