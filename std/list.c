@@ -61,6 +61,21 @@ int list_push_back(list_t* l, void* data) {
     return 0;
 }
 
+void* list_pop_front(list_t* l) {
+    if (!l->h) return NULL;
+
+    list_node_t* node = l->h;
+    void* data = node->data;
+
+    l->h = node->n;
+    if (l->h) l->h->p = NULL;
+    else l->t = NULL;
+
+    l->s--;
+    mm_free(node);
+    return data;
+}
+
 int list_push_front(list_t* l, void* data) {
     list_node_t* node = mm_malloc(sizeof(list_node_t));
     if (!node) return -1;

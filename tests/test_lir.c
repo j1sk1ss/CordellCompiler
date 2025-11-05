@@ -33,7 +33,6 @@
 #include "ral_helper.h"
 #include "symtb_helper.h"
 
-#define DEBUG
 int main(int argc, char* argv[]) {
     printf("Running test %s...\n", argv[0]);
     mm_init();

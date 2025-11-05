@@ -95,6 +95,10 @@ cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid);
 int HIR_CFG_append_hir_block_front(cfg_block_t* bb, hir_block_t* hh);
 int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh);
 int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh);
+int HIR_CFG_append_lir_block_front(cfg_block_t* bb, lir_block_t* hh);
+int HIR_CFG_append_lir_block_back(cfg_block_t* bb, lir_block_t* hh);
+int HIR_CFG_remove_lir_block(cfg_block_t* bb, lir_block_t* hh);
+
 cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e);
 int HIR_CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next);
 int HIR_CFG_mark_leaders(cfg_ctx_t* ctx);

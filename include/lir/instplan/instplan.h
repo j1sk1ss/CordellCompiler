@@ -9,7 +9,11 @@
 #include <lir/instplan/targinfo.h>
 
 typedef struct {
+    int          indegree;
+    long         critical_path;
+    int          remaining_deps;
     set_t        vert;
+    set_t        users;
     lir_block_t* b;
 } instructions_dag_node_t;
 

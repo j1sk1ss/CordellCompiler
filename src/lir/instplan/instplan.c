@@ -33,6 +33,7 @@ static instructions_dag_node_t* _create_dag_node(lir_block_t* lh) {
     instructions_dag_node_t* nd = (instructions_dag_node_t*)mm_malloc(sizeof(instructions_dag_node_t));
     if (!nd) return NULL;
     set_init(&nd->vert);
+    set_init(&nd->users);
     nd->b = lh;
     return nd;
 }
@@ -84,7 +85,11 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
             case LIR_iMOV: {
                 instructions_dag_node_t* src  = _find_or_create_node(_find_src(lh->prev, bb->lmap.entry, lh->sarg), dag);
                 instructions_dag_node_t* inst = _set_node(lh, dag);
-                if (src) set_add(&inst->vert, src);
+                if (src) {
+                    set_add(&inst->vert, src);
+                    set_add(&src->users, inst);
+                }
+
                 break;
             }
             
@@ -92,7 +97,11 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
             case LIR_JNE: {
                 instructions_dag_node_t* src = _find_or_create_node(_find_first_cmp(lh, bb->lmap.entry), dag);
                 instructions_dag_node_t* inst = _set_node(lh, dag);
-                if (src) set_add(&inst->vert, src);
+                if (src) {
+                    set_add(&inst->vert, src);
+                    set_add(&src->users, inst);
+                }
+
                 break;
             }
 
@@ -118,14 +127,29 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
                 instructions_dag_node_t* rbx_nd = _find_or_create_node(rbx, dag);
                 instructions_dag_node_t* inst   = _set_node(lh, dag);
 
-                if (rax_nd) set_add(&inst->vert, rax_nd);
-                if (rbx_nd) set_add(&inst->vert, rbx_nd);
+                if (rax_nd) {
+                    set_add(&inst->vert, rax_nd);
+                    set_add(&rax_nd->users, inst);
+                }
+
+                if (rbx_nd) {
+                    set_add(&inst->vert, rbx_nd);
+                    set_add(&rbx_nd->users, inst);
+                }
+
                 break;
             }
         }
         
         if (lh == bb->lmap.exit) break;
         lh = lh->next;
+    }
+
+    map_iter_t it;
+    map_iter_init(&dag->alive_edges, &it);
+    instructions_dag_node_t* nd;
+    while (map_iter_next(&it, (void**)&nd)) {
+        nd->remaining_deps = set_size(&nd->vert);
     }
 
     return 1;
@@ -137,9 +161,172 @@ static int _unload_dag(instructions_dag_t* dag) {
     instructions_dag_node_t* nd;
     while (map_iter_next(&it, (void**)&nd)) {
         set_free(&nd->vert);
+        set_free(&nd->users);
     }
 
     return map_free_force(&dag->alive_edges);
+}
+
+static int _dag_toposort(instructions_dag_t* dag, list_t* sorted) {
+    map_iter_t it;
+    map_iter_init(&dag->alive_edges, &it);
+    instructions_dag_node_t* nd;
+    while (map_iter_next(&it, (void**)&nd)) {
+        nd->indegree = 0;
+    }
+
+    map_iter_init(&dag->alive_edges, &it);
+    while (map_iter_next(&it, (void**)&nd)) {
+        set_iter_t sit;
+        set_iter_init(&nd->vert, &sit);
+        instructions_dag_node_t* pred;
+        while (set_iter_next(&sit, (void**)&pred)) {
+            pred->indegree++;
+        }
+    }
+
+    list_t queue;
+    list_init(&queue);
+    map_iter_init(&dag->alive_edges, &it);
+    while (map_iter_next(&it, (void**)&nd)) {
+        if (!nd->indegree) {
+            list_push_back(&queue, nd);
+        }
+    }
+
+    while (list_size(&queue)) {
+        nd = list_pop_front(&queue);
+        list_push_back(sorted, nd);
+
+        set_iter_t sit;
+        set_iter_init(&nd->vert, &sit);
+        instructions_dag_node_t* succ;
+        while (set_iter_next(&sit, (void**)&succ)) {
+            succ->indegree--;
+            if (!succ->indegree) {
+                list_push_back(&queue, succ);
+            }
+        }
+    }
+
+    list_free(&queue);
+    return 1;
+}
+
+static int _compute_critical_path(target_info_t* trginfo, instructions_dag_t* dag) {
+    map_iter_t it;
+    map_iter_init(&dag->alive_edges, &it);
+    instructions_dag_node_t* nd;
+    while (map_iter_next(&it, (void**)&nd)) {
+        op_info_t* opinfo;
+        if (map_get(&trginfo->info, nd->b->op, (void**)&opinfo)) {
+            nd->critical_path = opinfo->latency;
+        }
+    }
+
+    list_t sorted;
+    list_init(&sorted);
+    _dag_toposort(dag, &sorted);
+    
+    list_iter_t it2;
+    list_iter_hinit(&sorted, &it2);
+    instructions_dag_node_t* node;
+    while ((node = (instructions_dag_node_t*)list_iter_next(&it2))) {
+        set_iter_t sit;
+        set_iter_init(&node->vert, &sit);
+        instructions_dag_node_t* dep;
+        while (set_iter_next(&sit, (void**)&dep)) {
+            op_info_t* opinfo;
+            if (map_get(&trginfo->info, dep->b->op, (void**)&opinfo)) {
+                int cand = dep->critical_path + opinfo->latency;
+                if (cand > node->critical_path) node->critical_path = cand;
+            }
+        }
+    }
+
+    list_free(&sorted);
+    return 1;
+}
+
+static instructions_dag_node_t* _select_best_node(list_t* ready_list) {
+    if (!list_size(ready_list)) return NULL;
+
+    list_iter_t it;
+    list_iter_hinit(ready_list, &it);
+    instructions_dag_node_t *nd = NULL, *best = NULL;
+
+    best = (instructions_dag_node_t*)list_iter_next(&it);
+    int best_cp = best->critical_path;
+
+    while ((nd = (instructions_dag_node_t*)list_iter_next(&it))) {
+        if (nd->critical_path > best_cp) {
+            best_cp = nd->critical_path;
+            best = nd;
+        }
+    }
+
+    return best;
+}
+
+static int _apply_schedule(cfg_block_t* bb, list_t* scheduled) {
+    if (!bb || !list_size(scheduled)) return 0;
+    lir_block_t* prev = NULL;
+
+    list_iter_t it;
+    list_iter_hinit(scheduled, &it);
+    instructions_dag_node_t* nd;
+    while ((nd = list_iter_next(&it))) {
+        if (prev) {
+            HIR_CFG_remove_lir_block(bb, nd->b);
+            LIR_unlink_block(nd->b);
+            LIR_insert_block_after(nd->b, prev);
+            if (bb->lmap.exit == prev) bb->lmap.exit = nd->b;
+        }
+
+        prev = nd->b;
+    }
+
+    return 1;
+}
+
+static int _schedule_block(cfg_block_t* bb, instructions_dag_t* dag, target_info_t* trginfo) {
+    _compute_critical_path(trginfo, dag);
+
+    list_t ready_list;
+    list_init(&ready_list);
+
+    map_iter_t mit;
+    map_iter_init(&dag->alive_edges, &mit);
+    instructions_dag_node_t* nd;
+    while (map_iter_next(&mit, (void**)&nd)) {
+        if (!set_size(&nd->vert)) {
+            list_push_back(&ready_list, nd);
+        }
+    }
+
+    list_t scheduled;
+    list_init(&scheduled);
+
+    while (list_size(&ready_list)) {
+        instructions_dag_node_t* best = _select_best_node(&ready_list);
+        list_push_back(&scheduled, best);
+        list_remove(&ready_list, best);
+
+        set_iter_t sit;
+        set_iter_init(&best->users, &sit);
+        instructions_dag_node_t* child;
+        while (set_iter_next(&sit, (void**)&child)) {
+            child->remaining_deps--;
+            if (!child->remaining_deps) {
+                list_push_back(&ready_list, child);
+            }
+        }
+    }
+
+    _apply_schedule(bb, &scheduled);
+    list_free(&scheduled);
+    list_free(&ready_list);
+    return 1;
 }
 
 int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo, inst_planner_t* planner) {
@@ -158,6 +345,7 @@ int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo, inst_planner_
 #ifdef DEBUG
             _dump_instructions_dag_dot(&dag, bb->id);
 #endif
+            _schedule_block(bb, &dag, trginfo);
             _unload_dag(&dag);
         }
     }

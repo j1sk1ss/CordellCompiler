@@ -30,6 +30,32 @@ int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh) {
     return 1;
 }
 
+int HIR_CFG_append_lir_block_front(cfg_block_t* bb, lir_block_t* hh) {
+    if (bb->lmap.entry && bb->lmap.exit) bb->lmap.entry = hh;
+    if (!bb->lmap.entry) bb->lmap.entry = hh;
+    if (!bb->lmap.exit)  bb->lmap.exit  = hh;
+    return 1;
+}
+
+int HIR_CFG_append_lir_block_back(cfg_block_t* bb, lir_block_t* hh) {
+    if (bb->lmap.entry && bb->lmap.exit) bb->lmap.exit = hh;
+    if (!bb->lmap.entry) bb->lmap.entry = hh;
+    if (!bb->lmap.exit)  bb->lmap.exit  = hh;
+    return 1;
+}
+
+int HIR_CFG_remove_lir_block(cfg_block_t* bb, lir_block_t* hh) {
+    if (!bb || !hh) return 0;
+    if (bb->lmap.entry == bb->lmap.exit) {
+        bb->lmap.entry = bb->lmap.exit = NULL;
+        return 1;
+    }
+    
+    if (bb->lmap.entry == hh) bb->lmap.entry = hh->next;
+    if (bb->lmap.exit == hh)  bb->lmap.exit = hh->prev;
+    return 1;
+}
+
 cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     cfg_block_t* block = (cfg_block_t*)mm_malloc(sizeof(cfg_block_t));
     if (!block) return NULL;

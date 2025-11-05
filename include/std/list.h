@@ -30,6 +30,7 @@ int list_add(list_t* l, void* data);
 int list_insert(list_t* l, void* data, void* before);
 int list_push_back(list_t* l, void* data);
 int list_push_front(list_t* l, void* data);
+void* list_pop_front(list_t* l);
 int list_remove(list_t* l, void* data);
 int list_copy(list_t* src, list_t* dst);
 
