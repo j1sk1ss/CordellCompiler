@@ -4,13 +4,14 @@ Cordell Compiler is a compact hobby compiler for Cordell Programming Language wi
 # Main idea of this project
 Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for OS inside this OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
 
-# Usefull links and literature
+# Used links and literature
 - Aarne Ranta. *Implementing Programming Languages. An Introduction to Compilers and Interpreters*
 - Aho, Lam, Sethi, Ullman. *Compilers: Principles, Techniques, and Tools (Dragon Book)*
 - Andrew W. Appel. *Modern Compiler Implementation in C (Tiger Book)*
 - K. Vladimirov. *Optimizing Compilers. Structure and Algorithms*
 - Cytron et al. *Efficiently Computing Static Single Assignment Form and the Control Dependence Graph* (1991)
 - Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
+- Jason Robert, Carey Patterson. *Basic Instruction Scheduling (and Software Pipelining)* (2001)
 
 # Summary
 This `README` file contains the main information about this compiler and the development approaches I’ve learned while working on it. This repository also includes a `github.io` site with similar content and some interactive sections. For convenience, a `Navigation` block with quick links to the topics in this file is provided below.
