@@ -71,7 +71,6 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_ECLL, 1, 1, 0, 0, 100, 0.1f, 10, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_SYSC, 1, 1, 0, 0, 200, 0.05f, 15, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_FRET, 1, 0, 0, 0, 5, 0.5f, 3, 0));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_JMP, 0, 0, 0, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_JL, 0, 0, 0, 1, 1, 2.0f, 1, 0)); 
         ADD_OPINF(&ops, _create_op_info(LIR_JG, 0, 0, 0, 1, 1, 2.0f, 1, 0)); 
@@ -83,11 +82,9 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_JA, 0, 0, 0, 1, 1, 2.0f, 1, 0)); 
         ADD_OPINF(&ops, _create_op_info(LIR_JBE, 0, 0, 0, 1, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_JAE, 0, 0, 0, 1, 1, 2.0f, 1, 0));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_TST, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_CMP, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_XCHG, 1, 1, 0, 0, 10, 0.5f, 2, 0));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_iMOV, 0, 0, 0, 0, 1, 3.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iMOVb, 0, 0, 0, 0, 1, 3.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iMOVw, 0, 0, 0, 0, 1, 3.0f, 1, 0));
@@ -95,30 +92,25 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_iMOVq, 0, 0, 0, 0, 1, 3.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iMVZX, 0, 0, 0, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iMVSX, 0, 0, 0, 0, 1, 2.0f, 1, 0));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_GDREF, 1, 0, 0, 0, 4, 1.0f, 2, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_LDREF, 0, 1, 0, 0, 3, 1.0f, 2, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_REF, 0, 0, 0, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_PUSH, 0, 1, 0, 0, 2, 1.5f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_POP, 1, 0, 0, 0, 2, 1.5f, 1, 0));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_iADD, 0, 0, 1, 0, 1, 3.0f, 1, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_iSUB, 0, 0, 1, 0, 1, 3.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iMUL, 0, 0, 1, 0, 3, 1.0f, 2, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_iDIV, 0, 0, 1, 0, 20, 0.2f, 5, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iMOD, 0, 0, 1, 0, 25, 0.15f, 6, 0));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_iLRG, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iLGE, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iLWR, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iLRE, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iCMP, 0, 0, 1, 0, 1, 2.0f, 1, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_iNMP, 0, 0, 1, 0, 1, 2.0f, 1, 1));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_iAND, 0, 0, 1, 0, 1, 2.0f, 1, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_iOR, 0, 0, 1, 0, 1, 2.0f, 1, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_NOT, 0, 0, 1, 0, 1, 2.0f, 1, 0));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_bAND, 0, 0, 1, 0, 1, 2.0f, 1, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_bOR, 0, 0, 1, 0, 1, 2.0f, 1, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_bXOR, 0, 0, 1, 0, 1, 2.0f, 1, 1));
@@ -127,7 +119,6 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_bSAR, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iBLFT, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_iBRHT, 0, 0, 1, 0, 1, 2.0f, 1, 0));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_fMOV, 0, 0, 0, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_fMVf, 0, 0, 0, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_fADD, 0, 0, 0, 0, 3, 1.0f, 2, 1));
@@ -135,7 +126,6 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_fMUL, 0, 0, 0, 0, 4, 0.5f, 2, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_fDIV, 0, 0, 0, 0, 10, 0.2f, 4, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_fCMP, 0, 0, 1, 0, 3, 1.0f, 2, 1));
-        
         ADD_OPINF(&ops, _create_op_info(LIR_CDQ, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_ALLCH, 1, 1, 0, 0, 50, 0.3f, 5, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_DEALLH, 1, 0, 0, 0, 30, 0.4f, 4, 0));

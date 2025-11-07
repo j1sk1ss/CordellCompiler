@@ -80,9 +80,18 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag, ins
     while (lh) {
         switch (lh->op) {
             case LIR_REF:
+            case LIR_iMOV: 
+            case LIR_MOVSX:
+            case LIR_MOVZX:
             case LIR_GDREF:
             case LIR_LDREF:
-            case LIR_iMOV: {
+            case LIR_MOVSXD:
+            case LIR_CVTSI2SS:
+            case LIR_CVTSI2SD:
+            case LIR_CVTSS2SD:
+            case LIR_CVTSD2SS:
+            case LIR_CVTTSS2SI:
+            case LIR_CVTTSD2SI: {
                 instructions_dag_node_t* src  = _find_or_create_node(_find_src(lh->prev, bb->lmap.entry, lh->sarg), dag);
                 instructions_dag_node_t* inst = _set_node(lh, dag);
                 if (src) {

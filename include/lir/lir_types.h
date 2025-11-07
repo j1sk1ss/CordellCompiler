@@ -51,12 +51,6 @@ typedef enum {
     /* Register */
         /* Operations */
         LIR_iMOV,  // integer move, x = y
-        LIR_iMOVb, // mov byte
-        LIR_iMOVw, // mov word
-        LIR_iMOVd, // mov dword
-        LIR_iMOVq, // mov qword
-        LIR_iMVZX,
-        LIR_iMVSX,
 
         LIR_STARGLD, // st load
         LIR_STARGRF, // st ref load
@@ -80,6 +74,16 @@ typedef enum {
         LIR_TU32,     // x = (u32)y
         LIR_TU16,     // x = (u16)y
         LIR_TU8,      // x = (u8)y
+
+        LIR_CVTTSS2SI,
+        LIR_CVTTSD2SI,
+        LIR_CVTSI2SS,
+        LIR_CVTSI2SD,
+        LIR_CVTSS2SD,
+        LIR_CVTSD2SS,
+        LIR_MOVSX,
+        LIR_MOVZX,
+        LIR_MOVSXD,
 
         LIR_NOT,
 

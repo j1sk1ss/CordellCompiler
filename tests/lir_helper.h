@@ -19,11 +19,19 @@ static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
         case LIR_FEND:  return "\n";
         case LIR_OEXT:  return "extern %s;\n";
 
-        case LIR_JNE:   return "jne %s;\n";
-        case LIR_JE:    return "je %s;\n";
-        case LIR_JMP:   return "jmp %s;\n";
-        case LIR_iMVZX: return "%s zx= %s;\n";
-        case LIR_iMOV:  return "%s = %s;\n";
+        case LIR_JNE:       return "jne %s;\n";
+        case LIR_JE:        return "je %s;\n";
+        case LIR_JMP:       return "jmp %s;\n";
+        case LIR_CVTTSS2SI: return "%s cvttss2si %s;\n";
+        case LIR_CVTTSD2SI: return "%s cvttsd2si %s;\n";
+        case LIR_CVTSI2SS:  return "%s cvtsi2ss %s;\n";
+        case LIR_CVTSI2SD:  return "%s cvtsi2sd %s;\n";
+        case LIR_CVTSS2SD:  return "%s cvtss2sd %s;\n";
+        case LIR_CVTSD2SS:  return "%s cvtsd2ss %s;\n";
+        case LIR_MOVSX:     return "%s movsx %s;\n";
+        case LIR_MOVZX:     return "%s movzx %s;\n";
+        case LIR_MOVSXD:    return "%s movsxd %s;\n";
+        case LIR_iMOV:      return "%s = %s;\n";
 
         case LIR_STARGLD: return "%s = strt_loadarg();\n";
         case LIR_STARGRF: return "%s = strt_ref_loadarg();\n";

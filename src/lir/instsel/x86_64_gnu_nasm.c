@@ -220,7 +220,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                             LIR_insert_block_before(LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                         }
 
-                        LIR_insert_block_after(LIR_create_block(LIR_iMVZX, lh->farg, res, NULL), lh);
+                        LIR_insert_block_after(LIR_create_block(LIR_MOVZX, lh->farg, res, NULL), lh);
 
                         switch (lh->op) {
                             case LIR_iCMP: LIR_insert_block_after(LIR_create_block(LIR_SETE, res, NULL, NULL), lh); break;
@@ -252,7 +252,11 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
 
                     case LIR_TF64:
-                    case LIR_TF32:
+                    case LIR_TF32: {
+                        int from_float = _is_simd_type(lh->sarg->storage.var.v_id, smt);
+                        break;
+                    }
+
                     case LIR_TI64:
                     case LIR_TI32:
                     case LIR_TI16:
@@ -261,7 +265,51 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_TU32:
                     case LIR_TU16:
                     case LIR_TU8: {
-                        break; // TODO
+                        int from_float = _is_simd_type(lh->sarg->storage.var.v_id, smt);
+                        int from_sign  = _is_sign_type(lh->sarg, smt);
+                        int dst_size   = _get_variable_size(lh->farg->storage.var.v_id, smt);
+                        int src_size   = _get_variable_size(lh->sarg->storage.var.v_id, smt);
+                        if (from_float) {
+                            if (src_size == 4) lh->op = LIR_CVTTSS2SI;
+                            else lh->op = LIR_CVTTSD2SI;
+                        }
+                        else {
+                            if (dst_size <= src_size) lh->op = LIR_iMOV;
+                            else {
+                                if (src_size == 4 && dst_size == 8) lh->op = LIR_MOVSXD;
+                                else lh->op = from_sign ? LIR_MOVSX : LIR_MOVZX;
+                            }
+                        }
+
+                        break;
+                    }
+
+                    case LIR_iMOV: {
+                        if (
+                            lh->sarg->t != LIR_NUMBER && 
+                            lh->sarg->t != LIR_CONSTVAL
+                        ) break;
+
+                        if (
+                            lh->sarg->t == LIR_CONSTVAL && 
+                            lh->sarg->storage.cnst.value == 0
+                        ) {
+                            lh->op = LIR_bXOR;
+                            LIR_unload_subject(lh->sarg);
+                            lh->sarg = lh->farg;
+                            lh->targ = lh->farg;
+                        }
+                        else if (
+                            lh->sarg->t == LIR_NUMBER && 
+                            str_atoi(lh->sarg->storage.num.value) == 0
+                        ) {
+                            lh->op = LIR_bXOR;
+                            LIR_unload_subject(lh->sarg);
+                            lh->sarg = lh->farg;
+                            lh->targ = lh->farg;
+                        }
+
+                        break;
                     }
 
                     default: break;
