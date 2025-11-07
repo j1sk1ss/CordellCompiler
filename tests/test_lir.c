@@ -232,6 +232,12 @@ LIR instruction selection
     };
 
     LIR_select_instructions(&cfgctx, &smt, &inst_sel);
+    printf("\n\n========== LIR selected instructions ==========\n");
+    lh = lirctx.h;
+    while (lh) {
+        print_lir_block(lh, 1, &smt);
+        lh = lh->next;
+    }
 
 /*
 ========================
@@ -243,7 +249,8 @@ LIR instruction planning
     TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
 
     inst_planner_t inst_plan = {
-        .plan_instructions = NULL
+        .func_finder     = x86_64_gnu_nasm_planner_get_next_func_abi,
+        .func_res_finder = x86_64_gnu_nasm_planner_get_func_res
     };
 
     LIR_plan_instructions(&cfgctx, &trginfo, &inst_plan);
@@ -271,7 +278,7 @@ LIR debug information...
 ========================
 */
 
-    printf("\n\n========== LIR selected instructions ==========\n");
+    printf("\n\n========== LIR planned and regalloc ==========\n");
     lh = lirctx.h;
     while (lh) {
         print_lir_block(lh, 1, &smt);

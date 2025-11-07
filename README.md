@@ -469,119 +469,138 @@ Now we can determine which variables can share the same register using graph col
 In the same way as during `HIR` generation, we now produce an intermediate representation similar to `3AC` — but using only two addresses. This step is relatively straightforward, as it primarily involves adapting instructions to the target machine’s addressing model. Because the exact implementation depends heavily on the target architecture (register count, instruction set, addressing modes, etc.), we typically don’t spend much time optimizing or generalizing this layer. Its main goal is simply to bridge the high-level `HIR` representation and the target-specific assembly form, ensuring that each instruction can be directly translated to a valid machine instruction.
 ![lir_gen](docs/media/lir_gen.png)
 
-### LIR x86_64 example
+### LIR example
+
+From HIR we can produce high level of LIR
+
 ```
-FDCL func [id=0]
-iMOV R13D, EDI
-iMOV R12D, ESI
-iMOV [RBP - 8], R12D
-iMOV [RBP - 4], R13D
-iMOV RAX, 0
-iMUL RAX, 4
-REF RBX, [RBP - 8]
-iADD RAX, RBX
-GDREF RAX, RAX
-iMOV R11D, EAX
-iMOV RAX, 1
-iMUL RAX, 4
-REF RBX, [RBP - 8]
-iADD RAX, RBX
-GDREF RAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, R11D
-iADD RAX, RBX
-iMOV R11D, EAX
-FRET R11D
-STRT
-iMOV RAX, [RBP + 8]
-iMOV R13, RAX
-REF RAX, [RBP + 16]
-iMOV R13, RAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 8], EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 16], EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 24], EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV R15D, EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV R14D, EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 32], EAX
-PUSH R11
-PUSH R12
-PUSH R13
-PUSH R14
-PUSH R15
-iMOV EDI, [RBP - 16]
-iMOV ESI, [RBP - 8]
-FCLL func [id=41]
-iMOV R13D, EAX
-POP R15
-POP R14
-POP R13
-POP R12
-POP R11
-iMOV EAX, [RBP - 8]
-iMOV EBX, [RBP - 16]
-iMUL RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, [RBP - 24]
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, R15D
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, R14D
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, [RBP - 32]
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R13D
-iMOV EBX, R11D
-iCMP RAX, RBX
-iMVZX RAX, AL
-iMOV R11D, EAX
-iCMP R11D, 0
-JNE lb: [vid=73]
-EXITOP 1
-MKLB lb: [vid=73]
-REF EAX, [RBP - 32]
-iMOV R12, RAX
-iMOV RAX, R12
-iMOV EAX, RAX
-iMOV R12D, EAX
-iMOV EAX, R12D
-iMOV R11D, EAX
-EXITOP R11D
+fn strlen(i8* s) -> i64
+fn strlen(i8* s) -> i64
+{
+    %12 = ldparam();
+    {
+        kill(cnst: 0);
+        kill(cnst: 1);
+        %13 = num: 0;
+        %14 = %13;
+        %8 = num: 1 as u64;
+        lb10:
+        %6 = *(%15);
+        cmp %6, cnst: 0;
+        jne lb11;
+        je lb12;
+        lb11:
+        {
+            %7 = %15 + %8;
+            %16 = %7;
+            %9 = %14 + num: 1;
+            %17 = %9;
+        }
+        %14 = %17;
+        %15 = %16;
+        jmp lb10;
+        lb12:
+        return %14;
+    }
+}
+kill(cnst: 14);
+
+start {
+    {
+        %18 = strt_loadarg();
+        %19 = strt_loadarg();
+        {
+            %4 = str_alloc(str(Hello world!));
+            %5 = arr_alloc(X);
+            %10 = &(%5);
+            kill(cnst: 3);
+            kill(cnst: 18);
+            kill(cnst: 4);
+            kill(cnst: 19);
+            kill(cnst: 10);
+            kill(cnst: 5);
+            kill(cnst: 2);
+            stparam(%10);
+            call strlen(i8* s) -> i64;
+            %11 = fret();
+            exit %11;
+        }
+    }
+    kill(cnst: 11);
+}
 ```
 
-## LIR x86_64 optimization
+## LIR x86_64 instruction selection
+
+Next step is LIR lowering. The most common way here - instruction selection. This is the first machine-depended step in compiler, that's why here we have some abstractions and implementations of different asm dialetcs (e.g., nasm x86_64 gnu, at&at x86_64 gnu, etc.).
+
+```
+fn strlen(i8* s) -> i64
+{
+    {
+        r11 = num: 0;
+        r9 = r11;
+        rdi = rdi;
+        rbx = num: 1 as u64;
+        lb10:
+        r8 = *(rsi);
+        cmp r8, cnst: 0;
+        je lb12;
+        jne lb11;
+        lb11:
+        {
+            rax = rsi;
+            rax = rax + rbx;
+            rax = rax;
+            rdx = rax;
+            rsi = rdx;
+            rax = r9;
+            rax = rax + rbx;
+            r10 = rax;
+            rcx = r10;
+            r9 = rcx;
+            rbx = num: 1;
+            rbx = rbx;
+        }
+        jmp lb10;
+        lb12:
+        return r9;
+    }
+}
+
+start {
+    {
+        rbx = [rbp + 16];
+        rax = rax;
+        rbx = [rbp + 8];
+        [rbp - 16] = num: 0;
+        [rbp - 15] = num: 1;
+        rdx = &([rbp - 16]);
+        rdi = rdx;
+        {
+            [rbp - 29] = cnst: 72;
+            [rbp - 28] = cnst: 101;
+            [rbp - 27] = cnst: 108;
+            [rbp - 26] = cnst: 108;
+            [rbp - 25] = cnst: 111;
+            [rbp - 24] = cnst: 32;
+            [rbp - 23] = cnst: 119;
+            [rbp - 22] = cnst: 111;
+            [rbp - 21] = cnst: 114;
+            [rbp - 20] = cnst: 108;
+            [rbp - 19] = cnst: 100;
+            [rbp - 18] = cnst: 33;
+            [rbp - 17] = cnst: 0;
+            kill(cnst: 4);
+            kill(cnst: 5);
+            call strlen(i8* s) -> i64;
+            exit rax;
+        }
+    }
+}
+```
+
+Maybe you have notice, that we also apply register allocation here. The reason why we wait till this stage, is `pre-coloring`. Main idea, that we precolor some variables with already known registers like `rax` and `rbx` in arithmetics, `rdi`, `rsi`... in ABI function call etc.
 
 ## Codegen (nasm) part
 After completing the full code transformation pipeline, we can safely convert our `LIR` form into the `ASM` form, with a few small tricks applied during the unwrap process of special `LIR` instructions such as `EXITOP`, `STRT`, and others.

@@ -22,7 +22,9 @@ typedef struct {
 } instructions_dag_t;
 
 typedef struct {
-    int (*plan_instructions)(cfg_block_t*, target_info_t*, instructions_dag_t*);
+    lir_block_t* (*func_finder)(lir_block_t*, lir_block_t*, int);
+    lir_block_t* (*sysc_finder)(lir_block_t*, lir_block_t*, int);
+    lir_block_t* (*func_res_finder)(lir_block_t*, lir_block_t*);
 } inst_planner_t;
 
 int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo, inst_planner_t* planner);

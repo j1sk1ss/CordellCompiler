@@ -75,7 +75,7 @@ static lir_block_t* _find_src(lir_block_t* lh, lir_block_t* exit, lir_subject_t*
     return NULL;
 } 
 
-static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
+static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag, inst_planner_t* planner) {
     lir_block_t* lh = bb->lmap.entry;
     while (lh) {
         switch (lh->op) {
@@ -100,6 +100,34 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
                 if (src) {
                     set_add(&inst->vert, src);
                     set_add(&src->users, inst);
+                }
+
+                break;
+            }
+
+            case LIR_SYSC:
+            case LIR_ECLL:
+            case LIR_FCLL: {
+                lir_block_t* (*finder)(lir_block_t *, lir_block_t *, int) = planner->func_finder;
+                if (lh->op == LIR_SYSC) finder = planner->sysc_finder;
+
+                int reg_num = 0;
+                lir_block_t* abi_reg;
+                instructions_dag_node_t* inst = _set_node(lh, dag);
+                while ((abi_reg = (lir_block_t*)finder(lh->prev, bb->lmap.entry, reg_num++))) {
+                    instructions_dag_node_t* src = _find_or_create_node(abi_reg, dag);
+                    if (src) {
+                        set_add(&inst->vert, src);
+                        set_add(&src->users, inst);
+                    }
+                }
+
+                lir_block_t* fres = planner->func_res_finder(lh, bb->lmap.exit);
+                if (fres) {
+                    instructions_dag_node_t* res = _set_node(fres, dag);
+                    set_add(&res->vert, inst);
+                    set_add(&inst->users, res);
+                    lh = lh->next;
                 }
 
                 break;
@@ -280,7 +308,9 @@ static int _apply_schedule(cfg_block_t* bb, list_t* scheduled) {
             HIR_CFG_remove_lir_block(bb, nd->b);
             LIR_unlink_block(nd->b);
             LIR_insert_block_after(nd->b, prev);
-            if (bb->lmap.exit == prev) bb->lmap.exit = nd->b;
+            if (bb->lmap.exit == prev) {
+                bb->lmap.exit = nd->b;
+            }
         }
 
         prev = nd->b;
@@ -341,7 +371,7 @@ int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo, inst_planner_
         while ((bb = list_iter_next(&bit))) {
             instructions_dag_t dag;
             map_init(&dag.alive_edges);
-            _build_instructions_dag(bb, &dag);
+            _build_instructions_dag(bb, &dag, planner);
 #ifdef DEBUG
             _dump_instructions_dag_dot(&dag, bb->id);
 #endif
