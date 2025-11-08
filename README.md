@@ -475,7 +475,6 @@ From HIR we can produce high level of LIR
 
 ```
 fn strlen(i8* s) -> i64
-fn strlen(i8* s) -> i64
 {
     %12 = ldparam();
     {

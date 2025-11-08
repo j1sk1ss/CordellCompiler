@@ -284,34 +284,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
 
-                    case LIR_iMOV: {
-                        if (
-                            lh->sarg->t != LIR_NUMBER && 
-                            lh->sarg->t != LIR_CONSTVAL
-                        ) break;
-
-                        if (
-                            lh->sarg->t == LIR_CONSTVAL && 
-                            lh->sarg->storage.cnst.value == 0
-                        ) {
-                            lh->op = LIR_bXOR;
-                            LIR_unload_subject(lh->sarg);
-                            lh->sarg = lh->farg;
-                            lh->targ = lh->farg;
-                        }
-                        else if (
-                            lh->sarg->t == LIR_NUMBER && 
-                            str_atoi(lh->sarg->storage.num.value) == 0
-                        ) {
-                            lh->op = LIR_bXOR;
-                            LIR_unload_subject(lh->sarg);
-                            lh->sarg = lh->farg;
-                            lh->targ = lh->farg;
-                        }
-
-                        break;
-                    }
-
                     default: break;
                 }
 

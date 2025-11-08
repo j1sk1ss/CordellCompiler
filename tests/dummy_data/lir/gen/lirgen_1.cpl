@@ -11,7 +11,6 @@
 
     start(i64 argc, ptr u64 argv) {
         str msg = "Hello world!";
-        arr a[16, i8] = { 0, 1 };
-        exit strlen(ref a);
+        exit strlen(ref msg);
     }
 }

@@ -3,7 +3,19 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
-### Instruction Planning WIP
+### LIR peephole optimization
+| Original Instruction        | Optimized Instruction | Explanation |
+|-----------------------------|-----------------------|-------------|
+| `mov rax, 0`                | `xor rax, rax`        | Zeroes the register without writing to memory; resets flags; usually faster and smaller than `mov`. |
+| `sub rax, rax`              | `xor rax, rax`        | Equivalent zeroing; `xor` is generally preferred. |
+| `add rax, rax`              | `shl rax, 1`          | Multiply by 2 using shift; can be cheaper than `add` on some CPUs. |
+| `imul rax, imm_power_of_2`  | `shl rax, log2(imm)`  | Multiplication by power of 2 replaced with shift. |
+| `cmp rax, 0`                | `test rax, rax`       | `test` sets flags like `cmp` but is often cheaper. |
+| `mov rax, rax`              | remove                | NOP instruction; useless. |
+| `add rax, 0`, `sub rax, 0`  | remove                | Adding zero is a no-op. |
+| `imul rax, 1`, `div rax, 1` | remove                | Multiplying by 1 is a no-op. |
+
+### Instruction Planning
 Instruction planning will create DAG for each base block, then reorder some instruction depending on target info. Target info - special structure for target CPU arch and machine. For simplicity, I make some python scripts in `src/lir/instplan` directory (`build_targinfo.py` and `read_targinfo.py`).
 
 ### Regallocation

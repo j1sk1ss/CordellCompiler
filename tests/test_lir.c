@@ -25,6 +25,8 @@
 #include <lir/instplan/x86_64_gnu_nasm.h>
 #include <lir/regalloc/regalloc.h>
 #include <lir/regalloc/x84_64_gnu_nasm.h>
+#include <lir/peephole/peephole.h>
+#include <lir/peephole/x84_64_gnu_nasm.h>
 
 #include "ast_helper.h"
 #include "hir_helper.h"
@@ -279,6 +281,28 @@ LIR debug information...
 */
 
     printf("\n\n========== LIR planned and regalloc ==========\n");
+    lh = lirctx.h;
+    while (lh) {
+        print_lir_block(lh, 1, &smt);
+        lh = lh->next;
+    }
+
+/*
+========================
+LIR peephole optimization...
+========================
+*/
+
+    peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
+    LIR_peephole_optimization(&cfgctx, &smt, &pph);
+
+/*
+========================
+LIR debug information...
+========================
+*/
+
+    printf("\n\n========== LIR peephole optimization ==========\n");
     lh = lirctx.h;
     while (lh) {
         print_lir_block(lh, 1, &smt);
