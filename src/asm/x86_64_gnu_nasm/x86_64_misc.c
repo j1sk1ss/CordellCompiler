@@ -1,4 +1,4 @@
-#include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
+#include <asm/x86_64_asmgen.h>
 
 int x86_64_generate_stackframe(lir_block_t* h, lir_operation_t end, FILE* output) {
     long maxoff = 0;

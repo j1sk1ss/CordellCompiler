@@ -1,4 +1,4 @@
-#include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
+#include <asm/x86_64_asmgen.h>
 
 static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* output) {
     map_iter_t it;

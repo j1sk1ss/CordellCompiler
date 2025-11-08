@@ -1,4 +1,4 @@
-#include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
+#include <asm/x86_64_asmgen.h>
 
 static char _buffers[2][128];
 static int _idx = 0;

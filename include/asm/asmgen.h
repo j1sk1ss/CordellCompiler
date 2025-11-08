@@ -2,8 +2,8 @@
 #define GENERATOR_H_
 
 #include <symtab/symtab.h>
+#include <hir/cfg.h>
 #include <lir/lir.h>
-#include <lir/lirgen.h>
 
 typedef struct {
     int (*generator)(lir_ctx_t*, sym_table_t*, FILE*);
