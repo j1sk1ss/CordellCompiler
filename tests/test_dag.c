@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     dag_ctx_t dagctx;
     HIR_DAG_init(&dagctx);
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);
-    HIR_DAG_sparse_const_propagation(&dagctx);
+    HIR_DAG_sparse_const_propagation(&dagctx, &smt);
     dump_dag_dot(&dagctx, &smt);
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
 

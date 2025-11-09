@@ -63,7 +63,7 @@ Tokenization...
 
     list_t tokens;
     list_init(&tokens);
-    if (!TKN_tokenize(fd, &tokens)) {
+    if (!TKN_tokenize(fd, &tokens)) { // Analyzation
         fprintf(stderr, "ERROR! tkn==NULL!\n");
         return 1;
     }
@@ -74,8 +74,8 @@ Tokens preparation...
 ========================
 */
 
-    MRKP_mnemonics(&tokens);
-    MRKP_variables(&tokens);
+    MRKP_mnemonics(&tokens); // Analyzation
+    MRKP_variables(&tokens); // Analyzation
 
 /*
 ========================
@@ -86,7 +86,7 @@ AST generation...
     sym_table_t smt;
     SMT_init(&smt);
     syntax_ctx_t sctx = { .r = NULL };
-    STX_create(&tokens, &sctx, &smt);
+    STX_create(&tokens, &sctx, &smt); // Analyzation
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
 
@@ -97,7 +97,7 @@ AST -> HIR...
 */
 
     hir_ctx_t hirctx = { .h = NULL, .t = NULL };
-    HIR_generate(&sctx, &hirctx, &smt);
+    HIR_generate(&sctx, &hirctx, &smt); // Analyzation
 
 /*
 ========================
@@ -106,7 +106,7 @@ CFGv1 from HIR...
 */
 
     cfg_ctx_t cfgctx;
-    HIR_CFG_build(&hirctx, &cfgctx);
+    HIR_CFG_build(&hirctx, &cfgctx); // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
     
 /*
@@ -116,9 +116,9 @@ Call graph building...
 */
 
     call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);
-    HIR_CG_perform_dfe(&cfgctx, &callctx, &smt);
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_CG_build(&cfgctx, &callctx, &smt);       // Analyzation
+    HIR_CG_perform_dfe(&cfgctx, &callctx, &smt); // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &callctx);         // Analyzation
     call_graph_print_dot(&callctx);
 
 /*
@@ -127,16 +127,16 @@ CFGv2 from HIR and call graph after TRE and inline optimization...
 ========================
 */
 
-    HIR_CFG_perform_tre(&cfgctx, &smt);
-    HIR_CFG_unload(&cfgctx);
-    HIR_CFG_build(&hirctx, &cfgctx);
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_CFG_perform_tre(&cfgctx, &smt);  // Transform
+    HIR_CFG_unload(&cfgctx);             // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx);     // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &callctx); // Analyzation
 
-    HIR_LOOP_mark_loops(&cfgctx);
-    HIR_FUNC_perform_inline(&cfgctx);
-    HIR_CFG_unload(&cfgctx);
-    HIR_CFG_build(&hirctx, &cfgctx);
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_LOOP_mark_loops(&cfgctx);        // Analyzation
+    HIR_FUNC_perform_inline(&cfgctx);    // Transform
+    HIR_CFG_unload(&cfgctx);             // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx);     // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &callctx); // Analyzation
     
 /*
 ========================
@@ -144,14 +144,14 @@ SSA form building...
 ========================
 */
 
-    HIR_CFG_create_domdata(&cfgctx);
-    HIR_LTREE_canonicalization(&cfgctx);
-    HIR_CFG_unload_domdata(&cfgctx);
-    HIR_CFG_create_domdata(&cfgctx);
+    HIR_CFG_create_domdata(&cfgctx);     // Analyzation
+    HIR_LTREE_canonicalization(&cfgctx); // Transform
+    HIR_CFG_unload_domdata(&cfgctx);     // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);     // Analyzation
 
     ssa_ctx_t ssactx;
-    HIR_SSA_insert_phi(&cfgctx, &smt);
-    HIR_SSA_rename(&cfgctx, &ssactx, &smt);
+    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
 
 /*
 ========================
@@ -159,8 +159,8 @@ Loop LICM opt...
 ========================
 */
 
-    HIR_compute_homes(&hirctx);
-    HIR_LTREE_licm(&cfgctx, &smt);
+    HIR_compute_homes(&hirctx);    // Analyzation
+    HIR_LTREE_licm(&cfgctx, &smt); // Transform
 
 /*
 ========================
@@ -169,9 +169,10 @@ CFG -> DAG
 */
 
     dag_ctx_t dagctx;
-    HIR_DAG_init(&dagctx);
-    HIR_DAG_generate(&cfgctx, &dagctx, &smt);
-    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
+    HIR_DAG_init(&dagctx);                           // Analyzation
+    HIR_DAG_generate(&cfgctx, &dagctx, &smt);        // Analyzation
+    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);           // Analyzation
+    HIR_DAG_sparse_const_propagation(&dagctx, &smt); // Analyzation
     dump_dag_dot(&dagctx, &smt);
 
 /*
@@ -180,11 +181,11 @@ Variable deallocation
 ========================
 */
 
-    HIR_DFG_collect_defs(&cfgctx);
-    HIR_DFG_collect_uses(&cfgctx);
-    HIR_DFG_compute_inout(&cfgctx);
-    HIR_CFG_make_allias(&cfgctx, &smt);
-    HIR_DFG_create_deall(&cfgctx, &smt);
+    HIR_DFG_collect_defs(&cfgctx);       // Analyzation
+    HIR_DFG_collect_uses(&cfgctx);       // Analyzation
+    HIR_DFG_compute_inout(&cfgctx);      // Analyzation
+    HIR_CFG_make_allias(&cfgctx, &smt);  // Analyzation
+    HIR_DFG_create_deall(&cfgctx, &smt); // Transform
 
 /*
 ========================
@@ -205,9 +206,9 @@ HIR -> LIR...
 ========================
 */
 
-    HIR_CFG_cleanup_blocks_temporaries(&cfgctx);
+    HIR_CFG_cleanup_blocks_temporaries(&cfgctx); // Analyzation
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
-    LIR_generate(&cfgctx, &lirctx, &smt);
+    LIR_generate(&cfgctx, &lirctx, &smt);        // Analyzation
 
 /*
 ========================
@@ -233,7 +234,7 @@ LIR instruction selection
         .select_memory       = x86_64_gnu_nasm_memory_selection
     };
 
-    LIR_select_instructions(&cfgctx, &smt, &inst_sel);
+    LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
     printf("\n\n========== LIR selected instructions ==========\n");
     lh = lirctx.h;
     while (lh) {
@@ -255,7 +256,7 @@ LIR instruction planning
         .func_res_finder = x86_64_gnu_nasm_planner_get_func_res
     };
 
-    LIR_plan_instructions(&cfgctx, &trginfo, &inst_plan);
+    LIR_plan_instructions(&cfgctx, &trginfo, &inst_plan); // Transform
     TRGINF_unload(&trginfo);
 
 /*
@@ -269,10 +270,10 @@ LIR register selection
     LIR_RA_init_colors(&colors, &smt);
     
     regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
-    LIR_regalloc(&cfgctx, &smt, &colors, &regall);
+    LIR_regalloc(&cfgctx, &smt, &colors, &regall);        // Analyzation
     printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);
 
-    LIR_select_memory(&cfgctx, &colors, &smt, &inst_sel);
+    LIR_select_memory(&cfgctx, &colors, &smt, &inst_sel); // Transform
 
 /*
 ========================
@@ -294,7 +295,7 @@ LIR peephole optimization...
 */
 
     peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
-    LIR_peephole_optimization(&cfgctx, &smt, &pph);
+    LIR_peephole_optimization(&cfgctx, &smt, &pph); // Transform
 
 /*
 ========================

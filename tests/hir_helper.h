@@ -235,17 +235,17 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_U8NUMBER:   dst += sprintf(dst, "u8n: %s", s->storage.num.value);  break;
             case HIR_NUMBER:     dst += sprintf(dst, "num?: %s", s->storage.num.value); break;
 
-            case HIR_F64CONSTVAL: dst += sprintf(dst, "f64c: %s", s->storage.cnst.value);   break;
-            case HIR_I64CONSTVAL: dst += sprintf(dst, "i64c: %s", s->storage.cnst.value);   break;
-            case HIR_U64CONSTVAL: dst += sprintf(dst, "u64c: %s", s->storage.cnst.value);   break;
-            case HIR_F32CONSTVAL: dst += sprintf(dst, "f32c: %s", s->storage.cnst.value);   break;
-            case HIR_I32CONSTVAL: dst += sprintf(dst, "i32c: %s", s->storage.cnst.value);   break;
-            case HIR_U32CONSTVAL: dst += sprintf(dst, "u32c: %s", s->storage.cnst.value);   break;
-            case HIR_I16CONSTVAL: dst += sprintf(dst, "i16c: %s", s->storage.cnst.value);   break;
-            case HIR_U16CONSTVAL: dst += sprintf(dst, "u16c: %s", s->storage.cnst.value);   break;
-            case HIR_I8CONSTVAL:  dst += sprintf(dst, "i8c: %s", s->storage.cnst.value);    break;
-            case HIR_U8CONSTVAL:  dst += sprintf(dst, "u8c: %s", s->storage.cnst.value);    break;
-            case HIR_CONSTVAL:    dst += sprintf(dst, "cnst?: %ld", s->storage.cnst.value); break;
+            case HIR_F64CONSTVAL: dst += sprintf(dst, "f64c: %ld", s->storage.cnst.value);   break;
+            case HIR_I64CONSTVAL: dst += sprintf(dst, "i64c: %ld", s->storage.cnst.value);   break;
+            case HIR_U64CONSTVAL: dst += sprintf(dst, "u64c: %ld", s->storage.cnst.value);   break;
+            case HIR_F32CONSTVAL: dst += sprintf(dst, "f32c: %ld", s->storage.cnst.value);   break;
+            case HIR_I32CONSTVAL: dst += sprintf(dst, "i32c: %ld", s->storage.cnst.value);   break;
+            case HIR_U32CONSTVAL: dst += sprintf(dst, "u32c: %ld", s->storage.cnst.value);   break;
+            case HIR_I16CONSTVAL: dst += sprintf(dst, "i16c: %ld", s->storage.cnst.value);   break;
+            case HIR_U16CONSTVAL: dst += sprintf(dst, "u16c: %ld", s->storage.cnst.value);   break;
+            case HIR_I8CONSTVAL:  dst += sprintf(dst, "i8c: %ld", s->storage.cnst.value);    break;
+            case HIR_U8CONSTVAL:  dst += sprintf(dst, "u8c: %ld", s->storage.cnst.value);    break;
+            case HIR_CONSTVAL:    dst += sprintf(dst, "cnst?: %ld", s->storage.cnst.value);  break;
 
             case HIR_LABEL: dst += sprintf(dst, "lb%d", s->id); break;
             case HIR_RAWASM:

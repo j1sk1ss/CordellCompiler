@@ -55,7 +55,11 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         dag_node_t* dst  = DAG_GET_NODE(dctx, hh->farg);
                         if (!dst) break;
 
-                        if (HIR_commutative_op(hh->op)) dst->hash = HIR_DAG_compute_hash(dst);
+                        if (HIR_commutative_op(hh->op)) {
+                            if (src1) set_add(&dst->args, src1);
+                            if (src2) set_add(&dst->args, src2);
+                            dst->hash = HIR_DAG_compute_hash(dst);
+                        }
                         else {
                             dst->hash = hh->op * 1315423911UL;
                             if (src1) {

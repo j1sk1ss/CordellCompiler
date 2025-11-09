@@ -3,6 +3,12 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+### Constant propagation
+Constant propagation based on DAG and updates data in variable's symtable (works only with constants and numbers). Propagate constants thru:
+- Arithmetics
+- Convertation
+- Copying
+
 ### LIR peephole optimization
 | Original Instruction        | Optimized Instruction | Explanation |
 |-----------------------------|-----------------------|-------------|
@@ -155,7 +161,7 @@ Previous version of BB generation includes complex if operations without two jmp
 ### LIR generation based on CFG instead raw HIR
 Now LIR generator works only with CFG data instead raw HIR list. Also, LIR generator produces not only raw LIR list. Now it produces updated meta information for base blocks in CFG (entry and exit for LIR list for asm generator).
 
-### Constant propagation [still WIP]
+### Constant propagation
 HIR_DAG_sparse_const_propagation function implemented. Also there is a new types for numbers and contants (constants and numbers for f/u/i 64/32/16/8). 
 
 ### Debug features of CPL

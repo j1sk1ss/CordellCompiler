@@ -398,8 +398,15 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                 for (int i = 0; i < 3; i++) {
                     if (!args[i]) continue;
                     if (args[i]->t != LIR_VARIABLE) continue;
+
                     variable_info_t vi;
                     if (!VRTB_get_info_id(args[i]->storage.var.v_id, &vi, &smt->v)) continue;
+                    if (vi.vdi.defined) {
+                        args[i]->t = LIR_CONSTVAL;
+                        args[i]->storage.cnst.value = vi.vdi.definition;
+                        continue;
+                    }
+
                     if (vi.glob) {
                         args[i]->t = LIR_GLVARIABLE;
                         continue;

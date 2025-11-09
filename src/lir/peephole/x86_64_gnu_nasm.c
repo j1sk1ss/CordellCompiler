@@ -21,6 +21,7 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
                 switch (lh->op) {
                     case LIR_iMOV: {
                         if (LIR_subj_equals(lh->farg, lh->sarg)) goto _delete_block;
+                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) goto _delete_block;
                         if (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) {
                             if (!_get_long_number(lh->sarg)) {
                                 lh->op = LIR_bXOR;

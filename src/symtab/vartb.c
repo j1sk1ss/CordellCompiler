@@ -14,6 +14,19 @@ int VRTB_update_memory(long id, long offset, long size, char reg, vartab_ctx_t* 
     return 0;    
 }
 
+int VRTB_update_definition(long id, long definition, vartab_ctx_t* ctx) {
+    print_log("VRTB_update_definition(id=%i, definition=%i)", id, definition);
+    variable_info_t* vi;
+    if (map_get(&ctx->vartb, id, (void**)&vi)) {
+        if (vi->vdi.defined) return 0;
+        vi->vdi.definition = definition;
+        vi->vdi.defined    = 1;
+        return 1;
+    }
+
+    return 0;    
+}
+
 int VRTB_get_info_id(long id, variable_info_t* info, vartab_ctx_t* ctx) {
     variable_info_t* vi;
     if (map_get(&ctx->vartb, id, (void**)&vi)) {
