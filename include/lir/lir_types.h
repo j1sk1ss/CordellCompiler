@@ -177,5 +177,6 @@ typedef enum {
 #define FIRST_FREE_REGISTER R12
 
 lir_registers_t LIR_format_register(lir_registers_t reg, int size);
+int LIR_writeop(lir_operation_t op);
 
 #endif

@@ -217,6 +217,12 @@ unsigned long long str_dob2bits(double d) {
     return bits;
 }
 
+double str_bits2dob(unsigned long long bits) {
+    double d;
+    str_memcpy(&d, &bits, sizeof(d));
+    return d;
+}
+
 int write_value(const char* src, int src_size, char* dst, int dst_size) {
     int isfloat = 0;
     unsigned long long val = 0;

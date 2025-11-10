@@ -9,9 +9,9 @@ IN  = union(USE, (DEF - OUT))
 OUT = union(IN successors)
 */
 
-#include <hir/dfg.h>
+#include <lir/dfg.h>
 
-int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
+int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -21,15 +21,14 @@ int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             set_init(&cb->def);
-            hir_block_t* hh = cb->hmap.entry;
-            while (hh) {
-                if (!hh->unused) {
-                    if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t)) set_add(&cb->def, (void*)hh->sarg->storage.var.v_id);
-                    else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t)) set_add(&cb->def, (void*)hh->farg->storage.var.v_id);
+            lir_block_t* hl = cb->lmap.entry;
+            while (hl) {
+                if (!hl->unused && LIR_writeop(hl->op)) {
+                    if (hl->farg->t == LIR_VARIABLE) set_add(&cb->def, (void*)hl->farg->storage.var.v_id);
                 }
 
-                if (hh == cb->hmap.exit) break;
-                hh = hh->next;
+                if (hl == cb->lmap.exit) break;
+                hl = hl->next;
             }
         }
     }
@@ -37,7 +36,7 @@ int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
     return 1;
 }
 
-int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
+int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -47,35 +46,18 @@ int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             set_init(&cb->use);
-            hir_block_t* hh = cb->hmap.entry;
-            while (hh) {
-                if (!hh->unused) {
-                    hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
-                    for (int i = HIR_writeop(hh->op); i < 3; i++) {
+            lir_block_t* lh = cb->lmap.entry;
+            while (lh) {
+                if (!lh->unused) {
+                    lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
+                    for (int i = LIR_writeop(lh->op); i < 3; i++) {
                         if (!args[i]) continue;
-                        if (HIR_is_vartype(args[i]->t)) set_add(&cb->use, (void*)args[i]->storage.var.v_id);
-                        else if (args[i]->t == HIR_PHISET) { /* HIR_PHI (arguments in set) */
-                            set_iter_t it;
-                            set_iter_init(&hh->targ->storage.set.h, &it);
-                            int_tuple_t* tpl;
-                            while (set_iter_next(&it, (void**)&tpl)) {
-                                set_add(&cb->use, (void*)tpl->y);
-                            }
-                        }
-                        else if (args[i]->t == HIR_ARGLIST) { /* ASM_CALL, FUNCCALL, SYSCALL (arguments in list) */
-                            list_iter_t it;
-                            list_iter_hinit(&hh->targ->storage.list.h, &it);
-                            hir_subject_t* s;
-                            while ((s = list_iter_next(&it))) {
-                                if (!HIR_is_vartype(s->t)) continue;
-                                set_add(&cb->use, (void*)s->storage.var.v_id);
-                            }
-                        }
+                        if (args[i]->t == LIR_VARIABLE) set_add(&cb->use, (void*)args[i]->storage.var.v_id);
                     }
                 }
 
-                if (hh == cb->hmap.exit) break;
-                hh = hh->next;
+                if (lh == cb->lmap.exit) break;
+                lh = lh->next;
             }
         }
     }
@@ -105,7 +87,7 @@ static int _compute_in(cfg_block_t* cfg) {
     return 1;
 }
 
-int HIR_DFG_compute_inout(cfg_ctx_t* cctx) {
+int LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;

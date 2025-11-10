@@ -19,9 +19,22 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
             lir_block_t* lh = bb->lmap.entry;
             while (lh) {
                 switch (lh->op) {
+                    case LIR_CVTTSS2SI:
+                    case LIR_CVTTSD2SI:
+                    case LIR_CVTSS2SD:
+                    case LIR_CVTSD2SS: {
+                        if (LIR_subj_equals(lh->farg, lh->sarg)) goto _delete_block;
+                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) goto _delete_block;
+                        break;
+                    }
+
+                    case LIR_MOVSXD:
+                    case LIR_MOVSX:
+                    case LIR_MOVZX:
                     case LIR_iMOV: {
                         if (LIR_subj_equals(lh->farg, lh->sarg)) goto _delete_block;
                         if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) goto _delete_block;
+                        if (lh->farg->t != LIR_REGISTER) break;
                         if (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) {
                             if (!_get_long_number(lh->sarg)) {
                                 lh->op = LIR_bXOR;
@@ -36,6 +49,7 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                     case LIR_CMP: {
                         if (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) {
+                            if (lh->farg->t != LIR_REGISTER) break;
                             if (!_get_long_number(lh->sarg)) {
                                 lh->op = LIR_TST;
                                 LIR_unload_subject(lh->sarg);

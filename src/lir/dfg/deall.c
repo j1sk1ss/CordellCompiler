@@ -2,20 +2,20 @@
 deall.c - Create deallocation points in HIR
 */
 
-#include <hir/dfg.h>
+#include <lir/dfg.h>
 
 static int _already_deallocated(long id, cfg_block_t* bb) {
-    hir_block_t* hh = bb->hmap.exit;
-    while (hh) {
-        if (hh->op == HIR_VRDEALL && hh->farg->storage.cnst.value == id) return 1;
-        if (hh == bb->hmap.entry) break;
-        hh = hh->prev;
+    lir_block_t* lh = bb->lmap.exit;
+    while (lh) {
+        if (lh->op == LIR_VRDEALL && lh->farg->storage.cnst.value == id) return 1;
+        if (lh == bb->lmap.entry) break;
+        lh = lh->prev;
     }
 
     return 0;
 }
 
-int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
+int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -50,7 +50,7 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                 set_free_force(&owners);
                 if (hasown) continue;
                 if (!_already_deallocated(vid, cb)) {
-                    HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(vid), NULL, NULL), cb->hmap.exit);
+                    LIR_insert_block_before(LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(vid), NULL, NULL), cb->lmap.exit);
                 }
 
                 map_iter_t mit;
@@ -60,7 +60,7 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                     if (!set_has(&al->owners, (void*)vid)) continue;
                     if (ALLIAS_mark_owner(al->v_id, vid, &smt->m)) {
                         if (!_already_deallocated(al->v_id, cb)) {
-                            HIR_insert_block_before(HIR_create_block(HIR_VRDEALL, HIR_SUBJ_CONST(al->v_id), NULL, NULL), cb->hmap.exit);
+                            LIR_insert_block_before(LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(al->v_id), NULL, NULL), cb->lmap.exit);
                         }
 
                         set_free_force(&al->delown);
@@ -74,4 +74,6 @@ int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
             set_free(&appeared);
         }
     }
+
+    return 1;
 }

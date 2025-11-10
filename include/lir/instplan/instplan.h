@@ -21,12 +21,9 @@ typedef struct {
     map_t alive_edges;
 } instructions_dag_t;
 
-typedef struct {
-    lir_block_t* (*func_finder)(lir_block_t*, lir_block_t*, int);
-    lir_block_t* (*sysc_finder)(lir_block_t*, lir_block_t*, int);
-    lir_block_t* (*func_res_finder)(lir_block_t*, lir_block_t*);
-} inst_planner_t;
-
-int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo, inst_planner_t* planner);
+lir_block_t* LIR_planner_get_next_func_abi(lir_block_t* entry, lir_block_t* exit, int offset);
+lir_block_t* LIR_planner_get_next_sysc_abi(lir_block_t* entry, lir_block_t* exit, int offset);
+lir_block_t* LIR_planner_get_func_res(lir_block_t* fn, lir_block_t* exit);
+int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo);
 
 #endif

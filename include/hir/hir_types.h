@@ -196,5 +196,6 @@ int HIR_commutative_op(hir_operation_t op);
 int HIR_defined_type(hir_subject_type_t t);
 int HIR_sideeffect_op(hir_operation_t op);
 token_type_t HIR_get_tmptkn_type(hir_subject_type_t t);
+int HIR_is_float(hir_subject_type_t t);
 
 #endif

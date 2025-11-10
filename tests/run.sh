@@ -101,9 +101,14 @@ TEST_CODES[test_hir]="
 "
 
 TEST_SRCS[test_cfg]="
-    src/prep/*.c src/symtab/*.c 
-    src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/func/*.c 
+    src/symtab/*.c 
+    src/prep/*.c
+    src/ast/*.c 
+        src/ast/parsers/*.c 
+    src/hir/*.c 
+        src/hir/hirgen/*.c 
+        src/hir/cfg/*.c 
+        src/hir/func/*.c 
     std/*.c
 "
 
@@ -115,10 +120,16 @@ TEST_CODES[test_cfg]="
 "
 
 TEST_SRCS[test_ssa]="
-    src/prep/*.c src/symtab/*.c 
-    src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c 
-    src/hir/loop/*.c src/hir/func/*.c 
+    src/symtab/*.c 
+    src/prep/*.c
+    src/ast/*.c 
+        src/ast/parsers/*.c 
+    src/hir/*.c 
+        src/hir/hirgen/*.c 
+        src/hir/cfg/*.c 
+        src/hir/ssa/*.c 
+        src/hir/loop/*.c 
+        src/hir/func/*.c 
     std/*.c
 "
 
@@ -131,9 +142,15 @@ TEST_CODES[test_ssa]="
 "
 
 TEST_SRCS[test_dag]="
-    src/prep/*.c src/symtab/*.c 
-    src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dag/*.c
+    src/symtab/*.c 
+    src/prep/*.c
+    src/ast/*.c 
+        src/ast/parsers/*.c 
+    src/hir/*.c 
+        src/hir/hirgen/*.c 
+        src/hir/cfg/*.c 
+        src/hir/ssa/*.c 
+        src/hir/dag/*.c
     std/*.c
 "
 
@@ -146,9 +163,15 @@ TEST_CODES[test_dag]="
 "
 
 TEST_SRCS[test_dfg]="
-    src/prep/*.c src/symtab/*.c 
-    src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dfg/*.c 
+    src/symtab/*.c 
+    src/prep/*.c
+    src/ast/*.c 
+        src/ast/parsers/*.c 
+    src/hir/*.c 
+        src/hir/hirgen/*.c 
+        src/hir/cfg/*.c 
+        src/hir/ssa/*.c 
+        src/hir/dfg/*.c 
     std/*.c
 "
 
@@ -160,30 +183,30 @@ TEST_CODES[test_dfg]="
     tests/dummy_data/hir/dfg/dfg_5.cpl
 "
 
-TEST_SRCS[test_ra]="
-    src/prep/*.c src/symtab/*.c 
-    src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/*/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dfg/*.c src/hir/ra/*.c 
-    std/*.c
-"
-
-TEST_CODES[test_ra]="
-    tests/dummy_data/hir/ra/ra_1.cpl
-    tests/dummy_data/hir/ra/ra_2.cpl
-    tests/dummy_data/hir/ra/ra_3.cpl
-    tests/dummy_data/hir/ra/ra_4.cpl
-    tests/dummy_data/hir/ra/ra_5.cpl
-"
-
 # ==== LIR testing ====
 TEST_SRCS[test_lir]="
-    src/prep/*.c src/symtab/*.c 
-    src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c 
-    src/hir/dfg/*.c src/hir/dag/*.c src/hir/loop/*.c src/hir/func/*.c 
-    src/lir/*.c src/lir/instsel/*.c src/lir/instplan/*.c src/lir/peephole/*.c
-    src/lir/lirgen/*.c src/lir/lirgen/misc/*.c
-    src/lir/regalloc/*.c src/lir/regalloc/gc/*.c 
+    src/symtab/*.c 
+    src/prep/*.c
+    src/ast/*.c 
+        src/ast/parsers/*.c 
+    src/hir/*.c 
+        src/hir/constfold/*.c 
+        src/hir/hirgen/*.c 
+        src/hir/cfg/*.c 
+        src/hir/ssa/*.c 
+        src/hir/dag/*.c 
+        src/hir/loop/*.c 
+        src/hir/func/*.c 
+    src/lir/*.c 
+        src/lir/dfg/*.c 
+        src/lir/constfold/*.c 
+        src/lir/instsel/*.c 
+        src/lir/instplan/*.c 
+        src/lir/peephole/*.c
+        src/lir/lirgen/*.c 
+        src/lir/lirgen/misc/*.c
+        src/lir/regalloc/*.c 
+        src/lir/regalloc/gc/*.c 
     std/*.c
 "
 
@@ -196,11 +219,30 @@ TEST_CODES[test_lir]="
 "
 
 TEST_SRCS[test_asm]="
-    src/prep/*.c src/symtab/*.c 
-    src/ast/*.c src/ast/parsers/*.c 
-    src/hir/*.c src/hir/hirgen/*.c src/hir/cfg/*.c src/hir/ssa/*.c src/hir/dfg/*.c src/hir/ra/*.c src/hir/dag/*.c src/hir/opt/*.c 
-    src/lir/*.c src/lir/*/*.c src/lir/*/*/*.c
-    src/asm/*.c src/asm/*/*.c
+    src/symtab/*.c 
+    src/prep/*.c
+    src/ast/*.c 
+        src/ast/parsers/*.c 
+    src/hir/*.c 
+        src/hir/constfold/*.c 
+        src/hir/hirgen/*.c 
+        src/hir/cfg/*.c 
+        src/hir/ssa/*.c 
+        src/hir/dag/*.c 
+        src/hir/loop/*.c 
+        src/hir/func/*.c 
+    src/lir/*.c 
+        src/lir/dfg/*.c 
+        src/lir/constfold/*.c 
+        src/lir/instsel/*.c 
+        src/lir/instplan/*.c 
+        src/lir/peephole/*.c
+        src/lir/lirgen/*.c 
+        src/lir/lirgen/misc/*.c
+        src/lir/regalloc/*.c 
+        src/lir/regalloc/gc/*.c
+    src/asm/*.c
+        src/asm/x86_64_gnu_nasm/*.c
     std/*.c
 "
 
@@ -211,22 +253,6 @@ TEST_CODES[test_asm]="
     tests/dummy_data/asm/asm_3.cpl
     tests/dummy_data/asm/asm_4.cpl
     tests/dummy_data/asm/asm_5.cpl
-"
-
-TEST_SRCS[test_build]="src/builder.c src/prep/*.c src/sem/*.c src/ast/*.c src/ast/*/*.c src/lir/*.c src/lir/*/*.c src/asm/*.c src/asm/*/*.c std/*.c"
-TEST_CODES[test_build]="
-    tests/dummy_data/builder/builder_1.cpl
-    tests/dummy_data/builder/builder_2.cpl
-    tests/dummy_data/builder/builder_3.cpl
-    tests/dummy_data/builder/builder_4.cpl
-    tests/dummy_data/builder/builder_5.cpl
-    tests/dummy_data/builder/builder_6.cpl
-    tests/dummy_data/builder/builder_7.cpl
-    tests/dummy_data/builder/builder_8.cpl
-    tests/dummy_data/builder/builder_9.cpl
-    tests/dummy_data/builder/builder_10.cpl
-    tests/dummy_data/builder/builder_11.cpl
-    tests/dummy_data/builder/builder_12.cpl
 "
 
 # ======================================

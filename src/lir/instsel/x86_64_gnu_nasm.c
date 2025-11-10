@@ -72,6 +72,17 @@ static inline lir_subject_t* _create_reg(int reg, int sz) {
     return LIR_SUBJ_REG(reg, sz);
 }
 
+static inline lir_subject_t* _create_tmp(int reg, lir_subject_t* src, sym_table_t* smt) {
+    variable_info_t vi;
+    if (src->t == LIR_VARIABLE && VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)) {
+        long cpy = VRTB_add_copy(&vi, &smt->v);
+        VRTB_update_memory(cpy, vi.vmi.offset, vi.vmi.size, reg, &smt->v);
+        return LIR_SUBJ_VAR(cpy, src->size);
+    }
+
+    return NULL;
+}
+
 static inline lir_subject_t* _create_mem(int off, int sz) {
     return LIR_SUBJ_OFF(off, sz);
 }
@@ -89,48 +100,43 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
             lir_block_t* lh = bb->lmap.entry;
             while (lh) {
                 switch (lh->op) {
-                    case LIR_STARGLD: {
-                        lir_subject_t* src = NULL;
-                        switch (lh->sarg->storage.cnst.value) {
-                            case 0: src = LIR_SUBJ_OFF(-8, _get_variable_size(lh->farg->storage.var.v_id, smt));  break;
-                            case 1: src = LIR_SUBJ_OFF(-16, _get_variable_size(lh->farg->storage.var.v_id, smt)); break;
-                        }
-
-                        lh->op = LIR_iMOV;
-                        LIR_unload_subject(lh->sarg);
-                        lh->sarg = src;
-                        break;
-                    }
-
-                    case LIR_STSARG: {
-                        lh->op = LIR_iMOV;
-                        lir_subject_t* src = _create_reg(_sys_regs[lh->sarg->storage.cnst.value], _get_variable_size(lh->farg->storage.var.v_id, smt));
-                        LIR_unload_subject(lh->sarg);
-                        lh->sarg = lh->farg;
-                        lh->farg = src;
-                        break;
-                    }
-
+                    case LIR_STSARG:
                     case LIR_STFARG: {
+                        int* src_regs = (int*)_abi_regs;
+                        if (lh->op == LIR_STSARG) src_regs = (int*)_sys_regs;
+                        lir_subject_t* src = _create_tmp(
+                            src_regs[lh->sarg->storage.cnst.value], 
+                            lh->farg, smt
+                        );
+
                         lh->op = LIR_iMOV;
-                        lir_subject_t* src = _create_reg(_abi_regs[lh->sarg->storage.cnst.value], _get_variable_size(lh->farg->storage.var.v_id, smt));
                         LIR_unload_subject(lh->sarg);
                         lh->sarg = lh->farg;
                         lh->farg = src;
                         break;
                     }
 
+                    case LIR_STARGLD:
                     case LIR_LOADFARG: {
+                        lir_subject_t* src = NULL;
+                        if (lh->op == LIR_STARGLD) src = LIR_SUBJ_OFF(
+                            lh->sarg->storage.cnst.value * -8, 
+                            _get_variable_size(lh->farg->storage.var.v_id, smt)
+                        );
+                        else src = _create_tmp(
+                            _abi_regs[lh->sarg->storage.cnst.value], 
+                            lh->farg, smt
+                        );
+
                         lh->op = LIR_iMOV;
-                        lir_subject_t* src = _create_reg(_abi_regs[lh->sarg->storage.cnst.value], _get_variable_size(lh->farg->storage.var.v_id, smt));
                         LIR_unload_subject(lh->sarg);
                         lh->sarg = src;
                         break;
                     }
 
                     case LIR_LOADFRET: {
+                        lir_subject_t* src = _create_tmp(RAX, lh->farg, smt);
                         lh->op = LIR_iMOV;
-                        lir_subject_t* src = _create_reg(RAX, _get_variable_size(lh->farg->storage.var.v_id, smt));
                         lh->sarg = src;
                         break;
                     }
@@ -143,14 +149,13 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_iADD: {
                         lir_subject_t *a, *b;
                         if (!_is_simd_type(lh->farg->storage.var.v_id, smt)) {
-                            a = _create_reg(RAX, _get_variable_size(lh->sarg->storage.var.v_id, smt));
-                            b = _create_reg(RBX, _get_variable_size(lh->targ->storage.var.v_id, smt));
+                            a = _create_tmp(RAX, lh->sarg, smt);
+                            b = lh->targ;
                             LIR_insert_block_before(LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
-                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                         }
                         else {
-                            a = _create_reg(XMM0, _get_variable_size(lh->sarg->storage.var.v_id, smt));
-                            b = _create_reg(XMM1, _get_variable_size(lh->targ->storage.var.v_id, smt));
+                            a = _create_tmp(XMM0, lh->sarg, smt);
+                            b = _create_tmp(XMM1, lh->targ, smt);
                             switch (lh->op) {
                                 case LIR_iMUL: lh->op = LIR_fMUL; break;
                                 case LIR_iSUB: lh->op = LIR_fSUB; break;
@@ -172,11 +177,11 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_iDIV:
                     case LIR_iMOD: {
                         lir_subject_t *a, *b, *mod;
+                        LIR_insert_block_before(LIR_create_block(LIR_bXOR, _create_reg(RDX, 8), _create_reg(RDX, 8), NULL), lh);
                         if (!_is_simd_type(lh->farg->storage.var.v_id, smt)) {
-                            a = _create_reg(RAX, _get_variable_size(lh->sarg->storage.var.v_id, smt));
-                            b = _create_reg(RBX, _get_variable_size(lh->targ->storage.var.v_id, smt));
+                            a = _create_tmp(RAX, lh->sarg, smt);
+                            b = lh->targ;
                             LIR_insert_block_before(LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
-                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                         }
                         else {
                             a = _create_reg(XMM0, _get_variable_size(lh->sarg->storage.var.v_id, smt));
@@ -213,11 +218,10 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_iNMP: {
                         lir_subject_t *a, *b, *res;
                         if (!_is_simd_type(lh->farg->storage.var.v_id, smt)) {
-                            a   = _create_reg(RAX, _get_variable_size(lh->sarg->storage.var.v_id, smt));
-                            b   = _create_reg(RBX, _get_variable_size(lh->targ->storage.var.v_id, smt));
+                            a   = _create_tmp(RAX, lh->sarg, smt);
+                            b   = lh->targ;
                             res = _create_reg(AL, 1);
                             LIR_insert_block_before(LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
-                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                         }
 
                         LIR_insert_block_after(LIR_create_block(LIR_MOVZX, lh->farg, res, NULL), lh);
@@ -254,6 +258,18 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_TF64:
                     case LIR_TF32: {
                         int from_float = _is_simd_type(lh->sarg->storage.var.v_id, smt);
+                        int dst_size   = _get_variable_size(lh->farg->storage.var.v_id, smt);
+                        int src_size   = _get_variable_size(lh->sarg->storage.var.v_id, smt);
+                        if (from_float) {
+                            if (src_size == 4 && dst_size == 8) lh->op = LIR_CVTSS2SD;
+                            else if (src_size == 8 && dst_size == 4) lh->op = LIR_CVTSD2SS;
+                            else lh->op = LIR_iMOV;
+                        } 
+                        else {
+                            if (dst_size <= 4) lh->op = (src_size == 4) ? LIR_CVTTSS2SI : LIR_CVTTSD2SI;
+                            else lh->op = (src_size == 4) ? LIR_CVTTSS2SI : LIR_CVTTSD2SI;
+                        }
+
                         break;
                     }
 
@@ -401,12 +417,6 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
                     variable_info_t vi;
                     if (!VRTB_get_info_id(args[i]->storage.var.v_id, &vi, &smt->v)) continue;
-                    if (vi.vdi.defined) {
-                        args[i]->t = LIR_CONSTVAL;
-                        args[i]->storage.cnst.value = vi.vdi.definition;
-                        continue;
-                    }
-
                     if (vi.glob) {
                         args[i]->t = LIR_GLVARIABLE;
                         continue;

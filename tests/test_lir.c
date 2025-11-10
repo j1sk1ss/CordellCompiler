@@ -14,15 +14,16 @@
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/dag.h>
-#include <hir/dfg.h>
+#include <hir/constfold.h>
 
+#include <lir/dfg.h>
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
+#include <lir/constfold.h>
 #include <lir/instsel/instsel.h>
 #include <lir/instsel/x84_64_gnu_nasm.h>
 #include <lir/instplan/instplan.h>
 #include <lir/instplan/targinfo.h>
-#include <lir/instplan/x86_64_gnu_nasm.h>
 #include <lir/regalloc/regalloc.h>
 #include <lir/regalloc/x84_64_gnu_nasm.h>
 #include <lir/peephole/peephole.h>
@@ -172,20 +173,10 @@ CFG -> DAG
     HIR_DAG_init(&dagctx);                           // Analyzation
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);        // Analyzation
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);           // Analyzation
-    HIR_DAG_sparse_const_propagation(&dagctx, &smt); // Analyzation
     dump_dag_dot(&dagctx, &smt);
 
-/*
-========================
-Variable deallocation
-========================
-*/
-
-    HIR_DFG_collect_defs(&cfgctx);       // Analyzation
-    HIR_DFG_collect_uses(&cfgctx);       // Analyzation
-    HIR_DFG_compute_inout(&cfgctx);      // Analyzation
-    HIR_CFG_make_allias(&cfgctx, &smt);  // Analyzation
-    HIR_DFG_create_deall(&cfgctx, &smt); // Transform
+    HIR_sparse_const_propagation(&dagctx, &smt);     // Analyzation
+    HIR_CFG_make_allias(&cfgctx, &smt);              // Analyzation
 
 /*
 ========================
@@ -225,6 +216,30 @@ LIR debug information...
 
 /*
 ========================
+LIR instruction planning
+========================
+*/
+
+    target_info_t trginfo;
+    TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
+    LIR_plan_instructions(&cfgctx, &trginfo); // Transform
+    TRGINF_unload(&trginfo);
+
+/*
+========================
+LIR debug information...
+========================
+*/
+
+    printf("\n\n========== LIR planned instructions ==========\n");
+    lh = lirctx.h;
+    while (lh) {
+        print_lir_block(lh, 1, &smt);
+        lh = lh->next;
+    }
+
+/*
+========================
 LIR instruction selection
 ========================
 */
@@ -235,6 +250,8 @@ LIR instruction selection
     };
 
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
+    LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform
+
     printf("\n\n========== LIR selected instructions ==========\n");
     lh = lirctx.h;
     while (lh) {
@@ -244,26 +261,14 @@ LIR instruction selection
 
 /*
 ========================
-LIR instruction planning
+LIR register allocation
 ========================
 */
 
-    target_info_t trginfo;
-    TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
-
-    inst_planner_t inst_plan = {
-        .func_finder     = x86_64_gnu_nasm_planner_get_next_func_abi,
-        .func_res_finder = x86_64_gnu_nasm_planner_get_func_res
-    };
-
-    LIR_plan_instructions(&cfgctx, &trginfo, &inst_plan); // Transform
-    TRGINF_unload(&trginfo);
-
-/*
-========================
-LIR register selection
-========================
-*/
+    LIR_DFG_collect_defs(&cfgctx);       // Analyzation
+    LIR_DFG_collect_uses(&cfgctx);       // Analyzation
+    LIR_DFG_compute_inout(&cfgctx);      // Analyzation
+    LIR_DFG_create_deall(&cfgctx, &smt); // Transform
 
     map_t colors;
     map_init(&colors);

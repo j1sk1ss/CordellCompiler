@@ -1,36 +1,46 @@
 #include <lir/regalloc/x84_64_gnu_nasm.h>
 
-static int _regalloc_precolor(cfg_ctx_t* cctx, map_t* cmap) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* bb;
-        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
-            lir_block_t* lh = bb->lmap.entry;
-            while (lh) {
-                if (lh->op == LIR_iMOV) {
-                    long vid = -1, color = -1;
-                    if (lh->farg->t == LIR_REGISTER && lh->sarg->t == LIR_VARIABLE) {
-                        color = lh->farg->storage.reg.reg;
-                        vid = lh->sarg->storage.var.v_id;
-                    }
-                    else if (lh->farg->t == LIR_VARIABLE && lh->sarg->t == LIR_REGISTER) {
-                        color = lh->sarg->storage.reg.reg;
-                        vid = lh->farg->storage.var.v_id;
-                    }
+#ifdef DEBUG
+static void __igraph_dump_dot(igraph_t* g) {
+    fprintf(stdout, "graph G {\n");
+    fprintf(stdout, "  node [style=filled];\n");
 
-                    if (vid != -1 && color != -1) {
-                        LIR_RA_precolor_node(cmap, vid, color);
-                    }
+    const char* colors[] = { "red", "green", "blue", "yellow", "cyan", "magenta", "orange", "grey", "brown", "pink" };
+    int palette_size = sizeof(colors) / sizeof(colors[0]);
+
+    for (long i = 0; i < g->nodes.capacity; i++) {
+        if (g->nodes.entries[i].used) {
+            igraph_node_t* n = (igraph_node_t*)g->nodes.entries[i].value;
+            const char* fill = (n->color >= 0 && n->color < palette_size) ? colors[n->color] : "white";
+            fprintf(stdout, "  v%ld [label=\"v%ld\\ncolor=%d\", fillcolor=%s];\n", n->v_id, n->v_id, n->color, fill);
+        }
+    }
+
+    for (long i = 0; i < g->nodes.capacity; i++) {
+        if (g->nodes.entries[i].used) {
+            igraph_node_t* n = (igraph_node_t*)g->nodes.entries[i].value;
+            set_iter_t sit;
+            set_iter_init(&n->v, &sit);
+            long neighbor;
+            while (set_iter_next(&sit, (void**)&neighbor)) {
+                if (n->v_id < neighbor) {
+                    fprintf(stdout, "  v%ld -- v%ld;\n", n->v_id, neighbor);
                 }
-
-                if (lh == bb->lmap.exit) break;
-                lh = lh->next;
             }
+        }
+    }
+
+    fprintf(stdout, "}\n");
+}
+#endif
+
+static int _regalloc_precolor(map_t* cmap, sym_table_t* smt) {
+    map_iter_t mit;
+    map_iter_init(&smt->v.vartb, &mit);
+    variable_info_t* vi;
+    while (map_iter_next(&mit, (void**)&vi)) {
+        if (vi->vmi.allocated && vi->vmi.reg >= 0) {
+            map_put(cmap, vi->v_id, (void*)((long)vi->vmi.reg));
         }
     }
 
@@ -40,8 +50,11 @@ static int _regalloc_precolor(cfg_ctx_t* cctx, map_t* cmap) {
 int x86_64_regalloc_graph(cfg_ctx_t* cctx, sym_table_t* smt, map_t* colors) {
     igraph_t ig;
     LIR_RA_build_igraph(cctx, &ig, smt);
-    _regalloc_precolor(cctx, colors);
+    _regalloc_precolor(colors, smt);
     LIR_RA_color_igraph(&ig, colors);
+#ifdef DEBUG
+    __igraph_dump_dot(&ig);
+#endif
     LIR_RA_unload_igraph(&ig);
     return 1;
 }

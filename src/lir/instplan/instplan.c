@@ -75,24 +75,32 @@ static lir_block_t* _find_src(lir_block_t* lh, lir_block_t* exit, lir_subject_t*
     return NULL;
 } 
 
-static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag, inst_planner_t* planner) {
+static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
     lir_block_t* lh = bb->lmap.entry;
     while (lh) {
         switch (lh->op) {
+            case LIR_LOADFARG:
+            case LIR_LOADFRET:
+            case LIR_STARGLD: {
+                _set_node(lh, dag);
+                break;
+            }
+
+            case LIR_TI64:
+            case LIR_TI32:
+            case LIR_TI16:
+            case LIR_TI8:
+            case LIR_TU64:
+            case LIR_TU32:
+            case LIR_TU16:
+            case LIR_TU8:
+            case LIR_TF64:
+            case LIR_TF32:
             case LIR_REF:
-            case LIR_iMOV: 
-            case LIR_MOVSX:
-            case LIR_MOVZX:
+            case LIR_iMOV:
             case LIR_GDREF:
-            case LIR_LDREF:
-            case LIR_MOVSXD:
-            case LIR_CVTSI2SS:
-            case LIR_CVTSI2SD:
-            case LIR_CVTSS2SD:
-            case LIR_CVTSD2SS:
-            case LIR_CVTTSS2SI:
-            case LIR_CVTTSD2SI: {
-                instructions_dag_node_t* src  = _find_or_create_node(_find_src(lh->prev, bb->lmap.entry, lh->sarg), dag);
+            case LIR_LDREF: {
+                instructions_dag_node_t* src  = _find_or_create_node(_find_src(lh, bb->lmap.entry, lh->sarg), dag);
                 instructions_dag_node_t* inst = _set_node(lh, dag);
                 if (src) {
                     set_add(&inst->vert, src);
@@ -117,8 +125,8 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag, ins
             case LIR_SYSC:
             case LIR_ECLL:
             case LIR_FCLL: {
-                lir_block_t* (*finder)(lir_block_t *, lir_block_t *, int) = planner->func_finder;
-                if (lh->op == LIR_SYSC) finder = planner->sysc_finder;
+                lir_block_t* (*finder)(lir_block_t *, lir_block_t *, int) = LIR_planner_get_next_func_abi;
+                if (lh->op == LIR_SYSC) finder = LIR_planner_get_next_sysc_abi;
 
                 int reg_num = 0;
                 lir_block_t* abi_reg;
@@ -131,7 +139,7 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag, ins
                     }
                 }
 
-                lir_block_t* fres = planner->func_res_finder(lh, bb->lmap.exit);
+                lir_block_t* fres = LIR_planner_get_func_res(lh, bb->lmap.exit);
                 if (fres) {
                     instructions_dag_node_t* res = _set_node(fres, dag);
                     set_add(&res->vert, inst);
@@ -157,8 +165,8 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag, ins
             case LIR_iMUL:
             case LIR_iSUB:
             case LIR_iADD: {
-                lir_block_t* rax = _find_src(lh->prev, bb->lmap.entry, lh->farg);
-                lir_block_t* rbx = _find_src(lh->prev, bb->lmap.entry, lh->sarg);
+                lir_block_t* rax = _find_src(lh, bb->lmap.entry, lh->farg);
+                lir_block_t* rbx = _find_src(lh, bb->lmap.entry, lh->sarg);
                 
                 instructions_dag_node_t* rax_nd = _find_or_create_node(rax, dag);
                 instructions_dag_node_t* rbx_nd = _find_or_create_node(rbx, dag);
@@ -368,7 +376,7 @@ static int _schedule_block(cfg_block_t* bb, instructions_dag_t* dag, target_info
     return 1;
 }
 
-int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo, inst_planner_t* planner) {
+int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -380,7 +388,7 @@ int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo, inst_planner_
         while ((bb = list_iter_next(&bit))) {
             instructions_dag_t dag;
             map_init(&dag.alive_edges);
-            _build_instructions_dag(bb, &dag, planner);
+            _build_instructions_dag(bb, &dag);
 #ifdef DEBUG
             _dump_instructions_dag_dot(&dag, bb->id);
 #endif

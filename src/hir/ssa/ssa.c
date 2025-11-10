@@ -67,15 +67,7 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
             NULL
         );
         
-        if (trg->hmap.exit) {
-            HIR_insert_block_after(union_command, trg->hmap.exit);
-            trg->hmap.exit = union_command;
-        }
-        else {
-            trg->hmap.entry = trg->hmap.exit = union_command;
-            HIR_insert_block_before(union_command, trg->l->hmap.entry);
-        }
-
+        HIR_insert_block_before(union_command, trg->hmap.exit);
         break;
     }
 

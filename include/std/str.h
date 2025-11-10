@@ -11,6 +11,7 @@ void* str_memcpy(void* destination, const void* source, size_t num);
 void* str_memset(void* pointer, unsigned char value, size_t num);
 int str_memcmp(const void* firstPointer, const void* secondPointer, size_t num);
 unsigned long long str_dob2bits(double d);
+double str_bits2dob(unsigned long long bits);
 
 /* String special functions */
 char* str_strncpy(char* dst, const char* src, int n);

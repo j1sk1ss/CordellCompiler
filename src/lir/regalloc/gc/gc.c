@@ -16,6 +16,7 @@ int LIR_RA_init_colors(map_t* colors, sym_table_t* smt) {
 }
 
 int LIR_RA_precolor_node(map_t* colors, long vid, long color) {
+    print_log("LIR_RA_precolor_node(vid=%llu, color=%llu)", vid, color);
     return map_put(colors, vid, (void**)color);
 }
 
@@ -45,10 +46,20 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         v_ids[i]     = n->v_id;
         degrees[i]   = set_size(&n->v);
         processed[i] = 0;
+
+        long pre_color;
+        if (map_get(colors, n->v_id, (void**)&pre_color) && pre_color >= 0) {
+            processed[i] = 1;
+        }
+
         i++;
     }
     
-    int remaining = node_count;
+    int remaining = 0;
+    for (i = 0; i < node_count; i++) {
+        if (!processed[i]) remaining++;
+    }
+    
     while (remaining > 0) {
         int max_degree = -1;
         int max_index  = -1;
@@ -90,6 +101,9 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         igraph_node_t* current_node = LIR_RA_find_ig_node(g, current_id);
         if (!current_node) continue;
         
+        long existing_color;
+        if (map_get(colors, current_id, (void**)&existing_color) && existing_color >= 0) continue;
+
         set_t used_colors;
         set_init(&used_colors);
         

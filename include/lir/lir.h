@@ -14,8 +14,8 @@ typedef struct {
 } lir_constant_t;
 
 typedef struct {
-    int offset;
-    int v_id;
+    int  offset;
+    long v_id;
 } lir_variable_t;
 
 typedef struct {

@@ -3,6 +3,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+### DFG location
+DFG (IN, OUT, DEF and USE calculation) moved from HIR to LIR after instruction selection. Main idea here, preserve registers from rewrite by creating additional interference of tmp variables precolored with used registers in operation.
+
 ### Constant propagation
 Constant propagation based on DAG and updates data in variable's symtable (works only with constants and numbers). Propagate constants thru:
 - Arithmetics
