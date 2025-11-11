@@ -70,7 +70,9 @@ static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
         case LIR_SETA: return "seta %s;\n";
         case LIR_STAE: return "stae %s;\n";
 
+        case LIR_bSHL:
         case LIR_iBLFT: return "%s = %s << %s;\n";
+        case LIR_bSHR:
         case LIR_iBRHT: return "%s = %s >> %s;\n";
         case LIR_iLWR:  return "%s = %s < %s;\n";
         case LIR_iLRE:  return "%s = %s <= %s;\n";
@@ -99,8 +101,10 @@ static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
 
         case LIR_MKSCOPE:  return "{\n";
         case LIR_ENDSCOPE: return "}\n";
+        case LIR_VRUSE:    return "use %s;\n";
     
         case LIR_EXITOP: return "exit %s;\n";
+        default: return "unknown op;\n";
     }
 }
 
@@ -167,7 +171,8 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
 
 void print_lir_block(const lir_block_t* block, int ud, sym_table_t* smt) {
     if (!block) return;
-
+    // printf("block=%p\n", block);
+    // if (block->unused) return;
     char arg1[256] = { 0 };
     char arg2[256] = { 0 };
     char arg3[256] = { 0 };

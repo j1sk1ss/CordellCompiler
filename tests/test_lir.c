@@ -128,16 +128,19 @@ CFGv2 from HIR and call graph after TRE and inline optimization...
 ========================
 */
 
-    HIR_CFG_perform_tre(&cfgctx, &smt);  // Transform
-    HIR_CFG_unload(&cfgctx);             // Analyzation
-    HIR_CFG_build(&hirctx, &cfgctx);     // Analyzation
-    HIR_CG_apply_dfe(&cfgctx, &callctx); // Analyzation
+    HIR_CFG_perform_tre(&cfgctx, &smt);    // Transform
+    HIR_CFG_unload(&cfgctx);               // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx);       // Analyzation
 
-    HIR_LOOP_mark_loops(&cfgctx);        // Analyzation
-    HIR_FUNC_perform_inline(&cfgctx);    // Transform
-    HIR_CFG_unload(&cfgctx);             // Analyzation
-    HIR_CFG_build(&hirctx, &cfgctx);     // Analyzation
-    HIR_CG_apply_dfe(&cfgctx, &callctx); // Analyzation
+    // HIR_CG_unload(&callctx);               // Analyzation
+    // HIR_CG_build(&cfgctx, &callctx, &smt); // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &callctx);   // Analyzation
+/* TODO inline SSA */
+    HIR_LOOP_mark_loops(&cfgctx);           // Analyzation
+    HIR_FUNC_perform_inline(&cfgctx, &smt); // Transform
+    HIR_CFG_unload(&cfgctx);                // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx);        // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
     
 /*
 ========================
@@ -172,7 +175,7 @@ CFG -> DAG
     dag_ctx_t dagctx;
     HIR_DAG_init(&dagctx);                           // Analyzation
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);        // Analyzation
-    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);           // Analyzation
+    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx, &smt);     // Analyzation
     dump_dag_dot(&dagctx, &smt);
 
     HIR_sparse_const_propagation(&dagctx, &smt);     // Analyzation
@@ -222,7 +225,7 @@ LIR instruction planning
 
     target_info_t trginfo;
     TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
-    LIR_plan_instructions(&cfgctx, &trginfo); // Transform
+    LIR_plan_instructions(&cfgctx, &trginfo, &smt); // Transform
     TRGINF_unload(&trginfo);
 
 /*
@@ -250,7 +253,6 @@ LIR instruction selection
     };
 
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
-    LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform
 
     printf("\n\n========== LIR selected instructions ==========\n");
     lh = lirctx.h;
@@ -258,6 +260,8 @@ LIR instruction selection
         print_lir_block(lh, 1, &smt);
         lh = lh->next;
     }
+
+    LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform
 
 /*
 ========================

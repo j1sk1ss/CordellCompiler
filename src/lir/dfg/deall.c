@@ -35,6 +35,8 @@ int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                 if (set_has(&cb->curr_out, (void*)vid)) continue;
 
                 set_t owners;
+                set_init(&owners);
+                
                 int hasown = 0;
                 if (ALLIAS_get_owners(vid, &owners, &smt->m)) {
                     set_iter_t ownersit;

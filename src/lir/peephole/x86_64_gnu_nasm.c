@@ -23,17 +23,30 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_CVTTSD2SI:
                     case LIR_CVTSS2SD:
                     case LIR_CVTSD2SS: {
-                        if (LIR_subj_equals(lh->farg, lh->sarg)) goto _delete_block;
-                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) goto _delete_block;
+                        if (LIR_subj_equals(lh->farg, lh->sarg)) lh->unused = 1;
+                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
                         break;
+                    }
+
+                    case LIR_bOR:
+                    case LIR_iLWR:
+                    case LIR_iLRE:
+                    case LIR_iLRG:
+                    case LIR_iLGE:
+                    case LIR_iCMP:
+                    case LIR_iNMP:
+                    case LIR_bXOR:
+                    case LIR_bAND:
+                    case LIR_iMOD: {
+                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
                     }
 
                     case LIR_MOVSXD:
                     case LIR_MOVSX:
                     case LIR_MOVZX:
                     case LIR_iMOV: {
-                        if (LIR_subj_equals(lh->farg, lh->sarg)) goto _delete_block;
-                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) goto _delete_block;
+                        if (LIR_subj_equals(lh->farg, lh->sarg)) lh->unused = 1;
+                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
                         if (lh->farg->t != LIR_REGISTER) break;
                         if (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) {
                             if (!_get_long_number(lh->sarg)) {
@@ -61,6 +74,7 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
 
                     case LIR_iSUB: {
+                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
                         if (LIR_subj_equals(lh->sarg, lh->targ)) {
                             lh->op = LIR_bXOR;
                             LIR_unload_subject(lh->targ);
@@ -69,13 +83,14 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
 
                         if (lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) {
-                            if (!_get_long_number(lh->targ)) goto _delete_block;
+                            if (!_get_long_number(lh->targ)) lh->unused = 1;
                         }
 
                         break;
                     }
 
                     case LIR_iADD: {
+                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
                         if (LIR_subj_equals(lh->sarg, lh->targ)) {
                             lh->op = LIR_bSHL;
                             LIR_unload_subject(lh->targ);
@@ -84,7 +99,7 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
 
                         if (lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) {
-                            if (!_get_long_number(lh->targ)) goto _delete_block;
+                            if (!_get_long_number(lh->targ)) lh->unused = 1;
                         }
 
                         break;
@@ -92,10 +107,11 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                     case LIR_iDIV:
                     case LIR_iMUL: {
-                        if (lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) {
+                        if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
+                        else if (lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) {
                             int rval = _get_long_number(lh->targ);
-                            if (rval == 1) goto _delete_block;
-                            if (!(rval & (rval - 1))) {
+                            if (rval == 1) lh->unused = 1;
+                            else if (!(rval & (rval - 1))) {
                                 int shift = 0;
                                 while (rval >>= 1) {
                                     shift++;
@@ -113,13 +129,6 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                 if (lh == bb->lmap.exit) break;
                 lh = lh->next;
-                continue;
-
-_delete_block: {}
-                lir_block_t* nlh = lh->next;
-                LIR_unlink_block(lh);
-                LIR_unlink_block(lh);
-                lh = nlh;
             }
         }
     }

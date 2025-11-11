@@ -118,6 +118,8 @@ lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
 
 int LIR_writeop(lir_operation_t op) {
     switch (op) {
+        case LIR_GDREF:
+        case LIR_REF:
         case LIR_STARGLD:
         case LIR_STARGRF:
         case LIR_LOADFRET:

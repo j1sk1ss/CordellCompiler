@@ -49,10 +49,14 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
             lir_block_t* lh = cb->lmap.entry;
             while (lh) {
                 if (!lh->unused) {
-                    lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-                    for (int i = LIR_writeop(lh->op); i < 3; i++) {
-                        if (!args[i]) continue;
-                        if (args[i]->t == LIR_VARIABLE) set_add(&cb->use, (void*)args[i]->storage.var.v_id);
+                    switch (lh->op) {
+                        default: {
+                            lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
+                            for (int i = LIR_writeop(lh->op); i < 3; i++) {
+                                if (!args[i]) continue;
+                                if (args[i]->t == LIR_VARIABLE) set_add(&cb->use, (void*)args[i]->storage.var.v_id);
+                            }
+                        }
                     }
                 }
 

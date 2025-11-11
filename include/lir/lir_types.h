@@ -149,6 +149,7 @@ typedef enum {
 
         /* System */
         LIR_EXITOP, // Exit with farg exit call
+        LIR_VRUSE
 } lir_operation_t;
 
 typedef enum {

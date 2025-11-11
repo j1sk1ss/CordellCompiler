@@ -80,7 +80,9 @@ static inline lir_subject_t* _create_tmp(int reg, lir_subject_t* src, sym_table_
         return LIR_SUBJ_VAR(cpy, src->size);
     }
 
-    return NULL;
+    long cpy = VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v);
+    VRTB_update_memory(cpy, vi.vmi.offset, src->size, reg, &smt->v);
+    return LIR_SUBJ_VAR(cpy, src->size);
 }
 
 static inline lir_subject_t* _create_mem(int off, int sz) {
@@ -120,7 +122,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_LOADFARG: {
                         lir_subject_t* src = NULL;
                         if (lh->op == LIR_STARGLD) src = LIR_SUBJ_OFF(
-                            lh->sarg->storage.cnst.value * -8, 
+                            (lh->sarg->storage.cnst.value + 1) * -8, 
                             _get_variable_size(lh->farg->storage.var.v_id, smt)
                         );
                         else src = _create_tmp(
@@ -315,6 +317,35 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
 static const int _registers[] = { RAX, RBX, RCX, RDX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14, R15 };
 static const int _registers_count = 14;
 
+static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* colors, sym_table_t* smt) {
+    variable_info_t vi;
+    if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
+    if (vi.glob) {
+        s->t = LIR_GLVARIABLE;
+        return 1;
+    }
+    
+    long color;
+    vi.vmi.size = _get_variable_size(vi.v_id, smt);
+    if (map_get(colors, s->storage.var.v_id, (void**)&color)) {
+        if (color < _registers_count && color >= 0) {
+            s->t = LIR_REGISTER;
+            s->storage.reg.reg = _registers[color];
+            vi.vmi.reg = s->storage.reg.reg;
+        }
+        else {
+            s->t = LIR_MEMORY;
+            s->storage.var.offset = !vi.vmi.allocated ? stack_map_alloc(vi.vmi.size, smp) : vi.vmi.offset;
+            vi.vmi.offset = s->storage.var.offset;
+        }
+
+        if (vi.vmi.allocated) return 1;
+        VRTB_update_memory(vi.v_id, vi.vmi.offset, vi.vmi.size, vi.vmi.reg, &smt->v);
+    }
+
+    return 1;
+}
+
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt) {
     stack_map_t smp;
     stack_map_init(0, &smp);
@@ -336,11 +367,8 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                         !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
                         vi.glob || vi.vmi.offset == -1
                     ) {
-                        lir_block_t* nlh = lh->next;
-                        LIR_unlink_block(lh);
-                        LIR_unload_blocks(lh);
-                        lh = nlh;
-                        continue;
+                        lh->unused = 1;
+                        goto _next_instruction;
                     }
 
                     stack_map_free(vi.vmi.offset, vi.vmi.size, &smp);
@@ -371,11 +399,8 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                         LIR_insert_block_before(LIR_create_block(LIR_iMOV, _create_mem(arroff, 1), LIR_SUBJ_CONST(0), NULL), lh);
                     }
 
-                    lir_block_t* nlh = lh->next;
-                    LIR_unlink_block(lh);
-                    LIR_unload_blocks(lh);
-                    lh = nlh;
-                    continue;
+                    lh->unused = 1;
+                    goto _next_instruction;
                 }
                 else if (lh->op == LIR_ARRDECL) {
                     variable_info_t vi;
@@ -385,60 +410,33 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                     array_info_t ai;
                     if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
                         int pos = 0;
-                        int arroff = stack_map_alloc(ai.size, &smp);
                         int elsize = _get_ast_type_size(ai.el_type);
+                        int arroff = stack_map_alloc(ai.size * elsize, &smp);
 
                         VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
                         list_iter_t elemsit;
                         list_iter_hinit(&ai.elems, &elemsit);
                         hir_subject_t* elem;
                         while ((elem = list_iter_next(&elemsit))) {
+                            lir_subject_t* elem_val =  x86_64_format_variable(elem);
+                            _update_subject_memory(elem_val, &smp, colors, smt);
                             LIR_insert_block_before(
-                                LIR_create_block(
-                                    LIR_iMOV, _create_mem(arroff - pos * elsize, 1), x86_64_format_variable(elem), NULL
-                                ), lh
+                                LIR_create_block(LIR_iMOV, _create_mem(arroff - pos * elsize, 1), elem_val, NULL), lh
                             );
 
                             pos++;
                         }
                     }
 
-                    lir_block_t* nlh = lh->next;
-                    LIR_unlink_block(lh);
-                    LIR_unload_blocks(lh);
-                    lh = nlh;
-                    continue;
+                    lh->unused = 1;
+                    goto _next_instruction;
                 }
 
                 lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
                 for (int i = 0; i < 3; i++) {
                     if (!args[i]) continue;
                     if (args[i]->t != LIR_VARIABLE) continue;
-
-                    variable_info_t vi;
-                    if (!VRTB_get_info_id(args[i]->storage.var.v_id, &vi, &smt->v)) continue;
-                    if (vi.glob) {
-                        args[i]->t = LIR_GLVARIABLE;
-                        continue;
-                    }
-                    
-                    long color;
-                    vi.vmi.size = _get_variable_size(vi.v_id, smt);
-                    if (map_get(colors, args[i]->storage.var.v_id, (void**)&color)) {
-                        if (color < _registers_count && color >= 0) {
-                            args[i]->t = LIR_REGISTER;
-                            args[i]->storage.reg.reg = _registers[color];
-                            vi.vmi.reg = args[i]->storage.reg.reg;
-                        }
-                        else {
-                            args[i]->t = LIR_MEMORY;
-                            args[i]->storage.var.offset = !vi.vmi.allocated ? stack_map_alloc(vi.vmi.size, &smp) : vi.vmi.offset;
-                            vi.vmi.offset = args[i]->storage.var.offset;
-                        }
-
-                        if (vi.vmi.allocated) continue;
-                        VRTB_update_memory(vi.v_id, vi.vmi.offset, vi.vmi.size, vi.vmi.reg, &smt->v);
-                    }
+                    _update_subject_memory(args[i], &smp, colors, smt);
                 }
 
 _next_instruction: {}

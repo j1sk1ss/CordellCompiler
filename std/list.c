@@ -175,6 +175,12 @@ void* list_iter_next(list_iter_t* it) {
     return data;
 }
 
+int list_iter_set(list_iter_t* it, void* data) {
+    if (!it->curr) return 0;
+    it->curr->data = data;
+    return 1;
+}
+
 void* list_iter_next_top(list_iter_t* it) {
     if (!it->curr || !it->curr->n) return NULL;
     return it->curr->n->data;

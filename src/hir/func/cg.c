@@ -46,7 +46,10 @@ static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             hir_block_t* hh = cb->hmap.entry;
             while (hh) {
-                if (HIR_funccall(hh->op)) _add_vert(fb->fid, hh->sarg->storage.str.s_id, ctx);
+                if (HIR_funccall(hh->op) && !hh->unused) {
+                    _add_vert(fb->fid, hh->sarg->storage.str.s_id, ctx);
+                }
+                
                 if (hh == cb->hmap.exit) break;
                 hh = hh->next;
             }

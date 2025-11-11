@@ -65,6 +65,16 @@ static lir_block_t* _find_first_cmp(lir_block_t* lh, lir_block_t* exit) {
     return NULL;
 }
 
+static lir_block_t* _find_src_use_id(lir_block_t* lh, lir_block_t* exit, long vid) {
+    while (lh) {
+        if (lh->op == LIR_VRUSE && lh->farg->t == LIR_VARIABLE && lh->farg->storage.var.v_id == vid) return lh;
+        if (lh == exit) break;
+        lh = lh->prev;
+    }
+
+    return NULL;
+} 
+
 static lir_block_t* _find_src(lir_block_t* lh, lir_block_t* exit, lir_subject_t* trg) {
     while (lh) {
         if (lh->farg && LIR_subj_equals(lh->farg, trg)) return lh;
@@ -75,10 +85,35 @@ static lir_block_t* _find_src(lir_block_t* lh, lir_block_t* exit, lir_subject_t*
     return NULL;
 } 
 
-static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
+static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag, sym_table_t* smt) {
     lir_block_t* lh = bb->lmap.entry;
     while (lh) {
         switch (lh->op) {
+            case LIR_ARRDECL: {
+                array_info_t ai;
+                if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
+                    instructions_dag_node_t* inst = _set_node(lh, dag);
+
+                    list_iter_t el_it;
+                    list_iter_hinit(&ai.elems, &el_it);
+                    hir_subject_t* elem;
+                    while ((elem = list_iter_next(&el_it))) {
+                        if (HIR_is_vartype(elem->t)) {
+                            instructions_dag_node_t* src = _find_or_create_node(
+                                _find_src_use_id(lh, bb->lmap.entry, elem->storage.var.v_id), dag
+                            );
+
+                            if (src) {
+                                set_add(&inst->vert, src);
+                                set_add(&src->users, inst);
+                            }
+                        }
+                    }
+                }
+
+                break;
+            }
+
             case LIR_LOADFARG:
             case LIR_LOADFRET:
             case LIR_STARGLD: {
@@ -112,7 +147,19 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
             
             case LIR_JE:
             case LIR_JNE: {
-                instructions_dag_node_t* src = _find_or_create_node(_find_first_cmp(lh, bb->lmap.entry), dag);
+                instructions_dag_node_t* src  = _find_or_create_node(_find_first_cmp(lh, bb->lmap.entry), dag);
+                instructions_dag_node_t* inst = _set_node(lh, dag);
+                if (src) {
+                    set_add(&inst->vert, src);
+                    set_add(&src->users, inst);
+                }
+
+                break;
+            }
+
+            case LIR_VRUSE:
+            case LIR_STFARG: {
+                instructions_dag_node_t* src  = _find_or_create_node(_find_src(lh, bb->lmap.entry, lh->farg), dag);
                 instructions_dag_node_t* inst = _set_node(lh, dag);
                 if (src) {
                     set_add(&inst->vert, src);
@@ -376,7 +423,7 @@ static int _schedule_block(cfg_block_t* bb, instructions_dag_t* dag, target_info
     return 1;
 }
 
-int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo) {
+int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -388,7 +435,7 @@ int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo) {
         while ((bb = list_iter_next(&bit))) {
             instructions_dag_t dag;
             map_init(&dag.alive_edges);
-            _build_instructions_dag(bb, &dag);
+            _build_instructions_dag(bb, &dag, smt);
 #ifdef DEBUG
             _dump_instructions_dag_dot(&dag, bb->id);
 #endif

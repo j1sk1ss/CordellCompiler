@@ -28,6 +28,7 @@ int list_isempty(list_t* l);
 
 int list_add(list_t* l, void* data);
 int list_insert(list_t* l, void* data, void* before);
+int list_iter_set(list_iter_t* it, void* data);
 int list_push_back(list_t* l, void* data);
 int list_push_front(list_t* l, void* data);
 void* list_pop_front(list_t* l);

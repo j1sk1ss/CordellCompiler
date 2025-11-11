@@ -88,6 +88,7 @@ static int _iterate_block(
             case HIR_iDIV:  LIR_BLOCK3(ctx, LIR_iDIV, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg), x86_64_format_variable(h->targ));  break;
             case HIR_iMUL:  LIR_BLOCK3(ctx, LIR_iMUL, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg), x86_64_format_variable(h->targ));  break;
             case HIR_iADD:  LIR_BLOCK3(ctx, LIR_iADD, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg), x86_64_format_variable(h->targ));  break;
+            case HIR_VRUSE: LIR_BLOCK1(ctx, LIR_VRUSE, x86_64_format_variable(h->farg)); break;
 
             default: break;
         }

@@ -80,16 +80,21 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         if (!map_get(&dctx->groups, dst->hash, (void**)&existed)) _register_node(dctx, dst, src1, src2);
                         else {
                             set_t owners;
+                            set_init(&owners);
+
                             if (
                                 !set_has(&dst->home->dom, existed->home) ||
                                 (ALLIAS_get_owners(existed->src->storage.var.v_id, &owners, &smt->m) && set_size(&owners))
                             ) _register_node(dctx, dst, src1, src2);
                             else {
-                                map_remove(&dctx->dag, HIR_hash_subject(dst->src));
-                                HIR_DAG_unload_node(dst);
-                                set_add(&existed->link, (void*)HIR_hash_subject(hh->farg));
-                                set_free_force(&owners);
+                                if (dst != existed) {
+                                    map_remove(&dctx->dag, HIR_hash_subject(dst->src));
+                                    HIR_DAG_unload_node(dst);
+                                    set_add(&existed->link, (void*)HIR_hash_subject(hh->farg));
+                                }
                             }
+
+                            set_free_force(&owners);
                         }
 
                         break;

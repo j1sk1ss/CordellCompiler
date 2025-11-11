@@ -28,6 +28,7 @@ typedef enum {
     NEGATIVE_TOKEN,      // not
 
     // Types
+    TMP_TYPE_TOKEN,
     TMP_F64_TYPE_TOKEN,  // tmp_f64
     TMP_F32_TYPE_TOKEN,  // tmp_f32
     TMP_I64_TYPE_TOKEN,  // tmp_i64
