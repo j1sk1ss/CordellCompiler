@@ -164,9 +164,24 @@ Loop LICM opt...
 
 /*
 ========================
+HIR debug information...
+========================
+*/
+
+    printf("\n\n========== Raw HIR ==========\n");
+    hir_block_t* hh = hirctx.h;
+    while (hh) {
+        print_hir_block(hh, 1, &smt);
+        hh = hh->next;
+    }
+
+/*
+========================
 CFG -> DAG
 ========================
 */
+
+    HIR_CFG_make_allias(&cfgctx, &smt);              // Analyzation
 
     dag_ctx_t dagctx;
     HIR_DAG_init(&dagctx);                           // Analyzation
@@ -175,7 +190,6 @@ CFG -> DAG
     dump_dag_dot(&dagctx, &smt);
 
     HIR_sparse_const_propagation(&dagctx, &smt);     // Analyzation
-    HIR_CFG_make_allias(&cfgctx, &smt);              // Analyzation
 
 /*
 ========================
@@ -183,8 +197,8 @@ HIR debug information...
 ========================
 */
 
-    printf("\n\n========== HIR ==========\n");
-    hir_block_t* hh = hirctx.h;
+    printf("\n\n========== HIR prepared ==========\n");
+    hh = hirctx.h;
     while (hh) {
         print_hir_block(hh, 1, &smt);
         hh = hh->next;
