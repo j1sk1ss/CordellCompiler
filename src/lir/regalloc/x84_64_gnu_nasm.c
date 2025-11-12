@@ -59,6 +59,6 @@ int x86_64_regalloc_graph(cfg_ctx_t* cctx, sym_table_t* smt, map_t* colors) {
     return 1;
 }
 
-int x86_64_regalloc_linear(cfg_ctx_t* cctx, sym_table_t* smt, map_t* colors) {
+int x86_64_regalloc_linear(__attribute__ ((unused)) cfg_ctx_t* cctx, __attribute__ ((unused)) sym_table_t* smt, __attribute__ ((unused)) map_t* colors) {
     return 1;
 }

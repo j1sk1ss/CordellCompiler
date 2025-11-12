@@ -100,7 +100,7 @@ int HIR_destroy_ctx(hir_ctx_t* ctx) {
 }
 
 static long _curr_id = 0;
-hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* strval, long intval, int s_id) {
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* strval, long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(hir_subject_t));
@@ -167,7 +167,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
 hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     if (!s) return NULL;
 
-    hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value, 0);
+    hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value);
     if (!ns) return NULL;
 
     ns->users = s->users;
@@ -299,12 +299,6 @@ int HIR_unlink_block(hir_block_t* block) {
     if (block->prev) block->prev->next = block->next;
     if (block->next) block->next->prev = block->prev;
     block->prev = block->next = NULL;
-    return 1;
-}
-
-int HIR_remove_block(hir_block_t* block) {
-    block->prev->next = block->next;
-    mm_free(block);
     return 1;
 }
 

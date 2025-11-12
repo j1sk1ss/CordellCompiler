@@ -35,7 +35,6 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
 int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* cond    = node->child;
     ast_node_t* lbranch = cond->sibling;
-    ast_node_t* rbranch = lbranch->sibling;
     
     hir_subject_t* entry_lb = HIR_SUBJ_LABEL();
     hir_subject_t* body_lb  = HIR_SUBJ_LABEL();

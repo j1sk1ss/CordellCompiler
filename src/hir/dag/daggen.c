@@ -94,7 +94,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                                 }
                             }
 
-                            set_free_force(&owners);
+                            set_free(&owners);
                         }
 
                         break;

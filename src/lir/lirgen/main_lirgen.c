@@ -6,7 +6,6 @@ static int _iterate_block(
     hir_block_t* h = bb->hmap.entry;
     bb->lmap.entry = ctx->t;
 
-    long offset = 0;
     while (h) {
         if (!h->unused) switch (h->op) {
             case HIR_PHI_PREAMBLE:
@@ -27,8 +26,8 @@ static int _iterate_block(
             case HIR_ECLL:
             case HIR_STORE_ECLL:
             case HIR_FDCL:
-            case HIR_FARGLD: x86_64_generate_func(ctx, h, smt); break;
-            case HIR_FEND:   LIR_BLOCK0(ctx, LIR_FEND);         break;
+            case HIR_FARGLD: x86_64_generate_func(ctx, h); break;
+            case HIR_FEND:   LIR_BLOCK0(ctx, LIR_FEND);    break;
 
             case HIR_BREAKPOINT: LIR_BLOCK0(ctx, LIR_BREAKPOINT); break;
 
@@ -40,9 +39,19 @@ static int _iterate_block(
             case HIR_STRDECL: 
                 LIR_BLOCK2(ctx, LIR_STRDECL, x86_64_format_variable(h->farg), LIR_SUBJ_STRING(h->sarg->storage.str.s_id)); 
             break;
-            case HIR_ARRDECL:
-                LIR_BLOCK1(ctx, LIR_ARRDECL, x86_64_format_variable(h->farg));
-            break;
+            case HIR_ARRDECL: {
+                lir_subject_t* lir_elems = LIR_SUBJ_LIST();
+                
+                list_iter_t it;
+                list_iter_hinit(&h->targ->storage.list.h, &it);
+                hir_subject_t* hir_elem;
+                while ((hir_elem = list_iter_next(&it))) {
+                    list_add(&lir_elems->storage.list.h, x86_64_format_variable(hir_elem));
+                }
+
+                LIR_BLOCK3(ctx, LIR_ARRDECL, x86_64_format_variable(h->farg), NULL, lir_elems);
+                break;
+            }
 
             case HIR_REF:   x86_64_store_var2var(LIR_REF, ctx, h->farg, h->sarg);   break;
             case HIR_GDREF: x86_64_store_var2var(LIR_GDREF, ctx, h->farg, h->sarg); break;

@@ -15,6 +15,7 @@ const char* fmt_tkn_type(token_t* t) {
             case I64_TYPE_TOKEN: return "i64*";
             case U64_TYPE_TOKEN: return "u64*";
             case F64_TYPE_TOKEN: return "f64*";
+            default: return "";
         }
     }
     switch (t->t_type) {
@@ -28,6 +29,7 @@ const char* fmt_tkn_type(token_t* t) {
         case I64_TYPE_TOKEN: return "i64";
         case U64_TYPE_TOKEN: return "u64";
         case F64_TYPE_TOKEN: return "f64";
+        default: return "";
     }
 }
 

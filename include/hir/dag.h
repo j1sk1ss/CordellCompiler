@@ -45,6 +45,6 @@ int HIR_DAG_unload(dag_ctx_t* ctx);
 #define DAG_ACQUIRE_NODE(ctx, u) HIR_DAG_get_node(ctx, u, 0)
 
 int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt);
-int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt);
+int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx);
 
 #endif

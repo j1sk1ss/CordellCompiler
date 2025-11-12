@@ -95,7 +95,7 @@ Call graph building...
 
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);
-    HIR_CG_perform_dfe(&cfgctx, &callctx, &smt);
+    HIR_CG_perform_dfe(&callctx, &smt);
     HIR_CG_apply_dfe(&cfgctx, &callctx);
     call_graph_print_dot(&callctx);
 

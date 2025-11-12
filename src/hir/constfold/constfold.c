@@ -78,8 +78,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
             dag_node_t* args[4] = { NULL };
             _const_args(nd, args);
             if (!HIR_is_vartype(nd->src->t)) continue;
-
-            hir_subject_type_t ntype;
+            if (ALLIAS_get_owners(nd->src->storage.var.v_id, NULL, &smt->m)) continue;
 
             long c = 0;
             const_t a, b;

@@ -1,6 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
-int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx) {
     for (ast_node_t* func = node->child->child; func; func = func->sibling) {
         HIR_BLOCK1(ctx, HIR_IMPORT, HIR_SUBJ_FUNCNAME(func));
     }
@@ -8,7 +8,7 @@ int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
     return 1;
 }
 
-int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx) {
     HIR_BLOCK1(ctx, HIR_OEXT, HIR_SUBJ_STRING(node));
     return 1;
 }
@@ -53,7 +53,7 @@ hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_
     return res;
 }
 
-int HIR_generate_breakpoint_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+int HIR_generate_breakpoint_block(hir_ctx_t* ctx) {
     HIR_BLOCK0(ctx, HIR_BREAKPOINT);
     return 1;
 }

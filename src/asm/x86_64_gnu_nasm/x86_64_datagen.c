@@ -32,9 +32,9 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
                 int elcount = ai.size;
                 list_iter_t elit;
                 list_iter_hinit(&ai.elems, &elit);
-                hir_subject_t* el;
+                array_elem_info_t* el;
                 while ((el = list_iter_next(&elit))) {
-                    fprintf(output, "%s", el->storage.num.value);
+                    fprintf(output, "%llu", el->value);
                     if (list_iter_current(&elit)) fprintf(output, ",");
                     elcount--;
                 }

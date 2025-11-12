@@ -218,7 +218,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
         
         variable_info_t vi;
         if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
-            dst += sprintf(dst, " %%%i", vi.v_id);
+            dst += sprintf(dst, " %%%li", vi.v_id);
         }
     }
     else {
@@ -247,7 +247,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_U8CONSTVAL:  dst += sprintf(dst, "u8c: %ld", s->storage.cnst.value);    break;
             case HIR_CONSTVAL:    dst += sprintf(dst, "cnst?: %ld", s->storage.cnst.value);  break;
 
-            case HIR_LABEL: dst += sprintf(dst, "lb%d", s->id); break;
+            case HIR_LABEL: dst += sprintf(dst, "lb%li", s->id); break;
             case HIR_RAWASM:
             case HIR_STRING: {
                 str_info_t si;
@@ -291,7 +291,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                 while (set_iter_next(&it, (void**)&tpl)) {
                     variable_info_t pvi;
                     if (VRTB_get_info_id(tpl->y, &pvi, &smt->v)) {
-                        dst += sprintf(dst, "[%%%i, bb%d]", pvi.v_id, tpl->x);
+                        dst += sprintf(dst, "[%%%li, bb%li]", pvi.v_id, tpl->x);
                     }
                 }
                 
@@ -367,7 +367,7 @@ void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
 /* https://dreampuf.github.io/GraphvizOnline/?engine=dot */
 static void _dump_domtree_dot_rec(cfg_block_t* b) {
     for (cfg_block_t* c = b->dom_c; c; c = c->dom_s) {
-        printf("  B%i -> B%i;\n", b->id, c->id);
+        printf("  B%li -> B%li;\n", b->id, c->id);
         _dump_domtree_dot_rec(c);
     }
 }
@@ -380,7 +380,7 @@ void _dump_domtree_dot(cfg_func_t* func) {
     list_iter_hinit(&func->blocks, &bit);
     cfg_block_t* cb;
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        printf("  B%i [label=\"B%i\"];\n", cb->id, cb->id);
+        printf("  B%li [label=\"B%li\"];\n", cb->id, cb->id);
     }
 
     list_iter_hinit(&func->blocks, &bit);
@@ -401,7 +401,7 @@ void _dump_all_dom_dot(cfg_func_t* func) {
     list_iter_hinit(&func->blocks, &bit);
     cfg_block_t* cb;
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        printf("  B%i [label=\"B%i\"];\n", cb->id, cb->id);
+        printf("  B%li [label=\"B%li\"];\n", cb->id, cb->id);
     }
 
     list_iter_hinit(&func->blocks, &bit);
@@ -411,7 +411,7 @@ void _dump_all_dom_dot(cfg_func_t* func) {
         cfg_block_t* d;
         while (set_iter_next(&it, (void**)&d)) {
             if (d == cb) continue;
-            printf("  B%i -> B%i;\n", d->id, cb->id);
+            printf("  B%li -> B%li;\n", d->id, cb->id);
         }
     }
 
@@ -443,7 +443,7 @@ static int _export_dot_func_hir(cfg_func_t* f) {
     list_iter_hinit(&f->blocks, &bit);
     cfg_block_t* cb;
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s%s",
+        printf("  B%ld [label=\"B%ld:\\nentry=%s%li\\nexit=%s%s",
                cb->id, cb->id,
                cb->hmap.entry ? hir_op_to_string(cb->hmap.entry->op) : "NULL", 
                cb->hmap.entry && cb->hmap.entry->op == HIR_MKLB ? cb->hmap.entry->farg->id : -1,

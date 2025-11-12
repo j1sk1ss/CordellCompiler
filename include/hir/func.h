@@ -21,10 +21,10 @@ typedef struct {
 } call_graph_t;
 
 int HIR_CG_apply_dfe(cfg_ctx_t* cctx, call_graph_t* ctx);
-int HIR_CG_perform_dfe(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt);
+int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt);
 int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt);
 int HIR_CG_unload(call_graph_t* ctx);
 
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt);
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx);
 
 #endif

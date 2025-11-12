@@ -1,5 +1,18 @@
 #include <lir/constfold.h>
 
+static int _apply_constfold_on_subject(lir_subject_t* s, sym_table_t* smt) {
+    if (s->t != LIR_VARIABLE) return 0;
+    variable_info_t vi;
+    if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
+    if (vi.vdi.defined) {
+        s->t = LIR_CONSTVAL;
+        s->storage.cnst.value = vi.vdi.definition;
+        return 1;
+    }
+
+    return 0;
+}
+
 int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
@@ -15,14 +28,18 @@ int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
                 lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
                 for (int i = 0; i < 3; i++) {
                     if (!args[i]) continue;
-                    if (args[i]->t != LIR_VARIABLE) continue;
-                    variable_info_t vi;
-                    if (!VRTB_get_info_id(args[i]->storage.var.v_id, &vi, &smt->v)) continue;
-                    if (vi.vdi.defined) {
-                        args[i]->t = LIR_CONSTVAL;
-                        args[i]->storage.cnst.value = vi.vdi.definition;
+                    if (args[i]->t == LIR_ARGLIST) {
+                        list_iter_t it;
+                        list_iter_hinit(&args[i]->storage.list.h, &it);
+                        lir_subject_t* s;
+                        while ((s = (lir_subject_t*)list_iter_next(&it))) {
+                            _apply_constfold_on_subject(s, smt);
+                        }
+
                         continue;
                     }
+
+                    _apply_constfold_on_subject(args[i], smt);
                 }
 
                 if (lh == bb->lmap.exit) break;

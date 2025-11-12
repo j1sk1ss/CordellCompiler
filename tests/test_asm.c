@@ -119,7 +119,7 @@ Call graph building...
 
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);
-    HIR_CG_perform_dfe(&cfgctx, &callctx, &smt);
+    HIR_CG_perform_dfe(&callctx, &smt);
     HIR_CG_apply_dfe(&cfgctx, &callctx);
     call_graph_print_dot(&callctx);
 
@@ -290,7 +290,7 @@ LIR peephole optimization...
 */
 
     peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
-    LIR_peephole_optimization(&cfgctx, &smt, &pph);
+    LIR_peephole_optimization(&cfgctx, &pph);
 
 /*
 ========================

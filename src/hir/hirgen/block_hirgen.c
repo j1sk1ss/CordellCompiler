@@ -49,11 +49,11 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case START_TOKEN:      HIR_generate_start_block(node, ctx, smt);      break;
         case SWITCH_TOKEN:     HIR_generate_switch_block(node, ctx, smt);     break;
         case RETURN_TOKEN:     HIR_generate_return_block(node, ctx, smt);     break;
-        case EXTERN_TOKEN:     HIR_generate_extern_block(node, ctx, smt);     break;
-        case IMPORT_TOKEN:     HIR_generate_import_block(node, ctx, smt);     break;
+        case EXTERN_TOKEN:     HIR_generate_extern_block(node, ctx);          break;
+        case IMPORT_TOKEN:     HIR_generate_import_block(node, ctx);          break;
         case ASSIGN_TOKEN:     HIR_generate_assignment_block(node, ctx, smt); break;
         case SYSCALL_TOKEN:    HIR_generate_syscall(node, ctx, smt, 0);       break;
-        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(node, ctx, smt); break;
+        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(ctx);            break;
         default: break;
     }
 

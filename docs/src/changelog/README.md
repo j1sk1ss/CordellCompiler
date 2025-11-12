@@ -3,6 +3,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+### Array args list in HIR and LIR
+Instead storing array elements in symtable (in hir_subject form), now it stored in hir and lir array declaration directly. This allows us to perform function inline in more efficient and simple way. In other hand it makes difficult to work with global arrays that are defined in object .data and .rodata sections.
+
 ### DFG location
 DFG (IN, OUT, DEF and USE calculation) moved from HIR to LIR after instruction selection. Main idea here, preserve registers from rewrite by creating additional interference of tmp variables precolored with used registers in operation.
 

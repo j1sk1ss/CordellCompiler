@@ -23,9 +23,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx) {
 }
 
 static long _curr_id = 0;
-lir_subject_t* LIR_create_subject(
-    int t, int reg, int v_id, long offset, const char* strval, long intval, int size, int s_id
-) {
+lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, const char* strval, long intval, int size) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(lir_subject_t));
@@ -35,6 +33,7 @@ lir_subject_t* LIR_create_subject(
     subj->id   = _curr_id++;
 
     switch (t) {
+        case LIR_ARGLIST:  list_init(&subj->storage.list.h);                       break;
         case LIR_REGISTER: subj->storage.reg.reg = LIR_format_register(reg, size); break;
         case LIR_VARIABLE:
         case LIR_GLVARIABLE:
@@ -117,14 +116,6 @@ int LIR_insert_block_before(lir_block_t* block, lir_block_t* pos) {
     return 1;
 }
 
-int LIR_remove_block(lir_block_t* block, lir_ctx_t* ctx) {
-    block->prev->next = block->next;
-    block->prev = NULL;
-    block->next = NULL;
-    mm_free(block);
-    return 1;
-}
-
 int LIR_unlink_block(lir_block_t* block) {
     if (!block) return 0;
     if (block->prev) block->prev->next = block->next;
@@ -134,6 +125,7 @@ int LIR_unlink_block(lir_block_t* block) {
 }
 
 int LIR_unload_subject(lir_subject_t* s) {
+    if (s->t == LIR_ARGLIST) list_free(&s->storage.list.h);
     return mm_free(s);
 }
 

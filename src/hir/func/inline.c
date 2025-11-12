@@ -1,10 +1,8 @@
 #include <hir/func.h>
 
-static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
+static int _inline_arguments(cfg_func_t* f, list_t* args) {
     list_iter_t it;
-    hir_block_t* arg;
     list_iter_hinit(args, &it);
-    
     hir_block_t* hh = f->entry;
     while (hh) {
         if (hh->op == HIR_FARGLD) {
@@ -19,7 +17,7 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     return 1;
 }
 
-static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos, sym_table_t* smt) {
+static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos) {
     hir_block_t* hh = f->entry;
     while (hh && hh->op != HIR_MKSCOPE) hh = hh->next;
     hh = hh->next;
@@ -41,7 +39,6 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos,
             HIR_insert_block_before(nblock, pos);
         }
 
-_skip_block: {}
         if (hh == f->exit) break;
         hh = hh->next;
     }
@@ -76,7 +73,7 @@ static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
     return score > 5;
 }
 
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt) {
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
     list_iter_t fit;
     cfg_func_t* fb;
     list_iter_hinit(&cctx->funcs, &fit);
@@ -91,10 +88,10 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt) {
                 if (HIR_funccall(hh->op)) {
                     cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
                     if (_inline_candidate(trg, bb) && fb != trg) {
-                        _inline_arguments(trg, &hh->targ->storage.list.h, hh);
+                        _inline_arguments(trg, &hh->targ->storage.list.h);
                         hir_subject_t* res = NULL;
                         if (hh->op == HIR_STORE_FCLL || hh->op == HIR_STORE_ECLL) res = hh->farg;
-                        _inline_function(trg, res, hh, smt);
+                        _inline_function(trg, res, hh);
                         hh->unused = 1;
                     }
                 }

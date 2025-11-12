@@ -14,7 +14,7 @@ lir_block_t* LIR_planner_get_next_func_abi(lir_block_t* entry, lir_block_t* exit
 lir_block_t* LIR_planner_get_next_sysc_abi(lir_block_t* entry, lir_block_t* exit, int offset) {
     if (entry == exit) return NULL;
     while (entry && entry->op != LIR_SYSC) {
-        if (entry->farg && entry->farg->t == LIR_STSARG && offset-- <= 0) return entry;
+        if (entry->op == LIR_STSARG && offset-- <= 0) return entry;
         if (entry == exit) break;
         entry = entry->prev;
     }

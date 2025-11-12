@@ -7,9 +7,9 @@
 #include <lir/lir_types.h>
 
 typedef struct {
-    int (*perform_peephole)(cfg_ctx_t*, sym_table_t*);
+    int (*perform_peephole)(cfg_ctx_t*);
 } peephole_t;
 
-int LIR_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt, peephole_t* peephole);
+int LIR_peephole_optimization(cfg_ctx_t* cctx, peephole_t* peephole);
 
 #endif

@@ -54,7 +54,7 @@ static int _get_ast_type_size(token_type_t t) {
         case TMP_U8_TYPE_TOKEN:
         case I8_TYPE_TOKEN:
         case U8_TYPE_TOKEN:  return 1;
-        default: break;
+        default: return DEFAULT_TYPE_SIZE;
     }
 }
 
@@ -238,6 +238,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                                         case LIR_iLRE: LIR_insert_block_after(LIR_create_block(LIR_STLE, res, NULL, NULL), lh); break;
                                         case LIR_iLRG: LIR_insert_block_after(LIR_create_block(LIR_SETG, res, NULL, NULL), lh); break;
                                         case LIR_iLGE: LIR_insert_block_after(LIR_create_block(LIR_STGE, res, NULL, NULL), lh); break;
+                                        default: break;
                                     }
                                 }
                                 else {
@@ -246,6 +247,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                                         case LIR_iLRE: LIR_insert_block_after(LIR_create_block(LIR_STBE, res, NULL, NULL), lh); break;
                                         case LIR_iLRG: LIR_insert_block_after(LIR_create_block(LIR_SETA, res, NULL, NULL), lh); break;
                                         case LIR_iLGE: LIR_insert_block_after(LIR_create_block(LIR_STAE, res, NULL, NULL), lh); break;
+                                        default: break;
                                     }
                                 }
                             }
@@ -409,19 +411,18 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
                     array_info_t ai;
                     if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
-                        int pos = 0;
                         int elsize = _get_ast_type_size(ai.el_type);
                         int arroff = stack_map_alloc(ai.size * elsize, &smp);
-
                         VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
-                        list_iter_t elemsit;
-                        list_iter_hinit(&ai.elems, &elemsit);
-                        hir_subject_t* elem;
-                        while ((elem = list_iter_next(&elemsit))) {
-                            lir_subject_t* elem_val =  x86_64_format_variable(elem);
-                            _update_subject_memory(elem_val, &smp, colors, smt);
+
+                        int pos = 0;
+                        list_iter_t elem_it;
+                        list_iter_hinit(&lh->targ->storage.list.h, &elem_it);
+                        lir_subject_t* elem;
+                        while ((elem = list_iter_next(&elem_it))) {
+                            if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
                             LIR_insert_block_before(
-                                LIR_create_block(LIR_iMOV, _create_mem(arroff - pos * elsize, 1), elem_val, NULL), lh
+                                LIR_create_block(LIR_iMOV, _create_mem(arroff - pos * elsize, 1), elem, NULL), lh
                             );
 
                             pos++;

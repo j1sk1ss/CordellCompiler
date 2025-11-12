@@ -15,9 +15,7 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, syntax_ctx_t* ctx, sym_
     AST_add_node(node, name_node);
     forward_token(it, 1);
 
-    int el_size    = 1;
     int array_size = 1;
-
     if (((token_t*)list_iter_current(it))->t_type == OPEN_INDEX_TOKEN) {
         forward_token(it, 1);
 

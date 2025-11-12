@@ -15,7 +15,7 @@ static int _has_phi(cfg_block_t* b, long v_id) {
     return 0;
 }
 
-static int _insert_phi_instr(cfg_ctx_t* cctx, cfg_block_t* b, variable_info_t* vi) {
+static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
     if (!b->hmap.entry) return 0;
 
     hir_block_t* hh = b->hmap.entry;
@@ -25,7 +25,7 @@ static int _insert_phi_instr(cfg_ctx_t* cctx, cfg_block_t* b, variable_info_t* v
         hh = hh->next;
     }
 
-    hir_block_t* phi = HIR_create_block(HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(vi), vi->s_id), NULL, HIR_SUBJ_SET());
+    hir_block_t* phi = HIR_create_block(HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(vi)), NULL, HIR_SUBJ_SET());
     HIR_insert_block_after(phi, b->hmap.entry);
     return 1;
 }
@@ -51,7 +51,7 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
                 cfg_block_t* front;
                 while (set_iter_next(&fit, (void**)&front)) {
                     if (!_has_phi(front, vh->v_id)) {
-                        _insert_phi_instr(cctx, front, vh);
+                        _insert_phi_instr(front, vh);
                         if (set_add(&defs, front)) changed = 1;
                     }
                 }

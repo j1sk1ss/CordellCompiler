@@ -6,7 +6,7 @@ static inline long _get_long_number(lir_subject_t* s) {
     return 0;
 }
 
-int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
+int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -39,6 +39,7 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_bAND:
                     case LIR_iMOD: {
                         if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
+                        break;
                     }
 
                     case LIR_MOVSXD:
@@ -125,6 +126,8 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx, sym_table_t* smt) {
                         
                         break;
                     }
+
+                    default: break;
                 }
 
                 if (lh == bb->lmap.exit) break;

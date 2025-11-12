@@ -1,7 +1,6 @@
 #include <std/stackmap.h>
 
 int stack_map_init(int offset, stack_map_t* smap) {
-    int size = offset;
     smap->last_offset = offset;
     smap->base_offset = offset;
     str_memset(smap->bitmap, 0, sizeof(smap->bitmap));

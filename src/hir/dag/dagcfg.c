@@ -8,31 +8,14 @@ static hir_subject_t* _apply_dag_on_block(hir_subject_t* s, dag_ctx_t* dctx) {
     return nd->src;
 }
 
-int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
+int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
         hir_block_t* hh = fb->entry;
         while (hh) {
-            if (hh->op == HIR_ARRDECL) {
-                array_info_t ai;
-                if (ARTB_get_info(hh->farg->storage.var.v_id, &ai, &smt->a)) {
-                    list_iter_t el_it;
-                    list_iter_hinit(&ai.elems, &el_it);
-                    hir_subject_t* s;
-                    while ((s = (hir_subject_t*)list_iter_current(&el_it))) {
-                        hir_subject_t* n = _apply_dag_on_block(s, dctx);
-                        if (n) {
-                            list_iter_set(&el_it, n);
-                            if (s->home) s->home->unused = 1;
-                        }
-                        
-                        list_iter_next(&el_it);
-                    }
-                }
-            }
-            else if (hh->op != HIR_PHI && hh->op != HIR_PHI_PREAMBLE) {
+            if (hh->op != HIR_PHI && hh->op != HIR_PHI_PREAMBLE) {
                 hir_subject_t* nodes[3] = { hh->farg, hh->sarg, hh->targ };
                 for (int i = HIR_writeop(hh->op); i < 3; i++) {
                     if (!nodes[i]) continue;

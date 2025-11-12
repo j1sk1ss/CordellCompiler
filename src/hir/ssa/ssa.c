@@ -62,8 +62,8 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
         if (trg->id != bid) continue;
         hir_block_t* union_command = HIR_create_block(
             HIR_PHI_PREAMBLE, 
-            HIR_SUBJ_STKVAR(avi.v_id, HIR_get_stktype(&avi), avi.s_id), 
-            HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi), bvi.s_id), 
+            HIR_SUBJ_STKVAR(avi.v_id, HIR_get_stktype(&avi)), 
+            HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi)), 
             NULL
         );
         
@@ -94,7 +94,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                         int future_id = 0;
                         if (hh->sarg) future_id = hh->sarg->storage.var.v_id;
                         else {
-                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
+                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t);
                             vv->curr_id = hh->sarg->storage.var.v_id;
                             future_id = vv->curr_id;
                         }
@@ -117,7 +117,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                 ) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
-                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
+                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t);
                         vv->curr_id = hh->farg->storage.var.v_id;
                     }
                 }

@@ -14,7 +14,7 @@ static int _mark_block(call_graph_node_t* nd, call_graph_t* ctx) {
     return 1;
 }
 
-int HIR_CG_perform_dfe(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt) {
+int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt) {
     call_graph_node_t* entry;
     if (!map_get(&ctx->verts, ctx->e_fid, (void**)&entry)) return 0;
     _mark_block(entry, ctx);

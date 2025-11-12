@@ -20,7 +20,7 @@ int x86_64_store_var2var(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* dst,
 int x86_64_generate_asmblock(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, sstack_t* params);
 
 /* x86_64_funcgen.c */
-int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt);
+int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h);
 
 /* x86_64_lirgen.c */
 int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt);

@@ -164,6 +164,7 @@ typedef enum {
     LIR_MEMORY,
     LIR_FNAME,
     LIR_STRING,
+    LIR_ARGLIST,
 } lir_subject_type_t;
 
 typedef enum {

@@ -15,7 +15,7 @@
             exit 1;
         }
         
-        i32 l = ref f;
+        ptr i32 l = ref f;
         exit dref l;
     }
 }

@@ -7,6 +7,10 @@
 #include <prep/token_types.h>
 
 typedef struct {
+    long value;
+} array_elem_info_t;
+
+typedef struct {
     char         heap;
     long         v_id;
     long         size;
@@ -19,7 +23,7 @@ typedef struct {
 } arrtab_ctx_t;
 
 int ARTB_get_info(long id, array_info_t* info, arrtab_ctx_t* ctx);
-list_t* ARTB_get_elems(long id, arrtab_ctx_t* ctx);
+int ARTB_add_elems(long id, long elem, arrtab_ctx_t* ctx);
 int ARTB_add_info(long id, long size, int heap, token_type_t el_type, arrtab_ctx_t* ctx);
 int ARTB_unload(arrtab_ctx_t* ctx);
 

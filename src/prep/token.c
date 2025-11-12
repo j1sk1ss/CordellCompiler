@@ -70,9 +70,9 @@ token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int 
     return tkn;
 }
 
-static inline int _permitted_character(const unsigned char* p) {
-    unsigned char b1 = p[0];
-    unsigned char b2 = p[1];
+static inline int _permitted_character(char* p) {
+    unsigned char b1 = (unsigned char)p[0];
+    unsigned char b2 = (unsigned char)p[1];
     if (b1 == 0xD0 && b2 >= 0x90 && b2 <= 0xAF) return 1;
     if (b1 == 0xD0 && b2 >= 0xB0 && b2 <= 0xBF) return 1;
     if (b1 == 0xD1 && b2 >= 0x80 && b2 <= 0x8F) return 1;

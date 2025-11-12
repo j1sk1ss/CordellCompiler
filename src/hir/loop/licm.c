@@ -1,19 +1,5 @@
 #include <hir/loop.h>
 
-static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b) {
-    if (!set_add(b, entry)) return 0;
-    if (entry == exit) return 0;
-
-    set_iter_t it;
-    set_iter_init(&entry->pred, &it);
-    cfg_block_t* bb;
-    while (set_iter_next(&it, (void**)&bb)) {
-        _get_loop_blocks(bb, exit, b);
-    }
-
-    return 1;
-}
-
 static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_t* loop) {
     set_iter_t it;
     set_iter_init(&header->pred, &it);

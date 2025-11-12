@@ -36,7 +36,7 @@
 #include "ral_helper.h"
 #include "symtb_helper.h"
 
-int main(int argc, char* argv[]) {
+int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("Running test %s...\n", argv[0]);
     mm_init();
 
@@ -109,18 +109,6 @@ CFGv1 from HIR...
     cfg_ctx_t cfgctx;
     HIR_CFG_build(&hirctx, &cfgctx); // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
-    
-/*
-========================
-Call graph building...
-========================
-*/
-
-    call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);       // Analyzation
-    HIR_CG_perform_dfe(&cfgctx, &callctx, &smt); // Analyzation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);         // Analyzation
-    call_graph_print_dot(&callctx);
 
 /*
 ========================
@@ -132,12 +120,20 @@ CFGv2 from HIR and call graph after TRE and inline optimization...
     HIR_CFG_unload(&cfgctx);               // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx);       // Analyzation
 
-    // HIR_CG_unload(&callctx);               // Analyzation
-    // HIR_CG_build(&cfgctx, &callctx, &smt); // Analyzation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);   // Analyzation
-/* TODO inline SSA */
+/*
+========================
+Call graph building...
+========================
+*/
+
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);       // Analyzation
+    HIR_CG_perform_dfe(&callctx, &smt);          // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &callctx);         // Analyzation
+    call_graph_print_dot(&callctx);
+
     HIR_LOOP_mark_loops(&cfgctx);           // Analyzation
-    HIR_FUNC_perform_inline(&cfgctx, &smt); // Transform
+    HIR_FUNC_perform_inline(&cfgctx);       // Transform
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx);        // Analyzation
     HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
@@ -175,7 +171,7 @@ CFG -> DAG
     dag_ctx_t dagctx;
     HIR_DAG_init(&dagctx);                           // Analyzation
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);        // Analyzation
-    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx, &smt);     // Analyzation
+    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);           // Analyzation
     dump_dag_dot(&dagctx, &smt);
 
     HIR_sparse_const_propagation(&dagctx, &smt);     // Analyzation
@@ -225,7 +221,7 @@ LIR instruction planning
 
     target_info_t trginfo;
     TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
-    LIR_plan_instructions(&cfgctx, &trginfo, &smt); // Transform
+    LIR_plan_instructions(&cfgctx, &trginfo); // Transform
     TRGINF_unload(&trginfo);
 
 /*
@@ -304,7 +300,7 @@ LIR peephole optimization...
 */
 
     peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
-    LIR_peephole_optimization(&cfgctx, &smt, &pph); // Transform
+    LIR_peephole_optimization(&cfgctx, &pph); // Transform
 
 /*
 ========================

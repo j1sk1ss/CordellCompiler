@@ -113,7 +113,7 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
     switch (s->t) {
         case LIR_MEMORY: {
             long off = s->storage.var.offset;
-            dst += sprintf(dst, "[rbp %s %d]", off > 0 ? "-" : "+", ABS(off)); break;
+            dst += sprintf(dst, "[rbp %s %ld]", off > 0 ? "-" : "+", ABS(off)); break;
         }
 
         case LIR_REGISTER: dst += sprintf(dst, "%s", register_to_string(s->storage.reg.reg)); break;
@@ -123,9 +123,11 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
             if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
                 dst += sprintf(dst, "%%%s", vi.name);
             }
+
+            break;
         }
 
-        case LIR_VARIABLE: dst += sprintf(dst, "%%%i", s->storage.var.v_id);        break;
+        case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);       break;
         case LIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);    break;
         case LIR_CONSTVAL: dst += sprintf(dst, "cnst: %ld", s->storage.cnst.value); break;
 

@@ -9,7 +9,11 @@ declare -A TEST_SRCS
 declare -A TEST_CODES
 
 # ==== Prep testing ====
-TEST_SRCS[test_tok]="src/prep/token.c std/*.c"
+TEST_SRCS[test_tok]="
+    std/*.c 
+    src/prep/token.c
+"
+
 TEST_CODES[test_tok]="
     tests/dummy_data/prep/token/token_1.cpl
     tests/dummy_data/prep/token/token_2.cpl
@@ -17,7 +21,12 @@ TEST_CODES[test_tok]="
     tests/dummy_data/prep/token/token_4.cpl
 "
 
-TEST_SRCS[test_mrk]="src/prep/token.c src/prep/markup.c std/*.c"
+TEST_SRCS[test_mrk]="
+    std/*.c
+    src/prep/token.c 
+    src/prep/markup.c
+"
+
 TEST_CODES[test_mrk]="
     tests/dummy_data/prep/markup/markup_1.cpl
     tests/dummy_data/prep/markup/markup_2.cpl
@@ -246,7 +255,6 @@ TEST_SRCS[test_asm]="
     std/*.c
 "
 
-# ==== ASM testing ====
 TEST_CODES[test_asm]="
     tests/dummy_data/asm/asm_1.cpl
     tests/dummy_data/asm/asm_2.cpl
@@ -254,8 +262,6 @@ TEST_CODES[test_asm]="
     tests/dummy_data/asm/asm_4.cpl
     tests/dummy_data/asm/asm_5.cpl
 "
-
-# ======================================
 
 DEBUGGER=""
 if [[ "$1" == "lldebug" ]]; then
@@ -316,7 +322,7 @@ for i in "${!test_names[@]}"; do
     code_file="${codes[$CODE_IDX]}"
 
     echo "== Compilation: $test_file =="
-    gcc-14 $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" \
+    gcc-14 $INCLUDES ${TEST_SRCS[$test_name]} "$test_file" -Wall -Wextra \
         -DDEBUG -DWARNING_LOGS -DERROR_LOGS -DLOGGING_LOGS -DINFO_LOGS -DDEBUG_LOGS -g -O0 -o "tests/$test_name"
 
     if [[ -n "$DEBUGGER" ]]; then

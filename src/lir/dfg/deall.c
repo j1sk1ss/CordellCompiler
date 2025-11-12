@@ -49,7 +49,7 @@ int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                 }
 
-                set_free_force(&owners);
+                set_free(&owners);
                 if (hasown) continue;
                 if (!_already_deallocated(vid, cb)) {
                     LIR_insert_block_before(LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(vid), NULL, NULL), cb->lmap.exit);
