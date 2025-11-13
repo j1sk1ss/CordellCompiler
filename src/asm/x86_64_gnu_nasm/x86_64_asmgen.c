@@ -101,13 +101,11 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
                 const char* p = str_strchr(line, '%');
                 if (!p || !str_isdigit((unsigned char)*(p + 1))) fprintf(output, "%s\n", line);
                 else {
-                    int argnum = str_atoi(p + 1);
                     const char* replacement = x86_64_asm_variable(curr->sarg, smt);
                     char replaced[256] = { 0 };
 
                     long prefix_len = (long)(p - line);
                     str_memcpy(replaced, line, prefix_len);
-
                     str_strcat(replaced, replacement);
 
                     const char* suffix = p + 1;

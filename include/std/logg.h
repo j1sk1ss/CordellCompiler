@@ -55,19 +55,6 @@
     #define print_spec(message, ...)
 #endif
 
-
-/*
-Write log to file descriptor.
-
-Params:
-- level - Log level.
-- file - File descriptor.
-- line - Code line number.
-- message - Additional info message.
-- args - Args.
-*/
-void _write_log(const char* level, const char* file, int line, const char* message, va_list args);
-
 /*
 Create log message.
 

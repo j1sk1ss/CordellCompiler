@@ -5,20 +5,18 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
     map_iter_init(&smt->v.vartb, &it);
     variable_info_t* vi;
     while (map_iter_next(&it, (void**)&vi)) {
-        if (!vi->glob && glob || !vi->ro && ro) continue;
-
-        /* Array and string allocation */
+        if ((!vi->glob && glob) || (!vi->ro && ro)) continue;
         if (vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) {
             array_info_t ai;
             if (!ARTB_get_info(vi->v_id, &ai, &smt->a)) continue;
             token_t tmptkn = { .t_type = ai.el_type, .flags = { .ptr = vi->ptr } };
-            if (!list_size(&ai.elems) && !bss || list_size(&ai.elems) && bss) continue;
+            if ((!list_size(&ai.elems) && !bss) || (list_size(&ai.elems) && bss)) continue;
             if (!list_size(&ai.elems)) {
                 switch (TKN_variable_bitness(&tmptkn, 1)) {
-                    case 64: fprintf(output, "%s resq %d\n", vi->name, ai.size); break;
-                    case 32: fprintf(output, "%s resd %d\n", vi->name, ai.size); break;
-                    case 16: fprintf(output, "%s resw %d\n", vi->name, ai.size); break;
-                    default: fprintf(output, "%s resb %d\n", vi->name, ai.size); break;
+                    case 64: fprintf(output, "%s resq %ld\n", vi->name, ai.size); break;
+                    case 32: fprintf(output, "%s resd %ld\n", vi->name, ai.size); break;
+                    case 16: fprintf(output, "%s resw %ld\n", vi->name, ai.size); break;
+                    default: fprintf(output, "%s resb %ld\n", vi->name, ai.size); break;
                 }
             }
             else {
@@ -34,7 +32,7 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
                 list_iter_hinit(&ai.elems, &elit);
                 array_elem_info_t* el;
                 while ((el = list_iter_next(&elit))) {
-                    fprintf(output, "%llu", el->value);
+                    fprintf(output, "%lu", el->value);
                     if (list_iter_current(&elit)) fprintf(output, ",");
                     elcount--;
                 }
@@ -51,7 +49,6 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
             continue;
         }
 
-        /* Variable allocation */
         token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro } };
         switch (TKN_variable_bitness(&tmptkn, 1)) {
             case 64: fprintf(output, "%s dq 0\n", vi->name); break;
@@ -77,7 +74,7 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
     str_info_t* si;
     while (map_iter_next(&it, (void**)&si)) {
         if (si->t != STR_INDEPENDENT) continue;
-        fprintf(output, "_str_%i_ db ", si->id);
+        fprintf(output, "_str_%li_ db ", si->id);
         char* data = si->value;
         while (*data) {
             fprintf(output, "%i,", *data);

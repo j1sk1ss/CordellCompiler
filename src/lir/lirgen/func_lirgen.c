@@ -14,8 +14,8 @@ static int _pass_params(lir_operation_t op, lir_ctx_t* ctx, list_t* args) {
 
 int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h) {
     switch (h->op) {
-        case HIR_FDCL: LIR_BLOCK1(ctx, LIR_FDCL, LIR_SUBJ_FUNCNAME(h->farg));                                                         break;
-        case HIR_FRET: LIR_BLOCK1(ctx, LIR_FRET, x86_64_format_variable(h->farg));                                                    break;
+        case HIR_FDCL:   LIR_BLOCK1(ctx, LIR_FDCL, LIR_SUBJ_FUNCNAME(h->farg));                                                       break;
+        case HIR_FRET:   LIR_BLOCK1(ctx, LIR_FRET, x86_64_format_variable(h->farg));                                                  break;
         case HIR_FARGLD: LIR_BLOCK2(ctx, LIR_LOADFARG, x86_64_format_variable(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value)); break;
 
         case HIR_FCLL:
@@ -24,9 +24,10 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h) {
         case HIR_STORE_ECLL: {
             _pass_params(LIR_STFARG, ctx, &h->targ->storage.list.h);
             LIR_BLOCK1(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->sarg));
-            if (
-                h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL
-            ) LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
+            if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) {
+                LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
+            }
+
             break;
         }
 
@@ -34,9 +35,10 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h) {
         case HIR_STORE_SYSC: {
             _pass_params(LIR_STSARG, ctx, &h->targ->storage.list.h);
             LIR_BLOCK0(ctx, LIR_SYSC);
-            if (
-                h->op == HIR_STORE_SYSC
-            ) LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
+            if (h->op == HIR_STORE_SYSC) {
+                LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
+            }
+            
             break;
         }
 

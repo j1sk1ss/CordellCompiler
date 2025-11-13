@@ -17,7 +17,6 @@ typedef struct mm_block {
     struct mm_block* next;
 } mm_block_t;
 
-
 /*
 Init first memory block in memory manager.
 

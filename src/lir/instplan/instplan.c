@@ -3,7 +3,7 @@
 #ifdef DEBUG
 static void _dump_instructions_dag_dot(instructions_dag_t* dag, long bid) {
     printf("==== INSTRUCTIONS DAG DUMP ====\n");
-    printf("digraph InstructionsDAG%d {\n", bid);
+    printf("digraph InstructionsDAG%ld {\n", bid);
     printf("  rankdir=TB;\n");
     printf("  node [shape=box, style=filled, fillcolor=lightgray];\n\n");
 

@@ -269,13 +269,7 @@ hir_subject_type_t HIR_get_token_stktype(token_t* tkn) {
 
 int HIR_isjmp(hir_operation_t op) {
     if (
-        op == HIR_FCLL       ||
-        op == HIR_STORE_FCLL ||
-        op == HIR_ECLL       ||
-        op == HIR_STORE_ECLL ||
-        op == HIR_SYSC       ||
-        op == HIR_STORE_SYSC ||
-        op == HIR_JMP        ||
+        op == HIR_JMP   ||
         op == HIR_IFOP2
     ) return 1;
     return 0;
@@ -324,22 +318,22 @@ int HIR_commutative_op(hir_operation_t op) {
 
 int HIR_sideeffect_op(hir_operation_t op) {
     switch (op) {
-        case HIR_BREAKPOINT:
-        case HIR_MKSCOPE:
-        case HIR_ENDSCOPE:
         case HIR_JMP:
+        case HIR_PHI:
         case HIR_MKLB:
         case HIR_FRET:
-        case HIR_EXITOP:
-        case HIR_PHI:
-        case HIR_PHI_PREAMBLE:
-        case HIR_STORE_ECLL:
         case HIR_ECLL:
-        case HIR_STORE_FCLL:
         case HIR_FCLL:
-        case HIR_STORE_SYSC:
         case HIR_SYSC:
         case HIR_STORE:
+        case HIR_EXITOP:
+        case HIR_MKSCOPE:
+        case HIR_ENDSCOPE:
+        case HIR_STORE_ECLL:
+        case HIR_STORE_FCLL:
+        case HIR_STORE_SYSC:
+        case HIR_BREAKPOINT:
+        case HIR_PHI_PREAMBLE:
         case HIR_IFOP2: return 1;
         default: return 0;
     }
@@ -347,7 +341,6 @@ int HIR_sideeffect_op(hir_operation_t op) {
 
 int HIR_writeop(hir_operation_t op) {
     switch (op) {
-        // case HIR_PHI_PREAMBLE:
         case HIR_REF:
         case HIR_FARGLD:
         case HIR_STARGLD:

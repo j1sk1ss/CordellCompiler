@@ -6,7 +6,7 @@
 #include "reg_helper.h"
 
 static int _lir_depth = 0;
-static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
+static const char* lir_op_to_fmtstring(lir_operation_t op) {
     switch(op) {
         case LIR_ECLL: 
         case LIR_FCLL:  return "call %s;\n";
@@ -110,14 +110,15 @@ static const char* lir_op_to_fmtstring(lir_operation_t op, int state) {
 
 static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) {
     if (!s) return dst;
+    // dst += sprintf(dst, "t=%i ", s->t); 
     switch (s->t) {
         case LIR_MEMORY: {
             long off = s->storage.var.offset;
-            dst += sprintf(dst, "[rbp %s %ld]", off > 0 ? "-" : "+", ABS(off)); break;
+            dst += sprintf(dst, "[rbp %s %ld]", off > 0 ? "-" : "+", ABS(off)); 
+            break;
         }
 
         case LIR_REGISTER: dst += sprintf(dst, "%s", register_to_string(s->storage.reg.reg)); break;
-
         case LIR_GLVARIABLE: {
             variable_info_t vi;
             if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
@@ -171,30 +172,21 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
     return dst;
 }
 
+void lir_printer_reset() {
+    _lir_depth = 0;
+}
+
 void print_lir_block(const lir_block_t* block, int ud, sym_table_t* smt) {
     if (!block) return;
-    // printf("block=%p\n", block);
-    // if (block->unused) return;
+    
     char arg1[256] = { 0 };
     char arg2[256] = { 0 };
     char arg3[256] = { 0 };
 
-    int args = 3;
-    if (block->farg) {
-        sprintf_lir_subject(arg1, block->farg, smt);
-        args--;
-    }
-
-    if (block->sarg) {
-        sprintf_lir_subject(arg2, block->sarg, smt);
-        args--;
-    }
-
-    if (block->targ) {
-        sprintf_lir_subject(arg3, block->targ, smt);
-        args--;
-    }
-
+    if (block->farg) sprintf_lir_subject(arg1, block->farg, smt);
+    if (block->sarg) sprintf_lir_subject(arg2, block->sarg, smt);
+    if (block->targ) sprintf_lir_subject(arg3, block->targ, smt);
+    
     char line[512] = { 0 };
     if (
         block->op == LIR_ENDSCOPE ||
@@ -204,7 +196,7 @@ void print_lir_block(const lir_block_t* block, int ud, sym_table_t* smt) {
 
     if (ud) for (int i = 0; i < _lir_depth; i++) printf("    ");
     if (block->unused) printf("[unused] ");
-    const char* fmt = lir_op_to_fmtstring(block->op, args);
+    const char* fmt = lir_op_to_fmtstring(block->op);
     sprintf(line, fmt, arg1, arg2, arg3);
 
     if (

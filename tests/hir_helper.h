@@ -352,6 +352,7 @@ void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
 
     if (ud) for (int i = 0; i < _depth; i++) printf("    ");
     if (block->unused) printf("[unused] ");
+    // printf("addr=%p ", block);
     const char* fmt = hir_op_to_fmtstring(block->op, args);
     sprintf(line, fmt, arg1, arg2, arg3);
 
@@ -433,7 +434,7 @@ static void _print_set_int(FILE* out, set_t* s) {
 }
 
 static int _export_dot_func_hir(cfg_func_t* f) {
-    printf("digraph CFG_func%d {\n", f->id);
+    printf("digraph CFG_func%ld {\n", f->id);
     printf("  rankdir=TB;\n");
     printf("  node [shape=box, fontname=\"monospace\"];\n");
 
@@ -450,15 +451,17 @@ static int _export_dot_func_hir(cfg_func_t* f) {
                cb->hmap.exit  ? hir_op_to_string(cb->hmap.exit->op)  : "NULL",
                ishead ? "\\nHEAD" : "");
 
+        // hir_block_t* hh = cb->hmap.entry;
+        // while (hh) {
+        //     if (hh == cb->hmap.exit) break;
+        //     hh = hh->next;
+        // }
+
         ishead = 0;
-        printf("\\nIN=");
-        _print_set_int(stdout, &cb->curr_in);
-        printf("\\nDEF=");
-        _print_set_int(stdout, &cb->def);
-        printf("\\nUSE=");
-        _print_set_int(stdout, &cb->use);
-        printf("\\nOUT=");
-        _print_set_int(stdout, &cb->curr_out);
+        printf("\\nIN=");  _print_set_int(stdout, &cb->curr_in);
+        printf("\\nDEF="); _print_set_int(stdout, &cb->def);
+        printf("\\nUSE="); _print_set_int(stdout, &cb->use);
+        printf("\\nOUT="); _print_set_int(stdout, &cb->curr_out);
         printf("\\nPREDS=%i", set_size(&cb->pred)); 
 
         printf("\"];\n");

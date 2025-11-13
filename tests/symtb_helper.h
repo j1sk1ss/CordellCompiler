@@ -41,9 +41,9 @@ void print_symtab(sym_table_t* smt) {
     map_iter_init(&smt->v.vartb, &it);
     variable_info_t* vi;
     while (map_iter_next(&it, (void**)&vi)) {
-        printf("id: %i, %s, %s, s_id: %i", vi->v_id, vi->name, format_tkntype(vi->type), vi->s_id);
+        printf("id: %li, %s, %s, s_id: %i", vi->v_id, vi->name, format_tkntype(vi->type), vi->s_id);
         if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg));
-        else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %i]", vi->vmi.offset);
+        else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %li]", vi->vmi.offset);
         if (vi->vdi.defined)          printf(", value=%ld", vi->vdi.definition);
         printf("\n");
     }
@@ -52,7 +52,7 @@ void print_symtab(sym_table_t* smt) {
     map_iter_init(&smt->a.arrtb, &it);
     array_info_t* ai;
     while (map_iter_next(&it, (void**)&ai)) {
-        printf("id: %i, %s x %i%s\n", ai->v_id, format_tkntype(ai->el_type), ai->size, ai->heap ? ", heap" : "");
+        printf("id: %li, %s x %li%s\n", ai->v_id, format_tkntype(ai->el_type), ai->size, ai->heap ? ", heap" : "");
     }
 
     if (!map_isempty(&smt->f.functb)) printf("==========  FUNCS  ==========\n");
@@ -60,7 +60,7 @@ void print_symtab(sym_table_t* smt) {
     func_info_t* fi;
     while (map_iter_next(&it, (void**)&fi)) {
         printf(
-            "%sid: %i, name: %s, ext=%i, glob=%i, used=%i\n", 
+            "%sid: %li, name: %s, ext=%i, glob=%i, used=%i\n", 
             fi->entry ? "[ENTRY] " : "", fi->id, fi->name, fi->external, fi->global, fi->used
         );
     }
@@ -69,18 +69,18 @@ void print_symtab(sym_table_t* smt) {
     map_iter_init(&smt->s.strtb, &it);
     str_info_t* si;
     while (map_iter_next(&it, (void**)&si)) {
-        printf("id: %i, val: %s, t=%i\n", si->id, si->value, si->t);
+        printf("id: %li, val: %s, t=%i\n", si->id, si->value, si->t);
     }
 
     if (!map_isempty(&smt->m.allias)) printf("========== ALLIAS ==========\n");
     map_iter_init(&smt->m.allias, &it);
     allias_t* mi;
     while (map_iter_next(&it, (void**)&mi)) {
-        printf("id: %i, owners: ", mi->v_id);
+        printf("id: %li, owners: ", mi->v_id);
         set_iter_t sit;
         set_iter_init(&mi->owners, &sit);
         long own_id;
-        while (set_iter_next(&sit, (void**)&own_id)) printf("%i ", own_id);
+        while (set_iter_next(&sit, (void**)&own_id)) printf("%li ", own_id);
         printf("\n");
     }
 }

@@ -21,10 +21,6 @@ int list_size(list_t* l) {
     return l->s;
 }
 
-int list_isempty(list_t* l) {
-    return l->s == 0;
-}
-
 int list_add(list_t* l, void* data) {
     list_node_t* h = (list_node_t*)mm_malloc(sizeof(list_node_t));
     if (!h) return 0;

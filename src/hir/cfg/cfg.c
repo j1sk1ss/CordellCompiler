@@ -112,8 +112,14 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     while (hh) {
         hir_block_t* entry = hh;
 #ifdef DRAGONBOOK_CFG_LEADER
+        while (hh->next && hh != f->exit && !set_has(&f->leaders, hh)) {
+            entry = hh;
+            hh = hh->next;
+        }
+
         while (hh->next && hh != f->exit && !set_has(&f->leaders, hh->next)) {
             hh = hh->next;
+            if (HIR_isterm(hh->op)) break;
         }
 
         _add_cfg_block(entry, hh, f, ctx);

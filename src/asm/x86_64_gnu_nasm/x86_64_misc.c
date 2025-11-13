@@ -12,7 +12,7 @@ int x86_64_generate_stackframe(lir_block_t* h, lir_operation_t end, FILE* output
 
     fprintf(output, "push rbp\n");
     fprintf(output, "mov rbp, rsp\n");
-    if (maxoff > 0) fprintf(output, "sub rsp, %d\n", maxoff);
+    if (maxoff > 0) fprintf(output, "sub rsp, %ld\n", maxoff);
     return maxoff;
 }
 

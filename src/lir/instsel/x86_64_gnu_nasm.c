@@ -34,26 +34,14 @@ static int _is_simd_type(long vid, sym_table_t* smt) {
 
 static int _get_ast_type_size(token_type_t t) {
     switch (t) {
-        case TMP_I64_TYPE_TOKEN:
-        case TMP_U64_TYPE_TOKEN:
-        case TMP_F64_TYPE_TOKEN:
-        case I64_TYPE_TOKEN:
-        case U64_TYPE_TOKEN:
-        case F64_TYPE_TOKEN: return DEFAULT_TYPE_SIZE;
-        case TMP_I32_TYPE_TOKEN:
-        case TMP_U32_TYPE_TOKEN:
-        case TMP_F32_TYPE_TOKEN:
-        case I32_TYPE_TOKEN:
-        case U32_TYPE_TOKEN:
-        case F32_TYPE_TOKEN: return 4;
-        case TMP_I16_TYPE_TOKEN:
-        case TMP_U16_TYPE_TOKEN:
-        case I16_TYPE_TOKEN:
-        case U16_TYPE_TOKEN: return 2;
-        case TMP_I8_TYPE_TOKEN:
-        case TMP_U8_TYPE_TOKEN:
-        case I8_TYPE_TOKEN:
-        case U8_TYPE_TOKEN:  return 1;
+        case TMP_I64_TYPE_TOKEN: case TMP_U64_TYPE_TOKEN: case TMP_F64_TYPE_TOKEN:
+        case I64_TYPE_TOKEN:     case U64_TYPE_TOKEN:     case F64_TYPE_TOKEN: return DEFAULT_TYPE_SIZE;
+        case TMP_I32_TYPE_TOKEN: case TMP_U32_TYPE_TOKEN: case TMP_F32_TYPE_TOKEN:
+        case I32_TYPE_TOKEN:     case U32_TYPE_TOKEN:     case F32_TYPE_TOKEN: return 4;
+        case TMP_I16_TYPE_TOKEN: case TMP_U16_TYPE_TOKEN:
+        case I16_TYPE_TOKEN:     case U16_TYPE_TOKEN: return 2;
+        case TMP_I8_TYPE_TOKEN:  case TMP_U8_TYPE_TOKEN:
+        case I8_TYPE_TOKEN:      case U8_TYPE_TOKEN: return 1;
         default: return DEFAULT_TYPE_SIZE;
     }
 }
@@ -73,14 +61,14 @@ static inline lir_subject_t* _create_reg(int reg, int sz) {
 }
 
 static inline lir_subject_t* _create_tmp(int reg, lir_subject_t* src, sym_table_t* smt) {
+    long cpy;
     variable_info_t vi;
-    if (src->t == LIR_VARIABLE && VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)) {
-        long cpy = VRTB_add_copy(&vi, &smt->v);
-        VRTB_update_memory(cpy, vi.vmi.offset, vi.vmi.size, reg, &smt->v);
-        return LIR_SUBJ_VAR(cpy, src->size);
-    }
+    if (
+        src->t == LIR_VARIABLE && 
+        VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)
+    ) cpy = VRTB_add_copy(&vi, &smt->v);
+    else cpy = VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v);
 
-    long cpy = VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v);
     VRTB_update_memory(cpy, vi.vmi.offset, src->size, reg, &smt->v);
     return LIR_SUBJ_VAR(cpy, src->size);
 }
@@ -176,6 +164,20 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
 
+                    case LIR_FRET: {
+                        lir_subject_t* a = _create_tmp(RAX, lh->farg, smt);
+                        LIR_insert_block_before(LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
+                        lh->farg = a;
+                        break;
+                    }
+
+                    case LIR_EXITOP: {
+                        lir_subject_t* a = _create_tmp(RDX, lh->farg, smt);
+                        LIR_insert_block_before(LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
+                        lh->farg = a;
+                        break;
+                    }
+
                     case LIR_iDIV:
                     case LIR_iMOD: {
                         lir_subject_t *a, *b, *mod;
@@ -265,7 +267,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int dst_size   = _get_variable_size(lh->farg->storage.var.v_id, smt);
                         int src_size   = _get_variable_size(lh->sarg->storage.var.v_id, smt);
                         if (from_float) {
-                            if (src_size == 4 && dst_size == 8) lh->op = LIR_CVTSS2SD;
+                            if (src_size == 4 && dst_size == 8)      lh->op = LIR_CVTSS2SD;
                             else if (src_size == 8 && dst_size == 4) lh->op = LIR_CVTSD2SS;
                             else lh->op = LIR_iMOV;
                         } 
@@ -363,84 +365,82 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
         while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
             lir_block_t* lh = bb->lmap.entry;
             while (lh) {
-                if (lh->op == LIR_VRDEALL) {
-                    variable_info_t vi;
-                    if (
-                        !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
-                        vi.glob || vi.vmi.offset == -1
-                    ) {
+                switch (lh->op) {
+                    case LIR_VRDEALL: {
+                        variable_info_t vi;
+                        if (!VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || vi.glob || vi.vmi.offset == -1) {
+                            lh->unused = 1;
+                            break;
+                        }
+
+                        stack_map_free(vi.vmi.offset, vi.vmi.size, &smp);
+                        break;
+                    }
+                    case LIR_STRDECL: {
+                        variable_info_t vi;
+                        if (!VRTB_get_info_id(lh->farg->storage.var.v_id, &vi, &smt->v)) break;
+                        if (vi.glob) break;
+
+                        str_info_t si;
+                        array_info_t ai;
+                        if (
+                            STTB_get_info_id(lh->sarg->storage.str.sid, &si, &smt->s) &&
+                            ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)
+                        ) {
+                            int arroff = stack_map_alloc(ai.size, &smp);
+                            VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
+                            char* string = si.value;
+                            while (*string) {
+                                LIR_insert_block_before(
+                                    LIR_create_block(LIR_iMOV, _create_mem(arroff--, 1), LIR_SUBJ_CONST(*(string++)), NULL), lh
+                                );
+                            }
+
+                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, _create_mem(arroff, 1), LIR_SUBJ_CONST(0), NULL), lh);
+                        }
+
                         lh->unused = 1;
-                        goto _next_instruction;
+                        break;
                     }
+                    case LIR_ARRDECL: {
+                        variable_info_t vi;
+                        if (!VRTB_get_info_id(lh->farg->storage.var.v_id, &vi, &smt->v)) break;
+                        if (vi.glob) break;
 
-                    stack_map_free(vi.vmi.offset, vi.vmi.size, &smp);
-                    goto _next_instruction;
-                }
-                else if (lh->op == LIR_STRDECL) {
-                    variable_info_t vi;
-                    if (!VRTB_get_info_id(lh->farg->storage.var.v_id, &vi, &smt->v)) goto _next_instruction;
-                    if (vi.glob) goto _next_instruction;
+                        array_info_t ai;
+                        if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
+                            int elsize = _get_ast_type_size(ai.el_type);
+                            int arroff = stack_map_alloc(ai.size * elsize, &smp);
+                            VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
 
-                    str_info_t si;
-                    array_info_t ai;
-                    if (
-                        STTB_get_info_id(lh->sarg->storage.str.sid, &si, &smt->s) &&
-                        ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)
-                    ) {
-                        int arroff = stack_map_alloc(ai.size, &smp);
-                        VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
-                        char* string = si.value;
-                        while (*string) {
-                            LIR_insert_block_before(
-                                LIR_create_block(
-                                    LIR_iMOV, _create_mem(arroff--, 1), LIR_SUBJ_CONST(*(string++)), NULL
-                                ), lh
-                            );
+                            int pos = 0;
+                            list_iter_t elem_it;
+                            list_iter_hinit(&lh->targ->storage.list.h, &elem_it);
+                            lir_subject_t* elem;
+                            while ((elem = list_iter_next(&elem_it))) {
+                                if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
+                                LIR_insert_block_before(
+                                    LIR_create_block(LIR_iMOV, _create_mem(arroff - pos * elsize, 1), elem, NULL), lh
+                                );
+
+                                pos++;
+                            }
                         }
 
-                        LIR_insert_block_before(LIR_create_block(LIR_iMOV, _create_mem(arroff, 1), LIR_SUBJ_CONST(0), NULL), lh);
+                        lh->unused = 1;
+                        break;
                     }
-
-                    lh->unused = 1;
-                    goto _next_instruction;
-                }
-                else if (lh->op == LIR_ARRDECL) {
-                    variable_info_t vi;
-                    if (!VRTB_get_info_id(lh->farg->storage.var.v_id, &vi, &smt->v)) goto _next_instruction;
-                    if (vi.glob) goto _next_instruction;
-
-                    array_info_t ai;
-                    if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
-                        int elsize = _get_ast_type_size(ai.el_type);
-                        int arroff = stack_map_alloc(ai.size * elsize, &smp);
-                        VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
-
-                        int pos = 0;
-                        list_iter_t elem_it;
-                        list_iter_hinit(&lh->targ->storage.list.h, &elem_it);
-                        lir_subject_t* elem;
-                        while ((elem = list_iter_next(&elem_it))) {
-                            if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
-                            LIR_insert_block_before(
-                                LIR_create_block(LIR_iMOV, _create_mem(arroff - pos * elsize, 1), elem, NULL), lh
-                            );
-
-                            pos++;
+                    default: {
+                        lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
+                        for (int i = 0; i < 3; i++) {
+                            if (!args[i] || args[i]->t != LIR_VARIABLE) continue;
+                            _update_subject_memory(args[i], &smp, colors, smt);
                         }
+
+                        break;
                     }
-
-                    lh->unused = 1;
-                    goto _next_instruction;
                 }
 
-                lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
-                for (int i = 0; i < 3; i++) {
-                    if (!args[i]) continue;
-                    if (args[i]->t != LIR_VARIABLE) continue;
-                    _update_subject_memory(args[i], &smp, colors, smt);
-                }
-
-_next_instruction: {}
                 if (lh == bb->lmap.exit) break;
                 lh = lh->next;
             }
