@@ -149,7 +149,8 @@ typedef enum {
 
         /* System */
         LIR_EXITOP, // Exit with farg exit call
-        LIR_VRUSE
+        LIR_VRUSE,
+        LIR_BB,
 } lir_operation_t;
 
 typedef enum {
@@ -179,6 +180,8 @@ typedef enum {
 #define FIRST_FREE_REGISTER R12
 
 lir_registers_t LIR_format_register(lir_registers_t reg, int size);
+int LIR_movop(lir_operation_t op);
 int LIR_writeop(lir_operation_t op);
+int LIR_readop(lir_operation_t op);
 
 #endif

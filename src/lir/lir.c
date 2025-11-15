@@ -60,6 +60,7 @@ lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, const c
 lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta) {
     lir_block_t* blk = mm_malloc(sizeof(lir_block_t));
     if (!blk) return NULL;
+
     blk->op     = op;
     blk->farg   = fa;
     blk->sarg   = sa;
@@ -67,6 +68,11 @@ lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject
     blk->next   = NULL;
     blk->prev   = NULL;
     blk->unused = 0;
+
+    if (fa && !fa->home) fa->home = blk;
+    if (sa && !sa->home) sa->home = blk;
+    if (ta && !ta->home) ta->home = blk;
+
     return blk;
 }
 
@@ -74,10 +80,11 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
     if (!a || !b) return 0;
     if (a->t != b->t) return 0;
     switch (a->t) {
+        case LIR_MEMORY:     return (a->storage.var.offset == b->storage.var.offset) && (a->size == b->size);
         case LIR_VARIABLE:   return a->storage.var.v_id == b->storage.var.v_id;
         case LIR_CONSTVAL:   return a->storage.cnst.value == b->storage.cnst.value;
         case LIR_GLVARIABLE:
-        case LIR_STVARIABLE: return a->storage.var.offset == b->storage.var.offset && a->storage.var.v_id == b->storage.var.v_id;
+        case LIR_STVARIABLE: return (a->storage.var.offset == b->storage.var.offset) && (a->storage.var.v_id == b->storage.var.v_id);
         case LIR_REGISTER:   return LIR_format_register(a->storage.reg.reg, 1) == LIR_format_register(b->storage.reg.reg, 1);
         case LIR_NUMBER:     return !str_memcmp(a->storage.num.value, b->storage.num.value, LIR_VAL_MSIZE);
         case LIR_LABEL:      return a->storage.lb.lb_id == b->storage.lb.lb_id;

@@ -41,6 +41,7 @@ typedef struct {
 
 typedef struct {
     long               id;
+    struct lir_block*  home;
     char               size;
     lir_subject_type_t t;
     union {

@@ -8,6 +8,7 @@
 static int _lir_depth = 0;
 static const char* lir_op_to_fmtstring(lir_operation_t op) {
     switch(op) {
+        case LIR_BB:    return "\nBB%s: ";
         case LIR_ECLL: 
         case LIR_FCLL:  return "call %s;\n";
         case LIR_STRT:  return "start {\n";
@@ -98,12 +99,8 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
 
         case LIR_RAW:        return "[raw] (link: %s);\n";
         case LIR_BREAKPOINT: return "== == brk == ==\n";
-
-        case LIR_MKSCOPE:  return "{\n";
-        case LIR_ENDSCOPE: return "}\n";
-        case LIR_VRUSE:    return "use %s;\n";
-    
-        case LIR_EXITOP: return "exit %s;\n";
+        case LIR_VRUSE:      return "use %s;\n";
+        case LIR_EXITOP:     return "exit %s;\n";
         default: return "unknown op;\n";
     }
 }
@@ -128,9 +125,9 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
             break;
         }
 
-        case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);       break;
-        case LIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);    break;
-        case LIR_CONSTVAL: dst += sprintf(dst, "cnst: %ld", s->storage.cnst.value); break;
+        case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);     break;
+        case LIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);  break;
+        case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value);     break;
 
         case LIR_LABEL: dst += sprintf(dst, "lb%d", s->storage.lb.lb_id); break;
         case LIR_RAWASM:
@@ -176,7 +173,7 @@ void lir_printer_reset() {
     _lir_depth = 0;
 }
 
-void print_lir_block(const lir_block_t* block, int ud, sym_table_t* smt) {
+void print_lir_block(const lir_block_t* block, sym_table_t* smt) {
     if (!block) return;
     
     char arg1[256] = { 0 };
@@ -188,23 +185,9 @@ void print_lir_block(const lir_block_t* block, int ud, sym_table_t* smt) {
     if (block->targ) sprintf_lir_subject(arg3, block->targ, smt);
     
     char line[512] = { 0 };
-    if (
-        block->op == LIR_ENDSCOPE ||
-        // block->op == HIR_FEND     ||
-        block->op == LIR_STEND
-    ) _lir_depth--;
-
-    if (ud) for (int i = 0; i < _lir_depth; i++) printf("    ");
     if (block->unused) printf("[unused] ");
     const char* fmt = lir_op_to_fmtstring(block->op);
     sprintf(line, fmt, arg1, arg2, arg3);
-
-    if (
-        block->op == LIR_MKSCOPE ||
-        // block->op == HIR_FDCL    ||
-        block->op == LIR_STRT
-    ) _lir_depth++;
-
     fprintf(stdout, "%s", line);
 }
 #endif

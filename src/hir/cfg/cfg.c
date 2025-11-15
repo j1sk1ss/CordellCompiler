@@ -186,6 +186,24 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
     return 1;
 }
 
+int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx) {
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            set_free(&cb->visitors);
+            set_init(&cb->visitors);
+            cb->visited = 0;
+        }
+    }
+
+    return 1;
+}
+
 int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);

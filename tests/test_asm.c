@@ -227,7 +227,7 @@ LIR debug information...
     lir_printer_reset();
     lir_block_t* lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 
@@ -252,7 +252,7 @@ LIR debug information...
     lir_printer_reset();
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 
@@ -273,7 +273,7 @@ LIR instruction selection
     lir_printer_reset();
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 
@@ -310,7 +310,7 @@ LIR debug information...
     lir_printer_reset();
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 
@@ -333,7 +333,7 @@ LIR debug information...
     lir_printer_reset();
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 

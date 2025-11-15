@@ -223,7 +223,7 @@ LIR debug information...
     printf("\n\n========== LIRv1 ==========\n");
     lir_block_t* lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 
@@ -247,7 +247,7 @@ LIR debug information...
     printf("\n\n========== LIR planned instructions ==========\n");
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 
@@ -267,7 +267,7 @@ LIR instruction selection
     printf("\n\n========== LIR selected instructions ==========\n");
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 
@@ -303,7 +303,7 @@ LIR debug information...
     printf("\n\n========== LIR planned and regalloc ==========\n");
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 
@@ -314,6 +314,7 @@ LIR peephole optimization...
 */
 
     peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
+    HIR_CFG_cleanup_navigation(&cfgctx);
     LIR_peephole_optimization(&cfgctx, &pph); // Transform
 
 /*
@@ -325,7 +326,7 @@ LIR debug information...
     printf("\n\n========== LIR peephole optimization ==========\n");
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, 1, &smt);
+        print_lir_block(lh, &smt);
         lh = lh->next;
     }
 

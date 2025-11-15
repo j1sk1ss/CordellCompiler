@@ -4,6 +4,7 @@ static int _iterate_block(
     sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym_table_t* smt
 ) { 
     hir_block_t* h = bb->hmap.entry;
+    LIR_BLOCK1(ctx, LIR_BB, LIR_SUBJ_CONST(bb->id));
     bb->lmap.entry = ctx->t;
 
     while (h) {
@@ -12,11 +13,8 @@ static int _iterate_block(
             case HIR_STORE:    x86_64_store_var2var(LIR_iMOV, ctx, h->farg, h->sarg);                                                      break;
             case HIR_STARGLD:  LIR_BLOCK2(ctx, LIR_STARGLD, x86_64_format_variable(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value)); break;
             case HIR_STRT:     LIR_BLOCK0(ctx, LIR_STRT);                                                                                  break;
-            case HIR_STEND:    LIR_BLOCK0(ctx, LIR_STEND);                                                                                 break;
             case HIR_OEXT:     LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id));                                      break;
-            case HIR_MKSCOPE:  LIR_BLOCK1(ctx, LIR_MKSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value));                                  break;
             case HIR_EXITOP:   LIR_BLOCK1(ctx, LIR_EXITOP, x86_64_format_variable(h->farg));                                               break;
-            case HIR_ENDSCOPE: LIR_BLOCK1(ctx, LIR_ENDSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value));                                 break;
             
             case HIR_FRET:
             case HIR_SYSC:
@@ -27,12 +25,11 @@ static int _iterate_block(
             case HIR_STORE_ECLL:
             case HIR_FDCL:
             case HIR_FARGLD: x86_64_generate_func(ctx, h); break;
-            case HIR_FEND:   LIR_BLOCK0(ctx, LIR_FEND);    break;
 
             case HIR_BREAKPOINT: LIR_BLOCK0(ctx, LIR_BREAKPOINT); break;
 
-            case HIR_STASM:
             case HIR_RAW:
+            case HIR_STASM:
             case HIR_ENDASM: x86_64_generate_asmblock(ctx, h, smt, params); break;
 
             case HIR_VRDEALL: LIR_BLOCK1(ctx, LIR_VRDEALL, LIR_SUBJ_CONST(h->farg->storage.cnst.value)); break;

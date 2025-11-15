@@ -116,10 +116,10 @@ lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     return reg;
 }
 
-int LIR_writeop(lir_operation_t op) {
+int LIR_movop(lir_operation_t op) {
     switch (op) {
-        case LIR_GDREF:
-        case LIR_REF:
+        case LIR_CDQ:
+        case LIR_XCHG:
         case LIR_STARGLD:
         case LIR_STARGRF:
         case LIR_LOADFRET:
@@ -137,5 +137,38 @@ int LIR_writeop(lir_operation_t op) {
         case LIR_MOVZX:
         case LIR_fMOV: return 1;
         default: return 0;
+    }
+}
+
+int LIR_writeop(lir_operation_t op) {
+    switch (op) {
+        case LIR_POP:
+        case LIR_bXOR:
+        case LIR_bSHL:
+        case LIR_bSHR:
+        case LIR_bSAR:
+        case LIR_fADD: 
+        case LIR_fSUB: 
+        case LIR_fMUL: 
+        case LIR_fDIV: 
+        case LIR_iADD: 
+        case LIR_iSUB: 
+        case LIR_iMUL: 
+        case LIR_DIV:  
+        case LIR_iDIV: 
+        case LIR_GDREF:
+        case LIR_REF: return 1;
+        default: return LIR_movop(op);
+    }
+}
+
+int LIR_readop(lir_operation_t op) {
+    switch (op) {
+        case LIR_FRET:
+        case LIR_EXITOP:
+        case LIR_PUSH:
+        case LIR_TST:
+        case LIR_CMP: return 1;
+        default: return LIR_writeop(op);
     }
 }

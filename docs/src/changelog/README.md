@@ -3,6 +3,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+### LIR peephole [WIP]
+Write optimization (removing unused write operations such as redundant movs). 
+
 ### Array args list in HIR and LIR
 Instead storing array elements in symtable (in hir_subject form), now it stored in hir and lir array declaration directly. This allows us to perform function inline in more efficient and simple way. In other hand it makes difficult to work with global arrays that are defined in object .data and .rodata sections.
 
