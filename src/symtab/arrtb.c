@@ -33,7 +33,15 @@ static array_info_t* _create_info_array_entry(long id, long size, int heap, toke
     return entry;
 }
 
-int ARTB_add_info(long id, long size, int heap, token_type_t el_type, arrtab_ctx_t* ctx) {
+long ARTB_add_copy(long nid, array_info_t* src, arrtab_ctx_t* ctx) {
+    print_log("ARTB_add_copy(id=%li, src=%li)", nid, src->v_id);
+    array_info_t* nnd = _create_info_array_entry(nid, src->size, src->heap, src->el_type);
+    if (!nnd) return 0;
+    map_put(&ctx->arrtb, nnd->v_id, nnd);
+    return nnd->v_id;
+}
+
+long ARTB_add_info(long id, long size, int heap, token_type_t el_type, arrtab_ctx_t* ctx) {
     print_log("ARTB_add_info(vid=%i, size=%i, heap=%i, el_type=%i)", id, size, heap, el_type);
     array_info_t* nnd = _create_info_array_entry(id, size, heap, el_type);
     if (!nnd) return 0;

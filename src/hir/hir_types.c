@@ -341,6 +341,7 @@ int HIR_sideeffect_op(hir_operation_t op) {
 
 int HIR_writeop(hir_operation_t op) {
     switch (op) {
+        case HIR_ARRDECL:
         case HIR_REF:
         case HIR_FARGLD:
         case HIR_STARGLD:

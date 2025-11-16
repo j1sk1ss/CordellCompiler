@@ -172,15 +172,29 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
 
     ns->users = s->users;
     switch (s->t) {
-        case HIR_PHISET:
+        case HIR_PHISET: {
             set_init(&ns->storage.set.h);
-            set_copy(&ns->storage.set.h, &s->storage.set.h);
-        break;
+            set_iter_t it;
+            set_iter_init(&s->storage.set.h, &it);
+            int_tuple_t* tpl;
+            while (set_iter_next(&it, (void**)&tpl)) {
+                set_add(&ns->storage.set.h, inttuple_create(tpl->x, tpl->y));
+            }
 
-        case HIR_ARGLIST:
+            break;
+        }
+
+        case HIR_ARGLIST: {
             list_init(&ns->storage.list.h);
-            list_copy(&ns->storage.list.h, &s->storage.list.h);
-        break;
+            list_iter_t it;
+            list_iter_hinit(&s->storage.list.h, &it);
+            hir_subject_t* arg;
+            while ((arg = list_iter_next(&it))) {
+                list_add(&ns->storage.list.h, HIR_copy_subject(arg));
+            }
+
+            break;
+        }
 
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:

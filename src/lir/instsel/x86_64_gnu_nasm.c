@@ -164,15 +164,9 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
 
+                    case LIR_EXITOP:
                     case LIR_FRET: {
-                        lir_subject_t* a = _create_tmp(RAX, lh->farg, smt);
-                        LIR_insert_block_before(LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
-                        lh->farg = a;
-                        break;
-                    }
-
-                    case LIR_EXITOP: {
-                        lir_subject_t* a = _create_tmp(RDX, lh->farg, smt);
+                        lir_subject_t* a = _create_tmp(lh->op == LIR_FRET ? RAX : RDX, lh->farg, smt);
                         LIR_insert_block_before(LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
                         lh->farg = a;
                         break;

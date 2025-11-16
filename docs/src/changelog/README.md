@@ -3,6 +3,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+### Fixes in inline function
+Now inline operation will copy not only variables, now it copies arrays with array elements (if array is local and placed in stack). Also, now SSA renames arrays (local arrays) in same way as it works with variables. Additional function for array's symtable copy function implemented.
+
 ### LIR peephole [WIP]
 Write optimization (removing unused write operations such as redundant movs). 
 

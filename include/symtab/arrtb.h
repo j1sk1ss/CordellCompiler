@@ -24,7 +24,8 @@ typedef struct {
 
 int ARTB_get_info(long id, array_info_t* info, arrtab_ctx_t* ctx);
 int ARTB_add_elems(long id, long elem, arrtab_ctx_t* ctx);
-int ARTB_add_info(long id, long size, int heap, token_type_t el_type, arrtab_ctx_t* ctx);
+long ARTB_add_info(long id, long size, int heap, token_type_t el_type, arrtab_ctx_t* ctx);
+long ARTB_add_copy(long nid, array_info_t* src, arrtab_ctx_t* ctx);
 int ARTB_unload(arrtab_ctx_t* ctx);
 
 #endif

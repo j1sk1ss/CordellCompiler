@@ -1,13 +1,15 @@
 #include <hir/func.h>
 
-static int _inline_arguments(cfg_func_t* f, list_t* args) {
+static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     list_iter_t it;
     list_iter_hinit(args, &it);
     hir_block_t* hh = f->entry;
     while (hh) {
         if (hh->op == HIR_FARGLD) {
-            hh->op = HIR_STORE;
-            hh->sarg = list_iter_next(&it);
+            hir_block_t* nblock = HIR_copy_block(hh);
+            nblock->op   = HIR_STORE;
+            nblock->sarg = list_iter_next(&it);
+            HIR_insert_block_before(nblock, pos);
         }
 
         if (hh == f->exit) break;
@@ -70,7 +72,7 @@ static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
     else if (block_count <= 5)  score += 2;
     else if (block_count <= 10) score += 1;
     else if (block_count > 15)  score -= 2;
-    return score > 5;
+    return score >= 3;
 }
 
 int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
@@ -88,7 +90,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
                 if (HIR_funccall(hh->op)) {
                     cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
                     if (_inline_candidate(trg, bb) && fb != trg) {
-                        _inline_arguments(trg, &hh->targ->storage.list.h);
+                        _inline_arguments(trg, &hh->targ->storage.list.h, hh);
                         hir_subject_t* res = NULL;
                         if (hh->op == HIR_STORE_FCLL || hh->op == HIR_STORE_ECLL) res = hh->farg;
                         _inline_function(trg, res, hh);
