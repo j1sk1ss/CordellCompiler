@@ -1,6 +1,6 @@
 #include <ast/opt/condunroll.h>
 
-static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
+static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
     if (!root) return 0;
 
     ast_node_t* tprev = NULL;
@@ -165,7 +165,7 @@ static int _clean_blocks(ast_node_t* root, syntax_ctx_t* ctx) {
     return 1;
 }
 
-int OPT_condunroll(syntax_ctx_t* ctx) {
+int OPT_condunroll(ast_ctx_t* ctx) {
     if (!ctx->r) return 0;
     return _clean_blocks(ctx->r, ctx);
 }

@@ -1,5 +1,4 @@
-/*
-funcs.c - Split input HIR instructions by function blocks.
+/* funcs.c - Split input HIR instructions by function blocks.
 */
 
 #include <hir/cfg.h>
@@ -29,7 +28,10 @@ cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid) {
     list_iter_hinit(&f->blocks, &bit);
     cfg_block_t* cb;
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        if (cb->hmap.entry->op == HIR_MKLB && cb->hmap.entry->farg->id == lbid) return cb;
+        if (
+            cb->hmap.entry->op == HIR_MKLB && 
+            cb->hmap.entry->farg->id == lbid
+        ) return cb;
     }
 
     return NULL;

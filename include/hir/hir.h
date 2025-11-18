@@ -9,7 +9,7 @@
 #include <prep/token_types.h>
 #include <symtab/symtab.h>
 #include <ast/ast.h>
-#include <ast/syntax.h>
+#include <ast/astgen.h>
 #include <hir/hir_types.h>
 
 typedef struct {

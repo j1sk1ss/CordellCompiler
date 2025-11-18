@@ -18,8 +18,7 @@ static int _parse_const(dag_node_t* nd, const_t* cnst, sym_table_t* smt) {
         case HIR_U16NUMBER: cnst->t = HIR_U16CONSTVAL; goto _complete_number_parse;
         case HIR_I8NUMBER:  cnst->t = HIR_I8CONSTVAL;  goto _complete_number_parse;
         case HIR_U8NUMBER:  cnst->t = HIR_U8CONSTVAL;  goto _complete_number_parse;
-        case HIR_NUMBER:    cnst->t = HIR_CONSTVAL;
-        {
+        case HIR_NUMBER:    cnst->t = HIR_CONSTVAL; {
 _complete_number_parse: {}
             cnst->value = str_atoi(nd->src->storage.num.value);
             return 1;
@@ -35,8 +34,7 @@ _complete_number_parse: {}
         case HIR_U16CONSTVAL: cnst->t = HIR_U16CONSTVAL; goto _complete_constant_parse;
         case HIR_I8CONSTVAL:  cnst->t = HIR_I8CONSTVAL;  goto _complete_constant_parse;
         case HIR_U8CONSTVAL:  cnst->t = HIR_U8CONSTVAL;  goto _complete_constant_parse;
-        case HIR_CONSTVAL:    cnst->t = HIR_CONSTVAL; 
-        {
+        case HIR_CONSTVAL:    cnst->t = HIR_CONSTVAL; {
 _complete_constant_parse: {}
             cnst->value = nd->src->storage.cnst.value;
             return 1;
@@ -77,8 +75,11 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
         while (map_iter_next(&it, (void**)&nd)) {
             dag_node_t* args[4] = { NULL };
             _const_args(nd, args);
-            if (!HIR_is_vartype(nd->src->t)) continue;
-            if (ALLIAS_get_owners(nd->src->storage.var.v_id, NULL, &smt->m)) continue;
+            
+            if (
+                !HIR_is_vartype(nd->src->t) || 
+                ALLIAS_get_owners(nd->src->storage.var.v_id, NULL, &smt->m)
+            ) continue;
 
             long c = 0;
             const_t a, b;
@@ -90,7 +91,6 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
             }
             
             print_debug("src=%i, a_pres=%i, b_pres=%i", nd->src->storage.var.v_id, a_pres, b_pres);
-
             switch (nd->op) {
                 case HIR_STORE: {
                     if (!a_pres) break;
@@ -151,8 +151,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_iBRHT: c = a.value >> b.value; goto _binary_operation_fold;
                 case HIR_bAND:  c = a.value & b.value;  goto _binary_operation_fold;
                 case HIR_bOR:   c = a.value | b.value;  goto _binary_operation_fold;
-                case HIR_bXOR:  c = a.value ^ b.value;  goto _binary_operation_fold;
-                {
+                case HIR_bXOR:  c = a.value ^ b.value; {
 _binary_operation_fold: {}
                     if (!a_pres || !b_pres) break;
                     if (VRTB_update_definition(nd->src->storage.var.v_id, c, &smt->v)) changed = 1;

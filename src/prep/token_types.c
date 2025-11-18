@@ -1,7 +1,6 @@
 #include <prep/token_types.h>
 
-/* 
-ptr - 0 we ignore ptr flag.
+/* ptr - 0 we ignore ptr flag.
 Return variable bitness (size in bits). 
 */
 int TKN_variable_bitness(token_t* token, char ptr) {
@@ -164,8 +163,8 @@ int TKN_isdecl(token_t* token) {
         case U64_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
         case STR_TYPE_TOKEN:
-        case ARRAY_TYPE_TOKEN:  return 1;
-        default:                return 0;
+        case ARRAY_TYPE_TOKEN: return 1;
+        default:               return 0;
     }
 }
 
@@ -202,8 +201,8 @@ int TKN_isoperand(token_t* token) {
         case MULASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:
         case BITMOVE_LEFT_TOKEN:
-        case BITMOVE_RIGHT_TOKEN:  return 1;
-        default:                   return 0;
+        case BITMOVE_RIGHT_TOKEN: return 1;
+        default:                  return 0;
     }
 }
 
@@ -314,8 +313,8 @@ int TKN_update_operator(token_t* token) {
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:
-        case MULASSIGN_TOKEN:   return 1;
-        default:                return 0;
+        case MULASSIGN_TOKEN: return 1;
+        default:              return 0;
     }
 }
 

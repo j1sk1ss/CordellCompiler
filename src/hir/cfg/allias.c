@@ -33,10 +33,8 @@ int _mark_copies(long owner_id, long owned_id, cfg_ctx_t* cctx, sym_table_t* smt
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             hir_block_t* hh = cb->hmap.entry;
             while (hh) {
-                if (hh->op == HIR_STORE) {
-                    long src = hh->sarg->storage.var.v_id;
-                    long dst = hh->farg->storage.var.v_id;
-                    if (src == owner_id) ALLIAS_add_owner(owned_id, dst, &smt->m);
+                if (hh->op == HIR_STORE && hh->sarg->storage.var.v_id == owner_id) {
+                    ALLIAS_add_owner(owned_id, hh->farg->storage.var.v_id, &smt->m);
                 }
 
                 if (hh == cb->hmap.exit) break;

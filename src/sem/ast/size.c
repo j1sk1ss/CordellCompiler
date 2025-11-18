@@ -87,7 +87,7 @@ int _check_sizes(ast_node_t* node) {
     return result;
 }
 
-int SMT_check_sizes(syntax_ctx_t* sctx) {
+int SMT_check_sizes(ast_ctx_t* sctx) {
     if (!sctx->r) return 0;
     return _check_sizes(sctx->r);
 }

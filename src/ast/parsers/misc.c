@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-int var_lookup(ast_node_t* node, syntax_ctx_t* ctx, sym_table_t* smt) {
+int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     var_lookup(node->sibling, ctx, smt);
     var_lookup(node->child, ctx, smt);

@@ -121,7 +121,7 @@ _check_case_scope: {}
     return 1;
 }
 
-int OPT_deadscope(syntax_ctx_t* ctx) {
+int OPT_deadscope(ast_ctx_t* ctx) {
     int dummy = 0;
     return _find_scope(ctx->r, &dummy, 0);
 }

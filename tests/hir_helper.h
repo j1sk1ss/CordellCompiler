@@ -46,7 +46,6 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_bOR:          return "bOR";
         case HIR_bXOR:         return "bXOR";
         case HIR_RAW:          return "RAW";
-        // case HIR_IFOP:         return "IFOP";
         case HIR_IFOP2:        return "IFOP2";
         case HIR_NOT:          return "NOT";
         case HIR_STORE:        return "STORE";
@@ -70,15 +69,15 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_MKSCOPE:      return "MKSCOPE";
         case HIR_ENDSCOPE:     return "ENDSCOPE";
         case HIR_TF64:         return "HIR_TF64";
-        case HIR_TF32:         return "HIR_TF32"; // x = (f32)y
-        case HIR_TI64:         return "HIR_TI64"; // x = (i64)y
-        case HIR_TI32:         return "HIR_TI32"; // x = (i32)y
-        case HIR_TI16:         return "HIR_TI16"; // x = (i16)y
-        case HIR_TI8:          return "HIR_TI8";  // x = (i8)y
-        case HIR_TU64:         return "HIR_TU64"; // x = (u64)y
-        case HIR_TU32:         return "HIR_TU32"; // x = (u32)y
-        case HIR_TU16:         return "HIR_TU16"; // x = (u16)y
-        case HIR_TU8:          return "HIR_TU8";  // x = (u8)y
+        case HIR_TF32:         return "HIR_TF32"; 
+        case HIR_TI64:         return "HIR_TI64";
+        case HIR_TI32:         return "HIR_TI32";
+        case HIR_TI16:         return "HIR_TI16";
+        case HIR_TI8:          return "HIR_TI8";  
+        case HIR_TU64:         return "HIR_TU64";
+        case HIR_TU32:         return "HIR_TU32";
+        case HIR_TU16:         return "HIR_TU16";
+        case HIR_TU8:          return "HIR_TU8";
         case HIR_PHI_PREAMBLE: return "PHI_PREAMBLE";
         case HIR_BREAKPOINT:   return "BREAKPOINT";
         default: return "";
@@ -137,7 +136,6 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_bOR:        return "%s = %s | %s;\n";
         case HIR_bXOR:       return "%s = %s ^ %s;\n";
         case HIR_RAW:        return "[raw, \"%s\"]\n";
-        // case HIR_IFOP:       return "if %s, goto %s;\n";
         case HIR_IFOP2:      return "if %s, goto %s, else goto %s;\n";
         case HIR_NOT:        return "%s = not %s;\n";
         case HIR_STORE:      return "%s = %s;\n";

@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <prep/markup.h>
-#include <ast/syntax.h>
+#include <ast/astgen.h>
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
@@ -39,9 +39,9 @@ int main(int argc, char* argv[]) {
 
     sym_table_t smt;
     SMT_init(&smt);
-    syntax_ctx_t sctx = { .r = NULL };
+    ast_ctx_t sctx = { .r = NULL };
 
-    STX_create(&tokens, &sctx, &smt);
+    AST_parse_tokens(&tokens, &sctx, &smt);
 
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);

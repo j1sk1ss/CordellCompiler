@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-static ast_node_t* _navigation_handler(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     switch (((token_t*)list_iter_current(it))->t_type) {
         case START_TOKEN:           return cpl_parse_start(it, ctx, smt);
         case ASM_TOKEN:             return cpl_parse_asm(it, ctx, smt);
@@ -47,16 +47,14 @@ static ast_node_t* _navigation_handler(list_iter_t* it, syntax_ctx_t* ctx, sym_t
     }
 }
 
-ast_node_t* cpl_parse_block(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt, token_type_t ex) {
+ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, token_type_t ex) {
     ast_node_t* node = AST_create_node(NULL);
     if (!node) return NULL;
 
     while (list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type != ex) {
         ast_node_t* block = _navigation_handler(it, ctx, smt);
         if (block) AST_add_node(node, block);
-        else {
-            if (!forward_token(it, 1)) break;
-        }
+        else if (!forward_token(it, 1)) break;
     }
 
     return node;

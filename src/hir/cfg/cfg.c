@@ -4,13 +4,6 @@ cfg.c - Create CFG
 
 #include <hir/cfg.h>
 
-int HIR_CFG_append_hir_block_front(cfg_block_t* bb, hir_block_t* hh) {
-    if (bb->hmap.entry && bb->hmap.exit) bb->hmap.entry = hh;
-    if (!bb->hmap.entry) bb->hmap.entry = hh;
-    if (!bb->hmap.exit)  bb->hmap.exit  = hh;
-    return 1;
-}
-
 int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh) {
     if (bb->hmap.entry && bb->hmap.exit) bb->hmap.exit = hh;
     if (!bb->hmap.entry) bb->hmap.entry = hh;
@@ -27,20 +20,6 @@ int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh) {
     
     if (bb->hmap.entry == hh) bb->hmap.entry = hh->next;
     if (bb->hmap.exit == hh)  bb->hmap.exit = hh->prev;
-    return 1;
-}
-
-int HIR_CFG_append_lir_block_front(cfg_block_t* bb, lir_block_t* hh) {
-    if (bb->lmap.entry && bb->lmap.exit) bb->lmap.entry = hh;
-    if (!bb->lmap.entry) bb->lmap.entry = hh;
-    if (!bb->lmap.exit)  bb->lmap.exit  = hh;
-    return 1;
-}
-
-int HIR_CFG_append_lir_block_back(cfg_block_t* bb, lir_block_t* hh) {
-    if (bb->lmap.entry && bb->lmap.exit) bb->lmap.exit = hh;
-    if (!bb->lmap.entry) bb->lmap.entry = hh;
-    if (!bb->lmap.exit)  bb->lmap.exit  = hh;
     return 1;
 }
 
@@ -110,13 +89,9 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     hir_block_t* hh = f->entry;
     while (hh) {
-        hir_block_t* entry = hh;
 #ifdef DRAGONBOOK_CFG_LEADER
-        while (hh->next && hh != f->exit && !set_has(&f->leaders, hh)) {
-            entry = hh;
-            hh = hh->next;
-        }
-
+        hir_block_t* entry = hh;
+        while (entry = hh && hh->next && hh != f->exit && !set_has(&f->leaders, hh)) hh = hh->next;
         while (hh->next && hh != f->exit && !set_has(&f->leaders, hh->next)) {
             hh = hh->next;
             if (HIR_isterm(hh->op)) break;
@@ -124,7 +99,7 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
 
         _add_cfg_block(entry, hh, f, ctx);
 #else
-        if (!HIR_issyst(entry->op)) _add_cfg_block(entry, entry, f, ctx);
+        if (!HIR_issyst(hh->op)) _add_cfg_block(hh, hh, f, ctx);
 #endif
         if (hh == f->exit) break;
         hh = hh->next;
@@ -156,8 +131,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
                 case HIR_EXITOP: break;
 
                 case HIR_JMP: {
-                    cfg_block_t* lb = HIR_CFG_function_findlb(fb, cb->hmap.exit->farg->id);
-                    cb->jmp = lb;
+                    cb->jmp = HIR_CFG_function_findlb(fb, cb->hmap.exit->farg->id);
                     break;
                 }
 
@@ -218,10 +192,6 @@ int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
             
             set_free(&cb->prev_out);
             set_init(&cb->prev_out);
-
-            set_free(&cb->visitors);
-            set_init(&cb->visitors);
-            cb->visited = 0;
         }
 
         set_free(&fb->leaders);

@@ -151,7 +151,7 @@ Next, we need to parse this sequence of marked tokens to construct an `AST` (Abs
 
 The AST generator is significantly more complex to implement than the tokenizer or the markuper. The main idea behind the implementation is to register handlers for each token type in the token list. The CPL compiler parses tokens using an LL parser, which means that the AST structure to be constructed is determined by the type of the first token. The source code for this layer is available [here](https://github.com/j1sk1ss/CordellCompiler/blob/HIR_LIR_SSA/src/ast), and a snippet of the main module block is shown below.
 ```C
-static ast_node_t* _navigation_handler(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     switch (((token_t*)list_iter_current(it))->t_type) {
         case START_TOKEN:           return cpl_parse_start(it, ctx, smt);
         case ASM_TOKEN:             return cpl_parse_asm(it, ctx, smt);

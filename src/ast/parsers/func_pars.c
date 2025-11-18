@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_extern(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
     
@@ -15,7 +15,7 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* sm
                 return NULL;
             }
 
-            AST_add_node(node, arg); /* Add to symtab as external */
+            AST_add_node(node, arg); 
         }
         else if (((token_t*)list_iter_current(it))->t_type == FUNC_NAME_TOKEN) {
             ast_node_t* fname = AST_create_node((token_t*)list_iter_current(it));
@@ -28,7 +28,7 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* sm
     return node;
 }
 
-ast_node_t* cpl_parse_rexit(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_rexit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
     
@@ -49,7 +49,7 @@ ast_node_t* cpl_parse_rexit(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt
     return node;
 }
 
-ast_node_t* cpl_parse_funccall(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
 
@@ -82,7 +82,7 @@ ast_node_t* cpl_parse_funccall(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* 
     return node;
 }
 
-ast_node_t* cpl_parse_function(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
     forward_token(it, 1);

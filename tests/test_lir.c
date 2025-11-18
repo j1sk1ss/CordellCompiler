@@ -5,7 +5,7 @@
 #include <prep/token.h>
 #include <prep/markup.h>
 
-#include <ast/syntax.h>
+#include <ast/astgen.h>
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -86,8 +86,8 @@ AST generation...
 
     sym_table_t smt;
     SMT_init(&smt);
-    syntax_ctx_t sctx = { .r = NULL };
-    STX_create(&tokens, &sctx, &smt); // Analyzation
+    ast_ctx_t sctx = { .r = NULL };
+    AST_parse_tokens(&tokens, &sctx, &smt); // Analyzation
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
 
@@ -210,7 +210,7 @@ HIR -> LIR...
 ========================
 */
 
-    HIR_CFG_cleanup_blocks_temporaries(&cfgctx); // Analyzation
+    HIR_CFG_cleanup_navigation(&cfgctx);
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);        // Analyzation
 

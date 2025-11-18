@@ -1,6 +1,6 @@
 #include <sem/semantic.h>
 
-int SMT_check(syntax_ctx_t* sctx) {
+int SMT_check(ast_ctx_t* sctx) {
     int result = 1;
     result = SMT_check_ro(sctx)         && result;
     result = SMT_check_sizes(sctx)      && result;

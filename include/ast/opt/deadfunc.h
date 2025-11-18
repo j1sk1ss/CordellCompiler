@@ -5,11 +5,11 @@
 #include <std/str.h>
 #include <std/stack.h>
 #include <prep/token_types.h>
-#include <ast/syntax.h>
+#include <ast/astgen.h>
 
 #define DCTX_AST_MAX 100
 typedef struct {
-    syntax_ctx_t* ctx[DCTX_AST_MAX];
+    ast_ctx_t* ctx[DCTX_AST_MAX];
     char          size;
 } deadfunc_ctx_t;
 
@@ -17,7 +17,7 @@ typedef struct {
 Add AST for deadfunc cleanup.
 Note: Deadfunc - functions that never used.
 */
-int OPT_deadfunc_add(syntax_ctx_t* ctx, deadfunc_ctx_t* dctx);
+int OPT_deadfunc_add(ast_ctx_t* ctx, deadfunc_ctx_t* dctx);
 
 /*
 Clear all dead functions in linked to dctx AST.

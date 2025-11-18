@@ -16,22 +16,27 @@ typedef enum {
 } char_type_t;
 
 static char_type_t _get_char_type(unsigned char ch) {
-    if (isalpha(ch) || ch == '_')     return CHAR_ALPHA;
-    else if (ch == '\\')              return CHAR_BACKSLASH;
-    else if (str_isdigit(ch))         return CHAR_DIGIT;
-    else if (ch == '"')               return CHAR_QUOTE;
-    else if (ch == '\'')              return CHAR_SING_QUOTE;
-    else if (ch == '\n')              return CHAR_NEWLINE;
-    else if (ch == ' ' || ch == '\t') return CHAR_SPACE;
-    else if (ch == ';')               return CHAR_DELIMITER;
-    else if (ch == ',')               return CHAR_COMMA;
-    else if (ch == ':')               return CHAR_COMMENT;
-    else if (
-        ch == '(' || ch == ')' || 
-        ch == '[' || ch == ']' || 
-        ch == '{' || ch == '}'
-    )                                 return CHAR_BRACKET;
-    return CHAR_OTHER;
+    if (isalpha(ch) || ch == '_') return CHAR_ALPHA;
+    else if (str_isdigit(ch))     return CHAR_DIGIT;
+    
+    switch (ch) {
+        case '\\': return CHAR_BACKSLASH;
+        case '"':  return CHAR_QUOTE;
+        case '\'': return CHAR_SING_QUOTE;
+        case '\n': return CHAR_NEWLINE;
+        case ' ':
+        case '\t': return CHAR_SPACE;
+        case ';':  return CHAR_DELIMITER;
+        case ',':  return CHAR_COMMA;
+        case ':':  return CHAR_COMMENT;
+        case '(':
+        case '[':
+        case '{':
+        case ')':
+        case ']':
+        case '}':  return CHAR_BRACKET;
+        default: return CHAR_OTHER;
+    }
 }
 
 typedef struct {
@@ -98,9 +103,8 @@ int TKN_tokenize(int fd, list_t* tkn) {
             char ch = buffer[i];
             if (ch == '-') curr_ctx.neg = 1;
             else curr_ctx.neg = 0;
-            char_type_t ct = _get_char_type(ch);
 
-            /* Special characters handler */
+            char_type_t ct = _get_char_type(ch);
             if (ct == CHAR_BACKSLASH) {
                 curr_ctx.is_spec = !curr_ctx.is_spec;
                 continue;
@@ -137,19 +141,20 @@ int TKN_tokenize(int fd, list_t* tkn) {
             if (curr_ctx.squt)                 char_type = CHAR_VALUE_TOKEN;
             else if (curr_ctx.mqut)            char_type = STRING_VALUE_TOKEN;
             else {
-                if (ct == CHAR_ALPHA)          char_type = UNKNOWN_STRING_TOKEN;
-                else if (ct == CHAR_DIGIT)     char_type = UNKNOWN_NUMERIC_TOKEN;
-                else if (ct == CHAR_DELIMITER) char_type = DELIMITER_TOKEN;
-                else if (ct == CHAR_COMMA)     char_type = COMMA_TOKEN;
-                else if (ct == CHAR_BRACKET)   char_type = UNKNOWN_BRACKET_VALUE;
-                else if (
-                    ct == CHAR_SPACE || 
-                    ct == CHAR_NEWLINE
-                )                              char_type = LINE_BREAK_TOKEN;
-                else                           char_type = UNKNOWN_CHAR_TOKEN;
-                if (ct == CHAR_NEWLINE)        curr_ctx.line++;
+                switch (ct) {
+                    case CHAR_ALPHA: char_type = UNKNOWN_STRING_TOKEN;    break;
+                    case CHAR_DIGIT: char_type = UNKNOWN_NUMERIC_TOKEN;   break;
+                    case CHAR_DELIMITER: char_type = DELIMITER_TOKEN;     break;
+                    case CHAR_COMMA: char_type = COMMA_TOKEN;             break;
+                    case CHAR_BRACKET: char_type = UNKNOWN_BRACKET_VALUE; break;
+                    case CHAR_SPACE:
+                    case CHAR_NEWLINE: char_type = LINE_BREAK_TOKEN;      break;
+                    default: char_type = LINE_BREAK_TOKEN;                break;
+                }
 
-                if (curr_ctx.ttype == UNKNOWN_CHAR_TOKEN && 
+                if (ct == CHAR_NEWLINE) curr_ctx.line++;
+                if (
+                    curr_ctx.ttype == UNKNOWN_CHAR_TOKEN && 
                     char_type == UNKNOWN_NUMERIC_TOKEN
                 ) curr_ctx.ttype = UNKNOWN_NUMERIC_TOKEN;
                 if (
@@ -166,8 +171,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
                 curr_ctx.in_token && 
                 (
                     char_type == LINE_BREAK_TOKEN ||
-                    // char_type == UNKNOWN_CHAR_TOKEN ||  /* Chars can't be larger then 1 symbol */
-                    char_type == UNKNOWN_BRACKET_VALUE ||  /* Same with the brackets */
+                    char_type == UNKNOWN_BRACKET_VALUE ||
                     curr_ctx.token_len + 1 > TOKEN_MAX_SIZE ||
                     curr_ctx.ttype != char_type
                 )

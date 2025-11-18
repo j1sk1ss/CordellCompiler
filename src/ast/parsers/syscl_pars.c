@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_syscall(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_syscall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
 

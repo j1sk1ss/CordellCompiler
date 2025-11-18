@@ -1,6 +1,6 @@
 #ifndef ASTHELPER_H_
 #define ASTHELPER_H_
-#include <ast/syntax.h>
+#include <ast/astgen.h>
 const char* fmt_tkn_type(token_t* t) {
     if (!t) return "";
     if (t->flags.ptr) {

@@ -17,7 +17,7 @@ int _chech_heap_usage(ast_node_t* r) {
     return result;
 }
 
-int SMT_check_heap_usage(syntax_ctx_t* sctx) {
+int SMT_check_heap_usage(ast_ctx_t* sctx) {
     if (!sctx->r) return 1;
     return _chech_heap_usage(sctx->r);
 }

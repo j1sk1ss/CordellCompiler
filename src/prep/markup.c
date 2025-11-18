@@ -137,6 +137,12 @@ static int _add_variable(variable_t** vars, const char* name, short scope, markp
     return 1;
 }
 
+static inline _remove_token(list_t* lst, token_t* tkn) {
+    list_remove(lst, tkn);
+    mm_free(tkn);
+    return 1;
+}
+
 int MRKP_variables(list_t* tkn) {
     int s_id = 0;
     scope_stack_t scope_stack = { .top = -1 };
@@ -157,23 +163,20 @@ int MRKP_variables(list_t* tkn) {
                 curr = (token_t*)list_iter_next(&it);
                 curr_ctx.ttype = CALL_TOKEN;
                 while (curr->t_type != DELIMITER_TOKEN) {
-                    if (curr->t_type != COMMA_TOKEN) _add_variable(&vars, curr->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
+                    if (curr->t_type != COMMA_TOKEN) {
+                        _add_variable(&vars, curr->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
+                    }
+                    
                     curr = (token_t*)list_iter_next(&it);
                 }
                 
                 break;
             }
 
-            case EXTERN_TOKEN:    curr_ctx.ext  = 1; break;
-            case GLOB_TYPE_TOKEN: curr_ctx.glob = 1; goto _f_remove_token;
-            case PTR_TYPE_TOKEN:  curr_ctx.ptr  = 1; goto _f_remove_token;
-            case RO_TYPE_TOKEN: {
-                curr_ctx.ro = 1;
-_f_remove_token:
-                list_remove(tkn, curr);
-                mm_free(curr);
-                continue;
-            }
+            case EXTERN_TOKEN:    curr_ctx.ext  = 1; _remove_token(tkn, curr); break;
+            case GLOB_TYPE_TOKEN: curr_ctx.glob = 1; _remove_token(tkn, curr); break;
+            case PTR_TYPE_TOKEN:  curr_ctx.ptr  = 1; _remove_token(tkn, curr); break;
+            case RO_TYPE_TOKEN:   curr_ctx.ro = 1;   _remove_token(tkn, curr); break;
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:
@@ -242,46 +245,36 @@ _f_remove_token:
     int ref  = 0;
     int neg  = 0;
     while ((curr = (token_t*)list_iter_next(&it))) {
-        if (curr->t_type == OPEN_BLOCK_TOKEN)       scope_push(&scope_stack, ++s_id, 0);
-        else if (curr->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&scope_stack);
-
-        if (curr->t_type == NEGATIVE_TOKEN) {
-            neg = 1;
-            goto _s_remove_token;
-        }
-        if (curr->t_type == DREF_TYPE_TOKEN) {
-            dref = 1;
-            goto _s_remove_token;
-        }
-        else if (curr->t_type == REF_TYPE_TOKEN) {
-            ref = 1;
-_s_remove_token: {}
-            list_remove(tkn, curr);
-            mm_free(curr);
-            continue;
-        }
-
-        if (curr->t_type == UNKNOWN_STRING_TOKEN || curr->t_type == UNKNOWN_CHAR_TOKEN) {
-            for (int s = scope_stack.top; s >= 0; s--) {
-                int curr_s = scope_stack.data[s].id;
-                for (int i = 0; i < var_count; i++) {
-                    if (
-                        !str_strncmp(curr->value, vars[i].name, TOKEN_MAX_SIZE) &&
-                        vars[i].scope == curr_s
-                    ) {
-                        curr->t_type     = vars[i].type;
-                        curr->flags.ext  = vars[i].ext;
-                        curr->flags.ro   = vars[i].ro;
-                        curr->flags.glob = vars[i].glob;
-                        curr->flags.ptr  = vars[i].ptr;
-                        curr->flags.ref  = ref;
-                        curr->flags.dref = dref;
-                        curr->flags.neg  = neg;
-                        goto _resolved;
+        switch (curr->t_type) {
+            case OPEN_BLOCK_TOKEN:  scope_push(&scope_stack, ++s_id, 0); break;
+            case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack);             break;
+            case NEGATIVE_TOKEN:  neg  = 1; _remove_token(tkn, curr); continue;
+            case DREF_TYPE_TOKEN: dref = 1; _remove_token(tkn, curr); continue;
+            case REF_TYPE_TOKEN:  ref  = 1; _remove_token(tkn, curr); continue;
+            case UNKNOWN_CHAR_TOKEN:
+            case UNKNOWN_STRING_TOKEN: {
+                for (int s = scope_stack.top; s >= 0; s--) {
+                    int curr_s = scope_stack.data[s].id;
+                    for (int i = 0; i < var_count; i++) {
+                        if (!str_strncmp(curr->value, vars[i].name, TOKEN_MAX_SIZE) && vars[i].scope == curr_s) {
+                            curr->t_type     = vars[i].type;
+                            curr->flags.ext  = vars[i].ext;
+                            curr->flags.ro   = vars[i].ro;
+                            curr->flags.glob = vars[i].glob;
+                            curr->flags.ptr  = vars[i].ptr;
+                            curr->flags.ref  = ref;
+                            curr->flags.dref = dref;
+                            curr->flags.neg  = neg;
+                            goto _resolved;
+                        }
                     }
                 }
+
+                _resolved: {}
+                break;
             }
-            _resolved: {}
+
+            default: break;
         }
 
         ref  = 0;

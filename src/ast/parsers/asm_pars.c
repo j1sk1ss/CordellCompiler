@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_asm(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node(list_iter_current(it));
     if (!node) return NULL;
     
@@ -19,6 +19,10 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) 
     }
 
     ast_node_t* body = AST_create_node(NULL);
+    if (!body) {
+        AST_unload(node);
+        return NULL;
+    }
 
     forward_token(it, 1);
     if (list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type == OPEN_BLOCK_TOKEN) {

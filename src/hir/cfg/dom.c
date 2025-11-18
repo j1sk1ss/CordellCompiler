@@ -1,5 +1,4 @@
-/*
-dom.c - Compute dominance, strict dominance and dominance frontier
+/* dom.c - Compute dominance, strict dominance and dominance frontier
 */
 
 #include <hir/cfg.h>
@@ -9,7 +8,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
     list_iter_hinit(&fb->blocks, &bit);
     cfg_block_t* cb;
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        if (cb == list_get_head(&fb->blocks)) set_add(&cb->dom, cb);
+        if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) set_add(&cb->dom, cb);
         else {
             list_iter_t bbit;
             list_iter_hinit(&fb->blocks, &bbit);
@@ -25,7 +24,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
         changed = 0;
         list_iter_hinit(&fb->blocks, &bit);
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            if (cb == list_get_head(&fb->blocks)) continue;
+            if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) continue;
 
             set_t nd;
             set_init(&nd);
@@ -55,7 +54,6 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
             }
 
             set_add(&nd, cb);
-
             if (!set_equal(&nd, &cb->dom)) {
                 set_free(&cb->dom);
                 set_copy(&cb->dom, &nd);
@@ -74,7 +72,7 @@ int HIR_CFG_compute_sdom(cfg_func_t* fb) {
     list_iter_hinit(&fb->blocks, &bit);
     cfg_block_t* cb;
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        if (cb == list_get_head(&fb->blocks)) {
+        if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) {
             cb->sdom = NULL;
             continue;
         }

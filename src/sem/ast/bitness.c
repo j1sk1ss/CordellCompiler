@@ -45,7 +45,7 @@ int _check_bitness(ast_node_t* r, sym_table_t* smt) {
     return 1;
 }
 
-int SMT_check_bitness(syntax_ctx_t* sctx, sym_table_t* smt) {
+int SMT_check_bitness(ast_ctx_t* sctx, sym_table_t* smt) {
     if (!sctx->r) return 0;
     return _check_bitness(sctx->r, smt);
 }

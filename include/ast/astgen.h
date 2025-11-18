@@ -1,6 +1,7 @@
-#ifndef SYNCTX_H_
-#define SYNCTX_H_
+#ifndef ASTGEN_H_
+#define ASTGEN_H_
 
+#include <symtab/symtab.h>
 #include <prep/token_types.h>
 #include <ast/ast.h>
 #include <std/list.h>
@@ -14,7 +15,7 @@ typedef struct {
 typedef struct {
     ast_node_t*  r;
     scope_info_t scopes;
-} syntax_ctx_t;
+} ast_ctx_t;
 
 static inline int forward_token(list_iter_t* it, int steps) {
     while (steps-- > 0) {
@@ -24,8 +25,5 @@ static inline int forward_token(list_iter_t* it, int steps) {
 
     return 1;
 }
-
-syntax_ctx_t* STX_create_ctx();
-int STX_destroy_ctx(syntax_ctx_t* ctx);
 
 #endif

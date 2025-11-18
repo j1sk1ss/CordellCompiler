@@ -3,8 +3,8 @@
 
 #include <std/qsort.h>
 #include <ast/ast.h>
-#include <ast/syntax.h>
-#include <ast/synctx.h>
+#include <ast/astgen.h>
+#include <ast/astgen.h>
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 

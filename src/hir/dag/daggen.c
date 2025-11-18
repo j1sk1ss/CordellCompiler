@@ -50,26 +50,26 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                     case HIR_iLRE: case HIR_iCMP: case HIR_iNMP: case HIR_NOT:
                     case HIR_iAND: case HIR_iOR: case HIR_iBLFT: case HIR_iBRHT:
                     case HIR_bAND: case HIR_bOR: case HIR_bXOR: {
-                        dag_node_t* src1 = DAG_GET_NODE(dctx, hh->sarg);
-                        dag_node_t* src2 = DAG_GET_NODE(dctx, hh->targ);
+                        dag_node_t* farg = DAG_GET_NODE(dctx, hh->sarg);
+                        dag_node_t* sarg = DAG_GET_NODE(dctx, hh->targ);
                         dag_node_t* dst  = DAG_GET_NODE(dctx, hh->farg);
                         if (!dst) break;
 
                         if (HIR_commutative_op(hh->op)) {
-                            if (src1) set_add(&dst->args, src1);
-                            if (src2) set_add(&dst->args, src2);
+                            if (farg) set_add(&dst->args, farg);
+                            if (sarg) set_add(&dst->args, sarg);
                             dst->hash = HIR_DAG_compute_hash(dst);
                         }
                         else {
                             dst->hash = hh->op * 1315423911UL;
-                            if (src1) {
-                                set_add(&dst->args, src1);
-                                dst->hash ^= HIR_DAG_compute_hash(src1) + (dst->hash << 6) + (dst->hash >> 2);
+                            if (farg) {
+                                set_add(&dst->args, farg);
+                                dst->hash ^= HIR_DAG_compute_hash(farg) + (dst->hash << 6) + (dst->hash >> 2);
                             }
 
-                            if (src2) {
-                                set_add(&dst->args, src2);
-                                dst->hash ^= HIR_DAG_compute_hash(src2) + (dst->hash << 6) + (dst->hash >> 2);
+                            if (sarg) {
+                                set_add(&dst->args, sarg);
+                                dst->hash ^= HIR_DAG_compute_hash(sarg) + (dst->hash << 6) + (dst->hash >> 2);
                             }
                         }
 
@@ -82,9 +82,9 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         dst->home = cb;
 
                         dag_node_t* existed;
-                        if (!map_get(&dctx->groups, dst->hash, (void**)&existed)) _register_node(dctx, dst, src1, src2);
+                        if (!map_get(&dctx->groups, dst->hash, (void**)&existed)) _register_node(dctx, dst, farg, sarg);
                         else {
-                            if (!set_has(&dst->home->dom, existed->home)) _register_node(dctx, dst, src1, src2);
+                            if (!set_has(&dst->home->dom, existed->home)) _register_node(dctx, dst, farg, sarg);
                             else {
                                 if (dst != existed) {
                                     map_remove(&dctx->dag, HIR_hash_subject(dst->src));

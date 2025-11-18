@@ -44,7 +44,6 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
 
                     hir_subject_t* head = HIR_SUBJ_TMPVAR(base->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(base->t), 0, NULL, &smt->v));
                     HIR_BLOCK3(ctx, HIR_iADD, head, base, HIR_generate_conv(ctx, base->t, addr, smt));
-
                     if (node->token->flags.ref) res = head;
                     else {
                         res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, TKN_get_tmp_type(tmp.t_type), 0, NULL, &smt->v));

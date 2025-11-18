@@ -20,8 +20,8 @@ typedef struct {
     hir_block_t* exit;
 
     /* CFG data */
-    set_t        leaders;     /* Leaders for block generation     */
-    list_t       blocks;
+    set_t        leaders; /* Leaders for block generation */
+    list_t       blocks;  /* cfg_block_t* list            */
 } cfg_func_t;
 
 typedef struct {
@@ -46,32 +46,32 @@ typedef struct cfg_block {
     /* Basic info and content */
     cfg_block_type_t  type;
     long              id;
-    cfg_func_t*       pfunc; /* parent function */
+    cfg_func_t*       pfunc;    /* parent function            */
 
-    hir_map_t         hmap; /* Mapping to exister HIR ctx */
-    lir_map_t         lmap; /* Mapping to existed LIR ctx */
+    hir_map_t         hmap;     /* Mapping to exister HIR ctx */
+    lir_map_t         lmap;     /* Mapping to existed LIR ctx */
 
     /* Block navigation */
     struct cfg_block* l;
     struct cfg_block* jmp;
-    set_t             pred;
-    set_t             visitors;
+    set_t             pred;     /* cfg_block_t* set            */
+    set_t             visitors; /* long id set                 */
     unsigned int      visited;
     
     /* Dominance frontier analysis */
-    set_t             dom;      /* Dominators               */
-    struct cfg_block* sdom;     /* Strict dominators        */
-    struct cfg_block* dom_c;    /* Dominator children       */
-    struct cfg_block* dom_s;    /* Dominator sibling        */
-    set_t             domf;     /* Dominance frontier       */
+    set_t             dom;      /* Dominators                  */
+    struct cfg_block* sdom;     /* Strict dominators           */
+    struct cfg_block* dom_c;    /* Dominator children          */
+    struct cfg_block* dom_s;    /* Dominator sibling           */
+    set_t             domf;     /* Dominance frontier          */
 
     /* Liveness analysis */
-    set_t             def;      /* Set of defined variables */
-    set_t             use;      /* Set of used variables    */
-    set_t             curr_in;  /* Current IN{} set         */
-    set_t             curr_out; /* Current OUT{} set        */
-    set_t             prev_in;  /* Prev IN{} set            */
-    set_t             prev_out; /* Prev IN{} set            */
+    set_t             def;      /* Set of defined variables    */
+    set_t             use;      /* Set of used variables       */
+    set_t             curr_in;  /* Current IN{} set            */
+    set_t             curr_out; /* Current OUT{} set           */
+    set_t             prev_in;  /* Prev IN{} set               */
+    set_t             prev_out; /* Prev IN{} set               */
 } cfg_block_t;
 
 typedef struct {
@@ -93,11 +93,8 @@ int HIR_CFG_unload_domdata(cfg_ctx_t* cctx);
 int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx);
 cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid);
 
-int HIR_CFG_append_hir_block_front(cfg_block_t* bb, hir_block_t* hh);
 int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh);
 int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh);
-int HIR_CFG_append_lir_block_front(cfg_block_t* bb, lir_block_t* hh);
-int HIR_CFG_append_lir_block_back(cfg_block_t* bb, lir_block_t* hh);
 int HIR_CFG_remove_lir_block(cfg_block_t* bb, lir_block_t* hh);
 
 cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e);

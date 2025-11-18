@@ -2,7 +2,7 @@
 #include <prep/token.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <ast/syntax.h>
+#include <ast/astgen.h>
 #include <prep/markup.h>
 #include <ast/parsers/parser.h>
 #include <ast/opt/condunroll.h>
@@ -26,9 +26,9 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(tkn);
     MRKP_variables(tkn);
 
-    syntax_ctx_t sctx;
+    ast_ctx_t sctx;
     sym_table_t smt;
-    STX_create(tkn, &sctx, &smt);
+    AST_parse_tokens(tkn, &sctx, &smt);
     OPT_condunroll(&sctx);
     
     print_ast(sctx.r, 0);

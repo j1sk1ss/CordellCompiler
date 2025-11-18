@@ -1,7 +1,7 @@
 #include <ast/parsers/parser.h>
 
-static ast_node_t* _parse_primary(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt);
-static ast_node_t* _parse_binary_expression(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt, int min_priority) {
+static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int min_priority) {
     ast_node_t* left = _parse_primary(it, ctx, smt);
     if (!left) return NULL;
     
@@ -36,7 +36,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, syntax_ctx_t* ctx, 
     return left;
 }
 
-static ast_node_t* _parse_array_expression(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
     if (node->token->t_type == STRING_VALUE_TOKEN) {
@@ -83,7 +83,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, syntax_ctx_t* ctx, s
     return opnode;
 }
 
-static ast_node_t* _parse_primary(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     if (((token_t*)list_iter_current(it))->t_type == OPEN_BRACKET_TOKEN) {
         forward_token(it, 1);
         ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0);
@@ -112,6 +112,6 @@ static ast_node_t* _parse_primary(list_iter_t* it, syntax_ctx_t* ctx, sym_table_
     return node;
 }
 
-ast_node_t* cpl_parse_expression(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     return _parse_binary_expression(it, ctx, smt, 0);
 }

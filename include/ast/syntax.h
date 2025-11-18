@@ -17,6 +17,6 @@ Params:
 
 Return 1 if AST generation complete without errors.
 */
-int STX_create(list_t* tkn, syntax_ctx_t* ctx, sym_table_t* smt);
+int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt);
 
 #endif

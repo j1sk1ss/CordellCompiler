@@ -1,6 +1,6 @@
 #include <ast/parsers/parser.h>
 
-ast_node_t* cpl_parse_array_declaration(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
     forward_token(it, 1);
@@ -63,7 +63,8 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, syntax_ctx_t* ctx, sym_
     }
 
     name_node->sinfo.v_id = VRTB_add_info(
-        name_node->token->value, ARRAY_TYPE_TOKEN, scope_id_top(&ctx->scopes.stack), &name_node->token->flags, &smt->v
+        name_node->token->value, ARRAY_TYPE_TOKEN, scope_id_top(&ctx->scopes.stack), 
+        &name_node->token->flags, &smt->v
     );
 
     ARTB_add_info(name_node->sinfo.v_id, array_size, name_node->token->flags.heap, eltype, &smt->a);
@@ -71,7 +72,7 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, syntax_ctx_t* ctx, sym_
     return node;
 }
 
-ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, syntax_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
     if (!node) return NULL;
 
@@ -86,7 +87,8 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, syntax_ctx_t* ctx, s
     forward_token(it, 1);
 
     name_node->sinfo.v_id = VRTB_add_info(
-        name_node->token->value, node->token->t_type, scope_id_top(&ctx->scopes.stack), &name_node->token->flags, &smt->v
+        name_node->token->value, node->token->t_type, scope_id_top(&ctx->scopes.stack), 
+        &name_node->token->flags, &smt->v
     );
 
     if (((token_t*)list_iter_current(it))->t_type == ASSIGN_TOKEN) {
