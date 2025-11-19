@@ -1,4 +1,4 @@
-#include <ast/parsers/parser.h>
+#include <ast/astgens/astgens.h>
 
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int min_priority) {

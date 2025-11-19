@@ -1,4 +1,4 @@
-#include <ast/parsers/parser.h>
+#include <ast/astgens/astgens.h>
 
 static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     switch (((token_t*)list_iter_current(it))->t_type) {

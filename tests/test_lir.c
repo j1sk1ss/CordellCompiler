@@ -5,7 +5,9 @@
 #include <prep/token.h>
 #include <prep/markup.h>
 
+#include <ast/ast.h>
 #include <ast/astgen.h>
+#include <ast/astgens/astgens.h>
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -65,7 +67,7 @@ Tokenization...
     list_t tokens;
     list_init(&tokens);
     if (!TKN_tokenize(fd, &tokens)) { // Analyzation
-        fprintf(stderr, "ERROR! tkn==NULL!\n");
+        fprintf(stderr, "ERROR! tkn == NULL!\n");
         return 1;
     }
 
@@ -127,9 +129,9 @@ Call graph building...
 */
 
     call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);       // Analyzation
-    HIR_CG_perform_dfe(&callctx, &smt);          // Analyzation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);         // Analyzation
+    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
+    HIR_CG_perform_dfe(&callctx, &smt);     // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
     call_graph_print_dot(&callctx);
 
     HIR_LOOP_mark_loops(&cfgctx);           // Analyzation
@@ -144,10 +146,10 @@ SSA form building...
 ========================
 */
 
-    HIR_CFG_create_domdata(&cfgctx);     // Analyzation
-    HIR_LTREE_canonicalization(&cfgctx); // Transform
-    HIR_CFG_unload_domdata(&cfgctx);     // Analyzation
-    HIR_CFG_create_domdata(&cfgctx);     // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+    HIR_LTREE_canonicalization(&cfgctx);    // Transform
+    HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
 
     ssa_ctx_t ssactx;
     HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
@@ -356,5 +358,7 @@ Cleanup...
     AST_unload(sctx.r);
     SMT_unload(&smt);
     close(fd);
-    return 0;
+
+    fprintf(stdout, "Allocated: %i\n", mm_get_allocated());
+    return EXIT_SUCCESS;
 }

@@ -102,3 +102,7 @@ int mm_base_free(__attribute__ ((unused)) const char* f, __attribute__ ((unused)
     
     return 1;
 }
+
+int mm_get_allocated() {
+    return _allocated;
+}

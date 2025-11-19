@@ -1,4 +1,4 @@
-#include <ast/parsers/parser.h>
+#include <ast/astgens/astgens.h>
 
 ast_node_t* cpl_parse_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* node = NULL;
@@ -15,7 +15,5 @@ ast_node_t* cpl_parse_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
     scope_elem_t el;
     scope_pop_top(&ctx->scopes.stack, &el);
-    // ctx->symtb.v->offset = el.offset;
-
     return node;
 }

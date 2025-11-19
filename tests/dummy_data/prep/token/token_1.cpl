@@ -1,15 +1,16 @@
 {
-    start(i64 argc, ptr u64 argv) {
-        i32 a = 0;
-        asm(a) {
-            "mov rax, &a",
-            "xor rax, rax",
-            ".label:",
-            "jmp .label",
-            "mov rax, 0x60",
-            "syscall"
+    function strlen(ptr i8 s) => i64 {
+        i64 l = 0;
+        while dref s; {
+            s += 1;
+            l += 1;
         }
 
-        exit 0;
+        return l;
+    }
+
+    start(i64 argc, ptr u64 argv) {
+        str msg = "Hello world!";
+        exit strlen(ref msg);
     }
 }

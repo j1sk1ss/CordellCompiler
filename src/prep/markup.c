@@ -137,10 +137,9 @@ static int _add_variable(variable_t** vars, const char* name, short scope, markp
     return 1;
 }
 
-static inline _remove_token(list_t* lst, token_t* tkn) {
+static inline void _remove_token(list_t* lst, token_t* tkn) {
     list_remove(lst, tkn);
     mm_free(tkn);
-    return 1;
 }
 
 int MRKP_variables(list_t* tkn) {

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <prep/markup.h>
 
-int main(int argc, char* argv[]) {
+int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
     mm_init();
     
@@ -74,5 +74,7 @@ int main(int argc, char* argv[]) {
 
     list_free_force(&tokens);
     close(fd);
-    return 0;
+
+    fprintf(stdout, "Allocated: %i\n", mm_get_allocated());
+    return EXIT_SUCCESS;
 }

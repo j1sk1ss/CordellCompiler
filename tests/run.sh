@@ -56,43 +56,27 @@ TEST_CODES[test_sem]="
 "
 
 # ==== AST testing ====
-TEST_SRCS[test_ast]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/*/*.c std/*.c"
+TEST_SRCS[test_ast]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/astgens/*.c std/*.c"
 TEST_CODES[test_ast]="
     tests/dummy_data/ast/gen/astgen_1.cpl
-    tests/dummy_data/ast/gen/astgen_2.cpl
-    tests/dummy_data/ast/gen/astgen_3.cpl
-    tests/dummy_data/ast/gen/astgen_4.cpl
-    tests/dummy_data/ast/gen/astgen_5.cpl
-    tests/dummy_data/ast/gen/astgen_6.cpl
-    tests/dummy_data/ast/gen/astgen_7.cpl
-    tests/dummy_data/ast/gen/astgen_8.cpl
-    tests/dummy_data/ast/gen/astgen_9.cpl
-    tests/dummy_data/ast/gen/astgen_10.cpl
-    tests/dummy_data/ast/gen/astgen_11.cpl
-    tests/dummy_data/ast/gen/astgen_12.cpl
-    tests/dummy_data/ast/gen/astgen_13.cpl
-    tests/dummy_data/ast/gen/astgen_14.cpl
-    tests/dummy_data/ast/gen/astgen_15.cpl
-    tests/dummy_data/ast/gen/astgen_16.cpl
-    tests/dummy_data/ast/gen/astgen_17.cpl
 "
 
 # ==== AST optimization testing ====
-TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/varinline.c src/ast/opt/constopt.c std/*.c"
+TEST_SRCS[test_constopt]="src/prep/*.c src/ast/*.c src/ast/astgens/*.c src/ast/opt/varinline.c src/ast/opt/constopt.c std/*.c"
 TEST_CODES[test_constopt]="
     tests/dummy_data/ast/opt/constopt/constopt_1.cpl
     tests/dummy_data/ast/opt/constopt/constopt_2.cpl
     tests/dummy_data/ast/opt/constopt/constopt_3.cpl
 "
 
-TEST_SRCS[test_condunroll]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/condunroll.c std/*.c"
+TEST_SRCS[test_condunroll]="src/prep/*.c src/ast/*.c src/ast/astgens/*.c src/ast/opt/condunroll.c std/*.c"
 TEST_CODES[test_condunroll]="
     tests/dummy_data/ast/opt/condunroll/condunroll_1.cpl
     tests/dummy_data/ast/opt/condunroll/condunroll_2.cpl
     tests/dummy_data/ast/opt/condunroll/condunroll_3.cpl
 "
 
-TEST_SRCS[test_deadscope]="src/prep/*.c src/ast/*.c src/ast/*/*.c src/ast/opt/deadscope.c std/*.c"
+TEST_SRCS[test_deadscope]="src/prep/*.c src/ast/*.c src/ast/astgens/*.c src/ast/opt/deadscope.c std/*.c"
 TEST_CODES[test_deadscope]="
     tests/dummy_data/ast/opt/deadscope/deadscope_1.cpl
     tests/dummy_data/ast/opt/deadscope/deadscope_2.cpl
@@ -100,7 +84,7 @@ TEST_CODES[test_deadscope]="
 "
 
 # ==== HIR testing ====
-TEST_SRCS[test_hir]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/parsers/*.c src/hir/*.c src/hir/hirgen/*.c std/*.c"
+TEST_SRCS[test_hir]="src/prep/*.c src/symtab/*.c src/ast/*.c src/ast/astgens/*.c src/hir/*.c src/hir/hirgen/*.c std/*.c"
 TEST_CODES[test_hir]="
     tests/dummy_data/hir/gen/hirgen_1.cpl
     tests/dummy_data/hir/gen/hirgen_2.cpl
@@ -113,7 +97,7 @@ TEST_SRCS[test_cfg]="
     src/symtab/*.c 
     src/prep/*.c
     src/ast/*.c 
-        src/ast/parsers/*.c 
+        src/ast/astgens/*.c 
     src/hir/*.c 
         src/hir/hirgen/*.c 
         src/hir/cfg/*.c 
@@ -132,7 +116,7 @@ TEST_SRCS[test_ssa]="
     src/symtab/*.c 
     src/prep/*.c
     src/ast/*.c 
-        src/ast/parsers/*.c 
+        src/ast/astgens/*.c
     src/hir/*.c 
         src/hir/hirgen/*.c 
         src/hir/cfg/*.c 
@@ -154,7 +138,7 @@ TEST_SRCS[test_dag]="
     src/symtab/*.c 
     src/prep/*.c
     src/ast/*.c 
-        src/ast/parsers/*.c 
+        src/ast/astgens/*.c
     src/hir/*.c 
         src/hir/hirgen/*.c 
         src/hir/cfg/*.c 
@@ -175,7 +159,7 @@ TEST_SRCS[test_dfg]="
     src/symtab/*.c 
     src/prep/*.c
     src/ast/*.c 
-        src/ast/parsers/*.c 
+        src/ast/astgens/*.c
     src/hir/*.c 
         src/hir/hirgen/*.c 
         src/hir/cfg/*.c 
@@ -197,7 +181,7 @@ TEST_SRCS[test_lir]="
     src/symtab/*.c 
     src/prep/*.c
     src/ast/*.c 
-        src/ast/parsers/*.c 
+        src/ast/astgens/*.c
     src/hir/*.c 
         src/hir/constfold/*.c 
         src/hir/hirgen/*.c 
@@ -231,7 +215,7 @@ TEST_SRCS[test_asm]="
     src/symtab/*.c 
     src/prep/*.c
     src/ast/*.c 
-        src/ast/parsers/*.c 
+        src/ast/astgens/*.c
     src/hir/*.c 
         src/hir/constfold/*.c 
         src/hir/hirgen/*.c 

@@ -1,16 +1,22 @@
 #include <stdio.h>
-#include <prep/token.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+#include <prep/token.h>
 #include <prep/markup.h>
+
+#include <ast/ast.h>
 #include <ast/astgen.h>
+#include <ast/astgens/astgens.h>
+
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
+
 #include "ast_helper.h"
 #include "hir_helper.h"
 #include "symtb_helper.h"
 
-int main(int argc, char* argv[]) {
+int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
     mm_init();
     
@@ -57,6 +63,8 @@ int main(int argc, char* argv[]) {
     AST_unload(sctx.r);
     SMT_unload(&smt);
     close(fd);
-    return 0;
+
+    fprintf(stdout, "Allocated: %i\n", mm_get_allocated());
+    return EXIT_SUCCESS;
 }
 

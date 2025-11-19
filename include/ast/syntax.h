@@ -6,7 +6,7 @@
 #include <prep/token_types.h>
 #include <ast/ast.h>
 #include <ast/synctx.h>
-#include <ast/parsers/parser.h>
+#include <ast/astgens/astgens.h>
 
 /*
 Create AST from list of tokens.

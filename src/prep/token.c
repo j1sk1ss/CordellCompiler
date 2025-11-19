@@ -142,14 +142,14 @@ int TKN_tokenize(int fd, list_t* tkn) {
             else if (curr_ctx.mqut)            char_type = STRING_VALUE_TOKEN;
             else {
                 switch (ct) {
-                    case CHAR_ALPHA: char_type = UNKNOWN_STRING_TOKEN;    break;
-                    case CHAR_DIGIT: char_type = UNKNOWN_NUMERIC_TOKEN;   break;
-                    case CHAR_DELIMITER: char_type = DELIMITER_TOKEN;     break;
-                    case CHAR_COMMA: char_type = COMMA_TOKEN;             break;
-                    case CHAR_BRACKET: char_type = UNKNOWN_BRACKET_VALUE; break;
+                    case CHAR_ALPHA:     char_type = UNKNOWN_STRING_TOKEN;  break;
+                    case CHAR_DIGIT:     char_type = UNKNOWN_NUMERIC_TOKEN; break;
+                    case CHAR_DELIMITER: char_type = DELIMITER_TOKEN;       break;
+                    case CHAR_COMMA:     char_type = COMMA_TOKEN;           break;
+                    case CHAR_BRACKET:   char_type = UNKNOWN_BRACKET_VALUE; break;
                     case CHAR_SPACE:
-                    case CHAR_NEWLINE: char_type = LINE_BREAK_TOKEN;      break;
-                    default: char_type = LINE_BREAK_TOKEN;                break;
+                    case CHAR_NEWLINE:   char_type = LINE_BREAK_TOKEN;      break;
+                    default:             char_type = UNKNOWN_CHAR_TOKEN;    break;
                 }
 
                 if (ct == CHAR_NEWLINE) curr_ctx.line++;

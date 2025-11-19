@@ -1,5 +1,4 @@
-/*
-deall.c - Create deallocation points in HIR
+/* deall.c - Create deallocation points in HIR
 */
 
 #include <lir/dfg.h>

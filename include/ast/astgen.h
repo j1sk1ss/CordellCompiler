@@ -4,18 +4,8 @@
 #include <symtab/symtab.h>
 #include <prep/token_types.h>
 #include <ast/ast.h>
+#include <ast/astgens/astgens.h>
 #include <std/list.h>
-#include <std/stack.h>
-
-typedef struct {
-    int           s_id;
-    scope_stack_t stack;
-} scope_info_t;
-
-typedef struct {
-    ast_node_t*  r;
-    scope_info_t scopes;
-} ast_ctx_t;
 
 static inline int forward_token(list_iter_t* it, int steps) {
     while (steps-- > 0) {
@@ -25,5 +15,7 @@ static inline int forward_token(list_iter_t* it, int steps) {
 
     return 1;
 }
+
+int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt);
 
 #endif

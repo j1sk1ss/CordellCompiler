@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-int main(int argc, char* argv[]) {
+int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("RUNNING TEST %s...\n", argv[0]);
     mm_init();
     
@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     list_t tokens;
     list_init(&tokens);
     if (!TKN_tokenize(fd, &tokens)) {
-        fprintf(stderr, "ERROR! tkn==NULL!\n");
+        fprintf(stderr, "ERROR! tkn == NULL!\n");
         return EXIT_FAILURE;
     }
 
@@ -40,5 +40,7 @@ int main(int argc, char* argv[]) {
 
     list_free_force(&tokens);
     close(fd);
+
+    fprintf(stdout, "Allocated: %i\n", mm_get_allocated());
     return EXIT_SUCCESS;
 }

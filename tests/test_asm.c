@@ -68,7 +68,7 @@ Tokenization...
     list_t tokens;
     list_init(&tokens);
     if (!TKN_tokenize(fd, &tokens)) { // Analyzation
-        fprintf(stderr, "ERROR! tkn==NULL!\n");
+        fprintf(stderr, "ERROR! tkn == NULL!\n");
         return 1;
     }
 
@@ -119,9 +119,9 @@ CFGv2 from HIR and call graph after TRE and inline optimization...
 ========================
 */
 
-    HIR_CFG_perform_tre(&cfgctx, &smt);    // Transform
-    HIR_CFG_unload(&cfgctx);               // Analyzation
-    HIR_CFG_build(&hirctx, &cfgctx);       // Analyzation
+    HIR_CFG_perform_tre(&cfgctx, &smt); // Transform
+    HIR_CFG_unload(&cfgctx);            // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx);    // Analyzation
 
 /*
 ========================
@@ -130,9 +130,9 @@ Call graph building...
 */
 
     call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);       // Analyzation
-    HIR_CG_perform_dfe(&callctx, &smt);          // Analyzation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);         // Analyzation
+    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
+    HIR_CG_perform_dfe(&callctx, &smt);     // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
     call_graph_print_dot(&callctx);
 
     HIR_LOOP_mark_loops(&cfgctx);           // Analyzation
@@ -373,5 +373,7 @@ Cleanup...
     AST_unload(sctx.r);
     SMT_unload(&smt);
     close(fd);
-    return 0;
+
+    fprintf(stdout, "Allocated: %i\n", mm_get_allocated());
+    return EXIT_SUCCESS;
 }
