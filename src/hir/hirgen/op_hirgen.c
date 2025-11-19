@@ -45,11 +45,9 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
         lt2 = HIR_generate_conv(ctx, res->t, lt2, smt);
         HIR_BLOCK2(ctx, HIR_STORE, res, lt2);
         HIR_BLOCK1(ctx, HIR_JMP, end_lb);
-
         HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
         HIR_BLOCK2(ctx, HIR_STORE, res, HIR_SUBJ_CONST(1));
         HIR_BLOCK1(ctx, HIR_JMP, end_lb);
-
         HIR_BLOCK1(ctx, HIR_MKLB, end_lb);
     }
     else if (op->token->t_type == AND_TOKEN) {
@@ -68,11 +66,9 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
         lt2 = HIR_generate_conv(ctx, res->t, lt2, smt);
         HIR_BLOCK2(ctx, HIR_STORE, res, lt2);
         HIR_BLOCK1(ctx, HIR_JMP, end_lb);
-
         HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
         HIR_BLOCK2(ctx, HIR_STORE, res, HIR_SUBJ_CONST(0));
         HIR_BLOCK1(ctx, HIR_JMP, end_lb);
-
         HIR_BLOCK1(ctx, HIR_MKLB, end_lb);
     }
     else {
@@ -84,7 +80,6 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
         
         lt1 = HIR_generate_conv(ctx, res->t, lt1, smt);
         lt2 = HIR_generate_conv(ctx, res->t, lt2, smt);
-
         switch (op->token->t_type) {
             case BITMOVE_LEFT_TOKEN:  HIR_BLOCK3(ctx, HIR_iBLFT, res, lt1, lt2); break;
             case BITMOVE_RIGHT_TOKEN: HIR_BLOCK3(ctx, HIR_iBRHT, res, lt1, lt2); break;

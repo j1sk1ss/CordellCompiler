@@ -42,7 +42,7 @@ static int _iterate_block(
                 list_iter_t it;
                 list_iter_hinit(&h->targ->storage.list.h, &it);
                 hir_subject_t* hir_elem;
-                while ((hir_elem = list_iter_next(&it))) {
+                while ((hir_elem = (hir_subject_t*)list_iter_next(&it))) {
                     list_add(&lir_elems->storage.list.h, x86_64_format_variable(hir_elem));
                 }
 

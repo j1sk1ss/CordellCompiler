@@ -34,7 +34,7 @@ int HIR_CG_apply_dfe(cfg_ctx_t* cctx, call_graph_t* ctx) {
     cfg_func_t* fb;
     call_graph_node_t* nd;
     list_iter_hinit(&cctx->funcs, &lit);
-    while ((fb = list_iter_next(&lit))) {
+    while ((fb = (cfg_func_t*)list_iter_next(&lit))) {
         if (!map_get(&ctx->verts, fb->fid, (void**)&nd)) continue;
         fb->used = nd->flag;
     }

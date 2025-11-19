@@ -189,7 +189,6 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, i
     }
 
     print_debug("set2linear complete, size(linear)=%i", list_size(&linear));
-
     list_iter_hinit(&linear, &it);
     hir_block_t* inv;
     while ((inv = (hir_block_t*)list_iter_next(&it))) {
@@ -203,12 +202,10 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, i
     }
 
     print_debug("preheader move complete for loop header=%i", header->id);
-
     set_free(&inductive);
     list_free(&linear);
     set_free(&invariant_defs);
     set_free(&loop_hir);
-
     return changed;
 }
 

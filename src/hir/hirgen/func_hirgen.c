@@ -1,18 +1,18 @@
 #include <hir/hirgens/hirgens.h>
 
 int HIR_generate_return_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_BLOCK1(ctx, HIR_FRET, HIR_generate_elem(node->child, ctx, smt));
-    return 1;
+    return HIR_BLOCK1(ctx, HIR_FRET, HIR_generate_elem(node->child, ctx, smt));
 }
 
 hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
     func_info_t fi;
-    if (!FNTB_get_info_id(node->sinfo.v_id, &fi, &smt->f)) return NULL;
+    if (!FNTB_get_info_id(node->sinfo.v_id, &fi, &smt->f)) {
+        return NULL;
+    }
 
     hir_subject_t* args = HIR_SUBJ_LIST();
     for (ast_node_t *arg = node->child; arg; arg = arg->sibling) {
-        hir_subject_t* carg = HIR_generate_elem(arg, ctx, smt);
-        list_add(&args->storage.list.h, carg);
+        list_add(&args->storage.list.h, HIR_generate_elem(arg, ctx, smt));
     }
     
     if (!ret) {

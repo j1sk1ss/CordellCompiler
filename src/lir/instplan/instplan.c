@@ -85,7 +85,7 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
                 list_iter_t el_it;
                 list_iter_hinit(&lh->targ->storage.list.h, &el_it);
                 lir_subject_t* elem;
-                while ((elem = list_iter_next(&el_it))) {
+                while ((elem = (lir_subject_t*)list_iter_next(&el_it))) {
                     if (elem->t != LIR_VARIABLE) continue;
                     instructions_dag_node_t* src = _find_or_create_node(_find_src(lh, bb->lmap.entry, elem), dag);
                     if (src) {
@@ -352,7 +352,7 @@ static int _apply_schedule(cfg_block_t* bb, list_t* scheduled) {
     list_iter_t it;
     list_iter_hinit(scheduled, &it);
     instructions_dag_node_t* nd;
-    while ((nd = list_iter_next(&it))) {
+    while ((nd = (instructions_dag_node_t*)list_iter_next(&it))) {
         if (prev) {
             HIR_CFG_remove_lir_block(bb, nd->b);
             LIR_unlink_block(nd->b);
@@ -412,12 +412,12 @@ int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
-    while ((fb = list_iter_next(&fit))) {
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
         if (!fb->used) continue;
         list_iter_t bit;
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* bb;
-        while ((bb = list_iter_next(&bit))) {
+        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
             instructions_dag_t dag;
             map_init(&dag.alive_edges);
             _build_instructions_dag(bb, &dag);

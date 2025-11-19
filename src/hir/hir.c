@@ -189,7 +189,7 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
             list_iter_t it;
             list_iter_hinit(&s->storage.list.h, &it);
             hir_subject_t* arg;
-            while ((arg = list_iter_next(&it))) {
+            while ((arg = (hir_subject_t*)list_iter_next(&it))) {
                 list_add(&ns->storage.list.h, HIR_copy_subject(arg));
             }
 
@@ -261,11 +261,8 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     blk->prev   = NULL;
 
     if (fa && !fa->home) fa->home = blk;
-    else if (fa) fa->users++;
     if (sa && !sa->home) sa->home = blk;
-    else if (sa) sa->users++;
     if (ta && !ta->home) ta->home = blk;
-    else if (ta) ta->users++;
     
     return blk;
 }
@@ -297,7 +294,7 @@ int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos) {
 }
 
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
-    if (!ctx || !block) return -1;
+    if (!ctx || !block) return 0;
     if (!ctx->h) ctx->h = ctx->t = block;
     else {
         block->prev  = ctx->t;
@@ -305,7 +302,7 @@ int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
         ctx->t       = block;
     }
     
-    return 0;
+    return 1;
 }
 
 int HIR_unlink_block(hir_block_t* block) {

@@ -8,7 +8,7 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
         if (hh->op == HIR_FARGLD) {
             hir_block_t* nblock = HIR_copy_block(hh);
             nblock->op   = HIR_STORE;
-            nblock->sarg = list_iter_next(&it);
+            nblock->sarg = (hir_subject_t*)list_iter_next(&it);
             HIR_insert_block_before(nblock, pos);
         }
 
@@ -52,7 +52,7 @@ static cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long fid) {
     list_iter_t fit;
     cfg_func_t* fb;
     list_iter_hinit(&cctx->funcs, &fit);
-    while ((fb = list_iter_next(&fit))) {
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
         if (fb->fid == fid) return fb;
     }
 
@@ -79,12 +79,12 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
     list_iter_t fit;
     cfg_func_t* fb;
     list_iter_hinit(&cctx->funcs, &fit);
-    while ((fb = list_iter_next(&fit))) {
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
         if (!fb->used) continue;
         list_iter_t bit;
         cfg_block_t* bb;
         list_iter_hinit(&fb->blocks, &bit);
-        while ((bb = list_iter_next(&bit))) {
+        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
             hir_block_t* hh = bb->hmap.entry;
             while (hh) {
                 if (HIR_funccall(hh->op)) {

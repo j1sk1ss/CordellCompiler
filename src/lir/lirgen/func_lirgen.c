@@ -5,7 +5,7 @@ static int _pass_params(lir_operation_t op, lir_ctx_t* ctx, list_t* args) {
     list_iter_t it;
     list_iter_hinit(args, &it);
     hir_subject_t* s;
-    while ((s = list_iter_next(&it))) {
+    while ((s = (hir_subject_t*)list_iter_next(&it))) {
         LIR_BLOCK2(ctx, op, x86_64_format_variable(s), LIR_SUBJ_CONST(argnum++));
     }
 

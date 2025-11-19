@@ -9,8 +9,7 @@ int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx) {
 }
 
 int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx) {
-    HIR_BLOCK1(ctx, HIR_OEXT, HIR_SUBJ_STRING(node));
-    return 1;
+    return HIR_BLOCK1(ctx, HIR_OEXT, HIR_SUBJ_STRING(node));
 }
 
 int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
@@ -31,16 +30,13 @@ int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt)
 }
 
 int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_BLOCK1(ctx, HIR_EXITOP, HIR_generate_elem(node->child, ctx, smt));    
-    return 1;
+    return HIR_BLOCK1(ctx, HIR_EXITOP, HIR_generate_elem(node->child, ctx, smt));
 }
 
 hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
     hir_subject_t* args = HIR_SUBJ_LIST();
     for (ast_node_t* e = node->child; e; e = e->sibling) {
-        hir_subject_t* arg = HIR_generate_elem(e, ctx, smt);
-        list_add(&args->storage.list.h, arg);
-        // HIR_BLOCK1(ctx, HIR_VRUSE, arg);
+        list_add(&args->storage.list.h, HIR_generate_elem(e, ctx, smt));
     }
 
     if (!ret) {
@@ -54,6 +50,5 @@ hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_
 }
 
 int HIR_generate_breakpoint_block(hir_ctx_t* ctx) {
-    HIR_BLOCK0(ctx, HIR_BREAKPOINT);
-    return 1;
+    return HIR_BLOCK0(ctx, HIR_BREAKPOINT);
 }

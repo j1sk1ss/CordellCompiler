@@ -302,7 +302,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                 list_iter_t it;
                 list_iter_hinit(&s->storage.list.h, &it);
                 hir_subject_t* s;
-                while ((s = list_iter_next(&it))) {
+                while ((s = (hir_subject_t*)list_iter_next(&it))) {
                     dst = sprintf_hir_subject(dst, s, smt);
                     dst += sprintf(dst, " ");
                 }

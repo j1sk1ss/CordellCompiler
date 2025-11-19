@@ -4,8 +4,7 @@ int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     hir_subject_t* args = HIR_SUBJ_LIST();
     ast_node_t* h = node->child;
     for (; h->token; h = h->sibling) {
-        hir_subject_t* arg = HIR_generate_load(h, ctx, smt);
-        list_add(&args->storage.list.h, arg);
+        list_add(&args->storage.list.h, HIR_generate_load(h, ctx, smt));
     }
 
     HIR_BLOCK3(ctx, HIR_STASM, NULL, NULL, args);

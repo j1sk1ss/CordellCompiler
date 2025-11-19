@@ -411,7 +411,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             list_iter_t elem_it;
                             list_iter_hinit(&lh->targ->storage.list.h, &elem_it);
                             lir_subject_t* elem;
-                            while ((elem = list_iter_next(&elem_it))) {
+                            while ((elem = (lir_subject_t*)list_iter_next(&elem_it))) {
                                 if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
                                 LIR_insert_block_before(
                                     LIR_create_block(LIR_iMOV, _create_mem(arroff - pos * elsize, 1), elem, NULL), lh

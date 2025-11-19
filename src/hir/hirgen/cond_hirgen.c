@@ -113,15 +113,14 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 
     hir_subject_t* end = HIR_SUBJ_LABEL();
     for (ast_node_t* curr_case = cases->child; curr_case; curr_case = curr_case->sibling) {
+        hir_subject_t* clb = HIR_SUBJ_LABEL();
+        HIR_BLOCK1(ctx, HIR_MKLB, clb);
+        
         if (curr_case->token->t_type == DEFAULT_TOKEN && !def) {
-            hir_subject_t* clb = HIR_SUBJ_LABEL();
-            HIR_BLOCK1(ctx, HIR_MKLB, clb);
             HIR_generate_block(curr_case->child, ctx, smt);
             def = clb;
         }
         else {
-            hir_subject_t* clb = HIR_SUBJ_LABEL();
-            HIR_BLOCK1(ctx, HIR_MKLB, clb);
             HIR_generate_block(curr_case->child->sibling, ctx, smt);
             cases_info[cases_count].v = str_atoi(curr_case->child->token->value);
             cases_info[cases_count].l = clb;

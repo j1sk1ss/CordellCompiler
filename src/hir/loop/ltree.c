@@ -123,7 +123,7 @@ int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx) {
     list_iter_t it;
     list_iter_hinit(&ctx->loops, &it);
     loop_node_t* n;
-    while ((n = list_iter_next(&it))) {
+    while ((n = (loop_node_t*)list_iter_next(&it))) {
         _loop_node_free(n);
     }
 

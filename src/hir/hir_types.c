@@ -116,14 +116,7 @@ hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b)
     int size_a = HIR_get_type_size(a);
     int size_b = HIR_get_type_size(b);
 
-    int isfloat_a = (a == HIR_TMPVARF32 || a == HIR_TMPVARF64 ||
-                     a == HIR_STKVARF32 || a == HIR_STKVARF64 ||
-                     a == HIR_GLBVARF32 || a == HIR_GLBVARF64);
-    int isfloat_b = (b == HIR_TMPVARF32 || b == HIR_TMPVARF64 ||
-                     b == HIR_STKVARF32 || b == HIR_STKVARF64 ||
-                     b == HIR_GLBVARF32 || b == HIR_GLBVARF64);
-
-    if (isfloat_a || isfloat_b) {
+    if (HIR_is_float(a) || HIR_is_float(b)) {
         int max_size = size_a > size_b ? size_a : size_b;
         return max_size <= 4 ? HIR_TMPVARF32 : HIR_TMPVARF64; 
     }

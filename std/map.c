@@ -104,7 +104,7 @@ int map_get(map_t* m, long k, void** v) {
     for (;;) {
         if (!m->entries[idx].used) return 0;
         if (m->entries[idx].used && m->entries[idx].key == k) {
-            *v = m->entries[idx].value;
+            if (v) *v = m->entries[idx].value;
             return 1;
         }
 

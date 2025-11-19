@@ -39,7 +39,7 @@ int HIR_CFG_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
                 hir_subject_t* arg;
                 ast_node_t* ast_arg = fi.args->child;
                 list_iter_hinit(&exit->targ->storage.list.h, &args);
-                while ((arg = list_iter_next(&args)) && ast_arg) {
+                while ((arg = (hir_subject_t*)list_iter_next(&args)) && ast_arg) {
                     hir_block_t* argload = HIR_create_block(HIR_STORE, HIR_SUBJ_ASTVAR(ast_arg->child), arg, NULL);
                     HIR_insert_block_before(argload, jmp);
                     ast_arg = ast_arg->sibling;
