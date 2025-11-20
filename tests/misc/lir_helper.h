@@ -1,6 +1,7 @@
 #ifndef LIR_HELPER_H_
 #define LIR_HELPER_H_
 
+#include <symtab/symtab.h>
 #include <lir/lir.h>
 #include <lir/lir_types.h>
 #include "reg_helper.h"

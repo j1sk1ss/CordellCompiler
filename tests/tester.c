@@ -1,53 +1,75 @@
 #include <stdio.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
 
-#include <prep/token.h>
-#include <prep/markup.h>
+#ifdef PREP_TESTING
+    #include <prep/token.h>
+    #include <prep/markup.h>
+#endif
 
-#include <ast/astgen.h>
+#ifdef AST_TESTING
+    #include <ast/ast.h>
+    #include <ast/astgen.h>
+    #include <ast/astgens/astgens.h>
+    #include "misc/ast_helper.h"
+#endif
 
-#include <hir/constfold.h>
-#include <hir/hirgen.h>
-#include <hir/hirgens/hirgens.h>
-#include <hir/func.h>
-#include <hir/loop.h>
-#include <hir/cfg.h>
-#include <hir/ssa.h>
-#include <hir/dag.h>
+#ifdef HIR_TESTING
+    #include <hir/hirgen.h>
+    #include <hir/hirgens/hirgens.h>
+    #include <hir/cfg.h>
+#ifdef HIR_SSA_TESTING
+    #include <hir/ssa.h>
+#ifdef HIR_DAG_TESTING
+    #include <hir/dag.h>
+#ifdef CONSTFOLD_TESTING
+    #include <hir/constfold.h>
+#endif
+    #include "dag_helper.h"
+#endif
+    #include <hir/func.h>
+    #include <hir/loop.h>
+#endif
+    #include "misc/hir_helper.h"
+#endif
 
-#include <lir/dfg.h>
-#include <lir/constfold.h>
-#include <lir/lirgen.h>
-#include <lir/lirgens/lirgens.h>
-#include <lir/instsel/instsel.h>
-#include <lir/instsel/x84_64_gnu_nasm.h>
-#include <lir/instplan/instplan.h>
-#include <lir/instplan/targinfo.h>
-#include <lir/regalloc/regalloc.h>
-#include <lir/regalloc/x84_64_gnu_nasm.h>
-#include <lir/peephole/peephole.h>
-#include <lir/peephole/x84_64_gnu_nasm.h>
+#ifdef LIR_TESTING
+    #include <lir/lirgen.h>
+    #include <lir/lirgens/lirgens.h>
+#ifdef CONSTFOLD_TESTING
+    #include <lir/constfold.h>
+#endif
+#ifdef LIR_INSTSEL_TESTING
+    #include <lir/instsel/instsel.h>
+    #include <lir/instsel/x84_64_gnu_nasm.h>
+#endif
+#ifdef LIR_INSTPLAN_TESTING
+    #include <lir/instplan/targinfo.h>
+    #include <lir/instplan/instplan.h>
+#endif
+#ifdef LIR_REGALLOC_TESTING
+    #include <lir/dfg.h>
+    #include <lir/regalloc/regalloc.h>
+    #include <lir/regalloc/x84_64_gnu_nasm.h>
+    #include "misc/ral_helper.h"
+#endif
+#ifdef LIR_PEEPHOLE_TESTING
+    #include <lir/peephole/peephole.h>
+    #include <lir/peephole/x84_64_gnu_nasm.h>
+#endif
+    #include "misc/lir_helper.h"
+#endif
 
-#include <asm/asmgen.h>
-#include <asm/x86_64_asmgen.h>
+#ifdef CODEGEN_TESTING
+    #include <asm/asmgen.h>
+    #include <asm/x86_64_asmgen.h>
+#endif
 
-#include "ast_helper.h"
-#include "hir_helper.h"
-#include "dag_helper.h"
-#include "lir_helper.h"
-#include "ral_helper.h"
-#include "symtb_helper.h"
+#include "misc/symtb_helper.h"
 
 int main(__attribute__ ((unused)) int argc, char* argv[]) {
-    printf("Running test %s...\n", argv[0]);
     mm_init();
-
-/*
-========================
-Source code reading...
-========================
-*/
 
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
@@ -55,16 +77,13 @@ Source code reading...
         return 1;
     }
 
+#ifdef SRC_PRINT
     char data[2048] = { 0 };
     pread(fd, data, 2048, 0);
     printf("Source data: %s\n\n", data);
+#endif
 
-/*
-========================
-Tokenization...
-========================
-*/
-
+#ifdef PREP_TESTING
     list_t tokens;
     list_init(&tokens);
     if (!TKN_tokenize(fd, &tokens)) { // Analyzation
@@ -72,62 +91,53 @@ Tokenization...
         return 1;
     }
 
-/*
-========================
-Tokens preparation...
-========================
-*/
-
     MRKP_mnemonics(&tokens); // Analyzation
     MRKP_variables(&tokens); // Analyzation
 
-/*
-========================
-AST generation...
-========================
-*/
+#ifdef TOKEN_PRINT
+    printf("\nTokens:\n");
+    list_iter_t it;
+    list_iter_hinit(&tokens, &it);
+    token_t* h;
+    while ((h = (token_t*)list_iter_next(&it))) {
+        printf(
+            "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
+            h->flags.glob ? "glob " : "", 
+            h->lnum, 
+            h->t_type, 
+            h->value,
+            h->flags.ptr  ? "ptr "  : "", 
+            h->flags.ro   ? "ro "   : "",
+            h->flags.dref ? "dref " : "",
+            h->flags.ref  ? "ref "  : ""
+        );
+    }
+#endif
+#endif
 
     sym_table_t smt;
     SMT_init(&smt);
+
+#ifdef AST_TESTING
     ast_ctx_t sctx = { .r = NULL };
     AST_parse_tokens(&tokens, &sctx, &smt); // Analyzation
+#ifdef AST_PRINT
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
+#endif
+#endif
 
-/*
-========================
-AST -> HIR...
-========================
-*/
-
+#ifdef HIR_TESTING
     hir_ctx_t hirctx = { .h = NULL, .t = NULL };
-    HIR_generate(&sctx, &hirctx, &smt); // Analyzation
-
-/*
-========================
-CFGv1 from HIR...
-========================
-*/
+    HIR_generate(&sctx, &hirctx, &smt);     // Analyzation
 
     cfg_ctx_t cfgctx;
-    HIR_CFG_build(&hirctx, &cfgctx); // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx);        // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
 
-/*
-========================
-CFGv2 from HIR and call graph after TRE and inline optimization...
-========================
-*/
-
-    HIR_CFG_perform_tre(&cfgctx, &smt); // Transform
-    HIR_CFG_unload(&cfgctx);            // Analyzation
-    HIR_CFG_build(&hirctx, &cfgctx);    // Analyzation
-
-/*
-========================
-Call graph building...
-========================
-*/
+    HIR_CFG_perform_tre(&cfgctx, &smt);     // Transform
+    HIR_CFG_unload(&cfgctx);                // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx);        // Analyzation
 
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
@@ -141,88 +151,64 @@ Call graph building...
     HIR_CFG_build(&hirctx, &cfgctx);        // Analyzation
     HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
     
-/*
-========================
-SSA form building...
-========================
-*/
-
-    HIR_CFG_create_domdata(&cfgctx);     // Analyzation
-    HIR_LTREE_canonicalization(&cfgctx); // Transform
-    HIR_CFG_unload_domdata(&cfgctx);     // Analyzation
-    HIR_CFG_create_domdata(&cfgctx);     // Analyzation
-
-    ssa_ctx_t ssactx;
-    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
-    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
-
-/*
-========================
-Loop LICM opt...
-========================
-*/
-
-    HIR_compute_homes(&hirctx);    // Analyzation
-    HIR_LTREE_licm(&cfgctx, &smt); // Transform
-
-/*
-========================
-HIR debug information...
-========================
-*/
-
-    printf("\n\n========== Raw HIR ==========\n");
+#ifdef HIR_PRINT
+    printf("\n\n========== HIRv1 ==========\n");
     hir_block_t* hh = hirctx.h;
     while (hh) {
         print_hir_block(hh, 1, &smt);
         hh = hh->next;
     }
+#endif
 
-/*
-========================
-CFG -> DAG
-========================
-*/
+#ifdef HIR_SSA_TESTING
+    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+    HIR_LTREE_canonicalization(&cfgctx);    // Transform
+    HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
 
-    HIR_CFG_make_allias(&cfgctx, &smt);              // Analyzation
+    ssa_ctx_t ssactx;
+    list_init(&ssactx.vers);
+    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
+
+    HIR_compute_homes(&hirctx);             // Analyzation
+    HIR_LTREE_licm(&cfgctx, &smt);          // Transform
+#ifdef HIR_PRINT
+    printf("\n\n========== HIRv2 ==========\n");
+    hh = hirctx.h;
+    while (hh) {
+        print_hir_block(hh, 1, &smt);
+        hh = hh->next;
+    }
+#endif
+#ifdef HIR_DAG_TESTING
+    HIR_CFG_make_allias(&cfgctx, &smt);          // Analyzation
 
     dag_ctx_t dagctx;
-    HIR_DAG_init(&dagctx);                           // Analyzation
-    HIR_DAG_generate(&cfgctx, &dagctx, &smt);        // Analyzation
-    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);           // Analyzation
+    HIR_DAG_init(&dagctx);                       // Analyzation
+    HIR_DAG_generate(&cfgctx, &dagctx, &smt);    // Analyzation
+    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);       // Analyzation
     dump_dag_dot(&dagctx, &smt);
-
-    HIR_sparse_const_propagation(&dagctx, &smt);     // Analyzation
-
-/*
-========================
-HIR debug information...
-========================
-*/
-
+#ifdef CONSTFOLD_TESTING
+    HIR_sparse_const_propagation(&dagctx, &smt); // Analyzation
+#endif
+#ifdef HIR_PRINT
     printf("\n\n========== HIR prepared ==========\n");
     hh = hirctx.h;
     while (hh) {
         print_hir_block(hh, 1, &smt);
         hh = hh->next;
     }
+#endif
+#endif
+#endif
+#endif
 
-/*
-========================
-HIR -> LIR...
-========================
-*/
-
+#ifdef LIR_TESTING
     HIR_CFG_cleanup_navigation(&cfgctx);
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);        // Analyzation
-
-/*
-========================
-LIR debug information...
-========================
-*/
-
+#ifdef LIR_PRINT
     printf("\n\n========== LIRv1 ==========\n");
     lir_printer_reset();
     lir_block_t* lh = lirctx.h;
@@ -230,24 +216,14 @@ LIR debug information...
         print_lir_block(lh, &smt);
         lh = lh->next;
     }
+#endif
 
-/*
-========================
-LIR instruction planning
-========================
-*/
-
+#ifdef LIR_INSTPLAN_TESTING
     target_info_t trginfo;
     TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
     LIR_plan_instructions(&cfgctx, &trginfo); // Transform
     TRGINF_unload(&trginfo);
-
-/*
-========================
-LIR debug information...
-========================
-*/
-
+#ifdef LIR_PRINT
     printf("\n\n========== LIR planned instructions ==========\n");
     lir_printer_reset();
     lh = lirctx.h;
@@ -255,20 +231,18 @@ LIR debug information...
         print_lir_block(lh, &smt);
         lh = lh->next;
     }
+#endif
+#endif
 
-/*
-========================
-LIR instruction selection
-========================
-*/
 
+#ifdef LIR_INSTSEL_TESTING
     inst_selector_h inst_sel = { 
         .select_instructions = x86_64_gnu_nasm_instruction_selection,
         .select_memory       = x86_64_gnu_nasm_memory_selection
     };
 
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
-
+#ifdef LIR_PRINT
     printf("\n\n========== LIR selected instructions ==========\n");
     lir_printer_reset();
     lh = lirctx.h;
@@ -276,15 +250,13 @@ LIR instruction selection
         print_lir_block(lh, &smt);
         lh = lh->next;
     }
-
+#endif
+#endif
+#ifdef CONSTFOLD_TESTING
     LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform
+#endif
 
-/*
-========================
-LIR register allocation
-========================
-*/
-
+#ifdef LIR_REGALLOC_TESTING
     LIR_DFG_collect_defs(&cfgctx);       // Analyzation
     LIR_DFG_collect_uses(&cfgctx);       // Analyzation
     LIR_DFG_compute_inout(&cfgctx);      // Analyzation
@@ -300,12 +272,7 @@ LIR register allocation
 
     LIR_select_memory(&cfgctx, &colors, &smt, &inst_sel); // Transform
 
-/*
-========================
-LIR debug information...
-========================
-*/
-
+#ifdef LIR_PRINT
     printf("\n\n========== LIR planned and regalloc ==========\n");
     lir_printer_reset();
     lh = lirctx.h;
@@ -313,22 +280,13 @@ LIR debug information...
         print_lir_block(lh, &smt);
         lh = lh->next;
     }
+#endif
+#endif
 
-/*
-========================
-LIR peephole optimization...
-========================
-*/
-
+#ifdef LIR_PEEPHOLE_TESTING
     peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
     LIR_peephole_optimization(&cfgctx, &pph);
-
-/*
-========================
-LIR debug information...
-========================
-*/
-
+#ifdef LIR_PRINT
     printf("\n\n========== LIR peephole optimization ==========\n");
     lir_printer_reset();
     lh = lirctx.h;
@@ -336,41 +294,41 @@ LIR debug information...
         print_lir_block(lh, &smt);
         lh = lh->next;
     }
+#endif
+#endif
+#endif
 
-/*
-========================
-ASM generation...
-========================
-*/
-
+#ifdef CODEGEN_TESTING
     printf("\n\n========== Final ASM ==========\n");
     asm_gen_t asmgen = { .generator = x86_64_generate_asm };
     ASM_generate(&lirctx, &smt, &asmgen, stdout);
+#endif
 
-/*
-========================
-Debug information...
-========================
-*/
-
+#ifdef HIR_TESTING
     printf("CFGv2:\n"); cfg_print(&cfgctx);
+#endif
     print_symtab(&smt);
 
-/*
-========================
-Cleanup...
-========================
-*/
-
+#ifdef LIR_TESTING
     LIR_unload_blocks(lirctx.h);
+#endif
+#ifdef HIR_DAG_TESTING
     HIR_DAG_unload(&dagctx);
+#endif
 
+#ifdef HIR_TESTING
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.h);
+#endif
 
+#ifdef PREP_TESTING
     list_free_force(&tokens);
+#endif
+#ifdef AST_TESTING
     AST_unload(sctx.r);
+#endif
+
     SMT_unload(&smt);
     close(fd);
 

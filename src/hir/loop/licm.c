@@ -150,9 +150,8 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
 static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, int licm) {
     int changed = 0;
     cfg_block_t* header = node->header;
-    cfg_block_t* latch  = node->latch;
+    print_debug("LICM (tree), loop header=%i, latch=%i", header->id, node->latch->id);
 
-    print_debug("LICM (tree), loop header=%i, latch=%i", header->id, latch->id);
     cfg_block_t* preheader = _insert_preheader(cctx, header, &node->blocks);
     if (!preheader) return 0;
     if (!licm) return 1;

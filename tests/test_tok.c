@@ -20,7 +20,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     }
 
     printf("\nTokens:\n");
-
     list_iter_t it;
     list_iter_hinit(&tokens, &it);
     token_t* h;
