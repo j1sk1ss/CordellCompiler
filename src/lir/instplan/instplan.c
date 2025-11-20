@@ -39,6 +39,8 @@ static instructions_dag_node_t* _create_dag_node(lir_block_t* lh) {
 }
 
 static instructions_dag_node_t* _set_node(lir_block_t* lh, instructions_dag_t* dag) {
+    instructions_dag_node_t* prev;
+    if (map_get(&dag->alive_edges, (long)lh, (void**)&prev)) return prev;
     instructions_dag_node_t* nd = _create_dag_node(lh);
     if (!nd) return 0;
     map_put(&dag->alive_edges, (long)lh, nd);

@@ -72,5 +72,12 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
 }
 
 int LIR_RA_unload_igraph(igraph_t* g) {
+    map_iter_t it;
+    igraph_node_t* nd;
+    map_iter_init(&g->nodes, &it);
+    while (map_iter_next(&it, (void**)&nd)) {
+        set_free(&nd->v);
+    }
+
     return map_free_force(&g->nodes);
 }

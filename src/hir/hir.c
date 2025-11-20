@@ -315,8 +315,12 @@ int HIR_unlink_block(hir_block_t* block) {
 
 int HIR_unload_subject(hir_subject_t* s) {
     if (!s) return 0;
-    if (s->t == HIR_PHISET) set_free_force(&s->storage.set.h);
-    if (s->t == HIR_ARGLIST) list_free(&s->storage.list.h);
+    switch (s->t) {
+        case HIR_PHISET:  set_free_force(&s->storage.set.h); break;
+        case HIR_ARGLIST: list_free(&s->storage.list.h);     break;
+        default: break;
+    }
+    
     mm_free(s);
     return 1;
 }

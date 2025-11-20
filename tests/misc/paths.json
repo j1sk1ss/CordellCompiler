@@ -154,7 +154,7 @@
     "lir_instplan": {
         "macros": [
             "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
-            "LIR_TESTING", "LIR_INSTPLAN_TESTING", "LIR_PRINT"
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
@@ -170,6 +170,7 @@
             "src/lir/*.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
+            "src/lir/instsel/*.c",
             "src/lir/instplan/*.c",
             "std/*.c"
         ]
@@ -177,7 +178,7 @@
     "lir_regalloc": {
         "macros": [
             "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
-            "LIR_TESTING", "LIR_REGALLOC_TESTING", "LIR_PRINT"
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
@@ -193,6 +194,8 @@
             "src/lir/*.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
+            "src/lir/instsel/*.c",
+            "src/lir/instplan/*.c",
             "src/lir/dfg/*.c",
             "src/lir/regalloc/*.c",
             "src/lir/regalloc/gc/*.c",
@@ -201,8 +204,8 @@
     },
     "lir_peephole": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "LIR_TESTING", 
-            "LIR_PEEPHOLE_TESTING", "LIR_PRINT"
+            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", "LIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
@@ -218,6 +221,11 @@
             "src/lir/*.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
+            "src/lir/instsel/*.c",
+            "src/lir/instplan/*.c",
+            "src/lir/dfg/*.c",
+            "src/lir/regalloc/*.c",
+            "src/lir/regalloc/gc/*.c",
             "src/lir/peephole/*.c",
             "std/*.c"
         ]

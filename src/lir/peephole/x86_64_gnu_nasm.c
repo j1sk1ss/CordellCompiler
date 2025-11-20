@@ -1,24 +1,21 @@
 #include <lir/peephole/x84_64_gnu_nasm.h>
 
 static inline long _get_long_number(lir_subject_t* s) {
-    if (s->t == LIR_CONSTVAL) return s->storage.cnst.value;
-    else if (s->t == LIR_NUMBER) return str_atoi(s->storage.num.value);
-    return 0;
+    switch (s->t) {
+        case LIR_CONSTVAL: return s->storage.cnst.value;
+        case LIR_NUMBER:   return str_atoi(s->storage.num.value);
+        default: return 0;
+    }
 }
 
 static int _first_pass(cfg_block_t* bb) {
     lir_block_t* lh = bb->lmap.entry;
     while (lh) {
         switch (lh->op) {
-            case LIR_CVTTSS2SI:
-            case LIR_CVTTSD2SI:
             case LIR_CVTSS2SD:
-            case LIR_CVTSD2SS: {
-                if (LIR_subj_equals(lh->farg, lh->sarg)) lh->unused = 1;
-                if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
-                break;
-            }
-
+            case LIR_CVTSD2SS:
+            case LIR_CVTTSS2SI:
+            case LIR_CVTTSD2SI: if (LIR_subj_equals(lh->farg, lh->sarg)) lh->unused = 1;
             case LIR_bOR:
             case LIR_iLWR:
             case LIR_iLRE:
@@ -44,6 +41,7 @@ static int _first_pass(cfg_block_t* bb) {
                     if (!_get_long_number(lh->sarg)) {
                         lh->op = LIR_bXOR;
                         LIR_unload_subject(lh->sarg);
+                        LIR_unload_subject(lh->targ);
                         lh->sarg = lh->farg;
                         lh->targ = lh->farg;
                     }
@@ -141,6 +139,7 @@ static int _second_pass(cfg_block_t* bb) {
                 if (currh->op == lh->op) {
                     if (LIR_subj_equals(currh->farg, src)) break;
                     if (LIR_subj_equals(currh->sarg, dst)) {
+                        LIR_unload_subject(currh->sarg);
                         currh->sarg = src;
                         currh->op   = lh->op;
                     }
@@ -159,7 +158,9 @@ static int _second_pass(cfg_block_t* bb) {
 }
 
 static unsigned int _visit_counter = 1;
-static int _recursive_cleanup(lir_operation_t op, long pred, cfg_block_t* bbh, lir_subject_t* trg, lir_block_t* ign, lir_block_t* off) {
+static int _recursive_cleanup(
+    lir_operation_t op, long pred, cfg_block_t* bbh, lir_subject_t* trg, lir_block_t* ign, lir_block_t* off
+) {
     if (!bbh) return 0;
     if (bbh->visited != _visit_counter) {
         set_free(&bbh->visitors);
@@ -174,7 +175,6 @@ static int _recursive_cleanup(lir_operation_t op, long pred, cfg_block_t* bbh, l
     while (lh) {
         if (LIR_readop(lh->op) && (LIR_subj_equals(lh->sarg, trg) || LIR_subj_equals(lh->targ, trg))) return 0;
         if (lh != ign && lh->op == op && LIR_subj_equals(lh->farg, trg)) return 1;
-
         if (lh == bbh->lmap.exit) break;
         lh = lh->next;
     }

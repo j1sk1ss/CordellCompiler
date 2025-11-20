@@ -33,7 +33,7 @@ const char* fmt_tkn_type(token_t* t) {
     }
 }
 
-static int print_ast(ast_node_t* node, int depth) {
+static inline int print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
     for (int i = 0; i < depth; i++) printf("   ");
     if (node->token && node->token->t_type != SCOPE_TOKEN) {

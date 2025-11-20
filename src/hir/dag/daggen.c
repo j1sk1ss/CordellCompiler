@@ -74,7 +74,6 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         }
 
                         set_t owners;
-                        set_init(&owners);
                         if ((ALLIAS_get_owners(dst->src->storage.var.v_id, &owners, &smt->m) && set_size(&owners))) dst->hash ^= 321123;
                         set_free(&owners);
 

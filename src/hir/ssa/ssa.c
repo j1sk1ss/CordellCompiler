@@ -125,7 +125,9 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                 ) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
-                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t);
+                        hir_subject_type_t tmp_t = hh->farg->t;
+                        if (hh->farg->home == hh) HIR_unload_subject(hh->farg); 
+                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), tmp_t);
                         array_info_t ai;
                         if (ARTB_get_info(vi.v_id, &ai, &smt->a)) {
                             ARTB_add_copy(hh->farg->storage.var.v_id, &ai, &smt->a);

@@ -1,13 +1,10 @@
-/*
-allias.c - Track ownership of address to cell in memory
+/* allias.c - Track ownership of address to cell in memory
 */
 
 #include <hir/cfg.h>
 
 static int _mark_allias(long v_id, long owner_id, allias_map_t* ctx) {
     set_t owners;
-    set_init(&owners);
-
     ALLIAS_get_owners(owner_id, &owners, ctx);    
     set_add(&owners, (void*)owner_id);
 

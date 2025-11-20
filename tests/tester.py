@@ -1,14 +1,11 @@
-import argparse
-import json
 import os
-import subprocess
 import sys
+import json
+import argparse
+import subprocess
 from pathlib import Path
 
 TEST_CONFIGS: dict = {}
-
-def _run_test(debugger: str | None = None) -> None:
-    pass
 
 def _expand_sources(base: str, source_patterns: list) -> list:
     source_files = []
@@ -18,13 +15,14 @@ def _expand_sources(base: str, source_patterns: list) -> list:
             print(f"Warning: No files found for pattern {pattern}", file=sys.stderr)
             
         source_files.extend(str(f) for f in matched_files)
+        
     return source_files
 
 def _build_test(
     base: str, test_name: str, test_config: dict, 
-    compiler: str, test_file: str, output_dir: str, extra_flags: str
+    compiler: str, test_file: str, output_dir: str, extra_flags: list
 ) -> str | None:
-    macros = [f"-D{macro}" for macro in test_config['macros']]
+    macros = [f"-D{macro}" for macro in test_config['macros']] + [f"-{flag}" for flag in extra_flags]
     source_files = _expand_sources(base, test_config['sources'])
     print(f"_build_test, macro={macros}, source_files={' '.join(source_files[:3])} ... [{len(source_files) - 4} more files]") 
     
@@ -32,17 +30,15 @@ def _build_test(
         print(f"Error: No source files found for test {test_name}", file=sys.stderr)
         return None
     
-    output_file = Path(output_dir) / f"test_{test_name}"
-    
-    base_flags = [
+    output_file: Path = Path(output_dir) / f"test_{test_name}"
+    base_flags: list = [
         f'-I{base}include',
         '-g',
         '-Wall',
         '-Wextra',
     ]
     
-    command = [compiler] + base_flags + macros + extra_flags + [test_file] + source_files + ['-o', str(output_file)]
-    
+    command: list = [compiler] + base_flags + macros + [test_file] + source_files + ['-o', str(output_file)]
     print(f"Building test: {test_name}")
     print(f"Output: {output_file}")
     print(f"Macros: {', '.join(test_config['macros'])}")
@@ -134,24 +130,18 @@ def _get_debugger_command(debugger: str, command: list[str]) -> list[str]:
     else:
         return [debugger] + command
 
-def main():
+def _entry() -> None:
     parser = argparse.ArgumentParser(description='Compiler module testing script')
     parser.add_argument('--module', default="all", help='Module to test (or "all" for all modules)')
     parser.add_argument('--compiler', default='gcc', help='C compiler to use (default: gcc)')
-    parser.add_argument('--test-file', default='tester.c', 
-                       help='Path to the main test file (default: test.c)')
-    parser.add_argument('--output-dir', default='./bin', 
-                       help='Output directory for test binaries (default: ./bin)')
-    parser.add_argument('--extra-flags', nargs='*', default=[], 
-                       help='Extra compiler flags')
+    parser.add_argument('--test-file', default='tester.c', help='Path to the main test file (default: test.c)')
+    parser.add_argument('--output-dir', default='./bin', help='Output directory for test binaries (default: ./bin)')
+    parser.add_argument('--extra-flags', nargs='*', default=[], help='Extra compiler flags')
     parser.add_argument('--sources', default='misc/paths.json', help='JSON file with test sources')
     parser.add_argument('--base', default='../', help='Compiler root directory')
     parser.add_argument('--run', action='store_true', help='Run the test after compilation')
-    parser.add_argument('--test-code', default='dummy_data/test1.cpl',
-                       help='Input file for the test (default: test1.cpl)')
-    parser.add_argument('--debugger', choices=['gdb', 'lldb'], 
-                       help='Run test with debugger (implies --run)')
-    
+    parser.add_argument('--test-code', default='dummy_data/test1.cpl', help='Input file for the test (default: test1.cpl)')
+    parser.add_argument('--debugger', choices=['gdb', 'lldb'], help='Run test with debugger (implies --run)')
     args = parser.parse_args()
     
     if not os.path.isfile(args.test_file):
@@ -205,4 +195,4 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
-    main()
+    _entry()

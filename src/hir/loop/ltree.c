@@ -6,7 +6,6 @@ static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, s
     n->header = header;
     n->latch  = latch;
     list_init(&n->children);
-    set_init(&n->blocks);
     set_copy(&n->blocks, loop_blocks);
     return n;
 }

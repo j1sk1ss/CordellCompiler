@@ -67,9 +67,8 @@ int set_equal(set_t* a, set_t* b) {
 
 int set_union(set_t* dst, set_t* a, set_t* b) {
     set_t tmp;
-    set_init(&tmp);
-
-    map_copy(&tmp.body, &a->body);
+    set_copy(&tmp, a);
+    
     set_iter_t it;
     set_iter_init(b, &it);
     void* data;

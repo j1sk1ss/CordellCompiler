@@ -35,6 +35,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
             cfg_block_t* p;
             while (set_iter_next(&it, (void**)&p)) {
                 if (first) {
+                    set_free(&nd);
                     set_copy(&nd, &p->dom);
                     first = 0;   
                 }

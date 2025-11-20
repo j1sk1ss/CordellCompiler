@@ -26,7 +26,7 @@
 #ifdef CONSTFOLD_TESTING
     #include <hir/constfold.h>
 #endif
-    #include "dag_helper.h"
+    #include "misc/dag_helper.h"
 #endif
     #include <hir/func.h>
     #include <hir/loop.h>
@@ -161,9 +161,13 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 
 #ifdef HIR_SSA_TESTING
+    printf("HIR_CFG_create_domdata...\n");
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+    printf("HIR_LTREE_canonicalization...\n");
     HIR_LTREE_canonicalization(&cfgctx);    // Transform
+    printf("HIR_CFG_unload_domdata...\n");
     HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
+    printf("HIR_CFG_create_domdata...\n");
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
 
     ssa_ctx_t ssactx;
@@ -257,24 +261,29 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 
 #ifdef LIR_REGALLOC_TESTING
+    printf("LIR_DFG_collect_defs...\n");
     LIR_DFG_collect_defs(&cfgctx);       // Analyzation
+    printf("LIR_DFG_collect_uses...\n");
     LIR_DFG_collect_uses(&cfgctx);       // Analyzation
+    printf("LIR_DFG_compute_inout...\n");
     LIR_DFG_compute_inout(&cfgctx);      // Analyzation
+    printf("LIR_DFG_create_deall...\n");
     LIR_DFG_create_deall(&cfgctx, &smt); // Transform
 
     map_t colors;
     map_init(&colors);
+    printf("LIR_RA_init_colors...\n");
     LIR_RA_init_colors(&colors, &smt);
     
     regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
+    printf("LIR_regalloc...\n");
     LIR_regalloc(&cfgctx, &smt, &colors, &regall);        // Analyzation
-    printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);
-
+    printf("LIR_select_memory...\n");
     LIR_select_memory(&cfgctx, &colors, &smt, &inst_sel); // Transform
 
 #ifdef LIR_PRINT
+    printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);
     printf("\n\n========== LIR planned and regalloc ==========\n");
-    lir_printer_reset();
     lh = lirctx.h;
     while (lh) {
         print_lir_block(lh, &smt);
@@ -288,7 +297,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_peephole_optimization(&cfgctx, &pph);
 #ifdef LIR_PRINT
     printf("\n\n========== LIR peephole optimization ==========\n");
-    lir_printer_reset();
     lh = lirctx.h;
     while (lh) {
         print_lir_block(lh, &smt);
@@ -309,6 +317,9 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
     print_symtab(&smt);
 
+#ifdef LIR_REGALLOC_TESTING
+    map_free(&colors);
+#endif
 #ifdef LIR_TESTING
     LIR_unload_blocks(lirctx.h);
 #endif

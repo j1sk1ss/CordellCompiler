@@ -75,5 +75,6 @@ int HIR_DAG_unload(dag_ctx_t* ctx) {
         HIR_DAG_unload_node(nd);
     }
 
+    map_free(&ctx->groups);
     return map_free(&ctx->dag);
 }

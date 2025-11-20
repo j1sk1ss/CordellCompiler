@@ -20,7 +20,6 @@ int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            set_init(&cb->def);
             lir_block_t* hl = cb->lmap.entry;
             while (hl) {
                 if (!hl->unused && LIR_writeop(hl->op)) {
@@ -45,7 +44,6 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            set_init(&cb->use);
             lir_block_t* lh = cb->lmap.entry;
             while (lh) {
                 if (!lh->unused) {
@@ -82,7 +80,6 @@ static int _compute_out(cfg_block_t* cfg) {
 
 static int _compute_in(cfg_block_t* cfg) {
     set_t tmp;
-    set_init(&tmp);
     set_copy(&tmp, &cfg->curr_out);
     set_minus_set(&tmp, &cfg->def);
     set_free(&cfg->curr_in);
