@@ -25,7 +25,7 @@ int x86_64_generate_asmblock(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, s
         }
 
         case HIR_ENDASM: {
-            for (int i = 0; i < list_size(&h->targ->storage.list.h); i++) stack_pop(params);
+            for (int i = 0; i < h->targ->storage.cnst.value; i++) stack_pop(params);
             break;
         }
 
