@@ -26,7 +26,7 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
                 }
 
                 if (v->storage.var.offset > 0) snprintf(curr_buffer, sizeof(_buffers[0]), "%s [rbp - %d]", modifier, v->storage.var.offset);
-                else  snprintf(curr_buffer, sizeof(_buffers[0]), "%s [rbp + %d]", modifier, ABS(v->storage.var.offset));
+                else snprintf(curr_buffer, sizeof(_buffers[0]), "%s [rbp + %d]", modifier, ABS(v->storage.var.offset));
                 return curr_buffer;
             }
 
@@ -77,7 +77,7 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
         case LIR_REGISTER: {
             variable_info_t vi;
             if (VRTB_get_info_id(v->storage.var.v_id, &vi, &smt->v)) {
-                switch (vi.vmi.reg) {
+                switch (LIR_format_register(vi.vmi.reg, v->size)) {
                     case XMM0: return "xmm0";
                     case XMM1: return "xmm1";
                     case XMM2: return "xmm2";

@@ -291,9 +291,7 @@ int HIR_funccall(hir_operation_t op) {
         case HIR_FCLL:
         case HIR_STORE_FCLL:
         case HIR_ECLL:
-        case HIR_STORE_ECLL:
-        case HIR_SYSC:
-        case HIR_STORE_SYSC: return 1;
+        case HIR_STORE_ECLL: return 1;
         default: return 0;
     }
 }

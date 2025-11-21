@@ -20,8 +20,8 @@ static int _arrdeclaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
             hir_subject_t* el = HIR_generate_elem(e, ctx, smt);
             if (vi.glob && el->t == HIR_NUMBER) ARTB_add_elems(vi.v_id, str_atoi(el->storage.num.value), &smt->a);
             else if (!vi.glob) {
-                list_add(&elems->storage.list.h, el);
                 HIR_BLOCK1(ctx, HIR_VRUSE, el);
+                list_add(&elems->storage.list.h, el);
             }
         }
 

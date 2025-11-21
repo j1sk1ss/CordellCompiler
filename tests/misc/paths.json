@@ -107,7 +107,8 @@
     },
     "lir_constfold": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREP_TESTING", "AST_TESTING", 
+            "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
             "LIR_TESTING", "CONSTFOLD_TESTING", "LIR_PRINT"
         ],
         "sources": [
@@ -121,6 +122,8 @@
             "src/hir/cfg/*.c",
             "src/hir/loop/*.c",
             "src/hir/func/*.c",
+            "src/hir/dag/*.c",
+            "src/hir/constfold/*.c",
             "src/lir/*.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
@@ -232,9 +235,44 @@
     },
     "asm": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
-            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", 
-            "LIR_PEEPHOLE_TESTING", "CODEGEN_TESTING"
+            "PREP_TESTING", "AST_TESTING", 
+            "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", 
+            "CODEGEN_TESTING"
+        ],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/hir/dag/*.c",
+            "src/hir/constfold/*.c",
+            "src/lir/*.c",
+            "src/lir/dfg/*.c",
+            "src/lir/constfold/*.c",
+            "src/lir/instsel/*.c",
+            "src/lir/instplan/*.c",
+            "src/lir/peephole/*.c",
+            "src/lir/lirgen/*.c",
+            "src/lir/lirgen/misc/*.c",
+            "src/lir/regalloc/*.c",
+            "src/lir/regalloc/gc/*.c",
+            "src/asm/*.c",
+            "src/asm/x86_64_gnu_nasm/*.c",
+            "std/*.c"
+        ]
+    },
+    "asm_constfold": {
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", 
+            "CODEGEN_TESTING", "CONSTFOLD_TESTING"
         ],
         "sources": [
             "src/symtab/*.c",

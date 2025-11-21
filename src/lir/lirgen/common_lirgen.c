@@ -54,6 +54,9 @@ static int _iterate_block(
             case HIR_GDREF: x86_64_store_var2var(LIR_GDREF, ctx, h->farg, h->sarg); break;
             case HIR_LDREF: x86_64_store_var2var(LIR_LDREF, ctx, h->farg, h->sarg); break;
             
+            case HIR_FEND:  LIR_BLOCK0(ctx, LIR_FEND);  break;
+            case HIR_STEND: LIR_BLOCK0(ctx, LIR_STEND); break;
+
             case HIR_TF64: LIR_BLOCK2(ctx, LIR_TF64, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;
             case HIR_TF32: LIR_BLOCK2(ctx, LIR_TF32, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;
             case HIR_TI64: LIR_BLOCK2(ctx, LIR_TI64, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;

@@ -11,6 +11,7 @@
 
     start(i64 argc, ptr u64 argv) {
         str msg = "Hello world!";
-        exit strlen(ref msg);
+        syscall(0x2000004, 1, ref msg, strlen(ref msg));
+        exit 0;
     }
 }

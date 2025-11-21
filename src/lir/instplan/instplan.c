@@ -1,34 +1,5 @@
 #include <lir/instplan/instplan.h>
 
-#ifdef DEBUG
-static void _dump_instructions_dag_dot(instructions_dag_t* dag, long bid) {
-    printf("==== INSTRUCTIONS DAG DUMP ====\n");
-    printf("digraph InstructionsDAG%ld {\n", bid);
-    printf("  rankdir=TB;\n");
-    printf("  node [shape=box, style=filled, fillcolor=lightgray];\n\n");
-
-    map_iter_t it;
-    map_iter_init(&dag->alive_edges, &it);
-    instructions_dag_node_t* node;
-    while (map_iter_next(&it, (void**)&node)) {
-        printf("  node_%p [label=\"%i\"];\n", node, node->b->op);
-    }
-
-    map_iter_init(&dag->alive_edges, &it);
-    while (map_iter_next(&it, (void**)&node)) {
-        set_iter_t sit;
-        set_iter_init(&node->vert, &sit);
-        instructions_dag_node_t* target;
-        while (set_iter_next(&sit, (void**)&target)) {
-            printf("  node_%p -> node_%p;\n", target, node);
-        }
-    }
-
-    printf("}\n");
-    printf("===============================\n");
-}
-#endif
-
 static instructions_dag_node_t* _create_dag_node(lir_block_t* lh) {
     instructions_dag_node_t* nd = (instructions_dag_node_t*)mm_malloc(sizeof(instructions_dag_node_t));
     if (!nd) return NULL;
@@ -143,6 +114,7 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
             }
 
             case LIR_VRUSE:
+            case LIR_STSARG:
             case LIR_STFARG: {
                 instructions_dag_node_t* src  = _find_or_create_node(_find_src(lh, bb->lmap.entry, lh->farg), dag);
                 instructions_dag_node_t* inst = _set_node(lh, dag);
@@ -423,9 +395,6 @@ int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo) {
             instructions_dag_t dag;
             map_init(&dag.alive_edges);
             _build_instructions_dag(bb, &dag);
-#ifdef DEBUG
-            _dump_instructions_dag_dot(&dag, bb->id);
-#endif
             _schedule_block(bb, &dag, trginfo);
             _unload_dag(&dag);
         }

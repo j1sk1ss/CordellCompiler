@@ -194,6 +194,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);       // Analyzation
     dump_dag_dot(&dagctx, &smt);
 #ifdef CONSTFOLD_TESTING
+    printf("HIR_sparse_const_propagation...\n");
     HIR_sparse_const_propagation(&dagctx, &smt); // Analyzation
 #endif
 #ifdef HIR_PRINT
@@ -238,7 +239,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 #endif
 
-
 #ifdef LIR_INSTSEL_TESTING
     inst_selector_h inst_sel = { 
         .select_instructions = x86_64_gnu_nasm_instruction_selection,
@@ -257,7 +257,17 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 #endif
 #ifdef CONSTFOLD_TESTING
+    printf("LIR_apply_sparse_const_propagation...\n");
     LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform
+#ifdef LIR_PRINT
+    printf("\n\n========== LIR const folded ==========\n");
+    lir_printer_reset();
+    lh = lirctx.h;
+    while (lh) {
+        print_lir_block(lh, &smt);
+        lh = lh->next;
+    }
+#endif
 #endif
 
 #ifdef LIR_REGALLOC_TESTING
