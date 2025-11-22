@@ -33,6 +33,7 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
                     nblock->op   = HIR_STORE;
                     nblock->sarg = hh->farg;
                     nblock->farg = res;
+                    if (!res) nblock->unused = 1;
                     break;
                 }
                 default: break;

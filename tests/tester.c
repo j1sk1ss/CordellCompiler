@@ -119,7 +119,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     SMT_init(&smt);
 
 #ifdef AST_TESTING
-    ast_ctx_t sctx = { .r = NULL };
+    ast_ctx_t sctx = { .r = NULL, .fentry = "_main" };
     AST_parse_tokens(&tokens, &sctx, &smt); // Analyzation
 #ifdef AST_PRINT
     printf("\n\n========== AST ==========\n");
@@ -132,12 +132,12 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_generate(&sctx, &hirctx, &smt);     // Analyzation
 
     cfg_ctx_t cfgctx;
-    HIR_CFG_build(&hirctx, &cfgctx);        // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
 
     HIR_CFG_perform_tre(&cfgctx, &smt);     // Transform
     HIR_CFG_unload(&cfgctx);                // Analyzation
-    HIR_CFG_build(&hirctx, &cfgctx);        // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
 
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
@@ -148,7 +148,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_LOOP_mark_loops(&cfgctx);           // Analyzation
     HIR_FUNC_perform_inline(&cfgctx);       // Transform
     HIR_CFG_unload(&cfgctx);                // Analyzation
-    HIR_CFG_build(&hirctx, &cfgctx);        // Analyzation
+    HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
     HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
     
 #ifdef HIR_PRINT

@@ -19,13 +19,14 @@ typedef struct ast_node {
 } ast_node_t;
 
 typedef struct {
-    int           s_id;
-    scope_stack_t stack;
+    int           s_id;  /* Current scope id. */
+    scope_stack_t stack; /* Scope id stack.   */
 } scope_info_t;
 
 typedef struct {
-    ast_node_t*  r;
-    scope_info_t scopes;
+    ast_node_t*  r;      /* AST root.                                */
+    scope_info_t scopes; /* Scopes structure.                        */
+    const char*  fentry; /* Name for entry function. [Arch depended] */
 } ast_ctx_t;
 
 /*

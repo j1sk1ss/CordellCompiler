@@ -31,21 +31,34 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     return res;
 }
 
-int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* name_node = node->child;
-    ast_node_t* body_node = name_node->sibling;
-    HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(name_node));
-    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(body_node->sinfo.s_id));
+static int _generate_calling_block(
+    ast_node_t* name, ast_node_t* body, char entry, hir_ctx_t* ctx, sym_table_t* smt
+) {
+    HIR_BLOCK1(ctx, entry ? HIR_STRT : HIR_FDCL, HIR_SUBJ_FUNCNAME(name));
+    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(body->sinfo.s_id));
 
     int argnum = 0;
-    ast_node_t* t = NULL;
-    for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
+    ast_node_t* t;
+    for (t = body->child; t && t->token && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
         HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->child));
-        HIR_BLOCK2(ctx, HIR_FARGLD, HIR_SUBJ_ASTVAR(t->child), HIR_SUBJ_CONST(argnum++));
+        HIR_BLOCK2(ctx, entry ? HIR_STARGLD : HIR_FARGLD, HIR_SUBJ_ASTVAR(t->child), HIR_SUBJ_CONST(argnum++));
     }
 
     HIR_generate_block(t, ctx, smt);
-    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(body_node->sinfo.s_id));
-    HIR_BLOCK0(ctx, HIR_FEND);
+    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(body->sinfo.s_id));
+    HIR_BLOCK0(ctx, entry ? HIR_STEND : HIR_FEND);
     return 1;
+}
+
+int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    return _generate_calling_block(node, node, 1, ctx, smt);
+}
+
+int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(node->child->sinfo.v_id, &fi, &smt->f)) {
+        return 0;
+    }
+    
+    return _generate_calling_block(node->child, node->child->sibling, fi.entry, ctx, smt);
 }

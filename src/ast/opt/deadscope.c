@@ -108,7 +108,7 @@ _check_case_scope: {}
 
         if (TKN_update_operator(curr->token)) {
             ast_node_t* var = curr->child;
-            if (var->sinfo.s_id < s_id) { /* This scope affect to outer variable */
+            if (var->sinfo.s_id < s_id) {
                 *affect = 1;
                 break;
             }

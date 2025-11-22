@@ -12,6 +12,7 @@
 typedef struct {
     /* Meta flags */
     char         used;
+    char         fentry;
 
     /* Basic info and content */
     long         id;
@@ -90,7 +91,7 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out);
 int HIR_CFG_create_domdata(cfg_ctx_t* cctx);
 int HIR_CFG_unload_domdata(cfg_ctx_t* cctx);
 
-int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx);
+int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt);
 cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid);
 
 int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh);
@@ -101,7 +102,7 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e);
 int HIR_CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next);
 int HIR_CFG_mark_leaders(cfg_ctx_t* ctx);
 int HIR_CFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt);
-int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx);
+int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt);
 int HIR_CFG_unload(cfg_ctx_t* ctx);
 
 #endif
