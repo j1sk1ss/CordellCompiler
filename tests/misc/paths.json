@@ -131,7 +131,7 @@
             "std/*.c"
         ]
     },
-    "lir_instsel": {
+    "lir_selector": {
         "macros": [
             "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_PRINT"
@@ -150,7 +150,8 @@
             "src/lir/*.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
-            "src/lir/instsel/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
             "std/*.c"
         ]
     },
@@ -173,7 +174,8 @@
             "src/lir/*.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
-            "src/lir/instsel/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
             "src/lir/instplan/*.c",
             "std/*.c"
         ]
@@ -197,7 +199,8 @@
             "src/lir/*.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
-            "src/lir/instsel/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
             "src/lir/instplan/*.c",
             "src/lir/dfg/*.c",
             "src/lir/regalloc/*.c",
@@ -224,7 +227,8 @@
             "src/lir/*.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
-            "src/lir/instsel/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
             "src/lir/instplan/*.c",
             "src/lir/dfg/*.c",
             "src/lir/regalloc/*.c",
@@ -256,7 +260,8 @@
             "src/lir/*.c",
             "src/lir/dfg/*.c",
             "src/lir/constfold/*.c",
-            "src/lir/instsel/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
             "src/lir/instplan/*.c",
             "src/lir/peephole/*.c",
             "src/lir/lirgen/*.c",
@@ -290,7 +295,8 @@
             "src/lir/*.c",
             "src/lir/dfg/*.c",
             "src/lir/constfold/*.c",
-            "src/lir/instsel/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
             "src/lir/instplan/*.c",
             "src/lir/peephole/*.c",
             "src/lir/lirgen/*.c",

@@ -133,7 +133,11 @@ int LIR_unlink_block(lir_block_t* block) {
 
 int LIR_unload_subject(lir_subject_t* s) {
     if (!s) return 0;
-    if (s->t == LIR_ARGLIST) list_free(&s->storage.list.h);
+    switch (s->t) {
+        case LIR_ARGLIST: list_free_force(&s->storage.list.h); break;
+        default: break;
+    }
+    
     return mm_free(s);
 }
 

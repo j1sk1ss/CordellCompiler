@@ -41,8 +41,10 @@
     #include <lir/constfold.h>
 #endif
 #ifdef LIR_INSTSEL_TESTING
-    #include <lir/instsel/instsel.h>
-    #include <lir/instsel/x84_64_gnu_nasm.h>
+    #include <lir/selector/instsel.h>
+    #include <lir/selector/memsel.h>
+    #include <lir/selector/savereg.h>
+    #include <lir/selector/x84_64_gnu_nasm.h>
 #endif
 #ifdef LIR_INSTPLAN_TESTING
     #include <lir/instplan/targinfo.h>
@@ -215,7 +217,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_generate(&cfgctx, &lirctx, &smt);        // Analyzation
 #ifdef LIR_PRINT
     printf("\n\n========== LIRv1 ==========\n");
-    lir_printer_reset();
     lir_block_t* lh = lirctx.h;
     while (lh) {
         print_lir_block(lh, &smt);
@@ -242,7 +243,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #ifdef LIR_INSTSEL_TESTING
     inst_selector_h inst_sel = { 
         .select_instructions = x86_64_gnu_nasm_instruction_selection,
-        .select_memory       = x86_64_gnu_nasm_memory_selection
     };
 
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
@@ -261,7 +261,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform
 #ifdef LIR_PRINT
     printf("\n\n========== LIR const folded ==========\n");
-    lir_printer_reset();
     lh = lirctx.h;
     while (lh) {
         print_lir_block(lh, &smt);
@@ -287,10 +286,21 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     
     regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
     printf("LIR_regalloc...\n");
-    LIR_regalloc(&cfgctx, &smt, &colors, &regall);        // Analyzation
-    printf("LIR_select_memory...\n");
-    LIR_select_memory(&cfgctx, &colors, &smt, &inst_sel); // Transform
+    LIR_regalloc(&cfgctx, &smt, &colors, &regall);       // Analyzation
 
+    mem_selector_h mem_sel = { 
+        .select_memory = x86_64_gnu_nasm_memory_selection
+    };
+
+    printf("LIR_select_memory...\n");
+    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
+
+    register_saver_h reg_save = {
+        .save_registers = x86_64_gnu_nasm_caller_saving
+    }
+
+    printf("LIR_save_registers...\n");
+    LIR_save_registers(&cfgctx, &reg_save);
 #ifdef LIR_PRINT
     printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);
     printf("\n\n========== LIR planned and regalloc ==========\n");

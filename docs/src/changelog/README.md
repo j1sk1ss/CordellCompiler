@@ -3,6 +3,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+### Caller-saving
+In the instruction and the memory selection stage here is a one additional step. Now we procceed register saving step for pushing and poping all used in function registers.
+
 ### Documentation update
 LIR part now is more complex then it was earlier, that's why I start documentation sync process.
 
