@@ -45,6 +45,41 @@ static lir_subject_t* _create_tmp(int reg, lir_subject_t* src, sym_table_t* smt)
     return LIR_SUBJ_VAR(cpy, src->size);
 }
 
+static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
+    lir_block_t* lh = bb->lmap.entry;
+    while (lh) {
+        switch (lh->op) {
+            case LIR_REF: {
+                lir_subject_t* tmp = _create_tmp(RAX, lh->sarg, smt);
+                lir_block_t* fix   = LIR_create_block(lh->op, tmp, lh->sarg, NULL);
+                lh->sarg = tmp;
+                lh->op   = LIR_iMOV;
+                LIR_insert_block_before(fix, lh);
+                break;
+            }
+
+            case LIR_GDREF:
+            case LIR_LDREF:
+            case LIR_iMOV:
+            case LIR_aMOV:
+            case LIR_fMOV: {
+                lir_subject_t* tmp = _create_tmp(RAX, lh->sarg, smt);
+                lir_block_t* fix   = LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL);
+                lh->sarg = tmp;
+                LIR_insert_block_before(fix, lh);
+                break;
+            }
+
+            default: break;
+        }
+
+        if (lh == bb->lmap.exit) break;
+        lh = lh->next;
+    }
+
+    return 1;
+}
+
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
@@ -67,7 +102,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                             lh->farg, smt
                         );
 
-                        lh->op = LIR_iMOV;
+                        lh->op = LIR_aMOV;
                         LIR_unload_subject(lh->sarg);
                         lh->sarg = lh->farg;
                         lh->farg = src;
@@ -86,7 +121,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                             lh->farg, smt
                         );
 
-                        lh->op = LIR_iMOV;
+                        lh->op = LIR_aMOV;
                         LIR_unload_subject(lh->sarg);
                         lh->sarg = src;
                         break;
@@ -272,6 +307,8 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                 if (lh == bb->lmap.exit) break;
                 lh = lh->next;
             }
+
+            _validate_selected_instuction(bb, smt);
         }
     }
 

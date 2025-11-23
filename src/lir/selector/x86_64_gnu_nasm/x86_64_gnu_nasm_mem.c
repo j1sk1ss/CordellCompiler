@@ -131,5 +131,3 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
     return 1;
 }
-
-/* TODO: Operation prepare. Traverse thru LIR, check if mov and lea operations are valid (mem2reg, reg2mem, reg2reg pattern) */

@@ -28,11 +28,11 @@ typedef struct {
 } lir_number_t;
 
 typedef struct {
-    int lb_id;
+    long lb_id;
 } lir_label_t;
 
 typedef struct {
-    int sid;
+    long sid;
 } lir_str_t;
 
 typedef struct {

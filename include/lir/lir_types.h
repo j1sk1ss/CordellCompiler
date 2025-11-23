@@ -51,6 +51,7 @@ typedef enum {
     /* Register */
         /* Operations */
         LIR_iMOV,  // integer move, x = y
+        LIR_aMOV,  // argument load
 
         LIR_STARGLD, // st load
         LIR_STARGRF, // st ref load

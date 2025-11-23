@@ -297,9 +297,10 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
     register_saver_h reg_save = {
         .save_registers = x86_64_gnu_nasm_caller_saving
-    }
+    };
 
     printf("LIR_save_registers...\n");
+    HIR_CFG_cleanup_navigation(&cfgctx);
     LIR_save_registers(&cfgctx, &reg_save);
 #ifdef LIR_PRINT
     printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);

@@ -146,7 +146,7 @@ int map_iter_next(map_iter_t* it, void** d) {
     if (!it || it->index >= it->capacity) return 0;
     while (!it->entries[it->index].used && it->index < it->capacity) it->index++;
     if (it->index >= it->capacity) return 0;
-    *d = it->entries[it->index++].value;
+    if (d) *d = it->entries[it->index++].value;
     return 1;
 }
 

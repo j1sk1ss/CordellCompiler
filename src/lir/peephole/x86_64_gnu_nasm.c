@@ -30,10 +30,12 @@ static int _first_pass(cfg_block_t* bb) {
                 break;
             }
 
-            case LIR_MOVSXD:
+            case LIR_fMOV:
+            case LIR_aMOV:
+            case LIR_iMOV: 
             case LIR_MOVSX:
             case LIR_MOVZX:
-            case LIR_iMOV: {
+            case LIR_MOVSXD: {
                 if (LIR_subj_equals(lh->farg, lh->sarg)) lh->unused = 1;
                 if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
                 if (lh->farg->t != LIR_REGISTER) break;
@@ -126,6 +128,16 @@ static int _first_pass(cfg_block_t* bb) {
     return 1;
 }
 
+static inline int _check_home(lir_block_t* h, lir_subject_t* s) {
+    lir_subject_t* args[] = { h->farg, h->sarg, h->targ };
+    for (int i = 0; i < 3; i++) {
+        if (!args[i]) continue;
+        if (args[i] == s) return 1;
+    }
+
+    return 0;
+}
+
 static int _second_pass(cfg_block_t* bb) {
     lir_block_t* lh = bb->lmap.entry;
     while (lh) {
@@ -138,8 +150,14 @@ static int _second_pass(cfg_block_t* bb) {
                 if (LIR_writeop(lh->op) && (LIR_subj_equals(currh->farg, dst))) break; 
                 if (currh->op == lh->op) {
                     if (LIR_subj_equals(currh->farg, src)) break;
-                    if (LIR_subj_equals(currh->sarg, dst)) {
-                        LIR_unload_subject(currh->sarg);
+                    if (
+                        LIR_subj_equals(currh->sarg, dst) &&
+                        (currh->farg->t != LIR_MEMORY || src->t != LIR_MEMORY)
+                    ) {
+                        if (!_check_home(currh->sarg->home, currh->sarg)) {
+                            LIR_unload_subject(currh->sarg);
+                        }
+
                         currh->sarg = src;
                         currh->op   = lh->op;
                     }
@@ -173,6 +191,7 @@ static int _recursive_cleanup(
 
     lir_block_t* lh = off ? off : bbh->lmap.entry;
     while (lh) {
+        if (lh->op == LIR_aMOV) return 0;
         if (LIR_readop(lh->op) && (LIR_subj_equals(lh->sarg, trg) || LIR_subj_equals(lh->targ, trg))) return 0;
         if (lh != ign && lh->op == op && LIR_subj_equals(lh->farg, trg)) return 1;
         if (lh == bbh->lmap.exit) break;

@@ -131,6 +131,7 @@ int LIR_movop(lir_operation_t op) {
         case LIR_CVTSI2SD:
         case LIR_CVTSS2SD:
         case LIR_CVTSD2SS:
+        case LIR_aMOV:
         case LIR_iMOV:
         case LIR_MOVSX:
         case LIR_MOVSXD:
@@ -164,11 +165,13 @@ int LIR_writeop(lir_operation_t op) {
 
 int LIR_readop(lir_operation_t op) {
     switch (op) {
-        case LIR_FRET:
-        case LIR_EXITOP:
-        case LIR_PUSH:
         case LIR_TST:
-        case LIR_CMP: return 1;
+        case LIR_CMP:
+        case LIR_FRET:
+        case LIR_PUSH:
+        case LIR_aMOV:
+        case LIR_VRUSE:
+        case LIR_EXITOP: return 1;
         default: return LIR_writeop(op);
     }
 }

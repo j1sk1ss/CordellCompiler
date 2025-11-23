@@ -35,12 +35,11 @@ Main goal of this project is learning of compilers architecture and porting one 
     }
 
     function puts(ptr i8 s) {
-        i64 l = strlen(s);
-        asm (s, l) {
+        asm (s, strlen(s)) {
             "mov rax, 1",
             "mov rdi, 1",
-            "mov rsi, %1 ; l",
-            "mov rdx, %0 ; s",
+            "mov rsi, %1",
+            "mov rdx, %0",
             "syscall"
         }
         return;
@@ -64,7 +63,7 @@ ptr i32 data_ptr = ref counter;
 
 - **Constants**: use uppercase letters with underscores
 ```cpl
-glob ptr u8 FRAMEBUFFER;
+extern ptr u8 FRAMEBUFFER;
 glob ro i32 WIN_X = 1080;
 glob ro i32 WIN_Y = 1920;
 ```
@@ -156,15 +155,15 @@ extern i8 size;
 arr arr1[size, i32];
 ```
 
-`Runtime-sized` arrays will die when code returns from their home scope. That's why this code below still illegal:
+`Runtime-sized` arrays will die when code returns from their home scope. That's why this code below still illegal (Work only in cplv3):
 ```cpl
 extern i8 size;
 ptr u8 a;
 {
     arr arr1[size, i32];
     a = ref arr1;
-}          : <= "arr1" is deallocated. Work with this "a" will cause a SF :
-a[0] = 0;  : <= SF! :
+}         : <= "arr1" is deallocated. Work with this "a" will cause a SF :
+a[0] = 0; : <= SF! :
 ```
 
 ## Pointers
@@ -221,10 +220,10 @@ start() {
    ptr u64 p;
    {
       arr t[10; i32];
-      p = ref t;     : <= No warning here, but it still illegal :
-   }                 : <= array "t" died here :
+      p = ref t; : <= No warning here, but it still illegal :
+   }             : <= array "t" died here :
 
-   p[0] = 1;         : <= Pointer to deallocated stack :
+   p[0] = 1;     : <= Pointer to deallocated stack :
    exit 0;
 }
 ```
@@ -264,11 +263,8 @@ else {
 ```
 
 ## while statement
-Note: `else` block executes if the loop never runs or after the loop ends.
 ```cpl
 while cond; {
-}
-else {
 }
 ```
 
@@ -358,6 +354,21 @@ CPL uses a lightweight ownership model with `register allocation` that resembles
     }
 }
 ```
+
+# Debugging
+## Interrupt point 
+Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
+```cpl
+{
+    start() {
+        i32 a = 10;
+        lis; : <- Will interrupt execution here :
+        exit 0;
+    }
+}
+```
+
+Note! Disable optimizations before debugging code due code transforming preservation.
 
 # Examples
 ## Brainfuck

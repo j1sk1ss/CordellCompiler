@@ -1,5 +1,4 @@
-/*
-dfg.c - Compute all stuff for liveness analysis.
+/* dfg.c - Compute all stuff for liveness analysis.
 IN  - Live variables from previous blocks
 OUT - Live variables after this block
 DEF - All new variables that defined first time
@@ -47,14 +46,10 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
             lir_block_t* lh = cb->lmap.entry;
             while (lh) {
                 if (!lh->unused) {
-                    switch (lh->op) {
-                        default: {
-                            lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-                            for (int i = LIR_writeop(lh->op); i < 3; i++) {
-                                if (!args[i]) continue;
-                                if (args[i]->t == LIR_VARIABLE) set_add(&cb->use, (void*)args[i]->storage.var.v_id);
-                            }
-                        }
+                    lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
+                    for (int i = LIR_writeop(lh->op); i < 3; i++) {
+                        if (!args[i] || args[i]->t != LIR_VARIABLE) continue;
+                        set_add(&cb->use, (void*)args[i]->storage.var.v_id);
                     }
                 }
 

@@ -11,4 +11,5 @@
 * [Control flow statements](#control-flow-statements)
 * [Functions and inbuilt macros](#functions-and-inbuilt-macros)
 * [Ownership rules](#ownership-rules)
+* [Debugging](#debugging)
 * [Examples](#examples)
