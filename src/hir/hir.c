@@ -166,12 +166,13 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
 
 hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     if (!s) return NULL;
-
     hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value);
     if (!ns) return NULL;
 
+    ns->t = s->t;
     ns->users = s->users;
-    switch (s->t) {
+
+    switch (ns->t) {
         case HIR_PHISET: {
             set_init(&ns->storage.set.h);
             set_iter_t it;
@@ -268,11 +269,9 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
 }
 
 hir_block_t* HIR_copy_block(hir_block_t* b) {
-    hir_block_t* base = HIR_create_block(
+    return HIR_create_block(
         b->op, HIR_copy_subject(b->farg), HIR_copy_subject(b->sarg), HIR_copy_subject(b->targ)
     );
-    
-    return base;
 }
 
 int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos) {
@@ -316,8 +315,8 @@ int HIR_unlink_block(hir_block_t* block) {
 int HIR_unload_subject(hir_subject_t* s) {
     if (!s) return 0;
     switch (s->t) {
-        case HIR_PHISET:  set_free_force(&s->storage.set.h); break;
-        case HIR_ARGLIST: list_free(&s->storage.list.h);     break;
+        case HIR_PHISET:  set_free_force(&s->storage.set.h);   break;
+        case HIR_ARGLIST: list_free_force(&s->storage.list.h); break;
         default: break;
     }
     

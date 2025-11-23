@@ -7,7 +7,8 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     while (hh) {
         if (hh->op == HIR_FARGLD) {
             hir_block_t* nblock = HIR_copy_block(hh);
-            nblock->op   = HIR_STORE;
+            nblock->op = HIR_STORE;
+            HIR_unload_subject(nblock->sarg);
             nblock->sarg = (hir_subject_t*)list_iter_next(&it);
             HIR_insert_block_before(nblock, pos);
         }
@@ -30,10 +31,14 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
             hir_block_t* nblock = HIR_copy_block(hh);
             switch (hh->op) {
                 case HIR_FRET: {
-                    nblock->op   = HIR_STORE;
-                    nblock->sarg = hh->farg;
-                    nblock->farg = res;
                     if (!res) nblock->unused = 1;
+                    else {
+                        nblock->op   = HIR_STORE;
+                        nblock->sarg = hh->farg;
+                        HIR_unload_subject(nblock->farg);
+                        nblock->farg = res;
+                    }
+
                     break;
                 }
                 default: break;
@@ -93,7 +98,11 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
                     if (_inline_candidate(trg, bb) && fb != trg) {
                         _inline_arguments(trg, &hh->targ->storage.list.h, hh);
                         hir_subject_t* res = NULL;
-                        if (hh->op == HIR_STORE_FCLL || hh->op == HIR_STORE_ECLL) res = hh->farg;
+                        if (
+                            hh->op == HIR_STORE_FCLL || 
+                            hh->op == HIR_STORE_ECLL
+                        ) res = hh->farg;
+                        
                         _inline_function(trg, res, hh);
                         hh->unused = 1;
                     }

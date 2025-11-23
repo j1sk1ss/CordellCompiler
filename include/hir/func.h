@@ -25,6 +25,30 @@ int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt);
 int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt);
 int HIR_CG_unload(call_graph_t* ctx);
 
+/*
+Perform tail-recursion elimination. Will remove all tail recursions with cycle.
+Params:
+- cctx - CFG.
+- smt - Symtable.
+
+Return 1 if success, otherwise 0.
+*/
+int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt);
+
+/*
+Perform inlining optimization. Will inline function that get 3 euristic score points.
+Points earned with next logic:
+- inlinng in loop: +2
+- <= 2 base blocks in function: +3
+- <= 5 base blocks in function: +2
+- <= 10 base blocks in function: +1
+- > 15 base blocks in function: -2
+
+Params:
+- cctx - CFG.
+
+Return 1 if success, otherwise 0.
+*/
 int HIR_FUNC_perform_inline(cfg_ctx_t* cctx);
 
 #endif

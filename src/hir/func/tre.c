@@ -1,6 +1,6 @@
 #include <hir/cfg.h>
 
-int HIR_CFG_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
+int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;

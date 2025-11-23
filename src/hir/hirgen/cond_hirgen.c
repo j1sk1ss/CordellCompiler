@@ -20,7 +20,8 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
         HIR_BLOCK1(ctx, HIR_JMP, end_lb);
     }
 
-    if (rbranch) {
+    if (!rbranch) HIR_unload_subject(false_lb);
+    else {
         HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
         HIR_generate_block(rbranch->child, ctx, smt);

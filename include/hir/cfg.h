@@ -81,16 +81,6 @@ typedef struct {
 } cfg_ctx_t;
 
 /*
-Perform tail-recursion elimination. Will remove all tail recursions with cycle.
-Params:
-- cctx - CFG.
-- smt - Symtable.
-
-Return 1 if success, otherwise 0.
-*/
-int HIR_CFG_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt);
-
-/*
 Perform cleanup operation for CFG blocks. Will clean all information related to navigation.
 Note: Will free and re-init all sets related to visitors, etc.
 Params:

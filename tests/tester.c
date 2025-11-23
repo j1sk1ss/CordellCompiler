@@ -135,7 +135,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
 
-    HIR_CFG_perform_tre(&cfgctx, &smt);     // Transform
+    HIR_FUNC_perform_tre(&cfgctx, &smt);     // Transform
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
 
