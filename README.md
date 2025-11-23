@@ -427,7 +427,7 @@ Before we going any further, we should optimize our HIR with avaliable meta-info
 
 ### Constant folding / propagation (First pass)
 With formed `DAG` we can tell wich value is assigned to each variable. We don't transform code at this stage, we only define variable values in symtable.
-![hir_constfold](docs/media/hir_constfold.png)
+![hir_constfold](docs/media/HIR_constfold.png)
 
 ### Dead Function Elimination (DFE)
 Dead function elimination, similar to `HIR` constant folding, won't transform source code. Instead of transformation, this optimization will mark all unused functions as unused. This approuch based on `Call Graph`, that can be seen below.
