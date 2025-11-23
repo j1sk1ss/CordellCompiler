@@ -426,7 +426,7 @@ The result of using the DAG is optimized code with Common Subexpression Eliminat
 Before we going any further, we should optimize our HIR with avaliable meta-information from this level. The simplest optimization here is the `constant fold` optimization due to availability of `DAG`. Same situation with `DFE` optimization. Let's speak about this approaches. 
 
 ### Constant folding / propagation (First pass)
-With formed `DAG` we can tell wich value is assigned to each variable. We don't transform code at this stage, we only define variable values in symtable.
+With formed `DAG` we can tell wich value is assigned to each variable. We don't transform code at this stage, we only define variable values in symtable. Also, we track arithmetics, that's why we can perform simple operations with already defined variables from symtable.
 ![hir_constfold](docs/media/HIR_constfold.png)
 
 ### Dead Function Elimination (DFE)
