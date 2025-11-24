@@ -17,12 +17,14 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
         if (color < _registers_count && color >= 0) {
             s->t = LIR_REGISTER;
             s->storage.reg.reg = _registers[color];
-            vi.vmi.reg = s->storage.reg.reg;
+            vi.vmi.offset = -1;
+            vi.vmi.reg    = s->storage.reg.reg;
         }
         else {
             s->t = LIR_MEMORY;
             s->storage.var.offset = !vi.vmi.allocated ? stack_map_alloc(vi.vmi.size, smp) : vi.vmi.offset;
             vi.vmi.offset = s->storage.var.offset;
+            vi.vmi.reg    = -1;
         }
 
         if (vi.vmi.allocated) return 1;

@@ -10,7 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
     'start', 'exit', 'exfunc', 'function', 'return',
     'if', 'else', 'while', 'switch', 'case', 'default',
     'glob', 'ro', 'dref', 'ref', 'ptr', 'lis', 'extern', 'from', 'import', 'syscall', 'asm',
-    'i64', 'i32', 'i16', 'i8', 'u64', 'u32', 'u16', 'u8', 'str', 'arr'
+    'i64', 'i32', 'i16', 'i8', 'u64', 'u32', 'u16', 'u8', 'i0', 'str', 'arr'
   ];
 
   const hoverProvider = vscode.languages.registerHoverProvider(
@@ -135,6 +135,7 @@ export function activate(context: vscode.ExtensionContext) {
           u32: `**u32** - Integer variable type. Size equals to 32-bit value. Max: 4,294,967,295`,
           u16: `**u16** - Short integer variable type. Size equals to 16-bit value. Max: 65,535`,
           u8: `**u8** - Character integer variable type. Size equals to 8-bit value. Max: 256`,
+          i0: `**i0** - Void return type.`,
             
           arr: `**arr** - Array variable type. Allocate array on stack.
 

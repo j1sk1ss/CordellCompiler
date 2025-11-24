@@ -5,6 +5,7 @@ const char* fmt_tkn_type(token_t* t) {
     if (!t) return "";
     if (t->flags.ptr) {
         switch (t->t_type) {
+            case I0_TYPE_TOKEN:  return "i0*";
             case I8_TYPE_TOKEN:  return "i8*";
             case U8_TYPE_TOKEN:  return "u8*";
             case I16_TYPE_TOKEN: return "i16*";
@@ -19,6 +20,7 @@ const char* fmt_tkn_type(token_t* t) {
         }
     }
     switch (t->t_type) {
+        case I0_TYPE_TOKEN:  return "i0";
         case I8_TYPE_TOKEN:  return "i8";
         case U8_TYPE_TOKEN:  return "u8";
         case I16_TYPE_TOKEN: return "i16";

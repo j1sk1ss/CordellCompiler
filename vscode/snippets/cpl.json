@@ -193,6 +193,11 @@
     "body": "u8",
     "description": "CPL u8 type"
   },
+  "CPL Types void": {
+    "prefix": "i0",
+    "body": "i0",
+    "description": "CPL i0 type"
+  },
   "CPL Types Array": {
     "prefix": "arr",
     "body": "arr name[0, type] =;",

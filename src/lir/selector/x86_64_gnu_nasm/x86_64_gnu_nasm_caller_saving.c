@@ -59,7 +59,7 @@ static cfg_func_t* _find_function(long fid, cfg_ctx_t* cctx) {
 
     return NULL;
 }
-/* TODO: Check push-pop existance */
+
 int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);

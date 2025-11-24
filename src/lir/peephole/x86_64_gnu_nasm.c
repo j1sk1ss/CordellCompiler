@@ -65,28 +65,13 @@ static int _first_pass(cfg_block_t* bb) {
                 break;
             }
 
-            case LIR_iSUB: {
-                if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
-                if (LIR_subj_equals(lh->sarg, lh->targ)) {
-                    lh->op = LIR_bXOR;
-                    LIR_unload_subject(lh->targ);
-                    lh->targ = lh->sarg;
-                    break;
-                }
-
-                if (lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) {
-                    if (!_get_long_number(lh->targ)) lh->unused = 1;
-                }
-
-                break;
-            }
-
+            case LIR_iSUB:
             case LIR_iADD: {
                 if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
                 if (LIR_subj_equals(lh->sarg, lh->targ)) {
-                    lh->op = LIR_bSHL;
+                    lh->op = lh->op == LIR_iSUB ? LIR_bXOR : LIR_bSHL;
                     LIR_unload_subject(lh->targ);
-                    lh->targ = LIR_SUBJ_CONST(1);
+                    lh->targ = lh->op == LIR_iSUB ? lh->sarg : LIR_SUBJ_CONST(1);
                     break;
                 }
 

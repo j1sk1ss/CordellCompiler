@@ -31,6 +31,7 @@
 #define NEGATIVE_COMMAND        "not"
 
 // Types
+#define I0_VARIABLE             "i0"
 #define F64_VARIABLE            "f64"
 #define F32_VARIABLE            "f32"
 #define F16_VARIABLE            "f16"

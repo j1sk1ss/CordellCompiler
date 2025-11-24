@@ -39,6 +39,7 @@ static const markup_token_t _markups[] = {
     { .value = NEGATIVE_COMMAND,       .type = NEGATIVE_TOKEN      },
 
     /* Variable tokens. */
+    { .value = I0_VARIABLE,            .type = I0_TYPE_TOKEN       },
     { .value = F64_VARIABLE,           .type = F64_TYPE_TOKEN      },
     { .value = F32_VARIABLE,           .type = F32_TYPE_TOKEN      },
     { .value = I64_VARIABLE,           .type = I64_TYPE_TOKEN      },
