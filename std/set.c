@@ -16,14 +16,11 @@ int set_has_inttuple(set_t* s, int_tuple_t* t) {
 }
 
 int set_has(set_t* s, void* data) {
-    void* d;
-    if (map_get(&s->body, (long)data, (void**)&d)) return 1;
-    return 0;
+    return map_get(&s->body, (long)data, NULL);
 }
 
 int set_add(set_t* s, void* data) {
-    if (set_has(s, data)) return 0;
-    return map_put(&s->body, (long)data, data);
+    return !set_has(s, data) && map_put(&s->body, (long)data, data);
 }
 
 int set_remove(set_t* s, void* data) {
@@ -70,9 +67,8 @@ int set_equal(set_t* a, set_t* b) {
 
 int set_union(set_t* dst, set_t* a, set_t* b) {
     set_t tmp;
-    set_init(&tmp);
-
-    map_copy(&tmp.body, &a->body);
+    set_copy(&tmp, a);
+    
     set_iter_t it;
     set_iter_init(b, &it);
     void* data;

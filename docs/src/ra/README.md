@@ -6,7 +6,7 @@ Now that we have the `IN`, `OUT`, `DEF`, and `USE` sets, we can construct an int
 
 The implementation of the mentioned algorithm is shown below.
 ```c
-int HIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
+int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     map_init(&g->nodes);
 
     map_iter_t vit;
@@ -56,7 +56,7 @@ Now we can determine which variables can share the same register using graph col
 
 Cordell Compiler's solution of this problem uses Chaitin’s algorithm.
 ```c
-int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
+int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     if (!g || !colors) return 0;
     
     int node_count = g->nodes.size;
@@ -102,7 +102,7 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         processed[max_index] = 1;
         remaining--;
         
-        igraph_node_t* n = HIR_RA_find_ig_node(g, v_ids[max_index]);
+        igraph_node_t* n = LIR_RA_find_ig_node(g, v_ids[max_index]);
         if (n) {
             set_iter_t sit;
             set_iter_init(&n->v, &sit);
@@ -125,7 +125,7 @@ int HIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         stack_pop(&stack);
         
         long current_id = (long)e.data;
-        igraph_node_t* current_node = HIR_RA_find_ig_node(g, current_id);
+        igraph_node_t* current_node = LIR_RA_find_ig_node(g, current_id);
         if (!current_node) continue;
         
         set_t used_colors;

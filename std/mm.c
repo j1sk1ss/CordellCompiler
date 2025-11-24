@@ -66,7 +66,7 @@ static void* _malloc_s(size_t size, int prepare_mem) {
     return prepare_mem ? NULL : _malloc_s(size, 1);
 }
 
-void* mm_base_malloc(const char* f, int l, size_t size) {
+void* mm_base_malloc(__attribute__ ((unused)) const char* f, __attribute__ ((unused)) int l, size_t size) {
     void* ptr = _malloc_s(size, 0);
     print_mm("Allocation in %s on line=%i, size=%i, ptr=%p", f, l, size, ptr);
     if (!ptr) { print_mm("Allocation error! I can't allocate [%i]!", size); }
@@ -87,7 +87,7 @@ void* mm_realloc(void* ptr, size_t elem) {
     return new_data;
 }
 
-int mm_base_free(const char* f, int l, void* ptr) {
+int mm_base_free(__attribute__ ((unused)) const char* f, __attribute__ ((unused)) int l, void* ptr) {
     print_mm("Trying to free ptr=%p from file=%s, line=%i", ptr, f, l);
     if (!ptr || ptr < (void*)_buffer || ptr >= (void*)(_buffer + ALLOC_BUFFER_SIZE)) return 0;
     
@@ -101,4 +101,8 @@ int mm_base_free(const char* f, int l, void* ptr) {
     print_mm("Free [%p] with [%i] size / [%i]", ptr, block->size, _allocated);
     
     return 1;
+}
+
+int mm_get_allocated() {
+    return _allocated;
 }

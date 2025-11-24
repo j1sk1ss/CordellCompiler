@@ -9,15 +9,14 @@ static void _swap(void* a, void* b, size_t el_size) {
 }
 
 static int _work(void* arr, int low, int high, size_t el_size, int (*cmp)(const void*, const void*)) {
-    void* pivot = (char*)arr + high * el_size;
     int i = low - 1;
-
+    void* pivot = (unsigned char*)arr + high * el_size;
     for (int j = low; j <= high - 1; j++) {
-        void* current = (char*)arr + j * el_size;
-        if (cmp(current, pivot) <= 0) _swap((char*)arr + ++i * el_size, current, el_size);
+        void* current = (unsigned char*)arr + j * el_size;
+        if (cmp(current, pivot) <= 0) _swap((unsigned char*)arr + ++i * el_size, current, el_size);
     }
 
-    _swap((char*)arr + (i + 1) * el_size, (char*)arr + high * el_size, el_size);
+    _swap((unsigned char*)arr + (i + 1) * el_size, (unsigned char*)arr + high * el_size, el_size);
     return i + 1;
 }
 

@@ -70,21 +70,16 @@ typedef enum hir_operation {
 
     /* High level operations */
         /* Condition operator */
-        HIR_IFOP,         // if x, jmp z
-        HIR_IFLGOP,       // if x > y, jmp z
-        HIR_IFLGEOP,      // if x >= y, jmp z
-        HIR_IFLWOP,       // if x < y, jmp z
-        HIR_IFLWEOP,      // if x <= y, jmp z
-        HIR_IFCPOP,       // if x == y, jmp z
-        HIR_IFNCPOP,      // if x != y, jmp z
+        HIR_IFOP2,        // if x, jmp y, else z
 
+        /* System commands */
         HIR_PHI_PREAMBLE, // x_future = x_this_block
         HIR_PHI,          // base: x, new_var y, set: z (bb, v_id)
         HIR_VRDEALL,      // dealloc x
         HIR_VRUSE,
 
         /* Data */
-        HIR_NOT,
+        HIR_NOT,          // x = !x
         HIR_STORE,        // x = y
         HIR_CLNVRS,       // deallocate all unused variables
         HIR_VARDECL,      // alloc x
@@ -111,7 +106,7 @@ typedef enum hir_operation {
 } hir_operation_t;
 
 typedef enum hir_subject_type {
-    HIR_TMPVARSTR,
+    HIR_TMPVARSTR, // tmp variables
     HIR_TMPVARARR,
     HIR_TMPVARF64,
     HIR_TMPVARU64,
@@ -123,7 +118,8 @@ typedef enum hir_subject_type {
     HIR_TMPVARI16,
     HIR_TMPVARU8,
     HIR_TMPVARI8,
-    HIR_GLBVARSTR,
+
+    HIR_GLBVARSTR, // global variables
     HIR_GLBVARARR,
     HIR_GLBVARF64,
     HIR_GLBVARU64,
@@ -135,7 +131,8 @@ typedef enum hir_subject_type {
     HIR_GLBVARI16,
     HIR_GLBVARU8,
     HIR_GLBVARI8,
-    HIR_STKVARSTR,
+
+    HIR_STKVARSTR, // local (stack) variables
     HIR_STKVARARR,
     HIR_STKVARF64,
     HIR_STKVARU64,
@@ -146,18 +143,40 @@ typedef enum hir_subject_type {
     HIR_STKVARU16,
     HIR_STKVARI16,
     HIR_STKVARU8,
-    HIR_STKVARI8, // var.id
-    HIR_CONSTVAL, // cnst.value
+    HIR_STKVARI8,  // var.id
+
+    HIR_CONSTVAL,  // cnst.value
+    HIR_F64CONSTVAL,
+    HIR_F32CONSTVAL,
+    HIR_U64CONSTVAL,
+    HIR_U32CONSTVAL,
+    HIR_U16CONSTVAL,
+    HIR_U8CONSTVAL,
+    HIR_I64CONSTVAL,
+    HIR_I32CONSTVAL,
+    HIR_I16CONSTVAL,
+    HIR_I8CONSTVAL,
+
     HIR_NUMBER,   // num.value
+    HIR_F64NUMBER,
+    HIR_F32NUMBER,
+    HIR_U64NUMBER,
+    HIR_U32NUMBER,
+    HIR_U16NUMBER,
+    HIR_U8NUMBER,
+    HIR_I64NUMBER,
+    HIR_I32NUMBER,
+    HIR_I16NUMBER,
+    HIR_I8NUMBER,
+
     HIR_LABEL,    // id
     HIR_RAWASM,   // str.id
     HIR_STRING,   // str.id
     HIR_FNAME,    // str.id
-    HIR_PHISET,      // set.h
-    HIR_ARGLIST,     // list.h
+    HIR_PHISET,   // set.h
+    HIR_ARGLIST,  // list.h
 } hir_subject_type_t;
 
-int HIR_allocop(hir_operation_t op);
 int HIR_funccall(hir_operation_t op);
 int HIR_get_type_size(hir_subject_type_t t);
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b);
@@ -167,14 +186,16 @@ hir_subject_type_t HIR_get_token_stktype(token_t* tkn);
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
 int HIR_isjmp(hir_operation_t op);
 int HIR_is_vartype(hir_subject_type_t t);
-int HIR_is_floattype(hir_subject_type_t t);
-int HIR_is_signtype(hir_subject_type_t t);
-int HIR_is_globtype(hir_subject_type_t t);
 int HIR_is_tmptype(hir_subject_type_t t);
 int HIR_writeop(hir_operation_t op);
 int HIR_isterm(hir_operation_t op);
 int HIR_issyst(hir_operation_t op);
 hir_operation_t HIR_convop(hir_subject_type_t t);
 int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
+int HIR_commutative_op(hir_operation_t op);
+int HIR_defined_type(hir_subject_type_t t);
+int HIR_sideeffect_op(hir_operation_t op);
+token_type_t HIR_get_tmptkn_type(hir_subject_type_t t);
+int HIR_is_float(hir_subject_type_t t);
 
 #endif

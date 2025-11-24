@@ -4,13 +4,13 @@ Cordell Compiler is a compact hobby compiler for Cordell Programming Language wi
 # Main idea of this project
 Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for OS inside this OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
 
-# Usefull links and literature
+# Used links and literature
 - Aarne Ranta. *Implementing Programming Languages. An Introduction to Compilers and Interpreters*
 - Aho, Lam, Sethi, Ullman. *Compilers: Principles, Techniques, and Tools (Dragon Book)*
 - Andrew W. Appel. *Modern Compiler Implementation in C (Tiger Book)*
-- K. Vladimirov. *Optimizing Compilers. Structure and Algorithms*
 - Cytron et al. *Efficiently Computing Static Single Assignment Form and the Control Dependence Graph* (1991)
 - Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
+- Jason Robert, Carey Patterson. *Basic Instruction Scheduling (and Software Pipelining)* (2001)
 
 # Summary
 This `README` file contains the main information about this compiler and the development approaches I’ve learned while working on it. This repository also includes a `github.io` site with similar content and some interactive sections. For convenience, a `Navigation` block with quick links to the topics in this file is provided below.
@@ -36,18 +36,28 @@ This `README` file contains the main information about this compiler and the dev
 - [SSA form](#ssa-form)
    - [Phi function](#phi-function)
 - [DAG part](#dag-part)
+- [HIR optimization](#hir-optimization)
+   - [Constant folding / propagation (First pass)](#constant-folding--propagation-first-pass)
+   - [Dead Function Elimination (DFE)](#dead-function-elimination-dfe)
+   - [Tail Recursion Elimination (TRE)](#tail-recursion-elimination-tre)
+   - [Function inlining](#function-inlining)
+   - [Loop canonicalization](#loop-canonicalization)
+   - [Loop Invariant Code Motion (LICM)](#loop-invariant-code-motion-licm)
+- [LIR part](#lir-part)
+- [LIR instruction planning](#lir-instruction-planning)
+- [LIR (x86_64) instruction selection](#lir-x86_64-instruction-selection)
+- [LIR applying const propagation](#lir-applying-const-propagation)
+- [LIR x86_64 example](#lir-x86_64-example)
 - [Liveness analyzer part](#liveness-analyzer-part)
    - [USE and DEF](#use-and-def)
    - [IN and OUT](#in-and-out)
    - [Point of deallocation](#point-of-deallocation)
-- [HIR optimization](#hir-optimization)
-   - [Constant folding / propagation](#constant-folding--propagation)
-   - [Unused variables kill](#unused-variables-kill)
 - [Register allocation part](#register-allocation-part)
    - [Graph coloring](#graph-coloring)
-- [LIR (x86_64) part](#lir-x86_64-part)
-   - [LIR x86_64 example](#lir-x86_64-example)
-- [LIR x86_64 optimization](#lir-x86_64-optimization)
+- [LIR peephole optimization](#lir-peephole-optimization)
+   - [First pass](#first-pass)
+   - [Second pass](#second-pass)
+   - [Third pass](#third-pass)
 - [Codegen (nasm) part](#codegen-nasm-part)
    - [Example of generated code](#example-of-generated-code)
 
@@ -246,64 +256,76 @@ Now we need to convert our `AST` into a simpler representation. A common approac
 {
     fn sum(i32 a, i32 b) -> i32
     {
-        alloc i32s a0;
-        load_arg(i32s a0);
-        alloc i32s b1;
-        load_arg(i32s b1);
+        i32s %0 = alloc(8);
+        i32s %0 = load_arg();
+        i32s %1 = alloc(8);
+        i32s %1 = load_arg();
         {
-            prm_st(i32s a0);
-            prm_st(i32s b1);
-            alloc arrs c2, size: n2;
-            i32t tmp12 = arrs c2[n0];
-            i32t tmp13 = arrs c2[n1];
-            i32t tmp14 = i32t tmp12 + i32t tmp13;
-            return i32t tmp14;
+            use i32s %0;
+            use i32s %1;
+            arrs %2 = alloc(num?: 2);
+            u64t %12 = &(arrs %2);
+            i64t %13 = num?: 0 * cnst?: 4;
+            u64t %15 = i64t %13 as u64;
+            u64t %14 = u64t %12 + u64t %15;
+            i32t %16 = *(u64t %14);
+            u64t %17 = &(arrs %2);
+            i64t %18 = num?: 1 * cnst?: 4;
+            u64t %20 = i64t %18 as u64;
+            u64t %19 = u64t %17 + u64t %20;
+            i32t %21 = *(u64t %19);
+            i32t %22 = i32t %16 + i32t %21;
+            return i32t %22;
         }
     }
     
     start {
-        alloc i64s argc3;
-        load_starg(i64s argc3);
-        alloc u64s argv4;
-        load_starg(u64s argv4);
         {
-            alloc i32s a5;
-            i32t tmp15 = n10 as i32;
-            i32s a5 = i32t tmp15;
-            alloc i32s b6;
-            i32t tmp16 = n10 as i32;
-            i32s b6 = i32t tmp16;
-            alloc i32s c7;
-            i32t tmp17 = n10 as i32;
-            i32s c7 = i32t tmp17;
-            alloc i32s d8;
-            i32t tmp18 = n10 as i32;
-            i32s d8 = i32t tmp18;
-            alloc i32s k9;
-            i32t tmp19 = n10 as i32;
-            i32s k9 = i32t tmp19;
-            alloc i32s f10;
-            i32t tmp20 = n10 as i32;
-            i32s f10 = i32t tmp20;
-            store_arg(i32s a5);
-            store_arg(i32s b6);
-            i32t tmp21 = call sum(i32 a, i32 b) -> i32, argc c2;
-            i32t tmp22 = i32s a5 * i32s b6;
-            i32t tmp23 = i32t tmp22 + i32s c7;
-            i32t tmp24 = i32t tmp23 + i32s d8;
-            i32t tmp25 = i32t tmp24 + i32s k9;
-            i32t tmp26 = i32t tmp25 + i32s f10;
-            i32t tmp27 = i32t tmp21 > i32t tmp26;
-            if i32t tmp27, goto l73;
+            i64s %3 = alloc(8);
+            i64s %3 = load_starg();
+            u64s %4 = alloc(8);
+            u64s %4 = load_starg();
             {
-                exit n1;
+                i32s %5 = alloc(8);
+                i32t %23 = num?: 10 as i32;
+                i32s %5 = i32t %23;
+                i32s %6 = alloc(8);
+                i32t %24 = num?: 10 as i32;
+                i32s %6 = i32t %24;
+                i32s %7 = alloc(8);
+                i32t %25 = num?: 10 as i32;
+                i32s %7 = i32t %25;
+                i32s %8 = alloc(8);
+                i32t %26 = num?: 10 as i32;
+                i32s %8 = i32t %26;
+                i32s %9 = alloc(8);
+                i32t %27 = num?: 10 as i32;
+                i32s %9 = i32t %27;
+                i32s %10 = alloc(8);
+                i32t %28 = num?: 10 as i32;
+                i32s %10 = i32t %28;
+                use i32s %5;
+                use i32s %6;
+                i32t %29 = call sum(i32 a, i32 b) -> i32, argc args: i32s %5 i32s %6 ;
+                i32t %30 = i32s %5 * i32s %6;
+                i32t %31 = i32t %30 + i32s %7;
+                i32t %32 = i32t %31 + i32s %8;
+                i32t %33 = i32t %32 + i32s %9;
+                i32t %34 = i32t %33 + i32s %10;
+                i32t %35 = i32t %29 > i32t %34;
+                if i32t %35, goto lb67, else goto lb69;
+                lb67:
+                {
+                    exit num?: 1;
+                }
+                goto lb69;
+                lb69:
+                i32s %11 = alloc(8);
+                u64t %36 = &(i32s %10);
+                i32t %37 = u64t %36 as i32;
+                i32s %11 = i32t %37;
+                exit i32s %11;
             }
-            l73:
-            alloc i32s l11;
-            u64t tmp28 = &(i32s f10);
-            i32t tmp29 = u64t tmp28 as i32;
-            i32s l11 = i32t tmp29;
-            exit i32s l11;
         }
     }
 }
@@ -360,6 +382,90 @@ Then, when we build the "basic" DAG, we check and merge all nodes that share the
 The result of using the DAG is optimized code with Common Subexpression Elimination applied.
 ![res_dag](docs/media/res_DAG.png)
 
+### Example code
+```cpl
+{
+    start(i64 argc, ptr u64 argv) {
+        i32 a = 10;
+        ptr i32 b = ref a;
+        dref b = 11;
+        i32 c = 10;
+        exit c;
+    }
+}
+```
+->
+```
+{
+    start {
+        {
+            i64s %0 = alloc(8);
+            i64s %0 = load_starg();
+            u64s %1 = alloc(8);
+            u64s %1 = load_starg();
+            {
+                i32s %2 = alloc(8);
+                i32t %5 = num?: 10 as i32;
+                i32s %2 = i32t %5;
+                u64s %3 = alloc(8);
+                u64t %6 = &(i32s %2);
+                u64s %3 = u64t %6;
+                u64t %7 = num?: 11 as u64;
+                *(u64s %3) = u64t %7;
+                i32s %4 = alloc(8);
+                i32t %8 = num?: 10 as i32;
+                i32s %4 = i32t %8;
+                exit i32s %4;
+            }
+        }
+    }
+}
+```
+
+## HIR optimization
+Before we going any further, we should optimize our HIR with avaliable meta-information from this level. The simplest optimization here is the `constant fold` optimization due to availability of `DAG`. Same situation with `DFE` optimization. Let's speak about this approaches. 
+
+### Constant folding / propagation (First pass)
+With formed `DAG` we can tell wich value is assigned to each variable. We don't transform code at this stage, we only define variable values in symtable. Also, we track arithmetics, that's why we can perform simple operations with already defined variables from symtable.
+![hir_constfold](docs/media/HIR_constfold.png)
+
+### Dead Function Elimination (DFE)
+Dead function elimination, similar to `HIR` constant folding, won't transform source code. Instead of transformation, this optimization will mark all unused functions as unused. This approuch based on `Call Graph`, that can be seen below.
+![hir_callgraph](docs/media/CallGraph.png)
+
+### Tail Recursion Elimination (TRE)
+Tail recursion elimination (based on CFG) find all functions where happens self-invoking at the end. The simplest example here is below:
+```cpl
+function foo(i32 a = 10) => i8 {
+   if a > 20; { return a; }
+   return foo(a + 1);
+}
+```
+
+When we found such function, we determine if it ready for `TRE`. Then we transform it into the cycle:
+```cpl
+function foo(i32 a = 10) => i8 {
+lbX:
+   if a > 20; { return a; }
+   a += 1;
+goto lbX;
+}
+```
+
+This optimization save us from stackframe allocation, that has high price, especially if recursion occurs frequently.
+
+### Function inlining
+### Loop canonicalization
+### Loop Invariant Code Motion (LICM)
+
+## LIR part
+In the same way as during `HIR` generation, we now produce an intermediate representation similar to `3AC` — but using only two addresses. This step is relatively straightforward, as it primarily involves adapting instructions to the target machine’s addressing model. Because the exact implementation depends heavily on the target architecture (register count, instruction set, addressing modes, etc.), we typically don’t spend much time optimizing or generalizing this layer. Its main goal is simply to bridge the high-level `HIR` representation and the target-specific assembly form, ensuring that each instruction can be directly translated to a valid machine instruction.
+![lir_gen](docs/media/lir_gen.png)
+
+## LIR instruction planning
+## LIR (x86_64) instruction selection
+## LIR applying const propagation
+
 ## Liveness analyzer part
 Several optimization techniques are based on data-flow analysis. Data-flow analysis itself relies on liveness analysis, which in turn depends on the program’s `SSA` form and control-flow graph (CFG). Now that we have established these fundamental representations, we can proceed with the `USE–DEF–IN–OUT` computation process.
 
@@ -398,62 +504,6 @@ At this point, we can determine where each variable dies. If a variable appears 
 the variable `a` is owned by `b`, so we must not kill `a` while `b` is still alive. In other words, the liveness of `a` depends on the liveness of `b`, and this dependency is preserved through the aliasmap.
 ![kill_var](docs/media/kill_var.png)
 
-### Example code
-```cpl
-{
-    start(i64 argc, ptr u64 argv) {
-        i32 a = 10;
-        ptr i32 b = ref a;
-        dref b = 11;
-        i32 c = 10;
-        exit c;
-    }
-}
-```
-->
-```
-{
-    start {
-        alloc i64s argc0;
-        kill c0
-        load_starg(i64s argc9);
-        kill c9
-        alloc u64s argv1;
-        kill c1
-        load_starg(u64s argv10);
-        kill c10
-        {
-            alloc i32s a2;
-            kill c2
-            i32t tmp5 = n10 as i32;
-            i32s a11 = i32t tmp5;
-            kill c5
-            alloc u64s b3;
-            kill c3
-            u64t tmp6 = &(i32s a11);
-            u64s b12 = u64t tmp6;
-            kill c6
-            u64t tmp7 = n11 as u64;
-            *(u64s b12) = u64t tmp7;
-            kill c11
-            kill c12
-            kill c7
-            alloc i32s c4;
-            kill c4
-            i32t tmp8 = n10 as i32;
-            i32s c13 = i32t tmp8;
-            kill c8
-            exit i32s c13;
-            kill c13
-        }
-    }
-}
-```
-
-## HIR optimization
-### Constant folding / propagation
-### Unused variables kill
-
 ## Register allocation part
 Now that we have the `IN`, `OUT`, `DEF`, and `USE` sets, we can construct an interference graph. The idea is straightforward: we create a vertex for each variable in the symbol table, and then, for every `CFG` block, we connect (i.e., add an edge between) each variable from the block’s `DEF` set with every variable from its `OUT` set. This connection represents that these two variables are live at the same time. The resulting structure is the interference graph, where:
 - Vertices represent program variables.
@@ -464,123 +514,142 @@ Now that we have the `IN`, `OUT`, `DEF`, and `USE` sets, we can construct an int
 Now we can determine which variables can share the same register using graph coloring. The solution to this problem is purely mathematical, and there are many possible strategies to color a graph. In short, the goal is to assign a color to every node (variable) in such a way that no two connected nodes share the same color. The output of this algorithm is a colored interference graph, where each color represents a distinct physical register, and all variables with the same color can safely reuse the same register without overlapping lifetimes.
 ![colored_ig](docs/media/colored_ig.png)
 
-## LIR (x86_64) part
-In the same way as during `HIR` generation, we now produce an intermediate representation similar to `3AC` — but using only two addresses. This step is relatively straightforward, as it primarily involves adapting instructions to the target machine’s addressing model. Because the exact implementation depends heavily on the target architecture (register count, instruction set, addressing modes, etc.), we typically don’t spend much time optimizing or generalizing this layer. Its main goal is simply to bridge the high-level `HIR` representation and the target-specific assembly form, ensuring that each instruction can be directly translated to a valid machine instruction.
-![lir_gen](docs/media/lir_gen.png)
+## LIR peephole optimization
+### First pass
+### Second pass
+### Third pass
 
-### LIR x86_64 example
+### LIR example
+
+From HIR we can produce high level of LIR
+
 ```
-FDCL func [id=0]
-iMOV R13D, EDI
-iMOV R12D, ESI
-iMOV [RBP - 8], R12D
-iMOV [RBP - 4], R13D
-iMOV RAX, 0
-iMUL RAX, 4
-REF RBX, [RBP - 8]
-iADD RAX, RBX
-GDREF RAX, RAX
-iMOV R11D, EAX
-iMOV RAX, 1
-iMUL RAX, 4
-REF RBX, [RBP - 8]
-iADD RAX, RBX
-GDREF RAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, R11D
-iADD RAX, RBX
-iMOV R11D, EAX
-FRET R11D
-STRT
-iMOV RAX, [RBP + 8]
-iMOV R13, RAX
-REF RAX, [RBP + 16]
-iMOV R13, RAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 8], EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 16], EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 24], EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV R15D, EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV R14D, EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 32], EAX
-PUSH R11
-PUSH R12
-PUSH R13
-PUSH R14
-PUSH R15
-iMOV EDI, [RBP - 16]
-iMOV ESI, [RBP - 8]
-FCLL func [id=41]
-iMOV R13D, EAX
-POP R15
-POP R14
-POP R13
-POP R12
-POP R11
-iMOV EAX, [RBP - 8]
-iMOV EBX, [RBP - 16]
-iMUL RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, [RBP - 24]
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, R15D
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, R14D
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, [RBP - 32]
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R13D
-iMOV EBX, R11D
-iCMP RAX, RBX
-iMVZX RAX, AL
-iMOV R11D, EAX
-iCMP R11D, 0
-JNE lb: [vid=73]
-EXITOP 1
-MKLB lb: [vid=73]
-REF EAX, [RBP - 32]
-iMOV R12, RAX
-iMOV RAX, R12
-iMOV EAX, RAX
-iMOV R12D, EAX
-iMOV EAX, R12D
-iMOV R11D, EAX
-EXITOP R11D
+fn strlen(i8* s) -> i64
+{
+    %12 = ldparam();
+    {
+        kill(cnst: 0);
+        kill(cnst: 1);
+        %13 = num: 0;
+        %14 = %13;
+        %8 = num: 1 as u64;
+        lb10:
+        %6 = *(%15);
+        cmp %6, cnst: 0;
+        jne lb11;
+        je lb12;
+        lb11:
+        {
+            %7 = %15 + %8;
+            %16 = %7;
+            %9 = %14 + num: 1;
+            %17 = %9;
+        }
+        %14 = %17;
+        %15 = %16;
+        jmp lb10;
+        lb12:
+        return %14;
+    }
+}
+kill(cnst: 14);
+
+start {
+    {
+        %18 = strt_loadarg();
+        %19 = strt_loadarg();
+        {
+            %4 = str_alloc(str(Hello world!));
+            %5 = arr_alloc(X);
+            %10 = &(%5);
+            kill(cnst: 3);
+            kill(cnst: 18);
+            kill(cnst: 4);
+            kill(cnst: 19);
+            kill(cnst: 10);
+            kill(cnst: 5);
+            kill(cnst: 2);
+            stparam(%10);
+            call strlen(i8* s) -> i64;
+            %11 = fret();
+            exit %11;
+        }
+    }
+    kill(cnst: 11);
+}
 ```
 
-## LIR x86_64 optimization
+## LIR x86_64 instruction selection
+
+Next step is LIR lowering. The most common way here - instruction selection. This is the first machine-depended step in compiler, that's why here we have some abstractions and implementations of different asm dialetcs (e.g., nasm x86_64 gnu, at&at x86_64 gnu, etc.).
+
+```
+fn strlen(i8* s) -> i64
+{
+    {
+        r11 = num: 0;
+        r9 = r11;
+        rdi = rdi;
+        rbx = num: 1 as u64;
+        lb10:
+        r8 = *(rsi);
+        cmp r8, cnst: 0;
+        je lb12;
+        jne lb11;
+        lb11:
+        {
+            rax = rsi;
+            rax = rax + rbx;
+            rax = rax;
+            rdx = rax;
+            rsi = rdx;
+            rax = r9;
+            rax = rax + rbx;
+            r10 = rax;
+            rcx = r10;
+            r9 = rcx;
+            rbx = num: 1;
+            rbx = rbx;
+        }
+        jmp lb10;
+        lb12:
+        return r9;
+    }
+}
+
+start {
+    {
+        rbx = [rbp + 16];
+        rax = rax;
+        rbx = [rbp + 8];
+        [rbp - 16] = num: 0;
+        [rbp - 15] = num: 1;
+        rdx = &([rbp - 16]);
+        rdi = rdx;
+        {
+            [rbp - 29] = cnst: 72;
+            [rbp - 28] = cnst: 101;
+            [rbp - 27] = cnst: 108;
+            [rbp - 26] = cnst: 108;
+            [rbp - 25] = cnst: 111;
+            [rbp - 24] = cnst: 32;
+            [rbp - 23] = cnst: 119;
+            [rbp - 22] = cnst: 111;
+            [rbp - 21] = cnst: 114;
+            [rbp - 20] = cnst: 108;
+            [rbp - 19] = cnst: 100;
+            [rbp - 18] = cnst: 33;
+            [rbp - 17] = cnst: 0;
+            kill(cnst: 4);
+            kill(cnst: 5);
+            call strlen(i8* s) -> i64;
+            exit rax;
+        }
+    }
+}
+```
+
+Maybe you have notice, that we also apply register allocation here. The reason why we wait till this stage, is `pre-coloring`. Main idea, that we precolor some variables with already known registers like `rax` and `rbx` in arithmetics, `rdi`, `rsi`... in ABI function call etc.
 
 ## Codegen (nasm) part
 After completing the full code transformation pipeline, we can safely convert our `LIR` form into the `ASM` form, with a few small tricks applied during the unwrap process of special `LIR` instructions such as `EXITOP`, `STRT`, and others.

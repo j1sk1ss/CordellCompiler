@@ -1,0 +1,311 @@
+{
+    "prep": {
+        "macros": ["PREP_TESTING", "TOKEN_PRINT"],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c", 
+            "std/*.c"
+        ]
+    },
+    "ast": {
+        "macros": ["PREP_TESTING", "AST_TESTING", "AST_PRINT"],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "std/*.c"
+        ]
+    },
+    "hir": {
+        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_PRINT"],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/func/*.c",
+            "src/hir/loop/*.c",
+            "std/*.c"
+        ]
+    },
+    "hir_ssa": {
+        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_PRINT"],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "std/*.c"
+        ]
+    },
+    "hir_dag": {
+        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", "HIR_PRINT"],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/hir/dag/*.c",
+            "std/*.c"
+        ]
+    },
+    "hir_constfold": {
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "HIR_DAG_TESTING", "CONSTFOLD_TESTING", "HIR_PRINT"
+        ],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/hir/dag/*.c",
+            "src/hir/constfold/*.c",
+            "std/*.c"
+        ]
+    },
+    "lir": {
+        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "LIR_TESTING", "LIR_PRINT"],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/lir/*.c",
+            "src/lir/lirgen/*.c",
+            "src/lir/lirgen/misc/*.c",
+            "std/*.c"
+        ]
+    },
+    "lir_constfold": {
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", 
+            "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
+            "LIR_TESTING", "CONSTFOLD_TESTING", "LIR_PRINT"
+        ],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/hir/dag/*.c",
+            "src/hir/constfold/*.c",
+            "src/lir/*.c",
+            "src/lir/lirgen/*.c",
+            "src/lir/lirgen/misc/*.c",
+            "src/lir/constfold/*.c",
+            "std/*.c"
+        ]
+    },
+    "lir_selector": {
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_PRINT"
+        ],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/lir/*.c",
+            "src/lir/lirgen/*.c",
+            "src/lir/lirgen/misc/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
+            "std/*.c"
+        ]
+    },
+    "lir_instplan": {
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_PRINT"
+        ],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/lir/*.c",
+            "src/lir/lirgen/*.c",
+            "src/lir/lirgen/misc/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
+            "src/lir/instplan/*.c",
+            "std/*.c"
+        ]
+    },
+    "lir_regalloc": {
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PRINT"
+        ],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/lir/*.c",
+            "src/lir/lirgen/*.c",
+            "src/lir/lirgen/misc/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
+            "src/lir/instplan/*.c",
+            "src/lir/dfg/*.c",
+            "src/lir/regalloc/*.c",
+            "src/lir/regalloc/gc/*.c",
+            "std/*.c"
+        ]
+    },
+    "lir_peephole": {
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", "LIR_PRINT"
+        ],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/lir/*.c",
+            "src/lir/lirgen/*.c",
+            "src/lir/lirgen/misc/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
+            "src/lir/instplan/*.c",
+            "src/lir/dfg/*.c",
+            "src/lir/regalloc/*.c",
+            "src/lir/regalloc/gc/*.c",
+            "src/lir/peephole/*.c",
+            "std/*.c"
+        ]
+    },
+    "asm": {
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", 
+            "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", "LIR_PRINT", 
+            "CODEGEN_TESTING"
+        ],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/hir/dag/*.c",
+            "src/hir/constfold/*.c",
+            "src/lir/*.c",
+            "src/lir/dfg/*.c",
+            "src/lir/constfold/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
+            "src/lir/instplan/*.c",
+            "src/lir/peephole/*.c",
+            "src/lir/lirgen/*.c",
+            "src/lir/lirgen/misc/*.c",
+            "src/lir/regalloc/*.c",
+            "src/lir/regalloc/gc/*.c",
+            "src/asm/*.c",
+            "src/asm/x86_64_gnu_nasm/*.c",
+            "std/*.c"
+        ]
+    },
+    "asm_constfold": {
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
+            "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", 
+            "CODEGEN_TESTING", "CONSTFOLD_TESTING"
+        ],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/astgens/*.c",
+            "src/hir/*.c",
+            "src/hir/hirgen/*.c",
+            "src/hir/ssa/*.c",
+            "src/hir/cfg/*.c",
+            "src/hir/loop/*.c",
+            "src/hir/func/*.c",
+            "src/hir/dag/*.c",
+            "src/hir/constfold/*.c",
+            "src/lir/*.c",
+            "src/lir/dfg/*.c",
+            "src/lir/constfold/*.c",
+            "src/lir/selector/*.c",
+            "src/lir/selector/x86_64_gnu_nasm/*.c",
+            "src/lir/instplan/*.c",
+            "src/lir/peephole/*.c",
+            "src/lir/lirgen/*.c",
+            "src/lir/lirgen/misc/*.c",
+            "src/lir/regalloc/*.c",
+            "src/lir/regalloc/gc/*.c",
+            "src/asm/*.c",
+            "src/asm/x86_64_gnu_nasm/*.c",
+            "std/*.c"
+        ]
+    }
+}

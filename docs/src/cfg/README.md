@@ -10,31 +10,17 @@ In this compiler, both approaches are implemented, but for the following explana
 
 The source code implementing these approaches can be found [here](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/src/hir/cfg). A small code snippet is also presented in this README. Also CFG part requieres [set](https://github.com/j1sk1ss/CordellCompiler/blob/HIR_LIR_SSA/std/set.c) and [map](https://github.com/j1sk1ss/CordellCompiler/blob/HIR_LIR_SSA/std/map.c) implementations.
 ```c
-// #define DRAGONBOOK_CFG_LEADER
+#define DRAGONBOOK_CFG_LEADER
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     int term = 0;
     hir_block_t* hh = f->entry;
     while (hh) {
         hir_block_t* entry = hh;
 #ifdef DRAGONBOOK_CFG_LEADER
-        if (term) {
-            while (hh && hh != f->exit && !set_has(&f->leaders, hh)) hh = hh->next;
-            if (hh) {
-                entry = hh;
-                if (hh != f->exit) hh = hh->next;
-            }
-
-            term = 0;
-        }
-
         while (hh->next && hh != f->exit && !set_has(&f->leaders, hh->next)) {
-            if (set_has(&f->terminators, hh)) {
-                term = 1;
-                break;
-            }
-
             hh = hh->next;
         }
+
         _add_cfg_block(entry, hh, f, ctx);
 #else
         if (!HIR_issyst(entry->op)) _add_cfg_block(entry, entry, f, ctx);

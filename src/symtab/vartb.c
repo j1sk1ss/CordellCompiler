@@ -14,6 +14,19 @@ int VRTB_update_memory(long id, long offset, long size, char reg, vartab_ctx_t* 
     return 0;    
 }
 
+int VRTB_update_definition(long id, long definition, vartab_ctx_t* ctx) {
+    print_log("VRTB_update_definition(id=%i, definition=%i)", id, definition);
+    variable_info_t* vi;
+    if (map_get(&ctx->vartb, id, (void**)&vi)) {
+        if (vi->vdi.defined) return 0;
+        vi->vdi.definition = definition;
+        vi->vdi.defined    = 1;
+        return 1;
+    }
+
+    return 0;    
+}
+
 int VRTB_get_info_id(long id, variable_info_t* info, vartab_ctx_t* ctx) {
     variable_info_t* vi;
     if (map_get(&ctx->vartb, id, (void**)&vi)) {
@@ -62,18 +75,22 @@ static variable_info_t* _create_variable_info(const char* name, token_type_t typ
     return var;
 }
 
-int VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
+long VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     print_log("VRTB_add_copy(v_id=%i)", src->v_id);
     variable_info_t* nnd = _create_variable_info(src->name, src->type, src->s_id, NULL);
     if (!nnd) return 0;
+    
     str_memcpy(nnd, src, sizeof(variable_info_t));
+    nnd->vmi.allocated = 0;
+    nnd->vdi.defined   = 0;
+
     nnd->v_id = ctx->curr_id++;
     nnd->p_id = src->v_id;
     map_put(&ctx->vartb, nnd->v_id, nnd);
     return nnd->v_id;
 }
 
-int VRTB_add_info(const char* name, token_type_t type, short s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
+long VRTB_add_info(const char* name, token_type_t type, short s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
     print_log("VRTB_add_info(name=%s, type=%i, s_id=%i)", name, type, s_id);
     variable_info_t* nnd = _create_variable_info(name, type, s_id, flags);
     if (!nnd) return 0;

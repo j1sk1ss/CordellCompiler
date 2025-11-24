@@ -15,7 +15,6 @@ static unsigned long _get_dag_hash(dag_node_t* nd) {
 }
 
 unsigned long HIR_DAG_compute_hash(dag_node_t* nd) {
-    // if (nd->hash) return nd->hash;
     return _get_dag_hash(nd);
 }
 
@@ -76,5 +75,6 @@ int HIR_DAG_unload(dag_ctx_t* ctx) {
         HIR_DAG_unload_node(nd);
     }
 
+    map_free(&ctx->groups);
     return map_free(&ctx->dag);
 }

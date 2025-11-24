@@ -1,4 +1,4 @@
-#include <asm/x86_64_gnu_nasm/x86_64_asmgen.h>
+#include <asm/x86_64_asmgen.h>
 
 int x86_64_generate_stackframe(lir_block_t* h, lir_operation_t end, FILE* output) {
     long maxoff = 0;
@@ -12,7 +12,7 @@ int x86_64_generate_stackframe(lir_block_t* h, lir_operation_t end, FILE* output
 
     fprintf(output, "push rbp\n");
     fprintf(output, "mov rbp, rsp\n");
-    if (maxoff > 0) fprintf(output, "sub rsp, %d\n", maxoff);
+    if (maxoff > 0) fprintf(output, "sub rsp, %ld\n", ALIGN(maxoff));
     return maxoff;
 }
 

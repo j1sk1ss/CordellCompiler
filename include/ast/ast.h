@@ -2,6 +2,7 @@
 #define AST_H_
 
 #include <std/mm.h>
+#include <std/stack.h>
 #include <prep/token_types.h>
 
 typedef struct {
@@ -16,6 +17,17 @@ typedef struct ast_node {
     struct ast_node* sibling;
     syntax_info_t    sinfo;
 } ast_node_t;
+
+typedef struct {
+    int           s_id;  /* Current scope id. */
+    scope_stack_t stack; /* Scope id stack.   */
+} scope_info_t;
+
+typedef struct {
+    ast_node_t*  r;      /* AST root.                                */
+    scope_info_t scopes; /* Scopes structure.                        */
+    const char*  fentry; /* Name for entry function. [Arch depended] */
+} ast_ctx_t;
 
 /*
 Create new tree node with token.

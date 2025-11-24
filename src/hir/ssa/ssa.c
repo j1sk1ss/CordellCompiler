@@ -1,5 +1,4 @@
-/*
-ssa.c - Transfer input HIR program (with PHI placeholders) into the SSA form
+/* ssa.c - Transfer input HIR program (with PHI placeholders) into the SSA form
 */
 
 #include <hir/ssa.h>
@@ -50,7 +49,6 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
 
 static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_table_t* smt) {
     if (a == b) return 1;
-
     variable_info_t avi, bvi;
     if (!VRTB_get_info_id(a, &avi, &smt->v) || !VRTB_get_info_id(b, &bvi, &smt->v)) {
         return 0;
@@ -63,20 +61,21 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
         if (trg->id != bid) continue;
         hir_block_t* union_command = HIR_create_block(
             HIR_PHI_PREAMBLE, 
-            HIR_SUBJ_STKVAR(avi.v_id, HIR_get_stktype(&avi), avi.s_id), 
-            HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi), bvi.s_id), 
+            HIR_SUBJ_STKVAR(avi.v_id, HIR_get_stktype(&avi)), 
+            HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi)), 
             NULL
         );
-
-        if (trg->jmp) {
-            HIR_insert_block_before(union_command, trg->entry);
-            trg->entry = union_command;
-        }
+        
+        if (trg->hmap.exit) HIR_insert_block_before(union_command, trg->hmap.exit);
         else {
-            HIR_insert_block_after(union_command, trg->entry);
-            trg->exit = union_command;
+            HIR_CFG_append_hir_block_back(trg, union_command);
+            HIR_insert_block_before(union_command, trg->l->hmap.entry);
         }
 
+        if (trg->hmap.entry == trg->hmap.exit) {
+            trg->hmap.entry = union_command;
+        }
+        
         break;
     }
 
@@ -86,7 +85,7 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
 static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
     if (!b || set_has(&b->visitors, (void*)prev_bid)) return 0;
 
-    hir_block_t* hh = b->entry;
+    hir_block_t* hh = b->hmap.entry;
     while (hh) {
         switch (hh->op) {
             case HIR_PHI: {
@@ -103,7 +102,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                         int future_id = 0;
                         if (hh->sarg) future_id = hh->sarg->storage.var.v_id;
                         else {
-                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
+                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t);
                             vv->curr_id = hh->sarg->storage.var.v_id;
                             future_id = vv->curr_id;
                         }
@@ -116,6 +115,8 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
             }
 
             default: {
+                _rename_block(hh, ctx);
+                
                 variable_info_t vi;
                 if (
                     hh->farg && HIR_is_vartype(hh->farg->t) && 
@@ -124,17 +125,23 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                 ) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
-                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.s_id);
+                        hir_subject_type_t tmp_t = hh->farg->t;
+                        if (hh->farg->home == hh) HIR_unload_subject(hh->farg); 
+                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), tmp_t);
+                        array_info_t ai;
+                        if (ARTB_get_info(vi.v_id, &ai, &smt->a)) {
+                            ARTB_add_copy(hh->farg->storage.var.v_id, &ai, &smt->a);
+                        }
+
                         vv->curr_id = hh->farg->storage.var.v_id;
                     }
                 }
 
-                _rename_block(hh, ctx);
                 break;
             }
         }
 
-        if (hh == b->exit) break;
+        if (hh == b->hmap.exit) break;
         hh = hh->next;
     }
 
@@ -175,7 +182,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     map_iter_init(&smt->v.vartb, &mit);
     variable_info_t* vh;
     while (map_iter_next(&mit, (void**)&vh)) {
-        if (vh->ro || vh->type == TMP_TYPE_TOKEN) continue;
+        if (vh->ro || TKN_istmp_type(vh->type)) continue;
         _add_varver(&ctx->vers, vh->v_id, vh->v_id);
     }
 
@@ -183,6 +190,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     list_iter_hinit(&cctx->funcs, &it);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+        if (!fb->used) continue;
         _iterate_block(list_get_head(&fb->blocks), ctx, 0, smt);
     }
 

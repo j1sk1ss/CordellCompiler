@@ -1,129 +1,5 @@
 #include <lir/lir_types.h>
 
-int LIR_is_global_hirtype(hir_subject_type_t t) {
-    switch (t) {
-        case HIR_GLBVARSTR:
-        case HIR_GLBVARARR:
-        case HIR_GLBVARF64:
-        case HIR_GLBVARI64:
-        case HIR_GLBVARU64:
-        case HIR_GLBVARF32:
-        case HIR_GLBVARI32:
-        case HIR_GLBVARU32:
-        case HIR_GLBVARI16:
-        case HIR_GLBVARU16:
-        case HIR_GLBVARI8:
-        case HIR_GLBVARU8:  return 1;
-        default: return 0;
-    }
-}
-
-int LIR_get_asttype_size(token_type_t t) {
-    switch (t) {
-        case STR_TYPE_TOKEN:
-        case F64_TYPE_TOKEN:
-        case U64_TYPE_TOKEN:
-        case I64_TYPE_TOKEN: return DEFAULT_TYPE_SIZE;
-        case F32_TYPE_TOKEN:
-        case U32_TYPE_TOKEN:
-        case I32_TYPE_TOKEN: return 4;
-        case U16_TYPE_TOKEN:
-        case I16_TYPE_TOKEN: return 2;
-        case U8_TYPE_TOKEN:
-        case I8_TYPE_TOKEN:  return 1;
-        default: return DEFAULT_TYPE_SIZE;
-    }
-}
-
-int LIR_get_hirtype_size(hir_subject_type_t t) {
-    switch (t) {
-        case HIR_NUMBER:
-        case HIR_CONSTVAL:
-        case HIR_TMPVARF64:
-        case HIR_TMPVARI64:
-        case HIR_TMPVARU64:
-        case HIR_STKVARF64:
-        case HIR_STKVARI64:
-        case HIR_STKVARU64:
-        case HIR_GLBVARF64:
-        case HIR_GLBVARI64:
-        case HIR_GLBVARU64: return DEFAULT_TYPE_SIZE;
-        case HIR_TMPVARF32:
-        case HIR_TMPVARI32:
-        case HIR_TMPVARU32:
-        case HIR_STKVARF32:
-        case HIR_STKVARI32:
-        case HIR_STKVARU32:
-        case HIR_GLBVARF32:
-        case HIR_GLBVARI32:
-        case HIR_GLBVARU32: return 4;
-        case HIR_TMPVARI16:
-        case HIR_TMPVARU16:
-        case HIR_STKVARI16:
-        case HIR_STKVARU16:
-        case HIR_GLBVARI16:
-        case HIR_GLBVARU16: return 2;
-        case HIR_TMPVARI8:
-        case HIR_TMPVARU8:
-        case HIR_STKVARI8:
-        case HIR_STKVARU8:
-        case HIR_GLBVARI8:
-        case HIR_GLBVARU8:  return 1;
-        default: return DEFAULT_TYPE_SIZE;
-    }
-}
-
-int LIR_move_instruction(lir_operation_t op) {
-    switch (op) {
-        case LIR_iMOV:
-        case LIR_fMOV:
-        case LIR_REF: return 1;
-        default: return 0;
-    }
-}
-
-int LIR_jmp_instruction(lir_operation_t op) {
-    switch (op) {
-        case LIR_JMP:
-        case LIR_JA:
-        case LIR_JAE:
-        case LIR_JB:
-        case LIR_JBE:
-        case LIR_JE:
-        case LIR_JNE:
-        case LIR_JL:
-        case LIR_JLE:
-        case LIR_JG:
-        case LIR_JGE: return 1;
-        default: return 0;
-    }
-}
-
-int LIR_sysc_reg(lir_registers_t reg) {
-    switch (reg) {
-        case RAX: 
-        case RDI: 
-        case RSI: 
-        case RDX: 
-        case R10: 
-        case R8: 
-        case R9: return 1;
-        default: return 0;
-    }
-}
-
-int LIR_funccall_reg(lir_registers_t reg) {
-    switch (reg) {
-        case RDI:
-        case RSI:
-        case RDX:
-        case RCX:
-        case R8:
-        case R9: return 1;
-        default: return 0;
-    }
-}
-
 lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     switch (reg) {
         case RAX: case EAX: case AX: case AL: case AH:
@@ -238,4 +114,64 @@ lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     }
 
     return reg;
+}
+
+int LIR_movop(lir_operation_t op) {
+    switch (op) {
+        case LIR_CDQ:
+        case LIR_XCHG:
+        case LIR_STARGLD:
+        case LIR_STARGRF:
+        case LIR_LOADFRET:
+        case LIR_LOADFARG:
+        case LIR_NOT:
+        case LIR_CVTTSS2SI:
+        case LIR_CVTTSD2SI:
+        case LIR_CVTSI2SS:
+        case LIR_CVTSI2SD:
+        case LIR_CVTSS2SD:
+        case LIR_CVTSD2SS:
+        case LIR_aMOV:
+        case LIR_iMOV:
+        case LIR_MOVSX:
+        case LIR_MOVSXD:
+        case LIR_MOVZX:
+        case LIR_fMOV: return 1;
+        default: return 0;
+    }
+}
+
+int LIR_writeop(lir_operation_t op) {
+    switch (op) {
+        case LIR_POP:
+        case LIR_bXOR:
+        case LIR_bSHL:
+        case LIR_bSHR:
+        case LIR_bSAR:
+        case LIR_fADD: 
+        case LIR_fSUB: 
+        case LIR_fMUL: 
+        case LIR_fDIV: 
+        case LIR_iADD: 
+        case LIR_iSUB: 
+        case LIR_iMUL: 
+        case LIR_DIV:  
+        case LIR_iDIV: 
+        case LIR_GDREF:
+        case LIR_REF: return 1;
+        default: return LIR_movop(op);
+    }
+}
+
+int LIR_readop(lir_operation_t op) {
+    switch (op) {
+        case LIR_TST:
+        case LIR_CMP:
+        case LIR_FRET:
+        case LIR_PUSH:
+        case LIR_aMOV:
+        case LIR_VRUSE:
+        case LIR_EXITOP: return 1;
+        default: return LIR_writeop(op);
+    }
 }

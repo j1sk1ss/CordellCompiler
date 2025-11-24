@@ -2,6 +2,8 @@
 
 int list_init(list_t* l) {
     l->h = NULL;
+    l->t = NULL;
+    l->s = 0;
     return 1;
 }
 
@@ -17,10 +19,6 @@ int list_iter_tinit(list_t* l, list_iter_t* it) {
 
 int list_size(list_t* l) {
     return l->s;
-}
-
-int list_isempty(list_t* l) {
-    return l->s == 0;
 }
 
 int list_add(list_t* l, void* data) {
@@ -59,6 +57,21 @@ int list_push_back(list_t* l, void* data) {
     return 0;
 }
 
+void* list_pop_front(list_t* l) {
+    if (!l->h) return NULL;
+
+    list_node_t* node = l->h;
+    void* data = node->data;
+
+    l->h = node->n;
+    if (l->h) l->h->p = NULL;
+    else l->t = NULL;
+
+    l->s--;
+    mm_free(node);
+    return data;
+}
+
 int list_push_front(list_t* l, void* data) {
     list_node_t* node = mm_malloc(sizeof(list_node_t));
     if (!node) return -1;
@@ -70,6 +83,45 @@ int list_push_front(list_t* l, void* data) {
     if (l->h) l->h->p = node;
     else l->t = node;
     l->h = node;
+    l->s++;
+    return 0;
+}
+
+int list_insert(list_t* l, void* data, void* before) {
+    if (!l) return -1;
+    list_node_t* node = mm_malloc(sizeof(list_node_t));
+    if (!node) return -1;
+
+    node->data = data;
+    node->p = NULL;
+    node->n = NULL;
+
+    if (!l->h) {
+        l->h = node;
+        l->t = node;
+        l->s = 1;
+        return 0;
+    }
+
+    list_node_t* cur = l->h;
+    while (cur) {
+        if (cur->data == before) break;
+        cur = cur->n;
+    }
+
+    if (!cur) {
+        node->p = l->t;
+        l->t->n = node;
+        l->t = node;
+    } 
+    else {
+        node->n = cur;
+        node->p = cur->p;
+        if (cur->p) cur->p->n = node;
+        else l->h = node;
+        cur->p = node;
+    }
+
     l->s++;
     return 0;
 }
@@ -117,6 +169,12 @@ void* list_iter_next(list_iter_t* it) {
     void* data = it->curr->data;
     it->curr = it->curr->n;
     return data;
+}
+
+int list_iter_set(list_iter_t* it, void* data) {
+    if (!it->curr) return 0;
+    it->curr->data = data;
+    return 1;
 }
 
 void* list_iter_next_top(list_iter_t* it) {

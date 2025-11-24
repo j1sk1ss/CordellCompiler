@@ -1,7 +1,6 @@
 #include <prep/token_types.h>
 
-/* 
-ptr - 0 we ignore ptr flag.
+/* ptr - 0 we ignore ptr flag.
 Return variable bitness (size in bits). 
 */
 int TKN_variable_bitness(token_t* token, char ptr) {
@@ -35,6 +34,38 @@ int TKN_variable_bitness(token_t* token, char ptr) {
 
     return 64;
 } 
+
+token_type_t TKN_get_tmp_type(token_type_t t) {
+    switch (t) {
+        case F64_TYPE_TOKEN: return TMP_F64_TYPE_TOKEN;
+        case F32_TYPE_TOKEN: return TMP_F32_TYPE_TOKEN;
+        case I64_TYPE_TOKEN: return TMP_I64_TYPE_TOKEN;
+        case I32_TYPE_TOKEN: return TMP_I32_TYPE_TOKEN;
+        case I16_TYPE_TOKEN: return TMP_I16_TYPE_TOKEN;
+        case I8_TYPE_TOKEN:  return TMP_I8_TYPE_TOKEN;
+        case U64_TYPE_TOKEN: return TMP_U64_TYPE_TOKEN;
+        case U32_TYPE_TOKEN: return TMP_U32_TYPE_TOKEN;
+        case U16_TYPE_TOKEN: return TMP_U16_TYPE_TOKEN;
+        case U8_TYPE_TOKEN:  return TMP_U8_TYPE_TOKEN;
+        default: return TMP_I64_TYPE_TOKEN;
+    }
+}
+
+int TKN_istmp_type(token_type_t t) {
+    switch (t) {
+        case TMP_F64_TYPE_TOKEN:
+        case TMP_F32_TYPE_TOKEN:
+        case TMP_I64_TYPE_TOKEN:
+        case TMP_I32_TYPE_TOKEN:
+        case TMP_I16_TYPE_TOKEN:
+        case TMP_I8_TYPE_TOKEN:
+        case TMP_U64_TYPE_TOKEN:
+        case TMP_U32_TYPE_TOKEN:
+        case TMP_U16_TYPE_TOKEN:
+        case TMP_U8_TYPE_TOKEN:  return 1;
+        default: return 0; 
+    }
+}
 
 /* Return 1 if token is pointer (arr, string, ptr). Otherwise return 0. */
 int TKN_isptr(token_t* token) {
@@ -132,8 +163,8 @@ int TKN_isdecl(token_t* token) {
         case U64_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
         case STR_TYPE_TOKEN:
-        case ARRAY_TYPE_TOKEN:  return 1;
-        default:                return 0;
+        case ARRAY_TYPE_TOKEN: return 1;
+        default:               return 0;
     }
 }
 
@@ -170,8 +201,8 @@ int TKN_isoperand(token_t* token) {
         case MULASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:
         case BITMOVE_LEFT_TOKEN:
-        case BITMOVE_RIGHT_TOKEN:  return 1;
-        default:                   return 0;
+        case BITMOVE_RIGHT_TOKEN: return 1;
+        default:                  return 0;
     }
 }
 
@@ -282,8 +313,8 @@ int TKN_update_operator(token_t* token) {
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:
-        case MULASSIGN_TOKEN:   return 1;
-        default:                return 0;
+        case MULASSIGN_TOKEN: return 1;
+        default:              return 0;
     }
 }
 

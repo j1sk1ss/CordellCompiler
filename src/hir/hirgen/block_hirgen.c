@@ -29,7 +29,6 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
 }
 
 hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (!node) return 0;
     return _generation_handler(node, ctx, smt);
 }
 
@@ -49,11 +48,11 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case START_TOKEN:      HIR_generate_start_block(node, ctx, smt);      break;
         case SWITCH_TOKEN:     HIR_generate_switch_block(node, ctx, smt);     break;
         case RETURN_TOKEN:     HIR_generate_return_block(node, ctx, smt);     break;
-        case EXTERN_TOKEN:     HIR_generate_extern_block(node, ctx, smt);     break;
-        case IMPORT_TOKEN:     HIR_generate_import_block(node, ctx, smt);     break;
+        case EXTERN_TOKEN:     HIR_generate_extern_block(node, ctx);          break;
+        case IMPORT_TOKEN:     HIR_generate_import_block(node, ctx);          break;
         case ASSIGN_TOKEN:     HIR_generate_assignment_block(node, ctx, smt); break;
         case SYSCALL_TOKEN:    HIR_generate_syscall(node, ctx, smt, 0);       break;
-        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(node, ctx, smt); break;
+        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(ctx);            break;
         default: break;
     }
 
@@ -64,9 +63,15 @@ int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     for (ast_node_t* t = node; t; t = t->sibling) {
         if (TKN_isblock(t->token) && (!t->token || t->token->t_type != START_TOKEN)) {
-            if (t->token && t->token->t_type == SCOPE_TOKEN) HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(t->sinfo.s_id));
+            if (t->token && t->token->t_type == SCOPE_TOKEN) {
+                HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(t->sinfo.s_id));
+            }
+
             HIR_generate_block(t->child, ctx, smt);
-            if (t->token && t->token->t_type == SCOPE_TOKEN) HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(t->sinfo.s_id));
+            
+            if (t->token && t->token->t_type == SCOPE_TOKEN) {
+                HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(t->sinfo.s_id));
+            }
         }
 
         _navigation_handler(t, ctx, smt);

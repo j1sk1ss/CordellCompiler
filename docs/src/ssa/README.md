@@ -121,7 +121,7 @@ Several optimization techniques are based on data-flow analysis. Data-flow analy
 
 Implementation of this part is simple (source code is [here](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/src/hir/dfg)):
 ```c
-int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
+int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -147,7 +147,7 @@ int HIR_DFG_collect_defs(cfg_ctx_t* cctx) {
     return 1;
 }
 
-int HIR_DFG_collect_uses(cfg_ctx_t* cctx) {
+int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -232,7 +232,7 @@ After each iteration, the current values are copied into the corresponding prime
 
 And this is how this code calculate `IN` and `OUT`:
 ```c
-int HIR_DFG_compute_inout(cfg_ctx_t* cctx) {
+int LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
@@ -284,7 +284,7 @@ the variable `a` is owned by `b`, so we must not kill `a` while `b` is still ali
 
 This compiler implements this logic in next way (source code is [here](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/src/hir/dfg)).
 ```c
-int HIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
+int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
     list_iter_t fit;
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;

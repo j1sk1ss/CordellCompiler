@@ -24,11 +24,13 @@ int list_iter_hinit(list_t* l, list_iter_t* it);
 int list_iter_tinit(list_t* l, list_iter_t* it);
 
 int list_size(list_t* l);
-int list_isempty(list_t* l);
 
 int list_add(list_t* l, void* data);
+int list_insert(list_t* l, void* data, void* before);
+int list_iter_set(list_iter_t* it, void* data);
 int list_push_back(list_t* l, void* data);
 int list_push_front(list_t* l, void* data);
+void* list_pop_front(list_t* l);
 int list_remove(list_t* l, void* data);
 int list_copy(list_t* src, list_t* dst);
 

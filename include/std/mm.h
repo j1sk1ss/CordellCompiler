@@ -17,7 +17,6 @@ typedef struct mm_block {
     struct mm_block* next;
 } mm_block_t;
 
-
 /*
 Init first memory block in memory manager.
 
@@ -64,5 +63,11 @@ Return 1 if free success.
 */
 int mm_base_free(const char* f, int l, void* ptr);
 #define mm_free(size) mm_base_free(__FILE__, __LINE__, size);
+
+/*
+Return current allocated size.
+Return allocated size.
+*/
+int mm_get_allocated();
 
 #endif

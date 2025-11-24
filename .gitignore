@@ -10,3 +10,5 @@ vscode/node_modules
 vscode/out
 package-lock.json
 *.bin
+tests/bin
+docs/gifs/

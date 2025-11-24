@@ -5,7 +5,7 @@
 #include <std/str.h>
 #include <std/stack.h>
 #include <prep/token_types.h>
-#include <ast/syntax.h>
+#include <ast/astgen.h>
 #include <symtab/symtab.h>
 
 /*
@@ -40,6 +40,6 @@ switch 1; {
 ->
 int a = 0;
 */
-int OPT_condunroll(syntax_ctx_t* ctx);
+int OPT_condunroll(ast_ctx_t* ctx);
 
 #endif

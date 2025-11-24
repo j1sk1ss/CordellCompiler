@@ -79,13 +79,13 @@ int str_atoi(const char *str) {
 
     while (str_isspace(*str)) str++;
     if (*str == '-' || *str == '+') {
-        neg = *str == '-' ? -1 : 1;
+        neg = *str == '-' ? 0 : 1;
         str++;
     }
 
 	while (*str >= '0' && *str <= '9' && *str) {
 		num = num * 10 + (str[i] - 48);
-        if (neg == 1 && num > INT_MAX) return INT_MAX;
+        if (neg && num > INT_MAX) return INT_MAX;
         if (neg == -1 && -num < INT_MIN) return INT_MIN;
 		str++;
 	}
@@ -154,7 +154,7 @@ unsigned long long str_strtoull(const char* str, int l, int base) {
         char c = *str;
         int digit = -1;
 
-        if (c >= '0' && c <= '9') digit = c - '0';
+        if (c >= '0' && c <= '9')      digit = c - '0';
         else if (c >= 'a' && c <= 'f') digit = c - 'a' + 10;
         else if (c >= 'A' && c <= 'F') digit = c - 'A' + 10;
         else break;
@@ -169,10 +169,10 @@ unsigned long long str_strtoull(const char* str, int l, int base) {
 
 double str_strtod(const char* s, int l) {
     double result = 0.0;
-    int sign = 1;
-    int exp_sign = 1;
-    int exponent = 0;
-    int i = 0;
+    int sign      = 1;
+    int exp_sign  = 1;
+    int exponent  = 0;
+    int i         = 0;
 
     while (i < l && (s[i] == ' ' || s[i] == '\t')) i++;
 
@@ -198,8 +198,11 @@ double str_strtod(const char* s, int l) {
 
     if (i < l && (s[i] == 'e' || s[i] == 'E')) {
         i++;
-        if (i < l && s[i] == '-') { exp_sign = -1; i++; }
-        else if (i < l && s[i] == '+') { i++; }
+        if (i < l && s[i] == '+') i++;
+        else if (i < l && s[i] == '-') {
+            exp_sign = -1; 
+            i++;
+        }
 
         while (i < l && s[i] >= '0' && s[i] <= '9') {
             exponent = exponent * 10 + (s[i] - '0');
@@ -212,9 +215,15 @@ double str_strtod(const char* s, int l) {
 }
 
 unsigned long long str_dob2bits(double d) {
-    unsigned long long bits;
+    unsigned long long bits = 0;
     str_memcpy(&bits, &d, sizeof(d));
     return bits;
+}
+
+double str_bits2dob(unsigned long long bits) {
+    double d = 0.0;
+    str_memcpy(&d, &bits, sizeof(d));
+    return d;
 }
 
 int write_value(const char* src, int src_size, char* dst, int dst_size) {

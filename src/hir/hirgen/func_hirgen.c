@@ -1,53 +1,64 @@
 #include <hir/hirgens/hirgens.h>
 
 int HIR_generate_return_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_BLOCK1(ctx, HIR_FRET, HIR_generate_elem(node->child, ctx, smt));
-    return 1;
+    return HIR_BLOCK1(ctx, HIR_FRET, HIR_generate_elem(node->child, ctx, smt));
 }
 
 hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
-    int variables_size = 0;
-    ast_node_t* name = node;
-
     func_info_t fi;
-    if (!FNTB_get_info_id(name->sinfo.v_id, &fi, &smt->f)) return NULL;
+    if (!FNTB_get_info_id(node->sinfo.v_id, &fi, &smt->f)) {
+        return NULL;
+    }
 
     hir_subject_t* args = HIR_SUBJ_LIST();
-    for (ast_node_t *arg = name->child, *targ = fi.args->child; arg && targ; arg = arg->sibling, targ = targ->sibling) {
-        hir_subject_t* carg = HIR_generate_elem(arg, ctx, smt);
-        list_add(&args->storage.list.h, carg);
-        // HIR_BLOCK1(ctx, HIR_VRUSE, carg);
+    for (ast_node_t* arg = node->child; arg; arg = arg->sibling) {
+        hir_subject_t* el = HIR_generate_elem(arg, ctx, smt);
+        HIR_BLOCK1(ctx, HIR_VRUSE, el);
+        list_add(&args->storage.list.h, HIR_copy_subject(el));
     }
     
     if (!ret) {
-        HIR_BLOCK3(ctx, fi.external ? HIR_ECLL : HIR_FCLL, HIR_SUBJ_FUNCNAME(name), NULL, args);
+        HIR_BLOCK3(ctx, fi.external ? HIR_ECLL : HIR_FCLL, NULL, HIR_SUBJ_FUNCNAME(node), args);
         return NULL;
     }
     
     hir_subject_t* res = HIR_SUBJ_TMPVAR(
         HIR_get_tmptype_tkn(fi.rtype ? fi.rtype->token : NULL, fi.rtype ? fi.rtype->token->flags.ptr : 1),
-        VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v)
+        VRTB_add_info(NULL, TKN_get_tmp_type(fi.rtype ? fi.rtype->token->t_type : I64_TYPE_TOKEN), 0, NULL, &smt->v)
     );
     
-    HIR_BLOCK3(ctx, fi.external ? HIR_STORE_ECLL : HIR_STORE_FCLL, res, HIR_SUBJ_FUNCNAME(name), args);
+    HIR_BLOCK3(ctx, fi.external ? HIR_STORE_ECLL : HIR_STORE_FCLL, res, HIR_SUBJ_FUNCNAME(node), args);
     return res;
 }
 
-int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* name_node = node->child;
-    ast_node_t* body_node = name_node->sibling;
-    HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(name_node));
-    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(body_node->sinfo.s_id));
+static int _generate_calling_block(
+    ast_node_t* name, ast_node_t* body, char entry, hir_ctx_t* ctx, sym_table_t* smt
+) {
+    HIR_BLOCK1(ctx, entry ? HIR_STRT : HIR_FDCL, HIR_SUBJ_FUNCNAME(name));
+    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(body->sinfo.s_id));
 
     int argnum = 0;
-    ast_node_t* t = NULL;
-    for (t = body_node->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
+    ast_node_t* t;
+    for (t = body->child; t && t->token && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
         HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->child));
-        HIR_BLOCK2(ctx, HIR_FARGLD, HIR_SUBJ_ASTVAR(t->child), HIR_SUBJ_CONST(argnum++));
+        HIR_BLOCK2(ctx, entry ? HIR_STARGLD : HIR_FARGLD, HIR_SUBJ_ASTVAR(t->child), HIR_SUBJ_CONST(argnum++));
     }
 
     HIR_generate_block(t, ctx, smt);
-    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(body_node->sinfo.s_id));
-    HIR_BLOCK0(ctx, HIR_FEND);
+    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(body->sinfo.s_id));
+    HIR_BLOCK0(ctx, entry ? HIR_STEND : HIR_FEND);
     return 1;
+}
+
+int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    return _generate_calling_block(node, node, 1, ctx, smt);
+}
+
+int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(node->child->sinfo.v_id, &fi, &smt->f)) {
+        return 0;
+    }
+    
+    return _generate_calling_block(node->child, node->child->sibling, fi.entry, ctx, smt);
 }

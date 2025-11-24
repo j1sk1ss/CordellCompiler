@@ -24,7 +24,7 @@ int ALLIAS_get_owners(long v_id, set_t* out, allias_map_t* ctx) {
         return 1;
     }
 
-    if (out) set_init(out);
+    set_init(out);
     return 0;
 }
 

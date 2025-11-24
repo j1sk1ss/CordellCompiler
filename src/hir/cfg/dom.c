@@ -1,5 +1,4 @@
-/*
-dom.c - Compute dominance, strict dominance and dominance frontier
+/* dom.c - Compute dominance, strict dominance and dominance frontier
 */
 
 #include <hir/cfg.h>
@@ -9,7 +8,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
     list_iter_hinit(&fb->blocks, &bit);
     cfg_block_t* cb;
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        if (cb == list_get_head(&fb->blocks)) set_add(&cb->dom, cb);
+        if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) set_add(&cb->dom, cb);
         else {
             list_iter_t bbit;
             list_iter_hinit(&fb->blocks, &bbit);
@@ -25,7 +24,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
         changed = 0;
         list_iter_hinit(&fb->blocks, &bit);
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            if (cb == list_get_head(&fb->blocks)) continue;
+            if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) continue;
 
             set_t nd;
             set_init(&nd);
@@ -36,6 +35,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
             cfg_block_t* p;
             while (set_iter_next(&it, (void**)&p)) {
                 if (first) {
+                    set_free(&nd);
                     set_copy(&nd, &p->dom);
                     first = 0;   
                 }
@@ -55,7 +55,6 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
             }
 
             set_add(&nd, cb);
-
             if (!set_equal(&nd, &cb->dom)) {
                 set_free(&cb->dom);
                 set_copy(&cb->dom, &nd);
@@ -74,7 +73,7 @@ int HIR_CFG_compute_sdom(cfg_func_t* fb) {
     list_iter_hinit(&fb->blocks, &bit);
     cfg_block_t* cb;
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        if (cb == list_get_head(&fb->blocks)) {
+        if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) {
             cb->sdom = NULL;
             continue;
         }
@@ -151,12 +150,13 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
     list_iter_hinit(&cctx->funcs, &fit);
     cfg_func_t* fb;
     while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        if (!fb->used) continue;
         list_iter_t bit;
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             int has_def = 0;
-            hir_block_t* hh = cb->entry;
+            hir_block_t* hh = cb->hmap.entry;
             while (hh) {
                 if (HIR_writeop(hh->op)) {
                     if (hh->farg && HIR_is_vartype(hh->farg->t) && !HIR_is_tmptype(hh->farg->t)) {
@@ -167,13 +167,50 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
                     }
                 }
                 
-                if (hh == cb->exit) break;
+                if (hh == cb->hmap.exit) break;
                 hh = hh->next;
             }
 
             if (has_def) {
                 set_add(out, cb);
             }
+        }
+    }
+
+    return 1;
+}
+
+int HIR_CFG_create_domdata(cfg_ctx_t* cctx) {
+    list_iter_t it;
+    list_iter_hinit(&cctx->funcs, &it);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+        if (!fb->used) continue;
+        HIR_CFG_compute_dom(fb);
+        HIR_CFG_compute_sdom(fb);
+        HIR_CFG_compute_domf(fb);
+    }
+
+    return 1;
+}
+
+int HIR_CFG_unload_domdata(cfg_ctx_t* cctx) {
+    list_iter_t it;
+    list_iter_hinit(&cctx->funcs, &it);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+        if (!fb->used) continue;
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            set_free(&cb->dom);
+            set_init(&cb->dom);
+
+            set_free(&cb->domf);
+            set_init(&cb->domf);
+            
+            cb->sdom = cb->dom_c = cb->dom_s = NULL;
         }
     }
 

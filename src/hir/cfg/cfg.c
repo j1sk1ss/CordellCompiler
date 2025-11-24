@@ -1,15 +1,46 @@
-/*
-cfg.c - Create CFG
+/* cfg.c - Create CFG
 */
 
 #include <hir/cfg.h>
 
-cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
+int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh) {
+    if (bb->hmap.entry && bb->hmap.exit) bb->hmap.exit = hh;
+    if (!bb->hmap.entry) bb->hmap.entry = hh;
+    if (!bb->hmap.exit)  bb->hmap.exit  = hh;
+    return 1;
+}
+
+int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh) {
+    if (!bb || !hh) return 0;
+    if (bb->hmap.entry == bb->hmap.exit) {
+        bb->hmap.entry = bb->hmap.exit = NULL;
+        return 1;
+    }
+    
+    if (bb->hmap.entry == hh) bb->hmap.entry = hh->next;
+    if (bb->hmap.exit == hh)  bb->hmap.exit = hh->prev;
+    return 1;
+}
+
+int HIR_CFG_remove_lir_block(cfg_block_t* bb, lir_block_t* hh) {
+    if (!bb || !hh) return 0;
+    if (bb->lmap.entry == bb->lmap.exit) {
+        bb->lmap.entry = bb->lmap.exit = NULL;
+        return 1;
+    }
+    
+    if (bb->lmap.entry == hh) bb->lmap.entry = hh->next;
+    if (bb->lmap.exit == hh)  bb->lmap.exit = hh->prev;
+    return 1;
+}
+
+cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     cfg_block_t* block = (cfg_block_t*)mm_malloc(sizeof(cfg_block_t));
     if (!block) return NULL;
     str_memset(block, 0, sizeof(cfg_block_t));
-    block->entry = e;
-    block->exit  = e;
+    block->type       = CFG_DEFAULT_BLOCK;
+    block->hmap.entry = e;
+    block->hmap.exit  = e;
     set_init(&block->visitors);
     set_init(&block->pred);
     set_init(&block->curr_in);
@@ -23,66 +54,51 @@ cfg_block_t* CFG_create_cfg_block(hir_block_t* e) {
     return block;
 }
 
-int CFG_insert_cfg_block(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next) {
-    if (!f || !b || !next) return 0;
-
+int HIR_CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* trg) {
+    if (!f || !b || !trg) return 0;
     list_add(&f->blocks, b);
+    b->l = trg;
 
-    b->l   = next;
-    b->jmp = NULL;
-
-    set_iter_t pit;
-    set_iter_init(&next->pred, &pit);
+    set_iter_t it;
+    set_iter_init(&trg->pred, &it);
     cfg_block_t* p;
-    while (set_iter_next(&pit, (void**)&p)) {
-        if (p->l == next)   p->l   = b;
-        if (p->jmp == next) p->jmp = b;
-        set_add(&b->pred, p);
+    while (set_iter_next(&it, (void**)&p)) {
+        if (p->l && p->l == trg)     p->l   = b;
+        if (p->jmp && p->jmp == trg) p->jmp = b;
     }
 
-    set_free(&next->pred);
-    set_init(&next->pred);
-    set_add(&next->pred, b);
+    set_copy(&b->pred, &trg->pred);
+    set_free(&trg->pred);
+
+    set_init(&trg->pred);
+    set_add(&trg->pred, b);
     return 1;
 }
 
 static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, cfg_ctx_t* ctx) {
-    cfg_block_t* b = CFG_create_cfg_block(entry);
+    cfg_block_t* b = HIR_CFG_create_cfg_block(entry);
     if (!b) return 0;
-    b->id    = ctx->cid++;
-    b->exit  = exit;
-    b->pfunc = f;
+    b->id        = ctx->cid++;
+    b->hmap.exit = exit;
+    b->pfunc     = f;
     return list_add(&f->blocks, b);
 }
 
-// #define DRAGONBOOK_CFG_LEADER
+#define DRAGONBOOK_CFG_LEADER
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
-    int term = 0;
     hir_block_t* hh = f->entry;
     while (hh) {
-        hir_block_t* entry = hh;
 #ifdef DRAGONBOOK_CFG_LEADER
-        if (term) {
-            while (hh && hh != f->exit && !set_has(&f->leaders, hh)) hh = hh->next;
-            if (hh) {
-                entry = hh;
-                if (hh != f->exit) hh = hh->next;
-            }
-
-            term = 0;
-        }
-
+        hir_block_t* entry = hh;
+        while ((entry = hh) && hh->next && hh != f->exit && !set_has(&f->leaders, hh)) hh = hh->next;
         while (hh->next && hh != f->exit && !set_has(&f->leaders, hh->next)) {
-            if (set_has(&f->terminators, hh)) {
-                term = 1;
-                break;
-            }
-
             hh = hh->next;
+            if (HIR_isterm(hh->op)) break;
         }
+
         _add_cfg_block(entry, hh, f, ctx);
 #else
-        if (!HIR_issyst(entry->op)) _add_cfg_block(entry, entry, f, ctx);
+        if (!HIR_issyst(hh->op)) _add_cfg_block(hh, hh, f, ctx);
 #endif
         if (hh == f->exit) break;
         hh = hh->next;
@@ -91,10 +107,10 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     return 1;
 }
 
-int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
+int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     if (!hctx || !ctx || !hctx->h) return 0;
 
-    HIR_CFG_split_by_functions(hctx, ctx);
+    HIR_CFG_split_by_functions(hctx, ctx, smt);
     HIR_CFG_mark_leaders(ctx);
 
     list_iter_t fit;
@@ -107,34 +123,20 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            switch (cb->exit->op) {
+            switch (cb->hmap.exit->op) {
                 case HIR_FRET: 
                 case HIR_FEND:
                 case HIR_STEND: 
                 case HIR_EXITOP: break;
 
                 case HIR_JMP: {
-                    cfg_block_t* lb = HIR_CFG_function_findlb(fb, cb->exit->farg->id);
-                    cb->jmp = lb;
+                    cb->jmp = HIR_CFG_function_findlb(fb, cb->hmap.exit->farg->id);
                     break;
                 }
 
-                case HIR_IFOP: {
-                    cfg_block_t* lb = HIR_CFG_function_findlb(fb, cb->exit->sarg->id);
-                    cb->l   = (cfg_block_t*)list_iter_current(&bit);
-                    cb->jmp = lb;
-                    break;
-                }
-
-                case HIR_IFLGOP:
-                case HIR_IFLGEOP:
-                case HIR_IFLWOP:
-                case HIR_IFLWEOP:
-                case HIR_IFCPOP:
-                case HIR_IFNCPOP: {
-                    cfg_block_t* lb = HIR_CFG_function_findlb(fb, cb->exit->targ->id);
-                    cb->l   = (cfg_block_t*)list_iter_current(&bit);
-                    cb->jmp = lb;
+                case HIR_IFOP2: {
+                    cb->l   = HIR_CFG_function_findlb(fb, cb->hmap.exit->sarg->id);
+                    cb->jmp = HIR_CFG_function_findlb(fb, cb->hmap.exit->targ->id);
                     break;
                 }
 
@@ -152,6 +154,47 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx) {
             if (cb->l)   set_add(&cb->l->pred, cb);
             if (cb->jmp) set_add(&cb->jmp->pred, cb);
         }
+    }
+
+    return 1;
+}
+
+int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx) {
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            set_free(&cb->visitors);
+            set_init(&cb->visitors);
+            cb->visited = 0;
+        }
+    }
+
+    return 1;
+}
+
+int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
+    list_iter_t fit;
+    list_iter_hinit(&cctx->funcs, &fit);
+    cfg_func_t* fb;
+    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+        list_iter_t bit;
+        list_iter_hinit(&fb->blocks, &bit);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+            set_free(&cb->prev_in);
+            set_init(&cb->prev_in);
+            
+            set_free(&cb->prev_out);
+            set_init(&cb->prev_out);
+        }
+
+        set_free(&fb->leaders);
+        set_init(&fb->leaders);
     }
 
     return 1;
@@ -180,7 +223,6 @@ int HIR_CFG_unload(cfg_ctx_t* ctx) {
         }
 
         set_free(&fb->leaders);
-        set_free(&fb->terminators);
         list_free_force(&fb->blocks);
         mm_free(fb);
     }

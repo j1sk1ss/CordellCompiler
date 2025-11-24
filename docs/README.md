@@ -35,12 +35,11 @@ Main goal of this project is learning of compilers architecture and porting one 
     }
 
     function puts(ptr i8 s) {
-        i64 l = strlen(s);
-        asm (s, l) {
+        asm (s, strlen(s)) {
             "mov rax, 1",
             "mov rdi, 1",
-            "mov rsi, %1 ; l",
-            "mov rdx, %0 ; s",
+            "mov rsi, %1",
+            "mov rdx, %0",
             "syscall"
         }
         return;
@@ -64,7 +63,7 @@ ptr i32 data_ptr = ref counter;
 
 - **Constants**: use uppercase letters with underscores
 ```cpl
-glob ptr u8 FRAMEBUFFER;
+extern ptr u8 FRAMEBUFFER;
 glob ro i32 WIN_X = 1080;
 glob ro i32 WIN_Y = 1920;
 ```
@@ -94,6 +93,24 @@ Hello there :
 :
 Hello there
 :
+```
+
+# Program entry point
+Function becomes entry point in two ways:
+- If this is a `start` function
+- If this is the lowest function in file (If there is no `start` function)
+
+Example without defined `start`:
+```cpl
+function fang() => i0; { return; }
+function naomi() => i0; { return; } : <= Becomes entry point :
+```
+
+Example with defined `start`:
+```cpl
+function fang() => i0; { return; }
+function naomi() => i0; { return; }
+start() { exit 0; } : <= Becomes entry point :
 ```
 
 # Types
@@ -135,6 +152,11 @@ i8 c = 0xF;
 i8 d = 'a';
 ```
 
+- `i0` - Void type. Should be used in the function return type.
+```cpl
+function fang() => i0; { return; }
+```
+
 ## Strings and arrays
 - `str` - String data type. Similar to `ptr u8` type, but used for high-level inbuild operations like `strcmp`.
 ```cpl
@@ -156,15 +178,15 @@ extern i8 size;
 arr arr1[size, i32];
 ```
 
-`Runtime-sized` arrays will die when code returns from their home scope. That's why this code below still illegal:
+`Runtime-sized` arrays will die when code returns from their home scope. That's why this code below still illegal (Work only in cplv3):
 ```cpl
 extern i8 size;
 ptr u8 a;
 {
     arr arr1[size, i32];
     a = ref arr1;
-}          : <= "arr1" is deallocated. Work with this "a" will cause a SF :
-a[0] = 0;  : <= SF! :
+}         : <= "arr1" is deallocated. Work with this "a" will cause a SF :
+a[0] = 0; : <= SF! :
 ```
 
 ## Pointers
@@ -221,10 +243,10 @@ start() {
    ptr u64 p;
    {
       arr t[10; i32];
-      p = ref t;     : <= No warning here, but it still illegal :
-   }                 : <= array "t" died here :
+      p = ref t; : <= No warning here, but it still illegal :
+   }             : <= array "t" died here :
 
-   p[0] = 1;         : <= Pointer to deallocated stack :
+   p[0] = 1;     : <= Pointer to deallocated stack :
    exit 0;
 }
 ```
@@ -264,11 +286,8 @@ else {
 ```
 
 ## while statement
-Note: `else` block executes if the loop never runs or after the loop ends.
 ```cpl
 while cond; {
-}
-else {
 }
 ```
 
@@ -287,15 +306,15 @@ switch cond; {
 ## Functions
 Functions can be defined by `function` keyword. Also, if you want to use function in another `.cpl`/(or whatever language that support extern) file, you can append `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that CPL change local function name by next pattern: `__cpl_{name}`, that's why prefer mark them with `glob` key. 
 ```cpl
-function foo() => i32 { }
-glob function bar(i32 a = 10) => ptr u64 { }
-function baz(i32 b = bar(11)) => u8 { }
+function max() => i32 { }
+glob function chloe(i32 a = 10) => ptr u64 { }
+function min(i32 b = chloe(11)) => u8 { }
 ```
 
 CPL support default values in functions. Compiler will pass this default args in function call if you don't provide enoght.
 ```cpl
-bar(); : => bar(10); :
-baz(); : => baz(bar(11)); :
+chloe(); : => chloe(10); :
+min(); : => min(chloe(11)); :
 ```
 
 ## Inbuilt macros
@@ -311,9 +330,9 @@ syscall(1, 1, ref msg, strlen(ref msg));
 i32 a = 0;
 i32 ret = 0;
 asm(a, ret) {
-   "mov rax, %1 ; mov rax, a",
+   "mov rax, %0 ; mov rax, a",
    "syscall",
-   "mov %0, rax ; mov ret, rax"
+   "mov %1, rax ; mov ret, rax"
 }
 ```
 
@@ -358,6 +377,21 @@ CPL uses a lightweight ownership model with `register allocation` that resembles
     }
 }
 ```
+
+# Debugging
+## Interrupt point 
+Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
+```cpl
+{
+    start() {
+        i32 a = 10;
+        lis; : <- Will interrupt execution here :
+        exit 0;
+    }
+}
+```
+
+Note! Disable optimizations before debugging code due code transforming preservation.
 
 # Examples
 ## Brainfuck
