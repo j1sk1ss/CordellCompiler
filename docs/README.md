@@ -220,16 +220,16 @@ u8 f = -1; : <= Will produce a warning :
 ```
 
 # Binary and unary operations
-| Operation | Description    | Example   |
-|-----------|----------------|-----------|
-| `+`       | Addition       | `X` + `Y` |
-| `-`       | Subtraction    | `X` - `Y` |
-| `*`       | Multiplication | `X` * `Y` |
-| `/`       | Division       | `X` / `Y` |
-| `%`       | Module         | `X` % `Y` |
-| `==`      | Equality       | `X` == `Y`|
-| `!=`      | Inequality     | `X` != `Y`|
-| `not`     | Negation       | not `X`   |
+| Operation              | Description                                 | Example    |
+|------------------------|---------------------------------------------|------------|
+| `+`                    | Addition                                    | `X` + `Y`  |
+| `-`                    | Subtraction                                 | `X` - `Y`  |
+| `*`                    | Multiplication                              | `X` * `Y`  |
+| `/`                    | Division                                    | `X` / `Y`  |
+| `%`                    | Module                                      | `X` % `Y`  |
+| `==`                   | Equality                                    | `X` == `Y` |
+| `!=`                   | Inequality                                  | `X` != `Y` |
+| `not`                  | Negation                                    | not `X`    |
 | `+=` `-=` `*=` `/=`    | Update operations                           | `X` += `Y` |
 | `>` `>=` `<` `<=`      | Comparison                                  | `X` >= `Y` |
 | `&&` `\|\|`            | Logic operations (Lazy Evaluations support) | `X` && `Y` |
@@ -306,15 +306,16 @@ switch cond; {
 ## Functions
 Functions can be defined by `function` keyword. Also, if you want to use function in another `.cpl`/(or whatever language that support extern) file, you can append `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that CPL change local function name by next pattern: `__cpl_{name}`, that's why prefer mark them with `glob` key. 
 ```cpl
-function max() => i32 { }
-glob function chloe(i32 a = 10) => ptr u64 { }
-function min(i32 b = chloe(11)) => u8 { }
+function min(i32 a) => i0 { return; }
+glob function chloe(i32 a = 10) => u64 { return a + 10; }
+function max(u64 a = chloe(11)) => i32 { return a + 10; }
 ```
 
 CPL support default values in functions. Compiler will pass this default args in function call if you don't provide enoght.
 ```cpl
-chloe(); : => chloe(10); :
-min(); : => min(chloe(11)); :
+chloe(); : chloe(10); :
+max(); : max(chloe(11)); :
+min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
 ```
 
 ## Inbuilt macros
@@ -394,6 +395,68 @@ Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
 Note! Disable optimizations before debugging code due code transforming preservation.
 
 # Examples
+## strlen
+```cpl
+{
+    function strlen(ptr i8 s) => i64 {
+        i64 l = 0;
+        while dref s; {
+            s += 1;
+            l += 1;
+        }
+
+        return l;
+    }
+}
+```
+
+## memset
+```cpl
+{
+    function memset(ptr u8 buffer, u8 val, u64 size) => i0 {
+        u64 index = 0;
+        while index < size; {
+            buffer[index] = val;
+            index += 1;
+        }
+    }
+}
+```
+
+## fd functions
+```cpl
+{
+    function puts(ptr i8 s) => i64 {
+        return syscall(1, 1, s, strlen(s));
+    }
+
+    function putc(i8 c) => i64 {
+        arr tmp[2, i8] = { c, 0 };
+        return syscall(1, 1, tmp, 2);
+    }
+
+    function gets(ptr i8 buffer, i64 size) => i64 {
+        return syscall(0, 0, buffer, size);
+    }
+
+    function open(ptr i8 path, i32 flags, i32 mode) => i64 {
+        return syscall(2, path, flags, mode);
+    }
+
+    function fwrite(i32 fd, ptr u8 buffer, i32 size) => i64 {
+        return syscall(1, fd, buffer, size);
+    }
+
+    function fread(i32 fd, ptr u8 buffer, i32 size) => i64 {
+        return syscall(0, fd, buffer, size);
+    }
+
+    function close(i32 fd) => i64 {
+        return syscall(3, fd);
+    }
+}
+```
+
 ## Brainfuck
 ```cpl
 {
