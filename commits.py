@@ -28,6 +28,8 @@ The commit naming convention is simple:
 import argparse
 from git import Repo
 import textwrap
+import os
+from collections import defaultdict
 
 parser = argparse.ArgumentParser(description="Interactive atomic Git commit script")
 parser.add_argument(
@@ -37,15 +39,14 @@ parser.add_argument(
 args = parser.parse_args()
 
 repo = Repo(".")
+
 changed_files = [item.a_path for item in repo.index.diff(None)]
 changed_files += repo.untracked_files
 
-if args.folder == ".":
-    files_to_commit = changed_files
-else:
-    files_to_commit = [f for f in changed_files if f.startswith(args.folder)]
+if args.folder != ".":
+    changed_files = [f for f in changed_files if f.startswith(args.folder)]
 
-if not files_to_commit:
+if not changed_files:
     print("No changes detected.")
     exit(0)
 
@@ -58,28 +59,41 @@ folder_to_commit_type = {
     "src/asm": "Code - CodeGen",
     "src/sem": "Code - Semantic",
     "src/symtab": "Code - Symtable",
+    "tests": "Tests",
 }
 
-commits_dict = {}
-for f in files_to_commit:
-    matched = False
-    for folder, ctype in folder_to_commit_type.items():
-        if f.startswith(folder):
-            commits_dict.setdefault(ctype, []).append(f)
-            matched = True
-            break
-    if not matched:
-        commits_dict.setdefault("Code - Misc", []).append(f)
+def get_module_root(f):
+    parts = f.split(os.sep)
+    if parts[0] == "include" and len(parts) > 2:
+        return os.path.join("src", parts[1], parts[2])
+    elif parts[0] in ["src", "tests"] and len(parts) > 2:
+        return os.path.join(parts[0], parts[1], parts[2])
+    elif parts[0] in ["docs"]:
+        return parts[0]
+    else:
+        return parts[0]  # misc
 
-for commit_type, files in commits_dict.items():
+module_files = defaultdict(list)
+for f in changed_files:
+    module_root = get_module_root(f)
+    module_files[module_root].append(f)
+
+for module_root, files in module_files.items():
+    commit_type = "Code - Misc"
+    for folder, ctype in folder_to_commit_type.items():
+        if module_root.startswith(folder):
+            commit_type = ctype
+            break
+
     commit_tag = f"[{commit_type}]"
-    print(f"\nFiles for commit {commit_tag}:")
+
+    print(f"\nFiles for commit {commit_tag} (module: {module_root}):")
     for f in files:
         print(f"  {f}")
 
     message_input = input("\nEnter commit message for this group: ").strip()
     if not message_input:
-        print("Empty message. Skipping this group.")
+        print("Empty message. Skipping this module.")
         continue
 
     wrapped_lines = textwrap.wrap(message_input, width=50)
