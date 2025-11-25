@@ -67,12 +67,12 @@ def get_module_root(f):
     parts = f.split(os.sep)
     if parts[0] == "include" and len(parts) > 2:
         return os.path.join("src", parts[1], parts[2])
-    elif parts[0] in ["src", "tests", "std"] and len(parts) > 2:
+    elif parts[0] in ["src", "tests"] and len(parts) > 2:
         return os.path.join(parts[0], parts[1], parts[2])
-    elif parts[0] in ["docs"]:
+    elif parts[0] in ["docs", "std"]:
         return parts[0]
     else:
-        return parts[0]  # misc
+        return parts[0]
 
 module_files = defaultdict(list)
 for f in changed_files:
@@ -105,7 +105,15 @@ for module_root, files in module_files.items():
 
     choice = input("\nCommit these files with this message? [y/n] ")
     if choice.lower() == "y":
-        repo.index.add(files)
+        existing_files = [f for f in files if os.path.exists(f)]
+        deleted_files = [f for f in files if not os.path.exists(f)]
+
+        if existing_files:
+            repo.index.add(existing_files)
+
+        if deleted_files:
+            repo.index.remove(deleted_files, working_tree=False)
+
         repo.index.commit(final_message)
         print("Commit successful!")
     else:
