@@ -60,13 +60,14 @@ folder_to_commit_type = {
     "src/sem": "Code - Semantic",
     "src/symtab": "Code - Symtable",
     "tests": "Tests",
+    "std": "Std",
 }
 
 def get_module_root(f):
     parts = f.split(os.sep)
     if parts[0] == "include" and len(parts) > 2:
         return os.path.join("src", parts[1], parts[2])
-    elif parts[0] in ["src", "tests"] and len(parts) > 2:
+    elif parts[0] in ["src", "tests", "std"] and len(parts) > 2:
         return os.path.join(parts[0], parts[1], parts[2])
     elif parts[0] in ["docs"]:
         return parts[0]
