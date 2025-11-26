@@ -9,14 +9,14 @@
         return l;
     }
 
-    function foo() => i0 {
-        return;
+    function foo() => i32 {
+        return 12;
     }
 
     start(i64 argc, ptr u64 argv) {
         str msg = "Hello world!";
         syscall(0x2000004, 1, ref msg, strlen(ref msg));
-        foo();
+        i8 a = foo();
         exit 0;
     }
 }
