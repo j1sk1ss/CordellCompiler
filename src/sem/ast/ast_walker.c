@@ -14,7 +14,11 @@ int ASTWLK_init_ctx(ast_walker_t* ctx, sym_table_t* smt) {
 static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
     switch (tkn) {
         case START_TOKEN: return START_NODE;
+        case CALL_TOKEN:  return CALL_NODE;
         case FUNC_TOKEN:  return FUNCTION_NODE;
+        
+        case ARR_VARIABLE_TOKEN:
+        case STR_VARIABLE_TOKEN: return DEF_ARRAY_NODE;
 
         case I0_TYPE_TOKEN:
         case F64_TYPE_TOKEN:

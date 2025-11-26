@@ -73,7 +73,7 @@ static const char* _fmt_tkn_type(token_t* t) {
     }
 }
 
-int ASTWLKR_ro_assign(ast_node_t* nd, sym_table_t* smt) {
+int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     ast_node_t* larg = nd->child;
     if (!larg) return 1;
     ast_node_t* rarg = larg->sibling;
@@ -87,7 +87,7 @@ int ASTWLKR_ro_assign(ast_node_t* nd, sym_table_t* smt) {
     return 1;
 }
 
-int ASTWLKR_rtype_assign(ast_node_t* nd, sym_table_t* smt) {
+int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
     ast_node_t* larg = nd->child;
     if (!larg) return 1;
     ast_node_t* rarg = larg->sibling;
@@ -109,7 +109,7 @@ int ASTWLKR_rtype_assign(ast_node_t* nd, sym_table_t* smt) {
     return 1;
 }
 
-int ASTWLKR_not_init(ast_node_t* nd, sym_table_t* smt) {
+int ASTWLKR_not_init(AST_VISITOR_ARGS) {
     ast_node_t* larg = nd->child;
     if (!larg) return 1;
     ast_node_t* rarg = larg->sibling;
@@ -121,10 +121,49 @@ int ASTWLKR_not_init(ast_node_t* nd, sym_table_t* smt) {
     return 1;
 }
 
+int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
+    ast_node_t* larg = nd->child;
+    if (!larg) return 1;
+    ast_node_t* rarg = larg->sibling;
+    if (!rarg) return 1;
+
+    if (TKN_isnumeric(rarg->token)) {
+        int num_bitness = 64;
+        int val = str_atoi(rarg->token->value);
+        if (val <= UCHAR_MAX) num_bitness = 8;
+        else if (val <= USHRT_MAX) num_bitness = 16;
+        else if (val <= UINT_MAX)  num_bitness = 32;
+        if (TKN_variable_bitness(larg->token, 1) != num_bitness) {
+            print_warn(
+                "Illegal declaration of %s with %s (Number bitness is=%i, but %s can handle max=%i)! [line=%i]", 
+                larg->token->value, rarg->token->value, num_bitness, 
+                _fmt_tkn_type(larg->token), TKN_variable_bitness(larg->token, 1), 
+                larg->token->lnum
+            );
+            
+            return 0;
+        }
+    }
+    else if (TKN_variable_bitness(larg->token, 1) != TKN_variable_bitness(rarg->token, 1)) {
+        print_warn(
+            "Illegal declaration of %s with %s! [line=%i]", 
+            larg->token->value, rarg->token->value, larg->token->lnum
+        );
+
+        return 0;
+    }
+
+    return 1;
+}
+
 static int _search_rexit_ast(ast_node_t* nd, int* found) {
     if (!nd) return 0;
 
-    if (!nd->token) return 0;
+    if (!nd->token) {
+        _search_rexit_ast(nd->child, found);
+        return 0;
+    }
+
     switch (nd->token->t_type) {
         case IF_TOKEN: {
             ast_node_t* cnd     = nd->child;
@@ -162,7 +201,7 @@ static int _search_rexit_ast(ast_node_t* nd, int* found) {
     return 1;
 }
 
-int ASTWLKR_no_return(ast_node_t* nd, sym_table_t* smt) {
+int ASTWLKR_no_return(AST_VISITOR_ARGS) {
     int has_ret = 0;
     _search_rexit_ast(nd->child, &has_ret);
     if (!has_ret) {
@@ -172,11 +211,52 @@ int ASTWLKR_no_return(ast_node_t* nd, sym_table_t* smt) {
     return 1;
 }
 
-int ASTWLKR_no_exit(ast_node_t* nd, sym_table_t* smt) {
+int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     int has_ret = 0;
-    _search_rexit_ast(nd->child->child, &has_ret);
+    _search_rexit_ast(nd->child, &has_ret);
     if (!has_ret) {
         print_warn("Start doesn't have exit in all paths! [line=%i]", nd->token->lnum);
+    }
+
+    return 1;
+}
+
+int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) return 0;
+
+    ast_node_t* provided_arg = nd->child;
+    ast_node_t* expected_arg = fi.args;
+    for (; provided_arg && expected_arg; provided_arg = provided_arg->sibling, expected_arg = expected_arg->sibling);
+
+    if (!provided_arg && expected_arg) {
+        print_error("Not enough arguments for function=%s! [line=%i]", nd->token->value, nd->token->lnum);
+        return 0;
+    }
+
+    if (provided_arg && !expected_arg) {
+        print_error("Too many arguments for function=%s! [line=%i]", nd->token->value, nd->token->lnum);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
+    ast_node_t* index = nd->child;
+    if (!index || index->token->t_type != UNKNOWN_NUMERIC_TOKEN) return 1;
+
+    array_info_t ai;
+    if (!ARTB_get_info(nd->sinfo.v_id, &ai, &smt->a)) return 0;
+
+    int idx = str_atoi(index->token->value);
+    if (ai.size < str_atoi(index->token->value)) {
+        print_error(
+            "Array=%s used with index=%i, that larger than array size! [line=%i]", 
+            nd->token->value, idx, nd->token->lnum
+        );
+
+        return 0;
     }
 
     return 1;
