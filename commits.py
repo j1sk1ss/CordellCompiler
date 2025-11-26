@@ -65,18 +65,24 @@ folder_to_commit_type = {
 
 def get_module_root(f):
     parts = f.split(os.sep)
-    if parts[0] == "include" and len(parts) > 2:
-        return os.path.join("src", parts[1], parts[2])
-    elif parts[0] in ["src", "tests"] and len(parts) > 2:
-        return os.path.join(parts[0], parts[1], parts[2])
-    elif parts[0] in ["docs", "std"]:
+
+    if parts[0] == "include" and len(parts) >= 2:
+        module = parts[1]
+        return os.path.join("src", module)
+
+    if parts[0] == "src" and len(parts) >= 2:
+        module = parts[1]
+        return os.path.join("src", module)
+
+    if parts[0] in ["docs", "std", "tests"]:
         return parts[0]
-    else:
-        return parts[0]
+
+    return parts[0]
 
 module_files = defaultdict(list)
 for f in changed_files:
     module_root = get_module_root(f)
+    print(f"module={module_root}")
     module_files[module_root].append(f)
 
 for module_root, files in module_files.items():
