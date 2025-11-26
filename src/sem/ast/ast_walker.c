@@ -6,12 +6,16 @@ int ASTWLK_register_visitor(token_type_t trg, int (*perform)(ast_node_t*), ast_w
     return list_add(&ctx->visitors, v);
 }
 
-int ASTWLK_init_ctx(ast_walker_t* ctx) {
+int ASTWLK_init_ctx(ast_walker_t* ctx, sym_table_t* smt) {
+    ctx->smt = smt;
     return list_init(&ctx->visitors);
 }
 
 static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
     switch (tkn) {
+        case START_TOKEN: return START_NODE;
+        case FUNC_TOKEN:  return FUNCTION_NODE;
+
         case I0_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
         case F32_TYPE_TOKEN:
@@ -29,7 +33,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
         case MULASSIGN_TOKEN:
-        case DIVASSIGN_TOKEN: return ASSIGN_NODE;
+        case DIVASSIGN_TOKEN:  return ASSIGN_NODE;
 
         case OR_TOKEN:
         case AND_TOKEN:
@@ -66,8 +70,8 @@ static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
     while ((v = (ast_visitor_t*)list_iter_next(&it))) {
         if (
             nd->token && 
-            _get_ast_node_type(nd->token->t_type) == v->trg
-        ) v->perform(nd);
+            _get_ast_node_type(nd->token->t_type) & v->trg
+        ) v->perform(nd, ctx->smt);
     }
 
     return 1;
