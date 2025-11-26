@@ -15,6 +15,10 @@
     #include "misc/ast_helper.h"
 #endif
 
+#ifdef SEM_TESTING
+    #include <sem/semantic.h>
+#endif
+
 #ifdef HIR_TESTING
     #include <hir/hirgen.h>
     #include <hir/hirgens/hirgens.h>
@@ -129,6 +133,10 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 #endif
 
+#ifdef SEM_TESTING
+    SEM_perform_ast_check(&sctx, &smt);
+#endif
+
 #ifdef HIR_TESTING
     hir_ctx_t hirctx = { .h = NULL, .t = NULL };
     HIR_generate(&sctx, &hirctx, &smt);     // Analyzation
@@ -137,7 +145,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
 
-    HIR_FUNC_perform_tre(&cfgctx, &smt);     // Transform
+    HIR_FUNC_perform_tre(&cfgctx, &smt);    // Transform
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
 
