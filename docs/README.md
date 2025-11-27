@@ -200,23 +200,51 @@ ptr str b = "Hello world";
 # Casting
 CPL supports only implicit casting. This means, that any value or return type can be stored in any variable. But semantic module will inform, if it encounter an unexpected implicit casting.
 ```cpl
-i32 a = 0xFFFF;
-i8 b = a; : <= Will produce a warning :
+{
+    function chloe(i8 a) => i32 {
+        return 0;
+    }
 
-function a() => i64 { }
-i8 c = a(); : <= Will produce a warning :
+    start(i64 argc, ptr u64 argv) {
+        arr a[10, i32];
 
-i8 d = 0xFFF; : <= Will produce a warning :
-u8 f = -1; : <= Will produce a warning :
+        a[8] = 1;
+        a[11] = 1;
+
+        str msg = "Hello, World!";
+        msg[25] = 'A';
+    
+        chloe();
+        i32 a1 = chloe(1, 2, 3);
+        chloe(356);
+    
+        i32 k = 123321;
+        i8 f = 123321;
+        u8 l = 239;
+        i8 l1 = 239;
+
+        ro i8 read;
+        read = 1;
+
+        exit 0;
+    }
+}
 ```
 
 ```bash
-[WARN] Value 4095 at line=8 too large for type i8 (4095 >= 127)!
-[WARN] Value -1 at line=9 lower then 0 for unsigned type u8, -1 < 0!
-[WARN] Danger shadow type cast at line 4. Different size [8] (b) and [32] (a). Did you expect this?
-[WARN] Danger shadow type cast at line 6. Different size [8] (c) and [64] (foo). Did you expect this?
-[WARN] Danger shadow type cast at line 8. Different size [8] (d) and [16] (4095). Did you expect this?
-[WARN] Unmatched return type in line=1. Should return bitness=64, but provide bitness=8
+[WARNING] [line=1] Variable=a without initialization!
+[ERROR]   [line=9] Array=a used with index=11, that larger than array size!
+[ERROR]   [line=12] Array=msg used with index=25, that larger than array size!
+[ERROR]   [line=15] Too many arguments for function=chloe!
+[ERROR]   [line=24] Read-only variable=read assign!
+[WARNING] [line=23] Variable=read without initialization!
+[WARNING] [line=19] Illegal declaration of f with 123321 (Number bitness is=32, but i8 can handle bitness=8)!
+[WARNING] [line=16] Illegal argument of i8 with 356 (Number bitness is=16, but i8 can handle bitness=8)!
+[WARNING] [line=16] Unused function=chloe result!
+[ERROR]   [line=14] Not enough arguments for function=chloe!
+[WARNING] [line=14] Unused function=chloe result!
+[WARNING] [line=5] Variable=argv without initialization!
+[WARNING] [line=5] Variable=argc without initialization!
 ```
 
 # Binary and unary operations
