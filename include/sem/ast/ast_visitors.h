@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <limits.h>
+#include <std/str.h>
 #include <prep/token_types.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
@@ -22,5 +23,6 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS);
 int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS);
 int ASTWLKR_unused_rtype(AST_VISITOR_ARGS);
 int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS);
+int ASTWLKR_valid_function_name(AST_VISITOR_ARGS);
 
 #endif

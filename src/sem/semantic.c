@@ -14,6 +14,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     ASTWLK_register_visitor(CALL_NODE, ASTWLKR_wrong_arg_type, &walker);
     ASTWLK_register_visitor(CALL_NODE, ASTWLKR_unused_rtype, &walker);
     ASTWLK_register_visitor(DEF_ARRAY_NODE, ASTWLKR_illegal_array_access, &walker);
+    ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_valid_function_name, &walker);
 
     ASTWLK_walk(actx, &walker);
     ASTWLK_unload_ctx(&walker);

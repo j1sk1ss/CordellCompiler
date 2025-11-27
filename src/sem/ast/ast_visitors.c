@@ -77,6 +77,53 @@ static const char* _fmt_tkn_type(token_t* t) {
     }
 }
 
+static int _restore_code(ast_node_t* nd, ast_node_t* underscore) {
+    if (nd == underscore) fprintf(stdout, "--->");
+    if (TKN_isdecl(nd->token)) {
+        fprintf(stdout, "%s %s", _fmt_tkn_type(nd->token), nd->child->token->value);
+        if (nd->child->sibling) {
+            fprintf(stdout, " = ");
+            _restore_code(nd->child->sibling, underscore);
+        }
+
+        fprintf(stdout, ";");
+    }
+    else if (TKN_isoperand(nd->token)) {
+        if (nd->child) _restore_code(nd->child, underscore);
+        fprintf(stdout, " %s ", nd->token->value);
+        if (nd->child->sibling) _restore_code(nd->child->sibling, underscore);
+        fprintf(stdout, ";");
+    }
+    else if (nd->token->t_type == FUNC_TOKEN) {
+        fprintf(stdout, "function %s(", nd->child->token->value);
+        ast_node_t* p = nd->sibling->child;
+        for (; p->token && p->token->t_type != SCOPE_TOKEN; p = p->sibling) {
+            _restore_code(p, underscore);
+            if (p->sibling->token && p->sibling->token->t_type != SCOPE_TOKEN) fprintf(stdout, ", ");
+        }
+
+        fprintf(stdout, ") ");
+        if (nd->child->child) fprintf(stdout, "=> %s ", _fmt_tkn_type(nd->child->child->token));
+        fprintf(stdout, "{ ... ");
+    }
+    else if (nd->token->t_type == CALL_TOKEN) {
+        fprintf(stdout, "%s(", nd->token->value);
+        ast_node_t* p = nd->child;
+        for (; p; p = p->sibling) {
+            _restore_code(p, underscore);
+            if (p->sibling) fprintf(stdout, ", ");
+        }
+
+        fprintf(stdout, ");");
+    }
+
+    if (TKN_isnumeric(nd->token) || TKN_isvariable(nd->token)) {
+        fprintf(stdout, "%s", nd->token->value);
+    }
+
+    return 1;
+}
+
 int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     ast_node_t* larg = nd->child;
     if (!larg) return 1;
@@ -85,6 +132,8 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
 
     if (larg->token->flags.ro) {
         SEMANTIC_ERROR(" [line=%i] Read-only variable=%s assign!", larg->token->lnum, larg->token->value);
+        _restore_code(nd, larg);
+        fprintf(stdout, "\n\n");
         return 0;
     }
 
@@ -119,6 +168,8 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
     ast_node_t* rarg = larg->sibling;
     if (!rarg) {
         SEMANTIC_WARNING(" [line=%i] Variable=%s without initialization!", larg->token->lnum, larg->token->value);
+        _restore_code(nd, larg);
+        fprintf(stdout, "\n\n");
         return 0;
     }
 
@@ -150,7 +201,7 @@ static int _check_assign_types(const char* msg, token_t* l, token_t* r) {
             l->value, r->value, 
             _fmt_tkn_type(l), _fmt_tkn_type(r)
         );
-        
+
         return 0;
     }
 
@@ -162,12 +213,17 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
     if (!larg) return 1;
     ast_node_t* rarg = larg->sibling;
     if (!rarg) return 1;
-    return _check_assign_types("Illegal declaration", larg->token, rarg->token);
+    if (!_check_assign_types("Illegal declaration", larg->token, rarg->token)) {
+        _restore_code(nd, rarg);
+        fprintf(stdout, "\n\n");
+        return 0;
+    }
+
+    return 1;
 }
 
 static int _search_rexit_ast(ast_node_t* nd, int* found) {
     if (!nd) return 0;
-
     if (!nd->token) {
         _search_rexit_ast(nd->child, found);
         return 0;
@@ -191,6 +247,17 @@ static int _search_rexit_ast(ast_node_t* nd, int* found) {
         }
 
         case SWITCH_TOKEN: {
+            int nret = 0, caseret = 0;
+            ast_node_t* cnd   = nd->child;
+            ast_node_t* cases = cnd->sibling->child;
+            for (; cases; cases = cases->sibling) {
+                int curret = 0;
+                _search_rexit_ast(cases->child, &curret);
+                caseret = caseret && curret;
+            }
+
+            _search_rexit_ast(nd->sibling, &nret);
+            if (nret || caseret) *found = 1;
             break;
         }
 
@@ -218,6 +285,9 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
             " [line=%i] Function=%s doesn't have return in all paths!", 
             nd->token->lnum, nd->child->token->value
         );
+
+        _restore_code(nd, NULL);
+        fprintf(stdout, "\n\n");
     }
 
     return 1;
@@ -228,6 +298,8 @@ int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     _search_rexit_ast(nd->child, &has_ret);
     if (!has_ret) {
         SEMANTIC_WARNING(" [line=%i] Start doesn't have exit in all paths!", nd->token->lnum);
+        _restore_code(nd, NULL);
+        fprintf(stdout, "\n\n");
     }
 
     return 1;
@@ -246,11 +318,15 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
 
     if (!provided_arg && (expected_arg && expected_arg->token->t_type != SCOPE_TOKEN)) {
         SEMANTIC_ERROR(" [line=%i] Not enough arguments for function=%s!", nd->token->lnum, nd->token->value);
+        _restore_code(nd, NULL);
+        fprintf(stdout, "\n\n");
         return 0;
     }
 
     if (provided_arg && (!expected_arg || expected_arg->token->t_type == SCOPE_TOKEN)) {
         SEMANTIC_ERROR(" [line=%i] Too many arguments for function=%s!", nd->token->lnum, nd->token->value);
+        _restore_code(nd, NULL);
+        fprintf(stdout, "\n\n");
         return 0;
     }
 
@@ -268,6 +344,8 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
         provided_arg = provided_arg->sibling, expected_arg = expected_arg->sibling
     ) {
         _check_assign_types("Illegal argument", expected_arg->token, provided_arg->token);
+        _restore_code(nd, provided_arg);
+        fprintf(stdout, "\n\n");
     }
 
     return 1;
@@ -314,5 +392,32 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
         return 0;
     }
 
+    return 1;
+}
+
+int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
+    ast_node_t* fname = nd->child;
+    if (!fname) return 1;
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f)) {
+        SEMANTIC_ERROR(
+            " [line=%i] Function=%s is not registered for some reason! Check logs!",
+            fname->token->lnum, fname->token->value
+        );
+
+        return 0;
+    }
+
+    if (fi.name[0] == '_') {
+        SEMANTIC_WARNING(
+            " [line=%i] Function=%s has underscore at name start!",
+            fname->token->lnum, fname->token->value
+        );
+    }
+
+    if (!str_strcmp(fi.name, "chloe"))          SEMANTIC_INFO(" [line=%i] Used Chloe as a function name!");
+    else if (!str_strcmp(fi.name, "max&chloe")) SEMANTIC_INFO(" [line=%i] Used Max and Chloe as a function name!");
+    else if (!str_strcmp(fi.name, "fang"))      SEMANTIC_INFO(" [line=%i] Used Fang as a function dragon-name!");
     return 1;
 }
