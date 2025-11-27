@@ -1,4 +1,7 @@
 {
+    function max() => i0 {
+    }
+
     function chloe(i8 a) => i32 {
         return 0;
     }
