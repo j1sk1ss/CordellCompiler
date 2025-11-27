@@ -48,6 +48,10 @@ static const char* _fmt_tkn_op(token_type_t t) {
 static const char* _fmt_tkn_type(token_t* t) {
     if (!t) return "";
     switch (t->t_type) {
+        case ARR_VARIABLE_TOKEN:    return "array";
+        case STR_VARIABLE_TOKEN:    return "string";
+        case UNKNOWN_NUMERIC_TOKEN: return "number";
+
         case I0_TYPE_TOKEN:  return !t->flags.ptr ? "i0"  : "ptr i0";
         case I8_VARIABLE_TOKEN:
         case I8_TYPE_TOKEN:  return !t->flags.ptr ? "i8"  : "ptr i8";
@@ -80,7 +84,7 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     if (!rarg) return 1;
 
     if (larg->token->flags.ro) {
-        print_error("Read-only variable=%s assign! [line=%i]", larg->token->value, larg->token->lnum);
+        SEMANTIC_ERROR(" [line=%i] Read-only variable=%s assign!", larg->token->lnum, larg->token->value);
         return 0;
     }
 
@@ -95,12 +99,12 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
 
     func_info_t fi;
     if (!FNTB_get_info_id(rarg->sinfo.v_id, &fi, &smt->f)) return 1;
+    if (!fi.rtype) return 1;
 
-    if (TKN_variable_bitness(fi.rtype->token, 1) != TKN_variable_bitness(rarg->token, 1)) {
-        print_warn(
-            "Function=%s return type=%s not match to %s type=%s! [line=%i]", fi.name,
-            _fmt_tkn_type(fi.rtype->token), _fmt_tkn_op(nd->token->t_type), _fmt_tkn_type(larg->token),
-            larg->token->lnum
+    if (TKN_variable_bitness(fi.rtype->token, 1) != TKN_variable_bitness(larg->token, 1)) {
+        SEMANTIC_WARNING(
+            " [line=%i] Function=%s return type=%s not match to %s type=%s!", larg->token->lnum, fi.name,
+            _fmt_tkn_type(fi.rtype->token), _fmt_tkn_op(nd->token->t_type), _fmt_tkn_type(larg->token)
         );
 
         return 0;
@@ -114,7 +118,39 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
     if (!larg) return 1;
     ast_node_t* rarg = larg->sibling;
     if (!rarg) {
-        print_warn("Variable=%s without initialization! [line=%i]", larg->token->value, larg->token->lnum);
+        SEMANTIC_WARNING(" [line=%i] Variable=%s without initialization!", larg->token->lnum, larg->token->value);
+        return 0;
+    }
+
+    return 1;
+}
+
+static int _get_token_bitness(token_t* tkn) {
+    if (!TKN_isnumeric(tkn)) return TKN_variable_bitness(tkn, 1);
+    else {
+        int num_bitness = 64;
+        int val = str_atoi(tkn->value);
+        if (val <= UCHAR_MAX) num_bitness = 8;
+        else if (val <= USHRT_MAX) num_bitness = 16;
+        else if (val <= UINT_MAX)  num_bitness = 32;
+        return num_bitness;
+    }
+}
+
+static int _check_assign_types(const char* msg, token_t* l, token_t* r) {
+    if (!l || !r) return 0;
+    if (_get_token_bitness(l) < _get_token_bitness(r)) {
+        if (TKN_isnumeric(r)) SEMANTIC_WARNING(
+            " [line=%i] %s of %s with %s (Number bitness is=%i, but %s can handle bitness=%i)!", r->lnum, msg,
+            l->value, r->value, _get_token_bitness(r), 
+            _fmt_tkn_type(l), _get_token_bitness(l)
+        );
+        else SEMANTIC_WARNING(
+            " [line=%i] %s of %s with %s! %s can't handle %s!", r->lnum, msg,
+            l->value, r->value, 
+            _fmt_tkn_type(l), _fmt_tkn_type(r)
+        );
+        
         return 0;
     }
 
@@ -126,34 +162,7 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
     if (!larg) return 1;
     ast_node_t* rarg = larg->sibling;
     if (!rarg) return 1;
-
-    if (TKN_isnumeric(rarg->token)) {
-        int num_bitness = 64;
-        int val = str_atoi(rarg->token->value);
-        if (val <= UCHAR_MAX) num_bitness = 8;
-        else if (val <= USHRT_MAX) num_bitness = 16;
-        else if (val <= UINT_MAX)  num_bitness = 32;
-        if (TKN_variable_bitness(larg->token, 1) != num_bitness) {
-            print_warn(
-                "Illegal declaration of %s with %s (Number bitness is=%i, but %s can handle max=%i)! [line=%i]", 
-                larg->token->value, rarg->token->value, num_bitness, 
-                _fmt_tkn_type(larg->token), TKN_variable_bitness(larg->token, 1), 
-                larg->token->lnum
-            );
-            
-            return 0;
-        }
-    }
-    else if (TKN_variable_bitness(larg->token, 1) != TKN_variable_bitness(rarg->token, 1)) {
-        print_warn(
-            "Illegal declaration of %s with %s! [line=%i]", 
-            larg->token->value, rarg->token->value, larg->token->lnum
-        );
-
-        return 0;
-    }
-
-    return 1;
+    return _check_assign_types("Illegal declaration", larg->token, rarg->token);
 }
 
 static int _search_rexit_ast(ast_node_t* nd, int* found) {
@@ -205,7 +214,10 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
     int has_ret = 0;
     _search_rexit_ast(nd->child, &has_ret);
     if (!has_ret) {
-        print_warn("Function=%s doesn't have return in all paths! [line=%i]", nd->child->token->value, nd->token->lnum);
+        SEMANTIC_WARNING(
+            " [line=%i] Function=%s doesn't have return in all paths!", 
+            nd->token->lnum, nd->child->token->value
+        );
     }
 
     return 1;
@@ -215,7 +227,7 @@ int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     int has_ret = 0;
     _search_rexit_ast(nd->child, &has_ret);
     if (!has_ret) {
-        print_warn("Start doesn't have exit in all paths! [line=%i]", nd->token->lnum);
+        SEMANTIC_WARNING(" [line=%i] Start doesn't have exit in all paths!", nd->token->lnum);
     }
 
     return 1;
@@ -226,17 +238,60 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
     if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) return 0;
 
     ast_node_t* provided_arg = nd->child;
-    ast_node_t* expected_arg = fi.args;
-    for (; provided_arg && expected_arg; provided_arg = provided_arg->sibling, expected_arg = expected_arg->sibling);
+    ast_node_t* expected_arg = fi.args->child;
+    for (
+        ; provided_arg && expected_arg && expected_arg->token->t_type != SCOPE_TOKEN; 
+        provided_arg = provided_arg->sibling, expected_arg = expected_arg->sibling
+    );
 
-    if (!provided_arg && expected_arg) {
-        print_error("Not enough arguments for function=%s! [line=%i]", nd->token->value, nd->token->lnum);
+    if (!provided_arg && (expected_arg && expected_arg->token->t_type != SCOPE_TOKEN)) {
+        SEMANTIC_ERROR(" [line=%i] Not enough arguments for function=%s!", nd->token->lnum, nd->token->value);
         return 0;
     }
 
-    if (provided_arg && !expected_arg) {
-        print_error("Too many arguments for function=%s! [line=%i]", nd->token->value, nd->token->lnum);
+    if (provided_arg && (!expected_arg || expected_arg->token->t_type == SCOPE_TOKEN)) {
+        SEMANTIC_ERROR(" [line=%i] Too many arguments for function=%s!", nd->token->lnum, nd->token->value);
         return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) return 0;
+
+    ast_node_t* provided_arg = nd->child;
+    ast_node_t* expected_arg = fi.args->child;
+    for (
+        ; provided_arg && expected_arg && expected_arg->token->t_type != SCOPE_TOKEN; 
+        provided_arg = provided_arg->sibling, expected_arg = expected_arg->sibling
+    ) {
+        _check_assign_types("Illegal argument", expected_arg->token, provided_arg->token);
+    }
+
+    return 1;
+}
+
+int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) return 0;
+    if (!fi.rtype) return 1;
+
+    if (fi.rtype->token->t_type != I0_TYPE_TOKEN) {
+        if (nd->parent && nd->parent->token) switch(nd->parent->token->t_type) {
+            case SCOPE_TOKEN:
+            case IF_TOKEN:
+            case WHILE_TOKEN:
+            case START_TOKEN:
+            case FUNC_TOKEN: {
+                SEMANTIC_WARNING(" [line=%i] Unused function=%s result!", nd->token->lnum, fi.name);
+                return 0;
+            }
+            default: return 1;
+        } 
+
+        return 1;
     }
 
     return 1;
@@ -251,9 +306,9 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
 
     int idx = str_atoi(index->token->value);
     if (ai.size < str_atoi(index->token->value)) {
-        print_error(
-            "Array=%s used with index=%i, that larger than array size! [line=%i]", 
-            nd->token->value, idx, nd->token->lnum
+        SEMANTIC_ERROR(
+            " [line=%i] Array=%s used with index=%i, that larger than array size!", 
+            nd->token->lnum, nd->token->value, idx
         );
 
         return 0;
