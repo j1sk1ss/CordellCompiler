@@ -422,6 +422,41 @@ Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
 
 Note! Disable optimizations before debugging code due code transforming preservation.
 
+# Static analysis
+Cordell Compiler implements the simple static analysis tool for the basic code-checking before compilation. It supports next list of errors and warnings:
+- Read-only variable update 
+- Invalid place for function return
+Example:
+```cpl
+function foo() => ptr u64 { :...: }
+i8 a = foo(); : <= RO_ASSIGN! :
+```
+
+- Declaration without initialization
+- Illegal declaration
+Example:
+```cpl
+i8 a = 123321; : <= ILLEGAL_DECLARATION! 123321 is a 32-bit value :
+```
+
+- Function without return
+- Start block without exit
+- Function arguments lack
+- Function argument type mismatch
+- Unused function return value
+- Illegal array access
+Example:
+```cpl
+arr a[10, i32];
+a[11] = 0; : <= ILLEGAL_ARRAY_ACCESS! :
+```
+
+- Invalid function name
+Example:
+```cpl
+function _test() { :...: } : <= INVALID_FUNCTION_NAME! :
+```
+
 # Examples
 ## strlen
 ```cpl

@@ -1,7 +1,84 @@
 # CPL changelog
 Logs for the first and second versions are quite short because I don’t remember exactly what was introduced and when. However, this page lists most of the major changes. In fact, it was created mainly to document the project’s evolution in a clear way, without the need to read through all the commits.
 
+## Structure
+```
+...
+^
+[Version v3.2]
+^
+... minor changes related to v3.1 ...
+^
+[Version v3.1]
+^
+... minor changes related to v3 ...
+^
+[Version v3]
+^
+[Version v2]
+^
+[Version v1]
+```
+
 ----------------------------------------
+
+# Version v3.2
+Now I'm working in the ISP RAS as Research Assistant in the Compiler Department (Static Analyzation team). With some additional experience, now I'm able to implement static analysis in CPL. The basic module contains semantic entry-point, ast and hir folders. AST folder contains entry point for AST-walker and AST-walker behaviour-scripts. Main idea is simple: We have a walker, that has linked list of actions for different node-types:
+```c
+typedef enum {
+    EXPRESSION_NODE  = 1 << 0,
+    ASSIGN_NODE      = 1 << 1,
+    DECLARATION_NODE = 1 << 2,
+    FUNCTION_NODE    = 1 << 3,
+    CALL_NODE        = 1 << 4,
+    START_NODE       = 1 << 5,
+    DEF_ARRAY_NODE   = 1 << 6,
+    UNKNOWN_NODE     = 1 << 7,
+} ast_node_type_t;
+```
+
+We can register handlers for each node-type. Each handler - different pattern matcher for code check process. Registration is simple:
+```c
+int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
+    ast_walker_t walker;
+    ASTWLK_init_ctx(&walker, smt);
+
+    ASTWLK_register_visitor(ASSIGN_NODE, ASTWLKR_ro_assign, &walker);
+    ASTWLK_register_visitor(DECLARATION_NODE | ASSIGN_NODE | EXPRESSION_NODE, ASTWLKR_rtype_assign, &walker);
+    ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_not_init, &walker);
+    ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_illegal_declaration, &walker);
+    ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_no_return, &walker);
+    ASTWLK_register_visitor(START_NODE, ASTWLKR_no_exit, &walker);
+    ASTWLK_register_visitor(CALL_NODE, ASTWLKR_not_enough_args, &walker);
+    ASTWLK_register_visitor(CALL_NODE, ASTWLKR_wrong_arg_type, &walker);
+    ASTWLK_register_visitor(CALL_NODE, ASTWLKR_unused_rtype, &walker);
+    ASTWLK_register_visitor(DEF_ARRAY_NODE, ASTWLKR_illegal_array_access, &walker);
+
+    ASTWLK_walk(actx, &walker);
+    ASTWLK_unload_ctx(&walker);
+    return 1;
+}
+```
+
+The simplest handler is a ASTWLKR_ro_assign handler. Here is a it's source code:
+```c
+#define AST_VISITOR_ARGS ast_node_t* nd, sym_table_t* smt
+int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
+    ast_node_t* larg = nd->child;
+    if (!larg) return 1;
+    ast_node_t* rarg = larg->sibling;
+    if (!rarg) return 1;
+
+    if (larg->token->flags.ro) {
+        SEMANTIC_ERROR(" [line=%i] Read-only variable=%s assign!", larg->token->lnum, larg->token->value);
+        return 0;
+    }
+
+    return 1;
+}
+```
+
+Also, this version of compiler now operated with ACT (automated commit tool). This tool also is simple, but makes commit section more readeble and "atomic".
 
 ### Caller-saving
 In the instruction and the memory selection stage here is a one additional step. Now we procceed register saving step for pushing and poping all used in function registers.
