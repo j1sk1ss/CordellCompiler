@@ -7,6 +7,7 @@ This is a little extension for VScode for working with this hobby language. Sour
 </p>
 
 ## Quick install
+If you want to build extention in your host machine, just execute the next sequence of commands:
 ```bash
 npm install
 npm run build
@@ -14,6 +15,7 @@ vsce package
 ```
 
 ## Docker
+If you prefer Docker as a base for the building, execute the next querry:
 ```bash
 docker build -t cpl-extension .
 docker run --rm -v $(pwd):/app -v $(pwd)/output:/output cpl-extension
