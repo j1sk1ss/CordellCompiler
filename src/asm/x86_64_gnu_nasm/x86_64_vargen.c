@@ -6,31 +6,12 @@ static int _idx = 0;
 const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
     char* curr_buffer = _buffers[_idx];
     _idx = (_idx + 1) % 2;
-
+    
     switch (v->t) {
         case LIR_NUMBER: return v->storage.num.value;
         case LIR_CONSTVAL: {
             snprintf(curr_buffer, sizeof(_buffers[0]), "%ld", v->storage.cnst.value);
             return curr_buffer;
-        }
-
-        case LIR_MEMORY: {
-            variable_info_t vi;
-            if (VRTB_get_info_id(v->storage.var.v_id, &vi, &smt->v)) {
-                const char* modifier = "qword";
-                switch (v->size) {
-                    case 4: modifier = "dword"; break;
-                    case 2: modifier = "word";  break;
-                    case 1: modifier = "byte";  break;
-                    default: break;
-                }
-
-                if (v->storage.var.offset > 0) snprintf(curr_buffer, sizeof(_buffers[0]), "%s [rbp - %d]", modifier, v->storage.var.offset);
-                else snprintf(curr_buffer, sizeof(_buffers[0]), "%s [rbp + %d]", modifier, ABS(v->storage.var.offset));
-                return curr_buffer;
-            }
-
-            break;
         }
         
         case LIR_GLVARIABLE: {
@@ -74,7 +55,39 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
             break;
         }
 
+        case LIR_VARIABLE: {
+            variable_info_t vi;
+            if (VRTB_get_info_id(v->storage.var.v_id, &vi, &smt->v) && vi.vmi.allocated) {
+                if (vi.vmi.offset >= 0) {
+                    v->t = LIR_MEMORY;
+                    v->storage.var.offset = vi.vmi.offset;
+                    goto _shifted_to_memory;
+                }
+                else if (vi.vmi.reg >= 0) {
+                    v->t = LIR_REGISTER;
+                    v->storage.reg.reg = vi.vmi.reg;
+                    goto _shifted_to_registers;
+                }
+            }
+        }
+
+        case LIR_MEMORY: {
+_shifted_to_memory: {}
+            const char* modifier = "qword";
+            switch (v->size) {
+                case 4: modifier = "dword"; break;
+                case 2: modifier = "word";  break;
+                case 1: modifier = "byte";  break;
+                default: break;
+            }
+
+            if (v->storage.var.offset > 0) snprintf(curr_buffer, sizeof(_buffers[0]), "%s [rbp - %d]", modifier, v->storage.var.offset);
+            else snprintf(curr_buffer, sizeof(_buffers[0]), "%s [rbp + %d]", modifier, ABS(v->storage.var.offset));
+            return curr_buffer;
+        }
+
         case LIR_REGISTER: {
+_shifted_to_registers: {}
             switch (LIR_format_register(v->storage.reg.reg, v->size)) {
                 case XMM0: return "xmm0";
                 case XMM1: return "xmm1";
@@ -149,6 +162,7 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
                 case BH:   return "bh";
                 case CH:   return "ch";
                 case DH:   return "dh";
+                default:   break;
             }
         }
 
