@@ -1,6 +1,6 @@
 #include <std/map.h>
 
-static unsigned long __hash(long val) {
+static inline unsigned long __hash(long val) {
     unsigned long x = (unsigned long)val;
     x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9UL;
     x = (x ^ (x >> 27)) * 0x94d049bb133111ebUL;
@@ -13,6 +13,7 @@ static long _get_index(long key, long capacity) {
 }
 
 static int _map_update_hash(map_t* m) {
+    if (!m->cmp) return 1;
     unsigned long h = 0;
     for (long i = 0; i < m->capacity; i++) {
         if (m->entries[i].used) {
@@ -31,9 +32,14 @@ int map_init(map_t* m) {
     m->capacity = MAP_INITIAL_CAPACITY;
     m->size     = 0;
     m->hash     = 0;
+    m->cmp      = 0;
     m->entries  = (map_entry_t*)mm_malloc(m->capacity * sizeof(map_entry_t));
     str_memset(m->entries, 0, m->capacity * sizeof(map_entry_t));
     return m->entries ? 1 : 0;
+}
+
+int map_enable_cmp(map_t* m) {
+    return (m->cmp = 1) == 1;
 }
 
 static int _map_resize(map_t* m, long newcap) {
@@ -92,6 +98,7 @@ int map_copy(map_t* dst, map_t* src) {
     dst->capacity = src->capacity;
     dst->size     = src->size;
     dst->hash     = src->hash;
+    dst->cmp      = src->cmp;
     dst->entries  = (map_entry_t*)mm_malloc(src->capacity * sizeof(map_entry_t));
     str_memcpy(dst->entries, src->entries, src->capacity * sizeof(map_entry_t));
     return 1;

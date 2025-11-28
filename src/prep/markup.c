@@ -1,4 +1,3 @@
-
 #include <prep/markup.h>
 
 typedef struct {
@@ -6,7 +5,7 @@ typedef struct {
     token_type_t type;
 } markup_token_t;
 
-static const markup_token_t _markups[] = {
+static const markup_token_t _lexems[] = {
     /* Special single place tokens. */
     { .value = IMPORT_SELECT_COMMAND,  .type = IMPORT_SELECT_TOKEN },
     { .value = IMPORT_COMMAND,         .type = IMPORT_TOKEN        },
@@ -90,20 +89,30 @@ static const markup_token_t _markups[] = {
     { .value = BREAKPOINT_COMMAND,     .type = BREAKPOINT_TOKEN    },
 };
 
+static int _build_lexems_map(map_t* m) {
+    for (int i = 0; i < (int)(sizeof(_lexems) / sizeof(_lexems[0])); i++) {
+        map_put(m, crc64(_lexems[i].value, str_strlen(_lexems[i].value), 0), (void*)_lexems[i].type);
+    }
+
+    return 1;
+}
+
 int MRKP_mnemonics(list_t* tkn) {
+    map_t lexems;
+    map_init(&lexems);
+    _build_lexems_map(&lexems);
+
     list_iter_t it;
     list_iter_hinit(tkn, &it);
     token_t* curr;
     while ((curr = (token_t*)list_iter_next(&it))) {
-        for (int i = 0; i < (int)(sizeof(_markups) / sizeof(_markups[0])); i++) {
-            if (curr->value[0] != _markups[i].value[0]) continue;
-            else if (!str_strcmp(curr->value, _markups[i].value) && curr->t_type != STRING_VALUE_TOKEN && curr->t_type != CHAR_VALUE_TOKEN) {
-                curr->t_type = _markups[i].type;
-            }
+        long t;
+        if (map_get(&lexems, crc64(curr->value, str_strlen(curr->value), 0), (void**)&t)) {
+            curr->t_type = t;
         }
     }
 
-    return 1;
+    return map_free(&lexems);
 }
 
 typedef struct {
@@ -124,22 +133,24 @@ typedef struct {
     token_type_t ttype;
 } markp_ctx;
 
-static int _add_variable(variable_t** vars, const char* name, short scope, markp_ctx* ctx, int* count) {
-    *vars = mm_realloc(*vars, (*count + 1) * sizeof(variable_t));
-    str_memset(&((*vars)[*count]), 0, sizeof(variable_t));
-    str_strncpy(((*vars)[*count]).name, name, TOKEN_MAX_SIZE);
-    ((*vars)[*count]).scope = scope;
-    ((*vars)[*count]).ext   = ctx->ext;
-    ((*vars)[*count]).ro    = ctx->ro;
-    ((*vars)[*count]).ptr   = ctx->ptr;
-    ((*vars)[*count]).glob  = ctx->glob;
-    ((*vars)[*count]).type  = ctx->ttype;
-    (*count)++;
-    return 1;
+static int _add_variable(list_t* vars, const char* name, short scope, markp_ctx* ctx) {
+    variable_t* v = (variable_t*)mm_malloc(sizeof(variable_t));
+    if (!v) return 0;
+
+    str_memset(v, 0, sizeof(variable_t));
+    str_strncpy(v->name, name, TOKEN_MAX_SIZE);
+    v->scope = scope;
+    v->ext   = ctx->ext;
+    v->ro    = ctx->ro;
+    v->ptr   = ctx->ptr;
+    v->glob  = ctx->glob;
+    v->type  = ctx->ttype;
+
+    return list_add(vars, v);
 }
 
-static inline void _remove_token(list_t* lst, token_t* tkn) {
-    list_remove(lst, tkn);
+static inline void _remove_token(list_t* tkns, token_t* tkn) {
+    list_remove(tkns, tkn);
     mm_free(tkn);
 }
 
@@ -148,8 +159,9 @@ int MRKP_variables(list_t* tkn) {
     scope_stack_t scope_stack = { .top = -1 };
 
     markp_ctx curr_ctx = { 0 };
-    int var_count = 0;
-    variable_t* vars = NULL;
+
+    list_t vars;
+    list_init(&vars);
 
     list_iter_t it;
     list_iter_hinit(tkn, &it);
@@ -164,7 +176,7 @@ int MRKP_variables(list_t* tkn) {
                 curr_ctx.ttype = CALL_TOKEN;
                 while (curr->t_type != DELIMITER_TOKEN) {
                     if (curr->t_type != COMMA_TOKEN) {
-                        _add_variable(&vars, curr->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
+                        _add_variable(&vars, curr->value, scope_id_top(&scope_stack), &curr_ctx);
                     }
                     
                     curr = (token_t*)list_iter_next(&it);
@@ -218,7 +230,7 @@ int MRKP_variables(list_t* tkn) {
                         default: break;
                     }
 
-                    _add_variable(&vars, next->value, scope_id_top(&scope_stack), &curr_ctx, &var_count);
+                    _add_variable(&vars, next->value, scope_id_top(&scope_stack), &curr_ctx);
                 }
 
                 curr->flags.ro   = curr_ctx.ro;
@@ -255,13 +267,17 @@ int MRKP_variables(list_t* tkn) {
             case UNKNOWN_STRING_TOKEN: {
                 for (int s = scope_stack.top; s >= 0; s--) {
                     int curr_s = scope_stack.data[s].id;
-                    for (int i = 0; i < var_count; i++) {
-                        if (!str_strncmp(curr->value, vars[i].name, TOKEN_MAX_SIZE) && vars[i].scope == curr_s) {
-                            curr->t_type     = vars[i].type;
-                            curr->flags.ext  = vars[i].ext;
-                            curr->flags.ro   = vars[i].ro;
-                            curr->flags.glob = vars[i].glob;
-                            curr->flags.ptr  = vars[i].ptr;
+
+                    list_iter_t vit;
+                    list_iter_hinit(&vars, &vit);
+                    variable_t* v;
+                    while ((v = (variable_t*)list_iter_next(&vit))) {
+                        if (!str_strncmp(curr->value, v->name, TOKEN_MAX_SIZE) && v->scope == curr_s) {
+                            curr->t_type     = v->type;
+                            curr->flags.ext  = v->ext;
+                            curr->flags.ro   = v->ro;
+                            curr->flags.glob = v->glob;
+                            curr->flags.ptr  = v->ptr;
                             curr->flags.ref  = ref;
                             curr->flags.dref = dref;
                             curr->flags.neg  = neg;
@@ -282,6 +298,6 @@ int MRKP_variables(list_t* tkn) {
         neg  = 0;
     }
 
-    mm_free(vars);
+    list_free_force(&vars);
     return 1;
 }

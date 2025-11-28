@@ -4,6 +4,10 @@ int set_init(set_t* s) {
     return map_init(&s->body);
 }
 
+int set_enable_cmp(set_t* s) {
+    return map_enable_cmp(&s->body);
+}
+
 int set_has_inttuple(set_t* s, int_tuple_t* t) {
     map_iter_t it;
     map_iter_init(&s->body, &it);

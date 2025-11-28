@@ -43,14 +43,25 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     block->hmap.exit  = e;
     set_init(&block->visitors);
     set_init(&block->pred);
+
     set_init(&block->curr_in);
+    set_enable_cmp(&block->curr_in);
+    
     set_init(&block->curr_out);
+    set_enable_cmp(&block->curr_out);
+
     set_init(&block->prev_in);
+    set_enable_cmp(&block->prev_in);
+
     set_init(&block->prev_out);
+    set_enable_cmp(&block->prev_out);
+
     set_init(&block->def);
     set_init(&block->use);
     set_init(&block->domf);
+
     set_init(&block->dom);
+    set_enable_cmp(&block->dom);
     return block;
 }
 

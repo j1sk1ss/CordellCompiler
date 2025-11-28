@@ -20,13 +20,15 @@ typedef struct {
 } map_iter_t;
 
 typedef struct {
-    unsigned long hash;
+    char          cmp;      /* cmp ability      */
+    unsigned long hash;     /* map hash for cmp */
     long          capacity;
     long          size;
     map_entry_t*  entries;
 } map_t;
 
 int map_init(map_t* m);
+int map_enable_cmp(map_t* m);
 int map_put(map_t* m, long k, void* v);
 int map_copy(map_t* dst, map_t* src);
 int map_remove(map_t* m, long k);

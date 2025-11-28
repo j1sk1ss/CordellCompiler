@@ -14,6 +14,7 @@ typedef struct {
 } set_iter_t;
 
 int set_init(set_t* s);
+int set_enable_cmp(set_t* s);
 int set_has_inttuple(set_t* s, int_tuple_t* t);
 int set_has(set_t* s, void* data);
 

@@ -1,10 +1,12 @@
 #ifndef MARKUP_H_
 #define MARKUP_H_
 
-#include <prep/dict.h>
-#include <prep/token_types.h>
+#include <std/map.h>
+#include <std/hash.h>
 #include <std/list.h>
 #include <std/stack.h>
+#include <prep/dict.h>
+#include <prep/token_types.h>
 
 /*
 Preparing tokens list for parsing tree.

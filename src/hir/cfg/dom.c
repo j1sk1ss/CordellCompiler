@@ -28,8 +28,9 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
 
             set_t nd;
             set_init(&nd);
-            int first = 1;
+            set_enable_cmp(&nd);
 
+            int first = 1;
             set_iter_t it;
             set_iter_init(&cb->pred, &it);
             cfg_block_t* p;
