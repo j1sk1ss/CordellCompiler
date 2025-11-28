@@ -276,7 +276,7 @@ start() {
 For usage, run program (executable) with debug tool (like `gdb`, `lldb`).
 
 # Version v3
-Third version of this compiler (WIP). Full structure refactoring (from `token` -> `AST` -> `ASM`, that wasn't changed since first version was created, to `token` -> `AST` -> `HIR` (`CFG` -> `SSA` -> `DAG` -> `CFG`) -> `RA` -> `LIR` -> `ASM`). Also this page created during development of this version (10.20.2025). Also this version is optimization implementation version. List of implemented optimizations:
+The third version of this compiler. Was performed full structure transforming (from `token` -> `AST` -> `ASM`, that wasn't changed since first version, to `token` -> `AST` -> `HIR` (`CFG` -> `SSA` -> `DAG` -> `CFG`) -> `RA` -> `LIR` -> `ASM`). Also, `changelog` section was created during development of this version (at 10.20.2025) tho. Additionaly, this version is the `optimization-implementation` version. List of implemented optimizations:
 - HIR
     - Constant propagation
     - Constant folding
@@ -287,7 +287,7 @@ Third version of this compiler (WIP). Full structure refactoring (from `token` -
 ----------------------------------------
 
 # Version v2
-Second version of this compiler (currentrly, 10.20.2025, is main work version). Main features is full refactoring of `token` part, `AST` generation cleanup and implementing of basic `LIR`. The main improvement was in syntax of the CP language.
+The second version of this compiler (currentrly, at 10.20.2025, at least stable work version). Main features is the full code refactoring of the `token` part, the `AST` generation. Also performed cleanup and implemented the basic `LIR`. The main improvement was in the syntax of the `CP-language`.
 
 ```cplv2
 extern exfunc printf;
@@ -323,12 +323,12 @@ start() {
 }
 ```
 
-Some improvements in typing (`i8`, `u8`, etc.), `asm` blocks, `external` functions, `heap` arrays, and other. This version also was tested with brainfuck interpreter.
+Some improvements in the typing (now we able to use `i8`, `u8`, etc.), `asm` blocks, `external` functions, `heap` arrays, etc. This version also was tested by implementing the `brainfuck interpreter`.
 
 ----------------------------------------
 
 # Version v1
-First version of this compiler. Last commit before v2 was in the middle of summer 2025. Main features of this version is a `token` -> `AST` -> `ASM` structure of the compiler, basic support of a `NASM`, brainfuck interpreter and other stuff. Sample of syntax is here:
+The first version of this compiler. The last commit before v2 was in the middle of summer of 2025. Main features of this version is a [`token` -> `AST` -> `ASM`] structure, basic `NASM`-syntax code generation, examples like `brainfuck interpreter`, etc. The most interesting part, in my opinion, is the syntax:
 ```cplv1
 function itoa ptr buffer; int dsize; int num; {
     int index = dsize - 1;
@@ -359,7 +359,7 @@ function itoa ptr buffer; int dsize; int num; {
 }
 ```
 
-This version was not too friendly as it now (in syntax and code style). Also here is program body:
+This version was not too friendly as it became now (in the terms of syntax and code style). Also, here is the how program's body was looks like:
 
 ```cplv1
 start
@@ -381,7 +381,9 @@ start
 exit 1;
 ```
 
-Also that's how I think users should use arrays:
+Also that's how I was thinking, users should define an arrays:
 ```cplv1
 arr sarr 5 int = 1 2 3 4 5;
 ```
+
+In summary, first version was simple, and takes care only on forward token translation into the asmcode thru `AST` generation.
