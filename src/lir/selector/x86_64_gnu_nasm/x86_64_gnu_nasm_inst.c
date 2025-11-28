@@ -34,7 +34,7 @@ static int _is_simd_type(long vid, sym_table_t* smt) {
 
 static lir_subject_t* _create_tmp(int reg, lir_subject_t* src, sym_table_t* smt) {
     long cpy;
-    variable_info_t vi;
+    variable_info_t vi = { .vmi.offset = -1 };
     if (
         src->t == LIR_VARIABLE && 
         VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)

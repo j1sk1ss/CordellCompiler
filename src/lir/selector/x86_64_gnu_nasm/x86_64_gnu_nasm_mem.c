@@ -10,25 +10,29 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
         s->t = LIR_GLVARIABLE;
         return 1;
     }
-    
+
     long color;
     vi.vmi.size = _get_variable_size(vi.v_id, smt);
-    if (map_get(colors, s->storage.var.v_id, (void**)&color)) {
+    if (!vi.vmi.allocated && map_get(colors, s->storage.var.v_id, (void**)&color)) {
         if (color < _registers_count && color >= 0) {
-            s->t = LIR_REGISTER;
-            s->storage.reg.reg = _registers[color];
             vi.vmi.offset = -1;
-            vi.vmi.reg    = s->storage.reg.reg;
+            vi.vmi.reg    = _registers[color];
         }
         else {
-            s->t = LIR_MEMORY;
-            s->storage.var.offset = !vi.vmi.allocated ? stack_map_alloc(vi.vmi.size, smp) : vi.vmi.offset;
-            vi.vmi.offset = s->storage.var.offset;
+            vi.vmi.offset = stack_map_alloc(vi.vmi.size, smp);
             vi.vmi.reg    = -1;
         }
 
-        if (vi.vmi.allocated) return 1;
         VRTB_update_memory(vi.v_id, vi.vmi.offset, vi.vmi.size, vi.vmi.reg, &smt->v);
+    }
+
+    if (vi.vmi.offset >= 0) {
+        s->t = LIR_MEMORY;
+        s->storage.var.offset = vi.vmi.offset;
+    }
+    else if (vi.vmi.reg >= 0) {
+        s->t = LIR_REGISTER;
+        s->storage.reg.reg = vi.vmi.reg;
     }
 
     return 1;
@@ -52,7 +56,10 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                 switch (lh->op) {
                     case LIR_VRDEALL: {
                         variable_info_t vi;
-                        if (!VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || vi.glob || vi.vmi.offset == -1) {
+                        if (
+                            !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
+                            vi.glob || vi.vmi.offset == -1
+                        ) {
                             lh->unused = 1;
                             break;
                         }
