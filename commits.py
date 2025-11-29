@@ -25,26 +25,25 @@ The commit naming convention is simple:
 ```
 """
 
-import argparse
-from git import Repo
-import textwrap
 import os
+import textwrap
+import argparse
+
+from git import Repo
 from collections import defaultdict
 
-parser = argparse.ArgumentParser(description="Interactive atomic Git commit script")
-parser.add_argument(
-    "--folder", type=str, default=".",
-    help="Folder to commit (default: entire project)"
-)
+parser: argparse.ArgumentParser = argparse.ArgumentParser(description="Interactive atomic Git commit script")
+parser.add_argument("--folder", type=str, default=".", help="Folder to commit (default: entire project)")
+parser.add_argument("--major", action="store_true", help="Make ONE commit for all changes")
+
 args = parser.parse_args()
+repo: Repo = Repo(".")
 
-repo = Repo(".")
-
-changed_files = [item.a_path for item in repo.index.diff(None)]
+changed_files: list = [ item.a_path for item in repo.index.diff(None) ]
 changed_files += repo.untracked_files
 
 if args.folder != ".":
-    changed_files = [f for f in changed_files if f.startswith(args.folder)]
+    changed_files: list = [ f for f in changed_files if f.startswith(args.folder) ]
 
 if not changed_files:
     print("No changes detected.")
@@ -63,9 +62,8 @@ folder_to_commit_type = {
     "std": "Std",
 }
 
-def get_module_root(f):
+def _get_module_root(f) -> str:
     parts = f.split(os.sep)
-
     if parts[0] == "include" and len(parts) >= 2:
         module = parts[1]
         return os.path.join("src", module)
@@ -79,10 +77,53 @@ def get_module_root(f):
 
     return parts[0]
 
-module_files = defaultdict(list)
+if args.major:
+    print("\n--major flag detected: all changes will be committed together. Changed files:")
+    for f in changed_files:
+        print(f"  {f}")
+
+    guessed_type = None
+    for folder, ctype in folder_to_commit_type.items():
+        if all(f.startswith(folder) for f in changed_files):
+            guessed_type = ctype
+            break
+
+    if guessed_type is None:
+        guessed_type = "Major"
+
+    commit_tag = f"[{guessed_type}]"
+
+    message_input = input("\nEnter commit message for ALL changes: ").strip()
+    if not message_input:
+        print("Empty message. Aborting.")
+        exit(1)
+
+    wrapped_lines = textwrap.wrap(message_input, width=50)
+    final_message = commit_tag + " " + ("\n".join(wrapped_lines))
+
+    print("\nFinal commit message:")
+    print(final_message)
+
+    choice = input("\nCommit ALL changes with this message? [y/n] ")
+    if choice.lower() != "y":
+        print("Commit cancelled.")
+        exit(0)
+
+    existing_files = [f for f in changed_files if os.path.exists(f)]
+    deleted_files = [f for f in changed_files if not os.path.exists(f)]
+
+    if existing_files:
+        repo.index.add(existing_files)
+    if deleted_files:
+        repo.index.remove(deleted_files, working_tree=False)
+
+    repo.index.commit(final_message)
+    print("Major commit successful!")
+    exit(0)
+
+module_files: dict[list] = defaultdict(list)
 for f in changed_files:
-    module_root = get_module_root(f)
-    print(f"module={module_root}")
+    module_root = _get_module_root(f)
     module_files[module_root].append(f)
 
 for module_root, files in module_files.items():
