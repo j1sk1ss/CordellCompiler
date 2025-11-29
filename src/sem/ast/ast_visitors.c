@@ -416,8 +416,15 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
         );
     }
 
-    if (!str_strcmp(fi.name, "chloe"))          SEMANTIC_INFO(" [line=%i] Used Chloe as a function name!");
-    else if (!str_strcmp(fi.name, "max&chloe")) SEMANTIC_INFO(" [line=%i] Used Max and Chloe as a function name!");
-    else if (!str_strcmp(fi.name, "fang"))      SEMANTIC_INFO(" [line=%i] Used Fang as a function dragon-name!");
+    if (!str_strcmp(fi.name, "chloe")) SEMANTIC_INFO(
+        " [line=%i] Used Chloe as a function name!", fname->token->lnum
+    );
+    else if (!str_strcmp(fi.name, "max&chloe")) SEMANTIC_INFO(
+        " [line=%i] Used Max and Chloe as a function name!", fname->token->lnum
+    );
+    else if (!str_strcmp(fi.name, "fang")) SEMANTIC_INFO(
+        " [line=%i] Used Fang as a function dragon-name!", fname->token->lnum
+    );
+
     return 1;
 }

@@ -1,7 +1,7 @@
 #include <ast/astgens/astgens.h>
 
 static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
-    switch (((token_t*)list_iter_current(it))->t_type) {
+    switch (CURRENT_TOKEN->t_type) {
         case START_TOKEN:           return cpl_parse_start(it, ctx, smt);
         case ASM_TOKEN:             return cpl_parse_asm(it, ctx, smt);
         case OPEN_BLOCK_TOKEN:
@@ -49,9 +49,12 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
 
 ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, token_type_t ex) {
     ast_node_t* node = AST_create_node(NULL);
-    if (!node) return NULL;
+    if (!node) {
+        print_error("AST_create_node error!");
+        return NULL;
+    }
 
-    while (list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type != ex) {
+    while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != ex) {
         ast_node_t* block = _navigation_handler(it, ctx, smt);
         if (block) AST_add_node(node, block);
         else if (!forward_token(it, 1)) break;

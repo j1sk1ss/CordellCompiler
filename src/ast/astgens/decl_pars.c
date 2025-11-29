@@ -1,13 +1,18 @@
 #include <ast/astgens/astgens.h>
 
 ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
-    if (!node) return NULL;
+    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
+    if (!node) {
+        print_error("AST_create_node error!");
+        return NULL;
+    }
+
     forward_token(it, 1);
 
     token_type_t eltype = I64_TYPE_TOKEN;
-    ast_node_t* name_node = AST_create_node((token_t*)list_iter_current(it));
+    ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
     if (!name_node) {
+        print_error("AST_create_node error!");
         AST_unload(node);
         return NULL;
     }
@@ -16,11 +21,12 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
     forward_token(it, 1);
 
     int array_size = 1;
-    if (((token_t*)list_iter_current(it))->t_type == OPEN_INDEX_TOKEN) {
+    if (CURRENT_TOKEN->t_type == OPEN_INDEX_TOKEN) {
         forward_token(it, 1);
 
-        ast_node_t* size_node = AST_create_node((token_t*)list_iter_current(it));
+        ast_node_t* size_node = AST_create_node(CURRENT_TOKEN);
         if (!size_node) {
+            print_error("AST_create_node error!");
             AST_unload(node);
             return NULL;
         }
@@ -31,8 +37,9 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
         AST_add_node(node, size_node);
         forward_token(it, 2);
 
-        ast_node_t* elem_size_node = AST_create_node((token_t*)list_iter_current(it));
+        ast_node_t* elem_size_node = AST_create_node(CURRENT_TOKEN);
         if (!elem_size_node) {
+            print_error("AST_create_node error!");
             AST_unload(node);
             return NULL;
         }
@@ -42,13 +49,13 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
         forward_token(it, 2);
     }
 
-    if (((token_t*)list_iter_current(it))->t_type == ASSIGN_TOKEN) {
+    if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {
         forward_token(it, 1);
         int act_size = 0;
-        if ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type == OPEN_BLOCK_TOKEN) {
+        if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == OPEN_BLOCK_TOKEN) {
             forward_token(it, 1);
-            while ((token_t*)list_iter_current(it) && ((token_t*)list_iter_current(it))->t_type != CLOSE_BLOCK_TOKEN) {
-                if (((token_t*)list_iter_current(it))->t_type == COMMA_TOKEN) {
+            while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BLOCK_TOKEN) {
+                if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
                     forward_token(it, 1);
                     continue;
                 }
@@ -73,12 +80,16 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
 }
 
 ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* node = AST_create_node((token_t*)list_iter_current(it));
-    if (!node) return NULL;
+    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
+    if (!node) {
+        print_error("AST_create_node error!");
+        return NULL;
+    }
 
     forward_token(it, 1);
-    ast_node_t* name_node = AST_create_node((token_t*)list_iter_current(it));
+    ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
     if (!name_node) {
+        print_error("AST_create_node error!");
         AST_unload(node);
         return NULL;
     }
@@ -91,10 +102,11 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
         &name_node->token->flags, &smt->v
     );
 
-    if (((token_t*)list_iter_current(it))->t_type == ASSIGN_TOKEN) {
+    if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {
         forward_token(it, 1);
         ast_node_t* value_node = cpl_parse_expression(it, ctx, smt);
         if (!value_node) {
+            print_error("AST_create_node error!");
             AST_unload(node);
             return NULL;
         }

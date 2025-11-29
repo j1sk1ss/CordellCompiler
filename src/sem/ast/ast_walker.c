@@ -37,7 +37,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
         case MULASSIGN_TOKEN:
-        case DIVASSIGN_TOKEN:  return ASSIGN_NODE;
+        case DIVASSIGN_TOKEN: return ASSIGN_NODE;
 
         case OR_TOKEN:
         case AND_TOKEN:

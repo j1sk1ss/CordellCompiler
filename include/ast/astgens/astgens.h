@@ -10,6 +10,7 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 
+#define CURRENT_TOKEN ((token_t*)list_iter_current(it))
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*

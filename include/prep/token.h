@@ -10,7 +10,7 @@
 #include <std/list.h>
 #include <prep/token_types.h>
 
-#define BUFFER_SIZE    8192
+#define BUFFER_SIZE 8192
 
 /*
 Allocate and create token.

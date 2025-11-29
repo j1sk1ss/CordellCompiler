@@ -4,15 +4,15 @@ typedef enum {
     CHAR_ALPHA,
     CHAR_DIGIT,
     CHAR_QUOTE,
-    CHAR_SING_QUOTE,
-    CHAR_BRACKET,
     CHAR_OTHER,
     CHAR_SPACE,
-    CHAR_DELIMITER,
     CHAR_COMMA,
+    CHAR_BRACKET,
     CHAR_COMMENT,
     CHAR_NEWLINE,
-    CHAR_BACKSLASH
+    CHAR_DELIMITER,
+    CHAR_BACKSLASH,
+    CHAR_SING_QUOTE
 } char_type_t;
 
 static char_type_t _get_char_type(unsigned char ch) {
@@ -20,21 +20,17 @@ static char_type_t _get_char_type(unsigned char ch) {
     else if (str_isdigit(ch))     return CHAR_DIGIT;
     
     switch (ch) {
-        case '\\': return CHAR_BACKSLASH;
-        case '"':  return CHAR_QUOTE;
-        case '\'': return CHAR_SING_QUOTE;
         case '\n': return CHAR_NEWLINE;
-        case ' ':
-        case '\t': return CHAR_SPACE;
-        case ';':  return CHAR_DELIMITER;
+        case '\\': return CHAR_BACKSLASH;
+        case '\'': return CHAR_SING_QUOTE;
         case ',':  return CHAR_COMMA;
+        case '"':  return CHAR_QUOTE;
         case ':':  return CHAR_COMMENT;
-        case '(':
-        case '[':
-        case '{':
-        case ')':
-        case ']':
-        case '}':  return CHAR_BRACKET;
+        case ';':  return CHAR_DELIMITER;
+        case ' ': case '\t': return CHAR_SPACE;
+        case '(': case '[':
+        case '{': case ')':
+        case ']': case '}':  return CHAR_BRACKET;
         default: return CHAR_OTHER;
     }
 }
@@ -112,10 +108,10 @@ int TKN_tokenize(int fd, list_t* tkn) {
 
             if (curr_ctx.is_spec) {
                 switch (ch) {
-                    case '0':  ch = 0;    break;
-                    case 'n':  ch = 10;   break;
-                    case 't':  ch = 9;    break;
-                    case 'r':  ch = 13;   break;
+                    case '0':  ch = '\0'; break;
+                    case 'n':  ch = '\n'; break;
+                    case 't':  ch = '\t'; break;
+                    case 'r':  ch = '\r'; break;
                     case '\\': ch = '\\'; break;
                     case '\'': ch = '\''; break;
                     case '\"': ch = '\"'; break;
@@ -138,8 +134,8 @@ int TKN_tokenize(int fd, list_t* tkn) {
 
             /* Determine character type */
             token_type_t char_type;
-            if (curr_ctx.squt)                 char_type = CHAR_VALUE_TOKEN;
-            else if (curr_ctx.mqut)            char_type = STRING_VALUE_TOKEN;
+            if (curr_ctx.squt)           char_type = CHAR_VALUE_TOKEN;
+            else if (curr_ctx.mqut)      char_type = STRING_VALUE_TOKEN;
             else {
                 switch (ct) {
                     case CHAR_ALPHA:     char_type = UNKNOWN_STRING_TOKEN;  break;
