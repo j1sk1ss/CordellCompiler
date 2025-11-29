@@ -47,6 +47,13 @@ typedef struct {
     token_type_t ttype;
 } tkn_ctx_t;
 
+token_t* TKN_copy_token(token_t* src) {
+    token_t* tkn = mm_malloc(sizeof(token_t));
+    if (!tkn) return NULL;
+    str_memcpy(tkn, src, sizeof(token_t));
+    return tkn;
+}
+
 token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int line) {
     if (len > TOKEN_MAX_SIZE) return NULL;
     token_t* tkn = mm_malloc(sizeof(token_t));

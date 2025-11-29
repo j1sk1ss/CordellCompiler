@@ -13,6 +13,10 @@
     #include <ast/astgen.h>
     #include <ast/astgens/astgens.h>
     #include "misc/ast_helper.h"
+#ifdef AST_OPT_TESTING
+    #include <ast/opt/condunroll.h>
+    #include <ast/opt/deadscope.h>
+#endif
 #endif
 
 #ifdef SEM_TESTING
@@ -127,6 +131,12 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #ifdef AST_TESTING
     ast_ctx_t sctx = { .r = NULL, .fentry = "_main" };
     AST_parse_tokens(&tokens, &sctx, &smt); // Analyzation
+
+#ifdef AST_OPT_TESTING
+    OPT_condunroll(&sctx); // Transform
+    OPT_deadscope(&sctx);  // Transform
+#endif
+
 #ifdef AST_PRINT
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);

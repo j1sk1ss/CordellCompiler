@@ -8,8 +8,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
 
     while (t) {
         ast_node_t* next = t->sibling;
-
-        if (TKN_isblock(t->token)) _clean_blocks(t->child, ctx);
+        if (TKN_isblock(t->token)) _clean_blocks(t, ctx);
         else {
             switch (t->token->t_type) {
                 case IF_TOKEN: {
@@ -21,14 +20,13 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                     _clean_blocks(rbranch, ctx);
 
                     ast_node_t* unrolled_if = NULL;
-
                     if (TKN_isnumeric(condition->token)) {
                         int val = str_atoi(condition->token->value);
                         if (val && lbranch) {
                             unrolled_if = lbranch;
                             if (rbranch) { 
                                 AST_remove_node(t, rbranch); 
-                                AST_unload(rbranch); 
+                                AST_unload(rbranch);
                             }
                         } 
                         else if (!val && rbranch) {
@@ -52,14 +50,17 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                         ast_node_t* replacement = AST_copy_node(unrolled_if, 1, 0, 1);
                         replacement->sibling = next;
 
+                        AST_remove_node(root, t);
+                        AST_unload(t);
+
                         if (tprev) tprev->sibling = replacement;
                         else root->child = replacement;
 
-                        AST_unload(t);
                         t = replacement;
                         tprev = replacement;
                         continue;
                     }
+
                     break;
                 }
 
@@ -91,7 +92,6 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                             else {
                                 if (prev) prev->sibling = next_case;
                                 else cases->child = next_case;
-
                                 AST_remove_node(cases, curr);
                                 AST_unload(curr);
                             }
@@ -112,48 +112,26 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                             continue;
                         }
                     }
+
                     break;
                 }
 
                 case WHILE_TOKEN: {
                     ast_node_t* condition = t->child;
-                    ast_node_t* lbranch   = condition->sibling;
-                    ast_node_t* rbranch   = lbranch ? lbranch->sibling : NULL;
-
-                    _clean_blocks(lbranch, ctx);
-                    _clean_blocks(rbranch, ctx);
-
-                    if (TKN_isnumeric(condition->token)) {
-                        int val = str_atoi(condition->token->value);
-                        if (!val && !rbranch) {
-                            AST_remove_node(root, t);
-                            AST_unload(t);
-                            if (tprev) tprev->sibling = next;
-                            else root->child = next;
-                            t = next;
-                            continue;
-                        } 
-                        else if (!val && rbranch) {
-                            rbranch->sibling = next;
-
-                            t->sibling = NULL;
-                            if (lbranch) lbranch->sibling = NULL;
-                            AST_unload(t);
-
-                            t = rbranch;
-                            if (tprev) tprev->sibling = t;
-                            else root->child = t;
-                            tprev = t;
-                            continue;
-                        }
+                    _clean_blocks(condition->sibling, ctx);
+                    if (TKN_isnumeric(condition->token) && !str_atoi(condition->token->value)) {
+                        AST_remove_node(root, t);
+                        AST_unload(t);
+                        if (tprev) tprev->sibling = next;
+                        else root->child = next;
+                        t = next;
+                        continue;
                     }
+
                     break;
                 }
 
-                case FUNC_TOKEN:
-                    _clean_blocks(t->child->sibling->sibling, ctx);
-                    break;
-
+                case FUNC_TOKEN: _clean_blocks(t->child->sibling->sibling, ctx); break;
                 default: break;
             }
         }

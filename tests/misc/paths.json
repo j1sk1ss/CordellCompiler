@@ -17,6 +17,17 @@
             "std/*.c"
         ]
     },
+    "ast_opt": {
+        "macros": ["PREP_TESTING", "AST_TESTING", "AST_PRINT", "AST_OPT_TESTING"],
+        "sources": [
+            "src/symtab/*.c",
+            "src/prep/*.c",
+            "src/ast/*.c",
+            "src/ast/opt/*.c",
+            "src/ast/astgens/*.c",
+            "std/*.c"
+        ]
+    },
     "sem": {
         "macros": ["PREP_TESTING", "AST_TESTING", "AST_PRINT", "SEM_TESTING", "ERROR_LOGS", "WARNING_LOGS"],
         "sources": [

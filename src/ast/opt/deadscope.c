@@ -16,9 +16,10 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
         }
 
         if (
-            curr->token->t_type == EXIT_TOKEN ||
+            curr->token->t_type == EXIT_TOKEN   ||
             curr->token->t_type == RETURN_TOKEN ||
-            curr->token->t_type == CALL_TOKEN
+            curr->token->t_type == CALL_TOKEN   ||
+            curr->token->t_type == BREAKPOINT_TOKEN
         ) *affect = 1;
 
         if (curr->token->t_type == START_TOKEN) {
@@ -67,12 +68,9 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
             }
 
             case CASE_TOKEN:
-                ast_node_t* case_scope = curr->child->sibling;
-                goto _check_case_scope;
             case DEFAULT_TOKEN: {
                 int is_affect = 0;
-                case_scope = curr->child;
-_check_case_scope: {}
+                ast_node_t* case_scope = curr->token->t_type == CASE_TOKEN ? curr->child->sibling : curr->child;
                 _find_scope(case_scope, &is_affect, s_id);
                 if (!is_affect) {
                     AST_remove_node(root, curr);

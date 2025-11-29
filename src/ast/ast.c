@@ -11,7 +11,7 @@ ast_node_t* AST_create_node(token_t* tkn) {
 
 ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld) {
     if (!n) return NULL;
-    ast_node_t* dst = AST_create_node(n->token);
+    ast_node_t* dst = AST_create_node(TKN_copy_token(n->token));
     if (!dst) return NULL;
     if (sp)   dst->parent  = n->parent;
     if (sib)  dst->sibling = AST_copy_node(n->sibling, sp, sib, chld);

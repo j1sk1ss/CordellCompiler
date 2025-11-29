@@ -13,6 +13,15 @@
 #define BUFFER_SIZE 8192
 
 /*
+Allocate and create toke + copy data from src token.
+Params:
+    - src - Source token data.
+
+Return NULL or copied token.
+*/
+token_t* TKN_copy_token(token_t* src);
+
+/*
 Allocate and create token.
 Params:
     - type - Token type.

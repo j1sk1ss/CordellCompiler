@@ -3,6 +3,7 @@
 
 #include <std/mm.h>
 #include <std/stack.h>
+#include <prep/token.h>
 #include <prep/token_types.h>
 
 typedef struct {
