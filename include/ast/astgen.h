@@ -10,8 +10,8 @@
 /*
 Move iterator with N-steps.
 Params:
-- it - Current iterator.
-- steps - Steps count.
+    - it - Current iterator.
+    - steps - Steps count.
 
 Return 0 if we reach end, 1 if still in list.
 */
@@ -27,9 +27,9 @@ static inline int forward_token(list_iter_t* it, int steps) {
 /*
 Generate AST from list of tokens.
 Params:
-- tkn - List of tokens.
-- ctx - AST ctx.
-- smt - Symtable.
+    - tkn - List of tokens.
+    - ctx - AST ctx.
+    - smt - Symtable.
 
 Return 1 if success, otherwise 0.
 */

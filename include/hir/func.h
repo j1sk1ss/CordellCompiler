@@ -28,8 +28,8 @@ int HIR_CG_unload(call_graph_t* ctx);
 /*
 Perform tail-recursion elimination. Will remove all tail recursions with cycle.
 Params:
-- cctx - CFG.
-- smt - Symtable.
+    - cctx - CFG.
+    - smt - Symtable.
 
 Return 1 if success, otherwise 0.
 */
@@ -45,7 +45,7 @@ Points earned with next logic:
 - > 15 base blocks in function: -2
 
 Params:
-- cctx - CFG.
+    - cctx - CFG.
 
 Return 1 if success, otherwise 0.
 */
