@@ -5,11 +5,8 @@ static allias_t* _create_allias(long v_id) {
     if (!a) return NULL;
     str_memset(a, 0, sizeof(allias_t));
     
-    set_init(&a->owners);
-    set_enable_cmp(&a->owners);
-    
-    set_init(&a->delown);
-    set_enable_cmp(&a->delown);
+    set_init(&a->owners, SET_CMP);
+    set_init(&a->delown, SET_CMP);
     
     a->v_id = v_id;
     return a;
@@ -29,7 +26,7 @@ int ALLIAS_get_owners(long v_id, set_t* out, allias_map_t* ctx) {
         return 1;
     }
 
-    set_init(out);
+    set_init(out, SET_NO_CMP);
     return 0;
 }
 

@@ -41,27 +41,16 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     block->type       = CFG_DEFAULT_BLOCK;
     block->hmap.entry = e;
     block->hmap.exit  = e;
-    set_init(&block->visitors);
-    set_init(&block->pred);
-
-    set_init(&block->curr_in);
-    set_enable_cmp(&block->curr_in);
-    
-    set_init(&block->curr_out);
-    set_enable_cmp(&block->curr_out);
-
-    set_init(&block->prev_in);
-    set_enable_cmp(&block->prev_in);
-
-    set_init(&block->prev_out);
-    set_enable_cmp(&block->prev_out);
-
-    set_init(&block->def);
-    set_init(&block->use);
-    set_init(&block->domf);
-
-    set_init(&block->dom);
-    set_enable_cmp(&block->dom);
+    set_init(&block->visitors, SET_NO_CMP);
+    set_init(&block->pred, SET_NO_CMP);
+    set_init(&block->curr_in, SET_CMP);
+    set_init(&block->curr_out, SET_CMP);
+    set_init(&block->prev_in, SET_CMP);
+    set_init(&block->prev_out, SET_CMP);
+    set_init(&block->def, SET_NO_CMP);
+    set_init(&block->use, SET_NO_CMP);
+    set_init(&block->domf, SET_NO_CMP);
+    set_init(&block->dom, SET_CMP);
     return block;
 }
 
@@ -81,7 +70,7 @@ int HIR_CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* 
     set_copy(&b->pred, &trg->pred);
     set_free(&trg->pred);
 
-    set_init(&trg->pred);
+    set_init(&trg->pred, SET_NO_CMP);
     set_add(&trg->pred, b);
     return 1;
 }
@@ -180,7 +169,7 @@ int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx) {
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             set_free(&cb->visitors);
-            set_init(&cb->visitors);
+            set_init(&cb->visitors, SET_NO_CMP);
             cb->visited = 0;
         }
     }
@@ -198,14 +187,14 @@ int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             set_free(&cb->prev_in);
-            set_init(&cb->prev_in);
+            set_init(&cb->prev_in, SET_CMP);
             
             set_free(&cb->prev_out);
-            set_init(&cb->prev_out);
+            set_init(&cb->prev_out, SET_CMP);
         }
 
         set_free(&fb->leaders);
-        set_init(&fb->leaders);
+        set_init(&fb->leaders, SET_NO_CMP);
     }
 
     return 1;

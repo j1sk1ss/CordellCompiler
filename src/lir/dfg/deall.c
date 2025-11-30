@@ -62,7 +62,7 @@ int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
 
                         set_free_force(&al->delown);
-                        set_init(&al->delown);
+                        set_init(&al->delown, SET_NO_CMP);
                     }
 
                     break;

@@ -91,7 +91,7 @@ static const markup_token_t _lexems[] = {
 
 static int _build_lexems_map(map_t* m) {
     for (int i = 0; i < (int)(sizeof(_lexems) / sizeof(_lexems[0])); i++) {
-        map_put(m, crc64(_lexems[i].value, str_strlen(_lexems[i].value), 0), (void*)_lexems[i].type);
+        map_put(m, crc64((unsigned char*)_lexems[i].value, str_strlen(_lexems[i].value), 0), (void*)_lexems[i].type);
     }
 
     return 1;
@@ -99,7 +99,7 @@ static int _build_lexems_map(map_t* m) {
 
 int MRKP_mnemonics(list_t* tkn) {
     map_t lexems;
-    map_init(&lexems);
+    map_init(&lexems, MAP_NO_CMP);
     _build_lexems_map(&lexems);
 
     list_iter_t it;
@@ -107,7 +107,7 @@ int MRKP_mnemonics(list_t* tkn) {
     token_t* curr;
     while ((curr = (token_t*)list_iter_next(&it))) {
         long t;
-        if (map_get(&lexems, crc64(curr->value, str_strlen(curr->value), 0), (void**)&t)) {
+        if (map_get(&lexems, crc64((unsigned char*)curr->value, str_strlen(curr->value), 0), (void**)&t)) {
             curr->t_type = t;
         }
     }

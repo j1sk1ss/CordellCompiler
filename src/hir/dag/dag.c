@@ -23,9 +23,9 @@ dag_node_t* HIR_DAG_create_node(hir_subject_t* src) {
     if (!nd) return NULL;
     str_memset(nd, 0, sizeof(dag_node_t));
 
-    set_init(&nd->users);
-    set_init(&nd->args);
-    set_init(&nd->link);
+    set_init(&nd->users, SET_NO_CMP);
+    set_init(&nd->args, SET_NO_CMP);
+    set_init(&nd->link, SET_NO_CMP);
 
     set_add(&nd->link, (void*)HIR_hash_subject(src));
     nd->op  = -1;

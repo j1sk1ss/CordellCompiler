@@ -27,19 +27,15 @@ static int _map_update_hash(map_t* m) {
     return 1;
 }
 
-int map_init(map_t* m) {
+int map_init(map_t* m, int cmp) {
     if (!m) return 0;
     m->capacity = MAP_INITIAL_CAPACITY;
     m->size     = 0;
     m->hash     = 0;
-    m->cmp      = 0;
+    m->cmp      = cmp;
     m->entries  = (map_entry_t*)mm_malloc(m->capacity * sizeof(map_entry_t));
     str_memset(m->entries, 0, m->capacity * sizeof(map_entry_t));
     return m->entries ? 1 : 0;
-}
-
-int map_enable_cmp(map_t* m) {
-    return (m->cmp = 1) == 1;
 }
 
 static int _map_resize(map_t* m, long newcap) {
@@ -163,6 +159,11 @@ int map_isempty(map_t* m) {
 
 int map_equals(map_t* a, map_t* b) {
     if (!a || !b) return 0;
+    if (!a->cmp || !b->cmp) {
+        print_error("Compare without cmp flag! a=%i, b=%i", a->cmp, b->cmp);
+        return 1;
+    }
+
     return a->hash == b->hash;
 }
 

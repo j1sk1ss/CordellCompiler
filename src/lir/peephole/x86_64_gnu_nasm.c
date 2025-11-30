@@ -167,7 +167,7 @@ static int _recursive_cleanup(
     if (!bbh) return 0;
     if (bbh->visited != _visit_counter) {
         set_free(&bbh->visitors);
-        set_init(&bbh->visitors);
+        set_init(&bbh->visitors, SET_NO_CMP);
     }
     
     if (set_has(&bbh->visitors, (void*)pred)) return 0;

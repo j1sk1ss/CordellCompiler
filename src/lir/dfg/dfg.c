@@ -64,7 +64,7 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
 
 static int _compute_out(cfg_block_t* cfg) {
     set_t out;
-    set_init(&out);
+    set_init(&out, SET_NO_CMP);
     if (cfg->l)   set_union(&out, &out, &cfg->l->curr_in);
     if (cfg->jmp) set_union(&out, &out, &cfg->jmp->curr_in);
     set_free(&cfg->curr_out);

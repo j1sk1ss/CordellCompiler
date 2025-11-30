@@ -25,12 +25,12 @@ static int _add_ig_node(long v_id, igraph_t* g) {
     if (!n) return 0;
     str_memset(n, 0, sizeof(igraph_node_t));
     n->v_id = v_id;
-    set_init(&n->v);
+    set_init(&n->v, SET_NO_CMP);
     return map_put(&g->nodes, v_id, n);
 }
 
 int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
-    map_init(&g->nodes);
+    map_init(&g->nodes, MAP_NO_CMP);
 
     map_iter_t vit;
     map_iter_init(&smt->v.vartb, &vit);

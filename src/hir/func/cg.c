@@ -6,7 +6,7 @@ static call_graph_node_t* _create_cgraph_node(long fid) {
     str_memset(nd, 0, sizeof(call_graph_node_t));
 
     nd->fid = fid;
-    set_init(&nd->edges);
+    set_init(&nd->edges, SET_NO_CMP);
     return nd;
 }
 
@@ -60,7 +60,7 @@ static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
 }
 
 int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt) {
-    map_init(&ctx->verts);
+    map_init(&ctx->verts, MAP_NO_CMP);
     _register_functions(ctx, smt);
     return _connect_edges(cctx, ctx);
 }

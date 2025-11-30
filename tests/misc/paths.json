@@ -110,7 +110,11 @@
         ]
     },
     "lir": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "LIR_TESTING", "LIR_PRINT"],
+        "macros": [
+            "PREP_TESTING", "AST_TESTING", 
+            "HIR_TESTING", "HIR_SSA_TESTING", "HIR_PRINT",
+            "LIR_TESTING", "LIR_PRINT"
+        ],
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",

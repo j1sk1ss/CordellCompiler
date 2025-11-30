@@ -1,7 +1,7 @@
 #include <lir/instplan/targinfo.h>
 
 int TRGINF_load(char* path, target_info_t* s) {
-    map_init(&s->info);
+    map_init(&s->info, MAP_NO_CMP);
     print_debug("TRGINF_load(path=%s)", path);
     FILE* f = fopen(path, "rb");
     if (!f) return 0;
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     mm_init();
 
     map_t ops;
-    map_init(&ops);
+    map_init(&ops, MAP_NO_CMP);
 
     if (!strcmp(argv[1], "Ivy_Bridge")) {
         ADD_OPINF(&ops, _create_op_info(LIR_FCLL, 1, 1, 0, 0, 100, 0.1f, 10, 0));

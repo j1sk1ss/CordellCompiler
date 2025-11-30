@@ -10,8 +10,8 @@ static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* src1, da
 
 int HIR_DAG_init(dag_ctx_t* dctx) {
     if (!dctx) return 0;
-    map_init(&dctx->dag);
-    map_init(&dctx->groups);
+    map_init(&dctx->dag, MAP_NO_CMP);
+    map_init(&dctx->groups, MAP_NO_CMP);
     return 1;
 }
 

@@ -274,6 +274,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     }
 #endif
 #endif
+
 #ifdef CONSTFOLD_TESTING
     printf("LIR_apply_sparse_const_propagation...\n");
     LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform
@@ -298,7 +299,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_DFG_create_deall(&cfgctx, &smt); // Transform
 
     map_t colors;
-    map_init(&colors);
+    map_init(&colors, MAP_NO_CMP);
     printf("LIR_RA_init_colors...\n");
     LIR_RA_init_colors(&colors, &smt);
     
@@ -334,7 +335,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
         lh = lh->next;
     }
 #endif
-#endif
     register_saver_h reg_save = {
         .save_registers = x86_64_gnu_nasm_caller_saving
     };
@@ -342,6 +342,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("LIR_save_registers...\n");
     HIR_CFG_cleanup_navigation(&cfgctx);
     LIR_save_registers(&cfgctx, &reg_save);
+#endif
 #endif
 
 #ifdef CODEGEN_TESTING

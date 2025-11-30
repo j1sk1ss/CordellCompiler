@@ -3,8 +3,8 @@
 static instructions_dag_node_t* _create_dag_node(lir_block_t* lh) {
     instructions_dag_node_t* nd = (instructions_dag_node_t*)mm_malloc(sizeof(instructions_dag_node_t));
     if (!nd) return NULL;
-    set_init(&nd->vert);
-    set_init(&nd->users);
+    set_init(&nd->vert, SET_NO_CMP);
+    set_init(&nd->users, SET_NO_CMP);
     nd->b = lh;
     return nd;
 }
@@ -393,7 +393,7 @@ int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo) {
         cfg_block_t* bb;
         while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
             instructions_dag_t dag;
-            map_init(&dag.alive_edges);
+            map_init(&dag.alive_edges, MAP_NO_CMP);
             _build_instructions_dag(bb, &dag);
             _schedule_block(bb, &dag, trginfo);
             _unload_dag(&dag);

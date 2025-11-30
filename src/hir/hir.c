@@ -110,8 +110,8 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
     subj->users = 1;
 
     switch (t) {
-        case HIR_PHISET:  set_init(&subj->storage.set.h);   break;
-        case HIR_ARGLIST: list_init(&subj->storage.list.h); break;
+        case HIR_PHISET:  set_init(&subj->storage.set.h, SET_NO_CMP); break;
+        case HIR_ARGLIST: list_init(&subj->storage.list.h);           break;
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
         case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
@@ -174,7 +174,7 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
 
     switch (ns->t) {
         case HIR_PHISET: {
-            set_init(&ns->storage.set.h);
+            set_init(&ns->storage.set.h, SET_NO_CMP);
             set_iter_t it;
             set_iter_init(&s->storage.set.h, &it);
             int_tuple_t* tpl;
@@ -340,7 +340,7 @@ int HIR_unload_blocks(hir_block_t* block) {
 
 int HIR_compute_homes(hir_ctx_t* ctx) {
     map_t homes;
-    map_init(&homes);
+    map_init(&homes, MAP_NO_CMP);
 
     hir_block_t* hh = ctx->h;
     while (hh) {

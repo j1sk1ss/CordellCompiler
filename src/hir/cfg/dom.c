@@ -27,8 +27,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
             if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) continue;
 
             set_t nd;
-            set_init(&nd);
-            set_enable_cmp(&nd);
+            set_init(&nd, SET_CMP);
 
             int first = 1;
             set_iter_t it;
@@ -42,7 +41,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
                 }
                 else {
                     set_t tmp;
-                    set_init(&tmp);
+                    set_init(&tmp, SET_CMP);
                     set_intersect(&tmp, &nd, &p->dom);
                     set_free(&nd);
                     set_copy(&nd, &tmp);
@@ -52,7 +51,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
 
             if (first) {
                 set_free(&nd);
-                set_init(&nd);
+                set_init(&nd, SET_CMP);
             }
 
             set_add(&nd, cb);
@@ -206,10 +205,10 @@ int HIR_CFG_unload_domdata(cfg_ctx_t* cctx) {
         cfg_block_t* cb;
         while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
             set_free(&cb->dom);
-            set_init(&cb->dom);
+            set_init(&cb->dom, SET_CMP);
 
             set_free(&cb->domf);
-            set_init(&cb->domf);
+            set_init(&cb->domf, SET_NO_CMP);
             
             cb->sdom = cb->dom_c = cb->dom_s = NULL;
         }

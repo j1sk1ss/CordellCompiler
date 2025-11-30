@@ -38,7 +38,7 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
             header->type = CFG_LOOP_LATCH;
 
             set_t loop_blocks;
-            set_init(&loop_blocks);
+            set_init(&loop_blocks, SET_NO_CMP);
             
             _get_loop_blocks(latch, header, &loop_blocks);
             set_add(&loop_blocks, header);

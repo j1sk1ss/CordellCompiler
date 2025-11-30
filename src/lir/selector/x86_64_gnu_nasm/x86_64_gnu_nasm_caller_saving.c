@@ -74,8 +74,8 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
             while (lh) {
                 if (!lh->unused && lh->op == LIR_FCLL) {
                     set_t in_regs, save_regs;
-                    set_init(&in_regs);
-                    set_init(&save_regs);
+                    set_init(&in_regs, SET_NO_CMP);
+                    set_init(&save_regs, SET_NO_CMP);
                     
                     _visit_counter++;
                     _collect_in_function_reg_usage(&in_regs, _find_function(lh->farg->storage.str.sid, cctx));

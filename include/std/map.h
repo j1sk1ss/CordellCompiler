@@ -3,6 +3,7 @@
 
 #include <std/mm.h>
 #include <std/str.h>
+#include <std/logg.h>
 
 #define MAP_INITIAL_CAPACITY 16
 #define MAP_LOAD_FACTOR      0.5
@@ -27,8 +28,9 @@ typedef struct {
     map_entry_t*  entries;
 } map_t;
 
-int map_init(map_t* m);
-int map_enable_cmp(map_t* m);
+#define MAP_NO_CMP 0
+#define MAP_CMP    1
+int map_init(map_t* m, int cmp);
 int map_put(map_t* m, long k, void* v);
 int map_copy(map_t* dst, map_t* src);
 int map_remove(map_t* m, long k);

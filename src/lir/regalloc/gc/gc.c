@@ -105,7 +105,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         if (map_get(colors, current_id, (void**)&existing_color) && existing_color >= 0) continue;
 
         set_t used_colors;
-        set_init(&used_colors);
+        set_init(&used_colors, SET_NO_CMP);
         
         set_iter_t sit;
         set_iter_init(&current_node->v, &sit);

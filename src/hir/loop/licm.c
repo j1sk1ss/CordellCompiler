@@ -157,17 +157,20 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, i
     if (!licm) return 1;
 
     set_t loop_hir;
-    set_init(&loop_hir);
+    set_init(&loop_hir, SET_NO_CMP);
     _get_loop_hir_blocks(&node->blocks, &loop_hir);
-    print_debug("_get_loop_hir_blocks complete, size(loop_blocks)=%i, size(loop_hir)=%i", set_size(&node->blocks), set_size(&loop_hir));
+    print_debug(
+        "_get_loop_hir_blocks complete, size(loop_blocks)=%i, size(loop_hir)=%i", 
+        set_size(&node->blocks), set_size(&loop_hir)
+    );
 
     set_t inductive;
-    set_init(&inductive);
+    set_init(&inductive, SET_NO_CMP);
     _get_inductive_variables(&loop_hir, &inductive, smt);
     print_debug("_get_inductive_variables complete, size(inductive)=%i", set_size(&inductive));
 
     set_t invariant_defs;
-    set_init(&invariant_defs);
+    set_init(&invariant_defs, SET_NO_CMP);
     _get_invariant_defs(&loop_hir, &invariant_defs, &inductive);
     print_debug("_get_invariant_defs complete, size(invariant_defs)=%i", set_size(&invariant_defs));
 
