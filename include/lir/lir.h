@@ -90,7 +90,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx);
 
 #define LIR_SUBJ_REG(reg, sz) LIR_create_subject(LIR_REGISTER, reg, -1, 0, NULL, 0, sz)
 #define LIR_SUBJ_CONST(val)   LIR_create_subject(LIR_CONSTVAL, -1, -1, 0, NULL, val, 0)
-#define LIR_SUBJ_NUMBER(val)  LIR_create_subject(LIR_NUMBER, -1, -1, 0, val, 0, 0)
+#define LIR_SUBJ_NUMBER(val)  LIR_create_subject(LIR_NUMBER, -1, -1, 0, val, 0, 8)
 #define LIR_SUBJ_VAR(id, sz)  LIR_create_subject(LIR_VARIABLE, -1, id, -1, NULL, 0, sz)
 #define LIR_SUBJ_GLVAR(id)    LIR_create_subject(LIR_GLVARIABLE, -1, id, 0, NULL, 0, 0)
 #define LIR_SUBJ_OFF(off, sz) LIR_create_subject(LIR_MEMORY, -1, -1, off, NULL, 0, sz)

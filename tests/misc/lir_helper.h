@@ -131,11 +131,11 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
             break;
         }
 
-        case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);     break;
-        case LIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);  break;
-        case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value);     break;
+        case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id); break;
+        case LIR_NUMBER:   dst += sprintf(dst, "$%s", s->storage.num.value);  break;
+        case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value); break;
+        case LIR_LABEL:    dst += sprintf(dst, "lb%ld", s->storage.lb.lb_id); break;
 
-        case LIR_LABEL: dst += sprintf(dst, "lb%ld", s->storage.lb.lb_id); break;
         case LIR_RAWASM:
         case LIR_STRING: {
             str_info_t si;

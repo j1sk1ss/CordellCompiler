@@ -43,9 +43,7 @@ _indexing: {}
             break;
         }
         
-        default: 
-            HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_ASTVAR(node), src); 
-        break;
+        default: HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_ASTVAR(node), src); break;
     }
 
     return 1;
