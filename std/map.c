@@ -115,7 +115,6 @@ int map_get(map_t* m, long k, void** v) {
     }
 
     long idx = _get_index(k, m->capacity);
-
     for (;;) {
         if (!m->entries[idx].used) return 0;
         if (m->entries[idx].used && m->entries[idx].key == k) {
@@ -183,11 +182,42 @@ int map_equals(map_t* a, map_t* b) {
 
 int map_compress(map_t* m) {
     if (m->compr) return 1;
+    long max_key = -1;
+    for (long i = 0; i < m->capacity; i++) {
+        if (m->entries[i].used && m->entries[i].key > max_key) {
+            max_key = m->entries[i].key;
+        }
+    }
+
+    if (max_key < 0) {
+        m->compr = 1;
+        return 1;
+    }
+
+    for (long i = 0; i < m->capacity; i++) {
+        while (m->entries[i].used && m->entries[i].key != i) {
+            long k = m->entries[i].key;
+            map_entry_t tmp;
+            str_memcpy(&tmp, &m->entries[i], sizeof(map_entry_t));
+            str_memcpy(&m->entries[i], &m->entries[k], sizeof(map_entry_t));
+            str_memcpy(&m->entries[k], &tmp, sizeof(map_entry_t));
+        }
+    }
+
+    long new_cap = max_key + 1;
+    map_entry_t* nentries = (map_entry_t*)mm_realloc(m->entries, sizeof(map_entry_t) * new_cap);
+    if (!nentries) return 0;
+    
+    m->entries = nentries;
+    m->capacity = new_cap;
+    m->size = new_cap;
+    m->compr = 1;
     return 1;
 }
 
 int map_decompress(map_t* m) {
     if (!m->compr) return 1;
+    m->compr = 0;
     return 1;
 }
 
