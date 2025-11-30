@@ -305,7 +305,8 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     
     regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
     printf("LIR_regalloc...\n");
-    LIR_regalloc(&cfgctx, &smt, &colors, &regall);       // Analyzation
+    LIR_regalloc(&cfgctx, &smt, &colors, &regall); // Analyzation
+    LIR_apply_regalloc(&smt, &colors);             // Analyzation
 
     mem_selector_h mem_sel = { 
         .select_memory = x86_64_gnu_nasm_memory_selection

@@ -48,8 +48,22 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
                 if (!lh->unused) {
                     lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
                     for (int i = LIR_writeop(lh->op); i < 3; i++) {
-                        if (!args[i] || args[i]->t != LIR_VARIABLE) continue;
-                        set_add(&cb->use, (void*)args[i]->storage.var.v_id);
+                        if (!args[i]) continue;
+                        switch (args[i]->t) {
+                            case LIR_VARIABLE: set_add(&cb->use, (void*)args[i]->storage.var.v_id); break;
+                            case LIR_ARGLIST: {
+                                list_iter_t args_it;
+                                list_iter_hinit(&args[i]->storage.list.h, &args_it);
+                                lir_subject_t* arg;
+                                while ((arg = (lir_subject_t*)list_iter_next(&args_it))) {
+                                    set_add(&cb->use, (void*)arg->storage.var.v_id);
+                                }
+
+                                break;
+                            }
+
+                            default: break;
+                        }
                     }
                 }
 

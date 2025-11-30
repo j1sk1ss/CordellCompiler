@@ -69,6 +69,8 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
                     goto _shifted_to_registers;
                 }
             }
+
+            break;
         }
 
         case LIR_MEMORY: {

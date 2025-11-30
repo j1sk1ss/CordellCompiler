@@ -10,19 +10,12 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
         s->t = LIR_GLVARIABLE;
         return 1;
     }
-
+    
     long color;
     vi.vmi.size = _get_variable_size(vi.v_id, smt);
     if (!vi.vmi.allocated && map_get(colors, s->storage.var.v_id, (void**)&color)) {
-        if (color < _registers_count && color >= 0) {
-            vi.vmi.offset = -1;
-            vi.vmi.reg    = _registers[color];
-        }
-        else {
-            vi.vmi.offset = stack_map_alloc(vi.vmi.size, smp);
-            vi.vmi.reg    = -1;
-        }
-
+        vi.vmi.offset = stack_map_alloc(vi.vmi.size, smp);
+        vi.vmi.reg    = -1;
         VRTB_update_memory(vi.v_id, vi.vmi.offset, vi.vmi.size, vi.vmi.reg, &smt->v);
     }
 

@@ -7,6 +7,7 @@ int VRTB_update_memory(long id, long offset, long size, char reg, vartab_ctx_t* 
         vi->vmi.offset    = offset;
         vi->vmi.size      = size;
         vi->vmi.reg       = reg;
+        if (reg < 0 && offset < 0) return 1;
         vi->vmi.allocated = 1;
         return 1;
     }

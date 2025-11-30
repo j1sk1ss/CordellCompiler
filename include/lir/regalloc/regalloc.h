@@ -10,5 +10,6 @@ typedef struct {
 } regalloc_t;
 
 int LIR_regalloc(cfg_ctx_t* cctx, sym_table_t* smt, map_t* colors, regalloc_t* allocator);
+int LIR_apply_regalloc(sym_table_t* smt, map_t* colors);
 
 #endif

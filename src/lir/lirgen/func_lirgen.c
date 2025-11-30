@@ -1,12 +1,14 @@
 #include <lir/lirgens/lirgens.h>
 
-static int _pass_params(lir_operation_t op, lir_ctx_t* ctx, list_t* args) {
+static int _pass_params(lir_operation_t op, lir_ctx_t* ctx, list_t* hir_args, list_t* lir_args) {
     int argnum = 0;
     list_iter_t it;
-    list_iter_hinit(args, &it);
-    hir_subject_t* s;
-    while ((s = (hir_subject_t*)list_iter_next(&it))) {
-        LIR_BLOCK2(ctx, op, x86_64_format_variable(s), LIR_SUBJ_CONST(argnum++));
+    list_iter_hinit(hir_args, &it);
+    hir_subject_t* hir_arg;
+    while ((hir_arg = (hir_subject_t*)list_iter_next(&it))) {
+        lir_subject_t* lir_arg = x86_64_format_variable(hir_arg);
+        list_add(lir_args, lir_arg);
+        LIR_BLOCK2(ctx, op, lir_arg, LIR_SUBJ_CONST(argnum++));
     }
 
     return 1;
@@ -22,8 +24,9 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h) {
         case HIR_ECLL: 
         case HIR_STORE_FCLL:
         case HIR_STORE_ECLL: {
-            _pass_params(LIR_STFARG, ctx, &h->targ->storage.list.h);
-            LIR_BLOCK1(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->sarg));
+            lir_subject_t* sargs = LIR_SUBJ_LIST();
+            _pass_params(LIR_STFARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h);
+            LIR_BLOCK3(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->sarg), NULL, sargs);
             if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) {
                 LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
             }
@@ -33,8 +36,9 @@ int x86_64_generate_func(lir_ctx_t* ctx, hir_block_t* h) {
 
         case HIR_SYSC: 
         case HIR_STORE_SYSC: {
-            _pass_params(LIR_STSARG, ctx, &h->targ->storage.list.h);
-            LIR_BLOCK0(ctx, LIR_SYSC);
+            lir_subject_t* sargs = LIR_SUBJ_LIST();
+            _pass_params(LIR_STSARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h);
+            LIR_BLOCK3(ctx, LIR_SYSC, NULL, NULL, sargs);
             if (h->op == HIR_STORE_SYSC) {
                 LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
             }
