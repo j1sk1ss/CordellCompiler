@@ -48,7 +48,7 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     set_init(&block->prev_in, SET_CMP);
     set_init(&block->prev_out, SET_CMP);
     set_init(&block->def, SET_NO_CMP);
-    set_init(&block->use, SET_NO_CMP);
+    set_init(&block->use, SET_CMP);
     set_init(&block->domf, SET_NO_CMP);
     set_init(&block->dom, SET_CMP);
     return block;

@@ -275,6 +275,8 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 #endif
 
+    SMT_compress(&smt);
+
 #ifdef CONSTFOLD_TESTING
     printf("LIR_apply_sparse_const_propagation...\n");
     LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform

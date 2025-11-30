@@ -78,7 +78,7 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
 
 static int _compute_out(cfg_block_t* cfg) {
     set_t out;
-    set_init(&out, SET_NO_CMP);
+    set_init(&out, SET_CMP);
     if (cfg->l)   set_union(&out, &out, &cfg->l->curr_in);
     if (cfg->jmp) set_union(&out, &out, &cfg->jmp->curr_in);
     set_free(&cfg->curr_out);
@@ -114,7 +114,10 @@ int LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
             int same = 1;
             list_iter_tinit(&fb->blocks, &bit);
             while ((cb = (cfg_block_t*)list_iter_prev(&bit))) {
-                if (!set_equal(&cb->curr_in, &cb->prev_in) || !set_equal(&cb->curr_out, &cb->prev_out)) {
+                if (
+                    !set_equal(&cb->curr_in, &cb->prev_in) || 
+                    !set_equal(&cb->curr_out, &cb->prev_out)
+                ) {
                     same = 0;
                     break;
                 }

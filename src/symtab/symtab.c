@@ -19,6 +19,15 @@ int SMT_init(sym_table_t* smt) {
     return 1;
 }
 
+int SMT_compress(sym_table_t* smt) {
+    map_compress(&smt->v.vartb);
+    map_compress(&smt->s.strtb);
+    map_compress(&smt->f.functb);
+    map_compress(&smt->a.arrtb);
+    map_compress(&smt->m.allias);
+    return 1;
+}
+
 int SMT_unload(sym_table_t* smt) {
     VRTB_unload(&smt->v);
     ARTB_unload(&smt->a);
