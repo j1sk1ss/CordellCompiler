@@ -77,7 +77,7 @@ static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
     if (block_count <= 2)       score += 3;
     else if (block_count <= 5)  score += 2;
     else if (block_count <= 10) score += 1;
-    else if (block_count > 15)  score -= 2;
+    else if (block_count > 15)  score -= 3;
     return score >= 3;
 }
 

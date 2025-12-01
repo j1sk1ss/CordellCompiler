@@ -462,11 +462,31 @@ goto lbX;
 }
 ```
 
-This optimization save us from stackframe allocation, that has high price, especially if recursion occurs frequently.
+This optimization save us from stackframe allocation that has high price, especially if recursion occurs frequently.
 
 ### Function inlining
+The function inlining happens, when function call gets 3 or more euristic score. What the euristic score? Each function call evaluated with the next params:
+- Is function call in cycle? `+2`
+- One from the following:
+   - Is function size (in BaseBlocks) lower then 2? `+3`
+   - Is function size (in BaseBlocks) lower then 5? `+2`
+   - Is function size (in BaseBlocks) lower then 10? `+1`
+   - Is function size (in BaseBlocks) larger then 15? `-3`
+
+When function call marked as `inline candidate`, compiler simply copy all contents from function body, replace argument assign and return:
+![func_inline](docs/media/inline.png)
+
 ### Loop canonicalization
+Loop canonicalization is the important step before the LICM optimization. The main idea of this stage - is to create one entry and exit point in the loop. Let's consider next `CFG`: 
+![CFG_before_canon](docs/media/CFG_loop_before_canon.png)
+
+Main problem here, that we have `critical edge` from `BB1` to `BB3`, that permits us from motion some redundant code from loop. To solve it, we can simply create a `preheader` base block:
+![CFG_loop_preheader](docs/media/CFG_loop_preheader.png)
+
 ### Loop Invariant Code Motion (LICM)
+Which `HIR` operations we can safely move from loop?
+- Those which didn't use inductive variables
+- Those which didn't use loop variables
 
 ## LIR part
 In the same way as during `HIR` generation, we now produce an intermediate representation similar to `3AC` — but using only two addresses. This step is relatively straightforward, as it primarily involves adapting instructions to the target machine’s addressing model. Because the exact implementation depends heavily on the target architecture (register count, instruction set, addressing modes, etc.), we typically don’t spend much time optimizing or generalizing this layer. Its main goal is simply to bridge the high-level `HIR` representation and the target-specific assembly form, ensuring that each instruction can be directly translated to a valid machine instruction.
