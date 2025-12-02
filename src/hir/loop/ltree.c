@@ -26,10 +26,7 @@ static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b) {
 }
 
 static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
-    list_iter_t bit;
-    list_iter_hinit(&fb->blocks, &bit);
-    cfg_block_t* cb;
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_block_t* cb, &fb->blocks) {
         if (cb->jmp && set_has(&cb->dom, cb->jmp)) {
             cfg_block_t* header = cb->jmp;
             cfg_block_t* latch  = cb;
@@ -60,17 +57,10 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
     _collect_loops_for_func(fb, &rl);
     print_debug("_collect_loops_for_func complete, size(rl)=%i", list_size(&rl));
 
-    list_iter_t it_i;
-    list_iter_hinit(&rl, &it_i);
-    loop_node_t* ni;
-    while ((ni = (loop_node_t*)list_iter_next(&it_i))) {
+    foreach(loop_node_t* ni, &rl) {
+        int best_size = INT_MAX;
         loop_node_t* best_parent = NULL;
-        int best_size = 2147483647;
-
-        list_iter_t it_j;
-        list_iter_hinit(&rl, &it_j);
-        loop_node_t* nj;
-        while ((nj = (loop_node_t*)list_iter_next(&it_j))) {
+        foreach(loop_node_t* nj, &rl) {
             if (nj == ni) continue;
             if (set_has(&nj->blocks, &ni->blocks) && set_size(&nj->blocks) > set_size(&ni->blocks)) {
                 int sz = set_size(&nj->blocks);
@@ -90,10 +80,7 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
 }
 
 int HIR_LOOP_mark_loops(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         ltree_ctx_t lctx;
         list_init(&lctx.loops);
@@ -105,10 +92,7 @@ int HIR_LOOP_mark_loops(cfg_ctx_t* cctx) {
 
 static int _loop_node_free(loop_node_t* n) {
     if (!n) return 0;
-    list_iter_t it;
-    list_iter_hinit(&n->children, &it);
-    loop_node_t* ch;
-    while ((ch = (loop_node_t*)list_iter_next(&it))) {
+    foreach(loop_node_t* ch, &n->children) {
         _loop_node_free(ch);
     }
 
@@ -119,10 +103,7 @@ static int _loop_node_free(loop_node_t* n) {
 }
 
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx) {
-    list_iter_t it;
-    list_iter_hinit(&ctx->loops, &it);
-    loop_node_t* n;
-    while ((n = (loop_node_t*)list_iter_next(&it))) {
+    foreach(loop_node_t* n, &ctx->loops) {
         _loop_node_free(n);
     }
 

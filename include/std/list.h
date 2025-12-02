@@ -46,4 +46,14 @@ void* list_get_tail(list_t* l);
 int list_free(list_t* l);
 int list_free_force(list_t* l);
 
+#define CONCAT2(a,b) a##b
+#define CONCAT(a,b)  CONCAT2(a,b)
+
+#define foreach(v, lst)                                                           \
+    list_iter_t CONCAT(__it_, __LINE__);                                          \
+    list_iter_hinit(lst, &CONCAT(__it_, __LINE__));                               \
+    void* CONCAT(__val_, __LINE__);                                               \
+    while ((CONCAT(__val_, __LINE__) = list_iter_next(&CONCAT(__it_, __LINE__)))) \
+        for (v = CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__) = NULL)
+
 #endif

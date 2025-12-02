@@ -81,15 +81,9 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
 }
 
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* bb;
-        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
+        foreach(cfg_block_t* bb, &fb->blocks) {
             lir_block_t* lh = bb->lmap.entry;
             while (lh) {
                 switch (lh->op) {

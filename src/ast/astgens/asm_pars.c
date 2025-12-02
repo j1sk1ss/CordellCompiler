@@ -18,7 +18,7 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
             ast_node_t* arg = cpl_parse_expression(it, ctx, smt);
             if (arg) AST_add_node(node, arg);
-            else print_warn("cpl_parse_expression return NULL!");
+            else { print_warn("cpl_parse_expression return NULL!"); }
         }
     }
 

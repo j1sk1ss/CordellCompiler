@@ -13,7 +13,7 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         else if (TKN_isdecl(CURRENT_TOKEN)) {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("AST error during function arg parsing! line=%i", CURRENT_TOKEN->lnum);
+                print_error("AST error during function arg parsing!");
                 AST_unload(node);
                 return NULL;
             }
@@ -22,6 +22,12 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         }
         else if (CURRENT_TOKEN->t_type == FUNC_NAME_TOKEN) {
             ast_node_t* fname = AST_create_node(CURRENT_TOKEN);
+            if (!fname) {
+                print_error("AST_create_node return NULL!");
+                AST_unload(node);
+                return NULL;
+            }
+
             AST_add_node(node, fname);
             FNTB_add_info(fname->token->value, 1, 1, 0, NULL, NULL, &smt->f);
             forward_token(it, 1);
@@ -74,6 +80,8 @@ ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
 
             ast_node_t* arg = cpl_parse_expression(it, ctx, smt);
             if (arg) AST_add_node(node, arg);
+            else { print_warn("cpl_parse_expression return NULL!"); }
+
             args++;
         }
     }
@@ -128,7 +136,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         else {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("AST error during function arg parsing! line=%i", CURRENT_TOKEN->lnum);
+                print_error("cpl_parse_variable_declaration return NULL!");
                 AST_unload(node);
                 AST_unload(args_node);
                 return NULL;

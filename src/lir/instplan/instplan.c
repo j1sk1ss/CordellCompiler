@@ -54,11 +54,7 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
         switch (lh->op) {
             case LIR_ARRDECL: {
                 instructions_dag_node_t* inst = _set_node(lh, dag);
-
-                list_iter_t el_it;
-                list_iter_hinit(&lh->targ->storage.list.h, &el_it);
-                lir_subject_t* elem;
-                while ((elem = (lir_subject_t*)list_iter_next(&el_it))) {
+                foreach(lir_subject_t* elem, &lh->targ->storage.list.h) {
                     if (elem->t != LIR_VARIABLE) continue;
                     instructions_dag_node_t* src = _find_or_create_node(_find_src(lh, bb->lmap.entry, elem), dag);
                     if (src) {
@@ -279,10 +275,7 @@ static int _compute_critical_path(target_info_t* trginfo, instructions_dag_t* da
     list_init(&sorted);
     _dag_toposort(dag, &sorted);
     
-    list_iter_t it2;
-    list_iter_hinit(&sorted, &it2);
-    instructions_dag_node_t* node;
-    while ((node = (instructions_dag_node_t*)list_iter_next(&it2))) {
+    foreach(instructions_dag_node_t* node, &sorted) {
         set_iter_t sit;
         set_iter_init(&node->vert, &sit);
         instructions_dag_node_t* dep;
@@ -301,15 +294,10 @@ static int _compute_critical_path(target_info_t* trginfo, instructions_dag_t* da
 
 static instructions_dag_node_t* _select_best_node(list_t* ready_list) {
     if (!list_size(ready_list)) return NULL;
-
-    list_iter_t it;
-    list_iter_hinit(ready_list, &it);
-    instructions_dag_node_t *nd = NULL, *best = NULL;
-
-    best = (instructions_dag_node_t*)list_iter_next(&it);
+    instructions_dag_node_t* best = (instructions_dag_node_t*)list_get_head(ready_list);
     int best_cp = best->critical_path;
-
-    while ((nd = (instructions_dag_node_t*)list_iter_next(&it))) {
+    foreach(instructions_dag_node_t* nd, ready_list) {
+        if (nd == best) continue;
         if (nd->critical_path > best_cp) {
             best_cp = nd->critical_path;
             best = nd;
@@ -322,11 +310,7 @@ static instructions_dag_node_t* _select_best_node(list_t* ready_list) {
 static int _apply_schedule(cfg_block_t* bb, list_t* scheduled) {
     if (!bb || !list_size(scheduled)) return 0;
     lir_block_t* prev = NULL;
-
-    list_iter_t it;
-    list_iter_hinit(scheduled, &it);
-    instructions_dag_node_t* nd;
-    while ((nd = (instructions_dag_node_t*)list_iter_next(&it))) {
+    foreach(instructions_dag_node_t* nd, scheduled) {
         if (prev) {
             HIR_CFG_remove_lir_block(bb, nd->b);
             LIR_unlink_block(nd->b);
@@ -383,15 +367,8 @@ static int _schedule_block(cfg_block_t* bb, instructions_dag_t* dag, target_info
 }
 
 int LIR_plan_instructions(cfg_ctx_t* cctx, target_info_t* trginfo) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* bb;
-        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
+        foreach(cfg_block_t* bb, &fb->blocks) {
             instructions_dag_t dag;
             map_init(&dag.alive_edges, MAP_NO_CMP);
             _build_instructions_dag(bb, &dag);

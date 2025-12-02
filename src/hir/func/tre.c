@@ -1,15 +1,8 @@
 #include <hir/cfg.h>
 
 int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
+        foreach(cfg_block_t* cb, &fb->blocks) {
             if (cb->l || cb->jmp) continue;
 
             func_info_t fi;
@@ -35,11 +28,9 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
                 hir_block_t* jmp = HIR_create_block(HIR_JMP, lb, NULL, NULL);
                 HIR_insert_block_before(jmp, exit);
                 
-                list_iter_t args;
-                hir_subject_t* arg;
                 ast_node_t* ast_arg = fi.args->child;
-                list_iter_hinit(&exit->targ->storage.list.h, &args);
-                while ((arg = (hir_subject_t*)list_iter_next(&args)) && ast_arg) {
+                foreach(hir_subject_t* arg, &exit->targ->storage.list.h) {
+                    if (!ast_arg) break;
                     hir_block_t* argload = HIR_create_block(HIR_STORE, HIR_SUBJ_ASTVAR(ast_arg->child), arg, NULL);
                     HIR_insert_block_before(argload, jmp);
                     ast_arg = ast_arg->sibling;

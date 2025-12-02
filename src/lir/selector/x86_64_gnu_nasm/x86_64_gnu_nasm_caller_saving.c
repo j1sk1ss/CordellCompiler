@@ -2,10 +2,7 @@
 
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     if (!f) return 0;
-    list_iter_t bit;
-    list_iter_hinit(&f->blocks, &bit);
-    cfg_block_t* bb;
-    while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_block_t* bb, &f->blocks) {
         lir_block_t* lh = bb->lmap.entry;
         while (lh) {
             if (
@@ -50,10 +47,7 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, long pred,
 }
 
 static cfg_func_t* _find_function(long fid, cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (fb->fid == fid) return fb;
     }
 
@@ -61,15 +55,9 @@ static cfg_func_t* _find_function(long fid, cfg_ctx_t* cctx) {
 }
 
 int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* bb;
-        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
+        foreach(cfg_block_t* bb, &fb->blocks) {
             lir_block_t* lh = bb->lmap.entry;
             while (lh) {
                 if (!lh->unused && lh->op == LIR_FCLL) {

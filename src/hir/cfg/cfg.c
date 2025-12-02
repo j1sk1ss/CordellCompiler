@@ -113,12 +113,8 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     HIR_CFG_split_by_functions(hctx, ctx, smt);
     HIR_CFG_mark_leaders(ctx);
 
-    list_iter_t fit;
-    list_iter_hinit(&ctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &ctx->funcs) {
         CFG_create_cfg_blocks(fb, ctx);
-
         list_iter_t bit;
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
@@ -140,17 +136,16 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
                     break;
                 }
 
-                default: cb->l = (cfg_block_t*)list_iter_current(&bit); break;
+                default: {
+                    cb->l = (cfg_block_t*)list_iter_current(&bit); 
+                    break;
+                }
             }
         }
     }
 
-    list_iter_hinit(&ctx->funcs, &fit);
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_func_t* fb, &ctx->funcs) {
+        foreach(cfg_block_t* cb, &fb->blocks) {
             if (cb->l)   set_add(&cb->l->pred, cb);
             if (cb->jmp) set_add(&cb->jmp->pred, cb);
         }
@@ -160,14 +155,8 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
 }
 
 int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
+        foreach(cfg_block_t* cb, &fb->blocks) {
             set_free(&cb->visitors);
             set_init(&cb->visitors, SET_NO_CMP);
             cb->visited = 0;
@@ -178,14 +167,8 @@ int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx) {
 }
 
 int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
+        foreach(cfg_block_t* cb, &fb->blocks) {
             set_free(&cb->prev_in);
             set_init(&cb->prev_in, SET_CMP);
             
@@ -201,14 +184,8 @@ int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
 }
 
 int HIR_CFG_unload(cfg_ctx_t* ctx) {
-    list_iter_t fit;
-    list_iter_hinit(&ctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_func_t* fb, &ctx->funcs) {
+        foreach(cfg_block_t* cb, &fb->blocks) {
             set_free(&cb->def);
             set_free(&cb->use);
             set_free(&cb->curr_in);

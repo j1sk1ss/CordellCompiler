@@ -101,11 +101,7 @@ int MRKP_mnemonics(list_t* tkn) {
     map_t lexems;
     map_init(&lexems, MAP_NO_CMP);
     _build_lexems_map(&lexems);
-
-    list_iter_t it;
-    list_iter_hinit(tkn, &it);
-    token_t* curr;
-    while ((curr = (token_t*)list_iter_next(&it))) {
+    foreach(token_t* curr, tkn) {
         long t;
         if (map_get(&lexems, crc64((unsigned char*)curr->value, str_strlen(curr->value), 0), (void**)&t)) {
             curr->t_type = t;
@@ -251,12 +247,11 @@ int MRKP_variables(list_t* tkn) {
 
     s_id = 0;
     scope_reset(&scope_stack);
-    list_iter_hinit(tkn, &it);
     
     int dref = 0;
     int ref  = 0;
     int neg  = 0;
-    while ((curr = (token_t*)list_iter_next(&it))) {
+    foreach(token_t* curr, tkn) {
         switch (curr->t_type) {
             case OPEN_BLOCK_TOKEN:  scope_push(&scope_stack, ++s_id, 0); break;
             case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack);             break;
@@ -267,11 +262,7 @@ int MRKP_variables(list_t* tkn) {
             case UNKNOWN_STRING_TOKEN: {
                 for (int s = scope_stack.top; s >= 0; s--) {
                     int curr_s = scope_stack.data[s].id;
-
-                    list_iter_t vit;
-                    list_iter_hinit(&vars, &vit);
-                    variable_t* v;
-                    while ((v = (variable_t*)list_iter_next(&vit))) {
+                    foreach(variable_t* v, &vars) {
                         if (!str_strncmp(curr->value, v->name, TOKEN_MAX_SIZE) && v->scope == curr_s) {
                             curr->t_type     = v->type;
                             curr->flags.ext  = v->ext;

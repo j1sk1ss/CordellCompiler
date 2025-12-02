@@ -28,13 +28,9 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
                 }
 
                 int elcount = ai.size;
-                list_iter_t elit;
-                list_iter_hinit(&ai.elems, &elit);
-                array_elem_info_t* el;
-                while ((el = (array_elem_info_t*)list_iter_next(&elit))) {
+                foreach(array_elem_info_t* el, &ai.elems) {
                     fprintf(output, "%lu", el->value);
-                    if (list_iter_current(&elit)) fprintf(output, ",");
-                    elcount--;
+                    if (elcount--) fprintf(output, ",");
                 }
 
                 if (elcount != ai.size && elcount) fprintf(output, ",");

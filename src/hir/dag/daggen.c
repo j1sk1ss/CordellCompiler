@@ -16,14 +16,8 @@ int HIR_DAG_init(dag_ctx_t* dctx) {
 }
 
 int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
+        foreach(cfg_block_t* cb, &fb->blocks) {
             hir_block_t* hh = cb->hmap.entry;
             while (hh) {
                 switch (hh->op) {

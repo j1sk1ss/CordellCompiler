@@ -4,16 +4,10 @@
 #include <hir/cfg.h>
 
 int HIR_CFG_compute_dom(cfg_func_t* fb) {
-    list_iter_t bit;
-    list_iter_hinit(&fb->blocks, &bit);
-    cfg_block_t* cb;
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_block_t* cb, &fb->blocks) {
         if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) set_add(&cb->dom, cb);
         else {
-            list_iter_t bbit;
-            list_iter_hinit(&fb->blocks, &bbit);
-            cfg_block_t* ccb;
-            while ((ccb = (cfg_block_t*)list_iter_next(&bbit))) {
+            foreach(cfg_block_t* ccb, &fb->blocks) {
                 set_add(&cb->dom, ccb);
             }
         }
@@ -22,9 +16,10 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
     int changed = 1;
     while (changed) {
         changed = 0;
-        list_iter_hinit(&fb->blocks, &bit);
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) continue;
+        foreach(cfg_block_t* cb, &fb->blocks) {
+            if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) {
+                continue;
+            }
 
             set_t nd;
             set_init(&nd, SET_CMP);
@@ -69,10 +64,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
 }
 
 int HIR_CFG_compute_sdom(cfg_func_t* fb) {
-    list_iter_t bit;
-    list_iter_hinit(&fb->blocks, &bit);
-    cfg_block_t* cb;
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_block_t* cb, &fb->blocks) {
         if (cb == (cfg_block_t*)list_get_head(&fb->blocks)) {
             cb->sdom = NULL;
             continue;
@@ -111,10 +103,7 @@ int HIR_CFG_compute_sdom(cfg_func_t* fb) {
 }
 
 static int _build_domtree(cfg_func_t* fb) {
-    list_iter_t bit;
-    list_iter_hinit(&fb->blocks, &bit);
-    cfg_block_t* cb;
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_block_t* cb, &fb->blocks) {
         if (!cb->sdom || cb->sdom == cb) continue;
         cb->dom_s = cb->sdom->dom_c;
         cb->sdom->dom_c = cb;
@@ -146,15 +135,9 @@ int HIR_CFG_compute_domf(cfg_func_t* fb) {
 }
 
 int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        foreach(cfg_block_t* cb, &fb->blocks) {
             int has_def = 0;
             hir_block_t* hh = cb->hmap.entry;
             while (hh) {
@@ -181,10 +164,7 @@ int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
 }
 
 int HIR_CFG_create_domdata(cfg_ctx_t* cctx) {
-    list_iter_t it;
-    list_iter_hinit(&cctx->funcs, &it);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         HIR_CFG_compute_dom(fb);
         HIR_CFG_compute_sdom(fb);
@@ -195,15 +175,9 @@ int HIR_CFG_create_domdata(cfg_ctx_t* cctx) {
 }
 
 int HIR_CFG_unload_domdata(cfg_ctx_t* cctx) {
-    list_iter_t it;
-    list_iter_hinit(&cctx->funcs, &it);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        foreach(cfg_block_t* cb, &fb->blocks) {
             set_free(&cb->dom);
             set_init(&cb->dom, SET_CMP);
 

@@ -2,10 +2,7 @@
 
 static int _pass_params(lir_operation_t op, lir_ctx_t* ctx, list_t* hir_args, list_t* lir_args) {
     int argnum = 0;
-    list_iter_t it;
-    list_iter_hinit(hir_args, &it);
-    hir_subject_t* hir_arg;
-    while ((hir_arg = (hir_subject_t*)list_iter_next(&it))) {
+    foreach(hir_subject_t* hir_arg, &hir_args) {
         lir_subject_t* lir_arg = x86_64_format_variable(hir_arg);
         list_add(lir_args, lir_arg);
         LIR_BLOCK2(ctx, op, lir_arg, LIR_SUBJ_CONST(argnum++));

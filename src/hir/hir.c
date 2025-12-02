@@ -187,10 +187,8 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
 
         case HIR_ARGLIST: {
             list_init(&ns->storage.list.h);
-            list_iter_t it;
-            list_iter_hinit(&s->storage.list.h, &it);
             hir_subject_t* arg;
-            while ((arg = (hir_subject_t*)list_iter_next(&it))) {
+            foreach(arg, &s->storage.list.h) {
                 list_add(&ns->storage.list.h, HIR_copy_subject(arg));
             }
 

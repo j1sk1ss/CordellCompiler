@@ -30,11 +30,8 @@ int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt) {
 }
 
 int HIR_CG_apply_dfe(cfg_ctx_t* cctx, call_graph_t* ctx) {
-    list_iter_t lit;
-    cfg_func_t* fb;
     call_graph_node_t* nd;
-    list_iter_hinit(&cctx->funcs, &lit);
-    while ((fb = (cfg_func_t*)list_iter_next(&lit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!map_get(&ctx->verts, fb->fid, (void**)&nd)) continue;
         fb->used = nd->flag;
     }

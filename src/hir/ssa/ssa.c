@@ -14,10 +14,7 @@ static int _add_varver(list_t* vers, long id, long cid) {
 }
 
 static varver_t* _get_varver(long v_id, ssa_ctx_t* ctx) {
-    list_iter_t it;
-    list_iter_hinit(&ctx->vers, &it);
-    varver_t* hi;
-    while ((hi = (varver_t*)list_iter_next(&it))) {
+    foreach(varver_t* hi, &ctx->vers) {
         if (hi->v_id == v_id) return hi;
     }
 
@@ -33,10 +30,7 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
             if (vv) args[i]->storage.var.v_id = vv->curr_id;
         }
         else if (args[i]->t == HIR_ARGLIST) {
-            list_iter_t it;
-            list_iter_hinit(&args[i]->storage.list.h, &it);
-            hir_subject_t* s;
-            while ((s = (hir_subject_t*)list_iter_next(&it))) {
+            foreach(hir_subject_t* s, &args[i]->storage.list.h) {
                 if (!HIR_is_vartype(s->t)) continue;
                 varver_t* vv = _get_varver(s->storage.var.v_id, ctx);
                 if (vv) s->storage.var.v_id = vv->curr_id;
@@ -155,18 +149,14 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
         list_t saved;
         list_init(&saved);
         
-        list_iter_t it;
-        list_iter_hinit(&ctx->vers, &it);
-        varver_t* s;
-        while ((s = (varver_t*)list_iter_next(&it))) {
+        foreach(varver_t* s, &ctx->vers) {
             _add_varver(&saved, s->v_id, s->curr_id);
         }
 
         _iterate_block(b->jmp, ctx, b->id, smt);
         list_free_force(&ctx->vers);
         
-        list_iter_hinit(&saved, &it);
-        while ((s = (varver_t*)list_iter_next(&it))) {
+        foreach(varver_t* s, &saved) {
             _add_varver(&ctx->vers, s->v_id, s->curr_id);
         }
         
@@ -186,10 +176,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
         _add_varver(&ctx->vers, vh->v_id, vh->v_id);
     }
 
-    list_iter_t it;
-    list_iter_hinit(&cctx->funcs, &it);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&it))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         _iterate_block(list_get_head(&fb->blocks), ctx, 0, smt);
     }

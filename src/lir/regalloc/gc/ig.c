@@ -41,14 +41,8 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
         _add_ig_node(vi->v_id, g);
     }
 
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
+        foreach(cfg_block_t* cb, &fb->blocks) {
             set_iter_t dit;
             set_iter_init(&cb->def, &dit);
             long d;

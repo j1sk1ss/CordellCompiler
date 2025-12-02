@@ -106,10 +106,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
 #ifdef TOKEN_PRINT
     printf("\nTokens:\n");
-    list_iter_t it;
-    list_iter_hinit(&tokens, &it);
-    token_t* h;
-    while ((h = (token_t*)list_iter_next(&it))) {
+    foreach(token_t* h, &tokens) {
         printf(
             "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
             h->flags.glob ? "glob " : "", 

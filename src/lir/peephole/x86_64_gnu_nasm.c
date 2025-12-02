@@ -210,15 +210,9 @@ static int _cleanup_pass(cfg_block_t* bb) {
 }
 
 int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* bb;
-        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
+        foreach(cfg_block_t* bb, &fb->blocks) {
             _first_pass(bb);
             _second_pass(bb);
             _cleanup_pass(bb);

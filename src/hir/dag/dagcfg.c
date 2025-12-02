@@ -25,10 +25,7 @@ static inline int _prepare_subject(hir_block_t* src, hir_subject_t* s) {
 }
 
 int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         hir_block_t* hh = fb->entry;
         while (hh) {
             if (hh->op != HIR_PHI && hh->op != HIR_PHI_PREAMBLE) {

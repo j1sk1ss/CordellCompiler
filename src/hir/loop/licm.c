@@ -177,23 +177,18 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, i
     list_t linear;
     list_init(&linear);
 
-    list_iter_t it;
-    list_iter_hinit(&node->header->pfunc->blocks, &it);
-    cfg_block_t* cb3;
-    while ((cb3 = (cfg_block_t*)list_iter_next(&it))) {
-        if (!set_has(&node->blocks, cb3)) continue;
-        hir_block_t* hh = cb3->hmap.entry;
+    foreach(cfg_block_t* cb, &node->header->pfunc->blocks) {
+        if (!set_has(&node->blocks, cb)) continue;
+        hir_block_t* hh = cb->hmap.entry;
         while (hh) {
             if (set_has(&invariant_defs, hh)) list_push_back(&linear, hh);
-            if (hh == cb3->hmap.exit) break;
+            if (hh == cb->hmap.exit) break;
             hh = hh->next;
         }
     }
 
     print_debug("set2linear complete, size(linear)=%i", list_size(&linear));
-    list_iter_hinit(&linear, &it);
-    hir_block_t* inv;
-    while ((inv = (hir_block_t*)list_iter_next(&it))) {
+    foreach(hir_block_t* inv, &linear) {
         cfg_block_t* src_cfg = _get_hir_block_cfg(&node->blocks, inv);
         if (!src_cfg) continue;
         HIR_CFG_remove_hir_block(src_cfg, inv);
@@ -213,10 +208,7 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, i
 
 int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, int licm) {
     int changed = 0;
-    list_iter_t it;
-    list_iter_hinit(&node->children, &it);
-    loop_node_t* ch;
-    while ((ch = (loop_node_t*)list_iter_next(&it))) {
+    foreach(loop_node_t* ch, &node->children) {
         changed |= _licm_loop_node_process(cctx, node, smt, licm);
     }
 
@@ -225,10 +217,7 @@ int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt
 }
 
 int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         int changed = 0;
         do {
@@ -243,10 +232,7 @@ int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt) {
                 continue;
             }
 
-            list_iter_t rit;
-            list_iter_hinit(&lctx.loops, &rit);
-            loop_node_t* root;
-            while ((root = (loop_node_t*)list_iter_next(&rit))) {
+            foreach(loop_node_t* root, &lctx.loops) {
                 changed |= _licm_loop_node_process(cctx, root, smt, 1);
             }
 
@@ -259,10 +245,7 @@ int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt) {
 }
 
 int HIR_LTREE_canonicalization(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         ltree_ctx_t lctx;
         list_init(&lctx.loops);
@@ -274,10 +257,7 @@ int HIR_LTREE_canonicalization(cfg_ctx_t* cctx) {
             continue;
         }
 
-        list_iter_t rit;
-        list_iter_hinit(&lctx.loops, &rit);
-        loop_node_t* root;
-        while ((root = (loop_node_t*)list_iter_next(&rit))) {
+        foreach(loop_node_t* root, &lctx.loops) {
             _licm_loop_node_process(cctx, root, NULL, 0);
         }
 

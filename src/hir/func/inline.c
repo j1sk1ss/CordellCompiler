@@ -55,10 +55,7 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
 }
 
 static cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long fid) {
-    list_iter_t fit;
-    cfg_func_t* fb;
-    list_iter_hinit(&cctx->funcs, &fit);
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
         if (fb->fid == fid) return fb;
     }
 
@@ -82,15 +79,8 @@ static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
 }
 
 int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    cfg_func_t* fb;
-    list_iter_hinit(&cctx->funcs, &fit);
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        if (!fb->used) continue;
-        list_iter_t bit;
-        cfg_block_t* bb;
-        list_iter_hinit(&fb->blocks, &bit);
-        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach(cfg_func_t* fb, &cctx->funcs) {
+        foreach(cfg_block_t* bb, &fb->blocks) {
             hir_block_t* hh = bb->hmap.entry;
             while (hh) {
                 if (HIR_funccall(hh->op)) {
