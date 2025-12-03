@@ -66,3 +66,18 @@ int AST_unload(ast_node_t* node) {
     mm_free(node);
     return 1;
 }
+
+static unsigned long _hash_ast_node(ast_node_t* n, int s) {
+    if (!n) return 0;
+    unsigned long hash = crc64(&n->sinfo, sizeof(syntax_info_t), 0);
+    if (n->token) hash ^= TKN_hash_token(n->token);
+
+    if (s) hash ^= _hash_ast_node(n->sibling, 1);
+    hash ^= _hash_ast_node(n->child, 1);
+
+    return hash;
+}
+
+unsigned long AST_hash_node(ast_node_t* node) {
+    return _hash_ast_node(node, 0);
+}

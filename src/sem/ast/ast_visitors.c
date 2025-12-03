@@ -395,6 +395,23 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
     return 1;
 }
 
+int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS) {
+    ast_node_t* lbranch = nd->child->sibling;
+    if (!lbranch) return 1;
+    ast_node_t* rbranch = lbranch->sibling;
+    if (!rbranch) return 1;
+
+    if (AST_hash_node(lbranch) == AST_hash_node(rbranch)) {
+        SEMANTIC_WARNING(
+            " Possible branch redundancy! The branch at [line=%i] is similar to the branch at [line=%i]!",
+            lbranch->token->lnum, rbranch->token->lnum
+        );
+        return 0;
+    }
+
+    return 1;
+}
+
 int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
     ast_node_t* fname = nd->child;
     if (!fname) return 1;

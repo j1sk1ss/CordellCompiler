@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <std/mm.h>
 #include <std/str.h>
+#include <std/hash.h>
 #include <std/list.h>
 #include <prep/token_types.h>
 
@@ -43,5 +44,14 @@ Return NULL or pointer to linked list of tokens.
 Note: Function don't close file.
 */
 int TKN_tokenize(int fd, list_t* tkn);
+
+/*
+Hash a token with the crc64 hash function.
+Params:
+    - t - Token.
+
+Return hash sum.
+*/
+unsigned long TKN_hash_token(token_t* t);
 
 #endif

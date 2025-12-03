@@ -23,6 +23,7 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS);
 int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS);
 int ASTWLKR_unused_rtype(AST_VISITOR_ARGS);
 int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS);
+int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS);
 int ASTWLKR_valid_function_name(AST_VISITOR_ARGS);
 
 #endif

@@ -85,4 +85,13 @@ Return -1 if something goes wrong.
 */
 int AST_unload(ast_node_t* node);
 
+/*
+Hash an ast-node with the crc64 hash function.
+Params:
+    - node - AST-node.
+
+Return hash sum of the AST-node.
+*/
+unsigned long AST_hash_node(ast_node_t* node);
+
 #endif

@@ -6,6 +6,9 @@
     function baz(i32 a) => i0 {
         if a == 0; { return 0; }
         else { }
+
+        if a == 0; { return 1; }
+        else { return 1; }
     }
 
     function fang(i32 a) => i0 {

@@ -205,3 +205,13 @@ int TKN_tokenize(int fd, list_t* tkn) {
     
     return 1;
 }
+
+unsigned long TKN_hash_token(token_t* t) {
+    int saved_line = t->lnum;
+    t->lnum = 0;
+
+    unsigned long hash = crc64(t, sizeof(token_t), 0);
+    t->lnum = saved_line;
+
+    return hash;
+}
