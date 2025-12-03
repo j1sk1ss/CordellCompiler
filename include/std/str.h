@@ -30,5 +30,10 @@ int write_value(const char* src, int src_size, char* dst, int dst_size);
 int is_number(char* s);
 int str_isdigit(int c);
 int str_isspace(int c);
+int str_islower(int c);
+int str_isupper(int c);
+int str_isdigit(int c);
+int str_isalpha(int c);
+int str_isalnum(int c);
 
 #endif

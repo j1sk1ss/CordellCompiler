@@ -51,28 +51,27 @@ static const char* _fmt_tkn_type(token_t* t) {
         case ARR_VARIABLE_TOKEN:    return "array";
         case STR_VARIABLE_TOKEN:    return "string";
         case UNKNOWN_NUMERIC_TOKEN: return "number";
-
-        case I0_TYPE_TOKEN:  return !t->flags.ptr ? "i0"  : "ptr i0";
+        case I0_TYPE_TOKEN:         return !t->flags.ptr ? I0_VARIABLE  : "ptr i0";
         case I8_VARIABLE_TOKEN:
-        case I8_TYPE_TOKEN:  return !t->flags.ptr ? "i8"  : "ptr i8";
+        case I8_TYPE_TOKEN:         return !t->flags.ptr ? I8_VARIABLE  : "ptr i8";
         case U8_VARIABLE_TOKEN:
-        case U8_TYPE_TOKEN:  return !t->flags.ptr ? "u8"  : "ptr u8";
+        case U8_TYPE_TOKEN:         return !t->flags.ptr ? U8_VARIABLE  : "ptr u8";
         case I16_VARIABLE_TOKEN:
-        case I16_TYPE_TOKEN: return !t->flags.ptr ? "i16" : "ptr i16";
+        case I16_TYPE_TOKEN:        return !t->flags.ptr ? I16_VARIABLE : "ptr i16";
         case U16_VARIABLE_TOKEN:
-        case U16_TYPE_TOKEN: return !t->flags.ptr ? "u16" : "ptr u16";
+        case U16_TYPE_TOKEN:        return !t->flags.ptr ? U16_VARIABLE : "ptr u16";
         case I32_VARIABLE_TOKEN:
-        case I32_TYPE_TOKEN: return !t->flags.ptr ? "i32" : "ptr i32";
+        case I32_TYPE_TOKEN:        return !t->flags.ptr ? I32_VARIABLE : "ptr i32";
         case U32_VARIABLE_TOKEN:
-        case U32_TYPE_TOKEN: return !t->flags.ptr ? "u32" : "ptr u32";
+        case U32_TYPE_TOKEN:        return !t->flags.ptr ? U32_VARIABLE : "ptr u32";
         case F32_VARIABLE_TOKEN:
-        case F32_TYPE_TOKEN: return !t->flags.ptr ? "f32" : "ptr f32";
+        case F32_TYPE_TOKEN:        return !t->flags.ptr ? F32_VARIABLE : "ptr f32";
         case I64_VARIABLE_TOKEN:
-        case I64_TYPE_TOKEN: return !t->flags.ptr ? "i64" : "ptr i64";
+        case I64_TYPE_TOKEN:        return !t->flags.ptr ? I64_VARIABLE : "ptr i64";
         case U64_VARIABLE_TOKEN:
-        case U64_TYPE_TOKEN: return !t->flags.ptr ? "u64" : "ptr u64";
+        case U64_TYPE_TOKEN:        return !t->flags.ptr ? U64_VARIABLE : "ptr u64";
         case F64_VARIABLE_TOKEN:
-        case F64_TYPE_TOKEN: return !t->flags.ptr ? "f64" : "ptr f64";
+        case F64_TYPE_TOKEN:        return !t->flags.ptr ? F64_VARIABLE : "ptr f64";
         default: return "";
     }
 }
@@ -117,9 +116,10 @@ static int _restore_code(ast_node_t* nd, ast_node_t* underscore) {
         fprintf(stdout, ");");
     }
 
-    if (TKN_isnumeric(nd->token) || TKN_isvariable(nd->token)) {
-        fprintf(stdout, "%s", nd->token->value);
-    }
+    if (
+        TKN_isnumeric(nd->token) || 
+        TKN_isvariable(nd->token)
+    ) fprintf(stdout, "%s", nd->token->value);
 
     return 1;
 }
@@ -131,7 +131,11 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     if (!rarg) return 1;
 
     if (larg->token->flags.ro) {
-        SEMANTIC_ERROR(" [line=%i] Read-only variable=%s assign!", larg->token->lnum, larg->token->value);
+        SEMANTIC_ERROR(
+            " [line=%i] Read-only variable=%s assign!", 
+            larg->token->lnum, larg->token->value
+        );
+
         _restore_code(nd, larg);
         fprintf(stdout, "\n\n");
         return 0;
@@ -167,7 +171,11 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
     if (!larg) return 1;
     ast_node_t* rarg = larg->sibling;
     if (!rarg) {
-        SEMANTIC_WARNING(" [line=%i] Variable=%s without initialization!", larg->token->lnum, larg->token->value);
+        SEMANTIC_WARNING(
+            " [line=%i] Variable=%s without initialization!", 
+            larg->token->lnum, larg->token->value
+        );
+
         _restore_code(nd, larg);
         fprintf(stdout, "\n\n");
         return 0;
@@ -193,13 +201,11 @@ static int _check_assign_types(const char* msg, token_t* l, token_t* r) {
     if (_get_token_bitness(l) < _get_token_bitness(r)) {
         if (TKN_isnumeric(r)) SEMANTIC_WARNING(
             " [line=%i] %s of %s with %s (Number bitness is=%i, but %s can handle bitness=%i)!", r->lnum, msg,
-            l->value, r->value, _get_token_bitness(r), 
-            _fmt_tkn_type(l), _get_token_bitness(l)
+            l->value, r->value, _get_token_bitness(r), _fmt_tkn_type(l), _get_token_bitness(l)
         );
         else SEMANTIC_WARNING(
             " [line=%i] %s of %s with %s! %s can't handle %s!", r->lnum, msg,
-            l->value, r->value, 
-            _fmt_tkn_type(l), _fmt_tkn_type(r)
+            l->value, r->value, _fmt_tkn_type(l), _fmt_tkn_type(r)
         );
 
         return 0;
@@ -230,7 +236,8 @@ static int _search_rexit_ast(ast_node_t* nd, int* found) {
     }
 
     switch (nd->token->t_type) {
-        case IF_TOKEN: {
+        case IF_TOKEN:
+        case WHILE_TOKEN: {
             ast_node_t* cnd     = nd->child;
             ast_node_t* lbranch = cnd->sibling;
             ast_node_t* rbranch = lbranch->sibling;
@@ -317,14 +324,22 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
     );
 
     if (!provided_arg && (expected_arg && expected_arg->token->t_type != SCOPE_TOKEN)) {
-        SEMANTIC_ERROR(" [line=%i] Not enough arguments for function=%s!", nd->token->lnum, nd->token->value);
+        SEMANTIC_ERROR(
+            " [line=%i] Not enough arguments for function=%s!", 
+            nd->token->lnum, nd->token->value
+        );
+
         _restore_code(nd, NULL);
         fprintf(stdout, "\n\n");
         return 0;
     }
 
     if (provided_arg && (!expected_arg || expected_arg->token->t_type == SCOPE_TOKEN)) {
-        SEMANTIC_ERROR(" [line=%i] Too many arguments for function=%s!", nd->token->lnum, nd->token->value);
+        SEMANTIC_ERROR(
+            " [line=%i] Too many arguments for function=%s!", 
+            nd->token->lnum, nd->token->value
+        );
+
         _restore_code(nd, NULL);
         fprintf(stdout, "\n\n");
         return 0;
@@ -366,6 +381,7 @@ int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
                 SEMANTIC_WARNING(" [line=%i] Unused function=%s result!", nd->token->lnum, fi.name);
                 return 0;
             }
+
             default: return 1;
         } 
 
@@ -406,10 +422,84 @@ int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS) {
             " Possible branch redundancy! The branch at [line=%i] is similar to the branch at [line=%i]!",
             lbranch->token->lnum, rbranch->token->lnum
         );
+
         return 0;
     }
 
     return 1;
+}
+
+static char* _format_name(int t) {
+    switch (t) {
+        case 0: return "camelCase";
+        case 1: return "PascalCase";
+        case 2: return "Kebab-Case";
+        case 3: return "snake_case";
+    }
+
+    return "";
+}
+
+/*
+Return -1 when encounter with unknown format
+Return 0 if input string format is camelCase
+Return 1 if input string format is PascalCase
+Return 2 if input string format is kebab-case
+Return 3 if input string format is snake_case
+*/
+static int _determine_string_style(const char* s) {
+    int has_upper = 0;
+    int has_hyphen = 0;
+    int has_underscore = 0;
+    if (!s || !*s) return -1;
+
+    for (const char *p = s; *p; p++) {
+        if (str_isupper(*p)) has_upper      = 1;
+        if (*p == '-')       has_hyphen     = 1;
+        if (*p == '_')       has_underscore = 1;
+    }
+
+    if (has_hyphen && !has_underscore) {
+        for (const char *p = s; *p; p++) {
+            if (*p != '-' && !str_islower((unsigned char)*p) && !str_isdigit((unsigned char)*p)) {
+                return -1;
+            }
+        }
+
+        return 2;
+    }
+
+    if ((!has_upper || has_underscore) && !has_hyphen) {
+        for (const char *p = s; *p; p++) {
+            if (*p != '_' && !str_islower((unsigned char)*p) && !str_isdigit((unsigned char)*p)) {
+                return -1;
+            }
+        }
+
+        return 3;
+    }
+
+    if (!has_hyphen && !has_underscore && str_islower((unsigned char)s[0])) {
+        for (const char *p = s; *p; p++) {
+            if (!str_isalnum((unsigned char)*p)) {
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
+    if (!has_hyphen && !has_underscore && str_isupper((unsigned char)s[0])) {
+        for (const char *p = s; *p; p++) {
+            if (!str_isalnum((unsigned char)*p)) {
+                return -1;
+            }
+        }
+
+        return 1;
+    }
+
+    return -1;
 }
 
 int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
@@ -433,15 +523,23 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
         );
     }
 
-    if (!str_strcmp(fi.name, "chloe")) SEMANTIC_INFO(
-        " [line=%i] Used Chloe as a function name!", fname->token->lnum
-    );
-    else if (!str_strcmp(fi.name, "max&chloe")) SEMANTIC_INFO(
-        " [line=%i] Used Max and Chloe as a function name!", fname->token->lnum
-    );
-    else if (!str_strcmp(fi.name, "fang")) SEMANTIC_INFO(
-        " [line=%i] Used Fang as a function dragon-name!", fname->token->lnum
-    );
+    if (!str_strcmp(fi.name, "chloe")) {
+        SEMANTIC_INFO(" [line=%i] Used Chloe as a function name!", fname->token->lnum);
+    }
+    else if (!str_strcmp(fi.name, "max&chloe")) {
+        SEMANTIC_INFO(" [line=%i] Used Max and Chloe as a function name!", fname->token->lnum);
+    }
+    else if (!str_strcmp(fi.name, "fang")) {
+        SEMANTIC_INFO(" [line=%i] Used Fang as a function dragon-name!", fname->token->lnum);
+    }
+    
+    int name_format = _determine_string_style(fi.name);
+    if (name_format != 3) {
+        SEMANTIC_WARNING(
+            " [line=%i] Function name=%s isn't in sneaky_case! (%s)", 
+            fname->token->lnum, fi.name, _format_name(name_format)
+        );
+    }
 
     return 1;
 }

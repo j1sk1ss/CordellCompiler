@@ -1,7 +1,7 @@
 {
     function foo() => i32 { return 1; }
 
-    function bar() => i0 { }
+    function BarBar() => i0 { }
 
     function baz(i32 a) => i0 {
         if a == 0; { return 0; }
@@ -20,6 +20,6 @@
     start() {
         i8 b;
         i8 a = foo();
-        bar();
+        BarBar();
     }
 }
