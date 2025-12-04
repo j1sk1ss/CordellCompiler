@@ -23,7 +23,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx) {
 }
 
 static long _curr_id = 0;
-lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, const char* strval, long intval, int size) {
+lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_t* strval, long intval, int size) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(lir_subject_t));
@@ -37,19 +37,22 @@ lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, const c
         case LIR_REGISTER: subj->storage.reg.reg = LIR_format_register(reg, size); break;
         case LIR_VARIABLE:
         case LIR_GLVARIABLE:
-        case LIR_STVARIABLE: 
+        case LIR_STVARIABLE: {
             subj->storage.var.offset = offset;
             subj->storage.var.v_id   = v_id;
-        break;
+            break;
+        }
+        
         case LIR_MEMORY:   subj->storage.var.offset = offset; break;
         case LIR_CONSTVAL: subj->storage.cnst.value = intval; break;
         case LIR_LABEL:    subj->storage.lb.lb_id   = v_id;   break;
         case LIR_FNAME:
         case LIR_RAWASM:
         case LIR_STRING: subj->storage.str.sid = v_id; break;
-        case LIR_NUMBER: 
-            if (strval) str_strncpy(subj->storage.num.value, strval, LIR_VAL_MSIZE);
-        break;
+        case LIR_NUMBER: {
+            if (strval) subj->storage.num.value = strval->copy(strval);
+            break;
+        }
         
         default: break;
     }
@@ -86,7 +89,7 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
         case LIR_GLVARIABLE:
         case LIR_STVARIABLE: return (a->storage.var.offset == b->storage.var.offset) && (a->storage.var.v_id == b->storage.var.v_id);
         case LIR_REGISTER:   return LIR_format_register(a->storage.reg.reg, 1) == LIR_format_register(b->storage.reg.reg, 1);
-        case LIR_NUMBER:     return !str_memcmp(a->storage.num.value, b->storage.num.value, LIR_VAL_MSIZE);
+        case LIR_NUMBER:     return a->storage.num.value->equals(a->storage.num.value, b->storage.num.value);
         case LIR_LABEL:      return a->storage.lb.lb_id == b->storage.lb.lb_id;
         case LIR_STRING:     return a->storage.str.sid == b->storage.str.sid;
         default:             return 0;
@@ -134,7 +137,8 @@ int LIR_unlink_block(lir_block_t* block) {
 int LIR_unload_subject(lir_subject_t* s) {
     if (!s) return 0;
     switch (s->t) {
-        case LIR_ARGLIST: list_free_force(&s->storage.list.h); break;
+        case LIR_NUMBER:  destroy_string(s->storage.num.value);                       break;
+        case LIR_ARGLIST: list_free_force_op(&s->storage.list.h, LIR_unload_subject); break;
         default: break;
     }
     

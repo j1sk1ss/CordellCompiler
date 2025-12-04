@@ -1,6 +1,7 @@
 #ifndef VARMEM_H_
 #define VARMEM_H_
 
+#include <std/str.h>
 #include <std/map.h>
 #include <prep/token_types.h>
 
@@ -24,7 +25,7 @@ typedef struct {
     char                   ptr;  /* PTR type == maximum size in arch */
     char                   ro;
     char                   glob;
-    char                   name[TOKEN_MAX_SIZE];
+    string_t*              name;
     token_type_t           type;
     variable_memory_info_t vmi; /* VariableMemoryInfo */
     variable_definition_t  vdi; /* VariableDefinitionInfo */
@@ -38,9 +39,9 @@ typedef struct {
 int VRTB_update_memory(long id, long offset, long size, char reg, vartab_ctx_t* ctx);
 int VRTB_update_definition(long id, long definition, vartab_ctx_t* ctx);
 int VRTB_get_info_id(long id, variable_info_t* info, vartab_ctx_t* ctx);
-int VRTB_get_info(const char* vname, short scope, variable_info_t* info, vartab_ctx_t* ctx);
+int VRTB_get_info(string_t* vname, short scope, variable_info_t* info, vartab_ctx_t* ctx);
 long VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx);
-long VRTB_add_info(const char* name, token_type_t type, short scope, token_flags_t* flags, vartab_ctx_t* ctx);
+long VRTB_add_info(string_t* name, token_type_t type, short scope, token_flags_t* flags, vartab_ctx_t* ctx);
 int VRTB_unload(vartab_ctx_t* ctx);
 
 #endif

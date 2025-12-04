@@ -1,75 +1,18 @@
 #include <std/str.h>
 
-void* str_memcpy(void* destination, const void* source, size_t num) {
-    unsigned int num_dwords = num / 4;
-    unsigned int num_bytes  = num % 4;
-    unsigned int* dest32 = (unsigned int*)destination;
-    unsigned int* src32  = (unsigned int*)source;
-    unsigned char* dest8 = ((unsigned char*)destination) + num_dwords * 4;
-    unsigned char* src8  = ((unsigned char*)source) + num_dwords * 4;
-    unsigned int i = 0;
-
-    for (i = 0; i < num_dwords; i++) dest32[i] = src32[i];
-    for (i = 0; i < num_bytes; i++) dest8[i] = src8[i];
-    return destination;
-}
-
-void* str_memset(void* pointer, unsigned char value, size_t num) {
-    unsigned int num_dwords = num / 4;
-    unsigned int num_bytes  = num % 4;
-    unsigned int* dest32 = (unsigned int*)pointer;
-    unsigned char* dest8 = ((unsigned char*)pointer) + num_dwords * 4;
-    unsigned char val8   = (unsigned char)value;
-    unsigned int val32   = value | (value << 8) | (value << 16) | (value << 24);
-    unsigned int i = 0;
-
-    for (i = 0; i < num_dwords; i++) dest32[i] = val32;
-    for (i = 0; i < num_bytes; i++) dest8[i] = val8;
-    return pointer;
-}
-
-int str_memcmp(const void* firstPointer, const void* secondPointer, size_t num) {
-    const unsigned char* u8Ptr1 = (const unsigned char *)firstPointer;
-    const unsigned char* u8Ptr2 = (const unsigned char *)secondPointer;
-    for (unsigned short i = 0; i < num; i++)
-        if (u8Ptr1[i] != u8Ptr2[i])
-            return 1;
-
-    return 0;
-}
-
 char* str_strncpy(char* dst, const char* src, int n) {
-	int	i = 0;
-	while (i < n && src[i]) {
-		dst[i] = src[i];
-		i++;
-	}
-
-	while (i < n) {
-		dst[i] = 0;
-		i++;
-	}
-
-	return dst;
-}
-
-int str_strcmp(const char* f, const char* s) {
-    if (!f || !s) return -1;
-    while (*f && *s && *f == *s) {
-        ++f;
-        ++s;
+    int	i = 0;
+    while (i < n && src[i]) {
+        dst[i] = src[i];
+        i++;
     }
 
-    return (unsigned char)(*f) - (unsigned char)(*s);
-}
-
-int str_strncmp(const char* str1, const char* str2, size_t n) {
-    for (size_t i = 0; i < n; ++i) {
-        if (str1[i] != str2[i] || !str1[i] || !str2[i]) 
-            return (unsigned char)str1[i] - (unsigned char)str2[i];
+    while (i < n) {
+        dst[i] = 0;
+        i++;
     }
 
-    return 0;
+    return dst;
 }
 
 int str_atoi(const char *str) {
@@ -83,14 +26,14 @@ int str_atoi(const char *str) {
         str++;
     }
 
-	while (*str >= '0' && *str <= '9' && *str) {
-		num = num * 10 + (str[i] - 48);
+    while (*str >= '0' && *str <= '9' && *str) {
+        num = num * 10 + (str[i] - 48);
         if (neg && num > INT_MAX) return INT_MAX;
         if (neg == -1 && -num < INT_MIN) return INT_MIN;
-		str++;
-	}
+        str++;
+    }
     
-	return (num * neg);
+    return (num * neg);
 }
 
 unsigned int str_strlen(const char* str) {
@@ -106,14 +49,14 @@ unsigned int str_strlen(const char* str) {
 char* str_strcpy(char* dst, const char* src) {
     if (str_strlen(src) <= 0) return NULL;
 
-	int	i = 0;
-	while (src[i]) {
-		dst[i] = src[i];
-		i++;
-	}
+    int	i = 0;
+    while (src[i]) {
+        dst[i] = src[i];
+        i++;
+    }
 
-	dst[i] = 0;
-	return (dst);
+    dst[i] = 0;
+    return (dst);
 }
 
 const char* str_strchr(const char* str, char chr) {
@@ -131,43 +74,52 @@ char* str_strcat(char* dest, const char* src) {
     return dest;
 }
 
-int is_number(char* s) {
-    while (*s) {
-        if (!str_isdigit(*s)) return 0;
-        s++;
+static int string_cat(str_self self, string_t* dst) {
+    char* nbody = (char*)mm_realloc(self->body, self->size + dst->size + 1);
+    if (!nbody) return 0;
+
+    str_memcpy(nbody + self->size, dst->body, dst->size + 1);
+
+    char* h = nbody;
+    unsigned long hash = 0xFFFF;
+    while (*h) {
+        hash ^= *h * 0xFDDDF123;
+        h++;
     }
 
+    self->body = nbody;
+    self->hash = hash;
+    self->size += dst->size;
     return 1;
 }
 
-int str_isdigit(int c) {
-    return (c >= '0' && c <= '9');
+static long long string_to_llong(str_self self) {
+    int neg         = 1;
+    long long num   = 0;
+    unsigned long i = 0;
+
+    char* h = self->body;
+    while (str_isspace(*h)) h++;
+    if (*h == '-' || *h == '+') {
+        neg = *h == '-' ? 0 : 1;
+        h++;
+    }
+
+	while (*h >= '0' && *h <= '9' && *h) {
+		num = num * 10 + (h[i] - '0');
+        if (neg && num > LONG_MAX)        return LONG_MAX;
+        if (neg == -1 && -num < LONG_MIN) return LONG_MIN;
+		h++;
+	}
+    
+	return (num * neg);
 }
 
-int str_isspace(int c) {
-    return (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\b' || c == '\0');
-}
-
-int str_islower(int c) {
-    return (c >= 'a' && c <= 'z');
-}
-
-int str_isupper(int c) {
-    return (c >= 'A' && c <= 'Z');
-}
-
-int str_isalpha(int c) {
-    return str_islower(c) || str_isupper(c);
-}
-
-int str_isalnum(int c) {
-    return str_isalpha(c) || str_isdigit(c);
-}
-
-unsigned long long str_strtoull(const char* str, int l, int base) {
+static unsigned long long string_to_ullong(str_self self, int base) {
+    char* h = self->body;
     unsigned long long result = 0;
-    for (int i = 0; i < l && *str; ++i, ++str) {
-        char c = *str;
+    for (int i = 0; *h; ++i, ++h) {
+        char c = *h;
         int digit = -1;
 
         if (c >= '0' && c <= '9')      digit = c - '0';
@@ -176,51 +128,88 @@ unsigned long long str_strtoull(const char* str, int l, int base) {
         else break;
 
         if (digit >= base) break;
-
         result = result * base + digit;
     }
 
     return result;
 }
 
-double str_strtod(const char* s, int l) {
+static string_t* string_from_number(str_self self) {
+    int isfloat = 0;
+    unsigned long long val = 0;
+    for (unsigned int i = 0; i < self->size; i++) {
+        if (self->body[i] == '.') {
+            isfloat = 1;
+            val = str_dob2bits(self->to_double(self));
+            break;
+        }
+    }
+
+    if (!isfloat) {
+        if (self->body[0] == '0' && (self->body[1] == 'x' || self->body[1] == 'X')) {
+            self->hmove(self, 2);
+            val = self->to_ullong(self, 16);
+        }
+        else if (self->body[0] == '0' && (self->body[1] == 'b' || self->body[1] == 'B')) {
+            self->hmove(self, 2);
+            val = self->to_ullong(self, 2);
+        }
+        else if (self->body[0] == '0' && self->body[1] && self->body[1] != '.') {
+            self->hmove(self, 1);
+            val = self->to_ullong(self, 8);
+        }
+        else {
+            if (self->body[0] == '-') self->hmove(self, 1);
+            val = self->to_ullong(self, 10);
+        }
+    }
+
+    self->rhead(self);
+
+    char buffer[128] = { 0 };
+    snprintf(buffer, sizeof(buffer), "%s%llu", self->body[0] == '-' ? "-" : "", val);
+    return create_string(buffer);
+}
+
+static double string_to_double(str_self self) {
+    char* s = self->body;
     double result = 0.0;
     int sign      = 1;
     int exp_sign  = 1;
     int exponent  = 0;
     int i         = 0;
 
-    while (i < l && (s[i] == ' ' || s[i] == '\t')) i++;
+    while (s[i] && (s[i] == ' ' || s[i] == '\t')) i++;
+    if (s[i] && s[i] == '-') { sign = -1; i++; }
+    else if (s[i] && s[i] == '+') { i++; }
 
-    if (i < l && s[i] == '-') { sign = -1; i++; }
-    else if (i < l && s[i] == '+') { i++; }
-
-    while (i < l && s[i] >= '0' && s[i] <= '9') {
+    while (s[i] && s[i] >= '0' && s[i] <= '9') {
         result = result * 10.0 + (s[i] - '0');
         i++;
     }
 
-    if (i < l && s[i] == '.') {
+    if (s[i] && s[i] == '.') {
         i++;
         double frac = 0.0;
         double base = 0.1;
-        while (i < l && s[i] >= '0' && s[i] <= '9') {
+        while (s[i] && s[i] >= '0' && s[i] <= '9') {
             frac += (s[i] - '0') * base;
             base *= 0.1;
             i++;
         }
+
         result += frac;
     }
 
-    if (i < l && (s[i] == 'e' || s[i] == 'E')) {
+    if (s[i] && (s[i] == 'e' || s[i] == 'E')) {
         i++;
-        if (i < l && s[i] == '+') i++;
-        else if (i < l && s[i] == '-') {
+        if (s[i] && s[i] == '+') i++;
+        else if (s[i] && s[i] == '-') {
             exp_sign = -1; 
             i++;
         }
 
-        while (i < l && s[i] >= '0' && s[i] <= '9') {
+        while (s[i] && s[i] >= '0' && s[i] <= '9') {
             exponent = exponent * 10 + (s[i] - '0');
             i++;
         }
@@ -230,37 +219,119 @@ double str_strtod(const char* s, int l) {
     return sign * result;
 }
 
-unsigned long long str_dob2bits(double d) {
-    unsigned long long bits = 0;
-    str_memcpy(&bits, &d, sizeof(d));
-    return bits;
-}
-
-double str_bits2dob(unsigned long long bits) {
-    double d = 0.0;
-    str_memcpy(&d, &bits, sizeof(d));
-    return d;
-}
-
-int write_value(const char* src, int src_size, char* dst, int dst_size) {
-    int isfloat = 0;
-    unsigned long long val = 0;
-    for (int i = 0; i < src_size; i++) {
-        if (src[i] == '.') {
-            isfloat = 1;
-            val = str_dob2bits(str_strtod(src, src_size));
-            break;
+static string_t* string_fchar(str_self self, char chr) {
+    char* h = self->body;
+    while (*h) {
+        if (*h == chr) {
+            return create_string(h);
         }
+
+        h++;
     }
 
-    if (!isfloat) {
-        if (src[0] == '0' && (src[1] == 'x' || src[1] == 'X'))      val = str_strtoull(src + 2, src_size - 2, 16);
-        else if (src[0] == '0' && (src[1] == 'b' || src[1] == 'B')) val = str_strtoull(src + 2, src_size - 2, 2);
-        else if (src[0] == '0' && src[1] && src[1] != '.')          val = str_strtoull(src + 1, src_size - 1, 8);
-        else if (src[0] == '-')                                     val = str_strtoull(src + 1, src_size - 1, 10);
-        else                                                        val = str_strtoull(src, src_size, 10);
+    return NULL;
+}
+
+static unsigned int string_length(str_self self) {
+    return self->size;
+}
+
+static string_t* string_copy(str_self src) {
+    string_t* str = (string_t*)mm_malloc(sizeof(string_t));
+    if (!str) return NULL;
+    
+    str_memcpy(str, src, sizeof(string_t));
+    str->body = (char*)mm_malloc(str->size + 1);
+    if (!str->body) {
+        mm_free(str);
+        return NULL;
     }
 
-    snprintf(dst, dst_size, "%s%llu", src[0] == '-' ? "-" : "", val);
+    str_memcpy(str->body, src->body, str->size + 1);
+    return str;
+}
+
+static int string_equals(str_self self, string_t* s) {
+    if (!self || !s) return 0;
+    if (self->hash != s->hash) return 0;
+    char *fh = self->body, *sh = s->body;
+    while (*fh && *sh) {
+        if (*fh != *sh) return 0;
+        fh++;
+        sh++;
+    }
+
+    return *fh == *sh;
+}
+
+static int string_equals_raw(str_self self, const char* s) {
+    if (!self || !s) return 0;
+    char *fh = self->body, *sh = s;
+    while (*fh && *sh) {
+        if (*fh != *sh) return 0;
+        fh++;
+        sh++;
+    }
+
+    return *fh == *sh;
+}
+
+static int string_move_head(str_self self, unsigned int offset) {
+    self->head += offset;
     return 1;
+}
+
+static int string_reset_head(str_self self) {
+    self->head = self->body;
+    return 1;
+}
+
+string_t* create_string(char* s) {
+    string_t* str = (string_t*)mm_malloc(sizeof(string_t));
+    if (!str) return NULL;
+
+    char* h = s;
+    unsigned int size = 0;
+    unsigned long hash = 0xFFFF;
+    while (h && *h) {
+        hash ^= *h * 0xFDDDF123;
+        size++;
+        h++;
+    }
+
+    str->size = size;
+    str->hash = hash;
+    str->body = (char*)mm_malloc(size + 1);
+    if (!str->body) {
+        mm_free(str);
+        return NULL;
+    }
+
+    str->copy        = string_copy;
+    str->equals      = string_equals;
+    str->requals     = string_equals_raw;
+    str->fchar       = string_fchar;
+    str->len         = string_length;
+    str->cat         = string_cat;
+    str->to_llong    = string_to_llong;
+    str->to_ullong   = string_to_ullong;
+    str->to_double   = string_to_double;
+    str->from_number = string_from_number;
+    str->hmove       = string_move_head;
+    str->rhead       = string_reset_head;
+
+    str->head = str->body;
+    if (s) str_memcpy(str->body, s, size + 1);
+    return str;
+}
+
+string_t* create_string_from_char(char c) {
+    char buffer[2] = { c, 0 };
+    return create_string(buffer);
+}
+
+int destroy_string(string_t* s) {
+    if (!s) return 0;
+    mm_free(s->body);
+    return mm_free(s);
 }

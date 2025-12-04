@@ -13,18 +13,18 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
             if ((!list_size(&ai.elems) && !bss) || (list_size(&ai.elems) && bss)) continue;
             if (!list_size(&ai.elems)) {
                 switch (TKN_variable_bitness(&tmptkn, 1)) {
-                    case 64: fprintf(output, "%s resq %ld\n", vi->name, ai.size); break;
-                    case 32: fprintf(output, "%s resd %ld\n", vi->name, ai.size); break;
-                    case 16: fprintf(output, "%s resw %ld\n", vi->name, ai.size); break;
-                    default: fprintf(output, "%s resb %ld\n", vi->name, ai.size); break;
+                    case 64: fprintf(output, "%s resq %ld\n", vi->name->body, ai.size); break;
+                    case 32: fprintf(output, "%s resd %ld\n", vi->name->body, ai.size); break;
+                    case 16: fprintf(output, "%s resw %ld\n", vi->name->body, ai.size); break;
+                    default: fprintf(output, "%s resb %ld\n", vi->name->body, ai.size); break;
                 }
             }
             else {
                 switch (TKN_variable_bitness(&tmptkn, 1)) {
-                    case 64: fprintf(output, "%s dq ", vi->name); break;
-                    case 32: fprintf(output, "%s dd ", vi->name); break;
-                    case 16: fprintf(output, "%s dw ", vi->name); break;
-                    default: fprintf(output, "%s db ", vi->name); break;
+                    case 64: fprintf(output, "%s dq ", vi->name->body); break;
+                    case 32: fprintf(output, "%s dd ", vi->name->body); break;
+                    case 16: fprintf(output, "%s dw ", vi->name->body); break;
+                    default: fprintf(output, "%s db ", vi->name->body); break;
                 }
 
                 int elcount = ai.size;
@@ -47,10 +47,10 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
 
         token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro } };
         switch (TKN_variable_bitness(&tmptkn, 1)) {
-            case 64: fprintf(output, "%s dq 0\n", vi->name); break;
-            case 32: fprintf(output, "%s dd 0\n", vi->name); break;
-            case 16: fprintf(output, "%s dw 0\n", vi->name); break;
-            default: fprintf(output, "%s db 0\n", vi->name); break;
+            case 64: fprintf(output, "%s dq 0\n", vi->name->body); break;
+            case 32: fprintf(output, "%s dd 0\n", vi->name->body); break;
+            case 16: fprintf(output, "%s dw 0\n", vi->name->body); break;
+            default: fprintf(output, "%s db 0\n", vi->name->body); break;
         }
     }
 
@@ -71,7 +71,7 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
     while (map_iter_next(&it, (void**)&si)) {
         if (si->t != STR_INDEPENDENT) continue;
         fprintf(output, "_str_%li_ db ", si->id);
-        char* data = si->value;
+        char* data = si->value->body;
         while (*data) {
             fprintf(output, "%i,", *data);
             data++;
@@ -88,8 +88,8 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
     map_iter_init(&smt->f.functb, &it);
     func_info_t* fi;
     while (map_iter_next(&it, (void**)&fi)) {
-        if (fi->global)   fprintf(output, "global %s\n", fi->name);
-        if (fi->external) fprintf(output, "extern %s\n", fi->name);
+        if (fi->global)   fprintf(output, "global %s\n", fi->name->body);
+        if (fi->external) fprintf(output, "extern %s\n", fi->name->body);
     }
 
     return 1;

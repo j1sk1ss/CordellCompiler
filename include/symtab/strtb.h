@@ -1,6 +1,7 @@
 #ifndef STRTB_H_
 #define STRTB_H_
 
+#include <std/mm.h>
 #include <std/str.h>
 #include <std/map.h>
 
@@ -12,7 +13,7 @@ typedef enum {
 
 typedef struct {
     long       id;
-    char       value[128];
+    string_t*  value;
     str_type_t t;
 } str_info_t;
 
@@ -21,10 +22,10 @@ typedef struct {
     map_t strtb;
 } strtb_ctx_t;
 
-int STTB_update_info(long id, const char* value, str_type_t t, strtb_ctx_t* ctx);
-int STTB_add_info(const char* value, str_type_t t, strtb_ctx_t* ctx);
+int STTB_update_info(long id, string_t* value, str_type_t t, strtb_ctx_t* ctx);
+int STTB_add_info(string_t* value, str_type_t t, strtb_ctx_t* ctx);
 int STTB_get_info_id(long id, str_info_t* info, strtb_ctx_t* ctx);
-int STTB_get_info(const char* value, str_info_t* info, strtb_ctx_t* ctx);
+int STTB_get_info(string_t* value, str_info_t* info, strtb_ctx_t* ctx);
 int STTB_unload(strtb_ctx_t* ctx);
 
 #endif

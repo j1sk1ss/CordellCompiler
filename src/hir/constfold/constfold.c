@@ -20,7 +20,7 @@ static int _parse_const(dag_node_t* nd, const_t* cnst, sym_table_t* smt) {
         case HIR_U8NUMBER:  cnst->t = HIR_U8CONSTVAL;  goto _complete_number_parse;
         case HIR_NUMBER:    cnst->t = HIR_CONSTVAL; {
 _complete_number_parse: {}
-            cnst->value = str_atoi(nd->src->storage.num.value);
+            cnst->value = nd->src->storage.num.value->to_llong(nd->src->storage.num.value);
             return 1;
         }
 

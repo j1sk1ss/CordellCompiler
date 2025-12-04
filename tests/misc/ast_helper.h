@@ -41,7 +41,7 @@ static inline int print_ast(ast_node_t* node, int depth) {
     if (node->token && node->token->t_type != SCOPE_TOKEN) {
         printf(
             "[%s] (t=%d,%s%s%sv_id=%i, s_id=%i%s%s%s%s)\n", 
-            node->token->value, node->token->t_type, 
+            node->token->body->body, node->token->t_type, 
             node->token->flags.ptr ? " ptr, " : " ",
             node->token->flags.ref ? "ref, " : "",
             node->token->flags.dref ? "dref, " : "",

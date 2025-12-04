@@ -21,7 +21,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
 
                     ast_node_t* unrolled_if = NULL;
                     if (TKN_isnumeric(condition->token)) {
-                        int val = str_atoi(condition->token->value);
+                        long long val = condition->token->body->to_llong(condition->token->body);
                         if (val && lbranch) {
                             unrolled_if = lbranch;
                             if (rbranch) { 
@@ -74,8 +74,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                         ast_node_t* prev = NULL;
                         ast_node_t* curr = cases->child;
 
-                        int val = str_atoi(stmt->token->value);
-
+                        long long val = stmt->token->body->to_llong(stmt->token->body);
                         while (curr) {
                             ast_node_t* next_case = curr->sibling;
                             _clean_blocks(curr->child, ctx);
@@ -85,7 +84,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                                 defcase = curr;
                                 prev = curr;
                             } 
-                            else if (val == str_atoi(curr->token->value)) {
+                            else if (val == curr->token->body->to_llong(curr->token->body)) {
                                 unrolled_switch = curr->child;
                                 prev = curr;
                             } 
@@ -119,7 +118,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                 case WHILE_TOKEN: {
                     ast_node_t* condition = t->child;
                     _clean_blocks(condition->sibling, ctx);
-                    if (TKN_isnumeric(condition->token) && !str_atoi(condition->token->value)) {
+                    if (TKN_isnumeric(condition->token) && !condition->token->body->to_llong(condition->token->body)) {
                         AST_remove_node(root, t);
                         AST_unload(t);
                         if (tprev) tprev->sibling = next;

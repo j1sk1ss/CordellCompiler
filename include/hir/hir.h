@@ -2,6 +2,7 @@
 #define HIR_H_
 
 #include <std/mm.h>
+#include <std/mem.h>
 #include <std/str.h>
 #include <std/set.h>
 #include <std/map.h>
@@ -20,9 +21,8 @@ typedef struct {
     long value;
 } hir_constant_t;
 
-#define HIR_VAL_MSIZE 128
 typedef struct {
-    char value[HIR_VAL_MSIZE];
+    string_t* value;
 } hir_number_t;
 
 typedef struct {
@@ -72,7 +72,7 @@ typedef struct {
 long HIR_hash_subject(hir_subject_t* s);
 hir_ctx_t* HIR_create_ctx();
 int HIR_destroy_ctx(hir_ctx_t* ctx);
-hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* strval, long intval);
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval);
 hir_subject_t* HIR_copy_subject(hir_subject_t* s);
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
 hir_block_t* HIR_copy_block(hir_block_t* b);

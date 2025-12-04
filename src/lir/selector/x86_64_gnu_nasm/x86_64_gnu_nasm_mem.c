@@ -67,7 +67,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                         ) {
                             int arroff = stack_map_alloc(ai.size, &smp);
                             VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
-                            char* string = si.value;
+                            char* string = si.value->body;
                             while (*string) {
                                 LIR_insert_block_before(
                                     LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(arroff--, 1), LIR_SUBJ_CONST(*(string++)), NULL), lh

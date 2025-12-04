@@ -100,7 +100,7 @@ int HIR_destroy_ctx(hir_ctx_t* ctx) {
 }
 
 static long _curr_id = 0;
-hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* strval, long intval) {
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(hir_subject_t));
@@ -135,7 +135,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
         case HIR_I16NUMBER:
         case HIR_I8NUMBER:
         case HIR_NUMBER:
-            if (strval) str_strncpy(subj->storage.num.value, strval, HIR_VAL_MSIZE);
+            if (strval) subj->storage.num.value = strval->copy(strval);
         break;
 
         case HIR_F64CONSTVAL:
@@ -218,7 +218,7 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_I16NUMBER:
         case HIR_I8NUMBER:
         case HIR_NUMBER:
-            str_strncpy(ns->storage.num.value, s->storage.num.value, HIR_VAL_MSIZE);
+            ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
         break;
 
         case HIR_F64CONSTVAL:
@@ -313,8 +313,19 @@ int HIR_unlink_block(hir_block_t* block) {
 int HIR_unload_subject(hir_subject_t* s) {
     if (!s) return 0;
     switch (s->t) {
-        case HIR_PHISET:  set_free_force(&s->storage.set.h);   break;
-        case HIR_ARGLIST: list_free_force(&s->storage.list.h); break;
+        case HIR_F64NUMBER:
+        case HIR_F32NUMBER:
+        case HIR_U64NUMBER:
+        case HIR_U32NUMBER:
+        case HIR_U16NUMBER:
+        case HIR_U8NUMBER:
+        case HIR_I64NUMBER:
+        case HIR_I32NUMBER:
+        case HIR_I16NUMBER:
+        case HIR_I8NUMBER:
+        case HIR_NUMBER:  destroy_string(s->storage.num.value);                       break;
+        case HIR_PHISET:  set_free_force(&s->storage.set.h);                          break;
+        case HIR_ARGLIST: list_free_force_op(&s->storage.list.h, HIR_unload_subject); break;
         default: break;
     }
     

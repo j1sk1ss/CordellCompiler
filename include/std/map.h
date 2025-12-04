@@ -185,4 +185,14 @@ Return 1 if free routine success, otherwise this function will return 0.
 */
 int map_free_force(map_t* m);
 
+/*
+map_free_force dealocates occupied memory for map.
+Params:
+    - m - Map objects.
+    - op - Element deallocation function.
+
+Return 1 if free routine success, otherwise this function will return 0.
+*/
+int map_free_force_op(map_t* m, int (*op)(void*));
+
 #endif

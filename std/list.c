@@ -204,11 +204,15 @@ void* list_get_tail(list_t* l) {
     return l->t->data;
 }
 
-static int _list_free(list_t* l, int force) {
+static int _list_free(list_t* l, int force, int (*fop)(void*)) {
     list_node_t* h = l->h;
     while (h) {
         list_node_t* n = h->n;
-        if (force) mm_free(h->data);
+        if (force) {
+            if (fop) fop(h->data);
+            else mm_free(h->data);
+        }
+
         mm_free(h);
         h = n;
     }
@@ -221,9 +225,13 @@ static int _list_free(list_t* l, int force) {
 }
 
 int list_free(list_t* l) {
-    return _list_free(l, 0);
+    return _list_free(l, 0, NULL);
 }
 
 int list_free_force(list_t* l) {
-    return _list_free(l, 1);
+    return _list_free(l, 1, NULL);
+}
+
+int list_free_force_op(list_t* l, int (*op)(void*)) {
+    return _list_free(l, 1, op);
 }

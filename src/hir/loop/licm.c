@@ -209,7 +209,7 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, i
 int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, int licm) {
     int changed = 0;
     foreach(loop_node_t* ch, &node->children) {
-        changed |= _licm_loop_node_process(cctx, node, smt, licm);
+        changed |= _licm_loop_node_process(cctx, ch, smt, licm);
     }
 
     changed |= _licm_process(cctx, node, smt, licm);

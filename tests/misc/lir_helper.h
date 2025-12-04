@@ -125,22 +125,22 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
         case LIR_GLVARIABLE: {
             variable_info_t vi;
             if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
-                dst += sprintf(dst, "%%%s", vi.name);
+                dst += sprintf(dst, "%%%s", vi.name->body);
             }
 
             break;
         }
 
-        case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id); break;
-        case LIR_NUMBER:   dst += sprintf(dst, "$%s", s->storage.num.value);  break;
-        case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value); break;
-        case LIR_LABEL:    dst += sprintf(dst, "lb%ld", s->storage.lb.lb_id); break;
+        case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);       break;
+        case LIR_NUMBER:   dst += sprintf(dst, "$%s", s->storage.num.value->body);  break;
+        case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value);       break;
+        case LIR_LABEL:    dst += sprintf(dst, "lb%ld", s->storage.lb.lb_id);       break;
 
         case LIR_RAWASM:
         case LIR_STRING: {
             str_info_t si;
             if (STTB_get_info_id(s->storage.str.sid, &si, &smt->s)) {
-                dst += sprintf(dst, "str(%s)", si.value);
+                dst += sprintf(dst, "str(%s)", si.value->body);
             }
 
             break;
@@ -149,14 +149,14 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
         case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(s->storage.str.sid, &fi, &smt->f)) {
-                dst += sprintf(dst, "%s(", fi.name);
+                dst += sprintf(dst, "%s(", fi.name->body);
             }
 
             if (fi.args) {
                 for (ast_node_t* t = fi.args->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
                     ast_node_t* type = t;
                     ast_node_t* name = t->child;
-                    dst += sprintf(dst, "%s %s", fmt_tkn_type(type->token), name->token->value);
+                    dst += sprintf(dst, "%s %s", fmt_tkn_type(type->token), name->token->body->body);
                     if (t->sibling && t->sibling->token->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
                 }
             }

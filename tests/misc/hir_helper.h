@@ -221,17 +221,17 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
     }
     else {
         switch (s->t) {
-            case HIR_F64NUMBER:  dst += sprintf(dst, "f64n: %s", s->storage.num.value); break;
-            case HIR_I64NUMBER:  dst += sprintf(dst, "i64n: %s", s->storage.num.value); break;
-            case HIR_U64NUMBER:  dst += sprintf(dst, "u64n: %s", s->storage.num.value); break;
-            case HIR_F32NUMBER:  dst += sprintf(dst, "f32n: %s", s->storage.num.value); break;
-            case HIR_I32NUMBER:  dst += sprintf(dst, "i32n: %s", s->storage.num.value); break;
-            case HIR_U32NUMBER:  dst += sprintf(dst, "u32n: %s", s->storage.num.value); break;
-            case HIR_I16NUMBER:  dst += sprintf(dst, "i16n: %s", s->storage.num.value); break;
-            case HIR_U16NUMBER:  dst += sprintf(dst, "u16n: %s", s->storage.num.value); break;  
-            case HIR_I8NUMBER:   dst += sprintf(dst, "i8n: %s", s->storage.num.value);  break;
-            case HIR_U8NUMBER:   dst += sprintf(dst, "u8n: %s", s->storage.num.value);  break;
-            case HIR_NUMBER:     dst += sprintf(dst, "num?: %s", s->storage.num.value); break;
+            case HIR_F64NUMBER:  dst += sprintf(dst, "f64n: %s", s->storage.num.value->body); break;
+            case HIR_I64NUMBER:  dst += sprintf(dst, "i64n: %s", s->storage.num.value->body); break;
+            case HIR_U64NUMBER:  dst += sprintf(dst, "u64n: %s", s->storage.num.value->body); break;
+            case HIR_F32NUMBER:  dst += sprintf(dst, "f32n: %s", s->storage.num.value->body); break;
+            case HIR_I32NUMBER:  dst += sprintf(dst, "i32n: %s", s->storage.num.value->body); break;
+            case HIR_U32NUMBER:  dst += sprintf(dst, "u32n: %s", s->storage.num.value->body); break;
+            case HIR_I16NUMBER:  dst += sprintf(dst, "i16n: %s", s->storage.num.value->body); break;
+            case HIR_U16NUMBER:  dst += sprintf(dst, "u16n: %s", s->storage.num.value->body); break;  
+            case HIR_I8NUMBER:   dst += sprintf(dst, "i8n: %s", s->storage.num.value->body);  break;
+            case HIR_U8NUMBER:   dst += sprintf(dst, "u8n: %s", s->storage.num.value->body);  break;
+            case HIR_NUMBER:     dst += sprintf(dst, "num?: %s", s->storage.num.value->body); break;
 
             case HIR_F64CONSTVAL: dst += sprintf(dst, "f64c: %ld", s->storage.cnst.value);   break;
             case HIR_I64CONSTVAL: dst += sprintf(dst, "i64c: %ld", s->storage.cnst.value);   break;
@@ -250,7 +250,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_STRING: {
                 str_info_t si;
                 if (STTB_get_info_id(s->storage.str.s_id, &si, &smt->s)) {
-                    dst += sprintf(dst, "%s", si.value);
+                    dst += sprintf(dst, "%s", si.value->body);
                 }
 
                 break;
@@ -259,14 +259,14 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_FNAME: {
                 func_info_t fi;
                 if (FNTB_get_info_id(s->storage.str.s_id, &fi, &smt->f)) {
-                    dst += sprintf(dst, "%s(", fi.name);
+                    dst += sprintf(dst, "%s(", fi.name->body);
                 }
 
                 if (fi.args) {
                     for (ast_node_t* t = fi.args->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
                         ast_node_t* type = t;
                         ast_node_t* name = t->child;
-                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->token), name->token->value);
+                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->token), name->token->body->body);
                         if (t->sibling && t->sibling->token->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
                     }
                 }

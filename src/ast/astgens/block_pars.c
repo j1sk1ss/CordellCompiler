@@ -48,12 +48,13 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
 }
 
 ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, token_type_t ex) {
-    ast_node_t* node = AST_create_node(NULL);
+    ast_node_t* node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, CURRENT_TOKEN->lnum));
     if (!node) {
         print_error("AST_create_node error!");
         return NULL;
     }
 
+    node->base_token = node->token;
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != ex) {
         ast_node_t* block = _navigation_handler(it, ctx, smt);
         if (block) AST_add_node(node, block);

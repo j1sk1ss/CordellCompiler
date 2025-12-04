@@ -10,7 +10,7 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
         variable_info_t varinfo = { .type = UNKNOWN_NUMERIC_TOKEN };
         for (int s = ctx->scopes.stack.top; s >= 0; s--) {
             int s_id = ctx->scopes.stack.data[s].id;
-            if (VRTB_get_info(node->token->value, s_id, &varinfo, &smt->v)) {
+            if (VRTB_get_info(node->token->body, s_id, &varinfo, &smt->v)) {
                 node->sinfo.v_id        = varinfo.v_id;
                 node->sinfo.s_id        = varinfo.s_id;
                 node->token->flags.heap = varinfo.heap;
@@ -21,12 +21,12 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
 
     if (node->token->t_type == STRING_VALUE_TOKEN) {
         str_info_t strinfo;
-        if (STTB_get_info(node->token->value, &strinfo, &smt->s)) {
+        if (STTB_get_info(node->token->body, &strinfo, &smt->s)) {
             node->sinfo.v_id = strinfo.id;
             return 1;
         }
         else {
-            node->sinfo.v_id = STTB_add_info(node->token->value, STR_INDEPENDENT, &smt->s);
+            node->sinfo.v_id = STTB_add_info(node->token->body, STR_INDEPENDENT, &smt->s);
             return 1;
         }
     }

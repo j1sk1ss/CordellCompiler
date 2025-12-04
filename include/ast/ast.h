@@ -13,6 +13,7 @@ typedef struct {
 
 typedef struct ast_node {
     token_t*         token;
+    token_t*         base_token;
     struct ast_node* parent;
     struct ast_node* child;
     struct ast_node* sibling;

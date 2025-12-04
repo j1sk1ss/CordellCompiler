@@ -2,7 +2,7 @@
 #define MM_H_
 
 #include <stddef.h>
-#include <std/str.h>
+#include <std/mem.h>
 #include <std/math.h>
 #include <std/logg.h>
 

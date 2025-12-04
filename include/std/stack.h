@@ -1,7 +1,7 @@
 #ifndef STACK_H_
 #define STACK_H_
 
-#include <std/str.h>
+#include <std/mem.h>
 
 #define MAX_SCOPE_DEPTH 1024
 

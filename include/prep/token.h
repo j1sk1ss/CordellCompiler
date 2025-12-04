@@ -32,7 +32,7 @@ Params:
 
 Return pointer to token, or NULL if malloc error.
 */
-token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int line);
+token_t* TKN_create_token(token_type_t type, const char* value, int line);
 
 /*
 Tokenize input file by provided FD.
@@ -53,5 +53,14 @@ Params:
 Return hash sum.
 */
 unsigned long TKN_hash_token(token_t* t);
+
+/*
+Deallocated space that was claimed by the token.
+Params:
+    - t - Token.
+
+Return 1 if allocation was succeed, otherwise return 0.
+*/
+int TKN_unload_token(token_t* t);
 
 #endif

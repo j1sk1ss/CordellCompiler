@@ -38,7 +38,7 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
                 continue;
             }
 
-            int sid = STTB_add_info(CURRENT_TOKEN->value, STR_RAW_ASM, &smt->s);
+            int sid = STTB_add_info(CURRENT_TOKEN->body, STR_RAW_ASM, &smt->s);
             ast_node_t* arg = AST_create_node(CURRENT_TOKEN);
             if (!arg) print_warn("AST_create_node return NULL!");
             else {

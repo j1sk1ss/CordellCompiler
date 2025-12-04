@@ -2,6 +2,7 @@
 #define DAG_H_
 
 #include <std/mm.h>
+#include <std/mem.h>
 #include <std/str.h>
 #include <std/set.h>
 #include <std/map.h>

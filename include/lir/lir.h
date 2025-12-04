@@ -3,6 +3,7 @@
 
 #include <std/mm.h>
 #include <std/str.h>
+#include <std/mem.h>
 #include <std/map.h>
 #include <std/list.h>
 #include <std/stack.h>
@@ -22,9 +23,8 @@ typedef struct {
     lir_registers_t reg;
 } lir_register_t;
 
-#define LIR_VAL_MSIZE 128
 typedef struct {
-    char value[LIR_VAL_MSIZE];
+    string_t* value;
 } lir_number_t;
 
 typedef struct {
@@ -78,7 +78,7 @@ typedef struct {
 
 lir_ctx_t* LIR_create_ctx();
 lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta);
-lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, const char* strval, long intval, int size);
+lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_t* strval, long intval, int size);
 int LIR_unlink_block(lir_block_t* block);
 int LIR_insert_block_after(lir_block_t* block, lir_block_t* pos);
 int LIR_insert_block_before(lir_block_t* block, lir_block_t* pos);

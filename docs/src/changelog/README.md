@@ -22,6 +22,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## String object
+For optimization purpose was implemented a string object. This object responses for the `char*` operations such as `strcat`, `strcmp`, `strcpy`, etc. For better performance the `strcmp` and the `strlen` functions support cache and hash. The `strlen` function simply returns cached value from `string` object, while `strcmp` uses hashes for better string comparison.
+
 # Version v3.2
 Now I'm working in the ISP RAS as Research Assistant in the Compiler Department (Static Analyzation team). With some additional experience, now I'm able to implement static analysis in CPL. The basic module contains semantic entry-point, ast and hir folders. AST folder contains entry point for AST-walker and AST-walker behaviour-scripts. Main idea is simple: We have a walker, that has linked list of actions for different node-types:
 ```c

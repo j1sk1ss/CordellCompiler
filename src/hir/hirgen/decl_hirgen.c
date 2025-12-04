@@ -19,7 +19,7 @@ static int _arrdeclaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
         for (ast_node_t* e = elems_node; e; e = e->sibling) {
             hir_subject_t* el = HIR_generate_elem(e, ctx, smt);
             if (vi.glob && el->t == HIR_NUMBER) {
-                ARTB_add_elems(vi.v_id, str_atoi(el->storage.num.value), &smt->a);
+                ARTB_add_elems(vi.v_id, el->storage.num.value->to_llong(el->storage.num.value), &smt->a);
                 HIR_unload_subject(el);
             }
             else if (!vi.glob) {

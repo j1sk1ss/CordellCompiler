@@ -112,7 +112,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
             h->flags.glob ? "glob " : "", 
             h->lnum, 
             h->t_type, 
-            h->value,
+            h->body->body,
             h->flags.ptr  ? "ptr "  : "", 
             h->flags.ro   ? "ro "   : "",
             h->flags.dref ? "dref " : "",
@@ -373,7 +373,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 
 #ifdef PREP_TESTING
-    list_free_force(&tokens);
+    list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
 #endif
 #ifdef AST_TESTING
     AST_unload(sctx.r);

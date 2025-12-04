@@ -231,13 +231,22 @@ int map_free(map_t* m) {
     return 1;
 }
 
-int map_free_force(map_t* m) {
+static int _map_free_force(map_t* m, int (*fop)(void*)) {
     if (!m) return 0;
     for (long i = 0; i < m->capacity; i++) {
         if (m->entries[i].used && m->entries[i].value) {
-            mm_free(m->entries[i].value);
+            if (fop) fop(m->entries[i].value);
+            else mm_free(m->entries[i].value);
         }
     }
 
     return map_free(m);
+}
+
+int map_free_force(map_t* m) {
+    return _map_free_force(m, NULL);
+}
+
+int map_free_force_op(map_t* m, int (*op)(void*)) {
+    return _map_free_force(m, op);
 }

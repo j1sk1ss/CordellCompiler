@@ -29,7 +29,7 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
             }
 
             AST_add_node(node, fname);
-            FNTB_add_info(fname->token->value, 1, 1, 0, NULL, NULL, &smt->f);
+            FNTB_add_info(fname->token->body, 1, 1, 0, NULL, NULL, &smt->f);
             forward_token(it, 1);
         }
     }
@@ -87,7 +87,7 @@ ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     }
 
     func_info_t finfo;
-    if (FNTB_get_info(node->token->value, &finfo, &smt->f)) {
+    if (FNTB_get_info(node->token->body, &finfo, &smt->f)) {
         node->sinfo.v_id = finfo.id;
         for (ast_node_t* arg = finfo.args->child; arg && arg->token->t_type != SCOPE_TOKEN; arg = arg->sibling) {
             if (args-- > 0 || !arg->child->sibling || !arg->child->sibling->token) continue;
@@ -116,12 +116,13 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     AST_add_node(node, name_node);
 
     forward_token(it, 1);
-    ast_node_t* args_node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, 0, 0));
+    ast_node_t* args_node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, CURRENT_TOKEN->lnum));
     if (!args_node) {
         AST_unload(node);
         return NULL;
     }
 
+    args_node->base_token = args_node->token;
     scope_push_id(&ctx->scopes.stack, ++ctx->scopes.s_id);
     args_node->sinfo.s_id = ctx->scopes.s_id;
 
@@ -155,7 +156,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     }
 
     name_node->sinfo.v_id = FNTB_add_info(
-        name_node->token->value, name_node->token->flags.glob, name_node->token->flags.ext, 0,
+        name_node->token->body, name_node->token->flags.glob, name_node->token->flags.ext, 0,
         args_node, name_node->child, &smt->f
     );
 

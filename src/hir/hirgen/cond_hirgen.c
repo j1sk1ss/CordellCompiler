@@ -123,7 +123,7 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
         }
         else {
             HIR_generate_block(curr_case->child->sibling, ctx, smt);
-            cases_info[cases_count].v = str_atoi(curr_case->child->token->value);
+            cases_info[cases_count].v = curr_case->child->token->body->to_llong(curr_case->child->token->body);
             cases_info[cases_count].l = clb;
             cases_count++;
         }

@@ -45,6 +45,7 @@ void* list_get_tail(list_t* l);
 
 int list_free(list_t* l);
 int list_free_force(list_t* l);
+int list_free_force_op(list_t* l, int (*op)(void*));
 
 #define CONCAT2(a,b) a##b
 #define CONCAT(a,b)  CONCAT2(a,b)

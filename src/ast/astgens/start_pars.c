@@ -37,6 +37,9 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
     AST_add_node(node, body);
 
-    node->sinfo.v_id = FNTB_add_info(ctx->fentry, 1, 0, 1, NULL, NULL, &smt->f);
+    string_t* main_name = create_string((char*)ctx->fentry);
+    node->sinfo.v_id = FNTB_add_info(main_name, 1, 0, 1, NULL, NULL, &smt->f);
+    destroy_string(main_name);
+
     return node;
 }

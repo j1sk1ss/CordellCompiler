@@ -20,7 +20,7 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
     AST_add_node(node, name_node);
     forward_token(it, 1);
 
-    int array_size = 1;
+    long long array_size = 1;
     if (CURRENT_TOKEN->t_type == OPEN_INDEX_TOKEN) {
         forward_token(it, 1);
 
@@ -32,7 +32,7 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
         }
         
         if (size_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) name_node->token->flags.heap = 1;
-        else array_size = str_atoi(size_node->token->value);
+        else array_size = size_node->token->body->to_llong(size_node->token->body);
         
         AST_add_node(node, size_node);
         forward_token(it, 2);
@@ -70,7 +70,7 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
     }
 
     name_node->sinfo.v_id = VRTB_add_info(
-        name_node->token->value, ARRAY_TYPE_TOKEN, scope_id_top(&ctx->scopes.stack), 
+        name_node->token->body, ARRAY_TYPE_TOKEN, scope_id_top(&ctx->scopes.stack), 
         &name_node->token->flags, &smt->v
     );
 
@@ -98,7 +98,7 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
     forward_token(it, 1);
 
     name_node->sinfo.v_id = VRTB_add_info(
-        name_node->token->value, node->token->t_type, scope_id_top(&ctx->scopes.stack), 
+        name_node->token->body, node->token->t_type, scope_id_top(&ctx->scopes.stack), 
         &name_node->token->flags, &smt->v
     );
 
@@ -112,7 +112,7 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
         }
 
         if (node->token->t_type == STR_TYPE_TOKEN) {
-            ARTB_add_info(name_node->sinfo.v_id, str_strlen(value_node->token->value) + 1, 0, I8_TYPE_TOKEN, &smt->a);
+            ARTB_add_info(name_node->sinfo.v_id, value_node->token->body->len(value_node->token->body) + 1, 0, I8_TYPE_TOKEN, &smt->a);
             STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }
 

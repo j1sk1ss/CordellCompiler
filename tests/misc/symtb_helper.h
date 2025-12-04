@@ -41,7 +41,7 @@ void print_symtab(sym_table_t* smt) {
     map_iter_init(&smt->v.vartb, &it);
     variable_info_t* vi;
     while (map_iter_next(&it, (void**)&vi)) {
-        printf("id: %li, %s, %s, s_id: %i", vi->v_id, vi->name, format_tkntype(vi->type), vi->s_id);
+        printf("id: %li, %s, %s, s_id: %i", vi->v_id, vi->name->body, format_tkntype(vi->type), vi->s_id);
         if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg));
         else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %li]", vi->vmi.offset);
         if (vi->vdi.defined)          printf(", value=%ld", vi->vdi.definition);
@@ -61,7 +61,7 @@ void print_symtab(sym_table_t* smt) {
     while (map_iter_next(&it, (void**)&fi)) {
         printf(
             "%sid: %li, name: %s, ext=%i, glob=%i, used=%i\n", 
-            fi->entry ? "[ENTRY] " : "", fi->id, fi->name, fi->external, fi->global, fi->used
+            fi->entry ? "[ENTRY] " : "", fi->id, fi->name->body, fi->external, fi->global, fi->used
         );
     }
 
@@ -69,7 +69,7 @@ void print_symtab(sym_table_t* smt) {
     map_iter_init(&smt->s.strtb, &it);
     str_info_t* si;
     while (map_iter_next(&it, (void**)&si)) {
-        printf("id: %li, val: %s, t=%i\n", si->id, si->value, si->t);
+        printf("id: %li, val: %s, t=%i\n", si->id, si->value->body, si->t);
     }
 
     if (!map_isempty(&smt->m.allias)) printf("========== ALLIAS ==========\n");
