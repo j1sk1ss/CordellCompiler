@@ -9,9 +9,9 @@
 #include <ast/astgen.h>
 
 #define AST_VISITOR_ARGS ast_node_t* nd, sym_table_t* smt
-#define SEMANTIC_ERROR(message, ...)   fprintf(stdout, "[ERROR] " message "\n", ##__VA_ARGS__)
-#define SEMANTIC_WARNING(message, ...) fprintf(stdout, "[WARNING] " message "\n", ##__VA_ARGS__)
-#define SEMANTIC_INFO(message, ...)    fprintf(stdout, "[INFO] " message "\n", ##__VA_ARGS__)
+#define SEMANTIC_ERROR(message, ...)   fprintf(stdout, "[ERROR]  " message "\n", ##__VA_ARGS__)
+#define SEMANTIC_WARNING(message, ...) fprintf(stdout, "[WARNING]" message "\n", ##__VA_ARGS__)
+#define SEMANTIC_INFO(message, ...)    fprintf(stdout, "[INFO]   " message "\n", ##__VA_ARGS__)
 
 /*
 ASTWLKR_ro_assign checks illegal read-only assign.
@@ -218,5 +218,7 @@ Params:
 Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_valid_function_name(AST_VISITOR_ARGS);
+
+int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS);
 
 #endif

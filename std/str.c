@@ -156,10 +156,6 @@ int str_isupper(int c) {
     return (c >= 'A' && c <= 'Z');
 }
 
-int str_isdigit(int c) {
-    return (c >= '0' && c <= '9');
-}
-
 int str_isalpha(int c) {
     return str_islower(c) || str_isupper(c);
 }

@@ -77,7 +77,7 @@ static const char* _fmt_tkn_type(token_t* t) {
 }
 
 static int _restore_code(ast_node_t* nd, ast_node_t* underscore) {
-    if (nd == underscore) fprintf(stdout, "--->");
+    if (nd == underscore) fprintf(stdout, "\e[4m");
     if (TKN_isdecl(nd->token)) {
         fprintf(stdout, "%s %s", _fmt_tkn_type(nd->token), nd->child->token->value);
         if (nd->child->sibling) {
@@ -115,12 +115,18 @@ static int _restore_code(ast_node_t* nd, ast_node_t* underscore) {
 
         fprintf(stdout, ");");
     }
+    else if (nd->token->t_type == RETURN_TOKEN) {
+        fprintf(stdout, "return ");
+        if (nd->child) _restore_code(nd->child, underscore);
+        fprintf(stdout, ";");
+    }
 
     if (
         TKN_isnumeric(nd->token) || 
         TKN_isvariable(nd->token)
     ) fprintf(stdout, "%s", nd->token->value);
 
+    if (nd == underscore) fprintf(stdout, "\e[0m");
     return 1;
 }
 
@@ -196,17 +202,42 @@ static int _get_token_bitness(token_t* tkn) {
     }
 }
 
-static int _check_assign_types(const char* msg, token_t* l, token_t* r) {
+static token_t* _get_token_from_ast(ast_node_t* n) {
+    if (!n || !n->token) return NULL;
+    if (TKN_isoperand(n->token)) {
+        token_t* l = _get_token_from_ast(n->child);
+        token_t* r = _get_token_from_ast(n->child->sibling);
+
+        if (!l && !r) return NULL;
+        else if (!l) return r;
+        else if (!r) return l;
+
+        if (_get_token_bitness(l) < _get_token_bitness(r)) return r;
+        return l;
+    }
+
+    return n->token;
+}
+
+static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
     if (!l || !r) return 0;
-    if (_get_token_bitness(l) < _get_token_bitness(r)) {
-        if (TKN_isnumeric(r)) SEMANTIC_WARNING(
-            " [line=%i] %s of %s with %s (Number bitness is=%i, but %s can handle bitness=%i)!", r->lnum, msg,
-            l->value, r->value, _get_token_bitness(r), _fmt_tkn_type(l), _get_token_bitness(l)
-        );
-        else SEMANTIC_WARNING(
-            " [line=%i] %s of %s with %s! %s can't handle %s!", r->lnum, msg,
-            l->value, r->value, _fmt_tkn_type(l), _fmt_tkn_type(r)
-        );
+
+    token_t* lt = _get_token_from_ast(l);
+    token_t* rt = _get_token_from_ast(r);
+
+    if (_get_token_bitness(lt) < _get_token_bitness(rt)) {
+        if (TKN_isnumeric(rt)) {
+            SEMANTIC_WARNING(
+                " [line=%i] %s of %s with %s (Number bitness is=%i, but %s can handle bitness=%i)!", rt->lnum, msg,
+                lt->value, rt->value, _get_token_bitness(rt), _fmt_tkn_type(lt), _get_token_bitness(lt)
+            );
+        }
+        else {
+            SEMANTIC_WARNING(
+                " [line=%i] %s of %s with %s! %s can't handle %s!", rt->lnum, msg,
+                lt->value, rt->value, _get_token_bitness(rt), _fmt_tkn_type(lt), _get_token_bitness(lt)
+            );
+        }
 
         return 0;
     }
@@ -219,7 +250,7 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
     if (!larg) return 1;
     ast_node_t* rarg = larg->sibling;
     if (!rarg) return 1;
-    if (!_check_assign_types("Illegal declaration", larg->token, rarg->token)) {
+    if (!_check_assign_types("Illegal declaration", larg, rarg)) {
         _restore_code(nd, rarg);
         fprintf(stdout, "\n\n");
         return 0;
@@ -304,7 +335,7 @@ int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     int has_ret = 0;
     _search_rexit_ast(nd->child, &has_ret);
     if (!has_ret) {
-        SEMANTIC_WARNING(" [line=%i] Start doesn't have exit in all paths!", nd->token->lnum);
+        SEMANTIC_WARNING(" [line=%i] Start doesn't have the exit statement in the all paths!", nd->token->lnum);
         _restore_code(nd, NULL);
         fprintf(stdout, "\n\n");
     }
@@ -358,7 +389,7 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
         ; provided_arg && expected_arg && expected_arg->token->t_type != SCOPE_TOKEN; 
         provided_arg = provided_arg->sibling, expected_arg = expected_arg->sibling
     ) {
-        _check_assign_types("Illegal argument", expected_arg->token, provided_arg->token);
+        _check_assign_types("Illegal argument", expected_arg, provided_arg);
         _restore_code(nd, provided_arg);
         fprintf(stdout, "\n\n");
     }
@@ -401,7 +432,7 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
     int idx = str_atoi(index->token->value);
     if (ai.size < str_atoi(index->token->value)) {
         SEMANTIC_ERROR(
-            " [line=%i] Array=%s used with index=%i, that larger than array size!", 
+            " [line=%i] Array=%s accessed with index=%i, that larger than the array size!", 
             nd->token->lnum, nd->token->value, idx
         );
 
@@ -542,4 +573,50 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
     }
 
     return 1;
+}
+
+static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* rtype) {
+    if (!nd) return 0;
+    if (!nd->token) {
+        _check_return_statement(fname, nd->child, rtype);
+        return 0;
+    }
+
+    switch (nd->token->t_type) {
+        case EXIT_TOKEN:
+        case RETURN_TOKEN: {
+            token_t* rval = _get_token_from_ast(nd->child);
+            if (!rval && rtype->t_type == I0_TYPE_TOKEN) return 1;
+            if (rval && rtype->t_type == I0_TYPE_TOKEN) {
+                SEMANTIC_WARNING(" [line=%i] Function=%s has the return value, but isn't suppose to!", rval->lnum, fname);
+                _restore_code(nd, nd->child);
+                fprintf(stdout, "\n\n");
+                return 0;
+            }
+
+            if (_get_token_bitness(rval) > _get_token_bitness(rtype)) {
+                SEMANTIC_WARNING(" [line=%i] Function=%s has the wrong return value!=%s!", rval->lnum, fname, _fmt_tkn_type(rtype));
+                _restore_code(nd, nd->child);
+                fprintf(stdout, "\n\n");
+                return 0;
+            }
+        }
+
+        default: {
+            _check_return_statement(fname, nd->child, rtype);
+            _check_return_statement(fname, nd->sibling, rtype);
+            break;
+        }
+    }
+
+    return 1;
+}
+
+int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS) {
+    ast_node_t* fname = nd->child;
+    if (!fname) return 1;
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f) || !fi.rtype) return 0;
+    return _check_return_statement(fi.name, nd->child, fi.rtype->token);
 }
