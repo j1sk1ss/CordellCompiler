@@ -3,7 +3,7 @@
 static inline long _get_long_number(lir_subject_t* s) {
     switch (s->t) {
         case LIR_CONSTVAL: return s->storage.cnst.value;
-        case LIR_NUMBER:   return str_atoi(s->storage.num.value);
+        case LIR_NUMBER:   return s->storage.num.value->to_llong(s->storage.num.value);
         default: return 0;
     }
 }

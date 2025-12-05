@@ -1,41 +1,5 @@
 #include <std/str.h>
 
-char* str_strncpy(char* dst, const char* src, int n) {
-    int	i = 0;
-    while (i < n && src[i]) {
-        dst[i] = src[i];
-        i++;
-    }
-
-    while (i < n) {
-        dst[i] = 0;
-        i++;
-    }
-
-    return dst;
-}
-
-int str_atoi(const char *str) {
-    int neg = 1;
-    long long num = 0;
-    size_t i = 0;
-
-    while (str_isspace(*str)) str++;
-    if (*str == '-' || *str == '+') {
-        neg = *str == '-' ? 0 : 1;
-        str++;
-    }
-
-    while (*str >= '0' && *str <= '9' && *str) {
-        num = num * 10 + (str[i] - 48);
-        if (neg && num > INT_MAX) return INT_MAX;
-        if (neg == -1 && -num < INT_MIN) return INT_MIN;
-        str++;
-    }
-    
-    return (num * neg);
-}
-
 unsigned int str_strlen(const char* str) {
     unsigned int len = 0;
     while (*str) {
@@ -44,34 +8,6 @@ unsigned int str_strlen(const char* str) {
     }
 
     return len;
-}
-
-char* str_strcpy(char* dst, const char* src) {
-    if (str_strlen(src) <= 0) return NULL;
-
-    int	i = 0;
-    while (src[i]) {
-        dst[i] = src[i];
-        i++;
-    }
-
-    dst[i] = 0;
-    return (dst);
-}
-
-const char* str_strchr(const char* str, char chr) {
-    if (!str) return NULL;
-    while (*str) {
-        if (*str == chr) return str;
-        ++str;
-    }
-
-    return NULL;
-}
-
-char* str_strcat(char* dest, const char* src) {
-    str_strcpy(dest + str_strlen(dest), src);
-    return dest;
 }
 
 static int string_cat(str_self self, string_t* dst) {
@@ -276,6 +212,14 @@ static int string_equals_raw(str_self self, const char* s) {
     return *fh == *sh;
 }
 
+static unsigned int string_index_of(str_self self, char c) {
+    return 1;
+}
+
+static int string_replace(str_self self, const char* src, const char* dst) {
+    return 1;
+}
+
 static int string_move_head(str_self self, unsigned int offset) {
     self->head += offset;
     return 1;
@@ -286,14 +230,16 @@ static int string_reset_head(str_self self) {
     return 1;
 }
 
-string_t* create_string(char* s) {
+static string_t* _create_base_string(const char* s, unsigned int off, unsigned int len) {
     string_t* str = (string_t*)mm_malloc(sizeof(string_t));
     if (!str) return NULL;
 
-    char* h = s;
+    char* h = s + off;
     unsigned int size = 0;
     unsigned long hash = 0xFFFF;
-    while (h && *h) {
+    while (
+        h && *h && (len == -1 || len-- > 0)
+    ) {
         hash ^= *h * 0xFDDDF123;
         size++;
         h++;
@@ -311,6 +257,7 @@ string_t* create_string(char* s) {
     str->equals      = string_equals;
     str->requals     = string_equals_raw;
     str->fchar       = string_fchar;
+    str->index_of    = string_index_of;
     str->len         = string_length;
     str->cat         = string_cat;
     str->to_llong    = string_to_llong;
@@ -319,10 +266,19 @@ string_t* create_string(char* s) {
     str->from_number = string_from_number;
     str->hmove       = string_move_head;
     str->rhead       = string_reset_head;
+    str->replace     = string_replace;
 
     str->head = str->body;
     if (s) str_memcpy(str->body, s, size + 1);
     return str;
+}
+
+string_t* create_string(const char* s) {
+    return _create_base_string(s, 0, -1);
+}
+
+string_t* create_string_from_part(const char* s, unsigned int off, unsigned int len) {
+    return _create_base_string(s, off, len);
 }
 
 string_t* create_string_from_char(char c) {

@@ -9,9 +9,16 @@ int x86_64_generate_asmblock(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, s
             int argnum = -1;
             hir_subject_t* arg = NULL;
 
-            const char* p = str_strchr(si.value->body, '%');
-            if (p && str_isdigit((unsigned char)*(++p))) argnum = str_atoi(p);
-            if (argnum >= 0) arg = params->data[params->top - argnum].data;
+            string_t* p = si.value->fchar(si.value, '%');
+            p->hmove(p, 1);
+            if (p && str_isdigit((unsigned char)*(p->body))) {
+                argnum = p->to_llong(p);
+            }
+
+            if (argnum >= 0) {
+                arg = params->data[params->top - argnum].data;
+            }
+            
             LIR_BLOCK2(ctx, LIR_RAW, LIR_SUBJ_RAWASM(h->farg->storage.str.s_id), x86_64_format_variable(arg));
             break;
         }

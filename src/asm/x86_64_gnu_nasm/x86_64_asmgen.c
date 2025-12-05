@@ -98,25 +98,29 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_bSAR: fprintf(output, "sar %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));     break;
 
             case LIR_RAW: {
-                char line[128] = { 0 };
-                snprintf(line, sizeof(line), "%s", x86_64_asm_variable(curr->farg, smt));
-                const char* p = str_strchr(line, '%');
-                if (!p || !str_isdigit((unsigned char)*(p + 1))) fprintf(output, "%s\n", line);
+                string_t* raw_line = create_string(x86_64_asm_variable(curr->farg, smt));
+                unsigned int percent_pos = raw_line->index_of(raw_line, '%');
+                if (percent_pos < 0) fprintf(output, "%s\n", raw_line->body);
                 else {
-                    const char* replacement = x86_64_asm_variable(curr->sarg, smt);
-                    char replaced[256] = { 0 };
+                    string_t* replacement = create_string(x86_64_asm_variable(curr->sarg, smt));
+                    string_t* line_str = create_string_from_part(raw_line->body, 0, percent_pos);
+                    line_str->cat(line_str, replacement);
 
-                    long prefix_len = (long)(p - line);
-                    str_memcpy(replaced, line, prefix_len);
-                    str_strcat(replaced, replacement);
+                    const char* suffix = line_str->body + 1;
+                    while (str_isdigit((unsigned char)*suffix)) {
+                        suffix++;
+                    }
 
-                    const char* suffix = p + 1;
-                    while (str_isdigit((unsigned char)*suffix)) suffix++;
+                    string_t* suffix_str = create_string(suffix);
+                    line_str->cat(line_str, suffix_str);
 
-                    str_strcat(replaced, suffix);
-                    fprintf(output, "%s\n", replaced);
+                    fprintf(output, "%s\n", line_str->body);
+                    destroy_string(replacement);
+                    destroy_string(suffix_str);
+                    destroy_string(line_str);
                 }
 
+                destroy_string(raw_line);
                 break;
             }
 
