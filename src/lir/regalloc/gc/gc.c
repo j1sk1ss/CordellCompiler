@@ -26,7 +26,9 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     int node_count = g->nodes.size;
     if (!node_count) return 1;
     
-    sstack_t stack  = { .top = -1 };
+    sstack_t stack;
+    stack_init(&stack);
+
     int* degrees    = (int*)mm_malloc(node_count * sizeof(int));
     long* v_ids     = (long*)mm_malloc(node_count * sizeof(long));
     char* processed = (char*)mm_malloc(node_count * sizeof(char));
@@ -93,11 +95,9 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     }
     
     while (stack.top >= 0) {
-        stack_elem_t e;
-        stack_top(&stack, &e);
-        stack_pop(&stack);
+        long current_id;
+        stack_pop(&stack, (void**)&current_id);
         
-        long current_id = (long)e.data;
         igraph_node_t* current_node = LIR_RA_find_ig_node(g, current_id);
         if (!current_node) continue;
         
@@ -127,6 +127,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         set_free(&used_colors);
     }
     
+    stack_unload(&stack);
     mm_free(degrees);
     mm_free(v_ids);
     mm_free(processed);

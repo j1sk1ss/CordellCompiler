@@ -230,11 +230,11 @@ static int string_reset_head(str_self self) {
     return 1;
 }
 
-static string_t* _create_base_string(const char* s, unsigned int off, unsigned int len) {
+static string_t* _create_base_string(const char* s, unsigned int off, int len) {
     string_t* str = (string_t*)mm_malloc(sizeof(string_t));
     if (!str) return NULL;
 
-    char* h = s + off;
+    char* h = (char*)s + off;
     unsigned int size = 0;
     unsigned long hash = 0xFFFF;
     while (
@@ -277,7 +277,7 @@ string_t* create_string(const char* s) {
     return _create_base_string(s, 0, -1);
 }
 
-string_t* create_string_from_part(const char* s, unsigned int off, unsigned int len) {
+string_t* create_string_from_part(const char* s, unsigned int off, int len) {
     return _create_base_string(s, off, len);
 }
 

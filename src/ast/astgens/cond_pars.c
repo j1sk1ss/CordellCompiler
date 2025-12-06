@@ -6,8 +6,8 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         print_error("AST_create_node error!");
         return NULL;
     }
-
-    node->sinfo.s_id = scope_id_top(&ctx->scopes.stack);
+ 
+    stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
 
     forward_token(it, 1);
     ast_node_t* stmt = cpl_parse_expression(it, ctx, smt);
@@ -63,7 +63,7 @@ ast_node_t* cpl_parse_condop(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         return NULL;
     }
     
-    node->sinfo.s_id = scope_id_top(&ctx->scopes.stack);
+    stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
     
     forward_token(it, 1);
     ast_node_t* cond = cpl_parse_expression(it, ctx, smt);

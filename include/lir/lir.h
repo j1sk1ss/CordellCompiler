@@ -71,7 +71,7 @@ typedef struct {
     int           lid;
     lir_block_t*  h;
     lir_block_t*  t;
-    scope_stack_t heap;
+    // sstack_t heap;
     stack_map_t   stk;
     map_t*        vars;
 } lir_ctx_t;

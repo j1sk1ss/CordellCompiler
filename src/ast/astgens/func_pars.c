@@ -44,7 +44,7 @@ ast_node_t* cpl_parse_rexit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
         return NULL;
     }
     
-    node->sinfo.s_id = scope_id_top(&ctx->scopes.stack);
+    stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
     forward_token(it, 1);
     if (TKN_isclose(CURRENT_TOKEN)) {
         return node;
@@ -123,7 +123,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     }
 
     args_node->base_token = args_node->token;
-    scope_push_id(&ctx->scopes.stack, ++ctx->scopes.s_id);
+    stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
     args_node->sinfo.s_id = ctx->scopes.s_id;
 
     forward_token(it, 1);
@@ -170,7 +170,6 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     AST_add_node(args_node, body_node);
     AST_add_node(node, args_node);
 
-    scope_elem_t el;
-    scope_pop_top(&ctx->scopes.stack, &el);
+    stack_pop(&ctx->scopes.stack, NULL);
     return node;
 }

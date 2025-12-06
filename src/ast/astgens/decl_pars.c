@@ -69,9 +69,10 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
         }
     }
 
+    long decl_scope;
+    stack_top(&ctx->scopes.stack, (void**)&decl_scope);
     name_node->sinfo.v_id = VRTB_add_info(
-        name_node->token->body, ARRAY_TYPE_TOKEN, scope_id_top(&ctx->scopes.stack), 
-        &name_node->token->flags, &smt->v
+        name_node->token->body, ARRAY_TYPE_TOKEN, decl_scope, &name_node->token->flags, &smt->v
     );
 
     ARTB_add_info(name_node->sinfo.v_id, array_size, name_node->token->flags.heap, eltype, &smt->a);
@@ -97,9 +98,10 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
     AST_add_node(node, name_node);
     forward_token(it, 1);
 
+    long decl_scope;
+    stack_top(&ctx->scopes.stack, (void**)&decl_scope);
     name_node->sinfo.v_id = VRTB_add_info(
-        name_node->token->body, node->token->t_type, scope_id_top(&ctx->scopes.stack), 
-        &name_node->token->flags, &smt->v
+        name_node->token->body, node->token->t_type, decl_scope, &name_node->token->flags, &smt->v
     );
 
     if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {

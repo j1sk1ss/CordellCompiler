@@ -16,7 +16,7 @@ int x86_64_generate_asmblock(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, s
             }
 
             if (argnum >= 0) {
-                arg = params->data[params->top - argnum].data;
+                arg = params->data[params->top - argnum].d;
             }
             
             LIR_BLOCK2(ctx, LIR_RAW, LIR_SUBJ_RAWASM(h->farg->storage.str.s_id), x86_64_format_variable(arg));
@@ -32,7 +32,7 @@ int x86_64_generate_asmblock(lir_ctx_t* ctx, hir_block_t* h, sym_table_t* smt, s
         }
 
         case HIR_ENDASM: {
-            for (int i = 0; i < h->targ->storage.cnst.value; i++) stack_pop(params);
+            for (int i = 0; i < h->targ->storage.cnst.value; i++) stack_pop(params, NULL);
             break;
         }
 

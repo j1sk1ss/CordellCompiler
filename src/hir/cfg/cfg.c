@@ -110,6 +110,7 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
 int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     if (!hctx || !ctx || !hctx->h) return 0;
 
+    list_init(&ctx->funcs);
     HIR_CFG_split_by_functions(hctx, ctx, smt);
     HIR_CFG_mark_leaders(ctx);
 

@@ -23,7 +23,7 @@ typedef struct string {
     struct string*     (*copy)(str_self);
     unsigned int       (*len)(str_self);
     int                (*equals)(str_self, struct string*);
-    int                (*requals)(str_self, struct string*);
+    int                (*requals)(str_self, const char*);
     int                (*cat)(str_self, struct string*);
     struct string*     (*fchar)(str_self, char);
     unsigned int       (*index_of)(str_self, char);
@@ -34,7 +34,7 @@ typedef struct string {
 } string_t;
 
 string_t* create_string(const char* s);
-string_t* create_string_from_part(const char* s, unsigned int off, unsigned int len);
+string_t* create_string_from_part(const char* s, unsigned int off, int len);
 string_t* create_string_from_char(char c);
 int destroy_string(string_t* s);
 

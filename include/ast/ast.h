@@ -21,8 +21,8 @@ typedef struct ast_node {
 } ast_node_t;
 
 typedef struct {
-    int           s_id;  /* Current scope id. */
-    scope_stack_t stack; /* Scope id stack.   */
+    int      s_id;  /* Current scope id. */
+    sstack_t stack; /* Scope id stack.   */
 } scope_info_t;
 
 typedef struct {

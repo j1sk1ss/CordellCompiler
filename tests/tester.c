@@ -127,6 +127,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
 #ifdef AST_TESTING
     ast_ctx_t sctx = { .r = NULL, .fentry = "_main" };
+    stack_init(&sctx.scopes.stack);
     AST_parse_tokens(&tokens, &sctx, &smt); // Analyzation
 
 #ifdef AST_OPT_TESTING
@@ -376,6 +377,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
 #endif
 #ifdef AST_TESTING
+    stack_unload(&sctx.scopes.stack);
     AST_unload(sctx.r);
 #endif
 

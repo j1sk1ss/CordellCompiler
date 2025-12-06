@@ -152,7 +152,8 @@ static inline void _remove_token(list_t* tkns, token_t* tkn) {
 
 int MRKP_variables(list_t* tkn) {
     int s_id = 0;
-    scope_stack_t scope_stack = { .top = -1 };
+    sstack_t scope_stack;
+    stack_init(&scope_stack);
 
     markp_ctx curr_ctx = { 0 };
 
@@ -164,15 +165,17 @@ int MRKP_variables(list_t* tkn) {
     token_t* curr;
     while ((curr = (token_t*)list_iter_next(&it))) {
         switch (curr->t_type) {
-            case OPEN_BLOCK_TOKEN:  scope_push(&scope_stack, ++s_id, 0); break;
-            case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack);             break;
+            case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
+            case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
 
             case IMPORT_TOKEN: {
                 curr = (token_t*)list_iter_next(&it);
                 curr_ctx.ttype = CALL_TOKEN;
                 while (curr->t_type != DELIMITER_TOKEN) {
+                    long import_scope;
+                    stack_top(&scope_stack, (void**)&import_scope);
                     if (curr->t_type != COMMA_TOKEN) {
-                        _add_variable(&vars, curr->body, scope_id_top(&scope_stack), &curr_ctx);
+                        _add_variable(&vars, curr->body, import_scope, &curr_ctx);
                     }
                     
                     curr = (token_t*)list_iter_next(&it);
@@ -226,7 +229,9 @@ int MRKP_variables(list_t* tkn) {
                         default: break;
                     }
 
-                    _add_variable(&vars, next->body, scope_id_top(&scope_stack), &curr_ctx);
+                    long var_scope;
+                    stack_top(&scope_stack, (void**)&var_scope);
+                    _add_variable(&vars, next->body, var_scope, &curr_ctx);
                 }
 
                 curr->flags.ro   = curr_ctx.ro;
@@ -246,22 +251,22 @@ int MRKP_variables(list_t* tkn) {
     }
 
     s_id = 0;
-    scope_reset(&scope_stack);
+    scope_stack.top = -1;
     
     int dref = 0;
     int ref  = 0;
     int neg  = 0;
     foreach(token_t* curr, tkn) {
         switch (curr->t_type) {
-            case OPEN_BLOCK_TOKEN:  scope_push(&scope_stack, ++s_id, 0); break;
-            case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack);             break;
-            case NEGATIVE_TOKEN:  neg  = 1; _remove_token(tkn, curr); continue;
-            case DREF_TYPE_TOKEN: dref = 1; _remove_token(tkn, curr); continue;
-            case REF_TYPE_TOKEN:  ref  = 1; _remove_token(tkn, curr); continue;
+            case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
+            case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
+            case NEGATIVE_TOKEN:  neg  = 1; _remove_token(tkn, curr);             continue;
+            case DREF_TYPE_TOKEN: dref = 1; _remove_token(tkn, curr);             continue;
+            case REF_TYPE_TOKEN:  ref  = 1; _remove_token(tkn, curr);             continue;
             case UNKNOWN_CHAR_TOKEN:
             case UNKNOWN_STRING_TOKEN: {
                 for (int s = scope_stack.top; s >= 0; s--) {
-                    int curr_s = scope_stack.data[s].id;
+                    short curr_s = (short)scope_stack.data[s].d;
                     foreach(variable_t* v, &vars) {
                         if (curr->body->equals(curr->body, v->name) && v->scope == curr_s) {
                             curr->t_type     = v->type;
@@ -289,6 +294,7 @@ _resolved: {}
         neg  = 0;
     }
 
+    stack_unload(&scope_stack);
     list_free_force(&vars);
     return 1;
 }
