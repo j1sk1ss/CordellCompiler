@@ -11,7 +11,7 @@ int stack_init(sstack_t* s) {
 
 int stack_push(sstack_t* s, void* data) {
     if (!s) return 0;
-    if (s->top + 1 >= s->capacity) {
+    if ((unsigned int)(s->top + 1) >= s->capacity) {
         s->capacity += STACK_INIT_CAPACITY;
         sstack_scope_t* ncap = (sstack_scope_t*)mm_realloc(
             s->data, 

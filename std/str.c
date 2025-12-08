@@ -10,21 +10,37 @@ unsigned int str_strlen(const char* str) {
     return len;
 }
 
+typedef struct {
+    unsigned int  size;
+    unsigned long hash;
+} string_info_t;
+
+static int _get_string_info(const char* s, int len, string_info_t* info) {
+    char* h = (char*)s;
+    info->size = 0;
+    info->hash = 0xFFFF;
+    while (
+        h && *h && (len == -1 || len-- > 0)
+    ) {
+        info->hash ^= *h * 0xFDDDF123;
+        info->size++;
+        h++;
+    }
+
+    return 1;
+}
+
 static int string_cat(str_self self, string_t* dst) {
     char* nbody = (char*)mm_realloc(self->body, self->size + dst->size + 1);
     if (!nbody) return 0;
 
     str_memcpy(nbody + self->size, dst->body, dst->size + 1);
 
-    char* h = nbody;
-    unsigned long hash = 0xFFFF;
-    while (*h) {
-        hash ^= *h * 0xFDDDF123;
-        h++;
-    }
+    string_info_t info;
+    _get_string_info(nbody, -1, &info);
 
     self->body = nbody;
-    self->hash = hash;
+    self->hash = info.hash;
     self->size += dst->size;
     return 1;
 }
@@ -202,7 +218,7 @@ static int string_equals(str_self self, string_t* s) {
 
 static int string_equals_raw(str_self self, const char* s) {
     if (!self || !s) return 0;
-    char *fh = self->body, *sh = s;
+    char *fh = self->body, *sh = (char*)s;
     while (*fh && *sh) {
         if (*fh != *sh) return 0;
         fh++;
@@ -212,12 +228,78 @@ static int string_equals_raw(str_self self, const char* s) {
     return *fh == *sh;
 }
 
-static unsigned int string_index_of(str_self self, char c) {
-    return 1;
+static int string_index_of(str_self self, char c) {
+    for (unsigned int i = 0; i < self->size; i++) {
+        if (self->body[i] == c) return i;
+    }
+
+    return -1;
 }
 
 static int string_replace(str_self self, const char* src, const char* dst) {
-    return 1;
+    unsigned int src_len = str_strlen(src);
+    unsigned int dst_len = str_strlen(dst);
+    char* s = self->body;
+
+    if (!src_len) return 0;
+    unsigned int count = 0;
+    unsigned int j = 0;
+    for (unsigned int i = 0; i < self->size; i++) {
+        if (s[i] != src[j]) j = 0;
+        else {
+            j++;
+            if (j == src_len) {
+                count++;
+                j = 0;
+            }
+        }
+    }
+
+    if (!count) return 0;
+    unsigned int new_size = self->size + count * (dst_len - src_len);
+    char* result = (char*)mm_malloc(new_size + 1);
+    if (!result) return -1;
+
+    unsigned int ri = 0;
+    j = 0;
+
+    for (unsigned int i = 0; i < self->size; i++) {
+        if (s[i] == src[j]) {
+            j++;
+            if (j == src_len) {
+                str_memcpy(result + ri, dst, dst_len);
+                ri += dst_len;
+                j = 0;
+            }
+        }
+        else {
+            if (j > 0) {
+                unsigned int k = i - j;
+                for (unsigned int t = 0; t < j; t++)
+                    result[ri++] = s[k + t];
+                j = 0;
+            }
+
+            result[ri++] = s[i];
+        }
+    }
+
+    if (j > 0) {
+        unsigned int k = self->size - j;
+        for (unsigned int t = 0; t < j; t++)
+            result[ri++] = s[k + t];
+    }
+
+    result[ri] = 0;
+    mm_free(self->body);
+    self->body = result;
+
+    string_info_t info;
+    _get_string_info(result, -1, &info);
+
+    self->hash = info.hash;
+    self->size = info.size;
+    return count;
 }
 
 static int string_move_head(str_self self, unsigned int offset) {
@@ -234,20 +316,12 @@ static string_t* _create_base_string(const char* s, unsigned int off, int len) {
     string_t* str = (string_t*)mm_malloc(sizeof(string_t));
     if (!str) return NULL;
 
-    char* h = (char*)s + off;
-    unsigned int size = 0;
-    unsigned long hash = 0xFFFF;
-    while (
-        h && *h && (len == -1 || len-- > 0)
-    ) {
-        hash ^= *h * 0xFDDDF123;
-        size++;
-        h++;
-    }
+    string_info_t info;
+    _get_string_info((char*)s + off, len, &info);
 
-    str->size = size;
-    str->hash = hash;
-    str->body = (char*)mm_malloc(size + 1);
+    str->size = info.size;
+    str->hash = info.hash;
+    str->body = (char*)mm_malloc(info.size + 1);
     if (!str->body) {
         mm_free(str);
         return NULL;
@@ -269,7 +343,7 @@ static string_t* _create_base_string(const char* s, unsigned int off, int len) {
     str->replace     = string_replace;
 
     str->head = str->body;
-    if (s) str_memcpy(str->body, s, size + 1);
+    if (s) str_memcpy(str->body, s, info.size + 1);
     return str;
 }
 

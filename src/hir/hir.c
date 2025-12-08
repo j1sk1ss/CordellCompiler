@@ -41,7 +41,7 @@ long HIR_hash_subject(hir_subject_t* s) {
         case HIR_I8NUMBER:
         case HIR_U8NUMBER:
         case HIR_NUMBER: {
-            const char* str = s->storage.num.value;
+            const char* str = s->storage.num.value->body;
             while (*str) h = _mix64(h ^ (unsigned char)(*str++));
             break;
         }
@@ -323,9 +323,9 @@ int HIR_unload_subject(hir_subject_t* s) {
         case HIR_I32NUMBER:
         case HIR_I16NUMBER:
         case HIR_I8NUMBER:
-        case HIR_NUMBER:  destroy_string(s->storage.num.value);                       break;
-        case HIR_PHISET:  set_free_force(&s->storage.set.h);                          break;
-        case HIR_ARGLIST: list_free_force_op(&s->storage.list.h, HIR_unload_subject); break;
+        case HIR_NUMBER:  destroy_string(s->storage.num.value);                                       break;
+        case HIR_PHISET:  set_free_force(&s->storage.set.h);                                          break;
+        case HIR_ARGLIST: list_free_force_op(&s->storage.list.h, (int (*)(void*))HIR_unload_subject); break;
         default: break;
     }
     

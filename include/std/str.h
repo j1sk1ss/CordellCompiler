@@ -26,7 +26,7 @@ typedef struct string {
     int                (*requals)(str_self, const char*);
     int                (*cat)(str_self, struct string*);
     struct string*     (*fchar)(str_self, char);
-    unsigned int       (*index_of)(str_self, char);
+    int                (*index_of)(str_self, char);
     double             (*to_double)(str_self);
     long long          (*to_llong)(str_self);
     unsigned long long (*to_ullong)(str_self, int);

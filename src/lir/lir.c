@@ -137,8 +137,8 @@ int LIR_unlink_block(lir_block_t* block) {
 int LIR_unload_subject(lir_subject_t* s) {
     if (!s) return 0;
     switch (s->t) {
-        case LIR_NUMBER:  destroy_string(s->storage.num.value);                       break;
-        case LIR_ARGLIST: list_free_force_op(&s->storage.list.h, LIR_unload_subject); break;
+        case LIR_NUMBER:  destroy_string(s->storage.num.value);                                       break;
+        case LIR_ARGLIST: list_free_force_op(&s->storage.list.h, (int (*)(void*))LIR_unload_subject); break;
         default: break;
     }
     

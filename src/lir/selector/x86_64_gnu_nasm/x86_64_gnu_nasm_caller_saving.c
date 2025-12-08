@@ -18,7 +18,7 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
 }
 
 static unsigned int _visit_counter = 0;
-static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, long pred, cfg_block_t* bbh, lir_block_t* off) {
+static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
     if (!bbh || !set_size(dirty)) return 0;
     if (bbh->visited != _visit_counter) bbh->visited = _visit_counter;
     else return 0;
@@ -40,8 +40,8 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, long pred,
     }
 
     if (
-        _collect_out_function_reg_usage(dirty, save, bbh->id, bbh->l, off) || 
-        _collect_out_function_reg_usage(dirty, save, bbh->id, bbh->jmp, off)
+        _collect_out_function_reg_usage(dirty, save, bbh->l, off) || 
+        _collect_out_function_reg_usage(dirty, save, bbh->jmp, off)
     ) return 1;
     return 0;
 }
@@ -67,7 +67,7 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
                     
                     _visit_counter++;
                     _collect_in_function_reg_usage(&in_regs, _find_function(lh->farg->storage.str.sid, cctx));
-                    _collect_out_function_reg_usage(&in_regs, &save_regs, -1, bb, lh);
+                    _collect_out_function_reg_usage(&in_regs, &save_regs, bb, lh);
 
                     set_iter_t sit;
                     set_iter_init(&save_regs, &sit);

@@ -1,30 +1,30 @@
 #include <std/mem.h>
 
 void* str_memcpy(void* dst, const void* src, unsigned long n) {
-    unsigned int num_dwords = n / 4;
-    unsigned int num_bytes  = n % 4;
-    unsigned int* dest32 = (unsigned int*)dst;
-    unsigned int* src32  = (unsigned int*)src;
-    unsigned char* dest8 = ((unsigned char*)dst) + num_dwords * 4;
-    unsigned char* src8  = ((unsigned char*)src) + num_dwords * 4;
-    unsigned int i = 0;
+    unsigned int num_dwords  = n / 4;
+    unsigned int num_bytes   = n % 4;
+    unsigned int* dest_dword = (unsigned int*)dst;
+    unsigned int* src_dword  = (unsigned int*)src;
+    unsigned char* dest_byte = ((unsigned char*)dst) + num_dwords * 4;
+    unsigned char* src_byte  = ((unsigned char*)src) + num_dwords * 4;
 
-    for (i = 0; i < num_dwords; i++) dest32[i] = src32[i];
-    for (i = 0; i < num_bytes; i++) dest8[i] = src8[i];
+    unsigned int i = 0;
+    for (i = 0; i < num_dwords; i++) dest_dword[i] = src_dword[i];
+    for (i = 0; i < num_bytes; i++) dest_byte[i] = src_byte[i];
     return dst;
 }
 
 void* str_memset(void* ptr, unsigned char v, unsigned long n) {
-    unsigned int num_dwords = n / 4;
-    unsigned int num_bytes  = n % 4;
-    unsigned int* dest32 = (unsigned int*)ptr;
-    unsigned char* dest8 = ((unsigned char*)ptr) + num_dwords * 4;
-    unsigned char val8   = (unsigned char)v;
-    unsigned int val32   = v | (v << 8) | (v << 16) | (v << 24);
-    unsigned int i = 0;
+    unsigned int num_dwords  = n / 4;
+    unsigned int num_bytes   = n % 4;
+    unsigned int* dest_dword = (unsigned int*)ptr;
+    unsigned char* dest_byte = ((unsigned char*)ptr) + num_dwords * 4;
+    unsigned int val_dword   = v | (v << 8) | (v << 16) | (v << 24);
+    unsigned char val_byte   = (unsigned char)v;
 
-    for (i = 0; i < num_dwords; i++) dest32[i] = val32;
-    for (i = 0; i < num_bytes; i++) dest8[i] = val8;
+    unsigned int i = 0;
+    for (i = 0; i < num_dwords; i++) dest_dword[i] = val_dword;
+    for (i = 0; i < num_bytes; i++) dest_byte[i] = val_byte;
     return ptr;
 }
 

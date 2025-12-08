@@ -25,12 +25,12 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
         }
 
         case LIR_LABEL: {
-            snprintf(curr_buffer, sizeof(_buffers[0]), "lb%i", v->storage.lb.lb_id);
+            snprintf(curr_buffer, sizeof(_buffers[0]), "lb%li", v->storage.lb.lb_id);
             return curr_buffer;
         }
 
         case LIR_STRING: {
-            snprintf(curr_buffer, sizeof(_buffers[0]), "[rel _str_%d_]", v->storage.str.sid);
+            snprintf(curr_buffer, sizeof(_buffers[0]), "[rel _str_%ld_]", v->storage.str.sid);
             return curr_buffer;
         }
 
