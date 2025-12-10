@@ -117,115 +117,61 @@ case HIR_IFLGEOP: x86_64_generate_ifop(ctx, h, smt); break;
 ```
 
 ## LIR x86_64 example
+From the HIR we can produce a high level of the LIR:
 ```
-FDCL func [id=0]
-iMOV R13D, EDI
-iMOV R12D, ESI
-iMOV [RBP - 8], R12D
-iMOV [RBP - 4], R13D
-iMOV RAX, 0
-iMUL RAX, 4
-REF RBX, [RBP - 8]
-iADD RAX, RBX
-GDREF RAX, RAX
-iMOV R11D, EAX
-iMOV RAX, 1
-iMUL RAX, 4
-REF RBX, [RBP - 8]
-iADD RAX, RBX
-GDREF RAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, R11D
-iADD RAX, RBX
-iMOV R11D, EAX
-FRET R11D
-STRT
-iMOV RAX, [RBP + 8]
-iMOV R13, RAX
-REF RAX, [RBP + 16]
-iMOV R13, RAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 8], EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 16], EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 24], EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV R15D, EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV R14D, EAX
-iMOV RAX, 10
-iMOV EAX, RAX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV [RBP - 32], EAX
-PUSH R11
-PUSH R12
-PUSH R13
-PUSH R14
-PUSH R15
-iMOV EDI, [RBP - 16]
-iMOV ESI, [RBP - 8]
-FCLL func [id=41]
-iMOV R13D, EAX
-POP R15
-POP R14
-POP R13
-POP R12
-POP R11
-iMOV EAX, [RBP - 8]
-iMOV EBX, [RBP - 16]
-iMUL RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, [RBP - 24]
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, R15D
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, R14D
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R11D
-iMOV EBX, [RBP - 32]
-iADD RAX, RBX
-iMOV R11D, EAX
-iMOV EAX, R13D
-iMOV EBX, R11D
-iCMP RAX, RBX
-iMVZX RAX, AL
-iMOV R11D, EAX
-iCMP R11D, 0
-JNE lb: [vid=73]
-EXITOP 1
-MKLB lb: [vid=73]
-REF EAX, [RBP - 32]
-iMOV R12, RAX
-iMOV RAX, R12
-iMOV EAX, RAX
-iMOV R12D, EAX
-iMOV EAX, R12D
-iMOV R11D, EAX
-EXITOP R11D
+fn strlen(i8* s) -> i64
+{
+    %12 = ldparam();
+    {
+        kill(cnst: 0);
+        kill(cnst: 1);
+        %13 = num: 0;
+        %14 = %13;
+        %8 = num: 1 as u64;
+        lb10:
+        %6 = *(%15);
+        cmp %6, cnst: 0;
+        jne lb11;
+        je lb12;
+        lb11:
+        {
+            %7 = %15 + %8;
+            %16 = %7;
+            %9 = %14 + num: 1;
+            %17 = %9;
+        }
+        %14 = %17;
+        %15 = %16;
+        jmp lb10;
+        lb12:
+        return %14;
+    }
+}
+kill(cnst: 14);
+
+start {
+    {
+        %18 = strt_loadarg();
+        %19 = strt_loadarg();
+        {
+            %4 = str_alloc(str(Hello world!));
+            %5 = arr_alloc(X);
+            %10 = &(%5);
+            kill(cnst: 3);
+            kill(cnst: 18);
+            kill(cnst: 4);
+            kill(cnst: 19);
+            kill(cnst: 10);
+            kill(cnst: 5);
+            kill(cnst: 2);
+            stparam(%10);
+            call strlen(i8* s) -> i64;
+            %11 = fret();
+            exit %11;
+        }
+    }
+    kill(cnst: 11);
+}
 ```
 
 # LIR x86_64 optimization

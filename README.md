@@ -550,8 +550,7 @@ Now we can determine which variables can share the same register using graph col
 ### Third pass
 
 ### LIR example
-
-From HIR we can produce high level of LIR
+From the HIR we can produce a high level of the LIR:
 
 ```
 fn strlen(i8* s) -> i64

@@ -312,12 +312,12 @@ static int _apply_schedule(cfg_block_t* bb, list_t* scheduled) {
     lir_block_t* prev = NULL;
     foreach(instructions_dag_node_t* nd, scheduled) {
         if (prev) {
-            HIR_CFG_remove_lir_block(bb, nd->b);
+            if (bb->lmap.entry == nd->b) {
+                bb->lmap.entry = prev;
+            }
+
             LIR_unlink_block(nd->b);
             LIR_insert_block_after(nd->b, prev);
-            if (bb->lmap.exit == prev) {
-                bb->lmap.exit = nd->b;
-            }
         }
 
         prev = nd->b;

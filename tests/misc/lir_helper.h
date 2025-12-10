@@ -113,7 +113,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
 
 static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) {
     if (!s) return dst;
-    // dst += sprintf(dst, "t=%i ", s->t); 
+    // dst += sprintf(dst, "addr=%p ", s); 
     switch (s->t) {
         case LIR_MEMORY: {
             long off = s->storage.var.offset;

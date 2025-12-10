@@ -176,9 +176,17 @@ static int _recursive_cleanup(
 
     lir_block_t* lh = off ? off : bbh->lmap.entry;
     while (lh) {
-        if (lh->op == LIR_aMOV) return 0;
-        if (LIR_readop(lh->op) && (LIR_subj_equals(lh->sarg, trg) || LIR_subj_equals(lh->targ, trg))) return 0;
+        if (
+            lh->op == LIR_aMOV ||
+            (
+                LIR_readop(lh->op) && (
+                    LIR_subj_equals(lh->sarg, trg) || 
+                    LIR_subj_equals(lh->targ, trg)
+                )
+            )
+        ) goto _skip_instruction;
         if (lh != ign && lh->op == op && LIR_subj_equals(lh->farg, trg)) return 1;
+_skip_instruction: {}
         if (lh == bbh->lmap.exit) break;
         lh = lh->next;
     }
@@ -192,7 +200,6 @@ static int _recursive_cleanup(
 
 static int _cleanup_pass(cfg_block_t* bb) {
     if (!bb) return 0;
-
     lir_block_t* lh = bb->lmap.entry;
     while (lh) {
         if (lh == bb->lmap.exit) break;
