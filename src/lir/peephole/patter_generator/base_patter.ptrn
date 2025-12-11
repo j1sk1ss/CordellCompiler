@@ -1,0 +1,56 @@
+; ; ======
+; ; MOV optimizations
+; ; ======
+; 
+; mov areg_1, areg_1
+; ->
+; delete
+; /
+; 
+; mov areg_1, const 0
+; ->
+; xor areg_1, areg_1
+; /
+; 
+mov areg_1, areg_2
+mov areg_2, areg_1
+->
+mov areg_1, areg_2
+/
+; 
+; ; ======
+; ; MUL optimizations
+; ; ======
+; 
+; mul obj, const 0
+; ->
+; mov obj, const 0
+; / 
+; 
+; ; ======
+; ; ADD optimizations
+; ; ======
+; 
+; add obj, const 0
+; ->
+; delete
+; /
+
+add areg_1, aconst_2 [if:arg2:mod2]
+->
+shr areg_1, aconst_2 [do:arg2:sqrt2]
+; /
+
+; ; ======
+; ; SUB optimizations
+; ; ======
+; 
+; sub obj, const 0
+; ->
+; delete
+; /
+; 
+; sub aconst_1, obj
+; ->
+; delete
+; /

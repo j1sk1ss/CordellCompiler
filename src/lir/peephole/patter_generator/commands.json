@@ -1,0 +1,70 @@
+{
+    "mapping": {
+        "mov":      [ "LIR_iMOV", "LIR_fMOV", "LIR_aMOV" ],
+        "add":      [ "LIR_iADD" ],
+        "sub":      [ "LIR_iSUB" ],
+        "mul":      [ "LIR_iMUL" ],
+        "div":      [ "LIR_iDIV" ],
+        "mod":      [ "LIR_iMOD" ],
+        "shl":      [ "LIR_bSHL" ],
+        "shr":      [ "LIR_bSHR" ],
+        "and":      [ "LIR_bAND" ],
+        "or":       [ "LIR_bOR" ],
+        "xor":      ["LIR_bXOR" ],
+        "cmp":      [ "LIR_iCMP", "LIR_CMP" ],
+        "test":     [ "LIR_TST" ],
+        "not":      [ "LIR_NOT" ],
+        "lea":      [ "LIR_REF" ],
+        "cvt":      [ "LIR_CVTSS2SD", "LIR_CVTSD2SS", "LIR_CVTTSS2SI", "LIR_CVTTSD2SI" ],
+        "cvtsi2ss": [ "LIR_CVTSI2SS" ],
+        "cvtsi2sd": [ "LIR_CVTSI2SD" ],
+        "movsx":    [ "LIR_MOVSX" ],
+        "movzx":    [ "LIR_MOVZX" ],
+        "movsxd":   [ "LIR_MOVSXD" ],
+        "fadd":     [ "LIR_fADD" ],
+        "fsub":     [ "LIR_fSUB" ],
+        "fmul":     [ "LIR_fMUL" ],
+        "fdiv":     [ "LIR_fDIV" ],
+        "fcmp":     [ "LIR_fCMP" ],
+        "lwr":      [ "LIR_iLWR" ],
+        "lre":      [ "LIR_iLRE" ],
+        "lrg":      [ "LIR_iLRG" ],
+        "lge":      [ "LIR_iLGE" ],
+        "nmp":      [ "LIR_iNMP" ],
+        "sete":     [ "LIR_SETE" ],
+        "setne":    [ "LIR_STNE" ],
+        "setl":     [ "LIR_SETL" ],
+        "setg":     [ "LIR_SETG" ],
+        "setle":    [ "LIR_STLE" ],
+        "setge":    [ "LIR_STGE" ],
+        "setb":     [ "LIR_SETB" ],
+        "seta":     [ "LIR_SETA" ],
+        "setbe":    [ "LIR_STBE" ],
+        "setae":    [ "LIR_STAE" ]
+    },
+    "functions": {
+        "atoi": "peephole_get_long_number",
+        "sqrt": "peephole_get_sqrt_number",
+        "equals": "LIR_subj_equals"
+    },
+    "conditions": {
+        "mod2": "!(peephole_get_long_number(%) & 1)",
+        "power2": "!(peephole_get_long_number(%) & (peephole_get_long_number(%) - 1))",
+        "zero": "!peephole_get_long_number(%)",
+        "one": "peephole_get_long_number(%)",
+        "equals": "LIR_subj_equals(%, %)",
+        "const_zero": "!peephole_get_long_number(%)",
+        "const_one": "peephole_get_long_number(%)"
+    },
+    "actions": {
+        "sqrt2": "% = LIR_SUBJ_CONST(peephole_get_sqrt_number(%));"
+    },
+    "types": {
+        "aconst": [ "LIR_NUMBER", "LIR_CONST" ],
+        "const": [ "LIR_NUMBER", "LIR_CONST" ],
+        "reg": [ "LIR_REGISTER" ],
+        "areg": [ "LIR_REGISTER" ],
+        "mem": [ "LIR_MEMORY" ],
+        "obj": [ "LIR_REGISTER", "LIR_NUMBER", "LIR_CONST", "LIR_MEMORY" ]
+    }
+}
