@@ -1,5 +1,6 @@
 import json
 
+from ordered_set import OrderedSet
 from typing import List, Dict
 from src.pattern import (
     Operand, OperandType, Instruction, Pattern
@@ -79,12 +80,12 @@ class CodeGenerator:
     
     def _apply_condact_template(self, template: str, *args: str) -> str:
         result = template
-        for arg in args:
-            result = result.replace("%", arg)
+        for i, arg in enumerate(args, start=1):
+            result = result.replace(f"%{i}", arg)
         return result
-    
+
     def _generate_pattern_condition(self, pattern: Pattern) -> str:
-        conditions: list = []
+        conditions: OrderedSet = OrderedSet()
         if not pattern.match:
             return ""
         
@@ -93,11 +94,11 @@ class CodeGenerator:
                 base_ptr = "lh"
             else:
                 base_ptr = f"lh->{'->next->' * (i-1)}next"
-                conditions.append(f"{base_ptr}")
+                conditions.add(f"{base_ptr}")
             
             instr_cond = self._generate_instruction_condition(instr, base_ptr)
             if instr_cond != "1":
-                conditions.append(f"({instr_cond})")
+                conditions.add(f"({instr_cond})")
         
         all_var_maps: list[dict[str, str]] = []
         for i, instr in enumerate(pattern.match):
@@ -107,13 +108,13 @@ class CodeGenerator:
                 if op.conditions:
                     for conds in op.conditions:
                         base: str = self.gen_info.get("conditions").get(conds.get("value"))
-                        conditions.append(self._apply_condact_template(base, all_var_maps[-1].get(op.var_name)))
+                        conditions.add(self._apply_condact_template(base, *all_var_maps[-1].values()))
         
         var_to_ptr: dict = {}
         for i, var_map in enumerate(all_var_maps):
             for var_name, ptr in var_map.items():
                 if var_name in var_to_ptr:
-                    conditions.append(f"{self.gen_info.get("functions").get("equals")}({ptr}, {var_to_ptr[var_name]})")
+                    conditions.add(f"{self.gen_info.get("functions").get("equals")}({ptr}, {var_to_ptr[var_name]})")
                 else:
                     var_to_ptr[var_name] = ptr
         
@@ -128,12 +129,12 @@ class CodeGenerator:
                 if op.actions:
                     for acts in op.actions:
                         base: str = self.gen_info.get("actions").get(acts.get("value"))
-                        action_lines.append(self._apply_condact_template(base, vars_map.get(op.var_name)))
+                        action_lines.append(self._apply_condact_template(base, *vars_map.values()))
     
         return action_lines
     
     def _generate_pattern_action(self, pattern: Pattern) -> list[str]:
-        action_lines = []
+        action_lines: list = []
         if not pattern.replace:
             return action_lines
         
@@ -164,10 +165,13 @@ class CodeGenerator:
                 break
             
             if operand.var_name and operand.var_name in var_map:
-                action_lines.append(f"{arg_ptr} = {var_map[operand.var_name]};")
+                if arg_ptr != var_map[operand.var_name]:
+                    action_lines.append(f"{self.gen_info.get("functions").get("free")}({arg_ptr});")
+                    action_lines.append(f"{arg_ptr} = {var_map[operand.var_name]};")
             elif operand.type == OperandType.CONST and operand.value:
                 try:
                     value = int(operand.value)
+                    action_lines.append(f"{self.gen_info.get("functions").get("free")}({arg_ptr});")
                     action_lines.append(f"{arg_ptr} = LIR_SUBJ_CONST({value});")
                 except ValueError:
                     pass
@@ -189,9 +193,8 @@ class CodeGenerator:
             print(f"Warning: unknown mnemonic {first_instr.mnemonic}")
             return result
         
-        condition = self._generate_pattern_condition(pattern)
-        action = self._generate_pattern_action(pattern)
-        
+        condition: str = self._generate_pattern_condition(pattern)
+        action: list[str] = self._generate_pattern_action(pattern)
         if not action:
             return result
         
@@ -202,8 +205,8 @@ class CodeGenerator:
         
         for line in action:
             code += f"    {line}\n"
+            
         code += "}"
-        
         for lir_opcode in lir_opcodes:
             if lir_opcode not in result:
                 result[lir_opcode] = []
@@ -223,7 +226,7 @@ class CodeGenerator:
         result: str = """
 /* This is a generated code. Don't change it, use the main.py instead. */
 #include <lir/peephole/peephole.h>
-static int _first_pass(cfg_block_t* bb) {
+int peephole_first_pass(cfg_block_t* bb) {
     lir_block_t* lh = bb->lmap.entry;
     while (lh) {
         switch (lh->op) {

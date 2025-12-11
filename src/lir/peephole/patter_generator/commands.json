@@ -45,19 +45,18 @@
     "functions": {
         "atoi": "peephole_get_long_number",
         "sqrt": "peephole_get_sqrt_number",
-        "equals": "LIR_subj_equals"
+        "equals": "LIR_subj_equals",
+        "free": "LIR_unload_subject"
     },
     "conditions": {
-        "mod2": "!(peephole_get_long_number(%) & 1)",
-        "power2": "!(peephole_get_long_number(%) & (peephole_get_long_number(%) - 1))",
-        "zero": "!peephole_get_long_number(%)",
-        "one": "peephole_get_long_number(%)",
-        "equals": "LIR_subj_equals(%, %)",
-        "const_zero": "!peephole_get_long_number(%)",
-        "const_one": "peephole_get_long_number(%)"
+        "mod2": "!(peephole_get_long_number(%1) & 1)",
+        "power2": "!(peephole_get_long_number(%1) & (peephole_get_long_number(%1) - 1))",
+        "zero": "!peephole_get_long_number(%1)",
+        "one": "peephole_get_long_number(%1)",
+        "equals": "LIR_subj_equals(%1, %2)"
     },
     "actions": {
-        "sqrt2": "% = LIR_SUBJ_CONST(peephole_get_sqrt_number(%));"
+        "sqrt2": "LIR_unload_subject(%1);\n    %1 = LIR_SUBJ_CONST(peephole_get_sqrt_number(%2));"
     },
     "types": {
         "aconst": [ "LIR_NUMBER", "LIR_CONST" ],

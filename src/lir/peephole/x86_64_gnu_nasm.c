@@ -1,118 +1,5 @@
 #include <lir/peephole/x84_64_gnu_nasm.h>
 
-static inline long _get_long_number(lir_subject_t* s) {
-    switch (s->t) {
-        case LIR_CONSTVAL: return s->storage.cnst.value;
-        case LIR_NUMBER:   return s->storage.num.value->to_llong(s->storage.num.value);
-        default: return 0;
-    }
-}
-
-static int _first_pass(cfg_block_t* bb) {
-    lir_block_t* lh = bb->lmap.entry;
-    while (lh) {
-        switch (lh->op) {
-            case LIR_CVTSS2SD:
-            case LIR_CVTSD2SS:
-            case LIR_CVTTSS2SI:
-            case LIR_CVTTSD2SI: if (LIR_subj_equals(lh->farg, lh->sarg)) lh->unused = 1;
-            case LIR_bOR:
-            case LIR_iLWR:
-            case LIR_iLRE:
-            case LIR_iLRG:
-            case LIR_iLGE:
-            case LIR_iCMP:
-            case LIR_iNMP:
-            case LIR_bXOR:
-            case LIR_bAND:
-            case LIR_iMOD: {
-                if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
-                break;
-            }
-
-            case LIR_fMOV:
-            case LIR_aMOV:
-            case LIR_iMOV: 
-            case LIR_MOVSX:
-            case LIR_MOVZX:
-            case LIR_MOVSXD: {
-                if (LIR_subj_equals(lh->farg, lh->sarg)) lh->unused = 1;
-                if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
-                if (lh->farg->t != LIR_REGISTER) break;
-                if (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) {
-                    if (!_get_long_number(lh->sarg)) {
-                        lh->op = LIR_bXOR;
-                        LIR_unload_subject(lh->sarg);
-                        LIR_unload_subject(lh->targ);
-                        lh->sarg = lh->farg;
-                        lh->targ = lh->farg;
-                    }
-                }
-
-                break;
-            }
-
-            case LIR_CMP: {
-                if (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) {
-                    if (lh->farg->t != LIR_REGISTER) break;
-                    if (!_get_long_number(lh->sarg)) {
-                        lh->op = LIR_TST;
-                        LIR_unload_subject(lh->sarg);
-                        lh->sarg = lh->farg;
-                    }
-                }
-
-                break;
-            }
-
-            case LIR_iSUB:
-            case LIR_iADD: {
-                if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
-                if (LIR_subj_equals(lh->sarg, lh->targ)) {
-                    lh->op = lh->op == LIR_iSUB ? LIR_bXOR : LIR_bSHL;
-                    LIR_unload_subject(lh->targ);
-                    lh->targ = lh->op == LIR_iSUB ? lh->sarg : LIR_SUBJ_CONST(1);
-                    break;
-                }
-
-                if (lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) {
-                    if (!_get_long_number(lh->targ)) lh->unused = 1;
-                }
-
-                break;
-            }
-
-            case LIR_iDIV:
-            case LIR_iMUL: {
-                if (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) lh->unused = 1;
-                else if (lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) {
-                    int rval = _get_long_number(lh->targ);
-                    if (rval == 1) lh->unused = 1;
-                    else if (!(rval & (rval - 1))) {
-                        int shift = 0;
-                        while (rval >>= 1) {
-                            shift++;
-                        }
-                        
-                        lh->op = (lh->op == LIR_iMUL) ? LIR_bSHL : LIR_bSHR;
-                        LIR_unload_subject(lh->targ);
-                        lh->targ = LIR_SUBJ_CONST(shift);
-                    }
-                }
-                
-                break;
-            }
-
-            default: break;
-        }
-
-        if (lh == bb->lmap.exit) break;
-        lh = lh->next;
-    }
-
-    return 1;
-}
-
 static inline int _check_home(lir_block_t* h, lir_subject_t* s) {
     lir_subject_t* args[] = { h->farg, h->sarg, h->targ };
     for (int i = 0; i < 3; i++) {
@@ -220,7 +107,6 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx) {
     foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach(cfg_block_t* bb, &fb->blocks) {
-            _first_pass(bb);
             _second_pass(bb);
             _cleanup_pass(bb);
         }
