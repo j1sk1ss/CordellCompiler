@@ -1,5 +1,6 @@
 # Cordell Compiler
 Cordell Compiler is a compact hobby compiler for the `Cordell Programming Language` with a simple syntax, inspired by C and Rust. It is designed for studying compilation, code optimization, translation, and low-level microcode generation.
+- *This README still in work*
 
 # Main idea of this project
 Main goal of this project is learning of compilers architecture and porting one to the `CordellOS` project (I just want to code apps for `my` OS inside `my` OS). Also, according to my bias to `assembly` and `C` languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison, etc).
@@ -55,6 +56,7 @@ This `README` file contains the main information about this compiler and the dev
 - [Register allocation part](#register-allocation-part)
    - [Graph coloring](#graph-coloring)
 - [LIR peephole optimization](#lir-peephole-optimization)
+   - [PTRN domain specific language](#ptrn-domain-specific-language)
    - [First pass](#first-pass)
    - [Second pass](#second-pass)
    - [Third pass](#third-pass)
@@ -545,6 +547,7 @@ Now we can determine which variables can share the same register using graph col
 ![colored_ig](docs/media/colored_ig.png)
 
 ## LIR peephole optimization
+### PTRN domain specific language
 ### First pass
 ### Second pass
 ### Third pass
