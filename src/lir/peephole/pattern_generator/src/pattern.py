@@ -27,9 +27,9 @@ class Operand:
             result.append(f"{self.type.value} {self.value}" if self.value else self.type.value)
         
         if self.conditions:
-            result.append(f"[if:{','.join(self.conditions)}]")
+            result.append(f"[if:{self.conditions}]")
         if self.actions:
-            result.append(f"[act:{','.join(self.actions)}]")
+            result.append(f"[act:{self.actions}]")
         
         return " ".join(result)
 

@@ -261,6 +261,7 @@
             "src/lir/regalloc/*.c",
             "src/lir/regalloc/gc/*.c",
             "src/lir/peephole/*.c",
+            "src/lir/peephole/pattern_generator/peephole_generated.c",
             "std/*.c"
         ]
     },
@@ -291,6 +292,7 @@
             "src/lir/selector/x86_64_gnu_nasm/*.c",
             "src/lir/instplan/*.c",
             "src/lir/peephole/*.c",
+            "src/lir/peephole/pattern_generator/peephole_generated.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
             "src/lir/regalloc/*.c",
@@ -326,6 +328,7 @@
             "src/lir/selector/x86_64_gnu_nasm/*.c",
             "src/lir/instplan/*.c",
             "src/lir/peephole/*.c",
+            "src/lir/peephole/pattern_generator/peephole_generated.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",
             "src/lir/regalloc/*.c",

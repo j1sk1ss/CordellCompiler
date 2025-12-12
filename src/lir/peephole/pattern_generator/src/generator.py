@@ -1,7 +1,6 @@
 import json
 
 from ordered_set import OrderedSet
-from typing import List, Dict
 from src.pattern import (
     Operand, OperandType, Instruction, Pattern
 )
@@ -9,8 +8,8 @@ from src.pattern import (
 class CodeGenerator:    
     def __init__(self, patterns: list[Pattern], path: str = "commands.json"):
         self.patterns = patterns
-        self.generated_code: Dict[str, List[str]] = {}
-        self.var_map: Dict[str, str] = {}
+        self.generated_code: dict[str, list[str]] = {}
+        self.var_map: dict[str, str] = {}
         
         with open(path, 'r') as f:
             self.gen_info: dict = json.load(f)
@@ -21,9 +20,12 @@ class CodeGenerator:
             for lir in lirs:
                 self.LIR_TO_PTRN[lir] = ptrn
     
-    def _setup_var_map_for_instruction(self, instr: Instruction, base_ptr: str = "lh") -> Dict[str, str]:
+    def _setup_var_map_for_instruction(self, instr: Instruction, base_ptr: str = "lh") -> dict[str, str]:
         var_map = {}
         for i, operand in enumerate(instr.operands):
+            if not operand:
+                continue
+            
             if operand.var_name:
                 if i == 0:
                     var_map[operand.var_name] = f"{base_ptr}->farg"
@@ -62,6 +64,9 @@ class CodeGenerator:
     def _generate_instruction_condition(self, instr: Instruction, base_ptr: str = "lh") -> str:
         conditions = []
         for i, operand in enumerate(instr.operands):
+            if not operand:
+                continue
+            
             if i == 0:
                 arg_name = f"{base_ptr}->farg"
             elif i == 1:
@@ -76,7 +81,7 @@ class CodeGenerator:
                 conditions.append(f"{arg_name}")
                 conditions.append(cond)
         
-        return " && ".join(conditions) if conditions else "1"
+        return " &&\n".join(conditions) if conditions else "1"
     
     def _apply_condact_template(self, template: str, *args: str) -> str:
         result = template
@@ -93,7 +98,7 @@ class CodeGenerator:
             if i == 0:
                 base_ptr = "lh"
             else:
-                base_ptr = f"lh->{'->next->' * (i-1)}next"
+                base_ptr = f"{self.gen_info.get("functions").get("next")}(lh, bb->lmap.exit, {i})"
                 conditions.add(f"{base_ptr}")
             
             instr_cond = self._generate_instruction_condition(instr, base_ptr)
@@ -102,10 +107,14 @@ class CodeGenerator:
         
         all_var_maps: list[dict[str, str]] = []
         for i, instr in enumerate(pattern.match):
-            base_ptr = "lh" if i == 0 else f"lh->{'->next->' * (i - 1)}next"
+            if not instr.operands:
+                continue
+            
+            base_ptr = "lh" if i == 0 else f"{self.gen_info.get("functions").get("next")}(lh, bb->lmap.exit, {i})"
             all_var_maps.append(self._setup_var_map_for_instruction(instr, base_ptr))
+            
             for op in instr.operands:
-                if op.conditions:
+                if op and op.conditions:
                     for conds in op.conditions:
                         base: str = self.gen_info.get("conditions").get(conds.get("value"))
                         conditions.add(self._apply_condact_template(base, *all_var_maps[-1].values()))
@@ -118,15 +127,18 @@ class CodeGenerator:
                 else:
                     var_to_ptr[var_name] = ptr
         
-        return " && ".join(conditions) if conditions else "1"
+        return " &&\n".join(conditions) if conditions else "1"
     
     def _apply_actions(self, pattern: Pattern) -> None:
         action_lines: list = []
         for i, instr in enumerate(pattern.replace):
-            base_ptr = "lh" if i == 0 else f"lh->{'->next->' * (i - 1)}next"
+            if not instr.operands:
+                continue
+            
+            base_ptr = "lh" if i == 0 else f"{self.gen_info.get("functions").get("next")}(lh, bb->lmap.exit, {i})"
             vars_map: dict[str, str] = self._setup_var_map_for_instruction(instr, base_ptr)
             for op in instr.operands:
-                if op.actions:
+                if op and op.actions:
                     for acts in op.actions:
                         base: str = self.gen_info.get("actions").get(acts.get("value"))
                         action_lines.append(self._apply_condact_template(base, *vars_map.values()))
@@ -143,7 +155,9 @@ class CodeGenerator:
                 if i == 0:
                     action_lines.append("lh->unused = 1;")
                 else:
-                    action_lines.append(f"lh->{'->next->' * (i - 1)}next->unused = 1;")
+                    action_lines.append(
+                        f"{self.gen_info.get("functions").get("next")}(lh, bb->lmap.exit, {i})->unused = 1;"
+                    )
             return action_lines
         
         replace_instr: Instruction = pattern.replace[0]
@@ -155,6 +169,9 @@ class CodeGenerator:
         var_map = self._setup_var_map_for_instruction(pattern.match[0], "lh")
         
         for i, operand in enumerate(replace_instr.operands):
+            if not operand:
+                continue
+            
             if i == 0:
                 arg_ptr = "lh->farg"
             elif i == 1:
@@ -177,7 +194,7 @@ class CodeGenerator:
                     pass
         
         for i in range(1, len(pattern.match)):
-            action_lines.append(f"lh->{'->next->' * (i - 1)}next->unused = 1;")
+            action_lines.append(f"{self.gen_info.get("functions").get("next")}(lh, bb->lmap.exit, {i})->unused = 1;")
         
         action_lines.extend(self._apply_actions(pattern))
         return action_lines
@@ -262,8 +279,7 @@ int peephole_first_pass(cfg_block_t* bb) {
         result += """            default: break;
         }
 
-        if (lh == bb->lmap.exit) break;
-        lh = lh->next;
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 
     return 1;

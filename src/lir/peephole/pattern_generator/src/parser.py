@@ -1,11 +1,18 @@
 import re
+import json
+
 from src.pattern import (
     Operand, OperandType, Instruction, Pattern
 )
 
-class PTRNParser:        
+class PTRNParser:
+    def __init__(self, config: str = "commands.json") -> None:
+        with open(config) as f:
+            self.parse_info: dict = json.load(f)
+    
     def _extract_brackets(self, line: str) -> tuple[str, list[dict], str]:
-        match = re.search(r'\[(if|do):([^\]]+)\]\s*$', line)
+        line: str = line.split(';')[0].strip()
+        match: re.Match[str] | None = re.search(r'\[(if|do):([^\]]+)\]\s*$', line)
         if not match:
             return line, [], ""
         
@@ -127,6 +134,9 @@ class PTRNParser:
         mnemonic = mnemonic.lower()
         
         operands = []
+        for _ in range(self.parse_info.get("used_args").get(mnemonic)):
+            operands.append(None)
+        
         for op_text in ops_part.split(","):
             operands.append(self._parse_operand(op_text.strip()))
         
@@ -159,6 +169,9 @@ class PTRNParser:
             if item.get("target", None):
                 found: bool = False
                 for idx, operand in enumerate(instruction.operands):
+                    if not operand:
+                        continue
+                    
                     if operand.var_name == item['target'] or f"arg{idx + 1}" == item['target']:
                         if is_do:
                             if not operand.actions:
