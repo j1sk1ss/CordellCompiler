@@ -103,7 +103,7 @@ Params:
 Returns 1 if an operation was secceed, otherwise it will returns 0.
 */
 static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
-    lir_block_t* lh = bb->lmap.entry;
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
         lir_block_t* fix = NULL;
         switch (lh->op) {
@@ -130,8 +130,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
         }
 
         _insert_instruction_before(bb, fix, lh);
-        if (lh == bb->lmap.exit) break;
-        lh = lh->next;
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 
     return 1;
@@ -141,7 +140,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach(cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = bb->lmap.entry;
+            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
                 switch (lh->op) {
                     case LIR_STSARG:
@@ -326,8 +325,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     default: break;
                 }
 
-                if (lh == bb->lmap.exit) break;
-                lh = lh->next;
+                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
 
             _validate_selected_instuction(bb, smt);

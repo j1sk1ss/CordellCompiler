@@ -244,7 +244,7 @@ class CodeGenerator:
 /* This is a generated code. Don't change it, use the main.py instead. */
 #include <lir/peephole/peephole.h>
 int peephole_first_pass(cfg_block_t* bb) {
-    lir_block_t* lh = bb->lmap.entry;
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
         switch (lh->op) {
 """

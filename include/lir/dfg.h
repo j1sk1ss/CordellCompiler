@@ -5,6 +5,7 @@
 #include <symtab/symtab.h>
 #include <hir/cfg.h>
 #include <lir/lir.h>
+#include <lir/lirgen.h>
 
 int LIR_DFG_collect_defs(cfg_ctx_t* cctx);
 int LIR_DFG_collect_uses(cfg_ctx_t* cctx);

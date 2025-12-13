@@ -3,14 +3,13 @@
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     if (!f) return 0;
     foreach(cfg_block_t* bb, &f->blocks) {
-        lir_block_t* lh = bb->lmap.entry;
+        lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
         while (lh) {
             if (
                 LIR_writeop(lh->op) && 
                 lh->farg->t == LIR_REGISTER
             ) set_add(dirty, (void*)lh->farg->storage.reg.reg);
-            if (lh == bb->lmap.exit) break;
-            lh = lh->next;
+            lh = LIR_get_next(lh, bb->lmap.exit, 1);
         }
     }
 
@@ -35,8 +34,7 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
             set_add(save, (void*)args[i]->storage.reg.reg);
         }
         
-        if (lh == bbh->lmap.exit) break;
-        lh = lh->next;
+        lh = LIR_get_next(lh, bbh->lmap.exit, 1);
     }
 
     if (
@@ -58,9 +56,9 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
     foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach(cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = bb->lmap.entry;
+            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
-                if (!lh->unused && lh->op == LIR_FCLL) {
+                if (lh->op == LIR_FCLL) {
                     set_t in_regs, save_regs;
                     set_init(&in_regs, SET_NO_CMP);
                     set_init(&save_regs, SET_NO_CMP);
@@ -81,8 +79,7 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
                     set_free(&save_regs);
                 }
             
-                if (lh == bb->lmap.exit) break;
-                lh = lh->next;
+                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
     }

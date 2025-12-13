@@ -49,7 +49,7 @@ static lir_block_t* _find_src(lir_block_t* lh, lir_block_t* exit, lir_subject_t*
 } 
 
 static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
-    lir_block_t* lh = bb->lmap.entry;
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
         switch (lh->op) {
             case LIR_ARRDECL: {
@@ -167,11 +167,10 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
             case LIR_iADD: {
                 lir_block_t* rax = _find_src(lh, bb->lmap.entry, lh->farg);
                 lir_block_t* rbx = _find_src(lh, bb->lmap.entry, lh->sarg);
-                
                 instructions_dag_node_t* rax_nd = _find_or_create_node(rax, dag);
                 instructions_dag_node_t* rbx_nd = _find_or_create_node(rbx, dag);
-                instructions_dag_node_t* inst   = _set_node(lh, dag);
 
+                instructions_dag_node_t* inst = _set_node(lh, dag);
                 if (rax_nd) {
                     set_add(&inst->vert, rax_nd);
                     set_add(&rax_nd->users, inst);
@@ -188,8 +187,7 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
             default: break;
         }
         
-        if (lh == bb->lmap.exit) break;
-        lh = lh->next;
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 
     map_iter_t it;
@@ -312,10 +310,8 @@ static int _apply_schedule(cfg_block_t* bb, list_t* scheduled) {
     lir_block_t* prev = NULL;
     foreach(instructions_dag_node_t* nd, scheduled) {
         if (prev) {
-            if (bb->lmap.entry == nd->b) {
-                bb->lmap.entry = prev;
-            }
-
+            if (bb->lmap.entry == nd->b) bb->lmap.entry = prev;
+            if (bb->lmap.exit == prev)   bb->lmap.exit = nd->b;
             LIR_unlink_block(nd->b);
             LIR_insert_block_after(nd->b, prev);
         }

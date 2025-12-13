@@ -35,7 +35,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
     foreach(cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach(cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = bb->lmap.entry;
+            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
                 switch (lh->op) {
                     case LIR_VRDEALL: {
@@ -113,8 +113,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                     }
                 }
 
-                if (lh == bb->lmap.exit) break;
-                lh = lh->next;
+                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
     }

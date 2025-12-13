@@ -33,27 +33,24 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
         foreach(cfg_block_t* cb, &fb->blocks) {
             lir_block_t* lh = cb->lmap.entry;
             while (lh) {
-                if (!lh->unused) {
-                    lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-                    for (int i = LIR_writeop(lh->op); i < 3; i++) {
-                        if (!args[i]) continue;
-                        switch (args[i]->t) {
-                            case LIR_VARIABLE: set_add(&cb->use, (void*)args[i]->storage.var.v_id); break;
-                            case LIR_ARGLIST: {
-                                foreach(lir_subject_t* arg, &args[i]->storage.list.h) {
-                                    set_add(&cb->use, (void*)arg->storage.var.v_id);
-                                }
-
-                                break;
+                lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
+                for (int i = LIR_writeop(lh->op); i < 3; i++) {
+                    if (!args[i]) continue;
+                    switch (args[i]->t) {
+                        case LIR_VARIABLE: set_add(&cb->use, (void*)args[i]->storage.var.v_id); break;
+                        case LIR_ARGLIST: {
+                            foreach(lir_subject_t* arg, &args[i]->storage.list.h) {
+                                set_add(&cb->use, (void*)arg->storage.var.v_id);
                             }
 
-                            default: break;
+                            break;
                         }
+
+                        default: break;
                     }
                 }
 
-                if (lh == cb->lmap.exit) break;
-                lh = lh->next;
+                lh = LIR_get_next(lh, cb->lmap.exit, 1);
             }
         }
     }
