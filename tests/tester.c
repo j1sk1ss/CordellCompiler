@@ -149,7 +149,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     hir_ctx_t hirctx = { .h = NULL, .t = NULL };
     HIR_generate(&sctx, &hirctx, &smt);     // Analyzation
 
-    cfg_ctx_t cfgctx;
+    cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
 

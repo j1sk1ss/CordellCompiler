@@ -437,23 +437,13 @@ static int _export_dot_func_hir(cfg_func_t* f) {
     printf("  node [shape=box, fontname=\"monospace\"];\n");
 
     int ishead = 1;
-
-    list_iter_t bit;
-    list_iter_hinit(&f->blocks, &bit);
-    cfg_block_t* cb;
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach (cfg_block_t* cb, &f->blocks) {
         printf("  B%ld [label=\"B%ld:\\nentry=%s%li\\nexit=%s%s",
                cb->id, cb->id,
                cb->hmap.entry ? hir_op_to_string(cb->hmap.entry->op) : "NULL", 
                cb->hmap.entry && cb->hmap.entry->op == HIR_MKLB ? cb->hmap.entry->farg->id : -1,
                cb->hmap.exit  ? hir_op_to_string(cb->hmap.exit->op)  : "NULL",
                ishead ? "\\nHEAD" : "");
-
-        // hir_block_t* hh = cb->hmap.entry;
-        // while (hh) {
-        //     if (hh == cb->hmap.exit) break;
-        //     hh = hh->next;
-        // }
 
         ishead = 0;
         printf("\\nIN=");  _print_set_int(stdout, &cb->curr_in);
@@ -474,11 +464,7 @@ static int _export_dot_func_hir(cfg_func_t* f) {
 
 void cfg_print(cfg_ctx_t* ctx) {
     printf("==== CFG DUMP ====\n");
-
-    list_iter_t fit;
-    list_iter_hinit(&ctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach (cfg_func_t* fb, &ctx->funcs) {
         printf("==== CFG DOT (HIR) ====\n");
         _export_dot_func_hir(fb);
         printf("==== DOM DOT ====\n");
