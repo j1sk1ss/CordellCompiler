@@ -25,7 +25,6 @@ This `README` file contains the main information about this compiler and the dev
    - [AST optimization](#ast-optimization)
 - [HIR part](#hir-part)
 - [CFG part](#cfg-part)
-   - [Example of CFG](#example-of-cfg)
 - [Dominant calculation](#dominant-calculation)
    - [Strict dominance](#strict-dominance)
    - [Dominance frontier](#dominance-frontier)
@@ -70,11 +69,11 @@ This `README` file contains the main information about this compiler and the dev
 
 ## Introduction
 This compiler isn't about a complex syntax and abstractions (It doesn't even support structures `yet`). Mainly I'm trying to implement modern approuches of code optimization and observe how an input code can be transformed to `better-performance` version of itself. This `README` is a description what I did. </br> 
-Moreover I chose to take on an extra challenge — creating a programming language over supporting an existing one. This language has an `EBNF-defined` syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and small documentation. It won't be difficult given it's lack of complex structures such as `foreach` loops, `for` loops, `structures`, etc. </br>
+Moreover I chose to take on an extra challenge — creating a programming language over supporting an existing one. This language has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and small documentation. It won't be difficult given it's lack of complex structures such as `foreach` loops, `for` loops, `structures`, etc. </br>
 While explaining each layer of the compiler, I will also provide direct examples written in this language.
 
 ## EBNF
-Aforementioned language is called `Cordell Programming Language`. It's syntax mainly based on C language, but some keywords (such as `f64`, `f32`, `u64`, etc) came from Rust language, and some keywords (`ptr`) came from Assembly. Below you can see an `EBNF` of this language.
+Aforementioned language is called `Cordell Programming Language`. It's syntax mainly based on C language, but some keywords (such as `f64`, `f32`, `u64`, etc) [[?]](https://doc.rust-lang.org/book/ch03-02-data-types.html) came from Rust language, and some keywords (`ptr`) [[?]](https://teaching.idallen.com/dat2343/01f/notes/reserved_words.htm) came from Assembly. Below you can see an `EBNF` of this language.
 <details>
 <summary><strong>EBNF grammar</strong></summary>
 
@@ -278,7 +277,7 @@ line=16, type=13, data=[}]
 </details>
 
 ## AST part
-Next, we need to parse this sequence of marked tokens to construct an `AST` (Abstract Syntax Tree). There are many approaches to achieve this — for example, `LL` parsing, `LR` parsing, or even `hybrid` techniques that combine `LL` and `LR`. A more complete list of parser types can be found [here](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books (see [Used links and literature](#used-links-and-literature) section).
+Next, we need to parse this sequence of marked tokens to construct an `AST` (Abstract Syntax Tree). There are many approaches to achieve this — for example, `LL` parsing, `LR` parsing, or even `hybrid` techniques that combine `LL` and `LR`. A more complete list of parser types can be found [[here]](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books (see [Used links and literature](#used-links-and-literature) section).
 
 <p align="center">
   <img src="docs/media/ast.png">
@@ -341,7 +340,7 @@ When we have a correct `AST` representation of the input code, we can optionally
 - `Dead scope elimination`. If a scope doesn't affect the environment, it can be safely removed.
 
 ## HIR part
-`AST` representation of the input code must be flattened given future optimization phases. A common approach here is to convert an `AST` form into a `Three-Address Code` (3AC). </br>
+`AST` representation of the input code must be flattened given future optimization phases. A common approach here is to convert an `AST` form into a `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
 Three-Address Code implies that there is only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`.
 
 <p align="center">
@@ -410,7 +409,7 @@ HIR that was obtained from the [AST part](#ast-part)'s structure transformation:
 </details>
 
 ## CFG part
-With the `3AC` form of the input code, we can move on to `CFG` (Control Flow Graph) creation. There are several ways to split `3AC` into basic blocks. One approach is using `leaders`, while another is to create a block for every command. The second approach is straightforward — each `3AC` instruction becomes its own block. The `leaders` approach, described in the *Dragon Book*, defines three rules for identifying the start of a block:
+With the `3AC` form of the input code, we can move on to `CFG` (Control Flow Graph) [[?]](https://en.wikipedia.org/wiki/Control-flow_graph) [[?]](https://www.geeksforgeeks.org/software-engineering/software-engineering-control-flow-graph-cfg/) creation. There are several ways to split `3AC` into basic blocks. One approach is using `leaders`, while another is to create a block for every command. The second approach is straightforward — each `3AC` instruction becomes its own block. The `leaders` approach, described in the *Dragon Book*, defines three rules for identifying the start of a block:
 
 - The first instruction in a function.
 - The target of a JMP instruction.
@@ -431,25 +430,27 @@ In this compiler, both approaches are implemented, but for the example, we will 
 </details>
 
 ## Dominant calculation
-With the `CFG`, we can determine the dominators of each block. In simple terms, a dominator of a block `Y` is a block `X` that appears on every path from the entry block to `Y`. For example, the following figure illustrates how this works.
+With the structured `CFG`, we can move on to a `SSA` form [[?]](https://en.wikipedia.org/wiki/Static_single-assignment_form) [[?]](https://www.geeksforgeeks.org/compiler-design/static-single-assignment-with-relevant-examples/) [[?]](https://dl.acm.org/doi/10.1145/75277.75280). First of all, we need to calculate dominators [[?]](https://en.wikipedia.org/wiki/Dominator_(graph_theory)) for each block in the `CFG`. In the nutshell, a dominator of a block `Y` is a block `X` that appears on every path from the start block to `Y`. For example, the Figure 6 illustrates how this works.
 
 <p align="center">
   <img src="docs/media/dominators.png">
   <br>
-  <em>Figure 6 — Find dominator</em>
+  <em>Figure 6 — How we find a dominator</em>
 </p>
 
 ### Strict dominance
-Strict dominance tells us which block strictly dominates another. A block `X` strictly dominates block `Y` if `X` dominates `Y` and `X` != `Y`. Why do we need this? The basic dominance relation marks all blocks that dominate a given block, but later analyses often require only the closest one. A block `X` is said to be the immediate dominator of `Y` if `X` strictly dominates `Y`, and there is no other block `Z` such that `Z` strictly dominates `Y` and is itself strictly dominated by `X`.
+Now we need to find a strict dominator for every block in the `CFG`. The reason why we need to do this, is a placement of `phi` functions. We will talk about them later. </br>
+Strict dominance tells us which block strictly dominates another. A block `X` strictly dominates block `Y` if `X` dominates `Y` (important note here: `X != Y`). Why do we need this? The basic dominance relation marks all blocks that dominate a given block, but later analyses often require only the closest one. A block `X` is said to be the strict dominator of `Y` if there is no other block `Z` such that `Z` strictly dominates `Y` and is itself strictly dominated by `X`. </br>
+For example, Figure 7 illustrates how strict dominators are look like.
 
 <p align="center">
   <img src="docs/media/strict_dominance.png">
   <br>
-  <em>Figure 7 — Find strict dominator</em>
+  <em>Figure 7 — How we find a strict dominator</em>
 </p>
 
 ### Dominance frontier
-The dominance frontier of a block `X` is the set of blocks where the dominance of `X` ends. More precisely, it represents all the blocks that are partially influenced by `X`: `X` dominates at least one of their predecessors, but does not dominate the block itself. In other words, it marks the boundary where control flow paths from inside `X’s` dominance region meet paths coming from outside.
+The dominance frontier [[?]](https://pages.cs.wisc.edu/~fischer/cs701.f05/lectures/Lecture22.pdf) [[?]](https://stackoverflow.com/questions/69794988/how-to-build-dominance-frontier-for-control-flow-graph) of a block `X` is the set of blocks where the dominance of `X` ends. More precisely, it represents all the blocks that are partially influenced by `X`: `X` dominates at least one of their predecessors, but does not dominate the block itself. In other words, it marks the boundary where control flow paths from inside `X`'s dominance region meet paths coming from outside (Figure 8).
 
 <p align="center">
   <img src="docs/media/dominance_frontier.png">
@@ -458,15 +459,32 @@ The dominance frontier of a block `X` is the set of blocks where the dominance o
 </p>
 
 ## SSA form
-Static Single Assignment (SSA) form requires renaming all assigned variables so that each assignment creates a new, unique variable. A simple example is shown below:
-![ssa](docs/media/ssa_basic.png)
+The `SSA` form performs renaming all re-assigned variables so that each assignment creates a new, unique variable. Also, modern `SSA` form is more complex then I've mentioned. They don't constrait itselves with only variables renaming for every assignment. For example, some `SSA` forms are able to handle working with arrays (indexies) [[?]](https://dl.acm.org/doi/10.1145/268946.268956). </bt>
+At this moment, CordellCompiler supports the most "basic" `SSA` form, that is presented in Figure 9.
+
+<p align="center">
+  <img src="docs/media/ssa_basic.png">
+  <br>
+  <em>Figure 9 — "Basic" SSA form</em>
+</p>
 
 ### Phi function
-But here we encounter a problem. What should we do in this specific case?
-![ssa_problem](docs/media/ssa_problem.png)
+But if we encounter an `if` statement? I'm trying to ask, what we must do, when we aren't able to say wich uniqe variable should be used in `read` operation after constrol-flow statement? Let's consider the next example in Figure 10.
 
-Which version of the variable `a` should be used in the declaration of `b`? The answer is simple — `both`. Here’s the twist: in `SSA` form, we can use a `φ (phi)` function, which tells the compiler which variable version to use. An example of a `φ` function is shown below:
-![phi_function](docs/media/phi_function.png)
+<p align="center">
+  <img src="docs/media/ssa_problem.png">
+  <br>
+  <em>Figure 10 — The "phi" problem</em>
+</p>
+
+Which version of the variable `a` should be used in the declaration of `b` variable? The answer is simple — they `both`. Here’s the twist: in the `SSA` form, we can use a `φ (phi)` function, which tells the compiler which variable version to use. An example of a `φ` function is shown in Figure 11.
+
+<p align="center">
+  <img src="docs/media/phi_function.png">
+  <br>
+  <em>Figure 11 — Phi function</em>
+</p>
+
 But how do we determine where to place this function? Here, we use previously computed dominance information. We traverse the entire symbol table of variables. For each variable, we collect the set of blocks where it is defined (either declared or assigned). Then, for each block with a definition, we take its dominance frontier blocks and insert a `φ` function there.
 ![phi_placement](docs/media/phi_placement.png)
 Then, during the SSA renaming process, we keep track of each block that passes through a φ-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result:
@@ -789,134 +807,128 @@ After completing the full code transformation pipeline, we can safely convert ou
 <summary><strong>Final ASM</strong></summary>
 
 ```
+; Compiled .asm file. File generated by CordellCompiler!
 section .data
 section .rodata
 section .bss
 section .text
-global _cpl_start
-_cpl_sum:
+global _main
+
+; BB20: 
+_cpl_strlen:
 push rbp
 mov rbp, rsp
-sub rsp, 8
-mov r13d, edi
-mov r12d, esi
-mov [rbp - 8], r12d
-mov [rbp - 4], r13d
-mov rbx, 0
-imul rbx, 4
-lea rax, [rbp - 8]
-add rax, rbx
-mov rax, [rax]
-mov r11d, eax
-mov rbx, 1
-imul rbx, 4
-lea rax, [rbp - 8]
-add rax, rbx
-mov rax, [rax]
-mov r11d, eax
-mov rax, r11d
-mov rbx, r11d
-add rax, rbx
-mov r11d, eax
-mov rax, r11d
+mov rcx, rdi
+mov rsp, rdi
+xor rbx, rbx
+mov rbp, rbx
+
+; BB27: 
+mov rdi, rsp
+mov rbx, rsp
+mov rsi, rbp
+mov rcx, rbp
+mov rdx, 1
+
+; BB21: 
+lb11:
+mov r11, rbx
+mov r10b, [r11]
+cmp r10b, 0
+je lb13
+jne lb12
+
+; BB22: 
+lb12:
+mov r12, rbx
+mov rax, rbx
+add rax, rdx
+mov rsi, rax
+mov rbp, rax
+mov r8, rax
+mov r14, rax
+mov rax, r14
+shr rax, rax
+mov r13, rax
+mov rsp, rax
+mov rax, rsp
+mov r15, rsp
+mov rcx, rsp
+mov r9, rsp
+mov rbx, rsp
+jmp lb11
+
+; BB23: 
+lb13:
+mov rdi, rcx
+mov rax, rcx
 mov rsp, rbp
 pop rbp
 ret
-; op=14
-global _start
-_start:
+
+; BB24:
+
+; BB25: 
+_main:
 push rbp
 mov rbp, rsp
-sub rsp, 32
-mov rax, [rbp + 8]
-mov r13, rax
-lea rax, [rbp + 16]
-mov r13, rax
-mov rax, 10
-mov eax, rax
-mov r11d, eax
-mov rax, r11d
-mov [rbp - 8], eax
-mov rax, 10
-mov eax, rax
-mov r11d, eax
-mov rax, r11d
-mov [rbp - 16], eax
-mov rax, 10
-mov eax, rax
-mov r11d, eax
-mov rax, r11d
-mov [rbp - 24], eax
-mov rax, 10
-mov eax, rax
-mov r11d, eax
-mov rax, r11d
-mov r15d, eax
-mov rax, 10
-mov eax, rax
-mov r11d, eax
-mov rax, r11d
-mov r14d, eax
-mov rax, 10
-mov eax, rax
-mov r11d, eax
-mov rax, r11d
-mov [rbp - 32], eax
+sub rsp, 16
+mov byte [rbp - 13], 72
+mov byte [rbp - 12], 101
+mov byte [rbp - 11], 108
+mov byte [rbp - 10], 108
+mov byte [rbp - 9], 111
+mov byte [rbp - 8], 32
+mov byte [rbp - 7], 119
+mov byte [rbp - 6], 111
+mov byte [rbp - 5], 114
+mov byte [rbp - 4], 108
+mov byte [rbp - 3], 100
+mov byte [rbp - 2], 33
+mov byte [rbp - 1], 0
+lea rax, qword [rbp - 13]
+mov r11, rax
+mov r15, qword [rbp + 16]
+mov r8, qword [rbp + 8]
+mov rbx, qword [rbp + 8]
+mov r9, r11
+mov rdi, r9
+push rax
+push rdx
+push rsp
+push r14
+push r10
+push rbp
 push r11
 push r12
-push r13
-push r14
-push r15
-mov rdi, [rbp - 16]
-mov rsi, [rbp - 8]
-call _cpl_[rbp - 8]
-mov r13d, eax
-pop r15
-pop r14
-pop r13
+push rax
+call _cpl_strlen
+pop rax
 pop r12
 pop r11
-mov rax, [rbp - 8]
-mov rbx, [rbp - 16]
-imul rax, rbx
-mov r11d, eax
-mov rax, r11d
-mov rbx, [rbp - 24]
-add rax, rbx
-mov r11d, eax
-mov rax, r11d
-mov rbx, r15d
-add rax, rbx
-mov r11d, eax
-mov rax, r11d
-mov rbx, r14d
-add rax, rbx
-mov r11d, eax
-mov rax, r11d
-mov rbx, [rbp - 32]
-add rax, rbx
-mov r11d, eax
-mov rax, r13d
-mov rbx, r11d
-cmp rax, rbx
-movzx rax, al
-mov r11d, eax
-cmp r11d, 0
-jne lb73
-mov rax, 60
-mov rdi, 1
+pop rbp
+pop r10
+pop r14
+pop rsp
+pop rdx
+pop rax
+mov r13, rax
+mov rsp, rax
+xor rbp, rbp
+mov rax, rbp
+mov r14, 1
+mov rdi, r14
+mov r12, r11
+mov rsi, r12
+mov r10, rsp
+mov rdx, r10
 syscall
-lb73:
-lea rax, [rbp - 32]
-mov r12, rax
-mov rax, r12
-mov eax, rax
-mov r12d, eax
-mov rax, r12d
-mov r11d, eax
-mov rax, 60
-mov rdi, r11d
+xor rax, rax
+mov rdx, rax
+mov rax, 0x2000001
 syscall
-; op=4
+
+; BB26: 
+; op=3
 ```
 </details>
