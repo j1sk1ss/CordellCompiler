@@ -26,10 +26,7 @@ int STTB_get_info_id(long id, str_info_t* info, strtb_ctx_t* ctx) {
 }
 
 int STTB_get_info(string_t* value, str_info_t* info, strtb_ctx_t* ctx) {
-    map_iter_t it;
-    map_iter_init(&ctx->strtb, &it);
-    str_info_t* si;
-    while (map_iter_next(&it, (void**)&si)) {
+    map_foreach (str_info_t* si, &ctx->strtb) {
         if (si->value->equals(si->value, value)) {
             if (info) str_memcpy(info, si, sizeof(str_info_t));
             return 1;

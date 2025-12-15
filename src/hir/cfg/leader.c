@@ -8,7 +8,7 @@ Rule 3 - Next instruction after JMP instruction
 #include <hir/cfg.h>
 
 int HIR_CFG_mark_leaders(cfg_ctx_t* ctx) {
-    foreach(cfg_func_t* fb, &ctx->funcs) {
+    foreach (cfg_func_t* fb, &ctx->funcs) {
         hir_block_t* h = fb->entry;
         set_init(&fb->leaders, SET_NO_CMP);
         set_add(&fb->leaders, h);

@@ -50,10 +50,7 @@ long ARTB_add_info(long id, long size, int heap, token_type_t el_type, arrtab_ct
 }
 
 int ARTB_unload(arrtab_ctx_t* ctx) {
-    map_iter_t it;
-    map_iter_init(&ctx->arrtb, &it);
-    array_info_t* ai;
-    while (map_iter_next(&it, (void**)&ai)) {
+    map_foreach (array_info_t* ai, &ctx->arrtb) {
         list_free_force(&ai->elems);
     }
     

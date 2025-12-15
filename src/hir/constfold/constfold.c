@@ -69,10 +69,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
     int changed = 0;
     do {
         changed = 0;
-        map_iter_t it;
-        map_iter_init(&dctx->dag, &it);
-        dag_node_t* nd;
-        while (map_iter_next(&it, (void**)&nd)) {
+        map_foreach (dag_node_t* nd, &dctx->dag) {
             dag_node_t* args[4] = { NULL };
             _const_args(nd, args);
             

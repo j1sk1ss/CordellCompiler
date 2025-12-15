@@ -195,4 +195,14 @@ Return 1 if free routine success, otherwise this function will return 0.
 */
 int map_free_force_op(map_t* m, int (*op)(void*));
 
+#define CONCAT2(a,b) a##b
+#define CONCAT(a,b)  CONCAT2(a,b)
+
+#define map_foreach(v, lst)                                                              \
+    map_iter_t CONCAT(__it_, __LINE__);                                                  \
+    map_iter_init(lst, &CONCAT(__it_, __LINE__));                                        \
+    void* CONCAT(__val_, __LINE__);                                                      \
+    while ((map_iter_next(&CONCAT(__it_, __LINE__), (void**)&CONCAT(__val_, __LINE__)))) \
+        for (v = CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__) = NULL)
+
 #endif

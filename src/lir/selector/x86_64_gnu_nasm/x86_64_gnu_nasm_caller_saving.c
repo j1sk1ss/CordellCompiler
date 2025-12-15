@@ -1,8 +1,9 @@
 #include <lir/selector/x84_64_gnu_nasm.h>
 
+// TODO: result in RAX mustn't be rewritten!
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     if (!f) return 0;
-    foreach(cfg_block_t* bb, &f->blocks) {
+    foreach (cfg_block_t* bb, &f->blocks) {
         lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
         while (lh) {
             if (
@@ -45,7 +46,7 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
 }
 
 static cfg_func_t* _find_function(long fid, cfg_ctx_t* cctx) {
-    foreach(cfg_func_t* fb, &cctx->funcs) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
         if (fb->fid == fid) return fb;
     }
 
@@ -53,9 +54,9 @@ static cfg_func_t* _find_function(long fid, cfg_ctx_t* cctx) {
 }
 
 int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
-    foreach(cfg_func_t* fb, &cctx->funcs) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        foreach(cfg_block_t* bb, &fb->blocks) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
                 if (lh->op == LIR_FCLL) {

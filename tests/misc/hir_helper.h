@@ -486,10 +486,7 @@ void call_graph_print_dot(call_graph_t* cg) {
     printf("  rankdir=LR;\n");
     printf("  node [shape=ellipse, fontname=\"monospace\"];\n");
 
-    map_iter_t it;
-    map_iter_init(&cg->verts, &it);
-    call_graph_node_t* node;
-    while (map_iter_next(&it, (void**)&node)) {
+    map_foreach (call_graph_node_t* node, &cg->verts) {
         set_iter_t sit;
         set_iter_init(&node->edges, &sit);
         call_graph_node_t* callee;

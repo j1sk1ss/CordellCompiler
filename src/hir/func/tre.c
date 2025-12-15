@@ -1,8 +1,8 @@
 #include <hir/cfg.h>
 
 int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
-    foreach(cfg_func_t* fb, &cctx->funcs) {
-        foreach(cfg_block_t* cb, &fb->blocks) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* cb, &fb->blocks) {
             if (cb->l || cb->jmp) continue;
 
             func_info_t fi;
@@ -29,7 +29,7 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
                 HIR_insert_block_before(jmp, exit);
                 
                 ast_node_t* ast_arg = fi.args->child;
-                foreach(hir_subject_t* arg, &exit->targ->storage.list.h) {
+                foreach (hir_subject_t* arg, &exit->targ->storage.list.h) {
                     if (!ast_arg) break;
                     hir_block_t* argload = HIR_create_block(HIR_STORE, HIR_SUBJ_ASTVAR(ast_arg->child), arg, NULL);
                     HIR_insert_block_before(argload, jmp);

@@ -6,7 +6,6 @@ int LIR_generate(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
 lir_block_t* LIR_get_next(lir_block_t* c, lir_block_t* exit, int skip) {
     if (c == exit) return NULL;
-    lir_block_t* p = c;
     while (c) {
         if (
             c == exit || 

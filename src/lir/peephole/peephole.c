@@ -21,9 +21,9 @@ long LIR_peephole_get_log2_number(lir_subject_t* s) {
 }
 
 int LIR_peephole_optimization(cfg_ctx_t* cctx, peephole_t* peephole) {
-    foreach(cfg_func_t* fb, &cctx->funcs) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        foreach(cfg_block_t* bb, &fb->blocks) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
             peephole_first_pass(bb);
         }
     }

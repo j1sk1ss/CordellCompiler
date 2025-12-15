@@ -15,8 +15,8 @@ static int _already_deallocated(long id, cfg_block_t* bb) {
 }
 
 int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
-    foreach(cfg_func_t* fb, &cctx->funcs) {
-        foreach(cfg_block_t* cb, &fb->blocks) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* cb, &fb->blocks) {
             set_t appeared;
             set_union(&appeared, &cb->curr_in, &cb->def);
 
@@ -45,10 +45,7 @@ int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                     LIR_insert_block_before(LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(vid), NULL, NULL), cb->lmap.exit);
                 }
 
-                map_iter_t mit;
-                map_iter_init(&smt->m.allias, &mit);
-                allias_t* al;
-                while (map_iter_next(&mit, (void**)&al)) {
+                map_foreach (allias_t* al, &smt->m.allias) {
                     if (!set_has(&al->owners, (void*)vid)) continue;
                     if (ALLIAS_mark_owner(al->v_id, vid, &smt->m)) {
                         if (!_already_deallocated(al->v_id, cb)) {

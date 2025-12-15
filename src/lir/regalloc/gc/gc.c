@@ -5,10 +5,7 @@ gc.c - Color interference graph with euristic approuch
 #include <lir/regalloc/ra.h>
 
 int LIR_RA_init_colors(map_t* colors, sym_table_t* smt) {
-    map_iter_t it;
-    map_iter_init(&smt->v.vartb, &it);
-    variable_info_t* vi;
-    while (map_iter_next(&it, (void**)&vi)) {
+    map_foreach (variable_info_t* vi, &smt->v.vartb) {
         map_put(colors, vi->v_id, (void*)-1);
     }
 
@@ -41,10 +38,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     }
     
     int i = 0;
-    map_iter_t it;
-    map_iter_init(&g->nodes, &it);
-    igraph_node_t* n;
-    while (map_iter_next(&it, (void**)&n)) {
+    map_foreach (igraph_node_t* n, &g->nodes) {
         v_ids[i]     = n->v_id;
         degrees[i]   = set_size(&n->v);
         processed[i] = 0;

@@ -41,11 +41,9 @@ dag_node_t* HIR_DAG_get_node(dag_ctx_t* ctx, hir_subject_t* src, int create) {
     dag_node_t* nd;
     if (map_get(&ctx->dag, HIR_hash_subject(src), (void**)&nd)) return nd;
 
-    map_iter_t it;
-    map_iter_init(&ctx->dag, &it);
     unsigned long sh = HIR_hash_subject(src);
-    while (map_iter_next(&it, (void**)&nd)) {
-        if (set_has(&nd->link, (void*)sh)) return nd;
+    map_foreach (dag_node_t* nnd, &ctx->dag) {
+        if (set_has(&nnd->link, (void*)sh)) return nnd;
     }
 
     if (create) {
@@ -68,10 +66,7 @@ int HIR_DAG_unload_node(dag_node_t* nd) {
 }
 
 int HIR_DAG_unload(dag_ctx_t* ctx) {
-    map_iter_t it;
-    dag_node_t* nd;
-    map_iter_init(&ctx->dag, &it);
-    while (map_iter_next(&it, (void**)&nd)) {
+    map_foreach (dag_node_t* nd, &ctx->dag) {
         HIR_DAG_unload_node(nd);
     }
 

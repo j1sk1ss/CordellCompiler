@@ -35,10 +35,7 @@ static void __igraph_dump_dot(igraph_t* g) {
 #endif
 
 static int _regalloc_precolor(map_t* cmap, sym_table_t* smt) {
-    map_iter_t mit;
-    map_iter_init(&smt->v.vartb, &mit);
-    variable_info_t* vi;
-    while (map_iter_next(&mit, (void**)&vi)) {
+    map_foreach (variable_info_t* vi, &smt->v.vartb) {
         if (vi->vmi.allocated && vi->vmi.reg >= 0) {
             map_put(cmap, vi->v_id, (void*)((long)vi->vmi.reg));
         }

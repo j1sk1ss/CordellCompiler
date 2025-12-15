@@ -1,10 +1,7 @@
 #include <asm/x86_64_asmgen.h>
 
 static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* output) {
-    map_iter_t it;
-    map_iter_init(&smt->v.vartb, &it);
-    variable_info_t* vi;
-    while (map_iter_next(&it, (void**)&vi)) {
+    map_foreach (variable_info_t* vi, &smt->v.vartb) {
         if ((!vi->glob && glob) || (!vi->ro && ro)) continue;
         if (vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) {
             array_info_t ai;
@@ -28,7 +25,7 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
                 }
 
                 int elcount = ai.size;
-                foreach(array_elem_info_t* el, &ai.elems) {
+                foreach (array_elem_info_t* el, &ai.elems) {
                     fprintf(output, "%lu", el->value);
                     if (elcount--) fprintf(output, ",");
                 }
@@ -58,17 +55,13 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
 }
 
 int x86_64_generate_data(sym_table_t* smt, FILE* output) {
-    map_iter_t it;
-    
     fprintf(output, "section .data\n");
     _allocate_data(1, 0, 0, smt, output);
 
     fprintf(output, "section .rodata\n");
     _allocate_data(0, 1, 0, smt, output);
     
-    map_iter_init(&smt->s.strtb, &it);
-    str_info_t* si;
-    while (map_iter_next(&it, (void**)&si)) {
+    map_foreach (str_info_t* si, &smt->s.strtb) {
         if (si->t != STR_INDEPENDENT) continue;
         fprintf(output, "_str_%li_ db ", si->id);
         char* data = si->value->body;
@@ -84,10 +77,7 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
     _allocate_data(1, 0, 1, smt, output);
 
     fprintf(output, "section .text\n");
-
-    map_iter_init(&smt->f.functb, &it);
-    func_info_t* fi;
-    while (map_iter_next(&it, (void**)&fi)) {
+    map_foreach (func_info_t* fi, &smt->f.functb) {
         if (fi->global)   fprintf(output, "global %s\n", fi->name->body);
         if (fi->external) fprintf(output, "extern %s\n", fi->name->body);
     }

@@ -38,7 +38,7 @@ static int _iterate_block(
             break;
             case HIR_ARRDECL: {
                 lir_subject_t* lir_elems = LIR_SUBJ_LIST();
-                foreach(hir_subject_t* hir_elem, &h->targ->storage.list.h) {
+                foreach (hir_subject_t* hir_elem, &h->targ->storage.list.h) {
                     list_add(&lir_elems->storage.list.h, x86_64_format_variable(hir_elem));
                 }
 
@@ -110,8 +110,8 @@ static int _iterate_block(
 
 int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
     sstack_t params = { .top = -1 };
-    foreach(cfg_func_t* fb, &cctx->funcs) {
-        foreach(cfg_block_t* cb, &fb->blocks) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* cb, &fb->blocks) {
             _iterate_block(&params, cb, ctx, smt);
         }
     }

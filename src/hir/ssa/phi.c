@@ -30,10 +30,7 @@ static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
 }
 
 int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
-    map_iter_t mit;
-    map_iter_init(&smt->v.vartb, &mit);
-    variable_info_t* vh;
-    while (map_iter_next(&mit, (void**)&vh)) {
+    map_foreach (variable_info_t* vh, &smt->v.vartb) {
         set_t defs;
         set_init(&defs, SET_NO_CMP);
         HIR_CFG_collect_defs_by_id(vh->v_id, cctx, &defs);

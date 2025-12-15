@@ -32,17 +32,14 @@ static int _add_ig_node(long v_id, igraph_t* g) {
 int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     map_init(&g->nodes, MAP_NO_CMP);
 
-    map_iter_t vit;
-    map_iter_init(&smt->v.vartb, &vit);
-    variable_info_t* vi;
-    while (map_iter_next(&vit, (void**)&vi)) {
+    map_foreach (variable_info_t* vi, &smt->v.vartb) {
         if (vi->glob || vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) continue;
         if (ALLIAS_get_owners(vi->v_id, NULL, &smt->m)) continue;
         _add_ig_node(vi->v_id, g);
     }
 
-    foreach(cfg_func_t* fb, &cctx->funcs) {
-        foreach(cfg_block_t* cb, &fb->blocks) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* cb, &fb->blocks) {
             set_iter_t dit;
             set_iter_init(&cb->def, &dit);
             long d;
@@ -66,10 +63,7 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
 }
 
 int LIR_RA_unload_igraph(igraph_t* g) {
-    map_iter_t it;
-    igraph_node_t* nd;
-    map_iter_init(&g->nodes, &it);
-    while (map_iter_next(&it, (void**)&nd)) {
+    map_foreach (igraph_node_t* nd, &g->nodes) {
         set_free(&nd->v);
     }
 

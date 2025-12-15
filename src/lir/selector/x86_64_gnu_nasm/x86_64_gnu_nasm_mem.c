@@ -32,9 +32,9 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
     stack_map_t smp;
     stack_map_init(0, &smp);
 
-    foreach(cfg_func_t* fb, &cctx->funcs) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        foreach(cfg_block_t* bb, &fb->blocks) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
                 switch (lh->op) {
@@ -89,7 +89,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
 
                             int pos = 0;
-                            foreach(lir_subject_t* elem, &lh->targ->storage.list.h) {
+                            foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
                                 if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
                                 LIR_insert_block_before(
                                     LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(arroff - pos * elsize, 1), elem, NULL), lh

@@ -161,9 +161,9 @@ static int _cleanup_pass(cfg_block_t* bb) {
 }
 
 int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx) {
-    foreach(cfg_func_t* fb, &cctx->funcs) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        foreach(cfg_block_t* bb, &fb->blocks) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
             _second_pass(bb);
             _cleanup_pass(bb);
         }

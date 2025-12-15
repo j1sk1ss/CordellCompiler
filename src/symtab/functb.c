@@ -12,10 +12,7 @@ int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx) {
 
 int FNTB_get_info(string_t* fname, func_info_t* out, functab_ctx_t* ctx) {
     print_log("FNTB_get_info(name=%s)", fname);
-    map_iter_t it;
-    map_iter_init(&ctx->functb, &it);
-    func_info_t* fi;
-    while (map_iter_next(&it, (void**)&fi)) {
+    map_foreach (func_info_t* fi, &ctx->functb) {
         if (fi->name->equals(fi->name, fname)) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
             return 1;

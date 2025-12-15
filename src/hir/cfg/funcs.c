@@ -4,7 +4,7 @@
 #include <hir/cfg.h>
 
 cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid) {
-    foreach(cfg_block_t* cb, &f->blocks) {
+    foreach (cfg_block_t* cb, &f->blocks) {
         if (
             cb->hmap.entry->op == HIR_MKLB && 
             cb->hmap.entry->farg->id == lbid

@@ -39,10 +39,7 @@ int VRTB_get_info_id(long id, variable_info_t* info, vartab_ctx_t* ctx) {
 }
 
 int VRTB_get_info(string_t* varname, short s_id, variable_info_t* info, vartab_ctx_t* ctx) {
-    map_iter_t it;
-    map_iter_init(&ctx->vartb, &it);
-    variable_info_t* vi;
-    while (map_iter_next(&it, (void**)&vi)) {
+    map_foreach (variable_info_t* vi, &ctx->vartb) {
         if (((s_id < 0) || s_id == vi->s_id) && varname->equals(varname, vi->name)) {
             if (info) str_memcpy(info, vi, sizeof(variable_info_t));
             return 1;

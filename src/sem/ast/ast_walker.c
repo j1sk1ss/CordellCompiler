@@ -68,7 +68,7 @@ static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
     if (!nd) return 0;
     _ast_walk(nd->child, ctx);
     _ast_walk(nd->sibling, ctx);
-    foreach(ast_visitor_t* v, &ctx->visitors) {
+    foreach (ast_visitor_t* v, &ctx->visitors) {
         if (
             nd->token && 
             _get_ast_node_type(nd->token->t_type) & v->trg

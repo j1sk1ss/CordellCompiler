@@ -24,10 +24,7 @@ static int _add_vert(long src_id, long dst_id, call_graph_t* ctx) {
 }
 
 static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
-    map_iter_t it;
-    map_iter_init(&smt->f.functb, &it);
-    func_info_t* fi;
-    while (map_iter_next(&it, (void**)&fi)) {
+    map_foreach (func_info_t* fi, &smt->f.functb) {
         if (fi->entry) ctx->e_fid = fi->id;
         _register_func(fi->id, ctx);
     }
@@ -36,8 +33,8 @@ static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
 }
 
 static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
-    foreach(cfg_func_t* fb, &cctx->funcs) {
-        foreach(cfg_block_t* cb, &fb->blocks) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* cb, &fb->blocks) {
             hir_block_t* hh = cb->hmap.entry;
             while (hh) {
                 if (HIR_funccall(hh->op) && !hh->unused) {
@@ -60,10 +57,7 @@ int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt) {
 }
 
 int HIR_CG_unload(call_graph_t* ctx) {
-    map_iter_t it;
-    map_iter_init(&ctx->verts, &it);
-    call_graph_node_t* node;
-    while (map_iter_next(&it, (void**)&node)) {
+    map_foreach (call_graph_node_t* node, &ctx->verts) {
         set_free(&node->edges);
     }
 
