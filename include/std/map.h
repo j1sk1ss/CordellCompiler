@@ -32,8 +32,15 @@ typedef struct {
     map_entry_t*  entries;  /* map body              */
 } map_t;
 
+/* Map doesn't save a general hash sum */
 #define MAP_NO_CMP 0
+
+/*
+Map will save a general hash sum for fast comparison
+Note: This flag will force map to re-hash it's general hash sum in every W-operation
+*/
 #define MAP_CMP    1
+
 /*
 map_init function allocate memory for map memory and setup all necessary flags.
 This map uses linearprob approuch as hashing strategy. 

@@ -2,11 +2,7 @@
 
 static int _mark_block(call_graph_node_t* nd, call_graph_t* ctx) {
     nd->flag = 1;
-    
-    set_iter_t it;
-    set_iter_init(&nd->edges, &it);
-    call_graph_node_t* nnd;
-    while (set_iter_next(&it, (void**)&nnd)) {
+    set_foreach (call_graph_node_t* nnd, &nd->edges) {
         if (nd->fid == nnd->fid) continue;
         _mark_block(nnd, ctx);
     }

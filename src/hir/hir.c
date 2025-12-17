@@ -175,10 +175,7 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     switch (ns->t) {
         case HIR_PHISET: {
             set_init(&ns->storage.set.h, SET_NO_CMP);
-            set_iter_t it;
-            set_iter_init(&s->storage.set.h, &it);
-            int_tuple_t* tpl;
-            while (set_iter_next(&it, (void**)&tpl)) {
+            set_foreach (int_tuple_t* tpl, &s->storage.set.h) {
                 set_add(&ns->storage.set.h, inttuple_create(tpl->x, tpl->y));
             }
 

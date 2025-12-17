@@ -59,10 +59,7 @@ int HIR_CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* 
     list_add(&f->blocks, b);
     b->l = trg;
 
-    set_iter_t it;
-    set_iter_init(&trg->pred, &it);
-    cfg_block_t* p;
-    while (set_iter_next(&it, (void**)&p)) {
+    set_foreach (cfg_block_t* p, &trg->pred) {
         if (p->l && p->l == trg)     p->l   = b;
         if (p->jmp && p->jmp == trg) p->jmp = b;
     }

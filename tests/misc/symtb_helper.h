@@ -66,10 +66,7 @@ void print_symtab(sym_table_t* smt) {
     if (!map_isempty(&smt->m.allias)) printf("========== ALLIAS ==========\n");
     map_foreach (allias_t* mi, &smt->m.allias) {
         printf("id: %li, owners: ", mi->v_id);
-        set_iter_t sit;
-        set_iter_init(&mi->owners, &sit);
-        long own_id;
-        while (set_iter_next(&sit, (void**)&own_id)) printf("%li ", own_id);
+        set_foreach (long own_id, &mi->owners) printf("%li ", own_id);
         printf("\n");
     }
 }

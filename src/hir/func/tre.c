@@ -8,10 +8,7 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
             func_info_t fi;
             if (!FNTB_get_info_id(fb->fid, &fi, &smt->f)) continue;
 
-            set_iter_t it;
-            cfg_block_t* p;
-            set_iter_init(&cb->pred, &it);
-            while (set_iter_next(&it, (void**)&p)) {
+            set_foreach (cfg_block_t* p, &cb->pred) {
                 hir_block_t* exit = p->hmap.exit;
                 if (!HIR_funccall(exit->op)) continue;
                 

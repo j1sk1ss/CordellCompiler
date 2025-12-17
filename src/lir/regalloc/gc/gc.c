@@ -74,10 +74,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         
         igraph_node_t* n = LIR_RA_find_ig_node(g, v_ids[max_index]);
         if (n) {
-            set_iter_t sit;
-            set_iter_init(&n->v, &sit);
-            long neighbor_id;
-            while (set_iter_next(&sit, (void**)&neighbor_id)) {
+            set_foreach (long neighbor_id, &n->v) {
                 for (i = 0; i < node_count; i++) {
                     if (v_ids[i] == neighbor_id && !processed[i]) {
                         degrees[i]--;
@@ -101,10 +98,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         set_t used_colors;
         set_init(&used_colors, SET_NO_CMP);
         
-        set_iter_t sit;
-        set_iter_init(&current_node->v, &sit);
-        long neighbor_id;
-        while (set_iter_next(&sit, (void**)&neighbor_id)) {
+        set_foreach (long neighbor_id, &current_node->v) {
             long neighbor_color;
             if (map_get(colors, neighbor_id, (void**)&neighbor_color)) {
                 set_add(&used_colors, (void*)neighbor_color);

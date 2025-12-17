@@ -38,14 +38,8 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
         int changed = 0;
         do {
             changed = 0;
-            set_iter_t it;
-            set_iter_init(&defs, &it);
-            cfg_block_t* defb;
-            while (set_iter_next(&it, (void**)&defb)) {
-                set_iter_t fit;
-                set_iter_init(&defb->domf, &fit);
-                cfg_block_t* front;
-                while (set_iter_next(&fit, (void**)&front)) {
+            set_foreach (cfg_block_t* defb, &defs) {
+                set_foreach (cfg_block_t* front, &defb->domf) {
                     if (!_has_phi(front, vh->v_id)) {
                         _insert_phi_instr(front, vh);
                         if (set_add(&defs, front)) changed = 1;

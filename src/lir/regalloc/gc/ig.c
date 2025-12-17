@@ -40,19 +40,12 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            set_iter_t dit;
-            set_iter_init(&cb->def, &dit);
-            long d;
-            while (set_iter_next(&dit, (void**)&d)) {
-                set_iter_t lit;
-                set_iter_init(&cb->curr_in, &lit);
-                long l;
-                while (set_iter_next(&lit, (void**)&l)) {
+            set_foreach (long d, &cb->def) {
+                set_foreach (long l, &cb->curr_in) {
                     _igraph_add_edge(g, d, l);
                 }
 
-                set_iter_init(&cb->curr_out, &lit);
-                while (set_iter_next(&lit, (void**)&l)) {
+                set_foreach (long l, &cb->curr_out) {
                     _igraph_add_edge(g, d, l);
                 }
             }

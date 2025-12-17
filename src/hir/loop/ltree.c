@@ -13,11 +13,7 @@ static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, s
 static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b) {
     if (!set_add(b, entry)) return 0;
     if (entry == exit) return 0;
-    
-    set_iter_t it;
-    set_iter_init(&entry->pred, &it);
-    cfg_block_t* bb;
-    while (set_iter_next(&it, (void**)&bb)) {
+    set_foreach (cfg_block_t* bb, &entry->pred) {
         bb->type = CFG_LOOP_BLOCK;
         _get_loop_blocks(bb, exit, b);
     }

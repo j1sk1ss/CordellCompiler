@@ -254,10 +254,7 @@ static int _dag_toposort(instructions_dag_t* dag, list_t* sorted) {
     }
 
     map_foreach (instructions_dag_node_t* nd, &dag->alive_edges) {
-        set_iter_t sit;
-        set_iter_init(&nd->vert, &sit);
-        instructions_dag_node_t* pred;
-        while (set_iter_next(&sit, (void**)&pred)) {
+        set_foreach (instructions_dag_node_t* pred, &nd->vert) {
             pred->indegree++;
         }
     }
@@ -274,11 +271,7 @@ static int _dag_toposort(instructions_dag_t* dag, list_t* sorted) {
     while (list_size(&queue)) {
         nd = list_pop_front(&queue);
         list_push_back(sorted, nd);
-
-        set_iter_t sit;
-        set_iter_init(&nd->vert, &sit);
-        instructions_dag_node_t* succ;
-        while (set_iter_next(&sit, (void**)&succ)) {
+        set_foreach (instructions_dag_node_t* succ, &nd->vert) {
             succ->indegree--;
             if (!succ->indegree) {
                 list_push_back(&queue, succ);
@@ -303,10 +296,7 @@ static int _compute_critical_path(target_info_t* trginfo, instructions_dag_t* da
     _dag_toposort(dag, &sorted);
     
     foreach (instructions_dag_node_t* node, &sorted) {
-        set_iter_t sit;
-        set_iter_init(&node->vert, &sit);
-        instructions_dag_node_t* dep;
-        while (set_iter_next(&sit, (void**)&dep)) {
+        set_foreach (instructions_dag_node_t* dep, &node->vert) {
             op_info_t* opinfo;
             if (map_get(&trginfo->info, dep->b->op, (void**)&opinfo)) {
                 int cand = dep->critical_path + opinfo->latency;
@@ -370,11 +360,7 @@ static int _schedule_block(cfg_block_t* bb, instructions_dag_t* dag, target_info
         instructions_dag_node_t* best = _select_best_node(&ready_list);
         list_push_back(&scheduled, best);
         list_remove(&ready_list, best);
-
-        set_iter_t sit;
-        set_iter_init(&best->users, &sit);
-        instructions_dag_node_t* child;
-        while (set_iter_next(&sit, (void**)&child)) {
+        set_foreach (instructions_dag_node_t* child, &best->users) {
             child->remaining_deps--;
             if (!child->remaining_deps) {
                 list_push_back(&ready_list, child);

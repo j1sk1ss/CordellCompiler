@@ -55,10 +55,7 @@ _complete_constant_parse: {}
 
 static int _const_args(dag_node_t* nd, dag_node_t** args) {
     int i = 0;
-    set_iter_t it;
-    set_iter_init(&nd->args, &it);
-    dag_node_t* arg;
-    while (set_iter_next(&it, (void**)&arg)) {
+    set_foreach (dag_node_t* arg, &nd->args) {
         args[i++] = arg;
     }
 

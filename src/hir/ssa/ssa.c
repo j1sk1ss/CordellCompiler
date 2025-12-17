@@ -48,10 +48,7 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
         return 0;
     }
 
-    set_iter_t it;
-    set_iter_init(&block->pred, &it);
-    cfg_block_t* trg;
-    while (set_iter_next(&it, (void**)&trg)) {
+    set_foreach (cfg_block_t* trg, &block->pred) {
         if (trg->id != bid) continue;
         hir_block_t* union_command = HIR_create_block(
             HIR_PHI_PREAMBLE, 

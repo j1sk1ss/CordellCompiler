@@ -19,10 +19,7 @@ static void __igraph_dump_dot(igraph_t* g) {
     for (long i = 0; i < g->nodes.capacity; i++) {
         if (g->nodes.entries[i].used) {
             igraph_node_t* n = (igraph_node_t*)g->nodes.entries[i].value;
-            set_iter_t sit;
-            set_iter_init(&n->v, &sit);
-            long neighbor;
-            while (set_iter_next(&sit, (void**)&neighbor)) {
+            set_foreach (long neighbor, &n->v) {
                 if (n->v_id < neighbor) {
                     fprintf(stdout, "  v%ld -- v%ld;\n", n->v_id, neighbor);
                 }

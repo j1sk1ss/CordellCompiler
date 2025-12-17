@@ -1,10 +1,7 @@
 #include <hir/loop.h>
 
 static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_t* loop) {
-    set_iter_t it;
-    set_iter_init(&header->pred, &it);
-    cfg_block_t* p;
-    while (set_iter_next(&it, (void**)&p)) {
+    set_foreach (cfg_block_t* p, &header->pred) {
         if (p->type == CFG_LOOP_PREHEADER) return p;
     }
 
@@ -16,8 +13,7 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
     list_insert(&header->pfunc->blocks, preheader, header);
     preheader->l = header;
 
-    set_iter_init(&header->pred, &it);
-    while (set_iter_next(&it, (void**)&p)) {
+    set_foreach (cfg_block_t* p, &header->pred) {
         if (set_has(loop, p)) continue;
         if (p->l && p->l == header)     p->l   = preheader;
         if (p->jmp && p->jmp == header) p->jmp = preheader;
@@ -30,10 +26,7 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
 }
 
 static int _get_loop_hir_blocks(set_t* loop, set_t* b) {
-    set_iter_t it;
-    set_iter_init(loop, &it);
-    cfg_block_t* bb;
-    while (set_iter_next(&it, (void**)&bb)) {
+    set_foreach (cfg_block_t* bb, loop) {
         hir_block_t* hh = bb->hmap.entry;
         while (hh) {
             set_add(b, hh);
@@ -50,10 +43,7 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
     while (changed) {
         changed = 0;
 
-        set_iter_t it;
-        set_iter_init(loop_hir, &it);
-        hir_block_t* hh;
-        while (set_iter_next(&it, (void**)&hh)) {
+        set_foreach (hir_block_t* hh, loop_hir) {
             if (set_has(invariant_defs, hh)) continue;
             if (HIR_sideeffect_op(hh->op)) continue;
 
@@ -86,10 +76,7 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
 }
 
 static cfg_block_t* _get_hir_block_cfg(set_t* s, hir_block_t* trg) {
-    set_iter_t it;
-    set_iter_init(s, &it);
-    cfg_block_t* bb;
-    while (set_iter_next(&it, (void**)&bb)) {
+    set_foreach (cfg_block_t* bb, s) {
         hir_block_t* hh = bb->hmap.entry;
         while (hh) {
             if (hh == trg) return bb;
@@ -103,10 +90,7 @@ static cfg_block_t* _get_hir_block_cfg(set_t* s, hir_block_t* trg) {
 
 static int _find_usage(set_t* loop_hir, set_t* s, long vid, sym_table_t* smt) {
     int res = 0;
-    set_iter_t it;
-    set_iter_init(loop_hir, &it);
-    hir_block_t* hh;
-    while (set_iter_next(&it, (void**)&hh)) {
+    set_foreach (hir_block_t* hh, loop_hir) {
         hir_subject_t* args[2] = { hh->sarg, hh->targ };
         for (int i = 0; i < 2; i++) {
             hir_subject_t* ss = args[i];
@@ -128,10 +112,7 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
     int changed = 1;
     while (changed) {
         changed = 0;
-        set_iter_t it;
-        set_iter_init(loop_hir, &it);
-        hir_block_t* hh;
-        while (set_iter_next(&it, (void**)&hh)) {
+        set_foreach (hir_block_t* hh, loop_hir) {
             if (!HIR_writeop(hh->op) || !hh->farg || !HIR_is_vartype(hh->farg->t)) continue;
             long vid = hh->farg->storage.var.v_id;
             variable_info_t vi;

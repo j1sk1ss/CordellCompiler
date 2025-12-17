@@ -36,4 +36,11 @@ int set_size(set_t* s);
 int set_free(set_t* s);
 int set_free_force(set_t* s);
 
+#define set_foreach(v, lst)                                                              \
+    set_iter_t CONCAT(__it_, __LINE__);                                                  \
+    set_iter_init(lst, &CONCAT(__it_, __LINE__));                                        \
+    void* CONCAT(__val_, __LINE__);                                                      \
+    while ((set_iter_next(&CONCAT(__it_, __LINE__), (void**)&CONCAT(__val_, __LINE__)))) \
+        for (v = CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__) = NULL)
+
 #endif

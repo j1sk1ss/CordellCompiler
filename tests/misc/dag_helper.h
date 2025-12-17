@@ -21,16 +21,11 @@ static void dump_dag_dot(dag_ctx_t* ctx, sym_table_t* smt) {
 
     printf("\n");
     map_foreach (dag_node_t* node, &ctx->dag) {
-        set_iter_t sit;
-        set_iter_init(&node->args, &sit);
-        dag_node_t* arg;
-        while (set_iter_next(&sit, (void**)&arg)) {
+        set_foreach (dag_node_t* arg, &node->args) {
             printf("  lb%li -> lb%li [label=\"farg\"];\n", node->id, arg->id);
         }
 
-        dag_node_t* user;
-        set_iter_init(&node->users, &sit);
-        while (set_iter_next(&sit, (void**)&user)) {
+        set_foreach (dag_node_t* user, &node->users) {
             printf("  lb%li -> lb%li [style=dashed, color=gray, label=\"user\"];\n", node->id, user->id);
         }
     }

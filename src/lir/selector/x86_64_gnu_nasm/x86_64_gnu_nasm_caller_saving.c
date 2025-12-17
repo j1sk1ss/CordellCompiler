@@ -68,10 +68,7 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
                     _collect_in_function_reg_usage(&in_regs, _find_function(lh->farg->storage.str.sid, cctx));
                     _collect_out_function_reg_usage(&in_regs, &save_regs, bb, lh);
 
-                    set_iter_t sit;
-                    set_iter_init(&save_regs, &sit);
-                    long reg;
-                    while (set_iter_next(&sit, (void**)&reg)) {
+                    set_foreach (long reg, &save_regs) {
                         LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
                         LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
                     }

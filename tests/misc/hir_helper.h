@@ -282,11 +282,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
 
             case HIR_PHISET: {
                 dst += sprintf(dst, "set: ");
-
-                set_iter_t it;
-                set_iter_init(&s->storage.set.h, &it);
-                int_tuple_t* tpl;
-                while (set_iter_next(&it, (void**)&tpl)) {
+                set_foreach (int_tuple_t* tpl, &s->storage.set.h) {
                     variable_info_t pvi;
                     if (VRTB_get_info_id(tpl->y, &pvi, &smt->v)) {
                         dst += sprintf(dst, "[%%%li, bb%li]", pvi.v_id, tpl->x);
@@ -405,10 +401,7 @@ void _dump_all_dom_dot(cfg_func_t* func) {
 
     list_iter_hinit(&func->blocks, &bit);
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        set_iter_t it;
-        set_iter_init(&cb->dom, &it);
-        cfg_block_t* d;
-        while (set_iter_next(&it, (void**)&d)) {
+        set_foreach (cfg_block_t* d, &cb->dom) {
             if (d == cb) continue;
             printf("  B%li -> B%li;\n", d->id, cb->id);
         }
@@ -418,12 +411,9 @@ void _dump_all_dom_dot(cfg_func_t* func) {
 }
 
 static void _print_set_int(FILE* out, set_t* s) {
-    set_iter_t it;
-    set_iter_init(s, &it);
-    long v;
     int first = 1;
     fprintf(out, "{");
-    while (set_iter_next(&it, (void**)&v)) {
+    set_foreach (long v, s) {
         if (!first) fprintf(out, ",");
         fprintf(out, "%ld", v);
         first = 0;
@@ -487,10 +477,7 @@ void call_graph_print_dot(call_graph_t* cg) {
     printf("  node [shape=ellipse, fontname=\"monospace\"];\n");
 
     map_foreach (call_graph_node_t* node, &cg->verts) {
-        set_iter_t sit;
-        set_iter_init(&node->edges, &sit);
-        call_graph_node_t* callee;
-        while (set_iter_next(&sit, (void**)&callee)) {
+        set_foreach (call_graph_node_t* callee, &node->edges) {
             printf("  F%ld -> F%ld;\n", node->fid, callee->fid);
         }
     }

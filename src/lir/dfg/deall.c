@@ -20,19 +20,14 @@ int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
             set_t appeared;
             set_union(&appeared, &cb->curr_in, &cb->def);
 
-            set_iter_t init;
-            set_iter_init(&appeared, &init);
-            long vid;
-            while (set_iter_next(&init, (void**)&vid)) {
+            set_foreach (long vid, &appeared) {
                 if (set_has(&cb->curr_out, (void*)vid)) continue;
 
                 set_t owners;
                 int hasown = 0;
                 if (ALLIAS_get_owners(vid, &owners, &smt->m)) {
-                    set_iter_t ownersit;
-                    set_iter_init(&owners, &ownersit);
-                    while (set_iter_next(&ownersit, (void**)&vid)) {
-                        if (set_has(&cb->curr_out, (void*)vid)) {
+                    set_foreach (long svid, &owners) {
+                        if (set_has(&cb->curr_out, (void*)svid)) {
                             hasown = 1;
                             break;
                         }

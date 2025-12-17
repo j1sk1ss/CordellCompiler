@@ -25,10 +25,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
             set_init(&nd, SET_CMP);
 
             int first = 1;
-            set_iter_t it;
-            set_iter_init(&cb->pred, &it);
-            cfg_block_t* p;
-            while (set_iter_next(&it, (void**)&p)) {
+            set_foreach (cfg_block_t* p, &cb->pred) {
                 if (first) {
                     set_free(&nd);
                     set_copy(&nd, &p->dom);
@@ -71,27 +68,19 @@ int HIR_CFG_compute_sdom(cfg_func_t* fb) {
         }
 
         cfg_block_t* sdom = NULL;
-
-        set_iter_t it;
-        set_iter_init(&cb->dom, &it);
-        cfg_block_t* d;
-        while (set_iter_next(&it, (void**)&d)) {
-            if (d == cb) continue;
+        set_foreach (cfg_block_t* fd, &cb->dom) {
+            if (fd == cb) continue;
             int dominated_by_other = 0;
-
-            set_iter_t it2;
-            set_iter_init(&cb->dom, &it2);
-            cfg_block_t* other;
-            while (set_iter_next(&it2, (void**)&other)) {
-                if (other == cb || other == d) continue;
-                if (set_has(&other->dom, d)) {
+            set_foreach (cfg_block_t* sd, &cb->dom) {
+                if (sd == cb || sd == fd) continue;
+                if (set_has(&sd->dom, fd)) {
                     dominated_by_other = 1;
                     break;
                 }
             }
 
             if (!dominated_by_other) {
-                sdom = d;
+                sdom = fd;
                 break;
             }
         }
@@ -115,14 +104,9 @@ static int _build_domtree(cfg_func_t* fb) {
 static void _compute_domf_rec(cfg_block_t* b) {
     if (b->l && b->l->sdom != b)     set_add(&b->domf, b->l);
     if (b->jmp && b->jmp->sdom != b) set_add(&b->domf, b->jmp);
-
     for (cfg_block_t* c = b->dom_c; c; c = c->dom_s) {
         _compute_domf_rec(c);
-
-        set_iter_t it;
-        set_iter_init(&c->domf, &it);
-        cfg_block_t* w;
-        while (set_iter_next(&it, (void**)&w)) {
+        set_foreach (cfg_block_t* w, &c->domf) {
             if (w->sdom != b) set_add(&b->domf, w);
         }
     }
