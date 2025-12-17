@@ -190,6 +190,9 @@ class PTRNParser:
             else:
                 for idx in range(len(instruction.operands)):
                     operand = instruction.operands[idx]
+                    if not operand:
+                        continue
+                    
                     if is_do:
                         if not operand.actions:
                             operand.actions = []

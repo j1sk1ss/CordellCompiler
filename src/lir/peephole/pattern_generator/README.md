@@ -1,5 +1,5 @@
 # Summary
-CordellCompiler' peephole optimization bases on patterns. These patterns can be produced with special domain-specific programming language `PTRN`. The main idea is to implement a complex, easy-to-use tool for a peephole pattern generation.
+CordellCompiler's peephole optimization bases on patterns. These patterns can be produced with a special domain-specific programming language `PTRN`. The main idea is to implement a complex, easy-to-use tool for a peephole pattern generation.
 
 # Syntax
 ## Formatting
@@ -76,7 +76,7 @@ xor areg_1, areg_1
 /
 ```
 
-Here we replace the mov operation with the xor operation. According to docs, xor operation is more optimized for 'zeroing' purpose.
+Here we replace the `mov` operation with the `xor` operation. According to docs, `xor` operation is more optimized for 'zeroing' purpose.
 
 2. PTRN supports multiple lines as a single pattern. This allows us to build a complex logic:
 ```ptrn
@@ -109,4 +109,4 @@ Just use the next command:
 python3 main.py <xxx.ptrn>
 ```
 
-It will produces a `peephole_geenrated.c` file with all essentials.
+It will produce a `peephole_geenrated.c` file with all essentials.

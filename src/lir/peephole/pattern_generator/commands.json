@@ -40,7 +40,10 @@
         "setb":     [ "LIR_SETB" ],
         "seta":     [ "LIR_SETA" ],
         "setbe":    [ "LIR_STBE" ],
-        "setae":    [ "LIR_STAE" ]
+        "setae":    [ "LIR_STAE" ],
+        "dec":      [ "LIR_DEC"  ],
+        "inc":      [ "LIR_INC"  ],
+        "neg":      [ "LIR_NEG"  ]
     },
     "used_args": {
         "mov":      0,
@@ -83,7 +86,10 @@
         "setb":     0,
         "seta":     0,
         "setbe":    0,
-        "setae":    0
+        "setae":    0,
+        "dec":      0,
+        "inc":      0,
+        "neg":      0
     },
     "functions": {
         "atoi": "LIR_peephole_get_long_number",
@@ -95,7 +101,7 @@
     },
     "conditions": {
         "mod2": "!(LIR_peephole_get_long_number(%1) & 1)",
-        "power2": "!(LIR_peephole_get_long_number(%1) & (LIR_peephole_get_long_number(%1) - 1))",
+        "power2": "LIR_peephole_get_long_number(%2) != 1 && !(\n\tLIR_peephole_get_long_number(%2) & (LIR_peephole_get_long_number(%2) - 1)\n)",
         "zero": "!LIR_peephole_get_long_number(%1)",
         "one": "LIR_peephole_get_long_number(%1)",
         "equals": "LIR_subj_equals(%1, %2)"

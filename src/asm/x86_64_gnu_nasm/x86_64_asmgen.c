@@ -48,6 +48,10 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_STBE: fprintf(output, "setbe %s\n", x86_64_asm_variable(curr->farg, smt));                                             break;
             case LIR_STAE: fprintf(output, "setae %s\n", x86_64_asm_variable(curr->farg, smt));                                             break;
 
+            case LIR_NEG: fprintf(output, "neg %s\n", x86_64_asm_variable(curr->farg, smt));                                                break;
+            case LIR_INC: fprintf(output, "inc %s\n", x86_64_asm_variable(curr->farg, smt));                                                break;
+            case LIR_DEC: fprintf(output, "dec %s\n", x86_64_asm_variable(curr->farg, smt));                                                break;
+
             case LIR_JMP:  fprintf(output, "jmp %s\n", x86_64_asm_variable(curr->farg, smt));                                               break;
             case LIR_JE:   fprintf(output, "je %s\n", x86_64_asm_variable(curr->farg, smt));                                                break;
             case LIR_JLE:  fprintf(output, "jle %s\n", x86_64_asm_variable(curr->farg, smt));                                               break;

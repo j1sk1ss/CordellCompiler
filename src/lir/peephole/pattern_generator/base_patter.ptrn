@@ -12,8 +12,8 @@ mov areg_1, const 0                   ; 'xor' according to documentation is
 xor areg_1, areg_1
 /
 
-mov areg_1, areg_2                    ; Redundant move operation
-mov areg_2, areg_1                    ; areg_2 already has areg_1 value
+mov areg_1, obj_2                     ; Redundant move operation
+mov obj_2, areg_1                     ; areg_2 already has areg_1 value
 ->
 mov areg_1, areg_2
 /
@@ -32,6 +32,16 @@ mul obj, const 1                      ; X * 1 = X
 delete
 /
 
+mul areg_1, aconst_2 [if:arg2:power2]
+->
+shl areg_1, aconst_2 [do:arg2:log2]
+/
+
+mul areg_1, const -1
+->
+neg areg_1
+/
+
 ; ==================
 ; ADD patterns
 ; ==================
@@ -41,9 +51,19 @@ add obj, const 0                      ; X + 0 = X
 delete
 /
 
-add areg_1, aconst_2 [if:arg2:mod2]   ; X + 1024 == X << 10
+add areg_1, aconst_2 [if:arg2:power2] ; X + 1024 == X >> 10
 ->
 shr areg_1, aconst_2 [do:arg2:log2]
+/
+
+add areg, const 1
+->
+inc areg
+/
+
+add areg_1, areg_2 [if:equals]
+->
+shl areg_1, const 1
 /
 
 ; ==================
@@ -55,6 +75,16 @@ sub obj, const 0                      ; X - 0 = X
 delete
 /
 
+sub areg, const 1
+->
+dec areg
+/
+
+sub areg_1, areg_1
+->
+xor areg_1, areg_1
+/
+
 ; ==================
 ; CMP patterns
 ; ==================
@@ -62,6 +92,26 @@ delete
 cmp areg_1, const 0
 ->
 test areg_1, areg_1
+/
+
+; ==================
+; Logic patterns
+; ==================
+
+and areg_1, const 0
+->
+xor areg_1, areg_1
+/
+
+or areg_1, const 0
+->
+delete
+/
+
+not areg_1
+not areg_1
+->
+delete
 /
 
 ; ==================
