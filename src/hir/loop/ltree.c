@@ -75,17 +75,6 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
     return 1;
 }
 
-int HIR_LOOP_mark_loops(cfg_ctx_t* cctx) {
-    foreach (cfg_func_t* fb, &cctx->funcs) {
-        if (!fb->used) continue;
-        ltree_ctx_t lctx;
-        list_init(&lctx.loops);
-        HIR_LTREE_build_loop_tree(fb, &lctx);
-    }
-
-    return 1;
-}
-
 static int _loop_node_free(loop_node_t* n) {
     if (!n) return 0;
     foreach (loop_node_t* ch, &n->children) {
@@ -95,6 +84,18 @@ static int _loop_node_free(loop_node_t* n) {
     list_free(&n->children);
     set_free(&n->blocks);
     mm_free(n);
+    return 1;
+}
+
+int HIR_LOOP_mark_loops(cfg_ctx_t* cctx) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        if (!fb->used) continue;
+        ltree_ctx_t lctx;
+        list_init(&lctx.loops);
+        HIR_LTREE_build_loop_tree(fb, &lctx);
+        list_free_force_op(&lctx.loops, (int (*)(void *))_loop_node_free);
+    }
+
     return 1;
 }
 

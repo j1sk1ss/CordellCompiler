@@ -189,7 +189,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
 
     ssa_ctx_t ssactx;
-    list_init(&ssactx.vers);
+    map_init(&ssactx.vers, MAP_NO_CMP);
     HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
     HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
 

@@ -3,21 +3,18 @@
 
 #include <hir/ssa.h>
 
-static int _add_varver(list_t* vers, long id, long cid) {
+static int _add_varver(map_t* vers, long id, long cid) {
     varver_t* vv = (varver_t*)mm_malloc(sizeof(varver_t));
     if (!vv) return 0;
-    str_memset(vv, 0, sizeof(varver_t));
     vv->v_id    = id;
     vv->curr_id = cid;
-    list_add(vers, vv);
+    map_put(vers, id, (void*)vv);
     return 1;
 }
 
 static varver_t* _get_varver(long v_id, ssa_ctx_t* ctx) {
-    foreach (varver_t* hi, &ctx->vers) {
-        if (hi->v_id == v_id) return hi;
-    }
-
+    varver_t* vi;
+    if (map_get(&ctx->vers, v_id, (void**)&vi)) return vi;
     return NULL;
 }
 
@@ -143,22 +140,22 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
         _iterate_block(b->l, ctx, b->id, smt);
     }
     else {
-        list_t saved;
-        list_init(&saved);
-        
-        foreach (varver_t* s, &ctx->vers) {
+        map_t saved;
+        map_init(&saved, MAP_NO_CMP);
+        map_foreach (varver_t* s, &ctx->vers) {
             _add_varver(&saved, s->v_id, s->curr_id);
         }
 
         _iterate_block(b->jmp, ctx, b->id, smt);
-        list_free_force(&ctx->vers);
+        map_free_force(&ctx->vers);
+        map_init(&ctx->vers, MAP_NO_CMP);
         
-        foreach (varver_t* s, &saved) {
+        map_foreach (varver_t* s, &saved) {
             _add_varver(&ctx->vers, s->v_id, s->curr_id);
         }
         
         _iterate_block(b->l, ctx, b->id, smt);
-        list_free_force(&saved);
+        map_free_force(&saved);
     }
 
     return 1;
@@ -175,6 +172,6 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
         _iterate_block(list_get_head(&fb->blocks), ctx, 0, smt);
     }
 
-    list_free_force(&ctx->vers);
+    map_free_force(&ctx->vers);
     return 1;
 }

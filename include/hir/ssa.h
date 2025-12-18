@@ -4,6 +4,8 @@
 #include <std/mm.h>
 #include <std/stack.h>
 #include <std/set.h>
+#include <std/map.h>
+#include <std/list.h>
 #include <std/tuple.h>
 #include <symtab/symtab.h>
 #include <hir/hir.h>
@@ -15,7 +17,7 @@ typedef struct {
 } varver_t;
 
 typedef struct {
-    list_t vers;
+    map_t vers;
 } ssa_ctx_t;
 
 int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt);
