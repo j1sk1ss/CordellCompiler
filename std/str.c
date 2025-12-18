@@ -34,7 +34,7 @@ static int string_cat(str_self self, string_t* dst) {
     char* nbody = (char*)mm_realloc(self->body, self->size + dst->size + 1);
     if (!nbody) return 0;
 
-    str_memcpy(nbody + self->size, dst->body, dst->size + 1);
+    str_memcpy(nbody + self->size, dst->head, dst->size + 1);
 
     string_info_t info;
     _get_string_info(nbody, -1, &info);
@@ -50,7 +50,7 @@ static long long string_to_llong(str_self self) {
     long long num   = 0;
     unsigned long i = 0;
 
-    char* h = self->body;
+    char* h = self->head;
     while (str_isspace(*h)) h++;
     if (*h == '-' || *h == '+') {
         neg = *h == '-' ? 0 : 1;
@@ -68,7 +68,7 @@ static long long string_to_llong(str_self self) {
 }
 
 static unsigned long long string_to_ullong(str_self self, int base) {
-    char* h = self->body;
+    char* h = self->head;
     unsigned long long result = 0;
     for (int i = 0; *h; ++i, ++h) {
         char c = *h;
@@ -90,7 +90,7 @@ static string_t* string_from_number(str_self self) {
     int isfloat = 0;
     unsigned long long val = 0;
     for (unsigned int i = 0; i < self->size; i++) {
-        if (self->body[i] == '.') {
+        if (self->head[i] == '.') {
             isfloat = 1;
             val = str_dob2bits(self->to_double(self));
             break;
@@ -98,20 +98,20 @@ static string_t* string_from_number(str_self self) {
     }
 
     if (!isfloat) {
-        if (self->body[0] == '0' && (self->body[1] == 'x' || self->body[1] == 'X')) {
+        if (self->head[0] == '0' && (self->head[1] == 'x' || self->head[1] == 'X')) {
             self->hmove(self, 2);
             val = self->to_ullong(self, 16);
         }
-        else if (self->body[0] == '0' && (self->body[1] == 'b' || self->body[1] == 'B')) {
+        else if (self->head[0] == '0' && (self->head[1] == 'b' || self->head[1] == 'B')) {
             self->hmove(self, 2);
             val = self->to_ullong(self, 2);
         }
-        else if (self->body[0] == '0' && self->body[1] && self->body[1] != '.') {
+        else if (self->head[0] == '0' && self->head[1] && self->head[1] != '.') {
             self->hmove(self, 1);
             val = self->to_ullong(self, 8);
         }
         else {
-            if (self->body[0] == '-') self->hmove(self, 1);
+            if (self->head[0] == '-') self->hmove(self, 1);
             val = self->to_ullong(self, 10);
         }
     }
@@ -119,12 +119,12 @@ static string_t* string_from_number(str_self self) {
     self->rhead(self);
 
     char buffer[128] = { 0 };
-    snprintf(buffer, sizeof(buffer), "%s%llu", self->body[0] == '-' ? "-" : "", val);
+    snprintf(buffer, sizeof(buffer), "%s%llu", self->head[0] == '-' ? "-" : "", val);
     return create_string(buffer);
 }
 
 static double string_to_double(str_self self) {
-    char* s = self->body;
+    char* s = self->head;
     double result = 0.0;
     int sign      = 1;
     int exp_sign  = 1;
@@ -172,7 +172,7 @@ static double string_to_double(str_self self) {
 }
 
 static string_t* string_fchar(str_self self, char chr) {
-    char* h = self->body;
+    char* h = self->head;
     while (*h) {
         if (*h == chr) {
             return create_string(h);
@@ -206,7 +206,7 @@ static string_t* string_copy(str_self src) {
 static int string_equals(str_self self, string_t* s) {
     if (!self || !s) return 0;
     if (self->hash != s->hash) return 0;
-    char *fh = self->body, *sh = s->body;
+    char *fh = self->head, *sh = s->body;
     while (*fh && *sh) {
         if (*fh != *sh) return 0;
         fh++;
@@ -218,7 +218,7 @@ static int string_equals(str_self self, string_t* s) {
 
 static int string_equals_raw(str_self self, const char* s) {
     if (!self || !s) return 0;
-    char *fh = self->body, *sh = (char*)s;
+    char *fh = self->head, *sh = (char*)s;
     while (*fh && *sh) {
         if (*fh != *sh) return 0;
         fh++;
@@ -230,7 +230,7 @@ static int string_equals_raw(str_self self, const char* s) {
 
 static int string_index_of(str_self self, char c) {
     for (unsigned int i = 0; i < self->size; i++) {
-        if (self->body[i] == c) return i;
+        if (self->head[i] == c) return i;
     }
 
     return -1;
@@ -239,7 +239,7 @@ static int string_index_of(str_self self, char c) {
 static int string_replace(str_self self, const char* src, const char* dst) {
     unsigned int src_len = str_strlen(src);
     unsigned int dst_len = str_strlen(dst);
-    char* s = self->body;
+    char* s = self->head;
 
     if (!src_len) return 0;
     unsigned int count = 0;
