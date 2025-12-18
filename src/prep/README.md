@@ -1,6 +1,6 @@
 # Prep
-Prepare input file, split into tokens, markup them.
-- `markup.c` - Functions for tokens list markup process (with scope usage).
+Prepare the input file: Split into tokens, then markup them.
+- `markup.c` - Functions for the tokens list markup process (with a scope usage).
 - `token_types.c` - Misc functions for work with token types.
-- `token.c` - Main functions for input file tokenization.
+- `token.c` - Main functions for the input file tokenization.
  

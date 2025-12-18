@@ -5,88 +5,89 @@ typedef struct {
     token_type_t type;
 } markup_token_t;
 
+#define LEXEM(n, t) { .value = n, .type = t }
 static const markup_token_t _lexems[] = {
     /* Special single place tokens. */
-    { .value = IMPORT_SELECT_COMMAND,  .type = IMPORT_SELECT_TOKEN },
-    { .value = IMPORT_COMMAND,         .type = IMPORT_TOKEN        },
-    { .value = EXTERN_COMMAND,         .type = EXTERN_TOKEN        },
-    { .value = START_COMMAND,          .type = START_TOKEN         },
-    { .value = EXIT_COMMAND,           .type = EXIT_TOKEN          },
-    { .value = RETURN_TYPE_COMMAND,    .type = RETURN_TYPE_TOKEN   },
+    LEXEM(IMPORT_SELECT_COMMAND,  IMPORT_SELECT_TOKEN),
+    LEXEM(IMPORT_COMMAND,         IMPORT_TOKEN),
+    LEXEM(EXTERN_COMMAND,         EXTERN_TOKEN),
+    LEXEM(START_COMMAND,          START_TOKEN),
+    LEXEM(EXIT_COMMAND,           EXIT_TOKEN),
+    LEXEM(RETURN_TYPE_COMMAND,    RETURN_TYPE_TOKEN),
 
     /* Bracket tokens. */
-    { .value = OPEN_BLOCK,             .type = OPEN_BLOCK_TOKEN    },
-    { .value = CLOSE_BLOCK,            .type = CLOSE_BLOCK_TOKEN   },
-    { .value = OPEN_INDEX,             .type = OPEN_INDEX_TOKEN    },
-    { .value = CLOSE_INDEX,            .type = CLOSE_INDEX_TOKEN   },
-    { .value = OPEN_BRACKET,           .type = OPEN_BRACKET_TOKEN  },
-    { .value = CLOSE_BRACKET,          .type = CLOSE_BRACKET_TOKEN },
+    LEXEM(OPEN_BLOCK,             OPEN_BLOCK_TOKEN),
+    LEXEM(CLOSE_BLOCK,            CLOSE_BLOCK_TOKEN),
+    LEXEM(OPEN_INDEX,             OPEN_INDEX_TOKEN),
+    LEXEM(CLOSE_INDEX,            CLOSE_INDEX_TOKEN),
+    LEXEM(OPEN_BRACKET,           OPEN_BRACKET_TOKEN),
+    LEXEM(CLOSE_BRACKET,          CLOSE_BRACKET_TOKEN),
 
     /* Function and jmp tokens. */
-    { .value = EXFUNCTION_COMMAND,     .type = EXFUNC_TOKEN        },
-    { .value = FUNCTION_COMMAND,       .type = FUNC_TOKEN          },
-    { .value = RETURN_COMMAND,         .type = RETURN_TOKEN        },
-    { .value = SYSCALL_COMMAND,        .type = SYSCALL_TOKEN       },
-    { .value = ASM_COMMAND,            .type = ASM_TOKEN           },
+    LEXEM(EXFUNCTION_COMMAND,     EXFUNC_TOKEN),
+    LEXEM(FUNCTION_COMMAND,       FUNC_TOKEN),
+    LEXEM(RETURN_COMMAND,         RETURN_TOKEN),
+    LEXEM(SYSCALL_COMMAND,        SYSCALL_TOKEN),
+    LEXEM(ASM_COMMAND,            ASM_TOKEN),
 
     /* Variable modifiers */
-    { .value = DREF_COMMAND,           .type = DREF_TYPE_TOKEN     },
-    { .value = REF_COMMAND,            .type = REF_TYPE_TOKEN      },
-    { .value = PTR_COMMAND,            .type = PTR_TYPE_TOKEN      },
-    { .value = RO_COMMAND,             .type = RO_TYPE_TOKEN       },
-    { .value = GLOB_COMMAND,           .type = GLOB_TYPE_TOKEN     },
-    { .value = NEGATIVE_COMMAND,       .type = NEGATIVE_TOKEN      },
+    LEXEM(DREF_COMMAND,           DREF_TYPE_TOKEN),
+    LEXEM(REF_COMMAND,            REF_TYPE_TOKEN),
+    LEXEM(PTR_COMMAND,            PTR_TYPE_TOKEN),
+    LEXEM(RO_COMMAND,             RO_TYPE_TOKEN),
+    LEXEM(GLOB_COMMAND,           GLOB_TYPE_TOKEN),
+    LEXEM(NEGATIVE_COMMAND,       NEGATIVE_TOKEN),
 
     /* Variable tokens. */
-    { .value = I0_VARIABLE,            .type = I0_TYPE_TOKEN       },
-    { .value = F64_VARIABLE,           .type = F64_TYPE_TOKEN      },
-    { .value = F32_VARIABLE,           .type = F32_TYPE_TOKEN      },
-    { .value = I64_VARIABLE,           .type = I64_TYPE_TOKEN      },
-    { .value = I32_VARIABLE,           .type = I32_TYPE_TOKEN      },
-    { .value = I16_VARIABLE,           .type = I16_TYPE_TOKEN      },
-    { .value = I8_VARIABLE,            .type = I8_TYPE_TOKEN       },
-    { .value = U64_VARIABLE,           .type = U64_TYPE_TOKEN      },
-    { .value = U32_VARIABLE,           .type = U32_TYPE_TOKEN      },
-    { .value = U16_VARIABLE,           .type = U16_TYPE_TOKEN      },
-    { .value = U8_VARIABLE,            .type = U8_TYPE_TOKEN       },
-    { .value = STR_VARIABLE,           .type = STR_TYPE_TOKEN      },
-    { .value = ARR_VARIABLE,           .type = ARRAY_TYPE_TOKEN    },
+    LEXEM(I0_VARIABLE,            I0_TYPE_TOKEN),
+    LEXEM(F64_VARIABLE,           F64_TYPE_TOKEN),
+    LEXEM(F32_VARIABLE,           F32_TYPE_TOKEN),
+    LEXEM(I64_VARIABLE,           I64_TYPE_TOKEN),
+    LEXEM(I32_VARIABLE,           I32_TYPE_TOKEN),
+    LEXEM(I16_VARIABLE,           I16_TYPE_TOKEN),
+    LEXEM(I8_VARIABLE,            I8_TYPE_TOKEN),
+    LEXEM(U64_VARIABLE,           U64_TYPE_TOKEN),
+    LEXEM(U32_VARIABLE,           U32_TYPE_TOKEN),
+    LEXEM(U16_VARIABLE,           U16_TYPE_TOKEN),
+    LEXEM(U8_VARIABLE,            U8_TYPE_TOKEN),
+    LEXEM(STR_VARIABLE,           STR_TYPE_TOKEN),
+    LEXEM(ARR_VARIABLE,           ARRAY_TYPE_TOKEN),
 
     /* Little jump tokens. */
-    { .value = SWITCH_COMMAND,         .type = SWITCH_TOKEN        },
-    { .value = CASE_COMMAND,           .type = CASE_TOKEN          },
-    { .value = DEFAULT_COMMAND,        .type = DEFAULT_TOKEN       },
-    { .value = WHILE_COMAND,           .type = WHILE_TOKEN         },
-    { .value = IF_COMMAND,             .type = IF_TOKEN            },
-    { .value = ELSE_COMMAND,           .type = ELSE_TOKEN          },
+    LEXEM(SWITCH_COMMAND,         SWITCH_TOKEN),
+    LEXEM(CASE_COMMAND,           CASE_TOKEN),
+    LEXEM(DEFAULT_COMMAND,        DEFAULT_TOKEN),
+    LEXEM(WHILE_COMAND,           WHILE_TOKEN),
+    LEXEM(IF_COMMAND,             IF_TOKEN),
+    LEXEM(ELSE_COMMAND,           ELSE_TOKEN),
 
     /* Binary operands. */
-    { .value = ADDASSIGN_STATEMENT,    .type = ADDASSIGN_TOKEN     },
-    { .value = SUBASSIGN_STATEMENT,    .type = SUBASSIGN_TOKEN     },
-    { .value = MULASSIGN_STATEMENT,    .type = MULASSIGN_TOKEN     },
-    { .value = DIVASSIGN_STATEMENT,    .type = DIVASSIGN_TOKEN     },
-    { .value = ASSIGN_STATEMENT,       .type = ASSIGN_TOKEN        },
-    { .value = COMPARE_STATEMENT,      .type = COMPARE_TOKEN       },
-    { .value = NCOMPARE_STATEMENT,     .type = NCOMPARE_TOKEN      },
-    { .value = PLUS_STATEMENT,         .type = PLUS_TOKEN          },
-    { .value = MINUS_STATEMENT,        .type = MINUS_TOKEN         },
-    { .value = LARGER_STATEMENT,       .type = LARGER_TOKEN        },
-    { .value = LARGEREQ_STATEMENT,     .type = LARGEREQ_TOKEN      },
-    { .value = LOWER_STATEMENT,        .type = LOWER_TOKEN         },
-    { .value = LOWEREQ_STATEMENT,      .type = LOWEREQ_TOKEN       },
-    { .value = MULTIPLY_STATEMENT,     .type = MULTIPLY_TOKEN      },
-    { .value = DIVIDE_STATEMENT,       .type = DIVIDE_TOKEN        },
-    { .value = MODULO_STATEMENT,       .type = MODULO_TOKEN        },
-    { .value = BITMOVE_LEFT_STATEMENT, .type = BITMOVE_LEFT_TOKEN  },
-    { .value = BITMOVE_RIGHT_STATMENT, .type = BITMOVE_RIGHT_TOKEN },
-    { .value = BITAND_STATEMENT,       .type = BITAND_TOKEN        },
-    { .value = BITOR_STATEMENT,        .type = BITOR_TOKEN         },
-    { .value = BITXOR_STATEMENT,       .type = BITXOR_TOKEN        },
-    { .value = AND_STATEMENT,          .type = AND_TOKEN           },
-    { .value = OR_STATEMENT,           .type = OR_TOKEN            },
+    LEXEM(ADDASSIGN_STATEMENT,    ADDASSIGN_TOKEN),
+    LEXEM(SUBASSIGN_STATEMENT,    SUBASSIGN_TOKEN),
+    LEXEM(MULASSIGN_STATEMENT,    MULASSIGN_TOKEN),
+    LEXEM(DIVASSIGN_STATEMENT,    DIVASSIGN_TOKEN),
+    LEXEM(ASSIGN_STATEMENT,       ASSIGN_TOKEN),
+    LEXEM(COMPARE_STATEMENT,      COMPARE_TOKEN),
+    LEXEM(NCOMPARE_STATEMENT,     NCOMPARE_TOKEN),
+    LEXEM(PLUS_STATEMENT,         PLUS_TOKEN),
+    LEXEM(MINUS_STATEMENT,        MINUS_TOKEN),
+    LEXEM(LARGER_STATEMENT,       LARGER_TOKEN),
+    LEXEM(LARGEREQ_STATEMENT,     LARGEREQ_TOKEN),
+    LEXEM(LOWER_STATEMENT,        LOWER_TOKEN),
+    LEXEM(LOWEREQ_STATEMENT,      LOWEREQ_TOKEN),
+    LEXEM(MULTIPLY_STATEMENT,     MULTIPLY_TOKEN),
+    LEXEM(DIVIDE_STATEMENT,       DIVIDE_TOKEN),
+    LEXEM(MODULO_STATEMENT,       MODULO_TOKEN),
+    LEXEM(BITMOVE_LEFT_STATEMENT, BITMOVE_LEFT_TOKEN),
+    LEXEM(BITMOVE_RIGHT_STATMENT, BITMOVE_RIGHT_TOKEN),
+    LEXEM(BITAND_STATEMENT,       BITAND_TOKEN),
+    LEXEM(BITOR_STATEMENT,        BITOR_TOKEN),
+    LEXEM(BITXOR_STATEMENT,       BITXOR_TOKEN),
+    LEXEM(AND_STATEMENT,          AND_TOKEN),
+    LEXEM(OR_STATEMENT,           OR_TOKEN),
 
     /* Debug */
-    { .value = BREAKPOINT_COMMAND,     .type = BREAKPOINT_TOKEN    },
+    LEXEM(BREAKPOINT_COMMAND,     BREAKPOINT_TOKEN),
 };
 
 static int _build_lexems_map(map_t* m) {
@@ -103,7 +104,7 @@ int MRKP_mnemonics(list_t* tkn) {
     _build_lexems_map(&lexems);
     foreach (token_t* curr, tkn) {
         long t;
-        if (map_get(&lexems, crc64((unsigned char*)curr->body->body, str_strlen(curr->body->body), 0), (void**)&t)) {
+        if (map_get(&lexems, crc64((unsigned char*)curr->body->body, curr->body->size, 0), (void**)&t)) {
             curr->t_type = t;
         }
     }
@@ -132,8 +133,8 @@ typedef struct {
 static int _add_variable(list_t* vars, string_t* name, short scope, markp_ctx* ctx) {
     variable_t* v = (variable_t*)mm_malloc(sizeof(variable_t));
     if (!v) return 0;
-
     str_memset(v, 0, sizeof(variable_t));
+    
     v->name  = name;
     v->scope = scope;
     v->ext   = ctx->ext;
@@ -260,9 +261,9 @@ int MRKP_variables(list_t* tkn) {
         switch (curr->t_type) {
             case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
             case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
-            case NEGATIVE_TOKEN:  neg  = 1; _remove_token(tkn, curr);             continue;
-            case DREF_TYPE_TOKEN: dref = 1; _remove_token(tkn, curr);             continue;
-            case REF_TYPE_TOKEN:  ref  = 1; _remove_token(tkn, curr);             continue;
+            case NEGATIVE_TOKEN:    neg  = 1; _remove_token(tkn, curr);           continue;
+            case DREF_TYPE_TOKEN:   dref = 1; _remove_token(tkn, curr);           continue;
+            case REF_TYPE_TOKEN:    ref  = 1; _remove_token(tkn, curr);           continue;
             case UNKNOWN_CHAR_TOKEN:
             case UNKNOWN_STRING_TOKEN: {
                 for (int s = scope_stack.top; s >= 0; s--) {

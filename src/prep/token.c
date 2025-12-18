@@ -27,11 +27,11 @@ static char_type_t _get_char_type(unsigned char ch) {
         case '"':  return CHAR_QUOTE;
         case ':':  return CHAR_COMMENT;
         case ';':  return CHAR_DELIMITER;
-        case ' ': case '\t': return CHAR_SPACE;
-        case '(': case '[':
-        case '{': case ')':
-        case ']': case '}':  return CHAR_BRACKET;
-        default: return CHAR_OTHER;
+        case ' ':  case '\t': return CHAR_SPACE;
+        case '(':  case '[':
+        case '{':  case ')':
+        case ']':  case '}':  return CHAR_BRACKET;
+        default:   return CHAR_OTHER;
     }
 }
 
