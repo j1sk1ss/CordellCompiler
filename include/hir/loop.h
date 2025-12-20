@@ -24,14 +24,14 @@ typedef struct {
 Note: Will change the cfg_block_t's type to CFG_LOOP_HEADER or CFG_LOOP_LATCH.
 Note 2: This function will produce a loop tree.
 Params:
-    - cctx - CFG context.
+    - `cctx` - CFG context.
 
 Return 1 if success, otherwise 0.
 */
 int HIR_LOOP_mark_loops(cfg_ctx_t* cctx);
 
-int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt);
 int HIR_LTREE_canonicalization(cfg_ctx_t* cctx);
+int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt);
 int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx);
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx);
 

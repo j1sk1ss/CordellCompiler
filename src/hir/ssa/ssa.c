@@ -1,6 +1,11 @@
 /* ssa.c - Convert the input HIR of the program (with PHI placeholders) to the SSA form */
 #include <hir/ssa.h>
 
+typedef struct {
+    long curr_id;
+    long v_id;
+} varver_t;
+
 /*
 Add variable version placeholder to the versions map.
 Params:

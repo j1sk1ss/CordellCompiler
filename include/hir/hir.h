@@ -69,7 +69,15 @@ typedef struct {
     hir_block_t* t;
 } hir_ctx_t;
 
+/*
+Get hash (i64) from the provided subject.
+Params:
+    - `s` - Target hir subject.
+
+Return `i64`:hash.
+*/
 long HIR_hash_subject(hir_subject_t* s);
+
 hir_ctx_t* HIR_create_ctx();
 int HIR_destroy_ctx(hir_ctx_t* ctx);
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval);

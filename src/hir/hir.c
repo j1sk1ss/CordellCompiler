@@ -1,5 +1,12 @@
 #include <hir/hir.h>
 
+/*
+Mix64 hash function.
+Params:
+    - x - Input value.
+
+Returns hashed value.
+*/
 static inline unsigned long _mix64(unsigned long x) {
     x ^= x >> 30;
     x *= 0xbf58476d1ce4e5b9;
@@ -62,17 +69,9 @@ long HIR_hash_subject(hir_subject_t* s) {
 
         case HIR_FNAME:
         case HIR_RAWASM:
-        case HIR_STRING:
-            h ^= _mix64(s->storage.str.s_id);
-        break;
-
-        case HIR_PHISET:
-            h ^= _mix64((unsigned long)&s->storage.set.h);
-        break;
-
-        default:
-            h ^= _mix64(s->id);
-        break;
+        case HIR_STRING: h ^= _mix64(s->storage.str.s_id);              break;
+        case HIR_PHISET: h ^= _mix64((unsigned long)&s->storage.set.h); break;
+        default:         h ^= _mix64(s->id);                            break;
     }
 
     s->hash = (long)(h ^ (h >> 32));
@@ -105,8 +104,8 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(hir_subject_t));
 
-    subj->t  = t;
-    subj->id = _curr_id++;
+    subj->t     = t;
+    subj->id    = _curr_id++;
     subj->users = 1;
 
     switch (t) {

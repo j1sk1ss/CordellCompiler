@@ -19,7 +19,7 @@ Return 1 or 0 that depends on success or failure.
 int LIR_generate(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt);
 
 /*
-Grab the next lit block from the LIR. 
+Grab the next lir block from the LIR. 
 Params:
     - c - Current LIR block.
     - exit - The exit LIR statement. 

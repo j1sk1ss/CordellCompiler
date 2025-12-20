@@ -24,8 +24,8 @@ typedef struct {
 Note: Will mark functions as unused if they aren't connected to each other
 in call graph.
 Params:
-    - cctx - CFG context.
-    - ctx - Call graph context.
+    - `cctx` - CFG context.
+    - `ctx` - Call graph context.
 
 Returns 1 if operation succeed. Otherwise it will return 0.
 */
@@ -35,8 +35,8 @@ int HIR_CG_apply_dfe(cfg_ctx_t* cctx, call_graph_t* ctx);
 [Analyzation] Perform basic call graph generation.
 Note: Will connect call graph's functions with each other.
 Params:
-    - ctx - Call graph itself.
-    - smt - Symtable.
+    - `ctx` - Call graph itself.
+    - `smt` - Symtable.
 
 Returns 1 if operation succeed. Otherwise it will return 0.
 */
@@ -45,9 +45,9 @@ int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt);
 /*
 Build basic call graph based on the provided CFG.
 Params:
-    - cctx - CFG context.
-    - ctx - Call graph context.
-    - smt - Symtable.
+    - `cctx` - CFG context.
+    - `ctx` - Call graph context.
+    - `smt` - Symtable.
 
 Returns 1 if operation succeed. Otherwise it will return 0.
 */
@@ -56,7 +56,7 @@ int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt);
 /*
 Unload call graph.
 Params:
-    - ctx - Call graph.
+    - `ctx` - Call graph.
 
 Returns 1 if operation succeed. Otherwise it will return 0.
 */
@@ -65,8 +65,8 @@ int HIR_CG_unload(call_graph_t* ctx);
 /*
 Perform tail-recursion elimination. Will remove all tail recursions with cycle.
 Params:
-    - cctx - CFG.
-    - smt - Symtable.
+    - `cctx` - CFG.
+    - `smt` - Symtable.
 
 Return 1 if success, otherwise 0.
 */
@@ -82,7 +82,7 @@ Points earned with next logic:
 - > 15 base blocks in function: -2
 
 Params:
-    - cctx - CFG.
+    - `cctx` - CFG.
 
 Return 1 if success, otherwise 0.
 */

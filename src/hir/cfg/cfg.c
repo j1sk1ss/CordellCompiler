@@ -51,6 +51,7 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     set_init(&block->use, SET_CMP);
     set_init(&block->domf, SET_NO_CMP);
     set_init(&block->dom, SET_CMP);
+    set_init(&block->phi, SET_NO_CMP);
     return block;
 }
 
@@ -194,6 +195,7 @@ int HIR_CFG_unload(cfg_ctx_t* ctx) {
             set_free(&cb->domf);
             set_free(&cb->pred);
             set_free(&cb->visitors);
+            set_free(&cb->phi);
             mm_free(cb);
         }
 
