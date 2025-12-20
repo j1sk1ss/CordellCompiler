@@ -6,10 +6,10 @@ Insert a PHI instruction to the BasicBlock.
 Note: This function doesn't check is another phi function 
       with the save variable is presented in the Basic Block.
 Params:
-    - b - Basic Block.
-    - vi - Variable ID.
-           Note: This variable must be a 'base' variable.
-                 This means that variable mustn't be a copy.
+    - `b` - Basic Block.
+    - `vi` - Variable ID.
+             Note: This variable must be a 'base' variable.
+                   This means that variable mustn't be a copy.
 
 Returns 1 if PHI function insert succeed. Otherwise will return 0.
 */

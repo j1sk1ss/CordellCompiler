@@ -9,30 +9,29 @@ typedef struct {
 /*
 Add variable version placeholder to the versions map.
 Params:
-    - vers - Versions map.
-    - id - Current variable ID (Or the head variable ID).
-    - cid - Current variable ID.
+    - `vers` - Versions map.
+    - `id` - Current variable ID (Or the head variable ID).
+    - `cid` - Current variable ID.
 
-Return 1 if all succeed. Otherwise will return 0.
+Returns 1 if all succeed. Otherwise will return 0.
 */
 static int _add_varver(map_t* vers, long id, long cid) {
     varver_t* vv = (varver_t*)mm_malloc(sizeof(varver_t));
     if (!vv) return 0;
     vv->v_id    = id;
     vv->curr_id = cid;
-    map_put(vers, id, (void*)vv);
-    return 1;
+    return map_put(vers, id, (void*)vv);
 }
 
 /*
 Retrieve bariable information placeholder from the versions map.
 Params:
-    - v_id - Variable 'base' ID.
-    - ctx - SSA context.
+    - `v_id` - Variable 'base' ID.
+    - `ctx` - SSA context.
 
 Returns variable information or NULL.
 */
-static varver_t* _get_varver(long v_id, ssa_ctx_t* ctx) {
+static inline varver_t* _get_varver(long v_id, ssa_ctx_t* ctx) {
     varver_t* vi;
     if (map_get(&ctx->vers, v_id, (void**)&vi)) return vi;
     return NULL;
@@ -41,10 +40,10 @@ static varver_t* _get_varver(long v_id, ssa_ctx_t* ctx) {
 /*
 Rename the provided HIR block with current SSA context.
 Params:
-    - h - HIR block for rename.
-    - ctx - SSA context.
+    - `h` - HIR block for rename.
+    - `ctx` - SSA context.
 
-Return 1 if all succeed. Otherwise will return 0.
+Returns 1 if all succeed. Otherwise will return 0.
 */
 static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
     hir_subject_t* args[3] = { h->farg, h->sarg, h->targ };
@@ -68,52 +67,61 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
 
 /*
 Insert PHI preambule to the previous block.
-The idea is simple: We need to assist the compiler with future SSA form destruction.
+The idea is simple: We need to assist the compiler with future SSA form destruction. 
 To perform this, we can mark for the compiler, how variables are linked with each other.
 For instance:
 ```c
-int foo() {
-// BB1:
-    int a_1 = 0;
-    if (1) {
-// BB2:
-        a_2 = 1;
+    int foo() {
+    // BB1:
+        int a_1 = 0;
+        if (1) {
+    // BB2:
+            a_2 = 1;
+        }
+        else {
+    // BB3:
+            a_3 = 2;
+        }
+    // BB4:
+    //  a_4 = phi(a_3, a_2);
+        return a_4;
     }
-    else {
-// BB3:
-        a_3 = 2;
-    }
-// BB4:
-//  a_4 = phi(a_3, a_2);
-    return a_4;
-}
+```
 
 SSA form will put the phi function before BB4 block, but when we will start code generation, this will interrupt us.
 To prevent this, we can append a hidden command such a 'HIR_PREAMBULE' that will work similar to 'LIR_MOVE':
 ```c
-int foo() {
-// BB1:
-    int a_1 = 0;
-    if (1) {
-// BB2:
-        a_2 = 1;
-//      a_4 = a_2;
+    int foo() {
+    // BB1:
+        int a_1 = 0;
+        if (1) {
+    // BB2:
+            a_2 = 1;
+    //      a_4 = a_2;
+        }
+        else {
+    // BB3:
+            a_3 = 2;
+    //      a_4 = a_3;
+        }
+    // BB4:
+    //  a_4 = phi(a_3, a_2);
+        return a_4;
     }
-    else {
-// BB3:
-        a_3 = 2;
-//      a_4 = a_3;
-    }
-// BB4:
-//  a_4 = phi(a_3, a_2);
-    return a_4;
-}
-
 ```
+
+Params:
+    - `block` - Current CFG Basic Block.
+    - `bid` - Target previous Basic Block.
+    - `a` - Future variable ID.
+    - `b` - Previous variable ID.
+    - `smt` - Symtable.
+
+Returns 1 if all succeed. Otherwise will return 0.
 */
 static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_table_t* smt) {
-    if (a == b) return 1;                                                               /* Check is this isn't the same variables */
-    variable_info_t avi, bvi;                                                           /* Check is these variables are existing  */
+    if (a == b) return 1;     /* Check is this isn't the same variables */
+    variable_info_t avi, bvi; /* Check is these variables are existing  */
     if (!VRTB_get_info_id(a, &avi, &smt->v) || !VRTB_get_info_id(b, &bvi, &smt->v)) {
         return 0;
     }
@@ -126,7 +134,7 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
             HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi)), 
             NULL
         );
-        
+
         if (trg->hmap.exit) HIR_insert_block_before(union_command, trg->hmap.exit);
         else {
             HIR_CFG_append_hir_block_back(trg, union_command);
@@ -146,10 +154,10 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
 /*
 Base routine for block SSA processing.
 Params:
-    - b - Current BaseBlock.
-    - ctx - SSA context.
-    - prev_bid - [Service information] For inital value use '-1'.
-    - smt - Symtable.
+    - `b` - Current BaseBlock.
+    - `ctx` - SSA context.
+    - `prev_bid` - [Service information] For inital value use '-1'.
+    - `smt` - Symtable.
 
 Returns 1 if succeed. Otherwise will return 0.
 */
@@ -201,11 +209,11 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                 
                 variable_info_t vi;
                 if (
-                    hh->farg && HIR_is_vartype(hh->farg->t) &&                      /* - If this command has variable as the first arg  */
-                    !HIR_is_tmptype(hh->farg->t) &&                                 /* - This compiler initialy creates tmp variables   */
-                                                                                    /* as SSA variables                                 */
-                    VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) &&   /* - If this variable existes in the var symtab     */
-                    HIR_writeop(hh->op)                                             /* - If this command assignes new value to variable */
+                    hh->farg && HIR_is_vartype(hh->farg->t) &&                    /* - If this command has variable as the first arg  */
+                    !HIR_is_tmptype(hh->farg->t) &&                               /* - This compiler initialy creates tmp variables   */
+                                                                                  /* as SSA variables                                 */
+                    VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) && /* - If this variable existes in the var symtab     */
+                    HIR_writeop(hh->op)                                           /* - If this command assignes new value to variable */
                 ) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {
