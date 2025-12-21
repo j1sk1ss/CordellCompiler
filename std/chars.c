@@ -4,15 +4,6 @@ int str_isdigit(int c) {
     return (c >= '0' && c <= '9');
 }
 
-int is_number(char* s) {
-    while (*s) {
-        if (!str_isdigit(*s)) return 0;
-        s++;
-    }
-
-    return 1;
-}
-
 int str_isspace(int c) {
     return (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\b' || c == '\0');
 }

@@ -19,6 +19,10 @@
 
     start() {
         i8 b;
+        ptr i8 bref = ref b;
+        ptr i8 bref1 = bref;
+        ptr i8 bref2 = bref1;
+
         i8 a = foo();
         i8 c = 123123;
         BarBar();

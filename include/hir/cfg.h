@@ -7,6 +7,7 @@
 #include <std/list.h>
 #include <symtab/symtab.h>
 #include <hir/hir.h>
+#include <hir/hirgen.h>
 #include <lir/lir.h>
 
 typedef struct {
