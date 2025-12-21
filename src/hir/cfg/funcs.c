@@ -1,6 +1,4 @@
-/* funcs.c - Split input HIR instructions by function blocks.
-*/
-
+/* funcs.c - Split input HIR instructions by function blocks. */
 #include <hir/cfg.h>
 
 cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid) {
@@ -14,6 +12,14 @@ cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid) {
     return NULL;
 }
 
+/*
+Create a function block.
+Params:
+    - `entry` - Function's entry HIR block.
+    - `end` - Functions's exit HIR block.
+
+Return NULL or pointer to the function block.
+*/
 static cfg_func_t* _create_funcblock(hir_block_t* entry, hir_block_t* end) {
     cfg_func_t* b = (cfg_func_t*)mm_malloc(sizeof(cfg_func_t));
     if (!b) return NULL;
@@ -25,18 +31,26 @@ static cfg_func_t* _create_funcblock(hir_block_t* entry, hir_block_t* end) {
     return b;
 }
 
+/*
+Create and append a function block to the functions list.
+Note: Will check if function is presented in the symtable.
+Params:
+    - `entry` - Function's entry HIR block.
+    - `end` - Functions's exit HIR block.
+    - `ctx` - CFG context.
+    - `smt` - Symtable.
+
+Returns 1 if succeed. Otherwise will return 0.
+*/
 static int _add_funcblock(hir_block_t* entry, hir_block_t* end, cfg_ctx_t* ctx, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(entry->farg->storage.str.s_id, &fi, &smt->f)) return 0;
-
     cfg_func_t* b = _create_funcblock(entry, end);
     if (!b) return 0;
     b->id     = ctx->cid++;
     b->fid    = entry->farg->storage.str.s_id;
     b->fentry = fi.entry;
-    list_add(&ctx->funcs, b);
-
-    return 1;
+    return list_add(&ctx->funcs, b);
 }
 
 int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {

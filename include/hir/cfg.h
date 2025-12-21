@@ -131,17 +131,6 @@ Return 1 if success, otherwise 0.
 int HIR_CFG_compute_sdom(cfg_func_t* func);
 
 /*
-Collect all base blocks where occurs definition of provided v_id.
-Params:
-    - `v_id` - Variable ID.
-    - `cctx` - CFG func.
-    - `out` - Output set where collected all base-blocks.
-
-Return 1 if success, otherwise 0.
-*/
-int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out);
-
-/*
 Compute all dominance-related data (dominance, strict dominance, dominance frontier).
 Params:
     - `func` - CFG func.
@@ -199,16 +188,6 @@ Params:
 Return 1 if success, otherwise 0.
 */
 int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh);
-
-/*
-Remove LIR block to CFG. Will change entry and exit links, if they are not set yet.
-Params:
-    - `bb` - Base block.
-    - `hh` - HIR block.
-
-Return 1 if success, otherwise 0.
-*/
-int HIR_CFG_remove_lir_block(cfg_block_t* bb, lir_block_t* hh);
 
 /*
 Create CFG base block.

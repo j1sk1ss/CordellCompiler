@@ -35,12 +35,50 @@ static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
     return 1;
 }
 
+/*
+Collect all base blocks where occurs definition of provided v_id.
+Params:
+    - `v_id` - Variable ID.
+    - `cctx` - CFG func.
+    - `out` - Output set where collected all base-blocks.
+
+Return 1 if success, otherwise 0.
+*/
+static int _collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        if (!fb->used) continue;
+        foreach (cfg_block_t* cb, &fb->blocks) {
+            int has_def = 0;
+            hir_block_t* hh = cb->hmap.entry;
+            while (hh) {
+                if (HIR_writeop(hh->op)) {
+                    if (hh->farg && HIR_is_vartype(hh->farg->t) && !HIR_is_tmptype(hh->farg->t)) {
+                        if (hh->farg->storage.var.v_id == v_id) {
+                            has_def = 1;
+                            break;
+                        }
+                    }
+                }
+                
+                if (hh == cb->hmap.exit) break;
+                hh = hh->next;
+            }
+
+            if (has_def) {
+                set_add(out, cb);
+            }
+        }
+    }
+
+    return 1;
+}
+
 int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
     map_foreach (variable_info_t* vh, &smt->v.vartb) {
         set_t defs;
         set_init(&defs, SET_NO_CMP); /* Collect all blocks from the provided CFG context */
                                      /* where current variable is defined / assigned.    */
-        if (!HIR_CFG_collect_defs_by_id(vh->v_id, cctx, &defs)) {
+        if (!_collect_defs_by_id(vh->v_id, cctx, &defs)) {
             set_free(&defs);
             return 0;
         }

@@ -1,6 +1,4 @@
-/* dom.c - Compute dominance, strict dominance and dominance frontier
-*/
-
+/* dom.c - Compute dominance, strict dominance and dominance frontier */
 #include <hir/cfg.h>
 
 int HIR_CFG_compute_dom(cfg_func_t* fb) {
@@ -91,16 +89,37 @@ int HIR_CFG_compute_sdom(cfg_func_t* fb) {
     return 1;
 }
 
+/*
+Build a dominatiors tree based on the provided CFG's blocks list.
+The main idea here is to connect all dominators with their domination.
+Note: Additionally, this function connects dominators with each other 
+      by sibling pointers.
+Params:
+    - `fb` - Current function.
+
+Returns 1 if succeed. Otherwise will return 0.
+*/
 static int _build_domtree(cfg_func_t* fb) {
     foreach (cfg_block_t* cb, &fb->blocks) {
-        if (!cb->sdom || cb->sdom == cb) continue;
-        cb->dom_s = cb->sdom->dom_c;
-        cb->sdom->dom_c = cb;
+        if (
+            !cb->sdom ||    /* If it doesn't have a strict dominant                */
+            cb->sdom == cb  /* or it has a strict domination on itself.            */
+        ) continue;
+        cb->dom_s = cb->sdom->dom_c; /* Sibling is a current child of a dominator. */
+        cb->sdom->dom_c = cb;        /* New child of dominator is us.              */
     }
 
     return 1;
 }
 
+/*
+Compute the dominance frontier (recursively).
+We add dominator as dominance frontier to the related set if:
+    - this is a next block for the current block.
+    - its dominator isn't the current block.
+Params:
+    - `b` - Current BasicBlock.
+*/
 static void _compute_domf_rec(cfg_block_t* b) {
     if (b->l && b->l->sdom != b)     set_add(&b->domf, b->l);
     if (b->jmp && b->jmp->sdom != b) set_add(&b->domf, b->jmp);
@@ -115,35 +134,6 @@ static void _compute_domf_rec(cfg_block_t* b) {
 int HIR_CFG_compute_domf(cfg_func_t* fb) {
     _build_domtree(fb);
     _compute_domf_rec(list_get_head(&fb->blocks));
-    return 1;
-}
-
-int HIR_CFG_collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
-    foreach (cfg_func_t* fb, &cctx->funcs) {
-        if (!fb->used) continue;
-        foreach (cfg_block_t* cb, &fb->blocks) {
-            int has_def = 0;
-            hir_block_t* hh = cb->hmap.entry;
-            while (hh) {
-                if (HIR_writeop(hh->op)) {
-                    if (hh->farg && HIR_is_vartype(hh->farg->t) && !HIR_is_tmptype(hh->farg->t)) {
-                        if (hh->farg->storage.var.v_id == v_id) {
-                            has_def = 1;
-                            break;
-                        }
-                    }
-                }
-                
-                if (hh == cb->hmap.exit) break;
-                hh = hh->next;
-            }
-
-            if (has_def) {
-                set_add(out, cb);
-            }
-        }
-    }
-
     return 1;
 }
 
