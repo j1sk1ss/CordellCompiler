@@ -173,6 +173,8 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS);
 
 /*
 ASTWLKR_duplicated_branches checks if branches are similar to each other.
+Note: This approach mostly bases on the Merkle Tree approache.
+      See: https://en.wikipedia.org/wiki/Merkle_tree
 For instance the next code:
 ```cpl
     if 1; {
