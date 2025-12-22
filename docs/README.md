@@ -1,23 +1,24 @@
 # Summary
 The **Cordell Programming Language (CPL)** is a system-level programming language designed for learning and experimenting with modern compiler concepts. It combines low-level capabilities from `ASM` with practices inspired by modern languages like `Rust` and `C`. `CPL` is intended for:
 - **Systems programming** — operating systems, compilers, interpreters, and embedded software.  
-- **Educational purposes** — a language to study compiler design, interpreters, and programming language concepts.  
+- **Educational purposes** — a language to study compiler design, interpreters, and programming language concepts.
+- **Radical simplicity** - Similar to RISC, *we can construct any complex abstraction without complex abstractions*. 
 
 ## Key Features
-- **Flexible typing**: variables may hold values of different types; the compiler attempts implicit conversions when assigning.  
+- **Partial strong-typing**: variables can't hold values of different types; the compiler attempts implicit conversions when assigning.  
 - **Explicit memory model**: ownership rules and manual memory management are core features.  
 - **Minimalistic syntax**: designed for readability and precision.  
 - **Deterministic control flow**: no hidden behaviors; all execution paths are explicit.  
-- **Extensibility**: functions and inbuilt macros allow both low-level operations and high-level abstractions.  
+- **Extensibility**: functions and inbuilt macros allow both low-level operations and high-level abstractions.
+- **Optimization**: input code can be optimized in a lot of ways. 
 
 # Main idea of this project
-Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for OS inside this OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
+Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for my own OS inside my own OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
 
 # Used links and literature
 - Aarne Ranta. *Implementing Programming Languages. An Introduction to Compilers and Interpreters*
 - Aho, Lam, Sethi, Ullman. *Compilers: Principles, Techniques, and Tools (Dragon Book)*
 - Andrew W. Appel. *Modern Compiler Implementation in C (Tiger Book)*
-- K. Vladimirov. *Optimizing Compilers. Structure and Algorithms*
 - Cytron et al. *Efficiently Computing Static Single Assignment Form and the Control Dependence Graph* (1991)
 - Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
 
@@ -53,27 +54,27 @@ Main goal of this project is learning of compilers architecture and porting one 
 ``` 
 
 ## Code conventions
-CPL encourages consistent and readable code.
-
-- **Variables**: use lowercase letters and underscores  
+CPL encourages consistent and readable code mostly based on C-code conventions.
+- **Variables**: use lowercase letters and underscores [C-code convention]
 ```cpl
 i32 counter = 0;
 ptr i32 data_ptr = ref counter;
+dref data_ptr = 1;
 ```
 
-- **Constants**: use uppercase letters with underscores
+- **Constants**: use uppercase letters with underscores [Python-code convention]
 ```cpl
 extern ptr u8 FRAMEBUFFER;
 glob ro i32 WIN_X = 1080;
 glob ro i32 WIN_Y = 1920;
 ```
 
-- **Functions**: use lowercase letters with underscores
+- **Functions**: use lowercase letters with underscores [C-code convention]
 ```cpl
 function calculate_sum(ptr i32 arr, i64 length) => i32 { return 0; }
 ```
 
-- **Scopes**: K&R style
+- **Scopes**: K&R style [C-code convention]
 ```cpl
 if cond; {
 }
@@ -83,7 +84,7 @@ start(i64 argc, ptr u64 argv) {
 }
 ```
 
-- **Comments**: Comments can be in one line with start and end symbol `:` and in several lines with same logic.
+- **Comments**: Comments can be in one line with start and end symbol `:` and in several lines with same logic. [ASM-code convention + C-code convention]
 ```cpl
 : Hello there
 :
@@ -96,26 +97,30 @@ Hello there
 ```
 
 # Program entry point
-Function becomes entry point in two ways:
-- If this is a `start` function
-- If this is the lowest function in file (If there is no `start` function)
+Function becomes an entry point in two cases:
+- If this is a `start` function.
+- If this is the lowest function in the file (And! There is no any `start` function in this project).
 
-Example without defined `start`:
+Example without the `start` function:
 ```cpl
 function fang() => i0; { return; }
-function naomi() => i0; { return; } : <= Becomes entry point :
+function naomi() => i0; { return; } : <= Becomes an entry point :
 ```
 
-Example with defined `start`:
+Example with the `start` start function:
 ```cpl
+start() { exit 0; } : <= Becomes an entry point :
 function fang() => i0; { return; }
 function naomi() => i0; { return; }
-start() { exit 0; } : <= Becomes entry point :
 ```
 
 # Types
+Now let's talk about the language basics. Actually, this is a strong-typed language, that forces programmer to specify a type of a variable. However, at this moment there is no keyword such as `as` from Rust for the type convertion, that's why I can't officialy call this language as a strong-typed language yet. But Compiler has a semantic type checker that will fire a warning in places, where implict casting is happening. </br>
+For the most cases this Compiler will invole implict convertion for types during work in the `HIR` level (see README for more information how the convertion actually works here).
+
 ## Primitives
-- `f64`, `f32` - double and float; non-floating values are converted to double if used in double operations.
+Primitive type is a basic, supported by this language, data structure. They include:
+- `f64`, `f32` - Real / double and float; non-floating values are converted to double if used in double operations.
 ```cpl
 f64 a = 0.01;
 f32 b = 0.01;
@@ -152,13 +157,17 @@ i8 c = 0xF;
 i8 d = 'a';
 ```
 
-- `i0` - Void type. Should be used in the function return type.
+- `i0` - Void type. Must be used only in the function return type. This type isn't supported by the Compiler as a regular primitive type.
 ```cpl
-function fang() => i0; { return; }
+function cordell() => i0; { return; }
 ```
 
+`P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is simple:
+- `Not a Zero` is a `true` value.
+- `Zero` is a `false` value.
+
 ## Strings and arrays
-- `str` - String data type. Similar to `ptr u8` type, but used for high-level inbuild operations like `strcmp`.
+- `str` - String data type. Similar to the `ptr u8` type, but it is used for the high-level inbuild operations like compare, len, etc. (WIP).
 ```cpl
 str msg = "Hello world!";
 if msg == "Hello world!"; {
@@ -172,7 +181,7 @@ arr arr2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 arr matrix[2, u64] = { arr1, arr2 };
 ```
 
-Also array can have an unkown in `compile-time` size. This will generate code that allocates memory in heap. 
+Also array can have an unkown in `compile-time` size. This will generate code that allocates memory in heap (WIP). 
 ```cpl
 extern i8 size;
 arr arr1[size, i32];
@@ -197,54 +206,67 @@ ptr u64 a = ref f;
 ptr str b = "Hello world";
 ```
 
-# Casting
-CPL supports only implicit casting. This means, that any value or return type can be stored in any variable. But semantic module will inform, if it encounter an unexpected implicit casting.
+# Semntic static checker
+CPL uses an inbuild static analyzator for the code checking before the compilation.
 ```cpl
 {
-    function chloe(i8 a) => i32 {
-        return 0;
+    function foo() => i32 { return 1; }
+    function BarBar() => i0 { }
+    function BazBaz() { }
+
+    function baz(i32 a) => i0 {
+        if a == 0; { return; }
+        else { }
+
+        if a == 0; { return 1; }
+        else { return 1; }
     }
 
-    start(i64 argc, ptr u64 argv) {
-        arr a[10, i32];
+    function fang(i32 a) => i8 {
+        if not a; { return 123321; }
+        else { }
+        return 1;
+        i32 b = 1;
+        return b;
+    }
 
-        a[8] = 1;
-        a[11] = 1;
-
-        str msg = "Hello, World!";
-        msg[25] = 'A';
-    
-        chloe();
-        i32 a1 = chloe(1, 2, 3);
-        chloe(356);
-    
-        i32 k = 123321;
-        i8 f = 123321;
-        u8 l = 239;
-        i8 l1 = 239;
-
-        ro i8 read;
-        read = 1;
-
-        exit 0;
+    start() {
+        i8 b;
+        i8 a = foo();
+        i8 c = 123123;
+        BarBar();
     }
 }
 ```
 
-```bash
-[WARNING] [line=1] Variable=a without initialization!
-[ERROR]   [line=9] Array=a used with index=11, that larger than array size!
-[ERROR]   [line=12] Array=msg used with index=25, that larger than array size!
-[ERROR]   [line=15] Too many arguments for function=chloe!
-[ERROR]   [line=24] Read-only variable=read assign!
-[WARNING] [line=23] Variable=read without initialization!
-[WARNING] [line=19] Illegal declaration of f with 123321 (Number bitness is=32, but i8 can handle bitness=8)!
-[WARNING] [line=16] Illegal argument of i8 with 356 (Number bitness is=16, but i8 can handle bitness=8)!
-[WARNING] [line=16] Unused function=chloe result!
-[ERROR]   [line=14] Not enough arguments for function=chloe!
-[WARNING] [line=14] Unused function=chloe result!
-[WARNING] [line=5] Variable=argv without initialization!
-[WARNING] [line=5] Variable=argc without initialization!
+```
+[WARNING] [line=7] Variable='a' without initialization!
+i32 a;
+[WARNING] [line=18] Possible dead code after the term statement!
+[WARNING] [line=15] Variable='a' without initialization!
+i32 a;
+[WARNING] [line=30] Illegal declaration of 'c' with '123123' (Number bitness is=32, but 'i8' can handle bitness=8)!
+i8 c = 123123;
+[WARNING] [line=29] Function='foo' return type='i32' not match to the declaration type='i8'!
+[WARNING] [line=24] Variable='b' without initialization!
+i8 b;
+[WARNING] [line=23] Start doesn't have the exit statement in the all paths!
+[INFO]    [line=15] Used Fang as a function dragon-name!
+[WARNING] [line=16] Function='fang' has the wrong return value!='i8'!
+return 123321;
+[WARNING] [line=20] Function='fang' has the wrong return value!='i8'!
+return b;
+[WARNING] [line=11] Function='baz' has the return value, but isn't suppose to!
+return 1;
+[WARNING] [line=12] Function='baz' has the return value, but isn't suppose to!
+return 1;
+[WARNING] [line=5] Function='BazBaz' doesn't have the return statement in all paths!
+function BazBaz() { ... 
+[WARNING] [line=5] Function name='BazBaz' isn't in sneaky_case! (PascalCase)
+[INFO]    [line=5] Consider to add a return type for the function='BazBaz'!
+[WARNING] [line=3] Function='BarBar' doesn't have the return statement in all paths!
+function BarBar() => i0 { ... 
+[WARNING] [line=3] Function name='BarBar' isn't in sneaky_case! (PascalCase)
 ```
 
 # Binary and unary operations
@@ -265,7 +287,7 @@ CPL supports only implicit casting. This means, that any value or return type ca
 
 # Scopes
 ## Variables and lifetime
-Variables live in their declared scopes. You cannot point to variables from an outer scope:
+Variables live in their declared scopes. You cannot point to variables from an outer scope. This makes the manual program stack managment a way easier given the determined behavior of the stack allocator in this compiler. 
 ```cpl
 start() {
    ptr u64 p;
@@ -274,12 +296,14 @@ start() {
       p = ref t; : <= No warning here, but it still illegal :
    }             : <= array "t" died here :
 
-   p[0] = 1;     : <= Pointer to deallocated stack :
+   p[0] = 1;     : <= Pointer to allocated but 'freed' stack :
    exit 0;
 }
 ```
 
-Note: It will cause memmory corruption error instead `SF` due stack allocation method in CPL.
+Note 1: Example above will cause a memory corruption error instead of the `SF` due the stack allocation method in CPL. (The pointer after the scope is pointing to the already allocated area. However, the compiler can use this area for the another array / variable, etc.).
+Note 2: This compiler tries to `kill` all variables / arrays / strings outside their scopes, even if they are used as a referenced value somewhere else in the further code.
+Note 3: In the example above, execution may be success (further code can ignore the 'freed' space in the stack and prefer the register placement for new variables), but it is still the Undefined Behavior. 
 
 ## Visibility rules
 Outer variables can be seen by current and nested scopes.
@@ -305,22 +329,34 @@ Outer variables can be seen by current and nested scopes.
 
 # Control flow statements
 ## if statement
-`if` keyword similar to `C` statement. Key change here is `;` after condition. 
+`if` keyword similar to the `C`'s `if` statement. Key change here is a `;` after the condition. 
 ```cpl
-if cond; {
+if <condition>; {
 }
 else {
 }
 ```
 
+For instance:
+```cpl
+i32 a = 10;
+i32 b = 11;
+if a == 12 && b < 12; {
+    a = 10;
+}
+else {
+    a = 12;
+}
+```
+
 ## while statement
 ```cpl
-while cond; {
+while <condition>; {
 }
 ```
 
 ## switch statement
-Note: `X` should be constant value (or primitive variable that can be `inlined`).
+Note: `X` should be constant value (or a primitive variable that can be `inlined`).
 ```cpl
 switch cond; {
    case X; {

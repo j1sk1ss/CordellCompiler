@@ -485,16 +485,32 @@ Which version of the variable `a` should be used in the declaration of `b` varia
   <em>Figure 11 — Phi function</em>
 </p>
 
-But how do we determine where to place this function? Here, we use previously computed dominance information. We traverse the entire symbol table of variables. For each variable, we collect the set of blocks where it is defined (either declared or assigned). Then, for each block with a definition, we take its dominance frontier blocks and insert a `φ` function there.
-![phi_placement](docs/media/phi_placement.png)
-Then, during the SSA renaming process, we keep track of each block that passes through a φ-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result:
-![phi_final](docs/media/phi_final.png)
+But how do we determine where to place this function? Here, we use previously computed dominance information. We traverse the entire symbol table of variables. For each variable, we collect the set of blocks where it is defined (either declared or assigned). Then, for each block with a definition, we take its dominance frontier blocks and insert a `φ` function there (Figure 12).
+
+<p align="center">
+  <img src="docs/media/phi_placement.png">
+  <br>
+  <em>Figure 12 — Phi function placement</em>
+</p>
+
+Then, during the SSA renaming process, we keep track of each block that passes through a `φ`-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result in Figure 13.
+
+<p align="center">
+  <img src="docs/media/phi_final.png">
+  <br>
+  <em>Figure 13 — Final phi function</em>
+</p>
 
 ## DAG part
-With the complete `SSA` form, we can move on to the first optional optimizations. The first one requires building a `DAG` (Directed Acyclic Graph) representation of the code. In short, a `DAG` shows how every value in the program is derived. In other words, this graph illustrates how each variable obtains its value (with some exceptions for `arrays` and `strings`).
-![base_dag](docs/media/base_DAG.png)
+With the complete `SSA` form, we can move on to the first optional optimizations. The first one requires building a `DAG` (Directed Acyclic Graph) [[?]](https://www.geeksforgeeks.org/compiler-design/directed-acyclic-graph-in-compiler-design-with-examples/) [[?]](https://en.wikipedia.org/wiki/Directed_acyclic_graph) representation of the code. In short, `DAG` shows how every value in the program is derived / how each variable obtains its value (with some exceptions for `arrays` and `strings`). Basic example is provided in Figure 14.
 
-Then, when we build the "basic" DAG, we check and merge all nodes that share the same hash (computed as a hash of their child nodes). If the nodes are identical and the base node is located in a dominating block, we can safely merge them.
+<p align="center">
+  <img src="docs/media/base_DAG.png">
+  <br>
+  <em>Figure 14 — DAG</em>
+</p>
+
+Then, when we build the "basic" `DAG`, we check and merge all nodes that share the same hash (computed as a hash of their child nodes). If the nodes are identical and the base node is located in a dominating block, we can safely merge them.
 ![opt_dag](docs/media/opt_DAG.png)
 
 The result of using the DAG is optimized code with Common Subexpression Elimination applied.
