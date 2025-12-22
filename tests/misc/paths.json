@@ -209,7 +209,7 @@
     },
     "lir_regalloc": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PRINT"
         ],
         "sources": [
@@ -223,6 +223,7 @@
             "src/hir/cfg/*.c",
             "src/hir/loop/*.c",
             "src/hir/func/*.c",
+            "src/hir/dag/*.c",
             "src/lir/*.c",
             "src/lir/lirgen/*.c",
             "src/lir/lirgen/misc/*.c",

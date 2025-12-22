@@ -115,7 +115,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         set_free(&used_colors);
     }
     
-    stack_unload(&stack);
+    stack_free(&stack);
     mm_free(degrees);
     mm_free(v_ids);
     mm_free(processed);

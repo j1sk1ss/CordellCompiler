@@ -20,6 +20,6 @@ int stack_init(sstack_t* s);
 int stack_push(sstack_t* s, void* data);
 int stack_pop(sstack_t* s, void** d);
 int stack_top(sstack_t* s, void** d);
-int stack_unload(sstack_t* s);
+int stack_free(sstack_t* s);
 
 #endif

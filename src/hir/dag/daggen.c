@@ -18,7 +18,7 @@ int HIR_DAG_init(dag_ctx_t* dctx) {
 int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            hir_block_t* hh = cb->hmap.entry;
+            hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
             while (hh) {
                 switch (hh->op) {
                     case HIR_PHI_PREAMBLE:
@@ -93,8 +93,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                     default: break;
                 }
 
-                if (hh == cb->hmap.exit) break;
-                hh = hh->next;
+                hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
         }
     }

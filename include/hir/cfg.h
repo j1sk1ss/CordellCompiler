@@ -11,22 +11,6 @@
 #include <lir/lir.h>
 
 typedef struct {
-    /* Meta flags */
-    char         used;
-    char         fentry;
-
-    /* Basic info and content */
-    long         id;
-    long         fid;
-    hir_block_t* entry;
-    hir_block_t* exit;
-
-    /* CFG data */
-    set_t        leaders; /* Leaders for block generation */
-    list_t       blocks;  /* cfg_block_t* list            */
-} cfg_func_t;
-
-typedef struct {
     hir_block_t* entry;
     hir_block_t* exit;
 } hir_map_t;
@@ -35,6 +19,22 @@ typedef struct {
     lir_block_t* entry;
     lir_block_t* exit;
 } lir_map_t;
+
+typedef struct {
+    /* Meta flags */
+    char         used;
+    char         fentry;
+
+    /* Basic info and content */
+    long         id;
+    long         fid;
+    hir_map_t    hmap;     /* Mapping to exister HIR ctx */
+    lir_map_t    lmap;     /* Mapping to existed LIR ctx */
+
+    /* CFG data */
+    set_t        leaders; /* Leaders for block generation */
+    list_t       blocks;  /* cfg_block_t* list            */
+} cfg_func_t;
 
 typedef enum {
     CFG_DEFAULT_BLOCK,
@@ -50,7 +50,7 @@ typedef struct cfg_block {
     long              id;
     cfg_func_t*       pfunc;    /* parent function            */
 
-    hir_map_t         hmap;     /* Mapping to exister HIR ctx */
+    hir_map_t         hmap;     /* Mapping to existed HIR ctx */
     lir_map_t         lmap;     /* Mapping to existed LIR ctx */
 
     /* Block navigation */

@@ -377,7 +377,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
 #endif
 #ifdef AST_TESTING
-    stack_unload(&sctx.scopes.stack);
+    stack_free(&sctx.scopes.stack);
     AST_unload(sctx.r);
 #endif
 

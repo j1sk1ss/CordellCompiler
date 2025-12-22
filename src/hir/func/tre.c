@@ -16,7 +16,7 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
                 hir_subject_t* lb = HIR_SUBJ_LABEL();
                 hir_block_t* hlb = HIR_create_block(HIR_MKLB, lb, NULL, NULL);
 
-                hir_block_t* hh = fb->entry;
+                hir_block_t* hh = fb->hmap.entry;
                 while (hh && hh->op != HIR_MKSCOPE) hh = hh->next;
                 hh = hh->next;
                 while (hh && hh->op != HIR_MKSCOPE) hh = hh->next;

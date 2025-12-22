@@ -82,12 +82,12 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
                               /*       If you want to change the leaders' creation method           */
                               /*       be aware the possible future issues.                         */
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
-    hir_block_t* hh = HIR_get_next(f->entry, f->exit, 0);
+    hir_block_t* hh = HIR_get_next(f->hmap.entry, f->hmap.exit, 0);
     while (hh) {
 #ifdef DRAGONBOOK_CFG_LEADER
         hir_block_t* entry = hh;
-        while ((entry = hh) && hh->next && hh != f->exit && !set_has(&f->leaders, hh)) hh = hh->next;
-        while (hh->next && hh != f->exit && !set_has(&f->leaders, hh->next)) {
+        while ((entry = hh) && hh->next && hh != f->hmap.exit && !set_has(&f->leaders, hh)) hh = hh->next;
+        while (hh->next && hh != f->hmap.exit && !set_has(&f->leaders, hh->next)) {
             hh = hh->next;
             if (HIR_isterm(hh->op)) break;
         }
@@ -96,7 +96,7 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
 #else
         if (!HIR_issyst(hh->op)) _add_cfg_block(hh, hh, f, ctx);
 #endif
-        hh = HIR_get_next(hh, f->exit, 1);
+        hh = HIR_get_next(hh, f->hmap.exit, 1);
     }
 
     return 1;

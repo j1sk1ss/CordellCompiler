@@ -113,7 +113,10 @@ int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             _iterate_block(&params, cb, ctx, smt);
+            if (!fb->lmap.entry) fb->lmap.entry = cb->lmap.entry;
         }
+
+        fb->lmap.exit = ctx->t;
     }
 
     return 1;

@@ -24,8 +24,8 @@ static cfg_func_t* _create_funcblock(hir_block_t* entry, hir_block_t* end) {
     cfg_func_t* b = (cfg_func_t*)mm_malloc(sizeof(cfg_func_t));
     if (!b) return NULL;
     str_memset(b, 0, sizeof(cfg_func_t));
-    b->entry = entry;
-    b->exit  = end;
+    b->hmap.entry = entry;
+    b->hmap.exit  = end;
     b->id    = entry->farg->storage.str.s_id;
     list_init(&b->blocks);
     return b;

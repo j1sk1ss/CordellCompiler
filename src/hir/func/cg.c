@@ -35,14 +35,13 @@ static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
 static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            hir_block_t* hh = cb->hmap.entry;
+            hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
             while (hh) {
                 if (HIR_funccall(hh->op) && !hh->unused) {
                     _add_vert(fb->fid, hh->sarg->storage.str.s_id, ctx);
                 }
                 
-                if (hh == cb->hmap.exit) break;
-                hh = hh->next;
+                hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
         }
     }

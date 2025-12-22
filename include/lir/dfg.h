@@ -2,6 +2,8 @@
 #define DFG_H_
 
 #include <std/set.h>
+#include <std/list.h>
+#include <std/stack.h>
 #include <symtab/symtab.h>
 #include <hir/cfg.h>
 #include <lir/lir.h>

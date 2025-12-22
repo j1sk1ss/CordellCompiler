@@ -241,4 +241,14 @@ Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_deadcode(AST_VISITOR_ARGS);
 
+/*
+This checker fire a warning when detects a possible implict convertion.
+This isn't a important warning, but still essential for supporting well-typed approach.
+Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+Return 1 if node is correct, otherwise this function will return 0.
+*/
+int ASTWLKR_implict_convertion(AST_VISITOR_ARGS);
+
 #endif

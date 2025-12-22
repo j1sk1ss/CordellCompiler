@@ -18,6 +18,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     ASTWLK_register_visitor(IF_NODE, ASTWLKR_duplicated_branches, &walker);
     ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_wrong_rtype, &walker);
     ASTWLK_register_visitor(TERM_NODE, ASTWLKR_deadcode, &walker);
+    ASTWLK_register_visitor(EXPRESSION_NODE, ASTWLKR_implict_convertion, &walker);
 
     ASTWLK_walk(actx, &walker);
     ASTWLK_unload_ctx(&walker);

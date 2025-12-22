@@ -295,7 +295,7 @@ _resolved: {}
         neg  = 0;
     }
 
-    stack_unload(&scope_stack);
+    stack_free(&scope_stack);
     list_free_force(&vars);
     return 1;
 }

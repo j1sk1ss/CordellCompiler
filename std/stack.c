@@ -39,7 +39,7 @@ int stack_top(sstack_t* s, void** d) {
     return 1;
 }
 
-int stack_unload(sstack_t* s) {
+int stack_free(sstack_t* s) {
     if (!s) return 0;
     s->top = -1;
     s->capacity = 0;
