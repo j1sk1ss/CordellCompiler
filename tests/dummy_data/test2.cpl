@@ -3,6 +3,8 @@
 
     function BarBar() => i0 { }
 
+    function BazBaz() { }
+
     function baz(i32 a) => i0 {
         if a == 0; { return; }
         else { }
@@ -12,9 +14,11 @@
     }
 
     function fang(i32 a) => i8 {
-        if a == 0; { return 123321; }
+        if not a; { return 123321; }
         else { }
         return 1;
+        i32 b = 1;
+        return b;
     }
 
     start() {

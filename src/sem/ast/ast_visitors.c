@@ -130,6 +130,10 @@ static int _restore_code(ast_node_t* nd, ast_node_t* underscore) {
     return 1;
 }
 
+#define REBUILD_CODE(nd, trg)           \
+        _restore_code(nd, trg);         \
+        if (trg) fprintf(stdout, "\n"); \
+
 int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     ast_node_t* larg = nd->child;
     if (!larg) return 1;
@@ -142,8 +146,7 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
             larg->token->lnum, larg->token->body->body
         );
 
-        _restore_code(nd, larg);
-        fprintf(stdout, "\n\n");
+        REBUILD_CODE(nd, larg);
         return 0;
     }
 
@@ -182,8 +185,7 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
             larg->token->lnum, larg->token->body->body
         );
 
-        _restore_code(nd, larg);
-        fprintf(stdout, "\n\n");
+        REBUILD_CODE(nd, larg);
         return 0;
     }
 
@@ -251,8 +253,7 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
     ast_node_t* rarg = larg->sibling;
     if (!rarg) return 1;
     if (!_check_assign_types("Illegal declaration", larg, rarg)) {
-        _restore_code(nd, rarg);
-        fprintf(stdout, "\n\n");
+        REBUILD_CODE(nd, rarg);
         return 0;
     }
 
@@ -324,8 +325,7 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
             nd->token->lnum, nd->child->token->body->body
         );
 
-        _restore_code(nd, NULL);
-        fprintf(stdout, "\n\n");
+        REBUILD_CODE(nd, NULL);
     }
 
     return 1;
@@ -336,8 +336,7 @@ int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     _search_rexit_ast(nd->child, &has_ret);
     if (!has_ret) {
         SEMANTIC_WARNING(" [line=%i] Start doesn't have the exit statement in the all paths!", nd->token->lnum);
-        _restore_code(nd, NULL);
-        fprintf(stdout, "\n\n");
+        REBUILD_CODE(nd, NULL);
     }
 
     return 1;
@@ -360,8 +359,7 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
             nd->token->lnum, nd->token->body->body
         );
 
-        _restore_code(nd, NULL);
-        fprintf(stdout, "\n\n");
+        REBUILD_CODE(nd, NULL);
         return 0;
     }
 
@@ -371,8 +369,7 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
             nd->token->lnum, nd->token->body->body
         );
 
-        _restore_code(nd, NULL);
-        fprintf(stdout, "\n\n");
+        REBUILD_CODE(nd, NULL);
         return 0;
     }
 
@@ -390,8 +387,7 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
         provided_arg = provided_arg->sibling, expected_arg = expected_arg->sibling
     ) {
         _check_assign_types("Illegal argument", expected_arg, provided_arg);
-        _restore_code(nd, provided_arg);
-        fprintf(stdout, "\n\n");
+        REBUILD_CODE(nd, provided_arg);
     }
 
     return 1;
@@ -472,6 +468,10 @@ static char* _format_name(int t) {
 }
 
 /*
+Check the string's case style.
+Params: 
+    - `s` - String.
+    
 Return -1 when encounter with unknown format
 Return 0 if input string format is camelCase
 Return 1 if input string format is PascalCase
@@ -575,6 +575,15 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
     return 1;
 }
 
+/*
+Check if the function's return type matches to the actual return value's type.
+Params:
+    - `fname` - Target function name.
+    - `nd` - Base function node.
+    - `rtype` - Function return type.
+
+Returns 1 if return types are equals.
+*/
 static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* rtype) {
     if (!nd) return 0;
     if (!nd->token) {
@@ -589,15 +598,13 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
             if (!rval && rtype->t_type == I0_TYPE_TOKEN) return 1;
             if (rval && rtype->t_type == I0_TYPE_TOKEN) {
                 SEMANTIC_WARNING(" [line=%i] Function=%s has the return value, but isn't suppose to!", rval->lnum, fname);
-                _restore_code(nd, nd->child);
-                fprintf(stdout, "\n\n");
+                REBUILD_CODE(nd, nd->child);
                 return 0;
             }
 
             if (_get_token_bitness(rval) > _get_token_bitness(rtype)) {
                 SEMANTIC_WARNING(" [line=%i] Function=%s has the wrong return value!=%s!", rval->lnum, fname, _fmt_tkn_type(rtype));
-                _restore_code(nd, nd->child);
-                fprintf(stdout, "\n\n");
+                REBUILD_CODE(nd, nd->child);
                 return 0;
             }
         }
@@ -617,6 +624,20 @@ int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS) {
     if (!fname) return 1;
 
     func_info_t fi;
-    if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f) || !fi.rtype) return 0;
+    if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f)) return 0;
+    if (!fi.rtype) {
+        SEMANTIC_INFO(" [line=%i] Consider to add a return type for the function=%s!", nd->token->lnum, fname->token->body->body);
+        return 1;
+    }
+
     return _check_return_statement(fi.name->body, nd->child, fi.rtype->token);
+}
+
+int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
+    if (nd->sibling) {
+        SEMANTIC_WARNING(" [line=%i] Possible dead code after term statement!", nd->token->lnum);
+        return 0;
+    }
+
+    return 1;
 }
