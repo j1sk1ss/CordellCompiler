@@ -1,10 +1,22 @@
-#include <hir/dag.h>
+#include <hir/constfold.h>
 
 typedef struct {
     long               value;
     hir_subject_type_t t;
 } const_t;
 
+/*
+Parse input DAG node as a constant.
+Note: Will work only with a NUMBER or CONSTANT DAG node.
+Params:
+    - `nd` - End DAG node.
+             Note: 'End' means that this is the last DAG node 
+                   in the DAG.
+    - `cnst` - Const placeholder.
+    - `smt` - Symtable.
+
+Returns 1 if parse was success. Otherwise returns 0.
+*/
 static int _parse_const(dag_node_t* nd, const_t* cnst, sym_table_t* smt) {
     if (!nd) return 0;
     switch (nd->src->t) {
@@ -24,18 +36,12 @@ _complete_number_parse: {}
             return 1;
         }
 
-        case HIR_F64CONSTVAL: cnst->t = HIR_F64CONSTVAL; goto _complete_constant_parse;
-        case HIR_I64CONSTVAL: cnst->t = HIR_I64CONSTVAL; goto _complete_constant_parse;
-        case HIR_U64CONSTVAL: cnst->t = HIR_U64CONSTVAL; goto _complete_constant_parse;
-        case HIR_F32CONSTVAL: cnst->t = HIR_F32CONSTVAL; goto _complete_constant_parse;
-        case HIR_I32CONSTVAL: cnst->t = HIR_I32CONSTVAL; goto _complete_constant_parse;
-        case HIR_U32CONSTVAL: cnst->t = HIR_U32CONSTVAL; goto _complete_constant_parse;
-        case HIR_I16CONSTVAL: cnst->t = HIR_I16CONSTVAL; goto _complete_constant_parse;
-        case HIR_U16CONSTVAL: cnst->t = HIR_U16CONSTVAL; goto _complete_constant_parse;
-        case HIR_I8CONSTVAL:  cnst->t = HIR_I8CONSTVAL;  goto _complete_constant_parse;
-        case HIR_U8CONSTVAL:  cnst->t = HIR_U8CONSTVAL;  goto _complete_constant_parse;
-        case HIR_CONSTVAL:    cnst->t = HIR_CONSTVAL; {
-_complete_constant_parse: {}
+        case HIR_F64CONSTVAL: case HIR_I64CONSTVAL: case HIR_U64CONSTVAL:
+        case HIR_F32CONSTVAL: case HIR_I32CONSTVAL: case HIR_U32CONSTVAL:
+        case HIR_I16CONSTVAL: case HIR_U16CONSTVAL:
+        case HIR_I8CONSTVAL:  case HIR_U8CONSTVAL:
+        case HIR_CONSTVAL: {
+            cnst->t = nd->src->t;
             cnst->value = nd->src->storage.cnst.value;
             return 1;
         }
@@ -53,9 +59,18 @@ _complete_constant_parse: {}
     }
 }
 
-static int _const_args(dag_node_t* nd, dag_node_t** args) {
+/*
+Flatten the arguments of the provided DAG node.
+Params:
+    - `nd` - DAG node.
+    - `args` - Output flatten array.
+
+Returns 1 if args are flatten, otherwise returns 0.
+*/
+static int _const_args(dag_node_t* nd, dag_node_t** args, int args_size) {
     int i = 0;
     set_foreach (dag_node_t* arg, &nd->args) {
+        if (i + 1 >= args_size) return 0;
         args[i++] = arg;
     }
 
@@ -68,28 +83,35 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
         changed = 0;
         map_foreach (dag_node_t* nd, &dctx->dag) {
             dag_node_t* args[4] = { NULL };
-            _const_args(nd, args);
+            if (!_const_args(nd, args, 4)) {
+                print_error("Argument flattening error!");
+                return 0;
+            }
             
             if (
-                !HIR_is_vartype(nd->src->t) || 
-                ALLIAS_get_owners(nd->src->storage.var.v_id, NULL, &smt->m)
-            ) continue;
+                !HIR_is_vartype(nd->src->t) ||                              /* If considered object isn't a variable, */
+                ALLIAS_get_owners(nd->src->storage.var.v_id, NULL, &smt->m) /* or it has an owner.                    */
+            ) continue;                                                     /* We skip such variables / objects given */
+                                                                            /* the necessity of preserving over       */
+                                                                            /* 'inlining'. */
 
-            long c = 0;
             const_t a, b;
             int a_pres = _parse_const(args[0], &a, smt);
             int b_pres = _parse_const(args[1], &b, smt);
-            if (!args[1]) {
+            if (!args[1]) {                                                  /* Parse constants, and if there is no       */
+                                                                             /* the second argument, copy value from the  */
+                                                                             /* first one.                                */
                 str_memcpy(&b, &a, sizeof(const_t));
                 b_pres = 1;
             }
             
+            long long c = 0;
             print_debug("src=%i, a_pres=%i, b_pres=%i", nd->src->storage.var.v_id, a_pres, b_pres);
             switch (nd->op) {
                 case HIR_STORE: {
                     if (!a_pres) break;
                     if (VRTB_update_definition(nd->src->storage.var.v_id, a.value, &smt->v)) changed = 1;
-                    print_debug("Store operation folded into val=%i", nd->op, a.value);
+                    print_debug("Store operation folded into val=%ld", nd->op, a.value);
                     break;
                 }
 
@@ -100,7 +122,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                     else c = a.value;
 
                     if (VRTB_update_definition(nd->src->storage.var.v_id, c, &smt->v)) changed = 1;
-                    print_debug("Convert op=%i folded into val=%i", nd->op, c);
+                    print_debug("Convert op=%i folded into val=%ld", nd->op, c);
                     break;
                 }
 
@@ -113,18 +135,32 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_TU16:
                 case HIR_TU8: {
                     if (!a_pres) break;
-                    if (HIR_is_float(a.t)) c = (long long)str_bits2dob(a.value);
-                    else c = a.value;
+
+                    c = a.value;
+                    if (HIR_is_float(a.t)) {
+                        c = (long long)str_bits2dob(c);
+                    }
+
+                    switch (nd->op) {
+                        case HIR_TI32: c = (int)c;            break;
+                        case HIR_TI16: c = (short)c;          break;
+                        case HIR_TI8:  c = (char)c;           break;
+                        case HIR_TU64: c = (unsigned long)c;  break;
+                        case HIR_TU32: c = (unsigned int)c;   break;
+                        case HIR_TU16: c = (unsigned short)c; break;
+                        case HIR_TU8:  c = (unsigned char)c;  break;
+                        default: break;
+                    }
 
                     if (VRTB_update_definition(nd->src->storage.var.v_id, c, &smt->v)) changed = 1;
-                    print_debug("Convert op=%i folded into val=%i", nd->op, c);
+                    print_debug("Convert op=%i folded into val=%ld", nd->op, c);
                     break;
                 }
                 
                 case HIR_NOT: {
                     if (!a_pres) break;
                     if (VRTB_update_definition(nd->src->storage.var.v_id, !a.value, &smt->v)) changed = 1;
-                    print_debug("Convert op=%i folded into val=%i", nd->op, !a.value);
+                    print_debug("Not op=%i folded into val=%ld", nd->op, !a.value);
                     break;
                 }
 
