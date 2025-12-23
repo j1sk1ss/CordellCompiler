@@ -3,8 +3,8 @@
 /*
 Simple function that helps us with a 'home verification' proccess.
 Params:
-    - h - Expected home of the subject.
-    - s - Considering subject.
+    - `h` - Expected home of the subject.
+    - `s` - Considering subject.
 
 Return 1 if the 'h' is a home for the 's'.
 */
@@ -40,7 +40,7 @@ push r12
 ```
 
 Params:
-    - bb - Current basic block.
+    - `bb` - Current basic block.
 
 Return 1 if operation succeed, otherwise it will return 0.
 */
@@ -86,17 +86,17 @@ static unsigned int _visit_counter = 1;
 Recursive cleanup will clean each block from the CFG with one simple rule:
 If there is a WRITE operation, it may be eliminated, if:
     - Either further code doesn't use it's value or /
-    - Further code rewrites it's value
+    - further code rewrites it's value.
 
 Params:
-    - op - Write operation type.
-           Note: We don't use a general term of WRITE operation 
-                 given a different nature of some operations.
-    - pred - Service argument. For initial call use '-1'.
-    - bbh - Head Basic Block.
-    - trg - Target WRITE location in the considering lir block.
-    - ign - Service argument. For initial call use a parent of the 'trg' argument.
-    - off - Service argument. For initial call use 'ign->next'.
+    - `op` - Write operation type.
+             Note: We don't use a general term of WRITE operation 
+                   given a different nature of some operations.
+    - `pred` - Service argument. For initial call use '-1'.
+    - `bbh` - Head Basic Block.
+    - `trg` - Target WRITE location in the considering lir block.
+    - `ign` - Service argument. For initial call use a parent of the 'trg' argument.
+    - `off` - Service argument. For initial call use 'ign->next'.
 
 Return 1 if the considering lir block can be marked as unused.
 Retrun 0 if the considering lir block can't be marked as unused.
@@ -116,31 +116,37 @@ static int _recursive_cleanup(
 
     lir_block_t* lh = off ? off : bbh->lmap.entry;
     while (lh) {
+        if (                                          
+            lh != ign &&                              /* If this isn't an ignored (likely the source) command         */
+            lh->op == op &&                           /* With the same operation such as mov, add, etc.               */
+            LIR_subj_equals(lh->farg, trg) &&         /* And similar destination of the write operation               */
+            (
+                !LIR_subj_equals(lh->sarg, trg) &&    /* The second and the third arguments must be a uniq /          */
+                !LIR_subj_equals(lh->targ, trg)       /* different with the firts.                                    */
+            )                                         /* The reason is easy: We don't want to delete commad if its    */
+                                                      /* value rewritten by itself.                                   */
+        ) return 1;                                   /* That means we can safely mark the target write command       */
+
         if (
             lh->op == LIR_aMOV ||                     /* Skip reserved instruction                                    */
             (
                 LIR_readop(lh->op) &&                 /* If this instruction reads second and third arguments         */
                 (
-                    LIR_subj_equals(lh->sarg, trg) || /* And either second argument is equal to target                */
-                    LIR_subj_equals(lh->targ, trg)    /* or third argument is equal to target                         */
+                    LIR_subj_equals(lh->farg, trg) || /* And either the first argument is equal to the target         */
+                    LIR_subj_equals(lh->sarg, trg) || /* or the second argument is equal to the target.               */
+                    LIR_subj_equals(lh->targ, trg)    /* Also we need to take care about the third argument too.      */
                 )
             )
         ) return 0;                                   /* That means, we should mark the target write command as valid */
-        
-        if (                                          
-            lh != ign &&                              /* If this isn't ignored (likely the source) command            */
-            lh->op == op &&                           /* With the same operation such as mov, add, etc.               */
-            LIR_subj_equals(lh->farg, trg)            /* And similar destination of the write operation               */
-        ) return 1;                                   /* That means we can safely mark the target write command       */
         
         lh = LIR_get_next(lh, bbh->lmap.exit, 1);
     }
 
     if (
-        _recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) && 
-        _recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
-    ) return 1;
-    return 0;
+        !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) || 
+        !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
+    ) return 0;
+    return 1;
 }
 
 static int _cleanup_pass(cfg_block_t* bb) {

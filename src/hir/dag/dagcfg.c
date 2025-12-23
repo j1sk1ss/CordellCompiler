@@ -1,14 +1,34 @@
 #include <hir/dag.h>
 
+/*
+Find a DAG node from the DAG context. If we found one, 
+check if this is a unique hir subject and return it.
+Params:
+    - `s` - Source HIR subject.
+    - `dctx` - DAG context.
+
+Return NULL or subject from the context.
+*/
 static hir_subject_t* _apply_dag_on_block(hir_subject_t* s, dag_ctx_t* dctx) {
     if (!s) return NULL;
     dag_node_t* nd = DAG_ACQUIRE_NODE(dctx, s);
-    if (!nd) return NULL;
-    if (HIR_hash_subject(nd->src) == HIR_hash_subject(s)) return NULL;
+    if (
+        !nd ||                                           /* If the subject isn't in the context          */
+        HIR_hash_subject(nd->src) == HIR_hash_subject(s) /* or the subject from the context are the same */
+                                                         /* with the input.                              */
+    ) return NULL;
     return nd->src;
 }
 
-static inline int _check_home(hir_block_t* h, hir_subject_t* s) {
+/*
+Check if the provided subject actually is a child of the provided HIR block.
+Params:
+    - `h` - HIR block.
+    - `s` - HIR subjects.
+
+Returns 1 if the subject is a child of the block.
+*/
+static int _check_home(hir_block_t* h, hir_subject_t* s) {
     hir_subject_t* args[] = { h->farg, h->sarg, h->targ };
     for (int i = 0; i < 3; i++) {
         if (!args[i]) continue;
@@ -18,6 +38,20 @@ static inline int _check_home(hir_block_t* h, hir_subject_t* s) {
     return 0;
 }
 
+/*
+Check if the provided subject can be safely freed.
+Note: The reason why we need to do this is simple:
+      If we free subject without rely on the home info,
+      we will encounter NULL pointers in the real homes.
+Note 2: This function will simply mark subject's home as 
+        an unused block in case, if subject's home isn't
+        the considering block. 
+Params:
+    - `src` - Considering block.
+    - `s` - Considering subject.
+
+Returns 1 if suceed.
+*/
 static inline int _prepare_subject(hir_block_t* src, hir_subject_t* s) {
     if (s->home && s->home != src && _check_home(s->home, s)) s->home->unused = 1;
     else HIR_unload_subject(s);

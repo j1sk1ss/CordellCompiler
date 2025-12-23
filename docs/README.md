@@ -206,8 +206,8 @@ ptr u64 a = ref f;
 ptr str b = "Hello world";
 ```
 
-# Semntic static checker
-CPL uses an inbuild static analyzator for the code checking before the compilation.
+# Semantic static checker
+CPL uses an inbuild static analyzator for the code checking before the compilation. For example, such an analyzator helps programmer to work with the code like below:
 ```cpl
 {
     function foo() => i32 { return 1; }
@@ -239,6 +239,7 @@ CPL uses an inbuild static analyzator for the code checking before the compilati
 }
 ```
 
+The code above will produce a ton of errors and warnings:
 ```
 [WARNING] [line=7] Variable='a' without initialization!
 i32 a;
