@@ -4,29 +4,51 @@ ast_node_t* AST_create_node(token_t* tkn) {
     ast_node_t* node = mm_malloc(sizeof(ast_node_t));
     if (!node) return NULL;
     str_memset(node, 0, sizeof(ast_node_t));
-    node->token = tkn;
+    node->t = tkn;
     node->sinfo.v_id = -1;
     return node;
 }
 
 ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld) {
     if (!n) return NULL;
-    ast_node_t* dst = AST_create_node(TKN_copy_token(n->token));
+
+    ast_node_t* dst = AST_create_node(TKN_copy_token(n->t));
     if (!dst) return NULL;
-    if (sp)   dst->parent  = n->parent;
-    if (sib)  dst->sibling = AST_copy_node(n->sibling, sp, sib, chld);
-    if (chld) dst->child   = AST_copy_node(n->child, 1, 1, 1);
+
+    str_memcpy(&dst->sinfo, &n->sinfo, sizeof(syntax_info_t));
+    if (n->bt) dst->bt = TKN_copy_token(n->bt);
+    if (chld) {
+        dst->c = AST_copy_node(n->c, 0, 1, 1);
+        if (dst->c) dst->c->p = dst;
+    }
+
+    if (sib) {
+        dst->siblings.n = AST_copy_node(n->siblings.n, 0, 1, 1);
+        ast_node_t* tail = dst->siblings.n;
+        while (tail && tail->siblings.n)
+            tail = tail->siblings.n;
+
+        dst->siblings.t = tail;
+    }
+
+    if (sp) dst->p = NULL;
     return dst;
 }
 
 int AST_add_node(ast_node_t* parent, ast_node_t* child) {
     if (!parent || !child) return 0;
-    child->parent = parent;
-    if (!parent->child) parent->child = child;
+    child->p = parent;
+    if (!parent->c) parent->c = child;
     else {
-        ast_node_t* sibling = parent->child;
-        while (sibling->sibling) sibling = sibling->sibling;
-        sibling->sibling = child;
+        ast_node_t* sibling = parent->c;
+        if (!sibling->siblings.n) {
+            sibling->siblings.n = child;
+            sibling->siblings.t = child;
+        }
+        else {
+            sibling->siblings.t->siblings.n = child;
+            sibling->siblings.t = child;
+        }
     }
 
     return 1;
@@ -37,43 +59,53 @@ int AST_remove_node(ast_node_t* parent, ast_node_t* child) {
 
     int found = 0;
     ast_node_t* prev    = NULL;
-    ast_node_t* current = parent->child;
+    ast_node_t* current = parent->c;
     while (current) {
         if (current == child) {
-            if (prev) prev->sibling = current->sibling;
-            else parent->child = current->sibling;
+            if (prev) prev->siblings.n = current->siblings.n;
+            else parent->c = current->siblings.n;
             found = 1;
             break;
         }
 
         prev    = current;
-        current = current->sibling;
+        current = current->siblings.n;
     }
 
     if (found) {
-        child->sibling = NULL;
-        child->parent  = NULL;
+        child->siblings.n = NULL;
+        child->p = NULL;
     }
 
-    return 1;
+    return found;
 }
 
 int AST_unload(ast_node_t* node) {
     if (!node) return 0;
-    AST_unload(node->child);
-    AST_unload(node->sibling);
-    TKN_unload_token(node->base_token);
+    AST_unload(node->c);
+    AST_unload(node->siblings.n);
+    TKN_unload_token(node->bt);
     mm_free(node);
     return 1;
 }
 
+/*
+Recursively hash the input node.
+Params:
+    - `n` - Input node.
+    - `s` - Hash the sibling node?
+            Note: If 1 - This function will use
+                  a hash from the sibling node.
+
+Returns a hash based on the provided node.
+*/
 static unsigned long _hash_ast_node(ast_node_t* n, int s) {
     if (!n) return 0;
     unsigned long hash = crc64((const unsigned char*)&n->sinfo, sizeof(syntax_info_t), 0);
-    if (n->token) hash ^= TKN_hash_token(n->token);
+    if (n->t) hash ^= TKN_hash_token(n->t);
 
-    if (s) hash ^= _hash_ast_node(n->sibling, 1);
-    hash ^= _hash_ast_node(n->child, 1);
+    if (s) hash ^= _hash_ast_node(n->siblings.n, 1);
+    hash ^= _hash_ast_node(n->c, 1);
 
     return hash;
 }

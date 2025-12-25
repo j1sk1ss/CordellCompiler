@@ -4,7 +4,7 @@ unsigned long HIR_DAG_compute_hash(dag_node_t* nd) {
     if (!set_size(&nd->args)) return HIR_hash_subject(nd->src);
     unsigned long h = nd->op * 1315423911UL;
     set_foreach (dag_node_t* arg, &nd->args) {
-        h ^= _get_dag_hash(arg) + 0x9e3779b97f4a7c15UL + (h << 6) + (h >> 2);
+        h ^= HIR_DAG_compute_hash(arg) + 0x9e3779b97f4a7c15UL + (h << 6) + (h >> 2);
     }
 
     return h;

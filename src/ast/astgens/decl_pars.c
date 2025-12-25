@@ -31,8 +31,8 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
             return NULL;
         }
         
-        if (size_node->token->t_type != UNKNOWN_NUMERIC_TOKEN) name_node->token->flags.heap = 1;
-        else array_size = size_node->token->body->to_llong(size_node->token->body);
+        if (size_node->t->t_type != UNKNOWN_NUMERIC_TOKEN) name_node->t->flags.heap = 1;
+        else array_size = size_node->t->body->to_llong(size_node->t->body);
         
         AST_add_node(node, size_node);
         forward_token(it, 2);
@@ -44,7 +44,7 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
             return NULL;
         }
 
-        eltype = elem_size_node->token->t_type;
+        eltype = elem_size_node->t->t_type;
         AST_add_node(node, elem_size_node);
         forward_token(it, 2);
     }
@@ -72,10 +72,10 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
     long decl_scope;
     stack_top(&ctx->scopes.stack, (void**)&decl_scope);
     name_node->sinfo.v_id = VRTB_add_info(
-        name_node->token->body, ARRAY_TYPE_TOKEN, decl_scope, &name_node->token->flags, &smt->v
+        name_node->t->body, ARRAY_TYPE_TOKEN, decl_scope, &name_node->t->flags, &smt->v
     );
 
-    ARTB_add_info(name_node->sinfo.v_id, array_size, name_node->token->flags.heap, eltype, &smt->a);
+    ARTB_add_info(name_node->sinfo.v_id, array_size, name_node->t->flags.heap, eltype, &smt->a);
     var_lookup(name_node, ctx, smt);
     return node;
 }
@@ -101,7 +101,7 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
     long decl_scope;
     stack_top(&ctx->scopes.stack, (void**)&decl_scope);
     name_node->sinfo.v_id = VRTB_add_info(
-        name_node->token->body, node->token->t_type, decl_scope, &name_node->token->flags, &smt->v
+        name_node->t->body, node->t->t_type, decl_scope, &name_node->t->flags, &smt->v
     );
 
     if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {
@@ -113,8 +113,8 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
             return NULL;
         }
 
-        if (node->token->t_type == STR_TYPE_TOKEN) {
-            ARTB_add_info(name_node->sinfo.v_id, value_node->token->body->len(value_node->token->body) + 1, 0, I8_TYPE_TOKEN, &smt->a);
+        if (node->t->t_type == STR_TYPE_TOKEN) {
+            ARTB_add_info(name_node->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, 0, I8_TYPE_TOKEN, &smt->a);
             STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }
 

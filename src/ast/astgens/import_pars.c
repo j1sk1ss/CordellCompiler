@@ -24,7 +24,7 @@ ast_node_t* cpl_parse_import(list_iter_t* it, sym_table_t* smt) {
         }
 
         AST_add_node(source_node, fname);
-        FNTB_add_info(fname->token->body, 1, 0, 0, NULL, NULL, &smt->f);
+        FNTB_add_info(fname->t->body, 1, 0, 0, NULL, NULL, &smt->f);
         forward_token(it, 1);
     }
 

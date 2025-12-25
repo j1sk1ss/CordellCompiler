@@ -29,7 +29,7 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
             }
 
             AST_add_node(node, fname);
-            FNTB_add_info(fname->token->body, 1, 1, 0, NULL, NULL, &smt->f);
+            FNTB_add_info(fname->t->body, 1, 1, 0, NULL, NULL, &smt->f);
             forward_token(it, 1);
         }
     }
@@ -87,11 +87,11 @@ ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     }
 
     func_info_t finfo;
-    if (FNTB_get_info(node->token->body, &finfo, &smt->f)) {
+    if (FNTB_get_info(node->t->body, &finfo, &smt->f)) {
         node->sinfo.v_id = finfo.id;
-        for (ast_node_t* arg = finfo.args->child; arg && arg->token->t_type != SCOPE_TOKEN; arg = arg->sibling) {
-            if (args-- > 0 || !arg->child->sibling || !arg->child->sibling->token) continue;
-            AST_add_node(node, AST_copy_node(arg->child->sibling, 0, 0, 1));
+        for (ast_node_t* arg = finfo.args->c; arg && arg->t->t_type != SCOPE_TOKEN; arg = arg->siblings.n) {
+            if (args-- > 0 || !arg->c->siblings.n || !arg->c->siblings.n->t) continue;
+            AST_add_node(node, AST_copy_node(arg->c->siblings.n, 0, 0, 1));
         }
     }
 
@@ -122,7 +122,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         return NULL;
     }
 
-    args_node->base_token = args_node->token;
+    args_node->bt = args_node->t;
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
     args_node->sinfo.s_id = ctx->scopes.s_id;
 
@@ -156,8 +156,8 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     }
 
     name_node->sinfo.v_id = FNTB_add_info(
-        name_node->token->body, name_node->token->flags.glob, name_node->token->flags.ext, 0,
-        args_node, name_node->child, &smt->f
+        name_node->t->body, name_node->t->flags.glob, name_node->t->flags.ext, 0,
+        args_node, name_node->c, &smt->f
     );
 
     ast_node_t* body_node = cpl_parse_scope(it, ctx, smt);

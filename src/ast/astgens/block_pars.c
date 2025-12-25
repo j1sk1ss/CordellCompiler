@@ -54,7 +54,7 @@ ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, t
         return NULL;
     }
 
-    node->base_token = node->token;
+    node->bt = node->t;
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != ex) {
         ast_node_t* block = _navigation_handler(it, ctx, smt);
         if (block) AST_add_node(node, block);

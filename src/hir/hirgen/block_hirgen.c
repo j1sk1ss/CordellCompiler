@@ -1,11 +1,11 @@
 #include <hir/hirgens/hirgens.h>
 
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (!node || !node->token) return NULL;
+    if (!node || !node->t) return NULL;
     if (
-        TKN_isoperand(node->token) && node->token->t_type != ASSIGN_TOKEN
+        TKN_isoperand(node->t) && node->t->t_type != ASSIGN_TOKEN
     ) return HIR_generate_operand(node, ctx, smt);
-    switch (node->token->t_type) {
+    switch (node->t->t_type) {
         case CALL_TOKEN:            return HIR_generate_funccall(node, ctx, smt, 1);
         case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 1);
         case I8_VARIABLE_TOKEN:
@@ -33,12 +33,12 @@ hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
 }
 
 static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (!node || !node->token) return 0;
-    if (TKN_isdecl(node->token)) return HIR_generate_declaration_block(node, ctx, smt);
+    if (!node || !node->t) return 0;
+    if (TKN_isdecl(node->t)) return HIR_generate_declaration_block(node, ctx, smt);
     if (
-        TKN_update_operator(node->token) && node->token->t_type != ASSIGN_TOKEN
+        TKN_update_operator(node->t) && node->t->t_type != ASSIGN_TOKEN
     ) return HIR_generate_update_block(node, ctx, smt);
-    switch (node->token->t_type) {
+    switch (node->t->t_type) {
         case IF_TOKEN:         HIR_generate_if_block(node, ctx, smt);         break;
         case ASM_TOKEN:        HIR_generate_asmblock(node, ctx, smt);         break;
         case FUNC_TOKEN:       HIR_generate_function_block(node, ctx, smt);   break;
@@ -61,18 +61,18 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
 
 int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
-    for (ast_node_t* t = node; t; t = t->sibling) {
-        if (TKN_isblock(t->token) && (!t->token || t->token->t_type != START_TOKEN)) {
+    for (ast_node_t* t = node; t; t = t->siblings.n) {
+        if (TKN_isblock(t->t) && (!t->t || t->t->t_type != START_TOKEN)) {
             if (
-                t->token && 
-                t->token->t_type == SCOPE_TOKEN
+                t->t && 
+                t->t->t_type == SCOPE_TOKEN
             ) HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(t->sinfo.s_id));
 
-            HIR_generate_block(t->child, ctx, smt);
+            HIR_generate_block(t->c, ctx, smt);
             
             if (
-                t->token && 
-                t->token->t_type == SCOPE_TOKEN
+                t->t && 
+                t->t->t_type == SCOPE_TOKEN
             ) HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(t->sinfo.s_id));
         }
 

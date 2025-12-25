@@ -1,14 +1,14 @@
 #include <hir/hirgens/hirgens.h>
 
 int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* left  = node->child;
-    ast_node_t* right = left->sibling;
+    ast_node_t* left  = node->c;
+    ast_node_t* right = left->siblings.n;
     hir_subject_t* dst = HIR_generate_elem(left, ctx, smt);
     hir_subject_t* upd = HIR_generate_elem(right, ctx, smt);
     hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(dst->t), 0, NULL, &smt->v));
     upd = HIR_generate_conv(ctx, res->t, upd, smt);
 
-    switch (node->token->t_type) {
+    switch (node->t->t_type) {
         case ADDASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_iADD, res, dst, upd); break;
         case SUBASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_iSUB, res, dst, upd); break;
         case MULASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_iMUL, res, dst, upd); break;
@@ -22,12 +22,12 @@ int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 
 hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* op     = node;
-    ast_node_t* left   = node->child;
-    ast_node_t* right  = left->sibling;
+    ast_node_t* left   = node->c;
+    ast_node_t* right  = left->siblings.n;
     hir_subject_t* res = NULL;
 
     hir_subject_t* lt1 = HIR_generate_elem(left, ctx, smt);
-    switch (op->token->t_type) {
+    switch (op->t->t_type) {
         case OR_TOKEN: {
             hir_subject_t* true_lb  = HIR_SUBJ_LABEL();
             hir_subject_t* false_lb = HIR_SUBJ_LABEL();
@@ -83,7 +83,7 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
             
             lt1 = HIR_generate_conv(ctx, res->t, lt1, smt);
             lt2 = HIR_generate_conv(ctx, res->t, lt2, smt);
-            switch (op->token->t_type) {
+            switch (op->t->t_type) {
                 case PLUS_TOKEN:          HIR_BLOCK3(ctx, HIR_iADD, res, lt1, lt2);  break;
                 case BITOR_TOKEN:         HIR_BLOCK3(ctx, HIR_bOR, res, lt1, lt2);   break;
                 case MINUS_TOKEN:         HIR_BLOCK3(ctx, HIR_iSUB, res, lt1, lt2);  break;

@@ -78,53 +78,53 @@ static const char* _fmt_tkn_type(token_t* t) {
 
 static int _restore_code(ast_node_t* nd, ast_node_t* underscore) {
     if (nd == underscore) fprintf(stdout, "\e[4m");
-    if (TKN_isdecl(nd->token)) {
-        fprintf(stdout, "%s %s", _fmt_tkn_type(nd->token), nd->child->token->body->body);
-        if (nd->child->sibling) {
+    if (TKN_isdecl(nd->t)) {
+        fprintf(stdout, "%s %s", _fmt_tkn_type(nd->t), nd->c->t->body->body);
+        if (nd->c->siblings.n) {
             fprintf(stdout, " = ");
-            _restore_code(nd->child->sibling, underscore);
+            _restore_code(nd->c->siblings.n, underscore);
         }
 
         fprintf(stdout, ";");
     }
-    else if (TKN_isoperand(nd->token)) {
-        if (nd->child) _restore_code(nd->child, underscore);
-        fprintf(stdout, " %s ", nd->token->body->body);
-        if (nd->child->sibling) _restore_code(nd->child->sibling, underscore);
+    else if (TKN_isoperand(nd->t)) {
+        if (nd->c) _restore_code(nd->c, underscore);
+        fprintf(stdout, " %s ", nd->t->body->body);
+        if (nd->c->siblings.n) _restore_code(nd->c->siblings.n, underscore);
         fprintf(stdout, ";");
     }
-    else if (nd->token->t_type == FUNC_TOKEN) {
-        fprintf(stdout, "function %s(", nd->child->token->body->body);
-        ast_node_t* p = nd->sibling->child;
-        for (; p->token && p->token->t_type != SCOPE_TOKEN; p = p->sibling) {
+    else if (nd->t->t_type == FUNC_TOKEN) {
+        fprintf(stdout, "function %s(", nd->c->t->body->body);
+        ast_node_t* p = nd->siblings.n->c;
+        for (; p->t && p->t->t_type != SCOPE_TOKEN; p = p->siblings.n) {
             _restore_code(p, underscore);
-            if (p->sibling->token && p->sibling->token->t_type != SCOPE_TOKEN) fprintf(stdout, ", ");
+            if (p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) fprintf(stdout, ", ");
         }
 
         fprintf(stdout, ") ");
-        if (nd->child->child) fprintf(stdout, "=> %s ", _fmt_tkn_type(nd->child->child->token));
+        if (nd->c->c) fprintf(stdout, "=> %s ", _fmt_tkn_type(nd->c->c->t));
         fprintf(stdout, "{ ... ");
     }
-    else if (nd->token->t_type == CALL_TOKEN) {
-        fprintf(stdout, "%s(", nd->token->body->body);
-        ast_node_t* p = nd->child;
-        for (; p; p = p->sibling) {
+    else if (nd->t->t_type == CALL_TOKEN) {
+        fprintf(stdout, "%s(", nd->t->body->body);
+        ast_node_t* p = nd->c;
+        for (; p; p = p->siblings.n) {
             _restore_code(p, underscore);
-            if (p->sibling) fprintf(stdout, ", ");
+            if (p->siblings.n) fprintf(stdout, ", ");
         }
 
         fprintf(stdout, ");");
     }
-    else if (nd->token->t_type == RETURN_TOKEN) {
+    else if (nd->t->t_type == RETURN_TOKEN) {
         fprintf(stdout, "return ");
-        if (nd->child) _restore_code(nd->child, underscore);
+        if (nd->c) _restore_code(nd->c, underscore);
         fprintf(stdout, ";");
     }
 
     if (
-        TKN_isnumeric(nd->token) || 
-        TKN_isvariable(nd->token)
-    ) fprintf(stdout, "%s", nd->token->body->body);
+        TKN_isnumeric(nd->t) || 
+        TKN_isvariable(nd->t)
+    ) fprintf(stdout, "%s", nd->t->body->body);
 
     if (nd == underscore) fprintf(stdout, "\e[0m");
     return 1;
@@ -135,15 +135,15 @@ static int _restore_code(ast_node_t* nd, ast_node_t* underscore) {
         if (trg) fprintf(stdout, "\n"); \
 
 int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
-    ast_node_t* larg = nd->child;
+    ast_node_t* larg = nd->c;
     if (!larg) return 1;
-    ast_node_t* rarg = larg->sibling;
+    ast_node_t* rarg = larg->siblings.n;
     if (!rarg) return 1;
 
-    if (larg->token->flags.ro) {
+    if (larg->t->flags.ro) {
         SEMANTIC_ERROR(
             " [line=%i] Read-only variable='%s' assign!", 
-            larg->token->lnum, larg->token->body->body
+            larg->t->lnum, larg->t->body->body
         );
 
         REBUILD_CODE(nd, larg);
@@ -154,19 +154,19 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
-    ast_node_t* larg = nd->child;
+    ast_node_t* larg = nd->c;
     if (!larg) return 1;
-    ast_node_t* rarg = larg->sibling;
-    if (!rarg || rarg->token->t_type != CALL_TOKEN) return 1;
+    ast_node_t* rarg = larg->siblings.n;
+    if (!rarg || rarg->t->t_type != CALL_TOKEN) return 1;
 
     func_info_t fi;
     if (!FNTB_get_info_id(rarg->sinfo.v_id, &fi, &smt->f)) return 1;
     if (!fi.rtype) return 1;
 
-    if (TKN_variable_bitness(fi.rtype->token, 1) != TKN_variable_bitness(larg->token, 1)) {
+    if (TKN_variable_bitness(fi.rtype->t, 1) != TKN_variable_bitness(larg->t, 1)) {
         SEMANTIC_WARNING(
-            " [line=%i] Function='%s' return type='%s' not match to the %s type='%s'!", larg->token->lnum, fi.name->body,
-            _fmt_tkn_type(fi.rtype->token), _fmt_tkn_op(nd->token->t_type), _fmt_tkn_type(larg->token)
+            " [line=%i] Function='%s' return type='%s' not match to the %s type='%s'!", larg->t->lnum, fi.name->body,
+            _fmt_tkn_type(fi.rtype->t), _fmt_tkn_op(nd->t->t_type), _fmt_tkn_type(larg->t)
         );
 
         return 0;
@@ -176,13 +176,13 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_not_init(AST_VISITOR_ARGS) {
-    ast_node_t* larg = nd->child;
+    ast_node_t* larg = nd->c;
     if (!larg) return 1;
-    ast_node_t* rarg = larg->sibling;
+    ast_node_t* rarg = larg->siblings.n;
     if (!rarg) {
         SEMANTIC_WARNING(
             " [line=%i] Variable='%s' without initialization!", 
-            larg->token->lnum, larg->token->body->body
+            larg->t->lnum, larg->t->body->body
         );
 
         REBUILD_CODE(nd, larg);
@@ -205,10 +205,10 @@ static int _get_token_bitness(token_t* tkn) {
 }
 
 static token_t* _get_token_from_ast(ast_node_t* n) {
-    if (!n || !n->token) return NULL;
-    if (TKN_isoperand(n->token)) {
-        token_t* l = _get_token_from_ast(n->child);
-        token_t* r = _get_token_from_ast(n->child->sibling);
+    if (!n || !n->t) return NULL;
+    if (TKN_isoperand(n->t)) {
+        token_t* l = _get_token_from_ast(n->c);
+        token_t* r = _get_token_from_ast(n->c->siblings.n);
 
         if (!l && !r) return NULL;
         else if (!l) return r;
@@ -218,7 +218,7 @@ static token_t* _get_token_from_ast(ast_node_t* n) {
         return l;
     }
 
-    return n->token;
+    return n->t;
 }
 
 static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
@@ -248,9 +248,9 @@ static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
 }
 
 int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
-    ast_node_t* larg = nd->child;
+    ast_node_t* larg = nd->c;
     if (!larg) return 1;
-    ast_node_t* rarg = larg->sibling;
+    ast_node_t* rarg = larg->siblings.n;
     if (!rarg) return 1;
     if (!_check_assign_types("Illegal declaration", larg, rarg)) {
         REBUILD_CODE(nd, rarg);
@@ -262,22 +262,22 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
 
 static int _search_rexit_ast(ast_node_t* nd, int* found) {
     if (!nd) return 0;
-    if (!nd->token) {
-        _search_rexit_ast(nd->child, found);
+    if (!nd->t) {
+        _search_rexit_ast(nd->c, found);
         return 0;
     }
 
-    switch (nd->token->t_type) {
+    switch (nd->t->t_type) {
         case IF_TOKEN:
         case WHILE_TOKEN: {
-            ast_node_t* cnd     = nd->child;
-            ast_node_t* lbranch = cnd->sibling;
-            ast_node_t* rbranch = lbranch->sibling;
+            ast_node_t* cnd     = nd->c;
+            ast_node_t* lbranch = cnd->siblings.n;
+            ast_node_t* rbranch = lbranch->siblings.n;
 
             int nret = 0, lret = 0, rret = 0;
             _search_rexit_ast(lbranch, &lret);
             _search_rexit_ast(rbranch, &rret);
-            _search_rexit_ast(nd->sibling, &nret);
+            _search_rexit_ast(nd->siblings.n, &nret);
             if (rret && lret) nret = 1;
             if (!rbranch) rret = 1;
 
@@ -287,15 +287,15 @@ static int _search_rexit_ast(ast_node_t* nd, int* found) {
 
         case SWITCH_TOKEN: {
             int nret = 0, caseret = 0;
-            ast_node_t* cnd   = nd->child;
-            ast_node_t* cases = cnd->sibling->child;
-            for (; cases; cases = cases->sibling) {
+            ast_node_t* cnd   = nd->c;
+            ast_node_t* cases = cnd->siblings.n->c;
+            for (; cases; cases = cases->siblings.n) {
                 int curret = 0;
-                _search_rexit_ast(cases->child, &curret);
+                _search_rexit_ast(cases->c, &curret);
                 caseret = caseret && curret;
             }
 
-            _search_rexit_ast(nd->sibling, &nret);
+            _search_rexit_ast(nd->siblings.n, &nret);
             if (nret || caseret) *found = 1;
             break;
         }
@@ -307,8 +307,8 @@ static int _search_rexit_ast(ast_node_t* nd, int* found) {
         }
 
         default: {
-            _search_rexit_ast(nd->child, found);
-            _search_rexit_ast(nd->sibling, found);
+            _search_rexit_ast(nd->c, found);
+            _search_rexit_ast(nd->siblings.n, found);
             break;
         }
     }
@@ -318,11 +318,11 @@ static int _search_rexit_ast(ast_node_t* nd, int* found) {
 
 int ASTWLKR_no_return(AST_VISITOR_ARGS) {
     int has_ret = 0;
-    _search_rexit_ast(nd->child, &has_ret);
+    _search_rexit_ast(nd->c, &has_ret);
     if (!has_ret) {
         SEMANTIC_WARNING(
             " [line=%i] Function='%s' doesn't have the return statement in all paths!", 
-            nd->token->lnum, nd->child->token->body->body
+            nd->t->lnum, nd->c->t->body->body
         );
 
         REBUILD_CODE(nd, NULL);
@@ -333,9 +333,9 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
 
 int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     int has_ret = 0;
-    _search_rexit_ast(nd->child, &has_ret);
+    _search_rexit_ast(nd->c, &has_ret);
     if (!has_ret) {
-        SEMANTIC_WARNING(" [line=%i] Start doesn't have the exit statement in all paths!", nd->token->lnum);
+        SEMANTIC_WARNING(" [line=%i] Start doesn't have the exit statement in all paths!", nd->t->lnum);
         REBUILD_CODE(nd, NULL);
     }
 
@@ -346,27 +346,27 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
     func_info_t fi;
     if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) return 0;
 
-    ast_node_t* provided_arg = nd->child;
-    ast_node_t* expected_arg = fi.args->child;
+    ast_node_t* provided_arg = nd->c;
+    ast_node_t* expected_arg = fi.args->c;
     for (
-        ; provided_arg && expected_arg && expected_arg->token->t_type != SCOPE_TOKEN; 
-        provided_arg = provided_arg->sibling, expected_arg = expected_arg->sibling
+        ; provided_arg && expected_arg && expected_arg->t->t_type != SCOPE_TOKEN; 
+        provided_arg = provided_arg->siblings.n, expected_arg = expected_arg->siblings.n
     );
 
-    if (!provided_arg && (expected_arg && expected_arg->token->t_type != SCOPE_TOKEN)) {
+    if (!provided_arg && (expected_arg && expected_arg->t->t_type != SCOPE_TOKEN)) {
         SEMANTIC_ERROR(
             " [line=%i] Not enough arguments for function='%s'!", 
-            nd->token->lnum, nd->token->body->body
+            nd->t->lnum, nd->t->body->body
         );
 
         REBUILD_CODE(nd, NULL);
         return 0;
     }
 
-    if (provided_arg && (!expected_arg || expected_arg->token->t_type == SCOPE_TOKEN)) {
+    if (provided_arg && (!expected_arg || expected_arg->t->t_type == SCOPE_TOKEN)) {
         SEMANTIC_ERROR(
             " [line=%i] Too many arguments for function='%s'!", 
-            nd->token->lnum, nd->token->body->body
+            nd->t->lnum, nd->t->body->body
         );
 
         REBUILD_CODE(nd, NULL);
@@ -380,11 +380,11 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
     func_info_t fi;
     if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) return 0;
 
-    ast_node_t* provided_arg = nd->child;
-    ast_node_t* expected_arg = fi.args->child;
+    ast_node_t* provided_arg = nd->c;
+    ast_node_t* expected_arg = fi.args->c;
     for (
-        ; provided_arg && expected_arg && expected_arg->token->t_type != SCOPE_TOKEN; 
-        provided_arg = provided_arg->sibling, expected_arg = expected_arg->sibling
+        ; provided_arg && expected_arg && expected_arg->t->t_type != SCOPE_TOKEN; 
+        provided_arg = provided_arg->siblings.n, expected_arg = expected_arg->siblings.n
     ) {
         _check_assign_types("Illegal argument", expected_arg, provided_arg);
         REBUILD_CODE(nd, provided_arg);
@@ -398,14 +398,14 @@ int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
     if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) return 0;
     if (!fi.rtype) return 1;
 
-    if (fi.rtype->token->t_type != I0_TYPE_TOKEN) {
-        if (nd->parent && nd->parent->token) switch(nd->parent->token->t_type) {
+    if (fi.rtype->t->t_type != I0_TYPE_TOKEN) {
+        if (nd->p && nd->p->t) switch(nd->p->t->t_type) {
             case SCOPE_TOKEN:
             case IF_TOKEN:
             case WHILE_TOKEN:
             case START_TOKEN:
             case FUNC_TOKEN: {
-                SEMANTIC_WARNING(" [line=%i] Unused function='%s' result!", nd->token->lnum, fi.name->body);
+                SEMANTIC_WARNING(" [line=%i] Unused function='%s' result!", nd->t->lnum, fi.name->body);
                 return 0;
             }
 
@@ -419,17 +419,17 @@ int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
-    ast_node_t* index = nd->child;
-    if (!index || index->token->t_type != UNKNOWN_NUMERIC_TOKEN) return 1;
+    ast_node_t* index = nd->c;
+    if (!index || index->t->t_type != UNKNOWN_NUMERIC_TOKEN) return 1;
 
     array_info_t ai;
     if (!ARTB_get_info(nd->sinfo.v_id, &ai, &smt->a)) return 0;
 
-    long long idx = index->token->body->to_llong(index->token->body);
+    long long idx = index->t->body->to_llong(index->t->body);
     if (ai.size < idx) {
         SEMANTIC_ERROR(
             " [line=%i] Array='%s' accessed with index=%lli, that larger than the array size!", 
-            nd->token->lnum, nd->token->body->body, idx
+            nd->t->lnum, nd->t->body->body, idx
         );
 
         return 0;
@@ -439,15 +439,15 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS) {
-    ast_node_t* lbranch = nd->child->sibling;
+    ast_node_t* lbranch = nd->c->siblings.n;
     if (!lbranch) return 1;
-    ast_node_t* rbranch = lbranch->sibling;
+    ast_node_t* rbranch = lbranch->siblings.n;
     if (!rbranch) return 1;
 
     if (AST_hash_node(lbranch) == AST_hash_node(rbranch)) {
         SEMANTIC_WARNING(
             " Possible branch redundancy! The branch at [line=%i] is similar to the branch at [line=%i]!",
-            lbranch->token->lnum, rbranch->token->lnum
+            lbranch->t->lnum, rbranch->t->lnum
         );
 
         return 0;
@@ -534,14 +534,14 @@ static int _determine_string_style(const char* s) {
 }
 
 int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
-    ast_node_t* fname = nd->child;
+    ast_node_t* fname = nd->c;
     if (!fname) return 1;
 
     func_info_t fi;
     if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f)) {
         SEMANTIC_ERROR(
             " [line=%i] Function='%s' is not registered for some reason! Check logs!",
-            fname->token->lnum, fname->token->body->body
+            fname->t->lnum, fname->t->body->body
         );
 
         return 0;
@@ -550,25 +550,25 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
     if (fi.name->body[0] == '_') {
         SEMANTIC_WARNING(
             " [line=%i] Function='%s' has underscore at name start!",
-            fname->token->lnum, fname->token->body->body
+            fname->t->lnum, fname->t->body->body
         );
     }
 
     if (fi.name->requals(fi.name, "chloe")) {
-        SEMANTIC_INFO(" [line=%i] Used Chloe as a function name!", fname->token->lnum);
+        SEMANTIC_INFO(" [line=%i] Used Chloe as a function name!", fname->t->lnum);
     }
     else if (fi.name->requals(fi.name, "max&chloe")) {
-        SEMANTIC_INFO(" [line=%i] Used Max and Chloe as a function name!", fname->token->lnum);
+        SEMANTIC_INFO(" [line=%i] Used Max and Chloe as a function name!", fname->t->lnum);
     }
     else if (fi.name->requals(fi.name, "fang")) {
-        SEMANTIC_INFO(" [line=%i] Used Fang as a function dragon-name!", fname->token->lnum);
+        SEMANTIC_INFO(" [line=%i] Used Fang as a function dragon-name!", fname->t->lnum);
     }
     
     int name_format = _determine_string_style(fi.name->body);
     if (name_format != 3) {
         SEMANTIC_WARNING(
             " [line=%i] Function name='%s' isn't in sneaky_case! (%s)", 
-            fname->token->lnum, fi.name->body, _format_name(name_format)
+            fname->t->lnum, fi.name->body, _format_name(name_format)
         );
     }
 
@@ -586,32 +586,32 @@ Returns 1 if return types are equals.
 */
 static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* rtype) {
     if (!nd) return 0;
-    if (!nd->token) {
-        _check_return_statement(fname, nd->child, rtype);
+    if (!nd->t) {
+        _check_return_statement(fname, nd->c, rtype);
         return 0;
     }
 
-    switch (nd->token->t_type) {
+    switch (nd->t->t_type) {
         case EXIT_TOKEN:
         case RETURN_TOKEN: {
-            token_t* rval = _get_token_from_ast(nd->child);
+            token_t* rval = _get_token_from_ast(nd->c);
             if (!rval && rtype->t_type == I0_TYPE_TOKEN) return 1;
             if (rval && rtype->t_type == I0_TYPE_TOKEN) {
                 SEMANTIC_WARNING(" [line=%i] Function='%s' has the return value, but isn't suppose to!", rval->lnum, fname);
-                REBUILD_CODE(nd, nd->child);
+                REBUILD_CODE(nd, nd->c);
                 return 0;
             }
 
             if (_get_token_bitness(rval) > _get_token_bitness(rtype)) {
                 SEMANTIC_WARNING(" [line=%i] Function='%s' has the wrong return value!='%s'!", rval->lnum, fname, _fmt_tkn_type(rtype));
-                REBUILD_CODE(nd, nd->child);
+                REBUILD_CODE(nd, nd->c);
                 return 0;
             }
         }
 
         default: {
-            _check_return_statement(fname, nd->child, rtype);
-            _check_return_statement(fname, nd->sibling, rtype);
+            _check_return_statement(fname, nd->c, rtype);
+            _check_return_statement(fname, nd->siblings.n, rtype);
             break;
         }
     }
@@ -620,22 +620,22 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
 }
 
 int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS) {
-    ast_node_t* fname = nd->child;
+    ast_node_t* fname = nd->c;
     if (!fname) return 1;
 
     func_info_t fi;
     if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f)) return 0;
     if (!fi.rtype) {
-        SEMANTIC_INFO(" [line=%i] Consider to add a return type for the function=%s!", nd->token->lnum, fname->token->body->body);
+        SEMANTIC_INFO(" [line=%i] Consider to add a return type for the function=%s!", nd->t->lnum, fname->t->body->body);
         return 1;
     }
 
-    return _check_return_statement(fi.name->body, nd->child, fi.rtype->token);
+    return _check_return_statement(fi.name->body, nd->c, fi.rtype->t);
 }
 
 int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
-    if (nd->sibling) {
-        SEMANTIC_WARNING(" [line=%i] Possible dead code after the term statement!", nd->token->lnum);
+    if (nd->siblings.n) {
+        SEMANTIC_WARNING(" [line=%i] Possible dead code after the term statement!", nd->t->lnum);
         return 0;
     }
 
@@ -643,9 +643,9 @@ int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_implict_convertion(AST_VISITOR_ARGS) {
-    ast_node_t* larg = nd->child;
+    ast_node_t* larg = nd->c;
     if (!larg) return 1;
-    ast_node_t* rarg = larg->sibling;
+    ast_node_t* rarg = larg->siblings.n;
     if (!rarg) return 1;
     if (!_check_assign_types("Implict convertion detected", larg, rarg)) {
         REBUILD_CODE(nd, rarg);

@@ -12,12 +12,18 @@ typedef struct {
 } syntax_info_t;
 
 typedef struct ast_node {
-    token_t*         token;
-    token_t*         base_token;
-    struct ast_node* parent;
-    struct ast_node* child;
-    struct ast_node* sibling;
-    syntax_info_t    sinfo;
+    token_t*             t;  /* Linked AST token                           */
+                             /* Note: This token mustn't be freed manualy! */
+    token_t*             bt; /* Backup AST token                           */
+                             /* Note: If it isn't a NULL value,            */ 
+                             /* must be freed manualy!                     */
+    struct ast_node*     p;  /* Parent pointer                             */
+    struct ast_node*     c;  /* Child pointer                              */
+    struct {
+        struct ast_node* n;  /* Siblings next pointer                      */
+        struct ast_node* t;  /* Siblings list tail                         */
+    } siblings;
+    syntax_info_t    sinfo;  /* Scope information for the current node     */
 } ast_node_t;
 
 typedef struct {

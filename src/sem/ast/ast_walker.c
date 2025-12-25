@@ -68,12 +68,12 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
 
 static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
     if (!nd) return 0;
-    _ast_walk(nd->child, ctx);
-    _ast_walk(nd->sibling, ctx);
+    _ast_walk(nd->c, ctx);
+    _ast_walk(nd->siblings.n, ctx);
     foreach (ast_visitor_t* v, &ctx->visitors) {
         if (
-            nd->token && 
-            _get_ast_node_type(nd->token->t_type) & v->trg
+            nd->t && 
+            _get_ast_node_type(nd->t->t_type) & v->trg
         ) v->perform(nd, ctx->smt);
     }
 

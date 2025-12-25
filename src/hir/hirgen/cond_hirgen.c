@@ -1,9 +1,9 @@
 #include <hir/hirgens/hirgens.h>
 
 int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* cond    = node->child;
-    ast_node_t* lbranch = cond->sibling;
-    ast_node_t* rbranch = lbranch->sibling;
+    ast_node_t* cond    = node->c;
+    ast_node_t* lbranch = cond->siblings.n;
+    ast_node_t* rbranch = lbranch->siblings.n;
 
     hir_subject_t* true_lb  = HIR_SUBJ_LABEL();
     hir_subject_t* false_lb = HIR_SUBJ_LABEL();
@@ -15,7 +15,7 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (lbranch) {
         HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
-        HIR_generate_block(lbranch->child, ctx, smt);
+        HIR_generate_block(lbranch->c, ctx, smt);
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_BLOCK1(ctx, HIR_JMP, end_lb);
     }
@@ -24,7 +24,7 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     else {
         HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
-        HIR_generate_block(rbranch->child, ctx, smt);
+        HIR_generate_block(rbranch->c, ctx, smt);
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
         HIR_BLOCK1(ctx, HIR_JMP, end_lb);
     }
@@ -34,8 +34,8 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
 }
 
 int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* cond    = node->child;
-    ast_node_t* lbranch = cond->sibling;
+    ast_node_t* cond    = node->c;
+    ast_node_t* lbranch = cond->siblings.n;
     
     hir_subject_t* entry_lb = HIR_SUBJ_LABEL();
     hir_subject_t* body_lb  = HIR_SUBJ_LABEL();
@@ -46,7 +46,7 @@ int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt)
     if (lbranch) {
         HIR_BLOCK1(ctx, HIR_MKLB, body_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
-        HIR_generate_block(lbranch->child, ctx, smt);
+        HIR_generate_block(lbranch->c, ctx, smt);
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_BLOCK1(ctx, HIR_JMP, entry_lb);
     }
@@ -102,8 +102,8 @@ static int _cmp(const void* a, const void* b) {
 }
 
 int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    ast_node_t* cond  = node->child;
-    ast_node_t* cases = cond->sibling;
+    ast_node_t* cond  = node->c;
+    ast_node_t* cases = cond->siblings.n;
 
     int cases_count = 0;
     binary_cases_t cases_info[128];
@@ -113,17 +113,17 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
     HIR_BLOCK1(ctx, HIR_JMP, cguards);
 
     hir_subject_t* end = HIR_SUBJ_LABEL();
-    for (ast_node_t* curr_case = cases->child; curr_case; curr_case = curr_case->sibling) {
+    for (ast_node_t* curr_case = cases->c; curr_case; curr_case = curr_case->siblings.n) {
         hir_subject_t* clb = HIR_SUBJ_LABEL();
         HIR_BLOCK1(ctx, HIR_MKLB, clb);
         
-        if (curr_case->token->t_type == DEFAULT_TOKEN && !def) {
-            HIR_generate_block(curr_case->child, ctx, smt);
+        if (curr_case->t->t_type == DEFAULT_TOKEN && !def) {
+            HIR_generate_block(curr_case->c, ctx, smt);
             def = clb;
         }
         else {
-            HIR_generate_block(curr_case->child->sibling, ctx, smt);
-            cases_info[cases_count].v = curr_case->child->token->body->to_llong(curr_case->child->token->body);
+            HIR_generate_block(curr_case->c->siblings.n, ctx, smt);
+            cases_info[cases_count].v = curr_case->c->t->body->to_llong(curr_case->c->t->body);
             cases_info[cases_count].l = clb;
             cases_count++;
         }

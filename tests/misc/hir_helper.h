@@ -264,18 +264,18 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                 }
 
                 if (fi.args) {
-                    for (ast_node_t* t = fi.args->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
+                    for (ast_node_t* t = fi.args->c; t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
                         ast_node_t* type = t;
-                        ast_node_t* name = t->child;
-                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->token), name->token->body->body);
-                        if (t->sibling && t->sibling->token->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
+                        ast_node_t* name = t->c;
+                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->t), name->t->body->body);
+                        if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
                     }
                 }
 
                 dst += sprintf(dst, ")");
 
                 if (fi.rtype) {
-                    dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->token));
+                    dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->t));
                 }
 
                 break;
