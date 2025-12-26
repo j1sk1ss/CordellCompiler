@@ -1,58 +1,70 @@
 #include <ast/astgens/astgens.h>
 
 ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create a base for the declaration!");
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     forward_token(it, 1);
-
-    token_type_t eltype = I64_TYPE_TOKEN;
     ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
     if (!name_node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create a node for the array name!");
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
     
     AST_add_node(node, name_node);
+
     forward_token(it, 1);
-
-    long long array_size = 1;
-    if (CURRENT_TOKEN->t_type == OPEN_INDEX_TOKEN) {
-        forward_token(it, 1);
-
-        ast_node_t* size_node = AST_create_node(CURRENT_TOKEN);
-        if (!size_node) {
-            print_error("AST_create_node error!");
-            AST_unload(node);
-            return NULL;
-        }
-        
-        if (size_node->t->t_type != UNKNOWN_NUMERIC_TOKEN) name_node->t->flags.heap = 1;
-        else array_size = size_node->t->body->to_llong(size_node->t->body);
-        
-        AST_add_node(node, size_node);
-        forward_token(it, 2);
-
-        ast_node_t* elem_size_node = AST_create_node(CURRENT_TOKEN);
-        if (!elem_size_node) {
-            print_error("AST_create_node error!");
-            AST_unload(node);
-            return NULL;
-        }
-
-        eltype = elem_size_node->t->t_type;
-        AST_add_node(node, elem_size_node);
-        forward_token(it, 2);
+    if (CURRENT_TOKEN->t_type != OPEN_INDEX_TOKEN) {
+        print_error("Error during array parsing! arr <name>[<size>, <type>]!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
     }
+
+    forward_token(it, 1);
+    ast_node_t* size_node = AST_create_node(CURRENT_TOKEN);
+    if (!size_node) {
+        print_error("Can't create a node for the size!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+    
+    long long array_size = 1;
+    if (size_node->t->t_type != UNKNOWN_NUMERIC_TOKEN) {
+        name_node->t->flags.heap = 1;
+    }
+    else {
+        array_size = size_node->t->body->to_llong(size_node->t->body);
+    }
+    
+    AST_add_node(node, size_node);
+    forward_token(it, 2);
+
+    ast_node_t* elem_size_node = AST_create_node(CURRENT_TOKEN);
+    if (!elem_size_node) {
+        print_error("Can't create a node for the array type!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+
+    token_type_t eltype = elem_size_node->t->t_type;
+    AST_add_node(node, elem_size_node);
+    forward_token(it, 2);
 
     if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {
         forward_token(it, 1);
-        int act_size = 0;
         if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == OPEN_BLOCK_TOKEN) {
+            int act_size = 0;
             forward_token(it, 1);
             while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BLOCK_TOKEN) {
                 if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
@@ -62,6 +74,8 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
 
                 ast_node_t* arg = cpl_parse_expression(it, ctx, smt);
                 if (arg) AST_add_node(node, arg);
+                else { print_error("Error during parsing of the array static element!"); }
+
                 array_size = MAX(array_size, act_size++);
             }
 
@@ -81,17 +95,21 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
 }
 
 ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create a base for the variable declaration!");
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     forward_token(it, 1);
     ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
     if (!name_node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create a node for the variable's name!");
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
     
@@ -108,8 +126,9 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
         forward_token(it, 1);
         ast_node_t* value_node = cpl_parse_expression(it, ctx, smt);
         if (!value_node) {
-            print_error("AST_create_node error!");
+            print_error("Error during parsing of the declaration statement!");
             AST_unload(node);
+            RESTORE_TOKEN_POINT;
             return NULL;
         }
 

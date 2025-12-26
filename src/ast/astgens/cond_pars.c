@@ -1,9 +1,12 @@
 #include <ast/astgens/astgens.h>
 
 ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create a base for a switch structure!");
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
  
@@ -12,8 +15,9 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
     forward_token(it, 1);
     ast_node_t* stmt = cpl_parse_expression(it, ctx, smt);
     if (!stmt) {
-        print_error("cpl_parse_expression return NULL!");
+        print_error("Error during the parsing of the switch statement! switch (<stmt>)!");
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -22,6 +26,7 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
     if (!cases_scope) {
         print_error("AST_create_node error!");
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -43,6 +48,7 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
                 AST_unload(case_node);
                 AST_unload(cases_scope);
                 AST_unload(node);
+                RESTORE_TOKEN_POINT;
                 return NULL;
             }
 

@@ -1,9 +1,12 @@
 #include <ast/astgens/astgens.h>
 
 ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create a base for the extern statement!");
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
     
@@ -13,8 +16,9 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         else if (TKN_isdecl(CURRENT_TOKEN)) {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("AST error during function arg parsing!");
+                print_error("Extern variable declaration error! extern <type> <name>!");
                 AST_unload(node);
+                RESTORE_TOKEN_POINT;
                 return NULL;
             }
 
@@ -23,8 +27,9 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         else if (CURRENT_TOKEN->t_type == FUNC_NAME_TOKEN) {
             ast_node_t* fname = AST_create_node(CURRENT_TOKEN);
             if (!fname) {
-                print_error("AST_create_node return NULL!");
+                print_error("Extern function declaration error! extern <name>!");
                 AST_unload(node);
+                RESTORE_TOKEN_POINT;
                 return NULL;
             }
 
@@ -38,9 +43,12 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
 }
 
 ast_node_t* cpl_parse_rexit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create the base for either the return or the exit statement!");
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
     
@@ -52,8 +60,9 @@ ast_node_t* cpl_parse_rexit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
     ast_node_t* exp_node = cpl_parse_expression(it, ctx, smt);
     if (!exp_node) {
-        print_error("AST error during return parsing! line=%i", CURRENT_TOKEN->lnum);
+        print_error("Error during the exit or the return statement! return/exit <stmt>!");
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -62,9 +71,12 @@ ast_node_t* cpl_parse_rexit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 }
 
 ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create the base for the function call!");
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -80,7 +92,7 @@ ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
 
             ast_node_t* arg = cpl_parse_expression(it, ctx, smt);
             if (arg) AST_add_node(node, arg);
-            else { print_warn("cpl_parse_expression return NULL!"); }
+            else { print_error("Error during the call argument parsing! <name>(<arg>)!"); }
 
             args++;
         }
@@ -100,16 +112,21 @@ ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
 }
 
 ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create the base for the function!");
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     forward_token(it, 1);
     ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
     if (!name_node) {
+        print_error("Can't create the base for the function's name!");
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -118,7 +135,9 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     forward_token(it, 1);
     ast_node_t* args_node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, CURRENT_TOKEN->lnum));
     if (!args_node) {
+        print_error("Can't create the base for the function's arguments!");
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -128,18 +147,17 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
 
     forward_token(it, 1);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
-        if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
-            forward_token(it, 1);
-            continue;
-        }
-        
-        if (!TKN_isdecl((CURRENT_TOKEN))) forward_token(it, 1);
+        if (
+            CURRENT_TOKEN->t_type == COMMA_TOKEN ||
+            !TKN_isdecl(CURRENT_TOKEN)
+        ) forward_token(it, 1);
         else {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("cpl_parse_variable_declaration return NULL!");
+                print_error("Error during the function's argument parsing! function <name>(<type> <name> (opt: = <stmt>))!");
                 AST_unload(node);
                 AST_unload(args_node);
+                RESTORE_TOKEN_POINT;
                 return NULL;
             }
 
@@ -162,8 +180,9 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
 
     ast_node_t* body_node = cpl_parse_scope(it, ctx, smt);
     if (!body_node) {
-        print_error("AST error during function body parsing! line=%i", CURRENT_TOKEN->lnum);
+        print_error("Error during the function's body parsing!");
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 

@@ -1,9 +1,12 @@
 #include <ast/astgens/astgens.h>
 
 ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("AST_create_node error!");
+        print_error("Can't create a base for the start statement!");
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -18,8 +21,9 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
         else {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("cpl_parse_variable_declaration return NULL!");
+                print_error("Error during the start's statement argument parsing! start(<type> <name>)!");
                 AST_unload(node);
+                RESTORE_TOKEN_POINT;
                 return NULL;
             }
 
@@ -30,8 +34,9 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     forward_token(it, 1);
     ast_node_t* body = cpl_parse_block(it, ctx, smt, CLOSE_BLOCK_TOKEN);
     if (!body) {
-        print_error("cpl_parse_block return NULL!");
+        print_error("Error during the parsing of the start's body!");
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
