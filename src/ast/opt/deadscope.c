@@ -72,6 +72,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
                 int is_affect = 0;
                 ast_node_t* case_scope = curr->t->t_type == CASE_TOKEN ? curr->c->siblings.n : curr->c;
                 _find_scope(case_scope, &is_affect, s_id);
+
                 if (!is_affect) {
                     AST_remove_node(root, curr);
                     AST_unload(curr);
@@ -91,6 +92,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
                 _find_scope(curr, affect, s_id);
                 break;
             }
+
             default: break;
         }
 

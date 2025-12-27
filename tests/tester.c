@@ -157,17 +157,16 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
 
-    call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
-    HIR_CG_perform_dfe(&callctx, &smt);     // Analyzation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
-    call_graph_print_dot(&callctx);
-
     HIR_LOOP_mark_loops(&cfgctx);           // Analyzation
     HIR_FUNC_perform_inline(&cfgctx);       // Transform
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
+
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
+    HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
     HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+    call_graph_print_dot(&callctx);
     
 #ifdef HIR_PRINT
     printf("\n\n========== HIRv1 ==========\n");

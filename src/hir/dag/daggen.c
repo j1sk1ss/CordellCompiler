@@ -1,10 +1,20 @@
 #include <hir/dag.h>
 
-static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* src1, dag_node_t* src2) {
+/*
+Register a new DAG node in the DAG context.
+Params:
+    - `dctx` - DAG context.
+    - `dst` - DAG node.
+    - `farg` - First DAG's argument.
+    - `sarg` - Second DAG's argument.
+
+Return 1 if succeed.
+*/
+static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* farg, dag_node_t* sarg) {
     map_put(&dctx->groups, dst->hash, dst);
     map_put(&dctx->dag, HIR_hash_subject(dst->src), dst);
-    if (src1) set_add(&src1->users, dst);
-    if (src2) set_add(&src2->users, dst);
+    if (farg) set_add(&farg->users, dst);
+    if (sarg) set_add(&sarg->users, dst);
     return 1;
 }
 

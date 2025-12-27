@@ -18,8 +18,7 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
             }
         }
     }
-
-    if (node->t->t_type == STRING_VALUE_TOKEN) {
+    else if (node->t->t_type == STRING_VALUE_TOKEN) {
         str_info_t strinfo;
         if (STTB_get_info(node->t->body, &strinfo, &smt->s)) {
             node->sinfo.v_id = strinfo.id;

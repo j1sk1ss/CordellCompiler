@@ -1,8 +1,19 @@
 #include <hir/func.h>
 
+/*
+Replace function argument pushing with the argument assigning.
+Params:
+    - `f` - Current function.
+    - `args` - Function's argument list.
+    - `pos` - Current position in the HIR.
+              Note: This is the point, where inline must start.
+
+Returns 1 if succeeds.
+*/
 static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     list_iter_t it;
     list_iter_hinit(args, &it);
+
     hir_block_t* hh = HIR_get_next(f->hmap.entry, f->hmap.exit, 0);
     while (hh) {
         if (hh->op == HIR_FARGLD) {
@@ -19,11 +30,23 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     return 1;
 }
 
+/*
+Insert function body into the source HIR position.
+Params:
+    - `f` - Current function.
+    - `res` - The target save point for the function call.
+              Note: It can be NULL pointer, if there is
+                    no expected output in the source code.
+    - `pos` - Current position in the HIR.
+              Note: This is the point, where inline must start.
+
+Returns 1 if succeeds.
+*/
 static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos) {
-    hir_block_t* hh = f->hmap.entry;
-    while (hh && hh->op != HIR_MKSCOPE) hh = hh->next;
-    hh = hh->next;
-    while (hh && hh->op != HIR_MKSCOPE) hh = hh->next;
+    hir_block_t* hh = HIR_get_next(f->hmap.entry, f->hmap.exit, 0);
+    while (hh && hh->op != HIR_MKSCOPE) hh = HIR_get_next(hh, f->hmap.exit, 1);
+    hh = HIR_get_next(hh, f->hmap.exit, 1);
+    while (hh && hh->op != HIR_MKSCOPE) hh = HIR_get_next(hh, f->hmap.exit, 1);
 
     while (hh && hh->op != HIR_FEND) {
         if (!hh->unused) {
@@ -40,19 +63,27 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
 
                     break;
                 }
+
                 default: break;
             }
 
             HIR_insert_block_before(nblock, pos);
         }
 
-        if (hh == f->hmap.exit) break;
-        hh = hh->next;
+        hh = HIR_get_next(hh, f->hmap.exit, 1);
     }
 
     return 1;
 }
 
+/*
+Get function from the CFG context by the provided function ID.
+Params:
+    - `cctx` - CFG context.
+    - `fid` - Function ID.
+
+Returns either a function pointer or the NULL value.
+*/
 static cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long fid) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (fb->fid == fid) return fb;
@@ -61,6 +92,16 @@ static cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long fid) {
     return NULL;
 }
 
+/*
+Euristic function for evaluating an inline candidate.
+Note: If this function returns 1 - the provided function
+      can be inlined.
+Params:
+    - `f` - CFG inline candidate function.
+    - `pos` - Source HIR position.
+
+Returns 1 if the provided function can be inlined.
+*/
 static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
     if (!f) return 0;
     int score = 0;

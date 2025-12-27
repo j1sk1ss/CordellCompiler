@@ -34,6 +34,8 @@ int HIR_CG_apply_dfe(cfg_ctx_t* cctx, call_graph_t* ctx);
 /*
 [Analyzation] Perform basic call graph generation.
 Note: Will connect call graph's functions with each other.
+Note 2: Will mark functions as an unused function!
+        Must be called after all possible HIR optimizations!
 Params:
     - `ctx` - Call graph itself.
     - `smt` - Symtable.

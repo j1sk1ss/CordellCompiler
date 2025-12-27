@@ -1,5 +1,13 @@
 #include <hir/func.h>
 
+/*
+Try to reach all possible call graph nodes from the current node.
+Params:
+    - `nd` - Current call graph node.
+    - `ctx` - Call graph context.
+
+Returns 1 if succeeds.
+*/
 static int _mark_block(call_graph_node_t* nd, call_graph_t* ctx) {
     nd->flag = 1;
     set_foreach (call_graph_node_t* nnd, &nd->edges) {
