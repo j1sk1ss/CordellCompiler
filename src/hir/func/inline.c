@@ -84,7 +84,7 @@ Params:
 
 Returns either a function pointer or the NULL value.
 */
-static cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long fid) {
+static inline cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long fid) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (fb->fid == fid) return fb;
     }

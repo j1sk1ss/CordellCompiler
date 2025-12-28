@@ -8,7 +8,8 @@
 #include <hir/hir_types.h>
 
 /*
-Generate convertion from one type to another. 
+Generate convertion from the one type to another. 
+Note: It types are similar, it doesn't perform the convertation proccess.
 Params:
     - `ctx` - HIR ctx.
     - `t` - Target type.
@@ -20,7 +21,10 @@ Return converted HIR subject.
 hir_subject_t* HIR_generate_conv(hir_ctx_t* ctx, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
 
 /*
-Convert AST node into HIR element. 
+Convert AST node into HIR element.
+Note: In comparision the the HIR_generate_block, this function
+      doesn't care about the entier scope and the further code.
+      It will convert only the provided node and their childs.
 Params:
     - `node` - AST node.
     - `ctx` - HIR ctx.
