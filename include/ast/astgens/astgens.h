@@ -90,14 +90,28 @@ Returns an ast node.
 ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
-Parse .cpl if block with input tokens. Should be invoked on if token.
+Parse .cpl 'if' block with input tokens. Should be invoked on 'if' token.
 Snippet:
 ```cpl
 if : statement :; {
 }
 else {
 }
+```
 
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Parse .cpl 'while' block with input tokens. Should be invoked on 'while' token.
+Snippet:
+```cpl
 while : statement :; {
 }
 ```
@@ -109,7 +123,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_condop(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_while(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Parse .cpl declaration array block. Should be invoked on array declaration block.
@@ -160,10 +174,25 @@ Returns an ast node.
 ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
-Parse .cpl exit and return block. Should be invoked on return or exit token.
+Parse .cpl exit block. Should be invoked on a 'exit' token.
 Snippet:
 ```cpl
 exit : statement :;
+```
+
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_exit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Parse .cpl return block. Should be invoked on a 'return' token.
+Snippet:
+```cpl
 return : statement :;
 ```
 
@@ -174,7 +203,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_rexit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_return(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Parse .cpl function call. Should be invoked on funccall token.

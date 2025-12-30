@@ -1,3 +1,5 @@
+/* Compex expression parser.
+   Parses and invokes low-level parsers */
 #include <ast/astgens/astgens.h>
 
 /*

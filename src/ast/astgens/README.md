@@ -1,11 +1,17 @@
 # AST parsers
-- `asm_pars.c` - Parser for `asm` keyword.
-- `block_pars.c` - Main navigation handler for parsers.
-- `cond_pars.c` - Parsers for `if` and `while` keywords.
-- `decl_pars.c` - Parsers for `arr`, `str`, `f64` ..., `u8` keywords.
-- `func_pars.c` - Parsers for `function`, `return`, `exit` and `funccall` keywords. 
-- `import_pars.c` - Parser for `import` keyword.
-- `op_pars.c` - Parser for binary and unary keywords (`+`, `not`, `*`, `>>` etc).
-- `scope_pars.c` - Parser for `{` block with navigation to `block_pars.c`.
-- `start_pars.c` - Parser for `start` keyword.
-- `syscl_pars.c` - Parser for `syscall` keyword.
+- `asm/` - Inline assembly related parsers.
+- `body/` - Code body generation related parsers.
+- `break/` - Code breakpoint related parsers.
+- `cond/` - Control Flow related parsers.
+- `decl/` - Value declaration releated parsers.
+- `expr/` - Expression related parsers.
+- `func/` - Function related parsers.
+- `import/` - Import and extern related parsers.
+- `syscall/` - Sycall generation related parsers.
+
+# How to create a new parser?
+## AST
+Create a new directory in the `astgens/` directory. Then choose the unique name, and implement a main parser function. Function must be called according to the next pattern: `cpl_parse_<name/token>`. Then, register it in the `body/block_pars.c` module.
+
+## HIR
+Often a new parser requiers a new HIR transformer. Check the `hir/hirgen/README.md` for the more information.

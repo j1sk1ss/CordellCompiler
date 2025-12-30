@@ -27,17 +27,3 @@ ast_node_t* cpl_parse_syscall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt)
 
     return node;
 }
-
-ast_node_t* cpl_parse_breakpoint(list_iter_t* it) {
-    SAVE_TOKEN_POINT;
-
-    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) {
-        print_error("Can't create a base for the LiS statement!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
-    forward_token(it, 1);
-    return node;
-}
