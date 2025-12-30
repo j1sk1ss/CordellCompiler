@@ -1,8 +1,5 @@
 #include <lir/selector/x84_64_gnu_nasm.h>
 
-static const int _abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9      };
-static const int _sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
-
 /*
 Checks a variable if it is a signed or not.
 Params:
@@ -59,7 +56,6 @@ static lir_subject_t* _create_tmp(int reg, lir_subject_t* src, sym_table_t* smt)
         VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)
     ) cpy = VRTB_add_copy(&vi, &smt->v);
     else cpy = VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v);
-
     VRTB_update_memory(cpy, vi.vmi.offset, src->size, reg, &smt->v);
     return LIR_SUBJ_VAR(cpy, src->size);
 }
@@ -143,42 +139,87 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
                 switch (lh->op) {
-                    case LIR_STSARG:
-                    case LIR_STFARG: {
-                        int* src_regs = (int*)_abi_regs;
-                        if (lh->op == LIR_STSARG) {
-                            src_regs = (int*)_sys_regs;
-                        }
+                    /* Pass arguments to the syscall.
+                       If there is more than 7 arguments, ignore the last. */
+                    case LIR_STSARG: {
+                        int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
+                        if (lh->sarg->storage.cnst.value >= sizeof(sys_regs) / sizeof(RAX)) break;
+                        lir_subject_t* nfarg = _create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt);
 
-                        lir_subject_t* nfarg = _create_tmp(src_regs[lh->sarg->storage.cnst.value], lh->farg, smt);
                         LIR_unload_subject(lh->sarg);
-                        
                         lh->op   = LIR_aMOV;
                         lh->sarg = lh->farg;
                         lh->farg = nfarg;
                         break;
                     }
 
-                    case LIR_STARGLD:
-                    case LIR_LOADFARG: {
-                        lir_subject_t* src = NULL;
-                        if (lh->op == LIR_STARGLD) {
-                            src = LIR_SUBJ_OFF((lh->sarg->storage.cnst.value + 1) * -8, _get_variable_size(lh->farg->storage.var.v_id, smt));
-                        }
-                        else {
-                            src = _create_tmp(_abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt);
-                        }
+                    /* Load argument from a Linux entry stack.
+                       Note: Based on the Linux ABI execution convention. */
+                    case LIR_STARGLD: {
+                        lir_subject_t* src = LIR_SUBJ_OFF(
+                            (lh->sarg->storage.cnst.value + 1) * -8, 
+                            _get_variable_size(lh->farg->storage.var.v_id, smt)
+                        );
 
-                        lh->op = LIR_iMOV;
                         LIR_unload_subject(lh->sarg);
+                        lh->op   = LIR_iMOV;
                         lh->sarg = src;
                         break;
                     }
 
+                    /* Pass arguments to a function.
+                       If there is more than 6 arguments, pass into a stack.
+                       Note: Based on the ABI calling convention. */
+                    case LIR_STFARG: {
+                        int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
+                        lir_subject_t* nfarg;
+                        if (lh->sarg->storage.cnst.value < sizeof(abi_regs) / sizeof(RDI)) {
+                            nfarg = _create_tmp(
+                                abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt
+                            );
+                        }
+                        else {
+                            nfarg = LIR_SUBJ_OFF(
+                                (lh->sarg->storage.cnst.value + 1) * 8, 
+                                _get_variable_size(lh->farg->storage.var.v_id, smt)
+                            );
+                        }
+
+                        LIR_unload_subject(lh->sarg);
+                        lh->op   = LIR_aMOV;
+                        lh->sarg = lh->farg;
+                        lh->farg = nfarg;
+                        break;
+                    }
+
+                    /* Load passed argument to a function.
+                       If there is more than 6 args, use a stack. */
+                    case LIR_LOADFARG: {
+                        int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
+                        lir_subject_t* nfarg;
+                        if (lh->sarg->storage.cnst.value < sizeof(abi_regs) / sizeof(RDI)) {
+                            nfarg = _create_tmp(
+                                abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt
+                            );
+                        }
+                        else {
+                            nfarg = LIR_SUBJ_OFF(
+                                (lh->sarg->storage.cnst.value + 1) * 8, 
+                                _get_variable_size(lh->farg->storage.var.v_id, smt)
+                            );
+                        }
+
+                        LIR_unload_subject(lh->sarg);
+                        lh->op   = LIR_iMOV;
+                        lh->sarg = nfarg;
+                        break;
+                    }
+
+                    /* Load value from the function
+                       to the temporal variable. */
                     case LIR_LOADFRET: {
-                        lir_subject_t* src = _create_tmp(RAX, lh->farg, smt);
-                        lh->op = LIR_iMOV;
-                        lh->sarg = src;
+                        lh->op   = LIR_iMOV;
+                        lh->sarg = _create_tmp(RAX, lh->farg, smt);
                         break;
                     }
 
@@ -189,13 +230,11 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_iSUB:
                     case LIR_iADD: {
                         lir_subject_t* a = _create_tmp(RAX, lh->sarg, smt);
-                        lir_subject_t* b = lh->targ;
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
 
                         lir_subject_t* oldres = lh->farg;
                         lh->farg = a;
                         lh->sarg = a;
-                        lh->targ = b;
                         _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, a, NULL), lh);
                         break;
                     }
@@ -213,7 +252,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_iMOD: {
                         _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RDX, 8), LIR_SUBJ_REG(RDX, 8), NULL), lh);
                         lir_subject_t* a = _create_tmp(RAX, lh->sarg, smt);
-                        lir_subject_t* b = lh->targ;
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
 
                         lir_subject_t* mod;
@@ -227,7 +265,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
 
                         lh->sarg = a;
-                        lh->targ = b;
 
                         if (lh->op == LIR_iMOD) _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, mod, NULL), lh);
                         else _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, a, NULL), lh);
