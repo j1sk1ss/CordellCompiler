@@ -1,5 +1,5 @@
 /* Misc file */
-#include <ast/astgens/astgens.h>
+#include <ast/astgen/astgen.h>
 
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;

@@ -1,6 +1,6 @@
 /* Import logic statements parser
    - from <file> import <name> */
-#include <ast/astgens/astgens.h>
+#include <ast/astgen/astgen.h>
 
 ast_node_t* cpl_parse_import(list_iter_t* it, sym_table_t* smt) {
     SAVE_TOKEN_POINT;

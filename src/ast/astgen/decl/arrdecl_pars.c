@@ -1,6 +1,6 @@
 /* Declaration statement parser.
    - arr <name>[<type>, <size>] = decl */
-#include <ast/astgens/astgens.h>
+#include <ast/astgen/astgen.h>
 
 ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     SAVE_TOKEN_POINT;

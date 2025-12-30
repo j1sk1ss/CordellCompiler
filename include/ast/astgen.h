@@ -4,7 +4,7 @@
 #include <symtab/symtab.h>
 #include <prep/token_types.h>
 #include <ast/ast.h>
-#include <ast/astgens/astgens.h>
+#include <ast/astgen/astgen.h>
 #include <std/list.h>
 
 /*

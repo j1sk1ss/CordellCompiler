@@ -11,7 +11,7 @@
 #ifdef AST_TESTING
     #include <ast/ast.h>
     #include <ast/astgen.h>
-    #include <ast/astgens/astgens.h>
+    #include <ast/astgen/astgen.h>
     #include "misc/ast_helper.h"
 #ifdef AST_OPT_TESTING
     #include <ast/opt/condunroll.h>

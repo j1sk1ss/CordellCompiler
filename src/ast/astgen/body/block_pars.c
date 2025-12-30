@@ -1,5 +1,5 @@
 /* Main parser logic / navigation */
-#include <ast/astgens/astgens.h>
+#include <ast/astgen/astgen.h>
 
 ast_node_t* cpl_parse_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     if (CURRENT_TOKEN->t_type != OPEN_BLOCK_TOKEN) {

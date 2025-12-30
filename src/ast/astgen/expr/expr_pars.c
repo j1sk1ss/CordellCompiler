@@ -1,6 +1,6 @@
 /* Compex expression parser.
    Parses and invokes low-level parsers */
-#include <ast/astgens/astgens.h>
+#include <ast/astgen/astgen.h>
 
 /*
 Parse left part of a stmt.
