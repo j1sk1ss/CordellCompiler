@@ -1,0 +1,23 @@
+#include <hir/hirgens/hirgens.h>
+
+int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)) {
+        return 0;
+    }
+    
+    HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(node->c));
+    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
+
+    int argnum = 0;
+    ast_node_t* t;
+    for (t = node->c->siblings.n->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
+        HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->c));
+        HIR_BLOCK2(ctx, HIR_FARGLD, HIR_SUBJ_ASTVAR(t->c), HIR_SUBJ_CONST(argnum++));
+    }
+
+    HIR_generate_block(t, ctx, smt);
+    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
+    HIR_BLOCK0(ctx, HIR_FEND);
+    return 1;
+}
