@@ -1,8 +1,6 @@
 #include <lir/lirgens/lirgens.h>
 
-static int _iterate_block(
-    sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym_table_t* smt
-) { 
+static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym_table_t* smt) { 
     hir_block_t* h = bb->hmap.entry;
     LIR_BLOCK1(ctx, LIR_BB, LIR_SUBJ_CONST(bb->id));
     bb->lmap.entry = ctx->t;
@@ -16,26 +14,74 @@ static int _iterate_block(
             case HIR_OEXT:     LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id));                                      break;
             case HIR_EXITOP:   LIR_BLOCK1(ctx, LIR_EXITOP, x86_64_format_variable(h->farg));                                               break;
             
-            case HIR_FRET:
-            case HIR_SYSC:
-            case HIR_STORE_SYSC:
+            case HIR_FDCL:   LIR_BLOCK1(ctx, LIR_FDCL, LIR_SUBJ_FUNCNAME(h->farg));                                                        break;
+            case HIR_FRET:   LIR_BLOCK1(ctx, LIR_FRET, x86_64_format_variable(h->farg));                                                   break;
+            case HIR_FARGLD: LIR_BLOCK2(ctx, LIR_LOADFARG, x86_64_format_variable(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value));  break;
+
             case HIR_FCLL:
+            case HIR_ECLL: 
             case HIR_STORE_FCLL:
-            case HIR_ECLL:
-            case HIR_STORE_ECLL:
-            case HIR_FDCL:
-            case HIR_FARGLD: x86_64_generate_func(ctx, h); break;
+            case HIR_STORE_ECLL: {
+                lir_subject_t* sargs = LIR_SUBJ_LIST();
+                x86_64_pass_params(LIR_STFARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h);
+                LIR_BLOCK3(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->sarg), NULL, sargs);
+                if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) {
+                    LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
+                }
+
+                break;
+            }
+
+            case HIR_SYSC: 
+            case HIR_STORE_SYSC: {
+                lir_subject_t* sargs = LIR_SUBJ_LIST();
+                x86_64_pass_params(LIR_STSARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h);
+                LIR_BLOCK3(ctx, LIR_SYSC, NULL, NULL, sargs);
+                if (h->op == HIR_STORE_SYSC) {
+                    LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
+                }
+                
+                break;
+            }
 
             case HIR_BREAKPOINT: LIR_BLOCK0(ctx, LIR_BREAKPOINT); break;
 
-            case HIR_RAW:
-            case HIR_STASM:
-            case HIR_ENDASM: x86_64_generate_asmblock(ctx, h, smt, params); break;
+            case HIR_RAW: {
+                str_info_t si;
+                if (!STTB_get_info_id(h->farg->storage.str.s_id, &si, &smt->s)) break;
 
-            case HIR_VRDEALL: LIR_BLOCK1(ctx, LIR_VRDEALL, LIR_SUBJ_CONST(h->farg->storage.cnst.value)); break;
-            case HIR_STRDECL: 
-                LIR_BLOCK2(ctx, LIR_STRDECL, x86_64_format_variable(h->farg), LIR_SUBJ_STRING(h->sarg->storage.str.s_id)); 
-            break;
+                int argnum = -1;
+                hir_subject_t* arg = NULL;
+
+                string_t* p = si.value->fchar(si.value, '%');
+                p->hmove(p, 1);
+                if (p && str_isdigit((unsigned char)*(p->body))) {
+                    argnum = p->to_llong(p);
+                }
+
+                if (argnum >= 0) {
+                    arg = params->data[params->top - argnum].d;
+                }
+                
+                LIR_BLOCK2(ctx, LIR_RAW, LIR_SUBJ_RAWASM(h->farg->storage.str.s_id), x86_64_format_variable(arg));
+                break;
+            }
+
+            case HIR_STASM: {
+                list_iter_t it;
+                list_iter_tinit(&h->targ->storage.list.h, &it);
+                hir_subject_t* s;
+                while ((s = list_iter_prev(&it))) stack_push(params, s);
+                break;
+            }
+
+            case HIR_ENDASM: {
+                for (int i = 0; i < h->targ->storage.cnst.value; i++) stack_pop(params, NULL);
+                break;
+            }
+
+            case HIR_VRDEALL: LIR_BLOCK1(ctx, LIR_VRDEALL, LIR_SUBJ_CONST(h->farg->storage.cnst.value));                                 break;
+            case HIR_STRDECL: LIR_BLOCK2(ctx, LIR_STRDECL, x86_64_format_variable(h->farg), LIR_SUBJ_STRING(h->sarg->storage.str.s_id)); break;
             case HIR_ARRDECL: {
                 lir_subject_t* lir_elems = LIR_SUBJ_LIST();
                 foreach (hir_subject_t* hir_elem, &h->targ->storage.list.h) {

@@ -12,6 +12,9 @@
 #include <std/stack.h>
 #include <std/stackmap.h>
 
+/* params_lirgen.c */
+int x86_64_pass_params(lir_operation_t op, lir_ctx_t* ctx, list_t* hir_args, list_t* lir_args);
+
 /* x86_64_lirvar.c */
 lir_subject_t* x86_64_format_variable(hir_subject_t* subj);
 int x86_64_store_var2var(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* dst, hir_subject_t* src);
