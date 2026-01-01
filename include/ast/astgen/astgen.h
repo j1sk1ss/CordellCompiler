@@ -3,6 +3,7 @@
 
 #include <std/str.h>
 #include <std/stack.h>
+#include <prep/dict.h>
 #include <prep/token.h>
 #include <prep/token_types.h>
 #include <prep/dict.h>
@@ -321,7 +322,7 @@ Returns an ast node.
 ast_node_t* cpl_parse_syscall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
-Parse .cpl breakpoint block. Should be invoked on breakpoint token.
+Parse .cpl breakpoint block. Should be invoked on a breakpoint token.
 Snippet:
 ```cpl
 lis;
@@ -335,5 +336,21 @@ Params:
 Returns an ast node.
 */
 ast_node_t* cpl_parse_breakpoint(list_iter_t* it);
+
+/*
+Parse .cpl break block. Should be invoked on a break token.
+Snippet:
+```cpl
+break;
+```
+
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_break(list_iter_t* it);
 
 #endif

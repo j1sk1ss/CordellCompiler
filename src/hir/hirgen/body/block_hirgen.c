@@ -75,6 +75,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case FUNC_TOKEN:       HIR_generate_function_block(node, ctx, smt);   break;
         case EXIT_TOKEN:       HIR_generate_exit_block(node, ctx, smt);       break;
         case CALL_TOKEN:       HIR_generate_funccall(node, ctx, smt, 0);      break;
+        case BREAK_TOKEN:      HIR_generate_break_block(ctx);                 break;
         case WHILE_TOKEN:      HIR_generate_while_block(node, ctx, smt);      break;
         case START_TOKEN:      HIR_generate_start_block(node, ctx, smt);      break;
         case SWITCH_TOKEN:     HIR_generate_switch_block(node, ctx, smt);     break;

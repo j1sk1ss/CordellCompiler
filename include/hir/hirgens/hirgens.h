@@ -91,13 +91,23 @@ Return parsed from AST HIR subject.
 int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx);
 
 /*
-Generate breakpoint AST node into HIR element. 
+Convert a breakpoint AST node into a HIR element. 
 Params:
     - `ctx` - HIR ctx.
 
 Return parsed from AST HIR subject.
 */
 int HIR_generate_breakpoint_block(hir_ctx_t* ctx);
+
+/*
+Convert a break AST node into a HIR element. 
+Note: ctx->carry must be a non-NULL value!
+Params:
+    - `ctx` - HIR ctx.
+
+Return parsed from AST HIR subject.
+*/
+int HIR_generate_break_block(hir_ctx_t* ctx);
 
 /*
 Convert extern AST node into HIR element. 

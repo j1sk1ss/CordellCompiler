@@ -78,26 +78,6 @@ long HIR_hash_subject(hir_subject_t* s) {
     return s->hash;
 }
 
-hir_ctx_t* HIR_create_ctx() {
-    hir_ctx_t* ctx = mm_malloc(sizeof(hir_ctx_t));
-    if (!ctx) return NULL;
-    ctx->h = ctx->t = NULL;
-    return ctx;
-}
-
-int HIR_destroy_ctx(hir_ctx_t* ctx) {
-    if (!ctx) return -1;
-    hir_block_t* cur = ctx->h;
-    while (cur) {
-        hir_block_t* nxt = cur->next;
-        mm_free(cur);
-        cur = nxt;
-    }
-
-    mm_free(ctx);
-    return 0;
-}
-
 static long _curr_id = 0;
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));

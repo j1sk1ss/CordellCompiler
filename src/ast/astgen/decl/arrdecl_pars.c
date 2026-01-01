@@ -7,7 +7,7 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("Can't create a base for the declaration!");
+        print_error("Can't create a base for the array declaration!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -25,7 +25,7 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
 
     forward_token(it, 1);
     if (CURRENT_TOKEN->t_type != OPEN_INDEX_TOKEN) {
-        print_error("Error during array parsing! arr <name>[<size>, <type>]!");
+        print_error("Error during array parsing! arr <name>[<type>, <size>]!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;

@@ -7,7 +7,7 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("Can't create a base for the start statement!");
+        print_error("Can't create a base for the '%s' statement!", START_COMMAND);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -23,7 +23,7 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
         else {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("Error during the start's statement argument parsing! start(<type> <name>)!");
+                print_error("Error during the '%s' statement argument parsing! %s(<type> <name>)!", START_COMMAND, START_COMMAND);
                 AST_unload(node);
                 RESTORE_TOKEN_POINT;
                 return NULL;
@@ -36,7 +36,7 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     forward_token(it, 1);
     ast_node_t* body = cpl_parse_block(it, ctx, smt, CLOSE_BLOCK_TOKEN);
     if (!body) {
-        print_error("Error during the parsing of the start's body!");
+        print_error("Error during the parsing of the '%s' body!", START_COMMAND);
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;

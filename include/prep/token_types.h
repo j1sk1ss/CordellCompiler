@@ -79,6 +79,7 @@ typedef enum {
     CASE_TOKEN,          // case
     DEFAULT_TOKEN,       // default
     WHILE_TOKEN,         // while
+    BREAK_TOKEN,         // break
     IF_TOKEN,            // if
     ELSE_TOKEN,          // else
     

@@ -81,7 +81,12 @@
   "CPL Keywords Lis": {
     "prefix": "lis",
     "body": "lis",
-    "description": "CPL keyword"
+    "description": "CPL LiS keyword"
+  },
+  "CPL Keywords break": {
+    "prefix": "break",
+    "body": "break",
+    "description": "CPL break keyword"
   },
   "CPL Keywords Exfunc": {
     "prefix": "exfunc",

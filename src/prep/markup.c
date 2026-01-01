@@ -58,6 +58,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(CASE_COMMAND,           CASE_TOKEN),
     LEXEM(DEFAULT_COMMAND,        DEFAULT_TOKEN),
     LEXEM(WHILE_COMAND,           WHILE_TOKEN),
+    LEXEM(BREAK_COMMAND,          BREAK_TOKEN),
     LEXEM(IF_COMMAND,             IF_TOKEN),
     LEXEM(ELSE_COMMAND,           ELSE_TOKEN),
 

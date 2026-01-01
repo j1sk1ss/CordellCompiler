@@ -38,11 +38,11 @@ typedef struct {
 } hir_list_t;
 
 typedef struct {
-    int                users;
-    struct hir_block*  home;
-    unsigned long      hash;
-    long               id;
-    hir_subject_type_t t;
+    int                users; /* Users count    */
+    struct hir_block*  home;  /* Home HIR block */
+    unsigned long      hash;  /* Subject's hash */
+    long               id;    /* Subject's ID   */
+    hir_subject_type_t t;     /* Subject's type */
     union {
         hir_string_t   str;
         hir_constant_t cnst;
@@ -65,8 +65,9 @@ typedef struct hir_block {
 } hir_block_t;
 
 typedef struct {
-    hir_block_t* h;
-    hir_block_t* t;
+    hir_block_t* h;     /* Current HIR head                        */
+    hir_block_t* t;     /* Current HIR tail                        */
+    void*        carry; /* Special carry field for any information */
 } hir_ctx_t;
 
 /*
@@ -78,8 +79,6 @@ Return `i64`:hash.
 */
 long HIR_hash_subject(hir_subject_t* s);
 
-hir_ctx_t* HIR_create_ctx();
-int HIR_destroy_ctx(hir_ctx_t* ctx);
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval);
 hir_subject_t* HIR_copy_subject(hir_subject_t* s);
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);

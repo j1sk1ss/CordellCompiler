@@ -7,7 +7,7 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("Can't create a base for the asm structure!");
+        print_error("Can't create a base for the '%s' structure!", ASM_COMMAND);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -23,13 +23,13 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
             ast_node_t* arg = cpl_parse_expression(it, ctx, smt);
             if (arg) AST_add_node(node, arg);
-            else { print_error("Error during the asm structure provided value parsing! asm(<stmt>)!"); }
+            else { print_error("Error during the '%s' structure provided value parsing! %s(<stmt>)!", ASM_COMMAND, ASM_COMMAND); }
         }
     }
 
     ast_node_t* body = AST_create_node(NULL);
     if (!body) {
-        print_error("Can't create a body for the asm structure!");
+        print_error("Can't create a body for the '%s' structure!", ASM_COMMAND);
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -46,7 +46,7 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
             int sid = STTB_add_info(CURRENT_TOKEN->body, STR_RAW_ASM, &smt->s);
             ast_node_t* arg = AST_create_node(CURRENT_TOKEN);
-            if (!arg) { print_error("Can't create a body for the asm string!"); }
+            if (!arg) { print_error("Can't create a body for the '%s' string!", ASM_COMMAND); }
             else {
                 arg->sinfo.v_id = sid;
                 AST_add_node(body, arg);
