@@ -19,6 +19,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_wrong_rtype, &walker);
     ASTWLK_register_visitor(TERM_NODE, ASTWLKR_deadcode, &walker);
     ASTWLK_register_visitor(EXPRESSION_NODE, ASTWLKR_implict_convertion, &walker);
+    ASTWLK_register_visitor(WHILE_NODE, ASTWLKR_inefficient_while, &walker);
 
     ASTWLK_walk(actx, &walker);
     ASTWLK_unload_ctx(&walker);

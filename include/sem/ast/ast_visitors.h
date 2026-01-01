@@ -251,4 +251,22 @@ Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_implict_convertion(AST_VISITOR_ARGS);
 
+/*
+This checker checks for inefficient while statements such as statements with a constant value.
+Example:
+```cpl
+while 1; {
+}
+```
+
+Such statements can be easily replaced with the 'loop' statement. It actually increases the final
+performance.
+
+Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+Return 1 if node is correct, otherwise this function will return 0.
+*/
+int ASTWLKR_inefficient_while(AST_VISITOR_ARGS);
+
 #endif

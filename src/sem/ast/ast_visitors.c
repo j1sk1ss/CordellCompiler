@@ -93,32 +93,42 @@ static int _restore_code(ast_node_t* nd, ast_node_t* underscore) {
         if (nd->c->siblings.n) _restore_code(nd->c->siblings.n, underscore);
         fprintf(stdout, ";");
     }
-    else if (nd->t->t_type == FUNC_TOKEN) {
-        fprintf(stdout, "function %s(", nd->c->t->body->body);
-        ast_node_t* p = nd->siblings.n->c;
-        for (; p->t && p->t->t_type != SCOPE_TOKEN; p = p->siblings.n) {
-            _restore_code(p, underscore);
-            if (p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) fprintf(stdout, ", ");
-        }
+    
+    switch (nd->t->t_type) {
+        case FUNC_TOKEN: {
+            fprintf(stdout, "function %s(", nd->c->t->body->body);
+            ast_node_t* p = nd->siblings.n->c;
+            for (; p->t && p->t->t_type != SCOPE_TOKEN; p = p->siblings.n) {
+                _restore_code(p, underscore);
+                if (p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) fprintf(stdout, ", ");
+            }
 
-        fprintf(stdout, ") ");
-        if (nd->c->c) fprintf(stdout, "=> %s ", _fmt_tkn_type(nd->c->c->t));
-        fprintf(stdout, "{ ... ");
-    }
-    else if (nd->t->t_type == CALL_TOKEN) {
-        fprintf(stdout, "%s(", nd->t->body->body);
-        ast_node_t* p = nd->c;
-        for (; p; p = p->siblings.n) {
-            _restore_code(p, underscore);
-            if (p->siblings.n) fprintf(stdout, ", ");
+            fprintf(stdout, ") ");
+            if (nd->c->c) fprintf(stdout, "=> %s ", _fmt_tkn_type(nd->c->c->t));
+            fprintf(stdout, "{ ... ");
+            break;
         }
+        case CALL_TOKEN: {
+            fprintf(stdout, "%s(", nd->t->body->body);
+            ast_node_t* p = nd->c;
+            for (; p; p = p->siblings.n) {
+                _restore_code(p, underscore);
+                if (p->siblings.n) fprintf(stdout, ", ");
+            }
 
-        fprintf(stdout, ");");
-    }
-    else if (nd->t->t_type == RETURN_TOKEN) {
-        fprintf(stdout, "return ");
-        if (nd->c) _restore_code(nd->c, underscore);
-        fprintf(stdout, ";");
+            fprintf(stdout, ");");
+            break;
+        }
+        case WHILE_TOKEN: fprintf(stdout, "while "); goto _default_;
+        case IF_TOKEN:    fprintf(stdout, "if ");    goto _default_;
+        case RETURN_TOKEN: {
+            fprintf(stdout, "return ");
+_default_: {}
+            if (nd->c) _restore_code(nd->c, underscore);
+            fprintf(stdout, ";");
+            break;
+        }
+        default: break;
     }
 
     if (
@@ -649,6 +659,18 @@ int ASTWLKR_implict_convertion(AST_VISITOR_ARGS) {
     if (!rarg) return 1;
     if (!_check_assign_types("Implict convertion detected", larg, rarg)) {
         REBUILD_CODE(nd, rarg);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_inefficient_while(AST_VISITOR_ARGS) {
+    ast_node_t* cond = nd->c;
+    if (!cond || cond->t->t_type != UNKNOWN_NUMERIC_TOKEN) return 0;
+    if (cond->t->body->to_llong(cond->t->body)) {
+        SEMANTIC_INFO(" [line=%i] Consider a usage of the 'loop' statement!", nd->t->lnum);
+        REBUILD_CODE(nd, cond);
         return 0;
     }
 

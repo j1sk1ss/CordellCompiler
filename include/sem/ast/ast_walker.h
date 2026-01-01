@@ -16,8 +16,9 @@ typedef enum {
     START_NODE       = 1 << 5,
     DEF_ARRAY_NODE   = 1 << 6,
     IF_NODE          = 1 << 7,
-    TERM_NODE        = 1 << 8,
-    UNKNOWN_NODE     = 1 << 9,
+    WHILE_NODE       = 1 << 8,
+    TERM_NODE        = 1 << 9,
+    UNKNOWN_NODE     = 1 << 10,
 } ast_node_type_t;
 
 typedef struct {
