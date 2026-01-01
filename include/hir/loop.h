@@ -19,10 +19,61 @@ typedef struct {
     list_t loops;
 } ltree_ctx_t;
 
-int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt);
-int HIR_LTREE_canonicalization(cfg_ctx_t* cctx);
+/*
+[Analyzation] Basic search function for cycles in the provided CFG.
+Note: Will change the cfg_block_t's type to CFG_LOOP_HEADER or CFG_LOOP_LATCH.
+Note 2: This function will produce a loop tree.
+Params:
+    - `cctx` - CFG context.
+
+Returns 1 if success, otherwise 0.
+*/
 int HIR_LOOP_mark_loops(cfg_ctx_t* cctx);
+
+/*
+[Transformation] This function will search for loops, then trasform them to canonical form.
+Note: Canonical form implies pre-header existance. See REAME for additional info.
+Params:
+    - `cctx` - CFG context.
+
+Returns 1 if success, otherwise 0.
+*/
+int HIR_LTREE_canonicalization(cfg_ctx_t* cctx);
+
+/*
+[Transformation] Perform LICM optimization on the canonicolized loops.
+The idea is simple:
+    - We have commands that aren't use any loop-depend info
+    - These commands are pretty annoying
+    - Why we wouldn't move them from a loop?
+This function marks all invariant commands (mentioned not 'loop-dependend' command).
+We move these command to a new created 'preheader' block.
+Params:
+    - `cctx` - CFG context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds.
+*/
+int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt);
+
+/*
+[Analyzation] Build the loop tree. Loop tree represents loops and
+nested loops.
+Params:
+    - `fb` - Current CFG function.
+    - `ctx` - Loop tree context.
+
+Returns 1 if context builded.
+*/
 int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx);
+
+/*
+Unload the loop context.
+Params:
+    - `ctx` - Loop context.
+
+Returns 1 if succeeds.
+*/
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx);
 
 #endif

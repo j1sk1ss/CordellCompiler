@@ -3,6 +3,7 @@
 
 #include <std/mm.h>
 #include <std/str.h>
+#include <std/mem.h>
 #include <std/map.h>
 #include <std/list.h>
 #include <std/stack.h>
@@ -22,9 +23,8 @@ typedef struct {
     lir_registers_t reg;
 } lir_register_t;
 
-#define LIR_VAL_MSIZE 128
 typedef struct {
-    char value[LIR_VAL_MSIZE];
+    string_t* value;
 } lir_number_t;
 
 typedef struct {
@@ -71,14 +71,14 @@ typedef struct {
     int           lid;
     lir_block_t*  h;
     lir_block_t*  t;
-    scope_stack_t heap;
+    // sstack_t heap;
     stack_map_t   stk;
     map_t*        vars;
 } lir_ctx_t;
 
 lir_ctx_t* LIR_create_ctx();
 lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta);
-lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, const char* strval, long intval, int size);
+lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_t* strval, long intval, int size);
 int LIR_unlink_block(lir_block_t* block);
 int LIR_insert_block_after(lir_block_t* block, lir_block_t* pos);
 int LIR_insert_block_before(lir_block_t* block, lir_block_t* pos);
@@ -90,7 +90,7 @@ int LIR_destroy_ctx(lir_ctx_t* ctx);
 
 #define LIR_SUBJ_REG(reg, sz) LIR_create_subject(LIR_REGISTER, reg, -1, 0, NULL, 0, sz)
 #define LIR_SUBJ_CONST(val)   LIR_create_subject(LIR_CONSTVAL, -1, -1, 0, NULL, val, 0)
-#define LIR_SUBJ_NUMBER(val)  LIR_create_subject(LIR_NUMBER, -1, -1, 0, val, 0, 0)
+#define LIR_SUBJ_NUMBER(val)  LIR_create_subject(LIR_NUMBER, -1, -1, 0, val, 0, 8)
 #define LIR_SUBJ_VAR(id, sz)  LIR_create_subject(LIR_VARIABLE, -1, id, -1, NULL, 0, sz)
 #define LIR_SUBJ_GLVAR(id)    LIR_create_subject(LIR_GLVARIABLE, -1, id, 0, NULL, 0, 0)
 #define LIR_SUBJ_OFF(off, sz) LIR_create_subject(LIR_MEMORY, -1, -1, off, NULL, 0, sz)

@@ -1,0 +1,141 @@
+; ==================
+; MOV patterns
+; ==================
+
+mov obj_1, obj_2 [if:equals]          ; Redundant move between two equals objects
+->
+delete
+/
+
+mov areg_1, const 0                   ; 'xor' according to documentation is
+->                                    ; faster than 'mov'
+xor areg_1, areg_1
+/
+
+mov areg_1, obj_2                     ; Redundant move operation
+mov obj_2, areg_1                     ; areg_2 already has areg_1 value
+->
+mov areg_1, areg_2
+/
+
+; ==================
+; MUL patterns
+; ==================
+
+mul obj, const 0                      ; X * 0 = 0
+->                                    ; Note: xor isn't suited in this case
+mov obj, const 0                      ; due to possibility of non-register in obj variable
+/
+
+mul obj, const 1                      ; X * 1 = X
+->
+delete
+/
+
+mul areg_1, aconst_2 [if:arg2:power2]
+->
+shl areg_1, aconst_2 [do:arg2:log2]
+/
+
+mul areg_1, const -1
+->
+neg areg_1
+/
+
+; ==================
+; ADD patterns
+; ==================
+
+add obj, const 0                      ; X + 0 = X
+->
+delete
+/
+
+add areg_1, aconst_2 [if:arg2:power2] ; X + 1024 == X >> 10
+->
+shr areg_1, aconst_2 [do:arg2:log2]
+/
+
+add areg, const 1
+->
+inc areg
+/
+
+add areg_1, areg_2 [if:equals]
+->
+shl areg_1, const 1
+/
+
+; ==================
+; SUB patterns
+; ==================
+
+sub obj, const 0                      ; X - 0 = X
+->
+delete
+/
+
+sub areg, const 1
+->
+dec areg
+/
+
+sub areg_1, areg_1
+->
+xor areg_1, areg_1
+/
+
+; ==================
+; CMP patterns
+; ==================
+
+cmp areg_1, const 0
+->
+test areg_1, areg_1
+/
+
+; ==================
+; Logic patterns
+; ==================
+
+and areg_1, const 0
+->
+xor areg_1, areg_1
+/
+
+or areg_1, const 0
+->
+delete
+/
+
+not areg_1
+not areg_1
+->
+delete
+/
+
+; ==================
+; Cleanup patterns
+; ==================
+; Cleaning patterns without any complex logic.
+; Main goal is elemination of all invalid patters.
+
+mov aconst_1, obj
+->
+delete
+/
+
+mul aconst_1, obj
+->
+delete
+/
+
+add aconst_1, obj
+->
+delete
+/
+
+sub aconst_1, obj
+->
+delete
+/

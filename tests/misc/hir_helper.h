@@ -6,6 +6,7 @@
 #include <hir/func.h>
 #include <hir/loop.h>
 #include <hir/hir_types.h>
+#include "ast_helper.h"
 
 static const char* hir_op_to_string(hir_operation_t op) {
     switch(op) {
@@ -221,17 +222,17 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
     }
     else {
         switch (s->t) {
-            case HIR_F64NUMBER:  dst += sprintf(dst, "f64n: %s", s->storage.num.value); break;
-            case HIR_I64NUMBER:  dst += sprintf(dst, "i64n: %s", s->storage.num.value); break;
-            case HIR_U64NUMBER:  dst += sprintf(dst, "u64n: %s", s->storage.num.value); break;
-            case HIR_F32NUMBER:  dst += sprintf(dst, "f32n: %s", s->storage.num.value); break;
-            case HIR_I32NUMBER:  dst += sprintf(dst, "i32n: %s", s->storage.num.value); break;
-            case HIR_U32NUMBER:  dst += sprintf(dst, "u32n: %s", s->storage.num.value); break;
-            case HIR_I16NUMBER:  dst += sprintf(dst, "i16n: %s", s->storage.num.value); break;
-            case HIR_U16NUMBER:  dst += sprintf(dst, "u16n: %s", s->storage.num.value); break;  
-            case HIR_I8NUMBER:   dst += sprintf(dst, "i8n: %s", s->storage.num.value);  break;
-            case HIR_U8NUMBER:   dst += sprintf(dst, "u8n: %s", s->storage.num.value);  break;
-            case HIR_NUMBER:     dst += sprintf(dst, "num?: %s", s->storage.num.value); break;
+            case HIR_F64NUMBER:  dst += sprintf(dst, "f64n: %s", s->storage.num.value->body); break;
+            case HIR_I64NUMBER:  dst += sprintf(dst, "i64n: %s", s->storage.num.value->body); break;
+            case HIR_U64NUMBER:  dst += sprintf(dst, "u64n: %s", s->storage.num.value->body); break;
+            case HIR_F32NUMBER:  dst += sprintf(dst, "f32n: %s", s->storage.num.value->body); break;
+            case HIR_I32NUMBER:  dst += sprintf(dst, "i32n: %s", s->storage.num.value->body); break;
+            case HIR_U32NUMBER:  dst += sprintf(dst, "u32n: %s", s->storage.num.value->body); break;
+            case HIR_I16NUMBER:  dst += sprintf(dst, "i16n: %s", s->storage.num.value->body); break;
+            case HIR_U16NUMBER:  dst += sprintf(dst, "u16n: %s", s->storage.num.value->body); break;  
+            case HIR_I8NUMBER:   dst += sprintf(dst, "i8n: %s", s->storage.num.value->body);  break;
+            case HIR_U8NUMBER:   dst += sprintf(dst, "u8n: %s", s->storage.num.value->body);  break;
+            case HIR_NUMBER:     dst += sprintf(dst, "num?: %s", s->storage.num.value->body); break;
 
             case HIR_F64CONSTVAL: dst += sprintf(dst, "f64c: %ld", s->storage.cnst.value);   break;
             case HIR_I64CONSTVAL: dst += sprintf(dst, "i64c: %ld", s->storage.cnst.value);   break;
@@ -250,7 +251,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_STRING: {
                 str_info_t si;
                 if (STTB_get_info_id(s->storage.str.s_id, &si, &smt->s)) {
-                    dst += sprintf(dst, "%s", si.value);
+                    dst += sprintf(dst, "%s", si.value->body);
                 }
 
                 break;
@@ -259,22 +260,22 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_FNAME: {
                 func_info_t fi;
                 if (FNTB_get_info_id(s->storage.str.s_id, &fi, &smt->f)) {
-                    dst += sprintf(dst, "%s(", fi.name);
+                    dst += sprintf(dst, "%s(", fi.name->body);
                 }
 
                 if (fi.args) {
-                    for (ast_node_t* t = fi.args->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
+                    for (ast_node_t* t = fi.args->c; t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
                         ast_node_t* type = t;
-                        ast_node_t* name = t->child;
-                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->token), name->token->value);
-                        if (t->sibling && t->sibling->token->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
+                        ast_node_t* name = t->c;
+                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->t), name->t->body->body);
+                        if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
                     }
                 }
 
                 dst += sprintf(dst, ")");
 
                 if (fi.rtype) {
-                    dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->token));
+                    dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->t));
                 }
 
                 break;
@@ -282,11 +283,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
 
             case HIR_PHISET: {
                 dst += sprintf(dst, "set: ");
-
-                set_iter_t it;
-                set_iter_init(&s->storage.set.h, &it);
-                int_tuple_t* tpl;
-                while (set_iter_next(&it, (void**)&tpl)) {
+                set_foreach (int_tuple_t* tpl, &s->storage.set.h) {
                     variable_info_t pvi;
                     if (VRTB_get_info_id(tpl->y, &pvi, &smt->v)) {
                         dst += sprintf(dst, "[%%%li, bb%li]", pvi.v_id, tpl->x);
@@ -405,10 +402,7 @@ void _dump_all_dom_dot(cfg_func_t* func) {
 
     list_iter_hinit(&func->blocks, &bit);
     while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-        set_iter_t it;
-        set_iter_init(&cb->dom, &it);
-        cfg_block_t* d;
-        while (set_iter_next(&it, (void**)&d)) {
+        set_foreach (cfg_block_t* d, &cb->dom) {
             if (d == cb) continue;
             printf("  B%li -> B%li;\n", d->id, cb->id);
         }
@@ -418,12 +412,9 @@ void _dump_all_dom_dot(cfg_func_t* func) {
 }
 
 static void _print_set_int(FILE* out, set_t* s) {
-    set_iter_t it;
-    set_iter_init(s, &it);
-    long v;
     int first = 1;
     fprintf(out, "{");
-    while (set_iter_next(&it, (void**)&v)) {
+    set_foreach (long v, s) {
         if (!first) fprintf(out, ",");
         fprintf(out, "%ld", v);
         first = 0;
@@ -437,23 +428,13 @@ static int _export_dot_func_hir(cfg_func_t* f) {
     printf("  node [shape=box, fontname=\"monospace\"];\n");
 
     int ishead = 1;
-
-    list_iter_t bit;
-    list_iter_hinit(&f->blocks, &bit);
-    cfg_block_t* cb;
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach (cfg_block_t* cb, &f->blocks) {
         printf("  B%ld [label=\"B%ld:\\nentry=%s%li\\nexit=%s%s",
                cb->id, cb->id,
                cb->hmap.entry ? hir_op_to_string(cb->hmap.entry->op) : "NULL", 
                cb->hmap.entry && cb->hmap.entry->op == HIR_MKLB ? cb->hmap.entry->farg->id : -1,
                cb->hmap.exit  ? hir_op_to_string(cb->hmap.exit->op)  : "NULL",
                ishead ? "\\nHEAD" : "");
-
-        // hir_block_t* hh = cb->hmap.entry;
-        // while (hh) {
-        //     if (hh == cb->hmap.exit) break;
-        //     hh = hh->next;
-        // }
 
         ishead = 0;
         printf("\\nIN=");  _print_set_int(stdout, &cb->curr_in);
@@ -474,11 +455,7 @@ static int _export_dot_func_hir(cfg_func_t* f) {
 
 void cfg_print(cfg_ctx_t* ctx) {
     printf("==== CFG DUMP ====\n");
-
-    list_iter_t fit;
-    list_iter_hinit(&ctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach (cfg_func_t* fb, &ctx->funcs) {
         printf("==== CFG DOT (HIR) ====\n");
         _export_dot_func_hir(fb);
         printf("==== DOM DOT ====\n");
@@ -500,14 +477,8 @@ void call_graph_print_dot(call_graph_t* cg) {
     printf("  rankdir=LR;\n");
     printf("  node [shape=ellipse, fontname=\"monospace\"];\n");
 
-    map_iter_t it;
-    map_iter_init(&cg->verts, &it);
-    call_graph_node_t* node;
-    while (map_iter_next(&it, (void**)&node)) {
-        set_iter_t sit;
-        set_iter_init(&node->edges, &sit);
-        call_graph_node_t* callee;
-        while (set_iter_next(&sit, (void**)&callee)) {
+    map_foreach (call_graph_node_t* node, &cg->verts) {
+        set_foreach (call_graph_node_t* callee, &node->edges) {
             printf("  F%ld -> F%ld;\n", node->fid, callee->fid);
         }
     }

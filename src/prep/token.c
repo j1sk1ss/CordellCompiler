@@ -4,15 +4,15 @@ typedef enum {
     CHAR_ALPHA,
     CHAR_DIGIT,
     CHAR_QUOTE,
-    CHAR_SING_QUOTE,
-    CHAR_BRACKET,
     CHAR_OTHER,
     CHAR_SPACE,
-    CHAR_DELIMITER,
     CHAR_COMMA,
+    CHAR_BRACKET,
     CHAR_COMMENT,
     CHAR_NEWLINE,
-    CHAR_BACKSLASH
+    CHAR_DELIMITER,
+    CHAR_BACKSLASH,
+    CHAR_SING_QUOTE
 } char_type_t;
 
 static char_type_t _get_char_type(unsigned char ch) {
@@ -20,22 +20,18 @@ static char_type_t _get_char_type(unsigned char ch) {
     else if (str_isdigit(ch))     return CHAR_DIGIT;
     
     switch (ch) {
-        case '\\': return CHAR_BACKSLASH;
-        case '"':  return CHAR_QUOTE;
-        case '\'': return CHAR_SING_QUOTE;
         case '\n': return CHAR_NEWLINE;
-        case ' ':
-        case '\t': return CHAR_SPACE;
-        case ';':  return CHAR_DELIMITER;
+        case '\\': return CHAR_BACKSLASH;
+        case '\'': return CHAR_SING_QUOTE;
         case ',':  return CHAR_COMMA;
+        case '"':  return CHAR_QUOTE;
         case ':':  return CHAR_COMMENT;
-        case '(':
-        case '[':
-        case '{':
-        case ')':
-        case ']':
-        case '}':  return CHAR_BRACKET;
-        default: return CHAR_OTHER;
+        case ';':  return CHAR_DELIMITER;
+        case ' ':  case '\t': return CHAR_SPACE;
+        case '(':  case '[':
+        case '{':  case ')':
+        case ']':  case '}':  return CHAR_BRACKET;
+        default:   return CHAR_OTHER;
     }
 }
 
@@ -51,20 +47,47 @@ typedef struct {
     token_type_t ttype;
 } tkn_ctx_t;
 
-token_t* TKN_create_token(token_type_t type, const char* value, size_t len, int line) {
-    if (len > TOKEN_MAX_SIZE) return NULL;
+token_t* TKN_copy_token(token_t* src) {
+    token_t* tkn = mm_malloc(sizeof(token_t));
+    if (!tkn) return NULL;
+    str_memcpy(tkn, src, sizeof(token_t));
+    tkn->body = src->body->copy(src->body);
+    if (!tkn->body) {
+        mm_free(tkn);
+        return NULL;
+    }
+
+    return tkn;
+}
+
+token_t* TKN_create_token(token_type_t type, const char* value, int line) {
     token_t* tkn = mm_malloc(sizeof(token_t));
     if (!tkn) return NULL;
     str_memset(tkn, 0, sizeof(token_t));
 
-    tkn->t_type = type;
-    if (type == UNKNOWN_NUMERIC_TOKEN) write_value(value, len, tkn->value, TOKEN_MAX_SIZE);
-    else if (type == CHAR_VALUE_TOKEN) {
-        snprintf(tkn->value, TOKEN_MAX_SIZE, "%i", value[0]);
-        tkn->t_type = UNKNOWN_NUMERIC_TOKEN;
+    string_t* input = create_string((char*)value);
+    if (!input) {
+        mm_free(tkn);
+        return NULL;
     }
-    else {
-        str_strncpy(tkn->value, value, len);
+
+    tkn->t_type = type;
+    switch (type) {
+        case UNKNOWN_NUMERIC_TOKEN: {
+            tkn->body = input->from_number(input);
+            destroy_string(input);
+            break;
+        }
+        case CHAR_VALUE_TOKEN: {
+            tkn->body = create_string_from_char(input->body[0]);
+            tkn->t_type = UNKNOWN_NUMERIC_TOKEN;
+            destroy_string(input);
+            break;
+        }
+        default: {
+            tkn->body = input;
+            break;
+        }
     }
     
     tkn->lnum = line;
@@ -86,8 +109,8 @@ static inline int _permitted_character(char* p) {
 
 int TKN_tokenize(int fd, list_t* tkn) {
     tkn_ctx_t curr_ctx = { .ttype = LINE_BREAK_TOKEN };
-    char buffer[BUFFER_SIZE]       = { 0 };
-    char token_buf[TOKEN_MAX_SIZE] = { 0 };
+    char buffer[BUFFER_SIZE]    = { 0 };
+    char token_buf[BUFFER_SIZE] = { 0 };
 
     int file_offset = 0;
     ssize_t bytes_read = 0;
@@ -96,7 +119,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
         for (ssize_t i = 0; i < bytes_read; ++i) {
             if (i + 1 < bytes_read && _permitted_character(buffer + i)) {
                 print_error("Permitted symbol detected! %.2s", buffer + i);
-                list_free_force(tkn);
+                list_free_force_op(tkn, (int (*)(void*))TKN_unload_token);
                 return 0;
             }
 
@@ -112,10 +135,10 @@ int TKN_tokenize(int fd, list_t* tkn) {
 
             if (curr_ctx.is_spec) {
                 switch (ch) {
-                    case '0':  ch = 0;    break;
-                    case 'n':  ch = 10;   break;
-                    case 't':  ch = 9;    break;
-                    case 'r':  ch = 13;   break;
+                    case '0':  ch = '\0'; break;
+                    case 'n':  ch = '\n'; break;
+                    case 't':  ch = '\t'; break;
+                    case 'r':  ch = '\r'; break;
                     case '\\': ch = '\\'; break;
                     case '\'': ch = '\''; break;
                     case '\"': ch = '\"'; break;
@@ -138,8 +161,8 @@ int TKN_tokenize(int fd, list_t* tkn) {
 
             /* Determine character type */
             token_type_t char_type;
-            if (curr_ctx.squt)                 char_type = CHAR_VALUE_TOKEN;
-            else if (curr_ctx.mqut)            char_type = STRING_VALUE_TOKEN;
+            if (curr_ctx.squt)           char_type = CHAR_VALUE_TOKEN;
+            else if (curr_ctx.mqut)      char_type = STRING_VALUE_TOKEN;
             else {
                 switch (ct) {
                     case CHAR_ALPHA:     char_type = UNKNOWN_STRING_TOKEN;  break;
@@ -172,15 +195,15 @@ int TKN_tokenize(int fd, list_t* tkn) {
                 (
                     char_type == LINE_BREAK_TOKEN ||
                     char_type == UNKNOWN_BRACKET_VALUE ||
-                    curr_ctx.token_len + 1 > TOKEN_MAX_SIZE ||
                     curr_ctx.ttype != char_type
                 )
             ) {
-                token_t* nt = TKN_create_token(curr_ctx.ttype, token_buf, curr_ctx.token_len, curr_ctx.line);
+                token_buf[curr_ctx.token_len] = '\0';
+                token_t* nt = TKN_create_token(curr_ctx.ttype, token_buf, curr_ctx.line);
                 if (!nt || !list_add(tkn, nt)) {
                     print_error("Can't add token! tt=%i, tb=[%s], tl=%i", curr_ctx.ttype, token_buf, curr_ctx.token_len);
-                    mm_free(nt);
-                    list_free_force(tkn);
+                    TKN_unload_token(nt);
+                    list_free_force_op(tkn, (int (*)(void*))TKN_unload_token);
                     return 0;
                 }
 
@@ -201,4 +224,21 @@ int TKN_tokenize(int fd, list_t* tkn) {
     }
     
     return 1;
+}
+
+unsigned long TKN_hash_token(token_t* t) {
+    int saved_line = t->lnum;
+    t->lnum = 0;
+
+    unsigned long hash = crc64((const unsigned char*)t, sizeof(token_t), 0);
+    hash ^= crc64((const unsigned char*)t->body->body, t->body->size, 0);
+    t->lnum = saved_line;
+
+    return hash;
+}
+
+int TKN_unload_token(token_t* t) {
+    if (!t) return 0;
+    destroy_string(t->body);
+    return mm_free(t);
 }

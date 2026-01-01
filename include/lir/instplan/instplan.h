@@ -6,6 +6,7 @@
 #include <std/list.h>
 #include <hir/cfg.h>
 #include <lir/lir.h>
+#include <lir/lirgen.h>
 #include <lir/instplan/targinfo.h>
 
 typedef struct {

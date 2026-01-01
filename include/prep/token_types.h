@@ -1,6 +1,8 @@
 #ifndef TOKEN_TYPES_H_
 #define TOKEN_TYPES_H_
 
+#include <std/str.h>
+
 typedef enum {
     // Unknowns
     UNKNOWN_CHAR_TOKEN,
@@ -77,6 +79,8 @@ typedef enum {
     CASE_TOKEN,          // case
     DEFAULT_TOKEN,       // default
     WHILE_TOKEN,         // while
+    LOOP_TOKEN,          // loop
+    BREAK_TOKEN,         // break
     IF_TOKEN,            // if
     ELSE_TOKEN,          // else
     
@@ -138,11 +142,10 @@ typedef struct {
     char heap; /* Is heap allocated   */
 } token_flags_t;
 
-#define TOKEN_MAX_SIZE 128
 typedef struct {
     token_flags_t flags;
     token_type_t  t_type;
-    char          value[TOKEN_MAX_SIZE];
+    string_t*     body;
     int           lnum; /* Line in source file */
 } token_t;
 

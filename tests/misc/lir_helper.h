@@ -63,7 +63,11 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_TU16:       return "%s = %s as u16;\n";
         case LIR_TU8:        return "%s = %s as u8;\n";
 
+        case LIR_NEG:
         case LIR_NOT:        return "%s = !%s;\n";
+
+        case LIR_INC:        return "%s++;\n";
+        case LIR_DEC:        return "%s--;\n";
 
         case LIR_CMP:        return "cmp %s, %s;\n";
         case LIR_SETE:       return "sete %s;\n";
@@ -113,7 +117,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
 
 static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) {
     if (!s) return dst;
-    // dst += sprintf(dst, "t=%i ", s->t); 
+    // dst += sprintf(dst, "addr=%p ", s); 
     switch (s->t) {
         case LIR_MEMORY: {
             long off = s->storage.var.offset;
@@ -125,22 +129,22 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
         case LIR_GLVARIABLE: {
             variable_info_t vi;
             if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
-                dst += sprintf(dst, "%%%s", vi.name);
+                dst += sprintf(dst, "%%%s", vi.name->body);
             }
 
             break;
         }
 
-        case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);     break;
-        case LIR_NUMBER:   dst += sprintf(dst, "num: %s", s->storage.num.value);  break;
-        case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value);     break;
+        case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);       break;
+        case LIR_NUMBER:   dst += sprintf(dst, "$%s", s->storage.num.value->body);  break;
+        case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value);       break;
+        case LIR_LABEL:    dst += sprintf(dst, "lb%ld", s->storage.lb.lb_id);       break;
 
-        case LIR_LABEL: dst += sprintf(dst, "lb%d", s->storage.lb.lb_id); break;
         case LIR_RAWASM:
         case LIR_STRING: {
             str_info_t si;
             if (STTB_get_info_id(s->storage.str.sid, &si, &smt->s)) {
-                dst += sprintf(dst, "str(%s)", si.value);
+                dst += sprintf(dst, "str(%s)", si.value->body);
             }
 
             break;
@@ -149,21 +153,21 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
         case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(s->storage.str.sid, &fi, &smt->f)) {
-                dst += sprintf(dst, "%s(", fi.name);
+                dst += sprintf(dst, "%s(", fi.name->body);
             }
 
             if (fi.args) {
-                for (ast_node_t* t = fi.args->child; t && t->token->t_type != SCOPE_TOKEN; t = t->sibling) {
+                for (ast_node_t* t = fi.args->c; t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
                     ast_node_t* type = t;
-                    ast_node_t* name = t->child;
-                    dst += sprintf(dst, "%s %s", fmt_tkn_type(type->token), name->token->value);
-                    if (t->sibling && t->sibling->token->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
+                    ast_node_t* name = t->c;
+                    dst += sprintf(dst, "%s %s", fmt_tkn_type(type->t), name->t->body->body);
+                    if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
                 }
             }
 
             dst += sprintf(dst, ")");
             if (fi.rtype) {
-                dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->token));
+                dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->t));
             }
 
             break;

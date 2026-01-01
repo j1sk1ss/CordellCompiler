@@ -87,6 +87,9 @@ typedef enum {
         LIR_MOVSXD,
 
         LIR_NOT,
+        LIR_NEG,
+        LIR_INC,
+        LIR_DEC,
 
         LIR_fMOV,  // float move
         LIR_fMVf,  // float to float move

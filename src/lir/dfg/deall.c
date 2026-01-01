@@ -1,8 +1,76 @@
-/* deall.c - Create deallocation points in HIR
-*/
-
+/* deall.c - Create deallocation points in HIR */
 #include <lir/dfg.h>
 
+/*
+Perform the high-level scope-based deallocation.
+The main idea here is collection and deallocation of all variables out of their scope.
+Let's consider the next example:
+```cpl
+ptr i32 p;
+{
+    i32 a;
+    p = ref a;
+: dealloc(a); :
+}
+dref p = 0; : <= Pointer to 'freed' location :
+```
+
+Params:
+    - `fb` - Current function CFG part.
+    - `smt` - Symtable.
+
+Returns 1 if succeed. Otherwise will return 0.
+*/
+static int _scope_pass(cfg_func_t* fb, sym_table_t* smt) {
+    sstack_t scopes;
+    stack_init(&scopes);
+
+    lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
+    while (lh) {
+        switch (lh->op) {
+            case LIR_MKSCOPE: {
+                list_t* scope_defs = (list_t*)mm_malloc(sizeof(list_t));
+                list_init(scope_defs);
+                stack_push(&scopes, (void*)scope_defs);
+                break;
+            }
+            case LIR_ENDSCOPE: {
+                list_t* scope_defs;
+                if (!stack_pop(&scopes, (void**)&scope_defs)) break;
+                foreach (long vid, scope_defs) {
+                    LIR_insert_block_before(LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(vid), NULL, NULL), lh);
+                }
+
+                list_free(scope_defs);
+                mm_free(scope_defs);
+                break;
+            }
+            default: {
+                list_t* scope_defs;
+                if (!stack_top(&scopes, (void**)&scope_defs)) break;
+                if (LIR_writeop(lh->op) && lh->farg->t == LIR_VARIABLE) {
+                    list_add(scope_defs, (void*)lh->farg->storage.var.v_id);
+                }
+
+                break;
+            }
+        }
+
+        lh = LIR_get_next(lh, fb->lmap.exit, 1);
+    }
+
+    stack_free(&scopes);
+    return 1;
+}
+
+/*
+Check if the provided variable is already deallocated.
+Params:
+    - `id` - Variable ID.
+    - `bb` - Current Basic Block.
+
+Returns 1 if succeed. Otherwise will return 0.
+*/
 static int _already_deallocated(long id, cfg_block_t* bb) {
     lir_block_t* lh = bb->lmap.exit;
     while (lh) {
@@ -14,31 +82,29 @@ static int _already_deallocated(long id, cfg_block_t* bb) {
     return 0;
 }
 
-int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+/*
+Deallocate variables / arrays / strings based on the USE, DEF, OUT and IN sets.
+Params:
+    - `cctx` - CFG context.
+    - `smt` - Symtable.
+
+Returns 1 if succeed. Otherwise will return 0.
+*/
+static int _use_def_pass(cfg_ctx_t* cctx, sym_table_t* smt) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        _scope_pass(fb, smt);
+        foreach (cfg_block_t* cb, &fb->blocks) {
             set_t appeared;
             set_union(&appeared, &cb->curr_in, &cb->def);
 
-            set_iter_t init;
-            set_iter_init(&appeared, &init);
-            long vid;
-            while (set_iter_next(&init, (void**)&vid)) {
+            set_foreach (long vid, &appeared) {
                 if (set_has(&cb->curr_out, (void*)vid)) continue;
 
                 set_t owners;
                 int hasown = 0;
                 if (ALLIAS_get_owners(vid, &owners, &smt->m)) {
-                    set_iter_t ownersit;
-                    set_iter_init(&owners, &ownersit);
-                    while (set_iter_next(&ownersit, (void**)&vid)) {
-                        if (set_has(&cb->curr_out, (void*)vid)) {
+                    set_foreach (long svid, &owners) {
+                        if (set_has(&cb->curr_out, (void*)svid)) {
                             hasown = 1;
                             break;
                         }
@@ -51,10 +117,7 @@ int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                     LIR_insert_block_before(LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(vid), NULL, NULL), cb->lmap.exit);
                 }
 
-                map_iter_t mit;
-                map_iter_init(&smt->m.allias, &mit);
-                allias_t* al;
-                while (map_iter_next(&mit, (void**)&al)) {
+                map_foreach (allias_t* al, &smt->m.allias) {
                     if (!set_has(&al->owners, (void*)vid)) continue;
                     if (ALLIAS_mark_owner(al->v_id, vid, &smt->m)) {
                         if (!_already_deallocated(al->v_id, cb)) {
@@ -62,7 +125,7 @@ int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
 
                         set_free_force(&al->delown);
-                        set_init(&al->delown);
+                        set_init(&al->delown, SET_NO_CMP);
                     }
 
                     break;
@@ -74,4 +137,8 @@ int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
     }
 
     return 1;
+}
+
+int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
+    return _use_def_pass(cctx, smt);
 }

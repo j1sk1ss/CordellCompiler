@@ -12,4 +12,5 @@
 * [Functions and inbuilt macros](#functions-and-inbuilt-macros)
 * [Ownership rules](#ownership-rules)
 * [Debugging](#debugging)
+* [Static analysis](#static-analysis)
 * [Examples](#examples)

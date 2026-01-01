@@ -6,5 +6,7 @@
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
 double mth_pow(double base, int exp);
+long mth_log2(long x);
+long mth_sqrt(long x);
 
 #endif

@@ -12,3 +12,4 @@ package-lock.json
 *.bin
 tests/bin
 docs/gifs/
+__pycache__

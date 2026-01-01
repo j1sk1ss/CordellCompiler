@@ -14,25 +14,15 @@ static int _apply_constfold_on_subject(lir_subject_t* s, sym_table_t* smt) {
 }
 
 int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* bb;
-        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
-            lir_block_t* lh = bb->lmap.entry;
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
                 lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
                 for (int i = 0; i < 3; i++) {
                     if (!args[i]) continue;
                     if (args[i]->t == LIR_ARGLIST) {
-                        list_iter_t it;
-                        list_iter_hinit(&args[i]->storage.list.h, &it);
-                        lir_subject_t* s;
-                        while ((s = (lir_subject_t*)list_iter_next(&it))) {
+                        foreach (lir_subject_t* s, &args[i]->storage.list.h) {
                             _apply_constfold_on_subject(s, smt);
                         }
 
@@ -42,8 +32,7 @@ int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
                     _apply_constfold_on_subject(args[i], smt);
                 }
 
-                if (lh == bb->lmap.exit) break;
-                lh = lh->next;
+                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
     }

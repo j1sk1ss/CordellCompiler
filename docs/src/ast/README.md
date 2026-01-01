@@ -65,47 +65,37 @@ The markup stage is the second part of tokenization, but it is separated from th
 Similar to the tokenization part, the markuper is simple to implement in high-level programming languages. In C, however, it’s better to use special structures such as `list_t` ([source code](https://github.com/j1sk1ss/CordellCompiler/blob/HIR_LIR_SSA/std/list.c)) to simplify the process. Below is a snippet from the source code. The full code can be found in the [same](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/src/prep) place as the tokenizer’s code.
 
 ```C
-while ((curr = (token_t*)list_iter_next(&it))) {
-   if (curr->t_type == OPEN_BLOCK_TOKEN)       scope_push(&scope_stack, ++s_id, 0);
-   else if (curr->t_type == CLOSE_BLOCK_TOKEN) scope_pop(&scope_stack);
-
-   if (curr->t_type == NEGATIVE_TOKEN) {
-      neg = 1;
-      goto _s_remove_token;
-   }
-   if (curr->t_type == DREF_TYPE_TOKEN) {
-      dref = 1;
-      goto _s_remove_token;
-   }
-   else if (curr->t_type == REF_TYPE_TOKEN) {
-      ref = 1;
-_s_remove_token:
-      list_remove(tkn, curr);
-      mm_free(curr);
-      continue;
-   }
-
-   if (curr->t_type == UNKNOWN_STRING_TOKEN || curr->t_type == UNKNOWN_CHAR_TOKEN) {
-      for (int s = scope_stack.top; s >= 0; s--) {
-            int curr_s = scope_stack.data[s].id;
-            for (int i = 0; i < var_count; i++) {
-               if (
-                  !str_strncmp(curr->value, vars[i].name, TOKEN_MAX_SIZE) &&
-                  vars[i].scope == curr_s
-               ) {
-                  curr->t_type     = vars[i].type;
-                  curr->flags.ext  = vars[i].ext;
-                  curr->flags.ro   = vars[i].ro;
-                  curr->flags.glob = vars[i].glob;
-                  curr->flags.ptr  = vars[i].ptr;
-                  curr->flags.ref  = ref;
-                  curr->flags.dref = dref;
-                  curr->flags.neg  = neg;
-                  goto resolved;
+foreach (token_t* curr, tkn) {
+   switch (curr->t_type) {
+      case OPEN_BLOCK_TOKEN:  scope_push(&scope_stack, ++s_id, 0); break;
+      case CLOSE_BLOCK_TOKEN: scope_pop(&scope_stack);             break;
+      case NEGATIVE_TOKEN:  neg  = 1; _remove_token(tkn, curr); continue;
+      case DREF_TYPE_TOKEN: dref = 1; _remove_token(tkn, curr); continue;
+      case REF_TYPE_TOKEN:  ref  = 1; _remove_token(tkn, curr); continue;
+      case UNKNOWN_CHAR_TOKEN:
+      case UNKNOWN_STRING_TOKEN: {
+            for (int s = scope_stack.top; s >= 0; s--) {
+               int curr_s = scope_stack.data[s].id;
+               foreach (variable_t* v, &vars) {
+                  if (curr->body->equals(curr->body, v->name) && v->scope == curr_s) {
+                        curr->t_type     = v->type;
+                        curr->flags.ext  = v->ext;
+                        curr->flags.ro   = v->ro;
+                        curr->flags.glob = v->glob;
+                        curr->flags.ptr  = v->ptr;
+                        curr->flags.ref  = ref;
+                        curr->flags.dref = dref;
+                        curr->flags.neg  = neg;
+                        goto _resolved;
+                  }
                }
             }
+
+_resolved: {}
+            break;
       }
-      resolved: {}
+
+      default: break;
    }
 
    ref  = 0;

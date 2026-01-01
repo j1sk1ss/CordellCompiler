@@ -1,21 +1,34 @@
 {
-    function sum(i32 a, i32 b) => i32 {
-        arr c[2, i32] = { a, b };
-        return c[0] + c[1];
+    function foo() => i32 { return 1; }
+
+    function BarBar() => i0 { }
+
+    function BazBaz() { }
+
+    function baz(i32 a) => i0 {
+        if a == 0; { return; }
+        else { }
+
+        if a == 0; { return 1; }
+        else { return 1; }
     }
 
-    start(i64 argc, ptr u64 argv) {
-        i32 a = 10;
-        i32 b = 10;
-        i32 c = 10;
-        i32 d = 10;
-        i32 k = 10;
-        i32 f = 10;
-        if sum(a, b) > (a * b + c + d + k + f); {
-            exit 1;
-        }
-        
-        i32 l = ref f;
-        exit dref l;
+    function fang(i32 a) => i8 {
+        if not a; { return 123321; }
+        else { }
+        return 1;
+        i32 b = 1;
+        return b;
+    }
+
+    start() {
+        i8 b;
+        ptr i8 bref = ref b;
+        ptr i8 bref1 = bref;
+        ptr i8 bref2 = bref1;
+
+        i8 a = foo();
+        i8 c = 123123;
+        BarBar();
     }
 }

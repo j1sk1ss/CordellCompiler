@@ -35,13 +35,10 @@ const char* format_tkntype(token_type_t t) {
 
 void print_symtab(sym_table_t* smt) {
     printf("\n\n========== SYMTABLES ==========\n");
-    map_iter_t it;
 
     if (!map_isempty(&smt->v.vartb)) printf("==========   VARS  ==========\n");
-    map_iter_init(&smt->v.vartb, &it);
-    variable_info_t* vi;
-    while (map_iter_next(&it, (void**)&vi)) {
-        printf("id: %li, %s, %s, s_id: %i", vi->v_id, vi->name, format_tkntype(vi->type), vi->s_id);
+    map_foreach (variable_info_t* vi, &smt->v.vartb) {
+        printf("id: %li, %s, %s, s_id: %i", vi->v_id, vi->name->body, format_tkntype(vi->type), vi->s_id);
         if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg));
         else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %li]", vi->vmi.offset);
         if (vi->vdi.defined)          printf(", value=%ld", vi->vdi.definition);
@@ -49,38 +46,27 @@ void print_symtab(sym_table_t* smt) {
     }
 
     if (!map_isempty(&smt->a.arrtb)) printf("==========   ARRS  ==========\n");
-    map_iter_init(&smt->a.arrtb, &it);
-    array_info_t* ai;
-    while (map_iter_next(&it, (void**)&ai)) {
+    map_foreach (array_info_t* ai, &smt->a.arrtb) {
         printf("id: %li, %s x %li%s\n", ai->v_id, format_tkntype(ai->el_type), ai->size, ai->heap ? ", heap" : "");
     }
 
     if (!map_isempty(&smt->f.functb)) printf("==========  FUNCS  ==========\n");
-    map_iter_init(&smt->f.functb, &it);
-    func_info_t* fi;
-    while (map_iter_next(&it, (void**)&fi)) {
+    map_foreach (func_info_t* fi, &smt->f.functb) {
         printf(
             "%sid: %li, name: %s, ext=%i, glob=%i, used=%i\n", 
-            fi->entry ? "[ENTRY] " : "", fi->id, fi->name, fi->external, fi->global, fi->used
+            fi->entry ? "[ENTRY] " : "", fi->id, fi->name->body, fi->external, fi->global, fi->used
         );
     }
 
     if (!map_isempty(&smt->s.strtb)) printf("========== STRINGS ==========\n");
-    map_iter_init(&smt->s.strtb, &it);
-    str_info_t* si;
-    while (map_iter_next(&it, (void**)&si)) {
-        printf("id: %li, val: %s, t=%i\n", si->id, si->value, si->t);
+    map_foreach (str_info_t* si, &smt->s.strtb) {
+        printf("id: %li, val: %s, t=%i\n", si->id, si->value->body, si->t);
     }
 
     if (!map_isempty(&smt->m.allias)) printf("========== ALLIAS ==========\n");
-    map_iter_init(&smt->m.allias, &it);
-    allias_t* mi;
-    while (map_iter_next(&it, (void**)&mi)) {
+    map_foreach (allias_t* mi, &smt->m.allias) {
         printf("id: %li, owners: ", mi->v_id);
-        set_iter_t sit;
-        set_iter_init(&mi->owners, &sit);
-        long own_id;
-        while (set_iter_next(&sit, (void**)&own_id)) printf("%li ", own_id);
+        set_foreach (long own_id, &mi->owners) printf("%li ", own_id);
         printf("\n");
     }
 }

@@ -5,10 +5,7 @@ gc.c - Color interference graph with euristic approuch
 #include <lir/regalloc/ra.h>
 
 int LIR_RA_init_colors(map_t* colors, sym_table_t* smt) {
-    map_iter_t it;
-    map_iter_init(&smt->v.vartb, &it);
-    variable_info_t* vi;
-    while (map_iter_next(&it, (void**)&vi)) {
+    map_foreach (variable_info_t* vi, &smt->v.vartb) {
         map_put(colors, vi->v_id, (void*)-1);
     }
 
@@ -26,7 +23,9 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     int node_count = g->nodes.size;
     if (!node_count) return 1;
     
-    sstack_t stack  = { .top = -1 };
+    sstack_t stack;
+    stack_init(&stack);
+
     int* degrees    = (int*)mm_malloc(node_count * sizeof(int));
     long* v_ids     = (long*)mm_malloc(node_count * sizeof(long));
     char* processed = (char*)mm_malloc(node_count * sizeof(char));
@@ -39,10 +38,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     }
     
     int i = 0;
-    map_iter_t it;
-    map_iter_init(&g->nodes, &it);
-    igraph_node_t* n;
-    while (map_iter_next(&it, (void**)&n)) {
+    map_foreach (igraph_node_t* n, &g->nodes) {
         v_ids[i]     = n->v_id;
         degrees[i]   = set_size(&n->v);
         processed[i] = 0;
@@ -78,10 +74,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         
         igraph_node_t* n = LIR_RA_find_ig_node(g, v_ids[max_index]);
         if (n) {
-            set_iter_t sit;
-            set_iter_init(&n->v, &sit);
-            long neighbor_id;
-            while (set_iter_next(&sit, (void**)&neighbor_id)) {
+            set_foreach (long neighbor_id, &n->v) {
                 for (i = 0; i < node_count; i++) {
                     if (v_ids[i] == neighbor_id && !processed[i]) {
                         degrees[i]--;
@@ -93,11 +86,9 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     }
     
     while (stack.top >= 0) {
-        stack_elem_t e;
-        stack_top(&stack, &e);
-        stack_pop(&stack);
+        long current_id;
+        stack_pop(&stack, (void**)&current_id);
         
-        long current_id = (long)e.data;
         igraph_node_t* current_node = LIR_RA_find_ig_node(g, current_id);
         if (!current_node) continue;
         
@@ -105,12 +96,9 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         if (map_get(colors, current_id, (void**)&existing_color) && existing_color >= 0) continue;
 
         set_t used_colors;
-        set_init(&used_colors);
+        set_init(&used_colors, SET_NO_CMP);
         
-        set_iter_t sit;
-        set_iter_init(&current_node->v, &sit);
-        long neighbor_id;
-        while (set_iter_next(&sit, (void**)&neighbor_id)) {
+        set_foreach (long neighbor_id, &current_node->v) {
             long neighbor_color;
             if (map_get(colors, neighbor_id, (void**)&neighbor_color)) {
                 set_add(&used_colors, (void*)neighbor_color);
@@ -127,6 +115,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         set_free(&used_colors);
     }
     
+    stack_free(&stack);
     mm_free(degrees);
     mm_free(v_ids);
     mm_free(processed);

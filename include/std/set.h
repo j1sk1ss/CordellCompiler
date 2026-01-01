@@ -13,7 +13,9 @@ typedef struct {
     map_iter_t it;
 } set_iter_t;
 
-int set_init(set_t* s);
+#define SET_NO_CMP 0
+#define SET_CMP    1
+int set_init(set_t* s, int cmp);
 int set_has_inttuple(set_t* s, int_tuple_t* t);
 int set_has(set_t* s, void* data);
 
@@ -33,5 +35,12 @@ int set_size(set_t* s);
 
 int set_free(set_t* s);
 int set_free_force(set_t* s);
+
+#define set_foreach(v, lst)                                                              \
+    set_iter_t CONCAT(__it_, __LINE__);                                                  \
+    set_iter_init(lst, &CONCAT(__it_, __LINE__));                                        \
+    void* CONCAT(__val_, __LINE__);                                                      \
+    while ((set_iter_next(&CONCAT(__it_, __LINE__), (void**)&CONCAT(__val_, __LINE__)))) \
+        for (v = CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__) = NULL)
 
 #endif

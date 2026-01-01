@@ -48,8 +48,14 @@
     "body": [
       "while cond; {",
       "\t: ... :",
-      "}",
-      "else {",
+      "}"
+    ]
+  },
+  "loop-loop": {
+    "scope": "cpl",
+    "prefix": "loop",
+    "body": [
+      "loop {",
       "\t: ... :",
       "}"
     ]
@@ -81,7 +87,12 @@
   "CPL Keywords Lis": {
     "prefix": "lis",
     "body": "lis",
-    "description": "CPL keyword"
+    "description": "CPL LiS keyword"
+  },
+  "CPL Keywords break": {
+    "prefix": "break",
+    "body": "break",
+    "description": "CPL break keyword"
   },
   "CPL Keywords Exfunc": {
     "prefix": "exfunc",

@@ -2,6 +2,7 @@
 #define HIR_H_
 
 #include <std/mm.h>
+#include <std/mem.h>
 #include <std/str.h>
 #include <std/set.h>
 #include <std/map.h>
@@ -20,9 +21,8 @@ typedef struct {
     long value;
 } hir_constant_t;
 
-#define HIR_VAL_MSIZE 128
 typedef struct {
-    char value[HIR_VAL_MSIZE];
+    string_t* value;
 } hir_number_t;
 
 typedef struct {
@@ -38,11 +38,11 @@ typedef struct {
 } hir_list_t;
 
 typedef struct {
-    int                users;
-    struct hir_block*  home;
-    unsigned long      hash;
-    long               id;
-    hir_subject_type_t t;
+    int                users; /* Users count    */
+    struct hir_block*  home;  /* Home HIR block */
+    unsigned long      hash;  /* Subject's hash */
+    long               id;    /* Subject's ID   */
+    hir_subject_type_t t;     /* Subject's type */
     union {
         hir_string_t   str;
         hir_constant_t cnst;
@@ -65,14 +65,21 @@ typedef struct hir_block {
 } hir_block_t;
 
 typedef struct {
-    hir_block_t* h;
-    hir_block_t* t;
+    hir_block_t* h;     /* Current HIR head                        */
+    hir_block_t* t;     /* Current HIR tail                        */
+    void*        carry; /* Special carry field for any information */
 } hir_ctx_t;
 
+/*
+Get hash (i64) from the provided subject.
+Params:
+    - `s` - Target hir subject.
+
+Return `i64`:hash.
+*/
 long HIR_hash_subject(hir_subject_t* s);
-hir_ctx_t* HIR_create_ctx();
-int HIR_destroy_ctx(hir_ctx_t* ctx);
-hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* strval, long intval);
+
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval);
 hir_subject_t* HIR_copy_subject(hir_subject_t* s);
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
 hir_block_t* HIR_copy_block(hir_block_t* b);
@@ -87,7 +94,7 @@ int HIR_unload_blocks(hir_block_t* block);
 #define HIR_SUBJ_CONST(val)         HIR_create_subject(HIR_CONSTVAL, 0, NULL, val)
 #define HIR_SUBJ_NUMBER(val)        HIR_create_subject(HIR_NUMBER, 0, val, 0)
 #define HIR_SUBJ_STKVAR(v_id, kind) HIR_create_subject(kind, v_id, NULL, 0)
-#define HIR_SUBJ_ASTVAR(n)          HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_token_stktype(n->token))
+#define HIR_SUBJ_ASTVAR(n)          HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_token_stktype(n->t))
 #define HIR_SUBJ_TMPVAR(kind, id)   HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)
 #define HIR_SUBJ_LABEL()            HIR_create_subject(HIR_LABEL, 0, NULL, 0)
 #define HIR_SUBJ_RAWASM(n)          HIR_create_subject(HIR_RAWASM, n->sinfo.v_id, NULL, 0)

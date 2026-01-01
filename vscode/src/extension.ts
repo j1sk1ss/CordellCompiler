@@ -8,8 +8,8 @@ import * as vscode from 'vscode';
 export function activate(context: vscode.ExtensionContext) {
   const keywords = [
     'start', 'exit', 'exfunc', 'function', 'return',
-    'if', 'else', 'while', 'switch', 'case', 'default',
-    'glob', 'ro', 'dref', 'ref', 'ptr', 'lis', 'extern', 'from', 'import', 'syscall', 'asm',
+    'if', 'else', 'while', 'loop', 'switch', 'case', 'default',
+    'glob', 'ro', 'dref', 'ref', 'ptr', 'lis', 'break', 'extern', 'from', 'import', 'syscall', 'asm',
     'i64', 'i32', 'i16', 'i8', 'u64', 'u32', 'u16', 'u8', 'i0', 'str', 'arr'
   ];
 
@@ -93,6 +93,13 @@ export function activate(context: vscode.ExtensionContext) {
         i32 a = 10;
         lis;
         syscall(a);
+        `,
+
+          break: `**break** - Break the current while or switch block.
+
+        while 1; {
+          break;
+        }
         `,
           
           exfunc: `**exfunc** — External function type.

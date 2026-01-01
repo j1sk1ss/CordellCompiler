@@ -52,6 +52,8 @@
 #define CASE_COMMAND            "case"
 #define DEFAULT_COMMAND         "default"
 #define WHILE_COMAND            "while"
+#define LOOP_COMMAND            "loop"
+#define BREAK_COMMAND           "break"
 #define IF_COMMAND              "if"
 #define ELSE_COMMAND            "else"
 #define SYSCALL_COMMAND         "syscall"

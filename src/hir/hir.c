@@ -1,5 +1,12 @@
 #include <hir/hir.h>
 
+/*
+Mix64 hash function.
+Params:
+    - x - Input value.
+
+Returns hashed value.
+*/
 static inline unsigned long _mix64(unsigned long x) {
     x ^= x >> 30;
     x *= 0xbf58476d1ce4e5b9;
@@ -41,7 +48,7 @@ long HIR_hash_subject(hir_subject_t* s) {
         case HIR_I8NUMBER:
         case HIR_U8NUMBER:
         case HIR_NUMBER: {
-            const char* str = s->storage.num.value;
+            const char* str = s->storage.num.value->body;
             while (*str) h = _mix64(h ^ (unsigned char)(*str++));
             break;
         }
@@ -62,56 +69,28 @@ long HIR_hash_subject(hir_subject_t* s) {
 
         case HIR_FNAME:
         case HIR_RAWASM:
-        case HIR_STRING:
-            h ^= _mix64(s->storage.str.s_id);
-        break;
-
-        case HIR_PHISET:
-            h ^= _mix64((unsigned long)&s->storage.set.h);
-        break;
-
-        default:
-            h ^= _mix64(s->id);
-        break;
+        case HIR_STRING: h ^= _mix64(s->storage.str.s_id);              break;
+        case HIR_PHISET: h ^= _mix64((unsigned long)&s->storage.set.h); break;
+        default:         h ^= _mix64(s->id);                            break;
     }
 
     s->hash = (long)(h ^ (h >> 32));
     return s->hash;
 }
 
-hir_ctx_t* HIR_create_ctx() {
-    hir_ctx_t* ctx = mm_malloc(sizeof(hir_ctx_t));
-    if (!ctx) return NULL;
-    ctx->h = ctx->t = NULL;
-    return ctx;
-}
-
-int HIR_destroy_ctx(hir_ctx_t* ctx) {
-    if (!ctx) return -1;
-    hir_block_t* cur = ctx->h;
-    while (cur) {
-        hir_block_t* nxt = cur->next;
-        mm_free(cur);
-        cur = nxt;
-    }
-
-    mm_free(ctx);
-    return 0;
-}
-
 static long _curr_id = 0;
-hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* strval, long intval) {
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(hir_subject_t));
 
-    subj->t  = t;
-    subj->id = _curr_id++;
+    subj->t     = t;
+    subj->id    = _curr_id++;
     subj->users = 1;
 
     switch (t) {
-        case HIR_PHISET:  set_init(&subj->storage.set.h);   break;
-        case HIR_ARGLIST: list_init(&subj->storage.list.h); break;
+        case HIR_PHISET:  set_init(&subj->storage.set.h, SET_NO_CMP); break;
+        case HIR_ARGLIST: list_init(&subj->storage.list.h);           break;
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
         case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
@@ -135,7 +114,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, const char* st
         case HIR_I16NUMBER:
         case HIR_I8NUMBER:
         case HIR_NUMBER:
-            if (strval) str_strncpy(subj->storage.num.value, strval, HIR_VAL_MSIZE);
+            if (strval) subj->storage.num.value = strval->copy(strval);
         break;
 
         case HIR_F64CONSTVAL:
@@ -174,11 +153,8 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
 
     switch (ns->t) {
         case HIR_PHISET: {
-            set_init(&ns->storage.set.h);
-            set_iter_t it;
-            set_iter_init(&s->storage.set.h, &it);
-            int_tuple_t* tpl;
-            while (set_iter_next(&it, (void**)&tpl)) {
+            set_init(&ns->storage.set.h, SET_NO_CMP);
+            set_foreach (int_tuple_t* tpl, &s->storage.set.h) {
                 set_add(&ns->storage.set.h, inttuple_create(tpl->x, tpl->y));
             }
 
@@ -187,10 +163,8 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
 
         case HIR_ARGLIST: {
             list_init(&ns->storage.list.h);
-            list_iter_t it;
-            list_iter_hinit(&s->storage.list.h, &it);
             hir_subject_t* arg;
-            while ((arg = (hir_subject_t*)list_iter_next(&it))) {
+            foreach (arg, &s->storage.list.h) {
                 list_add(&ns->storage.list.h, HIR_copy_subject(arg));
             }
 
@@ -220,7 +194,7 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_I16NUMBER:
         case HIR_I8NUMBER:
         case HIR_NUMBER:
-            str_strncpy(ns->storage.num.value, s->storage.num.value, HIR_VAL_MSIZE);
+            ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
         break;
 
         case HIR_F64CONSTVAL:
@@ -315,8 +289,19 @@ int HIR_unlink_block(hir_block_t* block) {
 int HIR_unload_subject(hir_subject_t* s) {
     if (!s) return 0;
     switch (s->t) {
-        case HIR_PHISET:  set_free_force(&s->storage.set.h);   break;
-        case HIR_ARGLIST: list_free_force(&s->storage.list.h); break;
+        case HIR_F64NUMBER:
+        case HIR_F32NUMBER:
+        case HIR_U64NUMBER:
+        case HIR_U32NUMBER:
+        case HIR_U16NUMBER:
+        case HIR_U8NUMBER:
+        case HIR_I64NUMBER:
+        case HIR_I32NUMBER:
+        case HIR_I16NUMBER:
+        case HIR_I8NUMBER:
+        case HIR_NUMBER:  destroy_string(s->storage.num.value);                                       break;
+        case HIR_PHISET:  set_free_force(&s->storage.set.h);                                          break;
+        case HIR_ARGLIST: list_free_force_op(&s->storage.list.h, (int (*)(void*))HIR_unload_subject); break;
         default: break;
     }
     
@@ -340,7 +325,7 @@ int HIR_unload_blocks(hir_block_t* block) {
 
 int HIR_compute_homes(hir_ctx_t* ctx) {
     map_t homes;
-    map_init(&homes);
+    map_init(&homes, MAP_NO_CMP);
 
     hir_block_t* hh = ctx->h;
     while (hh) {

@@ -16,6 +16,7 @@ const char* fmt_tkn_type(token_t* t) {
             case I64_TYPE_TOKEN: return "i64*";
             case U64_TYPE_TOKEN: return "u64*";
             case F64_TYPE_TOKEN: return "f64*";
+            case STR_TYPE_TOKEN: return "str*";
             default: return "";
         }
     }
@@ -31,6 +32,7 @@ const char* fmt_tkn_type(token_t* t) {
         case I64_TYPE_TOKEN: return "i64";
         case U64_TYPE_TOKEN: return "u64";
         case F64_TYPE_TOKEN: return "f64";
+        case STR_TYPE_TOKEN: return "str";
         default: return "";
     }
 }
@@ -38,31 +40,32 @@ const char* fmt_tkn_type(token_t* t) {
 static inline int print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
     for (int i = 0; i < depth; i++) printf("   ");
-    if (node->token && node->token->t_type != SCOPE_TOKEN) {
+    if (node->t && node->t->t_type != SCOPE_TOKEN) {
         printf(
-            "[%s] (t=%d,%s%s%sv_id=%i, s_id=%i%s%s%s%s)\n", 
-            node->token->value, node->token->t_type, 
-            node->token->flags.ptr ? " ptr, " : " ",
-            node->token->flags.ref ? "ref, " : "",
-            node->token->flags.dref ? "dref, " : "",
+            "[%s%s] (t=%d,%s%s%sv_id=%i, s_id=%i%s%s%s%s)\n",
+            node->t->flags.neg ? "{not} " : "",
+            node->t->body->body, node->t->t_type, 
+            node->t->flags.ptr ? " ptr, " : " ",
+            node->t->flags.ref ? "ref, " : "",
+            node->t->flags.dref ? "dref, " : "",
             node->sinfo.v_id, node->sinfo.s_id,
-            node->token->flags.ro ? ", ro" : "",
-            node->token->flags.ext ? ", ext" : "",
-            node->token->flags.glob ? ", glob" : "",
-            node->token->flags.heap ? ", heap" : ""
+            node->t->flags.ro ? ", ro" : "",
+            node->t->flags.ext ? ", ext" : "",
+            node->t->flags.glob ? ", glob" : "",
+            node->t->flags.heap ? ", heap" : ""
         );
     }
-    else if (node->token && node->token->t_type == SCOPE_TOKEN) {
+    else if (node->t && node->t->t_type == SCOPE_TOKEN) {
         printf("{ scope, id=%i }\n", node->sinfo.s_id);
     }
     else {
         printf("[ block ]\n");
     }
     
-    ast_node_t* child = node->child;
+    ast_node_t* child = node->c;
     while (child) {
         print_ast(child, depth + 1);
-        child = child->sibling;
+        child = child->siblings.n;
     }
     
     return 1;

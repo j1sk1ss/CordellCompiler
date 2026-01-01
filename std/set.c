@@ -1,14 +1,11 @@
 #include <std/set.h>
 
-int set_init(set_t* s) {
-    return map_init(&s->body);
+int set_init(set_t* s, int cmp) {
+    return map_init(&s->body, cmp);
 }
 
 int set_has_inttuple(set_t* s, int_tuple_t* t) {
-    map_iter_t it;
-    map_iter_init(&s->body, &it);
-    int_tuple_t* tuple;
-    while (map_iter_next(&it, (void**)&tuple)) {
+    map_foreach (int_tuple_t* tuple, &s->body) {
         if (tuple->x == t->x && tuple->y == t->y) return 1;
     }
 

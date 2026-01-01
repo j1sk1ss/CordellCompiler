@@ -4,8 +4,10 @@ static allias_t* _create_allias(long v_id) {
     allias_t* a = (allias_t*)mm_malloc(sizeof(allias_t));
     if (!a) return NULL;
     str_memset(a, 0, sizeof(allias_t));
-    set_init(&a->owners);
-    set_init(&a->delown);
+    
+    set_init(&a->owners, SET_CMP);
+    set_init(&a->delown, SET_CMP);
+    
     a->v_id = v_id;
     return a;
 }
@@ -24,7 +26,7 @@ int ALLIAS_get_owners(long v_id, set_t* out, allias_map_t* ctx) {
         return 1;
     }
 
-    set_init(out);
+    set_init(out, SET_NO_CMP);
     return 0;
 }
 
@@ -51,10 +53,7 @@ int ALLIAS_mark_owner(long v_id, long owner_id, allias_map_t* ctx) {
 }
 
 int ALLIAS_unload(allias_map_t* ctx) {
-    map_iter_t it;
-    map_iter_init(&ctx->allias, &it);
-    allias_t* ai;
-    while (map_iter_next(&it, (void**)&ai)) {
+    map_foreach (allias_t* ai, &ctx->allias) {
         set_free_force(&ai->delown);
         set_free_force(&ai->owners);
     }

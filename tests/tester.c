@@ -11,8 +11,16 @@
 #ifdef AST_TESTING
     #include <ast/ast.h>
     #include <ast/astgen.h>
-    #include <ast/astgens/astgens.h>
+    #include <ast/astgen/astgen.h>
     #include "misc/ast_helper.h"
+#ifdef AST_OPT_TESTING
+    #include <ast/opt/condunroll.h>
+    #include <ast/opt/deadscope.h>
+#endif
+#endif
+
+#ifdef SEM_TESTING
+    #include <sem/semantic.h>
 #endif
 
 #ifdef HIR_TESTING
@@ -98,16 +106,13 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
 #ifdef TOKEN_PRINT
     printf("\nTokens:\n");
-    list_iter_t it;
-    list_iter_hinit(&tokens, &it);
-    token_t* h;
-    while ((h = (token_t*)list_iter_next(&it))) {
+    foreach (token_t* h, &tokens) {
         printf(
             "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
             h->flags.glob ? "glob " : "", 
             h->lnum, 
             h->t_type, 
-            h->value,
+            h->body->body,
             h->flags.ptr  ? "ptr "  : "", 
             h->flags.ro   ? "ro "   : "",
             h->flags.dref ? "dref " : "",
@@ -122,36 +127,46 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
 #ifdef AST_TESTING
     ast_ctx_t sctx = { .r = NULL, .fentry = "_main" };
+    stack_init(&sctx.scopes.stack);
     AST_parse_tokens(&tokens, &sctx, &smt); // Analyzation
+
+#ifdef AST_OPT_TESTING
+    OPT_condunroll(&sctx); // Transform
+    OPT_deadscope(&sctx);  // Transform
+#endif
+
 #ifdef AST_PRINT
     printf("\n\n========== AST ==========\n");
     print_ast(sctx.r, 0);
 #endif
 #endif
 
+#ifdef SEM_TESTING
+    SEM_perform_ast_check(&sctx, &smt);
+#endif
+
 #ifdef HIR_TESTING
-    hir_ctx_t hirctx = { .h = NULL, .t = NULL };
+    hir_ctx_t hirctx = { NULL };
     HIR_generate(&sctx, &hirctx, &smt);     // Analyzation
 
-    cfg_ctx_t cfgctx;
+    cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
 
-    HIR_FUNC_perform_tre(&cfgctx, &smt);     // Transform
+    HIR_FUNC_perform_tre(&cfgctx, &smt);    // Transform
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
-
-    call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
-    HIR_CG_perform_dfe(&callctx, &smt);     // Analyzation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
-    call_graph_print_dot(&callctx);
 
     HIR_LOOP_mark_loops(&cfgctx);           // Analyzation
     HIR_FUNC_perform_inline(&cfgctx);       // Transform
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
+
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
+    HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
     HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+    call_graph_print_dot(&callctx);
     
 #ifdef HIR_PRINT
     printf("\n\n========== HIRv1 ==========\n");
@@ -173,7 +188,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
 
     ssa_ctx_t ssactx;
-    list_init(&ssactx.vers);
+    map_init(&ssactx.vers, MAP_NO_CMP);
     HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
     HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
 
@@ -256,6 +271,9 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     }
 #endif
 #endif
+
+    SMT_compress(&smt);
+
 #ifdef CONSTFOLD_TESTING
     printf("LIR_apply_sparse_const_propagation...\n");
     LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform
@@ -280,28 +298,21 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_DFG_create_deall(&cfgctx, &smt); // Transform
 
     map_t colors;
-    map_init(&colors);
+    map_init(&colors, MAP_NO_CMP);
     printf("LIR_RA_init_colors...\n");
     LIR_RA_init_colors(&colors, &smt);
     
     regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
     printf("LIR_regalloc...\n");
-    LIR_regalloc(&cfgctx, &smt, &colors, &regall);       // Analyzation
+    LIR_regalloc(&cfgctx, &smt, &colors, &regall); // Analyzation
+    LIR_apply_regalloc(&smt, &colors);             // Analyzation
 
     mem_selector_h mem_sel = { 
         .select_memory = x86_64_gnu_nasm_memory_selection
     };
 
     printf("LIR_select_memory...\n");
-    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
-
-    register_saver_h reg_save = {
-        .save_registers = x86_64_gnu_nasm_caller_saving
-    };
-
-    printf("LIR_save_registers...\n");
-    HIR_CFG_cleanup_navigation(&cfgctx);
-    LIR_save_registers(&cfgctx, &reg_save);
+    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transfor
 #ifdef LIR_PRINT
     printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);
     printf("\n\n========== LIR planned and regalloc ==========\n");
@@ -324,6 +335,13 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
         lh = lh->next;
     }
 #endif
+    register_saver_h reg_save = {
+        .save_registers = x86_64_gnu_nasm_caller_saving
+    };
+
+    printf("LIR_save_registers...\n");
+    HIR_CFG_cleanup_navigation(&cfgctx);
+    LIR_save_registers(&cfgctx, &reg_save);
 #endif
 #endif
 
@@ -355,9 +373,10 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 
 #ifdef PREP_TESTING
-    list_free_force(&tokens);
+    list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
 #endif
 #ifdef AST_TESTING
+    stack_free(&sctx.scopes.stack);
     AST_unload(sctx.r);
 #endif
 

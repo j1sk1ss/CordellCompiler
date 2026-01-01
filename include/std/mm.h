@@ -2,7 +2,7 @@
 #define MM_H_
 
 #include <stddef.h>
-#include <std/str.h>
+#include <std/mem.h>
 #include <std/math.h>
 #include <std/logg.h>
 
@@ -62,7 +62,7 @@ Return -1 if something goes wrong.
 Return 1 if free success.
 */
 int mm_base_free(const char* f, int l, void* ptr);
-#define mm_free(size) mm_base_free(__FILE__, __LINE__, size);
+#define mm_free(ptr) mm_base_free(__FILE__, __LINE__, ptr);
 
 /*
 Return current allocated size.

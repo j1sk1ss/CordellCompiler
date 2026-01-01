@@ -11,14 +11,8 @@ OUT = union(IN successors)
 #include <lir/dfg.h>
 
 int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* cb, &fb->blocks) {
             lir_block_t* hl = cb->lmap.entry;
             while (hl) {
                 if (!hl->unused && LIR_writeop(hl->op)) {
@@ -35,26 +29,28 @@ int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
 }
 
 int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* cb, &fb->blocks) {
             lir_block_t* lh = cb->lmap.entry;
             while (lh) {
-                if (!lh->unused) {
-                    lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-                    for (int i = LIR_writeop(lh->op); i < 3; i++) {
-                        if (!args[i] || args[i]->t != LIR_VARIABLE) continue;
-                        set_add(&cb->use, (void*)args[i]->storage.var.v_id);
+                lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
+                for (int i = LIR_writeop(lh->op); i < 3; i++) {
+                    if (!args[i]) continue;
+                    switch (args[i]->t) {
+                        case LIR_VARIABLE: set_add(&cb->use, (void*)args[i]->storage.var.v_id); break;
+                        case LIR_ARGLIST: {
+                            foreach (lir_subject_t* arg, &args[i]->storage.list.h) {
+                                set_add(&cb->use, (void*)arg->storage.var.v_id);
+                            }
+
+                            break;
+                        }
+
+                        default: break;
                     }
                 }
 
-                if (lh == cb->lmap.exit) break;
-                lh = lh->next;
+                lh = LIR_get_next(lh, cb->lmap.exit, 1);
             }
         }
     }
@@ -64,7 +60,7 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
 
 static int _compute_out(cfg_block_t* cfg) {
     set_t out;
-    set_init(&out);
+    set_init(&out, SET_CMP);
     if (cfg->l)   set_union(&out, &out, &cfg->l->curr_in);
     if (cfg->jmp) set_union(&out, &out, &cfg->jmp->curr_in);
     set_free(&cfg->curr_out);
@@ -84,10 +80,7 @@ static int _compute_in(cfg_block_t* cfg) {
 }
 
 int LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
         while (1) {
             list_iter_t bit;
             list_iter_tinit(&fb->blocks, &bit);
@@ -100,7 +93,10 @@ int LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
             int same = 1;
             list_iter_tinit(&fb->blocks, &bit);
             while ((cb = (cfg_block_t*)list_iter_prev(&bit))) {
-                if (!set_equal(&cb->curr_in, &cb->prev_in) || !set_equal(&cb->curr_out, &cb->prev_out)) {
+                if (
+                    !set_equal(&cb->curr_in, &cb->prev_in) || 
+                    !set_equal(&cb->curr_out, &cb->prev_out)
+                ) {
                     same = 0;
                     break;
                 }

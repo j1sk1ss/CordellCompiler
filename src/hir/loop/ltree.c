@@ -13,11 +13,7 @@ static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, s
 static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b) {
     if (!set_add(b, entry)) return 0;
     if (entry == exit) return 0;
-    
-    set_iter_t it;
-    set_iter_init(&entry->pred, &it);
-    cfg_block_t* bb;
-    while (set_iter_next(&it, (void**)&bb)) {
+    set_foreach (cfg_block_t* bb, &entry->pred) {
         bb->type = CFG_LOOP_BLOCK;
         _get_loop_blocks(bb, exit, b);
     }
@@ -26,10 +22,7 @@ static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b) {
 }
 
 static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
-    list_iter_t bit;
-    list_iter_hinit(&fb->blocks, &bit);
-    cfg_block_t* cb;
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach (cfg_block_t* cb, &fb->blocks) {
         if (cb->jmp && set_has(&cb->dom, cb->jmp)) {
             cfg_block_t* header = cb->jmp;
             cfg_block_t* latch  = cb;
@@ -38,7 +31,7 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
             header->type = CFG_LOOP_LATCH;
 
             set_t loop_blocks;
-            set_init(&loop_blocks);
+            set_init(&loop_blocks, SET_NO_CMP);
             
             _get_loop_blocks(latch, header, &loop_blocks);
             set_add(&loop_blocks, header);
@@ -60,17 +53,10 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
     _collect_loops_for_func(fb, &rl);
     print_debug("_collect_loops_for_func complete, size(rl)=%i", list_size(&rl));
 
-    list_iter_t it_i;
-    list_iter_hinit(&rl, &it_i);
-    loop_node_t* ni;
-    while ((ni = (loop_node_t*)list_iter_next(&it_i))) {
+    foreach (loop_node_t* ni, &rl) {
+        int best_size = INT_MAX;
         loop_node_t* best_parent = NULL;
-        int best_size = 2147483647;
-
-        list_iter_t it_j;
-        list_iter_hinit(&rl, &it_j);
-        loop_node_t* nj;
-        while ((nj = (loop_node_t*)list_iter_next(&it_j))) {
+        foreach (loop_node_t* nj, &rl) {
             if (nj == ni) continue;
             if (set_has(&nj->blocks, &ni->blocks) && set_size(&nj->blocks) > set_size(&ni->blocks)) {
                 int sz = set_size(&nj->blocks);
@@ -89,26 +75,9 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
     return 1;
 }
 
-int HIR_LOOP_mark_loops(cfg_ctx_t* cctx) {
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        if (!fb->used) continue;
-        ltree_ctx_t lctx;
-        list_init(&lctx.loops);
-        HIR_LTREE_build_loop_tree(fb, &lctx);
-    }
-
-    return 1;
-}
-
 static int _loop_node_free(loop_node_t* n) {
     if (!n) return 0;
-    list_iter_t it;
-    list_iter_hinit(&n->children, &it);
-    loop_node_t* ch;
-    while ((ch = (loop_node_t*)list_iter_next(&it))) {
+    foreach (loop_node_t* ch, &n->children) {
         _loop_node_free(ch);
     }
 
@@ -118,11 +87,20 @@ static int _loop_node_free(loop_node_t* n) {
     return 1;
 }
 
+int HIR_LOOP_mark_loops(cfg_ctx_t* cctx) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        if (!fb->used) continue;
+        ltree_ctx_t lctx;
+        list_init(&lctx.loops);
+        HIR_LTREE_build_loop_tree(fb, &lctx);
+        list_free_force_op(&lctx.loops, (int (*)(void *))_loop_node_free);
+    }
+
+    return 1;
+}
+
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx) {
-    list_iter_t it;
-    list_iter_hinit(&ctx->loops, &it);
-    loop_node_t* n;
-    while ((n = (loop_node_t*)list_iter_next(&it))) {
+    foreach (loop_node_t* n, &ctx->loops) {
         _loop_node_free(n);
     }
 

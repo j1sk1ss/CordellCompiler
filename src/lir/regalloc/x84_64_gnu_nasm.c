@@ -19,10 +19,7 @@ static void __igraph_dump_dot(igraph_t* g) {
     for (long i = 0; i < g->nodes.capacity; i++) {
         if (g->nodes.entries[i].used) {
             igraph_node_t* n = (igraph_node_t*)g->nodes.entries[i].value;
-            set_iter_t sit;
-            set_iter_init(&n->v, &sit);
-            long neighbor;
-            while (set_iter_next(&sit, (void**)&neighbor)) {
+            set_foreach (long neighbor, &n->v) {
                 if (n->v_id < neighbor) {
                     fprintf(stdout, "  v%ld -- v%ld;\n", n->v_id, neighbor);
                 }
@@ -35,10 +32,7 @@ static void __igraph_dump_dot(igraph_t* g) {
 #endif
 
 static int _regalloc_precolor(map_t* cmap, sym_table_t* smt) {
-    map_iter_t mit;
-    map_iter_init(&smt->v.vartb, &mit);
-    variable_info_t* vi;
-    while (map_iter_next(&mit, (void**)&vi)) {
+    map_foreach (variable_info_t* vi, &smt->v.vartb) {
         if (vi->vmi.allocated && vi->vmi.reg >= 0) {
             map_put(cmap, vi->v_id, (void*)((long)vi->vmi.reg));
         }

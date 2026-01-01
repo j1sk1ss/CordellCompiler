@@ -4,11 +4,11 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
     if (!root) return 0;
     
     ast_node_t* prev = NULL;
-    ast_node_t* curr = root->child;
+    ast_node_t* curr = root->c;
 
     while (curr) {
-        ast_node_t* next = curr->sibling;
-        if (!curr->token) {
+        ast_node_t* next = curr->siblings.n;
+        if (!curr->t) {
             _find_scope(curr, affect, s_id);
             prev = curr;
             curr = next;
@@ -16,17 +16,18 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
         }
 
         if (
-            curr->token->t_type == EXIT_TOKEN ||
-            curr->token->t_type == RETURN_TOKEN ||
-            curr->token->t_type == CALL_TOKEN
+            curr->t->t_type == EXIT_TOKEN   ||
+            curr->t->t_type == RETURN_TOKEN ||
+            curr->t->t_type == CALL_TOKEN   ||
+            curr->t->t_type == BREAKPOINT_TOKEN
         ) *affect = 1;
 
-        if (curr->token->t_type == START_TOKEN) {
+        if (curr->t->t_type == START_TOKEN) {
             _find_scope(curr, affect, s_id);
             *affect = 1;
         }
 
-        if (curr->token->t_type == SCOPE_TOKEN) {
+        if (curr->t->t_type == SCOPE_TOKEN) {
             int is_affect = 0;
             _find_scope(curr, &is_affect, MAX(curr->sinfo.s_id, s_id));
 
@@ -34,8 +35,8 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
                 AST_remove_node(root, curr);
                 AST_unload(curr);
 
-                if (prev) prev->sibling = next;
-                else root->child = next;
+                if (prev) prev->siblings.n = next;
+                else root->c = next;
 
                 curr = next;
                 continue;
@@ -44,7 +45,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
             *affect = 1;
         }
 
-        switch (curr->token->t_type) {
+        switch (curr->t->t_type) {
             case IF_TOKEN:
             case WHILE_TOKEN:
             case SWITCH_TOKEN: {
@@ -55,8 +56,8 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
                     AST_remove_node(root, curr);
                     AST_unload(curr);
 
-                    if (prev) prev->sibling = next;
-                    else root->child = next;
+                    if (prev) prev->siblings.n = next;
+                    else root->c = next;
 
                     curr = next;
                     continue;
@@ -67,19 +68,17 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
             }
 
             case CASE_TOKEN:
-                ast_node_t* case_scope = curr->child->sibling;
-                goto _check_case_scope;
             case DEFAULT_TOKEN: {
                 int is_affect = 0;
-                case_scope = curr->child;
-_check_case_scope: {}
+                ast_node_t* case_scope = curr->t->t_type == CASE_TOKEN ? curr->c->siblings.n : curr->c;
                 _find_scope(case_scope, &is_affect, s_id);
+
                 if (!is_affect) {
                     AST_remove_node(root, curr);
                     AST_unload(curr);
 
-                    if (prev) prev->sibling = next;
-                    else root->child = next;
+                    if (prev) prev->siblings.n = next;
+                    else root->c = next;
 
                     curr = next;
                     continue;
@@ -93,12 +92,13 @@ _check_case_scope: {}
                 _find_scope(curr, affect, s_id);
                 break;
             }
+
             default: break;
         }
 
         if (
-            TKN_isdecl(curr->token) || 
-            (TKN_isoperand(curr->token) && !TKN_update_operator(curr->token))
+            TKN_isdecl(curr->t) || 
+            (TKN_isoperand(curr->t) && !TKN_update_operator(curr->t))
         ) {
             _find_scope(curr, affect, s_id);
             prev = curr;
@@ -106,8 +106,8 @@ _check_case_scope: {}
             continue;
         }
 
-        if (TKN_update_operator(curr->token)) {
-            ast_node_t* var = curr->child;
+        if (TKN_update_operator(curr->t)) {
+            ast_node_t* var = curr->c;
             if (var->sinfo.s_id < s_id) {
                 *affect = 1;
                 break;

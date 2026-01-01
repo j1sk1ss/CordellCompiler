@@ -25,43 +25,27 @@ static int _add_ig_node(long v_id, igraph_t* g) {
     if (!n) return 0;
     str_memset(n, 0, sizeof(igraph_node_t));
     n->v_id = v_id;
-    set_init(&n->v);
+    set_init(&n->v, SET_NO_CMP);
     return map_put(&g->nodes, v_id, n);
 }
 
 int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
-    map_init(&g->nodes);
+    map_init(&g->nodes, MAP_NO_CMP);
 
-    map_iter_t vit;
-    map_iter_init(&smt->v.vartb, &vit);
-    variable_info_t* vi;
-    while (map_iter_next(&vit, (void**)&vi)) {
+    map_foreach (variable_info_t* vi, &smt->v.vartb) {
         if (vi->glob || vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) continue;
         if (ALLIAS_get_owners(vi->v_id, NULL, &smt->m)) continue;
         _add_ig_node(vi->v_id, g);
     }
 
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
-            set_iter_t dit;
-            set_iter_init(&cb->def, &dit);
-            long d;
-            while (set_iter_next(&dit, (void**)&d)) {
-                set_iter_t lit;
-                set_iter_init(&cb->curr_in, &lit);
-                long l;
-                while (set_iter_next(&lit, (void**)&l)) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* cb, &fb->blocks) {
+            set_foreach (long d, &cb->def) {
+                set_foreach (long l, &cb->curr_in) {
                     _igraph_add_edge(g, d, l);
                 }
 
-                set_iter_init(&cb->curr_out, &lit);
-                while (set_iter_next(&lit, (void**)&l)) {
+                set_foreach (long l, &cb->curr_out) {
                     _igraph_add_edge(g, d, l);
                 }
             }
@@ -72,10 +56,7 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
 }
 
 int LIR_RA_unload_igraph(igraph_t* g) {
-    map_iter_t it;
-    igraph_node_t* nd;
-    map_iter_init(&g->nodes, &it);
-    while (map_iter_next(&it, (void**)&nd)) {
+    map_foreach (igraph_node_t* nd, &g->nodes) {
         set_free(&nd->v);
     }
 

@@ -1,8 +1,15 @@
 #include <lir/selector/x84_64_gnu_nasm.h>
 
-static const int _registers[] = { RAX, RBX, RCX, RDX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14, R15 };
-static const int _registers_count = 14;
+/*
+Update information about memory allocation in the provided lir subject.
+Params:
+    - s - The considering lir subject.
+    - smp - Stack map for register spilling.
+    - color - Register allocation result.
+    - smt - Symtable.
 
+Return 1 if operation succeed. Otherwise it will return 0.
+*/
 static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* colors, sym_table_t* smt) {
     variable_info_t vi;
     if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
@@ -13,22 +20,26 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     
     long color;
     vi.vmi.size = _get_variable_size(vi.v_id, smt);
-    if (map_get(colors, s->storage.var.v_id, (void**)&color)) {
-        if (color < _registers_count && color >= 0) {
-            s->t = LIR_REGISTER;
-            s->storage.reg.reg = _registers[color];
+    if (!vi.vmi.allocated) {
+        if (map_get(colors, s->storage.var.v_id, (void**)&color) && color >= 0) {
+            vi.vmi.reg    = color;
             vi.vmi.offset = -1;
-            vi.vmi.reg    = s->storage.reg.reg;
         }
         else {
-            s->t = LIR_MEMORY;
-            s->storage.var.offset = !vi.vmi.allocated ? stack_map_alloc(vi.vmi.size, smp) : vi.vmi.offset;
-            vi.vmi.offset = s->storage.var.offset;
             vi.vmi.reg    = -1;
+            vi.vmi.offset = stack_map_alloc(vi.vmi.size, smp);
         }
 
-        if (vi.vmi.allocated) return 1;
         VRTB_update_memory(vi.v_id, vi.vmi.offset, vi.vmi.size, vi.vmi.reg, &smt->v);
+    }
+
+    if (vi.vmi.offset >= 0) {
+        s->t = LIR_MEMORY;
+        s->storage.var.offset = vi.vmi.offset;
+    }
+    else if (vi.vmi.reg >= 0) {
+        s->t = LIR_REGISTER;
+        s->storage.reg.reg = vi.vmi.reg;
     }
 
     return 1;
@@ -38,21 +49,18 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
     stack_map_t smp;
     stack_map_init(0, &smp);
 
-    list_iter_t fit;
-    list_iter_hinit(&cctx->funcs, &fit);
-    cfg_func_t* fb;
-    while ((fb = (cfg_func_t*)list_iter_next(&fit))) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        list_iter_t bit;
-        list_iter_hinit(&fb->blocks, &bit);
-        cfg_block_t* bb;
-        while ((bb = (cfg_block_t*)list_iter_next(&bit))) {
-            lir_block_t* lh = bb->lmap.entry;
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
                 switch (lh->op) {
                     case LIR_VRDEALL: {
                         variable_info_t vi;
-                        if (!VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || vi.glob || vi.vmi.offset == -1) {
+                        if (
+                            !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
+                            vi.glob || vi.vmi.offset == -1
+                        ) {
                             lh->unused = 1;
                             break;
                         }
@@ -73,7 +81,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                         ) {
                             int arroff = stack_map_alloc(ai.size, &smp);
                             VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
-                            char* string = si.value;
+                            char* string = si.value->body;
                             while (*string) {
                                 LIR_insert_block_before(
                                     LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(arroff--, 1), LIR_SUBJ_CONST(*(string++)), NULL), lh
@@ -98,10 +106,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
 
                             int pos = 0;
-                            list_iter_t elem_it;
-                            list_iter_hinit(&lh->targ->storage.list.h, &elem_it);
-                            lir_subject_t* elem;
-                            while ((elem = (lir_subject_t*)list_iter_next(&elem_it))) {
+                            foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
                                 if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
                                 LIR_insert_block_before(
                                     LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(arroff - pos * elsize, 1), elem, NULL), lh
@@ -125,8 +130,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                     }
                 }
 
-                if (lh == bb->lmap.exit) break;
-                lh = lh->next;
+                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
     }

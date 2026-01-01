@@ -4,6 +4,7 @@ import json
 import argparse
 import subprocess
 from pathlib import Path
+import time
 
 TEST_CONFIGS: dict = {}
 
@@ -94,6 +95,7 @@ def _run_test(binary_path: Path, test_input: Path, debugger: str | None = None, 
                 f.write("=" * 80 + "\n")
                 f.flush()
                 
+                start_time = time.perf_counter()
                 process = subprocess.Popen(
                     command, 
                     stdout=subprocess.PIPE, 
@@ -109,7 +111,11 @@ def _run_test(binary_path: Path, test_input: Path, debugger: str | None = None, 
                     print(line, end='')
                     
                 return_code = process.wait()
-                
+                end_time = time.perf_counter()
+                elapsed = end_time - start_time
+
+            print("\n" + "=" * 80 + "\n")
+            print(f"\nExecution time: {elapsed:.6f} seconds")
             return return_code == 0
         except Exception as e:
             print(f"Error running test: {e}", file=sys.stderr)
