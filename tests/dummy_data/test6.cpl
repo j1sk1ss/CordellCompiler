@@ -1,13 +1,12 @@
 {
     start(i64 argc, ptr u64 argv) {
-        while 1; {
-            if 1; {
+        switch argc; {
+            case 1; {
+            }
+            case 2; {
                 break;
             }
-        }
-        
-        loop {
-            if 1; {
+            default {
                 break;
             }
         }
