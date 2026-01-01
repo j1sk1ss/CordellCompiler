@@ -58,6 +58,9 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
         case IF_TOKEN:              return cpl_parse_if(it, ctx, smt);
                                     /* while ( <stmt> ) { <content> }             */
         case WHILE_TOKEN:           return cpl_parse_while(it, ctx, smt);
+                                    /* loop { <content> }                         */
+        case LOOP_TOKEN:            return cpl_parse_loop(it, ctx, smt);
+                                    /* break                                      */
         case BREAK_TOKEN:           return cpl_parse_break(it);
         case STR_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:

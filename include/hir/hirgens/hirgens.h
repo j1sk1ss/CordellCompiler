@@ -197,6 +197,17 @@ Return parsed from AST HIR subject.
 int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Convert loop AST node into HIR element. 
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return parsed from AST HIR subject.
+*/
+int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
 Convert switch AST node into HIR element. 
 Params:
     - `node` - AST node.

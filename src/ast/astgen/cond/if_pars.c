@@ -1,9 +1,12 @@
 #include <ast/astgen/astgen.h>
 
 ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+    
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
         print_error("Can't create a base for the '%s' statement!", IF_COMMAND);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
     
@@ -14,6 +17,7 @@ ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     if (!cond) {
         print_error("Error during the condition parsing in the '%s' structure! %s <stmt>", IF_COMMAND, IF_COMMAND);
         AST_unload(node);
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -25,6 +29,7 @@ ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
         if (!branch) {
             print_error("Error during the true branch parsing in the '%s' statement!", IF_COMMAND);
             AST_unload(node);
+            RESTORE_TOKEN_POINT;
             return NULL;
         }
         
@@ -37,6 +42,7 @@ ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
         if (!branch) {
             print_error("Error during the false branch parsing in the '%s' statement!", IF_COMMAND);
             AST_unload(node);
+            RESTORE_TOKEN_POINT;
             return NULL;
         }
         

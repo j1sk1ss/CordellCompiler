@@ -6,6 +6,12 @@
             }
         }
         
+        loop {
+            if 1; {
+                break;
+            }
+        }
+
         exit 0;
     }
 }

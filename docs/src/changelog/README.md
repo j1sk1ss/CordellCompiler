@@ -22,6 +22,16 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Loop statement
+Now the `CPL` supports the `loop` statement!
+```cpl
+loop {
+    break;
+}
+```
+
+This statement the same with the `loop` from Rust.
+
 ## Break statement
 Now the `CPL` supports the `break` statement!
 ```cpl
