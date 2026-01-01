@@ -187,7 +187,7 @@ extern i8 size;
 arr arr1[size, i32];
 ```
 
-`Runtime-sized` arrays will die when code returns from their home scope. That's why this code below still illegal (Work only in cplv3):
+`Runtime-sized` arrays will die when code returns from their home scope. That's why this code below still illegal (Work only in the cplv2):
 ```cpl
 extern i8 size;
 ptr u8 a;
@@ -353,30 +353,45 @@ else {
 ## while statement
 ```cpl
 while <condition>; {
+    break;
+}
+```
+
+## loop statement
+In a difference with the `while` statement, the `loop` statement allows to build efficient infinity loops for a purpose. It is a way efficient than a `while 1;` statement given the empty 'condition' body. </br>
+**Importand Note:** You *must* insert the `break` keyword somewhere in a body of this statement. Otherwise it will became an infinity loop.
+```cpl
+loop {
+    break;
 }
 ```
 
 ## switch statement
-Note: `X` should be constant value (or a primitive variable that can be `inlined`).
+Note: `X` should be constant value (or a primitive variable that can be `inlined`). </br>
+Note 2: Similar to C language, the `switch` statement supports the fall 'mechanic'. It implies, that the `case` can ignore the `break` keyword. This will lead to the execution of the next case block.
 ```cpl
 switch cond; {
-   case X; {
-   }
-   default; {
-   }
+    case X; {
+    }
+    case Y; {
+        break;
+    }
+    default; {
+        break;
+    }
 }
 ```
 
 # Functions and inbuilt macros
 ## Functions
-Functions can be defined by `function` keyword. Also, if you want to use function in another `.cpl`/(or whatever language that support extern) file, you can append `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that CPL change local function name by next pattern: `__cpl_{name}`, that's why prefer mark them with `glob` key. 
+Functions can be defined by the `function` keyword. Also, if you want to use a function in another `.cpl`/(or whatever language that supports the `extern` mechanism) file, you can append the `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that the CPL changes a local function name by the next pattern: `__cpl_{name}`, that's why prefer mark them with the `glob` key (It will preserve a name from a changing). 
 ```cpl
 function min(i32 a) => i0 { return; }
 glob function chloe(i32 a = 10) => u64 { return a + 10; }
 function max(u64 a = chloe(11)) => i32 { return a + 10; }
 ```
 
-CPL support default values in functions. Compiler will pass this default args in function call if you don't provide enoght.
+CPL supports default values in functions. Compiler will pass these default args in a function call if you don't provide enough.
 ```cpl
 chloe(); : chloe(10); :
 max(); : max(chloe(11)); :
@@ -384,14 +399,14 @@ min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
 ```
 
 ## Inbuilt macros
-There is two inbuild functions that can be usefull for system programmer. First is `syscall` function.
-- `syscall` function called similar to default user functions, but can handler variate number of arguments. For example here is the write syscall:
+There is two inbuild functions that can be usefull for a system programmer. First is the `syscall` function.
+- `syscall` function is called similar to default user functions, but can handle an unfixed number of arguments. For example here is the write syscall:
 ```cpl
 str msg = "Hello, World!";
 syscall(1, 1, ref msg, strlen(ref msg));
 ```
 
-- `asm` - Second usefull function that allows inline assembly code. Main feature here is variables line, where you can pass any number of arguments, then use them in assembly code block via `%<num>` symbols.
+- `asm` - Second usefull function that allows to inline an assembly code. Main feature here is a variables line, where you can pass any number of arguments, then use them in the assembly code block via `%<num>` symbols.
 ```cpl
 i32 a = 0;
 i32 ret = 0;
@@ -457,7 +472,7 @@ Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
 }
 ```
 
-Note! Disable optimizations before debugging code due code transforming preservation.
+Note! Disable optimizations before a code debugging given the preservation the code from a transformation.
 
 # Static analysis
 Cordell Compiler implements the simple static analysis tool for the basic code-checking before compilation. It supports next list of errors and warnings:
@@ -492,6 +507,14 @@ a[11] = 0; : <= ILLEGAL_ARRAY_ACCESS! :
 Example:
 ```cpl
 function _test() { :...: } : <= INVALID_FUNCTION_NAME! :
+```
+
+- Inefficient `while`
+Example:
+```cpl
+while 1; { : ... : : <= INEFFICIENT_WHILE! :
+}
+: Use the loop { } instead! :
 ```
 
 # Examples
