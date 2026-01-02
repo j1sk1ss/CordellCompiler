@@ -7,19 +7,19 @@
 #include <prep/token.h>
 
 typedef enum {
-    CHAR_PP,         /* Pre-processor symbol: #          */
-    CHAR_ALPHA,      /* Any alphabet character: [A-Za-z] */
-    CHAR_DIGIT,      /* Any digit: [0-9]                 */
-    CHAR_QUOTE,      /* Quote: "                         */
-    CHAR_OTHER,      /* Unknown character type           */
-    CHAR_SPACE,      /* Space: ' '                       */
-    CHAR_COMMA,      /* Comma: ,                         */
-    CHAR_BRACKET,    /* Bracket: [ [, {, (, ), }, ] ]    */
-    CHAR_NEWLINE,    /* New line character (\n)          */
-    CHAR_DELIMITER,  /* Delimiter character: ;           */
-    CHAR_BACKSLASH,  /* Backslash: \                     */
-    CHAR_SING_QUOTE, /* Single quote: '                  */
-    CHAR_SIGN,       /* Signs: -, +                      */
+    CHAR_DOT,
+    CHAR_ALPHA,
+    CHAR_DIGIT,
+    CHAR_QUOTE,
+    CHAR_OTHER,
+    CHAR_SPACE,
+    CHAR_COMMA,
+    CHAR_BRACKET,
+    CHAR_COMMENT,
+    CHAR_NEWLINE,
+    CHAR_DELIMITER,
+    CHAR_BACKSLASH,
+    CHAR_SING_QUOTE
 } char_type_t;
 
 /*
@@ -39,6 +39,7 @@ static char_type_t _get_char_type(unsigned char ch) {
         case '\\': return CHAR_BACKSLASH;
         case '\'': return CHAR_SING_QUOTE;
         case ',':  return CHAR_COMMA;
+        case '.':  return CHAR_DOT;
         case '"':  return CHAR_QUOTE;
         case ';':  return CHAR_DELIMITER;
         case ' ':  case '\t': return CHAR_SPACE;
@@ -348,9 +349,32 @@ int TKN_tokenize(int fd, list_t* tkn) {
                     TKN_unload_token(token);
                     TKN_unload_token(fline);
 
-                    fname->t_type = INCLUDE_FILE_TOKEN;
-                    list_add(tkn, fname);
-                    break;
+            /* Markdown routine (quotes and comment flags handler) */
+            if (ct == CHAR_SING_QUOTE || ct == CHAR_QUOTE || (ct == CHAR_COMMENT && !curr_ctx.squt && !curr_ctx.mqut)) {
+                if (ct == CHAR_SING_QUOTE) curr_ctx.squt = !curr_ctx.squt;
+                else if (ct == CHAR_QUOTE) curr_ctx.mqut = !curr_ctx.mqut;
+                else                       curr_ctx.cmt = !curr_ctx.cmt;
+                continue;
+            }
+
+            /* Skip character if this is comment section */
+            if (curr_ctx.cmt && !curr_ctx.squt && !curr_ctx.mqut) continue;
+
+            /* Determine character type */
+            token_type_t char_type;
+            if (curr_ctx.squt)           char_type = CHAR_VALUE_TOKEN;
+            else if (curr_ctx.mqut)      char_type = STRING_VALUE_TOKEN;
+            else {
+                switch (ct) {
+                    case CHAR_ALPHA:     char_type = UNKNOWN_STRING_TOKEN;  break;
+                    case CHAR_DIGIT:     char_type = UNKNOWN_NUMERIC_TOKEN; break;
+                    case CHAR_DELIMITER: char_type = DELIMITER_TOKEN;       break;
+                    case CHAR_COMMA:     char_type = COMMA_TOKEN;           break;
+                    case CHAR_DOT:       char_type = DOT_TOKEN;             break;
+                    case CHAR_BRACKET:   char_type = UNKNOWN_BRACKET_VALUE; break;
+                    case CHAR_SPACE:
+                    case CHAR_NEWLINE:   char_type = LINE_BREAK_TOKEN;      break;
+                    default:             char_type = UNKNOWN_CHAR_TOKEN;    break;
                 }
 
                 default: list_add(tkn, token); break;
