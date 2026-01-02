@@ -20,10 +20,10 @@ typedef enum {
     UNKNOWN_SIGN_TOKEN,          // +, -, *, /, etc
     LINE_BREAK_TOKEN,
 
+    COMMENT_TOKEN,       // :
     DELIMITER_TOKEN,     // ;
     COMMA_TOKEN,         // ,
-    INDEXATION_TOKEN,    // []
-    CALLING_TOKEN,       // ()
+    DOT_TOKEN,           // .
     OPEN_INDEX_TOKEN,    // [
     CLOSE_INDEX_TOKEN,   // ]
     OPEN_BRACKET_TOKEN,  // (
@@ -66,6 +66,7 @@ typedef enum {
     U8_TYPE_TOKEN,       // u8
     STR_TYPE_TOKEN,      // str
     ARRAY_TYPE_TOKEN,    // arr
+    STRUCT_TYPE_TOKEN,   // struct
     
     // Convert statements
     CONVERT_TOKEN,       // as
@@ -131,20 +132,20 @@ typedef enum {
     AND_TOKEN,           // &&
     OR_TOKEN,            // ||
     
-    // Variables (not a type, a variable)
-    VARIABLE_TOKEN,      // front-end tokenizer variable abstraction
-    F64_VARIABLE_TOKEN,  // f64
-    F32_VARIABLE_TOKEN,  // f32
-    I64_VARIABLE_TOKEN,  // i64
-    I32_VARIABLE_TOKEN,  // i32
-    I16_VARIABLE_TOKEN,  // i16
-    I8_VARIABLE_TOKEN,   // i8
-    U64_VARIABLE_TOKEN,  // u64
-    U32_VARIABLE_TOKEN,  // u32
-    U16_VARIABLE_TOKEN,  // u16
-    U8_VARIABLE_TOKEN,   // u8
-    STR_VARIABLE_TOKEN,  // str
-    ARR_VARIABLE_TOKEN,  // arr
+    // Vars
+    F64_VARIABLE_TOKEN,    // f64
+    F32_VARIABLE_TOKEN,    // f32
+    I64_VARIABLE_TOKEN,    // i64
+    I32_VARIABLE_TOKEN,    // i32
+    I16_VARIABLE_TOKEN,    // i16
+    I8_VARIABLE_TOKEN,     // i8
+    U64_VARIABLE_TOKEN,    // u64
+    U32_VARIABLE_TOKEN,    // u32
+    U16_VARIABLE_TOKEN,    // u16
+    U8_VARIABLE_TOKEN,     // u8
+    STR_VARIABLE_TOKEN,    // str
+    ARR_VARIABLE_TOKEN,    // arr
+    STRUCT_VARIABLE_TOKEN, // struct
 
     // Values
     STRING_VALUE_TOKEN,  // "something"
