@@ -30,6 +30,7 @@ typedef enum {
     CLOSE_BRACKET_TOKEN, // )
     OPEN_BLOCK_TOKEN,    // {
     CLOSE_BLOCK_TOKEN,   // }
+    STRUCT_TOKEN,        // struct
 
     // Modifiers
     DREF_TYPE_TOKEN,     // dref
