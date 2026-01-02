@@ -270,10 +270,22 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
     return 1;
 }
 
-static int _search_rexit_ast(ast_node_t* nd, int* found) {
+/*
+Search for the 'return' or for the 'exit' statement in the provided AST node.
+Params:
+    - `nd` - Target AST node.
+    - `found` - External flag. Will hold the `1` value if this function
+                finds the 'return' or the 'exit' statement.
+    - `type` - External flag. Will hold the next list of values:
+                - 1 - Found the 'exit' statement.
+                - 2 - Found the 'return' statement.
+
+Returns 1 if succeeds.
+*/
+static int _search_rexit_ast(ast_node_t* nd, int* found, int* type) {
     if (!nd) return 0;
     if (!nd->t) {
-        _search_rexit_ast(nd->c, found);
+        _search_rexit_ast(nd->c, found, type);
         return 0;
     }
 
@@ -285,9 +297,9 @@ static int _search_rexit_ast(ast_node_t* nd, int* found) {
             ast_node_t* rbranch = lbranch->siblings.n;
 
             int nret = 0, lret = 0, rret = 0;
-            _search_rexit_ast(lbranch, &lret);
-            _search_rexit_ast(rbranch, &rret);
-            _search_rexit_ast(nd->siblings.n, &nret);
+            _search_rexit_ast(lbranch, &lret, type);
+            _search_rexit_ast(rbranch, &rret, type);
+            _search_rexit_ast(nd->siblings.n, &nret, type);
             if (rret && lret) nret = 1;
             if (!rbranch) rret = 1;
 
@@ -301,24 +313,26 @@ static int _search_rexit_ast(ast_node_t* nd, int* found) {
             ast_node_t* cases = cnd->siblings.n->c;
             for (; cases; cases = cases->siblings.n) {
                 int curret = 0;
-                _search_rexit_ast(cases->c, &curret);
+                _search_rexit_ast(cases->c, &curret, type);
                 caseret = caseret && curret;
             }
 
-            _search_rexit_ast(nd->siblings.n, &nret);
+            _search_rexit_ast(nd->siblings.n, &nret, type);
             if (nret || caseret) *found = 1;
             break;
         }
 
-        case EXIT_TOKEN:
-        case RETURN_TOKEN: {
+        case EXIT_TOKEN:   if (type) *type = 1; goto _set_found_flag;
+        case RETURN_TOKEN: if (type) *type = 2;
+        {
+_set_found_flag: {}
             if (found) *found = 1;
             return 1;
         }
 
         default: {
-            _search_rexit_ast(nd->c, found);
-            _search_rexit_ast(nd->siblings.n, found);
+            _search_rexit_ast(nd->c, found, type);
+            _search_rexit_ast(nd->siblings.n, found, type);
             break;
         }
     }
@@ -338,7 +352,7 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
     }
 
     int has_ret = 0;
-    _search_rexit_ast(nd->c, &has_ret);
+    _search_rexit_ast(nd->c, &has_ret, NULL);
     if (
         fi.rtype && fi.rtype->t &&              /* Check if there is a return type                    */
         fi.rtype->t->t_type == I0_TYPE_TOKEN && /* Check if the return type is a i0                   */
@@ -357,7 +371,7 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
 
 int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     int has_ret = 0;
-    _search_rexit_ast(nd->c, &has_ret);
+    _search_rexit_ast(nd->c, &has_ret, NULL);
     if (!has_ret) {
         SEMANTIC_WARNING(" [line=%i] Start doesn't have the exit statement in all paths!", nd->t->lnum);
         REBUILD_CODE(nd, NULL);
@@ -688,5 +702,29 @@ int ASTWLKR_inefficient_while(AST_VISITOR_ARGS) {
         return 0;
     }
 
+    return 1;
+}
+
+int ASTWLKR_wrong_exit(AST_VISITOR_ARGS) {
+    long fid;
+    if (nd->t->t_type == START_TOKEN) fid = nd->sinfo.v_id;
+    else nd->c->sinfo.v_id;
+
+    func_info_t fi;
+    if (
+        !FNTB_get_info_id(fid, &fi, &smt->f) || 
+        !fi.entry
+    ) return 0;
+
+    int f = 0, t = 0;
+    _search_rexit_ast(nd->c, &f, &t);
+    if (f && t == 2) {
+        SEMANTIC_INFO(
+            " [line=%i] The function '%s' is an entry point! Consider a usage of the 'exit' statement over the 'return' statement!", 
+            nd->t->lnum, fi.name->body
+        );
+
+        return 0;
+    }
     return 1;
 }

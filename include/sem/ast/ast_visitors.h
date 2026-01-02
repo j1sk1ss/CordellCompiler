@@ -269,4 +269,16 @@ Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_inefficient_while(AST_VISITOR_ARGS);
 
+/*
+This checker checks for the wrong exit operation in the entry function.
+Main idea that the entry function must use the 'exit' statement. If it uses
+the 'return' statement instead, it may cause errors.
+
+Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+Return 1 if node is correct, otherwise this function will return 0.
+*/
+int ASTWLKR_wrong_exit(AST_VISITOR_ARGS);
+
 #endif

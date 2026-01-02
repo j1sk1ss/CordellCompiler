@@ -16,7 +16,7 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     }
 
     if (last && !has_entry && FNTB_update_info(last->id, last->used, 1, last->args, last->rtype, &smt->f)) {
-        print_warn("'start' function not found! Default start set to %s", last->name);
+        print_warn("The 'start' function isn't found! Default entry set to the '%s'!", last->name->body);
     }
 
     return ctx->r != NULL;
