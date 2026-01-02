@@ -94,6 +94,12 @@ typedef enum {
     SUBASSIGN_TOKEN,     // -=
     MULASSIGN_TOKEN,     // *=
     DIVASSIGN_TOKEN,     // /=
+    MODULOASSIGN_TOKEN,  // %=
+    BITANDASSIGN_TOKEN,  // &=
+    BITORASSIGN_TOKEN,   // |=
+    BITXORASSIGN_TOKEN,  // ^=
+    ORASSIGN_TOKEN,      // ||=
+    ANDASSIGN_TOKEN,     // &&=
     ASSIGN_TOKEN,        // =
     COMPARE_TOKEN,       // ==
     NCOMPARE_TOKEN,      // !=

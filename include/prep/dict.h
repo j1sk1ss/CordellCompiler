@@ -60,10 +60,18 @@
 #define ASM_COMMAND             "asm"
 
 // Symbols and statements (Operands)
+/* Update lexems */
 #define ADDASSIGN_STATEMENT     "+="
 #define SUBASSIGN_STATEMENT     "-="
 #define MULASSIGN_STATEMENT     "*="
 #define DIVASSIGN_STATEMENT     "/="
+#define MODULOASSIGN_STATEMENT  "%%="
+#define BITANDASSIGN_STATEMENT  "&="
+#define BITORASSIGN_STATEMENT   "|="
+#define BITXORASSIGN_STATEMENT  "^="
+#define ORASSIGN_STATEMENT      "||=" // TODO
+#define ANDASSIGN_STATEMENT     "&&="
+
 #define ASSIGN_STATEMENT        "="
 #define COMPARE_STATEMENT       "=="
 #define NCOMPARE_STATEMENT      "!="

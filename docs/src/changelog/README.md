@@ -22,6 +22,15 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Additional operators
+Implement the next list of operators:
+| Operation        | Example   |
+|------------------|-----------|
+| `%=`             | `X %= Y`  |
+| `\|=`            | `X \|= Y` |
+| `&=`             | `X &= Y`  |
+| `^=`             | `X ^= Y`  |
+
 ## Loop statement
 Now the `CPL` supports the `loop` statement!
 ```cpl

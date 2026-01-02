@@ -3,16 +3,23 @@
 int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* left  = node->c;
     ast_node_t* right = left->siblings.n;
+
     hir_subject_t* dst = HIR_generate_elem(left, ctx, smt);
     hir_subject_t* upd = HIR_generate_elem(right, ctx, smt);
     hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(dst->t), 0, NULL, &smt->v));
     upd = HIR_generate_conv(ctx, res->t, upd, smt);
 
     switch (node->t->t_type) {
-        case ADDASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_iADD, res, dst, upd); break;
-        case SUBASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_iSUB, res, dst, upd); break;
-        case MULASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_iMUL, res, dst, upd); break;
-        case DIVASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_iDIV, res, dst, upd); break;
+        case ADDASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iADD, res, dst, upd); break;
+        case SUBASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iSUB, res, dst, upd); break;
+        case MULASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iMUL, res, dst, upd); break;
+        case DIVASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iDIV, res, dst, upd); break;
+        // case ORASSIGN_TOKEN:     HIR_BLOCK3(ctx, HIR_iOR, res, dst, upd);  break; // TODO
+        // case ANDASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iAND, res, dst, upd); break;
+        case BITORASSIGN_TOKEN:  HIR_BLOCK3(ctx, HIR_bOR, res, dst, upd);  break;
+        case MODULOASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_iMOD, res, dst, upd); break;
+        case BITANDASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_bAND, res, dst, upd); break;
+        case BITXORASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_bXOR, res, dst, upd); break;
         default: break;
     }
     
