@@ -1,6 +1,7 @@
 #include <prep/token.h>
 
 typedef enum {
+    CHAR_DOT,
     CHAR_ALPHA,
     CHAR_DIGIT,
     CHAR_QUOTE,
@@ -24,6 +25,7 @@ static char_type_t _get_char_type(unsigned char ch) {
         case '\\': return CHAR_BACKSLASH;
         case '\'': return CHAR_SING_QUOTE;
         case ',':  return CHAR_COMMA;
+        case '.':  return CHAR_DOT;
         case '"':  return CHAR_QUOTE;
         case ':':  return CHAR_COMMENT;
         case ';':  return CHAR_DELIMITER;
@@ -169,6 +171,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
                     case CHAR_DIGIT:     char_type = UNKNOWN_NUMERIC_TOKEN; break;
                     case CHAR_DELIMITER: char_type = DELIMITER_TOKEN;       break;
                     case CHAR_COMMA:     char_type = COMMA_TOKEN;           break;
+                    case CHAR_DOT:       char_type = DOT_TOKEN;             break;
                     case CHAR_BRACKET:   char_type = UNKNOWN_BRACKET_VALUE; break;
                     case CHAR_SPACE:
                     case CHAR_NEWLINE:   char_type = LINE_BREAK_TOKEN;      break;

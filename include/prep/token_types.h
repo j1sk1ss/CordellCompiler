@@ -11,15 +11,17 @@ typedef enum {
     UNKNOWN_NUMERIC_TOKEN,
     LINE_BREAK_TOKEN,
 
-    COMMENT_TOKEN,
-    DELIMITER_TOKEN,
-    COMMA_TOKEN,
-    OPEN_INDEX_TOKEN,
-    CLOSE_INDEX_TOKEN,
-    OPEN_BRACKET_TOKEN,
-    CLOSE_BRACKET_TOKEN,
-    OPEN_BLOCK_TOKEN,
-    CLOSE_BLOCK_TOKEN,
+    COMMENT_TOKEN,       // :
+    DELIMITER_TOKEN,     // ;
+    COMMA_TOKEN,         // ,
+    DOT_TOKEN,           // .
+    OPEN_INDEX_TOKEN,    // [
+    CLOSE_INDEX_TOKEN,   // ]
+    OPEN_BRACKET_TOKEN,  // (
+    CLOSE_BRACKET_TOKEN, // )
+    OPEN_BLOCK_TOKEN,    // {
+    CLOSE_BLOCK_TOKEN,   // }
+    STRUCT_TOKEN,        // struct
 
     // Modifiers
     DREF_TYPE_TOKEN,     // dref
@@ -55,6 +57,7 @@ typedef enum {
     U8_TYPE_TOKEN,       // u8
     STR_TYPE_TOKEN,      // str
     ARRAY_TYPE_TOKEN,    // arr
+    STRUCT_TYPE_TOKEN,   // struct
     
     // Commands
     IMPORT_TOKEN,        // import
@@ -110,18 +113,19 @@ typedef enum {
     OR_TOKEN,            // ||
     
     // Vars
-    F64_VARIABLE_TOKEN,  // f64
-    F32_VARIABLE_TOKEN,  // f32
-    I64_VARIABLE_TOKEN,  // i64
-    I32_VARIABLE_TOKEN,  // i32
-    I16_VARIABLE_TOKEN,  // i16
-    I8_VARIABLE_TOKEN,   // i8
-    U64_VARIABLE_TOKEN,  // u64
-    U32_VARIABLE_TOKEN,  // u32
-    U16_VARIABLE_TOKEN,  // u16
-    U8_VARIABLE_TOKEN,   // u8
-    STR_VARIABLE_TOKEN,  // str
-    ARR_VARIABLE_TOKEN,  // arr
+    F64_VARIABLE_TOKEN,    // f64
+    F32_VARIABLE_TOKEN,    // f32
+    I64_VARIABLE_TOKEN,    // i64
+    I32_VARIABLE_TOKEN,    // i32
+    I16_VARIABLE_TOKEN,    // i16
+    I8_VARIABLE_TOKEN,     // i8
+    U64_VARIABLE_TOKEN,    // u64
+    U32_VARIABLE_TOKEN,    // u32
+    U16_VARIABLE_TOKEN,    // u16
+    U8_VARIABLE_TOKEN,     // u8
+    STR_VARIABLE_TOKEN,    // str
+    ARR_VARIABLE_TOKEN,    // arr
+    STRUCT_VARIABLE_TOKEN, // struct
 
     // Values
     STRING_VALUE_TOKEN,

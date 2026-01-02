@@ -18,6 +18,9 @@
 #define RETURN_COMMAND          "return"
 #define CLOSE_BLOCK             "}"
 
+// Structs
+#define STRUCT_DEFINE_COMMAND   "struct"
+
 // Function
 #define EXFUNCTION_COMMAND      "exfunc"
 #define FUNCTION_COMMAND        "function"
