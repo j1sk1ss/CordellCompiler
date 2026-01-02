@@ -327,15 +327,29 @@ static int _search_rexit_ast(ast_node_t* nd, int* found) {
 }
 
 int ASTWLKR_no_return(AST_VISITOR_ARGS) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(nd->c->sinfo.v_id, &fi, &smt->f)) {
+        SEMANTIC_ERROR(
+            " [line=%i] Function='%s' is not registered for some reason! Check logs!",
+            nd->c->t->lnum, nd->c->t->body->body
+        );
+
+        return 0;
+    }
+
     int has_ret = 0;
     _search_rexit_ast(nd->c, &has_ret);
+    if (
+        fi.rtype && fi.rtype->t &&              /* Check if there is a return type                    */
+        fi.rtype->t->t_type == I0_TYPE_TOKEN && /* Check if the return type is a i0                   */
+        !has_ret                                /* If there is no return and this is a i8 - it's fine */
+    ) has_ret = 1;
+    
     if (!has_ret) {
         SEMANTIC_WARNING(
             " [line=%i] Function='%s' doesn't have the return statement in all paths!", 
             nd->t->lnum, nd->c->t->body->body
         );
-
-        REBUILD_CODE(nd, NULL);
     }
 
     return 1;

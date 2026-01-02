@@ -1,6 +1,6 @@
 # Summary
 The **Cordell Programming Language (CPL)** is a system-level programming language designed for learning and experimenting with modern compiler concepts. It combines low-level capabilities from `ASM` with practices inspired by modern languages like `Rust` and `C`. `CPL` is intended for:
-- **Systems programming** — operating systems, compilers, interpreters, and embedded software.  
+- **Systems programming** — operating systems, DBMSs, compilers, interpreters, and embedded software.  
 - **Educational purposes** — a language to study compiler design, interpreters, and programming language concepts.
 - **Radical simplicity** - Similar to RISC, *we can construct any complex abstraction without complex abstractions*. 
 
@@ -23,29 +23,42 @@ Main goal of this project is learning of compilers architecture and porting one 
 - Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
 
 # Hello, World! example
+That's how we can write a 'hello-world' program with CPL language.
 ```cpl
 {
+    : Define the strlen function
+      that accepts a pointer to a char array :
     function strlen(ptr i8 s) => i64 {
         i64 l = 0;
+
+        : While pointed symbol isn't a zero value
+          continue iteration :
         while dref s; {
             s += 1;
             l += 1;
         }
 
+        : Return the length of the provided
+          string :
         return l;
     }
 
-    function puts(ptr i8 s) {
+    : Define the puts function
+      that accepts a pointer to string object :
+    function puts(ptr str s) => i0 {
+        : Start ASM inline block with
+          a support of the argument list :
         asm (s, strlen(s)) {
             "mov rax, 1",
             "mov rdi, 1",
-            "mov rsi, %1",
-            "mov rdx, %0",
+            "mov rsi, %1", : Send the 'strlen(s) result' to the RSI register :
+            "mov rdx, %0", : Send the 's' variable to the RDX register       :
             "syscall"
         }
-        return;
     }
 
+    : Program entry point similar to C's entry point
+      main(int argc, char* argv[]); :
     start(i64 argc, ptr u64 argv) {
         puts("Hello, World!");
         exit 0;
@@ -74,7 +87,7 @@ glob ro i32 WIN_Y = 1920;
 function calculate_sum(ptr i32 arr, i64 length) => i32 { return 0; }
 ```
 
-- **Scopes**: K&R style [C-code convention]
+- **Scopes**: K&R style
 ```cpl
 if cond; {
 }
@@ -84,7 +97,7 @@ start(i64 argc, ptr u64 argv) {
 }
 ```
 
-- **Comments**: Comments can be in one line with start and end symbol `:` and in several lines with same logic. [ASM-code convention + C-code convention]
+- **Comments**: Comments can be written in the one line with the start and the end symbol `:` and in several lines with the same logic. [ASM-code convention + C-code convention]
 ```cpl
 : Hello there
 :
@@ -602,6 +615,7 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
                 case '['; {
                     stack[stackptr] = pos;
                     stackptr += 1;
+                    break;
                 }
                 case ']'; {
                     if stackptr > 0; {
@@ -610,6 +624,8 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
                         bracketmap[pos] = matchpos;
                         bracketmap[matchpos] = pos;
                     }
+
+                    break;
                 }
             }
             
@@ -624,50 +640,51 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
                 case '>'; {
                     pointer += 1;
                     pc += 1;
+                    break;
                 }
                 case '<'; {
                     pointer -= 1;
                     pc += 1;
+                    break;
                 }
                 case '+'; {
                     tape[pointer] += 1;
                     pc += 1;
+                    break;
                 }
                 case '-'; {
                     tape[pointer] -= 1;
                     pc += 1;
+                    break;
                 }
                 case '.'; {
                     putc(tape[pointer]);
                     pc += 1;
+                    break;
                 }
                 case ','; {
                     gets(ref tape[pointer], 1);
                     pc += 1;
+                    break;
                 }
                 case '['; {
-                    if not tape[pointer]; {
-                        pc = bracketmap[pc];
-                    }
-                    else {
-                        pc += 1;
-                    }
+                    if not tape[pointer]; { pc = bracketmap[pc]; }
+                    else { pc += 1; }
+                    break;
                 }
                 case ']'; {
-                    if tape[pointer]; {
-                        pc = bracketmap[pc];
-                    }
-                    else {
-                        pc += 1;
-                    }
+                    if tape[pointer]; { pc = bracketmap[pc]; }
+                    else { pc += 1; }
+                    break;
                 }
                 default {
                     pc += 1;
+                    break;
                 }
             }
         }
 
-        exit 1;
+        exit 0;
     }
 }
 ```
