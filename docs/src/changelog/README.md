@@ -112,7 +112,7 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     if (!rarg) return 1;
 
     if (larg->token->flags.ro) {
-        SEMANTIC_ERROR(" [line=%i] Read-only variable=%s assign!", larg->token->lnum, larg->token->value);
+        SEMANTIC_ERROR(" [line=%i] Read-only variable=%s assign!", larg->token->finfo.line, larg->token->value);
         return 0;
     }
 

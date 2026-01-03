@@ -5,7 +5,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("Can't create the base for the function!");
+        PARSE_ERROR("Can't create a base for the function!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -13,7 +13,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     forward_token(it, 1);
     ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
     if (!name_node) {
-        print_error("Can't create the base for the function's name!");
+        PARSE_ERROR("Can't create a base for the function's name!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -22,9 +22,9 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     AST_add_node(node, name_node);
 
     forward_token(it, 1);
-    ast_node_t* args_node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, CURRENT_TOKEN->lnum));
+    ast_node_t* args_node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo));
     if (!args_node) {
-        print_error("Can't create the base for the function's arguments!");
+        PARSE_ERROR("Can't create a base for the function's arguments!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -43,7 +43,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         else {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("Error during the function's argument parsing! function <name>(<type> <name> (opt: = <stmt>))!");
+                PARSE_ERROR("Error during the function's argument parsing! function <name>(<type> <name> (opt: = <stmt>))!");
                 AST_unload(node);
                 AST_unload(args_node);
                 RESTORE_TOKEN_POINT;
@@ -69,8 +69,9 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
 
     ast_node_t* body_node = cpl_parse_scope(it, ctx, smt);
     if (!body_node) {
-        print_error("Error during the function's body parsing!");
+        PARSE_ERROR("Error during the function's body parsing!");
         AST_unload(node);
+        AST_unload(args_node);
         RESTORE_TOKEN_POINT;
         return NULL;
     }

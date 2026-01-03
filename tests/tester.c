@@ -110,7 +110,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
         printf(
             "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
             h->flags.glob ? "glob " : "", 
-            h->lnum, 
+            h->finfo.line, 
             h->t_type, 
             h->body->body,
             h->flags.ptr  ? "ptr "  : "", 
@@ -128,8 +128,10 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #ifdef AST_TESTING
     ast_ctx_t sctx = { .r = NULL, .fentry = "_main" };
     stack_init(&sctx.scopes.stack);
-    AST_parse_tokens(&tokens, &sctx, &smt); // Analyzation
-
+    if (!AST_parse_tokens(&tokens, &sctx, &smt)) { // Analyzation
+        fprintf(stderr, "AST tree creation error!\n");
+        return 1;
+    }
 #ifdef AST_OPT_TESTING
     OPT_condunroll(&sctx); // Transform
     OPT_deadscope(&sctx);  // Transform

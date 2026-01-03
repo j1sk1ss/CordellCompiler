@@ -7,7 +7,7 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("Can't create a base for the variable declaration!");
+        PARSE_ERROR("Can't create a node for the variable declaration type! <type> <name>!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -15,32 +15,36 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
     forward_token(it, 1);
     ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
     if (!name_node) {
-        print_error("Can't create a node for the variable's name!");
+        PARSE_ERROR("Can't create a node for the variable's name! <type> <name>!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
     
     AST_add_node(node, name_node);
-    forward_token(it, 1);
 
     long decl_scope;
     stack_top(&ctx->scopes.stack, (void**)&decl_scope);
     name_node->sinfo.v_id = VRTB_add_info(
-        name_node->t->body, node->t->t_type, decl_scope, &name_node->t->flags, &smt->v
+        name_node->t->body, node->t->t_type, 
+        decl_scope, &name_node->t->flags, &smt->v
     );
 
+    forward_token(it, 1);
     if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {
         forward_token(it, 1);
         ast_node_t* value_node = cpl_parse_expression(it, ctx, smt);
         if (!value_node) {
-            print_error("Error during parsing of the declaration statement!");
+            PARSE_ERROR("Error during parsing of the declaration statement!");
             AST_unload(node);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
 
-        if (node->t->t_type == STR_TYPE_TOKEN) {
+        if (node->t->t_type == STR_TYPE_TOKEN) { /* Special case for a string variable.
+                                                    The reason why we care - a string isn't a regular array.
+                                                    Also, we can't separate the string from a variable given the
+                                                    ability of string arguments, etc. */
             ARTB_add_info(name_node->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, 0, I8_TYPE_TOKEN, &smt->a);
             STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }

@@ -3,8 +3,10 @@
 int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     list_iter_t it;
     list_iter_hinit(tkn, &it);
-    ctx->r = cpl_parse_block(&it, ctx, smt, CLOSE_BLOCK_TOKEN);
 
+    ctx->r = cpl_parse_block(&it, ctx, smt, CLOSE_BLOCK_TOKEN);
+    if (!ctx->r) return 0;
+    
     int has_entry = 0;
     func_info_t* last = NULL;
     map_foreach(func_info_t* fi, &smt->f.functb) {
@@ -19,5 +21,5 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
         print_warn("The 'start' function isn't found! Default entry set to the '%s'!", last->name->body);
     }
 
-    return ctx->r != NULL;
+    return 1;
 }

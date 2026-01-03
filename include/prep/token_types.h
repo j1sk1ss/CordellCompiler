@@ -149,10 +149,15 @@ typedef struct {
 } token_flags_t;
 
 typedef struct {
-    token_flags_t flags;
-    token_type_t  t_type;
-    string_t*     body;
-    int           lnum; /* Line in source file */
+    long line;
+    long column;
+} token_fpos_t;
+
+typedef struct {
+    token_flags_t flags;  /* Token's flags           */
+    token_type_t  t_type; /* Token's type            */
+    string_t*     body;   /* Token's body            */
+    token_fpos_t  finfo;  /* Source file information */
 } token_t;
 
 token_type_t TKN_get_tmp_type(token_type_t t);

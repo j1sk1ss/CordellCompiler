@@ -32,7 +32,7 @@ Params:
 
 Return pointer to token, or NULL if malloc error.
 */
-token_t* TKN_create_token(token_type_t type, const char* value, int line);
+token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* finfo);
 
 /*
 Tokenize input file by provided FD.

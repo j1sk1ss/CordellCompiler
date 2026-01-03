@@ -158,6 +158,15 @@ digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
 #define CURRENT_TOKEN ((token_t*)list_iter_current(it))
 #define NEXT_TOKEN    ((token_t*)list_iter_next_top(it))
 
+#define PARSE_ERROR(msg, ...) \
+    fprintf( \
+        stderr,                                          \
+        "[%li:%li] " msg "\n",                           \
+        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.line : 0,   \
+        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.column : 0, \
+        ##__VA_ARGS__                                    \
+    )
+
 /*
 Search for a variable (presented in the node) on the symtable.
 Params:

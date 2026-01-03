@@ -7,7 +7,7 @@ ast_node_t* cpl_parse_breakpoint(list_iter_t* it) {
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("Can't create a base for the '%s' statement!", BREAKPOINT_COMMAND);
+        PARSE_ERROR("Can't create a base for the '%s' statement!", BREAKPOINT_COMMAND);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
