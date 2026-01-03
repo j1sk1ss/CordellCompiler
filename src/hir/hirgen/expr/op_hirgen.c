@@ -7,7 +7,7 @@ int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
     hir_subject_t* dst = HIR_generate_elem(left, ctx, smt);
     hir_subject_t* upd = HIR_generate_elem(right, ctx, smt);
     hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(dst->t), 0, NULL, &smt->v));
-    upd = HIR_generate_conv(ctx, res->t, upd, smt);
+    upd = HIR_generate_implconv(ctx, res->t, upd, smt);
 
     switch (node->t->t_type) {
         case ADDASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iADD, res, dst, upd); break;
@@ -48,7 +48,7 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
                 VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), 0, NULL, &smt->v)
             );
             
-            lt2 = HIR_generate_conv(ctx, res->t, lt2, smt);
+            lt2 = HIR_generate_implconv(ctx, res->t, lt2, smt);
             HIR_BLOCK2(ctx, HIR_STORE, res, lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
@@ -71,7 +71,7 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
                 VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), 0, NULL, &smt->v)
             );
             
-            lt2 = HIR_generate_conv(ctx, res->t, lt2, smt);
+            lt2 = HIR_generate_implconv(ctx, res->t, lt2, smt);
             HIR_BLOCK2(ctx, HIR_STORE, res, lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
@@ -88,8 +88,8 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
                 VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), 0, NULL, &smt->v)
             );
             
-            lt1 = HIR_generate_conv(ctx, res->t, lt1, smt);
-            lt2 = HIR_generate_conv(ctx, res->t, lt2, smt);
+            lt1 = HIR_generate_implconv(ctx, res->t, lt1, smt);
+            lt2 = HIR_generate_implconv(ctx, res->t, lt2, smt);
             switch (op->t->t_type) {
                 case PLUS_TOKEN:          HIR_BLOCK3(ctx, HIR_iADD, res, lt1, lt2);  break;
                 case BITOR_TOKEN:         HIR_BLOCK3(ctx, HIR_bOR, res, lt1, lt2);   break;

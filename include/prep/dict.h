@@ -47,6 +47,8 @@
 #define STR_VARIABLE            "str"
 #define ARR_VARIABLE            "arr"
 
+#define CONVERT_COMMAND         "as"
+
 // Commands
 #define SWITCH_COMMAND          "switch"
 #define CASE_COMMAND            "case"

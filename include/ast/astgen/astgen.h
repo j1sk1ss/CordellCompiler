@@ -514,11 +514,23 @@ break;
 
 Params:
     - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
 
 Returns an ast node.
 */
 ast_node_t* cpl_parse_break(list_iter_t* it);
+
+/*
+Parse .cpl cast block. Should be invoked on a 'as' token.
+Snippet:
+```cpl
+i32 b = variable as i32;
+```
+
+Params:
+    - `it` - Current iterator on token list.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_conv(list_iter_t* it);
 
 #endif

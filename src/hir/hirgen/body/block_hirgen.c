@@ -27,6 +27,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
     switch (node->t->t_type) {
         case CALL_TOKEN:            return HIR_generate_funccall(node, ctx, smt, 1);
         case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 1);
+        case CONVERT_TOKEN:         return HIR_generate_explconv(node, ctx, smt);
         /* We skip assign nodes above given the next logic, 
         where we generate the special load sequence */
         case I8_VARIABLE_TOKEN:

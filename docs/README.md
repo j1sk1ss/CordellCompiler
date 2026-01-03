@@ -128,8 +128,13 @@ function naomi() => i0; { return; }
 ```
 
 # Types
-Now let's talk about the language basics. Actually, this is a strong-typed language, that forces programmer to specify a type of a variable. However, at this moment there is no keyword such as `as` from Rust for the type convertion, that's why I can't officialy call this language as a strong-typed language yet. But Compiler has a semantic type checker that will fire a warning in places, where implict casting is happening. </br>
-For the most cases this Compiler will invole implict convertion for types during work in the `HIR` level (see README for more information how the convertion actually works here).
+Now let's talk about the language basics. The compiler supports a cast operation such as `as` operation. Syntax is similar with Rust language. </br>
+For instance:
+```cpl
+i32 never = 10 as i32;
+i32 dies = 10 as i32;
+u8 technoblade = (never + dies) as u8;
+```
 
 ## Primitives
 Primitive type is a basic, supported by this language, data structure. They include:
@@ -294,7 +299,7 @@ function BarBar() => i0 { ...
 | `==`                   | Equality                                    | `X` == `Y` |
 | `!=`                   | Inequality                                  | `X` != `Y` |
 | `not`                  | Negation                                    | not `X`    |
-| `+=` `-=` `*=` `/=`    | Update operations                           | `X` += `Y` |
+| `+=` `-=` `*=` `/=` `&=` `\|=` `%=` | Update operations              | `X` += `Y` |
 | `>` `>=` `<` `<=`      | Comparison                                  | `X` >= `Y` |
 | `&&` `\|\|`            | Logic operations (Lazy Evaluations support) | `X` && `Y` |
 | `>>` `<<` `&` `\|` `^` | Bit operations                              | `X` >> `Y` |
@@ -486,15 +491,21 @@ Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
 ```
 
 Note! Disable optimizations before a code debugging given the preservation the code from a transformation.
+Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
 
 # Static analysis
 Cordell Compiler implements the simple static analysis tool for the basic code-checking before compilation. It supports next list of errors and warnings:
 - Read-only variable update 
+```cpl
+ro i8 a = 10;
+a = 11; : <= RO_ASSIGN! :
+```
+
 - Invalid place for function return
 Example:
 ```cpl
 function foo() => ptr u64 { :...: }
-i8 a = foo(); : <= RO_ASSIGN! :
+i8 a = foo(); : <= INVALID_RETURN_TYPE! :
 ```
 
 - Declaration without initialization

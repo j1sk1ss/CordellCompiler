@@ -22,6 +22,15 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Explict casting is here!
+The CPL language now supports the casting operation. </br>
+For instance:
+```cpl
+i32 a = 10 as i32;
+i32 b = 10 as i32;
+u8 c = (a + b) as u8;
+```
+
 ## Additional operators
 Implement the next list of operators:
 | Operation        | Example   |

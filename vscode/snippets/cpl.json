@@ -209,6 +209,11 @@
     "body": "i0",
     "description": "CPL i0 type"
   },
+  "CPL Convert": {
+    "prefix": "as",
+    "body": "as",
+    "description": "Cast something to a type"
+  },
   "CPL Types Array": {
     "prefix": "arr",
     "body": "arr name[0, type] =;",

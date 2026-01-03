@@ -53,6 +53,9 @@ static const markup_token_t _lexems[] = {
     LEXEM(STR_VARIABLE,           STR_TYPE_TOKEN),
     LEXEM(ARR_VARIABLE,           ARRAY_TYPE_TOKEN),
 
+    /* Cast token */
+    LEXEM(CONVERT_COMMAND,        CONVERT_TOKEN),
+
     /* Little jump tokens. */
     LEXEM(SWITCH_COMMAND,         SWITCH_TOKEN),
     LEXEM(CASE_COMMAND,           CASE_TOKEN),

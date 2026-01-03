@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
   const keywords = [
     'start', 'exit', 'exfunc', 'function', 'return',
     'if', 'else', 'while', 'loop', 'switch', 'case', 'default',
-    'glob', 'ro', 'dref', 'ref', 'ptr', 'lis', 'break', 'extern', 'from', 'import', 'syscall', 'asm',
+    'glob', 'ro', 'dref', 'ref', 'ptr', 'lis', 'break', 'extern', 'from', 'import', 'syscall', 'asm', 'as',
     'i64', 'i32', 'i16', 'i8', 'u64', 'u32', 'u16', 'u8', 'i0', 'str', 'arr'
   ];
 
@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
           exit a; : 11 :
         }
         `,
-        dref: `**dref** — De-reference keyword. Get element value by address.
+          dref: `**dref** — De-reference keyword. Get element value by address.
 
         start() {
           i32 a = 10;
@@ -81,38 +81,32 @@ export function activate(context: vscode.ExtensionContext) {
         u8 a = 0;
         exit a;
         `,
-          
           extern: `**extern** — Extern function or variable from outer space.
 
         extern exfunc printf;
         extern ptr u8 frame_buffer;
         `,
-            
           lis: `**lis** — Insert break point for debug.
 
         i32 a = 10;
         lis;
         syscall(a);
         `,
-
           break: `**break** - Break the current while or switch block.
 
         while 1; {
           break;
         }
         `,
-          
           exfunc: `**exfunc** — External function type.
 
         extern exfunc printf;
         `,
-          
           syscall: `**syscall** — Invoke system call with optional argument count.
           Will push arguments to stack / registers according their position in function call.
 
         syscall(arg1, arg2, arg3, ...);
         `,
-          
           asm: `**asm** — ASM block.
 
         u8 arg1 = 0;
@@ -126,6 +120,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
         `,
           not: `**not** — NOT keyword. If 0 - will modify to 1. If not 0, will modify to 0.`,
+          as: `**as** - Cast object to a type.`,
           function: `**function** — Function definition keyword. CPL language don't provide return type selection.
 
         function abs(i32 n) => i32 {

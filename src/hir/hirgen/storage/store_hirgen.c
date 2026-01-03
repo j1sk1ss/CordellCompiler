@@ -32,11 +32,11 @@ _indexing: {}
                 hir_subject_t* addr = HIR_SUBJ_TMPVAR(offval->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(offval->t), 0, NULL, &smt->v));
                 HIR_BLOCK3(
                     ctx, HIR_iMUL, addr, offval, 
-                    HIR_generate_conv(ctx, offval->t, HIR_SUBJ_CONST(HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 1))), smt)
+                    HIR_generate_implconv(ctx, offval->t, HIR_SUBJ_CONST(HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 1))), smt)
                 );
 
                 hir_subject_t* head = HIR_SUBJ_TMPVAR(base->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(base->t), 0, NULL, &smt->v));
-                HIR_BLOCK3(ctx, HIR_iADD, head, base, HIR_generate_conv(ctx, base->t, addr, smt));
+                HIR_BLOCK3(ctx, HIR_iADD, head, base, HIR_generate_implconv(ctx, base->t, addr, smt));
                 HIR_BLOCK2(ctx, HIR_LDREF, head, src);
             }
 

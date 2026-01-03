@@ -18,7 +18,19 @@ Params:
 
 Return converted HIR subject.
 */
-hir_subject_t* HIR_generate_conv(hir_ctx_t* ctx, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
+hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
+
+/*
+Generate convertion from the one type to another. 
+Note: It types are similar, it doesn't perform the convertation proccess.
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return converted HIR subject.
+*/
+hir_subject_t* HIR_generate_explconv(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Convert AST node into HIR element.

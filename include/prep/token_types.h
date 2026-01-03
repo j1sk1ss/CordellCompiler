@@ -29,7 +29,7 @@ typedef enum {
     GLOB_TYPE_TOKEN,     // glob
     NEGATIVE_TOKEN,      // not
 
-    // Types
+    // Data types
     TMP_TYPE_TOKEN,
     TMP_F64_TYPE_TOKEN,  // tmp_f64
     TMP_F32_TYPE_TOKEN,  // tmp_f32
@@ -56,6 +56,9 @@ typedef enum {
     STR_TYPE_TOKEN,      // str
     ARRAY_TYPE_TOKEN,    // arr
     
+    // Convert statements
+    CONVERT_TOKEN,       // as
+
     // Commands
     IMPORT_TOKEN,        // import
     IMPORT_SELECT_TOKEN, // from
@@ -84,7 +87,7 @@ typedef enum {
     IF_TOKEN,            // if
     ELSE_TOKEN,          // else
     
-    // Statements
+    // Operands
     PLUS_TOKEN,          // +
     MINUS_TOKEN,         // -
     MULTIPLY_TOKEN,      // *
@@ -115,7 +118,7 @@ typedef enum {
     AND_TOKEN,           // &&
     OR_TOKEN,            // ||
     
-    // Vars
+    // Variables (not a type, a variable)
     F64_VARIABLE_TOKEN,  // f64
     F32_VARIABLE_TOKEN,  // f32
     I64_VARIABLE_TOKEN,  // i64
@@ -133,7 +136,7 @@ typedef enum {
     STRING_VALUE_TOKEN,
     CHAR_VALUE_TOKEN,
 
-    // debug
+    // Debug statements
     BREAKPOINT_TOKEN, // lis
 } token_type_t;
 

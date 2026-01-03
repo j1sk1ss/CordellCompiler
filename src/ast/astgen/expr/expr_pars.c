@@ -36,6 +36,25 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
     }
     
     while (CURRENT_TOKEN) {
+        /* Handle complex predictive cases
+           such as:
+           - convertion */
+        if (CURRENT_TOKEN->t_type == CONVERT_TOKEN) {
+            ast_node_t* conv_type = cpl_parse_conv(it);
+            if (conv_type) {
+                ast_node_t* tmp = left;
+                left = conv_type;
+                AST_add_node(left, tmp);
+                forward_token(it, 1);
+            }
+            else {
+                PARSE_ERROR("Error during a cast parsing!");
+                AST_unload(left);
+                RESTORE_TOKEN_POINT;
+                return NULL;
+            }
+        }
+
         int p = TKN_token_priority(CURRENT_TOKEN);
         if (
             p < mp || /* Skip token with a lower priority */
@@ -140,32 +159,53 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
     return opnode;
 }
 
+/*
+Parse a single, not a complex part of the expression.
+Params:
+    - `it` - Current iterator.
+    - `ctx` - AST context.
+    - `smt` - Symtable.
+
+Returns an element from the expression or NULL.
+*/
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     SAVE_TOKEN_POINT;
 
-    if (CURRENT_TOKEN->t_type == OPEN_BRACKET_TOKEN) {
-        forward_token(it, 1);
-        ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0);
-        if (
-            !node || !CURRENT_TOKEN || 
-            CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN
-        ) {
-            PARSE_ERROR("Error during the binary expression parsing!");
-            AST_unload(node);
-            RESTORE_TOKEN_POINT;
-            return NULL;
+    /* Check basic cases such as pointer access, 
+       call token (basic call), syscall token */
+    if (TKN_isptr(CURRENT_TOKEN)) return _parse_array_expression(it, ctx, smt); /* arr[] / arr / ptr / ptr[] */
+    switch (CURRENT_TOKEN->t_type) {
+        case OPEN_BRACKET_TOKEN: {
+            forward_token(it, 1);
+            ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0);
+            if (
+                !node || !CURRENT_TOKEN || 
+                CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN
+            ) {
+                PARSE_ERROR("Error during the binary expression parsing!");
+                AST_unload(node);
+                RESTORE_TOKEN_POINT;
+                return NULL;
+            }
+
+            forward_token(it, 1);
+            return node;
         }
-
-        forward_token(it, 1);
-        return node;
-    }
     
-    if (TKN_isptr(CURRENT_TOKEN))                    return _parse_array_expression(it, ctx, smt); /* arr[] / arr / ptr / ptr[] */
-    else if (CURRENT_TOKEN->t_type == CALL_TOKEN)    return cpl_parse_funccall(it, ctx, smt);      /* call()                    */
-    else if (CURRENT_TOKEN->t_type == SYSCALL_TOKEN) return cpl_parse_syscall(it, ctx, smt);       /* syscall()                 */
+        case CALL_TOKEN: return cpl_parse_funccall(it, ctx, smt);   /* call()    */
+        case SYSCALL_TOKEN: return cpl_parse_syscall(it, ctx, smt); /* syscall() */
+        default: break;
+    }
 
+    /* If this isn't a basic case, we are able to say,
+       that this is a variable / value */
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) return NULL;
+    if (!node) {
+        PARSE_ERROR("Can't create a base for the value!");
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+
     if (node->t->t_type == STRING_VALUE_TOKEN) {
         node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
     }
