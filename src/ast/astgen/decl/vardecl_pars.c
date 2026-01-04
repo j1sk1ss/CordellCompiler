@@ -33,7 +33,7 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
     forward_token(it, 1);
     if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {
         forward_token(it, 1);
-        ast_node_t* value_node = cpl_parse_expression(it, ctx, smt);
+        ast_node_t* value_node = cpl_parse_expression(it, ctx, smt, 1);
         if (!value_node) {
             PARSE_ERROR("Error during parsing of the declaration statement!");
             AST_unload(node);

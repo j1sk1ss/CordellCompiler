@@ -144,10 +144,7 @@ typedef struct {
     char ro;   /* Is read only flag   */
     char glob; /* Is global flag      */
     char ptr;  /* Is pointer flag     */
-    char ref;  /* Is reference flag   */
-    char dref; /* Is dereference flag */
     char ext;  /* Is extern flag      */
-    char neg;  /* Is negative flag    */
     char heap; /* Is heap allocated   */
 } token_flags_t;
 

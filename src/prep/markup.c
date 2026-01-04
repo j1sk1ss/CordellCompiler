@@ -265,16 +265,10 @@ int MRKP_variables(list_t* tkn) {
     s_id = 0;
     scope_stack.top = -1;
     
-    int dref = 0;
-    int ref  = 0;
-    int neg  = 0;
     foreach (token_t* curr, tkn) {
         switch (curr->t_type) {
             case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
             case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
-            case NEGATIVE_TOKEN:    neg  = 1; _remove_token(tkn, curr);           continue;
-            case DREF_TYPE_TOKEN:   dref = 1; _remove_token(tkn, curr);           continue;
-            case REF_TYPE_TOKEN:    ref  = 1; _remove_token(tkn, curr);           continue;
             case UNKNOWN_CHAR_TOKEN:
             case UNKNOWN_STRING_TOKEN: {
                 for (int s = scope_stack.top; s >= 0; s--) {
@@ -286,9 +280,6 @@ int MRKP_variables(list_t* tkn) {
                             curr->flags.ro   = v->ro;
                             curr->flags.glob = v->glob;
                             curr->flags.ptr  = v->ptr;
-                            curr->flags.ref  = ref;
-                            curr->flags.dref = dref;
-                            curr->flags.neg  = neg;
                             goto _resolved;
                         }
                     }
@@ -300,10 +291,6 @@ _resolved: {}
 
             default: break;
         }
-
-        ref  = 0;
-        dref = 0;
-        neg  = 0;
     }
 
     stack_free(&scope_stack);

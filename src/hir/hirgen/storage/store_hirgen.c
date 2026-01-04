@@ -3,15 +3,11 @@
 int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ctx, sym_table_t* smt) {
     if (TKN_isptr(node->t)) {
         if (node->c) goto _indexing;
-        else {
-            if (!node->t->flags.dref) HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_ASTVAR(node), src);
-            else HIR_BLOCK2(ctx, HIR_LDREF, HIR_SUBJ_ASTVAR(node), src);
-        }
-
-        return 1;
+        else HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_ASTVAR(node), src);
     }
 
     switch (node->t->t_type) {
+        case DREF_TYPE_TOKEN: HIR_generate_dref(node, ctx, smt, src); break;
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: {
 _indexing: {}

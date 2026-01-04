@@ -8,10 +8,17 @@ Params:
     - `it` - Current iterator.
     - `ctx` - AST context.
     - `smt` - Symtable.
+    - `na` - No assign.
+             Note: By default (0), this function parses an entire 
+                   expression with a assign symbol. That means, that
+                   expressions such as `a = b`, `a + b = a + b` will
+                   be full parsed.
+                   If you want to parse only the left part (before assign),
+                   set this flag to 1.
 
 Returns an AST node.
 */
-static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
 
 /*
 Parse expression that looks like: <stmt> <op> <stmt>. 
@@ -20,16 +27,23 @@ Params:
     - `it` - Current iterator.
     - `ctx` - AST context.
     - `smt` - Symtable.
-    - `min_priority` - Minimal priority. 
-                       Note: Defenition of a minimal priority of a token
-                             that will stop parsing for the current level.
+    - `mp` - Minimal priority. 
+             Note: Defenition of a minimal priority of a token
+                   that will stop parsing for the current level.
+    - `na` - No assign.
+             Note: By default (0), this function parses an entire 
+                   expression with a assign symbol. That means, that
+                   expressions such as `a = b`, `a + b = a + b` will
+                   be full parsed.
+                   If you want to parse only the left part (before assign),
+                   set this flag to 1.
 
 Returns an AST node.
 */
-static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int mp) {
+static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int mp, int na) {
     SAVE_TOKEN_POINT;
 
-    ast_node_t* left = _parse_primary(it, ctx, smt);
+    ast_node_t* left = _parse_primary(it, ctx, smt, na);
     if (!left) {
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -57,8 +71,9 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
 
         int p = TKN_token_priority(CURRENT_TOKEN);
         if (
-            p < mp || /* Skip token with a lower priority */
-            p == -1   /* Skip unknown priority            */
+            p < mp  ||                                    /* Skip token with a lower priority     */
+            p == -1 ||                                    /* Skip unknown priority                */
+            (na && CURRENT_TOKEN->t_type == ASSIGN_TOKEN) /* Stop on assign if there is a na == 1 */
         ) break;
 
         int next_mp = p + 1;
@@ -75,7 +90,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
         }
 
         forward_token(it, 1);
-        ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp);
+        ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp, na);
         if (!right) {
             PARSE_ERROR("Error during the right part parse!");
             AST_unload(left);
@@ -100,7 +115,7 @@ Params:
 
 Returns an AST node.
 */
-static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
@@ -120,7 +135,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
     forward_token(it, 1);
     if (CURRENT_TOKEN->t_type == OPEN_INDEX_TOKEN) {
         forward_token(it, 1);
-        ast_node_t* offset_exp = cpl_parse_expression(it, ctx, smt);
+        ast_node_t* offset_exp = cpl_parse_expression(it, ctx, smt, na);
         if (!offset_exp) {
             PARSE_ERROR("Index expression parse error!");
             AST_unload(node);
@@ -145,7 +160,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
     }
 
     forward_token(it, 1);
-    ast_node_t* right = cpl_parse_expression(it, ctx, smt);
+    ast_node_t* right = cpl_parse_expression(it, ctx, smt, na);
     if (!right) {
         PARSE_ERROR("AST error during the right expression parse!");
         AST_unload(node);
@@ -159,25 +174,16 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
     return opnode;
 }
 
-/*
-Parse a single, not a complex part of the expression.
-Params:
-    - `it` - Current iterator.
-    - `ctx` - AST context.
-    - `smt` - Symtable.
-
-Returns an element from the expression or NULL.
-*/
-static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
 
     /* Check basic cases such as pointer access, 
        call token (basic call), syscall token */
-    if (TKN_isptr(CURRENT_TOKEN)) return _parse_array_expression(it, ctx, smt); /* arr[] / arr / ptr / ptr[] */
+    if (TKN_isptr(CURRENT_TOKEN)) return _parse_array_expression(it, ctx, smt, na); /* arr[] / arr / ptr / ptr[] */
     switch (CURRENT_TOKEN->t_type) {
         case OPEN_BRACKET_TOKEN: {
             forward_token(it, 1);
-            ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0);
+            ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
             if (
                 !node || !CURRENT_TOKEN || 
                 CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN
@@ -192,8 +198,11 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
             return node;
         }
     
-        case CALL_TOKEN: return cpl_parse_funccall(it, ctx, smt);   /* call()    */
-        case SYSCALL_TOKEN: return cpl_parse_syscall(it, ctx, smt); /* syscall() */
+        case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt); /* call()    */
+        case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt);  /* syscall() */
+        case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt);      /* neg       */
+        case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt);      /* ref       */
+        case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt);     /* dref      */
         default: break;
     }
 
@@ -215,6 +224,6 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
     return node;
 }
 
-ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
-    return _parse_binary_expression(it, ctx, smt, 0);
+ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
+    return _parse_binary_expression(it, ctx, smt, 0, na);
 }

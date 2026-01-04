@@ -16,7 +16,7 @@ ast_node_t* cpl_parse_return(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         return node;
     }
 
-    ast_node_t* exp_node = cpl_parse_expression(it, ctx, smt);
+    ast_node_t* exp_node = cpl_parse_expression(it, ctx, smt, 1);
     if (!exp_node) {
         PARSE_ERROR("Error during the return statement! return <stmt>!");
         AST_unload(node);

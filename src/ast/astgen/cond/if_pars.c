@@ -13,7 +13,7 @@ ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
     
     forward_token(it, 1);
-    ast_node_t* cond = cpl_parse_expression(it, ctx, smt);
+    ast_node_t* cond = cpl_parse_expression(it, ctx, smt, 1);
     if (!cond) {
         PARSE_ERROR("Error during the condition parsing in the '%s' structure! %s <stmt>", IF_COMMAND, IF_COMMAND);
         AST_unload(node);

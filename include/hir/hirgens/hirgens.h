@@ -285,4 +285,38 @@ Return parsed from AST HIR subject.
 */
 int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
+/*
+Convert neg AST node into HIR element. 
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return parsed from AST HIR subject.
+*/
+hir_subject_t* HIR_generate_neg(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Convert ref AST node into HIR element. 
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return parsed from AST HIR subject.
+*/
+hir_subject_t* HIR_generate_ref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Convert dref AST node into HIR element. 
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+    - `data` - By default is NULL.
+
+Return parsed from AST HIR subject.
+*/
+hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_t* data);
+
 #endif

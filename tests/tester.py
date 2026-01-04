@@ -146,7 +146,7 @@ def _entry() -> None:
     parser.add_argument('--sources', default='misc/paths.json', help='JSON file with test sources')
     parser.add_argument('--base', default='../', help='Compiler root directory')
     parser.add_argument('--run', action='store_true', help='Run the test after compilation')
-    parser.add_argument('--test-code', default='dummy_data/test1.cpl', help='Input file for the test (default: test1.cpl)')
+    parser.add_argument('--test-code', default='dummy_data/simple.cpl', help='Input file for the test (default: test1.cpl)')
     parser.add_argument('--debugger', choices=['gdb', 'lldb'], help='Run test with debugger (implies --run)')
     args = parser.parse_args()
     

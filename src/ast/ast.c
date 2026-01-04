@@ -14,9 +14,9 @@ ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld) {
 
     ast_node_t* dst = AST_create_node(TKN_copy_token(n->t));
     if (!dst) return NULL;
+    dst->bt = dst->t;
 
     str_memcpy(&dst->sinfo, &n->sinfo, sizeof(syntax_info_t));
-    if (n->bt) dst->bt = TKN_copy_token(n->bt);
     if (chld) {
         dst->c = AST_copy_node(n->c, 0, 1, 1);
         if (dst->c) dst->c->p = dst;

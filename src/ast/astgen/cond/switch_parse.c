@@ -13,7 +13,7 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
     stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
 
     forward_token(it, 1);
-    ast_node_t* stmt = cpl_parse_expression(it, ctx, smt);
+    ast_node_t* stmt = cpl_parse_expression(it, ctx, smt, 1);
     if (!stmt) {
         PARSE_ERROR("Error during the parsing of the '%s' statement! %s <stmt>!", SWITCH_COMMAND, SWITCH_COMMAND);
         AST_unload(node);
@@ -52,7 +52,7 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
 
         if (CURRENT_TOKEN->t_type == CASE_TOKEN) {
             forward_token(it, 1);
-            ast_node_t* case_stmt = cpl_parse_expression(it, ctx, smt);
+            ast_node_t* case_stmt = cpl_parse_expression(it, ctx, smt, 1);
             AST_add_node(case_node, case_stmt);
         }
 

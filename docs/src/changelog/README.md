@@ -22,6 +22,15 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## neg, ref and dref now have their own parser
+Previously, these staements were affect as flags in tokens. Such a mechanic was unconvenient in cases like below:
+```cpl
+i32 a = not (c + b);
+dref (a + 0x7C00) = 0xDEADBEEF;
+```
+
+Now these statements have their own AST and HIR handlers. 
+
 ## Explict casting is here!
 The CPL language now supports the casting operation. </br>
 For instance:
