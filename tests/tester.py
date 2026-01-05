@@ -55,6 +55,7 @@ def _build_test(
             return None
         else:
             print(f"Successfully built {test_name}")
+            print(result.stderr)
             return output_file
     except Exception as e:
         print(f"Error during compilation of {test_name}: {e}")

@@ -22,6 +22,19 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## LiS message
+The `lis` statement now accepts a message for a convenient debug.
+```cpl
+lis;                 : <= Old, but still recognizeble by the compiler :
+lis "Debug line #1"; : <= New :
+```
+
+These messages will be placed in a final `.asm` file. With the `gdb` the source decompiled file will provide a line where it stops. Produced `.asm` file will include these comments as showed below:
+```asm
+mov rax, 1
+int3 ; Debug line #1
+```
+
 ## neg, ref and dref now have their own parser
 Previously, these staements were affect as flags in tokens. Such a mechanic was unconvenient in cases like below:
 ```cpl

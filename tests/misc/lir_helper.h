@@ -108,7 +108,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_LDREF:      return "*(%s) = %s;\n";
 
         case LIR_RAW:        return "[raw] (link: %s);\n";
-        case LIR_BREAKPOINT: return "== == brk == ==\n";
+        case LIR_BREAKPOINT: return "== == brk %s == ==\n";
         case LIR_VRUSE:      return "use %s;\n";
         case LIR_EXITOP:     return "exit %s;\n";
         default:             return "unknwn;\n";

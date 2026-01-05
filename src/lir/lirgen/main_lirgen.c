@@ -44,7 +44,7 @@ static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym
                 break;
             }
 
-            case HIR_BREAKPOINT: LIR_BLOCK0(ctx, LIR_BREAKPOINT); break;
+            case HIR_BREAKPOINT: LIR_BLOCK1(ctx, LIR_BREAKPOINT, LIR_SUBJ_STRING(h->farg->storage.str.s_id)); break;
 
             case HIR_RAW: {
                 str_info_t si;

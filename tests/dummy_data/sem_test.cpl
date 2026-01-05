@@ -3,7 +3,7 @@
 
     function BarBar() => i0 { }
 
-    function BazBaz() { }
+    function BazBaz() { } 
 
     function baz(i32 a) => i0 {
         if a == 0; { return; }

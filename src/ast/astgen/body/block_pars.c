@@ -97,7 +97,7 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
                                        syscall_arg       = identifier | literal ; */
         case SYSCALL_TOKEN:         return cpl_parse_syscall(it, ctx, smt);
                                     /* lis_statement = "lis" , ";" ; */
-        case BREAKPOINT_TOKEN:      return cpl_parse_breakpoint(it);
+        case BREAKPOINT_TOKEN:      return cpl_parse_breakpoint(it, ctx, smt);
                                     /* extern_op          = "extern" , ( function_prototype | var_prototype ) ;
                                        var_prototype      = type , identifier ;
                                        function_prototype = "exfunc" , identifier ; */

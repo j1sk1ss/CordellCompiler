@@ -89,7 +89,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case IMPORT_TOKEN:     HIR_generate_import_block(node, ctx);          break;
         case ASSIGN_TOKEN:     HIR_generate_assignment_block(node, ctx, smt); break;
         case SYSCALL_TOKEN:    HIR_generate_syscall(node, ctx, smt, 0);       break;
-        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(ctx);            break;
+        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(node, ctx);      break;
         default: break;
     }
 

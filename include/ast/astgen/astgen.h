@@ -17,11 +17,11 @@ function_prototype = "exfunc" , identifier ;
 storage_opt    = [ "glob" | "ro" ] ;
 top_decl       = var_decl | function_def ;
 
-function_def   = "function" , identifier , "(" , [ param_list ] , ")" , "=>" , type , block ;
+function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "=>" , type ] , block ;
 start_function = "start" , "(" , [ param_list ] , ")" , block ;
 
 param_list     = param , { "," , param } ;
-param          = type , identifier , [ "=" , literal ] ;
+param          = type , identifier , [ "=" , expression ] ;
 
 block          = "{" , { statement } , "}" ;
 
@@ -58,7 +58,7 @@ default_block    = "default" , block ;
 return_statement = "return" , [ expression ] , ";" ;
 exit_statement   = "exit" , expression , ";" ;
 break_statement  = "break" , ";" ;
-lis_statement    = "lis" , ";" ;
+lis_statement    = "lis" ,  [ string_literal ] , ";" ;
 
 expression_statement = expression , ";" ;
 
@@ -100,7 +100,8 @@ dref_op        = "dref" ;
 
 postfix        = primary , { postfix_op } ;
 postfix_op     = "(" , [ arg_list ] , ")"
-               | "[" , expression , { "," , expression } , "]" ;
+               | "[" , expression , { "," , expression } , "]"
+               | "as" , type ;
 
 primary        = literal
                | identifier
@@ -113,7 +114,7 @@ type = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u
      | "arr" , "[" , integer_literal , "," , type , "]"
      | "ptr" , type ;
 
-literal         = integer_literal | string_literal | boolean_literal ;
+literal         = integer_literal | string_literal ;
 
 integer_literal = decimal_literal | hex_literal | bin_literal ;
 
@@ -500,15 +501,17 @@ ast_node_t* cpl_parse_syscall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt)
 Parse .cpl breakpoint block. Should be invoked on a breakpoint token.
 Snippet:
 ```cpl
-lis;
+lis <msg>;
 ```
 
 Params:
     - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_breakpoint(list_iter_t* it);
+ast_node_t* cpl_parse_breakpoint(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Parse .cpl break block. Should be invoked on a break token.

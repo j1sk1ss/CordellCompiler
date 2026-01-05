@@ -7,6 +7,7 @@
         i8 a = dref argc as ptr u8;
         i8 a1 = ref argc;
         i8 b = not (argc + not argv);
+        lis "test";
         dref a = 10;
         dref (a + 10) = 10;
         exit 0;

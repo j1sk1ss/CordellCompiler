@@ -85,7 +85,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
         if (!op_node) {
             PARSE_ERROR("Can't create the expression's base!");
             AST_unload(left);
-            SAVE_TOKEN_POINT;
+            RESTORE_TOKEN_POINT;
             return NULL;
         }
 
@@ -93,8 +93,9 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
         ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp, na);
         if (!right) {
             PARSE_ERROR("Error during the right part parse!");
+            AST_unload(op_node);
             AST_unload(left);
-            SAVE_TOKEN_POINT;
+            RESTORE_TOKEN_POINT;
             return NULL;
         }
 
@@ -121,7 +122,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
         PARSE_ERROR("Can't create the base for the array expression!");
-        SAVE_TOKEN_POINT;
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -139,7 +140,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
         if (!offset_exp) {
             PARSE_ERROR("Index expression parse error!");
             AST_unload(node);
-            SAVE_TOKEN_POINT;
+            RESTORE_TOKEN_POINT;
             return NULL;
         }
 
@@ -155,7 +156,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
     if (!opnode) {
         PARSE_ERROR("AST_create_node error!");
         AST_unload(node);
-        SAVE_TOKEN_POINT;
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -165,7 +166,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
         PARSE_ERROR("AST error during the right expression parse!");
         AST_unload(node);
         AST_unload(opnode);
-        SAVE_TOKEN_POINT;
+        RESTORE_TOKEN_POINT;
         return NULL;
     }
 
@@ -176,6 +177,10 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
 
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
+    if (TKN_isclose(CURRENT_TOKEN)) {
+        PARSE_ERROR("Expected a token, but got a terminator!");
+        return NULL;
+    }
 
     /* Check basic cases such as pointer access, 
        call token (basic call), syscall token */
