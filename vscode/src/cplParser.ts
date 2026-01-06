@@ -351,41 +351,41 @@ class Parser {
   }
 
   private parseVarOrArrDecl() {
-    // arr_decl starts with: arr ident '[' ...
-    if (this.at("kw","arr")) {
-      const t1 = this.cur();
-      const t2 = this.t[this.i+1];
-      if (t2?.kind === "ident") {
-        // arr_decl
+    if (this.at("kw", "arr")) {
+      const t2 = this.t[this.i + 1];
+      const t3 = this.t[this.i + 2];
+
+      if (t2?.kind === "ident" && t3?.kind === "punc" && t3.text === "[") {
         this.i++; // 'arr'
         this.expect("ident", undefined, "arr_decl: expected identifier");
-        this.expect("punc","[", "arr_decl: expected '['");
-        // (identifier | literal)
-        if (this.at("ident")) this.i++;
+        this.expect("punc", "[", "arr_decl: expected '['");
+
+        if (this.at("int") || this.at("ident")) this.i++;
         else this.parseLiteral();
-        // then type
+
+        this.expect("punc", ",", "arr_decl: expected ',' between size and type");
+
         this.parseType();
-        this.expect("punc","]","arr_decl: expected ']'");
-        if (this.match("op","=")) {
-          // expression | arr_value
-          if (this.match("punc","{")) {
-            if (!this.at("punc","}")) {
+
+        this.expect("punc", "]", "arr_decl: expected ']'");
+        if (this.match("op", "=")) {
+          if (this.match("punc", "{")) {
+            if (!this.at("punc", "}")) {
               this.parseArrElem();
-              while (this.match("punc",",")) this.parseArrElem();
+              while (this.match("punc", ",")) this.parseArrElem();
             }
-            this.expect("punc","}");
-          } else {
+            this.expect("punc", "}", "arr_value: expected '}'");
+          } 
+          else {
             this.parseExpression();
           }
         }
-        this.expect("punc",";","arr_decl: expected ';'");
+
+        this.expect("punc", ";", "arr_decl: expected ';'");
         return;
-      } else {
-        // otherwise it's a type 'arr[...]' (var_decl)
       }
     }
-
-    // var_decl: type ident [= expr] ;
+    
     this.parseType();
     this.expect("ident", undefined, "var_decl: expected identifier");
     if (this.match("op","=")) this.parseExpression();
