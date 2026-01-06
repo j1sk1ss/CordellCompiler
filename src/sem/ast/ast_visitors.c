@@ -52,110 +52,19 @@ static const char* _fmt_tkn_op(token_type_t t) {
     return "";
 }
 
-static const char* _fmt_tkn_type(token_t* t) {
-    if (!t) return "";
-    switch (t->t_type) {
-        case ARR_VARIABLE_TOKEN:    return "array";
-        case STR_VARIABLE_TOKEN:    return "string";
-        case UNKNOWN_NUMERIC_TOKEN: return "number";
-        case I0_TYPE_TOKEN:         return !t->flags.ptr ? I0_VARIABLE  : "ptr i0";
-        case I8_VARIABLE_TOKEN:
-        case I8_TYPE_TOKEN:         return !t->flags.ptr ? I8_VARIABLE  : "ptr i8";
-        case U8_VARIABLE_TOKEN:
-        case U8_TYPE_TOKEN:         return !t->flags.ptr ? U8_VARIABLE  : "ptr u8";
-        case I16_VARIABLE_TOKEN:
-        case I16_TYPE_TOKEN:        return !t->flags.ptr ? I16_VARIABLE : "ptr i16";
-        case U16_VARIABLE_TOKEN:
-        case U16_TYPE_TOKEN:        return !t->flags.ptr ? U16_VARIABLE : "ptr u16";
-        case I32_VARIABLE_TOKEN:
-        case I32_TYPE_TOKEN:        return !t->flags.ptr ? I32_VARIABLE : "ptr i32";
-        case U32_VARIABLE_TOKEN:
-        case U32_TYPE_TOKEN:        return !t->flags.ptr ? U32_VARIABLE : "ptr u32";
-        case F32_VARIABLE_TOKEN:
-        case F32_TYPE_TOKEN:        return !t->flags.ptr ? F32_VARIABLE : "ptr f32";
-        case I64_VARIABLE_TOKEN:
-        case I64_TYPE_TOKEN:        return !t->flags.ptr ? I64_VARIABLE : "ptr i64";
-        case U64_VARIABLE_TOKEN:
-        case U64_TYPE_TOKEN:        return !t->flags.ptr ? U64_VARIABLE : "ptr u64";
-        case F64_VARIABLE_TOKEN:
-        case F64_TYPE_TOKEN:        return !t->flags.ptr ? F64_VARIABLE : "ptr f64";
-        default: return "";
-    }
-}
-
 static const char* _format_location(token_fpos_t* p) {
     static char* buff[128] = { 0 };
     snprintf(buff, sizeof(buff), "[%li:%li]", p->line, p->column);
     return buff;
 }
 
-static int _restore_code(ast_node_t* nd, ast_node_t* underscore) {
-    if (nd == underscore) fprintf(stdout, "\e[4m");
-    if (TKN_isdecl(nd->t)) {
-        fprintf(stdout, "%s %s", _fmt_tkn_type(nd->t), nd->c->t->body->body);
-        if (nd->c->siblings.n) {
-            fprintf(stdout, " = ");
-            _restore_code(nd->c->siblings.n, underscore);
-        }
-
-        fprintf(stdout, ";");
-    }
-    else if (TKN_isoperand(nd->t)) {
-        if (nd->c) _restore_code(nd->c, underscore);
-        fprintf(stdout, " %s ", nd->t->body->body);
-        if (nd->c->siblings.n) _restore_code(nd->c->siblings.n, underscore);
-        fprintf(stdout, ";");
-    }
-    
-    switch (nd->t->t_type) {
-        case FUNC_TOKEN: {
-            fprintf(stdout, "function %s(", nd->c->t->body->body);
-            ast_node_t* p = nd->siblings.n->c;
-            for (; p->t && p->t->t_type != SCOPE_TOKEN; p = p->siblings.n) {
-                _restore_code(p, underscore);
-                if (p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) fprintf(stdout, ", ");
-            }
-
-            fprintf(stdout, ") ");
-            if (nd->c->c) fprintf(stdout, "=> %s ", _fmt_tkn_type(nd->c->c->t));
-            fprintf(stdout, "{ ... ");
-            break;
-        }
-        case CALL_TOKEN: {
-            fprintf(stdout, "%s(", nd->t->body->body);
-            ast_node_t* p = nd->c;
-            for (; p; p = p->siblings.n) {
-                _restore_code(p, underscore);
-                if (p->siblings.n) fprintf(stdout, ", ");
-            }
-
-            fprintf(stdout, ");");
-            break;
-        }
-        case WHILE_TOKEN: fprintf(stdout, "while "); goto _default_;
-        case IF_TOKEN:    fprintf(stdout, "if ");    goto _default_;
-        case RETURN_TOKEN: {
-            fprintf(stdout, "return ");
-_default_: {}
-            if (nd->c) _restore_code(nd->c, underscore);
-            fprintf(stdout, ";");
-            break;
-        }
-        default: break;
-    }
-
-    if (
-        TKN_isnumeric(nd->t) || 
-        TKN_isvariable(nd->t)
-    ) fprintf(stdout, "%s", nd->t->body->body);
-
-    if (nd == underscore) fprintf(stdout, "\e[0m");
-    return 1;
-}
-
-#define REBUILD_CODE(nd, trg)           \
-        _restore_code(nd, trg);         \
-        if (trg) fprintf(stdout, "\n"); \
+#define REBUILD_CODE(nd, trg)                  \
+        set_t __s;                             \
+        set_init(&__s, SET_NO_CMP);            \
+        set_add(&__s, trg);                    \
+        RST_restore_code(stdout, nd, &__s, 0); \
+        if (trg) fprintf(stdout, "\n");        \
+        set_free(&__s);                        \
 
 int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     ast_node_t* larg = nd->c;
@@ -176,6 +85,19 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     return 1;
 }
 
+/*
+Get basic type token from the AST node.
+If this is a cast node, extract a cast type.
+Params:
+    - `nd` - AST node.
+
+Returns a token with a type.
+*/
+static inline token_t* _get_base_type_token(ast_node_t* nd) {
+    if (nd->t->t_type == CONVERT_TOKEN) return nd->c->t;
+    return nd->t;
+}
+
 int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
     ast_node_t* larg = nd->c;
     if (!larg) return 1;
@@ -186,10 +108,10 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
     if (!FNTB_get_info_id(rarg->sinfo.v_id, &fi, &smt->f)) return 1;
     if (!fi.rtype) return 1;
 
-    if (TKN_variable_bitness(fi.rtype->t, 1) != TKN_variable_bitness(larg->t, 1)) {
+    if (TKN_variable_bitness(fi.rtype->t, 1) != TKN_variable_bitness(_get_base_type_token(larg), 1)) {
         SEMANTIC_WARNING(
             " %s Function='%s' return type='%s' not match to the %s type='%s'!", _format_location(&larg->t->finfo), fi.name->body,
-            _fmt_tkn_type(fi.rtype->t), _fmt_tkn_op(nd->t->t_type), _fmt_tkn_type(larg->t)
+            RST_restore_type(fi.rtype->t), _fmt_tkn_op(nd->t->t_type), RST_restore_type(larg->t)
         );
 
         return 0;
@@ -241,7 +163,7 @@ static token_t* _get_token_from_ast(ast_node_t* n) {
         return l;
     }
 
-    return n->t;
+    return _get_base_type_token(n);
 }
 
 static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
@@ -254,13 +176,13 @@ static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
         if (TKN_isnumeric(rt)) {
             SEMANTIC_WARNING(
                 " %s %s of '%s' with '%s' (Number bitness is=%i, but '%s' can handle bitness=%i)!", _format_location(&rt->finfo), msg,
-                lt->body->body, rt->body->body, _get_token_bitness(rt), _fmt_tkn_type(lt), _get_token_bitness(lt)
+                lt->body->body, rt->body->body, _get_token_bitness(rt), RST_restore_type(lt), _get_token_bitness(lt)
             );
         }
         else {
             SEMANTIC_WARNING(
                 " %s %s of '%s' with '%s'! '%s' can't handle '%s'!", _format_location(&rt->finfo), msg,
-                lt->body->body, rt->body->body, _fmt_tkn_type(lt), _fmt_tkn_type(rt)
+                lt->body->body, rt->body->body, RST_restore_type(lt), RST_restore_type(rt)
             );
         }
 
@@ -660,7 +582,7 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
             if (_get_token_bitness(rval) > _get_token_bitness(rtype)) {
                 SEMANTIC_WARNING(
                     " %s Function='%s' has the wrong return value!='%s'!", 
-                    _format_location(&rval->finfo), fname, _fmt_tkn_type(rtype)
+                    _format_location(&rval->finfo), fname, RST_restore_type(rtype)
                 );
 
                 REBUILD_CODE(nd, nd->c);

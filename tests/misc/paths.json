@@ -3,7 +3,7 @@
         "macros": ["PREP_TESTING", "TOKEN_PRINT"],
         "sources": [
             "src/symtab/*.c",
-            "src/prep/*.c", 
+            "src/prep/*.c",
             "std/*.c"
         ]
     },
@@ -12,6 +12,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -23,6 +24,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/opt/*.c",
             "src/ast/astgen/*.c", 
@@ -35,6 +37,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/sem/*.c",
             "src/sem/ast/*.c",
@@ -48,6 +51,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -65,6 +69,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -83,6 +88,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -105,6 +111,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -129,6 +136,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -154,6 +162,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -181,6 +190,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -207,6 +217,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -234,6 +245,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -265,6 +277,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -299,6 +312,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -337,6 +351,7 @@
         "sources": [
             "src/symtab/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",

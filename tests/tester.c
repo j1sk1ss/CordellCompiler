@@ -12,6 +12,7 @@
     #include <ast/ast.h>
     #include <ast/astgen.h>
     #include <ast/astgen/astgen.h>
+    #include <sem/misc/restore.h>
     #include "misc/ast_helper.h"
 #ifdef AST_OPT_TESTING
     #include <ast/opt/condunroll.h>
@@ -132,6 +133,8 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
         fprintf(stderr, "AST tree creation error!\n");
         return 1;
     }
+
+    RST_restore_code(stdout, sctx.r, NULL, 0);
 #ifdef AST_OPT_TESTING
     OPT_condunroll(&sctx); // Transform
     OPT_deadscope(&sctx);  // Transform

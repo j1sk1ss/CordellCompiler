@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <std/str.h>
 #include <prep/token_types.h>
+#include <sem/misc/restore.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
 
