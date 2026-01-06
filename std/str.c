@@ -53,7 +53,7 @@ static long long string_to_llong(str_self self) {
     char* h = self->head;
     while (str_isspace(*h)) h++;
     if (*h == '-' || *h == '+') {
-        neg = *h == '-' ? 0 : 1;
+        neg = *h == '-' ? -1 : 1;
         h++;
     }
 

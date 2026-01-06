@@ -30,5 +30,9 @@
         i8 a = foo();
         i8 c = 123123;
         barBar();
+
+        arr array[10, i32];
+        array[-1] = 0;
+        array[12] = 0;
     }
 }

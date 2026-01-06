@@ -202,7 +202,14 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
         TKN_isnumeric(nd->t)  ||
         TKN_isvariable(nd->t) ||
         nd->t->t_type == STRING_VALUE_TOKEN
-    ) _rst_ln_puts(x, line, nd->t->body->body);
+    ) {
+        _rst_ln_puts(x, line, nd->t->body->body);
+        if (TKN_isptr(nd->t) && nd->c) {
+            _rst_ln_puts(x, line, "[");
+            _restore_code_lines(x, nd->c, u, indent);
+            _rst_ln_puts(x, line, "]");
+        }
+    }
     
     switch (nd->t->t_type) {
         case START_TOKEN: {

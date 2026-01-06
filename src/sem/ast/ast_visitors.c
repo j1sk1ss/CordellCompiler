@@ -426,9 +426,10 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
         REBUILD_CODE(nd, nd->c);
         return 0;
     }
-    else if (ai.size < idx) {
+    
+    if (ai.size < idx) {
         SEMANTIC_ERROR(
-            " %s Array='%s' accessed with the index=%lli, that is larger than the array size!", 
+            " %s Array='%s' accessed with the index=%lli that is larger than the array size!", 
             _format_location(&nd->t->finfo), nd->t->body->body, idx
         );
 
