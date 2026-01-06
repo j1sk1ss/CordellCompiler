@@ -42,10 +42,11 @@ statement      = var_decl
 
 var_decl       = type , identifier , [ "=" , expression ] , ";" ;
 
-arr_decl       = "arr" , identifier , "[" , identifier | literal , type ,  "]" , [ "=" , expression | arr_value ] , ";" ;
-arr_value      = "{" , [arr_value_list] ,  "}" ;
-arr_value_list =  arr_elem , { "," , arr_elem  } ;
-arr_elem       = identifier | literal ;
+arr_decl       = "arr" , identifier , "[" , integer_literal , "," , type , "]" ,
+                 [ "=" , ( expression | arr_value ) ] , ";" ;
+
+arr_value      = "{" , [ arr_value_list ] , "}" ;
+arr_value_list = expression , { "," , expression } ;
 
 if_statement    = "if" , expression , ";" , block , [ "else" , block ] ;
 loop_statement  = "loop", block ;

@@ -223,7 +223,7 @@ export function activate(context: vscode.ExtensionContext) {
   \`\`\`
   `,
   
-    not: `**not** — Logical NOT (0 → 1, non-0 → 0).
+    not: `**not** — Logical NOT (0 -> 1, non-0 -> 0).
   
   \`\`\`cpl
   i32 x = not 0; : 1 :
@@ -268,12 +268,12 @@ export function activate(context: vscode.ExtensionContext) {
   
     arr: `**arr** — Array keyword (declaration) OR array type constructor.
   
-  Declaration form (your grammar \`arr_decl\`):
+  Declaration form (grammar \`arr_decl\`):
   \`\`\`cpl
   arr buf[16 u8] = {1,2,3};
   \`\`\`
   
-  Type form (your grammar \`arr[<int>, <type>]\`):
+  Type form (grammar \`arr[<int>, <type>]\`):
   \`\`\`cpl
   arr[16, u8] a;
   \`\`\`
