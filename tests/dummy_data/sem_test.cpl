@@ -1,7 +1,7 @@
 {
     function foo() => i32 { return 1; }
 
-    function BarBar() => i0 { }
+    function barBar() => i0 { }
 
     function BazBaz() { } 
 
@@ -10,7 +10,7 @@
         else { }
 
         if a == 0; { return 1; }
-        else { return 1; }
+        else { }
     }
 
     function fang(i32 a) => i8 {
@@ -29,6 +29,6 @@
 
         i8 a = foo();
         i8 c = 123123;
-        BarBar();
+        barBar();
     }
 }

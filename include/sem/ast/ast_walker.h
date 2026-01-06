@@ -53,7 +53,7 @@ Params:
 
 Returns 1 if succeeds.
 */
-int ASTWLK_register_visitor(token_type_t trg, int (*perform)(ast_node_t*, sym_table_t*), ast_walker_t* ctx, attention_level_t l);
+int ASTWLK_register_visitor(unsigned int trg, int (*perform)(ast_node_t*, sym_table_t*), ast_walker_t* ctx, attention_level_t l);
 
 /*
 Init a new one walker context.

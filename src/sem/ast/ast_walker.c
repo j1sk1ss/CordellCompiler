@@ -1,5 +1,13 @@
 #include <sem/ast/ast_walker.h>
 
+/*
+Create a semantic handler for a walker.
+Params:
+    - `v` - AST visitor.
+    - `l` - Handler level.
+
+Returns the semantic handler.
+*/
 static ast_sem_handler_t* _create_sem_handler(ast_visitor_t* v, attention_level_t l) {
     ast_sem_handler_t* h = (ast_sem_handler_t*)mm_malloc(sizeof(ast_sem_handler_t));
     if (!h) return NULL;
@@ -8,12 +16,24 @@ static ast_sem_handler_t* _create_sem_handler(ast_visitor_t* v, attention_level_
     return h;
 }
 
+/*
+Unload the semantic handler.
+Params:
+    - `h` - Semantic handler.
+
+Returns 1 if succeeds.
+*/
+static int _unload_sem_handler(ast_sem_handler_t* h) {
+    ASTVIS_unload_visitor(h->w);
+    return mm_free(h);
+}
+
 int ASTWLK_register_visitor(unsigned int trg, int (*perform)(ast_node_t*, sym_table_t*), ast_walker_t* ctx, attention_level_t l) {
     ast_visitor_t* v = ASTVIS_create_visitor(trg, perform);
     if (!v) return 0;
     ast_sem_handler_t* w = _create_sem_handler(v, l);
     if (!w) {
-        ASTVIS_unload_visitor(w);
+        _unload_sem_handler(w);
         return 0;
     }
 
@@ -25,6 +45,13 @@ int ASTWLK_init_ctx(ast_walker_t* ctx, sym_table_t* smt) {
     return list_init(&ctx->visitors);
 }
 
+/*
+Get a node type based on the provided token type.
+Params:
+    - `tkn` - Token type.
+
+Returns a node type.
+*/
 static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
     switch (tkn) {
         case RETURN_TOKEN:
@@ -87,6 +114,15 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
     return UNKNOWN_NODE;
 }
 
+/*
+Perform a walk thru the AST. This is a DFS approach, that allows us
+to use a analytic symtables for the complex static analysis.
+Params:
+    - `nd` - AST node.
+    - `ctx` - Walker context.
+
+Returns 1 if succeeds. Otherwise returns 0 - Semantic block of a compilation.
+*/
 static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
     if (!nd) return 0;
     _ast_walk(nd->c, ctx);
@@ -111,12 +147,7 @@ int ASTWLK_walk(ast_ctx_t* actx, ast_walker_t* ctx) {
     return _ast_walk(actx->r, ctx);
 }
 
-static int _unload_sem_handler(ast_sem_handler_t* h) {
-    ASTVIS_unload_visitor(h->w);
-    return mm_free(h);
-}
-
 int ASTWLK_unload_ctx(ast_walker_t* ctx) {
-    list_free_force_op(&ctx->visitors, ASTVIS_unload_visitor);
+    list_free_force_op(&ctx->visitors, (int (*)(void *))_unload_sem_handler);
     return mm_free(ctx);
 }

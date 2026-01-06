@@ -3,7 +3,6 @@
 const char* RST_restore_type(token_t* t) {
     if (!t) return "";
     switch (t->t_type) {
-        case STRING_VALUE_TOKEN:    return t->body->body;
         case ARRAY_TYPE_TOKEN:
         case ARR_VARIABLE_TOKEN:    return ARR_VARIABLE;
         case STR_TYPE_TOKEN:
@@ -33,40 +32,74 @@ const char* RST_restore_type(token_t* t) {
     }
 }
 
+/*
+Give a number's character count.
+Params:
+    - `v` - Number.
+
+Returns a number of characters that are used for
+a printing of the provided number.
+*/
 static inline int _rst_digits(int v) {
     int d = 1;
     while (v >= 10) { v /= 10; ++d; }
     return d;
 }
 
-static void _rst_max_line(ast_node_t* nd, int* mx) {
+/* 
+Get the largest .line value from the node and its childs.
+Params:
+    - `nd` - AST node.
+    - `mx` - Current largest line.
+
+Returns 1 if succeeds.
+*/
+static int _rst_max_line(ast_node_t* nd, int* mx) {
     for (ast_node_t* p = nd; p; p = p->siblings.n) {
         if (p->t) {
             int l = p->t->finfo.line;
             if (l > *mx) *mx = l;
         }
-        if (p->c) _rst_max_line(p->c, mx);
+
+        if (p->c) {
+            _rst_max_line(p->c, mx);
+        }
     }
+
+    return 1;
 }
 
 typedef struct {
-    FILE* fd;
-    int width;
-    int at_line_start;
+    FILE* fd;               /* Output location      */
+    int   width;            /* Max line number size */
+    int   at_line_start;    /* Start row number     */
 } rst_ln_ctx_t;
 
+/*
+Get the node line.
+Params
+    - `nd` - AST node.
+
+Returns the node's line number.
+*/
 static inline int _rst_line(ast_node_t* nd) {
     if (!nd || !nd->t) return 0;
     return nd->t->finfo.line;
 }
 
+/*
+Print the line's prefix with a number of a line.
+Params:
+    - `x` - Line writer context.
+    - `line` - Line number.
+*/
 static inline void _rst_ln_prefix(rst_ln_ctx_t* x, int line) {
     if (line > 0) fprintf(x->fd, "%*d ", x->width, line);
     else fprintf(x->fd, "%*s ", x->width, "");
     fputs("| ", x->fd);
 }
 
-static void _rst_ln_write(rst_ln_ctx_t* x, int line, const char* s, size_t n) {
+static int _rst_ln_write(rst_ln_ctx_t* x, int line, const char* s, size_t n) {
     size_t i = 0;
     while (i < n) {
         if (x->at_line_start) {
@@ -75,65 +108,77 @@ static void _rst_ln_write(rst_ln_ctx_t* x, int line, const char* s, size_t n) {
         }
 
         size_t j = i;
-        for (; j < n && s[j] != '\n'; ++j) {}
-
+        for (; j < n && s[j] != '\n'; ++j);
         if (j > i) fwrite(s + i, 1, j - i, x->fd);
-
         if (j < n && s[j] == '\n') {
             fputc('\n', x->fd);
             x->at_line_start = 1;
             i = j + 1;
-        } else {
+        } 
+        else {
             i = j;
         }
     }
+
+    return 1;
 }
 
-static void _rst_ln_puts(rst_ln_ctx_t* x, int line, const char* s) {
-    if (!s) return;
+static int _rst_ln_puts(rst_ln_ctx_t* x, int line, const char* s) {
+    if (!s) return 0;
     const char* p = s;
     while (*p) ++p;
     _rst_ln_write(x, line, s, (size_t)(p - s));
+    return 1;
 }
 
-static void _rst_ln_printf(rst_ln_ctx_t* x, int line, const char* fmt, ...) {
+static int _rst_ln_printf(rst_ln_ctx_t* x, int line, const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
+
     va_list ap2;
     va_copy(ap2, ap);
+    
     int need = vsnprintf(NULL, 0, fmt, ap2);
     va_end(ap2);
-    if (need <= 0) { va_end(ap); return; }
+    if (need <= 0) { 
+        va_end(ap); 
+        return 0; 
+    }
 
     char* buf = (char*)mm_malloc((size_t)need + 1);
-    if (!buf) { va_end(ap); return; }
+    if (!buf) { 
+        va_end(ap); 
+        return 0; 
+    }
+
     vsnprintf(buf, (size_t)need + 1, fmt, ap);
     va_end(ap);
 
     _rst_ln_write(x, line, buf, (size_t)need);
     mm_free(buf);
+    return 1;
 }
 
 static inline void _rst_ln_indent(rst_ln_ctx_t* x, int line, int indent) {
     for (int i = 0; i < indent; ++i) _rst_ln_puts(x, line, "    ");
 }
 
-static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int indent);
+static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int indent);
 
 static inline void _simple_restore_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int indent, const char* entry) {
-    int line = _rst_line(nd);
-    _rst_ln_puts(x, line, entry);
-    _restore_code_lines_impl(x, nd, u, indent);
+    _rst_ln_puts(x, _rst_line(nd), entry);
+    _restore_code_lines(x, nd, u, indent);
 }
 
-static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int indent) {
+static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int indent) {
     if (!nd) return 0;
 
     int line = _rst_line(nd);
-    if (u && set_has(u, nd)) _rst_ln_puts(x, line, UNDERSCORE_OPEN);
+    if (u && set_has(u, nd)) {
+        _rst_ln_puts(x, line, UNDERSCORE_OPEN);
+    }
 
     int complex = -1;
-
     if (TKN_isdecl(nd->t)) {
         _rst_ln_printf(
             x, line, "%s%s%s %s",
@@ -145,28 +190,26 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
 
         if (nd->c->siblings.n) {
             _rst_ln_puts(x, line, " = ");
-            _restore_code_lines_impl(x, nd->c->siblings.n, u, indent);
+            _restore_code_lines(x, nd->c->siblings.n, u, indent);
         }
     }
     else if (TKN_isoperand(nd->t)) {
-        if (nd->c) _restore_code_lines_impl(x, nd->c, u, indent);
+        if (nd->c) _restore_code_lines(x, nd->c, u, indent);
         _rst_ln_printf(x, line, " %s ", nd->t->body->body);
-        if (nd->c->siblings.n) _restore_code_lines_impl(x, nd->c->siblings.n, u, indent);
+        if (nd->c->siblings.n) _restore_code_lines(x, nd->c->siblings.n, u, indent);
     }
     else if (
         TKN_isnumeric(nd->t)  ||
         TKN_isvariable(nd->t) ||
         nd->t->t_type == STRING_VALUE_TOKEN
-    ) {
-        _rst_ln_puts(x, line, nd->t->body->body);
-    }
-
+    ) _rst_ln_puts(x, line, nd->t->body->body);
+    
     switch (nd->t->t_type) {
         case START_TOKEN: {
             _rst_ln_puts(x, line, START_COMMAND " (");
             ast_node_t* p = nd->c;
             for (; p && p->t && p->t->t_type != SCOPE_TOKEN; p = p->siblings.n) {
-                _restore_code_lines_impl(x, p, u, indent);
+                _restore_code_lines(x, p, u, indent);
                 if (p->siblings.n && p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) _rst_ln_puts(x, line, ", ");
             }
 
@@ -174,7 +217,7 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
 
             int p_line = _rst_line(p);
             _rst_ln_indent(x, p_line, indent);
-            int r = _restore_code_lines_impl(x, p, u, indent);
+            int r = _restore_code_lines(x, p, u, indent);
             if (r < 0) _rst_ln_puts(x, p_line, ";\n");
 
             complex = 1;
@@ -186,7 +229,7 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
 
             ast_node_t* p = nd->c->siblings.n ? nd->c->siblings.n->c : NULL;
             for (; p && p->t && p->t->t_type != SCOPE_TOKEN; p = p->siblings.n) {
-                _restore_code_lines_impl(x, p, u, indent);
+                _restore_code_lines(x, p, u, indent);
                 if (p->siblings.n && p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) _rst_ln_puts(x, line, ", ");
             }
 
@@ -196,7 +239,7 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
 
             int p_line = _rst_line(p);
             _rst_ln_indent(x, p_line, indent);
-            int r = _restore_code_lines_impl(x, p, u, indent);
+            int r = _restore_code_lines(x, p, u, indent);
             if (r < 0) _rst_ln_puts(x, p_line, ";\n");
 
             complex = 1;
@@ -206,9 +249,10 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
         case CALL_TOKEN: {
             _rst_ln_printf(x, line, "%s(", nd->t->body->body);
             for (ast_node_t* p = nd->c; p; p = p->siblings.n) {
-                _restore_code_lines_impl(x, p, u, indent);
+                _restore_code_lines(x, p, u, indent);
                 if (p->siblings.n) _rst_ln_puts(x, line, ", ");
             }
+
             _rst_ln_puts(x, line, ")");
             break;
         }
@@ -216,9 +260,10 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
         case SYSCALL_TOKEN: {
             _rst_ln_puts(x, line, SYSCALL_COMMAND "(");
             for (ast_node_t* p = nd->c; p; p = p->siblings.n) {
-                _restore_code_lines_impl(x, p, u, indent);
+                _restore_code_lines(x, p, u, indent);
                 if (p->siblings.n) _rst_ln_puts(x, line, ", ");
             }
+
             _rst_ln_puts(x, line, ")");
             break;
         }
@@ -231,20 +276,20 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
         case RETURN_TOKEN:    _simple_restore_lines(x, nd->c, u, indent, RETURN_COMMAND " "); break;
 
         case CONVERT_TOKEN: {
-            if (nd->c && nd->c->siblings.n) _restore_code_lines_impl(x, nd->c->siblings.n, u, indent);
+            if (nd->c && nd->c->siblings.n) _restore_code_lines(x, nd->c->siblings.n, u, indent);
             _rst_ln_printf(x, line, "%s %s", CONVERT_COMMAND, RST_restore_type(nd->c->t));
             break;
         }
 
         case WHILE_TOKEN: {
             _rst_ln_puts(x, line, WHILE_COMAND " ");
-            if (nd->c) _restore_code_lines_impl(x, nd->c, u, indent);
+            if (nd->c) _restore_code_lines(x, nd->c, u, indent);
             _rst_ln_puts(x, line, ";\n");
 
             ast_node_t* body = nd->c ? nd->c->siblings.n : NULL;
             int body_line = _rst_line(body);
             _rst_ln_indent(x, body_line, indent);
-            _restore_code_lines_impl(x, body, u, indent);
+            _restore_code_lines(x, body, u, indent);
 
             complex = 1;
             break;
@@ -252,7 +297,7 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
 
         case IF_TOKEN: {
             _rst_ln_puts(x, line, IF_COMMAND " ");
-            if (nd->c) _restore_code_lines_impl(x, nd->c, u, indent);
+            if (nd->c) _restore_code_lines(x, nd->c, u, indent);
             _rst_ln_puts(x, line, ";\n");
 
             ast_node_t* tbranch = (nd->c ? nd->c->siblings.n : NULL);
@@ -260,13 +305,13 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
 
             int tb_line = _rst_line(tbranch);
             _rst_ln_indent(x, tb_line, indent);
-            _restore_code_lines_impl(x, tbranch, u, indent);
+            _restore_code_lines(x, tbranch, u, indent);
 
             if (fbranch) {
                 int fb_line = _rst_line(fbranch);
                 _rst_ln_indent(x, fb_line, indent);
-                _rst_ln_puts(x, fb_line, "else\n");
-                _restore_code_lines_impl(x, fbranch, u, indent);
+                _rst_ln_puts(x, fb_line, "else ");
+                _restore_code_lines(x, fbranch, u, indent);
             }
 
             complex = 1;
@@ -278,8 +323,9 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
             for (ast_node_t* c = nd->c; c; c = c->siblings.n) {
                 int cl = _rst_line(c);
                 _rst_ln_indent(x, cl, indent + 1);
-                if (_restore_code_lines_impl(x, c, u, indent + 1) < 0) _rst_ln_puts(x, cl, ";\n");
+                if (_restore_code_lines(x, c, u, indent + 1) < 0) _rst_ln_puts(x, cl, ";\n");
             }
+
             _rst_ln_indent(x, line, indent);
             _rst_ln_puts(x, line, "}\n");
             complex = 1;
@@ -289,7 +335,10 @@ static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, i
         default: break;
     }
 
-    if (u && set_has(u, nd)) _rst_ln_puts(x, line, UNDERSCORE_CLOSE);
+    if (u && set_has(u, nd)) {
+        _rst_ln_puts(x, line, UNDERSCORE_CLOSE);
+    }
+
     return complex;
 }
 
@@ -297,10 +346,12 @@ int RST_restore_code(FILE* fd, ast_node_t* nd, set_t* u, int indent) {
     int mx = 0;
     _rst_max_line(nd, &mx);
 
-    rst_ln_ctx_t x;
-    x.fd = fd;
-    x.width = _rst_digits(mx > 0 ? mx : 1);
-    x.at_line_start = 1;
-
-    return _restore_code_lines_impl(&x, nd, u, indent);
+    rst_ln_ctx_t x = {
+        .fd = fd,
+        .width = _rst_digits(mx > 0 ? mx : 1),
+        .at_line_start = 1
+    };
+    
+    if (_restore_code_lines(&x, nd, u, indent) < 0) fprintf(fd, ";\n");
+    return 1;
 }
