@@ -101,12 +101,18 @@ Returns a hash based on the provided node.
 */
 static unsigned long _hash_ast_node(ast_node_t* n, int s) {
     if (!n) return 0;
+
+    /* Preserve scope ID from affecting on a hash */
+    long pscope = n->sinfo.s_id;
+    n->sinfo.s_id = 0;
+
     unsigned long hash = crc64((const unsigned char*)&n->sinfo, sizeof(syntax_info_t), 0);
     if (n->t) hash ^= TKN_hash_token(n->t);
 
     if (s) hash ^= _hash_ast_node(n->siblings.n, 1);
     hash ^= _hash_ast_node(n->c, 1);
 
+    n->sinfo.s_id = pscope;
     return hash;
 }
 

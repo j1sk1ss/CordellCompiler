@@ -67,6 +67,7 @@ static const char* _format_location(token_fpos_t* p) {
         set_free(&__s);                        \
 
 int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
     ast_node_t* larg = nd->c;
     if (!larg) return 1;
     ast_node_t* rarg = larg->siblings.n;
@@ -121,8 +122,26 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_not_init(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
     ast_node_t* larg = nd->c;
     if (!larg) return 1;
+
+    if (
+        nd->p &&      /* If we have a parent     */
+        nd->p->p &&   /* The parent has a parent */
+        (
+            nd->p->p->t->t_type == FUNC_TOKEN ||  /* And this isn't a function              */
+                                                  /* Note: We don't fire a warning          */
+                                                  /*       if this is a argument from       */
+                                                  /*       function's body                  */
+                                                  /* Note 2: The function has a structure,  */
+                                                  /*         that a arg has a parent,       */
+                                                  /*         and this parent has a function */
+                                                  /*         as a parent                    */
+            nd->p->p->t->t_type == START_TOKEN
+        )
+    ) return 1;
+
     ast_node_t* rarg = larg->siblings.n;
     if (!rarg) {
         SEMANTIC_WARNING(
@@ -193,6 +212,7 @@ static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
 }
 
 int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
     ast_node_t* larg = nd->c;
     if (!larg) return 1;
     ast_node_t* rarg = larg->siblings.n;
@@ -305,6 +325,7 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
     int has_ret = 0;
     _search_rexit_ast(nd->c, &has_ret, NULL);
     if (!has_ret) {
@@ -412,6 +433,7 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
     ast_node_t* lbranch = nd->c->siblings.n;
     if (!lbranch) return 1;
     ast_node_t* rbranch = lbranch->siblings.n;
@@ -423,6 +445,7 @@ int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS) {
             _format_location(&lbranch->t->finfo), _format_location(&rbranch->t->finfo)
         );
 
+        REBUILD_CODE(nd, lbranch);
         return 0;
     }
 
@@ -615,6 +638,7 @@ int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
     if (nd->siblings.n) {
         SEMANTIC_WARNING(" %s Possible dead code after the term statement!", _format_location(&nd->t->finfo));
         return 0;
@@ -624,6 +648,7 @@ int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_implict_convertion(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
     ast_node_t* larg = nd->c;
     if (!larg) return 1;
     ast_node_t* rarg = larg->siblings.n;
@@ -637,6 +662,7 @@ int ASTWLKR_implict_convertion(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_inefficient_while(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
     ast_node_t* cond = nd->c;
     if (!cond || cond->t->t_type != UNKNOWN_NUMERIC_TOKEN) return 0;
     if (cond->t->body->to_llong(cond->t->body)) {
@@ -649,9 +675,9 @@ int ASTWLKR_inefficient_while(AST_VISITOR_ARGS) {
 }
 
 int ASTWLKR_wrong_exit(AST_VISITOR_ARGS) {
-    long fid;
+    long fid = 0;
     if (nd->t->t_type == START_TOKEN) fid = nd->sinfo.v_id;
-    else nd->c->sinfo.v_id;
+    else fid = nd->c->sinfo.v_id;
 
     func_info_t fi;
     if (
@@ -669,5 +695,6 @@ int ASTWLKR_wrong_exit(AST_VISITOR_ARGS) {
 
         return 0;
     }
+    
     return 1;
 }

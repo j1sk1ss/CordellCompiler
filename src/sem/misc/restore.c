@@ -33,142 +33,240 @@ const char* RST_restore_type(token_t* t) {
     }
 }
 
-static inline void _print_indent(FILE* fd, int indent) {
-    for (int i = 0; i < indent; ++i) fputs("    ", fd);
+static inline int _rst_digits(int v) {
+    int d = 1;
+    while (v >= 10) { v /= 10; ++d; }
+    return d;
 }
 
-static inline void _simple_restore(FILE* fd, const char* entry, ast_node_t* nd, set_t* u, int indent) {
-    fprintf(fd, "%s", entry);
-    RST_restore_code(fd, nd, u, indent);
+static void _rst_max_line(ast_node_t* nd, int* mx) {
+    for (ast_node_t* p = nd; p; p = p->siblings.n) {
+        if (p->t) {
+            int l = p->t->finfo.line;
+            if (l > *mx) *mx = l;
+        }
+        if (p->c) _rst_max_line(p->c, mx);
+    }
 }
 
-int RST_restore_code(FILE* fd, ast_node_t* nd, set_t* u, int indent) {
+typedef struct {
+    FILE* fd;
+    int width;
+    int at_line_start;
+} rst_ln_ctx_t;
+
+static inline int _rst_line(ast_node_t* nd) {
+    if (!nd || !nd->t) return 0;
+    return nd->t->finfo.line;
+}
+
+static inline void _rst_ln_prefix(rst_ln_ctx_t* x, int line) {
+    if (line > 0) fprintf(x->fd, "%*d ", x->width, line);
+    else fprintf(x->fd, "%*s ", x->width, "");
+    fputs("| ", x->fd);
+}
+
+static void _rst_ln_write(rst_ln_ctx_t* x, int line, const char* s, size_t n) {
+    size_t i = 0;
+    while (i < n) {
+        if (x->at_line_start) {
+            _rst_ln_prefix(x, line);
+            x->at_line_start = 0;
+        }
+
+        size_t j = i;
+        for (; j < n && s[j] != '\n'; ++j) {}
+
+        if (j > i) fwrite(s + i, 1, j - i, x->fd);
+
+        if (j < n && s[j] == '\n') {
+            fputc('\n', x->fd);
+            x->at_line_start = 1;
+            i = j + 1;
+        } else {
+            i = j;
+        }
+    }
+}
+
+static void _rst_ln_puts(rst_ln_ctx_t* x, int line, const char* s) {
+    if (!s) return;
+    const char* p = s;
+    while (*p) ++p;
+    _rst_ln_write(x, line, s, (size_t)(p - s));
+}
+
+static void _rst_ln_printf(rst_ln_ctx_t* x, int line, const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    va_list ap2;
+    va_copy(ap2, ap);
+    int need = vsnprintf(NULL, 0, fmt, ap2);
+    va_end(ap2);
+    if (need <= 0) { va_end(ap); return; }
+
+    char* buf = (char*)mm_malloc((size_t)need + 1);
+    if (!buf) { va_end(ap); return; }
+    vsnprintf(buf, (size_t)need + 1, fmt, ap);
+    va_end(ap);
+
+    _rst_ln_write(x, line, buf, (size_t)need);
+    mm_free(buf);
+}
+
+static inline void _rst_ln_indent(rst_ln_ctx_t* x, int line, int indent) {
+    for (int i = 0; i < indent; ++i) _rst_ln_puts(x, line, "    ");
+}
+
+static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int indent);
+
+static inline void _simple_restore_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int indent, const char* entry) {
+    int line = _rst_line(nd);
+    _rst_ln_puts(x, line, entry);
+    _restore_code_lines_impl(x, nd, u, indent);
+}
+
+static int _restore_code_lines_impl(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int indent) {
     if (!nd) return 0;
-    if (u && set_has(u, nd)) fprintf(fd, "%s", UNDERSCORE_OPEN);
+
+    int line = _rst_line(nd);
+    if (u && set_has(u, nd)) _rst_ln_puts(x, line, UNDERSCORE_OPEN);
 
     int complex = -1;
+
     if (TKN_isdecl(nd->t)) {
-        fprintf(
-            fd, "%s%s%s %s", 
+        _rst_ln_printf(
+            x, line, "%s%s%s %s",
             nd->t->flags.glob ? "glob" : "",
             nd->t->flags.ro ? "ro" : "",
-            RST_restore_type(nd->t), 
+            RST_restore_type(nd->t),
             nd->c->t->body->body
         );
 
         if (nd->c->siblings.n) {
-            fprintf(fd, " = ");
-            RST_restore_code(fd, nd->c->siblings.n, u, indent);
+            _rst_ln_puts(x, line, " = ");
+            _restore_code_lines_impl(x, nd->c->siblings.n, u, indent);
         }
     }
     else if (TKN_isoperand(nd->t)) {
-        if (nd->c) RST_restore_code(fd, nd->c, u, indent);
-        fprintf(fd, " %s ", nd->t->body->body);
-        if (nd->c->siblings.n) RST_restore_code(fd, nd->c->siblings.n, u, indent);
+        if (nd->c) _restore_code_lines_impl(x, nd->c, u, indent);
+        _rst_ln_printf(x, line, " %s ", nd->t->body->body);
+        if (nd->c->siblings.n) _restore_code_lines_impl(x, nd->c->siblings.n, u, indent);
     }
     else if (
-        TKN_isnumeric(nd->t)  || 
+        TKN_isnumeric(nd->t)  ||
         TKN_isvariable(nd->t) ||
         nd->t->t_type == STRING_VALUE_TOKEN
     ) {
-        fprintf(fd, "%s", nd->t->body->body);
+        _rst_ln_puts(x, line, nd->t->body->body);
     }
 
     switch (nd->t->t_type) {
         case START_TOKEN: {
-            fprintf(fd, "%s (", START_COMMAND);
+            _rst_ln_puts(x, line, START_COMMAND " (");
             ast_node_t* p = nd->c;
             for (; p && p->t && p->t->t_type != SCOPE_TOKEN; p = p->siblings.n) {
-                RST_restore_code(fd, p, u, indent);
-                if (p->siblings.n && p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) fprintf(fd, ", ");
+                _restore_code_lines_impl(x, p, u, indent);
+                if (p->siblings.n && p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) _rst_ln_puts(x, line, ", ");
             }
 
-            fprintf(fd, ")\n");
+            _rst_ln_puts(x, line, ")\n");
 
-            _print_indent(fd, indent);
-            int r = RST_restore_code(fd, p, u, indent);
-            if (r < 0) fprintf(fd, ";\n");
+            int p_line = _rst_line(p);
+            _rst_ln_indent(x, p_line, indent);
+            int r = _restore_code_lines_impl(x, p, u, indent);
+            if (r < 0) _rst_ln_puts(x, p_line, ";\n");
 
             complex = 1;
             break;
         }
 
         case FUNC_TOKEN: {
-            fprintf(fd, "%s %s(", FUNCTION_COMMAND, nd->c->t->body->body);
+            _rst_ln_printf(x, line, "%s %s(", FUNCTION_COMMAND, nd->c->t->body->body);
 
             ast_node_t* p = nd->c->siblings.n ? nd->c->siblings.n->c : NULL;
             for (; p && p->t && p->t->t_type != SCOPE_TOKEN; p = p->siblings.n) {
-                RST_restore_code(fd, p, u, indent);
-                if (p->siblings.n && p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) fprintf(fd, ", ");
+                _restore_code_lines_impl(x, p, u, indent);
+                if (p->siblings.n && p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) _rst_ln_puts(x, line, ", ");
             }
 
-            fprintf(fd, ") ");
-            if (nd->c->c) fprintf(fd, "=> %s ", RST_restore_type(nd->c->c->t));
-            fprintf(fd, "\n");
+            _rst_ln_puts(x, line, ") ");
+            if (nd->c->c) _rst_ln_printf(x, line, "=> %s ", RST_restore_type(nd->c->c->t));
+            _rst_ln_puts(x, line, "\n");
 
-            _print_indent(fd, indent);
-            int r = RST_restore_code(fd, p, u, indent);
-            if (r < 0) fprintf(fd, ";\n");
+            int p_line = _rst_line(p);
+            _rst_ln_indent(x, p_line, indent);
+            int r = _restore_code_lines_impl(x, p, u, indent);
+            if (r < 0) _rst_ln_puts(x, p_line, ";\n");
 
             complex = 1;
             break;
         }
 
         case CALL_TOKEN: {
-            fprintf(fd, "%s(", nd->t->body->body);
+            _rst_ln_printf(x, line, "%s(", nd->t->body->body);
             for (ast_node_t* p = nd->c; p; p = p->siblings.n) {
-                RST_restore_code(fd, p, u, indent);
-                if (p->siblings.n) fprintf(fd, ", ");
+                _restore_code_lines_impl(x, p, u, indent);
+                if (p->siblings.n) _rst_ln_puts(x, line, ", ");
             }
-
-            fprintf(fd, ")");
+            _rst_ln_puts(x, line, ")");
             break;
         }
 
         case SYSCALL_TOKEN: {
-            fprintf(fd, "%s(", SYSCALL_COMMAND);
+            _rst_ln_puts(x, line, SYSCALL_COMMAND "(");
             for (ast_node_t* p = nd->c; p; p = p->siblings.n) {
-                RST_restore_code(fd, p, u, indent);
-                if (p->siblings.n) fprintf(fd, ", ");
+                _restore_code_lines_impl(x, p, u, indent);
+                if (p->siblings.n) _rst_ln_puts(x, line, ", ");
             }
-
-            fprintf(fd, ")");
+            _rst_ln_puts(x, line, ")");
             break;
         }
 
-        case REF_TYPE_TOKEN:  _simple_restore(fd, REF_COMMAND " ", nd->c, u, indent);      break;
-        case DREF_TYPE_TOKEN: _simple_restore(fd, DREF_COMMAND " ", nd->c, u, indent);     break;
-        case NEGATIVE_TOKEN:  _simple_restore(fd, NEGATIVE_COMMAND " ", nd->c, u, indent); break;
-        case LOOP_TOKEN:      _simple_restore(fd, LOOP_COMMAND, nd->c, u, indent);         break;
-        case EXIT_TOKEN:      _simple_restore(fd, EXIT_COMMAND " ", nd->c, u, indent);     break;
-        case RETURN_TOKEN:    _simple_restore(fd, RETURN_COMMAND " ", nd->c, u, indent);   break;
+        case REF_TYPE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, REF_COMMAND " "); break;
+        case DREF_TYPE_TOKEN: _simple_restore_lines(x, nd->c, u, indent, DREF_COMMAND " "); break;
+        case NEGATIVE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, NEGATIVE_COMMAND " "); break;
+        case LOOP_TOKEN:      _simple_restore_lines(x, nd->c, u, indent, LOOP_COMMAND); break;
+        case EXIT_TOKEN:      _simple_restore_lines(x, nd->c, u, indent, EXIT_COMMAND " "); break;
+        case RETURN_TOKEN:    _simple_restore_lines(x, nd->c, u, indent, RETURN_COMMAND " "); break;
+
         case CONVERT_TOKEN: {
-            _simple_restore(fd, "", nd->c->siblings.n, u, indent); 
-            fprintf(fd, "%s %s", CONVERT_COMMAND, RST_restore_type(nd->c->t));
+            if (nd->c && nd->c->siblings.n) _restore_code_lines_impl(x, nd->c->siblings.n, u, indent);
+            _rst_ln_printf(x, line, "%s %s", CONVERT_COMMAND, RST_restore_type(nd->c->t));
             break;
         }
 
         case WHILE_TOKEN: {
-            _simple_restore(fd, WHILE_COMAND " ", nd->c, u, indent);
-            fprintf(fd, ";\n");
-            _print_indent(fd, indent);
-            RST_restore_code(fd, nd->c->siblings.n, u, indent);
+            _rst_ln_puts(x, line, WHILE_COMAND " ");
+            if (nd->c) _restore_code_lines_impl(x, nd->c, u, indent);
+            _rst_ln_puts(x, line, ";\n");
+
+            ast_node_t* body = nd->c ? nd->c->siblings.n : NULL;
+            int body_line = _rst_line(body);
+            _rst_ln_indent(x, body_line, indent);
+            _restore_code_lines_impl(x, body, u, indent);
+
             complex = 1;
             break;
         }
 
         case IF_TOKEN: {
-            _simple_restore(fd, IF_COMMAND " ", nd->c, u, indent);
-            fprintf(fd, ";\n");
+            _rst_ln_puts(x, line, IF_COMMAND " ");
+            if (nd->c) _restore_code_lines_impl(x, nd->c, u, indent);
+            _rst_ln_puts(x, line, ";\n");
 
             ast_node_t* tbranch = (nd->c ? nd->c->siblings.n : NULL);
             ast_node_t* fbranch = (tbranch ? tbranch->siblings.n : NULL);
 
-            _print_indent(fd, indent);
-            RST_restore_code(fd, tbranch, u, indent);
+            int tb_line = _rst_line(tbranch);
+            _rst_ln_indent(x, tb_line, indent);
+            _restore_code_lines_impl(x, tbranch, u, indent);
+
             if (fbranch) {
-                _print_indent(fd, indent);
-                RST_restore_code(fd, fbranch, u, indent);
+                int fb_line = _rst_line(fbranch);
+                _rst_ln_indent(x, fb_line, indent);
+                _rst_ln_puts(x, fb_line, "else\n");
+                _restore_code_lines_impl(x, fbranch, u, indent);
             }
 
             complex = 1;
@@ -176,15 +274,14 @@ int RST_restore_code(FILE* fd, ast_node_t* nd, set_t* u, int indent) {
         }
 
         case SCOPE_TOKEN: {
-            fprintf(fd, "{\n");
+            _rst_ln_puts(x, line, "{\n");
             for (ast_node_t* c = nd->c; c; c = c->siblings.n) {
-                _print_indent(fd, indent + 1);
-                if (RST_restore_code(fd, c, u, indent + 1) < 0) fprintf(fd, ";\n");
+                int cl = _rst_line(c);
+                _rst_ln_indent(x, cl, indent + 1);
+                if (_restore_code_lines_impl(x, c, u, indent + 1) < 0) _rst_ln_puts(x, cl, ";\n");
             }
-
-            _print_indent(fd, indent);
-            fprintf(fd, "}\n");
-
+            _rst_ln_indent(x, line, indent);
+            _rst_ln_puts(x, line, "}\n");
             complex = 1;
             break;
         }
@@ -192,6 +289,18 @@ int RST_restore_code(FILE* fd, ast_node_t* nd, set_t* u, int indent) {
         default: break;
     }
 
-    if (u && set_has(u, nd)) fprintf(fd, "%s", UNDERSCORE_CLOSE);
+    if (u && set_has(u, nd)) _rst_ln_puts(x, line, UNDERSCORE_CLOSE);
     return complex;
+}
+
+int RST_restore_code(FILE* fd, ast_node_t* nd, set_t* u, int indent) {
+    int mx = 0;
+    _rst_max_line(nd, &mx);
+
+    rst_ln_ctx_t x;
+    x.fd = fd;
+    x.width = _rst_digits(mx > 0 ? mx : 1);
+    x.at_line_start = 1;
+
+    return _restore_code_lines_impl(&x, nd, u, indent);
 }

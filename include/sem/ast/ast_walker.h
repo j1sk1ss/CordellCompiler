@@ -26,7 +26,7 @@ typedef struct {
     sym_table_t* smt;
 } ast_walker_t;
 
-int ASTWLK_register_visitor(token_type_t trg, int (*perform)(ast_node_t*), ast_walker_t* ctx);
+int ASTWLK_register_visitor(token_type_t trg, int (*perform)(ast_node_t*, sym_table_t*), ast_walker_t* ctx);
 int ASTWLK_init_ctx(ast_walker_t* ctx, sym_table_t* smt);
 int ASTWLK_walk(ast_ctx_t* actx, ast_walker_t* ctx);
 int ASTWLK_unload_ctx(ast_walker_t* ctx);

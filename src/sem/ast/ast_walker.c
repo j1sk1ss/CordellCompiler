@@ -1,6 +1,6 @@
 #include <sem/ast/ast_walker.h>
 
-int ASTWLK_register_visitor(token_type_t trg, int (*perform)(ast_node_t*), ast_walker_t* ctx) {
+int ASTWLK_register_visitor(unsigned int trg, int (*perform)(ast_node_t*, sym_table_t*), ast_walker_t* ctx) {
     ast_visitor_t* v = ASTVIS_create_visitor(trg, perform);
     if (!v) return 0;
     return list_add(&ctx->visitors, v);

@@ -12,7 +12,7 @@ typedef struct {
     int          (*perform)(ast_node_t*, sym_table_t*);
 } ast_visitor_t;
 
-ast_visitor_t* ASTVIS_create_visitor(unsigned int trg, int (*perform)(ast_node_t*));
+ast_visitor_t* ASTVIS_create_visitor(unsigned int trg, int (*perform)(ast_node_t*, sym_table_t*));
 int ASTVIS_unload_visitor(ast_visitor_t* v);
 
 #endif

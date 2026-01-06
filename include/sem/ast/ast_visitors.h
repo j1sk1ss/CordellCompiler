@@ -9,7 +9,8 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 
-#define AST_VISITOR_ARGS ast_node_t* nd, sym_table_t* smt
+#define AST_VISITOR_ARGS     ast_node_t* nd, sym_table_t* smt
+#define AST_VISITOR_ARGS_USE (void*)nd; (void*)smt;
 #define SEMANTIC_ERROR(message, ...)   fprintf(stdout, "[ERROR]  " message "\n", ##__VA_ARGS__)
 #define SEMANTIC_WARNING(message, ...) fprintf(stdout, "[WARNING]" message "\n", ##__VA_ARGS__)
 #define SEMANTIC_INFO(message, ...)    fprintf(stdout, "[INFO]   " message "\n", ##__VA_ARGS__)

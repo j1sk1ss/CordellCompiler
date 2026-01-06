@@ -7,8 +7,8 @@
 #include <prep/token_types.h>
 
 typedef struct {
-    short s_id;
-    int   v_id;
+    short s_id;  /* Scope ID    */
+    int   v_id;  /* Variable ID */
 } syntax_info_t;
 
 typedef struct ast_node {

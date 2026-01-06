@@ -229,8 +229,10 @@ CPL uses an inbuild static analyzator for the code checking before the compilati
 ```cpl
 {
     function foo() => i32 { return 1; }
+
     function BarBar() => i0 { }
-    function BazBaz() { }
+
+    function BazBaz() { } 
 
     function baz(i32 a) => i0 {
         if a == 0; { return; }
@@ -250,6 +252,10 @@ CPL uses an inbuild static analyzator for the code checking before the compilati
 
     start() {
         i8 b;
+        ptr i8 bref = ref b;
+        ptr i8 bref1 = bref;
+        ptr i8 bref2 = bref1;
+
         i8 a = foo();
         i8 c = 123123;
         BarBar();
@@ -259,33 +265,47 @@ CPL uses an inbuild static analyzator for the code checking before the compilati
 
 The code above will produce a ton of errors and warnings:
 ```
-[WARNING] [line=7] Variable='a' without initialization!
-i32 a;
-[WARNING] [line=18] Possible dead code after the term statement!
-[WARNING] [line=15] Variable='a' without initialization!
-i32 a;
-[WARNING] [line=30] Illegal declaration of 'c' with '123123' (Number bitness is=32, but 'i8' can handle bitness=8)!
-i8 c = 123123;
-[WARNING] [line=29] Function='foo' return type='i32' not match to the declaration type='i8'!
-[WARNING] [line=24] Variable='b' without initialization!
-i8 b;
-[WARNING] [line=23] Start doesn't have the exit statement in the all paths!
-[INFO]    [line=15] Used Fang as a function dragon-name!
-[WARNING] [line=16] Function='fang' has the wrong return value!='i8'!
-return 123321;
-[WARNING] [line=20] Function='fang' has the wrong return value!='i8'!
-return b;
-[WARNING] [line=11] Function='baz' has the return value, but isn't suppose to!
-return 1;
-[WARNING] [line=12] Function='baz' has the return value, but isn't suppose to!
-return 1;
-[WARNING] [line=5] Function='BazBaz' doesn't have the return statement in all paths!
-function BazBaz() { ... 
-[WARNING] [line=5] Function name='BazBaz' isn't in sneaky_case! (PascalCase)
-[INFO]    [line=5] Consider to add a return type for the function='BazBaz'!
-[WARNING] [line=3] Function='BarBar' doesn't have the return statement in all paths!
-function BarBar() => i0 { ... 
-[WARNING] [line=3] Function name='BarBar' isn't in sneaky_case! (PascalCase)
+[WARNING] Possible branch redundancy! The branch at [13:22] is similar to the branch at [13:22]!
+12 | if a == 0;
+12 | {
+12 |     return 1;
+12 | }
+12 | else
+13 | {
+13 |     return 1;
+13 | }
+[WARNING] [19:15] Possible dead code after the term statement!
+[WARNING] [31:22] Illegal declaration of 'c' with '123123' (Number bitness is=32, but 'i8' can handle bitness=8)!
+31 | i8 c = 123123
+[WARNING] [30:13] Function='foo' return type='i32' not match to the declaration type='i8'!
+[WARNING] [25:13] Variable='b' without initialization!
+25 | i8 b
+[WARNING] [24:10] Start doesn't have the exit statement in all paths!
+24 | start ()
+25 | {
+25 |     {
+25 |         i8 b;
+26 |         ptr i8 bref = ref b;
+27 |         ptr i8 bref1 = bref;
+28 |         ptr i8 bref2 = bref1;
+30 |         i8 a = foo();
+31 |         i8 c = 123123;
+32 |         BarBar();
+25 |     }
+25 | }
+[INFO]    [16:18] Used Fang as a function dragon-name!
+[WARNING] [17:34] Function='fang' has the wrong return value!='i8'!
+17 | return 123321
+[WARNING] [21:17] Function='fang' has the wrong return value!='i8'!
+21 | return b
+[WARNING] [12:30] Function='baz' has the return value, but isn't suppose to!
+12 | return 1
+[WARNING] [13:24] Function='baz' has the return value, but isn't suppose to!
+13 | return 1
+[WARNING] [6:13] Function='BazBaz' doesn't have the return statement in all paths!
+[WARNING] [6:20] Function name='BazBaz' isn't in sneaky_case! (PascalCase)
+[INFO]    [6:13] Consider to add a return type for the function=BazBaz!
+[WARNING] [4:20] Function name='BarBar' isn't in sneaky_case! (PascalCase)
 ```
 
 # Binary and unary operations

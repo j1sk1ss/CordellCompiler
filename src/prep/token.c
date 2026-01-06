@@ -262,8 +262,9 @@ unsigned long TKN_hash_token(token_t* t) {
     t->finfo.line   = 0;
     t->finfo.column = 0;
 
-    unsigned long hash = crc64((const unsigned char*)t, sizeof(token_t), 0);
-    hash ^= crc64((const unsigned char*)t->body->body, t->body->size, 0);
+    unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
+    hash ^= t->body->hash;
+    hash ^= t->t_type;
     
     t->finfo.line   = tmp.line;
     t->finfo.column = tmp.column;
