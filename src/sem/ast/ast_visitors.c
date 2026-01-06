@@ -452,7 +452,14 @@ int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS) {
     return 1;
 }
 
-static char* _format_name(int t) {
+/*
+Format format name by the provided type.
+Params:
+    - `t` - Case type.
+
+Returns a formatted case type. 
+*/
+static inline char* _format_name(int t) {
     switch (t) {
         case 0: return "camelCase";
         case 1: return "PascalCase";
@@ -551,19 +558,19 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
     }
 
     if (fi.name->requals(fi.name, "chloe")) {
-        SEMANTIC_INFO(" %s Used Chloe as a function name!", _format_location(&fname->t->finfo));
+        SEMANTIC_INFO(" %s Used 'Chloe' as a function name!", _format_location(&fname->t->finfo));
     }
     else if (fi.name->requals(fi.name, "max&chloe")) {
-        SEMANTIC_INFO(" %s Used Max and Chloe as a function name!", _format_location(&fname->t->finfo));
+        SEMANTIC_INFO(" %s Used 'Max' and 'Chloe' as a function name!", _format_location(&fname->t->finfo));
     }
     else if (fi.name->requals(fi.name, "fang")) {
-        SEMANTIC_INFO(" %s Used Fang as a function dragon-name!", _format_location(&fname->t->finfo));
+        SEMANTIC_INFO(" %s Used 'Fang' as a function dragon-name!", _format_location(&fname->t->finfo));
     }
     
     int name_format = _determine_string_style(fi.name->body);
     if (name_format != 3) {
         SEMANTIC_WARNING(
-            " %s Function name='%s' isn't in sneaky_case! (%s)", 
+            " %s Function name='%s' isn't in sneaky_case! '%s'", 
             _format_location(&fname->t->finfo), fi.name->body, _format_name(name_format)
         );
     }
@@ -695,6 +702,6 @@ int ASTWLKR_wrong_exit(AST_VISITOR_ARGS) {
 
         return 0;
     }
-    
+
     return 1;
 }
