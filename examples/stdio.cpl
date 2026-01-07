@@ -1,10 +1,4 @@
 {
-    from "string.cpl" import strlen;
-    
-    glob function puts(ptr i8 s) {
-        return syscall(1, 1, s, strlen(s));
-    }
-
     glob function putc(i8 c) {
         arr tmp[2, i8] = { c, 0 };
         return syscall(1, 1, tmp, 2);

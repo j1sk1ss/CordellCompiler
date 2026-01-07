@@ -24,7 +24,17 @@ export function formatType(t: TypeNode): string {
 export type Issue = { message: string; range: Range };
 
 type VarSym = { kind: "var"; name: string; type: TypeNode; range: Range };
-type FuncSym = { kind: "func"; name: string; params: ParamSig[]; ret: TypeNode; range: Range };
+
+type FuncSym = {
+  kind: "func";
+  name: string;
+  params: ParamSig[];
+  ret: TypeNode;
+  decls: Range[];
+  def?: Range;
+  primaryRange: Range;
+  doc?: string;
+};
 
 class Scope {
   vars = new Map<string, VarSym>();
@@ -36,6 +46,29 @@ class Scope {
     }
     return undefined;
   }
+}
+
+function sameType(a: TypeNode, b: TypeNode): boolean {
+  if (a.kind !== b.kind) return false;
+  switch (a.kind) {
+    case "prim":
+      return a.name === (b as any).name;
+    case "ptr":
+      return sameType(a.to, (b as any).to);
+    case "arr":
+      return a.len === (b as any).len && sameType(a.elem, (b as any).elem);
+    case "unknown":
+      return true;
+  }
+}
+
+function sameParams(a: ParamSig[], b: ParamSig[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].hasDefault !== b[i].hasDefault) return false;
+    if (!sameType(a[i].type, b[i].type)) return false;
+  }
+  return true;
 }
 
 export class SemanticContext {
@@ -77,11 +110,57 @@ export class SemanticContext {
     this.varDecls.push(sym);
   }
 
-  declareFunc(name: string, params: ParamSig[], ret: TypeNode, range: Range) {
-    if (this.funcs.has(name)) {
-      this.issues.push({ message: `Function '${name}' already declared`, range });
+  /**
+   * isDefinition = true  -> function ... { ... }
+   * isDefinition = false -> function ... ;
+   */
+  declareFunc(
+    name: string,
+    params: ParamSig[],
+    ret: TypeNode,
+    range: Range,
+    isDefinition: boolean,
+    doc?: string
+  ) {
+    const prev = this.funcs.get(name);
+
+    if (!prev) {
+      const sym: FuncSym = {
+        kind: "func",
+        name,
+        params,
+        ret,
+        decls: isDefinition ? [] : [range],
+        def: isDefinition ? range : undefined,
+        primaryRange: range
+      };
+      
+      this.funcs.set(name, sym);
+      return;
     }
-    this.funcs.set(name, { kind: "func", name, params, ret, range });
+
+    if (doc && !prev.doc) prev.doc = doc;
+    const sigOk = sameParams(prev.params, params) && sameType(prev.ret, ret);
+    if (!sigOk) {
+      this.issues.push({
+        message: `Function '${name}' redeclared with different signature`,
+        range
+      });
+      return;
+    }
+
+    if (isDefinition) {
+      if (prev.def) {
+        this.issues.push({ message: `Function '${name}' already defined`, range });
+        return;
+      }
+      prev.def = range;
+      prev.primaryRange = range; // definition wins for navigation
+      return;
+    }
+
+    prev.decls.push(range);
+    if (!prev.def && prev.decls.length === 1) prev.primaryRange = prev.decls[0];
   }
 
   useVar(name: string, range: Range) {
@@ -99,24 +178,21 @@ export class SemanticContext {
 
   callFunc(name: string, argc: number, range: Range) {
     if (name === "syscall") return;
-  
+
     const fn = this.funcs.get(name);
     if (!fn) {
       this.pendingCalls.push({ name, argc, range });
       return;
     }
-  
+
     const minArgs = fn.params.filter(p => !p.hasDefault).length;
     const maxArgs = fn.params.length;
-  
+
     if (argc < minArgs || argc > maxArgs) {
-      const expected =
-        (minArgs === maxArgs)
-          ? `${minArgs}`
-          : `${minArgs}..${maxArgs}`;
+      const expected = (minArgs === maxArgs) ? `${minArgs}` : `${minArgs}..${maxArgs}`;
       this.issues.push({ message: `Call '${name}': expected ${expected} args, got ${argc}`, range });
     }
-  }  
+  }
 
   finish() {
     for (const c of this.pendingCalls) {
@@ -125,18 +201,15 @@ export class SemanticContext {
         this.issues.push({ message: `Unknown function '${c.name}'`, range: c.range });
         continue;
       }
-  
+
       const minArgs = fn.params.filter(p => !p.hasDefault).length;
       const maxArgs = fn.params.length;
-  
+
       if (c.argc < minArgs || c.argc > maxArgs) {
-        const expected =
-          (minArgs === maxArgs)
-            ? `${minArgs}`
-            : `${minArgs}..${maxArgs}`;
+        const expected = (minArgs === maxArgs) ? `${minArgs}` : `${minArgs}..${maxArgs}`;
         this.issues.push({ message: `Call '${c.name}': expected ${expected} args, got ${c.argc}`, range: c.range });
       }
     }
     this.pendingCalls = [];
-  }  
+  }
 }

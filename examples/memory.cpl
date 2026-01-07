@@ -1,6 +1,6 @@
 {
-    glob arr _mm_head[100000, i8] =;
-    glob arr _blocks_info[100000, i32] =;
+    glob arr _mm_head[100000, i8];
+    glob arr _blocks_info[100000, i32];
 
     glob function memset(ptr u8 buffer, i32 val, i64 size) {
         i64 index = 0;

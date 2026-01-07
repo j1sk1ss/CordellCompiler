@@ -1,10 +1,18 @@
 /* Main parser logic. This parser bases on the BNF that is provided below:
+identifier       = "IDENTIFIER" ;
+integer_literal  = "INTEGER_LITERAL" ;
+string_literal   = "STRING_LITERAL" ;
+char_literal     = "CHAR_LITERAL" ;
+comment          = "COMMENT" ;
+eol              = "EOL" ;
+
 program        = "{" , { top_item } , "}" ;
 
 top_item       = start_function
-                 | import_op
-                 | extern_op
-                 | storage_opt , top_decl ;
+               | import_op
+               | extern_op
+               | pp_directive
+               | storage_opt , top_decl ;
 
 import_op      = "from" , string_literal , "import" , [ import_list ] ;
 import_list    = import_item , { "," , import_item } ;
@@ -15,9 +23,13 @@ var_prototype      = type , identifier ;
 function_prototype = "exfunc" , identifier ;
 
 storage_opt    = [ "glob" | "ro" ] ;
-top_decl       = var_decl | function_def ;
+
+top_decl       = var_decl | function_def | function_proto ;
 
 function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "=>" , type ] , block ;
+
+function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "=>" , type ] , ";" ;
+
 start_function = "start" , "(" , [ param_list ] , ")" , block ;
 
 param_list     = param , { "," , param } ;
@@ -25,7 +37,9 @@ param          = type , identifier , [ "=" , expression ] ;
 
 block          = "{" , { statement } , "}" ;
 
-statement      = var_decl
+statement      = pp_directive
+               | var_decl
+               | arr_decl
                | if_statement
                | loop_statement
                | while_statement
@@ -40,6 +54,53 @@ statement      = var_decl
                | block
                | expression_statement ;
 
+pp_directive   = "#" , pp_body , pp_end ;
+
+pp_end         = eol | ";" ;
+
+pp_body        = pp_line
+               | pp_include
+               | pp_define
+               | pp_undef
+               | pp_ifdef
+               | pp_ifndef
+               | pp_endif ;
+
+pp_line        = "line" , integer_literal , [ string_literal ] ;
+pp_include     = "include" , string_literal ;
+pp_define      = "define" , identifier , { pp_token } ;
+pp_undef       = "undef" , identifier ;
+pp_ifdef       = "ifdef" , identifier ;
+pp_ifndef      = "ifndef" , identifier ;
+pp_endif       = "endif" ;
+
+pp_token       = identifier
+               | literal
+
+               | keyword
+               | punct_no_semi
+               | operator ;
+
+keyword        = "from" | "import" | "extern" | "exfunc" | "glob" | "ro"
+               | "function" | "start"
+               | "arr"
+               | "if" | "else" | "loop" | "while"
+               | "switch" | "case" | "default"
+               | "return" | "exit" | "break" | "lis"
+               | "syscall" | "asm"
+               | "not" | "ref" | "dref" | "as"
+               | "ptr" | "str"
+               | "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+               | "line" | "include" | "define" | "undef" | "ifdef" | "ifndef" | "endif" ;
+
+punct_no_semi  = "{" | "}" | "(" | ")" | "[" | "]" | "," ;
+
+operator       = "=>"
+               | "==" | "!=" | "<=" | ">=" | "<<" | ">>"
+               | "||" | "&&"
+               | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&="
+               | "="  | "<"  | ">"  | "+"  | "-"  | "*"  | "/"  | "%"  | "|"  | "^"  | "&" ;
+
 var_decl       = type , identifier , [ "=" , expression ] , ";" ;
 
 arr_decl       = "arr" , identifier , "[" , integer_literal , "," , type , "]" ,
@@ -48,18 +109,21 @@ arr_decl       = "arr" , identifier , "[" , integer_literal , "," , type , "]" ,
 arr_value      = "{" , [ arr_value_list ] , "}" ;
 arr_value_list = expression , { "," , expression } ;
 
-if_statement    = "if" , expression , ";" , block , [ "else" , block ] ;
-loop_statement  = "loop", block ;
-while_statement = "while" , expression , ";" , block ;
+if_statement     = "if" , expression , ";" , block , [ "else" , block ] ;
+loop_statement   = "loop" , block ;
+while_statement  = "while" , expression , ";" , block ;
 
-switch_statement = "switch" , "(" , expression , ")" , "{" , { case_block } , [ default_block ] , "}" ;
+(* switch expression; { case literal; block } *)
+switch_statement = "switch" , expression , ";" ,
+                   "{" , { case_block } , [ default_block ] , "}" ;
+
 case_block       = "case" , literal , ";" , block ;
-default_block    = "default" , block ;
+default_block    = "default" , [ ";" ] , block ;
 
 return_statement = "return" , [ expression ] , ";" ;
 exit_statement   = "exit" , expression , ";" ;
 break_statement  = "break" , ";" ;
-lis_statement    = "lis" ,  [ string_literal ] , ";" ;
+lis_statement    = "lis" , [ string_literal ] , ";" ;
 
 expression_statement = expression , ";" ;
 
@@ -70,8 +134,6 @@ asm_block      = "asm" , "(" , [ asm_args ] , ")" , "{" , { asm_line } , "}" ;
 asm_args       = asm_arg , { "," , asm_arg } ;
 asm_arg        = identifier | literal ;
 asm_line       = string_literal , [ "," ] ;
-
-comment        = ":" , { any_char_except_colon } , ":" ;
 
 expression     = assign ;
 
@@ -115,29 +177,7 @@ type = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u
      | "arr" , "[" , integer_literal , "," , type , "]"
      | "ptr" , type ;
 
-literal         = integer_literal | string_literal ;
-
-integer_literal = decimal_literal | hex_literal | bin_literal ;
-
-decimal_literal = digit , { digit } ;
-hex_literal     = "0x" , hex_digit , { hex_digit } ;
-bin_literal     = "0b" , bin_digit , { bin_digit } ;
-
-hex_digit = digit
-          | "a" | "b" | "c" | "d" | "e" | "f"
-          | "A" | "B" | "C" | "D" | "E" | "F" ;
-
-bin_digit = "0" | "1" ;
-
-identifier      = letter , { letter | digit | "_" } ;
-string_literal  = '"' , { any_char_except_quote } , '"' ;
-
-letter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" 
-       | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
-       | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
-       | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" ;
-
-digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+literal         = integer_literal | string_literal | char_literal ;
 */
 
 #ifndef CPL_PARSER_H_

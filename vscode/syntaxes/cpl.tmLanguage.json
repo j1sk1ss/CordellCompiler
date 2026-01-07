@@ -1,12 +1,16 @@
 {
+  "name": "CPL",
   "scopeName": "source.cpl",
+  "fileTypes": ["cpl"],
   "patterns": [
     { "include": "#comments" },
+    { "include": "#preprocessor" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
     { "include": "#keywords" },
     { "include": "#types" },
     { "include": "#modifiers" },
-    { "include": "#strings" },
-    { "include": "#numbers" },
+    { "include": "#functions" },
     { "include": "#variables" }
   ],
   "repository": {
@@ -15,26 +19,70 @@
         {
           "name": "comment.block.cpl",
           "begin": ":",
-          "end": ":"
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.comment.begin.cpl" }
+          },
+          "end": ":",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.comment.end.cpl" }
+          }
         }
       ]
     },
+
+    "preprocessor": {
+      "patterns": [
+        {
+          "name": "meta.preprocessor.cpl",
+          "begin": "^(\\s*)(#)\\s*(?=(?:line|include|define|undef|ifdef|ifndef|endif)\\b)",
+          "beginCaptures": {
+            "2": { "name": "punctuation.definition.directive.cpl" }
+          },
+          "end": "$",
+          "patterns": [
+            {
+              "name": "keyword.control.directive.cpl",
+              "match": "\\b(line|include|define|undef|ifdef|ifndef|endif)\\b"
+            },
+            { "include": "#strings" },
+            { "include": "#numbers" },
+            { "include": "#types" },
+            { "include": "#modifiers" },
+            { "include": "#variables" }
+          ]
+        }
+      ]
+    },
+
     "keywords": {
       "patterns": [
         {
+          "name": "keyword.declaration.function.cpl",
+          "match": "\\bfunction\\b"
+        },
+        {
           "name": "keyword.control.cpl",
-          "match": "\\b(as|break|lis|extern|from|import|start|exit|function|return|if|else|loop|while|switch|case|default|syscall|asm|not)\\b"
+          "match": "\\b(start|exit|return|if|else|loop|while|switch|case|default|break)\\b"
         },
         {
-          "name": "entity.name.function.cpl",
-          "match": "(?<=\\bfunction\\s)\\w+"
+          "name": "keyword.other.import.cpl",
+          "match": "\\b(from|import)\\b"
         },
         {
-          "name": "entity.name.function.call.cpl",
-          "match": "\\b\\w+(?=\\s*\\()"
+          "name": "keyword.other.extern.cpl",
+          "match": "\\b(extern|exfunc)\\b"
+        },
+        {
+          "name": "keyword.other.cpl",
+          "match": "\\b(syscall|asm|lis)\\b"
+        },
+        {
+          "name": "keyword.other.operatorlike.cpl",
+          "match": "\\b(as|ref|dref|not)\\b"
         }
       ]
-    },
+    },    
+
     "types": {
       "patterns": [
         {
@@ -42,11 +90,12 @@
           "match": "\\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0)\\b"
         },
         {
-          "name": "storage.type.cpl",
-          "match": "\\b(str|arr|dref|ref|ptr|exfunc)\\b"
+          "name": "storage.type.other.cpl",
+          "match": "\\b(str|arr|ptr)\\b"
         }
       ]
     },
+
     "modifiers": {
       "patterns": [
         {
@@ -55,31 +104,65 @@
         }
       ]
     },
+
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.definition.cpl",
+          "match": "(?<=\\bfunction\\s+)[A-Za-z_][A-Za-z0-9_]*"
+        },
+        {
+          "name": "entity.name.function.call.cpl",
+          "match": "\\b(?!if\\b|while\\b|switch\\b|asm\\b|syscall\\b|start\\b|function\\b)[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()"
+        }
+      ]
+    },
+
     "strings": {
       "patterns": [
         {
           "name": "string.quoted.double.cpl",
-          "match": "\\\"([^\\\"\\\\]|\\\\.)*\\\""
+          "match": "\"([^\"\\\\\\r\\n]|\\\\.)*\""
         },
         {
           "name": "string.quoted.single.cpl",
-          "match": "'([^'\\\\]|\\\\.)*'"
+          "match": "'([^'\\\\\\r\\n]|\\\\.)*'"
         }
       ]
     },
+
     "numbers": {
       "patterns": [
         {
-          "name": "constant.numeric.cpl",
-          "match": "\\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\\.?[0-9]+([eE][+-]?[0-9]+)?)\\b"
+          "name": "constant.numeric.integer.cpl",
+          "match": "\\b(0[xX][0-9a-fA-F]+|0[bB][01]+|[0-9]+)\\b"
         }
       ]
-    },    
+    },
+
     "variables": {
       "patterns": [
         {
+          "name": "variable.other.definition.cpl",
+          "match": "\\b(?:f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str|arr|ptr)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "captures": {
+            "1": { "name": "variable.other.definition.cpl" }
+          }
+        },
+        {
+          "name": "variable.other.definition.cpl",
+          "match": "\\barr\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "captures": {
+            "1": { "name": "variable.other.definition.cpl" }
+          }
+        },
+        {
+          "name": "variable.parameter.cpl",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*(?:=|,|\\)))"
+        },
+        {
           "name": "variable.other.cpl",
-          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
         }
       ]
     }

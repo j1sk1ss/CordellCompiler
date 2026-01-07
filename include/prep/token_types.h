@@ -4,6 +4,12 @@
 #include <std/str.h>
 
 typedef enum {
+    // Pre-processor tokens
+    PP_TOKEN,  // #file "file"
+               // for instance: #file "something.cpl"
+    /* This token tells us about current info for the 
+       finfo structure in the rokenizer. */
+
     // Unknowns
     UNKNOWN_CHAR_TOKEN,
     UNKNOWN_BRACKET_VALUE,
@@ -73,8 +79,9 @@ typedef enum {
     ASM_TOKEN,           // asm
     SYSCALL_TOKEN,       // syscall
     EXFUNC_TOKEN,        // exfunc
+    FUNC_PROT_TOKEN,     // function <name> - prototype
     FUNC_TOKEN,          // function
-    FUNC_NAME_TOKEN,
+    FUNC_NAME_TOKEN,     // function <name>
     CALL_TOKEN,
     
     // Condition scope
@@ -149,8 +156,9 @@ typedef struct {
 } token_flags_t;
 
 typedef struct {
-    long line;
-    long column;
+    long      line;
+    long      column;
+    string_t* file;
 } token_fpos_t;
 
 typedef struct {

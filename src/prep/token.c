@@ -7,6 +7,7 @@
 #include <prep/token.h>
 
 typedef enum {
+    CHAR_PP,        /* Pre-processor symbol: #          */
     CHAR_ALPHA,     /* Any alphabet character: [A-Za-z] */
     CHAR_DIGIT,     /* Any digit: [0-9]                 */
     CHAR_QUOTE,     /* Quote: "                         */
@@ -33,6 +34,7 @@ static char_type_t _get_char_type(unsigned char ch) {
     else if (str_isdigit(ch))     return CHAR_DIGIT;
     
     switch (ch) {
+        case '#':  return CHAR_PP;
         case '\n': return CHAR_NEWLINE;
         case '\\': return CHAR_BACKSLASH;
         case '\'': return CHAR_SING_QUOTE;
@@ -49,14 +51,12 @@ static char_type_t _get_char_type(unsigned char ch) {
 }
 
 typedef struct {
-    char         neg;       /* Is there is a minus sign before? */
-    char         cmt;       /* Is comment has started?          */
     char         squt;      /* Is signle quote has started?     */
     char         mqut;      /* Is quote has started?            */
     char         is_spec;   /* Is this is a special char?       */
     char         in_token;  /* Are we in a token?               */
+    char         is_pp;     /* Is this a pp directive?          */
     short        token_len; /* Token len                        */
-    token_fpos_t finfo;
     token_type_t ttype;
 } tkn_ctx_t;
 
@@ -127,140 +127,208 @@ static inline int _permitted_character(char* p) {
     return 0;
 }
 
-int TKN_tokenize(int fd, list_t* tkn) {
-    tkn_ctx_t curr_ctx = { .ttype = LINE_BREAK_TOKEN, .finfo = { .line = 1, .column = 0 } };
-    char buffer[BUFFER_SIZE]    = { 0 };
+/*
+Give the next token from the provided buffer.
+Params:
+    - `buffer` - Source pre-processed buffer of the code.
+    - `bytes_read` - Buffer's size.
+    - `off` - Current offset in the buffer.
+    - `finfo` - Current information about a position in a file.
+
+Returns a new token or the 'NULL' value.
+*/
+static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, token_fpos_t* finfo) {
     char token_buf[BUFFER_SIZE] = { 0 };
+    tkn_ctx_t curr_ctx = { .ttype = LINE_BREAK_TOKEN };
+    for (ssize_t i = *off; i < bytes_read; ++i) {
+        /* Check if this a permitted character in the
+           compiler. */
+        if (i + 1 < bytes_read && _permitted_character(buffer + i)) {
+            print_error("Permitted symbol detected! %.2s", buffer + i);
+            return NULL;
+        }
+
+        char ch = buffer[i];
+        char_type_t ct = _get_char_type(ch);
+
+        if (ct == CHAR_PP) {
+            curr_ctx.is_pp = 1;
+            continue;
+        }
+
+        /* Special character logic
+            proceeding. Also, if we encounter backslash,
+            we must skip it. */
+        if (ct == CHAR_BACKSLASH) {
+            curr_ctx.is_spec = !curr_ctx.is_spec;
+            continue;
+        }
+
+        if (curr_ctx.is_spec) {
+            switch (ch) {
+                case '0':  ch = '\0'; break;
+                case 'n':  ch = '\n'; break;
+                case 't':  ch = '\t'; break;
+                case 'r':  ch = '\r'; break;
+                case '\\': ch = '\\'; break;
+                case '\'': ch = '\''; break;
+                case '\"': ch = '\"'; break;
+                default: break;
+            }
+            
+            curr_ctx.is_spec = !curr_ctx.is_spec;
+        }
+
+        /* Markdown routine (quotes and comment flags handler) */
+        if (ct == CHAR_SING_QUOTE || ct == CHAR_QUOTE) {
+            if (ct == CHAR_SING_QUOTE) curr_ctx.squt = !curr_ctx.squt;
+            else if (ct == CHAR_QUOTE) curr_ctx.mqut = !curr_ctx.mqut;
+            continue;
+        }
+
+        /* Skip character if this is comment section */
+        if (!curr_ctx.squt && !curr_ctx.mqut) continue;
+
+        /* Determine character type 
+            and act according to the logic. 
+            - If this is a new line, reset the column counter 
+                and increment the line counter. */
+        if (ct == CHAR_NEWLINE) {
+            finfo->line++;
+            finfo->column = 0;
+        }
+
+        /* Read and convert the input character type to a
+            defined token type. */
+        token_type_t char_type;
+        if (curr_ctx.squt)           char_type = CHAR_VALUE_TOKEN;
+        else if (curr_ctx.mqut)      char_type = STRING_VALUE_TOKEN;
+        else {
+            switch (ct) {
+                case CHAR_ALPHA:     char_type = UNKNOWN_STRING_TOKEN;  break;
+                case CHAR_DIGIT:     char_type = UNKNOWN_NUMERIC_TOKEN; break;
+                case CHAR_DELIMITER: char_type = DELIMITER_TOKEN;       break;
+                case CHAR_COMMA:     char_type = COMMA_TOKEN;           break;
+                case CHAR_BRACKET:   char_type = UNKNOWN_BRACKET_VALUE; break;
+                case CHAR_SPACE:
+                case CHAR_NEWLINE:   char_type = LINE_BREAK_TOKEN;      break;
+                default:             char_type = UNKNOWN_CHAR_TOKEN;    break;
+            }
+
+            if (
+                curr_ctx.ttype == UNKNOWN_CHAR_TOKEN && 
+                char_type == UNKNOWN_NUMERIC_TOKEN
+            ) curr_ctx.ttype = UNKNOWN_NUMERIC_TOKEN;
+            if (
+                curr_ctx.ttype == UNKNOWN_STRING_TOKEN && 
+                char_type == UNKNOWN_NUMERIC_TOKEN
+            ) char_type = UNKNOWN_STRING_TOKEN;
+            else if (
+                curr_ctx.ttype == UNKNOWN_NUMERIC_TOKEN && 
+                char_type == UNKNOWN_STRING_TOKEN
+            ) char_type = UNKNOWN_NUMERIC_TOKEN;
+        }
+        
+        /* Create a new token.
+            Here we can proccess token's content before create it
+            and push it to the list. */
+        if (
+            curr_ctx.in_token &&                        /* If we're in the token */
+            (
+                char_type == LINE_BREAK_TOKEN ||        /* We've found a break token    */
+                char_type == UNKNOWN_BRACKET_VALUE ||   /* or unknown token.            */
+                curr_ctx.ttype != char_type             /* Or we've found another char. */
+            )
+        ) {
+            /* Token data preparation
+                We need to be sure:
+                - This is a correct column is used
+                - This is a correct buffer is used */
+            token_buf[curr_ctx.token_len] = 0; /* Set the end of the token */
+
+            /* Special case. If this is a directive (any directive),
+               we force type to the 'PP_TOKEN' type */
+            if (curr_ctx.is_pp) curr_ctx.ttype = PP_TOKEN;
+
+            token_t* nt = TKN_create_token(curr_ctx.ttype, token_buf, finfo);
+            if (!nt) {
+                print_error("Can't create a token! tt=%i, tb=[%s], tl=%i", curr_ctx.ttype, token_buf, curr_ctx.token_len);
+                TKN_unload_token(nt);
+                return NULL;
+            }
+
+            *off = i;
+            return nt;
+        }
+
+        if (char_type == LINE_BREAK_TOKEN) continue;
+        if (!curr_ctx.in_token) {
+            curr_ctx.ttype = char_type;
+            curr_ctx.in_token = 1;
+        }
+
+        if (curr_ctx.token_len + 1 > BUFFER_SIZE) {
+            print_error("Too large token is found!");
+            return NULL;
+        }
+
+        token_buf[curr_ctx.token_len++] = ch;
+    }
+
+    return NULL;
+}
+
+int TKN_tokenize(int fd, list_t* tkn) {
+    token_fpos_t finfo = { .column = 1, .line = 1, .file = NULL };
+    char buffer[BUFFER_SIZE] = { 0 };
 
     int file_offset = 0;
     ssize_t bytes_read = 0;
     while ((bytes_read = pread(fd, buffer, BUFFER_SIZE, file_offset)) > 0) {
-        file_offset += bytes_read;
-        for (ssize_t i = 0; i < bytes_read; ++i) {
-            curr_ctx.finfo.column++;
-            if (i + 1 < bytes_read && _permitted_character(buffer + i)) {
-                print_error("Permitted symbol detected! %.2s", buffer + i);
-                list_free_force_op(tkn, (int (*)(void*))TKN_unload_token);
-                return 0;
-            }
+        ssize_t buffer_off = 0;
+        token_t* token;
+        while ((token = _give_next_token(buffer, bytes_read, &buffer_off, &finfo))) {
+            switch (token->t_type) {
+                /* If we meet such a toke type, we need to
+                   take the next token and reset our file info. */
+                case PP_TOKEN: {
+                    if (!token->body->requals(token->body, PP_LINE_DIRECTIVE)) {
+                        TKN_unload_token(token);
+                        break;
+                    }
 
-            char ch = buffer[i];
-            if (ch == '-') curr_ctx.neg = 1;
-            else curr_ctx.neg = 0;
+                    token_t* fname = _give_next_token(buffer, bytes_read, &buffer_off, &finfo);
+                    if (!fname) {
+                        print_error("Incorrect the 'PP_FILEMAP_TOKEN' token is found! Must be 'PP_FILEMAP_TOKEN' 'file_name'!");
+                        TKN_unload_token(token);
+                        list_free_force_op(tkn, (int (*)(void*))TKN_unload_token);
+                        return 0;
+                    }
 
-            char_type_t ct = _get_char_type(ch);
-            if (ct == CHAR_BACKSLASH) {
-                curr_ctx.is_spec = !curr_ctx.is_spec;
-                continue;
-            }
-
-            if (curr_ctx.is_spec) {
-                switch (ch) {
-                    case '0':  ch = '\0'; break;
-                    case 'n':  ch = '\n'; break;
-                    case 't':  ch = '\t'; break;
-                    case 'r':  ch = '\r'; break;
-                    case '\\': ch = '\\'; break;
-                    case '\'': ch = '\''; break;
-                    case '\"': ch = '\"'; break;
-                    default: break;
-                }
-                
-                curr_ctx.is_spec = !curr_ctx.is_spec;
-            }
-
-            /* Markdown routine (quotes and comment flags handler) */
-            if (ct == CHAR_SING_QUOTE || ct == CHAR_QUOTE || (ct == CHAR_COMMENT && !curr_ctx.squt && !curr_ctx.mqut)) {
-                if (ct == CHAR_SING_QUOTE) curr_ctx.squt = !curr_ctx.squt;
-                else if (ct == CHAR_QUOTE) curr_ctx.mqut = !curr_ctx.mqut;
-                else                       curr_ctx.cmt = !curr_ctx.cmt;
-                continue;
-            }
-
-            /* Skip character if this is comment section */
-            if (curr_ctx.cmt && !curr_ctx.squt && !curr_ctx.mqut) continue;
-
-            /* Determine character type */
-            token_type_t char_type;
-            if (curr_ctx.squt)           char_type = CHAR_VALUE_TOKEN;
-            else if (curr_ctx.mqut)      char_type = STRING_VALUE_TOKEN;
-            else {
-                switch (ct) {
-                    case CHAR_ALPHA:     char_type = UNKNOWN_STRING_TOKEN;  break;
-                    case CHAR_DIGIT:     char_type = UNKNOWN_NUMERIC_TOKEN; break;
-                    case CHAR_DELIMITER: char_type = DELIMITER_TOKEN;       break;
-                    case CHAR_COMMA:     char_type = COMMA_TOKEN;           break;
-                    case CHAR_BRACKET:   char_type = UNKNOWN_BRACKET_VALUE; break;
-                    case CHAR_SPACE:
-                    case CHAR_NEWLINE:   char_type = LINE_BREAK_TOKEN;      break;
-                    default:             char_type = UNKNOWN_CHAR_TOKEN;    break;
+                    finfo.column = 1;
+                    finfo.line   = 1;
+                    finfo.file   = fname->body->copy(fname->body);
+                    TKN_unload_token(token);
+                    TKN_unload_token(fname);
+                    break;
                 }
 
-                if (ct == CHAR_NEWLINE) {
-                    curr_ctx.finfo.line++;
-                    curr_ctx.finfo.column = 0;
-                }
-
-                if (
-                    curr_ctx.ttype == UNKNOWN_CHAR_TOKEN && 
-                    char_type == UNKNOWN_NUMERIC_TOKEN
-                ) curr_ctx.ttype = UNKNOWN_NUMERIC_TOKEN;
-                if (
-                    curr_ctx.ttype == UNKNOWN_STRING_TOKEN && 
-                    char_type == UNKNOWN_NUMERIC_TOKEN
-                ) char_type = UNKNOWN_STRING_TOKEN;
-                else if (
-                    curr_ctx.ttype == UNKNOWN_NUMERIC_TOKEN && 
-                    char_type == UNKNOWN_STRING_TOKEN
-                ) char_type = UNKNOWN_NUMERIC_TOKEN;
+                default: list_add(tkn, token); break;
             }
-            
-            if (
-                curr_ctx.in_token && 
-                (
-                    char_type == LINE_BREAK_TOKEN ||
-                    char_type == UNKNOWN_BRACKET_VALUE ||
-                    curr_ctx.ttype != char_type
-                )
-            ) {
-                /* Token data preparation
-                   We need to be sure:
-                   - This is a correct column is used
-                   - This is a correct buffer is used */
-                token_buf[curr_ctx.token_len] = 0; /* Set the end of the token */
-
-                token_t* nt = TKN_create_token(curr_ctx.ttype, token_buf, &curr_ctx.finfo);
-                if (!nt || !list_add(tkn, nt)) {
-                    print_error("Can't add token! tt=%i, tb=[%s], tl=%i", curr_ctx.ttype, token_buf, curr_ctx.token_len);
-                    TKN_unload_token(nt);
-                    list_free_force_op(tkn, (int (*)(void*))TKN_unload_token);
-                    return 0;
-                }
-
-                curr_ctx.in_token  = 0;
-                curr_ctx.token_len = 0;
-                curr_ctx.ttype     = LINE_BREAK_TOKEN;
-                curr_ctx.neg       = 0;
-            }
-
-            if (char_type == LINE_BREAK_TOKEN) continue;
-            if (!curr_ctx.in_token) {
-                curr_ctx.ttype = char_type;
-                curr_ctx.in_token = 1;
-            }
-
-            token_buf[curr_ctx.token_len++] = ch;
         }
+
+        file_offset += bytes_read;
     }
     
     return 1;
 }
 
 unsigned long TKN_hash_token(token_t* t) {
-    token_fpos_t tmp = { .column = t->finfo.column, .line = t->finfo.line };
+    token_fpos_t tmp = { .column = t->finfo.column, .line = t->finfo.line, .file = t->finfo.file };
 
     t->finfo.line   = 0;
     t->finfo.column = 0;
+    t->finfo.file   = 0;
 
     unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
     hash ^= t->body->hash;
@@ -268,6 +336,7 @@ unsigned long TKN_hash_token(token_t* t) {
     
     t->finfo.line   = tmp.line;
     t->finfo.column = tmp.column;
+    t->finfo.file   = tmp.file;
 
     return hash;
 }

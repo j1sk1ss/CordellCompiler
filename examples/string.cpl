@@ -14,7 +14,7 @@
         i32 r = size;
         while l < r; {
             if s[r]; {
-                char tmp = s[l];
+                i8 tmp = s[l];
                 s[l] = s[r];
                 s[r] = tmp;
                 l = l + 1;
@@ -32,7 +32,7 @@
 
         while bsize > 0; {
             num = num * 10;
-            char sym = buffer[bsize];
+            i8 sym = buffer[bsize];
             num = num + sym - 48;
         }
 
@@ -43,7 +43,7 @@
         i32 index = 0;
         i32 is_negative = 0;
         if num == 0; {
-            buffer[0] = '0';
+            buffer[0] = 48;
             buffer[1] = 0;
             return 1;
         }

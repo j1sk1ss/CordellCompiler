@@ -67,6 +67,12 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         args_node, name_node->c, &smt->f
     );
 
+    if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
+        node->t->t_type = FUNC_PROT_TOKEN;
+        stack_pop(&ctx->scopes.stack, NULL);
+        return node;
+    }
+
     ast_node_t* body_node = cpl_parse_scope(it, ctx, smt);
     if (!body_node) {
         PARSE_ERROR("Error during the function's body parsing!");

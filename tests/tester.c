@@ -109,15 +109,13 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\nTokens:\n");
     foreach (token_t* h, &tokens) {
         printf(
-            "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
+            "%sline=%i, type=%i, data=[%s], %s%s\n",
             h->flags.glob ? "glob " : "", 
             h->finfo.line, 
             h->t_type, 
             h->body->body,
             h->flags.ptr  ? "ptr "  : "", 
-            h->flags.ro   ? "ro "   : "",
-            h->flags.dref ? "dref " : "",
-            h->flags.ref  ? "ref "  : ""
+            h->flags.ro   ? "ro "   : ""
         );
     }
 #endif
