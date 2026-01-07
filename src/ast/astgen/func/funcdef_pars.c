@@ -68,6 +68,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     );
 
     if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
+        AST_add_node(node, args_node);
         node->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);
         return node;

@@ -9,6 +9,7 @@ typedef enum {
                // for instance: #file "something.cpl"
     /* This token tells us about current info for the 
        finfo structure in the rokenizer. */
+    INCLUDE_FILE_TOKEN,
 
     // Unknowns
     UNKNOWN_CHAR_TOKEN,

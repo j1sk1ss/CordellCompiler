@@ -14,9 +14,4 @@
     function print(ptr str msg) => i0 {
         syscall(0x2000004, 1, msg, strlen(msg));
     }
-
-    start(i64 argc, ptr u64 argv) {
-        print("Hello world!\n");
-        exit 0;
-    }
 }

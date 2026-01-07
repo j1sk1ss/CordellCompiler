@@ -231,6 +231,20 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             break;
         }
 
+        case FUNC_PROT_TOKEN: {
+            _rst_ln_printf(x, line, "%s %s(", FUNCTION_COMMAND, nd->c->t->body->body);
+
+            ast_node_t* p = nd->c->siblings.n ? nd->c->siblings.n->c : NULL;
+            for (; p && p->t && p->t->t_type != SCOPE_TOKEN; p = p->siblings.n) {
+                _restore_code_lines(x, p, u, indent);
+                if (p->siblings.n && p->siblings.n->t && p->siblings.n->t->t_type != SCOPE_TOKEN) _rst_ln_puts(x, line, ", ");
+            }
+
+            _rst_ln_puts(x, line, ")");
+            if (nd->c->c) _rst_ln_printf(x, line, " => %s", RST_restore_type(nd->c->c->t));
+            break;
+        }
+
         case FUNC_TOKEN: {
             _rst_ln_printf(x, line, "%s %s(", FUNCTION_COMMAND, nd->c->t->body->body);
 

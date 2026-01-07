@@ -1,16 +1,29 @@
 {
-    "prep": {
-        "macros": ["PREP_TESTING", "TOKEN_PRINT"],
+    "preproc": {
+        "macros": ["SRC_PRINT", "PREPROC_TESTING"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
+            "std/*.c"
+        ]
+    },
+    "prep": {
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "TOKEN_PRINT"],
+        "sources": [
+            "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "std/*.c"
         ]
     },
     "ast": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "AST_PRINT"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "AST_PRINT"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -20,9 +33,11 @@
         ]
     },
     "ast_opt": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "AST_PRINT", "AST_OPT_TESTING"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "AST_PRINT", "AST_OPT_TESTING"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -33,9 +48,11 @@
         ]
     },
     "sem": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "AST_PRINT", "SEM_TESTING", "ERROR_LOGS", "WARNING_LOGS"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "AST_PRINT", "SEM_TESTING", "ERROR_LOGS", "WARNING_LOGS"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -47,9 +64,11 @@
         ]
     },
     "hir": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_PRINT"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_PRINT"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -65,9 +84,11 @@
         ]
     },
     "hir_ssa": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_PRINT"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_PRINT"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -84,9 +105,11 @@
         ]
     },
     "hir_dag": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", "HIR_PRINT"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", "HIR_PRINT"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -110,6 +133,8 @@
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -135,6 +160,8 @@
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -161,6 +188,8 @@
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -189,6 +218,8 @@
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -216,6 +247,8 @@
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -244,6 +277,8 @@
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -276,6 +311,8 @@
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -311,6 +348,8 @@
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",
@@ -350,6 +389,8 @@
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/sem/misc/*.c", 
             "src/ast/*.c",

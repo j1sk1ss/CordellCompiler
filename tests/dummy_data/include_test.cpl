@@ -2,7 +2,7 @@
     #include "print_h.cpl"
 
     function foo() => i0;
-
+    
     function bar() => i0 {
         foo();
     }

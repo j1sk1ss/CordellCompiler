@@ -3,6 +3,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#ifdef PREPROC_TESTING
+    #include <preproc/pp.h>
+#endif
+
 #ifdef PREP_TESTING
     #include <prep/token.h>
     #include <prep/markup.h>
@@ -84,7 +88,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
-        fprintf(stderr, "File %s not found!\n", argv[1]);
+        fprintf(stderr, "File %s isn't found!\n", argv[1]);
         return 1;
     }
 
@@ -94,10 +98,23 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("Source data: %s\n\n", data);
 #endif
 
+#ifdef PREPROC_TESTING
+    finder_ctx_t finctx = { .bpath = argv[2] };
+    fd = PP_perform(fd, &finctx); // Transformation
+    if (fd < 0) {
+        fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
+        return 1;
+    }
+
+    char pdata[2048] = { 0 };
+    pread(fd, pdata, 2048, 0);
+    printf("Proccessed data: %s\n\n", pdata);
+#endif
+
 #ifdef PREP_TESTING
     list_t tokens;
     list_init(&tokens);
-    if (!TKN_tokenize(fd, &tokens)) { // Analyzation
+    if (!TKN_tokenize(fd, &tokens) || !list_size(&tokens)) { // Analyzation
         fprintf(stderr, "ERROR! tkn == NULL!\n");
         return 1;
     }
@@ -109,7 +126,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\nTokens:\n");
     foreach (token_t* h, &tokens) {
         printf(
-            "%sline=%i, type=%i, data=[%s], %s%s\n",
+            "%sline=%li, type=%i, data=[%s], %s%s\n",
             h->flags.glob ? "glob " : "", 
             h->finfo.line, 
             h->t_type, 

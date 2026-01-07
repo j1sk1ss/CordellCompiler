@@ -70,7 +70,7 @@ def _run_test(binary_path: Path, test_input: Path, debugger: str | None = None, 
         print(f"Error: Test input file {test_input} not found", file=sys.stderr)
         return False
     
-    command = [str(binary_path), str(test_input)]
+    command = [str(binary_path), str(test_input), str(test_input.parent)]
     log_dir.mkdir(exist_ok=True)
     log_file = log_dir / f"{binary_path.stem}.log"
     

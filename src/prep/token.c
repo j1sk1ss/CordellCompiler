@@ -15,7 +15,6 @@ typedef enum {
     CHAR_SPACE,     /* Space: ' '                       */
     CHAR_COMMA,     /* Comma: ,                         */
     CHAR_BRACKET,   /* Bracket: [ [, {, (, ), }, ] ]    */
-    CHAR_COMMENT,   /* Comment: ':'                     */
     CHAR_NEWLINE,   /* New line character (\n)          */
     CHAR_DELIMITER, /* Delimiter character: ;           */
     CHAR_BACKSLASH, /* Backslash: \                     */
@@ -40,7 +39,6 @@ static char_type_t _get_char_type(unsigned char ch) {
         case '\'': return CHAR_SING_QUOTE;
         case ',':  return CHAR_COMMA;
         case '"':  return CHAR_QUOTE;
-        case ':':  return CHAR_COMMENT;
         case ';':  return CHAR_DELIMITER;
         case ' ':  case '\t': return CHAR_SPACE;
         case '(':  case '[':
@@ -128,6 +126,17 @@ static inline int _permitted_character(char* p) {
 }
 
 /*
+Reset the input ctx to zero.
+Params:
+    - `ctx` - Token's context.
+*/
+static inline void _reset_tkn_ctx(tkn_ctx_t* ctx) {
+    ctx->in_token  = 0;
+    ctx->token_len = 0;
+    ctx->ttype = LINE_BREAK_TOKEN;
+}
+
+/*
 Give the next token from the provided buffer.
 Params:
     - `buffer` - Source pre-processed buffer of the code.
@@ -137,9 +146,8 @@ Params:
 
 Returns a new token or the 'NULL' value.
 */
-static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, token_fpos_t* finfo) {
+static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, token_fpos_t* finfo, tkn_ctx_t* ctx) {
     char token_buf[BUFFER_SIZE] = { 0 };
-    tkn_ctx_t curr_ctx = { .ttype = LINE_BREAK_TOKEN };
     for (ssize_t i = *off; i < bytes_read; ++i) {
         /* Check if this a permitted character in the
            compiler. */
@@ -152,7 +160,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
         char_type_t ct = _get_char_type(ch);
 
         if (ct == CHAR_PP) {
-            curr_ctx.is_pp = 1;
+            ctx->is_pp = 1;
             continue;
         }
 
@@ -160,35 +168,29 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             proceeding. Also, if we encounter backslash,
             we must skip it. */
         if (ct == CHAR_BACKSLASH) {
-            curr_ctx.is_spec = !curr_ctx.is_spec;
+            ctx->is_spec = !ctx->is_spec;
             continue;
         }
-
-        if (curr_ctx.is_spec) {
+        
+        if (ctx->is_spec) {
             switch (ch) {
                 case '0':  ch = '\0'; break;
                 case 'n':  ch = '\n'; break;
                 case 't':  ch = '\t'; break;
                 case 'r':  ch = '\r'; break;
-                case '\\': ch = '\\'; break;
-                case '\'': ch = '\''; break;
-                case '\"': ch = '\"'; break;
                 default: break;
             }
             
-            curr_ctx.is_spec = !curr_ctx.is_spec;
+            ctx->is_spec = !ctx->is_spec;
         }
 
         /* Markdown routine (quotes and comment flags handler) */
         if (ct == CHAR_SING_QUOTE || ct == CHAR_QUOTE) {
-            if (ct == CHAR_SING_QUOTE) curr_ctx.squt = !curr_ctx.squt;
-            else if (ct == CHAR_QUOTE) curr_ctx.mqut = !curr_ctx.mqut;
+            if (ct == CHAR_SING_QUOTE) ctx->squt = !ctx->squt;
+            else if (ct == CHAR_QUOTE) ctx->mqut = !ctx->mqut;
             continue;
         }
-
-        /* Skip character if this is comment section */
-        if (!curr_ctx.squt && !curr_ctx.mqut) continue;
-
+        
         /* Determine character type 
             and act according to the logic. 
             - If this is a new line, reset the column counter 
@@ -201,8 +203,8 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
         /* Read and convert the input character type to a
             defined token type. */
         token_type_t char_type;
-        if (curr_ctx.squt)           char_type = CHAR_VALUE_TOKEN;
-        else if (curr_ctx.mqut)      char_type = STRING_VALUE_TOKEN;
+        if (ctx->squt)               char_type = CHAR_VALUE_TOKEN;
+        else if (ctx->mqut)          char_type = STRING_VALUE_TOKEN;
         else {
             switch (ct) {
                 case CHAR_ALPHA:     char_type = UNKNOWN_STRING_TOKEN;  break;
@@ -216,15 +218,15 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             }
 
             if (
-                curr_ctx.ttype == UNKNOWN_CHAR_TOKEN && 
+                ctx->ttype == UNKNOWN_CHAR_TOKEN && 
                 char_type == UNKNOWN_NUMERIC_TOKEN
-            ) curr_ctx.ttype = UNKNOWN_NUMERIC_TOKEN;
+            ) ctx->ttype = UNKNOWN_NUMERIC_TOKEN;
             if (
-                curr_ctx.ttype == UNKNOWN_STRING_TOKEN && 
+                ctx->ttype == UNKNOWN_STRING_TOKEN && 
                 char_type == UNKNOWN_NUMERIC_TOKEN
             ) char_type = UNKNOWN_STRING_TOKEN;
             else if (
-                curr_ctx.ttype == UNKNOWN_NUMERIC_TOKEN && 
+                ctx->ttype == UNKNOWN_NUMERIC_TOKEN && 
                 char_type == UNKNOWN_STRING_TOKEN
             ) char_type = UNKNOWN_NUMERIC_TOKEN;
         }
@@ -233,52 +235,59 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             Here we can proccess token's content before create it
             and push it to the list. */
         if (
-            curr_ctx.in_token &&                        /* If we're in the token */
+            ctx->in_token &&                          /* If we're in the token */
             (
-                char_type == LINE_BREAK_TOKEN ||        /* We've found a break token    */
-                char_type == UNKNOWN_BRACKET_VALUE ||   /* or unknown token.            */
-                curr_ctx.ttype != char_type             /* Or we've found another char. */
+                char_type == LINE_BREAK_TOKEN ||      /* We've found a break token    */
+                char_type == UNKNOWN_BRACKET_VALUE || /* or unknown token.            */
+                ctx->ttype != char_type               /* Or we've found another char. */
             )
         ) {
             /* Token data preparation
                 We need to be sure:
                 - This is a correct column is used
                 - This is a correct buffer is used */
-            token_buf[curr_ctx.token_len] = 0; /* Set the end of the token */
+            token_buf[ctx->token_len] = 0; /* Set the end of the token */
 
             /* Special case. If this is a directive (any directive),
                we force type to the 'PP_TOKEN' type */
-            if (curr_ctx.is_pp) curr_ctx.ttype = PP_TOKEN;
+            if (ctx->is_pp) {
+                ctx->ttype = PP_TOKEN;
+                ctx->is_pp = 0;
+            }
 
-            token_t* nt = TKN_create_token(curr_ctx.ttype, token_buf, finfo);
+            token_t* nt = TKN_create_token(ctx->ttype, token_buf, finfo);
             if (!nt) {
-                print_error("Can't create a token! tt=%i, tb=[%s], tl=%i", curr_ctx.ttype, token_buf, curr_ctx.token_len);
+                print_error("Can't create a token! tt=%i, tb=[%s], tl=%i", ctx->ttype, token_buf, ctx->token_len);
                 TKN_unload_token(nt);
                 return NULL;
             }
 
+            _reset_tkn_ctx(ctx);
             *off = i;
             return nt;
         }
 
         if (char_type == LINE_BREAK_TOKEN) continue;
-        if (!curr_ctx.in_token) {
-            curr_ctx.ttype = char_type;
-            curr_ctx.in_token = 1;
+        if (!ctx->in_token) {
+            ctx->ttype = char_type;
+            ctx->in_token = 1;
         }
 
-        if (curr_ctx.token_len + 1 > BUFFER_SIZE) {
+        if (ctx->token_len + 1 > BUFFER_SIZE) {
             print_error("Too large token is found!");
             return NULL;
         }
 
-        token_buf[curr_ctx.token_len++] = ch;
+        token_buf[ctx->token_len++] = ch;
     }
 
     return NULL;
 }
 
 int TKN_tokenize(int fd, list_t* tkn) {
+    tkn_ctx_t tkn_ctx = { 0 };
+    _reset_tkn_ctx(&tkn_ctx);
+
     token_fpos_t finfo = { .column = 1, .line = 1, .file = NULL };
     char buffer[BUFFER_SIZE] = { 0 };
 
@@ -287,9 +296,9 @@ int TKN_tokenize(int fd, list_t* tkn) {
     while ((bytes_read = pread(fd, buffer, BUFFER_SIZE, file_offset)) > 0) {
         ssize_t buffer_off = 0;
         token_t* token;
-        while ((token = _give_next_token(buffer, bytes_read, &buffer_off, &finfo))) {
+        while ((token = _give_next_token(buffer, bytes_read, &buffer_off, &finfo, &tkn_ctx))) {
             switch (token->t_type) {
-                /* If we meet such a toke type, we need to
+                /* If we meet such a token type, we need to
                    take the next token and reset our file info. */
                 case PP_TOKEN: {
                     if (!token->body->requals(token->body, PP_LINE_DIRECTIVE)) {
@@ -297,19 +306,26 @@ int TKN_tokenize(int fd, list_t* tkn) {
                         break;
                     }
 
-                    token_t* fname = _give_next_token(buffer, bytes_read, &buffer_off, &finfo);
-                    if (!fname) {
-                        print_error("Incorrect the 'PP_FILEMAP_TOKEN' token is found! Must be 'PP_FILEMAP_TOKEN' 'file_name'!");
+                    token_t* fline = _give_next_token(buffer, bytes_read, &buffer_off, &finfo, &tkn_ctx);
+                    token_t* fname = _give_next_token(buffer, bytes_read, &buffer_off, &finfo, &tkn_ctx);
+                    if (!fline || !fname) {
+                        print_error("Incorrect the 'PP_TOKEN' token is found! Must be 'PP_TOKEN' <int> 'file_name'!");
                         TKN_unload_token(token);
+                        TKN_unload_token(fline);
+                        TKN_unload_token(fname);
                         list_free_force_op(tkn, (int (*)(void*))TKN_unload_token);
                         return 0;
                     }
 
                     finfo.column = 1;
-                    finfo.line   = 1;
-                    finfo.file   = fname->body->copy(fname->body);
+                    finfo.line   = fline->body->to_llong(fline->body);
+                    finfo.file   = fname->body;
+
                     TKN_unload_token(token);
-                    TKN_unload_token(fname);
+                    TKN_unload_token(fline);
+
+                    fname->t_type = INCLUDE_FILE_TOKEN;
+                    list_add(tkn, fname);
                     break;
                 }
 
@@ -319,7 +335,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
 
         file_offset += bytes_read;
     }
-    
+
     return 1;
 }
 

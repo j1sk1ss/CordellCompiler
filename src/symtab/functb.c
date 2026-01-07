@@ -38,6 +38,7 @@ static func_info_t* _create_func_info(string_t* name, int global, int external, 
 
 int FNTB_add_info(string_t* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
     print_log("FNTB_add_info(name=%s, global=%i, ext=%i, entry=%i)", name->body, global, entry, external);
+    if (FNTB_get_info(name, NULL, ctx)) return 1; // TODO This is a wrong solution actually
     func_info_t* nnd = _create_func_info(name, global, external, entry, args, rtype);
     if (!nnd) return 0;
     nnd->id = ctx->curr_id++;
