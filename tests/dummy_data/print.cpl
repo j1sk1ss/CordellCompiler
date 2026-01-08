@@ -1,15 +1,5 @@
 {
     #include "print_h.cpl"
-    
-    function strlen(ptr i8 s) => i64 {
-        i64 l = 0;
-        while dref s; {
-            s += 1;
-            l += 1;
-        }
-
-        return l;
-    }
 
     function print(ptr str msg) => i0 {
         syscall(0x2000004, 1, msg, strlen(msg));

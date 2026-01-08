@@ -1,4 +1,5 @@
 {
+    #include "string_h.cpl"
     function foo() => i32 { return 1; }
 
     function barBar() => i0 { }
@@ -35,5 +36,6 @@
         arr array[10, i32];
         array[-1] = 0;
         array[12] = 0;
+        strlen("Hello!");
     }
 }

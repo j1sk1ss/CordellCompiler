@@ -87,6 +87,100 @@ int PP_parse_include_arg(const char* p, char* out, size_t out_sz, int* is_system
     return 1;
 }
 
+static inline int _is_ident_start(char c) {
+    return (c == '_') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+static inline int _is_ident_char(char c) {
+    return _is_ident_start(c) || (c >= '0' && c <= '9');
+}
+
+static inline int _is_ident_cont(unsigned char c) { 
+    return (c == '_') || isalnum(c); 
+}
+
+static int _ensure_cap(char** out, size_t* cap, size_t need) {
+    if (need <= *cap) return 1;
+    size_t nc = (*cap ? *cap : 64);
+    while (nc < need) nc *= 2;
+    char* nb = (char*)realloc(*out, nc);
+    if (!nb) return 0;
+    *out = nb;
+    *cap = nc;
+    return 1;
+}
+
+static int _append_mem(char** out, size_t* cap, size_t* oi, const char* p, size_t n) {
+    if (!_ensure_cap(out, cap, (*oi) + n + 1)) return 0;
+    memcpy((*out) + (*oi), p, n);
+    *oi += n;
+    (*out)[*oi] = 0;
+    return 1;
+}
+
+static int _append_ch(char** out, size_t* cap, size_t* oi, char c) {
+    return _append_mem(out, cap, oi, &c, 1);
+}
+
+int PP_resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t* dctx) {
+    if (!in || !dctx || !out || !out_cap) return 0;
+    size_t n = strlen(in);
+    if (!*out || *out_cap < n + 1) {
+        size_t new_cap = n + 1;
+        char* nb = (char*)realloc(*out, new_cap);
+        if (!nb) return 0;
+        *out     = nb;
+        *out_cap = new_cap;
+    }
+
+    size_t oi = 0;
+    (*out)[0] = 0;
+
+    for (size_t i = 0; in[i]; ) {
+        unsigned char c = (unsigned char)in[i];
+
+        if (_is_ident_start(c)) {
+            size_t start = i;
+            i++;
+            while (in[i] && _is_ident_cont((unsigned char)in[i])) i++;
+            size_t len = i - start;
+
+            char stack_tok[256];
+            char* tok = stack_tok;
+            if (len >= sizeof(stack_tok)) {
+                tok = (char*)malloc(len + 1);
+                if (!tok) return 0;
+            }
+
+            memcpy(tok, in + start, len);
+            tok[len] = 0;
+
+            define_t def;
+            if (MCTB_get_define(tok, &def, dctx)) {
+                if (!_append_mem(out, out_cap, &oi, def.value->head, def.value->len(def.value))) {
+                    if (tok != stack_tok) free(tok);
+                    return 0;
+                }
+            } 
+            else {
+                if (!_append_mem(out, out_cap, &oi, tok, len)) {
+                    if (tok != stack_tok) free(tok);
+                    return 0;
+                }
+            }
+
+            if (tok != stack_tok) free(tok);
+            continue;
+        }
+
+        if (!_append_ch(out, out_cap, &oi, (char)c)) return 0;
+        i++;
+    }
+
+    (*out)[oi] = 0;
+    return 1;
+}
+
 int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size_t* out_cap) {
     if (!in || !st || !out || !out_cap) return 0;
     size_t n = strlen(in);
@@ -94,7 +188,7 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
         size_t new_cap = n + 1;
         char* nb = (char*)realloc(*out, new_cap);
         if (!nb) return 0;
-        *out = nb;
+        *out     = nb;
         *out_cap = new_cap;
     }
 
@@ -106,16 +200,14 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
             if (c == ':') st->in_colon = 0; 
             continue;
         }
-
-        if (st->in_str) {
+        else if (st->in_str) {
             (*out)[oi++] = c;
             if (st->esc)        st->esc    = 0;
             else if (c == '\\') st->esc    = 1;
             else if (c == '"')  st->in_str = 0;
             continue;
         }
-
-        if (st->in_chr) {
+        else if (st->in_chr) {
             (*out)[oi++] = c;
             if (st->esc)        st->esc    = 0;
             else if (c == '\\') st->esc    = 1;
@@ -147,20 +239,12 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
     return 1;
 }
 
-static int _is_ident_start(char c) {
-    return (c == '_') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-}
-
-static int _is_ident_char(char c) {
-    return _is_ident_start(c) || (c >= '0' && c <= '9');
-}
-
 int PP_parse_define_arg(
     const char* p,
     char* name_out,  size_t name_sz,
     char* value_out, size_t value_sz
 ) {
-    if (!p || !name_out || !name_sz || !value_out || !value_sz) return 0;
+    if (!p || !name_out || !name_sz) return 0;
 
     while (*p == ' ' || *p == '\t') p++;
     if (!_is_ident_start(*p)) return 0;
@@ -192,6 +276,7 @@ int PP_parse_define_arg(
     }
 
     while (*p == ' ' || *p == '\t') p++;
+    if (!value_out) return 1;
 
     size_t j = 0;
     while (*p && *p != '\n' && *p != '\r') {

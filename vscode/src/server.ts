@@ -112,6 +112,20 @@ connection.onHover((params) => {
     return { contents: { kind: MarkupKind.Markdown, value } };
   }
 
+  const mu = sem.macroUses.find(m => inRange(params.position, m.range));
+  if (mu) {
+    const ms = sem.macros.get(mu.name);
+    if (ms) {
+      const v =
+        ms.value.kind === "string" ? JSON.stringify(ms.value.value) :
+        ms.value.kind === "number" ? String(ms.value.value) :
+        ms.value.text;
+  
+      const value = `\`\`\`cpl\n#define ${ms.name} ${v}\n\`\`\``;
+      return { contents: { kind: MarkupKind.Markdown, value } };
+    }
+  }  
+
   const cs = sem.callSites.find(c => inRange(params.position, c.range));
   if (cs) {
     const fn = sem.funcs.get(cs.name);

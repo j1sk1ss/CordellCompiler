@@ -195,9 +195,9 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             and act according to the logic. 
             - If this is a new line, reset the column counter 
                 and increment the line counter. */
-        if (ct == CHAR_NEWLINE) {
+        if (!ctx->in_token && ct == CHAR_NEWLINE) {
             finfo->line++;
-            finfo->column = 0;
+            finfo->column = 1;
         }
 
         /* Read and convert the input character type to a
@@ -242,6 +242,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
                 ctx->ttype != char_type               /* Or we've found another char. */
             )
         ) {
+_force_token_creation: {}
             /* Token data preparation
                 We need to be sure:
                 - This is a correct column is used
@@ -281,6 +282,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
         token_buf[ctx->token_len++] = ch;
     }
 
+    if (ctx->in_token) goto _force_token_creation;
     return NULL;
 }
 

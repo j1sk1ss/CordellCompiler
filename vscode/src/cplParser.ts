@@ -1,5 +1,84 @@
 import { Range, Position } from "vscode-languageserver/node";
-import { SemanticContext, TypeNode } from "./cplSemantics";
+import { SemanticContext, MacroValue, TypeNode } from "./cplSemantics";
+
+function buildLineStarts(text: string): number[] {
+  const starts = [0];
+  for (let i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) === 10) starts.push(i + 1);
+  }
+  return starts;
+}
+
+function positionAt(lineStarts: number[], offset: number): Position {
+  let lo = 0,
+    hi = lineStarts.length - 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const s = lineStarts[mid];
+    const next = mid + 1 < lineStarts.length ? lineStarts[mid + 1] : Number.POSITIVE_INFINITY;
+
+    if (offset < s) hi = mid - 1;
+    else if (offset >= next) lo = mid + 1;
+    else return Position.create(mid, offset - s);
+  }
+  return Position.create(0, 0);
+}
+
+function unescapeCStyle(s: string): string {
+  return s
+    .replace(/\\n/g, "\n")
+    .replace(/\\t/g, "\t")
+    .replace(/\\r/g, "\r")
+    .replace(/\\0/g, "\0")
+    .replace(/\\"/g, "\"")
+    .replace(/\\\\/g, "\\");
+}
+
+function parseMacroValue(raw: string): MacroValue {
+  const t = raw.trim();
+
+  if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) {
+    return { kind: "string", value: unescapeCStyle(t.slice(1, -1)) };
+  }
+  if (/^-?0x[0-9a-fA-F]+$/.test(t)) return { kind: "number", value: Number.parseInt(t, 16) };
+  if (/^-?\d+$/.test(t)) return { kind: "number", value: Number.parseInt(t, 10) };
+
+  return { kind: "raw", text: t };
+}
+
+function collectDefines(text: string, sem: SemanticContext) {
+  const lineStarts = buildLineStarts(text);
+
+  const re = /^[ \t]*#define[ \t]+([A-Za-z_]\w*)[ \t]+(.+?)[ \t]*$/gm;
+
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    const fullStart = m.index;
+    const full = m[0];
+    const name = m[1];
+    const valueRaw = m[2];
+
+    const nameRel = full.indexOf(name);
+    const valueRel = full.lastIndexOf(valueRaw);
+
+    const nameStart = fullStart + nameRel;
+    const nameEnd = nameStart + name.length;
+
+    const valueStart = fullStart + valueRel;
+    const valueEnd = valueStart + valueRaw.length;
+
+    const nameRange = Range.create(
+      positionAt(lineStarts, nameStart),
+      positionAt(lineStarts, nameEnd)
+    );
+    const valueRange = Range.create(
+      positionAt(lineStarts, valueStart),
+      positionAt(lineStarts, valueEnd)
+    );
+
+    sem.defineMacro(name, parseMacroValue(valueRaw), nameRange, valueRange);
+  }
+}
 
 type TokenKind =
   | "eof"
@@ -245,11 +324,12 @@ class Parser {
     sem?: SemanticContext,
     private include?: IncludeResolver,
     private includeSeen: Set<string> = new Set(),
-    private filePath?: string
+    public filePath?: string
   ) {
     this.lines = buildLineIndex(text);
     this.t = lex(text);
     this.sem = sem;
+    this.filePath = filePath;
   }
 
   run(): ParseIssue[] {
@@ -459,15 +539,22 @@ class Parser {
 
       case "include": {
         this.expect("str", undefined, "#include: expected string literal");
-        const lit = this.prev().text;     // "\"header.cpl\""
-        const incPath = unquote(lit);     // header.cpl
+        const lit = this.prev().text;
+        const incPath = unquote(lit);
       
         this.consumePPLineEnd();
       
         if (this.include) {
           const res = this.include(incPath, this.filePath);
-          if (!res) return;
-      
+          if (!res) {
+            this.issues.push({
+              message: `#include not found: ${incPath}`,
+              range: rangeOf(this.lines, name.start, name.end)
+            });
+          
+            return;
+          }    
+
           if (this.includeSeen.has(res.filePath)) return;
           this.includeSeen.add(res.filePath);
           const p2 = new Parser(res.text, this.sem, this.include, this.includeSeen, res.filePath);
@@ -950,6 +1037,7 @@ export function parseAndDiagnose(text: string): ParseIssue[] {
 
 export function analyze(text: string, include?: IncludeResolver, filePath?: string) {
   const sem = new SemanticContext();
+  collectDefines(text, sem);
   const p = new Parser(text, sem, include, new Set<string>(), filePath);
   const syntax = p.run();
   sem.finish();

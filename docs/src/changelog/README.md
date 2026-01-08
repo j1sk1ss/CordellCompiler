@@ -5,6 +5,10 @@ Logs for the first and second versions are quite short because I don’t remembe
 ```
 ...
 ^
+[Version v3.3]
+^
+... minor changes related to v3.2 ...
+^
 [Version v3.2]
 ^
 ... minor changes related to v3.1 ...
@@ -19,6 +23,96 @@ Logs for the first and second versions are quite short because I don’t remembe
 ^
 [Version v1]
 ```
+
+----------------------------------------
+
+# Version v3.3
+
+CPL-preprocessing derictives and new include system. </br>
+Now this compiler supports derictives such as `define`, `undef`, `ifdef` and `ifndef`. Also it supports the `include` statement. For more information, check the main README file. </br>
+For instance let's consider the next piece of code:
+```cpl
+: string_h.cpl :
+{
+#ifndef STRING_H_
+#define STRING_H_ 0
+    : Get the size of the provided string
+      Params
+        - `s` - Input string.
+
+      Returns the size (i64). :
+    function strlen(ptr i8 s) => i64;
+#endif
+}
+
+: print_h.cpl :
+{
+#ifndef PRINT_H_
+#define PRINT_H_ 0
+    #include "string_h.cpl"
+
+    : Basic print function that is based on
+      a syscall invoke.
+      Params
+      - `msg` - Input message to print.
+      
+      Returns i0 aka nothing. :
+    function print(ptr str msg) => i0;
+#endif
+}
+
+: include_test.cpl :
+{
+    #include "print_h.cpl"
+    #include "string_h.cpl"
+
+    function foo() => i0;
+    
+    function bar() => i0 {
+        foo();
+    }
+
+    function foo() => i0 {
+        print("Hello world!\n");
+    }
+
+    start(i64 argc, ptr u64 argv) {
+        bar();
+        exit 0;
+    }
+}
+```
+
+After the PP, we will get a new for of the code:
+```cpl
+{
+#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
+#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"    
+    function strlen(ptr i8 s) => i64;
+#line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
+    function print(ptr str msg) => i0;
+#line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
+#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"
+#line 3 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
+
+    function foo() => i0;
+    
+    function bar() => i0 {
+        foo();
+    }
+
+    function foo() => i0 {
+        print("Hello world!\n");
+    }
+
+    start(i64 argc, ptr u64 argv) {
+        bar();
+        exit 0;
+    }
+}
+```
+
+The `line` derictive here is serving only one purpose - Tell to the tokenizer, where we are.
 
 ----------------------------------------
 

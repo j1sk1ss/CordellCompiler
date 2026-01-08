@@ -25,6 +25,66 @@ static int _destroy_info(source_pos_info_t* inf) {
     return 1;
 }
 
+typedef struct {
+    /* Service information */
+    int            skip;         /* Skip current line?      */
+    pp_cmt_state_t cst;          /* Context for comment rm  */
+    deftb_t        defines;      /* Defines table           */
+
+    /* Lines information */
+    char*          line;         /* Current line            */
+    size_t         size;         /* Current line size       */
+    char*          clean;        /* Cleaned from cmt line   */
+    size_t         clean_size;   /* Cleaned line size       */
+    char*          defined;      /* Line with defined data  */
+    size_t         defined_size; /* Defined line size       */
+
+    /* File information */
+    int            fd;           /* Input file descriptor   */
+    sstack_t       sources;      /* Sources stack           */
+    FILE*          out;          /* Target file pointer     */
+} pp_ctx_t;
+
+/*
+Init a PP ontext.
+Params:
+    - `ctx` - PP context.
+
+Returns 1 if succeeds.
+*/
+static int _init_pp_ctx(pp_ctx_t* ctx) {
+    memset(ctx, 0, sizeof(pp_ctx_t));
+    return MCTB_init(&ctx->defines) && stack_init(&ctx->sources);
+}
+
+/*
+Cleanup all mess that we've produced.
+Params:
+    - `ctx` - PP context.
+
+Returns 1 if succeeds.
+*/
+static int _unload_pp_ctx(pp_ctx_t* ctx) {
+    FILE* fp;
+    while (stack_pop(&ctx->sources, (void**)&fp)) {
+        if (fp) fclose(fp);
+    }
+
+    MCTB_unload(&ctx->defines);
+    stack_free_force_op(&ctx->sources, (int (*)(void*))_destroy_info);
+
+    if (ctx->line)    free(ctx->line);
+    if (ctx->clean)   free(ctx->clean);
+    if (ctx->defined) free(ctx->defined);
+    if (ctx->out) {
+        fflush(ctx->out);
+        fclose(ctx->out);
+    }
+
+    if (ctx->fd >= 0) close(ctx->fd);
+    return 1;
+}
+
 static int _try_push_path(sstack_t* st, char* full_path) {
     FILE* inc = fopen(full_path, "r");
     if (!inc) return 0;
@@ -75,41 +135,7 @@ static int _push_include(FILE* curr, sstack_t* st, finder_ctx_t* fctx, char* inc
     return 0;
 }
 
-/*
-Cleanup all mess that we've produced.
-Params:
-    - `line` - Line variable.
-    - `clean` - Clean line (without comments) variable.
-    - `st` - Main PP sources stack.
-    - `out` - Output tmp file.
-    - `fd` - Source FD.
-*/
-static inline void _perform_exit_cleanup(char* line, char* clean, sstack_t* st, FILE* out, int fd, deftb_t* dctx) {
-    FILE* fp;
-    while (stack_pop(st, (void**)&fp)) {
-        if (fp) fclose(fp);
-    }
-
-    MCTB_unload(dctx);
-    stack_free_force_op(st, (int (*)(void*))_destroy_info);
-
-    free(line);
-    free(clean);
-    fflush(out);
-    fclose(out);
-    close(fd);
-}
-
-typedef struct {
-    int            skip;       /* Skip current line?      */
-    char*          line;       /* Current line            */
-    size_t         size;       /* Current line size       */
-    pp_cmt_state_t cst;        /* Context for comment rm  */
-    char*          clean;      /* Cleaned from cmt line   */
-    size_t         clean_size; /* Cleaned line size       */
-} pp_ctx_t;
-
-static char* _l  = NULL;
+static char* _l = NULL;
 static void _lazy_fputs(char* l, FILE* out) {
     if (_l) fputs(_l, out);
     if (_l) {
@@ -123,48 +149,47 @@ static void _lazy_fputs(char* l, FILE* out) {
 }
 
 int PP_perform(int fd, finder_ctx_t* fctx) {
-    deftb_t dctx;
-    MCTB_init(&dctx);
+    pp_ctx_t ppctx;
+    _init_pp_ctx(&ppctx);
 
-    pp_ctx_t ppctx = { 0 };
-    int ffd = PP_create_tmp_file(fd);
+    ppctx.fd = fd;
+    int ffd = PP_create_tmp_file(ppctx.fd);
     if (ffd < 0) return -1;
 
-    FILE* out = fdopen(dup(ffd), "w");
-    if (!out) { 
-        close(ffd); 
+    ppctx.out = fdopen(dup(ffd), "w");
+    if (!ppctx.out) { 
+        _unload_pp_ctx(&ppctx);
         return -1; 
     }
 
-    sstack_t source_stack;
-    stack_init(&source_stack);
-
-    FILE* src = fdopen(dup(fd), "r");
+    FILE* src = fdopen(dup(ppctx.fd), "r");
     if (!src) {
-_path_calculation_error: {}
-        if (src)      fclose(src);
-        if (out)      fclose(out);
-        if (ffd >= 0) close(ffd);
-        stack_free_force_op(&source_stack, (int (*)(void*))_destroy_info);
-        MCTB_unload(&dctx);
+        _unload_pp_ctx(&ppctx);
         return -1;
     }
 
     char src_path[PP_PATH_MAX] = { 0 };
-    if (!PP_file_path_from_fp(src, src_path, sizeof(src_path))) goto _path_calculation_error;
+    if (!PP_file_path_from_fp(src, src_path, sizeof(src_path))) {
+        _unload_pp_ctx(&ppctx);
+        return -1;
+    }
 
     char* src_path_ptr = strdup(src_path);
-    if (!src_path_ptr) goto _path_calculation_error;
+    if (!src_path_ptr) {
+        _unload_pp_ctx(&ppctx);
+        return -1;
+    }
 
     source_pos_info_t* info = _create_info(src, src_path_ptr, 0);
-    if (!info || !stack_push(&source_stack, info)) {
+    if (!info || !stack_push(&ppctx.sources, info)) {
         if (info) _destroy_info(info);
         else free(src_path_ptr);
-        goto _path_calculation_error;
+        _unload_pp_ctx(&ppctx);
+        return -1;
     }
 
     source_pos_info_t* inf;
-    while (stack_top(&source_stack, (void**)&inf)) {
+    while (stack_top(&ppctx.sources, (void**)&inf)) {
         ssize_t nread = getline(&ppctx.line, &ppctx.size, inf->f);
 
         /* Delete the guardian entry scope.
@@ -172,7 +197,7 @@ _path_calculation_error: {}
            but pre-processor must delete these scopes to
            make it works. */
         if (inf->dl == 2) { /* Init state */
-            for (int i = 0; i < ppctx.size; i++) {
+            for (ssize_t i = 0; i < ppctx.size; i++) {
                 if (ppctx.line[i] == '{') {
                     ppctx.line[i] = ' ';   /* Set the empty sybol */
                     inf->dl = 1;           /* Set the next state  */
@@ -189,7 +214,7 @@ _path_calculation_error: {}
             how to deal with a new complex file. */
         if (nread == -1) {
             source_pos_info_t* done;
-            stack_pop(&source_stack, (void**)&done);
+            stack_pop(&ppctx.sources, (void**)&done);
             if (done) _destroy_info(done);
 
             /* Delete the guardian exit scope.
@@ -197,7 +222,7 @@ _path_calculation_error: {}
             but pre-processor must delete these scopes to
             make it works. */
             if (inf->dl == 1 && _l) { /* Init state */
-                for (int i = strlen(_l); i >= 0; i--) {
+                for (ssize_t i = strlen(_l); i >= 0; i--) {
                     if (_l[i] == '}') {
                         _l[i] = ' ';   /* Set the empty sybol */
                         inf->dl = 0;   /* Set the next state  */
@@ -205,13 +230,15 @@ _path_calculation_error: {}
                 }
             }
 
+            /* Just to be sure, that we have another one file to continue.
+               If we have, we must mark the return with an information line. */
             if (
-                stack_top(&source_stack, (void**)&done) && 
+                stack_top(&ppctx.sources, (void**)&done) && 
                 done
             ) {
                 char lder[512] = { 0 };
                 snprintf(lder, sizeof(lder), "#line %i \"%s\"\n", done->l, done->n);
-                _lazy_fputs(lder, out);
+                _lazy_fputs(lder, ppctx.out);
             }
 
             continue;
@@ -222,18 +249,24 @@ _path_calculation_error: {}
            in the line.
            This info will be saved in the cst structure. */
         if (!PP_strip_colon_comments(ppctx.line, &ppctx.cst, &ppctx.clean, &ppctx.clean_size)) {
-            _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+            _unload_pp_ctx(&ppctx);
             return -1;
         }
-
-        /* Replace all defined values by their defenitions. TODO
-         */
 
         /* Figure out which directive is presented in the line.
            If there is no directive, just copy the line into the output. */
         char* d = PP_get_directive_from_line(ppctx.clean);
         if (!d) {
-            if (!ppctx.skip) _lazy_fputs(ppctx.clean, out);
+            if (!ppctx.skip) {
+                /* Replace all defined values by their defenitions.
+                */
+                if (!PP_resolve_defines(ppctx.clean, &ppctx.defined, &ppctx.defined_size, &ppctx.defines)) {
+                    _unload_pp_ctx(&ppctx);
+                    return -1;
+                }
+
+                _lazy_fputs(ppctx.defined, ppctx.out);
+            }
         }
         else {
             /* Inlude (#include) directive handler */
@@ -241,71 +274,68 @@ _path_calculation_error: {}
                 int is_system = 0;                      /* WIP: if this flag is 1 -> This is a system lib */
                 char inc_name[PP_PATH_MAX] = { 0 };     /* Include path                                   */
                 if (!PP_parse_include_arg(PP_MV_LINE_DIR(d, PP_INCLUDE_DIRECTIVE), inc_name, sizeof(inc_name), &is_system)) {
-                    _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+                    _unload_pp_ctx(&ppctx);
                     return -1;
                 }
 
-                if (!_push_include(inf->f, &source_stack, fctx, inc_name, is_system)) {
-                    _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+                if (!_push_include(inf->f, &ppctx.sources, fctx, inc_name, is_system)) {
+                    _unload_pp_ctx(&ppctx);
                     return -1;
                 }
 
                 /* Put a line that indicates a new start for the
                    new include file. */
                 if (
-                    stack_top(&source_stack, (void**)&inf) &&
+                    stack_top(&ppctx.sources, (void**)&inf) &&
                     inf
                 ) {
                     char lder[512] = { 0 };
                     snprintf(lder, sizeof(lder), "#line %i \"%s\"\n", inf->l, inf->n);
-                    _lazy_fputs(lder, out);
+                    _lazy_fputs(lder, ppctx.out);
                 }
             }
             else if (IS_PP_DERICTIVE(d, PP_DEFINE_DIRECTIVE)) {
                 char defname[PP_PATH_MAX] = { 0 };
                 char defval[PP_PATH_MAX]  = { 0 };
                 if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), defval, sizeof(defval))) {
-                    _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+                    _unload_pp_ctx(&ppctx);
                     return -1;
                 }
 
-                if (!MCTB_put_define(defname, defval, &dctx)) {
-                    _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+                if (!MCTB_put_define(defname, defval, &ppctx.defines)) {
+                    _unload_pp_ctx(&ppctx);
                     return -1;
                 }
             }
             else if (IS_PP_DERICTIVE(d, PP_UNDEF_DIRECTIVE)) {
                 char defname[PP_PATH_MAX] = { 0 };
-                char defval[PP_PATH_MAX]  = { 0 };
-                if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), defval, sizeof(defval))) {
-                    _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+                if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), NULL, 0)) {
+                    _unload_pp_ctx(&ppctx);
                     return -1;
                 }
 
-                if (!MCTB_remove_define(defname, &dctx)) {
-                    _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+                if (!MCTB_remove_define(defname, &ppctx.defines)) {
+                    _unload_pp_ctx(&ppctx);
                     return -1;
                 }
             }
             else if (IS_PP_DERICTIVE(d, PP_IFDEF_DIRECTIVE)) {
                 char defname[PP_PATH_MAX] = { 0 };
-                char defval[PP_PATH_MAX]  = { 0 };
-                if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), defval, sizeof(defval))) {
-                    _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+                if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), NULL, 0)) {
+                    _unload_pp_ctx(&ppctx);
                     return -1;
                 }
 
-                if (!MCTB_get_define(defname, NULL, &dctx)) ppctx.skip = 1;
+                if (!MCTB_get_define(defname, NULL, &ppctx.defines)) ppctx.skip = 1;
             }
             else if (IS_PP_DERICTIVE(d, PP_IFNDEF_DIRECTIVE)) {
                 char defname[PP_PATH_MAX] = { 0 };
-                char defval[PP_PATH_MAX]  = { 0 };
-                if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), defval, sizeof(defval))) {
-                    _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+                if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), NULL, 0)) {
+                    _unload_pp_ctx(&ppctx);
                     return -1;
                 }
 
-                if (MCTB_get_define(defname, NULL, &dctx)) ppctx.skip = 1;
+                if (MCTB_get_define(defname, NULL, &ppctx.defines)) ppctx.skip = 1;
             }
             else if (IS_PP_DERICTIVE(d, PP_ENDIF_DIRECTIVE)) {
                 if (ppctx.skip) ppctx.skip = 0;
@@ -313,8 +343,8 @@ _path_calculation_error: {}
         }
     }
 
-    _lazy_fputs(NULL, out);
-    _perform_exit_cleanup(ppctx.line, ppctx.clean, &source_stack, out, fd, &dctx);
+    _lazy_fputs(NULL, ppctx.out);
+    _unload_pp_ctx(&ppctx);
     lseek(ffd, 0, SEEK_SET);
     return ffd;
 }

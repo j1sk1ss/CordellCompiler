@@ -19,6 +19,7 @@ This `README` file contains the main information about this compiler and the dev
 - [Introduction](#introduction)
 - [EBNF](#ebnf)
 - [Code snippet](#sample-code-snippet)
+- [PP part](#pp-part)
 - [Tokenization part](#tokenization-part)
 - [Markup part](#markup-part)
 - [AST part](#ast-part)
@@ -107,6 +108,47 @@ Here we are implement the simple `strlen` function and test it on a string.
 }
 ```
 </details>
+
+## PP part
+This compiler has to parse not only a code, but also derictives. Derictives such as `include`, `define`, `undef`, `ifdef` and `ifndef` are supported by the preprocessor. These commands act similar to C/C++ derictives, except `define` that isn't able to work as a function. </br>
+For instance:
+```cpl
+: print_h.cpl :
+{
+#ifndef PRINT_H_
+#define PRINT_H_ 0
+    : Basic print function that is based on
+      a syscall invoke.
+      Params
+      - `msg` - Input message to print.
+      
+      Returns i0 aka nothing. :
+    function print(ptr str msg) => i0;
+#endif
+}
+
+: include_test.cpl :
+{
+    #include "print_h.cpl"
+    start(i64 argc, ptr u64 argv) {
+        print("Hello world!\n");
+        exit 0;
+    }
+}
+```
+
+Will be converted to:
+```cpl
+{
+#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
+    function print(ptr str msg) => i0;
+#line 3 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
+    start(i64 argc, ptr u64 argv) {
+        print("Hello world!\n");
+        exit 0;
+    }
+}
+```
 
 ## Tokenization part
 The tokenization part is responsible for splitting the input byte sequence (the result of the `fread` operation) into basic tokens. This module ignores all whitespace and separator symbols (such as `newlines` and `tabs`). It also classifies each token into one of the basic types: `number`, `string`, `delimiter`, `comma`, or `dot`.

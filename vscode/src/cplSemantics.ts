@@ -1,5 +1,19 @@
 import { Range } from "vscode-languageserver/node";
 
+export type MacroValue =
+  | { kind: "string"; value: string }
+  | { kind: "number"; value: number }
+  | { kind: "raw"; text: string };
+
+export type MacroSym = {
+  kind: "macro";
+  name: string;
+  value: MacroValue;
+  range: Range;
+  valueRange: Range;
+  doc?: string;
+};
+
 export type TypeNode =
   | { kind: "prim"; name: string }
   | { kind: "ptr"; to: TypeNode }
@@ -77,12 +91,46 @@ export class SemanticContext {
   funcs = new Map<string, FuncSym>();
   globals = new Map<string, VarSym>();
 
+  macros = new Map<string, MacroSym>();
+  macroDecls: MacroSym[] = [];
+  macroUses: { name: string; range: Range }[] = [];
+
   varDecls: VarSym[] = [];
   varUses: { name: string; type: TypeNode; range: Range }[] = [];
   callSites: { name: string; range: Range }[] = [];
 
   private scope: Scope = new Scope();
   private pendingCalls: { name: string; argc: number; range: Range }[] = [];
+
+  defineMacro(name: string, value: MacroValue, nameRange: Range, valueRange: Range, doc?: string) {
+    if (this.macros.has(name)) {
+      this.issues.push({ message: `Macro '${name}' already defined`, range: nameRange });
+      return;
+    }
+    const sym: MacroSym = { kind: "macro", name, value, range: nameRange, valueRange, doc };
+    this.macros.set(name, sym);
+    this.macroDecls.push(sym);
+  }
+
+  useMacro(name: string, range: Range) {
+    this.macroUses.push({ name, range });
+  }
+
+  useVar(name: string, range: Range) {
+    const v = this.scope.resolveVar(name) ?? this.globals.get(name);
+    if (v) {
+      this.varUses.push({ name, type: v.type, range });
+      return;
+    }
+
+    const m = this.macros.get(name);
+    if (m) {
+      this.useMacro(name, range);
+      return;
+    }
+
+    this.issues.push({ message: `Unknown variable '${name}'`, range });
+  }
 
   enterScope() {
     this.scope = new Scope(this.scope);
@@ -161,15 +209,6 @@ export class SemanticContext {
 
     prev.decls.push(range);
     if (!prev.def && prev.decls.length === 1) prev.primaryRange = prev.decls[0];
-  }
-
-  useVar(name: string, range: Range) {
-    const v = this.scope.resolveVar(name) ?? this.globals.get(name);
-    if (!v) {
-      this.issues.push({ message: `Unknown variable '${name}'`, range });
-      return;
-    }
-    this.varUses.push({ name, type: v.type, range });
   }
 
   noteCallSite(name: string, range: Range) {

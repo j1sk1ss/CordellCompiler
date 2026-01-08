@@ -78,6 +78,7 @@ typedef struct {
 
 /*
 Clean the input buffer from a comment section.
+Note: Will allocate buffer for the output.
 Params:
     - `in` - Input buffer.
     - `st` - Comment state.
@@ -104,6 +105,18 @@ int PP_parse_define_arg(
     char* name_out,  size_t name_sz,
     char* value_out, size_t value_sz
 );
+
+/* 
+Replace all existing defines from the line with their values.
+Params:
+    - `in` - Input line.
+    - `out` - Output finished line.
+    - `out_cap` - Output size.
+    - `dtcx` - Define table context.
+
+Returns 0 if fails, otherwise will return 1.
+*/
+int PP_resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t* dctx);
 
 typedef struct {
     const char* bpath; /* Basic include path */

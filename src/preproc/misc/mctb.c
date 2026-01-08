@@ -33,7 +33,12 @@ int MCTB_remove_define(char* name, deftb_t* ctx) {
     string_t* sname = create_string(name);
     if (!sname) return 0;
 
-    if (map_remove(&ctx->t, (long)sname->hash)) {
+    define_t* d;
+    if (
+        map_get(&ctx->t, (long)sname->hash, (void**)&d) && 
+        map_remove(&ctx->t, (long)sname->hash)
+    ) {
+        _unload_def(d);
         destroy_string(sname);
         return 1;
     }
