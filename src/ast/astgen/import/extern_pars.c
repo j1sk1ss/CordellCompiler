@@ -7,7 +7,7 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("Can't create a base for the extern statement!");
+        PARSE_ERROR("Can't create a base for the extern statement!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -18,7 +18,7 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         else if (TKN_isdecl(CURRENT_TOKEN)) {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
             if (!arg) {
-                print_error("Extern variable declaration error! extern <type> <name>!");
+                PARSE_ERROR("Extern variable declaration error! extern <type> <name>!");
                 AST_unload(node);
                 RESTORE_TOKEN_POINT;
                 return NULL;
@@ -29,7 +29,7 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         else if (CURRENT_TOKEN->t_type == FUNC_NAME_TOKEN) {
             ast_node_t* fname = AST_create_node(CURRENT_TOKEN);
             if (!fname) {
-                print_error("Extern function declaration error! extern <name>!");
+                PARSE_ERROR("Extern function declaration error! extern <name>!");
                 AST_unload(node);
                 RESTORE_TOKEN_POINT;
                 return NULL;

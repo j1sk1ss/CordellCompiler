@@ -200,6 +200,12 @@ int TKN_isoperand(token_t* token) {
         case SUBASSIGN_TOKEN:
         case MULASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:
+        case ORASSIGN_TOKEN:
+        case ANDASSIGN_TOKEN:
+        case BITORASSIGN_TOKEN:
+        case MODULOASSIGN_TOKEN:
+        case BITANDASSIGN_TOKEN:
+        case BITXORASSIGN_TOKEN:
         case BITMOVE_LEFT_TOKEN:
         case BITMOVE_RIGHT_TOKEN: return 1;
         default:                  return 0;
@@ -227,6 +233,12 @@ int TKN_token_priority(token_t* token) {
         case MULTIPLY_TOKEN:
         case DIVIDE_TOKEN:
         case MODULO_TOKEN:         return 9;
+        case ORASSIGN_TOKEN:
+        case ANDASSIGN_TOKEN:
+        case BITORASSIGN_TOKEN:
+        case MODULOASSIGN_TOKEN:
+        case BITANDASSIGN_TOKEN:
+        case BITXORASSIGN_TOKEN:
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
         case MULASSIGN_TOKEN:
@@ -310,6 +322,12 @@ int TKN_update_operator(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case ASSIGN_TOKEN:
+        case ORASSIGN_TOKEN:
+        case ANDASSIGN_TOKEN:
+        case BITORASSIGN_TOKEN:
+        case MODULOASSIGN_TOKEN:
+        case BITANDASSIGN_TOKEN:
+        case BITXORASSIGN_TOKEN:
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:

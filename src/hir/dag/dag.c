@@ -66,5 +66,5 @@ int HIR_DAG_unload_node(dag_node_t* nd) {
 
 int HIR_DAG_unload(dag_ctx_t* ctx) {
     map_free(&ctx->groups);
-    return map_free_force_op(&ctx->dag, HIR_DAG_unload_node);
+    return map_free_force_op(&ctx->dag, (int (*)(void*))HIR_DAG_unload_node);
 }

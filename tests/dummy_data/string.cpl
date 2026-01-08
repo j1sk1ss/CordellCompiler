@@ -1,4 +1,6 @@
 {
+    #include "string_h.cpl"
+
     function strlen(ptr i8 s) => i64 {
         i64 l = 0;
         while dref s; {
@@ -7,11 +9,5 @@
         }
 
         return l;
-    }
-
-    start(i64 argc, ptr u64 argv) {
-        str msg = "Hello world!";
-        syscall(0x2000004, 1, ref msg, strlen(ref msg));
-        exit 0;
     }
 }

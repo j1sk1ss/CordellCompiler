@@ -42,12 +42,9 @@ static inline int print_ast(ast_node_t* node, int depth) {
     for (int i = 0; i < depth; i++) printf("   ");
     if (node->t && node->t->t_type != SCOPE_TOKEN) {
         printf(
-            "[%s%s] (t=%d,%s%s%sv_id=%i, s_id=%i%s%s%s%s)\n",
-            node->t->flags.neg ? "{not} " : "",
+            "[%s] (t=%d,%sv_id=%i, s_id=%i%s%s%s%s)\n",
             node->t->body->body, node->t->t_type, 
             node->t->flags.ptr ? " ptr, " : " ",
-            node->t->flags.ref ? "ref, " : "",
-            node->t->flags.dref ? "dref, " : "",
             node->sinfo.v_id, node->sinfo.s_id,
             node->t->flags.ro ? ", ro" : "",
             node->t->flags.ext ? ", ext" : "",

@@ -3,6 +3,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#ifdef PREPROC_TESTING
+    #include <preproc/pp.h>
+#endif
+
 #ifdef PREP_TESTING
     #include <prep/token.h>
     #include <prep/markup.h>
@@ -12,6 +16,7 @@
     #include <ast/ast.h>
     #include <ast/astgen.h>
     #include <ast/astgen/astgen.h>
+    #include <sem/misc/restore.h>
     #include "misc/ast_helper.h"
 #ifdef AST_OPT_TESTING
     #include <ast/opt/condunroll.h>
@@ -83,7 +88,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
-        fprintf(stderr, "File %s not found!\n", argv[1]);
+        fprintf(stderr, "File %s isn't found!\n", argv[1]);
         return 1;
     }
 
@@ -93,10 +98,23 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("Source data: %s\n\n", data);
 #endif
 
+#ifdef PREPROC_TESTING
+    finder_ctx_t finctx = { .bpath = argv[2] };
+    fd = PP_perform(fd, &finctx); // Transformation
+    if (fd < 0) {
+        fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
+        return 1;
+    }
+
+    char pdata[2048] = { 0 };
+    pread(fd, pdata, 2048, 0);
+    printf("Proccessed data: %s\n\n", pdata);
+#endif
+
 #ifdef PREP_TESTING
     list_t tokens;
     list_init(&tokens);
-    if (!TKN_tokenize(fd, &tokens)) { // Analyzation
+    if (!TKN_tokenize(fd, &tokens) || !list_size(&tokens)) { // Analyzation
         fprintf(stderr, "ERROR! tkn == NULL!\n");
         return 1;
     }
@@ -108,15 +126,13 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\nTokens:\n");
     foreach (token_t* h, &tokens) {
         printf(
-            "%sline=%i, type=%i, data=[%s], %s%s%s%s\n",
+            "%sline=%li, type=%i, data=[%s], %s%s\n",
             h->flags.glob ? "glob " : "", 
-            h->lnum, 
+            h->finfo.line, 
             h->t_type, 
             h->body->body,
             h->flags.ptr  ? "ptr "  : "", 
-            h->flags.ro   ? "ro "   : "",
-            h->flags.dref ? "dref " : "",
-            h->flags.ref  ? "ref "  : ""
+            h->flags.ro   ? "ro "   : ""
         );
     }
 #endif
@@ -128,8 +144,12 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #ifdef AST_TESTING
     ast_ctx_t sctx = { .r = NULL, .fentry = "_main" };
     stack_init(&sctx.scopes.stack);
-    AST_parse_tokens(&tokens, &sctx, &smt); // Analyzation
+    if (!AST_parse_tokens(&tokens, &sctx, &smt)) { // Analyzation
+        fprintf(stderr, "AST tree creation error!\n");
+        return 1;
+    }
 
+    RST_restore_code(stdout, sctx.r, NULL, 0);
 #ifdef AST_OPT_TESTING
     OPT_condunroll(&sctx); // Transform
     OPT_deadscope(&sctx);  // Transform
@@ -146,7 +166,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 
 #ifdef HIR_TESTING
-    hir_ctx_t hirctx = { NULL };
+    hir_ctx_t hirctx = { .h = NULL, .t = NULL, .carry = NULL };
     HIR_generate(&sctx, &hirctx, &smt);     // Analyzation
 
     cfg_ctx_t cfgctx = { .cid = 0 };
@@ -205,7 +225,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #ifdef HIR_DAG_TESTING
     HIR_CFG_make_allias(&cfgctx, &smt);          // Analyzation
 
-    dag_ctx_t dagctx;
+    dag_ctx_t dagctx = { .curr_id = 0 };
     HIR_DAG_init(&dagctx);                       // Analyzation
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);    // Analyzation
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);       // Analyzation

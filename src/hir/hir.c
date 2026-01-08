@@ -78,7 +78,11 @@ long HIR_hash_subject(hir_subject_t* s) {
     return s->hash;
 }
 
+/* Global HIR block ID for a unique indexing
+   which helps a lot in distinguish HIR blocks
+   from each other. */
 static long _curr_id = 0;
+
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;

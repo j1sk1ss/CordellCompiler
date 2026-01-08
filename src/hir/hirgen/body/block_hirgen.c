@@ -27,6 +27,10 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
     switch (node->t->t_type) {
         case CALL_TOKEN:            return HIR_generate_funccall(node, ctx, smt, 1);
         case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 1);
+        case CONVERT_TOKEN:         return HIR_generate_explconv(node, ctx, smt);
+        case NEGATIVE_TOKEN:        return HIR_generate_neg(node, ctx, smt);
+        case REF_TYPE_TOKEN:        return HIR_generate_ref(node, ctx, smt);
+        case DREF_TYPE_TOKEN:       return HIR_generate_dref(node, ctx, smt, NULL);
         /* We skip assign nodes above given the next logic, 
         where we generate the special load sequence */
         case I8_VARIABLE_TOKEN:
@@ -85,7 +89,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case IMPORT_TOKEN:     HIR_generate_import_block(node, ctx);          break;
         case ASSIGN_TOKEN:     HIR_generate_assignment_block(node, ctx, smt); break;
         case SYSCALL_TOKEN:    HIR_generate_syscall(node, ctx, smt, 0);       break;
-        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(ctx);            break;
+        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(node, ctx);      break;
         default: break;
     }
 

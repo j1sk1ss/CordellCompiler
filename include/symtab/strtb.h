@@ -6,9 +6,9 @@
 #include <std/map.h>
 
 typedef enum {
-    STR_RAW_ASM,
-    STR_ARRAY_VALUE,
-    STR_INDEPENDENT,
+    STR_RAW_ASM,     // ASM line from the inline assembly 
+    STR_ARRAY_VALUE, // non RO-string
+    STR_INDEPENDENT, // RO-string
 } str_type_t;
 
 typedef struct {

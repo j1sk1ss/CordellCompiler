@@ -55,6 +55,7 @@ def _build_test(
             return None
         else:
             print(f"Successfully built {test_name}")
+            print(result.stderr)
             return output_file
     except Exception as e:
         print(f"Error during compilation of {test_name}: {e}")
@@ -69,7 +70,7 @@ def _run_test(binary_path: Path, test_input: Path, debugger: str | None = None, 
         print(f"Error: Test input file {test_input} not found", file=sys.stderr)
         return False
     
-    command = [str(binary_path), str(test_input)]
+    command = [str(binary_path), str(test_input), str(test_input.parent)]
     log_dir.mkdir(exist_ok=True)
     log_file = log_dir / f"{binary_path.stem}.log"
     
@@ -146,7 +147,7 @@ def _entry() -> None:
     parser.add_argument('--sources', default='misc/paths.json', help='JSON file with test sources')
     parser.add_argument('--base', default='../', help='Compiler root directory')
     parser.add_argument('--run', action='store_true', help='Run the test after compilation')
-    parser.add_argument('--test-code', default='dummy_data/test1.cpl', help='Input file for the test (default: test1.cpl)')
+    parser.add_argument('--test-code', default='dummy_data/simple.cpl', help='Input file for the test (default: test1.cpl)')
     parser.add_argument('--debugger', choices=['gdb', 'lldb'], help='Run test with debugger (implies --run)')
     args = parser.parse_args()
     

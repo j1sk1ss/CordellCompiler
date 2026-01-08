@@ -1,17 +1,16 @@
 #ifndef AST_VISITORS_H_
 #define AST_VISITORS_H_
 
-#include <stdio.h>
 #include <limits.h>
 #include <std/str.h>
 #include <prep/token_types.h>
+#include <sem/misc/warns.h>
+#include <sem/misc/restore.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
 
-#define AST_VISITOR_ARGS ast_node_t* nd, sym_table_t* smt
-#define SEMANTIC_ERROR(message, ...)   fprintf(stdout, "[ERROR]  " message "\n", ##__VA_ARGS__)
-#define SEMANTIC_WARNING(message, ...) fprintf(stdout, "[WARNING]" message "\n", ##__VA_ARGS__)
-#define SEMANTIC_INFO(message, ...)    fprintf(stdout, "[INFO]   " message "\n", ##__VA_ARGS__)
+#define AST_VISITOR_ARGS     ast_node_t* nd, sym_table_t* smt
+#define AST_VISITOR_ARGS_USE (void*)nd; (void*)smt;
 
 /*
 ASTWLKR_ro_assign checks illegal read-only assign.
@@ -255,8 +254,13 @@ int ASTWLKR_implict_convertion(AST_VISITOR_ARGS);
 This checker checks for inefficient while statements such as statements with a constant value.
 Example:
 ```cpl
-while 1; {
-}
+    while 1; {
+    }
+    :
+    Can be replaced with a
+    loop {
+    }
+    :
 ```
 
 Such statements can be easily replaced with the 'loop' statement. It actually increases the final
@@ -268,5 +272,24 @@ Params:
 Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_inefficient_while(AST_VISITOR_ARGS);
+
+/*
+This checker checks for the wrong exit operation in the entry function.
+Main idea that the entry function must use the 'exit' statement. If it uses
+the 'return' statement instead, it may cause errors.
+For instance:
+```cpl
+    : There is no 'start' function :
+    function main() => u8 {
+        return 0; : <= Will raise a error! Need to change it to the 'exit' statement! :
+    }
+```
+
+Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+Return 1 if node is correct, otherwise this function will return 0.
+*/
+int ASTWLKR_wrong_exit(AST_VISITOR_ARGS);
 
 #endif

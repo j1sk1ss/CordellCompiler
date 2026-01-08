@@ -1,0 +1,7 @@
+{
+    #include "print_h.cpl"
+
+    function print(ptr str msg) => i0 {
+        syscall(0x2000004, 1, msg, strlen(msg));
+    }
+}

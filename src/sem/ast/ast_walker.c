@@ -1,9 +1,43 @@
 #include <sem/ast/ast_walker.h>
 
-int ASTWLK_register_visitor(token_type_t trg, int (*perform)(ast_node_t*), ast_walker_t* ctx) {
+/*
+Create a semantic handler for a walker.
+Params:
+    - `v` - AST visitor.
+    - `l` - Handler level.
+
+Returns the semantic handler.
+*/
+static ast_sem_handler_t* _create_sem_handler(ast_visitor_t* v, attention_level_t l) {
+    ast_sem_handler_t* h = (ast_sem_handler_t*)mm_malloc(sizeof(ast_sem_handler_t));
+    if (!h) return NULL;
+    h->w = v;
+    h->l = l;
+    return h;
+}
+
+/*
+Unload the semantic handler.
+Params:
+    - `h` - Semantic handler.
+
+Returns 1 if succeeds.
+*/
+static int _unload_sem_handler(ast_sem_handler_t* h) {
+    ASTVIS_unload_visitor(h->w);
+    return mm_free(h);
+}
+
+int ASTWLK_register_visitor(unsigned int trg, int (*perform)(ast_node_t*, sym_table_t*), ast_walker_t* ctx, attention_level_t l) {
     ast_visitor_t* v = ASTVIS_create_visitor(trg, perform);
     if (!v) return 0;
-    return list_add(&ctx->visitors, v);
+    ast_sem_handler_t* w = _create_sem_handler(v, l);
+    if (!w) {
+        _unload_sem_handler(w);
+        return 0;
+    }
+
+    return list_add(&ctx->visitors, w);
 }
 
 int ASTWLK_init_ctx(ast_walker_t* ctx, sym_table_t* smt) {
@@ -11,6 +45,13 @@ int ASTWLK_init_ctx(ast_walker_t* ctx, sym_table_t* smt) {
     return list_init(&ctx->visitors);
 }
 
+/*
+Get a node type based on the provided token type.
+Params:
+    - `tkn` - Token type.
+
+Returns a node type.
+*/
 static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
     switch (tkn) {
         case RETURN_TOKEN:
@@ -38,10 +79,16 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case ARRAY_TYPE_TOKEN: return DECLARATION_NODE;
 
         case ASSIGN_TOKEN:
+        case ORASSIGN_TOKEN:
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
         case MULASSIGN_TOKEN:
-        case DIVASSIGN_TOKEN: return ASSIGN_NODE;
+        case DIVASSIGN_TOKEN:
+        case ANDASSIGN_TOKEN:
+        case BITORASSIGN_TOKEN:
+        case MODULOASSIGN_TOKEN:
+        case BITANDASSIGN_TOKEN:
+        case BITXORASSIGN_TOKEN: return ASSIGN_NODE;
 
         case OR_TOKEN:
         case AND_TOKEN:
@@ -67,15 +114,30 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
     return UNKNOWN_NODE;
 }
 
+/*
+Perform a walk thru the AST. This is a DFS approach, that allows us
+to use a analytic symtables for the complex static analysis.
+Params:
+    - `nd` - AST node.
+    - `ctx` - Walker context.
+
+Returns 1 if succeeds. Otherwise returns 0 - Semantic block of a compilation.
+*/
 static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
     if (!nd) return 0;
     _ast_walk(nd->c, ctx);
     _ast_walk(nd->siblings.n, ctx);
-    foreach (ast_visitor_t* v, &ctx->visitors) {
+    foreach (ast_sem_handler_t* v, &ctx->visitors) {
         if (
             nd->t && 
-            _get_ast_node_type(nd->t->t_type) & v->trg
-        ) v->perform(nd, ctx->smt);
+            _get_ast_node_type(nd->t->t_type) & v->w->trg
+        ) {
+            int res = v->w->perform(nd, ctx->smt);
+            if (
+                !res && 
+                v->l == ATTENTION_BLOCK_LEVEL
+            ) return 0;
+        }
     }
 
     return 1;
@@ -86,6 +148,6 @@ int ASTWLK_walk(ast_ctx_t* actx, ast_walker_t* ctx) {
 }
 
 int ASTWLK_unload_ctx(ast_walker_t* ctx) {
-    list_free_force(&ctx->visitors);
+    list_free_force_op(&ctx->visitors, (int (*)(void *))_unload_sem_handler);
     return mm_free(ctx);
 }

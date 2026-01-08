@@ -1,6 +1,6 @@
 # Summary
 The **Cordell Programming Language (CPL)** is a system-level programming language designed for learning and experimenting with modern compiler concepts. It combines low-level capabilities from `ASM` with practices inspired by modern languages like `Rust` and `C`. `CPL` is intended for:
-- **Systems programming** — operating systems, compilers, interpreters, and embedded software.  
+- **Systems programming** — operating systems, DBMSs, compilers, interpreters, and embedded software.  
 - **Educational purposes** — a language to study compiler design, interpreters, and programming language concepts.
 - **Radical simplicity** - Similar to RISC, *we can construct any complex abstraction without complex abstractions*. 
 
@@ -23,29 +23,42 @@ Main goal of this project is learning of compilers architecture and porting one 
 - Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
 
 # Hello, World! example
+That's how we can write a 'hello-world' program with CPL language.
 ```cpl
 {
+    : Define the strlen function
+      that accepts a pointer to a char array :
     function strlen(ptr i8 s) => i64 {
         i64 l = 0;
+
+        : While pointed symbol isn't a zero value
+          continue iteration :
         while dref s; {
             s += 1;
             l += 1;
         }
 
+        : Return the length of the provided
+          string :
         return l;
     }
 
-    function puts(ptr i8 s) {
+    : Define the puts function
+      that accepts a pointer to string object :
+    function puts(ptr str s) => i0 {
+        : Start ASM inline block with
+          a support of the argument list :
         asm (s, strlen(s)) {
             "mov rax, 1",
             "mov rdi, 1",
-            "mov rsi, %1",
-            "mov rdx, %0",
+            "mov rsi, %1", : Send the 'strlen(s) result' to the RSI register :
+            "mov rdx, %0", : Send the 's' variable to the RDX register       :
             "syscall"
         }
-        return;
     }
 
+    : Program entry point similar to C's entry point
+      main(int argc, char* argv[]); :
     start(i64 argc, ptr u64 argv) {
         puts("Hello, World!");
         exit 0;
@@ -74,7 +87,7 @@ glob ro i32 WIN_Y = 1920;
 function calculate_sum(ptr i32 arr, i64 length) => i32 { return 0; }
 ```
 
-- **Scopes**: K&R style [C-code convention]
+- **Scopes**: K&R style
 ```cpl
 if cond; {
 }
@@ -84,7 +97,7 @@ start(i64 argc, ptr u64 argv) {
 }
 ```
 
-- **Comments**: Comments can be in one line with start and end symbol `:` and in several lines with same logic. [ASM-code convention + C-code convention]
+- **Comments**: Comments can be written in the one line with the start and the end symbol `:` and in several lines with the same logic. [ASM-code convention + C-code convention]
 ```cpl
 : Hello there
 :
@@ -95,6 +108,12 @@ Hello there :
 Hello there
 :
 ```
+
+- **File names**: Sneaky case for file names. If this is a 'header' file, add the `_h` path to the name.
+```
+print_h.cpl <- Prototypes and includes
+print.cpl   <- Implementation
+``` 
 
 # Program entry point
 Function becomes an entry point in two cases:
@@ -115,11 +134,18 @@ function naomi() => i0; { return; }
 ```
 
 # Types
-Now let's talk about the language basics. Actually, this is a strong-typed language, that forces programmer to specify a type of a variable. However, at this moment there is no keyword such as `as` from Rust for the type convertion, that's why I can't officialy call this language as a strong-typed language yet. But Compiler has a semantic type checker that will fire a warning in places, where implict casting is happening. </br>
-For the most cases this Compiler will invole implict convertion for types during work in the `HIR` level (see README for more information how the convertion actually works here).
+Now let's talk about language basics. This language is a strong-typed language. That's why CPL supports a cast operation such as `as` operation. Syntax is similar with a Rust-language cast operation `as`. </br>
+For instance:
+```cpl
+i32 never = 10 as i32;
+i32 dies  = 20 as i32;
+u8 technoblade = (never + dies) as u8;
+```
+
+One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. This means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the strong-typing, I'd recommend to use the `as` statement.
 
 ## Primitives
-Primitive type is a basic, supported by this language, data structure. They include:
+Now, when we've talked about the typing system, let's discuss about the types itself. Primitive type is a basic, supported by this language data structure. This data structure supports the next list of avaliable types:
 - `f64`, `f32` - Real / double and float; non-floating values are converted to double if used in double operations.
 ```cpl
 f64 a = 0.01;
@@ -206,71 +232,38 @@ ptr u64 a = ref f;
 ptr str b = "Hello world";
 ```
 
-# Semantic static checker
-CPL uses an inbuild static analyzator for the code checking before the compilation. For example, such an analyzator helps programmer to work with the code like below:
+## How to deal with pointers?
+Actually, pretty simple. This language supports two main commands to make pointers and to work with values from these pointers. For example, we have a variable:
 ```cpl
-{
-    function foo() => i32 { return 1; }
-    function BarBar() => i0 { }
-    function BazBaz() { }
-
-    function baz(i32 a) => i0 {
-        if a == 0; { return; }
-        else { }
-
-        if a == 0; { return 1; }
-        else { return 1; }
-    }
-
-    function fang(i32 a) => i8 {
-        if not a; { return 123321; }
-        else { }
-        return 1;
-        i32 b = 1;
-        return b;
-    }
-
-    start() {
-        i8 b;
-        i8 a = foo();
-        i8 c = 123123;
-        BarBar();
-    }
-}
+i32 a = 123;
 ```
 
-The code above will produce a ton of errors and warnings:
+### ref
+To obtain a reference link to this variable, we must use the `ref` statement:
+```cpl
+i32 a = 123;
+ptr i32 a_ptr = ref a;
 ```
-[WARNING] [line=7] Variable='a' without initialization!
-i32 a;
-[WARNING] [line=18] Possible dead code after the term statement!
-[WARNING] [line=15] Variable='a' without initialization!
-i32 a;
-[WARNING] [line=30] Illegal declaration of 'c' with '123123' (Number bitness is=32, but 'i8' can handle bitness=8)!
-i8 c = 123123;
-[WARNING] [line=29] Function='foo' return type='i32' not match to the declaration type='i8'!
-[WARNING] [line=24] Variable='b' without initialization!
-i8 b;
-[WARNING] [line=23] Start doesn't have the exit statement in the all paths!
-[INFO]    [line=15] Used Fang as a function dragon-name!
-[WARNING] [line=16] Function='fang' has the wrong return value!='i8'!
-return 123321;
-[WARNING] [line=20] Function='fang' has the wrong return value!='i8'!
-return b;
-[WARNING] [line=11] Function='baz' has the return value, but isn't suppose to!
-return 1;
-[WARNING] [line=12] Function='baz' has the return value, but isn't suppose to!
-return 1;
-[WARNING] [line=5] Function='BazBaz' doesn't have the return statement in all paths!
-function BazBaz() { ... 
-[WARNING] [line=5] Function name='BazBaz' isn't in sneaky_case! (PascalCase)
-[INFO]    [line=5] Consider to add a return type for the function='BazBaz'!
-[WARNING] [line=3] Function='BarBar' doesn't have the return statement in all paths!
-function BarBar() => i0 { ... 
-[WARNING] [line=3] Function name='BarBar' isn't in sneaky_case! (PascalCase)
+
+This is really close to C-language:
+```c
+int a = 123;
+int* a_ptr = &a;
 ```
+
+### dref
+Similar to C-language, we can 'dereference' the pointer. To perform this, we need to use the `dref` statement:
+```cpl
+i32 b = dref a_ptr;
+```
+
+Additionally, obtaining of a dereferenced value from a pointer can be performed via an indexing operation:
+```cpl
+i32 b = a_ptr[0];
+``` 
 
 # Binary and unary operations
+Obviously this language supports the certain set of binary operations from C-language, Rust-language, Python, etc.
 | Operation              | Description                                 | Example    |
 |------------------------|---------------------------------------------|------------|
 | `+`                    | Addition                                    | `X` + `Y`  |
@@ -281,52 +274,10 @@ function BarBar() => i0 { ...
 | `==`                   | Equality                                    | `X` == `Y` |
 | `!=`                   | Inequality                                  | `X` != `Y` |
 | `not`                  | Negation                                    | not `X`    |
-| `+=` `-=` `*=` `/=`    | Update operations                           | `X` += `Y` |
+| `+=` `-=` `*=` `/=` `&=` `\|=` `%=` | Update operations              | `X` += `Y` |
 | `>` `>=` `<` `<=`      | Comparison                                  | `X` >= `Y` |
 | `&&` `\|\|`            | Logic operations (Lazy Evaluations support) | `X` && `Y` |
 | `>>` `<<` `&` `\|` `^` | Bit operations                              | `X` >> `Y` |
-
-# Scopes
-## Variables and lifetime
-Variables live in their declared scopes. You cannot point to variables from an outer scope. This makes the manual program stack managment a way easier given the determined behavior of the stack allocator in this compiler. 
-```cpl
-start() {
-   ptr u64 p;
-   {
-      arr t[10; i32];
-      p = ref t; : <= No warning here, but it still illegal :
-   }             : <= array "t" died here :
-
-   p[0] = 1;     : <= Pointer to allocated but 'freed' stack :
-   exit 0;
-}
-```
-
-Note 1: Example above will cause a memory corruption error instead of the `SF` due the stack allocation method in CPL. (The pointer after the scope is pointing to the already allocated area. However, the compiler can use this area for the another array / variable, etc.).
-Note 2: This compiler tries to `kill` all variables / arrays / strings outside their scopes, even if they are used as a referenced value somewhere else in the further code.
-Note 3: In the example above, execution may be success (further code can ignore the 'freed' space in the stack and prefer the register placement for new variables), but it is still the Undefined Behavior. 
-
-## Visibility rules
-Outer variables can be seen by current and nested scopes.
-```cpl
-{
-   {
-      i32 a = 10; : <= Don't see any variables :
-   }
-
-   i64 b = 10; : <= Don't see any variables :
-
-   {
-      i8 c = 9; : <= See "b" variable :
-
-      {
-         f32 a = 10; : <= See "b" and "c" variables :
-      }
-
-      i8 a = 0; : <= See "b" and "c" variables :
-   }
-}
-```
 
 # Control flow statements
 ## if statement
@@ -391,10 +342,22 @@ glob function chloe(i32 a = 10) => u64 { return a + 10; }
 function max(u64 a = chloe(11)) => i32 { return a + 10; }
 ```
 
-CPL supports default values in functions. Compiler will pass these default args in a function call if you don't provide enough.
+Function can have a prototype function. Similar to C-language, a prototype function - is a function without a body:
 ```cpl
-chloe(); : chloe(10); :
-max(); : max(chloe(11)); :
+function chloe(i32 a = 10) => u64;
+function max() => i32 { 
+    return chloe();
+}
+
+function chloe(i32 a = 10) => u64 { 
+    return a + 10; 
+}
+```
+
+CPL supports default values in functions. Compiler will pass these default args in a function call if you don't provide enough:
+```cpl
+chloe();              : chloe(10); :
+max();                : max(chloe(11)); :
 min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
 ```
 
@@ -417,7 +380,227 @@ asm(a, ret) {
 }
 ```
 
-Note: Inlined assembly block don't optimized by any alghorithms.
+Note: Inlined assembly block doesn't optimized by any alghorithms.
+
+# Debugging
+## Interrupt point 
+Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
+```cpl
+{
+    start() {
+        i32 a = 10;
+        lis; : <- Will interrupt execution here :
+        exit 0;
+    }
+}
+```
+
+# Macros & include
+The compiler includes a preprocessor that will take care about statements such as `include`, `define`, `ifdef`, `ifndef` and `undef`. Most of them act similar to `C/C++`. For example, `incldue` statement must be used only with a 'header' file. How to create a 'header' file? </br>
+For example, we have a file with the implemented string function:
+```cpl
+{
+    function strlen(ptr i8 s) => i64 {
+        i64 l = 0;
+        while dref s; {
+            s += 1;
+            l += 1;
+        }
+
+        return l;
+    }
+}
+```
+
+This function is independent from others and can exist without any dependencies. But how to use this function in other files? We need to create a 'header' file:
+```cpl
+{
+#ifndef STRING_H_
+#define STRING_H_ 0
+    : Get the size of the provided string
+      Params
+        - `s` - Input string.
+
+      Returns the size (i64). :
+    function strlen(ptr i8 s) => i64;
+#endif
+}
+``` 
+
+This header file includes only the prototype and guards.
+
+# Semantic static checker
+Cordell Compiler implements a simple static analysis tool for a basic code-checking before a compilation. It supports the next list of errors and warnings:
+- Read-only variable update 
+```cpl
+ro i8 a = 10;
+a = 11; : <= RO_ASSIGN! :
+```
+
+- Invalid place for function return
+Example:
+```cpl
+function foo() => ptr u64 { :...: }
+i8 a = foo(); : <= INVALID_RETURN_TYPE! :
+```
+
+- Declaration without initialization
+- Illegal declaration
+Example:
+```cpl
+i8 a = 123321; : <= ILLEGAL_DECLARATION! 123321 is a 32-bit value :
+```
+
+- Function without return
+- Start block without exit
+- Function arguments lack
+- Function argument type mismatch
+- Unused function return value
+- Illegal array access
+Example:
+```cpl
+arr a[10, i32];
+a[11] = 0; : <= ILLEGAL_ARRAY_ACCESS! :
+```
+
+- Invalid function name
+Example:
+```cpl
+function _test() { :...: } : <= INVALID_FUNCTION_NAME! :
+```
+
+- Inefficient `while`
+Example:
+```cpl
+while 1; { : ... : : <= INEFFICIENT_WHILE! :
+}
+: Use the loop { } instead! :
+```
+
+CPL uses an inbuild static analyzator for the code checking before the compilation. For example, such an analyzator helps programmer to work with the code like below:
+```cpl
+{
+    function foo() => i32 { return 1; }
+
+    function BarBar() => i0 { }
+
+    function BazBaz() { } 
+
+    function baz(i32 a) => i0 {
+        if a == 0; { return; }
+        else { }
+
+        if a == 0; { return 1; }
+        else { return 1; }
+    }
+
+    function fang(i32 a) => i8 {
+        if not a; { return 123321; }
+        else { }
+        return 1;
+        i32 b = 1;
+        return b;
+    }
+
+    start() {
+        i8 b;
+        ptr i8 bref = ref b;
+        ptr i8 bref1 = bref;
+        ptr i8 bref2 = bref1;
+
+        i8 a = foo();
+        i8 c = 123123;
+        BarBar();
+    }
+}
+```
+
+The code above will produce a ton of errors and warnings:
+```
+[WARNING] Possible branch redundancy! The branch at [13:22] is similar to the branch at [13:22]!
+12 | if a == 0;
+12 | {
+12 |     return 1;
+12 | }
+12 | else
+13 | {
+13 |     return 1;
+13 | }
+[WARNING] [19:15] Possible dead code after the term statement!
+[WARNING] [31:22] Illegal declaration of 'c' with '123123' (Number bitness is=32, but 'i8' can handle bitness=8)!
+31 | i8 c = 123123
+[WARNING] [30:13] Function='foo' return type='i32' not match to the declaration type='i8'!
+[WARNING] [25:13] Variable='b' without initialization!
+25 | i8 b
+[WARNING] [24:10] Start doesn't have the exit statement in all paths!
+24 | start ()
+25 | {
+25 |     {
+25 |         i8 b;
+26 |         ptr i8 bref = ref b;
+27 |         ptr i8 bref1 = bref;
+28 |         ptr i8 bref2 = bref1;
+30 |         i8 a = foo();
+31 |         i8 c = 123123;
+32 |         BarBar();
+25 |     }
+25 | }
+[INFO]    [16:18] Used Fang as a function dragon-name!
+[WARNING] [17:34] Function='fang' has the wrong return value!='i8'!
+17 | return 123321
+[WARNING] [21:17] Function='fang' has the wrong return value!='i8'!
+21 | return b
+[WARNING] [12:30] Function='baz' has the return value, but isn't suppose to!
+12 | return 1
+[WARNING] [13:24] Function='baz' has the return value, but isn't suppose to!
+13 | return 1
+[WARNING] [6:13] Function='BazBaz' doesn't have the return statement in all paths!
+[WARNING] [6:20] Function name='BazBaz' isn't in sneaky_case! (PascalCase)
+[INFO]    [6:13] Consider to add a return type for the function=BazBaz!
+[WARNING] [4:20] Function name='BarBar' isn't in sneaky_case! (PascalCase)
+```
+
+# Scopes
+## Variables and lifetime
+Variables live in their declared scopes. You cannot point to variables from an outer scope. This makes the manual program stack managment a way easier given the determined behavior of the stack allocator in this compiler. 
+```cpl
+start() {
+   ptr u64 p;
+   {
+      arr t[10; i32];
+      p = ref t; : <= No warning here, but it still illegal :
+   }             : <= array "t" died here :
+
+   p[0] = 1;     : <= Pointer to allocated but 'freed' stack :
+   exit 0;
+}
+```
+
+Note 1: Example above will cause a memory corruption error instead of the `SF` due the stack allocation method in CPL. (The pointer after the scope is pointing to the already allocated area. However, the compiler can use this area for the another array / variable, etc.).
+Note 2: This compiler tries to `kill` all variables / arrays / strings outside their scopes, even if they are used as a referenced value somewhere else in the further code.
+Note 3: In the example above, execution may be success (further code can ignore the 'freed' space in the stack and prefer the register placement for new variables), but it is still the Undefined Behavior. 
+
+## Visibility rules
+Outer variables can be seen by current and nested scopes.
+```cpl
+{
+   {
+      i32 a = 10; : <= Don't see any variables :
+   }
+
+   i64 b = 10; : <= Don't see any variables :
+
+   {
+      i8 c = 9; : <= See "b" variable :
+
+      {
+         f32 a = 10; : <= See "b" and "c" variables :
+      }
+
+      i8 a = 0; : <= See "b" and "c" variables :
+   }
+}
+```
 
 # Ownership rules
 ## Ownership model vs Rust
@@ -459,63 +642,8 @@ CPL uses a lightweight ownership model with `register allocation` that resembles
 }
 ```
 
-# Debugging
-## Interrupt point 
-Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
-```cpl
-{
-    start() {
-        i32 a = 10;
-        lis; : <- Will interrupt execution here :
-        exit 0;
-    }
-}
-```
-
 Note! Disable optimizations before a code debugging given the preservation the code from a transformation.
-
-# Static analysis
-Cordell Compiler implements the simple static analysis tool for the basic code-checking before compilation. It supports next list of errors and warnings:
-- Read-only variable update 
-- Invalid place for function return
-Example:
-```cpl
-function foo() => ptr u64 { :...: }
-i8 a = foo(); : <= RO_ASSIGN! :
-```
-
-- Declaration without initialization
-- Illegal declaration
-Example:
-```cpl
-i8 a = 123321; : <= ILLEGAL_DECLARATION! 123321 is a 32-bit value :
-```
-
-- Function without return
-- Start block without exit
-- Function arguments lack
-- Function argument type mismatch
-- Unused function return value
-- Illegal array access
-Example:
-```cpl
-arr a[10, i32];
-a[11] = 0; : <= ILLEGAL_ARRAY_ACCESS! :
-```
-
-- Invalid function name
-Example:
-```cpl
-function _test() { :...: } : <= INVALID_FUNCTION_NAME! :
-```
-
-- Inefficient `while`
-Example:
-```cpl
-while 1; { : ... : : <= INEFFICIENT_WHILE! :
-}
-: Use the loop { } instead! :
-```
+Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
 
 # Examples
 ## strlen
@@ -602,6 +730,7 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
                 case '['; {
                     stack[stackptr] = pos;
                     stackptr += 1;
+                    break;
                 }
                 case ']'; {
                     if stackptr > 0; {
@@ -610,6 +739,8 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
                         bracketmap[pos] = matchpos;
                         bracketmap[matchpos] = pos;
                     }
+
+                    break;
                 }
             }
             
@@ -624,50 +755,51 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
                 case '>'; {
                     pointer += 1;
                     pc += 1;
+                    break;
                 }
                 case '<'; {
                     pointer -= 1;
                     pc += 1;
+                    break;
                 }
                 case '+'; {
                     tape[pointer] += 1;
                     pc += 1;
+                    break;
                 }
                 case '-'; {
                     tape[pointer] -= 1;
                     pc += 1;
+                    break;
                 }
                 case '.'; {
                     putc(tape[pointer]);
                     pc += 1;
+                    break;
                 }
                 case ','; {
                     gets(ref tape[pointer], 1);
                     pc += 1;
+                    break;
                 }
                 case '['; {
-                    if not tape[pointer]; {
-                        pc = bracketmap[pc];
-                    }
-                    else {
-                        pc += 1;
-                    }
+                    if not tape[pointer]; { pc = bracketmap[pc]; }
+                    else { pc += 1; }
+                    break;
                 }
                 case ']'; {
-                    if tape[pointer]; {
-                        pc = bracketmap[pc];
-                    }
-                    else {
-                        pc += 1;
-                    }
+                    if tape[pointer]; { pc = bracketmap[pc]; }
+                    else { pc += 1; }
+                    break;
                 }
                 default {
                     pc += 1;
+                    break;
                 }
             }
         }
 
-        exit 1;
+        exit 0;
     }
 }
 ```

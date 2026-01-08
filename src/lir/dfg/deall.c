@@ -17,11 +17,10 @@ dref p = 0; : <= Pointer to 'freed' location :
 
 Params:
     - `fb` - Current function CFG part.
-    - `smt` - Symtable.
 
 Returns 1 if succeed. Otherwise will return 0.
 */
-static int _scope_pass(cfg_func_t* fb, sym_table_t* smt) {
+static int _scope_pass(cfg_func_t* fb) {
     sstack_t scopes;
     stack_init(&scopes);
 
@@ -92,7 +91,7 @@ Returns 1 if succeed. Otherwise will return 0.
 */
 static int _use_def_pass(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        _scope_pass(fb, smt);
+        _scope_pass(fb);
         foreach (cfg_block_t* cb, &fb->blocks) {
             set_t appeared;
             set_union(&appeared, &cb->curr_in, &cb->def);

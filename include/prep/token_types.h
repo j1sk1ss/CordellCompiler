@@ -4,6 +4,13 @@
 #include <std/str.h>
 
 typedef enum {
+    // Pre-processor tokens
+    PP_TOKEN,  // #file "file"
+               // for instance: #file "something.cpl"
+    /* This token tells us about current info for the 
+       finfo structure in the rokenizer. */
+    INCLUDE_FILE_TOKEN,
+
     // Unknowns
     UNKNOWN_CHAR_TOKEN,
     UNKNOWN_BRACKET_VALUE,
@@ -29,7 +36,7 @@ typedef enum {
     GLOB_TYPE_TOKEN,     // glob
     NEGATIVE_TOKEN,      // not
 
-    // Types
+    // Data types
     TMP_TYPE_TOKEN,
     TMP_F64_TYPE_TOKEN,  // tmp_f64
     TMP_F32_TYPE_TOKEN,  // tmp_f32
@@ -56,6 +63,9 @@ typedef enum {
     STR_TYPE_TOKEN,      // str
     ARRAY_TYPE_TOKEN,    // arr
     
+    // Convert statements
+    CONVERT_TOKEN,       // as
+
     // Commands
     IMPORT_TOKEN,        // import
     IMPORT_SELECT_TOKEN, // from
@@ -70,8 +80,9 @@ typedef enum {
     ASM_TOKEN,           // asm
     SYSCALL_TOKEN,       // syscall
     EXFUNC_TOKEN,        // exfunc
+    FUNC_PROT_TOKEN,     // function <name> - prototype
     FUNC_TOKEN,          // function
-    FUNC_NAME_TOKEN,
+    FUNC_NAME_TOKEN,     // function <name>
     CALL_TOKEN,
     
     // Condition scope
@@ -84,7 +95,7 @@ typedef enum {
     IF_TOKEN,            // if
     ELSE_TOKEN,          // else
     
-    // Statements
+    // Operands
     PLUS_TOKEN,          // +
     MINUS_TOKEN,         // -
     MULTIPLY_TOKEN,      // *
@@ -94,6 +105,12 @@ typedef enum {
     SUBASSIGN_TOKEN,     // -=
     MULASSIGN_TOKEN,     // *=
     DIVASSIGN_TOKEN,     // /=
+    MODULOASSIGN_TOKEN,  // %=
+    BITANDASSIGN_TOKEN,  // &=
+    BITORASSIGN_TOKEN,   // |=
+    BITXORASSIGN_TOKEN,  // ^=
+    ORASSIGN_TOKEN,      // ||=
+    ANDASSIGN_TOKEN,     // &&=
     ASSIGN_TOKEN,        // =
     COMPARE_TOKEN,       // ==
     NCOMPARE_TOKEN,      // !=
@@ -109,7 +126,7 @@ typedef enum {
     AND_TOKEN,           // &&
     OR_TOKEN,            // ||
     
-    // Vars
+    // Variables (not a type, a variable)
     F64_VARIABLE_TOKEN,  // f64
     F32_VARIABLE_TOKEN,  // f32
     I64_VARIABLE_TOKEN,  // i64
@@ -127,7 +144,7 @@ typedef enum {
     STRING_VALUE_TOKEN,
     CHAR_VALUE_TOKEN,
 
-    // debug
+    // Debug statements
     BREAKPOINT_TOKEN, // lis
 } token_type_t;
 
@@ -135,18 +152,21 @@ typedef struct {
     char ro;   /* Is read only flag   */
     char glob; /* Is global flag      */
     char ptr;  /* Is pointer flag     */
-    char ref;  /* Is reference flag   */
-    char dref; /* Is dereference flag */
     char ext;  /* Is extern flag      */
-    char neg;  /* Is negative flag    */
     char heap; /* Is heap allocated   */
 } token_flags_t;
 
 typedef struct {
-    token_flags_t flags;
-    token_type_t  t_type;
-    string_t*     body;
-    int           lnum; /* Line in source file */
+    long      line;
+    long      column;
+    string_t* file;
+} token_fpos_t;
+
+typedef struct {
+    token_flags_t flags;  /* Token's flags           */
+    token_type_t  t_type; /* Token's type            */
+    string_t*     body;   /* Token's body            */
+    token_fpos_t  finfo;  /* Source file information */
 } token_t;
 
 token_type_t TKN_get_tmp_type(token_type_t t);

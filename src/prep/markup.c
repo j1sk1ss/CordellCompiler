@@ -53,6 +53,9 @@ static const markup_token_t _lexems[] = {
     LEXEM(STR_VARIABLE,           STR_TYPE_TOKEN),
     LEXEM(ARR_VARIABLE,           ARRAY_TYPE_TOKEN),
 
+    /* Cast token */
+    LEXEM(CONVERT_COMMAND,        CONVERT_TOKEN),
+
     /* Little jump tokens. */
     LEXEM(SWITCH_COMMAND,         SWITCH_TOKEN),
     LEXEM(CASE_COMMAND,           CASE_TOKEN),
@@ -68,6 +71,12 @@ static const markup_token_t _lexems[] = {
     LEXEM(SUBASSIGN_STATEMENT,    SUBASSIGN_TOKEN),
     LEXEM(MULASSIGN_STATEMENT,    MULASSIGN_TOKEN),
     LEXEM(DIVASSIGN_STATEMENT,    DIVASSIGN_TOKEN),
+    LEXEM(MODULOASSIGN_STATEMENT, MODULOASSIGN_TOKEN),
+    LEXEM(BITANDASSIGN_STATEMENT, BITANDASSIGN_TOKEN),
+    LEXEM(BITORASSIGN_STATEMENT,  BITORASSIGN_TOKEN),
+    LEXEM(BITXORASSIGN_STATEMENT, BITXORASSIGN_TOKEN),
+    LEXEM(ORASSIGN_STATEMENT,     ORASSIGN_TOKEN),
+    LEXEM(ANDASSIGN_STATEMENT,    ANDASSIGN_TOKEN),
     LEXEM(ASSIGN_STATEMENT,       ASSIGN_TOKEN),
     LEXEM(COMPARE_STATEMENT,      COMPARE_TOKEN),
     LEXEM(NCOMPARE_STATEMENT,     NCOMPARE_TOKEN),
@@ -256,16 +265,10 @@ int MRKP_variables(list_t* tkn) {
     s_id = 0;
     scope_stack.top = -1;
     
-    int dref = 0;
-    int ref  = 0;
-    int neg  = 0;
     foreach (token_t* curr, tkn) {
         switch (curr->t_type) {
             case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
             case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
-            case NEGATIVE_TOKEN:    neg  = 1; _remove_token(tkn, curr);           continue;
-            case DREF_TYPE_TOKEN:   dref = 1; _remove_token(tkn, curr);           continue;
-            case REF_TYPE_TOKEN:    ref  = 1; _remove_token(tkn, curr);           continue;
             case UNKNOWN_CHAR_TOKEN:
             case UNKNOWN_STRING_TOKEN: {
                 for (int s = scope_stack.top; s >= 0; s--) {
@@ -277,9 +280,6 @@ int MRKP_variables(list_t* tkn) {
                             curr->flags.ro   = v->ro;
                             curr->flags.glob = v->glob;
                             curr->flags.ptr  = v->ptr;
-                            curr->flags.ref  = ref;
-                            curr->flags.dref = dref;
-                            curr->flags.neg  = neg;
                             goto _resolved;
                         }
                     }
@@ -291,10 +291,6 @@ _resolved: {}
 
             default: break;
         }
-
-        ref  = 0;
-        dref = 0;
-        neg  = 0;
     }
 
     stack_free(&scope_stack);

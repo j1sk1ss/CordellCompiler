@@ -18,7 +18,19 @@ Params:
 
 Return converted HIR subject.
 */
-hir_subject_t* HIR_generate_conv(hir_ctx_t* ctx, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
+hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
+
+/*
+Generate convertion from the one type to another. 
+Note: It types are similar, it doesn't perform the convertation proccess.
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return converted HIR subject.
+*/
+hir_subject_t* HIR_generate_explconv(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Convert AST node into HIR element.
@@ -93,11 +105,12 @@ int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx);
 /*
 Convert a breakpoint AST node into a HIR element. 
 Params:
+    - `node` - AST node.
     - `ctx` - HIR ctx.
 
 Return parsed from AST HIR subject.
 */
-int HIR_generate_breakpoint_block(hir_ctx_t* ctx);
+int HIR_generate_breakpoint_block(ast_node_t* node, hir_ctx_t* ctx);
 
 /*
 Convert a break AST node into a HIR element. 
@@ -272,5 +285,39 @@ Params:
 Return parsed from AST HIR subject.
 */
 int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Convert neg AST node into HIR element. 
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return parsed from AST HIR subject.
+*/
+hir_subject_t* HIR_generate_neg(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Convert ref AST node into HIR element. 
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return parsed from AST HIR subject.
+*/
+hir_subject_t* HIR_generate_ref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Convert dref AST node into HIR element. 
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+    - `data` - By default is NULL.
+
+Return parsed from AST HIR subject.
+*/
+hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_t* data);
 
 #endif
