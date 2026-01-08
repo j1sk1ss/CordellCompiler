@@ -225,7 +225,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #ifdef HIR_DAG_TESTING
     HIR_CFG_make_allias(&cfgctx, &smt);          // Analyzation
 
-    dag_ctx_t dagctx;
+    dag_ctx_t dagctx = { .curr_id = 0 };
     HIR_DAG_init(&dagctx);                       // Analyzation
     HIR_DAG_generate(&cfgctx, &dagctx, &smt);    // Analyzation
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);       // Analyzation

@@ -197,7 +197,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
            but pre-processor must delete these scopes to
            make it works. */
         if (inf->dl == 2) { /* Init state */
-            for (ssize_t i = 0; i < ppctx.size; i++) {
+            for (ssize_t i = 0; i < (ssize_t)ppctx.size; i++) {
                 if (ppctx.line[i] == '{') {
                     ppctx.line[i] = ' ';   /* Set the empty sybol */
                     inf->dl = 1;           /* Set the next state  */

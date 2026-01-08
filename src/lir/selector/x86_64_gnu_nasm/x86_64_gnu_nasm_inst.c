@@ -143,7 +143,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                        If there is more than 7 arguments, ignore the last. */
                     case LIR_STSARG: {
                         int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
-                        if (lh->sarg->storage.cnst.value >= sizeof(sys_regs) / sizeof(RAX)) break;
+                        if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(RAX))) break;
                         lir_subject_t* nfarg = _create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt);
 
                         LIR_unload_subject(lh->sarg);
@@ -173,7 +173,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_STFARG: {
                         int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
                         lir_subject_t* nfarg;
-                        if (lh->sarg->storage.cnst.value < sizeof(abi_regs) / sizeof(RDI)) {
+                        if (lh->sarg->storage.cnst.value < (long)(sizeof(abi_regs) / sizeof(RDI))) {
                             nfarg = _create_tmp(
                                 abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt
                             );
@@ -197,7 +197,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_LOADFARG: {
                         int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
                         lir_subject_t* nfarg;
-                        if (lh->sarg->storage.cnst.value < sizeof(abi_regs) / sizeof(RDI)) {
+                        if (lh->sarg->storage.cnst.value < (long)(sizeof(abi_regs) / sizeof(RDI))) {
                             nfarg = _create_tmp(
                                 abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt
                             );

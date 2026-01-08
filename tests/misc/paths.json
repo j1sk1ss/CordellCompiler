@@ -128,7 +128,7 @@
     },
     "hir_constfold": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
             "HIR_DAG_TESTING", "CONSTFOLD_TESTING", "HIR_PRINT"
         ],
         "sources": [
@@ -154,7 +154,7 @@
     },
     "lir": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", 
             "HIR_TESTING", "HIR_SSA_TESTING", "HIR_PRINT",
             "LIR_TESTING", "LIR_PRINT"
         ],
@@ -182,7 +182,7 @@
     },
     "lir_constfold": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", 
             "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
             "LIR_TESTING", "CONSTFOLD_TESTING", "LIR_PRINT"
         ],
@@ -213,7 +213,7 @@
     },
     "lir_selector": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_PRINT"
         ],
         "sources": [
@@ -242,7 +242,7 @@
     },
     "lir_instplan": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_PRINT"
         ],
         "sources": [
@@ -272,7 +272,7 @@
     },
     "lir_regalloc": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PRINT"
         ],
         "sources": [
@@ -306,7 +306,7 @@
     },
     "lir_peephole": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", "LIR_PRINT"
         ],
         "sources": [
@@ -341,7 +341,7 @@
     },
     "asm": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", 
             "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", "LIR_PRINT", 
             "CODEGEN_TESTING"
@@ -383,7 +383,7 @@
     },
     "asm_constfold": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", 
             "CODEGEN_TESTING", "CONSTFOLD_TESTING"
         ],

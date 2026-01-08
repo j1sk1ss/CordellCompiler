@@ -1,27 +1,5 @@
 #include <lir/lir.h>
 
-lir_ctx_t* LIR_create_ctx() {
-    lir_ctx_t* ctx = mm_malloc(sizeof(lir_ctx_t));
-    if (!ctx) return NULL;
-    ctx->h = ctx->t = NULL;
-    ctx->cid = 0;
-    ctx->lid = 0;
-    return ctx;
-}
-
-int LIR_destroy_ctx(lir_ctx_t* ctx) {
-    if (!ctx) return -1;
-    lir_block_t* cur = ctx->h;
-    while (cur) {
-        lir_block_t* nxt = cur->next;
-        mm_free(cur);
-        cur = nxt;
-    }
-
-    mm_free(ctx);
-    return 0;
-}
-
 static long _curr_id = 0;
 lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_t* strval, long intval, int size) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));

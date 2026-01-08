@@ -104,7 +104,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_TU8:        return "%s = %s as u8;\n";
         case HIR_BREAKPOINT: return "breakpoint msg=%s;\n";
 
-        case HIR_FCLL:       return "call %s, argc %s%s;\n";
+        case HIR_FCLL:       return "call %s%s, argc %s;\n";
         case HIR_STORE_FCLL: return "%s = call %s, argc %s;\n";
         case HIR_ECLL:       return "excall %s, argc %s%s;\n";
         case HIR_STORE_ECLL: return "%s = excall %s, argc %s;\n";
