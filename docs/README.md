@@ -134,16 +134,18 @@ function naomi() => i0; { return; }
 ```
 
 # Types
-Now let's talk about the language basics. The compiler supports a cast operation such as `as` operation. Syntax is similar with Rust language. </br>
+Now let's talk about language basics. This language is a strong-typed language. That's why CPL supports a cast operation such as `as` operation. Syntax is similar with a Rust-language cast operation `as`. </br>
 For instance:
 ```cpl
 i32 never = 10 as i32;
-i32 dies = 10 as i32;
+i32 dies  = 20 as i32;
 u8 technoblade = (never + dies) as u8;
 ```
 
+One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. This means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the strong-typing, I'd recommend to use the `as` statement.
+
 ## Primitives
-Primitive type is a basic, supported by this language, data structure. They include:
+Now, when we've talked about the typing system, let's discuss about the types itself. Primitive type is a basic, supported by this language data structure. This data structure supports the next list of avaliable types:
 - `f64`, `f32` - Real / double and float; non-floating values are converted to double if used in double operations.
 ```cpl
 f64 a = 0.01;
@@ -230,7 +232,251 @@ ptr u64 a = ref f;
 ptr str b = "Hello world";
 ```
 
+## How to deal with pointers?
+Actually, pretty simple. This language supports two main commands to make pointers and to work with values from these pointers. For example, we have a variable:
+```cpl
+i32 a = 123;
+```
+
+### ref
+To obtain a reference link to this variable, we must use the `ref` statement:
+```cpl
+i32 a = 123;
+ptr i32 a_ptr = ref a;
+```
+
+This is really close to C-language:
+```c
+int a = 123;
+int* a_ptr = &a;
+```
+
+### dref
+Similar to C-language, we can 'dereference' the pointer. To perform this, we need to use the `dref` statement:
+```cpl
+i32 b = dref a_ptr;
+```
+
+Additionally, obtaining of a dereferenced value from a pointer can be performed via an indexing operation:
+```cpl
+i32 b = a_ptr[0];
+``` 
+
+# Binary and unary operations
+Obviously this language supports the certain set of binary operations from C-language, Rust-language, Python, etc.
+| Operation              | Description                                 | Example    |
+|------------------------|---------------------------------------------|------------|
+| `+`                    | Addition                                    | `X` + `Y`  |
+| `-`                    | Subtraction                                 | `X` - `Y`  |
+| `*`                    | Multiplication                              | `X` * `Y`  |
+| `/`                    | Division                                    | `X` / `Y`  |
+| `%`                    | Module                                      | `X` % `Y`  |
+| `==`                   | Equality                                    | `X` == `Y` |
+| `!=`                   | Inequality                                  | `X` != `Y` |
+| `not`                  | Negation                                    | not `X`    |
+| `+=` `-=` `*=` `/=` `&=` `\|=` `%=` | Update operations              | `X` += `Y` |
+| `>` `>=` `<` `<=`      | Comparison                                  | `X` >= `Y` |
+| `&&` `\|\|`            | Logic operations (Lazy Evaluations support) | `X` && `Y` |
+| `>>` `<<` `&` `\|` `^` | Bit operations                              | `X` >> `Y` |
+
+# Control flow statements
+## if statement
+`if` keyword similar to the `C`'s `if` statement. Key change here is a `;` after the condition. 
+```cpl
+if <condition>; {
+}
+else {
+}
+```
+
+For instance:
+```cpl
+i32 a = 10;
+i32 b = 11;
+if a == 12 && b < 12; {
+    a = 10;
+}
+else {
+    a = 12;
+}
+```
+
+## while statement
+```cpl
+while <condition>; {
+    break;
+}
+```
+
+## loop statement
+In a difference with the `while` statement, the `loop` statement allows to build efficient infinity loops for a purpose. It is a way efficient than a `while 1;` statement given the empty 'condition' body. </br>
+**Importand Note:** You *must* insert the `break` keyword somewhere in a body of this statement. Otherwise it will became an infinity loop.
+```cpl
+loop {
+    break;
+}
+```
+
+## switch statement
+Note: `X` should be constant value (or a primitive variable that can be `inlined`). </br>
+Note 2: Similar to C language, the `switch` statement supports the fall 'mechanic'. It implies, that the `case` can ignore the `break` keyword. This will lead to the execution of the next case block.
+```cpl
+switch cond; {
+    case X; {
+    }
+    case Y; {
+        break;
+    }
+    default; {
+        break;
+    }
+}
+```
+
+# Functions and inbuilt macros
+## Functions
+Functions can be defined by the `function` keyword. Also, if you want to use a function in another `.cpl`/(or whatever language that supports the `extern` mechanism) file, you can append the `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that the CPL changes a local function name by the next pattern: `__cpl_{name}`, that's why prefer mark them with the `glob` key (It will preserve a name from a changing). 
+```cpl
+function min(i32 a) => i0 { return; }
+glob function chloe(i32 a = 10) => u64 { return a + 10; }
+function max(u64 a = chloe(11)) => i32 { return a + 10; }
+```
+
+Function can have a prototype function. Similar to C-language, a prototype function - is a function without a body:
+```cpl
+function chloe(i32 a = 10) => u64;
+function max() => i32 { 
+    return chloe();
+}
+
+function chloe(i32 a = 10) => u64 { 
+    return a + 10; 
+}
+```
+
+CPL supports default values in functions. Compiler will pass these default args in a function call if you don't provide enough:
+```cpl
+chloe();              : chloe(10); :
+max();                : max(chloe(11)); :
+min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
+```
+
+## Inbuilt macros
+There is two inbuild functions that can be usefull for a system programmer. First is the `syscall` function.
+- `syscall` function is called similar to default user functions, but can handle an unfixed number of arguments. For example here is the write syscall:
+```cpl
+str msg = "Hello, World!";
+syscall(1, 1, ref msg, strlen(ref msg));
+```
+
+- `asm` - Second usefull function that allows to inline an assembly code. Main feature here is a variables line, where you can pass any number of arguments, then use them in the assembly code block via `%<num>` symbols.
+```cpl
+i32 a = 0;
+i32 ret = 0;
+asm(a, ret) {
+   "mov rax, %0 ; mov rax, a",
+   "syscall",
+   "mov %1, rax ; mov ret, rax"
+}
+```
+
+Note: Inlined assembly block doesn't optimized by any alghorithms.
+
+# Debugging
+## Interrupt point 
+Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
+```cpl
+{
+    start() {
+        i32 a = 10;
+        lis; : <- Will interrupt execution here :
+        exit 0;
+    }
+}
+```
+
+# Macros & include
+The compiler includes a preprocessor that will take care about statements such as `include`, `define`, `ifdef`, `ifndef` and `undef`. Most of them act similar to `C/C++`. For example, `incldue` statement must be used only with a 'header' file. How to create a 'header' file? </br>
+For example, we have a file with the implemented string function:
+```cpl
+{
+    function strlen(ptr i8 s) => i64 {
+        i64 l = 0;
+        while dref s; {
+            s += 1;
+            l += 1;
+        }
+
+        return l;
+    }
+}
+```
+
+This function is independent from others and can exist without any dependencies. But how to use this function in other files? We need to create a 'header' file:
+```cpl
+{
+#ifndef STRING_H_
+#define STRING_H_ 0
+    : Get the size of the provided string
+      Params
+        - `s` - Input string.
+
+      Returns the size (i64). :
+    function strlen(ptr i8 s) => i64;
+#endif
+}
+``` 
+
+This header file includes only the prototype and guards.
+
 # Semantic static checker
+Cordell Compiler implements a simple static analysis tool for a basic code-checking before a compilation. It supports the next list of errors and warnings:
+- Read-only variable update 
+```cpl
+ro i8 a = 10;
+a = 11; : <= RO_ASSIGN! :
+```
+
+- Invalid place for function return
+Example:
+```cpl
+function foo() => ptr u64 { :...: }
+i8 a = foo(); : <= INVALID_RETURN_TYPE! :
+```
+
+- Declaration without initialization
+- Illegal declaration
+Example:
+```cpl
+i8 a = 123321; : <= ILLEGAL_DECLARATION! 123321 is a 32-bit value :
+```
+
+- Function without return
+- Start block without exit
+- Function arguments lack
+- Function argument type mismatch
+- Unused function return value
+- Illegal array access
+Example:
+```cpl
+arr a[10, i32];
+a[11] = 0; : <= ILLEGAL_ARRAY_ACCESS! :
+```
+
+- Invalid function name
+Example:
+```cpl
+function _test() { :...: } : <= INVALID_FUNCTION_NAME! :
+```
+
+- Inefficient `while`
+Example:
+```cpl
+while 1; { : ... : : <= INEFFICIENT_WHILE! :
+}
+: Use the loop { } instead! :
+```
+
 CPL uses an inbuild static analyzator for the code checking before the compilation. For example, such an analyzator helps programmer to work with the code like below:
 ```cpl
 {
@@ -314,22 +560,6 @@ The code above will produce a ton of errors and warnings:
 [WARNING] [4:20] Function name='BarBar' isn't in sneaky_case! (PascalCase)
 ```
 
-# Binary and unary operations
-| Operation              | Description                                 | Example    |
-|------------------------|---------------------------------------------|------------|
-| `+`                    | Addition                                    | `X` + `Y`  |
-| `-`                    | Subtraction                                 | `X` - `Y`  |
-| `*`                    | Multiplication                              | `X` * `Y`  |
-| `/`                    | Division                                    | `X` / `Y`  |
-| `%`                    | Module                                      | `X` % `Y`  |
-| `==`                   | Equality                                    | `X` == `Y` |
-| `!=`                   | Inequality                                  | `X` != `Y` |
-| `not`                  | Negation                                    | not `X`    |
-| `+=` `-=` `*=` `/=` `&=` `\|=` `%=` | Update operations              | `X` += `Y` |
-| `>` `>=` `<` `<=`      | Comparison                                  | `X` >= `Y` |
-| `&&` `\|\|`            | Logic operations (Lazy Evaluations support) | `X` && `Y` |
-| `>>` `<<` `&` `\|` `^` | Bit operations                              | `X` >> `Y` |
-
 # Scopes
 ## Variables and lifetime
 Variables live in their declared scopes. You cannot point to variables from an outer scope. This makes the manual program stack managment a way easier given the determined behavior of the stack allocator in this compiler. 
@@ -372,97 +602,6 @@ Outer variables can be seen by current and nested scopes.
 }
 ```
 
-# Control flow statements
-## if statement
-`if` keyword similar to the `C`'s `if` statement. Key change here is a `;` after the condition. 
-```cpl
-if <condition>; {
-}
-else {
-}
-```
-
-For instance:
-```cpl
-i32 a = 10;
-i32 b = 11;
-if a == 12 && b < 12; {
-    a = 10;
-}
-else {
-    a = 12;
-}
-```
-
-## while statement
-```cpl
-while <condition>; {
-    break;
-}
-```
-
-## loop statement
-In a difference with the `while` statement, the `loop` statement allows to build efficient infinity loops for a purpose. It is a way efficient than a `while 1;` statement given the empty 'condition' body. </br>
-**Importand Note:** You *must* insert the `break` keyword somewhere in a body of this statement. Otherwise it will became an infinity loop.
-```cpl
-loop {
-    break;
-}
-```
-
-## switch statement
-Note: `X` should be constant value (or a primitive variable that can be `inlined`). </br>
-Note 2: Similar to C language, the `switch` statement supports the fall 'mechanic'. It implies, that the `case` can ignore the `break` keyword. This will lead to the execution of the next case block.
-```cpl
-switch cond; {
-    case X; {
-    }
-    case Y; {
-        break;
-    }
-    default; {
-        break;
-    }
-}
-```
-
-# Functions and inbuilt macros
-## Functions
-Functions can be defined by the `function` keyword. Also, if you want to use a function in another `.cpl`/(or whatever language that supports the `extern` mechanism) file, you can append the `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that the CPL changes a local function name by the next pattern: `__cpl_{name}`, that's why prefer mark them with the `glob` key (It will preserve a name from a changing). 
-```cpl
-function min(i32 a) => i0 { return; }
-glob function chloe(i32 a = 10) => u64 { return a + 10; }
-function max(u64 a = chloe(11)) => i32 { return a + 10; }
-```
-
-CPL supports default values in functions. Compiler will pass these default args in a function call if you don't provide enough.
-```cpl
-chloe(); : chloe(10); :
-max(); : max(chloe(11)); :
-min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
-```
-
-## Inbuilt macros
-There is two inbuild functions that can be usefull for a system programmer. First is the `syscall` function.
-- `syscall` function is called similar to default user functions, but can handle an unfixed number of arguments. For example here is the write syscall:
-```cpl
-str msg = "Hello, World!";
-syscall(1, 1, ref msg, strlen(ref msg));
-```
-
-- `asm` - Second usefull function that allows to inline an assembly code. Main feature here is a variables line, where you can pass any number of arguments, then use them in the assembly code block via `%<num>` symbols.
-```cpl
-i32 a = 0;
-i32 ret = 0;
-asm(a, ret) {
-   "mov rax, %0 ; mov rax, a",
-   "syscall",
-   "mov %1, rax ; mov ret, rax"
-}
-```
-
-Note: Inlined assembly block don't optimized by any alghorithms.
-
 # Ownership rules
 ## Ownership model vs Rust
 CPL uses a lightweight ownership model with `register allocation` that resembles Rust’s borrow checker, but it serves a different purpose and operates with fewer restrictions.  
@@ -503,69 +642,8 @@ CPL uses a lightweight ownership model with `register allocation` that resembles
 }
 ```
 
-# Debugging
-## Interrupt point 
-Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
-```cpl
-{
-    start() {
-        i32 a = 10;
-        lis; : <- Will interrupt execution here :
-        exit 0;
-    }
-}
-```
-
 Note! Disable optimizations before a code debugging given the preservation the code from a transformation.
 Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
-
-# Static analysis
-Cordell Compiler implements the simple static analysis tool for the basic code-checking before compilation. It supports next list of errors and warnings:
-- Read-only variable update 
-```cpl
-ro i8 a = 10;
-a = 11; : <= RO_ASSIGN! :
-```
-
-- Invalid place for function return
-Example:
-```cpl
-function foo() => ptr u64 { :...: }
-i8 a = foo(); : <= INVALID_RETURN_TYPE! :
-```
-
-- Declaration without initialization
-- Illegal declaration
-Example:
-```cpl
-i8 a = 123321; : <= ILLEGAL_DECLARATION! 123321 is a 32-bit value :
-```
-
-- Function without return
-- Start block without exit
-- Function arguments lack
-- Function argument type mismatch
-- Unused function return value
-- Illegal array access
-Example:
-```cpl
-arr a[10, i32];
-a[11] = 0; : <= ILLEGAL_ARRAY_ACCESS! :
-```
-
-- Invalid function name
-Example:
-```cpl
-function _test() { :...: } : <= INVALID_FUNCTION_NAME! :
-```
-
-- Inefficient `while`
-Example:
-```cpl
-while 1; { : ... : : <= INEFFICIENT_WHILE! :
-}
-: Use the loop { } instead! :
-```
 
 # Examples
 ## strlen
