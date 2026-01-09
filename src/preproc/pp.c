@@ -237,7 +237,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
                 done
             ) {
                 char lder[512] = { 0 };
-                snprintf(lder, sizeof(lder), "#line %i \"%s\"\n", done->l, done->n);
+                snprintf(lder, sizeof(lder), "\n#line %i \"%s\"\n", done->l, done->n);
                 _lazy_fputs(lder, ppctx.out);
             }
 
@@ -290,7 +290,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
                     inf
                 ) {
                     char lder[512] = { 0 };
-                    snprintf(lder, sizeof(lder), "#line %i \"%s\"\n", inf->l, inf->n);
+                    snprintf(lder, sizeof(lder), "\n#line %i \"%s\"\n", inf->l, inf->n);
                     _lazy_fputs(lder, ppctx.out);
                 }
             }

@@ -11,7 +11,7 @@ int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx) {
 }
 
 int FNTB_get_info(string_t* fname, func_info_t* out, functab_ctx_t* ctx) {
-    print_log("FNTB_get_info(name=%s)", fname);
+    print_log("FNTB_get_info(name=%s)", fname ? fname->body : "(null)");
     map_foreach (func_info_t* fi, &ctx->functb) {
         if (fi->name->equals(fi->name, fname)) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
@@ -36,8 +36,8 @@ static func_info_t* _create_func_info(string_t* name, int global, int external, 
     return fn;
 }
 
-int FNTB_add_info(string_t* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
-    print_log("FNTB_add_info(name=%s, global=%i, ext=%i, entry=%i)", name->body, global, entry, external);
+long FNTB_add_info(string_t* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
+    print_log("FNTB_add_info(name=%s, global=%i, ext=%i, entry=%i)", name ? name->body : "(null)", global, entry, external);
     
     func_info_t out;
     if (FNTB_get_info(name, &out, ctx)) return out.id;

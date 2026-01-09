@@ -53,8 +53,8 @@ static const char* _fmt_tkn_op(token_type_t t) {
 }
 
 static char* _format_location(token_fpos_t* p) {
-    static char buff[128] = { 0 };
-    snprintf(buff, sizeof(buff), "[%li:%li]", p->line, p->column);
+    static char buff[256] = { 0 };
+    snprintf(buff, sizeof(buff), "[%s:%li:%li]", p->file->body, p->line, p->column);
     return buff;
 }
 
@@ -137,7 +137,8 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
                                                   /*         that a arg has a parent,       */
                                                   /*         and this parent has a function */
                                                   /*         as a parent                    */
-            nd->p->p->t->t_type == START_TOKEN
+            nd->p->t->t_type == START_TOKEN ||
+            nd->p->p->t->t_type == FUNC_PROT_TOKEN
         )
     ) return 1;
 
@@ -376,8 +377,9 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
         ; provided_arg && expected_arg && expected_arg->t->t_type != SCOPE_TOKEN; 
         provided_arg = provided_arg->siblings.n, expected_arg = expected_arg->siblings.n
     ) {
-        _check_assign_types("Illegal argument", expected_arg, provided_arg);
-        REBUILD_CODE(nd, provided_arg);
+        if (!_check_assign_types("Illegal argument", expected_arg, provided_arg)) {
+            REBUILD_CODE(nd, provided_arg);
+        }
     }
 
     return 1;
@@ -411,7 +413,10 @@ int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
 
 int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
     ast_node_t* index = nd->c;
-    if (!index || index->t->t_type != UNKNOWN_NUMERIC_TOKEN) return 1;
+    if (
+        !index || 
+        index->t->t_type != UNKNOWN_NUMERIC_TOKEN
+    ) return 1;
 
     array_info_t ai;
     if (!ARTB_get_info(nd->sinfo.v_id, &ai, &smt->a)) return 0;

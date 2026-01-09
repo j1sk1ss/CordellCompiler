@@ -264,6 +264,7 @@ i32 b = a_ptr[0];
 
 # Binary and unary operations
 Obviously this language supports the certain set of binary operations from C-language, Rust-language, Python, etc.
+
 | Operation              | Description                                 | Example    |
 |------------------------|---------------------------------------------|------------|
 | `+`                    | Addition                                    | `X` + `Y`  |
@@ -309,7 +310,7 @@ while <condition>; {
 ```
 
 ## loop statement
-In a difference with the `while` statement, the `loop` statement allows to build efficient infinity loops for a purpose. It is a way efficient than a `while 1;` statement given the empty 'condition' body. </br>
+In difference with the `while` statement, the `loop` statement allows to build efficient infinity loops for a purpose. It is a way efficient than a `while 1;` statement given the empty 'condition' body. </br>
 **Importand Note:** You *must* insert the `break` keyword somewhere in a body of this statement. Otherwise it will became an infinity loop.
 ```cpl
 loop {

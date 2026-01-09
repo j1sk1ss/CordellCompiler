@@ -88,7 +88,7 @@ long VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
 }
 
 long VRTB_add_info(string_t* name, token_type_t type, short s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
-    print_log("VRTB_add_info(name=%s, type=%i, s_id=%i)", name, type, s_id);
+    print_log("VRTB_add_info(name=%s, type=%i, s_id=%i)", name ? name->body : "(null)", type, s_id);
     variable_info_t* nnd = _create_variable_info(name, type, s_id, flags);
     if (!nnd) return 0;
 
