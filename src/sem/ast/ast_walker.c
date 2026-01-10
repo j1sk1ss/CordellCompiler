@@ -28,7 +28,7 @@ static int _unload_sem_handler(ast_sem_handler_t* h) {
     return mm_free(h);
 }
 
-int ASTWLK_register_visitor(unsigned int trg, int (*perform)(ast_node_t*, sym_table_t*), ast_walker_t* ctx, attention_level_t l) {
+int ASTWLK_register_visitor(unsigned int trg, int (*perform)(AST_VISITOR_ARGS), ast_walker_t* ctx, attention_level_t l) {
     ast_visitor_t* v = ASTVIS_create_visitor(trg, perform);
     if (!v) return 0;
     ast_sem_handler_t* w = _create_sem_handler(v, l);
@@ -41,6 +41,7 @@ int ASTWLK_register_visitor(unsigned int trg, int (*perform)(ast_node_t*, sym_ta
 }
 
 int ASTWLK_init_ctx(ast_walker_t* ctx, sym_table_t* smt) {
+    str_memset(ctx, 0, sizeof(ast_walker_t));
     ctx->smt = smt;
     return list_init(&ctx->visitors);
 }
@@ -54,13 +55,18 @@ Returns a node type.
 */
 static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
     switch (tkn) {
+        case BREAK_TOKEN:  return BREAK_NODE;
+        case DEFAULT_TOKEN:
+        case CASE_TOKEN:   return CASE_NODE;
+        case SWITCH_TOKEN: return SWITCH_NODE;
         case RETURN_TOKEN:
-        case EXIT_TOKEN:  return TERM_NODE;
-        case IF_TOKEN:    return IF_NODE;
-        case WHILE_TOKEN: return WHILE_NODE;
-        case START_TOKEN: return START_NODE;
-        case CALL_TOKEN:  return CALL_NODE;
-        case FUNC_TOKEN:  return FUNCTION_NODE;
+        case EXIT_TOKEN:   return TERM_NODE;
+        case IF_TOKEN:     return IF_NODE;
+        case LOOP_TOKEN:   return LOOP_NODE;
+        case WHILE_TOKEN:  return WHILE_NODE;
+        case START_TOKEN:  return START_NODE;
+        case CALL_TOKEN:   return CALL_NODE;
+        case FUNC_TOKEN:   return FUNCTION_NODE;
         
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: return DEF_ARRAY_NODE;
@@ -115,6 +121,30 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
 }
 
 /*
+Update the walker flag.
+Params:
+    - `nd` - Current node under consideration.
+    - `f` - Flags to update.
+    - `s` - Flags value.
+
+Returns 1 if succeeds.
+*/
+static int _update_flags(ast_node_t* nd, walker_flags_t* f, int s) {
+    if (nd->t) switch (_get_ast_node_type(nd->t->t_type)) {
+        case IF_NODE:       f->in_if = MAX(f->in_if + s, 0);         break;
+        case LOOP_NODE:     f->in_loop = MAX(f->in_loop + s, 0);     break;
+        case WHILE_NODE:    f->in_while = MAX(f->in_while + s, 0);   break;
+        case FUNCTION_NODE: f->in_func = MAX(f->in_func + s, 0);     break;
+        case START_NODE:    f->in_start = MAX(f->in_start + s, 0);   break;
+        case SWITCH_NODE:   f->in_switch = MAX(f->in_switch + s, 0); break;
+        case CASE_NODE:     f->in_case = MAX(f->in_case + s, 0);     break;
+        default: break;
+    }
+
+    return 1;
+}
+
+/*
 Perform a walk thru the AST. This is a DFS approach, that allows us
 to use a analytic symtables for the complex static analysis.
 Params:
@@ -125,18 +155,25 @@ Returns 1 if succeeds. Otherwise returns 0 - Semantic block of a compilation.
 */
 static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
     if (!nd) return 0;
-    _ast_walk(nd->c, ctx);
-    _ast_walk(nd->siblings.n, ctx);
+
+    /* Parent flags setup */
+    _update_flags(nd, &ctx->flags, 1);
+    if (_ast_walk(nd->c, ctx) == -1) return 0;
+
+    /* Parent flags update */
+    _update_flags(nd, &ctx->flags, -1);
+    if (_ast_walk(nd->siblings.n, ctx) == -1) return 0;
+
     foreach (ast_sem_handler_t* v, &ctx->visitors) {
         if (
             nd->t && 
             _get_ast_node_type(nd->t->t_type) & v->w->trg
         ) {
-            int res = v->w->perform(nd, ctx->smt);
+            int res = v->w->perform(nd, &ctx->flags, ctx->smt);
             if (
                 !res && 
                 v->l == ATTENTION_BLOCK_LEVEL
-            ) return 0;
+            ) return -1;
         }
     }
 

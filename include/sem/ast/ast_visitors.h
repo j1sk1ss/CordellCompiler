@@ -4,13 +4,11 @@
 #include <limits.h>
 #include <std/str.h>
 #include <prep/token_types.h>
+#include <sem/ast/ast_data.h>
 #include <sem/misc/warns.h>
 #include <sem/misc/restore.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
-
-#define AST_VISITOR_ARGS     ast_node_t* nd, sym_table_t* smt
-#define AST_VISITOR_ARGS_USE (void*)nd; (void*)smt;
 
 /*
 ASTWLKR_ro_assign checks illegal read-only assign.
@@ -291,5 +289,43 @@ Params:
 Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_wrong_exit(AST_VISITOR_ARGS);
+
+/*
+This checker checks for a 'break' statement usage in a wrong context.
+The 'wrong context' means a usage out from the 'while's, 'switch's, 'loop's, etc.
+For instance:
+```cpl
+break; : <= This is the error :
+```
+
+But the code below is a correct code:
+```cpl
+loop {
+    break;
+}
+```
+
+Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+Return 1 if node is correct, otherwise this function will return 0.
+*/
+int ASTWLKR_break_without_statement(AST_VISITOR_ARGS);
+
+/*
+This checker checks if there is a function with i0, that is assigned
+or used anywhere.
+For instance:
+```cpl
+function ukraine() => i0;
+i32 a = ukraine();
+```
+
+Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+Return 1 if node is correct, otherwise this function will return 0.
+*/
+int ASTWLKR_noret_assign(AST_VISITOR_ARGS);
 
 #endif
