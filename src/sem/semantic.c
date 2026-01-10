@@ -11,6 +11,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_valid_function_name, &walker, ATTENTION_LOW_LEVEL);
     ASTWLK_register_visitor(IF_NODE, ASTWLKR_duplicated_branches, &walker, ATTENTION_LOW_LEVEL);
     ASTWLK_register_visitor(WHILE_NODE, ASTWLKR_inefficient_while, &walker, ATTENTION_LOW_LEVEL);
+    ASTWLK_register_visitor(EXPRESSION_NODE, ASTWLKR_unused_expression, &walker, ATTENTION_LOW_LEVEL);
 
     /* Medium Level */
     ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_illegal_declaration, &walker, ATTENTION_MEDIUM_LEVEL);

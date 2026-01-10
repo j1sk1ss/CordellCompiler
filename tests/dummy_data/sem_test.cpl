@@ -33,7 +33,9 @@
         u8 asd = barBar();
         baz(1);
         fang(10);
+        
         break;
+        a + c;
 
         arr array[10, i32];
         array[-1] = 0;

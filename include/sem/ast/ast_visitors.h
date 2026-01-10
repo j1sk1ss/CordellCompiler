@@ -328,4 +328,21 @@ Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_noret_assign(AST_VISITOR_ARGS);
 
+/*
+This checker checks if there is an expression that returns value that
+never assigns.
+For example:
+```cpl
+i32 a;
+i32 b;
+a + b;
+```
+
+Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+Return 1 if node is correct, otherwise this function will return 0.
+*/
+int ASTWLKR_unused_expression(AST_VISITOR_ARGS);
+
 #endif

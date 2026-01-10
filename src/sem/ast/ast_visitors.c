@@ -444,6 +444,8 @@ Params:
     - `src` - The source value.
     - `found` - Output node that contans additional info about
                 the consumer.
+                Note: If it's value below or equals zero - Consumer
+                      isn't found
 
 Returns 1 if it has found the consumer. Otherwise will return 0.
 */
@@ -881,6 +883,20 @@ int ASTWLKR_noret_assign(AST_VISITOR_ARGS) {
         }
 
         return 1;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_unused_expression(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+
+    int consumed = 0;
+    _find_consumer(nd, &consumed);
+    if (consumed <= 0) {
+        SEMANTIC_WARNING(" %s The expression returns value that never assigns!", _format_location(&nd->t->finfo));
+        REBUILD_CODE_1TRG(nd->p, nd);
+        return 0;
     }
 
     return 1;

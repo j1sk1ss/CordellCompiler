@@ -71,6 +71,19 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: return DEF_ARRAY_NODE;
 
+        case CHAR_VALUE_TOKEN:
+        case STRING_VALUE_TOKEN:
+        case I8_VARIABLE_TOKEN:
+        case U8_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN:
+        case U16_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN:
+        case U32_VARIABLE_TOKEN:
+        case F32_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN:
+        case U64_VARIABLE_TOKEN:
+        case F64_VARIABLE_TOKEN: return VARIABLE_NODE;
+
         case I0_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
         case F32_TYPE_TOKEN:

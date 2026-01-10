@@ -16,7 +16,8 @@ typedef enum {
     SWITCH_NODE      = 1 << 11,
     CASE_NODE        = 1 << 12,
     BREAK_NODE       = 1 << 13,
-    UNKNOWN_NODE     = 1 << 14,
+    VARIABLE_NODE    = 1 << 14,
+    UNKNOWN_NODE     = 1 << 15,
 } ast_node_type_t;
 
 typedef enum {
