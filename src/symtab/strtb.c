@@ -36,7 +36,7 @@ int STTB_get_info(string_t* value, str_info_t* info, strtb_ctx_t* ctx) {
     return 0;
 }
 
-int STTB_add_info(string_t* value, str_type_t t, strtb_ctx_t* ctx) {
+long STTB_add_info(string_t* value, str_type_t t, strtb_ctx_t* ctx) {
     print_log("STTB_add_info(value=%s, t=%i)", value->body, t);
     str_info_t* nnd = (str_info_t*)mm_malloc(sizeof(str_info_t));
     if (!nnd) return -1;

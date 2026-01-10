@@ -158,6 +158,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
 
         char ch = buffer[i];
         char_type_t ct = _get_char_type(ch);
+        finfo->column++;
 
         if (ct == CHAR_PP) {
             ctx->is_pp = 1;

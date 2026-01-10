@@ -7,6 +7,16 @@
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 
+#define HIRGEN_ERROR(nd, msg, ...) \
+    fprintf( \
+        stderr,                                  \
+        "[%s:%li:%li] " msg "\n",                \
+        nd ? nd->t->finfo.file->body : "(null)", \
+        nd ? nd->t->finfo.line : 0,              \
+        nd ? nd->t->finfo.column : 0,            \
+        ##__VA_ARGS__                            \
+    )
+
 /*
 Generate convertion from the one type to another. 
 Note: It types are similar, it doesn't perform the convertation proccess.

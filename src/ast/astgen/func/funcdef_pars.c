@@ -62,13 +62,13 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         forward_token(it, 1);
     }
 
+    AST_add_node(node, args_node);
     name_node->sinfo.v_id = FNTB_add_info(
         name_node->t->body, name_node->t->flags.glob, name_node->t->flags.ext, 0,
         args_node, name_node->c, &smt->f
     );
 
     if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
-        AST_add_node(node, args_node);
         node->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);
         return node;
@@ -78,14 +78,11 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     if (!body_node) {
         PARSE_ERROR("Error during the function's body parsing!");
         AST_unload(node);
-        AST_unload(args_node);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     AST_add_node(args_node, body_node);
-    AST_add_node(node, args_node);
-
     stack_pop(&ctx->scopes.stack, NULL);
     return node;
 }

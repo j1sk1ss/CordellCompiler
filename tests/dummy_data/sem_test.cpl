@@ -4,11 +4,11 @@
 
     function barBar() => i0 { }
 
-    function BazBaz() { } 
+    function BazBaz() { return 1; } 
 
     function baz(i32 a) => i0 {
-        if a == 0; { return; }
-        else { }
+        if a == 0; { return 1; }
+        else { return 1; }
 
         if a == 0; { return 1; }
         else { }
@@ -30,8 +30,10 @@
 
         i8 a = foo();
         i8 c = 123123;
-        barBar();
+        u8 asd = barBar();
         baz(1);
+        fang(10);
+        break;
 
         arr array[10, i32];
         array[-1] = 0;

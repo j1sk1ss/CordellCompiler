@@ -31,6 +31,8 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         return NULL;
     }
 
+    AST_add_node(node, cases_scope);
+
     forward_token(it, 1);
     if (CURRENT_TOKEN && CURRENT_TOKEN->t_type != OPEN_BLOCK_TOKEN) {
         PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during a parse of the '%s' statement!", SWITCH_COMMAND);
@@ -45,7 +47,6 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         if (!case_node) {
             PARSE_ERROR("Can't create a base for the case in the '%s' statement!", SWITCH_COMMAND);
             AST_unload(node);
-            AST_unload(cases_scope);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
@@ -61,7 +62,6 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         if (!case_body) {
             PARSE_ERROR("Error during the parsing process for the case!");
             AST_unload(case_node);
-            AST_unload(cases_scope);
             AST_unload(node);
             RESTORE_TOKEN_POINT;
             return NULL;
@@ -71,6 +71,5 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         AST_add_node(cases_scope, case_node);
     }
 
-    AST_add_node(node, cases_scope);
     return node;
 }

@@ -9,6 +9,7 @@ typedef enum {
     STR_RAW_ASM,     // ASM line from the inline assembly 
     STR_ARRAY_VALUE, // non RO-string
     STR_INDEPENDENT, // RO-string
+    STR_COMMENT,     // Unchanged string for a debug
 } str_type_t;
 
 typedef struct {
@@ -23,7 +24,7 @@ typedef struct {
 } strtb_ctx_t;
 
 int STTB_update_info(long id, string_t* value, str_type_t t, strtb_ctx_t* ctx);
-int STTB_add_info(string_t* value, str_type_t t, strtb_ctx_t* ctx);
+long STTB_add_info(string_t* value, str_type_t t, strtb_ctx_t* ctx);
 int STTB_get_info_id(long id, str_info_t* info, strtb_ctx_t* ctx);
 int STTB_get_info(string_t* value, str_info_t* info, strtb_ctx_t* ctx);
 int STTB_unload(strtb_ctx_t* ctx);

@@ -80,7 +80,7 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
 
 #define DRAGONBOOK_CFG_LEADER /* Note: Don't undef this flag given the current compiler's pipeline. */
                               /*       If you want to change the leaders' creation method           */
-                              /*       be aware the possible future issues.                         */
+                              /*       be aware of the possible future issues.                      */
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     hir_block_t* hh = HIR_get_next(f->hmap.entry, f->hmap.exit, 0);
     while (hh) {

@@ -202,11 +202,12 @@ literal         = integer_literal | string_literal | char_literal ;
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
-        stderr,                                          \
-        "[%li:%li] " msg "\n",                           \
-        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.line : 0,   \
-        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.column : 0, \
-        ##__VA_ARGS__                                    \
+        stderr,                                                     \
+        "[%s:%li:%li] " msg "\n",                                   \
+        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.file->body : "(null)", \
+        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.line : 0,              \
+        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.column : 0,            \
+        ##__VA_ARGS__                                               \
     )
 
 /*
@@ -547,12 +548,11 @@ lis <msg>;
 
 Params:
     - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
     - `smt` - Symtable pointer.
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_breakpoint(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_breakpoint(list_iter_t* it, sym_table_t* smt);
 
 /*
 Parse .cpl break block. Should be invoked on a break token.

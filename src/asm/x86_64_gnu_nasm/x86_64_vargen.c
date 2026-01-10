@@ -30,8 +30,19 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
         }
 
         case LIR_STRING: {
-            snprintf(curr_buffer, sizeof(_buffers[0]), "[rel _str_%ld_]", v->storage.str.sid);
-            return curr_buffer;
+            str_info_t si;
+            if (STTB_get_info_id(v->storage.str.sid, &si, &smt->s)) {
+                switch (si.t) {
+                    case STR_INDEPENDENT: {
+                        snprintf(curr_buffer, sizeof(_buffers[0]), "[rel _str_%ld_]", v->storage.str.sid); 
+                        return curr_buffer;
+                    }
+                    case STR_COMMENT: return si.value->body;
+                    default: break;
+                }
+            }
+
+            break;
         }
 
         case LIR_FNAME: {
