@@ -475,7 +475,11 @@ int RST_restore_code(FILE* fd, ast_node_t* nd, set_t* u, int indent) {
         .sp_n   = 0
     };
     
-    if (_restore_code_lines(&x, nd, u, indent) < 0) fprintf(fd, ";");
+    if (_restore_code_lines(&x, nd, u, indent) < 0) {
+        fprintf(fd, ";");
+        if (!set_size(u)) fprintf(fd, "\n");
+    }
+
     _rst_flush_markers(&x);
     mm_free(x.spans);
     return 1;
