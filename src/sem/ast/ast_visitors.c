@@ -748,6 +748,8 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
                 REBUILD_CODE_1TRG(nd, nd->c);
                 return 0;
             }
+
+            break;
         }
 
         default: {

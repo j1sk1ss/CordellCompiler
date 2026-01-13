@@ -41,6 +41,6 @@ typedef struct {
 } walker_flags_t;
 
 #define AST_VISITOR_ARGS     ast_node_t* nd, walker_flags_t* flags, sym_table_t* smt
-#define AST_VISITOR_ARGS_USE (void*)nd; (void*)flags; (void*)smt;
+#define AST_VISITOR_ARGS_USE (void)nd; (void)flags; (void)smt;
 
 #endif
