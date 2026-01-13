@@ -1,15 +1,9 @@
 {
-    function bar(i32 a = 10) => i32 { return 0; }
-    function foo(i32 a = bar()) => i0 { }
-
     start(i64 argc, ptr u64 argv) {
-        dref foo() = 10;    
-        i8 a = dref argc as ptr u8;
-        i8 a1 = ref argc;
-        i8 b = not (argc + not argv);
-        lis "test";
-        dref a = 10;
-        dref (a + 10) = 10;
+        arr array[10, i32] = { 0 };
+        array = 10 + 11 + (11 - 1);
+        array[0] = 10 + 11 + (11 - 1);
+        array[0] = array[0] + array[0] - (array[0] + array[0]);
         exit 0;
     }
 }

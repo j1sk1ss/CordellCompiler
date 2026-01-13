@@ -13,7 +13,7 @@ Return 1 if operation succeed. Otherwise it will return 0.
 static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* colors, sym_table_t* smt) {
     variable_info_t vi;
     if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
-    if (vi.glob) {
+    if (vi.vfs.glob) {
         s->t = LIR_GLVARIABLE;
         return 1;
     }
@@ -59,7 +59,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                         variable_info_t vi;
                         if (
                             !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
-                            vi.glob || vi.vmi.offset == -1
+                            vi.vfs.glob || vi.vmi.offset == -1
                         ) {
                             lh->unused = 1;
                             break;
@@ -71,7 +71,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                     case LIR_STRDECL: {
                         variable_info_t vi;
                         if (!VRTB_get_info_id(lh->farg->storage.var.v_id, &vi, &smt->v)) break;
-                        if (vi.glob) break;
+                        if (vi.vfs.glob) break;
 
                         str_info_t si;
                         array_info_t ai;
@@ -97,7 +97,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                     case LIR_ARRDECL: {
                         variable_info_t vi;
                         if (!VRTB_get_info_id(lh->farg->storage.var.v_id, &vi, &smt->v)) break;
-                        if (vi.glob) break;
+                        if (vi.vfs.glob) break;
 
                         array_info_t ai;
                         if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {

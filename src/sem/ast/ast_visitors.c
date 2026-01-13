@@ -825,7 +825,7 @@ int ASTWLKR_wrong_exit(AST_VISITOR_ARGS) {
     func_info_t fi;
     if (
         !FNTB_get_info_id(fid, &fi, &smt->f) || 
-        !fi.entry
+        !fi.flags.entry
     ) return 0;
 
     int f = 0, t = 0;

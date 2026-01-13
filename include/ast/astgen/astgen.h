@@ -198,8 +198,6 @@ literal         = integer_literal | string_literal | char_literal ;
 
 /* Support macro for getting the current token from the iterator. */
 #define CURRENT_TOKEN ((token_t*)list_iter_current(it))
-#define NEXT_TOKEN    ((token_t*)list_iter_next_top(it))
-
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
         stderr,                                                     \

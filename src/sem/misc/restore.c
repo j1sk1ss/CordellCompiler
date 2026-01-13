@@ -264,17 +264,38 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
 
     int complex = -1;
     if (TKN_isdecl(nd->t)) {
-        _rst_ln_printf(
-            x, line, "%s%s%s %s",
-            nd->t->flags.glob ? "glob" : "",
-            nd->t->flags.ro ? "ro" : "",
-            RST_restore_type(nd->t),
-            nd->c->t->body->body
-        );
+        if (nd->t->t_type != ARRAY_TYPE_TOKEN) {
+            _rst_ln_printf(
+                x, line, "%s%s%s %s",
+                nd->t->flags.glob ? "glob " : "",
+                nd->t->flags.ro ? "ro " : "",
+                RST_restore_type(nd->t),
+                nd->c->t->body->body
+            );
 
-        if (nd->c->siblings.n) {
-            _rst_ln_puts(x, line, " = ");
-            _restore_code_lines(x, nd->c->siblings.n, u, indent);
+            if (nd->c->siblings.n) {
+                _rst_ln_puts(x, line, " = ");
+                _restore_code_lines(x, nd->c->siblings.n, u, indent);
+            }
+        }
+        else {
+            _rst_ln_printf(
+                x, line, "%s%sarr %s[%s, %s]",
+                nd->t->flags.glob ? "glob " : "",
+                nd->t->flags.ro ? "ro " : "",
+                nd->c->t->body->body,
+                nd->c->siblings.n->t->body->body,
+                nd->c->siblings.n->siblings.n->t->body->body
+            );
+
+            if (nd->c->siblings.n->siblings.n->siblings.n) {
+                _rst_ln_puts(x, line, " = { ");
+                for (ast_node_t* arg = nd->c->siblings.n->siblings.n->siblings.n; arg; arg = arg->siblings.n) {
+                    _restore_code_lines(x, arg, u, indent);
+                    if (arg->siblings.n) _rst_ln_puts(x, line, ", ");
+                }
+                _rst_ln_puts(x, line, " }");
+            }
         }
     }
     else if (TKN_isoperand(nd->t)) {

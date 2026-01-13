@@ -54,7 +54,7 @@ void print_symtab(sym_table_t* smt) {
     map_foreach (func_info_t* fi, &smt->f.functb) {
         printf(
             "%sid: %li, name: %s, ext=%i, glob=%i, used=%i\n", 
-            fi->entry ? "[ENTRY] " : "", fi->id, fi->name->body, fi->external, fi->global, fi->used
+            fi->flags.entry ? "[ENTRY] " : "", fi->id, fi->name->body, fi->flags.external, fi->flags.global, fi->flags.used
         );
     }
 

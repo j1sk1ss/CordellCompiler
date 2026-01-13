@@ -1,6 +1,6 @@
 #include <symtab/functb.h>
 
-int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx) {
+int FNTB_get_info_id(symbol_id_t id, func_info_t* out, functab_ctx_t* ctx) {
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
         if (out) str_memcpy(out, fi, sizeof(func_info_t));
@@ -28,15 +28,15 @@ static func_info_t* _create_func_info(string_t* name, int global, int external, 
     if (!fn) return NULL;
     str_memset(fn, 0, sizeof(func_info_t));
     if (name) fn->name = name->copy(name);
-    fn->args     = args;
-    fn->rtype    = rtype;
-    fn->global   = global;
-    fn->external = external;
-    fn->entry    = entry;
+    fn->args           = args;
+    fn->rtype          = rtype;
+    fn->flags.global   = global;
+    fn->flags.external = external;
+    fn->flags.entry    = entry;
     return fn;
 }
 
-long FNTB_add_info(string_t* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
+symbol_id_t FNTB_add_info(string_t* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
     print_log("FNTB_add_info(name=%s, global=%i, ext=%i, entry=%i)", name ? name->body : "(null)", global, entry, external);
     
     func_info_t out;
@@ -50,12 +50,12 @@ long FNTB_add_info(string_t* name, int global, int external, int entry, ast_node
     return nnd->id;
 }
 
-int FNTB_update_info(long id, int used, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
+int FNTB_update_info(symbol_id_t id, int used, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
     print_log("FNTB_update_info(id=%llu, used=%i, entry=%i)", id, used, entry);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
-        if (used >= 0)  fi->used  = used;
-        if (entry >= 0) fi->entry = entry;
+        if (used >= 0)  fi->flags.used  = used;
+        if (entry >= 0) fi->flags.entry = entry;
         if (args)       fi->args  = args;
         if (rtype)      fi->rtype = rtype;
         return 1;

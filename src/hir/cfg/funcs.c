@@ -49,7 +49,7 @@ static int _add_funcblock(hir_block_t* entry, hir_block_t* end, cfg_ctx_t* ctx, 
     if (!b) return 0;
     b->id     = ctx->cid++;
     b->fid    = entry->farg->storage.str.s_id;
-    b->fentry = fi.entry;
+    b->fentry = fi.flags.entry;
     return list_add(&ctx->funcs, b);
 }
 

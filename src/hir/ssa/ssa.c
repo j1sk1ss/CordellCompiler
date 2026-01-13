@@ -275,7 +275,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     /*                 We can do it considering the mechanism  */
     /*                 of tmp variable generation (see hirgen) */
     map_foreach (variable_info_t* vh, &smt->v.vartb) {
-        if (vh->ro || TKN_istmp_type(vh->type)) continue;
+        if (vh->vfs.ro || TKN_istmp_type(vh->type)) continue;
         _add_varver(&ctx->vers, vh->v_id, vh->v_id);
     }
 

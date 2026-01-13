@@ -82,7 +82,7 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
     if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {
         forward_token(it, 1);
         if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == OPEN_BLOCK_TOKEN) {
-            int act_size = 0;
+            long long act_size = 0;
             forward_token(it, 1);
             while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BLOCK_TOKEN) {
                 if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
