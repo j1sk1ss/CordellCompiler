@@ -75,17 +75,18 @@ typedef struct {
 } rst_span_t;
 
 typedef struct {
-    FILE* fd;               /* Output location      */
-    int   width;            /* Max line number size */
-    int   at_line_start;    /* Start row number     */
-    int   ul_active;        /* Underline flag       */
+    FILE*       fd;               /* Output location      */
+    int         width;            /* Max line number size */
+    int         at_line_start;    /* Start row number     */
+    int         ul_active;        /* Underline flag       */
 
-    int   col;
-    int   hl_depth;
-    int   hl_start;
+    int         col;
+    int         hl_depth;
+    int         hl_start;
 
     rst_span_t* spans;
-    int sp_n, sp_cap;
+    int         sp_n;
+    int         sp_cap;
 } rst_ln_ctx_t;
 
 static int _rst_span_push(rst_ln_ctx_t* x, int s, int e) {
@@ -305,8 +306,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     }
     else if (
         TKN_isnumeric(nd->t)  ||
-        TKN_isvariable(nd->t) ||
-        nd->t->t_type == STRING_VALUE_TOKEN
+        TKN_isvariable(nd->t)
     ) {
         _rst_ln_puts(x, line, nd->t->body->body);
         if (TKN_isptr(nd->t) && nd->c) {
@@ -314,6 +314,13 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             _restore_code_lines(x, nd->c, u, indent);
             _rst_ln_puts(x, line, "]");
         }
+    }
+    else if (
+        nd->t->t_type == STRING_VALUE_TOKEN
+    ) {
+        _rst_ln_puts(x, line, "\"");
+        _rst_ln_puts(x, line, nd->t->body->body);
+        _rst_ln_puts(x, line, "\"");
     }
     
     switch (nd->t->t_type) {
@@ -394,14 +401,14 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             break;
         }
 
-        case REF_TYPE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, REF_COMMAND " "); break;
-        case DREF_TYPE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, DREF_COMMAND " "); break;
-        case NEGATIVE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, NEGATIVE_COMMAND " "); break;
-        case LOOP_TOKEN:       _simple_restore_lines(x, nd->c, u, indent, LOOP_COMMAND); break;
-        case EXIT_TOKEN:       _simple_restore_lines(x, nd->c, u, indent, EXIT_COMMAND " "); break;
-        case RETURN_TOKEN:     _simple_restore_lines(x, nd->c, u, indent, RETURN_COMMAND " "); break;
-        case BREAK_TOKEN:      _simple_restore_lines(x, NULL, u, indent, BREAK_COMMAND " "); break;
-        case BREAKPOINT_TOKEN: _simple_restore_lines(x, NULL, u, indent, BREAKPOINT_COMMAND " "); break;
+        case REF_TYPE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, REF_COMMAND " ");         break;
+        case DREF_TYPE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, DREF_COMMAND " ");        break;
+        case NEGATIVE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, NEGATIVE_COMMAND " ");    break;
+        case LOOP_TOKEN:       _simple_restore_lines(x, nd->c, u, indent, LOOP_COMMAND);            break;
+        case EXIT_TOKEN:       _simple_restore_lines(x, nd->c, u, indent, EXIT_COMMAND " ");        break;
+        case RETURN_TOKEN:     _simple_restore_lines(x, nd->c, u, indent, RETURN_COMMAND " ");      break;
+        case BREAK_TOKEN:      _simple_restore_lines(x, NULL, u, indent, BREAK_COMMAND " ");        break;
+        case BREAKPOINT_TOKEN: _simple_restore_lines(x, nd->c, u, indent, BREAKPOINT_COMMAND " ");  break;
 
         case CONVERT_TOKEN: {
             if (nd->c && nd->c->siblings.n) _restore_code_lines(x, nd->c->siblings.n, u, indent);

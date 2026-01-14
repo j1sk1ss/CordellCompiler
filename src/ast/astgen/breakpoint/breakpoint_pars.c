@@ -22,7 +22,7 @@ ast_node_t* cpl_parse_breakpoint(list_iter_t* it, sym_table_t* smt) {
             return NULL;
         }
 
-        if (!(info->sinfo.v_id = STTB_add_info(info->t->body, STR_COMMENT, &smt->s))) {
+        if ((info->sinfo.v_id = STTB_add_info(info->t->body, STR_COMMENT, &smt->s)) < 0) {
             PARSE_ERROR("Can't register the '%s' for the '%s' statement!", info->t->body->body, BREAKPOINT_COMMAND);
             AST_unload(node);
             RESTORE_TOKEN_POINT;

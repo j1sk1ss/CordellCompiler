@@ -30,7 +30,7 @@ static inline int _get_ast_type_size(token_type_t t) {
 static inline int _get_variable_size(long vid, sym_table_t* smt) {
     variable_info_t vi;
     if (VRTB_get_info_id(vid, &vi, &smt->v)) {
-        if (vi.ptr) return DEFAULT_TYPE_SIZE;
+        if (vi.vfs.ptr) return DEFAULT_TYPE_SIZE;
         return _get_ast_type_size(vi.type);
     }
 

@@ -4,8 +4,15 @@ ast_node_t* AST_create_node(token_t* tkn) {
     ast_node_t* node = mm_malloc(sizeof(ast_node_t));
     if (!node) return NULL;
     str_memset(node, 0, sizeof(ast_node_t));
-    node->t = tkn;
+    node->t          = tkn;
     node->sinfo.v_id = -1;
+    return node;
+}
+
+ast_node_t* AST_create_node_bt(token_t* tkn) {
+    ast_node_t* node = AST_create_node(tkn);
+    if (!node) return NULL;
+    node->bt = tkn;
     return node;
 }
 

@@ -22,7 +22,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     AST_add_node(node, name_node);
 
     forward_token(it, 1);
-    ast_node_t* args_node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo));
+    ast_node_t* args_node = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (!args_node) {
         PARSE_ERROR("Can't create a base for the function's arguments!");
         AST_unload(node);
@@ -30,7 +30,6 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         return NULL;
     }
 
-    args_node->bt = args_node->t;
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
     args_node->sinfo.s_id = ctx->scopes.s_id;
 

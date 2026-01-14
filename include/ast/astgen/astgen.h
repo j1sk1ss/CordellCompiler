@@ -197,7 +197,9 @@ literal         = integer_literal | string_literal | char_literal ;
 #define RESTORE_TOKEN_POINT it->curr = __dump_tkn
 
 /* Support macro for getting the current token from the iterator. */
-#define CURRENT_TOKEN ((token_t*)list_iter_current(it))
+#define CURRENT_TOKEN      ((token_t*)list_iter_current(it))
+#define CREATE_SCOPE_TOKEN TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
         stderr,                                                     \

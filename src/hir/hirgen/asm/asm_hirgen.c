@@ -5,7 +5,7 @@ int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!args) return 0;
 
     ast_node_t* h = node->c;
-    for (; h->t; h = h->siblings.n) {
+    for (; h->t && h->t->t_type != SCOPE_TOKEN; h = h->siblings.n) {
         hir_subject_t* el = HIR_generate_elem(h, ctx, smt);
         if (!el) {
             HIR_unload_subject(args);

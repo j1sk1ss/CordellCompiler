@@ -134,7 +134,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
                 break;
             }
 
-            default: fprintf(output, "; op=%d\n", curr->op); break;
+            default: break;
         }
 
         curr = curr->next;

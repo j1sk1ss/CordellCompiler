@@ -390,7 +390,7 @@ Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
 {
     start() {
         i32 a = 10;
-        lis; : <- Will interrupt execution here :
+        lis "Debug stop"; : <- Will interrupt execution here :
         exit 0;
     }
 }
@@ -477,6 +477,7 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
 }
 : Use the loop { } instead! :
 ```
+- etc.
 
 CPL uses an inbuild static analyzator for the code checking before the compilation. For example, such an analyzator helps programmer to work with the code like below:
 ```cpl

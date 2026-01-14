@@ -18,8 +18,8 @@
     )
 
 /*
-Generate convertion from the one type to another. 
-Note: It types are similar, it doesn't perform the convertation proccess.
+Generate implict convertion from the one type to another. 
+Note: If the types are similar, it doesn't perform the convertation proccess.
 Params:
     - `ctx` - HIR ctx.
     - `t` - Target type.
@@ -31,8 +31,8 @@ Return converted HIR subject.
 hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
 
 /*
-Generate convertion from the one type to another. 
-Note: It types are similar, it doesn't perform the convertation proccess.
+Generate explict convertion from the one type to another. 
+Note: If the types are similar, it doesn't perform the convertation proccess.
 Params:
     - `node` - AST node.
     - `ctx` - HIR ctx.

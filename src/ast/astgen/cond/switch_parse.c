@@ -23,7 +23,7 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
 
     AST_add_node(node, stmt);
 
-    ast_node_t* cases_scope = AST_create_node(NULL);
+    ast_node_t* cases_scope = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (!cases_scope) {
         PARSE_ERROR("Can't create a base for the case scope!");
         AST_unload(node);
