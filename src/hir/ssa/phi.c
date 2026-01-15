@@ -49,10 +49,14 @@ static int _collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
         if (!fb->used) continue;
         foreach (cfg_block_t* cb, &fb->blocks) {
             int has_def = 0;
-            hir_block_t* hh = cb->hmap.entry;
+            hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
             while (hh) {
                 if (HIR_writeop(hh->op)) {
-                    if (hh->farg && HIR_is_vartype(hh->farg->t) && !HIR_is_tmptype(hh->farg->t)) {
+                    if (
+                        hh->farg &&                     /* - If the first argument is presented */
+                        HIR_is_vartype(hh->farg->t) &&  /* - If this is a variable              */
+                        !HIR_is_tmptype(hh->farg->t)    /* - and not a tmp type                 */
+                    ) {
                         if (hh->farg->storage.var.v_id == v_id) {
                             has_def = 1;
                             break;
@@ -60,8 +64,7 @@ static int _collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
                     }
                 }
                 
-                if (hh == cb->hmap.exit) break;
-                hh = hh->next;
+                hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
 
             if (has_def) {

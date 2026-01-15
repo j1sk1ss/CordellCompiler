@@ -70,42 +70,42 @@ Insert PHI preambule to the previous block.
 The idea is simple: We need to assist the compiler with future SSA form destruction. 
 To perform this, we can mark for the compiler, how variables are linked with each other.
 For instance:
-```c
-    int foo() {
-    // BB1:
-        int a_1 = 0;
-        if (1) {
-    // BB2:
+```cpl
+    function foo() => i32 {
+    : BB1 :
+        i32 a_1 = 0;
+        if 1; {
+    : BB2 :
             a_2 = 1;
         }
         else {
-    // BB3:
+    : BB3 :
             a_3 = 2;
         }
-    // BB4:
-    //  a_4 = phi(a_3, a_2);
+    : BB4 :
+    :   a_4 = phi(a_3, a_2); :
         return a_4;
     }
 ```
 
 SSA form will put the phi function before BB4 block, but when we will start code generation, this will interrupt us.
 To prevent this, we can append a hidden command such a 'HIR_PREAMBULE' that will work similar to 'LIR_MOVE':
-```c
-    int foo() {
-    // BB1:
-        int a_1 = 0;
-        if (1) {
-    // BB2:
+```cpl
+    function foo() => i32 {
+    : BB1 :
+        i32 a_1 = 0;
+        if 1; {
+    : BB2 :
             a_2 = 1;
-    //      a_4 = a_2;
+    :       a_4 = a_2; :
         }
         else {
-    // BB3:
+    : BB3 :
             a_3 = 2;
-    //      a_4 = a_3;
+    :       a_4 = a_3; :
         }
-    // BB4:
-    //  a_4 = phi(a_3, a_2);
+    : BB4 :
+    :   a_4 = phi(a_3, a_2); :
         return a_4;
     }
 ```
@@ -122,9 +122,10 @@ Returns 1 if all succeed. Otherwise will return 0.
 static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_table_t* smt) {
     if (a == b) return 1;     /* Check is this isn't the same variables */
     variable_info_t avi, bvi; /* Check is these variables are existing  */
-    if (!VRTB_get_info_id(a, &avi, &smt->v) || !VRTB_get_info_id(b, &bvi, &smt->v)) {
-        return 0;
-    }
+    if (
+        !VRTB_get_info_id(a, &avi, &smt->v) || 
+        !VRTB_get_info_id(b, &bvi, &smt->v)
+    ) return 0;
 
     set_foreach (cfg_block_t* trg, &block->pred) {
         if (trg->id != bid) continue;

@@ -57,11 +57,17 @@ int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt
     hir_block_t* h = hctx->h;
     hir_block_t* fentry = NULL;
     while (h) {
-        if (h->op == HIR_FDCL || h->op == HIR_STRT) fentry = h;
-        if ((h->op == HIR_FEND || h->op == HIR_STEND) && fentry) {
-            _add_funcblock(fentry, h, ctx, smt);
-            fentry = NULL;
-        } 
+        switch (h->op) {
+            case HIR_FDCL:
+            case HIR_STRT: fentry = h; break;
+            case HIR_FEND:
+            case HIR_STEND: {
+                if (!fentry) break;
+                _add_funcblock(fentry, h, ctx, smt);
+                fentry = NULL;
+                break;
+            }
+        }
 
         h = h->next;
     }
