@@ -149,11 +149,11 @@ typedef enum {
 } token_type_t;
 
 typedef struct {
-    char ro;   /* Is read only flag   */
-    char glob; /* Is global flag      */
-    char ptr;  /* Is pointer flag     */
-    char ext;  /* Is extern flag      */
-    char heap; /* Is heap allocated   */
+    char ro   : 1; /* Is read only flag   */
+    char glob : 1; /* Is global flag      */
+    char ptr  : 1; /* Is pointer flag     */
+    char ext  : 1; /* Is extern flag      */
+    char heap : 1; /* Is heap allocated   */
 } token_flags_t;
 
 typedef struct {

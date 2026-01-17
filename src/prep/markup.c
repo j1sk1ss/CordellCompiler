@@ -124,20 +124,20 @@ int MRKP_mnemonics(list_t* tkn) {
 }
 
 typedef struct {
-    char         ro;
-    char         ptr;
-    char         glob;
-    char         ext;
+    char         ro   : 1;
+    char         ptr  : 1;
+    char         glob : 1;
+    char         ext  : 1;
     token_type_t type;
     short        scope;
     string_t*    name;
 } variable_t;
 
 typedef struct {
-    char         ro;
-    char         glob;
-    char         ptr;
-    char         ext;
+    char         ro   : 1;
+    char         ptr  : 1;
+    char         glob : 1;
+    char         ext  : 1;
     token_type_t ttype;
 } markp_ctx;
 

@@ -22,8 +22,8 @@ typedef struct {
 
 typedef struct {
     /* Meta flags */
-    char         used;
-    char         fentry;
+    char         used   : 1;
+    char         fentry : 1;
 
     /* Basic info and content */
     long         id;

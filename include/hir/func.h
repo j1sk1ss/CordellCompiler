@@ -9,7 +9,7 @@
 #include <symtab/functb.h>
 
 typedef struct {
-    char  flag;
+    char  flag : 1;
     long  fid;
     set_t edges;
 } call_graph_node_t;
