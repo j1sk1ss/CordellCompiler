@@ -18,7 +18,6 @@ static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
     hir_block_t* hh = HIR_get_next(b->hmap.entry, b->hmap.exit, 0);
     while (hh) {
         if (hh->op == HIR_PHI && hh->farg->storage.var.v_id == vi->v_id) return 0;
-        if (hh == b->hmap.exit) break;
         hh = HIR_get_next(hh, b->hmap.exit, 1);
     }
 

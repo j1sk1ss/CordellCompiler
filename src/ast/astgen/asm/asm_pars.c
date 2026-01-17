@@ -13,7 +13,7 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     }
     
     forward_token(it, 1); /* Consume the '(' <-- */
-    if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == OPEN_BRACKET_TOKEN) {
+    if (CURRENT_TOKEN && CURRENT_TOKEN->t_type != OPEN_BRACKET_TOKEN) {
         PARSE_ERROR("Expected the 'OPEN_BRACKET_TOKEN' token while the parse of the '%s' statement!", ASM_COMMAND);
         AST_unload(node);
         RESTORE_TOKEN_POINT;
@@ -48,7 +48,7 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     AST_add_node(node, body);
 
     forward_token(it, 1);
-    if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == OPEN_BLOCK_TOKEN) {
+    if (CURRENT_TOKEN && CURRENT_TOKEN->t_type != OPEN_BLOCK_TOKEN) {
         PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token while the parse of the '%s' statement!", ASM_COMMAND);
         AST_unload(node);
         RESTORE_TOKEN_POINT;

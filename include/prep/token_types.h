@@ -18,15 +18,14 @@ typedef enum {
     UNKNOWN_NUMERIC_TOKEN,
     LINE_BREAK_TOKEN,
 
-    COMMENT_TOKEN,
-    DELIMITER_TOKEN,
-    COMMA_TOKEN,
-    OPEN_INDEX_TOKEN,
-    CLOSE_INDEX_TOKEN,
-    OPEN_BRACKET_TOKEN,
-    CLOSE_BRACKET_TOKEN,
-    OPEN_BLOCK_TOKEN,
-    CLOSE_BLOCK_TOKEN,
+    DELIMITER_TOKEN,     // ;
+    COMMA_TOKEN,         // ,
+    OPEN_INDEX_TOKEN,    // [
+    CLOSE_INDEX_TOKEN,   // ]
+    OPEN_BRACKET_TOKEN,  // (
+    CLOSE_BRACKET_TOKEN, // )
+    OPEN_BLOCK_TOKEN,    // {
+    CLOSE_BLOCK_TOKEN,   // }
 
     // Modifiers
     DREF_TYPE_TOKEN,     // dref
@@ -37,7 +36,8 @@ typedef enum {
     NEGATIVE_TOKEN,      // not
 
     // Data types
-    TMP_TYPE_TOKEN,
+    VAR_ARGUMENTS_TOKEN, // ...
+    TMP_TYPE_TOKEN,      // tmp
     TMP_F64_TYPE_TOKEN,  // tmp_f64
     TMP_F32_TYPE_TOKEN,  // tmp_f32
     TMP_I64_TYPE_TOKEN,  // tmp_i64

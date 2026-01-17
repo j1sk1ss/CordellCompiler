@@ -26,10 +26,70 @@ typedef struct func_ctx {
     map_t       functb;
 } functab_ctx_t;
 
+/*
+Get function from a table by the provided ID.
+Params:
+    - `id` - Function's ID.
+    - `out` - Function output body.
+    - `ctx` - Function symbol table.
+
+Returns 1 if succeeds. Otherwise will return 0. 
+*/
 int FNTB_get_info_id(symbol_id_t id, func_info_t* out, functab_ctx_t* ctx);
+
+/*
+Get function from a table by the provided name.
+Params:
+    - `fname` - Function's name.
+    - `out` - Function output body.
+    - `ctx` - Function symbol table.
+
+Returns 1 if succeeds. Otherwise will return 0.
+*/
 int FNTB_get_info(string_t* fname, func_info_t* out, functab_ctx_t* ctx);
+
+/*
+Add a new function to a function symbol table.
+Params:
+    - `name` - Function's name.
+    - `global` - Is this function global?
+    - `external` - Is this an external function?
+    - `entry` - Is this an entry function?
+    - `args` - Function's arguments from AST.
+    - `rtype` - Function's return type from AST.
+    - `ctx` - Function symbol table.
+
+Returns -1 if fails or a new function's ID.
+*/
 symbol_id_t FNTB_add_info(string_t* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
-int FNTB_update_info(symbol_id_t id, int used, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
+
+/*
+Update the provided function in a symtable.
+Params:
+    - `id` - Function ID.
+    - `entry` - Is this is an entry function?
+                Node: -1 - Saves the previous value.
+    - `used` - Is this function used?
+               Node: -1 - Saves the previous value.
+    - `ext` - Is this is an external function?
+              Node: -1 - Saves the previous value.
+    - `args` - Function's AST arguments.
+               Node: NULL - Saves the previous value.
+    - `rtype` - Function's AST return type node.
+                Node: NULL - Saves the previous value.
+    - `ctx` - Function symtable context.
+
+Returns 1 if succeeds.
+*/
+int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
+
+/*
+Unload a function symtable context.
+Params:
+    - `ctx` - Function symtable context.
+
+Returns 1 if succeeds.
+*/
 int FNTB_unload(functab_ctx_t* ctx);
 
 #endif

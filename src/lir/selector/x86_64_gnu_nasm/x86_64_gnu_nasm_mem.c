@@ -3,10 +3,10 @@
 /*
 Update information about memory allocation in the provided lir subject.
 Params:
-    - s - The considering lir subject.
-    - smp - Stack map for register spilling.
-    - color - Register allocation result.
-    - smt - Symtable.
+    - `s` - The considering lir subject.
+    - `smp` - Stack map for register spilling.
+    - `color` - Register allocation result.
+    - `smt` - Symtable.
 
 Return 1 if operation succeed. Otherwise it will return 0.
 */
@@ -47,10 +47,9 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
 
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt) {
     stack_map_t smp;
-    stack_map_init(0, &smp);
-
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
+        stack_map_init(0, &smp);
         foreach (cfg_block_t* bb, &fb->blocks) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {

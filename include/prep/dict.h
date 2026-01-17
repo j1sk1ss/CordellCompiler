@@ -21,6 +21,7 @@
 // Function
 #define EXFUNCTION_COMMAND      "exfunc"
 #define FUNCTION_COMMAND        "function"
+#define VAR_ARGUMENTS_COMMAND   "..."
 
 // Modifiers
 #define DREF_COMMAND            "dref"

@@ -5,6 +5,7 @@
 ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     SAVE_TOKEN_POINT;
 
+    /* extern */
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
         PARSE_ERROR("Can't create a base for the extern statement!");
@@ -12,34 +13,37 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         return NULL;
     }
     
+    /* extern <something> */
     forward_token(it, 1);
-    while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != DELIMITER_TOKEN) {
-        if (!TKN_isdecl(CURRENT_TOKEN) && CURRENT_TOKEN->t_type != FUNC_NAME_TOKEN) forward_token(it, 1);
-        else if (TKN_isdecl(CURRENT_TOKEN)) {
-            ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
-            if (!arg) {
-                PARSE_ERROR("Extern variable declaration error! extern <type> <name>!");
-                AST_unload(node);
-                RESTORE_TOKEN_POINT;
-                return NULL;
-            }
-
-            AST_add_node(node, arg); 
-        }
-        else if (CURRENT_TOKEN->t_type == FUNC_NAME_TOKEN) {
-            ast_node_t* fname = AST_create_node(CURRENT_TOKEN);
-            if (!fname) {
-                PARSE_ERROR("Extern function declaration error! extern <name>!");
-                AST_unload(node);
-                RESTORE_TOKEN_POINT;
-                return NULL;
-            }
-
-            AST_add_node(node, fname);
-            FNTB_add_info(fname->t->body, 1, 1, 0, NULL, NULL, &smt->f);
-            forward_token(it, 1);
+    ast_node_t* arg = NULL;
+    if (TKN_isdecl(CURRENT_TOKEN)) {
+        arg = cpl_parse_variable_declaration(it, ctx, smt);
+        arg->t->flags.ext = 1;
+    }
+    else if (CURRENT_TOKEN->t_type == FUNC_TOKEN) {
+        arg = cpl_parse_function(it, ctx, smt);
+        if (!FNTB_update_info(arg->c->sinfo.v_id, -1, -1, 1, NULL, NULL, &smt->f)) {
+            PARSE_ERROR("Function update error!");
+            AST_unload(arg);
+            AST_unload(node);
+            RESTORE_TOKEN_POINT;
+            return NULL;
         }
     }
+    else {
+        PARSE_ERROR("Extern incorrect token error! extern <[type]/function>!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
 
+    if (!arg) {
+        PARSE_ERROR("Extern declaration error! extern <[type]/function>!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+
+    AST_add_node(node, arg); 
     return node;
 }

@@ -169,7 +169,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
     while (hh) {
         switch (hh->op) {
             /* Special PHI function logic implies handling the phi set in command.
-            In other words, we take a new variable ID from the VRTB_add_copy function (If it doesn't existes).
+            In other words, we take a new variable ID from the VRTB_add_copy function (If it doesn't exist).
             Then we append the current variable ID to this list */
             case HIR_PHI: {
                 variable_info_t vi; /* Get base variable ID.                                      */

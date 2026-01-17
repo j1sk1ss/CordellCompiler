@@ -29,6 +29,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(RETURN_COMMAND,         RETURN_TOKEN),
     LEXEM(SYSCALL_COMMAND,        SYSCALL_TOKEN),
     LEXEM(ASM_COMMAND,            ASM_TOKEN),
+    LEXEM(VAR_ARGUMENTS_COMMAND,  VAR_ARGUMENTS_TOKEN),
 
     /* Variable modifiers */
     LEXEM(DREF_COMMAND,           DREF_TYPE_TOKEN),
