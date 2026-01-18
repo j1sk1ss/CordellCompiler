@@ -141,5 +141,6 @@ ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, t
         else if (!forward_token(it, 1)) break; /* If there is a error, proceed the next token        */
     }
 
+    forward_token(it, 1); /* Move from the parser */
     return node;
 }

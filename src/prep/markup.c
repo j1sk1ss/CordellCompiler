@@ -125,20 +125,21 @@ int MRKP_mnemonics(list_t* tkn) {
 }
 
 typedef struct {
-    char         ro   : 1;
-    char         ptr  : 1;
-    char         glob : 1;
-    char         ext  : 1;
+    char ro   : 1; /* 'ro' keyword before another keyword.       */
+    char ptr  : 1; /* 'ptr' keyword before another keyword.      */
+    char glob : 1; /* 'glob' keyword before another keyword.     */
+    char ext  : 1; /* 'external' keyword before another keyword. */
+} modifiers_t;
+
+typedef struct {
+    modifiers_t  modifiers;
     token_type_t type;
     short        scope;
     string_t*    name;
 } variable_t;
 
 typedef struct {
-    char         ro   : 1;
-    char         ptr  : 1;
-    char         glob : 1;
-    char         ext  : 1;
+    modifiers_t  modifiers;
     token_type_t ttype;
 } markp_ctx;
 
@@ -149,10 +150,10 @@ static int _add_variable(list_t* vars, string_t* name, short scope, markp_ctx* c
     
     v->name  = name;
     v->scope = scope;
-    v->ext   = ctx->ext;
-    v->ro    = ctx->ro;
-    v->ptr   = ctx->ptr;
-    v->glob  = ctx->glob;
+    v->modifiers.ext   = ctx->modifiers.ext;
+    v->modifiers.ro    = ctx->modifiers.ro;
+    v->modifiers.ptr   = ctx->modifiers.ptr;
+    v->modifiers.glob  = ctx->modifiers.glob;
     v->type  = ctx->ttype;
 
     return list_add(vars, v);
@@ -197,10 +198,10 @@ int MRKP_variables(list_t* tkn) {
                 break;
             }
 
-            case EXTERN_TOKEN:    curr_ctx.ext  = 1; _remove_token(tkn, curr); break;
-            case GLOB_TYPE_TOKEN: curr_ctx.glob = 1; _remove_token(tkn, curr); break;
-            case PTR_TYPE_TOKEN:  curr_ctx.ptr  = 1; _remove_token(tkn, curr); break;
-            case RO_TYPE_TOKEN:   curr_ctx.ro = 1;   _remove_token(tkn, curr); break;
+            case EXTERN_TOKEN:    curr_ctx.modifiers.ext  = 1; _remove_token(tkn, curr); break;
+            case GLOB_TYPE_TOKEN: curr_ctx.modifiers.glob = 1; _remove_token(tkn, curr); break;
+            case PTR_TYPE_TOKEN:  curr_ctx.modifiers.ptr  = 1; _remove_token(tkn, curr); break;
+            case RO_TYPE_TOKEN:   curr_ctx.modifiers.ro = 1;   _remove_token(tkn, curr); break;
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:
@@ -223,7 +224,7 @@ int MRKP_variables(list_t* tkn) {
                         case EXFUNC_TOKEN: {
                             curr_ctx.ttype  = CALL_TOKEN;
                             next->t_type    = FUNC_NAME_TOKEN;
-                            next->flags.ext = curr_ctx.ext;
+                            next->flags.ext = curr_ctx.modifiers.ext;
                             break;
                         }
 
@@ -247,15 +248,15 @@ int MRKP_variables(list_t* tkn) {
                     _add_variable(&vars, next->body, var_scope, &curr_ctx);
                 }
 
-                curr->flags.ro   = curr_ctx.ro;
-                curr->flags.ptr  = curr_ctx.ptr;
-                curr->flags.ext  = curr_ctx.ext;
-                curr->flags.glob = curr_ctx.glob;
-                curr_ctx.ext     = 0;
-                curr_ctx.ro      = 0;
-                curr_ctx.ptr     = 0;
-                curr_ctx.glob    = 0;
-                curr_ctx.ttype   = 0;
+                curr->flags.ro   = curr_ctx.modifiers.ro;
+                curr->flags.ptr  = curr_ctx.modifiers.ptr;
+                curr->flags.ext  = curr_ctx.modifiers.ext;
+                curr->flags.glob = curr_ctx.modifiers.glob;
+                curr_ctx.modifiers.ext  = 0;
+                curr_ctx.modifiers.ro   = 0;
+                curr_ctx.modifiers.ptr  = 0;
+                curr_ctx.modifiers.glob = 0;
+                curr_ctx.ttype          = 0;
                 break;
             }
 
@@ -277,10 +278,10 @@ int MRKP_variables(list_t* tkn) {
                     foreach (variable_t* v, &vars) {
                         if (curr->body->equals(curr->body, v->name) && v->scope == curr_s) {
                             curr->t_type     = v->type;
-                            curr->flags.ext  = v->ext;
-                            curr->flags.ro   = v->ro;
-                            curr->flags.glob = v->glob;
-                            curr->flags.ptr  = v->ptr;
+                            curr->flags.ext  = v->modifiers.ext;
+                            curr->flags.ro   = v->modifiers.ro;
+                            curr->flags.glob = v->modifiers.glob;
+                            curr->flags.ptr  = v->modifiers.ptr;
                             goto _resolved;
                         }
                     }

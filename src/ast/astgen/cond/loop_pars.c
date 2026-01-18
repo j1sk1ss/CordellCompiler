@@ -12,8 +12,7 @@ ast_node_t* cpl_parse_loop(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     
     stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
 
-    forward_token(it, 1);
-    if (CURRENT_TOKEN && CURRENT_TOKEN->t_type != OPEN_BLOCK_TOKEN) {
+    if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
         PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during a parse of the '%s' statement!", LOOP_COMMAND);
         AST_unload(node);
         RESTORE_TOKEN_POINT;

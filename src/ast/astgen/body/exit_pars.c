@@ -11,8 +11,8 @@ ast_node_t* cpl_parse_exit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     }
     
     stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
-    forward_token(it, 1);
 
+    forward_token(it, 1);
     ast_node_t* exp_node = cpl_parse_expression(it, ctx, smt, 1);
     if (!exp_node) {
         PARSE_ERROR("Error during a parse of the '%s' statement! '%s' <stmt>!", EXIT_COMMAND, EXIT_COMMAND);
@@ -22,5 +22,7 @@ ast_node_t* cpl_parse_exit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     }
 
     AST_add_node(node, exp_node);
+
+    forward_token(it, 1); /* Move from the parser */
     return node;
 }

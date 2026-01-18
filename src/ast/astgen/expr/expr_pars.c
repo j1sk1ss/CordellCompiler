@@ -198,6 +198,8 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         return NULL;
     }
 
+    /* Register a string in a string symbol table 
+    */
     if (node->t->t_type == STRING_VALUE_TOKEN) {
         node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
     }

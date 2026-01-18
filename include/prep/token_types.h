@@ -141,8 +141,8 @@ typedef enum {
     ARR_VARIABLE_TOKEN,  // arr
 
     // Values
-    STRING_VALUE_TOKEN,
-    CHAR_VALUE_TOKEN,
+    STRING_VALUE_TOKEN,  // "something"
+    CHAR_VALUE_TOKEN,    // 's'
 
     // Debug statements
     BREAKPOINT_TOKEN, // lis

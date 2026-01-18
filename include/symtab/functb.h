@@ -52,6 +52,7 @@ int FNTB_get_info(string_t* fname, func_info_t* out, functab_ctx_t* ctx);
 Add a new function to a function symbol table.
 Params:
     - `name` - Function's name.
+               Note: Will copy the provided name.
     - `global` - Is this function global?
     - `external` - Is this an external function?
     - `entry` - Is this an entry function?

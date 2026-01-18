@@ -10,8 +10,8 @@
 /*
 Move iterator with N-steps.
 Params:
-    - it - Current iterator.
-    - steps - Steps count.
+    - `it` - Current iterator.
+    - `steps` - Steps count.
 
 Return 0 if we reach end, 1 if still in list.
 */
@@ -22,6 +22,20 @@ static inline int forward_token(list_iter_t* it, int steps) {
     }
 
     return 1;
+}
+
+/*
+Check if the next token is consumed.
+Note: Before the check will move a token iterator first.
+Params:
+    - `it` - Iterator.
+    - `t` - Target token's type.
+
+Returns 1 if a token is consumed. Otherwise will return 0.
+*/
+static inline int consume_token(list_iter_t* it, token_type_t t) {
+    if (!forward_token(it, 1)) return 0;
+    return ((token_t*)list_iter_current(it))->t_type == t;
 }
 
 /*
