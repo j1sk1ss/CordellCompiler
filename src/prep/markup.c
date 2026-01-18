@@ -102,6 +102,13 @@ static const markup_token_t _lexems[] = {
     LEXEM(BREAKPOINT_COMMAND,     BREAKPOINT_TOKEN),
 };
 
+/*
+Convert the lexem list to the lexem map.
+Params:
+    - `m` - Output map.
+
+Returns 1 if succeeds.
+*/
 static int _build_lexems_map(map_t* m) {
     for (int i = 0; i < (int)(sizeof(_lexems) / sizeof(_lexems[0])); i++) {
         map_put(m, crc64((unsigned char*)_lexems[i].value, str_strlen(_lexems[i].value), 0), (void*)_lexems[i].type);
@@ -125,54 +132,98 @@ int MRKP_mnemonics(list_t* tkn) {
 }
 
 typedef struct {
-    char ro   : 1; /* 'ro' keyword before another keyword.       */
-    char ptr  : 1; /* 'ptr' keyword before another keyword.      */
-    char glob : 1; /* 'glob' keyword before another keyword.     */
-    char ext  : 1; /* 'external' keyword before another keyword. */
-} modifiers_t;
-
-typedef struct {
-    modifiers_t  modifiers;
-    token_type_t type;
-    short        scope;
-    string_t*    name;
+    token_flags_t modifiers;
+    token_type_t  type;
+    short         scope;
+    string_t*     name;
 } variable_t;
 
 typedef struct {
-    modifiers_t  modifiers;
     token_type_t ttype;
 } markp_ctx;
 
-static int _add_variable(list_t* vars, string_t* name, short scope, markp_ctx* ctx) {
+/*
+Add variable to a list.
+Params:
+    - `vars` - Variable output list.
+    - `name` - Variable name.
+    - `scope` - Variable scope.
+    - `t` - Variable type.
+    - `f` - Variable's flag.
+
+Returns 1 if succeeds.
+*/
+static int _add_variable(list_t* vars, string_t* name, short scope, token_type_t t, token_flags_t* f) {
     variable_t* v = (variable_t*)mm_malloc(sizeof(variable_t));
     if (!v) return 0;
     str_memset(v, 0, sizeof(variable_t));
+    str_memcpy(&v->modifiers, f, sizeof(token_flags_t));
     
     v->name  = name;
     v->scope = scope;
-    v->modifiers.ext   = ctx->modifiers.ext;
-    v->modifiers.ro    = ctx->modifiers.ro;
-    v->modifiers.ptr   = ctx->modifiers.ptr;
-    v->modifiers.glob  = ctx->modifiers.glob;
-    v->type  = ctx->ttype;
-
+    v->type  = t;
     return list_add(vars, v);
 }
 
+/*
+Remove token from a list and unload it.
+Params:
+    - `tkns` - Target list.
+    - `tkn` - Targe token.
+*/
 static inline void _remove_token(list_t* tkns, token_t* tkn) {
     list_remove(tkns, tkn);
     TKN_unload_token(tkn);
 }
 
-int MRKP_variables(list_t* tkn) {
-    int s_id = 0;
-    sstack_t scope_stack;
-    stack_init(&scope_stack);
+/*
+Apply modifiers in a token list.
+How it works:
+```cpl
+    glob ro ptr i32 a;
+```
 
-    markp_ctx curr_ctx = { 0 };
+Will consume the 'glob', the 'ro' and the 'ptr' token, accamulate
+information and apply it on the 'i32' token. 
+Params:
+    - `tkn` - Token list.
+
+Returns 1 if succeeds.
+*/
+static int _apply_modifiers(list_t* tkn) {
+    token_flags_t cflags = { 0 };
+
+    list_iter_t it;
+    list_iter_hinit(tkn, &it);
+    token_t* curr;
+    while ((curr = (token_t*)list_iter_next(&it))) {
+        token_t* next = (token_t*)list_iter_current(&it);
+        if (next) switch (curr->t_type) {
+            case EXTERN_TOKEN:    cflags.ext  = 1; _remove_token(tkn, curr); break;
+            case GLOB_TYPE_TOKEN: cflags.glob = 1; _remove_token(tkn, curr); break;
+            case PTR_TYPE_TOKEN:  cflags.ptr  = 1; _remove_token(tkn, curr); break;
+            case RO_TYPE_TOKEN:   cflags.ro   = 1; _remove_token(tkn, curr); break;
+            default: {
+                str_memcpy(&curr->flags, &cflags, sizeof(token_flags_t));
+                str_memset(&cflags, 0, sizeof(token_flags_t));
+                break;
+            }
+        }
+    }
+
+    return 1;
+}
+
+int MRKP_variables(list_t* tkn) {
+    _apply_modifiers(tkn);
+
+    int s_id = 0;
+    token_type_t ctype = 0;
 
     list_t vars;
     list_init(&vars);
+    sstack_t scope_stack;
+    stack_init(&scope_stack);
 
     list_iter_t it;
     list_iter_hinit(tkn, &it);
@@ -184,12 +235,12 @@ int MRKP_variables(list_t* tkn) {
 
             case IMPORT_TOKEN: {
                 curr = (token_t*)list_iter_next(&it);
-                curr_ctx.ttype = CALL_TOKEN;
+                ctype = CALL_TOKEN;
                 while (curr->t_type != DELIMITER_TOKEN) {
                     long import_scope;
                     stack_top(&scope_stack, (void**)&import_scope);
                     if (curr->t_type != COMMA_TOKEN) {
-                        _add_variable(&vars, curr->body, import_scope, &curr_ctx);
+                        _add_variable(&vars, curr->body, import_scope, ctype, &curr->flags);
                     }
                     
                     curr = (token_t*)list_iter_next(&it);
@@ -197,11 +248,6 @@ int MRKP_variables(list_t* tkn) {
                 
                 break;
             }
-
-            case EXTERN_TOKEN:    curr_ctx.modifiers.ext  = 1; _remove_token(tkn, curr); break;
-            case GLOB_TYPE_TOKEN: curr_ctx.modifiers.glob = 1; _remove_token(tkn, curr); break;
-            case PTR_TYPE_TOKEN:  curr_ctx.modifiers.ptr  = 1; _remove_token(tkn, curr); break;
-            case RO_TYPE_TOKEN:   curr_ctx.modifiers.ro = 1;   _remove_token(tkn, curr); break;
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:
@@ -222,41 +268,33 @@ int MRKP_variables(list_t* tkn) {
                     switch (curr->t_type) {
                         case FUNC_TOKEN:
                         case EXFUNC_TOKEN: {
-                            curr_ctx.ttype  = CALL_TOKEN;
+                            ctype           = CALL_TOKEN;
                             next->t_type    = FUNC_NAME_TOKEN;
-                            next->flags.ext = curr_ctx.modifiers.ext;
+                            next->flags.ext = curr->flags.ext;
                             break;
                         }
 
-                        case I8_TYPE_TOKEN:    curr_ctx.ttype = I8_VARIABLE_TOKEN;  break;
-                        case U8_TYPE_TOKEN:    curr_ctx.ttype = U8_VARIABLE_TOKEN;  break;
-                        case I32_TYPE_TOKEN:   curr_ctx.ttype = I32_VARIABLE_TOKEN; break;
-                        case U32_TYPE_TOKEN:   curr_ctx.ttype = U32_VARIABLE_TOKEN; break;
-                        case F32_TYPE_TOKEN:   curr_ctx.ttype = F32_VARIABLE_TOKEN; break;
-                        case I64_TYPE_TOKEN:   curr_ctx.ttype = I64_VARIABLE_TOKEN; break;
-                        case U64_TYPE_TOKEN:   curr_ctx.ttype = U64_VARIABLE_TOKEN; break;
-                        case F64_TYPE_TOKEN:   curr_ctx.ttype = F64_VARIABLE_TOKEN; break;
-                        case I16_TYPE_TOKEN:   curr_ctx.ttype = I16_VARIABLE_TOKEN; break;
-                        case U16_TYPE_TOKEN:   curr_ctx.ttype = U16_VARIABLE_TOKEN; break;
-                        case STR_TYPE_TOKEN:   curr_ctx.ttype = STR_VARIABLE_TOKEN; break;
-                        case ARRAY_TYPE_TOKEN: curr_ctx.ttype = ARR_VARIABLE_TOKEN; break;
+                        case I8_TYPE_TOKEN:    ctype = I8_VARIABLE_TOKEN;  break;
+                        case U8_TYPE_TOKEN:    ctype = U8_VARIABLE_TOKEN;  break;
+                        case I32_TYPE_TOKEN:   ctype = I32_VARIABLE_TOKEN; break;
+                        case U32_TYPE_TOKEN:   ctype = U32_VARIABLE_TOKEN; break;
+                        case F32_TYPE_TOKEN:   ctype = F32_VARIABLE_TOKEN; break;
+                        case I64_TYPE_TOKEN:   ctype = I64_VARIABLE_TOKEN; break;
+                        case U64_TYPE_TOKEN:   ctype = U64_VARIABLE_TOKEN; break;
+                        case F64_TYPE_TOKEN:   ctype = F64_VARIABLE_TOKEN; break;
+                        case I16_TYPE_TOKEN:   ctype = I16_VARIABLE_TOKEN; break;
+                        case U16_TYPE_TOKEN:   ctype = U16_VARIABLE_TOKEN; break;
+                        case STR_TYPE_TOKEN:   ctype = STR_VARIABLE_TOKEN; break;
+                        case ARRAY_TYPE_TOKEN: ctype = ARR_VARIABLE_TOKEN; break;
                         default: break;
                     }
 
                     long var_scope;
                     stack_top(&scope_stack, (void**)&var_scope);
-                    _add_variable(&vars, next->body, var_scope, &curr_ctx);
+                    _add_variable(&vars, next->body, var_scope, ctype, &curr->flags);
                 }
 
-                curr->flags.ro   = curr_ctx.modifiers.ro;
-                curr->flags.ptr  = curr_ctx.modifiers.ptr;
-                curr->flags.ext  = curr_ctx.modifiers.ext;
-                curr->flags.glob = curr_ctx.modifiers.glob;
-                curr_ctx.modifiers.ext  = 0;
-                curr_ctx.modifiers.ro   = 0;
-                curr_ctx.modifiers.ptr  = 0;
-                curr_ctx.modifiers.glob = 0;
-                curr_ctx.ttype          = 0;
+                ctype = 0;
                 break;
             }
 
@@ -277,11 +315,8 @@ int MRKP_variables(list_t* tkn) {
                     short curr_s = (short)scope_stack.data[s].d;
                     foreach (variable_t* v, &vars) {
                         if (curr->body->equals(curr->body, v->name) && v->scope == curr_s) {
-                            curr->t_type     = v->type;
-                            curr->flags.ext  = v->modifiers.ext;
-                            curr->flags.ro   = v->modifiers.ro;
-                            curr->flags.glob = v->modifiers.glob;
-                            curr->flags.ptr  = v->modifiers.ptr;
+                            curr->t_type = v->type;
+                            str_memcpy(&curr->flags, &v->modifiers, sizeof(token_flags_t));
                             goto _resolved;
                         }
                     }

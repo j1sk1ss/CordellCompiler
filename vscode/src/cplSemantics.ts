@@ -43,7 +43,13 @@ export function formatType(t: TypeNode): string {
 
 export type Issue = { message: string; range: Range };
 
-type VarSym = { kind: "var"; name: string; type: TypeNode; range: Range };
+type VarSym = {
+  kind: "var";
+  name: string;
+  type: TypeNode;
+  range: Range;
+  readonly?: boolean;
+};
 
 type FuncSym = {
   kind: "func";
@@ -157,7 +163,12 @@ export class SemanticContext {
     if (this.scope.parent) this.scope = this.scope.parent;
   }
 
-  declareGlobalVar(name: string, type: TypeNode, range: Range) {
+  declareGlobalVar(
+    name: string,
+    type: TypeNode,
+    range: Range,
+    opts?: { readonly?: boolean }
+  ) {
     if (this.globals.has(name)) {
       this.issues.push({ message: `Global '${name}' already declared`, range });
     }
@@ -166,7 +177,12 @@ export class SemanticContext {
     this.varDecls.push(sym);
   }
 
-  declareLocalVar(name: string, type: TypeNode, range: Range) {
+  declareLocalVar(
+    name: string,
+    type: TypeNode,
+    range: Range,
+    opts?: { readonly?: boolean }
+  ) {
     if (this.scope.vars.has(name)) {
       this.issues.push({ message: `Variable '${name}' already declared in this scope`, range });
     }

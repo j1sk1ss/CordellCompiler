@@ -99,6 +99,11 @@ type Token = {
   end: number;
 };
 
+type StorageMods = {
+  isGlobal: boolean;
+  isReadonly: boolean;
+};
+
 type ParamInfo = {
   name: string;
   type: TypeNode;
@@ -490,8 +495,7 @@ class Parser {
       return;
     }    
 
-    // storage_opt = [ "glob" | "ro" ]  (at most one)
-    this.match("kw", "glob") || this.match("kw", "ro");
+    const mods = this.parseStorageMods();
 
     // top_decl = var_decl | function_def | function_proto
     if (this.match("kw", "function")) {
@@ -740,6 +744,26 @@ class Parser {
     this.sem?.exitScope();
     this.expect("punc", "}", "block: expected '}'");
   }
+  
+  private parseStorageMods(): StorageMods {
+    let isGlobal = false;
+    let isReadonly = false;
+  
+    let progressed = true;
+    while (progressed) {
+      progressed = false;
+      if (this.match("kw", "glob")) {
+        isGlobal = true;
+        progressed = true;
+      }
+      if (this.match("kw", "ro")) {
+        isReadonly = true;
+        progressed = true;
+      }
+    }
+  
+    return { isGlobal, isReadonly };
+  }
 
   private parseStatement() {
     // pp_directive
@@ -865,10 +889,15 @@ class Parser {
 
   private looksLikeDeclStart(): boolean {
     const c = this.cur();
-    return c.kind === "kw" && TYPE_KW.has(c.text);
-  }
+    return (
+      (c.kind === "kw" && TYPE_KW.has(c.text)) ||
+      this.at("kw", "glob") ||
+      this.at("kw", "ro")
+    );
+  }  
 
   private parseVarOrArrDecl(isTopLevel: boolean) {
+    const mods = this.parseStorageMods();
     // arr_decl: "arr" ident "[" integer_literal "," type "]" [ "=" (expression | arr_value) ] ";"
     if (this.at("kw", "arr")) {
       const t2 = this.t[this.i + 1];
