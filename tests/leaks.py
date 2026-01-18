@@ -21,9 +21,7 @@ leaks: dict = {}
 
 with open(args.log_path, "r", encoding="utf-8") as f:
     print("Reading file...")
-
     for line_number, line in enumerate(f, start=1):
-
         alloc_match = alloc_re.search(line)
         if alloc_match:
             d = alloc_match.groupdict()
@@ -40,7 +38,6 @@ with open(args.log_path, "r", encoding="utf-8") as f:
         if free_match:
             d = free_match.groupdict()
             address = d["ptr"]
-
             if address in leaks:
                 del leaks[address]
             continue
