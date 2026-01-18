@@ -20,7 +20,13 @@ export type TypeNode =
   | { kind: "arr"; len: number | null; elem: TypeNode }
   | { kind: "unknown" };
 
-export type ParamSig = { name: string; type: TypeNode; hasDefault: boolean; range: Range };
+export type ParamSig = {
+  name: string;
+  type: TypeNode;
+  hasDefault: boolean;
+  isVarArgs?: boolean;
+  range: Range;
+};
 
 export function formatType(t: TypeNode): string {
   switch (t.kind) {
@@ -77,11 +83,22 @@ function sameType(a: TypeNode, b: TypeNode): boolean {
 }
 
 function sameParams(a: ParamSig[], b: ParamSig[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
+  const aVar = a.findIndex(p => p.isVarArgs);
+  const bVar = b.findIndex(p => p.isVarArgs);
+  if (aVar !== bVar) return false;
+
+  const len = aVar >= 0 ? aVar : a.length;
+  if (bVar >= 0 && bVar !== len) return false;
+
+  for (let i = 0; i < len; i++) {
     if (a[i].hasDefault !== b[i].hasDefault) return false;
     if (!sameType(a[i].type, b[i].type)) return false;
   }
+
+  if (aVar >= 0) {
+    if (!sameType(a[aVar].type, b[bVar].type)) return false;
+  }
+
   return true;
 }
 
@@ -224,13 +241,25 @@ export class SemanticContext {
       return;
     }
 
-    const minArgs = fn.params.filter(p => !p.hasDefault).length;
-    const maxArgs = fn.params.length;
+    const varIndex = fn.params.findIndex(p => p.isVarArgs);
 
+    const fixedParams =
+      varIndex >= 0 ? fn.params.slice(0, varIndex) : fn.params;
+    
+    const minArgs = fixedParams.filter(p => !p.hasDefault).length;
+    const maxArgs = varIndex >= 0 ? Infinity : fn.params.length;
+    
     if (argc < minArgs || argc > maxArgs) {
-      const expected = (minArgs === maxArgs) ? `${minArgs}` : `${minArgs}..${maxArgs}`;
-      this.issues.push({ message: `Call '${name}': expected ${expected} args, got ${argc}`, range });
-    }
+      const expected =
+        maxArgs === Infinity
+          ? `${minArgs}+`
+          : (minArgs === maxArgs ? `${minArgs}` : `${minArgs}..${maxArgs}`);
+    
+      this.issues.push({
+        message: `Call '${name}': expected ${expected} args, got ${argc}`,
+        range
+      });
+    }    
   }
 
   finish() {
@@ -241,12 +270,21 @@ export class SemanticContext {
         continue;
       }
 
+      const varIndex = fn.params.findIndex(p => p.isVarArgs);
+
+      const fixedParams =
+        varIndex >= 0 ? fn.params.slice(0, varIndex) : fn.params;
+      
       const minArgs = fn.params.filter(p => !p.hasDefault).length;
       const maxArgs = fn.params.length;
-
+      
       if (c.argc < minArgs || c.argc > maxArgs) {
-        const expected = (minArgs === maxArgs) ? `${minArgs}` : `${minArgs}..${maxArgs}`;
-        this.issues.push({ message: `Call '${c.name}': expected ${expected} args, got ${c.argc}`, range: c.range });
+        const expected =
+          maxArgs === Infinity
+            ? `${minArgs}+`
+            : (minArgs === maxArgs ? `${minArgs}` : `${minArgs}..${maxArgs}`);
+      
+          this.issues.push({ message: `Call '${c.name}': expected ${expected} args, got ${c.argc}`, range: c.range });
       }
     }
     this.pendingCalls = [];

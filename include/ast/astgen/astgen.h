@@ -33,7 +33,7 @@ function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "=>" ,
 start_function = "start" , "(" , [ param_list ] , ")" , block ;
 
 param_list     = param , { "," , param } ;
-param          = type , identifier , [ "=" , expression ] ;
+param          = type , identifier , [ "=" , expression ] | "..." ;
 
 block          = "{" , { statement } , "}" ;
 

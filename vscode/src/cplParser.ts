@@ -99,7 +99,14 @@ type Token = {
   end: number;
 };
 
-type ParamInfo = { name: string; type: TypeNode; hasDefault: boolean; range: Range };
+type ParamInfo = {
+  name: string;
+  type: TypeNode;
+  hasDefault: boolean;
+  isVarArgs?: boolean;
+  range: Range;
+};
+
 type ParseIssue = { message: string; range: Range };
 
 const KEYWORDS = new Set([
@@ -119,7 +126,7 @@ const TYPE_KW = new Set([
 const OPERATORS = [
   "||=","&&=","<<",">>","==","!=","<=",">=","&&","||",
   "+=","-=","*=","/=","%=","|=","^=","&=","=",
-  "+","-","*","/","%","|","^","&","<",">", "=>"
+  "+","-","*","/","%","|","^","&","<",">", "=>", "..."
 ].sort((a,b)=>b.length-a.length);
 
 const PUNC = new Set(["{","}","(",")","[","]",",",";","#"]);
@@ -449,16 +456,39 @@ class Parser {
     }
 
     if (this.match("kw", "extern")) {
+      if (this.match("kw", "function")) {
+        const nameTok = this.cur();
+        this.expect("ident", undefined, "extern function: expected identifier");
+        const fnName = this.prev().text;
+    
+        this.expect("punc", "(");
+        const params = this.parseParamListOptInfos();
+        this.expect("punc", ")");
+    
+        let ret: TypeNode = { kind: "prim", name: "i0" };
+        if (this.match("op", "=>")) {
+          ret = this.parseType();
+        }
+    
+        this.expect("punc", ";", "extern function: expected ';'");
+    
+        const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
+        this.sem?.declareFunc(fnName, params, ret, fnRange, false, this.pendingDoc);
+        this.pendingDoc = undefined;
+        return;
+      }
+    
+      // old extern exfunc / extern var
       if (this.match("kw", "exfunc")) {
         this.expect("ident", undefined, "extern exfunc: expected identifier");
       } else {
         this.parseType();
         this.expect("ident", undefined, "extern var: expected identifier");
       }
-      // grammar didn’t require ';' explicitly earlier; accept it if present
+    
       this.match("punc", ";");
       return;
-    }
+    }    
 
     // storage_opt = [ "glob" | "ro" ]  (at most one)
     this.match("kw", "glob") || this.match("kw", "ro");
@@ -619,31 +649,85 @@ class Parser {
     if (this.atRaw("punc", ";") || this.atRaw("eol")) this.i++;
   }
 
-  // ---- blocks / statements ----
-
   private parseParamListOptInfos(): ParamInfo[] {
     const params: ParamInfo[] = [];
     if (this.at("punc", ")")) return params;
-
+  
+    let seenVarArgs = false;
+    const unknownType: TypeNode = { kind: "unknown" };
+  
     while (true) {
+      let isVarArgs = false;
+  
+      if (this.match("op", "...")) {
+        if (seenVarArgs) {
+          const c = this.prev();
+          this.issues.push({
+            message: "multiple varargs parameters are not allowed",
+            range: rangeOf(this.lines, c.start, c.end)
+          });
+        }
+        seenVarArgs = true;
+        isVarArgs = true;
+  
+        // optional type
+        let t: TypeNode = unknownType;
+        if (this.at("kw") && TYPE_KW.has(this.cur().text)) {
+          t = this.parseType();
+        }
+  
+        // optional name
+        let name = "__varargs";
+        let nameTok = this.prev();
+        if (this.at("ident")) {
+          nameTok = this.cur();
+          this.i++;
+          name = nameTok.text;
+        }
+  
+        params.push({
+          name,
+          type: t,
+          hasDefault: false,
+          isVarArgs: true,
+          range: rangeOf(this.lines, nameTok.start, nameTok.end)
+        });
+  
+        // varargs MUST be last
+        if (this.match("punc", ",")) {
+          this.issues.push({
+            message: "varargs parameter must be the last one",
+            range: rangeOf(this.lines, nameTok.start, nameTok.end)
+          });
+        }
+        break;
+      }
+  
+      // ---- normal parameter ----
       const t = this.parseType();
-
+  
       const nameTok = this.cur();
       this.expect("ident", undefined, "param: expected identifier");
       const name = this.prev().text;
-
+  
       let hasDefault = false;
       if (this.match("op", "=")) {
         hasDefault = true;
         this.parseExpression();
       }
-
-      params.push({ name, type: t, hasDefault, range: rangeOf(this.lines, nameTok.start, nameTok.end) });
-
+  
+      params.push({
+        name,
+        type: t,
+        hasDefault,
+        range: rangeOf(this.lines, nameTok.start, nameTok.end)
+      });
+  
       if (!this.match("punc", ",")) break;
     }
+  
     return params;
-  }
+  }  
 
   private parseBlock() {
     this.expect("punc", "{", "block: expected '{'");
