@@ -83,34 +83,6 @@ static int _second_pass(cfg_block_t* bb) {
 static unsigned int _visit_counter = 1;
 
 /*
-TODO:
-BB5: start
-call a() -> i32;
-rsp = rax;
-rbp = rax;
-use rbp;
-rcx = rbp;
-[unused] rdi = rcx;
-call b(i32 g) -> i32;
-rbx = rax;
-rdx = rax;
-use rdx;
-rsi = rdx;
-rdi = rsi;
-call c(i32 f);
-[unused] kill(8);
-kill(2);
-[unused] kill(6);
-kill(11);
-[unused] kill(3);
-kill(4);
-[unused] kill(7);
-kill(9);
-[unused] kill(10);
-kill(5);
-*/
-
-/*
 Recursive cleanup will clean each block from the CFG with one simple rule:
 If there is a WRITE operation, it may be eliminated, if:
     - Either further code doesn't use it's value or /
@@ -181,7 +153,10 @@ static int _cleanup_pass(cfg_block_t* bb) {
     if (!bb) return 0;
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
-        if (LIR_writeop(lh->op)) {
+        if (
+            LIR_writeop(lh->op) && /* If this is a write operation */
+            lh->op != LIR_aMOV     /* but isn't a reserved one     */
+        ) {
             _visit_counter++;
             if (_recursive_cleanup(lh->op, -1, bb, lh->farg, lh, lh->next)) {
                 lh->unused = 1;
