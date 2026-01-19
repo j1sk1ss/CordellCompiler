@@ -10,8 +10,7 @@ function buildLineStarts(text: string): number[] {
 }
 
 function positionAt(lineStarts: number[], offset: number): Position {
-  let lo = 0,
-    hi = lineStarts.length - 1;
+  let lo = 0, hi = lineStarts.length - 1;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
     const s = lineStarts[mid];
@@ -254,7 +253,6 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // char literal
     if (ch === "'") {
       const start = i;
       i++;
@@ -268,7 +266,6 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // integer literal
     if (isDigit(ch)) {
       const start = i;
       if (text.startsWith("0x", i) || text.startsWith("0X", i)) {
@@ -286,7 +283,6 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // identifiers / keywords
     if (isAlpha(ch) || ch === "_") {
       const start = i;
       i++;
@@ -296,7 +292,6 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // operators
     let matchedOp = "";
     for (const op of OPERATORS) {
       if (text.startsWith(op, i)) { matchedOp = op; break; }
@@ -307,14 +302,12 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // punctuation
     if (PUNC.has(ch)) {
       push("punc", i, i + 1);
       i++;
       continue;
     }
 
-    // fallback: unknown char as punctuation
     push("punc", i, i + 1);
     i++;
   }
@@ -349,16 +342,13 @@ class Parser {
     return this.issues;
   }
 
-  // ---- trivia handling ----
   private skipEOL() {
     while (this.t[this.i]?.kind === "eol") this.i++;
   }
 
-  // default view (EOL skipped)
   private cur(): Token { this.skipEOL(); return this.t[this.i]; }
   private prev(): Token { return this.t[Math.max(0, this.i - 1)]; }
 
-  // raw view (EOL NOT skipped) — needed for pp_directive terminators
   private curRaw(): Token { return this.t[this.i]; }
 
   private at(kind: TokenKind, text?: string): boolean {
@@ -408,8 +398,6 @@ class Parser {
 
     if (this.atRaw("punc", ";") || this.atRaw("eol")) this.i++;
   }
-
-  // ---- program / top level ----
 
   private parseProgram() {
     this.expect("punc", "{", "Program must start with '{'");
@@ -483,7 +471,6 @@ class Parser {
         return;
       }
     
-      // old extern exfunc / extern var
       if (this.match("kw", "exfunc")) {
         this.expect("ident", undefined, "extern exfunc: expected identifier");
       } else {
@@ -497,7 +484,6 @@ class Parser {
 
     const mods = this.parseStorageMods();
 
-    // top_decl = var_decl | function_def | function_proto
     if (this.match("kw", "function")) {
       const doc = this.pendingDoc;
       this.pendingDoc = undefined;
@@ -531,12 +517,9 @@ class Parser {
       return;
     }
 
-    // var_decl / arr_decl at top level
     this.parseVarOrArrDecl(true);
   }
 
-  // ---- pp_directive ----
-  // pp_directive = "#" , pp_body , (EOL | ";")
   private parsePPDirective() {
     const hashTok = this.curRaw();
     if (!this.matchRaw("punc", "#")) {
@@ -547,8 +530,7 @@ class Parser {
       return;
     }
 
-    // directive name should be a keyword token in our lexer
-    const name = this.cur(); // (EOL skipped, OK)
+    const name = this.cur();
     const isKw = name.kind === "kw";
     const dir = isKw ? name.text : "";
 
@@ -561,7 +543,6 @@ class Parser {
       return;
     }
 
-    // consume name
     this.i++;
 
     switch (dir) {
@@ -619,7 +600,6 @@ class Parser {
 
       case "define":
         this.expect("ident", undefined, "#define: expected identifier");
-        // replacement-list: consume tokens until ';' or EOL (raw)
         while (!this.atRaw("eof") && !this.atRaw("eol") && !this.atRaw("punc", ";")) {
           this.i++;
         }
@@ -631,7 +611,7 @@ class Parser {
           message: `Unknown preprocessor directive '${dir}'`,
           range: rangeOf(this.lines, name.start, name.end)
         });
-        // consume rest of line
+        
         while (!this.atRaw("eof") && !this.atRaw("eol") && !this.atRaw("punc", ";")) this.i++;
         this.consumePPLineEnd();
         return;
@@ -674,13 +654,11 @@ class Parser {
         seenVarArgs = true;
         isVarArgs = true;
   
-        // optional type
         let t: TypeNode = unknownType;
         if (this.at("kw") && TYPE_KW.has(this.cur().text)) {
           t = this.parseType();
         }
   
-        // optional name
         let name = "__varargs";
         let nameTok = this.prev();
         if (this.at("ident")) {
@@ -697,7 +675,6 @@ class Parser {
           range: rangeOf(this.lines, nameTok.start, nameTok.end)
         });
   
-        // varargs MUST be last
         if (this.match("punc", ",")) {
           this.issues.push({
             message: "varargs parameter must be the last one",
@@ -707,7 +684,6 @@ class Parser {
         break;
       }
   
-      // ---- normal parameter ----
       const t = this.parseType();
   
       const nameTok = this.cur();
@@ -766,10 +742,7 @@ class Parser {
   }
 
   private parseStatement() {
-    // pp_directive
     if (this.atRaw("punc", "#")) { this.parsePPDirective(); return; }
-
-    // comment statement
     if (this.match("comment")) return;
 
     if (this.at("kw", "if")) {
@@ -795,7 +768,6 @@ class Parser {
       return;
     }
 
-    // switch expression; { case literal; block ... [default [;] block] }
     if (this.at("kw", "switch")) {
       this.i++;
       this.parseExpression();
@@ -837,7 +809,6 @@ class Parser {
       return;
     }
 
-    // lis [string_literal] ;
     if (this.at("kw", "lis")) {
       this.i++;
       if (!this.at("punc", ";")) this.expect("str", undefined, "lis: expected string literal");
@@ -898,12 +869,11 @@ class Parser {
 
   private parseVarOrArrDecl(isTopLevel: boolean) {
     const mods = this.parseStorageMods();
-    // arr_decl: "arr" ident "[" integer_literal "," type "]" [ "=" (expression | arr_value) ] ";"
     if (this.at("kw", "arr")) {
       const t2 = this.t[this.i + 1];
       const t3 = this.t[this.i + 2];
       if (t2?.kind === "ident" && t3?.kind === "punc" && t3.text === "[") {
-        this.i++; // consume 'arr'
+        this.i++;
 
         const nameTok = this.cur();
         this.expect("ident", undefined, "arr_decl: expected identifier");
@@ -942,7 +912,6 @@ class Parser {
       }
     }
 
-    // var_decl: type ident [ "=" expression ] ";"
     const vType = this.parseType();
 
     const nameTok = this.cur();
@@ -1005,8 +974,6 @@ class Parser {
     this.issues.push({ message: `Expected literal, got '${c.text}'`, range: rangeOf(this.lines, c.start, c.end) });
     if (!this.at("eof")) this.i++;
   }
-
-  // ---- expressions ----
 
   private parseExpression() { this.parseAssign(); }
 
@@ -1120,6 +1087,10 @@ class Parser {
   private parsePrimary() {
     if (this.at("kw", "syscall")) {
       this.i++;
+      return;
+    }
+
+    if (this.match("kw", "poparg")) {
       return;
     }
 

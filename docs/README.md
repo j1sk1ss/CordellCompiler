@@ -362,6 +362,29 @@ max();                : max(chloe(11)); :
 min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
 ```
 
+## Variadic arguments
+CPL supports variadic arguments in the same way hot it supports C language. To use the variadic arguments in a function, add the `...` lexem **as the final arguement**!
+```cpl
+function foo(...) => i0 {
+}
+```
+
+To 'pop' an arguement from this set, use the `poparg` keyword. It behaves as a variable with a 'variable' value:
+```cpl
+function foo(...) => i0 {
+    i8 a1 = poparg as i8;
+    i8 a2 = poparg as i8;
+}
+```
+
+Also, the `poparg` keyword can be used in a traditional function:
+```cpl
+function foo(i32 a, i32 b) => i0 {
+    i8 a1 = poparg as i8; : a :
+    i8 a2 = poparg as i8; : b :
+}
+```
+
 ## Inbuilt macros
 There is two inbuild functions that can be usefull for a system programmer. First is the `syscall` function.
 - `syscall` function is called similar to default user functions, but can handle an unfixed number of arguments. For example here is the write syscall:
@@ -664,7 +687,7 @@ The code above will produce a ton of errors and warnings:
  5 | }
 ```
 
-Note: This isn't an entire analysis output due to the critical error with array indexing. Such errors will block a compilation process given the importance of this kind of errors. </br>
+Note: This isn't an entire analysis output due to the critical error with the array indexing. Such errors will block a compilation process given the importance of this kind of errors. </br>
 Note 2: The static analyzer doesn't use a source file to show a error place. For these purposes, it uses the 'restorer' module that restores the code from AST.
 
 # Scopes
