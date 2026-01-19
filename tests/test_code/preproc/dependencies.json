@@ -1,0 +1,8 @@
+{
+    "sources": [
+        "src/symtab/*.c",
+        "src/preproc/*.c",
+        "src/preproc/misc/*.c",
+        "std/*.c"
+    ]
+}

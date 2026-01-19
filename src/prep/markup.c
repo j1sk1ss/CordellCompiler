@@ -230,6 +230,7 @@ int MRKP_variables(list_t* tkn) {
     token_t* curr;
     while ((curr = (token_t*)list_iter_next(&it))) {
         switch (curr->t_type) {
+            // TODO: Function scopes for prototypes
             case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
             case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
 

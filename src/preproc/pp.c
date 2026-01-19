@@ -13,7 +13,7 @@ static inline source_pos_info_t* _create_info(FILE* f, char* name, int l) {
     inf->f  = f;
     inf->l  = l;
     inf->n  = strdup(name);
-    inf->dl = 0;
+    inf->dl = -1;
     return inf;
 }
 
@@ -90,10 +90,6 @@ static int _try_push_path(sstack_t* st, char* full_path) {
     if (!inc) return 0;
     
     source_pos_info_t* inf = _create_info(inc, full_path, 0);
-    inf->dl = 2; /* If we're in this function, that means, we're
-                    pushing a dependency (header), which means,
-                    we must delete the guard scopes. */
-
     if (!stack_push(st, inf)) {
         fclose(inc);
         return 0;
@@ -188,6 +184,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
         return -1;
     }
 
+    info->dl = -93;
     source_pos_info_t* inf;
     while (stack_top(&ppctx.sources, (void**)&inf)) {
         ssize_t nread = getline(&ppctx.line, &ppctx.size, inf->f);
@@ -196,15 +193,18 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
            The gramma accepts code only in scopes,
            but pre-processor must delete these scopes to
            make it works. */
-        if (inf->dl == 2) { /* Init state */
-            for (ssize_t i = 0; i < (ssize_t)ppctx.size; i++) {
-                if (ppctx.line[i] == '{') {
-                    ppctx.line[i] = ' ';   /* Set the empty sybol */
-                    inf->dl = 1;           /* Set the next state  */
-                }
+        if (_l && inf->dl != -93) for (ssize_t i = strlen(_l); i >= 0; i--) {
+            switch (_l[i]) {
+                case '{': inf->dl++; break;
+                case '}': inf->dl--; break;
+                default: continue;
+            }
+
+            if (inf->dl <= 0) {
+                _l[i] = ' ';
             }
         }
-
+        
         inf->l++;
         
         /* Current source file is complete.
@@ -212,30 +212,14 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
            - Also, we need to place a 'line' command
              to be sure, that tokenizer will figure out
             how to deal with a new complex file. */
-        if (nread == -1) {
+        if (nread < 0) {
             source_pos_info_t* done;
             stack_pop(&ppctx.sources, (void**)&done);
             if (done) _destroy_info(done);
 
-            /* Delete the guardian exit scope.
-            The gramma accepts code only in scopes,
-            but pre-processor must delete these scopes to
-            make it works. */
-            if (inf->dl == 1 && _l) { /* Init state */
-                for (ssize_t i = strlen(_l); i >= 0; i--) {
-                    if (_l[i] == '}') {
-                        _l[i] = ' ';   /* Set the empty sybol */
-                        inf->dl = 0;   /* Set the next state  */
-                    }
-                }
-            }
-
             /* Just to be sure, that we have another one file to continue.
                If we have, we must mark the return with an information line. */
-            if (
-                stack_top(&ppctx.sources, (void**)&done) && 
-                done
-            ) {
+            if (stack_top(&ppctx.sources, (void**)&done) && done) {
                 char lder[512] = { 0 };
                 snprintf(lder, sizeof(lder), "\n#line %i \"%s\"\n", done->l, done->n);
                 _lazy_fputs(lder, ppctx.out);
@@ -285,10 +269,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
 
                 /* Put a line that indicates a new start for the
                    new include file. */
-                if (
-                    stack_top(&ppctx.sources, (void**)&inf) &&
-                    inf
-                ) {
+                if (stack_top(&ppctx.sources, (void**)&inf) && inf) {
                     char lder[512] = { 0 };
                     snprintf(lder, sizeof(lder), "\n#line %i \"%s\"\n", inf->l, inf->n);
                     _lazy_fputs(lder, ppctx.out);
