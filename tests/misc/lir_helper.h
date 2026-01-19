@@ -159,9 +159,15 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
             if (fi.args) {
                 for (ast_node_t* t = fi.args->c; t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
                     ast_node_t* type = t;
-                    ast_node_t* name = t->c;
-                    dst += sprintf(dst, "%s %s", fmt_tkn_type(type->t), name->t->body->body);
-                    if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
+                    if (type->t->t_type == VAR_ARGUMENTS_TOKEN) dst += sprintf(dst, "...");
+                    else {
+                        ast_node_t* name = t->c;
+                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->t), name->t->body->body);
+                    }
+
+                    if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) {
+                        dst += sprintf(dst, ", ");
+                    }
                 }
             }
 

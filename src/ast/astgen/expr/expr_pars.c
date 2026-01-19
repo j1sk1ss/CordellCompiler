@@ -182,6 +182,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         }
     
         case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt); /* call()    */
+        case POPARG_TOKEN:    return cpl_parse_poparg(it);             /* poparg    */
         case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt);  /* syscall() */
         case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt);      /* neg       */
         case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt);      /* ref       */

@@ -166,7 +166,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 
 #ifdef HIR_TESTING
-    hir_ctx_t hirctx = { .h = NULL, .t = NULL, .carry = NULL };
+    hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);     // Analyzation
 
     cfg_ctx_t cfgctx = { .cid = 0 };

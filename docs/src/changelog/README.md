@@ -26,6 +26,28 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Variadic arguments
+Now CPL supports variadic arguments! The syntax is similar to C language:
+```cpl
+function foo(...) => i0 {
+}
+```
+
+To pop an argument from this set, use the `poparg` keyword:
+```cpl
+function max(...) => i0 {
+    i32 chloe = poparg as i32;
+}
+```
+
+Also, the `poparg` keyword can be used in any function with arguments. It simply replaces any argument loading:
+```cpl
+function foo(i32 a, i32 b) {
+    i32 c = poparg; : a :
+    i32 d = poparg; : b :
+}
+```
+
 # Version v3.3
 CPL-preprocessing derictives and new include system. </br>
 Now this compiler supports derictives such as `define`, `undef`, `ifdef` and `ifndef`. Also it supports the `include` statement. For more information, check the main README file. </br>

@@ -94,6 +94,7 @@ typedef enum {
     BREAK_TOKEN,         // break
     IF_TOKEN,            // if
     ELSE_TOKEN,          // else
+    POPARG_TOKEN,        // poparg
     
     // Operands
     PLUS_TOKEN,          // +

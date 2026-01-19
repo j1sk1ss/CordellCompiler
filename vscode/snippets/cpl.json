@@ -338,7 +338,12 @@
     "body": "not",
     "description": "CPL modifier"
   },
-
+  "CPL Ops POPARG": {
+    "scope": "cpl",
+    "prefix": "poparg",
+    "body": "poparg",
+    "description": "CPL pop argument operation"
+  },
   "CPL Ops REF": {
     "scope": "cpl",
     "prefix": "ref",

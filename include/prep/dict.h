@@ -61,6 +61,7 @@
 #define ELSE_COMMAND            "else"
 #define SYSCALL_COMMAND         "syscall"
 #define ASM_COMMAND             "asm"
+#define POPARG_COMMAND          "poparg"
 
 // Symbols and statements (Operands)
 /* Update lexems */

@@ -62,7 +62,7 @@
         },
         {
           "name": "keyword.control.cpl",
-          "match": "\\b(start|exit|return|if|else|loop|while|switch|case|default|break)\\b"
+          "match": "\\b(start|exit|return|if|else|loop|while|switch|case|default|break|poparg)\\b"
         },
         {
           "name": "keyword.other.import.cpl",

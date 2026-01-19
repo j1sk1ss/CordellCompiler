@@ -119,7 +119,7 @@ const KEYWORDS = new Set([
   "start","exit","exfunc","function","return",
   "if","else","while","loop","switch","case","default",
   "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
-  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not",
+  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not", "poparg",
   // preprocessor
   "line","include","define","undef","ifdef","ifndef","endif"
 ]);

@@ -115,6 +115,7 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
                                        postfix_op     = "(" , [ arg_list ] , ")"
                                                    | "[" , expression , { "," , expression } , "]" ; */
         case CALL_TOKEN:            return cpl_parse_funccall(it, ctx, smt);
+        case POPARG_TOKEN:          return cpl_parse_poparg(it);
                                     /* function_def   = "function" , identifier , "(" , [ param_list ] , ")" , "=>" , type , block ; */
         case FUNC_TOKEN:            return cpl_parse_function(it, ctx, smt);
                                     /* exit_statement   = "exit" , expression , ";" ; */

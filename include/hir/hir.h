@@ -67,7 +67,11 @@ typedef struct hir_block {
 typedef struct {
     hir_block_t* h;     /* Current HIR head                        */
     hir_block_t* t;     /* Current HIR tail                        */
-    void*        carry; /* Special carry field for any information */
+    struct {
+        void*    ptr;   /* pointer to a break target               */
+        long     val1;  /* function's argument number              */
+        long     val2;  /* free                                    */
+    } carry;            /* Additional carry for any specific data  */
 } hir_ctx_t;
 
 /*

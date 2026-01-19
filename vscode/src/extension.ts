@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
     "start","exit","exfunc","function","return",
     "if","else","while","loop","switch","case","default",
     "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
-    "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not"
+    "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg"
   ];
 
   const docs: Record<string, string> = {
@@ -227,6 +227,15 @@ export function activate(context: vscode.ExtensionContext) {
   
   \`\`\`cpl
   i32 x = not 0; : 1 :
+  \`\`\`
+  `,
+  
+    poparg: `**poparg** — Pop a function's argument.
+
+  \`\`\`cpl
+  function max(...) {
+    ptr u8 chloe = poparg as ptr u8;
+  }
   \`\`\`
   `,
   

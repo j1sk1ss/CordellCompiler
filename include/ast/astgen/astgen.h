@@ -632,4 +632,18 @@ Returns an ast node.
 */
 ast_node_t* cpl_parse_neg(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
+/*
+Parse .cpl 'poparg' command. Should be invoked on a 'poparg' token.
+Snippet:
+```cpl
+i32 a = poparg as i32;
+```
+
+Params:
+    - `it` - Current iterator on token list.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_poparg(list_iter_t* it);
+
 #endif
