@@ -39,6 +39,17 @@ static inline int consume_token(list_iter_t* it, token_type_t t) {
 }
 
 /*
+Init an AST context.
+Params:
+    - `ctx` - AST context.
+    - `fentry` - Default entry name for the architecture.
+                 Note: By default can be NULL.
+
+Returns 1 if succeeds.
+*/
+int AST_init_ctx(ast_ctx_t* ctx, const char* fentry);
+
+/*
 Generate AST from list of tokens.
 Params:
     - tkn - List of tokens.
@@ -48,5 +59,14 @@ Params:
 Return 1 if success, otherwise 0.
 */
 int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Unload an AST context.
+Params:
+    - `ctx` - AST context.
+
+Returns 1 if succeeds.
+*/
+int AST_unload_ctx(ast_ctx_t* ctx);
 
 #endif

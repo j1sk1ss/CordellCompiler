@@ -39,3 +39,18 @@ According to the existence of a custom memory manager in this project, we have a
 python3 tester.py --run --module hir_dag --test-code dummy_data/test2.cpl --extra-flags DMEM_OPERATION_LOGS
 python3 leaks.py --log-path <path_to_log>
 ```
+
+# Unit Testing
+Additionally, the Compiler has a unit tester. To use it, input the next querry:
+```bash
+python3 utester.py --path <path>
+```
+Here:
+- `--path` - Path to the unit test folder.
+
+## Unit test folder
+Unit test folder is a folder that contains two special files:
+- `base.c` - Implementation of the test script that returns the expected result.
+- `dependencies.json` - Dependencies file with all used modules of the compiler.
+
+For instance, check the `test_code/ast/` folder.

@@ -20,7 +20,7 @@
       { scope, id=3 }
          { scope, id=4 }
             [return] (RETURN_TOKEN, v_id=0, s_id=4)
-               [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0, glob)
+               [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
       [bar] (FUNC_NAME_TOKEN, v_id=0, s_id=0)
       { scope, id=5 }

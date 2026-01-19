@@ -1,5 +1,12 @@
 #include <ast/astgen.h>
 
+int AST_init_ctx(ast_ctx_t* ctx, const char* fentry) {
+    str_memset(ctx, 0, sizeof(ast_ctx_t));
+    ctx->fentry = fentry ? fentry : "_main";
+    stack_init(&ctx->scopes.stack);
+    return 1;
+}
+
 int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     list_iter_t it;
     list_iter_hinit(tkn, &it);
@@ -21,5 +28,11 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
         print_warn("The 'start' function isn't found! Default entry set to the '%s'!", last->name->body);
     }
 
+    return 1;
+}
+
+int AST_unload_ctx(ast_ctx_t* ctx) {
+    AST_unload(ctx->r);
+    stack_free(&ctx->scopes.stack);
     return 1;
 }
