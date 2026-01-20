@@ -200,7 +200,6 @@ static int _apply_modifiers(list_t* tkn) {
     while ((curr = (token_t*)list_iter_next(&it))) {
         token_t* next = (token_t*)list_iter_current(&it);
         if (next) switch (curr->t_type) {
-            case EXTERN_TOKEN:    cflags.ext  = 1; _remove_token(tkn, curr); break;
             case GLOB_TYPE_TOKEN: cflags.glob = 1; _remove_token(tkn, curr); break;
             case PTR_TYPE_TOKEN:  cflags.ptr  = 1; _remove_token(tkn, curr); break;
             case RO_TYPE_TOKEN:   cflags.ro   = 1; _remove_token(tkn, curr); break;

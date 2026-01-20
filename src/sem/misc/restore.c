@@ -3,6 +3,7 @@
 const char* RST_restore_type(token_t* t) {
     if (!t) return "";
     switch (t->t_type) {
+        case VAR_ARGUMENTS_TOKEN:   return VAR_ARGUMENTS_COMMAND;
         case ARRAY_TYPE_TOKEN:
         case ARR_VARIABLE_TOKEN:    return ARR_VARIABLE;
         case STR_TYPE_TOKEN:
@@ -401,6 +402,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             break;
         }
 
+        case EXTERN_TOKEN:     _simple_restore_lines(x, nd->c, u, indent, EXTERN_COMMAND " ");      break;
         case REF_TYPE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, REF_COMMAND " ");         break;
         case DREF_TYPE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, DREF_COMMAND " ");        break;
         case NEGATIVE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, NEGATIVE_COMMAND " ");    break;

@@ -222,29 +222,29 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
     }
     else {
         switch (s->t) {
-            case HIR_F64NUMBER:  dst += sprintf(dst, "f64n: %s", s->storage.num.value->body); break;
-            case HIR_I64NUMBER:  dst += sprintf(dst, "i64n: %s", s->storage.num.value->body); break;
-            case HIR_U64NUMBER:  dst += sprintf(dst, "u64n: %s", s->storage.num.value->body); break;
-            case HIR_F32NUMBER:  dst += sprintf(dst, "f32n: %s", s->storage.num.value->body); break;
-            case HIR_I32NUMBER:  dst += sprintf(dst, "i32n: %s", s->storage.num.value->body); break;
-            case HIR_U32NUMBER:  dst += sprintf(dst, "u32n: %s", s->storage.num.value->body); break;
-            case HIR_I16NUMBER:  dst += sprintf(dst, "i16n: %s", s->storage.num.value->body); break;
-            case HIR_U16NUMBER:  dst += sprintf(dst, "u16n: %s", s->storage.num.value->body); break;  
-            case HIR_I8NUMBER:   dst += sprintf(dst, "i8n: %s", s->storage.num.value->body);  break;
-            case HIR_U8NUMBER:   dst += sprintf(dst, "u8n: %s", s->storage.num.value->body);  break;
-            case HIR_NUMBER:     dst += sprintf(dst, "num?: %s", s->storage.num.value->body); break;
+            case HIR_F64NUMBER:  dst += sprintf(dst, "f64n %s", s->storage.num.value->body); break;
+            case HIR_I64NUMBER:  dst += sprintf(dst, "i64n %s", s->storage.num.value->body); break;
+            case HIR_U64NUMBER:  dst += sprintf(dst, "u64n %s", s->storage.num.value->body); break;
+            case HIR_F32NUMBER:  dst += sprintf(dst, "f32n %s", s->storage.num.value->body); break;
+            case HIR_I32NUMBER:  dst += sprintf(dst, "i32n %s", s->storage.num.value->body); break;
+            case HIR_U32NUMBER:  dst += sprintf(dst, "u32n %s", s->storage.num.value->body); break;
+            case HIR_I16NUMBER:  dst += sprintf(dst, "i16n %s", s->storage.num.value->body); break;
+            case HIR_U16NUMBER:  dst += sprintf(dst, "u16n %s", s->storage.num.value->body); break;  
+            case HIR_I8NUMBER:   dst += sprintf(dst, "i8n %s", s->storage.num.value->body);  break;
+            case HIR_U8NUMBER:   dst += sprintf(dst, "u8n %s", s->storage.num.value->body);  break;
+            case HIR_NUMBER:     dst += sprintf(dst, "num? %s", s->storage.num.value->body); break;
 
-            case HIR_F64CONSTVAL: dst += sprintf(dst, "f64c: %ld", s->storage.cnst.value);   break;
-            case HIR_I64CONSTVAL: dst += sprintf(dst, "i64c: %ld", s->storage.cnst.value);   break;
-            case HIR_U64CONSTVAL: dst += sprintf(dst, "u64c: %ld", s->storage.cnst.value);   break;
-            case HIR_F32CONSTVAL: dst += sprintf(dst, "f32c: %ld", s->storage.cnst.value);   break;
-            case HIR_I32CONSTVAL: dst += sprintf(dst, "i32c: %ld", s->storage.cnst.value);   break;
-            case HIR_U32CONSTVAL: dst += sprintf(dst, "u32c: %ld", s->storage.cnst.value);   break;
-            case HIR_I16CONSTVAL: dst += sprintf(dst, "i16c: %ld", s->storage.cnst.value);   break;
-            case HIR_U16CONSTVAL: dst += sprintf(dst, "u16c: %ld", s->storage.cnst.value);   break;
-            case HIR_I8CONSTVAL:  dst += sprintf(dst, "i8c: %ld", s->storage.cnst.value);    break;
-            case HIR_U8CONSTVAL:  dst += sprintf(dst, "u8c: %ld", s->storage.cnst.value);    break;
-            case HIR_CONSTVAL:    dst += sprintf(dst, "cnst?: %ld", s->storage.cnst.value);  break;
+            case HIR_F64CONSTVAL: dst += sprintf(dst, "f64c %ld", s->storage.cnst.value);   break;
+            case HIR_I64CONSTVAL: dst += sprintf(dst, "i64c %ld", s->storage.cnst.value);   break;
+            case HIR_U64CONSTVAL: dst += sprintf(dst, "u64c %ld", s->storage.cnst.value);   break;
+            case HIR_F32CONSTVAL: dst += sprintf(dst, "f32c %ld", s->storage.cnst.value);   break;
+            case HIR_I32CONSTVAL: dst += sprintf(dst, "i32c %ld", s->storage.cnst.value);   break;
+            case HIR_U32CONSTVAL: dst += sprintf(dst, "u32c %ld", s->storage.cnst.value);   break;
+            case HIR_I16CONSTVAL: dst += sprintf(dst, "i16c %ld", s->storage.cnst.value);   break;
+            case HIR_U16CONSTVAL: dst += sprintf(dst, "u16c %ld", s->storage.cnst.value);   break;
+            case HIR_I8CONSTVAL:  dst += sprintf(dst, "i8c %ld", s->storage.cnst.value);    break;
+            case HIR_U8CONSTVAL:  dst += sprintf(dst, "u8c %ld", s->storage.cnst.value);    break;
+            case HIR_CONSTVAL:    dst += sprintf(dst, "cnst? %ld", s->storage.cnst.value);  break;
 
             case HIR_LABEL: dst += sprintf(dst, "lb%li", s->id); break;
             case HIR_RAWASM:
@@ -261,34 +261,27 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                 func_info_t fi;
                 if (FNTB_get_info_id(s->storage.str.s_id, &fi, &smt->f)) {
                     dst += sprintf(dst, "%s(", fi.name->body);
-                }
-
-                if (fi.args) {
-                    for (ast_node_t* t = fi.args->c; t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
-                        ast_node_t* type = t;
-                        if (type->t->t_type == VAR_ARGUMENTS_TOKEN) dst += sprintf(dst, "...");
-                        else {
-                            ast_node_t* name = t->c;
-                            dst += sprintf(dst, "%s %s", fmt_tkn_type(type->t), name->t->body->body);
-                        }
-
-                        if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) {
-                            dst += sprintf(dst, ", ");
+                    if (fi.args) {
+                        for (ast_node_t* t = fi.args->c; t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
+                            if (t->t->t_type == VAR_ARGUMENTS_TOKEN) dst += sprintf(dst, "...");
+                            else dst += sprintf(dst, "%s %s", fmt_tkn_type(t->t), t->c->t->body->body);
+                            if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) {
+                                dst += sprintf(dst, ", ");
+                            }
                         }
                     }
-                }
 
-                dst += sprintf(dst, ")");
-
-                if (fi.rtype) {
-                    dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->t));
+                    dst += sprintf(dst, ")");
+                    if (fi.rtype) {
+                        dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->t));
+                    }
                 }
 
                 break;
             }
 
             case HIR_PHISET: {
-                dst += sprintf(dst, "set: ");
+                dst += sprintf(dst, "set ");
                 set_foreach (int_tuple_t* tpl, &s->storage.set.h) {
                     variable_info_t pvi;
                     if (VRTB_get_info_id(tpl->y, &pvi, &smt->v)) {
@@ -300,16 +293,17 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             }
 
             case HIR_ARGLIST: {
-                dst += sprintf(dst, "args: ");
+                dst += sprintf(dst, "args(");
 
                 list_iter_t it;
                 list_iter_hinit(&s->storage.list.h, &it);
                 hir_subject_t* s;
                 while ((s = (hir_subject_t*)list_iter_next(&it))) {
                     dst = sprintf_hir_subject(dst, s, smt);
-                    dst += sprintf(dst, " ");
+                    dst += sprintf(dst, ",");
                 }
                 
+                dst += sprintf(dst, ")");
                 break;
             }
 
