@@ -199,8 +199,6 @@ literal         = integer_literal | string_literal | char_literal ;
 /* Support macro for getting the current token from the iterator. */
 #define CURRENT_TOKEN      ((token_t*)list_iter_current(it))
 #define CREATE_SCOPE_TOKEN TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
-// #define CONSUME_TOKEN(it, expected) \
-//     CURRENT_TOKEN ? (CURRENT_TOKEN->t_type == expected ? forward_token(it, 1) : 0) : 0
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \

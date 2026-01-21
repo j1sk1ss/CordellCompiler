@@ -26,6 +26,7 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_MKLB:         return "MKLB";
         case HIR_FDCL:         return "FDCL";
         case HIR_FEND:         return "FEND";
+        case HIR_FEXT:         return "FEXT";
         case HIR_OEXT:         return "OEXT";
         case HIR_JMP:          return "JMP";
         case HIR_iADD:         return "iADD";
@@ -116,7 +117,8 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_MKLB:       return "%s:\n";
         case HIR_FDCL:       return "fn %s\n";
         case HIR_FEND:       return "\n";
-        case HIR_OEXT:       return "extern %s;\n";
+        case HIR_FEXT:       return "(fun) extern %s;\n";
+        case HIR_OEXT:       return "(var) extern %s;\n";
         case HIR_JMP:        return "goto %s;\n";
         case HIR_iADD:       return "%s = %s + %s;\n";
         case HIR_iSUB:       return "%s = %s - %s;\n";

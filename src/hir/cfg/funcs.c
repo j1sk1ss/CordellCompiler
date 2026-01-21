@@ -67,6 +67,7 @@ int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt
                 fentry = NULL;
                 break;
             }
+            default: break;
         }
 
         h = h->next;

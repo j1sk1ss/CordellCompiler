@@ -17,6 +17,7 @@ typedef enum {
         LIR_FDCL,  // declare function
         LIR_FEND,
         LIR_OEXT,  // extern object
+        LIR_FEXT,  // extern function
 
         LIR_CMP,
 

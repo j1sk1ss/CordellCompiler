@@ -10,8 +10,9 @@ static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym
             case HIR_PHI_PREAMBLE:
             case HIR_STORE:    x86_64_store_var2var(LIR_iMOV, ctx, h->farg, h->sarg);                                                      break;
             case HIR_STARGLD:  LIR_BLOCK2(ctx, LIR_STARGLD, x86_64_format_variable(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value)); break;
-            case HIR_STRT:     LIR_BLOCK0(ctx, LIR_STRT);                                                                                  break;
-            case HIR_OEXT:     LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_STRING(h->farg->storage.str.s_id));                                      break;
+            case HIR_STRT:     LIR_BLOCK1(ctx, LIR_STRT, LIR_SUBJ_FUNCNAME(h->farg));                                                      break;
+            case HIR_OEXT:     LIR_BLOCK1(ctx, LIR_OEXT, LIR_SUBJ_CONST(h->farg->storage.cnst.value));                                     break;
+            case HIR_FEXT:     LIR_BLOCK1(ctx, LIR_FEXT, LIR_SUBJ_CONST(h->farg->storage.cnst.value));                                     break;
             case HIR_EXITOP:   LIR_BLOCK1(ctx, LIR_EXITOP, x86_64_format_variable(h->farg));                                               break;
             
             case HIR_FDCL:   LIR_BLOCK1(ctx, LIR_FDCL, LIR_SUBJ_FUNCNAME(h->farg));                                                        break;

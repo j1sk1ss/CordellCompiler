@@ -9,8 +9,12 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_ECLL: fprintf(output, "call %s\n", x86_64_asm_variable(curr->farg, smt)); break;
             
             case LIR_STRT: {
-                fprintf(output, "_main:\n");
-                x86_64_generate_stackframe(curr, LIR_STEND, output);
+                func_info_t fi;
+                if (FNTB_get_info_id(curr->farg->storage.str.sid, &fi, &smt->f)) {
+                    fprintf(output, "%s:\n", fi.name);
+                    x86_64_generate_stackframe(curr, LIR_STEND, output);
+                }
+
                 break;
             }
 
@@ -28,6 +32,24 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
                 break;
             }
             
+            case LIR_FEXT: {
+                func_info_t fi;
+                if (FNTB_get_info_id(curr->farg->storage.cnst.value, &fi, &smt->f)) {
+                    fprintf(output, "extern %s\n", fi.name->body);
+                }
+
+                break;
+            }
+
+            case LIR_OEXT: {
+                variable_info_t vi;
+                if (VRTB_get_info_id(curr->farg->storage.cnst.value, &vi, &smt->v)) {
+                    fprintf(output, "extern %s\n", vi.name->body); 
+                }
+
+                break;
+            }
+
             case LIR_BREAKPOINT: fprintf(output, "int3 ; %s\n", x86_64_asm_variable(curr->farg, smt));                                      break;
             case LIR_BB:         fprintf(output, "\n; BB%ld: \n", curr->farg->storage.cnst.value);                                          break;
 
@@ -35,7 +57,6 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_XCHG: fprintf(output, "xchg %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));    break;
 
             case LIR_MKLB: fprintf(output, "%s:\n", x86_64_asm_variable(curr->farg, smt));                                                  break;
-            case LIR_OEXT: fprintf(output, "extern %s\n", x86_64_asm_variable(curr->farg, smt));                                            break;
             
             case LIR_SETL: fprintf(output, "setl %s\n", x86_64_asm_variable(curr->farg, smt));                                              break;
             case LIR_SETG: fprintf(output, "setg %s\n", x86_64_asm_variable(curr->farg, smt));                                              break;

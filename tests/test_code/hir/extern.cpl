@@ -4,5 +4,8 @@
 }
 
 : OUTPUT
-TODO
+{
+    (var) extern cnst? 0;
+    (fun) extern cnst? 0;
+}
 :

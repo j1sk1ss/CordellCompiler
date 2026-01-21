@@ -313,7 +313,7 @@ int MRKP_variables(list_t* tkn) {
             case UNKNOWN_CHAR_TOKEN:
             case UNKNOWN_STRING_TOKEN: {
                 for (int s = scope_stack.top; s >= 0; s--) {
-                    short curr_s = (short)scope_stack.data[s].d;
+                    short curr_s = (short)((long)scope_stack.data[s].d);
                     foreach (variable_t* v, &vars) {
                         if (curr->body->equals(curr->body, v->name) && v->scope == curr_s) {
                             curr->t_type = v->type;
