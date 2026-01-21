@@ -139,10 +139,6 @@ typedef struct {
     string_t*     name;
 } variable_t;
 
-typedef struct {
-    token_type_t ttype;
-} markp_ctx;
-
 /*
 Add variable to a list.
 Params:
@@ -230,14 +226,13 @@ int MRKP_variables(list_t* tkn) {
     token_t* curr;
     while ((curr = (token_t*)list_iter_next(&it))) {
         switch (curr->t_type) {
-            // TODO: Function scopes for prototypes
             case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
             case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
 
             case IMPORT_TOKEN: {
                 curr = (token_t*)list_iter_next(&it);
                 ctype = CALL_TOKEN;
-                while (curr->t_type != DELIMITER_TOKEN) {
+                while (curr && curr->t_type != DELIMITER_TOKEN) {
                     long import_scope;
                     stack_top(&scope_stack, (void**)&import_scope);
                     if (curr->t_type != COMMA_TOKEN) {
@@ -275,18 +270,18 @@ int MRKP_variables(list_t* tkn) {
                             break;
                         }
 
-                        case I8_TYPE_TOKEN:    ctype = I8_VARIABLE_TOKEN;  break;
-                        case U8_TYPE_TOKEN:    ctype = U8_VARIABLE_TOKEN;  break;
-                        case I32_TYPE_TOKEN:   ctype = I32_VARIABLE_TOKEN; break;
-                        case U32_TYPE_TOKEN:   ctype = U32_VARIABLE_TOKEN; break;
-                        case F32_TYPE_TOKEN:   ctype = F32_VARIABLE_TOKEN; break;
-                        case I64_TYPE_TOKEN:   ctype = I64_VARIABLE_TOKEN; break;
-                        case U64_TYPE_TOKEN:   ctype = U64_VARIABLE_TOKEN; break;
-                        case F64_TYPE_TOKEN:   ctype = F64_VARIABLE_TOKEN; break;
-                        case I16_TYPE_TOKEN:   ctype = I16_VARIABLE_TOKEN; break;
-                        case U16_TYPE_TOKEN:   ctype = U16_VARIABLE_TOKEN; break;
-                        case STR_TYPE_TOKEN:   ctype = STR_VARIABLE_TOKEN; break;
-                        case ARRAY_TYPE_TOKEN: ctype = ARR_VARIABLE_TOKEN; break;
+                        case I8_TYPE_TOKEN:
+                        case U8_TYPE_TOKEN:
+                        case I32_TYPE_TOKEN:
+                        case U32_TYPE_TOKEN:
+                        case F32_TYPE_TOKEN:
+                        case I64_TYPE_TOKEN:
+                        case U64_TYPE_TOKEN:
+                        case F64_TYPE_TOKEN:
+                        case I16_TYPE_TOKEN:
+                        case U16_TYPE_TOKEN:
+                        case STR_TYPE_TOKEN:
+                        case ARRAY_TYPE_TOKEN: ctype = VARIABLE_TOKEN; break;
                         default: break;
                     }
 

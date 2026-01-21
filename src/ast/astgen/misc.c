@@ -15,6 +15,7 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
                 node->sinfo.v_id    = varinfo.v_id;
                 node->sinfo.s_id    = varinfo.s_id;
                 node->t->flags.heap = varinfo.vfs.heap;
+                node->t->t_type     = TKN_get_var_from_type(varinfo.type);
                 return 1;
             }
         }

@@ -77,6 +77,7 @@ const char* name_tkn_type(token_type_t t) {
         case BITXOR_TOKEN:          return "BITXOR_TOKEN";
         case AND_TOKEN:             return "AND_TOKEN";
         case OR_TOKEN:              return "OR_TOKEN";
+        case VARIABLE_TOKEN:        return "VARIABLE_TOKEN";
         case F64_VARIABLE_TOKEN:    return "F64_VARIABLE_TOKEN";
         case F32_VARIABLE_TOKEN:    return "F32_VARIABLE_TOKEN";
         case I64_VARIABLE_TOKEN:    return "I64_VARIABLE_TOKEN";
