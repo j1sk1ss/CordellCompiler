@@ -178,7 +178,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
 
     HIR_LOOP_mark_loops(&cfgctx);           // Analyzation
-    HIR_FUNC_perform_inline(&cfgctx);       // Transform
+    // HIR_FUNC_perform_inline(&cfgctx);       // Transform
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
 

@@ -17,7 +17,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_MKLB:       return "%s:\n";
         case LIR_FDCL:       return "fn %s\n";
         case LIR_STRT:       return "start\n";
-        case LIR_STEND:      return "\n";
+        case LIR_STEND:      return "fend\n";
         case LIR_FEND:       return "\n";
         case LIR_OEXT:       return "extern %s;\n";
 

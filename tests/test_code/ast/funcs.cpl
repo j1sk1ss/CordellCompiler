@@ -1,7 +1,6 @@
 {
     function foo(i32 a) {
         a += 1;
-        return;
     }
 
     function bar(i16 a) => i32 {
@@ -11,12 +10,17 @@
 
     function baz(u64 a) => i0 {
         a /= 1;
-        return;
     }
 
     function fang(i32 a) {
         a += 1;
-        return;
+    }
+
+    start() {
+      foo(1);
+      bar(1);
+      baz(1);
+      fang(1);
     }
 }
 

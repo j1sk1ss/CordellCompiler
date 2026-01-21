@@ -1,10 +1,10 @@
 #include <lir/lirgens/lirgens.h>
 
 static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym_table_t* smt) { 
-    hir_block_t* h = bb->hmap.entry;
     LIR_BLOCK1(ctx, LIR_BB, LIR_SUBJ_CONST(bb->id));
     bb->lmap.entry = ctx->t;
 
+    hir_block_t* h = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
     while (h) {
         if (!h->unused) switch (h->op) {
             case HIR_PHI_PREAMBLE:
@@ -145,8 +145,7 @@ static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym
             default: break;
         }
         
-        if (h == bb->hmap.exit) break;
-        h = h->next;
+        h = HIR_get_next(h, bb->hmap.exit, 1);
     }
 
     if (!bb->lmap.entry) bb->lmap.entry = ctx->h;
