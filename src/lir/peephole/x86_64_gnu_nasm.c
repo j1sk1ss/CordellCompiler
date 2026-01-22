@@ -145,8 +145,8 @@ static int _recursive_cleanup(
     if (
         !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) || 
         !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
-    ) return 0;
-    return 1;
+    ) return 0; /* If the command is used somewhere in the childs, return 0                       */
+    return 1;   /* By default, if the considering command is unused elsewhere, we mark it to drop */
 }
 
 static int _cleanup_pass(cfg_block_t* bb) {
