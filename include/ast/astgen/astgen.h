@@ -202,12 +202,12 @@ literal         = integer_literal | string_literal | char_literal ;
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
-        stderr,                                                     \
-        "[%s:%li:%li] " msg "\n",                                   \
-        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.file->body : "(null)", \
-        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.line : 0,              \
-        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.column : 0,            \
-        ##__VA_ARGS__                                               \
+        stderr,                                                                                  \
+        "[%s:%li:%li] " msg "\n",                                                                \
+        (CURRENT_TOKEN && CURRENT_TOKEN->finfo.file) ? CURRENT_TOKEN->finfo.file->body : "base", \
+        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.line : 0,                                           \
+        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.column : 0,                                         \
+        ##__VA_ARGS__                                                                            \
     )
 
 /*

@@ -35,7 +35,6 @@
             [+=] (ADDASSIGN_TOKEN, v_id=-1, s_id=0)
                [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
                [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [return] (RETURN_TOKEN, v_id=0, s_id=3)
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
       [bar] (FUNC_NAME_TOKEN, v_id=1, s_id=0)
          [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
@@ -58,7 +57,6 @@
             [/=] (DIVASSIGN_TOKEN, v_id=-1, s_id=0)
                [a] (U64_VARIABLE_TOKEN, v_id=2, s_id=6)
                [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [return] (RETURN_TOKEN, v_id=0, s_id=7)
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
       [fang] (FUNC_NAME_TOKEN, v_id=3, s_id=0)
       { scope, id=8 }
@@ -68,5 +66,14 @@
             [+=] (ADDASSIGN_TOKEN, v_id=-1, s_id=0)
                [a] (I32_VARIABLE_TOKEN, v_id=3, s_id=8)
                [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [return] (RETURN_TOKEN, v_id=0, s_id=9)
+   [start] (START_TOKEN, v_id=4, s_id=0)
+      { scope, id=10 }
+         [foo] (CALL_TOKEN, v_id=0, s_id=0)
+            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+         [bar] (CALL_TOKEN, v_id=1, s_id=0)
+            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+         [baz] (CALL_TOKEN, v_id=2, s_id=0)
+            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+         [fang] (CALL_TOKEN, v_id=3, s_id=0)
+            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
 :

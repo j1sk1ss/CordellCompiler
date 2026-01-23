@@ -59,8 +59,8 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
     }
 
     forward_token(it, 1);
-    ast_node_t* elem_size_node = AST_create_node(CURRENT_TOKEN);
-    if (!elem_size_node) {
+    ast_node_t* elem_type_node = AST_create_node(CURRENT_TOKEN);
+    if (!elem_type_node) {
         PARSE_ERROR("Can't create a node for the array type!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
@@ -75,8 +75,9 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
         return NULL;
     }
 
-    token_type_t eltype = elem_size_node->t->t_type;
-    AST_add_node(node, elem_size_node);
+    token_type_t eltype = elem_type_node->t->t_type;
+    if (elem_type_node->t->flags.ptr) eltype = U64_TYPE_TOKEN;
+    AST_add_node(node, elem_type_node);
 
     forward_token(it, 1);
     if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {

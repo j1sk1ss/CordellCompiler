@@ -58,7 +58,6 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     ast_node_t* tmp = left;
                     left = conv_type;
                     AST_add_node(left, tmp);
-                    forward_token(it, 1);
                 }
                 else {
                     PARSE_ERROR("Error during a cast parsing!");
@@ -66,8 +65,6 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     RESTORE_TOKEN_POINT;
                     return NULL;
                 }
-
-                goto _stop_expression_parsing;
             }
             /* Default operators such as:
                plus, minus, multiply, etc. */
@@ -167,11 +164,8 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         case OPEN_BRACKET_TOKEN: {
             forward_token(it, 1);
             ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
-            if (
-                !node || !CURRENT_TOKEN || 
-                CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN
-            ) {
-                PARSE_ERROR("Error during the binary expression parsing!");
+            if (!node || !CURRENT_TOKEN || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
+                PARSE_ERROR("Error during a binary expression parsing! The bracket wasn't closed!");
                 AST_unload(node);
                 RESTORE_TOKEN_POINT;
                 return NULL;

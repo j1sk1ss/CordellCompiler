@@ -62,9 +62,16 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
     AST_add_node(node, body);
 
-    string_t* main_name = create_string((char*)ctx->fentry);
+    string_t* main_name = create_string(ctx->fentry);
+    if (FNTB_get_info(main_name, NULL, &smt->f)) {
+        PARSE_ERROR("The main function already exists!");
+        AST_unload(node);
+        destroy_string(main_name);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+
     node->sinfo.v_id = FNTB_add_info(main_name, 1, 0, 1, NULL, NULL, &smt->f);
     destroy_string(main_name);
-
     return node;
 }

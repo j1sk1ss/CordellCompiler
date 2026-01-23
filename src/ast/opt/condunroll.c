@@ -5,7 +5,6 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
 
     ast_node_t* tprev = NULL;
     ast_node_t* t = root->c;
-
     while (t) {
         ast_node_t* next = t->siblings.n;
         if (TKN_isblock(t->t)) _clean_blocks(t, ctx);
@@ -67,7 +66,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                 case SWITCH_TOKEN: {
                     ast_node_t* stmt  = t->c;
                     ast_node_t* cases = stmt->siblings.n;
-
+                    
                     if (TKN_isnumeric(stmt->t)) {
                         ast_node_t* defcase = NULL;
                         ast_node_t* unrolled_switch = NULL;

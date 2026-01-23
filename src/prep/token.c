@@ -102,10 +102,6 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
     }
     
     str_memcpy(&tkn->finfo, finfo, sizeof(token_fpos_t));
-    if (
-        type == UNKNOWN_NUMERIC_TOKEN ||
-        type == STRING_VALUE_TOKEN
-    ) tkn->flags.glob = 1;
     return tkn;
 }
 
