@@ -80,5 +80,6 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         AST_add_node(cases_scope, case_node);
     }
 
+    forward_token(it, 1);
     return node;
 }

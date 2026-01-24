@@ -79,6 +79,7 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
         ctx->carry.ptr = backup;
     }
 
+    HIR_BLOCK1(ctx, HIR_JMP, end_lb);
     sort_qsort(cases_info, cases_count, sizeof(binary_cases_t), _cmp);
     HIR_BLOCK1(ctx, HIR_MKLB, cguards);
     

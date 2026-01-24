@@ -176,6 +176,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
 
 static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) {
     if (!s) return dst;
+    // dst += sprintf(dst, "[%p] ", s);
     if (HIR_is_vartype(s->t)) {
         switch (s->t) {
             case HIR_STKVARSTR:  dst += sprintf(dst, "strs");   break;

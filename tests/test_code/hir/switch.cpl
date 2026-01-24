@@ -28,6 +28,7 @@
                 lb12:
                 {
                 }
+                goto lb5;
                 lb4:
                 i8t %0 = num? 1 < cnst? 1;
                 if i8t %0, goto lb16, else goto lb17;

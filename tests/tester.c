@@ -173,12 +173,16 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
 
+#ifdef HIR_TRE_TESTING
     HIR_FUNC_perform_tre(&cfgctx, &smt);    // Transform
+#endif
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
 
     HIR_LOOP_mark_loops(&cfgctx);           // Analyzation
-    // HIR_FUNC_perform_inline(&cfgctx);       // Transform
+#ifdef HIR_INLINE_TESTING
+    HIR_FUNC_perform_inline(&cfgctx);       // Transform
+#endif
     HIR_CFG_unload(&cfgctx);                // Analyzation
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
 
@@ -211,6 +215,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     map_init(&ssactx.vers, MAP_NO_CMP);
     HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
     HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
+    map_free_force(&ssactx.vers);
 
     HIR_compute_homes(&hirctx);             // Analyzation
     HIR_LTREE_licm(&cfgctx, &smt);          // Transform

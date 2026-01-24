@@ -10,7 +10,7 @@ typedef struct {
 Add variable version placeholder to the versions map.
 Params:
     - `vers` - Versions map.
-    - `id` - Current variable ID (Or the head variable ID).
+    - `id` - The source variable ID (Or the head variable ID).
     - `cid` - Current variable ID.
 
 Returns 1 if all succeed. Otherwise will return 0.
@@ -165,7 +165,7 @@ Returns 1 if succeed. Otherwise will return 0.
 static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
     if (!b || set_has(&b->visitors, (void*)prev_bid)) return 0;
 
-    hir_block_t* hh = b->hmap.entry;
+    hir_block_t* hh = HIR_get_next(b->hmap.entry, b->hmap.exit, 0);
     while (hh) {
         switch (hh->op) {
             /* Special PHI function logic implies handling the phi set in command.
@@ -222,10 +222,10 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                         if (hh->farg->home == hh) HIR_unload_subject(hh->farg); 
                         hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), tmp_t);
 
-                        array_info_t ai; /* Check if this variable is an array                      */
-                                         /* Note: This is necessary due to possible function inline */
-                                         /*       In the nutshell, we must be sure that copied func */
-                                         /*       will have unique arrays.                          */
+                        array_info_t ai; /* Check if this variable is an array                        */
+                                         /* Note: This is necessary due to possible function inline   */
+                                         /*       In a nutshell, we must be sure that the copied func */
+                                         /*       will have unique arrays.                            */
                         if (ARTB_get_info(vi.v_id, &ai, &smt->a)) {
                             ARTB_add_copy(hh->farg->storage.var.v_id, &ai, &smt->a);
                         }
@@ -238,8 +238,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
             }
         }
 
-        if (hh == b->hmap.exit) break;
-        hh = hh->next;
+        hh = HIR_get_next(hh, b->hmap.exit, 1);
     }
 
     set_add(&b->visitors, (void*)prev_bid);
@@ -286,6 +285,5 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
         _iterate_block(list_get_head(&fb->blocks), ctx, 0, smt);
     }
 
-    map_free_force(&ctx->vers);
     return 1;
 }

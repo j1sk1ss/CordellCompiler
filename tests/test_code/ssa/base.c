@@ -14,6 +14,8 @@
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
+#include <hir/cfg.h>
+#include <hir/ssa.h>
 #include "../../misc/hir_helper.h"
 
 int main(int argc, char* argv[]) {
@@ -63,12 +65,30 @@ int main(int argc, char* argv[]) {
 
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
+
+    cfg_ctx_t cfgctx = { .cid = 0 };
+    HIR_CFG_build(&hirctx, &cfgctx, &smt);
+    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+    HIR_LTREE_canonicalization(&cfgctx);    // Transform
+    HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+
+    ssa_ctx_t ssactx;
+    map_init(&ssactx.vers, MAP_NO_CMP);
+    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
+    map_free_force(&ssactx.vers);
+
+    HIR_compute_homes(&hirctx);             // Analyzation
+    HIR_LTREE_licm(&cfgctx, &smt);          // Transform
+
     hir_block_t* hh = hirctx.h;
     while (hh) {
         print_hir_block(hh, 1, &smt);
         hh = hh->next;
     }
 
+    HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);

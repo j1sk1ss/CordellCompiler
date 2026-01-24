@@ -9,12 +9,12 @@
 
 #define HIRGEN_ERROR(nd, msg, ...) \
     fprintf( \
-        stderr,                                  \
-        "[%s:%li:%li] " msg "\n",                \
-        nd ? nd->t->finfo.file->body : "(null)", \
-        nd ? nd->t->finfo.line : 0,              \
-        nd ? nd->t->finfo.column : 0,            \
-        ##__VA_ARGS__                            \
+        stderr,                                                       \
+        "[%s:%li:%li] " msg "\n",                                     \
+        (nd && nd->t->finfo.file) ? nd->t->finfo.file->body : "base", \
+        nd ? nd->t->finfo.line : 0,                                   \
+        nd ? nd->t->finfo.column : 0,                                 \
+        ##__VA_ARGS__                                                 \
     )
 
 /*
@@ -148,10 +148,11 @@ Params:
     - `node` - AST node.
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
+    - `ret` - If this is a block, must be '0'.
 
-Return parsed from AST HIR subject.
+Returns the 'NULL' value or an update operator.
 */
-int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+hir_subject_t* HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
 /*
 Convert load AST node (arr[i] = 0) node into HIR element. 

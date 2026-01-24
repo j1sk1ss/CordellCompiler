@@ -18,6 +18,7 @@ import os
 import sys
 import json
 import argparse
+import tempfile
 import subprocess
 from pathlib import Path
 
@@ -50,13 +51,25 @@ def _parse_test_file(path: Path) -> tuple[str, str]:
     return before.rstrip(), expected
 
 def _run_test(binary: str, test_file: Path) -> dict:
-    _, expected = _parse_test_file(test_file)
-    proc = subprocess.run(
-        [binary, str(test_file), str(test_file.parent)],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
-    )
+    code, expected = _parse_test_file(test_file)
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        suffix=".cpl",
+        encoding="utf-8",
+        delete=False
+    ) as tmp:
+        tmp.write(code)
+        tmp_path = tmp.name
+
+    try:
+        proc = subprocess.run(
+            [binary, tmp_path, str(test_file.parent)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True
+        )
+    finally:
+        os.remove(tmp_path)
 
     expected_n = _normalize_output(expected)
     actual_n = _normalize_output(proc.stdout)
