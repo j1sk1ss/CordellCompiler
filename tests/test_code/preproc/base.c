@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    char pdata[4096] = { 0 };
+    char pdata[8192] = { 0 };
     pread(fd, pdata, sizeof(pdata), 0);
     printf("%s\n", pdata);
 

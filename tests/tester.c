@@ -93,8 +93,8 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     }
 
 #ifdef SRC_PRINT
-    char data[2048] = { 0 };
-    pread(fd, data, 2048, 0);
+    char data[8192] = { 0 };
+    pread(fd, data, sizeof(data), 0);
     printf("Source data: %s\n\n", data);
 #endif
 

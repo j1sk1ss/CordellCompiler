@@ -193,7 +193,7 @@ function cordell() => i0; { return; }
 - `Zero` is a `false` value.
 
 ## Strings and arrays
-- `str` - String data type. Similar to the `ptr u8` type, but it is used for the high-level inbuild operations like compare, len, etc. (WIP).
+- `str` - String data type. Similar to the `ptr u8` type, but it is used for the high-level inbuild operations such as compare, len, etc. (WIP).
 ```cpl
 str msg = "Hello world!";
 if msg == "Hello world!"; {
@@ -202,18 +202,18 @@ if msg == "Hello world!"; {
 
 - `arr` - Array data type. Can contain any primitive type.
 ```cpl
-arr arr1[10, i32];
-arr arr2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-arr matrix[2, u64] = { arr1, arr2 };
+arr 1dArray_1[10, i32];
+arr 1dArray_2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+arr 2dArray[2, ptr i32] = { ref 1dArray_1, ref 1dArray_2 };
 ```
 
-Also array can have an unkown in `compile-time` size. This will generate code that allocates memory in heap (WIP). 
+Also array can have an unknown in `compile-time` size. This will generate code that allocates memory in heap (WIP). 
 ```cpl
 extern i8 size;
 arr arr1[size, i32];
 ```
 
-`Runtime-sized` arrays will die when code returns from their home scope. That's why this code below still illegal (Work only in the cplv2):
+`Runtime-sized` arrays will die when code returns from their home scope. That's why the code below still illegal (Works only in the cplv2):
 ```cpl
 extern i8 size;
 ptr u8 a;
@@ -243,23 +243,24 @@ To obtain a reference link to this variable, we must use the `ref` statement:
 ```cpl
 i32 a = 123;
 ptr i32 a_ptr = ref a;
-```
 
-This is really close to C-language:
-```c
+: C alternative is
 int a = 123;
 int* a_ptr = &a;
+:
 ```
 
 ### dref
 Similar to C-language, we can 'dereference' the pointer. To perform this, we need to use the `dref` statement:
 ```cpl
 i32 b = dref a_ptr;
+: int b = *a_ptr; :
 ```
 
 Additionally, obtaining of a dereferenced value from a pointer can be performed via an indexing operation:
 ```cpl
 i32 b = a_ptr[0];
+: int b = a_ptr[0] :
 ``` 
 
 # Binary and unary operations
@@ -323,8 +324,7 @@ Note: `X` should be constant value (or a primitive variable that can be `inlined
 Note 2: Similar to C language, the `switch` statement supports the fall 'mechanic'. It implies, that the `case` can ignore the `break` keyword. This will lead to the execution of the next case block.
 ```cpl
 switch cond; {
-    case X; {
-    }
+    case X; {}
     case Y; {
         break;
     }
@@ -420,7 +420,7 @@ Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
 ```
 
 # Macros & include
-The compiler includes a preprocessor that will take care about statements such as `include`, `define`, `ifdef`, `ifndef` and `undef`. Most of them act similar to `C/C++`. For example, `incldue` statement must be used only with a 'header' file. How to create a 'header' file? </br>
+The compiler includes a preprocessor that will take care about statements such as `#include`, `#define`, `#ifdef`, `#ifndef` and `#undef`. Most of them act similar to `C/C++`. For example, `#include` statement must be used only with a 'header' file. How to create a 'header' file? </br>
 For example, we have a file with the implemented string function:
 ```cpl
 {
@@ -715,19 +715,19 @@ Outer variables can be seen by current and nested scopes.
 ```cpl
 {
    {
-      i32 a = 10; : <= Don't see any variables :
+      i32 a = 10; : <= Doesn't see any variables :
    }
 
-   i64 b = 10; : <= Don't see any variables :
+   i64 b = 10; : <= Doesn't see any variables :
 
    {
-      i8 c = 9; : <= See "b" variable :
+      i8 c = 9; : <= See the "b" variable :
 
       {
-         f32 a = 10; : <= See "b" and "c" variables :
+         f32 a = 10; : <= See the "b" and the "c" variables :
       }
 
-      i8 a = 0; : <= See "b" and "c" variables :
+      i8 a = 0; : <= See the "b" and the "c" variables :
    }
 }
 ```
@@ -841,7 +841,7 @@ Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
 ## Brainfuck
 ```cpl
 {
-    from "stdio.cpl" import puts, putc, gets;
+    #include "stdio_h.cpl"
 
     glob arr tape[30000, i8];
     glob arr code[10000, i8];

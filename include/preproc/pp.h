@@ -22,7 +22,43 @@
                           )
 #define PP_GET_DERICTIVE_OFF(der) sizeof(der) - 1
 #define PP_MV_LINE_DIR(s, der) s + (PP_GET_DERICTIVE_OFF(der))
-#define PP_PATH_MAX 256
+
+#define PP_PATH_MAX        256
+#define SCOPE_GUARDER_INIT -93
+
+typedef struct {
+    int      in_colon : 1; /* In comment section        */
+    int      in_str   : 1; /* In string                 */
+    int      in_chr   : 1; /* In character              */
+    int      esc      : 1; /* Backslash                 */
+    sstack_t skips;
+} pp_cmt_state_t;
+
+typedef struct {
+    FILE* f;            /* descriptor                */
+    int   l;            /* line                      */
+    char* n;            /* file name                 */
+    int   dl;           /* Delete scope guards       */
+    pp_cmt_state_t cst; /* Context for comment rm  */
+} source_pos_info_t;
+
+typedef struct {
+    /* Service information */
+    deftb_t        defines;      /* Defines table           */
+
+    /* Lines information */
+    char*          line;         /* Current line            */
+    size_t         size;         /* Current line size       */
+    char*          clean;        /* Cleaned from cmt line   */
+    size_t         clean_size;   /* Cleaned line size       */
+    char*          defined;      /* Line with defined data  */
+    size_t         defined_size; /* Defined line size       */
+
+    /* File information */
+    int            fd;           /* Input file descriptor   */
+    sstack_t       sources;      /* Sources stack           */
+    FILE*          out;          /* Target file pointer     */
+} pp_ctx_t;
 
 /*
 Create and open temp file near to the source fd file.
@@ -68,13 +104,6 @@ Params:
 Returns 1 if succeeds, otherwise will return 0.
 */
 int PP_parse_include_arg(const char* p, char* out, size_t out_sz, int* is_system);
-
-typedef struct {
-    int in_colon;   /* In comment section */
-    int in_str;     /* In string          */
-    int in_chr;     /* In character       */
-    int esc;        /* Backslash          */
-} pp_cmt_state_t;
 
 /*
 Clean the input buffer from a comment section.

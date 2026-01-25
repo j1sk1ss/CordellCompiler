@@ -1,5 +1,6 @@
 #include <ast/astgen/astgen.h>
 
+/* TODO: support the if-elseif-...-else syntax */
 ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     SAVE_TOKEN_POINT;
     
