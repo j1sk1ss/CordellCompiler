@@ -130,8 +130,7 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
         return NULL;
     }
     
-    forward_token(it, 1);
-    if (CURRENT_TOKEN->t_type == OPEN_INDEX_TOKEN) {
+    if (consume_token(it, OPEN_INDEX_TOKEN)) {
         forward_token(it, 1);
         ast_node_t* offset_exp = cpl_parse_expression(it, ctx, smt, na);
         if (!offset_exp) {
@@ -156,10 +155,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         PARSE_ERROR("Expected a token, but got a terminator!");
         return NULL;
     }
-
-    /* Check basic cases such as pointer access, 
-       call token (basic call), syscall token */
-    if (TKN_isptr(CURRENT_TOKEN)) return _parse_array_expression(it, ctx, smt, na); /* str / arr[] / arr / ptr / ptr[] */
+    
     switch (CURRENT_TOKEN->t_type) {
         case OPEN_BRACKET_TOKEN: {
             forward_token(it, 1);
@@ -193,13 +189,18 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         return NULL;
     }
 
-    /* Register a string in a string symbol table 
-    */
-    if (node->t->t_type == STRING_VALUE_TOKEN) {
-        node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
-    }
+    if ( /* Register a string in a string symbol table */
+        node->t->t_type == STRING_VALUE_TOKEN
+    ) node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
 
     var_lookup(node, ctx, smt);
+    /* Check basic cases such as pointer access, 
+       call token (basic call), syscall token */
+    if (TKN_isptr(CURRENT_TOKEN)) {
+        AST_unload(node);
+        return _parse_array_expression(it, ctx, smt, na); /* str / arr[] / arr / ptr / ptr[] */
+    }
+
     forward_token(it, 1);
     return node;
 }
