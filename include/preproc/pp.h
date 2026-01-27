@@ -139,13 +139,14 @@ int PP_parse_define_arg(
 Replace all existing defines from the line with their values.
 Params:
     - `in` - Input line.
+    - `in_cap` - Input line size.
     - `out` - Output finished line.
     - `out_cap` - Output size.
     - `dtcx` - Define table context.
 
-Returns 0 if fails, otherwise will return 1.
+Returns 0 if fails or doesn't change anything, otherwise will return 1.
 */
-int PP_resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t* dctx);
+int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, deftb_t* dctx);
 
 typedef struct {
     const char* bpath; /* Basic include path */

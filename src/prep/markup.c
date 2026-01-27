@@ -231,12 +231,11 @@ int MRKP_variables(list_t* tkn) {
 
             case IMPORT_TOKEN: {
                 curr = (token_t*)list_iter_next(&it);
-                ctype = CALL_TOKEN;
                 while (curr && curr->t_type != DELIMITER_TOKEN) {
                     long import_scope;
                     stack_top(&scope_stack, (void**)&import_scope);
                     if (curr->t_type != COMMA_TOKEN) {
-                        _add_variable(&vars, curr->body, import_scope, ctype, &curr->flags);
+                        _add_variable(&vars, curr->body, import_scope, CALL_TOKEN, &curr->flags);
                     }
                     
                     curr = (token_t*)list_iter_next(&it);
@@ -247,20 +246,14 @@ int MRKP_variables(list_t* tkn) {
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:
-            case I8_TYPE_TOKEN:
-            case U8_TYPE_TOKEN:
-            case I16_TYPE_TOKEN:
-            case U16_TYPE_TOKEN:
-            case I32_TYPE_TOKEN:
-            case U32_TYPE_TOKEN:
-            case F32_TYPE_TOKEN:
-            case I64_TYPE_TOKEN:
-            case U64_TYPE_TOKEN:
-            case F64_TYPE_TOKEN:
+            case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
+            case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
+            case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:
+            case I64_TYPE_TOKEN: case U64_TYPE_TOKEN: case F64_TYPE_TOKEN:
             case STR_TYPE_TOKEN:
             case ARRAY_TYPE_TOKEN: {
                 token_t* next = (token_t*)list_iter_current(&it);
-                if (next && (next->t_type == UNKNOWN_STRING_TOKEN || next->t_type == UNKNOWN_CHAR_TOKEN)) {
+                if (next && (next->t_type == UNKNOWN_STRING_TOKEN)) {
                     switch (curr->t_type) {
                         case FUNC_TOKEN:
                         case EXFUNC_TOKEN: {
@@ -270,18 +263,11 @@ int MRKP_variables(list_t* tkn) {
                             break;
                         }
 
-                        case I8_TYPE_TOKEN:
-                        case U8_TYPE_TOKEN:
-                        case I32_TYPE_TOKEN:
-                        case U32_TYPE_TOKEN:
-                        case F32_TYPE_TOKEN:
-                        case I64_TYPE_TOKEN:
-                        case U64_TYPE_TOKEN:
-                        case F64_TYPE_TOKEN:
-                        case I16_TYPE_TOKEN:
-                        case U16_TYPE_TOKEN:
-                        case STR_TYPE_TOKEN:
-                        case ARRAY_TYPE_TOKEN: ctype = VARIABLE_TOKEN; break;
+                        case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
+                        case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
+                        case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:
+                        case I64_TYPE_TOKEN: case U64_TYPE_TOKEN: case F64_TYPE_TOKEN:
+                        case STR_TYPE_TOKEN: case ARRAY_TYPE_TOKEN: ctype = VARIABLE_TOKEN; break;
                         default: break;
                     }
 
@@ -305,7 +291,6 @@ int MRKP_variables(list_t* tkn) {
         switch (curr->t_type) {
             case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
             case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
-            case UNKNOWN_CHAR_TOKEN:
             case UNKNOWN_STRING_TOKEN: {
                 for (int s = scope_stack.top; s >= 0; s--) {
                     short curr_s = (short)((long)scope_stack.data[s].d);
@@ -318,12 +303,12 @@ int MRKP_variables(list_t* tkn) {
                     }
                 }
 
-_resolved: {}
                 break;
             }
 
             default: break;
         }
+_resolved: {}
     }
 
     stack_free(&scope_stack);

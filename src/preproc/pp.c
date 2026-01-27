@@ -226,7 +226,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
             if (!stack_top(&inf->cst.skips, (void**)&stat) || !stat) {
                 /* Replace all defined values by their defenitions.
                 */
-                if (!PP_resolve_defines(ppctx.clean, &ppctx.defined, &ppctx.defined_size, &ppctx.defines)) {
+                if (!PP_resolve_defines(&ppctx.clean, &ppctx.clean_size, &ppctx.defined, &ppctx.defined_size, &ppctx.defines)) {
                     _unload_pp_ctx(&ppctx);
                     return -1;
                 }
