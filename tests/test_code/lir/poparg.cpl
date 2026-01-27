@@ -13,6 +13,5 @@ BB{X}: fn foo(...)
 %5 = ldparam();
 %4 = %5 as f64;
 %1 = %4;
-%1 = %4;
 fend
 :

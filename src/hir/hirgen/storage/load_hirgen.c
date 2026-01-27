@@ -2,10 +2,7 @@
 
 hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     hir_subject_t* res = NULL;
-    if (node->t->flags.ptr) {
-        if (node->c) goto _indexing;
-        else res = HIR_SUBJ_ASTVAR(node);
-    }
+    if (node->t->flags.ptr) goto _indexing;
     else {
         switch (node->t->t_type) {
             case STRING_VALUE_TOKEN:    res = HIR_SUBJ_STRING(node);          break;
