@@ -15,11 +15,11 @@
 
 : OUTPUT
 {
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
+#line 0 "{X}.cpl"
   
     function strlen(ptr i8 s) => i64;
 
-#line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
+#line 4 "{X}.cpl"
     
     function print(ptr str msg) => i0;
 }

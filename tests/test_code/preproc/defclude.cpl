@@ -14,10 +14,10 @@
 
 : OUTPUT
 {
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/define.cpl"
+#line 0 "{X}.cpl"
  
     function a();
  
-#line 3 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/defclude.cpl"
+#line 3 "{X}.cpl"
 }
 :

@@ -11,30 +11,24 @@
 
 : OUTPUT
 {
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
+#line 0 "{X}.cpl"
+#line 0 "{X}.cpl"
     
     function strlen(ptr i8 s) => i64;
  
-#line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
+#line 4 "{X}.cpl"
    
     function print(ptr str msg) => i0;
  
-#line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/include.cpl"
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
-#line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-#line 3 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/include.cpl"
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
-#line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-#line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/include.cpl"
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
-#line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-#line 5 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/include.cpl"
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-#line 6 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/include.cpl"
+#line 2 "{X}.cpl"
+#line 0 "{X}.cpl"
+#line 3 "{X}.cpl"
+#line 0 "{X}.cpl"
+#line 4 "{X}.cpl"
+#line 0 "{X}.cpl"
+#line 5 "{X}.cpl"
+#line 0 "{X}.cpl"
+#line 6 "{X}.cpl"
 
     start() {
     }
