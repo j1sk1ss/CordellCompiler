@@ -58,41 +58,24 @@ int HIR_is_tmptype(hir_subject_type_t t) {
 
 int HIR_is_vartype(hir_subject_type_t t) {
     switch (t) {
-        case HIR_TMPVARI8: 
-        case HIR_TMPVARU8:  
-        case HIR_TMPVARI16: 
-        case HIR_TMPVARU16: 
-        case HIR_TMPVARI32: 
-        case HIR_TMPVARU32: 
-        case HIR_TMPVARF32: 
-        case HIR_TMPVARI64: 
-        case HIR_TMPVARU64: 
-        case HIR_TMPVARF64: 
-        case HIR_STKVARI8: 
-        case HIR_STKVARU8:  
-        case HIR_STKVARI16: 
-        case HIR_STKVARU16: 
-        case HIR_STKVARI32: 
-        case HIR_STKVARU32: 
-        case HIR_STKVARF32: 
-        case HIR_STKVARI64: 
-        case HIR_STKVARU64: 
-        case HIR_STKVARF64: 
-        case HIR_GLBVARI8: 
-        case HIR_GLBVARU8:  
-        case HIR_GLBVARI16: 
-        case HIR_GLBVARU16: 
-        case HIR_GLBVARI32: 
-        case HIR_GLBVARU32: 
-        case HIR_GLBVARF32: 
-        case HIR_GLBVARI64: 
-        case HIR_GLBVARU64: 
-        case HIR_GLBVARF64: 
-        case HIR_STKVARSTR:
-        case HIR_GLBVARSTR:
-        case HIR_STKVARARR:
-        case HIR_GLBVARARR: return 1;
-        default:            return 0;
+        case HIR_TMPVARI8:  case HIR_TMPVARU8:  
+        case HIR_TMPVARI16: case HIR_TMPVARU16: 
+        case HIR_TMPVARI32: case HIR_TMPVARU32: 
+        case HIR_TMPVARF32: case HIR_TMPVARI64: 
+        case HIR_TMPVARU64: case HIR_TMPVARF64: 
+        case HIR_STKVARI8:  case HIR_STKVARU8:  
+        case HIR_STKVARI16: case HIR_STKVARU16: 
+        case HIR_STKVARI32: case HIR_STKVARU32: 
+        case HIR_STKVARF32: case HIR_STKVARI64: 
+        case HIR_STKVARU64: case HIR_STKVARF64: 
+        case HIR_GLBVARI8:  case HIR_GLBVARU8:  
+        case HIR_GLBVARI16: case HIR_GLBVARU16: 
+        case HIR_GLBVARI32: case HIR_GLBVARU32: 
+        case HIR_GLBVARF32: case HIR_GLBVARI64: 
+        case HIR_GLBVARU64: case HIR_GLBVARF64: 
+        case HIR_STKVARSTR: case HIR_GLBVARSTR:
+        case HIR_STKVARARR: case HIR_GLBVARARR: return 1;
+        default: return 0;
     }
 }
 
@@ -225,7 +208,7 @@ hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
 
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (!vi) return HIR_STKVARI64;
-    token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro, .glob = vi->glob } };
+    token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro, .glob = vi->vfs.glob } };
     int bitness  = TKN_variable_bitness(&tmptkn, 1);
     int isfloat  = TKN_is_float(&tmptkn);
     int issigned = TKN_issign(&tmptkn);
@@ -256,7 +239,15 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
 }
 
 hir_subject_type_t HIR_get_token_stktype(token_t* tkn) {
-    variable_info_t vi = { .type = tkn->t_type, .ptr = tkn->flags.ptr, .glob = tkn->flags.glob, .ro = tkn->flags.ro };
+    variable_info_t vi = { 
+        .type = tkn->t_type, 
+        .vfs  = {
+            .ptr  = tkn->flags.ptr, 
+            .glob = tkn->flags.glob, 
+            .ro   = tkn->flags.ro 
+        }
+    };
+
     return HIR_get_stktype(&vi);
 }
 

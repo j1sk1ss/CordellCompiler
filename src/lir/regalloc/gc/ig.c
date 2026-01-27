@@ -33,7 +33,7 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     map_init(&g->nodes, MAP_NO_CMP);
 
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
-        if (vi->glob || vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) continue;
+        if (vi->vfs.glob || vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) continue;
         if (ALLIAS_get_owners(vi->v_id, NULL, &smt->m)) continue;
         _add_ig_node(vi->v_id, g);
     }

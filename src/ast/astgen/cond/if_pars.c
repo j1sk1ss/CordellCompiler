@@ -1,5 +1,6 @@
 #include <ast/astgen/astgen.h>
 
+/* TODO: support the if-elseif-...-else syntax */
 ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     SAVE_TOKEN_POINT;
     
@@ -23,8 +24,7 @@ ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
     AST_add_node(node, cond);
 
-    forward_token(it, 1);
-    if (CURRENT_TOKEN && CURRENT_TOKEN->t_type != OPEN_BLOCK_TOKEN) {
+    if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
         PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during a parse of the '%s' statement!", IF_COMMAND);
         AST_unload(node);
         RESTORE_TOKEN_POINT;

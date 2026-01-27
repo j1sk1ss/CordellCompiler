@@ -49,12 +49,12 @@ static char_type_t _get_char_type(unsigned char ch) {
 }
 
 typedef struct {
-    char         squt;      /* Is signle quote has started?     */
-    char         mqut;      /* Is quote has started?            */
-    char         is_spec;   /* Is this is a special char?       */
-    char         in_token;  /* Are we in a token?               */
-    char         is_pp;     /* Is this a pp directive?          */
-    short        token_len; /* Token len                        */
+    char         squt     : 1; /* Is signle quote has started?     */
+    char         mqut     : 1; /* Is quote has started?            */
+    char         is_spec  : 1; /* Is this is a special char?       */
+    char         in_token : 1; /* Are we in a token?               */
+    char         is_pp    : 1; /* Is this a pp directive?          */
+    short        token_len;    /* Token len                        */
     token_type_t ttype;
 } tkn_ctx_t;
 
@@ -102,10 +102,6 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
     }
     
     str_memcpy(&tkn->finfo, finfo, sizeof(token_fpos_t));
-    if (
-        type == UNKNOWN_NUMERIC_TOKEN ||
-        type == STRING_VALUE_TOKEN
-    ) tkn->flags.glob = 1;
     return tkn;
 }
 
@@ -158,6 +154,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
 
         char ch = buffer[i];
         char_type_t ct = _get_char_type(ch);
+        finfo->column++;
 
         if (ct == CHAR_PP) {
             ctx->is_pp = 1;

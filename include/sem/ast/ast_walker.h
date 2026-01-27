@@ -2,32 +2,12 @@
 #define AST_WALKER_H_
 
 #include <symtab/symtab.h>
+#include <std/math.h>
 #include <std/list.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
+#include <sem/ast/ast_data.h>
 #include <sem/ast/ast_visitor.h>
-
-typedef enum {
-    ATTENTION_UNKNOWN_LEVEL, /* Unknown attention level. Will fire a warning only with all warns enabled  */
-    ATTENTION_LOW_LEVEL,     /* Low level of an attantion. Will fire a warning with a low level enabled   */
-    ATTENTION_MEDIUM_LEVEL,  /* Mid level of an attantion. Will fire a warning with a mid level enabled   */
-    ATTENTION_HIGH_LEVEL,    /* High level of an attantion. Will fire a warning with a high level enabled */
-    ATTENTION_BLOCK_LEVEL    /* Will block code compilation if it fires                                   */
-} attention_level_t;
-
-typedef enum {
-    EXPRESSION_NODE  = 1 << 0,
-    ASSIGN_NODE      = 1 << 1,
-    DECLARATION_NODE = 1 << 2,
-    FUNCTION_NODE    = 1 << 3,
-    CALL_NODE        = 1 << 4,
-    START_NODE       = 1 << 5,
-    DEF_ARRAY_NODE   = 1 << 6,
-    IF_NODE          = 1 << 7,
-    WHILE_NODE       = 1 << 8,
-    TERM_NODE        = 1 << 9,
-    UNKNOWN_NODE     = 1 << 10,
-} ast_node_type_t;
 
 typedef struct {
     attention_level_t l;
@@ -35,8 +15,9 @@ typedef struct {
 } ast_sem_handler_t;
 
 typedef struct {
-    list_t       visitors;
-    sym_table_t* smt;
+    walker_flags_t flags;
+    list_t         visitors;
+    sym_table_t*   smt;
 } ast_walker_t;
 
 /*
@@ -53,7 +34,7 @@ Params:
 
 Returns 1 if succeeds.
 */
-int ASTWLK_register_visitor(unsigned int trg, int (*perform)(ast_node_t*, sym_table_t*), ast_walker_t* ctx, attention_level_t l);
+int ASTWLK_register_visitor(unsigned int trg, int (*perform)(AST_VISITOR_ARGS), ast_walker_t* ctx, attention_level_t l);
 
 /*
 Init a new one walker context.

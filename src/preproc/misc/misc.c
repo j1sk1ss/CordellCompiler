@@ -95,7 +95,7 @@ static inline int _is_ident_char(char c) {
     return _is_ident_start(c) || (c >= '0' && c <= '9');
 }
 
-static inline int _is_ident_cont(unsigned char c) { 
+static inline int _is_ident_cont(unsigned char c) {
     return (c == '_') || isalnum(c); 
 }
 
@@ -122,30 +122,30 @@ static int _append_ch(char** out, size_t* cap, size_t* oi, char c) {
     return _append_mem(out, cap, oi, &c, 1);
 }
 
-int PP_resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t* dctx) {
+static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t* dctx) {
     if (!in || !dctx || !out || !out_cap) return 0;
+
     size_t n = strlen(in);
     if (!*out || *out_cap < n + 1) {
         size_t new_cap = n + 1;
         char* nb = (char*)realloc(*out, new_cap);
         if (!nb) return 0;
-        *out     = nb;
+        *out = nb;
         *out_cap = new_cap;
     }
 
     size_t oi = 0;
     (*out)[0] = 0;
 
-    for (size_t i = 0; in[i]; ) {
+    int changed = 0;
+    for (size_t i = 0; in[i];) {
         unsigned char c = (unsigned char)in[i];
-
         if (_is_ident_start(c)) {
-            size_t start = i;
-            i++;
+            size_t start = i++;
             while (in[i] && _is_ident_cont((unsigned char)in[i])) i++;
             size_t len = i - start;
 
-            char stack_tok[256];
+            char stack_tok[256] = { 0 };
             char* tok = stack_tok;
             if (len >= sizeof(stack_tok)) {
                 tok = (char*)malloc(len + 1);
@@ -157,7 +157,13 @@ int PP_resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t* dct
 
             define_t def;
             if (MCTB_get_define(tok, &def, dctx)) {
-                if (!_append_mem(out, out_cap, &oi, def.value->head, def.value->len(def.value))) {
+                size_t vlen = def.value->len(def.value);
+                const char* v = def.value->head;
+                if (!(vlen == len && !memcmp(v, tok, len))) {
+                    changed = 1;
+                }
+
+                if (!_append_mem(out, out_cap, &oi, v, vlen)) {
                     if (tok != stack_tok) free(tok);
                     return 0;
                 }
@@ -178,6 +184,20 @@ int PP_resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t* dct
     }
 
     (*out)[oi] = 0;
+    return changed;
+}
+
+#define PP_MAX_PASSES 128
+int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, deftb_t* dctx) {
+    for (int pass = 0; pass < PP_MAX_PASSES; pass++) {
+        int changed = _resolve_defines(*in, out, out_cap, dctx);
+        if (changed < 0) return 0;
+        if (changed == 0) return 1;
+
+        char* ts = *in; *in = *out; *out = ts;
+        size_t tcap = *in_cap; *in_cap = *out_cap; *out_cap = tcap;
+    }
+    
     return 1;
 }
 

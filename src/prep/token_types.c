@@ -261,6 +261,7 @@ int TKN_isnumeric(token_t* token) {
 int TKN_isvariable(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
+        case VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:
         case F64_VARIABLE_TOKEN:
@@ -336,3 +337,20 @@ int TKN_update_operator(token_t* token) {
     }
 }
 
+token_type_t TKN_get_var_from_type(token_type_t t) {
+    switch (t) {
+        case STR_TYPE_TOKEN:   return STR_VARIABLE_TOKEN;
+        case ARRAY_TYPE_TOKEN: return ARR_VARIABLE_TOKEN;
+        case F64_TYPE_TOKEN:   return F64_VARIABLE_TOKEN;
+        case F32_TYPE_TOKEN:   return F32_VARIABLE_TOKEN;
+        case U64_TYPE_TOKEN:   return U64_VARIABLE_TOKEN;
+        case U32_TYPE_TOKEN:   return U32_VARIABLE_TOKEN;
+        case U16_TYPE_TOKEN:   return U16_VARIABLE_TOKEN;
+        case U8_TYPE_TOKEN:    return U8_VARIABLE_TOKEN;
+        case I64_TYPE_TOKEN:   return I64_VARIABLE_TOKEN;
+        case I32_TYPE_TOKEN:   return I32_VARIABLE_TOKEN;
+        case I16_TYPE_TOKEN:   return I16_VARIABLE_TOKEN;
+        case I8_TYPE_TOKEN:    return I8_VARIABLE_TOKEN;
+        default:               return U64_VARIABLE_TOKEN;
+    }
+}

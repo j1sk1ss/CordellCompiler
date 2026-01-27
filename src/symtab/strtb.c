@@ -1,6 +1,6 @@
 #include <symtab/strtb.h>
 
-int STTB_update_info(long id, string_t* value, str_type_t t, strtb_ctx_t* ctx) {
+int STTB_update_info(symbol_id_t id, string_t* value, str_type_t t, strtb_ctx_t* ctx) {
     str_info_t* si;
     if (map_get(&ctx->strtb, id, (void**)&si)) {
         si->t = t;
@@ -15,7 +15,7 @@ int STTB_update_info(long id, string_t* value, str_type_t t, strtb_ctx_t* ctx) {
     return 0;    
 }
 
-int STTB_get_info_id(long id, str_info_t* info, strtb_ctx_t* ctx) {
+int STTB_get_info_id(symbol_id_t id, str_info_t* info, strtb_ctx_t* ctx) {
     str_info_t* si;
     if (map_get(&ctx->strtb, id, (void**)&si)) {
         if (info) str_memcpy(info, si, sizeof(str_info_t));
@@ -36,7 +36,7 @@ int STTB_get_info(string_t* value, str_info_t* info, strtb_ctx_t* ctx) {
     return 0;
 }
 
-int STTB_add_info(string_t* value, str_type_t t, strtb_ctx_t* ctx) {
+symbol_id_t STTB_add_info(string_t* value, str_type_t t, strtb_ctx_t* ctx) {
     print_log("STTB_add_info(value=%s, t=%i)", value->body, t);
     str_info_t* nnd = (str_info_t*)mm_malloc(sizeof(str_info_t));
     if (!nnd) return -1;

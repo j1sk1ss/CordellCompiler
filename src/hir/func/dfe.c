@@ -24,7 +24,7 @@ int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt) {
     _mark_block(entry, ctx);
 
     map_foreach (call_graph_node_t* nd, &ctx->verts) {
-        FNTB_update_info(nd->fid, nd->flag, -1, NULL, NULL, &smt->f);
+        FNTB_update_info(nd->fid, nd->flag, -1, -1, NULL, NULL, &smt->f);
     }
 
     return 1;

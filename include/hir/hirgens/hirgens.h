@@ -7,9 +7,19 @@
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 
+#define HIRGEN_ERROR(nd, msg, ...) \
+    fprintf( \
+        stderr,                                                       \
+        "[%s:%li:%li] " msg "\n",                                     \
+        (nd && nd->t->finfo.file) ? nd->t->finfo.file->body : "base", \
+        nd ? nd->t->finfo.line : 0,                                   \
+        nd ? nd->t->finfo.column : 0,                                 \
+        ##__VA_ARGS__                                                 \
+    )
+
 /*
-Generate convertion from the one type to another. 
-Note: It types are similar, it doesn't perform the convertation proccess.
+Generate implict convertion from the one type to another. 
+Note: If the types are similar, it doesn't perform the convertation proccess.
 Params:
     - `ctx` - HIR ctx.
     - `t` - Target type.
@@ -21,8 +31,8 @@ Return converted HIR subject.
 hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
 
 /*
-Generate convertion from the one type to another. 
-Note: It types are similar, it doesn't perform the convertation proccess.
+Generate explict convertion from the one type to another. 
+Note: If the types are similar, it doesn't perform the convertation proccess.
 Params:
     - `node` - AST node.
     - `ctx` - HIR ctx.
@@ -138,10 +148,11 @@ Params:
     - `node` - AST node.
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
+    - `ret` - If this is a block, must be '0'.
 
-Return parsed from AST HIR subject.
+Returns the 'NULL' value or an update operator.
 */
-int HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+hir_subject_t* HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
 /*
 Convert load AST node (arr[i] = 0) node into HIR element. 
@@ -319,5 +330,15 @@ Params:
 Return parsed from AST HIR subject.
 */
 hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_t* data);
+
+/*
+Convert poparg AST node into HIR element. 
+Params:
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return parsed from AST HIR subject.
+*/
+hir_subject_t* HIR_generate_poparg(hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

@@ -48,9 +48,10 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
         case LOOP_TOKEN:            return cpl_parse_loop(it, ctx, smt);
                                     /* break_statement = "break" , ";" ; */
         case BREAK_TOKEN:           return cpl_parse_break(it);
+        case VARIABLE_TOKEN:
         case NEGATIVE_TOKEN:
-        case DREF_TYPE_TOKEN:
         case REF_TYPE_TOKEN:
+        case DREF_TYPE_TOKEN:
         case STR_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case I8_VARIABLE_TOKEN:
@@ -97,7 +98,7 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
                                        syscall_arg       = identifier | literal ; */
         case SYSCALL_TOKEN:         return cpl_parse_syscall(it, ctx, smt);
                                     /* lis_statement = "lis" , ";" ; */
-        case BREAKPOINT_TOKEN:      return cpl_parse_breakpoint(it, ctx, smt);
+        case BREAKPOINT_TOKEN:      return cpl_parse_breakpoint(it, smt);
                                     /* extern_op          = "extern" , ( function_prototype | var_prototype ) ;
                                        var_prototype      = type , identifier ;
                                        function_prototype = "exfunc" , identifier ; */
@@ -115,6 +116,7 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
                                        postfix_op     = "(" , [ arg_list ] , ")"
                                                    | "[" , expression , { "," , expression } , "]" ; */
         case CALL_TOKEN:            return cpl_parse_funccall(it, ctx, smt);
+        case POPARG_TOKEN:          return cpl_parse_poparg(it);
                                     /* function_def   = "function" , identifier , "(" , [ param_list ] , ")" , "=>" , type , block ; */
         case FUNC_TOKEN:            return cpl_parse_function(it, ctx, smt);
                                     /* exit_statement   = "exit" , expression , ";" ; */
@@ -128,19 +130,19 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
 ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, token_type_t ex) {
     SAVE_TOKEN_POINT;
 
-    ast_node_t* node = AST_create_node(TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo));
+    ast_node_t* node = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (!node) {
         PARSE_ERROR("Can't create a basic block for the scope block!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    node->bt = node->t;
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != ex) {
         ast_node_t* block = _navigation_handler(it, ctx, smt);
         if (block) AST_add_node(node, block);  /* If we parse succesfully, add a product to the body */
         else if (!forward_token(it, 1)) break; /* If there is a error, proceed the next token        */
     }
 
+    forward_token(it, 1); /* Move from the parser */
     return node;
 }

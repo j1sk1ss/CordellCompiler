@@ -3,6 +3,7 @@
 const char* RST_restore_type(token_t* t) {
     if (!t) return "";
     switch (t->t_type) {
+        case VAR_ARGUMENTS_TOKEN:   return VAR_ARGUMENTS_COMMAND;
         case ARRAY_TYPE_TOKEN:
         case ARR_VARIABLE_TOKEN:    return ARR_VARIABLE;
         case STR_TYPE_TOKEN:
@@ -69,11 +70,80 @@ static int _rst_max_line(ast_node_t* nd, int* mx) {
     return 1;
 }
 
+typedef struct { 
+    int start;  /* Span column start */ 
+    int end;    /* Span column end   */
+} rst_span_t;
+
 typedef struct {
-    FILE* fd;               /* Output location      */
-    int   width;            /* Max line number size */
-    int   at_line_start;    /* Start row number     */
+    FILE*       fd;               /* Output location      */
+    int         width;            /* Max line number size */
+    int         at_line_start;    /* Start row number     */
+    int         ul_active;        /* Underline flag       */
+
+    int         col;
+    int         hl_depth;
+    int         hl_start;
+
+    rst_span_t* spans;
+    int         sp_n;
+    int         sp_cap;
 } rst_ln_ctx_t;
+
+static int _rst_span_push(rst_ln_ctx_t* x, int s, int e) {
+    if (e <= s) e = s + 1;
+    if (s < 1) s = 1;
+
+    if (x->sp_n == x->sp_cap) {
+        x->sp_cap = x->sp_cap ? x->sp_cap * 2 : 8;
+        x->spans = (rst_span_t*)mm_realloc(x->spans, (size_t)x->sp_cap * sizeof(*x->spans));
+    }
+
+    x->spans[x->sp_n].start = s;
+    x->spans[x->sp_n++].end = e;
+    return 1;
+}
+
+static inline void _rst_hl_begin(rst_ln_ctx_t* x) {
+    if (!(x->hl_depth++)) x->hl_start = (x->col > 0 ? x->col : 1);
+}
+
+static inline void _rst_hl_end(rst_ln_ctx_t* x) {
+    if (x->hl_depth > 0 && !(--x->hl_depth)) {
+        _rst_span_push(x, x->hl_start, (x->col > 0 ? x->col : 1));
+    }
+}
+
+static void _rst_print_markers_for_line(rst_ln_ctx_t* x) {
+    if (x->sp_n <= 0) return;
+
+    int maxe = 0;
+    for (int i = 0; i < x->sp_n; ++i) {
+        if (x->spans[i].end > maxe) maxe = x->spans[i].end;
+    }
+
+    int mlen = (maxe > 1 ? maxe - 1 : 0);
+    if (mlen <= 0) { x->sp_n = 0; return; }
+
+    char* m = (char*)mm_malloc((size_t)mlen + 1);
+    str_memset(m, ' ', (size_t)mlen);
+    m[mlen] = 0;
+
+    for (int i = 0; i < x->sp_n; ++i) {
+        int s = x->spans[i].start;
+        int e = x->spans[i].end;
+        if (s < 1) s = 1;
+        if (e < s + 1) e = s + 1;
+        for (int k = s; k < e && k <= mlen; ++k) {
+            m[k - 1] = '^';
+        }
+    }
+
+    fprintf(x->fd, "%*s | %s\n", x->width, "", m);
+
+    mm_free(m);
+    x->sp_n = 0;
+}
 
 /*
 Get the node line.
@@ -94,9 +164,13 @@ Params:
     - `line` - Line number.
 */
 static inline void _rst_ln_prefix(rst_ln_ctx_t* x, int line) {
+    if (x->ul_active) fputs(UL_OFF, x->fd);
+
     if (line > 0) fprintf(x->fd, "%*d ", x->width, line);
-    else fprintf(x->fd, "%*s ", x->width, "");
+    else          fprintf(x->fd, "%*s ", x->width, "");
     fputs("| ", x->fd);
+
+    if (x->ul_active) fputs(UL_ON, x->fd);
 }
 
 static int _rst_ln_write(rst_ln_ctx_t* x, int line, const char* s, size_t n) {
@@ -105,13 +179,27 @@ static int _rst_ln_write(rst_ln_ctx_t* x, int line, const char* s, size_t n) {
         if (x->at_line_start) {
             _rst_ln_prefix(x, line);
             x->at_line_start = 0;
+            x->col = 1;
+            if (x->hl_depth > 0) x->hl_start = 1;
         }
 
         size_t j = i;
         for (; j < n && s[j] != '\n'; ++j);
-        if (j > i) fwrite(s + i, 1, j - i, x->fd);
+
+        if (j > i) {
+            fwrite(s + i, 1, j - i, x->fd);
+            x->col += (int)(j - i);
+        }
+
         if (j < n && s[j] == '\n') {
+            if (x->hl_depth > 0) {
+                _rst_span_push(x, x->hl_start, x->col);
+                x->hl_start = 1;
+            }
+
             fputc('\n', x->fd);
+            _rst_print_markers_for_line(x);
+
             x->at_line_start = 1;
             i = j + 1;
         } 
@@ -174,23 +262,42 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     if (!nd) return 0;
 
     int line = _rst_line(nd);
-    if (u && set_has(u, nd)) {
-        _rst_ln_puts(x, line, UNDERSCORE_OPEN);
-    }
+    if (u && set_has(u, nd)) _rst_hl_begin(x);
 
     int complex = -1;
     if (TKN_isdecl(nd->t)) {
-        _rst_ln_printf(
-            x, line, "%s%s%s %s",
-            nd->t->flags.glob ? "glob" : "",
-            nd->t->flags.ro ? "ro" : "",
-            RST_restore_type(nd->t),
-            nd->c->t->body->body
-        );
+        if (nd->t->t_type != ARRAY_TYPE_TOKEN) {
+            _rst_ln_printf(
+                x, line, "%s%s%s %s",
+                nd->t->flags.glob ? "glob " : "",
+                nd->t->flags.ro ? "ro " : "",
+                RST_restore_type(nd->t),
+                nd->c->t->body->body
+            );
 
-        if (nd->c->siblings.n) {
-            _rst_ln_puts(x, line, " = ");
-            _restore_code_lines(x, nd->c->siblings.n, u, indent);
+            if (nd->c->siblings.n) {
+                _rst_ln_puts(x, line, " = ");
+                _restore_code_lines(x, nd->c->siblings.n, u, indent);
+            }
+        }
+        else {
+            _rst_ln_printf(
+                x, line, "%s%sarr %s[%s, %s]",
+                nd->t->flags.glob ? "glob " : "",
+                nd->t->flags.ro ? "ro " : "",
+                nd->c->t->body->body,
+                nd->c->siblings.n->t->body->body,
+                nd->c->siblings.n->siblings.n->t->body->body
+            );
+
+            if (nd->c->siblings.n->siblings.n->siblings.n) {
+                _rst_ln_puts(x, line, " = { ");
+                for (ast_node_t* arg = nd->c->siblings.n->siblings.n->siblings.n; arg; arg = arg->siblings.n) {
+                    _restore_code_lines(x, arg, u, indent);
+                    if (arg->siblings.n) _rst_ln_puts(x, line, ", ");
+                }
+                _rst_ln_puts(x, line, " }");
+            }
         }
     }
     else if (TKN_isoperand(nd->t)) {
@@ -200,8 +307,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     }
     else if (
         TKN_isnumeric(nd->t)  ||
-        TKN_isvariable(nd->t) ||
-        nd->t->t_type == STRING_VALUE_TOKEN
+        TKN_isvariable(nd->t)
     ) {
         _rst_ln_puts(x, line, nd->t->body->body);
         if (TKN_isptr(nd->t) && nd->c) {
@@ -209,6 +315,13 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             _restore_code_lines(x, nd->c, u, indent);
             _rst_ln_puts(x, line, "]");
         }
+    }
+    else if (
+        nd->t->t_type == STRING_VALUE_TOKEN
+    ) {
+        _rst_ln_puts(x, line, "\"");
+        _rst_ln_puts(x, line, nd->t->body->body);
+        _rst_ln_puts(x, line, "\"");
     }
     
     switch (nd->t->t_type) {
@@ -289,12 +402,15 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             break;
         }
 
-        case REF_TYPE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, REF_COMMAND " "); break;
-        case DREF_TYPE_TOKEN: _simple_restore_lines(x, nd->c, u, indent, DREF_COMMAND " "); break;
-        case NEGATIVE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, NEGATIVE_COMMAND " "); break;
-        case LOOP_TOKEN:      _simple_restore_lines(x, nd->c, u, indent, LOOP_COMMAND); break;
-        case EXIT_TOKEN:      _simple_restore_lines(x, nd->c, u, indent, EXIT_COMMAND " "); break;
-        case RETURN_TOKEN:    _simple_restore_lines(x, nd->c, u, indent, RETURN_COMMAND " "); break;
+        case EXTERN_TOKEN:     _simple_restore_lines(x, nd->c, u, indent, EXTERN_COMMAND " ");      break;
+        case REF_TYPE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, REF_COMMAND " ");         break;
+        case DREF_TYPE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, DREF_COMMAND " ");        break;
+        case NEGATIVE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, NEGATIVE_COMMAND " ");    break;
+        case LOOP_TOKEN:       _simple_restore_lines(x, nd->c, u, indent, LOOP_COMMAND);            break;
+        case EXIT_TOKEN:       _simple_restore_lines(x, nd->c, u, indent, EXIT_COMMAND " ");        break;
+        case RETURN_TOKEN:     _simple_restore_lines(x, nd->c, u, indent, RETURN_COMMAND " ");      break;
+        case BREAK_TOKEN:      _simple_restore_lines(x, NULL, u, indent, BREAK_COMMAND " ");        break;
+        case BREAKPOINT_TOKEN: _simple_restore_lines(x, nd->c, u, indent, BREAKPOINT_COMMAND " ");  break;
 
         case CONVERT_TOKEN: {
             if (nd->c && nd->c->siblings.n) _restore_code_lines(x, nd->c->siblings.n, u, indent);
@@ -356,11 +472,23 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
         default: break;
     }
 
-    if (u && set_has(u, nd)) {
-        _rst_ln_puts(x, line, UNDERSCORE_CLOSE);
+    if (u && set_has(u, nd)) _rst_hl_end(x);
+    return complex;
+}
+
+static int _rst_flush_markers(rst_ln_ctx_t* x) {
+    if (x->hl_depth > 0) {
+        _rst_span_push(x, x->hl_start, (x->col > 0 ? x->col : 1));
+        x->hl_depth = 0;
     }
 
-    return complex;
+    if (x->sp_n > 0) {
+        if (!x->at_line_start) fputc('\n', x->fd);
+        _rst_print_markers_for_line(x);
+        x->at_line_start = 1;
+    }
+
+    return 1;
 }
 
 int RST_restore_code(FILE* fd, ast_node_t* nd, set_t* u, int indent) {
@@ -370,9 +498,19 @@ int RST_restore_code(FILE* fd, ast_node_t* nd, set_t* u, int indent) {
     rst_ln_ctx_t x = {
         .fd = fd,
         .width = _rst_digits(mx > 0 ? mx : 1),
-        .at_line_start = 1
+        .at_line_start = 1,
+
+        .spans  = NULL,
+        .sp_cap = 0,
+        .sp_n   = 0
     };
     
-    if (_restore_code_lines(&x, nd, u, indent) < 0) fprintf(fd, ";\n");
+    if (_restore_code_lines(&x, nd, u, indent) < 0) {
+        fprintf(fd, ";");
+        if (!set_size(u)) fprintf(fd, "\n");
+    }
+
+    _rst_flush_markers(&x);
+    mm_free(x.spans);
     return 1;
 }

@@ -5,7 +5,7 @@ ast_node_t* cpl_parse_return(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        PARSE_ERROR("Can't create the base for either the return statement!");
+        PARSE_ERROR("Can't create the base for the '%s' statement!", RETURN_COMMAND);
         RESTORE_TOKEN_POINT;
         return NULL;
     }

@@ -20,12 +20,14 @@ Returns generated value from the AST node or the 'NULL' value.
 */
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node || !node->t) return NULL;
-    if (
-        TKN_isoperand(node->t) &&       /* If this is an operand node           */
-        node->t->t_type != ASSIGN_TOKEN /* and this isn't an assign node        */
-    ) return HIR_generate_operand(node, ctx, smt); /* We generate operand logic */
+    if (node->t->t_type != ASSIGN_TOKEN) {
+        if (TKN_update_operator(node->t)) return HIR_generate_update_block(node, ctx, smt, 1);
+        else if (TKN_isoperand(node->t))  return HIR_generate_operand(node, ctx, smt);
+    }
+
     switch (node->t->t_type) {
         case CALL_TOKEN:            return HIR_generate_funccall(node, ctx, smt, 1);
+        case POPARG_TOKEN:          return HIR_generate_poparg(ctx, smt);
         case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 1);
         case CONVERT_TOKEN:         return HIR_generate_explconv(node, ctx, smt);
         case NEGATIVE_TOKEN:        return HIR_generate_neg(node, ctx, smt);
@@ -70,9 +72,11 @@ Returns 1 if succeeds, otherwise will return 0.
 static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node || !node->t) return 0;
     if (TKN_isdecl(node->t)) return HIR_generate_declaration_block(node, ctx, smt);
-    if (
-        TKN_update_operator(node->t) && node->t->t_type != ASSIGN_TOKEN
-    ) return HIR_generate_update_block(node, ctx, smt);
+    if (node->t->t_type != ASSIGN_TOKEN && TKN_update_operator(node->t)) {
+        HIR_generate_update_block(node, ctx, smt, 0);
+        return 1;
+    }
+
     switch (node->t->t_type) {
         case IF_TOKEN:         HIR_generate_if_block(node, ctx, smt);         break;
         case ASM_TOKEN:        HIR_generate_asmblock(node, ctx, smt);         break;
@@ -107,10 +111,7 @@ Params:
     - `op` - 'HIR_MKSCOPE' or 'HIR_ENDSCOPE' command.
 */
 static inline void _insert_scope(ast_node_t* t, hir_ctx_t* ctx, hir_operation_t op) {
-    if (
-        t->t && 
-        t->t->t_type == SCOPE_TOKEN
-    ) HIR_BLOCK1(ctx, op, HIR_SUBJ_CONST(t->sinfo.s_id));
+    if (t->t && t->t->t_type == SCOPE_TOKEN) HIR_BLOCK1(ctx, op, HIR_SUBJ_CONST(t->sinfo.s_id));
 }
 
 int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {

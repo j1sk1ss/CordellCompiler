@@ -16,13 +16,14 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_FRET:       return "return %s;\n";
         case LIR_MKLB:       return "%s:\n";
         case LIR_FDCL:       return "fn %s\n";
+        case LIR_FEND:       return "fend\n";
         case LIR_STRT:       return "start\n";
-        case LIR_STEND:      return "\n";
-        case LIR_FEND:       return "\n";
-        case LIR_OEXT:       return "extern %s;\n";
+        case LIR_STEND:      return "send\n";
 
         case LIR_PUSH:       return "push(%s);\n";
         case LIR_POP:        return "%s = pop();\n";
+        case LIR_FEXT:       return "(fun) extern %s;\n";
+        case LIR_OEXT:       return "(var) extern %s;\n";
 
         case LIR_TST:        return "test %s, %s;\n";
         case LIR_JNE:        return "jne %s;\n";
@@ -37,7 +38,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_MOVSX:      return "%s movsx %s;\n";
         case LIR_MOVZX:      return "%s movzx %s;\n";
         case LIR_MOVSXD:     return "%s movsxd %s;\n";
-        case LIR_aMOV:
+        case LIR_aMOV:       return "%s <<= %s;\n";
         case LIR_iMOV:       return "%s = %s;\n";
 
         case LIR_STARGLD:    return "%s = strt_loadarg();\n";
@@ -159,9 +160,15 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
             if (fi.args) {
                 for (ast_node_t* t = fi.args->c; t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
                     ast_node_t* type = t;
-                    ast_node_t* name = t->c;
-                    dst += sprintf(dst, "%s %s", fmt_tkn_type(type->t), name->t->body->body);
-                    if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) dst += sprintf(dst, ", ");
+                    if (type->t->t_type == VAR_ARGUMENTS_TOKEN) dst += sprintf(dst, "...");
+                    else {
+                        ast_node_t* name = t->c;
+                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->t), name->t->body->body);
+                    }
+
+                    if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) {
+                        dst += sprintf(dst, ", ");
+                    }
                 }
             }
 

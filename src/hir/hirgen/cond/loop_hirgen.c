@@ -10,10 +10,10 @@ int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     if (lbranch) {
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         
-        void* backup = ctx->carry;
-        ctx->carry = end_lb; /* Save the backup label for the `break` statement */
+        void* backup = ctx->carry.ptr;
+        ctx->carry.ptr = end_lb; /* Save the backup label for the `break` statement */
         HIR_generate_block(lbranch->c, ctx, smt);
-        ctx->carry = backup; /* Restore the backup label                        */
+        ctx->carry.ptr = backup; /* Restore the backup label                        */
 
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_BLOCK1(ctx, HIR_JMP, entry_lb);

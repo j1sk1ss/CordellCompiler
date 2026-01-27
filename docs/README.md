@@ -193,7 +193,7 @@ function cordell() => i0; { return; }
 - `Zero` is a `false` value.
 
 ## Strings and arrays
-- `str` - String data type. Similar to the `ptr u8` type, but it is used for the high-level inbuild operations like compare, len, etc. (WIP).
+- `str` - String data type. Similar to the `ptr u8` type, but it is used for the high-level inbuild operations such as compare, len, etc. (WIP).
 ```cpl
 str msg = "Hello world!";
 if msg == "Hello world!"; {
@@ -202,18 +202,18 @@ if msg == "Hello world!"; {
 
 - `arr` - Array data type. Can contain any primitive type.
 ```cpl
-arr arr1[10, i32];
-arr arr2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-arr matrix[2, u64] = { arr1, arr2 };
+arr 1dArray_1[10, i32];
+arr 1dArray_2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+arr 2dArray[2, ptr i32] = { ref 1dArray_1, ref 1dArray_2 };
 ```
 
-Also array can have an unkown in `compile-time` size. This will generate code that allocates memory in heap (WIP). 
+Also array can have an unknown in `compile-time` size. This will generate code that allocates memory in heap (WIP). 
 ```cpl
 extern i8 size;
 arr arr1[size, i32];
 ```
 
-`Runtime-sized` arrays will die when code returns from their home scope. That's why this code below still illegal (Work only in the cplv2):
+`Runtime-sized` arrays will die when code returns from their home scope. That's why the code below still illegal (Works only in the cplv2):
 ```cpl
 extern i8 size;
 ptr u8 a;
@@ -243,27 +243,29 @@ To obtain a reference link to this variable, we must use the `ref` statement:
 ```cpl
 i32 a = 123;
 ptr i32 a_ptr = ref a;
-```
 
-This is really close to C-language:
-```c
+: C alternative is
 int a = 123;
 int* a_ptr = &a;
+:
 ```
 
 ### dref
 Similar to C-language, we can 'dereference' the pointer. To perform this, we need to use the `dref` statement:
 ```cpl
 i32 b = dref a_ptr;
+: int b = *a_ptr; :
 ```
 
 Additionally, obtaining of a dereferenced value from a pointer can be performed via an indexing operation:
 ```cpl
 i32 b = a_ptr[0];
+: int b = a_ptr[0] :
 ``` 
 
 # Binary and unary operations
 Obviously this language supports the certain set of binary operations from C-language, Rust-language, Python, etc.
+
 | Operation              | Description                                 | Example    |
 |------------------------|---------------------------------------------|------------|
 | `+`                    | Addition                                    | `X` + `Y`  |
@@ -309,7 +311,7 @@ while <condition>; {
 ```
 
 ## loop statement
-In a difference with the `while` statement, the `loop` statement allows to build efficient infinity loops for a purpose. It is a way efficient than a `while 1;` statement given the empty 'condition' body. </br>
+In difference with the `while` statement, the `loop` statement allows to build efficient infinity loops for a purpose. It is a way efficient than a `while 1;` statement given the empty 'condition' body. </br>
 **Importand Note:** You *must* insert the `break` keyword somewhere in a body of this statement. Otherwise it will became an infinity loop.
 ```cpl
 loop {
@@ -322,8 +324,7 @@ Note: `X` should be constant value (or a primitive variable that can be `inlined
 Note 2: Similar to C language, the `switch` statement supports the fall 'mechanic'. It implies, that the `case` can ignore the `break` keyword. This will lead to the execution of the next case block.
 ```cpl
 switch cond; {
-    case X; {
-    }
+    case X; {}
     case Y; {
         break;
     }
@@ -361,6 +362,28 @@ max();                : max(chloe(11)); :
 min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
 ```
 
+## Variadic arguments
+CPL supports variadic arguments in the same way hot it supports C language. To use the variadic arguments in a function, add the `...` lexem **as the final arguement**!
+```cpl
+function foo(...) => i0;
+```
+
+To 'pop' an arguement from this set, use the `poparg` keyword. It behaves as a variable with a 'variable' value:
+```cpl
+function foo(...) => i0 {
+    i8 a1 = poparg as i8;
+    i8 a2 = poparg as i8;
+}
+```
+
+Also, the `poparg` keyword can be used in a traditional function:
+```cpl
+function foo(i32 a, i32 b) => i0 {
+    i8 a1 = poparg as i8; : a :
+    i8 b1 = poparg as i8; : b :
+}
+```
+
 ## Inbuilt macros
 There is two inbuild functions that can be usefull for a system programmer. First is the `syscall` function.
 - `syscall` function is called similar to default user functions, but can handle an unfixed number of arguments. For example here is the write syscall:
@@ -372,15 +395,17 @@ syscall(1, 1, ref msg, strlen(ref msg));
 - `asm` - Second usefull function that allows to inline an assembly code. Main feature here is a variables line, where you can pass any number of arguments, then use them in the assembly code block via `%<num>` symbols.
 ```cpl
 i32 a = 0;
-i32 ret = 0;
+i32 ret;
 asm(a, ret) {
-   "mov rax, %0 ; mov rax, a",
-   "syscall",
-   "mov %1, rax ; mov ret, rax"
+    "push rax",
+    "mov rax, %0", : mov rax, a   :
+    "syscall",
+    "mov %1, rax", : mov ret, rax :
+    "pop rax"
 }
 ```
 
-Note: Inlined assembly block doesn't optimized by any alghorithms.
+Note: Inlined assembly block isn't optimized by the compiler.
 
 # Debugging
 ## Interrupt point 
@@ -389,14 +414,14 @@ Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
 {
     start() {
         i32 a = 10;
-        lis; : <- Will interrupt execution here :
+        lis "Debug stop"; : <- Will interrupt execution here :
         exit 0;
     }
 }
 ```
 
 # Macros & include
-The compiler includes a preprocessor that will take care about statements such as `include`, `define`, `ifdef`, `ifndef` and `undef`. Most of them act similar to `C/C++`. For example, `incldue` statement must be used only with a 'header' file. How to create a 'header' file? </br>
+The compiler includes a preprocessor that will take care about statements such as `#include`, `#define`, `#ifdef`, `#ifndef` and `#undef`. Most of them act similar to `C/C++`. For example, `#include` statement must be used only with a 'header' file. How to create a 'header' file? </br>
 For example, we have a file with the implemented string function:
 ```cpl
 {
@@ -476,22 +501,24 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
 }
 : Use the loop { } instead! :
 ```
+- etc.
 
 CPL uses an inbuild static analyzator for the code checking before the compilation. For example, such an analyzator helps programmer to work with the code like below:
 ```cpl
 {
+    #include "string_h.cpl"
     function foo() => i32 { return 1; }
 
-    function BarBar() => i0 { }
+    function barBar() => i0 { }
 
-    function BazBaz() { } 
+    function BazBaz() { return 1; } 
 
     function baz(i32 a) => i0 {
-        if a == 0; { return; }
-        else { }
-
         if a == 0; { return 1; }
         else { return 1; }
+
+        if a == 0; { return 1; }
+        else { }
     }
 
     function fang(i32 a) => i8 {
@@ -510,55 +537,159 @@ CPL uses an inbuild static analyzator for the code checking before the compilati
 
         i8 a = foo();
         i8 c = 123123;
-        BarBar();
+        u8 asd = barBar();
+        baz(1);
+        fang(10);
+        
+        break;
+        a + c;
+
+        arr array[10, i32];
+        array[-1] = 0;
+        array[12] = 0;
+        strlen("Hello!");
     }
 }
 ```
 
 The code above will produce a ton of errors and warnings:
 ```
-[WARNING] Possible branch redundancy! The branch at [13:22] is similar to the branch at [13:22]!
-12 | if a == 0;
-12 | {
-12 |     return 1;
-12 | }
-12 | else
-13 | {
-13 |     return 1;
-13 | }
-[WARNING] [19:15] Possible dead code after the term statement!
-[WARNING] [31:22] Illegal declaration of 'c' with '123123' (Number bitness is=32, but 'i8' can handle bitness=8)!
-31 | i8 c = 123123
-[WARNING] [30:13] Function='foo' return type='i32' not match to the declaration type='i8'!
-[WARNING] [25:13] Variable='b' without initialization!
-25 | i8 b
-[WARNING] [24:10] Start doesn't have the exit statement in all paths!
-24 | start ()
+[WARNING] Possible branch redundancy! The branch at [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:25] is similar to the branch at [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:25]!
+10 | if a == 0;
+10 | {
+   | ^
+10 |     return 1;
+   | ^^^^^^^^^^^^^
+10 | }
+   | ^
+11 | else {
+   | ^    ^
+11 |     return 1;
+   | ^^^^^^^^^^^^^
+11 | }
+   | ^
+   | ^
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:20:16] 'Dead Code' after the termination statement!
+18 | {
+18 |     if not a;
+18 |     {
+18 |         return 123321;
+18 |     }
+19 |     else {
+19 |     }
+20 |     return 1;
+21 |     i32 b = 1;
+   |     ^^^^^^^^^
+22 |     return b;
+18 | }
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:33:28] The function='barBar' doesn't return anything, but result is used!
+33 | u8 asd = barBar();
+   |          ^^^^^^^^
+[ERROR]   [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:41:20] Array='array' accessed with a negative index!
+41 | array[-1];
+   |       ^^
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:38:14] The expression returns value that never assigns!
+26 | {
+26 |     i8 b;
+27 |     ptr i8 bref = ref b;
+28 |     ptr i8 bref1 = bref;
+29 |     ptr i8 bref2 = bref1;
+31 |     i8 a = foo();
+32 |     i8 c = 123123;
+33 |     u8 asd = barBar();
+34 |     baz(1);
+35 |     fang(10);
+37 |     break ;
+38 |     a + c;
+   |     ^^^^^
+40 |     arr array = 10;
+41 |     array[-1] = 0;
+42 |     array[12] = 0;
+43 |     strlen(Hello!);
+26 | }
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:37:15] The 'break' statement without any statement that uses it!
+26 | {
+26 |     i8 b;
+27 |     ptr i8 bref = ref b;
+28 |     ptr i8 bref1 = bref;
+29 |     ptr i8 bref2 = bref1;
+31 |     i8 a = foo();
+32 |     i8 c = 123123;
+33 |     u8 asd = barBar();
+34 |     baz(1);
+35 |     fang(10);
+37 |     break ;
+   |     ^^^^^^
+38 |     a + c;
+40 |     arr array = 10;
+41 |     array[-1] = 0;
+42 |     array[12] = 0;
+43 |     strlen(Hello!);
+26 | }
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:35:14] Unused the function='fang's result!
+26 | {
+26 |     i8 b;
+27 |     ptr i8 bref = ref b;
+28 |     ptr i8 bref1 = bref;
+29 |     ptr i8 bref2 = bref1;
+31 |     i8 a = foo();
+32 |     i8 c = 123123;
+33 |     u8 asd = barBar();
+34 |     baz(1);
+35 |     fang(10);
+   |     ^^^^^^^^
+37 |     break ;
+38 |     a + c;
+40 |     arr array = 10;
+41 |     array[-1] = 0;
+42 |     array[12] = 0;
+43 |     strlen(Hello!);
+26 | }
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:32:26] Illegal declaration of 'c' with '123123' (Number bitness is=32, but 'i8' can handle bitness=8)!
+32 | i8 c = 123123;
+   |        ^^^^^^
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:31:15] Function='foo' return type='i32' not match to the declaration type='i8'!
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:26:15] Variable='b' without initialization!
+26 | i8 b;
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:25:11] Start doesn't have the 'exit' statement in all paths!
+25 | start ()
 25 | {
-25 |     {
-25 |         i8 b;
-26 |         ptr i8 bref = ref b;
-27 |         ptr i8 bref1 = bref;
-28 |         ptr i8 bref2 = bref1;
-30 |         i8 a = foo();
-31 |         i8 c = 123123;
-32 |         BarBar();
-25 |     }
+26 |     {
+26 |         i8 b;
+27 |         ptr i8 bref = ref b;
+28 |         ptr i8 bref1 = bref;
+29 |         ptr i8 bref2 = bref1;
+31 |         i8 a = foo();
+32 |         i8 c = 123123;
+33 |         u8 asd = barBar();
+34 |         baz(1);
+35 |         fang(10);
+37 |         break ;
+38 |         a + c;
+40 |         arr array = 10;
+41 |         array[-1] = 0;
+42 |         array[12] = 0;
+43 |         strlen(Hello!);
+26 |     }
 25 | }
-[INFO]    [16:18] Used Fang as a function dragon-name!
-[WARNING] [17:34] Function='fang' has the wrong return value!='i8'!
-17 | return 123321
-[WARNING] [21:17] Function='fang' has the wrong return value!='i8'!
-21 | return b
-[WARNING] [12:30] Function='baz' has the return value, but isn't suppose to!
-12 | return 1
-[WARNING] [13:24] Function='baz' has the return value, but isn't suppose to!
-13 | return 1
-[WARNING] [6:13] Function='BazBaz' doesn't have the return statement in all paths!
-[WARNING] [6:20] Function name='BazBaz' isn't in sneaky_case! (PascalCase)
-[INFO]    [6:13] Consider to add a return type for the function=BazBaz!
-[WARNING] [4:20] Function name='BarBar' isn't in sneaky_case! (PascalCase)
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:10:38] Function='baz' has the return value, but isn't supposed to!
+10 | return 1;
+   |        ^
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:28] Function='baz' has the return value, but isn't supposed to!
+11 | return 1;
+   |        ^
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:13:38] Function='baz' has the return value, but isn't supposed to!
+13 | return 1;
+   |        ^
+[INFO]    [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:5:22] Function name='barBar' isn't in a sneaky_case! 'camelCase'
+[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:5:14] Function='barBar' doesn't have the 'return' statement in all paths!
+ 5 | function barBar() => i0 
+ 5 | {
+ 5 | }
 ```
+
+Note: This isn't an entire analysis output due to the critical error with the array indexing. Such errors will block a compilation process given the importance of this kind of errors. </br>
+Note 2: The static analyzer doesn't use a source file to show a error place. For these purposes, it uses the 'restorer' module that restores the code from AST.
 
 # Scopes
 ## Variables and lifetime
@@ -585,19 +716,19 @@ Outer variables can be seen by current and nested scopes.
 ```cpl
 {
    {
-      i32 a = 10; : <= Don't see any variables :
+      i32 a = 10; : <= Doesn't see any variables :
    }
 
-   i64 b = 10; : <= Don't see any variables :
+   i64 b = 10; : <= Doesn't see any variables :
 
    {
-      i8 c = 9; : <= See "b" variable :
+      i8 c = 9; : <= See the "b" variable :
 
       {
-         f32 a = 10; : <= See "b" and "c" variables :
+         f32 a = 10.0; : <= See the "b" and the "c" variables :
       }
 
-      i8 a = 0; : <= See "b" and "c" variables :
+      i8 a = 0; : <= See the "b" and the "c" variables :
    }
 }
 ```
@@ -642,8 +773,8 @@ CPL uses a lightweight ownership model with `register allocation` that resembles
 }
 ```
 
-Note! Disable optimizations before a code debugging given the preservation the code from a transformation.
-Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
+Note 1!: Be sure that you've disabled all optimizations before the code debug given the preservation of a code from transformation.
+Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
 
 # Examples
 ## strlen
@@ -711,7 +842,7 @@ Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
 ## Brainfuck
 ```cpl
 {
-    from "stdio.cpl" import puts, putc, gets;
+    #include "stdio_h.cpl"
 
     glob arr tape[30000, i8];
     glob arr code[10000, i8];
@@ -725,8 +856,7 @@ Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
         i32 stackptr = 0;
         i32 codelength = gets(code, 10000);
         while pos < codelength; {
-            i8 c = code[pos];
-            switch c; {
+            switch code[pos]; {
                 case '['; {
                     stack[stackptr] = pos;
                     stackptr += 1;
@@ -742,6 +872,7 @@ Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
 
                     break;
                 }
+                default { break; }
             }
             
             pos += 1;

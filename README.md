@@ -113,10 +113,24 @@ Here we are implement the simple `strlen` function and test it on a string.
 This compiler has to parse not only a code, but also derictives. Derictives such as `include`, `define`, `undef`, `ifdef` and `ifndef` are supported by the preprocessor. These commands act similar to C/C++ derictives, except `define` that isn't able to work as a function. </br>
 For instance:
 ```cpl
+: string_h.cpl :
+{
+#ifndef STRING_H_
+#define STRING_H_ 0
+    : Get the size of the provided string
+      Params
+        - `s` - Input string.
+
+      Returns the size (i64). :
+    function strlen(ptr i8 s) => i64;
+#endif
+}
+
 : print_h.cpl :
 {
 #ifndef PRINT_H_
 #define PRINT_H_ 0
+    #include "string_h.cpl"
     : Basic print function that is based on
       a syscall invoke.
       Params
@@ -127,7 +141,7 @@ For instance:
 #endif
 }
 
-: include_test.cpl :
+: basic.cpl :
 {
     #include "print_h.cpl"
     start(i64 argc, ptr u64 argv) {
@@ -137,12 +151,20 @@ For instance:
 }
 ```
 
-Will be converted to:
+Will be converted into the code below:
 ```cpl
 {
-#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
+#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
+#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
+
+    function strlen(ptr i8 s) => i64;
+
+#line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
+
     function print(ptr str msg) => i0;
-#line 3 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
+
+#line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/basic.cpl"
+
     start(i64 argc, ptr u64 argv) {
         print("Hello world!\n");
         exit 0;
@@ -714,10 +736,64 @@ Now we can determine which variables can share the same register using graph col
 ![colored_ig](docs/media/colored_ig.png)
 
 ## LIR peephole optimization
+Peephole optimization [[?]](https://www.geeksforgeeks.org/compiler-design/peephole-optimization-in-compiler-design/) is the one of the easiest and the one of the impactful optimizations (At least in this compiler). In a nutshell, this optimization simply does a pattern matching and replacing similar it does a regular expression. It finds patterns in an assembly code / a LIR representation that are inefficient and replaces it with efficient synonyms. </br>
+The simplest example here, is the replacing of one inefficient command with an efficient one:
+```asm
+; mox rax, 0
+xor rax, rax
+```
+
 ### PTRN domain specific language
+As it was mentioned before, the peephole optimization mostly is based on patterns. The problem here that there is a lot of existed patterns for optimization of Assembly language. It would be really inconvenient to try implement these patterns in C language by hand (regarding the necessity of the CordellCompiler's LIR support). </br>
+To solve this problem, we can use the DSL language that produces such optimizers for LIR representation. To see more information about this DSL, see [this](src/lir/peephole/pattern_generator/README.md) README file.
+
 ### First pass
+The first pass of the peeophole optimizator is a pattern matcher pass. This pass involves the aforementioned before generated pattern matcher function.
+
 ### Second pass
+The second pass propogates values to destroy a complex sequence of redundant mov operations. Here I'm implying the next sequence of commands as a complex sequence of redundant movs:
+```asm
+mov rax, rbx
+mov rdx, rax
+mov rcx, rdx
+mov r10, rcx
+mov r11, r10
+mov rax, r10
+``` 
+
+Such a bizarre code is produced after HIR and LIR optimizations. After the second pass, the code above is transformed into the code below:
+```asm
+mov rax, rbx
+mov rdx, rbx
+mov rcx, rbx
+mov r10, rbx
+mov r11, rbx
+mov rax, rbx
+```
+
 ### Third pass
+Now, when we've obtained the optimized version of a code, we need to clean it. To do this task, we can simply use CFG and check, if the considering register in current line (For instance let's take the `mov rax, rbx` line) is used in a read operation, and if it used, skip it. Otherwise, if it somewhere is used in a write operation (before any read operation) we can safely drop this line. </br>
+As we can see, the `rax` register, after the second pass, is only used in the write operation at the end of the code snippet. It signals, that we can safely drop this line.
+```asm
+; mov rax, rbx [dropped]
+mov rdx, rbx
+mov rcx, rbx
+mov r10, rbx
+mov r11, rbx
+mov rax, rbx
+```
+
+Additionally, if a register doesn't affect on a program environment (e.g. isn't used in a syscall, function call, etc), it also can be safely marked as `dropped`:
+```asm
+; mov rax, rbx [dropped]
+; mov rdx, rbx [dropped]
+; mov rcx, rbx [dropped]
+; mov r10, rbx [dropped]
+; mov r11, rbx [dropped]
+; mov rax, rbx [dropped]
+```
+
+P.S. This is a pretty synthetic example, thought.
 
 <details>
 <summary><strong>From HIR to LIR example</strong></summary>
@@ -781,12 +857,10 @@ start {
 </details>
 
 ## LIR x86_64 instruction selection
-
 Next step is LIR lowering. The most common way here - instruction selection. This is the first machine-depended step in compiler, that's why here we have some abstractions and implementations of different asm dialetcs (e.g., nasm x86_64 gnu, at&at x86_64 gnu, etc.).
 
 <details>
 <summary><strong>LIR selected instructions</strong></summary>
-
 ```
 fn strlen(i8* s) -> i64
 {

@@ -128,20 +128,11 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
                 break;
             }
 
-            case LIR_TI64:
-            case LIR_TI32:
-            case LIR_TI16:
-            case LIR_TI8:
-            case LIR_TU64:
-            case LIR_TU32:
-            case LIR_TU16:
-            case LIR_TU8:
-            case LIR_TF64:
-            case LIR_TF32:
-            case LIR_REF:
             case LIR_iMOV:
-            case LIR_GDREF:
-            case LIR_LDREF:  _link_subject_to_source(lh, lh->sarg, bb, dag); break;
+            case LIR_TI64: case LIR_TI32:  case LIR_TI16: case LIR_TI8:
+            case LIR_TU64: case LIR_TU32:  case LIR_TU16: case LIR_TU8:
+            case LIR_TF64: case LIR_TF32:
+            case LIR_REF:  case LIR_GDREF: case LIR_LDREF:  _link_subject_to_source(lh, lh->sarg, bb, dag); break;
             case LIR_VRUSE:
             case LIR_STSARG:
             case LIR_STFARG: _link_subject_to_source(lh, lh->farg, bb, dag); break;

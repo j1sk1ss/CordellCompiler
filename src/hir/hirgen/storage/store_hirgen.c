@@ -1,11 +1,7 @@
 #include <hir/hirgens/hirgens.h>
 
 int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (TKN_isptr(node->t)) {
-        if (node->c) goto _indexing;
-        else HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_ASTVAR(node), src);
-    }
-
+    if (TKN_isptr(node->t)) goto _indexing;
     switch (node->t->t_type) {
         case DREF_TYPE_TOKEN: HIR_generate_dref(node, ctx, smt, src); break;
         case ARR_VARIABLE_TOKEN:

@@ -15,7 +15,7 @@ typedef struct ast_node {
     token_t*             t;  /* Linked AST token                           */
                              /* Note: This token mustn't be freed manualy! */
     token_t*             bt; /* Backup AST token                           */
-                             /* Note: If it isn't a NULL value,            */ 
+                             /* Note: If it isn't the 'NULL' value,        */ 
                              /* must be freed manualy!                     */
     struct ast_node*     p;  /* Parent pointer                             */
     struct ast_node*     c;  /* Child pointer                              */
@@ -27,34 +27,45 @@ typedef struct ast_node {
 } ast_node_t;
 
 typedef struct {
-    int      s_id;  /* Current scope id. */
-    sstack_t stack; /* Scope id stack.   */
-} scope_info_t;
-
-typedef struct {
     ast_node_t*  r;      /* AST root.                                */
-    scope_info_t scopes; /* Scopes structure.                        */
     const char*  fentry; /* Name for entry function. [Arch depended] */
+    struct {
+        int      s_id;   /* Current scope id.                        */
+        sstack_t stack;  /* Scope id stack.                          */
+    } scopes;
 } ast_ctx_t;
 
 /*
-Create new tree node with token.
+Create new tree node with a token.
 Note: Avoid token free before tree free.
 Params:
-    - token - Pointer to token.
-              Note: Can be NULL.
+    - `token` - Pointer to token.
+                Note: Can be NULL.
 
-Return pointer to tree.
+Return a pointer to the node.
 */
 ast_node_t* AST_create_node(token_t* token);
 
 /*
+Create new tree node with a token.
+Note: Avoid token free before tree free.
+Note 2: In comparison with the 'AST_create_node' function,
+        this function preserves the 'tkn' in the 'bt' field.
+Params:
+    - `token` - Pointer to token.
+                Note: Can be NULL.
+
+Returns a pointer to the node.
+*/
+ast_node_t* AST_create_node_bt(token_t* tkn);
+
+/*
 Cope ast noe.
 Params:
-    - n - Source target node
-    - sp - Save parent link
-    - sib - Copy siblings
-    - chld - Copy childrens
+    - `n` - Source target node
+    - `sp` - Save parent link
+    - `sib` - Copy siblings
+    - `chld` - Copy childrens
 
 Return pointer to new deep copied node.
 */
@@ -63,8 +74,8 @@ ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld);
 /*
 Add clild tree node to parent.
 Params:
-    - parent - Parent tree node.
-    - child - Tree node that will be added as child to parent node.
+    - `parent` - Parent tree node.
+    - `child` - Tree node that will be added as child to parent node.
 
 Return 1 if addition was success.
 Return -1 if something goes wrong.
@@ -74,8 +85,8 @@ int AST_add_node(ast_node_t* parent, ast_node_t* child);
 /*
 Remove clild tree node to parent.
 Params:
-    - parent - Parent tree node.
-    - child - Tree node that will be removed from childs in parent node.
+    - `parent` - Parent tree node.
+    - `child` - Tree node that will be removed from childs in parent node.
 
 Return 1 if remove was success.
 Return -1 if something goes wrong.
@@ -85,7 +96,7 @@ int AST_remove_node(ast_node_t* parent, ast_node_t* child);
 /*
 Unload syntax tree with all childs and siblings.
 Params:
-    - node - Tree head.
+    - `node` - Tree head.
 
 Return 1 if free success.
 Return -1 if something goes wrong.
@@ -95,7 +106,7 @@ int AST_unload(ast_node_t* node);
 /*
 Hash an ast-node with the crc64 hash function.
 Params:
-    - node - AST-node.
+    - `node` - AST-node.
 
 Return hash sum of the AST-node.
 */

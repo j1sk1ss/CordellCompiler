@@ -22,8 +22,8 @@ typedef struct {
 
 typedef struct {
     /* Meta flags */
-    char         used;
-    char         fentry;
+    char         used   : 1;
+    char         fentry : 1;
 
     /* Basic info and content */
     long         id;
@@ -81,7 +81,8 @@ typedef struct cfg_block {
 
 typedef struct {
     long   cid;
-    list_t funcs;
+    list_t funcs; /* Function blocks                */
+    list_t out;   /* HIR blocks out from a function */
 } cfg_ctx_t;
 
 /*

@@ -50,60 +50,64 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
     }
     
     while (CURRENT_TOKEN) {
-        /* Handle complex predictive cases
-           such as:
-           - convertion */
-        if (CURRENT_TOKEN->t_type == CONVERT_TOKEN) {
-            ast_node_t* conv_type = cpl_parse_conv(it);
-            if (conv_type) {
-                ast_node_t* tmp = left;
-                left = conv_type;
-                AST_add_node(left, tmp);
+        switch (CURRENT_TOKEN->t_type) {
+            /* Convert operator */
+            case CONVERT_TOKEN: {
+                ast_node_t* conv_type = cpl_parse_conv(it);
+                if (conv_type) {
+                    ast_node_t* tmp = left;
+                    left = conv_type;
+                    AST_add_node(left, tmp);
+                }
+                else {
+                    PARSE_ERROR("Error during a cast parsing!");
+                    AST_unload(left);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+            }
+            /* Default operators such as:
+               plus, minus, multiply, etc. */
+            default: {
+                int p = TKN_token_priority(CURRENT_TOKEN);
+                if (
+                    p < mp  ||                                    /* Stop at a token with a lower priority   */
+                    p == -1 ||                                    /* Stop at an unknown priority             */
+                    (na && CURRENT_TOKEN->t_type == ASSIGN_TOKEN) /* Stop at an assign if there is a na == 1 */
+                ) goto _stop_expression_parsing;
+
+                int next_mp = p + 1;
+                if (TKN_update_operator(CURRENT_TOKEN)) {
+                    next_mp = p;
+                }
+
+                ast_node_t* op_node = AST_create_node(CURRENT_TOKEN);
+                if (!op_node) {
+                    PARSE_ERROR("Can't create the expression's base!");
+                    AST_unload(left);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+
                 forward_token(it, 1);
+                ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp, na);
+                if (!right) {
+                    PARSE_ERROR("Error during the right part parse!");
+                    AST_unload(op_node);
+                    AST_unload(left);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+
+                AST_add_node(op_node, left);
+                AST_add_node(op_node, right);
+                left = op_node;
+                break;
             }
-            else {
-                PARSE_ERROR("Error during a cast parsing!");
-                AST_unload(left);
-                RESTORE_TOKEN_POINT;
-                return NULL;
-            }
         }
-
-        int p = TKN_token_priority(CURRENT_TOKEN);
-        if (
-            p < mp  ||                                    /* Skip token with a lower priority     */
-            p == -1 ||                                    /* Skip unknown priority                */
-            (na && CURRENT_TOKEN->t_type == ASSIGN_TOKEN) /* Stop on assign if there is a na == 1 */
-        ) break;
-
-        int next_mp = p + 1;
-        if (TKN_update_operator(CURRENT_TOKEN)) {
-            next_mp = p;
-        }
-
-        ast_node_t* op_node = AST_create_node(CURRENT_TOKEN);
-        if (!op_node) {
-            PARSE_ERROR("Can't create the expression's base!");
-            AST_unload(left);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
-
-        forward_token(it, 1);
-        ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp, na);
-        if (!right) {
-            PARSE_ERROR("Error during the right part parse!");
-            AST_unload(op_node);
-            AST_unload(left);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
-
-        AST_add_node(op_node, left);
-        AST_add_node(op_node, right);
-        left = op_node;
     }
-    
+
+_stop_expression_parsing: {}
     return left;
 }
 
@@ -121,20 +125,12 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        PARSE_ERROR("Can't create the base for the array expression!");
+        PARSE_ERROR("Can't create a base for the array-like expression!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-
-    if (node->t->t_type == STRING_VALUE_TOKEN) { /* We register any possible 
-                                                    non RO-string as a string */
-        node->sinfo.v_id = STTB_add_info(node->t->body, STR_ARRAY_VALUE, &smt->s);
-    }
-
-    var_lookup(node, ctx, smt);
     
-    forward_token(it, 1);
-    if (CURRENT_TOKEN->t_type == OPEN_INDEX_TOKEN) {
+    if (consume_token(it, OPEN_INDEX_TOKEN)) {
         forward_token(it, 1);
         ast_node_t* offset_exp = cpl_parse_expression(it, ctx, smt, na);
         if (!offset_exp) {
@@ -148,52 +144,24 @@ static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_
         forward_token(it, 1);
     }
 
-    if (TKN_isclose(CURRENT_TOKEN)) {
-        return node;
-    }
-
-    ast_node_t* opnode = AST_create_node(CURRENT_TOKEN);
-    if (!opnode) {
-        PARSE_ERROR("AST_create_node error!");
-        AST_unload(node);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
-    forward_token(it, 1);
-    ast_node_t* right = cpl_parse_expression(it, ctx, smt, na);
-    if (!right) {
-        PARSE_ERROR("AST error during the right expression parse!");
-        AST_unload(node);
-        AST_unload(opnode);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
-    AST_add_node(opnode, node);
-    AST_add_node(opnode, right);
-    return opnode;
+    var_lookup(node, ctx, smt);
+    return node;
 }
 
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
+    
     if (TKN_isclose(CURRENT_TOKEN)) {
         PARSE_ERROR("Expected a token, but got a terminator!");
         return NULL;
     }
-
-    /* Check basic cases such as pointer access, 
-       call token (basic call), syscall token */
-    if (TKN_isptr(CURRENT_TOKEN)) return _parse_array_expression(it, ctx, smt, na); /* arr[] / arr / ptr / ptr[] */
+    
     switch (CURRENT_TOKEN->t_type) {
         case OPEN_BRACKET_TOKEN: {
             forward_token(it, 1);
             ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
-            if (
-                !node || !CURRENT_TOKEN || 
-                CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN
-            ) {
-                PARSE_ERROR("Error during the binary expression parsing!");
+            if (!node || !CURRENT_TOKEN || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
+                PARSE_ERROR("Error during a binary expression parsing! The bracket wasn't closed!");
                 AST_unload(node);
                 RESTORE_TOKEN_POINT;
                 return NULL;
@@ -204,6 +172,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         }
     
         case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt); /* call()    */
+        case POPARG_TOKEN:    return cpl_parse_poparg(it);             /* poparg    */
         case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt);  /* syscall() */
         case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt);      /* neg       */
         case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt);      /* ref       */
@@ -220,11 +189,18 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         return NULL;
     }
 
-    if (node->t->t_type == STRING_VALUE_TOKEN) {
-        node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
-    }
+    if ( /* Register a string in a string symbol table */
+        node->t->t_type == STRING_VALUE_TOKEN
+    ) node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
 
     var_lookup(node, ctx, smt);
+    /* Check basic cases such as pointer access, 
+       call token (basic call), syscall token */
+    if (TKN_isptr(CURRENT_TOKEN)) {
+        AST_unload(node);
+        return _parse_array_expression(it, ctx, smt, na); /* str / arr[] / arr / ptr / ptr[] */
+    }
+
     forward_token(it, 1);
     return node;
 }

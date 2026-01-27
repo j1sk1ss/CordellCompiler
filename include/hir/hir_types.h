@@ -31,7 +31,8 @@ typedef enum hir_operation {
         HIR_MKLB,        // mk label           id:
         HIR_FDCL,        // declare function   fn [str.id]:
         HIR_FEND,        // function end
-        HIR_OEXT,        // extern object      extern [str.id]
+        HIR_OEXT,        // extern object      extern [id from variable symtable]
+        HIR_FEXT,        // extern function    extern [id from function symtable]
 
         /* Jump instructions */
         HIR_JMP,

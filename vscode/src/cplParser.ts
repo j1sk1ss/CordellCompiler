@@ -10,8 +10,7 @@ function buildLineStarts(text: string): number[] {
 }
 
 function positionAt(lineStarts: number[], offset: number): Position {
-  let lo = 0,
-    hi = lineStarts.length - 1;
+  let lo = 0, hi = lineStarts.length - 1;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
     const s = lineStarts[mid];
@@ -99,7 +98,19 @@ type Token = {
   end: number;
 };
 
-type ParamInfo = { name: string; type: TypeNode; hasDefault: boolean; range: Range };
+type StorageMods = {
+  isGlobal: boolean;
+  isReadonly: boolean;
+};
+
+type ParamInfo = {
+  name: string;
+  type: TypeNode;
+  hasDefault: boolean;
+  isVarArgs?: boolean;
+  range: Range;
+};
+
 type ParseIssue = { message: string; range: Range };
 
 const KEYWORDS = new Set([
@@ -107,7 +118,7 @@ const KEYWORDS = new Set([
   "start","exit","exfunc","function","return",
   "if","else","while","loop","switch","case","default",
   "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
-  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not",
+  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not", "poparg",
   // preprocessor
   "line","include","define","undef","ifdef","ifndef","endif"
 ]);
@@ -119,7 +130,7 @@ const TYPE_KW = new Set([
 const OPERATORS = [
   "||=","&&=","<<",">>","==","!=","<=",">=","&&","||",
   "+=","-=","*=","/=","%=","|=","^=","&=","=",
-  "+","-","*","/","%","|","^","&","<",">", "=>"
+  "+","-","*","/","%","|","^","&","<",">", "=>", "..."
 ].sort((a,b)=>b.length-a.length);
 
 const PUNC = new Set(["{","}","(",")","[","]",",",";","#"]);
@@ -242,7 +253,6 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // char literal
     if (ch === "'") {
       const start = i;
       i++;
@@ -256,7 +266,6 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // integer literal
     if (isDigit(ch)) {
       const start = i;
       if (text.startsWith("0x", i) || text.startsWith("0X", i)) {
@@ -274,7 +283,6 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // identifiers / keywords
     if (isAlpha(ch) || ch === "_") {
       const start = i;
       i++;
@@ -284,7 +292,6 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // operators
     let matchedOp = "";
     for (const op of OPERATORS) {
       if (text.startsWith(op, i)) { matchedOp = op; break; }
@@ -295,14 +302,12 @@ function lex(text: string): Token[] {
       continue;
     }
 
-    // punctuation
     if (PUNC.has(ch)) {
       push("punc", i, i + 1);
       i++;
       continue;
     }
 
-    // fallback: unknown char as punctuation
     push("punc", i, i + 1);
     i++;
   }
@@ -337,16 +342,13 @@ class Parser {
     return this.issues;
   }
 
-  // ---- trivia handling ----
   private skipEOL() {
     while (this.t[this.i]?.kind === "eol") this.i++;
   }
 
-  // default view (EOL skipped)
   private cur(): Token { this.skipEOL(); return this.t[this.i]; }
   private prev(): Token { return this.t[Math.max(0, this.i - 1)]; }
 
-  // raw view (EOL NOT skipped) — needed for pp_directive terminators
   private curRaw(): Token { return this.t[this.i]; }
 
   private at(kind: TokenKind, text?: string): boolean {
@@ -396,8 +398,6 @@ class Parser {
 
     if (this.atRaw("punc", ";") || this.atRaw("eol")) this.i++;
   }
-
-  // ---- program / top level ----
 
   private parseProgram() {
     this.expect("punc", "{", "Program must start with '{'");
@@ -449,21 +449,41 @@ class Parser {
     }
 
     if (this.match("kw", "extern")) {
+      if (this.match("kw", "function")) {
+        const nameTok = this.cur();
+        this.expect("ident", undefined, "extern function: expected identifier");
+        const fnName = this.prev().text;
+    
+        this.expect("punc", "(");
+        const params = this.parseParamListOptInfos();
+        this.expect("punc", ")");
+    
+        let ret: TypeNode = { kind: "prim", name: "i0" };
+        if (this.match("op", "=>")) {
+          ret = this.parseType();
+        }
+    
+        this.expect("punc", ";", "extern function: expected ';'");
+    
+        const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
+        this.sem?.declareFunc(fnName, params, ret, fnRange, false, this.pendingDoc);
+        this.pendingDoc = undefined;
+        return;
+      }
+    
       if (this.match("kw", "exfunc")) {
         this.expect("ident", undefined, "extern exfunc: expected identifier");
       } else {
         this.parseType();
         this.expect("ident", undefined, "extern var: expected identifier");
       }
-      // grammar didn’t require ';' explicitly earlier; accept it if present
+    
       this.match("punc", ";");
       return;
-    }
+    }    
 
-    // storage_opt = [ "glob" | "ro" ]  (at most one)
-    this.match("kw", "glob") || this.match("kw", "ro");
+    const mods = this.parseStorageMods();
 
-    // top_decl = var_decl | function_def | function_proto
     if (this.match("kw", "function")) {
       const doc = this.pendingDoc;
       this.pendingDoc = undefined;
@@ -497,12 +517,9 @@ class Parser {
       return;
     }
 
-    // var_decl / arr_decl at top level
     this.parseVarOrArrDecl(true);
   }
 
-  // ---- pp_directive ----
-  // pp_directive = "#" , pp_body , (EOL | ";")
   private parsePPDirective() {
     const hashTok = this.curRaw();
     if (!this.matchRaw("punc", "#")) {
@@ -513,8 +530,7 @@ class Parser {
       return;
     }
 
-    // directive name should be a keyword token in our lexer
-    const name = this.cur(); // (EOL skipped, OK)
+    const name = this.cur();
     const isKw = name.kind === "kw";
     const dir = isKw ? name.text : "";
 
@@ -527,7 +543,6 @@ class Parser {
       return;
     }
 
-    // consume name
     this.i++;
 
     switch (dir) {
@@ -585,7 +600,6 @@ class Parser {
 
       case "define":
         this.expect("ident", undefined, "#define: expected identifier");
-        // replacement-list: consume tokens until ';' or EOL (raw)
         while (!this.atRaw("eof") && !this.atRaw("eol") && !this.atRaw("punc", ";")) {
           this.i++;
         }
@@ -597,7 +611,7 @@ class Parser {
           message: `Unknown preprocessor directive '${dir}'`,
           range: rangeOf(this.lines, name.start, name.end)
         });
-        // consume rest of line
+        
         while (!this.atRaw("eof") && !this.atRaw("eol") && !this.atRaw("punc", ";")) this.i++;
         this.consumePPLineEnd();
         return;
@@ -619,31 +633,81 @@ class Parser {
     if (this.atRaw("punc", ";") || this.atRaw("eol")) this.i++;
   }
 
-  // ---- blocks / statements ----
-
   private parseParamListOptInfos(): ParamInfo[] {
     const params: ParamInfo[] = [];
     if (this.at("punc", ")")) return params;
-
+  
+    let seenVarArgs = false;
+    const unknownType: TypeNode = { kind: "unknown" };
+  
     while (true) {
+      let isVarArgs = false;
+  
+      if (this.match("op", "...")) {
+        if (seenVarArgs) {
+          const c = this.prev();
+          this.issues.push({
+            message: "multiple varargs parameters are not allowed",
+            range: rangeOf(this.lines, c.start, c.end)
+          });
+        }
+        seenVarArgs = true;
+        isVarArgs = true;
+  
+        let t: TypeNode = unknownType;
+        if (this.at("kw") && TYPE_KW.has(this.cur().text)) {
+          t = this.parseType();
+        }
+  
+        let name = "__varargs";
+        let nameTok = this.prev();
+        if (this.at("ident")) {
+          nameTok = this.cur();
+          this.i++;
+          name = nameTok.text;
+        }
+  
+        params.push({
+          name,
+          type: t,
+          hasDefault: false,
+          isVarArgs: true,
+          range: rangeOf(this.lines, nameTok.start, nameTok.end)
+        });
+  
+        if (this.match("punc", ",")) {
+          this.issues.push({
+            message: "varargs parameter must be the last one",
+            range: rangeOf(this.lines, nameTok.start, nameTok.end)
+          });
+        }
+        break;
+      }
+  
       const t = this.parseType();
-
+  
       const nameTok = this.cur();
       this.expect("ident", undefined, "param: expected identifier");
       const name = this.prev().text;
-
+  
       let hasDefault = false;
       if (this.match("op", "=")) {
         hasDefault = true;
         this.parseExpression();
       }
-
-      params.push({ name, type: t, hasDefault, range: rangeOf(this.lines, nameTok.start, nameTok.end) });
-
+  
+      params.push({
+        name,
+        type: t,
+        hasDefault,
+        range: rangeOf(this.lines, nameTok.start, nameTok.end)
+      });
+  
       if (!this.match("punc", ",")) break;
     }
+  
     return params;
-  }
+  }  
 
   private parseBlock() {
     this.expect("punc", "{", "block: expected '{'");
@@ -656,12 +720,29 @@ class Parser {
     this.sem?.exitScope();
     this.expect("punc", "}", "block: expected '}'");
   }
+  
+  private parseStorageMods(): StorageMods {
+    let isGlobal = false;
+    let isReadonly = false;
+  
+    let progressed = true;
+    while (progressed) {
+      progressed = false;
+      if (this.match("kw", "glob")) {
+        isGlobal = true;
+        progressed = true;
+      }
+      if (this.match("kw", "ro")) {
+        isReadonly = true;
+        progressed = true;
+      }
+    }
+  
+    return { isGlobal, isReadonly };
+  }
 
   private parseStatement() {
-    // pp_directive
     if (this.atRaw("punc", "#")) { this.parsePPDirective(); return; }
-
-    // comment statement
     if (this.match("comment")) return;
 
     if (this.at("kw", "if")) {
@@ -687,7 +768,6 @@ class Parser {
       return;
     }
 
-    // switch expression; { case literal; block ... [default [;] block] }
     if (this.at("kw", "switch")) {
       this.i++;
       this.parseExpression();
@@ -729,7 +809,6 @@ class Parser {
       return;
     }
 
-    // lis [string_literal] ;
     if (this.at("kw", "lis")) {
       this.i++;
       if (!this.at("punc", ";")) this.expect("str", undefined, "lis: expected string literal");
@@ -781,16 +860,20 @@ class Parser {
 
   private looksLikeDeclStart(): boolean {
     const c = this.cur();
-    return c.kind === "kw" && TYPE_KW.has(c.text);
-  }
+    return (
+      (c.kind === "kw" && TYPE_KW.has(c.text)) ||
+      this.at("kw", "glob") ||
+      this.at("kw", "ro")
+    );
+  }  
 
   private parseVarOrArrDecl(isTopLevel: boolean) {
-    // arr_decl: "arr" ident "[" integer_literal "," type "]" [ "=" (expression | arr_value) ] ";"
+    const mods = this.parseStorageMods();
     if (this.at("kw", "arr")) {
       const t2 = this.t[this.i + 1];
       const t3 = this.t[this.i + 2];
       if (t2?.kind === "ident" && t3?.kind === "punc" && t3.text === "[") {
-        this.i++; // consume 'arr'
+        this.i++;
 
         const nameTok = this.cur();
         this.expect("ident", undefined, "arr_decl: expected identifier");
@@ -829,7 +912,6 @@ class Parser {
       }
     }
 
-    // var_decl: type ident [ "=" expression ] ";"
     const vType = this.parseType();
 
     const nameTok = this.cur();
@@ -892,8 +974,6 @@ class Parser {
     this.issues.push({ message: `Expected literal, got '${c.text}'`, range: rangeOf(this.lines, c.start, c.end) });
     if (!this.at("eof")) this.i++;
   }
-
-  // ---- expressions ----
 
   private parseExpression() { this.parseAssign(); }
 
@@ -1007,6 +1087,10 @@ class Parser {
   private parsePrimary() {
     if (this.at("kw", "syscall")) {
       this.i++;
+      return;
+    }
+
+    if (this.match("kw", "poparg")) {
       return;
     }
 

@@ -14,7 +14,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     }
     
     if (!ret) {
-        HIR_BLOCK3(ctx, fi.external ? HIR_ECLL : HIR_FCLL, NULL, HIR_SUBJ_FUNCNAME(node), args);
+        HIR_BLOCK3(ctx, fi.flags.external ? HIR_ECLL : HIR_FCLL, NULL, HIR_SUBJ_FUNCNAME(node), args);
         return NULL;
     }
     
@@ -23,6 +23,6 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         VRTB_add_info(NULL, TKN_get_tmp_type(fi.rtype ? fi.rtype->t->t_type : I64_TYPE_TOKEN), 0, NULL, &smt->v)
     );
     
-    HIR_BLOCK3(ctx, fi.external ? HIR_STORE_ECLL : HIR_STORE_FCLL, res, HIR_SUBJ_FUNCNAME(node), args);
+    HIR_BLOCK3(ctx, fi.flags.external ? HIR_STORE_ECLL : HIR_STORE_FCLL, res, HIR_SUBJ_FUNCNAME(node), args);
     return res;
 }

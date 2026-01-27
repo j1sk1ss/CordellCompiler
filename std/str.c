@@ -200,13 +200,14 @@ static string_t* string_copy(str_self src) {
     }
 
     str_memcpy(str->body, src->body, str->size + 1);
+    str->head = str->body;
     return str;
 }
 
 static int string_equals(str_self self, string_t* s) {
     if (!self || !s) return 0;
     if (self->hash != s->hash) return 0;
-    char *fh = self->head, *sh = s->body;
+    char *fh = self->head, *sh = s->head;
     while (*fh && *sh) {
         if (*fh != *sh) return 0;
         fh++;
@@ -356,7 +357,23 @@ string_t* create_string_from_part(const char* s, unsigned int off, int len) {
 }
 
 string_t* create_string_from_char(char c) {
-    char buffer[2] = { c, 0 };
+    int len = 0;
+    char buffer[10] = { 0 };
+    if (c == 0) buffer[len++] = '0';
+    else {
+        unsigned char temp = c;
+        while (temp > 0) {
+            buffer[len++] = (temp % 10) + '0';
+            temp /= 10;
+        }
+    }
+
+    for (int i = 0; i < len / 2; i++) {
+        char t = buffer[i];
+        buffer[i] = buffer[len - 1 - i];
+        buffer[len - 1 - i] = t;
+    }
+
     return create_string(buffer);
 }
 

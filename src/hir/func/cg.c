@@ -60,7 +60,7 @@ Returns 1 if succeeds.
 */
 static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
     map_foreach (func_info_t* fi, &smt->f.functb) {
-        if (fi->entry) ctx->e_fid = fi->id;
+        if (fi->flags.entry) ctx->e_fid = fi->id;
         _register_func(fi->id, ctx);
     }
 

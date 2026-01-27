@@ -2,13 +2,16 @@
 #define RESTORE_H_
 
 #include <stdio.h>
+#include <std/mm.h>
 #include <std/set.h>
 #include <prep/dict.h>
 #include <prep/token_types.h>
 #include <ast/ast.h>
 
-#define UNDERSCORE_OPEN  "\e[4m"
-#define UNDERSCORE_CLOSE "\e[0m"
+#define ESC "\x1b["
+#define UL_ON   ESC "4m"
+#define UL_OFF  ESC "24m"
+#define RESET   ESC "0m"
 
 /*
 Restore the token's type.

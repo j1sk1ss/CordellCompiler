@@ -6,10 +6,11 @@
 #include <prep/token_types.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
+#include <sem/ast/ast_data.h>
 
 typedef struct {
     unsigned int trg;
-    int          (*perform)(ast_node_t*, sym_table_t*);
+    int          (*perform)(AST_VISITOR_ARGS);
 } ast_visitor_t;
 
 /*
@@ -20,7 +21,7 @@ Params:
 
 Returns a new one visitor.
 */
-ast_visitor_t* ASTVIS_create_visitor(unsigned int trg, int (*perform)(ast_node_t*, sym_table_t*));
+ast_visitor_t* ASTVIS_create_visitor(unsigned int trg, int (*perform)(AST_VISITOR_ARGS));
 
 /*
 Unload a visitor.

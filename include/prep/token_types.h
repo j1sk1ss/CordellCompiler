@@ -18,15 +18,14 @@ typedef enum {
     UNKNOWN_NUMERIC_TOKEN,
     LINE_BREAK_TOKEN,
 
-    COMMENT_TOKEN,
-    DELIMITER_TOKEN,
-    COMMA_TOKEN,
-    OPEN_INDEX_TOKEN,
-    CLOSE_INDEX_TOKEN,
-    OPEN_BRACKET_TOKEN,
-    CLOSE_BRACKET_TOKEN,
-    OPEN_BLOCK_TOKEN,
-    CLOSE_BLOCK_TOKEN,
+    DELIMITER_TOKEN,     // ;
+    COMMA_TOKEN,         // ,
+    OPEN_INDEX_TOKEN,    // [
+    CLOSE_INDEX_TOKEN,   // ]
+    OPEN_BRACKET_TOKEN,  // (
+    CLOSE_BRACKET_TOKEN, // )
+    OPEN_BLOCK_TOKEN,    // {
+    CLOSE_BLOCK_TOKEN,   // }
 
     // Modifiers
     DREF_TYPE_TOKEN,     // dref
@@ -37,7 +36,8 @@ typedef enum {
     NEGATIVE_TOKEN,      // not
 
     // Data types
-    TMP_TYPE_TOKEN,
+    VAR_ARGUMENTS_TOKEN, // ...
+    TMP_TYPE_TOKEN,      // tmp
     TMP_F64_TYPE_TOKEN,  // tmp_f64
     TMP_F32_TYPE_TOKEN,  // tmp_f32
     TMP_I64_TYPE_TOKEN,  // tmp_i64
@@ -94,6 +94,7 @@ typedef enum {
     BREAK_TOKEN,         // break
     IF_TOKEN,            // if
     ELSE_TOKEN,          // else
+    POPARG_TOKEN,        // poparg
     
     // Operands
     PLUS_TOKEN,          // +
@@ -127,6 +128,7 @@ typedef enum {
     OR_TOKEN,            // ||
     
     // Variables (not a type, a variable)
+    VARIABLE_TOKEN,      // front-end tokenizer variable abstraction
     F64_VARIABLE_TOKEN,  // f64
     F32_VARIABLE_TOKEN,  // f32
     I64_VARIABLE_TOKEN,  // i64
@@ -141,19 +143,19 @@ typedef enum {
     ARR_VARIABLE_TOKEN,  // arr
 
     // Values
-    STRING_VALUE_TOKEN,
-    CHAR_VALUE_TOKEN,
+    STRING_VALUE_TOKEN,  // "something"
+    CHAR_VALUE_TOKEN,    // 's'
 
     // Debug statements
     BREAKPOINT_TOKEN, // lis
 } token_type_t;
 
 typedef struct {
-    char ro;   /* Is read only flag   */
-    char glob; /* Is global flag      */
-    char ptr;  /* Is pointer flag     */
-    char ext;  /* Is extern flag      */
-    char heap; /* Is heap allocated   */
+    char ro   : 1; /* Is read only flag   */
+    char glob : 1; /* Is global flag      */
+    char ptr  : 1; /* Is pointer flag     */
+    char ext  : 1; /* Is extern flag      */
+    char heap : 1; /* Is heap allocated   */
 } token_flags_t;
 
 typedef struct {
@@ -185,5 +187,6 @@ int TKN_isvariable(token_t* token);
 int TKN_issign(token_t* token);
 int TKN_is_float(token_t* token);
 int TKN_update_operator(token_t* token);
+token_type_t TKN_get_var_from_type(token_type_t t);
 
 #endif
