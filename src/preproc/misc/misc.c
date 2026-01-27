@@ -189,9 +189,6 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
 
 #define PP_MAX_PASSES 128
 int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, deftb_t* dctx) {
-    char* tmp = NULL;
-    size_t tmp_cap = 0;
-
     for (int pass = 0; pass < PP_MAX_PASSES; pass++) {
         int changed = _resolve_defines(*in, out, out_cap, dctx);
         if (changed < 0) return 0;
@@ -200,8 +197,7 @@ int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, d
         char* ts = *in; *in = *out; *out = ts;
         size_t tcap = *in_cap; *in_cap = *out_cap; *out_cap = tcap;
     }
-
-    if (tmp) free(tmp);
+    
     return 1;
 }
 

@@ -365,8 +365,7 @@ min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
 ## Variadic arguments
 CPL supports variadic arguments in the same way hot it supports C language. To use the variadic arguments in a function, add the `...` lexem **as the final arguement**!
 ```cpl
-function foo(...) => i0 {
-}
+function foo(...) => i0;
 ```
 
 To 'pop' an arguement from this set, use the `poparg` keyword. It behaves as a variable with a 'variable' value:
@@ -381,7 +380,7 @@ Also, the `poparg` keyword can be used in a traditional function:
 ```cpl
 function foo(i32 a, i32 b) => i0 {
     i8 a1 = poparg as i8; : a :
-    i8 a2 = poparg as i8; : b :
+    i8 b1 = poparg as i8; : b :
 }
 ```
 
@@ -396,15 +395,17 @@ syscall(1, 1, ref msg, strlen(ref msg));
 - `asm` - Second usefull function that allows to inline an assembly code. Main feature here is a variables line, where you can pass any number of arguments, then use them in the assembly code block via `%<num>` symbols.
 ```cpl
 i32 a = 0;
-i32 ret = 0;
+i32 ret;
 asm(a, ret) {
-   "mov rax, %0 ; mov rax, a",
-   "syscall",
-   "mov %1, rax ; mov ret, rax"
+    "push rax",
+    "mov rax, %0", : mov rax, a   :
+    "syscall",
+    "mov %1, rax", : mov ret, rax :
+    "pop rax"
 }
 ```
 
-Note: Inlined assembly block doesn't optimized by any alghorithms.
+Note: Inlined assembly block isn't optimized by the compiler.
 
 # Debugging
 ## Interrupt point 
@@ -724,7 +725,7 @@ Outer variables can be seen by current and nested scopes.
       i8 c = 9; : <= See the "b" variable :
 
       {
-         f32 a = 10; : <= See the "b" and the "c" variables :
+         f32 a = 10.0; : <= See the "b" and the "c" variables :
       }
 
       i8 a = 0; : <= See the "b" and the "c" variables :
@@ -772,8 +773,8 @@ CPL uses a lightweight ownership model with `register allocation` that resembles
 }
 ```
 
-Note! Disable optimizations before a code debugging given the preservation the code from a transformation.
-Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
+Note 1!: Be sure that you've disabled all optimizations before the code debug given the preservation of a code from transformation.
+Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
 
 # Examples
 ## strlen
@@ -855,8 +856,7 @@ Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
         i32 stackptr = 0;
         i32 codelength = gets(code, 10000);
         while pos < codelength; {
-            i8 c = code[pos];
-            switch c; {
+            switch code[pos]; {
                 case '['; {
                     stack[stackptr] = pos;
                     stackptr += 1;
@@ -872,6 +872,7 @@ Note 2! To make this works, use any debugging tool such as `gdb` and `lldb`.
 
                     break;
                 }
+                default { break; }
             }
             
             pos += 1;

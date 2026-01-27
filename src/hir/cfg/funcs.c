@@ -65,11 +65,13 @@ int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt
                 if (!fentry) break;
                 _add_funcblock(fentry, h, ctx, smt);
                 fentry = NULL;
-                break;
+                goto _handled_instruction;
             }
             default: break;
         }
 
+        if (!fentry) list_add(&ctx->out, h);
+_handled_instruction: {}
         h = h->next;
     }
 

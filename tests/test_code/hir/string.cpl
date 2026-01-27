@@ -16,7 +16,6 @@
                 u64s %0 = alloc(8);
                 u64t %2 = Hello, World! as u64;
                 u64s %0 = u64t %2;
-                u64s %0 = u64t %2;
                 strs %1 = alloc(Hello, User!);
                 u64t %3 = num? 111 as u64;
                 u64t %4 = u64s %0;

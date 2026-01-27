@@ -19,10 +19,11 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_FEND:       return "fend\n";
         case LIR_STRT:       return "start\n";
         case LIR_STEND:      return "send\n";
-        case LIR_OEXT:       return "extern %s;\n";
 
         case LIR_PUSH:       return "push(%s);\n";
         case LIR_POP:        return "%s = pop();\n";
+        case LIR_FEXT:       return "(fun) extern %s;\n";
+        case LIR_OEXT:       return "(var) extern %s;\n";
 
         case LIR_TST:        return "test %s, %s;\n";
         case LIR_JNE:        return "jne %s;\n";

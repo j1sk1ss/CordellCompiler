@@ -1,7 +1,7 @@
 import re
 import argparse
 
-parser = argparse.ArgumentParser(description='Compiler leak finder!')
+parser: argparse.ArgumentParser = argparse.ArgumentParser(description='Compiler leak finder!')
 parser.add_argument('--log-path', required=True, help='Path to log file with memory logs')
 args = parser.parse_args()
 
