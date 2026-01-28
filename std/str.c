@@ -15,13 +15,20 @@ typedef struct {
     unsigned long hash;
 } string_info_t;
 
+/*
+Calculate the basic string information.
+Params:
+    - `s` - The input string.
+    - `len` - The string's size.
+    - `info` - Output information.
+
+Returns 1 if succeeds.
+*/
 static int _get_string_info(const char* s, int len, string_info_t* info) {
     char* h = (char*)s;
     info->size = 0;
     info->hash = 0xFFFF;
-    while (
-        h && *h && (len == -1 || len-- > 0)
-    ) {
+    while (h && *h && (len == -1 || len-- > 0)) {
         info->hash ^= *h * 0xFDDDF123;
         info->size++;
         h++;
@@ -30,7 +37,7 @@ static int _get_string_info(const char* s, int len, string_info_t* info) {
     return 1;
 }
 
-static int string_cat(str_self self, string_t* dst) {
+static int _string_cat(str_self self, string_t* dst) {
     char* nbody = (char*)mm_realloc(self->body, self->size + dst->size + 1);
     if (!nbody) return 0;
 
@@ -45,7 +52,7 @@ static int string_cat(str_self self, string_t* dst) {
     return 1;
 }
 
-static long long string_to_llong(str_self self) {
+static long long _string_to_llong(str_self self) {
     int neg         = 1;
     long long num   = 0;
     unsigned long i = 0;
@@ -67,7 +74,7 @@ static long long string_to_llong(str_self self) {
 	return (num * neg);
 }
 
-static unsigned long long string_to_ullong(str_self self, int base) {
+static unsigned long long _string_to_ullong(str_self self, int base) {
     char* h = self->head;
     unsigned long long result = 0;
     for (int i = 0; *h; ++i, ++h) {
@@ -86,7 +93,7 @@ static unsigned long long string_to_ullong(str_self self, int base) {
     return result;
 }
 
-static string_t* string_from_number(str_self self) {
+static string_t* _string_from_number(str_self self) {
     int isfloat = 0;
     unsigned long long val = 0;
     for (unsigned int i = 0; i < self->size; i++) {
@@ -123,7 +130,7 @@ static string_t* string_from_number(str_self self) {
     return create_string(buffer);
 }
 
-static double string_to_double(str_self self) {
+static double _string_to_double(str_self self) {
     char* s = self->head;
     double result = 0.0;
     int sign      = 1;
@@ -171,7 +178,7 @@ static double string_to_double(str_self self) {
     return sign * result;
 }
 
-static string_t* string_fchar(str_self self, char chr) {
+static string_t* _string_fchar(str_self self, char chr) {
     char* h = self->head;
     while (*h) {
         if (*h == chr) {
@@ -184,11 +191,11 @@ static string_t* string_fchar(str_self self, char chr) {
     return NULL;
 }
 
-static unsigned int string_length(str_self self) {
+static unsigned int _string_length(str_self self) {
     return self->size;
 }
 
-static string_t* string_copy(str_self src) {
+static string_t* _string_copy(str_self src) {
     string_t* str = (string_t*)mm_malloc(sizeof(string_t));
     if (!str) return NULL;
     
@@ -204,7 +211,7 @@ static string_t* string_copy(str_self src) {
     return str;
 }
 
-static int string_equals(str_self self, string_t* s) {
+static int _string_equals(str_self self, string_t* s) {
     if (!self || !s) return 0;
     if (self->hash != s->hash) return 0;
     char *fh = self->head, *sh = s->head;
@@ -217,7 +224,7 @@ static int string_equals(str_self self, string_t* s) {
     return *fh == *sh;
 }
 
-static int string_equals_raw(str_self self, const char* s) {
+static int _string_equals_raw(str_self self, const char* s) {
     if (!self || !s) return 0;
     char *fh = self->head, *sh = (char*)s;
     while (*fh && *sh) {
@@ -229,7 +236,7 @@ static int string_equals_raw(str_self self, const char* s) {
     return *fh == *sh;
 }
 
-static int string_index_of(str_self self, char c) {
+static int _string_index_of(str_self self, char c) {
     for (unsigned int i = 0; i < self->size; i++) {
         if (self->head[i] == c) return i;
     }
@@ -237,7 +244,7 @@ static int string_index_of(str_self self, char c) {
     return -1;
 }
 
-static int string_replace(str_self self, const char* src, const char* dst) {
+static int _string_replace(str_self self, const char* src, const char* dst) {
     unsigned int src_len = str_strlen(src);
     unsigned int dst_len = str_strlen(dst);
     char* s = self->head;
@@ -303,12 +310,12 @@ static int string_replace(str_self self, const char* src, const char* dst) {
     return count;
 }
 
-static int string_move_head(str_self self, unsigned int offset) {
+static int _string_move_head(str_self self, unsigned int offset) {
     self->head += offset;
     return 1;
 }
 
-static int string_reset_head(str_self self) {
+static int _string_reset_head(str_self self) {
     self->head = self->body;
     return 1;
 }
@@ -328,20 +335,20 @@ static string_t* _create_base_string(const char* s, unsigned int off, int len) {
         return NULL;
     }
 
-    str->copy        = string_copy;
-    str->equals      = string_equals;
-    str->requals     = string_equals_raw;
-    str->fchar       = string_fchar;
-    str->index_of    = string_index_of;
-    str->len         = string_length;
-    str->cat         = string_cat;
-    str->to_llong    = string_to_llong;
-    str->to_ullong   = string_to_ullong;
-    str->to_double   = string_to_double;
-    str->from_number = string_from_number;
-    str->hmove       = string_move_head;
-    str->rhead       = string_reset_head;
-    str->replace     = string_replace;
+    str->copy        = _string_copy;
+    str->equals      = _string_equals;
+    str->requals     = _string_equals_raw;
+    str->fchar       = _string_fchar;
+    str->index_of    = _string_index_of;
+    str->len         = _string_length;
+    str->cat         = _string_cat;
+    str->to_llong    = _string_to_llong;
+    str->to_ullong   = _string_to_ullong;
+    str->to_double   = _string_to_double;
+    str->from_number = _string_from_number;
+    str->hmove       = _string_move_head;
+    str->rhead       = _string_reset_head;
+    str->replace     = _string_replace;
 
     str->head = str->body;
     if (s) str_memcpy(str->body, s, info.size + 1);

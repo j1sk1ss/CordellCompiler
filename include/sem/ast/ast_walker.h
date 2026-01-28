@@ -15,9 +15,9 @@ typedef struct {
 } ast_sem_handler_t;
 
 typedef struct {
-    walker_flags_t flags;
-    list_t         visitors;
-    sym_table_t*   smt;
+    walker_flags_t flags;    /* Current flags    */
+    list_t         visitors; /* The walkers list */
+    sym_table_t*   smt;      /* Symbolic table   */
 } ast_walker_t;
 
 /*

@@ -252,7 +252,7 @@ int TKN_isnumeric(token_t* token) {
     if (!token) return 0;
     if (
         token->t_type == UNKNOWN_NUMERIC_TOKEN || 
-        token->t_type == UNKNOWN_CHAR_TOKEN ||
+        token->t_type == UNKNOWN_CHAR_TOKEN    ||
         token->t_type == CHAR_VALUE_TOKEN
     ) return 1;
     return 0;

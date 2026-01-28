@@ -168,7 +168,7 @@ Returns 1 if succeeds. Otherwise returns 0 - Semantic block of a compilation.
 */
 static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
     if (!nd) return 0;
-
+    
     /* Parent flags setup */
     _update_flags(nd, &ctx->flags, 1);
     if (_ast_walk(nd->c, ctx) == -1) return 0;
