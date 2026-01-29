@@ -90,7 +90,7 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
             break;
         }
         case CHAR_VALUE_TOKEN: {
-            tkn->body = create_string_from_char(input->body[0]);
+            tkn->body = create_string_from_int(input->body[0]);
             tkn->t_type = UNKNOWN_NUMERIC_TOKEN;
             destroy_string(input);
             break;
@@ -343,7 +343,7 @@ unsigned long TKN_hash_token(token_t* t) {
 
     t->finfo.line   = 0;
     t->finfo.column = 0;
-    t->finfo.file   = 0;
+    t->finfo.file   = NULL;
 
     unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
     hash ^= t->body->hash;

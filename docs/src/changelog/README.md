@@ -26,6 +26,33 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## De-vertualization (basics)
+CorellCompiler now supports polymorphic functions. The symtax is below:
+```cpl
+{
+    function chloe(i32 a, i32 b = 10) => i0;
+    function chloe(i64 a, i32 b = 10) => i0;
+    start() {
+        chloe(10 as i32);
+        chloe(10 as i64);
+        exit 0;
+    }
+}
+```
+
+The idea that HIR level can choose a function that supports the input arguments. To help the compiler, use the `as` keyword. Additionally, functions with the 'default' argument, for instance:
+```cpl
+function chloe(i32 a, i32 b = 10) => i0;
+```
+
+can't support such polymorphism. The example above works given the same number of the arguemnts. If we consider the next example:
+```
+function chloe(i32 a, i32 b = 10) => i0;
+function chloe(i32 a, i32 b = 10, i32 c = 10) => i0;
+```
+
+this mechanism won't work.
+
 ## Variadic arguments
 Now CPL supports variadic arguments! The syntax is similar to C language:
 ```cpl

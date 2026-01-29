@@ -4,6 +4,7 @@
 #include <std/mm.h>
 #include <std/set.h>
 #include <std/str.h>
+#include <ast/ast.h>
 #include <hir/hir.h>
 #include <hir/cfg.h>
 #include <symtab/functb.h>
@@ -89,5 +90,32 @@ Params:
 Return 1 if success, otherwise 0.
 */
 int HIR_FUNC_perform_inline(cfg_ctx_t* cctx);
+
+/*
+De-virtualization for functions in HIR.
+The idea to determine which function is beign called:
+```cpl
+function foo(i32 a) => i0;  : id=0 :
+function foo(i32 a) => i32; : id=1 :
+function foo(i8 a) => 0;    : id=2 :
+
+{
+    foo(10 as i32);         : id=0 :
+    i32 a = foo(10 as i32); : id=1 :
+    foo(1 as i8);           : id=2 :
+}
+```
+
+Note: De-virtualization works only with determined arguments. To determine arguments,
+the user must use the 'as' keyword for convertion.
+
+The function will change the call function id based on the provided arguemnts and the return type.
+Params:
+    - `cctx` - CFG context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds.
+*/
+int HIR_FUNC_perform_devirt(cfg_ctx_t* cctx, sym_table_t* smt);
 
 #endif

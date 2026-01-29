@@ -363,9 +363,9 @@ string_t* create_string_from_part(const char* s, unsigned int off, int len) {
     return _create_base_string(s, off, len);
 }
 
-string_t* create_string_from_char(char c) {
+string_t* create_string_from_int(int c) {
     int len = 0;
-    char buffer[10] = { 0 };
+    char buffer[255] = { 0 };
     if (c == 0) buffer[len++] = '0';
     else {
         unsigned char temp = c;

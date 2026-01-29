@@ -2,15 +2,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
-
 #include <preproc/pp.h>
-#include <prep/token.h>
-#include <prep/markup.h>
-#include <ast/ast.h>
-#include <ast/astgen.h>
-#include <ast/astgen/astgen.h>
-#include <sem/misc/restore.h>
-#include "../../misc/ast_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {

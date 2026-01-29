@@ -154,7 +154,7 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
         case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(s->storage.str.sid, &fi, &smt->f)) {
-                dst += sprintf(dst, "%s(", fi.name->body);
+                dst += sprintf(dst, "%s(", fi.virt->body);
             }
 
             if (fi.args) {

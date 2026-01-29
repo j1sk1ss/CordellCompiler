@@ -263,7 +263,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_FNAME: {
                 func_info_t fi;
                 if (FNTB_get_info_id(s->storage.str.s_id, &fi, &smt->f)) {
-                    dst += sprintf(dst, "%s(", fi.name->body);
+                    dst += sprintf(dst, "%s(", fi.virt->body);
                     if (fi.args) {
                         for (ast_node_t* t = fi.args->c; t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
                             if (t->t->t_type == VAR_ARGUMENTS_TOKEN) dst += sprintf(dst, "...");

@@ -48,8 +48,8 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
         case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(v->storage.str.sid, &fi, &smt->f)) {
-                if (fi.flags.global) snprintf(curr_buffer, sizeof(_buffers[0]), "%s", fi.name->body);
-                else snprintf(curr_buffer, sizeof(_buffers[0]), "_cpl_%s", fi.name->body);
+                if (fi.flags.global) snprintf(curr_buffer, sizeof(_buffers[0]), "%s", fi.virt->body);
+                else snprintf(curr_buffer, sizeof(_buffers[0]), "_cpl_%s", fi.virt->body);
                 return curr_buffer;
             }
 

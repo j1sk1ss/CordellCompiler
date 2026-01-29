@@ -173,6 +173,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
 
+    HIR_FUNC_perform_devirt(&cfgctx, &smt);
 #ifdef HIR_TRE_TESTING
     HIR_FUNC_perform_tre(&cfgctx, &smt);    // Transform
 #endif
@@ -202,6 +203,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 
 #ifdef HIR_SSA_TESTING
+
     printf("HIR_CFG_create_domdata...\n");
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
     printf("HIR_LTREE_canonicalization...\n");

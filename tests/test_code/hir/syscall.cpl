@@ -11,7 +11,7 @@
         {
             {
                 use num? 0;
-                i32t %0 = call foo() -> i32, argc args();
+                i32t %0 = call foo0() -> i32, argc args();
                 use i32t %0;
                 i64t %1 = num? 0 + num? 0;
                 use i64t %1;

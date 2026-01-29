@@ -121,7 +121,7 @@ static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
 int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
-            hir_block_t* hh = bb->hmap.entry;
+            hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
             while (hh) {
                 if (HIR_funccall(hh->op)) {
                     cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
@@ -138,8 +138,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
                     }
                 }
 
-                if (hh == bb->hmap.exit) break;
-                hh = hh->next;
+                hh = HIR_get_next(hh, bb->hmap.exit, 1);
             }
         }
     }

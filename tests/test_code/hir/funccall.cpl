@@ -11,7 +11,7 @@
         {
             {
                 use num? 1;
-                call a(i32 a), argc args(num? 1,);
+                call a0(i32 a), argc args(num? 1,);
             }
         }
     }

@@ -35,7 +35,7 @@ typedef struct string {
 
 string_t* create_string(const char* s);
 string_t* create_string_from_part(const char* s, unsigned int off, int len);
-string_t* create_string_from_char(char c);
+string_t* create_string_from_int(int c);
 int destroy_string(string_t* s);
 
 unsigned int str_strlen(const char* str);
