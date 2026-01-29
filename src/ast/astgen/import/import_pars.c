@@ -23,6 +23,11 @@ ast_node_t* cpl_parse_import(list_iter_t* it, sym_table_t* smt) {
 
     forward_token(it, 2);
     while (CURRENT_TOKEN && (CURRENT_TOKEN)->t_type != DELIMITER_TOKEN) {
+        if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
+            forward_token(it, 1);
+            continue;
+        }
+
         ast_node_t* import_name = AST_create_node(CURRENT_TOKEN);
         if (!import_name) {
             PARSE_ERROR("Can't create a base for the function name!");
@@ -32,8 +37,18 @@ ast_node_t* cpl_parse_import(list_iter_t* it, sym_table_t* smt) {
             return NULL;
         }
 
+        ast_node_t* args_node = AST_create_node_bt(CREATE_SCOPE_TOKEN);
+        if (!args_node) {
+            PARSE_ERROR("Can't create a base for the function's arguments!");
+            AST_unload(node);
+            AST_unload(source_node);
+            RESTORE_TOKEN_POINT;
+            return NULL;
+        }
+
+        AST_add_node(import_name, args_node);
         AST_add_node(source_node, import_name);
-        FNTB_add_info(import_name->t->body, 1, 0, 0, NULL, NULL, &smt->f);
+        import_name->sinfo.v_id = FNTB_add_info(import_name->t->body, 1, 0, 0, args_node, NULL, &smt->f);
         forward_token(it, 1);
     }
 

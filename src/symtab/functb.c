@@ -54,7 +54,7 @@ static func_info_t* _create_func_info(string_t* name, int global, int external, 
 static int _is_function_presented(string_t* name, ast_node_t* args, func_info_t* out, functab_ctx_t* ctx) {
     map_foreach (func_info_t* fi, &ctx->functb) {
         if (
-            fi->name->equals(fi->name, name) && 
+            fi->name->equals(fi->name, name) &&
             AST_hash_node_stop(args->c, SCOPE_TOKEN) == AST_hash_node_stop(fi->args->c, SCOPE_TOKEN)
         ) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
@@ -68,7 +68,7 @@ static int _is_function_presented(string_t* name, ast_node_t* args, func_info_t*
 symbol_id_t FNTB_add_info(string_t* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
     print_log(
         "FNTB_add_info(name=%s, global=%i, ext=%i, entry=%i, args=%lu)", 
-        name ? name->body : "(null)", global, entry, external, AST_hash_node_stop(args->c, SCOPE_TOKEN)
+        name ? name->body : "(null)", global, entry, external, args ? AST_hash_node_stop(args->c, SCOPE_TOKEN) : 0
     );
     
     func_info_t out;

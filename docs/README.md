@@ -1,16 +1,18 @@
 # Summary
 The **Cordell Programming Language (CPL)** is a system-level programming language designed for learning and experimenting with modern compiler concepts. It combines low-level capabilities from `ASM` with practices inspired by modern languages like `Rust` and `C`. `CPL` is intended for:
-- **Systems programming** — operating systems, DBMSs, compilers, interpreters, and embedded software.  
-- **Educational purposes** — a language to study compiler design, interpreters, and programming language concepts.
-- **Radical simplicity** - Similar to RISC, *we can construct any complex abstraction without complex abstractions*. 
+- **System programming** — OS (bootloaders, kernels), DBMSs, FSs, compilers, interpreters, etc.  
+- **Educational purpose** — a language to study compiler design, interpreters, and programming language concepts.
+- **Radical simplicity** - let's make this language simple as it possible. 
 
 ## Key Features
-- **Partial strong-typing**: variables can't hold values of different types; the compiler attempts implicit conversions when assigning.  
-- **Explicit memory model**: ownership rules and manual memory management are core features.  
-- **Minimalistic syntax**: designed for readability and precision.  
+- **Strong-typing**: variables can't hold values of different types; the compiler attempts implicit conversions when assigning.
+- **Minimalistic syntax**: cpl is a simple programming language that is based on C language.  
 - **Deterministic control flow**: no hidden behaviors; all execution paths are explicit.  
 - **Extensibility**: functions and inbuilt macros allow both low-level operations and high-level abstractions.
-- **Optimization**: input code can be optimized in a lot of ways. 
+- **Optimization**: input code can be optimized in a lot of ways.
+- **Polimorphic**: compiler supports the polimorfic functions.
+- **Default-args**: compiler supports default values in function arguments.
+- **Headers-Modules**: cpl supports headers as it does C/++ language and module system as it does Go/Python etc.
 
 # Main idea of this project
 Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for my own OS inside my own OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
@@ -57,7 +59,7 @@ That's how we can write a 'hello-world' program with CPL language.
         }
     }
 
-    : Program entry point similar to C's entry point
+    : Program entry point similar to the C's entry point
       main(int argc, char* argv[]); :
     start(i64 argc, ptr u64 argv) {
         puts("Hello, World!");
@@ -66,8 +68,8 @@ That's how we can write a 'hello-world' program with CPL language.
 }
 ``` 
 
-## Code conventions
-CPL encourages consistent and readable code mostly based on C-code conventions.
+# Code conventions
+It's not a thing, but I'd like to share my prefered code style through this conventions. CPL encourages code mostly based on C-code conventions.
 - **Variables**: use lowercase letters and underscores [C-code convention]
 ```cpl
 i32 counter = 0;
@@ -87,17 +89,32 @@ glob ro i32 WIN_Y = 1920;
 function calculate_sum(ptr i32 arr, i64 length) => i32 { return 0; }
 ```
 
+- **Private functions**: use an underscore before a name of a function, if it is a private function
+```cpl
+function _private();
+```
+
 - **Scopes**: K&R style
 ```cpl
+function foo() {
+}
+
 if cond; {
 }
+else {
+}
+
 while cond; {
 }
+
+loop {
+}
+
 start(i64 argc, ptr u64 argv) {
 }
 ```
 
-- **Comments**: Comments can be written in the one line with the start and the end symbol `:` and in several lines with the same logic. [ASM-code convention + C-code convention]
+- **Comments**: Comments can be written in one line with the start and the end symbol `:` and in several lines with the same logic. [ASM-code convention + C-code convention]
 ```cpl
 : Hello there
 :
@@ -118,15 +135,15 @@ print.cpl   <- Implementation
 # Program entry point
 Function becomes an entry point in two cases:
 - If this is a `start` function.
-- If this is the lowest function in the file (And! There is no any `start` function in this project).
+- If this is the lowest function in a file (And! There is no any `start` function in the file).
 
-Example without the `start` function:
+Example without a `start` function:
 ```cpl
 function fang() => i0; { return; }
 function naomi() => i0; { return; } : <= Becomes an entry point :
 ```
 
-Example with the `start` start function:
+Example with a `start` start function:
 ```cpl
 start() { exit 0; } : <= Becomes an entry point :
 function fang() => i0; { return; }
@@ -134,7 +151,7 @@ function naomi() => i0; { return; }
 ```
 
 # Types
-Now let's talk about language basics. This language is a strong-typed language. That's why CPL supports a cast operation such as `as` operation. Syntax is similar with a Rust-language cast operation `as`. </br>
+Now let's talk about the language basics. This language is a strong-typed language. That's why CPL supports a cast operation such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
 For instance:
 ```cpl
 i32 never = 10 as i32;
@@ -142,10 +159,11 @@ i32 dies  = 20 as i32;
 u8 technoblade = (never + dies) as u8;
 ```
 
-One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. This means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the strong-typing, I'd recommend to use the `as` statement.
+One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. That means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the strong-typing, I'd recommend to use the `as` statement. </br>
+P.S. *Also, the `as` keyword is really useful in terms of polymorphic functions usage. We will talk about this later.*
 
 ## Primitives
-Now, when we've talked about the typing system, let's discuss about the types itself. Primitive type is a basic, supported by this language data structure. This data structure supports the next list of avaliable types:
+Now, when we've talked about the types system, let's discuss about types itself. Primitive type is a basic, supported by this language, data structure. This data structure supports the next list of avaliable types:
 - `f64`, `f32` - Real / double and float; non-floating values are converted to double if used in double operations.
 ```cpl
 f64 a = 0.01;
@@ -188,7 +206,7 @@ i8 d = 'a';
 function cordell() => i0; { return; }
 ```
 
-`P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is simple:
+`P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is pretty simple:
 - `Not a Zero` is a `true` value.
 - `Zero` is a `false` value.
 
@@ -202,9 +220,9 @@ if msg == "Hello world!"; {
 
 - `arr` - Array data type. Can contain any primitive type.
 ```cpl
-arr 1dArray_1[10, i32];
-arr 1dArray_2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-arr 2dArray[2, ptr i32] = { ref 1dArray_1, ref 1dArray_2 };
+arr Array_1d_1[10, i32] = { 0 };
+arr Array_1d_2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+arr Array_2d[2, ptr i32] = { ref Array_1d_1, ref Array_1d_2 };
 ```
 
 Also array can have an unknown in `compile-time` size. This will generate code that allocates memory in heap (WIP). 
@@ -233,7 +251,7 @@ ptr str b = "Hello world";
 ```
 
 ## How to deal with pointers?
-Actually, pretty simple. This language supports two main commands to make pointers and to work with values from these pointers. For example, we have a variable:
+Actually, it isn't hard. This language supports two main commands to make pointers and to work with values from these pointers. For example, we have a variable:
 ```cpl
 i32 a = 123;
 ```
@@ -251,7 +269,7 @@ int* a_ptr = &a;
 ```
 
 ### dref
-Similar to C-language, we can 'dereference' the pointer. To perform this, we need to use the `dref` statement:
+Similar to C-language, we can 'dereference' a pointer. To perform this, we need to use the `dref` statement:
 ```cpl
 i32 b = dref a_ptr;
 : int b = *a_ptr; :
@@ -283,7 +301,7 @@ Obviously this language supports the certain set of binary operations from C-lan
 
 # Control flow statements
 ## if statement
-`if` keyword similar to the `C`'s `if` statement. Key change here is a `;` after the condition. 
+`if` keyword similar to the `C`'s `if` statement. Key change here is the `;` token after the condition. 
 ```cpl
 if <condition>; {
 }
@@ -336,13 +354,14 @@ switch cond; {
 
 # Functions and inbuilt macros
 ## Functions
-Functions can be defined by the `function` keyword. Also, if you want to use a function in another `.cpl`/(or whatever language that supports the `extern` mechanism) file, you can append the `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that the CPL changes a local function name by the next pattern: `__cpl_{name}`, that's why prefer mark them with the `glob` key (It will preserve a name from a changing). 
+Functions can be defined by the `function` keyword. Also, if you want to use a function in another `.cpl`/(or whatever language that supports the `extern` mechanism) file, you can append the `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that the CPL changes a local function name by the next pattern: `__cpl_{name}{id}`, that's why prefer mark them with the `glob` key (It will preserve a name from a changing). 
 ```cpl
 function min(i32 a) => i0 { return; }
 glob function chloe(i32 a = 10) => u64 { return a + 10; }
 function max(u64 a = chloe(11)) => i32 { return a + 10; }
 ```
 
+### Prototypes
 Function can have a prototype function. Similar to C-language, a prototype function - is a function without a body:
 ```cpl
 function chloe(i32 a = 10) => u64;
@@ -355,11 +374,47 @@ function chloe(i32 a = 10) => u64 {
 }
 ```
 
+### Default
 CPL supports default values in functions. Compiler will pass these default args in a function call if you don't provide enough:
 ```cpl
 chloe();              : chloe(10); :
 max();                : max(chloe(11)); :
 min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
+```
+
+There is some restrictions / flaws / rules:
+- Default can't be before a non-default value:
+```cpl
+function foo(i32 a = 1, i32 b); : <= Forbidden :
+```
+- Defaults must be duplicated both in a function and a function's prototype. 
+
+### Polymorphism
+Additionally, CPL supports polymorphism with some flaws:
+- It doesn't support polymorphism with the 'default' argument.
+- CPL polymorphism doesn't work with the 'return' type of a function.
+
+That means this will work:
+```cpl
+function foo(i32 a);
+function foo();
+function foo(i8 a);
+```
+
+Note: *To make sure that the compiler will choose the correct version of a function, use the 'as' keyword.*
+```cpl
+function foo(10 as i32);
+```
+
+But these two snippets won't:
+```cpl
+function foo() => i32;
+function foo() => i0;
+```
+, and
+```cpl
+function foo(i32 a, i32 b = 1, i32 c = 1);
+function foo(i32 a, i32 b = 1);
 ```
 
 ## Variadic arguments
@@ -813,8 +868,7 @@ Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
     }
 
     function putc(i8 c) => i64 {
-        arr tmp[2, i8] = { c, 0 };
-        return syscall(1, 1, tmp, 2);
+        return syscall(1, 1, ref c, 1);
     }
 
     function gets(ptr i8 buffer, i64 size) => i64 {
