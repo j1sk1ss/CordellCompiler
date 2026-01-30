@@ -861,6 +861,7 @@ Next step is LIR lowering. The most common way here - instruction selection. Thi
 
 <details>
 <summary><strong>LIR selected instructions</strong></summary>
+
 ```
 fn strlen(i8* s) -> i64
 {
