@@ -71,7 +71,7 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
         return NULL;
     }
 
-    node->sinfo.v_id = FNTB_add_info(main_name, 1, 0, 1, NULL, NULL, &smt->f);
+    node->sinfo.v_id = FNTB_add_info(main_name, 1, 0, 1, node, NULL, &smt->f);
     destroy_string(main_name);
     return node;
 }

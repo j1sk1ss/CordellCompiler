@@ -66,8 +66,7 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
         fprintf(output, "_str_%li_ db ", si->id);
         char* data = si->value->body;
         while (*data) {
-            fprintf(output, "%i,", *data);
-            data++;
+            fprintf(output, "%i,", *(data++));
         }
 
         fprintf(output, "0\n");

@@ -29,8 +29,8 @@ Params:
 Returns character type.
 */
 static char_type_t _get_char_type(unsigned char ch) {
-    if (isalpha(ch) || ch == '_') return CHAR_ALPHA;
-    else if (str_isdigit(ch))     return CHAR_DIGIT;
+    if (str_isalpha(ch) || ch == '_') return CHAR_ALPHA;
+    else if (str_isdigit(ch))         return CHAR_DIGIT;
     
     switch (ch) {
         case '#':  return CHAR_PP;
@@ -215,10 +215,10 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             }
 
             if (
-                ctx->ttype == UNKNOWN_CHAR_TOKEN && 
-                char_type == UNKNOWN_NUMERIC_TOKEN
-            ) ctx->ttype = UNKNOWN_NUMERIC_TOKEN;
-            if (
+                ctx->ttype == UNKNOWN_NUMERIC_TOKEN && 
+                char_type == UNKNOWN_CHAR_TOKEN
+            ) char_type = UNKNOWN_NUMERIC_TOKEN;
+            else if (
                 ctx->ttype == UNKNOWN_STRING_TOKEN && 
                 char_type == UNKNOWN_NUMERIC_TOKEN
             ) char_type = UNKNOWN_STRING_TOKEN;
@@ -347,7 +347,7 @@ unsigned long TKN_hash_token(token_t* t) {
 
     unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
     hash ^= t->body->hash;
-    hash ^= t->t_type;
+    hash *= t->t_type;
     
     t->finfo.line   = tmp.line;
     t->finfo.column = tmp.column;
