@@ -5,7 +5,7 @@ The **Cordell Programming Language (CPL)** is a system-level programming languag
 - **Radical simplicity** - let's make this language simple as it possible. 
 
 ## Key Features
-- **Strong-typing**: variables can't hold values of different types; the compiler attempts implicit conversions when assigning.
+- **Statically-typed**: variables can't hold values of different types; the compiler attempts implicit conversions when assigning.
 - **Minimalistic syntax**: cpl is a simple programming language that is based on C language.  
 - **Deterministic control flow**: no hidden behaviors; all execution paths are explicit.  
 - **Extensibility**: functions and inbuilt macros allow both low-level operations and high-level abstractions.
@@ -160,7 +160,7 @@ u8 technoblade = (never + dies) as u8;
 ```
 
 One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. That means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the strong-typing, I'd recommend to use the `as` statement. </br>
-P.S. *Also, the `as` keyword is really useful in terms of polymorphic functions usage. We will talk about this later.*
+P.S. *Also, the `as` keyword is really useful in terms of function overloading functions usage. We will talk about this later.*
 
 ## Primitives
 Now, when we've talked about the types system, let's discuss about types itself. Primitive type is a basic, supported by this language, data structure. This data structure supports the next list of avaliable types:
@@ -352,6 +352,8 @@ switch cond; {
 }
 ```
 
+Note 3: *The switch statement is generated with the usage of a binary search approach. That means, consider this structure over the multiple ifs.*
+
 # Functions and inbuilt macros
 ## Functions
 Functions can be defined by the `function` keyword. Also, if you want to use a function in another `.cpl`/(or whatever language that supports the `extern` mechanism) file, you can append the `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that the CPL changes a local function name by the next pattern: `__cpl_{name}{id}`, that's why prefer mark them with the `glob` key (It will preserve a name from a changing). 
@@ -389,10 +391,11 @@ function foo(i32 a = 1, i32 b); : <= Forbidden :
 ```
 - Defaults must be duplicated both in a function and a function's prototype. 
 
-### Polymorphism
-Additionally, CPL supports polymorphism with some flaws:
-- It doesn't support polymorphism with the 'default' argument.
-- CPL polymorphism doesn't work with the 'return' type of a function.
+### Function overloading
+Additionally, CPL supports function overloading with some flaws (All of these are based on the compiler's architecture. See the main README for more information):
+- It doesn't support overloading with the 'default' argument.
+- CPL overloading doesn't work with the 'return' type of a function.
+- Overloaded function can't be marked as a global / extern function.
 
 That means this will work:
 ```cpl
@@ -403,7 +406,9 @@ function foo(i8 a);
 
 Note: *To make sure that the compiler will choose the correct version of a function, use the 'as' keyword.*
 ```cpl
-function foo(10 as i32);
+foo(10 as i32);
+: i64 a; :
+foo(a as i8);
 ```
 
 But these two snippets won't:
@@ -788,31 +793,26 @@ Outer variables can be seen by current and nested scopes.
 }
 ```
 
-# Ownership rules
-## Ownership model vs Rust
-CPL uses a lightweight ownership model with `register allocation` that resembles Rust’s borrow checker, but it serves a different purpose and operates with fewer restrictions.  
+# Liveness-based stack slot reuse
+CPL performs a compile-time analysis of variable lifetimes to reduce stack usage. The compiler tracks when a local variable is still needed (“live”) and when it is no longer used (“dead”). Once a variable is proven dead, its stack slot may be reused for another variable declared later.
 
-### Similarities
-- **Ownership tracking**:  
-  Each variable can have one or more owners. Ownership is explicitly transferred with the `ref` keyword.  
-- **Lifetime-based reuse**:  
-  When a variable and all of its owners are no longer used, its stack slot can be safely reused by another variable.  
-- **Compile-time analysis**:  
-  The compiler analyzes usage and ownership before code generation, preventing unsafe reuse of stack slots.
+## Idea
+- Every local variable has a lifetime interval: from its initialization until its last use.
+- A pointer/reference created with ref is treated as a use that may extend the lifetime of the referenced value.
+- The compiler may reuse stack memory only when it can prove that the old value and all its references are no longer used.
 
-### Differences
-1. **Multiple owners allowed**  
-   In Rust, only one owner exists at a time, while in CPL multiple owners may coexist in the ownership list.
-2. **Optimization-oriented**  
-   Rust’s borrow checker enforces memory safety rules.  
-   Cordell’s ownership tracking exists primarily to enable **stack slot reuse** and reduce stack frame size.
-3. **Memory reuse instead of drops**  
-   Rust frees resources automatically at the end of a lifetime (`Drop`).  
-   CPL does not guarantee cleanup but instead marks the memory slot as reusable once ownership is gone.
-4. **Low-level design**  
-   CPL's model is closer to compiler optimizations such as **SSA transformation, register allocation, or stack coloring**, while Rust’s model is a high-level safety feature of the language.
+Think of it as stack coloring or liveness-based stack slot allocation: two variables that are never live at the same time can share the same stack memory
 
-### Example
+## What this is NOT
+Not a memory-safety system
+
+- CPL does not prevent all dangling pointers or aliasing issues. The analysis is used to avoid incorrect stack reuse, not to “make pointers safe.”
+- Not Rust ownership / borrowing
+- Rust enforces rules like “one mutable reference or many immutable ones” and prevents data races / use-after-free in safe code.
+
+CPL does not enforce these restrictions. CPL only ensures that the compiler does not intentionally reuse a stack slot while it is still provably needed.
+
+## Example
 ```cpl
 {
     start() {

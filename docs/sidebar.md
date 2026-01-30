@@ -12,5 +12,5 @@
 * [Macros & include](#macros-amp-include)
 * [Semantic static checker](#semantic-static-checker)
 * [Scopes](#scopes)
-* [Ownership rules](#ownership-rules)
+* [Liveness-based stack slot reuse](#liveness-based-stack-slot-reuse)
 * [Examples](#examples)
