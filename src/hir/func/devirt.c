@@ -38,6 +38,10 @@ int HIR_FUNC_perform_devirt(cfg_ctx_t* cctx, sym_table_t* smt) {
                             }
                                            
                             if (fits > most_fit) {
+                                if ( /* Change the destination variable */
+                                    hh->farg && 
+                                    func->rtype
+                                ) hh->farg->t = HIR_get_tmptype_tkn(func->rtype->t, 1);
                                 hh->sarg->storage.str.s_id = func->id;
                                 most_fit = fits;
                             }
