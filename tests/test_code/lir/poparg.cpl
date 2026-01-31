@@ -6,12 +6,12 @@
 }
 
 : OUTPUT
-BB{X}: fn foo(...)
+BB{X}: fn foo0(...)
 %3 = ldparam();
 %2 = %3 as i64;
 %0 = %2;
 %5 = ldparam();
-%4 = %5 as f64;
+%4 = %5 as u64;
 %1 = %4;
 fend
 :

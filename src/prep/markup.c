@@ -197,7 +197,7 @@ static int _apply_modifiers(list_t* tkn) {
         token_t* next = (token_t*)list_iter_current(&it);
         if (next) switch (curr->t_type) {
             case GLOB_TYPE_TOKEN: cflags.glob = 1; _remove_token(tkn, curr); break;
-            case PTR_TYPE_TOKEN:  cflags.ptr  = 1; _remove_token(tkn, curr); break;
+            case PTR_TYPE_TOKEN:  cflags.ptr++;    _remove_token(tkn, curr); break;
             case RO_TYPE_TOKEN:   cflags.ro   = 1; _remove_token(tkn, curr); break;
             default: {
                 str_memcpy(&curr->flags, &cflags, sizeof(token_flags_t));

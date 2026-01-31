@@ -151,10 +151,10 @@ hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
     if (!token) return HIR_TMPVARI64;
     int bitness  = TKN_variable_bitness(token, ptr);
     int isfloat  = TKN_is_float(token);
-    int issigned = TKN_issign(token);
+    int issigned = TKN_issign(token) || !ptr;
     if (!isfloat) {
         switch (bitness) {
-            case 8:  return issigned ? HIR_TMPVARI8 : HIR_TMPVARU8;
+            case 8:  return issigned ? HIR_TMPVARI8  : HIR_TMPVARU8;
             case 16: return issigned ? HIR_TMPVARI16 : HIR_TMPVARU16;
             case 32: return issigned ? HIR_TMPVARI32 : HIR_TMPVARU32;
             default: return issigned ? HIR_TMPVARI64 : HIR_TMPVARU64;
@@ -215,11 +215,11 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     }
 }
 
-hir_subject_type_t HIR_get_token_stktype(token_t* tkn) {
+hir_subject_type_t HIR_get_token_stktype(token_t* tkn, int ptr) {
     variable_info_t vi = { 
         .type = tkn->t_type, 
         .vfs  = {
-            .ptr  = tkn->flags.ptr, 
+            .ptr  = ptr, 
             .glob = tkn->flags.glob, 
             .ro   = tkn->flags.ro 
         }

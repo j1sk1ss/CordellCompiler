@@ -298,8 +298,7 @@ int TKN_issign(token_t* token) {
         case F64_VARIABLE_TOKEN:
         case F32_VARIABLE_TOKEN:
         case F64_TYPE_TOKEN:
-        case F32_TYPE_TOKEN:     return 0;
-
+        case F32_TYPE_TOKEN:
         case U64_VARIABLE_TOKEN:
         case U32_VARIABLE_TOKEN:
         case U16_VARIABLE_TOKEN:

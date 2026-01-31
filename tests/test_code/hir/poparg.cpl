@@ -14,10 +14,10 @@
             u64t %3 = load_arg();
             i64t %2 = u64t %3 as i64;
             i64s %0 = i64t %2;
-            f64s %1 = alloc(8);
+            f32s* %1 = alloc(8);
             u64t %5 = load_arg();
-            f64t %4 = u64t %5 as f64;
-            f64s %1 = f64t %4;
+            f32t* %4 = u64t %5 as f32;
+            f32s* %1 = f32t* %4;
         }
     }   
 }

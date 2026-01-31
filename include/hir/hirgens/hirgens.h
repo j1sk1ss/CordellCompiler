@@ -22,13 +22,14 @@ Generate implict convertion from the one type to another.
 Note: If the types are similar, it doesn't perform the convertation proccess.
 Params:
     - `ctx` - HIR ctx.
+    - `ptr` - Target reference level.
     - `t` - Target type.
     - `src` - Source HIR subject.
     - `smt` - Symtable.
 
 Return converted HIR subject.
 */
-hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
+hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
 
 /*
 Generate explict convertion from the one type to another. 

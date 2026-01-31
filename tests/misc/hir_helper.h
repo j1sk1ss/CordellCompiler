@@ -218,6 +218,8 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             default: break;
         }
         
+        for (int i = 0; i < s->ptr; i++) dst += sprintf(dst, "*");
+
         variable_info_t vi;
         if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {
             dst += sprintf(dst, " %%%li", vi.v_id);

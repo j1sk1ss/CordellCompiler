@@ -131,8 +131,8 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_
         if (trg->id != bid) continue;
         hir_block_t* union_command = HIR_create_block(
             HIR_PHI_PREAMBLE, 
-            HIR_SUBJ_STKVAR(avi.v_id, HIR_get_stktype(&avi)), 
-            HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi)), 
+            HIR_SUBJ_STKVAR(avi.v_id, HIR_get_stktype(&avi), avi.vfs.ptr), 
+            HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi), bvi.vfs.ptr), 
             NULL
         );
 
@@ -193,7 +193,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                                                                               /* If new variable is existes, that means we already */
                                                                               /* rename all blocks below us                        */
                         else {
-                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t);
+                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.vfs.ptr);
                             vv->curr_id = hh->sarg->storage.var.v_id;
                             future_id = vv->curr_id;
                         }
@@ -220,7 +220,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                     if (vv) {
                         hir_subject_type_t tmp_t = hh->farg->t;
                         if (hh->farg->home == hh) HIR_unload_subject(hh->farg); 
-                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), tmp_t);
+                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), tmp_t, vi.vfs.ptr);
 
                         array_info_t ai; /* Check if this variable is an array                        */
                                          /* Note: This is necessary due to possible function inline   */

@@ -23,12 +23,12 @@
                 use num? 9;
                 use num? 10;
                 arrs %0 = alloc(num? 10);
-                i8t %3 = num? 0 as i8;
-                u64t %4 = &(arrs %0);
-                i64t %5 = num? 0 * cnst? 4;
-                u64t %7 = i64t %5 as u64;
-                u64t %6 = u64t %4 + u64t %7;
-                *(u64t %6) = i8t %3;
+                u64t %3 = &(arrs %0);
+                i64t %4 = num? 0 * cnst? 4;
+                u64t %6 = i64t %4 as u64;
+                u64t %5 = u64t %3 + u64t %6;
+                i32t %7 = num? 0 as i32;
+                *(u64t %5) = i32t %7;
                 i32s %1 = alloc(8);
                 u64t %8 = &(arrs %0);
                 i64t %9 = num? 0 * cnst? 4;
@@ -37,9 +37,8 @@
                 i32t %12 = *(u64t %10);
                 i32s %1 = i32t %12;
                 i32s %2 = alloc(8);
-                i64t %13 = *(arrs %0);
-                i32t %14 = i64t %13 as i32;
-                i32s %2 = i32t %14;
+                i32t %13 = *(arrs %0);
+                i32s %2 = i32t %13;
             }
         }
     }

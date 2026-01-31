@@ -100,7 +100,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
                         array_info_t ai;
                         if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
-                            int elsize = _get_ast_type_size(ai.el_type);
+                            int elsize = _get_ast_type_size(ai.elements_info.el_type);
                             int arroff = stack_map_alloc(ai.size * elsize, &smp);
                             VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, &smt->v);
 

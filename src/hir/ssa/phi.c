@@ -22,7 +22,7 @@ static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
     }
 
     hir_subject_t* phi_set = HIR_SUBJ_SET();
-    hir_block_t* phi = HIR_create_block(HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(vi)), NULL, phi_set);
+    hir_block_t* phi = HIR_create_block(HIR_PHI, HIR_SUBJ_STKVAR(vi->v_id, HIR_get_stktype(vi), 0), NULL, phi_set);
     if (!phi || !phi_set) {
         HIR_unload_subject(phi_set);
         HIR_unload_blocks(phi);
