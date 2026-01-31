@@ -5,8 +5,9 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
     if (node->t->flags.ptr) goto _indexing;
     else {
         switch (node->t->t_type) {
-            case STRING_VALUE_TOKEN:    res = HIR_SUBJ_STRING(node);          break;
-            case UNKNOWN_NUMERIC_TOKEN: res = HIR_SUBJ_NUMBER(node->t->body); break;
+            case STRING_VALUE_TOKEN:          res = HIR_SUBJ_STRING(node);           break;
+            case UNKNOWN_NUMERIC_TOKEN:       res = HIR_SUBJ_NUMBER(node->t->body);  break;
+            case UNKNOWN_FLOAT_NUMERIC_TOKEN: res = HIR_SUBJ_FNUMBER(node->t->body); break;
             case ARR_VARIABLE_TOKEN:
             case STR_VARIABLE_TOKEN: {
 _indexing: {}

@@ -64,7 +64,8 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
         case U16_VARIABLE_TOKEN:
         case U32_VARIABLE_TOKEN:
         case U64_VARIABLE_TOKEN:
-        case UNKNOWN_STRING_TOKEN:  /*  expression   = assign ;
+        case UNKNOWN_STRING_TOKEN:
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN: /*  expression   = assign ;
                                         assign       = logical_or , [ "=" , assign ] ;
 
                                         logical_or   = logical_and , { "||" , logical_and } ;

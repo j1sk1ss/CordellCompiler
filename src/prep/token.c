@@ -85,7 +85,9 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
     tkn->t_type = type;
     switch (type) {
         case UNKNOWN_NUMERIC_TOKEN: {
-            tkn->body = input->from_number(input);
+            int is_float = 0;
+            tkn->body = input->from_number(input, &is_float);
+            if (is_float) tkn->t_type = UNKNOWN_FLOAT_NUMERIC_TOKEN;
             destroy_string(input);
             break;
         }

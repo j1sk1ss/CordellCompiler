@@ -5,7 +5,7 @@
     }
 
     start() {
-        exit sum(10.0 as f64, 10.0 as f64);
+        exit sum(10.0, 10.0);
     }
 }
 
@@ -30,12 +30,10 @@
     start {
         {
             {
-                f64t %8 = num? 4621819117588971520 as f64;
-                use f64t %8;
-                f64t %9 = num? 4621819117588971520 as f64;
-                use f64t %9;
-                i32t %10 = call sum1(f64 a, f64 b) -> f64, argc args(f64t %8,f64t %9,);
-                exit i32t %10;
+                use f64n 4621819117588971520;
+                use f64n 4621819117588971520;
+                i32t %8 = call sum1(f64 a, f64 b) -> f64, argc args(f64n 4621819117588971520,f64n 4621819117588971520,);
+                exit i32t %8;
             }
         }
     }

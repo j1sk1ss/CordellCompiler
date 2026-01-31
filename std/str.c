@@ -93,35 +93,34 @@ static unsigned long long _string_to_ullong(str_self self, int base) {
     return result;
 }
 
-static string_t* _string_from_number(str_self self) {
-    int isfloat = 0;
+static string_t* _string_from_number(str_self self, int* is_float) {
     unsigned long long val = 0;
     for (unsigned int i = 0; i < self->size; i++) {
         if (self->head[i] == '.') {
-            isfloat = 1;
+            *is_float = 1;
             val = str_dob2bits(self->to_double(self));
-            break;
+            goto _force_creation;
         }
     }
 
-    if (!isfloat) {
-        if (self->head[0] == '0' && (self->head[1] == 'x' || self->head[1] == 'X')) {
-            self->hmove(self, 2);
-            val = self->to_ullong(self, 16);
-        }
-        else if (self->head[0] == '0' && (self->head[1] == 'b' || self->head[1] == 'B')) {
-            self->hmove(self, 2);
-            val = self->to_ullong(self, 2);
-        }
-        else if (self->head[0] == '0' && self->head[1] && self->head[1] != '.') {
-            self->hmove(self, 1);
-            val = self->to_ullong(self, 8);
-        }
-        else {
-            if (self->head[0] == '-') self->hmove(self, 1);
-            val = self->to_ullong(self, 10);
-        }
+    if (self->head[0] == '0' && (self->head[1] == 'x' || self->head[1] == 'X')) {
+        self->hmove(self, 2);
+        val = self->to_ullong(self, 16);
     }
+    else if (self->head[0] == '0' && (self->head[1] == 'b' || self->head[1] == 'B')) {
+        self->hmove(self, 2);
+        val = self->to_ullong(self, 2);
+    }
+    else if (self->head[0] == '0' && self->head[1] && self->head[1] != '.') {
+        self->hmove(self, 1);
+        val = self->to_ullong(self, 8);
+    }
+    else {
+        if (self->head[0] == '-') self->hmove(self, 1);
+        val = self->to_ullong(self, 10);
+    }
+    
+_force_creation: {}
 
     self->rhead(self);
 

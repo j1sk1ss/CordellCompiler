@@ -30,7 +30,7 @@ typedef struct string {
     double             (*to_double)(str_self);
     long long          (*to_llong)(str_self);
     unsigned long long (*to_ullong)(str_self, int);
-    struct string*     (*from_number)(str_self);
+    struct string*     (*from_number)(str_self, int*);
 } string_t;
 
 string_t* create_string(const char* s);

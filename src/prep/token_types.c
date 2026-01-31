@@ -8,6 +8,7 @@ int TKN_variable_bitness(token_t* token, char ptr) {
     if (ptr && token->flags.ptr) return 64;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN:
         case I64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
@@ -73,6 +74,7 @@ int TKN_isptr(token_t* token) {
     if (token->flags.ptr) return 1;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN:
         case I64_VARIABLE_TOKEN:
         case I32_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:
@@ -124,7 +126,8 @@ int TKN_one_slot(token_t* token) {
         case I64_VARIABLE_TOKEN:
         case U64_VARIABLE_TOKEN:
         case F64_VARIABLE_TOKEN:
-        case UNKNOWN_NUMERIC_TOKEN: return 1;
+        case UNKNOWN_NUMERIC_TOKEN:
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN: return 1;
         case STR_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN:
         case STRING_VALUE_TOKEN:
@@ -251,8 +254,9 @@ int TKN_token_priority(token_t* token) {
 int TKN_isnumeric(token_t* token) {
     if (!token) return 0;
     if (
-        token->t_type == UNKNOWN_NUMERIC_TOKEN || 
-        token->t_type == UNKNOWN_CHAR_TOKEN    ||
+        token->t_type == UNKNOWN_FLOAT_NUMERIC_TOKEN ||
+        token->t_type == UNKNOWN_NUMERIC_TOKEN       || 
+        token->t_type == UNKNOWN_CHAR_TOKEN          ||
         token->t_type == CHAR_VALUE_TOKEN
     ) return 1;
     return 0;

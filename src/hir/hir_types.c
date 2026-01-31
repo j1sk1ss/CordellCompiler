@@ -343,36 +343,18 @@ int HIR_writeop(hir_operation_t op) {
 
 hir_operation_t HIR_convop(hir_subject_type_t t) {
     switch (t) {
-        case HIR_TMPVARF64: return HIR_TF64;
-        case HIR_TMPVARF32: return HIR_TF32;
-        case HIR_TMPVARI64: return HIR_TI64;
-        case HIR_TMPVARI32: return HIR_TI32;
-        case HIR_TMPVARI16: return HIR_TI16;
-        case HIR_TMPVARI8:  return HIR_TI8; 
-        case HIR_TMPVARU64: return HIR_TU64;
-        case HIR_TMPVARU32: return HIR_TU32;
-        case HIR_TMPVARU16: return HIR_TU16;
-        case HIR_TMPVARU8:  return HIR_TU8;
-        case HIR_STKVARF64: return HIR_TF64;
-        case HIR_STKVARF32: return HIR_TF32;
-        case HIR_STKVARI64: return HIR_TI64;
-        case HIR_STKVARI32: return HIR_TI32;
-        case HIR_STKVARI16: return HIR_TI16;
-        case HIR_STKVARI8:  return HIR_TI8; 
-        case HIR_STKVARU64: return HIR_TU64;
-        case HIR_STKVARU32: return HIR_TU32;
-        case HIR_STKVARU16: return HIR_TU16;
-        case HIR_STKVARU8:  return HIR_TU8; 
-        case HIR_GLBVARF64: return HIR_TF64;
-        case HIR_GLBVARF32: return HIR_TF32;
-        case HIR_GLBVARI64: return HIR_TI64;
-        case HIR_GLBVARI32: return HIR_TI32;
-        case HIR_GLBVARI16: return HIR_TI16;
-        case HIR_GLBVARI8:  return HIR_TI8; 
-        case HIR_GLBVARU64: return HIR_TU64;
-        case HIR_GLBVARU32: return HIR_TU32;
-        case HIR_GLBVARU16: return HIR_TU16;
-        case HIR_GLBVARU8:  return HIR_TU8; 
+        case HIR_F64NUMBER:
+        case HIR_TMPVARF64: case HIR_STKVARF64: case HIR_GLBVARF64: return HIR_TF64;
+        case HIR_F32NUMBER:
+        case HIR_TMPVARF32: case HIR_STKVARF32: case HIR_GLBVARF32: return HIR_TF32;
+        case HIR_TMPVARI64: case HIR_STKVARI64: case HIR_GLBVARI64: return HIR_TI64;
+        case HIR_TMPVARI32: case HIR_STKVARI32: case HIR_GLBVARI32: return HIR_TI32;
+        case HIR_TMPVARI16: case HIR_STKVARI16: case HIR_GLBVARI16: return HIR_TI16;
+        case HIR_TMPVARI8:  case HIR_STKVARI8:  case HIR_GLBVARI8:  return HIR_TI8; 
+        case HIR_TMPVARU64: case HIR_STKVARU64: case HIR_GLBVARU64: return HIR_TU64;
+        case HIR_TMPVARU32: case HIR_STKVARU32: case HIR_GLBVARU32: return HIR_TU32;
+        case HIR_TMPVARU16: case HIR_STKVARU16: case HIR_GLBVARU16: return HIR_TU16;
+        case HIR_TMPVARU8:  case HIR_STKVARU8:  case HIR_GLBVARU8:  return HIR_TU8; 
         default: return HIR_STORE;
     }
 }
