@@ -31,7 +31,7 @@
                 *(u64t %5) = i32t %7;
                 i32s %1 = alloc(8);
                 u64t %8 = &(arrs* %0);
-                i64t %9 = num? 0 * cnst? 8;
+                i64t %9 = num? 0 * cnst? 4;
                 u64t %11 = i64t %9 as u64;
                 u64t %10 = u64t %8 + u64t %11;
                 i32t %12 = *(u64t %10);
