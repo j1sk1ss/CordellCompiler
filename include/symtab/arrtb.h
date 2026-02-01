@@ -29,6 +29,7 @@ typedef struct {
 int ARTB_get_info(symbol_id_t id, array_info_t* info, arrtab_ctx_t* ctx);
 int ARTB_add_elems(symbol_id_t id, long elem, arrtab_ctx_t* ctx);
 symbol_id_t ARTB_add_info(symbol_id_t id, long size, int heap, token_type_t el_type, token_flags_t* el_flags, arrtab_ctx_t* ctx);
+int ARTB_update_info(symbol_id_t id, long size, int heap, token_type_t el_type, token_flags_t* flags, arrtab_ctx_t* ctx);
 symbol_id_t ARTB_add_copy(symbol_id_t nid, array_info_t* src, arrtab_ctx_t* ctx);
 int ARTB_unload(arrtab_ctx_t* ctx);
 

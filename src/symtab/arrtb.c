@@ -42,6 +42,20 @@ symbol_id_t ARTB_add_copy(symbol_id_t nid, array_info_t* src, arrtab_ctx_t* ctx)
     return nnd->v_id;
 }
 
+int ARTB_update_info(symbol_id_t id, long size, int heap, token_type_t el_type, token_flags_t* flags, arrtab_ctx_t* ctx) {
+    print_log("ARTB_update_info(vid=%i, size=%i, heap=%i, el_type=%i)", id, size, heap, el_type);
+    array_info_t* ai;
+    if (map_get(&ctx->arrtb, id, (void**)&ai)) {
+        if (el_type >= 0) ai->elements_info.el_type = el_type;
+        if (flags)        str_memcpy(&ai->elements_info.el_flags, flags, sizeof(token_flags_t));
+        if (size >= 0)    ai->size = size;
+        if (heap >= 0)    ai->heap = heap;
+        return 1;
+    }
+
+    return 0;
+}
+
 symbol_id_t ARTB_add_info(symbol_id_t id, long size, int heap, token_type_t el_type, token_flags_t* flags, arrtab_ctx_t* ctx) {
     print_log("ARTB_add_info(vid=%i, size=%i, heap=%i, el_type=%i)", id, size, heap, el_type);
     array_info_t* nnd = _create_info_array_entry(id, size, heap, el_type, flags);

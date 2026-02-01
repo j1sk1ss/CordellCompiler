@@ -22,11 +22,12 @@ _indexing: {}
                        - If this is a pointer or a heap (a heap is a pointer tho), just move it to the 'base',
                        - If this is an array, move a link to the array to the 'base' */
                     array_info_t ai;
-                    token_t tmp = { .t_type = node->t->t_type, .flags.ptr = src->ptr };
+                    hir_subject_type_t trg_type = src->t;
                     if (!ARTB_get_info(node->sinfo.v_id, &ai, &smt->a) || ai.heap) HIR_BLOCK2(ctx, HIR_STORE, base, src);
                     else {
+                        token_t tmp = { .t_type = ai.elements_info.el_type };
                         HIR_BLOCK2(ctx, HIR_REF, base, src);
-                        tmp.t_type = ai.elements_info.el_type;
+                        trg_type = HIR_get_tmptype_tkn(&tmp, 0);
                     }
                     
                     /* The final offset for the base address is the result of the
@@ -34,7 +35,7 @@ _indexing: {}
                     hir_subject_t* addr = HIR_SUBJ_TMPVAR(offval->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(offval->t), 0, NULL, &smt->v));
                     HIR_BLOCK3(
                         ctx, HIR_iMUL, addr, offval, 
-                        HIR_generate_implconv(ctx, offval->ptr, offval->t, HIR_SUBJ_CONST(HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 1))), smt)
+                        HIR_generate_implconv(ctx, offval->ptr, offval->t, HIR_SUBJ_CONST(HIR_get_type_size(trg_type)), smt)
                     );
 
                     /* Now move the 'base' and obtain the 'head':
@@ -44,7 +45,7 @@ _indexing: {}
                     
                     /* Assuming that this is a dereference operation (*ptr / ptr[0]),
                        we need to lower the .ptr flag. */
-                    res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, TKN_get_tmp_type(tmp.t_type), 0, NULL, &smt->v));
+                    res = HIR_SUBJ_TMPVAR(trg_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(trg_type), 0, NULL, &smt->v));
                     res->ptr = MAX(src->ptr - 1, 0);
                     
                     HIR_BLOCK2(ctx, HIR_GDREF, res, head);
