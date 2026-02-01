@@ -187,6 +187,7 @@ hir_subject_type_t HIR_get_token_stktype(token_t* tkn, int ptr);
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
 int HIR_isjmp(hir_operation_t op);
 int HIR_is_vartype(hir_subject_type_t t);
+int HIR_is_arrtype(hir_subject_type_t t);
 int HIR_is_tmptype(hir_subject_type_t t);
 int HIR_writeop(hir_operation_t op);
 int HIR_isterm(hir_operation_t op);

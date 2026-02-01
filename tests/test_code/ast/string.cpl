@@ -23,7 +23,7 @@
                [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             [111] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
          [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)
-            [ans] (STR_VARIABLE_TOKEN, v_id=1, s_id=2)
+            [ans] (STR_VARIABLE_TOKEN, ptr, v_id=1, s_id=2)
                [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             [103] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
 :

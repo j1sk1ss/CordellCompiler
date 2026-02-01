@@ -143,8 +143,8 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_NOT:        return "%s = not %s;\n";
         case HIR_STORE:      return "%s = %s;\n";
         case HIR_VRUSE:      return "use %s;\n";
-        case HIR_ARRDECL:    return "%s = alloc(%s);\n";
-        case HIR_STRDECL:    return "%s = alloc(%s);\n";
+        case HIR_ARRDECL:    return "%s = arr_alloc(%s);\n";
+        case HIR_STRDECL:    return "%s = str_alloc(%s);\n";
         case HIR_VRDEALL:    return "kill %s\n";
 
         case HIR_VARDECL: {

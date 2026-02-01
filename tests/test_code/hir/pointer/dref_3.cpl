@@ -1,5 +1,4 @@
 {
-: TODO Reference level affetc on the source type :
     start() {
         ptr i8 a;
         ptr ptr i8 b;

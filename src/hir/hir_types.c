@@ -56,6 +56,14 @@ int HIR_is_vartype(hir_subject_type_t t) {
     }
 }
 
+int HIR_is_arrtype(hir_subject_type_t t) {
+    switch (t) {
+        case HIR_TMPVARSTR: case HIR_STKVARSTR: case HIR_GLBVARSTR:
+        case HIR_TMPVARARR: case HIR_STKVARARR: case HIR_GLBVARARR: return 1;
+        default: return 0;
+    }
+}
+
 int HIR_defined_type(hir_subject_type_t t) {
     switch (t) {
         case HIR_I64NUMBER:
