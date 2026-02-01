@@ -38,7 +38,9 @@ void print_symtab(sym_table_t* smt) {
 
     if (!map_isempty(&smt->v.vartb)) printf("==========   VARS  ==========\n");
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
-        printf("id: %li, %s, %s, s_id: %i", vi->v_id, vi->name->body, format_tkntype(vi->type), vi->s_id);
+        printf("id: %li, %s, ", vi->v_id, vi->name->body);
+        for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
+        printf("%s, s_id: %i", format_tkntype(vi->type), vi->s_id);
         if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg));
         else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %li]", vi->vmi.offset);
         if (vi->vdi.defined)          printf(", value=%ld", vi->vdi.definition);
@@ -47,7 +49,9 @@ void print_symtab(sym_table_t* smt) {
 
     if (!map_isempty(&smt->a.arrtb)) printf("==========   ARRS  ==========\n");
     map_foreach (array_info_t* ai, &smt->a.arrtb) {
-        printf("id: %li, %s x %li%s\n", ai->v_id, format_tkntype(ai->el_type), ai->size, ai->heap ? ", heap" : "");
+        printf("id: %li, ", ai->v_id);
+        for (int i = 0; i < ai->elements_info.el_flags.ptr; i++) printf("ptr ");
+        printf("%s x %li%s\n", format_tkntype(ai->elements_info.el_type), ai->size, ai->heap ? ", heap" : "");
     }
 
     if (!map_isempty(&smt->f.functb)) printf("==========  FUNCS  ==========\n");

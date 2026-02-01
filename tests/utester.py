@@ -149,7 +149,7 @@ def _entry() -> None:
         sys.exit(1)
 
     results: list[dict] = []
-    for cpl_file in test_dir.glob("*.cpl"):
+    for cpl_file in test_dir.rglob("*.cpl"):
         results.append(_run_test(binary, cpl_file))
 
     failed = 0

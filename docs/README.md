@@ -6,13 +6,14 @@ The **Cordell Programming Language (CPL)** is a system-level programming languag
 
 ## Key Features
 - **Statically-typed**: variables can't hold values of different types; the compiler attempts implicit conversions when assigning.
-- **Minimalistic syntax**: cpl is a simple programming language that is based on C language.  
+- **Minimalistic syntax**: cpl is a simple programming language that is beign based on C language.  
 - **Deterministic control flow**: no hidden behaviors; all execution paths are explicit.  
 - **Extensibility**: functions and inbuilt macros allow both low-level operations and high-level abstractions.
-- **Optimization**: input code can be optimized in a lot of ways.
-- **Polimorphic**: compiler supports the polimorfic functions.
+- **Optimization**: input code can be optimized by techniques such as constant propagation, linear invariant code motion, peephole optimization, function inline, tail recursion elimination.
+- **Function overloading**: compiler supports overloaded functions.
 - **Default-args**: compiler supports default values in function arguments.
 - **Headers-Modules**: cpl supports headers as it does C/++ language and module system as it does Go/Python etc.
+- **Strings**: lagnuage supports and distinguishs strings from raw pointers.
 
 # Main idea of this project
 Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for my own OS inside my own OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
@@ -47,7 +48,7 @@ That's how we can write a 'hello-world' program with CPL language.
 
     : Define the puts function
       that accepts a pointer to string object :
-    function puts(ptr str s) => i0 {
+    function puts(str s) => i0 {
         : Start ASM inline block with
           a support of the argument list :
         asm (s, strlen(s)) {

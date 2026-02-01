@@ -15,7 +15,7 @@ typedef struct {
 
     struct {
         char               heap : 1; /* Point to heap, can't be reused   */
-        char               ptr  : 1; /* PTR type == maximum size in arch */
+        char               ptr;      /* PTR type == maximum size in arch */
         char               ro   : 1; /* Declaration RO flag              */
         char               glob : 1; /* Declaration global flag          */
     } vfs; /* VariableFlags          */

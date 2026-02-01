@@ -8,7 +8,7 @@
 : OUTPUT
 BB{X}: start
 use $0;
-call foo() -> i32;
+call foo0() -> i32;
 %0 = fret();
 use %0;
 %1 = $0 + $0;

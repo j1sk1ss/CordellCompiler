@@ -103,7 +103,19 @@ int TKN_instack(token_t* token) {
 /* Is variable occupie one slot in stack? */
 int TKN_one_slot(token_t* token) {
     if (!token) return 0;
-    if (token->flags.ptr) return 1;
+    if (
+        token->flags.ptr > 0 &&                     /* If this is a pointer                          */
+        (
+            token->flags.ptr > 1 ||                 /* And if this a pointer to an array or a string */
+            (                                       /* It must be a pointer to a pointer             */
+                token->t_type != STR_TYPE_TOKEN     && 
+                token->t_type != STR_VARIABLE_TOKEN &&
+                token->t_type != ARRAY_TYPE_TOKEN   &&
+                token->t_type != ARR_VARIABLE_TOKEN
+            )
+        )
+    ) return 1;
+    
     switch (token->t_type) {
         case I8_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
@@ -298,8 +310,7 @@ int TKN_issign(token_t* token) {
         case F64_VARIABLE_TOKEN:
         case F32_VARIABLE_TOKEN:
         case F64_TYPE_TOKEN:
-        case F32_TYPE_TOKEN:     return 0;
-
+        case F32_TYPE_TOKEN:
         case U64_VARIABLE_TOKEN:
         case U32_VARIABLE_TOKEN:
         case U16_VARIABLE_TOKEN:
