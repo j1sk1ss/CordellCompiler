@@ -15,8 +15,6 @@ hir_subject_t* HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_t
         case SUBASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iSUB, res, dst, upd); break;
         case MULASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iMUL, res, dst, upd); break;
         case DIVASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iDIV, res, dst, upd); break;
-        // case ORASSIGN_TOKEN:     HIR_BLOCK3(ctx, HIR_iOR, res, dst, upd);  break; // TODO
-        // case ANDASSIGN_TOKEN:    HIR_BLOCK3(ctx, HIR_iAND, res, dst, upd); break;
         case BITORASSIGN_TOKEN:  HIR_BLOCK3(ctx, HIR_bOR, res, dst, upd);  break;
         case MODULOASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_iMOD, res, dst, upd); break;
         case BITANDASSIGN_TOKEN: HIR_BLOCK3(ctx, HIR_bAND, res, dst, upd); break;

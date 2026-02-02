@@ -98,12 +98,10 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case ARRAY_TYPE_TOKEN: return DECLARATION_NODE;
 
         case ASSIGN_TOKEN:
-        case ORASSIGN_TOKEN:
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
         case MULASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:
-        case ANDASSIGN_TOKEN:
         case BITORASSIGN_TOKEN:
         case MODULOASSIGN_TOKEN:
         case BITANDASSIGN_TOKEN:

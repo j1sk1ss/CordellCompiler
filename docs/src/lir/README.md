@@ -75,6 +75,3 @@ use $1;
 stparam($1);
 call fang(i32 a);
 ```
-
-# LIR x86_64 optimization
-`TODO`

@@ -31,7 +31,7 @@ ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
         return NULL;
     }
     
-    ast_node_t* tbranch = cpl_parse_scope(it, ctx, smt);
+    ast_node_t* tbranch = cpl_parse_scope(it, ctx, smt); // TODO: Maybe allow the structure if cond; something;?
     if (!tbranch) {
         PARSE_ERROR("Error during the true branch parsing in the '%s' statement!", IF_COMMAND);
         AST_unload(node);

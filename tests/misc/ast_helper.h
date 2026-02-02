@@ -62,8 +62,6 @@ const char* name_tkn_type(token_type_t t) {
         case BITANDASSIGN_TOKEN:          return "BITANDASSIGN_TOKEN";
         case BITORASSIGN_TOKEN:           return "BITORASSIGN_TOKEN";
         case BITXORASSIGN_TOKEN:          return "BITXORASSIGN_TOKEN";
-        case ORASSIGN_TOKEN:              return "ORASSIGN_TOKEN";
-        case ANDASSIGN_TOKEN:             return "ANDASSIGN_TOKEN";
         case ASSIGN_TOKEN:                return "ASSIGN_TOKEN";
         case COMPARE_TOKEN:               return "COMPARE_TOKEN";
         case NCOMPARE_TOKEN:              return "NCOMPARE_TOKEN";

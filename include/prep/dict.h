@@ -73,8 +73,6 @@
 #define BITANDASSIGN_STATEMENT  "&="
 #define BITORASSIGN_STATEMENT   "|="
 #define BITXORASSIGN_STATEMENT  "^="
-#define ORASSIGN_STATEMENT      "||=" // TODO
-#define ANDASSIGN_STATEMENT     "&&="
 
 #define ASSIGN_STATEMENT        "="
 #define COMPARE_STATEMENT       "=="

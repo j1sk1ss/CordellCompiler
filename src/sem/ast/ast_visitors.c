@@ -9,8 +9,6 @@ static const char* _fmt_tkn_op(token_type_t t) {
         case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN:    return "declaration";
 
-        case ORASSIGN_TOKEN:      return "||=";
-        case ANDASSIGN_TOKEN:     return "&&=";
         case BITORASSIGN_TOKEN:   return "|=";
         case MODULOASSIGN_TOKEN:  return "%%=";
         case BITANDASSIGN_TOKEN:  return "&=";
