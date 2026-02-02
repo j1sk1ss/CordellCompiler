@@ -222,6 +222,17 @@ Return 1 if succeed.
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Parse `.cpl` element with input tokens.
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_element(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
 Parse `.cpl` block with input tokens. Should be invoked on new block.
 Note: This is the start gramma symbol (see EBNF in the README).
 Snippet:
@@ -488,6 +499,20 @@ Params:
 Returns an ast node.
 */
 ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na);
+
+/*
+Parse .cpl scope element.
+Note: Will parse only one element in the separated scope. This means,
+      that any declared variable will be allocated in a one-line scope.
+
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_line_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Parse .cpl scope block. Should be invoked on scope token.

@@ -331,11 +331,22 @@ else {
 }
 ```
 
+Or without a scope symbol:
+```cpl
+i32 a1 = 12;
+i32 a;
+
+if a1 > 10; a = 10;
+else a = 11;
+```
+
 ## while statement
 ```cpl
 while <condition>; {
-    break;
+    <statements>;
 }
+
+while <condition>; <statement>;
 ```
 
 ## loop statement
@@ -343,8 +354,10 @@ In difference with the `while` statement, the `loop` statement allows to build e
 **Importand Note:** You *must* insert the `break` keyword somewhere in a body of this statement. Otherwise it will became an infinity loop.
 ```cpl
 loop {
-    break;
+    <statements>;
 }
+
+loop <statement>;
 ```
 
 ## switch statement

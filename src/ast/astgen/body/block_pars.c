@@ -128,6 +128,10 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
     }
 }
 
+ast_node_t* cpl_parse_element(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    return _navigation_handler(it, ctx, smt);
+}
+
 ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, token_type_t ex) {
     SAVE_TOKEN_POINT;
 
@@ -139,7 +143,7 @@ ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, t
     }
 
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != ex) {
-        ast_node_t* block = _navigation_handler(it, ctx, smt);
+        ast_node_t* block = cpl_parse_element(it, ctx, smt);
         if (block) AST_add_node(node, block);  /* If we parse succesfully, add a product to the body */
         else if (!forward_token(it, 1)) break; /* If there is a error, proceed the next token        */
     }
