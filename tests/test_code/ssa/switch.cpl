@@ -33,7 +33,7 @@
                     future: i32s %12 = previous: i32s %11;
                 }
                 lb16:
-                [i32s %0] i32s %12 = phi(set [%11, bb34][%10, bb45]);
+                [i32s %0] i32s %12 = phi(set [{X}][{X}]);
                 {
                     i32t %4 = num? 2 as i32;
                     i32s %13 = i32t %4;
@@ -41,7 +41,7 @@
                     goto lb9;
                 }
                 lb22:
-                [i32s %0] i32s %16 = phi(set [%10, bb39][%10, bb44][%10, bb42]);
+                [i32s %0] i32s %16 = phi(set [{X}][{X}][{X}]);
                 {
                     i32t %5 = num? 3 as i32;
                     i32s %17 = i32t %5;
@@ -75,7 +75,7 @@
                 lb32:
                 goto lb10;
                 lb9:
-                [i32s %0] i32s %14 = phi(set [%17, bb37][%13, bb35]);
+                [i32s %0] i32s %14 = phi(set [{X}][{X}]);
                 i32s %1 = alloc(8);
                 i32s %15 = i32s %14;
             }

@@ -114,7 +114,7 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
         list_free_force_op(&rl, (int (*)(void*))_loop_node_free);
         return 0;
     }
-
+    
     foreach (loop_node_t* ni, &rl) {
         int best_size = INT_MAX;
         loop_node_t* best_parent = NULL;

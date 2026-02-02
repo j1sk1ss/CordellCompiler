@@ -26,7 +26,7 @@ Main goal of this project is learning of compilers architecture and porting one 
 - Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
 
 # Hello, World! example
-That's how we can write a 'hello-world' program with CPL language.
+That's how we can write a 'hello-world' program with CPL language for x86-64 GNU architecture.
 ```cpl
 {
     : Define the strlen function
@@ -62,30 +62,38 @@ That's how we can write a 'hello-world' program with CPL language.
 
     : Program entry point similar to the C's entry point
       main(int argc, char* argv[]); :
-    start(i64 argc, ptr u64 argv) {
+    start(i64 argc, ptr ptr i8 argv) {
         puts("Hello, World!");
         exit 0;
     }
 }
 ``` 
 
+The same code snippet on C language:
+```c
+#include <stdio.h>
+int main(int argc, char* argv[]) {
+    puts("Hello, World!");
+}
+```
+
 # Code conventions
 It's not a thing, but I'd like to share my prefered code style through this conventions. CPL encourages code mostly based on C-code conventions.
-- **Variables**: use lowercase letters and underscores [C-code convention]
+- **Variables**: use lowercase letters and underscores
 ```cpl
 i32 counter = 0;
 ptr i32 data_ptr = ref counter;
 dref data_ptr = 1;
 ```
 
-- **Constants**: use uppercase letters with underscores [Python-code convention]
+- **Constants**: use uppercase letters with underscores
 ```cpl
 extern ptr u8 FRAMEBUFFER;
 glob ro i32 WIN_X = 1080;
 glob ro i32 WIN_Y = 1920;
 ```
 
-- **Functions**: use lowercase letters with underscores [C-code convention]
+- **Functions**: use lowercase letters with underscores
 ```cpl
 function calculate_sum(ptr i32 arr, i64 length) => i32 { return 0; }
 ```
@@ -115,7 +123,7 @@ start(i64 argc, ptr u64 argv) {
 }
 ```
 
-- **Comments**: Comments can be written in one line with the start and the end symbol `:` and in several lines with the same logic. [ASM-code convention + C-code convention]
+- **Comments**: Comments can be written in one line with the start and the end symbol `:` and in several lines with the same logic
 ```cpl
 : Hello there
 :
@@ -221,8 +229,8 @@ if msg == "Hello world!"; {
 
 - `arr` - Array data type. Can contain any primitive type.
 ```cpl
-arr Array_1d_1[10, i32] = { 0 };
-arr Array_1d_2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+arr Array_1d_1[10, i32]  = { 0 };
+arr Array_1d_2[10, i32]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 arr Array_2d[2, ptr i32] = { ref Array_1d_1, ref Array_1d_2 };
 ```
 
@@ -244,15 +252,16 @@ a[0] = 0; : <= SF! :
 ```
 
 ## Pointers
-- `ptr` - Pointer modifier that can be add to every primitive (and `str`) type.
+- `ptr` - Pointer modifier that can be add to every primitive (and `str`, `arr`) type.
 ```cpl
 i32 f = 10;
-ptr u64 a = ref f;
+ptr i32 a = ref f;
+ptr ptr a_ref = ref a;
 ptr str b = "Hello world";
 ```
 
 ## How to deal with pointers?
-Actually, it isn't hard. This language supports two main commands to make pointers and to work with values from these pointers. For example, we have a variable:
+Actually, it isn't too hard. This language supports two main commands to make pointers and work with values from these pointers. For example, we have a variable:
 ```cpl
 i32 a = 123;
 ```

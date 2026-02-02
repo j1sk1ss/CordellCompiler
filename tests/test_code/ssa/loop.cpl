@@ -19,7 +19,7 @@
                 future: i32s %5 = previous: i32s %4;
                 i32s %4 = i32t %2;
                 lb8:
-                [i32s %0] i32s %5 = phi(set [%4, bb11]);
+                [i32s %0] i32s %5 = phi(set [{X}]);
                 {
                     i32t %3 = num? 1 as i32;
                     i32s %6 = i32t %3;

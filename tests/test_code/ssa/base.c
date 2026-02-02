@@ -68,6 +68,12 @@ int main(int argc, char* argv[]) {
 
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
+
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
+    HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
+    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
     HIR_LTREE_canonicalization(&cfgctx);    // Transform
     HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
@@ -88,6 +94,7 @@ int main(int argc, char* argv[]) {
         hh = hh->next;
     }
 
+    HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);

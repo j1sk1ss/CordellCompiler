@@ -19,7 +19,7 @@
                 future: i32s %5 = previous: i32s %4;
                 i32t %3 = num? 1 as i32;
                 lb8:
-                [i32s %0] i32s %5 = phi(set [%4, bb15][%7, bb13]);
+                [i32s %0] i32s %5 = phi(set [{X}][{X}]);
                 if num? 1, goto lb9, else goto lb10;
                 lb9:
                 {
