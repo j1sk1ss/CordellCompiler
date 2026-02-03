@@ -249,9 +249,14 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     return blk;
 }
 
-hir_block_t* HIR_copy_block(hir_block_t* b) {
+static inline hir_subject_t* _copy_label(hir_subject_t* s, int copy_label) {
+    if (!s || (!copy_label && s->t == HIR_LABEL)) return s;
+    return HIR_copy_subject(s);
+}
+
+hir_block_t* HIR_copy_block(hir_block_t* b, int copy_labels) {
     return HIR_create_block(
-        b->op, HIR_copy_subject(b->farg), HIR_copy_subject(b->sarg), HIR_copy_subject(b->targ)
+        b->op, _copy_label(b->farg, copy_labels), _copy_label(b->sarg, copy_labels), _copy_label(b->targ, copy_labels)
     );
 }
 

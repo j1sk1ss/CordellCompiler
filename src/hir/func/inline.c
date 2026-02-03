@@ -17,7 +17,7 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     hir_block_t* hh = HIR_get_next(f->hmap.entry, f->hmap.exit, 0);
     while (hh) {
         if (hh->op == HIR_FARGLD) {
-            hir_block_t* nblock = HIR_copy_block(hh);
+            hir_block_t* nblock = HIR_copy_block(hh, 1);
             nblock->op = HIR_STORE;
             HIR_unload_subject(nblock->sarg);
             nblock->sarg = (hir_subject_t*)list_iter_next(&it);
@@ -25,6 +25,37 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
         }
 
         hh = HIR_get_next(hh, f->hmap.exit, 1);
+    }
+
+    return 1;
+}
+
+/*
+Find old labels and replace them with a new one.
+Params:
+    - `h` - HIR entry block.
+    - `e` - HIR exit block.
+    - `lb` - Old labels.
+    - `new` - New labels.
+
+Returns 1 if succeeds.
+*/
+static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new) {
+    while (h) {
+        if (h->op != HIR_MKLB) {
+            hir_subject_t* args[3] = { h->farg, h->sarg, h->targ };
+            for (int i = 0; i < 3; i++) {
+                if (args[i] && args[i]->t == HIR_LABEL && args[i]->id == old->id) {
+                    switch (i) {
+                        case 0:  h->farg = new; break;
+                        case 1:  h->sarg = new; break;
+                        default: h->targ = new; break;
+                    }
+                }
+            }
+        }
+
+        h = HIR_get_next(h, e, 1);
     }
 
     return 1;
@@ -43,34 +74,64 @@ Params:
 Returns 1 if succeeds.
 */
 static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos) {
+    hir_block_t *nentry = NULL, *nexit = pos;
     hir_block_t* hh = HIR_get_next(f->hmap.entry, f->hmap.exit, 0);
     while (hh && hh->op != HIR_MKSCOPE) hh = HIR_get_next(hh, f->hmap.exit, 1);
     hh = HIR_get_next(hh, f->hmap.exit, 1);
     while (hh && hh->op != HIR_MKSCOPE) hh = HIR_get_next(hh, f->hmap.exit, 1);
 
+    /* Basic instruction copy without label track
+       - Will copy only instruction and variables
+       - Will preserve old labels */
+    int scopes = -1;
     while (hh && hh->op != HIR_FEND) {
+        hir_block_t* nblock = NULL;
         if (!hh->unused) {
-            hir_block_t* nblock = HIR_copy_block(hh);
+            nblock = HIR_copy_block(hh, 0);
             switch (hh->op) {
+                case HIR_MKSCOPE: {
+                    if (scopes++ < 0) goto _skip_instruction;
+                    break;
+                }
+                case HIR_ENDSCOPE: {
+                    if (--scopes < 0) goto _skip_instruction;
+                    break;
+                }
                 case HIR_FRET: {
-                    if (!res) nblock->unused = 1;
+                    if (!res) goto _skip_instruction;
                     else {
                         nblock->op   = HIR_STORE;
                         nblock->sarg = hh->farg;
                         HIR_unload_subject(nblock->farg);
                         nblock->farg = res;
                     }
-
-                    break;
                 }
-
                 default: break;
             }
+        }
 
+        if (nblock) {
             HIR_insert_block_before(nblock, pos);
+            if (!nentry) nentry = nblock;
+        }
+        else {
+_skip_instruction: {}
+            HIR_unload_blocks(nblock);
         }
 
         hh = HIR_get_next(hh, f->hmap.exit, 1);
+    }
+
+    /* Re-link labels */
+    hh = nentry;
+    while (hh) {
+        if (hh->op == HIR_MKLB) {
+            hir_subject_t* nlb = HIR_copy_subject(hh->farg);
+            _replace_label_usage(nentry, nexit, hh->farg, nlb);
+            hh->farg = nlb;
+        }
+
+        hh = HIR_get_next(hh, nexit, 1);
     }
 
     return 1;
@@ -111,9 +172,9 @@ static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
     ) score += 2;
 
     int block_count = list_size(&f->blocks);
-    if (block_count <= 2)       score += 3;
-    else if (block_count <= 5)  score += 2;
-    else if (block_count <= 10) score += 1;
+    if (block_count <= 2)       score += 4;
+    else if (block_count <= 5)  score += 3;
+    else if (block_count <= 10) score += 2;
     else if (block_count > 15)  score -= 3;
     return score >= 3;
 }
@@ -127,6 +188,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
                     cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
                     if (_inline_candidate(trg, bb) && fb != trg) {
                         _inline_arguments(trg, &hh->targ->storage.list.h, hh);
+                        
                         hir_subject_t* res = NULL;
                         if (
                             hh->op == HIR_STORE_FCLL || 
