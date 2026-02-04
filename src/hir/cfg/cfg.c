@@ -153,6 +153,17 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     return 1;
 }
 
+int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb) {
+    int blocks = 0;
+    hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
+    while (hh) {
+        blocks++;
+        hh = HIR_get_next(hh, bb->hmap.exit, 1);
+    }
+
+    return blocks;
+}
+
 int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {

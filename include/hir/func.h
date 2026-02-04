@@ -4,10 +4,11 @@
 #include <std/mm.h>
 #include <std/set.h>
 #include <std/str.h>
+#include <symtab/functb.h>
 #include <ast/ast.h>
 #include <hir/hir.h>
 #include <hir/cfg.h>
-#include <symtab/functb.h>
+#include <hir/loop.h>
 
 typedef struct {
     char  flag : 1;
@@ -77,19 +78,24 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt);
 
 /*
 Perform inlining optimization. Will inline function that get 3 euristic score points.
-Points earned with next logic:
-- inlinng in loop: +2
-- <= 2 base blocks in function: +3
-- <= 5 base blocks in function: +2
-- <= 10 base blocks in function: +1
-- > 15 base blocks in function: -2
-
 Params:
     - `cctx` - CFG.
+    - `smt` - Symtable.
+    - `checker` - Function desider.
 
 Return 1 if success, otherwise 0.
 */
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx);
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt, int (*checker)(int*, int));
+
+/*
+Euristic inline desider (basic option).
+Params:
+    - `data` - Desider data.
+    - `size` - Desider data size.
+
+Returns 1 if function must be inlined.
+*/
+int HIR_FUNC_inline_euristic_desider(int* data, int size);
 
 /*
 De-virtualization for functions in HIR.

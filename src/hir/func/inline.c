@@ -154,39 +154,143 @@ static inline cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long fid) {
 }
 
 /*
+Find loop where the input bb is present.
+Params:
+    - `loops` - Current list of loops.
+    - `bb` - The target base block.
+
+Returns a loop node where the base block is present. 
+*/
+static loop_node_t* _find_loop(list_t* loops, cfg_block_t* bb) {
+    foreach (loop_node_t* ln, loops) {
+        loop_node_t* found = _find_loop(&ln->children, bb);
+        if (found) return found;
+    }
+
+    foreach (loop_node_t* ln, loops) {
+        if (set_has(&ln->blocks, bb)) return ln;
+    }
+
+    return NULL;
+}
+
+typedef struct {
+    struct { /* Information about a function        */
+        int  bb_size;        /* The source function size in base blocks                 */
+        int  hir_size;       /* The source function size in hir blocks                  */
+        int  funccals;       /* Count of funcalls in the function                       */
+        int  syscalls;       /* Count of syscalls in the function                       */
+    } src_info;
+    struct { /* Information about the dest location */
+        int  loop_nested;    /* If it in a loop, is it a nested loop? And how deep?     */
+        int  loop_size_bb;   /* If it in a loop, how big is it (in bb)?                 */
+        int  loop_size_hir;  /* If it in a loop, how big is it (in hir)?                */
+        int  func_count;     /* How many functions in the past and in the further code? */
+        char near_break;     /* Is there a break statement close to this location?      */
+        char is_dom;         /* Is this function will go to one of the branches?        */
+        char is_start;       /* Is this is a start function?                            */
+    } dst_info;
+} inline_candidate_info_t;
+
+/*
+Collect essential information for inline candidate decisiion.
+Params:
+    - `f` - Target function to inline.
+    - `pos` - Position for inline.
+    - `lctx` - Loops context.
+    - `info` - Output information.
+
+Returns 1 if succeeds.
+*/
+static int _collect_information(cfg_func_t* f, cfg_block_t* pos, ltree_ctx_t* lctx, inline_candidate_info_t* info, sym_table_t* smt) {
+    loop_node_t* loop = _find_loop(&lctx->loops, pos);
+    if (loop) {
+        info->dst_info.loop_size_bb = set_size(&loop->blocks);
+        info->dst_info.loop_nested  = HIR_LTREE_nested_count(loop);
+        set_foreach (cfg_block_t* bb, &loop->blocks) {
+            info->dst_info.loop_size_hir += HIR_CFG_count_blocks_in_bb(bb);
+            hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
+            while (hh) {
+                if (hh->op == HIR_JMP) {
+                    info->dst_info.near_break = 1;
+                    break;
+                }
+
+                hh = HIR_get_next(hh, bb->hmap.exit, 1);
+            }
+        }
+    }
+
+    info->src_info.bb_size = list_size(&f->blocks);
+    foreach (cfg_block_t* bb, &f->blocks) {
+        info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
+        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
+        while (hh) {
+            if (HIR_funccall(hh->op)) info->src_info.funccals++;
+            if (
+                hh->op == HIR_SYSC || 
+                hh->op == HIR_STORE_SYSC
+            ) info->src_info.syscalls++; 
+            hh = HIR_get_next(hh, bb->hmap.exit, 1);
+        }
+    }
+
+    func_info_t fi;
+    if (FNTB_get_info_id(pos->pfunc->fid, &fi, &smt->f)) {
+        info->dst_info.is_start = fi.flags.entry;
+    }
+
+    return 1;
+}
+
+/*
 Euristic function for evaluating an inline candidate.
-Note: If this function returns 1 - the provided function
-      can be inlined.
+Note 1: If this function returns 1 - the provided function
+        can be inlined.
+Note 2: This function collects the next information about
+        a function:
+        - The function size:
+            - Base blocks count.
+            - HIR blocks count.
+        - The function loop tree:
+            - Loop tree size.
+            - Max nexted loop.
+            - The destination loop size.
+        - The source position position:
+            - Nested loop count.
+            - If this a start function.
+        - If the target position in a loop, is there a break statement
+          near to the position?
+        - Is the function is dominated by entry?
 Params:
     - `f` - CFG inline candidate function.
     - `pos` - Source HIR position.
+    - `lctx` - Source block loop environment.
 
 Returns 1 if the provided function can be inlined.
 */
-static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
-    if (!f) return 0;
-    int score = 0;
-    if (
-        pos->type == CFG_LOOP_BLOCK ||
-        pos->type == CFG_LOOP_LATCH
-    ) score += 2;
-
-    int block_count = list_size(&f->blocks);
-    if (block_count <= 2)       score += 4;
-    else if (block_count <= 5)  score += 3;
-    else if (block_count <= 10) score += 2;
-    else if (block_count > 15)  score -= 3;
-    return score >= 3;
+static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int)) {
+    if (!f || !pos || !lctx) return 0;
+    inline_candidate_info_t iinfo = { 0 };
+    _collect_information(f, pos, lctx, &iinfo, smt);
+    return checker((int*)&iinfo, (int)sizeof(inline_candidate_info_t));
 }
 
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt, int (*checker)(int*, int)) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
+        
+        /* Collect information about the environment
+           - Basic information about the loops */
+        ltree_ctx_t lctx;
+        list_init(&lctx.loops);
+        HIR_LTREE_build_loop_tree(fb, &lctx);
+
         foreach (cfg_block_t* bb, &fb->blocks) {
             hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
             while (hh) {
                 if (HIR_funccall(hh->op)) {
                     cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
-                    if (_inline_candidate(trg, bb) && fb != trg) {
+                    if (_inline_candidate(trg, bb, &lctx, smt, checker) && fb != trg) {
                         _inline_arguments(trg, &hh->targ->storage.list.h, hh);
                         
                         hir_subject_t* res = NULL;
@@ -203,7 +307,21 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx) {
                 hh = HIR_get_next(hh, bb->hmap.exit, 1);
             }
         }
+
+        HIR_LTREE_unload_ctx(&lctx);
     }
 
     return 1;
+}
+
+int HIR_FUNC_inline_euristic_desider(int* data, int size) {
+    if (!data || size != sizeof(inline_candidate_info_t)) return 0;
+    inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
+    int score = 0;
+    if (parsed->src_info.bb_size <= 2)       score += 4;
+    else if (parsed->src_info.bb_size <= 5)  score += 3;
+    else if (parsed->src_info.bb_size <= 10) score += 2;
+    else if (parsed->src_info.bb_size > 15)  score -= 3;
+    score += parsed->dst_info.loop_nested * parsed->dst_info.loop_nested;
+    return score >= 3;
 }
