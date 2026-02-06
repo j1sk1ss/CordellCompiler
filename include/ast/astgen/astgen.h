@@ -37,22 +37,27 @@ param          = type , identifier , [ "=" , expression ] | "..." ;
 
 block          = "{" , { statement } , "}" ;
 
-statement      = pp_directive
-               | var_decl
-               | arr_decl
-               | if_statement
-               | loop_statement
-               | while_statement
-               | switch_statement
-               | return_statement
-               | exit_statement
-               | break_statement
-               | lis_statement
-               | syscall_statement
-               | asm_block
-               | comment
-               | block
-               | expression_statement ;
+statement =
+    "arr" , arr_stmt_tail
+  | pp_directive
+  | if_statement
+  | loop_statement
+  | while_statement
+  | switch_statement
+  | return_statement
+  | exit_statement
+  | break_statement
+  | lis_statement
+  | syscall_statement
+  | asm_block
+  | comment
+  | block
+  | var_decl_starting_not_arr
+  | expression_statement ;
+
+arr_stmt_tail =
+    identifier , "[" , integer_literal , "," , type , "]" , [ "=" , ( expression | arr_value ) ] , ";"   (* это arr_decl *)
+  | "[" , integer_literal , "," , type , "]" , identifier , [ "=" , expression ] , ";"                   (* это var_decl, где type=arr[...] *)
 
 pp_directive   = "#" , pp_body , pp_end ;
 
