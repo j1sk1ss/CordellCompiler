@@ -13,9 +13,10 @@ int main() {
     set_add(&b, (void*)3);
 
     set_t c;
-    set_union(&c, &a, &b);
+    set_init(&c, SET_NO_CMP);
+    set_intersect(&c, &a, &b);
 
-    assert(set_size(&c) == 3, "Union result isn't correct!");
+    assert(set_size(&c) == 1, "Intersection result isn't correct!");
 
     set_free(&a);
     set_free(&b);

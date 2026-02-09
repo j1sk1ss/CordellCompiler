@@ -10,15 +10,11 @@ int main() {
     set_add(&a, (void*)1);
     set_add(&a, (void*)2);
     set_add(&b, (void*)2);
-    set_add(&b, (void*)3);
 
-    set_t c;
-    set_union(&c, &a, &b);
-
-    assert(set_size(&c) == 3, "Union result isn't correct!");
+    set_minus_set(&a, &b);
+    assert(!set_has(&a, (void*)2), "Minus didn't remove the element!");
 
     set_free(&a);
     set_free(&b);
-    set_free(&c);
     return 0;
 }
