@@ -76,7 +76,7 @@ int queue_pop(queue_t* q, void** d) {
     return 1;
 }
 
-int queue_unload(queue_t* q) {
+int queue_free(queue_t* q) {
     if (q->body) {
         mm_free(q->body);
         q->body = NULL;
@@ -84,4 +84,25 @@ int queue_unload(queue_t* q) {
 
     q->body = 0;
     return 1;
+}
+
+int queue_free_force(queue_t* q) {
+    if (q && q->body) {
+        for (int i = 0; i < q->meta.count; i++) {
+            int index = (q->meta.head + i) % q->size;
+            void* elem = q->body[index].data;
+            if (elem) {
+                mm_free(elem);
+                q->body[index].data = NULL;
+            }
+        }
+
+        mm_free(q->body);
+        q->body = NULL;
+        q->meta.head = q->meta.tail = q->meta.count = 0;
+        q->size = 0;
+        return 0;
+    }
+    
+    return -1;
 }

@@ -4,6 +4,8 @@
 #include <std/mm.h>
 #include <std/set.h>
 #include <std/str.h>
+#include <std/tuple.h>
+#include <std/queue.h>
 #include <symtab/functb.h>
 #include <ast/ast.h>
 #include <hir/hir.h>

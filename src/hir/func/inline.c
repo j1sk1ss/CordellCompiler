@@ -186,39 +186,77 @@ typedef struct {
         int  loop_size_bb;   /* If it in a loop, how big is it (in bb)?                 */
         int  loop_size_hir;  /* If it in a loop, how big is it (in hir)?                */
         int  func_count;     /* How many functions in the past and in the further code? */
-        char near_break;     /* Is there a break statement close to this location?      */
+        int  near_break;     /* Distance to nearest 'break' statement or -1             */
         char is_dom;         /* Is this function will go to one of the branches?        */
         char is_start;       /* Is this is a start function?                            */
     } dst_info;
 } inline_candidate_info_t;
 
 /*
+How many commands between the 'pos' command and a break command?
+Params:
+    - `pos` - Current HIR block position.
+              Note: Initialy must be the 'NULL' value.
+    - `ibb` - Initial base block.
+
+Returns how many commands.
+*/
+static int _find_nearest_break(hir_block_t* pos, cfg_block_t* ibb) {
+    set_t visited;
+    set_init(&visited, SET_NO_CMP);
+
+    queue_t blocks;
+    queue_init(&blocks);
+    queue_push(&blocks, inttuple_create((long)ibb, 0));
+
+    int_tuple_t* tpl;
+    while (queue_pop(&blocks, (void**)&tpl)) {
+        cfg_block_t* block = (cfg_block_t*)((void*)tpl->x);
+        int block_size = tpl->y;
+        set_add(&visited, block);
+        inttuple_free(tpl);
+
+        hir_block_t* hh = HIR_get_next(pos ? pos : block->hmap.entry, block->hmap.exit, 0);
+        pos = NULL;
+        while (hh) {
+            block_size++;
+            if (hh->op == HIR_BREAK) {
+                queue_free_force(&blocks);
+                set_free(&visited);
+                return block_size;
+            }
+
+            hh = HIR_get_next(hh, block->hmap.exit, 1);
+        }
+
+        if (!set_has(&visited, block->jmp)) queue_push(&blocks, inttuple_create((long)block->jmp, block_size));
+        if (!set_has(&visited, block->l))   queue_push(&blocks, inttuple_create((long)block->l, block_size));
+    }
+
+    queue_free(&blocks);
+    set_free(&visited);
+    return -1;
+}
+
+/*
 Collect essential information for inline candidate decisiion.
 Params:
     - `f` - Target function to inline.
-    - `pos` - Position for inline.
+    - `pos` - BB position for inline.
+    - `hpos` - HIR position for inline.
     - `lctx` - Loops context.
     - `info` - Output information.
 
 Returns 1 if succeeds.
 */
-static int _collect_information(cfg_func_t* f, cfg_block_t* pos, ltree_ctx_t* lctx, inline_candidate_info_t* info, sym_table_t* smt) {
+static int _collect_information(
+    cfg_func_t* f, cfg_block_t* pos, hir_block_t* hpos, ltree_ctx_t* lctx, inline_candidate_info_t* info, sym_table_t* smt
+) {
     loop_node_t* loop = _find_loop(&lctx->loops, pos);
     if (loop) {
         info->dst_info.loop_size_bb = set_size(&loop->blocks);
         info->dst_info.loop_nested  = HIR_LTREE_nested_count(loop);
-        set_foreach (cfg_block_t* bb, &loop->blocks) {
-            info->dst_info.loop_size_hir += HIR_CFG_count_blocks_in_bb(bb);
-            hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-            while (hh) {
-                if (hh->op == HIR_BREAK) {
-                    info->dst_info.near_break = 1;
-                    break;
-                }
-
-                hh = HIR_get_next(hh, bb->hmap.exit, 1);
-            }
-        }
+        info->dst_info.near_break   = _find_nearest_break(hpos, pos);
     }
 
     info->src_info.bb_size = list_size(&f->blocks);
@@ -264,15 +302,18 @@ Note 2: This function collects the next information about
         - Is the function is dominated by entry?
 Params:
     - `f` - CFG inline candidate function.
-    - `pos` - Source HIR position.
+    - `pos` - Source BB position.
+    - `hpos` - Source HIR position.
     - `lctx` - Source block loop environment.
 
 Returns 1 if the provided function can be inlined.
 */
-static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int)) {
+static int _inline_candidate(
+    cfg_func_t* f, cfg_block_t* pos, hir_block_t* hpos, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int)
+) {
     if (!f || !pos || !lctx) return 0;
     inline_candidate_info_t iinfo = { 0 };
-    _collect_information(f, pos, lctx, &iinfo, smt);
+    _collect_information(f, pos, hpos, lctx, &iinfo, smt);
     return checker((int*)&iinfo, (int)sizeof(inline_candidate_info_t));
 }
 
@@ -290,7 +331,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt, int (*checker)(in
             while (hh) {
                 if (HIR_funccall(hh->op)) {
                     cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
-                    if (_inline_candidate(trg, bb, &lctx, smt, checker) && fb != trg) {
+                    if (_inline_candidate(trg, bb, hh, &lctx, smt, checker) && fb != trg) {
                         _inline_arguments(trg, &hh->targ->storage.list.h, hh);
                         
                         hir_subject_t* res = NULL;

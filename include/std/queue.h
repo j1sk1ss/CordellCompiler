@@ -22,6 +22,7 @@ typedef struct {
 int queue_init(queue_t* q);
 int queue_push(queue_t* q, void* d);
 int queue_pop(queue_t* q, void** d);
-int queue_unload(queue_t* q);
+int queue_free(queue_t* q);
+int queue_free_force(queue_t* q);
 
 #endif

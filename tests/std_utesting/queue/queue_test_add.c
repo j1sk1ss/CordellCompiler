@@ -15,6 +15,6 @@ int main() {
     assert(queue_pop(&a, (void**)&val) && val == 2, "Incorrect popped value!");
     assert(queue_pop(&a, (void**)&val) && val == 3, "Incorrect popped value!");
 
-    queue_unload(&a);
+    queue_free(&a);
     return 0;
 }
