@@ -229,8 +229,8 @@ static int _find_nearest_break(hir_block_t* pos, cfg_block_t* ibb) {
             hh = HIR_get_next(hh, block->hmap.exit, 1);
         }
 
-        if (!set_has(&visited, block->jmp)) queue_push(&blocks, inttuple_create((long)block->jmp, block_size));
-        if (!set_has(&visited, block->l))   queue_push(&blocks, inttuple_create((long)block->l, block_size));
+        if (!set_has(&visited, block->jmp) && block->jmp) queue_push(&blocks, inttuple_create((long)block->jmp, block_size));
+        if (!set_has(&visited, block->l) && block->l)     queue_push(&blocks, inttuple_create((long)block->l, block_size));
     }
 
     queue_free(&blocks);
@@ -258,7 +258,7 @@ static int _collect_information(
         info->dst_info.loop_nested  = HIR_LTREE_nested_count(loop);
         info->dst_info.near_break   = _find_nearest_break(hpos, pos);
     }
-
+    
     info->src_info.bb_size = list_size(&f->blocks);
     foreach (cfg_block_t* bb, &f->blocks) {
         info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
