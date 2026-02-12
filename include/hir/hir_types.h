@@ -35,6 +35,7 @@ typedef enum hir_operation {
         HIR_FEXT,        // extern function    extern [id from function symtable]
 
         /* Jump instructions */
+        HIR_BREAK,       // Cosmetic command for the 'break' statement. ! Dont' handle it in the further translation !
         HIR_JMP,
 
     /* Integer */

@@ -211,7 +211,7 @@ static int _collect_information(cfg_func_t* f, cfg_block_t* pos, ltree_ctx_t* lc
             info->dst_info.loop_size_hir += HIR_CFG_count_blocks_in_bb(bb);
             hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
             while (hh) {
-                if (hh->op == HIR_JMP) {
+                if (hh->op == HIR_BREAK) {
                     info->dst_info.near_break = 1;
                     break;
                 }
