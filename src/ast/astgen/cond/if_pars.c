@@ -1,6 +1,5 @@
 #include <ast/astgen/astgen.h>
 
-/* TODO: support the if-elseif-...-else syntax */
 ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     SAVE_TOKEN_POINT;
     
@@ -38,8 +37,13 @@ ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
     if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == ELSE_TOKEN) {
         ast_node_t* fbranch = NULL;
-        if (!consume_token(it, OPEN_BLOCK_TOKEN)) fbranch = cpl_parse_line_scope(it, ctx, smt);
-        else fbranch = cpl_parse_scope(it, ctx, smt);
+        forward_token(it, 1);
+        switch (CURRENT_TOKEN->t_type) {
+            case OPEN_BLOCK_TOKEN: fbranch = cpl_parse_scope(it, ctx, smt);      break;
+            case IF_TOKEN:         fbranch = cpl_parse_if(it, ctx, smt);         break;
+            default:               fbranch = cpl_parse_line_scope(it, ctx, smt); break;
+        }
+        
         if (!fbranch) {
             PARSE_ERROR("Error during the false branch parsing in the '%s' statement!", IF_COMMAND);
             AST_unload(node);

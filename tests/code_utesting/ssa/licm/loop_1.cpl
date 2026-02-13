@@ -21,8 +21,8 @@
                 i64t %3 = num? 10 + num? 10;
                 i32t %4 = i64t %3 as i32;
                 lb8:
-                [i32s %1] i32s %7 = phi(set [%9, bb13][%1, bb15]);
-                [i32s %0] i32s %8 = phi(set [%6, bb15][%10, bb13]);
+                [i32s %1] i32s %7 = phi(set [{X}][{X}]);
+                [i32s %0] i32s %8 = phi(set [{X}][{X}]);
                 goto lb9;
                 lb9:
                 {

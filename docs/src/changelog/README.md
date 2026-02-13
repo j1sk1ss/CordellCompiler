@@ -26,6 +26,24 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## if-elseif-else syntax support
+Not this compiler support the next code snippet:
+```cpl
+if a; {
+
+}
+else if b; {
+
+}
+else if c; {
+
+}
+: ... :
+else {
+    
+}
+```
+
 ## De-vertualization (basics)
 CorellCompiler now supports polymorphic functions. The symtax is below:
 ```cpl

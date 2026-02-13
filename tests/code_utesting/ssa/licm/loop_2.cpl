@@ -1,4 +1,4 @@
-{ : TODO :
+{
     start() {
         i32 d = 0;
         loop {
