@@ -25,11 +25,11 @@
             use num? 8;
             use num? 9;
             arrs* %0 = arr_alloc(num? 10);
-            u64t %1 = &(arrs* %0);
+            i32t* %1 = &(arrs %0);
             i64t %2 = num? 0 * cnst? 4;
-            u64t %4 = i64t %2 as u64;
-            u64t %3 = u64t %1 + u64t %4;
-            i32t %5 = *(u64t %3);
+            i32t* %4 = i64t %2 as u64;
+            i32t* %3 = i32t* %1 + i32t* %4;
+            i32t %5 = *(i32t* %3);
             return i32t %5;
         }
     }

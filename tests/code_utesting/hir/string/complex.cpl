@@ -12,29 +12,28 @@
     start {
         {
             {
-                strs* %0 = str_alloc(Hello world!);
-                strs** %1 = alloc(8);
-                i8t** %2 = &(strs* %0);
-                i64t** %3 = i8t** %2 as u64;
-                strs** %1 = i64t** %3;
-                i8t %4 = *(strs* %0);
-                u64t %5 = &(strs** %1);
+                strs %0 = str_alloc(Hello world!);
+                strs* %1 = alloc(8);
+                i8t* %2 = &(strs %0);
+                i64t* %3 = i8t* %2 as u64;
+                strs* %1 = i64t* %3;
+                i8t %4 = *(strs %0);
+                i8t** %5 = &(strs* %1);
                 i64t %6 = num? 0 * cnst? 1;
-                u64t %8 = i64t %6 as u64;
-                u64t %7 = u64t %5 + u64t %8;
-                i8t* %9 = i8t %4 as u64;
-                *(u64t %7) = i8t* %9;
-                u64t %10 = &(strs** %1);
-                i64t %11 = num? 0 * cnst? 1;
-                u64t %13 = i64t %11 as u64;
-                u64t %12 = u64t %10 + u64t %13;
-                i8t* %14 = *(u64t %12);
-                u64t %15 = &(strs* %0);
-                i64t %16 = num? 1 * cnst? 1;
-                u64t %18 = i64t %16 as u64;
-                u64t %17 = u64t %15 + u64t %18;
-                i8t %19 = i8t* %14 as i8;
-                *(u64t %17) = i8t %19;
+                i8t** %8 = i64t %6 as u64;
+                i8t** %7 = i8t** %5 + i8t** %8;
+                *(i8t** %7) = i8t %4;
+                i8t** %9 = &(strs* %1);
+                i64t %10 = num? 0 * cnst? 1;
+                i8t** %12 = i64t %10 as u64;
+                i8t** %11 = i8t** %9 + i8t** %12;
+                i8t* %13 = *(i8t** %11);
+                i8t* %14 = &(strs %0);
+                i64t %15 = num? 1 * cnst? 1;
+                i8t* %17 = i64t %15 as u64;
+                i8t* %16 = i8t* %14 + i8t* %17;
+                i8t %18 = i8t* %13 as i8;
+                *(i8t* %16) = i8t %18;
             }
         }
     }

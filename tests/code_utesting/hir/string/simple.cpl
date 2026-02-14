@@ -9,7 +9,7 @@
     start {
         {
             {
-                strs* %0 = str_alloc(Hello world!);
+                strs %0 = str_alloc(Hello world!);
             }
         }
     }

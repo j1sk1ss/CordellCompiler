@@ -106,7 +106,7 @@ int TKN_one_slot(token_t* token) {
     if (
         token->flags.ptr > 0 &&                     /* If this is a pointer                          */
         (
-            token->flags.ptr > 1 ||                 /* And if this a pointer to an array or a string */
+            token->flags.ptr > 0 ||                 /* And if this a pointer to an array or a string */
             (                                       /* It must be a pointer to a pointer             */
                 token->t_type != STR_TYPE_TOKEN     && 
                 token->t_type != STR_VARIABLE_TOKEN &&

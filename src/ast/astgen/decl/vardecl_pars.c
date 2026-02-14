@@ -25,8 +25,6 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
 
     long decl_scope;
     stack_top(&ctx->scopes.stack, (void**)&decl_scope);
-    if (node->t->t_type == STR_TYPE_TOKEN) name_node->t->flags.ptr++;
-    
     name_node->sinfo.v_id = VRTB_add_info(name_node->t->body, node->t->t_type, decl_scope, &name_node->t->flags, &smt->v);
     if (node->t->t_type == STR_TYPE_TOKEN) ARTB_add_info(name_node->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a);
 

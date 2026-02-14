@@ -15,7 +15,7 @@ _indexing: {}
                    - offval - Offset value in the one virtual variable.
                    - vase - The variable for the base addres for an array / a pointer. */
                 hir_subject_t* offval = HIR_generate_elem(off, ctx, smt);
-                hir_subject_t* base   = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_add_info(NULL, TMP_U64_TYPE_TOKEN, 0, NULL, &smt->v));
+                hir_subject_t* base   = HIR_reference_subject(trg, smt);
 
                 /* Figure out if this is an array, a pointer or a heap array.
                    The difference:
@@ -23,7 +23,10 @@ _indexing: {}
                    - Otherwise, we must use the 'a + (x + el) expression'. */
                 array_info_t ai;
                 hir_subject_type_t trg_type = trg->t;
-                if (!ARTB_get_info(node->sinfo.v_id, &ai, &smt->a) || ai.heap) HIR_BLOCK2(ctx, HIR_STORE, base, trg);
+                if (!ARTB_get_info(node->sinfo.v_id, &ai, &smt->a) || ai.heap) {
+                    HIR_BLOCK2(ctx, HIR_STORE, base, trg);
+                    base->ptr = MAX(base->ptr - 1, 0);
+                }
                 else {
                     token_t tmp = { .t_type = ai.elements_info.el_type };
                     HIR_BLOCK2(ctx, HIR_REF, base, trg);
@@ -41,6 +44,8 @@ _indexing: {}
                 /* No we move the address (base) by the offser (addr):
                    - head = base + addr */
                 hir_subject_t* head = HIR_SUBJ_TMPVAR(base->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(base->t), 0, NULL, &smt->v));
+                head->ptr = base->ptr;
+                
                 HIR_BLOCK3(ctx, HIR_iADD, head, base, HIR_generate_implconv(ctx, base->ptr, base->t, addr, smt));
                 
                 /* Load the input data to the moved head

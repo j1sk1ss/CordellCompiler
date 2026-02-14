@@ -43,7 +43,7 @@ typedef struct {
     unsigned long      hash;  /* Subject's hash          */
     long               id;    /* Subject's ID            */
     hir_subject_type_t t;     /* Subject's type          */
-    char               ptr;   /* Subject reference level */
+    int                ptr;   /* Subject reference level */
     union {
         hir_string_t   str;
         hir_constant_t cnst;

@@ -109,7 +109,6 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
        Array, basically, is a pointer. That's why we increment the .ptr flag to 1. */
     long decl_scope;
     stack_top(&ctx->scopes.stack, (void**)&decl_scope);
-    name_node->t->flags.ptr = 1;
     name_node->sinfo.v_id = VRTB_add_info(
         name_node->t->body, ARRAY_TYPE_TOKEN, decl_scope, &name_node->t->flags, &smt->v
     );

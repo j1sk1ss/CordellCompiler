@@ -310,6 +310,16 @@ Return parsed from AST HIR subject.
 hir_subject_t* HIR_generate_neg(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Create referenced subject from the source. 
+Params:
+    - `src` - Source HIR subject.
+    - `smt` - Symtable.
+
+Return referenced subject.
+*/
+hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt);
+
+/*
 Convert ref AST node into HIR element. 
 Params:
     - `node` - AST node.

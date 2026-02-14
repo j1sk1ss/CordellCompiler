@@ -11,7 +11,6 @@ def _line_matches(expected_line: str, actual_line: str) -> bool:
 
     return expected_line == actual_line
 
-
 def _matches_expected(expected_text: str, actual_text: str) -> tuple[bool, str | None]:
     exp_lines = expected_text.splitlines()
     act_lines = actual_text.splitlines()
