@@ -22,7 +22,7 @@
         i32s %0 = load_arg();
         {
             use num? 0;
-            arrs* %1 = arr_alloc(num? 10);
+            arrs %1 = arr_alloc(num? 10);
             i64t %4 = i32s %0 as i64;
             i64t %3 = i64t %4 == num? 1;
             if i64t %3, goto lb12, else goto lb13;
@@ -46,7 +46,7 @@
                 use num? 10;
                 i32s %0 = num? 10;
                 use num? 0;
-                arrs* %1 = arr_alloc(num? 10);
+                arrs %1 = arr_alloc(num? 10);
                 i64t %4 = i32s %0 as i64;
                 i64t %3 = i64t %4 == num? 1;
                 if i64t %3, goto lb62, else goto lb63;

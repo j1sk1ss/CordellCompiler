@@ -16,7 +16,7 @@
                 i8s** %1 = alloc(8);
                 i8t %2 = num? 1 as i8;
                 *(i8s* %0) = i8t %2;
-                i8t* %3 = num? 1 as u64;
+                i8t* %3 = num? 1 as *ptr;
                 *(i8s** %1) = i8t* %3;
             }
         }

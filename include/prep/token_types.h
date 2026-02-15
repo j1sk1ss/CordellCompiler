@@ -21,6 +21,7 @@ typedef enum {
 
     DELIMITER_TOKEN,     // ;
     COMMA_TOKEN,         // ,
+    INDEXATION_TOKEN,    // []
     OPEN_INDEX_TOKEN,    // [
     CLOSE_INDEX_TOKEN,   // ]
     OPEN_BRACKET_TOKEN,  // (

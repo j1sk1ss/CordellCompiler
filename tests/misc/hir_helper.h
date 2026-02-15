@@ -77,6 +77,7 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_TI32:         return "HIR_TI32";
         case HIR_TI16:         return "HIR_TI16";
         case HIR_TI8:          return "HIR_TI8";  
+        case HIR_TPTR:         return "HIR_TPTR";
         case HIR_TU64:         return "HIR_TU64";
         case HIR_TU32:         return "HIR_TU32";
         case HIR_TU16:         return "HIR_TU16";
@@ -100,6 +101,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_TI32:       return "%s = %s as i32;\n";
         case HIR_TI16:       return "%s = %s as i16;\n";
         case HIR_TI8:        return "%s = %s as i8;\n";
+        case HIR_TPTR:       return "%s = %s as *ptr;\n";
         case HIR_TU64:       return "%s = %s as u64;\n";
         case HIR_TU32:       return "%s = %s as u32;\n";
         case HIR_TU16:       return "%s = %s as u16;\n";

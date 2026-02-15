@@ -3,6 +3,7 @@
 #include <ast/astgen.h>
 const char* name_tkn_type(token_type_t t) {
     switch (t) {
+        case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: return "UNKNOWN_FLOAT_NUMERIC_TOKEN";
         case UNKNOWN_CHAR_TOKEN:          return "UNKNOWN_CHAR_TOKEN";
         case UNKNOWN_BRACKET_VALUE:       return "UNKNOWN_BRACKET_VALUE";
@@ -135,20 +136,23 @@ const char* fmt_tkn_type(token_t* t) {
 static inline int print_ast(ast_node_t* node, int depth) {
     if (!node) return 0;
     for (int i = 0; i < depth; i++) printf("   ");
-    if (node->t && node->t->t_type != SCOPE_TOKEN) {
-        printf(
-            "[%s] (%s,%sv_id=%i, s_id=%i%s%s%s%s)\n",
-            node->t->body->body, name_tkn_type(node->t->t_type), 
-            node->t->flags.ptr ? " ptr, " : " ",
-            node->sinfo.v_id, node->sinfo.s_id,
-            node->t->flags.ro ? ", ro" : "",
-            node->t->flags.ext ? ", ext" : "",
-            node->t->flags.glob ? ", glob" : "",
-            node->t->flags.heap ? ", heap" : ""
-        );
-    }
-    else if (node->t && node->t->t_type == SCOPE_TOKEN) {
-        printf("{ scope, id=%i }\n", node->sinfo.s_id);
+    if (node->t) {
+        switch (node->t->t_type) {
+            case SCOPE_TOKEN: printf("{ scope, id=%i }\n", node->sinfo.s_id); break;
+            case INDEXATION_TOKEN: printf("[[]]\n");                          break;
+            default:
+                printf(
+                    "[%s] (%s,%sv_id=%i, s_id=%i%s%s%s%s)\n",
+                    node->t->body->body, name_tkn_type(node->t->t_type), 
+                    node->t->flags.ptr ? " ptr, " : " ",
+                    node->sinfo.v_id, node->sinfo.s_id,
+                    node->t->flags.ro ? ", ro" : "",
+                    node->t->flags.ext ? ", ext" : "",
+                    node->t->flags.glob ? ", glob" : "",
+                    node->t->flags.heap ? ", heap" : ""
+                );
+            break;
+        }
     }
     else {
         printf("[ block ]\n");

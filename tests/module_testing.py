@@ -89,12 +89,18 @@ def _run_test(binary: str, test_file: Path) -> dict:
             stderr=subprocess.STDOUT,
             text=True
         )
+    except Exception as ex:
+        print(f"Error: {str(ex)}, test: {str(test_file)}")
+        raise Exception("subprocess error!")
     finally:
         os.remove(tmp_path)
 
-    expected_n = _normalize_output(expected)
-    actual_n = _normalize_output(proc.stdout)
-    ok, why = _matches_expected(expected_n, actual_n)
+    try:
+        expected_n = _normalize_output(expected)
+        actual_n   = _normalize_output(proc.stdout)
+        ok, why    = _matches_expected(expected_n, actual_n)
+    except Exception as ex:
+        print(f"Answer proceeding error! {str(ex)}, test: {str(test_file)}")
 
     return {
         "file": str(test_file),

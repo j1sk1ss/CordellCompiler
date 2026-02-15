@@ -13,7 +13,7 @@
             {
                 i32t* %1 = &(arrg %0);
                 i64t %2 = num? 0 * cnst? 4;
-                i32t* %4 = i64t %2 as u64;
+                i32t* %4 = i64t %2 as *ptr;
                 i32t* %3 = i32t* %1 + i32t* %4;
                 i32t %5 = num? 1 as i32;
                 *(i32t* %3) = i32t %5;

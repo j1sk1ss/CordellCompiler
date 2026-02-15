@@ -22,22 +22,22 @@
                 use num? 8;
                 use num? 9;
                 use num? 10;
-                arrs* %0 = arr_alloc(num? 10);
-                u64t %3 = &(arrs* %0);
+                arrs %0 = arr_alloc(num? 10);
+                i32t* %3 = &(arrs %0);
                 i64t %4 = num? 0 * cnst? 4;
-                u64t %6 = i64t %4 as u64;
-                u64t %5 = u64t %3 + u64t %6;
+                i32t* %6 = i64t %4 as *ptr;
+                i32t* %5 = i32t* %3 + i32t* %6;
                 i32t %7 = num? 0 as i32;
-                *(u64t %5) = i32t %7;
+                *(i32t* %5) = i32t %7;
                 i32s %1 = alloc(8);
-                u64t %8 = &(arrs* %0);
+                i32t* %8 = &(arrs %0);
                 i64t %9 = num? 0 * cnst? 4;
-                u64t %11 = i64t %9 as u64;
-                u64t %10 = u64t %8 + u64t %11;
-                i32t %12 = *(u64t %10);
+                i32t* %11 = i64t %9 as *ptr;
+                i32t* %10 = i32t* %8 + i32t* %11;
+                i32t %12 = *(i32t* %10);
                 i32s %1 = i32t %12;
                 i32s %2 = alloc(8);
-                i32t %13 = *(arrs* %0);
+                i32t %13 = *(arrs %0);
                 i32s %2 = i32t %13;
             }
         }

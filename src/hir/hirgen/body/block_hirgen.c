@@ -33,6 +33,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case NEGATIVE_TOKEN:        return HIR_generate_neg(node, ctx, smt);
         case REF_TYPE_TOKEN:        return HIR_generate_ref(node, ctx, smt);
         case DREF_TYPE_TOKEN:       return HIR_generate_dref(node, ctx, smt, NULL);
+        case INDEXATION_TOKEN:      return HIR_generate_load_indexation(node, ctx, smt);
         /* We skip assign nodes above given the next logic, 
         where we generate the special load sequence */
         case I8_VARIABLE_TOKEN:
@@ -49,7 +50,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case STR_VARIABLE_TOKEN:
         case STRING_VALUE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN: 
-        case UNKNOWN_FLOAT_NUMERIC_TOKEN: return HIR_generate_load(node, ctx, smt);
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN: return HIR_generate_load(node);
         default: break;
     }
 

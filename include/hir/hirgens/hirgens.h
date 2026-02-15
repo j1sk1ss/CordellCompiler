@@ -73,12 +73,10 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
 Convert load AST node (arr[i]) into HIR element. 
 Params:
     - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
 
 Return parsed from AST HIR subject.
 */
-hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+hir_subject_t* HIR_generate_load(ast_node_t* node);
 
 /*
 Convert oprand AST node (x + x) into HIR element. 
@@ -314,10 +312,13 @@ Create referenced subject from the source.
 Params:
     - `src` - Source HIR subject.
     - `smt` - Symtable.
+    - `inc` - Increment reference counter.
+              Note: By default set to 1. If set to 0 - 
+                    won't increment the `ptr` field.
 
 Return referenced subject.
 */
-hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt);
+hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt, int inc);
 
 /*
 Convert ref AST node into HIR element. 
@@ -351,5 +352,8 @@ Params:
 Return parsed from AST HIR subject.
 */
 hir_subject_t* HIR_generate_poparg(hir_ctx_t* ctx, sym_table_t* smt);
+
+hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt); // TODO
+int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

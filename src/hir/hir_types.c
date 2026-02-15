@@ -321,6 +321,7 @@ int HIR_writeop(hir_operation_t op) {
         case HIR_TI32:
         case HIR_TI16:
         case HIR_TI8:
+        case HIR_TPTR:
         case HIR_TU64:
         case HIR_TU32:
         case HIR_TU16:

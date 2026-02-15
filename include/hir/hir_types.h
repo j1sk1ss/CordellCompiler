@@ -14,6 +14,7 @@ typedef enum hir_operation {
         HIR_SYSC,        // syscall(), args - z
         HIR_STORE_SYSC,  // x = syscall(), args - z
 
+        HIR_TPTR,
         HIR_TF64,        // x = (f64)y
         HIR_TF32,        // x = (f32)y
         HIR_TI64,        // x = (i64)y

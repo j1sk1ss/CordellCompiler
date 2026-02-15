@@ -102,6 +102,7 @@ int HIR_unload_blocks(hir_block_t* block);
 #define HIR_SUBJ_STKVAR(v_id, kind, ptr) HIR_create_subject(kind, v_id, NULL, ptr)
 #define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_token_stktype(n->t, 0), n->t->flags.ptr)
 #define HIR_SUBJ_TMPVAR(kind, id)        HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)
+#define HIR_SUBJ_CPVAR(var, smt)         HIR_SUBJ_TMPVAR(var->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(var->t), 0, NULL, &smt->v))
 #define HIR_SUBJ_LABEL()                 HIR_create_subject(HIR_LABEL, 0, NULL, 0)
 #define HIR_SUBJ_RAWASM(n)               HIR_create_subject(HIR_RAWASM, n->sinfo.v_id, NULL, 0)
 #define HIR_SUBJ_STRING(n)               HIR_create_subject(HIR_STRING, n->sinfo.v_id, NULL, 0)

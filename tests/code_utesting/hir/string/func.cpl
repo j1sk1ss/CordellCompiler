@@ -17,7 +17,7 @@
         {
             i8t* %1 = &(strs %0);
             i64t %2 = num? 0 * cnst? 1;
-            i8t* %4 = i64t %2 as u64;
+            i8t* %4 = i64t %2 as *ptr;
             i8t* %3 = i8t* %1 + i8t* %4;
             i8t %5 = num? 65 as i8;
             *(i8t* %3) = i8t %5;
