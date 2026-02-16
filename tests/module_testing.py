@@ -147,7 +147,8 @@ def _entry() -> None:
     builder = CCBuilder(settings=bconf)
     binary = builder.build(
         test_file=str(base),
-        output_dir=args.output_dir
+        output_dir=args.output_dir,
+        extra_flags=[ 'Wno-int-conversion' ]
     )
 
     if not binary:

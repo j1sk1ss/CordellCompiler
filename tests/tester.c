@@ -273,7 +273,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     TRGINF_unload(&trginfo);
 #ifdef LIR_PRINT
     printf("\n\n========== LIR planned instructions ==========\n");
-    lir_printer_reset();
     lh = lirctx.h;
     while (lh) {
         print_lir_block(lh, &smt);
@@ -290,7 +289,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
 #ifdef LIR_PRINT
     printf("\n\n========== LIR selected instructions ==========\n");
-    lir_printer_reset();
     lh = lirctx.h;
     while (lh) {
         print_lir_block(lh, &smt);

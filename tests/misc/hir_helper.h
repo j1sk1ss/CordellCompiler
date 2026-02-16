@@ -1,6 +1,5 @@
 #ifndef HIR_HELPER_H_
 #define HIR_HELPER_H_
-
 #include <hir/hir.h>
 #include <hir/cfg.h>
 #include <hir/func.h>
@@ -158,23 +157,23 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
             }
         }
 
-        case HIR_PRMST:     return "prm_st(%s);\n";
-        case HIR_PRMLD:     return "prm_ld();\n";
-        case HIR_PRMPOP:    return "prm_pop();\n";
-        case HIR_STASM:     return "asm, %s%s%s {\n";
-        case HIR_ENDASM:    return "}\n";
-        case HIR_GINDEX:    return "%s = %s[%s];\n";
-        case HIR_LINDEX:    return "%s[%s] = %s;\n";
-        case HIR_GDREF:     return "%s = *(%s);\n";
-        case HIR_LDREF:     return "*(%s) = %s;\n";
-        case HIR_REF:       return "%s = &(%s);\n";
-        case HIR_EXITOP:    return "exit %s;\n";
-        case HIR_STEND:     return "}\n";
-        case HIR_PHI:       return "[%s] %s = phi(%s);\n";
-        case HIR_MKSCOPE:   return "{\n";
-        case HIR_ENDSCOPE:  return "}\n";
+        case HIR_PRMST:        return "prm_st(%s);\n";
+        case HIR_PRMLD:        return "prm_ld();\n";
+        case HIR_PRMPOP:       return "prm_pop();\n";
+        case HIR_STASM:        return "asm, %s%s%s {\n";
+        case HIR_ENDASM:       return "}\n";
+        case HIR_GINDEX:       return "%s = %s[%s];\n";
+        case HIR_LINDEX:       return "%s[%s] = %s;\n";
+        case HIR_GDREF:        return "%s = *(%s);\n";
+        case HIR_LDREF:        return "*(%s) = %s;\n";
+        case HIR_REF:          return "%s = &(%s);\n";
+        case HIR_EXITOP:       return "exit %s;\n";
+        case HIR_STEND:        return "}\n";
+        case HIR_PHI:          return "[%s] %s = phi(%s);\n";
+        case HIR_MKSCOPE:      return "{\n";
+        case HIR_ENDSCOPE:     return "}\n";
         case HIR_PHI_PREAMBLE: return "future: %s = previous: %s;\n";
-        default: return "\n";
+        default:               return "\n";
     }
 }
 
@@ -323,7 +322,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
     return dst;
 }
 
-void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
+static void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
     if (!block) return;
 
     char arg1[256] = { 0 };
@@ -347,7 +346,6 @@ void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
     }
 
     char line[512] = { 0 };
-
     if (
         block->op == HIR_ENDSCOPE ||
         // block->op == HIR_FEND     ||
@@ -377,19 +375,15 @@ static void _dump_domtree_dot_rec(cfg_block_t* b) {
     }
 }
 
-void _dump_domtree_dot(cfg_func_t* func) {
+static void _dump_domtree_dot(cfg_func_t* func) {
     printf("digraph DomTree {\n");
     printf("  rankdir=TB;\n");
 
-    list_iter_t bit;
-    list_iter_hinit(&func->blocks, &bit);
-    cfg_block_t* cb;
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach (cfg_block_t* cb, &func->blocks) {
         printf("  B%li [label=\"B%li\"];\n", cb->id, cb->id);
     }
 
-    list_iter_hinit(&func->blocks, &bit);
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach (cfg_block_t* cb, &func->blocks) {
         if (!cb->sdom) {
             _dump_domtree_dot_rec(cb);
         }
@@ -398,19 +392,15 @@ void _dump_domtree_dot(cfg_func_t* func) {
     printf("}\n");
 }
 
-void _dump_all_dom_dot(cfg_func_t* func) {
+static void _dump_all_dom_dot(cfg_func_t* func) {
     printf("digraph AllDom {\n");
     printf("  rankdir=TB;\n");
 
-    list_iter_t bit;
-    list_iter_hinit(&func->blocks, &bit);
-    cfg_block_t* cb;
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach (cfg_block_t* cb, &func->blocks) {
         printf("  B%li [label=\"B%li\"];\n", cb->id, cb->id);
     }
 
-    list_iter_hinit(&func->blocks, &bit);
-    while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+    foreach (cfg_block_t* cb, &func->blocks) {
         set_foreach (cfg_block_t* d, &cb->dom) {
             if (d == cb) continue;
             printf("  B%li -> B%li;\n", d->id, cb->id);
@@ -428,6 +418,7 @@ static void _print_set_int(FILE* out, set_t* s) {
         fprintf(out, "%ld", v);
         first = 0;
     }
+
     fprintf(out, "}");
 }
 
@@ -462,7 +453,7 @@ static int _export_dot_func_hir(cfg_func_t* f) {
     return 1;
 }
 
-void cfg_print(cfg_ctx_t* ctx) {
+static void cfg_print(cfg_ctx_t* ctx) {
     printf("==== CFG DUMP ====\n");
     foreach (cfg_func_t* fb, &ctx->funcs) {
         printf("==== CFG DOT (HIR) ====\n");
@@ -476,7 +467,7 @@ void cfg_print(cfg_ctx_t* ctx) {
     printf("==================\n");
 }
 
-void call_graph_print_dot(call_graph_t* cg) {
+static void call_graph_print_dot(call_graph_t* cg) {
     if (!cg) {
         printf("[call_graph_print_dot] Empty call graph.\n");
         return;
@@ -494,6 +485,4 @@ void call_graph_print_dot(call_graph_t* cg) {
 
     printf("}\n");
 }
-
-
 #endif

@@ -153,7 +153,7 @@ typedef enum {
 typedef struct {
     char ro   : 1; /* Is read only flag   */
     char glob : 1; /* Is global flag      */
-    char ptr;      /* Is pointer flag     */
+    int  ptr;      /* Is pointer flag     */
     char ext  : 1; /* Is extern flag      */
     char heap : 1; /* Is heap allocated   */
 } token_flags_t;
