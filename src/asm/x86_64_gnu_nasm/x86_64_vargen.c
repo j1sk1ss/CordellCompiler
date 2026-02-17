@@ -45,13 +45,19 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
             break;
         }
 
-        case LIR_FNAME: { // TODO: [funcname] if we're trying to obtain an address of a function in lea operation
+        case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(v->storage.str.sid, &fi, &smt->f)) {
+                char *local = "_cpl_%s", *global = "%s";
+                if (v->storage.str.rel) {
+                    local = "[_cpl_%s]";
+                    global = "[%s]";
+                }
+
                 if (
                     fi.flags.global || fi.flags.external
-                ) snprintf(curr_buffer, sizeof(_buffers[0]), "%s", fi.name->body);
-                else snprintf(curr_buffer, sizeof(_buffers[0]), "_cpl_%s", fi.virt->body);
+                ) snprintf(curr_buffer, sizeof(_buffers[0]), global, fi.name->body);
+                else snprintf(curr_buffer, sizeof(_buffers[0]), local, fi.virt->body);
                 return curr_buffer;
             }
 

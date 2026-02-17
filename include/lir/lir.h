@@ -32,6 +32,7 @@ typedef struct {
 } lir_label_t;
 
 typedef struct {
+    char rel : 1;
     long sid;
 } lir_str_t;
 
@@ -100,6 +101,7 @@ int LIR_unload_blocks(lir_block_t* block);
 #define LIR_SUBJ_RAWASM(l)    LIR_create_subject(LIR_RAWASM,     -1,    l,                   0,   NULL, 0,   0)
 #define LIR_SUBJ_STRING(id)   LIR_create_subject(LIR_STRING,     -1,    id,                  0,   NULL, 0,   LIR_MAX_TYPE_SIZE)
 #define LIR_SUBJ_FUNCNAME(n)  LIR_create_subject(LIR_FNAME,      -1,    n->storage.str.s_id, 0,   NULL, 0,   0)
+#define LIR_SUBJ_ADDRFUNC(n)  LIR_create_subject(LIR_FNAME,      -1,    n->storage.str.s_id, 0,   NULL, 1,   0)
 #define LIR_SUBJ_LIST()       LIR_create_subject(LIR_ARGLIST,    -1,    -1,                  0,   NULL, 0,   0)
 
 /* op */
