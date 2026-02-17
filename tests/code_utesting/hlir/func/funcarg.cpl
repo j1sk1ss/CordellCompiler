@@ -1,6 +1,6 @@
 {
-    function a() => i32;
-    function b(i32 g) => i32;
+    function a() -> i32;
+    function b(i32 g) -> i32;
     function c(i32 f = b(a()));
     start() {
         c();

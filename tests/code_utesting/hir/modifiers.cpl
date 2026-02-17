@@ -1,5 +1,5 @@
 {
-    glob function foo() => i32;
+    glob function foo() -> i32;
     start() {
         glob i32 a;
         glob ro i32 b;

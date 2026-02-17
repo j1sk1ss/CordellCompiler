@@ -1,5 +1,5 @@
 {
-    function foo() => i0 {
+    function foo() -> i0 {
         while 1; {
             break;
         }

@@ -103,9 +103,9 @@ int HIR_FUNC_inline_euristic_desider(int* data, int size);
 De-virtualization for functions in HIR.
 The idea to determine which function is beign called:
 ```cpl
-function foo(i32 a) => i0;  : id=0 :
-function foo(i32 a) => i32; : id=1 :
-function foo(i8 a) => 0;    : id=2 :
+function foo(i32 a) -> i0;  : id=0 :
+function foo(i32 a) -> i32; : id=1 :
+function foo(i8 a) -> 0;    : id=2 :
 
 {
     foo(10 as i32);         : id=0 :

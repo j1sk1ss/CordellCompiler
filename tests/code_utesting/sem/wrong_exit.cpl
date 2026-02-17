@@ -1,5 +1,5 @@
 {
-    function main() => i8 {
+    function main() -> i8 {
         return 1;
     }
 }

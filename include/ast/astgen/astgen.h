@@ -26,9 +26,9 @@ storage_opt    = [ "glob" | "ro" ] ;
 
 top_decl       = var_decl | function_def | function_proto ;
 
-function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "=>" , type ] , block ;
+function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
 
-function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "=>" , type ] , ";" ;
+function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
 
 start_function = "start" , "(" , [ param_list ] , ")" , block ;
 
@@ -100,7 +100,7 @@ keyword        = "from" | "import" | "extern" | "exfunc" | "glob" | "ro"
 
 punct_no_semi  = "{" | "}" | "(" | ")" | "[" | "]" | "," ;
 
-operator       = "=>"
+operator       = "->"
                | "==" | "!=" | "<=" | ">=" | "<<" | ">>"
                | "||" | "&&"
                | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&="

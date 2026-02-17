@@ -1,5 +1,5 @@
 {
-    function foo(ptr i32 a) => ptr i32;
+    function foo(ptr i32 a) -> ptr i32;
     start() {
         i32 a;
         dref foo(ref a) = 1;

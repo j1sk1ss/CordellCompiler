@@ -1,5 +1,5 @@
 {
-    function getter() => i32 {
+    function getter() -> i32 {
         return 100;
     }
 

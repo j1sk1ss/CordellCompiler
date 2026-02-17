@@ -1,5 +1,5 @@
 {
-    function foo() => i32;
+    function foo() -> i32;
     start() {
         u8 a = foo();
         exit 1;

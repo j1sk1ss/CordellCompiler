@@ -1,6 +1,6 @@
 {
-    function chloe(i32 a, i32 b = 10) => i0;
-    function chloe(i64 a, i32 b = 10) => i0;
+    function chloe(i32 a, i32 b = 10) -> i0;
+    function chloe(i64 a, i32 b = 10) -> i0;
     start() {
         chloe(10 as i32);
         chloe(10 as i64);

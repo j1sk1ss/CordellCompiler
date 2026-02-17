@@ -21,7 +21,7 @@
 }
 
 : OUTPUT
-[WARNING] Possible branch redundancy! The branch at [12:17] is similar to the branch at [12:17]!
+[WARNING] Possible branch redundancy! The branch at [{X}] is similar to the branch at [{X}]!
  3 | if 1;
  4 | {
    | ^

@@ -6,6 +6,6 @@
         - `s` - Input string.
 
       Returns the size (i64). :
-    function strlen(ptr i8 s) => i64;
+    function strlen(ptr i8 s) -> i64;
 #endif
 }

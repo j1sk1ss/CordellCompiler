@@ -1,5 +1,5 @@
 {
-    function foo() => i32;
+    function foo() -> i32;
     start() {
         syscall(0, foo(), 0 + 0, 0);
     }

@@ -1,5 +1,5 @@
 {
-    function foo(i8 a) => i0;
+    function foo(i8 a) -> i0;
     start() {
         foo(0xFFFF);
         i8 a = 0;

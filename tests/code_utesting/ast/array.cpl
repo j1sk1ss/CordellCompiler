@@ -1,5 +1,5 @@
 {
-    function maxAndChloe() => i0 {
+    function maxAndChloe() -> i0 {
         arr a[10, i32];
         arr b[10, i32] = {};
         arr c[10, ptr i32] = { ref a, ref b };

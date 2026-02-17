@@ -1,9 +1,9 @@
 {
-    function fang() => i0 {}
-    function __private() => i0 {}
-    function BarBar() => i0 {}
-    function sneaky_case() => i0 {}
-    function camelCase() => i0 {}
+    function fang() -> i0 {}
+    function __private() -> i0 {}
+    function BarBar() -> i0 {}
+    function sneaky_case() -> i0 {}
+    function camelCase() -> i0 {}
 }
 
 : OUTPUT

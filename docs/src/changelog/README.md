@@ -26,11 +26,19 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Function return type new semantic
+The semantic of the CPL has moved a bit towards Rust language. Now instead of the '=>' as a rtype, you will need to use the '->'.
+```cpl
+function foo() -> i0; : instead of function foo() => i0; :
+```
+
+It wasn't possible before due to the lack of tokenizer's abillities. Now it possible.
+
 ## Pointer calls
 Now the compiler supports function pointers! One disadvantage here: Pointed functions aren't able to support the default-args and function-overloads. To use it, you can consider the next example:
 ```cpl
 {
-    function foo(i32 a) => i32 {
+    function foo(i32 a) -> i32 {
         return a;
     }
 
@@ -83,8 +91,8 @@ else {
 CorellCompiler now supports polymorphic functions. The symtax is below:
 ```cpl
 {
-    function chloe(i32 a, i32 b = 10) => i0;
-    function chloe(i64 a, i32 b = 10) => i0;
+    function chloe(i32 a, i32 b = 10) -> i0;
+    function chloe(i64 a, i32 b = 10) -> i0;
     start() {
         chloe(10 as i32);
         chloe(10 as i64);
@@ -95,13 +103,13 @@ CorellCompiler now supports polymorphic functions. The symtax is below:
 
 The idea that HIR level can choose a function that supports the input arguments. To help the compiler, use the `as` keyword. Additionally, functions with the 'default' argument, for instance:
 ```cpl
-function chloe(i32 a, i32 b = 10) => i0;
+function chloe(i32 a, i32 b = 10) -> i0;
 ```
 
 can't support such polymorphism. The example above works given the same number of the arguemnts. If we consider the next example:
 ```
-function chloe(i32 a, i32 b = 10) => i0;
-function chloe(i32 a, i32 b = 10, i32 c = 10) => i0;
+function chloe(i32 a, i32 b = 10) -> i0;
+function chloe(i32 a, i32 b = 10, i32 c = 10) -> i0;
 ```
 
 this mechanism won't work.
@@ -109,13 +117,13 @@ this mechanism won't work.
 ## Variadic arguments
 Now CPL supports variadic arguments! The syntax is similar to C language:
 ```cpl
-function foo(...) => i0 {
+function foo(...) -> i0 {
 }
 ```
 
 To pop an argument from this set, use the `poparg` keyword:
 ```cpl
-function max(...) => i0 {
+function max(...) -> i0 {
     i32 chloe = poparg as i32;
 }
 ```
@@ -142,7 +150,7 @@ For instance let's consider the next piece of code:
         - `s` - Input string.
 
       Returns the size (i64). :
-    function strlen(ptr i8 s) => i64;
+    function strlen(ptr i8 s) -> i64;
 #endif
 }
 
@@ -158,7 +166,7 @@ For instance let's consider the next piece of code:
       - `msg` - Input message to print.
       
       Returns i0 aka nothing. :
-    function print(ptr str msg) => i0;
+    function print(ptr str msg) -> i0;
 #endif
 }
 
@@ -167,13 +175,13 @@ For instance let's consider the next piece of code:
     #include "print_h.cpl"
     #include "string_h.cpl"
 
-    function foo() => i0;
+    function foo() -> i0;
     
-    function bar() => i0 {
+    function bar() -> i0 {
         foo();
     }
 
-    function foo() => i0 {
+    function foo() -> i0 {
         print("Hello world!\n");
     }
 
@@ -189,20 +197,20 @@ After the PP, we will get a new form of the code:
 {
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"    
-    function strlen(ptr i8 s) => i64;
+    function strlen(ptr i8 s) -> i64;
 #line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
-    function print(ptr str msg) => i0;
+    function print(ptr str msg) -> i0;
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"
 #line 3 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
 
-    function foo() => i0;
+    function foo() -> i0;
     
-    function bar() => i0 {
+    function bar() -> i0 {
         foo();
     }
 
-    function foo() => i0 {
+    function foo() -> i0 {
         print("Hello world!\n");
     }
 
@@ -559,7 +567,7 @@ This is the second version of this compiler (at the moment of 10.20.2025, at lea
 
 ```cplv2
 extern exfunc printf;
-function itoa(ptr i8 buffer, i32 dsize, i32 num) => i32 {
+function itoa(ptr i8 buffer, i32 dsize, i32 num) -> i32 {
     i32 index = dsize - 1;
     i32 tmp = 0;
 

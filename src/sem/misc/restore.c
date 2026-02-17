@@ -308,14 +308,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     else if (
         TKN_isnumeric(nd->t)  ||
         TKN_isvariable(nd->t)
-    ) {
-        _rst_ln_puts(x, line, nd->t->body->body);
-        if (TKN_isptr(nd->t) && nd->c) {
-            _rst_ln_puts(x, line, "[");
-            _restore_code_lines(x, nd->c, u, indent);
-            _rst_ln_puts(x, line, "]");
-        }
-    }
+    ) _rst_ln_puts(x, line, nd->t->body->body);
     else if (
         nd->t->t_type == STRING_VALUE_TOKEN
     ) {
@@ -325,6 +318,13 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     }
     
     switch (nd->t->t_type) {
+        case INDEXATION_TOKEN: {
+            _restore_code_lines(x, nd->c, u, indent);
+            _rst_ln_puts(x, line, "[");
+            _restore_code_lines(x, nd->c->siblings.n, u, indent);
+            _rst_ln_puts(x, line, "]");
+            break;
+        }
         case START_TOKEN: {
             _rst_ln_puts(x, line, START_COMMAND " (");
             ast_node_t* p = nd->c;
@@ -354,7 +354,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             }
 
             _rst_ln_puts(x, line, ")");
-            if (nd->c->c) _rst_ln_printf(x, line, " => %s", RST_restore_type(nd->c->c->t));
+            if (nd->c->c) _rst_ln_printf(x, line, " -> %s", RST_restore_type(nd->c->c->t));
             break;
         }
 
@@ -368,7 +368,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             }
 
             _rst_ln_puts(x, line, ") ");
-            if (nd->c->c) _rst_ln_printf(x, line, "=> %s ", RST_restore_type(nd->c->c->t));
+            if (nd->c->c) _rst_ln_printf(x, line, "-> %s ", RST_restore_type(nd->c->c->t));
             _rst_ln_puts(x, line, "\n");
 
             int p_line = _rst_line(p);
@@ -382,7 +382,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
 
         case CALL_TOKEN: {
             _rst_ln_printf(x, line, "%s(", nd->t->body->body);
-            for (ast_node_t* p = nd->c; p; p = p->siblings.n) {
+            for (ast_node_t* p = nd->c->c; p; p = p->siblings.n) {
                 _restore_code_lines(x, p, u, indent);
                 if (p->siblings.n) _rst_ln_puts(x, line, ", ");
             }

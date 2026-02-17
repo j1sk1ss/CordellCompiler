@@ -28,7 +28,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_no_return, &walker, ATTENTION_BLOCK_LEVEL);
     ASTWLK_register_visitor(START_NODE, ASTWLKR_no_exit, &walker, ATTENTION_BLOCK_LEVEL);
     ASTWLK_register_visitor(CALL_NODE, ASTWLKR_not_enough_args, &walker, ATTENTION_BLOCK_LEVEL);
-    ASTWLK_register_visitor(DEF_ARRAY_NODE, ASTWLKR_illegal_array_access, &walker, ATTENTION_BLOCK_LEVEL);
+    ASTWLK_register_visitor(INDEX_NODE, ASTWLKR_illegal_array_access, &walker, ATTENTION_BLOCK_LEVEL);
     ASTWLK_register_visitor(START_NODE | FUNCTION_NODE, ASTWLKR_wrong_exit, &walker, ATTENTION_BLOCK_LEVEL);
     ASTWLK_register_visitor(CALL_NODE, ASTWLKR_noret_assign, &walker, ATTENTION_BLOCK_LEVEL);
 

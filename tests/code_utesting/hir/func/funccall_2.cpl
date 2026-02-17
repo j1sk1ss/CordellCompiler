@@ -1,5 +1,5 @@
 {
-    function foo(i32 a) => i32 {
+    function foo(i32 a) -> i32 {
         return a;
     }
 

@@ -1,5 +1,5 @@
 {
-    function foo(i32 a) => i32;
+    function foo(i32 a) -> i32;
     start() {
         ptr u32 a = foo;
         i32 b = a(10);

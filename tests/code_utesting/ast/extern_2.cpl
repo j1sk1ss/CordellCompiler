@@ -1,6 +1,6 @@
 {
     extern function printf(ptr i8 fmt, ...);
-    extern function sum(i32 a = 1, i32 b = 2) => i32;
+    extern function sum(i32 a = 1, i32 b = 2) -> i32;
     start() {
         sum();
         exit 1;

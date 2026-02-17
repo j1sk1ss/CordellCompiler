@@ -28,7 +28,7 @@
     "scope": "cpl",
     "prefix": "function",
     "body": [
-      "function ${1:name}(${2:}) => ${3:i32} {",
+      "function ${1:name}(${2:}) -> ${3:i32} {",
       "\t${0:return 0;}",
       "}"
     ],
@@ -39,7 +39,7 @@
     "scope": "cpl",
     "prefix": "fproto",
     "body": [
-      "function ${1:name}(${2:})${3: => ${4:i32}};"
+      "function ${1:name}(${2:})${3: -> ${4:i32}};"
     ],
     "description": "Function prototype (declaration)"
   },

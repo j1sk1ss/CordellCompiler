@@ -1,6 +1,6 @@
 {
     function bar(i32 a);
-    function foo() => i32 {
+    function foo() -> i32 {
         return 0;
     }
 

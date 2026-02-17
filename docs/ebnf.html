@@ -251,7 +251,7 @@
             },
             {
                 name: "function_def",
-                definition: `[ "glob" ] , "function" , identifier , "(" , [ param_list ] , ")" , "=>" , type , block`
+                definition: `[ "glob" ] , "function" , identifier , "(" , [ param_list ] , ")" , "->" , type , block`
             },
             {
                 name: "start_function",
@@ -407,8 +407,8 @@
         function formatEbnfDefinition(definition) {
             return definition
                 .replace(/"([^"]+)"/g, '<span class="terminal">"$1"</span>')
-                .replace(/([a-z_][a-z0-9_]*)/gi, (match) => {
-                    if (ebnfRules.some(rule => rule.name === match)) {
+                .replace(/([a-z_][a-z0-9_]*)/gi, (match) -> {
+                    if (ebnfRules.some(rule -> rule.name === match)) {
                         return `<span class="non-terminal" data-rule="${match}">${match}</span>`;
                     }
                     return match;
@@ -422,7 +422,7 @@
         }
 
         function findRule(name) {
-            return ebnfRules.find(rule => rule.name === name);
+            return ebnfRules.find(rule -> rule.name === name);
         }
 
         function displayRule(ruleName) {
@@ -434,8 +434,8 @@
             definitionElement.innerHTML = formatEbnfDefinition(rule.definition);
             
             const nonTerminals = definitionElement.querySelectorAll('.non-terminal');
-            nonTerminals.forEach(element => {
-                element.addEventListener('click', () => {
+            nonTerminals.forEach(element -> {
+                element.addEventListener('click', () -> {
                     const ruleName = element.getAttribute('data-rule');
                     displayRule(ruleName);
                     updateRulesList(ruleName);
@@ -449,7 +449,7 @@
             const hierarchyElement = document.getElementById('rule-hierarchy');
             hierarchyElement.innerHTML = '';
             
-            const referringRules = ebnfRules.filter(rule => {
+            const referringRules = ebnfRules.filter(rule -> {
                 return rule.definition.includes(ruleName) && rule.name !== ruleName;
             });
             
@@ -458,12 +458,12 @@
                 return;
             }
             
-            referringRules.forEach(rule => {
+            referringRules.forEach(rule -> {
                 const item = document.createElement('div');
                 item.className = 'hierarchy-item';
                 item.textContent = rule.name;
                 item.style.cursor = 'pointer';
-                item.addEventListener('click', () => {
+                item.addEventListener('click', () -> {
                     displayRule(rule.name);
                     updateRulesList(rule.name);
                 });
@@ -475,11 +475,11 @@
             const rulesList = document.getElementById('rules-list');
             rulesList.innerHTML = '';
             
-            ebnfRules.forEach(rule => {
+            ebnfRules.forEach(rule -> {
                 const li = document.createElement('li');
                 li.className = `rule-item ${rule.name === activeRule ? 'active' : ''}`;
                 li.textContent = rule.name;
-                li.addEventListener('click', () => {
+                li.addEventListener('click', () -> {
                     displayRule(rule.name);
                     updateRulesList(rule.name);
                 });
@@ -489,17 +489,17 @@
 
         function setupSearch() {
             const searchBox = document.getElementById('rule-search');
-            searchBox.addEventListener('input', () => {
+            searchBox.addEventListener('input', () -> {
                 const searchText = searchBox.value.toLowerCase();
                 const rulesList = document.getElementById('rules-list');
                 rulesList.innerHTML = '';
                 
-                ebnfRules.forEach(rule => {
+                ebnfRules.forEach(rule -> {
                     if (rule.name.toLowerCase().includes(searchText)) {
                         const li = document.createElement('li');
                         li.className = 'rule-item';
                         li.textContent = rule.name;
-                        li.addEventListener('click', () => {
+                        li.addEventListener('click', () -> {
                             displayRule(rule.name);
                             updateRulesList(rule.name);
                         });
@@ -509,7 +509,7 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () -> {
             displayRule('program');
             updateRulesList('program');
             setupSearch();

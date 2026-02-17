@@ -1,5 +1,5 @@
 {
-    function foo() => ptr i8;
+    function foo() -> ptr i8;
     start() {
         dref foo() = 1;
         dref (0x7c00 as ptr i8) = 2;

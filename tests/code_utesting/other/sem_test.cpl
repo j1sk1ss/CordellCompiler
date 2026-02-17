@@ -1,12 +1,12 @@
 {
     #include "string_h.cpl"
-    function foo() => i32 { return 1; }
+    function foo() -> i32 { return 1; }
 
-    function barBar() => i0 { }
+    function barBar() -> i0 { }
 
     function BazBaz() { return 1; } 
 
-    function baz(i32 a) => i0 {
+    function baz(i32 a) -> i0 {
         if a == 0; { return 1; }
         else { return 1; }
 
@@ -14,7 +14,7 @@
         else { }
     }
 
-    function fang(i32 a) => i8 {
+    function fang(i32 a) -> i8 {
         if not a; { return 123321; }
         else { }
         return 1;

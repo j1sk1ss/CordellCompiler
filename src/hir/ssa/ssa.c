@@ -71,7 +71,7 @@ The idea is simple: We need to assist the compiler with future SSA form destruct
 To perform this, we can mark for the compiler, how variables are linked with each other.
 For instance:
 ```cpl
-    function foo() => i32 {
+    function foo() -> i32 {
     : BB1 :
         i32 a_1 = 0;
         if 1; {
@@ -91,7 +91,7 @@ For instance:
 SSA form will put the phi function before BB4 block, but when we will start code generation, this will interrupt us.
 To prevent this, we can append a hidden command such a 'HIR_PREAMBULE' that will work similar to 'LIR_MOVE':
 ```cpl
-    function foo() => i32 {
+    function foo() -> i32 {
     : BB1 :
         i32 a_1 = 0;
         if 1; {

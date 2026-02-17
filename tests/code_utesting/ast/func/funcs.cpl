@@ -3,12 +3,12 @@
         a += 1;
     }
 
-    function bar(i16 a) => i32 {
+    function bar(i16 a) -> i32 {
         a *= 1;
         return 1;
     }
 
-    function baz(u64 a) => i0 {
+    function baz(u64 a) -> i0 {
         a /= 1;
     }
 

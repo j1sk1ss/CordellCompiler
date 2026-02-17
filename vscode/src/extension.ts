@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
     function: `**function** — Function definition.
   
   \`\`\`cpl
-  function abs(i32 x) => i32 {
+  function abs(i32 x) -> i32 {
     if x < 0; { return x * -1; }
     return x;
   }
@@ -38,8 +38,8 @@ export function activate(context: vscode.ExtensionContext) {
     return: `**return** — Return from function (optional expression).
   
   \`\`\`cpl
-  function id(i32 x) => i32 { return x; }
-  function noop() => i0 { return; }
+  function id(i32 x) -> i32 { return x; }
+  function noop() -> i0 { return; }
   \`\`\`
   `,
   

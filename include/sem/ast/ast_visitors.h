@@ -57,7 +57,7 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS);
 ASTWLKR_rtype_assign checks function's return type and new location's type.
 Example:
 ```cpl
-    function a() => i32 { return 0; }
+    function a() -> i32 { return 0; }
     i8 b = a(); : <= Will fire a warning :
 ```
 
@@ -101,7 +101,7 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS);
 ASTWLKR_no_return checks if function block has return statement at every path.
 Example:
 ```cpl
-    function a() => i0 {
+    function a() -> i0 {
         if 1; {
             return;
         }
@@ -139,7 +139,7 @@ int ASTWLKR_no_exit(AST_VISITOR_ARGS);
 ASTWLKR_not_enough_args checks provided argument's count in function call body.
 Example:
 ```cpl
-    function a(i32 b) => i0 { return; }
+    function a(i32 b) -> i0 { return; }
     a(100, 100); : <= Will fire a warning : 
     a(); : <= Will fire a warning : 
 ```
@@ -155,7 +155,7 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS);
 ASTWLKR_wrong_arg_type checks provided arguments into the function call body.
 Example:
 ```cpl
-    function a(i32 b, i8 c) => i0 { return; }
+    function a(i32 b, i8 c) -> i0 { return; }
     a(123, 1000); : <= Will fire a warning : 
 ```
 
@@ -170,7 +170,7 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS);
 ASTWLKR_unused_rtype will fire warning in situation when return value from function.
 Example:
 ```cpl
-    function a() => i32 { return 0; }
+    function a() -> i32 { return 0; }
     a(); : <= Will fire a warning : 
 ```
 
@@ -238,7 +238,7 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS);
 Check the function's return type is matching to the actual return's value type.
 For instance:
 ```cpl
-    function foo() => i0 { return 1; } : i0 implies there is no a return value, but we are returning something! :
+    function foo() -> i0 { return 1; } : i0 implies there is no a return value, but we are returning something! :
 ```
 
 Params:
@@ -306,7 +306,7 @@ the 'return' statement instead, it may cause errors.
 For instance:
 ```cpl
     : There is no 'start' function :
-    function main() => u8 {
+    function main() -> u8 {
         return 0; : <= Will raise a error! Need to change it to the 'exit' statement! :
     }
 ```
@@ -345,7 +345,7 @@ This checker checks if there is a function with i0, that is assigned
 or used anywhere.
 For instance:
 ```cpl
-function ukraine() => i0;
+function ukraine() -> i0;
 i32 a = ukraine();
 ```
 

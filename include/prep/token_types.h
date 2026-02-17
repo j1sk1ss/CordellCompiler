@@ -17,6 +17,7 @@ typedef enum {
     UNKNOWN_STRING_TOKEN,
     UNKNOWN_NUMERIC_TOKEN,       // 123
     UNKNOWN_FLOAT_NUMERIC_TOKEN, // 123.123
+    UNKNOWN_SIGN_TOKEN,          // +, -, *, /, etc
     LINE_BREAK_TOKEN,
 
     DELIMITER_TOKEN,     // ;
@@ -76,7 +77,7 @@ typedef enum {
     START_TOKEN,         // start
     RETURN_TOKEN,        // return
     EXIT_TOKEN,          // exit
-    RETURN_TYPE_TOKEN,   // =>
+    RETURN_TYPE_TOKEN,   // ->
     SCOPE_TOKEN,         // {  }
 
     // Function

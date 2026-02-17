@@ -31,7 +31,7 @@ That's how we can write a 'hello-world' program with CPL language for x86-64 GNU
 {
     : Define the strlen function
       that accepts a pointer to a char array :
-    function strlen(ptr i8 s) => i64 {
+    function strlen(ptr i8 s) -> i64 {
         i64 l = 0;
 
         : While pointed symbol isn't a zero value
@@ -48,7 +48,7 @@ That's how we can write a 'hello-world' program with CPL language for x86-64 GNU
 
     : Define the puts function
       that accepts a pointer to string object :
-    function puts(str s) => i0 {
+    function puts(str s) -> i0 {
         : Start ASM inline block with
           a support of the argument list :
         asm (s, strlen(s)) {
@@ -95,7 +95,7 @@ glob ro i32 WIN_Y = 1920;
 
 - **Functions**: use lowercase letters with underscores
 ```cpl
-function calculate_sum(ptr i32 arr, i64 length) => i32 { return 0; }
+function calculate_sum(ptr i32 arr, i64 length) -> i32 { return 0; }
 ```
 
 - **Private functions**: use an underscore before a name of a function, if it is a private function
@@ -148,15 +148,15 @@ Function becomes an entry point in two cases:
 
 Example without a `start` function:
 ```cpl
-function fang() => i0; { return; }
-function naomi() => i0; { return; } : <= Becomes an entry point :
+function fang() -> i0; { return; }
+function naomi() -> i0; { return; } : <= Becomes an entry point :
 ```
 
 Example with a `start` start function:
 ```cpl
 start() { exit 0; } : <= Becomes an entry point :
-function fang() => i0; { return; }
-function naomi() => i0; { return; }
+function fang() -> i0; { return; }
+function naomi() -> i0; { return; }
 ```
 
 # Types
@@ -212,7 +212,7 @@ i8 d = 'a';
 
 - `i0` - Void type. Must be used only in the function return type. This type isn't supported by the Compiler as a regular primitive type.
 ```cpl
-function cordell() => i0; { return; }
+function cordell() -> i0; { return; }
 ```
 
 `P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is pretty simple:
@@ -381,20 +381,20 @@ Note 3: *The switch statement is generated with the usage of a binary search app
 ## Functions
 Functions can be defined by the `function` keyword. Also, if you want to use a function in another `.cpl`/(or whatever language that supports the `extern` mechanism) file, you can append the `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that the CPL changes a local function name by the next pattern: `__cpl_{name}{id}`, that's why prefer mark them with the `glob` key (It will preserve a name from a changing). 
 ```cpl
-function min(i32 a) => i0 { return; }
-glob function chloe(i32 a = 10) => u64 { return a + 10; }
-function max(u64 a = chloe(11)) => i32 { return a + 10; }
+function min(i32 a) -> i0 { return; }
+glob function chloe(i32 a = 10) -> u64 { return a + 10; }
+function max(u64 a = chloe(11)) -> i32 { return a + 10; }
 ```
 
 ### Prototypes
 Function can have a prototype function. Similar to C-language, a prototype function - is a function without a body:
 ```cpl
-function chloe(i32 a = 10) => u64;
-function max() => i32 { 
+function chloe(i32 a = 10) -> u64;
+function max() -> i32 { 
     return chloe();
 }
 
-function chloe(i32 a = 10) => u64 { 
+function chloe(i32 a = 10) -> u64 { 
     return a + 10; 
 }
 ```
@@ -436,8 +436,8 @@ foo(a as i8);
 
 But these two snippets won't:
 ```cpl
-function foo() => i32;
-function foo() => i0;
+function foo() -> i32;
+function foo() -> i0;
 ```
 , and
 ```cpl
@@ -448,12 +448,12 @@ function foo(i32 a, i32 b = 1);
 ## Variadic arguments
 CPL supports variadic arguments in the same way hot it supports C language. To use the variadic arguments in a function, add the `...` lexem **as the final arguement**!
 ```cpl
-function foo(...) => i0;
+function foo(...) -> i0;
 ```
 
 To 'pop' an arguement from this set, use the `poparg` keyword. It behaves as a variable with a 'variable' value:
 ```cpl
-function foo(...) => i0 {
+function foo(...) -> i0 {
     i8 a1 = poparg as i8;
     i8 a2 = poparg as i8;
 }
@@ -461,7 +461,7 @@ function foo(...) => i0 {
 
 Also, the `poparg` keyword can be used in a traditional function:
 ```cpl
-function foo(i32 a, i32 b) => i0 {
+function foo(i32 a, i32 b) -> i0 {
     i8 a1 = poparg as i8; : a :
     i8 b1 = poparg as i8; : b :
 }
@@ -508,7 +508,7 @@ The compiler includes a preprocessor that will take care about statements such a
 For example, we have a file with the implemented string function:
 ```cpl
 {
-    function strlen(ptr i8 s) => i64 {
+    function strlen(ptr i8 s) -> i64 {
         i64 l = 0;
         while dref s; {
             s += 1;
@@ -530,7 +530,7 @@ This function is independent from others and can exist without any dependencies.
         - `s` - Input string.
 
       Returns the size (i64). :
-    function strlen(ptr i8 s) => i64;
+    function strlen(ptr i8 s) -> i64;
 #endif
 }
 ``` 
@@ -548,7 +548,7 @@ a = 11; : <= RO_ASSIGN! :
 - Invalid place for function return
 Example:
 ```cpl
-function foo() => ptr u64 { :...: }
+function foo() -> ptr u64 { :...: }
 i8 a = foo(); : <= INVALID_RETURN_TYPE! :
 ```
 
@@ -590,13 +590,13 @@ CPL uses an inbuild static analyzator for the code checking before the compilati
 ```cpl
 {
     #include "string_h.cpl"
-    function foo() => i32 { return 1; }
+    function foo() -> i32 { return 1; }
 
-    function barBar() => i0 { }
+    function barBar() -> i0 { }
 
     function BazBaz() { return 1; } 
 
-    function baz(i32 a) => i0 {
+    function baz(i32 a) -> i0 {
         if a == 0; { return 1; }
         else { return 1; }
 
@@ -604,7 +604,7 @@ CPL uses an inbuild static analyzator for the code checking before the compilati
         else { }
     }
 
-    function fang(i32 a) => i8 {
+    function fang(i32 a) -> i8 {
         if not a; { return 123321; }
         else { }
         return 1;
@@ -766,7 +766,7 @@ The code above will produce a ton of errors and warnings:
    |        ^
 [INFO]    [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:5:22] Function name='barBar' isn't in a sneaky_case! 'camelCase'
 [WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:5:14] Function='barBar' doesn't have the 'return' statement in all paths!
- 5 | function barBar() => i0 
+ 5 | function barBar() -> i0 
  5 | {
  5 | }
 ```
@@ -858,7 +858,7 @@ Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
 ## strlen
 ```cpl
 {
-    function strlen(ptr i8 s) => i64 {
+    function strlen(ptr i8 s) -> i64 {
         i64 l = 0;
         while dref s; {
             s += 1;
@@ -873,7 +873,7 @@ Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
 ## memset
 ```cpl
 {
-    function memset(ptr u8 buffer, u8 val, u64 size) => i0 {
+    function memset(ptr u8 buffer, u8 val, u64 size) -> i0 {
         u64 index = 0;
         while index < size; {
             buffer[index] = val;
@@ -886,31 +886,31 @@ Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
 ## fd functions
 ```cpl
 {
-    function puts(ptr i8 s) => i64 {
+    function puts(ptr i8 s) -> i64 {
         return syscall(1, 1, s, strlen(s));
     }
 
-    function putc(i8 c) => i64 {
+    function putc(i8 c) -> i64 {
         return syscall(1, 1, ref c, 1);
     }
 
-    function gets(ptr i8 buffer, i64 size) => i64 {
+    function gets(ptr i8 buffer, i64 size) -> i64 {
         return syscall(0, 0, buffer, size);
     }
 
-    function open(ptr i8 path, i32 flags, i32 mode) => i64 {
+    function open(ptr i8 path, i32 flags, i32 mode) -> i64 {
         return syscall(2, path, flags, mode);
     }
 
-    function fwrite(i32 fd, ptr u8 buffer, i32 size) => i64 {
+    function fwrite(i32 fd, ptr u8 buffer, i32 size) -> i64 {
         return syscall(1, fd, buffer, size);
     }
 
-    function fread(i32 fd, ptr u8 buffer, i32 size) => i64 {
+    function fread(i32 fd, ptr u8 buffer, i32 size) -> i64 {
         return syscall(0, fd, buffer, size);
     }
 
-    function close(i32 fd) => i64 {
+    function close(i32 fd) -> i64 {
         return syscall(3, fd);
     }
 }

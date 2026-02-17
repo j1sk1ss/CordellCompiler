@@ -334,7 +334,7 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
         return 0;
     }
 
-    ast_node_t* provided_arg = nd->c;
+    ast_node_t* provided_arg = nd->c->c;
     ast_node_t* expected_arg = fi.args->c;
     for (
         ; provided_arg && expected_arg && expected_arg->t->t_type != SCOPE_TOKEN; 
@@ -369,7 +369,7 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
         return 0;
     }
 
-    ast_node_t* provided_arg = nd->c;
+    ast_node_t* provided_arg = nd->c->c;
     ast_node_t* expected_arg = fi.args->c;
     for (
         ; provided_arg && expected_arg && expected_arg->t->t_type != SCOPE_TOKEN; 
@@ -401,7 +401,7 @@ b + c;
 It still a correct expression, but it doesn't consumed by any final destination.
 Similar situation with return values from function. For instance:
 ```cpl
-function abc() => i32;
+function abc() -> i32;
 i32 a = abc(); : Value was consumed here      :
 abc();         : Value wasn't consumed at all :
 ```
@@ -494,33 +494,34 @@ int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
 
 int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
-    ast_node_t* index = nd->c;
+    ast_node_t* body  = nd->c;
+    ast_node_t* index = nd->c->siblings.n;
     if (
         !index || 
         index->t->t_type != UNKNOWN_NUMERIC_TOKEN
     ) return 1;
 
     array_info_t ai;
-    if (!ARTB_get_info(nd->sinfo.v_id, &ai, &smt->a)) return 1;
+    if (!ARTB_get_info(body->sinfo.v_id, &ai, &smt->a)) return 1;
 
     long long idx = index->t->body->to_llong(index->t->body);
     if (idx < 0) {
         SEMANTIC_ERROR(
             " %s Array='%s' accessed with a negative index!", 
-            format_location(&index->t->finfo), nd->t->body->body
+            format_location(&index->t->finfo), body->t->body->body
         );
 
-        REBUILD_CODE_1TRG(nd, nd->c);
+        REBUILD_CODE_1TRG(nd, index);
         return 0;
     }
     
     if (ai.size < idx) {
         SEMANTIC_ERROR(
             " %s Array='%s' accessed with the index=%lli that is larger than the array size=%li!", 
-            format_location(&index->t->finfo), nd->t->body->body, idx, ai.size
+            format_location(&index->t->finfo), body->t->body->body, idx, ai.size
         );
 
-        REBUILD_CODE_1TRG(nd, nd->c);
+        REBUILD_CODE_1TRG(nd, index);
         return 0;
     }
 
