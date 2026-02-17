@@ -14,6 +14,8 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_STARGLD:      return "STARGLD";
         case HIR_FARGST:       return "FARGST";
         case HIR_FARGLD:       return "FARGLD";
+        case HIR_UFCLL:        return "HIR_UFCLL";
+        case HIR_STORE_UFCLL:  return "HIR_STORE_UFCLL";
         case HIR_FCLL:         return "FCLL";
         case HIR_STORE_FCLL:   return "HIR_STORE_FCLL";
         case HIR_ECLL:         return "ECLL";
@@ -107,7 +109,9 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_TU8:        return "%s = %s as u8;\n";
         case HIR_BREAKPOINT: return "breakpoint msg=%s;\n";
 
+        case HIR_UFCLL:
         case HIR_FCLL:       return "call %s%s, argc %s;\n";
+        case HIR_STORE_UFCLL:
         case HIR_STORE_FCLL: return "%s = call %s, argc %s;\n";
         case HIR_ECLL:       return "excall %s, argc %s%s;\n";
         case HIR_STORE_ECLL: return "%s = excall %s, argc %s;\n";
@@ -283,6 +287,9 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                     if (fi.rtype) {
                         dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->t));
                     }
+                }
+                else {
+                    dst += sprintf(dst, "unknown");
                 }
 
                 break;

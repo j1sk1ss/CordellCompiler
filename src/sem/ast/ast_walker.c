@@ -65,6 +65,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case LOOP_TOKEN:   return LOOP_NODE;
         case WHILE_TOKEN:  return WHILE_NODE;
         case START_TOKEN:  return START_NODE;
+        case ADDR_CALL_TOKEN:
         case CALL_TOKEN:   return CALL_NODE;
         case FUNC_TOKEN:   return FUNCTION_NODE;
         

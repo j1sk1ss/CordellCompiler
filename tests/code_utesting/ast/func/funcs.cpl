@@ -69,11 +69,15 @@
    [start] (START_TOKEN, v_id=4, s_id=0)
       { scope, id=10 }
          [foo] (CALL_TOKEN, v_id=0, s_id=0)
-            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+            { scope, id=0 }
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
          [bar] (CALL_TOKEN, v_id=1, s_id=0)
-            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+            { scope, id=0 }
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
          [baz] (CALL_TOKEN, v_id=2, s_id=0)
-            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+            { scope, id=0 }
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
          [fang] (CALL_TOKEN, v_id=3, s_id=0)
-            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+            { scope, id=0 }
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
 :

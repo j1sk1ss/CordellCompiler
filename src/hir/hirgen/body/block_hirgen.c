@@ -26,6 +26,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
     }
 
     switch (node->t->t_type) {
+        case CALLING_TOKEN:
         case CALL_TOKEN:            return HIR_generate_funccall(node, ctx, smt, 1);
         case POPARG_TOKEN:          return HIR_generate_poparg(ctx, smt);
         case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 1);
@@ -36,6 +37,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case INDEXATION_TOKEN:      return HIR_generate_load_indexation(node, ctx, smt);
         /* We skip assign nodes above given the next logic, 
         where we generate the special load sequence */
+        case CALL_ADDR:
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:
@@ -49,8 +51,8 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:
         case STRING_VALUE_TOKEN:
-        case UNKNOWN_NUMERIC_TOKEN: 
-        case UNKNOWN_FLOAT_NUMERIC_TOKEN: return HIR_generate_load(node);
+        case UNKNOWN_NUMERIC_TOKEN:
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN: return HIR_generate_load(node, ctx, smt);
         default: break;
     }
 
@@ -84,6 +86,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case ASM_TOKEN:        HIR_generate_asmblock(node, ctx, smt);         break;
         case FUNC_TOKEN:       HIR_generate_function_block(node, ctx, smt);   break;
         case EXIT_TOKEN:       HIR_generate_exit_block(node, ctx, smt);       break;
+        case CALLING_TOKEN:
         case CALL_TOKEN:       HIR_generate_funccall(node, ctx, smt, 0);      break;
         case LOOP_TOKEN:       HIR_generate_loop_block(node, ctx, smt);       break;
         case BREAK_TOKEN:      HIR_generate_break_block(ctx);                 break;

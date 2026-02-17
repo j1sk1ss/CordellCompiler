@@ -1,20 +1,29 @@
 #include <hir/hirgens/hirgens.h>
 
 hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
-    func_info_t fi;
+    hir_subject_t* call_subj = NULL;
+    hir_operation_t st_op    = HIR_STORE_UFCLL, op = HIR_UFCLL;
+    ast_node_t* args_node    = node->c->c;
+    func_info_t fi = { .rtype = NULL };
     if (!FNTB_get_info_id(node->sinfo.v_id, &fi, &smt->f)) {
-        return NULL;
+        call_subj = HIR_generate_elem(node->c, ctx, smt);
+        args_node = node->c->siblings.n->c;
+    }
+    else {
+        op        = fi.flags.external ? HIR_ECLL : HIR_FCLL;
+        st_op     = fi.flags.external ? HIR_STORE_ECLL : HIR_STORE_FCLL;
+        call_subj = HIR_SUBJ_FUNCNAME(node);
     }
 
     hir_subject_t* args = HIR_SUBJ_LIST();
-    for (ast_node_t* arg = node->c; arg; arg = arg->siblings.n) {
+    for (ast_node_t* arg = args_node; arg; arg = arg->siblings.n) {
         hir_subject_t* el = HIR_generate_elem(arg, ctx, smt);
         HIR_BLOCK1(ctx, HIR_VRUSE, el);
         list_add(&args->storage.list.h, HIR_copy_subject(el));
     }
     
     if (!ret) {
-        HIR_BLOCK3(ctx, fi.flags.external ? HIR_ECLL : HIR_FCLL, NULL, HIR_SUBJ_FUNCNAME(node), args);
+        HIR_BLOCK3(ctx, op, NULL, call_subj, args);
         return NULL;
     }
     
@@ -24,6 +33,6 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     );
     
     res->ptr = fi.rtype ? fi.rtype->t->flags.ptr : 0;
-    HIR_BLOCK3(ctx, fi.flags.external ? HIR_STORE_ECLL : HIR_STORE_FCLL, res, HIR_SUBJ_FUNCNAME(node), args);
+    HIR_BLOCK3(ctx, st_op, res, call_subj, args);
     return res;
 }

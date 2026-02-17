@@ -73,10 +73,12 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
 Convert load AST node (arr[i]) into HIR element. 
 Params:
     - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
 
 Return parsed from AST HIR subject.
 */
-hir_subject_t* HIR_generate_load(ast_node_t* node);
+hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Convert oprand AST node (x + x) into HIR element. 

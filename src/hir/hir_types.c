@@ -264,6 +264,8 @@ int HIR_isterm(hir_operation_t op) {
 
 int HIR_funccall(hir_operation_t op) {
     switch (op) {
+        // case HIR_UFCLL:
+        // case HIR_STORE_UFCLL:
         case HIR_FCLL:
         case HIR_STORE_FCLL:
         case HIR_ECLL:
@@ -289,6 +291,7 @@ int HIR_sideeffect_op(hir_operation_t op) {
         case HIR_PHI:
         case HIR_MKLB:
         case HIR_FRET:
+        case HIR_UFCLL:
         case HIR_ECLL:
         case HIR_FCLL:
         case HIR_SYSC:
@@ -296,6 +299,7 @@ int HIR_sideeffect_op(hir_operation_t op) {
         case HIR_EXITOP:
         case HIR_MKSCOPE:
         case HIR_ENDSCOPE:
+        case HIR_STORE_UFCLL:
         case HIR_STORE_ECLL:
         case HIR_STORE_FCLL:
         case HIR_STORE_SYSC:
@@ -312,6 +316,7 @@ int HIR_writeop(hir_operation_t op) {
         case HIR_REF:
         case HIR_FARGLD:
         case HIR_STARGLD:
+        case HIR_STORE_UFCLL:
         case HIR_STORE_ECLL:
         case HIR_STORE_FCLL:
         case HIR_STORE_SYSC:

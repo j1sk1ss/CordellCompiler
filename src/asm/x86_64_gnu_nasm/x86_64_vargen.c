@@ -45,7 +45,7 @@ const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt) {
             break;
         }
 
-        case LIR_FNAME: {
+        case LIR_FNAME: { // TODO: [funcname] if we're trying to obtain an address of a function in lea operation
             func_info_t fi;
             if (FNTB_get_info_id(v->storage.str.sid, &fi, &smt->f)) {
                 if (

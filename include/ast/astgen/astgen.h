@@ -205,6 +205,7 @@ literal         = integer_literal | string_literal | char_literal ;
 #define CURRENT_TOKEN      ((token_t*)list_iter_current(it))
 #define CREATE_SCOPE_TOKEN TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_INDEX_TOKEN TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_CALL_TOKEN  TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
@@ -433,6 +434,18 @@ Params:
 Returns an ast node.
 */
 ast_node_t* cpl_parse_return(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Parse .cpl function's arguments. Helper function for funccall handlers.
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+    - `args` - Output arguments number.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_call_arguments(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int* args);
 
 /*
 Parse .cpl function call. Should be invoked on funccall token.

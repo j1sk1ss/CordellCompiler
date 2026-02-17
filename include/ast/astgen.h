@@ -8,16 +8,33 @@
 #include <std/list.h>
 
 /*
-Move iterator with N-steps.
+Move the iterator with N-steps.
 Params:
     - `it` - Current iterator.
     - `steps` - Steps count.
 
-Return 0 if we reach end, 1 if still in list.
+Return 0 if we reach the end, 1 if still in the list.
 */
 static inline int forward_token(list_iter_t* it, int steps) {
     while (steps-- > 0) {
         if (list_iter_next_top(it)) list_iter_next(it);
+        else return 0;
+    }
+
+    return 1;
+}
+
+/*
+Move the iterator backward with N-steps.
+Params:
+    - `it` - Current iterator.
+    - `steps` - Steps count.
+
+Returns 0 of we reach the start, 1 is still in the list.
+*/
+static inline int backward_token(list_iter_t* it, int steps) {
+    while (steps-- > 0) {
+        if (list_iter_prev_top(it)) list_iter_prev(it);
         else return 0;
     }
 

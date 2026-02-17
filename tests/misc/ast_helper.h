@@ -4,6 +4,7 @@
 const char* name_tkn_type(token_type_t t) {
     switch (t) {
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
+        case CALLING_TOKEN:               return "CALLING_TOKEN";
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: return "UNKNOWN_FLOAT_NUMERIC_TOKEN";
         case UNKNOWN_CHAR_TOKEN:          return "UNKNOWN_CHAR_TOKEN";
         case UNKNOWN_BRACKET_VALUE:       return "UNKNOWN_BRACKET_VALUE";
@@ -42,6 +43,8 @@ const char* name_tkn_type(token_type_t t) {
         case FUNC_TOKEN:                  return "FUNC_TOKEN";
         case FUNC_NAME_TOKEN:             return "FUNC_NAME_TOKEN";
         case CALL_TOKEN:                  return "CALL_TOKEN";
+        case ADDR_CALL_TOKEN:             return "ADDR_CALL_TOKEN";
+        case CALL_ADDR:                   return "CALL_ADDR";
         case SWITCH_TOKEN:                return "SWITCH_TOKEN";
         case CASE_TOKEN:                  return "CASE_TOKEN";
         case DEFAULT_TOKEN:               return "DEFAULT_TOKEN";
@@ -139,6 +142,7 @@ static inline int print_ast(ast_node_t* node, int depth) {
     if (node->t) {
         switch (node->t->t_type) {
             case SCOPE_TOKEN: printf("{ scope, id=%i }\n", node->sinfo.s_id); break;
+            case CALLING_TOKEN: printf("[()]\n");                             break;
             case INDEXATION_TOKEN: printf("[[]]\n");                          break;
             default:
                 printf(

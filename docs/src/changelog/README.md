@@ -26,6 +26,24 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Pointer calls
+Now the compiler supports function pointers! One disadvantage here: Pointed functions aren't able to support the default-args and function-overloads. To use it, you can consider the next example:
+```cpl
+{
+    function foo(i32 a) => i32 {
+        return a;
+    }
+
+    start() {
+        ptr u64 a = foo;
+        i32 b = a(10);
+    }
+}
+```
+
+Here we put the 'foo' function as a pointer to the 'a' variable. Then, we can invoke this function by this pointer. Obviously, we can't expect the default arguments here (at least at this moment). Also, function pointers are 'u64' pointers, that's why store them in 'ptr u64' variables (The compiler doesn't support signature types at this moment). </br>
+Old (or traditional) function calls work the same as before this update.
+
 ## Matricies!
 Now the compiler supports multi-indexation!
 ```cpl
@@ -61,7 +79,7 @@ else {
 }
 ```
 
-## De-vertualization (basics)
+## Function overloads (basics)
 CorellCompiler now supports polymorphic functions. The symtax is below:
 ```cpl
 {

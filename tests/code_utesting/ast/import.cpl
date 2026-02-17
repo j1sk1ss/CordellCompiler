@@ -21,8 +21,11 @@
    [start] (START_TOKEN, v_id=3, s_id=0)
       { scope, id=2 }
          [print] (CALL_TOKEN, v_id=0, s_id=0)
+            { scope, id=0 }
          [clear] (CALL_TOKEN, v_id=1, s_id=0)
+            { scope, id=0 }
          [memset] (CALL_TOKEN, v_id=2, s_id=0)
+            { scope, id=0 }
          [exit] (EXIT_TOKEN, v_id=0, s_id=2)
             [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
 :

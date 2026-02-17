@@ -16,6 +16,7 @@
          [syscall] (SYSCALL_TOKEN, v_id=-1, s_id=0)
             [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             [foo] (CALL_TOKEN, v_id=0, s_id=0)
+               { scope, id=0 }
             [+] (PLUS_TOKEN, v_id=-1, s_id=0)
                [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)

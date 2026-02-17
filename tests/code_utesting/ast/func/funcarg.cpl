@@ -25,10 +25,15 @@
          [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
             [f] (I32_VARIABLE_TOKEN, v_id=1, s_id=4)
             [b] (CALL_TOKEN, v_id=1, s_id=0)
-               [a] (CALL_TOKEN, v_id=0, s_id=0)
+               { scope, id=0 }
+                  [a] (CALL_TOKEN, v_id=0, s_id=0)
+                     { scope, id=0 }
    [start] (START_TOKEN, v_id=3, s_id=0)
       { scope, id=5 }
          [c] (CALL_TOKEN, v_id=2, s_id=0)
-            [b] (CALL_TOKEN, v_id=1, s_id=0)
-               [a] (CALL_TOKEN, v_id=0, s_id=0)
+            { scope, id=0 }
+               [b] (CALL_TOKEN, v_id=1, s_id=0)
+                  { scope, id=0 }
+                     [a] (CALL_TOKEN, v_id=0, s_id=0)
+                        { scope, id=0 }
 :

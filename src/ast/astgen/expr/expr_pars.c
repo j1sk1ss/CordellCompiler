@@ -42,7 +42,7 @@ Returns an AST node.
 */
 static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int mp, int na) {
     SAVE_TOKEN_POINT;
-
+    
     ast_node_t* left = _parse_primary(it, ctx, smt, na);
     if (!left) {
         RESTORE_TOKEN_POINT;
@@ -69,6 +69,25 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     AST_unload(left);
                     AST_unload(index_op);
                     AST_unload(indexation);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+            }
+            /* Unknown function call operator */
+            case OPEN_BRACKET_TOKEN: {
+                forward_token(it, 1);
+                ast_node_t* call_op   = AST_create_node_bt(CREATE_CALL_TOKEN);
+                ast_node_t* arguments = cpl_parse_call_arguments(it, ctx, smt, NULL);
+                if (call_op && arguments) {
+                    ast_node_t* tmp = left;
+                    left = call_op;
+                    AST_add_node(left, tmp);
+                    AST_add_node(left, arguments);
+                    forward_token(it, 1);
+                    continue;
+                }
+                else {
+                    PARSE_ERROR("Function call error!");
                     RESTORE_TOKEN_POINT;
                     return NULL;
                 }
@@ -152,7 +171,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 RESTORE_TOKEN_POINT;
                 return NULL;
             }
-
+            
             forward_token(it, 1);
             return node;
         }
