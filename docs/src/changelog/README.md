@@ -32,7 +32,7 @@ The semantic of the CPL has moved a bit towards Rust language. Now instead of th
 function foo() -> i0; : instead of function foo() => i0; :
 ```
 
-It wasn't possible before due to the lack of tokenizer's abillities. Now it possible.
+It wasn't possible before due to the lack of tokenizer's abillities. Now it's possible.
 
 ## Pointer calls
 Now the compiler supports function pointers! One disadvantage here: Pointed functions aren't able to support the default-args and function-overloads. To use it, you can consider the next example:

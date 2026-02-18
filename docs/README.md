@@ -47,7 +47,7 @@ That's how we can write a 'hello-world' program with CPL language for x86-64 GNU
     }
 
     : Define the puts function
-      that accepts a pointer to string object :
+      that accepts a pointer to a string object :
     function puts(str s) -> i0 {
         : Start ASM inline block with
           a support of the argument list :
@@ -77,8 +77,19 @@ int main(int argc, char* argv[]) {
 }
 ```
 
+Actually, regardless of the essential 'basic' scope (the initial {} in the code above), with usage of the same header file, the CPL code can looks really close to the C above:
+```cpl
+{
+    #inclide <stdio_h.cpl>
+    start(i32 argc, ptr ptr i8 argv) {
+        puts("Hello, World!");
+    }
+}
+```
+
 # Code conventions
-It's not a thing, but I'd like to share my prefered code style through this conventions. CPL encourages code mostly based on C-code conventions.
+*P.S. It's not a thing, but I'd like to share my prefered code style through this conventions. The compiler itself doesn't care about how a code is written.*
+CPL encourages code mostly based on C-code conventions.
 - **Variables**: use lowercase letters and underscores
 ```cpl
 i32 counter = 0;
@@ -105,10 +116,12 @@ function _private();
 
 - **Scopes**: K&R style
 ```cpl
-function foo() {
+function foo() -> i0 {
 }
 
 if cond; {
+}
+else if cond1; {
 }
 else {
 }
@@ -135,7 +148,7 @@ Hello there
 :
 ```
 
-- **File names**: Sneaky case for file names. If this is a 'header' file, add the `_h` path to the name.
+- **File names**: Sneaky case for file names. If this is a 'header' file, add the `_h` path to a name.
 ```
 print_h.cpl <- Prototypes and includes
 print.cpl   <- Implementation
@@ -149,7 +162,7 @@ Function becomes an entry point in two cases:
 Example without a `start` function:
 ```cpl
 function fang() -> i0; { return; }
-function naomi() -> i0; { return; } : <= Becomes an entry point :
+function naomi() -> i0; { exit 0; } : <= Becomes an entry point :
 ```
 
 Example with a `start` start function:
@@ -157,6 +170,12 @@ Example with a `start` start function:
 start() { exit 0; } : <= Becomes an entry point :
 function fang() -> i0; { return; }
 function naomi() -> i0; { return; }
+```
+
+**Note:** 'Start' function doesn't have a return type (you can't use the '->' modificator) and requires usage of the 'exit' keyword instead of the 'return'. Also the maximum type that can be used as a value in the 'exit' keyword is the 'u8' type.
+**Note 2:** Actually, with usage of the logic that the lowest function becomes an entry point, we can set a return type:
+```cpl
+function main(i32 argc, ptr ptr i8 argv) -> u8;
 ```
 
 # Types
@@ -212,7 +231,7 @@ i8 d = 'a';
 
 - `i0` - Void type. Must be used only in the function return type. This type isn't supported by the Compiler as a regular primitive type.
 ```cpl
-function cordell() -> i0; { return; }
+function cordell() -> i0; { }
 ```
 
 `P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is pretty simple:
@@ -232,6 +251,7 @@ if msg == "Hello world!"; {
 arr Array_1d_1[10, i32]  = { 0 };
 arr Array_1d_2[10, i32]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 arr Array_2d[2, ptr i32] = { ref Array_1d_1, ref Array_1d_2 };
+i32 a = Array_2d[0][0]; : = 0 :
 ```
 
 Also array can have an unknown in `compile-time` size. This will generate code that allocates memory in heap (WIP). 
@@ -291,6 +311,49 @@ i32 b = a_ptr[0];
 : int b = a_ptr[0] :
 ``` 
 
+## Function pointers
+A function can be stored as a pointer easilly with usage of the next code:
+```cpl
+function foo(i32 a) -> i32;
+start() {
+    ptr u64 a = foo;
+    i32 res = a(100);
+}
+```
+
+As it can be seen from the code above, 'pointer' functions don't have a signature. Such a disadvantage disables all efforts from static analysis, function overloading and default arguments. In a nutshell, it will make this:
+```cpl
+function foo(i32 a) -> i32;
+function foo(u32 a = 10) -> i0;
+function bar(i8 a = 'a');
+start() {
+    ptr u64 a = foo; : Will store function foo(i32 a) -> i32; given that this function is the top function :
+    ptr u64 b = bar;
+    b(); : Will cause an undefined behaviour given the lack of arguemnts :
+}
+```
+
+However, such an ability can make it possible to use different functions in the same context. For instance:
+```cpl
+function min(i32 a, i32 b);
+function max(i32 a, i32 b);
+function logic(ptr u64 func, i32 a, i32 b) {
+    func(a, b);
+}
+
+start() {
+    logic(min, 10, 20);
+    logic(max, 10, 20);
+}
+```
+
+**Also** a function pointer can be not only a function (sounds weird, isn't?). It can be any pointer as well:
+```cpl
+(0x100 + 0xB045)(100); : <- Valid function call that will invoke a function at 0x100 + 0xB045 address :
+i32 a = 123;
+a(100 + 123); : <- Valid function call that will invoke any function (or not) at the 223 address :
+```
+
 # Binary and unary operations
 Obviously this language supports the certain set of binary operations from C-language, Rust-language, Python, etc.
 
@@ -336,8 +399,9 @@ Or without a scope symbol:
 i32 a1 = 12;
 i32 a;
 
-if a1 > 10; a = 10;
-else a = 11;
+if a1 > 10 && a1 <= 20; a = 10;
+else if a1 > 20;        a = 20;
+else                    a = 0;
 ```
 
 ## while statement
@@ -586,7 +650,7 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
 ```
 - etc.
 
-CPL uses an inbuild static analyzator for the code checking before the compilation. For example, such an analyzator helps programmer to work with the code like below:
+CPL uses an inbuild static analyzator for the code checking before compilation. For example, such an analyzator helps programmer to work with the code like below:
 ```cpl
 {
     #include "string_h.cpl"
@@ -829,7 +893,7 @@ Think of it as stack coloring or liveness-based stack slot allocation: two varia
 ## What this is NOT
 Not a memory-safety system
 
-- CPL does not prevent all dangling pointers or aliasing issues. The analysis is used to avoid incorrect stack reuse, not to “make pointers safe.”
+- CPL doesn't prevent all dangling pointers or aliasing issues. The analysis is used to avoid incorrect stack reuse, not to “make pointers safe.”
 - Not Rust ownership / borrowing
 - Rust enforces rules like “one mutable reference or many immutable ones” and prevents data races / use-after-free in safe code.
 
