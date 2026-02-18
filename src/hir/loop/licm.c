@@ -343,7 +343,7 @@ int HIR_LTREE_canonicalization(cfg_ctx_t* cctx) {
             HIR_LTREE_unload_ctx(&lctx);
             continue;
         }
-
+        
         foreach (loop_node_t* root, &lctx.loops) {
             _licm_loop_node_process(cctx, root, NULL, 0);
         }

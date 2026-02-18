@@ -14,17 +14,25 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
         case HIR_FRET:   LIR_BLOCK1(ctx, LIR_FRET, x86_64_format_variable(h->farg));                                                   break;
         case HIR_FARGLD: LIR_BLOCK2(ctx, LIR_LOADFARG, x86_64_format_variable(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value));  break;
 
+        case HIR_UFCLL:
         case HIR_FCLL:
         case HIR_ECLL: 
+        case HIR_STORE_UFCLL:
         case HIR_STORE_FCLL:
         case HIR_STORE_ECLL: {
             lir_subject_t* sargs = LIR_SUBJ_LIST();
             x86_64_pass_params(LIR_STFARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h);
-            LIR_BLOCK3(ctx, LIR_FCLL, LIR_SUBJ_FUNCNAME(h->sarg), NULL, sargs);
-            if (h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL) {
-                LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
-            }
+            LIR_BLOCK3(
+                ctx, LIR_FCLL, 
+                h->sarg->t == HIR_FNAME ? LIR_SUBJ_FUNCNAME(h->sarg) : x86_64_format_variable(h->sarg), 
+                NULL, sargs
+            );
 
+            if (
+                h->op == HIR_STORE_UFCLL || 
+                h->op == HIR_STORE_FCLL  || 
+                h->op == HIR_STORE_ECLL
+            ) LIR_BLOCK1(ctx, LIR_LOADFRET, x86_64_format_variable(h->farg));
             break;
         }
 
@@ -101,6 +109,7 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
         case HIR_TI32: LIR_BLOCK2(ctx, LIR_TI32, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;
         case HIR_TI16: LIR_BLOCK2(ctx, LIR_TI16, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;
         case HIR_TI8:  LIR_BLOCK2(ctx, LIR_TI8,  x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;
+        case HIR_TPTR:
         case HIR_TU64: LIR_BLOCK2(ctx, LIR_TU64, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;
         case HIR_TU32: LIR_BLOCK2(ctx, LIR_TU32, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;
         case HIR_TU16: LIR_BLOCK2(ctx, LIR_TU16, x86_64_format_variable(h->farg), x86_64_format_variable(h->sarg)); break;

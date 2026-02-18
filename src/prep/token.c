@@ -7,18 +7,19 @@
 #include <prep/token.h>
 
 typedef enum {
-    CHAR_PP,        /* Pre-processor symbol: #          */
-    CHAR_ALPHA,     /* Any alphabet character: [A-Za-z] */
-    CHAR_DIGIT,     /* Any digit: [0-9]                 */
-    CHAR_QUOTE,     /* Quote: "                         */
-    CHAR_OTHER,     /* Unknown character type           */
-    CHAR_SPACE,     /* Space: ' '                       */
-    CHAR_COMMA,     /* Comma: ,                         */
-    CHAR_BRACKET,   /* Bracket: [ [, {, (, ), }, ] ]    */
-    CHAR_NEWLINE,   /* New line character (\n)          */
-    CHAR_DELIMITER, /* Delimiter character: ;           */
-    CHAR_BACKSLASH, /* Backslash: \                     */
-    CHAR_SING_QUOTE /* Single quote: '                  */
+    CHAR_PP,         /* Pre-processor symbol: #          */
+    CHAR_ALPHA,      /* Any alphabet character: [A-Za-z] */
+    CHAR_DIGIT,      /* Any digit: [0-9]                 */
+    CHAR_QUOTE,      /* Quote: "                         */
+    CHAR_OTHER,      /* Unknown character type           */
+    CHAR_SPACE,      /* Space: ' '                       */
+    CHAR_COMMA,      /* Comma: ,                         */
+    CHAR_BRACKET,    /* Bracket: [ [, {, (, ), }, ] ]    */
+    CHAR_NEWLINE,    /* New line character (\n)          */
+    CHAR_DELIMITER,  /* Delimiter character: ;           */
+    CHAR_BACKSLASH,  /* Backslash: \                     */
+    CHAR_SING_QUOTE, /* Single quote: '                  */
+    CHAR_SIGN,       /* Signs: -, +                      */
 } char_type_t;
 
 /*
@@ -29,8 +30,8 @@ Params:
 Returns character type.
 */
 static char_type_t _get_char_type(unsigned char ch) {
-    if (isalpha(ch) || ch == '_') return CHAR_ALPHA;
-    else if (str_isdigit(ch))     return CHAR_DIGIT;
+    if (str_isalpha(ch) || ch == '_') return CHAR_ALPHA;
+    else if (str_isdigit(ch))         return CHAR_DIGIT;
     
     switch (ch) {
         case '#':  return CHAR_PP;
@@ -44,6 +45,12 @@ static char_type_t _get_char_type(unsigned char ch) {
         case '(':  case '[':
         case '{':  case ')':
         case ']':  case '}':  return CHAR_BRACKET;
+        case '-':  case '+':  
+        case '/':  case '*':
+        case '%':  case '=':
+        case '<':  case '>':
+        case '!':
+        case '&':  case '|':  return CHAR_SIGN;
         default:   return CHAR_OTHER;
     }
 }
@@ -85,14 +92,21 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
     tkn->t_type = type;
     switch (type) {
         case UNKNOWN_NUMERIC_TOKEN: {
-            tkn->body = input->from_number(input);
+            int is_float = 0;
+            tkn->body = input->from_number(input, &is_float);
+            if (is_float) tkn->t_type = UNKNOWN_FLOAT_NUMERIC_TOKEN;
             destroy_string(input);
             break;
         }
         case CHAR_VALUE_TOKEN: {
-            tkn->body = create_string_from_char(input->body[0]);
+            tkn->body = create_string_from_int(input->body[0]);
             tkn->t_type = UNKNOWN_NUMERIC_TOKEN;
             destroy_string(input);
+            break;
+        }
+        case UNKNOWN_SIGN_TOKEN: {
+            tkn->body = input;
+            tkn->t_type = UNKNOWN_CHAR_TOKEN;
             break;
         }
         default: {
@@ -131,6 +145,22 @@ static inline void _reset_tkn_ctx(tkn_ctx_t* ctx) {
     ctx->token_len = 0;
     ctx->ttype = LINE_BREAK_TOKEN;
 }
+
+/* Get a new type for a symbol according to the current token type and 
+   a new type of a symbol. */
+#define PROPOGATE_SYMBOL_TYPE(curr, new, res) \
+    if (                                     \
+        ctx->ttype == curr &&                \
+        char_type == new                     \
+    ) char_type = res;
+
+/* Get a new type for the token according to the current token type and 
+   a new type of a symbol. */
+#define PROPOGATE_TOKEN_TYPE(curr, new, res) \
+    if (                                     \
+        ctx->ttype == curr &&                \
+        char_type == new                     \
+    ) ctx->ttype = res;
 
 /*
 Give the next token from the provided buffer.
@@ -211,21 +241,14 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
                 case CHAR_BRACKET:   char_type = UNKNOWN_BRACKET_VALUE; break;
                 case CHAR_SPACE:
                 case CHAR_NEWLINE:   char_type = LINE_BREAK_TOKEN;      break;
+                case CHAR_SIGN:      char_type = UNKNOWN_SIGN_TOKEN;    break;
                 default:             char_type = UNKNOWN_CHAR_TOKEN;    break;
             }
 
-            if (
-                ctx->ttype == UNKNOWN_CHAR_TOKEN && 
-                char_type == UNKNOWN_NUMERIC_TOKEN
-            ) ctx->ttype = UNKNOWN_NUMERIC_TOKEN;
-            if (
-                ctx->ttype == UNKNOWN_STRING_TOKEN && 
-                char_type == UNKNOWN_NUMERIC_TOKEN
-            ) char_type = UNKNOWN_STRING_TOKEN;
-            else if (
-                ctx->ttype == UNKNOWN_NUMERIC_TOKEN && 
-                char_type == UNKNOWN_STRING_TOKEN
-            ) char_type = UNKNOWN_NUMERIC_TOKEN;
+            PROPOGATE_SYMBOL_TYPE(UNKNOWN_NUMERIC_TOKEN, UNKNOWN_CHAR_TOKEN, UNKNOWN_NUMERIC_TOKEN);
+            PROPOGATE_TOKEN_TYPE(UNKNOWN_SIGN_TOKEN, UNKNOWN_NUMERIC_TOKEN, UNKNOWN_NUMERIC_TOKEN);
+            PROPOGATE_SYMBOL_TYPE(UNKNOWN_STRING_TOKEN, UNKNOWN_NUMERIC_TOKEN, UNKNOWN_STRING_TOKEN);
+            PROPOGATE_SYMBOL_TYPE(UNKNOWN_NUMERIC_TOKEN, UNKNOWN_STRING_TOKEN, UNKNOWN_NUMERIC_TOKEN);
         }
         
         /* Create a new token.
@@ -343,11 +366,11 @@ unsigned long TKN_hash_token(token_t* t) {
 
     t->finfo.line   = 0;
     t->finfo.column = 0;
-    t->finfo.file   = 0;
+    t->finfo.file   = NULL;
 
     unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
     hash ^= t->body->hash;
-    hash ^= t->t_type;
+    hash *= t->t_type;
     
     t->finfo.line   = tmp.line;
     t->finfo.column = tmp.column;

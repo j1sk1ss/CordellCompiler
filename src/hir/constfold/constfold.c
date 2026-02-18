@@ -130,6 +130,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_TI32:
                 case HIR_TI16:
                 case HIR_TI8:
+                case HIR_TPTR:
                 case HIR_TU64:
                 case HIR_TU32:
                 case HIR_TU16:
@@ -145,6 +146,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                         case HIR_TI32: c = (int)c;            break;
                         case HIR_TI16: c = (short)c;          break;
                         case HIR_TI8:  c = (char)c;           break;
+                        case HIR_TPTR:
                         case HIR_TU64: c = (unsigned long)c;  break;
                         case HIR_TU32: c = (unsigned int)c;   break;
                         case HIR_TU16: c = (unsigned short)c; break;

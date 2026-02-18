@@ -7,6 +7,8 @@
 typedef enum hir_operation {
     /* Operations */
         /* Commands */
+        HIR_UFCLL,       // y(), args - z
+        HIR_STORE_UFCLL, // x = y(), args - z
         HIR_FCLL,        // x(), args - z
         HIR_STORE_FCLL,  // x = y(), args - z
         HIR_ECLL,        // ext x(), args - z
@@ -14,6 +16,7 @@ typedef enum hir_operation {
         HIR_SYSC,        // syscall(), args - z
         HIR_STORE_SYSC,  // x = syscall(), args - z
 
+        HIR_TPTR,
         HIR_TF64,        // x = (f64)y
         HIR_TF32,        // x = (f32)y
         HIR_TI64,        // x = (i64)y
@@ -35,6 +38,7 @@ typedef enum hir_operation {
         HIR_FEXT,        // extern function    extern [id from function symtable]
 
         /* Jump instructions */
+        HIR_BREAK,       // Cosmetic command for the 'break' statement. ! Dont' handle it in the further translation !
         HIR_JMP,
 
     /* Integer */
@@ -183,10 +187,11 @@ int HIR_get_type_size(hir_subject_type_t t);
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b);
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr);
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi);
-hir_subject_type_t HIR_get_token_stktype(token_t* tkn);
+hir_subject_type_t HIR_get_token_stktype(token_t* tkn, int ptr);
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
 int HIR_isjmp(hir_operation_t op);
 int HIR_is_vartype(hir_subject_type_t t);
+int HIR_is_arrtype(hir_subject_type_t t);
 int HIR_is_tmptype(hir_subject_type_t t);
 int HIR_writeop(hir_operation_t op);
 int HIR_isterm(hir_operation_t op);

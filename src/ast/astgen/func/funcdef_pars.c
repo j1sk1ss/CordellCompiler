@@ -71,7 +71,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         }
     }
 
-    /* function <name> ( ... ) => */
+    /* function <name> ( ... ) -> */
     forward_token(it, 1);
     if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == RETURN_TYPE_TOKEN) {
         forward_token(it, 1);
@@ -85,15 +85,14 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         args_node, name_node->c, &smt->f
     );
 
-    /* function <name> ( ... ) [=> t]; - A prototype function 
-    */
+    /* function <name> ( ... ) [-> t]; - A prototype function */
     if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
         node->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);
         return node;
     }
 
-    /* function <name> ( ... ) [=> t] { ... } */
+    /* function <name> ( ... ) [-> t] { ... } */
     ast_node_t* body_node = cpl_parse_scope(it, ctx, smt);
     if (!body_node) {
         PARSE_ERROR("Error during the function's body parsing!");

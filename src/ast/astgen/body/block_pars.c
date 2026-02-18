@@ -64,7 +64,9 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
         case U16_VARIABLE_TOKEN:
         case U32_VARIABLE_TOKEN:
         case U64_VARIABLE_TOKEN:
-        case UNKNOWN_STRING_TOKEN:  /*  expression   = assign ;
+        case OPEN_BRACKET_TOKEN:
+        case UNKNOWN_STRING_TOKEN:
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN: /*  expression   = assign ;
                                         assign       = logical_or , [ "=" , assign ] ;
 
                                         logical_or   = logical_and , { "||" , logical_and } ;
@@ -117,7 +119,7 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
                                                    | "[" , expression , { "," , expression } , "]" ; */
         case CALL_TOKEN:            return cpl_parse_funccall(it, ctx, smt);
         case POPARG_TOKEN:          return cpl_parse_poparg(it);
-                                    /* function_def   = "function" , identifier , "(" , [ param_list ] , ")" , "=>" , type , block ; */
+                                    /* function_def   = "function" , identifier , "(" , [ param_list ] , ")" , "->" , type , block ; */
         case FUNC_TOKEN:            return cpl_parse_function(it, ctx, smt);
                                     /* exit_statement   = "exit" , expression , ";" ; */
         case EXIT_TOKEN:            return cpl_parse_exit(it, ctx, smt);
@@ -125,6 +127,10 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
         case RETURN_TOKEN:          return cpl_parse_return(it, ctx, smt);
         default:                    return NULL;
     }
+}
+
+ast_node_t* cpl_parse_element(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    return _navigation_handler(it, ctx, smt);
 }
 
 ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, token_type_t ex) {
@@ -138,7 +144,7 @@ ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, t
     }
 
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != ex) {
-        ast_node_t* block = _navigation_handler(it, ctx, smt);
+        ast_node_t* block = cpl_parse_element(it, ctx, smt);
         if (block) AST_add_node(node, block);  /* If we parse succesfully, add a product to the body */
         else if (!forward_token(it, 1)) break; /* If there is a error, proceed the next token        */
     }

@@ -26,7 +26,11 @@ lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_
         case LIR_LABEL:    subj->storage.lb.lb_id   = v_id;   break;
         case LIR_FNAME:
         case LIR_RAWASM:
-        case LIR_STRING: subj->storage.str.sid = v_id; break;
+        case LIR_STRING: {
+            subj->storage.str.sid = v_id; 
+            subj->storage.str.rel = intval;
+            break;
+        }
         case LIR_NUMBER: {
             if (strval) subj->storage.num.value = strval->copy(strval);
             break;

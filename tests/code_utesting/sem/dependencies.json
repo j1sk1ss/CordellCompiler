@@ -1,0 +1,15 @@
+{
+    "sources": [
+        "src/symtab/*.c",
+        "src/preproc/*.c",
+        "src/preproc/misc/*.c",
+        "src/prep/*.c",
+        "src/sem/misc/*.c", 
+        "src/ast/*.c",
+        "src/sem/*.c",
+        "src/sem/ast/*.c",
+        "src/ast/astgen/*.c", 
+        "src/ast/astgen/*/*.c",
+        "std/*.c"
+    ]
+}

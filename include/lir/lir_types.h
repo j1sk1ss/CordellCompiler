@@ -211,9 +211,9 @@ typedef enum {
 Convert any input register to the register with a fixed size.
 Example:
 ```asm
-rax + 4 byte => eax
-ax + 1 byte  => al
-ax + 8 byte  => rax
+rax + 4 byte -> eax
+ax + 1 byte  -> al
+ax + 8 byte  -> rax
 ```
 Params:
     - `reg` - Source register.

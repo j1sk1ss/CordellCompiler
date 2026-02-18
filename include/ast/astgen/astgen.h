@@ -26,9 +26,9 @@ storage_opt    = [ "glob" | "ro" ] ;
 
 top_decl       = var_decl | function_def | function_proto ;
 
-function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "=>" , type ] , block ;
+function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
 
-function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "=>" , type ] , ";" ;
+function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
 
 start_function = "start" , "(" , [ param_list ] , ")" , block ;
 
@@ -37,22 +37,27 @@ param          = type , identifier , [ "=" , expression ] | "..." ;
 
 block          = "{" , { statement } , "}" ;
 
-statement      = pp_directive
-               | var_decl
-               | arr_decl
-               | if_statement
-               | loop_statement
-               | while_statement
-               | switch_statement
-               | return_statement
-               | exit_statement
-               | break_statement
-               | lis_statement
-               | syscall_statement
-               | asm_block
-               | comment
-               | block
-               | expression_statement ;
+statement =
+    "arr" , arr_stmt_tail
+  | pp_directive
+  | if_statement
+  | loop_statement
+  | while_statement
+  | switch_statement
+  | return_statement
+  | exit_statement
+  | break_statement
+  | lis_statement
+  | syscall_statement
+  | asm_block
+  | comment
+  | block
+  | var_decl_starting_not_arr
+  | expression_statement ;
+
+arr_stmt_tail =
+    identifier , "[" , integer_literal , "," , type , "]" , [ "=" , ( expression | arr_value ) ] , ";"   (* это arr_decl *)
+  | "[" , integer_literal , "," , type , "]" , identifier , [ "=" , expression ] , ";"                   (* это var_decl, где type=arr[...] *)
 
 pp_directive   = "#" , pp_body , pp_end ;
 
@@ -95,7 +100,7 @@ keyword        = "from" | "import" | "extern" | "exfunc" | "glob" | "ro"
 
 punct_no_semi  = "{" | "}" | "(" | ")" | "[" | "]" | "," ;
 
-operator       = "=>"
+operator       = "->"
                | "==" | "!=" | "<=" | ">=" | "<<" | ">>"
                | "||" | "&&"
                | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&="
@@ -199,6 +204,8 @@ literal         = integer_literal | string_literal | char_literal ;
 /* Support macro for getting the current token from the iterator. */
 #define CURRENT_TOKEN      ((token_t*)list_iter_current(it))
 #define CREATE_SCOPE_TOKEN TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_INDEX_TOKEN TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_CALL_TOKEN  TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
@@ -220,6 +227,17 @@ Params:
 Return 1 if succeed.
 */
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Parse `.cpl` element with input tokens.
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_element(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Parse `.cpl` block with input tokens. Should be invoked on new block.
@@ -418,6 +436,18 @@ Returns an ast node.
 ast_node_t* cpl_parse_return(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Parse .cpl function's arguments. Helper function for funccall handlers.
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+    - `args` - Output arguments number.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_call_arguments(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int* args);
+
+/*
 Parse .cpl function call. Should be invoked on funccall token.
 Snippet:
 ```cpl
@@ -488,6 +518,20 @@ Params:
 Returns an ast node.
 */
 ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na);
+
+/*
+Parse .cpl scope element.
+Note: Will parse only one element in the separated scope. This means,
+      that any declared variable will be allocated in a one-line scope.
+
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_line_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Parse .cpl scope block. Should be invoked on scope token.

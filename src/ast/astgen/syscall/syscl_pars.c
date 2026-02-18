@@ -35,5 +35,6 @@ ast_node_t* cpl_parse_syscall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt)
         }
     }
 
+    forward_token(it, 1);
     return node;
 }

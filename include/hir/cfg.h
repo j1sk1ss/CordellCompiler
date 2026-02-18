@@ -241,6 +241,15 @@ Return 1 if success, otherwise 0.
 int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Get the count of HIR blocks in base block.
+Params:
+    - `bb` - Basic block.
+
+Returns the count of HIR blocks in the BB.
+*/
+int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb);
+
+/*
 Unload CFG.
 Params:
     - `ctx` - CFG.

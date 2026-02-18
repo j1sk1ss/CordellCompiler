@@ -136,7 +136,7 @@ connection.onHover((params) => {
       const retStr = formatType(fn.ret);
       const sig = retStr === "i0"
         ? `function ${fn.name}(${paramsStr})`
-        : `function ${fn.name}(${paramsStr}) => ${retStr}`;
+        : `function ${fn.name}(${paramsStr}) -> ${retStr}`;
     
       let value = `\`\`\`cpl\n${sig}\n\`\`\``;
     

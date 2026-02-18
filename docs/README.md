@@ -1,16 +1,19 @@
 # Summary
 The **Cordell Programming Language (CPL)** is a system-level programming language designed for learning and experimenting with modern compiler concepts. It combines low-level capabilities from `ASM` with practices inspired by modern languages like `Rust` and `C`. `CPL` is intended for:
-- **Systems programming** — operating systems, DBMSs, compilers, interpreters, and embedded software.  
-- **Educational purposes** — a language to study compiler design, interpreters, and programming language concepts.
-- **Radical simplicity** - Similar to RISC, *we can construct any complex abstraction without complex abstractions*. 
+- **System programming** — OS (bootloaders, kernels), DBMSs, FSs, compilers, interpreters, etc.  
+- **Educational purpose** — a language to study compiler design, interpreters, and programming language concepts.
+- **Radical simplicity** - let's make this language simple as it possible. 
 
 ## Key Features
-- **Partial strong-typing**: variables can't hold values of different types; the compiler attempts implicit conversions when assigning.  
-- **Explicit memory model**: ownership rules and manual memory management are core features.  
-- **Minimalistic syntax**: designed for readability and precision.  
+- **Statically-typed**: variables can't hold values of different types; the compiler attempts implicit conversions when assigning.
+- **Minimalistic syntax**: cpl is a simple programming language that is beign based on C language.  
 - **Deterministic control flow**: no hidden behaviors; all execution paths are explicit.  
 - **Extensibility**: functions and inbuilt macros allow both low-level operations and high-level abstractions.
-- **Optimization**: input code can be optimized in a lot of ways. 
+- **Optimization**: input code can be optimized by techniques such as constant propagation, linear invariant code motion, peephole optimization, function inline, tail recursion elimination.
+- **Function overloading**: compiler supports overloaded functions.
+- **Default-args**: compiler supports default values in function arguments.
+- **Headers-Modules**: cpl supports headers as it does C/++ language and module system as it does Go/Python etc.
+- **Strings**: lagnuage supports and distinguishs strings from raw pointers.
 
 # Main idea of this project
 Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for my own OS inside my own OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
@@ -23,12 +26,12 @@ Main goal of this project is learning of compilers architecture and porting one 
 - Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
 
 # Hello, World! example
-That's how we can write a 'hello-world' program with CPL language.
+That's how we can write a 'hello-world' program with CPL language for x86-64 GNU architecture.
 ```cpl
 {
     : Define the strlen function
       that accepts a pointer to a char array :
-    function strlen(ptr i8 s) => i64 {
+    function strlen(ptr i8 s) -> i64 {
         i64 l = 0;
 
         : While pointed symbol isn't a zero value
@@ -44,8 +47,8 @@ That's how we can write a 'hello-world' program with CPL language.
     }
 
     : Define the puts function
-      that accepts a pointer to string object :
-    function puts(ptr str s) => i0 {
+      that accepts a pointer to a string object :
+    function puts(str s) -> i0 {
         : Start ASM inline block with
           a support of the argument list :
         asm (s, strlen(s)) {
@@ -57,47 +60,83 @@ That's how we can write a 'hello-world' program with CPL language.
         }
     }
 
-    : Program entry point similar to C's entry point
+    : Program entry point similar to the C's entry point
       main(int argc, char* argv[]); :
-    start(i64 argc, ptr u64 argv) {
+    start(i64 argc, ptr ptr i8 argv) {
         puts("Hello, World!");
         exit 0;
     }
 }
 ``` 
 
-## Code conventions
-CPL encourages consistent and readable code mostly based on C-code conventions.
-- **Variables**: use lowercase letters and underscores [C-code convention]
+The same code snippet on C language:
+```c
+#include <stdio.h>
+int main(int argc, char* argv[]) {
+    puts("Hello, World!");
+}
+```
+
+Actually, regardless of the essential 'basic' scope (the initial {} in the code above), with usage of the same header file, the CPL code can looks really close to the C above:
+```cpl
+{
+    #inclide <stdio_h.cpl>
+    start(i32 argc, ptr ptr i8 argv) {
+        puts("Hello, World!");
+    }
+}
+```
+
+# Code conventions
+*P.S. It's not a thing, but I'd like to share my prefered code style through this conventions. The compiler itself doesn't care about how a code is written.*
+CPL encourages code mostly based on C-code conventions.
+- **Variables**: use lowercase letters and underscores
 ```cpl
 i32 counter = 0;
 ptr i32 data_ptr = ref counter;
 dref data_ptr = 1;
 ```
 
-- **Constants**: use uppercase letters with underscores [Python-code convention]
+- **Constants**: use uppercase letters with underscores
 ```cpl
 extern ptr u8 FRAMEBUFFER;
 glob ro i32 WIN_X = 1080;
 glob ro i32 WIN_Y = 1920;
 ```
 
-- **Functions**: use lowercase letters with underscores [C-code convention]
+- **Functions**: use lowercase letters with underscores
 ```cpl
-function calculate_sum(ptr i32 arr, i64 length) => i32 { return 0; }
+function calculate_sum(ptr i32 arr, i64 length) -> i32 { return 0; }
+```
+
+- **Private functions**: use an underscore before a name of a function, if it is a private function
+```cpl
+function _private();
 ```
 
 - **Scopes**: K&R style
 ```cpl
+function foo() -> i0 {
+}
+
 if cond; {
 }
+else if cond1; {
+}
+else {
+}
+
 while cond; {
 }
+
+loop {
+}
+
 start(i64 argc, ptr u64 argv) {
 }
 ```
 
-- **Comments**: Comments can be written in the one line with the start and the end symbol `:` and in several lines with the same logic. [ASM-code convention + C-code convention]
+- **Comments**: Comments can be written in one line with the start and the end symbol `:` and in several lines with the same logic
 ```cpl
 : Hello there
 :
@@ -109,7 +148,7 @@ Hello there
 :
 ```
 
-- **File names**: Sneaky case for file names. If this is a 'header' file, add the `_h` path to the name.
+- **File names**: Sneaky case for file names. If this is a 'header' file, add the `_h` path to a name.
 ```
 print_h.cpl <- Prototypes and includes
 print.cpl   <- Implementation
@@ -118,23 +157,29 @@ print.cpl   <- Implementation
 # Program entry point
 Function becomes an entry point in two cases:
 - If this is a `start` function.
-- If this is the lowest function in the file (And! There is no any `start` function in this project).
+- If this is the lowest function in a file (And! There is no any `start` function in the file).
 
-Example without the `start` function:
+Example without a `start` function:
 ```cpl
-function fang() => i0; { return; }
-function naomi() => i0; { return; } : <= Becomes an entry point :
+function fang() -> i0; { return; }
+function naomi() -> i0; { exit 0; } : <= Becomes an entry point :
 ```
 
-Example with the `start` start function:
+Example with a `start` start function:
 ```cpl
 start() { exit 0; } : <= Becomes an entry point :
-function fang() => i0; { return; }
-function naomi() => i0; { return; }
+function fang() -> i0; { return; }
+function naomi() -> i0; { return; }
+```
+
+**Note:** 'Start' function doesn't have a return type (you can't use the '->' modificator) and requires usage of the 'exit' keyword instead of the 'return'. Also the maximum type that can be used as a value in the 'exit' keyword is the 'u8' type.
+**Note 2:** Actually, with usage of the logic that the lowest function becomes an entry point, we can set a return type:
+```cpl
+function main(i32 argc, ptr ptr i8 argv) -> u8;
 ```
 
 # Types
-Now let's talk about language basics. This language is a strong-typed language. That's why CPL supports a cast operation such as `as` operation. Syntax is similar with a Rust-language cast operation `as`. </br>
+Now let's talk about the language basics. This language is a strong-typed language. That's why CPL supports a cast operation such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
 For instance:
 ```cpl
 i32 never = 10 as i32;
@@ -142,10 +187,11 @@ i32 dies  = 20 as i32;
 u8 technoblade = (never + dies) as u8;
 ```
 
-One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. This means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the strong-typing, I'd recommend to use the `as` statement.
+One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. That means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the strong-typing, I'd recommend to use the `as` statement. </br>
+P.S. *Also, the `as` keyword is really useful in terms of function overloading functions usage. We will talk about this later.*
 
 ## Primitives
-Now, when we've talked about the typing system, let's discuss about the types itself. Primitive type is a basic, supported by this language data structure. This data structure supports the next list of avaliable types:
+Now, when we've talked about the types system, let's discuss about types itself. Primitive type is a basic, supported by this language, data structure. This data structure supports the next list of avaliable types:
 - `f64`, `f32` - Real / double and float; non-floating values are converted to double if used in double operations.
 ```cpl
 f64 a = 0.01;
@@ -185,10 +231,10 @@ i8 d = 'a';
 
 - `i0` - Void type. Must be used only in the function return type. This type isn't supported by the Compiler as a regular primitive type.
 ```cpl
-function cordell() => i0; { return; }
+function cordell() -> i0; { }
 ```
 
-`P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is simple:
+`P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is pretty simple:
 - `Not a Zero` is a `true` value.
 - `Zero` is a `false` value.
 
@@ -202,9 +248,10 @@ if msg == "Hello world!"; {
 
 - `arr` - Array data type. Can contain any primitive type.
 ```cpl
-arr 1dArray_1[10, i32];
-arr 1dArray_2[10, i32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-arr 2dArray[2, ptr i32] = { ref 1dArray_1, ref 1dArray_2 };
+arr Array_1d_1[10, i32]  = { 0 };
+arr Array_1d_2[10, i32]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+arr Array_2d[2, ptr i32] = { ref Array_1d_1, ref Array_1d_2 };
+i32 a = Array_2d[0][0]; : = 0 :
 ```
 
 Also array can have an unknown in `compile-time` size. This will generate code that allocates memory in heap (WIP). 
@@ -225,15 +272,16 @@ a[0] = 0; : <= SF! :
 ```
 
 ## Pointers
-- `ptr` - Pointer modifier that can be add to every primitive (and `str`) type.
+- `ptr` - Pointer modifier that can be add to every primitive (and `str`, `arr`) type.
 ```cpl
 i32 f = 10;
-ptr u64 a = ref f;
+ptr i32 a = ref f;
+ptr ptr a_ref = ref a;
 ptr str b = "Hello world";
 ```
 
 ## How to deal with pointers?
-Actually, pretty simple. This language supports two main commands to make pointers and to work with values from these pointers. For example, we have a variable:
+Actually, it isn't too hard. This language supports two main commands to make pointers and work with values from these pointers. For example, we have a variable:
 ```cpl
 i32 a = 123;
 ```
@@ -251,7 +299,7 @@ int* a_ptr = &a;
 ```
 
 ### dref
-Similar to C-language, we can 'dereference' the pointer. To perform this, we need to use the `dref` statement:
+Similar to C-language, we can 'dereference' a pointer. To perform this, we need to use the `dref` statement:
 ```cpl
 i32 b = dref a_ptr;
 : int b = *a_ptr; :
@@ -262,6 +310,49 @@ Additionally, obtaining of a dereferenced value from a pointer can be performed 
 i32 b = a_ptr[0];
 : int b = a_ptr[0] :
 ``` 
+
+## Function pointers
+A function can be stored as a pointer easilly with usage of the next code:
+```cpl
+function foo(i32 a) -> i32;
+start() {
+    ptr u64 a = foo;
+    i32 res = a(100);
+}
+```
+
+As it can be seen from the code above, 'pointer' functions don't have a signature. Such a disadvantage disables all efforts from static analysis, function overloading and default arguments. In a nutshell, it will make this:
+```cpl
+function foo(i32 a) -> i32;
+function foo(u32 a = 10) -> i0;
+function bar(i8 a = 'a');
+start() {
+    ptr u64 a = foo; : Will store function foo(i32 a) -> i32; given that this function is the top function :
+    ptr u64 b = bar;
+    b(); : Will cause an undefined behaviour given the lack of arguemnts :
+}
+```
+
+However, such an ability can make it possible to use different functions in the same context. For instance:
+```cpl
+function min(i32 a, i32 b);
+function max(i32 a, i32 b);
+function logic(ptr u64 func, i32 a, i32 b) {
+    func(a, b);
+}
+
+start() {
+    logic(min, 10, 20);
+    logic(max, 10, 20);
+}
+```
+
+**Also** a function pointer can be not only a function (sounds weird, isn't?). It can be any pointer as well:
+```cpl
+(0x100 + 0xB045)(100); : <- Valid function call that will invoke a function at 0x100 + 0xB045 address :
+i32 a = 123;
+a(100 + 123); : <- Valid function call that will invoke any function (or not) at the 223 address :
+```
 
 # Binary and unary operations
 Obviously this language supports the certain set of binary operations from C-language, Rust-language, Python, etc.
@@ -283,7 +374,7 @@ Obviously this language supports the certain set of binary operations from C-lan
 
 # Control flow statements
 ## if statement
-`if` keyword similar to the `C`'s `if` statement. Key change here is a `;` after the condition. 
+`if` keyword similar to the `C`'s `if` statement. Key change here is the `;` token after the condition. 
 ```cpl
 if <condition>; {
 }
@@ -303,11 +394,23 @@ else {
 }
 ```
 
+Or without a scope symbol:
+```cpl
+i32 a1 = 12;
+i32 a;
+
+if a1 > 10 && a1 <= 20; a = 10;
+else if a1 > 20;        a = 20;
+else                    a = 0;
+```
+
 ## while statement
 ```cpl
 while <condition>; {
-    break;
+    <statements>;
 }
+
+while <condition>; <statement>;
 ```
 
 ## loop statement
@@ -315,8 +418,10 @@ In difference with the `while` statement, the `loop` statement allows to build e
 **Importand Note:** You *must* insert the `break` keyword somewhere in a body of this statement. Otherwise it will became an infinity loop.
 ```cpl
 loop {
-    break;
+    <statements>;
 }
+
+loop <statement>;
 ```
 
 ## switch statement
@@ -334,27 +439,31 @@ switch cond; {
 }
 ```
 
+Note 3: *The switch statement is generated with the usage of a binary search approach. That means, consider this structure over the multiple ifs.*
+
 # Functions and inbuilt macros
 ## Functions
-Functions can be defined by the `function` keyword. Also, if you want to use a function in another `.cpl`/(or whatever language that supports the `extern` mechanism) file, you can append the `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that the CPL changes a local function name by the next pattern: `__cpl_{name}`, that's why prefer mark them with the `glob` key (It will preserve a name from a changing). 
+Functions can be defined by the `function` keyword. Also, if you want to use a function in another `.cpl`/(or whatever language that supports the `extern` mechanism) file, you can append the `glob` keyword. One note here, that if you want to invoke this function from another language, keep in mind, that the CPL changes a local function name by the next pattern: `__cpl_{name}{id}`, that's why prefer mark them with the `glob` key (It will preserve a name from a changing). 
 ```cpl
-function min(i32 a) => i0 { return; }
-glob function chloe(i32 a = 10) => u64 { return a + 10; }
-function max(u64 a = chloe(11)) => i32 { return a + 10; }
+function min(i32 a) -> i0 { return; }
+glob function chloe(i32 a = 10) -> u64 { return a + 10; }
+function max(u64 a = chloe(11)) -> i32 { return a + 10; }
 ```
 
+### Prototypes
 Function can have a prototype function. Similar to C-language, a prototype function - is a function without a body:
 ```cpl
-function chloe(i32 a = 10) => u64;
-function max() => i32 { 
+function chloe(i32 a = 10) -> u64;
+function max() -> i32 { 
     return chloe();
 }
 
-function chloe(i32 a = 10) => u64 { 
+function chloe(i32 a = 10) -> u64 { 
     return a + 10; 
 }
 ```
 
+### Default
 CPL supports default values in functions. Compiler will pass these default args in a function call if you don't provide enough:
 ```cpl
 chloe();              : chloe(10); :
@@ -362,15 +471,53 @@ max();                : max(chloe(11)); :
 min(max() & chloe()); : min(max(chloe(11)) & chloe(10)); :
 ```
 
+There is some restrictions / flaws / rules:
+- Default can't be before a non-default value:
+```cpl
+function foo(i32 a = 1, i32 b); : <= Forbidden :
+```
+- Defaults must be duplicated both in a function and a function's prototype. 
+
+### Function overloading
+Additionally, CPL supports function overloading with some flaws (All of these are based on the compiler's architecture. See the main README for more information):
+- It doesn't support overloading with the 'default' argument.
+- CPL overloading doesn't work with the 'return' type of a function.
+- Overloaded function can't be marked as a global / extern function.
+
+That means this will work:
+```cpl
+function foo(i32 a);
+function foo();
+function foo(i8 a);
+```
+
+Note: *To make sure that the compiler will choose the correct version of a function, use the 'as' keyword.*
+```cpl
+foo(10 as i32);
+: i64 a; :
+foo(a as i8);
+```
+
+But these two snippets won't:
+```cpl
+function foo() -> i32;
+function foo() -> i0;
+```
+, and
+```cpl
+function foo(i32 a, i32 b = 1, i32 c = 1);
+function foo(i32 a, i32 b = 1);
+```
+
 ## Variadic arguments
 CPL supports variadic arguments in the same way hot it supports C language. To use the variadic arguments in a function, add the `...` lexem **as the final arguement**!
 ```cpl
-function foo(...) => i0;
+function foo(...) -> i0;
 ```
 
 To 'pop' an arguement from this set, use the `poparg` keyword. It behaves as a variable with a 'variable' value:
 ```cpl
-function foo(...) => i0 {
+function foo(...) -> i0 {
     i8 a1 = poparg as i8;
     i8 a2 = poparg as i8;
 }
@@ -378,7 +525,7 @@ function foo(...) => i0 {
 
 Also, the `poparg` keyword can be used in a traditional function:
 ```cpl
-function foo(i32 a, i32 b) => i0 {
+function foo(i32 a, i32 b) -> i0 {
     i8 a1 = poparg as i8; : a :
     i8 b1 = poparg as i8; : b :
 }
@@ -425,7 +572,7 @@ The compiler includes a preprocessor that will take care about statements such a
 For example, we have a file with the implemented string function:
 ```cpl
 {
-    function strlen(ptr i8 s) => i64 {
+    function strlen(ptr i8 s) -> i64 {
         i64 l = 0;
         while dref s; {
             s += 1;
@@ -447,7 +594,7 @@ This function is independent from others and can exist without any dependencies.
         - `s` - Input string.
 
       Returns the size (i64). :
-    function strlen(ptr i8 s) => i64;
+    function strlen(ptr i8 s) -> i64;
 #endif
 }
 ``` 
@@ -465,7 +612,7 @@ a = 11; : <= RO_ASSIGN! :
 - Invalid place for function return
 Example:
 ```cpl
-function foo() => ptr u64 { :...: }
+function foo() -> ptr u64 { :...: }
 i8 a = foo(); : <= INVALID_RETURN_TYPE! :
 ```
 
@@ -503,17 +650,17 @@ while 1; { : ... : : <= INEFFICIENT_WHILE! :
 ```
 - etc.
 
-CPL uses an inbuild static analyzator for the code checking before the compilation. For example, such an analyzator helps programmer to work with the code like below:
+CPL uses an inbuild static analyzator for the code checking before compilation. For example, such an analyzator helps programmer to work with the code like below:
 ```cpl
 {
     #include "string_h.cpl"
-    function foo() => i32 { return 1; }
+    function foo() -> i32 { return 1; }
 
-    function barBar() => i0 { }
+    function barBar() -> i0 { }
 
     function BazBaz() { return 1; } 
 
-    function baz(i32 a) => i0 {
+    function baz(i32 a) -> i0 {
         if a == 0; { return 1; }
         else { return 1; }
 
@@ -521,7 +668,7 @@ CPL uses an inbuild static analyzator for the code checking before the compilati
         else { }
     }
 
-    function fang(i32 a) => i8 {
+    function fang(i32 a) -> i8 {
         if not a; { return 123321; }
         else { }
         return 1;
@@ -683,7 +830,7 @@ The code above will produce a ton of errors and warnings:
    |        ^
 [INFO]    [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:5:22] Function name='barBar' isn't in a sneaky_case! 'camelCase'
 [WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:5:14] Function='barBar' doesn't have the 'return' statement in all paths!
- 5 | function barBar() => i0 
+ 5 | function barBar() -> i0 
  5 | {
  5 | }
 ```
@@ -733,31 +880,26 @@ Outer variables can be seen by current and nested scopes.
 }
 ```
 
-# Ownership rules
-## Ownership model vs Rust
-CPL uses a lightweight ownership model with `register allocation` that resembles Rust’s borrow checker, but it serves a different purpose and operates with fewer restrictions.  
+# Liveness-based stack slot reuse
+CPL performs a compile-time analysis of variable lifetimes to reduce stack usage. The compiler tracks when a local variable is still needed (“live”) and when it is no longer used (“dead”). Once a variable is proven dead, its stack slot may be reused for another variable declared later.
 
-### Similarities
-- **Ownership tracking**:  
-  Each variable can have one or more owners. Ownership is explicitly transferred with the `ref` keyword.  
-- **Lifetime-based reuse**:  
-  When a variable and all of its owners are no longer used, its stack slot can be safely reused by another variable.  
-- **Compile-time analysis**:  
-  The compiler analyzes usage and ownership before code generation, preventing unsafe reuse of stack slots.
+## Idea
+- Every local variable has a lifetime interval: from its initialization until its last use.
+- A pointer/reference created with ref is treated as a use that may extend the lifetime of the referenced value.
+- The compiler may reuse stack memory only when it can prove that the old value and all its references are no longer used.
 
-### Differences
-1. **Multiple owners allowed**  
-   In Rust, only one owner exists at a time, while in CPL multiple owners may coexist in the ownership list.
-2. **Optimization-oriented**  
-   Rust’s borrow checker enforces memory safety rules.  
-   Cordell’s ownership tracking exists primarily to enable **stack slot reuse** and reduce stack frame size.
-3. **Memory reuse instead of drops**  
-   Rust frees resources automatically at the end of a lifetime (`Drop`).  
-   CPL does not guarantee cleanup but instead marks the memory slot as reusable once ownership is gone.
-4. **Low-level design**  
-   CPL's model is closer to compiler optimizations such as **SSA transformation, register allocation, or stack coloring**, while Rust’s model is a high-level safety feature of the language.
+Think of it as stack coloring or liveness-based stack slot allocation: two variables that are never live at the same time can share the same stack memory
 
-### Example
+## What this is NOT
+Not a memory-safety system
+
+- CPL doesn't prevent all dangling pointers or aliasing issues. The analysis is used to avoid incorrect stack reuse, not to “make pointers safe.”
+- Not Rust ownership / borrowing
+- Rust enforces rules like “one mutable reference or many immutable ones” and prevents data races / use-after-free in safe code.
+
+CPL does not enforce these restrictions. CPL only ensures that the compiler does not intentionally reuse a stack slot while it is still provably needed.
+
+## Example
 ```cpl
 {
     start() {
@@ -780,7 +922,7 @@ Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
 ## strlen
 ```cpl
 {
-    function strlen(ptr i8 s) => i64 {
+    function strlen(ptr i8 s) -> i64 {
         i64 l = 0;
         while dref s; {
             s += 1;
@@ -795,7 +937,7 @@ Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
 ## memset
 ```cpl
 {
-    function memset(ptr u8 buffer, u8 val, u64 size) => i0 {
+    function memset(ptr u8 buffer, u8 val, u64 size) -> i0 {
         u64 index = 0;
         while index < size; {
             buffer[index] = val;
@@ -808,32 +950,31 @@ Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
 ## fd functions
 ```cpl
 {
-    function puts(ptr i8 s) => i64 {
+    function puts(ptr i8 s) -> i64 {
         return syscall(1, 1, s, strlen(s));
     }
 
-    function putc(i8 c) => i64 {
-        arr tmp[2, i8] = { c, 0 };
-        return syscall(1, 1, tmp, 2);
+    function putc(i8 c) -> i64 {
+        return syscall(1, 1, ref c, 1);
     }
 
-    function gets(ptr i8 buffer, i64 size) => i64 {
+    function gets(ptr i8 buffer, i64 size) -> i64 {
         return syscall(0, 0, buffer, size);
     }
 
-    function open(ptr i8 path, i32 flags, i32 mode) => i64 {
+    function open(ptr i8 path, i32 flags, i32 mode) -> i64 {
         return syscall(2, path, flags, mode);
     }
 
-    function fwrite(i32 fd, ptr u8 buffer, i32 size) => i64 {
+    function fwrite(i32 fd, ptr u8 buffer, i32 size) -> i64 {
         return syscall(1, fd, buffer, size);
     }
 
-    function fread(i32 fd, ptr u8 buffer, i32 size) => i64 {
+    function fread(i32 fd, ptr u8 buffer, i32 size) -> i64 {
         return syscall(0, fd, buffer, size);
     }
 
-    function close(i32 fd) => i64 {
+    function close(i32 fd) -> i64 {
         return syscall(3, fd);
     }
 }

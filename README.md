@@ -90,7 +90,7 @@ Here we are implement the simple `strlen` function and test it on a string.
 
 ```cpl
 {
-    function strlen(ptr i8 s) => i64 {
+    function strlen(ptr i8 s) -> i64 {
         i64 l = 0;
         while dref s; {
             s += 1;
@@ -122,7 +122,7 @@ For instance:
         - `s` - Input string.
 
       Returns the size (i64). :
-    function strlen(ptr i8 s) => i64;
+    function strlen(ptr i8 s) -> i64;
 #endif
 }
 
@@ -137,7 +137,7 @@ For instance:
       - `msg` - Input message to print.
       
       Returns i0 aka nothing. :
-    function print(ptr str msg) => i0;
+    function print(ptr str msg) -> i0;
 #endif
 }
 
@@ -157,11 +157,11 @@ Will be converted into the code below:
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
 
-    function strlen(ptr i8 s) => i64;
+    function strlen(ptr i8 s) -> i64;
 
 #line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
 
-    function print(ptr str msg) => i0;
+    function print(ptr str msg) -> i0;
 
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/basic.cpl"
 
@@ -194,7 +194,7 @@ line=1, type=2, data=[ptr],
 line=1, type=2, data=[i8], 
 line=1, type=2, data=[s], 
 line=1, type=1, data=[)], 
-line=1, type=0, data=[=>], 
+line=1, type=0, data=[->], 
 line=1, type=2, data=[i64], 
 line=2, type=1, data=[{], 
 line=2, type=2, data=[i64], 
@@ -280,7 +280,7 @@ line=1, type=10, data=[(],
 line=1, type=37, data=[i8], ptr 
 line=1, type=92, data=[s], ptr 
 line=1, type=11, data=[)], 
-line=1, type=50, data=[=>], 
+line=1, type=50, data=[->], 
 line=1, type=34, data=[i64], 
 line=2, type=12, data=[{], 
 line=2, type=34, data=[i64], 
@@ -637,7 +637,7 @@ Dead function elimination, similar to `HIR` constant folding, won't transform so
 ### Tail Recursion Elimination (TRE)
 Tail recursion elimination (based on CFG) find all functions where happens self-invoking at the end. The simplest example here is below:
 ```cpl
-function foo(i32 a = 10) => i8 {
+function foo(i32 a = 10) -> i8 {
    if a > 20; { return a; }
    return foo(a + 1);
 }
@@ -645,7 +645,7 @@ function foo(i32 a = 10) => i8 {
 
 When we found such function, we determine if it ready for `TRE`. Then we transform it into the cycle:
 ```cpl
-function foo(i32 a = 10) => i8 {
+function foo(i32 a = 10) -> i8 {
 lbX:
    if a > 20; { return a; }
    a += 1;
@@ -861,6 +861,7 @@ Next step is LIR lowering. The most common way here - instruction selection. Thi
 
 <details>
 <summary><strong>LIR selected instructions</strong></summary>
+
 ```
 fn strlen(i8* s) -> i64
 {

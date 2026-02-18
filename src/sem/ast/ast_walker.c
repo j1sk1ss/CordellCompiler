@@ -65,9 +65,11 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case LOOP_TOKEN:   return LOOP_NODE;
         case WHILE_TOKEN:  return WHILE_NODE;
         case START_TOKEN:  return START_NODE;
+        case ADDR_CALL_TOKEN:
         case CALL_TOKEN:   return CALL_NODE;
         case FUNC_TOKEN:   return FUNCTION_NODE;
         
+        case INDEXATION_TOKEN:   return INDEX_NODE;
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN: return DEF_ARRAY_NODE;
 
@@ -98,12 +100,10 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case ARRAY_TYPE_TOKEN: return DECLARATION_NODE;
 
         case ASSIGN_TOKEN:
-        case ORASSIGN_TOKEN:
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
         case MULASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:
-        case ANDASSIGN_TOKEN:
         case BITORASSIGN_TOKEN:
         case MODULOASSIGN_TOKEN:
         case BITANDASSIGN_TOKEN:
@@ -168,7 +168,7 @@ Returns 1 if succeeds. Otherwise returns 0 - Semantic block of a compilation.
 */
 static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
     if (!nd) return 0;
-
+    
     /* Parent flags setup */
     _update_flags(nd, &ctx->flags, 1);
     if (_ast_walk(nd->c, ctx) == -1) return 0;

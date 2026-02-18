@@ -175,9 +175,24 @@ int map_isempty(map_t* m) {
 }
 
 int map_equals(map_t* a, map_t* b) {
-    if (!a || !b) return 0;
-    if (!a->cmp || !b->cmp) return 0;
-    return a->hash == b->hash;
+    if (
+        (!a || !b) ||
+        (!a->cmp || !b->cmp) ||
+        (a->hash != b->hash) ||
+        (a->size != b->size)
+    ) return 0;
+
+    for (long i = 0; i < a->capacity; i++) {
+        if (a->entries[i].used) {
+            if (
+                !b->entries[i].used ||
+                (b->entries[i].key != a->entries[i].key) ||
+                (b->entries[i].value != a->entries[i].value) 
+            ) return 0;
+        }
+    }
+
+    return 1;
 }
 
 int map_compress(map_t* m) {

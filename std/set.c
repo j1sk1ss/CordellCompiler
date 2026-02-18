@@ -56,9 +56,11 @@ int set_copy(set_t* dst, set_t* src) {
 
 int set_intersect(set_t* dst, set_t* a, set_t* b) {
     set_foreach (void* data, a) {
-        if (set_has(b, data)) set_add(dst, data);
+        if (set_has(b, data)) {
+            set_add(dst, data);
+        }
     }
-    
+
     return 1;
 }
 

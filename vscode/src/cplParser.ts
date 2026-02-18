@@ -130,8 +130,8 @@ const TYPE_KW = new Set([
 const OPERATORS = [
   "||=","&&=","<<",">>","==","!=","<=",">=","&&","||",
   "+=","-=","*=","/=","%=","|=","^=","&=","=",
-  "+","-","*","/","%","|","^","&","<",">", "=>", "..."
-].sort((a,b)=>b.length-a.length);
+  "+","-","*","/","%","|","^","&","<",">", "->", "..."
+].sort((a,b) => b.length-a.length);
 
 const PUNC = new Set(["{","}","(",")","[","]",",",";","#"]);
 
@@ -459,7 +459,7 @@ class Parser {
         this.expect("punc", ")");
     
         let ret: TypeNode = { kind: "prim", name: "i0" };
-        if (this.match("op", "=>")) {
+        if (this.match("op", "->")) {
           ret = this.parseType();
         }
     
@@ -497,7 +497,7 @@ class Parser {
       this.expect("punc", ")");
 
       let ret: TypeNode = { kind: "prim", name: "i0" };
-      if (this.match("op", "=>")) ret = this.parseType();
+      if (this.match("op", "->")) ret = this.parseType();
 
       const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
 

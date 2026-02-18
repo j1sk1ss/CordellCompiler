@@ -6,7 +6,7 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
         if (vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) {
             array_info_t ai;
             if (!ARTB_get_info(vi->v_id, &ai, &smt->a)) continue;
-            token_t tmptkn = { .t_type = ai.el_type, .flags = { .ptr = vi->vfs.ptr } };
+            token_t tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
             if ((!list_size(&ai.elems) && !bss) || (list_size(&ai.elems) && bss)) continue;
             if (!list_size(&ai.elems)) {
                 switch (TKN_variable_bitness(&tmptkn, 1)) {
@@ -66,8 +66,7 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
         fprintf(output, "_str_%li_ db ", si->id);
         char* data = si->value->body;
         while (*data) {
-            fprintf(output, "%i,", *data);
-            data++;
+            fprintf(output, "%i,", *(data++));
         }
 
         fprintf(output, "0\n");

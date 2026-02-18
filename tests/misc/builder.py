@@ -42,11 +42,13 @@ class CCBuilder:
         return source_files
 
     def build(
-        self, test_file: str, output_dir: str, extra_flags: list = []
+        self, test_file: str, output_dir: str, extra_flags: list = [], show_logs: bool = True
     ) -> str | None:
         macros = [ f"-D{macro}" for macro in self.settings.config.get('macros', []) ] + [ f"-{flag}" for flag in extra_flags ]
         source_files = self._expand_sources(self.settings.config.get('sources', []))
-        print(f"CCBuilder.build, macro={macros}, source_files={' '.join(source_files[:3])} ... [{len(source_files) - 4} more files]") 
+        
+        if show_logs:
+            print(f"CCBuilder.build, macro={macros}, source_files={' '.join(source_files[:3])} ... [{len(source_files) - 4} more files]") 
         
         if not source_files:
             print(f"Error: No source files found for test {self.settings.target}")
@@ -60,14 +62,17 @@ class CCBuilder:
             '-Wextra',
         ]
         
-        print(f"Building test: {self.settings.target}")
-        print(f"Output: {output_file}")
-        print(f"Macros: {', '.join(self.settings.config.get('macros', []))}")
-        print(f"Sources: {len(source_files)} files")
+        if show_logs:
+            print(f"Building test: {self.settings.target}")
+            print(f"Output: {output_file}")
+            print(f"Macros: {', '.join(self.settings.config.get('macros', []))}")
+            print(f"Sources: {len(source_files)} files")
         
         command: list = [ self.settings.compiler.value ] + base_flags + macros + [ test_file ] + source_files + [ '-o', str(output_file) ]
-        print(f"Command: {' '.join(command[:5])} ... [{len(command) - 6} more args]")
-        print("-" * 50)
+        
+        if show_logs:
+            print(f"Command: {' '.join(command[:5])} ... [{len(command) - 6} more args]")
+            print("-" * 50)
         
         try:
             result = subprocess.run(command, capture_output=True, text=True)
@@ -76,8 +81,9 @@ class CCBuilder:
                 print(result.stderr)
                 return None
             else:
-                print(f"Successfully built {self.settings.target}")
-                print(result.stderr)
+                if show_logs:
+                    print(f"Successfully built {self.settings.target}")
+                    print(result.stderr)
                 return output_file
         except Exception as e:
             print(f"Error during compilation of {self.settings.target}: {e}")

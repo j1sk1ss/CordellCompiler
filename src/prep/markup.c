@@ -77,8 +77,6 @@ static const markup_token_t _lexems[] = {
     LEXEM(BITANDASSIGN_STATEMENT, BITANDASSIGN_TOKEN),
     LEXEM(BITORASSIGN_STATEMENT,  BITORASSIGN_TOKEN),
     LEXEM(BITXORASSIGN_STATEMENT, BITXORASSIGN_TOKEN),
-    LEXEM(ORASSIGN_STATEMENT,     ORASSIGN_TOKEN),
-    LEXEM(ANDASSIGN_STATEMENT,    ANDASSIGN_TOKEN),
     LEXEM(ASSIGN_STATEMENT,       ASSIGN_TOKEN),
     LEXEM(COMPARE_STATEMENT,      COMPARE_TOKEN),
     LEXEM(NCOMPARE_STATEMENT,     NCOMPARE_TOKEN),
@@ -124,6 +122,7 @@ int MRKP_mnemonics(list_t* tkn) {
     _build_lexems_map(&lexems);
     foreach (token_t* curr, tkn) {
         long t;
+        if (curr->t_type == STRING_VALUE_TOKEN) continue;
         if (map_get(&lexems, crc64((unsigned char*)curr->body->body, curr->body->size, 0), (void**)&t)) {
             curr->t_type = t;
         }
@@ -197,7 +196,7 @@ static int _apply_modifiers(list_t* tkn) {
         token_t* next = (token_t*)list_iter_current(&it);
         if (next) switch (curr->t_type) {
             case GLOB_TYPE_TOKEN: cflags.glob = 1; _remove_token(tkn, curr); break;
-            case PTR_TYPE_TOKEN:  cflags.ptr  = 1; _remove_token(tkn, curr); break;
+            case PTR_TYPE_TOKEN:  cflags.ptr++;    _remove_token(tkn, curr); break;
             case RO_TYPE_TOKEN:   cflags.ro   = 1; _remove_token(tkn, curr); break;
             default: {
                 str_memcpy(&curr->flags, &cflags, sizeof(token_flags_t));

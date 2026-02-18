@@ -16,8 +16,8 @@ static int _destroy_info(source_pos_info_t* inf) {
     if (!inf) return 0;
     if (inf->f) fclose(inf->f);
     if (inf->n) free(inf->n);
-    free(inf);
     stack_free(&inf->cst.skips);
+    free(inf);
     return 1;
 }
 
@@ -81,10 +81,10 @@ static int _push_include(FILE* curr, sstack_t* st, finder_ctx_t* fctx, char* inc
         return _try_push_path(st, inc_name) ? 1 : 0;
     }
 
-    char full[PATH_MAX] = { 0 };
+    char full[PP_PATH_MAX] = { 0 };
     if (!is_system) {
-        char curr_path[PATH_MAX] = { 0 };
-        char dir_buf[PATH_MAX]   = { 0 };
+        char curr_path[PP_PATH_MAX] = { 0 };
+        char dir_buf[PP_PATH_MAX]   = { 0 };
         if (PP_file_path_from_fp(curr, curr_path, sizeof(curr_path))) {
             strncpy(dir_buf, curr_path, sizeof(dir_buf));
             dir_buf[sizeof(dir_buf) - 1] = 0;

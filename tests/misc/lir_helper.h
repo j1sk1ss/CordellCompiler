@@ -6,7 +6,6 @@
 #include <lir/lir_types.h>
 #include "reg_helper.h"
 
-static int _lir_depth = 0;
 static const char* lir_op_to_fmtstring(lir_operation_t op) {
     switch(op) {
         case LIR_BB:         return "\nBB%s: ";
@@ -154,7 +153,7 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
         case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(s->storage.str.sid, &fi, &smt->f)) {
-                dst += sprintf(dst, "%s(", fi.name->body);
+                dst += sprintf(dst, "%s(", fi.virt->body);
             }
 
             if (fi.args) {
@@ -186,11 +185,7 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
     return dst;
 }
 
-void lir_printer_reset() {
-    _lir_depth = 0;
-}
-
-void print_lir_block(const lir_block_t* block, sym_table_t* smt) {
+static void print_lir_block(const lir_block_t* block, sym_table_t* smt) {
     if (!block) return;
     
     char arg1[256] = { 0 };
@@ -201,9 +196,10 @@ void print_lir_block(const lir_block_t* block, sym_table_t* smt) {
     if (block->sarg) sprintf_lir_subject(arg2, block->sarg, smt);
     if (block->targ) sprintf_lir_subject(arg3, block->targ, smt);
     
-    char line[512] = { 0 };
     if (block->unused) printf("[unused] ");
     const char* fmt = lir_op_to_fmtstring(block->op);
+
+    char line[512] = { 0 };
     sprintf(line, fmt, arg1, arg2, arg3);
     fprintf(stdout, "%s", line);
 }

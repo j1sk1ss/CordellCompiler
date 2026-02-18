@@ -15,11 +15,15 @@ typedef enum {
     UNKNOWN_CHAR_TOKEN,
     UNKNOWN_BRACKET_VALUE,
     UNKNOWN_STRING_TOKEN,
-    UNKNOWN_NUMERIC_TOKEN,
+    UNKNOWN_NUMERIC_TOKEN,       // 123
+    UNKNOWN_FLOAT_NUMERIC_TOKEN, // 123.123
+    UNKNOWN_SIGN_TOKEN,          // +, -, *, /, etc
     LINE_BREAK_TOKEN,
 
     DELIMITER_TOKEN,     // ;
     COMMA_TOKEN,         // ,
+    INDEXATION_TOKEN,    // []
+    CALLING_TOKEN,       // ()
     OPEN_INDEX_TOKEN,    // [
     CLOSE_INDEX_TOKEN,   // ]
     OPEN_BRACKET_TOKEN,  // (
@@ -73,7 +77,7 @@ typedef enum {
     START_TOKEN,         // start
     RETURN_TOKEN,        // return
     EXIT_TOKEN,          // exit
-    RETURN_TYPE_TOKEN,   // =>
+    RETURN_TYPE_TOKEN,   // ->
     SCOPE_TOKEN,         // {  }
 
     // Function
@@ -83,7 +87,9 @@ typedef enum {
     FUNC_PROT_TOKEN,     // function <name> - prototype
     FUNC_TOKEN,          // function
     FUNC_NAME_TOKEN,     // function <name>
-    CALL_TOKEN,
+    CALL_TOKEN,          // fname(...)
+    ADDR_CALL_TOKEN,     // something(...) - doesn't support default args, etc, but can handle addr to anything
+    CALL_ADDR,           // fname without () operation. Means that we're working with the address of a function
     
     // Condition scope
     SWITCH_TOKEN,        // switch
@@ -110,8 +116,6 @@ typedef enum {
     BITANDASSIGN_TOKEN,  // &=
     BITORASSIGN_TOKEN,   // |=
     BITXORASSIGN_TOKEN,  // ^=
-    ORASSIGN_TOKEN,      // ||=
-    ANDASSIGN_TOKEN,     // &&=
     ASSIGN_TOKEN,        // =
     COMPARE_TOKEN,       // ==
     NCOMPARE_TOKEN,      // !=
@@ -153,7 +157,7 @@ typedef enum {
 typedef struct {
     char ro   : 1; /* Is read only flag   */
     char glob : 1; /* Is global flag      */
-    char ptr  : 1; /* Is pointer flag     */
+    int  ptr;      /* Is pointer flag     */
     char ext  : 1; /* Is extern flag      */
     char heap : 1; /* Is heap allocated   */
 } token_flags_t;

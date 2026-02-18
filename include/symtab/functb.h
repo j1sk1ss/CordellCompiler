@@ -8,10 +8,12 @@
 #include <symtab/symtab_id.h>
 
 typedef struct {
-    symbol_id_t id;
-    string_t*   name;
-    ast_node_t* args;
-    ast_node_t* rtype;
+    string_t*   name;  /* Base function name    */
+    string_t*   virt;  /* De-virtual name       */
+
+    symbol_id_t id;    /* String ID in symtable */
+    ast_node_t* args;  /* Input arguments       */
+    ast_node_t* rtype; /* Function return type  */
 
     struct {
         char    global   : 1;
@@ -25,6 +27,17 @@ typedef struct func_ctx {
     symbol_id_t curr_id;
     map_t       functb;
 } functab_ctx_t;
+
+/*
+Collect all functions with the same name.
+Params:
+    - `fname` - Target function name.
+    - `out` - The output list.
+    - `ctx` - Function symbol table.
+
+Returns 1 if succeeds. Otherwise will return 0.
+*/
+int FNTB_collect_info(string_t* fname, list_t* out, functab_ctx_t* ctx);
 
 /*
 Get function from a table by the provided ID.
@@ -92,5 +105,8 @@ Params:
 Returns 1 if succeeds.
 */
 int FNTB_unload(functab_ctx_t* ctx);
+
+#define fn_iterate_args(fn) \
+    for (ast_node_t* arg = (fn)->args->c; arg && arg->t->t_type != SCOPE_TOKEN; arg = arg->siblings.n)
 
 #endif

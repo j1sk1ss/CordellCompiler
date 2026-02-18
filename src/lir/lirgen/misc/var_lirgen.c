@@ -29,6 +29,7 @@ lir_subject_t* x86_64_format_variable(hir_subject_t* subj) {
         
         case HIR_RAWASM:   return LIR_SUBJ_RAWASM(subj->storage.str.s_id);
         case HIR_STRING:   return LIR_SUBJ_STRING(subj->storage.str.s_id);
+        case HIR_FNAME:    return LIR_SUBJ_ADDRFUNC(subj);
         
         case HIR_TMPVARF64: case HIR_TMPVARF32:
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARI64: case HIR_TMPVARU64:
@@ -39,7 +40,8 @@ lir_subject_t* x86_64_format_variable(hir_subject_t* subj) {
         case HIR_STKVARU8:  case HIR_STKVARI8:  case HIR_GLBVARSTR: case HIR_GLBVARARR: 
         case HIR_GLBVARF64: case HIR_GLBVARU64: case HIR_GLBVARI64: case HIR_GLBVARF32: 
         case HIR_GLBVARU32: case HIR_GLBVARI32: case HIR_GLBVARU16: case HIR_GLBVARI16: 
-        case HIR_GLBVARU8:  case HIR_GLBVARI8: return LIR_SUBJ_VAR(subj->storage.var.v_id, HIR_get_type_size(subj->t));
+        case HIR_GLBVARU8:  case HIR_GLBVARI8: 
+        return LIR_SUBJ_VAR(subj->storage.var.v_id, subj->ptr > 0 ? 8 : HIR_get_type_size(subj->t));
         
         default: return NULL;
     }

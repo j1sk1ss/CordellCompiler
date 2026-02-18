@@ -75,8 +75,6 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
         return NULL;
     }
 
-    token_type_t eltype = elem_type_node->t->t_type;
-    if (elem_type_node->t->flags.ptr) eltype = U64_TYPE_TOKEN;
     AST_add_node(node, elem_type_node);
 
     forward_token(it, 1);
@@ -107,13 +105,19 @@ ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_tab
         }
     }
 
+    /* Add variable information. Note here:
+       Array, basically, is a pointer. That's why we increment the .ptr flag to 1. */
     long decl_scope;
     stack_top(&ctx->scopes.stack, (void**)&decl_scope);
     name_node->sinfo.v_id = VRTB_add_info(
         name_node->t->body, ARRAY_TYPE_TOKEN, decl_scope, &name_node->t->flags, &smt->v
     );
 
-    ARTB_add_info(name_node->sinfo.v_id, array_size, name_node->t->flags.heap, eltype, &smt->a);
+    ARTB_add_info(
+        name_node->sinfo.v_id, array_size, name_node->t->flags.heap, 
+        elem_type_node->t->t_type, &elem_type_node->t->flags, &smt->a
+    );
+    
     var_lookup(name_node, ctx, smt);
     return node;
 }

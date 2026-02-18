@@ -42,7 +42,7 @@ Returns an AST node.
 */
 static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int mp, int na) {
     SAVE_TOKEN_POINT;
-
+    
     ast_node_t* left = _parse_primary(it, ctx, smt, na);
     if (!left) {
         RESTORE_TOKEN_POINT;
@@ -51,6 +51,47 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
     
     while (CURRENT_TOKEN) {
         switch (CURRENT_TOKEN->t_type) {
+            /* Indexation token */
+            case OPEN_INDEX_TOKEN: {
+                forward_token(it, 1);
+                ast_node_t* index_op   = AST_create_node_bt(CREATE_INDEX_TOKEN);
+                ast_node_t* indexation = cpl_parse_expression(it, ctx, smt, 1);
+                if (index_op && indexation) {
+                    ast_node_t* tmp = left;
+                    left = index_op;
+                    AST_add_node(left, tmp);
+                    AST_add_node(left, indexation);
+                    forward_token(it, 1);
+                    continue;
+                }
+                else {
+                    PARSE_ERROR("Error during a indexation parsing!");
+                    AST_unload(left);
+                    AST_unload(index_op);
+                    AST_unload(indexation);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+            }
+            /* Unknown function call operator */
+            case OPEN_BRACKET_TOKEN: {
+                forward_token(it, 1);
+                ast_node_t* call_op   = AST_create_node_bt(CREATE_CALL_TOKEN);
+                ast_node_t* arguments = cpl_parse_call_arguments(it, ctx, smt, NULL);
+                if (call_op && arguments) {
+                    ast_node_t* tmp = left;
+                    left = call_op;
+                    AST_add_node(left, tmp);
+                    AST_add_node(left, arguments);
+                    forward_token(it, 1);
+                    continue;
+                }
+                else {
+                    PARSE_ERROR("Function call error!");
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+            }
             /* Convert operator */
             case CONVERT_TOKEN: {
                 ast_node_t* conv_type = cpl_parse_conv(it);
@@ -58,6 +99,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     ast_node_t* tmp = left;
                     left = conv_type;
                     AST_add_node(left, tmp);
+                    continue;
                 }
                 else {
                     PARSE_ERROR("Error during a cast parsing!");
@@ -111,43 +153,6 @@ _stop_expression_parsing: {}
     return left;
 }
 
-/*
-Parse array expression that looks like: <name>(opt: [<stmt>])
-Params:
-    - `it` - Current iterator.
-    - `ctx` - AST context.
-    - `smt` - Symtable.
-
-Returns an AST node.
-*/
-static ast_node_t* _parse_array_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
-    SAVE_TOKEN_POINT;
-
-    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) {
-        PARSE_ERROR("Can't create a base for the array-like expression!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-    
-    if (consume_token(it, OPEN_INDEX_TOKEN)) {
-        forward_token(it, 1);
-        ast_node_t* offset_exp = cpl_parse_expression(it, ctx, smt, na);
-        if (!offset_exp) {
-            PARSE_ERROR("Index expression parse error!");
-            AST_unload(node);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
-
-        AST_add_node(node, offset_exp);
-        forward_token(it, 1);
-    }
-
-    var_lookup(node, ctx, smt);
-    return node;
-}
-
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
     
@@ -166,7 +171,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 RESTORE_TOKEN_POINT;
                 return NULL;
             }
-
+            
             forward_token(it, 1);
             return node;
         }
@@ -196,11 +201,6 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
     var_lookup(node, ctx, smt);
     /* Check basic cases such as pointer access, 
        call token (basic call), syscall token */
-    if (TKN_isptr(CURRENT_TOKEN)) {
-        AST_unload(node);
-        return _parse_array_expression(it, ctx, smt, na); /* str / arr[] / arr / ptr / ptr[] */
-    }
-
     forward_token(it, 1);
     return node;
 }

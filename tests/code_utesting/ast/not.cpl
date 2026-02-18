@@ -1,0 +1,43 @@
+{
+    start() {
+        i32 a = not 1;
+        if not (not (not (not a))); {
+            a = not not not not a;
+        }
+        exit not (1 + 1 + 1 * (not a));
+    }
+}
+
+: OUTPUT
+{ scope, id=1 }
+   [start] (START_TOKEN, v_id=0, s_id=0)
+      { scope, id=2 }
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
+            [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+         [if] (IF_TOKEN, v_id=0, s_id=2)
+            [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+               [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+                  [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+                     [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+                        [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
+            { scope, id=3 }
+               [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)
+                  [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
+                  [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+                     [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+                        [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+                           [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+                              [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
+         [exit] (EXIT_TOKEN, v_id=0, s_id=2)
+            [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+               [+] (PLUS_TOKEN, v_id=-1, s_id=0)
+                  [+] (PLUS_TOKEN, v_id=-1, s_id=0)
+                     [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+                     [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+                  [*] (MULTIPLY_TOKEN, v_id=-1, s_id=0)
+                     [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+                     [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+                        [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
+:

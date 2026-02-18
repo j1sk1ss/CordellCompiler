@@ -14,6 +14,7 @@ static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, s
     if (!n) return NULL;
     n->header = header;
     n->latch  = latch;
+    n->p      = NULL;
     list_init(&n->children);
     set_copy(&n->blocks, loop_blocks);
     return n;
@@ -28,15 +29,16 @@ Params:
 
 Returns 1 if succeeds.
 */
-static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b) {
+static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b, set_t* visited) {
     if (
-        !set_add(b, entry) ||
-        entry == exit
+        !set_add(b, entry) || 
+        entry == exit || 
+        !set_add(visited, entry)
     ) return 0;
 
     set_foreach (cfg_block_t* bb, &entry->pred) {
         bb->type = CFG_LOOP_BLOCK;
-        _get_loop_blocks(bb, exit, b);
+        _get_loop_blocks(bb, exit, b, visited);
     }
 
     return 1;
@@ -71,34 +73,53 @@ Returns 1 if succeeds.
 */
 static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
     foreach (cfg_block_t* cb, &fb->blocks) {
-        if (cb->jmp && set_has(&cb->dom, cb->jmp)) {
-            cfg_block_t* header = cb->jmp;
-            cfg_block_t* latch  = cb;
+        cfg_block_t* succs[] = { cb->jmp, cb->l };
+        for (int i = 0; i < (int)(sizeof(succs) / sizeof(cfg_block_t*)); i++) {
+            cfg_block_t* succ = succs[i];
+            if (set_has(&cb->dom, succ)) {
+                cfg_block_t* header = succ;
+                cfg_block_t* latch  = cb;
+                if (header->type == CFG_LOOP_HEADER) {
+                    continue;
+                }
 
-            header->type = CFG_LOOP_HEADER;
-            header->type = CFG_LOOP_LATCH;
+                header->type = CFG_LOOP_HEADER;
+                latch->type  = CFG_LOOP_LATCH;
 
-            set_t loop_blocks;
-            set_init(&loop_blocks, SET_NO_CMP);
-            set_add(&loop_blocks, header);
-            
-            if (!_get_loop_blocks(latch, header, &loop_blocks)) {
-                print_error("Can't obtain loop blocks from the loop!");
-                list_free_force_op(l, (int (*)(void*))_loop_node_free);
+                set_t loop_blocks;
+                set_init(&loop_blocks, SET_NO_CMP);
+                set_add(&loop_blocks, header);
+
+                set_t visited;
+                set_init(&visited, SET_NO_CMP);
+                int res = _get_loop_blocks(latch, header, &loop_blocks, &visited);
+                set_free(&visited);
+
+                if (!res) {
+                    print_error("Can't obtain loop blocks from the loop!");
+                    list_free_force_op(l, (int (*)(void*))_loop_node_free);
+                    set_free(&loop_blocks);
+                    return 0;
+                }
+
+                foreach (cfg_block_t* bb, &fb->blocks) {
+                    if (set_has(&bb->dom, header) && !set_has(&loop_blocks, bb)) {
+                        set_add(&loop_blocks, bb);
+                        bb->type = CFG_LOOP_BLOCK;
+                    }
+                }
+
+                loop_node_t* node = _loop_node_create(header, latch, &loop_blocks);
+                if (!node) {
+                    print_error("Can't create the loop node from blocks!");
+                    list_free_force_op(l, (int (*)(void*))_loop_node_free);
+                    set_free(&loop_blocks);
+                    return 0;
+                }
+
+                list_push_back(l, (void*)node);
                 set_free(&loop_blocks);
-                return 0;
             }
-
-            loop_node_t* node = _loop_node_create(header, latch, &loop_blocks);
-            if (!node) {
-                print_error("Can't create the loop node from blocks!");
-                list_free_force_op(l, (int (*)(void*))_loop_node_free);
-                set_free(&loop_blocks);
-                return 0;
-            }
-
-            list_push_back(l, (void*)node);
-            set_free(&loop_blocks);
         }
     }
 
@@ -114,7 +135,7 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
         list_free_force_op(&rl, (int (*)(void*))_loop_node_free);
         return 0;
     }
-
+    
     foreach (loop_node_t* ni, &rl) {
         int best_size = INT_MAX;
         loop_node_t* best_parent = NULL;
@@ -128,8 +149,11 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
             }
         }
 
-        if (best_parent) list_push_back(&best_parent->children, ni);
-        else list_push_back(&ctx->loops, ni);
+        if (!best_parent) list_push_back(&ctx->loops, ni); 
+        else {
+            list_push_back(&best_parent->children, ni);
+            ni->p = best_parent;
+        }
     }
 
     list_free(&rl);
@@ -151,6 +175,17 @@ int HIR_LOOP_mark_loops(cfg_ctx_t* cctx) {
     }
 
     return 1;
+}
+
+int HIR_LTREE_nested_count(loop_node_t* node) {
+    if (!node) return 0;
+    int nested = 0;
+    while (node) {
+        nested++;
+        node = node->p;
+    }
+
+    return nested;
 }
 
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx) {

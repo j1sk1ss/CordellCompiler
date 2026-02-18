@@ -143,6 +143,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
         }
     }
 
+    /* Register successors and precessors */
     foreach (cfg_func_t* fb, &ctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             if (cb->l)   set_add(&cb->l->pred, cb);
@@ -150,7 +151,38 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
         }
     }
 
+    /* Clean the CFG by destroying the link from blocks,
+       without any precessors (except initial). */
+    foreach (cfg_func_t* fb, &ctx->funcs) {
+        int first = 1;
+        foreach (cfg_block_t* cb, &fb->blocks) {
+            if (first) {
+                first = 0;
+                continue;
+            }
+
+            /* This block doesn't have any precessors, which means,
+               we need to destroy link from this block (this is the dead end). */
+            if (!set_size(&cb->pred)) {
+                if (cb->l)   set_remove(&cb->l->pred, cb);
+                if (cb->jmp) set_remove(&cb->jmp->pred, cb);
+                cb->l = cb->jmp = NULL;
+            }
+        }
+    }
+
     return 1;
+}
+
+int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb) {
+    int blocks = 0;
+    hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
+    while (hh) {
+        blocks++;
+        hh = HIR_get_next(hh, bb->hmap.exit, 1);
+    }
+
+    return blocks;
 }
 
 int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx) {

@@ -2,49 +2,18 @@
 
 hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     hir_subject_t* res = NULL;
-    if (node->t->flags.ptr) goto _indexing;
-    else {
-        switch (node->t->t_type) {
-            case STRING_VALUE_TOKEN:    res = HIR_SUBJ_STRING(node);          break;
-            case UNKNOWN_NUMERIC_TOKEN: res = HIR_SUBJ_NUMBER(node->t->body); break;
-            case ARR_VARIABLE_TOKEN:
-            case STR_VARIABLE_TOKEN: {
-_indexing: {}
-                ast_node_t* off = node->c;
-                if (!off) res = HIR_SUBJ_ASTVAR(node); 
-                else {
-                    hir_subject_t* offval = HIR_generate_elem(off, ctx, smt);
-                    hir_subject_t* base   = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_add_info(NULL, TMP_U64_TYPE_TOKEN, 0, NULL, &smt->v));
-                    
-                    array_info_t ai;
-                    token_t tmp = { .t_type = node->t->t_type };
-                    if (
-                        !ARTB_get_info(node->sinfo.v_id, &ai, &smt->a) ||
-                        ai.heap
-                    ) HIR_BLOCK2(ctx, HIR_STORE, base, HIR_SUBJ_ASTVAR(node));
-                    else {
-                        HIR_BLOCK2(ctx, HIR_REF, base, HIR_SUBJ_ASTVAR(node));
-                        tmp.t_type = ai.el_type;
-                    }
-                    
-                    hir_subject_t* addr = HIR_SUBJ_TMPVAR(offval->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(offval->t), 0, NULL, &smt->v));
-                    HIR_BLOCK3(
-                        ctx, HIR_iMUL, addr, offval, 
-                        HIR_generate_implconv(ctx, offval->t, HIR_SUBJ_CONST(HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 1))), smt)
-                    );
-
-                    hir_subject_t* head = HIR_SUBJ_TMPVAR(base->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(base->t), 0, NULL, &smt->v));
-                    HIR_BLOCK3(ctx, HIR_iADD, head, base, HIR_generate_implconv(ctx, base->t, addr, smt));
-                    res = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, TKN_get_tmp_type(tmp.t_type), 0, NULL, &smt->v));
-                    HIR_BLOCK2(ctx, HIR_GDREF, res, head);
-                }
-
-                break;
-            }
-
-            default: res = HIR_SUBJ_ASTVAR(node); break;
+    switch (node->t->t_type) {
+        case STRING_VALUE_TOKEN:          res = HIR_SUBJ_STRING(node);           break;
+        case UNKNOWN_NUMERIC_TOKEN:       res = HIR_SUBJ_NUMBER(node->t->body);  break;
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN: res = HIR_SUBJ_FNUMBER(node->t->body); break;
+        case CALL_ADDR: {
+            res = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_add_info(NULL, TMP_U64_TYPE_TOKEN, 0, NULL, &smt->v));
+            res->ptr = 1;
+            HIR_BLOCK2(ctx, HIR_REF, res, HIR_SUBJ_FUNCNAME(node));
+            break;
         }
+        default: res = HIR_SUBJ_ASTVAR(node); break;
     }
 
-    return res ? res : HIR_SUBJ_CONST(0);
+    return res;
 }

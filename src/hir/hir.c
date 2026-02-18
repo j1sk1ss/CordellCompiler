@@ -91,6 +91,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
     subj->t     = t;
     subj->id    = _curr_id++;
     subj->users = 1;
+    subj->ptr   = 0;
 
     switch (t) {
         case HIR_PHISET:  set_init(&subj->storage.set.h, SET_NO_CMP); break;
@@ -105,6 +106,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
         case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
             subj->storage.var.v_id = v_id;
+            subj->ptr = intval;
         break;
 
         case HIR_F64NUMBER:
@@ -152,8 +154,9 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value);
     if (!ns) return NULL;
 
-    ns->t = s->t;
+    ns->t     = s->t;
     ns->users = s->users;
+    ns->ptr   = s->ptr;
 
     switch (ns->t) {
         case HIR_PHISET: {
@@ -246,9 +249,14 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     return blk;
 }
 
-hir_block_t* HIR_copy_block(hir_block_t* b) {
+static inline hir_subject_t* _copy_label(hir_subject_t* s, int copy_label) {
+    if (!s || (!copy_label && s->t == HIR_LABEL)) return s;
+    return HIR_copy_subject(s);
+}
+
+hir_block_t* HIR_copy_block(hir_block_t* b, int copy_labels) {
     return HIR_create_block(
-        b->op, HIR_copy_subject(b->farg), HIR_copy_subject(b->sarg), HIR_copy_subject(b->targ)
+        b->op, _copy_label(b->farg, copy_labels), _copy_label(b->sarg, copy_labels), _copy_label(b->targ, copy_labels)
     );
 }
 

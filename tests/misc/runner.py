@@ -19,7 +19,7 @@ class CCRunner:
             return [ debugger ] + command
     
     def run(
-        self, binary_path: Path, args: list = [], debugger: str | None = None, log_dir: Path = Path("tests")
+        self, binary_path: Path, args: list = [], debugger: str | None = None, log_dir: Path = Path("logs")
     ) -> bool:
         if not binary_path.exists():
             print(f"Error: Binary {binary_path} not found")

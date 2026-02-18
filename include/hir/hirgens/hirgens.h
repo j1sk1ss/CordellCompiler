@@ -22,13 +22,14 @@ Generate implict convertion from the one type to another.
 Note: If the types are similar, it doesn't perform the convertation proccess.
 Params:
     - `ctx` - HIR ctx.
+    - `ptr` - Target reference level.
     - `t` - Target type.
     - `src` - Source HIR subject.
     - `smt` - Symtable.
 
 Return converted HIR subject.
 */
-hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
+hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
 
 /*
 Generate explict convertion from the one type to another. 
@@ -309,6 +310,19 @@ Return parsed from AST HIR subject.
 hir_subject_t* HIR_generate_neg(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Create referenced subject from the source. 
+Params:
+    - `src` - Source HIR subject.
+    - `smt` - Symtable.
+    - `inc` - Increment reference counter.
+              Note: By default set to 1. If set to 0 - 
+                    won't increment the `ptr` field.
+
+Return referenced subject.
+*/
+hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt, int inc);
+
+/*
 Convert ref AST node into HIR element. 
 Params:
     - `node` - AST node.
@@ -340,5 +354,8 @@ Params:
 Return parsed from AST HIR subject.
 */
 hir_subject_t* HIR_generate_poparg(hir_ctx_t* ctx, sym_table_t* smt);
+
+hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt); // TODO
+int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

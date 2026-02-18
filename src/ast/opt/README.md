@@ -4,7 +4,7 @@
 ```cpl
 if 1; {}
 else {}
-: => :
+: -> :
 {} : Now became regular scope block without if statement :
 ```
 
@@ -14,14 +14,14 @@ switch 1; {
     case 1; {}
     default {}
 }
-: => :
+: -> :
 {} : Now became regular scope block without switch statement :
 ```
 
 3) While statements:
 ```cpl
 while 0; {}
-: => :
+: -> :
 : ... While statement and it's body was deleted : 
 ```
 
