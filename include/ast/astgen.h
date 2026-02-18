@@ -67,13 +67,13 @@ Returns 1 if succeeds.
 int AST_init_ctx(ast_ctx_t* ctx, const char* fentry);
 
 /*
-Generate AST from list of tokens.
+Generate an AST tree from a list of tokens.
 Params:
-    - tkn - List of tokens.
-    - ctx - AST ctx.
-    - smt - Symtable.
+    - `tkn` - List of tokens.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable.
 
-Return 1 if success, otherwise 0.
+Returns 1 if succeeds, otherwise will return 0.
 */
 int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt);
 

@@ -17,7 +17,8 @@ hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_
     cnv->ptr = ptr;
      
     /* If this is a pointer convertion (something to a pointer),
-       the convertion becomes a basic 'as u64' cast. */
+       the convertion becomes a basic 'as ptr' cast. 
+       We perform this given the nature of pointers (pointers have the same size). */
     hir_operation_t op = HIR_convop(t);
     if (cnv->ptr > 0) op = HIR_TPTR;
 
