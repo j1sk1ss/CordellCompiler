@@ -25,23 +25,6 @@ static inline int forward_token(list_iter_t* it, int steps) {
 }
 
 /*
-Move the iterator backward with N-steps.
-Params:
-    - `it` - Current iterator.
-    - `steps` - Steps count.
-
-Returns 0 of we reach the start, 1 is still in the list.
-*/
-static inline int backward_token(list_iter_t* it, int steps) {
-    while (steps-- > 0) {
-        if (list_iter_prev_top(it)) list_iter_prev(it);
-        else return 0;
-    }
-
-    return 1;
-}
-
-/*
 Check if the next token is consumed.
 Note: Before the check will move a token iterator first.
 Params:

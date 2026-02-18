@@ -85,8 +85,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         args_node, name_node->c, &smt->f
     );
 
-    /* function <name> ( ... ) [-> t]; - A prototype function 
-    */
+    /* function <name> ( ... ) [-> t]; - A prototype function */
     if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
         node->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);

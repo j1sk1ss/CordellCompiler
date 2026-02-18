@@ -9,7 +9,7 @@ ast_node_t* cpl_parse_call_arguments(list_iter_t* it, ast_ctx_t* ctx, sym_table_
             forward_token(it, 1);
             continue;
         }
-
+        
         ast_node_t* arg = cpl_parse_expression(it, ctx, smt, 1);
         if (arg) AST_add_node(node, arg);
         else { 
@@ -50,8 +50,10 @@ ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
             RESTORE_TOKEN_POINT;
             return NULL;
         }
-    }
 
+        forward_token(it, 1);
+    }
+    
     /* The default argument is allowed only for non-polymorphic functions.
        That's why we're using the list's head (we don't care about other functions) */
     func_info_t fi;
@@ -68,6 +70,5 @@ ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
         }
     }
 
-    forward_token(it, 1);
     return node;
 }

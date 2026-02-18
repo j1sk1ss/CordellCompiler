@@ -13,7 +13,7 @@
     fn foo0(i32 a)
     {
         i32s %0 = alloc(8);
-        i32s %0 = load_arg();
+        i32s %0 = load_starg();
         {
             lb26:
             i64t %2 = i32s %0 as i64;

@@ -20,7 +20,7 @@
     fn foo0(i32 a)
     {
         i32s %0 = alloc(8);
-        i32s %0 = load_arg();
+        i32s %0 = load_starg();
         {
             i64t %2 = i32s %0 as i64;
             i64t %1 = i64t %2 == num? 1;
