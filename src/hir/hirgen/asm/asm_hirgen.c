@@ -4,8 +4,7 @@ int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     hir_subject_t* args = HIR_SUBJ_LIST();
     if (!args) return 0;
 
-    ast_node_t* h = node->c;
-    for (; h->t && h->t->t_type != SCOPE_TOKEN; h = h->siblings.n) {
+    for (ast_node_t* h = node->c->c; h && h->t; h = h->siblings.n) {
         hir_subject_t* el = HIR_generate_elem(h, ctx, smt);
         if (!el) {
             HIR_unload_subject(args);
@@ -18,7 +17,7 @@ int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     }
 
     HIR_BLOCK3(ctx, HIR_STASM, NULL, NULL, args);
-    for (ast_node_t* l = h->c; l; l = l->siblings.n) {
+    for (ast_node_t* l = node->c->siblings.n->c; l; l = l->siblings.n) {
         HIR_BLOCK1(ctx, HIR_RAW, HIR_SUBJ_RAWASM(l));
     }
 

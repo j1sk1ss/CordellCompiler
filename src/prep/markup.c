@@ -122,6 +122,7 @@ int MRKP_mnemonics(list_t* tkn) {
     _build_lexems_map(&lexems);
     foreach (token_t* curr, tkn) {
         long t;
+        if (curr->t_type == STRING_VALUE_TOKEN) continue;
         if (map_get(&lexems, crc64((unsigned char*)curr->body->body, curr->body->size, 0), (void**)&t)) {
             curr->t_type = t;
         }

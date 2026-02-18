@@ -2,7 +2,7 @@
     function foo() -> i32;
     start() {
         i32 a = foo();
-        i32 b = foo(); : The second function doesn't changed given the possibility of a side effect :
+        i32 b = foo(); : The second function doesn't change given the possibility of a side effect :
         i32 c = (a + b) + (a + b) + (a + b);
     }
 }
