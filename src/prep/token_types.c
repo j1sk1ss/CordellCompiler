@@ -290,9 +290,9 @@ int TKN_isvariable(token_t* token) {
     }
 }
 
-int TKN_issign(token_t* token) {
+int TKN_issign(token_t* token, char ptr) {
     if (!token) return 0;
-    if (token->flags.ptr) return 0;
+    if (token->flags.ptr && ptr) return 0;
     switch (token->t_type) {
         case I64_VARIABLE_TOKEN:
         case I32_VARIABLE_TOKEN:

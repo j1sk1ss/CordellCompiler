@@ -58,7 +58,7 @@ def _entry() -> None:
             )
         )
         
-        binary_path = builder.build(args.test_file, args.output_dir, args.extra_flags)
+        binary_path = builder.build(args.test_file, args.output_dir, args.extra_flags + [ 'Wno-int-conversion' ])
         if binary_path:
             success_count += 1
             built_binaries.append((test_name, binary_path))

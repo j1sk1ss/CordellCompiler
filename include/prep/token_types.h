@@ -188,7 +188,7 @@ int TKN_isoperand(token_t* token);
 int TKN_token_priority(token_t* token);
 int TKN_isnumeric(token_t* token);
 int TKN_isvariable(token_t* token);
-int TKN_issign(token_t* token);
+int TKN_issign(token_t* token, char ptr);
 int TKN_is_float(token_t* token);
 int TKN_update_operator(token_t* token);
 token_type_t TKN_get_var_from_type(token_type_t t);
