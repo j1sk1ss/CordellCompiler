@@ -106,12 +106,12 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_iMUL: fprintf(output, "imul %s\n", x86_64_asm_variable(curr->sarg, smt));                                              break;
             case LIR_DIV:  fprintf(output, "div %s\n", x86_64_asm_variable(curr->sarg, smt));                                               break;
             case LIR_iDIV: fprintf(output, "idiv %s\n", x86_64_asm_variable(curr->sarg, smt));                                              break;
-            case LIR_CMP:  fprintf(output, "cmp %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));     break;
+            case LIR_CMP:  fprintf(output, "cmp %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));     break; // TODO: Fix translation
 
             case LIR_bAND:
-            case LIR_iAND: fprintf(output, "and %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));     break;
+            case LIR_iAND: fprintf(output, "and %s, %s\n", x86_64_asm_variable(curr->sarg, smt), x86_64_asm_variable(curr->targ, smt));     break;
             case LIR_bOR:
-            case LIR_iOR:  fprintf(output, "or %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));      break;
+            case LIR_iOR:  fprintf(output, "or %s, %s\n", x86_64_asm_variable(curr->sarg, smt), x86_64_asm_variable(curr->targ, smt));      break;
 
             case LIR_fADD: fprintf(output, "addsd %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));   break;
             case LIR_fSUB: fprintf(output, "subsd %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));   break;
@@ -119,7 +119,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_fDIV: fprintf(output, "divsd %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));   break;
             case LIR_fCMP: fprintf(output, "ucomisd %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt)); break;
 
-            case LIR_bXOR: fprintf(output, "xor %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));     break;
+            case LIR_bXOR: fprintf(output, "xor %s, %s\n", x86_64_asm_variable(curr->sarg, smt), x86_64_asm_variable(curr->targ, smt));     break;
             case LIR_bSHL: fprintf(output, "shl %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));     break;
             case LIR_bSHR: fprintf(output, "shr %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));     break;
             case LIR_bSAR: fprintf(output, "sar %s, %s\n", x86_64_asm_variable(curr->farg, smt), x86_64_asm_variable(curr->sarg, smt));     break;

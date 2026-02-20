@@ -232,6 +232,18 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_iMUL:
                     case LIR_iSUB:
                     case LIR_iADD: {
+                        /* Now the first argument (the result) in the next instruction, 
+                           the third without any changes, and the second in the instruction
+                           before. With this logic, we change the next instruction:
+                           ```cpl
+                           something = a <op> b;
+                           ```
+                           into the next sequence:
+                           ```cpl
+                           mov rax, a;
+                           (rax = ) op rax, b;
+                           mov something, rax;
+                           ``` */
                         lir_subject_t* a = _create_tmp(RAX, lh->sarg, smt);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
 
@@ -251,7 +263,10 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_iDIV:
                     case LIR_iMOD: {
-                        _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RDX, 8), LIR_SUBJ_REG(RDX, 8), NULL), lh);
+                        /* (rdx = ) xor rdx, rdx 
+                           We need to clear the 'rdx' register before this operation.
+                           See specifications of div operation on x86-64 GNU */
+                        _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RDX, 8), LIR_SUBJ_REG(RDX, 8), LIR_SUBJ_REG(RDX, 8)), lh);
                         lir_subject_t* a = _create_tmp(RAX, lh->sarg, smt);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
 
@@ -260,9 +275,8 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->farg = a;
 
                         if (lh->op == LIR_iMOD) {
-                            mod = LIR_SUBJ_REG(RDX, _get_variable_size(lh->farg->storage.var.v_id, smt));
-                            _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, mod, mod, mod), lh);
-                            lh->farg = mod;
+                            lh->farg = LIR_SUBJ_REG(RDX, _get_variable_size(lh->farg->storage.var.v_id, smt));
+                            mod = lh->farg;
                         }
 
                         lh->sarg = a;

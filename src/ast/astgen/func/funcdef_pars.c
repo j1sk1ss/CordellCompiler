@@ -1,5 +1,43 @@
 #include <ast/astgen/astgen.h>
 
+int cpl_parse_funcdef_args(ast_node_t* trg, list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    SAVE_TOKEN_POINT;
+    do {
+        if (CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN) break;
+        if (TKN_isdecl(CURRENT_TOKEN)) {
+            ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
+            if (!arg) {
+                PARSE_ERROR("Error during the argument parsing! (<type> <name>)!");
+                RESTORE_TOKEN_POINT;
+                return 0;
+            }
+
+            AST_add_node(trg, arg);
+        }
+        else if (CURRENT_TOKEN->t_type == VAR_ARGUMENTS_TOKEN) {
+            ast_node_t* arg = AST_create_node(CURRENT_TOKEN);
+            if (!arg) {
+                PARSE_ERROR("Error during the function's '...' creation!");
+                RESTORE_TOKEN_POINT;
+                return 0;
+            }
+
+            forward_token(it, 1);
+            AST_add_node(trg, arg);
+        }
+        else {
+            PARSE_ERROR("Error during the '%s' statement argument parsing! %s(<type> <name>)!", START_COMMAND, START_COMMAND);
+            RESTORE_TOKEN_POINT;
+            return 0;
+        }
+
+        if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
+            forward_token(it, 1);
+        }
+    } while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN);
+    return 1;
+}
+
 ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     SAVE_TOKEN_POINT;
 
@@ -38,37 +76,11 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
 
     /* function <name> ( ... ) */
     forward_token(it, 2);
-    while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
-        if (CURRENT_TOKEN->t_type == COMMA_TOKEN) forward_token(it, 1);
-        else if (CURRENT_TOKEN->t_type == VAR_ARGUMENTS_TOKEN) {
-            ast_node_t* arg = AST_create_node(CURRENT_TOKEN);
-            if (!arg) {
-                PARSE_ERROR("Error during the function's '...' creation!");
-                AST_unload(node);
-                RESTORE_TOKEN_POINT;
-                return NULL;
-            }
-
-            forward_token(it, 1);
-            AST_add_node(args_node, arg);
-        }
-        else if (TKN_isdecl(CURRENT_TOKEN)) {
-            ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
-            if (!arg) {
-                PARSE_ERROR("Error during the function's argument parsing! function <name>(<type> <name> (opt: = <stmt>))!");
-                AST_unload(node);
-                RESTORE_TOKEN_POINT;
-                return NULL;
-            }
-
-            AST_add_node(args_node, arg);
-        }
-        else {
-            PARSE_ERROR("Error during the function's argument parsing!");
-            AST_unload(node);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
+    if (!cpl_parse_funcdef_args(args_node, it, ctx, smt)) {
+        PARSE_ERROR("Can't parse function's arguments!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
     }
 
     /* function <name> ( ... ) -> */

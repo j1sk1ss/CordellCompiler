@@ -464,6 +464,19 @@ Returns an ast node.
 ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Helper function for parsing function / start arguments.
+Can handle declaration-like arguments and variadic arguments.
+Params:
+    - `trg` - Target arguments node.
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns 0 if something went wrong. Otherwise will return 1.
+*/
+int cpl_parse_funcdef_args(ast_node_t* trg, list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
 Parse .cpl function with body and params. Should be invoked on function entry body.
 Snippet:
 ```cpl

@@ -20,30 +20,12 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     }
 
     forward_token(it, 1);
-    do {
-        if (CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN) break;
-        if (TKN_isdecl(CURRENT_TOKEN)) {
-            ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
-            if (!arg) {
-                PARSE_ERROR("Error during the '%s' statement argument parsing! %s(<type> <name>)!", START_COMMAND, START_COMMAND);
-                AST_unload(node);
-                RESTORE_TOKEN_POINT;
-                return NULL;
-            }
-
-            AST_add_node(node, arg);
-        }
-        else {
-            PARSE_ERROR("Error during the '%s' statement argument parsing! %s(<type> <name>)!", START_COMMAND, START_COMMAND);
-            AST_unload(node);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
-
-        if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
-            forward_token(it, 1);
-        }
-    } while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN);
+    if (!cpl_parse_funcdef_args(node, it, ctx, smt)) {
+        PARSE_ERROR("Can't parse start's arguments!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
 
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
         PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' in a body of the '%s' statement! %s( ... ) { ... }!", START_COMMAND, START_COMMAND);
