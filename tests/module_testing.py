@@ -25,18 +25,58 @@ def _line_matches(expected_line: str, actual_line: str) -> bool:
 
     return expected_line == actual_line
 
+def _is_anywhere_line(line: str) -> bool:
+    stripped = line.strip()
+    return stripped.startswith('{') and stripped.endswith('}') and stripped != "{X}"
+
+def _extract_anywhere_pattern(line: str) -> str:
+    stripped = line.strip()
+    return stripped[1:-1]
+
+def _line_contains_pattern(pattern: str, actual_line: str) -> bool:
+    if "{X}" in pattern:
+        parts = pattern.split("{X}")
+        escaped_parts = [re.escape(p) for p in parts]
+        inner_re = ".*".join(escaped_parts)
+        pattern_re = ".*" + inner_re + ".*"
+        return re.search(pattern_re, actual_line) is not None
+    else:
+        return pattern in actual_line
+
 def _matches_expected(expected_text: str, actual_text: str) -> tuple[bool, str | None]:
     exp_lines = expected_text.splitlines()
     act_lines = actual_text.splitlines()
 
-    if len(exp_lines) != len(act_lines):
-        return False, f"Different number of lines: expected {len(exp_lines)}, actual {len(act_lines)}"
+    anywhere_patterns = []
+    positional_expected = []
+    for e in exp_lines:
+        if _is_anywhere_line(e):
+            anywhere_patterns.append(_extract_anywhere_pattern(e))
+        else:
+            positional_expected.append(e)
 
-    for i, (e, a) in enumerate(zip(exp_lines, act_lines), start=1):
-        if not _line_matches(e, a):
-            return False, f"Line {i} mismatch:\n  expected: {e}\n  actual:   {a}"
+    if anywhere_patterns:
+        for pattern in anywhere_patterns:
+            if not any(_line_contains_pattern(pattern, a) for a in act_lines):
+                return False, f"Anywhere pattern not found: {pattern}"
 
-    return True, None
+        act_idx = 0
+        for pos_line in positional_expected:
+            while act_idx < len(act_lines) and not _line_matches(pos_line, act_lines[act_idx]):
+                act_idx += 1
+            if act_idx >= len(act_lines):
+                return False, f"Positional line not matched: {pos_line}"
+            act_idx += 1
+        return True, None
+    else:
+        if len(exp_lines) != len(act_lines):
+            return False, f"Different number of lines: expected {len(exp_lines)}, actual {len(act_lines)}"
+
+        for i, (e, a) in enumerate(zip(exp_lines, act_lines), start=1):
+            if not _line_matches(e, a):
+                return False, f"Line {i} mismatch:\n  expected: {e}\n  actual:   {a}"
+
+        return True, None
 
 def _make_diff(expected: str, actual: str) -> str:
     expected_lines = expected.splitlines()
@@ -205,4 +245,3 @@ def _entry() -> None:
 
 if __name__ == "__main__":
     _entry()
-    

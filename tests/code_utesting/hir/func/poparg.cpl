@@ -16,7 +16,7 @@
             i64s %0 = i64t %2;
             f32s* %1 = alloc(8);
             u64t %5 = load_starg();
-            f32t* %4 = u64t %5 as f32;
+            f32t* %4 = u64t %5 as *ptr;
             f32s* %1 = f32t* %4;
         }
     }   

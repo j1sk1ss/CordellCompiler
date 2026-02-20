@@ -1,5 +1,6 @@
 #ifndef ASTHELPER_H_
 #define ASTHELPER_H_
+#include <string.h>
 #include <ast/astgen.h>
 const char* name_tkn_type(token_type_t t) {
     switch (t) {
@@ -102,38 +103,39 @@ const char* name_tkn_type(token_type_t t) {
 
 const char* fmt_tkn_type(token_t* t) {
     if (!t) return "";
-    if (t->flags.ptr) {
-        switch (t->t_type) {
-            case I0_TYPE_TOKEN:  return "i0*";
-            case I8_TYPE_TOKEN:  return "i8*";
-            case U8_TYPE_TOKEN:  return "u8*";
-            case I16_TYPE_TOKEN: return "i16*";
-            case U16_TYPE_TOKEN: return "u16*";
-            case I32_TYPE_TOKEN: return "i32*";
-            case U32_TYPE_TOKEN: return "u32*";
-            case F32_TYPE_TOKEN: return "f32*";
-            case I64_TYPE_TOKEN: return "i64*";
-            case U64_TYPE_TOKEN: return "u64*";
-            case F64_TYPE_TOKEN: return "f64*";
-            case STR_TYPE_TOKEN: return "str*";
-            default: return "";
-        }
-    }
+
+    const char* base;
     switch (t->t_type) {
-        case I0_TYPE_TOKEN:  return "i0";
-        case I8_TYPE_TOKEN:  return "i8";
-        case U8_TYPE_TOKEN:  return "u8";
-        case I16_TYPE_TOKEN: return "i16";
-        case U16_TYPE_TOKEN: return "u16";
-        case I32_TYPE_TOKEN: return "i32";
-        case U32_TYPE_TOKEN: return "u32";
-        case F32_TYPE_TOKEN: return "f32";
-        case I64_TYPE_TOKEN: return "i64";
-        case U64_TYPE_TOKEN: return "u64";
-        case F64_TYPE_TOKEN: return "f64";
-        case STR_TYPE_TOKEN: return "str";
-        default: return "";
+        case I0_TYPE_TOKEN:  base = "i0"; break;
+        case I8_TYPE_TOKEN:  base = "i8"; break;
+        case U8_TYPE_TOKEN:  base = "u8"; break;
+        case I16_TYPE_TOKEN: base = "i16"; break;
+        case U16_TYPE_TOKEN: base = "u16"; break;
+        case I32_TYPE_TOKEN: base = "i32"; break;
+        case U32_TYPE_TOKEN: base = "u32"; break;
+        case F32_TYPE_TOKEN: base = "f32"; break;
+        case I64_TYPE_TOKEN: base = "i64"; break;
+        case U64_TYPE_TOKEN: base = "u64"; break;
+        case F64_TYPE_TOKEN: base = "f64"; break;
+        case STR_TYPE_TOKEN: base = "str"; break;
+        default:             base = ""; break;
     }
+
+    if (!base[0]) return "";
+    int depth = t->flags.ptr;
+    if (!depth) return base;
+
+    static char buf[64];
+    size_t base_len = strlen(base);
+    if (base_len + depth >= sizeof(buf)) {
+        depth = (int)(sizeof(buf) - base_len - 1);
+    }
+
+    strcpy(buf, base);
+    memset(buf + base_len, '*', depth);
+    buf[base_len + depth] = 0;
+
+    return buf;
 }
 
 static inline int print_ast(ast_node_t* node, int depth) {

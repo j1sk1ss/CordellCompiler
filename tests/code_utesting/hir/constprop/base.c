@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "../../../misc/symtb_helper.h"
+
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
@@ -98,6 +100,13 @@ int main(int argc, char* argv[]) {
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
     
     HIR_sparse_const_propagation(&dagctx, &smt);
+    map_foreach (variable_info_t* vi, &smt.v.vartb) {
+        printf("id: %li, %s, ", vi->v_id, vi->name->body);
+        for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
+        printf("%s, s_id: %i", format_tkntype(vi->type), vi->s_id);
+        if (vi->vdi.defined) printf(", value=%ld", vi->vdi.definition);
+        printf("\n");
+    }
 
     HIR_DAG_unload(&dagctx);
     HIR_CG_unload(&callctx);
