@@ -22,11 +22,7 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
         );
     }
 
-    int pargnum = ctx->carry.val1;
-    ctx->carry.val1 = argnum;
-    HIR_generate_block(t, ctx, smt);
-    ctx->carry.val1 = pargnum;
-
+    SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, { HIR_generate_block(t, ctx, smt); });
     HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
     HIR_BLOCK0(ctx, HIR_FEND);
     return 1;

@@ -5,7 +5,7 @@ Update information about memory allocation in the provided lir subject.
 Params:
     - `s` - The considering lir subject.
     - `smp` - Stack map for register spilling.
-    - `color` - Register allocation result.
+    - `colors` - Register allocation result.
     - `smt` - Symtable.
 
 Return 1 if operation succeed. Otherwise it will return 0.
@@ -59,12 +59,8 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                         if (
                             !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
                             vi.vfs.glob || vi.vmi.offset == -1
-                        ) {
-                            lh->unused = 1;
-                            break;
-                        }
-
-                        stack_map_free(vi.vmi.offset, vi.vmi.size, &smp);
+                        ) lh->unused = 1;
+                        else stack_map_free(vi.vmi.offset, vi.vmi.size, &smp);
                         break;
                     }
                     case LIR_STRDECL: {

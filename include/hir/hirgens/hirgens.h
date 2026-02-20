@@ -7,6 +7,21 @@
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 
+/*
+Dump and load information for the 'poparg' keyword.
+Params:
+    - `op` - poparg operation
+    - `args` - Current popped arguments number.
+    - `logic` - Wrapped logic. 
+*/
+#define SET_AND_DUMP_POPARG(op, args, logic)                 \
+    int pargnum = ctx->carry.val1, pargop = ctx->carry.val2; \
+    ctx->carry.val1 = args;                                  \
+    ctx->carry.val2 = op;                                    \
+    logic;                                                   \
+    ctx->carry.val1 = pargnum;                               \
+    ctx->carry.val2 = pargop;                                \
+
 #define HIRGEN_ERROR(nd, msg, ...) \
     fprintf( \
         stderr,                                                       \

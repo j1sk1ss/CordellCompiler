@@ -1,4 +1,18 @@
 import re
+import difflib
+import os
+import sys
+import json
+import argparse
+import tempfile
+import subprocess
+from pathlib import Path
+
+from misc.builder import (
+    CCBuilder,
+    BuildCompiler,
+    CCBuilderConfig
+)
 
 def _line_matches(expected_line: str, actual_line: str) -> bool:
     if expected_line.strip() == "{X}":
@@ -24,8 +38,6 @@ def _matches_expected(expected_text: str, actual_text: str) -> tuple[bool, str |
 
     return True, None
 
-import difflib
-
 def _make_diff(expected: str, actual: str) -> str:
     expected_lines = expected.splitlines()
     actual_lines = actual.splitlines()
@@ -39,20 +51,6 @@ def _make_diff(expected: str, actual: str) -> str:
     )
 
     return "\n".join(diff)
-
-import os
-import sys
-import json
-import argparse
-import tempfile
-import subprocess
-from pathlib import Path
-
-from misc.builder import (
-    CCBuilder, 
-    BuildCompiler, 
-    CCBuilderConfig
-)
 
 def _normalize_output(text: str) -> str:
     lines = []
@@ -84,7 +82,7 @@ def _run_test(binary: str, test_file: Path) -> dict:
 
     try:
         proc = subprocess.run(
-            [ binary, tmp_path, str(test_file.parent) ],
+            [binary, tmp_path, str(test_file.parent)],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True
@@ -95,12 +93,9 @@ def _run_test(binary: str, test_file: Path) -> dict:
     finally:
         os.remove(tmp_path)
 
-    try:
-        expected_n = _normalize_output(expected)
-        actual_n   = _normalize_output(proc.stdout)
-        ok, why    = _matches_expected(expected_n, actual_n)
-    except Exception as ex:
-        print(f"Answer proceeding error! {str(ex)}, test: {str(test_file)}")
+    expected_n = _normalize_output(expected)
+    actual_n = _normalize_output(proc.stdout)
+    ok, why = _matches_expected(expected_n, actual_n)
 
     return {
         "file": str(test_file),
@@ -110,6 +105,28 @@ def _run_test(binary: str, test_file: Path) -> dict:
         "diff": None if ok else (why + "\n\n" + _make_diff(expected_n, actual_n))
     }
 
+def find_test_roots(start_path: Path) -> list[Path]:
+    roots = []
+    for root, _, _ in os.walk(start_path):
+        root_path = Path(root)
+        if (root_path / "base.c").is_file() and (root_path / "dependencies.json").is_file():
+            roots.append(root_path)
+
+    return roots
+
+def collect_cpl_files(root: Path, all_roots: set[Path]) -> list[Path]:
+    cpl_files = []
+    try:
+        for entry in root.iterdir():
+            if entry.is_dir():
+                if entry in all_roots:
+                    continue
+                cpl_files.extend(collect_cpl_files(entry, all_roots))
+            elif entry.suffix == ".cpl":
+                cpl_files.append(entry)
+    except PermissionError:
+        pass
+    return cpl_files
 
 def _entry() -> None:
     parser = argparse.ArgumentParser(description='Compiler simple unit testing script')
@@ -119,44 +136,59 @@ def _entry() -> None:
     parser.add_argument('--compiler', default='gcc')
     args = parser.parse_args()
 
-    test_dir = Path(args.path)
+    test_top = Path(args.path)
 
-    if not test_dir.is_dir():
+    if not test_top.is_dir():
         print(f"Error: Test directory '{args.path}' wasn't found", file=sys.stderr)
         sys.exit(1)
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    deps = test_dir / "dependencies.json"
-    base = test_dir / "base.c"
-
-    if not deps.exists() or not base.exists():
-        print(f"Error: Test directory '{args.path}' isn't correct", file=sys.stderr)
+    all_roots = find_test_roots(test_top)
+    if not all_roots:
+        print(f"No test modules found (no base.c + dependencies.json) under {test_top}", file=sys.stderr)
         sys.exit(1)
 
-    with deps.open("r", encoding="utf-8") as f:
-        bconf_raw = json.load(f)
+    all_roots_set = set(all_roots)
+    results = []
+    failed_modules = 0
 
-    bconf = CCBuilderConfig(
-        include=args.base,
-        target="unit_test",
-        config=bconf_raw,
-        compiler=BuildCompiler(args.compiler)
-    )
+    for root in all_roots:
+        rel = root.relative_to(test_top)
+        module_out_dir = Path(args.output_dir) / rel
+        os.makedirs(module_out_dir, exist_ok=True)
 
-    builder = CCBuilder(settings=bconf)
-    binary = builder.build(
-        test_file=str(base),
-        output_dir=args.output_dir,
-        extra_flags=[ 'Wno-int-conversion' ]
-    )
+        deps = root / "dependencies.json"
+        base = root / "base.c"
 
-    if not binary:
-        sys.exit(1)
+        with deps.open("r", encoding="utf-8") as f:
+            bconf_raw = json.load(f)
 
-    results: list[dict] = []
-    for cpl_file in test_dir.rglob("*.cpl"):
-        results.append(_run_test(binary, cpl_file))
+        bconf = CCBuilderConfig(
+            include=args.base,
+            target="unit_test",
+            config=bconf_raw,
+            compiler=BuildCompiler(args.compiler)
+        )
+
+        builder = CCBuilder(settings=bconf)
+        binary = builder.build(
+            test_file=str(base),
+            output_dir=str(module_out_dir),
+            extra_flags=['Wno-int-conversion']
+        )
+
+        if not binary:
+            print(f"Failed to build module {root}, skipping its tests.", file=sys.stderr)
+            failed_modules += 1
+            continue
+
+        cpl_files = collect_cpl_files(root, all_roots_set)
+        if not cpl_files:
+            print(f"Module {root} has no .cpl files to test.")
+
+        for cpl in cpl_files:
+            results.append(_run_test(binary, cpl))
 
     failed = 0
     for r in results:
@@ -167,5 +199,10 @@ def _entry() -> None:
             print(f"\nFailed: {r['file']}")
             print(r["diff"])
 
+    print(f"\nSummary: {len(results)} tests run, {failed} failed, {failed_modules} modules failed to build.")
+    if failed > 0 or failed_modules > 0:
+        sys.exit(1)
+
 if __name__ == "__main__":
     _entry()
+    

@@ -7,10 +7,10 @@
 
 : OUTPUT
 BB{X}: fn foo0(...)
-%3 = ldparam();
+%3 = strt_loadarg();
 %2 = %3 as i64;
 %0 = %2;
-%5 = ldparam();
+%5 = strt_loadarg();
 %4 = %5 as f32;
 %1 = %4;
 fend

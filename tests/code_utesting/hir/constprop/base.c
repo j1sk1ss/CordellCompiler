@@ -10,7 +10,7 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../misc/ast_helper.h"
+#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -18,7 +18,8 @@
 #include <hir/ssa.h>
 
 #include <hir/dag.h>
-#include "../../misc/hir_helper.h"
+#include <hir/constfold.h>
+#include "../../../misc/hir_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -96,11 +97,7 @@ int main(int argc, char* argv[]) {
     HIR_DAG_generate(&cfgctx, &dagctx, &smt); // Analyzation
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
     
-    hir_block_t* hh = hirctx.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt);
-        hh = hh->next;
-    }
+    HIR_sparse_const_propagation(&dagctx, &smt);
 
     HIR_DAG_unload(&dagctx);
     HIR_CG_unload(&callctx);

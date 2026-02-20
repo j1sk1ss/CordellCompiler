@@ -294,27 +294,12 @@ int TKN_issign(token_t* token, char ptr) {
     if (!token) return 0;
     if (token->flags.ptr && ptr) return 0;
     switch (token->t_type) {
-        case I64_VARIABLE_TOKEN:
-        case I32_VARIABLE_TOKEN:
-        case I16_VARIABLE_TOKEN:
-        case I8_VARIABLE_TOKEN:
-        case I64_TYPE_TOKEN:
-        case I32_TYPE_TOKEN:
-        case I16_TYPE_TOKEN:
-        case I8_TYPE_TOKEN:      return 1;
-
-        case F64_VARIABLE_TOKEN:
-        case F32_VARIABLE_TOKEN:
-        case F64_TYPE_TOKEN:
-        case F32_TYPE_TOKEN:
-        case U64_VARIABLE_TOKEN:
-        case U32_VARIABLE_TOKEN:
-        case U16_VARIABLE_TOKEN:
-        case U8_VARIABLE_TOKEN:
-        case U64_TYPE_TOKEN:
-        case U32_TYPE_TOKEN:
-        case U16_TYPE_TOKEN:
-        case U8_TYPE_TOKEN:      return 0;
+        case I64_VARIABLE_TOKEN: case I32_VARIABLE_TOKEN: case I16_VARIABLE_TOKEN: case I8_VARIABLE_TOKEN:
+        case I64_TYPE_TOKEN:     case I32_TYPE_TOKEN:     case I16_TYPE_TOKEN:     case I8_TYPE_TOKEN: return 1;
+        case F64_VARIABLE_TOKEN: case F32_VARIABLE_TOKEN:
+        case F64_TYPE_TOKEN:     case F32_TYPE_TOKEN:
+        case U64_VARIABLE_TOKEN: case U32_VARIABLE_TOKEN: case U16_VARIABLE_TOKEN: case U8_VARIABLE_TOKEN:
+        case U64_TYPE_TOKEN:     case U32_TYPE_TOKEN:     case U16_TYPE_TOKEN:     case U8_TYPE_TOKEN: return 0;
         default: return 1;
     }
 }
