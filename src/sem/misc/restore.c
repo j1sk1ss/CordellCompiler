@@ -265,17 +265,18 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     if (u && set_has(u, nd)) _rst_hl_begin(x);
 
     int complex = -1;
-    if (TKN_isdecl(nd->t)) {
+    if (TKN_isdecl(nd->t) || nd->t->t_type == VAR_ARGUMENTS_TOKEN) {
         if (nd->t->t_type != ARRAY_TYPE_TOKEN) {
             _rst_ln_printf(
-                x, line, "%s%s%s %s",
+                x, line, "%s%s%s%s%s",
                 nd->t->flags.glob ? "glob " : "",
                 nd->t->flags.ro ? "ro " : "",
                 RST_restore_type(nd->t),
-                nd->c->t->body->body
+                nd->c ? " " : "",
+                nd->c ? nd->c->t->body->body : ""
             );
 
-            if (nd->c->siblings.n) {
+            if (nd->c && nd->c->siblings.n) {
                 _rst_ln_puts(x, line, " = ");
                 _restore_code_lines(x, nd->c->siblings.n, u, indent);
             }
@@ -318,6 +319,19 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     }
     
     switch (nd->t->t_type) {
+        case CALLING_TOKEN: {
+            if (!TKN_isvariable(nd->c->t)) _rst_ln_puts(x, line, "(");
+            _restore_code_lines(x, nd->c, u, indent);
+            if (!TKN_isvariable(nd->c->t)) _rst_ln_puts(x, line, ")");
+
+            _rst_ln_puts(x, line, "(");
+            for (ast_node_t* arg = nd->c->siblings.n->c; arg; arg = arg->siblings.n) {
+                _restore_code_lines(x, nd->c->siblings.n->c, u, indent);
+                if (arg->siblings.n) _rst_ln_puts(x, line, ", ");
+            }
+            _rst_ln_puts(x, line, ")");
+            break;
+        }
         case INDEXATION_TOKEN: {
             _restore_code_lines(x, nd->c, u, indent);
             _rst_ln_puts(x, line, "[");
