@@ -10,7 +10,7 @@ typedef struct {
 Add variable version placeholder to the versions map.
 Params:
     - `vers` - Versions map.
-    - `id` - Current variable ID (Or the head variable ID).
+    - `id` - The source variable ID (Or the head variable ID).
     - `cid` - Current variable ID.
 
 Returns 1 if all succeed. Otherwise will return 0.
@@ -70,42 +70,42 @@ Insert PHI preambule to the previous block.
 The idea is simple: We need to assist the compiler with future SSA form destruction. 
 To perform this, we can mark for the compiler, how variables are linked with each other.
 For instance:
-```c
-    int foo() {
-    // BB1:
-        int a_1 = 0;
-        if (1) {
-    // BB2:
+```cpl
+    function foo() -> i32 {
+    : BB1 :
+        i32 a_1 = 0;
+        if 1; {
+    : BB2 :
             a_2 = 1;
         }
         else {
-    // BB3:
+    : BB3 :
             a_3 = 2;
         }
-    // BB4:
-    //  a_4 = phi(a_3, a_2);
+    : BB4 :
+    :   a_4 = phi(a_3, a_2); :
         return a_4;
     }
 ```
 
 SSA form will put the phi function before BB4 block, but when we will start code generation, this will interrupt us.
 To prevent this, we can append a hidden command such a 'HIR_PREAMBULE' that will work similar to 'LIR_MOVE':
-```c
-    int foo() {
-    // BB1:
-        int a_1 = 0;
-        if (1) {
-    // BB2:
+```cpl
+    function foo() -> i32 {
+    : BB1 :
+        i32 a_1 = 0;
+        if 1; {
+    : BB2 :
             a_2 = 1;
-    //      a_4 = a_2;
+    :       a_4 = a_2; :
         }
         else {
-    // BB3:
+    : BB3 :
             a_3 = 2;
-    //      a_4 = a_3;
+    :       a_4 = a_3; :
         }
-    // BB4:
-    //  a_4 = phi(a_3, a_2);
+    : BB4 :
+    :   a_4 = phi(a_3, a_2); :
         return a_4;
     }
 ```
@@ -122,16 +122,17 @@ Returns 1 if all succeed. Otherwise will return 0.
 static int _insert_phi_preamble(cfg_block_t* block, long bid, int a, int b, sym_table_t* smt) {
     if (a == b) return 1;     /* Check is this isn't the same variables */
     variable_info_t avi, bvi; /* Check is these variables are existing  */
-    if (!VRTB_get_info_id(a, &avi, &smt->v) || !VRTB_get_info_id(b, &bvi, &smt->v)) {
-        return 0;
-    }
+    if (
+        !VRTB_get_info_id(a, &avi, &smt->v) || 
+        !VRTB_get_info_id(b, &bvi, &smt->v)
+    ) return 0;
 
     set_foreach (cfg_block_t* trg, &block->pred) {
         if (trg->id != bid) continue;
         hir_block_t* union_command = HIR_create_block(
             HIR_PHI_PREAMBLE, 
-            HIR_SUBJ_STKVAR(avi.v_id, HIR_get_stktype(&avi)), 
-            HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi)), 
+            HIR_SUBJ_STKVAR(avi.v_id, HIR_get_stktype(&avi), avi.vfs.ptr), 
+            HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi), bvi.vfs.ptr), 
             NULL
         );
 
@@ -164,11 +165,11 @@ Returns 1 if succeed. Otherwise will return 0.
 static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
     if (!b || set_has(&b->visitors, (void*)prev_bid)) return 0;
 
-    hir_block_t* hh = b->hmap.entry;
+    hir_block_t* hh = HIR_get_next(b->hmap.entry, b->hmap.exit, 0);
     while (hh) {
         switch (hh->op) {
             /* Special PHI function logic implies handling the phi set in command.
-            In other words, we take a new variable ID from the VRTB_add_copy function (If it doesn't existes).
+            In other words, we take a new variable ID from the VRTB_add_copy function (If it doesn't exist).
             Then we append the current variable ID to this list */
             case HIR_PHI: {
                 variable_info_t vi; /* Get base variable ID.                                      */
@@ -192,7 +193,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                                                                               /* If new variable is existes, that means we already */
                                                                               /* rename all blocks below us                        */
                         else {
-                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t);
+                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.vfs.ptr);
                             vv->curr_id = hh->sarg->storage.var.v_id;
                             future_id = vv->curr_id;
                         }
@@ -219,12 +220,12 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                     if (vv) {
                         hir_subject_type_t tmp_t = hh->farg->t;
                         if (hh->farg->home == hh) HIR_unload_subject(hh->farg); 
-                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), tmp_t);
+                        hh->farg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), tmp_t, vi.vfs.ptr);
 
-                        array_info_t ai; /* Check if this variable is an array                      */
-                                         /* Note: This is necessary due to possible function inline */
-                                         /*       In the nutshell, we must be sure that copied func */
-                                         /*       will have unique arrays.                          */
+                        array_info_t ai; /* Check if this variable is an array                        */
+                                         /* Note: This is necessary due to possible function inline   */
+                                         /*       In a nutshell, we must be sure that the copied func */
+                                         /*       will have unique arrays.                            */
                         if (ARTB_get_info(vi.v_id, &ai, &smt->a)) {
                             ARTB_add_copy(hh->farg->storage.var.v_id, &ai, &smt->a);
                         }
@@ -237,8 +238,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
             }
         }
 
-        if (hh == b->hmap.exit) break;
-        hh = hh->next;
+        hh = HIR_get_next(hh, b->hmap.exit, 1);
     }
 
     set_add(&b->visitors, (void*)prev_bid);
@@ -275,7 +275,7 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
     /*                 We can do it considering the mechanism  */
     /*                 of tmp variable generation (see hirgen) */
     map_foreach (variable_info_t* vh, &smt->v.vartb) {
-        if (vh->ro || TKN_istmp_type(vh->type)) continue;
+        if (vh->vfs.ro || TKN_istmp_type(vh->type)) continue;
         _add_varver(&ctx->vers, vh->v_id, vh->v_id);
     }
 
@@ -285,6 +285,5 @@ int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt) {
         _iterate_block(list_get_head(&fb->blocks), ctx, 0, smt);
     }
 
-    map_free_force(&ctx->vers);
     return 1;
 }

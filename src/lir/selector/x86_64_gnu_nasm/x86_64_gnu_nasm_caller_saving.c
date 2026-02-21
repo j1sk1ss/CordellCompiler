@@ -3,8 +3,8 @@
 /*
 Collect used registers in profided function.
 Params:
-    - dirty - Output set of used registers.
-    - f - Function CFG.
+    - `dirty` - Output set of used registers.
+    - `f` - Function CFG.
 
 Return 1 if operation succeed. Otherwise will return 0.
 */
@@ -29,10 +29,10 @@ static unsigned int _visit_counter = 10; /* Magic index offset. TODO */
 /*
 Collect register usage in the further CFG.
 Params:
-    - dirty - Previously rewritten registers.
-    - save - Output set.
-    - bbh - Current BasicBlock.
-    - off - Lir block off.
+    - `dirty` - Previously rewritten registers.
+    - `save` - Output set.
+    - `bbh` - Current BasicBlock.
+    - `off` - Lir block off.
 
 Return 1 if operation succeed. Otherwise will return 0.
 */
@@ -78,8 +78,8 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
 /*
 Find function by the provided ID.
 Params:
-    - fid - Function ID.
-    - cctx - CFG context.
+    - `fid` - Function ID.
+    - `cctx` - CFG context.
 
 Returns function or NULL.
 */

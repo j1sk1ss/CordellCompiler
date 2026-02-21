@@ -12,206 +12,434 @@
     ],
     "description": "CPL program skeleton"
   },
+
   "asm-block": {
     "scope": "cpl",
     "prefix": "asm",
     "body": [
-      "asm (var1, var2, ...) {",
-      "\t\"mov rax, &var1\"",
+      "asm (${1:arg1}${2:, arg2}) {",
+      "\t\"${0:mov rax, &arg1}\"",
       "}"
-    ]
+    ],
+    "description": "Inline asm block"
   },
+
   "function-definition": {
     "scope": "cpl",
     "prefix": "function",
     "body": [
-      "function foo() => i32 {",
-      "\treturn 0;",
+      "function ${1:name}(${2:}) -> ${3:i32} {",
+      "\t${0:return 0;}",
       "}"
-    ]
+    ],
+    "description": "Function definition"
   },
+
+  "function-prototype": {
+    "scope": "cpl",
+    "prefix": "fproto",
+    "body": [
+      "function ${1:name}(${2:})${3: -> ${4:i32}};"
+    ],
+    "description": "Function prototype (declaration)"
+  },
+
+  "global-var": {
+    "scope": "cpl",
+    "prefix": "globvar",
+    "body": [
+      "glob ${1:i32} ${2:name}${3: = ${4:0}};"
+    ],
+    "description": "Global variable declaration"
+  },
+
+  "ro-global-var": {
+    "scope": "cpl",
+    "prefix": "rovar",
+    "body": [
+      "ro ${1:i32} ${2:name}${3: = ${4:0}};"
+    ],
+    "description": "Read-only global variable declaration"
+  },
+
+  "local-var": {
+    "scope": "cpl",
+    "prefix": "var",
+    "body": [
+      "${1:i32} ${2:name}${3: = ${4:0}};"
+    ],
+    "description": "Local variable declaration"
+  },
+
+  "array-declaration": {
+    "scope": "cpl",
+    "prefix": "arr",
+    "body": [
+      "arr ${1:name}[${2:10}, ${3:i32}]${4: = {${5:0}}};"
+    ],
+    "description": "Array declaration"
+  },
+
   "if-statement": {
     "scope": "cpl",
     "prefix": "if",
     "body": [
-      "if cond; {",
-      "\t: ... :",
+      "if ${1:cond}; {",
+      "\t${0:: ... :}",
       "}",
       "else {",
       "\t: ... :",
       "}"
-    ]
+    ],
+    "description": "If / else statement"
   },
+
   "while-loop": {
     "scope": "cpl",
     "prefix": "while",
     "body": [
-      "while cond; {",
-      "\t: ... :",
+      "while ${1:cond}; {",
+      "\t${0:: ... :}",
       "}"
-    ]
+    ],
+    "description": "While loop"
   },
+
   "loop-loop": {
     "scope": "cpl",
     "prefix": "loop",
     "body": [
       "loop {",
-      "\t: ... :",
+      "\t${0:: ... :}",
       "}"
-    ]
+    ],
+    "description": "Infinite loop"
   },
-  "syscall-invoke": {
-    "scope": "cpl",
-    "prefix": "syscall",
-    "body": [
-      "syscall(arg, ...);"
-    ]
-  },
+
   "switch-statement": {
     "scope": "cpl",
     "prefix": "switch",
     "body": [
-      "switch cond; {",
-      "\tcase val; {",
+      "switch ${1:expr}; {",
+      "\tcase ${2:0}; {",
+      "\t\t${0:: ... :}",
       "\t}",
       "\tdefault {",
+      "\t\t: ... :",
       "\t}",
       "}"
-    ]
+    ],
+    "description": "Switch statement (switch expr; { case lit; block })"
   },
+
+  "return-statement": {
+    "scope": "cpl",
+    "prefix": "return",
+    "body": [
+      "return ${0};"
+    ],
+    "description": "Return statement"
+  },
+
+  "break-statement": {
+    "scope": "cpl",
+    "prefix": "break",
+    "body": [
+      "break;"
+    ],
+    "description": "Break statement"
+  },
+
+  "exit-statement": {
+    "scope": "cpl",
+    "prefix": "exit",
+    "body": [
+      "exit ${0:0};"
+    ],
+    "description": "Exit statement"
+  },
+
+  "lis-statement": {
+    "scope": "cpl",
+    "prefix": "lis",
+    "body": [
+      "lis \"${0:text}\";"
+    ],
+    "description": "LiS statement"
+  },
+
+  "syscall-invoke": {
+    "scope": "cpl",
+    "prefix": "syscall",
+    "body": [
+      "syscall(${1:arg1}${2:, arg2});"
+    ],
+    "description": "Syscall invocation"
+  },
+
+  "import-op": {
+    "scope": "cpl",
+    "prefix": "from",
+    "body": [
+      "from \"${1:module}\" import ${0:name};"
+    ],
+    "description": "Import statement"
+  },
+
+  "extern-exfunc": {
+    "scope": "cpl",
+    "prefix": "externex",
+    "body": [
+      "extern exfunc ${0:name};"
+    ],
+    "description": "Extern function prototype"
+  },
+
+  "extern-var": {
+    "scope": "cpl",
+    "prefix": "externvar",
+    "body": [
+      "extern ${1:i32} ${0:name};"
+    ],
+    "description": "Extern variable prototype"
+  },
+
+  "pp-include": {
+    "scope": "cpl",
+    "prefix": "#include",
+    "body": [
+      "#include \"${0:file}\""
+    ],
+    "description": "Preprocessor include directive"
+  },
+
+  "pp-define": {
+    "scope": "cpl",
+    "prefix": "#define",
+    "body": [
+      "#define ${1:NAME} ${0:value}"
+    ],
+    "description": "Preprocessor define directive"
+  },
+
+  "pp-undef": {
+    "scope": "cpl",
+    "prefix": "#undef",
+    "body": [
+      "#undef ${0:NAME}"
+    ],
+    "description": "Preprocessor undef directive"
+  },
+
+  "pp-ifdef": {
+    "scope": "cpl",
+    "prefix": "#ifdef",
+    "body": [
+      "#ifdef ${1:NAME}",
+      "${0}",
+      "#endif"
+    ],
+    "description": "Preprocessor ifdef block"
+  },
+
+  "pp-ifndef": {
+    "scope": "cpl",
+    "prefix": "#ifndef",
+    "body": [
+      "#ifndef ${1:NAME}",
+      "${0}",
+      "#endif"
+    ],
+    "description": "Preprocessor ifndef block"
+  },
+
+  "pp-line": {
+    "scope": "cpl",
+    "prefix": "#line",
+    "body": [
+      "#line ${1:1} \"${0:file}\""
+    ],
+    "description": "Preprocessor line directive"
+  },
+
+  "pp-endif": {
+    "scope": "cpl",
+    "prefix": "#endif",
+    "body": [
+      "#endif"
+    ],
+    "description": "Preprocessor endif directive"
+  },
+
   "CPL Keywords Extern": {
+    "scope": "cpl",
     "prefix": "extern",
     "body": "extern",
     "description": "CPL keyword"
   },
   "CPL Keywords Lis": {
+    "scope": "cpl",
     "prefix": "lis",
     "body": "lis",
     "description": "CPL LiS keyword"
   },
   "CPL Keywords break": {
+    "scope": "cpl",
     "prefix": "break",
     "body": "break",
     "description": "CPL break keyword"
   },
   "CPL Keywords Exfunc": {
+    "scope": "cpl",
     "prefix": "exfunc",
     "body": "exfunc",
     "description": "CPL keyword"
   },
   "CPL Keywords From": {
+    "scope": "cpl",
     "prefix": "from",
     "body": "from",
     "description": "CPL keyword"
   },
   "CPL Keywords Import": {
+    "scope": "cpl",
     "prefix": "import",
     "body": "import",
     "description": "CPL keyword"
   },
   "CPL Keywords Exit": {
+    "scope": "cpl",
     "prefix": "exit",
     "body": "exit",
     "description": "CPL keyword"
   },
   "CPL Keywords Return": {
+    "scope": "cpl",
     "prefix": "return",
     "body": "return",
     "description": "CPL keyword"
   },
+
   "CPL Modifiers RO": {
+    "scope": "cpl",
     "prefix": "ro",
     "body": "ro",
     "description": "CPL modifier"
   },
   "CPL Modifiers GLOB": {
+    "scope": "cpl",
     "prefix": "glob",
     "body": "glob",
     "description": "CPL modifier"
   },
   "CPL Modifiers NOT": {
+    "scope": "cpl",
     "prefix": "not",
     "body": "not",
     "description": "CPL modifier"
   },
-  "CPL Types REF": {
+  "CPL Ops POPARG": {
+    "scope": "cpl",
+    "prefix": "poparg",
+    "body": "poparg",
+    "description": "CPL pop argument operation"
+  },
+  "CPL Ops REF": {
+    "scope": "cpl",
     "prefix": "ref",
     "body": "ref",
     "description": "CPL reference operation"
   },
-  "CPL Types DREF": {
+  "CPL Ops DREF": {
+    "scope": "cpl",
     "prefix": "dref",
     "body": "dref",
     "description": "CPL de-reference operation"
   },
+
   "CPL Types String": {
+    "scope": "cpl",
     "prefix": "str",
     "body": "str",
     "description": "CPL str type"
   },
   "CPL Types PTR": {
+    "scope": "cpl",
     "prefix": "ptr",
     "body": "ptr",
-    "description": "CPL u64 type"
+    "description": "CPL ptr type"
   },
   "CPL Types F64": {
+    "scope": "cpl",
     "prefix": "f64",
     "body": "f64",
     "description": "CPL f64 type"
   },
   "CPL Types F32": {
+    "scope": "cpl",
     "prefix": "f32",
     "body": "f32",
     "description": "CPL f32 type"
   },
   "CPL Types Long": {
+    "scope": "cpl",
     "prefix": "i64",
     "body": "i64",
     "description": "CPL i64 type"
   },
   "CPL Types Int": {
+    "scope": "cpl",
     "prefix": "i32",
     "body": "i32",
     "description": "CPL i32 type"
   },
   "CPL Types Short": {
+    "scope": "cpl",
     "prefix": "i16",
     "body": "i16",
     "description": "CPL i16 type"
   },
   "CPL Types Char": {
+    "scope": "cpl",
     "prefix": "i8",
     "body": "i8",
     "description": "CPL i8 type"
   },
   "CPL Types uLong": {
+    "scope": "cpl",
     "prefix": "u64",
     "body": "u64",
     "description": "CPL u64 type"
   },
   "CPL Types uInt": {
+    "scope": "cpl",
     "prefix": "u32",
     "body": "u32",
     "description": "CPL u32 type"
   },
   "CPL Types uShort": {
+    "scope": "cpl",
     "prefix": "u16",
     "body": "u16",
     "description": "CPL u16 type"
   },
   "CPL Types uChar": {
+    "scope": "cpl",
     "prefix": "u8",
     "body": "u8",
     "description": "CPL u8 type"
   },
   "CPL Types void": {
+    "scope": "cpl",
     "prefix": "i0",
     "body": "i0",
     "description": "CPL i0 type"
   },
-  "CPL Types Array": {
-    "prefix": "arr",
-    "body": "arr name[0, type] =;",
-    "description": "CPL array type"
+
+  "CPL Convert": {
+    "scope": "cpl",
+    "prefix": "as",
+    "body": "as",
+    "description": "Cast something to a type"
   }
 }

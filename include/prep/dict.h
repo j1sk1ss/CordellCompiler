@@ -7,7 +7,7 @@
 #define IMPORT_COMMAND          "import"
 #define IMPORT_SELECT_COMMAND   "from"
 #define EXTERN_COMMAND          "extern"
-#define RETURN_TYPE_COMMAND     "=>"
+#define RETURN_TYPE_COMMAND     "->"
 
 #define OPEN_INDEX              "["
 #define CLOSE_INDEX             "]"
@@ -24,6 +24,7 @@
 // Function
 #define EXFUNCTION_COMMAND      "exfunc"
 #define FUNCTION_COMMAND        "function"
+#define VAR_ARGUMENTS_COMMAND   "..."
 
 // Modifiers
 #define DREF_COMMAND            "dref"
@@ -50,6 +51,8 @@
 #define STR_VARIABLE            "str"
 #define ARR_VARIABLE            "arr"
 
+#define CONVERT_COMMAND         "as"
+
 // Commands
 #define SWITCH_COMMAND          "switch"
 #define CASE_COMMAND            "case"
@@ -61,12 +64,19 @@
 #define ELSE_COMMAND            "else"
 #define SYSCALL_COMMAND         "syscall"
 #define ASM_COMMAND             "asm"
+#define POPARG_COMMAND          "poparg"
 
 // Symbols and statements (Operands)
+/* Update lexems */
 #define ADDASSIGN_STATEMENT     "+="
 #define SUBASSIGN_STATEMENT     "-="
 #define MULASSIGN_STATEMENT     "*="
 #define DIVASSIGN_STATEMENT     "/="
+#define MODULOASSIGN_STATEMENT  "%%="
+#define BITANDASSIGN_STATEMENT  "&="
+#define BITORASSIGN_STATEMENT   "|="
+#define BITXORASSIGN_STATEMENT  "^="
+
 #define ASSIGN_STATEMENT        "="
 #define COMPARE_STATEMENT       "=="
 #define NCOMPARE_STATEMENT      "!="

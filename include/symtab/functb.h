@@ -5,27 +5,108 @@
 #include <std/map.h>
 #include <prep/token_types.h>
 #include <ast/ast.h>
+#include <symtab/symtab_id.h>
 
 typedef struct {
-    long        id;
-    string_t*   name;
-    char        global;
-    char        external;
-    char        entry;
-    char        used;
-    ast_node_t* args;
-    ast_node_t* rtype;
+    string_t*   name;  /* Base function name    */
+    string_t*   virt;  /* De-virtual name       */
+
+    symbol_id_t id;    /* String ID in symtable */
+    ast_node_t* args;  /* Input arguments       */
+    ast_node_t* rtype; /* Function return type  */
+
+    struct {
+        char    global   : 1;
+        char    external : 1;
+        char    entry    : 1;
+        char    used     : 1;
+    } flags;
 } func_info_t;
 
 typedef struct func_ctx {
-    long  curr_id;
-    map_t functb;
+    symbol_id_t curr_id;
+    map_t       functb;
 } functab_ctx_t;
 
-int FNTB_get_info_id(long id, func_info_t* out, functab_ctx_t* ctx);
+/*
+Collect all functions with the same name.
+Params:
+    - `fname` - Target function name.
+    - `out` - The output list.
+    - `ctx` - Function symbol table.
+
+Returns 1 if succeeds. Otherwise will return 0.
+*/
+int FNTB_collect_info(string_t* fname, list_t* out, functab_ctx_t* ctx);
+
+/*
+Get function from a table by the provided ID.
+Params:
+    - `id` - Function's ID.
+    - `out` - Function output body.
+    - `ctx` - Function symbol table.
+
+Returns 1 if succeeds. Otherwise will return 0. 
+*/
+int FNTB_get_info_id(symbol_id_t id, func_info_t* out, functab_ctx_t* ctx);
+
+/*
+Get function from a table by the provided name.
+Params:
+    - `fname` - Function's name.
+    - `out` - Function output body.
+    - `ctx` - Function symbol table.
+
+Returns 1 if succeeds. Otherwise will return 0.
+*/
 int FNTB_get_info(string_t* fname, func_info_t* out, functab_ctx_t* ctx);
-int FNTB_add_info(string_t* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
-int FNTB_update_info(long id, int used, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
+
+/*
+Add a new function to a function symbol table.
+Params:
+    - `name` - Function's name.
+               Note: Will copy the provided name.
+    - `global` - Is this function global?
+    - `external` - Is this an external function?
+    - `entry` - Is this an entry function?
+    - `args` - Function's arguments from AST.
+    - `rtype` - Function's return type from AST.
+    - `ctx` - Function symbol table.
+
+Returns -1 if fails or a new function's ID.
+*/
+symbol_id_t FNTB_add_info(string_t* name, int global, int external, int entry, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
+
+/*
+Update the provided function in a symtable.
+Params:
+    - `id` - Function ID.
+    - `entry` - Is this is an entry function?
+                Node: -1 - Saves the previous value.
+    - `used` - Is this function used?
+               Node: -1 - Saves the previous value.
+    - `ext` - Is this is an external function?
+              Node: -1 - Saves the previous value.
+    - `args` - Function's AST arguments.
+               Node: NULL - Saves the previous value.
+    - `rtype` - Function's AST return type node.
+                Node: NULL - Saves the previous value.
+    - `ctx` - Function symtable context.
+
+Returns 1 if succeeds.
+*/
+int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
+
+/*
+Unload a function symtable context.
+Params:
+    - `ctx` - Function symtable context.
+
+Returns 1 if succeeds.
+*/
 int FNTB_unload(functab_ctx_t* ctx);
+
+#define fn_iterate_args(fn) \
+    for (ast_node_t* arg = (fn)->args->c; arg && arg->t->t_type != SCOPE_TOKEN; arg = arg->siblings.n)
 
 #endif

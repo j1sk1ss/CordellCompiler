@@ -6,20 +6,21 @@
 #include <std/set.h>
 #include <std/map.h>
 #include <std/logg.h>
+#include <symtab/symtab_id.h>
 
 typedef struct {
-    long  v_id;
-    set_t owners;
-    set_t delown;
+    symbol_id_t v_id;
+    set_t       owners;
+    set_t       delown;
 } allias_t;
 
 typedef struct {
     map_t allias;
 } allias_map_t;
 
-int ALLIAS_mark_owner(long v_id, long owner_id, allias_map_t* ctx);
-int ALLIAS_add_owner(long v_id, long owner_id, allias_map_t* ctx);
-int ALLIAS_get_owners(long v_id, set_t* out, allias_map_t* ctx);
+int ALLIAS_mark_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_map_t* ctx);
+int ALLIAS_add_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_map_t* ctx);
+int ALLIAS_get_owners(symbol_id_t v_id, set_t* out, allias_map_t* ctx);
 int ALLIAS_unload(allias_map_t* ctx);
 
 #endif

@@ -38,11 +38,12 @@ typedef struct {
 } hir_list_t;
 
 typedef struct {
-    int                users; /* Users count    */
-    struct hir_block*  home;  /* Home HIR block */
-    unsigned long      hash;  /* Subject's hash */
-    long               id;    /* Subject's ID   */
-    hir_subject_type_t t;     /* Subject's type */
+    int                users; /* Users count             */
+    struct hir_block*  home;  /* Home HIR block          */
+    unsigned long      hash;  /* Subject's hash          */
+    long               id;    /* Subject's ID            */
+    hir_subject_type_t t;     /* Subject's type          */
+    int                ptr;   /* Subject reference level */
     union {
         hir_string_t   str;
         hir_constant_t cnst;
@@ -67,7 +68,11 @@ typedef struct hir_block {
 typedef struct {
     hir_block_t* h;     /* Current HIR head                        */
     hir_block_t* t;     /* Current HIR tail                        */
-    void*        carry; /* Special carry field for any information */
+    struct {
+        void*    ptr;   /* pointer to a break target               */
+        long     val1;  /* function's argument number              */
+        long     val2;  /* function's argument load operation      */
+    } carry;            /* Additional carry for any specific data  */
 } hir_ctx_t;
 
 /*
@@ -82,7 +87,7 @@ long HIR_hash_subject(hir_subject_t* s);
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval);
 hir_subject_t* HIR_copy_subject(hir_subject_t* s);
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
-hir_block_t* HIR_copy_block(hir_block_t* b);
+hir_block_t* HIR_copy_block(hir_block_t* b, int copy_labels);
 int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
 int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);
 int HIR_compute_homes(hir_ctx_t* ctx);
@@ -91,19 +96,21 @@ int HIR_unlink_block(hir_block_t* block);
 int HIR_unload_subject(hir_subject_t* s);
 int HIR_unload_blocks(hir_block_t* block);
 
-#define HIR_SUBJ_CONST(val)         HIR_create_subject(HIR_CONSTVAL, 0, NULL, val)
-#define HIR_SUBJ_NUMBER(val)        HIR_create_subject(HIR_NUMBER, 0, val, 0)
-#define HIR_SUBJ_STKVAR(v_id, kind) HIR_create_subject(kind, v_id, NULL, 0)
-#define HIR_SUBJ_ASTVAR(n)          HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_token_stktype(n->t))
-#define HIR_SUBJ_TMPVAR(kind, id)   HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)
-#define HIR_SUBJ_LABEL()            HIR_create_subject(HIR_LABEL, 0, NULL, 0)
-#define HIR_SUBJ_RAWASM(n)          HIR_create_subject(HIR_RAWASM, n->sinfo.v_id, NULL, 0)
-#define HIR_SUBJ_STRING(n)          HIR_create_subject(HIR_STRING, n->sinfo.v_id, NULL, 0)
-#define HIR_SUBJ_STRTB(id)          HIR_create_subject(HIR_STRING, id, NULL, 0)
-#define HIR_SUBJ_FUNCNAME(n)        HIR_create_subject(HIR_FNAME, n->sinfo.v_id, NULL, 0)
-#define HIR_SUBJ_FNAMETB(id)        HIR_create_subject(HIR_FNAME, id, NULL, 0)
-#define HIR_SUBJ_SET()              HIR_create_subject(HIR_PHISET, 0, NULL, 0)
-#define HIR_SUBJ_LIST()             HIR_create_subject(HIR_ARGLIST, 0, NULL, 0)
+#define HIR_SUBJ_CONST(val)              HIR_create_subject(HIR_CONSTVAL, 0, NULL, val)
+#define HIR_SUBJ_FNUMBER(val)            HIR_create_subject(HIR_F64NUMBER, 0, val, 0)
+#define HIR_SUBJ_NUMBER(val)             HIR_create_subject(HIR_NUMBER, 0, val, 0)
+#define HIR_SUBJ_STKVAR(v_id, kind, ptr) HIR_create_subject(kind, v_id, NULL, ptr)
+#define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_token_stktype(n->t, 0), n->t->flags.ptr)
+#define HIR_SUBJ_TMPVAR(kind, id)        HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)
+#define HIR_SUBJ_CPVAR(var, smt)         HIR_SUBJ_TMPVAR(var->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(var->t), 0, NULL, &smt->v))
+#define HIR_SUBJ_LABEL()                 HIR_create_subject(HIR_LABEL, 0, NULL, 0)
+#define HIR_SUBJ_RAWASM(n)               HIR_create_subject(HIR_RAWASM, n->sinfo.v_id, NULL, 0)
+#define HIR_SUBJ_STRING(n)               HIR_create_subject(HIR_STRING, n->sinfo.v_id, NULL, 0)
+#define HIR_SUBJ_STRTB(id)               HIR_create_subject(HIR_STRING, id, NULL, 0)
+#define HIR_SUBJ_FUNCNAME(n)             HIR_create_subject(HIR_FNAME, n->sinfo.v_id, NULL, 0)
+#define HIR_SUBJ_FNAMETB(id)             HIR_create_subject(HIR_FNAME, id, NULL, 0)
+#define HIR_SUBJ_SET()                   HIR_create_subject(HIR_PHISET, 0, NULL, 0)
+#define HIR_SUBJ_LIST()                  HIR_create_subject(HIR_ARGLIST, 0, NULL, 0)
 
 /* ctx, op */
 #define HIR_BLOCK0(ctx, op) HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

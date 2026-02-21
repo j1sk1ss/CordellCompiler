@@ -1,16 +1,19 @@
 {
-    "prep": {
-        "macros": ["PREP_TESTING", "TOKEN_PRINT"],
+    "preproc": {
+        "macros": ["SRC_PRINT", "PREPROC_TESTING"],
         "sources": [
             "src/symtab/*.c",
-            "src/prep/*.c", 
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "std/*.c"
         ]
     },
-    "ast": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "AST_PRINT"],
+    "prep": {
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "TOKEN_PRINT"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
@@ -18,11 +21,28 @@
             "std/*.c"
         ]
     },
-    "ast_opt": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "AST_PRINT", "AST_OPT_TESTING"],
+    "ast": {
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "AST_PRINT"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
+            "src/ast/*.c",
+            "src/ast/astgen/*.c", 
+            "src/ast/astgen/*/*.c",
+            "std/*.c"
+        ]
+    },
+    "ast_opt": {
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "AST_PRINT", "AST_OPT_TESTING"],
+        "sources": [
+            "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
+            "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/opt/*.c",
             "src/ast/astgen/*.c", 
@@ -31,10 +51,13 @@
         ]
     },
     "sem": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "AST_PRINT", "SEM_TESTING", "ERROR_LOGS", "WARNING_LOGS"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "AST_PRINT", "SEM_TESTING", "ERROR_LOGS", "WARNING_LOGS"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/sem/*.c",
             "src/sem/ast/*.c",
@@ -44,10 +67,13 @@
         ]
     },
     "hir": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_PRINT"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_PRINT"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -61,10 +87,13 @@
         ]
     },
     "hir_ssa": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_PRINT"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_PRINT"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -79,10 +108,13 @@
         ]
     },
     "hir_dag": {
-        "macros": ["PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", "HIR_PRINT"],
+        "macros": ["PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", "HIR_PRINT"],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -99,12 +131,15 @@
     },
     "hir_constfold": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
             "HIR_DAG_TESTING", "CONSTFOLD_TESTING", "HIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -122,13 +157,16 @@
     },
     "lir": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", 
             "HIR_TESTING", "HIR_SSA_TESTING", "HIR_PRINT",
             "LIR_TESTING", "LIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -147,13 +185,16 @@
     },
     "lir_constfold": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", 
             "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
             "LIR_TESTING", "CONSTFOLD_TESTING", "LIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -175,12 +216,15 @@
     },
     "lir_selector": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -201,12 +245,15 @@
     },
     "lir_instplan": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -228,12 +275,15 @@
     },
     "lir_regalloc": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -259,12 +309,15 @@
     },
     "lir_peephole": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", 
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", "LIR_PRINT"
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -291,14 +344,17 @@
     },
     "asm": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", 
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", 
             "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", "LIR_PRINT", 
             "CODEGEN_TESTING"
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",
@@ -330,13 +386,16 @@
     },
     "asm_constfold": {
         "macros": [
-            "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
+            "PREPROC_TESTING", "PREP_TESTING", "AST_TESTING", "HIR_TESTING", "HIR_SSA_TESTING", "HIR_DAG_TESTING",
             "LIR_TESTING", "LIR_INSTSEL_TESTING", "LIR_INSTPLAN_TESTING", "LIR_REGALLOC_TESTING", "LIR_PEEPHOLE_TESTING", 
             "CODEGEN_TESTING", "CONSTFOLD_TESTING"
         ],
         "sources": [
             "src/symtab/*.c",
+            "src/preproc/*.c",
+            "src/preproc/misc/*.c",
             "src/prep/*.c",
+            "src/sem/misc/*.c", 
             "src/ast/*.c",
             "src/ast/astgen/*.c", 
             "src/ast/astgen/*/*.c",

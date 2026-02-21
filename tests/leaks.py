@@ -1,7 +1,7 @@
 import re
 import argparse
 
-parser = argparse.ArgumentParser(description='Compiler leak finder!')
+parser: argparse.ArgumentParser = argparse.ArgumentParser(description='Compiler leak finder!')
 parser.add_argument('--log-path', required=True, help='Path to log file with memory logs')
 args = parser.parse_args()
 
@@ -21,9 +21,7 @@ leaks: dict = {}
 
 with open(args.log_path, "r", encoding="utf-8") as f:
     print("Reading file...")
-
     for line_number, line in enumerate(f, start=1):
-
         alloc_match = alloc_re.search(line)
         if alloc_match:
             d = alloc_match.groupdict()
@@ -40,7 +38,6 @@ with open(args.log_path, "r", encoding="utf-8") as f:
         if free_match:
             d = free_match.groupdict()
             address = d["ptr"]
-
             if address in leaks:
                 del leaks[address]
             continue

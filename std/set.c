@@ -16,6 +16,16 @@ int set_has(set_t* s, void* data) {
     return map_get(&s->body, (long)data, NULL);
 }
 
+int set_subset(set_t* a, set_t* b) {
+    int is_subset = 1;
+    set_foreach (void* d, b) {
+        is_subset = is_subset && set_has(a, d);
+        if (!is_subset) break;
+    }
+
+    return set_size(a) > set_size(b) && is_subset;
+}
+
 int set_add(set_t* s, void* data) {
     return !set_has(s, data) && map_put(&s->body, (long)data, data);
 }
@@ -33,10 +43,7 @@ int set_iter_next(set_iter_t* it, void** d) {
 }
 
 int set_minus_set(set_t* trg, set_t* s) {
-    set_iter_t it;
-    set_iter_init(s, &it);
-    void* data;
-    while (set_iter_next(&it, (void**)&data)) {
+    set_foreach (void* data, s) {
         set_remove(trg, data);
     }
 
@@ -48,13 +55,12 @@ int set_copy(set_t* dst, set_t* src) {
 }
 
 int set_intersect(set_t* dst, set_t* a, set_t* b) {
-    set_iter_t it;
-    set_iter_init(a, &it);
-    void* data;
-    while (set_iter_next(&it, (void**)&data)) {
-        if (set_has(b, data)) set_add(dst, data);
+    set_foreach (void* data, a) {
+        if (set_has(b, data)) {
+            set_add(dst, data);
+        }
     }
-    
+
     return 1;
 }
 
@@ -65,11 +71,7 @@ int set_equal(set_t* a, set_t* b) {
 int set_union(set_t* dst, set_t* a, set_t* b) {
     set_t tmp;
     set_copy(&tmp, a);
-    
-    set_iter_t it;
-    set_iter_init(b, &it);
-    void* data;
-    while (set_iter_next(&it, (void**)&data)) {
+    set_foreach (void* data, b) {
         set_add(&tmp, data);
     }
 

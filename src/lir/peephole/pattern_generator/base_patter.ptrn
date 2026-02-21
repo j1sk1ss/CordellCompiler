@@ -139,3 +139,53 @@ sub aconst_1, obj
 ->
 delete
 /
+
+div aconst_1, obj
+->
+delete
+/
+
+cmp aconst_1, obj
+->
+delete
+/
+
+test aconst_1, obj
+->
+delete
+/
+
+lea aconst_1, obj
+->
+delete
+/
+
+cvt aconst_1, obj
+->
+delete
+/
+
+cvtsi2ss aconst_1, obj
+->
+delete
+/
+
+cvtsi2sd aconst_1, obj
+->
+delete
+/
+
+movsx aconst_1, obj
+->
+delete
+/
+
+movzx aconst_1, obj
+->
+delete
+/
+
+movsxd aconst_1, obj
+->
+delete
+/

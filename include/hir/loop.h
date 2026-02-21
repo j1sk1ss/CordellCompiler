@@ -8,11 +8,12 @@
 #include <hir/hir.h>
 #include <hir/cfg.h>
 
-typedef struct {
-    cfg_block_t* header;
-    cfg_block_t* latch;
-    set_t        blocks;
-    list_t       children;
+typedef struct loop_node {
+    cfg_block_t*      header;   /* Loop header         */
+    cfg_block_t*      latch;    /* Loop latch          */
+    set_t             blocks;   /* cfg_block_t* blocks */
+    list_t            children; /* loop_node_t* nested */
+    struct loop_node* p;
 } loop_node_t;
 
 typedef struct {
@@ -66,6 +67,25 @@ Params:
 Returns 1 if context builded.
 */
 int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx);
+
+/*
+[Analyzation] Get the size of the nested loop. It means, it will
+return the count of all 'parent' loops of the provided loop.
+For instance:
+```cpl
+loop { : Return 0 :
+    loop { : Return 1 :
+
+    }
+}
+```
+
+Params:
+    - `node` - The considered loop.
+
+Returns the size of nested structure.
+*/
+int HIR_LTREE_nested_count(loop_node_t* node);
 
 /*
 Unload the loop context.

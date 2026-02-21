@@ -12,7 +12,7 @@
 Convert the LIR subject to long number.
 Note: This function works only with a const/number subject.
 Params:
-    - s - The LIR subject.
+    - `s` - The LIR subject.
 
 Return the long nummber represented by this subject.
 */
@@ -22,7 +22,7 @@ long LIR_peephole_get_long_number(lir_subject_t* s);
 Get the sqrt from the LIR subject.
 Note: This function works only with a const/number subject.
 Params:
-    - s - The LIR subject.
+    - `s` - The LIR subject.
 
 Return the long nummber sqrt from this subject.
 */
@@ -32,7 +32,7 @@ long LIR_peephole_get_sqrt_number(lir_subject_t* s);
 Get the log2 from the LIR subject.
 Note: This function works only with a const/number subject.
 Params:
-    - s - The LIR subject.
+    - `s` - The LIR subject.
 
 Return the long nummber log2 from this subject.
 */
@@ -46,7 +46,7 @@ typedef struct {
 The first peephole optimization pass. This pass mainly focuses on pattern matching and basic cleanup.
 Note: This phase must be generated with PTRN DSL application.
 Params:
-    - bb - Basic block.
+    - `bb` - Basic block.
 
 Return 1 if phase optimizes something.
 */
@@ -65,8 +65,8 @@ This optimization devided into a three steps:
                     mov rax, rcx
 
 Params:
-    - cctx - CFG with the HIR and the LIR.
-    - peephole - Architecture dependent peephole second phase implementation.
+    - `cctx` - CFG with the HIR and the LIR.
+    - `peephole` - Architecture dependent peephole second phase implementation.
 
 Return 1 or 0.
 */

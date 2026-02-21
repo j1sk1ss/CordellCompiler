@@ -10,11 +10,15 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
     if (TKN_isvariable(node->t)) {
         variable_info_t varinfo = { .type = UNKNOWN_NUMERIC_TOKEN };
         for (int s = ctx->scopes.stack.top; s >= 0; s--) {
-            short s_id = (short)ctx->scopes.stack.data[s].d;
+            short s_id = (short)((long)ctx->scopes.stack.data[s].d);
             if (VRTB_get_info(node->t->body, s_id, &varinfo, &smt->v)) {
                 node->sinfo.v_id    = varinfo.v_id;
                 node->sinfo.s_id    = varinfo.s_id;
-                node->t->flags.heap = varinfo.heap;
+                node->t->flags.heap = varinfo.vfs.heap;
+                node->t->flags.ptr  = varinfo.vfs.ptr;
+                node->t->flags.ro   = varinfo.vfs.ro;
+                node->t->flags.glob = varinfo.vfs.glob;
+                node->t->t_type     = TKN_get_var_from_type(varinfo.type);
                 return 1;
             }
         }

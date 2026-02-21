@@ -13,7 +13,7 @@
 typedef struct mm_block {
     unsigned int     magic;
     size_t           size;
-    unsigned char    free;
+    unsigned char    free : 1;
     struct mm_block* next;
 } mm_block_t;
 

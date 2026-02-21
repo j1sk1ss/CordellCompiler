@@ -14,6 +14,82 @@ int peephole_first_pass(cfg_block_t* bb) {
                     LIR_unload_subject(lh->sarg);
                     lh->sarg = lh->farg;
                 }
+                else if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_CVTSD2SS: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_CVTSI2SD: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_CVTSI2SS: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_CVTSS2SD: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_CVTTSD2SI: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_CVTTSS2SI: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_MOVSX: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_MOVSXD: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_MOVZX: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
                 break;
             }
 
@@ -26,6 +102,22 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_next(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lh->unused = 1;
                     LIR_get_next(lh, bb->lmap.exit, 1)->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_REF: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_TST: {
+                if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
                 }
                 break;
             }
@@ -160,6 +252,18 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lh->op = LIR_TST;
                     LIR_unload_subject(lh->sarg);
                     lh->sarg = lh->farg;
+                }
+                else if ((lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_iDIV: {
+                if ((lh->sarg &&
+                (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL))) {
+                    lh->unused = 1;
                 }
                 break;
             }

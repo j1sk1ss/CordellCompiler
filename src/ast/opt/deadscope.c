@@ -5,7 +5,6 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
     
     ast_node_t* prev = NULL;
     ast_node_t* curr = root->c;
-
     while (curr) {
         ast_node_t* next = curr->siblings.n;
         if (!curr->t) {
@@ -16,10 +15,11 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
         }
 
         if (
-            curr->t->t_type == EXIT_TOKEN   ||
-            curr->t->t_type == RETURN_TOKEN ||
-            curr->t->t_type == CALL_TOKEN   ||
-            curr->t->t_type == BREAKPOINT_TOKEN
+            curr->t->t_type == EXIT_TOKEN   ||  /* If this scope invokes an exit command  */
+            curr->t->t_type == RETURN_TOKEN ||  /* If this scope returns something        */
+            curr->t->t_type == CALL_TOKEN   ||  /* If this scope contains a function call */
+            curr->t->t_type == BREAK_TOKEN  ||  /* If this scope contains a break command */
+            curr->t->t_type == BREAKPOINT_TOKEN /* If this scope breaks an execution      */
         ) *affect = 1;
 
         if (curr->t->t_type == START_TOKEN) {
@@ -72,14 +72,11 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
                 int is_affect = 0;
                 ast_node_t* case_scope = curr->t->t_type == CASE_TOKEN ? curr->c->siblings.n : curr->c;
                 _find_scope(case_scope, &is_affect, s_id);
-
                 if (!is_affect) {
                     AST_remove_node(root, curr);
                     AST_unload(curr);
-
                     if (prev) prev->siblings.n = next;
                     else root->c = next;
-
                     curr = next;
                     continue;
                 }

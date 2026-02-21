@@ -1,6 +1,5 @@
 #ifndef RAL_HELPER_H_
 #define RAL_HELPER_H_
-
 #include <stdio.h>
 #include <std/set.h>
 #include <std/map.h>
@@ -33,5 +32,4 @@ static void colors_regalloc_dump_dot(map_t* colors) {
 
     fprintf(stdout, "}\n");
 }
-
 #endif

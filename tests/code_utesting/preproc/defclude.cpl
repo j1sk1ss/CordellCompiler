@@ -1,0 +1,23 @@
+{
+    #ifndef A
+    #include "define.cpl"
+    #endif
+
+    #ifndef B
+    #include "define.cpl"
+    #endif
+
+    #ifndef C
+    #include "define.cpl"
+    #endif
+}
+
+: OUTPUT
+{
+#line 0 "{X}.cpl"
+ 
+    function a();
+ 
+#line 3 "{X}.cpl"
+}
+:

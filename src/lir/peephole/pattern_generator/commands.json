@@ -10,7 +10,7 @@
         "shr":      [ "LIR_bSHR" ],
         "and":      [ "LIR_bAND" ],
         "or":       [ "LIR_bOR" ],
-        "xor":      ["LIR_bXOR" ],
+        "xor":      [ "LIR_bXOR" ],
         "cmp":      [ "LIR_iCMP", "LIR_CMP" ],
         "test":     [ "LIR_TST" ],
         "not":      [ "LIR_NOT" ],

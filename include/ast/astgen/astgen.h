@@ -1,3 +1,190 @@
+/* Main parser logic. This parser bases on the BNF that is provided below:
+identifier       = "IDENTIFIER" ;
+integer_literal  = "INTEGER_LITERAL" ;
+string_literal   = "STRING_LITERAL" ;
+char_literal     = "CHAR_LITERAL" ;
+comment          = "COMMENT" ;
+eol              = "EOL" ;
+
+program        = "{" , { top_item } , "}" ;
+
+top_item       = start_function
+               | import_op
+               | extern_op
+               | pp_directive
+               | storage_opt , top_decl ;
+
+import_op      = "from" , string_literal , "import" , [ import_list ] ;
+import_list    = import_item , { "," , import_item } ;
+import_item    = identifier ;
+
+extern_op          = "extern" , ( function_prototype | var_prototype ) ;
+var_prototype      = type , identifier ;
+function_prototype = "exfunc" , identifier ;
+
+storage_opt    = [ "glob" | "ro" ] ;
+
+top_decl       = var_decl | function_def | function_proto ;
+
+function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
+
+function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
+
+start_function = "start" , "(" , [ param_list ] , ")" , block ;
+
+param_list     = param , { "," , param } ;
+param          = type , identifier , [ "=" , expression ] | "..." ;
+
+block          = "{" , { statement } , "}" ;
+
+statement =
+    "arr" , arr_stmt_tail
+  | pp_directive
+  | if_statement
+  | loop_statement
+  | while_statement
+  | switch_statement
+  | return_statement
+  | exit_statement
+  | break_statement
+  | lis_statement
+  | syscall_statement
+  | asm_block
+  | comment
+  | block
+  | var_decl_starting_not_arr
+  | expression_statement ;
+
+arr_stmt_tail =
+    identifier , "[" , integer_literal , "," , type , "]" , [ "=" , ( expression | arr_value ) ] , ";"   (* это arr_decl *)
+  | "[" , integer_literal , "," , type , "]" , identifier , [ "=" , expression ] , ";"                   (* это var_decl, где type=arr[...] *)
+
+pp_directive   = "#" , pp_body , pp_end ;
+
+pp_end         = eol | ";" ;
+
+pp_body        = pp_line
+               | pp_include
+               | pp_define
+               | pp_undef
+               | pp_ifdef
+               | pp_ifndef
+               | pp_endif ;
+
+pp_line        = "line" , integer_literal , [ string_literal ] ;
+pp_include     = "include" , string_literal ;
+pp_define      = "define" , identifier , { pp_token } ;
+pp_undef       = "undef" , identifier ;
+pp_ifdef       = "ifdef" , identifier ;
+pp_ifndef      = "ifndef" , identifier ;
+pp_endif       = "endif" ;
+
+pp_token       = identifier
+               | literal
+
+               | keyword
+               | punct_no_semi
+               | operator ;
+
+keyword        = "from" | "import" | "extern" | "exfunc" | "glob" | "ro"
+               | "function" | "start"
+               | "arr"
+               | "if" | "else" | "loop" | "while"
+               | "switch" | "case" | "default"
+               | "return" | "exit" | "break" | "lis"
+               | "syscall" | "asm"
+               | "not" | "ref" | "dref" | "as"
+               | "ptr" | "str"
+               | "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+               | "line" | "include" | "define" | "undef" | "ifdef" | "ifndef" | "endif" ;
+
+punct_no_semi  = "{" | "}" | "(" | ")" | "[" | "]" | "," ;
+
+operator       = "->"
+               | "==" | "!=" | "<=" | ">=" | "<<" | ">>"
+               | "||" | "&&"
+               | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&="
+               | "="  | "<"  | ">"  | "+"  | "-"  | "*"  | "/"  | "%"  | "|"  | "^"  | "&" ;
+
+var_decl       = type , identifier , [ "=" , expression ] , ";" ;
+
+arr_decl       = "arr" , identifier , "[" , integer_literal , "," , type , "]" ,
+                 [ "=" , ( expression | arr_value ) ] , ";" ;
+
+arr_value      = "{" , [ arr_value_list ] , "}" ;
+arr_value_list = expression , { "," , expression } ;
+
+if_statement     = "if" , expression , ";" , block , [ "else" , block ] ;
+loop_statement   = "loop" , block ;
+while_statement  = "while" , expression , ";" , block ;
+
+(* switch expression; { case literal; block } *)
+switch_statement = "switch" , expression , ";" ,
+                   "{" , { case_block } , [ default_block ] , "}" ;
+
+case_block       = "case" , literal , ";" , block ;
+default_block    = "default" , [ ";" ] , block ;
+
+return_statement = "return" , [ expression ] , ";" ;
+exit_statement   = "exit" , expression , ";" ;
+break_statement  = "break" , ";" ;
+lis_statement    = "lis" , [ string_literal ] , ";" ;
+
+expression_statement = expression , ";" ;
+
+syscall_statement = "syscall" , "(" , [ expression_list ] , ")" , ";" ;
+expression_list   = expression , { "," , expression } ;
+
+asm_block      = "asm" , "(" , [ asm_args ] , ")" , "{" , { asm_line } , "}" ;
+asm_args       = asm_arg , { "," , asm_arg } ;
+asm_arg        = identifier | literal ;
+asm_line       = string_literal , [ "," ] ;
+
+expression     = assign ;
+
+assign         = logical_or , [ assign_op , assign ] ;
+assign_op      = "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&=" ;
+
+logical_or     = logical_and , { "||" , logical_and } ;
+logical_and    = bit_or      , { "&&" , bit_or } ;
+
+bit_or         = bit_xor     , { "|"  , bit_xor } ;
+bit_xor        = bit_and     , { "^"  , bit_and } ;
+bit_and        = equality    , { "&"  , equality } ;
+
+equality       = relational  , { ("==" | "!=") , relational } ;
+relational     = shift       , { ("<" | "<=" | ">" | ">=") , shift } ;
+shift          = add         , { ("<<" | ">>") , add } ;
+add            = mul         , { ("+" | "-") , mul } ;
+mul            = unary       , { ("*" | "/" | "%") , unary } ;
+
+unary          = unary_op , unary
+               | postfix ;
+
+unary_op       = "not" | "+" | "-" | ref_op | dref_op ;
+
+ref_op         = "ref" ;
+dref_op        = "dref" ;
+
+postfix        = primary , { postfix_op } ;
+postfix_op     = "(" , [ arg_list ] , ")"
+               | "[" , expression , { "," , expression } , "]"
+               | "as" , type ;
+
+primary        = literal
+               | identifier
+               | "(" , expression , ")" ;
+
+arg_list       = expression , { "," , expression } ;
+
+type = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+     | "str"
+     | "arr" , "[" , integer_literal , "," , type , "]"
+     | "ptr" , type ;
+
+literal         = integer_literal | string_literal | char_literal ;
+*/
+
 #ifndef CPL_PARSER_H_
 #define CPL_PARSER_H_
 
@@ -15,7 +202,20 @@
 #define RESTORE_TOKEN_POINT it->curr = __dump_tkn
 
 /* Support macro for getting the current token from the iterator. */
-#define CURRENT_TOKEN ((token_t*)list_iter_current(it))
+#define CURRENT_TOKEN      ((token_t*)list_iter_current(it))
+#define CREATE_SCOPE_TOKEN TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_INDEX_TOKEN TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_CALL_TOKEN  TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+
+#define PARSE_ERROR(msg, ...) \
+    fprintf( \
+        stderr,                                                                                  \
+        "[%s:%li:%li] " msg "\n",                                                                \
+        (CURRENT_TOKEN && CURRENT_TOKEN->finfo.file) ? CURRENT_TOKEN->finfo.file->body : "base", \
+        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.line : 0,                                           \
+        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.column : 0,                                         \
+        ##__VA_ARGS__                                                                            \
+    )
 
 /*
 Search for a variable (presented in the node) on the symtable.
@@ -29,7 +229,19 @@ Return 1 if succeed.
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Parse `.cpl` element with input tokens.
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_element(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
 Parse `.cpl` block with input tokens. Should be invoked on new block.
+Note: This is the start gramma symbol (see EBNF in the README).
 Snippet:
 ```cpl
 someting {
@@ -224,6 +436,18 @@ Returns an ast node.
 ast_node_t* cpl_parse_return(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Parse .cpl function's arguments. Helper function for funccall handlers.
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+    - `args` - Output arguments number.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_call_arguments(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int* args);
+
+/*
 Parse .cpl function call. Should be invoked on funccall token.
 Snippet:
 ```cpl
@@ -238,6 +462,19 @@ Params:
 Returns an ast node.
 */
 ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Helper function for parsing function / start arguments.
+Can handle declaration-like arguments and variadic arguments.
+Params:
+    - `trg` - Target arguments node.
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns 0 if something went wrong. Otherwise will return 1.
+*/
+int cpl_parse_funcdef_args(ast_node_t* trg, list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Parse .cpl function with body and params. Should be invoked on function entry body.
@@ -283,10 +520,31 @@ Params:
     - `it` - Current iterator on token list.
     - `ctx` - AST ctx.
     - `smt` - Symtable pointer.
+    - `na` - No assign.
+             Note: By default (0), this function parses an entire 
+                   expression with a assign symbol. That means, that
+                   expressions such as `a = b`, `a + b = a + b` will
+                   be full parsed.
+                   If you want to parse only the left part (before assign),
+                   set this flag to 1.
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na);
+
+/*
+Parse .cpl scope element.
+Note: Will parse only one element in the separated scope. This means,
+      that any declared variable will be allocated in a one-line scope.
+
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_line_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Parse .cpl scope block. Should be invoked on scope token.
@@ -342,17 +600,16 @@ ast_node_t* cpl_parse_syscall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt)
 Parse .cpl breakpoint block. Should be invoked on a breakpoint token.
 Snippet:
 ```cpl
-lis;
+lis <msg>;
 ```
 
 Params:
     - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
     - `smt` - Symtable pointer.
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_breakpoint(list_iter_t* it);
+ast_node_t* cpl_parse_breakpoint(list_iter_t* it, sym_table_t* smt);
 
 /*
 Parse .cpl break block. Should be invoked on a break token.
@@ -363,11 +620,85 @@ break;
 
 Params:
     - `it` - Current iterator on token list.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_break(list_iter_t* it);
+
+/*
+Parse .cpl cast block. Should be invoked on a 'as' token.
+Snippet:
+```cpl
+i32 b = variable as i32;
+```
+
+Params:
+    - `it` - Current iterator on token list.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_conv(list_iter_t* it);
+
+/*
+Parse .cpl 'ref' command. Should be invoked on a 'ref' token.
+Snippet:
+```cpl
+i32 b = ref variable;
+```
+
+Params:
+    - `it` - Current iterator on token list.
     - `ctx` - AST ctx.
     - `smt` - Symtable pointer.
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_break(list_iter_t* it);
+ast_node_t* cpl_parse_ref(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Parse .cpl 'dref' command. Should be invoked on a 'dref' token.
+Snippet:
+```cpl
+i32 b = dref variable;
+```
+
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_dref(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Parse .cpl 'neg' command. Should be invoked on a 'neg' token.
+Snippet:
+```cpl
+i32 b = neg variable;
+```
+
+Params:
+    - `it` - Current iterator on token list.
+    - `ctx` - AST ctx.
+    - `smt` - Symtable pointer.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_neg(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Parse .cpl 'poparg' command. Should be invoked on a 'poparg' token.
+Snippet:
+```cpl
+i32 a = poparg as i32;
+```
+
+Params:
+    - `it` - Current iterator on token list.
+
+Returns an ast node.
+*/
+ast_node_t* cpl_parse_poparg(list_iter_t* it);
 
 #endif

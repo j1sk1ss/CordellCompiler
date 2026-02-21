@@ -1,0 +1,7 @@
+{
+    "sources": [
+        "src/preproc/*.c",
+        "src/preproc/misc/*.c",
+        "std/*.c"
+    ]
+}

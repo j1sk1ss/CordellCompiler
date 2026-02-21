@@ -5,7 +5,7 @@ ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        print_error("Can't create a base for the '%s' statement!", IF_COMMAND);
+        PARSE_ERROR("Can't create a base for the '%s' statement!", IF_COMMAND);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -13,40 +13,45 @@ ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
     
     forward_token(it, 1);
-    ast_node_t* cond = cpl_parse_expression(it, ctx, smt);
+    ast_node_t* cond = cpl_parse_expression(it, ctx, smt, 1);
     if (!cond) {
-        print_error("Error during the condition parsing in the '%s' structure! %s <stmt>", IF_COMMAND, IF_COMMAND);
+        PARSE_ERROR("Error during the condition parsing in the '%s' structure! %s <stmt>", IF_COMMAND, IF_COMMAND);
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     AST_add_node(node, cond);
-    forward_token(it, 1);
 
-    if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == OPEN_BLOCK_TOKEN) {
-        ast_node_t* branch = cpl_parse_scope(it, ctx, smt);
-        if (!branch) {
-            print_error("Error during the true branch parsing in the '%s' statement!", IF_COMMAND);
-            AST_unload(node);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
-        
-        AST_add_node(node, branch);
+    ast_node_t* tbranch = NULL;
+    if (!consume_token(it, OPEN_BLOCK_TOKEN)) tbranch = cpl_parse_line_scope(it, ctx, smt);
+    else tbranch = cpl_parse_scope(it, ctx, smt);
+    if (!tbranch) {
+        PARSE_ERROR("Error during the true branch parsing in the '%s' statement!", IF_COMMAND);
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
     }
+    
+    AST_add_node(node, tbranch);
 
     if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == ELSE_TOKEN) {
+        ast_node_t* fbranch = NULL;
         forward_token(it, 1);
-        ast_node_t* branch = cpl_parse_scope(it, ctx, smt);
-        if (!branch) {
-            print_error("Error during the false branch parsing in the '%s' statement!", IF_COMMAND);
+        switch (CURRENT_TOKEN->t_type) {
+            case OPEN_BLOCK_TOKEN: fbranch = cpl_parse_scope(it, ctx, smt);      break;
+            case IF_TOKEN:         fbranch = cpl_parse_if(it, ctx, smt);         break;
+            default:               fbranch = cpl_parse_line_scope(it, ctx, smt); break;
+        }
+        
+        if (!fbranch) {
+            PARSE_ERROR("Error during the false branch parsing in the '%s' statement!", IF_COMMAND);
             AST_unload(node);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
         
-        AST_add_node(node, branch);
+        AST_add_node(node, fbranch);
     }
     
     return node;

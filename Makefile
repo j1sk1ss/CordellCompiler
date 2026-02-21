@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -Iinclude -Wcomment -Wno-unknown-pragmas -Wno-unused-result -Wno-empty-body -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-unused-variable -Wno-format-overflow
+CFLAGS = -Wall -Iinclude
 CC = gcc
 
 # Logger flags

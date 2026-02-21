@@ -111,6 +111,7 @@ lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
         case XMM2: return XMM2;
         case XMM3: return XMM3;
         case XMM4: return XMM4;
+        default: break;
     }
 
     return reg;

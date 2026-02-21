@@ -2,11 +2,11 @@
 
 static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* output) {
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
-        if ((!vi->glob && glob) || (!vi->ro && ro)) continue;
+        if ((!vi->vfs.glob && glob) || (!vi->vfs.ro && ro)) continue;
         if (vi->type == ARRAY_TYPE_TOKEN || vi->type == STR_TYPE_TOKEN) {
             array_info_t ai;
             if (!ARTB_get_info(vi->v_id, &ai, &smt->a)) continue;
-            token_t tmptkn = { .t_type = ai.el_type, .flags = { .ptr = vi->ptr } };
+            token_t tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
             if ((!list_size(&ai.elems) && !bss) || (list_size(&ai.elems) && bss)) continue;
             if (!list_size(&ai.elems)) {
                 switch (TKN_variable_bitness(&tmptkn, 1)) {
@@ -42,7 +42,7 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
             continue;
         }
 
-        token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->ptr, .ro = vi->ro } };
+        token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro } };
         switch (TKN_variable_bitness(&tmptkn, 1)) {
             case 64: fprintf(output, "%s dq 0\n", vi->name->body); break;
             case 32: fprintf(output, "%s dd 0\n", vi->name->body); break;
@@ -66,8 +66,7 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
         fprintf(output, "_str_%li_ db ", si->id);
         char* data = si->value->body;
         while (*data) {
-            fprintf(output, "%i,", *data);
-            data++;
+            fprintf(output, "%i,", *(data++));
         }
 
         fprintf(output, "0\n");
@@ -78,8 +77,8 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output) {
 
     fprintf(output, "section .text\n");
     map_foreach (func_info_t* fi, &smt->f.functb) {
-        if (fi->global)   fprintf(output, "global %s\n", fi->name->body);
-        if (fi->external) fprintf(output, "extern %s\n", fi->name->body);
+        if (fi->flags.global)   fprintf(output, "global %s\n", fi->name->body);
+        if (fi->flags.external) fprintf(output, "extern %s\n", fi->name->body);
     }
 
     return 1;

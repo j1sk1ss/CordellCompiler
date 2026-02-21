@@ -145,15 +145,18 @@ static int _recursive_cleanup(
     if (
         !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) || 
         !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
-    ) return 0;
-    return 1;
+    ) return 0; /* If the command is used somewhere in the childs, return 0                       */
+    return 1;   /* By default, if the considering command is unused elsewhere, we mark it to drop */
 }
 
 static int _cleanup_pass(cfg_block_t* bb) {
     if (!bb) return 0;
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
-        if (LIR_writeop(lh->op)) {
+        if (
+            LIR_writeop(lh->op) && /* If this is a write operation */
+            lh->op != LIR_aMOV     /* but isn't a reserved one     */
+        ) {
             _visit_counter++;
             if (_recursive_cleanup(lh->op, -1, bb, lh->farg, lh, lh->next)) {
                 lh->unused = 1;

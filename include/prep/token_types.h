@@ -4,17 +4,26 @@
 #include <std/str.h>
 
 typedef enum {
+    // Pre-processor tokens
+    PP_TOKEN,  // #file "file"
+               // for instance: #file "something.cpl"
+    /* This token tells us about current info for the 
+       finfo structure in the rokenizer. */
+    INCLUDE_FILE_TOKEN,
+
     // Unknowns
     UNKNOWN_CHAR_TOKEN,
     UNKNOWN_BRACKET_VALUE,
     UNKNOWN_STRING_TOKEN,
-    UNKNOWN_NUMERIC_TOKEN,
+    UNKNOWN_NUMERIC_TOKEN,       // 123
+    UNKNOWN_FLOAT_NUMERIC_TOKEN, // 123.123
+    UNKNOWN_SIGN_TOKEN,          // +, -, *, /, etc
     LINE_BREAK_TOKEN,
 
-    COMMENT_TOKEN,       // :
     DELIMITER_TOKEN,     // ;
     COMMA_TOKEN,         // ,
-    DOT_TOKEN,           // .
+    INDEXATION_TOKEN,    // []
+    CALLING_TOKEN,       // ()
     OPEN_INDEX_TOKEN,    // [
     CLOSE_INDEX_TOKEN,   // ]
     OPEN_BRACKET_TOKEN,  // (
@@ -31,8 +40,9 @@ typedef enum {
     GLOB_TYPE_TOKEN,     // glob
     NEGATIVE_TOKEN,      // not
 
-    // Types
-    TMP_TYPE_TOKEN,
+    // Data types
+    VAR_ARGUMENTS_TOKEN, // ...
+    TMP_TYPE_TOKEN,      // tmp
     TMP_F64_TYPE_TOKEN,  // tmp_f64
     TMP_F32_TYPE_TOKEN,  // tmp_f32
     TMP_I64_TYPE_TOKEN,  // tmp_i64
@@ -59,6 +69,9 @@ typedef enum {
     ARRAY_TYPE_TOKEN,    // arr
     STRUCT_TYPE_TOKEN,   // struct
     
+    // Convert statements
+    CONVERT_TOKEN,       // as
+
     // Commands
     IMPORT_TOKEN,        // import
     IMPORT_SELECT_TOKEN, // from
@@ -66,16 +79,19 @@ typedef enum {
     START_TOKEN,         // start
     RETURN_TOKEN,        // return
     EXIT_TOKEN,          // exit
-    RETURN_TYPE_TOKEN,   // =>
+    RETURN_TYPE_TOKEN,   // ->
     SCOPE_TOKEN,         // {  }
 
     // Function
     ASM_TOKEN,           // asm
     SYSCALL_TOKEN,       // syscall
     EXFUNC_TOKEN,        // exfunc
+    FUNC_PROT_TOKEN,     // function <name> - prototype
     FUNC_TOKEN,          // function
-    FUNC_NAME_TOKEN,
-    CALL_TOKEN,
+    FUNC_NAME_TOKEN,     // function <name>
+    CALL_TOKEN,          // fname(...)
+    ADDR_CALL_TOKEN,     // something(...) - doesn't support default args, etc, but can handle addr to anything
+    CALL_ADDR,           // fname without () operation. Means that we're working with the address of a function
     
     // Condition scope
     SWITCH_TOKEN,        // switch
@@ -86,8 +102,9 @@ typedef enum {
     BREAK_TOKEN,         // break
     IF_TOKEN,            // if
     ELSE_TOKEN,          // else
+    POPARG_TOKEN,        // poparg
     
-    // Statements
+    // Operands
     PLUS_TOKEN,          // +
     MINUS_TOKEN,         // -
     MULTIPLY_TOKEN,      // *
@@ -97,6 +114,10 @@ typedef enum {
     SUBASSIGN_TOKEN,     // -=
     MULASSIGN_TOKEN,     // *=
     DIVASSIGN_TOKEN,     // /=
+    MODULOASSIGN_TOKEN,  // %=
+    BITANDASSIGN_TOKEN,  // &=
+    BITORASSIGN_TOKEN,   // |=
+    BITXORASSIGN_TOKEN,  // ^=
     ASSIGN_TOKEN,        // =
     COMPARE_TOKEN,       // ==
     NCOMPARE_TOKEN,      // !=
@@ -112,45 +133,48 @@ typedef enum {
     AND_TOKEN,           // &&
     OR_TOKEN,            // ||
     
-    // Vars
-    F64_VARIABLE_TOKEN,    // f64
-    F32_VARIABLE_TOKEN,    // f32
-    I64_VARIABLE_TOKEN,    // i64
-    I32_VARIABLE_TOKEN,    // i32
-    I16_VARIABLE_TOKEN,    // i16
-    I8_VARIABLE_TOKEN,     // i8
-    U64_VARIABLE_TOKEN,    // u64
-    U32_VARIABLE_TOKEN,    // u32
-    U16_VARIABLE_TOKEN,    // u16
-    U8_VARIABLE_TOKEN,     // u8
-    STR_VARIABLE_TOKEN,    // str
-    ARR_VARIABLE_TOKEN,    // arr
-    STRUCT_VARIABLE_TOKEN, // struct
+    // Variables (not a type, a variable)
+    VARIABLE_TOKEN,      // front-end tokenizer variable abstraction
+    F64_VARIABLE_TOKEN,  // f64
+    F32_VARIABLE_TOKEN,  // f32
+    I64_VARIABLE_TOKEN,  // i64
+    I32_VARIABLE_TOKEN,  // i32
+    I16_VARIABLE_TOKEN,  // i16
+    I8_VARIABLE_TOKEN,   // i8
+    U64_VARIABLE_TOKEN,  // u64
+    U32_VARIABLE_TOKEN,  // u32
+    U16_VARIABLE_TOKEN,  // u16
+    U8_VARIABLE_TOKEN,   // u8
+    STR_VARIABLE_TOKEN,  // str
+    ARR_VARIABLE_TOKEN,  // arr
 
     // Values
-    STRING_VALUE_TOKEN,
-    CHAR_VALUE_TOKEN,
+    STRING_VALUE_TOKEN,  // "something"
+    CHAR_VALUE_TOKEN,    // 's'
 
-    // debug
+    // Debug statements
     BREAKPOINT_TOKEN, // lis
 } token_type_t;
 
 typedef struct {
-    char ro;   /* Is read only flag   */
-    char glob; /* Is global flag      */
-    char ptr;  /* Is pointer flag     */
-    char ref;  /* Is reference flag   */
-    char dref; /* Is dereference flag */
-    char ext;  /* Is extern flag      */
-    char neg;  /* Is negative flag    */
-    char heap; /* Is heap allocated   */
+    char ro   : 1; /* Is read only flag   */
+    char glob : 1; /* Is global flag      */
+    int  ptr;      /* Is pointer flag     */
+    char ext  : 1; /* Is extern flag      */
+    char heap : 1; /* Is heap allocated   */
 } token_flags_t;
 
 typedef struct {
-    token_flags_t flags;
-    token_type_t  t_type;
-    string_t*     body;
-    int           lnum; /* Line in source file */
+    long      line;
+    long      column;
+    string_t* file;
+} token_fpos_t;
+
+typedef struct {
+    token_flags_t flags;  /* Token's flags           */
+    token_type_t  t_type; /* Token's type            */
+    string_t*     body;   /* Token's body            */
+    token_fpos_t  finfo;  /* Source file information */
 } token_t;
 
 token_type_t TKN_get_tmp_type(token_type_t t);
@@ -166,8 +190,9 @@ int TKN_isoperand(token_t* token);
 int TKN_token_priority(token_t* token);
 int TKN_isnumeric(token_t* token);
 int TKN_isvariable(token_t* token);
-int TKN_issign(token_t* token);
+int TKN_issign(token_t* token, char ptr);
 int TKN_is_float(token_t* token);
 int TKN_update_operator(token_t* token);
+token_type_t TKN_get_var_from_type(token_type_t t);
 
 #endif

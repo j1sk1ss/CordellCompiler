@@ -19,6 +19,7 @@ This `README` file contains the main information about this compiler and the dev
 - [Introduction](#introduction)
 - [EBNF](#ebnf)
 - [Code snippet](#sample-code-snippet)
+- [PP part](#pp-part)
 - [Tokenization part](#tokenization-part)
 - [Markup part](#markup-part)
 - [AST part](#ast-part)
@@ -89,7 +90,7 @@ Here we are implement the simple `strlen` function and test it on a string.
 
 ```cpl
 {
-    function strlen(ptr i8 s) => i64 {
+    function strlen(ptr i8 s) -> i64 {
         i64 l = 0;
         while dref s; {
             s += 1;
@@ -107,6 +108,69 @@ Here we are implement the simple `strlen` function and test it on a string.
 }
 ```
 </details>
+
+## PP part
+This compiler has to parse not only a code, but also derictives. Derictives such as `include`, `define`, `undef`, `ifdef` and `ifndef` are supported by the preprocessor. These commands act similar to C/C++ derictives, except `define` that isn't able to work as a function. </br>
+For instance:
+```cpl
+: string_h.cpl :
+{
+#ifndef STRING_H_
+#define STRING_H_ 0
+    : Get the size of the provided string
+      Params
+        - `s` - Input string.
+
+      Returns the size (i64). :
+    function strlen(ptr i8 s) -> i64;
+#endif
+}
+
+: print_h.cpl :
+{
+#ifndef PRINT_H_
+#define PRINT_H_ 0
+    #include "string_h.cpl"
+    : Basic print function that is based on
+      a syscall invoke.
+      Params
+      - `msg` - Input message to print.
+      
+      Returns i0 aka nothing. :
+    function print(ptr str msg) -> i0;
+#endif
+}
+
+: basic.cpl :
+{
+    #include "print_h.cpl"
+    start(i64 argc, ptr u64 argv) {
+        print("Hello world!\n");
+        exit 0;
+    }
+}
+```
+
+Will be converted into the code below:
+```cpl
+{
+#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
+#line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
+
+    function strlen(ptr i8 s) -> i64;
+
+#line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
+
+    function print(ptr str msg) -> i0;
+
+#line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/basic.cpl"
+
+    start(i64 argc, ptr u64 argv) {
+        print("Hello world!\n");
+        exit 0;
+    }
+}
+```
 
 ## Tokenization part
 The tokenization part is responsible for splitting the input byte sequence (the result of the `fread` operation) into basic tokens. This module ignores all whitespace and separator symbols (such as `newlines` and `tabs`). It also classifies each token into one of the basic types: `number`, `string`, `delimiter`, `comma`, or `dot`.
@@ -130,7 +194,7 @@ line=1, type=2, data=[ptr],
 line=1, type=2, data=[i8], 
 line=1, type=2, data=[s], 
 line=1, type=1, data=[)], 
-line=1, type=0, data=[=>], 
+line=1, type=0, data=[->], 
 line=1, type=2, data=[i64], 
 line=2, type=1, data=[{], 
 line=2, type=2, data=[i64], 
@@ -216,7 +280,7 @@ line=1, type=10, data=[(],
 line=1, type=37, data=[i8], ptr 
 line=1, type=92, data=[s], ptr 
 line=1, type=11, data=[)], 
-line=1, type=50, data=[=>], 
+line=1, type=50, data=[->], 
 line=1, type=34, data=[i64], 
 line=2, type=12, data=[{], 
 line=2, type=34, data=[i64], 
@@ -573,7 +637,7 @@ Dead function elimination, similar to `HIR` constant folding, won't transform so
 ### Tail Recursion Elimination (TRE)
 Tail recursion elimination (based on CFG) find all functions where happens self-invoking at the end. The simplest example here is below:
 ```cpl
-function foo(i32 a = 10) => i8 {
+function foo(i32 a = 10) -> i8 {
    if a > 20; { return a; }
    return foo(a + 1);
 }
@@ -581,7 +645,7 @@ function foo(i32 a = 10) => i8 {
 
 When we found such function, we determine if it ready for `TRE`. Then we transform it into the cycle:
 ```cpl
-function foo(i32 a = 10) => i8 {
+function foo(i32 a = 10) -> i8 {
 lbX:
    if a > 20; { return a; }
    a += 1;
@@ -672,10 +736,64 @@ Now we can determine which variables can share the same register using graph col
 ![colored_ig](docs/media/colored_ig.png)
 
 ## LIR peephole optimization
+Peephole optimization [[?]](https://www.geeksforgeeks.org/compiler-design/peephole-optimization-in-compiler-design/) is the one of the easiest and the one of the impactful optimizations (At least in this compiler). In a nutshell, this optimization simply does a pattern matching and replacing similar it does a regular expression. It finds patterns in an assembly code / a LIR representation that are inefficient and replaces it with efficient synonyms. </br>
+The simplest example here, is the replacing of one inefficient command with an efficient one:
+```asm
+; mox rax, 0
+xor rax, rax
+```
+
 ### PTRN domain specific language
+As it was mentioned before, the peephole optimization mostly is based on patterns. The problem here that there is a lot of existed patterns for optimization of Assembly language. It would be really inconvenient to try implement these patterns in C language by hand (regarding the necessity of the CordellCompiler's LIR support). </br>
+To solve this problem, we can use the DSL language that produces such optimizers for LIR representation. To see more information about this DSL, see [this](src/lir/peephole/pattern_generator/README.md) README file.
+
 ### First pass
+The first pass of the peeophole optimizator is a pattern matcher pass. This pass involves the aforementioned before generated pattern matcher function.
+
 ### Second pass
+The second pass propogates values to destroy a complex sequence of redundant mov operations. Here I'm implying the next sequence of commands as a complex sequence of redundant movs:
+```asm
+mov rax, rbx
+mov rdx, rax
+mov rcx, rdx
+mov r10, rcx
+mov r11, r10
+mov rax, r10
+``` 
+
+Such a bizarre code is produced after HIR and LIR optimizations. After the second pass, the code above is transformed into the code below:
+```asm
+mov rax, rbx
+mov rdx, rbx
+mov rcx, rbx
+mov r10, rbx
+mov r11, rbx
+mov rax, rbx
+```
+
 ### Third pass
+Now, when we've obtained the optimized version of a code, we need to clean it. To do this task, we can simply use CFG and check, if the considering register in current line (For instance let's take the `mov rax, rbx` line) is used in a read operation, and if it used, skip it. Otherwise, if it somewhere is used in a write operation (before any read operation) we can safely drop this line. </br>
+As we can see, the `rax` register, after the second pass, is only used in the write operation at the end of the code snippet. It signals, that we can safely drop this line.
+```asm
+; mov rax, rbx [dropped]
+mov rdx, rbx
+mov rcx, rbx
+mov r10, rbx
+mov r11, rbx
+mov rax, rbx
+```
+
+Additionally, if a register doesn't affect on a program environment (e.g. isn't used in a syscall, function call, etc), it also can be safely marked as `dropped`:
+```asm
+; mov rax, rbx [dropped]
+; mov rdx, rbx [dropped]
+; mov rcx, rbx [dropped]
+; mov r10, rbx [dropped]
+; mov r11, rbx [dropped]
+; mov rax, rbx [dropped]
+```
+
+P.S. This is a pretty synthetic example, thought.
 
 <details>
 <summary><strong>From HIR to LIR example</strong></summary>
@@ -739,7 +857,6 @@ start {
 </details>
 
 ## LIR x86_64 instruction selection
-
 Next step is LIR lowering. The most common way here - instruction selection. This is the first machine-depended step in compiler, that's why here we have some abstractions and implementations of different asm dialetcs (e.g., nasm x86_64 gnu, at&at x86_64 gnu, etc.).
 
 <details>

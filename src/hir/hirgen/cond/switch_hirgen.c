@@ -25,14 +25,14 @@ static int _generate_case_binary_jump(
     hir_subject_t* equals        = HIR_SUBJ_LABEL();
 
     hir_subject_t* is_lwr = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, 0, NULL, &smt->v));
-    HIR_BLOCK3(ctx, HIR_iLWR, is_lwr, cond, HIR_generate_conv(ctx, cond->t, HIR_SUBJ_CONST(val), smt));
+    HIR_BLOCK3(ctx, HIR_iLWR, is_lwr, cond, HIR_generate_implconv(ctx, cond->ptr, cond->t, HIR_SUBJ_CONST(val), smt));
     HIR_BLOCK3(ctx, HIR_IFOP2, is_lwr, lower, eq_or_greater);
     HIR_BLOCK1(ctx, HIR_MKLB, lower);
     _generate_case_binary_jump(values, cond, left, mid - 1, def, end, ctx, smt);
 
     HIR_BLOCK1(ctx, HIR_MKLB, eq_or_greater);
     hir_subject_t* is_grt = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, 0, NULL, &smt->v));
-    HIR_BLOCK3(ctx, HIR_iLRG, is_grt, cond, HIR_generate_conv(ctx, cond->t, HIR_SUBJ_CONST(val), smt));
+    HIR_BLOCK3(ctx, HIR_iLRG, is_grt, cond, HIR_generate_implconv(ctx, cond->ptr, cond->t, HIR_SUBJ_CONST(val), smt));
     HIR_BLOCK3(ctx, HIR_IFOP2, is_grt, greater, equals);
     HIR_BLOCK1(ctx, HIR_MKLB, greater);
     _generate_case_binary_jump(values, cond, mid + 1, right, def, end, ctx, smt);
@@ -62,8 +62,8 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
         hir_subject_t* clb = HIR_SUBJ_LABEL();
         HIR_BLOCK1(ctx, HIR_MKLB, clb);
         
-        void* backup = ctx->carry;
-        ctx->carry = end_lb;
+        void* backup = ctx->carry.ptr;
+        ctx->carry.ptr = end_lb;
 
         if (curr_case->t->t_type == DEFAULT_TOKEN && !def) {
             HIR_generate_block(curr_case->c, ctx, smt);
@@ -76,9 +76,10 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
             cases_count++;
         }
 
-        ctx->carry = backup;
+        ctx->carry.ptr = backup;
     }
 
+    HIR_BLOCK1(ctx, HIR_JMP, end_lb);
     sort_qsort(cases_info, cases_count, sizeof(binary_cases_t), _cmp);
     HIR_BLOCK1(ctx, HIR_MKLB, cguards);
     

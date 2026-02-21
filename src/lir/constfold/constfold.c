@@ -1,5 +1,13 @@
 #include <lir/constfold.h>
 
+/*
+Get the variable's ID and get the definition of the variable.
+Params:
+    - `s` - LIR subject for constant fold.
+    - `smt` - Symtable.
+
+Returns 1 if fold has completed. Otherwise will return 0.
+*/
 static int _apply_constfold_on_subject(lir_subject_t* s, sym_table_t* smt) {
     if (s->t != LIR_VARIABLE) return 0;
     variable_info_t vi;
@@ -20,16 +28,16 @@ int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
             while (lh) {
                 lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
                 for (int i = 0; i < 3; i++) {
-                    if (!args[i]) continue;
-                    if (args[i]->t == LIR_ARGLIST) {
-                        foreach (lir_subject_t* s, &args[i]->storage.list.h) {
-                            _apply_constfold_on_subject(s, smt);
+                    if (args[i]) switch (args[i]->t) {
+                        case LIR_ARGLIST: {
+                            foreach (lir_subject_t* s, &args[i]->storage.list.h) {
+                                _apply_constfold_on_subject(s, smt);
+                            }
+                            
+                            break;
                         }
-
-                        continue;
+                        default: _apply_constfold_on_subject(args[i], smt); break;
                     }
-
-                    _apply_constfold_on_subject(args[i], smt);
                 }
 
                 lh = LIR_get_next(lh, bb->lmap.exit, 1);

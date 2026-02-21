@@ -1,27 +1,5 @@
 #include <lir/lir.h>
 
-lir_ctx_t* LIR_create_ctx() {
-    lir_ctx_t* ctx = mm_malloc(sizeof(lir_ctx_t));
-    if (!ctx) return NULL;
-    ctx->h = ctx->t = NULL;
-    ctx->cid = 0;
-    ctx->lid = 0;
-    return ctx;
-}
-
-int LIR_destroy_ctx(lir_ctx_t* ctx) {
-    if (!ctx) return -1;
-    lir_block_t* cur = ctx->h;
-    while (cur) {
-        lir_block_t* nxt = cur->next;
-        mm_free(cur);
-        cur = nxt;
-    }
-
-    mm_free(ctx);
-    return 0;
-}
-
 static long _curr_id = 0;
 lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_t* strval, long intval, int size) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
@@ -48,7 +26,11 @@ lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_
         case LIR_LABEL:    subj->storage.lb.lb_id   = v_id;   break;
         case LIR_FNAME:
         case LIR_RAWASM:
-        case LIR_STRING: subj->storage.str.sid = v_id; break;
+        case LIR_STRING: {
+            subj->storage.str.sid = v_id; 
+            subj->storage.str.rel = intval;
+            break;
+        }
         case LIR_NUMBER: {
             if (strval) subj->storage.num.value = strval->copy(strval);
             break;

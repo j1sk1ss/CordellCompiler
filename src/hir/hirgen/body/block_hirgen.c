@@ -20,15 +20,24 @@ Returns generated value from the AST node or the 'NULL' value.
 */
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node || !node->t) return NULL;
-    if (
-        TKN_isoperand(node->t) &&       /* If this is an operand node           */
-        node->t->t_type != ASSIGN_TOKEN /* and this isn't an assign node        */
-    ) return HIR_generate_operand(node, ctx, smt); /* We generate operand logic */
+    if (node->t->t_type != ASSIGN_TOKEN) {
+        if (TKN_update_operator(node->t)) return HIR_generate_update_block(node, ctx, smt, 1);
+        else if (TKN_isoperand(node->t))  return HIR_generate_operand(node, ctx, smt);
+    }
+
     switch (node->t->t_type) {
+        case CALLING_TOKEN:
         case CALL_TOKEN:            return HIR_generate_funccall(node, ctx, smt, 1);
+        case POPARG_TOKEN:          return HIR_generate_poparg(ctx, smt);
         case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 1);
+        case CONVERT_TOKEN:         return HIR_generate_explconv(node, ctx, smt);
+        case NEGATIVE_TOKEN:        return HIR_generate_neg(node, ctx, smt);
+        case REF_TYPE_TOKEN:        return HIR_generate_ref(node, ctx, smt);
+        case DREF_TYPE_TOKEN:       return HIR_generate_dref(node, ctx, smt, NULL);
+        case INDEXATION_TOKEN:      return HIR_generate_load_indexation(node, ctx, smt);
         /* We skip assign nodes above given the next logic, 
         where we generate the special load sequence */
+        case CALL_ADDR:
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:
@@ -42,7 +51,8 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:
         case STRING_VALUE_TOKEN:
-        case UNKNOWN_NUMERIC_TOKEN: return HIR_generate_load(node, ctx, smt);
+        case UNKNOWN_NUMERIC_TOKEN:
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN: return HIR_generate_load(node, ctx, smt);
         default: break;
     }
 
@@ -66,14 +76,17 @@ Returns 1 if succeeds, otherwise will return 0.
 static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node || !node->t) return 0;
     if (TKN_isdecl(node->t)) return HIR_generate_declaration_block(node, ctx, smt);
-    if (
-        TKN_update_operator(node->t) && node->t->t_type != ASSIGN_TOKEN
-    ) return HIR_generate_update_block(node, ctx, smt);
+    if (node->t->t_type != ASSIGN_TOKEN && TKN_update_operator(node->t)) {
+        HIR_generate_update_block(node, ctx, smt, 0);
+        return 1;
+    }
+
     switch (node->t->t_type) {
         case IF_TOKEN:         HIR_generate_if_block(node, ctx, smt);         break;
         case ASM_TOKEN:        HIR_generate_asmblock(node, ctx, smt);         break;
         case FUNC_TOKEN:       HIR_generate_function_block(node, ctx, smt);   break;
         case EXIT_TOKEN:       HIR_generate_exit_block(node, ctx, smt);       break;
+        case CALLING_TOKEN:
         case CALL_TOKEN:       HIR_generate_funccall(node, ctx, smt, 0);      break;
         case LOOP_TOKEN:       HIR_generate_loop_block(node, ctx, smt);       break;
         case BREAK_TOKEN:      HIR_generate_break_block(ctx);                 break;
@@ -85,7 +98,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case IMPORT_TOKEN:     HIR_generate_import_block(node, ctx);          break;
         case ASSIGN_TOKEN:     HIR_generate_assignment_block(node, ctx, smt); break;
         case SYSCALL_TOKEN:    HIR_generate_syscall(node, ctx, smt, 0);       break;
-        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(ctx);            break;
+        case BREAKPOINT_TOKEN: HIR_generate_breakpoint_block(node, ctx);      break;
         default: break;
     }
 
@@ -103,10 +116,7 @@ Params:
     - `op` - 'HIR_MKSCOPE' or 'HIR_ENDSCOPE' command.
 */
 static inline void _insert_scope(ast_node_t* t, hir_ctx_t* ctx, hir_operation_t op) {
-    if (
-        t->t && 
-        t->t->t_type == SCOPE_TOKEN
-    ) HIR_BLOCK1(ctx, op, HIR_SUBJ_CONST(t->sinfo.s_id));
+    if (t->t && t->t->t_type == SCOPE_TOKEN) HIR_BLOCK1(ctx, op, HIR_SUBJ_CONST(t->sinfo.s_id));
 }
 
 int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {

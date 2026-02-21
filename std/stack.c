@@ -47,3 +47,23 @@ int stack_free(sstack_t* s) {
     s->data = NULL;
     return 1;
 }
+
+static int _stack_free_force(sstack_t* m, int (*fop)(void*)) {
+    if (!m) return 0;
+    for (long i = 0; i < m->top; i++) {
+        if (m->data[i].d) {
+            if (fop) fop(m->data[i].d);
+            else mm_free(m->data[i].d);
+        }
+    }
+
+    return stack_free(m);
+}
+
+int stack_free_force(sstack_t* m) {
+    return _stack_free_force(m, NULL);
+}
+
+int stack_free_force_op(sstack_t* m, int (*op)(void*)) {
+    return _stack_free_force(m, op);
+}

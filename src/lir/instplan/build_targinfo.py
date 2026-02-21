@@ -45,8 +45,7 @@ if __name__ == "__main__":
     ascii_banner = pyfiglet.figlet_format("TargInfo builder tool")
     print(ascii_banner)
     
-    parser = argparse.ArgumentParser(description="Target info file builder for CPL Compiler (CC)")
-    
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(description="Target info file builder for CPL Compiler (CC)")
     parser.add_argument("--lir-types-location", type=str, default=".", help="Compiler LIR types location")
     parser.add_argument("--include-location", type=str, default=".", help="Compiler incldue location")
     parser.add_argument("--std-location", type=str, default=".", help="Compiler STD location")

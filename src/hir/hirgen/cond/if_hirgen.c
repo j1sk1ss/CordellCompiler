@@ -24,7 +24,7 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     else {
         HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
-        HIR_generate_block(rbranch->c, ctx, smt);
+        HIR_generate_block(rbranch->t->t_type == IF_TOKEN ? rbranch : rbranch->c, ctx, smt);
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(rbranch->sinfo.s_id));
         HIR_BLOCK1(ctx, HIR_JMP, end_lb);
     }

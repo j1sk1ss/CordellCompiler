@@ -21,5 +21,7 @@ int stack_push(sstack_t* s, void* data);
 int stack_pop(sstack_t* s, void** d);
 int stack_top(sstack_t* s, void** d);
 int stack_free(sstack_t* s);
+int stack_free_force(sstack_t* m);
+int stack_free_force_op(sstack_t* m, int (*op)(void*));
 
 #endif

@@ -9,7 +9,6 @@ class OperandType(Enum):
     AREG = "areg"
     MEM = "mem"
     OBJ = "obj"
-    WILDCARD = "wildcard"
 
 @dataclass
 class Operand:
@@ -29,7 +28,7 @@ class Operand:
         if self.conditions:
             result.append(f"[if:{self.conditions}]")
         if self.actions:
-            result.append(f"[act:{self.actions}]")
+            result.append(f"[do:{self.actions}]")
         
         return " ".join(result)
 
