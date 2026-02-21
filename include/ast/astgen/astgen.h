@@ -188,7 +188,6 @@ literal         = integer_literal | string_literal | char_literal ;
 #ifndef CPL_PARSER_H_
 #define CPL_PARSER_H_
 
-#include <stdarg.h>
 #include <std/str.h>
 #include <std/set.h>
 #include <std/stack.h>
