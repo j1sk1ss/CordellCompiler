@@ -1,0 +1,22 @@
+{
+    struct a {
+        i32 a;
+    }
+
+    struct b {
+        a a;
+    }
+
+    struct c {
+        b b;
+        ptr b d;
+    }
+
+    start() {
+        c c;
+        c.d.a.a = 0;
+    }
+}
+
+: OUTPUT
+:

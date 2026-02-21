@@ -48,6 +48,8 @@ static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_tabl
         case LOOP_TOKEN:            return cpl_parse_loop(it, ctx, smt);
                                     /* break_statement = "break" , ";" ; */
         case BREAK_TOKEN:           return cpl_parse_break(it);
+        case STRUCT_TOKEN:          return cpl_parse_structdef(it, ctx, smt);
+        case STRUCT_TYPE_TOKEN:     return cpl_parse_structdecl(it, ctx, smt);
         case VARIABLE_TOKEN:
         case NEGATIVE_TOKEN:
         case REF_TYPE_TOKEN:
