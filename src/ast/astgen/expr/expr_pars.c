@@ -77,7 +77,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             case OPEN_BRACKET_TOKEN: {
                 forward_token(it, 1);
                 ast_node_t* call_op   = AST_create_node_bt(CREATE_CALL_TOKEN);
-                ast_node_t* arguments = cpl_parse_call_arguments(it, ctx, smt, NULL);
+                ast_node_t* arguments = cpl_parse_call_arguments(it, ctx, smt, 0);
                 if (call_op && arguments) {
                     ast_node_t* tmp = left;
                     left = call_op;
@@ -94,7 +94,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             }
             /* Convert operator */
             case CONVERT_TOKEN: {
-                ast_node_t* conv_type = cpl_parse_conv(it);
+                ast_node_t* conv_type = cpl_parse_conv(it, ctx, smt, 0);
                 if (conv_type) {
                     ast_node_t* tmp = left;
                     left = conv_type;
@@ -176,12 +176,12 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
             return node;
         }
     
-        case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt); /* call()    */
-        case POPARG_TOKEN:    return cpl_parse_poparg(it);             /* poparg    */
-        case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt);  /* syscall() */
-        case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt);      /* neg       */
-        case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt);      /* ref       */
-        case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt);     /* dref      */
+        case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */
+        case POPARG_TOKEN:    return cpl_parse_poparg(it, ctx, smt, 0);   /* poparg    */
+        case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
+        case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */
+        case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt, 0);      /* ref       */
+        case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt, 0);     /* dref      */
         default: break;
     }
 
@@ -205,6 +205,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
     return node;
 }
 
-ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
-    return _parse_binary_expression(it, ctx, smt, 0, na);
+ast_node_t* cpl_parse_expression(PARSER_ARGS) {
+    PARSER_ARGS_USE;
+    return _parse_binary_expression(it, ctx, smt, 0, carry);
 }

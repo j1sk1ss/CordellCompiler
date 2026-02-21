@@ -2,7 +2,8 @@
    - 'asm' keyword */
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_asm(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
@@ -22,7 +23,7 @@ ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
 
     /* asm ( ... ) */
     forward_token(it, 1); 
-    ast_node_t* args = cpl_parse_call_arguments(it, ctx, smt, NULL);
+    ast_node_t* args = cpl_parse_call_arguments(it, ctx, smt, 0);
     if (args) AST_add_node(node, args);
     else {
         PARSE_ERROR("Error during the '%s' argument value parsing! %s(<stmt>)!", ASM_COMMAND, ASM_COMMAND);

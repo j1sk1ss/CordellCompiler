@@ -1,6 +1,7 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_line_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
     ast_node_t* base = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (!base) {
@@ -10,7 +11,7 @@ ast_node_t* cpl_parse_line_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* s
     }
 
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
-    ast_node_t* node = cpl_parse_element(it, ctx, smt);
+    ast_node_t* node = cpl_parse_element(it, ctx, smt, carry);
     if (!node) {
         stack_pop(&ctx->scopes.stack, NULL);
         PARSE_ERROR("Error during a parse of the scope block!");
@@ -24,7 +25,8 @@ ast_node_t* cpl_parse_line_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* s
     return base;
 }
 
-ast_node_t* cpl_parse_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_scope(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
 

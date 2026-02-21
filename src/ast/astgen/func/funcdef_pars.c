@@ -1,11 +1,14 @@
 #include <ast/astgen/astgen.h>
 
-int cpl_parse_funcdef_args(ast_node_t* trg, list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+int cpl_parse_funcdef_args(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
+
+    ast_node_t* trg = (ast_node_t*)carry;
     do {
         if (CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN) break;
         if (TKN_isdecl(CURRENT_TOKEN)) {
-            ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt);
+            ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt, carry);
             if (!arg) {
                 PARSE_ERROR("Error during the argument parsing! (<type> <name>)!");
                 RESTORE_TOKEN_POINT;
@@ -38,7 +41,8 @@ int cpl_parse_funcdef_args(ast_node_t* trg, list_iter_t* it, ast_ctx_t* ctx, sym
     return 1;
 }
 
-ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_function(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
     /* function */
@@ -76,7 +80,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
 
     /* function <name> ( ... ) */
     forward_token(it, 2);
-    if (!cpl_parse_funcdef_args(args_node, it, ctx, smt)) {
+    if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args_node)) {
         PARSE_ERROR("Can't parse function's arguments!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
@@ -105,7 +109,7 @@ ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     }
 
     /* function <name> ( ... ) [-> t] { ... } */
-    ast_node_t* body_node = cpl_parse_scope(it, ctx, smt);
+    ast_node_t* body_node = cpl_parse_scope(it, ctx, smt, carry);
     if (!body_node) {
         PARSE_ERROR("Error during the function's body parsing!");
         AST_unload(node);

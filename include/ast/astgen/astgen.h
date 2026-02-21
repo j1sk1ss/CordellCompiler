@@ -188,7 +188,9 @@ literal         = integer_literal | string_literal | char_literal ;
 #ifndef CPL_PARSER_H_
 #define CPL_PARSER_H_
 
+#include <stdarg.h>
 #include <std/str.h>
+#include <std/set.h>
 #include <std/stack.h>
 #include <prep/dict.h>
 #include <prep/token.h>
@@ -228,6 +230,9 @@ Return 1 if succeed.
 */
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt);
 
+#define PARSER_ARGS list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, long carry
+#define PARSER_ARGS_USE (void)it; (void)ctx; (void)smt; (void)carry;
+
 /*
 Parse `.cpl` element with input tokens.
 Params:
@@ -237,7 +242,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_element(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_element(PARSER_ARGS);
 
 /*
 Parse `.cpl` block with input tokens. Should be invoked on new block.
@@ -257,7 +262,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, token_type_t ex);
+ast_node_t* cpl_parse_block(PARSER_ARGS);
 
 /*
 Parse .cpl asm block with input tokens. Should be invoked on new ASM token.
@@ -277,7 +282,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_asm(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_asm(PARSER_ARGS);
 
 /*
 Parse .cpl switch block with input tokens. Should be invoked on switch token.
@@ -300,7 +305,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_switch(PARSER_ARGS);
 
 /*
 Parse .cpl 'if' block with input tokens. Should be invoked on 'if' token.
@@ -319,7 +324,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_if(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_if(PARSER_ARGS);
 
 /*
 Parse .cpl 'while' block with input tokens. Should be invoked on 'while' token.
@@ -336,7 +341,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_while(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_while(PARSER_ARGS);
 
 /*
 Parse .cpl 'loop' block with input tokens. Should be invoked on 'loop' token.
@@ -353,7 +358,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_loop(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_loop(PARSER_ARGS);
 
 /*
 Parse .cpl declaration array block. Should be invoked on array declaration block.
@@ -369,7 +374,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_array_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_array_declaration(PARSER_ARGS);
 
 /*
 Parse .cpl declaration variable block. Should be invoked on variable declaration block.
@@ -385,7 +390,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS);
 
 /*
 Parse .cpl extern block. Should be invoked on extern block.
@@ -401,7 +406,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_extern(PARSER_ARGS);
 
 /*
 Parse .cpl exit block. Should be invoked on a 'exit' token.
@@ -417,7 +422,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_exit(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_exit(PARSER_ARGS);
 
 /*
 Parse .cpl return block. Should be invoked on a 'return' token.
@@ -433,7 +438,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_return(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_return(PARSER_ARGS);
 
 /*
 Parse .cpl function's arguments. Helper function for funccall handlers.
@@ -445,7 +450,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_call_arguments(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int* args);
+ast_node_t* cpl_parse_call_arguments(PARSER_ARGS);
 
 /*
 Parse .cpl function call. Should be invoked on funccall token.
@@ -461,7 +466,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_funccall(PARSER_ARGS);
 
 /*
 Helper function for parsing function / start arguments.
@@ -474,7 +479,7 @@ Params:
 
 Returns 0 if something went wrong. Otherwise will return 1.
 */
-int cpl_parse_funcdef_args(ast_node_t* trg, list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+int cpl_parse_funcdef_args(PARSER_ARGS);
 
 /*
 Parse .cpl function with body and params. Should be invoked on function entry body.
@@ -491,7 +496,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_function(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_function(PARSER_ARGS);
 
 /*
 Parse .cpl import block. Should be invoked on import token.
@@ -507,7 +512,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_import(list_iter_t* it, sym_table_t* smt);
+ast_node_t* cpl_parse_import(PARSER_ARGS);
 
 /*
 Parse .cpl expression block (function, arithmetics, etc.). Can be invoked on any token type.
@@ -530,7 +535,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na);
+ast_node_t* cpl_parse_expression(PARSER_ARGS);
 
 /*
 Parse .cpl scope element.
@@ -544,7 +549,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_line_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_line_scope(PARSER_ARGS);
 
 /*
 Parse .cpl scope block. Should be invoked on scope token.
@@ -561,7 +566,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_scope(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_scope(PARSER_ARGS);
 
 /*
 Parse .cpl start block. Should be invoked on start token.
@@ -578,7 +583,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_start(PARSER_ARGS);
 
 /*
 Parse .cpl syscall block. Should be invoked on syscall token.
@@ -594,7 +599,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_syscall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_syscall(PARSER_ARGS);
 
 /*
 Parse .cpl breakpoint block. Should be invoked on a breakpoint token.
@@ -609,7 +614,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_breakpoint(list_iter_t* it, sym_table_t* smt);
+ast_node_t* cpl_parse_breakpoint(PARSER_ARGS);
 
 /*
 Parse .cpl break block. Should be invoked on a break token.
@@ -623,7 +628,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_break(list_iter_t* it);
+ast_node_t* cpl_parse_break(PARSER_ARGS);
 
 /*
 Parse .cpl cast block. Should be invoked on a 'as' token.
@@ -637,7 +642,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_conv(list_iter_t* it);
+ast_node_t* cpl_parse_conv(PARSER_ARGS);
 
 /*
 Parse .cpl 'ref' command. Should be invoked on a 'ref' token.
@@ -653,7 +658,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_ref(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_ref(PARSER_ARGS);
 
 /*
 Parse .cpl 'dref' command. Should be invoked on a 'dref' token.
@@ -669,7 +674,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_dref(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_dref(PARSER_ARGS);
 
 /*
 Parse .cpl 'neg' command. Should be invoked on a 'neg' token.
@@ -685,7 +690,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_neg(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_neg(PARSER_ARGS);
 
 /*
 Parse .cpl 'poparg' command. Should be invoked on a 'poparg' token.
@@ -699,6 +704,6 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_poparg(list_iter_t* it);
+ast_node_t* cpl_parse_poparg(PARSER_ARGS);
 
 #endif

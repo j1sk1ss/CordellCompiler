@@ -2,7 +2,8 @@
    - start */
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_start(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
@@ -20,7 +21,7 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     }
 
     forward_token(it, 1);
-    if (!cpl_parse_funcdef_args(node, it, ctx, smt)) {
+    if (!cpl_parse_funcdef_args(it, ctx, smt, (long)node)) {
         PARSE_ERROR("Can't parse start's arguments!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
@@ -34,7 +35,7 @@ ast_node_t* cpl_parse_start(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
         return NULL;
     }
 
-    ast_node_t* body = cpl_parse_scope(it, ctx, smt);
+    ast_node_t* body = cpl_parse_scope(it, ctx, smt, carry);
     if (!body) {
         PARSE_ERROR("Error during the parsing of the '%s' body!", START_COMMAND);
         AST_unload(node);

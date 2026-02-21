@@ -11,7 +11,7 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     list_iter_t it;
     list_iter_hinit(tkn, &it);
 
-    ctx->r = cpl_parse_scope(&it, ctx, smt);
+    ctx->r = cpl_parse_scope(&it, ctx, smt, 0);
     if (!ctx->r) return 0;
     
     int has_entry = 0;

@@ -1,6 +1,7 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_break(list_iter_t* it) {
+ast_node_t* cpl_parse_break(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);

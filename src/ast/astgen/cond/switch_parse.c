@@ -1,6 +1,7 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_switch(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
@@ -67,7 +68,7 @@ ast_node_t* cpl_parse_switch(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
             return NULL;
         }
 
-        ast_node_t* case_body = cpl_parse_scope(it, ctx, smt);
+        ast_node_t* case_body = cpl_parse_scope(it, ctx, smt, carry);
         if (!case_body) {
             PARSE_ERROR("Error during the parsing process for the case!");
             AST_unload(case_node);

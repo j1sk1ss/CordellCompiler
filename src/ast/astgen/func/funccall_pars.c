@@ -1,8 +1,10 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_call_arguments(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int* args) {
+ast_node_t* cpl_parse_call_arguments(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
+    int* args = (int*)carry;
     ast_node_t* node = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
         if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
@@ -27,7 +29,8 @@ ast_node_t* cpl_parse_call_arguments(list_iter_t* it, ast_ctx_t* ctx, sym_table_
     return node;
 }
 
-ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_funccall(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
@@ -42,7 +45,7 @@ ast_node_t* cpl_parse_funccall(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt
     if (!consume_token(it, OPEN_BRACKET_TOKEN)) node->t->t_type = CALL_ADDR;
     else {
         forward_token(it, 1);
-        ast_node_t* args = cpl_parse_call_arguments(it, ctx, smt, &args_count);
+        ast_node_t* args = cpl_parse_call_arguments(it, ctx, smt, (long)&args_count);
         if (args) AST_add_node(node, args);
         else {
             PARSE_ERROR("Function arguments parse error!");
