@@ -1,0 +1,12 @@
+{
+    struct test_struct {
+        u32 a;
+    }
+
+    start() {
+        test_struct a;
+    }
+}
+
+: OUTPUT
+:

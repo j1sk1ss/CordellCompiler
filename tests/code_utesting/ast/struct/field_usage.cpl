@@ -1,0 +1,15 @@
+{
+    struct a {
+        i32 a;
+        i32 b;
+    }
+
+    start() {
+        a a;
+        a.a = 10;
+        a.b = 20;
+    }
+}
+
+: OUTPUT
+:
