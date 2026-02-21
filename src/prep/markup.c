@@ -40,6 +40,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(NEGATIVE_COMMAND,       NEGATIVE_TOKEN),
 
     /* Variable tokens. */
+    LEXEM(STRUCT_DEFINE_COMMAND,  STRUCT_TOKEN),
     LEXEM(I0_VARIABLE,            I0_TYPE_TOKEN),
     LEXEM(F64_VARIABLE,           F64_TYPE_TOKEN),
     LEXEM(F32_VARIABLE,           F32_TYPE_TOKEN),
@@ -245,6 +246,7 @@ int MRKP_variables(list_t* tkn) {
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:
+            case STRUCT_TOKEN:
             case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
             case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
             case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:
@@ -262,6 +264,7 @@ int MRKP_variables(list_t* tkn) {
                             break;
                         }
 
+                        case STRUCT_TOKEN: ctype = STRUCT_TYPE_TOKEN; break;
                         case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
                         case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
                         case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:
