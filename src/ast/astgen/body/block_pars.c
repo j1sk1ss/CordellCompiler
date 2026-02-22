@@ -15,6 +15,9 @@ typedef struct {
         .types_count = (int)sizeof((const token_type_t[]){ __VA_ARGS__ }) / sizeof(token_type_t) \
     }
 
+/* Token handlers. The main point where the parser decide which parser
+must be invoked for the provided token.
+Note: ! If you're extending the parser, add a new handler here ! */
 static const handler_t handlers[] = {
     HANDLER(cpl_parse_start,             START_TOKEN),
     HANDLER(cpl_parse_asm,               ASM_TOKEN),
@@ -58,7 +61,6 @@ static const handler_t handlers[] = {
 
 /*
 Parsers collection navigation.
-Note: New parsers must be registered Here!
 Params:
     - `it` - Current iterator.
     - `ctx` - AST context.

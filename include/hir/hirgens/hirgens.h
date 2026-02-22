@@ -22,6 +22,12 @@ Params:
     ctx->carry.val1 = pargnum;                               \
     ctx->carry.val2 = pargop;                                \
 
+/*
+Fire a HIRGEN error.
+Params:
+    - `nd` - AST source node.
+    - `msg` - Message to fire. 
+*/
 #define HIRGEN_ERROR(nd, msg, ...) \
     fprintf( \
         stderr,                                                       \
@@ -124,7 +130,7 @@ Params:
     - `node` - AST node.
     - `ctx` - HIR ctx.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx);
 
@@ -134,7 +140,7 @@ Params:
     - `node` - AST node.
     - `ctx` - HIR ctx.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_breakpoint_block(ast_node_t* node, hir_ctx_t* ctx);
 
@@ -144,7 +150,7 @@ Note: ctx->carry must be a non-NULL value!
 Params:
     - `ctx` - HIR ctx.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_break_block(hir_ctx_t* ctx);
 
@@ -154,7 +160,7 @@ Params:
     - `node` - AST node.
     - `ctx` - HIR ctx.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx);
 
@@ -177,7 +183,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -188,7 +194,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -199,7 +205,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_assignment_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -210,7 +216,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -221,7 +227,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -232,7 +238,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -243,7 +249,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -254,7 +260,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -265,7 +271,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -276,7 +282,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_return_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -287,7 +293,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -298,7 +304,7 @@ Params:
     - `ctx - HIR ctx.
     - `smt - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -309,7 +315,7 @@ Params:
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
-Return parsed from AST HIR subject.
+Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
@@ -370,7 +376,37 @@ Return parsed from AST HIR subject.
 */
 hir_subject_t* HIR_generate_poparg(hir_ctx_t* ctx, sym_table_t* smt);
 
-hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt); // TODO
+/*
+Convert indexation AST node into HIR element. 
+Snippet:
+```cpl
+something = array[index]
+```
+
+Params:
+    - `node` - Indexation node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return parsed from AST HIR subject.
+*/
+hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Convert indexation AST node into HIR element. 
+Snippet:
+```cpl
+array[index] = something
+```
+
+Params:
+    - `node` - Indexation node.
+    - `data` - Information to store.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return 1 if succeeds. Otherwise will return 0.
+*/
 int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif
