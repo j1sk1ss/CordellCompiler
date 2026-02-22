@@ -4,6 +4,7 @@
 #include <ast/astgen.h>
 const char* name_tkn_type(token_type_t t) {
     switch (t) {
+        case DOT_TOKEN:                   return "DOT_TOKEN";
         case STRUCT_TOKEN:                return "STRUCT_TOKEN";
         case STRUCT_TYPE_TOKEN:           return "STRUCT_TYPE_TOKEN";
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
@@ -150,7 +151,7 @@ static inline int print_ast(ast_node_t* node, int depth) {
             case INDEXATION_TOKEN: printf("[[]]\n");                          break;
             default:
                 printf(
-                    "[%s] (%s,%sv_id=%i, s_id=%i%s%s%s%s)\n",
+                    "[%s] (%s,%sv_id=%li, s_id=%i%s%s%s%s)\n",
                     node->t->body->body, name_tkn_type(node->t->t_type), 
                     node->t->flags.ptr ? " ptr, " : " ",
                     node->sinfo.v_id, node->sinfo.s_id,

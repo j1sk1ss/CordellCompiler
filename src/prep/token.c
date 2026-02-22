@@ -247,11 +247,14 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
                 case CHAR_SPACE:
                 case CHAR_NEWLINE:   char_type = LINE_BREAK_TOKEN;      break;
                 case CHAR_SIGN:      char_type = UNKNOWN_SIGN_TOKEN;    break;
+                case CHAR_DOT:       char_type = DOT_TOKEN;             break;
                 default:             char_type = UNKNOWN_CHAR_TOKEN;    break;
             }
 
             PROPOGATE_SYMBOL_TYPE(UNKNOWN_NUMERIC_TOKEN, UNKNOWN_CHAR_TOKEN, UNKNOWN_NUMERIC_TOKEN);
+            PROPOGATE_SYMBOL_TYPE(UNKNOWN_NUMERIC_TOKEN, DOT_TOKEN, UNKNOWN_NUMERIC_TOKEN);
             PROPOGATE_TOKEN_TYPE(UNKNOWN_SIGN_TOKEN, UNKNOWN_NUMERIC_TOKEN, UNKNOWN_NUMERIC_TOKEN);
+            PROPOGATE_TOKEN_TYPE(DOT_TOKEN, UNKNOWN_NUMERIC_TOKEN, UNKNOWN_NUMERIC_TOKEN);
             PROPOGATE_SYMBOL_TYPE(UNKNOWN_STRING_TOKEN, UNKNOWN_NUMERIC_TOKEN, UNKNOWN_STRING_TOKEN);
             PROPOGATE_SYMBOL_TYPE(UNKNOWN_NUMERIC_TOKEN, UNKNOWN_STRING_TOKEN, UNKNOWN_NUMERIC_TOKEN);
         }

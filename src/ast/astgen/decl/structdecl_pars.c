@@ -11,14 +11,27 @@ ast_node_t* cpl_parse_structdecl(PARSER_ARGS) {
         return NULL;
     }
 
+    type_info_t ti;
+    if (!TPTB_get_info(node->t->body, &ti, &smt->t)) {
+        PARSE_ERROR("Can't find the type in the symtable!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+
     forward_token(it, 1);
-    ast_node_t* name = AST_create_node(CURRENT_TOKEN); /* TODO: Register name as a structure + register as a variable + register as an array */
+    ast_node_t* name = AST_create_node(CURRENT_TOKEN);
     if (!name) {
         PARSE_ERROR("Error during struct name creation!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
+
+    long decl_scope;
+    stack_top(&ctx->scopes.stack, (void**)&decl_scope);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, -1, decl_scope, &name->t->flags, &smt->v);
+    VRTB_update_type(name->sinfo.v_id, -1, ti.id, &smt->v);
 
     AST_add_node(node, name);
     var_lookup(name, ctx, smt);

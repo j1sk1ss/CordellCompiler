@@ -8,7 +8,7 @@
 
 typedef struct {
     short s_id;  /* Scope ID    */
-    int   v_id;  /* Variable ID */
+    long  v_id;  /* Variable ID */
 } syntax_info_t;
 
 typedef struct ast_node {

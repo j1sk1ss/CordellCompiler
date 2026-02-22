@@ -45,7 +45,7 @@
             [*=] (MULASSIGN_TOKEN, v_id=-1, s_id=0)
                [a] (I16_VARIABLE_TOKEN, v_id=1, s_id=4)
                [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [return] (RETURN_TOKEN, v_id=0, s_id=5)
+            [return] (RETURN_TOKEN, v_id=-1, s_id=5)
                [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
       [baz] (FUNC_NAME_TOKEN, v_id=2, s_id=0)

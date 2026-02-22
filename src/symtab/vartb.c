@@ -1,5 +1,17 @@
 #include <symtab/vartb.h>
 
+int VRTB_update_type(symbol_id_t id, token_type_t tt, symbol_id_t ct, vartab_ctx_t* ctx) {
+    print_log("VRTB_update_type(id=%i, tt=%i, ct=%li)", id, tt, ct);
+    variable_info_t* vi;
+    if (map_get(&ctx->vartb, id, (void**)&vi)) {
+        if (tt >= 0) vi->type  = tt;
+        if (ct >= 0) vi->ctype = ct;
+        return 1;
+    }
+
+    return 0;    
+}
+
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, vartab_ctx_t* ctx) {
     print_log("VRTB_update_memory(id=%i, offset=%i, size=%i, reg=%i)", id, offset, size, reg);
     variable_info_t* vi;
@@ -63,10 +75,11 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
         var->vfs.ro   = flags->ro;
     }
 
+    var->ctype      = -1;
     var->vmi.reg    = -1;
     var->vmi.offset = -1;
+    var->p_id       = -1;
 
-    var->p_id = -1;
     var->type = type;
     return var;
 }
@@ -74,7 +87,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     print_log("VRTB_add_copy(v_id=%i)", src->v_id);
     variable_info_t* nnd = _create_variable_info(NULL, src->type, src->s_id, NULL);
-    if (!nnd) return 0;
+    if (!nnd) return -1;
     
     str_memcpy(nnd, src, sizeof(variable_info_t));
     nnd->vmi.allocated = 0;
@@ -91,7 +104,7 @@ symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
 symbol_id_t VRTB_add_info(string_t* name, token_type_t type, short s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
     print_log("VRTB_add_info(name=%s, type=%i, s_id=%i)", name ? name->body : "(null)", type, s_id);
     variable_info_t* nnd = _create_variable_info(name, type, s_id, flags);
-    if (!nnd) return 0;
+    if (!nnd) return -1;
 
     nnd->v_id = ctx->curr_id++;
     if (!name) nnd->name = create_string("tmp");

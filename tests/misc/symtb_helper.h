@@ -33,6 +33,12 @@ const char* format_tkntype(token_type_t t) {
     }
 }
 
+char* get_ctype_name(symbol_id_t id, sym_table_t* smt) {
+    type_info_t ti;
+    TPTB_get_info_id(id, &ti, &smt->t);
+    return ti.name->body;
+} 
+
 void print_symtab(sym_table_t* smt) {
     printf("\n\n========== SYMTABLES ==========\n");
 
@@ -40,7 +46,7 @@ void print_symtab(sym_table_t* smt) {
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
         printf("id: %li, %s, ", vi->v_id, vi->name->body);
         for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
-        printf("%s, s_id: %i", format_tkntype(vi->type), vi->s_id);
+        printf("%s, s_id: %i", vi->ctype < 0 ? format_tkntype(vi->type) : get_ctype_name(vi->ctype, smt), vi->s_id);
         if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg));
         else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %li]", vi->vmi.offset);
         if (vi->vdi.defined)          printf(", value=%ld", vi->vdi.definition);

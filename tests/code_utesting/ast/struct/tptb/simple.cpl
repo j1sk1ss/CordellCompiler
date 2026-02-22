@@ -1,0 +1,9 @@
+{
+    struct name {
+        i32 a;
+    }
+}
+
+: OUTPUT
+0, type, name=name, field=0
+:

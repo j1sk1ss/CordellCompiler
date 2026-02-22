@@ -12,10 +12,10 @@ typedef struct {
 } array_elem_info_t;
 
 typedef struct {
-    char              heap;
-    symbol_id_t       v_id;
-    long              size;
-    list_t            elems;
+    char              heap : 1; /* Is heap?                      */
+    symbol_id_t       v_id;     /* Linked variable               */
+    long              size;     /* Known (constant) array size   */
+    list_t            elems;    /* Defined ! constant ! elements */
     struct {
         token_type_t  el_type;
         token_flags_t el_flags;
