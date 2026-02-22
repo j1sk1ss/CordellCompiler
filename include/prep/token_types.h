@@ -23,6 +23,8 @@ typedef enum {
     COMMENT_TOKEN,       // :
     DELIMITER_TOKEN,     // ;
     COMMA_TOKEN,         // ,
+    INDEXATION_TOKEN,    // []
+    CALLING_TOKEN,       // ()
     DOT_TOKEN,           // .
     OPEN_INDEX_TOKEN,    // [
     CLOSE_INDEX_TOKEN,   // ]
@@ -54,6 +56,7 @@ typedef enum {
     TMP_U16_TYPE_TOKEN,  // tmp_u16
     TMP_U8_TYPE_TOKEN,   // tmp_u8
 
+    VARIABLE_TOKEN,
     I0_TYPE_TOKEN,       // i0
     F64_TYPE_TOKEN,      // f64
     F32_TYPE_TOKEN,      // f32

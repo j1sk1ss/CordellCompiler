@@ -722,7 +722,7 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_structdef(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_structdef(PARSER_ARGS);
 
 /*
 Parse structure declaration.
@@ -739,42 +739,6 @@ Params:
 
 Returns an ast node.
 */
-ast_node_t* cpl_parse_structdecl(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
-
-/*
-Parse structure definition.
-Snippet:
-```cpl
-struct : <name> : {
-    : <body> :
-    i32 a; : ... :
-}
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_structdef(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
-
-/*
-Parse structure declaration.
-Snippet:
-```cpl
-struct s { i32 s; }
-s a;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_structdecl(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+ast_node_t* cpl_parse_structdecl(PARSER_ARGS);
 
 #endif
