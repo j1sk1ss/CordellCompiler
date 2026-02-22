@@ -7,6 +7,7 @@
 #include <symtab/functb.h>
 #include <symtab/strtb.h>
 #include <symtab/alliasmap.h>
+#include <symtab/typetb.h>
 
 typedef struct {
     vartab_ctx_t  v; /* Variables' symtable */
@@ -14,6 +15,7 @@ typedef struct {
     functab_ctx_t f; /* Functions' symtable */
     strtb_ctx_t   s; /* Strings' symtable   */
     allias_map_t  m; /* Alliases' symtable  */
+    typetab_ctx_t t; /* Types' symtable     */
 } sym_table_t;
 
 /*

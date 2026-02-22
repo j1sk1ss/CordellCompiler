@@ -40,7 +40,7 @@
          [u64] (U64_TYPE_TOKEN, ptr, v_id=-1, s_id=0)
             [perform] (U64_VARIABLE_TOKEN, ptr, v_id=6, s_id=4)
          { scope, id=5 }
-            [return] (RETURN_TOKEN, v_id=0, s_id=5)
+            [return] (RETURN_TOKEN, v_id=-1, s_id=5)
                [()]
                   [perform] (U64_VARIABLE_TOKEN, ptr, v_id=6, s_id=4)
                   { scope, id=0 }

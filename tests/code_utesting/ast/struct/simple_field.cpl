@@ -1,0 +1,13 @@
+{
+    struct a_t {
+        i8 a;
+    }
+
+    start() {
+        a_t a;
+        a.a = 1;
+    }
+}
+
+: OUTPUT
+:

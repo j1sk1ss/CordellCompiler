@@ -12,6 +12,7 @@ typedef struct {
     short                  s_id;     /* Scope ID                         */
     string_t*              name;    
     token_type_t           type;     /* Variable type                    */
+    symbol_id_t            ctype;    /* Custom type ID (def: -1)         */
 
     struct {
         char               heap : 1; /* Point to heap, can't be reused   */
@@ -38,6 +39,7 @@ typedef struct {
     map_t       vartb;
 } vartab_ctx_t;
 
+int VRTB_update_type(symbol_id_t id, token_type_t tt, symbol_id_t ct, vartab_ctx_t* ctx);
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, vartab_ctx_t* ctx);
 int VRTB_update_definition(symbol_id_t id, long definition, vartab_ctx_t* ctx);
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx);

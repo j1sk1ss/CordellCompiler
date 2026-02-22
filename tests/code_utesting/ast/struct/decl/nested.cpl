@@ -1,0 +1,19 @@
+{
+    struct a_t {
+        u32 a;
+    }
+
+    struct b_t {
+        a_t a;
+    }
+
+    struct c_t {
+        b_t b;
+    }
+}
+
+: OUTPUT
+{id: 0, a, u32, s_id: 2}
+{id: 1, a, a_t, s_id: 3}
+{id: 2, b, b_t, s_id: 4}
+:

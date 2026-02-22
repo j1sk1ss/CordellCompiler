@@ -1,0 +1,14 @@
+{
+    struct name_t {
+        i32 a;
+    }
+
+    start() {
+        name_t a;
+    }
+}
+
+: OUTPUT
+{id: 0, a, i32, s_id: 2}
+{id: 1, a, name_t, s_id: 3}
+:

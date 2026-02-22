@@ -1,0 +1,22 @@
+{
+    struct name_t {
+        u32 a;
+    }
+
+    start() {
+        name_t a;
+    }
+}
+
+: OUTPUT
+{ scope, id=1 }
+   [struct] (STRUCT_TOKEN, v_id=-1, s_id=0)
+      [name_t] (STRUCT_TYPE_TOKEN, v_id=-1, s_id=0)
+      { scope, id=2 }
+         [u32] (U32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a] (U32_VARIABLE_TOKEN, v_id=0, s_id=2)
+   [start] (START_TOKEN, v_id=0, s_id=0)
+      { scope, id=3 }
+         [name_t] (STRUCT_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a] (UNKNOWN_STRING_TOKEN, v_id=1, s_id=0)
+:

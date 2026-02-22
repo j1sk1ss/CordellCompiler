@@ -1,0 +1,18 @@
+{
+    struct name {
+        i8 a;
+        i16 b;
+        i32 c;
+        i64 d;
+        u8 a1;
+        u16 b1;
+        u32 c1;
+        u64 d1;
+        ptr i32 a2;
+        ptr ptr ptr u32 b3;
+    }
+}
+
+: OUTPUT
+0, type, name=name, field=0 field=1 field=2 field=3 field=4 field=5 field=6 field=7 field=8 field=9
+:
