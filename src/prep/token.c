@@ -7,19 +7,20 @@
 #include <prep/token.h>
 
 typedef enum {
+    CHAR_PP,         /* Pre-processor symbol: #          */
+    CHAR_ALPHA,      /* Any alphabet character: [A-Za-z] */
+    CHAR_DIGIT,      /* Any digit: [0-9]                 */
+    CHAR_QUOTE,      /* Quote: "                         */
+    CHAR_OTHER,      /* Unknown character type           */
+    CHAR_SPACE,      /* Space: ' '                       */
+    CHAR_COMMA,      /* Comma: ,                         */
+    CHAR_BRACKET,    /* Bracket: [ [, {, (, ), }, ] ]    */
+    CHAR_NEWLINE,    /* New line character (\n)          */
+    CHAR_DELIMITER,  /* Delimiter character: ;           */
+    CHAR_BACKSLASH,  /* Backslash: \                     */
+    CHAR_SING_QUOTE, /* Single quote: '                  */
+    CHAR_SIGN,       /* Signs: -, +                      */
     CHAR_DOT,
-    CHAR_ALPHA,
-    CHAR_DIGIT,
-    CHAR_QUOTE,
-    CHAR_OTHER,
-    CHAR_SPACE,
-    CHAR_COMMA,
-    CHAR_BRACKET,
-    CHAR_COMMENT,
-    CHAR_NEWLINE,
-    CHAR_DELIMITER,
-    CHAR_BACKSLASH,
-    CHAR_SING_QUOTE
 } char_type_t;
 
 /*
