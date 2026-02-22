@@ -11,7 +11,6 @@ ast_node_t* cpl_parse_break(PARSER_ARGS) {
         return NULL;
     }
 
-    /* consume the last ';' token */
     if (!consume_token(it, DELIMITER_TOKEN)) {
         PARSE_ERROR("Delimiter token isn't found!");
         AST_unload(node);
