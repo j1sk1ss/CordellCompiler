@@ -19,6 +19,7 @@ typedef struct {
 must be invoked for the provided token.
 Note: ! If you're extending the parser, add a new handler here ! */
 static const handler_t handlers[] = {
+    HANDLER(cpl_parse_structdef,         STRUCT_TOKEN),
     HANDLER(cpl_parse_start,             START_TOKEN),
     HANDLER(cpl_parse_asm,               ASM_TOKEN),
     HANDLER(cpl_parse_scope,             OPEN_BLOCK_TOKEN),

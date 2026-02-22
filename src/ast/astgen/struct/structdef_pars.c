@@ -1,6 +1,7 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_structdef(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_structdef(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
@@ -22,7 +23,7 @@ ast_node_t* cpl_parse_structdef(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* sm
     AST_add_node(node, name);
 
     forward_token(it, 1);
-    ast_node_t* body = cpl_parse_scope(it, ctx, smt);
+    ast_node_t* body = cpl_parse_scope(it, ctx, smt, carry);
     if (!name) {
         PARSE_ERROR("Error during struct body creation!");
         AST_unload(node);
