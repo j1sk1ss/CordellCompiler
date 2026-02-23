@@ -47,7 +47,7 @@ Returns 1 if all succeed. Otherwise will return 0.
 */
 static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
     hir_subject_t* args[3] = { h->farg, h->sarg, h->targ };
-    for (int i = HIR_writeop(h->op); i < 3; i++) {
+    for (int i = HIR_is_writeop(h->op); i < 3; i++) {
         if (!args[i]) continue;
         if (HIR_is_vartype(args[i]->t)) {
             varver_t* vv = _get_varver(args[i]->storage.var.v_id, ctx);
@@ -214,7 +214,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                     !HIR_is_tmptype(hh->farg->t) &&                               /* - This compiler initialy creates tmp variables   */
                                                                                   /* as SSA variables                                 */
                     VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) && /* - If this variable existes in the var symtab     */
-                    HIR_writeop(hh->op)                                           /* - If this command assignes new value to variable */
+                    HIR_is_writeop(hh->op)                                           /* - If this command assignes new value to variable */
                 ) {
                     varver_t* vv = _get_varver(vi.v_id, ctx);
                     if (vv) {

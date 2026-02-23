@@ -199,8 +199,8 @@ literal         = integer_literal | string_literal | char_literal ;
 #include <ast/ast.h>
 #include <ast/astgen.h>
 
-#define SAVE_TOKEN_POINT    void* __dump_tkn = it->curr
-#define RESTORE_TOKEN_POINT it->curr = __dump_tkn
+#define SAVE_TOKEN_POINT    void* __dump_tkn = it->curr;
+#define RESTORE_TOKEN_POINT it->curr = __dump_tkn;
 
 /* Support macro for getting the current token from the iterator. */
 #define CURRENT_TOKEN      ((token_t*)list_iter_current(it))
@@ -455,8 +455,12 @@ ast_node_t* cpl_parse_call_arguments(PARSER_ARGS);
 Parse .cpl function call. Should be invoked on funccall token.
 Snippet:
 ```cpl
-: function name :( : statement : );
+: function name :( : statement : ); : or :
+: function name :;
 ```
+
+Note: This parser parses only already defined 'classic' functions.
+      That means, this function works only with 'function foo() / foo()', 'foo'.
 
 Params:
     - `it` - Current iterator on token list.

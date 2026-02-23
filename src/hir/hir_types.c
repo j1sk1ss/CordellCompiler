@@ -64,7 +64,7 @@ int HIR_is_arrtype(hir_subject_type_t t) {
     }
 }
 
-int HIR_defined_type(hir_subject_type_t t) {
+int HIR_is_defined_type(hir_subject_type_t t) {
     switch (t) {
         case HIR_I64NUMBER:
         case HIR_I32NUMBER:
@@ -236,7 +236,7 @@ hir_subject_type_t HIR_get_token_stktype(token_t* tkn, int ptr) {
     return HIR_get_stktype(&vi);
 }
 
-int HIR_isjmp(hir_operation_t op) {
+int HIR_is_jmp(hir_operation_t op) {
     if (
         op == HIR_JMP   ||
         op == HIR_IFOP2
@@ -244,7 +244,7 @@ int HIR_isjmp(hir_operation_t op) {
     return 0;
 }
 
-int HIR_issyst(hir_operation_t op) {
+int HIR_is_syst(hir_operation_t op) {
     if (
         op == HIR_MKSCOPE  ||
         op == HIR_ENDSCOPE ||
@@ -254,7 +254,7 @@ int HIR_issyst(hir_operation_t op) {
     return 0;    
 }
 
-int HIR_isterm(hir_operation_t op) {
+int HIR_is_term(hir_operation_t op) {
     if (
         op == HIR_EXITOP ||
         op == HIR_FRET
@@ -274,7 +274,7 @@ int HIR_funccall(hir_operation_t op) {
     }
 }
 
-int HIR_commutative_op(hir_operation_t op) {
+int HIR_is_commutative_op(hir_operation_t op) {
     switch (op) {
         case HIR_iCMP:
         case HIR_iOR:
@@ -311,7 +311,20 @@ int HIR_sideeffect_op(hir_operation_t op) {
     }
 }
 
-int HIR_writeop(hir_operation_t op) {
+int HIR_is_conv(hir_operation_t op) {
+    switch (op) {
+        case HIR_TF64:
+        case HIR_TF32:
+        case HIR_TI64:
+        case HIR_TI32:
+        case HIR_TI16:
+        case HIR_TI8:
+        case HIR_TPTR: return 1;
+        default: return 0;
+    }
+}
+
+int HIR_is_writeop(hir_operation_t op) {
     switch (op) {
         case HIR_ARRDECL:
         case HIR_REF:

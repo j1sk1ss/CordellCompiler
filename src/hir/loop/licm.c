@@ -93,7 +93,7 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
 
             int invariant = 1;
             hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
-            for (int i = HIR_writeop(hh->op); i < 3; i++) {
+            for (int i = HIR_is_writeop(hh->op); i < 3; i++) {
                 hir_subject_t* s = args[i];
                 if (
                     !s ||                      /* - If this is the 'NULL' value                                */
@@ -202,7 +202,7 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
         changed = 0;
         set_foreach (hir_block_t* hh, loop_hir) {
             if (
-                !HIR_writeop(hh->op) ||      /* - If this isn't a write operation.          */
+                !HIR_is_writeop(hh->op) ||      /* - If this isn't a write operation.          */
                 !hh->farg            ||      /* - If there is no first argument in command. */
                 !HIR_is_vartype(hh->farg->t) /* - If the first argument isn't a variable.   */
             ) continue;

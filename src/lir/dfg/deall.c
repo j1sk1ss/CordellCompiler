@@ -101,6 +101,8 @@ static int _use_def_pass(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                 set_t owners;
                 int hasown = 0;
+                /* Check if this variable has an owner that is appearing
+                   in the code further. */
                 if (ALLIAS_get_owners(vid, &owners, &smt->m)) {
                     set_foreach (long svid, &owners) {
                         if (set_has(&cb->curr_out, (void*)svid)) {
@@ -113,14 +115,20 @@ static int _use_def_pass(cfg_ctx_t* cctx, sym_table_t* smt) {
                 set_free(&owners);
                 if (hasown) continue;
                 if (!_already_deallocated(vid, cb)) {
-                    LIR_insert_block_before(LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(vid), NULL, NULL), cb->lmap.exit);
+                    LIR_insert_block_before(
+                        LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(vid), NULL, NULL), 
+                        cb->lmap.exit
+                    );
                 }
 
                 map_foreach (allias_t* al, &smt->m.allias) {
                     if (!set_has(&al->owners, (void*)vid)) continue;
                     if (ALLIAS_mark_owner(al->v_id, vid, &smt->m)) {
                         if (!_already_deallocated(al->v_id, cb)) {
-                            LIR_insert_block_before(LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(al->v_id), NULL, NULL), cb->lmap.exit);
+                            LIR_insert_block_before(
+                                LIR_create_block(LIR_VRDEALL, LIR_SUBJ_CONST(al->v_id), NULL, NULL), 
+                                cb->lmap.exit
+                            );
                         }
 
                         set_free_force(&al->delown);

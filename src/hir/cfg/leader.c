@@ -8,7 +8,7 @@ int HIR_CFG_mark_leaders(cfg_ctx_t* ctx) {
         while (h) {
             if (h->op == HIR_MKLB) set_add(&fb->leaders, h); /* Rule 2 - Target of JMP instruction              */
             else if (
-                HIR_isjmp(h->op) &&                          /* Rule 3 - Next instruction after JMP instruction */
+                HIR_is_jmp(h->op) &&                          /* Rule 3 - Next instruction after JMP instruction */
                 h->next
             ) set_add(&fb->leaders, h->next);
             h = HIR_get_next(h, fb->hmap.exit, 1);

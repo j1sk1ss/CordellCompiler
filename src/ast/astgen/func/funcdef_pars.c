@@ -3,10 +3,9 @@
 int cpl_parse_funcdef_args(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
-
+    
     ast_node_t* trg = (ast_node_t*)carry;
-    do {
-        if (CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN) break;
+    while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
         if (TKN_isdecl(CURRENT_TOKEN)) {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt, carry);
             if (!arg) {
@@ -37,7 +36,8 @@ int cpl_parse_funcdef_args(PARSER_ARGS) {
         if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
             forward_token(it, 1);
         }
-    } while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN);
+    }
+
     return 1;
 }
 
@@ -45,7 +45,6 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
-    /* function */
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
         PARSE_ERROR("Can't create a base for the function!");
@@ -53,8 +52,13 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         return NULL;
     }
 
-    /* function <name> */
-    forward_token(it, 1);
+    if (!consume_token(it, FUNC_NAME_TOKEN)) {
+        PARSE_ERROR("Expected 'FUNC_NAME_TOKEN' token!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+
     ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
     if (!name_node) {
         PARSE_ERROR("Can't create a base for the function's name!");
@@ -64,6 +68,13 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     AST_add_node(node, name_node);
+
+    if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
+        PARSE_ERROR("Expected 'OPEN_BRACKET_TOKEN' token!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
 
     ast_node_t* args_node = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (!args_node) {
@@ -79,7 +90,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     args_node->sinfo.s_id = ctx->scopes.s_id;
 
     /* function <name> ( ... ) */
-    forward_token(it, 2);
+    forward_token(it, 1);
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args_node)) {
         PARSE_ERROR("Can't parse function's arguments!");
         AST_unload(node);

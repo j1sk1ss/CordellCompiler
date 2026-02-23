@@ -64,7 +64,7 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
         while (hh) {
             if (hh->op != HIR_PHI && hh->op != HIR_PHI_PREAMBLE) {
                 hir_subject_t* nodes[3] = { hh->farg, hh->sarg, hh->targ };
-                for (int i = HIR_writeop(hh->op); i < 3; i++) {
+                for (int i = HIR_is_writeop(hh->op); i < 3; i++) {
                     if (!nodes[i]) continue;
                     if (nodes[i]->t == HIR_ARGLIST) {
                         list_iter_t el_it;

@@ -89,12 +89,12 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
         while ((entry = hh) && hh->next && hh != f->hmap.exit && !set_has(&f->leaders, hh)) hh = hh->next;
         while (hh->next && hh != f->hmap.exit && !set_has(&f->leaders, hh->next)) {
             hh = hh->next;
-            if (HIR_isterm(hh->op)) break;
+            if (HIR_is_term(hh->op)) break;
         }
 
         _add_cfg_block(entry, hh, f, ctx);
 #else
-        if (!HIR_issyst(hh->op)) _add_cfg_block(hh, hh, f, ctx);
+        if (!HIR_is_syst(hh->op)) _add_cfg_block(hh, hh, f, ctx);
 #endif
         hh = HIR_get_next(hh, f->hmap.exit, 1);
     }
