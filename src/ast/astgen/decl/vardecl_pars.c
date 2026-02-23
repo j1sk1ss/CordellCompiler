@@ -1,5 +1,5 @@
 /* Declaration statement parser.
-   - <type> <name> = decl */
+   - <type> <name> = decl; */
 #include <ast/astgen/astgen.h>
 
 ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
@@ -29,8 +29,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     name_node->sinfo.v_id = VRTB_add_info(name_node->t->body, node->t->t_type, decl_scope, &name_node->t->flags, &smt->v);
     if (node->t->t_type == STR_TYPE_TOKEN) ARTB_add_info(name_node->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a);
 
-    forward_token(it, 1);
-    if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {
+    if (consume_token(it, ASSIGN_TOKEN)) {
         forward_token(it, 1);
         ast_node_t* value_node = cpl_parse_expression(it, ctx, smt, 1);
         if (!value_node) {
