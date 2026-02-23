@@ -1,5 +1,5 @@
 /* Declaration statement parser.
-   - arr <name>[<size>, <primitive_type>] = decl */
+   - arr <name>[<size>, <primitive_type>] = { decl }; */
 #include <ast/astgen/astgen.h>
 
 /*

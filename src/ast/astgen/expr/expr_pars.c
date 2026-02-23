@@ -42,7 +42,6 @@ Returns an AST node.
 */
 static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int mp, int na) {
     SAVE_TOKEN_POINT;
-    
     ast_node_t* left = _parse_primary(it, ctx, smt, na);
     if (!left) {
         RESTORE_TOKEN_POINT;
@@ -89,13 +88,11 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 if (target) {
                     ast_node_t* tmp = left;
                     left = target;
-                    if (tmp)  AST_add_node(left, tmp);
+                    if (tmp) AST_add_node(left, tmp);
                     if (data) {
                         AST_add_node(left, data);
                         forward_token(it, 1);
                     }
-
-                    continue;
                 }
                 else {
                     PARSE_ERROR("Error during a postfix operation parsing!");
@@ -105,6 +102,8 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     RESTORE_TOKEN_POINT;
                     return NULL;
                 }
+
+                break;
             }
             /* Default operators such as:
                plus, minus, multiply, etc. */
@@ -165,7 +164,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         case OPEN_BRACKET_TOKEN: {
             forward_token(it, 1);
             ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
-            if (!node || !CURRENT_TOKEN || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
+            if (!node || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
                 PARSE_ERROR("Error during a binary expression parsing! The bracket wasn't closed!");
                 AST_unload(node);
                 RESTORE_TOKEN_POINT;
@@ -175,7 +174,6 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
             forward_token(it, 1);
             return node;
         }
-    
         case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */
         case POPARG_TOKEN:    return cpl_parse_poparg(it, ctx, smt, 0);   /* poparg    */
         case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */

@@ -26,8 +26,8 @@
                 i64t %3 = num? 10 + num? 10;
                 i32t %4 = i64t %3 as i32;
                 lb8:
-                [i32s %1] i32s %7 = phi(set [%11, bb6][%1, bb9]);
-                [i32s %0] i32s %8 = phi(set [%12, bb6][%6, bb9]);
+                [i32s %1] i32s %7 = phi(set [{X}][{X}]);
+                [i32s %0] i32s %8 = phi(set [{X}][{X}]);
                 future: i32s %9 = previous: i32s %7;
                 future: i32s %10 = previous: i32s %8;
                 if num? 1, goto lb9, else goto lb10;
@@ -52,8 +52,8 @@
                 future: i32s %8 = previous: i32s %12;
                 goto lb8;
                 lb10:
-                [i32s %1] i32s %9 = phi(set [%11, bb4][%7, bb2]);
-                [i32s %0] i32s %10 = phi(set [%12, bb4][%8, bb2]);
+                [i32s %1] i32s %9 = phi(set [{X}][{X}]);
+                [i32s %0] i32s %10 = phi(set [{X}][{X}]);
                 exit num? 1;
             }
         }
