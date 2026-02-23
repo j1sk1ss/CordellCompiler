@@ -71,7 +71,11 @@ typedef enum {
     U8_TYPE_TOKEN,       // u8
     STR_TYPE_TOKEN,      // str
     ARRAY_TYPE_TOKEN,    // arr
-    STRUCT_TYPE_TOKEN,   // struct
+
+    STRUCT_TYPE_TOKEN,      // struct
+    STRUCT_INSTANCE,        // struct a
+    STRUCT_FIELD_PRIMITIVE, // struct.a (i32 a)
+    STRUCT_FIELD_STRUCT,    // struct.a (struct a)
     
     // Convert statements
     CONVERT_TOKEN,       // as

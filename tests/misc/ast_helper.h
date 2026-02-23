@@ -4,6 +4,7 @@
 #include <ast/astgen.h>
 const char* name_tkn_type(token_type_t t) {
     switch (t) {
+        case STRUCT_INSTANCE:             return "STRUCT_INSTANCE";
         case DOT_TOKEN:                   return "DOT_TOKEN";
         case STRUCT_TOKEN:                return "STRUCT_TOKEN";
         case STRUCT_TYPE_TOKEN:           return "STRUCT_TYPE_TOKEN";

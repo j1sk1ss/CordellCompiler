@@ -742,4 +742,8 @@ Returns an ast node.
 */
 ast_node_t* cpl_parse_structdecl(PARSER_ARGS);
 
+/*
+*/
+ast_node_t* cpl_parse_structfield_access(PARSER_ARGS);
+
 #endif

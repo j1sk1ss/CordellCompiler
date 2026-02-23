@@ -18,5 +18,5 @@
    [start] (START_TOKEN, v_id=0, s_id=0)
       { scope, id=3 }
          [name_t] (STRUCT_TYPE_TOKEN, v_id=-1, s_id=0)
-            [a] (UNKNOWN_STRING_TOKEN, v_id=1, s_id=0)
+            [a] (STRUCT_INSTANCE, v_id=1, s_id=0)
 :

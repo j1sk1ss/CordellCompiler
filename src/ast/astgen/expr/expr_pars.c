@@ -63,6 +63,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     case DOT_TOKEN: {
                         forward_token(it, 1);
                         target = AST_create_node_bt(CREATE_DOT_TOKEN);
+                        data   = cpl_parse_structfield_access(it, ctx, smt, (long)left);
                         var_lookup(left, ctx, smt);
                         break;
                     }

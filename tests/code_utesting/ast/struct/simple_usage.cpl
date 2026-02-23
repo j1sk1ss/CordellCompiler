@@ -9,4 +9,14 @@
 }
 
 : OUTPUT
+{ scope, id=1 }
+   [struct] (STRUCT_TOKEN, v_id=-1, s_id=0)
+      [test_struct] (STRUCT_TYPE_TOKEN, v_id=-1, s_id=0)
+      { scope, id=2 }
+         [u32] (U32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a] (U32_VARIABLE_TOKEN, v_id=0, s_id=2)
+   [start] (START_TOKEN, v_id=0, s_id=0)
+      { scope, id=3 }
+         [test_struct] (STRUCT_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a] (STRUCT_INSTANCE, v_id=1, s_id=0)
 :
