@@ -95,7 +95,7 @@ switch (hh->op) {
         if (
             hh->farg && HIR_is_vartype(hh->farg->t) && 
             VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) && 
-            HIR_writeop(hh->op)
+            HIR_is_writeop(hh->op)
         ) {
             varver_t* vv = _get_varver(vi.v_id, ctx);
             if (vv) {
@@ -135,7 +135,7 @@ int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
             while (hh) {
                 if (!hh->unused) {
                     if (hh->op == HIR_PHI && HIR_is_vartype(hh->sarg->t)) set_add(&cb->def, (void*)hh->sarg->storage.var.v_id);
-                    else if (HIR_writeop(hh->op) && HIR_is_vartype(hh->farg->t)) set_add(&cb->def, (void*)hh->farg->storage.var.v_id);
+                    else if (HIR_is_writeop(hh->op) && HIR_is_vartype(hh->farg->t)) set_add(&cb->def, (void*)hh->farg->storage.var.v_id);
                 }
 
                 if (hh == cb->exit) break;
@@ -162,7 +162,7 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
                 if (!hh->unused) {
                     if (hh->op != HIR_PHI) {
                         hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
-                        for (int i = HIR_writeop(hh->op); i < 3; i++) {
+                        for (int i = HIR_is_writeop(hh->op); i < 3; i++) {
                             if (args[i] && HIR_is_vartype(args[i]->t)) {
                                 set_add(&cb->use, (void*)args[i]->storage.var.v_id);
                             }

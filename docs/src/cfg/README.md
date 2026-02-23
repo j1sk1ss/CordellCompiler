@@ -23,7 +23,7 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
 
         _add_cfg_block(entry, hh, f, ctx);
 #else
-        if (!HIR_issyst(entry->op)) _add_cfg_block(entry, entry, f, ctx);
+        if (!HIR_is_syst(entry->op)) _add_cfg_block(entry, entry, f, ctx);
 #endif
         if (hh == f->exit) break;
         hh = hh->next;

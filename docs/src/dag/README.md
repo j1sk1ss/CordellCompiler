@@ -67,7 +67,7 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
         while (hh) {
             if (hh->op != HIR_PHI) {
                 hir_subject_t* nodes[3] = { hh->farg, hh->sarg, hh->targ };
-                for (int i = HIR_writeop(hh->op); i < 3; i++) {
+                for (int i = HIR_is_writeop(hh->op); i < 3; i++) {
                     if (!nodes[i]) continue;
                     dag_node_t* nd = DAG_ACQUIRE_NODE(dctx, nodes[i]);
                     if (!nd) continue;
