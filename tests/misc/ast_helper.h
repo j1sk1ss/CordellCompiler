@@ -9,6 +9,7 @@ const char* name_tkn_type(token_type_t t) {
         case STRUCT_TYPE_TOKEN:           return "STRUCT_TYPE_TOKEN";
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
         case CALLING_TOKEN:               return "CALLING_TOKEN";
+        case DOTTING_TOKEN:               return "DOTTING_TOKEN";
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: return "UNKNOWN_FLOAT_NUMERIC_TOKEN";
         case UNKNOWN_CHAR_TOKEN:          return "UNKNOWN_CHAR_TOKEN";
         case UNKNOWN_BRACKET_VALUE:       return "UNKNOWN_BRACKET_VALUE";
@@ -149,6 +150,7 @@ static inline int print_ast(ast_node_t* node, int depth) {
             case SCOPE_TOKEN: printf("{ scope, id=%i }\n", node->sinfo.s_id); break;
             case CALLING_TOKEN: printf("[()]\n");                             break;
             case INDEXATION_TOKEN: printf("[[]]\n");                          break;
+            case DOTTING_TOKEN: printf("[.]\n");                              break;
             default:
                 printf(
                     "[%s] (%s,%sv_id=%li, s_id=%i%s%s%s%s)\n",

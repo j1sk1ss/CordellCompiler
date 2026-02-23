@@ -1,11 +1,11 @@
 {
-    struct a {
+    struct a_t {
         i32 a;
         i32 b;
     }
 
     start() {
-        a a;
+        a_t a;
         a.a = 10;
         a.b = 20;
     }

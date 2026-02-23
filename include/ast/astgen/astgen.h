@@ -207,6 +207,7 @@ literal         = integer_literal | string_literal | char_literal ;
 #define CREATE_SCOPE_TOKEN TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_INDEX_TOKEN TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_CALL_TOKEN  TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_DOT_TOKEN   TKN_create_token(DOTTING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \

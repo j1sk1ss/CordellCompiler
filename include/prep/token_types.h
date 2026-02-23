@@ -25,6 +25,7 @@ typedef enum {
     COMMA_TOKEN,         // ,
     INDEXATION_TOKEN,    // []
     CALLING_TOKEN,       // ()
+    DOTTING_TOKEN,       // .
     DOT_TOKEN,           // .
     OPEN_INDEX_TOKEN,    // [
     CLOSE_INDEX_TOKEN,   // ]

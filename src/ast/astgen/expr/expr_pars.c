@@ -49,61 +49,59 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
         return NULL;
     }
     
+    /* Logic to handle X <token> Y tokens.
+       Add a new logic here, if this is the case. */
     while (CURRENT_TOKEN) {
         switch (CURRENT_TOKEN->t_type) {
-            /* Indexation token */
-            case OPEN_INDEX_TOKEN: {
-                forward_token(it, 1);
-                ast_node_t* index_op   = AST_create_node_bt(CREATE_INDEX_TOKEN);
-                ast_node_t* indexation = cpl_parse_expression(it, ctx, smt, 1);
-                if (index_op && indexation) {
-                    ast_node_t* tmp = left;
-                    left = index_op;
-                    AST_add_node(left, tmp);
-                    AST_add_node(left, indexation);
-                    forward_token(it, 1);
-                    continue;
-                }
-                else {
-                    PARSE_ERROR("Error during a indexation parsing!");
-                    AST_unload(left);
-                    AST_unload(index_op);
-                    AST_unload(indexation);
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
-            }
-            /* Unknown function call operator */
+            /* Postfix tokens that are change placment in an AST tree.
+               '[]' / '()' / '.' / 'as' takes two childs: the pointer and the data. */
+            case DOT_TOKEN:
+            case CONVERT_TOKEN:
+            case OPEN_INDEX_TOKEN:
             case OPEN_BRACKET_TOKEN: {
-                forward_token(it, 1);
-                ast_node_t* call_op   = AST_create_node_bt(CREATE_CALL_TOKEN);
-                ast_node_t* arguments = cpl_parse_call_arguments(it, ctx, smt, 0);
-                if (call_op && arguments) {
+                ast_node_t *target = NULL, *data = NULL;
+                switch (CURRENT_TOKEN->t_type) {
+                    case DOT_TOKEN: {
+                        forward_token(it, 1);
+                        target = AST_create_node_bt(CREATE_DOT_TOKEN);
+                        var_lookup(left, ctx, smt);
+                        break;
+                    }
+                    case CONVERT_TOKEN: {
+                        target = cpl_parse_conv(it, ctx, smt, 0);
+                        break;
+                    }
+                    case OPEN_INDEX_TOKEN: {
+                        forward_token(it, 1);
+                        target = AST_create_node_bt(CREATE_INDEX_TOKEN);
+                        data   = cpl_parse_expression(it, ctx, smt, 1);
+                        break;
+                    }
+                    case OPEN_BRACKET_TOKEN: {
+                        forward_token(it, 1);
+                        target = AST_create_node_bt(CREATE_CALL_TOKEN);
+                        data   = cpl_parse_call_arguments(it, ctx, smt, 0);
+                        break;
+                    }
+                    default: break;
+                }
+
+                if (target) {
                     ast_node_t* tmp = left;
-                    left = call_op;
-                    AST_add_node(left, tmp);
-                    AST_add_node(left, arguments);
-                    forward_token(it, 1);
+                    left = target;
+                    if (tmp)  AST_add_node(left, tmp);
+                    if (data) {
+                        AST_add_node(left, data);
+                        forward_token(it, 1);
+                    }
+
                     continue;
                 }
                 else {
-                    PARSE_ERROR("Function call error!");
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
-            }
-            /* Convert operator */
-            case CONVERT_TOKEN: {
-                ast_node_t* conv_type = cpl_parse_conv(it, ctx, smt, 0);
-                if (conv_type) {
-                    ast_node_t* tmp = left;
-                    left = conv_type;
-                    AST_add_node(left, tmp);
-                    continue;
-                }
-                else {
-                    PARSE_ERROR("Error during a cast parsing!");
+                    PARSE_ERROR("Error during a postfix operation parsing!");
                     AST_unload(left);
+                    AST_unload(target);
+                    AST_unload(data);
                     RESTORE_TOKEN_POINT;
                     return NULL;
                 }
@@ -161,6 +159,8 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         return NULL;
     }
     
+    /* Handle <expr> tokens.
+       Add parser here if you don't expect to use the previous token! */
     switch (CURRENT_TOKEN->t_type) {
         case OPEN_BRACKET_TOKEN: {
             forward_token(it, 1);
