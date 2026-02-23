@@ -257,7 +257,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             Here we can proccess token's content before create it
             and push it to the list. */
         if (
-            ctx->in_token &&                          /* If we're in the token */
+            ctx->in_token &&                          /* If we're in the token        */
             (
                 char_type == LINE_BREAK_TOKEN ||      /* We've found a break token    */
                 char_type == UNKNOWN_BRACKET_VALUE || /* or unknown token.            */

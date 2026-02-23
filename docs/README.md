@@ -88,7 +88,7 @@ Actually, regardless of the essential 'basic' scope (the initial {} in the code 
 ```
 
 # Code conventions
-*P.S. It's not a thing, but I'd like to share my prefered code style through this conventions. The compiler itself doesn't care about how a code is written.*
+*P.S. It's not a thing, but I'd like to share my prefered code style through this conventions. The compiler itself doesn't care about how a code is written.* </br>
 CPL encourages code mostly based on C-code conventions.
 - **Variables**: use lowercase letters and underscores
 ```cpl
@@ -115,23 +115,33 @@ function _private();
 ```
 
 - **Scopes**: K&R style
+Functions:
 ```cpl
 function foo() -> i0 {
 }
+```
 
-if cond; {
+Ifs:
+```cpl
+if <cond0>; {
 }
-else if cond1; {
+else if <cond1>; {
 }
 else {
 }
+```
 
-while cond; {
+Loops:
+```cpl
+while <cond0>; {
 }
 
 loop {
 }
+```
 
+Entry point:
+```cpl
 start(i64 argc, ptr u64 argv) {
 }
 ```
@@ -148,7 +158,7 @@ Hello there
 :
 ```
 
-- **File names**: Sneaky case for file names. If this is a 'header' file, add the `_h` path to a name.
+- **File names**: Sneaky case for file names. If this is a 'header' file, add the `_h` path to a name
 ```
 print_h.cpl <- Prototypes and includes
 print.cpl   <- Implementation
@@ -168,11 +178,11 @@ function naomi() -> i0; { exit 0; } : <= Becomes an entry point :
 Example with a `start` start function:
 ```cpl
 start() { exit 0; } : <= Becomes an entry point :
-function fang() -> i0; { return; }
-function naomi() -> i0; { return; }
+function fang() -> i0; { }
+function naomi() -> i0; { }
 ```
 
-**Note:** 'Start' function doesn't have a return type (you can't use the '->' modificator) and requires usage of the 'exit' keyword instead of the 'return'. Also the maximum type that can be used as a value in the 'exit' keyword is the 'u8' type.
+**Note 1:** 'Start' function doesn't have a return type (you can't use the '->' modificator) and requires usage of the 'exit' keyword instead of the 'return'. Also the maximum type that can be used as a value in the 'exit' keyword is the 'u8' type. </br>
 **Note 2:** Actually, with usage of the logic that the lowest function becomes an entry point, we can set a return type:
 ```cpl
 function main(i32 argc, ptr ptr i8 argv) -> u8;
@@ -231,7 +241,7 @@ i8 d = 'a';
 
 - `i0` - Void type. Must be used only in the function return type. This type isn't supported by the Compiler as a regular primitive type.
 ```cpl
-function cordell() -> i0; { }
+function cordell() -> i0;
 ```
 
 `P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is pretty simple:
@@ -425,8 +435,8 @@ loop <statement>;
 ```
 
 ## switch statement
-Note: `X` should be constant value (or a primitive variable that can be `inlined`). </br>
-Note 2: Similar to C language, the `switch` statement supports the fall 'mechanic'. It implies, that the `case` can ignore the `break` keyword. This will lead to the execution of the next case block.
+**Note 1:** `X` should be constant value (or a primitive variable that can be `inlined`). </br>
+**Note 2:** Similar to C language, the `switch` statement supports the fall 'mechanic'. It implies, that the `case` can ignore the `break` keyword. This will lead to the execution of the next case block.
 ```cpl
 switch cond; {
     case X; {}
@@ -439,7 +449,7 @@ switch cond; {
 }
 ```
 
-Note 3: *The switch statement is generated with the usage of a binary search approach. That means, consider this structure over the multiple ifs.*
+**Note 3:** *The switch statement is generated with the usage of a binary search approach. That means, consider this structure over the multiple ifs.*
 
 # Functions and inbuilt macros
 ## Functions
@@ -835,8 +845,8 @@ The code above will produce a ton of errors and warnings:
  5 | }
 ```
 
-Note: This isn't an entire analysis output due to the critical error with the array indexing. Such errors will block a compilation process given the importance of this kind of errors. </br>
-Note 2: The static analyzer doesn't use a source file to show a error place. For these purposes, it uses the 'restorer' module that restores the code from AST.
+**Note 1:** This isn't an entire analysis output due to the critical error with the array indexing. Such errors will block a compilation process given the importance of this kind of errors. </br>
+**Note 2:** The static analyzer doesn't use a source file to show a error place. For these purposes, it uses the 'restorer' module that restores the code from AST.
 
 # Scopes
 ## Variables and lifetime
@@ -854,9 +864,9 @@ start() {
 }
 ```
 
-Note 1: Example above will cause a memory corruption error instead of the `SF` due the stack allocation method in CPL. (The pointer after the scope is pointing to the already allocated area. However, the compiler can use this area for the another array / variable, etc.).
-Note 2: This compiler tries to `kill` all variables / arrays / strings outside their scopes, even if they are used as a referenced value somewhere else in the further code.
-Note 3: In the example above, execution may be success (further code can ignore the 'freed' space in the stack and prefer the register placement for new variables), but it is still the Undefined Behavior. 
+**Note 1:** Example above will cause a memory corruption error instead of the `SF` due the stack allocation method in CPL. (The pointer after the scope is pointing to the already allocated area. However, the compiler can use this area for the another array / variable, etc.). </br>
+**Note 2:** This compiler tries to `kill` all variables / arrays / strings outside their scopes, even if they are used as a referenced value somewhere else in the further code. </br>
+**Note 3:** In the example above, execution may be success (further code can ignore the 'freed' space in the stack and prefer the register placement for new variables), but it is still the Undefined Behavior. 
 
 ## Visibility rules
 Outer variables can be seen by current and nested scopes.
@@ -893,8 +903,8 @@ Think of it as stack coloring or liveness-based stack slot allocation: two varia
 ## What this is NOT
 Not a memory-safety system
 
-- CPL doesn't prevent all dangling pointers or aliasing issues. The analysis is used to avoid incorrect stack reuse, not to “make pointers safe.”
-- Not Rust ownership / borrowing
+- CPL doesn't prevent all dangling pointers or aliasing issues. The analysis is used to avoid incorrect stack reuse, not to “make pointers safe”.
+- Not Rust ownership / borrowing.
 - Rust enforces rules like “one mutable reference or many immutable ones” and prevents data races / use-after-free in safe code.
 
 CPL does not enforce these restrictions. CPL only ensures that the compiler does not intentionally reuse a stack slot while it is still provably needed.
@@ -915,8 +925,8 @@ CPL does not enforce these restrictions. CPL only ensures that the compiler does
 }
 ```
 
-Note 1!: Be sure that you've disabled all optimizations before the code debug given the preservation of a code from transformation.
-Note 2!: To make this works, use any debugging tool such as `gdb` and `lldb`.
+**Note 1!:** Be sure that you've disabled all optimizations before the code debug given the preservation of a code from transformation.
+**Note 2!:** To make this works, use any debugging tool such as `gdb` and `lldb`.
 
 # Examples
 ## strlen
