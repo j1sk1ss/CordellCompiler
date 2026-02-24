@@ -8,13 +8,14 @@
 #include <symtab/symtab.h>
 #include <hir/hir.h>
 #include <lir/lir.h>
+#include <lir/lirgen.h>
 
 /*
 Main generator script. Generation based on linear LIR instead of LIR CFG.
 Params:
-- h - LIR.
-- smt - Symtable.
-- output - Output location for generated ASM.
+- `h` - LIR.
+- `smt` - Symtable.
+- `output` - Output location for generated ASM.
 
 Return 1 if success, otherwise - 0.
 */
@@ -22,8 +23,8 @@ int x86_64_generate_asm(lir_ctx_t* h, sym_table_t* smt, FILE* output);
 
 /*
 Generate global data in ASM file header.
-- smt - Symtable.
-- output - Output location for generated ASM.
+- `smt` - Symtable.
+- `output` - Output location for generated ASM.
 
 Return 1 if success, otherwise - 0.
 */
@@ -32,18 +33,17 @@ int x86_64_generate_data(sym_table_t* smt, FILE* output);
 /*
 Generate function stackframe (open).
 Params:
-- h - Function LIR head.
-- end - Function end (FEND / STEND).
-- output - Output location for generated ASM.
+- `offset` - Max offset for memory allocation.
+- `output` - Output location for generated ASM.
 
 Return 1 if success, otherwise - 0.
 */
-int x86_64_generate_stackframe(lir_block_t* h, lir_operation_t end, FILE* output);
+int x86_64_generate_stackframe(long offset, FILE* output);
 
 /*
 Generate function stackframe (close).
 Params:
-- output - Output location for generated ASM.
+- `output` - Output location for generated ASM.
 
 Return 1 if success, otherwise - 0.
 */
@@ -52,8 +52,8 @@ int x86_64_kill_stackframe(FILE* output);
 /*
 Format input subject and return char*.
 Params:
-- v - LIR subject for formatting.
-- smt - Symtable.
+- `v` - LIR subject for formatting.
+- `smt` - Symtable.
 
 Return 1 if success, otherwise - 0.
 */

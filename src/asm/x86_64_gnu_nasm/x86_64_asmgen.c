@@ -8,19 +8,10 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_FCLL:
             case LIR_ECLL: fprintf(output, "call %s\n", x86_64_asm_variable(curr->farg, smt)); break;
 
-            case LIR_STRT: {
-                func_info_t fi;
-                if (FNTB_get_info_id(curr->farg->storage.str.sid, &fi, &smt->f)) {
-                    fprintf(output, "%s:\n", fi.name->body);
-                    x86_64_generate_stackframe(curr, LIR_STEND, output);
-                }
-
-                break;
-            }
-
+            case LIR_STRT:
             case LIR_FDCL: {
                 fprintf(output, "%s:\n", x86_64_asm_variable(curr->farg, smt));
-                x86_64_generate_stackframe(curr, LIR_FEND, output);
+                x86_64_generate_stackframe(curr->sarg->storage.cnst.value, output);
                 break;
             }
 

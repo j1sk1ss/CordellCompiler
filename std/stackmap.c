@@ -27,6 +27,7 @@ int stack_map_alloc(int n, stack_map_t* smap) {
                 smap->bitmap[idx / CELLS_PER_BLOCK] |= (1ULL << (idx % CELLS_PER_BLOCK));
             }
 
+            smap->last_offset = MAX(smap->last_offset, i + size);
             return (i + size);
         }
     }
