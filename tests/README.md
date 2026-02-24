@@ -86,5 +86,23 @@ In this `OUTPUT` section you should past the expected output from the compiler. 
 :
 ```
 
+At the file start several flags can be placed:
+- `: TEST_DEBUG :` - This flag will launch execution with `gdb/lldb` debug tools directly with this code snippet.
+- `: BLOCK_TEST :` - If this flag is placed in a test that fails, it will fail the entire testing.
+- `: BUG :` - This flag will ignore test failing (even if there is the 'BLOCK_TEST' flag).
+
+Also the 'OUTPUT' section has several special formattings that allow us prepare the output log verification. We need this given the compier parts, that print differently regarding the memory region of a compiler instance (for example print of a set or a map, etc. is changing over time). To tell the test framework that sometimes we can 'lower' our 'expectations' from the output log, we can use:
+- `{X}` - Accept any string here:
+```
+lb{X}:
+mov rax, 10
+```
+
+- `{<content>}` - This line can be placed anywhere in the output:
+```
+{id 1: variable b}
+{id 19: variable c}
+```
+
 # STD lib testing
 To make sure, that the std library works properly, the project has the `std_testing.py` script. It works the same as the `module_testing.py`.

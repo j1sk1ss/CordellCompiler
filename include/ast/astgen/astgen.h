@@ -1,6 +1,7 @@
 /* Main parser logic. This parser bases on the BNF that is provided below:
 identifier       = "IDENTIFIER" ;
 integer_literal  = "INTEGER_LITERAL" ;
+float_literal    = "FLOAT_LITERAL" ;
 string_literal   = "STRING_LITERAL" ;
 char_literal     = "CHAR_LITERAL" ;
 comment          = "COMMENT" ;
@@ -27,9 +28,7 @@ storage_opt    = [ "glob" | "ro" ] ;
 top_decl       = var_decl | function_def | function_proto ;
 
 function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
-
 function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
-
 start_function = "start" , "(" , [ param_list ] , ")" , block ;
 
 param_list     = param , { "," , param } ;
@@ -56,13 +55,11 @@ statement =
   | expression_statement ;
 
 arr_stmt_tail =
-    identifier , "[" , integer_literal , "," , type , "]" , [ "=" , ( expression | arr_value ) ] , ";"   (* это arr_decl *)
-  | "[" , integer_literal , "," , type , "]" , identifier , [ "=" , expression ] , ";"                   (* это var_decl, где type=arr[...] *)
+    identifier , "[" , integer_literal , "," , type , "]" , [ "=" , ( expression | arr_value ) ] , ";"
+  | "[" , integer_literal , "," , type , "]" , identifier , [ "=" , expression ] , ";" ;
 
 pp_directive   = "#" , pp_body , pp_end ;
-
 pp_end         = eol | ";" ;
-
 pp_body        = pp_line
                | pp_include
                | pp_define
@@ -81,7 +78,6 @@ pp_endif       = "endif" ;
 
 pp_token       = identifier
                | literal
-
                | keyword
                | punct_no_semi
                | operator ;
@@ -114,14 +110,12 @@ arr_decl       = "arr" , identifier , "[" , integer_literal , "," , type , "]" ,
 arr_value      = "{" , [ arr_value_list ] , "}" ;
 arr_value_list = expression , { "," , expression } ;
 
-if_statement     = "if" , expression , ";" , block , [ "else" , block ] ;
-loop_statement   = "loop" , block ;
-while_statement  = "while" , expression , ";" , block ;
+if_statement     = "if" , expression , ";" , statement , [ "else" , statement ] ;
+loop_statement   = "loop" , statement ;
+while_statement  = "while" , expression , ";" , statement ;
 
-(* switch expression; { case literal; block } *)
 switch_statement = "switch" , expression , ";" ,
                    "{" , { case_block } , [ default_block ] , "}" ;
-
 case_block       = "case" , literal , ";" , block ;
 default_block    = "default" , [ ";" ] , block ;
 
@@ -162,7 +156,6 @@ unary          = unary_op , unary
                | postfix ;
 
 unary_op       = "not" | "+" | "-" | ref_op | dref_op ;
-
 ref_op         = "ref" ;
 dref_op        = "dref" ;
 
@@ -182,7 +175,7 @@ type = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u
      | "arr" , "[" , integer_literal , "," , type , "]"
      | "ptr" , type ;
 
-literal         = integer_literal | string_literal | char_literal ;
+literal = integer_literal | float_literal | string_literal | char_literal ;
 */
 
 #ifndef CPL_PARSER_H_

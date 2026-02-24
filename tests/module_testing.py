@@ -1,11 +1,13 @@
 import re
-import difflib
 import os
 import sys
 import json
+import difflib
 import argparse
 import tempfile
 import subprocess
+
+from tqdm import tqdm
 from pathlib import Path
 
 from misc.builder import (
@@ -100,48 +102,103 @@ def _normalize_output(text: str) -> str:
             lines.append(line)
     return "\n".join(lines)
 
-def _parse_test_file(path: Path) -> tuple[str, str]:
+def _parse_test_file(path: Path) -> tuple[str, str, dict]:
     text = path.read_text(encoding="utf-8")
+
+    flags = {
+        "test_debug": False,
+        "block_test": False,
+        "bug": False,
+    }
+
+    lines = text.splitlines()
+    header_processed = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped == ": TEST_DEBUG :":
+            flags["test_debug"] = True
+            continue
+        elif stripped == ": BLOCK_TEST :":
+            flags["block_test"] = True
+            continue
+        elif stripped == ": BUG :":
+            flags["bug"] = True
+            continue
+        header_processed.append(line)
+
+    text = "\n".join(header_processed)
+
     marker = ": OUTPUT"
     if marker not in text:
         raise ValueError(f"{path}: OUTPUT block not found")
 
     before, after = text.split(marker, 1)
     after = after.lstrip()
+
     if not after.endswith(":"):
         raise ValueError(f"{path}: OUTPUT block must end with ':'")
 
     expected = after[:-1].rstrip()
-    return before.rstrip(), expected
+    return before.rstrip(), expected, flags
 
 def _run_test(binary: str, test_file: Path) -> dict:
-    code, expected = _parse_test_file(test_file)
+    code, expected, flags = _parse_test_file(test_file)
+
     with tempfile.NamedTemporaryFile(mode="w", suffix=".cpl", encoding="utf-8", delete=False) as tmp:
         tmp.write(code)
         tmp_path = tmp.name
 
     try:
+        cmd = [ binary, tmp_path, str(test_file.parent) ]
+        if flags["test_debug"]:
+            debugger = "gdb"
+            if sys.platform == "darwin":
+                debugger = "lldb"
+
+            if debugger == "gdb":
+                cmd = [ debugger, "--batch", "-ex", "run", "--args" ] + cmd
+            else:
+                cmd = [ debugger, "--batch", "-o", "run", "--" ] + cmd
+
         proc = subprocess.run(
-            [binary, tmp_path, str(test_file.parent)],
+            cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True
         )
     except Exception as ex:
-        print(f"Error: {str(ex)}, test: {str(test_file)}")
-        raise Exception("subprocess error!")
-    finally:
         os.remove(tmp_path)
+        return {
+            "file": str(test_file),
+            "ok": False,
+            "critical": True,
+            "warning": False,
+            "diff": f"Subprocess error: {ex}",
+        }
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
     expected_n = _normalize_output(expected)
     actual_n = _normalize_output(proc.stdout)
     ok, why = _matches_expected(expected_n, actual_n)
+
+    critical = False
+    warning = False
+
+    if not ok:
+        if flags["bug"]:
+            warning = True
+        elif flags["block_test"]:
+            critical = True
 
     return {
         "file": str(test_file),
         "expected": expected_n,
         "actual": actual_n,
         "ok": ok,
+        "critical": critical,
+        "warning": warning,
         "diff": None if ok else (why + "\n\n" + _make_diff(expected_n, actual_n))
     }
 
@@ -227,19 +284,32 @@ def _entry() -> None:
         if not cpl_files:
             print(f"Module {root} has no .cpl files to test.")
 
-        for cpl in cpl_files:
+        for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False):
             results.append(_run_test(binary, cpl))
 
     failed = 0
+    critical_failed = False
     for r in results:
         if r.get("ok", False):
             print(f"Succeed: {r['file']}")
         else:
             failed += 1
-            print(f"\nFailed: {r['file']}")
-            print(r["diff"])
+            if r.get("warning", False):
+                print(f"\nWarning (BUG): {r['file']}")
+                print(r["diff"])
+            elif r.get("critical", False):
+                print(f"\nCRITICAL (BLOCK_TEST): {r['file']}")
+                print(r["diff"])
+                critical_failed = True
+            else:
+                print(f"\nFailed: {r['file']}")
+                print(r["diff"])
 
     print(f"\nSummary: {len(results)} tests run, {failed} failed, {failed_modules} modules failed to build.")
+    if critical_failed:
+        print("\nCritical failure detected. Stopping immediately.")
+        sys.exit(2)
+
     if failed > 0 or failed_modules > 0:
         sys.exit(1)
 
