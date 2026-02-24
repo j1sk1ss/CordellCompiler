@@ -44,6 +44,15 @@ static const char* _fmt_tkn_op(token_type_t t) {
     return "";
 }
 
+static const char* _fmt_type_size(type_size_t s) {
+    switch (s) {
+        case TYPE_FULL_SIZE:    return "max";
+        case TYPE_HALF_SIZE:    return "max/2";
+        case TYPE_QUARTER_SIZE: return "max/4";
+        default:                return "max/8";
+    }
+}
+
 int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     ast_node_t* larg = nd->c;
@@ -70,7 +79,7 @@ Returns a token with a type.
 */
 static inline token_t* _get_base_type_token(ast_node_t* nd, int* ptr) {
     switch (nd->t->t_type) {
-        case REF_TYPE_TOKEN: if (ptr) *ptr = 64;
+        case REF_TYPE_TOKEN: if (ptr) *ptr = TYPE_FULL_SIZE;
         case NEGATIVE_TOKEN:
         case DREF_TYPE_TOKEN:
         case CONVERT_TOKEN:  return nd->c->t;
@@ -93,7 +102,7 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
     if (!fi.rtype) return 1;
 
     int ptr = 0;
-    if (TKN_variable_bitness(fi.rtype->t, 1) != MAX(TKN_variable_bitness(_get_base_type_token(larg, &ptr), 1), ptr)) {
+    if (TKN_variable_bitness(fi.rtype->t, 1) != MAX(TKN_variable_bitness(_get_base_type_token(larg, &ptr), 1), (type_size_t)ptr)) {
         SEMANTIC_WARNING(
             " %s Function='%s' return type='%s' doesn't match to the %s type='%s'!", format_location(&larg->t->finfo), fi.name->body,
             RST_restore_type(fi.rtype->t), _fmt_tkn_op(nd->t->t_type), RST_restore_type(larg->t)
@@ -138,14 +147,14 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
     return 1;
 }
 
-static int _get_token_bitness(token_t* tkn) {
+static type_size_t _get_token_bitness(token_t* tkn) {
     if (!TKN_isnumeric(tkn)) return TKN_variable_bitness(tkn, 1);
     else {
         long long val = tkn->body->to_llong(tkn->body);
-        if (val <= UCHAR_MAX)      return 8;
-        else if (val <= USHRT_MAX) return 16;
-        else if (val <= UINT_MAX)  return 32;
-        return 64;
+        if (val <= UCHAR_MAX)      return TYPE_EIGHTH_SIZE;
+        else if (val <= USHRT_MAX) return TYPE_QUARTER_SIZE;
+        else if (val <= UINT_MAX)  return TYPE_HALF_SIZE;
+        return TYPE_FULL_SIZE;
     }
 }
 
@@ -160,7 +169,7 @@ static token_t* _get_token_from_ast(ast_node_t* n, int* ptr) {
         else if (!l) return r;
         else if (!r) return l;
 
-        if (MAX(_get_token_bitness(l), lptr) < MAX(_get_token_bitness(r), rptr)) return r;
+        if (MAX(_get_token_bitness(l), (type_size_t)lptr) < MAX(_get_token_bitness(r), (type_size_t)rptr)) return r;
         return l;
     }
 
@@ -174,17 +183,18 @@ static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
     token_t* lt = _get_token_from_ast(l, &ltptr);
     token_t* rt = _get_token_from_ast(r, &rtptr);
 
-    if (MAX(_get_token_bitness(lt), ltptr) < MAX(_get_token_bitness(rt), rtptr)) {
+    if (MAX(_get_token_bitness(lt), (type_size_t)ltptr) < MAX(_get_token_bitness(rt), (type_size_t)rtptr)) {
         if (TKN_isnumeric(rt)) {
             SEMANTIC_WARNING(
-                " %s %s of '%s' with '%s' (Number's bitness is=%i, but '%s' can handle bitness=%i)!", format_location(&rt->finfo), msg,
-                lt->body->body, rt->body->body, _get_token_bitness(rt), RST_restore_type(lt), _get_token_bitness(lt)
+                " %s %s of '%s' with '%s' (Number's bitness is=%s, but '%s' can handle bitness=%s)!", format_location(&rt->finfo), msg,
+                lt->body->body, rt->body->body, _fmt_type_size(_get_token_bitness(rt)), 
+                RST_restore_type(lt), _fmt_type_size(_get_token_bitness(lt))
             );
         }
         else {
             SEMANTIC_WARNING(
-                " %s %s of '%s' with '%s'! '%s' can't handle bitness=%i!", format_location(&rt->finfo), msg,
-                lt->body->body, rt->body->body, RST_restore_type(lt), MAX(_get_token_bitness(rt), rtptr)
+                " %s %s of '%s' with '%s'! '%s' can't handle bitness=%s!", format_location(&rt->finfo), msg,
+                lt->body->body, rt->body->body, RST_restore_type(lt), _fmt_type_size(MAX(_get_token_bitness(rt), (type_size_t)rtptr))
             );
         }
 
@@ -710,7 +720,7 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
                 return 0;
             }
 
-            if (MAX(_get_token_bitness(rval), ptr) > _get_token_bitness(rtype)) {
+            if (MAX(_get_token_bitness(rval), (type_size_t)ptr) > _get_token_bitness(rtype)) {
                 SEMANTIC_WARNING(
                     " %s Function='%s' has the wrong return value!='%s'!", 
                     format_location(&rval->finfo), fname, RST_restore_type(rtype)

@@ -177,7 +177,15 @@ typedef struct {
 
 token_type_t TKN_get_tmp_type(token_type_t t);
 int TKN_istmp_type(token_type_t t);
-int TKN_variable_bitness(token_t* token, char ptr);
+
+typedef enum {
+    TYPE_FULL_SIZE    = 4, /* For instance x86_64: 64-bit */
+    TYPE_HALF_SIZE    = 3, /* 32-bit                      */
+    TYPE_QUARTER_SIZE = 2, /* 16-bit                      */
+    TYPE_EIGHTH_SIZE  = 1  /* 8-bit                       */
+} type_size_t;
+
+type_size_t TKN_variable_bitness(token_t* token, char ptr);
 int TKN_isptr(token_t* token);
 int TKN_one_slot(token_t* token);
 int TKN_instack(token_t* token);

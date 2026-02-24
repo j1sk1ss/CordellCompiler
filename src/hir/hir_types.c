@@ -157,48 +157,48 @@ hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t) {
 
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
     if (!token) return HIR_TMPVARI64;
-    int bitness  = TKN_variable_bitness(token, ptr);
-    int isfloat  = TKN_is_float(token);
-    int issigned = TKN_issign(token, ptr);
+    type_size_t bitness = TKN_variable_bitness(token, ptr);
+    int isfloat         = TKN_is_float(token);
+    int issigned        = TKN_issign(token, ptr);
     if (!isfloat) {
         switch (bitness) {
-            case 8:  return issigned ? HIR_TMPVARI8  : HIR_TMPVARU8;
-            case 16: return issigned ? HIR_TMPVARI16 : HIR_TMPVARU16;
-            case 32: return issigned ? HIR_TMPVARI32 : HIR_TMPVARU32;
+            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_TMPVARI8  : HIR_TMPVARU8;
+            case TYPE_QUARTER_SIZE: return issigned ? HIR_TMPVARI16 : HIR_TMPVARU16;
+            case TYPE_HALF_SIZE:    return issigned ? HIR_TMPVARI32 : HIR_TMPVARU32;
             default: return issigned ? HIR_TMPVARI64 : HIR_TMPVARU64;
         }
     }
 
     switch (bitness) {
-        case 32: return HIR_TMPVARF32;
-        default: return HIR_TMPVARF64;
+        case TYPE_HALF_SIZE: return HIR_TMPVARF32;
+        default:             return HIR_TMPVARF64;
     }
 }
 
 hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
     if (!isfloat) {
         switch (bitness) {
-            case 8:  return issigned ? HIR_GLBVARI8 : HIR_GLBVARU8;
-            case 16: return issigned ? HIR_GLBVARI16 : HIR_GLBVARU16;
-            case 32: return issigned ? HIR_GLBVARI32 : HIR_GLBVARU32;
+            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_GLBVARI8 : HIR_GLBVARU8;
+            case TYPE_QUARTER_SIZE: return issigned ? HIR_GLBVARI16 : HIR_GLBVARU16;
+            case TYPE_HALF_SIZE:    return issigned ? HIR_GLBVARI32 : HIR_GLBVARU32;
             default: return issigned ? HIR_GLBVARI64 : HIR_GLBVARU64;
         }
     }
 
     switch (bitness) {
-        case 32: return HIR_GLBVARF32;
-        default: return HIR_GLBVARF64;
+        case TYPE_HALF_SIZE: return HIR_GLBVARF32;
+        default:             return HIR_GLBVARF64;
     }
 }
 
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (!vi) return HIR_STKVARI64;
     token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro, .glob = vi->vfs.glob } };
-    int bitness  = TKN_variable_bitness(&tmptkn, 1);
-    int isfloat  = TKN_is_float(&tmptkn);
-    int issigned = TKN_issign(&tmptkn, 1);
-    int isarr    = vi->type == ARR_VARIABLE_TOKEN;
-    int isstr    = vi->type == STR_VARIABLE_TOKEN;
+    type_size_t bitness = TKN_variable_bitness(&tmptkn, 1);
+    int isfloat         = TKN_is_float(&tmptkn);
+    int issigned        = TKN_issign(&tmptkn, 1);
+    int isarr           = vi->type == ARR_VARIABLE_TOKEN;
+    int isstr           = vi->type == STR_VARIABLE_TOKEN;
 
     if (!TKN_instack(&tmptkn)) {
         if (isarr) return HIR_GLBVARARR;
@@ -210,16 +210,16 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (isstr) return HIR_STKVARSTR;
     if (!isfloat) {
         switch (bitness) {
-            case 8:  return issigned ? HIR_STKVARI8 : HIR_STKVARU8;
-            case 16: return issigned ? HIR_STKVARI16 : HIR_STKVARU16;
-            case 32: return issigned ? HIR_STKVARI32 : HIR_STKVARU32;
+            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_STKVARI8 : HIR_STKVARU8;
+            case TYPE_QUARTER_SIZE: return issigned ? HIR_STKVARI16 : HIR_STKVARU16;
+            case TYPE_HALF_SIZE:    return issigned ? HIR_STKVARI32 : HIR_STKVARU32;
             default: return issigned ? HIR_STKVARI64 : HIR_STKVARU64;
         }
     }
 
     switch (bitness) {
-        case 32: return HIR_STKVARF32;
-        default: return HIR_STKVARF64;
+        case TYPE_HALF_SIZE: return HIR_STKVARF32;
+        default:             return HIR_STKVARF64;
     }
 }
 

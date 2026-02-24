@@ -10,17 +10,17 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
             if ((!list_size(&ai.elems) && !bss) || (list_size(&ai.elems) && bss)) continue;
             if (!list_size(&ai.elems)) {
                 switch (TKN_variable_bitness(&tmptkn, 1)) {
-                    case 64: fprintf(output, "%s resq %ld\n", vi->name->body, ai.size); break;
-                    case 32: fprintf(output, "%s resd %ld\n", vi->name->body, ai.size); break;
-                    case 16: fprintf(output, "%s resw %ld\n", vi->name->body, ai.size); break;
+                    case TYPE_FULL_SIZE:    fprintf(output, "%s resq %ld\n", vi->name->body, ai.size); break;
+                    case TYPE_HALF_SIZE:    fprintf(output, "%s resd %ld\n", vi->name->body, ai.size); break;
+                    case TYPE_QUARTER_SIZE: fprintf(output, "%s resw %ld\n", vi->name->body, ai.size); break;
                     default: fprintf(output, "%s resb %ld\n", vi->name->body, ai.size); break;
                 }
             }
             else {
                 switch (TKN_variable_bitness(&tmptkn, 1)) {
-                    case 64: fprintf(output, "%s dq ", vi->name->body); break;
-                    case 32: fprintf(output, "%s dd ", vi->name->body); break;
-                    case 16: fprintf(output, "%s dw ", vi->name->body); break;
+                    case TYPE_FULL_SIZE:    fprintf(output, "%s dq ", vi->name->body); break;
+                    case TYPE_HALF_SIZE:    fprintf(output, "%s dd ", vi->name->body); break;
+                    case TYPE_QUARTER_SIZE: fprintf(output, "%s dw ", vi->name->body); break;
                     default: fprintf(output, "%s db ", vi->name->body); break;
                 }
 
@@ -44,9 +44,9 @@ static int _allocate_data(int glob, int ro, int bss, sym_table_t* smt, FILE* out
 
         token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro } };
         switch (TKN_variable_bitness(&tmptkn, 1)) {
-            case 64: fprintf(output, "%s dq 0\n", vi->name->body); break;
-            case 32: fprintf(output, "%s dd 0\n", vi->name->body); break;
-            case 16: fprintf(output, "%s dw 0\n", vi->name->body); break;
+            case TYPE_FULL_SIZE:    fprintf(output, "%s dq 0\n", vi->name->body); break;
+            case TYPE_HALF_SIZE:    fprintf(output, "%s dd 0\n", vi->name->body); break;
+            case TYPE_QUARTER_SIZE: fprintf(output, "%s dw 0\n", vi->name->body); break;
             default: fprintf(output, "%s db 0\n", vi->name->body); break;
         }
     }
