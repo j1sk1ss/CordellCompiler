@@ -9,10 +9,10 @@
 }
 
 : OUTPUT
-[WARNING] [6:22] Illegal argument of 'i8' with 'a'! 'i8' can't handle bitness=64!
+[WARNING] [6:22] Illegal argument of 'i8' with 'a'! 'i8' can't handle bitness=max!
 6 | foo(ref a);
   |     ^^^^^
-[WARNING] [4:22] Illegal argument of 'i8' with '65535' (Number's bitness is=16, but 'i8' can handle bitness=8)!
+[WARNING] [4:22] Illegal argument of 'i8' with '65535' (Number's bitness is=max/4, but 'i8' can handle bitness=max/8)!
 4 | foo(65535);
   |     ^^^^^
 :

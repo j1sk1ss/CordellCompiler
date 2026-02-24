@@ -215,7 +215,7 @@ def _entry() -> None:
         binary = builder.build(
             test_file=str(base),
             output_dir=str(module_out_dir),
-            extra_flags=['Wno-int-conversion']
+            extra_flags=['Wno-int-conversion', 'Wno-unused-function']
         )
 
         if not binary:
