@@ -104,11 +104,10 @@ def _normalize_output(text: str) -> str:
 
 def _parse_test_file(path: Path) -> tuple[str, str, dict]:
     text = path.read_text(encoding="utf-8")
-
     flags = {
         "test_debug": False,
         "block_test": False,
-        "bug": False,
+        "bug":        False,
     }
 
     lines = text.splitlines()
@@ -143,7 +142,6 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
 
 def _run_test(binary: str, test_file: Path) -> dict:
     code, expected, flags = _parse_test_file(test_file)
-
     with tempfile.NamedTemporaryFile(mode="w", suffix=".cpl", encoding="utf-8", delete=False) as tmp:
         tmp.write(code)
         tmp_path = tmp.name
@@ -169,22 +167,22 @@ def _run_test(binary: str, test_file: Path) -> dict:
     except Exception as ex:
         os.remove(tmp_path)
         return {
-            "file": str(test_file),
-            "ok": False,
+            "file":     str(test_file),
+            "ok":       False,
             "critical": True,
-            "warning": False,
-            "diff": f"Subprocess error: {ex}",
+            "warning":  False,
+            "diff":     f"Subprocess error: {ex}",
         }
     finally:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
-    expected_n = _normalize_output(expected)
-    actual_n = _normalize_output(proc.stdout)
+    expected_n: str = _normalize_output(expected)
+    actual_n: str = _normalize_output(proc.stdout)
     ok, why = _matches_expected(expected_n, actual_n)
 
-    critical = False
-    warning = False
+    critical: bool = False
+    warning: bool = False
 
     if not ok:
         if flags["bug"]:
@@ -233,8 +231,7 @@ def _entry() -> None:
     parser.add_argument('--compiler', default='gcc')
     args = parser.parse_args()
 
-    test_top = Path(args.path)
-
+    test_top: Path = Path(args.path)
     if not test_top.is_dir():
         print(f"Error: Test directory '{args.path}' wasn't found", file=sys.stderr)
         sys.exit(1)
@@ -246,13 +243,13 @@ def _entry() -> None:
         print(f"No test modules found (no base.c + dependencies.json) under {test_top}", file=sys.stderr)
         sys.exit(1)
 
-    all_roots_set = set(all_roots)
-    results = []
-    failed_modules = 0
+    all_roots_set: set[Path] = set(all_roots)
+    results: list[dict] = []
+    failed_modules: int = 0
 
     for root in all_roots:
-        rel = root.relative_to(test_top)
-        module_out_dir = Path(args.output_dir) / rel
+        rel: Path = root.relative_to(test_top)
+        module_out_dir: Path = Path(args.output_dir) / rel
         os.makedirs(module_out_dir, exist_ok=True)
 
         deps = root / "dependencies.json"
@@ -261,15 +258,15 @@ def _entry() -> None:
         with deps.open("r", encoding="utf-8") as f:
             bconf_raw = json.load(f)
 
-        bconf = CCBuilderConfig(
+        bconf: CCBuilderConfig = CCBuilderConfig(
             include=args.base,
             target="unit_test",
             config=bconf_raw,
             compiler=BuildCompiler(args.compiler)
         )
 
-        builder = CCBuilder(settings=bconf)
-        binary = builder.build(
+        builder: CCBuilder = CCBuilder(settings=bconf)
+        binary: str | None = builder.build(
             test_file=str(base),
             output_dir=str(module_out_dir),
             extra_flags=['Wno-int-conversion', 'Wno-unused-function']
@@ -287,8 +284,8 @@ def _entry() -> None:
         for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False):
             results.append(_run_test(binary, cpl))
 
-    failed = 0
-    critical_failed = False
+    failed: int = 0
+    critical_failed: bool = False
     for r in results:
         if r.get("ok", False):
             print(f"Succeed: {r['file']}")

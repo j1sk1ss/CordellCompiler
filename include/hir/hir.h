@@ -61,8 +61,7 @@ typedef struct hir_block {
     hir_subject_t*    farg;
     hir_subject_t*    sarg;
     hir_subject_t*    targ;
-    int               args;
-    char              unused;
+    char              unused : 1;
 } hir_block_t;
 
 typedef struct {
