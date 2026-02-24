@@ -118,7 +118,6 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 lh->op   = LIR_iMOV;
                 break;
             }
-
             case LIR_iMOV:
             case LIR_aMOV:
             case LIR_fMOV: 
@@ -129,7 +128,6 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 lh->sarg = tmp;
                 break;
             }
-
             default: break;
         }
 
@@ -178,23 +176,15 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                        Note: Based on the ABI calling convention. */
                     case LIR_STFARG: {
                         int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
-                        lir_subject_t* nfarg;
-                        if (lh->sarg->storage.cnst.value < (long)(sizeof(abi_regs) / sizeof(RDI))) {
-                            nfarg = _create_tmp(
-                                abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt
-                            );
-                        }
+                        if (lh->sarg->storage.cnst.value >= (long)(sizeof(abi_regs) / sizeof(RDI))) lh->op = LIR_PUSH;
                         else {
-                            nfarg = LIR_SUBJ_OFF(
-                                (lh->sarg->storage.cnst.value + 1) * 8, 
-                                _get_variable_size(lh->farg->storage.var.v_id, smt)
-                            );
+                            lir_subject_t* nfarg = _create_tmp(abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt);
+                            LIR_unload_subject(lh->sarg);
+                            lh->op   = LIR_aMOV;
+                            lh->sarg = lh->farg;
+                            lh->farg = nfarg;
                         }
-
-                        LIR_unload_subject(lh->sarg);
-                        lh->op   = LIR_aMOV;
-                        lh->sarg = lh->farg;
-                        lh->farg = nfarg;
+                        
                         break;
                     }
                     /* Load passed argument to a function.
@@ -203,13 +193,11 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
                         lir_subject_t* nfarg;
                         if (lh->sarg->storage.cnst.value < (long)(sizeof(abi_regs) / sizeof(RDI))) {
-                            nfarg = _create_tmp(
-                                abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt
-                            );
+                            nfarg = _create_tmp(abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt);
                         }
                         else {
                             nfarg = LIR_SUBJ_OFF(
-                                (lh->sarg->storage.cnst.value + 1) * 8, 
+                                (lh->sarg->storage.cnst.value - (long)(sizeof(abi_regs) / sizeof(RDI)) + 1) * 8, 
                                 _get_variable_size(lh->farg->storage.var.v_id, smt)
                             );
                         }
