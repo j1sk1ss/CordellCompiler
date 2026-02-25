@@ -33,6 +33,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         /* We skip assign nodes above given the next logic, 
            where we generate the special load sequence */
         case CALL_ADDR:
+        case I0_VARIABLE_TOKEN:
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:

@@ -1,6 +1,7 @@
 #ifndef DICT_H_
 #define DICT_H_
-
+// TODO: section("") { : Declarations in the old scope : }
+// TODO: align(X) { : Declaration in the old scope : }
 // Misc
 #define START_COMMAND           "start"
 #define EXIT_COMMAND            "exit"

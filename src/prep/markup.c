@@ -245,6 +245,7 @@ int MRKP_variables(list_t* tkn) {
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:
+            case I0_TYPE_TOKEN:
             case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
             case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
             case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:
@@ -262,6 +263,7 @@ int MRKP_variables(list_t* tkn) {
                             break;
                         }
 
+                        case I0_TYPE_TOKEN:
                         case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
                         case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
                         case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:

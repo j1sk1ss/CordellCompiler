@@ -1,7 +1,7 @@
 {
     function foo(u32 a);
     start() {
-        ptr u32 a = foo;
+        ptr i0 a = foo;
         a(10);
         foo(10);
     }
@@ -12,12 +12,11 @@
     start {
         {
             {
-                u32s* %1 = alloc(8);
-                u64t* %2 = &(foo0(u32 a));
-                u32t* %3 = u64t* %2 as *ptr;
-                u32s* %1 = u32t* %3;
+                i0s* %1 = alloc(8);
+                i0t* %2 = &(foo0(u32 a));
+                i0s* %1 = i0t* %2;
                 use num? 10;
-                call u32s* %1, argc args(num? 10,);
+                call i0s* %1, argc args(num? 10,);
                 use num? 10;
                 call foo0(u32 a), argc args(num? 10,);
             }

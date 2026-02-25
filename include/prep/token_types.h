@@ -52,6 +52,7 @@ typedef enum {
     TMP_U32_TYPE_TOKEN,  // tmp_u32
     TMP_U16_TYPE_TOKEN,  // tmp_u16
     TMP_U8_TYPE_TOKEN,   // tmp_u8
+    TMP_I0_TYPE_TOKEN,   // tmp_i0
 
     I0_TYPE_TOKEN,       // i0
     F64_TYPE_TOKEN,      // f64
@@ -139,6 +140,7 @@ typedef enum {
     I32_VARIABLE_TOKEN,  // i32
     I16_VARIABLE_TOKEN,  // i16
     I8_VARIABLE_TOKEN,   // i8
+    I0_VARIABLE_TOKEN,
     U64_VARIABLE_TOKEN,  // u64
     U32_VARIABLE_TOKEN,  // u32
     U16_VARIABLE_TOKEN,  // u16
@@ -196,7 +198,7 @@ int TKN_isoperand(token_t* token);
 int TKN_token_priority(token_t* token);
 int TKN_isnumeric(token_t* token);
 int TKN_isvariable(token_t* token);
-int TKN_issign(token_t* token, char ptr);
+int TKN_is_sign(token_t* token, char ptr);
 int TKN_is_float(token_t* token);
 int TKN_update_operator(token_t* token);
 token_type_t TKN_get_var_from_type(token_type_t t);

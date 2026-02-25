@@ -198,6 +198,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_STKVARI16:  dst += sprintf(dst, "i16s");   break;
             case HIR_STKVARU8:   dst += sprintf(dst, "u8s");    break;
             case HIR_STKVARI8:   dst += sprintf(dst, "i8s");    break;
+            case HIR_STKVARI0:   dst += sprintf(dst, "i0s");    break;
             case HIR_TMPVARSTR:  dst += sprintf(dst, "strt");   break;
             case HIR_TMPVARARR:  dst += sprintf(dst, "arrt");   break;
             case HIR_TMPVARF64:  dst += sprintf(dst, "f64t");   break;
@@ -210,6 +211,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_TMPVARI16:  dst += sprintf(dst, "i16t");   break;
             case HIR_TMPVARU8:   dst += sprintf(dst, "u8t");    break;
             case HIR_TMPVARI8:   dst += sprintf(dst, "i8t");    break;
+            case HIR_TMPVARI0:   dst += sprintf(dst, "i0t");    break;
             case HIR_GLBVARSTR:  dst += sprintf(dst, "strg");   break;
             case HIR_GLBVARARR:  dst += sprintf(dst, "arrg");   break;
             case HIR_GLBVARF64:  dst += sprintf(dst, "f64g");   break;
@@ -222,6 +224,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_GLBVARI16:  dst += sprintf(dst, "i16g");   break;
             case HIR_GLBVARU8:   dst += sprintf(dst, "u8g");    break;
             case HIR_GLBVARI8:   dst += sprintf(dst, "i8g");    break;
+            case HIR_GLBVARI0:   dst += sprintf(dst, "i0g");    break;
             default: break;
         }
         

@@ -21,6 +21,8 @@ const char* format_tkntype(token_type_t t) {
         case I16_TYPE_TOKEN:   return "i16";
         case TMP_I8_TYPE_TOKEN:
         case I8_TYPE_TOKEN:    return "i8";
+        case TMP_I0_TYPE_TOKEN:
+        case I0_TYPE_TOKEN:    return "i0";
         case TMP_U64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:   return "u64";
         case TMP_U32_TYPE_TOKEN:

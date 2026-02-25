@@ -75,6 +75,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
 
         case CHAR_VALUE_TOKEN:
         case STRING_VALUE_TOKEN:
+        case I0_VARIABLE_TOKEN:
         case I8_VARIABLE_TOKEN:
         case U8_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:

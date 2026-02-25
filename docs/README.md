@@ -145,7 +145,7 @@ loop {
 
 Entry point:
 ```cpl
-start(i64 argc, ptr u64 argv) {
+start(i64 argc, ptr ptr i8 argv) {
 }
 ```
 
@@ -252,9 +252,10 @@ i8 c = 0xF;
 i8 d = 'a';
 ```
 
-- `i0` - Void type. Must be used only in the function return type. This type isn't supported by the Compiler as a regular primitive type.
+- `i0` - Void type. Must be used only in the function return type or as a pointer. This type isn't supported by the Compiler as a regular primitive type.
 ```cpl
 function cordell() -> i0;
+ptr i0 a = cordell;
 ```
 
 `P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is pretty simple:
@@ -341,7 +342,7 @@ A function can be stored as a pointer easilly with usage of the next code:
 ```cpl
 function foo(i32 a) -> i32;
 start() {
-    ptr u64 a = foo;
+    ptr i0 a = foo;
     i32 res = a(100);
 }
 ```
@@ -352,8 +353,8 @@ function foo(i32 a) -> i32;
 function foo(u32 a = 10) -> i0;
 function bar(i8 a = 'a');
 start() {
-    ptr u64 a = foo; : Will store function foo(i32 a) -> i32; given that this function is the top function :
-    ptr u64 b = bar;
+    ptr i0 a = foo; : Will store function foo(i32 a) -> i32; given that this function is the top function :
+    ptr i0 b = bar;
     b(); : Will cause an undefined behaviour given the lack of arguemnts :
 }
 ```
@@ -362,7 +363,7 @@ However, such an ability can make it possible to use different functions in the 
 ```cpl
 function min(i32 a, i32 b);
 function max(i32 a, i32 b);
-function logic(ptr u64 func, i32 a, i32 b) {
+function logic(ptr i0 func, i32 a, i32 b) {
     func(a, b);
 }
 
@@ -553,7 +554,7 @@ function foo() {
 
 Such local functions don't have any access to a 'parent' function, but can be returned as a pointer from a 'parent':
 ```cpl
-function foo() -> ptr u64 {
+function foo() -> ptr i0 {
     function getter() {
         return 10;
     }

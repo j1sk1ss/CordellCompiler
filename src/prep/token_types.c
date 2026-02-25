@@ -39,6 +39,7 @@ token_type_t TKN_get_tmp_type(token_type_t t) {
         case I32_TYPE_TOKEN: return TMP_I32_TYPE_TOKEN;
         case I16_TYPE_TOKEN: return TMP_I16_TYPE_TOKEN;
         case I8_TYPE_TOKEN:  return TMP_I8_TYPE_TOKEN;
+        case I0_TYPE_TOKEN:  return TMP_I0_TYPE_TOKEN;
         case U64_TYPE_TOKEN: return TMP_U64_TYPE_TOKEN;
         case U32_TYPE_TOKEN: return TMP_U32_TYPE_TOKEN;
         case U16_TYPE_TOKEN: return TMP_U16_TYPE_TOKEN;
@@ -55,6 +56,7 @@ int TKN_istmp_type(token_type_t t) {
         case TMP_I32_TYPE_TOKEN:
         case TMP_I16_TYPE_TOKEN:
         case TMP_I8_TYPE_TOKEN:
+        case TMP_I0_TYPE_TOKEN:
         case TMP_U64_TYPE_TOKEN:
         case TMP_U32_TYPE_TOKEN:
         case TMP_U16_TYPE_TOKEN:
@@ -112,6 +114,7 @@ int TKN_one_slot(token_t* token) {
     ) return 1;
     
     switch (token->t_type) {
+        case I0_TYPE_TOKEN:
         case I8_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
         case I16_TYPE_TOKEN:
@@ -162,6 +165,7 @@ int TKN_isclose(token_t* token) {
 int TKN_isdecl(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
+        case I0_TYPE_TOKEN:
         case I8_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
         case I16_TYPE_TOKEN:
@@ -277,6 +281,7 @@ int TKN_isvariable(token_t* token) {
         case I32_VARIABLE_TOKEN:
         case I16_VARIABLE_TOKEN:
         case I8_VARIABLE_TOKEN:
+        case I0_VARIABLE_TOKEN:
         case U64_VARIABLE_TOKEN:
         case U32_VARIABLE_TOKEN:
         case U16_VARIABLE_TOKEN:
@@ -285,7 +290,7 @@ int TKN_isvariable(token_t* token) {
     }
 }
 
-int TKN_issign(token_t* token, char ptr) {
+int TKN_is_sign(token_t* token, char ptr) {
     if (!token) return 0;
     if (token->flags.ptr && ptr) return 0;
     switch (token->t_type) {
@@ -340,6 +345,7 @@ token_type_t TKN_get_var_from_type(token_type_t t) {
         case I32_TYPE_TOKEN:   return I32_VARIABLE_TOKEN;
         case I16_TYPE_TOKEN:   return I16_VARIABLE_TOKEN;
         case I8_TYPE_TOKEN:    return I8_VARIABLE_TOKEN;
+        case I0_TYPE_TOKEN:    return I0_VARIABLE_TOKEN;
         default:               return U64_VARIABLE_TOKEN;
     }
 }

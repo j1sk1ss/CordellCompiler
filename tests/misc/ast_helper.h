@@ -88,6 +88,7 @@ const char* name_tkn_type(token_type_t t) {
         case I32_VARIABLE_TOKEN:          return "I32_VARIABLE_TOKEN";
         case I16_VARIABLE_TOKEN:          return "I16_VARIABLE_TOKEN";
         case I8_VARIABLE_TOKEN:           return "I8_VARIABLE_TOKEN";
+        case I0_VARIABLE_TOKEN:           return "I0_VARIABLE_TOKEN";
         case U64_VARIABLE_TOKEN:          return "U64_VARIABLE_TOKEN";
         case U32_VARIABLE_TOKEN:          return "U32_VARIABLE_TOKEN";
         case U16_VARIABLE_TOKEN:          return "U16_VARIABLE_TOKEN";

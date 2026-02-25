@@ -1,5 +1,5 @@
 {
-    function factory(i32 k) -> ptr u64 {
+    function factory(i32 k) -> ptr i0 {
         switch k; {
             case 1; {
                 function bar() -> i0 {
@@ -23,7 +23,7 @@
 
 : OUTPUT
 {
-    fn factory0(i32 k) -> u64*
+    fn factory0(i32 k) -> i0*
     {
         i32s %0 = alloc(8);
         i32s %0 = load_arg();
@@ -39,8 +39,8 @@
                     }
                 }
                 lb11:
-                u64t* %1 = &(bar1() -> i0);
-                return u64t* %1;
+                i0t* %1 = &(bar1() -> i0);
+                return i0t* %1;
             }
             lb21:
             {
@@ -52,8 +52,8 @@
                     }
                 }
                 lb23:
-                u64t* %2 = &(baz2() -> i0);
-                return u64t* %2;
+                i0t* %2 = &(baz2() -> i0);
+                return i0t* %2;
             }
             goto lb8;
             lb7:
@@ -77,8 +77,8 @@
         {
             {
                 use num? 0;
-                u64t* %7 = call factory0(i32 k) -> u64*, argc args(num? 0,);
-                i64t %8 = call u64t* %7, argc args();
+                i0t* %7 = call factory0(i32 k) -> i0*, argc args(num? 0,);
+                i64t %8 = call i0t* %7, argc args();
                 exit i64t %8;
             }
         }
