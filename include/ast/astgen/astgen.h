@@ -225,6 +225,12 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt);
 #define PARSER_ARGS list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, long carry
 #define PARSER_ARGS_USE (void)it; (void)ctx; (void)smt; (void)carry;
 
+#define PRESERVE_AST_CARRY_ARG(l, n) \
+    void* __dumped = ctx->carry.ptr; \
+    ctx->carry.ptr = n;              \
+    l;                               \
+    ctx->carry.ptr = __dumped;       \
+
 /*
 Parse `.cpl` element with input tokens.
 Params:

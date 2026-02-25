@@ -17,6 +17,8 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     int has_entry = 0;
     func_info_t* last = NULL;
     map_foreach(func_info_t* fi, &smt->f.functb) {
+        if (fi->flags.local) continue;
+        
         last = fi;
         if (fi->flags.entry) {
             has_entry = 1;

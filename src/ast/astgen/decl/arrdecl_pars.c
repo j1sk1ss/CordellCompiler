@@ -142,7 +142,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
     /* Add variable information. Note here:
        Array, basically, is a pointer. That's why we increment the .ptr flag to 1. */
-    long decl_scope = 0;
+    long decl_scope;
     stack_top(&ctx->scopes.stack, (void**)&decl_scope);
     name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, decl_scope, &name->t->flags, &smt->v);
     ARTB_add_info(

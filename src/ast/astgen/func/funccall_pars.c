@@ -58,15 +58,18 @@ ast_node_t* cpl_parse_funccall(PARSER_ARGS) {
     /* The default argument is allowed only for non-polymorphic functions.
        That's why we're using the list's head (we don't care about other functions) */
     func_info_t fi;
-    if (FNTB_get_info(node->t->body, &fi, &smt->f)) {
-        node->sinfo.v_id = fi.id;
-        if (node->t->t_type != CALL_ADDR) {
-            fn_iterate_args (&fi) {
-                if (
-                    args_count-- > 0 || /* Ignore already passed arguments             */
-                    !arg->c->siblings.n /* If this argument doesn't have a declaration */
-                ) continue;
-                AST_add_node(node->c, AST_copy_node(arg->c->siblings.n, 0, 0, 1));
+    for (int s = ctx->scopes.stack.top; s >= 0; s--) { 
+        short sid = (short)((long)ctx->scopes.stack.data[s].d);
+        if (FNTB_get_info(node->t->body, sid, &fi, &smt->f)) {
+            node->sinfo.v_id = fi.id;
+            if (node->t->t_type != CALL_ADDR) {
+                fn_iterate_args (&fi) {
+                    if (
+                        args_count-- > 0 || /* Ignore already passed arguments             */
+                        !arg->c->siblings.n /* If this argument doesn't have a declaration */
+                    ) continue;
+                    AST_add_node(node->c, AST_copy_node(arg->c->siblings.n, 0, 0, 1));
+                }
             }
         }
     }

@@ -7,8 +7,8 @@
 #include <prep/token_types.h>
 
 typedef struct {
-    short s_id;  /* Scope ID    */
-    int   v_id;  /* Variable ID */
+    long s_id;  /* Scope ID    */
+    long v_id;  /* Variable ID */
 } syntax_info_t;
 
 typedef struct ast_node {
@@ -33,6 +33,9 @@ typedef struct {
         int      s_id;   /* Current scope id.                        */
         sstack_t stack;  /* Scope id stack.                          */
     } scopes;
+    struct {
+        void*    ptr;    /* Parent function pointer                  */
+    } carry;
 } ast_ctx_t;
 
 /*

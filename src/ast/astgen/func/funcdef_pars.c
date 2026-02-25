@@ -85,11 +85,11 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     AST_add_node(node, args_node);
-
+    long func_scope;
+    stack_top(&ctx->scopes.stack, (void**)&func_scope);
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
     args_node->sinfo.s_id = ctx->scopes.s_id;
 
-    /* function <name> ( ... ) */
     forward_token(it, 1);
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args_node)) {
         PARSE_ERROR("Can't parse function's arguments!");
@@ -98,29 +98,26 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         return NULL;
     }
 
-    /* function <name> ( ... ) -> */
-    forward_token(it, 1);
-    if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == RETURN_TYPE_TOKEN) {
+    if (consume_token(it, RETURN_TYPE_TOKEN)) {
         forward_token(it, 1);
         ast_node_t* ret_type = AST_create_node(CURRENT_TOKEN);
         AST_add_node(name_node, ret_type);
         forward_token(it, 1);
     }
 
+    name_node->sinfo.s_id = func_scope;
     name_node->sinfo.v_id = FNTB_add_info(
-        name_node->t->body, name_node->t->flags.glob, name_node->t->flags.ext, 0,
-        args_node, name_node->c, &smt->f
+        name_node->t->body, node->t->flags.glob, ctx->carry.ptr ? 1 : 0, 0, func_scope, args_node, name_node->c, &smt->f
     );
 
-    /* function <name> ( ... ) [-> t]; - A prototype function */
     if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
         node->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);
         return node;
     }
 
-    /* function <name> ( ... ) [-> t] { ... } */
-    ast_node_t* body_node = cpl_parse_scope(it, ctx, smt, carry);
+    ast_node_t* body_node = NULL;
+    PRESERVE_AST_CARRY_ARG({ body_node = cpl_parse_scope(it, ctx, smt, carry); }, node);
     if (!body_node) {
         PARSE_ERROR("Error during the function's body parsing!");
         AST_unload(node);
