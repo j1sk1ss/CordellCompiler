@@ -31,23 +31,27 @@
             goto lb7;
             lb9:
             {
+                goto lb11;
                 fn bar1() -> i0
                 {
                     {
                         return num? 1;
                     }
                 }
+                lb11:
                 u64t* %1 = &(bar1() -> i0);
                 return u64t* %1;
             }
-            lb20:
+            lb21:
             {
+                goto lb23;
                 fn baz2() -> i0
                 {
                     {
                         return num? 2;
                     }
                 }
+                lb23:
                 u64t* %2 = &(baz2() -> i0);
                 return u64t* %2;
             }
@@ -55,16 +59,16 @@
             lb7:
             i32t %4 = cnst? 1 as i32;
             i8t %3 = i32s %0 < i32t %4;
-            if i8t %3, goto lb32, else goto lb33;
-            lb32:
-            goto lb20;
-            lb33:
+            if i8t %3, goto lb34, else goto lb35;
+            lb34:
+            goto lb21;
+            lb35:
             i32t %6 = cnst? 1 as i32;
             i8t %5 = i32s %0 > i32t %6;
-            if i8t %5, goto lb34, else goto lb35;
-            lb34:
-            goto lb20;
-            lb35:
+            if i8t %5, goto lb36, else goto lb37;
+            lb36:
+            goto lb21;
+            lb37:
             goto lb9;
             lb8:
         }
