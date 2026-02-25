@@ -1,6 +1,9 @@
 #include <asm/x86_64_asmgen.h>
 
 int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
+    sstack_t call_guards;
+    stack_init(&call_guards);
+
     x86_64_generate_data(smt, output);
     lir_block_t* curr = lctx->h;
     while (curr) {
@@ -10,6 +13,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
 
             case LIR_STRT:
             case LIR_FDCL: {
+                stack_push(&call_guards, (void*)curr->farg->storage.str.sid);
                 fprintf(output, "%s:\n", x86_64_asm_variable(curr->farg, smt));
                 x86_64_generate_stackframe(curr->sarg->storage.cnst.value, output);
                 break;
@@ -19,7 +23,7 @@ int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
             case LIR_SYSC: fprintf(output, "syscall\n"); break;
 
             case LIR_FEND:
-            case LIR_FRET: {
+            case LIR_FRET: { // TODO: call_guards
                 x86_64_kill_stackframe(output);
                 fprintf(output, "ret\n");
                 break;

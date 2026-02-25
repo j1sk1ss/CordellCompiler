@@ -29,10 +29,10 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
             /* Skip the function's preambule:
                 - function definition
                 - function arguments */
-            hir_block_t* hh = HIR_get_next(fb->hmap.entry, fb->hmap.exit, 0);
-            while (hh && hh->op != HIR_MKSCOPE) hh = HIR_get_next(hh, fb->hmap.exit, 1);
-            hh = HIR_get_next(hh, fb->hmap.exit, 1);
-            while (hh && hh->op != HIR_MKSCOPE) hh = HIR_get_next(hh, fb->hmap.exit, 1);
+            hir_block_t* hh = HIR_FUNC_get_next(NULL, fb, NULL, 0);
+            while (hh && hh->op != HIR_MKSCOPE) hh = HIR_FUNC_get_next(hh, fb, NULL, 1);
+            hh = HIR_FUNC_get_next(hh, fb, NULL, 1);
+            while (hh && hh->op != HIR_MKSCOPE) hh = HIR_FUNC_get_next(hh, fb, NULL, 1);
             if (!hh) continue;
 
             /* Create the 'reverse' label.

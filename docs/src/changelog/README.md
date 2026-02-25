@@ -26,6 +26,65 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Local functions
+Same as in Rust, functions can define another functions in their body:
+```cpl
+function foo() -> i0 {
+    function bar() -> i32 {
+        return 32;
+    }
+    return bar();
+}
+```
+
+These functions can be optimized as a regular one. Also, these functions (at this moment) don't have any access for outer variables:
+```cpl
+function var_decl() -> i0 {
+    i32 a;
+    function var_try_to_use() -> i0 {
+        a += 1; : <= Illegal :
+    }
+    var_try_to_use();
+}
+```
+
+Also, such functions can be used as a return value when you want to implement something like a 'function factory':
+```cpl
+function factory(i32 key) -> ptr u64 {
+    switch key; {
+        case 1; {
+            function foo() {
+                return 1;
+            }
+            return foo;
+        }
+        default; {}
+        case 2; {
+            function bar() {
+                return 2;
+            }
+            return bar;
+        }
+    }
+}
+
+start() {
+    exit factory(1)();
+}
+```
+
+## Scope functions
+At this moment a pretty useless feature of the compiler:
+```cpl
+{
+    function foo();
+}
+{
+    function foo();
+}
+```
+Scopes now participate in function symbol resolution.
+
 ## Function return type new semantic
 The semantic of the CPL has moved a bit towards Rust language. Now instead of the '=>' as a rtype, you will need to use the '->'.
 ```cpl

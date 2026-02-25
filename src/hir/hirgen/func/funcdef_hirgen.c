@@ -5,7 +5,7 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     if (!FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)) {
         return 0;
     }
-    
+
     HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(node->c));
     HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
 

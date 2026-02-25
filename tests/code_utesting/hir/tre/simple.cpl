@@ -30,7 +30,7 @@
             use i64t %3;
             i32s %0 = i64t %3;
             goto lb26;
-            [unused] excall , argc foo0(i32 a)args(i64t %3,);
+            [unused] call foo0(i32 a), argc args(i64t %3,);
         }
     }
 }

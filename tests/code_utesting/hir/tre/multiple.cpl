@@ -25,7 +25,7 @@
                 use i64t %3;
                 i32s %0 = i64t %3;
                 goto lb35;
-                [unused] i64t %5 = excall foo0(i32 a), argc args(i64t %3,);
+                [unused] i64t %5 = call foo0(i32 a), argc args(i64t %3,);
                 return i64t %5;
             }
             goto lb9;
@@ -35,7 +35,7 @@
             use i64t %6;
             i32s %0 = i64t %6;
             goto lb35;
-            [unused] i64t %8 = excall foo0(i32 a), argc args(i64t %6,);
+            [unused] i64t %8 = call foo0(i32 a), argc args(i64t %6,);
             return i64t %8;
         }
     }

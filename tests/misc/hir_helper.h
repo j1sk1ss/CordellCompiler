@@ -429,7 +429,7 @@ static void _print_set_int(FILE* out, set_t* s) {
     fprintf(out, "}");
 }
 
-static int _export_dot_func_hir(cfg_func_t* f) {
+int export_dot_func_hir(cfg_func_t* f) {
     printf("digraph CFG_func%ld {\n", f->id);
     printf("  rankdir=TB;\n");
     printf("  node [shape=box, fontname=\"monospace\"];\n");
@@ -464,7 +464,7 @@ static void cfg_print(cfg_ctx_t* ctx) {
     printf("==== CFG DUMP ====\n");
     foreach (cfg_func_t* fb, &ctx->funcs) {
         printf("==== CFG DOT (HIR) ====\n");
-        _export_dot_func_hir(fb);
+        export_dot_func_hir(fb);
         printf("==== DOM DOT ====\n");
         _dump_all_dom_dot(fb);
         printf("==== SDOM DOT ====\n");

@@ -14,7 +14,7 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     list_iter_t it;
     list_iter_hinit(args, &it);
 
-    hir_block_t* hh = HIR_get_next(f->hmap.entry, f->hmap.exit, 0);
+    hir_block_t* hh = HIR_FUNC_get_next(NULL, f, NULL, 0);
     while (hh) {
         if (hh->op == HIR_FARGLD) {
             hir_block_t* nblock = HIR_copy_block(hh, 1);
@@ -24,7 +24,7 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
             HIR_insert_block_before(nblock, pos);
         }
 
-        hh = HIR_get_next(hh, f->hmap.exit, 1);
+        hh = HIR_FUNC_get_next(hh, f, NULL, 1);
     }
 
     return 1;
@@ -40,7 +40,7 @@ Params:
 
 Returns 1 if succeeds.
 */
-static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new) {
+static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new, cfg_func_t* fb) {
     while (h) {
         if (h->op != HIR_MKLB) {
             hir_subject_t* args[3] = { h->farg, h->sarg, h->targ };
@@ -55,7 +55,7 @@ static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* o
             }
         }
 
-        h = HIR_get_next(h, e, 1);
+        h = HIR_FUNC_get_next(h, fb, e, 1);
     }
 
     return 1;
@@ -75,10 +75,10 @@ Returns 1 if succeeds.
 */
 static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos) {
     hir_block_t *nentry = NULL, *nexit = pos;
-    hir_block_t* hh = HIR_get_next(f->hmap.entry, f->hmap.exit, 0);
-    while (hh && hh->op != HIR_MKSCOPE) hh = HIR_get_next(hh, f->hmap.exit, 1);
-    hh = HIR_get_next(hh, f->hmap.exit, 1);
-    while (hh && hh->op != HIR_MKSCOPE) hh = HIR_get_next(hh, f->hmap.exit, 1);
+    hir_block_t* hh = HIR_FUNC_get_next(NULL, f, NULL, 0);
+    while (hh && hh->op != HIR_MKSCOPE) hh = HIR_FUNC_get_next(hh, f, NULL, 1);
+    hh = HIR_FUNC_get_next(hh, f, NULL, 1);
+    while (hh && hh->op != HIR_MKSCOPE) hh = HIR_FUNC_get_next(hh, f, NULL, 1);
 
     /* Basic instruction copy without label track
        - Will copy only instruction and variables
@@ -119,7 +119,7 @@ _skip_instruction: {}
             HIR_unload_blocks(nblock);
         }
 
-        hh = HIR_get_next(hh, f->hmap.exit, 1);
+        hh = HIR_FUNC_get_next(hh, f, NULL, 1);
     }
 
     /* Re-link labels */
@@ -127,11 +127,11 @@ _skip_instruction: {}
     while (hh) {
         if (hh->op == HIR_MKLB) {
             hir_subject_t* nlb = HIR_copy_subject(hh->farg);
-            _replace_label_usage(nentry, nexit, hh->farg, nlb);
+            _replace_label_usage(nentry, nexit, hh->farg, nlb, f);
             hh->farg = nlb;
         }
 
-        hh = HIR_get_next(hh, nexit, 1);
+        hh = HIR_FUNC_get_next(hh, f, nexit, 1);
     }
 
     return 1;

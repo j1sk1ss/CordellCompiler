@@ -2,7 +2,7 @@
 
 int HIR_CFG_mark_leaders(cfg_ctx_t* ctx) {
     foreach (cfg_func_t* fb, &ctx->funcs) {
-        hir_block_t* h = HIR_get_next(fb->hmap.entry, fb->hmap.exit, 0);
+        hir_block_t* h = HIR_FUNC_get_next(NULL, fb, NULL, 0);
         set_init(&fb->leaders, SET_NO_CMP);
         set_add(&fb->leaders, h);                            /* Rule 1 - First instruction in function          */
         while (h) {
@@ -11,7 +11,7 @@ int HIR_CFG_mark_leaders(cfg_ctx_t* ctx) {
                 HIR_is_jmp(h->op) &&                          /* Rule 3 - Next instruction after JMP instruction */
                 h->next
             ) set_add(&fb->leaders, h->next);
-            h = HIR_get_next(h, fb->hmap.exit, 1);
+            h = HIR_FUNC_get_next(h, fb, NULL, 1);
         }
     }
 
