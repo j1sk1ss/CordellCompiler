@@ -6,6 +6,12 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
         return 0;
     }
 
+    hir_subject_t* lguards = NULL;
+    if (fi.flags.local) {
+        lguards = HIR_SUBJ_LABEL();
+        HIR_BLOCK1(ctx, HIR_JMP, lguards);
+    }
+    
     HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(node->c));
     HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
 
@@ -25,5 +31,6 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, { HIR_generate_block(t, ctx, smt); });
     HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
     HIR_BLOCK0(ctx, HIR_FEND);
+    if (lguards) HIR_BLOCK1(ctx, HIR_MKLB, lguards);
     return 1;
 }

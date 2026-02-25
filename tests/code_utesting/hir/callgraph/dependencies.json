@@ -1,0 +1,18 @@
+{
+    "sources": [
+        "src/symtab/*.c",
+        "src/preproc/*.c",
+        "src/preproc/misc/*.c",
+        "src/prep/*.c",
+        "src/sem/misc/*.c", 
+        "src/ast/*.c",
+        "src/ast/astgen/*.c", 
+        "src/ast/astgen/*/*.c",
+        "src/hir/*.c",
+        "src/hir/hirgen/*/*.c",
+        "src/hir/cfg/*.c",
+        "src/hir/loop/*.c",
+        "src/hir/func/*.c",
+        "std/*.c"
+    ]
+}
