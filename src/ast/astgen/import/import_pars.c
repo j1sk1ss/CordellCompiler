@@ -13,7 +13,13 @@ ast_node_t* cpl_parse_import(PARSER_ARGS) {
         return NULL;
     }
     
-    forward_token(it, 1);
+    if (!consume_token(it, STRING_VALUE_TOKEN)) {
+        PARSE_ERROR("Expected the 'UNKNOWN_STRING_TOKEN' token!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+    
     ast_node_t* source_node = AST_create_node(CURRENT_TOKEN);
     if (!source_node) {
         PARSE_ERROR("Can't create a base for the source file!");
@@ -21,9 +27,19 @@ ast_node_t* cpl_parse_import(PARSER_ARGS) {
         RESTORE_TOKEN_POINT;
         return NULL;
     }
+    
+    AST_add_node(node, source_node);
+    long sid;
+    stack_top(&ctx->scopes.stack, (void**)&sid);
+    if (!consume_token(it, IMPORT_TOKEN)) {
+        PARSE_ERROR("Expected the 'IMPORT_TOKEN' token!");
+        AST_unload(node);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
 
-    forward_token(it, 2);
-    while (CURRENT_TOKEN && (CURRENT_TOKEN)->t_type != DELIMITER_TOKEN) {
+    forward_token(it, 1);
+    while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != DELIMITER_TOKEN) {
         if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
             forward_token(it, 1);
             continue;
@@ -33,7 +49,6 @@ ast_node_t* cpl_parse_import(PARSER_ARGS) {
         if (!import_name) {
             PARSE_ERROR("Can't create a base for the function name!");
             AST_unload(node);
-            AST_unload(source_node);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
@@ -42,17 +57,17 @@ ast_node_t* cpl_parse_import(PARSER_ARGS) {
         if (!args_node) {
             PARSE_ERROR("Can't create a base for the function's arguments!");
             AST_unload(node);
-            AST_unload(source_node);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
 
         AST_add_node(import_name, args_node);
         AST_add_node(source_node, import_name);
-        import_name->sinfo.v_id = FNTB_add_info(import_name->t->body, 1, 0, 0, args_node, NULL, &smt->f);
+
+        import_name->sinfo.v_id = FNTB_add_info(import_name->t->body, 1, 0, 0, sid, args_node, NULL, &smt->f);
+        import_name->t->t_type  = FUNC_NAME_TOKEN;
         forward_token(it, 1);
     }
-
-    AST_add_node(node, source_node);
+    
     return node;
 }
