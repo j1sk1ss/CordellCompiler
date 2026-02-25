@@ -14,6 +14,7 @@ The **Cordell Programming Language (CPL)** is a system-level programming languag
 - **Default-args**: compiler supports default values in function arguments.
 - **Headers-Modules**: cpl supports headers as it does C/++ language and module system as it does Go/Python etc.
 - **Strings**: lagnuage supports and distinguishs strings from raw pointers.
+- **Local functions**: Functions can define local function as it do functions in Rust.
 
 # Main idea of this project
 Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for my own OS inside my own OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
@@ -517,6 +518,38 @@ function foo() -> i0;
 ```cpl
 function foo(i32 a, i32 b = 1, i32 c = 1);
 function foo(i32 a, i32 b = 1);
+```
+
+## Local functions
+Local function can be easily defined by the next code:
+```cpl
+function foo() {
+    function bar() {
+    }
+}
+```
+
+Such local functions don't have any access to a 'parent' function, but can be returned as a pointer from a 'parent':
+```cpl
+function foo() -> ptr u64 {
+    function getter() {
+        return 10;
+    }
+    return getter;
+}
+```
+
+Local functions have their own scope, that's why it allows to name local and global functions with the same name:
+```cpl
+function bar() {
+    function foo() {
+    }
+    foo();
+}
+function foo();
+start() {
+    foo();
+}
 ```
 
 ## Variadic arguments
