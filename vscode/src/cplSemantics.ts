@@ -43,7 +43,7 @@ export function formatType(t: TypeNode): string {
 
 export type Issue = { message: string; range: Range };
 
-type VarSym = {
+export type VarSym = {
   kind: "var";
   name: string;
   type: TypeNode;
@@ -51,7 +51,7 @@ type VarSym = {
   readonly?: boolean;
 };
 
-type FuncSym = {
+export type FuncOverloadSym = {
   kind: "func";
   name: string;
   params: ParamSig[];
@@ -62,9 +62,46 @@ type FuncSym = {
   doc?: string;
 };
 
+export type CallSite = {
+  name: string;
+  argc: number;
+  range: Range;
+  resolution?: {
+    status: "resolved" | "unknown" | "no_match" | "ambiguous";
+    candidates: FuncOverloadSym[];
+    selected?: FuncOverloadSym;
+  };
+};
+
+export type FuncValueUse = {
+  name: string;
+  range: Range;
+};
+
+export type IndirectCallSite = {
+  argc: number;
+  range: Range;
+  calleeType: TypeNode;
+};
+
+export function formatFunctionSignature(fn: FuncOverloadSym): string {
+  const paramsStr = fn.params
+    .map((p) => {
+      if (p.isVarArgs) return "...";
+      return `${formatType(p.type)} ${p.name}${p.hasDefault ? " = <default>" : ""}`;
+    })
+    .join(", ");
+
+  const retStr = formatType(fn.ret);
+  return retStr === "i0"
+    ? `function ${fn.name}(${paramsStr})`
+    : `function ${fn.name}(${paramsStr}) -> ${retStr}`;
+}
+
 class Scope {
   vars = new Map<string, VarSym>();
   constructor(public parent?: Scope) {}
+
   resolveVar(name: string): VarSym | undefined {
     for (let s: Scope | undefined = this; s; s = s.parent) {
       const hit = s.vars.get(name);
@@ -88,30 +125,67 @@ function sameType(a: TypeNode, b: TypeNode): boolean {
   }
 }
 
-function sameParams(a: ParamSig[], b: ParamSig[]): boolean {
-  const aVar = a.findIndex(p => p.isVarArgs);
-  const bVar = b.findIndex(p => p.isVarArgs);
+function isCallablePtrI0(t: TypeNode): boolean {
+  return t.kind === "ptr" && t.to.kind === "prim" && t.to.name === "i0";
+}
+
+function sameParamIdentity(a: ParamSig[], b: ParamSig[]): boolean {
+  const aVar = a.findIndex((p) => p.isVarArgs);
+  const bVar = b.findIndex((p) => p.isVarArgs);
   if (aVar !== bVar) return false;
 
-  const len = aVar >= 0 ? aVar : a.length;
-  if (bVar >= 0 && bVar !== len) return false;
+  const aLen = aVar >= 0 ? aVar : a.length;
+  const bLen = bVar >= 0 ? bVar : b.length;
+  if (aLen !== bLen) return false;
 
-  for (let i = 0; i < len; i++) {
+  for (let i = 0; i < aLen; i++) {
     if (a[i].hasDefault !== b[i].hasDefault) return false;
     if (!sameType(a[i].type, b[i].type)) return false;
-  }
-
-  if (aVar >= 0) {
-    if (!sameType(a[aVar].type, b[bVar].type)) return false;
   }
 
   return true;
 }
 
+function sameParamTypesOnly(a: ParamSig[], b: ParamSig[]): boolean {
+  const aVar = a.findIndex((p) => p.isVarArgs);
+  const bVar = b.findIndex((p) => p.isVarArgs);
+  if (aVar !== bVar) return false;
+
+  const aLen = aVar >= 0 ? aVar : a.length;
+  const bLen = bVar >= 0 ? bVar : b.length;
+  if (aLen !== bLen) return false;
+
+  for (let i = 0; i < aLen; i++) {
+    if (!sameType(a[i].type, b[i].type)) return false;
+  }
+
+  return true;
+}
+
+function arityBounds(params: ParamSig[]): { minArgs: number; maxArgs: number } {
+  const varIndex = params.findIndex((p) => p.isVarArgs);
+  const fixed = varIndex >= 0 ? params.slice(0, varIndex) : params;
+  const minArgs = fixed.filter((p) => !p.hasDefault).length;
+  const maxArgs = varIndex >= 0 ? Infinity : params.length;
+  return { minArgs, maxArgs };
+}
+
+function matchesArity(fn: FuncOverloadSym, argc: number): boolean {
+  const { minArgs, maxArgs } = arityBounds(fn.params);
+  return argc >= minArgs && argc <= maxArgs;
+}
+
+function expectedArityString(fn: FuncOverloadSym): string {
+  const { minArgs, maxArgs } = arityBounds(fn.params);
+  if (maxArgs === Infinity) return `${minArgs}+`;
+  if (minArgs === maxArgs) return `${minArgs}`;
+  return `${minArgs}..${maxArgs}`;
+}
+
 export class SemanticContext {
   issues: Issue[] = [];
 
-  funcs = new Map<string, FuncSym>();
+  funcs = new Map<string, FuncOverloadSym[]>();
   globals = new Map<string, VarSym>();
 
   macros = new Map<string, MacroSym>();
@@ -120,7 +194,9 @@ export class SemanticContext {
 
   varDecls: VarSym[] = [];
   varUses: { name: string; type: TypeNode; range: Range }[] = [];
-  callSites: { name: string; range: Range }[] = [];
+  funcValueUses: FuncValueUse[] = [];
+  callSites: CallSite[] = [];
+  indirectCallSites: IndirectCallSite[] = [];
 
   private scope: Scope = new Scope();
   private pendingCalls: { name: string; argc: number; range: Range }[] = [];
@@ -139,6 +215,16 @@ export class SemanticContext {
     this.macroUses.push({ name, range });
   }
 
+  getVarType(name: string): TypeNode | undefined {
+    const v = this.scope.resolveVar(name) ?? this.globals.get(name);
+    return v?.type;
+  }
+
+  hasFunctionNamed(name: string): boolean {
+    const list = this.funcs.get(name);
+    return !!(list && list.length > 0);
+  }
+
   useVar(name: string, range: Range) {
     const v = this.scope.resolveVar(name) ?? this.globals.get(name);
     if (v) {
@@ -149,6 +235,12 @@ export class SemanticContext {
     const m = this.macros.get(name);
     if (m) {
       this.useMacro(name, range);
+      return;
+    }
+
+    const overloads = this.funcs.get(name);
+    if (overloads && overloads.length > 0) {
+      this.funcValueUses.push({ name, range });
       return;
     }
 
@@ -172,7 +264,7 @@ export class SemanticContext {
     if (this.globals.has(name)) {
       this.issues.push({ message: `Global '${name}' already declared`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range };
+    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
     this.globals.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -186,15 +278,11 @@ export class SemanticContext {
     if (this.scope.vars.has(name)) {
       this.issues.push({ message: `Variable '${name}' already declared in this scope`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range };
+    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
     this.scope.vars.set(name, sym);
     this.varDecls.push(sym);
   }
 
-  /**
-   * isDefinition = true  -> function ... { ... }
-   * isDefinition = false -> function ... ;
-   */
   declareFunc(
     name: string,
     params: ParamSig[],
@@ -203,106 +291,180 @@ export class SemanticContext {
     isDefinition: boolean,
     doc?: string
   ) {
-    const prev = this.funcs.get(name);
+    const list = this.funcs.get(name) ?? [];
 
-    if (!prev) {
-      const sym: FuncSym = {
+    const exact = list.find((f) => sameParamIdentity(f.params, params));
+    if (!exact) {
+      const sameTypesDifferentDefaults = list.find(
+        (f) => sameParamTypesOnly(f.params, params) && !sameParamIdentity(f.params, params)
+      );
+      if (sameTypesDifferentDefaults) {
+        this.issues.push({
+          message: `Function '${name}' overload differs only by default arguments`,
+          range
+        });
+      }
+
+      const sym: FuncOverloadSym = {
         kind: "func",
         name,
         params,
         ret,
         decls: isDefinition ? [] : [range],
         def: isDefinition ? range : undefined,
-        primaryRange: range
+        primaryRange: range,
+        doc
       };
-      
-      this.funcs.set(name, sym);
+
+      list.push(sym);
+      this.funcs.set(name, list);
       return;
     }
 
-    if (doc && !prev.doc) prev.doc = doc;
-    const sigOk = sameParams(prev.params, params) && sameType(prev.ret, ret);
-    if (!sigOk) {
+    if (!sameType(exact.ret, ret)) {
       this.issues.push({
-        message: `Function '${name}' redeclared with different signature`,
+        message: `Function '${name}' overload with same parameters has different return type`,
         range
       });
       return;
     }
 
+    if (doc && !exact.doc) exact.doc = doc;
+
     if (isDefinition) {
-      if (prev.def) {
-        this.issues.push({ message: `Function '${name}' already defined`, range });
+      if (exact.def) {
+        this.issues.push({ message: `Function '${name}' overload already defined`, range });
         return;
       }
-      prev.def = range;
-      prev.primaryRange = range; // definition wins for navigation
+      exact.def = range;
+      exact.primaryRange = range;
       return;
     }
 
-    prev.decls.push(range);
-    if (!prev.def && prev.decls.length === 1) prev.primaryRange = prev.decls[0];
+    exact.decls.push(range);
+    if (!exact.def && exact.decls.length === 1) exact.primaryRange = exact.decls[0];
   }
 
   noteCallSite(name: string, range: Range) {
-    this.callSites.push({ name, range });
+    const existing = this.callSites.find(
+      (c) =>
+        c.name === name &&
+        c.range.start.line === range.start.line &&
+        c.range.start.character === range.start.character &&
+        c.range.end.line === range.end.line &&
+        c.range.end.character === range.end.character
+    );
+
+    if (!existing) {
+      this.callSites.push({ name, argc: -1, range });
+    }
+  }
+
+  private upsertCallSite(name: string, argc: number, range: Range, resolution?: CallSite["resolution"]) {
+    const site = this.callSites.find(
+      (c) =>
+        c.name === name &&
+        c.range.start.line === range.start.line &&
+        c.range.start.character === range.start.character &&
+        c.range.end.line === range.end.line &&
+        c.range.end.character === range.end.character
+    );
+
+    if (site) {
+      site.argc = argc;
+      if (resolution) site.resolution = resolution;
+      return;
+    }
+
+    this.callSites.push({ name, argc, range, resolution });
+  }
+
+  private resolveCall(name: string, argc: number): CallSite["resolution"] {
+    const overloads = this.funcs.get(name) ?? [];
+    if (overloads.length === 0) {
+      return { status: "unknown", candidates: [] };
+    }
+
+    const arityMatches = overloads.filter((fn) => matchesArity(fn, argc));
+    if (arityMatches.length === 0) {
+      return { status: "no_match", candidates: overloads };
+    }
+
+    if (arityMatches.length === 1) {
+      return { status: "resolved", candidates: arityMatches, selected: arityMatches[0] };
+    }
+
+    return { status: "ambiguous", candidates: arityMatches };
   }
 
   callFunc(name: string, argc: number, range: Range) {
     if (name === "syscall") return;
+    this.pendingCalls.push({ name, argc, range });
+    this.upsertCallSite(name, argc, range, this.resolveCall(name, argc));
+  }
 
-    const fn = this.funcs.get(name);
-    if (!fn) {
-      this.pendingCalls.push({ name, argc, range });
+  callNamedOrValue(name: string, argc: number, range: Range) {
+    if (name === "syscall") return;
+
+    if (this.hasFunctionNamed(name)) {
+      this.callFunc(name, argc, range);
       return;
     }
 
-    const varIndex = fn.params.findIndex(p => p.isVarArgs);
-
-    const fixedParams =
-      varIndex >= 0 ? fn.params.slice(0, varIndex) : fn.params;
-    
-    const minArgs = fixedParams.filter(p => !p.hasDefault).length;
-    const maxArgs = varIndex >= 0 ? Infinity : fn.params.length;
-    
-    if (argc < minArgs || argc > maxArgs) {
-      const expected =
-        maxArgs === Infinity
-          ? `${minArgs}+`
-          : (minArgs === maxArgs ? `${minArgs}` : `${minArgs}..${maxArgs}`);
-    
+    const vt = this.getVarType(name);
+    if (vt) {
+      if (isCallablePtrI0(vt)) {
+        this.indirectCallSites.push({ argc, range, calleeType: vt });
+        return;
+      }
       this.issues.push({
-        message: `Call '${name}': expected ${expected} args, got ${argc}`,
+        message: `Expression '${name}' is not callable (expected ptr i0)`,
         range
       });
-    }    
+      return;
+    }
+
+    this.callFunc(name, argc, range);
+  }
+
+  callIndirectExpr(calleeType: TypeNode, argc: number, range: Range) {
+    if (isCallablePtrI0(calleeType)) {
+      this.indirectCallSites.push({ argc, range, calleeType });
+      return;
+    }
+
+    this.issues.push({
+      message: `Expression is not callable (expected ptr i0)`,
+      range
+    });
   }
 
   finish() {
     for (const c of this.pendingCalls) {
-      const fn = this.funcs.get(c.name);
-      if (!fn) {
+      const resolution = this.resolveCall(c.name, c.argc);
+      if (resolution == undefined) continue;
+      this.upsertCallSite(c.name, c.argc, c.range, resolution);
+
+      if (resolution.status === "unknown") {
         this.issues.push({ message: `Unknown function '${c.name}'`, range: c.range });
         continue;
       }
 
-      const varIndex = fn.params.findIndex(p => p.isVarArgs);
+      if (resolution.status === "no_match") {
+        const expected = resolution.candidates
+          .map(expectedArityString)
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .join(" | ");
 
-      const fixedParams =
-        varIndex >= 0 ? fn.params.slice(0, varIndex) : fn.params;
-      
-      const minArgs = fn.params.filter(p => !p.hasDefault).length;
-      const maxArgs = fn.params.length;
-      
-      if (c.argc < minArgs || c.argc > maxArgs) {
-        const expected =
-          maxArgs === Infinity
-            ? `${minArgs}+`
-            : (minArgs === maxArgs ? `${minArgs}` : `${minArgs}..${maxArgs}`);
-      
-          this.issues.push({ message: `Call '${c.name}': expected ${expected} args, got ${c.argc}`, range: c.range });
+        this.issues.push({
+          message: `Call '${c.name}': no matching overload for ${c.argc} args (available: ${expected || "none"})`,
+          range: c.range
+        });
+        continue;
       }
+
     }
+
     this.pendingCalls = [];
   }
 }

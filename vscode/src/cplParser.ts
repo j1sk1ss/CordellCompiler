@@ -111,14 +111,23 @@ type ParamInfo = {
   range: Range;
 };
 
+type ExprInfo = {
+  type: TypeNode;
+  identName?: string;
+  isSyscall?: boolean;
+  start?: number;
+  end?: number;
+};
+
 type ParseIssue = { message: string; range: Range };
 
 const KEYWORDS = new Set([
   // top-level / statements
-  "start","exit","exfunc","function","return",
+  "start","exit","function","return",
   "if","else","while","loop","switch","case","default",
   "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
-  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not", "poparg",
+  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg",
+  "section","align",
   // preprocessor
   "line","include","define","undef","ifdef","ifndef","endif"
 ]);
@@ -413,7 +422,7 @@ class Parser {
     if (this.atRaw("comment")) {
       const tok = this.curRaw();
       this.i++;
-    
+
       const doc = unwrapDocComment(tok.text);
       if (doc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
       return;
@@ -435,89 +444,71 @@ class Parser {
       this.parseBlock();
 
       this.sem?.exitScope();
+      this.pendingDoc = undefined;
       return;
     }
 
     if (this.match("kw", "from")) {
       this.expect("str", undefined, "from: expected string literal");
       this.expect("kw", "import", "from: expected 'import'");
+
+      const importedFuncType: TypeNode = { kind: "ptr", to: { kind: "prim", name: "i0" } };
       if (this.at("ident")) {
-        this.i++;
-        while (this.match("punc", ",")) this.expect("ident", undefined, "import: expected identifier");
+        while (true) {
+          const idTok = this.cur();
+          this.expect("ident", undefined, "import: expected identifier");
+          const name = this.prev().text;
+          const r = rangeOf(this.lines, idTok.start, idTok.end);
+          this.sem?.declareGlobalVar(name, importedFuncType, r, { readonly: true });
+          if (!this.match("punc", ",")) break;
+        }
       }
+
+      this.match("punc", ";");
+      this.pendingDoc = undefined;
       return;
     }
 
     if (this.match("kw", "extern")) {
-      if (this.match("kw", "function")) {
-        const nameTok = this.cur();
-        this.expect("ident", undefined, "extern function: expected identifier");
-        const fnName = this.prev().text;
-    
-        this.expect("punc", "(");
-        const params = this.parseParamListOptInfos();
-        this.expect("punc", ")");
-    
-        let ret: TypeNode = { kind: "prim", name: "i0" };
-        if (this.match("op", "->")) {
-          ret = this.parseType();
-        }
-    
-        this.expect("punc", ";", "extern function: expected ';'");
-    
-        const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
-        this.sem?.declareFunc(fnName, params, ret, fnRange, false, this.pendingDoc);
-        this.pendingDoc = undefined;
-        return;
-      }
-    
-      if (this.match("kw", "exfunc")) {
-        this.expect("ident", undefined, "extern exfunc: expected identifier");
-      } else {
-        this.parseType();
-        this.expect("ident", undefined, "extern var: expected identifier");
-      }
-    
-      this.match("punc", ";");
+      this.parseExternOp();
       return;
-    }    
+    }
 
-    const mods = this.parseStorageMods();
+    if (this.at("kw", "section")) {
+      this.parseSectionStmt();
+      this.pendingDoc = undefined;
+      return;
+    }
+
+    if (this.at("kw", "align")) {
+      this.parseAlignStmt(true);
+      this.pendingDoc = undefined;
+      return;
+    }
+
+    {
+      const modsPos = this.i;
+      const mods = this.parseStorageMods();
+      if (mods.isGlobal || mods.isReadonly) {
+        if (this.match("kw", "function")) {
+          const doc = this.pendingDoc;
+          this.pendingDoc = undefined;
+          this.parseFunctionAfterKeyword(doc);
+          return;
+        }
+        this.i = modsPos;
+      }
+    }
 
     if (this.match("kw", "function")) {
       const doc = this.pendingDoc;
       this.pendingDoc = undefined;
-
-      const nameTok = this.cur();
-      this.expect("ident", undefined, "function: expected identifier");
-      const fnName = this.prev().text;
-
-      this.expect("punc", "(");
-      const paramsInfo = this.parseParamListOptInfos();
-      this.expect("punc", ")");
-
-      let ret: TypeNode = { kind: "prim", name: "i0" };
-      if (this.match("op", "->")) ret = this.parseType();
-
-      const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
-
-      if (this.match("punc", ";")) {
-        this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, false, doc);
-        return;
-      }
-
-      this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, true, doc);
-
-      this.sem?.enterScope();
-      for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
-
-      this.parseBlock();
-
-      this.sem?.exitScope();
+      this.parseFunctionAfterKeyword(doc);
       return;
     }
 
     this.parseVarOrArrDecl(true);
+    this.pendingDoc = undefined;
   }
 
   private parsePPDirective() {
@@ -720,6 +711,180 @@ class Parser {
     this.sem?.exitScope();
     this.expect("punc", "}", "block: expected '}'");
   }
+
+  private parseEmbeddedStatement(allowEmptyBeforeElse = false) {
+    if (this.at("eof") || this.at("punc", "}")) return;
+    if (allowEmptyBeforeElse && this.at("kw", "else")) return;
+    this.parseStatement();
+  }
+
+  private parseFunctionAfterKeyword(doc?: string) {
+    const nameTok = this.cur();
+    this.expect("ident", undefined, "function: expected identifier");
+    const fnName = this.prev().text;
+
+    this.expect("punc", "(");
+    const paramsInfo = this.parseParamListOptInfos();
+    this.expect("punc", ")");
+
+    let ret: TypeNode = { kind: "prim", name: "i0" };
+    if (this.match("op", "->")) ret = this.parseType();
+
+    const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
+
+    if (this.match("punc", ";")) {
+      this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, false, doc);
+      return;
+    }
+
+    this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, true, doc);
+
+    this.sem?.enterScope();
+    for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
+
+    this.parseBlock();
+
+    this.sem?.exitScope();
+  }
+
+  private parseExternOp() {
+    if (this.match("kw", "function")) {
+      const nameTok = this.cur();
+      this.expect("ident", undefined, "extern function: expected identifier");
+      const fnName = this.prev().text;
+
+      this.expect("punc", "(");
+      const params = this.parseParamListOptInfos();
+      this.expect("punc", ")");
+
+      let ret: TypeNode = { kind: "prim", name: "i0" };
+      if (this.match("op", "->")) ret = this.parseType();
+
+      this.expect("punc", ";", "extern function: expected ';'");
+
+      const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
+      this.sem?.declareFunc(fnName, params, ret, fnRange, false, this.pendingDoc);
+      this.pendingDoc = undefined;
+      return;
+    }
+
+    this.parseType();
+    this.expect("ident", undefined, "extern var: expected identifier");
+    this.match("punc", ";");
+    this.pendingDoc = undefined;
+  }
+
+  private parseAlignStmt(isTopLevelDecls: boolean) {
+    this.expect("kw", "align");
+    this.expect("punc", "(", "align: expected '('");
+    this.expect("int", undefined, "align: expected integer literal");
+    this.expect("punc", ")", "align: expected ')'");
+
+    if (this.match("punc", "{")) {
+      while (!this.at("eof") && !this.at("punc", "}")) {
+        if (this.atRaw("comment")) {
+          const tok = this.curRaw();
+          this.i++;
+          const doc = unwrapDocComment(tok.text);
+          if (doc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
+          continue;
+        }
+        if (this.atRaw("punc", "#")) { this.parsePPDirective(); continue; }
+
+        if (!this.looksLikeDeclStart()) {
+          const c = this.cur();
+          this.issues.push({
+            message: "align block: expected declaration",
+            range: rangeOf(this.lines, c.start, c.end)
+          });
+          this.syncToStatementEnd();
+          continue;
+        }
+
+        this.parseVarOrArrDecl(isTopLevelDecls);
+        this.pendingDoc = undefined;
+      }
+      this.expect("punc", "}", "align block: expected '}'");
+      return;
+    }
+
+    if (!this.looksLikeDeclStart()) {
+      const c = this.cur();
+      this.issues.push({
+        message: "align: expected declaration",
+        range: rangeOf(this.lines, c.start, c.end)
+      });
+      this.syncToStatementEnd();
+      return;
+    }
+
+    this.parseVarOrArrDecl(isTopLevelDecls);
+  }
+
+  private parseSectionStmt() {
+    this.expect("kw", "section");
+    this.expect("punc", "(", "section: expected '('");
+    this.expect("str", undefined, "section: expected string literal");
+    this.expect("punc", ")", "section: expected ')'");
+    this.expect("punc", "{", "section: expected '{'");
+
+    while (!this.at("eof") && !this.at("punc", "}")) {
+      if (this.atRaw("comment")) {
+        const tok = this.curRaw();
+        this.i++;
+        const doc = unwrapDocComment(tok.text);
+        if (doc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
+        continue;
+      }
+
+      if (this.atRaw("punc", "#")) {
+        this.parsePPDirective();
+        continue;
+      }
+
+      if (this.at("kw", "align")) {
+        this.parseAlignStmt(true);
+        this.pendingDoc = undefined;
+        continue;
+      }
+
+      {
+        const modsPos = this.i;
+        const mods = this.parseStorageMods();
+        if (mods.isGlobal || mods.isReadonly) {
+          if (this.match("kw", "function")) {
+            const doc = this.pendingDoc;
+            this.pendingDoc = undefined;
+            this.parseFunctionAfterKeyword(doc);
+            continue;
+          }
+          this.i = modsPos;
+        }
+      }
+
+      if (this.match("kw", "function")) {
+        const doc = this.pendingDoc;
+        this.pendingDoc = undefined;
+        this.parseFunctionAfterKeyword(doc);
+        continue;
+      }
+
+      if (this.looksLikeDeclStart()) {
+        this.parseVarOrArrDecl(true);
+        this.pendingDoc = undefined;
+        continue;
+      }
+
+      const c = this.cur();
+      this.issues.push({
+        message: "section: expected declaration/function/align/preprocessor",
+        range: rangeOf(this.lines, c.start, c.end)
+      });
+      this.syncToStatementEnd();
+    }
+
+    this.expect("punc", "}", "section: expected '}'");
+  }
   
   private parseStorageMods(): StorageMods {
     let isGlobal = false;
@@ -743,28 +908,64 @@ class Parser {
 
   private parseStatement() {
     if (this.atRaw("punc", "#")) { this.parsePPDirective(); return; }
-    if (this.match("comment")) return;
+
+    if (this.atRaw("comment")) {
+      const tok = this.curRaw();
+      this.i++;
+      const doc = unwrapDocComment(tok.text);
+      if (doc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
+      return;
+    }
+
+    if (this.at("punc", ";")) {
+      this.i++;
+      return;
+    }
+
+    if (this.at("punc", "{")) {
+      this.parseBlock();
+      this.pendingDoc = undefined;
+      return;
+    }
+
+    if (this.at("kw", "function")) {
+      this.i++;
+      const doc = this.pendingDoc;
+      this.pendingDoc = undefined;
+      this.parseFunctionAfterKeyword(doc);
+      return;
+    }
+
+    if (this.at("kw", "align")) {
+      this.parseAlignStmt(false);
+      this.pendingDoc = undefined;
+      return;
+    }
 
     if (this.at("kw", "if")) {
       this.i++;
       this.parseExpression();
       this.expect("punc", ";");
-      this.parseBlock();
-      if (this.match("kw", "else")) this.parseBlock();
+
+      this.parseEmbeddedStatement(true);
+
+      if (this.match("kw", "else")) {
+        this.parseEmbeddedStatement(false);
+      }
       return;
     }
 
     if (this.at("kw", "while")) {
       this.i++;
-      this.parseExpression();
+      if (!this.at("punc", ";")) this.parseExpression();
       this.expect("punc", ";");
-      this.parseBlock();
+      this.parseEmbeddedStatement(false);
       return;
     }
 
     if (this.at("kw", "loop")) {
       this.i++;
-      this.parseBlock();
+      this.parseEmbeddedStatement(false);
       return;
     }
 
@@ -781,7 +982,7 @@ class Parser {
       }
 
       if (this.match("kw", "default")) {
-        this.match("punc", ";"); // optional
+        this.match("punc", ";");
         this.parseBlock();
       }
 
@@ -832,8 +1033,8 @@ class Parser {
       this.i++;
       this.expect("punc", "(");
       if (!this.at("punc", ")")) {
-        this.parseAsmArg();
-        while (this.match("punc", ",")) this.parseAsmArg();
+        this.parseExpression();
+        while (this.match("punc", ",")) this.parseExpression();
       }
       this.expect("punc", ")");
       this.expect("punc", "{");
@@ -847,12 +1048,14 @@ class Parser {
 
     if (this.looksLikeDeclStart()) {
       this.parseVarOrArrDecl(false);
+      this.pendingDoc = undefined;
       return;
     }
 
     try {
       this.parseExpression();
       this.expect("punc", ";");
+      this.pendingDoc = undefined;
     } catch {
       this.syncToStatementEnd();
     }
@@ -890,8 +1093,8 @@ class Parser {
 
         const arrType: TypeNode = { kind: "arr", len: Number.isFinite(len) ? len : null, elem: elemType };
         const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
-        if (isTopLevel) this.sem?.declareGlobalVar(arrName, arrType, declRange);
-        else this.sem?.declareLocalVar(arrName, arrType, declRange);
+        if (isTopLevel) this.sem?.declareGlobalVar(arrName, arrType, declRange, { readonly: mods.isReadonly });
+        else this.sem?.declareLocalVar(arrName, arrType, declRange, { readonly: mods.isReadonly });
 
         this.expect("punc", "]", "arr_decl: expected ']'");
 
@@ -919,16 +1122,11 @@ class Parser {
     const vName = this.prev().text;
 
     const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
-    if (isTopLevel) this.sem?.declareGlobalVar(vName, vType, declRange);
-    else this.sem?.declareLocalVar(vName, vType, declRange);
+    if (isTopLevel) this.sem?.declareGlobalVar(vName, vType, declRange, { readonly: mods.isReadonly });
+    else this.sem?.declareLocalVar(vName, vType, declRange, { readonly: mods.isReadonly });
 
     if (this.match("op", "=")) this.parseExpression();
     this.expect("punc", ";", "var_decl: expected ';'");
-  }
-
-  private parseAsmArg() {
-    if (this.at("ident")) { this.i++; return; }
-    this.parseLiteral();
   }
 
   private parseType(): TypeNode {
@@ -975,81 +1173,92 @@ class Parser {
     if (!this.at("eof")) this.i++;
   }
 
-  private parseExpression() { this.parseAssign(); }
+  private parseExpression(): ExprInfo { return this.parseAssign(); }
 
-  private parseAssign() {
-    this.parseLogicalOr();
+  private parseAssign(): ExprInfo {
+    let left = this.parseLogicalOr();
     if (this.at("op") && ["=","+=","-=","*=","/=","%=","|=","^=","&=","||=","&&="].includes(this.cur().text)) {
       this.i++;
-      this.parseAssign();
+      const right = this.parseAssign();
+      left = { type: right.type, start: left.start, end: right.end };
     }
+    return left;
   }
 
-  private parseLogicalOr() {
-    this.parseLogicalAnd();
-    while (this.match("op","||")) this.parseLogicalAnd();
+  private parseLogicalOr(): ExprInfo {
+    let e = this.parseLogicalAnd();
+    while (this.match("op","||")) { const r = this.parseLogicalAnd(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
-  private parseLogicalAnd() {
-    this.parseBitOr();
-    while (this.match("op","&&")) this.parseBitOr();
+  private parseLogicalAnd(): ExprInfo {
+    let e = this.parseBitOr();
+    while (this.match("op","&&")) { const r = this.parseBitOr(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
-  private parseBitOr() {
-    this.parseBitXor();
-    while (this.match("op","|")) this.parseBitXor();
+  private parseBitOr(): ExprInfo {
+    let e = this.parseBitXor();
+    while (this.match("op","|")) { const r = this.parseBitXor(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
-  private parseBitXor() {
-    this.parseBitAnd();
-    while (this.match("op","^")) this.parseBitAnd();
+  private parseBitXor(): ExprInfo {
+    let e = this.parseBitAnd();
+    while (this.match("op","^")) { const r = this.parseBitAnd(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
-  private parseBitAnd() {
-    this.parseEquality();
-    while (this.match("op","&")) this.parseEquality();
+  private parseBitAnd(): ExprInfo {
+    let e = this.parseEquality();
+    while (this.match("op","&")) { const r = this.parseEquality(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
-  private parseEquality() {
-    this.parseRelational();
-    while (this.at("op") && (this.cur().text === "==" || this.cur().text === "!=")) { this.i++; this.parseRelational(); }
+  private parseEquality(): ExprInfo {
+    let e = this.parseRelational();
+    while (this.at("op") && (this.cur().text === "==" || this.cur().text === "!=")) { this.i++; const r = this.parseRelational(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
-  private parseRelational() {
-    this.parseShift();
-    while (this.at("op") && ["<","<=",">",">="].includes(this.cur().text)) { this.i++; this.parseShift(); }
+  private parseRelational(): ExprInfo {
+    let e = this.parseShift();
+    while (this.at("op") && ["<","<=",">",">="].includes(this.cur().text)) { this.i++; const r = this.parseShift(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
-  private parseShift() {
-    this.parseAdd();
-    while (this.at("op") && (this.cur().text === "<<" || this.cur().text === ">>")) { this.i++; this.parseAdd(); }
+  private parseShift(): ExprInfo {
+    let e = this.parseAdd();
+    while (this.at("op") && (this.cur().text === "<<" || this.cur().text === ">>")) { this.i++; const r = this.parseAdd(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
-  private parseAdd() {
-    this.parseMul();
-    while (this.at("op") && (this.cur().text === "+" || this.cur().text === "-")) { this.i++; this.parseMul(); }
+  private parseAdd(): ExprInfo {
+    let e = this.parseMul();
+    while (this.at("op") && (this.cur().text === "+" || this.cur().text === "-")) { this.i++; const r = this.parseMul(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
-  private parseMul() {
-    this.parseUnary();
-    while (this.at("op") && (this.cur().text === "*" || this.cur().text === "/" || this.cur().text === "%")) { this.i++; this.parseUnary(); }
+  private parseMul(): ExprInfo {
+    let e = this.parseUnary();
+    while (this.at("op") && (this.cur().text === "*" || this.cur().text === "/" || this.cur().text === "%")) { this.i++; const r = this.parseUnary(); e = { type: { kind: "unknown" }, start: e.start, end: r.end }; }
+    return e;
   }
 
-  private parseUnary() {
-    if (this.at("kw") && ["not","ref","dref"].includes(this.cur().text)) { this.i++; this.parseUnary(); return; }
-    if (this.at("op") && (this.cur().text === "+" || this.cur().text === "-")) { this.i++; this.parseUnary(); return; }
-    this.parsePostfix();
-  }
-
-  private parsePostfix() {
-    let atomIdent: { name: string; start: number; end: number } | null = null;
-
-    if (this.at("ident")) {
-      const tok = this.cur();
-      atomIdent = { name: tok.text, start: tok.start, end: tok.end };
+  private parseUnary(): ExprInfo {
+    if (this.at("kw") && ["not","ref","dref"].includes(this.cur().text)) {
+      const opTok = this.cur();
       this.i++;
+      const inner = this.parseUnary();
+      let t: TypeNode = { kind: "unknown" };
+      if (opTok.text === "ref") t = { kind: "ptr", to: inner.type };
+      else if (opTok.text === "dref" && inner.type.kind === "ptr") t = inner.type.to;
+      return { type: t, start: opTok.start, end: inner.end ?? opTok.end };
     }
-    else if (this.at("kw","syscall")) {
-      const tok = this.cur();
-      atomIdent = { name: "syscall", start: tok.start, end: tok.end };
+    if (this.at("op") && (this.cur().text === "+" || this.cur().text === "-")) {
+      const opTok = this.cur();
       this.i++;
+      const inner = this.parseUnary();
+      return { type: inner.type, start: opTok.start, end: inner.end ?? opTok.end };
     }
-    else {
-      this.parsePrimary();
-    }
+    return this.parsePostfix();
+  }
 
+  private parsePostfix(): ExprInfo {
+    let expr = this.parsePrimary();
     let wasCall = false;
+
     while (true) {
       if (this.match("punc","(")) {
         wasCall = true;
@@ -1060,11 +1269,17 @@ class Parser {
         }
         const endTok = this.cur();
         this.expect("punc",")");
-        if (atomIdent) {
-          const callRange = rangeOf(this.lines, atomIdent.start, endTok.end);
-          this.sem?.noteCallSite(atomIdent.name, callRange);
-          this.sem?.callFunc(atomIdent.name, argc, callRange);
+        const callRange = rangeOf(this.lines, expr.start ?? endTok.start, endTok.end);
+
+        if (expr.isSyscall) {
+        } else if (expr.identName) {
+          this.sem?.noteCallSite(expr.identName, callRange);
+          this.sem?.callNamedOrValue(expr.identName, argc, callRange);
+        } else {
+          this.sem?.callIndirectExpr(expr.type, argc, callRange);
         }
+
+        expr = { type: { kind: "unknown" }, start: expr.start, end: endTok.end };
         continue;
       }
 
@@ -1072,31 +1287,73 @@ class Parser {
         this.parseExpression();
         while (this.match("punc",",")) this.parseExpression();
         this.expect("punc","]");
+        expr = { type: { kind: "unknown" }, start: expr.start, end: this.prev().end };
         continue;
       }
 
-      if (this.match("kw","as")) { this.parseType(); continue; }
+      if (this.match("kw","as")) {
+        const t = this.parseType();
+        expr = { ...expr, type: t, end: this.prev().end };
+        continue;
+      }
+
       break;
     }
 
-    if (atomIdent && !wasCall && atomIdent.name !== "syscall") {
-      this.sem?.useVar(atomIdent.name, rangeOf(this.lines, atomIdent.start, atomIdent.end));
+    if (expr.identName && !wasCall && !expr.isSyscall) {
+      this.sem?.useVar(expr.identName, rangeOf(this.lines, expr.start ?? 0, expr.end ?? (expr.start ?? 0)));
     }
+
+    return expr;
   }
 
-  private parsePrimary() {
+  private parsePrimary(): ExprInfo {
     if (this.at("kw", "syscall")) {
+      const tok = this.cur();
       this.i++;
-      return;
+      return { type: { kind: "unknown" }, isSyscall: true, start: tok.start, end: tok.end };
     }
 
     if (this.match("kw", "poparg")) {
-      return;
+      const tok = this.prev();
+      return { type: { kind: "unknown" }, start: tok.start, end: tok.end };
     }
 
-    if (this.at("ident")) { this.i++; return; }
-    if (this.at("int") || this.at("str") || this.at("char")) { this.i++; return; }
-    if (this.match("punc","(")) { this.parseExpression(); this.expect("punc",")","expected ')'"); return; }
+    if (this.at("ident")) {
+      const tok = this.cur();
+      const name = tok.text;
+      this.i++;
+
+      let t: TypeNode = { kind: "unknown" };
+      const vt = this.sem?.getVarType(name);
+      if (vt) t = vt;
+      else if (this.sem?.hasFunctionNamed(name)) t = { kind: "ptr", to: { kind: "prim", name: "i0" } };
+
+      return { type: t, identName: name, start: tok.start, end: tok.end };
+    }
+
+    if (this.at("int")) {
+      const tok = this.cur(); this.i++;
+      return { type: { kind: "prim", name: "i64" }, start: tok.start, end: tok.end };
+    }
+
+    if (this.at("str")) {
+      const tok = this.cur(); this.i++;
+      return { type: { kind: "prim", name: "str" }, start: tok.start, end: tok.end };
+    }
+
+    if (this.at("char")) {
+      const tok = this.cur(); this.i++;
+      return { type: { kind: "prim", name: "i8" }, start: tok.start, end: tok.end };
+    }
+
+    if (this.match("punc","(")) {
+      const lpar = this.prev();
+      const inner = this.parseExpression();
+      this.expect("punc",")","expected ')'");
+      const rpar = this.prev();
+      return { type: inner.type, start: lpar.start, end: rpar.end };
+    }
 
     const c = this.cur();
     this.issues.push({
@@ -1104,6 +1361,7 @@ class Parser {
       range: rangeOf(this.lines, c.start, c.end)
     });
     if (!this.at("eof")) this.i++;
+    return { type: { kind: "unknown" }, start: c.start, end: c.end };
   }
 }
 
