@@ -18,7 +18,7 @@
       { scope, id=3 }
          [u32] (U32_TYPE_TOKEN, ptr, v_id=-1, s_id=0)
             [a] (U32_VARIABLE_TOKEN, ptr, v_id=1, s_id=3)
-            [foo] (CALL_ADDR, v_id=0, s_id=0)
+            [foo] (CALL_ADDR_TOKEN, v_id=0, s_id=0)
          [()]
             [a] (U32_VARIABLE_TOKEN, ptr, v_id=1, s_id=3)
             { scope, id=0 }

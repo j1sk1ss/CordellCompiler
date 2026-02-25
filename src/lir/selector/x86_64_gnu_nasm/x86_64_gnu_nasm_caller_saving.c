@@ -24,7 +24,7 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     return 0;
 }
 
-static unsigned int _visit_counter = 10; /* Magic index offset. TODO */
+static unsigned int _visit_counter = 10; /* Magic index offset */
 
 /*
 Collect register usage in the further CFG.

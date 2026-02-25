@@ -52,10 +52,10 @@
             { scope, id=0 }
                [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [20] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-               [min] (CALL_ADDR, v_id=0, s_id=0)
+               [min] (CALL_ADDR_TOKEN, v_id=0, s_id=0)
          [logic] (CALL_TOKEN, v_id=2, s_id=0)
             { scope, id=0 }
                [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [20] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-               [max] (CALL_ADDR, v_id=1, s_id=0)
+               [max] (CALL_ADDR_TOKEN, v_id=1, s_id=0)
 :

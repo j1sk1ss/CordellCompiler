@@ -40,7 +40,7 @@ ast_node_t* cpl_parse_funccall(PARSER_ARGS) {
     /* If there is no brackets in function call, this means, this is a call address instead.
        We mark the node token as a call address and pass it further. */
     int args_count = 0;
-    if (!consume_token(it, OPEN_BRACKET_TOKEN)) node->t->t_type = CALL_ADDR;
+    if (!consume_token(it, OPEN_BRACKET_TOKEN)) node->t->t_type = CALL_ADDR_TOKEN;
     else {
         forward_token(it, 1);
         ast_node_t* args = cpl_parse_call_arguments(it, ctx, smt, (long)&args_count);
@@ -62,7 +62,7 @@ ast_node_t* cpl_parse_funccall(PARSER_ARGS) {
         short sid = (short)((long)ctx->scopes.stack.data[s].d);
         if (FNTB_get_info(node->t->body, sid, &fi, &smt->f)) {
             node->sinfo.v_id = fi.id;
-            if (node->t->t_type != CALL_ADDR) {
+            if (node->t->t_type != CALL_ADDR_TOKEN) {
                 fn_iterate_args (&fi) {
                     if (
                         args_count-- > 0 || /* Ignore already passed arguments             */

@@ -90,7 +90,8 @@ typedef enum {
     FUNC_NAME_TOKEN,     // function <name>
     CALL_TOKEN,          // fname(...)
     ADDR_CALL_TOKEN,     // something(...) - doesn't support default args, etc, but can handle addr to anything
-    CALL_ADDR,           // fname without () operation. Means that we're working with the address of a function
+    CALL_ADDR_TOKEN,     // fname without () operation. Means that we're working with the address of a function
+
     
     // Condition scope
     SWITCH_TOKEN,        // switch
@@ -140,7 +141,7 @@ typedef enum {
     I32_VARIABLE_TOKEN,  // i32
     I16_VARIABLE_TOKEN,  // i16
     I8_VARIABLE_TOKEN,   // i8
-    I0_VARIABLE_TOKEN,
+    I0_VARIABLE_TOKEN,   // i0
     U64_VARIABLE_TOKEN,  // u64
     U32_VARIABLE_TOKEN,  // u32
     U16_VARIABLE_TOKEN,  // u16

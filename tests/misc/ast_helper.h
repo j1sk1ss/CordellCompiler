@@ -45,7 +45,7 @@ const char* name_tkn_type(token_type_t t) {
         case FUNC_NAME_TOKEN:             return "FUNC_NAME_TOKEN";
         case CALL_TOKEN:                  return "CALL_TOKEN";
         case ADDR_CALL_TOKEN:             return "ADDR_CALL_TOKEN";
-        case CALL_ADDR:                   return "CALL_ADDR";
+        case CALL_ADDR_TOKEN:                   return "CALL_ADDR_TOKEN";
         case SWITCH_TOKEN:                return "SWITCH_TOKEN";
         case CASE_TOKEN:                  return "CASE_TOKEN";
         case DEFAULT_TOKEN:               return "DEFAULT_TOKEN";
