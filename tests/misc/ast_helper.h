@@ -143,12 +143,12 @@ static inline int print_ast(ast_node_t* node, int depth) {
     for (int i = 0; i < depth; i++) printf("   ");
     if (node->t) {
         switch (node->t->t_type) {
-            case SCOPE_TOKEN: printf("{ scope, id=%i }\n", node->sinfo.s_id); break;
-            case CALLING_TOKEN: printf("[()]\n");                             break;
-            case INDEXATION_TOKEN: printf("[[]]\n");                          break;
+            case SCOPE_TOKEN: printf("{ scope, id=%li }\n", node->sinfo.s_id); break;
+            case CALLING_TOKEN: printf("[()]\n");                              break;
+            case INDEXATION_TOKEN: printf("[[]]\n");                           break;
             default:
                 printf(
-                    "[%s] (%s,%sv_id=%i, s_id=%i%s%s%s%s)\n",
+                    "[%s] (%s,%sv_id=%li, s_id=%li%s%s%s%s)\n",
                     node->t->body->body, name_tkn_type(node->t->t_type), 
                     node->t->flags.ptr ? " ptr, " : " ",
                     node->sinfo.v_id, node->sinfo.s_id,

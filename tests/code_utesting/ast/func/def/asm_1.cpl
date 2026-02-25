@@ -9,7 +9,7 @@
 
 : OUTPUT
 { scope, id=1 }
-   [start] (START_TOKEN, v_id=0, s_id=0)
+   [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
          [asm] (ASM_TOKEN, v_id=-1, s_id=0)
             { scope, id=0 }
