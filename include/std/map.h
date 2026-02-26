@@ -207,9 +207,12 @@ int map_free_force_op(map_t* m, int (*op)(void*));
 
 #define map_foreach(v, lst)                                                              \
     map_iter_t CONCAT(__it_, __LINE__);                                                  \
-    map_iter_init(lst, &CONCAT(__it_, __LINE__));                                        \
+    map_iter_init((lst), &CONCAT(__it_, __LINE__));                                      \
     void* CONCAT(__val_, __LINE__);                                                      \
-    while ((map_iter_next(&CONCAT(__it_, __LINE__), (void**)&CONCAT(__val_, __LINE__)))) \
-        for (v = CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__) = NULL)
+    int CONCAT(__ok_, __LINE__);                                                         \
+    while ((CONCAT(__ok_, __LINE__) = map_iter_next(&CONCAT(__it_, __LINE__),            \
+                                                    (void**)&CONCAT(__val_, __LINE__)))) \
+        for (v = CONCAT(__val_, __LINE__); CONCAT(__ok_, __LINE__);                      \
+             CONCAT(__ok_, __LINE__) = 0)
 
 #endif
