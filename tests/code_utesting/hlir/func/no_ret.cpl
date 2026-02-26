@@ -10,10 +10,10 @@
 
 : OUTPUT
 BB{X}: fn foo0(i32 a)
-%0 = ldparam();
+%0 = strt_loadarg();
 fend
 BB{X}: fn bar1(i32 a)
-%1 = strt_loadarg();
+%1 = ldparam();
 return %1;
 BB{X}:
 :

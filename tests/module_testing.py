@@ -9,6 +9,7 @@ import subprocess
 
 from tqdm import tqdm
 from pathlib import Path
+from collections import Counter
 
 from misc.builder import (
     CCBuilder,
@@ -35,15 +36,97 @@ def _extract_anywhere_pattern(line: str) -> str:
     stripped = line.strip()
     return stripped[1:-1]
 
-def _line_contains_pattern(pattern: str, actual_line: str) -> bool:
-    if "{X}" in pattern:
-        parts = pattern.split("{X}")
-        escaped_parts = [re.escape(p) for p in parts]
-        inner_re = ".*".join(escaped_parts)
-        pattern_re = ".*" + inner_re + ".*"
-        return re.search(pattern_re, actual_line) is not None
+def _token_counter(text: str) -> Counter:
+    return Counter(text.split())
+
+def _unordered_tokens_match(expected: str, actual: str) -> bool:
+    return _token_counter(expected) == _token_counter(actual)
+
+def _compile_special_pattern(pattern: str, anywhere: bool) -> tuple[re.Pattern, list[tuple[str, str]]]:
+    parts: list[str] = []
+    unordered_groups: list[tuple[str, str]] = []
+
+    i = 0
+    group_id = 0
+    plen = len(pattern)
+
+    while i < plen:
+        if pattern.startswith("{X}", i):
+            parts.append(".*?")
+            i += 3
+            continue
+
+        if pattern.startswith("<<", i):
+            j = pattern.find(">>", i + 2)
+            if j == -1:
+                parts.append(re.escape(pattern[i:]))
+                break
+
+            inner = pattern[i + 2:j]
+            group_name = f"unordered_{group_id}"
+            group_id += 1
+
+            tail = pattern[j + 2:]
+            has_tail = len(tail) > 0
+
+            if has_tail:
+                parts.append(f"(?P<{group_name}>.+?)")
+            else:
+                parts.append(f"(?P<{group_name}>.+)")
+
+            unordered_groups.append((group_name, inner))
+            i = j + 2
+            continue
+
+        parts.append(re.escape(pattern[i]))
+        i += 1
+
+    regex_body = "".join(parts)
+
+    if anywhere:
+        if pattern.rstrip().endswith(">>"):
+            regex = re.compile(regex_body + r"$")
+        else:
+            regex = re.compile(regex_body)
     else:
-        return pattern in actual_line
+        regex = re.compile(r"^" + regex_body + r"$")
+
+    return regex, unordered_groups
+
+def _match_special_pattern(pattern: str, actual_line: str, anywhere: bool) -> bool:
+    regex, unordered_groups = _compile_special_pattern(pattern, anywhere=anywhere)
+
+    if not unordered_groups:
+        if anywhere:
+            return regex.search(actual_line) is not None
+        return regex.match(actual_line) is not None
+
+    if anywhere:
+        for m in regex.finditer(actual_line):
+            ok = True
+            for group_name, expected_inner in unordered_groups:
+                if not _unordered_tokens_match(expected_inner, m.group(group_name)):
+                    ok = False
+                    break
+            if ok:
+                return True
+        return False
+
+    m = regex.match(actual_line)
+    if not m:
+        return False
+
+    for group_name, expected_inner in unordered_groups:
+        if not _unordered_tokens_match(expected_inner, m.group(group_name)):
+            return False
+
+    return True
+
+def _line_matches(expected_line: str, actual_line: str) -> bool:
+    return _match_special_pattern(expected_line, actual_line, anywhere=False)
+
+def _line_contains_pattern(pattern: str, actual_line: str) -> bool:
+    return _match_special_pattern(pattern, actual_line, anywhere=True)
 
 def _matches_expected(expected_text: str, actual_text: str) -> tuple[bool, str | None]:
     exp_lines = expected_text.splitlines()

@@ -8,5 +8,5 @@
 }
 
 : OUTPUT
-id: 0, owners: 4 7 9 8 5 6
+id: 0, owners: <<4 7 9 8 5 6>>
 :

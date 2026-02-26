@@ -9,6 +9,6 @@
 }
 
 : OUTPUT
-{id: 0, owners: 7 9 8 5 6 11}
-{id: 8, owners: 7 9 6 11}
+{id: 0, owners: <<7 9 8 5 6 11>>}
+{id: 8, owners: <<7 9 6 11>>}
 :

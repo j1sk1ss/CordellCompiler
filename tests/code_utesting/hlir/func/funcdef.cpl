@@ -13,6 +13,6 @@ return $0;
 
 BB{X}: 
 BB{X}: fn bar0(i32 a)
-%1 = ldparam();
+%1 = strt_loadarg();
 fend
 :

@@ -98,11 +98,38 @@ lb{X}:
 mov rax, 10
 ```
 
-- `{<content>}` - This line can be placed anywhere in the output:
+- `{content}` - This line can be placed anywhere in the output:
 ```
 {id 1: variable b}
+id 2: variable a
 {id 19: variable c}
 ```
+
+- `<<content>>` - This line must containt these chars (without spaces):
+```
+{id: 0, owners: <<5 6 7 8 9 11>>}
+{id: 8, owners: <<6 7 9 11>>}
+```
+
+The usage of these commands is below:
+```
+{
+    start() {
+        i32 a;
+        ptr i32 b = ref a;
+        ptr ptr i32 c = ref b;
+        i32 d = a;
+        i32 f = c;
+    }
+}
+
+: OUTPUT
+{id: 0, owners: <<7 9 8 5 6 11>>}
+{id: 8, owners: <<7 9 6 11>>}
+:
+```
+
+It says, that we checks if the compiler returns two lines. Then we check if both lines are presented and have the correct content.
 
 # STD lib testing
 To make sure, that the std library works properly, the project has the `std_testing.py` script. It works the same as the `module_testing.py`.
