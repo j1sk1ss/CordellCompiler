@@ -6,7 +6,7 @@ int cpl_parse_funcdef_args(PARSER_ARGS) {
     
     ast_node_t* trg = (ast_node_t*)carry;
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
-        if (TKN_isdecl(CURRENT_TOKEN)) {
+        if (TKN_is_decl(CURRENT_TOKEN)) {
             ast_node_t* arg = cpl_parse_variable_declaration(it, ctx, smt, carry);
             if (!arg) {
                 PARSE_ERROR("Error during the argument parsing! (<type> <name>)!");
@@ -117,7 +117,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     ast_node_t* body_node = NULL;
-    PRESERVE_AST_CARRY_ARG({ body_node = cpl_parse_scope(it, ctx, smt, carry); }, node);
+    PRESERVE_AST_CARRY_ARG({ body_node = cpl_parse_scope(it, ctx, smt, 1); }, node);
     if (!body_node) {
         PARSE_ERROR("Error during the function's body parsing!");
         AST_unload(node);

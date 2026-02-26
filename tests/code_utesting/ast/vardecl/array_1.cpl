@@ -5,5 +5,5 @@
 }
 
 : OUTPUT
-id: 0, a, arr, s_id: 2
+id: 0, a, arr, s_id: 2, align: 8
 :

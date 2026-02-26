@@ -64,7 +64,7 @@ static lir_subject_t* _create_tmp(int reg, lir_subject_t* src, sym_table_t* smt)
         VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)
     ) cpy = VRTB_add_copy(&vi, &smt->v);
     else cpy = VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v);
-    VRTB_update_memory(cpy, vi.vmi.offset, src->size, reg, &smt->v);
+    VRTB_update_memory(cpy, vi.vmi.offset, src->size, reg, FIELD_NO_CHANGE, &smt->v);
     return LIR_SUBJ_VAR(cpy, src->size);
 }
 

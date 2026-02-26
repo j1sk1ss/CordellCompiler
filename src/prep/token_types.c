@@ -162,7 +162,7 @@ int TKN_isclose(token_t* token) {
     }
 }
 
-int TKN_isdecl(token_t* token) {
+int TKN_is_decl(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case I0_TYPE_TOKEN:

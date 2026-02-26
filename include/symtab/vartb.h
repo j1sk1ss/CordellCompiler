@@ -21,6 +21,7 @@ typedef struct {
     } vfs; /* VariableFlags          */
 
     struct {
+        short              align;
         long               offset;
         long               size;
         char               reg;
@@ -38,7 +39,7 @@ typedef struct {
     map_t       vartb;
 } vartab_ctx_t;
 
-int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, vartab_ctx_t* ctx);
+int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx);
 int VRTB_update_definition(symbol_id_t id, long definition, vartab_ctx_t* ctx);
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx);
 int VRTB_get_info(string_t* vname, short scope, variable_info_t* info, vartab_ctx_t* ctx);

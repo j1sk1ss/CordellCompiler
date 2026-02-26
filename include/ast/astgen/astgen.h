@@ -13,19 +13,31 @@ top_item       = start_function
                | import_op
                | extern_op
                | pp_directive
-               | storage_opt , top_decl ;
+               | storage_opt , top_decl
+               | section_stmt
+               | align_stmt ;
 
 import_op      = "from" , string_literal , "import" , [ import_list ] ;
 import_list    = import_item , { "," , import_item } ;
 import_item    = identifier ;
 
-extern_op          = "extern" , ( function_prototype | var_prototype ) ;
+extern_op = "extern" , ( extern_function_proto | var_prototype ) ;
+extern_function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
 var_prototype      = type , identifier ;
-function_prototype = "exfunc" , identifier ;
 
 storage_opt    = [ "glob" | "ro" ] ;
 
-top_decl       = var_decl | function_def | function_proto ;
+top_decl       = declaration | function_def | function_proto ;
+
+declaration    = var_decl | arr_decl ;
+
+section_stmt   = "section" , "(" , string_literal , ")" , "{" , { section_item } , "}" ;
+section_item   = [ storage_opt ] , ( declaration | function_def | function_proto )
+               | align_stmt
+               | pp_directive ;
+
+align_stmt       = "align" , "(" , integer_literal , ")" , ( declaration | align_decl_block ) ;
+align_decl_block = "{" , { declaration } , "}" ;
 
 function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
 function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
@@ -34,7 +46,11 @@ start_function = "start" , "(" , [ param_list ] , ")" , block ;
 param_list     = param , { "," , param } ;
 param          = type , identifier , [ "=" , expression ] | "..." ;
 
-block          = "{" , { statement } , "}" ;
+block          = "{" , { block_item } , "}" ;
+
+block_item     = statement
+               | function_def
+               | function_proto ;
 
 statement =
     "arr" , arr_stmt_tail
@@ -49,6 +65,7 @@ statement =
   | lis_statement
   | syscall_statement
   | asm_block
+  | align_stmt
   | comment
   | block
   | var_decl_starting_not_arr
@@ -92,17 +109,25 @@ keyword        = "from" | "import" | "extern" | "exfunc" | "glob" | "ro"
                | "not" | "ref" | "dref" | "as"
                | "ptr" | "str"
                | "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
-               | "line" | "include" | "define" | "undef" | "ifdef" | "ifndef" | "endif" ;
+               | "line" | "include" | "define" | "undef" | "ifdef" | "ifndef" | "endif"
+               | "section" | "align" ;
 
 punct_no_semi  = "{" | "}" | "(" | ")" | "[" | "]" | "," ;
 
 operator       = "->"
-               | "==" | "!=" | "<=" | ">=" | "<<" | ">>"
+               | "==" | "!=" | "<=" | ">="
+               | "<<" | ">>"
                | "||" | "&&"
                | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&="
                | "="  | "<"  | ">"  | "+"  | "-"  | "*"  | "/"  | "%"  | "|"  | "^"  | "&" ;
 
 var_decl       = type , identifier , [ "=" , expression ] , ";" ;
+
+var_decl_starting_not_arr = non_arr_type , identifier , [ "=" , expression ] , ";" ;
+
+non_arr_type   = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+               | "str"
+               | "ptr" , type ;
 
 arr_decl       = "arr" , identifier , "[" , integer_literal , "," , type , "]" ,
                  [ "=" , ( expression | arr_value ) ] , ";" ;
@@ -146,11 +171,11 @@ bit_or         = bit_xor     , { "|"  , bit_xor } ;
 bit_xor        = bit_and     , { "^"  , bit_and } ;
 bit_and        = equality    , { "&"  , equality } ;
 
-equality       = relational  , { ("==" | "!=") , relational } ;
-relational     = shift       , { ("<" | "<=" | ">" | ">=") , shift } ;
-shift          = add         , { ("<<" | ">>") , add } ;
-add            = mul         , { ("+" | "-") , mul } ;
-mul            = unary       , { ("*" | "/" | "%") , unary } ;
+equality       = relational  , { ( "==" | "!=" ) , relational } ;
+relational     = shift       , { ( "<" | "<=" | ">" | ">=" ) , shift } ;
+shift          = add         , { ( "<<" | ">>" ) , add } ;
+add            = mul         , { ( "+" | "-" ) , mul } ;
+mul            = unary       , { ( "*" | "/" | "%" ) , unary } ;
 
 unary          = unary_op , unary
                | postfix ;
@@ -170,12 +195,12 @@ primary        = literal
 
 arg_list       = expression , { "," , expression } ;
 
-type = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
-     | "str"
-     | "arr" , "[" , integer_literal , "," , type , "]"
-     | "ptr" , type ;
+type           = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+               | "str"
+               | "arr" , "[" , integer_literal , "," , type , "]"
+               | "ptr" , type ;
 
-literal = integer_literal | float_literal | string_literal | char_literal ;
+literal        = integer_literal | float_literal | string_literal | char_literal ;
 */
 
 #ifndef CPL_PARSER_H_
@@ -565,6 +590,7 @@ Params:
     - `it` - Current iterator on token list.
     - `ctx` - AST ctx.
     - `smt` - Symtable pointer.
+    - `carry` - Increase the scope id? (0 - no).
 
 Returns an ast node.
 */
@@ -707,5 +733,8 @@ Params:
 Returns an ast node.
 */
 ast_node_t* cpl_parse_poparg(PARSER_ARGS);
+// TODO
+ast_node_t* cpl_parse_align(PARSER_ARGS);
+ast_node_t* cpl_parse_section(PARSER_ARGS);
 
 #endif

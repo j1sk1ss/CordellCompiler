@@ -62,8 +62,8 @@ int main(int argc, char* argv[]) {
         printf("id: %li, %s, ", vi->v_id, vi->name->body);
         for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
         if (vi->vfs.glob) printf("glob ");
-        if (vi->vfs.ro) printf("ro ");
-        printf("%s, s_id: %i", format_tkntype(vi->type), vi->s_id);
+        if (vi->vfs.ro)   printf("ro ");
+        printf("%s, s_id: %i, align: %i", format_tkntype(vi->type), vi->s_id, vi->vmi.align);
         printf("\n");
     }
 

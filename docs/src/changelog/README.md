@@ -26,6 +26,21 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Sections and align!
+For system programming is essential to have the 'section' and the 'align' modifiers. Now the compiler supports the next syntax:
+```cpl
+section(".text") {
+    glob i32 a;
+    align(16) glob i32 b;
+    align(64) {
+        glob i32 c;
+        glob i64 d;
+    }
+}
+```
+
+**Note:** 'Align' and 'Section' scopes don't affect on the target variable declaration scope. This means, that it won't increase the scope id of a variable. 
+
 ## i0 variable type
 The `i0` variable type now is possible to use for variables. 
 ```cpl

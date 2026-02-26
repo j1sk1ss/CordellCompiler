@@ -447,7 +447,7 @@ static int _find_consumer(ast_node_t* src, int* found) {
 
     /* Consumed by a variable declaration
      */
-    if (TKN_isdecl(src->t)) {
+    if (TKN_is_decl(src->t)) {
         *found = 2;
         return 1;
     }

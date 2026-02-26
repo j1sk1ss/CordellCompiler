@@ -6,6 +6,6 @@
 }
 
 : OUTPUT
-{id: 0, a, glob i32, s_id: 1}
-{id: 1, a, i32, s_id: 2}
+{id: 0, a, glob i32, s_id: 1, align: 8}
+{id: 1, a, i32, s_id: 2, align: 8}
 :

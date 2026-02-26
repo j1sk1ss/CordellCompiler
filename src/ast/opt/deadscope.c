@@ -94,7 +94,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
         }
 
         if (
-            TKN_isdecl(curr->t) || 
+            TKN_is_decl(curr->t) || 
             (TKN_isoperand(curr->t) && !TKN_update_operator(curr->t))
         ) {
             _find_scope(curr, affect, s_id);

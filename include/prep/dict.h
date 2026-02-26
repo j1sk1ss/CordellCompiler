@@ -52,6 +52,8 @@
 #define CONVERT_COMMAND         "as"
 
 // Commands
+#define ALIGN_COMMAND           "align"
+#define SECTION_COMMAND         "section"
 #define SWITCH_COMMAND          "switch"
 #define CASE_COMMAND            "case"
 #define DEFAULT_COMMAND         "default"

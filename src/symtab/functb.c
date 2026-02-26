@@ -1,6 +1,7 @@
 #include <symtab/functb.h>
 
 int FNTB_get_info_id(symbol_id_t id, func_info_t* out, functab_ctx_t* ctx) {
+    print_log("FNTB_get_info(id=%li)", id);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
         if (out) str_memcpy(out, fi, sizeof(func_info_t));
@@ -94,7 +95,7 @@ symbol_id_t FNTB_add_info(
 }
 
 int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
-    print_log("FNTB_update_info(id=%llu, used=%i, entry=%i)", id, used, entry);
+    print_log("FNTB_update_info(id=%llu, used=%i, entry=%i, ext=%i)", id, used, entry, ext);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
         if (used >= 0)  fi->flags.used     = used;

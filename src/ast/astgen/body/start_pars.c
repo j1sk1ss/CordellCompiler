@@ -35,7 +35,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
         return NULL;
     }
 
-    ast_node_t* body = cpl_parse_scope(it, ctx, smt, carry);
+    ast_node_t* body = cpl_parse_scope(it, ctx, smt, 1);
     if (!body) {
         PARSE_ERROR("Error during the parsing of the '%s' body!", START_COMMAND);
         AST_unload(node);

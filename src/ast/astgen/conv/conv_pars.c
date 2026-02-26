@@ -12,7 +12,7 @@ ast_node_t* cpl_parse_conv(PARSER_ARGS) {
     }
 
     forward_token(it, 1);
-    if (CURRENT_TOKEN && !TKN_isdecl(CURRENT_TOKEN)) {
+    if (CURRENT_TOKEN && !TKN_is_decl(CURRENT_TOKEN)) {
         PARSE_ERROR("Expected a type of a token in a cast!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;

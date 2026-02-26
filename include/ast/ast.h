@@ -3,12 +3,13 @@
 
 #include <std/mm.h>
 #include <std/stack.h>
+#include <symtab/symtab_id.h>
 #include <prep/token.h>
 #include <prep/token_types.h>
 
 typedef struct {
-    long s_id;  /* Scope ID    */
-    long v_id;  /* Variable ID */
+    long        s_id;  /* Scope ID    */
+    symbol_id_t v_id;  /* Variable ID */
 } syntax_info_t;
 
 typedef struct ast_node {

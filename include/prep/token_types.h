@@ -91,7 +91,8 @@ typedef enum {
     CALL_TOKEN,          // fname(...)
     ADDR_CALL_TOKEN,     // something(...) - doesn't support default args, etc, but can handle addr to anything
     CALL_ADDR_TOKEN,     // fname without () operation. Means that we're working with the address of a function
-
+    SECTION_TOKEN,       // section(".bss")
+    ALIGN_TOKEN,         // align(4)
     
     // Condition scope
     SWITCH_TOKEN,        // switch
@@ -193,7 +194,7 @@ int TKN_isptr(token_t* token);
 int TKN_one_slot(token_t* token);
 int TKN_instack(token_t* token);
 int TKN_isblock(token_t* token);
-int TKN_isdecl(token_t* token);
+int TKN_is_decl(token_t* token);
 int TKN_isclose(token_t* token);
 int TKN_isoperand(token_t* token);
 int TKN_token_priority(token_t* token);

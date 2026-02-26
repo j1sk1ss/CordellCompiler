@@ -5,12 +5,14 @@ typedef struct {
     ast_node_t*         (*handler)(PARSER_ARGS);
     const token_type_t* types;
     int                 types_count;
+    long                dcarry;
 } handler_t;
 
 /* Handler for token type parsing */
-#define HANDLER(func, ...)                                                                       \
+#define HANDLER(func, carry, ...)                                                                \
     {                                                                                            \
         .handler = func,                                                                         \
+        .dcarry  = carry,                                                                        \
         .types = (const token_type_t[]){ __VA_ARGS__ },                                          \
         .types_count = (int)sizeof((const token_type_t[]){ __VA_ARGS__ }) / sizeof(token_type_t) \
     }
@@ -19,33 +21,35 @@ typedef struct {
 must be invoked for the provided token.
 Note: ! If you're extending the parser, add a new handler here ! */
 static const handler_t handlers[] = {
-    HANDLER(cpl_parse_start,             START_TOKEN),
-    HANDLER(cpl_parse_asm,               ASM_TOKEN),
-    HANDLER(cpl_parse_scope,             OPEN_BLOCK_TOKEN),
-    HANDLER(cpl_parse_switch,            SWITCH_TOKEN),
-    HANDLER(cpl_parse_if,                IF_TOKEN),
-    HANDLER(cpl_parse_while,             WHILE_TOKEN),
-    HANDLER(cpl_parse_loop,              LOOP_TOKEN),
-    HANDLER(cpl_parse_break,             BREAK_TOKEN),
-    HANDLER(cpl_parse_syscall,           SYSCALL_TOKEN),
-    HANDLER(cpl_parse_breakpoint,        BREAKPOINT_TOKEN),
-    HANDLER(cpl_parse_extern,            EXTERN_TOKEN),
-    HANDLER(cpl_parse_import,            IMPORT_SELECT_TOKEN),
-    HANDLER(cpl_parse_funccall,          CALL_TOKEN),
-    HANDLER(cpl_parse_poparg,            POPARG_TOKEN),
-    HANDLER(cpl_parse_function,          FUNC_TOKEN),
-    HANDLER(cpl_parse_exit,              EXIT_TOKEN),
-    HANDLER(cpl_parse_return,            RETURN_TOKEN),
-    HANDLER(cpl_parse_array_declaration, ARRAY_TYPE_TOKEN),
+    HANDLER(cpl_parse_section,           0, SECTION_TOKEN),
+    HANDLER(cpl_parse_align,             0, ALIGN_TOKEN),
+    HANDLER(cpl_parse_start,             0, START_TOKEN),
+    HANDLER(cpl_parse_asm,               0, ASM_TOKEN),
+    HANDLER(cpl_parse_scope,             1, OPEN_BLOCK_TOKEN),
+    HANDLER(cpl_parse_switch,            0, SWITCH_TOKEN),
+    HANDLER(cpl_parse_if,                0, IF_TOKEN),
+    HANDLER(cpl_parse_while,             0, WHILE_TOKEN),
+    HANDLER(cpl_parse_loop,              0, LOOP_TOKEN),
+    HANDLER(cpl_parse_break,             0, BREAK_TOKEN),
+    HANDLER(cpl_parse_syscall,           0, SYSCALL_TOKEN),
+    HANDLER(cpl_parse_breakpoint,        0, BREAKPOINT_TOKEN),
+    HANDLER(cpl_parse_extern,            0, EXTERN_TOKEN),
+    HANDLER(cpl_parse_import,            0, IMPORT_SELECT_TOKEN),
+    HANDLER(cpl_parse_funccall,          0, CALL_TOKEN),
+    HANDLER(cpl_parse_poparg,            0, POPARG_TOKEN),
+    HANDLER(cpl_parse_function,          0, FUNC_TOKEN),
+    HANDLER(cpl_parse_exit,              0, EXIT_TOKEN),
+    HANDLER(cpl_parse_return,            0, RETURN_TOKEN),
+    HANDLER(cpl_parse_array_declaration, 0, ARRAY_TYPE_TOKEN),
     HANDLER(
-        cpl_parse_variable_declaration,
+        cpl_parse_variable_declaration, 0,
         STR_TYPE_TOKEN, F32_TYPE_TOKEN, F64_TYPE_TOKEN,
         I8_TYPE_TOKEN, I16_TYPE_TOKEN, I32_TYPE_TOKEN, I64_TYPE_TOKEN,
         U8_TYPE_TOKEN, U16_TYPE_TOKEN, U32_TYPE_TOKEN, U64_TYPE_TOKEN,
         I0_TYPE_TOKEN
     ),
     HANDLER(
-        cpl_parse_expression,
+        cpl_parse_expression, 0,
         VARIABLE_TOKEN,
         NEGATIVE_TOKEN,
         REF_TYPE_TOKEN, DREF_TYPE_TOKEN,
@@ -70,11 +74,11 @@ Params:
 Returns an AST node.
 */
 static ast_node_t* _navigation_handler(PARSER_ARGS) {
-    carry = 0;
+    PARSER_ARGS_USE;
     for (int i = 0; i < (int)(sizeof(handlers) / sizeof(handlers[0])); i++) {
         for (int j = 0; j < handlers[i].types_count; j++) {
             if (handlers[i].types[j] == CURRENT_TOKEN->t_type) {
-                return handlers[i].handler(it, ctx, smt, carry);
+                return handlers[i].handler(it, ctx, smt, handlers[i].dcarry);
             }
         }
     }

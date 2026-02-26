@@ -169,7 +169,8 @@ static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym
 }
 
 int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
-    sstack_t params = { .top = -1 };
+    sstack_t params;
+    stack_init(&params);
 
     /* Convert outer blocks to LIR context.
        Note: This blocks go to the highest part of the context. */

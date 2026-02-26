@@ -266,7 +266,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     if (u && set_has(u, nd)) _rst_hl_begin(x);
 
     int complex = -1;
-    if (TKN_isdecl(nd->t) || nd->t->t_type == VAR_ARGUMENTS_TOKEN) {
+    if (TKN_is_decl(nd->t) || nd->t->t_type == VAR_ARGUMENTS_TOKEN) {
         if (nd->t->t_type != ARRAY_TYPE_TOKEN) {
             _rst_ln_printf(
                 x, line, "%s%s%s%s%s",

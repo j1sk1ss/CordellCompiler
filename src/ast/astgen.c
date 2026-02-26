@@ -11,7 +11,7 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     list_iter_t it;
     list_iter_hinit(tkn, &it);
 
-    ctx->r = cpl_parse_scope(&it, ctx, smt, 0);
+    ctx->r = cpl_parse_scope(&it, ctx, smt, 1);
     if (!ctx->r) return 0;
     
     int has_entry = 0;
@@ -26,7 +26,7 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
         }
     }
 
-    if (last && !has_entry && FNTB_update_info(last->id, -1, 1, -1, NULL, NULL, &smt->f)) {
+    if (last && !has_entry && FNTB_update_info(last->id, FIELD_NO_CHANGE, 1, FIELD_NO_CHANGE, NULL, NULL, &smt->f)) {
         print_warn("The 'start' function isn't found! Default entry set to the '%s'!", last->name->body);
     }
 
