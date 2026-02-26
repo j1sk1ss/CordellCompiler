@@ -4,7 +4,7 @@ int x86_64_generate_stackframe(long offset, FILE* output) {
     fprintf(output, "push rbp\n");
     fprintf(output, "mov rbp, rsp\n");
     if (offset > 0) {
-        fprintf(output, "sub rsp, %ld\n", ALIGN(offset));
+        fprintf(output, "sub rsp, %ld\n", ALIGN(offset, 8));
     }
     
     return offset;

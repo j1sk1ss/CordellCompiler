@@ -27,7 +27,7 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
         }
         else {
             vi.vmi.reg    = FIELD_NO_CHANGE;
-            vi.vmi.offset = stack_map_alloc(vi.vmi.size, smp);
+            vi.vmi.offset = stack_map_alloc(ALIGN(vi.vmi.size, vi.vmi.align), smp);
         }
 
         VRTB_update_memory(vi.v_id, vi.vmi.offset, vi.vmi.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
@@ -74,7 +74,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             STTB_get_info_id(lh->sarg->storage.str.sid, &si, &smt->s) &&
                             ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)
                         ) {
-                            int arroff = stack_map_alloc(ai.size, &smp);
+                            int arroff = stack_map_alloc(ALIGN(ai.size, vi.vmi.align), &smp);
                             VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
                             char* string = si.value->body;
                             while (*string) {
@@ -97,7 +97,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                         array_info_t ai;
                         if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
                             int elsize = _get_ast_type_size(ai.elements_info.el_type);
-                            int arroff = stack_map_alloc(ai.size * elsize, &smp);
+                            int arroff = stack_map_alloc(ALIGN(ai.size * elsize, vi.vmi.align), &smp);
                             VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
 
                             int pos = 0;
