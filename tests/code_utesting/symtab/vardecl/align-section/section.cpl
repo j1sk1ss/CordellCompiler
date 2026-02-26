@@ -10,5 +10,5 @@
 {id: 0, a, i32, s_id: 1, align: 8}
 {id: 1, b, i32, s_id: 1, align: 8}
 {id: 2, c, i32, s_id: 1, align: 8}
-{section='.text', [symbol=0, t=0] [symbol=1, t=0] [symbol=2, t=0]}
+{section='.text', [symbol=0] [symbol=1] [symbol=2]}
 :
