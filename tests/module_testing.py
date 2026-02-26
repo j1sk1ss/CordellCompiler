@@ -237,9 +237,18 @@ def _run_test(binary: str, test_file: Path) -> dict:
                 debugger = "lldb"
 
             if debugger == "gdb":
-                cmd = [ debugger, "--batch", "-ex", "run", "--args" ] + cmd
+                cmd = [debugger, "--args", binary, tmp_path, str(test_file.parent)]
             else:
-                cmd = [ debugger, "--batch", "-o", "run", "--" ] + cmd
+                cmd = [debugger, "--", binary, tmp_path, str(test_file.parent)]
+
+            subprocess.run(cmd)
+            return {
+                "file": str(test_file),
+                "ok": True,
+                "critical": False,
+                "warning": False,
+                "diff": None,
+            }
 
         proc = subprocess.run(
             cmd,

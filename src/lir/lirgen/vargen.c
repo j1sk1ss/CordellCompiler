@@ -1,6 +1,6 @@
 #include <lir/lirgens/lirgens.h>
 
-lir_subject_t* x86_64_format_variable(hir_subject_t* subj) {
+lir_subject_t* LIR_convert_hs_to_ls(hir_subject_t* subj) {
     if (!subj) return NULL;
     switch (subj->t) {
         case HIR_F64NUMBER:
@@ -44,12 +44,6 @@ lir_subject_t* x86_64_format_variable(hir_subject_t* subj) {
         case HIR_GLBVARU32: case HIR_GLBVARI32: case HIR_GLBVARU16: case HIR_GLBVARI16: 
         case HIR_GLBVARU8:  case HIR_GLBVARI8:  case HIR_GLBVARI0:
         return LIR_SUBJ_VAR(subj->storage.var.v_id, subj->ptr > 0 ? 8 : HIR_get_type_size(subj->t));
-        
         default: return NULL;
     }
-}
-
-int x86_64_store_var2var(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* dst, hir_subject_t* src) {
-    LIR_BLOCK2(ctx, op, x86_64_format_variable(dst), x86_64_format_variable(src));
-    return 1;
 }

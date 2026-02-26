@@ -10,6 +10,8 @@
 #include <lir/lir.h>
 #include <lir/lirgen.h>
 
+#define EMIT_COMMAND(cmd, ...) fprintf(output, cmd "\n", ##__VA_ARGS__)
+
 /*
 Main generator script. Generation based on linear LIR instead of LIR CFG.
 Params:
@@ -31,25 +33,6 @@ Return 1 if success, otherwise - 0.
 int x86_64_generate_data(sym_table_t* smt, FILE* output);
 
 /*
-Generate function stackframe (open).
-Params:
-- `offset` - Max offset for memory allocation.
-- `output` - Output location for generated ASM.
-
-Return 1 if success, otherwise - 0.
-*/
-int x86_64_generate_stackframe(long offset, FILE* output);
-
-/*
-Generate function stackframe (close).
-Params:
-- `output` - Output location for generated ASM.
-
-Return 1 if success, otherwise - 0.
-*/
-int x86_64_kill_stackframe(FILE* output);
-
-/*
 Format input subject and return char*.
 Params:
 - `v` - LIR subject for formatting.
@@ -57,6 +40,6 @@ Params:
 
 Return 1 if success, otherwise - 0.
 */
-const char* x86_64_asm_variable(lir_subject_t* v, sym_table_t* smt);
+const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt);
 
 #endif

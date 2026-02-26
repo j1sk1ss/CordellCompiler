@@ -13,40 +13,21 @@
 #include <std/stackmap.h>
 
 /*
-Generate the LIR preambule for a function.
-Params:
-    - `op` - Call operation.
-    - `ctx` - LIT context.
-    - `hir_args` - Source HIR call agruments.
-    - `lir_args` - Output LIR call arguments.
-
-Returns 1 if succeeds.
-*/
-int x86_64_pass_params(lir_operation_t op, lir_ctx_t* ctx, list_t* hir_args, list_t* lir_args);
-
-/*
-Convert the HIR variable to a LIR variable.
+Convert the HIR subject to a LIR subject.
+Note: This can look as a wrong structure for a target architecture,
+      but it will be fixed in the 'planning' part.
 Params:
     - `subj` - HIR subject to convert.
 
 Returns a LIR variable. Otherwise will return 0.
 */
-lir_subject_t* x86_64_format_variable(hir_subject_t* subj);
+lir_subject_t* LIR_convert_hs_to_ls(hir_subject_t* subj);
 
 /*
-Generate a LIR store operation from the 'src' to the 'dst'.
-Params:
-    - `op` - Store operation.
-    - `ctx` - LIR context.
-    - `dst` - Destination subject.
-    - `src` - Source subject.
-
-Returns 1 if succeeds.
-*/
-int x86_64_store_var2var(lir_operation_t op, lir_ctx_t* ctx, hir_subject_t* dst, hir_subject_t* src);
-
-/*
-Generate a LIR code from a HIR code.
+Generate a LIR code from a HIR code. Will traverse blocks in functions.
+Note: It will produce a HLIR form of a code, which means it isn't ready
+      for the final ASM generation. To do this, you will need to obtain
+      a LLIR form!
 Params:
     - `cctx` - CFG context.
     - `ctx` - LIR context.
