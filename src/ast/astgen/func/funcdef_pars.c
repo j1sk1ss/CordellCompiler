@@ -109,9 +109,11 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     /* Register function in the default section.
        It will work because the 'section' keyword is a parent. */
-    string_t* section = create_string(CONF_get_code_section());
-    SCTB_move_to_section(section, name_node->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
-    destroy_string(section);
+    if (!ctx->carry.ptr) {
+        string_t* section = create_string(CONF_get_code_section());
+        SCTB_move_to_section(section, name_node->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
+        destroy_string(section);
+    }
 
     /* This is a function's prototype.
        We assume this given the 'DELIMITER_TOKEN' at the end of definition. */

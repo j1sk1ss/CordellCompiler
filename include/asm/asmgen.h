@@ -6,19 +6,19 @@
 #include <lir/lir.h>
 
 typedef struct {
-    int (*generator)(lir_ctx_t*, sym_table_t*, FILE*);
+    int (*generator)(cfg_ctx_t*, sym_table_t*, FILE*);
 } asm_gen_t;
 
 /*
 ASM_generate function generates ASM code for target platform.
 Params:
-- lctx - LIR.
-- g - Generator specific functions.
-- output - Output file.
+- `cctx` - CFG context.
+- `g` - Generator specific functions.
+- `output` - Output file.
 
-Return 1 if generation success.
-Return 0 if something goes wrong.
+Returns 1 if the generation was success.
+Returns 0 if something went wrong.
 */
-int ASM_generate(lir_ctx_t* lctx, sym_table_t* smt, asm_gen_t* g, FILE* output);
+int ASM_generate(cfg_ctx_t* cctx, sym_table_t* smt, asm_gen_t* g, FILE* output);
 
 #endif

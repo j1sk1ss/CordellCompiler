@@ -81,9 +81,12 @@ typedef struct cfg_block {
 } cfg_block_t;
 
 typedef struct {
-    long   cid;
-    list_t funcs; /* Function blocks                */
-    list_t out;   /* HIR blocks out from a function */
+    long       cid;
+    list_t     funcs; /* Function blocks                */
+    struct {
+        list_t hout;   /* HIR blocks out from a function */
+        list_t lout;
+    } outs;
 } cfg_ctx_t;
 
 /*

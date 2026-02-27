@@ -193,8 +193,13 @@ int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
 
     /* Convert outer blocks to LIR context.
        Note: This blocks go to the highest part of the context. */
-    foreach (hir_block_t* o, &cctx->out) {
+    foreach (hir_block_t* o, &cctx->outs.hout) {
         _convert_hir_to_lir(&params, o, ctx, smt);
+    }
+
+    for (lir_block_t* lh = ctx->h; lh; lh = lh->next) {
+        list_add(&cctx->outs.lout, lh);
+        if (lh == ctx->t) break;
     }
 
     /* Iterate on CFG blocks and convert all alligned HIR blocks

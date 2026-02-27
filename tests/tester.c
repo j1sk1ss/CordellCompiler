@@ -373,7 +373,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #ifdef CODEGEN_TESTING
     printf("\n\n========== Final ASM ==========\n");
     asm_gen_t asmgen = { .generator = x86_64_generate_asm };
-    ASM_generate(&lirctx, &smt, &asmgen, stdout);
+    ASM_generate(&cfgctx, &smt, &asmgen, stdout);
 #endif
 
 #ifdef HIR_TESTING

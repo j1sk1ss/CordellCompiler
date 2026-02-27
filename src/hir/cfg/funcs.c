@@ -114,7 +114,7 @@ int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt
             default: break;
         }
 
-        if (!stack_top(&entries, NULL)) list_add(&ctx->out, h);
+        if (!stack_top(&entries, NULL)) list_add(&ctx->outs.hout, h);
 _handled_instruction: {}
         h = h->next;
     }

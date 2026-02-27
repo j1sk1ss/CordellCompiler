@@ -10,17 +10,19 @@
 
 typedef enum {
     SECTION_ELEMENT_VARIABLE,
-    SECTION_ELEMENT_FUNCTION
+    SECTION_ELEMENT_FUNCTION,
+    SECTION_ELEMENT_STRING
 } section_elem_type_t;
 
 typedef struct {
     string_t* name;
     set_t     vars; /* :symbol_id_t */
     set_t     func; /* :symbol_id_t */
+    set_t     strs; /* :symbol_id_t */
 } section_info_t;
 
 typedef struct {
-    map_t sectb;     /* :section_info_t */
+    map_t sectb;    /* :section_info_t */
 } sectb_ctx_t;
 
 int SCTB_move_to_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);

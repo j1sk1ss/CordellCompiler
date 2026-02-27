@@ -107,7 +107,8 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     if (!hctx || !ctx || !hctx->h) return 0;
 
     list_init(&ctx->funcs);
-    list_init(&ctx->out);
+    list_init(&ctx->outs.hout);
+    list_init(&ctx->outs.lout);
 
     HIR_CFG_split_by_functions(hctx, ctx, smt); /* Split input flatten instructions to          */
                                                 /* the list of functions.                       */
@@ -238,6 +239,7 @@ int HIR_CFG_unload(cfg_ctx_t* ctx) {
     }
 
     list_free_force(&ctx->funcs);
-    list_free(&ctx->out);
+    list_free(&ctx->outs.hout);
+    list_free(&ctx->outs.lout);
     return 1;
 }

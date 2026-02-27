@@ -183,7 +183,12 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
 
     if ( /* Register a string in a string symbol table */
         node->t->t_type == STRING_VALUE_TOKEN
-    ) node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
+    ) {
+        node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
+        string_t* section = create_string(CONF_get_ro_section());
+        SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
+        destroy_string(section);
+    }
 
     var_lookup(node, ctx, smt);
     /* Check basic cases such as pointer access, 
