@@ -278,22 +278,20 @@ arr Array_2d[2, ptr i32] = { ref Array_1d_1, ref Array_1d_2 };
 i32 a = Array_2d[0][0]; : = 0 :
 ```
 
-Also array can have an unknown in `compile-time` size. This will generate code that allocates memory in heap (WIP). 
+## Align
+A declaration of a primitive or of an array type (an array or a string) can be annotated with the `align` keyword. This keyword will add an additional padding during memory stack allocation.
 ```cpl
-extern i8 size;
-arr arr1[size, i32];
+align(16) glob i32 a;
+start() {
+    align(8) {
+        i32 b;
+        i32 c = a;
+    }
+}
 ```
 
-`Runtime-sized` arrays will die when code returns from their home scope. That's why the code below still illegal (Works only in the cplv2):
-```cpl
-extern i8 size;
-ptr u8 a;
-{
-    arr arr1[size, i32];
-    a = ref arr1;
-}         : <= "arr1" is deallocated. Work with this "a" will cause a SF :
-a[0] = 0; : <= SF! :
-```
+By default align set to platform `bitness / 8` (For instance on the `gnu_x86_64` this is 8 bytes). </br>
+The `align` keyword can be used as a modifier and as a 'scope' block. The both approaches don't change the scope of declared variables.
 
 ## Pointers
 - `ptr` - Pointer modifier that can be add to every primitive (and `str`, `arr`) type.
@@ -379,6 +377,18 @@ start() {
 i32 a = 123;
 a(100 + 123); : <- Valid function call that will invoke any function (or not) at the 223 address :
 ```
+
+## Section
+A function and a global declaration can be placed in a specific section. To perform this, you will need to use the `section` keyword:
+```cpl
+section(".text") {
+    glob i32 a;
+    function foo() {}
+}
+```
+
+**Note 1:** Function prototype doesn't affected by a section. To put the function's code to a section, you need to define the function. </br>
+**Note 2:** By default all global/read-only variables and functions are placed in the platform's code section from the configuration.
 
 # Binary and unary operations
 Obviously this language supports the certain set of binary operations from C-language, Rust-language, Python, etc.
