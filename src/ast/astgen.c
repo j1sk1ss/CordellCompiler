@@ -18,7 +18,6 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     func_info_t* last = NULL;
     map_foreach(func_info_t* fi, &smt->f.functb) {
         if (fi->flags.local) continue;
-        
         last = fi;
         if (fi->flags.entry) {
             has_entry = 1;
@@ -26,10 +25,14 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
         }
     }
 
-    if (last && !has_entry && FNTB_update_info(last->id, FIELD_NO_CHANGE, 1, FIELD_NO_CHANGE, NULL, NULL, &smt->f)) {
-        print_warn("The 'start' function isn't found! Default entry set to the '%s'!", last->name->body);
-    }
-
+    string_t* entry_name = create_string(CONF_get_entry_name());
+    if (
+        last && 
+        !has_entry && 
+        FNTB_update_info(last->id, FIELD_NO_CHANGE, 1, FIELD_NO_CHANGE, NULL, NULL, &smt->f) &&
+        FNTB_rename_func(last->id, entry_name, &smt->f)
+    ) print_warn("The 'start' function isn't found! Default entry set to the '%s'!", last->name->body);
+    destroy_string(entry_name);
     return 1;
 }
 

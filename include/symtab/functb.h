@@ -104,6 +104,18 @@ Returns 1 if succeeds.
 int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
 
 /*
+Rename an existed function.
+Note: Will update the virtual name of a function.
+Params:
+    - `id` - Function ID.
+    - `name` - New name.
+    - `ctx` - Function symtable context.
+
+Returns 1 if succeeds, otherwise will return 0.
+*/
+int FNTB_rename_func(symbol_id_t id, string_t* name, functab_ctx_t* ctx);
+
+/*
 Unload a function symtable context.
 Params:
     - `ctx` - Function symtable context.

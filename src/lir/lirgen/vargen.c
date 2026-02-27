@@ -43,7 +43,7 @@ lir_subject_t* LIR_convert_hs_to_ls(hir_subject_t* subj) {
         case HIR_GLBVARF64: case HIR_GLBVARU64: case HIR_GLBVARI64: case HIR_GLBVARF32: 
         case HIR_GLBVARU32: case HIR_GLBVARI32: case HIR_GLBVARU16: case HIR_GLBVARI16: 
         case HIR_GLBVARU8:  case HIR_GLBVARI8:  case HIR_GLBVARI0:
-        return LIR_SUBJ_VAR(subj->storage.var.v_id, subj->ptr > 0 ? 8 : HIR_get_type_size(subj->t));
+        return LIR_SUBJ_VAR(subj->storage.var.v_id, subj->ptr > 0 ? CONF_get_full_bytness() : HIR_get_type_size(subj->t));
         default: return NULL;
     }
 }

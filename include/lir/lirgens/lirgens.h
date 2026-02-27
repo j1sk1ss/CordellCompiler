@@ -1,6 +1,7 @@
 #ifndef X86_64_IRGEN_H_
 #define X86_64_IRGEN_H_
 
+#include <config.h>
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 #include <lir/lir.h>

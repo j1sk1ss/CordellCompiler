@@ -1,6 +1,7 @@
 #ifndef HIR_TYPES_H_
 #define HIR_TYPES_H_
 
+#include <config.h>
 #include <symtab/vartb.h>
 #include <prep/token_types.h>
 

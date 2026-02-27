@@ -14,20 +14,30 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     }
 
     forward_token(it, 1);
-    ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
-    if (!name_node) {
+    ast_node_t* name = AST_create_node(CURRENT_TOKEN);
+    if (!name) {
         PARSE_ERROR("Can't create a node for the variable's name! <type> <name>!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
     
-    AST_add_node(node, name_node);
+    AST_add_node(node, name);
 
-    long decl_scope;
-    stack_top(&ctx->scopes.stack, (void**)&decl_scope);
-    name_node->sinfo.v_id = VRTB_add_info(name_node->t->body, node->t->t_type, decl_scope, &name_node->t->flags, &smt->v);
-    if (node->t->t_type == STR_TYPE_TOKEN) ARTB_add_info(name_node->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a);
+    stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, node->t->t_type, name->sinfo.s_id, &name->t->flags, &smt->v);
+    if (
+        node->t->t_type == STR_TYPE_TOKEN
+    ) ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a);
+
+    if (
+        name->t->flags.glob || 
+        name->t->flags.ro
+    ) {
+        string_t* section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
+        SCTB_move_to_section(section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
+        destroy_string(section);
+    }
 
     if (consume_token(it, ASSIGN_TOKEN)) {
         forward_token(it, 1);
@@ -44,7 +54,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
                                                     Also, we can't separate the string from a variable given the
                                                     ability of string arguments, etc. */
             ARTB_update_info(
-                name_node->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, 
+                name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, 
                 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a
             );
             
@@ -54,6 +64,6 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         AST_add_node(node, value_node);
     }
 
-    var_lookup(name_node, ctx, smt);
+    var_lookup(name, ctx, smt);
     return node;
 }

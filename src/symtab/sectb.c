@@ -16,6 +16,26 @@ static int _unload_secinfo(section_info_t* info) {
     return mm_free(info);
 }
 
+string_t* SCTB_get_section_id(symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx) {
+    map_foreach (section_info_t* i, &ctx->sectb) {
+        if (set_has(t == SECTION_ELEMENT_VARIABLE ? &i->vars : &i->func, (void*)id)) {
+            return i->name;
+        }
+    }
+
+    return NULL;
+}
+
+int SCTB_remove_from_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx) {
+    print_log("SCTB_remove_from_section(section=%s, id=%li, t=%i)", section->body, id, t);
+    section_info_t* info;
+    if (map_get(&ctx->sectb, (long)section->hash, (void**)&info)) {
+        return set_remove(t == SECTION_ELEMENT_VARIABLE ? &info->vars : &info->func, (void*)id);
+    }
+
+    return 0;
+}
+
 int SCTB_add_to_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx) {
     print_log("SCTB_add_to_section(section=%s, id=%li, t=%i)", section->body, id, t);
     section_info_t* info;
@@ -30,14 +50,11 @@ int SCTB_add_to_section(string_t* section, symbol_id_t id, section_elem_type_t t
     return set_add(t == SECTION_ELEMENT_VARIABLE ? &info->vars : &info->func, (void*)id);
 }
 
-string_t* SCTB_get_section_id(symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx) {
-    map_foreach (section_info_t* i, &ctx->sectb) {
-        if (set_has(t == SECTION_ELEMENT_VARIABLE ? &i->vars : &i->func, (void*)id)) {
-            return i->name;
-        }
-    }
-
-    return NULL;
+int SCTB_move_to_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx) {
+    print_log("SCTB_move_to_section(section=%s, id=%li, t=%i)", section->body, id, t);
+    string_t* ps = SCTB_get_section_id(id, t, ctx);
+    if (ps) SCTB_remove_from_section(ps, id, t, ctx);
+    return SCTB_add_to_section(section, id, t, ctx);
 }
 
 int SCTB_get_section(list_t* out, string_t* section, section_elem_type_t t, sectb_ctx_t* ctx) {

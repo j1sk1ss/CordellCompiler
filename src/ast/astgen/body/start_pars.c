@@ -45,7 +45,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
 
     AST_add_node(node, body);
 
-    string_t* main_name = create_string(ctx->fentry);
+    string_t* main_name = create_string(CONF_get_entry_name());
     if (FNTB_get_info(main_name, -1, NULL, &smt->f)) {
         PARSE_ERROR("The main function already exists!");
         AST_unload(node);
@@ -57,5 +57,9 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
     node->sinfo.v_id = FNTB_add_info(main_name, 1, 0, 1, node->sinfo.s_id, node, NULL, &smt->f);
     destroy_string(main_name);
+
+    string_t* section = create_string(CONF_get_code_section());
+    SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
+    destroy_string(section);
     return node;
 }

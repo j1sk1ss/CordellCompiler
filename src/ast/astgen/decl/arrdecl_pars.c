@@ -62,14 +62,13 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
     forward_token(it, 1);
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
-    if (!name) {
+    if (name) AST_add_node(base, name);
+    else {
         PARSE_ERROR("Can't create a base for the array name!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-    
-    AST_add_node(base, name);
 
     if (!consume_token(it, OPEN_INDEX_TOKEN)) {
         PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected OPEN_INDEX_TOKEN!");
@@ -80,14 +79,13 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
     forward_token(it, 1);
     ast_node_t* length = cpl_parse_expression(it, ctx, smt, 0);
-    if (!length) {
+    if (length) AST_add_node(base, length);
+    else {
         PARSE_ERROR("Can't create a base for the size!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-    
-    AST_add_node(base, length);
     
     if (CURRENT_TOKEN->t_type != COMMA_TOKEN) {
         PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected COMMA_TOKEN!");
@@ -97,7 +95,8 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     }
 
     ast_node_t* type = _parse_array_type(it, ctx, smt, carry);
-    if (!type) {
+    if (type) AST_add_node(base, type);
+    else {
         PARSE_ERROR("Can't create a base for the array type!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
@@ -110,8 +109,6 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-
-    AST_add_node(base, type);
 
     long long const_length = -1;
     if (length->t->t_type != UNKNOWN_NUMERIC_TOKEN) name->t->flags.heap = 1;
@@ -142,14 +139,24 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
     /* Add variable information. Note here:
        Array, basically, is a pointer. That's why we increment the .ptr flag to 1. */
-    long decl_scope;
-    stack_top(&ctx->scopes.stack, (void**)&decl_scope);
-    name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, decl_scope, &name->t->flags, &smt->v);
+    stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &name->t->flags, &smt->v);
     ARTB_add_info(
         name->sinfo.v_id, const_length, name->t->flags.heap, 
         type->t->t_type, &type->t->flags, &smt->a
     );
     
+    /* Add RO or global array declaration to a
+       section that belongs to. */
+    if (
+        name->t->flags.glob || 
+        name->t->flags.ro
+    ) {
+        string_t* section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
+        SCTB_move_to_section(section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
+        destroy_string(section);
+    }
+
     var_lookup(name, ctx, smt);
     return base;
 }

@@ -67,6 +67,14 @@ static int _is_function_presented(string_t* name, short sid, ast_node_t* args, f
     return 0;
 }
 
+static string_t* _create_virt_name(symbol_id_t id, string_t* name) {
+    string_t* virt  = name->copy(name);
+    string_t* index = create_string_from_int(id);
+    virt->cat(virt, index);
+    destroy_string(index);
+    return virt;
+}
+
 symbol_id_t FNTB_add_info(
     string_t* name, int global, int local, int entry, short sid, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
@@ -84,14 +92,25 @@ symbol_id_t FNTB_add_info(
     
     nnd->id = ctx->curr_id++;
     if (nnd->name) {
-        nnd->virt = nnd->name->copy(nnd->name);
-        string_t* index = create_string_from_int(nnd->id);
-        nnd->virt->cat(nnd->virt, index);
-        destroy_string(index);
+        nnd->virt = _create_virt_name(nnd->id, name);
     }
 
     map_put(&ctx->functb, nnd->id, nnd);
     return nnd->id;
+}
+
+int FNTB_rename_func(symbol_id_t id, string_t* name, functab_ctx_t* ctx) {
+    print_log("FNTB_rename_func(id=%llu, name=%s)", id, name->body);
+    func_info_t* fi;
+    if (map_get(&ctx->functb, id, (void**)&fi)) {
+        destroy_string(fi->name);
+        destroy_string(fi->virt);
+        fi->name = name->copy(name);
+        fi->virt = _create_virt_name(id, name);
+        return 1;
+    }
+
+    return 0;
 }
 
 int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {

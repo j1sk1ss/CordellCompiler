@@ -33,11 +33,11 @@ ast_node_t* cpl_parse_section(PARSER_ARGS) {
     }
 
     for (ast_node_t* decl = body->c; decl; decl = decl->siblings.n) {
-        if (TKN_is_decl(decl->t)) {
-            SCTB_add_to_section(section->t->body, decl->c->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
+        if (TKN_is_decl(decl->t) && !TKN_instack(decl->t)) {
+            SCTB_move_to_section(section->t->body, decl->c->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
         }
         else if (decl->t->t_type == FUNC_TOKEN) {
-            SCTB_add_to_section(section->t->body, decl->c->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
+            SCTB_move_to_section(section->t->body, decl->c->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
         }
     }
 
