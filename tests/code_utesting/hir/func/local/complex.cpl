@@ -11,7 +11,7 @@
 
 : OUTPUT
 {
-    fn foo0(i32 a)
+    fn _main0(i32 a)
     {
         i32s %0 = alloc(8);
         i32s %0 = load_starg();

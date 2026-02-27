@@ -1,5 +1,6 @@
 {
     "sources": [
+        "src/config.c",
         "src/preproc/*.c",
         "src/preproc/misc/*.c",
         "src/prep/*.c",

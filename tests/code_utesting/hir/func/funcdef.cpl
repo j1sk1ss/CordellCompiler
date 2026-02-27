@@ -8,10 +8,10 @@
 
 : OUTPUT
 {
-    fn bar0(i32 a)
+    fn _main0(i32 a)
     {
         i32s %1 = alloc(8);
-        i32s %1 = load_arg();
+        i32s %1 = load_starg();
         {
         }
     }

@@ -7,7 +7,7 @@
 
 : OUTPUT
 {
-    fn foo0(...)
+    fn _main0(...)
     {
         {
             i64s %0 = alloc(8);

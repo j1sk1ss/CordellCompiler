@@ -7,7 +7,7 @@
 
 : OUTPUT
 {
-    fn foo0()
+    fn _main0()
     {
         {
             goto lb4;

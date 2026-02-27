@@ -70,9 +70,10 @@ int main(int argc, char* argv[]) {
         if (set_size(&ti->vars)) {
             printf(", ");
             set_foreach (symbol_id_t id, &ti->vars) {
-                printf("[symbol=%li] ", id);
+                printf("%li ", id);
             }
         }
+        printf("\n");
     }
 
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);

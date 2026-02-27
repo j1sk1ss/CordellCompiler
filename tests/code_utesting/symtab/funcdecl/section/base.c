@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
         if (set_size(&ti->func)) {
             printf(", ");
             set_foreach (symbol_id_t id, &ti->func) {
-                printf("[symbol=%li] ", id);
+                printf("%li ", id);
             }
         }
         printf("\n");

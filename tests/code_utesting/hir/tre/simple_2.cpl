@@ -6,7 +6,7 @@
 
 : OUTPUT
 {
-    fn foo0(i32 a)
+    fn _main0(i32 a)
     {
         i32s %0 = alloc(8);
         i32s %0 = load_starg();
@@ -17,7 +17,7 @@
             use i64t %1;
             i32s %0 = i64t %1;
             goto lb17;
-            [unused] call foo0(i32 a), argc args(i64t %1,);
+            [unused] call _main0(i32 a), argc args(i64t %1,);
         }
     }
 }
