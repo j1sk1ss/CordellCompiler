@@ -733,8 +733,27 @@ Params:
 Returns an ast node.
 */
 ast_node_t* cpl_parse_poparg(PARSER_ARGS);
-// TODO
+
+/*
+Parse align operator. It supports both with and without scope syntaxes.
+Also, the scope doesn't increase the iternal scope ID, which means,
+all variables that were declared within this structure will live in
+the same scope.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_align(PARSER_ARGS);
+
+/*
+Parse section operator. It supports both with and without scope syntaxes.
+The same logic with the align keyword.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_section(PARSER_ARGS);
 
 #endif

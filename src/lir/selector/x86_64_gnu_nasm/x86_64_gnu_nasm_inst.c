@@ -197,7 +197,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
                         else {
                             nfarg = LIR_SUBJ_OFF(
-                                (lh->sarg->storage.cnst.value - (long)(sizeof(abi_regs) / sizeof(RDI)) + 1) * 8, 
+                                (lh->sarg->storage.cnst.value - (long)(sizeof(abi_regs) / sizeof(RDI)) + 1) * -8, 
                                 _get_variable_size(lh->farg->storage.var.v_id, smt)
                             );
                         }
@@ -214,6 +214,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = _create_tmp(RAX, lh->farg, smt);
                         break;
                     }
+                    case LIR_NOT:
                     case LIR_bOR:
                     case LIR_bXOR:
                     case LIR_bAND:
@@ -238,6 +239,11 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lir_subject_t* oldres = lh->farg;
                         lh->farg = a;
                         lh->sarg = a;
+                        switch (lh->op) {
+                            case LIR_NOT: lh->op = LIR_NEG; break;
+                            default: break;
+                        }
+
                         _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, a, NULL), lh);
                         break;
                     }

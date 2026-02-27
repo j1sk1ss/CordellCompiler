@@ -1,6 +1,6 @@
 #include <asm/x86_64_asmgen.h>
 
-int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) {
+int x86_64_generate_asm(lir_ctx_t* lctx, sym_table_t* smt, FILE* output) { // TODO: change logic. We need to generate sections over the linear code
     x86_64_generate_data(smt, output);
     lir_block_t* curr = lctx->h;
     while (curr) {
