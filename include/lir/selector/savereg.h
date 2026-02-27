@@ -9,8 +9,8 @@
 
 typedef struct {
     int (*save_registers)(cfg_ctx_t*);
-} register_saver_h;
+} register_saver_t;
 
-int LIR_save_registers(cfg_ctx_t* cctx, register_saver_h* selector);
+int LIR_save_registers(cfg_ctx_t* cctx, register_saver_t* selector);
 
 #endif

@@ -282,7 +282,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 
 #ifdef LIR_INSTSEL_TESTING
-    inst_selector_h inst_sel = { 
+    inst_selector_t inst_sel = { 
         .select_instructions = x86_64_gnu_nasm_instruction_selection,
     };
 
@@ -332,7 +332,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_regalloc(&cfgctx, &smt, &colors, &regall); // Analyzation
     LIR_apply_regalloc(&smt, &colors);             // Analyzation
 
-    mem_selector_h mem_sel = { 
+    mem_selector_t mem_sel = { 
         .select_memory = x86_64_gnu_nasm_memory_selection
     };
 
@@ -360,7 +360,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
         lh = lh->next;
     }
 #endif
-    register_saver_h reg_save = {
+    register_saver_t reg_save = {
         .save_registers = x86_64_gnu_nasm_caller_saving
     };
 

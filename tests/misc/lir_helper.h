@@ -125,7 +125,6 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
             dst += sprintf(dst, "[rbp %s %ld]", off > 0 ? "-" : "+", ABS(off)); 
             break;
         }
-
         case LIR_REGISTER: dst += sprintf(dst, "%s", register_to_string(s->storage.reg.reg)); break;
         case LIR_GLVARIABLE: {
             variable_info_t vi;
@@ -135,12 +134,10 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
 
             break;
         }
-
         case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);       break;
         case LIR_NUMBER:   dst += sprintf(dst, "$%s", s->storage.num.value->body);  break;
         case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value);       break;
         case LIR_LABEL:    dst += sprintf(dst, "lb%ld", s->storage.lb.lb_id);       break;
-
         case LIR_RAWASM:
         case LIR_STRING: {
             str_info_t si;
@@ -150,7 +147,6 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
 
             break;
         }
-
         case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(s->storage.str.sid, &fi, &smt->f)) {
@@ -179,7 +175,6 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
 
             break;
         }
-
         default: dst += sprintf(dst, "unknw"); break;
     }
 

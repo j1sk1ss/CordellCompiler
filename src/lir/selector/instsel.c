@@ -1,5 +1,5 @@
 #include <lir/selector/instsel.h>
 
-int LIR_select_instructions(cfg_ctx_t* cctx, sym_table_t* smt, inst_selector_h* selector) {
+int LIR_select_instructions(cfg_ctx_t* cctx, sym_table_t* smt, inst_selector_t* selector) {
     return selector->select_instructions(cctx, smt);
 }

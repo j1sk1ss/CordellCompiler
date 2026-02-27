@@ -20,6 +20,7 @@
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
 #include <lir/selector/instsel.h>
+#include <lir/selector/memsel.h>
 #include <lir/selector/x84_64_gnu_nasm.h>
 #include "../../../misc/lir_helper.h"
 
@@ -86,6 +87,9 @@ int main(int argc, char* argv[]) {
 
     inst_selector_t inst_sel = { .select_instructions = x86_64_gnu_nasm_instruction_selection };
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
+
+    mem_selector_t mem_sel = { .select_memory = x86_64_gnu_nasm_memory_selection };
+    LIR_select_memory(&cfgctx, NULL, &smt, &mem_sel);  // Transform
 
     lir_block_t* lh = lirctx.h;
     while (lh) {

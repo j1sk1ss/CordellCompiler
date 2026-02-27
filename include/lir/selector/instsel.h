@@ -9,8 +9,8 @@
 
 typedef struct {
     int (*select_instructions)(cfg_ctx_t*, sym_table_t*);
-} inst_selector_h;
+} inst_selector_t;
 
-int LIR_select_instructions(cfg_ctx_t* cctx, sym_table_t* smt, inst_selector_h* selector);
+int LIR_select_instructions(cfg_ctx_t* cctx, sym_table_t* smt, inst_selector_t* selector);
 
 #endif
