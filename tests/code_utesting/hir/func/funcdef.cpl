@@ -1,4 +1,5 @@
 {
+    @[entry]
     function bar(i32 a);
     function bar(i32 a) {}
     function foo() -> i32 {

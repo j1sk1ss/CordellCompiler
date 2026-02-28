@@ -1,4 +1,5 @@
 {
+    @[entry]
     @[section(".test")]
     function foo() {
         @[section(".local")]

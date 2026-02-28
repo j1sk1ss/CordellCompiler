@@ -1,4 +1,5 @@
 {
+    @[entry]
     function foo() {
         i32 a;
         ptr ptr i32 b = a as ptr ptr i32;

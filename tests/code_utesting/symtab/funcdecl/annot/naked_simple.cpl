@@ -1,4 +1,5 @@
 {
+    @[entry]
     @[naked]
     function foo() {
     }

@@ -1,4 +1,5 @@
 {
+    @[entry]
     function foo() {
         i32 a = 10;
         if a; {
@@ -8,7 +9,7 @@
 }
 
 : OUTPUT
-BB{X}: fn foo0()
+BB{X}: fn _main0()
 %2 = $10;
 %1 = %2;
 %3 = %1;

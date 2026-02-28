@@ -1,4 +1,5 @@
 {
+    @[entry]
     function foo(i32 a) {
         if a == 1; {
 

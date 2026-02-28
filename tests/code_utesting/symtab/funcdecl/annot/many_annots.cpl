@@ -1,5 +1,6 @@
 {
     @[section(".bss")]
+    @[entry]
     @[naked]
     function foo();
 }

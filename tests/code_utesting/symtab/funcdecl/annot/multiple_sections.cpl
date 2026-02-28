@@ -5,6 +5,7 @@
     @[section(".test")]
     function bar() {
     }
+    @[entry]
     function baz() {
     }
 }

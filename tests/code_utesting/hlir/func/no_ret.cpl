@@ -1,6 +1,6 @@
 {
+    @[entry]
     function foo(i32 a) {
-
     }
 
     function bar(i32 a) {

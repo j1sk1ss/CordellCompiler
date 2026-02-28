@@ -1,4 +1,5 @@
 {
+    @[entry]
     function foo() -> i0 {
         while 1; {
             break;
