@@ -14,26 +14,20 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     ctx->r = cpl_parse_scope(&it, ctx, smt, 1);
     if (!ctx->r) return 0;
     
-    int has_entry = 0;
-    func_info_t* last = NULL;
+    int entries = 0;
     map_foreach(func_info_t* fi, &smt->f.functb) {
         if (fi->flags.local) continue;
-        last = fi;
         if (fi->flags.entry) {
-            has_entry = 1;
-            break;
+            string_t* entry_name = create_string(CONF_get_entry_name()); 
+            FNTB_rename_func(fi->id, entry_name, &smt->f);
+            destroy_string(entry_name);
+            entries++;
         }
     }
 
-    string_t* entry_name = create_string(CONF_get_entry_name());
-    if (
-        last && 
-        !has_entry && 
-        FNTB_update_info(last->id, FIELD_NO_CHANGE, 1, FIELD_NO_CHANGE, NULL, NULL, &smt->f) &&
-        FNTB_rename_func(last->id, entry_name, &smt->f)
-    ) print_warn("The 'start' function isn't found! Default entry set to the '%s'!", last->name->body);
-    destroy_string(entry_name);
-    return 1;
+    if (!entries)         print_warn("The 'start' function isn't found!");
+    else if (entries > 1) print_error("There is more than 1 entry point in code!");
+    return entries <= 1;
 }
 
 int AST_unload_ctx(ast_ctx_t* ctx) {

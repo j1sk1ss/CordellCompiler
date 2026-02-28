@@ -23,8 +23,9 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
                 summary->section = annot->data.section->copy(annot->data.section); 
                 break;
             }
-            case ALIGN_ANNOTATION: summary->align = annot->data.align; break;
-            case NAKED_ANNOTATION: summary->is_naked = 1; break;
+            case ALIGN_ANNOTATION: summary->align = annot->data.align;       break;
+            case NAKED_ANNOTATION: summary->is_naked = 1;                    break;
+            case ENTRY_ANNOTATION: summary->is_entry = 1;                    break;
             case ADDRESS_ANNOTATION: summary->address = annot->data.address; break;
             default: break;
         }

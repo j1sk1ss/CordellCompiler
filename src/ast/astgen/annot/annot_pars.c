@@ -30,6 +30,12 @@ static annotation_t* _parse_annotation_content(list_iter_t* it) {
     else if (raw_annot->requals(raw_annot, "naked")) {
         annot = ANNOT_create_annotation(NAKED_ANNOTATION, NULL, FIELD_NO_CHANGE);
     }
+    else if (raw_annot->requals(raw_annot, "entry")) {
+        annot = ANNOT_create_annotation(ENTRY_ANNOTATION, NULL, FIELD_NO_CHANGE);
+    }
+    else {
+        annot = ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, FIELD_NO_CHANGE);
+    }
 
     return annot;
 }

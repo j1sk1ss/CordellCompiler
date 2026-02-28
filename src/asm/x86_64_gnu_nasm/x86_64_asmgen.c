@@ -5,7 +5,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, sym_table_t* smt, FILE*
         case LIR_FCLL:
         case LIR_ECLL: EMIT_COMMAND("call %s\n", format_lir_subject(b->farg, smt)); break;
         case LIR_STRT:
-        case LIR_FDCL: {
+        case LIR_FDCL: { // TODO: naked
             EMIT_COMMAND("%s:\n", format_lir_subject(b->farg, smt));
             EMIT_COMMAND("push rbp\n");
             EMIT_COMMAND("mov rbp, rsp\n");

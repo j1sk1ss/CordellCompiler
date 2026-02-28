@@ -20,6 +20,9 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
         return NULL;
     }
 
+    annotations_summary_t annots = { .section = NULL };
+    ANNOT_read_annotations(&ctx->annots, &annots); 
+
     forward_token(it, 1);
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)node)) {
         PARSE_ERROR("Can't parse start's arguments!");
@@ -55,11 +58,11 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     }
 
     stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
-    node->sinfo.v_id = FNTB_add_info(main_name, 1, 0, 1, 0, node->sinfo.s_id, node, NULL, &smt->f);
+    node->sinfo.v_id = FNTB_add_info(main_name, 1, 0, 1, annots.is_naked, node->sinfo.s_id, node, NULL, &smt->f);
     destroy_string(main_name);
 
-    string_t* section = create_string(CONF_get_code_section());
-    SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
-    destroy_string(section);
+    if (!annots.section) annots.section = create_string(CONF_get_code_section());
+    SCTB_move_to_section(annots.section, node->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
+    ANNOT_destroy_summary(&annots);
     return node;
 }

@@ -10,13 +10,16 @@ typedef struct {
     int       align;
     long      address;
     char      is_naked : 1;
+    char      is_entry : 1;
 } annotations_summary_t;
 
 typedef enum {
+    UNKNOWN_ANNOTATION,
     ALIGN_ANNOTATION,   /* Set the align of a declaration            */
     SECTION_ANNOTATION, /* Put a declration or function to a section */
     NAKED_ANNOTATION,   /* Don't unpack START, FDECL                 */
-    ADDRESS_ANNOTATION  /* Where place the object?                   */
+    ADDRESS_ANNOTATION, /* Where place the object?                   */
+    ENTRY_ANNOTATION,   /* Is this an entry function?                */
 } annotation_type_t;
 
 typedef struct {
