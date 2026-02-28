@@ -132,36 +132,79 @@ def _matches_expected(expected_text: str, actual_text: str) -> tuple[bool, str |
     exp_lines = expected_text.splitlines()
     act_lines = actual_text.splitlines()
 
-    anywhere_patterns = []
-    positional_expected = []
+    anywhere_patterns: list[str] = []
+    plan: list[tuple[str, object]] = []
+
+    in_block = False
+    block_lines: list[str] = []
+
     for e in exp_lines:
+        s = e.strip()
+
+        if s == "#":
+            if not in_block:
+                in_block = True
+                block_lines = []
+            else:
+                in_block = False
+                plan.append(("block", block_lines))
+                block_lines = []
+            continue
+
         if _is_anywhere_line(e):
             anywhere_patterns.append(_extract_anywhere_pattern(e))
+            continue
+
+        if in_block:
+            block_lines.append(e)
         else:
-            positional_expected.append(e)
+            plan.append(("pos", e))
 
-    if anywhere_patterns:
-        for pattern in anywhere_patterns:
-            if not any(_line_contains_pattern(pattern, a) for a in act_lines):
-                return False, f"Anywhere pattern not found: {pattern}"
+    if in_block:
+        return False, "Unclosed block marker '#': expected closing #"
 
-        act_idx = 0
-        for pos_line in positional_expected:
+    for pattern in anywhere_patterns:
+        if not any(_line_contains_pattern(pattern, a) for a in act_lines):
+            return False, f"Anywhere pattern not found: {pattern}"
+
+    act_idx = 0
+    for kind, payload in plan:
+        if kind == "pos":
+            pos_line: str = payload
             while act_idx < len(act_lines) and not _line_matches(pos_line, act_lines[act_idx]):
                 act_idx += 1
             if act_idx >= len(act_lines):
                 return False, f"Positional line not matched: {pos_line}"
             act_idx += 1
-        return True, None
-    else:
-        if len(exp_lines) != len(act_lines):
-            return False, f"Different number of lines: expected {len(exp_lines)}, actual {len(act_lines)}"
+            continue
 
-        for i, (e, a) in enumerate(zip(exp_lines, act_lines), start=1):
-            if not _line_matches(e, a):
-                return False, f"Line {i} mismatch:\n  expected: {e}\n  actual:   {a}"
+        if kind == "block":
+            blines: list[str] = payload
+            if not blines:
+                continue
 
-        return True, None
+            used_indices: set[int] = set()
+            matched_indices: list[int] = []
+
+            for b in blines:
+                found = None
+                for j in range(act_idx, len(act_lines)):
+                    if j in used_indices:
+                        continue
+                    if _line_matches(b, act_lines[j]):
+                        found = j
+                        break
+                if found is None:
+                    return False, f"Block line not matched: {b}"
+                used_indices.add(found)
+                matched_indices.append(found)
+
+            act_idx = max(matched_indices) + 1
+            continue
+
+        return False, f"Internal error: unknown plan kind {kind}"
+
+    return True, None
 
 def _make_diff(expected: str, actual: str) -> str:
     expected_lines = expected.splitlines()

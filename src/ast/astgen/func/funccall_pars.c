@@ -65,8 +65,8 @@ ast_node_t* cpl_parse_funccall(PARSER_ARGS) {
             if (node->t->t_type != CALL_ADDR_TOKEN) {
                 fn_iterate_args (&fi) {
                     if (
-                        args_count-- > 0 || /* Ignore already passed arguments             */
-                        !arg->c->siblings.n /* If this argument doesn't have a declaration */
+                        args_count-- > 0 ||              /* Ignore already passed arguments             */
+                        (!arg->c || !arg->c->siblings.n) /* If this argument doesn't have a declaration */
                     ) continue;
                     AST_add_node(node->c, AST_copy_node(arg->c->siblings.n, 0, 0, 1));
                 }
