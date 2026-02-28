@@ -12,7 +12,7 @@ BB{X}: fn foo1() -> i32
 return $0;
 
 BB{X}: 
-BB{X}: fn bar0(i32 a)
+BB{X}: fn _main0(i32 a)
 %1 = strt_loadarg();
 fend
 :

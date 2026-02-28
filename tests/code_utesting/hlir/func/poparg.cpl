@@ -6,7 +6,7 @@
 }
 
 : OUTPUT
-BB{X}: fn foo0(...)
+BB{X}: fn _main0(...)
 %3 = strt_loadarg();
 %2 = %3 as i64;
 %0 = %2;

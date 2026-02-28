@@ -9,7 +9,7 @@
 }
 
 : OUTPUT
-BB{X}: fn foo0(i32 a)
+BB{X}: fn _main0(i32 a)
 %0 = strt_loadarg();
 fend
 BB{X}: fn bar1(i32 a)

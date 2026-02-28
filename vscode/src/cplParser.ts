@@ -332,6 +332,7 @@ class Parser {
   private lines: number[];
   private sem?: SemanticContext;
   private pendingDoc: string | undefined;
+  private pendingAnnotations: string[] = [];
 
   constructor(
     text: string,
@@ -397,6 +398,62 @@ class Parser {
     return false;
   }
 
+  private clearPendingMetadata() {
+    this.pendingAnnotations = [];
+  }
+
+  private parseAnnotation(): string | undefined {
+    const atTok = this.curRaw();
+    if (!this.matchRaw("punc", "@")) {
+      this.issues.push({
+        message: "annotation: expected '@'",
+        range: rangeOf(this.lines, atTok.start, atTok.end)
+      });
+      return undefined;
+    }
+
+    if (!this.matchRaw("punc", "[")) {
+      const c = this.curRaw();
+      this.issues.push({
+        message: "annotation: expected '[' after '@'",
+        range: rangeOf(this.lines, c.start, c.end)
+      });
+      return undefined;
+    }
+
+    let depth = 1;
+    const parts: string[] = [];
+
+    while (!this.atRaw("eof") && depth > 0) {
+      const tok = this.curRaw();
+      this.i++;
+
+      if (tok.kind === "punc" && tok.text === "[") {
+        depth++;
+        parts.push(tok.text);
+        continue;
+      }
+
+      if (tok.kind === "punc" && tok.text === "]") {
+        depth--;
+        if (depth > 0) parts.push(tok.text);
+        continue;
+      }
+
+      parts.push(tok.text);
+    }
+
+    if (depth > 0) {
+      this.issues.push({
+        message: "annotation: expected ']'",
+        range: rangeOf(this.lines, atTok.start, atTok.end)
+      });
+      return undefined;
+    }
+
+    return parts.join("").trim();
+  }
+
   private syncToStatementEnd() {
     while (
       !this.atRaw("eof") &&
@@ -428,23 +485,28 @@ class Parser {
       return;
     }
 
+    if (this.atRaw("punc", "@")) {
+      const ann = this.parseAnnotation();
+      if (ann) this.pendingAnnotations.push(ann);
+      return;
+    }
+
     if (this.atRaw("punc", "#")) {
       this.parsePPDirective();
       return;
     }
 
-    if (this.match("kw", "start")) {
-      this.expect("punc", "(");
-      const paramsInfo = this.parseParamListOptInfos();
-      this.expect("punc", ")");
-
-      this.sem?.enterScope();
-      for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
-
+    if (this.at("punc", "{")) {
       this.parseBlock();
-
-      this.sem?.exitScope();
       this.pendingDoc = undefined;
+      this.clearPendingMetadata();
+      return;
+    }
+
+    if (this.match("kw", "start")) {
+      this.parseStartAfterKeyword();
+      this.pendingDoc = undefined;
+      this.clearPendingMetadata();
       return;
     }
 
@@ -466,23 +528,27 @@ class Parser {
 
       this.match("punc", ";");
       this.pendingDoc = undefined;
+      this.clearPendingMetadata();
       return;
     }
 
     if (this.match("kw", "extern")) {
       this.parseExternOp();
+      this.clearPendingMetadata();
       return;
     }
 
     if (this.at("kw", "section")) {
       this.parseSectionStmt();
       this.pendingDoc = undefined;
+      this.clearPendingMetadata();
       return;
     }
 
     if (this.at("kw", "align")) {
       this.parseAlignStmt(true);
       this.pendingDoc = undefined;
+      this.clearPendingMetadata();
       return;
     }
 
@@ -494,6 +560,7 @@ class Parser {
           const doc = this.pendingDoc;
           this.pendingDoc = undefined;
           this.parseFunctionAfterKeyword(doc);
+          this.clearPendingMetadata();
           return;
         }
         this.i = modsPos;
@@ -504,11 +571,13 @@ class Parser {
       const doc = this.pendingDoc;
       this.pendingDoc = undefined;
       this.parseFunctionAfterKeyword(doc);
+      this.clearPendingMetadata();
       return;
     }
 
     this.parseVarOrArrDecl(true);
     this.pendingDoc = undefined;
+    this.clearPendingMetadata();
   }
 
   private parsePPDirective() {
@@ -718,6 +787,19 @@ class Parser {
     this.parseStatement();
   }
 
+  private parseStartAfterKeyword() {
+    this.expect("punc", "(");
+    const paramsInfo = this.parseParamListOptInfos();
+    this.expect("punc", ")");
+
+    this.sem?.enterScope();
+    for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
+
+    this.parseBlock();
+
+    this.sem?.exitScope();
+  }
+
   private parseFunctionAfterKeyword(doc?: string) {
     const nameTok = this.cur();
     this.expect("ident", undefined, "function: expected identifier");
@@ -789,6 +871,11 @@ class Parser {
           if (doc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
           continue;
         }
+        if (this.atRaw("punc", "@")) {
+          const ann = this.parseAnnotation();
+          if (ann) this.pendingAnnotations.push(ann);
+          continue;
+        }
         if (this.atRaw("punc", "#")) { this.parsePPDirective(); continue; }
 
         if (!this.looksLikeDeclStart()) {
@@ -798,11 +885,13 @@ class Parser {
             range: rangeOf(this.lines, c.start, c.end)
           });
           this.syncToStatementEnd();
+          this.clearPendingMetadata();
           continue;
         }
 
         this.parseVarOrArrDecl(isTopLevelDecls);
         this.pendingDoc = undefined;
+        this.clearPendingMetadata();
       }
       this.expect("punc", "}", "align block: expected '}'");
       return;
@@ -819,6 +908,7 @@ class Parser {
     }
 
     this.parseVarOrArrDecl(isTopLevelDecls);
+    this.clearPendingMetadata();
   }
 
   private parseSectionStmt() {
@@ -837,14 +927,35 @@ class Parser {
         continue;
       }
 
+      if (this.atRaw("punc", "@")) {
+        const ann = this.parseAnnotation();
+        if (ann) this.pendingAnnotations.push(ann);
+        continue;
+      }
+
       if (this.atRaw("punc", "#")) {
         this.parsePPDirective();
+        continue;
+      }
+
+      if (this.at("punc", "{")) {
+        this.parseBlock();
+        this.pendingDoc = undefined;
+        this.clearPendingMetadata();
+        continue;
+      }
+
+      if (this.match("kw", "start")) {
+        this.parseStartAfterKeyword();
+        this.pendingDoc = undefined;
+        this.clearPendingMetadata();
         continue;
       }
 
       if (this.at("kw", "align")) {
         this.parseAlignStmt(true);
         this.pendingDoc = undefined;
+        this.clearPendingMetadata();
         continue;
       }
 
@@ -856,6 +967,7 @@ class Parser {
             const doc = this.pendingDoc;
             this.pendingDoc = undefined;
             this.parseFunctionAfterKeyword(doc);
+            this.clearPendingMetadata();
             continue;
           }
           this.i = modsPos;
@@ -866,21 +978,24 @@ class Parser {
         const doc = this.pendingDoc;
         this.pendingDoc = undefined;
         this.parseFunctionAfterKeyword(doc);
+        this.clearPendingMetadata();
         continue;
       }
 
       if (this.looksLikeDeclStart()) {
         this.parseVarOrArrDecl(true);
         this.pendingDoc = undefined;
+        this.clearPendingMetadata();
         continue;
       }
 
       const c = this.cur();
       this.issues.push({
-        message: "section: expected declaration/function/align/preprocessor",
+        message: "section: expected declaration/function/start/scope/align/preprocessor",
         range: rangeOf(this.lines, c.start, c.end)
       });
       this.syncToStatementEnd();
+      this.clearPendingMetadata();
     }
 
     this.expect("punc", "}", "section: expected '}'");
@@ -917,6 +1032,12 @@ class Parser {
       return;
     }
 
+    if (this.atRaw("punc", "@")) {
+      const ann = this.parseAnnotation();
+      if (ann) this.pendingAnnotations.push(ann);
+      return;
+    }
+
     if (this.at("punc", ";")) {
       this.i++;
       return;
@@ -925,6 +1046,7 @@ class Parser {
     if (this.at("punc", "{")) {
       this.parseBlock();
       this.pendingDoc = undefined;
+      this.clearPendingMetadata();
       return;
     }
 
@@ -933,12 +1055,21 @@ class Parser {
       const doc = this.pendingDoc;
       this.pendingDoc = undefined;
       this.parseFunctionAfterKeyword(doc);
+      this.clearPendingMetadata();
       return;
     }
 
     if (this.at("kw", "align")) {
       this.parseAlignStmt(false);
       this.pendingDoc = undefined;
+      this.clearPendingMetadata();
+      return;
+    }
+
+    if (this.match("kw", "start")) {
+      this.parseStartAfterKeyword();
+      this.pendingDoc = undefined;
+      this.clearPendingMetadata();
       return;
     }
 
@@ -1049,6 +1180,7 @@ class Parser {
     if (this.looksLikeDeclStart()) {
       this.parseVarOrArrDecl(false);
       this.pendingDoc = undefined;
+      this.clearPendingMetadata();
       return;
     }
 
@@ -1056,8 +1188,10 @@ class Parser {
       this.parseExpression();
       this.expect("punc", ";");
       this.pendingDoc = undefined;
+      this.clearPendingMetadata();
     } catch {
       this.syncToStatementEnd();
+      this.clearPendingMetadata();
     }
   }
 

@@ -10,13 +10,8 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
-
-#include <hir/hirgen.h>
-#include <hir/hirgens/hirgens.h>
-#include <hir/cfg.h>
-#include <hir/func.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../../misc/ast_helper.h"
+#include "../../../../misc/symtb_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -63,29 +58,25 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    hir_ctx_t hirctx = { 0 };
-    HIR_generate(&sctx, &hirctx, &smt);
-
-    cfg_ctx_t cfgctx = { .cid = 0 };
-    HIR_CFG_build(&hirctx, &cfgctx, &smt);
-
-    call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
-    HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
-
-    HIR_CFG_create_domdata(&cfgctx);
-    HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider);
-
-    hir_block_t* hh = hirctx.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt);
-        hh = hh->next;
+    map_foreach (func_info_t* fi, &smt.f.functb) {
+        printf(
+            "%sid: %li, name: %s (virt: %s), ext=%i, glob=%i, used=%i, local=%i, naked=%i, sid=%i\n", 
+            fi->flags.entry ? "[ENTRY] " : "", fi->id, fi->name->body, fi->virt->body, 
+            fi->flags.external, fi->flags.global, fi->flags.used, fi->flags.local, fi->flags.naked, fi->sid
+        );
     }
 
-    HIR_CG_unload(&callctx);
-    HIR_CFG_unload(&cfgctx);
-    HIR_unload_blocks(hirctx.h);
+    map_foreach (section_info_t* ti, &smt.c.sectb) {
+        printf("section='%s'", ti->name->body);
+        if (set_size(&ti->func)) {
+            printf(", ");
+            set_foreach (symbol_id_t id, &ti->func) {
+                printf("%li ", id);
+            }
+        }
+        printf("\n");
+    }
+
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 

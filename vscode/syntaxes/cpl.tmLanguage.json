@@ -4,6 +4,7 @@
   "fileTypes": ["cpl"],
   "patterns": [
     { "include": "#comments" },
+    { "include": "#annotations" },
     { "include": "#preprocessor" },
     { "include": "#strings" },
     { "include": "#numbers" },
@@ -26,6 +27,24 @@
           "endCaptures": {
             "0": { "name": "punctuation.definition.comment.end.cpl" }
           }
+        }
+      ]
+    },
+
+    "annotations": {
+      "patterns": [
+        {
+          "name": "meta.annotation.cpl",
+          "begin": "@(\\[)",
+          "beginCaptures": {
+            "0": { "name": "meta.annotation.cpl" },
+            "1": { "name": "punctuation.definition.annotation.begin.cpl" }
+          },
+          "end": "(\\])",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.annotation.end.cpl" }
+          },
+          "contentName": "storage.type.annotation.cpl"
         }
       ]
     },

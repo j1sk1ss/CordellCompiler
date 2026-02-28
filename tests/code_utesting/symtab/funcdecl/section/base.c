@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     SMT_init(&smt);
 
     ast_ctx_t sctx;
-    AST_init_ctx(&sctx, "_main");
+    AST_init_ctx(&sctx);
 
     if (!AST_parse_tokens(&tokens, &sctx, &smt)) {
         fprintf(stderr, "AST tree creation error!\n");

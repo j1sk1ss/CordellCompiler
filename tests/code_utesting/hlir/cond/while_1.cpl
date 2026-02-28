@@ -11,7 +11,7 @@
 }
 
 : OUTPUT
-BB{X}: fn foo0() -> i0
+BB{X}: fn _main0() -> i0
 BB{X}: lb4:
 cmp $1, 0;
 je lb6;
