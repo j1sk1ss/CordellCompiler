@@ -35,7 +35,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
 
 static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node || !node->token) return 0;
-    if (TKN_isdecl(node->token)) return HIR_generate_declaration_block(node, ctx, smt);
+    if (TKN_is_decl(node->token)) return HIR_generate_declaration_block(node, ctx, smt);
     if (
         TKN_update_operator(node->token) && node->token->t_type != ASSIGN_TOKEN
     ) return HIR_generate_update_block(node, ctx, smt);

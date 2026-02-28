@@ -34,6 +34,9 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
 
     hir_subject_t* lt1 = HIR_generate_elem(left, ctx, smt);
     switch (op->t->t_type) {
+        /* Lazy OR generation.
+           If the first subject is 1, we can skip the evaluation of the second
+           subject (the whole expression is 1 now). */
         case OR_TOKEN: {
             hir_subject_t* true_lb  = HIR_SUBJ_LABEL();
             hir_subject_t* false_lb = HIR_SUBJ_LABEL();
@@ -56,7 +59,9 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
             HIR_BLOCK1(ctx, HIR_MKLB, end_lb);
             break;
         }
-
+        /* Lazy AND generation.
+           If the first subject is 0, we can skip the evaluation of the second
+           subject (the whole expression is 0 now). */
         case AND_TOKEN: {
             hir_subject_t* true_lb  = HIR_SUBJ_LABEL();
             hir_subject_t* false_lb = HIR_SUBJ_LABEL();
@@ -79,7 +84,6 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
             HIR_BLOCK1(ctx, HIR_MKLB, end_lb);
             break;
         }
-
         default: {
             hir_subject_t* lt2 = HIR_generate_elem(right, ctx, smt);
             res = HIR_SUBJ_TMPVAR(

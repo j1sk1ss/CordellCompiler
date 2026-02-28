@@ -37,22 +37,21 @@
                 {
                     i32t %4 = num? 2 as i32;
                     i32s %13 = i32t %4;
+                    // break;
                     future: i32s %14 = previous: i32s %13;
                     goto lb9;
                 }
                 lb22:
-                [i32s %0] i32s %16 = phi(set [{X}][{X}][{X}]);
                 {
                     i32t %5 = num? 3 as i32;
-                    i32s %17 = i32t %5;
+                    i32s %16 = i32t %5;
                 }
-                future: i32s %14 = previous: i32s %17;
+                future: i32s %14 = previous: i32s %16;
                 goto lb9;
                 lb8:
                 i8t %6 = num? 1 < cnst? 1;
                 if i8t %6, goto lb29, else goto lb30;
                 lb29:
-                future: i32s %16 = previous: i32s %10;
                 goto lb22;
                 lb30:
                 i8t %7 = num? 1 > cnst? 1;
@@ -61,13 +60,11 @@
                 i8t %8 = num? 1 < cnst? 2;
                 if i8t %8, goto lb37, else goto lb38;
                 lb37:
-                future: i32s %16 = previous: i32s %10;
                 goto lb22;
                 lb38:
                 i8t %9 = num? 1 > cnst? 2;
                 if i8t %9, goto lb39, else goto lb40;
                 lb39:
-                future: i32s %16 = previous: i32s %10;
                 goto lb22;
                 lb40:
                 future: i32s %12 = previous: i32s %10;

@@ -1,8 +1,9 @@
 /* Declaration statement parser.
-   - <type> <name> = decl */
+   - <type> <name> = decl; */
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
@@ -13,23 +14,34 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
     }
 
     forward_token(it, 1);
-    ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
-    if (!name_node) {
+    ast_node_t* name = AST_create_node(CURRENT_TOKEN);
+    if (!name) {
         PARSE_ERROR("Can't create a node for the variable's name! <type> <name>!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
     
-    AST_add_node(node, name_node);
+    AST_add_node(node, name);
 
-    long decl_scope;
-    stack_top(&ctx->scopes.stack, (void**)&decl_scope);
-    name_node->sinfo.v_id = VRTB_add_info(name_node->t->body, node->t->t_type, decl_scope, &name_node->t->flags, &smt->v);
-    if (node->t->t_type == STR_TYPE_TOKEN) ARTB_add_info(name_node->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a);
+    stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, node->t->t_type, name->sinfo.s_id, &name->t->flags, &smt->v);
+    if (
+        node->t->t_type == STR_TYPE_TOKEN
+    ) ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a);
 
-    forward_token(it, 1);
-    if (CURRENT_TOKEN->t_type == ASSIGN_TOKEN) {
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL };
+    ANNOT_read_annotations(&ctx->annots, &annots);
+    VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
+    if (
+        name->t->flags.glob || 
+        name->t->flags.ro
+    ) {
+        if (!annots.section) annots.section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
+        SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
+    }
+
+    if (consume_token(it, ASSIGN_TOKEN)) {
         forward_token(it, 1);
         ast_node_t* value_node = cpl_parse_expression(it, ctx, smt, 1);
         if (!value_node) {
@@ -44,7 +56,7 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
                                                     Also, we can't separate the string from a variable given the
                                                     ability of string arguments, etc. */
             ARTB_update_info(
-                name_node->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, 
+                name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, 
                 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a
             );
             
@@ -54,6 +66,7 @@ ast_node_t* cpl_parse_variable_declaration(list_iter_t* it, ast_ctx_t* ctx, sym_
         AST_add_node(node, value_node);
     }
 
-    var_lookup(name_node, ctx, smt);
+    ANNOT_destroy_summary(&annots);
+    var_lookup(name, ctx, smt);
     return node;
 }

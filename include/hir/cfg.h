@@ -32,6 +32,7 @@ typedef struct {
     lir_map_t    lmap;     /* Mapping to existed LIR ctx */
 
     /* CFG data */
+    set_t        locals;  /* Local functions              */
     set_t        leaders; /* Leaders for block generation */
     list_t       blocks;  /* cfg_block_t* list            */
 } cfg_func_t;
@@ -80,9 +81,12 @@ typedef struct cfg_block {
 } cfg_block_t;
 
 typedef struct {
-    long   cid;
-    list_t funcs; /* Function blocks                */
-    list_t out;   /* HIR blocks out from a function */
+    long       cid;
+    list_t     funcs; /* Function blocks                */
+    struct {
+        list_t hout;   /* HIR blocks out from a function */
+        list_t lout;
+    } outs;
 } cfg_ctx_t;
 
 /*
@@ -257,5 +261,17 @@ Params:
 Return 1 if success, otherwise 0.
 */
 int HIR_CFG_unload(cfg_ctx_t* ctx);
+
+/*
+Get next instruction from a function block.
+Params:
+    - `curr` - Current instruction.
+    - `fb` - Function block.
+    - `opt_exit` - Optional exit block. By default the fb exit is used.
+    - `skip` - How many we need to skip? (0 means return the start inst from fb).
+
+Returns next instruction or NULL is there is no instructions. 
+*/
+hir_block_t* HIR_FUNC_get_next(hir_block_t* curr, cfg_func_t* fb, hir_block_t* opt_exit, int skip);
 
 #endif

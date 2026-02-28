@@ -1,9 +1,72 @@
 /* Main parser logic / navigation */
 #include <ast/astgen/astgen.h>
 
+typedef struct {
+    ast_node_t*         (*handler)(PARSER_ARGS);
+    const token_type_t* types;
+    int                 types_count;
+    long                dcarry;
+} handler_t;
+
+/* Handler for token type parsing */
+#define HANDLER(func, carry, ...)                                                                \
+    {                                                                                            \
+        .handler = func,                                                                         \
+        .dcarry  = carry,                                                                        \
+        .types = (const token_type_t[]){ __VA_ARGS__ },                                          \
+        .types_count = (int)sizeof((const token_type_t[]){ __VA_ARGS__ }) / sizeof(token_type_t) \
+    }
+
+/* Token handlers. The main point where the parser decide which parser
+must be invoked for the provided token.
+Note: ! If you're extending the parser, add a new handler here ! */
+static const handler_t handlers[] = {
+    HANDLER(cpl_parse_annot,             0, ANNOTATION_TOKEN),
+    HANDLER(cpl_parse_section,           0, SECTION_TOKEN),
+    HANDLER(cpl_parse_align,             0, ALIGN_TOKEN),
+    HANDLER(cpl_parse_start,             0, START_TOKEN),
+    HANDLER(cpl_parse_asm,               0, ASM_TOKEN),
+    HANDLER(cpl_parse_scope,             1, OPEN_BLOCK_TOKEN),
+    HANDLER(cpl_parse_switch,            0, SWITCH_TOKEN),
+    HANDLER(cpl_parse_if,                0, IF_TOKEN),
+    HANDLER(cpl_parse_while,             0, WHILE_TOKEN),
+    HANDLER(cpl_parse_loop,              0, LOOP_TOKEN),
+    HANDLER(cpl_parse_break,             0, BREAK_TOKEN),
+    HANDLER(cpl_parse_syscall,           0, SYSCALL_TOKEN),
+    HANDLER(cpl_parse_breakpoint,        0, BREAKPOINT_TOKEN),
+    HANDLER(cpl_parse_extern,            0, EXTERN_TOKEN),
+    HANDLER(cpl_parse_import,            0, IMPORT_SELECT_TOKEN),
+    HANDLER(cpl_parse_funccall,          0, CALL_TOKEN),
+    HANDLER(cpl_parse_poparg,            0, POPARG_TOKEN),
+    HANDLER(cpl_parse_function,          0, FUNC_TOKEN),
+    HANDLER(cpl_parse_exit,              0, EXIT_TOKEN),
+    HANDLER(cpl_parse_return,            0, RETURN_TOKEN),
+    HANDLER(cpl_parse_array_declaration, 0, ARRAY_TYPE_TOKEN),
+    HANDLER(
+        cpl_parse_variable_declaration, 0,
+        STR_TYPE_TOKEN, F32_TYPE_TOKEN, F64_TYPE_TOKEN,
+        I8_TYPE_TOKEN, I16_TYPE_TOKEN, I32_TYPE_TOKEN, I64_TYPE_TOKEN,
+        U8_TYPE_TOKEN, U16_TYPE_TOKEN, U32_TYPE_TOKEN, U64_TYPE_TOKEN,
+        I0_TYPE_TOKEN
+    ),
+    HANDLER(
+        cpl_parse_expression, 0,
+        VARIABLE_TOKEN,
+        NEGATIVE_TOKEN,
+        REF_TYPE_TOKEN, DREF_TYPE_TOKEN,
+        STR_VARIABLE_TOKEN, ARR_VARIABLE_TOKEN,
+        I0_VARIABLE_TOKEN, I8_VARIABLE_TOKEN, I16_VARIABLE_TOKEN, I32_VARIABLE_TOKEN, I64_VARIABLE_TOKEN,
+        F32_VARIABLE_TOKEN, F64_VARIABLE_TOKEN,
+        U8_VARIABLE_TOKEN, U16_VARIABLE_TOKEN, U32_VARIABLE_TOKEN, U64_VARIABLE_TOKEN,
+        OPEN_BRACKET_TOKEN,
+        UNKNOWN_STRING_TOKEN,
+        UNKNOWN_FLOAT_NUMERIC_TOKEN,
+        UNKNOWN_NUMERIC_TOKEN
+    ),
+};
+
 /*
 Parsers collection navigation.
-Note: New parsers must be registered Here!
 Params:
     - `it` - Current iterator.
     - `ctx` - AST context.
@@ -11,129 +74,24 @@ Params:
 
 Returns an AST node.
 */
-static ast_node_t* _navigation_handler(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
-    switch (CURRENT_TOKEN->t_type) {
-                                    /* start_function = "start" , "(" , [ param_list ] , ")" , block ; */
-        case START_TOKEN:           return cpl_parse_start(it, ctx, smt);
-                                    /* asm_block = "asm" , "(" , [ asm_args ] , ")" , "{" , { asm_line } , "}" ;
-                                       asm_args  = asm_arg , { "," , asm_arg } ;
-                                       asm_arg   = identifier | literal ;
-                                       asm_line  = string_literal , [ "," ] ; */
-        case ASM_TOKEN:             return cpl_parse_asm(it, ctx, smt);
-                                    /* program = "{" , { top_item } , "}" ; */
-        case OPEN_BLOCK_TOKEN:      return cpl_parse_scope(it, ctx, smt);
-        case STR_TYPE_TOKEN:
-        case F32_TYPE_TOKEN:
-        case F64_TYPE_TOKEN:
-        case I8_TYPE_TOKEN:
-        case I16_TYPE_TOKEN:      
-        case I32_TYPE_TOKEN:
-        case I64_TYPE_TOKEN:
-        case U8_TYPE_TOKEN:
-        case U16_TYPE_TOKEN:
-        case U32_TYPE_TOKEN:        /* type = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
-                                                | "str"
-                                                | "arr" , "[" , integer_literal , "," , type , "]"
-                                                | "ptr" , type ; */
-        case U64_TYPE_TOKEN:        return cpl_parse_variable_declaration(it, ctx, smt);
-                                    /* switch_statement = "switch" , "(" , expression , ")" , "{" , { case_block } , [ default_block ] , "}" ;
-                                       case_block       = "case" , literal , ";" , block ;
-                                       default_block    = "default" , block ; */
-        case SWITCH_TOKEN:          return cpl_parse_switch(it, ctx, smt);
-                                    /* if_statement = "if" , expression , ";" , block , [ "else" , block ] ; */
-        case IF_TOKEN:              return cpl_parse_if(it, ctx, smt);
-                                    /* while_statement = "while" , expression , ";" , block ; */
-        case WHILE_TOKEN:           return cpl_parse_while(it, ctx, smt);
-                                    /* loop_statement = "loop", block ; */
-        case LOOP_TOKEN:            return cpl_parse_loop(it, ctx, smt);
-                                    /* break_statement = "break" , ";" ; */
-        case BREAK_TOKEN:           return cpl_parse_break(it);
-        case VARIABLE_TOKEN:
-        case NEGATIVE_TOKEN:
-        case REF_TYPE_TOKEN:
-        case DREF_TYPE_TOKEN:
-        case STR_VARIABLE_TOKEN:
-        case ARR_VARIABLE_TOKEN:
-        case I8_VARIABLE_TOKEN:
-        case I16_VARIABLE_TOKEN:
-        case I32_VARIABLE_TOKEN:
-        case I64_VARIABLE_TOKEN:
-        case F32_VARIABLE_TOKEN:
-        case F64_VARIABLE_TOKEN:
-        case U8_VARIABLE_TOKEN:
-        case U16_VARIABLE_TOKEN:
-        case U32_VARIABLE_TOKEN:
-        case U64_VARIABLE_TOKEN:
-        case OPEN_BRACKET_TOKEN:
-        case UNKNOWN_STRING_TOKEN:
-        case UNKNOWN_FLOAT_NUMERIC_TOKEN: /*  expression   = assign ;
-                                        assign       = logical_or , [ "=" , assign ] ;
-
-                                        logical_or   = logical_and , { "||" , logical_and } ;
-                                        logical_and  = bit_or      , { "&&" , bit_or } ;
-
-                                        bit_or       = bit_xor     , { "|"  , bit_xor } ;
-                                        bit_xor      = bit_and     , { "^"  , bit_and } ;
-                                        bit_and      = equality    , { "&"  , equality } ;
-
-                                        equality     = relational  , { ("==" | "!=") , relational } ;
-                                        relational   = shift       , { ("<" | "<=" | ">" | ">=") , shift } ;
-                                        shift        = add         , { ("<<" | ">>") , add } ;
-                                        add          = mul         , { ("+" | "-") , mul } ;
-                                        mul          = unary       , { ("*" | "/" | "%") , unary } ;
-
-                                        unary        = unary_op , unary
-                                                       | postfix ;
-
-                                        unary_op     = "not" | "+" | "-" ;
-
-                                        postfix      = primary , { postfix_op } ;
-                                        postfix_op   = "(" , [ arg_list ] , ")"
-                                                        | "[" , expression , { "," , expression } , "]" ;
-
-                                        primary      = literal
-                                                       | identifier
-                                                       | "(" , expression , ")" ; */
-        case UNKNOWN_NUMERIC_TOKEN: return cpl_parse_expression(it, ctx, smt, 0);
-                                    /* syscall_statement = "syscall" , "(" , [ syscall_args ] , ")" , ";" ;
-                                       syscall_args      = syscall_arg , { "," , syscall_arg } ;
-                                       syscall_arg       = identifier | literal ; */
-        case SYSCALL_TOKEN:         return cpl_parse_syscall(it, ctx, smt);
-                                    /* lis_statement = "lis" , ";" ; */
-        case BREAKPOINT_TOKEN:      return cpl_parse_breakpoint(it, smt);
-                                    /* extern_op          = "extern" , ( function_prototype | var_prototype ) ;
-                                       var_prototype      = type , identifier ;
-                                       function_prototype = "exfunc" , identifier ; */
-        case EXTERN_TOKEN:          return cpl_parse_extern(it, ctx, smt);
-                                    /* import_op      = "from" , string_literal , "import" , [ import_list ] ;
-                                       import_list    = import_item , { "," , import_item } ;
-                                       import_item    = identifier ; */
-        case IMPORT_SELECT_TOKEN:   return cpl_parse_import(it, smt);
-                                    /* arr_decl       = "arr" , identifier , "[" , identifier | literal , type ,  "]" , [ "=" , expression | arr_value ] , ";" ;
-                                       arr_value      = "{" , [arr_value_list] ,  "}" ;
-                                       arr_value_list =  arr_elem , { "," , arr_elem  } ;
-                                       arr_elem       = identifier | literal ; */
-        case ARRAY_TYPE_TOKEN:      return cpl_parse_array_declaration(it, ctx, smt);
-                                    /* postfix        = primary , { postfix_op } ;
-                                       postfix_op     = "(" , [ arg_list ] , ")"
-                                                   | "[" , expression , { "," , expression } , "]" ; */
-        case CALL_TOKEN:            return cpl_parse_funccall(it, ctx, smt);
-        case POPARG_TOKEN:          return cpl_parse_poparg(it);
-                                    /* function_def   = "function" , identifier , "(" , [ param_list ] , ")" , "->" , type , block ; */
-        case FUNC_TOKEN:            return cpl_parse_function(it, ctx, smt);
-                                    /* exit_statement   = "exit" , expression , ";" ; */
-        case EXIT_TOKEN:            return cpl_parse_exit(it, ctx, smt);
-                                    /* return_statement = "return" , [ expression ] , ";" ; */
-        case RETURN_TOKEN:          return cpl_parse_return(it, ctx, smt);
-        default:                    return NULL;
+static ast_node_t* _navigation_handler(PARSER_ARGS) {
+    PARSER_ARGS_USE;
+    for (int i = 0; i < (int)(sizeof(handlers) / sizeof(handlers[0])); i++) {
+        for (int j = 0; j < handlers[i].types_count; j++) {
+            if (handlers[i].types[j] == CURRENT_TOKEN->t_type) {
+                return handlers[i].handler(it, ctx, smt, handlers[i].dcarry);
+            }
+        }
     }
+
+    return NULL;
 }
 
-ast_node_t* cpl_parse_element(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
-    return _navigation_handler(it, ctx, smt);
+ast_node_t* cpl_parse_element(PARSER_ARGS) {
+    return _navigation_handler(it, ctx, smt, carry);
 }
 
-ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, token_type_t ex) {
+ast_node_t* cpl_parse_block(PARSER_ARGS) {
     SAVE_TOKEN_POINT;
 
     ast_node_t* node = AST_create_node_bt(CREATE_SCOPE_TOKEN);
@@ -143,8 +101,8 @@ ast_node_t* cpl_parse_block(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, t
         return NULL;
     }
 
-    while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != ex) {
-        ast_node_t* block = cpl_parse_element(it, ctx, smt);
+    while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != carry) {
+        ast_node_t* block = cpl_parse_element(it, ctx, smt, carry);
         if (block) AST_add_node(node, block);  /* If we parse succesfully, add a product to the body */
         else if (!forward_token(it, 1)) break; /* If there is a error, proceed the next token        */
     }

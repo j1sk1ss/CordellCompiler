@@ -4,6 +4,7 @@
   "fileTypes": ["cpl"],
   "patterns": [
     { "include": "#comments" },
+    { "include": "#annotations" },
     { "include": "#preprocessor" },
     { "include": "#strings" },
     { "include": "#numbers" },
@@ -26,6 +27,24 @@
           "endCaptures": {
             "0": { "name": "punctuation.definition.comment.end.cpl" }
           }
+        }
+      ]
+    },
+
+    "annotations": {
+      "patterns": [
+        {
+          "name": "meta.annotation.cpl",
+          "begin": "@(\\[)",
+          "beginCaptures": {
+            "0": { "name": "meta.annotation.cpl" },
+            "1": { "name": "punctuation.definition.annotation.begin.cpl" }
+          },
+          "end": "(\\])",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.annotation.end.cpl" }
+          },
+          "contentName": "storage.type.annotation.cpl"
         }
       ]
     },
@@ -62,7 +81,7 @@
         },
         {
           "name": "keyword.control.cpl",
-          "match": "\\b(start|exit|return|if|else|loop|while|switch|case|default|break|poparg)\\b"
+          "match": "\\b(start|exit|return|if|else|loop|while|switch|case|default|break)\\b"
         },
         {
           "name": "keyword.other.import.cpl",
@@ -70,18 +89,22 @@
         },
         {
           "name": "keyword.other.extern.cpl",
-          "match": "\\b(extern|exfunc)\\b"
+          "match": "\\bextern\\b"
+        },
+        {
+          "name": "keyword.other.layout.cpl",
+          "match": "\\b(section|align)\\b"
         },
         {
           "name": "keyword.other.cpl",
-          "match": "\\b(syscall|asm|lis)\\b"
+          "match": "\\b(syscall|asm|lis|poparg)\\b"
         },
         {
           "name": "keyword.other.operatorlike.cpl",
           "match": "\\b(as|ref|dref|not)\\b"
         }
       ]
-    },    
+    },
 
     "types": {
       "patterns": [
@@ -113,7 +136,7 @@
         },
         {
           "name": "entity.name.function.call.cpl",
-          "match": "\\b(?!if\\b|while\\b|switch\\b|asm\\b|syscall\\b|start\\b|function\\b)[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()"
+          "match": "\\b(?!if\\b|while\\b|switch\\b|asm\\b|syscall\\b|start\\b|function\\b|section\\b|align\\b)[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()"
         }
       ]
     },
@@ -134,6 +157,10 @@
     "numbers": {
       "patterns": [
         {
+          "name": "constant.numeric.float.cpl",
+          "match": "\\b(?:[0-9]+\\.[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?\\b|\\b[0-9]+[eE][+-]?[0-9]+\\b"
+        },
+        {
           "name": "constant.numeric.integer.cpl",
           "match": "\\b(0[xX][0-9a-fA-F]+|0[bB][01]+|[0-9]+)\\b"
         }
@@ -144,14 +171,28 @@
       "patterns": [
         {
           "name": "variable.other.definition.cpl",
-          "match": "\\b(?:f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str|arr|ptr)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "match": "\\barr\\s+([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*\\[)",
           "captures": {
             "1": { "name": "variable.other.definition.cpl" }
           }
         },
         {
           "name": "variable.other.definition.cpl",
-          "match": "\\barr\\s+([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "match": "\\barr\\s*\\[[^\\]\\r\\n]+\\]\\s+([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*(?:=|;|,|\\)))",
+          "captures": {
+            "1": { "name": "variable.other.definition.cpl" }
+          }
+        },
+        {
+          "name": "variable.other.definition.cpl",
+          "match": "\\b(?:ptr\\s+)+(?:f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*(?:=|;|,|\\)|\\[))",
+          "captures": {
+            "1": { "name": "variable.other.definition.cpl" }
+          }
+        },
+        {
+          "name": "variable.other.definition.cpl",
+          "match": "\\b(?:f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*(?:=|;|,|\\)|\\[))",
           "captures": {
             "1": { "name": "variable.other.definition.cpl" }
           }

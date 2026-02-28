@@ -61,8 +61,7 @@ typedef struct hir_block {
     hir_subject_t*    farg;
     hir_subject_t*    sarg;
     hir_subject_t*    targ;
-    int               args;
-    char              unused;
+    char              unused : 1;
 } hir_block_t;
 
 typedef struct {
@@ -71,7 +70,7 @@ typedef struct {
     struct {
         void*    ptr;   /* pointer to a break target               */
         long     val1;  /* function's argument number              */
-        long     val2;  /* free                                    */
+        long     val2;  /* function's argument load operation      */
     } carry;            /* Additional carry for any specific data  */
 } hir_ctx_t;
 

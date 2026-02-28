@@ -4,6 +4,7 @@
 #include <symtab/symtab.h>
 #include <lir/lir.h>
 #include <lir/lir_types.h>
+#include "ast_helper.h"
 #include "reg_helper.h"
 
 static const char* lir_op_to_fmtstring(lir_operation_t op) {
@@ -63,7 +64,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_TU16:       return "%s = %s as u16;\n";
         case LIR_TU8:        return "%s = %s as u8;\n";
 
-        case LIR_NEG:
+        case LIR_NEG:        return "not %s;\n";
         case LIR_NOT:        return "%s = !%s;\n";
 
         case LIR_INC:        return "%s++;\n";
@@ -107,7 +108,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_GDREF:      return "%s = *(%s);\n";
         case LIR_LDREF:      return "*(%s) = %s;\n";
 
-        case LIR_RAW:        return "[raw] (link: %s);\n";
+        case LIR_RAW:        return "[raw] (link: %s), arg[%s];\n";
         case LIR_BREAKPOINT: return "== == brk %s == ==\n";
         case LIR_VRUSE:      return "use %s;\n";
         case LIR_EXITOP:     return "exit %s;\n";
@@ -124,7 +125,6 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
             dst += sprintf(dst, "[rbp %s %ld]", off > 0 ? "-" : "+", ABS(off)); 
             break;
         }
-
         case LIR_REGISTER: dst += sprintf(dst, "%s", register_to_string(s->storage.reg.reg)); break;
         case LIR_GLVARIABLE: {
             variable_info_t vi;
@@ -134,12 +134,10 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
 
             break;
         }
-
         case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);       break;
         case LIR_NUMBER:   dst += sprintf(dst, "$%s", s->storage.num.value->body);  break;
         case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value);       break;
         case LIR_LABEL:    dst += sprintf(dst, "lb%ld", s->storage.lb.lb_id);       break;
-
         case LIR_RAWASM:
         case LIR_STRING: {
             str_info_t si;
@@ -149,7 +147,6 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
 
             break;
         }
-
         case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(s->storage.str.sid, &fi, &smt->f)) {
@@ -178,7 +175,6 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
 
             break;
         }
-
         default: dst += sprintf(dst, "unknw"); break;
     }
 

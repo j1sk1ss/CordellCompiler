@@ -1,6 +1,7 @@
 #ifndef HIR_TYPES_H_
 #define HIR_TYPES_H_
 
+#include <config.h>
 #include <symtab/vartb.h>
 #include <prep/token_types.h>
 
@@ -123,6 +124,7 @@ typedef enum hir_subject_type {
     HIR_TMPVARI16,
     HIR_TMPVARU8,
     HIR_TMPVARI8,
+    HIR_TMPVARI0,
 
     HIR_GLBVARSTR, // global variables
     HIR_GLBVARARR,
@@ -136,6 +138,7 @@ typedef enum hir_subject_type {
     HIR_GLBVARI16,
     HIR_GLBVARU8,
     HIR_GLBVARI8,
+    HIR_GLBVARI0,
 
     HIR_STKVARSTR, // local (stack) variables
     HIR_STKVARARR,
@@ -148,7 +151,8 @@ typedef enum hir_subject_type {
     HIR_STKVARU16,
     HIR_STKVARI16,
     HIR_STKVARU8,
-    HIR_STKVARI8,  // var.id
+    HIR_STKVARI8,
+    HIR_STKVARI0,  // var.id
 
     HIR_CONSTVAL,  // cnst.value
     HIR_F64CONSTVAL,
@@ -189,17 +193,19 @@ hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr);
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi);
 hir_subject_type_t HIR_get_token_stktype(token_t* tkn, int ptr);
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
-int HIR_isjmp(hir_operation_t op);
+int HIR_is_sign(hir_subject_type_t t);
+int HIR_is_jmp(hir_operation_t op);
 int HIR_is_vartype(hir_subject_type_t t);
 int HIR_is_arrtype(hir_subject_type_t t);
 int HIR_is_tmptype(hir_subject_type_t t);
-int HIR_writeop(hir_operation_t op);
-int HIR_isterm(hir_operation_t op);
-int HIR_issyst(hir_operation_t op);
+int HIR_is_conv(hir_operation_t op);
+int HIR_is_writeop(hir_operation_t op);
+int HIR_is_term(hir_operation_t op);
+int HIR_is_syst(hir_operation_t op);
+int HIR_is_commutative_op(hir_operation_t op);
+int HIR_is_defined_type(hir_subject_type_t t);
 hir_operation_t HIR_convop(hir_subject_type_t t);
 int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
-int HIR_commutative_op(hir_operation_t op);
-int HIR_defined_type(hir_subject_type_t t);
 int HIR_sideeffect_op(hir_operation_t op);
 token_type_t HIR_get_tmptkn_type(hir_subject_type_t t);
 int HIR_is_float(hir_subject_type_t t);

@@ -1,5 +1,3 @@
 # LIR generator
-- `misc/` - Special tools for `LIR` generation.
-- `asm_lirgen.c` - Functions for inline asm generation.
-- `func_lirgen.c` - Functions for generation function `HIR` commands.
-- `common_lirgen.c` - Entry point of `LIR` generator.
+- `main_lirgen.c` - Main logic of LHIR to HLIR convertion. 
+- `vargen.c` - LHIR subjects to HLIR subjects convertion.

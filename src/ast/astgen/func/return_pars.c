@@ -1,6 +1,7 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_return(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_return(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
@@ -16,14 +17,14 @@ ast_node_t* cpl_parse_return(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
         return node;
     }
 
-    ast_node_t* exp_node = cpl_parse_expression(it, ctx, smt, 1);
-    if (!exp_node) {
+    ast_node_t* value = cpl_parse_expression(it, ctx, smt, 1);
+    if (value) AST_add_node(node, value);
+    else {
         PARSE_ERROR("Error during the return statement! return <stmt>!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    AST_add_node(node, exp_node);
     return node;
 }

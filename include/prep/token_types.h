@@ -52,6 +52,7 @@ typedef enum {
     TMP_U32_TYPE_TOKEN,  // tmp_u32
     TMP_U16_TYPE_TOKEN,  // tmp_u16
     TMP_U8_TYPE_TOKEN,   // tmp_u8
+    TMP_I0_TYPE_TOKEN,   // tmp_i0
 
     I0_TYPE_TOKEN,       // i0
     F64_TYPE_TOKEN,      // f64
@@ -79,6 +80,7 @@ typedef enum {
     EXIT_TOKEN,          // exit
     RETURN_TYPE_TOKEN,   // ->
     SCOPE_TOKEN,         // {  }
+    ANNOTATION_TOKEN,    // @
 
     // Function
     ASM_TOKEN,           // asm
@@ -89,7 +91,9 @@ typedef enum {
     FUNC_NAME_TOKEN,     // function <name>
     CALL_TOKEN,          // fname(...)
     ADDR_CALL_TOKEN,     // something(...) - doesn't support default args, etc, but can handle addr to anything
-    CALL_ADDR,           // fname without () operation. Means that we're working with the address of a function
+    CALL_ADDR_TOKEN,     // fname without () operation. Means that we're working with the address of a function
+    SECTION_TOKEN,       // section(".bss")
+    ALIGN_TOKEN,         // align(4)
     
     // Condition scope
     SWITCH_TOKEN,        // switch
@@ -139,6 +143,7 @@ typedef enum {
     I32_VARIABLE_TOKEN,  // i32
     I16_VARIABLE_TOKEN,  // i16
     I8_VARIABLE_TOKEN,   // i8
+    I0_VARIABLE_TOKEN,   // i0
     U64_VARIABLE_TOKEN,  // u64
     U32_VARIABLE_TOKEN,  // u32
     U16_VARIABLE_TOKEN,  // u16
@@ -177,18 +182,26 @@ typedef struct {
 
 token_type_t TKN_get_tmp_type(token_type_t t);
 int TKN_istmp_type(token_type_t t);
-int TKN_variable_bitness(token_t* token, char ptr);
+
+typedef enum {
+    TYPE_FULL_SIZE    = 4, /* For instance x86_64: 64-bit */
+    TYPE_HALF_SIZE    = 3, /* 32-bit                      */
+    TYPE_QUARTER_SIZE = 2, /* 16-bit                      */
+    TYPE_EIGHTH_SIZE  = 1  /* 8-bit                       */
+} type_size_t;
+
+type_size_t TKN_variable_bitness(token_t* token, char ptr);
 int TKN_isptr(token_t* token);
 int TKN_one_slot(token_t* token);
 int TKN_instack(token_t* token);
 int TKN_isblock(token_t* token);
-int TKN_isdecl(token_t* token);
+int TKN_is_decl(token_t* token);
 int TKN_isclose(token_t* token);
 int TKN_isoperand(token_t* token);
 int TKN_token_priority(token_t* token);
 int TKN_isnumeric(token_t* token);
 int TKN_isvariable(token_t* token);
-int TKN_issign(token_t* token);
+int TKN_is_sign(token_t* token, char ptr);
 int TKN_is_float(token_t* token);
 int TKN_update_operator(token_t* token);
 token_type_t TKN_get_var_from_type(token_type_t t);

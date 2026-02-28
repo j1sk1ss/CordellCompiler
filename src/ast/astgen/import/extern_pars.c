@@ -2,7 +2,8 @@
    - extern <type> <something> */
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+ast_node_t* cpl_parse_extern(PARSER_ARGS) {
+    PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
     /* extern */
@@ -16,13 +17,13 @@ ast_node_t* cpl_parse_extern(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) 
     /* extern <something> */
     forward_token(it, 1);
     ast_node_t* arg = NULL;
-    if (TKN_isdecl(CURRENT_TOKEN)) {
-        arg = cpl_parse_variable_declaration(it, ctx, smt);
+    if (TKN_is_decl(CURRENT_TOKEN)) {
+        arg = cpl_parse_variable_declaration(it, ctx, smt, carry);
         arg->t->flags.ext = 1;
     }
     else if (CURRENT_TOKEN->t_type == FUNC_TOKEN) {
-        arg = cpl_parse_function(it, ctx, smt);
-        if (!FNTB_update_info(arg->c->sinfo.v_id, -1, -1, 1, NULL, NULL, &smt->f)) {
+        arg = cpl_parse_function(it, ctx, smt, carry);
+        if (!FNTB_update_info(arg->c->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, NULL, NULL, &smt->f)) {
             PARSE_ERROR("Function update error!");
             AST_unload(arg);
             AST_unload(node);

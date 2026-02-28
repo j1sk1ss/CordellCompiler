@@ -42,7 +42,6 @@ Returns an AST node.
 */
 static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int mp, int na) {
     SAVE_TOKEN_POINT;
-    
     ast_node_t* left = _parse_primary(it, ctx, smt, na);
     if (!left) {
         RESTORE_TOKEN_POINT;
@@ -51,62 +50,51 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
     
     while (CURRENT_TOKEN) {
         switch (CURRENT_TOKEN->t_type) {
-            /* Indexation token */
-            case OPEN_INDEX_TOKEN: {
-                forward_token(it, 1);
-                ast_node_t* index_op   = AST_create_node_bt(CREATE_INDEX_TOKEN);
-                ast_node_t* indexation = cpl_parse_expression(it, ctx, smt, 1);
-                if (index_op && indexation) {
-                    ast_node_t* tmp = left;
-                    left = index_op;
-                    AST_add_node(left, tmp);
-                    AST_add_node(left, indexation);
-                    forward_token(it, 1);
-                    continue;
-                }
-                else {
-                    PARSE_ERROR("Error during a indexation parsing!");
-                    AST_unload(left);
-                    AST_unload(index_op);
-                    AST_unload(indexation);
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
-            }
-            /* Unknown function call operator */
+            /* Postfix tokens that are change placment in an AST tree.
+               '[]' / '()' / 'as' takes two childs: the pointer and the data. */
+            case CONVERT_TOKEN:
+            case OPEN_INDEX_TOKEN:
             case OPEN_BRACKET_TOKEN: {
-                forward_token(it, 1);
-                ast_node_t* call_op   = AST_create_node_bt(CREATE_CALL_TOKEN);
-                ast_node_t* arguments = cpl_parse_call_arguments(it, ctx, smt, NULL);
-                if (call_op && arguments) {
+                ast_node_t *target = NULL, *data = NULL;
+                switch (CURRENT_TOKEN->t_type) {
+                    case CONVERT_TOKEN: {
+                        target = cpl_parse_conv(it, ctx, smt, 0);
+                        break;
+                    }
+                    case OPEN_INDEX_TOKEN: {
+                        forward_token(it, 1);
+                        target = AST_create_node_bt(CREATE_INDEX_TOKEN);
+                        data   = cpl_parse_expression(it, ctx, smt, 1);
+                        break;
+                    }
+                    case OPEN_BRACKET_TOKEN: {
+                        forward_token(it, 1);
+                        target = AST_create_node_bt(CREATE_CALL_TOKEN);
+                        data   = cpl_parse_call_arguments(it, ctx, smt, 0);
+                        break;
+                    }
+                    default: break;
+                }
+
+                if (target) {
                     ast_node_t* tmp = left;
-                    left = call_op;
-                    AST_add_node(left, tmp);
-                    AST_add_node(left, arguments);
-                    forward_token(it, 1);
-                    continue;
+                    left = target;
+                    if (tmp) AST_add_node(left, tmp);
+                    if (data) {
+                        AST_add_node(left, data);
+                        forward_token(it, 1);
+                    }
                 }
                 else {
-                    PARSE_ERROR("Function call error!");
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
-            }
-            /* Convert operator */
-            case CONVERT_TOKEN: {
-                ast_node_t* conv_type = cpl_parse_conv(it);
-                if (conv_type) {
-                    ast_node_t* tmp = left;
-                    left = conv_type;
-                    AST_add_node(left, tmp);
-                    continue;
-                }
-                else {
-                    PARSE_ERROR("Error during a cast parsing!");
+                    PARSE_ERROR("Error during a postfix operation parsing!");
                     AST_unload(left);
+                    AST_unload(target);
+                    AST_unload(data);
                     RESTORE_TOKEN_POINT;
                     return NULL;
                 }
+
+                break;
             }
             /* Default operators such as:
                plus, minus, multiply, etc. */
@@ -165,7 +153,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         case OPEN_BRACKET_TOKEN: {
             forward_token(it, 1);
             ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
-            if (!node || !CURRENT_TOKEN || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
+            if (!node || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
                 PARSE_ERROR("Error during a binary expression parsing! The bracket wasn't closed!");
                 AST_unload(node);
                 RESTORE_TOKEN_POINT;
@@ -175,13 +163,12 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
             forward_token(it, 1);
             return node;
         }
-    
-        case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt); /* call()    */
-        case POPARG_TOKEN:    return cpl_parse_poparg(it);             /* poparg    */
-        case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt);  /* syscall() */
-        case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt);      /* neg       */
-        case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt);      /* ref       */
-        case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt);     /* dref      */
+        case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */
+        case POPARG_TOKEN:    return cpl_parse_poparg(it, ctx, smt, 0);   /* poparg    */
+        case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
+        case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */
+        case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt, 0);      /* ref       */
+        case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt, 0);     /* dref      */
         default: break;
     }
 
@@ -196,7 +183,12 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
 
     if ( /* Register a string in a string symbol table */
         node->t->t_type == STRING_VALUE_TOKEN
-    ) node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
+    ) {
+        node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
+        string_t* section = create_string(CONF_get_ro_section());
+        SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
+        destroy_string(section);
+    }
 
     var_lookup(node, ctx, smt);
     /* Check basic cases such as pointer access, 
@@ -205,6 +197,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
     return node;
 }
 
-ast_node_t* cpl_parse_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
-    return _parse_binary_expression(it, ctx, smt, 0, na);
+ast_node_t* cpl_parse_expression(PARSER_ARGS) {
+    PARSER_ARGS_USE;
+    return _parse_binary_expression(it, ctx, smt, 0, carry);
 }

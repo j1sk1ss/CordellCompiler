@@ -47,7 +47,7 @@ Params:
 
 Returns 1 if succeeds.
 */
-int AST_init_ctx(ast_ctx_t* ctx, const char* fentry);
+int AST_init_ctx(ast_ctx_t* ctx);
 
 /*
 Generate an AST tree from a list of tokens.

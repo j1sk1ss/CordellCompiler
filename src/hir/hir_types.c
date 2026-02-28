@@ -4,21 +4,22 @@ int HIR_get_type_size(hir_subject_type_t t) {
     switch (t) {
         case HIR_TMPVARI8:  case HIR_TMPVARU8:
         case HIR_STKVARI8:  case HIR_STKVARU8:
-        case HIR_GLBVARI8:  case HIR_GLBVARU8:  return 1;
+        case HIR_GLBVARI8:  case HIR_GLBVARU8:  return CONF_get_eight_bytness();
         case HIR_TMPVARI16: case HIR_TMPVARU16:
         case HIR_STKVARI16: case HIR_STKVARU16:
-        case HIR_GLBVARI16: case HIR_GLBVARU16: return 2;
+        case HIR_GLBVARI16: case HIR_GLBVARU16: return CONF_get_quart_bytness();
         case HIR_TMPVARI32: case HIR_TMPVARU32: 
         case HIR_TMPVARF32: case HIR_STKVARI32: 
         case HIR_STKVARU32: case HIR_STKVARF32:
         case HIR_GLBVARI32: case HIR_GLBVARU32: 
-        case HIR_GLBVARF32: return 4;
-        default:            return 8;
+        case HIR_GLBVARF32: return CONF_get_half_bytness();
+        default:            return CONF_get_full_bytness();
     }
 }
 
 int HIR_is_tmptype(hir_subject_type_t t) {
     switch (t) {
+        case HIR_TMPVARI0:
         case HIR_TMPVARI8: 
         case HIR_TMPVARU8:  
         case HIR_TMPVARI16: 
@@ -35,16 +36,19 @@ int HIR_is_tmptype(hir_subject_type_t t) {
 
 int HIR_is_vartype(hir_subject_type_t t) {
     switch (t) {
+        case HIR_STKVARI0: 
         case HIR_TMPVARI8:  case HIR_TMPVARU8:  
         case HIR_TMPVARI16: case HIR_TMPVARU16: 
         case HIR_TMPVARI32: case HIR_TMPVARU32: 
         case HIR_TMPVARF32: case HIR_TMPVARI64: 
         case HIR_TMPVARU64: case HIR_TMPVARF64: 
+        case HIR_TMPVARI0:
         case HIR_STKVARI8:  case HIR_STKVARU8:  
         case HIR_STKVARI16: case HIR_STKVARU16: 
         case HIR_STKVARI32: case HIR_STKVARU32: 
         case HIR_STKVARF32: case HIR_STKVARI64: 
         case HIR_STKVARU64: case HIR_STKVARF64: 
+        case HIR_GLBVARI0:
         case HIR_GLBVARI8:  case HIR_GLBVARU8:  
         case HIR_GLBVARI16: case HIR_GLBVARU16: 
         case HIR_GLBVARI32: case HIR_GLBVARU32: 
@@ -64,7 +68,7 @@ int HIR_is_arrtype(hir_subject_type_t t) {
     }
 }
 
-int HIR_defined_type(hir_subject_type_t t) {
+int HIR_is_defined_type(hir_subject_type_t t) {
     switch (t) {
         case HIR_I64NUMBER:
         case HIR_I32NUMBER:
@@ -80,21 +84,25 @@ int HIR_defined_type(hir_subject_type_t t) {
     }
 }
 
+int HIR_is_sign(hir_subject_type_t t) {
+    switch (t) {
+        case HIR_TMPVARI8: case HIR_TMPVARI16: case HIR_TMPVARI32: case HIR_TMPVARI64:
+        case HIR_STKVARI8: case HIR_STKVARI16: case HIR_STKVARI32: case HIR_STKVARI64:
+        case HIR_GLBVARI8: case HIR_GLBVARI16: case HIR_GLBVARI32: case HIR_GLBVARI64: return 1;
+        default: return 0;
+    }
+}
+
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b) {
     int size_a = HIR_get_type_size(a);
     int size_b = HIR_get_type_size(b);
-
     if (HIR_is_float(a) || HIR_is_float(b)) {
         int max_size = size_a > size_b ? size_a : size_b;
         return max_size <= 4 ? HIR_TMPVARF32 : HIR_TMPVARF64; 
     }
 
-    int issigned_a = (a == HIR_TMPVARI8 || a == HIR_TMPVARI16 || a == HIR_TMPVARI32 || a == HIR_TMPVARI64 ||
-                      a == HIR_STKVARI8 || a == HIR_STKVARI16 || a == HIR_STKVARI32 || a == HIR_STKVARI64 ||
-                      a == HIR_GLBVARI8 || a == HIR_GLBVARI16 || a == HIR_GLBVARI32 || a == HIR_GLBVARI64);
-    int issigned_b = (b == HIR_TMPVARI8 || b == HIR_TMPVARI16 || b == HIR_TMPVARI32 || b == HIR_TMPVARI64 ||
-                      b == HIR_STKVARI8 || b == HIR_STKVARI16 || b == HIR_STKVARI32 || b == HIR_STKVARI64 ||
-                      b == HIR_GLBVARI8 || b == HIR_GLBVARI16 || b == HIR_GLBVARI32 || b == HIR_GLBVARI64);
+    int issigned_a = HIR_is_sign(a);
+    int issigned_b = HIR_is_sign(b);
     int max_size = size_a > size_b ? size_a : size_b;
     if (issigned_a != issigned_b && size_a == size_b) {
         switch (max_size) {
@@ -111,94 +119,91 @@ hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b)
 
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t) {
     switch (t) {
+        case HIR_TMPVARI0: 
+        case HIR_STKVARI0: 
+        case HIR_GLBVARI0:  return HIR_TMPVARI0; 
         case HIR_TMPVARI8: 
         case HIR_STKVARI8: 
-        case HIR_GLBVARI8: return HIR_TMPVARI8;
-        
+        case HIR_GLBVARI8:  return HIR_TMPVARI8;
         case HIR_TMPVARI16: 
         case HIR_STKVARI16: 
         case HIR_GLBVARI16: return HIR_TMPVARI16;
-        
         case HIR_TMPVARI32: 
         case HIR_STKVARI32: 
         case HIR_GLBVARI32: return HIR_TMPVARI32;
-        
-        case HIR_TMPVARI64: 
-        case HIR_STKVARI64: 
-        case HIR_GLBVARI64: return HIR_TMPVARI64;
-
         case HIR_TMPVARU8: 
         case HIR_STKVARU8: 
-        case HIR_GLBVARU8: return HIR_TMPVARU8;
-        
+        case HIR_GLBVARU8:  return HIR_TMPVARU8;
         case HIR_TMPVARU16: 
         case HIR_STKVARU16: 
         case HIR_GLBVARU16: return HIR_TMPVARU16;
-        
         case HIR_TMPVARU32: 
         case HIR_STKVARU32: 
         case HIR_GLBVARU32: return HIR_TMPVARU32;
-        
         case HIR_TMPVARU64: 
         case HIR_STKVARU64: 
         case HIR_GLBVARU64: return HIR_TMPVARU64;
-
         case HIR_TMPVARF32: 
         case HIR_STKVARF32: 
         case HIR_GLBVARF32: return HIR_TMPVARF32;
-        
         case HIR_TMPVARF64: 
         case HIR_STKVARF64: 
         case HIR_GLBVARF64: return HIR_TMPVARF64;
-
-        default: return HIR_TMPVARI64;
+        default:            return HIR_TMPVARI64;
     }
 }
 
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
     if (!token) return HIR_TMPVARI64;
-    int bitness  = TKN_variable_bitness(token, ptr);
-    int isfloat  = TKN_is_float(token);
-    int issigned = TKN_issign(token) || !ptr;
+    if (
+        token->t_type == I0_TYPE_TOKEN ||
+        token->t_type == I0_VARIABLE_TOKEN
+    ) return HIR_TMPVARI0;
+
+    type_size_t bitness = TKN_variable_bitness(token, ptr);
+    int isfloat         = TKN_is_float(token);
+    int issigned        = TKN_is_sign(token, ptr);
     if (!isfloat) {
         switch (bitness) {
-            case 8:  return issigned ? HIR_TMPVARI8  : HIR_TMPVARU8;
-            case 16: return issigned ? HIR_TMPVARI16 : HIR_TMPVARU16;
-            case 32: return issigned ? HIR_TMPVARI32 : HIR_TMPVARU32;
+            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_TMPVARI8  : HIR_TMPVARU8;
+            case TYPE_QUARTER_SIZE: return issigned ? HIR_TMPVARI16 : HIR_TMPVARU16;
+            case TYPE_HALF_SIZE:    return issigned ? HIR_TMPVARI32 : HIR_TMPVARU32;
             default: return issigned ? HIR_TMPVARI64 : HIR_TMPVARU64;
         }
     }
 
     switch (bitness) {
-        case 32: return HIR_TMPVARF32;
-        default: return HIR_TMPVARF64;
+        case TYPE_HALF_SIZE: return HIR_TMPVARF32;
+        default:             return HIR_TMPVARF64;
     }
 }
 
 hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
     if (!isfloat) {
         switch (bitness) {
-            case 8:  return issigned ? HIR_GLBVARI8 : HIR_GLBVARU8;
-            case 16: return issigned ? HIR_GLBVARI16 : HIR_GLBVARU16;
-            case 32: return issigned ? HIR_GLBVARI32 : HIR_GLBVARU32;
+            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_GLBVARI8 : HIR_GLBVARU8;
+            case TYPE_QUARTER_SIZE: return issigned ? HIR_GLBVARI16 : HIR_GLBVARU16;
+            case TYPE_HALF_SIZE:    return issigned ? HIR_GLBVARI32 : HIR_GLBVARU32;
             default: return issigned ? HIR_GLBVARI64 : HIR_GLBVARU64;
         }
     }
 
     switch (bitness) {
-        case 32: return HIR_GLBVARF32;
-        default: return HIR_GLBVARF64;
+        case TYPE_HALF_SIZE: return HIR_GLBVARF32;
+        default:             return HIR_GLBVARF64;
     }
 }
 
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (!vi) return HIR_STKVARI64;
+    if (vi->type == I0_VARIABLE_TOKEN) return HIR_STKVARI0;
+
     token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro, .glob = vi->vfs.glob } };
-    int bitness  = TKN_variable_bitness(&tmptkn, 1);
-    int isfloat  = TKN_is_float(&tmptkn);
-    int issigned = TKN_issign(&tmptkn);
-    int isarr    = vi->type == ARR_VARIABLE_TOKEN;
-    int isstr    = vi->type == STR_VARIABLE_TOKEN;
+    type_size_t bitness = TKN_variable_bitness(&tmptkn, 1);
+    int isfloat         = TKN_is_float(&tmptkn);
+    int issigned        = TKN_is_sign(&tmptkn, 1);
+    int isarr           = vi->type == ARR_VARIABLE_TOKEN;
+    int isstr           = vi->type == STR_VARIABLE_TOKEN;
 
     if (!TKN_instack(&tmptkn)) {
         if (isarr) return HIR_GLBVARARR;
@@ -210,16 +215,16 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (isstr) return HIR_STKVARSTR;
     if (!isfloat) {
         switch (bitness) {
-            case 8:  return issigned ? HIR_STKVARI8 : HIR_STKVARU8;
-            case 16: return issigned ? HIR_STKVARI16 : HIR_STKVARU16;
-            case 32: return issigned ? HIR_STKVARI32 : HIR_STKVARU32;
+            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_STKVARI8 : HIR_STKVARU8;
+            case TYPE_QUARTER_SIZE: return issigned ? HIR_STKVARI16 : HIR_STKVARU16;
+            case TYPE_HALF_SIZE:    return issigned ? HIR_STKVARI32 : HIR_STKVARU32;
             default: return issigned ? HIR_STKVARI64 : HIR_STKVARU64;
         }
     }
 
     switch (bitness) {
-        case 32: return HIR_STKVARF32;
-        default: return HIR_STKVARF64;
+        case TYPE_HALF_SIZE: return HIR_STKVARF32;
+        default:             return HIR_STKVARF64;
     }
 }
 
@@ -236,7 +241,7 @@ hir_subject_type_t HIR_get_token_stktype(token_t* tkn, int ptr) {
     return HIR_get_stktype(&vi);
 }
 
-int HIR_isjmp(hir_operation_t op) {
+int HIR_is_jmp(hir_operation_t op) {
     if (
         op == HIR_JMP   ||
         op == HIR_IFOP2
@@ -244,7 +249,7 @@ int HIR_isjmp(hir_operation_t op) {
     return 0;
 }
 
-int HIR_issyst(hir_operation_t op) {
+int HIR_is_syst(hir_operation_t op) {
     if (
         op == HIR_MKSCOPE  ||
         op == HIR_ENDSCOPE ||
@@ -254,7 +259,7 @@ int HIR_issyst(hir_operation_t op) {
     return 0;    
 }
 
-int HIR_isterm(hir_operation_t op) {
+int HIR_is_term(hir_operation_t op) {
     if (
         op == HIR_EXITOP ||
         op == HIR_FRET
@@ -274,7 +279,7 @@ int HIR_funccall(hir_operation_t op) {
     }
 }
 
-int HIR_commutative_op(hir_operation_t op) {
+int HIR_is_commutative_op(hir_operation_t op) {
     switch (op) {
         case HIR_iCMP:
         case HIR_iOR:
@@ -287,6 +292,7 @@ int HIR_commutative_op(hir_operation_t op) {
 
 int HIR_sideeffect_op(hir_operation_t op) {
     switch (op) {
+        case HIR_BREAK:
         case HIR_JMP:
         case HIR_PHI:
         case HIR_MKLB:
@@ -310,7 +316,20 @@ int HIR_sideeffect_op(hir_operation_t op) {
     }
 }
 
-int HIR_writeop(hir_operation_t op) {
+int HIR_is_conv(hir_operation_t op) {
+    switch (op) {
+        case HIR_TF64:
+        case HIR_TF32:
+        case HIR_TI64:
+        case HIR_TI32:
+        case HIR_TI16:
+        case HIR_TI8:
+        case HIR_TPTR: return 1;
+        default: return 0;
+    }
+}
+
+int HIR_is_writeop(hir_operation_t op) {
     switch (op) {
         case HIR_ARRDECL:
         case HIR_REF:
@@ -379,45 +398,36 @@ int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b) {
 
 token_type_t HIR_get_tmptkn_type(hir_subject_type_t t) {
     switch (t) {
-        case HIR_GLBVARF64:
-        case HIR_STKVARF64:
-        case HIR_TMPVARF64: return TMP_F64_TYPE_TOKEN;
-
         case HIR_GLBVARF32:
         case HIR_STKVARF32:
         case HIR_TMPVARF32: return TMP_F32_TYPE_TOKEN;
-
         case HIR_GLBVARI64:
         case HIR_STKVARI64:
         case HIR_TMPVARI64: return TMP_I64_TYPE_TOKEN;
-        
         case HIR_GLBVARI32:
         case HIR_STKVARI32:
         case HIR_TMPVARI32: return TMP_I32_TYPE_TOKEN;
-
         case HIR_GLBVARI16:
         case HIR_STKVARI16:
         case HIR_TMPVARI16: return TMP_I16_TYPE_TOKEN;
-
         case HIR_GLBVARI8:
         case HIR_STKVARI8:
         case HIR_TMPVARI8:  return TMP_I8_TYPE_TOKEN;
-
         case HIR_GLBVARU64:
         case HIR_STKVARU64:
         case HIR_TMPVARU64: return TMP_U64_TYPE_TOKEN;
-
         case HIR_GLBVARU32:
         case HIR_STKVARU32:
         case HIR_TMPVARU32: return TMP_U32_TYPE_TOKEN;
-
         case HIR_GLBVARU16:
         case HIR_STKVARU16:
         case HIR_TMPVARU16: return TMP_U16_TYPE_TOKEN;
-
         case HIR_TMPVARU8:
         case HIR_STKVARU8:
-        case HIR_GLBVARU8: return TMP_U8_TYPE_TOKEN; 
+        case HIR_GLBVARU8:  return TMP_U8_TYPE_TOKEN; 
+        case HIR_TMPVARI0:
+        case HIR_STKVARI0:
+        case HIR_GLBVARI0:  return TMP_I0_TYPE_TOKEN;
         default: return TMP_F64_TYPE_TOKEN;
     }
 }

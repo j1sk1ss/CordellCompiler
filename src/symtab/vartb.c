@@ -1,12 +1,13 @@
 #include <symtab/vartb.h>
 
-int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, vartab_ctx_t* ctx) {
-    print_log("VRTB_update_memory(id=%i, offset=%i, size=%i, reg=%i)", id, offset, size, reg);
+int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx) {
+    print_log("VRTB_update_memory(id=%li, offset=%li, size=%li, reg=%c, align=%i)", id, offset, size, reg, align);
     variable_info_t* vi;
     if (map_get(&ctx->vartb, id, (void**)&vi)) {
-        vi->vmi.offset    = offset;
-        vi->vmi.size      = size;
-        vi->vmi.reg       = reg;
+        if (offset >= 0) vi->vmi.offset = offset;
+        if (size >= 0)   vi->vmi.size   = size;
+        if (reg >= 0)    vi->vmi.reg    = reg;
+        if (align >= 0)  vi->vmi.align  = align;
         if (reg < 0 && offset < 0) return 1;
         vi->vmi.allocated = 1;
         return 1;
@@ -65,6 +66,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
 
     var->vmi.reg    = -1;
     var->vmi.offset = -1;
+    var->vmi.align  = 8;
 
     var->p_id = -1;
     var->type = type;

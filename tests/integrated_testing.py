@@ -33,7 +33,7 @@ def _entry() -> None:
     
     os.makedirs(args.output_dir, exist_ok=True)
     with open(args.sources, 'r') as f:
-        TEST_CONFIGS = json.loads(f.read())
+        TEST_CONFIGS: dict = json.loads(f.read())
         
     if args.module not in TEST_CONFIGS.keys():
         print(f"Unsupported module! {args.module} not in {TEST_CONFIGS.keys()}!")
@@ -42,10 +42,10 @@ def _entry() -> None:
     if args.module == 'all':
         tests_to_build = TEST_CONFIGS.items()
     else:
-        tests_to_build = [(args.module, TEST_CONFIGS[args.module])]
+        tests_to_build = [(args.module, TEST_CONFIGS.get(args.module, ""))]
     
-    success_count = 0
-    total_count = len(tests_to_build)
+    success_count: int = 0
+    total_count: int = len(tests_to_build)
     built_binaries: list = []
     
     for test_name, test_config in tests_to_build:
@@ -58,7 +58,7 @@ def _entry() -> None:
             )
         )
         
-        binary_path = builder.build(args.test_file, args.output_dir, args.extra_flags)
+        binary_path = builder.build(args.test_file, args.output_dir, args.extra_flags + [ 'Wno-int-conversion' ])
         if binary_path:
             success_count += 1
             built_binaries.append((test_name, binary_path))

@@ -12,14 +12,15 @@ static allias_t* _create_allias(symbol_id_t v_id) {
     return a;
 }
 
-static allias_t* _add_allias(symbol_id_t v_id, allias_map_t* ctx) {
+static allias_t* _add_allias(symbol_id_t v_id, allias_ctx_t* ctx) {
     allias_t* a = _create_allias(v_id);
     if (!a) return NULL;
     map_put(&ctx->allias, v_id, a);
     return a;
 }
 
-int ALLIAS_get_owners(symbol_id_t v_id, set_t* out, allias_map_t* ctx) {
+int ALLIAS_get_owners(symbol_id_t v_id, set_t* out, allias_ctx_t* ctx) {
+    print_log("ALLIAS_get_owners(v_id=%li)", v_id);
     allias_t* ai;
     if (map_get(&ctx->allias, v_id, (void**)&ai)) {
         if (out) set_copy(out, &ai->owners);
@@ -30,8 +31,8 @@ int ALLIAS_get_owners(symbol_id_t v_id, set_t* out, allias_map_t* ctx) {
     return 0;
 }
 
-int ALLIAS_add_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_map_t* ctx) {
-    print_log("ALLIAS_add_owner(v_id=%i, owner=%i)", v_id, owner_id);
+int ALLIAS_add_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_ctx_t* ctx) {
+    print_log("ALLIAS_add_owner(v_id=%li, owner=%li)", v_id, owner_id);
     allias_t* ai;
     if (map_get(&ctx->allias, v_id, (void**)&ai)) {
         return set_add(&ai->owners, (void*)owner_id);
@@ -42,7 +43,8 @@ int ALLIAS_add_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_map_t* ctx) 
     return set_add(&a->owners, (void*)owner_id);
 }
 
-int ALLIAS_mark_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_map_t* ctx) {
+int ALLIAS_mark_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_ctx_t* ctx) {
+    print_log("ALLIAS_mark_owner(v_id=%li, owner_id=%li)", v_id, owner_id);
     allias_t* ai;
     if (map_get(&ctx->allias, v_id, (void**)&ai)) {
         set_add(&ai->delown, (void*)owner_id);
@@ -52,7 +54,7 @@ int ALLIAS_mark_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_map_t* ctx)
     return 0;
 }
 
-int ALLIAS_unload(allias_map_t* ctx) {
+int ALLIAS_unload(allias_ctx_t* ctx) {
     map_foreach (allias_t* ai, &ctx->allias) {
         set_free_force(&ai->delown);
         set_free_force(&ai->owners);

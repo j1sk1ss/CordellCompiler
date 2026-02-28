@@ -6,10 +6,10 @@ let client: LanguageClient | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
   const keywords = [
-    "start","exit","exfunc","function","return",
+    "start","exit","function","return",
     "if","else","while","loop","switch","case","default",
     "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
-    "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg"
+    "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg","section","align"
   ];
 
   const docs: Record<string, string> = {
@@ -130,6 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
   
   \`\`\`cpl
   glob i32 counter = 0;
+  glob function foo(i32 x);
   \`\`\`
   `,
   
@@ -143,15 +144,8 @@ export function activate(context: vscode.ExtensionContext) {
     extern: `**extern** — Declaration from outside (imported/linked symbol).
   
   \`\`\`cpl
-  extern exfunc printf;
-  extern ptr u8 frame_buffer;
-  \`\`\`
-  `,
-  
-    exfunc: `**exfunc** — External function prototype marker.
-  
-  \`\`\`cpl
-  extern exfunc puts;
+  extern function printf(ptr i8 fmt, ...);
+  extern ptr u8 frame_buffer
   \`\`\`
   `,
   
@@ -169,6 +163,31 @@ export function activate(context: vscode.ExtensionContext) {
   from "lib.cpl" import foo, bar
   \`\`\`
   `,
+
+    section: `**section** — Section declaration block for top-level items.
+
+  \`\`\`cpl
+  section(".text") {
+    function foo() -> i32 { return 0; }
+  }
+  \`\`\`
+  `,
+
+    align: `**align** — Alignment wrapper for declarations.
+
+  Single declaration:
+  \`\`\`cpl
+  align(16) i32 x = 0;
+  \`\`\`
+
+  Declaration block:
+  \`\`\`cpl
+  align(32) {
+    i32 a = 0;
+    ptr i8 p = 0;
+  }
+  \`\`\`
+  `,
   
     // low-level
     syscall: `**syscall** — System call invocation.
@@ -178,11 +197,11 @@ export function activate(context: vscode.ExtensionContext) {
   \`\`\`
   `,
   
-    asm: `**asm** — Inline assembly block.
+    asm: `**asm** — Inline assembly block (arguments may be any expressions).
   
   \`\`\`cpl
   u64 out = 0;
-  asm(out) {
+  asm(10 + 10, foo(), out as ptr i0) {
     "xor rax, rax",
     "mov rax, 1",
     "mov %0, rax"

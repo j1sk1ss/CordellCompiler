@@ -16,11 +16,11 @@ typedef struct {
 
 typedef struct {
     map_t allias;
-} allias_map_t;
+} allias_ctx_t;
 
-int ALLIAS_mark_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_map_t* ctx);
-int ALLIAS_add_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_map_t* ctx);
-int ALLIAS_get_owners(symbol_id_t v_id, set_t* out, allias_map_t* ctx);
-int ALLIAS_unload(allias_map_t* ctx);
+int ALLIAS_mark_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_ctx_t* ctx);
+int ALLIAS_add_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_ctx_t* ctx);
+int ALLIAS_get_owners(symbol_id_t v_id, set_t* out, allias_ctx_t* ctx);
+int ALLIAS_unload(allias_ctx_t* ctx);
 
 #endif

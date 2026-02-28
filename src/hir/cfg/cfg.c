@@ -82,21 +82,21 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
                               /*       If you want to change the leaders' creation method           */
                               /*       be aware of the possible future issues.                      */
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
-    hir_block_t* hh = HIR_get_next(f->hmap.entry, f->hmap.exit, 0);
+    hir_block_t* hh = HIR_FUNC_get_next(NULL, f, NULL, 0);
     while (hh) {
 #ifdef DRAGONBOOK_CFG_LEADER
         hir_block_t* entry = hh;
         while ((entry = hh) && hh->next && hh != f->hmap.exit && !set_has(&f->leaders, hh)) hh = hh->next;
         while (hh->next && hh != f->hmap.exit && !set_has(&f->leaders, hh->next)) {
             hh = hh->next;
-            if (HIR_isterm(hh->op)) break;
+            if (HIR_is_term(hh->op)) break;
         }
 
         _add_cfg_block(entry, hh, f, ctx);
 #else
-        if (!HIR_issyst(hh->op)) _add_cfg_block(hh, hh, f, ctx);
+        if (!HIR_is_syst(hh->op)) _add_cfg_block(hh, hh, f, ctx);
 #endif
-        hh = HIR_get_next(hh, f->hmap.exit, 1);
+        hh = HIR_FUNC_get_next(hh, f, NULL, 1);
     }
 
     return 1;
@@ -107,7 +107,8 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     if (!hctx || !ctx || !hctx->h) return 0;
 
     list_init(&ctx->funcs);
-    list_init(&ctx->out);
+    list_init(&ctx->outs.hout);
+    list_init(&ctx->outs.lout);
 
     HIR_CFG_split_by_functions(hctx, ctx, smt); /* Split input flatten instructions to          */
                                                 /* the list of functions.                       */
@@ -233,10 +234,12 @@ int HIR_CFG_unload(cfg_ctx_t* ctx) {
 
         set_free(&fb->leaders);
         list_free_force(&fb->blocks);
+        set_free(&fb->locals);
         mm_free(fb);
     }
 
     list_free_force(&ctx->funcs);
-    list_free(&ctx->out);
+    list_free(&ctx->outs.hout);
+    list_free(&ctx->outs.lout);
     return 1;
 }

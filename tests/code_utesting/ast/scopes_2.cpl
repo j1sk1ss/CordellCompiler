@@ -11,7 +11,7 @@
       [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=1, glob)
       [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
-      [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=0)
+      [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
          [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
             [a] (I32_VARIABLE_TOKEN, v_id=1, s_id=2, glob)

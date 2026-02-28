@@ -8,6 +8,7 @@
 * [Binary and unary operations](#binary-and-unary-operations)
 * [Control flow statements](#control-flow-statements)
 * [Functions and inbuilt macros](#functions-and-inbuilt-macros)
+* [Annotations](#annotations)
 * [Debugging](#debugging)
 * [Macros & include](#macros-amp-include)
 * [Semantic static checker](#semantic-static-checker)

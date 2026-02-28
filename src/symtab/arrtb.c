@@ -1,6 +1,7 @@
 #include <symtab/arrtb.h>
 
 int ARTB_get_info(symbol_id_t id, array_info_t* info, arrtab_ctx_t* ctx) {
+    print_log("ARTB_get_info(id=%li)", id);
     array_info_t* ai;
     if (map_get(&ctx->arrtb, id, (void**)&ai)) {
         if (info) str_memcpy(info, ai, sizeof(array_info_t));
@@ -11,6 +12,7 @@ int ARTB_get_info(symbol_id_t id, array_info_t* info, arrtab_ctx_t* ctx) {
 }
 
 int ARTB_add_elems(symbol_id_t id, long elem, arrtab_ctx_t* ctx) {
+    print_log("ARTB_add_elems(id=%li, elem=%li)", id, elem);
     array_info_t* ai;
     if (map_get(&ctx->arrtb, id, (void**)&ai)) {
         array_elem_info_t* eli = (array_elem_info_t*)mm_malloc(sizeof(array_elem_info_t));

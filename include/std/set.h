@@ -78,9 +78,12 @@ int set_free_force(set_t* s);
 
 #define set_foreach(v, lst)                                                              \
     set_iter_t CONCAT(__it_, __LINE__);                                                  \
-    set_iter_init(lst, &CONCAT(__it_, __LINE__));                                        \
+    set_iter_init((lst), &CONCAT(__it_, __LINE__));                                      \
     void* CONCAT(__val_, __LINE__);                                                      \
-    while ((set_iter_next(&CONCAT(__it_, __LINE__), (void**)&CONCAT(__val_, __LINE__)))) \
-        for (v = CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__) = NULL)
+    int CONCAT(__ok_, __LINE__);                                                         \
+    while ((CONCAT(__ok_, __LINE__) = set_iter_next(&CONCAT(__it_, __LINE__),            \
+                                                    (void**)&CONCAT(__val_, __LINE__)))) \
+        for (v = CONCAT(__val_, __LINE__); CONCAT(__ok_, __LINE__);                      \
+             CONCAT(__ok_, __LINE__) = 0)
 
 #endif

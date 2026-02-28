@@ -33,14 +33,14 @@
             {
                 use num? 10;
                 use num? 20;
-                u64t* %8 = &(min0(i32 a, i32 b) -> i32);
-                use u64t* %8;
-                call logic2(i32 a, i32 b, u64* perform) -> i32, argc args(num? 10,num? 20,u64t* %8,);
+                i0t* %8 = &(min0(i32 a, i32 b) -> i32);
+                use i0t* %8;
+                call logic2(i32 a, i32 b, u64* perform) -> i32, argc args(num? 10,num? 20,i0t* %8,);
                 use num? 10;
                 use num? 20;
-                u64t* %9 = &(max1(i32 a, i32 b) -> i32);
-                use u64t* %9;
-                call logic2(i32 a, i32 b, u64* perform) -> i32, argc args(num? 10,num? 20,u64t* %9,);
+                i0t* %9 = &(max1(i32 a, i32 b) -> i32);
+                use i0t* %9;
+                call logic2(i32 a, i32 b, u64* perform) -> i32, argc args(num? 10,num? 20,i0t* %9,);
             }
         }
     }

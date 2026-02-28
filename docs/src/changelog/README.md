@@ -5,6 +5,10 @@ Logs for the first and second versions are quite short because I don’t remembe
 ```
 ...
 ^
+[Version v3.4]
+^
+... minor changes related to v3.3 ...
+^
 [Version v3.3]
 ^
 ... minor changes related to v3.2 ...
@@ -25,6 +29,115 @@ Logs for the first and second versions are quite short because I don’t remembe
 ```
 
 ----------------------------------------
+
+# Version v3.4
+I remember that CPL is a system programming language which means it can handle tasks such as a bootloader creation, VGA print, FS, etc. To support these things, the compiler (and the language) now support the next list of features:
+
+## Align and Section keyword
+For system programming is essential to have the 'section' and the 'align' modifiers. Now the compiler supports the next syntax:
+```cpl
+section(".text") {
+    glob i32 a;
+    align(16) glob i32 b;
+    align(64) {
+        glob i32 c;
+        glob i64 d;
+    }
+}
+```
+
+**Note:** 'Align' and 'Section' scopes don't affect on the target variable declaration scope. This means, that it won't increase the scope id of a variable. 
+
+## Annotations
+The second way of the section and align (not only) definition - is an annotation. The syntax is similar to Rust:
+```cpl
+@[section(".text")]
+@[naked]
+function foo();
+@[align(16)] glob i32 a;
+```
+
+At this moment the compiler supports the next list of annotations:
+- `naked` - Will disable all entry and exit routines in the final assembly code for an annotated function.
+- `align` - Will do the same work as it does the 'align' keyword.
+- `section` - Will do the same work as it does the 'section' keyword.
+- `address` - Will put a function to a specific address.
+- `entry` - Set function as an entry point of the code.
+
+The `align` and the `section` keywords do the same work as it do annotations but in more convenient way. Annotation can't be applied to a many declarations or to a several functions.
+
+## i0 variable type
+The `i0` variable type now is possible to use for variables. 
+```cpl
+ptr i0 a;
+```
+
+It must have the `ptr` keyword/s. Otherwise it won't work. </br>
+Also, now the pointer function by default is the `ptr i0` type.
+```cpl
+function foo();
+ptr i0 a = foo();
+a();
+```
+
+## Local functions
+Same as in Rust, functions can define another functions in their body:
+```cpl
+function foo() -> i0 {
+    function bar() -> i32 {
+        return 32;
+    }
+    return bar();
+}
+```
+
+These functions can be optimized as a regular one. Also, these functions (at this moment) don't have any access for outer variables:
+```cpl
+function var_decl() -> i0 {
+    i32 a;
+    function var_try_to_use() -> i0 {
+        a += 1; : <= Illegal :
+    }
+    var_try_to_use();
+}
+```
+
+Also, such functions can be used as a return value when you want to implement something like a 'function factory':
+```cpl
+function factory(i32 key) -> ptr u64 {
+    switch key; {
+        case 1; {
+            function foo() {
+                return 1;
+            }
+            return foo;
+        }
+        default; {}
+        case 2; {
+            function bar() {
+                return 2;
+            }
+            return bar;
+        }
+    }
+}
+
+start() {
+    exit factory(1)();
+}
+```
+
+## Scope functions
+At this moment a pretty useless feature of the compiler:
+```cpl
+{
+    function foo();
+}
+{
+    function foo();
+}
+```
+Scopes now participate in function symbol resolution.
 
 ## Function return type new semantic
 The semantic of the CPL has moved a bit towards Rust language. Now instead of the '=>' as a rtype, you will need to use the '->'.

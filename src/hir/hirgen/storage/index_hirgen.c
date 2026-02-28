@@ -14,7 +14,7 @@ static hir_subject_t* _get_final_head(
         !ai.heap                                                /* and this array isn't a heap array           */
     ) {                                                         /* We 'lea' the base to a referenced variable  */
         if (!base->ptr) {
-            head->ptr++;
+            head->ptr = MAX(ai.elements_info.el_flags.ptr + 1, head->ptr + 1);
             base_op = HIR_REF;
         }
         

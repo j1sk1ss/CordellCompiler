@@ -12,13 +12,13 @@
 { scope, id=1 }
    [from] (IMPORT_SELECT_TOKEN, v_id=-1, s_id=0)
       [module.cpl] (STRING_VALUE_TOKEN, v_id=-1, s_id=0)
-         [print] (CALL_TOKEN, v_id=0, s_id=0)
+         [print] (FUNC_NAME_TOKEN, v_id=0, s_id=0)
             { scope, id=0 }
-         [clear] (CALL_TOKEN, v_id=1, s_id=0)
+         [clear] (FUNC_NAME_TOKEN, v_id=1, s_id=0)
             { scope, id=0 }
-         [memset] (CALL_TOKEN, v_id=2, s_id=0)
+         [memset] (FUNC_NAME_TOKEN, v_id=2, s_id=0)
             { scope, id=0 }
-   [start] (START_TOKEN, v_id=3, s_id=0)
+   [start] (START_TOKEN, v_id=3, s_id=1)
       { scope, id=2 }
          [print] (CALL_TOKEN, v_id=0, s_id=0)
             { scope, id=0 }
@@ -26,6 +26,6 @@
             { scope, id=0 }
          [memset] (CALL_TOKEN, v_id=2, s_id=0)
             { scope, id=0 }
-         [exit] (EXIT_TOKEN, v_id=0, s_id=2)
+         [exit] (EXIT_TOKEN, v_id=-1, s_id=2)
             [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
 :

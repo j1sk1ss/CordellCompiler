@@ -129,9 +129,11 @@ Returns 1 if this is a permitted character.
 static inline int _permitted_character(char* p) {
     unsigned char b1 = (unsigned char)p[0];
     unsigned char b2 = (unsigned char)p[1];
-    if (b1 == 0xD0 && b2 >= 0x90 && b2 <= 0xAF) return 1;
-    if (b1 == 0xD0 && b2 >= 0xB0 && b2 <= 0xBF) return 1;
-    if (b1 == 0xD1 && b2 >= 0x80 && b2 <= 0x8F) return 1;
+    if (
+        (b1 == 0xD0 && b2 >= 0x90 && b2 <= 0xAF) ||
+        (b1 == 0xD0 && b2 >= 0xB0 && b2 <= 0xBF) ||
+        (b1 == 0xD1 && b2 >= 0x80 && b2 <= 0x8F)
+    ) return 1;
     return 0;
 }
 
@@ -149,9 +151,9 @@ static inline void _reset_tkn_ctx(tkn_ctx_t* ctx) {
 /* Get a new type for a symbol according to the current token type and 
    a new type of a symbol. */
 #define PROPOGATE_SYMBOL_TYPE(curr, new, res) \
-    if (                                     \
-        ctx->ttype == curr &&                \
-        char_type == new                     \
+    if (                                      \
+        ctx->ttype == curr &&                 \
+        char_type == new                      \
     ) char_type = res;
 
 /* Get a new type for the token according to the current token type and 
@@ -178,7 +180,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
         /* Check if this a permitted character in the
            compiler. */
         if (i + 1 < bytes_read && _permitted_character(buffer + i)) {
-            print_error("Permitted symbol detected! %.2s", buffer + i);
+            print_error("Permitted symbol detected! c='%.2s'", buffer + i);
             return NULL;
         }
 
@@ -201,10 +203,10 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
         
         if (ctx->is_spec) {
             switch (ch) {
-                case '0':  ch = '\0'; break;
-                case 'n':  ch = '\n'; break;
-                case 't':  ch = '\t'; break;
-                case 'r':  ch = '\r'; break;
+                case '0': ch = '\0'; break;
+                case 'n': ch = '\n'; break;
+                case 't': ch = '\t'; break;
+                case 'r': ch = '\r'; break;
                 default: break;
             }
             
@@ -255,7 +257,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             Here we can proccess token's content before create it
             and push it to the list. */
         if (
-            ctx->in_token &&                          /* If we're in the token */
+            ctx->in_token &&                          /* If we're in the token        */
             (
                 char_type == LINE_BREAK_TOKEN ||      /* We've found a break token    */
                 char_type == UNKNOWN_BRACKET_VALUE || /* or unknown token.            */
@@ -363,10 +365,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
 
 unsigned long TKN_hash_token(token_t* t) {
     token_fpos_t tmp = { .column = t->finfo.column, .line = t->finfo.line, .file = t->finfo.file };
-
-    t->finfo.line   = 0;
-    t->finfo.column = 0;
-    t->finfo.file   = NULL;
+    str_memset(&t->finfo, 0, sizeof(token_fpos_t));
 
     unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
     hash ^= t->body->hash;
@@ -375,7 +374,6 @@ unsigned long TKN_hash_token(token_t* t) {
     t->finfo.line   = tmp.line;
     t->finfo.column = tmp.column;
     t->finfo.file   = tmp.file;
-
     return hash;
 }
 

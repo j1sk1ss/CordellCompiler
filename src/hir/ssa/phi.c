@@ -50,7 +50,7 @@ static int _collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
             int has_def = 0;
             hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
             while (hh) {
-                if (HIR_writeop(hh->op)) {
+                if (HIR_is_writeop(hh->op)) {
                     if (
                         hh->farg &&                     /* - If the first argument is presented */
                         HIR_is_vartype(hh->farg->t) &&  /* - If this is a variable              */

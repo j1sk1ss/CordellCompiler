@@ -25,7 +25,7 @@ int map_copy(map_t* dst, map_t* src) {
 }
 
 static inline unsigned long __hash(long val) {
-    unsigned long x = (unsigned long)val;
+    unsigned long x = ((unsigned long)val) + 123321;
     x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9UL;
     x = (x ^ (x >> 27)) * 0x94d049bb133111ebUL;
     x = x ^ (x >> 31);
@@ -164,9 +164,12 @@ int map_iter_init(map_t* m, map_iter_t* it) {
 
 int map_iter_next(map_iter_t* it, void** d) {
     if (!it || it->index >= it->capacity) return 0;
-    while (!it->entries[it->index].used && it->index < it->capacity) it->index++;
+    while (it->index < it->capacity && !it->entries[it->index].used)
+        it->index++;
+
     if (it->index >= it->capacity) return 0;
-    if (d) *d = it->entries[it->index++].value;
+    if (d) *d = it->entries[it->index].value;
+    it->index++;
     return 1;
 }
 

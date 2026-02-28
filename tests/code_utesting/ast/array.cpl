@@ -10,7 +10,7 @@
 : OUTPUT
 { scope, id=1 }
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
-      [maxAndChloe] (FUNC_NAME_TOKEN, v_id=0, s_id=0)
+      [maxAndChloe] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
          [i0] (I0_TYPE_TOKEN, v_id=-1, s_id=0)
       { scope, id=2 }
          { scope, id=3 }

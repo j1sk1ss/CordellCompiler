@@ -101,9 +101,9 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS);
 ASTWLKR_no_return checks if function block has return statement at every path.
 Example:
 ```cpl
-    function a() -> i0 {
+    function a() -> i8 {
         if 1; {
-            return;
+            return 1;
         }
         : <= Will fire a warning :
     }

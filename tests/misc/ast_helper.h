@@ -1,5 +1,6 @@
 #ifndef ASTHELPER_H_
 #define ASTHELPER_H_
+#include <string.h>
 #include <ast/astgen.h>
 const char* name_tkn_type(token_type_t t) {
     switch (t) {
@@ -44,7 +45,7 @@ const char* name_tkn_type(token_type_t t) {
         case FUNC_NAME_TOKEN:             return "FUNC_NAME_TOKEN";
         case CALL_TOKEN:                  return "CALL_TOKEN";
         case ADDR_CALL_TOKEN:             return "ADDR_CALL_TOKEN";
-        case CALL_ADDR:                   return "CALL_ADDR";
+        case CALL_ADDR_TOKEN:                   return "CALL_ADDR_TOKEN";
         case SWITCH_TOKEN:                return "SWITCH_TOKEN";
         case CASE_TOKEN:                  return "CASE_TOKEN";
         case DEFAULT_TOKEN:               return "DEFAULT_TOKEN";
@@ -87,6 +88,7 @@ const char* name_tkn_type(token_type_t t) {
         case I32_VARIABLE_TOKEN:          return "I32_VARIABLE_TOKEN";
         case I16_VARIABLE_TOKEN:          return "I16_VARIABLE_TOKEN";
         case I8_VARIABLE_TOKEN:           return "I8_VARIABLE_TOKEN";
+        case I0_VARIABLE_TOKEN:           return "I0_VARIABLE_TOKEN";
         case U64_VARIABLE_TOKEN:          return "U64_VARIABLE_TOKEN";
         case U32_VARIABLE_TOKEN:          return "U32_VARIABLE_TOKEN";
         case U16_VARIABLE_TOKEN:          return "U16_VARIABLE_TOKEN";
@@ -102,38 +104,39 @@ const char* name_tkn_type(token_type_t t) {
 
 const char* fmt_tkn_type(token_t* t) {
     if (!t) return "";
-    if (t->flags.ptr) {
-        switch (t->t_type) {
-            case I0_TYPE_TOKEN:  return "i0*";
-            case I8_TYPE_TOKEN:  return "i8*";
-            case U8_TYPE_TOKEN:  return "u8*";
-            case I16_TYPE_TOKEN: return "i16*";
-            case U16_TYPE_TOKEN: return "u16*";
-            case I32_TYPE_TOKEN: return "i32*";
-            case U32_TYPE_TOKEN: return "u32*";
-            case F32_TYPE_TOKEN: return "f32*";
-            case I64_TYPE_TOKEN: return "i64*";
-            case U64_TYPE_TOKEN: return "u64*";
-            case F64_TYPE_TOKEN: return "f64*";
-            case STR_TYPE_TOKEN: return "str*";
-            default: return "";
-        }
-    }
+
+    const char* base;
     switch (t->t_type) {
-        case I0_TYPE_TOKEN:  return "i0";
-        case I8_TYPE_TOKEN:  return "i8";
-        case U8_TYPE_TOKEN:  return "u8";
-        case I16_TYPE_TOKEN: return "i16";
-        case U16_TYPE_TOKEN: return "u16";
-        case I32_TYPE_TOKEN: return "i32";
-        case U32_TYPE_TOKEN: return "u32";
-        case F32_TYPE_TOKEN: return "f32";
-        case I64_TYPE_TOKEN: return "i64";
-        case U64_TYPE_TOKEN: return "u64";
-        case F64_TYPE_TOKEN: return "f64";
-        case STR_TYPE_TOKEN: return "str";
-        default: return "";
+        case I0_TYPE_TOKEN:  base = "i0"; break;
+        case I8_TYPE_TOKEN:  base = "i8"; break;
+        case U8_TYPE_TOKEN:  base = "u8"; break;
+        case I16_TYPE_TOKEN: base = "i16"; break;
+        case U16_TYPE_TOKEN: base = "u16"; break;
+        case I32_TYPE_TOKEN: base = "i32"; break;
+        case U32_TYPE_TOKEN: base = "u32"; break;
+        case F32_TYPE_TOKEN: base = "f32"; break;
+        case I64_TYPE_TOKEN: base = "i64"; break;
+        case U64_TYPE_TOKEN: base = "u64"; break;
+        case F64_TYPE_TOKEN: base = "f64"; break;
+        case STR_TYPE_TOKEN: base = "str"; break;
+        default:             base = ""; break;
     }
+
+    if (!base[0]) return "";
+    int depth = t->flags.ptr;
+    if (!depth) return base;
+
+    static char buf[64];
+    size_t base_len = strlen(base);
+    if (base_len + depth >= sizeof(buf)) {
+        depth = (int)(sizeof(buf) - base_len - 1);
+    }
+
+    strcpy(buf, base);
+    memset(buf + base_len, '*', depth);
+    buf[base_len + depth] = 0;
+
+    return buf;
 }
 
 static inline int print_ast(ast_node_t* node, int depth) {
@@ -141,12 +144,12 @@ static inline int print_ast(ast_node_t* node, int depth) {
     for (int i = 0; i < depth; i++) printf("   ");
     if (node->t) {
         switch (node->t->t_type) {
-            case SCOPE_TOKEN: printf("{ scope, id=%i }\n", node->sinfo.s_id); break;
-            case CALLING_TOKEN: printf("[()]\n");                             break;
-            case INDEXATION_TOKEN: printf("[[]]\n");                          break;
+            case SCOPE_TOKEN: printf("{ scope, id=%li }\n", node->sinfo.s_id); break;
+            case CALLING_TOKEN: printf("[()]\n");                              break;
+            case INDEXATION_TOKEN: printf("[[]]\n");                           break;
             default:
                 printf(
-                    "[%s] (%s,%sv_id=%i, s_id=%i%s%s%s%s)\n",
+                    "[%s] (%s,%sv_id=%li, s_id=%li%s%s%s%s)\n",
                     node->t->body->body, name_tkn_type(node->t->t_type), 
                     node->t->flags.ptr ? " ptr, " : " ",
                     node->sinfo.v_id, node->sinfo.s_id,

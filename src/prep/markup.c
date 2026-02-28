@@ -14,6 +14,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(START_COMMAND,          START_TOKEN),
     LEXEM(EXIT_COMMAND,           EXIT_TOKEN),
     LEXEM(RETURN_TYPE_COMMAND,    RETURN_TYPE_TOKEN),
+    LEXEM(ANNOTATION_COMMAND,     ANNOTATION_TOKEN),
 
     /* Bracket tokens. */
     LEXEM(OPEN_BLOCK,             OPEN_BLOCK_TOKEN),
@@ -30,6 +31,8 @@ static const markup_token_t _lexems[] = {
     LEXEM(SYSCALL_COMMAND,        SYSCALL_TOKEN),
     LEXEM(ASM_COMMAND,            ASM_TOKEN),
     LEXEM(VAR_ARGUMENTS_COMMAND,  VAR_ARGUMENTS_TOKEN),
+    LEXEM(SECTION_COMMAND,        SECTION_TOKEN),
+    LEXEM(ALIGN_COMMAND,          ALIGN_TOKEN),
 
     /* Variable modifiers */
     LEXEM(DREF_COMMAND,           DREF_TYPE_TOKEN),
@@ -220,13 +223,36 @@ int MRKP_variables(list_t* tkn) {
     sstack_t scope_stack;
     stack_init(&scope_stack);
 
+    int ignore_scopes = 0;
     list_iter_t it;
     list_iter_hinit(tkn, &it);
     token_t* curr;
     while ((curr = (token_t*)list_iter_next(&it))) {
         switch (curr->t_type) {
-            case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
-            case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
+            /* Scope logic.
+               Some scope generators (such as the Align, Section and Asm keywords) don't
+               create a new scope. That's why we need to ignore their scopes somehow. */
+            case ASM_TOKEN:
+            case ALIGN_TOKEN:
+            case SECTION_TOKEN: {
+                token_t* tcurr = (token_t*)list_iter_next(&it);
+                list_node_t* plist = it.curr;
+                while (tcurr && tcurr->t_type != CLOSE_BRACKET_TOKEN) tcurr = (token_t*)list_iter_next(&it);
+                if ((tcurr = (token_t*)list_iter_next(&it))->t_type == OPEN_BLOCK_TOKEN) ignore_scopes = 3;
+                it.curr = plist;
+                break;
+            }
+
+            case OPEN_BLOCK_TOKEN: {
+                if (ignore_scopes != 0 && --ignore_scopes != 0) break; 
+                stack_push(&scope_stack, (void*)((long)++s_id));
+                break;
+            }
+            case CLOSE_BLOCK_TOKEN: {
+                if (ignore_scopes != 0 && --ignore_scopes != 0) break;
+                stack_pop(&scope_stack, NULL);
+                break;
+            }
 
             case IMPORT_TOKEN: {
                 curr = (token_t*)list_iter_next(&it);
@@ -245,6 +271,7 @@ int MRKP_variables(list_t* tkn) {
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:
+            case I0_TYPE_TOKEN:
             case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
             case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
             case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:
@@ -262,6 +289,7 @@ int MRKP_variables(list_t* tkn) {
                             break;
                         }
 
+                        case I0_TYPE_TOKEN:
                         case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
                         case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
                         case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:

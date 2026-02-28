@@ -27,6 +27,7 @@ int stack_map_alloc(int n, stack_map_t* smap) {
                 smap->bitmap[idx / CELLS_PER_BLOCK] |= (1ULL << (idx % CELLS_PER_BLOCK));
             }
 
+            smap->last_offset = MAX(smap->last_offset, i + size);
             return (i + size);
         }
     }
@@ -51,7 +52,7 @@ int stack_map_free(int offset, int n, stack_map_t* smap) {
 }
 
 int stack_map_set_base(int offset, stack_map_t* smap) {
-    int size = ALIGN(offset) / STACK_CELL_SIZE;
+    int size = ALIGN(offset, 8) / STACK_CELL_SIZE;
     if (size >= STACK_MAP_MAX) return -1;
     smap->base_offset = size;
     if (smap->offset < smap->base_offset * STACK_CELL_SIZE) {

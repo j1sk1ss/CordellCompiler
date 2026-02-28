@@ -8,6 +8,7 @@
 #define IMPORT_SELECT_COMMAND   "from"
 #define EXTERN_COMMAND          "extern"
 #define RETURN_TYPE_COMMAND     "->"
+#define ANNOTATION_COMMAND      "@"
 
 #define OPEN_INDEX              "["
 #define CLOSE_INDEX             "]"
@@ -51,6 +52,8 @@
 #define CONVERT_COMMAND         "as"
 
 // Commands
+#define ALIGN_COMMAND           "align"
+#define SECTION_COMMAND         "section"
 #define SWITCH_COMMAND          "switch"
 #define CASE_COMMAND            "case"
 #define DEFAULT_COMMAND         "default"

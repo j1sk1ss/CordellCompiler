@@ -8,7 +8,8 @@ int SMT_init(sym_table_t* smt) {
            map_init(&smt->s.strtb,  MAP_NO_CMP) &&
            map_init(&smt->f.functb, MAP_NO_CMP) &&
            map_init(&smt->a.arrtb,  MAP_NO_CMP) &&
-           map_init(&smt->m.allias, MAP_NO_CMP);
+           map_init(&smt->m.allias, MAP_NO_CMP) &&
+           map_init(&smt->c.sectb,  MAP_NO_CMP);
 }
 
 int SMT_compress(sym_table_t* smt) {
@@ -24,6 +25,7 @@ int SMT_unload(sym_table_t* smt) {
     FNTB_unload(&smt->f);
     STTB_unload(&smt->s);
     ALLIAS_unload(&smt->m);
+    SCTB_unload(&smt->c);
     mm_free(smt);
     return 1;
 }
