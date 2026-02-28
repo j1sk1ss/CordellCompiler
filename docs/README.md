@@ -170,11 +170,12 @@ print.cpl   <- Implementation
 # Program entry point
 Function becomes an entry point in two cases:
 - If this is a `start` function.
-- If this is the lowest function in a file (And! There is no any `start` function in the file).
+- If this is an annotated with the `entry` annotation function.
 
 Example without a `start` function:
 ```cpl
 function fang() -> i0; { return; }
+@[entry]
 function naomi() -> i0; { exit 0; } : <= Becomes an entry point :
 ```
 
@@ -200,9 +201,10 @@ start(...) {
 function main(i32 argc, ptr ptr i8 argv) -> u8;
 ```
 **Note 3:** Entry point will generate all essential steps (stackframe allocation, entry, exit commands, etc). You can disable an entry point set by the related `--no-entry-point` flag before compilation.
+**Note 4:** Entry point supports the `naked` annotation which disables default stack frame allocation and exit routine.
 
 # Types
-Now let's talk about the language basics. This language is a strong-typed language. That's why CPL supports a cast operation such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
+Now let's talk about the language basics. This language is a static-typed language. That's why CPL supports a cast operation such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
 For instance:
 ```cpl
 i32 never = 10 as i32;
@@ -210,7 +212,7 @@ i32 dies  = 20 as i32;
 u8 technoblade = (never + dies) as u8;
 ```
 
-One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. That means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the strong-typing, I'd recommend to use the `as` statement. </br>
+One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. That means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the static-typing, I'd recommend to use the `as` statement. </br>
 P.S. *Also, the `as` keyword is really useful in terms of function overloading functions usage. We will talk about this later.*
 
 ## Primitives
@@ -666,6 +668,47 @@ asm() {
 ```
 
 **Note:** Actually this construction will accept any assembly code that can be compiled with the target assembly.
+
+# Annotations
+Annotations are usefull tool in terms of system development. For non-system programmer, annotations are redundant (even the aligns and sections are avaliable by inbuilt keywords). But let's review all aavaliable annotations (at this moment):
+- `naked` - Will disable all entry and exit routines in the final assembly code for an annotated function.
+- `align` - Will do the same work as it does the 'align' keyword.
+- `section` - Will do the same work as it does the 'section' keyword.
+- `address` - Will put a function to a specific address.
+- `entry` - Set function as an entry point of the code.
+
+Annotations can be added for functions, function arguments and declarations:
+```cpl
+@[align(16)] i32 a;
+@[entry]
+@[naked]
+function main() -> i0;
+@[section(".bss")] glob i32 b;
+```
+
+As you can see, these annotations copy all functionality of the 'align' and 'section' keywords. Actually, it doesn't mean that these keywords now redundant. They still is a pretty convenient way of block code. For example these code:
+```cpl
+section (".bss") {
+    align (16) {
+        glob i32 a;
+        glob i32 b;
+        glob i32 c;
+    }
+    function foo();
+    function bar();
+}
+``` 
+
+can be reproduced with annotations:
+```cpl
+@[section(".bss")] @[align(16)] glob i32 a;
+@[section(".bss")] @[align(16)] glob i32 b;
+@[section(".bss")] @[align(16)] glob i32 c;
+@[section(".bss")] function foo();
+@[section(".bss")] function bar();
+```
+
+, but obviously, now it doesn't look too clean.
 
 # Debugging
 ## Interrupt point 
