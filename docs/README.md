@@ -780,6 +780,8 @@ Cordell Compiler implements a simple static analysis tool for a basic code-check
 - Break usage without a target. *The `break` keyword must be used only to break `loop`s and `while`s*
 - `i0` function's return value usage. *If a function has a `i0` return type, its value can't be stored in any variable*
 - Unused expression. *Any expression that doesn't stored in a variable, used in a function, evaluated in a `if`, a `while` or a `switch` statements is an unused expression*
+- Reference to an expression. *Reference operation could be performed only on variable*
+- Non-even align. *If align of a variable or an array isn't even, we must inform the programmer about this*
 
 **Note:** By default the static analysis is turned off. To turn it on, use the `--static-analysis` flag.
 

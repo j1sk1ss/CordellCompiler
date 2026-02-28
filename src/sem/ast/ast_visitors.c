@@ -884,3 +884,31 @@ int ASTWLKR_unused_expression(AST_VISITOR_ARGS) {
 
     return 1;
 }
+
+int ASTWLKR_ref_to_expression(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    if (!TKN_isvariable(nd->c->t)) {
+        SEMANTIC_WARNING(" %s The reference of a temporary variable!", format_location(&nd->t->finfo));
+        REBUILD_CODE_1TRG(nd->p, nd->c);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_incorrect_align(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    if (!nd->c) return 1;
+
+    symbol_id_t id = nd->c->sinfo.v_id;
+    variable_info_t vi;
+    if (!VRTB_get_info_id(id, &vi, &smt->v)) return 0;
+
+    if (vi.vmi.align % 2 != 0) {
+        SEMANTIC_WARNING(" %s Variable's align isn't even!", format_location(&nd->t->finfo));
+        REBUILD_CODE_1TRG(nd, nd);
+        return 0;
+    }
+
+    return 1;
+}

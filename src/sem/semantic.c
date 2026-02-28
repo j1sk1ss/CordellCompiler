@@ -12,6 +12,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     ASTWLK_register_visitor(IF_NODE, ASTWLKR_duplicated_branches, &walker, ATTENTION_LOW_LEVEL);
     ASTWLK_register_visitor(WHILE_NODE, ASTWLKR_inefficient_while, &walker, ATTENTION_LOW_LEVEL);
     ASTWLK_register_visitor(EXPRESSION_NODE, ASTWLKR_unused_expression, &walker, ATTENTION_LOW_LEVEL);
+    ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_incorrect_align, &walker, ATTENTION_LOW_LEVEL);
 
     /* Medium Level */
     ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_illegal_declaration, &walker, ATTENTION_MEDIUM_LEVEL);
@@ -19,6 +20,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     ASTWLK_register_visitor(TERM_NODE, ASTWLKR_deadcode, &walker, ATTENTION_MEDIUM_LEVEL);
     ASTWLK_register_visitor(EXPRESSION_NODE, ASTWLKR_implict_convertion, &walker, ATTENTION_MEDIUM_LEVEL);
     ASTWLK_register_visitor(BREAK_NODE, ASTWLKR_break_without_statement, &walker, ATTENTION_MEDIUM_LEVEL);
+    ASTWLK_register_visitor(REF_NODE, ASTWLKR_ref_to_expression, &walker, ATTENTION_MEDIUM_LEVEL);
 
     /* High Level */
     ASTWLK_register_visitor(CALL_NODE, ASTWLKR_wrong_arg_type, &walker, ATTENTION_HIGH_LEVEL);

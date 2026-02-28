@@ -373,4 +373,35 @@ Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_unused_expression(AST_VISITOR_ARGS);
 
+/*
+This checker finds reference node from a non-variable subject.
+For instance:
+```cpl
+ptr i32 a = ref (10 + 10);
+ptr i32 b = ref 123;
+ptr i32 c = foo();
+```
+
+Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+Return 1 if node is correct, otherwise this function will return 0.
+*/
+int ASTWLKR_ref_to_expression(AST_VISITOR_ARGS);
+
+/*
+This checker checks for correctness of align for variables.
+For instance:
+```cpl
+align (7) glob i32 a;
+```
+
+May be a mistake. We need fire a warning.
+Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+Return 1 if node is correct, otherwise this function will return 0.
+*/
+int ASTWLKR_incorrect_align(AST_VISITOR_ARGS);
+
 #endif
