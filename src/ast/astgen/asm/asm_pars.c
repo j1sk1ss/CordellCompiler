@@ -1,60 +1,53 @@
-/* ASM block related stuff.
-   - 'asm' keyword */
 #include <ast/astgen/astgen.h>
 
 ast_node_t* cpl_parse_asm(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
-    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) {
+    ast_node_t* base = AST_create_node(CURRENT_TOKEN);
+    if (!base) {
         PARSE_ERROR("Can't create a base for the '%s' structure!", ASM_COMMAND);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
     
-    /* asm ( */
     if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
         PARSE_ERROR("Expected the 'OPEN_BRACKET_TOKEN' token while the parse of the '%s' statement!", ASM_COMMAND);
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    /* asm ( ... ) */
     forward_token(it, 1); 
     ast_node_t* args = cpl_parse_call_arguments(it, ctx, smt, 0);
-    if (args) AST_add_node(node, args);
+    if (args) AST_add_node(base, args);
     else {
         PARSE_ERROR("Error during the '%s' argument value parsing! %s(<stmt>)!", ASM_COMMAND, ASM_COMMAND);
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     ast_node_t* body = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    if (!body) {
+    if (body) AST_add_node(base, body);
+    else {
         PARSE_ERROR("Can't create a body for the '%s' structure!", ASM_COMMAND);
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    AST_add_node(node, body);
-
-    /* asm ( ... ) { */
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
         PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token while the parse of the '%s' statement!", ASM_COMMAND);
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    /* asm ( ... ) { ... */
     do {
         if (!consume_token(it, STRING_VALUE_TOKEN)) {
             PARSE_ERROR("Expected a string value in the '%s's body!", ASM_COMMAND);
-            AST_unload(node);
+            AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
@@ -67,14 +60,13 @@ ast_node_t* cpl_parse_asm(PARSER_ARGS) {
         }
         else {
             PARSE_ERROR("Can't create a body for the '%s'-string!", ASM_COMMAND);
-            AST_unload(node);
+            AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
 
         consume_token(it, COMMA_TOKEN);
     } while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BLOCK_TOKEN);
-
-    forward_token(it, 1); /* Move from the parser */
-    return node;
+    forward_token(it, 1);
+    return base;
 }

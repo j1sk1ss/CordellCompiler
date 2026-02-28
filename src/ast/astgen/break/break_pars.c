@@ -4,8 +4,8 @@ ast_node_t* cpl_parse_break(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
-    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) {
+    ast_node_t* base = AST_create_node(CURRENT_TOKEN);
+    if (!base) {
         PARSE_ERROR("Can't create a base for the '%s' statement!", BREAK_COMMAND);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -13,11 +13,11 @@ ast_node_t* cpl_parse_break(PARSER_ARGS) {
 
     if (!consume_token(it, DELIMITER_TOKEN)) {
         PARSE_ERROR("Delimiter token isn't found!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
     
-    forward_token(it, 1); /* Move from the parser */
-    return node;
+    forward_token(it, 1);
+    return base;
 }

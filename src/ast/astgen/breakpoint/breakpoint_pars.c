@@ -1,5 +1,3 @@
-/* The 'lis' keyword parser
-   - 'lis' keyword */
 #include <ast/astgen/astgen.h>
 
 ast_node_t* cpl_parse_breakpoint(PARSER_ARGS) {
@@ -33,6 +31,6 @@ ast_node_t* cpl_parse_breakpoint(PARSER_ARGS) {
         forward_token(it, 1);
     }
 
-    forward_token(it, 1); /* Move from the parser */
+    forward_token(it, 1);
     return node;
 }

@@ -1,20 +1,16 @@
-/* Import logic statements parser
-   - extern <type> <something> */
 #include <ast/astgen/astgen.h>
 
 ast_node_t* cpl_parse_extern(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
-    /* extern */
-    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) {
+    ast_node_t* base = AST_create_node(CURRENT_TOKEN);
+    if (!base) {
         PARSE_ERROR("Can't create a base for the extern statement!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
     
-    /* extern <something> */
     forward_token(it, 1);
     ast_node_t* arg = NULL;
     if (TKN_is_decl(CURRENT_TOKEN)) {
@@ -26,25 +22,25 @@ ast_node_t* cpl_parse_extern(PARSER_ARGS) {
         if (!FNTB_update_info(arg->c->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, NULL, NULL, &smt->f)) {
             PARSE_ERROR("Function update error!");
             AST_unload(arg);
-            AST_unload(node);
+            AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
     }
     else {
         PARSE_ERROR("Extern incorrect token error! extern <[type]/function>!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    if (!arg) {
+    if (arg) AST_add_node(base, arg);
+    else {
         PARSE_ERROR("Extern declaration error! extern <[type]/function>!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    AST_add_node(node, arg); 
-    return node;
+    return base;
 }

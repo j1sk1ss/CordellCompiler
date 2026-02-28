@@ -4,39 +4,37 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
-    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) {
+    ast_node_t* base = AST_create_node(CURRENT_TOKEN);
+    if (!base) {
         PARSE_ERROR("Can't create a base for a '%s' structure!", SWITCH_COMMAND);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
  
-    stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
+    stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
 
     forward_token(it, 1);
     ast_node_t* stmt = cpl_parse_expression(it, ctx, smt, 1);
-    if (!stmt) {
+    if (stmt) AST_add_node(base, stmt);
+    else {
         PARSE_ERROR("Error during the parsing of the '%s' statement! %s <stmt>!", SWITCH_COMMAND, SWITCH_COMMAND);
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-
-    AST_add_node(node, stmt);
 
     ast_node_t* cases_scope = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    if (!cases_scope) {
+    if (cases_scope) AST_add_node(base, cases_scope);
+    else {
         PARSE_ERROR("Can't create a base for the case scope!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-
-    AST_add_node(node, cases_scope);
 
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
         PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during a parse of the '%s' statement!", SWITCH_COMMAND);
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -49,7 +47,7 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
         ast_node_t* case_node = AST_create_node(CURRENT_TOKEN);
         if (!case_node) {
             PARSE_ERROR("Can't create a base for the case in the '%s' statement!", SWITCH_COMMAND);
-            AST_unload(node);
+            AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
@@ -63,24 +61,25 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
         if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
             PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during a parse of the '%s' statement!", SWITCH_COMMAND);
             AST_unload(case_node);
-            AST_unload(node);
+            AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
 
         ast_node_t* case_body = cpl_parse_scope(it, ctx, smt, 1);
-        if (!case_body) {
+        if (case_body) {
+            AST_add_node(case_node, case_body);
+            AST_add_node(cases_scope, case_node);
+        }
+        else {
             PARSE_ERROR("Error during the parsing process for the case!");
             AST_unload(case_node);
-            AST_unload(node);
+            AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
-
-        AST_add_node(case_node, case_body);
-        AST_add_node(cases_scope, case_node);
     }
 
     forward_token(it, 1);
-    return node;
+    return base;
 }

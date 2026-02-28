@@ -1,29 +1,43 @@
 #include <asm/x86_64_asmgen.h>
 
-static int _convert_lirblock_to_assembly(lir_block_t* b, sym_table_t* smt, FILE* output) {
+static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_table_t* smt, FILE* output) {
     switch (b->op) {
         case LIR_FCLL:
         case LIR_ECLL: EMIT_COMMAND("call %s\n", format_lir_subject(b->farg, smt)); break;
         case LIR_STRT:
-        case LIR_FDCL: { // TODO: naked
+        case LIR_FDCL: {
             EMIT_COMMAND("%s:\n", format_lir_subject(b->farg, smt));
-            EMIT_COMMAND("push rbp\n");
-            EMIT_COMMAND("mov rbp, rsp\n");
-            if (b->sarg->storage.cnst.value > 0) {
-                EMIT_COMMAND("sub rsp, %ld\n", ALIGN(b->sarg->storage.cnst.value, 8));
+            if (!fi->flags.naked) {
+                EMIT_COMMAND("push rbp\n");
+                EMIT_COMMAND("mov rbp, rsp\n");
+                if (b->sarg->storage.cnst.value > 0) {
+                    EMIT_COMMAND("sub rsp, %ld\n", ALIGN(b->sarg->storage.cnst.value, 8));
+                }
             }
 
             break;
         }
-        case LIR_CDQ:  EMIT_COMMAND("cdq\n");     break;
-        case LIR_SYSC: EMIT_COMMAND("syscall\n"); break;
+        case LIR_STEND:
+        case LIR_EXITOP: {
+            if (!fi->flags.naked) {
+                EMIT_COMMAND("mov rax, 0x2000001");
+                EMIT_COMMAND("syscall");
+            }
+
+            break;
+        }
         case LIR_FEND:
         case LIR_FRET: {
-            EMIT_COMMAND("mov rsp, rbp\n");
-            EMIT_COMMAND("pop rbp\n");
+            if (!fi->flags.naked) {
+                EMIT_COMMAND("mov rsp, rbp\n");
+                EMIT_COMMAND("pop rbp\n");
+            }
+            
             EMIT_COMMAND("ret\n");
             break;
         }
+        case LIR_CDQ:  EMIT_COMMAND("cdq\n");     break;
+        case LIR_SYSC: EMIT_COMMAND("syscall\n"); break;
         case LIR_FEXT: {
             func_info_t fi;
             if (FNTB_get_info_id(b->farg->storage.cnst.value, &fi, &smt->f)) {
@@ -125,17 +139,11 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, sym_table_t* smt, FILE*
             destroy_string(raw_line);
             break;
         }
-        case LIR_STEND:
-        case LIR_EXITOP: {
-            EMIT_COMMAND("mov rax, 0x2000001");
-            EMIT_COMMAND("syscall");
-            break;
-        }
         default: break;
     }
 }
 
-static int _generate_objects(symbol_id_t id, sym_table_t* smt, FILE* output) {
+static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     map_foreach (str_info_t* si, &smt->s.strtb) {
         if (si->t != STR_INDEPENDENT) continue;
         fprintf(output, "_str_%li_ db ", si->id);
@@ -224,7 +232,7 @@ int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
         }
 
         foreach (symbol_id_t id, &section->strs) {
-            _generate_objects(id, smt, output);
+            _generate_ro_string(id, smt, output);
         }
 
         foreach (symbol_id_t id, &section->func) {
@@ -235,7 +243,7 @@ int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
             cfg_func_t* fb = _find_function_by_id(id, cctx);
             lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
             while (lh) {
-                _convert_lirblock_to_assembly(lh, smt, output);
+                _convert_lirblock_to_assembly(lh, &fi, smt, output);
                 lh = LIR_get_next(lh, fb->lmap.exit, 1);
             }
         }
