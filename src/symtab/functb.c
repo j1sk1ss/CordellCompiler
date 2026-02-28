@@ -36,7 +36,11 @@ int FNTB_get_info(string_t* fname, short sid, func_info_t* out, functab_ctx_t* c
     return 0;
 }
 
-static func_info_t* _create_func_info(string_t* name, int global, int local, int entry, ast_node_t* args, ast_node_t* rtype) {
+static func_info_t* _create_func_info(
+    string_t* name, 
+    int global, int local, int entry, int naked, /* flags */
+    ast_node_t* args, ast_node_t* rtype
+) {
     func_info_t* fn = (func_info_t*)mm_malloc(sizeof(func_info_t));
     if (!fn) return NULL;
     str_memset(fn, 0, sizeof(func_info_t));
@@ -49,6 +53,7 @@ static func_info_t* _create_func_info(string_t* name, int global, int local, int
     fn->flags.global = global;
     fn->flags.local  = local;
     fn->flags.entry  = entry;
+    fn->flags.naked  = naked;
     return fn;
 }
 
@@ -76,17 +81,19 @@ static string_t* _create_virt_name(symbol_id_t id, string_t* name) {
 }
 
 symbol_id_t FNTB_add_info(
-    string_t* name, int global, int local, int entry, short sid, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
+    string_t* name, 
+    int global, int local, int entry, int naked, /* flags */
+    short sid, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
     print_log(
-        "FNTB_add_info(name=%s, global=%i, ext=%i, entry=%i, args=%lu)", 
-        name ? name->body : "(null)", global, entry, external, args ? AST_hash_node_stop(args->c, SCOPE_TOKEN) : 0
+        "FNTB_add_info(name=%s, global=%i, ext=%i, entry=%i, naked=%i, args=%lu)", 
+        name ? name->body : "(null)", global, entry, naked, args ? AST_hash_node_stop(args->c, SCOPE_TOKEN) : 0
     );
     
     func_info_t out;
     if (_is_function_presented(name, sid, args, &out, ctx)) return out.id; 
 
-    func_info_t* nnd = _create_func_info(name, global, local, entry, args, rtype);
+    func_info_t* nnd = _create_func_info(name, global, local, entry, naked, args, rtype);
     if (!nnd) return 0;
     nnd->sid = sid;
     

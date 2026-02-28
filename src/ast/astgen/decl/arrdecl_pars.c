@@ -137,8 +137,6 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
         forward_token(it, 1);
     }
 
-    /* Add variable information. Note here:
-       Array, basically, is a pointer. That's why we increment the .ptr flag to 1. */
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &name->t->flags, &smt->v);
     ARTB_add_info(
@@ -146,17 +144,18 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
         type->t->t_type, &type->t->flags, &smt->a
     );
     
-    /* Add RO or global array declaration to a
-       section that belongs to. */
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL };
+    ANNOT_read_annotations(&ctx->annots, &annots);
+    VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
     if (
         name->t->flags.glob || 
         name->t->flags.ro
     ) {
-        string_t* section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
-        SCTB_move_to_section(section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
-        destroy_string(section);
+        if (!annots.section) annots.section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
+        SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
     }
 
+    ANNOT_destroy_summary(&annots);
     var_lookup(name, ctx, smt);
     return base;
 }

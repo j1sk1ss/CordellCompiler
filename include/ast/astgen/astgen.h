@@ -217,6 +217,7 @@ literal        = integer_literal | float_literal | string_literal | char_literal
 #include <symtab/symtab.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
+#include <ast/astgen/annot.h>
 
 #define SAVE_TOKEN_POINT    void* __dump_tkn = it->curr;
 #define RESTORE_TOKEN_POINT it->curr = __dump_tkn;
@@ -756,5 +757,14 @@ Params:
 Returns an AST node.
 */
 ast_node_t* cpl_parse_section(PARSER_ARGS);
+
+/*
+Parse an annotation and push it onto the stack.
+Params:
+    - <parser_args>
+
+Returns NULL.
+*/
+ast_node_t* cpl_parse_annot(PARSER_ARGS);
 
 #endif

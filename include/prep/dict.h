@@ -8,6 +8,7 @@
 #define IMPORT_SELECT_COMMAND   "from"
 #define EXTERN_COMMAND          "extern"
 #define RETURN_TYPE_COMMAND     "->"
+#define ANNOTATION_COMMAND      "@"
 
 #define OPEN_INDEX              "["
 #define CLOSE_INDEX             "]"

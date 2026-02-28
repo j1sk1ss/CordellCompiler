@@ -30,13 +30,15 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         node->t->t_type == STR_TYPE_TOKEN
     ) ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a);
 
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL };
+    ANNOT_read_annotations(&ctx->annots, &annots);
+    VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
     if (
         name->t->flags.glob || 
         name->t->flags.ro
     ) {
-        string_t* section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
-        SCTB_move_to_section(section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
-        destroy_string(section);
+        if (!annots.section) annots.section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
+        SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
     }
 
     if (consume_token(it, ASSIGN_TOKEN)) {
@@ -64,6 +66,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         AST_add_node(node, value_node);
     }
 
+    ANNOT_destroy_summary(&annots);
     var_lookup(name, ctx, smt);
     return node;
 }

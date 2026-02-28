@@ -64,7 +64,7 @@ ast_node_t* cpl_parse_import(PARSER_ARGS) {
         AST_add_node(import_name, args_node);
         AST_add_node(source_node, import_name);
 
-        import_name->sinfo.v_id = FNTB_add_info(import_name->t->body, 1, 0, 0, sid, args_node, NULL, &smt->f);
+        import_name->sinfo.v_id = FNTB_add_info(import_name->t->body, 1, 0, 0, 0, sid, args_node, NULL, &smt->f);
         import_name->t->t_type  = FUNC_NAME_TOKEN;
         forward_token(it, 1);
     }

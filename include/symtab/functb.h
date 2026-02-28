@@ -23,6 +23,7 @@ typedef struct {
         char    entry    : 1;
         char    used     : 1;
         char    local    : 1;
+        char    naked    : 1;
     } flags;
 } func_info_t;
 
@@ -73,6 +74,7 @@ Params:
     - `global` - Is this function global?
     - `local` - Is this a local function?
     - `entry` - Is this an entry function?
+    - `naked` - Is this a naked function?
     - `args` - Function's arguments from AST.
     - `rtype` - Function's return type from AST.
     - `ctx` - Function symbol table.
@@ -80,7 +82,9 @@ Params:
 Returns -1 if fails or a new function's ID.
 */
 symbol_id_t FNTB_add_info(
-    string_t* name, int global, int local, int entry, short sid, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
+    string_t* name, 
+    int global, int local, int entry, int naked, /* flags */
+    short sid, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );
 
 /*

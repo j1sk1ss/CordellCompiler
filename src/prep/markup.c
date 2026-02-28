@@ -14,6 +14,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(START_COMMAND,          START_TOKEN),
     LEXEM(EXIT_COMMAND,           EXIT_TOKEN),
     LEXEM(RETURN_TYPE_COMMAND,    RETURN_TYPE_TOKEN),
+    LEXEM(ANNOTATION_COMMAND,     ANNOTATION_TOKEN),
 
     /* Bracket tokens. */
     LEXEM(OPEN_BLOCK,             OPEN_BLOCK_TOKEN),

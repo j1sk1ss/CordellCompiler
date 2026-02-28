@@ -34,6 +34,7 @@ typedef struct {
         int      s_id;   /* Current scope id.                        */
         sstack_t stack;  /* Scope id stack.                          */
     } scopes;
+    sstack_t     annots; /* Annotations                              */
     struct {
         void*    ptr;    /* Parent function pointer                  */
     } carry;

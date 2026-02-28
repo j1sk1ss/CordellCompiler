@@ -27,7 +27,7 @@ int cpl_parse_funcdef_args(PARSER_ARGS) {
             forward_token(it, 1);
         }
         else {
-            PARSE_ERROR("Error during the '%s' statement argument parsing! %s(<type> <name>)!", START_COMMAND, START_COMMAND);
+            PARSE_ERROR("Error during the argument parsing! (<type> <name>)!");
             RESTORE_TOKEN_POINT;
             return 0;
         }
@@ -44,8 +44,8 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
-    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) {
+    ast_node_t* base = AST_create_node(CURRENT_TOKEN);
+    if (!base) {
         PARSE_ERROR("Can't create a base for the function!");
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -53,44 +53,44 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     if (!consume_token(it, FUNC_NAME_TOKEN)) {
         PARSE_ERROR("Expected 'FUNC_NAME_TOKEN' token!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    ast_node_t* name_node = AST_create_node(CURRENT_TOKEN);
-    if (name_node) AST_add_node(node, name_node);
+    ast_node_t* name = AST_create_node(CURRENT_TOKEN);
+    if (name) AST_add_node(base, name);
     else {
         PARSE_ERROR("Can't create a base for the function's name!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
         PARSE_ERROR("Expected 'OPEN_BRACKET_TOKEN' token!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    ast_node_t* args_node = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    if (args_node) AST_add_node(node, args_node);
+    ast_node_t* args = AST_create_node_bt(CREATE_SCOPE_TOKEN);
+    if (args) AST_add_node(base, args);
     else {
         PARSE_ERROR("Can't create a base for the function's arguments!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    stack_top(&ctx->scopes.stack, (void**)&name_node->sinfo.s_id);
+    stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
-    args_node->sinfo.s_id = ctx->scopes.s_id;
+    args->sinfo.s_id = ctx->scopes.s_id;
 
     forward_token(it, 1);
-    if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args_node)) {
+    if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args)) {
         PARSE_ERROR("Can't parse function's arguments!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -98,41 +98,39 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     if (consume_token(it, RETURN_TYPE_TOKEN)) {
         forward_token(it, 1);
         ast_node_t* ret_type = AST_create_node(CURRENT_TOKEN);
-        AST_add_node(name_node, ret_type);
+        AST_add_node(name, ret_type);
         forward_token(it, 1);
     }
 
-    name_node->sinfo.v_id = FNTB_add_info(
-        name_node->t->body, node->t->flags.glob, ctx->carry.ptr ? 1 : 0, 0, 
-        name_node->sinfo.s_id, args_node, name_node->c, &smt->f
-    );
+    int local = ctx->carry.ptr ? 1 : 0;
+    int global = base->t->flags.glob;
+    annotations_summary_t annots = { .section = NULL };
+    ANNOT_read_annotations(&ctx->annots, &annots);    
 
-    /* Register function in the default section.
-       It will work because the 'section' keyword is a parent. */
-    if (!ctx->carry.ptr) {
-        string_t* section = create_string(CONF_get_code_section());
-        SCTB_move_to_section(section, name_node->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
-        destroy_string(section);
+    name->sinfo.v_id = FNTB_add_info(name->t->body, global, local, 0, annots.is_naked, name->sinfo.s_id, args, name->c, &smt->f);
+    if (!local) {
+        if (!annots.section) annots.section = create_string(CONF_get_code_section());
+        SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
     }
 
-    /* This is a function's prototype.
-       We assume this given the 'DELIMITER_TOKEN' at the end of definition. */
+    ANNOT_destroy_summary(&annots);
+
     if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
-        node->t->t_type = FUNC_PROT_TOKEN;
+        base->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);
-        return node;
+        return base;
     }
 
-    ast_node_t* body_node = NULL;
-    PRESERVE_AST_CARRY_ARG({ body_node = cpl_parse_scope(it, ctx, smt, 1); }, node);
-    if (body_node) AST_add_node(args_node, body_node);
+    ast_node_t* body = NULL;
+    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, base);
+    if (body) AST_add_node(args, body);
     else {
         PARSE_ERROR("Error during the function's body parsing!");
-        AST_unload(node);
+        AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     stack_pop(&ctx->scopes.stack, NULL);
-    return node;
+    return base;
 }

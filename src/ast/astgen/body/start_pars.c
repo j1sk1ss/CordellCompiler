@@ -55,7 +55,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     }
 
     stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
-    node->sinfo.v_id = FNTB_add_info(main_name, 1, 0, 1, node->sinfo.s_id, node, NULL, &smt->f);
+    node->sinfo.v_id = FNTB_add_info(main_name, 1, 0, 1, 0, node->sinfo.s_id, node, NULL, &smt->f);
     destroy_string(main_name);
 
     string_t* section = create_string(CONF_get_code_section());

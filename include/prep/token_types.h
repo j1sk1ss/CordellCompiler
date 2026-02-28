@@ -80,6 +80,7 @@ typedef enum {
     EXIT_TOKEN,          // exit
     RETURN_TYPE_TOKEN,   // ->
     SCOPE_TOKEN,         // {  }
+    ANNOTATION_TOKEN,    // @
 
     // Function
     ASM_TOKEN,           // asm
