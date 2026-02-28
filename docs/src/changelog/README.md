@@ -62,6 +62,7 @@ At this moment the compiler supports the next list of annotations:
 - `align` - Will do the same work as it does the 'align' keyword.
 - `section` - Will do the same work as it does the 'section' keyword.
 - `address` - Will put a function to a specific address.
+- `entry` - Set function as an entry point of the code.
 
 The `align` and the `section` keywords do the same work as it do annotations but in more convenient way. Annotation can't be applied to a many declarations or to a several functions.
 
