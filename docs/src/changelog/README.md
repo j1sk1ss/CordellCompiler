@@ -5,6 +5,10 @@ Logs for the first and second versions are quite short because I don’t remembe
 ```
 ...
 ^
+[Version v3.4]
+^
+... minor changes related to v3.3 ...
+^
 [Version v3.3]
 ^
 ... minor changes related to v3.2 ...
@@ -26,7 +30,10 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
-## Sections and align!
+# Version v3.4
+I remember that CPL is a system programming language which means it can handle tasks such as a bootloader creation, VGA print, FS, etc. To support these things, the compiler (and the language) now support the next list of features:
+
+## Align and Section keyword
 For system programming is essential to have the 'section' and the 'align' modifiers. Now the compiler supports the next syntax:
 ```cpl
 section(".text") {
@@ -40,6 +47,23 @@ section(".text") {
 ```
 
 **Note:** 'Align' and 'Section' scopes don't affect on the target variable declaration scope. This means, that it won't increase the scope id of a variable. 
+
+## Annotations
+The second way of the section and align (not only) definition - is an annotation. The syntax is similar to Rust:
+```cpl
+@[section(".text")]
+@[naked]
+function foo();
+@[align(16)] glob i32 a;
+```
+
+At this moment the compiler supports the next list of annotations:
+- `naked` - Will disable all entry and exit routines in the final assembly code for an annotated function.
+- `align` - Will do the same work as it does the 'align' keyword.
+- `section` - Will do the same work as it does the 'section' keyword.
+- `address` - Will put a function to a specific address.
+
+The `align` and the `section` keywords do the same work as it do annotations but in more convenient way. Annotation can't be applied to a many declarations or to a several functions.
 
 ## i0 variable type
 The `i0` variable type now is possible to use for variables. 
