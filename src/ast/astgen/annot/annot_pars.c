@@ -18,19 +18,19 @@ static annotation_t* _parse_annotation_content(list_iter_t* it) {
     annotation_t* annot = NULL;
     token_t* content    = _extract_token_from_brackets(it);
 
-    if (raw_annot->requals(raw_annot, "section")) {
+    if (raw_annot->requals(raw_annot, SECTN_ANNOTATION_COMMAND)) {
         annot = ANNOT_create_annotation(SECTION_ANNOTATION, content->body, FIELD_NO_CHANGE);
     }
-    else if (raw_annot->requals(raw_annot, "align")) {
+    else if (raw_annot->requals(raw_annot, ALIGN_ANNOTATION_COMMAND)) {
         annot = ANNOT_create_annotation(ALIGN_ANNOTATION, NULL, content->body->to_llong(content->body));
     } 
-    else if (raw_annot->requals(raw_annot, "address")) {
+    else if (raw_annot->requals(raw_annot, ADDRS_ANNOTATION_COMMAND)) {
         annot = ANNOT_create_annotation(ADDRESS_ANNOTATION, NULL, content->body->to_llong(content->body));
     }
-    else if (raw_annot->requals(raw_annot, "naked")) {
+    else if (raw_annot->requals(raw_annot, NAKED_ANNOTATION_COMMAND)) {
         annot = ANNOT_create_annotation(NAKED_ANNOTATION, NULL, FIELD_NO_CHANGE);
     }
-    else if (raw_annot->requals(raw_annot, "entry")) {
+    else if (raw_annot->requals(raw_annot, ENTRY_ANNOTATION_COMMAND)) {
         annot = ANNOT_create_annotation(ENTRY_ANNOTATION, NULL, FIELD_NO_CHANGE);
     }
     else {

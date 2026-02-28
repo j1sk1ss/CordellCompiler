@@ -5,6 +5,12 @@
 #include <std/str.h>
 #include <std/stack.h>
 
+#define ENTRY_ANNOTATION_COMMAND "entry"
+#define ALIGN_ANNOTATION_COMMAND "align"
+#define NAKED_ANNOTATION_COMMAND "naked"
+#define SECTN_ANNOTATION_COMMAND "section"
+#define ADDRS_ANNOTATION_COMMAND "address"
+
 typedef struct {
     string_t* section;
     int       align;
