@@ -124,7 +124,7 @@ function foo() -> i0 {
 }
 ```
 
-Ifs:
+- **Ifs**:
 ```cpl
 if <cond0>; {
 }
@@ -134,7 +134,7 @@ else {
 }
 ```
 
-Loops:
+- **Loops**:
 ```cpl
 while <cond0>; {
 }
@@ -143,13 +143,13 @@ loop {
 }
 ```
 
-Entry point:
+- **Entry point**:
 ```cpl
 start(i64 argc, ptr ptr i8 argv) {
 }
 ```
 
-- **Comments**: Comments can be written in one line with the start and the end symbol `:` and in several lines with the same logic
+- **Comments**: Comments can be written in one line with the start and the end symbol `:` and in several lines with the same logic. Actually, this is a copy of the C's comments '/**/' (without support of the '//' comment style).
 ```cpl
 : Hello there
 :
@@ -200,11 +200,12 @@ start(...) {
 ```cpl
 function main(i32 argc, ptr ptr i8 argv) -> u8;
 ```
-**Note 3:** Entry point will generate all essential steps (stackframe allocation, entry, exit commands, etc). You can disable an entry point set by the related `--no-entry-point` flag before compilation.
+**Note 3:** Entry point will generate all essential steps (stackframe allocation, entry, exit commands, etc).
 **Note 4:** Entry point supports the `naked` annotation which disables default stack frame allocation and exit routine.
+**Note 5:** Without any entry point, a file becomes a library file after the compilation.
 
 # Types
-Now let's talk about the language basics. This language is a static-typed language. That's why CPL supports a cast operation such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
+Now let's talk about the language basics. This language is a static-typed language (And I'm trying to make him strong-typed as well). That's why CPL supports a cast operation such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
 For instance:
 ```cpl
 i32 never = 10 as i32;
@@ -213,10 +214,10 @@ u8 technoblade = (never + dies) as u8;
 ```
 
 One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. That means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the static-typing, I'd recommend to use the `as` statement. </br>
-P.S. *Also, the `as` keyword is really useful in terms of function overloading functions usage. We will talk about this later.*
+P.S.: *Also, the `as` keyword is really useful in terms of function overloading functions usage. We will talk about this below.*
 
 ## Primitives
-Now, when we've talked about the types system, let's discuss about types itself. Primitive type is a basic, supported by this language, data structure. This data structure supports the next list of avaliable types:
+Now, when we've talked about the types system, let's discuss about types itself. Primitive type is a basic, supported by this language, data structure. This data structure can be represented as:
 - `f64`, `f32` - Real / double and float; non-floating values are converted to double if used in double operations.
 ```cpl
 f64 a = 0.01;
@@ -260,7 +261,7 @@ function cordell() -> i0;
 ptr i0 a = cordell;
 ```
 
-`P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, etc. The logic here is pretty simple:
+`P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, `ptr i0` etc. The logic here is pretty simple:
 - `Not a Zero` is a `true` value.
 - `Zero` is a `false` value.
 
@@ -272,7 +273,21 @@ if msg == "Hello world!"; {
 }
 ```
 
-- `arr` - Array data type. Can contain any primitive type.
+To be honest, the string object acts the same as it does the array object. In particular, the two declaration below are the same in terms of IR presentation:
+```cpl
+str msg1 = "Hello world!";
+arr msg2[13, i8] = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0' };
+```
+
+But in difference with an array, a string has a different behaviour when it becomes a pointer:
+```cpl
+ptr str msg1 = "Hello world!"; : <= Data allocated in the RO segment, pointer is set to 8 bytes :
+str msg2 = "Hello world!";     : <= Data allocated in the stack                                 :
+```
+
+An array can't do the same thing. Array can allocate data in stack, but can't be used as a type of a pointer (you will need to use a primitive instead). That means, that string is somehitng between an array (non-primitive) and a primitive.
+
+- `arr` - Array data type. Can contain any primitive type as an element type. Will allocate data in the stack or in a section (depends on the target architecture and annotations).
 ```cpl
 arr Array_1d_1[10, i32]  = { 0 };
 arr Array_1d_2[10, i32]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -293,7 +308,8 @@ start() {
 ```
 
 By default align set to platform `bitness / 8` (For instance on the `gnu_x86_64` this is 8 bytes). </br>
-The `align` keyword can be used as a modifier and as a 'scope' block. The both approaches don't change the scope of declared variables.
+The `align` keyword can be used as a modifier and as a 'scope' block. The both approaches don't change the scope of declared variables. </br>
+P.S.: *The same result can be obtained with annotation usage. We will cover this below.*
 
 ## Pointers
 - `ptr` - Pointer modifier that can be add to every primitive (and `str`, `arr`) type.
@@ -390,7 +406,8 @@ section(".text") {
 ```
 
 **Note 1:** Function prototype doesn't affected by a section. To put the function's code to a section, you need to define the function. </br>
-**Note 2:** By default all global/read-only variables and functions are placed in the platform's code section from the configuration.
+**Note 2:** By default all global/read-only variables and functions are placed in the platform's code section from the configuration. </br>
+**Note 3:** Local functions can't be placed in the specific section. They will stay with their parent function in the same section.
 
 # Binary and unary operations
 Obviously this language supports the certain set of binary operations from C-language, Rust-language, Python, etc.
