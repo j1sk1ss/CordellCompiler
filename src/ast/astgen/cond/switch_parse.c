@@ -80,6 +80,11 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
         }
     }
 
+    annotation_t* annot;
+    while (stack_pop(&ctx->annots, (void**)&annot)) {
+        list_add(&base->annots, annot);
+    }
+
     forward_token(it, 1);
     return base;
 }

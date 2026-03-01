@@ -213,5 +213,6 @@ int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
         fb->lmap.exit = ctx->t;
     }
 
+    stack_free(&params);
     return 1;
 }

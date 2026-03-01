@@ -10,22 +10,31 @@
 #define NAKED_ANNOTATION_COMMAND "naked"
 #define SECTN_ANNOTATION_COMMAND "section"
 #define ADDRS_ANNOTATION_COMMAND "address"
+#define NOFAL_ANNOTATION_COMMAND "no_fall"
+#define STRGH_ANNOTATION_COMMAND "straight"
+#define COUNT_ANNOTATION_COMMAND "counter"
 
 typedef struct {
     string_t* section;
     int       align;
     long      address;
-    char      is_naked : 1;
-    char      is_entry : 1;
+    long      counter;
+    char      is_naked    : 1;
+    char      is_entry    : 1;
+    char      is_nofall   : 1;
+    char      is_straight : 1;
 } annotations_summary_t;
 
 typedef enum {
     UNKNOWN_ANNOTATION,
-    ALIGN_ANNOTATION,   /* Set the align of a declaration            */
-    SECTION_ANNOTATION, /* Put a declration or function to a section */
-    NAKED_ANNOTATION,   /* Don't unpack START, FDECL                 */
-    ADDRESS_ANNOTATION, /* Where place the object?                   */
-    ENTRY_ANNOTATION,   /* Is this an entry function?                */
+    ALIGN_ANNOTATION,    /* Set the align of a declaration            */
+    SECTION_ANNOTATION,  /* Put a declration or function to a section */
+    NAKED_ANNOTATION,    /* Don't unpack START, FDECL                 */
+    ADDRESS_ANNOTATION,  /* Where place the object?                   */
+    ENTRY_ANNOTATION,    /* Is this an entry function?                */
+    NOFALL_ANNOTATION,   /* switch with a break as a default command  */
+    STRAIGHT_ANNOTATION, /* switch based on if-elseif-else            */
+    COUNTER_ANNOTATION,  /* hidden counter-break instructure          */
 } annotation_type_t;
 
 typedef struct {
@@ -34,6 +43,7 @@ typedef struct {
         int           align;   /* ALIGN_ANNOTATION   */
         string_t*     section; /* SECTION_ANNOTATION */
         long          address; /* ADDRESS_ANNOTATION */
+        long          counter; /* COUNTER_ANNOTATION */
     } data;
 } annotation_t;
 

@@ -64,5 +64,11 @@ int main(int argc, char* argv[]) {
 
     SMT_unload(&smt);
     close(fd);
+
+    if (mm_get_allocated()) {
+        printf("\n<<ERROR>>\tMemory leak!\t%i != 0!\n", mm_get_allocated());
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }

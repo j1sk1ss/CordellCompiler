@@ -74,6 +74,12 @@ int main(int argc, char* argv[]) {
     AST_unload_ctx(&sctx);
 
     SMT_unload(&smt);
+
+    if (mm_get_allocated()) {
+        printf("\n<<ERROR>>\tMemory leak!\t%i != 0!\n", mm_get_allocated());
+        return EXIT_FAILURE;
+    }
+
     close(fd);
     return EXIT_SUCCESS;
 }

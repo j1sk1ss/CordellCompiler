@@ -204,6 +204,11 @@ def _matches_expected(expected_text: str, actual_text: str) -> tuple[bool, str |
 
         return False, f"Internal error: unknown plan kind {kind}"
 
+    if "<<ERROR>>" in actual_text:
+        err_lines = [ln for ln in actual_text.splitlines() if "<<ERROR>>" in ln]
+        msg = "Output contains <<ERROR>>:\n" + "\n".join(f"> {ln}" for ln in err_lines[:10])
+        return False, msg
+
     return True, None
 
 def _make_diff(expected: str, actual: str) -> str:
@@ -234,6 +239,7 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         "test_debug": False,
         "block_test": False,
         "bug":        False,
+        "leak_trace": False,
     }
 
     lines = text.splitlines()
@@ -248,6 +254,9 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
             continue
         elif stripped == ": BUG :":
             flags["bug"] = True
+            continue
+        if stripped == ": LEAK_TRACE :":
+            flags["leak_trace"] = True
             continue
         header_processed.append(line)
 
@@ -266,14 +275,27 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
     expected = after[:-1].rstrip()
     return before.rstrip(), expected, flags
 
-def _run_test(binary: str, test_file: Path) -> dict:
+def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
     code, expected, flags = _parse_test_file(test_file)
+
+    chosen_bin = binary
+    if flags["leak_trace"]:
+        if not binary_leak:
+            return {
+                "file": str(test_file),
+                "ok": False,
+                "critical": True,
+                "warning": False,
+                "diff": "LEAK_TRACE requested, but leak-instrumented binary was not built.",
+            }
+        chosen_bin = binary_leak
+        
     with tempfile.NamedTemporaryFile(mode="w", suffix=".cpl", encoding="utf-8", delete=False) as tmp:
         tmp.write(code)
         tmp_path = tmp.name
 
     try:
-        cmd = [ binary, tmp_path, str(test_file.parent) ]
+        cmd = [ chosen_bin, tmp_path, str(test_file.parent) ]
         if flags["test_debug"]:
             debugger = "gdb"
             if sys.platform == "darwin":
@@ -315,6 +337,17 @@ def _run_test(binary: str, test_file: Path) -> dict:
     expected_n: str = _normalize_output(expected)
     actual_n: str = _normalize_output(proc.stdout)
     ok, why = _matches_expected(expected_n, actual_n)
+    if flags["leak_trace"]:
+        from leaks import find_leaks
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".mem.log", encoding="utf-8", delete=False) as lf:
+            lf.write(proc.stdout)
+            log_path = lf.name
+        try:
+            print("Trying to determine leaks...")
+            find_leaks(path=log_path)
+        finally:
+            if os.path.exists(log_path):
+                os.remove(log_path)
 
     critical: bool = False
     warning: bool = False
@@ -413,11 +446,30 @@ def _entry() -> None:
             continue
 
         cpl_files = collect_cpl_files(root, all_roots_set)
+        need_leak_bin = False
+        for cpl in cpl_files:
+            try:
+                if ": LEAK_TRACE :" in cpl.read_text(encoding="utf-8"):
+                    need_leak_bin = True
+                    break
+            except Exception:
+                pass
+
+        binary_leak: str | None = None
+        if need_leak_bin:
+            leak_out_dir = module_out_dir / "_leak"
+            os.makedirs(leak_out_dir, exist_ok=True)
+            binary_leak = builder.build(
+                test_file=str(base),
+                output_dir=str(leak_out_dir),
+                extra_flags=['Wno-int-conversion', 'Wno-unused-function', 'DMEM_OPERATION_LOGS']
+            )
+            
         if not cpl_files:
             print(f"Module {root} has no .cpl files to test.")
 
         for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False):
-            results.append(_run_test(binary, cpl))
+            results.append(_run_test(binary, binary_leak, cpl))
 
     failed: int = 0
     critical_failed: bool = False

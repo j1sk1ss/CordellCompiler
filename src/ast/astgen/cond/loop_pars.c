@@ -24,5 +24,10 @@ ast_node_t* cpl_parse_loop(PARSER_ARGS) {
         return NULL;
     }
     
+    annotation_t* annot;
+    while (stack_pop(&ctx->annots, (void**)&annot)) {
+        list_add(&base->annots, annot);
+    }
+
     return base;
 }

@@ -33,6 +33,15 @@ static annotation_t* _parse_annotation_content(list_iter_t* it) {
     else if (raw_annot->requals(raw_annot, ENTRY_ANNOTATION_COMMAND)) {
         annot = ANNOT_create_annotation(ENTRY_ANNOTATION, NULL, FIELD_NO_CHANGE);
     }
+    else if (raw_annot->requals(raw_annot, NOFAL_ANNOTATION_COMMAND)) {
+        annot = ANNOT_create_annotation(NOFALL_ANNOTATION, NULL, FIELD_NO_CHANGE);
+    }
+    else if (raw_annot->requals(raw_annot, STRGH_ANNOTATION_COMMAND)) {
+        annot = ANNOT_create_annotation(STRAIGHT_ANNOTATION, NULL, FIELD_NO_CHANGE);
+    }
+    else if (raw_annot->requals(raw_annot, COUNT_ANNOTATION_COMMAND)) {
+        annot = ANNOT_create_annotation(COUNTER_ANNOTATION, NULL, content->body->to_llong(content->body));
+    }
     else {
         annot = ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, FIELD_NO_CHANGE);
     }

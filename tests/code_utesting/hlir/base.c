@@ -81,12 +81,19 @@ int main(int argc, char* argv[]) {
         lh = lh->next;
     }
 
+    HIR_CFG_unload(&cfgctx);
     LIR_unload_blocks(lirctx.h);
     HIR_unload_blocks(hirctx.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 
     SMT_unload(&smt);
+
+    if (mm_get_allocated()) {
+        printf("\n<<ERROR>>\tMemory leak!\t%i != 0!\n", mm_get_allocated());
+        return EXIT_FAILURE;
+    }
+
     close(fd);
     return EXIT_SUCCESS;
 }
