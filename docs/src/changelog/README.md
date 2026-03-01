@@ -66,6 +66,8 @@ At this moment the compiler supports the next list of annotations:
 
 The `align` and the `section` keywords do the same work as it do annotations but in more convenient way. Annotation can't be applied to a many declarations or to a several functions.
 
+----------------------------------------
+
 ## i0 variable type
 The `i0` variable type now is possible to use for variables. 
 ```cpl

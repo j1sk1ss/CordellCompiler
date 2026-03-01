@@ -29,8 +29,15 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long v
         HIR_generate_block(lbranch->c, ctx, smt);
         ctx->carry.ptr = backup;
 
-        HIR_BLOCK3(ctx, HIR_iSUB, counter, counter, HIR_SUBJ_CONST(1));
-        HIR_BLOCK3(ctx, HIR_IFOP2, counter, entry_lb, end_lb);
+        hir_subject_t* updated_counter = HIR_SUBJ_STKVAR(
+            VRTB_add_info(NULL, TMP_I64_TYPE_TOKEN, node->sinfo.s_id, NULL, &smt->v), 
+            HIR_TMPVARI64, 
+            0
+        );
+
+        HIR_BLOCK3(ctx, HIR_iSUB, updated_counter, counter, HIR_SUBJ_CONST(1));
+        HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_STKVAR(counter->storage.var.v_id, HIR_STKVARI64, 0), updated_counter);
+        HIR_BLOCK3(ctx, HIR_IFOP2, updated_counter, entry_lb, end_lb);
 
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_BLOCK1(ctx, HIR_MKLB, end_lb);

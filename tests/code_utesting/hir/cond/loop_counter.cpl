@@ -16,8 +16,9 @@
                 goto lb7;
                 lb7:
                 {
-                    i64s %0 = i64s %0 - cnst? 1;
-                    if i64s %0, goto lb6, else goto lb8;
+                    i64t %1 = i64s %0 - cnst? 1;
+                    i64s %0 = i64t %1;
+                    if i64t %1, goto lb6, else goto lb8;
                 }
                 lb8:
             }
