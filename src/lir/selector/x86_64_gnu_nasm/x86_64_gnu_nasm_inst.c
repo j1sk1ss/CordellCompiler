@@ -351,13 +351,16 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int dst_size   = _get_variable_size(lh->farg->storage.var.v_id, smt);
                         int src_size   = _get_variable_size(lh->sarg->storage.var.v_id, smt);
                         if (from_float) {
-                            if (src_size == 4) lh->op = LIR_CVTTSS2SI;
+                            if (src_size == CONF_get_half_bytness()) lh->op = LIR_CVTTSS2SI;
                             else lh->op = LIR_CVTTSD2SI;
                         }
                         else {
                             if (dst_size <= src_size) lh->op = LIR_iMOV;
                             else {
-                                if (src_size == 4 && dst_size == 8) lh->op = LIR_MOVSXD;
+                                if (
+                                    src_size == CONF_get_half_bytness() && 
+                                    dst_size == CONF_get_full_bytness()
+                                ) lh->op = LIR_MOVSXD;
                                 else lh->op = from_sign ? LIR_MOVSX : LIR_MOVZX;
                             }
                         }
