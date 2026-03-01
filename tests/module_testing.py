@@ -415,6 +415,14 @@ def _entry() -> None:
     results: list[dict] = []
     failed_modules: int = 0
 
+    compile_pbar = tqdm(
+        total=len(all_roots),
+        desc="Modules compiled",
+        unit="module",
+        dynamic_ncols=True,
+        position=0
+    )
+
     for root in all_roots:
         rel: Path = root.relative_to(test_top)
         module_out_dir: Path = Path(args.output_dir) / rel
@@ -434,11 +442,20 @@ def _entry() -> None:
         )
 
         builder: CCBuilder = CCBuilder(settings=bconf)
-        binary: str | None = builder.build(
-            test_file=str(base),
-            output_dir=str(module_out_dir),
-            extra_flags=['Wno-int-conversion', 'Wno-unused-function']
-        )
+        import io
+        from contextlib import redirect_stdout, redirect_stderr
+        _buf = io.StringIO()
+        with redirect_stdout(_buf), redirect_stderr(_buf):
+            binary: str | None = builder.build(
+                test_file=str(base),
+                output_dir=str(module_out_dir),
+                extra_flags=['Wno-int-conversion', 'Wno-unused-function']
+            )
+        _out = _buf.getvalue()
+        if _out:
+            for _line in _out.rstrip("\n").splitlines():
+                tqdm.write(_line)
+        compile_pbar.update(1)
 
         if not binary:
             print(f"Failed to build module {root}, skipping its tests.", file=sys.stderr)
@@ -459,18 +476,25 @@ def _entry() -> None:
         if need_leak_bin:
             leak_out_dir = module_out_dir / "_leak"
             os.makedirs(leak_out_dir, exist_ok=True)
-            binary_leak = builder.build(
-                test_file=str(base),
-                output_dir=str(leak_out_dir),
-                extra_flags=['Wno-int-conversion', 'Wno-unused-function', 'DMEM_OPERATION_LOGS']
-            )
+            _buf = io.StringIO()
+            with redirect_stdout(_buf), redirect_stderr(_buf):
+                binary_leak = builder.build(
+                    test_file=str(base),
+                    output_dir=str(leak_out_dir),
+                    extra_flags=['Wno-int-conversion', 'Wno-unused-function', 'DMEM_OPERATION_LOGS']
+                )
+            _out = _buf.getvalue()
+            if _out:
+                for _line in _out.rstrip("\n").splitlines():
+                    tqdm.write(_line)
             
         if not cpl_files:
             print(f"Module {root} has no .cpl files to test.")
 
-        for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False):
+        for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False, position=1):
             results.append(_run_test(binary, binary_leak, cpl))
 
+    compile_pbar.close()
     failed: int = 0
     critical_failed: bool = False
     for r in results:

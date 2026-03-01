@@ -46,7 +46,28 @@ static int _cmp(const void* a, const void* b) {
     return (((binary_cases_t*)a)->v - ((binary_cases_t*)b)->v);
 }
 
+static int _generate_sequent_jump(
+    binary_cases_t* values, int values_count, hir_subject_t* cond, hir_subject_t* def, hir_ctx_t* ctx, sym_table_t* smt
+) {
+    for (int i = 0; i < values_count; i++) {
+        hir_subject_t* nl = HIR_SUBJ_LABEL();
+        hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, 0, NULL, &smt->v));
+        HIR_BLOCK3(ctx, HIR_iCMP, equals, cond, HIR_SUBJ_CONST(values[i].v));
+        HIR_BLOCK3(ctx, HIR_IFOP2, equals, values[i].l, nl);
+        HIR_BLOCK1(ctx, HIR_MKLB, nl);
+    }
+
+    if (def) HIR_BLOCK1(ctx, HIR_JMP, def);
+    return 1;
+}
+
 int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    int no_fall = 0, straight = 0;
+    foreach (annotation_t* annot, &node->annots) {
+        if (annot->t == STRAIGHT_ANNOTATION) straight = 1;
+        if (annot->t == NOFALL_ANNOTATION)   no_fall = 1;
+    }
+
     ast_node_t* cond  = node->c;
     ast_node_t* cases = cond->siblings.n;
 
@@ -77,14 +98,21 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
         }
 
         ctx->carry.ptr = backup;
+        if (no_fall) {
+            HIR_BLOCK1(ctx, HIR_JMP, end_lb);
+        }
     }
 
     HIR_BLOCK1(ctx, HIR_JMP, end_lb);
-    sort_qsort(cases_info, cases_count, sizeof(binary_cases_t), _cmp);
     HIR_BLOCK1(ctx, HIR_MKLB, cguards);
-    
     hir_subject_t* condtmp = HIR_generate_elem(cond, ctx, smt);
-    _generate_case_binary_jump(cases_info, condtmp, 0, cases_count - 1, def, end_lb, ctx, smt);
+
+    if (straight) _generate_sequent_jump(cases_info, cases_count, condtmp, def, ctx, smt);
+    else {
+        sort_qsort(cases_info, cases_count, sizeof(binary_cases_t), _cmp);
+        _generate_case_binary_jump(cases_info, condtmp, 0, cases_count - 1, def, end_lb, ctx, smt);
+    }
+
     HIR_BLOCK1(ctx, HIR_MKLB, end_lb);
     return 1;
 }

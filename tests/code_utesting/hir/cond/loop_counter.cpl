@@ -1,12 +1,27 @@
-: BUG :
-
 {
     start() {
-        : TODO - will generate variable (init val is 10) and break the loop when it reaches 0 :
         @[counter(10)] loop {
         }
     }
 }
 
 : OUTPUT
+{
+    start {
+        {
+            {
+                i64s %0 = alloc(8);
+                i64s %0 = cnst? 10;
+                lb6:
+                goto lb7;
+                lb7:
+                {
+                    i64s %0 = i64s %0 - cnst? 1;
+                    if i64s %0, goto lb6, else goto lb8;
+                }
+                lb8:
+            }
+        }
+    }
+}
 :

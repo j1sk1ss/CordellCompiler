@@ -12,6 +12,10 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
     }
  
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
+    annotation_t* annot;
+    while (stack_pop(&ctx->annots, (void**)&annot)) {
+        list_add(&base->annots, annot);
+    }
 
     forward_token(it, 1);
     ast_node_t* stmt = cpl_parse_expression(it, ctx, smt, 1);
@@ -78,11 +82,6 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
             RESTORE_TOKEN_POINT;
             return NULL;
         }
-    }
-
-    annotation_t* annot;
-    while (stack_pop(&ctx->annots, (void**)&annot)) {
-        list_add(&base->annots, annot);
     }
 
     forward_token(it, 1);
