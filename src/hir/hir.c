@@ -20,7 +20,7 @@ long HIR_hash_subject(hir_subject_t* s) {
     if (!s) return 0;
     if (s->hash) return s->hash;
 
-    unsigned long h = (unsigned long)s->t;
+    unsigned long h = ((unsigned long)s->t) * 0x123321;
     switch (s->t) {
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:

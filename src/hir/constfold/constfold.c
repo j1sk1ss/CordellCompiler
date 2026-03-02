@@ -93,7 +93,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 ALLIAS_get_owners(nd->src->storage.var.v_id, NULL, &smt->m) /* or it has an owner.                    */
             ) continue;                                                     /* We skip such variables / objects given */
                                                                             /* the necessity of preserving over       */
-                                                                            /* 'inlining'. */
+                                                                            /* 'inlining'.                            */
 
             const_t a, b;
             int a_pres = _parse_const(args[0], &a, smt);
