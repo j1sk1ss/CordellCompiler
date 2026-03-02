@@ -13,6 +13,8 @@
 #define NOFAL_ANNOTATION_COMMAND "no_fall"
 #define STRGH_ANNOTATION_COMMAND "straight"
 #define COUNT_ANNOTATION_COMMAND "counter"
+#define HOTSC_ANNOTATION_COMMAND "hot"
+#define COLDS_ANNOTATION_COMMAND "cold"
 
 typedef struct {
     string_t* section;
@@ -23,6 +25,8 @@ typedef struct {
     char      is_entry    : 1;
     char      is_nofall   : 1;
     char      is_straight : 1;
+    char      is_hot      : 1;
+    char      is_cold     : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -35,6 +39,8 @@ typedef enum {
     NOFALL_ANNOTATION,   /* switch with a break as a default command  */
     STRAIGHT_ANNOTATION, /* switch based on if-elseif-else            */
     COUNTER_ANNOTATION,  /* hidden counter-break instructure          */
+    HOT_ANNOTATION,      /* Will make the linked else branch cold     */
+    COLD_ANNOTATION,     /* Will make the linked then branch hot      */
 } annotation_type_t;
 
 typedef struct {

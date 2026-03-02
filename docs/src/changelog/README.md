@@ -30,6 +30,29 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Cold/Hot
+With the `hot` and `cold` annotations now it becomes possible to generate cold sections. It works with simple ifs (if-else) and switches. For instance:
+```cpl
+@[cold] if 1; { : IF1 :
+    : something :
+}
+else { : ELSE1 :
+    : something hot :
+}
+```
+
+The `cold` annotation will move the `IF1` branch to the end of a function and save the `ELSE1` branch. The same situation with the `switch` statement with one change - the `switch` doesn't support `hot` annotations (they just can't figure it out which sections will go to cold. They all?). For instance:
+```cpl
+@[no_fall]
+switch 1; {
+    @[cold] case 1; {}
+    case 2; {}
+    default {}
+}
+```
+
+**Note:** This code will move the `case 1;` branch to the end of a function. Also, consider the `no_fall` as an essential annotation in such cases. 
+
 # Version v3.4
 I remember that CPL is a system programming language which means it can handle tasks such as a bootloader creation, VGA print, FS, etc. To support these things, the compiler (and the language) now support the next list of features:
 

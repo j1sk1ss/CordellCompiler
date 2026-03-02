@@ -12,6 +12,10 @@ ast_node_t* cpl_parse_if(PARSER_ARGS) {
     }
     
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
+    annotation_t* annot;
+    while (stack_pop(&ctx->annots, (void**)&annot)) {
+        list_add(&base->annots, annot);
+    }
     
     forward_token(it, 1);
     ast_node_t* cond = cpl_parse_expression(it, ctx, smt, 1);

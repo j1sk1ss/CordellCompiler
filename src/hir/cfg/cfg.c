@@ -104,7 +104,7 @@ int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
 #undef DRAGONBOOK_CFG_LEADER
 
 int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
-    if (!hctx || !ctx || !hctx->h) return 0;
+    if (!hctx || !ctx || !hctx->hot.h) return 0;
 
     list_init(&ctx->funcs);
     list_init(&ctx->outs.hout);

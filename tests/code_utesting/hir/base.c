@@ -63,13 +63,13 @@ int main(int argc, char* argv[]) {
 
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
-    hir_block_t* hh = hirctx.h;
+    hir_block_t* hh = hirctx.hot.h;
     while (hh) {
         print_hir_block(hh, 1, &smt);
         hh = hh->next;
     }
 
-    HIR_unload_blocks(hirctx.h);
+    HIR_unload_blocks(hirctx.hot.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 

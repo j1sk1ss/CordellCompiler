@@ -68,14 +68,12 @@ int main(int argc, char* argv[]) {
 
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
-
-    HIR_FUNC_perform_tre(&cfgctx, &smt);
     foreach (cfg_func_t* fb, &cfgctx.funcs) {
         export_dot_func_hir(fb);
     }
 
     HIR_CFG_unload(&cfgctx);
-    HIR_unload_blocks(hirctx.h);
+    HIR_unload_blocks(hirctx.hot.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 

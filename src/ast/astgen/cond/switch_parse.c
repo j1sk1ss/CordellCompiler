@@ -45,15 +45,27 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
 
     forward_token(it, 1);
     while (
-        CURRENT_TOKEN->t_type == CASE_TOKEN || 
+        CURRENT_TOKEN->t_type == ANNOTATION_TOKEN ||
+        CURRENT_TOKEN->t_type == CASE_TOKEN       || 
         CURRENT_TOKEN->t_type == DEFAULT_TOKEN
     ) {
+        if (CURRENT_TOKEN->t_type == ANNOTATION_TOKEN) {
+            cpl_parse_annot(it, ctx, smt, carry);
+            forward_token(it, 1);
+            continue;
+        }
+
         ast_node_t* case_node = AST_create_node(CURRENT_TOKEN);
         if (!case_node) {
             PARSE_ERROR("Can't create a base for the case in the '%s' statement!", SWITCH_COMMAND);
             AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
+        }
+
+        annotation_t* annot;
+        while (stack_pop(&ctx->annots, (void**)&annot)) {
+            list_add(&case_node->annots, annot);
         }
 
         if (CURRENT_TOKEN->t_type == CASE_TOKEN) {

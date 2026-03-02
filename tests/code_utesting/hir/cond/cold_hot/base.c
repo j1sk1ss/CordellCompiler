@@ -10,13 +10,11 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
+#include "../../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
-#include <hir/cfg.h>
-#include <hir/func.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../../misc/hir_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -63,30 +61,16 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    hir_ctx_t hirctx = { 0 };
+    hir_ctx_t hirctx;
+    HIR_init_extended_ctx(&hirctx);
     HIR_generate(&sctx, &hirctx, &smt);
-
-    cfg_ctx_t cfgctx = { .cid = 0 };
-    HIR_CFG_build(&hirctx, &cfgctx, &smt);
-
-    call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
-
-    printf("digraph CALL_GRAPH {\n");
-    printf("  rankdir=LR;\n");
-    printf("  node [shape=ellipse, fontname=\"monospace\"];\n");
-
-    map_foreach (call_graph_node_t* node, &callctx.verts) {
-        set_foreach (call_graph_node_t* callee, &node->edges) {
-            printf("  F%ld -> F%ld;\n", node->fid, callee->fid);
-        }
+    hir_block_t* hh = hirctx.hot.h;
+    while (hh) {
+        print_hir_block(hh, 1, &smt);
+        hh = hh->next;
     }
 
-    printf("}\n");
-
-    HIR_CG_unload(&callctx);
-    HIR_CFG_unload(&cfgctx);
-    HIR_unload_blocks(hirctx.hot.h);
+    HIR_unload_extended_ctx(&hirctx);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 

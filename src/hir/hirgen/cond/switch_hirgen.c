@@ -79,13 +79,17 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
     HIR_BLOCK1(ctx, HIR_JMP, cguards);
 
     hir_subject_t* end_lb = HIR_SUBJ_LABEL();
-    for (ast_node_t* curr_case = cases->c; curr_case; curr_case = curr_case->siblings.n) {
-        hir_subject_t* clb = HIR_SUBJ_LABEL();
-        HIR_BLOCK1(ctx, HIR_MKLB, clb);
-        
+    for (ast_node_t* curr_case = cases->c; curr_case; curr_case = curr_case->siblings.n) {        
         void* backup = ctx->carry.ptr;
         ctx->carry.ptr = end_lb;
 
+        int prev_cold = ctx->is_cold;
+        foreach (annotation_t* annot, &curr_case->annots) {
+            if (annot->t == COLD_ANNOTATION) ctx->is_cold = 1;
+        }
+
+        hir_subject_t* clb = HIR_SUBJ_LABEL();
+        HIR_BLOCK1(ctx, HIR_MKLB, clb);
         if (curr_case->t->t_type == DEFAULT_TOKEN && !def) {
             HIR_generate_block(curr_case->c, ctx, smt);
             def = clb;
@@ -101,6 +105,8 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
         if (no_fall) {
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
         }
+
+        ctx->is_cold = prev_cold;
     }
 
     HIR_BLOCK1(ctx, HIR_JMP, end_lb);

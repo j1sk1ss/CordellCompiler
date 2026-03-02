@@ -65,14 +65,24 @@ typedef struct hir_block {
 } hir_block_t;
 
 typedef struct {
-    hir_block_t* h;     /* Current HIR head                        */
-    hir_block_t* t;     /* Current HIR tail                        */
     struct {
-        void*    ptr;   /* pointer to a break target               */
-        long     val1;  /* function's argument number              */
-        long     val2;  /* function's argument load operation      */
-    } carry;            /* Additional carry for any specific data  */
+        hir_block_t* h;          /* Current HIR head                        */
+        hir_block_t* t;          /* Current HIR tail                        */
+    } hot;
+    struct {
+        char         is_sup : 1; /* Is cold section is supported by ctx     */
+        list_t       blocks;     /* Cold blocks storage for further place   */
+    } cold;
+    char             is_cold;    /* If 1 - we save all input blocks as cold */
+    struct {
+        void*        ptr;        /* pointer to a break target               */
+        long         val1;       /* function's argument number              */
+        long         val2;       /* function's argument load operation      */
+    } carry;                     /* Additional carry for any specific data  */
 } hir_ctx_t;
+
+int HIR_init_extended_ctx(hir_ctx_t* ctx);
+int HIR_unload_extended_ctx(hir_ctx_t* ctx);
 
 /*
 Get hash (i64) from the provided subject.
@@ -91,6 +101,7 @@ int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
 int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);
 int HIR_compute_homes(hir_ctx_t* ctx);
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
+int HIR_dump_cold(hir_ctx_t* ctx);
 int HIR_unlink_block(hir_block_t* block);
 int HIR_unload_subject(hir_subject_t* s);
 int HIR_unload_blocks(hir_block_t* block);
@@ -111,16 +122,13 @@ int HIR_unload_blocks(hir_block_t* block);
 #define HIR_SUBJ_SET()                   HIR_create_subject(HIR_PHISET, 0, NULL, 0)
 #define HIR_SUBJ_LIST()                  HIR_create_subject(HIR_ARGLIST, 0, NULL, 0)
 
-/* ctx, op */
+/* [hot] ctx, op */
 #define HIR_BLOCK0(ctx, op) HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))
-
-/* ctx, op, x */
+/* [hot] ctx, op, x */
 #define HIR_BLOCK1(ctx, op, fa) HIR_append_block(HIR_create_block((op), (fa), NULL, NULL), (ctx))
-
-/* ctx, op, x, y */
+/* [hot] ctx, op, x, y */
 #define HIR_BLOCK2(ctx, op, fa, sa) HIR_append_block(HIR_create_block((op), (fa), (sa), NULL), (ctx))
-
-/* ctx, op, x, y, z */
+/* [hot] ctx, op, x, y, z */
 #define HIR_BLOCK3(ctx, op, fa, sa, ta) HIR_append_block(HIR_create_block((op), (fa), (sa), (ta)), (ctx))
 
 #endif

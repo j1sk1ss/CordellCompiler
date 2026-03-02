@@ -3,8 +3,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "../../../misc/symtb_helper.h"
-
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
@@ -12,16 +10,13 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
+#include "../../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
-#include <hir/ssa.h>
-
-#include <hir/dag.h>
-#include <hir/constfold.h>
-#include "../../../misc/hir_helper.h"
+#include <hir/func.h>
+#include "../../../../misc/hir_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -68,50 +63,18 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    hir_ctx_t hirctx = { 0 };
+    hir_ctx_t hirctx;
+    HIR_init_extended_ctx(&hirctx);
     HIR_generate(&sctx, &hirctx, &smt);
 
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
-
-    call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
-    HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
-
-    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
-    HIR_LTREE_canonicalization(&cfgctx);    // Transform
-    HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
-    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
-
-    ssa_ctx_t ssactx;
-    map_init(&ssactx.vers, MAP_NO_CMP);
-    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
-    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
-    map_free_force(&ssactx.vers);
-
-    HIR_compute_homes(&hirctx);             // Analyzation
-    HIR_LTREE_licm(&cfgctx, &smt);          // Transform
-
-    HIR_CFG_make_allias(&cfgctx, &smt);
-    dag_ctx_t dagctx = { .curr_id = 0 };
-    HIR_DAG_init(&dagctx);                    // Analyzation
-    HIR_DAG_generate(&cfgctx, &dagctx, &smt); // Analyzation
-    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
-    
-    HIR_sparse_const_propagation(&dagctx, &smt);
-    map_foreach (variable_info_t* vi, &smt.v.vartb) {
-        printf("id: %li, %s, ", vi->v_id, vi->name->body);
-        for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
-        printf("%s, s_id: %i", format_tkntype(vi->type), vi->s_id);
-        if (vi->vdi.defined) printf(", value=%ld", vi->vdi.definition);
-        printf("\n");
+    foreach (cfg_func_t* fb, &cfgctx.funcs) {
+        export_dot_func_hir(fb);
     }
 
-    HIR_DAG_unload(&dagctx);
-    HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
-    HIR_unload_blocks(hirctx.hot.h);
+    HIR_unload_extended_ctx(&hirctx);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 

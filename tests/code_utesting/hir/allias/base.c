@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     HIR_DAG_unload(&dagctx);
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
-    HIR_unload_blocks(hirctx.h);
+    HIR_unload_blocks(hirctx.hot.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 
