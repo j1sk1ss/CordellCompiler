@@ -1,0 +1,76 @@
+{
+    @[entry] function foo(
+        i32 a, i32 b, i32 c, i32 d, i32 e, i32 f, 
+        i32 g, i32 k, i32 l, i32 m, i32 n, i32 o, 
+        i32 p, i32 r, i32 s, i32 t, i32 z, i32 x, 
+        i32 v, i32 q, i32 a1, i32 q2, i32 q4, i32 q5, 
+        i32 q6, i32 a7, i32 a8, i32 a9, i32 q10, i32 q11
+    );
+}
+
+: OUTPUT
+{ scope, id=1 }
+   [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
+      [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
+      { scope, id=2 }
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [b] (I32_VARIABLE_TOKEN, v_id=1, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [c] (I32_VARIABLE_TOKEN, v_id=2, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [d] (I32_VARIABLE_TOKEN, v_id=3, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [e] (I32_VARIABLE_TOKEN, v_id=4, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [f] (I32_VARIABLE_TOKEN, v_id=5, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [g] (I32_VARIABLE_TOKEN, v_id=6, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [k] (I32_VARIABLE_TOKEN, v_id=7, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [l] (I32_VARIABLE_TOKEN, v_id=8, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [m] (I32_VARIABLE_TOKEN, v_id=9, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [n] (I32_VARIABLE_TOKEN, v_id=10, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [o] (I32_VARIABLE_TOKEN, v_id=11, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [p] (I32_VARIABLE_TOKEN, v_id=12, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [r] (I32_VARIABLE_TOKEN, v_id=13, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [s] (I32_VARIABLE_TOKEN, v_id=14, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [t] (I32_VARIABLE_TOKEN, v_id=15, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [z] (I32_VARIABLE_TOKEN, v_id=16, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [x] (I32_VARIABLE_TOKEN, v_id=17, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [v] (I32_VARIABLE_TOKEN, v_id=18, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [q] (I32_VARIABLE_TOKEN, v_id=19, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a1] (I32_VARIABLE_TOKEN, v_id=20, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [q2] (I32_VARIABLE_TOKEN, v_id=21, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [q4] (I32_VARIABLE_TOKEN, v_id=22, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [q5] (I32_VARIABLE_TOKEN, v_id=23, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [q6] (I32_VARIABLE_TOKEN, v_id=24, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a7] (I32_VARIABLE_TOKEN, v_id=25, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a8] (I32_VARIABLE_TOKEN, v_id=26, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [a9] (I32_VARIABLE_TOKEN, v_id=27, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [q10] (I32_VARIABLE_TOKEN, v_id=28, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [q11] (I32_VARIABLE_TOKEN, v_id=29, s_id=2)
+:

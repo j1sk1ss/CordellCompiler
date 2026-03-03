@@ -1,6 +1,7 @@
 {
     extern function foo();
     extern function bar();
+    @[entry]
     function baz();
 }
 
