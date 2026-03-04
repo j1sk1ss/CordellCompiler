@@ -8,8 +8,7 @@ int LIR_apply_regalloc(sym_table_t* smt, map_t* colors) {
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
         long reg;
         if (map_get(colors, vi->v_id, (void**)&reg)) {
-            vi->vmi.reg = reg;
-            vi->vmi.allocated = 1;
+            VRTB_update_memory(vi->v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, reg, FIELD_NO_CHANGE, &smt->v);
         }
     }
 

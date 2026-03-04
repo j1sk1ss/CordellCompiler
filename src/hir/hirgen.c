@@ -18,12 +18,9 @@ static inline int _is_term(hir_block_t* a, hir_block_t* b) {
 
 hir_block_t* HIR_get_next(hir_block_t* c, hir_block_t* exit, int skip) {
     if (_is_term(c, exit)) return NULL;
-    while (c) {
-        if (
-            _is_term(c, exit) || 
-            (!c->unused && skip-- <= 0)
-        ) break;
-        c = c->next;
+    for (; c && c != exit; c = c->next) {
+        if (_is_term(c, exit) || skip-- == 0) return c;
+        if (c->unused) continue;
     }
 
     return c;

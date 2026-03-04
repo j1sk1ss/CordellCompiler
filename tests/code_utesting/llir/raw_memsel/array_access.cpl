@@ -8,7 +8,7 @@
 : OUTPUT
 BB{X}: start
 [unused] %0 = arr_alloc(X);
-rax = &(%0);
+rax = &([rbp - 40]);
 [rbp - 48] = rax;
 [rbp - 56] = $0;
 rax = [rbp - 56];

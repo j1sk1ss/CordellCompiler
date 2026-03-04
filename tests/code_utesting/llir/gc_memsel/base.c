@@ -6,20 +6,28 @@
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
+
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include <sem/misc/restore.h>
 #include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
-// #include "../../misc/hir_helper.h"
+#include <hir/cfg.h>
+#include <hir/ssa.h>
+#include <hir/func.h>
+#include "../../../misc/hir_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
-#include <lir/instplan/targinfo.h>
-#include <lir/instplan/instplan.h>
+#include <lir/selector/instsel.h>
+#include <lir/selector/memsel.h>
+#include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/dfg.h>
+#include <lir/regalloc/ra.h>
+#include <lir/regalloc/regalloc.h>
+#include <lir/regalloc/x84_64_gnu_nasm.h>
 #include "../../../misc/lir_helper.h"
 
 int main(int argc, char* argv[]) {
@@ -73,14 +81,45 @@ int main(int argc, char* argv[]) {
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
 
-    HIR_CFG_cleanup_navigation(&cfgctx);
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
+    HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
+    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+
+    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+    HIR_LTREE_canonicalization(&cfgctx);    // Transform
+    HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+
+    ssa_ctx_t ssactx;
+    map_init(&ssactx.vers, MAP_NO_CMP);
+    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
+    map_free_force(&ssactx.vers);
+
+    HIR_compute_homes(&hirctx);             // Analyzation
+    HIR_CFG_make_allias(&cfgctx, &smt);
+
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
+    inst_selector_t inst_sel = { .select_instructions = x86_64_gnu_nasm_instruction_selection };
+    LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
 
-    target_info_t trginfo;
-    TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
-    LIR_plan_instructions(&cfgctx, &trginfo); // Transform
-    TRGINF_unload(&trginfo);
+    LIR_DFG_collect_defs(&cfgctx);       // Analyzation
+    LIR_DFG_collect_uses(&cfgctx);       // Analyzation
+    LIR_DFG_compute_inout(&cfgctx);      // Analyzation
+    LIR_DFG_create_deall(&cfgctx, &smt); // Transform
+
+    map_t colors;
+    map_init(&colors, MAP_NO_CMP);
+    LIR_RA_init_colors(&colors, &smt);
+    
+    regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
+    LIR_regalloc(&cfgctx, &smt, &colors, &regall);    // Analyzation
+    LIR_apply_regalloc(&smt, &colors);                // Analyzation
+
+    mem_selector_t mem_sel = { .select_memory = x86_64_gnu_nasm_memory_selection };
+    LIR_select_memory(&cfgctx, NULL, &smt, &mem_sel); // Transform
 
     lir_block_t* lh = lirctx.h;
     while (lh) {
@@ -88,7 +127,10 @@ int main(int argc, char* argv[]) {
         lh = lh->next;
     }
 
+    map_free(&colors);
     LIR_unload_blocks(lirctx.h);
+    HIR_CG_unload(&callctx);
+    HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.hot.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);

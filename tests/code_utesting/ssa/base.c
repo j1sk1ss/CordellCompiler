@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     HIR_compute_homes(&hirctx);             // Analyzation
     HIR_LTREE_licm(&cfgctx, &smt);          // Transform
 
-    hir_block_t* hh = hirctx.h;
+    hir_block_t* hh = hirctx.hot.h;
     while (hh) {
         print_hir_block(hh, 1, &smt);
         hh = hh->next;
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
-    HIR_unload_blocks(hirctx.h);
+    HIR_unload_blocks(hirctx.hot.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 

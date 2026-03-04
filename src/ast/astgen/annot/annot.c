@@ -5,10 +5,11 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, string_t* data, long 
     if (!annot) return NULL;
     annot->t = t;
     switch (t) {
-        case ALIGN_ANNOTATION:   annot->data.align = (int)value;         break;
-        case SECTION_ANNOTATION: annot->data.section = data->copy(data); break;
-        case ADDRESS_ANNOTATION: annot->data.address = value;            break;
-        case COUNTER_ANNOTATION: annot->data.counter = value;            break;
+        case ALIGN_ANNOTATION:    annot->data.align = (int)value;         break;
+        case SECTION_ANNOTATION:  annot->data.section = data->copy(data); break;
+        case ADDRESS_ANNOTATION:  annot->data.address = value;            break;
+        case COUNTER_ANNOTATION:  annot->data.counter = value;            break;
+        case REGISTER_ANNOTATION: annot->data.regval = (short)value;      break;
         default: break;
     }
 
@@ -31,6 +32,7 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
             case STRAIGHT_ANNOTATION: summary->is_straight = 1;              break;
             case HOT_ANNOTATION: summary->is_hot = 1;                        break;
             case COLD_ANNOTATION: summary->is_cold = 1;                      break;
+            case REGISTER_ANNOTATION: summary->reg = annot->data.regval;     break;
             case COUNTER_ANNOTATION: summary->counter = annot->data.counter; break;
             case ADDRESS_ANNOTATION: summary->address = annot->data.address; break;
             default: break;

@@ -30,6 +30,16 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Register
+Now the compiler has the `register` annotation. It simpli links a variable (only a variable) with the specific system register (index). Depends on the target architecture.
+```cpl
+#define RAX 0
+@[register(RAX)] i32 a = 1;
+:
+mov rax, 1
+:
+```
+
 ## Cold/Hot
 With the `hot` and `cold` annotations now it becomes possible to generate cold sections. It works with simple ifs (if-else) and switches. For instance:
 ```cpl

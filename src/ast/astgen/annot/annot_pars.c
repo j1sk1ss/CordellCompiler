@@ -48,6 +48,9 @@ static annotation_t* _parse_annotation_content(list_iter_t* it) {
     else if (raw_annot->requals(raw_annot, COLDS_ANNOTATION_COMMAND)) {
         annot = ANNOT_create_annotation(COLD_ANNOTATION, NULL, FIELD_NO_CHANGE);
     }
+    else if (raw_annot->requals(raw_annot, REGST_ANNOTATION_COMMAND)) {
+        annot = ANNOT_create_annotation(REGISTER_ANNOTATION, NULL, content->body->to_llong(content->body));
+    }
     else {
         annot = ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, FIELD_NO_CHANGE);
     }

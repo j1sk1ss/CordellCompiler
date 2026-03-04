@@ -21,8 +21,19 @@ typedef struct {
     map_t nodes;
 } igraph_t;
 
+/* 
+Put all avaliable variable into the colored map with the initial value -1.
+Note: If a variable already has a register, it will preserve it for further
+      color graph solution.
+Note 2: By default, all variables !must! have -1 in the register field!
+Params:
+    - `colors` - Colored map.
+    - `smt` - Symtable.
+
+Returns 1 if it succeeds.
+*/
 int LIR_RA_init_colors(map_t* colors, sym_table_t* smt);
-int LIR_RA_precolor_node(map_t* colors, long vid, long color);
+
 igraph_node_t* LIR_RA_find_ig_node(igraph_t* g, long v_id);
 int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt);
 int LIR_RA_unload_igraph(igraph_t* g);
