@@ -72,7 +72,7 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
     switch (a->t) {
         case LIR_MEMORY:     return (a->storage.var.offset == b->storage.var.offset) && 
                                     (a->size == b->size) && 
-                                    (a->storage.var.base == a->storage.var.base);
+                                    (a->storage.var.base == b->storage.var.base);
         case LIR_VARIABLE:   return a->storage.var.v_id == b->storage.var.v_id;
         case LIR_CONSTVAL:   return a->storage.cnst.value == b->storage.cnst.value;
         case LIR_GLVARIABLE:

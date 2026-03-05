@@ -73,7 +73,6 @@ typedef struct {
     int           lid;
     lir_block_t*  h;
     lir_block_t*  t;
-    // sstack_t heap;
     stack_map_t   stk;
     map_t*        vars;
 } lir_ctx_t;
@@ -97,7 +96,7 @@ int LIR_unload_blocks(lir_block_t* block);
 #define LIR_SUBJ_NUMBER(val)       LIR_create_subject(LIR_NUMBER,     -1,    -1,                  0,   val,  0,   LIR_MAX_TYPE_SIZE)
 #define LIR_SUBJ_VAR(id, sz)       LIR_create_subject(LIR_VARIABLE,   -1,    id,                  -1,  NULL, 0,   sz)
 #define LIR_SUBJ_GLVAR(id)         LIR_create_subject(LIR_GLVARIABLE, -1,    id,                  0,   NULL, 0,   0)
-#define LIR_SUBJ_OFF(off, reg, sz) LIR_create_subject(LIR_MEMORY,     reg,   -1,                  off, NULL, 0,   sz)
+#define LIR_SUBJ_OFF(reg, off, sz) LIR_create_subject(LIR_MEMORY,     reg,   -1,                  off, NULL, 0,   sz)
 #define LIR_SUBJ_LABEL(id)         LIR_create_subject(LIR_LABEL,      -1,    id,                  0,   NULL, 0,   0)
 #define LIR_SUBJ_RAWASM(l)         LIR_create_subject(LIR_RAWASM,     -1,    l,                   0,   NULL, 0,   0)
 #define LIR_SUBJ_STRING(id)        LIR_create_subject(LIR_STRING,     -1,    id,                  0,   NULL, 0,   LIR_MAX_TYPE_SIZE)

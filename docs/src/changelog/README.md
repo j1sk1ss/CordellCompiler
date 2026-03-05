@@ -747,7 +747,7 @@ start() {
 }
 ```
 
-Some improvements in typing (now we're able to use Rust-like statements such as `i8`, `u8`, etc.), `asm` blocks, `external` functions, `heap` arrays, etc. This version was also tested via implementation of the `brainfuck interpreter`.
+Some improvements in typing (now we're able to use Rust-like statements such as `i8`, `u8`, etc.), `asm` blocks, `external` functions, `vla` arrays, etc. This version was also tested via implementation of the `brainfuck interpreter`.
 
 ----------------------------------------
 

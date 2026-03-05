@@ -14,7 +14,7 @@ typedef struct {
     token_type_t           type;     /* Variable type                    */
 
     struct {
-        char               heap : 1; /* Point to heap, can't be reused   */
+        char               vla : 1; /* Point to vla, can't be reused   */
         char               ptr;      /* PTR type == maximum size in arch */
         char               ro   : 1; /* Declaration RO flag              */
         char               glob : 1; /* Declaration global flag          */

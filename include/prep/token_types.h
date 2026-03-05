@@ -164,7 +164,7 @@ typedef struct {
     char ro   : 1; /* Is read only flag   */
     char glob : 1; /* Is global flag      */
     char ext  : 1; /* Is extern flag      */
-    char heap : 1; /* Is heap allocated   */
+    char vla : 1; /* Is vla allocated   */
 } token_flags_t;
 
 typedef struct {

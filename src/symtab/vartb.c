@@ -58,7 +58,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
     var->s_id = s_id;
     if (name) var->name = name->copy(name);
     if (flags) {
-        var->vfs.heap = flags->heap;
+        var->vfs.vla = flags->vla;
         var->vfs.ptr  = flags->ptr;
         var->vfs.glob = flags->glob;
         var->vfs.ro   = flags->ro;

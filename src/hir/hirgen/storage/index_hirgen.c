@@ -11,7 +11,7 @@ static hir_subject_t* _get_final_head(
     if (
         HIR_is_arrtype(base->t) &&                              /* If this is an array type                    */
         ARTB_get_info(base->storage.var.v_id, &ai, &smt->a) &&  /* and it is registered in smt as an array     */
-        !ai.heap                                                /* and this array isn't a heap array           */
+        !ai.vla                                                /* and this array isn't a vla array           */
     ) {                                                         /* We 'lea' the base to a referenced variable  */
         if (!base->ptr) {
             head->ptr = MAX(ai.elements_info.el_flags.ptr + 1, head->ptr + 1);

@@ -111,7 +111,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     }
 
     long long const_length = -1;
-    if (length->t->t_type != UNKNOWN_NUMERIC_TOKEN) name->t->flags.heap = 1;
+    if (length->t->t_type != UNKNOWN_NUMERIC_TOKEN) name->t->flags.vla = 1;
     else const_length = length->t->body->to_llong(length->t->body);
     if (consume_token(it, ASSIGN_TOKEN) && consume_token(it, OPEN_BLOCK_TOKEN)) {
         long long act_size = 0;
@@ -140,7 +140,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &name->t->flags, &smt->v);
     ARTB_add_info(
-        name->sinfo.v_id, const_length, name->t->flags.heap, 
+        name->sinfo.v_id, const_length, name->t->flags.vla, 
         type->t->t_type, &type->t->flags, &smt->a
     );
     

@@ -8,16 +8,6 @@
 
 : OUTPUT
 BB1: start
-use $0;
-use $1;
-use $2;
-use $3;
-use $4;
-use $5;
-use $6;
-use $7;
-use $8;
-use $9;
 [rbp - 16] = $0;
 [rbp - 15] = $1;
 [rbp - 14] = $2;
@@ -28,28 +18,18 @@ use $9;
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-[unused] %2 = arr_alloc(X);
+[unused] %2 = arr_alloc($10);
 cmp $1, 0;
-je lb29;
+je lb{X};
 kill(2);
-jne lb27;
-BB2: lb27:
+jne lb{X};
+BB2: lb{X}:
 rax = $1;
 rdx = rax;
 [unused] kill(4);
 [unused] kill(5);
 exit rdx;
-BB3: lb29:
-use $0;
-use $1;
-use $2;
-use $3;
-use $4;
-use $5;
-use $6;
-use $7;
-use $8;
-use $9;
+BB3: lb{X}:
 [rbp - 16] = $0;
 [rbp - 15] = $1;
 [rbp - 14] = $2;
@@ -60,7 +40,7 @@ use $9;
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-[unused] %3 = arr_alloc(X);
+[unused] %3 = arr_alloc($10);
 kill(3);
 [unused] kill(0);
 send

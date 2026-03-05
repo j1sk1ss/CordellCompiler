@@ -53,7 +53,7 @@ void print_symtab(sym_table_t* smt) {
     map_foreach (array_info_t* ai, &smt->a.arrtb) {
         printf("id: %li, ", ai->v_id);
         for (int i = 0; i < ai->elements_info.el_flags.ptr; i++) printf("ptr ");
-        printf("%s x %li%s\n", format_tkntype(ai->elements_info.el_type), ai->size, ai->heap ? ", heap" : "");
+        printf("%s x %li%s\n", format_tkntype(ai->elements_info.el_type), ai->size, ai->vla ? ", vla" : "");
     }
 
     if (!map_isempty(&smt->f.functb)) printf("==========  FUNCS  ==========\n");

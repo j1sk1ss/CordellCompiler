@@ -36,6 +36,7 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     if (vi.vmi.offset >= 0) {
         s->t = LIR_MEMORY;
         s->storage.var.offset = vi.vmi.offset;
+        s->storage.var.base   = RBP;
     }
     else if (vi.vmi.reg >= 0) {
         s->t = LIR_REGISTER;
@@ -96,8 +97,8 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
                         array_info_t ai;
                         if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
-                            if (ai.heap) { // TODO: Heap
-                                lh->op = LIR_HEAPDECL;
+                            if (ai.vla) { // TODO: VLA
+                                lh->op = LIR_VLADECL;
                                 _update_subject_memory(lh->farg, &smp, colors, smt);
                                 _update_subject_memory(lh->sarg, &smp, colors, smt);
                                 break;

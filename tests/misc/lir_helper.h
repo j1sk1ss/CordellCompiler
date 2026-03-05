@@ -47,7 +47,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_VRDEALL:    return "kill(%s);\n";
         case LIR_STRDECL:    return "%s = str_alloc(%s);\n";
         case LIR_ARRDECL:    return "%s = arr_alloc(%s);\n";
-        case LIR_HEAPDECL:   return "%s = heap(%s)\n";
+        case LIR_VLADECL:    return "%s = vla(%s)\n";
 
         case LIR_STSARG:
         case LIR_STFARG:     return "stparam(%s);\n";
@@ -123,7 +123,7 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
     switch (s->t) {
         case LIR_MEMORY: {
             long off = s->storage.var.offset;
-            dst += sprintf(dst, "[rbp %s %ld]", off > 0 ? "-" : "+", ABS(off)); 
+            dst += sprintf(dst, "[%s %s %ld]", register_to_string(s->storage.var.base), off > 0 ? "-" : "+", ABS(off)); 
             break;
         }
         case LIR_REGISTER: dst += sprintf(dst, "%s", register_to_string(s->storage.reg.reg)); break;

@@ -60,7 +60,7 @@ typedef enum {
         LIR_VRDEALL,  // cnst_x=var_id, deallocate a variable
         LIR_STRDECL,  // cnst_x=var_id, cnst_y=str_id
         LIR_ARRDECL,  // cnst_x=var_id, var_y=size, list_z=init_elems
-        LIR_HEAPDECL, // cnst_x=var_id, var_y=size
+        LIR_VLADECL, // cnst_x=var_id, var_y=size
 
         LIR_STSARG,   // store parameter to syscall, x, cnst_y=index
         LIR_STFARG,   // store parameter to function, x, cnst_y=index
@@ -148,10 +148,6 @@ typedef enum {
         LIR_RSVSTK, // Reserve stackframe
         LIR_MKSCOPE,
         LIR_ENDSCOPE,
-    
-        /* Heap */
-        LIR_ALLCH,  // allocate heap + save addr to farg
-        LIR_DEALLH, // deallocate heap, addr from farg
 
         /* System */
         LIR_EXITOP, // Exit with farg exit call
