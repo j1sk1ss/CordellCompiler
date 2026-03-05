@@ -449,7 +449,7 @@ def _entry() -> None:
             binary: str | None = builder.build(
                 test_file=str(base),
                 output_dir=str(module_out_dir),
-                extra_flags=['Wno-int-conversion', 'Wno-unused-function']
+                extra_flags=['Wno-int-conversion', 'Wno-unused-function', 'Wno-ignored-qualifiers']
             )
         _out: str = _buf.getvalue()
         if _out:

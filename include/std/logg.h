@@ -10,49 +10,49 @@
 #ifdef ERROR_LOGS
     #define print_error(message, ...)   log_message("ERROR", __FILE__, __LINE__, message, ##__VA_ARGS__)
 #else
-    #define print_error(message, ...)
+    #define print_error(message, ...)   (void)0
 #endif
 
 #ifdef WARNING_LOGS
     #define print_warn(message, ...)    log_message("WARN", __FILE__, __LINE__, message, ##__VA_ARGS__)
 #else
-    #define print_warn(message, ...)
+    #define print_warn(message, ...)    (void)0
 #endif
 
 #ifdef INFO_LOGS
     #define print_info(message, ...)    log_message("INFO", __FILE__, __LINE__, message, ##__VA_ARGS__)
 #else
-    #define print_info(message, ...)
+    #define print_info(message, ...)    (void)0
 #endif
 
 #ifdef DEBUG_LOGS
     #define print_debug(message, ...)   log_message("DEBUG", __FILE__, __LINE__, message, ##__VA_ARGS__)
 #else
-    #define print_debug(message, ...)
+    #define print_debug(message, ...)   (void)0
 #endif
 
 #ifdef IO_OPERATION_LOGS
     #define print_io(message, ...)      log_message("I/O", __FILE__, __LINE__, message, ##__VA_ARGS__)
 #else
-    #define print_io(message, ...)
+    #define print_io(message, ...)      (void)0
 #endif
 
 #ifdef MEM_OPERATION_LOGS
     #define print_mm(message, ...)      log_message("MEM", __FILE__, __LINE__, message, ##__VA_ARGS__)
 #else
-    #define print_mm(message, ...)
+    #define print_mm(message, ...)      (void)0
 #endif
 
 #ifdef LOGGING_LOGS
     #define print_log(message, ...)     log_message("LOG", __FILE__, __LINE__, message, ##__VA_ARGS__)
 #else
-    #define print_log(message, ...)
+    #define print_log(message, ...)     (void)0
 #endif
 
 #ifdef SPECIAL_LOGS
     #define print_spec(message, ...)    log_message("SPEC", __FILE__, __LINE__, message, ##__VA_ARGS__)
 #else
-    #define print_spec(message, ...)
+    #define print_spec(message, ...)    (void)0
 #endif
 
 /*

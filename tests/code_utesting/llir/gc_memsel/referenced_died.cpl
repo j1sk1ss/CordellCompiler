@@ -56,8 +56,8 @@ BB3: lb11:
 r8 = $1;
 r9 = r8;
 r15 = r9;
-[rbp - 12] = r15;
-rax = &([rbp - 12]);
+[rbp - 8] = r15;
+rax = &([rbp - 8]);
 r12 = rax;
 rdi = r12;
 rbx = rdi;
