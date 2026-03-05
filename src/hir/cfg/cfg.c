@@ -163,11 +163,18 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
             }
 
             /* This block doesn't have any precessors, which means,
-               we need to destroy link from this block (this is the dead end). */
+               we need to destroy link from this block (this is the dead end),
+               and mark all related HIR blocks as unused blocks. */
             if (!set_size(&cb->pred)) {
                 if (cb->l)   set_remove(&cb->l->pred, cb);
                 if (cb->jmp) set_remove(&cb->jmp->pred, cb);
                 cb->l = cb->jmp = NULL;
+
+                hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
+                while (hh) {
+                    if (hh->op != HIR_MKLB) hh->unused = 1; /* We don't want to get links to nothing */
+                    hh = HIR_get_next(hh, cb->hmap.exit, 1);
+                }
             }
         }
     }

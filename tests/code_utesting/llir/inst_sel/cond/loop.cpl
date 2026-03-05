@@ -11,6 +11,5 @@ BB{X}: lb4:
 jmp lb5;
 BB{X}: lb5:
 jmp lb4;
-BB{X}: lb6:
-send
+BB{X}:
 :

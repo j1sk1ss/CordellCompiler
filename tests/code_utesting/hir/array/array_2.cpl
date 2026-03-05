@@ -10,7 +10,6 @@
     start {
         {
             {
-                use num? 0;
                 arrs %0 = arr_alloc(num? 10);
                 u32s %1 = alloc(8);
                 u32t***** %2 = &(arrs %0);

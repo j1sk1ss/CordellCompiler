@@ -31,10 +31,11 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     /* Initially, we build an empty graph of all avaliable variable */
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
         if (
-            vi->vfs.glob || vi->vfs.ro   ||            /* Global and RO types aren't in the stack                           */
-            vi->type == ARRAY_TYPE_TOKEN ||            /* Array type is a head in the stack (must have a valid address)     */
-            vi->type == STR_TYPE_TOKEN   ||            /* String variables act the same as it do array variables            */
-            ALLIAS_get_owners(vi->v_id, NULL, &smt->m) /* If this variable has owners -> we need a valid point in the stack */
+            vi->vfs.glob || vi->vfs.ro                 || /* Global and RO types aren't in the stack                           */
+            vi->type == ARRAY_TYPE_TOKEN               || /* Array type is a head in the stack (must have a valid address)     */
+            vi->type == STR_TYPE_TOKEN                 || /* String variables act the same as it do array variables            */
+            ALLIAS_get_owners(vi->v_id, NULL, &smt->m) || /* If this variable has owners -> we need a valid point in the stack */
+            vi->vmi.align > CONF_get_full_bytness()       /* If the variable needs memory, larger than the register's maximum  */
         ) continue;
         _add_ig_node(vi->v_id, g);
     }

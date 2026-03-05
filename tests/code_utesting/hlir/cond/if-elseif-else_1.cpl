@@ -32,8 +32,6 @@ BB4: lb{X}:
 exit $2;
 BB{X}: lb{X}:
 exit $3;
-BB{X}: lb{X}:
-jmp lb{X};
-BB{X}: lb{X}:
-send
+BB{X}:
+BB{X}:
 :

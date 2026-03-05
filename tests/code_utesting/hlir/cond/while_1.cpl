@@ -25,10 +25,10 @@ je lb11;
 jne lb10;
 BB{X}: lb10:
 jmp lb11;
-BB{X}: jmp lb9;
+BB{X}:
 BB{X}: lb11:
 jmp lb6;
-BB{X}: jmp lb4;
+BB{X}:
 BB{X}: lb6:
 fend
 :

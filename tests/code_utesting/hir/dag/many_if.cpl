@@ -55,11 +55,11 @@
                     }
                     goto lb22;
                     lb22:
-                }
-                goto lb6;
+                [unused] }
+                [unused] goto lb6;
                 lb6:
-            }
-        }
-    }
+            [unused] }
+        [unused] }
+    [unused] }
 }
 :

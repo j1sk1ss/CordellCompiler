@@ -48,8 +48,6 @@ BB{X}: lb19:
 %15 = $3;
 %14 = %15;
 return %14;
-BB{X}: lb20:
-jmp lb9;
-BB{X}: lb9:
-fend
+BB{X}:
+BB{X}:
 :

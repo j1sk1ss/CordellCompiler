@@ -40,6 +40,5 @@ rdx = rax;
 [unused] kill(13);
 [unused] kill(12);
 exit rdx;
-BB{X}: lb14:
-send
+BB{X}:
 :
