@@ -96,18 +96,26 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
                         array_info_t ai;
                         if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
-                            int elsize = _get_ast_type_size(ai.elements_info.el_type);
-                            int arroff = stack_map_alloc(ALIGN(ai.size * elsize, vi.vmi.align), &smp);
-                            VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
+                            if (ai.heap) { // TODO: Heap
+                                lh->op = LIR_HEAPDECL;
+                                _update_subject_memory(lh->farg, &smp, colors, smt);
+                                _update_subject_memory(lh->sarg, &smp, colors, smt);
+                                break;
+                            }
+                            else {
+                                int el_size = _get_ast_type_size(ai.elements_info.el_type);
+                                int arr_off = stack_map_alloc(ALIGN(ai.size * el_size, vi.vmi.align), &smp);
+                                VRTB_update_memory(lh->farg->storage.var.v_id, arr_off, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
 
-                            int pos = 0;
-                            foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
-                                if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
-                                LIR_insert_block_before(
-                                    LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(arroff - pos * elsize, 1), elem, NULL), lh
-                                );
+                                int el_pos = 0;
+                                foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
+                                    if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
+                                    LIR_insert_block_before(
+                                        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(arr_off - el_pos * el_size, 1), elem, NULL), lh
+                                    );
 
-                                pos++;
+                                    el_pos++;
+                                }
                             }
                         }
 

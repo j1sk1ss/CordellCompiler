@@ -59,7 +59,8 @@ typedef enum {
 
         LIR_VRDEALL,  // cnst_x=var_id, deallocate a variable
         LIR_STRDECL,  // cnst_x=var_id, cnst_y=str_id
-        LIR_ARRDECL,  // cnst_x=var_id
+        LIR_ARRDECL,  // cnst_x=var_id, var_y=size, list_z=init_elems
+        LIR_HEAPDECL, // cnst_x=var_id, var_y=size
 
         LIR_STSARG,   // store parameter to syscall, x, cnst_y=index
         LIR_STFARG,   // store parameter to function, x, cnst_y=index

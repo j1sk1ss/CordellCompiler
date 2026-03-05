@@ -46,7 +46,8 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
 
         case LIR_VRDEALL:    return "kill(%s);\n";
         case LIR_STRDECL:    return "%s = str_alloc(%s);\n";
-        case LIR_ARRDECL:    return "%s = arr_alloc(X);\n";
+        case LIR_ARRDECL:    return "%s = arr_alloc(%s);\n";
+        case LIR_HEAPDECL:   return "%s = heap(%s)\n";
 
         case LIR_STSARG:
         case LIR_STFARG:     return "stparam(%s);\n";

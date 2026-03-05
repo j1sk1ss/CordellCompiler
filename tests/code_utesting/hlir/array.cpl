@@ -9,17 +9,7 @@
 
 : OUTPUT
 BB{X}: start
-use $1;
-use $2;
-use $3;
-use $4;
-use $5;
-use $6;
-use $7;
-use $8;
-use $9;
-use $10;
-%0 = arr_alloc(X);
+%0 = arr_alloc($10);
 %3 = &(%0);
 %4 = $0 * 4;
 %6 = %4 as u64;

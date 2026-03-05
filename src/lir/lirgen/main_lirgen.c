@@ -111,7 +111,7 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
                 list_add(&lir_elems->storage.list.h, LIR_convert_hs_to_ls(hir_elem));
             }
 
-            LIR_BLOCK3(ctx, LIR_ARRDECL, LIR_convert_hs_to_ls(h->farg), NULL, lir_elems);
+            LIR_BLOCK3(ctx, LIR_ARRDECL, LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), lir_elems);
             break;
         }
 
