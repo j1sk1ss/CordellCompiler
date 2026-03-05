@@ -21,7 +21,12 @@ lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_
             break;
         }
         
-        case LIR_MEMORY:   subj->storage.var.offset = offset; break;
+        case LIR_MEMORY: {
+            subj->storage.var.offset = offset;
+            subj->storage.var.base   = reg;
+            break;
+        }
+
         case LIR_CONSTVAL: subj->storage.cnst.value = intval; break;
         case LIR_LABEL:    subj->storage.lb.lb_id   = v_id;   break;
         case LIR_FNAME:
@@ -65,7 +70,9 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
     if (!a || !b) return 0;
     if (a->t != b->t) return 0;
     switch (a->t) {
-        case LIR_MEMORY:     return (a->storage.var.offset == b->storage.var.offset) && (a->size == b->size);
+        case LIR_MEMORY:     return (a->storage.var.offset == b->storage.var.offset) && 
+                                    (a->size == b->size) && 
+                                    (a->storage.var.base == a->storage.var.base);
         case LIR_VARIABLE:   return a->storage.var.v_id == b->storage.var.v_id;
         case LIR_CONSTVAL:   return a->storage.cnst.value == b->storage.cnst.value;
         case LIR_GLVARIABLE:

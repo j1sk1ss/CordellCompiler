@@ -15,8 +15,9 @@ typedef struct {
 } lir_constant_t;
 
 typedef struct {
-    int  offset;
-    long v_id;
+    lir_registers_t base;
+    int             offset;
+    long            v_id;
 } lir_variable_t;
 
 typedef struct {
@@ -90,19 +91,19 @@ int LIR_unload_blocks(lir_block_t* block);
 #ifndef LIR_MAX_TYPE_SIZE
     #define LIR_MAX_TYPE_SIZE 8
 #endif
-                                                 /* LIR type     Reg    vID              Offset  String Int  Size */
-#define LIR_SUBJ_REG(reg, sz) LIR_create_subject(LIR_REGISTER,   reg,   -1,                  0,   NULL, 0,   sz)
-#define LIR_SUBJ_CONST(val)   LIR_create_subject(LIR_CONSTVAL,   -1,    -1,                  0,   NULL, val, 0)
-#define LIR_SUBJ_NUMBER(val)  LIR_create_subject(LIR_NUMBER,     -1,    -1,                  0,   val,  0,   LIR_MAX_TYPE_SIZE)
-#define LIR_SUBJ_VAR(id, sz)  LIR_create_subject(LIR_VARIABLE,   -1,    id,                  -1,  NULL, 0,   sz)
-#define LIR_SUBJ_GLVAR(id)    LIR_create_subject(LIR_GLVARIABLE, -1,    id,                  0,   NULL, 0,   0)
-#define LIR_SUBJ_OFF(off, sz) LIR_create_subject(LIR_MEMORY,     -1,    -1,                  off, NULL, 0,   sz)
-#define LIR_SUBJ_LABEL(id)    LIR_create_subject(LIR_LABEL,      -1,    id,                  0,   NULL, 0,   0)
-#define LIR_SUBJ_RAWASM(l)    LIR_create_subject(LIR_RAWASM,     -1,    l,                   0,   NULL, 0,   0)
-#define LIR_SUBJ_STRING(id)   LIR_create_subject(LIR_STRING,     -1,    id,                  0,   NULL, 0,   LIR_MAX_TYPE_SIZE)
-#define LIR_SUBJ_FUNCNAME(n)  LIR_create_subject(LIR_FNAME,      -1,    n->storage.str.s_id, 0,   NULL, 0,   0)
-#define LIR_SUBJ_ADDRFUNC(n)  LIR_create_subject(LIR_FNAME,      -1,    n->storage.str.s_id, 0,   NULL, 1,   0)
-#define LIR_SUBJ_LIST()       LIR_create_subject(LIR_ARGLIST,    -1,    -1,                  0,   NULL, 0,   0)
+                                                      /* LIR type     Reg    vID              Offset  String Int  Size */
+#define LIR_SUBJ_REG(reg, sz)      LIR_create_subject(LIR_REGISTER,   reg,   -1,                  0,   NULL, 0,   sz)
+#define LIR_SUBJ_CONST(val)        LIR_create_subject(LIR_CONSTVAL,   -1,    -1,                  0,   NULL, val, 0)
+#define LIR_SUBJ_NUMBER(val)       LIR_create_subject(LIR_NUMBER,     -1,    -1,                  0,   val,  0,   LIR_MAX_TYPE_SIZE)
+#define LIR_SUBJ_VAR(id, sz)       LIR_create_subject(LIR_VARIABLE,   -1,    id,                  -1,  NULL, 0,   sz)
+#define LIR_SUBJ_GLVAR(id)         LIR_create_subject(LIR_GLVARIABLE, -1,    id,                  0,   NULL, 0,   0)
+#define LIR_SUBJ_OFF(off, reg, sz) LIR_create_subject(LIR_MEMORY,     reg,   -1,                  off, NULL, 0,   sz)
+#define LIR_SUBJ_LABEL(id)         LIR_create_subject(LIR_LABEL,      -1,    id,                  0,   NULL, 0,   0)
+#define LIR_SUBJ_RAWASM(l)         LIR_create_subject(LIR_RAWASM,     -1,    l,                   0,   NULL, 0,   0)
+#define LIR_SUBJ_STRING(id)        LIR_create_subject(LIR_STRING,     -1,    id,                  0,   NULL, 0,   LIR_MAX_TYPE_SIZE)
+#define LIR_SUBJ_FUNCNAME(n)       LIR_create_subject(LIR_FNAME,      -1,    n->storage.str.s_id, 0,   NULL, 0,   0)
+#define LIR_SUBJ_ADDRFUNC(n)       LIR_create_subject(LIR_FNAME,      -1,    n->storage.str.s_id, 0,   NULL, 1,   0)
+#define LIR_SUBJ_LIST()            LIR_create_subject(LIR_ARGLIST,    -1,    -1,                  0,   NULL, 0,   0)
 
 /* op */
 #define LIR_BLOCK0(ctx, op) LIR_append_block(LIR_create_block((op), NULL, NULL, NULL), (ctx))

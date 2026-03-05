@@ -162,6 +162,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                        Note: Based on the Linux ABI execution convention. */
                     case LIR_STARGLD: {
                         lir_subject_t* src = LIR_SUBJ_OFF(
+                            RBP,
                             (lh->sarg->storage.cnst.value + 1) * -8, 
                             _get_variable_size(lh->farg->storage.var.v_id, smt)
                         );
@@ -197,6 +198,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
                         else {
                             nfarg = LIR_SUBJ_OFF(
+                                RBP,
                                 (lh->sarg->storage.cnst.value - (long)(sizeof(abi_regs) / sizeof(RDI)) + 1) * -8, 
                                 _get_variable_size(lh->farg->storage.var.v_id, smt)
                             );

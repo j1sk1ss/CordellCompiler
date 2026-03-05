@@ -79,11 +79,11 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             char* string = si.value->body;
                             while (*string) {
                                 LIR_insert_block_before(
-                                    LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(arroff--, 1), LIR_SUBJ_CONST(*(string++)), NULL), lh
+                                    LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arroff--, 1), LIR_SUBJ_CONST(*(string++)), NULL), lh
                                 );
                             }
 
-                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(arroff, 1), LIR_SUBJ_CONST(0), NULL), lh);
+                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arroff, 1), LIR_SUBJ_CONST(0), NULL), lh);
                         }
 
                         lh->unused = 1;
@@ -111,7 +111,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                                 foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
                                     if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
                                     LIR_insert_block_before(
-                                        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(arr_off - el_pos * el_size, 1), elem, NULL), lh
+                                        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arr_off - el_pos * el_size, 1), elem, NULL), lh
                                     );
 
                                     el_pos++;
