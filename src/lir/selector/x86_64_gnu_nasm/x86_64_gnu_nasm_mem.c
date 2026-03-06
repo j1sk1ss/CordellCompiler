@@ -1,5 +1,23 @@
 #include <lir/selector/x84_64_gnu_nasm.h>
 
+static int _calculate_offset(lir_block_t* h, lir_subject_t* s, map_t* vla, sym_table_t* smt) {
+    lir_registers_t base_register = RBP;
+    if (!map_isempty(vla)) {
+        base_register = RAX;
+        LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RAX, CONF_get_full_bytness()), NULL, NULL), h);
+        LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RBX, CONF_get_full_bytness()), NULL, NULL), h);
+        LIR_insert_block_before(LIR_create_block(LIR_iMOV, LIR_SUBJ_REG(RAX, CONF_get_full_bytness()), LIR_SUBJ_REG(RBP, CONF_get_full_bytness()), NULL), h);
+        map_foreach (lir_subject_t* vla_size, vla) {
+            LIR_insert_block_before(LIR_create_block(LIR_iMOV, LIR_SUBJ_REG(RBX, CONF_get_full_bytness()), vla_size, NULL), h);
+            LIR_insert_block_before(LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RAX, CONF_get_full_bytness()), LIR_SUBJ_REG(RBX, CONF_get_full_bytness()), NULL), h);
+        }
+        LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(RBX, CONF_get_full_bytness()), NULL, NULL), h);
+        LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(RAX, CONF_get_full_bytness()), NULL, NULL), h);
+    }
+
+    return base_register;
+}
+
 /*
 Update information about memory allocation in the provided lir subject.
 Params:
@@ -47,6 +65,9 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
 }
 
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt) {
+    map_t vla;
+    map_init(&vla, MAP_NO_CMP);
+
     stack_map_t smp;
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
@@ -61,7 +82,15 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
                             vi.vfs.glob || vi.vmi.offset == -1
                         ) lh->unused = 1;
-                        else stack_map_free(vi.vmi.offset, ALIGN(vi.vmi.size, vi.vmi.align), &smp);
+                        else {
+                            stack_map_free(vi.vmi.offset, ALIGN(vi.vmi.size, vi.vmi.align), &smp);
+                            lir_subject_t* vla_len; /* If this is a VLA array, remove its information */
+                            if (map_get(&vla, vi.v_id, (void**)&vla_len)) {
+                                stack_map_free(vla_len->storage.var.offset, CONF_get_full_bytness(), &smp);
+                                map_remove(&vla, vi.v_id);
+                            }
+                        }
+
                         break;
                     }
                     case LIR_STRDECL: {
@@ -97,7 +126,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
                         array_info_t ai;
                         if (ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)) {
-                            if (ai.vla) { // TODO: VLA
+                            if (ai.vla) {
                                 lh->op = LIR_VLADECL;
                                 _update_subject_memory(lh->farg, &smp, colors, smt);
                                 _update_subject_memory(lh->sarg, &smp, colors, smt);
@@ -146,5 +175,6 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
         ) fb->hmap.entry->sarg = HIR_SUBJ_CONST(smp.last_offset);
     }
 
+    map_free(&vla);
     return 1;
 }
