@@ -51,7 +51,7 @@ int ARTB_update_info(symbol_id_t id, long size, int vla, token_type_t el_type, t
         if (el_type >= 0) ai->elements_info.el_type = el_type;
         if (flags)        str_memcpy(&ai->elements_info.el_flags, flags, sizeof(token_flags_t));
         if (size >= 0)    ai->size = size;
-        if (vla >= 0)    ai->vla = vla;
+        if (vla >= 0)     ai->vla = vla;
         return 1;
     }
 

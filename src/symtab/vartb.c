@@ -39,7 +39,7 @@ int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx) {
     return 0;
 }
 
-int VRTB_get_info(string_t* varname, short s_id, variable_info_t* info, vartab_ctx_t* ctx) {
+int VRTB_get_info(string_t* varname, symbol_id_t s_id, variable_info_t* info, vartab_ctx_t* ctx) {
     map_foreach (variable_info_t* vi, &ctx->vartb) {
         if (((s_id < 0) || s_id == vi->s_id) && varname->equals(varname, vi->name)) {
             if (info) str_memcpy(info, vi, sizeof(variable_info_t));
@@ -50,7 +50,7 @@ int VRTB_get_info(string_t* varname, short s_id, variable_info_t* info, vartab_c
     return 0;
 }
 
-static variable_info_t* _create_variable_info(string_t* name, token_type_t type, short s_id, token_flags_t* flags) {
+static variable_info_t* _create_variable_info(string_t* name, token_type_t type, symbol_id_t s_id, token_flags_t* flags) {
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
     str_memset(var, 0, sizeof(variable_info_t));
@@ -58,7 +58,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
     var->s_id = s_id;
     if (name) var->name = name->copy(name);
     if (flags) {
-        var->vfs.vla = flags->vla;
+        var->vfs.vla  = flags->vla;
         var->vfs.ptr  = flags->ptr;
         var->vfs.glob = flags->glob;
         var->vfs.ro   = flags->ro;
@@ -68,7 +68,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
     var->vmi.offset = -1;
     var->vmi.align  = 8;
 
-    var->p_id = -1;
+    var->p_id = NO_SYMBOL_ID;
     var->type = type;
     return var;
 }
@@ -90,7 +90,7 @@ symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     return nnd->v_id;
 }
 
-symbol_id_t VRTB_add_info(string_t* name, token_type_t type, short s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
+symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
     print_log("VRTB_add_info(name=%s, type=%i, s_id=%i)", name ? name->body : "(null)", type, s_id);
     variable_info_t* nnd = _create_variable_info(name, type, s_id, flags);
     if (!nnd) return 0;

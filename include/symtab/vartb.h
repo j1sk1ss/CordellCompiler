@@ -42,9 +42,9 @@ typedef struct {
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx);
 int VRTB_update_definition(symbol_id_t id, long definition, vartab_ctx_t* ctx);
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx);
-int VRTB_get_info(string_t* vname, short scope, variable_info_t* info, vartab_ctx_t* ctx);
+int VRTB_get_info(string_t* vname, symbol_id_t scope, variable_info_t* info, vartab_ctx_t* ctx);
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx);
-symbol_id_t VRTB_add_info(string_t* name, token_type_t type, short scope, token_flags_t* flags, vartab_ctx_t* ctx);
+symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t scope, token_flags_t* flags, vartab_ctx_t* ctx);
 int VRTB_unload(vartab_ctx_t* ctx);
 
 #endif
