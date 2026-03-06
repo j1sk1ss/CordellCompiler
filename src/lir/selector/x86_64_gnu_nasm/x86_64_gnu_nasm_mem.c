@@ -1,6 +1,39 @@
 #include <lir/selector/x84_64_gnu_nasm.h>
 
 /*
+If this is a regular (avaliable for a variable usage) register.
+Params:
+    - `r` - Register.
+
+Return 1 if this is a valid register.
+*/
+static inline int _is_regular_register(lir_registers_t r) {
+    if (r > R15 || r < 0) return 0;
+    lir_registers_t base = LIR_format_register(r, 8);
+    if (
+        base == RBP || 
+        base == RSP
+    ) return 0;
+    return 1;
+}
+
+static const lir_registers_t _regular_registers[] = { RAX, RCX, RDX, RBX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14, R15 };
+
+/*
+Convert color (index) value to a register.
+The idea, that colors don't care about special and reserved registers (such as RSP, RBP, etc.),
+that's why we need to convert it properly.
+Params:
+    - `color` - Color to convert.
+
+Returns the converted register.
+*/
+static inline lir_registers_t _convert_color_to_register(long color) {
+    if (color < 0 || color > (long)(sizeof(_regular_registers) / sizeof(_regular_registers[0]))) return -1;
+    return _regular_registers[color];
+}
+
+/*
 Update information about memory allocation in the provided lir subject.
 Params:
     - `s` - The considering lir subject.
@@ -18,11 +51,14 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
         return 1;
     }
     
-    long color;
+    long color = 0;
     vi.vmi.size = _get_variable_size(vi.v_id, smt);
     if (!vi.vmi.allocated) {
-        if (colors && map_get(colors, s->storage.var.v_id, (void**)&color) && color >= 0) {
-            vi.vmi.reg    = color;
+        if (
+            colors && map_get(colors, s->storage.var.v_id, (void**)&color) &&     /* If the clor is found         */
+            color >= 0 && _is_regular_register(_convert_color_to_register(color)) /* And if this a valid register */
+        ) {
+            vi.vmi.reg    = _convert_color_to_register(color);
             vi.vmi.offset = FIELD_NO_CHANGE;
         }
         else {

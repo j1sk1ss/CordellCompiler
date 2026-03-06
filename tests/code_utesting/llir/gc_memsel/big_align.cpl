@@ -7,9 +7,9 @@
 : OUTPUT
 BB1: start
 rax = $1;
-rcx = rax;
-rbx = rcx;
-[rbp - 16] = rbx;
+rdx = rax;
+rcx = rdx;
+[rbp - 16] = rcx;
 [unused] kill(1);
 [unused] kill(4);
 [unused] kill(3);

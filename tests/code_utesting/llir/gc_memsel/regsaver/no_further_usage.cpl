@@ -13,18 +13,18 @@
 
 : OUTPUT
 BB2: fn foo0()
-rdi = $1;
-rcx = rdi;
-rbp = rcx;
-rbx = rbp;
-rsi movsxd rbx;
-r8 = rsi;
-rax = r8;
+rax = $1;
+rdx = rax;
+rax = rdx;
+rcx = rax;
+rbx movsxd rcx;
+rax = rbx;
+rax = rax;
 rax = rax + $10;
 rax = rax;
-rsp = rax;
-rdx = rsp;
-rax = rdx;
+rsi = rax;
+rax = rsi;
+rax = rax;
 [unused] kill(17);
 [unused] kill(19);
 [unused] kill(4);
@@ -39,20 +39,20 @@ rax = rdx;
 return rax;
 BB3:
 BB4: start
-r9 = $1;
-rbp = r9;
-rcx = rbp;
-rsp = rcx;
-rsi movsxd rsp;
-r10 = rsi;
-rax = r10;
+rax = $1;
+rsi = rax;
+rax = rsi;
+rdi = rax;
+rdx movsxd rdi;
+rax = rdx;
+rax = rax;
 rax = rax + $1;
 rax = rax;
-rdx = rax;
-rbx = rdx;
-r11 = rbx;
-r8 = r11;
-rdi = r8;
+rcx = rax;
+rax = rcx;
+r8 = rax;
+rax = r8;
+rbx = rax;
 call foo0();
 [unused] kill(20);
 [unused] kill(9);

@@ -115,11 +115,10 @@ int main(int argc, char* argv[]) {
     LIR_RA_init_colors(&colors, &smt);
     
     regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
-    LIR_regalloc(&cfgctx, &smt, &colors, &regall);    // Analyzation
-    LIR_apply_regalloc(&smt, &colors);                // Analyzation
+    LIR_regalloc(&cfgctx, &smt, &colors, &regall);      // Analyzation
 
     mem_selector_t mem_sel = { .select_memory = x86_64_gnu_nasm_memory_selection };
-    LIR_select_memory(&cfgctx, NULL, &smt, &mem_sel); // Transform
+    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
     lir_block_t* lh = lirctx.h;
     while (lh) {

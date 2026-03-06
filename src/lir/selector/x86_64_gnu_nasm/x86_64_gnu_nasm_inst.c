@@ -56,8 +56,8 @@ Params:
 
 Return the virtual variable that is linked to the physical register.
 */
-static lir_subject_t* _create_tmp(int reg, lir_subject_t* src, sym_table_t* smt) {
-    long cpy;
+static lir_subject_t* _create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt) {
+    symbol_id_t cpy = NO_SYMBOL_ID;
     variable_info_t vi = { .vmi.offset = -1 };
     if (
         src->t == LIR_VARIABLE && 
@@ -123,7 +123,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
             case LIR_fMOV: 
             case LIR_GDREF:
             case LIR_LDREF: {
-                lir_subject_t* tmp = _create_tmp(-1, lh->sarg, smt);
+                lir_subject_t* tmp = _create_tmp(RAX, lh->sarg, smt);
                 fix = LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL);
                 lh->sarg = tmp;
                 break;
