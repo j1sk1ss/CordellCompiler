@@ -8,37 +8,25 @@
 }
 
 : OUTPUT
-BB{X}: start
-rbx = $1;
-r9 = rbx;
-rsi = r9;
-rbp = rsi;
-rsp = $1;
-rdi = rsp;
-r8 = rdi;
-rcx = r8;
-cmp rbp, 0;
+BB1: start
+r15 = $1;
+rsi = r15;
+r15 = rsi;
+rdx = r15;
+r15 = $1;
+rcx = r15;
+r15 = rcx;
+rax = r15;
+cmp rdx, 0;
 je lb13;
-[unused] kill(2);
-[unused] kill(9);
-[unused] kill(7);
-[unused] kill(3);
-[unused] kill(6);
-[unused] kill(8);
 jne lb12;
-BB{X}: lb12:
-rax = rcx;
-rdx = rax;
-[unused] kill(11);
-[unused] kill(10);
-[unused] kill(5);
+BB2: lb12:
+r15 = rax;
+rdx = r15;
 exit rdx;
-BB{X}: lb13:
-rax = rbp;
-rdx = rax;
-[unused] kill(4);
-[unused] kill(13);
-[unused] kill(12);
+BB3: lb13:
+r15 = rdx;
+rdx = r15;
 exit rdx;
-BB{X}:
+BB4: lb14:
 :

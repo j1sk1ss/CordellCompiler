@@ -17,16 +17,10 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-[unused] %3 = arr_alloc($10);
-rax = &([rbp - 16]);
-rax = rax;
-rbx = rax;
-rcx = rbx;
-[unused] kill(4);
+r15 = &([rbp - 16]);
+rax = r15;
+r15 = rax;
+rcx = r15;
 kill(3);
-[unused] kill(0);
-[unused] kill(5);
-[unused] kill(6);
-[unused] kill(2);
 send
 :

@@ -17,7 +17,7 @@ static inline int _is_regular_register(lir_registers_t r) {
     return 1;
 }
 
-static const lir_registers_t _regular_registers[] = { RAX, RCX, RDX, RBX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14, R15 };
+static const lir_registers_t _regular_registers[] = { RAX, RCX, RDX, RBX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14 };
 
 /*
 Convert color (index) value to a register.

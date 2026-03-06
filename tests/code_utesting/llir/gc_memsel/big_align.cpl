@@ -6,13 +6,10 @@
 
 : OUTPUT
 BB1: start
-rax = $1;
-rdx = rax;
-rcx = rdx;
-[rbp - 16] = rcx;
-[unused] kill(1);
-[unused] kill(4);
-[unused] kill(3);
+r15 = $1;
+rax = r15;
+r15 = rax;
+[rbp - 16] = r15;
 kill(2);
 send
 :

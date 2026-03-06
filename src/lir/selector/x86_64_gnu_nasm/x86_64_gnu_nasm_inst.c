@@ -112,7 +112,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
         lir_block_t* fix = NULL;
         switch (lh->op) {
             case LIR_REF: {
-                lir_subject_t* tmp = _create_tmp(RAX, lh->sarg, smt);
+                lir_subject_t* tmp = _create_tmp(R15, lh->sarg, smt);
                 fix = LIR_create_block(lh->op, tmp, lh->sarg, NULL);
                 lh->sarg = tmp;
                 lh->op   = LIR_iMOV;
@@ -123,7 +123,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
             case LIR_fMOV: 
             case LIR_GDREF:
             case LIR_LDREF: {
-                lir_subject_t* tmp = _create_tmp(RAX, lh->sarg, smt);
+                lir_subject_t* tmp = _create_tmp(R15, lh->sarg, smt);
                 fix = LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL);
                 lh->sarg = tmp;
                 break;

@@ -7,41 +7,24 @@
 
 : OUTPUT
 BB1: start
-[unused] %7 = arr_alloc($10);
-rax = &([rbp - 40]);
-rbx = rax;
-r10 = $5;
-rax = r10;
+r15 = &([rbp - 40]);
+rcx = r15;
+r15 = $5;
+rax = r15;
 rax = rax * 4;
-rax = rax;
-rdi = rax;
-rdx = rdi;
-rcx = rdx;
-r9 = rbx;
-rax = r9;
-rax = rax + rcx;
-rax = rax;
-rsp = rax;
-r11 = rsp;
-r8 = *(r11);
-rsi = r8;
-rbp = rsi;
-[unused] kill(15);
-[unused] kill(9);
-[unused] kill(12);
-[unused] kill(17);
-[unused] kill(6);
-[unused] kill(4);
-[unused] kill(8);
+r15 = rax;
+rbx = r15;
+r15 = rbx;
+rdx = r15;
+r15 = rcx;
+rax = r15;
+rax = rax + rdx;
+r15 = rax;
+rdi = r15;
+r15 = rdi;
+r8 = *(r15);
+r15 = r8;
+rsi = r15;
 kill(7);
-[unused] kill(3);
-[unused] kill(13);
-[unused] kill(18);
-[unused] kill(11);
-[unused] kill(10);
-[unused] kill(16);
-[unused] kill(14);
-[unused] kill(5);
-[unused] kill(2);
 send
 :

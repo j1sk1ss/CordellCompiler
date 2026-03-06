@@ -18,18 +18,15 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-[unused] %2 = arr_alloc($10);
 cmp $1, 0;
-je lb{X};
+je lb19;
 kill(2);
-jne lb{X};
-BB2: lb{X}:
-rax = $1;
-rdx = rax;
-[unused] kill(4);
-[unused] kill(5);
+jne lb17;
+BB2: lb17:
+r15 = $1;
+rdx = r15;
 exit rdx;
-BB3: lb{X}:
+BB3: lb19:
 [rbp - 16] = $0;
 [rbp - 15] = $1;
 [rbp - 14] = $2;
@@ -40,8 +37,6 @@ BB3: lb{X}:
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-[unused] %3 = arr_alloc($10);
 kill(3);
-[unused] kill(0);
 send
 :

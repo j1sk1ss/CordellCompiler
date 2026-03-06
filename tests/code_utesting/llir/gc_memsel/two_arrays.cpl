@@ -17,7 +17,6 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-[unused] %2 = arr_alloc($10);
 [rbp - 32] = $0;
 [rbp - 31] = $1;
 [rbp - 30] = $2;
@@ -28,9 +27,7 @@ BB1: start
 [rbp - 25] = $7;
 [rbp - 24] = $8;
 [rbp - 23] = $9;
-[unused] %3 = arr_alloc($10);
 kill(3);
-[unused] kill(0);
 kill(2);
 send
 :

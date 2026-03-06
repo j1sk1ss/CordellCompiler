@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     
     lir_block_t* lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, &smt);
+        if (!lh->unused) print_lir_block(lh, &smt);
         lh = lh->next;
     }
 

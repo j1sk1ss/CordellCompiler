@@ -19,35 +19,23 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-[unused] %4 = arr_alloc($10);
 cmp $1, 0;
-je lb{X};
-[unused] kill(0);
-jne lb{X};
-BB2: lb{X}:
-rax = $0;
-rdx = rax;
-[unused] kill(7);
-[unused] kill(6);
+je lb19;
+jne lb17;
+BB2: lb17:
+r15 = $0;
+rdx = r15;
 exit rdx;
-BB3: lb{X}:
-rax = &([rbp - 16]);
-rbp = rax;
-rcx = rbp;
-rbx = rcx;
-rsi = rbx;
-rdi = *(rsi);
-rax = rdi;
-rdx = rax;
-[unused] kill(12);
-[unused] kill(9);
-[unused] kill(8);
-[unused] kill(11);
+BB3: lb19:
+r15 = &([rbp - 16]);
+rdx = r15;
+r15 = rdx;
+rax = r15;
+r15 = rax;
+rcx = *(r15);
+r15 = rcx;
+rdx = r15;
 kill(4);
-[unused] kill(10);
-[unused] kill(3);
-[unused] kill(5);
-[unused] kill(2);
 exit rdx;
 BB4:
 :

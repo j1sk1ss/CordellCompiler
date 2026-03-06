@@ -6,22 +6,15 @@
 }
 
 : OUTPUT
-BB{X}: start
-rcx = $0;
-rbx = rcx;
-rsi = rbx;
-[rbp - 8] = rsi;
-rax = &([rbp - 8]);
-rdi = rax;
-rbp = rdi;
-rdx = rbp;
-[unused] kill(8);
-[unused] kill(9);
+BB1: start
+r15 = $0;
+rax = r15;
+r15 = rax;
+[rbp - 8] = r15;
+r15 = &([rbp - 8]);
+rdx = r15;
+r15 = rdx;
+rcx = r15;
 kill(4);
-[unused] kill(7);
-[unused] kill(3);
-[unused] kill(5);
-[unused] kill(6);
-[unused] kill(2);
 send
 :

@@ -13,59 +13,35 @@
 
 : OUTPUT
 BB2: fn foo0()
-rax = $1;
-rdx = rax;
-rax = rdx;
-rcx = rax;
+r15 = $1;
+rdx = r15;
+r15 = rdx;
+rcx = r15;
 rbx movsxd rcx;
-rax = rbx;
-rax = rax;
+r15 = rbx;
+rax = r15;
 rax = rax + $10;
-rax = rax;
-rsi = rax;
-rax = rsi;
-rax = rax;
-[unused] kill(17);
-[unused] kill(19);
-[unused] kill(4);
-[unused] kill(3);
-[unused] kill(13);
-[unused] kill(18);
-[unused] kill(10);
-[unused] kill(16);
-[unused] kill(5);
-[unused] kill(14);
-[unused] kill(15);
+r15 = rax;
+rsi = r15;
+r15 = rsi;
+rax = r15;
 return rax;
 BB3:
 BB4: start
-rax = $1;
-rsi = rax;
-rax = rsi;
-rdi = rax;
+r15 = $1;
+rsi = r15;
+r15 = rsi;
+rdi = r15;
 rdx movsxd rdi;
-rax = rdx;
-rax = rax;
+r15 = rdx;
+rax = r15;
 rax = rax + $1;
-rax = rax;
-rcx = rax;
-rax = rcx;
-r8 = rax;
-rax = r8;
-rbx = rax;
+r15 = rax;
+rcx = r15;
+r15 = rcx;
+r8 = r15;
+r15 = r8;
+rbx = r15;
 call foo0();
-[unused] kill(20);
-[unused] kill(9);
-[unused] kill(12);
-[unused] kill(23);
-[unused] kill(21);
-[unused] kill(7);
-[unused] kill(26);
-[unused] kill(22);
-[unused] kill(11);
-[unused] kill(25);
-[unused] kill(24);
-[unused] kill(6);
-[unused] kill(8);
 send
 :

@@ -7,21 +7,14 @@
 
 : OUTPUT
 BB1: start
-rbx = $1;
-rax = rbx;
-rcx = rax;
-rsi = rcx;
-rbp = $1;
-rdx = rbp;
-rdi = rdx;
-[rbp - 64] = rdi;
-[unused] kill(8);
-[unused] kill(9);
-[unused] kill(4);
-[unused] kill(7);
-[unused] kill(3);
+r15 = $1;
+rax = r15;
+r15 = rax;
+rdx = r15;
+r15 = $1;
+rcx = r15;
+r15 = rcx;
+[rbp - 64] = r15;
 kill(5);
-[unused] kill(6);
-[unused] kill(2);
 send
 :

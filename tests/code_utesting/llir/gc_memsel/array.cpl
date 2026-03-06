@@ -16,8 +16,6 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-[unused] %1 = arr_alloc($10);
 kill(1);
-[unused] kill(0);
 send
 :

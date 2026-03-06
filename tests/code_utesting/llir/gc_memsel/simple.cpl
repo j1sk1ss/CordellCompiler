@@ -5,14 +5,10 @@
 }
 
 : OUTPUT
-BB{X}: start
-rbx = $1;
-rdx = rbx;
-rcx = rdx;
-rax = rcx;
-[unused] kill(1);
-[unused] kill(4);
-[unused] kill(3);
-[unused] kill(2);
+BB1: start
+r15 = $1;
+rcx = r15;
+r15 = rcx;
+rax = r15;
 send
 :
