@@ -103,18 +103,18 @@ typedef enum {
 
     /* Integer */
         /* Binary operations */
-        LIR_iADD, // x = y + z
-        LIR_iSUB, // x = y - z
-        LIR_iMUL, // x = y * z
-        LIR_DIV,  // x = y / z
-        LIR_iDIV, // x = y / z
-        LIR_iMOD, // x = y % z
-        LIR_iLRG, // x = y > z
-        LIR_iLGE, // x = y >= z
-        LIR_iLWR, // x = y < z
-        LIR_iLRE, // x = y <= z
-        LIR_iCMP, // x = y == z
-        LIR_iNMP, // x = y != z
+        LIR_iADD, // x = y + z  | After selection: x = x + z
+        LIR_iSUB, // x = y - z  | After selection: x = x - z
+        LIR_iMUL, // x = y * z  | After selection: x = x * z
+        LIR_DIV,  // x = y / z  | After selection: x = x / z
+        LIR_iDIV, // x = y / z  | After selection: x = x / z
+        LIR_iMOD, // x = y % z  | After selection: x = x % z
+        LIR_iLRG, // x = y > z  | After selection: x = x > z
+        LIR_iLGE, // x = y >= z | After selection: x = x >= z
+        LIR_iLWR, // x = y < z  | After selection: x = x < z
+        LIR_iLRE, // x = y <= z | After selection: x = x <= z
+        LIR_iCMP, // x = y == z | After selection: x = x == z
+        LIR_iNMP, // x = y != z | After selection: x = x != z
 
         /* Logic */
         LIR_iAND, // x = y && z
