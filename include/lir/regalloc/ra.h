@@ -9,12 +9,10 @@
 #include <symtab/symtab.h>
 #include <hir/cfg.h>
 
-#define COLOR_SPILLED -1
 typedef struct igraph_node {
-    char  used : 1;  /* deall.c field. Used for track current slot user */
-    long  v_id;      /* v_id - Link to smt.v variable                   */
-    int   color;     /* gc.c field. Used for graph coloring             */
-    set_t v;         /* Neighbour vertexies                             */
+    symbol_id_t v_id;     /* v_id - Link to smt.v variable                   */
+    int         color;    /* gc.c field. Used for graph coloring             */
+    set_t       v;        /* Neighbour vertexies                             */
 } igraph_node_t;
 
 typedef struct {
@@ -34,9 +32,44 @@ Returns 1 if it succeeds.
 */
 int LIR_RA_init_colors(map_t* colors, sym_table_t* smt);
 
-igraph_node_t* LIR_RA_find_ig_node(igraph_t* g, long v_id);
+/*
+Find a node from the interference graph.
+Params:
+    - `g` - Graph itself.
+    - `v_id` - Variable to find in the graph.
+
+Returns a related to the variable_id node from the graph.
+*/
+igraph_node_t* LIR_RA_find_ig_node(igraph_t* g, symbol_id_t v_id);
+
+/*
+Build the interference graph.
+Params:
+    - `cctx` - CFG context.
+    - `g` - Graph itself.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds. Otherwise will return 0.
+*/
 int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt);
+
+/*
+Unload the provided interference graph.
+Params:
+    - `g` - Interference graph.
+
+Returns 1 if succeeds.
+*/
 int LIR_RA_unload_igraph(igraph_t* g);
+
+/*
+Solve the graph coloring problem and generate the colors map.
+Params:
+    - `g` - Interference graph.
+    - `colors` - Output colors map.
+
+Returns 1 if succeeds.
+*/
 int LIR_RA_color_igraph(igraph_t* g, map_t* colors);
 
 #endif
