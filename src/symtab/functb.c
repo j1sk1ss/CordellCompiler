@@ -24,7 +24,7 @@ int FNTB_collect_info(string_t* fname, list_t* out, functab_ctx_t* ctx) {
 }
 
 int FNTB_get_info(string_t* fname, symbol_id_t s_id, func_info_t* out, functab_ctx_t* ctx) {
-    print_log("FNTB_get_info(name=%s, s_id=%li)", fname ? fname->body : "(null)", sid);
+    print_log("FNTB_get_info(name=%s, s_id=%li)", fname ? fname->body : "(null)", s_id);
     map_foreach (func_info_t* fi, &ctx->functb) {
         if (fi->name->equals(fi->name, fname) && (s_id == FIELD_NO_CHANGE || fi->s_id == s_id)) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
