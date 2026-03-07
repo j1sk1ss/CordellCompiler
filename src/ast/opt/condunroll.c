@@ -68,7 +68,6 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                     ast_node_t* cases = stmt->siblings.n;
                     
                     if (TKN_isnumeric(stmt->t)) {
-                        ast_node_t* defcase = NULL;
                         ast_node_t* unrolled_switch = NULL;
                         ast_node_t* prev = NULL;
                         ast_node_t* curr = cases->c;
@@ -80,7 +79,6 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
 
                             if (curr->t->t_type == DEFAULT_TOKEN && !unrolled_switch) {
                                 unrolled_switch = curr->c;
-                                defcase = curr;
                                 prev = curr;
                             } 
                             else if (val == curr->t->body->to_llong(curr->t->body)) {

@@ -161,7 +161,7 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
     if (!VRTB_get_info_id(id, &vi, &smt->v)) {
-        return;
+        return 0;
     }
 
     if (
@@ -227,15 +227,15 @@ static cfg_func_t* _find_function_by_id(symbol_id_t id, cfg_ctx_t* ctx) {
 int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
     map_foreach (section_info_t* section, &smt->c.sectb) {
         EMIT_COMMAND("%s", section->name->body);
-        foreach (symbol_id_t id, &section->vars) {
+        set_foreach (symbol_id_t id, &section->vars) {
             _generate_variable(id, smt, output);
         }
 
-        foreach (symbol_id_t id, &section->strs) {
+        set_foreach (symbol_id_t id, &section->strs) {
             _generate_ro_string(id, smt, output);
         }
 
-        foreach (symbol_id_t id, &section->func) {
+        set_foreach (symbol_id_t id, &section->func) {
             func_info_t fi;
             if (!FNTB_get_info_id(id, &fi, &smt->f)) continue;
             if (fi.flags.global)   EMIT_COMMAND("global %s", fi.name->body);

@@ -1,7 +1,7 @@
-CFLAGS = -Wall -Iinclude
-CC = gcc
+CC ?= gcc
 
-# Logger flags
+CFLAGS = -Wall -g -Iinclude
+
 ERROR_LOGS ?= 1
 WARN_LOGS ?= 1
 INFO_LOGS ?= 1
@@ -11,56 +11,55 @@ MEM_LOGS ?= 0
 LOGGING_LOGS ?= 1
 SPECIAL_LOGS ?= 1
 
-# Memory flags
 AVALIABLE_MEMORY ?= 300000
 CFLAGS += -DALLOC_BUFFER_SIZE=$(AVALIABLE_MEMORY)
 
-########
-# Logger flags
 ifeq ($(ERROR_LOGS), 1)
-    CFLAGS += -DERROR_LOGS
+	CFLAGS += -DERROR_LOGS
 endif
 
 ifeq ($(WARN_LOGS), 1)
-    CFLAGS += -DWARNING_LOGS
+	CFLAGS += -DWARNING_LOGS
 endif
 
 ifeq ($(INFO_LOGS), 1)
-    CFLAGS += -DINFO_LOGS
+	CFLAGS += -DINFO_LOGS
 endif
 
 ifeq ($(DEBUG_LOGS), 1)
-    CFLAGS += -DDEBUG_LOGS
+	CFLAGS += -DDEBUG_LOGS
 endif
 
 ifeq ($(IO_LOGS), 1)
-    CFLAGS += -DIO_OPERATION_LOGS
+	CFLAGS += -DIO_OPERATION_LOGS
 endif
 
 ifeq ($(MEM_LOGS), 1)
-    CFLAGS += -DMEM_OPERATION_LOGS
+	CFLAGS += -DMEM_OPERATION_LOGS
 endif
 
 ifeq ($(LOGGING_LOGS), 1)
-    CFLAGS += -DLOGGING_LOGS
+	CFLAGS += -DLOGGING_LOGS
 endif
 
 ifeq ($(SPECIAL_LOGS), 1)
-    CFLAGS += -DSPECIAL_LOGS
+	CFLAGS += -DSPECIAL_LOGS
 endif
 
-OUTPUT = builds/ccompiler
-SOURCES = main.c src/**/*.c std/*.c
+SOURCES := $(shell find src std -type f -name '*.c')
 
-all: force_build $(OUTPUT)
+OUTPUT = builds/ccompiler_all.o
 
-force_build:
-	@if [ -e $(OUTPUT) ]; then rm -f $(OUTPUT); fi
+all: $(OUTPUT)
 
 $(OUTPUT): $(SOURCES)
-	$(CC) $(CFLAGS) -o $(OUTPUT) $(SOURCES) -g -DPRINT_PARSE
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -DPRINT_PARSE -r $(SOURCES) -o $@
 
 clean:
-	rm -f $(OUTPUT)
+	rm -rf builds
 
-.PHONY: all clean force_build
+print-sources:
+	@printf "%s\n" $(SOURCES)
+
+.PHONY: all clean print-sources
