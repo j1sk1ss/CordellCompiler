@@ -152,7 +152,7 @@ int list_copy(list_t* src, list_t* dst) {
     list_iter_t it;
     list_iter_hinit(src, &it);
     void* d;
-    while ((d = list_iter_next(&it))) {
+    while (list_iter_next(&it, (void**)&d)) {
         list_add(dst, d);
     }
 
@@ -164,16 +164,16 @@ void* list_iter_current(list_iter_t* it) {
     return it->curr->data;
 }
 
-void* list_iter_next(list_iter_t* it) {
-    if (!it->curr) return NULL;
-    void* data = it->curr->data;
-    it->curr = it->curr->n;
-    return data;
-}
-
 int list_iter_set(list_iter_t* it, void* data) {
     if (!it->curr) return 0;
     it->curr->data = data;
+    return 1;
+}
+
+int list_iter_next(list_iter_t* it, void** d) {
+    if (!it->curr) return 0;
+    if (d) *d = it->curr->data;
+    it->curr = it->curr->n;
     return 1;
 }
 

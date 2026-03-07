@@ -1,6 +1,6 @@
 CC ?= gcc
 
-CFLAGS = -Wall -g -Iinclude
+CFLAGS = -Wall -Wno-int-conversion -g -Iinclude
 
 ERROR_LOGS ?= 1
 WARN_LOGS ?= 1

@@ -141,6 +141,8 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         }
         default: break;
     }
+
+    return 1;
 }
 
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {

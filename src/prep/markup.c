@@ -195,7 +195,7 @@ static int _apply_modifiers(list_t* tkn) {
     list_iter_t it;
     list_iter_hinit(tkn, &it);
     token_t* curr;
-    while ((curr = (token_t*)list_iter_next(&it))) {
+    while (list_iter_next(&it, (void**)&curr)) {
         token_t* next = (token_t*)list_iter_current(&it);
         if (next) switch (curr->t_type) {
             case GLOB_TYPE_TOKEN: cflags.glob = 1; _remove_token(tkn, curr); break;
@@ -227,7 +227,7 @@ int MRKP_variables(list_t* tkn) {
     list_iter_t it;
     list_iter_hinit(tkn, &it);
     token_t* curr;
-    while ((curr = (token_t*)list_iter_next(&it))) {
+    while (list_iter_next(&it, (void**)&curr)) {
         switch (curr->t_type) {
             /* Scope logic.
                Some scope generators (such as the Align, Section and Asm keywords) don't
@@ -235,10 +235,13 @@ int MRKP_variables(list_t* tkn) {
             case ASM_TOKEN:
             case ALIGN_TOKEN:
             case SECTION_TOKEN: {
-                token_t* tcurr = (token_t*)list_iter_next(&it);
+                token_t* tcurr = NULL;
+                list_iter_next(&it, (void**)&tcurr);
                 list_node_t* plist = it.curr;
-                while (tcurr && tcurr->t_type != CLOSE_BRACKET_TOKEN) tcurr = (token_t*)list_iter_next(&it);
-                if ((tcurr = (token_t*)list_iter_next(&it))->t_type == OPEN_BLOCK_TOKEN) ignore_scopes = 3;
+                while (tcurr && tcurr->t_type != CLOSE_BRACKET_TOKEN) list_iter_next(&it, (void**)&tcurr);
+
+                list_iter_next(&it, (void**)&tcurr);
+                if (tcurr->t_type == OPEN_BLOCK_TOKEN) ignore_scopes = 3;
                 it.curr = plist;
                 break;
             }
@@ -255,7 +258,7 @@ int MRKP_variables(list_t* tkn) {
             }
 
             case IMPORT_TOKEN: {
-                curr = (token_t*)list_iter_next(&it);
+                list_iter_next(&it, (void**)&curr);
                 while (curr && curr->t_type != DELIMITER_TOKEN) {
                     long import_scope;
                     stack_top(&scope_stack, (void**)&import_scope);
@@ -263,7 +266,7 @@ int MRKP_variables(list_t* tkn) {
                         _add_variable(&vars, curr->body, import_scope, CALL_TOKEN, &curr->flags);
                     }
                     
-                    curr = (token_t*)list_iter_next(&it);
+                    list_iter_next(&it, (void**)&curr);
                 }
                 
                 break;

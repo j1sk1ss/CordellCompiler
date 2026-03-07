@@ -121,7 +121,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
         list_iter_t bit;
         list_iter_hinit(&fb->blocks, &bit);
         cfg_block_t* cb;
-        while ((cb = (cfg_block_t*)list_iter_next(&bit))) {
+        while (list_iter_next(&bit, (void**)&cb)) {
             switch (cb->hmap.exit->op) {
                 case HIR_FRET:  case HIR_FEND:
                 case HIR_STEND: case HIR_EXITOP: break;

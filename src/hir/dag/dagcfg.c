@@ -81,7 +81,7 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                                 else HIR_unload_subject(s);
                             }
                             
-                            list_iter_next(&el_it);
+                            list_iter_next(&el_it, NULL);
                         }
                     }
                     else {

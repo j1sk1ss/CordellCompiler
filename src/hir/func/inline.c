@@ -20,7 +20,7 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
             hir_block_t* nblock = HIR_copy_block(hh, 1);
             nblock->op = HIR_STORE;
             HIR_unload_subject(nblock->sarg);
-            nblock->sarg = (hir_subject_t*)list_iter_next(&it);
+            list_iter_next(&it, (void**)&nblock->sarg);
             HIR_insert_block_before(nblock, pos);
         }
 
