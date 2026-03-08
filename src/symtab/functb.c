@@ -124,11 +124,11 @@ int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* a
     print_log("FNTB_update_info(id=%llu, used=%i, entry=%i, ext=%i)", id, used, entry, ext);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
-        if (used >= 0)  fi->flags.used     = used;
-        if (entry >= 0) fi->flags.entry    = entry;
-        if (ext >= 0)   fi->flags.external = ext;
-        if (args)       fi->args  = args;
-        if (rtype)      fi->rtype = rtype;
+        if (used != FIELD_NO_CHANGE)  fi->flags.used     = used;
+        if (entry != FIELD_NO_CHANGE) fi->flags.entry    = entry;
+        if (ext != FIELD_NO_CHANGE)   fi->flags.external = ext;
+        if (args)                     fi->args           = args;
+        if (rtype)                    fi->rtype          = rtype;
         return 1;
     }
 

@@ -4,10 +4,10 @@ int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short a
     print_log("VRTB_update_memory(id=%li, offset=%li, size=%li, reg=%c, align=%i)", id, offset, size, reg, align);
     variable_info_t* vi;
     if (map_get(&ctx->vartb, id, (void**)&vi)) {
-        if (offset >= 0) vi->vmi.offset = offset;
-        if (size >= 0)   vi->vmi.size   = size;
-        if (reg >= 0)    vi->vmi.reg    = reg;
-        if (align >= 0)  vi->vmi.align  = align;
+        if (offset != FIELD_NO_CHANGE) vi->vmi.offset = offset;
+        if (size != FIELD_NO_CHANGE)   vi->vmi.size   = size;
+        if (reg != FIELD_NO_CHANGE)    vi->vmi.reg    = reg;
+        if (align != FIELD_NO_CHANGE)  vi->vmi.align  = align;
         if (reg < 0 && offset < 0) return 1;
         vi->vmi.allocated = 1;
         return 1;
@@ -76,7 +76,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     print_log("VRTB_add_copy(v_id=%i)", src->v_id);
     variable_info_t* nnd = _create_variable_info(NULL, src->type, src->s_id, NULL);
-    if (!nnd) return 0;
+    if (!nnd) return NO_SYMBOL_ID;
     
     str_memcpy(nnd, src, sizeof(variable_info_t));
     nnd->vmi.allocated = 0;
@@ -93,8 +93,7 @@ symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
 symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
     print_log("VRTB_add_info(name=%s, type=%i, s_id=%i)", name ? name->body : "(null)", type, s_id);
     variable_info_t* nnd = _create_variable_info(name, type, s_id, flags);
-    if (!nnd) return 0;
-
+    if (!nnd) return NO_SYMBOL_ID;
     nnd->v_id = ctx->curr_id++;
     if (!name) nnd->name = create_string("tmp");
     map_put(&ctx->vartb, nnd->v_id, nnd);

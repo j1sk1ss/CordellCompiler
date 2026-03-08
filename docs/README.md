@@ -1,25 +1,28 @@
-# Summary
+# Language basics and logic
 The **Cordell Programming Language (CPL)** is a system-level programming language designed for learning and experimenting with modern compiler concepts. It combines low-level capabilities from `ASM` with practices inspired by modern languages like `Rust` and `C`. `CPL` is intended for:
-- **Educational purpose** — a language to study compiler design, interpreters, and programming language concepts.
-- **Radical simplicity** - let's make this language simple as it possible. 
-- **System programming** — OS (bootloaders, kernels), DBMSs, FSs, compilers, interpreters, etc.  
-- **Experiments** - a compiler to test some techiques in real compilation without any overcomplexity.
+- **Radical simplicity** - let's make this language simple as it possible.
+- **No safety** - if a programmer wants to destroy his PC, why we should stop him from doing this? If he doesn't care, why I should do?
+- **System programming** — language designed primary for bootloaders (1-stage, 2-stage), edgeDBMSs, edgeFSs, primitive compilers, small interpreters. It is not for engines, web services, operating systems, games, etc. You may try to do some 'unsupported' stuff, but don't blame the language if it's impossible.
+- **Experiments** - a compiler to test some techiques in real compilation without any overcomplexity. It has some artifacts from my experiments such as *symtable compression*, *perceptron inline*, *peephole DSL*, and *AST static analyzer*. You can find further information in the main README.
+- **Educational purpose** — a language to study compiler design, interpreters, and programming language concepts. It isn't intent to serve as a regular language. You can try to use it, but again, it isn't his main purpose.
 
 ## Key Features
-- **Statically-typed**: variables can't hold values of different types; the compiler attempts implicit conversions when assigning.
-- **Minimalistic syntax**: cpl is a simple programming language that is beign based on C language.  
-- **Deterministic control flow**: no hidden behaviors; all execution paths are explicit.  
-- **Extensibility**: functions and inbuilt macros allow both low-level operations and high-level abstractions.
-- **Optimization**: input code can be optimized by techniques such as constant propagation, linear invariant code motion, peephole optimization, function inline, tail recursion elimination.
-- **Function overloading**: compiler supports overloaded functions.
+Basicly, there is nothing new was invented. This language mostly based on C language with some restrictions. But in a nutshell, there is a list of features:
+- **Statically-typed**: variables can't hold values of different types. P.S. The compiler attempts implicit conversions when assigning, that's why there is no *strong typing* in the language.
+- **No structures**: language supports only primitive types as a part of an experiment. 
+- **Deterministic control flow**: no hidden behaviors. All execution paths are explicit. The compiler can change IR, but can't change CFG (except optimizations).
+- **Optimization**: input code can be optimized by techniques such as constant propagation and folding, linear invariant code motion, peephole optimization, function inline, tail recursion elimination, cold and hot branches.
+- **Function overloading**: compiler supports the function overloading.
 - **Default-args**: compiler supports default values in function arguments.
-- **Headers-Modules**: cpl supports headers as it does C/++ language and module system as it does Go/Python etc.
+- **Headers-Modules**: cpl supports headers as it do C/++ languages and module system as it do Go/Python etc.
 - **Strings**: lagnuage supports and distinguishs strings from raw pointers.
-- **Local functions**: Functions can define local function as it do functions in Rust.
+- **Local functions**: functions can define local function as it can do functions in Rust.
+- **Annotations**: language supports annotations as a solution for the restricted language's gramma.
 - **Assembly**: Compiler generates an assembly file for the further compilation.
+- **Separated Backend**: Compiler has a shared interface for different backends (ASMx86 (x16, x32, x64), RISC-V). This shared interface connects to the MidEnd and acts as a module.
 
 # Main idea of this project
-Main goal of this project is learning of compilers architecture and porting one to CordellOS project (I want to code apps for my own OS inside my own OS). Also, according to my bias to assembly and C languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
+Main goal of this project (the compiler + language) is learning of compilers architecture and porting one to 'CordellOS' project (my initial idea was to has an opportunity to code programs for my own OS inside my own OS). Also, according to my explicit bias to assembly and C languages (I just love them), this language will stay "low-level" as it even possible, but some features can be added in future with strings (inbuild concat, comparison and etc).
 
 # Used links and literature
 - Aarne Ranta. *Implementing Programming Languages. An Introduction to Compilers and Interpreters*
@@ -29,7 +32,7 @@ Main goal of this project is learning of compilers architecture and porting one 
 - Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
 
 # Hello, World! example
-That's how we can write a 'hello-world' program with CPL language for x86-64 GNU architecture.
+That's how we can write a basic 'hello-world' program with CPL language (for x86-64 NASM GNU architecture).
 ```cpl
 {
     : Define the strlen function
@@ -80,10 +83,10 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-Actually, regardless of the essential 'basic' scope (the initial {} in the code above), with usage of the same header file, the CPL code can looks really close to the C above:
+Actually, regardless of the essential 'basic' scope (the initial {} in the code above), with usage of the same header file, the CPL code can be really close to the C above:
 ```cpl
 {
-    #inclide <stdio_h.cpl>
+    #inclide "stdio_h.cpl"
     start(i32 argc, ptr ptr i8 argv) {
         puts("Hello, World!");
     }
@@ -1279,18 +1282,20 @@ We will obtain an assembly format code file. After this you can use `NASM` compi
     glob arr bracketmap[10000, i32];
     glob arr stack[10000, i32];
 
-    start() {
+    @[entry]
+    function brainfuck() {
         puts("Brainfuck interpriter! Input code: ");
 
         i32 pos = 0;
         i32 stackptr = 0;
         i32 codelength = gets(code, 10000);
         while pos < codelength; {
+            @[no_fall]
+            @[straight]
             switch code[pos]; {
                 case '['; {
                     stack[stackptr] = pos;
                     stackptr += 1;
-                    break;
                 }
                 case ']'; {
                     if stackptr > 0; {
@@ -1299,10 +1304,7 @@ We will obtain an assembly format code file. After this you can use `NASM` compi
                         bracketmap[pos] = matchpos;
                         bracketmap[matchpos] = pos;
                     }
-
-                    break;
                 }
-                default { break; }
             }
             
             pos += 1;
@@ -1310,52 +1312,43 @@ We will obtain an assembly format code file. After this you can use `NASM` compi
         
         i32 pc = 0;
         i32 pointer = 0;
-
         while pc < codelength; {
+            @[no_fall] 
             switch code[pc]; {
                 case '>'; {
                     pointer += 1;
                     pc += 1;
-                    break;
                 }
                 case '<'; {
                     pointer -= 1;
                     pc += 1;
-                    break;
                 }
                 case '+'; {
                     tape[pointer] += 1;
                     pc += 1;
-                    break;
                 }
                 case '-'; {
                     tape[pointer] -= 1;
                     pc += 1;
-                    break;
                 }
                 case '.'; {
                     putc(tape[pointer]);
                     pc += 1;
-                    break;
                 }
                 case ','; {
                     gets(ref tape[pointer], 1);
                     pc += 1;
-                    break;
                 }
                 case '['; {
-                    if not tape[pointer]; { pc = bracketmap[pc]; }
-                    else { pc += 1; }
-                    break;
+                    if not tape[pointer]; pc = bracketmap[pc];
+                    else pc += 1;
                 }
                 case ']'; {
-                    if tape[pointer]; { pc = bracketmap[pc]; }
-                    else { pc += 1; }
-                    break;
+                    if tape[pointer]; pc = bracketmap[pc];
+                    else pc += 1;
                 }
-                default {
+                @[cold] default {
                     pc += 1;
-                    break;
                 }
             }
         }
