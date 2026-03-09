@@ -3,20 +3,20 @@ from typing import Optional
 from dataclasses import dataclass
 
 class OperandType(Enum):
-    CONST = "const"
+    CONST  = "const"
     ACONST = "aconst" 
-    REG = "reg"
-    AREG = "areg"
-    MEM = "mem"
-    OBJ = "obj"
+    REG    = "reg"
+    AREG   = "areg"
+    MEM    = "mem"
+    OBJ    = "obj"
 
 @dataclass
 class Operand:
     type: OperandType
-    value: Optional[str] = None
-    var_name: Optional[str] = None
+    value: Optional[str]         = None
+    var_name: Optional[str]      = None
     conditions: list[str] | None = None
-    actions: list[str] | None = None
+    actions: list[str] | None    = None
     
     def __str__(self):
         result = []

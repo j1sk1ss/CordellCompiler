@@ -117,5 +117,6 @@
         "areg": [ "LIR_REGISTER" ],
         "mem": [ "LIR_MEMORY" ],
         "obj": [ "LIR_REGISTER", "LIR_NUMBER", "LIR_CONST", "LIR_MEMORY" ]
-    }
+    },
+    "arg_names": [ "farg", "sarg", "sarg" ]
 }

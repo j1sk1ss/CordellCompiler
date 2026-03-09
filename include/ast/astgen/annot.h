@@ -16,6 +16,7 @@
 #define HOTSC_ANNOTATION_COMMAND "hot"
 #define COLDS_ANNOTATION_COMMAND "cold"
 #define REGST_ANNOTATION_COMMAND "register"
+// TODO: interrupt (Will generate register save at the start and the end)
 
 typedef struct {
     string_t* section;
