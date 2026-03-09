@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     }
 
     LIR_unload_blocks(lirctx.h);
-    HIR_unload_blocks(hirctx.h);
+    HIR_unload_blocks(hirctx.hot.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 

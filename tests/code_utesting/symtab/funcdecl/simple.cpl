@@ -1,6 +1,7 @@
 {
     function foo();
     function bar();
+    @[entry]
     function baz();
 }
 

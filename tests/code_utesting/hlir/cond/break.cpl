@@ -24,13 +24,13 @@ BB{X}: lb12:
 jmp lb13;
 BB{X}: lb13:
 jmp lb14;
-BB{X}: jmp lb12;
+BB{X}:
 BB{X}: lb14:
 jmp lb10;
-BB{X}: jmp lb8;
+BB{X}:
 BB{X}: lb10:
 jmp lb6;
-BB{X}: jmp lb4;
+BB{X}:
 BB{X}: lb6:
 send
 :

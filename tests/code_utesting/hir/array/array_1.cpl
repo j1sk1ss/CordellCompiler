@@ -12,16 +12,6 @@
     start {
         {
             {
-                use num? 1;
-                use num? 2;
-                use num? 3;
-                use num? 4;
-                use num? 5;
-                use num? 6;
-                use num? 7;
-                use num? 8;
-                use num? 9;
-                use num? 10;
                 arrs %0 = arr_alloc(num? 10);
                 i32t* %3 = &(arrs %0);
                 i64t %4 = num? 0 * cnst? 4;

@@ -59,7 +59,8 @@ typedef enum {
 
         LIR_VRDEALL,  // cnst_x=var_id, deallocate a variable
         LIR_STRDECL,  // cnst_x=var_id, cnst_y=str_id
-        LIR_ARRDECL,  // cnst_x=var_id
+        LIR_ARRDECL,  // cnst_x=var_id, var_y=size, list_z=init_elems
+        LIR_VLADECL, // cnst_x=var_id, var_y=size
 
         LIR_STSARG,   // store parameter to syscall, x, cnst_y=index
         LIR_STFARG,   // store parameter to function, x, cnst_y=index
@@ -102,18 +103,18 @@ typedef enum {
 
     /* Integer */
         /* Binary operations */
-        LIR_iADD, // x = y + z
-        LIR_iSUB, // x = y - z
-        LIR_iMUL, // x = y * z
-        LIR_DIV,  // x = y / z
-        LIR_iDIV, // x = y / z
-        LIR_iMOD, // x = y % z
-        LIR_iLRG, // x = y > z
-        LIR_iLGE, // x = y >= z
-        LIR_iLWR, // x = y < z
-        LIR_iLRE, // x = y <= z
-        LIR_iCMP, // x = y == z
-        LIR_iNMP, // x = y != z
+        LIR_iADD, // x = y + z  | After selection: x = x + z
+        LIR_iSUB, // x = y - z  | After selection: x = x - z
+        LIR_iMUL, // x = y * z  | After selection: x = x * z
+        LIR_DIV,  // x = y / z  | After selection: x = x / z
+        LIR_iDIV, // x = y / z  | After selection: x = x / z
+        LIR_iMOD, // x = y % z  | After selection: x = x % z
+        LIR_iLRG, // x = y > z  | After selection: x = x > z
+        LIR_iLGE, // x = y >= z | After selection: x = x >= z
+        LIR_iLWR, // x = y < z  | After selection: x = x < z
+        LIR_iLRE, // x = y <= z | After selection: x = x <= z
+        LIR_iCMP, // x = y == z | After selection: x = x == z
+        LIR_iNMP, // x = y != z | After selection: x = x != z
 
         /* Logic */
         LIR_iAND, // x = y && z
@@ -147,10 +148,6 @@ typedef enum {
         LIR_RSVSTK, // Reserve stackframe
         LIR_MKSCOPE,
         LIR_ENDSCOPE,
-    
-        /* Heap */
-        LIR_ALLCH,  // allocate heap + save addr to farg
-        LIR_DEALLH, // deallocate heap, addr from farg
 
         /* System */
         LIR_EXITOP, // Exit with farg exit call

@@ -1,5 +1,6 @@
 {
     {
+        @[entry]
         function foo();
     }
 

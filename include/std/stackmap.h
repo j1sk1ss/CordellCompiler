@@ -1,6 +1,7 @@
 #ifndef STACKMAP_H_
 #define STACKMAP_H_
 
+#include <config.h>
 #include <std/str.h>
 
 #define STACK_CELL_SIZE 8

@@ -12,7 +12,7 @@ BB{X}: lb{X}:
 jmp lb{X};
 BB{X}: lb{X}:
 jmp lb{X};
-BB{X}: jmp lb{X};
+BB{X}:
 BB{X}: lb{X}:
 send
 :

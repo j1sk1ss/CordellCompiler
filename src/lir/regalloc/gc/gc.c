@@ -1,23 +1,16 @@
-/*
-gc.c - Color interference graph with euristic approuch
-*/
-
 #include <lir/regalloc/ra.h>
 
 int LIR_RA_init_colors(map_t* colors, sym_table_t* smt) {
+    print_log("LIR_RA_init_colors()");
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
-        map_put(colors, vi->v_id, (void*)-1);
+        map_put(colors, vi->v_id, (void*)((long)vi->vmi.reg));
     }
 
     return 1;
 }
 
-int LIR_RA_precolor_node(map_t* colors, long vid, long color) {
-    print_log("LIR_RA_precolor_node(vid=%llu, color=%llu)", vid, color);
-    return map_put(colors, vid, (void**)color);
-}
-
 int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
+    print_log("LIR_RA_color_igraph()");
     if (!g || !colors) return 0;
     
     int node_count = g->nodes.size;
@@ -28,7 +21,8 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
 
     int* degrees    = (int*)mm_malloc(node_count * sizeof(int));
     long* v_ids     = (long*)mm_malloc(node_count * sizeof(long));
-    char* processed = (char*)mm_malloc(node_count * sizeof(char));
+    char* processed = (char*)mm_malloc(node_count);
+    str_memset(processed, 1, node_count);
     
     if (!degrees || !v_ids || !processed) {
         mm_free(degrees);

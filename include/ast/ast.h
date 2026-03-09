@@ -2,13 +2,15 @@
 #define AST_H_
 
 #include <std/mm.h>
+#include <std/list.h>
 #include <std/stack.h>
 #include <symtab/symtab_id.h>
 #include <prep/token.h>
 #include <prep/token_types.h>
+#include <ast/astgen/annot.h>
 
 typedef struct {
-    long        s_id;  /* Scope ID    */
+    symbol_id_t s_id;  /* Scope ID    */
     symbol_id_t v_id;  /* Variable ID */
 } syntax_info_t;
 
@@ -24,12 +26,12 @@ typedef struct ast_node {
         struct ast_node* n;  /* Siblings next pointer                      */
         struct ast_node* t;  /* Siblings list tail                         */
     } siblings;
+    list_t           annots; /* Attached annotations to this node          */
     syntax_info_t    sinfo;  /* Scope information for the current node     */
 } ast_node_t;
 
 typedef struct {
     ast_node_t*  r;      /* AST root.                                */
-    const char*  fentry; /* Name for entry function. [Arch depended] */
     struct {
         int      s_id;   /* Current scope id.                        */
         sstack_t stack;  /* Scope id stack.                          */

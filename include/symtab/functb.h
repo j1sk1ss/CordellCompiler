@@ -15,7 +15,7 @@ typedef struct {
     ast_node_t* args;  /* Input arguments       */
     ast_node_t* rtype; /* Function return type  */
 
-    short       sid;
+    symbol_id_t s_id;
 
     struct {
         char    global   : 1;
@@ -64,7 +64,7 @@ Params:
 
 Returns 1 if succeeds. Otherwise will return 0.
 */
-int FNTB_get_info(string_t* fname, short sid, func_info_t* out, functab_ctx_t* ctx);
+int FNTB_get_info(string_t* fname, symbol_id_t s_id, func_info_t* out, functab_ctx_t* ctx);
 
 /*
 Add a new function to a function symbol table.
@@ -84,7 +84,7 @@ Returns -1 if fails or a new function's ID.
 symbol_id_t FNTB_add_info(
     string_t* name, 
     int global, int local, int entry, int naked, /* flags */
-    short sid, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
+    symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );
 
 /*

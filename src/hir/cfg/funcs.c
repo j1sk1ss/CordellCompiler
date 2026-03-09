@@ -91,7 +91,7 @@ int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt
     sstack_t entries;
     stack_init(&entries);
 
-    hir_block_t* h = hctx->h;
+    hir_block_t* h = hctx->hot.h;
     while (h) {
         switch (h->op) {
             case HIR_FDCL:

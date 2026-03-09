@@ -1,5 +1,3 @@
-/* Declaration statement parser.
-   - <type> <name> = decl; */
 #include <ast/astgen/astgen.h>
 
 ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
@@ -15,14 +13,13 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
 
     forward_token(it, 1);
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
-    if (!name) {
+    if (name) AST_add_node(node, name);
+    else {
         PARSE_ERROR("Can't create a node for the variable's name! <type> <name>!");
         AST_unload(node);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-    
-    AST_add_node(node, name);
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, node->t->t_type, name->sinfo.s_id, &name->t->flags, &smt->v);
@@ -30,9 +27,9 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         node->t->t_type == STR_TYPE_TOKEN
     ) ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &node->t->flags, &smt->a);
 
-    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL };
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .reg = FIELD_NO_CHANGE };
     ANNOT_read_annotations(&ctx->annots, &annots);
-    VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
+    VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.reg, annots.align, &smt->v);
     if (
         name->t->flags.glob || 
         name->t->flags.ro
@@ -56,8 +53,8 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
                                                     Also, we can't separate the string from a variable given the
                                                     ability of string arguments, etc. */
             ARTB_update_info(
-                name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, 
-                0, I8_TYPE_TOKEN, &node->t->flags, &smt->a
+                name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, FIELD_NO_CHANGE, 
+                I8_TYPE_TOKEN, &node->t->flags, &smt->a
             );
             
             STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);

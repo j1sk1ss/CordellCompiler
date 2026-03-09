@@ -1,81 +1,573 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CPL Docs</title>
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/buble.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPLv3</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/CPL_logo.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/CPL_logo.png">
+  <link rel="shortcut icon" href="/CPL_logo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/buble.css" />
+
+  <style>
+    :root {
+      --bg: #f6fbf7;
+      --panel: #ffffff;
+      --panel-soft: #f0f7f1;
+      --panel-muted: #edf6ee;
+      --text: #183126;
+      --muted: #5c7467;
+      --line: #d8e7da;
+      --brand: #4f9d69;
+      --brand-strong: #3e8556;
+      --brand-soft: #e6f4e8;
+      --shadow: 0 10px 30px rgba(45, 92, 58, 0.08);
+      --content-max: 960px;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body { letter-spacing: -0.01em; }
+
+    .app-name {
+      padding: 18px 16px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .app-name-link {
+      color: var(--text) !important;
+      font-size: 1.02rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      text-decoration: none;
+    }
+
+    .app-name-link small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .sidebar {
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+    }
+
+    .sidebar-nav {
+      padding: 12px 10px 24px;
+      background: var(--panel);
+    }
+
+    .sidebar-nav ul,
+    .sidebar-nav li,
+    .sidebar-nav li ul {
+      background: transparent !important;
+    }
+
+    .sidebar-nav ul { margin: 0; padding-left: 0; }
+    .sidebar-nav li { list-style: none; margin: 3px 0; }
+
+    .sidebar-nav li > p {
+      margin: 18px 10px 8px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .sidebar ul li a {
+      display: block;
+      padding: 9px 11px;
+      margin: 0;
+      border-radius: 10px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.94rem;
+      font-weight: 550;
+      line-height: 1.35;
+      border: 1px solid transparent;
+    }
+
+    .sidebar ul li a:hover {
+      background: var(--panel-soft);
+      border-color: var(--line);
+      color: var(--brand-strong);
+    }
+
+    .sidebar ul li.active > a {
+      background: var(--brand-soft) !important;
+      color: var(--brand-strong) !important;
+      border-color: #c7decb;
+      font-weight: 700;
+    }
+
+    .sidebar ul li ul {
+      margin-top: 4px;
+      margin-left: 10px;
+      padding-left: 10px;
+      border-left: 1px solid var(--line);
+    }
+
+    .search {
+      margin: 12px 12px 10px;
+      padding: 0;
+      border-bottom: 0;
+      background: transparent;
+    }
+
+    .search input {
+      width: 100%;
+      height: 42px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel-soft);
+      color: var(--text);
+      font-size: 0.94rem;
+      outline: none;
+      box-shadow: none;
+    }
+
+    .search input:focus {
+      border-color: #b6d4bc;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(79, 157, 105, 0.10);
+    }
+
+    .search input::placeholder { color: var(--muted); }
+    .search .results-panel { background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+    .search .matching-post { border-bottom-color: var(--line); }
+    .search .matching-post:last-child { border-bottom: 0; }
+
+    .content { padding-top: 0; }
+
+    .markdown-section {
+      max-width: var(--content-max);
+      margin: 0 auto;
+      padding: 42px 52px 80px;
+      color: var(--text);
+    }
+
+    .markdown-section > *:first-child { margin-top: 0 !important; }
+
+    .markdown-section h1,
+    .markdown-section h2,
+    .markdown-section h3,
+    .markdown-section h4 {
+      color: var(--text);
+      letter-spacing: -0.035em;
+      font-weight: 800;
+    }
+
+    .markdown-section h1 {
+      font-size: clamp(2.3rem, 5vw, 3.25rem);
+      margin-bottom: 0.42em;
+    }
+
+    .markdown-section h2 {
+      margin-top: 2.3em;
+      padding-top: 0.35em;
+      border-top: 1px solid var(--line);
+    }
+
+    .markdown-section p,
+    .markdown-section li,
+    .markdown-section blockquote {
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+
+    .markdown-section strong { color: var(--text); }
+    .markdown-section em { color: var(--muted); }
+
+    .markdown-section a {
+      color: var(--brand-strong);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.16em;
+    }
+
+    .markdown-section blockquote {
+      border-left: 4px solid #b9d9bf;
+      background: var(--panel-soft);
+      border-radius: 0 12px 12px 0;
+      padding: 12px 16px;
+    }
+
+    .markdown-section code {
+      color: #29573a;
+      background: var(--panel-soft);
+      border: 1px solid #dbe9de;
+      border-radius: 8px;
+      padding: 0.18em 0.45em;
+    }
+
+    .markdown-section pre {
+      background: #fbfefb !important;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px !important;
+      box-shadow: var(--shadow);
+    }
+
+    .markdown-section pre code {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      color: var(--text);
+      font-size: 0.94rem;
+    }
+
+    .markdown-section table {
+      display: table;
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .markdown-section th,
+    .markdown-section td {
+      border: 0 !important;
+      border-bottom: 1px solid var(--line) !important;
+      padding: 12px 14px;
+    }
+
+    .markdown-section tr:last-child td { border-bottom: 0 !important; }
+    .markdown-section th { background: var(--panel-soft); }
+
+    .hero-kicker {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .hero-note {
+      max-width: 700px;
+      font-size: 1.07rem;
+      color: var(--muted);
+      margin: 0 0 24px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 18px 0 26px;
+    }
+
+    .hero-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 10px;
+      text-decoration: none !important;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .hero-button.primary {
+      background: var(--brand);
+      color: #fff !important;
+    }
+
+    .hero-button.primary:hover { background: var(--brand-strong); }
+
+    .hero-button.secondary {
+      background: #fff;
+      color: var(--text) !important;
+      border-color: var(--line);
+    }
+
+    .hero-button.secondary:hover { background: var(--panel-soft); }
+
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .doc-card {
+      display: block;
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: inherit !important;
+      text-decoration: none !important;
+      box-shadow: 0 4px 18px rgba(45, 92, 58, 0.04);
+    }
+
+    .doc-card:hover {
+      border-color: #c6dccb;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(45, 92, 58, 0.08);
+    }
+
+    .doc-card h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+
+    .doc-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .section-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .docsify-pagination-container {
+      margin: 42px 0 16px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    .docsify-pagination {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .docsify-pagination-card,
+    .docsify-pagination-current {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 14px 16px;
+    }
+
+    .docsify-pagination-card.right { text-align: right; }
+
+    .docsify-pagination-label,
+    .docsify-pagination-index {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .docsify-pagination-link,
+    .docsify-pagination-title {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .docsify-pagination-link:hover { color: var(--brand-strong); }
+
+    .docsify-pagination-current {
+      min-width: 220px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .sidebar-toggle {
+      background: #fff;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sidebar-toggle span { background: var(--brand-strong); }
+
+    .docsify-copy-code-button {
+      border-radius: 10px !important;
+      border: 1px solid var(--line) !important;
+      background: #fff !important;
+      color: var(--text) !important;
+      right: 12px !important;
+      top: 12px !important;
+    }
+
+    @media (max-width: 900px) {
+      .markdown-section { padding: 34px 22px 72px; }
+      .docsify-pagination { grid-template-columns: 1fr; }
+      .docsify-pagination-card.right { text-align: left; }
+      .docsify-pagination-current { min-width: 0; }
+    }
+  </style>
 </head>
 <body>
   <div id="app"></div>
-  
-  <style>
-    .token.keyword { color: #712073; font-weight: bold; }
-    .token.type { color: #3ea6d6; }
-    .token.comment { color: #167736; font-style: italic; }
-    .token.string { color: hsl(44, 90%, 65%); }
-    .token.number { color: #a4ad8d; }
-    .token.function-name { color: #adc84b; }
-    .sidebar-nav { margin-top: 0; }
-    .sidebar-nav ul { list-style: none; padding-left: 0; }
-    .sidebar-nav a { text-decoration: none; }
-  </style>    
 
-  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
   <script>
-    Prism.languages.cpl = {
-      'comment': {
-        pattern: /:([\s\S]*?):/,
-        greedy: true
-      },
-      'string': [
-        {
-          pattern: /"(?:\\.|[^"\\])*"/,
-          greedy: true
-        },
-        {
-          pattern: /'(?:\\.|[^'\\])*'/,
-          greedy: true
-        }
-      ],
-      'type': /\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str|arr|dref|ref|ptr|exfunc)\b/,
-      'keyword': /\b(as|extern|from|import|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not|ro|glob|lis|break|loop)\b/,
-      'function-name': /\b[a-zA-Z_]\w*(?=\s*\()/,
-      'number': /\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)\b/,
-    };    
-  </script>
-  
-  <script>
+    function cleanRoute(route) {
+      if (!route) return '';
+      let value = route;
+      try {
+        const url = new URL(route, window.location.origin);
+        value = url.hash || route;
+      } catch (e) {}
+      value = value.split('?')[0];
+      value = value.replace(/\/+$/, '');
+      return value;
+    }
+
     window.$docsify = {
-      name: 'Cordell Programming Language v3',
+      name: 'Cordell Programming Language v3.4<small>Language docs & compiler internals</small>',
       repo: 'https://github.com/j1sk1ss/CordellCompiler',
-      loadNavbar: 'navbar.md',
-      loadSidebar: 'sidebar.md',
-      subMaxLevel: 2,
-      routerMode: 'hash',
+      homepage: 'README.md',
+      // loadNavbar: '/navbar.md',
+      loadSidebar: '/sidebar.md',
       alias: {
-        '/src/ast/_sidebar.md': '/src/ast/sidebar.md',
-        '/src/asm/_sidebar.md': '/src/asm/sidebar.md',
-        '/src/sem/_sidebar.md': '/src/sem/sidebar.md',
-        '/src/hir/_sidebar.md': '/src/hir/sidebar.md',
-        '/src/lir/_sidebar.md': '/src/lir/sidebar.md',
-        '/src/cfg/_sidebar.md': '/src/cfg/sidebar.md',
-        '/src/dag/_sidebar.md': '/src/dag/sidebar.md',
-        '/src/ssa/_sidebar.md': '/src/ssa/sidebar.md',
-        '/src/ra/_sidebar.md': '/src/ra/sidebar.md',
+        // '/.*/navbar.md': '/navbar.md',
+        '/.*/sidebar.md': '/sidebar.md'
       },
-      vueComponents: {},
+      subMaxLevel: 2,
+      maxLevel: 3,
+      routerMode: 'hash',
+      auto2top: true,
+      topMargin: 24,
+      search: {
+        maxAge: 86400000,
+        paths: 'auto',
+        placeholder: 'Search docs...',
+        noData: 'No results found',
+        depth: 3,
+        hideOtherSidebarContent: false,
+        namespace: 'cordell-docs'
+      },
+      copyCode: {
+        buttonText: 'Copy',
+        errorText: 'Error',
+        successText: 'Copied'
+      },
       markdown: {
         renderer: {
           code: function(code, lang) {
-            if (lang && Prism.languages[lang]) {
-              return '<pre><code>' + Prism.highlight(code, Prism.languages[lang], lang) + '</code></pre>';
+            if (window.Prism && lang && Prism.languages[lang]) {
+              return '<pre><code class="language-' + lang + '">' + Prism.highlight(code, Prism.languages[lang], lang) + '</code></pre>';
             }
-            
             return '<pre><code>' + code + '</code></pre>';
           }
         }
-      }
+      },
+      plugins: [
+        function(hook) {
+          const pagePrefix = '#/pages/';
+
+          function getPageLinks() {
+            const nav = document.querySelector('.sidebar-nav');
+            if (!nav) return [];
+            const seen = new Set();
+            return Array.from(nav.querySelectorAll('a'))
+              .map(a => ({ href: cleanRoute(a.getAttribute('href') || ''), title: (a.textContent || '').trim() }))
+              .filter(item => item.href.startsWith(pagePrefix))
+              .filter(item => {
+                if (!item.href || seen.has(item.href)) return false;
+                seen.add(item.href);
+                return true;
+              });
+          }
+
+          function removePager() {
+            const old = document.querySelector('.docsify-pagination-container');
+            if (old) old.remove();
+          }
+
+          function normalizeHash(href) {
+            if (!href) return '';
+            try {
+              const url = new URL(href, window.location.origin);
+              let hash = url.hash || href;
+              hash = hash.replace(/\.md([?#].*)?$/, '');
+              return hash;
+            } catch (e) {
+              return href.replace(/\.md([?#].*)?$/, '');
+            }
+          }
+
+          function renderPager() {
+            removePager();
+            const currentHash = normalizeHash(location.hash);
+            if (!currentHash.startsWith(pagePrefix)) return;
+            const items = getPageLinks();
+            if (!items.length) return;
+            const currentIndex = items.findIndex(item => item.href === currentHash);
+            if (currentIndex === -1) return;
+            const prev = items[currentIndex - 1];
+            const current = items[currentIndex];
+            const next = items[currentIndex + 1];
+            const article = document.querySelector('.content .markdown-section');
+            if (!article) return;
+
+            const wrap = document.createElement('div');
+            wrap.className = 'docsify-pagination-container';
+            wrap.innerHTML = `
+              <div class="docsify-pagination">
+                ${prev ? `<div class="docsify-pagination-card left"><div class="docsify-pagination-label">Previous</div><a class="docsify-pagination-link" href="${prev.href}">← ${prev.title}</a></div>` : '<div></div>'}
+                <div class="docsify-pagination-current">
+                  <div class="docsify-pagination-index">${currentIndex + 1} / ${items.length}</div>
+                  <div class="docsify-pagination-title">${current.title}</div>
+                </div>
+                ${next ? `<div class="docsify-pagination-card right"><div class="docsify-pagination-label">Next</div><a class="docsify-pagination-link" href="${next.href}">${next.title} →</a></div>` : '<div></div>'}
+              </div>
+            `;
+            article.appendChild(wrap);
+          }
+
+          hook.doneEach(function() { setTimeout(renderPager, 120); });
+          window.addEventListener('hashchange', function() { setTimeout(renderPager, 120); });
+        }
+      ]
     };
-  </script> 
+  </script>
+
+  <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-core.min.js"></script>
+  <script>
+    Prism.languages.cpl = {
+      comment: { pattern: /:([\s\S]*?):/, greedy: true },
+      string: [
+        { pattern: /"(?:\\.|[^"\\])*"/, greedy: true },
+        { pattern: /'(?:\\.|[^'\\])*'/, greedy: true }
+      ],
+      type: /\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str|arr|dref|ref|ptr|exfunc)\b/,
+      keyword: /\b(as|extern|from|import|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not|ro|glob|lis|break|loop)\b/,
+      'function-name': /\b[a-zA-Z_]\w*(?=\s*\()/,
+      number: /\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)\b/
+    };
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
 </body>
 </html>

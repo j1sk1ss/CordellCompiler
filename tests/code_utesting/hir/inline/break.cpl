@@ -34,8 +34,8 @@
                         [unused] call foo0(), argc args();
                         // break;
                         goto lb17;
-                    }
-                    goto lb15;
+                    [unused] }
+                    [unused] goto lb15;
                     lb17:
                 }
                 goto lb10;

@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     HIR_CFG_create_domdata(&cfgctx);
     HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider);
 
-    hir_block_t* hh = hirctx.h;
+    hir_block_t* hh = hirctx.hot.h;
     while (hh) {
         print_hir_block(hh, 1, &smt);
         hh = hh->next;
@@ -85,11 +85,17 @@ int main(int argc, char* argv[]) {
 
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
-    HIR_unload_blocks(hirctx.h);
+    HIR_unload_blocks(hirctx.hot.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 
     SMT_unload(&smt);
+
+    if (mm_get_allocated()) {
+        printf("\n<<ERROR>>\tMemory leak!\t%i != 0!\n", mm_get_allocated());
+        return EXIT_FAILURE;
+    }
+
     close(fd);
     return EXIT_SUCCESS;
 }

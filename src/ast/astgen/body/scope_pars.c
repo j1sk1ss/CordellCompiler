@@ -11,8 +11,9 @@ ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
     }
 
     if (carry) stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
-    ast_node_t* node = cpl_parse_element(it, ctx, smt, carry);
-    if (!node) {
+    ast_node_t* body = cpl_parse_element(it, ctx, smt, carry);
+    if (body) AST_add_node(base, body);
+    else {
         if (carry) stack_pop(&ctx->scopes.stack, NULL);
         PARSE_ERROR("Error during a parse of the scope block!");
         RESTORE_TOKEN_POINT;
@@ -21,7 +22,6 @@ ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
 
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     if (carry) stack_pop(&ctx->scopes.stack, NULL);
-    AST_add_node(base, node);
     return base;
 }
 
@@ -36,8 +36,8 @@ ast_node_t* cpl_parse_scope(PARSER_ARGS) {
         return NULL;
     }
 
-    ast_node_t* node = cpl_parse_block(it, ctx, smt, CLOSE_BLOCK_TOKEN);
-    if (node) stack_top(&ctx->scopes.stack, (void**)&node->sinfo.s_id);
+    ast_node_t* body = cpl_parse_block(it, ctx, smt, CLOSE_BLOCK_TOKEN);
+    if (body) stack_top(&ctx->scopes.stack, (void**)&body->sinfo.s_id);
     else {
         if (carry) stack_pop(&ctx->scopes.stack, NULL);
         PARSE_ERROR("Error during a parse of the scope block!");
@@ -46,5 +46,5 @@ ast_node_t* cpl_parse_scope(PARSER_ARGS) {
     }
 
     if (carry) stack_pop(&ctx->scopes.stack, NULL);
-    return node;
+    return body;
 }

@@ -13,6 +13,7 @@ int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt)
     }
 
     SET_AND_DUMP_POPARG(HIR_STARGLD, argnum, { HIR_generate_block(t, ctx, smt); });
+    HIR_dump_cold(ctx);
     HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->sinfo.s_id));
     HIR_BLOCK0(ctx, HIR_STEND);
     return 1;

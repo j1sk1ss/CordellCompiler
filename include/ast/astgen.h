@@ -17,7 +17,7 @@ Return 0 if we reach the end, 1 if still in the list.
 */
 static inline int forward_token(list_iter_t* it, int steps) {
     while (steps-- > 0) {
-        if (list_iter_next_top(it)) list_iter_next(it);
+        if (list_iter_next_top(it)) list_iter_next(it, NULL);
         else return 0;
     }
 

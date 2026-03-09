@@ -60,6 +60,9 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         dag_node_t* dst  = DAG_GET_NODE(dctx, hh->farg);
                         if (!dst) break;
 
+                        dst->op   = hh->op;
+                        dst->home = cb;
+
                         if (HIR_is_commutative_op(hh->op)) {
                             if (farg) set_add(&dst->args, farg);
                             if (sarg) set_add(&dst->args, sarg);
@@ -79,11 +82,11 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         }
 
                         set_t owners;
-                        if ((ALLIAS_get_owners(dst->src->storage.var.v_id, &owners, &smt->m) && set_size(&owners))) dst->hash ^= 321123;
+                        if (
+                            ALLIAS_get_owners(dst->src->storage.var.v_id, &owners, &smt->m) && 
+                            set_size(&owners)
+                        ) dst->hash ^= 321123;
                         set_free(&owners);
-
-                        dst->op   = hh->op;
-                        dst->home = cb;
 
                         dag_node_t* existed;
                         if (!map_get(&dctx->groups, dst->hash, (void**)&existed)) _register_node(dctx, dst, farg, sarg);

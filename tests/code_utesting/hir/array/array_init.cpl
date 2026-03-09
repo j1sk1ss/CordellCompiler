@@ -11,16 +11,6 @@
     start {
         {
             {
-                use num? 0;
-                use num? 1;
-                use num? 2;
-                use num? 3;
-                use num? 4;
-                use num? 5;
-                use num? 6;
-                use num? 7;
-                use num? 8;
-                use num? 8;
                 arrs %0 = arr_alloc(num? 123);
             }
         }

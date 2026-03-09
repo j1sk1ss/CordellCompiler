@@ -1,5 +1,6 @@
 {
     section(".bss") {
+        @[entry]
         function foo() {
             function bar() {
 

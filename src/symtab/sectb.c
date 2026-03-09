@@ -76,7 +76,7 @@ int SCTB_get_section(list_t* out, string_t* section, section_elem_type_t t, sect
     }
 
     set_foreach (symbol_id_t id, _get_target(t, info)) {
-        list_add(out, id);
+        list_add(out, (void*)id);
     }
 
     return 1;

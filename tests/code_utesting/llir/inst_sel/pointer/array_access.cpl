@@ -7,7 +7,7 @@
 
 : OUTPUT
 BB{X}: start
-%0 = arr_alloc(X);
+%0 = arr_alloc($10);
 %8 = &(%0);
 %1 = %8;
 %9 = $0;

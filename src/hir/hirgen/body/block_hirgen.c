@@ -79,7 +79,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case FUNC_TOKEN:       return HIR_generate_function_block(node, ctx, smt);
         case EXIT_TOKEN:       return HIR_generate_exit_block(node, ctx, smt);
         case CALLING_TOKEN:
-        case CALL_TOKEN:       return HIR_generate_funccall(node, ctx, smt, 0);
+        case CALL_TOKEN:       return (int)HIR_generate_funccall(node, ctx, smt, 0);
         case LOOP_TOKEN:       return HIR_generate_loop_block(node, ctx, smt);
         case BREAK_TOKEN:      return HIR_generate_break_block(ctx);
         case WHILE_TOKEN:      return HIR_generate_while_block(node, ctx, smt);
@@ -89,7 +89,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case EXTERN_TOKEN:     return HIR_generate_extern_block(node, ctx);
         case IMPORT_TOKEN:     return HIR_generate_import_block(node, ctx);
         case ASSIGN_TOKEN:     return HIR_generate_assignment_block(node, ctx, smt);
-        case SYSCALL_TOKEN:    return HIR_generate_syscall(node, ctx, smt, 0);
+        case SYSCALL_TOKEN:    return (int)HIR_generate_syscall(node, ctx, smt, 0);
         case BREAKPOINT_TOKEN: return HIR_generate_breakpoint_block(node, ctx);
         default: break;
     }

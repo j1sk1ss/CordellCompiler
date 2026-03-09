@@ -30,6 +30,39 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Register
+Now the compiler has the `register` annotation. It simpli links a variable (only a variable) with the specific system register (index). Depends on the target architecture.
+```cpl
+#define RAX 0
+@[register(RAX)] i32 a = 1;
+:
+mov rax, 1
+:
+```
+
+## Cold/Hot
+With the `hot` and `cold` annotations now it becomes possible to generate cold sections. It works with simple ifs (if-else) and switches. For instance:
+```cpl
+@[cold] if 1; { : IF1 :
+    : something :
+}
+else { : ELSE1 :
+    : something hot :
+}
+```
+
+The `cold` annotation will move the `IF1` branch to the end of a function and save the `ELSE1` branch. The same situation with the `switch` statement with one change - the `switch` doesn't support `hot` annotations (they just can't figure it out which sections will go to cold. They all?). For instance:
+```cpl
+@[no_fall]
+switch 1; {
+    @[cold] case 1; {}
+    case 2; {}
+    default {}
+}
+```
+
+**Note:** This code will move the `case 1;` branch to the end of a function. Also, consider the `no_fall` as an essential annotation in such cases. 
+
 # Version v3.4
 I remember that CPL is a system programming language which means it can handle tasks such as a bootloader creation, VGA print, FS, etc. To support these things, the compiler (and the language) now support the next list of features:
 
@@ -65,6 +98,8 @@ At this moment the compiler supports the next list of annotations:
 - `entry` - Set function as an entry point of the code.
 
 The `align` and the `section` keywords do the same work as it do annotations but in more convenient way. Annotation can't be applied to a many declarations or to a several functions.
+
+----------------------------------------
 
 ## i0 variable type
 The `i0` variable type now is possible to use for variables. 
@@ -712,7 +747,7 @@ start() {
 }
 ```
 
-Some improvements in typing (now we're able to use Rust-like statements such as `i8`, `u8`, etc.), `asm` blocks, `external` functions, `heap` arrays, etc. This version was also tested via implementation of the `brainfuck interpreter`.
+Some improvements in typing (now we're able to use Rust-like statements such as `i8`, `u8`, etc.), `asm` blocks, `external` functions, `vla` arrays, etc. This version was also tested via implementation of the `brainfuck interpreter`.
 
 ----------------------------------------
 

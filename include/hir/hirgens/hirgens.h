@@ -4,6 +4,7 @@
 #include <std/qsort.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
+#include <ast/astgen/annot.h>
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 

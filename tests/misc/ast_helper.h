@@ -156,7 +156,7 @@ static inline int print_ast(ast_node_t* node, int depth) {
                     node->t->flags.ro ? ", ro" : "",
                     node->t->flags.ext ? ", ext" : "",
                     node->t->flags.glob ? ", glob" : "",
-                    node->t->flags.heap ? ", heap" : ""
+                    node->t->flags.vla ? ", vla" : ""
                 );
             break;
         }

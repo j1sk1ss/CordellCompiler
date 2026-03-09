@@ -9,7 +9,6 @@
     ],
     "description": "Function definition (return type optional)"
   },
-
   "function-prototype": {
     "scope": "cpl",
     "prefix": "fproto",
@@ -18,7 +17,6 @@
     ],
     "description": "Function prototype (return type optional)"
   },
-
   "import-op": {
     "scope": "cpl",
     "prefix": "from",
@@ -27,7 +25,6 @@
     ],
     "description": "Import statement"
   },
-
   "extern-function": {
     "scope": "cpl",
     "prefix": "externfn",
@@ -36,7 +33,6 @@
     ],
     "description": "Extern function prototype"
   },
-
   "extern-var": {
     "scope": "cpl",
     "prefix": "externvar",
@@ -45,7 +41,6 @@
     ],
     "description": "Extern variable prototype"
   },
-
   "section-block": {
     "scope": "cpl",
     "prefix": "section",
@@ -56,7 +51,6 @@
     ],
     "description": "Top-level section block"
   },
-
   "align-declaration": {
     "scope": "cpl",
     "prefix": "align",
@@ -65,7 +59,6 @@
     ],
     "description": "Aligned declaration"
   },
-
   "align-block": {
     "scope": "cpl",
     "prefix": "alignblock",
@@ -76,7 +69,6 @@
     ],
     "description": "Aligned declaration block"
   },
-
   "poparg-assignment": {
     "scope": "cpl",
     "prefix": "popargvar",
@@ -85,32 +77,141 @@
     ],
     "description": "Assign poparg to local variable"
   },
-
   "CPL Ops POPARG": {
     "scope": "cpl",
     "prefix": "poparg",
     "body": "poparg",
     "description": "CPL poparg expression"
   },
-
   "CPL Types void": {
     "scope": "cpl",
     "prefix": "i0",
     "body": "i0",
     "description": "CPL i0 type"
   },
-
   "CPL Keywords Section": {
     "scope": "cpl",
     "prefix": "section",
     "body": "section",
     "description": "CPL keyword"
   },
-
   "CPL Keywords Align": {
     "scope": "cpl",
     "prefix": "align",
     "body": "align",
     "description": "CPL keyword"
+  },
+  "annotation-generic": {
+    "scope": "cpl",
+    "prefix": "ann",
+    "body": [
+      "@[$1]"
+    ],
+    "description": "Generic annotation"
+  },
+  "annotation-generic-arg": {
+    "scope": "cpl",
+    "prefix": "annarg",
+    "body": [
+      "@[$1($2)]"
+    ],
+    "description": "Generic annotation with arguments"
+  },
+  "annotation-entry": {
+    "scope": "cpl",
+    "prefix": "entryann",
+    "body": [
+      "@[entry]"
+    ],
+    "description": "Entry point annotation"
+  },
+  "annotation-naked": {
+    "scope": "cpl",
+    "prefix": "nakedann",
+    "body": [
+      "@[naked]"
+    ],
+    "description": "Naked function annotation"
+  },
+  "annotation-align": {
+    "scope": "cpl",
+    "prefix": "alignann",
+    "body": [
+      "@[align(${1:16})]"
+    ],
+    "description": "Align annotation"
+  },
+  "annotation-section": {
+    "scope": "cpl",
+    "prefix": "sectionann",
+    "body": [
+      "@[section(\"${1:.text}\")]"
+    ],
+    "description": "Section annotation"
+  },
+  "annotation-address": {
+    "scope": "cpl",
+    "prefix": "addressann",
+    "body": [
+      "@[address(${1:0x1000})]"
+    ],
+    "description": "Address annotation"
+  },
+  "annotation-counter": {
+    "scope": "cpl",
+    "prefix": "counterann",
+    "body": [
+      "@[counter(${1:10})]"
+    ],
+    "description": "Loop counter annotation"
+  },
+  "annotation-no-fall": {
+    "scope": "cpl",
+    "prefix": "nofallann",
+    "body": [
+      "@[no_fall]"
+    ],
+    "description": "Switch no-fallthrough annotation"
+  },
+  "annotation-straight": {
+    "scope": "cpl",
+    "prefix": "straightann",
+    "body": [
+      "@[straight]"
+    ],
+    "description": "Switch linear-search annotation"
+  },
+  "annotation-hot": {
+    "scope": "cpl",
+    "prefix": "hotann",
+    "body": [
+      "@[hot]"
+    ],
+    "description": "Hot branch annotation"
+  },
+  "annotation-cold": {
+    "scope": "cpl",
+    "prefix": "coldann",
+    "body": [
+      "@[cold]"
+    ],
+    "description": "Cold branch annotation"
+  },
+  "annotation-register": {
+    "scope": "cpl",
+    "prefix": "regann",
+    "body": [
+      "@[register(${1:10})]"
+    ],
+    "description": "Register bindings for variables annotation"
+  },
+  "annotation-stack": {
+    "scope": "cpl",
+    "prefix": "annstack",
+    "body": [
+      "@[$1]",
+      "@[$2]"
+    ],
+    "description": "Two stacked annotations"
   }
 }

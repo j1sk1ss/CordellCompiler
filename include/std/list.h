@@ -35,7 +35,7 @@ int list_remove(list_t* l, void* data);
 int list_copy(list_t* src, list_t* dst);
 
 void* list_iter_current(list_iter_t* it);
-void* list_iter_next(list_iter_t* it);
+int list_iter_next(list_iter_t* it, void** d);
 void* list_iter_next_top(list_iter_t* it);
 void* list_iter_prev(list_iter_t* it);
 void* list_iter_prev_top(list_iter_t* it);
@@ -50,11 +50,14 @@ int list_free_force_op(list_t* l, int (*op)(void*));
 #define CONCAT2(a,b) a##b
 #define CONCAT(a,b)  CONCAT2(a,b)
 
-#define foreach(v, lst)                                                           \
-    list_iter_t CONCAT(__it_, __LINE__);                                          \
-    list_iter_hinit(lst, &CONCAT(__it_, __LINE__));                               \
-    void* CONCAT(__val_, __LINE__);                                               \
-    while ((CONCAT(__val_, __LINE__) = list_iter_next(&CONCAT(__it_, __LINE__)))) \
-        for (v = CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__); CONCAT(__val_, __LINE__) = NULL)
+#define foreach(v, lst)                                                                  \
+    list_iter_t CONCAT(__it_, __LINE__);                                                 \
+    list_iter_hinit((lst), &CONCAT(__it_, __LINE__));                                    \
+    void* CONCAT(__val_, __LINE__);                                                      \
+    int CONCAT(__ok_, __LINE__);                                                         \
+    while ((CONCAT(__ok_, __LINE__) = list_iter_next(&CONCAT(__it_, __LINE__),           \
+                                                    (void**)&CONCAT(__val_, __LINE__)))) \
+        for (v = CONCAT(__val_, __LINE__); CONCAT(__ok_, __LINE__);                      \
+             CONCAT(__ok_, __LINE__) = 0)
 
 #endif

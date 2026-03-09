@@ -90,6 +90,7 @@ At the file start several flags can be placed:
 - `: TEST_DEBUG :` - This flag will launch execution with `gdb/lldb` debug tools directly with this code snippet.
 - `: BLOCK_TEST :` - If this flag is placed in a test that fails, it will fail the entire testing.
 - `: BUG :` - This flag will ignore test failing (even if there is the 'BLOCK_TEST' flag).
+- `: LEAK_TRACE :` - This flag enables the memory logging in the compiler, then uses these logs in leak tool to find the source. 
 
 Also the 'OUTPUT' section has several special formattings that allow us prepare the output log verification. We need this given the compier parts, that print differently regarding the memory region of a compiler instance (for example print of a set or a map, etc. is changing over time). To tell the test framework that sometimes we can 'lower' our 'expectations' from the output log, we can use:
 - `{X}` - Accept any string here:

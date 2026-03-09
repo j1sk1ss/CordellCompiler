@@ -4,13 +4,13 @@ ast_node_t* cpl_parse_poparg(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
-    ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) {
+    ast_node_t* base = AST_create_node(CURRENT_TOKEN);
+    if (!base) {
         PARSE_ERROR("Can't create the base for the '%s' statement!", POPARG_COMMAND);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
     
     forward_token(it, 1);
-    return node;
+    return base;
 }

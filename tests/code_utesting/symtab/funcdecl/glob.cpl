@@ -1,4 +1,5 @@
 {
+    @[entry]
     glob function foo();
     function bar();
 }

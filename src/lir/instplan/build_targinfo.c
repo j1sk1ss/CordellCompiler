@@ -111,8 +111,6 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_fDIV, 0, 0, 0, 0, 10, 0.2f, 4, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_fCMP, 0, 0, 1, 0, 3, 1.0f, 2, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_CDQ, 0, 0, 1, 0, 1, 2.0f, 1, 0));
-        ADD_OPINF(&ops, _create_op_info(LIR_ALLCH, 1, 1, 0, 0, 50, 0.3f, 5, 0));
-        ADD_OPINF(&ops, _create_op_info(LIR_DEALLH, 1, 0, 0, 0, 30, 0.4f, 4, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_EXITOP, 0, 0, 0, 0, 1, 1.0f, 1, 0));
     }
 #pragma endregion

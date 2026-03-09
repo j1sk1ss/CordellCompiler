@@ -21,46 +21,45 @@
         i32s %0 = alloc(8);
         i32s %0 = load_arg();
         {
-            use num? 0;
             arrs %1 = arr_alloc(num? 10);
             i64t %4 = i32s %0 as i64;
             i64t %3 = i64t %4 == num? 1;
-            if i64t %3, goto lb12, else goto lb13;
-            lb12:
+            if i64t %3, goto lb{X}, else goto lb{X};
+            lb{X}:
             {
                 return num? 0;
             }
-            goto lb14;
-            lb13:
+            goto lb{X};
+            lb{X}:
             {
                 return num? 1;
             }
-            goto lb14;
-            lb14:
-        }
-    }
+            goto lb{X};
+            lb{X}:
+        [unused] }
+    [unused] }
+    [unused] 
     start {
         {
             {
                 i32s %2 = alloc(8);
                 use num? 10;
                 i32s %0 = num? 10;
-                use num? 0;
                 arrs %1 = arr_alloc(num? 10);
                 i64t %4 = i32s %0 as i64;
                 i64t %3 = i64t %4 == num? 1;
-                if i64t %3, goto lb62, else goto lb63;
-                lb62:
+                if i64t %3, goto lb{X}, else goto lb{X};
+                lb{X}:
                 {
                     i32t %5 = num? 0;
                 }
-                goto lb64;
-                lb63:
+                goto lb{X};
+                lb{X}:
                 {
                     i32t %5 = num? 1;
                 }
-                goto lb64;
-                lb64:
+                goto lb{X};
+                lb{X}:
                 [unused] i32t %5 = call foo0(i32 a) -> i32, argc args(num? 10,);
                 i32s %2 = i32t %5;
             }

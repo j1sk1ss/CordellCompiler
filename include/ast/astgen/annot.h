@@ -10,30 +10,50 @@
 #define NAKED_ANNOTATION_COMMAND "naked"
 #define SECTN_ANNOTATION_COMMAND "section"
 #define ADDRS_ANNOTATION_COMMAND "address"
+#define NOFAL_ANNOTATION_COMMAND "no_fall"
+#define STRGH_ANNOTATION_COMMAND "straight"
+#define COUNT_ANNOTATION_COMMAND "counter"
+#define HOTSC_ANNOTATION_COMMAND "hot"
+#define COLDS_ANNOTATION_COMMAND "cold"
+#define REGST_ANNOTATION_COMMAND "register"
 
 typedef struct {
     string_t* section;
     int       align;
     long      address;
-    char      is_naked : 1;
-    char      is_entry : 1;
+    long      counter;
+    short     reg;
+    char      is_naked    : 1;
+    char      is_entry    : 1;
+    char      is_nofall   : 1;
+    char      is_straight : 1;
+    char      is_hot      : 1;
+    char      is_cold     : 1;
 } annotations_summary_t;
 
 typedef enum {
     UNKNOWN_ANNOTATION,
-    ALIGN_ANNOTATION,   /* Set the align of a declaration            */
-    SECTION_ANNOTATION, /* Put a declration or function to a section */
-    NAKED_ANNOTATION,   /* Don't unpack START, FDECL                 */
-    ADDRESS_ANNOTATION, /* Where place the object?                   */
-    ENTRY_ANNOTATION,   /* Is this an entry function?                */
+    ALIGN_ANNOTATION,    /* Set the align of a declaration            */
+    SECTION_ANNOTATION,  /* Put a declration or function to a section */
+    NAKED_ANNOTATION,    /* Don't unpack START, FDECL                 */
+    ADDRESS_ANNOTATION,  /* Where place the object?                   */
+    ENTRY_ANNOTATION,    /* Is this an entry function?                */
+    NOFALL_ANNOTATION,   /* switch with a break as a default command  */
+    STRAIGHT_ANNOTATION, /* switch based on if-elseif-else            */
+    COUNTER_ANNOTATION,  /* hidden counter-break instructure          */
+    HOT_ANNOTATION,      /* Will make the linked else branch cold     */
+    COLD_ANNOTATION,     /* Will make the linked then branch hot      */
+    REGISTER_ANNOTATION, /* Will link the selected register to a decl */
 } annotation_type_t;
 
 typedef struct {
     annotation_type_t t;
     union {
-        int           align;   /* ALIGN_ANNOTATION   */
-        string_t*     section; /* SECTION_ANNOTATION */
-        long          address; /* ADDRESS_ANNOTATION */
+        int           align;   /* ALIGN_ANNOTATION    */
+        string_t*     section; /* SECTION_ANNOTATION  */
+        long          address; /* ADDRESS_ANNOTATION  */
+        long          counter; /* COUNTER_ANNOTATION  */
+        short         regval;  /* REGISTER_ANNOTATION */
     } data;
 } annotation_t;
 

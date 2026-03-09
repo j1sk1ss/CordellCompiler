@@ -62,7 +62,10 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         hir_block_t* hh = HIR_FUNC_get_next(NULL, fb, NULL, 0);
         while (hh) {
-            if (hh->op != HIR_PHI && hh->op != HIR_PHI_PREAMBLE) {
+            if (
+                hh->op != HIR_PHI && 
+                hh->op != HIR_PHI_PREAMBLE
+            ) {
                 hir_subject_t* nodes[3] = { hh->farg, hh->sarg, hh->targ };
                 for (int i = HIR_is_writeop(hh->op); i < 3; i++) {
                     if (!nodes[i]) continue;
@@ -78,7 +81,7 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                                 else HIR_unload_subject(s);
                             }
                             
-                            list_iter_next(&el_it);
+                            list_iter_next(&el_it, NULL);
                         }
                     }
                     else {

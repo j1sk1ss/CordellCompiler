@@ -50,7 +50,7 @@ int stack_free(sstack_t* s) {
 
 static int _stack_free_force(sstack_t* m, int (*fop)(void*)) {
     if (!m) return 0;
-    for (long i = 0; i < m->top; i++) {
+    for (long i = 0; i <= m->top; i++) {
         if (m->data[i].d) {
             if (fop) fop(m->data[i].d);
             else mm_free(m->data[i].d);

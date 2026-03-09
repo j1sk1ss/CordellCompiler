@@ -23,10 +23,10 @@ int FNTB_collect_info(string_t* fname, list_t* out, functab_ctx_t* ctx) {
     return 1;
 }
 
-int FNTB_get_info(string_t* fname, short sid, func_info_t* out, functab_ctx_t* ctx) {
-    print_log("FNTB_get_info(name=%s, sid=%i)", fname ? fname->body : "(null)", sid);
+int FNTB_get_info(string_t* fname, symbol_id_t s_id, func_info_t* out, functab_ctx_t* ctx) {
+    print_log("FNTB_get_info(name=%s, s_id=%li)", fname ? fname->body : "(null)", s_id);
     map_foreach (func_info_t* fi, &ctx->functb) {
-        if (fi->name->equals(fi->name, fname) && (sid == -1 || fi->sid == sid)) {
+        if (fi->name->equals(fi->name, fname) && (s_id == FIELD_NO_CHANGE || fi->s_id == s_id)) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
             return 1;
         }
@@ -57,10 +57,10 @@ static func_info_t* _create_func_info(
     return fn;
 }
 
-static int _is_function_presented(string_t* name, short sid, ast_node_t* args, func_info_t* out, functab_ctx_t* ctx) {
+static int _is_function_presented(string_t* name, symbol_id_t s_id, ast_node_t* args, func_info_t* out, functab_ctx_t* ctx) {
     map_foreach (func_info_t* fi, &ctx->functb) {
         if (
-            (sid == -1 || fi->sid == sid) &&
+            (s_id == FIELD_NO_CHANGE || fi->s_id == s_id) &&
             fi->name->equals(fi->name, name) &&
             AST_hash_node_stop(args->c, SCOPE_TOKEN) == AST_hash_node_stop(fi->args->c, SCOPE_TOKEN)
         ) {
@@ -83,7 +83,7 @@ static string_t* _create_virt_name(symbol_id_t id, string_t* name) {
 symbol_id_t FNTB_add_info(
     string_t* name, 
     int global, int local, int entry, int naked, /* flags */
-    short sid, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
+    symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
     print_log(
         "FNTB_add_info(name=%s, global=%i, ext=%i, entry=%i, naked=%i, args=%lu)", 
@@ -91,11 +91,11 @@ symbol_id_t FNTB_add_info(
     );
     
     func_info_t out;
-    if (_is_function_presented(name, sid, args, &out, ctx)) return out.id; 
+    if (_is_function_presented(name, s_id, args, &out, ctx)) return out.id; 
 
     func_info_t* nnd = _create_func_info(name, global, local, entry, naked, args, rtype);
     if (!nnd) return 0;
-    nnd->sid = sid;
+    nnd->s_id = s_id;
     
     nnd->id = ctx->curr_id++;
     if (nnd->name) {
@@ -124,11 +124,11 @@ int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* a
     print_log("FNTB_update_info(id=%llu, used=%i, entry=%i, ext=%i)", id, used, entry, ext);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
-        if (used >= 0)  fi->flags.used     = used;
-        if (entry >= 0) fi->flags.entry    = entry;
-        if (ext >= 0)   fi->flags.external = ext;
-        if (args)       fi->args  = args;
-        if (rtype)      fi->rtype = rtype;
+        if (used != FIELD_NO_CHANGE)  fi->flags.used     = used;
+        if (entry != FIELD_NO_CHANGE) fi->flags.entry    = entry;
+        if (ext != FIELD_NO_CHANGE)   fi->flags.external = ext;
+        if (args)                     fi->args           = args;
+        if (rtype)                    fi->rtype          = rtype;
         return 1;
     }
 

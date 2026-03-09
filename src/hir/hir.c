@@ -1,5 +1,17 @@
 #include <hir/hir.h>
 
+int HIR_init_extended_ctx(hir_ctx_t* ctx) {
+    str_memset(ctx, 0, sizeof(hir_ctx_t));
+    ctx->cold.is_sup = 1;
+    return list_init(&ctx->cold.blocks);
+}
+
+int HIR_unload_extended_ctx(hir_ctx_t* ctx) {
+    ctx->cold.is_sup = 0;
+    list_free(&ctx->cold.blocks);
+    return HIR_unload_blocks(ctx->hot.h);
+}
+
 /*
 Mix64 hash function.
 Params:
@@ -20,7 +32,7 @@ long HIR_hash_subject(hir_subject_t* s) {
     if (!s) return 0;
     if (s->hash) return s->hash;
 
-    unsigned long h = (unsigned long)s->t;
+    unsigned long h = ((unsigned long)s->t) * 0x123321;
     switch (s->t) {
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
@@ -285,14 +297,28 @@ int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos) {
 }
 
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
+    if (ctx->cold.is_sup && ctx->is_cold) {
+        list_add(&ctx->cold.blocks, block);
+        return 1;
+    }
+
     if (!ctx || !block) return 0;
-    if (!ctx->h) ctx->h = ctx->t = block;
+    if (!ctx->hot.h) ctx->hot.h = ctx->hot.t = block;
     else {
-        block->prev  = ctx->t;
-        ctx->t->next = block;
-        ctx->t       = block;
+        block->prev  = ctx->hot.t;
+        ctx->hot.t->next = block;
+        ctx->hot.t       = block;
     }
     
+    return 1;
+}
+
+int HIR_dump_cold(hir_ctx_t* ctx) {
+    if (!ctx->cold.is_sup) return 1;
+    foreach (hir_block_t* b, &ctx->cold.blocks) {
+        HIR_append_block(b, ctx);
+    }
+
     return 1;
 }
 
@@ -345,7 +371,7 @@ int HIR_compute_homes(hir_ctx_t* ctx) {
     map_t homes;
     map_init(&homes, MAP_NO_CMP);
 
-    hir_block_t* hh = ctx->h;
+    hir_block_t* hh = ctx->hot.h;
     while (hh) {
         hir_subject_t* args[] = { hh->farg, hh->sarg, hh->targ };
         for (int i = 0; i < 3; i++) {

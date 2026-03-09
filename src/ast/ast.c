@@ -6,6 +6,7 @@ ast_node_t* AST_create_node(token_t* tkn) {
     str_memset(node, 0, sizeof(ast_node_t));
     node->t          = tkn;
     node->sinfo.v_id = NO_SYMBOL_ID;
+    list_init(&node->annots);
     return node;
 }
 
@@ -92,6 +93,7 @@ int AST_unload(ast_node_t* node) {
     AST_unload(node->c);
     AST_unload(node->siblings.n);
     TKN_unload_token(node->bt);
+    list_free_force_op(&node->annots, (int (*)(void*))ANNOT_destroy_annotation);
     mm_free(node);
     return 1;
 }

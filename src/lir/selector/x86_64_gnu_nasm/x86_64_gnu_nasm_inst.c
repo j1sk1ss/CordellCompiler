@@ -56,8 +56,8 @@ Params:
 
 Return the virtual variable that is linked to the physical register.
 */
-static lir_subject_t* _create_tmp(int reg, lir_subject_t* src, sym_table_t* smt) {
-    long cpy;
+static lir_subject_t* _create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt) {
+    symbol_id_t cpy = NO_SYMBOL_ID;
     variable_info_t vi = { .vmi.offset = -1 };
     if (
         src->t == LIR_VARIABLE && 
@@ -112,7 +112,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
         lir_block_t* fix = NULL;
         switch (lh->op) {
             case LIR_REF: {
-                lir_subject_t* tmp = _create_tmp(RAX, lh->sarg, smt);
+                lir_subject_t* tmp = _create_tmp(R15, lh->sarg, smt);
                 fix = LIR_create_block(lh->op, tmp, lh->sarg, NULL);
                 lh->sarg = tmp;
                 lh->op   = LIR_iMOV;
@@ -123,7 +123,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
             case LIR_fMOV: 
             case LIR_GDREF:
             case LIR_LDREF: {
-                lir_subject_t* tmp = _create_tmp(-1, lh->sarg, smt);
+                lir_subject_t* tmp = _create_tmp(R15, lh->sarg, smt);
                 fix = LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL);
                 lh->sarg = tmp;
                 break;
@@ -162,6 +162,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                        Note: Based on the Linux ABI execution convention. */
                     case LIR_STARGLD: {
                         lir_subject_t* src = LIR_SUBJ_OFF(
+                            RBP,
                             (lh->sarg->storage.cnst.value + 1) * -8, 
                             _get_variable_size(lh->farg->storage.var.v_id, smt)
                         );
@@ -197,6 +198,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
                         else {
                             nfarg = LIR_SUBJ_OFF(
+                                RBP,
                                 (lh->sarg->storage.cnst.value - (long)(sizeof(abi_regs) / sizeof(RDI)) + 1) * -8, 
                                 _get_variable_size(lh->farg->storage.var.v_id, smt)
                             );
@@ -351,13 +353,16 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int dst_size   = _get_variable_size(lh->farg->storage.var.v_id, smt);
                         int src_size   = _get_variable_size(lh->sarg->storage.var.v_id, smt);
                         if (from_float) {
-                            if (src_size == 4) lh->op = LIR_CVTTSS2SI;
+                            if (src_size == CONF_get_half_bytness()) lh->op = LIR_CVTTSS2SI;
                             else lh->op = LIR_CVTTSD2SI;
                         }
                         else {
                             if (dst_size <= src_size) lh->op = LIR_iMOV;
                             else {
-                                if (src_size == 4 && dst_size == 8) lh->op = LIR_MOVSXD;
+                                if (
+                                    src_size == CONF_get_half_bytness() && 
+                                    dst_size == CONF_get_full_bytness()
+                                ) lh->op = LIR_MOVSXD;
                                 else lh->op = from_sign ? LIR_MOVSX : LIR_MOVZX;
                             }
                         }

@@ -15,9 +15,9 @@ int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt)
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         
         void* backup = ctx->carry.ptr;
-        ctx->carry.ptr = end_lb; /* Save the backup label for the `break` statement */
+        ctx->carry.ptr = end_lb;
         HIR_generate_block(lbranch->c, ctx, smt);
-        ctx->carry.ptr = backup; /* Restore the backup label                        */
+        ctx->carry.ptr = backup;
 
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_BLOCK1(ctx, HIR_JMP, entry_lb);
