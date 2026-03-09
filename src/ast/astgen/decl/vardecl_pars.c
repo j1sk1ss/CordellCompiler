@@ -53,8 +53,8 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
                                                     Also, we can't separate the string from a variable given the
                                                     ability of string arguments, etc. */
             ARTB_update_info(
-                name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, 
-                0, I8_TYPE_TOKEN, &node->t->flags, &smt->a
+                name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, FIELD_NO_CHANGE, 
+                I8_TYPE_TOKEN, &node->t->flags, &smt->a
             );
             
             STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);

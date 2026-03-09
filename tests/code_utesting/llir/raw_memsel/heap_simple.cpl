@@ -7,10 +7,10 @@
 
 : OUTPUT
 BB1: start
-[rbp - 8] = $10;
-[rbp - 16] = [rbp - 8];
-[rbp - 24] = [rbp - 16];
-[rbp - 32] = [rbp - 24];
-[rbp - 40] = vla([rbp - 32])
+r15 = $10;
+[rbp - 8] = r15;
+r15 = [rbp - 8];
+[rbp - 16] = r15;
+[rbp - 24] = vla([rbp - 16])
 send
 :

@@ -11,17 +11,17 @@
 
 : OUTPUT
 BB{X}: start
-[rbp - 8] = $0;
-[rbp - 16] = [rbp - 8];
-[rbp - 24] = [rbp - 16];
-rax = [rbp - 24];
-[rbp - 32] = $1;
-[rbp - 40] = [rbp - 32];
-[rbp - 48] = [rbp - 40];
-rbx = [rbp - 48];
-[rbp - 56] = $2;
-[rbp - 64] = [rbp - 56];
-[rbp - 72] = [rbp - 64];
-rcx = [rbp - 72];
+r15 = $0;
+[rbp - 8] = r15;
+r15 = [rbp - 8];
+rax = r15;
+r15 = $1;
+[rbp - 16] = r15;
+r15 = [rbp - 16];
+rbx = r15;
+r15 = $2;
+[rbp - 24] = r15;
+r15 = [rbp - 24];
+rcx = r15;
 send
 :

@@ -48,10 +48,10 @@ int ARTB_update_info(symbol_id_t id, long size, int vla, token_type_t el_type, t
     print_log("ARTB_update_info(vid=%i, size=%i, vla=%i, el_type=%i)", id, size, vla, el_type);
     array_info_t* ai;
     if (map_get(&ctx->arrtb, id, (void**)&ai)) {
-        if (el_type != FIELD_NO_CHANGE) ai->elements_info.el_type = el_type;
-        if (size != FIELD_NO_CHANGE)    ai->size = size;
-        if (vla != FIELD_NO_CHANGE)     ai->vla = vla;
-        if (flags)                      str_memcpy(&ai->elements_info.el_flags, flags, sizeof(token_flags_t));
+        ai->elements_info.el_type = el_type;
+        if (size != FIELD_NO_CHANGE) ai->size = size;
+        if (vla != FIELD_NO_CHANGE)  ai->vla = vla;
+        if (flags)                   str_memcpy(&ai->elements_info.el_flags, flags, sizeof(token_flags_t));
         return 1;
     }
 

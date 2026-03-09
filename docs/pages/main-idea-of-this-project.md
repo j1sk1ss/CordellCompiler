@@ -1,0 +1,2 @@
+# Main idea of this project
+Main goal of this project (the compiler + language) is learning of compilers architecture and porting one to 'CordellOS' project (my initial idea was to has an opportunity to code programs for my own OS inside my own OS). Also, according to my explicit bias to assembly and C languages (I just love them), this language will stay "low-level" as it even possible, but some features can be added in future with strings (inbuild concat, comparison and etc).

@@ -5,10 +5,10 @@
 }
 
 : OUTPUT
-BB{X}: start
-[rbp - 8] = $0;
-[rbp - 16] = [rbp - 8];
-[rbp - 24] = [rbp - 16];
-rax = [rbp - 24];
+BB1: start
+r15 = $0;
+[rbp - 8] = r15;
+r15 = [rbp - 8];
+rax = r15;
 send
 :

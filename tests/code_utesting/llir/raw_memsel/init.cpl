@@ -6,14 +6,14 @@
 }
 
 : OUTPUT
-BB{X}: start
-[rbp - 8] = $1;
-[rbp - 16] = [rbp - 8];
-[rbp - 24] = [rbp - 16];
-[rbp - 32] = [rbp - 24];
-[rbp - 40] = $1;
-[rbp - 48] = [rbp - 40];
-[rbp - 56] = [rbp - 48];
-[rbp - 64] = [rbp - 56];
+BB1: start
+r15 = $1;
+[rbp - 8] = r15;
+r15 = [rbp - 8];
+[rbp - 16] = r15;
+r15 = $1;
+[rbp - 24] = r15;
+r15 = [rbp - 24];
+[rbp - 32] = r15;
 send
 :
