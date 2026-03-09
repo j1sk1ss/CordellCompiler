@@ -14,7 +14,7 @@
                 i32s** %0 = alloc(8);
                 i32s* %1 = alloc(8);
                 i32t** %3 = i32s** %0;
-                i64t %4 = num? 0 * cnst? 4;
+                i64t %4 = num? 0 * cnst? 8;
                 i32t** %6 = i64t %4 as *ptr;
                 i32t** %5 = i32t** %3 + i32t** %6;
                 i32t* %7 = *(i32t** %5);

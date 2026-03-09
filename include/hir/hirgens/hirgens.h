@@ -1,12 +1,24 @@
 #ifndef HIRGENS_H_
 #define HIRGENS_H_
 
+#include <std/math.h>
 #include <std/qsort.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/annot.h>
 #include <hir/hir.h>
 #include <hir/hir_types.h>
+
+/* Check if node has an annotation.
+   Params:
+        - `t` - Target annotation Type.
+        - `nd` - Source node.
+        - `act` - Action if the annotation found.
+ */
+#define HAS_ANNOTATION(type, nd, act)             \
+    foreach (annotation_t* annot, &nd->annots) {  \
+        if (annot->t == type) { act; break; }     \
+    }                                             \
 
 /*
 Dump and load information for the 'poparg' keyword.
@@ -409,5 +421,8 @@ Params:
 Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
+
+// TODO
+hir_subject_t* HIR_generate_sizeof(hir_subject_t* s, sym_table_t* smt);
 
 #endif

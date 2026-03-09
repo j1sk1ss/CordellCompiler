@@ -10,6 +10,7 @@ Annotations are usefull tool in terms of system development. For non-system prog
 - `counter` - Make a counted loop.
 - `hot` and `cold` - Send a branch to the end of a function.
 - `register` - Will link a primitive (non-global) variable to a register.
+- `sizeof` - Will replace the next variable with its size in bytes (Acts the same as it does the similar keyword from C language).
 
 Annotations can be added for functions, function arguments and declarations:
 ```cpl
@@ -46,6 +47,30 @@ can be reproduced with annotations:
 
 ## Some words about annotations
 *P.S. If you're not a system programmer, or you don't plan to use these annotations, you can safely skip this block. These annotations (as all annotations) are optional.* </br>
+
+### sizeof
+`Sizeof` annotation is an annotation, which means it must be used in the next way:
+```cpl
+i32 a;
+i32 b = @[sizeof]a;
+```
+
+It won't work with non-variable and type objects. To gather the type's size, you will need to use a temprorary variable (at least for now):
+```cpl
+i32 index;
+i64 __tmp;
+loop {
+    index += @[sizeof]__tmp;
+}
+```
+
+It supports arrays and strings, but only as a primitive (without indexation):
+```cpl
+str msg = "Hello!";
+arr a[10, i64];
+i32 msg_len = @[sizeof]msg;
+i32 a_len = @[sizeof]a / 8;
+```
 
 ### register
 Register annotation is similar to C's `register` keyword which links a variable to the specific selected register:

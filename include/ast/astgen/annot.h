@@ -16,6 +16,7 @@
 #define HOTSC_ANNOTATION_COMMAND "hot"
 #define COLDS_ANNOTATION_COMMAND "cold"
 #define REGST_ANNOTATION_COMMAND "register"
+#define SIZEV_ANNOTATION_COMMAND "sizeof"
 // TODO: interrupt (Will generate register save at the start and the end)
 
 typedef struct {
@@ -45,6 +46,7 @@ typedef enum {
     HOT_ANNOTATION,      /* Will make the linked else branch cold     */
     COLD_ANNOTATION,     /* Will make the linked then branch hot      */
     REGISTER_ANNOTATION, /* Will link the selected register to a decl */
+    SIZEOF_ANNOTATION,   /* Will replace variable load with the const */
 } annotation_type_t;
 
 typedef struct {

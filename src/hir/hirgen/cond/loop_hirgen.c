@@ -46,13 +46,7 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long v
     return 1;
 }
 
-int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    foreach (annotation_t* annot, &node->annots) {
-        if (annot->t == COUNTER_ANNOTATION) {
-            return _generate_counted_loop_block(node, ctx, annot->data.counter, smt);
-        }
-    }
-
+static int _generate_uncounted_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* lbranch = node->c;    
     if (lbranch) {
         hir_subject_t* entry_lb = HIR_SUBJ_LABEL();
@@ -76,4 +70,12 @@ int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     }
 
     return 1;
+}
+
+int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HAS_ANNOTATION(COUNTER_ANNOTATION, node, { 
+        return _generate_counted_loop_block(node, ctx, annot->data.counter, smt); 
+    });
+
+    return _generate_uncounted_loop_block(node, ctx, smt);
 }

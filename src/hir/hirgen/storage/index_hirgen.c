@@ -8,10 +8,11 @@ static hir_subject_t* _get_final_head(
 
     array_info_t ai;
     *indexed_type = base->t;
+    int el_size = (base->ptr - 1) > 0 ? CONF_get_full_bytness() : HIR_get_type_size(*indexed_type);
     if (
         HIR_is_arrtype(base->t) &&                              /* If this is an array type                    */
         ARTB_get_info(base->storage.var.v_id, &ai, &smt->a) &&  /* and it is registered in smt as an array     */
-        !ai.vla                                                /* and this array isn't a vla array           */
+        !ai.vla                                                 /* and this array isn't a vla array           */
     ) {                                                         /* We 'lea' the base to a referenced variable  */
         if (!base->ptr) {
             head->ptr = MAX(ai.elements_info.el_flags.ptr + 1, head->ptr + 1);
@@ -20,6 +21,7 @@ static hir_subject_t* _get_final_head(
         
         token_t tmp = { .t_type = ai.elements_info.el_type };
         *indexed_type = HIR_get_tmptype_tkn(&tmp, 0);
+        el_size = ai.elements_info.el_flags.ptr ? CONF_get_full_bytness() : HIR_get_type_size(*indexed_type);
     }
 
     HIR_BLOCK2(ctx, base_op, head, base);
@@ -29,7 +31,7 @@ static hir_subject_t* _get_final_head(
     hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(offt->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(offt->t), 0, NULL, &smt->v));
     HIR_BLOCK3(
         ctx, HIR_iMUL, real_offset, offt, 
-        HIR_generate_implconv(ctx, offt->ptr, offt->t, HIR_SUBJ_CONST(HIR_get_type_size(*indexed_type)), smt)
+        HIR_generate_implconv(ctx, offt->ptr, offt->t, HIR_SUBJ_CONST(el_size), smt)
     );
 
     /* No we move the address (base) by the offser (addr):

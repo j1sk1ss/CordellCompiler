@@ -238,6 +238,12 @@ literal        = integer_literal | float_literal | string_literal | char_literal
         ##__VA_ARGS__                                                                            \
     )
 
+#define DUMP_ANNOTATION_TO_NODE(ctx, nd)              \
+    annotation_t* annot;                              \
+    while (stack_pop(&ctx->annots, (void**)&annot)) { \
+        list_add(&nd->annots, annot);                 \
+    }
+
 /*
 Search for a variable (presented in the node) on the symtable.
 Params:

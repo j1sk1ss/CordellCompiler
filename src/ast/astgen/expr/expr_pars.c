@@ -149,28 +149,36 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         return NULL;
     }
     
-    switch (CURRENT_TOKEN->t_type) {
-        case OPEN_BRACKET_TOKEN: {
-            forward_token(it, 1);
-            ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
-            if (!node || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
-                PARSE_ERROR("Error during a binary expression parsing! The bracket wasn't closed!");
-                AST_unload(node);
-                RESTORE_TOKEN_POINT;
-                return NULL;
+    while (1) {
+        switch (CURRENT_TOKEN->t_type) {
+            case ANNOTATION_TOKEN: {
+                cpl_parse_annot(it, ctx, smt, 0);
+                forward_token(it, 1);
+                continue;
             }
-            
-            forward_token(it, 1);
-            return node;
+            case OPEN_BRACKET_TOKEN: {
+                forward_token(it, 1);
+                ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
+                if (!node || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
+                    PARSE_ERROR("Error during a binary expression parsing! The bracket wasn't closed!");
+                    AST_unload(node);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+                
+                forward_token(it, 1);
+                return node;
+            }
+            case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */
+            case POPARG_TOKEN:    return cpl_parse_poparg(it, ctx, smt, 0);   /* poparg    */
+            case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
+            case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */
+            case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt, 0);      /* ref       */
+            case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt, 0);     /* dref      */
+            default: goto _primary_resolve_complete;
         }
-        case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */
-        case POPARG_TOKEN:    return cpl_parse_poparg(it, ctx, smt, 0);   /* poparg    */
-        case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
-        case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */
-        case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt, 0);      /* ref       */
-        case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt, 0);     /* dref      */
-        default: break;
     }
+_primary_resolve_complete: {}
 
     /* If this isn't a basic case, we are able to say,
        that this is a variable / value */
@@ -181,9 +189,10 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         return NULL;
     }
 
-    if ( /* Register a string in a string symbol table */
-        node->t->t_type == STRING_VALUE_TOKEN
-    ) {
+    DUMP_ANNOTATION_TO_NODE(ctx, node);
+
+    /* Register a string in a string symbol table */
+    if (node->t->t_type == STRING_VALUE_TOKEN) {
         node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
         string_t* section = create_string(CONF_get_ro_section());
         SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);

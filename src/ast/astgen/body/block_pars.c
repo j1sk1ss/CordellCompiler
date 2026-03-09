@@ -64,6 +64,7 @@ static const handler_t handlers[] = {
         UNKNOWN_NUMERIC_TOKEN
     ),
 };
+#undef HANDLER
 
 /*
 Parsers collection navigation.

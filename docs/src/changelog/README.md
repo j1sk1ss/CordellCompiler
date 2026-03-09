@@ -30,6 +30,33 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## sizeof
+With the `sizeof` annotation now it is possible to support the next code:
+```cpl
+arr data[256, i32];
+i32 index = 0;
+while index < @[sizeof]data; {
+    data[index] = 0;
+}
+```
+
+This annotation will give you exact size in bytes of an object:
+```cpl
+@[sizeof]1; : Will return max bytness of the system :
+
+ptr i32 a;
+@[sizeof]a; : Will return max bytness of the system :
+
+arr b[10, ptr i32];
+@[sizeof]b; : Will return max bytness of the system * 10 :
+
+str msg = "Hello world!";
+@[sizeof]msg; : Will return 13 :
+
+function foo();
+@[sizeof]foo; : Will return max bytness of the system :
+```
+
 ## Register
 Now the compiler has the `register` annotation. It simpli links a variable (only a variable) with the specific system register (index). Depends on the target architecture.
 ```cpl

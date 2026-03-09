@@ -13,50 +13,31 @@ static token_t* _extract_token_from_brackets(list_iter_t* it) {
     return content;
 }
 
+#define ADD_ANNOTATION_HANDLER(n, t)                                           \
+    if (raw_annot->requals(raw_annot, n)) {                                    \
+        return ANNOT_create_annotation(                                        \
+            t, content ? content->body : NULL,                                 \
+            content ? content->body->to_llong(content->body) : FIELD_NO_CHANGE \
+        );                                                                     \
+    }
 static annotation_t* _parse_annotation_content(list_iter_t* it) {
     string_t* raw_annot = CURRENT_TOKEN->body;
-    annotation_t* annot = NULL;
     token_t* content    = _extract_token_from_brackets(it);
-
-    if (raw_annot->requals(raw_annot, SECTN_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(SECTION_ANNOTATION, content->body, FIELD_NO_CHANGE);
-    }
-    else if (raw_annot->requals(raw_annot, ALIGN_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(ALIGN_ANNOTATION, NULL, content->body->to_llong(content->body));
-    } 
-    else if (raw_annot->requals(raw_annot, ADDRS_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(ADDRESS_ANNOTATION, NULL, content->body->to_llong(content->body));
-    }
-    else if (raw_annot->requals(raw_annot, NAKED_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(NAKED_ANNOTATION, NULL, FIELD_NO_CHANGE);
-    }
-    else if (raw_annot->requals(raw_annot, ENTRY_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(ENTRY_ANNOTATION, NULL, FIELD_NO_CHANGE);
-    }
-    else if (raw_annot->requals(raw_annot, NOFAL_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(NOFALL_ANNOTATION, NULL, FIELD_NO_CHANGE);
-    }
-    else if (raw_annot->requals(raw_annot, STRGH_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(STRAIGHT_ANNOTATION, NULL, FIELD_NO_CHANGE);
-    }
-    else if (raw_annot->requals(raw_annot, COUNT_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(COUNTER_ANNOTATION, NULL, content->body->to_llong(content->body));
-    }
-    else if (raw_annot->requals(raw_annot, HOTSC_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(HOT_ANNOTATION, NULL, FIELD_NO_CHANGE);
-    }
-    else if (raw_annot->requals(raw_annot, COLDS_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(COLD_ANNOTATION, NULL, FIELD_NO_CHANGE);
-    }
-    else if (raw_annot->requals(raw_annot, REGST_ANNOTATION_COMMAND)) {
-        annot = ANNOT_create_annotation(REGISTER_ANNOTATION, NULL, content->body->to_llong(content->body));
-    }
-    else {
-        annot = ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, FIELD_NO_CHANGE);
-    }
-
-    return annot;
+    ADD_ANNOTATION_HANDLER(SECTN_ANNOTATION_COMMAND, SECTION_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(ALIGN_ANNOTATION_COMMAND, ALIGN_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(ADDRS_ANNOTATION_COMMAND, ADDRESS_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(NAKED_ANNOTATION_COMMAND, NAKED_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(ENTRY_ANNOTATION_COMMAND, ENTRY_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(NOFAL_ANNOTATION_COMMAND, NOFALL_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(STRGH_ANNOTATION_COMMAND, STRAIGHT_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(COUNT_ANNOTATION_COMMAND, COUNTER_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(HOTSC_ANNOTATION_COMMAND, HOT_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(COLDS_ANNOTATION_COMMAND, COLD_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(REGST_ANNOTATION_COMMAND, REGISTER_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(SIZEV_ANNOTATION_COMMAND, SIZEOF_ANNOTATION);
+    return ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, FIELD_NO_CHANGE);
 }
+#undef ADD_ANNOTATION_HANDLER
 
 ast_node_t* cpl_parse_annot(PARSER_ARGS) {
     PARSER_ARGS_USE;
