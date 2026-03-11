@@ -64,12 +64,12 @@ loop {
 }
 ```
 
-It supports arrays and strings, but only as a primitive (without indexation):
+It supports arrays and strings, but only as a primitive:
 ```cpl
 str msg = "Hello!";
 arr a[10, i64];
 i32 msg_len = @[sizeof]msg;
-i32 a_len = @[sizeof]a / 8;
+i32 a_len = @[sizeof]a / @[sizeof]a[0];
 ```
 
 ### register

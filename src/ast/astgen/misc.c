@@ -1,6 +1,17 @@
 /* Misc file */
 #include <ast/astgen/astgen.h>
 
+int annotation_reserve(ast_ctx_t* ctx) {
+    int prev_off = ctx->an_off;
+    ctx->an_off = ctx->annots.top + 1;
+    return prev_off;
+}
+
+int annotation_unreserve(ast_ctx_t* ctx, int off) {
+    ctx->an_off = off;
+    return 1;
+}
+
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     var_lookup(node->siblings.n, ctx, smt);

@@ -238,10 +238,16 @@ literal        = integer_literal | float_literal | string_literal | char_literal
         ##__VA_ARGS__                                                                            \
     )
 
-#define DUMP_ANNOTATION_TO_NODE(ctx, nd)              \
-    annotation_t* annot;                              \
-    while (stack_pop(&ctx->annots, (void**)&annot)) { \
-        list_add(&nd->annots, annot);                 \
+/*
+Pop all avaliable annotations from the current stack and link them to a node.
+Params:
+    - `ctx` - AST context (ast_ctx_t).
+    - `nd` - AST node (ast_node_t).
+*/
+#define DUMP_ANNOTATION_TO_NODE(ctx, nd)                                                   \
+    annotation_t* annot;                                                                   \
+    while (ctx->annots.top > ctx->an_off - 1 && stack_pop(&ctx->annots, (void**)&annot)) { \
+        list_add(&nd->annots, annot);                                                      \
     }
 
 /*
@@ -255,9 +261,36 @@ Return 1 if succeed.
 */
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt);
 
-#define PARSER_ARGS list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, long carry
+/*
+Reserve current annotations for a node.
+Note: Will mark the lower level for annotation which can't be used further.
+Note 2: Make sure that you're calling the 'annotation_unreserve' somewhere below.
+Params:
+    - `ctx` - AST context.
+
+Returns the value for the 'annotation_unreserve' function.
+*/
+int annotation_reserve(ast_ctx_t* ctx);
+
+/*
+Reverse the 'annotation_reserve' effect. Will restore the lower level for annotations,
+able to dump.
+Params:
+    - `ctx` - AST context.
+
+Returns 1 if succeeds.
+*/
+int annotation_unreserve(ast_ctx_t* ctx, int off);
+
+#define PARSER_ARGS     list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, long carry
 #define PARSER_ARGS_USE (void)it; (void)ctx; (void)smt; (void)carry;
 
+/*
+Save the target pointer and update it with a new one.
+Params:
+    - `l` - Action that will be invoked with a new pointer.
+    - `n` - A new pointer.
+*/
 #define PRESERVE_AST_CARRY_ARG(l, n) \
     void* __dumped = ctx->carry.ptr; \
     ctx->carry.ptr = n;              \

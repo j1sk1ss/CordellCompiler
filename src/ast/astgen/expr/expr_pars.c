@@ -55,6 +55,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             case CONVERT_TOKEN:
             case OPEN_INDEX_TOKEN:
             case OPEN_BRACKET_TOKEN: {
+                int annot_off = annotation_reserve(ctx);
                 ast_node_t *target = NULL, *data = NULL;
                 switch (CURRENT_TOKEN->t_type) {
                     case CONVERT_TOKEN: {
@@ -94,6 +95,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     return NULL;
                 }
 
+                annotation_unreserve(ctx, annot_off);
                 break;
             }
             /* Default operators such as:
@@ -120,6 +122,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 }
 
                 forward_token(it, 1);
+                int annot_off = annotation_reserve(ctx);
                 ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp, na);
                 if (!right) {
                     PARSE_ERROR("Error during the right part parse!");
@@ -129,6 +132,8 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     return NULL;
                 }
 
+                annotation_unreserve(ctx, annot_off);
+                DUMP_ANNOTATION_TO_NODE(ctx, left);
                 AST_add_node(op_node, left);
                 AST_add_node(op_node, right);
                 left = op_node;
@@ -138,6 +143,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
     }
 
 _stop_expression_parsing: {}
+    DUMP_ANNOTATION_TO_NODE(ctx, left);
     return left;
 }
 
@@ -188,8 +194,6 @@ _primary_resolve_complete: {}
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-
-    DUMP_ANNOTATION_TO_NODE(ctx, node);
 
     /* Register a string in a string symbol table */
     if (node->t->t_type == STRING_VALUE_TOKEN) {

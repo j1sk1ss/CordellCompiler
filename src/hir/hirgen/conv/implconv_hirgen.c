@@ -6,8 +6,8 @@ hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_
         (
             src->ptr == ptr ||         /* Reference level the same */
             (
-                (src->ptr > 0 || HIR_get_type_size(src->t) == 8) && 
-                (ptr > 0 || HIR_get_type_size(t) == 8)
+                (src->ptr > 0 || HIR_get_type_size(src->t) == CONF_get_full_bytness()) && 
+                (ptr > 0 || HIR_get_type_size(t) == CONF_get_full_bytness())
             ) /* Or reference level says that there isn't necessary to convert */
         )
     ) return src;

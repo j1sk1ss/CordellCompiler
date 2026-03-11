@@ -149,10 +149,7 @@ int list_remove(list_t* l, void* data) {
 }
 
 int list_copy(list_t* src, list_t* dst) {
-    list_iter_t it;
-    list_iter_hinit(src, &it);
-    void* d;
-    while (list_iter_next(&it, (void**)&d)) {
+    foreach (void* d, src) {
         list_add(dst, d);
     }
 

@@ -14,12 +14,6 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
         }
         default: res = HIR_SUBJ_ASTVAR(node); break;
     }
-
-    HAS_ANNOTATION(SIZEOF_ANNOTATION, node, {
-        hir_subject_t* size = HIR_generate_sizeof(res, smt);
-        HIR_unload_subject(res);
-        res = size;
-    });
     
     return res;
 }

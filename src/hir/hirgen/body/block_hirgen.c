@@ -20,16 +20,21 @@ Returns generated value from the AST node or the 'NULL' value.
 */
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node || !node->t) return NULL;
+
+    int sizeof_annot = 0;
+    HAS_ANNOTATION(SIZEOF_ANNOTATION, node, { sizeof_annot = 1; ctx->is_hidden = 1; });
+    
+    hir_subject_t* res = NULL;
     switch (node->t->t_type) {
         case CALLING_TOKEN:
-        case CALL_TOKEN:            return HIR_generate_funccall(node, ctx, smt, 1);
-        case POPARG_TOKEN:          return HIR_generate_poparg(ctx, smt);
-        case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 1);
-        case CONVERT_TOKEN:         return HIR_generate_explconv(node, ctx, smt);
-        case NEGATIVE_TOKEN:        return HIR_generate_neg(node, ctx, smt);
-        case REF_TYPE_TOKEN:        return HIR_generate_ref(node, ctx, smt);
-        case DREF_TYPE_TOKEN:       return HIR_generate_dref(node, ctx, smt, NULL);
-        case INDEXATION_TOKEN:      return HIR_generate_load_indexation(node, ctx, smt);
+        case CALL_TOKEN:                  res = HIR_generate_funccall(node, ctx, smt, 1);     break;
+        case POPARG_TOKEN:                res = HIR_generate_poparg(ctx, smt);                break;
+        case SYSCALL_TOKEN:               res = HIR_generate_syscall(node, ctx, smt, 1);      break;
+        case CONVERT_TOKEN:               res = HIR_generate_explconv(node, ctx, smt);        break;
+        case NEGATIVE_TOKEN:              res = HIR_generate_neg(node, ctx, smt);             break;
+        case REF_TYPE_TOKEN:              res = HIR_generate_ref(node, ctx, smt);             break;
+        case DREF_TYPE_TOKEN:             res = HIR_generate_dref(node, ctx, smt, NULL);      break;
+        case INDEXATION_TOKEN:            res = HIR_generate_load_indexation(node, ctx, smt); break;
         /* We skip assign nodes above given the next logic, 
            where we generate the special load sequence */
         case CALL_ADDR_TOKEN:
@@ -48,13 +53,22 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case STR_VARIABLE_TOKEN:
         case STRING_VALUE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN:
-        case UNKNOWN_FLOAT_NUMERIC_TOKEN: return HIR_generate_load(node, ctx, smt);
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN: res = HIR_generate_load(node, ctx, smt);            break;
         default: break;
     }
 
-    if (TKN_update_operator(node->t)) return HIR_generate_update_block(node, ctx, smt, 1);
-    else if (TKN_isoperand(node->t))  return HIR_generate_operand(node, ctx, smt);
-    return NULL;
+    if (TKN_update_operator(node->t)) res = HIR_generate_update_block(node, ctx, smt, 1);
+    else if (TKN_isoperand(node->t))  res = HIR_generate_operand(node, ctx, smt);
+
+    /* If it is hidden, it means, we're gonna extract the size of the result. */
+    if (sizeof_annot) {
+        hir_subject_t* size = HIR_generate_sizeof(res, smt);
+        HIR_BLOCK1(ctx, HIR_VRUSE, res);
+        res = size;
+        ctx->is_hidden = 0;
+    }
+
+    return res;
 }
 
 hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {

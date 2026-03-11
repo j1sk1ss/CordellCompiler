@@ -1,6 +1,7 @@
 #ifndef TOKEN_TYPES_H_
 #define TOKEN_TYPES_H_
 
+#include <config.h>
 #include <std/str.h>
 
 typedef enum {

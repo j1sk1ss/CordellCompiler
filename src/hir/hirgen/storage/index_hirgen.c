@@ -1,5 +1,39 @@
 #include <hir/hirgens/hirgens.h>
 
+/*
+Extract the final element size from the pointed data.
+Params:
+    - `base` - The subject which represents an array or a pointer.
+    - `smt` - Symtable.
+
+Returns the element size of the pointed data in bytes.
+*/
+static int _get_pointed_element_size(hir_subject_t* base, sym_table_t* smt) {
+    array_info_t ai;
+    int el_size = (base->ptr - 1) > 0 ? CONF_get_full_bytness() : HIR_get_type_size(base->t);
+    if (
+        HIR_is_arrtype(base->t) &&
+        ARTB_get_info(base->storage.var.v_id, &ai, &smt->a) && 
+        !ai.vla
+    ) {
+        token_t tmp = { .t_type = ai.elements_info.el_type };
+        el_size = ai.elements_info.el_flags.ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 0));
+    }
+
+    return el_size;
+}
+
+/*
+Setup all essential instructions and return a head to the input data.
+Params:
+    - `base` - The target data for indexation.
+    - `offt` - The index in the data.
+    - `smt` - Symtable.
+    - `indexed_type` - Output final dereferenced type (The type of the element).
+
+Returns the subject which represents a pointer to a head of the data 
+(In correct reference level and type).
+*/
 static hir_subject_t* _get_final_head(
     hir_subject_t* base, hir_subject_t* offt, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_type_t* indexed_type
 ) {
@@ -8,7 +42,6 @@ static hir_subject_t* _get_final_head(
 
     array_info_t ai;
     *indexed_type = base->t;
-    int el_size = (base->ptr - 1) > 0 ? CONF_get_full_bytness() : HIR_get_type_size(*indexed_type);
     if (
         HIR_is_arrtype(base->t) &&                              /* If this is an array type                    */
         ARTB_get_info(base->storage.var.v_id, &ai, &smt->a) &&  /* and it is registered in smt as an array     */
@@ -21,7 +54,6 @@ static hir_subject_t* _get_final_head(
         
         token_t tmp = { .t_type = ai.elements_info.el_type };
         *indexed_type = HIR_get_tmptype_tkn(&tmp, 0);
-        el_size = ai.elements_info.el_flags.ptr ? CONF_get_full_bytness() : HIR_get_type_size(*indexed_type);
     }
 
     HIR_BLOCK2(ctx, base_op, head, base);
@@ -31,7 +63,7 @@ static hir_subject_t* _get_final_head(
     hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(offt->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(offt->t), 0, NULL, &smt->v));
     HIR_BLOCK3(
         ctx, HIR_iMUL, real_offset, offt, 
-        HIR_generate_implconv(ctx, offt->ptr, offt->t, HIR_SUBJ_CONST(el_size), smt)
+        HIR_generate_implconv(ctx, offt->ptr, offt->t, HIR_SUBJ_CONST(_get_pointed_element_size(base, smt)), smt)
     );
 
     /* No we move the address (base) by the offser (addr):
@@ -49,7 +81,7 @@ hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sy
     hir_subject_type_t indexed_type;
     hir_subject_t* final_head = _get_final_head(base, offt, ctx, smt, &indexed_type);
     
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(indexed_type), 0, NULL, &smt->v));;
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(indexed_type), 0, NULL, &smt->v));
     res->ptr = MAX(final_head->ptr - 1, 0);
     
     HIR_BLOCK2(ctx, HIR_GDREF, res, final_head);

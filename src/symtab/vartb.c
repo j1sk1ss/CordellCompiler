@@ -66,7 +66,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
 
     var->vmi.reg    = -1;
     var->vmi.offset = -1;
-    var->vmi.align  = 8;
+    var->vmi.align  = CONF_get_full_bytness();
 
     var->p_id = NO_SYMBOL_ID;
     var->type = type;

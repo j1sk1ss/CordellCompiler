@@ -267,14 +267,27 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     return blk;
 }
 
-static inline hir_subject_t* _copy_label(hir_subject_t* s, int copy_label) {
+/*
+Safe copy with optional label preservation.
+Label copy means a entirely new link, that's why in some cases we need to save the
+original label.
+Params:
+    - `s` - Subject to copy.
+    - `copy_label` - If this is 1 - it will copy label subject.
+
+Returns a copy of the subject.
+*/
+static inline hir_subject_t* _safe_copy(hir_subject_t* s, int copy_label) {
     if (!s || (!copy_label && s->t == HIR_LABEL)) return s;
     return HIR_copy_subject(s);
 }
 
 hir_block_t* HIR_copy_block(hir_block_t* b, int copy_labels) {
     return HIR_create_block(
-        b->op, _copy_label(b->farg, copy_labels), _copy_label(b->sarg, copy_labels), _copy_label(b->targ, copy_labels)
+        b->op, 
+        _safe_copy(b->farg, copy_labels), 
+        _safe_copy(b->sarg, copy_labels), 
+        _safe_copy(b->targ, copy_labels)
     );
 }
 
@@ -297,6 +310,7 @@ int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos) {
 }
 
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
+    if (ctx->is_hidden) block->unused = 1;
     if (ctx->cold.is_sup && ctx->is_cold) {
         list_add(&ctx->cold.blocks, block);
         return 1;
@@ -305,7 +319,7 @@ int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
     if (!ctx || !block) return 0;
     if (!ctx->hot.h) ctx->hot.h = ctx->hot.t = block;
     else {
-        block->prev  = ctx->hot.t;
+        block->prev      = ctx->hot.t;
         ctx->hot.t->next = block;
         ctx->hot.t       = block;
     }

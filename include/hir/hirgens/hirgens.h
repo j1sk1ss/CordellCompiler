@@ -422,7 +422,14 @@ Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
-// TODO
+/*
+Will generate a CONST subject that represents the size of the input subject.
+Params:
+    - `s` - The target subject.
+    - `smt` - Symtable.
+
+Returns a Constant subject, which represents the size of the subject.
+*/
 hir_subject_t* HIR_generate_sizeof(hir_subject_t* s, sym_table_t* smt);
 
 #endif
