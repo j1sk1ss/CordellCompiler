@@ -1,0 +1,60 @@
+{
+    #include "print_h.cpl"
+
+    start(i64 argc, ptr u64 argv) {
+        str msg = "Hello world!";
+        print(ref msg);
+        exit 0;
+    }
+}
+
+: OUTPUT
+line=1, type={X}, data=[{],
+line=3, type={X}, data=[{X}],
+line=3, type={X}, data=[{X}],
+line=3, type={X}, data=[function],
+line=3, type={X}, data=[strlen],
+line=3, type={X}, data=[(],
+line=3, type={X}, data=[i8], ptr
+line=3, type={X}, data=[s], ptr
+line=3, type={X}, data=[)],
+line=3, type={X}, data=[->],
+line=3, type={X}, data=[i64],
+line=3, type={X}, data=[;],
+line=7, type={X}, data=[{X}],
+line=7, type={X}, data=[function],
+line=7, type={X}, data=[print],
+line=7, type={X}, data=[(],
+line=7, type={X}, data=[str], ptr
+line=7, type={X}, data=[msg], ptr
+line=7, type={X}, data=[)],
+line=7, type={X}, data=[->],
+line=7, type={X}, data=[i0],
+line=7, type={X}, data=[;],
+line=11, type={X}, data=[{X}],
+line=4, type={X}, data=[start],
+line=4, type={X}, data=[(],
+line=4, type={X}, data=[i64],
+line=4, type={X}, data=[argc],
+line=4, type={X}, data=[,],
+line=4, type={X}, data=[u64], ptr
+line=4, type={X}, data=[argv], ptr
+line=4, type={X}, data=[)],
+line=4, type={X}, data=[{],
+line=5, type={X}, data=[str],
+line=5, type={X}, data=[msg],
+line=5, type={X}, data=[=],
+line=5, type={X}, data=[Hello world!],
+line=5, type={X}, data=[;],
+line=6, type={X}, data=[print],
+line=6, type={X}, data=[(],
+line=6, type={X}, data=[ref],
+line=6, type={X}, data=[msg],
+line=6, type={X}, data=[)],
+line=6, type={X}, data=[;],
+line=7, type={X}, data=[exit],
+line=7, type={X}, data=[0],
+line=7, type={X}, data=[;],
+line=8, type={X}, data=[}],
+line=9, type={X}, data=[}],
+:

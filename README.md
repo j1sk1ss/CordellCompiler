@@ -61,7 +61,7 @@ This `README` file contains the main information about this compiler and the dev
    - [Example of generated code](#example-of-generated-code)
 
 ## Project structure
-- `examples/` - CordellLanguage code examples.
+- `examples/` - CPL code examples.
 - `include/` - Include headers of this compiler and standart libs.
 - `src/` - Source files of this compiler.
 - `std/` - Standart libs that are used in this compiler.
@@ -71,12 +71,12 @@ This `README` file contains the main information about this compiler and the dev
 - `Makefile` - Main build script.
 
 ## Introduction
-This compiler isn't about a complex syntax and abstractions (It doesn't even support structures `yet`). Mainly I'm trying to implement modern approuches of code optimization and observe how an input code can be transformed to `better-performance` version of itself. This `README` is a description what I did. </br> 
-Moreover I chose to take on an extra challenge — creating a programming language over supporting an existing one. This language has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and small documentation. It won't be difficult given it's lack of complex structures such as `foreach` loops, `for` loops, `structures`, etc. </br>
-While explaining each layer of the compiler, I will also provide direct examples written in this language.
+This compiler isn't about a complex syntax and abstractions (It doesn't even support structures). Mainly I'm trying to implement modern approuches of code optimization and observe how an input code can be transformed to `better-performance` version of itself. This `README` is a description what I've done to this moment. </br> 
+Moreover I chose to take on an extra challenge — creating a programming language over supporting an existing one. This language has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and small [documentation](j1sk1ss.github.io/CordellCompiler/). </br>
+While explaining each layer of the compiler, I will also provide direct examples written in this language (Its gramma almost identical to C language, which means it won't cause any problems).
 
 ## EBNF
-Aforementioned language is called `Cordell Programming Language`. It's syntax mainly based on C language, but some keywords (such as `f64`, `f32`, `u64`, etc) [[?]](https://doc.rust-lang.org/book/ch03-02-data-types.html) came from Rust language, and some keywords (`ptr`) [[?]](https://teaching.idallen.com/dat2343/01f/notes/reserved_words.htm) came from Assembly. Below you can see an `EBNF` of this language.
+`Cordell Programming Language` has a syntax, that is mainly based on C language, but some keywords (such as `f64`, `f32`, `u64`, `loop`, etc.) [[?]](https://doc.rust-lang.org/book/ch03-02-data-types.html) came from Rust language, and some (`ptr`) [[?]](https://teaching.idallen.com/dat2343/01f/notes/reserved_words.htm) came from Assembly language. Below you can expand and see the `EBNF` of this language.
 <details>
 <summary><strong>EBNF grammar</strong></summary>
 
@@ -84,36 +84,29 @@ Aforementioned language is called `Cordell Programming Language`. It's syntax ma
 </details>
 
 ## Sample code snippet
-The code below demonstrates the main capabilities of the `CPL` language, excluding already supported features such as `while` loops, `syscalls` and `strings` (we will talk about them later). </br>
-Here we are implement the simple `strlen` function and test it on a string.
+The collapsed code below demonstrates the main capabilities of `CPL` language, excluding already supported features such as `while` loops, `syscalls` and `strings` (we will talk how they work later).
 
 <details>
 <summary><strong>Basic CPL code snippet</strong></summary>
 
 ```cpl
 {
-    function strlen(ptr i8 s) -> i64 {
-        i64 l = 0;
-        while dref s; {
-            s += 1;
-            l += 1;
-        }
-
-        return l;
-    }
+    #include "print_h.cpl"
 
     start(i64 argc, ptr u64 argv) {
         str msg = "Hello world!";
-        syscall(0x2000004, 1, ref msg, strlen(ref msg));
+        print(ref msg);
         exit 0;
     }
 }
 ```
 </details>
 
+Exactly the code above will be used as an example for all blocks in this README below, that's why I strongly suggest to expand and consider the content.
+
 ## PP part
-This compiler has to parse not only a code, but also derictives. Derictives such as `include`, `define`, `undef`, `ifdef` and `ifndef` are supported by the preprocessor. These commands act similar to C/C++ derictives, except `define` that isn't able to work as a function. </br>
-For instance:
+Before the start, we need to know, that we have not only a code for the compiler, but a code for a pre-procesor as well. This means that we need to process some derictives before the main compilation pipeline, and we can do this with the pre-processor. This compiler has the in-built pre-processor (similar to GCC with the `gcc -E`), and it supports derictives such as `include`, `define`, `undef`, `ifdef` and `ifndef`. These commands act the same as it do derictives from C/C++, except `define` that isn't able to work as a function (yet). </br>
+Let's return to the snippet above and include all header files into the final code (GCC -E does the same thing before pre-processing - creates the united file with the all code):
 ```cpl
 : string_h.cpl :
 {
@@ -147,26 +140,23 @@ For instance:
 {
     #include "print_h.cpl"
     start(i64 argc, ptr u64 argv) {
-        print("Hello world!\n");
+        str msg = "Hello world!";
+        print(ref msg);
         exit 0;
     }
 }
 ```
 
-Will be converted into the code below:
+Now we need to delete all comments, resolve includes, defines and conditions. We can do this task with usage of special table of derictive values (something like a symtable, but without any complex structure, just a derictive name and its linked content). The condition just checks if the table has a definition for the name, it if it does, invoke the logic. </br>
+In a nutshell, there is how the code above will look like after all preparations:
 ```cpl
 {
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
-
     function strlen(ptr i8 s) -> i64;
-
 #line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-
     function print(ptr str msg) -> i0;
-
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/basic.cpl"
-
     start(i64 argc, ptr u64 argv) {
         print("Hello world!\n");
         exit 0;
@@ -174,91 +164,21 @@ Will be converted into the code below:
 }
 ```
 
+You can find a new directive `line` which simply marks blocks for the further tokenization process (We need to know where part is came from).
+
 ## Tokenization part
-The tokenization part is responsible for splitting the input byte sequence (the result of the `fread` operation) into basic tokens. This module ignores all whitespace and separator symbols (such as `newlines` and `tabs`). It also classifies each token into one of the basic types: `number`, `string`, `delimiter`, `comma`, or `dot`.
+The tokenization part is responsible for splitting the input byte sequence (the result of the `fread` operation) into basic tokens. This module ignores all whitespace and separator symbols (such as `newlines` and `tabs`). It also classifies each token into one of the basic types: `number`, `string`, `delimiter`, `comma`, `dot` and `line_derictive`. </br>
+In a nutshell - this is a DFA which no only splits input code by spaces or commas, but unites characters with the set of rules:
+- If we met an unknown character and the current token is a numeric - we propagate the character to a number.
+- If we met an unknown numeric character and the current token is a sign - we propagate token to a number with a sign.
+- If we met an unknown numeric token and the current token is a string - we propagate the number to a string.
+- If we met a string character and the current token is a number - we propagate the string to a number.
 
 <p align="center">
   <img src="docs/media/tokenization.png">
   <br>
   <em>Figure 1 — Basic token generation</em>
 </p>
-
-Code from the [Sample code snippet](#sample-code-snippet) section will produce the next list of tokens:
-<details>
-<summary><strong>List of tokens</strong></summary>
-
-```
-line=1, type=1, data=[{], 
-line=1, type=2, data=[function], 
-line=1, type=2, data=[strlen], 
-line=1, type=1, data=[(], 
-line=1, type=2, data=[ptr], 
-line=1, type=2, data=[i8], 
-line=1, type=2, data=[s], 
-line=1, type=1, data=[)], 
-line=1, type=0, data=[->], 
-line=1, type=2, data=[i64], 
-line=2, type=1, data=[{], 
-line=2, type=2, data=[i64], 
-line=2, type=2, data=[l], 
-line=2, type=0, data=[=], 
-glob line=2, type=3, data=[0], 
-line=3, type=6, data=[;], 
-line=3, type=2, data=[while], 
-line=3, type=2, data=[dref], 
-line=3, type=2, data=[s], 
-line=3, type=6, data=[;], 
-line=4, type=1, data=[{], 
-line=4, type=2, data=[s], 
-line=4, type=0, data=[+=], 
-glob line=4, type=3, data=[1], 
-line=5, type=6, data=[;], 
-line=5, type=2, data=[l], 
-line=5, type=0, data=[+=], 
-glob line=5, type=3, data=[1], 
-line=6, type=6, data=[;], 
-line=7, type=1, data=[}], 
-line=8, type=2, data=[return], 
-line=8, type=2, data=[l], 
-line=9, type=6, data=[;], 
-line=10, type=1, data=[}], 
-line=11, type=2, data=[start], 
-line=11, type=1, data=[(], 
-line=11, type=2, data=[i64], 
-line=11, type=2, data=[argc], 
-line=11, type=7, data=[,], 
-line=11, type=2, data=[ptr], 
-line=11, type=2, data=[u64], 
-line=11, type=2, data=[argv], 
-line=11, type=1, data=[)], 
-line=12, type=1, data=[{], 
-line=12, type=2, data=[str], 
-line=12, type=2, data=[msg], 
-line=12, type=0, data=[=], 
-glob line=12, type=99, data=[Hello world!], 
-line=13, type=6, data=[;], 
-line=13, type=2, data=[syscall], 
-line=13, type=1, data=[(], 
-glob line=13, type=3, data=[0], 
-line=13, type=7, data=[,], 
-glob line=13, type=3, data=[1], 
-line=13, type=7, data=[,], 
-line=13, type=2, data=[ref], 
-line=13, type=2, data=[msg], 
-line=13, type=7, data=[,], 
-line=13, type=2, data=[strlen], 
-line=13, type=1, data=[(], 
-line=13, type=2, data=[ref], 
-line=13, type=2, data=[msg], 
-line=13, type=1, data=[)], 
-line=13, type=1, data=[)], 
-line=14, type=6, data=[;], 
-line=14, type=2, data=[exit], 
-glob line=14, type=3, data=[0], 
-line=15, type=6, data=[;], 
-line=16, type=1, data=[}]
-```
-</details>
 
 ## Markup part
 The markup stage is the second part of tokenization. Usually compilers don't distinguish `tokenizator` and `markuper`, but this compiler does. Markup stage operates only on the list of tokens from `tokenizator` including `scopes` support. </br>
@@ -270,75 +190,59 @@ The main idea is to perform basic semantic markup of variables. For instance, if
   <em>Figure 2 — Token markup</em>
 </p>
 
-List of tokens from the [Tokenization part](#tokenization-part) section will produce the next list of tokens:
+Code from the [Sample code snippet](#sample-code-snippet) section will produce the next list of marked tokens:
 <details>
-<summary><strong>List of markuped tokens</strong></summary>
+<summary><strong>List of tokens</strong></summary>
 
 ```
-line=1, type=12, data=[{], 
-line=1, type=55, data=[function], 
-line=1, type=56, data=[strlen], 
-line=1, type=10, data=[(], 
-line=1, type=37, data=[i8], ptr 
-line=1, type=92, data=[s], ptr 
-line=1, type=11, data=[)], 
-line=1, type=50, data=[->], 
-line=1, type=34, data=[i64], 
-line=2, type=12, data=[{], 
-line=2, type=34, data=[i64], 
-line=2, type=89, data=[l], 
-line=2, type=73, data=[=], 
-glob line=2, type=3, data=[0], 
-line=3, type=6, data=[;], 
-line=3, type=61, data=[while], 
-line=3, type=92, data=[s], ptr dref 
-line=3, type=6, data=[;], 
-line=4, type=12, data=[{], 
-line=4, type=92, data=[s], ptr 
-line=4, type=69, data=[+=], 
-glob line=4, type=3, data=[1], 
-line=5, type=6, data=[;], 
-line=5, type=89, data=[l], 
-line=5, type=69, data=[+=], 
-glob line=5, type=3, data=[1], 
-line=6, type=6, data=[;], 
-line=7, type=13, data=[}], 
-line=8, type=48, data=[return], 
-line=8, type=89, data=[l], 
-line=9, type=6, data=[;], 
-line=10, type=13, data=[}], 
-line=11, type=47, data=[start], 
-line=11, type=10, data=[(], 
-line=11, type=34, data=[i64], 
-line=11, type=89, data=[argc], 
-line=11, type=7, data=[,], 
-line=11, type=38, data=[u64], ptr 
-line=11, type=93, data=[argv], ptr 
-line=11, type=11, data=[)], 
-line=12, type=12, data=[{], 
-line=12, type=42, data=[str], 
-line=12, type=97, data=[msg], 
-line=12, type=73, data=[=], 
-glob line=12, type=99, data=[Hello world!], 
-line=13, type=6, data=[;], 
-line=13, type=53, data=[syscall], 
-line=13, type=10, data=[(], 
-glob line=13, type=3, data=[0], 
-line=13, type=7, data=[,], 
-glob line=13, type=3, data=[1], 
-line=13, type=7, data=[,], 
-line=13, type=97, data=[msg], ref 
-line=13, type=7, data=[,], 
-line=13, type=57, data=[strlen], 
-line=13, type=10, data=[(], 
-line=13, type=97, data=[msg], ref 
-line=13, type=11, data=[)], 
-line=13, type=11, data=[)], 
-line=14, type=6, data=[;], 
-line=14, type=49, data=[exit], 
-glob line=14, type=3, data=[0], 
-line=15, type=6, data=[;], 
-line=16, type=13, data=[}]
+line=1, type=17, data=[{],
+line=3, type=1, data=[code_utesting/prep/print_h.cpl],
+line=3, type=1, data=[/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/code_utesting/prep/string_h.cpl],
+line=3, type=65, data=[function],
+line=3, type=66, data=[strlen],
+line=3, type=15, data=[(],
+line=3, type=44, data=[i8], ptr
+line=3, type=108, data=[s], ptr
+line=3, type=16, data=[)],
+line=3, type=58, data=[->],
+line=3, type=41, data=[i64],
+line=3, type=9, data=[;],
+line=7, type=1, data=[code_utesting/prep/print_h.cpl],
+line=7, type=65, data=[function],
+line=7, type=66, data=[print],
+line=7, type=15, data=[(],
+line=7, type=49, data=[str], ptr
+line=7, type=108, data=[msg], ptr
+line=7, type=16, data=[)],
+line=7, type=58, data=[->],
+line=7, type=38, data=[i0],
+line=7, type=9, data=[;],
+line=11, type=1, data=[/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmpmx4fkhq_.cpl],
+line=4, type=55, data=[start],
+line=4, type=15, data=[(],
+line=4, type=41, data=[i64],
+line=4, type=108, data=[argc],
+line=4, type=10, data=[,],
+line=4, type=45, data=[u64], ptr
+line=4, type=108, data=[argv], ptr
+line=4, type=16, data=[)],
+line=4, type=17, data=[{],
+line=5, type=49, data=[str],
+line=5, type=108, data=[msg],
+line=5, type=94, data=[=],
+line=5, type=122, data=[Hello world!],
+line=5, type=9, data=[;],
+line=6, type=67, data=[print],
+line=6, type=15, data=[(],
+line=6, type=20, data=[ref],
+line=6, type=108, data=[msg],
+line=6, type=16, data=[)],
+line=6, type=9, data=[;],
+line=7, type=57, data=[exit],
+line=7, type=5, data=[0],
+line=7, type=9, data=[;],
+line=8, type=18, data=[}],
+line=9, type=18, data=[}],
 ```
 </details>
 
