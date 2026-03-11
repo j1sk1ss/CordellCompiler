@@ -138,16 +138,6 @@ Return parsed from AST HIR subject.
 hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
 /*
-Convert import AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-
-Return 1 if succeeds. Otherwise will return 0.
-*/
-int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx);
-
-/*
 Convert a breakpoint AST node into a HIR element. 
 Params:
     - `node` - AST node.

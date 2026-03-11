@@ -1,7 +1,5 @@
 {
-    section(".bss") {
-        start() {
-        }
+    @[section(".bss")] start() {
     }
 }
 

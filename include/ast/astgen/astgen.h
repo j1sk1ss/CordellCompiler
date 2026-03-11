@@ -13,11 +13,9 @@ top_item       = start_function
                | import_op
                | extern_op
                | pp_directive
-               | storage_opt , top_decl
-               | section_stmt
-               | align_stmt ;
+               | storage_opt , top_decl ;
 
-import_op      = "from" , string_literal , "import" , [ import_list ] ;
+import_op      = "from" , string_literal , , [ import_list ] ;
 import_list    = import_item , { "," , import_item } ;
 import_item    = identifier ;
 
@@ -30,14 +28,6 @@ storage_opt    = [ "glob" | "ro" ] ;
 top_decl       = declaration | function_def | function_proto ;
 
 declaration    = var_decl | arr_decl ;
-
-section_stmt   = "section" , "(" , string_literal , ")" , "{" , { section_item } , "}" ;
-section_item   = [ storage_opt ] , ( declaration | function_def | function_proto )
-               | align_stmt
-               | pp_directive ;
-
-align_stmt       = "align" , "(" , integer_literal , ")" , ( declaration | align_decl_block ) ;
-align_decl_block = "{" , { declaration } , "}" ;
 
 function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
 function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
@@ -99,7 +89,7 @@ pp_token       = identifier
                | punct_no_semi
                | operator ;
 
-keyword        = "from" | "import" | "extern" | "exfunc" | "glob" | "ro"
+keyword        = "extern" | "exfunc" | "glob" | "ro"
                | "function" | "start"
                | "arr"
                | "if" | "else" | "loop" | "while"
@@ -567,22 +557,6 @@ Returns an ast node.
 ast_node_t* cpl_parse_function(PARSER_ARGS);
 
 /*
-Parse .cpl import block. Should be invoked on import token.
-Snippet:
-```cpl
-from : file : import : name :;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_import(PARSER_ARGS);
-
-/*
 Parse .cpl expression block (function, arithmetics, etc.). Can be invoked on any token type.
 Snippet:
 ```cpl
@@ -774,28 +748,6 @@ Params:
 Returns an ast node.
 */
 ast_node_t* cpl_parse_poparg(PARSER_ARGS);
-
-/*
-Parse align operator. It supports both with and without scope syntaxes.
-Also, the scope doesn't increase the iternal scope ID, which means,
-all variables that were declared within this structure will live in
-the same scope.
-Params:
-    - <parser_args>
-
-Returns an AST node.
-*/
-ast_node_t* cpl_parse_align(PARSER_ARGS);
-
-/*
-Parse section operator. It supports both with and without scope syntaxes.
-The same logic with the align keyword.
-Params:
-    - <parser_args>
-
-Returns an AST node.
-*/
-ast_node_t* cpl_parse_section(PARSER_ARGS);
 
 /*
 Parse an annotation and push it onto the stack.

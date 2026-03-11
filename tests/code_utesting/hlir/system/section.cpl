@@ -1,11 +1,9 @@
 {
-    section(".text") {
-        function foo() {
-            i32 a = 1;
-            return a;
-        }
+    @[section(".text")] function foo() {
+        i32 a = 1;
+        return a;
     }
-
+ 
     start() {
         exit foo();
     }

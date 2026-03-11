@@ -30,6 +30,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Remove section, align and import keywords
+Section and align was fully dublicated with annotations which is more convenientm and the import is't fits to a language's design (Headers fit better). 
+
 ## sizeof
 With the `sizeof` annotation now it is possible to support the next code:
 ```cpl

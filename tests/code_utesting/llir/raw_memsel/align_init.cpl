@@ -1,7 +1,7 @@
 {
     start() {
         i32 a = 1;
-        align(64) i32 b = 1;
+        @[align(64)] i32 b = 1;
     }
 }
 

@@ -1,16 +1,10 @@
 {
-    section(".text") {
-        function foo() {
-        }
-        function baz() {
-        }
+    @[section(".text")] function foo() {
     }
-
-    section(".bss") {
-        function bar() {
-        }
+    @[section(".text")] function baz() {
     }
-
+    @[section(".bss")] function bar() {
+    }
     start() {
     }
 }

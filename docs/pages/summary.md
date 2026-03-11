@@ -14,7 +14,7 @@ Basicly, there is nothing new was invented. This language mostly based on C lang
 - **Optimization**: input code can be optimized by techniques such as constant propagation and folding, linear invariant code motion, peephole optimization, function inline, tail recursion elimination, cold and hot branches.
 - **Function overloading**: compiler supports the function overloading.
 - **Default-args**: compiler supports default values in function arguments.
-- **Headers-Modules**: cpl supports headers as it do C/++ languages and module system as it do Go/Python etc.
+- **Headers**: cpl supports headers as it do C/++ languages.
 - **Strings**: lagnuage supports and distinguishs strings from raw pointers.
 - **Local functions**: functions can define local function as it can do functions in Rust.
 - **Annotations**: language supports annotations as a solution for the restricted language's gramma.

@@ -9,7 +9,6 @@ typedef struct {
 static const markup_token_t _lexems[] = {
     /* Special single place tokens. */
     LEXEM(IMPORT_SELECT_COMMAND,  IMPORT_SELECT_TOKEN),
-    LEXEM(IMPORT_COMMAND,         IMPORT_TOKEN),
     LEXEM(EXTERN_COMMAND,         EXTERN_TOKEN),
     LEXEM(START_COMMAND,          START_TOKEN),
     LEXEM(EXIT_COMMAND,           EXIT_TOKEN),
@@ -31,8 +30,6 @@ static const markup_token_t _lexems[] = {
     LEXEM(SYSCALL_COMMAND,        SYSCALL_TOKEN),
     LEXEM(ASM_COMMAND,            ASM_TOKEN),
     LEXEM(VAR_ARGUMENTS_COMMAND,  VAR_ARGUMENTS_TOKEN),
-    LEXEM(SECTION_COMMAND,        SECTION_TOKEN),
-    LEXEM(ALIGN_COMMAND,          ALIGN_TOKEN),
 
     /* Variable modifiers */
     LEXEM(DREF_COMMAND,           DREF_TYPE_TOKEN),
@@ -223,54 +220,13 @@ int MRKP_variables(list_t* tkn) {
     sstack_t scope_stack;
     stack_init(&scope_stack);
 
-    int ignore_scopes = 0;
     list_iter_t it;
     list_iter_hinit(tkn, &it);
     token_t* curr;
     while (list_iter_next(&it, (void**)&curr)) {
         switch (curr->t_type) {
-            /* Scope logic.
-               Some scope generators (such as the Align, Section and Asm keywords) don't
-               create a new scope. That's why we need to ignore their scopes somehow. */
-            case ASM_TOKEN:
-            case ALIGN_TOKEN:
-            case SECTION_TOKEN: {
-                token_t* tcurr = NULL;
-                list_iter_next(&it, (void**)&tcurr);
-                list_node_t* plist = it.curr;
-                while (tcurr && tcurr->t_type != CLOSE_BRACKET_TOKEN) list_iter_next(&it, (void**)&tcurr);
-
-                list_iter_next(&it, (void**)&tcurr);
-                if (tcurr->t_type == OPEN_BLOCK_TOKEN) ignore_scopes = 3;
-                it.curr = plist;
-                break;
-            }
-
-            case OPEN_BLOCK_TOKEN: {
-                if (ignore_scopes != 0 && --ignore_scopes != 0) break; 
-                stack_push(&scope_stack, (void*)((long)++s_id));
-                break;
-            }
-            case CLOSE_BLOCK_TOKEN: {
-                if (ignore_scopes != 0 && --ignore_scopes != 0) break;
-                stack_pop(&scope_stack, NULL);
-                break;
-            }
-
-            case IMPORT_TOKEN: {
-                list_iter_next(&it, (void**)&curr);
-                while (curr && curr->t_type != DELIMITER_TOKEN) {
-                    long import_scope;
-                    stack_top(&scope_stack, (void**)&import_scope);
-                    if (curr->t_type != COMMA_TOKEN) {
-                        _add_variable(&vars, curr->body, import_scope, CALL_TOKEN, &curr->flags);
-                    }
-                    
-                    list_iter_next(&it, (void**)&curr);
-                }
-                
-                break;
-            }
+            case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
+            case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
 
             case FUNC_TOKEN:
             case EXFUNC_TOKEN:

@@ -1,12 +1,11 @@
 {
-    section(".bss") {
-        @[entry]
-        function foo() {
-            function bar() {
+    @[entry]
+    @[section(".bss")] 
+    function foo() {
+        function bar() {
 
-            }
-            bar();
         }
+        bar();
     }
 }
 

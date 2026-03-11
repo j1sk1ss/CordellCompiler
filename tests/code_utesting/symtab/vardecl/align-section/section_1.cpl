@@ -1,7 +1,5 @@
 {
-    section(".bss") {
-        glob i32 a;
-    }
+    @[section(".bss")] glob i32 a;
     glob i32 b;
 }
 

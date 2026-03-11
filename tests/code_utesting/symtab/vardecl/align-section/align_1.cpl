@@ -1,6 +1,6 @@
 {
-    align(8) glob i32 a;
-    align(16) glob i32 b;
+    @[align(8)] glob i32 a;
+    @[align(16)] glob i32 b;
     glob i32 c;
 }
 

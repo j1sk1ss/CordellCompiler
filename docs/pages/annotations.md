@@ -21,30 +21,6 @@ function main() -> i0;
 @[section(".bss")] glob i32 b;
 ```
 
-As you can see, these annotations copy all functionality of the 'align' and 'section' keywords. Actually, it doesn't mean that these keywords now redundant. They still is a pretty convenient way of block code. For example these code:
-```cpl
-section (".bss") {
-    align (16) {
-        glob i32 a;
-        glob i32 b;
-        glob i32 c;
-    }
-    function foo();
-    function bar();
-}
-``` 
-
-can be reproduced with annotations:
-```cpl
-@[section(".bss")] @[align(16)] glob i32 a;
-@[section(".bss")] @[align(16)] glob i32 b;
-@[section(".bss")] @[align(16)] glob i32 c;
-@[section(".bss")] function foo();
-@[section(".bss")] function bar();
-```
-
-, but obviously, now it doesn't look too clean.
-
 ## Some words about annotations
 *P.S. If you're not a system programmer, or you don't plan to use these annotations, you can safely skip this block. These annotations (as all annotations) are optional.* </br>
 

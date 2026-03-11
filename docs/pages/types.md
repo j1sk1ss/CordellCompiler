@@ -90,20 +90,16 @@ i32 a = Array_2d[0][0]; : = 0 :
 ```
 
 ## Align
-A declaration of a primitive or of an array type (an array or a string) can be annotated with the `align` keyword. This keyword will add an additional padding during memory stack allocation.
+A declaration of a primitive or of an array type (an array or a string) can be annotated with the `align`. This annotation will add an additional padding during memory stack allocation.
 ```cpl
-align(16) glob i32 a;
+@[align(16)] glob i32 a;
 start() {
-    align(8) {
-        i32 b;
-        i32 c = a;
-    }
+    @[align(8)] i32 b;
+    @[align(8)] i32 c = a;
 }
 ```
 
-By default align set to platform `bitness / 8` (For instance on the `gnu_x86_64` this is 8 bytes). </br>
-The `align` keyword can be used as a modifier and as a 'scope' block. The both approaches don't change the scope of declared variables. </br>
-P.S.: *The same result can be obtained with annotation usage. We will cover this below.*
+By default align set to platform `bitness / 8` (For instance on the `gnu_x86_64` this is 8 bytes).
 
 ## Pointers
 - `ptr` - Pointer modifier that can be add to every primitive (and `str`, `arr`) type.
@@ -191,12 +187,10 @@ a(100 + 123); : <- Valid function call that will invoke any function (or not) at
 ```
 
 ## Section
-A function and a global declaration can be placed in a specific section. To perform this, you will need to use the `section` keyword:
+A function and a global declaration can be placed in a specific section. To perform this, you will need to use the `section` annotation:
 ```cpl
-section(".text") {
-    glob i32 a;
-    function foo() {}
-}
+    @[section(".lis")] glob i32 a;
+    @[section(".lis")] function foo() {}
 ```
 
 **Note 1:** Function prototype doesn't affected by a section. To put the function's code to a section, you need to define the function. </br>

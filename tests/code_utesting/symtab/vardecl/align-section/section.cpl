@@ -1,9 +1,7 @@
 {
-    section(".text") {
-        glob i32 a;
-        glob i32 b;
-        glob i32 c;
-    }
+    @[section(".text")] glob i32 a;
+    @[section(".text")] glob i32 b;
+    @[section(".text")] glob i32 c;
 }
 
 : OUTPUT

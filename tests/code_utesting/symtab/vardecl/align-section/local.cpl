@@ -1,8 +1,6 @@
 {
-    section(".bss") {
-        i32 a;
-        i32 b;
-    }
+    @[section(".bss")] i32 a;
+    @[section(".bss")] i32 b;
 }
 
 : OUTPUT

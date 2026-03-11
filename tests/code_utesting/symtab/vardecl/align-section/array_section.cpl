@@ -1,13 +1,7 @@
 {
-    section(".test") {
-        glob arr a[10, i32];
-    }
-    section(".ro") {
-        ro arr b[10, i32];
-    }
-    section(".text") {
-        ro glob arr c[10, i32];
-    }
+    @[section(".test")] glob arr a[10, i32];
+    @[section(".ro")] ro arr b[10, i32];
+    @[section(".text")] ro glob arr c[10, i32];
     glob arr d[10, i32];
 }
 

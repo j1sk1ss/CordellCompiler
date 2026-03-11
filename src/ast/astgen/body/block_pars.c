@@ -22,8 +22,6 @@ must be invoked for the provided token.
 Note: ! If you're extending the parser, add a new handler here ! */
 static const handler_t handlers[] = {
     HANDLER(cpl_parse_annot,             0, ANNOTATION_TOKEN),
-    HANDLER(cpl_parse_section,           0, SECTION_TOKEN),
-    HANDLER(cpl_parse_align,             0, ALIGN_TOKEN),
     HANDLER(cpl_parse_start,             0, START_TOKEN),
     HANDLER(cpl_parse_asm,               0, ASM_TOKEN),
     HANDLER(cpl_parse_scope,             1, OPEN_BLOCK_TOKEN),
@@ -35,7 +33,6 @@ static const handler_t handlers[] = {
     HANDLER(cpl_parse_syscall,           0, SYSCALL_TOKEN),
     HANDLER(cpl_parse_breakpoint,        0, BREAKPOINT_TOKEN),
     HANDLER(cpl_parse_extern,            0, EXTERN_TOKEN),
-    HANDLER(cpl_parse_import,            0, IMPORT_SELECT_TOKEN),
     HANDLER(cpl_parse_funccall,          0, CALL_TOKEN),
     HANDLER(cpl_parse_poparg,            0, POPARG_TOKEN),
     HANDLER(cpl_parse_function,          0, FUNC_TOKEN),
