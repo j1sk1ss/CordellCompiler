@@ -9,7 +9,7 @@
 }
 
 : OUTPUT
-BB{X}: fn _main0()
+BB{X}: fn _main()
 %2 = $10;
 %1 = %2;
 %3 = %1;

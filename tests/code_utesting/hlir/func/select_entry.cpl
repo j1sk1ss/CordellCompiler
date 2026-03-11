@@ -9,6 +9,6 @@
 : OUTPUT
 BB{X}: fn foo0()
 fend
-BB{X}: fn _main1()
+BB{X}: fn _main()
 fend
 :

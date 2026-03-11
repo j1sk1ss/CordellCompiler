@@ -8,7 +8,7 @@
 
 : OUTPUT
 {
-    fn _main0()
+    fn _main()
     {
         {
             goto lb4;

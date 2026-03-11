@@ -81,7 +81,7 @@ static string_t* _create_virt_name(symbol_id_t id, string_t* name) {
 }
 
 symbol_id_t FNTB_add_info(
-    string_t* name, 
+    string_t* name, string_t* vname,
     int global, int local, int entry, int naked, /* flags */
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
@@ -98,9 +98,8 @@ symbol_id_t FNTB_add_info(
     nnd->s_id = s_id;
     
     nnd->id = ctx->curr_id++;
-    if (nnd->name) {
-        nnd->virt = _create_virt_name(nnd->id, name);
-    }
+    if (!vname) nnd->virt = _create_virt_name(nnd->id, name);
+    else nnd->virt = vname->copy(vname);
 
     map_put(&ctx->functb, nnd->id, nnd);
     return nnd->id;

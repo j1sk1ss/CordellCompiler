@@ -6,7 +6,7 @@
 }
 
 : OUTPUT
-BB{X}: fn _main0(i32 a, i32 b)
+BB{X}: fn _main(i32 a, i32 b)
 %5 = [rbp + 8];
 %0 = %5;
 %6 = [rbp + 16];

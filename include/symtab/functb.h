@@ -71,6 +71,8 @@ Add a new function to a function symbol table.
 Params:
     - `name` - Function's name.
                Note: Will copy the provided name.
+    - `vname` - Vartual function's name.
+                Note: May be the 'NULL' value.
     - `global` - Is this function global?
     - `local` - Is this a local function?
     - `entry` - Is this an entry function?
@@ -82,7 +84,7 @@ Params:
 Returns -1 if fails or a new function's ID.
 */
 symbol_id_t FNTB_add_info(
-    string_t* name, 
+    string_t* name, string_t* vname,
     int global, int local, int entry, int naked, /* flags */
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );

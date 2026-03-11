@@ -107,8 +107,14 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         forward_token(it, 1);
     }
 
+    string_t* virt_name = NULL;
+    if (annots.is_entry) {
+        if (!annots.fname) annots.fname = create_string(CONF_get_entry_name());  
+        virt_name = annots.fname;
+    }
+
     name->sinfo.v_id = FNTB_add_info(
-        name->t->body, 
+        name->t->body, virt_name,
         global, local, annots.is_entry, annots.is_naked, 
         name->sinfo.s_id, args, name->c, &smt->f
     );

@@ -17,12 +17,7 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     int entries = 0;
     map_foreach(func_info_t* fi, &smt->f.functb) {
         if (fi->flags.local) continue;
-        if (fi->flags.entry) {
-            string_t* entry_name = create_string(CONF_get_entry_name()); 
-            FNTB_rename_func(fi->id, entry_name, &smt->f);
-            destroy_string(entry_name);
-            entries++;
-        }
+        if (fi->flags.entry) entries++;
     }
 
     if (!entries)         print_warn("The 'start' function isn't found!");

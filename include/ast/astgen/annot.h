@@ -21,6 +21,7 @@
 
 typedef struct {
     string_t* section;
+    string_t* fname;
     int       align;
     long      address;
     long      counter;
@@ -53,6 +54,7 @@ typedef struct {
     annotation_type_t t;
     union {
         int           align;   /* ALIGN_ANNOTATION    */
+        string_t*     fname;   /* ENTRY_ANNOTATION    */
         string_t*     section; /* SECTION_ANNOTATION  */
         long          address; /* ADDRESS_ANNOTATION  */
         long          counter; /* COUNTER_ANNOTATION  */

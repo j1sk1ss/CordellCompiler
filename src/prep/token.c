@@ -120,24 +120,6 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
 }
 
 /*
-Check if this is a permitted character.
-Params:
-    - `p` - Input character (1 byte or more than 1 byte size).
-
-Returns 1 if this is a permitted character.
-*/
-static inline int _permitted_character(char* p) {
-    unsigned char b1 = (unsigned char)p[0];
-    unsigned char b2 = (unsigned char)p[1];
-    if (
-        (b1 == 0xD0 && b2 >= 0x90 && b2 <= 0xAF) ||
-        (b1 == 0xD0 && b2 >= 0xB0 && b2 <= 0xBF) ||
-        (b1 == 0xD1 && b2 >= 0x80 && b2 <= 0x8F)
-    ) return 1;
-    return 0;
-}
-
-/*
 Reset the input ctx to zero.
 Params:
     - `ctx` - Token's context.
@@ -177,13 +159,6 @@ Returns a new token or the 'NULL' value.
 static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, token_fpos_t* finfo, tkn_ctx_t* ctx) {
     char token_buf[BUFFER_SIZE] = { 0 };
     for (ssize_t i = *off; i < bytes_read; ++i) {
-        /* Check if this a permitted character in the
-           compiler. */
-        if (i + 1 < bytes_read && _permitted_character(buffer + i)) {
-            print_error("Permitted symbol detected! c='%.2s'", buffer + i);
-            return NULL;
-        }
-
         char ch = buffer[i];
         char_type_t ct = _get_char_type(ch);
         finfo->column++;

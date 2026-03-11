@@ -6,7 +6,7 @@
 }
 
 : OUTPUT
-BB1: fn _main0(i32 a)
+BB1: fn _main(i32 a)
 r15 = [rbp + 8];
 rcx = r15;
 r15 = rcx;

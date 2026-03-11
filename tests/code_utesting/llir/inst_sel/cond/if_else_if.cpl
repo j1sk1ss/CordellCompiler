@@ -14,7 +14,7 @@
 }
 
 : OUTPUT
-BB{X}: fn _main0(i32 a)
+BB{X}: fn _main(i32 a)
 %6 = [rbp + 8];
 %0 = %6;
 %2 movsxd %0;

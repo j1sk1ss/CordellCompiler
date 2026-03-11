@@ -60,9 +60,9 @@ int main(int argc, char* argv[]) {
 
     map_foreach (func_info_t* fi, &smt.f.functb) {
         printf(
-            "%sid: %li, name: %s (virt: %s), ext=%i, glob=%i, used=%i, local=%i, sid=%i\n", 
+            "%sid: %li, name: %s (virt: %s), ext=%i, glob=%i, used=%i, local=%i, sid=%li\n", 
             fi->flags.entry ? "[ENTRY] " : "", fi->id, fi->name->body, fi->virt->body, 
-            fi->flags.external, fi->flags.global, fi->flags.used, fi->flags.local, fi->sid
+            fi->flags.external, fi->flags.global, fi->flags.used, fi->flags.local, fi->s_id
         );
     }
 

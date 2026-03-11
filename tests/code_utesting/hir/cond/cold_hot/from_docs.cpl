@@ -12,7 +12,7 @@
 
 : OUTPUT
 {
-    fn _main0() -> i32
+    fn _main() -> i32
     {
         {
             if num? 1, goto lb4, else goto lb5;

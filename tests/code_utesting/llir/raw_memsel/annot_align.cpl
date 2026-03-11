@@ -7,7 +7,7 @@
 }
 
 : OUTPUT
-BB{X}: fn _main0()
+BB{X}: fn _main()
 r15 = $1;
 [rbp - 8] = r15;
 r15 = [rbp - 8];

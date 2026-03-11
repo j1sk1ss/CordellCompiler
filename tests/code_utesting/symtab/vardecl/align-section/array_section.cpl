@@ -11,7 +11,6 @@
 {id: 0, a, arr, s_id: 1, align: 8}
 {id: 2, c, arr, s_id: 1, align: 8}
 {section='.data', 3}
-{section='.rodata'}
 {section='.test', 0}
 {section='.ro', 1}
 {section='.text', 2}
