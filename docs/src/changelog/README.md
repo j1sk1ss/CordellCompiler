@@ -31,7 +31,24 @@ Logs for the first and second versions are quite short because I don’t remembe
 ----------------------------------------
 
 ## Remove section, align and import keywords
-Section and align was fully dublicated with annotations which is more convenientm and the import is't fits to a language's design (Headers fit better). 
+Section and align was fully dublicated with annotations which is more convenient. The `import` isn't fits to a language's design from this point (headers fit better). </br>
+```cpl
+: OLD
+align(16) {
+    i32 a;
+    i32 b;
+    section(".bss") {
+        i32 c;
+        i32 d;
+    }
+}
+:
+
+@[align(16)] i32 a;
+@[align(16)] i32 b;
+@[align(16)] @[section(".bss")] i32 c;
+@[align(16)] @[section(".bss")] i32 d;
+```
 
 ## sizeof
 With the `sizeof` annotation now it is possible to support the next code:

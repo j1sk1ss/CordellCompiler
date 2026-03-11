@@ -4,8 +4,6 @@
 // Misc
 #define START_COMMAND           "start"
 #define EXIT_COMMAND            "exit"
-#define IMPORT_COMMAND          "import"
-#define IMPORT_SELECT_COMMAND   "from"
 #define EXTERN_COMMAND          "extern"
 #define RETURN_TYPE_COMMAND     "->"
 #define ANNOTATION_COMMAND      "@"
@@ -20,7 +18,6 @@
 #define CLOSE_BLOCK             "}"
 
 // Function
-#define EXFUNCTION_COMMAND      "exfunc"
 #define FUNCTION_COMMAND        "function"
 #define VAR_ARGUMENTS_COMMAND   "..."
 
@@ -52,8 +49,6 @@
 #define CONVERT_COMMAND         "as"
 
 // Commands
-#define ALIGN_COMMAND           "align"
-#define SECTION_COMMAND         "section"
 #define SWITCH_COMMAND          "switch"
 #define CASE_COMMAND            "case"
 #define DEFAULT_COMMAND         "default"

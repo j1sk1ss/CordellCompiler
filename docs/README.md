@@ -3,7 +3,7 @@
 # Cordell Programming Language
 
 <p class="hero-note">
-Low-level experimental programming language with documentation for syntax, semantics, examples, and compiler internals.
+CPL - is a low-level experimental programming language. Also, this is the main documentation site.
 </p>
 
 <div class="hero-actions">
@@ -27,6 +27,11 @@ Low-level experimental programming language with documentation for syntax, seman
   <a href="#/pages/hello-world-example" class="doc-card">
     <h3>Hello world</h3>
     <p>The fastest way to see the language shape in practice.</p>
+  </a>
+
+  <a href="#/pages/keywords" class="doc-card">
+    <h3>Keywords</h3>
+    <p>The list of all posible keywords in the language.</p>
   </a>
 
   <a href="#/pages/types" class="doc-card">
