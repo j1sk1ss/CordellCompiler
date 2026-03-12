@@ -1,14 +1,12 @@
-{
-    start() {
-        i32 a = 0;
-        if 1; {
-            a = 1;
-        }
-        else {
-            a = 2;
-        }
-        i32 b = a;
+start() {
+    i32 a = 0;
+    if 1; {
+        a = 1;
     }
+    else {
+        a = 2;
+    }
+    i32 b = a;
 }
 
 : OUTPUT

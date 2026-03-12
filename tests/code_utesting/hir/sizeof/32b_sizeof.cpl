@@ -1,10 +1,8 @@
-{
-    start() {
-        i32 a;
-        u32 b;
-        i32 c = @[sizeof] a;
-        i32 d = @[sizeof] b;
-    }
+start() {
+    i32 a;
+    u32 b;
+    i32 c = @[sizeof] a;
+    i32 d = @[sizeof] b;
 }
 
 : OUTPUT

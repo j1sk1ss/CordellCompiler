@@ -1,7 +1,5 @@
-{
-    extern i32 a;
-    extern function printf(ptr u8 fmt, ...);
-}
+extern i32 a;
+extern function printf(ptr u8 fmt, ...);
 
 : OUTPUT
 { scope, id=1 }

@@ -1,7 +1,5 @@
-{
-    start(ptr i8 a) {
-        dref a = 1;
-    }
+start(ptr i8 a) {
+    dref a = 1;
 }
 
 : OUTPUT

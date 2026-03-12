@@ -1,10 +1,8 @@
-{
-    start() {
-        @[no_fall] switch 1; {
-            case 1; {}
-            case 2; {}
-            default {}
-        }
+start() {
+    @[no_fall] switch 1; {
+        case 1; {}
+        case 2; {}
+        default {}
     }
 }
 

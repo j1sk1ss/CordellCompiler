@@ -1,12 +1,10 @@
-{
-    @[entry] function foo(
-        i32 a, i32 b, i32 c, i32 d, i32 e, i32 f, 
-        i32 g, i32 k, i32 l, i32 m, i32 n, i32 o, 
-        i32 p, i32 r, i32 s, i32 t, i32 z, i32 x, 
-        i32 v, i32 q, i32 a1, i32 q2, i32 q4, i32 q5, 
-        i32 q6, i32 a7, i32 a8, i32 a9, i32 q10, i32 q11
-    );
-}
+@[entry] function foo(
+   i32 a, i32 b, i32 c, i32 d, i32 e, i32 f, 
+   i32 g, i32 k, i32 l, i32 m, i32 n, i32 o, 
+   i32 p, i32 r, i32 s, i32 t, i32 z, i32 x, 
+   i32 v, i32 q, i32 a1, i32 q2, i32 q4, i32 q5, 
+   i32 q6, i32 a7, i32 a8, i32 a9, i32 q10, i32 q11
+);
 
 : OUTPUT
 { scope, id=1 }

@@ -1,8 +1,6 @@
-{
-    start() {
-        @[align(64)] i8 a;
-        i32 b = @[sizeof]a;
-    }
+start() {
+    @[align(64)] i8 a;
+    i32 b = @[sizeof]a;
 }
 
 : OUTPUT

@@ -1,7 +1,5 @@
-{
-    start() {
-        syscall(1, 2, 3);
-    }
+start() {
+    syscall(1, 2, 3);
 }
 
 : OUTPUT

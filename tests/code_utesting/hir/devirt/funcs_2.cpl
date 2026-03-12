@@ -1,11 +1,9 @@
-{
-    function foo(i32 a) -> i0;
-    function foo(i64 a) -> i0;
-    start() {
-        foo(10 as i64);
-        foo(10 as i32);
-        exit 0;
-    }
+function foo(i32 a) -> i0;
+function foo(i64 a) -> i0;
+start() {
+    foo(10 as i64);
+    foo(10 as i32);
+    exit 0;
 }
 
 : OUTPUT

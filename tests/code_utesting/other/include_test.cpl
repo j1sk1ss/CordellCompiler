@@ -1,19 +1,17 @@
-{
-    #include "print_h.cpl"
-    #include "string_h.cpl"
+#include "print_h.cpl"
+#include "string_h.cpl"
 
-    function foo() -> i0;
-    
-    function bar() -> i0 {
-        foo();
-    }
+function foo() -> i0;
 
-    function foo() -> i0 {
-        print("Hello world!\n");
-    }
+function bar() -> i0 {
+    foo();
+}
 
-    start(i64 argc, ptr u64 argv) {
-        bar();
-        exit 0;
-    }
+function foo() -> i0 {
+    print("Hello world!\n");
+}
+
+start(i64 argc, ptr u64 argv) {
+    bar();
+    exit 0;
 }

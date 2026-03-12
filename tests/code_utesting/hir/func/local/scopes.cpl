@@ -1,17 +1,15 @@
 {
-    {
-        function foo() {
-            return 1;
-        }
-    }
-
     function foo() {
-        return 2;
+        return 1;
     }
+}
 
-    start() {
-        exit foo();
-    }
+function foo() {
+    return 2;
+}
+
+start() {
+    exit foo();
 }
 
 : OUTPUT

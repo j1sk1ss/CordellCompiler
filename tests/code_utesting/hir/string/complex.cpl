@@ -1,10 +1,8 @@
-{
-    start() {
-        str msg = "Hello world!";
-        ptr str msg1 = ref msg;
-        msg1[0] = dref msg;
-        msg[1] = msg1[0];
-    }
+start() {
+    str msg = "Hello world!";
+    ptr str msg1 = ref msg;
+    msg1[0] = dref msg;
+    msg[1] = msg1[0];
 }
 
 : OUTPUT

@@ -1,7 +1,5 @@
-{
-    @[entry]
-    function foo(i32 a, i32 b) {
-    }
+@[entry]
+function foo(i32 a, i32 b) {
 }
 
 : OUTPUT

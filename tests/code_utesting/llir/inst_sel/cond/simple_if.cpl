@@ -1,10 +1,8 @@
-{
-    @[entry]
-    function foo() {
-        i32 a = 10;
-        if a; {
-            exit 1;
-        }
+@[entry]
+function foo() {
+    i32 a = 10;
+    if a; {
+        exit 1;
     }
 }
 

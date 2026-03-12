@@ -1,7 +1,5 @@
-{
-    start() {
-        i32 a = 10 > 5;
-    }
+start() {
+    i32 a = 10 > 5;
 }
 
 : OUTPUT

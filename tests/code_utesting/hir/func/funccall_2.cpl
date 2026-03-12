@@ -1,12 +1,10 @@
-{
-    function foo(i32 a) -> i32 {
-        return a;
-    }
+function foo(i32 a) -> i32 {
+    return a;
+}
 
-    start() {
-        ptr i0 a = foo;
-        i32 b = a(10);
-    }
+start() {
+    ptr i0 a = foo;
+    i32 b = a(10);
 }
 
 : OUTPUT

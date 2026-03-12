@@ -1,6 +1,4 @@
-{
-    glob function foo();
-}
+glob function foo();
 
 : OUTPUT
 { scope, id=1 }

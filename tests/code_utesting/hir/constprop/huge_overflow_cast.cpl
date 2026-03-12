@@ -1,8 +1,6 @@
-{
-    start() {
-        i8 a = 123321 as i8;
-        i16 b = 66000 as i16;
-    }
+start() {
+    i8 a = 123321 as i8;
+    i16 b = 66000 as i16;
 }
 
 : OUTPUT

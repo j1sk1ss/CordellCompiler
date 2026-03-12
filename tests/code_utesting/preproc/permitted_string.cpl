@@ -1,7 +1,5 @@
-{
-    start() {
-        str msg = "Привет мир!";
-    }
+start() {
+    str msg = "Привет мир!";
 }
 
 : OUTPUT

@@ -1,12 +1,10 @@
-{
-   @[section(".bss")] @[align(8)] glob i32 a;
-   @[section(".bss")] glob i32 b;
-   glob i32 c;
-   start() {
-      a += 1;
-      b += 1;
-      c += 1;
-   }
+@[section(".bss")] @[align(8)] glob i32 a;
+@[section(".bss")] glob i32 b;
+glob i32 c;
+start() {
+   a += 1;
+   b += 1;
+   c += 1;
 }
 
 : OUTPUT

@@ -1,8 +1,6 @@
-{
-    start() {
-        ptr i32 a;
-        a[10];
-    }
+start() {
+   ptr i32 a;
+   a[10];
 }
 
 : OUTPUT

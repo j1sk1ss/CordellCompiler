@@ -1,6 +1,4 @@
-{
-    start(...) {}
-}
+start(...) {}
 
 : OUTPUT
 { scope, id=1 }

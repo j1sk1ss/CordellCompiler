@@ -1,27 +1,25 @@
-{
-    function foo(i32 a) {
-        a += 1;
-    }
+function foo(i32 a) {
+   a += 1;
+}
 
-    function bar(i16 a) -> i32 {
-        a *= 1;
-        return 1;
-    }
+function bar(i16 a) -> i32 {
+   a *= 1;
+   return 1;
+}
 
-    function baz(u64 a) -> i0 {
-        a /= 1;
-    }
+function baz(u64 a) -> i0 {
+   a /= 1;
+}
 
-    function fang(i32 a) {
-        a += 1;
-    }
+function fang(i32 a) {
+   a += 1;
+}
 
-    start() {
-      foo(1);
-      bar(1);
-      baz(1);
-      fang(1);
-    }
+start() {
+   foo(1);
+   bar(1);
+   baz(1);
+   fang(1);
 }
 
 : OUTPUT

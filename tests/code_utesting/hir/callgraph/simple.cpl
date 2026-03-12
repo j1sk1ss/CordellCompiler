@@ -1,10 +1,8 @@
-{
-    function foo();
-    function bar();
-    function baz();
-    start() {
-        foo(); bar(); baz();
-    }
+function foo();
+function bar();
+function baz();
+start() {
+    foo(); bar(); baz();
 }
 
 : OUTPUT

@@ -1,12 +1,10 @@
-{
-    function foo() -> i0;
-    function bar() -> i0;
-    start() {
-        foo();
-        i32 a = 10;
-        bar();
-        i32 b = a + 10;
-    }
+function foo() -> i0;
+function bar() -> i0;
+start() {
+    foo();
+    i32 a = 10;
+    bar();
+    i32 b = a + 10;
 }
 
 : OUTPUT

@@ -1,13 +1,11 @@
-{
-    start() {
-        i32 a = 1;
-        ptr i32 b;
-        if a == 1; {
-            b = ref a;
-        }
-        i32 c = 1;
-        b = ref c;
+start() {
+    i32 a = 1;
+    ptr i32 b;
+    if a == 1; {
+        b = ref a;
     }
+    i32 c = 1;
+    b = ref c;
 }
 
 : OUTPUT

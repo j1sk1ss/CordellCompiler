@@ -1,8 +1,6 @@
-{
-    function foo(i32 a);
-    start() {
-        loop foo(10 + 10 * 1);
-    }
+function foo(i32 a);
+start() {
+    loop foo(10 + 10 * 1);
 }
 
 : OUTPUT

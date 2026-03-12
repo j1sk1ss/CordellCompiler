@@ -1,7 +1,5 @@
-{
-    start() {
-        while 1; {
-        }
+start() {
+    while 1; {
     }
 }
 

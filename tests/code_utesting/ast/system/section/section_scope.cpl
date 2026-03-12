@@ -1,8 +1,6 @@
-{
-    glob i32 a;
-    @[section(".bss")] glob i32 b;
-    @[section(".data")] glob i32 c;
-}
+glob i32 a;
+@[section(".bss")] glob i32 b;
+@[section(".data")] glob i32 c;
 
 : OUTPUT
 { scope, id=1 }

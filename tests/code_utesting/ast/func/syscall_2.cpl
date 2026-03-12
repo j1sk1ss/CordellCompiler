@@ -1,7 +1,5 @@
-{
-    start() {
-        syscall(syscall(syscall(syscall(1, 2), 1), 1, 1, 1, 1), 1);
-    }
+start() {
+   syscall(syscall(syscall(syscall(1, 2), 1), 1, 1, 1, 1), 1);
 }
 
 : OUTPUT

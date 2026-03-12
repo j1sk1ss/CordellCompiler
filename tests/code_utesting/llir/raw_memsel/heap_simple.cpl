@@ -1,8 +1,6 @@
-{
-    start() {
-        i32 size = 10;
-        arr a[size, i32];
-    }
+start() {
+    i32 size = 10;
+    arr a[size, i32];
 }
 
 : OUTPUT

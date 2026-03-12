@@ -1,22 +1,20 @@
-{
-    start() {
-        @[cold] if 1; {
-        }
-        else {
-        }
-
-        @[cold] if 2; {
-        }
-        else {
-        }
-
-        @[cold] if 3; {
-        }
-        else {
-        }
-
-        exit 1;
+start() {
+    @[cold] if 1; {
     }
+    else {
+    }
+
+    @[cold] if 2; {
+    }
+    else {
+    }
+
+    @[cold] if 3; {
+    }
+    else {
+    }
+
+    exit 1;
 }
 
 : OUTPUT

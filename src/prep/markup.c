@@ -8,7 +8,6 @@ typedef struct {
 #define LEXEM(n, t) { .value = n, .type = t }
 static const markup_token_t _lexems[] = {
     /* Special single place tokens. */
-    LEXEM(IMPORT_SELECT_COMMAND,  IMPORT_SELECT_TOKEN),
     LEXEM(EXTERN_COMMAND,         EXTERN_TOKEN),
     LEXEM(START_COMMAND,          START_TOKEN),
     LEXEM(EXIT_COMMAND,           EXIT_TOKEN),
@@ -24,7 +23,6 @@ static const markup_token_t _lexems[] = {
     LEXEM(CLOSE_BRACKET,          CLOSE_BRACKET_TOKEN),
 
     /* Function and jmp tokens. */
-    LEXEM(EXFUNCTION_COMMAND,     EXFUNC_TOKEN),
     LEXEM(FUNCTION_COMMAND,       FUNC_TOKEN),
     LEXEM(RETURN_COMMAND,         RETURN_TOKEN),
     LEXEM(SYSCALL_COMMAND,        SYSCALL_TOKEN),
@@ -217,8 +215,10 @@ int MRKP_variables(list_t* tkn) {
 
     list_t vars;
     list_init(&vars);
+
     sstack_t scope_stack;
     stack_init(&scope_stack);
+    stack_push(&scope_stack, (void*)((long)++s_id));
 
     list_iter_t it;
     list_iter_hinit(tkn, &it);
@@ -272,6 +272,7 @@ int MRKP_variables(list_t* tkn) {
 
     s_id = 0;
     scope_stack.top = -1;
+    stack_push(&scope_stack, (void*)((long)++s_id));
     
     foreach (token_t* curr, tkn) {
         switch (curr->t_type) {

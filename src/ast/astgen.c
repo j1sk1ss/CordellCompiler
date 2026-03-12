@@ -11,7 +11,8 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     list_iter_t it;
     list_iter_hinit(tkn, &it);
 
-    ctx->r = cpl_parse_scope(&it, ctx, smt, 1);
+    stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
+    ctx->r = cpl_parse_block(&it, ctx, smt, EOF_TOKEN);
     if (!ctx->r) return 0;
     
     int entries = 0;

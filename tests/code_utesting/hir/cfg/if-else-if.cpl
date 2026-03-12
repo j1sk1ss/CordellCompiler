@@ -1,16 +1,14 @@
-{
-    start() {
-        if 1; {
-        }
-        else if 2; {
-        }
-        else if 3; {
-        }
-        else if 4; {
-        }
-        else {
-            exit 1;
-        }
+start() {
+    if 1; {
+    }
+    else if 2; {
+    }
+    else if 3; {
+    }
+    else if 4; {
+    }
+    else {
+        exit 1;
     }
 }
 

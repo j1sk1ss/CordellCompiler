@@ -1,8 +1,6 @@
-{
-    start() {
-        @[align(8)] i32 a = 1;
-        @[align(64)] i32 b = 1;
-    }
+start() {
+    @[align(8)] i32 a = 1;
+    @[align(64)] i32 b = 1;
 }
 
 : OUTPUT

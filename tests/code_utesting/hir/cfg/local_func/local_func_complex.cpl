@@ -1,18 +1,16 @@
-{
-    function foo() {
-        if 1; {
-            function baz() {
-                return 2;
-            }
+function foo() {
+    if 1; {
+        function baz() {
+            return 2;
         }
-        else {
-            function bar() {
-                return 1;
-            }
-        }
-
-        return 0;
     }
+    else {
+        function bar() {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 : OUTPUT

@@ -1,9 +1,7 @@
-{
-    ro i32 flag = 1;
-    start() {
-        if flag; {
-            exit 1;
-        }
+ro i32 flag = 1;
+start() {
+    if flag; {
+        exit 1;
     }
 }
 

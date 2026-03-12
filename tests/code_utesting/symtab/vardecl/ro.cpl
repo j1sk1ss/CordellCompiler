@@ -1,7 +1,5 @@
-{
-    ro i32 a;
-    ro glob i32 b;
-}
+ro i32 a;
+ro glob i32 b;
 
 : OUTPUT
 {id: 0, a, ro i32, s_id: 1, align: 8}

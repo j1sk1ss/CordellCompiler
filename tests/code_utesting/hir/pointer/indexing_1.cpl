@@ -1,12 +1,9 @@
-{
-    start() {
-        ptr ptr ptr i8 a;
-        ptr ptr i8 b = a[0];
-        ptr i8 c = b[0];
-        i8 d = c[0];
-    }
+start() {
+    ptr ptr ptr i8 a;
+    ptr ptr i8 b = a[0];
+    ptr i8 c = b[0];
+    i8 d = c[0];
 }
-
 : OUTPUT
 {
     start {

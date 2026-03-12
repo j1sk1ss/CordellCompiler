@@ -1,12 +1,10 @@
-{
-    function foo(...) {
-        i64 a = poparg as i64;
-        ptr f32 b = poparg as ptr f32;
-    }
+function foo(...) {
+    i64 a = poparg as i64;
+    ptr f32 b = poparg as ptr f32;
+}
 
-    start() {
-        foo();
-    }
+start() {
+    foo();
 }
 
 : OUTPUT

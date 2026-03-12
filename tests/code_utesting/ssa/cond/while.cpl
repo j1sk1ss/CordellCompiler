@@ -1,11 +1,9 @@
-{
-    start() {
-        i32 a = 0;
-        while 1; {
-            a = 1;
-        }
-        i32 b = a;
+start() {
+    i32 a = 0;
+    while 1; {
+        a = 1;
     }
+    i32 b = a;
 }
 
 : OUTPUT

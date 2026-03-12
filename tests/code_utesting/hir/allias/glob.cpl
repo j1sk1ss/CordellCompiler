@@ -1,8 +1,6 @@
-{
-    glob i32 a;
-    start() {
-        ptr i32 b = ref a;
-    }
+glob i32 a;
+start() {
+    ptr i32 b = ref a;
 }
 
 : OUTPUT

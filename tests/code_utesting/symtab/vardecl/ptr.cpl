@@ -1,7 +1,5 @@
-{
-    start() {
-        ptr ptr ptr ptr ptr ptr ptr ptr i8 a;
-    }
+start() {
+    ptr ptr ptr ptr ptr ptr ptr ptr i8 a;
 }
 
 : OUTPUT

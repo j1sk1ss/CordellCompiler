@@ -1,8 +1,6 @@
-{
-    start() {
-        u8 a = 10 as u8;
-        i64 b = (10 as u8 + 11 as u8) as i64;
-    }
+start() {
+   u8 a = 10 as u8;
+   i64 b = (10 as u8 + 11 as u8) as i64;
 }
 
 : OUTPUT

@@ -1,17 +1,15 @@
-{
-    start() {
-        if 1; {
-            i32 a = 10 + 10;
-            exit 10 + 10;
-        }
-        else if 2; {
-            i32 a = 10 + 10;
-            exit 10 + 10;
-        }
-        else {
-            i32 a = 10 + 10;
-            exit 10 + 10;
-        }
+start() {
+    if 1; {
+        i32 a = 10 + 10;
+        exit 10 + 10;
+    }
+    else if 2; {
+        i32 a = 10 + 10;
+        exit 10 + 10;
+    }
+    else {
+        i32 a = 10 + 10;
+        exit 10 + 10;
     }
 }
 

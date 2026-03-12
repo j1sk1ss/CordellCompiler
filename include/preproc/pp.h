@@ -36,10 +36,9 @@ typedef struct {
 } pp_cmt_state_t;
 
 typedef struct {
-    FILE* f;            /* descriptor                */
-    int   l;            /* line                      */
-    char* n;            /* file name                 */
-    int   dl;           /* Delete scope guards       */
+    FILE* f;            /* descriptor              */
+    int   l;            /* line                    */
+    char* n;            /* file name               */
     pp_cmt_state_t cst; /* Context for comment rm  */
 } source_pos_info_t;
 

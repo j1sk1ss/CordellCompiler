@@ -1,17 +1,15 @@
-{
-    function foo(i32 a) -> i32 {
-        arr array[10, i32] = { 0 };
-        if a == 1; {
-            return 0;
-        }
-        else {
-            return 1;
-        }
+function foo(i32 a) -> i32 {
+    arr array[10, i32] = { 0 };
+    if a == 1; {
+        return 0;
     }
+    else {
+        return 1;
+    }
+}
 
-    start() {
-        i32 a = foo(10);
-    }
+start() {
+    i32 a = foo(10);
 }
 
 : OUTPUT

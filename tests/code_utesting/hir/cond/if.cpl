@@ -1,9 +1,7 @@
-{
-    start() {
-        if 1; {
-        }
-        else {
-        }
+start() {
+    if 1; {
+    }
+    else {
     }
 }
 

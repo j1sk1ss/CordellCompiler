@@ -1,10 +1,7 @@
-{
-    start() {
-        i32 a;
-        i32 b = dref ref a;
-    }
+start() {
+    i32 a;
+    i32 b = dref ref a;
 }
-
 : OUTPUT
 {
     start {

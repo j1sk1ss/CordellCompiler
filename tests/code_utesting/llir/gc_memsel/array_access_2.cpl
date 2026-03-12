@@ -1,8 +1,6 @@
-{
-    start() {
-        arr a[10, i32];
-        i32 b = a[5];
-    }
+start() {
+    arr a[10, i32];
+    i32 b = a[5];
 }
 
 : OUTPUT

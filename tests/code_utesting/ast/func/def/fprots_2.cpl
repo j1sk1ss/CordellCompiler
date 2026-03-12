@@ -1,8 +1,6 @@
-{
-    function foo(i32 a = 1);
-    function foo(i32 a = 1) {
-        a += 1;
-    }
+function foo(i32 a = 1);
+function foo(i32 a = 1) {
+   a += 1;
 }
 
 : OUTPUT

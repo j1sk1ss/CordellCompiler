@@ -1,16 +1,14 @@
-{
-    function foo();
-    function foo(i32 a);
-    function foo(u32 a);
-    function foo(i16 a);
-    function foo(u16 a);
-    function foo(i8 a);
-    function foo(i8 a, i8 b);
-    function foo(u8 a);
-    function foo(u8 a, u8 b);
-    function foo(i8 a, u8 b);
-    function foo(u8 a, i8 b);
-}
+function foo();
+function foo(i32 a);
+function foo(u32 a);
+function foo(i16 a);
+function foo(u16 a);
+function foo(i8 a);
+function foo(i8 a, i8 b);
+function foo(u8 a);
+function foo(u8 a, u8 b);
+function foo(i8 a, u8 b);
+function foo(u8 a, i8 b);
 
 : OUTPUT
 {id: 2, name: foo (virt: foo2), ext=0, glob=0, used=0, local=0, sid=1}

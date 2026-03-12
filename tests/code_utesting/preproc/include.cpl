@@ -1,25 +1,24 @@
-{
-    #include "print_h.cpl"
-    #include "print_h.cpl"
-    #include "print_h.cpl"
-    #include "print_h.cpl"
-    #include "print_h.cpl"
+#include "print_h.cpl"
+#include "print_h.cpl"
+#include "print_h.cpl"
+#include "print_h.cpl"
+#include "print_h.cpl"
 
-    start() {
-    }
+start() {
 }
 
 : OUTPUT
-{
 #line 0 "{X}.cpl"
 #line 0 "{X}.cpl"
     
-    function strlen(ptr i8 s) -> i64;
+function strlen(ptr i8 s) -> i64;
  
-#line 4 "{X}.cpl"
+#line 3 "{X}.cpl"
    
-    function print(ptr str msg) -> i0;
+function print(ptr str msg) -> i0;
  
+#line 1 "{X}.cpl"
+#line 0 "{X}.cpl"
 #line 2 "{X}.cpl"
 #line 0 "{X}.cpl"
 #line 3 "{X}.cpl"
@@ -27,10 +26,7 @@
 #line 4 "{X}.cpl"
 #line 0 "{X}.cpl"
 #line 5 "{X}.cpl"
-#line 0 "{X}.cpl"
-#line 6 "{X}.cpl"
 
-    start() {
-    }
+start() {
 }
 :

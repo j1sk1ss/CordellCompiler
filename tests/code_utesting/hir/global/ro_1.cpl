@@ -1,6 +1,4 @@
-{
-    ro i32 a = 0;
-}
+ro i32 a = 0;
 
 : OUTPUT
 {

@@ -1,10 +1,8 @@
-{
-    function foo(u32 a);
-    start() {
-        ptr i0 a = foo;
-        a(10);
-        foo(10);
-    }
+function foo(u32 a);
+start() {
+   ptr i0 a = foo;
+   a(10);
+   foo(10);
 }
 
 : OUTPUT

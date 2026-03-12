@@ -1,14 +1,12 @@
-{
-    start() {
-        switch 1; {
-            case 1; {}
-            default {}
-        }
+start() {
+    switch 1; {
+        case 1; {}
+        default {}
+    }
 
-        @[straight] switch 1; {
-            case 1; {}
-            default {}
-        }
+    @[straight] switch 1; {
+        case 1; {}
+        default {}
     }
 }
 

@@ -1,10 +1,8 @@
-{
-    glob i32 a = 10;
-    start() {
-        a = 11;
-        a = 12;
-        a = 13;
-    }
+glob i32 a = 10;
+start() {
+    a = 11;
+    a = 12;
+    a = 13;
 }
 
 : OUTPUT

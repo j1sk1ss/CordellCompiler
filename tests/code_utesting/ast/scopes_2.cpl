@@ -1,8 +1,6 @@
-{
-    glob i32 a = 0;
-    function foo(i32 a) {
-        a += 1;
-    }
+glob i32 a = 0;
+function foo(i32 a) {
+   a += 1;
 }
 
 : OUTPUT

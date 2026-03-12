@@ -1,6 +1,4 @@
-{
-    extern function foo();
-}
+extern function foo();
 
 : OUTPUT
 { scope, id=1 }

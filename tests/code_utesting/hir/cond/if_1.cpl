@@ -1,18 +1,16 @@
-{
-    @[entry]
-    function foo(i32 a) {
-        if a == 1; {
+@[entry]
+function foo(i32 a) {
+    if a == 1; {
 
-        }
-        else if a == 2; {
+    }
+    else if a == 2; {
 
-        }
-        else if a == 3; {
+    }
+    else if a == 3; {
 
-        }
-        else {
+    }
+    else {
 
-        }
     }
 }
 

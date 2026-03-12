@@ -1,14 +1,12 @@
-{
-    function min(i32 a, i32 b) -> i32;
-    function max(i32 a, i32 b) -> i32;
-    function logic(i32 a, i32 b, ptr u64 perform) -> i32 {
-        return perform(a, b);
-    }
+function min(i32 a, i32 b) -> i32;
+function max(i32 a, i32 b) -> i32;
+function logic(i32 a, i32 b, ptr u64 perform) -> i32 {
+    return perform(a, b);
+}
 
-    start() {
-        logic(10, 20, min);
-        logic(10, 20, max);
-    }
+start() {
+    logic(10, 20, min);
+    logic(10, 20, max);
 }
 
 : OUTPUT

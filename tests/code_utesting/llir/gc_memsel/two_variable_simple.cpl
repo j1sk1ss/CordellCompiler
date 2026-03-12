@@ -1,9 +1,7 @@
-{
-    start() {
-        i32 a = 1;
-        i32 b = 1;
-        exit a + b;
-    }
+start() {
+    i32 a = 1;
+    i32 b = 1;
+    exit a + b;
 }
 
 : OUTPUT

@@ -1,8 +1,6 @@
-{
-    start() {
-        i32 addr;
-        i8 a = (addr as ptr i32)[0];
-    }
+start() {
+   i32 addr;
+   i8 a = (addr as ptr i32)[0];
 }
 
 : OUTPUT

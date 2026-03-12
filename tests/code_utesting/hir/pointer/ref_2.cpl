@@ -1,15 +1,12 @@
-{
-    start() {
-        i8 a;
-        f64 b;
-        arr c[10, ptr i32];
+start() {
+    i8 a;
+    f64 b;
+    arr c[10, ptr i32];
 
-        ptr ptr i32 d = ref c;
-        ptr f64 e = ref b;
-        ptr i8 f = ref a;
-    }
+    ptr ptr i32 d = ref c;
+    ptr f64 e = ref b;
+    ptr i8 f = ref a;
 }
-
 : OUTPUT
 {
     start {

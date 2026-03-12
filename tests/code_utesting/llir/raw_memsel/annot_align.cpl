@@ -1,9 +1,7 @@
-{
-    @[entry]
-    function main() {
-        @[align(128)] i32 a = 1;
-        @[align(128)] i32 b = a;
-    }
+@[entry]
+function main() {
+    @[align(128)] i32 a = 1;
+    @[align(128)] i32 b = a;
 }
 
 : OUTPUT

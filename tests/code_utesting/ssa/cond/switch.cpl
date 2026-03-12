@@ -1,20 +1,18 @@
-{
-    start() {
-        i32 a = 0;
-        switch 1; {
-            case 1; {
-                a = 1;
-            }
-            case 2; {
-                a = 2;
-                break;
-            }
-            default {
-                a = 3;
-            }
+start() {
+    i32 a = 0;
+    switch 1; {
+        case 1; {
+            a = 1;
         }
-        i32 b = a;
+        case 2; {
+            a = 2;
+            break;
+        }
+        default {
+            a = 3;
+        }
     }
+    i32 b = a;
 }
 
 : OUTPUT

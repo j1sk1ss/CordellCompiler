@@ -1,8 +1,6 @@
-{
-   @[align(16)] glob i32 a;
-   function foo() {
-      a += 1;
-   }
+@[align(16)] glob i32 a;
+function foo() {
+   a += 1;
 }
 
 : OUTPUT

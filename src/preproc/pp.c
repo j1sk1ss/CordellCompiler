@@ -8,7 +8,6 @@ static inline source_pos_info_t* _create_info(FILE* f, char* name, int l) {
     inf->f  = f;
     inf->l  = l;
     inf->n  = strdup(name);
-    inf->dl = -1;
     return inf;
 }
 
@@ -184,8 +183,6 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
         return -1;
     }
 
-    info->dl = SCOPE_GUARDER_INIT;
-
     source_pos_info_t* inf;
     while (stack_top(&ppctx.sources, (void**)&inf)) {
         ssize_t nread = getline(&ppctx.line, &ppctx.size, inf->f);
@@ -193,22 +190,6 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
             if (_permitted_character(ppctx.line + i)) {
                 _unload_pp_ctx(&ppctx);
                 return -1;
-            }
-        }
-
-        /* Delete the guardian entry scope.
-           The gramma accepts code only in scopes,
-           but pre-processor must delete these scopes to
-           make it works. */
-        if (_l && inf->dl != SCOPE_GUARDER_INIT) for (ssize_t i = strlen(_l); i >= 0; i--) {
-            switch (_l[i]) {
-                case '{': inf->dl++; break;
-                case '}': inf->dl--; break;
-                default: continue;
-            }
-
-            if (inf->dl <= 0) {
-                _l[i] = ' ';
             }
         }
         

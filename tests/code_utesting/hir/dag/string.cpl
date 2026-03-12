@@ -1,10 +1,8 @@
-{
-    start() {
-        str a = "Hello world!";
-        str b = "Hello world!";
-        ptr i8 c = "Hello world!";
-        ptr i8 d = "Hello world!";
-    }
+start() {
+    str a = "Hello world!";
+    str b = "Hello world!";
+    ptr i8 c = "Hello world!";
+    ptr i8 d = "Hello world!";
 }
 
 : OUTPUT

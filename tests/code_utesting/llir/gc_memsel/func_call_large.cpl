@@ -1,11 +1,9 @@
-{
-    function foo(...);
-    start() {
-        i32 a = 1;
-        i32 b = 2;
-        i32 c = 3;
-        foo(a, 1, 2, b, 3, 4, c, 5, 6);
-    }
+function foo(...);
+start() {
+    i32 a = 1;
+    i32 b = 2;
+    i32 c = 3;
+    foo(a, 1, 2, b, 3, 4, c, 5, 6);
 }
 
 : OUTPUT

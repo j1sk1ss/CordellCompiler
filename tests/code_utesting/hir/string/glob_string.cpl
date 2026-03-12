@@ -1,6 +1,4 @@
-{
-    glob str msg = "Hello world";
-}
+glob str msg = "Hello world";
 
 : OUTPUT
 {

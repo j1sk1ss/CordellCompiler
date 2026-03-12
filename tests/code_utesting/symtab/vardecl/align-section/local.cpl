@@ -1,7 +1,5 @@
-{
-    @[section(".bss")] i32 a;
-    @[section(".bss")] i32 b;
-}
+@[section(".bss")] i32 a;
+@[section(".bss")] i32 b;
 
 : OUTPUT
 {id: 1, b, i32, s_id: 1, align: 8}

@@ -1,13 +1,11 @@
-{
-    @[section(".bss")]
-    function foo() {
-    }
-    @[section(".test")]
-    function bar() {
-    }
-    @[entry]
-    function baz() {
-    }
+@[section(".bss")]
+function foo() {
+}
+@[section(".test")]
+function bar() {
+}
+@[entry]
+function baz() {
 }
 
 : OUTPUT

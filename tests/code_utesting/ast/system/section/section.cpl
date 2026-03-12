@@ -1,9 +1,6 @@
-{
-   @[section(".text")] glob i32 a = 10;
-   @[section(".text")] function foo() {
-       return 1;
-   }
-    
+@[section(".text")] glob i32 a = 10;
+@[section(".text")] function foo() {
+      return 1;
 }
 
 : OUTPUT

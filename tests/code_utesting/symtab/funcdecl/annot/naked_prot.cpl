@@ -1,8 +1,6 @@
-{
-    @[naked]
-    function foo();
-    function foo() {
-    }
+@[naked]
+function foo();
+function foo() {
 }
 
 : OUTPUT

@@ -1,8 +1,6 @@
-{
-    start() {
-        arr a[10, i8] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-        ptr i8 b = ref a;
-    }
+start() {
+    arr a[10, i8] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    ptr i8 b = ref a;
 }
 
 : OUTPUT

@@ -1,7 +1,5 @@
-{
-    start(i32 a) {
-        a = 1;
-    }
+start(i32 a) {
+    a = 1;
 }
 
 : OUTPUT

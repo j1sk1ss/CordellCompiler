@@ -1,8 +1,6 @@
-{
-    start() {
-        ptr ptr ptr ptr i8 matrix;
-        matrix[0][0][0][0] = 1;
-    }
+start() {
+   ptr ptr ptr ptr i8 matrix;
+   matrix[0][0][0][0] = 1;
 }
 
 : OUTPUT

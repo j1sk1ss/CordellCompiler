@@ -1,7 +1,5 @@
-{
-    start() {
-        ptr i0 a;
-    }
+start() {
+    ptr i0 a;
 }
 
 : OUTPUT

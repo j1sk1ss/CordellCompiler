@@ -8,7 +8,7 @@
 : OUTPUT
 BB{X}: start
 
-BB{X}: lb4:
+BB{X}: lb{X}:
 cmp $1, 0;
 je lb{X};
 jne lb{X};

@@ -1,8 +1,6 @@
-{
-    start() {
-        i8 a = 255 as i8;
-        u8 b = 255 as i8;
-    }
+start() {
+    i8 a = 255 as i8;
+    u8 b = 255 as i8;
 }
 
 : OUTPUT

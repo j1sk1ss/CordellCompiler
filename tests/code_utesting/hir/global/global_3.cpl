@@ -1,12 +1,10 @@
-{
-    glob i32 a;
-    glob ptr ptr u64 b;
-    start() {
-        a = 10 as i32;
-        b = 0 as ptr ptr u64;
-        i32 a;
-        ptr ptr u64 b;
-    }
+glob i32 a;
+glob ptr ptr u64 b;
+start() {
+    a = 10 as i32;
+    b = 0 as ptr ptr u64;
+    i32 a;
+    ptr ptr u64 b;
 }
 
 : OUTPUT

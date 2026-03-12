@@ -1,10 +1,8 @@
-{
-    start() {
-        i32 a = 10;
-        i32 b = 10;
-        i32 c = a + b;
-        i32 d = a - b;
-    }
+start() {
+    i32 a = 10;
+    i32 b = 10;
+    i32 c = a + b;
+    i32 d = a - b;
 }
 
 : OUTPUT

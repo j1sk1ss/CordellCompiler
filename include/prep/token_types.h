@@ -11,6 +11,7 @@ typedef enum {
     /* This token tells us about current info for the 
        finfo structure in the rokenizer. */
     INCLUDE_FILE_TOKEN,
+    EOF_TOKEN,
 
     // Unknowns
     UNKNOWN_CHAR_TOKEN,

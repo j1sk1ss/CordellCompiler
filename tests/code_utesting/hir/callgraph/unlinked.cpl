@@ -1,9 +1,7 @@
-{
-    function foo();
-    function bar();
-    function baz();
-    start() {}
-}
+function foo();
+function bar();
+function baz();
+start() {}
 
 : OUTPUT
 digraph CALL_GRAPH {

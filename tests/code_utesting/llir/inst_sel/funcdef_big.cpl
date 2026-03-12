@@ -1,19 +1,17 @@
-{
-    function foo(...) {
-        i32 a = poparg as i32;
-        i32 a1 = poparg as i32;
-        i32 a2 = poparg as i32;
-        i32 a3 = poparg as i32;
-        i32 a4 = poparg as i32;
-        i32 a5 = poparg as i32;
-        i32 a6 = poparg as i32;
-        i32 a7 = poparg as i32;
-        i32 a8 = poparg as i32;
-    }
+function foo(...) {
+    i32 a = poparg as i32;
+    i32 a1 = poparg as i32;
+    i32 a2 = poparg as i32;
+    i32 a3 = poparg as i32;
+    i32 a4 = poparg as i32;
+    i32 a5 = poparg as i32;
+    i32 a6 = poparg as i32;
+    i32 a7 = poparg as i32;
+    i32 a8 = poparg as i32;
+}
 
-    start() {
-        foo(1);
-    }
+start() {
+    foo(1);
 }
 
 : OUTPUT

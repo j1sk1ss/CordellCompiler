@@ -1,6 +1,4 @@
-{
-    glob ro i32 a = 1;
-}
+glob ro i32 a = 1;
 
 : OUTPUT
 {

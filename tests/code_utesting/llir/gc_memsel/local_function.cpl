@@ -1,18 +1,16 @@
-{
-    function foo() {
+function foo() {
+    i32 a = 1;
+    i32 b = 1;
+    function bar() {
         i32 a = 1;
         i32 b = 1;
-        function bar() {
-            i32 a = 1;
-            i32 b = 1;
-            return a + b;
-        }
-        return a + b + bar();
+        return a + b;
     }
+    return a + b + bar();
+}
 
-    start() {
-        foo();
-    }
+start() {
+    foo();
 }
 
 : OUTPUT

@@ -1,8 +1,6 @@
-{
-    @[entry]
-    function foo() {
-        function bar() {
-        }
+@[entry]
+function foo() {
+    function bar() {
     }
 }
 

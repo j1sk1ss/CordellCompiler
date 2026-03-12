@@ -1,11 +1,9 @@
-{
-    @[entry]
-    function foo() {
-        @[naked]
-        function bar() {
-        }
-        bar();
+@[entry]
+function foo() {
+    @[naked]
+    function bar() {
     }
+    bar();
 }
 
 : OUTPUT

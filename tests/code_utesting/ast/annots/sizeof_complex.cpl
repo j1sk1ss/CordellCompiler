@@ -1,10 +1,8 @@
-{
-    start() {
-        arr a[10, ptr i32];
-        i32 b = @[sizeof]a;
-        i32 c = @[sizeof]a[0];
-        i32 d = @[sizeof]a[0][0];
-    }
+start() {
+   arr a[10, ptr i32];
+   i32 b = @[sizeof]a;
+   i32 c = @[sizeof]a[0];
+   i32 d = @[sizeof]a[0][0];
 }
 
 : OUTPUT

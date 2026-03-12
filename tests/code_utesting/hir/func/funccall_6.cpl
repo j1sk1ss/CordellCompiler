@@ -1,12 +1,10 @@
-{
-    function foo(ptr ptr i32 a) {
-        dref dref a;
-    }
+function foo(ptr ptr i32 a) {
+    dref dref a;
+}
 
-    start() {
-        arr a[10, ptr i32];
-        foo(ref a);
-    }
+start() {
+    arr a[10, ptr i32];
+    foo(ref a);
 }
 
 : OUTPUT

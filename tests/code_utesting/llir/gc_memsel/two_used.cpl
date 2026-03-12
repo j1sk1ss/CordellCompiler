@@ -1,10 +1,8 @@
-{
-    start() {
-        i32 a = 1;
-        i32 b = 1;
-        if a; exit b;
-        else exit a;
-    }
+start() {
+    i32 a = 1;
+    i32 b = 1;
+    if a; exit b;
+    else exit a;
 }
 
 : OUTPUT

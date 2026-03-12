@@ -1,13 +1,11 @@
-{
-    @[entry]
-    function foo() -> i32 {
-        @[cold] if 1; {
-            return 2;
-        }
-        else {
-        }
-        return 0;
+@[entry]
+function foo() -> i32 {
+    @[cold] if 1; {
+        return 2;
     }
+    else {
+    }
+    return 0;
 }
 
 : OUTPUT

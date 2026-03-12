@@ -1,4 +1,3 @@
-{
 : function foo();
 function bar();
 function baz();
@@ -7,9 +6,6 @@ A
 A
 #undef ASD
 :
-}
 
 : OUTPUT
-{
-}
 :

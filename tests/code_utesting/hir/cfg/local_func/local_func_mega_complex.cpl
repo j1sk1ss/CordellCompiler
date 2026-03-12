@@ -1,24 +1,22 @@
-{
-    function foo() {
-        if 1; {
-            function bar() {
-                if 1; {
-                    return 1;
-                }
-                return 0;
-            }
-        }
-        else {
-            function baz() {
-                if 1; {
-                    return 0;
-                }
+function foo() {
+    if 1; {
+        function bar() {
+            if 1; {
                 return 1;
             }
+            return 0;
         }
-
-        return 1;
     }
+    else {
+        function baz() {
+            if 1; {
+                return 0;
+            }
+            return 1;
+        }
+    }
+
+    return 1;
 }
 
 : OUTPUT

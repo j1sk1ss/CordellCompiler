@@ -1,10 +1,8 @@
-{
-    start() {
-        i32 a;
-        i32 b;
-        i8 c = a && b;
-        i8 d = a || b;
-    }
+start() {
+    i32 a;
+    i32 b;
+    i8 c = a && b;
+    i8 d = a || b;
 }
 
 : OUTPUT

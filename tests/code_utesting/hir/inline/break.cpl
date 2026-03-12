@@ -1,13 +1,11 @@
-{
-    function foo() {
-        return 100;
-    }
-    start() {
+function foo() {
+    return 100;
+}
+start() {
+    while 1; {
         while 1; {
-            while 1; {
-                foo();
-                break;
-            }
+            foo();
+            break;
         }
     }
 }

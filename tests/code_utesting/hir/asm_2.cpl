@@ -1,11 +1,9 @@
-{
-    function foo() -> i32;
-    start() {
-        asm (10 + 10, foo()) {
-            "mov rax, %0",
-            "mov rbx, %1",
-            "syscall"
-        }
+function foo() -> i32;
+start() {
+    asm (10 + 10, foo()) {
+        "mov rax, %0",
+        "mov rbx, %1",
+        "syscall"
     }
 }
 

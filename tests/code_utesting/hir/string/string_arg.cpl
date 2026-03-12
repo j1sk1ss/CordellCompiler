@@ -1,9 +1,7 @@
-{
-    function foo(ptr i8 msg);
-    start() {
-        str msg = "Hello world!";
-        foo(msg);
-    }
+function foo(ptr i8 msg);
+start() {
+    str msg = "Hello world!";
+    foo(msg);
 }
 
 : OUTPUT

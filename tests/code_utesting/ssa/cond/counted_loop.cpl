@@ -1,10 +1,8 @@
-{
-    start() {
-        i32 a = 10;
-        @[counter(10)] loop {
-        }
-        i32 b = 10;
+start() {
+    i32 a = 10;
+    @[counter(10)] loop {
     }
+    i32 b = 10;
 }
 
 : OUTPUT

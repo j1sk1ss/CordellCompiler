@@ -1,11 +1,9 @@
-{
-    @[entry]
-    function foo(i32 a) {
-        if a > 10; {
-            return foo(a - 1);
-        }
-        return foo(a + 1);
+@[entry]
+function foo(i32 a) {
+    if a > 10; {
+        return foo(a - 1);
     }
+    return foo(a + 1);
 }
 
 : OUTPUT

@@ -1,6 +1,4 @@
-{
-    @[section(".bss")] @[align(16)] glob i32 a;
-}
+@[section(".bss")] @[align(16)] glob i32 a;
 
 : OUTPUT
 { scope, id=1 }

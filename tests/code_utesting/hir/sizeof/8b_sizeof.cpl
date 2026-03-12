@@ -1,11 +1,9 @@
-{
     start() {
         i8 a;
         u8 b;
         i32 c = @[sizeof] a;
         i32 d = @[sizeof] b;
     }
-}
 
 : OUTPUT
 {

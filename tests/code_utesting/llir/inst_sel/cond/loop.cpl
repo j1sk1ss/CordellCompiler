@@ -1,7 +1,5 @@
-{
-    start() {
-        loop {
-        }
+start() {
+    loop {
     }
 }
 

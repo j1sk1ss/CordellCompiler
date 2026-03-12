@@ -1,12 +1,10 @@
-{
-    @[entry]
-    function foo(i32 a) {
-        if a > 10; {
-            foo(a + 1);
-        }
-
+@[entry]
+function foo(i32 a) {
+    if a > 10; {
         foo(a + 1);
     }
+
+    foo(a + 1);
 }
 
 : OUTPUT

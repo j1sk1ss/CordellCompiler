@@ -1,11 +1,9 @@
-{
-    start() {
-        @[straight]
-        switch 1; {
-            case 1; { exit 0; }
-            case 2; { exit 1; }
-            default { exit 2; }
-        }
+start() {
+    @[straight]
+    switch 1; {
+        case 1; { exit 0; }
+        case 2; { exit 1; }
+        default { exit 2; }
     }
 }
 

@@ -1,6 +1,4 @@
-{
-    start() {
-    }
+start() {
 }
 
 : OUTPUT

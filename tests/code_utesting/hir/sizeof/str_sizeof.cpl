@@ -1,10 +1,8 @@
-{
-    start() {
-        str a = "Hello world1";
-        str b = "world2";
-        i32 c = @[sizeof] a;
-        i32 d = @[sizeof] b;
-    }
+start() {
+    str a = "Hello world1";
+    str b = "world2";
+    i32 c = @[sizeof] a;
+    i32 d = @[sizeof] b;
 }
 
 : OUTPUT

@@ -1,7 +1,5 @@
-{
-    start() {
-        (0x349 as ptr i32)();
-    }
+start() {
+   (0x349 as ptr i32)();
 }
 
 : OUTPUT

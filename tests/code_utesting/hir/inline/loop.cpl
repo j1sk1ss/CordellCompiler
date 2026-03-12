@@ -1,13 +1,11 @@
-{
-    function getter() {
-        return 100;
-    }
+function getter() {
+    return 100;
+}
 
-    start() {
+start() {
+    while 1; {
         while 1; {
-            while 1; {
-                getter();
-            }
+            getter();
         }
     }
 }

@@ -1,11 +1,9 @@
-{
-    function foo(i32 a) {
-    }
-    function foo(i64 a) {
-    }
-    @[entry]
-    function foo(i8 a) {
-    }
+function foo(i32 a) {
+}
+function foo(i64 a) {
+}
+@[entry]
+function foo(i8 a) {
 }
 
 : OUTPUT

@@ -1,8 +1,6 @@
-{
-    @[entry]
-    @[section(".bss")]
-    function foo() {
-    }
+@[entry]
+@[section(".bss")]
+function foo() {
 }
 
 : OUTPUT

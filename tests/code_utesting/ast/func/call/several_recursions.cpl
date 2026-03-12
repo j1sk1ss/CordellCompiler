@@ -1,11 +1,9 @@
-{
-    function foo(i32 a) {
-        foo(a + 1);
-    }
+function foo(i32 a) {
+   foo(a + 1);
+}
 
-    function bar(i32 a) {
-        bar(a + 1);
-    }
+function bar(i32 a) {
+   bar(a + 1);
 }
 
 : OUTPUT

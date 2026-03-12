@@ -1,8 +1,6 @@
-{
-    start() {
-        arr a[10, ptr ptr ptr ptr u32] = { 0 };
-        u32 b = a[0][0][0][0][0];
-    }
+start() {
+    arr a[10, ptr ptr ptr ptr u32] = { 0 };
+    u32 b = a[0][0][0][0][0];
 }
 
 : OUTPUT

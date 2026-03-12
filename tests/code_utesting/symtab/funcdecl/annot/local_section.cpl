@@ -1,13 +1,11 @@
-{
-    @[entry]
-    @[section(".test")]
-    function foo() {
-        @[section(".local")]
-        function bar() {
+@[entry]
+@[section(".test")]
+function foo() {
+    @[section(".local")]
+    function bar() {
 
-        }
-        bar();
     }
+    bar();
 }
 
 : OUTPUT

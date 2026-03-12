@@ -1,7 +1,5 @@
-{
-    start() {
-        @[counter(10)] loop {
-        }
+start() {
+    @[counter(10)] loop {
     }
 }
 

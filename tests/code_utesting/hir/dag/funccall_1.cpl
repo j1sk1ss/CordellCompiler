@@ -1,8 +1,6 @@
-{
-    function foo(i32 a) -> i32;
-    start() {
-        foo((10 + 10) + (10 + 10));
-    }
+function foo(i32 a) -> i32;
+start() {
+    foo((10 + 10) + (10 + 10));
 }
 
 : OUTPUT

@@ -1,16 +1,14 @@
-{
-    function foo();
-    function foo(i32 a);
-    function foo(i32 a, i32 b);
-    function foo(f32 a);
-    function foo(f32 a, i32 b);
-    function foo(i8 a, i8 b, i8 c);
-    function foo(u64 a);
-    function foo(i64 a);
+function foo();
+function foo(i32 a);
+function foo(i32 a, i32 b);
+function foo(f32 a);
+function foo(f32 a, i32 b);
+function foo(i8 a, i8 b, i8 c);
+function foo(u64 a);
+function foo(i64 a);
 
-    function foo() {}
-    function foo(i32 a) {}
-}
+function foo() {}
+function foo(i32 a) {}
 
 : OUTPUT
 { scope, id=1 }

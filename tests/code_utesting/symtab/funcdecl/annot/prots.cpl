@@ -1,10 +1,8 @@
-{
-    @[entry]
-    function bar(i32 a);
-    function bar(i32 a) {}
-    function foo() -> i32 {
-        return 0;
-    }
+@[entry]
+function bar(i32 a);
+function bar(i32 a) {}
+function foo() -> i32 {
+    return 0;
 }
 
 : OUTPUT

@@ -115,7 +115,7 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
         }
     }
     
-    str_memcpy(&tkn->finfo, finfo, sizeof(token_fpos_t));
+    if (finfo) str_memcpy(&tkn->finfo, finfo, sizeof(token_fpos_t));
     return tkn;
 }
 
@@ -335,6 +335,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
         file_offset += bytes_read;
     }
 
+    list_add(tkn, TKN_create_token(EOF_TOKEN, NULL, NULL));
     return 1;
 }
 

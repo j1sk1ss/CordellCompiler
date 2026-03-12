@@ -1,8 +1,6 @@
-{
-   @[align(16)] glob i32 a;
-   glob i32 b;
-   @[align(64)]  glob i32 c;
-}
+@[align(16)] glob i32 a;
+glob i32 b;
+@[align(64)]  glob i32 c;
 
 : OUTPUT
 { scope, id=1 }

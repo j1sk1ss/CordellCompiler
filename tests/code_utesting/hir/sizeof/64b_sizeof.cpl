@@ -1,10 +1,8 @@
-{
-    start() {
-        i64 a;
-        u64 b;
-        i32 c = @[sizeof] a;
-        i32 d = @[sizeof] b;
-    }
+start() {
+    i64 a;
+    u64 b;
+    i32 c = @[sizeof] a;
+    i32 d = @[sizeof] b;
 }
 
 : OUTPUT

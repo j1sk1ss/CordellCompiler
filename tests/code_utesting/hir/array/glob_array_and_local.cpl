@@ -1,8 +1,6 @@
-{
-    glob arr a[1, i32];
-    start() {
-        arr b[1, ptr i32] = { ref a };
-    }
+glob arr a[1, i32];
+start() {
+    arr b[1, ptr i32] = { ref a };
 }
 
 : OUTPUT

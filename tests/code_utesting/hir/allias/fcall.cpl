@@ -1,9 +1,7 @@
-{
-    function foo(ptr i32 a);
-    start() {
-        i32 a;
-        foo(ref a);
-    }
+function foo(ptr i32 a);
+start() {
+    i32 a;
+    foo(ref a);
 }
 
 : OUTPUT

@@ -1,11 +1,9 @@
-{
-    start() {
-        loop {
-            break;
-        }
+start() {
+   loop {
+      break;
+   }
 
-        loop break;
-    }
+   loop break;
 }
 
 : OUTPUT

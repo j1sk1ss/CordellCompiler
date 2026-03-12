@@ -1,15 +1,13 @@
-{
-    start(i32 a) {
-        i32 b = a + 10;
-        @[cold] if b == 20; {
-            a += 1;
-            exit b;
-        }
-        else {
-            exit a;
-        }
-        i32 d = b + a;
+start(i32 a) {
+    i32 b = a + 10;
+    @[cold] if b == 20; {
+        a += 1;
+        exit b;
     }
+    else {
+        exit a;
+    }
+    i32 d = b + a;
 }
 
 : OUTPUT

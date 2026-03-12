@@ -1,7 +1,5 @@
-{
-    start() {
-        ((0x100 + 0x100) as ptr i0)(100);
-    }
+start() {
+   ((0x100 + 0x100) as ptr i0)(100);
 }
 
 : OUTPUT

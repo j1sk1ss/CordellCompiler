@@ -1,7 +1,5 @@
-{
-    @[naked] function foo();
-    @[naked] @[naked] @[naked] @[naked] function fee();
-}
+@[naked] function foo();
+@[naked] @[naked] @[naked] @[naked] function fee();
 
 : OUTPUT
 { scope, id=1 }

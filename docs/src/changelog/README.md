@@ -30,6 +30,27 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## There is no basic scope anymore!
+Eventually, the basic scope has gone. Now, the syntax is a lot closer to C:
+```cpl
+function foo();
+start() {
+    foo();
+    exit 1;
+}
+
+: Instead of :
+{
+    function foo();
+    start() {
+        foo();
+        exit 1;
+    }
+}
+```
+
+P.S.: *It doesn't affect on the existed code, its behaviour or something like that, it just looks better.*
+
 ## Remove section, align and import keywords
 Section and align was fully dublicated with annotations which is more convenient. The `import` isn't fits to a language's design from this point (headers fit better). </br>
 ```cpl

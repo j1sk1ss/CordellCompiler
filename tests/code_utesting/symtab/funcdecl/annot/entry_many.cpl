@@ -1,11 +1,9 @@
-{
-    function foo() {
-    }
-    @[entry]
-    function bar() {
-    }
-    function baz();
+function foo() {
 }
+@[entry]
+function bar() {
+}
+function baz();
 
 : OUTPUT
 {[ENTRY] id: 1, name: bar (virt: _main), ext=0, glob=0, used=0, local=0, naked=0, sid=1}

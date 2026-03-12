@@ -1,7 +1,5 @@
-{
-   @[section(".text")] glob ptr i0 printf;
-   @[section(".text")] function foo();
-}
+@[section(".text")] glob ptr i0 printf;
+@[section(".text")] function foo();
 
 : OUTPUT
 { scope, id=1 }

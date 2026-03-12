@@ -1,7 +1,5 @@
-{
-    @[entry]
-    function foo() {
-    }
+@[entry]
+function foo() {
 }
 
 : OUTPUT

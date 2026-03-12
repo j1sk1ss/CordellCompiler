@@ -1,7 +1,5 @@
-{
-    start() {
-        i32 a = (10 as i32) as i32;
-    }
+start() {
+   i32 a = (10 as i32) as i32;
 }
 
 : OUTPUT

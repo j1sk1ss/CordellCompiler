@@ -1,11 +1,9 @@
-{
-    function getter() -> i32 {
-        return 100;
-    }
+function getter() -> i32 {
+    return 100;
+}
 
-    start() {
-        getter();
-    }
+start() {
+    getter();
 }
 
 : OUTPUT

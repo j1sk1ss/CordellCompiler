@@ -1,10 +1,8 @@
-{
-    start() {
-        i32 a = 100;
-        i32 b = 200;
-        i32 c = (a + b) * a;
-        i32 d = (a + b) + a;
-    }
+start() {
+    i32 a = 100;
+    i32 b = 200;
+    i32 c = (a + b) * a;
+    i32 d = (a + b) + a;
 }
 
 : OUTPUT

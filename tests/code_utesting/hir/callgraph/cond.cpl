@@ -1,11 +1,9 @@
-{
-    function foo();
-    function bar() {
-        if 1; {
-            foo();
-        }
-        return 1;
+function foo();
+function bar() {
+    if 1; {
+        foo();
     }
+    return 1;
 }
 
 : OUTPUT

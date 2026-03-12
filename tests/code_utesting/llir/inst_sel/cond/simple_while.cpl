@@ -1,8 +1,6 @@
-{
-    start(i32 a) {
-        while a; {
-            a += 1;
-        }
+start(i32 a) {
+    while a; {
+        a += 1;
     }
 }
 

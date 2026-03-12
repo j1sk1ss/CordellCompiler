@@ -1,12 +1,10 @@
-{
-    @[section(".text")] glob i32 r;
-    glob i32 a;
-    @[section(".test")] glob i32 b;
-    @[section(".test")] ro i32 c;
-    glob i32 d;
-    @[section(".life-is-strange")] glob i32 t;
-    ro i32 y;
-}
+@[section(".text")] glob i32 r;
+glob i32 a;
+@[section(".test")] glob i32 b;
+@[section(".test")] ro i32 c;
+glob i32 d;
+@[section(".life-is-strange")] glob i32 t;
+ro i32 y;
 
 : OUTPUT
 {id: 1, a, i32, s_id: 1, align: 8}

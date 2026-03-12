@@ -1,13 +1,11 @@
-{
-    start() {
-        i32 a;
-        @[no_fall]
-        @[straight]
-        switch a; {
-            case 1; {}
-            case 2; {}
-            default {}
-        }
+start() {
+    i32 a;
+    @[no_fall]
+    @[straight]
+    switch a; {
+        case 1; {}
+        case 2; {}
+        default {}
     }
 }
 

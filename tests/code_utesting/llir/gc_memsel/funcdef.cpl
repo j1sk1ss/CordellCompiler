@@ -1,8 +1,6 @@
-{
-    @[entry]
-    function foo(i32 a) {
-        return a;
-    }
+@[entry]
+function foo(i32 a) {
+    return a;
 }
 
 : OUTPUT

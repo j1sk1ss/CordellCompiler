@@ -1,7 +1,5 @@
-{
-    @[section(".test")] glob str a = "Hello world!";
-    @[section(".test2")] glob ptr i8 b = "Hello world!";
-}
+@[section(".test")] glob str a = "Hello world!";
+@[section(".test2")] glob ptr i8 b = "Hello world!";
 
 : OUTPUT
 {id: 1, b, ptr i8, s_id: 1, align: 8}

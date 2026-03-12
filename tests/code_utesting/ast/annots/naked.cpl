@@ -1,7 +1,5 @@
-{
-    @[naked]
-    start() {}
-}
+@[naked]
+start() {}
 
 : OUTPUT
 { scope, id=1 }

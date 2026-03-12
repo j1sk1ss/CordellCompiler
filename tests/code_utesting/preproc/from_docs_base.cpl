@@ -1,25 +1,21 @@
-{
-    #include "print_h.cpl"
+#include "print_h.cpl"
 
-    start(i64 argc, ptr u64 argv) {
-        str msg = "Hello world!";
-        print(ref msg);
-        exit 0;
-    }
+start(i64 argc, ptr u64 argv) {
+    str msg = "Hello world!";
+    print(ref msg);
+    exit 0;
 }
 
 : OUTPUT
-{
 #line 0 "{X}"
 #line 0 "{X}"
-    function strlen(ptr i8 s) -> i64;
-#line 4 "{X}"
-    function print(ptr str msg) -> i0;
-#line 2 "{X}"
-    start(i64 argc, ptr u64 argv) {
-        str msg = "Hello world!";
-        print(ref msg);
-        exit 0;
-    }
+function strlen(ptr i8 s) -> i64;
+#line 3 "{X}"
+function print(ptr str msg) -> i0;
+#line 1 "{X}"
+start(i64 argc, ptr u64 argv) {
+    str msg = "Hello world!";
+    print(ref msg);
+    exit 0;
 }
 :

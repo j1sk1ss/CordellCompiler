@@ -1,8 +1,6 @@
-{
-    start() {
-        arr a[10, i16];
-        i32 a_len = @[sizeof]a / @[sizeof]a[0];
-    }
+start() {
+    arr a[10, i16];
+    i32 a_len = @[sizeof]a / @[sizeof]a[0];
 }
 
 : OUTPUT

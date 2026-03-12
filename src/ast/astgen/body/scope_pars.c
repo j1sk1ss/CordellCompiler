@@ -37,8 +37,7 @@ ast_node_t* cpl_parse_scope(PARSER_ARGS) {
     }
 
     ast_node_t* body = cpl_parse_block(it, ctx, smt, CLOSE_BLOCK_TOKEN);
-    if (body) stack_top(&ctx->scopes.stack, (void**)&body->sinfo.s_id);
-    else {
+    if (!body) {
         if (carry) stack_pop(&ctx->scopes.stack, NULL);
         PARSE_ERROR("Error during a parse of the scope block!");
         RESTORE_TOKEN_POINT;

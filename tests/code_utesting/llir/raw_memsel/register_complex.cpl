@@ -1,12 +1,10 @@
-{
-    #define RAX 0
-    #define RBX 1
-    #define RCX 2
-    start() {
-        @[register(RAX)] i32 a = 0;
-        @[register(RBX)] i32 b = 1;
-        @[register(RCX)] i32 c = 2;
-    }
+#define RAX 0
+#define RBX 1
+#define RCX 2
+start() {
+    @[register(RAX)] i32 a = 0;
+    @[register(RBX)] i32 b = 1;
+    @[register(RCX)] i32 c = 2;
 }
 
 : OUTPUT

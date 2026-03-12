@@ -1,24 +1,22 @@
-{
-    function factory(i32 k) -> ptr i0 {
-        switch k; {
-            case 1; {
-                function bar() -> i0 {
-                    return 1;
-                }
-                return bar;
+function factory(i32 k) -> ptr i0 {
+    switch k; {
+        case 1; {
+            function bar() -> i0 {
+                return 1;
             }
-            default {
-                function baz() -> i0 {
-                    return 2;
-                }
-                return baz;
+            return bar;
+        }
+        default {
+            function baz() -> i0 {
+                return 2;
             }
+            return baz;
         }
     }
+}
 
-    start() {
-        exit factory(0)();
-    }
+start() {
+    exit factory(0)();
 }
 
 : OUTPUT

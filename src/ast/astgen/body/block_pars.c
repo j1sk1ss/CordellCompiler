@@ -92,19 +92,20 @@ ast_node_t* cpl_parse_element(PARSER_ARGS) {
 ast_node_t* cpl_parse_block(PARSER_ARGS) {
     SAVE_TOKEN_POINT;
 
-    ast_node_t* node = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    if (!node) {
+    ast_node_t* base = AST_create_node_bt(CREATE_SCOPE_TOKEN);
+    if (!base) {
         PARSE_ERROR("Can't create a basic block for the scope block!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
+    stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != carry) {
         ast_node_t* block = cpl_parse_element(it, ctx, smt, carry);
-        if (block) AST_add_node(node, block);  /* If we parse succesfully, add a product to the body */
+        if (block) AST_add_node(base, block);  /* If we parse succesfully, add a product to the body */
         else if (!forward_token(it, 1)) break; /* If there is a error, proceed the next token        */
     }
 
     forward_token(it, 1); /* Move from the parser */
-    return node;
+    return base;
 }

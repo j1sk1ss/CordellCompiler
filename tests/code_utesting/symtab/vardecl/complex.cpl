@@ -1,7 +1,5 @@
-{
-    start() {
-        i32 a; i32 b; i32 c; i32 d; i32 e; i32 f; i32 g; i32 k; i32 l; i32 m; i32 n; i32 o; i32 p; i32 r; i32 s; i32 t;
-    }
+start() {
+    i32 a; i32 b; i32 c; i32 d; i32 e; i32 f; i32 g; i32 k; i32 l; i32 m; i32 n; i32 o; i32 p; i32 r; i32 s; i32 t;
 }
 
 : OUTPUT

@@ -1,10 +1,7 @@
-{
-    start() {
-        ptr ptr ptr i8 a;
-        i8 b = a[0][0][0];
-    }
+start() {
+    ptr ptr ptr i8 a;
+    i8 b = a[0][0][0];
 }
-
 : OUTPUT
 {
     start {

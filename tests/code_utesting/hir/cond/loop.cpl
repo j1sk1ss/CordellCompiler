@@ -1,8 +1,6 @@
-{
-    start() {
-        loop {
-            break;
-        }
+start() {
+    loop {
+        break;
     }
 }
 

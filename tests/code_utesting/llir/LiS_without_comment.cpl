@@ -1,7 +1,5 @@
-{
-    start() {
-        lis;
-    }
+start() {
+    lis;
 }
 
 : OUTPUT

@@ -1,9 +1,7 @@
-{
-    start() {
-        ptr i0 a = 0x1;
-        a = 0x2;
-        a = 0x3;
-    }
+start() {
+    ptr i0 a = 0x1;
+    a = 0x2;
+    a = 0x3;
 }
 
 : OUTPUT

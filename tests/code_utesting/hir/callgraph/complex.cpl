@@ -1,23 +1,21 @@
-{
-    function foo();
-    function bar() {
-        foo();
-    }
-    function baz() {
-        foo();
-        bar();
-        bar();
-    }
-    function fang() {
-        baz();
-        bar();
-        foo();
-    }
-    start() {
-        fang();
-        baz();
-        foo();
-    }
+function foo();
+function bar() {
+    foo();
+}
+function baz() {
+    foo();
+    bar();
+    bar();
+}
+function fang() {
+    baz();
+    bar();
+    foo();
+}
+start() {
+    fang();
+    baz();
+    foo();
 }
 
 : OUTPUT

@@ -1,9 +1,7 @@
-{
-    function foo(i32 a, i32 b) {
-    }
-    start() {
-        foo(1, 2);
-    }
+function foo(i32 a, i32 b) {
+}
+start() {
+    foo(1, 2);
 }
 
 : OUTPUT

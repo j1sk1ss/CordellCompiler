@@ -84,6 +84,7 @@ type TokenKind =
   | "eol"
   | "ident"
   | "int"
+  | "float"
   | "str"
   | "char"
   | "comment"
@@ -142,7 +143,7 @@ const OPERATORS = [
   "+","-","*","/","%","|","^","&","<",">", "->", "..."
 ].sort((a,b) => b.length-a.length);
 
-const PUNC = new Set(["{","}","(",")","[","]",",",";","#"]);
+const PUNC = new Set(["{","}","(",")","[","]",",",";","#","@"]);
 
 function isAlpha(ch: string) { return /[A-Za-z]/.test(ch); }
 function isDigit(ch: string) { return /[0-9]/.test(ch); }
@@ -277,6 +278,8 @@ function lex(text: string): Token[] {
 
     if (isDigit(ch)) {
       const start = i;
+      let kind: TokenKind = "int";
+
       if (text.startsWith("0x", i) || text.startsWith("0X", i)) {
         i += 2;
         while (i < text.length && /[0-9a-fA-F]/.test(text[i])) i++;
@@ -287,8 +290,28 @@ function lex(text: string): Token[] {
       }
       else {
         while (i < text.length && isDigit(text[i])) i++;
+
+        if (i < text.length && text[i] === "." && i + 1 < text.length && isDigit(text[i + 1])) {
+          kind = "float";
+          i++;
+          while (i < text.length && isDigit(text[i])) i++;
+        }
+
+        if (i < text.length && (text[i] === "e" || text[i] === "E")) {
+          const expStart = i;
+          let j = i + 1;
+          if (j < text.length && (text[j] === "+" || text[j] === "-")) j++;
+          if (j < text.length && isDigit(text[j])) {
+            kind = "float";
+            i = j + 1;
+            while (i < text.length && isDigit(text[i])) i++;
+          } else {
+            i = expStart;
+          }
+        }
       }
-      push("int", start, i);
+
+      push(kind, start, i);
       continue;
     }
 
@@ -402,6 +425,13 @@ class Parser {
     this.pendingAnnotations = [];
   }
 
+  private parseInlineAnnotations() {
+    while (this.atRaw("punc", "@")) {
+      const ann = this.parseAnnotation();
+      if (ann) this.pendingAnnotations.push(ann);
+    }
+  }
+
   private parseAnnotation(): string | undefined {
     const atTok = this.curRaw();
     if (!this.matchRaw("punc", "@")) {
@@ -466,13 +496,20 @@ class Parser {
   }
 
   private parseProgram() {
-    this.expect("punc", "{", "Program must start with '{'");
-    while (!this.at("eof") && !this.at("punc", "}")) {
+    if (this.match("punc", "{")) {
+      while (!this.at("eof") && !this.at("punc", "}")) {
+        const before = this.i;
+        this.parseTopItem();
+        if (this.i === before) this.i++;
+      }
+      this.expect("punc", "}", "Program must end with '}'");
+    }
+
+    while (!this.at("eof")) {
       const before = this.i;
       this.parseTopItem();
       if (this.i === before) this.i++;
     }
-    this.expect("punc", "}", "Program must end with '}'");
   }
 
   private parseTopItem() {
@@ -701,6 +738,7 @@ class Parser {
     const unknownType: TypeNode = { kind: "unknown" };
   
     while (true) {
+      this.parseInlineAnnotations();
       let isVarArgs = false;
   
       if (this.match("op", "...")) {
@@ -714,6 +752,8 @@ class Parser {
         seenVarArgs = true;
         isVarArgs = true;
   
+        this.parseInlineAnnotations();
+
         let t: TypeNode = unknownType;
         if (this.at("kw") && TYPE_KW.has(this.cur().text)) {
           t = this.parseType();
@@ -745,6 +785,7 @@ class Parser {
       }
   
       const t = this.parseType();
+      this.parseInlineAnnotations();
   
       const nameTok = this.cur();
       this.expect("ident", undefined, "param: expected identifier");
@@ -1206,6 +1247,7 @@ class Parser {
 
   private parseVarOrArrDecl(isTopLevel: boolean) {
     const mods = this.parseStorageMods();
+    this.parseInlineAnnotations();
     if (this.at("kw", "arr")) {
       const t2 = this.t[this.i + 1];
       const t3 = this.t[this.i + 2];
@@ -1264,6 +1306,8 @@ class Parser {
   }
 
   private parseType(): TypeNode {
+    this.parseInlineAnnotations();
+
     if (this.match("kw", "ptr")) {
       const to = this.parseType();
       return { kind: "ptr", to };
@@ -1298,7 +1342,9 @@ class Parser {
   }
 
   private parseLiteral() {
+    this.parseInlineAnnotations();
     if (this.match("int")) return;
+    if (this.match("float")) return;
     if (this.match("str")) return;
     if (this.match("char")) return;
 
@@ -1442,6 +1488,8 @@ class Parser {
   }
 
   private parsePrimary(): ExprInfo {
+    this.parseInlineAnnotations();
+
     if (this.at("kw", "syscall")) {
       const tok = this.cur();
       this.i++;
@@ -1469,6 +1517,11 @@ class Parser {
     if (this.at("int")) {
       const tok = this.cur(); this.i++;
       return { type: { kind: "prim", name: "i64" }, start: tok.start, end: tok.end };
+    }
+
+    if (this.at("float")) {
+      const tok = this.cur(); this.i++;
+      return { type: { kind: "prim", name: "f64" }, start: tok.start, end: tok.end };
     }
 
     if (this.at("str")) {

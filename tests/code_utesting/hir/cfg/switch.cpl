@@ -1,15 +1,13 @@
-{
-    start() {
-        switch 1; {
-            case 1; {}
-            case 2; { exit 1; }
-            case 3; {}
-            case 4; { break; }
-            default { break; }
-        }
-
-        exit 1;
+start() {
+    switch 1; {
+        case 1; {}
+        case 2; { exit 1; }
+        case 3; {}
+        case 4; { break; }
+        default { break; }
     }
+
+    exit 1;
 }
 
 : OUTPUT

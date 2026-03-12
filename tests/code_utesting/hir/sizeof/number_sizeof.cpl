@@ -1,7 +1,5 @@
-{
-    start() {
-        i32 a = @[sizeof]1;
-    }
+start() {
+    i32 a = @[sizeof]1;
 }
 
 : OUTPUT

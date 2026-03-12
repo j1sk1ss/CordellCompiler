@@ -1,10 +1,8 @@
-{
-    start() {
-        ptr i8 a;
-        ptr u64 b;
-        i32 c = @[sizeof] a;
-        i32 d = @[sizeof] b;
-    }
+start() {
+    ptr i8 a;
+    ptr u64 b;
+    i32 c = @[sizeof] a;
+    i32 d = @[sizeof] b;
 }
 
 : OUTPUT

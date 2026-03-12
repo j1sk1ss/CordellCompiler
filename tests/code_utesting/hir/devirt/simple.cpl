@@ -1,12 +1,10 @@
-{
-    function sum(i32 a, i32 b) -> i32;
-    function sum(f64 a, f64 b) -> f64 {
-        return sum(a as i32, b as i32) as f64;
-    }
+function sum(i32 a, i32 b) -> i32;
+function sum(f64 a, f64 b) -> f64 {
+    return sum(a as i32, b as i32) as f64;
+}
 
-    start() {
-        exit sum(10.0, 10.0);
-    }
+start() {
+    exit sum(10.0, 10.0);
 }
 
 : OUTPUT

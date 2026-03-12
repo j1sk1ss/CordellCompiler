@@ -1,15 +1,13 @@
-{
-    start() {
-        i32 a;
-        @[no_fall] switch a; {
-            case 1; {}
-            case 2; {}
-            case 3; {}
-            case 4; {}
-            default {}
-        }
-        exit 1;
+start() {
+    i32 a;
+    @[no_fall] switch a; {
+        case 1; {}
+        case 2; {}
+        case 3; {}
+        case 4; {}
+        default {}
     }
+    exit 1;
 }
 
 : OUTPUT

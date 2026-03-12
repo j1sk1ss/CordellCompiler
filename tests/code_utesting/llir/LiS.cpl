@@ -1,9 +1,7 @@
-{
-    start() {
-        i32 a = 1;
-        lis "test";
-        exit a;
-    }
+start() {
+    i32 a = 1;
+    lis "test";
+    exit a;
 }
 
 : OUTPUT

@@ -1,9 +1,7 @@
-{
-    function foo() -> ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr i32;
-    function foo1() -> ptr str;
-    function foo2() -> i8;
-    function foo3() -> i0;
-}
+function foo() -> ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr i32;
+function foo1() -> ptr str;
+function foo2() -> i8;
+function foo3() -> i0;
 
 : OUTPUT
 { scope, id=1 }

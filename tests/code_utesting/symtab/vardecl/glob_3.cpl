@@ -1,8 +1,6 @@
-{
-    glob i32 a;
-    start() {
-        i32 a;
-    }
+glob i32 a;
+start() {
+    i32 a;
 }
 
 : OUTPUT

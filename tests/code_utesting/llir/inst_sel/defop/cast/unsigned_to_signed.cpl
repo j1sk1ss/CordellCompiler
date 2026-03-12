@@ -1,8 +1,6 @@
-{
-    start() {
-        i64 a = 1;
-        u64 b = a;
-    }
+start() {
+    i64 a = 1;
+    u64 b = a;
 }
 
 : OUTPUT

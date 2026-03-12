@@ -1,12 +1,10 @@
-{
-    start() {
-        i32 a = 0;
-        loop {
-            a = 1;
-            break;
-        }
-        i32 b = a;
+start() {
+    i32 a = 0;
+    loop {
+        a = 1;
+        break;
     }
+    i32 b = a;
 }
 
 : OUTPUT

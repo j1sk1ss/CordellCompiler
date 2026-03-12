@@ -1,9 +1,7 @@
-{
-    function foo(i32 a) -> i32;
-    start() {
-        ptr i0 a = foo;
-        i32 b = a(10);
-    }
+function foo(i32 a) -> i32;
+start() {
+    ptr i0 a = foo;
+    i32 b = a(10);
 }
 
 : OUTPUT

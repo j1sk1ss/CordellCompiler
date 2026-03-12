@@ -1,9 +1,7 @@
-{
-    @[entry]
-    function foo(...) {
-        i64 a = poparg as i64;
-        ptr f32 b = poparg as ptr f32;
-    }
+@[entry]
+function foo(...) {
+    i64 a = poparg as i64;
+    ptr f32 b = poparg as ptr f32;
 }
 
 : OUTPUT

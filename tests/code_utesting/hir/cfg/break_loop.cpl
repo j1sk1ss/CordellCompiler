@@ -1,9 +1,7 @@
-{
-    start() {
-        loop {
-            if 1; {
-                break;
-            }
+start() {
+    loop {
+        if 1; {
+            break;
         }
     }
 }
