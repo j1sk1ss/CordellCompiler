@@ -24,6 +24,29 @@ function main() -> i0;
 ## Some words about annotations
 *P.S. If you're not a system programmer, or you don't plan to use these annotations, you can safely skip this block. These annotations (as all annotations) are optional.* </br>
 
+### align
+A declaration of a primitive or of an array type (an array or a string) can be annotated with the `align`. This annotation will add an additional padding during memory stack allocation.
+```cpl
+@[align(16)] glob i32 a;
+start() {
+    @[align(8)] i32 b;
+    @[align(8)] i32 c = a;
+}
+```
+
+By default align set to platform `bitness / 8` (For instance on the `gnu_x86_64` this is 8 bytes).
+
+### section
+A function and a global declaration can be placed in a specific section. To perform this, you will need to use the `section` annotation:
+```cpl
+    @[section(".lis")] glob i32 a;
+    @[section(".lis")] function foo() {}
+```
+
+**Note 1:** Function prototype doesn't affected by a section. To put the function's code to a section, you need to define the function. </br>
+**Note 2:** By default all global/read-only variables and functions are placed in the platform's code section from the configuration. </br>
+**Note 3:** Local functions can't be placed in the specific section. They will stay with their parent function in the same section.
+
 ### sizeof
 `Sizeof` annotation is an annotation, which means it must be used in the next way:
 ```cpl
@@ -31,7 +54,7 @@ i32 a;
 i32 b = @[sizeof]a;
 ```
 
-It won't work with non-variable and type objects. To gather the type's size, you will need to use a temprorary variable (at least for now):
+It won't work with non-variable and type objects. To gather the type's size, you will need to use a temporary variable (at least for now):
 ```cpl
 i32 index;
 i64 __tmp;
@@ -56,6 +79,44 @@ Register annotation is similar to C's `register` keyword which links a variable 
 ```
 
 *P.S.: This annotation accepts the index of a register from mapping table (see related documentation for every supported target), and can link up to infinity variables to one register, which means - you need to pay extra attention here, if you want to play with registers byepassing the register allocator.*
+
+### no_fall
+The switch structure is a great tool to solve a problem with multiple cases. But in C/C++/(old)Java, this structure has to be used with the `break` statement. It is neccesary considering the fallthrough from upper cases to lower cases, and can be very annoing if there is only one statement in the case, and we forced to add the `break` to close the case. </br>
+Also, the `hot` and `cold` annotations are really sensitive to unclosed cases and functions, which means, we have to add the `break` in `cold` or `hot` cases even if we don't care about fallthrough. </br>
+To address this issue, the language supports the `no_fall` annotation that can be applied to switch structures:
+```cpl
+@[no_fall] switch cond; {
+    case X; {}
+    default {}
+}
+```
+
+It will generate a break statement at the end of every case and default option:
+```cpl
+switch cond; {
+    case X; { break; }
+    default { break; }
+}
+```
+
+P.S.: *This is a pure syntax sugar. It doesn't change the behaviour of the switch in general.*
+
+### straight
+By default, the `switch` structure is translated to a binary search block, which in some edge cases can increase the execution time and the final code size. To change the generation from binary search approach to a linear search (generate several `if-elseif-else` statements with direct check with case statements) you can use this annotation.
+```cpl
+@[straight] switch cond; {
+    case X; {}
+    default {}
+}
+```
+
+It will be considered same as this code:
+```cpl
+if code == X; {
+}
+else {
+}
+```
 
 ### hot and cold
 Before our discussion, I want to provide the most canonic example that's even possible here:

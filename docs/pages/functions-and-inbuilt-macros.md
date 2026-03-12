@@ -74,6 +74,49 @@ function foo(i32 a, i32 b = 1, i32 c = 1);
 function foo(i32 a, i32 b = 1);
 ```
 
+## Function pointers
+A function can be easilly stored as a pointer with usage of the next code:
+```cpl
+function foo(i32 a) -> i32;
+start() {
+    ptr i0 a = foo;
+    i32 res = a(100);
+}
+```
+
+As it can be seen from the code above, the 'pointer' function doesn't have a signature. Such a disadvantage disables all efforts from static analysis, function overloading and default arguments. In a nutshell, it will make this:
+```cpl
+function foo(i32 a) -> i32;
+function foo(u32 a = 10) -> i0;
+function bar(i8 a = 'a');
+start() {
+    ptr i0 a = foo; : Will store function foo(i32 a) -> i32; given that this function is the top function :
+    ptr i0 b = bar;
+    b(); : Will cause an undefined behaviour given the lack of arguemnts :
+}
+```
+
+However, such an ability can make possible the usage of different functions in the same context. For instance:
+```cpl
+function min(i32 a, i32 b);
+function max(i32 a, i32 b);
+function logic(ptr i0 func, i32 a, i32 b) {
+    func(a, b);
+}
+
+start() {
+    logic(min, 10, 20);
+    logic(max, 10, 20);
+}
+```
+
+**Also** a function pointer can be not only a function (sounds weird, isn't?). It can be any `i0` pointer as well:
+```cpl
+((0x100 + 0xB045) as ptr i0)(100); : <- Valid function call that will invoke a function at 0xB145 address :
+ptr i0 a = 123;
+a(100 + 123); : <- Valid function call that will invoke any function (or not) at the 123 address :
+```
+
 ## Local functions
 Local function can be easily defined by the next code:
 ```cpl
@@ -105,6 +148,8 @@ start() {
     foo();
 }
 ```
+
+P.S.: *This is a pure syntax sugar. You can define same functions at the top level. One disadvantage here: You will need to make uniqe names for them given the scope symbol resolve in the compiler.*
 
 ## Variadic arguments
 CPL supports variadic arguments in the same way hot it supports C language. To use the variadic arguments in a function, add the `...` lexem **as the final arguement**!

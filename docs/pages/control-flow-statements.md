@@ -2,7 +2,7 @@
 ## if statement
 `if` keyword similar to the `C`'s `if` statement. Key change here is the `;` token after the condition. 
 ```cpl
-if <condition>; {
+if cond; {
 }
 else {
 }
@@ -32,11 +32,12 @@ else                    a = 0;
 
 ## while statement
 ```cpl
-while <condition>; {
-    <statements>;
+while cond; {
+    stmt;
+    stmt;
 }
 
-while <condition>; <statement>;
+while cond; stmt;
 ```
 
 ## loop statement
@@ -44,10 +45,11 @@ In difference with the `while` statement, the `loop` statement allows to build e
 **Importand Note:** You *must* insert the `break` keyword somewhere in a body of this statement or use the `counter` annotation. Otherwise it will became an infinity loop.
 ```cpl
 loop {
-    <statements>;
+    stmt;
+    stmt;
 }
 
-loop <statement>;
+loop stmt;
 ```
 
 The `loop` statement supports the `counter` annotation. This will make a counted loop with the fixed amount of iterations:
@@ -73,20 +75,4 @@ switch cond; {
 }
 ```
 
-**Note 3:** *The switch statement is generated with the usage of a binary search approach. That means, consider this structure over the multiple ifs.* </br>
-
-Switch supports several annotations:
-- `no_fall` - No fall annotation will disable the fallthrough:
-```cpl
-@[no_fall] switch cond; {
-    case X; {}
-    default {}
-}
-```
-- `straight` - Will shift switch generation from binary search approach to a linear search. In other words, it will generate several `if-elseif-eslse` statements with direct check with case statements:
-```cpl
-@[straight] switch cond; {
-    case X; {}
-    default {}
-}
-```
+**Note 3:** *The switch statement is generated with the usage of a binary search approach by default (see Annotations about other options). This means, consider this structure over the multiple ifs.* </br>
