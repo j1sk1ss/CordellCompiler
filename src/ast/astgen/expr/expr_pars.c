@@ -164,6 +164,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
             }
             case OPEN_BRACKET_TOKEN: {
                 forward_token(it, 1);
+                int annot_off = annotation_reserve(ctx);
                 ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
                 if (!node || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
                     PARSE_ERROR("Error during a binary expression parsing! The bracket wasn't closed!");
@@ -173,6 +174,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 }
                 
                 forward_token(it, 1);
+                annotation_unreserve(ctx, annot_off);
                 return node;
             }
             case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */

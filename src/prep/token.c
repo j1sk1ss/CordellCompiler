@@ -82,6 +82,10 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
     token_t* tkn = mm_malloc(sizeof(token_t));
     if (!tkn) return NULL;
     str_memset(tkn, 0, sizeof(token_t));
+    
+    tkn->t_type = type;
+    if (finfo) str_memcpy(&tkn->finfo, finfo, sizeof(token_fpos_t));
+    if (!value) return tkn;
 
     string_t* input = create_string((char*)value);
     if (!input) {
@@ -89,7 +93,6 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
         return NULL;
     }
 
-    tkn->t_type = type;
     switch (type) {
         case UNKNOWN_NUMERIC_TOKEN: {
             int is_float = 0;
@@ -115,7 +118,6 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
         }
     }
     
-    if (finfo) str_memcpy(&tkn->finfo, finfo, sizeof(token_fpos_t));
     return tkn;
 }
 
