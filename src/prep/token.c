@@ -69,7 +69,7 @@ token_t* TKN_copy_token(token_t* src) {
     token_t* tkn = mm_malloc(sizeof(token_t));
     if (!tkn) return NULL;
     str_memcpy(tkn, src, sizeof(token_t));
-    tkn->body = src->body->copy(src->body);
+    if (src->body) tkn->body = src->body->copy(src->body);
     if (!tkn->body) {
         mm_free(tkn);
         return NULL;

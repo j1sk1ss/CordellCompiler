@@ -18,7 +18,7 @@
 #define HAS_ANNOTATION(type, nd, act)             \
     foreach (annotation_t* annot, &nd->annots) {  \
         if (annot->t == type) { act; break; }     \
-    }                                             \
+    }                                            \
 
 /*
 Dump and load information for the 'poparg' keyword.

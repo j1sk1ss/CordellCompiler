@@ -6,6 +6,7 @@ Annotations are usefull tool in terms of system development. For non-system prog
 - `address` - Will put a function to a specific address.
 - `entry` - Set function as an entry point of the code.
 - `no_fall` - Generate hidden break statements in cases.
+- `not_lazy` - Generate both sides of a logic expression before evaluation.
 - `straight` - Generate case choice with linear search approach.
 - `counter` - Make a counted loop.
 - `hot` and `cold` - Send a branch to the end of a function.

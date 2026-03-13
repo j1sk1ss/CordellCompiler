@@ -11,6 +11,7 @@
 #define SECTN_ANNOTATION_COMMAND "section"
 #define ADDRS_ANNOTATION_COMMAND "address"
 #define NOFAL_ANNOTATION_COMMAND "no_fall"
+#define NTLAZ_ANNOTATION_COMMAND "not_lazy"
 #define STRGH_ANNOTATION_COMMAND "straight"
 #define COUNT_ANNOTATION_COMMAND "counter"
 #define HOTSC_ANNOTATION_COMMAND "hot"
@@ -29,6 +30,7 @@ typedef struct {
     char      is_naked    : 1;
     char      is_entry    : 1;
     char      is_nofall   : 1;
+    char      is_notlazy  : 1;
     char      is_straight : 1;
     char      is_hot      : 1;
     char      is_cold     : 1;
@@ -42,6 +44,7 @@ typedef enum {
     ADDRESS_ANNOTATION,  /* Where place the object?                   */
     ENTRY_ANNOTATION,    /* Is this an entry function?                */
     NOFALL_ANNOTATION,   /* switch with a break as a default command  */
+    NOTLAZY_ANNOTATION,  /* && and || with full evaluation            */
     STRAIGHT_ANNOTATION, /* switch based on if-elseif-else            */
     COUNTER_ANNOTATION,  /* hidden counter-break instructure          */
     HOT_ANNOTATION,      /* Will make the linked else branch cold     */

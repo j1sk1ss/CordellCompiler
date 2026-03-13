@@ -30,6 +30,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## not_lazy
+Lazy logic operators are the default solution for logic in C language, and now, CPL supports the alternative approach. With this annotation the compiler will generate both sides before the final evaluation.
+
 ## There is no basic scope anymore!
 Eventually, the basic scope has gone. Now, the syntax is a lot closer to C:
 ```cpl

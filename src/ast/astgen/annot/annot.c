@@ -36,6 +36,7 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
             case ALIGN_ANNOTATION: summary->align = annot->data.align;       break;
             case NAKED_ANNOTATION: summary->is_naked = 1;                    break;
             case NOFALL_ANNOTATION: summary->is_nofall = 1;                  break;
+            case NOTLAZY_ANNOTATION: summary->is_notlazy = 1;                break;
             case STRAIGHT_ANNOTATION: summary->is_straight = 1;              break;
             case HOT_ANNOTATION: summary->is_hot = 1;                        break;
             case COLD_ANNOTATION: summary->is_cold = 1;                      break;
