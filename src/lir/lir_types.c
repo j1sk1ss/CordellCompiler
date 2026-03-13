@@ -94,7 +94,7 @@ lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     return reg;
 }
 
-int LIR_movop(lir_operation_t op) {
+int LIR_is_movop(lir_operation_t op) {
     switch (op) {
         case LIR_CDQ:
         case LIR_XCHG:
@@ -114,12 +114,13 @@ int LIR_movop(lir_operation_t op) {
         case LIR_MOVSX:
         case LIR_MOVSXD:
         case LIR_MOVZX:
+        case LIR_LDREF:
         case LIR_fMOV: return 1;
         default: return 0;
     }
 }
 
-int LIR_writeop(lir_operation_t op) {
+int LIR_is_writeop(lir_operation_t op) {
     switch (op) {
         case LIR_POP:
         case LIR_bXOR:
@@ -137,11 +138,11 @@ int LIR_writeop(lir_operation_t op) {
         case LIR_iDIV: 
         case LIR_GDREF:
         case LIR_REF: return 1;
-        default: return LIR_movop(op);
+        default: return LIR_is_movop(op);
     }
 }
 
-int LIR_readop(lir_operation_t op) {
+int LIR_is_readop(lir_operation_t op) {
     switch (op) {
         case LIR_TST:
         case LIR_CMP:
@@ -150,6 +151,17 @@ int LIR_readop(lir_operation_t op) {
         case LIR_aMOV:
         case LIR_VRUSE:
         case LIR_EXITOP: return 1;
-        default: return LIR_writeop(op);
+        default: return LIR_is_writeop(op);
+    }
+}
+
+int LIR_has_sideeffect(lir_operation_t op) {
+    switch (op) {
+        case LIR_LDREF:
+        case LIR_FCLL:
+        case LIR_ECLL:
+        case LIR_SYSC:
+        case LIR_aMOV: return 1;
+        default: return 0;
     }
 }

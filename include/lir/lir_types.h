@@ -229,7 +229,7 @@ Params:
 
 Returns 1 if the opration is a move-like operation.
 */
-int LIR_movop(lir_operation_t op);
+int LIR_is_movop(lir_operation_t op);
 
 /*
 Check is the LIR operation is a write operation.
@@ -240,7 +240,7 @@ Params:
 
 Returns 1 if the opration is a write operation.
 */
-int LIR_writeop(lir_operation_t op);
+int LIR_is_writeop(lir_operation_t op);
 
 /*
 Check is the LIR operation is a read operation.
@@ -251,6 +251,9 @@ Params:
 
 Returns 1 if the opration is a read operation.
 */
-int LIR_readop(lir_operation_t op);
+int LIR_is_readop(lir_operation_t op);
+
+// TODO
+int LIR_has_sideeffect(lir_operation_t op);
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef PEEPHOLE_H_
 #define PEEPHOLE_H_
 
+#include <std/logg.h>
 #include <std/math.h>
 #include <symtab/symtab.h>
 #include <hir/cfg.h>

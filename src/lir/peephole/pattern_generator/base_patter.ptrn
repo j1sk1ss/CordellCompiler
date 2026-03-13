@@ -15,12 +15,29 @@ xor areg_1, areg_1
 mov areg_1, obj_2                     ; Redundant move operation
 mov obj_2, areg_1                     ; areg_2 already has areg_1 value
 ->
-mov areg_1, areg_2
+mov areg_1, obj_2
+/
+
+xor areg_1, areg_1
+mov areg_2, areg_1
+->
+xor areg_1, areg_1
+xor areg_2, areg_2
 /
 
 ; ==================
-; MUL patterns
+; DIV and MUL patterns
 ; ==================
+
+div obj, const 1
+->
+delete
+/
+
+div areg_1, aconst_2 [if:arg3:power2]
+->
+shr areg_1, aconst_2 [do:arg3:log2]
+/
 
 mul obj, const 0                      ; X * 0 = 0
 ->                                    ; Note: xor isn't suited in this case
@@ -32,9 +49,9 @@ mul obj, const 1                      ; X * 1 = X
 delete
 /
 
-mul areg_1, aconst_2 [if:arg2:power2]
+mul areg_1, aconst_2 [if:arg3:power2]
 ->
-shl areg_1, aconst_2 [do:arg2:log2]
+shl areg_1, aconst_2 [do:arg3:log2]
 /
 
 mul areg_1, const -1
@@ -49,11 +66,6 @@ neg areg_1
 add obj, const 0                      ; X + 0 = X
 ->
 delete
-/
-
-add areg_1, aconst_2 [if:arg2:power2] ; X + 1024 == X >> 10
-->
-shr areg_1, aconst_2 [do:arg2:log2]
 /
 
 add areg, const 1

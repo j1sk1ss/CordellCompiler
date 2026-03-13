@@ -23,7 +23,7 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
 
     if (!entries)         print_warn("The 'start' function isn't found!");
     else if (entries > 1) print_error("There is more than 1 entry point in code!");
-    return entries <= 1;
+    return 1;
 }
 
 int AST_unload_ctx(ast_ctx_t* ctx) {

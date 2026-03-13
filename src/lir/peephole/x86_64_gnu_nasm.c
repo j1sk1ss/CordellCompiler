@@ -47,30 +47,34 @@ Return 1 if operation succeed, otherwise it will return 0.
 static int _second_pass(cfg_block_t* bb) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
-        if (LIR_movop(lh->op)) {
+        if (LIR_is_movop(lh->op)) {
             lir_subject_t* src = lh->sarg;
             lir_subject_t* dst = lh->farg;
 
-            lir_block_t* currh = lh->next;
+            lir_block_t* currh = LIR_get_next(lh->next, bb->lmap.exit, 0);
             while (currh) {
-                if (LIR_writeop(lh->op) && (LIR_subj_equals(currh->farg, dst))) break; 
-                if (currh->op == lh->op) {
-                    if (LIR_subj_equals(currh->farg, src)) break;
+                /* If we met a write operation which re-writes the destination,
+                   we can't continue our optimization anymore (dst has dead) */
+                if (
+                    LIR_is_writeop(currh->op) && (
+                        LIR_subj_equals(currh->farg, dst) ||
+                        LIR_subj_equals(currh->farg, src)
+                    )
+                ) break;
+                if (LIR_is_movop(currh->op)) {
                     if (
-                        LIR_subj_equals(currh->sarg, dst) &&
-                        (currh->farg->t != LIR_MEMORY || src->t != LIR_MEMORY)
+                        LIR_subj_equals(currh->sarg, dst) &&                    /* If instruction uses our subject          */
+                        (currh->farg->t != LIR_MEMORY || src->t != LIR_MEMORY)  /* And it is possible to use them in one op */
                     ) {
                         if (!_check_home(currh->sarg->home, currh->sarg)) {
                             LIR_unload_subject(currh->sarg);
                         }
 
-                        currh->sarg = src;
-                        currh->op   = lh->op;
+                        currh->sarg = LIR_copy_subject(src);
                     }
                 }
 
-                if (currh == bb->lmap.exit) break;
-                currh = currh->next;
+                currh = LIR_get_next(currh, bb->lmap.exit, 1);
             }
         }
 
@@ -80,7 +84,7 @@ static int _second_pass(cfg_block_t* bb) {
     return 1;
 }
 
-static unsigned int _visit_counter = 1;
+static unsigned int _visit_counter = 100;
 
 /*
 Recursive cleanup will clean each block from the CFG with one simple rule:
@@ -128,9 +132,9 @@ static int _recursive_cleanup(
         ) return 1;                                   /* That means we can safely mark the target write command       */
 
         if (
-            lh->op == LIR_aMOV ||                     /* Skip reserved instruction                                    */
+            LIR_has_sideeffect(lh->op) ||             /* Skip reserved instruction                                    */
             (
-                LIR_readop(lh->op) &&                 /* If this instruction reads second and third arguments         */
+                LIR_is_readop(lh->op) &&              /* If this instruction reads second and third arguments         */
                 (
                     LIR_subj_equals(lh->farg, trg) || /* And either the first argument is equal to the target         */
                     LIR_subj_equals(lh->sarg, trg) || /* or the second argument is equal to the target.               */
@@ -154,8 +158,8 @@ static int _cleanup_pass(cfg_block_t* bb) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
         if (
-            LIR_writeop(lh->op) && /* If this is a write operation */
-            lh->op != LIR_aMOV     /* but isn't a reserved one     */
+            LIR_is_writeop(lh->op) &&   /* If this is a write operation */
+            !LIR_has_sideeffect(lh->op) /* but isn't a reserved one     */
         ) {
             _visit_counter++;
             if (_recursive_cleanup(lh->op, -1, bb, lh->farg, lh, lh->next)) {

@@ -45,14 +45,16 @@ The same code snippet on C language:
 #include <stdio.h>
 int main(int argc, char* argv[]) {
     puts("Hello, World!");
+    return 0;
 }
 ```
 
-Actually, with usage of the same header file, the CPL code can be really close to the C above:
+Actually, with usage of the same header file, the CPL code can be really close to the C code above:
 ```cpl
 #inclide "stdio_h.cpl"
 @[entry("_start")] 
-function main(i32 argc, ptr ptr i8 argv) {
+function main(i32 argc, ptr ptr i8 argv) -> i32 {
     puts("Hello, World!");
+    exit 0;
 }
 ```
