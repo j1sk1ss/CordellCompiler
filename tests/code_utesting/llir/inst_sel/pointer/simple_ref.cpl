@@ -4,7 +4,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %3 = &(%0);
 %2 = %3;
 %4 = %2;

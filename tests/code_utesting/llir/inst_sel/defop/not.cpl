@@ -3,7 +3,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %4 = $1;
 %3 = %4;
 not %3;

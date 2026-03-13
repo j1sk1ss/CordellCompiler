@@ -6,7 +6,7 @@
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %3 = strt_loadarg();
 %2 = %3 as i64;
 %0 = %2;

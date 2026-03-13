@@ -7,7 +7,7 @@
 }
 
 : OUTPUT
-BB1: start
+BB{X} start
 %0 = arr_alloc($10);
 %1 = &(%0);
 %2 = $0 * 8;

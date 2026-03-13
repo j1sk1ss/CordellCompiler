@@ -6,7 +6,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: fn foo0(i32 a, i32 b, i32 c, i32 d, i32 e, i32 f, i32 g, i32 k, i32 l)
+BB{X} fn foo0(i32 a, i32 b, i32 c, i32 d, i32 e, i32 f, i32 g, i32 k, i32 l)
 r15 = rdi;
 rax = r15;
 r15 = rsi;
@@ -26,7 +26,7 @@ rax = r15;
 r15 = [rbp + 24];
 rax = r15;
 fend
-BB{X}: start
+BB{X} start
 use $1;
 use $2;
 use $3;

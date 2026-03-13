@@ -8,7 +8,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 call {X}() -> i0;
 call {X}() -> i0;
 %{X} = $10 as i32;

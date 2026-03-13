@@ -4,6 +4,6 @@
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 send
 :

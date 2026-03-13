@@ -7,7 +7,7 @@ function foo() {
 }
 
 : OUTPUT
-BB{X}: fn _main()
+BB{X} fn _main()
 %2 = $10;
 %1 = %2;
 %3 = %1;
@@ -15,10 +15,10 @@ BB{X}: fn _main()
 cmp %0, 0;
 je lb10;
 jne lb8;
-BB{X}: lb8:
+BB{X} lb8:
 %5 = $1;
 %4 = %5;
 exit %4;
-BB{X}: lb10:
+BB{X} lb10:
 fend
 :

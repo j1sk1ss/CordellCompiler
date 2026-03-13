@@ -1,11 +1,9 @@
-{
-    start() {
-        syscall(syscall(1));
-    }
+start() {
+    syscall(syscall(1));
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 use $1;
 stparam($1);
 syscall;

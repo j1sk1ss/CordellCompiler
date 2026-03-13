@@ -95,7 +95,7 @@ At the file start several flags can be placed:
 Also the 'OUTPUT' section has several special formattings that allow us prepare the output log verification. We need this given the compier parts, that print differently regarding the memory region of a compiler instance (for example print of a set or a map, etc. is changing over time). To tell the test framework that sometimes we can 'lower' our 'expectations' from the output log, we can use:
 - `{X}` - Accept any string here:
 ```
-lb{X}:
+lb{X}
 mov rax, 10
 ```
 

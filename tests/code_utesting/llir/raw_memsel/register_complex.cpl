@@ -8,7 +8,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 r15 = $0;
 [rbp - 8] = r15;
 r15 = [rbp - 8];

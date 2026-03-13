@@ -14,7 +14,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: fn foo0()
+BB{X} fn foo0()
 r15 = $1;
 r10 = r15;
 r15 = r10;
@@ -24,7 +24,7 @@ rdi = r15;
 r15 = rdi;
 r8 = r15;
 jmp lb12;
-BB{X}: lb12:
+BB{X} lb12:
 r15 = rbx;
 rax = r15;
 rax = rax + r8;
@@ -42,8 +42,8 @@ r9 = r15;
 r15 = r9;
 rax = r15;
 return rax;
-BB{X}:
-BB{X}: fn bar1()
+BB{X}
+BB{X} fn bar1()
 r15 = $1;
 rsi = r15;
 r15 = rsi;
@@ -60,8 +60,8 @@ rbx = r15;
 r15 = rbx;
 rax = r15;
 return rax;
-BB{X}:
-BB{X}: start
+BB{X}
+BB{X} start
 call foo0();
 send
 :

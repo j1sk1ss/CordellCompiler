@@ -5,13 +5,13 @@ start() {
 }
 
 : OUTPUT
-BB{X}: fn foo0(i32 a, i32 b)
+BB{X} fn foo0(i32 a, i32 b)
 %4 = %2;
 %0 = %4;
 %5 = %3;
 %1 = %5;
 fend
-BB{X}: start
+BB{X} start
 use $1;
 use $2;
 %8 = $1;

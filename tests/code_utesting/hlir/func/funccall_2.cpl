@@ -8,7 +8,7 @@
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %2 = &(foo0(u32 a));
 %3 = %2 as u64;
 %1 = %3;

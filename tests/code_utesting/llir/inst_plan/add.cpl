@@ -5,7 +5,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %3 = $10 as i32;
 %4 = $20 as i32;
 %0 = %3;

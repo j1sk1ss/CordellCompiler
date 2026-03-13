@@ -7,7 +7,7 @@
 
 : OUTPUT
 (fun) extern 0;
-BB{X}: start
+BB{X} start
 use str(Hello world! %i);
 use $10;
 stparam(str(Hello world! %i));

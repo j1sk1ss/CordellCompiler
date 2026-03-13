@@ -1,11 +1,9 @@
-{
-    start() {
-        syscall(1, 2, 3, 4);
-    }
+start() {
+    syscall(1, 2, 3, 4);
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 use $1;
 use $2;
 use $3;

@@ -3,7 +3,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %4 = $10;
 %3 = %4;
 cmp %3, $5;

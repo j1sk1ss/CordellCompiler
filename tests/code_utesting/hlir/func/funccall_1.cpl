@@ -6,7 +6,7 @@
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 use $1;
 stparam($1);
 call a0(i32 a);

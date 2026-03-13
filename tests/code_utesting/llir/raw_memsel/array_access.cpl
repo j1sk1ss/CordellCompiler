@@ -4,7 +4,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 [unused] %0 = arr_alloc($10);
 r15 = &([rbp - 40]);
 [rbp - 48] = r15;

@@ -7,7 +7,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: fn foo0(i32 a, i32 b)
+BB{X} fn foo0(i32 a, i32 b)
 r15 = rdi;
 rcx = r15;
 r15 = rsi;
@@ -20,8 +20,8 @@ rdx = r15;
 r15 = rdx;
 rax = r15;
 return rax;
-BB{X}:
-BB{X}: start
+BB{X}
+BB{X} start
 use $1;
 use $2;
 r15 = $1;

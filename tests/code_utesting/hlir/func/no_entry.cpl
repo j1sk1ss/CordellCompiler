@@ -4,6 +4,6 @@
 }
 
 : OUTPUT
-BB{X}: fn foo0()
+BB{X} fn foo0()
 fend
 :

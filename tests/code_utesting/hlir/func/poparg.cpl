@@ -7,7 +7,7 @@
 }
 
 : OUTPUT
-BB{X}: fn _main(...)
+BB{X} fn _main(...)
 %3 = strt_loadarg();
 %2 = %3 as i64;
 %0 = %2;

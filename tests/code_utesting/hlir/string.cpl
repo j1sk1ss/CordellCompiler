@@ -9,7 +9,7 @@
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %2 = str(Hello, World!) as u64;
 %0 = %2;
 %1 = str_alloc(str(Hello, User!));

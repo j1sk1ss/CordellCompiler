@@ -5,14 +5,14 @@ start(i32 a) {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %3 = [rbp + 8];
 %0 = %3;
-BB{X}: lb{X}:
+BB{X} lb{X}
 cmp %0, 0;
 je lb{X};
 jne lb{X};
-BB{X}: lb{X}:
+BB{X} lb{X}
 %5 = $1;
 %2 = %5;
 %6 = %0;
@@ -23,6 +23,6 @@ BB{X}: lb{X}:
 %8 = %1;
 %0 = %8;
 jmp lb{X};
-BB{X}: lb{X}:
+BB{X} lb{X}
 send
 :

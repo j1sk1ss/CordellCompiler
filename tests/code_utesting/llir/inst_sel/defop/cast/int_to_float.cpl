@@ -4,7 +4,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %3 = $1;
 %0 = %3;
 %2 cvttsd2si %0;

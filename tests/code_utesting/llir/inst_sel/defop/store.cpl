@@ -3,7 +3,7 @@ start(i32 a) {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %2 = [rbp + 8];
 %0 = %2;
 %3 = $1;

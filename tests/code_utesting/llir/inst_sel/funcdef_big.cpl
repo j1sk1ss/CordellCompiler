@@ -15,7 +15,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: fn foo0(...)
+BB{X} fn foo0(...)
 %33 = %27;
 %10 = %33;
 %34 = %10;
@@ -71,7 +71,7 @@ BB{X}: fn foo0(...)
 %59 = %25;
 %8 = %59;
 fend
-BB{X}: start
+BB{X} start
 use $1;
 %61 = $1;
 %60 <<= %61;

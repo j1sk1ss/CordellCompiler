@@ -3,7 +3,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 [rbp - 64] = $0;
 [rbp - 60] = $1;
 [rbp - 56] = $2;

@@ -23,17 +23,17 @@ start() {
             i64t %4 = i32s %0 as i64;
             i64t %3 = i64t %4 == num? 1;
             if i64t %3, goto lb{X}, else goto lb{X};
-            lb{X}:
+            lb{X}
             {
                 return num? 0;
             }
             goto lb{X};
-            lb{X}:
+            lb{X}
             {
                 return num? 1;
             }
             goto lb{X};
-            lb{X}:
+            lb{X}
         [unused] }
     [unused] }
     [unused] 
@@ -47,17 +47,17 @@ start() {
                 i64t %4 = i32s %0 as i64;
                 i64t %3 = i64t %4 == num? 1;
                 if i64t %3, goto lb{X}, else goto lb{X};
-                lb{X}:
+                lb{X}
                 {
                     i32t %5 = num? 0;
                 }
                 goto lb{X};
-                lb{X}:
+                lb{X}
                 {
                     i32t %5 = num? 1;
                 }
                 goto lb{X};
-                lb{X}:
+                lb{X}
                 [unused] i32t %5 = call foo0(i32 a) -> i32, argc args(num? 10,);
                 i32s %2 = i32t %5;
             }

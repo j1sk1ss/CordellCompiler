@@ -5,7 +5,7 @@ start() {
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %12 = $10;
 %9 = %12;
 %9 = %9 | $10;

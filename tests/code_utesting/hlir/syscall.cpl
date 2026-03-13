@@ -6,7 +6,7 @@
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 use $0;
 call foo0() -> i32;
 %0 = fret();
