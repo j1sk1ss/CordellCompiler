@@ -55,12 +55,17 @@ static int _second_pass(cfg_block_t* bb) {
             while (currh) {
                 /* If we met a write operation which re-writes the destination,
                    we can't continue our optimization anymore (dst has dead) */
-                if (
-                    LIR_is_writeop(currh->op) && (
+                if (LIR_is_writeop(currh->op)) {
+                    if (LIR_is_movop(currh->op) && LIR_subj_equals(currh->farg, src) && LIR_subj_equals(currh->sarg, dst)) {
+                        currh->unused = 1;
+                        goto _next_instruction;
+                    }
+                    if (
                         LIR_subj_equals(currh->farg, dst) ||
                         LIR_subj_equals(currh->farg, src)
-                    )
-                ) break;
+                    ) break;
+                }
+
                 if (LIR_is_movop(currh->op)) {
                     if (
                         LIR_subj_equals(currh->sarg, dst) &&                    /* If instruction uses our subject          */
@@ -74,6 +79,7 @@ static int _second_pass(cfg_block_t* bb) {
                     }
                 }
 
+_next_instruction: {}
                 currh = LIR_get_next(currh, bb->lmap.exit, 1);
             }
         }
