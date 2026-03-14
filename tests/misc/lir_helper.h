@@ -113,6 +113,8 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_BREAKPOINT: return "== == brk %s == ==\n";
         case LIR_VRUSE:      return "use %s;\n";
         case LIR_EXITOP:     return "exit %s;\n";
+        case LIR_MKSCOPE:
+        case LIR_ENDSCOPE:   return "";
         default:             return "unknwn;\n";
     }
 }
