@@ -73,6 +73,7 @@ static int _generate_uncounted_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_
 }
 
 int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     HAS_ANNOTATION(COUNTER_ANNOTATION, node, { 
         return _generate_counted_loop_block(node, ctx, annot->data.counter, smt); 
     });

@@ -264,7 +264,7 @@ static int _collect_information(
         info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
         hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
         while (hh) {
-            if (HIR_funccall(hh->op)) info->src_info.funccals++;
+            if (HIR_is_funccall(hh->op)) info->src_info.funccals++;
             if (
                 hh->op == HIR_SYSC || 
                 hh->op == HIR_STORE_SYSC
@@ -329,7 +329,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt, int (*checker)(in
         foreach (cfg_block_t* bb, &fb->blocks) {
             hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
             while (hh) {
-                if (HIR_funccall(hh->op)) {
+                if (HIR_is_funccall(hh->op)) {
                     cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
                     if (_inline_candidate(trg, bb, hh, &lctx, smt, checker) && fb != trg) {
                         _inline_arguments(trg, &hh->targ->storage.list.h, hh);

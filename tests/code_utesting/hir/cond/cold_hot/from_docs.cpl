@@ -13,19 +13,19 @@ function foo() -> i32 {
     fn _main() -> i32
     {
         {
-            if num? 1, goto lb4, else goto lb5;
-            lb5:
+            if num? 1, goto lb{X} else goto lb{X}
+            lb{X}
             {
             }
-            goto lb6;
-            lb6:
+            goto lb{X}
+            lb{X}
             return num? 0;
         }
-        lb4:
+        lb{X}
         {
             return num? 2;
         }
-        goto lb6;
+        goto lb{X}
     }
 }
 :

@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     
     hir_block_t* hh = hirctx.hot.h;
     while (hh) {
-        print_hir_block(hh, 1, &smt);
+        print_hir_block(hh, 1, &smt, 0);
         hh = hh->next;
     }
 

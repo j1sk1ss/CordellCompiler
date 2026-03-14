@@ -151,11 +151,12 @@ int HIR_generate_breakpoint_block(ast_node_t* node, hir_ctx_t* ctx);
 Convert a break AST node into a HIR element. 
 Note: ctx->carry must be a non-NULL value!
 Params:
+    - `node` - AST node.
     - `ctx` - HIR ctx.
 
 Return 1 if succeeds. Otherwise will return 0.
 */
-int HIR_generate_break_block(hir_ctx_t* ctx);
+int HIR_generate_break_block(ast_node_t* node, hir_ctx_t* ctx);
 
 /*
 Convert extern AST node into HIR element. 
@@ -372,12 +373,13 @@ hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
 /*
 Convert poparg AST node into HIR element. 
 Params:
+    - `node` - AST node.
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
 Return parsed from AST HIR subject.
 */
-hir_subject_t* HIR_generate_poparg(hir_ctx_t* ctx, sym_table_t* smt);
+hir_subject_t* HIR_generate_poparg(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Convert indexation AST node into HIR element. 

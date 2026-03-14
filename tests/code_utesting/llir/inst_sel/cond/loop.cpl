@@ -5,9 +5,9 @@ start() {
 
 : OUTPUT
 BB{X} start
-BB{X} lb4:
-jmp lb5;
-BB{X} lb5:
-jmp lb4;
+BB{X} lb{X}
+jmp lb{X}
+BB{X} lb{X}
+jmp lb{X}
 BB{X}
 :

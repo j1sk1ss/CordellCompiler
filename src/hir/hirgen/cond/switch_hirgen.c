@@ -62,6 +62,7 @@ static int _generate_sequent_jump(
 }
 
 int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     int no_fall = 0, straight = 0;
     HAS_ANNOTATION(STRAIGHT_ANNOTATION, node, { straight = 1; });
     HAS_ANNOTATION(NOFALL_ANNOTATION, node, { no_fall = 1; });

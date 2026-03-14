@@ -10,16 +10,16 @@ start() {
     start {
         {
             {
-                if num? 1, goto lb4, else goto lb5;
-                lb4:
+                if num? 1, goto lb{X} else goto lb{X}
+                lb{X}
                 {
                 }
-                goto lb6;
-                lb5:
+                goto lb{X}
+                lb{X}
                 {
                 }
-                goto lb6;
-                lb6:
+                goto lb{X}
+                lb{X}
             }
         }
     }

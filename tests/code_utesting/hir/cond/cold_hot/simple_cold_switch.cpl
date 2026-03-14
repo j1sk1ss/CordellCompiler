@@ -11,32 +11,32 @@ start() {
     start {
         {
             {
-                goto lb4;
-                lb10:
+                goto lb{X}
+                lb{X}
                 {
                     exit num? 2;
                 }
-                goto lb5;
-                goto lb5;
-                lb4:
+                goto lb{X}
+                goto lb{X}
+                lb{X}
                 i8t %0 = num? 1 < cnst? 1;
-                if i8t %0, goto lb15, else goto lb16;
-                lb15:
-                goto lb10;
-                lb16:
+                if i8t %0, goto lb{X} else goto lb{X}
+                lb{X}
+                goto lb{X}
+                lb{X}
                 i8t %1 = num? 1 > cnst? 1;
-                if i8t %1, goto lb17, else goto lb18;
-                lb17:
-                goto lb10;
-                lb18:
-                goto lb6;
-                lb5:
+                if i8t %1, goto lb{X} else goto lb{X}
+                lb{X}
+                goto lb{X}
+                lb{X}
+                goto lb{X}
+                lb{X}
             }
-            lb6:
+            lb{X}
             {
                 exit num? 1;
             }
-            goto lb5;
+            goto lb{X}
         }
     }
 }

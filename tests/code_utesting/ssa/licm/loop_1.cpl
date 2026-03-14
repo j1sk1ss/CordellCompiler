@@ -18,11 +18,11 @@ start() {
                 future: i32s %7 = previous: i32s {X};
                 i64t %3 = num? 10 + num? 10;
                 i32t %4 = i64t %3 as i32;
-                lb8:
+                lb{X}
                 [i32s %0] i32s %7 = phi(set [{X}][{X}]);
                 [i32s %1] i32s %8 = phi(set [{X}][{X}]);
-                goto lb9;
-                lb9:
+                goto lb{X}
+                lb{X}
                 {
                     i32s %8 = alloc(8);
                     i32s %9 = i32t %4;
@@ -31,8 +31,8 @@ start() {
                 }
                 future: i32s %7 = previous: i32s {X};
                 future: i32s %8 = previous: i32s {X};
-                goto lb8;
-                lb10:
+                goto lb{X}
+                lb{X}
             }
         }
     }

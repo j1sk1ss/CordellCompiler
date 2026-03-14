@@ -23,40 +23,40 @@ function foo(i32 a) {
         {
             i64t %2 = i32s %0 as i64;
             i64t %1 = i64t %2 == num? 1;
-            if i64t %1, goto lb7, else goto lb8;
-            lb7:
+            if i64t %1, goto lb{X} else goto lb{X}
+            lb{X}
             {
             }
-            goto lb9;
-            lb8:
+            goto lb{X}
+            lb{X}
             {
                 i64t %4 = i32s %0 as i64;
                 i64t %3 = i64t %4 == num? 2;
-                if i64t %3, goto lb17, else goto lb18;
-                lb17:
+                if i64t %3, goto lb{X} else goto lb{X}
+                lb{X}
                 {
                 }
-                goto lb19;
-                lb18:
+                goto lb{X}
+                lb{X}
                 {
                     i64t %6 = i32s %0 as i64;
                     i64t %5 = i64t %6 == num? 3;
-                    if i64t %5, goto lb27, else goto lb28;
-                    lb27:
+                    if i64t %5, goto lb{X} else goto lb{X}
+                    lb{X}
                     {
                     }
-                    goto lb29;
-                    lb28:
+                    goto lb{X}
+                    lb{X}
                     {
                     }
-                    goto lb29;
-                    lb29:
+                    goto lb{X}
+                    lb{X}
                 }
-                goto lb19;
-                lb19:
+                goto lb{X}
+                lb{X}
             }
-            goto lb9;
-            lb9:
+            goto lb{X}
+            lb{X}
         }
     }
 }

@@ -57,7 +57,16 @@ lir_subject_t* LIR_copy_subject(lir_subject_t* s) {
     subj->id   = _curr_id++;
 
     switch (s->t) {
-        case LIR_ARGLIST:  list_init(&subj->storage.list.h);           break;
+        case LIR_ARGLIST: {
+            list_init(&subj->storage.list.h);
+            lir_subject_t* arg;
+            foreach (arg, &s->storage.list.h) {
+                list_add(&subj->storage.list.h, LIR_copy_subject(arg));
+            }
+
+            break;
+        }
+
         case LIR_REGISTER: subj->storage.reg.reg = s->storage.reg.reg; break;
         case LIR_MEMORY:
         case LIR_VARIABLE:

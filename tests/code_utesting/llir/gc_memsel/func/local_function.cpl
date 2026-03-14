@@ -23,8 +23,8 @@ r15 = $1;
 rdi = r15;
 r15 = rdi;
 r8 = r15;
-jmp lb12;
-BB{X} lb12:
+jmp lb{X}
+BB{X} lb{X}
 r15 = rbx;
 rax = r15;
 rax = rax + r8;

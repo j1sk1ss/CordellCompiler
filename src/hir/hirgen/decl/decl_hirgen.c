@@ -46,6 +46,7 @@ static int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 }
 
 int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     ast_node_t* name = node->c;
     if (!TKN_one_slot(name->t)) {
         return _starr_declaration(node, ctx, smt);

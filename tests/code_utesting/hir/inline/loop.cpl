@@ -21,21 +21,21 @@ start() {
     start {
         {
             {
-                lb10:
-                if num? 1, goto lb11, else goto lb12;
-                lb11:
+                lb{X}
+                if num? 1, goto lb{X} else goto lb{X}
+                lb{X}
                 {
-                    lb15:
-                    if num? 1, goto lb16, else goto lb17;
-                    lb16:
+                    lb{X}
+                    if num? 1, goto lb{X} else goto lb{X}
+                    lb{X}
                     {
                         [unused] call getter0(), argc args();
                     }
-                    goto lb15;
-                    lb17:
+                    goto lb{X}
+                    lb{X}
                 }
-                goto lb10;
-                lb12:
+                goto lb{X}
+                lb{X}
             }
         }
     }

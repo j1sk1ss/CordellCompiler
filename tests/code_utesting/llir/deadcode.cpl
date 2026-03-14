@@ -10,14 +10,14 @@ start() {
 }
 
 : OUTPUT
-BB1: start
+BB{X} start
 cmp $1, 0;
-je lb5;
-jne lb4;
-BB2: lb4:
+je lb{X}
+jne lb{X}
+BB{X} lb{X}
 exit $0;
-BB3: lb5:
+BB{X} lb{X}
 exit $1;
-BB4: lb6:
-BB5:
+BB{X} lb{X}
+BB{X}
 :

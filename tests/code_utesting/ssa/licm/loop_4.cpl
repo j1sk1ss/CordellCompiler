@@ -13,14 +13,14 @@ start() {
                 u64t %4 = i64t %1 as u64;
                 u64t %2 = u64t %3 + u64t %4;
                 use u64t %2;
-                lb4:
-                goto lb5;
-                lb5:
+                lb{X}
+                goto lb{X}
+                lb{X}
                 {
                     call foo0(i32 a), argc args(u64t %2,);
                 }
-                goto lb4;
-                lb6:
+                goto lb{X}
+                lb{X}
             }
         }
     }

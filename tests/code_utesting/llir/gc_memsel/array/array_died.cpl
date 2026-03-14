@@ -17,14 +17,14 @@ BB1: start
 [rbp - 8] = $8;
 [rbp - 7] = $9;
 cmp $1, 0;
-je lb19;
+je lb{X}
 kill(2);
-jne lb17;
-BB2: lb17:
+jne lb{X}
+BB2: lb{X}
 r15 = $1;
 rdx = r15;
 exit rdx;
-BB3: lb19:
+BB3: lb{X}
 [rbp - 16] = $0;
 [rbp - 15] = $1;
 [rbp - 14] = $2;

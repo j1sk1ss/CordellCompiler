@@ -73,6 +73,7 @@ typedef enum hir_operation {
     HIR_STASM,
     HIR_ENDASM,
     HIR_BREAKPOINT,
+    HIR_SETPOS,
 
     /* High level operations */
         /* Condition operator */
@@ -184,14 +185,14 @@ typedef enum hir_subject_type {
     HIR_FNAME,    // str.id
     HIR_PHISET,   // set.h
     HIR_ARGLIST,  // list.h
+    HIR_FPOS,     // pos
 } hir_subject_type_t;
 
-int HIR_funccall(hir_operation_t op);
+int HIR_is_funccall(hir_operation_t op);
 int HIR_get_type_size(hir_subject_type_t t);
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b);
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr);
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi);
-hir_subject_type_t HIR_get_token_stktype(token_t* tkn, int ptr);
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
 int HIR_is_sign(hir_subject_type_t t);
 int HIR_is_jmp(hir_operation_t op);

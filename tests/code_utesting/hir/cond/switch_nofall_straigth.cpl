@@ -15,29 +15,29 @@ start() {
         {
             {
                 i32s %0 = alloc(8);
-                goto lb5;
-                lb7:
+                goto lb{X}
+                lb{X}
                 {
                 }
-                goto lb6;
-                lb10:
+                goto lb{X}
+                lb{X}
                 {
                 }
-                goto lb6;
-                lb13:
+                goto lb{X}
+                lb{X}
                 {
                 }
-                goto lb6;
-                goto lb6;
-                lb5:
+                goto lb{X}
+                goto lb{X}
+                lb{X}
                 i8t %1 = i32s %0 == cnst? 1;
-                if i8t %1, goto lb7, else goto lb17;
-                lb17:
+                if i8t %1, goto lb{X} else goto lb{X}
+                lb{X}
                 i8t %2 = i32s %0 == cnst? 2;
-                if i8t %2, goto lb10, else goto lb20;
-                lb20:
-                goto lb13;
-                lb6:
+                if i8t %2, goto lb{X} else goto lb{X}
+                lb{X}
+                goto lb{X}
+                lb{X}
             }
         }
     }

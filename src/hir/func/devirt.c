@@ -6,7 +6,7 @@ int HIR_FUNC_perform_devirt(cfg_ctx_t* cctx, sym_table_t* smt) {
             hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
             while (hh) {
                 func_info_t fi;
-                if (HIR_funccall(hh->op) && FNTB_get_info_id(hh->sarg->storage.str.s_id, &fi, &smt->f)) {
+                if (HIR_is_funccall(hh->op) && FNTB_get_info_id(hh->sarg->storage.str.s_id, &fi, &smt->f)) {
                     list_t funcs;
                     list_init(&funcs);
                     if (FNTB_collect_info(fi.name, &funcs, &smt->f) && list_size(&funcs) > 1) {

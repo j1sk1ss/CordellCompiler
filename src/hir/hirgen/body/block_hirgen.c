@@ -19,8 +19,6 @@ Params:
 Returns generated value from the AST node or the 'NULL' value.
 */
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (!node || !node->t) return NULL;
-
     int sizeof_annot = 0;
     HAS_ANNOTATION(SIZEOF_ANNOTATION, node, { sizeof_annot = 1; ctx->is_hidden = 1; });
     
@@ -28,7 +26,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
     switch (node->t->t_type) {
         case CALLING_TOKEN:
         case CALL_TOKEN:                  res = HIR_generate_funccall(node, ctx, smt, 1);     break;
-        case POPARG_TOKEN:                res = HIR_generate_poparg(ctx, smt);                break;
+        case POPARG_TOKEN:                res = HIR_generate_poparg(node, ctx, smt);          break;
         case SYSCALL_TOKEN:               res = HIR_generate_syscall(node, ctx, smt, 1);      break;
         case CONVERT_TOKEN:               res = HIR_generate_explconv(node, ctx, smt);        break;
         case NEGATIVE_TOKEN:              res = HIR_generate_neg(node, ctx, smt);             break;
@@ -72,6 +70,8 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
 }
 
 hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    if (!node || !node->t) return NULL;
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     return _generation_handler(node, ctx, smt);
 }
 
@@ -86,7 +86,6 @@ Params:
 Returns 1 if succeeds, otherwise will return 0.
 */
 static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (!node || !node->t) return 0;
     switch (node->t->t_type) {
         case IF_TOKEN:         return HIR_generate_if_block(node, ctx, smt);
         case ASM_TOKEN:        return HIR_generate_asmblock(node, ctx, smt);
@@ -95,7 +94,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case CALLING_TOKEN:
         case CALL_TOKEN:       return (int)((long)HIR_generate_funccall(node, ctx, smt, 0));
         case LOOP_TOKEN:       return HIR_generate_loop_block(node, ctx, smt);
-        case BREAK_TOKEN:      return HIR_generate_break_block(ctx);
+        case BREAK_TOKEN:      return HIR_generate_break_block(node, ctx);
         case WHILE_TOKEN:      return HIR_generate_while_block(node, ctx, smt);
         case START_TOKEN:      return HIR_generate_start_block(node, ctx, smt);
         case SWITCH_TOKEN:     return HIR_generate_switch_block(node, ctx, smt);
@@ -128,6 +127,7 @@ static inline void _insert_scope(ast_node_t* t, hir_ctx_t* ctx, hir_operation_t 
 
 int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     for (ast_node_t* t = node; t; t = t->siblings.n) {
         if (TKN_isblock(t->t) && (!t->t || t->t->t_type != START_TOKEN)) {
             _insert_scope(t, ctx, HIR_MKSCOPE);
@@ -135,6 +135,7 @@ int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
             _insert_scope(t, ctx, HIR_ENDSCOPE);
         }
 
+        if (!node || !node->t) continue;
         _navigation_handler(t, ctx, smt);
     }
 

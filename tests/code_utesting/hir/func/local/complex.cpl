@@ -16,7 +16,7 @@ function foo(i32 a) {
         i32s %0 = load_starg();
         {
             i32s %1 = alloc(8);
-            goto lb8;
+            goto lb{X}
             fn bar1(i32 a, i32 b)
             {
                 i32s %2 = alloc(8);
@@ -32,7 +32,7 @@ function foo(i32 a) {
                     i32s %3 = i32t %6;
                 }
             }
-            lb8:
+            lb{X}
             use i32s %1;
             use i32s %0;
             call bar1(i32 a, i32 b), argc args(i32s %1,i32s %0,);

@@ -80,7 +80,7 @@ static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
             while (hh) {
-                if (HIR_funccall(hh->op) && !hh->unused) {
+                if (HIR_is_funccall(hh->op) && !hh->unused) {
                     _add_vert(fb->fid, hh->sarg->storage.str.s_id, ctx);
                 }
                 

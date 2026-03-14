@@ -18,8 +18,8 @@ start() {
     start {
         {
             {
-                if num? 1, goto lb4, else goto lb5;
-                lb4:
+                if num? 1, goto lb{X} else goto lb{X}
+                lb{X}
                 {
                     i32s %0 = alloc(8);
                     i64t %3 = num? 10 + num? 10;
@@ -28,11 +28,11 @@ start() {
                     [unused] i64t %5 = num? 10 + num? 10;
                     exit i64t %3;
                 }
-                goto lb6;
-                lb5:
+                goto lb{X}
+                lb{X}
                 {
-                    if num? 2, goto lb20, else goto lb21;
-                    lb20:
+                    if num? 2, goto lb{X} else goto lb{X}
+                    lb{X}
                     {
                         i32s %1 = alloc(8);
                         i64t %6 = num? 10 + num? 10;
@@ -41,8 +41,8 @@ start() {
                         [unused] i64t %8 = num? 10 + num? 10;
                         exit i64t %6;
                     }
-                    goto lb22;
-                    lb21:
+                    goto lb{X}
+                    lb{X}
                     {
                         i32s %2 = alloc(8);
                         i64t %9 = num? 10 + num? 10;
@@ -51,11 +51,11 @@ start() {
                         [unused] i64t %11 = num? 10 + num? 10;
                         exit i64t %9;
                     }
-                    goto lb22;
-                    lb22:
+                    goto lb{X}
+                    lb{X}
                 [unused] }
-                [unused] goto lb6;
-                lb6:
+                [unused] goto lb{X}
+                lb{X}
             [unused] }
         [unused] }
     [unused] }

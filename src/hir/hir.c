@@ -49,32 +49,18 @@ long HIR_hash_subject(hir_subject_t* s) {
             h ^= _mix64(s->storage.var.v_id);
         break;
 
-        case HIR_F64NUMBER:
-        case HIR_I64NUMBER:
-        case HIR_U64NUMBER:
-        case HIR_F32NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_U32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_U16NUMBER:
-        case HIR_I8NUMBER:
-        case HIR_U8NUMBER:
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER: {
             const char* str = s->storage.num.value->body;
             while (*str) h = _mix64(h ^ (unsigned char)(*str++));
             break;
         }
 
-        case HIR_F64CONSTVAL:
-        case HIR_I64CONSTVAL:
-        case HIR_U64CONSTVAL:
-        case HIR_F32CONSTVAL:
-        case HIR_I32CONSTVAL:
-        case HIR_U32CONSTVAL:
-        case HIR_I16CONSTVAL:
-        case HIR_U16CONSTVAL:
-        case HIR_I8CONSTVAL:
-        case HIR_U8CONSTVAL:
+        case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
+        case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             h ^= _mix64(s->storage.cnst.value);
         break;
@@ -100,10 +86,9 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(hir_subject_t));
 
-    subj->t     = t;
-    subj->id    = _curr_id++;
-    subj->users = 1;
-    subj->ptr   = 0;
+    subj->t   = t;
+    subj->id  = _curr_id++;
+    subj->ptr = 0;
 
     switch (t) {
         case HIR_PHISET:  set_init(&subj->storage.set.h, SET_NO_CMP); break;
@@ -124,30 +109,16 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
             subj->ptr = intval;
         break;
 
-        case HIR_F64NUMBER:
-        case HIR_F32NUMBER:
-        case HIR_U64NUMBER:
-        case HIR_U32NUMBER:
-        case HIR_U16NUMBER:
-        case HIR_U8NUMBER:
-        case HIR_I64NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_I8NUMBER:
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER:
             if (strval) subj->storage.num.value = strval->copy(strval);
         break;
 
-        case HIR_F64CONSTVAL:
-        case HIR_F32CONSTVAL:
-        case HIR_U64CONSTVAL:
-        case HIR_U32CONSTVAL:
-        case HIR_U16CONSTVAL:
-        case HIR_U8CONSTVAL:
-        case HIR_I64CONSTVAL:
-        case HIR_I32CONSTVAL:
-        case HIR_I16CONSTVAL:
-        case HIR_I8CONSTVAL:
+        case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
+        case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             subj->storage.cnst.value = intval;
         break;
@@ -156,6 +127,15 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_RAWASM:
         case HIR_STRING: 
             subj->storage.str.s_id = v_id;
+        break;
+
+        case HIR_FPOS:
+            if (strval) {
+                subj->storage.pos.column = ((token_fpos_t*)strval)->column;
+                subj->storage.pos.line   = ((token_fpos_t*)strval)->line;
+                subj->storage.pos.file   = ((token_fpos_t*)strval)->file;
+            }
+
         break;
 
         default: break;
@@ -169,9 +149,8 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value);
     if (!ns) return NULL;
 
-    ns->t     = s->t;
-    ns->users = s->users;
-    ns->ptr   = s->ptr;
+    ns->t   = s->t;
+    ns->ptr = s->ptr;
 
     switch (ns->t) {
         case HIR_PHISET: {
@@ -208,30 +187,16 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
             ns->storage.var.v_id = s->storage.var.v_id;
         break;
 
-        case HIR_F64NUMBER:
-        case HIR_F32NUMBER:
-        case HIR_U64NUMBER:
-        case HIR_U32NUMBER:
-        case HIR_U16NUMBER:
-        case HIR_U8NUMBER:
-        case HIR_I64NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_I8NUMBER:
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER:
             ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
         break;
 
-        case HIR_F64CONSTVAL:
-        case HIR_F32CONSTVAL:
-        case HIR_U64CONSTVAL:
-        case HIR_U32CONSTVAL:
-        case HIR_U16CONSTVAL:
-        case HIR_U8CONSTVAL:
-        case HIR_I64CONSTVAL:
-        case HIR_I32CONSTVAL:
-        case HIR_I16CONSTVAL:
-        case HIR_I8CONSTVAL:
+        case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
+        case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             ns->storage.cnst.value = s->storage.cnst.value;
         break;
@@ -240,6 +205,12 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_RAWASM:
         case HIR_STRING:
             ns->storage.str.s_id = s->storage.str.s_id;
+        break;
+
+        case HIR_FPOS:
+            ns->storage.pos.column = s->storage.pos.column;
+            ns->storage.pos.line   = s->storage.pos.line;
+            ns->storage.pos.file   = s->storage.pos.file;
         break;
 
         default: break;

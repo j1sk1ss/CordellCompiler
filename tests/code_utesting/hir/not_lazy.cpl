@@ -13,24 +13,24 @@ function foo() {
             i32s %0 = alloc(8);
             i32s %1 = alloc(8);
             i32s %2 = alloc(8);
-            if i32s %0, goto lb10, else goto lb11;
-            lb11:
+            if i32s %0, goto lb{X} else goto lb{X}
+            lb{X}
             i32t %4 = i32s %1;
-            goto lb12;
-            lb10:
+            goto lb{X}
+            lb{X}
             i32t %4 = cnst? 1;
-            goto lb12;
-            lb12:
+            goto lb{X}
+            lb{X}
             i32s %2 = i32t %4;
             i32s %3 = alloc(8);
-            if i32s %0, goto lb19, else goto lb20;
-            lb19:
+            if i32s %0, goto lb{X} else goto lb{X}
+            lb{X}
             i32t %5 = i32s %1;
-            goto lb21;
-            lb20:
+            goto lb{X}
+            lb{X}
             i32t %5 = cnst? 0;
-            goto lb21;
-            lb21:
+            goto lb{X}
+            lb{X}
             i32s %3 = i32t %5;
         }
     }

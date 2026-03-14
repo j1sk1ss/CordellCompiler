@@ -13,12 +13,12 @@ BB{X} fn _main()
 %3 = %1;
 %0 = %3;
 cmp %0, 0;
-je lb10;
-jne lb8;
-BB{X} lb8:
+je lb{X}
+jne lb{X}
+BB{X} lb{X}
 %5 = $1;
 %4 = %5;
 exit %4;
-BB{X} lb10:
+BB{X} lb{X}
 fend
 :

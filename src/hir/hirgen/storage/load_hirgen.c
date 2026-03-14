@@ -1,6 +1,7 @@
 #include <hir/hirgens/hirgens.h>
 
 hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     hir_subject_t* res = NULL;
     switch (node->t->t_type) {
         case STRING_VALUE_TOKEN:          res = HIR_SUBJ_STRING(node);           break;

@@ -18,13 +18,13 @@ BB1: start
 [rbp - 8] = $8;
 [rbp - 7] = $9;
 cmp $1, 0;
-je lb19;
-jne lb17;
-BB2: lb17:
+je lb{X}
+jne lb{X}
+BB2: lb{X}
 r15 = $0;
 rdx = r15;
 exit rdx;
-BB3: lb19:
+BB3: lb{X}
 r15 = &([rbp - 16]);
 rdx = r15;
 r15 = rdx;

@@ -1,6 +1,7 @@
 #include <hir/hirgens/hirgens.h>
 
 hir_subject_t* HIR_generate_explconv(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     hir_subject_t* cnv = HIR_SUBJ_TMPVAR(
         HIR_get_tmptype_tkn(node->c->t, 0), 
         VRTB_add_info(NULL, node->c->t->t_type, 0, NULL, &smt->v)

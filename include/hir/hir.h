@@ -38,7 +38,12 @@ typedef struct {
 } hir_list_t;
 
 typedef struct {
-    int                users; /* Users count             */
+    long      line;
+    long      column;
+    string_t* file;
+} hir_fpos_t;
+
+typedef struct {
     struct hir_block*  home;  /* Home HIR block          */
     unsigned long      hash;  /* Subject's hash          */
     long               id;    /* Subject's ID            */
@@ -51,6 +56,7 @@ typedef struct {
         hir_variable_t var;
         hir_set_t      set;
         hir_list_t     list;
+        hir_fpos_t     pos;
     } storage;
 } hir_subject_t;
 
@@ -107,11 +113,16 @@ int HIR_unlink_block(hir_block_t* block);
 int HIR_unload_subject(hir_subject_t* s);
 int HIR_unload_blocks(hir_block_t* block);
 
+static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
+    variable_info_t vi = { .type = tkn->t_type, .vfs  = { .ptr  = ptr, .glob = tkn->flags.glob, .ro   = tkn->flags.ro } };
+    return HIR_get_stktype(&vi);
+}
+
 #define HIR_SUBJ_CONST(val)              HIR_create_subject(HIR_CONSTVAL, 0, NULL, val)
 #define HIR_SUBJ_FNUMBER(val)            HIR_create_subject(HIR_F64NUMBER, 0, val, 0)
 #define HIR_SUBJ_NUMBER(val)             HIR_create_subject(HIR_NUMBER, 0, val, 0)
 #define HIR_SUBJ_STKVAR(v_id, kind, ptr) HIR_create_subject(kind, v_id, NULL, ptr)
-#define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_token_stktype(n->t, 0), n->t->flags.ptr)
+#define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, _get_token_stktype(n->t, 0), n->t->flags.ptr)
 #define HIR_SUBJ_TMPVAR(kind, id)        HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)
 #define HIR_SUBJ_CPVAR(var, smt)         HIR_SUBJ_TMPVAR(var->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(var->t), 0, NULL, &smt->v))
 #define HIR_SUBJ_LABEL()                 HIR_create_subject(HIR_LABEL, 0, NULL, 0)
@@ -122,6 +133,7 @@ int HIR_unload_blocks(hir_block_t* block);
 #define HIR_SUBJ_FNAMETB(id)             HIR_create_subject(HIR_FNAME, id, NULL, 0)
 #define HIR_SUBJ_SET()                   HIR_create_subject(HIR_PHISET, 0, NULL, 0)
 #define HIR_SUBJ_LIST()                  HIR_create_subject(HIR_ARGLIST, 0, NULL, 0)
+#define HIR_SUBJ_LOCATION(tloc)          HIR_create_subject(HIR_FPOS, 0, (string_t*)tloc, 0)
 
 /* [hot] ctx, op */
 #define HIR_BLOCK0(ctx, op) HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

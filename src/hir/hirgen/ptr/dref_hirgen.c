@@ -1,6 +1,7 @@
 #include <hir/hirgens/hirgens.h>
 
 hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_t* data) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     hir_subject_t* src = HIR_generate_elem(node->c, ctx, smt);
     if (!data) {
         /* Generate the basic information 

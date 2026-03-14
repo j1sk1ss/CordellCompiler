@@ -1,6 +1,7 @@
 #include <hir/hirgens/hirgens.h>
 
 hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     hir_subject_t* call_subj = NULL;
     hir_operation_t st_op    = HIR_STORE_UFCLL, op = HIR_UFCLL;
     ast_node_t* args_node    = node->c->c;
