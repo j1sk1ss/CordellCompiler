@@ -90,14 +90,12 @@ The collapsed code below demonstrates the main capabilities of `CPL` language, e
 <summary><strong>Basic CPL code snippet</strong></summary>
 
 ```cpl
-{
-    #include "print_h.cpl"
+#include "print_h.cpl"
 
-    start(i64 argc, ptr u64 argv) {
-        str msg = "Hello world!";
-        print(ref msg);
-        exit 0;
-    }
+start(i64 argc, ptr u64 argv) {
+    str msg = "Hello world!";
+    print(ref msg);
+    exit 0;
 }
 ```
 </details>
@@ -109,58 +107,50 @@ Before the start, we need to know, that we have not only a code for the compiler
 Let's return to the snippet above and include all header files into the final code (GCC -E does the same thing before pre-processing - creates the united file with the all code):
 ```cpl
 : string_h.cpl :
-{
 #ifndef STRING_H_
 #define STRING_H_ 0
-    : Get the size of the provided string
-      Params
-        - `s` - Input string.
+: Get the size of the provided string
+    Params
+    - `s` - Input string.
 
-      Returns the size (i64). :
-    function strlen(ptr i8 s) -> i64;
+    Returns the size (i64). :
+function strlen(ptr i8 s) -> i64;
 #endif
-}
 
 : print_h.cpl :
-{
 #ifndef PRINT_H_
 #define PRINT_H_ 0
-    #include "string_h.cpl"
-    : Basic print function that is based on
-      a syscall invoke.
-      Params
-      - `msg` - Input message to print.
-      
-      Returns i0 aka nothing. :
-    function print(ptr str msg) -> i0;
+#include "string_h.cpl"
+: Basic print function that is based on
+    a syscall invoke.
+    Params
+    - `msg` - Input message to print.
+    
+    Returns i0 aka nothing. :
+function print(ptr str msg) -> i0;
 #endif
-}
 
 : basic.cpl :
-{
-    #include "print_h.cpl"
-    start(i64 argc, ptr u64 argv) {
-        str msg = "Hello world!";
-        print(ref msg);
-        exit 0;
-    }
+#include "print_h.cpl"
+start(i64 argc, ptr u64 argv) {
+    str msg = "Hello world!";
+    print(ref msg);
+    exit 0;
 }
 ```
 
 Now we need to delete all comments, resolve includes, defines and conditions. We can do this task with usage of special table of derictive values (something like a symtable, but without any complex structure, just a derictive name and its linked content). The condition just checks if the table has a definition for the name, it if it does, invoke the logic. </br>
 In a nutshell, there is how the code above will look like after all preparations:
 ```cpl
-{
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
-    function strlen(ptr i8 s) -> i64;
+function strlen(ptr i8 s) -> i64;
 #line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-    function print(ptr str msg) -> i0;
+function print(ptr str msg) -> i0;
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/basic.cpl"
-    start(i64 argc, ptr u64 argv) {
-        print("Hello world!\n");
-        exit 0;
-    }
+start(i64 argc, ptr u64 argv) {
+    print("Hello world!\n");
+    exit 0;
 }
 ```
 
