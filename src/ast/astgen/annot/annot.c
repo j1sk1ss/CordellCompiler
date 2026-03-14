@@ -54,13 +54,14 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
 
 int ANNOT_destroy_summary(annotations_summary_t* summray) {
     if (summray->section) destroy_string(summray->section);
-    if (summray->fname) destroy_string(summray->fname);
+    if (summray->fname)   destroy_string(summray->fname);
     return 1;
 }
 
 int ANNOT_destroy_annotation(annotation_t* annot) {
     switch (annot->t) {
-        case SECTION_ANNOTATION: destroy_string(annot->data.section); break;
+        case SECTION_ANNOTATION: destroy_string(annot->data.section);                      break;
+        case ENTRY_ANNOTATION:   if (annot->data.fname) destroy_string(annot->data.fname); break;
         default: break;
     }
 
