@@ -204,6 +204,15 @@ int HIR_is_writeop(hir_operation_t op);
 int HIR_is_term(hir_operation_t op);
 int HIR_is_syst(hir_operation_t op);
 int HIR_is_commutative_op(hir_operation_t op);
+
+/*
+If the provided subject is a number or a constant.
+Params:
+    - `t` - Subject's type.
+
+Returns 1 if this is a number, 2 - if this is a constant. 
+Returns 0 - if this neither a number nor a constant.
+*/
 int HIR_is_defined_type(hir_subject_type_t t);
 hir_operation_t HIR_convop(hir_subject_type_t t);
 int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);

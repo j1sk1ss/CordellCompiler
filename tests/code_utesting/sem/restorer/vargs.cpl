@@ -1,9 +1,7 @@
-{
-    function foo(i32 a, ...);
-}
+function foo(i32 a, ...);
 
 : OUTPUT
-2 | {
-2 |     function foo(i32 a, ...);
-2 | }
+1 | {
+1 |     function foo(i32 a, ...);
+1 | }
 :

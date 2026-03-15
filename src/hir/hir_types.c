@@ -74,12 +74,12 @@ int HIR_is_defined_type(hir_subject_type_t t) {
         case HIR_I8NUMBER:
         case HIR_I16NUMBER:
         case HIR_I32NUMBER:
-        case HIR_I64NUMBER:
+        case HIR_I64NUMBER:   return 1;
         case HIR_I64CONSTVAL:
         case HIR_I32CONSTVAL:
         case HIR_I16CONSTVAL:
         case HIR_I8CONSTVAL:
-        case HIR_CONSTVAL: return 1;
+        case HIR_CONSTVAL:    return 2;
         default: return 0;
     }
 }

@@ -1,5 +1,12 @@
 #include <sem/ast/ast_visitors.h>
 
+static inline char* _format_location(token_fpos_t* p) {
+    static char buff[256] = { 0 };
+    if (p->file) snprintf(buff, sizeof(buff), "[%s:%li:%li]", p->file->body, p->line, p->column);
+    else snprintf(buff, sizeof(buff), "[%li:%li]", p->line, p->column);
+    return buff;
+}
+
 static const char* _fmt_tkn_op(token_type_t t) {
     switch (t) {
         case I0_TYPE_TOKEN:
@@ -61,7 +68,7 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     if (!rarg) return 1;
 
     if (larg->t->flags.ro) {
-        SEMANTIC_ERROR(" %s Read-only variable='%s' assign!", format_location(&larg->t->finfo), larg->t->body->body);
+        SEMANTIC_ERROR(" %s Read-only variable='%s' assign!", _format_location(&larg->t->finfo), larg->t->body->body);
         REBUILD_CODE_2TRG(nd, larg, rarg);
         return 0;
     }
@@ -104,7 +111,7 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
     int ptr = 0;
     if (TKN_variable_bitness(fi.rtype->t, 1) != MAX(TKN_variable_bitness(_get_base_type_token(larg, &ptr), 1), (type_size_t)ptr)) {
         SEMANTIC_WARNING(
-            " %s Function='%s' return type='%s' doesn't match to the %s type='%s'!", format_location(&larg->t->finfo), fi.name->body,
+            " %s Function='%s' return type='%s' doesn't match to the %s type='%s'!", _format_location(&larg->t->finfo), fi.name->body,
             RST_restore_type(fi.rtype->t), _fmt_tkn_op(nd->t->t_type), RST_restore_type(larg->t)
         );
 
@@ -139,7 +146,7 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
 
     ast_node_t* rarg = larg->siblings.n;
     if (!rarg) {
-        SEMANTIC_WARNING(" %s Variable='%s' without initialization!", format_location(&larg->t->finfo), larg->t->body->body);
+        SEMANTIC_WARNING(" %s Variable='%s' without initialization!", _format_location(&larg->t->finfo), larg->t->body->body);
         REBUILD_CODE_0TRG(nd);
         return 0;
     }
@@ -186,14 +193,14 @@ static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
     if (MAX(_get_token_bitness(lt), (type_size_t)ltptr) < MAX(_get_token_bitness(rt), (type_size_t)rtptr)) {
         if (TKN_isnumeric(rt)) {
             SEMANTIC_WARNING(
-                " %s %s of '%s' with '%s' (Number's bitness is=%s, but '%s' can handle bitness=%s)!", format_location(&rt->finfo), msg,
+                " %s %s of '%s' with '%s' (Number's bitness is=%s, but '%s' can handle bitness=%s)!", _format_location(&rt->finfo), msg,
                 lt->body->body, rt->body->body, _fmt_type_size(_get_token_bitness(rt)), 
                 RST_restore_type(lt), _fmt_type_size(_get_token_bitness(lt))
             );
         }
         else {
             SEMANTIC_WARNING(
-                " %s %s of '%s' with '%s'! '%s' can't handle bitness=%s!", format_location(&rt->finfo), msg,
+                " %s %s of '%s' with '%s'! '%s' can't handle bitness=%s!", _format_location(&rt->finfo), msg,
                 lt->body->body, rt->body->body, RST_restore_type(lt), _fmt_type_size(MAX(_get_token_bitness(rt), (type_size_t)rtptr))
             );
         }
@@ -297,7 +304,7 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
     if (!FNTB_get_info_id(nd->c->sinfo.v_id, &fi, &smt->f)) {
         SEMANTIC_ERROR(
             " %s Function='%s' isn't registered for some reason! Check previous logs!",
-            format_location(&nd->c->t->finfo), nd->c->t->body->body
+            _format_location(&nd->c->t->finfo), nd->c->t->body->body
         );
 
         return 0;
@@ -308,7 +315,7 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
     if (!has_ret && fi.rtype->t->t_type != I0_TYPE_TOKEN) {
         SEMANTIC_WARNING(
             " %s Function='%s' doesn't have the 'return' statement in all paths!", 
-            format_location(&nd->t->finfo), nd->c->t->body->body
+            _format_location(&nd->t->finfo), nd->c->t->body->body
         );
 
         REBUILD_CODE_1TRG(nd, NULL);
@@ -323,7 +330,7 @@ int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     int has_ret = 0;
     _search_term_node(nd->c, &has_ret, NULL);
     if (!has_ret) {
-        SEMANTIC_WARNING(" %s Start doesn't have the 'exit' statement in all paths!", format_location(&nd->t->finfo));
+        SEMANTIC_WARNING(" %s Start doesn't have the 'exit' statement in all paths!", _format_location(&nd->t->finfo));
         REBUILD_CODE_1TRG(nd, NULL);
         return 0;
     }
@@ -338,7 +345,7 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
     if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) {
         SEMANTIC_ERROR(
             " %s Function='%s' isn't registered for some reason! Check previous logs!",
-            format_location(&nd->c->t->finfo), nd->c->t->body->body
+            _format_location(&nd->c->t->finfo), nd->c->t->body->body
         );
 
         return 0;
@@ -352,13 +359,13 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
     );
 
     if (!provided_arg && (expected_arg && expected_arg->t->t_type != SCOPE_TOKEN)) {
-        SEMANTIC_ERROR(" %s Not enough arguments for the function='%s'!", format_location(&nd->t->finfo), nd->t->body->body);
+        SEMANTIC_ERROR(" %s Not enough arguments for the function='%s'!", _format_location(&nd->t->finfo), nd->t->body->body);
         REBUILD_CODE_1TRG(nd, NULL);
         return 0;
     }
 
     if (provided_arg && (!expected_arg || expected_arg->t->t_type == SCOPE_TOKEN)) {
-        SEMANTIC_ERROR(" %s Too many arguments for the function='%s'!", format_location(&nd->t->finfo), nd->t->body->body);
+        SEMANTIC_ERROR(" %s Too many arguments for the function='%s'!", _format_location(&nd->t->finfo), nd->t->body->body);
         REBUILD_CODE_1TRG(nd, NULL);
         return 0;
     }
@@ -373,7 +380,7 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
     if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) {
         SEMANTIC_ERROR(
             " %s Function='%s' isn't registered for some reason! Check previous logs!",
-            format_location(&nd->c->t->finfo), nd->c->t->body->body
+            _format_location(&nd->c->t->finfo), nd->c->t->body->body
         );
 
         return 0;
@@ -480,7 +487,7 @@ int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
     if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) {
         SEMANTIC_ERROR(
             " %s Function='%s' isn't registered for some reason! Check previous logs!",
-            format_location(&nd->c->t->finfo), nd->c->t->body->body
+            _format_location(&nd->c->t->finfo), nd->c->t->body->body
         );
 
         return 0;
@@ -491,7 +498,7 @@ int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
         int consumed = 0;
         _find_consumer(nd->p, &consumed);
         if (consumed <= 0) {
-            SEMANTIC_WARNING(" %s Unused the function='%s's result!", format_location(&nd->t->finfo), fi.name->body);
+            SEMANTIC_WARNING(" %s Unused the function='%s's result!", _format_location(&nd->t->finfo), fi.name->body);
             REBUILD_CODE_1TRG(nd->p, nd);
             return 0;
         }
@@ -518,7 +525,7 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
     if (idx < 0) {
         SEMANTIC_ERROR(
             " %s Array='%s' accessed with a negative index!", 
-            format_location(&index->t->finfo), body->t->body->body
+            _format_location(&index->t->finfo), body->t->body->body
         );
 
         REBUILD_CODE_1TRG(nd, index);
@@ -528,7 +535,7 @@ int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS) {
     if (ai.size < idx) {
         SEMANTIC_ERROR(
             " %s Array='%s' accessed with the index=%lli that is larger than the array size=%li!", 
-            format_location(&index->t->finfo), body->t->body->body, idx, ai.size
+            _format_location(&index->t->finfo), body->t->body->body, idx, ai.size
         );
 
         REBUILD_CODE_1TRG(nd, index);
@@ -548,7 +555,7 @@ int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS) {
     if (AST_hash_node(lbranch) == AST_hash_node(rbranch)) {
         SEMANTIC_WARNING(
             " Possible branch redundancy! The branch at %s is similar to the branch at %s!",
-            format_location(&lbranch->t->finfo), format_location(&rbranch->t->finfo)
+            _format_location(&lbranch->t->finfo), _format_location(&rbranch->t->finfo)
         );
 
         REBUILD_CODE_2TRG(nd, lbranch, rbranch);
@@ -651,7 +658,7 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
     if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f)) {
         SEMANTIC_ERROR(
             " %s Function='%s' is not registered for some reason! Check previous logs!",
-            format_location(&fname->t->finfo), fname->t->body->body
+            _format_location(&fname->t->finfo), fname->t->body->body
         );
 
         return 0;
@@ -663,25 +670,25 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
     ) {
         SEMANTIC_WARNING(
             " %s Function='%s' has an underscore symbol at the name's start!",
-            format_location(&fname->t->finfo), fname->t->body->body
+            _format_location(&fname->t->finfo), fname->t->body->body
         );
     }
 
     if (fi.name->requals(fi.name, "chloe")) {
-        SEMANTIC_INFO(" %s Used 'Chloe' as a function name!", format_location(&fname->t->finfo));
+        SEMANTIC_INFO(" %s Used 'Chloe' as a function name!", _format_location(&fname->t->finfo));
     }
     else if (fi.name->requals(fi.name, "max&chloe")) {
-        SEMANTIC_INFO(" %s Used 'Max' and 'Chloe' as a function name!", format_location(&fname->t->finfo));
+        SEMANTIC_INFO(" %s Used 'Max' and 'Chloe' as a function name!", _format_location(&fname->t->finfo));
     }
     else if (fi.name->requals(fi.name, "fang")) {
-        SEMANTIC_INFO(" %s Used 'Fang' as a function dragon-name!", format_location(&fname->t->finfo));
+        SEMANTIC_INFO(" %s Used 'Fang' as a function dragon-name!", _format_location(&fname->t->finfo));
     }
     
     int name_format = _determine_string_style(fi.name->body);
     if (name_format != 3) {
         SEMANTIC_INFO(
             " %s Function name='%s' isn't in the sneaky_case! '%s'", 
-            format_location(&fname->t->finfo), fi.name->body, _format_name(name_format)
+            _format_location(&fname->t->finfo), fi.name->body, _format_name(name_format)
         );
     }
 
@@ -713,7 +720,7 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
             if (rval && rtype->t_type == I0_TYPE_TOKEN) {
                 SEMANTIC_WARNING(
                     " %s Function='%s' has the return value, but isn't supposed to!", 
-                    format_location(&rval->finfo), fname
+                    _format_location(&rval->finfo), fname
                 );
 
                 REBUILD_CODE_1TRG(nd, nd->c);
@@ -723,7 +730,7 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
             if (MAX(_get_token_bitness(rval), (type_size_t)ptr) > _get_token_bitness(rtype)) {
                 SEMANTIC_WARNING(
                     " %s Function='%s' has the wrong return value!='%s'!", 
-                    format_location(&rval->finfo), fname, RST_restore_type(rtype)
+                    _format_location(&rval->finfo), fname, RST_restore_type(rtype)
                 );
 
                 REBUILD_CODE_1TRG(nd, nd->c);
@@ -751,7 +758,7 @@ int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS) {
     func_info_t fi;
     if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f)) return 0;
     if (!fi.rtype) {
-        SEMANTIC_INFO(" %s Consider to add a return type to the function='%s'!", format_location(&nd->t->finfo), fname->t->body->body);
+        SEMANTIC_INFO(" %s Consider to add a return type to the function='%s'!", _format_location(&nd->t->finfo), fname->t->body->body);
         return 1;
     }
 
@@ -761,7 +768,7 @@ int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS) {
 int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     if (nd->siblings.n) {
-        SEMANTIC_WARNING(" %s 'Dead Code' after the termination statement!", format_location(&nd->t->finfo));
+        SEMANTIC_WARNING(" %s 'Dead Code' after the termination statement!", _format_location(&nd->t->finfo));
         REBUILD_CODE_1TRG(nd->p, nd->siblings.n);
         return 0;
     }
@@ -788,7 +795,7 @@ int ASTWLKR_inefficient_while(AST_VISITOR_ARGS) {
     ast_node_t* cond = nd->c;
     if (!cond || cond->t->t_type != UNKNOWN_NUMERIC_TOKEN) return 0;
     if (cond->t->body->to_llong(cond->t->body)) {
-        SEMANTIC_INFO(" %s Consider the usage of the 'loop' statement!", format_location(&nd->t->finfo));
+        SEMANTIC_INFO(" %s Consider the usage of the 'loop' statement!", _format_location(&nd->t->finfo));
         REBUILD_CODE_1TRG(nd, cond);
         return 0;
     }
@@ -814,7 +821,7 @@ int ASTWLKR_wrong_exit(AST_VISITOR_ARGS) {
     if (f && t == 2) {
         SEMANTIC_INFO(
             " %s The function '%s' is an entry point! Consider the usage of the 'exit' statement over the 'return' statement!", 
-            format_location(&nd->t->finfo), fi.name->body
+            _format_location(&nd->t->finfo), fi.name->body
         );
 
         return 0;
@@ -830,7 +837,7 @@ int ASTWLKR_break_without_statement(AST_VISITOR_ARGS) {
         !flags->in_while &&
         !flags->in_switch
     ) {
-        SEMANTIC_WARNING(" %s The 'break' statement without any statement that uses it!", format_location(&nd->t->finfo));
+        SEMANTIC_WARNING(" %s The 'break' statement without any statement that uses it!", _format_location(&nd->t->finfo));
         REBUILD_CODE_1TRG(nd->p, nd);
         return 0;
     }
@@ -845,7 +852,7 @@ int ASTWLKR_noret_assign(AST_VISITOR_ARGS) {
     if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) {
         SEMANTIC_ERROR(
             " %s Function='%s' isn't registered for some reason! Check previous logs!",
-            format_location(&nd->c->t->finfo), nd->c->t->body->body
+            _format_location(&nd->c->t->finfo), nd->c->t->body->body
         );
 
         return 0;
@@ -858,7 +865,7 @@ int ASTWLKR_noret_assign(AST_VISITOR_ARGS) {
         if (consumed > 0) {
             SEMANTIC_WARNING(
                 " %s The function='%s' doesn't return anything, but result is used!", 
-                format_location(&nd->t->finfo), fi.name->body
+                _format_location(&nd->t->finfo), fi.name->body
             );
 
             REBUILD_CODE_1TRG(nd->p, nd);
@@ -877,7 +884,7 @@ int ASTWLKR_unused_expression(AST_VISITOR_ARGS) {
     int consumed = 0;
     _find_consumer(nd, &consumed);
     if (consumed <= 0) {
-        SEMANTIC_WARNING(" %s The expression returns value that never assigns!", format_location(&nd->t->finfo));
+        SEMANTIC_WARNING(" %s The expression returns value that never assigns!", _format_location(&nd->t->finfo));
         REBUILD_CODE_1TRG(nd->p, nd);
         return 0;
     }
@@ -888,7 +895,7 @@ int ASTWLKR_unused_expression(AST_VISITOR_ARGS) {
 int ASTWLKR_ref_to_expression(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     if (!TKN_isvariable(nd->c->t)) {
-        SEMANTIC_WARNING(" %s The reference of a temporary variable!", format_location(&nd->t->finfo));
+        SEMANTIC_WARNING(" %s The reference of a temporary variable!", _format_location(&nd->t->finfo));
         REBUILD_CODE_1TRG(nd->p, nd->c);
         return 0;
     }
@@ -905,7 +912,7 @@ int ASTWLKR_incorrect_align(AST_VISITOR_ARGS) {
     if (!VRTB_get_info_id(id, &vi, &smt->v)) return 0;
 
     if (vi.vmi.align % 2 != 0) {
-        SEMANTIC_WARNING(" %s Variable's align isn't even!", format_location(&nd->t->finfo));
+        SEMANTIC_WARNING(" %s Variable's align isn't even!", _format_location(&nd->t->finfo));
         REBUILD_CODE_1TRG(nd, nd);
         return 0;
     }

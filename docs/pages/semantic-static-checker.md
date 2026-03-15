@@ -1,5 +1,8 @@
 # Semantic static checker
-Cordell Compiler implements a simple static analysis tool for a basic code-checking before a compilation. It supports the next list of errors and warnings:
+Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. Thes static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behaviour (null-dereference, wrong casts, etc.).
+
+## AST part
+The list of all possible AST warnings that are supported by the static analyzator is below:
 - Read-only variable update. *If we have a `ro` variable, we must be sure that it never being updated somewhere*
 - Invalid variable for a function's return value. *If a function returns, for instance, a `i8` value, it must be stored in a variable with the same (or larger) type*
 - Declaration without initialization. *If we declare a variable, it'd be safer, if we add an initial value*
@@ -217,3 +220,8 @@ The code above will produce a ton of errors and warnings.
 
 **Note 1:** This isn't an entire analysis output due to the critical error with the array indexing. Such errors will block a compilation process given the importance of this kind of errors. </br>
 **Note 2:** The static analyzer doesn't use a source file to show a error place. For these purposes, it uses the 'restorer' module that restores the code from AST.
+
+## IR part
+The list of all possible IR warnings that are supported by the static analyzator is below:
+- NULL-dereference. *If we're trying to dereference a variable (or a value) which is NULL, we must terminate compilation.*
+- Constant IF. *We can warn a user if there is a dead branch presented.*

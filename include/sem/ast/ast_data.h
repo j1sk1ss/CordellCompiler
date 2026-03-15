@@ -22,14 +22,6 @@ typedef enum {
     UNKNOWN_NODE     = 1 << 17,
 } ast_node_type_t;
 
-typedef enum {
-    ATTENTION_UNKNOWN_LEVEL, /* Unknown attention level. Will fire a warning only with all warns enabled  */
-    ATTENTION_LOW_LEVEL,     /* Low level of an attantion. Will fire a warning with a low level enabled   */
-    ATTENTION_MEDIUM_LEVEL,  /* Mid level of an attantion. Will fire a warning with a mid level enabled   */
-    ATTENTION_HIGH_LEVEL,    /* High level of an attantion. Will fire a warning with a high level enabled */
-    ATTENTION_BLOCK_LEVEL    /* Will block the code compilation if it fires                               */
-} attention_level_t;
-
 typedef struct {
     int in_switch; /* Walker in a switch block    */
     int in_case;   /* Walker in a case block      */

@@ -30,6 +30,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## HIR static analyzer and HIR locations
+Now the information about file location is going to HIR via a special operation and a special subject. This feature allows to expand the static analysis to HIR part. For test I've added the NULL-dereference tester and the IF-tester.
+
 ## not_lazy
 Lazy logic operators are the default solution for logic in C language, and now, CPL supports the alternative approach. With this annotation the compiler will generate both sides before the final evaluation.
 
