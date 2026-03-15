@@ -84,6 +84,7 @@ symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
 
     nnd->v_id = ctx->curr_id++;
     nnd->p_id = src->v_id;
+    nnd->s_id = src->s_id;
     nnd->name = src->name->copy(src->name);
 
     map_put(&ctx->vartb, nnd->v_id, nnd);

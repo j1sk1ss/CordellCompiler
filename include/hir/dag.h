@@ -15,18 +15,18 @@
 
 typedef struct dag_node {
     /* Misc info */
-    cfg_block_t*     home;
-    unsigned long    hash;
-    long             id;
-    hir_operation_t  op;
+    cfg_block_t*    home;
+    unsigned long   hash;
+    long            id;
+    hir_operation_t op;
 
     /* Connection with HIR */
-    hir_subject_t*   src;
-    set_t            link;
+    hir_subject_t*  src;
+    set_t           link;
 
     /* Connection with other nodes */
-    set_t            args;
-    set_t            users;
+    set_t           args;
+    set_t           users;
 } dag_node_t;
 
 typedef struct {
@@ -76,10 +76,23 @@ Returns 1 if the DAG context was freed.
 */
 int HIR_DAG_unload(dag_ctx_t* ctx);
 
-#define DAG_GET_NODE(ctx, u)     HIR_DAG_get_node(ctx, u, 1)
+/*
+Get a node (or create a new one) from the context.
+Params:
+    - `ctx` - DAG context (dag_ctx_t).
+    - `u` - Considering subject (hir_subject_t).
+*/
+#define DAG_GET_NODE(ctx, u) HIR_DAG_get_node(ctx, u, 1)
+
+/*
+Get a node from the context.
+Params:
+    - `ctx` - DAG context (dag_ctx_t).
+    - `u` - Considering subject (hir_subject_t).
+*/
 #define DAG_ACQUIRE_NODE(ctx, u) HIR_DAG_get_node(ctx, u, 0)
 
-int HIR_DAG_init(dag_ctx_t* dctx);;
+int HIR_DAG_init(dag_ctx_t* dctx);
 int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt);
 int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx);
 

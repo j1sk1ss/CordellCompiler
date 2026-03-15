@@ -9,10 +9,11 @@ static inline char* _format_location(hir_visitors_ctx_t* ctx) {
 
 static const char* _resolve_variable_name(symbol_id_t id, sym_table_t* smt) {
     variable_info_t vi;
-    symbol_id_t p_id = NO_SYMBOL_ID;
     do {
-        if (VRTB_get_info_id(id, &vi, &smt->v)) p_id = vi.p_id;
-    } while (p_id != NO_SYMBOL_ID);
+        if (VRTB_get_info_id(id, &vi, &smt->v)) {
+            id = vi.p_id;
+        }
+    } while (id != NO_SYMBOL_ID);
     return vi.name->body;
 }
 
