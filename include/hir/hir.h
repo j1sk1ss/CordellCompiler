@@ -14,7 +14,7 @@
 #include <hir/hir_types.h>
 
 typedef struct {
-    int s_id; /* String ID from strings symtab */
+    symbol_id_t s_id; /* String ID from strings symtab */
 } hir_string_t;
 
 typedef struct {
@@ -26,7 +26,7 @@ typedef struct {
 } hir_number_t;
 
 typedef struct {
-    long v_id; /* Variable ID from variables symtab */
+    symbol_id_t v_id; /* Variable ID from variables symtab */
 } hir_variable_t;
 
 typedef struct {

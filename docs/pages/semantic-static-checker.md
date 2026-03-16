@@ -80,7 +80,7 @@ For instance, let's consider the code below:
 
 The code above will produce a ton of errors and warnings.
 <details>
-<summary><strong>Semantic analysis output</strong></summary>
+<summary><strong>AST static analysis output</strong></summary>
 
 ```
 [WARNING] Possible branch redundancy! The branch at [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:25] is similar to the branch at [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:25]!
@@ -225,3 +225,24 @@ The code above will produce a ton of errors and warnings.
 The list of all possible IR warnings that are supported by the static analyzator is below:
 - NULL-dereference. *If we're trying to dereference a variable (or a value) which is NULL, we must terminate compilation.*
 - Constant IF. *We can warn a user if there is a dead branch presented.*
+
+<details>
+<summary><strong>Dereference static analysis output</strong></summary>
+```cpl
+@[entry]
+function foo() {
+    i32 a = 1;
+    if 1; {
+        a = 0;
+    }
+    ptr i32 b = a as ptr i32;
+    exit dref b;
+}
+```
+
+```
+[WARNING] [4:11] 'If' with a constant value 'true'!
+[WARNING] [8:15] Possible NULL-dereference error (variable 'b' is NULL)!
+[WARNING] [5:11]     Variable 'a' becomes NULL-value
+```
+</details>

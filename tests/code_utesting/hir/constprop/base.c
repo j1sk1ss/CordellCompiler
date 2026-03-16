@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
         printf("id: %li, %s, ", vi->v_id, vi->name->body);
         for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
         printf("%s, s_id: %i", format_tkntype(vi->type), vi->s_id);
-        if (vi->vdi.defined) printf(", value=%ld", vi->vdi.definition);
+        if (vi->vdi.defined == DEFINED_VARIABLE) printf(", value=%ld", vi->vdi.definition);
         printf("\n");
     }
 

@@ -71,12 +71,10 @@ int queue_isempty(queue_t* q) {
 
 int queue_pop(queue_t* q, void** d) {
     if (!q || !q->body || !d) return 0;
-    if (q->meta.count == 0) return 0;
-
-    *d = q->body[q->meta.head].data;
+    if (!q->meta.count) return 0;
+    if (d) *d = q->body[q->meta.head].data;
     q->meta.head = (q->meta.head + 1) % q->size;
     q->meta.count--;
-
     return 1;
 }
 

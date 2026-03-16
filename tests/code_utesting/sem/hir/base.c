@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
     HIR_sparse_const_propagation(&dagctx, &smt);
 
-    SEM_perform_hir_check(&cfgctx, &smt);
+    SEM_perform_hir_check(&cfgctx, &dagctx, &smt);
 
     HIR_DAG_unload(&dagctx);
     HIR_CG_unload(&callctx);
@@ -97,5 +97,11 @@ int main(int argc, char* argv[]) {
     AST_unload_ctx(&sctx);
     SMT_unload(&smt);
     close(fd);
+
+    if (mm_get_allocated()) {
+        printf("\n<<ERROR>>\tMemory leak!\t%i != 0!\n", mm_get_allocated());
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }

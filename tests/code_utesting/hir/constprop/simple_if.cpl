@@ -1,3 +1,4 @@
+@[entry]
 function foo() {
     ptr i32 a = 1;
     ptr i32 b = 1;
@@ -10,10 +11,13 @@ function foo() {
 }
 
 : OUTPUT
-{id: 1, b, ptr i32, s_id: 3, value=1}
+{id: 8, a, ptr i32, s_id: 3, value=0}
+{id: 1, b, ptr i32, s_id: 3}
 {id: 4, tmp, ptr i32, s_id: 0, value=0}
-{id: 3, tmp, ptr i32, s_id: 0, value=1}
-{id: 0, a, ptr i32, s_id: 3, value=1}
+{id: 3, tmp, ptr i32, s_id: 0}
+{id: 0, a, ptr i32, s_id: 3}
+{id: 7, b, ptr i32, s_id: 3}
 {id: 5, tmp, i32, s_id: 0}
+{id: 6, a, ptr i32, s_id: 3, value=1}
 {id: 2, tmp, ptr i32, s_id: 0, value=1}
 :

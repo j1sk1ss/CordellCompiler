@@ -16,13 +16,19 @@ int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short a
     return 0;    
 }
 
-int VRTB_update_definition(symbol_id_t id, long definition, vartab_ctx_t* ctx) {
-    print_log("VRTB_update_definition(id=%i, definition=%i)", id, definition);
+int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx) {
+    print_log("VRTB_update_definition(id=%i, definition=%i, overdef=%li)", id, definition, overdefined);
     variable_info_t* vi;
     if (map_get(&ctx->vartb, id, (void**)&vi)) {
         if (vi->vdi.defined) return 0;
-        vi->vdi.definition = definition;
-        vi->vdi.defined    = 1;
+        if (overdefined != NO_SYMBOL_ID) {
+            vi->vdi.definition = overdefined;
+            vi->vdi.defined    = OVERDEFINED_VARIABLE;
+        }
+        else {
+            vi->vdi.definition = definition;
+            vi->vdi.defined    = DEFINED_VARIABLE;
+        }
         return 1;
     }
 
