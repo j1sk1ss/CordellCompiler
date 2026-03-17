@@ -16,5 +16,5 @@ start() {
 {[WARNING] [3{X}] 'If' with a constant value (variable 'tmp' is equals 'true')!}
 #
 [WARNING] [{X}] Possible NULL-dereference error (variable 'a' is NULL)!
-[WARNING] [{X}]     Variable 'a' becomes NULL-value
+          [{X}]     Variable 'a' becomes NULL-value
 :

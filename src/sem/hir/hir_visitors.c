@@ -23,9 +23,10 @@ static int _print_trace(trace_t* t) {
     trace_message_t* msg = list_iter_prev(&it);
     if (msg) SEMANTIC_WARNING(" %s %s ", _format_location(&msg->location), msg->message->body);
     while ((msg = list_iter_prev(&it))) {
-        SEMANTIC_WARNING(" %s     %s ", _format_location(&msg->location), msg->message->body);
+        EMMIT_MESSAGE(" %s     %s ", _format_location(&msg->location), msg->message->body);
     }
 
+    TRACE_unload_trace(t);
     return 1;
 }
 
@@ -116,29 +117,33 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
     queue_t work_vars;
     queue_init(&work_vars);
 
+    trace_t trace;
+    TRACE_init_trace(&trace);
+
     switch (di.defined_value) {
         /* Number defined */
         case 1: {
-            if (!di.const_value) SEMANTIC_WARNING(" %s NULL-dereference error!", _format_location(&curr_loc));
-            queue_free(&work_vars);
-            return 0;
+            if (!di.const_value) TRACE_add_location(&trace, &curr_loc, "NULL-dereference error!");
+            break;
         }
         /* Variable defined */
         case 2: {
-            if (!di.const_value) SEMANTIC_WARNING(
-                " %s NULL-dereference error (variable '%s' is NULL)!", 
-                _format_location(&curr_loc), _resolve_variable_name(s->storage.var.v_id, smt)
+            if (!di.const_value) TRACE_add_location(&trace, &curr_loc,
+                "NULL-dereference error (variable '%s' is NULL)!", 
+                _resolve_variable_name(s->storage.var.v_id, smt)
             );
-            queue_free(&work_vars);
-            return 0;
+            break;
         }
         /* Overdefined */
         case 3: queue_push(&work_vars, (void*)di.const_value);
         default: break;
     }
 
-    trace_t trace;
-    TRACE_init_trace(&trace);
+    if (queue_isempty(&work_vars)) {
+        _print_trace(&trace);
+        queue_free(&work_vars);
+        return 1;
+    }
 
     int res = 1;
     symbol_id_t v_id;
@@ -171,9 +176,7 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
     }
 
     _print_trace(&trace);
-
     queue_free(&work_vars);
-    TRACE_unload_trace(&trace);
     return 1;
 }
 
@@ -190,6 +193,9 @@ int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS) {
 int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
 
+    trace_t trace;
+    TRACE_init_trace(&trace);
+
     trace_location_t curr_loc = { 
         .column = ctx->curr_location.column, .file = ctx->curr_location.file, .line = ctx->curr_location.line 
     };
@@ -200,16 +206,19 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     }
 
     switch (di.defined_value) {
-        case 1: SEMANTIC_WARNING(" %s 'If' with a constant value '%s'!", _format_location(&curr_loc), di.const_value ? "true" : "false"); break;
-        case 2: 
-            SEMANTIC_WARNING(
-                " %s 'If' with a constant value (variable '%s' is equals '%s')!", 
-                _format_location(&curr_loc), _resolve_variable_name(b->farg->storage.var.v_id, smt), di.const_value ? "true" : "false"
+        case 1: TRACE_add_location(&trace, &curr_loc, "'If' with a constant value '%s'!", di.const_value ? "true" : "false"); break;
+        case 2:
+            trace_location_t loc;
+            _sparce_find_variable_define_location(b, b->farg->storage.var.v_id, &loc);
+            TRACE_add_location(&trace, &loc, "Variable '%s' declared as a constant here!", _resolve_variable_name(b->farg->storage.var.v_id, smt));
+            TRACE_add_location(
+                &trace, &curr_loc, "Condition with a constant value (variable '%s' is equals '%s' (%i))!", 
+                _resolve_variable_name(b->farg->storage.var.v_id, smt), di.const_value ? "true" : "false", di.const_value
             ); 
         break;
         default: break;
     }
 
-
+    _print_trace(&trace);
     return 1;
 }

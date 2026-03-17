@@ -33,6 +33,6 @@ function foo() {
 {[WARNING] [17{X}] 'If' with a constant value (variable 'tmp' is equals 'false')!}
 #
 [WARNING] [23{X}] Possible NULL-dereference error (variable 'a' is NULL)!
-[WARNING] [{X}]     Variable 'a' becomes NULL-value
-[WARNING] [{X}]     Variable 'a' becomes NULL-value
+          [{X}]     Variable 'a' becomes NULL-value
+          [{X}]     Variable 'a' becomes NULL-value
 :

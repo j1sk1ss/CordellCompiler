@@ -11,6 +11,7 @@ typedef enum {
     ATTENTION_BLOCK_LEVEL    /* Will block the code compilation if it fires                               */
 } attention_level_t;
 
+#define EMMIT_MESSAGE(message, ...)     fprintf(stdout, "         " message "\n", ##__VA_ARGS__)
 #define SEMANTIC_ERROR(message, ...)   fprintf(stdout, "[ERROR]  " message "\n", ##__VA_ARGS__)
 #define SEMANTIC_WARNING(message, ...) fprintf(stdout, "[WARNING]" message "\n", ##__VA_ARGS__)
 #define SEMANTIC_INFO(message, ...)    fprintf(stdout, "[INFO]   " message "\n", ##__VA_ARGS__)
