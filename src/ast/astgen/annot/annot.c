@@ -40,6 +40,7 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
             case STRAIGHT_ANNOTATION: summary->is_straight = 1;              break;
             case HOT_ANNOTATION: summary->is_hot = 1;                        break;
             case COLD_ANNOTATION: summary->is_cold = 1;                      break;
+            case POPARG_ANNOTATION: summary->is_argpop = 1;                  break;
             case REGISTER_ANNOTATION: summary->reg = annot->data.regval;     break;
             case COUNTER_ANNOTATION: summary->counter = annot->data.counter; break;
             case ADDRESS_ANNOTATION: summary->address = annot->data.address; break;

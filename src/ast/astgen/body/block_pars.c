@@ -34,7 +34,6 @@ static const handler_t handlers[] = {
     HANDLER(cpl_parse_breakpoint,        0, BREAKPOINT_TOKEN),
     HANDLER(cpl_parse_extern,            0, EXTERN_TOKEN),
     HANDLER(cpl_parse_funccall,          0, CALL_TOKEN),
-    HANDLER(cpl_parse_poparg,            0, POPARG_TOKEN),
     HANDLER(cpl_parse_function,          0, FUNC_TOKEN),
     HANDLER(cpl_parse_exit,              0, EXIT_TOKEN),
     HANDLER(cpl_parse_return,            0, RETURN_TOKEN),

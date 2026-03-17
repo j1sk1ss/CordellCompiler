@@ -343,18 +343,18 @@ function foo(...) -> i0 {
 }
 ```
 
-To pop an argument from this set, use the `poparg` keyword:
+To pop an argument from this set, use the `poparg` annotation:
 ```cpl
 function max(...) -> i0 {
-    i32 chloe = poparg as i32;
+    @[poparg] i32 chloe;
 }
 ```
 
-Also, the `poparg` keyword can be used in any function with arguments. It simply replaces any argument loading:
+Also, the `poparg` annotation can be used in any function with arguments. It simply replaces any argument loading:
 ```cpl
 function foo(i32 a, i32 b) {
-    i32 c = poparg; : a :
-    i32 d = poparg; : b :
+    @[poparg] i32 c; : a :
+    @[poparg] i32 d; : b :
 }
 ```
 

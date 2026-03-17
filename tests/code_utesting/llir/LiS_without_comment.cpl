@@ -3,7 +3,7 @@ start() {
 }
 
 : OUTPUT
-BB1: start
+BB{X} start
 == == brk  == ==
 send
 :

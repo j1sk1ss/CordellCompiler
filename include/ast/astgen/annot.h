@@ -18,6 +18,7 @@
 #define COLDS_ANNOTATION_COMMAND "cold"
 #define REGST_ANNOTATION_COMMAND "register"
 #define SIZEV_ANNOTATION_COMMAND "sizeof"
+#define POPRG_ANNOTATION_COMMAND "poparg"
 // TODO: interrupt (Will generate register save at the start and the end)
 
 typedef struct {
@@ -34,6 +35,7 @@ typedef struct {
     char      is_straight : 1;
     char      is_hot      : 1;
     char      is_cold     : 1;
+    char      is_argpop   : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -51,6 +53,7 @@ typedef enum {
     COLD_ANNOTATION,     /* Will make the linked then branch hot      */
     REGISTER_ANNOTATION, /* Will link the selected register to a decl */
     SIZEOF_ANNOTATION,   /* Will replace variable load with the const */
+    POPARG_ANNOTATION,   /* Will pop value from the stack to a linked */
 } annotation_type_t;
 
 typedef struct {

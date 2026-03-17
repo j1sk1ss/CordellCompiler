@@ -371,17 +371,6 @@ Return parsed from AST HIR subject.
 hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_t* data);
 
 /*
-Convert poparg AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return parsed from AST HIR subject.
-*/
-hir_subject_t* HIR_generate_poparg(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
-
-/*
 Convert indexation AST node into HIR element. 
 Snippet:
 ```cpl

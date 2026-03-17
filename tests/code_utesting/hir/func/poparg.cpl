@@ -1,7 +1,7 @@
 @[entry]
 function foo(...) {
-    i64 a = poparg as i64;
-    ptr f32 b = poparg as ptr f32;
+    @[poparg] i64 a;
+    @[poparg] ptr f32 b;
 }
 
 : OUTPUT
@@ -10,13 +10,9 @@ function foo(...) {
     {
         {
             i64s %0 = alloc(8);
-            u64t %3 = load_starg();
-            i64t %2 = u64t %3 as i64;
-            i64s %0 = i64t %2;
+            i64s %0 = load_starg();
             f32s* %1 = alloc(8);
-            u64t %5 = load_starg();
-            f32t* %4 = u64t %5 as *ptr;
-            f32s* %1 = f32t* %4;
+            f32s* %1 = load_starg();
         }
     }   
 }

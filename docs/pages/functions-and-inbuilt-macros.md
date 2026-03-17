@@ -157,19 +157,19 @@ CPL supports variadic arguments in the same way hot it supports C language. To u
 function foo(...) -> i0;
 ```
 
-To 'pop' an arguement from this set, use the `poparg` keyword. It behaves as a variable with a 'variable' value:
+To 'pop' an arguement from this set, use the `poparg` annotation. It behaves as a variable with a 'variable' value:
 ```cpl
 function foo(...) -> i0 {
-    i8 a1 = poparg as i8;
-    i8 a2 = poparg as i8;
+    @[poparg] i8 a1;
+    @[poparg] i8 a2;
 }
 ```
 
 Also, the `poparg` keyword can be used in a traditional function:
 ```cpl
 function foo(i32 a, i32 b) -> i0 {
-    i8 a1 = poparg as i8; : a :
-    i8 b1 = poparg as i8; : b :
+    @[poparg] i8 a1; : a :
+    @[poparg] i8 b1; : b :
 }
 ```
 

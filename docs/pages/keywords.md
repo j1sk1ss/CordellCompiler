@@ -18,7 +18,6 @@ This is a summary information about all avaliable keywords in CPL. For further i
 | `else` | The `if`s else option. | <pre><code> if 1; { </br> } </br> else { </br> } </code></pre> |
 | `syscall` | Depends on the target platform. Will invoke a system call with the provided arguments. | <pre><code> syscall(1, 0x5, ref msg, strlen(ref msg)); </code></pre> |
 | `asm` | Depends on the target platform. Inline assembly will copy all content to the final assembly file. Also, it will insert all used variable to the final assembly block. | <pre><code> asm(a, b) { </br> "mov rax, %0", </br> "mov %1, rdx" </br> } </code></pre> |
-| `poparg` | Will pop the next argument from the stack. | <pre><code> function foo(...) { </br> i32 a = poparg as i32; </br> i32 b = poparg as i32; </br> } </code></pre> |
 | `dref` | Get value by a pointer. | <pre><code> i32 a = dref 0x100 as ptr i32; </code></pre> |
 | `ref` | Get a pointer to a value. | <pre><code> ptr i32 a = ref b; </code></pre> |
 | `ptr` | A pointer modifier. | <pre><code> ptr i32 a; </code></pre> |

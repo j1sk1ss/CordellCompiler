@@ -1,6 +1,6 @@
 function foo(...) {
-    i64 a = poparg as i64;
-    ptr f32 b = poparg as ptr f32;
+    @[poparg] i64 a;
+    @[poparg] ptr f32 b;
 }
 
 start() {

@@ -1,18 +1,14 @@
 {
     @[entry]
     function foo(...) {
-        i64 a = poparg as i64;
-        ptr f32 b = poparg as ptr f32;
+        @[poparg] i64 a;
+        @[poparg] ptr f32 b;
     }
 }
 
 : OUTPUT
 BB{X} fn _main(...)
-%3 = strt_loadarg();
-%2 = %3 as i64;
-%0 = %2;
-%5 = strt_loadarg();
-%4 = %5 as u64;
-%1 = %4;
+%0 = strt_loadarg();
+%1 = strt_loadarg();
 fend
 :

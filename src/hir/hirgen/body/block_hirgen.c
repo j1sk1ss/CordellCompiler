@@ -26,7 +26,6 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
     switch (node->t->t_type) {
         case CALLING_TOKEN:
         case CALL_TOKEN:                  res = HIR_generate_funccall(node, ctx, smt, 1);     break;
-        case POPARG_TOKEN:                res = HIR_generate_poparg(node, ctx, smt);          break;
         case SYSCALL_TOKEN:               res = HIR_generate_syscall(node, ctx, smt, 1);      break;
         case CONVERT_TOKEN:               res = HIR_generate_explconv(node, ctx, smt);        break;
         case NEGATIVE_TOKEN:              res = HIR_generate_neg(node, ctx, smt);             break;

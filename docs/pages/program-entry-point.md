@@ -21,8 +21,8 @@ function naomi() -> i0; { }
 As you've noticed, the `start` keyword can have arguments (`start(i32 argc, ptr ptr i8 argv)`) and can ignore them (`start()`). The both cases are valid. Also, the `start` keyword can use variadic arguments, which says that the code below:
 ```cpl
 start(...) {
-    i32 argc = poparg as i32;
-    ptr ptr i8 argv = poparg as ptr ptr i8;
+    @[poparg] i32 argc;
+    @[poparg] ptr ptr i8 argv;
 }
 ```
 , is valid.

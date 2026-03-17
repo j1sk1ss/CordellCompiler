@@ -53,6 +53,11 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     }
 
     HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(name));
+    HAS_ANNOTATION(POPARG_ANNOTATION, node, {
+        HIR_BLOCK2(ctx, ctx->carry.val2, HIR_SUBJ_ASTVAR(name), HIR_SUBJ_CONST(ctx->carry.val1++));
+        return 1;
+    });
+
     if (!name->siblings.n) return 1;
     return HIR_generate_assignment_block(node, ctx, smt);
 }
