@@ -177,9 +177,9 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
         /* Save the largest offset in this function for further
            memory allocation in ASM phase. */
         if (
-            fb->hmap.entry->op == HIR_FDCL || 
-            fb->hmap.entry->op == HIR_STRT
-        ) fb->hmap.entry->sarg = HIR_SUBJ_CONST(smp.last_offset);
+            fb->lmap.entry->op == LIR_FDCL || 
+            fb->lmap.entry->op == LIR_STRT
+        ) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
     }
 
     return 1;

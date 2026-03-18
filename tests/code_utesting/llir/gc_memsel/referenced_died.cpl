@@ -9,7 +9,7 @@ start() {
 }
 
 : OUTPUT
-BB1: start
+BB{X} start
 r15 = $1;
 rdi = r15;
 r15 = rdi;
@@ -25,7 +25,7 @@ rbx = r15;
 cmp r10, 0;
 je lb{X}
 jne lb{X}
-BB2: lb{X}
+BB{X} lb{X}
 r15 = &([rbp - 8]);
 rcx = r15;
 r15 = rcx;
@@ -34,7 +34,7 @@ r15 = rdx;
 rbx = r15;
 kill(9);
 jmp lb{X}
-BB3: lb{X}
+BB{X} lb{X}
 r15 = $1;
 rsi = r15;
 r15 = rsi;

@@ -57,13 +57,14 @@ Params:
 Return the virtual variable that is linked to the physical register.
 */
 static lir_subject_t* _create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt) {
-    symbol_id_t cpy = NO_SYMBOL_ID;
     variable_info_t vi = { .vmi.offset = -1 };
+    token_type_t vtype = TMP_TYPE_TOKEN;
     if (
         src->t == LIR_VARIABLE && 
         VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)
-    ) cpy = VRTB_add_copy(&vi, &smt->v);
-    else cpy = VRTB_add_info(NULL, TMP_TYPE_TOKEN, 0, NULL, &smt->v);
+    ) vtype = vi.type;
+    
+    symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, NULL, &smt->v);
     VRTB_update_memory(cpy, vi.vmi.offset, src->size, reg, FIELD_NO_CHANGE, &smt->v);
     return LIR_SUBJ_VAR(cpy, src->size);
 }

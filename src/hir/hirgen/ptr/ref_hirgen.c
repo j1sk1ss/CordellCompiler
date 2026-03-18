@@ -15,7 +15,7 @@ hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt, int i
         }
     }
 
-    hir_subject_t* ref = HIR_SUBJ_TMPVAR(src_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(src_type), 0, NULL, &smt->v));
+    hir_subject_t* ref = HIR_SUBJ_TMPVAR(src_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(src_type), NO_SYMBOL_ID, NULL, &smt->v));
     if (increment) ref->ptr = MAX(src_ptr + 1, 0);
     else ref->ptr = src_ptr;
     return ref;

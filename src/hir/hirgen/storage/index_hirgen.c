@@ -96,7 +96,6 @@ int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx
     
     hir_subject_type_t indexed_type;
     hir_subject_t* final_head = _get_final_head(base, offt, ctx, smt, &indexed_type);
-
     HIR_BLOCK2(ctx, HIR_LDREF, final_head, HIR_generate_implconv(ctx, final_head->ptr - 1, indexed_type, data, smt));
     return 1;
 }

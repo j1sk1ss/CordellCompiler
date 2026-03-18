@@ -3,7 +3,7 @@
 static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long value, sym_table_t* smt) {
     string_t* counter_name = create_string("__counter");
     hir_subject_t* counter = HIR_SUBJ_STKVAR(
-        VRTB_add_info(counter_name, I64_TYPE_TOKEN, node->sinfo.s_id, NULL, &smt->v), 
+        VRTB_add_info(counter_name, I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), 
         HIR_STKVARI64, 
         0
     );
@@ -30,7 +30,7 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long v
         ctx->carry.ptr = backup;
 
         hir_subject_t* updated_counter = HIR_SUBJ_STKVAR(
-            VRTB_add_info(NULL, TMP_I64_TYPE_TOKEN, node->sinfo.s_id, NULL, &smt->v), 
+            VRTB_add_info(NULL, TMP_I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), 
             HIR_TMPVARI64, 
             0
         );

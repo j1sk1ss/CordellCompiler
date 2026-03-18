@@ -114,7 +114,7 @@ int HIR_unload_subject(hir_subject_t* s);
 int HIR_unload_blocks(hir_block_t* block);
 
 static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
-    variable_info_t vi = { .type = tkn->t_type, .vfs  = { .ptr  = ptr, .glob = tkn->flags.glob, .ro   = tkn->flags.ro } };
+    variable_info_t vi = { .type = tkn->t_type, .vfs = { .ptr = ptr, .glob = tkn->flags.glob, .ro = tkn->flags.ro } };
     return HIR_get_stktype(&vi);
 }
 

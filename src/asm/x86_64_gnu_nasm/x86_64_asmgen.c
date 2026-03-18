@@ -6,12 +6,12 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_ECLL: EMIT_COMMAND("call %s\n", format_lir_subject(b->farg, smt)); break;
         case LIR_STRT:
         case LIR_FDCL: {
-            EMIT_COMMAND("%s:\n", format_lir_subject(b->farg, smt));
+            EMIT_COMMAND("%s:", format_lir_subject(b->farg, smt));
             if (!fi->flags.naked) {
-                EMIT_COMMAND("push rbp\n");
-                EMIT_COMMAND("mov rbp, rsp\n");
+                EMIT_COMMAND("push rbp");
+                EMIT_COMMAND("mov rbp, rsp");
                 if (b->sarg->storage.cnst.value > 0) {
-                    EMIT_COMMAND("sub rsp, %ld\n", ALIGN(b->sarg->storage.cnst.value, 8));
+                    EMIT_COMMAND("sub rsp, %ld", ALIGN(b->sarg->storage.cnst.value, 8));
                 }
             }
 
@@ -99,7 +99,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_iMUL:       EMIT_COMMAND("imul %s", format_lir_subject(b->sarg, smt));                                         break;
         case LIR_DIV:        EMIT_COMMAND("div %s", format_lir_subject(b->sarg, smt));                                          break;
         case LIR_iDIV:       EMIT_COMMAND("idiv %s", format_lir_subject(b->sarg, smt));                                         break;
-        case LIR_CMP:        EMIT_COMMAND("cmp %s, %s", format_lir_subject(b->farg, smt), format_lir_subject(b->sarg, smt));    break; // TODO: Fix translation
+        case LIR_CMP:        EMIT_COMMAND("cmp %s, %s", format_lir_subject(b->farg, smt), format_lir_subject(b->sarg, smt));    break;
         case LIR_bAND:
         case LIR_iAND:       EMIT_COMMAND("and %s, %s", format_lir_subject(b->sarg, smt), format_lir_subject(b->targ, smt));    break;
         case LIR_bOR:
@@ -115,25 +115,25 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_bSAR:       EMIT_COMMAND("sar %s, %s", format_lir_subject(b->farg, smt), format_lir_subject(b->sarg, smt));    break;
         case LIR_RAW: {
             string_t* raw_line = create_string(format_lir_subject(b->farg, smt));
-            unsigned int percent_pos = raw_line->index_of(raw_line, '%');
+            int percent_pos = raw_line->index_of(raw_line, '%');
             if (percent_pos < 0) EMIT_COMMAND("%s", raw_line->body);
             else {
                 string_t* replacement = create_string(format_lir_subject(b->sarg, smt));
-                string_t* line_str = create_string_from_part(raw_line->body, 0, percent_pos);
-                line_str->cat(line_str, replacement);
+                string_t* base_line = create_string_from_part(raw_line->body, 0, percent_pos);
+                base_line->cat(base_line, replacement);
 
-                const char* suffix = line_str->body + 1;
+                const char* suffix = raw_line->body + percent_pos + 1;
                 while (str_isdigit((unsigned char)*suffix)) {
                     suffix++;
                 }
 
                 string_t* suffix_str = create_string(suffix);
-                line_str->cat(line_str, suffix_str);
+                base_line->cat(base_line, suffix_str);
 
-                EMIT_COMMAND("%s", line_str->body);
+                EMIT_COMMAND("%s", base_line->body);
                 destroy_string(replacement);
                 destroy_string(suffix_str);
-                destroy_string(line_str);
+                destroy_string(base_line);
             }
 
             destroy_string(raw_line);
@@ -146,10 +146,10 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
 }
 
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
-    map_foreach (str_info_t* si, &smt->s.strtb) {
-        if (si->t != STR_INDEPENDENT) continue;
-        fprintf(output, "_str_%li_ db ", si->id);
-        char* data = si->value->body;
+    str_info_t si;
+    if (STTB_get_info_id(id, &si, &smt->s)) {
+        fprintf(output, "_str_%li_ db ", si.id);
+        char* data = si.value->body;
         while (*data) {
             fprintf(output, "%i,", *(data++));
         }
@@ -228,7 +228,7 @@ static cfg_func_t* _find_function_by_id(symbol_id_t id, cfg_ctx_t* ctx) {
 
 int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
     map_foreach (section_info_t* section, &smt->c.sectb) {
-        EMIT_COMMAND("%s", section->name->body);
+        EMIT_COMMAND("section %s", section->name->body);
         set_foreach (symbol_id_t id, &section->vars) {
             _generate_variable(id, smt, output);
         }
@@ -240,9 +240,11 @@ int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
         set_foreach (symbol_id_t id, &section->func) {
             func_info_t fi;
             if (!FNTB_get_info_id(id, &fi, &smt->f)) continue;
+            cfg_func_t* fb = _find_function_by_id(id, cctx);
+            if (!fb) continue;
+            
             if (fi.flags.global)   EMIT_COMMAND("global %s", fi.name->body);
             if (fi.flags.external) EMIT_COMMAND("extern %s", fi.name->body);
-            cfg_func_t* fb = _find_function_by_id(id, cctx);
             lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
             while (lh) {
                 _convert_lirblock_to_assembly(lh, &fi, smt, output);
