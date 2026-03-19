@@ -54,8 +54,8 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         default: break;
     }
 
-    if (TKN_update_operator(node->t)) res = HIR_generate_update_block(node, ctx, smt, 1);
-    else if (TKN_isoperand(node->t))  res = HIR_generate_operand(node, ctx, smt);
+    if (TKN_is_update_operator(node->t)) res = HIR_generate_update_block(node, ctx, smt, 1);
+    else if (TKN_is_operand(node->t))  res = HIR_generate_operand(node, ctx, smt);
 
     /* If it is hidden, it means, we're gonna extract the size of the result. */
     if (sizeof_annot) {
@@ -106,7 +106,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
     }
 
     if (TKN_is_decl(node->t))          return HIR_generate_declaration_block(node, ctx, smt);
-    if (TKN_update_operator(node->t)) (void)HIR_generate_update_block(node, ctx, smt, 0);
+    if (TKN_is_update_operator(node->t)) (void)HIR_generate_update_block(node, ctx, smt, 0);
     return 1;
 }
 
@@ -128,7 +128,7 @@ int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     for (ast_node_t* t = node; t; t = t->siblings.n) {
-        if (TKN_isblock(t->t) && (!t->t || t->t->t_type != START_TOKEN)) {
+        if (TKN_is_block(t->t) && (!t->t || t->t->t_type != START_TOKEN)) {
             _insert_scope(t, ctx, HIR_MKSCOPE);
             HIR_generate_block(t->c, ctx, smt);
             _insert_scope(t, ctx, HIR_ENDSCOPE);

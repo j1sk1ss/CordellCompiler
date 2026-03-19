@@ -183,29 +183,33 @@ typedef struct {
 } token_t;
 
 token_type_t TKN_get_tmp_type(token_type_t t);
-int TKN_istmp_type(token_type_t t);
+int TKN_is_tmp_type(token_type_t t);
 
+/* If the target system supports mmore than 5 different sizes 
+(For instance: 256, 128, 64, 32, 16, 8 - There is a lot of sizes),
+just add a new option here. */
 typedef enum {
-    TYPE_FULL_SIZE    = 4, /* For instance x86_64: 64-bit */
-    TYPE_HALF_SIZE    = 3, /* 32-bit                      */
-    TYPE_QUARTER_SIZE = 2, /* 16-bit                      */
-    TYPE_EIGHTH_SIZE  = 1  /* 8-bit                       */
+    TYPE_DOUBLE_FULL_SIZE = 5,
+    TYPE_FULL_SIZE        = 4, /* For instance x86_64: 64-bit */
+    TYPE_HALF_SIZE        = 3, /* 32-bit                      */
+    TYPE_QUARTER_SIZE     = 2, /* 16-bit                      */
+    TYPE_EIGHTH_SIZE      = 1  /* 8-bit                       */
 } type_size_t;
 
-type_size_t TKN_variable_bitness(token_t* token, char ptr);
-int TKN_isptr(token_t* token);
-int TKN_one_slot(token_t* token);
-int TKN_instack(token_t* token);
-int TKN_isblock(token_t* token);
+int TKN_is_pointer(token_t* token);
+int TKN_is_one_slot(token_t* token);
+int TKN_in_stack(token_t* token);
+int TKN_is_block(token_t* token);
 int TKN_is_decl(token_t* token);
-int TKN_isclose(token_t* token);
-int TKN_isoperand(token_t* token);
-int TKN_token_priority(token_t* token);
-int TKN_isnumeric(token_t* token);
-int TKN_isvariable(token_t* token);
+int TKN_is_close(token_t* token);
+int TKN_is_operand(token_t* token);
+int TKN_is_numeric(token_t* token);
+int TKN_is_variable(token_t* token);
 int TKN_is_sign(token_t* token, char ptr);
 int TKN_is_float(token_t* token);
-int TKN_update_operator(token_t* token);
+int TKN_is_update_operator(token_t* token);
+type_size_t TKN_variable_bitness(token_t* token, char ptr);
+int TKN_token_priority(token_t* token);
 token_type_t TKN_get_var_from_type(token_type_t t);
 
 #endif

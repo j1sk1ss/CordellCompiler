@@ -155,7 +155,7 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
 }
 
 static type_size_t _get_token_bitness(token_t* tkn) {
-    if (!TKN_isnumeric(tkn)) return TKN_variable_bitness(tkn, 1);
+    if (!TKN_is_numeric(tkn)) return TKN_variable_bitness(tkn, 1);
     else {
         long long val = tkn->body->to_llong(tkn->body);
         if (val <= UCHAR_MAX)      return TYPE_EIGHTH_SIZE;
@@ -167,7 +167,7 @@ static type_size_t _get_token_bitness(token_t* tkn) {
 
 static token_t* _get_token_from_ast(ast_node_t* n, int* ptr) {
     if (!n || !n->t) return NULL;
-    if (TKN_isoperand(n->t)) {
+    if (TKN_is_operand(n->t)) {
         int lptr = 0, rptr = 0;
         token_t* l = _get_token_from_ast(n->c, &lptr);
         token_t* r = _get_token_from_ast(n->c->siblings.n, &rptr);
@@ -191,7 +191,7 @@ static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
     token_t* rt = _get_token_from_ast(r, &rtptr);
 
     if (MAX(_get_token_bitness(lt), (type_size_t)ltptr) < MAX(_get_token_bitness(rt), (type_size_t)rtptr)) {
-        if (TKN_isnumeric(rt)) {
+        if (TKN_is_numeric(rt)) {
             SEMANTIC_WARNING(
                 " %s %s of '%s' with '%s' (Number's bitness is=%s, but '%s' can handle bitness=%s)!", _format_location(&rt->finfo), msg,
                 lt->body->body, rt->body->body, _fmt_type_size(_get_token_bitness(rt)), 
@@ -447,7 +447,7 @@ static int _find_consumer(ast_node_t* src, int* found) {
     /* Consumed by a variable
        For instance:
         - indexing */
-    if (TKN_isvariable(src->t)) {
+    if (TKN_is_variable(src->t)) {
         *found = 1;
         return 1;
     }
@@ -464,7 +464,7 @@ static int _find_consumer(ast_node_t* src, int* found) {
         - -=
         - /=
         etc. */
-    if (TKN_update_operator(src->t)) {
+    if (TKN_is_update_operator(src->t)) {
         *found = 3;
         return 1;
     }
@@ -894,7 +894,7 @@ int ASTWLKR_unused_expression(AST_VISITOR_ARGS) {
 
 int ASTWLKR_ref_to_expression(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
-    if (!TKN_isvariable(nd->c->t)) {
+    if (!TKN_is_variable(nd->c->t)) {
         SEMANTIC_WARNING(" %s The reference of a temporary variable!", _format_location(&nd->t->finfo));
         REBUILD_CODE_1TRG(nd->p, nd->c);
         return 0;

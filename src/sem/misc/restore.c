@@ -302,14 +302,14 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             }
         }
     }
-    else if (TKN_isoperand(nd->t)) {
+    else if (TKN_is_operand(nd->t)) {
         if (nd->c) _restore_code_lines(x, nd->c, u, indent);
         _rst_ln_printf(x, line, " %s ", nd->t->body->body);
         if (nd->c->siblings.n) _restore_code_lines(x, nd->c->siblings.n, u, indent);
     }
     else if (
-        TKN_isnumeric(nd->t)  ||
-        TKN_isvariable(nd->t)
+        TKN_is_numeric(nd->t)  ||
+        TKN_is_variable(nd->t)
     ) _rst_ln_puts(x, line, nd->t->body->body);
     else if (
         nd->t->t_type == STRING_VALUE_TOKEN
@@ -321,9 +321,9 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     
     switch (nd->t->t_type) {
         case CALLING_TOKEN: {
-            if (!TKN_isvariable(nd->c->t)) _rst_ln_puts(x, line, "(");
+            if (!TKN_is_variable(nd->c->t)) _rst_ln_puts(x, line, "(");
             _restore_code_lines(x, nd->c, u, indent);
-            if (!TKN_isvariable(nd->c->t)) _rst_ln_puts(x, line, ")");
+            if (!TKN_is_variable(nd->c->t)) _rst_ln_puts(x, line, ")");
 
             _rst_ln_puts(x, line, "(");
             for (ast_node_t* arg = nd->c->siblings.n->c; arg; arg = arg->siblings.n) {

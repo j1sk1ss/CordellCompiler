@@ -214,9 +214,9 @@ Returns 1 if this is a number, 2 - if this is a constant.
 Returns 0 - if this neither a number nor a constant.
 */
 int HIR_is_defined_type(hir_subject_type_t t);
-hir_operation_t HIR_convop(hir_subject_type_t t);
+hir_operation_t HIR_get_convop(hir_subject_type_t t);
 int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
-int HIR_sideeffect_op(hir_operation_t op);
+int HIR_is_sideeffect_op(hir_operation_t op);
 token_type_t HIR_get_tmptkn_type(hir_subject_type_t t);
 int HIR_is_float(hir_subject_type_t t);
 

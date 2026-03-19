@@ -13,7 +13,7 @@ ast_node_t* cpl_parse_return(PARSER_ARGS) {
     
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     forward_token(it, 1);
-    if (TKN_isclose(CURRENT_TOKEN)) {
+    if (TKN_is_close(CURRENT_TOKEN)) {
         return base;
     }
 

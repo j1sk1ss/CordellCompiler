@@ -249,11 +249,18 @@ Note: Read operation is an operation that uses value from
 Params:
     - `op` - LIR operation.
 
-Returns 1 if the opration is a read operation.
+Returns 1 if the operation is a read operation.
 */
 int LIR_is_readop(lir_operation_t op);
 
-// TODO
+/*
+Check if the operation will produce some sort of an effect.
+For instance: function call can, write and exit as well.
+Params:
+    - `op` - LIR operation.
+
+Returns 1 if the operation has side effect.
+*/ 
 int LIR_has_sideeffect(lir_operation_t op);
 
 #endif

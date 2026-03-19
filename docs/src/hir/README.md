@@ -8,7 +8,7 @@ The implementation of the HIR generator from the AST source is not difficult, as
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node || !node->token) return NULL;
     if (
-        TKN_isoperand(node->token) && node->token->t_type != ASSIGN_TOKEN
+        TKN_is_operand(node->token) && node->token->t_type != ASSIGN_TOKEN
     ) return HIR_generate_operand(node, ctx, smt);
     switch (node->token->t_type) {
         case CALL_TOKEN:            return HIR_generate_funccall(node, ctx, smt, 1);
@@ -37,7 +37,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
     if (!node || !node->token) return 0;
     if (TKN_is_decl(node->token)) return HIR_generate_declaration_block(node, ctx, smt);
     if (
-        TKN_update_operator(node->token) && node->token->t_type != ASSIGN_TOKEN
+        TKN_is_update_operator(node->token) && node->token->t_type != ASSIGN_TOKEN
     ) return HIR_generate_update_block(node, ctx, smt);
     switch (node->token->t_type) {
         case IF_TOKEN:      HIR_generate_if_block(node, ctx, smt);         break;

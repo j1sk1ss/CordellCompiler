@@ -1,9 +1,16 @@
 #include <hir/hirgens/hirgens.h>
 
-static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx) {
+static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name  = node->c;
     ast_node_t* value = name->siblings.n;
     HIR_BLOCK2(ctx, HIR_STRDECL, HIR_SUBJ_ASTVAR(name), HIR_SUBJ_STRING(value));
+
+    variable_info_t vi;
+    if (VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v) && vi.vfs.glob) {
+        char* head = value->t->body->body;
+        while (head && *head) ARTB_add_elems(vi.v_id, *(head++), &smt->a);
+    }
+
     return 1;
 }
 
@@ -41,14 +48,14 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
 
 static int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (node->t->t_type == ARRAY_TYPE_TOKEN)    return _arr_declaration(node, ctx, smt);
-    else if (node->t->t_type == STR_TYPE_TOKEN) return _str_declaration(node, ctx);
+    else if (node->t->t_type == STR_TYPE_TOKEN) return _str_declaration(node, ctx, smt);
     return 1;
 }
 
 int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     ast_node_t* name = node->c;
-    if (!TKN_one_slot(name->t)) {
+    if (!TKN_is_one_slot(name->t)) {
         return _starr_declaration(node, ctx, smt);
     }
 

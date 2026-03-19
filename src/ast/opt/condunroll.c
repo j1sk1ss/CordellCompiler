@@ -7,7 +7,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
     ast_node_t* t = root->c;
     while (t) {
         ast_node_t* next = t->siblings.n;
-        if (TKN_isblock(t->t)) _clean_blocks(t, ctx);
+        if (TKN_is_block(t->t)) _clean_blocks(t, ctx);
         else {
             switch (t->t->t_type) {
                 case IF_TOKEN: {
@@ -19,7 +19,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                     _clean_blocks(rbranch, ctx);
 
                     ast_node_t* unrolled_if = NULL;
-                    if (TKN_isnumeric(condition->t)) {
+                    if (TKN_is_numeric(condition->t)) {
                         long long val = condition->t->body->to_llong(condition->t->body);
                         if (val && lbranch) {
                             unrolled_if = lbranch;
@@ -67,7 +67,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                     ast_node_t* stmt  = t->c;
                     ast_node_t* cases = stmt->siblings.n;
                     
-                    if (TKN_isnumeric(stmt->t)) {
+                    if (TKN_is_numeric(stmt->t)) {
                         ast_node_t* unrolled_switch = NULL;
                         ast_node_t* prev = NULL;
                         ast_node_t* curr = cases->c;
@@ -115,7 +115,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                 case WHILE_TOKEN: {
                     ast_node_t* condition = t->c;
                     _clean_blocks(condition->siblings.n, ctx);
-                    if (TKN_isnumeric(condition->t) && !condition->t->body->to_llong(condition->t->body)) {
+                    if (TKN_is_numeric(condition->t) && !condition->t->body->to_llong(condition->t->body)) {
                         AST_remove_node(root, t);
                         AST_unload(t);
                         if (tprev) tprev->siblings.n = next;

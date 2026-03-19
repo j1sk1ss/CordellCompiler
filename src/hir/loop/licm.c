@@ -88,7 +88,7 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
         set_foreach (hir_block_t* hh, loop_hir) {
             if (
                 set_has(invariant_defs, hh) || /* Already in the invariant set        */
-                HIR_sideeffect_op(hh->op)      /* If this operation has a side effect */
+                HIR_is_sideeffect_op(hh->op)      /* If this operation has a side effect */
             ) continue;
 
             int invariant = 1;

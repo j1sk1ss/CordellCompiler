@@ -205,7 +205,7 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     int isarr           = vi->type == ARR_VARIABLE_TOKEN;
     int isstr           = vi->type == STR_VARIABLE_TOKEN;
 
-    if (!TKN_instack(&tmptkn)) {
+    if (!TKN_in_stack(&tmptkn)) {
         if (isarr) return HIR_GLBVARARR;
         if (isstr) return HIR_GLBVARSTR;
         return _get_glbtype(bitness, isfloat, issigned);
@@ -277,7 +277,7 @@ int HIR_is_commutative_op(hir_operation_t op) {
     }
 }
 
-int HIR_sideeffect_op(hir_operation_t op) {
+int HIR_is_sideeffect_op(hir_operation_t op) {
     switch (op) {
         case HIR_JMP:
         case HIR_PHI:
@@ -355,7 +355,7 @@ int HIR_is_writeop(hir_operation_t op) {
     }
 }
 
-hir_operation_t HIR_convop(hir_subject_type_t t) {
+hir_operation_t HIR_get_convop(hir_subject_type_t t) {
     switch (t) {
         case HIR_F64NUMBER:
         case HIR_TMPVARF64: case HIR_STKVARF64: case HIR_GLBVARF64: return HIR_TF64;

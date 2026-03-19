@@ -27,7 +27,7 @@ int HIR_FUNC_perform_devirt(cfg_ctx_t* cctx, sym_table_t* smt) {
                                 int hir_arg_index = 0;
                                 foreach (hir_subject_t* hir_arg, &hh->targ->storage.list.h) {
                                     if (hir_arg_index++ < arg_index) continue;
-                                    if (HIR_convop(hir_arg->t) != HIR_convop(HIR_get_tmptype_tkn(arg->t, 1))) {
+                                    if (HIR_get_convop(hir_arg->t) != HIR_get_convop(HIR_get_tmptype_tkn(arg->t, 1))) {
                                         fits--; /* Argument doesn't match */
                                     }
 

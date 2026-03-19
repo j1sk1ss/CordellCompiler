@@ -18,7 +18,7 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
     var_lookup(node->c, ctx, smt);
     if (!node->t) return 0;
 
-    if (TKN_isvariable(node->t)) {
+    if (TKN_is_variable(node->t)) {
         variable_info_t varinfo = { .type = UNKNOWN_NUMERIC_TOKEN };
         for (int s = ctx->scopes.stack.top; s >= 0; s--) {
             short s_id = (short)((long)ctx->scopes.stack.data[s].d);

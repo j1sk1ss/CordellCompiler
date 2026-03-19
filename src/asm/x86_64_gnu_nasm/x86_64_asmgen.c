@@ -147,7 +147,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
 
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
-    if (STTB_get_info_id(id, &si, &smt->s)) {
+    if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
         fprintf(output, "_str_%li_ db ", si.id);
         char* data = si.value->body;
         while (*data) {
@@ -162,9 +162,7 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
 
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
-    if (!VRTB_get_info_id(id, &vi, &smt->v)) {
-        return 0;
-    }
+    if (!VRTB_get_info_id(id, &vi, &smt->v)) return 0;
 
     if (
         vi.type == ARRAY_TYPE_TOKEN || 
@@ -173,6 +171,7 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
         array_info_t ai;
         if (!ARTB_get_info(vi.v_id, &ai, &smt->a)) return 0;
         token_t tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
+        /* Simple reservation with the unitialized data */
         if (!list_size(&ai.elems)) {
             switch (TKN_variable_bitness(&tmptkn, 1)) {
                 case TYPE_FULL_SIZE:    EMIT_COMMAND("%s resq %ld", vi.name->body, ai.size); break;
@@ -181,24 +180,26 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
                 default:                EMIT_COMMAND("%s resb %ld", vi.name->body, ai.size); break;
             }
         }
+        /* Reservation with the initialized data */
         else {
             switch (TKN_variable_bitness(&tmptkn, 1)) {
-                case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq ", vi.name->body); break;
-                case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd ", vi.name->body); break;
-                case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw ", vi.name->body); break;
-                default:                EMIT_COMMAND("%s db ", vi.name->body); break;
+                case TYPE_FULL_SIZE:    EMIT_PART_COMMAND("%s dq ", vi.name->body); break;
+                case TYPE_HALF_SIZE:    EMIT_PART_COMMAND("%s dd ", vi.name->body); break;
+                case TYPE_QUARTER_SIZE: EMIT_PART_COMMAND("%s dw ", vi.name->body); break;
+                default:                EMIT_PART_COMMAND("%s db ", vi.name->body); break;
             }
 
-            int elcount = ai.size;
+            int elcount = list_size(&ai.elems);
             foreach (array_elem_info_t* el, &ai.elems) {
                 fprintf(output, "%lu", el->value);
-                if (elcount--) fprintf(output, ",");
+                if (--elcount) fprintf(output, ",");
             }
 
-            if (elcount != ai.size && elcount) fprintf(output, ",");
-            while (elcount-- > 0) {
+            int last = ai.size - list_size(&ai.elems);
+            if (last > 0) fprintf(output, ",");
+            while (last-- > 0) {
                 fprintf(output, "0");
-                if (elcount) fprintf(output, ",");
+                if (last) fprintf(output, ",");
             }
 
             fprintf(output, "\n");

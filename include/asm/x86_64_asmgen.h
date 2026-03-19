@@ -11,7 +11,8 @@
 #include <lir/lir.h>
 #include <lir/lirgen.h>
 
-#define EMIT_COMMAND(cmd, ...) fprintf(output, cmd "\n", ##__VA_ARGS__)
+#define EMIT_COMMAND(cmd, ...)      fprintf(output, cmd "\n", ##__VA_ARGS__)
+#define EMIT_PART_COMMAND(cmd, ...) fprintf(output, cmd, ##__VA_ARGS__)
 
 /*
 Main generator script. Generation based on linear LIR instead of LIR CFG.

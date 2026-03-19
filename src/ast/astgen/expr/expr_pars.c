@@ -109,7 +109,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 ) goto _stop_expression_parsing;
 
                 int next_mp = p + 1;
-                if (TKN_update_operator(CURRENT_TOKEN)) {
+                if (TKN_is_update_operator(CURRENT_TOKEN)) {
                     next_mp = p;
                 }
 
@@ -150,7 +150,7 @@ _stop_expression_parsing: {}
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
     
-    if (TKN_isclose(CURRENT_TOKEN)) {
+    if (TKN_is_close(CURRENT_TOKEN)) {
         PARSE_ERROR("Expected a token, but got a terminator!");
         return NULL;
     }
