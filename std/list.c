@@ -232,3 +232,31 @@ int list_free_force(list_t* l) {
 int list_free_force_op(list_t* l, int (*op)(void*)) {
     return _list_free(l, 1, op);
 }
+
+void** list_flatten(list_t* l) {
+    void** data = (void**)mm_malloc(list_size(l) * sizeof(void*));
+    if (!data) return NULL;
+    
+    int index = 0;
+    foreach (void* d, l) {
+        data[index++] = d;
+    }
+
+    return data;
+}
+
+int list_replace(list_t* l, void* prev, void* curr) {
+    if (!l || !l->h) return 0;
+
+    list_node_t* cur = l->h;
+    while (cur) {
+        if (cur->data == prev) {
+            cur->data = curr;
+            return 1;
+        }
+
+        cur = cur->n;
+    }
+
+    return 0;
+}

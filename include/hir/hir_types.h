@@ -10,7 +10,7 @@ typedef enum hir_operation {
         /* Commands */
         HIR_UFCLL,       // y(), args - z
         HIR_STORE_UFCLL, // x = y(), args - z
-        HIR_FCLL,        // x(), args - z
+        HIR_FCLL,        // y(), args - z
         HIR_STORE_FCLL,  // x = y(), args - z
         HIR_ECLL,        // ext x(), args - z
         HIR_STORE_ECLL,  // x = ext y(), args - z

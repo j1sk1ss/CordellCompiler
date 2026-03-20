@@ -806,13 +806,13 @@ int ASTWLKR_inefficient_while(AST_VISITOR_ARGS) {
 int ASTWLKR_wrong_exit(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
 
-    long fid = 0;
-    if (nd->t->t_type == START_TOKEN) fid = nd->sinfo.v_id;
-    else fid = nd->c->sinfo.v_id;
+    long f_id = 0;
+    if (nd->t->t_type == START_TOKEN) f_id = nd->sinfo.v_id;
+    else f_id = nd->c->sinfo.v_id;
 
     func_info_t fi;
     if (
-        !FNTB_get_info_id(fid, &fi, &smt->f) || 
+        !FNTB_get_info_id(f_id, &fi, &smt->f) || 
         !fi.flags.entry
     ) return 1;
 

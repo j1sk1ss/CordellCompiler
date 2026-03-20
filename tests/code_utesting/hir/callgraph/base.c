@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 
     map_foreach (call_graph_node_t* node, &callctx.verts) {
         set_foreach (call_graph_node_t* callee, &node->edges) {
-            printf("  F%ld -> F%ld;\n", node->fid, callee->fid);
+            printf("  F%ld -> F%ld;\n", node->f_id, callee->f_id);
         }
     }
 

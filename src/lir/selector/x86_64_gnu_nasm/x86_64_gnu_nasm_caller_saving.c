@@ -78,13 +78,13 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
 /*
 Find function by the provided ID.
 Params:
-    - `fid` - Function ID.
+    - `f_id` - Function ID.
     - `cctx` - CFG context.
 
 Returns function or NULL.
 */
-static cfg_func_t* _find_function(long fid, cfg_ctx_t* cctx) {
-    foreach (cfg_func_t* fb, &cctx->funcs) { if (fb->fid == fid) return fb; }
+static cfg_func_t* _find_function(long f_id, cfg_ctx_t* cctx) {
+    foreach (cfg_func_t* fb, &cctx->funcs) { if (fb->f_id == f_id) return fb; }
     return NULL;
 }
 

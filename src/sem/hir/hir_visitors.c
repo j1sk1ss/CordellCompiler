@@ -207,7 +207,7 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
 
     switch (di.defined_value) {
         case 1: TRACE_add_location(&trace, &curr_loc, "'If' with a constant value '%s'!", di.const_value ? "true" : "false"); break;
-        case 2:
+        case 2: {
             trace_location_t loc;
             _sparce_find_variable_define_location(b, b->farg->storage.var.v_id, &loc);
             TRACE_add_location(&trace, &loc, "Variable '%s' declared as a constant here!", _resolve_variable_name(b->farg->storage.var.v_id, smt));
@@ -215,7 +215,8 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
                 &trace, &curr_loc, "Condition with a constant value (variable '%s' is equals '%s' (%i))!", 
                 _resolve_variable_name(b->farg->storage.var.v_id, smt), di.const_value ? "true" : "false", di.const_value
             ); 
-        break;
+            break;
+        }
         default: break;
     }
 

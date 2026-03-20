@@ -221,7 +221,7 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
 
 static cfg_func_t* _find_function_by_id(symbol_id_t id, cfg_ctx_t* ctx) {
     foreach (cfg_func_t* fb, &ctx->funcs) {
-        if (fb->fid == id) return fb;
+        if (fb->f_id == id) return fb;
     }
 
     return NULL;

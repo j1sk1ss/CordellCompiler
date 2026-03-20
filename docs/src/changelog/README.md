@@ -30,6 +30,31 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Constant propagation thru parameters list
+Now the constant propagation module supports propagation thru function call arguments. If we have function calls (or a function call) with the same arguments (at least on position in arguments the same) it will propagate input arguments (propagate folding further) to the function. For instance:
+```cpl
+function foo(i32 a) {
+    return a + 10;
+}
+
+start() {
+    foo(10);
+}
+```
+
+In the code above we will propagate the '10' to the function which will create the next code:
+```cpl
+function foo(i32 a) {
+    return 20;
+}
+
+start() {
+    foo(10);
+}
+```
+
+This is a simple example, but it will work with a complext cases as well.
+
 ## HIR static analyzer and HIR locations
 Now the information about file location is going to HIR via a special operation and a special subject. This feature allows to expand the static analysis to HIR part. For test I've added the NULL-dereference tester and the IF-tester.
 

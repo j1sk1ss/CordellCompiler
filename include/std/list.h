@@ -26,6 +26,7 @@ int list_iter_tinit(list_t* l, list_iter_t* it);
 int list_size(list_t* l);
 
 int list_add(list_t* l, void* data);
+int list_replace(list_t* l, void* prev, void* curr);
 int list_insert(list_t* l, void* data, void* before);
 int list_iter_set(list_iter_t* it, void* data);
 int list_push_back(list_t* l, void* data);
@@ -46,6 +47,8 @@ void* list_get_tail(list_t* l);
 int list_free(list_t* l);
 int list_free_force(list_t* l);
 int list_free_force_op(list_t* l, int (*op)(void*));
+
+void** list_flatten(list_t* l);
 
 #define CONCAT2(a,b) a##b
 #define CONCAT(a,b)  CONCAT2(a,b)

@@ -11,5 +11,6 @@ function foo() {
 }
 
 : OUTPUT
-[WARNING] [6{X}] 'If' with a constant value (variable 'tmp' is equals 'false')!
+[WARNING] [6{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [6{X}]     Variable 'tmp' declared as a constant here!
 :

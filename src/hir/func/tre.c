@@ -9,7 +9,7 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
             ) continue;
             
             func_info_t fi;
-            if (!FNTB_get_info_id(fb->fid, &fi, &smt->f)) continue;
+            if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
             hir_block_t* exit = cb->hmap.exit;
             
             while (
@@ -23,7 +23,7 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
             
             if (
                 !HIR_is_funccall(exit->op) ||              /* If this isn't a function call instruction */
-                exit->sarg->storage.str.s_id != fb->fid /* or this isn't a self-call.                */
+                exit->sarg->storage.str.s_id != fb->f_id /* or this isn't a self-call.                */
             ) continue;                                 /* We skip such instructions.                */
             
             /* Skip the function's preambule:

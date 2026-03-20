@@ -26,11 +26,16 @@ function foo() {
 
 : OUTPUT
 #
-{[WARNING] [8{X}] 'If' with a constant value (variable 'tmp' is equals 'true')!}
-{[WARNING] [8{X}] 'If' with a constant value (variable 'tmp' is equals 'false')!}
-{[WARNING] [8{X}] 'If' with a constant value (variable 'tmp' is equals 'false')!}
-{[WARNING] [17{X}] 'If' with a constant value (variable 'tmp' is equals 'true')!}
-{[WARNING] [17{X}] 'If' with a constant value (variable 'tmp' is equals 'false')!}
+[WARNING] [8{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
+          [8{X}]     Variable 'tmp' declared as a constant here!
+[WARNING] [8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [8{X}]     Variable 'tmp' declared as a constant here!
+[WARNING] [8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [8{X}]     Variable 'tmp' declared as a constant here!
+[WARNING] [17{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
+          [17{X}]     Variable 'tmp' declared as a constant here!
+[WARNING] [17{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [17{X}]     Variable 'tmp' declared as a constant here!
 #
 [WARNING] [23{X}] Possible NULL-dereference error (variable 'a' is NULL)!
           [{X}]     Variable 'a' becomes NULL-value

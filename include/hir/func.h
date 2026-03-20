@@ -14,7 +14,7 @@
 
 typedef struct {
     char  flag : 1;
-    long  fid;
+    long  f_id;
     set_t edges;
 } call_graph_node_t;
 

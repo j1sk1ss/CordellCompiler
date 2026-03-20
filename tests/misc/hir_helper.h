@@ -498,7 +498,7 @@ static void call_graph_print_dot(call_graph_t* cg) {
 
     map_foreach (call_graph_node_t* node, &cg->verts) {
         set_foreach (call_graph_node_t* callee, &node->edges) {
-            printf("  F%ld -> F%ld;\n", node->fid, callee->fid);
+            printf("  F%ld -> F%ld;\n", node->f_id, callee->f_id);
         }
     }
 

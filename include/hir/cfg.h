@@ -27,7 +27,7 @@ typedef struct {
 
     /* Basic info and content */
     long         id;
-    long         fid;
+    symbol_id_t  f_id;
     hir_map_t    hmap;     /* Mapping to exister HIR ctx */
     lir_map_t    lmap;     /* Mapping to existed LIR ctx */
 

@@ -141,13 +141,13 @@ _skip_instruction: {}
 Get function from the CFG context by the provided function ID.
 Params:
     - `cctx` - CFG context.
-    - `fid` - Function ID.
+    - `f_id` - Function ID.
 
 Returns either a function pointer or the NULL value.
 */
-static inline cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long fid) {
+static inline cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long f_id) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        if (fb->fid == fid) return fb;
+        if (fb->f_id == f_id) return fb;
     }
 
     return NULL;
@@ -274,7 +274,7 @@ static int _collect_information(
     }
 
     func_info_t fi;
-    if (FNTB_get_info_id(pos->pfunc->fid, &fi, &smt->f)) {
+    if (FNTB_get_info_id(pos->pfunc->f_id, &fi, &smt->f)) {
         info->dst_info.is_start = fi.flags.entry;
     }
 

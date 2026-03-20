@@ -7,5 +7,6 @@ function foo() {
 }
 
 : OUTPUT
-[WARNING] [3{X}] 'If' with a constant value (variable 'a' is equals 'true')!
+[WARNING] [3{X}] Condition with a constant value (variable 'a' is equals 'true' (1))!
+          [3{X}]     Variable 'a' declared as a constant here!
 :
