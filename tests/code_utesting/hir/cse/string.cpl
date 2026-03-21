@@ -16,8 +16,8 @@ start() {
                 i8t* %4 = Hello world! as *ptr;
                 i8s* %6 = i8t* %4;
                 i8s* %3 = alloc(8);
-                [unused] i8t* %5 = Hello world! as *ptr;
-                i8s* %7 = i8t* %4;
+                i8t* %5 = Hello world! as *ptr;
+                i8s* %7 = i8t* %5;
             }
         }
     }

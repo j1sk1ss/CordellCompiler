@@ -88,8 +88,27 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
     do {
         changed = 0;
         map_foreach (dag_node_t* nd, &dctx->dag) {
-            if (nd->op == HIR_PHI) {
-                if (VRTB_update_definition(nd->src->storage.var.v_id, -1, nd->src->storage.var.v_id, &smt->v)) changed = 1;
+            if (nd->op == HIR_PHI && nd->src->home && nd->src->home->targ) {
+                long first = 1, value = 0, same = 1;
+                set_foreach (int_tuple_t* t, &nd->src->home->targ->storage.set.h) {
+                    variable_info_t vi; 
+                    if (!VRTB_get_info_id(t->y, &vi, &smt->v) || vi.vdi.defined != DEFINED_VARIABLE) same = 0;
+                    else {
+                        if (first) value = vi.vdi.definition;
+                        else if (!first && value != vi.vdi.definition) same = 0;
+                    }
+                    
+                    if (!same) break;
+                    first = 0;
+                }
+                
+                if (same) {
+                    if (VRTB_update_definition(nd->src->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 1)) changed = 1;
+                }
+                else {
+                    if (VRTB_update_definition(nd->src->storage.var.v_id, FIELD_NO_CHANGE, nd->src->storage.var.v_id, &smt->v, 0)) changed = 1;
+                }
+
                 continue;
             }
 
@@ -117,11 +136,11 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
             }
             
             long long c = 0;
-            print_debug("src=%i, a_pres=%i, b_pres=%i", nd->src->storage.var.v_id, a_pres, b_pres);
+            print_debug("src=%li, a_pres=%i, b_pres=%i", nd->src->storage.var.v_id, a_pres, b_pres);
             switch (nd->op) {
                 case HIR_STORE: {
                     if (!a_pres) break;
-                    if (VRTB_update_definition(nd->src->storage.var.v_id, a.value, a.overdefined, &smt->v)) changed = 1;
+                    if (VRTB_update_definition(nd->src->storage.var.v_id, a.value, a.overdefined, &smt->v, 1)) changed = 1;
                     print_debug("Store operation folded into val=%ld", nd->op, a.value);
                     break;
                 }
@@ -131,8 +150,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                     if (!a_pres) break;
                     if (!HIR_is_float(a.t)) c = str_dob2bits((double)a.value);
                     else c = a.value;
-
-                    if (VRTB_update_definition(nd->src->storage.var.v_id, c, a.overdefined, &smt->v)) changed = 1;
+                    if (VRTB_update_definition(nd->src->storage.var.v_id, c, a.overdefined, &smt->v, 1)) changed = 1;
                     print_debug("Convert op=%i folded to the val=%ld", nd->op, c);
                     break;
                 }
@@ -165,14 +183,14 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                         default: break;
                     }
 
-                    if (VRTB_update_definition(nd->src->storage.var.v_id, c, a.overdefined, &smt->v)) changed = 1;
+                    if (VRTB_update_definition(nd->src->storage.var.v_id, c, a.overdefined, &smt->v, 1)) changed = 1;
                     print_debug("Convert op=%i folded to the val=%ld", nd->op, c);
                     break;
                 }
                 
                 case HIR_NOT: {
                     if (!a_pres) break;
-                    if (VRTB_update_definition(nd->src->storage.var.v_id, !a.value, a.overdefined, &smt->v)) changed = 1;
+                    if (VRTB_update_definition(nd->src->storage.var.v_id, !a.value, a.overdefined, &smt->v, 1)) changed = 1;
                     print_debug("Not op=%i folded to the val=%ld", nd->op, !a.value);
                     break;
                 }
@@ -197,7 +215,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_bXOR:  c = a.value ^ b.value; {
 _binary_operation_fold: {}
                     if (!a_pres || !b_pres || a.overdefined != NO_SYMBOL_ID || b.overdefined != NO_SYMBOL_ID) break;
-                    if (VRTB_update_definition(nd->src->storage.var.v_id, c, NO_SYMBOL_ID, &smt->v)) changed = 1;
+                    if (VRTB_update_definition(nd->src->storage.var.v_id, c, NO_SYMBOL_ID, &smt->v, 1)) changed = 1;
                     print_debug("%ld op=%i %ld folded into val=%i", a.value, nd->op, b.value, c);
                     break;
                 }

@@ -83,7 +83,7 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
                         hh->op = HIR_STORE;
                         HIR_unload_subject(hh->sarg);
                         hh->sarg = HIR_SUBJ_CONST(value);
-                        VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v);
+                        VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 0);
                     }
                 }
 

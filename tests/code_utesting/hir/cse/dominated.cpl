@@ -21,9 +21,9 @@ start() {
                 {
                     i32s %1 = alloc(8);
                     [unused] i64t %4 = num? 10 + num? 10;
-                    [unused] i32t %5 = i64t %2 as i32;
-                    i32s %7 = i32t %3;
-                    exit i32s %6;
+                    i32t %5 = i64t %2 as i32;
+                    i32s %7 = i32t %5;
+                    exit i32s %7;
                 }
                 goto lb{X}
                 lb{X}

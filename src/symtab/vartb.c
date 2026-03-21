@@ -16,11 +16,26 @@ int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short a
     return 0;    
 }
 
-int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx) {
-    print_log("VRTB_update_definition(id=%i, definition=%i, overdef=%li)", id, definition, overdefined);
+int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx, int rewrite) {
+    print_log("VRTB_update_definition(id=%li, definition=%li, overdef=%li, rewrite=%i)\n", id, definition, overdefined, rewrite);
     variable_info_t* vi;
     if (map_get(&ctx->vartb, id, (void**)&vi)) {
-        if (vi->vdi.defined) return 0;
+        switch (vi->vdi.defined) {
+            case OVERDEFINED_VARIABLE: {
+                if (!rewrite || vi->vdi.definition == overdefined) return 0;
+                break;
+            }
+            case DEFINED_VARIABLE: {
+                if (
+                    !rewrite ||
+                    (vi->vdi.definition == definition && overdefined == NO_SYMBOL_ID)
+                ) return 0;
+                break;
+            }
+            case UNDEFINED_VARIABLE:
+            default: break;
+        }
+
         if (overdefined != NO_SYMBOL_ID) {
             vi->vdi.definition = overdefined;
             vi->vdi.defined    = OVERDEFINED_VARIABLE;
@@ -29,6 +44,7 @@ int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefi
             vi->vdi.definition = definition;
             vi->vdi.defined    = DEFINED_VARIABLE;
         }
+
         return 1;
     }
 
@@ -74,6 +90,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
     var->vmi.offset = -1;
     var->vmi.align  = CONF_get_full_bytness();
 
+    var->vdi.defined = UNDEFINED_VARIABLE;
     var->p_id = NO_SYMBOL_ID;
     var->type = type;
     return var;

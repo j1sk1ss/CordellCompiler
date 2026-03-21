@@ -193,9 +193,10 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                                                                               /* If new variable is existes, that means we already */
                                                                               /* rename all blocks below us                        */
                         else {
-                            hh->sarg = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.vfs.ptr);
-                            vv->curr_id = hh->sarg->storage.var.v_id;
-                            future_id = vv->curr_id;
+                            hh->sarg       = HIR_SUBJ_STKVAR(VRTB_add_copy(&vi, &smt->v), hh->farg->t, vi.vfs.ptr);
+                            hh->sarg->home = hh;
+                            vv->curr_id    = hh->sarg->storage.var.v_id;
+                            future_id      = vv->curr_id;
                         }
 
                         _insert_phi_preamble(b, prev_bid, future_id, prev_id, smt);
