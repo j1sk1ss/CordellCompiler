@@ -56,11 +56,11 @@ This `README` file contains the main information about this compiler and the dev
 This compiler isn't about a language and a complex syntax and abstractions (CPL doesn't even support structures). Mainly I'm trying to implement modern approaches of code optimization, observe how an input code can be transformed to `better-performance` version of itself, and test some ideas such as neural networks application or compression of symtables. This `README` is a description what I've done to this moment. </br> 
 In short about the aforementioned language: CPL has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and small [documentation](j1sk1ss.github.io/CordellCompiler/). This is not related to this README, and if you're interested more in CPL over than in the compiler, check the documentation cite. </br>
 
-P.S.: *I've said that the language doesn't appear in the README, but while explaining each layer of the compiler, I will also provide direct examples written on this language (Its grammar almost identical to C language, which means it won't cause any problems).*
+P.S.: *I've already said that the language doesn't appear in the README, but while explaining each layer of the compiler, I will also provide direct examples written on this language (Its grammar almost identical to C language, which means it won't cause any problems).*
 
 ## Sample code snippet
-Let's start our introduction with this compiler with the simple code snippet below (in the collapsed section). It demonstrates the main capabilities of `CPL` language, excluding already supported features such as `while` loops, `syscalls` and `strings` (we will talk how they work later). </br>
-Basically, every compilation or interpretation starts from a raw code such as presented below. The raw code below is a classic "Hello world" example that will be compiled for my personal Mac15Pro 2012 (MacOS Catalina).
+Let's start the introduction with the simple code snippet below (in the collapsed section). It demonstrates main capabilities and a shape of `CPL` language, excluding already supported features such as `while` loops, `syscalls`, condition operators, etc. (we will talk how they work later). </br>
+Basically, every compilation or interpretation starts from a raw code. An example of a raw code, again, can be found below. This is a classic "Hello world" program, and at the end of this README we will compile it for my personal Mac15Pro 2012 (MacOS Catalina).
 
 <details>
 <summary><strong>The basic "Hello World" program</strong></summary>
@@ -77,7 +77,7 @@ function main(i32 argc, ptr ptr i8 argv) {
 ```
 </details>
 
-P.S.: *Exactly the code above will be used as an example for all blocks in this README below, that's why I strongly suggest to expand and consider the content.*
+P.S.: *The code above will be used as an example for certain sections in this README, that's why I'm strongly suggesting to expand and consider the collapsed content.*
 
 ## Compilation pipeline
 <p align="center">
@@ -87,7 +87,7 @@ P.S.: *Exactly the code above will be used as an example for all blocks in this 
 </p>
 
 ## PP part
-Before the start, we need to know that we have not only a code for the compiler, but a code for a pre-procesor as well. This means that we need to process some derictives before the main compilation pipeline, and we can do this with the pre-processor. This compiler has the in-built pre-processor (similar to GCC with the `gcc -E`), and it supports derictives such as `include`, `define`, `undef`, `ifdef` and `ifndef`. These commands act the same as it do derictives from C/C++, except `define` that isn't able to work as a function (yet). </br>
+Before the start, we need to say that we have not only a code for compilation, but a code for pre-processing as well. Pre-processing is optional and many compilers can live without it, but considering the `header` architecture of the compiler, pre-processing - is necessary. This means that we need to process some derictives before the main compilation pipeline (similar to GCC with the `gcc -E`) such as `include`, `define`, `undef`, `ifdef` and `ifndef`. These commands act the same as it do derictives from C/C++, except `define` that isn't able to work as a function (TODO: v3.4 still doesn't support macros with different arguments). </br>
 Let's return to the snippet above and include all header files into the final code (GCC -E does the same thing before pre-processing - creates the united file with the all code):
 ```cpl
 : string_h.cpl :
@@ -124,7 +124,7 @@ function main(i32 argc, ptr ptr i8 argv) {
 }
 ```
 
-Now we need to delete all comments, resolve includes, defines and conditions. We can do this task with usage of special table of derictive values (something like a symtable, but without any complex structure, just a derictive name and its linked content). The condition just checks if the table has a definition for the name, it if it does, invoke the logic. </br>
+Now we need to delete all comments, resolve defines and conditions. We can do this task with usage of special table which includes derictive values (something like a symtable, but without any complex structure, just a derictive name and its linked content). The condition just checks if the table has a definition for the name, and if it does, invoke the nested logic. </br>
 In a nutshell, there is how the code above will look like after all preparations:
 ```cpl
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
@@ -135,12 +135,13 @@ function print(ptr str msg) -> i0;
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/basic.cpl"
 @[entry("_main")]
 function main(i32 argc, ptr ptr i8 argv) {
-    print("Hello world!\n");
+    str msg = "Hello world!";
+    print(ref msg);
     exit 0;
 }
 ```
 
-You can find a new directive `line` which simply marks blocks for the further tokenization process (We need to know where part is came from).
+You can find a new directive `line` which simply marks blocks for the further tokenization process (We need to know where a part is came from).
 
 ## Tokenization part
 The tokenization part is responsible for splitting the input byte sequence (the result of the `fread` operation) into basic tokens. This module ignores all whitespace and separator symbols (such as `newlines` and `tabs`). It also classifies each token into one of the basic types: `number`, `string`, `delimiter`, `comma`, `dot` and `line_derictive`. </br>
@@ -158,7 +159,7 @@ In a nutshell - this is a DFA which no only splits input code by spaces or comma
 
 ## Markup part
 The markup stage is the second part of tokenization. Usually compilers don't distinguish `tokenizator` and `markuper`, but this compiler does. Markup stage operates only on the list of tokens from `tokenizator` including `scopes` support. </br>
-The main idea is to perform basic semantic markup of variables. For instance, if we declare some `i32` variable which named `a` in a scope with `id=10`, all occurrences of `a` within the corresponding scope can be marked as having the `i32` type.
+The main idea is to perform basic semantic markup for variables. For instance, if we declare some `i32` variable with the name `a` in a scope with `id=10`, all occurrences of `a` within the corresponding scope can be marked as having the `i32` type.
 
 <p align="center">
   <img src="docs/media/markup.png">
@@ -223,7 +224,7 @@ line=9, type=18, data=[}],
 </details>
 
 ## AST part
-Next, we need to parse this sequence of marked tokens to construct an `AST` (Abstract Syntax Tree). There are many approaches to achieve this — for example, `LL` parsing, `LR` parsing, or even `hybrid` techniques that combine `LL` and `LR`. A more complete list of parser types can be found [[here]](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books (see [Used links and literature](#used-links-and-literature) section).
+Next, we need to parse this sequence of marked tokens to build an `AST` structure (Abstract Syntax Tree). There are many approaches to achieve this — for example, `LL` parsing, `LR` parsing, or even `hybrid` techniques that combine `LL` and `LR`. A more complete list of parser types can be found [[here]](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books (see [Used links and literature](#used-links-and-literature) section). This compiler uses the `LL` appproach.
 
 <p align="center">
   <img src="docs/media/ast.png">
@@ -231,7 +232,7 @@ Next, we need to parse this sequence of marked tokens to construct an `AST` (Abs
   <em>Figure 4 — Basic AST generation</em>
 </p>
 
-AST that was generated from the [Markup part](#markup-part)'s list of markuped tokens:
+AST that was generated on the [Markup part](#markup-part)'s list of markuped tokens:
 <details>
 <summary><strong>Cordell Compiler's AST dump</strong></summary>
 
@@ -281,13 +282,34 @@ AST that was generated from the [Markup part](#markup-part)'s list of markuped t
 </details>
 
 ### AST optimization
-When we have a correct `AST` representation of the input code, we can optionally perform some optimizations. We will not spend much time here and will only cover a few examples. Note that `AST-level` optimizations are mostly redundant in this project (they were very usefull when this Compiler didn't have an `IR` level).
+When we have a correct `AST` representation of the input code, we can optionally perform some avaliable optimizations. We will not spend a lot of time here and will cover only a few examples. Note that `AST-level` optimizations are mostly redundant in this project (they were very usefull when this Compiler didn't have an `IR` level).
 - `Condition unrolling`. If we have an `if` statement with a constant condition, such as `if 1 { ... }`, or similar situation with a `while` keyword or a `switch` statement, we can unroll them by removing the condition and keeping only the body.
 - `Dead scope elimination`. If a scope doesn't affect the environment, it can be safely removed.
 
+To understand what they actually do, we can consider the next example of `DSE` (Dead Scope Elimination):
+```cpl
+start() {
+    {
+        i32 a = 10;
+        a += 10 * 10 - 11;
+    }
+    exit 1;
+}
+```
+
+According to the compiler's markup phase logic, the `exit` statement doesn't see (and can't) the `a` variable. Also, the scope doesn't affect on the environment (it doesn't call anything, doesn't change anything, doesn't return and exit), which means, we can safely remove it here, in the AST level. </br>
+
+P.S.: *I saved these optimizations 'cause they don't copy the existed one from HIR or LIR levels. Old versions of the compiler have more AST-level optimizations, and if you're interested, you can consider the tags v2.0 and v1.0 on GitHub.*
+
 ## HIR part
-`AST` representation of the input code must be flattened given future optimization phases. A common approach here is to convert an `AST` form into a `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
-Three-Address Code implies that there is only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`.
+`AST` representation of the input code must be flattened given future optimization phases. A common approach here is to convert an `AST` structure to a list of `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
+Three-Address Code implies that there is only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`. Also, the simple indexation command `a[x] = 0` will be converted to:
+```
+tmp_head = &a;
+tmp_off = x * sizeof(typeof(a));
+tmp_head = tmp_head + tmp_off;
+*tmp_head = 0;
+```
 
 <p align="center">
   <img src="docs/media/HIR.png">
@@ -301,53 +323,18 @@ HIR that was obtained from the [AST part](#ast-part)'s structure transformation:
 
 ```
 {
+    fn _main(i32 argc, i8** argv)
     {
-        fn strlen(i8* s) -> i64
+        i32s %2 = alloc(8);
+        i32s %2 = load_starg();
+        i8s** %3 = alloc(8);
+        i8s** %3 = load_starg();
         {
-            u64s %0 = alloc(8);
-            u64s %0 = load_arg();
-            {
-                i64s %1 = alloc(8);
-                i64s %1 = num?: 0;
-                lb11:
-                u8t %5 = *(u64s %0);
-                if u8t %5, goto lb12, else goto lb13;
-                lb12:
-                {
-                    u64t %7 = num?: 1 as u64;
-                    u64t %6 = u64s %0 + u64t %7;
-                    u64s %0 = u64t %6;
-                    i64t %8 = i64s %1 + num?: 1;
-                    i64s %1 = i64t %8;
-                }
-                goto lb11;
-                lb13:
-                return i64s %1;
-            }
-        }
-        
-        start {
-            {
-                i64s %2 = alloc(8);
-                i64s %2 = load_starg();
-                u64s %3 = alloc(8);
-                u64s %3 = load_starg();
-                {
-                    {
-                        strs %4 = alloc(Hello world!);
-                        use num?: 0;
-                        use num?: 1;
-                        u64t %9 = &(strs %4);
-                        use u64t %9;
-                        u64t %10 = &(strs %4);
-                        use u64t %10;
-                        i64t %11 = call strlen(i8* s) -> i64, argc args: u64t %10 ;
-                        use i64t %11;
-                        syscall, argc: args: num?: 0 num?: 1 u64t %9 i64t %11 ;
-                        exit num?: 0;
-                    }
-                }
-            }
+            strs %4 = str_alloc(Hello world!);
+            i8t* %5 = &(strs %4);
+            use i8t* %5;
+            call print1(str* msg) -> i0, argc args(i8t* %5,);
+            exit num? 0;
         }
     }
 }

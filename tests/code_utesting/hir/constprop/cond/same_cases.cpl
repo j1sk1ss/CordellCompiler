@@ -11,7 +11,7 @@ start() {
 
 : OUTPUT
 {id: 2, tmp, i32, s_id: 0, value=1}
-{id: 9, tmp, i8, s_id: -1, value=1}
+{id: 9, tmp, i8, s_id: -1, value=0}
 {id: 12, a, i32, s_id: 2, value=1}
 {id: 14, a, i32, s_id: 2, value=1}
 {id: 1, b, i32, s_id: 2}
