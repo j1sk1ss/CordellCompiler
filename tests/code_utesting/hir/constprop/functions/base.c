@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
-        fprintf(stderr, "File %s isn't found!\n", argv[1]);
+        fprintf(stderr, "File [name=%s] isn't found!\n", argv[1]);
         return 1;
     }
 
@@ -70,30 +70,23 @@ int main(int argc, char* argv[]) {
 
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
-
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
-
     call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
-    HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
-
-    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
-    HIR_LTREE_canonicalization(&cfgctx);    // Transform
-    HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
-    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
-
+    HIR_CG_build(&cfgctx, &callctx, &smt);    // Analyzation
+    HIR_CG_perform_dfe(&callctx, &smt);       // Transformation
+    HIR_CG_apply_dfe(&cfgctx, &callctx);      // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);          // Analyzation
+    HIR_LTREE_canonicalization(&cfgctx);      // Transform
+    HIR_CFG_unload_domdata(&cfgctx);          // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);          // Analyzation
     ssa_ctx_t ssactx;
     map_init(&ssactx.vers, MAP_NO_CMP);
-    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
-    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
-    map_free_force(&ssactx.vers);
-
-    HIR_compute_homes(&hirctx);             // Analyzation
-    HIR_LTREE_licm(&cfgctx, &smt);          // Transform
-
-    HIR_CFG_make_allias(&cfgctx, &smt);
+    HIR_SSA_insert_phi(&cfgctx, &smt);        // Transform
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt);   // Transform
+    HIR_compute_homes(&hirctx);               // Analyzation
+    HIR_LTREE_licm(&cfgctx, &smt);            // Transform
+    HIR_CFG_make_allias(&cfgctx, &smt);       // Analyzation
     dag_ctx_t dagctx = { .curr_id = 0 };
     HIR_DAG_init(&dagctx);                    // Analyzation
     HIR_DAG_generate(&cfgctx, &dagctx, &smt); // Analyzation
@@ -101,18 +94,21 @@ int main(int argc, char* argv[]) {
     
     int folded = 0;
     do {
+        folded = 0;
         HIR_sparse_const_propagation(&dagctx, &smt);
-        folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt);
+        folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt) || folded;
+        folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
     } while (folded);
 
     map_foreach (variable_info_t* vi, &smt.v.vartb) {
         printf("id: %li, %s, ", vi->v_id, vi->name->body);
         for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
-        printf("%s, s_id: %i", format_tkntype(vi->type), vi->s_id);
+        printf("%s, s_id: %li", format_tkntype(vi->type), vi->s_id);
         if (vi->vdi.defined == DEFINED_VARIABLE) printf(", value=%ld", vi->vdi.definition);
         printf("\n");
     }
 
+    map_free_force(&ssactx.vers);
     HIR_DAG_unload(&dagctx);
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);

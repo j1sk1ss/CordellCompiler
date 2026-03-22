@@ -9,7 +9,7 @@
 typedef struct {
     symbol_id_t            v_id;     /* Variable ID                      */
     symbol_id_t            p_id;     /* Parent variable ID (def: -1)     */
-    short                  s_id;     /* Scope ID                         */
+    symbol_id_t            s_id;     /* Scope ID                         */
     string_t*              name;    
     token_type_t           type;     /* Variable type                    */
 
@@ -39,7 +39,7 @@ typedef struct {
     map_t       vartb;
 } vartab_ctx_t;
 
-#define UNDEFINED_VARIABLE   -1
+#define UNDEFINED_VARIABLE   0
 #define DEFINED_VARIABLE     1
 #define OVERDEFINED_VARIABLE 2
 

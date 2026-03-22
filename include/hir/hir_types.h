@@ -188,6 +188,7 @@ typedef enum hir_subject_type {
     HIR_FPOS,     // pos
 } hir_subject_type_t;
 
+int HIR_is_ret_funccall(hir_operation_t op);
 int HIR_is_funccall(hir_operation_t op);
 int HIR_get_type_size(hir_subject_type_t t);
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b);

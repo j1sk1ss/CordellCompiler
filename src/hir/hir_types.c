@@ -254,6 +254,14 @@ int HIR_is_term(hir_operation_t op) {
     return 0;
 }
 
+int HIR_is_ret_funccall(hir_operation_t op) {
+    switch (op) {
+        case HIR_STORE_FCLL:
+        case HIR_STORE_ECLL: return 1;
+        default: return 0;
+    }
+}
+
 int HIR_is_funccall(hir_operation_t op) {
     switch (op) {
         // case HIR_UFCLL:
