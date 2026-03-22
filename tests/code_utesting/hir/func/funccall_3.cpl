@@ -13,7 +13,6 @@ start() {
                 i0t* %3 = &(foo0(i32 a) -> i32);
                 i0s* %1 = i0t* %3;
                 i32s %2 = alloc(8);
-                use num? 10;
                 i64t %4 = call i0s* %1, argc args(num? 10,);
                 i32t %5 = i64t %4 as i32;
                 i32s %2 = i32t %5;

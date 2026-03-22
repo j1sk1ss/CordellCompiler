@@ -74,7 +74,6 @@ start() {
     start {
         {
             {
-                use num? 0;
                 i0t* %7 = call factory0(i32 k) -> i0*, argc args(num? 0,);
                 i64t %8 = call i0t* %7, argc args();
                 exit i64t %8;

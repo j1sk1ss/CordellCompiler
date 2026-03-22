@@ -42,7 +42,7 @@ void print_symtab(sym_table_t* smt) {
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
         printf("id: %li, %s, ", vi->v_id, vi->name->body);
         for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
-        printf("%s, s_id: %i", format_tkntype(vi->type), vi->s_id);
+        printf("%s, s_id: %li", format_tkntype(vi->type), vi->s_id);
         if (vi->vmi.reg >= 0)         printf(", reg=%s", register_to_string(vi->vmi.reg));
         else if (vi->vmi.offset >= 0) printf(", mem=[rbp - %li]", vi->vmi.offset);
         if (vi->vdi.defined)          printf(", value=%ld", vi->vdi.definition);

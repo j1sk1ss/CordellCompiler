@@ -41,7 +41,6 @@ start() {
         {
             {
                 i32s %2 = alloc(8);
-                use num? 10;
                 i32s %0 = num? 10;
                 arrs %1 = arr_alloc(num? 10);
                 i64t %4 = i32s %0 as i64;

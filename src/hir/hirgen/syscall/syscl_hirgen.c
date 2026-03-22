@@ -5,8 +5,12 @@ hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_
     hir_subject_t* args = HIR_SUBJ_LIST();
     for (ast_node_t* e = node->c; e; e = e->siblings.n) {
         hir_subject_t* el = HIR_generate_elem(e, ctx, smt);
-        HIR_BLOCK1(ctx, HIR_VRUSE, el);
-        list_add(&args->storage.list.h, HIR_copy_subject(el));
+        if (!HIR_is_defined_type(el->t)) {
+            HIR_BLOCK1(ctx, HIR_VRUSE, el);
+            el = HIR_copy_subject(el);
+        }
+        
+        list_add(&args->storage.list.h, el);
     }
 
     if (!ret) {

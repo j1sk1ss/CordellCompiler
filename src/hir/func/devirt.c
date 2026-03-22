@@ -12,39 +12,40 @@ int HIR_FUNC_perform_devirt(cfg_ctx_t* cctx, sym_table_t* smt) {
                     if (FNTB_collect_info(fi.name, &funcs, &smt->f) && list_size(&funcs) > 1) {
                         int most_fit = -99;
                         foreach (func_info_t* func, &funcs) {
-                            int fargs = 0, fits = 4;
-                            fn_iterate_args(func) {
+                            int fargs = 0, fits = 4, vargs = 0;
+                            fn_iterate_args (func) {
+                                if (arg->t->t_type == VAR_ARGUMENTS_TOKEN) vargs = 1;
                                 fargs++;
                             }
                             
-                            /* Check the arguments size */
-                            if (list_size(&hh->targ->storage.list.h) != fargs) {
-                                continue; /* Fatal */
+                            int arg_count = list_size(&hh->targ->storage.list.h);
+                            if (arg_count != fargs && !vargs) {
+                                continue;
                             }
                             
                             int arg_index = 0;
-                            fn_iterate_args(func) {
-                                int hir_arg_index = 0;
-                                foreach (hir_subject_t* hir_arg, &hh->targ->storage.list.h) {
-                                    if (hir_arg_index++ < arg_index) continue;
+                            void** args = list_flatten(&hh->targ->storage.list.h);
+                            if (args) {
+                                fn_iterate_args (func) {
+                                    if (arg_count <= arg_index) break;
+                                    hir_subject_t* hir_arg = (hir_subject_t*)args[arg_index++];
+                                    if (!hir_arg) continue;
                                     if (HIR_get_convop(hir_arg->t) != HIR_get_convop(HIR_get_tmptype_tkn(arg->t, 1))) {
-                                        fits--; /* Argument doesn't match */
+                                        fits--;
                                     }
-
-                                    break;
                                 }
 
-                                arg_index++;
+                                mm_free(args);
                             }
-                                           
+
                             if (fits > most_fit) {
-                                if ( /* Change the destination variable */
+                                if (
                                     hh->farg && 
                                     func->rtype
                                 ) hh->farg->t = HIR_get_tmptype_tkn(func->rtype->t, 1);
                                 hh->sarg->storage.str.s_id = func->id;
                                 most_fit = fits;
-                            }
+                            }    
                         }
                     }
 
