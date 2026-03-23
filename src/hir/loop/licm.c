@@ -202,7 +202,7 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
         set_foreach (hir_block_t* hh, loop_hir) {
             if (
                 !HIR_is_writeop(hh->op) ||      /* - If this isn't a write operation.          */
-                !hh->farg            ||      /* - If there is no first argument in command. */
+                !hh->farg               ||      /* - If there is no first argument in command. */
                 !HIR_is_vartype(hh->farg->t) /* - If the first argument isn't a variable.   */
             ) continue;
 

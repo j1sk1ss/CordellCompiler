@@ -135,7 +135,6 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
                 subj->storage.pos.line   = ((token_fpos_t*)strval)->line;
                 subj->storage.pos.file   = ((token_fpos_t*)strval)->file;
             }
-
         break;
 
         default: break;
@@ -318,16 +317,9 @@ int HIR_unlink_block(hir_block_t* block) {
 int HIR_unload_subject(hir_subject_t* s) {
     if (!s) return 0;
     switch (s->t) {
-        case HIR_F64NUMBER:
-        case HIR_F32NUMBER:
-        case HIR_U64NUMBER:
-        case HIR_U32NUMBER:
-        case HIR_U16NUMBER:
-        case HIR_U8NUMBER:
-        case HIR_I64NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_I8NUMBER:
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_NUMBER:  destroy_string(s->storage.num.value);                                       break;
         case HIR_PHISET:  set_free_force(&s->storage.set.h);                                          break;
         case HIR_ARGLIST: list_free_force_op(&s->storage.list.h, (int (*)(void*))HIR_unload_subject); break;
@@ -339,7 +331,7 @@ int HIR_unload_subject(hir_subject_t* s) {
 }
 
 int HIR_unload_blocks(hir_block_t* block) {
-    if (!block) return -1;
+    if (!block) return 0;
     while (block) {
         hir_block_t* nxt = block->next;
         HIR_unload_subject(block->farg);
@@ -349,7 +341,7 @@ int HIR_unload_blocks(hir_block_t* block) {
         block = nxt;
     }
 
-    return 0;
+    return 1;
 }
 
 int HIR_compute_homes(hir_ctx_t* ctx) {

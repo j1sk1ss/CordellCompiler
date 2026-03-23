@@ -4,7 +4,6 @@ start() {
 
 : OUTPUT
 BB{X} start
-use $1;
 stparam($1);
 syscall;
 %0 = fret();

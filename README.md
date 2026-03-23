@@ -1,7 +1,7 @@
 ![Cover](docs/media/CPL_cover.png)
 
 # Cordell Compiler
-Cordell Compiler is a compact hobby compiler for `Cordell Programming Language` with a simple syntax, inspired by C's usafety and Rust's syntax. It is designed in the first place for studying compilation, code optimization, translation, and low-level microcode generation.
+Cordell Compiler is a compact hobby compiler for `Cordell Programming Language` which inspired by C's usafety and Rust's syntax. It is designed in the first place for studying compilation, code optimization, translation, and low-level microcode generation.
 - *This README still in progress*
 
 # Main idea of this project

@@ -7,13 +7,11 @@
 
 : OUTPUT
 BB{X} start
-use $0;
 call foo0() -> i32;
 %0 = fret();
 use %0;
 %1 = $0 + $0;
 use %1;
-use $0;
 stparam($0);
 stparam(%0);
 stparam(%1);

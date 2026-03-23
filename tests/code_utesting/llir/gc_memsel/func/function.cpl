@@ -22,8 +22,6 @@ rax = r15;
 return rax;
 BB{X}
 BB{X} start
-use $1;
-use $2;
 r15 = $1;
 rdi <<= r15;
 r15 = $2;

@@ -4,7 +4,7 @@ start() {
 }
 
 : OUTPUT
-BB1: start
+BB{X} start
 [rbp - 16] = $0;
 [rbp - 15] = $1;
 [rbp - 14] = $2;
@@ -25,7 +25,7 @@ BB1: start
 [rbp - 25] = $7;
 [rbp - 24] = $8;
 [rbp - 23] = $9;
-kill(3);
 kill(2);
+kill(3);
 send
 :

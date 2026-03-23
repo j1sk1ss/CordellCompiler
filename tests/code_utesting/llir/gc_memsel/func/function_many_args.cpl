@@ -27,15 +27,6 @@ r15 = [rbp + 24];
 rax = r15;
 fend
 BB{X} start
-use $1;
-use $2;
-use $3;
-use $4;
-use $5;
-use $6;
-use $7;
-use $8;
-use $9;
 r15 = $1;
 rdi <<= r15;
 r15 = $2;

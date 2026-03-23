@@ -1,27 +1,4 @@
-/* allias.c - Track ownership of address to cell in memory */
 #include <hir/cfg.h>
-
-/*
-Mark allias (owners to slaves) link for the provided slave & master pair.
-Note: Will also take care about master's masters.
-
-```cpl
-    function foo() {
-        i32 a = 5;   // Slave
-        ptr i32 b = ref a; // Master
-    }
-```
-
-Params:
-    - `slave` - Referenced variable.
-    - `master` - Reference owner.
-    - `ctx` - Allias context.
-
-Return 1 if operation succeed.
-*/
-static inline void _mark_allias(symbol_id_t slave, symbol_id_t master, sym_table_t* smt) {
-    ALLIAS_add_owner(slave, master, &smt->m);
-}
 
 /*
 Complete owner generation. The last task here is to mark all recursive owners of variables.
@@ -74,10 +51,11 @@ int _mark_copies(symbol_id_t master, symbol_id_t slave, cfg_ctx_t* cctx, sym_tab
             while (hh) {
                 if (
                     (hh->op == HIR_STORE || HIR_is_conv(hh->op)) &&
-                    hh->sarg->storage.var.v_id == master) { /* If this is a ST/CNV operation, and we write value */
-                                                            /* from a master ID variable, we mark it as a master */
-                                                            /* for the provided slave.                           */
-                    _mark_allias(slave, hh->farg->storage.var.v_id, smt);
+                    hh->sarg->storage.var.v_id == master
+                ) { /* If this is a ST/CNV operation, and we write value */
+                    /* from a master ID variable, we mark it as a master */
+                    /* for the provided slave.                           */
+                    ALLIAS_add_owner(slave, hh->farg->storage.var.v_id, &smt->m);
                     _mark_copies(hh->farg->storage.var.v_id, slave, cctx, smt);
                 }
 
@@ -97,7 +75,7 @@ int HIR_CFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt) {
                 if (hh->op == HIR_REF) {
                     symbol_id_t slave  = hh->sarg->storage.var.v_id;
                     symbol_id_t master = hh->farg->storage.var.v_id;
-                    _mark_allias(slave, master, smt);
+                    ALLIAS_add_owner(slave, master, &smt->m);
                     _mark_copies(master, slave, cctx, smt);
                 }
 

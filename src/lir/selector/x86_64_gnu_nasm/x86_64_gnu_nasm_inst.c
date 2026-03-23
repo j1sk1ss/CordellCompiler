@@ -1,13 +1,5 @@
-/* Convert an input HLIR (High LIR) to LLIR (Low LIR). We can perform this by replacing
-   high LIR instructions with actual platform operations.
-   For instance:
-   - a = b add c => 
-   add b, c
-   mov a, b
-   
-   etc */
 #include <lir/selector/x84_64_gnu_nasm.h>
-
+// TODO: Complete AVX support
 /*
 Checks a variable if it is a signed or not.
 Params:
@@ -63,7 +55,6 @@ static lir_subject_t* _create_tmp(lir_registers_t reg, lir_subject_t* src, sym_t
         src->t == LIR_VARIABLE && 
         VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)
     ) vtype = vi.type;
-    
     symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, NULL, &smt->v);
     VRTB_update_memory(cpy, vi.vmi.offset, src->size, reg, FIELD_NO_CHANGE, &smt->v);
     return LIR_SUBJ_VAR(cpy, src->size);
@@ -119,11 +110,8 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 lh->op   = LIR_iMOV;
                 break;
             }
-            case LIR_iMOV:
-            case LIR_aMOV:
-            case LIR_fMOV: 
-            case LIR_GDREF:
-            case LIR_LDREF: {
+            case LIR_iMOV:  case LIR_aMOV: case LIR_fMOV: 
+            case LIR_GDREF: case LIR_LDREF: {
                 lir_subject_t* tmp = _create_tmp(R15, lh->sarg, smt);
                 fix = LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL);
                 lh->sarg = tmp;
@@ -139,6 +127,56 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
+typedef struct {
+    int reg;
+    int off;
+} abi_argument_t;
+
+/*
+Generate the information which will tell where we should put a value for a function.
+Params:
+    - `index` - Argument index.
+    - `s` - Target value which will be placed to a function.
+    - `out` - Output information placeholder.
+    - `smt` - Symtable.
+
+Returns 1 if this is a register value, otherwise (stack) will return 0.
+*/
+static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, sym_table_t* smt) {
+    int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
+    int simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
+
+    int is_float = 0;
+    switch (s->t) {
+        case LIR_VARIABLE: is_float = _is_simd_type(s->storage.var.v_id, smt); break;
+        case LIR_NUMBER:   is_float = s->storage.num.is_float;                 break;
+        default: break;
+    }
+
+    if (!is_float) {
+        if (index >= (long)(sizeof(dec_abi_regs) / sizeof(RDI))) {
+            out->off = (index - (long)(sizeof(dec_abi_regs) / sizeof(RDI)) + 1) * -8;
+            return 0;
+        }
+        else {
+            out->reg = dec_abi_regs[index];
+            return 1;
+        }
+    }
+    else {
+        if (index >= (long)(sizeof(simd_abi_regs) / sizeof(XMM0))) {
+            out->off = (index - (long)(sizeof(simd_abi_regs) / sizeof(XMM0)) + 1) * -8;
+            return 0;
+        }
+        else {
+            out->reg = simd_abi_regs[index];
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
@@ -152,7 +190,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
                         if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(RAX))) break;
                         lir_subject_t* nfarg = _create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt);
-
                         LIR_unload_subject(lh->sarg);
                         lh->op   = LIR_aMOV;
                         lh->sarg = lh->farg;
@@ -163,9 +200,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                        Note: Based on the Linux ABI execution convention. */
                     case LIR_STARGLD: {
                         lir_subject_t* src = LIR_SUBJ_OFF(
-                            RBP,
-                            (lh->sarg->storage.cnst.value + 1) * -8, 
-                            _get_variable_size(lh->farg->storage.var.v_id, smt)
+                            RBP, (lh->sarg->storage.cnst.value + 1) * -8, _get_variable_size(lh->farg->storage.var.v_id, smt)
                         );
 
                         LIR_unload_subject(lh->sarg);
@@ -177,10 +212,10 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                        If there is more than 6 arguments, pass into a stack.
                        Note: Based on the ABI calling convention. */
                     case LIR_STFARG: {
-                        int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
-                        if (lh->sarg->storage.cnst.value >= (long)(sizeof(abi_regs) / sizeof(RDI))) lh->op = LIR_PUSH;
+                        abi_argument_t target;
+                        if (!_get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)) lh->op = LIR_PUSH;
                         else {
-                            lir_subject_t* nfarg = _create_tmp(abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt);
+                            lir_subject_t* nfarg = _create_tmp(target.reg, lh->farg, smt);
                             LIR_unload_subject(lh->sarg);
                             lh->op   = LIR_aMOV;
                             lh->sarg = lh->farg;
@@ -192,18 +227,12 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     /* Load passed argument to a function.
                        If there is more than 6 args, use a stack. */
                     case LIR_LOADFARG: {
-                        int abi_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
+                        abi_argument_t target;
                         lir_subject_t* nfarg;
-                        if (lh->sarg->storage.cnst.value < (long)(sizeof(abi_regs) / sizeof(RDI))) {
-                            nfarg = _create_tmp(abi_regs[lh->sarg->storage.cnst.value], lh->farg, smt);
-                        }
-                        else {
-                            nfarg = LIR_SUBJ_OFF(
-                                RBP,
-                                (lh->sarg->storage.cnst.value - (long)(sizeof(abi_regs) / sizeof(RDI)) + 1) * -8, 
-                                _get_variable_size(lh->farg->storage.var.v_id, smt)
-                            );
-                        }
+                        if (
+                            _get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)
+                        ) nfarg = _create_tmp(target.reg, lh->farg, smt);
+                        else nfarg = LIR_SUBJ_OFF(RBP, target.off, _get_variable_size(lh->farg->storage.var.v_id, smt));
 
                         LIR_unload_subject(lh->sarg);
                         lh->op   = LIR_iMOV;
@@ -354,16 +383,13 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int dst_size   = _get_variable_size(lh->farg->storage.var.v_id, smt);
                         int src_size   = _get_variable_size(lh->sarg->storage.var.v_id, smt);
                         if (from_float) {
-                            if (src_size == CONF_get_half_bytness()) lh->op = LIR_CVTTSS2SI;
+                            if (src_size == 4) lh->op = LIR_CVTTSS2SI;
                             else lh->op = LIR_CVTTSD2SI;
                         }
                         else {
                             if (dst_size <= src_size) lh->op = LIR_iMOV;
                             else {
-                                if (
-                                    src_size == CONF_get_half_bytness() && 
-                                    dst_size == CONF_get_full_bytness()
-                                ) lh->op = LIR_MOVSXD;
+                                if (src_size == 4 && dst_size == 8) lh->op = LIR_MOVSXD;
                                 else lh->op = from_sign ? LIR_MOVSX : LIR_MOVZX;
                             }
                         }

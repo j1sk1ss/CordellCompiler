@@ -168,7 +168,7 @@ hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
             case TYPE_EIGHTH_SIZE:  return issigned ? HIR_TMPVARI8  : HIR_TMPVARU8;
             case TYPE_QUARTER_SIZE: return issigned ? HIR_TMPVARI16 : HIR_TMPVARU16;
             case TYPE_HALF_SIZE:    return issigned ? HIR_TMPVARI32 : HIR_TMPVARU32;
-            default: return issigned ? HIR_TMPVARI64 : HIR_TMPVARU64;
+            default:                return issigned ? HIR_TMPVARI64 : HIR_TMPVARU64;
         }
     }
 
@@ -184,7 +184,7 @@ static hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
             case TYPE_EIGHTH_SIZE:  return issigned ? HIR_GLBVARI8 : HIR_GLBVARU8;
             case TYPE_QUARTER_SIZE: return issigned ? HIR_GLBVARI16 : HIR_GLBVARU16;
             case TYPE_HALF_SIZE:    return issigned ? HIR_GLBVARI32 : HIR_GLBVARU32;
-            default: return issigned ? HIR_GLBVARI64 : HIR_GLBVARU64;
+            default:                return issigned ? HIR_GLBVARI64 : HIR_GLBVARU64;
         }
     }
 
@@ -237,13 +237,13 @@ int HIR_is_jmp(hir_operation_t op) {
 }
 
 int HIR_is_syst(hir_operation_t op) {
-    if (
-        op == HIR_MKSCOPE  ||
-        op == HIR_ENDSCOPE ||
-        op == HIR_STEND    ||
-        op == HIR_FEND
-    ) return 1;
-    return 0;    
+    switch (op) {
+        case HIR_MKSCOPE:
+        case HIR_ENDSCOPE:
+        case HIR_STEND:
+        case HIR_FEND: return 1;
+        default: return 0;
+    }  
 }
 
 int HIR_is_term(hir_operation_t op) {

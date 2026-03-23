@@ -3,10 +3,7 @@ start() {
 }
 
 : OUTPUT
-BB1: start
-use $1;
-use $2;
-use $3;
+BB{X} start
 r15 = $1;
 rax <<= r15;
 r15 = $2;

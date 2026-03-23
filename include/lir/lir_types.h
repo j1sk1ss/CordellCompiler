@@ -187,7 +187,7 @@ typedef enum {
     AX,   BX,  CX,  DX,  SI,  DI,  BP,  SP,  R8W, R9W, R10W, R11W, R12W, R13W, R14W, R15W, /* 2 bytes */
     AL,   BL,  CL,  DL,  SIL, DIL, BPL, SPL, R8B, R9B, R10B, R11B, R12B, R13B, R14B, R15B, /* 1 byte  */
     AH,   BH,  CH,  DH,                                                                    /* 1 byte  */
-    XMM0, XMM1, XMM2, XMM3, XMM4,                                                          /* float   */
+    XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,                                        /* float   */
 
     /* RISC-V related register set */
     RV_X0,  RV_X1,  RV_X2,  RV_X3,  RV_X4,  RV_X5,  RV_X6,  RV_X7,  /* integer */
