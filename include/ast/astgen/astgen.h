@@ -213,10 +213,11 @@ literal        = integer_literal | float_literal | string_literal | char_literal
 #define RESTORE_TOKEN_POINT it->curr = __dump_tkn;
 
 /* Support macro for getting the current token from the iterator. */
-#define CURRENT_TOKEN      ((token_t*)list_iter_current(it))
-#define CREATE_SCOPE_TOKEN TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
-#define CREATE_INDEX_TOKEN TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
-#define CREATE_CALL_TOKEN  TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CURRENT_TOKEN       ((token_t*)list_iter_current(it))
+#define CREATE_SCOPE_TOKEN  TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_INDEX_TOKEN  TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_CALL_TOKEN   TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_LAMBDA_TOKEN TKN_create_token(LAMBDA_FUNCTION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
@@ -743,5 +744,8 @@ Params:
 Returns NULL.
 */
 ast_node_t* cpl_parse_annot(PARSER_ARGS);
+
+// TODO
+ast_node_t* cpl_parse_lambda(PARSER_ARGS);
 
 #endif

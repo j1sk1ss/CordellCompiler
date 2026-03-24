@@ -20,145 +20,145 @@ typedef enum {
     UNKNOWN_NUMERIC_TOKEN,       // 123
     UNKNOWN_FLOAT_NUMERIC_TOKEN, // 123.123
     UNKNOWN_SIGN_TOKEN,          // +, -, *, /, etc
-    LINE_BREAK_TOKEN,
 
-    DELIMITER_TOKEN,     // ;
-    COMMA_TOKEN,         // ,
-    INDEXATION_TOKEN,    // []
-    CALLING_TOKEN,       // ()
-    OPEN_INDEX_TOKEN,    // [
-    CLOSE_INDEX_TOKEN,   // ]
-    OPEN_BRACKET_TOKEN,  // (
-    CLOSE_BRACKET_TOKEN, // )
-    OPEN_BLOCK_TOKEN,    // {
-    CLOSE_BLOCK_TOKEN,   // }
+    LINE_BREAK_TOKEN,      // \n, ' '
+
+    DELIMITER_TOKEN,       // ;
+    COMMA_TOKEN,           // ,
+    INDEXATION_TOKEN,      // []
+    CALLING_TOKEN,         // ()
+    LAMBDA_TOKEN,          // =>
+    LAMBDA_FUNCTION_TOKEN, // () => {};     
+    OPEN_INDEX_TOKEN,      // [
+    CLOSE_INDEX_TOKEN,     // ]
+    OPEN_BRACKET_TOKEN,    // (
+    CLOSE_BRACKET_TOKEN,   // )
+    OPEN_BLOCK_TOKEN,      // {
+    CLOSE_BLOCK_TOKEN,     // }
 
     // Modifiers
-    DREF_TYPE_TOKEN,     // dref
-    REF_TYPE_TOKEN,      // ref
-    PTR_TYPE_TOKEN,      // ptr
-    RO_TYPE_TOKEN,       // ro
-    GLOB_TYPE_TOKEN,     // glob
-    NEGATIVE_TOKEN,      // not
+    DREF_TYPE_TOKEN,       // dref
+    REF_TYPE_TOKEN,        // ref
+    PTR_TYPE_TOKEN,        // ptr
+    RO_TYPE_TOKEN,         // ro
+    GLOB_TYPE_TOKEN,       // glob
+    NEGATIVE_TOKEN,        // not
 
     // Data types
-    VAR_ARGUMENTS_TOKEN, // ...
-    TMP_TYPE_TOKEN,      // tmp
-    TMP_F64_TYPE_TOKEN,  // tmp_f64
-    TMP_F32_TYPE_TOKEN,  // tmp_f32
-    TMP_I64_TYPE_TOKEN,  // tmp_i64
-    TMP_I32_TYPE_TOKEN,  // tmp_i32
-    TMP_I16_TYPE_TOKEN,  // tmp_i16
-    TMP_I8_TYPE_TOKEN,   // tmp_i8
-    TMP_U64_TYPE_TOKEN,  // tmp_u64
-    TMP_U32_TYPE_TOKEN,  // tmp_u32
-    TMP_U16_TYPE_TOKEN,  // tmp_u16
-    TMP_U8_TYPE_TOKEN,   // tmp_u8
-    TMP_I0_TYPE_TOKEN,   // tmp_i0
+    VAR_ARGUMENTS_TOKEN,   // ...
+    TMP_TYPE_TOKEN,        // tmp
+    TMP_F64_TYPE_TOKEN,    // tmp_f64
+    TMP_F32_TYPE_TOKEN,    // tmp_f32
+    TMP_I64_TYPE_TOKEN,    // tmp_i64
+    TMP_I32_TYPE_TOKEN,    // tmp_i32
+    TMP_I16_TYPE_TOKEN,    // tmp_i16
+    TMP_I8_TYPE_TOKEN,     // tmp_i8
+    TMP_U64_TYPE_TOKEN,    // tmp_u64
+    TMP_U32_TYPE_TOKEN,    // tmp_u32
+    TMP_U16_TYPE_TOKEN,    // tmp_u16
+    TMP_U8_TYPE_TOKEN,     // tmp_u8
+    TMP_I0_TYPE_TOKEN,     // tmp_i0
 
-    I0_TYPE_TOKEN,       // i0
-    F64_TYPE_TOKEN,      // f64
-    F32_TYPE_TOKEN,      // f32
-    I64_TYPE_TOKEN,      // i64
-    I32_TYPE_TOKEN,      // i32
-    I16_TYPE_TOKEN,      // i16
-    I8_TYPE_TOKEN,       // i8
-    U64_TYPE_TOKEN,      // u64
-    U32_TYPE_TOKEN,      // u32
-    U16_TYPE_TOKEN,      // u16
-    U8_TYPE_TOKEN,       // u8
-    STR_TYPE_TOKEN,      // str
-    ARRAY_TYPE_TOKEN,    // arr
+    I0_TYPE_TOKEN,         // i0
+    F64_TYPE_TOKEN,        // f64
+    F32_TYPE_TOKEN,        // f32
+    I64_TYPE_TOKEN,        // i64
+    I32_TYPE_TOKEN,        // i32
+    I16_TYPE_TOKEN,        // i16
+    I8_TYPE_TOKEN,         // i8
+    U64_TYPE_TOKEN,        // u64
+    U32_TYPE_TOKEN,        // u32
+    U16_TYPE_TOKEN,        // u16
+    U8_TYPE_TOKEN,         // u8
+    STR_TYPE_TOKEN,        // str
+    ARRAY_TYPE_TOKEN,      // arr
     
     // Convert statements
-    CONVERT_TOKEN,       // as
+    CONVERT_TOKEN,         // as
 
     // Commands
-    IMPORT_TOKEN,        // import
-    IMPORT_SELECT_TOKEN, // from
-    EXTERN_TOKEN,        // extern
-    START_TOKEN,         // start
-    RETURN_TOKEN,        // return
-    EXIT_TOKEN,          // exit
-    RETURN_TYPE_TOKEN,   // ->
-    SCOPE_TOKEN,         // {  }
-    ANNOTATION_TOKEN,    // @
+    IMPORT_TOKEN,          // import
+    IMPORT_SELECT_TOKEN,   // from
+    EXTERN_TOKEN,          // extern
+    START_TOKEN,           // start
+    RETURN_TOKEN,          // return
+    EXIT_TOKEN,            // exit
+    RETURN_TYPE_TOKEN,     // ->
+    SCOPE_TOKEN,           // {  }
+    ANNOTATION_TOKEN,      // @
 
     // Function
-    ASM_TOKEN,           // asm
-    SYSCALL_TOKEN,       // syscall
-    EXFUNC_TOKEN,        // exfunc
-    FUNC_PROT_TOKEN,     // function <name> - prototype
-    FUNC_TOKEN,          // function
-    FUNC_NAME_TOKEN,     // function <name>
-    CALL_TOKEN,          // fname(...)
-    ADDR_CALL_TOKEN,     // something(...) - doesn't support default args, etc, but can handle addr to anything
-    CALL_ADDR_TOKEN,     // fname without () operation. Means that we're working with the address of a function
-    SECTION_TOKEN,       // section(".bss")
-    ALIGN_TOKEN,         // align(4)
+    ASM_TOKEN,             // asm
+    SYSCALL_TOKEN,         // syscall
+    EXFUNC_TOKEN,          // exfunc
+    FUNC_PROT_TOKEN,       // function <name> - prototype
+    FUNC_TOKEN,            // function
+    FUNC_NAME_TOKEN,       // function <name>
+    CALL_TOKEN,            // fname(...)
+    ADDR_CALL_TOKEN,       // something(...) - doesn't support default args, etc, but can handle addr to anything
+    CALL_ADDR_TOKEN,       // fname without () operation. Means that we're working with the address of a function
     
     // Condition scope
-    SWITCH_TOKEN,        // switch
-    CASE_TOKEN,          // case
-    DEFAULT_TOKEN,       // default
-    WHILE_TOKEN,         // while
-    LOOP_TOKEN,          // loop
-    BREAK_TOKEN,         // break
-    IF_TOKEN,            // if
-    ELSE_TOKEN,          // else
-    POPARG_TOKEN,        // poparg
+    SWITCH_TOKEN,          // switch
+    CASE_TOKEN,            // case
+    DEFAULT_TOKEN,         // default
+    WHILE_TOKEN,           // while
+    LOOP_TOKEN,            // loop
+    BREAK_TOKEN,           // break
+    IF_TOKEN,              // if
+    ELSE_TOKEN,            // else
     
     // Operands
-    PLUS_TOKEN,          // +
-    MINUS_TOKEN,         // -
-    MULTIPLY_TOKEN,      // *
-    DIVIDE_TOKEN,        // /
-    MODULO_TOKEN,        // %
-    ADDASSIGN_TOKEN,     // +=
-    SUBASSIGN_TOKEN,     // -=
-    MULASSIGN_TOKEN,     // *=
-    DIVASSIGN_TOKEN,     // /=
-    MODULOASSIGN_TOKEN,  // %=
-    BITANDASSIGN_TOKEN,  // &=
-    BITORASSIGN_TOKEN,   // |=
-    BITXORASSIGN_TOKEN,  // ^=
-    ASSIGN_TOKEN,        // =
-    COMPARE_TOKEN,       // ==
-    NCOMPARE_TOKEN,      // !=
-    LOWER_TOKEN,         // <
-    LOWEREQ_TOKEN,       // <=
-    LARGER_TOKEN,        // >
-    LARGEREQ_TOKEN,      // >=
-    BITMOVE_LEFT_TOKEN,  // <<
-    BITMOVE_RIGHT_TOKEN, // >>
-    BITAND_TOKEN,        // &
-    BITOR_TOKEN,         // |
-    BITXOR_TOKEN,        // ^
-    AND_TOKEN,           // &&
-    OR_TOKEN,            // ||
+    PLUS_TOKEN,            // +
+    MINUS_TOKEN,           // -
+    MULTIPLY_TOKEN,        // *
+    DIVIDE_TOKEN,          // /
+    MODULO_TOKEN,          // %
+    ADDASSIGN_TOKEN,       // +=
+    SUBASSIGN_TOKEN,       // -=
+    MULASSIGN_TOKEN,       // *=
+    DIVASSIGN_TOKEN,       // /=
+    MODULOASSIGN_TOKEN,    // %=
+    BITANDASSIGN_TOKEN,    // &=
+    BITORASSIGN_TOKEN,     // |=
+    BITXORASSIGN_TOKEN,    // ^=
+    ASSIGN_TOKEN,          // =
+    COMPARE_TOKEN,         // ==
+    NCOMPARE_TOKEN,        // !=
+    LOWER_TOKEN,           // <
+    LOWEREQ_TOKEN,         // <=
+    LARGER_TOKEN,          // >
+    LARGEREQ_TOKEN,        // >=
+    BITMOVE_LEFT_TOKEN,    // <<
+    BITMOVE_RIGHT_TOKEN,   // >>
+    BITAND_TOKEN,          // &
+    BITOR_TOKEN,           // |
+    BITXOR_TOKEN,          // ^
+    AND_TOKEN,             // &&
+    OR_TOKEN,              // ||
     
     // Variables (not a type, a variable)
-    VARIABLE_TOKEN,      // front-end tokenizer variable abstraction
-    F64_VARIABLE_TOKEN,  // f64
-    F32_VARIABLE_TOKEN,  // f32
-    I64_VARIABLE_TOKEN,  // i64
-    I32_VARIABLE_TOKEN,  // i32
-    I16_VARIABLE_TOKEN,  // i16
-    I8_VARIABLE_TOKEN,   // i8
-    I0_VARIABLE_TOKEN,   // i0
-    U64_VARIABLE_TOKEN,  // u64
-    U32_VARIABLE_TOKEN,  // u32
-    U16_VARIABLE_TOKEN,  // u16
-    U8_VARIABLE_TOKEN,   // u8
-    STR_VARIABLE_TOKEN,  // str
-    ARR_VARIABLE_TOKEN,  // arr
+    VARIABLE_TOKEN,        // front-end tokenizer variable abstraction
+    F64_VARIABLE_TOKEN,    // f64
+    F32_VARIABLE_TOKEN,    // f32
+    I64_VARIABLE_TOKEN,    // i64
+    I32_VARIABLE_TOKEN,    // i32
+    I16_VARIABLE_TOKEN,    // i16
+    I8_VARIABLE_TOKEN,     // i8
+    I0_VARIABLE_TOKEN,     // i0
+    U64_VARIABLE_TOKEN,    // u64
+    U32_VARIABLE_TOKEN,    // u32
+    U16_VARIABLE_TOKEN,    // u16
+    U8_VARIABLE_TOKEN,     // u8
+    STR_VARIABLE_TOKEN,    // str
+    ARR_VARIABLE_TOKEN,    // arr
 
     // Values
-    STRING_VALUE_TOKEN,  // "something"
-    CHAR_VALUE_TOKEN,    // 's'
+    STRING_VALUE_TOKEN,    // "something"
+    CHAR_VALUE_TOKEN,      // 's'
 
     // Debug statements
-    BREAKPOINT_TOKEN, // lis
+    BREAKPOINT_TOKEN,      // lis
 } token_type_t;
 
 typedef struct {

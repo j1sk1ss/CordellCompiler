@@ -19,7 +19,8 @@
 
 // Function
 #define FUNCTION_COMMAND        "function"
-#define VAR_ARGUMENTS_COMMAND   "..."
+#define VAR_ARGUMENTS_COMMAND   "..." // TODO: Mark functions as a variadic function if it has a variadic args
+#define LAMBDA_COMMAND          "=>"
 
 // Modifiers
 #define DREF_COMMAND            "dref"
@@ -59,7 +60,6 @@
 #define ELSE_COMMAND            "else"
 #define SYSCALL_COMMAND         "syscall"
 #define ASM_COMMAND             "asm"
-#define POPARG_COMMAND          "poparg"
 
 // Symbols and statements (Operands)
 /* Update lexems */

@@ -413,4 +413,16 @@ Returns a Constant subject, which represents the size of the subject.
 */
 hir_subject_t* HIR_generate_sizeof(hir_subject_t* s, sym_table_t* smt);
 
+/*
+Convert lambda AST node to a HIR element. 
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+    - `ret` - If this is a block, must be '0'.
+
+Returns the 'NULL' value or an update operator.
+*/
+hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
+
 #endif

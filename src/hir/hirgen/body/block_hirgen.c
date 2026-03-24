@@ -32,6 +32,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case REF_TYPE_TOKEN:              res = HIR_generate_ref(node, ctx, smt);             break;
         case DREF_TYPE_TOKEN:             res = HIR_generate_dref(node, ctx, smt, NULL);      break;
         case INDEXATION_TOKEN:            res = HIR_generate_load_indexation(node, ctx, smt); break;
+        case LAMBDA_FUNCTION_TOKEN:       res = HIR_generate_lambda(node, ctx, smt, 1);       break;
         /* We skip assign nodes above given the next logic, 
            where we generate the special load sequence */
         case CALL_ADDR_TOKEN:
@@ -86,22 +87,23 @@ Returns 1 if succeeds, otherwise will return 0.
 */
 static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     switch (node->t->t_type) {
-        case IF_TOKEN:         return HIR_generate_if_block(node, ctx, smt);
-        case ASM_TOKEN:        return HIR_generate_asmblock(node, ctx, smt);
-        case FUNC_TOKEN:       return HIR_generate_function_block(node, ctx, smt);
-        case EXIT_TOKEN:       return HIR_generate_exit_block(node, ctx, smt);
+        case IF_TOKEN:              return HIR_generate_if_block(node, ctx, smt);
+        case ASM_TOKEN:             return HIR_generate_asmblock(node, ctx, smt);
+        case FUNC_TOKEN:            return HIR_generate_function_block(node, ctx, smt);
+        case EXIT_TOKEN:            return HIR_generate_exit_block(node, ctx, smt);
         case CALLING_TOKEN:
-        case CALL_TOKEN:       return (int)((long)HIR_generate_funccall(node, ctx, smt, 0));
-        case LOOP_TOKEN:       return HIR_generate_loop_block(node, ctx, smt);
-        case BREAK_TOKEN:      return HIR_generate_break_block(node, ctx);
-        case WHILE_TOKEN:      return HIR_generate_while_block(node, ctx, smt);
-        case START_TOKEN:      return HIR_generate_start_block(node, ctx, smt);
-        case SWITCH_TOKEN:     return HIR_generate_switch_block(node, ctx, smt);
-        case RETURN_TOKEN:     return HIR_generate_return_block(node, ctx, smt);
-        case EXTERN_TOKEN:     return HIR_generate_extern_block(node, ctx);
-        case ASSIGN_TOKEN:     return HIR_generate_assignment_block(node, ctx, smt);
-        case SYSCALL_TOKEN:    return (int)((long)HIR_generate_syscall(node, ctx, smt, 0));
-        case BREAKPOINT_TOKEN: return HIR_generate_breakpoint_block(node, ctx);
+        case CALL_TOKEN:            return (int)((long)HIR_generate_funccall(node, ctx, smt, 0));
+        case LOOP_TOKEN:            return HIR_generate_loop_block(node, ctx, smt);
+        case BREAK_TOKEN:           return HIR_generate_break_block(node, ctx);
+        case WHILE_TOKEN:           return HIR_generate_while_block(node, ctx, smt);
+        case START_TOKEN:           return HIR_generate_start_block(node, ctx, smt);
+        case SWITCH_TOKEN:          return HIR_generate_switch_block(node, ctx, smt);
+        case RETURN_TOKEN:          return HIR_generate_return_block(node, ctx, smt);
+        case EXTERN_TOKEN:          return HIR_generate_extern_block(node, ctx);
+        case ASSIGN_TOKEN:          return HIR_generate_assignment_block(node, ctx, smt);
+        case SYSCALL_TOKEN:         return (int)((long)HIR_generate_syscall(node, ctx, smt, 0));
+        case BREAKPOINT_TOKEN:      return HIR_generate_breakpoint_block(node, ctx);
+        case LAMBDA_FUNCTION_TOKEN: return (int)((long)HIR_generate_lambda(node, ctx, smt, 0));
         default: break;
     }
 

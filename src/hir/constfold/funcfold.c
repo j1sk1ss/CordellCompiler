@@ -115,11 +115,11 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
                     long value = 0;
                     hir_subject_t* folded = (hir_subject_t*)registered_params[param_index++];
                     if (folded && _extract_variable_value(folded, smt, &value)) {
-                        changed = 1;
                         hh->op = HIR_STORE;
                         HIR_unload_subject(hh->sarg);
                         hh->sarg = HIR_SUBJ_CONST(value);
                         VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 0);
+                        changed = 1;
                     }
                 }
 
@@ -216,12 +216,8 @@ static int _propagate_frets(cfg_ctx_t* cctx, sym_table_t* smt, map_t* frets) {
                     ) { 
                         long value = 0;
                         if (_extract_variable_value(ret, smt, &value)) {
-                            changed = 1;
-                            hh->op = HIR_STORE;
-                            HIR_unload_subject(hh->sarg);
-                            HIR_unload_subject(hh->targ);
-                            hh->sarg = HIR_SUBJ_CONST(value);
                             VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 0);
+                            changed = 1;
                         }
                     }
                 }

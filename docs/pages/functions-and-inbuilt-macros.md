@@ -151,6 +151,46 @@ start() {
 
 P.S.: *This is a pure syntax sugar. You can define same functions at the top level. One disadvantage here: You will need to make uniqe names for them given the scope symbol resolve in the compiler.*
 
+## Lambda functions
+Lambda functions are entirely based on local functions. In a nutshell - this is an anonymous local function:
+```cpl
+@[entry]
+function main() {
+    function local() {
+        return 10;
+    }
+    ptr i0 local_2 = () => { return 10; };
+}
+```
+
+These functions are pretty usefull in terms when we need to pass a logic to a function. Let's consider the example below:
+```cpl
+function foo(ptr i0 logic) {
+    return logic(10, 10);
+}
+
+start() {
+    foo((i32 a, i32 b) => { a += b; return a + b; });
+}
+```
+
+To make the same thing with local or even regular functions, we will need to make next:
+```cpl
+function foo(ptr i0 logic) {
+    return logic(10, 10);
+}
+
+start() {
+    function local(i32 a, i32 b) {
+        a += b;
+        return a + b;
+    }
+    foo(local);
+}
+```
+
+The main problem - naming. Lambdas do the same logic as it do local functions, but with an anonymos name and without the essential function keyword and without the return type.
+
 ## Variadic arguments
 CPL supports variadic arguments in the same way hot it supports C language. To use the variadic arguments in a function, add the `...` lexem **as the final arguement**!
 ```cpl

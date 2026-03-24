@@ -30,6 +30,15 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Lambdas!
+Now the compiler supports lambda functions. Actually, this is a syntax sugar 'cause it copies the behaviour of local functions. The syntax is next:
+```cpl
+ptr i0 f = (i32 a) => { return a; }
+ptr i0 f = () => { return 10; }
+```
+
+To start a lambda function definition you need to create a variable placeholder. Let's say we create an empty holder (i8 a). Now with the `=>` symbol we can define any logic in a scope. </br>
+
 ## Constant propagation thru parameters list
 Now the constant propagation module supports propagation thru function call arguments. If we have function calls (or a function call) with the same arguments (at least on position in arguments the same) it will propagate input arguments (propagate folding further) to the function. For instance:
 ```cpl

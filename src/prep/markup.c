@@ -28,6 +28,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(SYSCALL_COMMAND,        SYSCALL_TOKEN),
     LEXEM(ASM_COMMAND,            ASM_TOKEN),
     LEXEM(VAR_ARGUMENTS_COMMAND,  VAR_ARGUMENTS_TOKEN),
+    LEXEM(LAMBDA_COMMAND,         LAMBDA_TOKEN),
 
     /* Variable modifiers */
     LEXEM(DREF_COMMAND,           DREF_TYPE_TOKEN),
@@ -64,7 +65,6 @@ static const markup_token_t _lexems[] = {
     LEXEM(BREAK_COMMAND,          BREAK_TOKEN),
     LEXEM(IF_COMMAND,             IF_TOKEN),
     LEXEM(ELSE_COMMAND,           ELSE_TOKEN),
-    LEXEM(POPARG_COMMAND,         POPARG_TOKEN),
 
     /* Binary operands. */
     LEXEM(ADDASSIGN_STATEMENT,    ADDASSIGN_TOKEN),

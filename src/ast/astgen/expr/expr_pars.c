@@ -1,5 +1,3 @@
-/* Compex expression parser.
-   Parses and invokes low-level parsers */
 #include <ast/astgen/astgen.h>
 
 /*
@@ -165,15 +163,24 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
             case OPEN_BRACKET_TOKEN: {
                 forward_token(it, 1);
                 int annot_off = annotation_reserve(ctx);
-                ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
-                if (!node || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
-                    PARSE_ERROR("Error during a binary expression parsing! The bracket wasn't closed!");
+
+                ast_node_t* node = NULL;
+                if (
+                    TKN_is_decl(CURRENT_TOKEN) || 
+                    CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
+                ) node = cpl_parse_lambda(it, ctx, smt, 0);
+                else {
+                    node = _parse_binary_expression(it, ctx, smt, 0, na);
+                    forward_token(it, 1);
+                }
+                
+                if (!node) {
+                    PARSE_ERROR("Error during a bracket expression parsing!");
                     AST_unload(node);
                     RESTORE_TOKEN_POINT;
                     return NULL;
                 }
                 
-                forward_token(it, 1);
                 annotation_unreserve(ctx, annot_off);
                 return node;
             }
@@ -187,8 +194,6 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
     }
 _primary_resolve_complete: {}
 
-    /* If this isn't a basic case, we are able to say,
-       that this is a variable / value */
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
         PARSE_ERROR("Can't create a base for the value!");
@@ -196,17 +201,18 @@ _primary_resolve_complete: {}
         return NULL;
     }
 
-    /* Register a string in a string symbol table */
-    if (node->t->t_type == STRING_VALUE_TOKEN) {
-        node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
-        string_t* section = create_string(CONF_get_ro_section());
-        SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
-        destroy_string(section);
+    switch (node->t->t_type) {
+        case STRING_VALUE_TOKEN: {
+            node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
+            string_t* section = create_string(CONF_get_ro_section());
+            SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
+            destroy_string(section);
+            break;
+        }
+        default: break;
     }
 
     var_lookup(node, ctx, smt);
-    /* Check basic cases such as pointer access, 
-       call token (basic call), syscall token */
     forward_token(it, 1);
     return node;
 }

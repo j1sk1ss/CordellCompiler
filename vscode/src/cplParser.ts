@@ -140,7 +140,7 @@ const TYPE_KW = new Set([
 const OPERATORS = [
   "||=","&&=","<<",">>","==","!=","<=",">=","&&","||",
   "+=","-=","*=","/=","%=","|=","^=","&=","=",
-  "+","-","*","/","%","|","^","&","<",">", "->", "..."
+  "+","-","*","/","%","|","^","&","<",">", "->", "=>", "..."
 ].sort((a,b) => b.length-a.length);
 
 const PUNC = new Set(["{","}","(",")","[","]",",",";","#","@"]);
@@ -1355,6 +1355,46 @@ class Parser {
 
   private parseExpression(): ExprInfo { return this.parseAssign(); }
 
+  private tryParseLambda(): ExprInfo | undefined {
+    const saveI = this.i;
+    const saveIssues = this.issues.length;
+
+    if (!this.match("punc", "(")) return undefined;
+    const lpar = this.prev();
+
+    const paramsInfo = this.parseParamListOptInfos();
+    if (!this.match("punc", ")") || !this.match("op", "=>")) {
+      this.i = saveI;
+      this.issues.length = saveIssues;
+      return undefined;
+    }
+
+    let ret: TypeNode = { kind: "unknown" };
+
+    this.sem?.enterScope();
+    for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
+
+    if (this.at("punc", "{")) {
+      this.parseBlock();
+    } else {
+      const body = this.parseExpression();
+      ret = body.type;
+    }
+
+    this.sem?.exitScope();
+
+    const endTok = this.prev();
+    return {
+      type: {
+        kind: "func",
+        params: paramsInfo.filter((p) => !p.isVarArgs).map((p) => p.type),
+        ret
+      },
+      start: lpar.start,
+      end: endTok.end
+    };
+  }
+
   private parseAssign(): ExprInfo {
     let left = this.parseLogicalOr();
     if (this.at("op") && ["=","+=","-=","*=","/=","%=","|=","^=","&=","||=","&&="].includes(this.cur().text)) {
@@ -1490,6 +1530,9 @@ class Parser {
   private parsePrimary(): ExprInfo {
     this.parseInlineAnnotations();
 
+    const lambda = this.tryParseLambda();
+    if (lambda) return lambda;
+
     if (this.at("kw", "syscall")) {
       const tok = this.cur();
       this.i++;
@@ -1509,7 +1552,7 @@ class Parser {
       let t: TypeNode = { kind: "unknown" };
       const vt = this.sem?.getVarType(name);
       if (vt) t = vt;
-      else if (this.sem?.hasFunctionNamed(name)) t = { kind: "ptr", to: { kind: "prim", name: "i0" } };
+      else t = this.sem?.getFunctionValueType(name) ?? t;
 
       return { type: t, identName: name, start: tok.start, end: tok.end };
     }

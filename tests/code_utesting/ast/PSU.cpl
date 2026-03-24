@@ -29,8 +29,8 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
 : OUTPUT
 { scope, id=1 }
    [extern] (EXTERN_TOKEN, v_id=-1, s_id=0)
-      [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
-         [printf] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
+      [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0, ext, glob)
+         [printf] (FUNC_NAME_TOKEN, v_id=0, s_id=1, ext)
             [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
          { scope, id=2 }
             [i8] (I8_TYPE_TOKEN, ptr, v_id=-1, s_id=0)
@@ -47,7 +47,7 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
          { scope, id=4 }
             [loop] (LOOP_TOKEN, v_id=-1, s_id=4)
                { scope, id=5 }
-                  [printf] (CALL_TOKEN, v_id=0, s_id=0)
+                  [printf] (CALL_TOKEN, v_id=0, s_id=0, ext, glob)
                      { scope, id=0 }
                         [Hello from loop which iterates 10 times!
 ] (STRING_VALUE_TOKEN, v_id=0, s_id=0)
@@ -57,7 +57,7 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
                   [case] (CASE_TOKEN, v_id=-1, s_id=0)
                      [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                      { scope, id=6 }
-                        [printf] (CALL_TOKEN, v_id=0, s_id=0)
+                        [printf] (CALL_TOKEN, v_id=0, s_id=0, ext, glob)
                            { scope, id=0 }
                               [The first argument is %s
 ] (STRING_VALUE_TOKEN, v_id=1, s_id=0)
@@ -66,7 +66,7 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
                                  [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                   [default] (DEFAULT_TOKEN, v_id=-1, s_id=0)
                      { scope, id=7 }
-                        [printf] (CALL_TOKEN, v_id=0, s_id=0)
+                        [printf] (CALL_TOKEN, v_id=0, s_id=0, ext, glob)
                            { scope, id=0 }
                               [Too many arguments! %i != 1
 ] (STRING_VALUE_TOKEN, v_id=2, s_id=0)
@@ -76,12 +76,12 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
                   [argc] (I32_VARIABLE_TOKEN, v_id=1, s_id=3)
                   [2] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                { scope, id=8 }
-                  [printf] (CALL_TOKEN, v_id=0, s_id=0)
+                  [printf] (CALL_TOKEN, v_id=0, s_id=0, ext, glob)
                      { scope, id=0 }
                         [Cold section!
 ] (STRING_VALUE_TOKEN, v_id=3, s_id=0)
                { scope, id=4 }
-                  [printf] (CALL_TOKEN, v_id=0, s_id=0)
+                  [printf] (CALL_TOKEN, v_id=0, s_id=0, ext, glob)
                      { scope, id=0 }
                         [Hot section!
 ] (STRING_VALUE_TOKEN, v_id=4, s_id=0)

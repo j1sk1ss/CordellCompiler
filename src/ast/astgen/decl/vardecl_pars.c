@@ -30,12 +30,10 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     if (
         base->t->t_type == STR_TYPE_TOKEN
     ) ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &base->t->flags, &smt->a);
+    var_lookup(name, ctx, smt);
 
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.reg, annots.align, &smt->v);
-    if (
-        name->t->flags.glob || 
-        name->t->flags.ro
-    ) {
+    if (!TKN_in_stack(name->t)) {
         if (!annots.section) annots.section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
         SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
     }
@@ -50,15 +48,11 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
             return NULL;
         }
 
-        if (base->t->t_type == STR_TYPE_TOKEN) { /* Special case for a string variable.
-                                                    The reason why we care - a string isn't a regular array.
-                                                    Also, we can't separate the string from a variable given the
-                                                    ability of string arguments, etc. */
+        if (base->t->t_type == STR_TYPE_TOKEN) {
             ARTB_update_info(
                 name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, FIELD_NO_CHANGE, 
                 I8_TYPE_TOKEN, &base->t->flags, &smt->a
             );
-            
             STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }
 
@@ -66,6 +60,5 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     }
 
     ANNOT_destroy_summary(&annots);
-    var_lookup(name, ctx, smt);
     return base;
 }

@@ -145,6 +145,7 @@ static inline int print_ast(ast_node_t* node, int depth) {
     if (node->t) {
         switch (node->t->t_type) {
             case SCOPE_TOKEN: printf("{ scope, id=%li }\n", node->sinfo.s_id); break;
+            case LAMBDA_FUNCTION_TOKEN: printf("[lambda]\n");                  break;
             case CALLING_TOKEN: printf("[()]\n");                              break;
             case INDEXATION_TOKEN: printf("[[]]\n");                           break;
             default:
