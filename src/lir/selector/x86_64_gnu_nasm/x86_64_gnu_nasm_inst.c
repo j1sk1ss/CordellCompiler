@@ -29,9 +29,11 @@ Params:
 
 Return 1 if the variable is SIMD.
 */
-static int _is_simd_type(long vid, sym_table_t* smt) {
+static int _is_simd_type(lir_subject_t* s, sym_table_t* smt) {
+    if (s->t == LIR_NUMBER) return s->storage.num.is_float;
+    if (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) return 0;
     variable_info_t vi;
-    if (!VRTB_get_info_id(vid, &vi, &smt->v)) return 0;
+    if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
     switch (vi.type) {
         case F64_TYPE_TOKEN: case F32_TYPE_TOKEN: return 1;
         default: return 0;
@@ -148,8 +150,8 @@ static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, s
 
     int is_float = 0;
     switch (s->t) {
-        case LIR_VARIABLE: is_float = _is_simd_type(s->storage.var.v_id, smt); break;
-        case LIR_NUMBER:   is_float = s->storage.num.is_float;                 break;
+        case LIR_VARIABLE: is_float = _is_simd_type(s, smt);   break;
+        case LIR_NUMBER:   is_float = s->storage.num.is_float; break;
         default: break;
     }
 
@@ -184,8 +186,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
                 switch (lh->op) {
-                    /* Pass arguments to the syscall.
-                       If there is more than 7 arguments, ignore the last. */
                     case LIR_STSARG: {
                         int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
                         if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(RAX))) break;
@@ -196,8 +196,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->farg = nfarg;
                         break;
                     }
-                    /* Load argument from a Linux entry stack.
-                       Note: Based on the Linux ABI execution convention. */
                     case LIR_STARGLD: {
                         lir_subject_t* src = LIR_SUBJ_OFF(
                             RBP, (lh->sarg->storage.cnst.value + 1) * -8, _get_variable_size(lh->farg->storage.var.v_id, smt)
@@ -208,9 +206,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = src;
                         break;
                     }
-                    /* Pass arguments to a function.
-                       If there is more than 6 arguments, pass into a stack.
-                       Note: Based on the ABI calling convention. */
                     case LIR_STFARG: {
                         abi_argument_t target;
                         if (!_get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)) lh->op = LIR_PUSH;
@@ -224,8 +219,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         
                         break;
                     }
-                    /* Load passed argument to a function.
-                       If there is more than 6 args, use a stack. */
                     case LIR_LOADFARG: {
                         abi_argument_t target;
                         lir_subject_t* nfarg;
@@ -239,8 +232,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = nfarg;
                         break;
                     }
-                    /* Load value from the function
-                       to the temporal variable. */
                     case LIR_LOADFRET: {
                         lh->op   = LIR_iMOV;
                         lh->sarg = _create_tmp(RAX, lh->farg, smt);
@@ -269,13 +260,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
 
                         lir_subject_t* oldres = lh->farg;
-                        lh->farg = a;
-                        lh->sarg = a;
-                        switch (lh->op) {
-                            case LIR_NOT: lh->op = LIR_NEG; break;
-                            default: break;
-                        }
-
+                        lh->farg = lh->sarg = a;
                         _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, a, NULL), lh);
                         break;
                     }
@@ -296,19 +281,15 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lir_subject_t* a = _create_tmp(RAX, lh->sarg, smt);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
 
-                        lir_subject_t* mod;
                         lir_subject_t* oldres = lh->farg;
-                        lh->farg = a;
+                        lh->farg = lh->sarg = a;
 
-                        if (lh->op == LIR_iMOD) {
+                        if (lh->op != LIR_iMOD) _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, a, NULL), lh);
+                        else {
                             lh->farg = LIR_SUBJ_REG(RDX, _get_variable_size(lh->farg->storage.var.v_id, smt));
-                            mod = lh->farg;
+                            _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, lh->farg, NULL), lh);
                         }
 
-                        lh->sarg = a;
-
-                        if (lh->op == LIR_iMOD) _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, mod, NULL), lh);
-                        else _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, a, NULL), lh);
                         break;
                     }
                     case LIR_iLWR:
@@ -355,7 +336,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_TF64:
                     case LIR_TF32: {
-                        int from_float = _is_simd_type(lh->sarg->storage.var.v_id, smt);
+                        int from_float = _is_simd_type(lh->sarg, smt);
                         int dst_size   = _get_variable_size(lh->farg->storage.var.v_id, smt);
                         int src_size   = _get_variable_size(lh->sarg->storage.var.v_id, smt);
                         if (from_float) {
@@ -378,7 +359,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_TU32:
                     case LIR_TU16:
                     case LIR_TU8: {
-                        int from_float = _is_simd_type(lh->sarg->storage.var.v_id, smt);
+                        int from_float = _is_simd_type(lh->sarg, smt);
                         int from_sign  = _is_sign_type(lh->sarg, smt);
                         int dst_size   = _get_variable_size(lh->farg->storage.var.v_id, smt);
                         int src_size   = _get_variable_size(lh->sarg->storage.var.v_id, smt);

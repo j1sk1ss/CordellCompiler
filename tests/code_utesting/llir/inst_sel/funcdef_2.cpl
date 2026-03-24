@@ -12,8 +12,6 @@ BB{X} fn foo0(i32 a, i32 b)
 %1 = %5;
 fend
 BB{X} start
-use $1;
-use $2;
 %8 = $1;
 %6 <<= %8;
 %9 = $2;

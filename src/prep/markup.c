@@ -193,6 +193,7 @@ static int _apply_modifiers(list_t* tkn) {
     while (list_iter_next(&it, (void**)&curr)) {
         token_t* next = (token_t*)list_iter_current(&it);
         if (next) switch (curr->t_type) {
+            case EXTERN_TOKEN:    cflags.ext = 1; cflags.glob = 1;           break;
             case GLOB_TYPE_TOKEN: cflags.glob = 1; _remove_token(tkn, curr); break;
             case PTR_TYPE_TOKEN:  cflags.ptr++;    _remove_token(tkn, curr); break;
             case RO_TYPE_TOKEN:   cflags.ro   = 1; _remove_token(tkn, curr); break;
@@ -229,7 +230,6 @@ int MRKP_variables(list_t* tkn) {
             case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
 
             case FUNC_TOKEN:
-            case EXFUNC_TOKEN:
             case I0_TYPE_TOKEN:
             case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
             case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
@@ -240,8 +240,7 @@ int MRKP_variables(list_t* tkn) {
                 token_t* next = (token_t*)list_iter_current(&it);
                 if (next && (next->t_type == UNKNOWN_STRING_TOKEN)) {
                     switch (curr->t_type) {
-                        case FUNC_TOKEN:
-                        case EXFUNC_TOKEN: {
+                        case FUNC_TOKEN: {
                             ctype           = CALL_TOKEN;
                             next->t_type    = FUNC_NAME_TOKEN;
                             next->flags.ext = curr->flags.ext;

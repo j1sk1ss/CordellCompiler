@@ -83,6 +83,7 @@ int main(int argc, char* argv[]) {
 
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
+    HIR_FUNC_perform_devirt(&cfgctx, &smt);
 
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation

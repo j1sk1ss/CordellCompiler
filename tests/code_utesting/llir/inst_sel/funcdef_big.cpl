@@ -36,7 +36,6 @@ BB{X} fn foo0(...)
 %8 = %23;
 fend
 BB{X} start
-use $1;
 %25 = $1;
 %24 <<= %25;
 call foo0(...);

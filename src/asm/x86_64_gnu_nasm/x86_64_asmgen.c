@@ -10,7 +10,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
             if (!fi->flags.naked) {
                 EMIT_COMMAND("push rbp");
                 EMIT_COMMAND("mov rbp, rsp");
-                if (b->sarg->storage.cnst.value > 0) {
+                if (b->sarg && b->sarg->storage.cnst.value > 0) {
                     EMIT_COMMAND("sub rsp, %ld", ALIGN(b->sarg->storage.cnst.value, 8));
                 }
             }
@@ -39,9 +39,9 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_CDQ:  EMIT_COMMAND("cdq\n");     break;
         case LIR_SYSC: EMIT_COMMAND("syscall\n"); break;
         case LIR_FEXT: {
-            func_info_t fi;
-            if (FNTB_get_info_id(b->farg->storage.cnst.value, &fi, &smt->f)) {
-                EMIT_COMMAND("extern %s\n", fi.name->body);
+            func_info_t curr_fi;
+            if (FNTB_get_info_id(b->farg->storage.cnst.value, &curr_fi, &smt->f)) {
+                EMIT_COMMAND("extern %s\n", curr_fi.name->body);
             }
 
             break;
@@ -69,7 +69,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_SETA:       EMIT_COMMAND("seta %s", format_lir_subject(b->farg, smt));                                         break;
         case LIR_STBE:       EMIT_COMMAND("setbe %s", format_lir_subject(b->farg, smt));                                        break;
         case LIR_STAE:       EMIT_COMMAND("setae %s", format_lir_subject(b->farg, smt));                                        break;
-        case LIR_NEG:        EMIT_COMMAND("neg %s", format_lir_subject(b->farg, smt));                                          break;
+        case LIR_NOT:        EMIT_COMMAND("neg %s", format_lir_subject(b->farg, smt));                                          break;
         case LIR_INC:        EMIT_COMMAND("inc %s", format_lir_subject(b->farg, smt));                                          break;
         case LIR_DEC:        EMIT_COMMAND("dec %s", format_lir_subject(b->farg, smt));                                          break;
         case LIR_JMP:        EMIT_COMMAND("jmp %s", format_lir_subject(b->farg, smt));                                          break;
@@ -162,12 +162,10 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
 
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
-    if (!VRTB_get_info_id(id, &vi, &smt->v)) return 0;
+    if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext) return 0;
+    token_t tmptkn = { .t_type = vi.type, .flags = { .ptr = vi.vfs.ptr, .ro = vi.vfs.ro } };
 
-    if (
-        vi.type == ARRAY_TYPE_TOKEN || 
-        vi.type == STR_TYPE_TOKEN
-    ) {
+    if (!TKN_is_one_slot(&tmptkn)) {
         array_info_t ai;
         if (!ARTB_get_info(vi.v_id, &ai, &smt->a)) return 0;
         token_t tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
@@ -189,16 +187,17 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
                 default:                EMIT_PART_COMMAND("%s db ", vi.name->body); break;
             }
 
+            long el = 0;
             int elcount = list_size(&ai.elems);
-            foreach (long el, &ai.elems) {
-                fprintf(output, "%lu", el);
+            foreach (el, &ai.elems) {
+                fprintf(output, "%li", el);
                 if (--elcount) fprintf(output, ",");
             }
 
             int last = ai.size - list_size(&ai.elems);
             if (last > 0) fprintf(output, ",");
             while (last-- > 0) {
-                fprintf(output, "0");
+                fprintf(output, "%li", el);
                 if (last) fprintf(output, ",");
             }
 
@@ -208,7 +207,6 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
         return 1;
     }
 
-    token_t tmptkn = { .t_type = vi.type, .flags = { .ptr = vi.vfs.ptr, .ro = vi.vfs.ro } };
     switch (TKN_variable_bitness(&tmptkn, 1)) {
         case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq 0\n", vi.name->body); break;
         case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd 0\n", vi.name->body); break;
@@ -228,6 +226,10 @@ static cfg_func_t* _find_function_by_id(symbol_id_t id, cfg_ctx_t* ctx) {
 }
 
 int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
+    foreach (lir_block_t* lb, &cctx->outs.lout) {
+        _convert_lirblock_to_assembly(lb, NULL, smt, output);
+    }
+
     map_foreach (section_info_t* section, &smt->c.sectb) {
         EMIT_COMMAND("section %s", section->name->body);
         set_foreach (symbol_id_t id, &section->vars) {
@@ -242,7 +244,7 @@ int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
             func_info_t fi;
             if (!FNTB_get_info_id(id, &fi, &smt->f)) continue;
             cfg_func_t* fb = _find_function_by_id(id, cctx);
-            if (!fb) continue;
+            if (!fb || !fb->used) continue;
             
             if (fi.flags.global)   EMIT_COMMAND("global %s", fi.name->body);
             if (fi.flags.external) EMIT_COMMAND("extern %s", fi.name->body);

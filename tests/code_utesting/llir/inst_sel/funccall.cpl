@@ -5,8 +5,6 @@ start() {
 
 : OUTPUT
 BB{X} start
-use $1;
-use $2;
 %4 = $1;
 %2 <<= %4;
 %5 = $2;

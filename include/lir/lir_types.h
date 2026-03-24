@@ -64,8 +64,8 @@ typedef enum {
 
         LIR_STSARG,   // store parameter to syscall, x, cnst_y=index
         LIR_STFARG,   // store parameter to function, x, cnst_y=index
-        LIR_LOADFARG, // load parameter in function, cnst_x=var_id, cnst_y=index
-        LIR_LOADFRET, // load funcret to dst, cnst_x=var_id
+        LIR_LOADFARG, // load parameter in function, v=source_var, cnst_y=index
+        LIR_LOADFRET, // load funcret to dst, x=target_var
 
         LIR_TF64,     // x = (f64)y
         LIR_TF32,     // x = (f32)y
@@ -89,7 +89,6 @@ typedef enum {
         LIR_MOVSXD,
 
         LIR_NOT,
-        LIR_NEG,
         LIR_INC,
         LIR_DEC,
 

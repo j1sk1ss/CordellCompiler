@@ -162,11 +162,11 @@ typedef enum {
 } token_type_t;
 
 typedef struct {
-    int  ptr;      /* Reference level     */
-    char ro   : 1; /* Is read only flag   */
-    char glob : 1; /* Is global flag      */
-    char ext  : 1; /* Is extern flag      */
-    char vla  : 1; /* Is vla allocated   */
+    int  ptr;      /* Reference level   */
+    char ro   : 1; /* Is read only flag */
+    char glob : 1; /* Is global flag    */
+    char ext  : 1; /* Is extern flag    */
+    char vla  : 1; /* Is vla allocated  */
 } token_flags_t;
 
 typedef struct {

@@ -1,3 +1,4 @@
+: BUG :
 start() {
     i32 a;
     if 1; {

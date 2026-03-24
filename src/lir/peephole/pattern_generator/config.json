@@ -136,7 +136,7 @@
             "LIR_INC"
         ],
         "neg": [
-            "LIR_NEG"
+            "LIR_NOT"
         ]
     },
     "used_args": {

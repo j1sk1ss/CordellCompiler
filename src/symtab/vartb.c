@@ -84,6 +84,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
         var->vfs.ptr  = flags->ptr;
         var->vfs.glob = flags->glob;
         var->vfs.ro   = flags->ro;
+        var->vfs.ext  = flags->ext;
     }
 
     var->vmi.reg    = -1;

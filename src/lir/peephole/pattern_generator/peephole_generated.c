@@ -474,7 +474,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
-                    lh->op = LIR_NEG;
+                    lh->op = LIR_NOT;
                     lir_subject_t* _src_1_23 = lh->farg;
                     lir_subject_t* _old_24 = lh->farg;
                     if (_old_24 != _src_1_23) {
