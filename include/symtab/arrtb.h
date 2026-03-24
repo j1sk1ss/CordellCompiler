@@ -8,10 +8,6 @@
 #include <symtab/symtab_id.h>
 
 typedef struct {
-    long value;
-} array_elem_info_t;
-
-typedef struct {
     char              vla : 1;
     symbol_id_t       v_id;
     long              size;

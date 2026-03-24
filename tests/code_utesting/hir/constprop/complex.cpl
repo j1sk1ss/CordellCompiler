@@ -16,13 +16,13 @@ start() {
 {id: {X}, b, i32, s_id: 2}
 {id: {X}, b, i32, s_id: 2, value=1}
 {id: {X}, c, i32, s_id: 2}
-{id: {X}, tmp, i32, s_id: 0, value=12}
+{id: {X}, tmp, i32, s_id: -1, value=12}
 {id: {X}, c, i32, s_id: 2}
-{id: {X}, tmp, i32, s_id: 0, value=10}
-{id: {X}, tmp, i32, s_id: 0, value=1}
+{id: {X}, tmp, i32, s_id: -1, value=10}
+{id: {X}, tmp, i32, s_id: -1, value=1}
 {id: {X}, a, i32, s_id: 2, value=10}
 {id: {X}, a, i32, s_id: 2, value=12}
 {id: {X}, a, i32, s_id: 2}
-{id: {X}, tmp, i32, s_id: 0, value=12}
+{id: {X}, tmp, i32, s_id: -1, value=12}
 {id: {X}, a, i32, s_id: 2, value=12}
 :

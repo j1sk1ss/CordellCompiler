@@ -19,7 +19,7 @@ start() {
 {id: 3, d, i32, s_id: 2}
 {id: 13, f, i32, s_id: 2, value=1}
 {id: 4, e, i32, s_id: 2}
-{id: 7, tmp, i32, s_id: 0, value=1}
+{id: 7, tmp, i32, s_id: -1, value=1}
 {id: 9, b, i32, s_id: 2, value=1}
 {id: 10, c, i32, s_id: 2, value=1}
 {id: 5, f, i32, s_id: 2}

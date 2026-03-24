@@ -13,7 +13,7 @@ hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_
     ) return src;
 
     token_flags_t cnv_flags = { .ptr = ptr };
-    hir_subject_t* cnv = HIR_SUBJ_TMPVAR(t, VRTB_add_info(NULL, HIR_get_tmptkn_type(t), 0, &cnv_flags, &smt->v));
+    hir_subject_t* cnv = HIR_SUBJ_TMPVAR(t, VRTB_add_info(NULL, HIR_get_tmptkn_type(t), NO_SYMBOL_ID, &cnv_flags, &smt->v));
     cnv->ptr = ptr;
      
     /* If this is a pointer convertion (something to a pointer),

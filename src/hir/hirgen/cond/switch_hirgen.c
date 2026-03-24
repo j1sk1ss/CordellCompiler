@@ -51,7 +51,7 @@ static int _generate_sequent_jump(
 ) {
     for (int i = 0; i < values_count; i++) {
         hir_subject_t* nl = HIR_SUBJ_LABEL();
-        hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, 0, NULL, &smt->v));
+        hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
         HIR_BLOCK3(ctx, HIR_iCMP, equals, cond, HIR_SUBJ_CONST(values[i].v));
         HIR_BLOCK3(ctx, HIR_IFOP2, equals, values[i].l, nl);
         HIR_BLOCK1(ctx, HIR_MKLB, nl);

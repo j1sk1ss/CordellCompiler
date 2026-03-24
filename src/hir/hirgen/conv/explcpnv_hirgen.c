@@ -4,7 +4,7 @@ hir_subject_t* HIR_generate_explconv(ast_node_t* node, hir_ctx_t* ctx, sym_table
     HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     hir_subject_t* cnv = HIR_SUBJ_TMPVAR(
         HIR_get_tmptype_tkn(node->c->t, 0), 
-        VRTB_add_info(NULL, node->c->t->t_type, 0, NULL, &smt->v)
+        VRTB_add_info(NULL, node->c->t->t_type, NO_SYMBOL_ID, NULL, &smt->v)
     );
 
     cnv->ptr = node->c->t->flags.ptr;

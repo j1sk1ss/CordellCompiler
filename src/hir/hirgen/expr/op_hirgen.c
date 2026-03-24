@@ -8,7 +8,7 @@ hir_subject_t* HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_t
     hir_subject_t* dst = HIR_generate_elem(left, ctx, smt);
     hir_subject_t* upd = HIR_generate_elem(right, ctx, smt);
 
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(dst->t), 0, NULL, &smt->v));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(dst->t), NO_SYMBOL_ID, NULL, &smt->v));
     upd = HIR_generate_implconv(ctx, res->ptr, res->t, upd, smt);
     
     switch (node->t->t_type) {
@@ -57,7 +57,8 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
 
             hir_subject_t* lt2 = HIR_generate_elem(r, ctx, smt);
             res = HIR_SUBJ_TMPVAR(
-                HIR_promote_types(lt1->t, lt2->t), VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), 0, NULL, &smt->v)
+                HIR_promote_types(lt1->t, lt2->t), 
+                VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)
             );
             
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
@@ -75,7 +76,8 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
 
             hir_subject_t* lt2 = HIR_generate_elem(r, ctx, smt);
             res = HIR_SUBJ_TMPVAR(
-                HIR_promote_types(lt1->t, lt2->t), VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), 0, NULL, &smt->v)
+                HIR_promote_types(lt1->t, lt2->t), 
+                VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)
             );
             
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
@@ -108,7 +110,8 @@ static hir_subject_t* _generate_logic_operator(ast_node_t* op, ast_node_t* r, as
     hir_subject_t* lt1 = HIR_generate_elem(l, ctx, smt);
     hir_subject_t* lt2 = HIR_generate_elem(r, ctx, smt);
     hir_subject_t* res = HIR_SUBJ_TMPVAR(
-        HIR_promote_types(lt1->t, lt2->t), VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), 0, NULL, &smt->v)
+        HIR_promote_types(lt1->t, lt2->t), 
+        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)
     );
     
     lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
@@ -160,7 +163,8 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
             hir_subject_t* lt1 = HIR_generate_elem(left, ctx, smt);
             hir_subject_t* lt2 = HIR_generate_elem(right, ctx, smt);
             res = HIR_SUBJ_TMPVAR(
-                HIR_promote_types(lt1->t, lt2->t), VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), 0, NULL, &smt->v)
+                HIR_promote_types(lt1->t, lt2->t), 
+                VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)
             );
             
             lt1 = HIR_generate_implconv(ctx, res->ptr, res->t, lt1, smt);

@@ -9,10 +9,10 @@ start() {
 
 : OUTPUT
 {id: 1, b, i32, s_id: 3}
-{id: 4, tmp, i32, s_id: 0, value=20}
-{id: 3, tmp, i64, s_id: 0, value=10}
+{id: 4, tmp, i32, s_id: -1, value=20}
+{id: 3, tmp, i64, s_id: -1, value=10}
 {id: 0, a, i32, s_id: 2}
 {id: 5, a, i32, s_id: 2, value=10}
 {id: 6, b, i32, s_id: 3, value=20}
-{id: 2, tmp, f64, s_id: 0, value=20}
+{id: 2, tmp, f64, s_id: -1, value=20}
 :

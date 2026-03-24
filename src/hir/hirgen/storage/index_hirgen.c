@@ -60,7 +60,7 @@ static hir_subject_t* _get_final_head(
 
     /* The final offset for the base address is the result of the
         expression 'real_offset = offset * element_size' */
-    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(offt->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(offt->t), 0, NULL, &smt->v));
+    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(offt->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(offt->t), NO_SYMBOL_ID, NULL, &smt->v));
     HIR_BLOCK3(
         ctx, HIR_iMUL, real_offset, offt, 
         HIR_generate_implconv(ctx, offt->ptr, offt->t, HIR_SUBJ_CONST(_get_pointed_element_size(base, smt)), smt)
@@ -82,7 +82,7 @@ hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sy
     hir_subject_type_t indexed_type;
     hir_subject_t* final_head = _get_final_head(base, offt, ctx, smt, &indexed_type);
     
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(indexed_type), 0, NULL, &smt->v));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(indexed_type), NO_SYMBOL_ID, NULL, &smt->v));
     res->ptr = MAX(final_head->ptr - 1, 0);
     
     HIR_BLOCK2(ctx, HIR_GDREF, res, final_head);

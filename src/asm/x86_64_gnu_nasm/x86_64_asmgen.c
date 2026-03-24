@@ -190,8 +190,8 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
             }
 
             int elcount = list_size(&ai.elems);
-            foreach (array_elem_info_t* el, &ai.elems) {
-                fprintf(output, "%lu", el->value);
+            foreach (long el, &ai.elems) {
+                fprintf(output, "%lu", el);
                 if (--elcount) fprintf(output, ",");
             }
 
