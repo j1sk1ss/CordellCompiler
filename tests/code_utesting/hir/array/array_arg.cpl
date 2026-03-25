@@ -1,9 +1,7 @@
-{
-    function foo(ptr i32 a);
-    start() {
-        arr a[10, i32];
-        foo(a);
-    }
+function foo(ptr i32 a);
+start() {
+    arr a[10, i32];
+    foo(a);
 }
 
 : OUTPUT

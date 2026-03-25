@@ -1,12 +1,11 @@
 import re
 import json
-
 from src.pattern import (
     Operand, OperandType, Instruction, Pattern
 )
 
 class PTRNParser:
-    def __init__(self, config: str = "commands.json") -> None:
+    def __init__(self, config: str = "config.json") -> None:
         with open(config) as f:
             self.parse_info: dict = json.load(f)
     
@@ -80,7 +79,7 @@ class PTRNParser:
         ):
             raise ValueError(f"{bracket_type} not allowed in {side}")
         
-        instr = self.parse_instruction(cleaned_line)
+        instr = self._parse_instruction(cleaned_line)
         annotated_items = []
         
         for item in items:
@@ -247,7 +246,6 @@ class PTRNParser:
                 raise ValueError("Empty pattern")
 
             replace_instrs: list[Instruction] = []
-            actions: list[dict] = []
             
             rhs_lines = rhs_text.strip().split("\n")
             for i, line in enumerate(rhs_lines):

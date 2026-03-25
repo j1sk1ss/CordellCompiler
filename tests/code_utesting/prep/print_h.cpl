@@ -1,0 +1,39 @@
+{
+#ifndef PRINT_H_
+#define PRINT_H_ 0
+    #include "string_h.cpl"
+
+    : Basic print function that is based on
+      a syscall invoke.
+      Params
+      - `msg` - Input message to print.
+      
+      Returns i0 aka nothing. :
+    function print(ptr str msg) -> i0;
+#endif
+}
+
+: OUTPUT
+line=1, type={X}, data=[{],
+line=3, type={X}, data=[{X}],
+line=3, type={X}, data=[function],
+line=3, type={X}, data=[strlen],
+line=3, type={X}, data=[(],
+line=3, type={X}, data=[i8], ptr
+line=3, type={X}, data=[s], ptr
+line=3, type={X}, data=[)],
+line=3, type={X}, data=[->],
+line=3, type={X}, data=[i64],
+line=3, type={X}, data=[;],
+line=7, type={X}, data=[{X}],
+line=7, type={X}, data=[function],
+line=7, type={X}, data=[print],
+line=7, type={X}, data=[(],
+line=7, type={X}, data=[str], ptr
+line=7, type={X}, data=[msg], ptr
+line=7, type={X}, data=[)],
+line=7, type={X}, data=[->],
+line=7, type={X}, data=[i0],
+line=7, type={X}, data=[;],
+line=8, type={X}, data=[}],
+:

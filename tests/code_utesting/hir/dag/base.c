@@ -16,9 +16,10 @@
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
 #include <hir/ssa.h>
+#include "../../../misc/hir_helper.h"
 
 #include <hir/dag.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/dag_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -96,11 +97,7 @@ int main(int argc, char* argv[]) {
     HIR_DAG_generate(&cfgctx, &dagctx, &smt); // Analyzation
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
     
-    hir_block_t* hh = hirctx.hot.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt);
-        hh = hh->next;
-    }
+    dump_dag_dot(&dagctx, &smt);
 
     HIR_DAG_unload(&dagctx);
     HIR_CG_unload(&callctx);

@@ -1,8 +1,6 @@
-{
-    function foo() -> i0;
-    function foo(i32 a) -> i0;
-    function foo(i32 a, i32 b) -> i0;
-}
+function foo() -> i0;
+function foo(i32 a) -> i0;
+function foo(i32 a, i32 b) -> i0;
 
 : OUTPUT
 { scope, id=1 }

@@ -1,11 +1,9 @@
-{
-    start() {
-        i8 a;
-        i16 b;
-        i32 c;
-        i64 d;
-        a + b + c + d;
-    }
+start() {
+   i8 a;
+   i16 b;
+   i32 c;
+   i64 d;
+   a + b + c + d;
 }
 
 : OUTPUT

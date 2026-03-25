@@ -34,16 +34,17 @@
             switch fmt[index]; {
                 case '%'; {
                     i8 mode = fmt[index += 1];
+                    @[poparg] ptr i8 data;
                     switch mode; {
                         case 's'; {
-                            _puts(poparg as ptr i8);
+                            _puts(data);
                             break;
                         }
                         case 'u'; {}
                         case 'i'; {}
                         case 'l'; {}
                         case 'd'; {
-                            _putn(poparg as ptr i8);
+                            _putn(data);
                             break;
                         }
                     }

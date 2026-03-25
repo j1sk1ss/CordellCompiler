@@ -22,8 +22,6 @@ must be invoked for the provided token.
 Note: ! If you're extending the parser, add a new handler here ! */
 static const handler_t handlers[] = {
     HANDLER(cpl_parse_annot,             0, ANNOTATION_TOKEN),
-    HANDLER(cpl_parse_section,           0, SECTION_TOKEN),
-    HANDLER(cpl_parse_align,             0, ALIGN_TOKEN),
     HANDLER(cpl_parse_start,             0, START_TOKEN),
     HANDLER(cpl_parse_asm,               0, ASM_TOKEN),
     HANDLER(cpl_parse_scope,             1, OPEN_BLOCK_TOKEN),
@@ -35,9 +33,7 @@ static const handler_t handlers[] = {
     HANDLER(cpl_parse_syscall,           0, SYSCALL_TOKEN),
     HANDLER(cpl_parse_breakpoint,        0, BREAKPOINT_TOKEN),
     HANDLER(cpl_parse_extern,            0, EXTERN_TOKEN),
-    HANDLER(cpl_parse_import,            0, IMPORT_SELECT_TOKEN),
     HANDLER(cpl_parse_funccall,          0, CALL_TOKEN),
-    HANDLER(cpl_parse_poparg,            0, POPARG_TOKEN),
     HANDLER(cpl_parse_function,          0, FUNC_TOKEN),
     HANDLER(cpl_parse_exit,              0, EXIT_TOKEN),
     HANDLER(cpl_parse_return,            0, RETURN_TOKEN),
@@ -64,6 +60,7 @@ static const handler_t handlers[] = {
         UNKNOWN_NUMERIC_TOKEN
     ),
 };
+#undef HANDLER
 
 /*
 Parsers collection navigation.
@@ -94,19 +91,20 @@ ast_node_t* cpl_parse_element(PARSER_ARGS) {
 ast_node_t* cpl_parse_block(PARSER_ARGS) {
     SAVE_TOKEN_POINT;
 
-    ast_node_t* node = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    if (!node) {
+    ast_node_t* base = AST_create_node_bt(CREATE_SCOPE_TOKEN);
+    if (!base) {
         PARSE_ERROR("Can't create a basic block for the scope block!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
+    stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != carry) {
         ast_node_t* block = cpl_parse_element(it, ctx, smt, carry);
-        if (block) AST_add_node(node, block);  /* If we parse succesfully, add a product to the body */
+        if (block) AST_add_node(base, block);  /* If we parse succesfully, add a product to the body */
         else if (!forward_token(it, 1)) break; /* If there is a error, proceed the next token        */
     }
 
     forward_token(it, 1); /* Move from the parser */
-    return node;
+    return base;
 }

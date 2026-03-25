@@ -1,8 +1,6 @@
-{
-    start() {
-        while 1; break;
-        while 0; exit 1;
-    }
+start() {
+   while 1; break;
+   while 0; exit 1;
 }
 
 : OUTPUT

@@ -1,12 +1,10 @@
-{
-    start() {
-        i32 a = 1;
-        a /= 1;
-    }
+start() {
+    i32 a = 1;
+    a /= 1;
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %5 = $1;
 %1 = %5;
 %6 = %1;

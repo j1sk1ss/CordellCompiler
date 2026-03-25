@@ -1,18 +1,15 @@
-{
-    start() {
-        f32 a = 1;
-        f64 b = a;
-    }
+start() {
+    f32 a = 1;
+    f64 b = a;
 }
 
 : OUTPUT
-BB{X}: start
-%4 = $1;
-%2 = %4;
-%5 = %2;
-%0 = %5;
+BB{X} start
+%2 cvttsd2si $1;
+%4 = %2;
+%0 = %4;
 %3 cvtss2sd %0;
-%6 = %3;
-%1 = %6;
+%5 = %3;
+%1 = %5;
 send
 :

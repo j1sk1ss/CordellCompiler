@@ -24,14 +24,14 @@ static int _generate_case_binary_jump(
     hir_subject_t* greater       = HIR_SUBJ_LABEL();
     hir_subject_t* equals        = HIR_SUBJ_LABEL();
 
-    hir_subject_t* is_lwr = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, 0, NULL, &smt->v));
+    hir_subject_t* is_lwr = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
     HIR_BLOCK3(ctx, HIR_iLWR, is_lwr, cond, HIR_generate_implconv(ctx, cond->ptr, cond->t, HIR_SUBJ_CONST(val), smt));
     HIR_BLOCK3(ctx, HIR_IFOP2, is_lwr, lower, eq_or_greater);
     HIR_BLOCK1(ctx, HIR_MKLB, lower);
     _generate_case_binary_jump(values, cond, left, mid - 1, def, end, ctx, smt);
 
     HIR_BLOCK1(ctx, HIR_MKLB, eq_or_greater);
-    hir_subject_t* is_grt = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, 0, NULL, &smt->v));
+    hir_subject_t* is_grt = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
     HIR_BLOCK3(ctx, HIR_iLRG, is_grt, cond, HIR_generate_implconv(ctx, cond->ptr, cond->t, HIR_SUBJ_CONST(val), smt));
     HIR_BLOCK3(ctx, HIR_IFOP2, is_grt, greater, equals);
     HIR_BLOCK1(ctx, HIR_MKLB, greater);
@@ -51,7 +51,7 @@ static int _generate_sequent_jump(
 ) {
     for (int i = 0; i < values_count; i++) {
         hir_subject_t* nl = HIR_SUBJ_LABEL();
-        hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, 0, NULL, &smt->v));
+        hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
         HIR_BLOCK3(ctx, HIR_iCMP, equals, cond, HIR_SUBJ_CONST(values[i].v));
         HIR_BLOCK3(ctx, HIR_IFOP2, equals, values[i].l, nl);
         HIR_BLOCK1(ctx, HIR_MKLB, nl);
@@ -62,11 +62,10 @@ static int _generate_sequent_jump(
 }
 
 int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     int no_fall = 0, straight = 0;
-    foreach (annotation_t* annot, &node->annots) {
-        if (annot->t == STRAIGHT_ANNOTATION) straight = 1;
-        if (annot->t == NOFALL_ANNOTATION)   no_fall = 1;
-    }
+    HAS_ANNOTATION(STRAIGHT_ANNOTATION, node, { straight = 1; });
+    HAS_ANNOTATION(NOFALL_ANNOTATION, node, { no_fall = 1; });
 
     ast_node_t* cond  = node->c;
     ast_node_t* cases = cond->siblings.n;
@@ -84,9 +83,7 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
         ctx->carry.ptr = end_lb;
 
         int prev_cold = ctx->is_cold;
-        foreach (annotation_t* annot, &curr_case->annots) {
-            if (annot->t == COLD_ANNOTATION) ctx->is_cold = 1;
-        }
+        HAS_ANNOTATION(COLD_ANNOTATION, curr_case, { ctx->is_cold = 1; });
 
         hir_subject_t* clb = HIR_SUBJ_LABEL();
         HIR_BLOCK1(ctx, HIR_MKLB, clb);

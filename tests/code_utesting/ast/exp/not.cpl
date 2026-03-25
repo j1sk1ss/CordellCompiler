@@ -1,11 +1,9 @@
-{
-    start() {
-        i32 a = not 1;
-        if not (not (not (not a))); {
-            a = not not not not a;
-        }
-        exit not (1 + 1 + 1 * (not a));
-    }
+start() {
+   i32 a = not 1;
+   if not (not (not (not a))); {
+      a = not not not not a;
+   }
+   exit not (1 + 1 + 1 * (not a));
 }
 
 : OUTPUT

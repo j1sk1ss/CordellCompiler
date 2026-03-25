@@ -1,33 +1,32 @@
-{
-    @[entry]
-    function foo() -> i32 {
-        @[cold] if 1; {
-            return 2;
-        }
-        else {
-        }
-        return 0;
+@[entry]
+function foo() -> i32 {
+    @[cold] if 1; {
+        return 2;
     }
+    else {
+    }
+    return 0;
 }
 
 : OUTPUT
 {
-    fn _main0() -> i32
+    fn _main() -> i32
     {
         {
-            if num? 1, goto lb4, else goto lb5;
-            lb5:
+            if num? 1, goto lb{X} else goto lb{X}
+            lb{X}
             {
             }
-            goto lb6;
-            lb6:
+            goto lb{X}
+            lb{X}
             return num? 0;
         }
-        lb4:
+        exit cnst? 0;
+        lb{X}
         {
             return num? 2;
         }
-        goto lb6;
+        goto lb{X}
     }
 }
 :

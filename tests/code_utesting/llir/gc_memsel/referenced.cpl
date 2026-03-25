@@ -1,8 +1,6 @@
-{
-    start() {
-        i32 a = 0;
-        ptr i32 b = ref a;
-    }
+start() {
+    i32 a = 0;
+    ptr i32 b = ref a;
 }
 
 : OUTPUT

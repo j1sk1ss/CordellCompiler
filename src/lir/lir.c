@@ -1,7 +1,7 @@
 #include <lir/lir.h>
 
 static long _curr_id = 0;
-lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_t* strval, long intval, int size) {
+lir_subject_t* LIR_create_subject(lir_subject_type_t t, int reg, int v_id, long offset, string_t* strval, long intval, int size) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(lir_subject_t));
@@ -47,6 +47,57 @@ lir_subject_t* LIR_create_subject(int t, int reg, int v_id, long offset, string_
     return subj;
 }
 
+lir_subject_t* LIR_copy_subject(lir_subject_t* s) {
+    lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
+    if (!subj) return NULL;
+    str_memset(subj, 0, sizeof(lir_subject_t));
+
+    subj->t    = s->t;
+    subj->size = (char)s->size;
+    subj->id   = _curr_id++;
+
+    switch (s->t) {
+        case LIR_ARGLIST: {
+            list_init(&subj->storage.list.h);
+            lir_subject_t* arg;
+            foreach (arg, &s->storage.list.h) {
+                list_add(&subj->storage.list.h, LIR_copy_subject(arg));
+            }
+
+            break;
+        }
+
+        case LIR_REGISTER: subj->storage.reg.reg = s->storage.reg.reg; break;
+        case LIR_MEMORY:
+        case LIR_VARIABLE:
+        case LIR_GLVARIABLE:
+        case LIR_STVARIABLE: {
+            subj->storage.var.offset = s->storage.var.offset;
+            subj->storage.var.v_id   = s->storage.var.v_id;
+            subj->storage.var.base   = s->storage.var.base;
+            break;
+        }
+
+        case LIR_CONSTVAL: subj->storage.cnst.value = s->storage.cnst.value; break;
+        case LIR_LABEL:    subj->storage.lb.lb_id   = s->storage.lb.lb_id;   break;
+        case LIR_FNAME:
+        case LIR_RAWASM:
+        case LIR_STRING: {
+            subj->storage.str.sid = s->storage.str.sid; 
+            subj->storage.str.rel = s->storage.str.rel;
+            break;
+        }
+        case LIR_NUMBER: {
+            if (s->storage.num.value) subj->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
+            break;
+        }
+        
+        default: break;
+    }
+
+    return subj;
+}
+
 lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta) {
     lir_block_t* blk = mm_malloc(sizeof(lir_block_t));
     if (!blk) return NULL;
@@ -76,9 +127,11 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
         case LIR_VARIABLE:   return a->storage.var.v_id == b->storage.var.v_id;
         case LIR_CONSTVAL:   return a->storage.cnst.value == b->storage.cnst.value;
         case LIR_GLVARIABLE:
-        case LIR_STVARIABLE: return (a->storage.var.offset == b->storage.var.offset) && (a->storage.var.v_id == b->storage.var.v_id);
+        case LIR_STVARIABLE: return (a->storage.var.offset == b->storage.var.offset) && 
+                                    (a->storage.var.v_id == b->storage.var.v_id);
         case LIR_REGISTER:   return LIR_format_register(a->storage.reg.reg, 1) == LIR_format_register(b->storage.reg.reg, 1);
-        case LIR_NUMBER:     return a->storage.num.value->equals(a->storage.num.value, b->storage.num.value);
+        case LIR_NUMBER:     return a->storage.num.value->equals(a->storage.num.value, b->storage.num.value) &&
+                                    a->storage.num.is_float == b->storage.num.is_float;
         case LIR_LABEL:      return a->storage.lb.lb_id == b->storage.lb.lb_id;
         case LIR_STRING:     return a->storage.str.sid == b->storage.str.sid;
         default:             return 0;

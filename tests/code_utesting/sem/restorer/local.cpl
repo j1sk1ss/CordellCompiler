@@ -1,20 +1,18 @@
-{
-    function foo() {
-        function bar() {
+function foo() {
+    function bar() {
 
-        }
-        bar();
     }
+    bar();
 }
 
 : OUTPUT
-2 | {
-2 |     function foo()
-3 |     {
-3 |         function bar()
-5 |         {
-5 |         }
-6 |         bar();
-3 |     }
-2 | }
+1 | {
+1 |     function foo()
+2 |     {
+2 |         function bar()
+4 |         {
+4 |         }
+5 |         bar();
+2 |     }
+1 | }
 :

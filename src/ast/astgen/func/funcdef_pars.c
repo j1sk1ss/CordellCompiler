@@ -7,9 +7,7 @@ int cpl_parse_funcdef_args(PARSER_ARGS) {
     ast_node_t* trg = (ast_node_t*)carry;
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
         ast_node_t* arg = NULL;
-        if (TKN_is_decl(CURRENT_TOKEN)) {
-            arg = cpl_parse_variable_declaration(it, ctx, smt, carry);
-        }
+        if (TKN_is_decl(CURRENT_TOKEN)) arg = cpl_parse_variable_declaration(it, ctx, smt, carry);
         else if (CURRENT_TOKEN->t_type == VAR_ARGUMENTS_TOKEN) {
             arg = AST_create_node(CURRENT_TOKEN);
             forward_token(it, 1);
@@ -107,9 +105,15 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         forward_token(it, 1);
     }
 
+    string_t* virt_name = NULL;
+    if (annots.is_entry) {
+        if (!annots.fname) annots.fname = create_string(CONF_get_entry_name());  
+        virt_name = annots.fname;
+    }
+
     name->sinfo.v_id = FNTB_add_info(
-        name->t->body, 
-        global, local, annots.is_entry, annots.is_naked, 
+        name->t->body, virt_name,
+        global, local, annots.is_entry, annots.is_naked, 0,
         name->sinfo.s_id, args, name->c, &smt->f
     );
 

@@ -9,15 +9,16 @@
 typedef struct {
     symbol_id_t            v_id;     /* Variable ID                      */
     symbol_id_t            p_id;     /* Parent variable ID (def: -1)     */
-    short                  s_id;     /* Scope ID                         */
+    symbol_id_t            s_id;     /* Scope ID                         */
     string_t*              name;    
     token_type_t           type;     /* Variable type                    */
 
     struct {
-        char               vla : 1; /* Point to vla, can't be reused   */
+        char               vla  : 1; /* Point to vla, can't be reused    */
         char               ptr;      /* PTR type == maximum size in arch */
         char               ro   : 1; /* Declaration RO flag              */
         char               glob : 1; /* Declaration global flag          */
+        char               ext  : 1; /* Is an external variable          */
     } vfs; /* VariableFlags          */
 
     struct {
@@ -30,7 +31,7 @@ typedef struct {
 
     struct {
         long               definition;
-        char               defined : 1;
+        char               defined;
     } vdi; /* VariableDefinitionInfo */
 } variable_info_t;
 
@@ -39,8 +40,12 @@ typedef struct {
     map_t       vartb;
 } vartab_ctx_t;
 
+#define UNDEFINED_VARIABLE   0
+#define DEFINED_VARIABLE     1
+#define OVERDEFINED_VARIABLE 2
+
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx);
-int VRTB_update_definition(symbol_id_t id, long definition, vartab_ctx_t* ctx);
+int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx, int rewrite);
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx);
 int VRTB_get_info(string_t* vname, symbol_id_t scope, variable_info_t* info, vartab_ctx_t* ctx);
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx);

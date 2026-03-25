@@ -15,13 +15,14 @@ hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt, int i
         }
     }
 
-    hir_subject_t* ref = HIR_SUBJ_TMPVAR(src_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(src_type), 0, NULL, &smt->v));
+    hir_subject_t* ref = HIR_SUBJ_TMPVAR(src_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(src_type), NO_SYMBOL_ID, NULL, &smt->v));
     if (increment) ref->ptr = MAX(src_ptr + 1, 0);
     else ref->ptr = src_ptr;
     return ref;
 }
 
 hir_subject_t* HIR_generate_ref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     hir_subject_t* src = HIR_generate_elem(node->c, ctx, smt);
     hir_subject_t* ref = HIR_reference_subject(src, smt, 1);
     HIR_BLOCK2(ctx, HIR_REF, ref, src);

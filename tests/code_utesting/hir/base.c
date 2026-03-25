@@ -61,15 +61,17 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    hir_ctx_t hirctx = { 0 };
+    hir_ctx_t hirctx;
+    HIR_init_extended_ctx(&hirctx);
+
     HIR_generate(&sctx, &hirctx, &smt);
     hir_block_t* hh = hirctx.hot.h;
     while (hh) {
-        print_hir_block(hh, 1, &smt);
+        print_hir_block(hh, 1, &smt, 0);
         hh = hh->next;
     }
 
-    HIR_unload_blocks(hirctx.hot.h);
+    HIR_unload_extended_ctx(&hirctx);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 

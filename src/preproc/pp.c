@@ -8,7 +8,6 @@ static inline source_pos_info_t* _create_info(FILE* f, char* name, int l) {
     inf->f  = f;
     inf->l  = l;
     inf->n  = strdup(name);
-    inf->dl = -1;
     return inf;
 }
 
@@ -126,6 +125,24 @@ static inline void _put_line_macro(source_pos_info_t* d, FILE* o) {
     _lazy_fputs(lder, o);
 }
 
+/*
+Check if this is a permitted character.
+Params:
+    - `p` - Input character (1 byte or more than 1 byte size).
+
+Returns 1 if this is a permitted character.
+*/
+static inline int _permitted_character(char* p) {
+    unsigned char b1 = (unsigned char)p[0];
+    unsigned char b2 = (unsigned char)p[1];
+    if (
+        (b1 == 0xD0 && b2 >= 0x90 && b2 <= 0xAF) ||
+        (b1 == 0xD0 && b2 >= 0xB0 && b2 <= 0xBF) ||
+        (b1 == 0xD1 && b2 >= 0x80 && b2 <= 0x8F)
+    ) return 1;
+    return 0;
+}
+
 int PP_perform(int fd, finder_ctx_t* fctx) {
     pp_ctx_t ppctx;
     _init_pp_ctx(&ppctx);
@@ -166,25 +183,13 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
         return -1;
     }
 
-    info->dl = SCOPE_GUARDER_INIT;
-
     source_pos_info_t* inf;
     while (stack_top(&ppctx.sources, (void**)&inf)) {
         ssize_t nread = getline(&ppctx.line, &ppctx.size, inf->f);
-
-        /* Delete the guardian entry scope.
-           The gramma accepts code only in scopes,
-           but pre-processor must delete these scopes to
-           make it works. */
-        if (_l && inf->dl != SCOPE_GUARDER_INIT) for (ssize_t i = strlen(_l); i >= 0; i--) {
-            switch (_l[i]) {
-                case '{': inf->dl++; break;
-                case '}': inf->dl--; break;
-                default: continue;
-            }
-
-            if (inf->dl <= 0) {
-                _l[i] = ' ';
+        for (int i = 0; i < nread - 1; i++) {
+            if (_permitted_character(ppctx.line + i)) {
+                _unload_pp_ctx(&ppctx);
+                return -1;
             }
         }
         

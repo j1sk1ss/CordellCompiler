@@ -1,10 +1,8 @@
-{
-    function foo() -> ptr u64 {
-        function bar() {
-            return 1;
-        }
-        return bar;
-    }
+function foo() -> ptr u64 {
+   function bar() {
+      return 1;
+   }
+   return bar;
 }
 
 : OUTPUT

@@ -141,13 +141,13 @@ _skip_instruction: {}
 Get function from the CFG context by the provided function ID.
 Params:
     - `cctx` - CFG context.
-    - `fid` - Function ID.
+    - `f_id` - Function ID.
 
 Returns either a function pointer or the NULL value.
 */
-static inline cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long fid) {
+static inline cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long f_id) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        if (fb->fid == fid) return fb;
+        if (fb->f_id == f_id) return fb;
     }
 
     return NULL;
@@ -264,7 +264,7 @@ static int _collect_information(
         info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
         hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
         while (hh) {
-            if (HIR_funccall(hh->op)) info->src_info.funccals++;
+            if (HIR_is_funccall(hh->op)) info->src_info.funccals++;
             if (
                 hh->op == HIR_SYSC || 
                 hh->op == HIR_STORE_SYSC
@@ -274,7 +274,7 @@ static int _collect_information(
     }
 
     func_info_t fi;
-    if (FNTB_get_info_id(pos->pfunc->fid, &fi, &smt->f)) {
+    if (FNTB_get_info_id(pos->pfunc->f_id, &fi, &smt->f)) {
         info->dst_info.is_start = fi.flags.entry;
     }
 
@@ -329,7 +329,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt, int (*checker)(in
         foreach (cfg_block_t* bb, &fb->blocks) {
             hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
             while (hh) {
-                if (HIR_funccall(hh->op)) {
+                if (HIR_is_funccall(hh->op)) {
                     cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
                     if (_inline_candidate(trg, bb, hh, &lctx, smt, checker) && fb != trg) {
                         _inline_arguments(trg, &hh->targ->storage.list.h, hh);

@@ -62,15 +62,6 @@ ast_node_t* cpl_parse_funccall(PARSER_ARGS) {
         short sid = (short)((long)ctx->scopes.stack.data[s].d);
         if (FNTB_get_info(base->t->body, sid, &fi, &smt->f)) {
             base->sinfo.v_id = fi.id;
-            if (base->t->t_type != CALL_ADDR_TOKEN) {
-                fn_iterate_args (&fi) {
-                    if (
-                        args_count-- > 0 ||              /* Ignore already passed arguments             */
-                        (!arg->c || !arg->c->siblings.n) /* If this argument doesn't have a declaration */
-                    ) continue;
-                    AST_add_node(base->c, AST_copy_node(arg->c->siblings.n, 0, 0, 1));
-                }
-            }
         }
     }
 

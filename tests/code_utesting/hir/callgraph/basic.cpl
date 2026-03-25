@@ -1,8 +1,6 @@
-{
-    function foo();
-    start() {
-        foo();
-    }
+function foo();
+start() {
+    foo();
 }
 
 : OUTPUT

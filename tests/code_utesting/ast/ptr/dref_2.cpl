@@ -1,11 +1,9 @@
-{
-    function foo() -> ptr i8;
-    start() {
-        dref foo() = 1;
-        dref (0x7c00 as ptr i8) = 2;
-        dref (0xb840000 as ptr i8) = 'H';
-        dref (1 + dref 0x1 - dref dref 0x01) = 1;
-    }
+function foo() -> ptr i8;
+start() {
+   dref foo() = 1;
+   dref (0x7c00 as ptr i8) = 2;
+   dref (0xb840000 as ptr i8) = 'H';
+   dref (1 + dref 0x1 - dref dref 0x01) = 1;
 }
 
 : OUTPUT

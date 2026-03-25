@@ -1,9 +1,7 @@
-{
-    start() {
-        ptr i0 a;
-        ptr i0 b;
-        ptr i0 c;
-    }
+start() {
+    ptr i0 a;
+    ptr i0 b;
+    ptr i0 c;
 }
 
 : OUTPUT

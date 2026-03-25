@@ -1,12 +1,9 @@
-{
-    start() {
-        syscall(syscall(1));
-    }
+start() {
+    syscall(syscall(1));
 }
 
 : OUTPUT
-BB{X}: start
-use $1;
+BB{X} start
 stparam($1);
 syscall;
 %0 = fret();

@@ -13,11 +13,9 @@ top_item       = start_function
                | import_op
                | extern_op
                | pp_directive
-               | storage_opt , top_decl
-               | section_stmt
-               | align_stmt ;
+               | storage_opt , top_decl ;
 
-import_op      = "from" , string_literal , "import" , [ import_list ] ;
+import_op      = "from" , string_literal , , [ import_list ] ;
 import_list    = import_item , { "," , import_item } ;
 import_item    = identifier ;
 
@@ -30,14 +28,6 @@ storage_opt    = [ "glob" | "ro" ] ;
 top_decl       = declaration | function_def | function_proto ;
 
 declaration    = var_decl | arr_decl ;
-
-section_stmt   = "section" , "(" , string_literal , ")" , "{" , { section_item } , "}" ;
-section_item   = [ storage_opt ] , ( declaration | function_def | function_proto )
-               | align_stmt
-               | pp_directive ;
-
-align_stmt       = "align" , "(" , integer_literal , ")" , ( declaration | align_decl_block ) ;
-align_decl_block = "{" , { declaration } , "}" ;
 
 function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
 function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
@@ -99,7 +89,7 @@ pp_token       = identifier
                | punct_no_semi
                | operator ;
 
-keyword        = "from" | "import" | "extern" | "exfunc" | "glob" | "ro"
+keyword        = "extern" | "exfunc" | "glob" | "ro"
                | "function" | "start"
                | "arr"
                | "if" | "else" | "loop" | "while"
@@ -223,10 +213,11 @@ literal        = integer_literal | float_literal | string_literal | char_literal
 #define RESTORE_TOKEN_POINT it->curr = __dump_tkn;
 
 /* Support macro for getting the current token from the iterator. */
-#define CURRENT_TOKEN      ((token_t*)list_iter_current(it))
-#define CREATE_SCOPE_TOKEN TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
-#define CREATE_INDEX_TOKEN TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
-#define CREATE_CALL_TOKEN  TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CURRENT_TOKEN       ((token_t*)list_iter_current(it))
+#define CREATE_SCOPE_TOKEN  TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_INDEX_TOKEN  TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_CALL_TOKEN   TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_LAMBDA_TOKEN TKN_create_token(LAMBDA_FUNCTION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
@@ -239,6 +230,18 @@ literal        = integer_literal | float_literal | string_literal | char_literal
     )
 
 /*
+Pop all avaliable annotations from the current stack and link them to a node.
+Params:
+    - `ctx` - AST context (ast_ctx_t).
+    - `nd` - AST node (ast_node_t).
+*/
+#define DUMP_ANNOTATION_TO_NODE(ctx, nd)                                                   \
+    annotation_t* annot;                                                                   \
+    while (ctx->annots.top > ctx->an_off - 1 && stack_pop(&ctx->annots, (void**)&annot)) { \
+        list_add(&nd->annots, annot);                                                      \
+    }
+
+/*
 Search for a variable (presented in the node) on the symtable.
 Params:
     - `node` - Considering node.
@@ -249,9 +252,36 @@ Return 1 if succeed.
 */
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt);
 
-#define PARSER_ARGS list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, long carry
+/*
+Reserve current annotations for a node.
+Note: Will mark the lower level for annotation which can't be used further.
+Note 2: Make sure that you're calling the 'annotation_unreserve' somewhere below.
+Params:
+    - `ctx` - AST context.
+
+Returns the value for the 'annotation_unreserve' function.
+*/
+int annotation_reserve(ast_ctx_t* ctx);
+
+/*
+Reverse the 'annotation_reserve' effect. Will restore the lower level for annotations,
+able to dump.
+Params:
+    - `ctx` - AST context.
+
+Returns 1 if succeeds.
+*/
+int annotation_unreserve(ast_ctx_t* ctx, int off);
+
+#define PARSER_ARGS     list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, long carry
 #define PARSER_ARGS_USE (void)it; (void)ctx; (void)smt; (void)carry;
 
+/*
+Save the target pointer and update it with a new one.
+Params:
+    - `l` - Action that will be invoked with a new pointer.
+    - `n` - A new pointer.
+*/
 #define PRESERVE_AST_CARRY_ARG(l, n) \
     void* __dumped = ctx->carry.ptr; \
     ctx->carry.ptr = n;              \
@@ -528,22 +558,6 @@ Returns an ast node.
 ast_node_t* cpl_parse_function(PARSER_ARGS);
 
 /*
-Parse .cpl import block. Should be invoked on import token.
-Snippet:
-```cpl
-from : file : import : name :;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_import(PARSER_ARGS);
-
-/*
 Parse .cpl expression block (function, arithmetics, etc.). Can be invoked on any token type.
 Snippet:
 ```cpl
@@ -723,42 +737,6 @@ Returns an ast node.
 ast_node_t* cpl_parse_neg(PARSER_ARGS);
 
 /*
-Parse .cpl 'poparg' command. Should be invoked on a 'poparg' token.
-Snippet:
-```cpl
-i32 a = poparg as i32;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_poparg(PARSER_ARGS);
-
-/*
-Parse align operator. It supports both with and without scope syntaxes.
-Also, the scope doesn't increase the iternal scope ID, which means,
-all variables that were declared within this structure will live in
-the same scope.
-Params:
-    - <parser_args>
-
-Returns an AST node.
-*/
-ast_node_t* cpl_parse_align(PARSER_ARGS);
-
-/*
-Parse section operator. It supports both with and without scope syntaxes.
-The same logic with the align keyword.
-Params:
-    - <parser_args>
-
-Returns an AST node.
-*/
-ast_node_t* cpl_parse_section(PARSER_ARGS);
-
-/*
 Parse an annotation and push it onto the stack.
 Params:
     - <parser_args>
@@ -766,5 +744,14 @@ Params:
 Returns NULL.
 */
 ast_node_t* cpl_parse_annot(PARSER_ARGS);
+
+/*
+Parse a lambda structure.
+Params:
+    - <parser_args>
+
+Returns NULL.
+*/
+ast_node_t* cpl_parse_lambda(PARSER_ARGS);
 
 #endif

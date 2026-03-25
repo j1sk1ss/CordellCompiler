@@ -60,6 +60,9 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
         return NULL;
     }
 
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL };
+    ANNOT_read_annotations(&ctx->annots, &annots);
+
     forward_token(it, 1);
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
     if (name) AST_add_node(base, name);
@@ -144,8 +147,6 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
         type->t->t_type, &type->t->flags, &smt->a
     );
     
-    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL };
-    ANNOT_read_annotations(&ctx->annots, &annots);
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
     if (
         name->t->flags.glob || 

@@ -1,8 +1,6 @@
-{
-    function a(i32 b);
-    start() {
-        a(1);
-    }
+function a(i32 b);
+start() {
+   a(1);
 }
 
 : OUTPUT

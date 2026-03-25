@@ -53,7 +53,7 @@ static int _save_fb(cfg_func_t* fb, dump_ctx_t* ctx) {
     write(ctx->fd, &is_entry, sizeof(int));
     int blocks_count = list_size(&fb->blocks);
     write(ctx->fd, &blocks_count, sizeof(int));
-    write(ctx->fd, &fb->fid, sizeof(long));
+    write(ctx->fd, &fb->f_id, sizeof(long));
     foreach (cfg_block_t* bb, &fb->blocks) {
         _save_bb(bb, ctx);
     }

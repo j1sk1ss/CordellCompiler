@@ -173,7 +173,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);  // Analyzation
     printf("CFGv1:\n"); cfg_print(&cfgctx);
 
-    HIR_FUNC_perform_devirt(&cfgctx, &smt);
 #ifdef HIR_TRE_TESTING
     HIR_FUNC_perform_tre(&cfgctx, &smt);    // Transform
 #endif
@@ -197,7 +196,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\n\n========== HIRv1 ==========\n");
     hir_block_t* hh = hirctx.h;
     while (hh) {
-        print_hir_block(hh, 1, &smt);
+        print_hir_block(hh, 1, &smt, 0);
         hh = hh->next;
     }
 #endif
@@ -225,7 +224,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\n\n========== HIRv2 ==========\n");
     hh = hirctx.h;
     while (hh) {
-        print_hir_block(hh, 1, &smt);
+        print_hir_block(hh, 1, &smt, 0);
         hh = hh->next;
     }
 #endif
@@ -245,7 +244,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\n\n========== HIR prepared ==========\n");
     hh = hirctx.h;
     while (hh) {
-        print_hir_block(hh, 1, &smt);
+        print_hir_block(hh, 1, &smt, 0);
         hh = hh->next;
     }
 #endif

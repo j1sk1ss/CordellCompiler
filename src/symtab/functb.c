@@ -38,7 +38,7 @@ int FNTB_get_info(string_t* fname, symbol_id_t s_id, func_info_t* out, functab_c
 
 static func_info_t* _create_func_info(
     string_t* name, 
-    int global, int local, int entry, int naked, /* flags */
+    int global, int local, int entry, int naked, int vargs, /* flags */
     ast_node_t* args, ast_node_t* rtype
 ) {
     func_info_t* fn = (func_info_t*)mm_malloc(sizeof(func_info_t));
@@ -54,6 +54,7 @@ static func_info_t* _create_func_info(
     fn->flags.local  = local;
     fn->flags.entry  = entry;
     fn->flags.naked  = naked;
+    fn->flags.vargs  = vargs;
     return fn;
 }
 
@@ -81,8 +82,8 @@ static string_t* _create_virt_name(symbol_id_t id, string_t* name) {
 }
 
 symbol_id_t FNTB_add_info(
-    string_t* name, 
-    int global, int local, int entry, int naked, /* flags */
+    string_t* name, string_t* vname,
+    int global, int local, int entry, int naked, int vargs, /* flags */
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
     print_log(
@@ -93,27 +94,38 @@ symbol_id_t FNTB_add_info(
     func_info_t out;
     if (_is_function_presented(name, s_id, args, &out, ctx)) return out.id; 
 
-    func_info_t* nnd = _create_func_info(name, global, local, entry, naked, args, rtype);
+    func_info_t* nnd = _create_func_info(name, global, local, entry, naked, vargs, args, rtype);
     if (!nnd) return 0;
     nnd->s_id = s_id;
     
     nnd->id = ctx->curr_id++;
-    if (nnd->name) {
-        nnd->virt = _create_virt_name(nnd->id, name);
-    }
+    if (!vname) nnd->virt = _create_virt_name(nnd->id, name);
+    else nnd->virt = vname->copy(vname);
 
     map_put(&ctx->functb, nnd->id, nnd);
     return nnd->id;
 }
 
-int FNTB_rename_func(symbol_id_t id, string_t* name, functab_ctx_t* ctx) {
-    print_log("FNTB_rename_func(id=%llu, name=%s)", id, name->body);
+int FNTB_update_func(
+    symbol_id_t id, string_t* name, 
+    int global, int local, int entry, int naked, int vargs, /* flags */
+    functab_ctx_t* ctx
+) {
+    print_log("FNTB_update_func(id=%llu, name=%s)", id, name->body);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
-        destroy_string(fi->name);
-        destroy_string(fi->virt);
-        fi->name = name->copy(name);
-        fi->virt = _create_virt_name(id, name);
+        if (name) {
+            destroy_string(fi->name);
+            destroy_string(fi->virt);
+            fi->name = name->copy(name);
+            fi->virt = _create_virt_name(id, name);
+        }
+        
+        if (global != FIELD_NO_CHANGE) fi->flags.global = global;
+        if (local != FIELD_NO_CHANGE)  fi->flags.local  = local;
+        if (entry != FIELD_NO_CHANGE)  fi->flags.entry  = entry;
+        if (naked != FIELD_NO_CHANGE)  fi->flags.naked  = naked;
+        if (vargs != FIELD_NO_CHANGE)  fi->flags.vargs  = vargs;
         return 1;
     }
 

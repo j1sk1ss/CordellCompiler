@@ -58,10 +58,8 @@ For instance, check the `code_utesting/ast/` folder.
 ## How to create a new test?
 When you add a new directory with all essential files (see the section above), you need to create a bunch of `.cpl` files. These files must include the `OUTPUT` section, like in the example below:
 ```cpl
-{
-    start() {
-        i32 a = 0;
-    }
+start() {
+    i32 a = 0;
 }
 
 : OUTPUT
@@ -95,7 +93,7 @@ At the file start several flags can be placed:
 Also the 'OUTPUT' section has several special formattings that allow us prepare the output log verification. We need this given the compier parts, that print differently regarding the memory region of a compiler instance (for example print of a set or a map, etc. is changing over time). To tell the test framework that sometimes we can 'lower' our 'expectations' from the output log, we can use:
 - `{X}` - Accept any string here:
 ```
-lb{X}:
+lb{X}
 mov rax, 10
 ```
 
@@ -114,14 +112,12 @@ id 2: variable a
 
 The usage of these commands is below:
 ```
-{
-    start() {
-        i32 a;
-        ptr i32 b = ref a;
-        ptr ptr i32 c = ref b;
-        i32 d = a;
-        i32 f = c;
-    }
+start() {
+    i32 a;
+    ptr i32 b = ref a;
+    ptr ptr i32 c = ref b;
+    i32 d = a;
+    i32 f = c;
 }
 
 : OUTPUT

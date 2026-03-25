@@ -1,9 +1,7 @@
-{
-    glob i32 a;
-    start() {
-        i32 b = a + 1;
-        a = b;
-    }
+glob i32 a;
+start() {
+    i32 b = a + 1;
+    a = b;
 }
 
 : OUTPUT

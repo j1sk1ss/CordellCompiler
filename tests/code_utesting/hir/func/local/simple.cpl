@@ -1,23 +1,21 @@
-{
-    @[entry]
-    function foo() {
-        function bar() {
-        }
+@[entry]
+function foo() {
+    function bar() {
     }
 }
 
 : OUTPUT
 {
-    fn _main0()
+    fn _main()
     {
         {
-            goto lb4;
+            goto lb{X}
             fn bar1()
             {
                 {
                 }
             }
-            lb4:
+            lb{X}
         }
     }
 }

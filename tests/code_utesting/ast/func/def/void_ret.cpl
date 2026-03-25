@@ -1,7 +1,5 @@
-{
-    function foo() -> ptr i0 {
-        return 0;
-    }
+function foo() -> ptr i0 {
+   return 0;
 }
 
 : OUTPUT

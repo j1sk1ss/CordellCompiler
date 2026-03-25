@@ -88,7 +88,7 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
         set_foreach (hir_block_t* hh, loop_hir) {
             if (
                 set_has(invariant_defs, hh) || /* Already in the invariant set        */
-                HIR_sideeffect_op(hh->op)      /* If this operation has a side effect */
+                HIR_is_sideeffect_op(hh->op)      /* If this operation has a side effect */
             ) continue;
 
             int invariant = 1;
@@ -167,8 +167,7 @@ static int _find_usage(set_t* loop_hir, set_t* s, long vid, sym_table_t* smt) {
             /* Get the base vID over the SSA form */
             variable_info_t vi;
             if (!VRTB_get_info_id(ss->storage.var.v_id, &vi, &smt->v)) continue;
-            long src_id = vi.p_id < 0 ? vi.v_id : vi.p_id;
-
+            long src_id = vi.p_id == NO_SYMBOL_ID ? vi.v_id : vi.p_id;
             if (src_id == vid) {
                 set_add(s, (void*)hh->farg->storage.var.v_id);
                 res = 1;
@@ -203,7 +202,7 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
         set_foreach (hir_block_t* hh, loop_hir) {
             if (
                 !HIR_is_writeop(hh->op) ||      /* - If this isn't a write operation.          */
-                !hh->farg            ||      /* - If there is no first argument in command. */
+                !hh->farg               ||      /* - If there is no first argument in command. */
                 !HIR_is_vartype(hh->farg->t) /* - If the first argument isn't a variable.   */
             ) continue;
 
@@ -211,7 +210,7 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
             long vid = hh->farg->storage.var.v_id;
             variable_info_t vi;
             if (VRTB_get_info_id(vid, &vi, &smt->v)) {
-                vid = vi.p_id < 0 ? vi.v_id : vi.p_id;
+                vid = vi.p_id == NO_SYMBOL_ID ? vi.v_id : vi.p_id;
             }
 
             if (

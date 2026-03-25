@@ -15,9 +15,7 @@ int ARTB_add_elems(symbol_id_t id, long elem, arrtab_ctx_t* ctx) {
     print_log("ARTB_add_elems(id=%li, elem=%li)", id, elem);
     array_info_t* ai;
     if (map_get(&ctx->arrtb, id, (void**)&ai)) {
-        array_elem_info_t* eli = (array_elem_info_t*)mm_malloc(sizeof(array_elem_info_t));
-        eli->value = elem;
-        return list_add(&ai->elems, eli);
+        return list_add(&ai->elems, (void*)elem);
     }
 
     return 0;
@@ -27,10 +25,12 @@ static array_info_t* _create_info_array_entry(symbol_id_t id, long size, int vla
     array_info_t* entry = (array_info_t*)mm_malloc(sizeof(array_info_t));
     if (!entry) return NULL;
     str_memset(entry, 0, sizeof(array_info_t));
-    entry->v_id = id;
-    entry->vla = vla;
-    entry->size = size;
+
+    entry->v_id                  = id;
+    entry->vla                   = vla;
+    entry->size                  = size;
     entry->elements_info.el_type = el_type;
+    
     str_memcpy(&entry->elements_info.el_flags, flags, sizeof(token_flags_t));
     list_init(&entry->elems);
     return entry;
@@ -68,7 +68,7 @@ symbol_id_t ARTB_add_info(symbol_id_t id, long size, int vla, token_type_t el_ty
 
 int ARTB_unload(arrtab_ctx_t* ctx) {
     map_foreach (array_info_t* ai, &ctx->arrtb) {
-        list_free_force(&ai->elems);
+        list_free(&ai->elems);
     }
     
     return map_free_force(&ctx->arrtb);

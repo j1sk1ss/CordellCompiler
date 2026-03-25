@@ -5,7 +5,7 @@
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 == == brk str(breakpoint) == ==
 send
 :

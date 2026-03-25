@@ -1,10 +1,8 @@
-{
-    start() {
-        i32 a = 1;
-        i32 b = 1;
-        if a; exit b;
-        else exit a;
-    }
+start() {
+    i32 a = 1;
+    i32 b = 1;
+    if a; exit b;
+    else exit a;
 }
 
 : OUTPUT
@@ -18,15 +16,15 @@ rcx = r15;
 r15 = rcx;
 rax = r15;
 cmp rdx, 0;
-je lb13;
-jne lb12;
-BB2: lb12:
+je lb{X}
+jne lb{X}
+BB2: lb{X}
 r15 = rax;
 rdx = r15;
 exit rdx;
-BB3: lb13:
+BB3: lb{X}
 r15 = rdx;
 rdx = r15;
 exit rdx;
-BB4: lb14:
+BB4: lb{X}
 :

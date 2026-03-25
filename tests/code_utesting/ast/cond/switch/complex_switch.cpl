@@ -1,15 +1,13 @@
-{
-    start() {
-        i32 a;
-        switch a; {
-            case 1; {}
-            case 2; {}
-            case 3; {} case 4; {}
-            default {}
-        }
+start() {
+   i32 a;
+   switch a; {
+      case 1; {}
+      case 2; {}
+      case 3; {} case 4; {}
+      default {}
+   }
 
-        switch a; {}
-    }
+   switch a; {}
 }
 
 : OUTPUT

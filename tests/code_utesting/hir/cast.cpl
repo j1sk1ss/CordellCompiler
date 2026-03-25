@@ -1,14 +1,12 @@
-{
-    @[entry]
-    function foo() {
-        i32 a;
-        ptr ptr i32 b = a as ptr ptr i32;
-    }
+@[entry]
+function foo() {
+    i32 a;
+    ptr ptr i32 b = a as ptr ptr i32;
 }
 
 : OUTPUT
 {
-    fn _main0()
+    fn _main()
     {
         {
             i32s %0 = alloc(8);

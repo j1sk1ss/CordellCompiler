@@ -1,12 +1,10 @@
-{
-    start() {
-        u64 a = 1;
-        i8 b = a;
-    }
+start() {
+    u64 a = 1;
+    i8 b = a;
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %4 = $1;
 %2 = %4;
 %5 = %2;

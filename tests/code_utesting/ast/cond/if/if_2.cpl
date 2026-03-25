@@ -1,14 +1,12 @@
-{
-    start() {
-        i32 a;
-        i32 b;
-        i32 c;
-        if a == 1 && ((b - c) > 1); {
-            exit 1;
-        }
+start() {
+   i32 a;
+   i32 b;
+   i32 c;
+   if a == 1 && ((b - c) > 1); {
+      exit 1;
+   }
 
-        exit 0;
-    }
+   exit 0;
 }
 
 : OUTPUT

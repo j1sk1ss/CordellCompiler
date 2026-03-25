@@ -1,6 +1,7 @@
 #include <hir/hirgens/hirgens.h>
 
 int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     func_info_t fi;
     if (!FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)) {
         return 0;
@@ -18,18 +19,27 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     int argnum = 0;
     ast_node_t* t;
     for (t = node->c->siblings.n->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
-        if (t->t->t_type == VAR_ARGUMENTS_TOKEN) continue; /* Skip variadic argument */
+        if (t->t->t_type == VAR_ARGUMENTS_TOKEN) {
+            FNTB_update_func(fi.id, NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, &smt->f);
+            continue;
+        }
+
         HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->c));
         HIR_BLOCK2(
             ctx, 
-            fi.flags.entry ? HIR_STARGLD : HIR_FARGLD,     /* If this is an entry point, use the stload command */
+            fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, 
             HIR_SUBJ_ASTVAR(t->c), 
             HIR_SUBJ_CONST(argnum++)
         );
     }
 
     SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, { HIR_generate_block(t, ctx, smt); });
-    HIR_dump_cold(ctx);
+
+    if (list_size(&ctx->cold.blocks)) {
+        HIR_BLOCK1(ctx, fi.flags.entry ? HIR_EXITOP : HIR_FRET, HIR_SUBJ_CONST(0));
+        HIR_dump_cold(ctx);
+    }
+    
     HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
     HIR_BLOCK0(ctx, HIR_FEND);
     if (lguards) HIR_BLOCK1(ctx, HIR_MKLB, lguards);

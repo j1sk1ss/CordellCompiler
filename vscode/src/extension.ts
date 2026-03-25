@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const docs: Record<string, string> = {
     // entry / functions
-    start: `**start** — Entry point.
+    start: `**start** — Optional entry point.
   
   \`\`\`cpl
   start(i64 argc, ptr u64 argv) {

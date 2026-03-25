@@ -1,14 +1,12 @@
-{
-    start() {
-        i32 a = 10;
-        i32 b = 10;
-        i32 c = a + b;
-        i32 d = a - b;
-    }
+start() {
+    i32 a = 10;
+    i32 b = 10;
+    i32 c = a + b;
+    i32 d = a - b;
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %5 = $10 as i32;
 %4 = $10 as i32;
 %1 = %5;

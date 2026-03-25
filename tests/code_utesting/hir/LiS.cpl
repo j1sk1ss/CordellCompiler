@@ -1,7 +1,5 @@
-{
-    start() {
-        lis "breakpoint";
-    }
+start() {
+    lis "breakpoint";
 }
 
 : OUTPUT

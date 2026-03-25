@@ -1,10 +1,8 @@
-{
-    function baz();
-    function foo() {
-        function bar() {
-            baz();
-            foo();
-        }
+function baz();
+function foo() {
+    function bar() {
+        baz();
+        foo();
     }
 }
 

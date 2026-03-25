@@ -1,11 +1,9 @@
-{
-    start() {
-        ptr i8 msg = "Hello, World!";
-        str ans = "Hello, User!";
+start() {
+   ptr i8 msg = "Hello, World!";
+   str ans = "Hello, User!";
 
-        msg[0] = 'o';
-        ans[1] = 'g';
-    }
+   msg[0] = 'o';
+   ans[1] = 'g';
 }
 
 : OUTPUT

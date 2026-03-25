@@ -31,13 +31,14 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
             hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
             while (hh) {
                 switch (hh->op) {
-                    case HIR_PHI_PREAMBLE:
+                    case HIR_PHI:
+                    // case HIR_PHI_PREAMBLE:
                     case HIR_STORE_ECLL:
                     case HIR_STORE_FCLL:
                     case HIR_STORE_SYSC:
                     case HIR_FARGLD:
                     case HIR_STARGLD: {
-                        dag_node_t* dst = DAG_GET_NODE(dctx, hh->farg);
+                        dag_node_t* dst = DAG_GET_NODE(dctx, hh->op == HIR_PHI ? hh->sarg : hh->farg);
                         if (!dst) break;
                         dst->op   = hh->op;
                         dst->hash = HIR_DAG_compute_hash(dst);
@@ -69,7 +70,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                             dst->hash = HIR_DAG_compute_hash(dst);
                         }
                         else {
-                            dst->hash = hh->op * 1315423911UL;
+                            dst->hash = HIR_DAG_compute_hash(dst);
                             if (farg) {
                                 set_add(&dst->args, farg);
                                 dst->hash ^= HIR_DAG_compute_hash(farg) + (dst->hash << 6) + (dst->hash >> 2);
@@ -85,7 +86,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         if (
                             ALLIAS_get_owners(dst->src->storage.var.v_id, &owners, &smt->m) && 
                             set_size(&owners)
-                        ) dst->hash ^= 321123;
+                        ) dst->hash ^= 321123 * set_size(&owners);
                         set_free(&owners);
 
                         dag_node_t* existed;

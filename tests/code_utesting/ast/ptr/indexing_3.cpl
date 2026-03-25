@@ -1,10 +1,8 @@
-{
-   start() {
-      ptr i8 buffer;
-      buffer[10 + 1] = 1;
-      buffer[buffer[1 + dref buffer]] = 1;
-      dref buffer = buffer[0];
-   }
+start() {
+   ptr i8 buffer;
+   buffer[10 + 1] = 1;
+   buffer[buffer[1 + dref buffer]] = 1;
+   dref buffer = buffer[0];
 }
 
 : OUTPUT

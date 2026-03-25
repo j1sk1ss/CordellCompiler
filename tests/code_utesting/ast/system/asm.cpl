@@ -1,10 +1,8 @@
-{
-    start() {
-        asm() {
-            "mov rax, 1",
-            "mov rbx, 1",
-            "syscall"
-        }
+start() {
+    asm() {
+        "mov rax, 1",
+        "mov rbx, 1",
+        "syscall"
     }
 }
 

@@ -1,6 +1,4 @@
-{
-    start(i64 argc, ptr u64 argv) {
-    }
+start(i64 argc, ptr u64 argv) {
 }
 
 : OUTPUT

@@ -1,10 +1,8 @@
-{
-    start() {
-        i32 a;
-        ptr i32 b = ref a;
-        i32 c = b as i32;
-        i64 d = c as i64;
-    }
+start() {
+    i32 a;
+    ptr i32 b = ref a;
+    i32 c = b as i32;
+    i64 d = c as i64;
 }
 
 : OUTPUT

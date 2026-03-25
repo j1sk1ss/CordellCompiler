@@ -64,8 +64,8 @@ typedef enum {
 
         LIR_STSARG,   // store parameter to syscall, x, cnst_y=index
         LIR_STFARG,   // store parameter to function, x, cnst_y=index
-        LIR_LOADFARG, // load parameter in function, cnst_x=var_id, cnst_y=index
-        LIR_LOADFRET, // load funcret to dst, cnst_x=var_id
+        LIR_LOADFARG, // load parameter in function, v=source_var, cnst_y=index
+        LIR_LOADFRET, // load funcret to dst, x=target_var
 
         LIR_TF64,     // x = (f64)y
         LIR_TF32,     // x = (f32)y
@@ -89,7 +89,6 @@ typedef enum {
         LIR_MOVSXD,
 
         LIR_NOT,
-        LIR_NEG,
         LIR_INC,
         LIR_DEC,
 
@@ -187,7 +186,7 @@ typedef enum {
     AX,   BX,  CX,  DX,  SI,  DI,  BP,  SP,  R8W, R9W, R10W, R11W, R12W, R13W, R14W, R15W, /* 2 bytes */
     AL,   BL,  CL,  DL,  SIL, DIL, BPL, SPL, R8B, R9B, R10B, R11B, R12B, R13B, R14B, R15B, /* 1 byte  */
     AH,   BH,  CH,  DH,                                                                    /* 1 byte  */
-    XMM0, XMM1, XMM2, XMM3, XMM4,                                                          /* float   */
+    XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,                                        /* float   */
 
     /* RISC-V related register set */
     RV_X0,  RV_X1,  RV_X2,  RV_X3,  RV_X4,  RV_X5,  RV_X6,  RV_X7,  /* integer */
@@ -229,7 +228,7 @@ Params:
 
 Returns 1 if the opration is a move-like operation.
 */
-int LIR_movop(lir_operation_t op);
+int LIR_is_movop(lir_operation_t op);
 
 /*
 Check is the LIR operation is a write operation.
@@ -240,7 +239,7 @@ Params:
 
 Returns 1 if the opration is a write operation.
 */
-int LIR_writeop(lir_operation_t op);
+int LIR_is_writeop(lir_operation_t op);
 
 /*
 Check is the LIR operation is a read operation.
@@ -249,8 +248,18 @@ Note: Read operation is an operation that uses value from
 Params:
     - `op` - LIR operation.
 
-Returns 1 if the opration is a read operation.
+Returns 1 if the operation is a read operation.
 */
-int LIR_readop(lir_operation_t op);
+int LIR_is_readop(lir_operation_t op);
+
+/*
+Check if the operation will produce some sort of an effect.
+For instance: function call can, write and exit as well.
+Params:
+    - `op` - LIR operation.
+
+Returns 1 if the operation has side effect.
+*/ 
+int LIR_has_sideeffect(lir_operation_t op);
 
 #endif

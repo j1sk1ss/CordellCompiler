@@ -1,11 +1,9 @@
-{
-    function foo(str msg) {
-        msg[0] = 'A';
-    }
+function foo(str msg) {
+    msg[0] = 'A';
+}
 
-    start() {
-        foo("Hello!");
-    }
+start() {
+    foo("Hello!");
 }
 
 : OUTPUT

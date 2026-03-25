@@ -1,8 +1,6 @@
-{
-    function foo(i32 a);
-    function bar(i64 a);
-    function baz(u8 a);
-}
+function foo(i32 a);
+function bar(i64 a);
+function baz(u8 a);
 
 : OUTPUT
 { scope, id=1 }

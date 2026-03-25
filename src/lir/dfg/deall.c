@@ -29,6 +29,7 @@ static int _scope_pass(cfg_func_t* fb) {
         switch (lh->op) {
             case LIR_MKSCOPE: {
                 list_t* scope_defs = (list_t*)mm_malloc(sizeof(list_t));
+                if (!scope_defs) goto _forced_exit;
                 list_init(scope_defs);
                 stack_push(&scopes, (void*)scope_defs);
                 break;
@@ -47,10 +48,10 @@ static int _scope_pass(cfg_func_t* fb) {
             default: {
                 list_t* scope_defs;
                 if (!stack_top(&scopes, (void**)&scope_defs)) break;
-                if (LIR_writeop(lh->op) && lh->farg->t == LIR_VARIABLE) {
-                    list_add(scope_defs, (void*)lh->farg->storage.var.v_id);
-                }
-
+                if (
+                    LIR_is_writeop(lh->op) && 
+                    lh->farg->t == LIR_VARIABLE
+                ) list_add(scope_defs, (void*)lh->farg->storage.var.v_id);
                 break;
             }
         }
@@ -58,7 +59,8 @@ static int _scope_pass(cfg_func_t* fb) {
         lh = LIR_get_next(lh, fb->lmap.exit, 1);
     }
 
-    stack_free(&scopes);
+_forced_exit: {}
+    stack_free_force_op(&scopes, (int (*)(void*))list_free);
     return 1;
 }
 

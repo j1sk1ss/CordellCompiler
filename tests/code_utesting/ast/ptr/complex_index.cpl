@@ -1,8 +1,6 @@
-{
-    start() {
-        ptr i32 a;
-        a[((10 as i32) + 10) as i8];
-    }
+start() {
+   ptr i32 a;
+   a[((10 as i32) + 10) as i8];
 }
 
 : OUTPUT

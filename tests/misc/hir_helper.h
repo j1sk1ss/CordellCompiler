@@ -9,6 +9,7 @@
 
 static const char* hir_op_to_string(hir_operation_t op) {
     switch(op) {
+        case HIR_SETPOS:       return "HIR_SETPOS";
         case HIR_PHI:          return "PHI";
         case HIR_VRDEALL:      return "VRDEALL";
         case HIR_STARGLD:      return "STARGLD";
@@ -332,8 +333,18 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
     return dst;
 }
 
-static void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) {
+static void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt, int debug) {
     if (!block) return;
+    if (debug && block->op == HIR_SETPOS) {
+        printf(
+            "setpos, line=%li, column=%li, file=%s\n", 
+            block->farg->storage.pos.line, 
+            block->farg->storage.pos.column, 
+            block->farg->storage.pos.file ? block->farg->storage.pos.file->body : "<unknown>"
+        );
+        
+        return;
+    }
 
     char arg1[256] = { 0 };
     char arg2[256] = { 0 };
@@ -358,19 +369,17 @@ static void print_hir_block(const hir_block_t* block, int ud, sym_table_t* smt) 
     char line[512] = { 0 };
     if (
         block->op == HIR_ENDSCOPE ||
-        // block->op == HIR_FEND     ||
         block->op == HIR_STEND
     ) _depth--;
 
     if (ud) for (int i = 0; i < _depth; i++) printf("    ");
     if (block->unused) printf("[unused] ");
-    // printf("addr=%p ", block);
+
     const char* fmt = hir_op_to_fmtstring(block->op, args);
     sprintf(line, fmt, arg1, arg2, arg3);
 
     if (
         block->op == HIR_MKSCOPE ||
-        // block->op == HIR_FDCL    ||
         block->op == HIR_STRT
     ) _depth++;
 
@@ -489,7 +498,7 @@ static void call_graph_print_dot(call_graph_t* cg) {
 
     map_foreach (call_graph_node_t* node, &cg->verts) {
         set_foreach (call_graph_node_t* callee, &node->edges) {
-            printf("  F%ld -> F%ld;\n", node->fid, callee->fid);
+            printf("  F%ld -> F%ld;\n", node->f_id, callee->f_id);
         }
     }
 

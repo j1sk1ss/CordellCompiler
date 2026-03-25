@@ -11,7 +11,6 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include <sem/misc/restore.h>
 #include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
@@ -103,8 +102,8 @@ int main(int argc, char* argv[]) {
     map_foreach (variable_info_t* vi, &smt.v.vartb) {
         printf("id: %li, %s, ", vi->v_id, vi->name->body);
         for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
-        printf("%s, s_id: %i", format_tkntype(vi->type), vi->s_id);
-        if (vi->vdi.defined) printf(", value=%ld", vi->vdi.definition);
+        printf("%s, s_id: %li", format_tkntype(vi->type), vi->s_id);
+        if (vi->vdi.defined == DEFINED_VARIABLE) printf(", value=%ld", vi->vdi.definition);
         printf("\n");
     }
 

@@ -7,7 +7,7 @@
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %2 = $11 * $12;
 %4 = $10 as u64;
 %5 = %2 as u64;

@@ -1,11 +1,9 @@
-{
-    start(i32 a) {
-        a = 1;
-    }
+start(i32 a) {
+    a = 1;
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %2 = [rbp + 8];
 %0 = %2;
 %3 = $1;

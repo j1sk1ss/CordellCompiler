@@ -48,7 +48,7 @@ static cfg_func_t* _add_funcblock(hir_block_t* entry, cfg_ctx_t* ctx, sym_table_
     cfg_func_t* b = _create_funcblock(entry);
     if (!b) return 0;
     b->id     = ctx->cid++;
-    b->fid    = entry->farg->storage.str.s_id;
+    b->f_id    = entry->farg->storage.str.s_id;
     b->fentry = fi.flags.entry;
     list_add(&ctx->funcs, b);
     return b;

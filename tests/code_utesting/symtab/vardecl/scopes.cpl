@@ -1,10 +1,8 @@
-{
-    start() {
-        {
-            i32 a;
-        }
+start() {
+    {
         i32 a;
     }
+    i32 a;
 }
 
 : OUTPUT

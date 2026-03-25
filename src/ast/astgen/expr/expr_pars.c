@@ -1,5 +1,3 @@
-/* Compex expression parser.
-   Parses and invokes low-level parsers */
 #include <ast/astgen/astgen.h>
 
 /*
@@ -55,6 +53,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             case CONVERT_TOKEN:
             case OPEN_INDEX_TOKEN:
             case OPEN_BRACKET_TOKEN: {
+                int annot_off = annotation_reserve(ctx);
                 ast_node_t *target = NULL, *data = NULL;
                 switch (CURRENT_TOKEN->t_type) {
                     case CONVERT_TOKEN: {
@@ -94,6 +93,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     return NULL;
                 }
 
+                annotation_unreserve(ctx, annot_off);
                 break;
             }
             /* Default operators such as:
@@ -107,7 +107,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 ) goto _stop_expression_parsing;
 
                 int next_mp = p + 1;
-                if (TKN_update_operator(CURRENT_TOKEN)) {
+                if (TKN_is_update_operator(CURRENT_TOKEN)) {
                     next_mp = p;
                 }
 
@@ -120,6 +120,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 }
 
                 forward_token(it, 1);
+                int annot_off = annotation_reserve(ctx);
                 ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp, na);
                 if (!right) {
                     PARSE_ERROR("Error during the right part parse!");
@@ -129,6 +130,8 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     return NULL;
                 }
 
+                annotation_unreserve(ctx, annot_off);
+                DUMP_ANNOTATION_TO_NODE(ctx, left);
                 AST_add_node(op_node, left);
                 AST_add_node(op_node, right);
                 left = op_node;
@@ -138,42 +141,59 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
     }
 
 _stop_expression_parsing: {}
+    DUMP_ANNOTATION_TO_NODE(ctx, left);
     return left;
 }
 
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
     
-    if (TKN_isclose(CURRENT_TOKEN)) {
+    if (TKN_is_close(CURRENT_TOKEN)) {
         PARSE_ERROR("Expected a token, but got a terminator!");
         return NULL;
     }
     
-    switch (CURRENT_TOKEN->t_type) {
-        case OPEN_BRACKET_TOKEN: {
-            forward_token(it, 1);
-            ast_node_t* node = _parse_binary_expression(it, ctx, smt, 0, na);
-            if (!node || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
-                PARSE_ERROR("Error during a binary expression parsing! The bracket wasn't closed!");
-                AST_unload(node);
-                RESTORE_TOKEN_POINT;
-                return NULL;
+    while (1) {
+        switch (CURRENT_TOKEN->t_type) {
+            case ANNOTATION_TOKEN: {
+                cpl_parse_annot(it, ctx, smt, 0);
+                forward_token(it, 1);
+                continue;
             }
-            
-            forward_token(it, 1);
-            return node;
-        }
-        case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */
-        case POPARG_TOKEN:    return cpl_parse_poparg(it, ctx, smt, 0);   /* poparg    */
-        case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
-        case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */
-        case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt, 0);      /* ref       */
-        case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt, 0);     /* dref      */
-        default: break;
-    }
+            case OPEN_BRACKET_TOKEN: {
+                forward_token(it, 1);
+                int annot_off = annotation_reserve(ctx);
 
-    /* If this isn't a basic case, we are able to say,
-       that this is a variable / value */
+                ast_node_t* node = NULL;
+                if (
+                    TKN_is_decl(CURRENT_TOKEN) || 
+                    CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
+                ) node = cpl_parse_lambda(it, ctx, smt, 0);
+                else {
+                    node = _parse_binary_expression(it, ctx, smt, 0, na);
+                    forward_token(it, 1);
+                }
+                
+                if (!node) {
+                    PARSE_ERROR("Error during a bracket expression parsing!");
+                    AST_unload(node);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+                
+                annotation_unreserve(ctx, annot_off);
+                return node;
+            }
+            case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */
+            case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
+            case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */
+            case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt, 0);      /* ref       */
+            case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt, 0);     /* dref      */
+            default: goto _primary_resolve_complete;
+        }
+    }
+_primary_resolve_complete: {}
+
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
         PARSE_ERROR("Can't create a base for the value!");
@@ -181,18 +201,18 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
         return NULL;
     }
 
-    if ( /* Register a string in a string symbol table */
-        node->t->t_type == STRING_VALUE_TOKEN
-    ) {
-        node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
-        string_t* section = create_string(CONF_get_ro_section());
-        SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
-        destroy_string(section);
+    switch (node->t->t_type) {
+        case STRING_VALUE_TOKEN: {
+            node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
+            string_t* section = create_string(CONF_get_ro_section());
+            SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
+            destroy_string(section);
+            break;
+        }
+        default: break;
     }
 
     var_lookup(node, ctx, smt);
-    /* Check basic cases such as pointer access, 
-       call token (basic call), syscall token */
     forward_token(it, 1);
     return node;
 }

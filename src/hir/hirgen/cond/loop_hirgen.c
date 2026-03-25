@@ -3,7 +3,7 @@
 static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long value, sym_table_t* smt) {
     string_t* counter_name = create_string("__counter");
     hir_subject_t* counter = HIR_SUBJ_STKVAR(
-        VRTB_add_info(counter_name, I64_TYPE_TOKEN, node->sinfo.s_id, NULL, &smt->v), 
+        VRTB_add_info(counter_name, I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), 
         HIR_STKVARI64, 
         0
     );
@@ -30,7 +30,7 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long v
         ctx->carry.ptr = backup;
 
         hir_subject_t* updated_counter = HIR_SUBJ_STKVAR(
-            VRTB_add_info(NULL, TMP_I64_TYPE_TOKEN, node->sinfo.s_id, NULL, &smt->v), 
+            VRTB_add_info(NULL, TMP_I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), 
             HIR_TMPVARI64, 
             0
         );
@@ -46,13 +46,7 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long v
     return 1;
 }
 
-int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    foreach (annotation_t* annot, &node->annots) {
-        if (annot->t == COUNTER_ANNOTATION) {
-            return _generate_counted_loop_block(node, ctx, annot->data.counter, smt);
-        }
-    }
-
+static int _generate_uncounted_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* lbranch = node->c;    
     if (lbranch) {
         hir_subject_t* entry_lb = HIR_SUBJ_LABEL();
@@ -76,4 +70,13 @@ int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     }
 
     return 1;
+}
+
+int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HAS_ANNOTATION(COUNTER_ANNOTATION, node, { 
+        return _generate_counted_loop_block(node, ctx, annot->data.counter, smt); 
+    });
+
+    return _generate_uncounted_loop_block(node, ctx, smt);
 }

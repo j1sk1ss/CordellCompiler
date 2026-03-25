@@ -1,5 +1,8 @@
 # Semantic static checker
-Cordell Compiler implements a simple static analysis tool for a basic code-checking before a compilation. It supports the next list of errors and warnings:
+Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. Thes static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behaviour (null-dereference, wrong casts, etc.).
+
+## AST part
+The list of all possible AST warnings that are supported by the static analyzator is below:
 - Read-only variable update. *If we have a `ro` variable, we must be sure that it never being updated somewhere*
 - Invalid variable for a function's return value. *If a function returns, for instance, a `i8` value, it must be stored in a variable with the same (or larger) type*
 - Declaration without initialization. *If we declare a variable, it'd be safer, if we add an initial value*
@@ -15,7 +18,7 @@ Cordell Compiler implements a simple static analysis tool for a basic code-check
 - Duplicated branches. *We can check if there is a two same branches in one `if` construction*
 - Invalid function name. *Some function names are reserved by the compiler. We can't allow user to use them*
 - Dead code. *We can find is there is a dead code in the code, and if this was an intent product*
-- Possible implicit convertion. *The compiler is a static typed, but not a strict typed. To fill this gap, the checker will inform if there is a possible future implicit cast*
+- Possible implicit convertion. *The compiler is a permissively static typed, but not a strong typed. To fill this gap, the checker will inform if there is a possible future implicit cast*
 - Inefficient `while`. *Sometimes the `loop` keyword is better than `while 1`*
 - Incorrect exit type for a function. *The `exit` keyword must be used in a function (not in a `start` function) only by one condition - there is no `start` function and this is the lowest non-local function in the file*
 - Break usage without a target. *The `break` keyword must be used only to break `loop`s and `while`s*
@@ -77,7 +80,7 @@ For instance, let's consider the code below:
 
 The code above will produce a ton of errors and warnings.
 <details>
-<summary><strong>Semantic analysis output</strong></summary>
+<summary><strong>AST static analysis output</strong></summary>
 
 ```
 [WARNING] Possible branch redundancy! The branch at [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:25] is similar to the branch at [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:25]!
@@ -217,3 +220,29 @@ The code above will produce a ton of errors and warnings.
 
 **Note 1:** This isn't an entire analysis output due to the critical error with the array indexing. Such errors will block a compilation process given the importance of this kind of errors. </br>
 **Note 2:** The static analyzer doesn't use a source file to show a error place. For these purposes, it uses the 'restorer' module that restores the code from AST.
+
+## IR part
+The list of all possible IR warnings that are supported by the static analyzator is below:
+- NULL-dereference. *If we're trying to dereference a variable (or a value) which is NULL, we must terminate compilation.*
+- Constant IF. *We can warn a user if there is a dead branch presented.*
+
+<details>
+<summary><strong>Dereference static analysis output</strong></summary>
+```cpl
+@[entry]
+function foo() {
+    i32 a = 1;
+    if 1; {
+        a = 0;
+    }
+    ptr i32 b = a as ptr i32;
+    exit dref b;
+}
+```
+
+```
+[WARNING] [4:11] 'If' with a constant value 'true'!
+[WARNING] [8:15] Possible NULL-dereference error (variable 'b' is NULL)!
+[WARNING] [5:11]     Variable 'a' becomes NULL-value
+```
+</details>

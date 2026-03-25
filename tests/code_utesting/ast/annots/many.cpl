@@ -1,9 +1,7 @@
-{
-    @[naked]
-    @[section(".text")]
-    @[entry]
-    start() {}
-}
+@[naked]
+@[section(".text")]
+@[entry]
+start() {}
 
 : OUTPUT
 { scope, id=1 }

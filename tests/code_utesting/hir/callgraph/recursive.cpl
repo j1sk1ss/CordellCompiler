@@ -1,7 +1,5 @@
-{
-    function foo() {
-        return foo();
-    }
+function foo() {
+    return foo();
 }
 
 : OUTPUT

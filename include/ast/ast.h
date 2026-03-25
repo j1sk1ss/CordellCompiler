@@ -37,6 +37,7 @@ typedef struct {
         sstack_t stack;  /* Scope id stack.                          */
     } scopes;
     sstack_t     annots; /* Annotations                              */
+    int          an_off; /* Annotations reserved offset              */
     struct {
         void*    ptr;    /* Parent function pointer                  */
     } carry;

@@ -1,14 +1,12 @@
-{
-    function foo(i32 a) {
-        return a + 10;
-    }
+function foo(i32 a) {
+    return a + 10;
+}
 
-    start() {
-        i32 a = 1;
-        foo(a);
-        i32 b = a + 1;
-        exit b;
-    }
+start() {
+    i32 a = 1;
+    foo(a);
+    i32 b = a + 1;
+    exit b;
 }
 
 : OUTPUT

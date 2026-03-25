@@ -1,19 +1,17 @@
-{
-    function foo() {
-        return 1;
-    }
+function foo() {
+    return 1;
+}
 
-    function bar() {
-        return foo();
-    }
+function bar() {
+    return foo();
+}
 
-    function baz() {
-        return bar();
-    }
+function baz() {
+    return bar();
+}
 
-    start() {
-        exit baz();
-    }
+start() {
+    exit baz();
 }
 
 : OUTPUT

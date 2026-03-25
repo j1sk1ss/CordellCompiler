@@ -13,3 +13,8 @@ package-lock.json
 tests/bin
 docs/gifs/
 __pycache__
+*.fls
+*.out
+*.fdb_latexmk
+*.aux
+*.gz

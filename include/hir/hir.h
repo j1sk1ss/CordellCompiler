@@ -14,7 +14,7 @@
 #include <hir/hir_types.h>
 
 typedef struct {
-    int s_id; /* String ID from strings symtab */
+    symbol_id_t s_id; /* String ID from strings symtab */
 } hir_string_t;
 
 typedef struct {
@@ -26,7 +26,7 @@ typedef struct {
 } hir_number_t;
 
 typedef struct {
-    long v_id; /* Variable ID from variables symtab */
+    symbol_id_t v_id; /* Variable ID from variables symtab */
 } hir_variable_t;
 
 typedef struct {
@@ -38,7 +38,12 @@ typedef struct {
 } hir_list_t;
 
 typedef struct {
-    int                users; /* Users count             */
+    long      line;
+    long      column;
+    string_t* file;
+} hir_fpos_t;
+
+typedef struct {
     struct hir_block*  home;  /* Home HIR block          */
     unsigned long      hash;  /* Subject's hash          */
     long               id;    /* Subject's ID            */
@@ -51,6 +56,7 @@ typedef struct {
         hir_variable_t var;
         hir_set_t      set;
         hir_list_t     list;
+        hir_fpos_t     pos;
     } storage;
 } hir_subject_t;
 
@@ -66,19 +72,20 @@ typedef struct hir_block {
 
 typedef struct {
     struct {
-        hir_block_t* h;          /* Current HIR head                        */
-        hir_block_t* t;          /* Current HIR tail                        */
+        hir_block_t* h;             /* Current HIR head                        */
+        hir_block_t* t;             /* Current HIR tail                        */
     } hot;
     struct {
-        char         is_sup : 1; /* Is cold section is supported by ctx     */
-        list_t       blocks;     /* Cold blocks storage for further place   */
+        char         is_sup : 1;    /* Is cold section is supported by ctx     */
+        list_t       blocks;        /* Cold blocks storage for further place   */
     } cold;
-    char             is_cold;    /* If 1 - we save all input blocks as cold */
+    char             is_cold   : 1; /* If 1 - we save all input blocks as cold */
+    char             is_hidden : 1; /* If 1 - we will ignore all blocks        */
     struct {
-        void*        ptr;        /* pointer to a break target               */
-        long         val1;       /* function's argument number              */
-        long         val2;       /* function's argument load operation      */
-    } carry;                     /* Additional carry for any specific data  */
+        void*        ptr;           /* pointer to a break target               */
+        long         val1;          /* function's argument number              */
+        long         val2;          /* function's argument load operation      */
+    } carry;                        /* Additional carry for any specific data  */
 } hir_ctx_t;
 
 int HIR_init_extended_ctx(hir_ctx_t* ctx);
@@ -106,11 +113,16 @@ int HIR_unlink_block(hir_block_t* block);
 int HIR_unload_subject(hir_subject_t* s);
 int HIR_unload_blocks(hir_block_t* block);
 
+static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
+    variable_info_t vi = { .type = tkn->t_type, .vfs = { .ptr = ptr, .glob = tkn->flags.glob, .ro = tkn->flags.ro } };
+    return HIR_get_stktype(&vi);
+}
+
 #define HIR_SUBJ_CONST(val)              HIR_create_subject(HIR_CONSTVAL, 0, NULL, val)
 #define HIR_SUBJ_FNUMBER(val)            HIR_create_subject(HIR_F64NUMBER, 0, val, 0)
 #define HIR_SUBJ_NUMBER(val)             HIR_create_subject(HIR_NUMBER, 0, val, 0)
 #define HIR_SUBJ_STKVAR(v_id, kind, ptr) HIR_create_subject(kind, v_id, NULL, ptr)
-#define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, HIR_get_token_stktype(n->t, 0), n->t->flags.ptr)
+#define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, _get_token_stktype(n->t, 0), n->t->flags.ptr)
 #define HIR_SUBJ_TMPVAR(kind, id)        HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)
 #define HIR_SUBJ_CPVAR(var, smt)         HIR_SUBJ_TMPVAR(var->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(var->t), 0, NULL, &smt->v))
 #define HIR_SUBJ_LABEL()                 HIR_create_subject(HIR_LABEL, 0, NULL, 0)
@@ -121,6 +133,7 @@ int HIR_unload_blocks(hir_block_t* block);
 #define HIR_SUBJ_FNAMETB(id)             HIR_create_subject(HIR_FNAME, id, NULL, 0)
 #define HIR_SUBJ_SET()                   HIR_create_subject(HIR_PHISET, 0, NULL, 0)
 #define HIR_SUBJ_LIST()                  HIR_create_subject(HIR_ARGLIST, 0, NULL, 0)
+#define HIR_SUBJ_LOCATION(tloc)          HIR_create_subject(HIR_FPOS, 0, (string_t*)tloc, 0)
 
 /* [hot] ctx, op */
 #define HIR_BLOCK0(ctx, op) HIR_append_block(HIR_create_block((op), NULL, NULL, NULL), (ctx))

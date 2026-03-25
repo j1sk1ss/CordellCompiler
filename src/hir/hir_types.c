@@ -70,16 +70,16 @@ int HIR_is_arrtype(hir_subject_type_t t) {
 
 int HIR_is_defined_type(hir_subject_type_t t) {
     switch (t) {
-        case HIR_I64NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_I8NUMBER:
         case HIR_NUMBER:
+        case HIR_I8NUMBER:
+        case HIR_I16NUMBER:
+        case HIR_I32NUMBER:
+        case HIR_I64NUMBER:   return 1;
         case HIR_I64CONSTVAL:
         case HIR_I32CONSTVAL:
         case HIR_I16CONSTVAL:
         case HIR_I8CONSTVAL:
-        case HIR_CONSTVAL: return 1;
+        case HIR_CONSTVAL:    return 2;
         default: return 0;
     }
 }
@@ -168,7 +168,7 @@ hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
             case TYPE_EIGHTH_SIZE:  return issigned ? HIR_TMPVARI8  : HIR_TMPVARU8;
             case TYPE_QUARTER_SIZE: return issigned ? HIR_TMPVARI16 : HIR_TMPVARU16;
             case TYPE_HALF_SIZE:    return issigned ? HIR_TMPVARI32 : HIR_TMPVARU32;
-            default: return issigned ? HIR_TMPVARI64 : HIR_TMPVARU64;
+            default:                return issigned ? HIR_TMPVARI64 : HIR_TMPVARU64;
         }
     }
 
@@ -178,13 +178,13 @@ hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
     }
 }
 
-hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
+static hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
     if (!isfloat) {
         switch (bitness) {
             case TYPE_EIGHTH_SIZE:  return issigned ? HIR_GLBVARI8 : HIR_GLBVARU8;
             case TYPE_QUARTER_SIZE: return issigned ? HIR_GLBVARI16 : HIR_GLBVARU16;
             case TYPE_HALF_SIZE:    return issigned ? HIR_GLBVARI32 : HIR_GLBVARU32;
-            default: return issigned ? HIR_GLBVARI64 : HIR_GLBVARU64;
+            default:                return issigned ? HIR_GLBVARI64 : HIR_GLBVARU64;
         }
     }
 
@@ -205,7 +205,7 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     int isarr           = vi->type == ARR_VARIABLE_TOKEN;
     int isstr           = vi->type == STR_VARIABLE_TOKEN;
 
-    if (!TKN_instack(&tmptkn)) {
+    if (!TKN_in_stack(&tmptkn)) {
         if (isarr) return HIR_GLBVARARR;
         if (isstr) return HIR_GLBVARSTR;
         return _get_glbtype(bitness, isfloat, issigned);
@@ -228,19 +228,6 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     }
 }
 
-hir_subject_type_t HIR_get_token_stktype(token_t* tkn, int ptr) {
-    variable_info_t vi = { 
-        .type = tkn->t_type, 
-        .vfs  = {
-            .ptr  = ptr, 
-            .glob = tkn->flags.glob, 
-            .ro   = tkn->flags.ro 
-        }
-    };
-
-    return HIR_get_stktype(&vi);
-}
-
 int HIR_is_jmp(hir_operation_t op) {
     if (
         op == HIR_JMP   ||
@@ -250,13 +237,13 @@ int HIR_is_jmp(hir_operation_t op) {
 }
 
 int HIR_is_syst(hir_operation_t op) {
-    if (
-        op == HIR_MKSCOPE  ||
-        op == HIR_ENDSCOPE ||
-        op == HIR_STEND    ||
-        op == HIR_FEND
-    ) return 1;
-    return 0;    
+    switch (op) {
+        case HIR_MKSCOPE:
+        case HIR_ENDSCOPE:
+        case HIR_STEND:
+        case HIR_FEND: return 1;
+        default: return 0;
+    }  
 }
 
 int HIR_is_term(hir_operation_t op) {
@@ -267,13 +254,21 @@ int HIR_is_term(hir_operation_t op) {
     return 0;
 }
 
-int HIR_funccall(hir_operation_t op) {
+int HIR_is_ret_funccall(hir_operation_t op) {
+    switch (op) {
+        case HIR_STORE_FCLL:
+        case HIR_STORE_ECLL: return 1;
+        default: return 0;
+    }
+}
+
+int HIR_is_funccall(hir_operation_t op) {
     switch (op) {
         // case HIR_UFCLL:
         // case HIR_STORE_UFCLL:
         case HIR_FCLL:
-        case HIR_STORE_FCLL:
         case HIR_ECLL:
+        case HIR_STORE_FCLL:
         case HIR_STORE_ECLL: return 1;
         default: return 0;
     }
@@ -281,8 +276,8 @@ int HIR_funccall(hir_operation_t op) {
 
 int HIR_is_commutative_op(hir_operation_t op) {
     switch (op) {
-        case HIR_iCMP:
         case HIR_iOR:
+        case HIR_iCMP:
         case HIR_iAND:
         case HIR_iADD:
         case HIR_iMUL: return 1;
@@ -290,26 +285,27 @@ int HIR_is_commutative_op(hir_operation_t op) {
     }
 }
 
-int HIR_sideeffect_op(hir_operation_t op) {
+int HIR_is_sideeffect_op(hir_operation_t op) {
     switch (op) {
-        case HIR_BREAK:
         case HIR_JMP:
         case HIR_PHI:
         case HIR_MKLB:
         case HIR_FRET:
-        case HIR_UFCLL:
         case HIR_ECLL:
         case HIR_FCLL:
         case HIR_SYSC:
+        case HIR_UFCLL:
         case HIR_STORE:
+        case HIR_BREAK:
+        case HIR_SETPOS:
         case HIR_EXITOP:
         case HIR_MKSCOPE:
         case HIR_ENDSCOPE:
-        case HIR_STORE_UFCLL:
         case HIR_STORE_ECLL:
         case HIR_STORE_FCLL:
         case HIR_STORE_SYSC:
         case HIR_BREAKPOINT:
+        case HIR_STORE_UFCLL:
         case HIR_PHI_PREAMBLE:
         case HIR_IFOP2: return 1;
         default: return 0;
@@ -331,25 +327,21 @@ int HIR_is_conv(hir_operation_t op) {
 
 int HIR_is_writeop(hir_operation_t op) {
     switch (op) {
-        case HIR_ARRDECL:
         case HIR_REF:
         case HIR_FARGLD:
+        case HIR_ARRDECL:
         case HIR_STARGLD:
-        case HIR_STORE_UFCLL:
         case HIR_STORE_ECLL:
         case HIR_STORE_FCLL:
         case HIR_STORE_SYSC:
-        case HIR_TF64:
-        case HIR_TF32:
-        case HIR_TI64:
-        case HIR_TI32:
-        case HIR_TI16:
-        case HIR_TI8:
+        case HIR_STORE_UFCLL:
         case HIR_TPTR:
-        case HIR_TU64:
-        case HIR_TU32:
-        case HIR_TU16:
-        case HIR_TU8:
+        case HIR_TF64: case HIR_TF32:
+        case HIR_TI64: case HIR_TI32: case HIR_TI16: case HIR_TI8:
+        case HIR_TU64: case HIR_TU32: case HIR_TU16: case HIR_TU8:
+        case HIR_iOR:
+        case HIR_bOR:
+        case HIR_PHI:
         case HIR_iADD:
         case HIR_iSUB:
         case HIR_iMUL:
@@ -362,19 +354,16 @@ int HIR_is_writeop(hir_operation_t op) {
         case HIR_iCMP:
         case HIR_iNMP:
         case HIR_iAND:
-        case HIR_iOR:
+        case HIR_bAND:
+        case HIR_bXOR:
         case HIR_iBLFT:
         case HIR_iBRHT:
-        case HIR_bAND:
-        case HIR_bOR:
-        case HIR_bXOR:
-        case HIR_PHI:
         case HIR_STORE: return 1;
         default:        return 0;
     }
 }
 
-hir_operation_t HIR_convop(hir_subject_type_t t) {
+hir_operation_t HIR_get_convop(hir_subject_type_t t) {
     switch (t) {
         case HIR_F64NUMBER:
         case HIR_TMPVARF64: case HIR_STKVARF64: case HIR_GLBVARF64: return HIR_TF64;

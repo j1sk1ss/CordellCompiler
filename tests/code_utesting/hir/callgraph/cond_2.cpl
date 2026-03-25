@@ -1,13 +1,11 @@
-{
-    function foo();
-    function bar();
-    function baz();
-    start() {
-        switch 1; {
-            case 1; { foo(); }
-            case 2; { bar(); }
-            default { baz(); }
-        }
+function foo();
+function bar();
+function baz();
+start() {
+    switch 1; {
+        case 1; { foo(); }
+        case 2; { bar(); }
+        default { baz(); }
     }
 }
 

@@ -1,9 +1,7 @@
-{
-    #define RDX 2
-    start() {
-        @[register(RDX)] i32 a = 1;
-        exit a + 1;
-    }
+#define RDX 2
+start() {
+    @[register(RDX)] i32 a = 1;
+    exit a + 1;
 }
 
 : OUTPUT

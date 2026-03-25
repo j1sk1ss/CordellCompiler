@@ -1,6 +1,7 @@
 #include <hir/hirgens/hirgens.h>
 
 int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     ast_node_t* cond    = node->c;
     ast_node_t* lbranch = cond->siblings.n;
     ast_node_t* rbranch = lbranch->siblings.n;
@@ -13,10 +14,8 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_BLOCK3(ctx, HIR_IFOP2, condtmp, true_lb, rbranch ? false_lb : end_lb);
 
     int is_false_cold = 0, is_true_cold = 0, prev_cold = ctx->is_cold;
-    foreach (annotation_t* annot, &node->annots) {
-        if (annot->t == HOT_ANNOTATION) is_false_cold = 1;
-        if (annot->t == COLD_ANNOTATION) is_true_cold = 1;
-    }
+    HAS_ANNOTATION(HOT_ANNOTATION, node, { is_false_cold = 1; });
+    HAS_ANNOTATION(COLD_ANNOTATION, node, { is_true_cold = 1; });
 
     if (lbranch) {
         ctx->is_cold = is_true_cold;

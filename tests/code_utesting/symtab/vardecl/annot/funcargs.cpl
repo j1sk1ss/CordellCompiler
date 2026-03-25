@@ -1,6 +1,4 @@
-{
-    function foo(@[align(16)] i32 a, @[align(8)] i32 b) {
-    }
+function foo(@[align(16)] i32 a, @[align(8)] i32 b) {
 }
 
 : OUTPUT

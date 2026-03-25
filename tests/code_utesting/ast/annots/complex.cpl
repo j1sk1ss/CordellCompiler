@@ -1,10 +1,8 @@
-{
-    function foo() {
-        @[naked]
-        @[naked] i32 b;
-        @[naked]
-        @[naked] glob i32 a;
-    }
+function foo() {
+   @[naked]
+   @[naked] i32 b;
+   @[naked]
+   @[naked] glob i32 a;
 }
 
 : OUTPUT

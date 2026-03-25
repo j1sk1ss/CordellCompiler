@@ -7,6 +7,7 @@
   - [Program entry point](/pages/program-entry-point.md)
 
 - **Language**
+  - [Keywords](/pages/keywords.md)
   - [Types](/pages/types.md)
   - [Binary and unary operations](/pages/binary-and-unary-operations.md)
   - [Control flow statements](/pages/control-flow-statements.md)

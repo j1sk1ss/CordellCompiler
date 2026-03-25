@@ -1,14 +1,12 @@
-{
-    function foo() -> ptr i0 {
-        function bar();
-        function baz() {
-            return bar();
-        }
-        function bar() {
-            return 10;
-        }
-        return baz;
-    }
+function foo() -> ptr i0 {
+   function bar();
+   function baz() {
+      return bar();
+   }
+   function bar() {
+      return 10;
+   }
+   return baz;
 }
 
 : OUTPUT

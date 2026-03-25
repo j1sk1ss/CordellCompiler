@@ -7,12 +7,12 @@
 }
 
 : OUTPUT
-BB{X}: start
-BB{X}: lb{X}:
+BB{X} start
+BB{X} lb{X}
 jmp lb{X};
-BB{X}: lb{X}:
+BB{X} lb{X}
 jmp lb{X};
-BB{X}:
-BB{X}: lb{X}:
+BB{X}
+BB{X} lb{X}
 send
 :

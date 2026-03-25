@@ -1,12 +1,24 @@
 #ifndef HIRGENS_H_
 #define HIRGENS_H_
 
+#include <std/math.h>
 #include <std/qsort.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/annot.h>
 #include <hir/hir.h>
 #include <hir/hir_types.h>
+
+/* Check if node has an annotation.
+   Params:
+        - `t` - Target annotation Type.
+        - `nd` - Source node.
+        - `act` - Action if the annotation found.
+ */
+#define HAS_ANNOTATION(type, nd, act)             \
+    foreach (annotation_t* annot, &nd->annots) {  \
+        if (annot->t == type) { act; break; }     \
+    }                                            \
 
 /*
 Dump and load information for the 'poparg' keyword.
@@ -126,16 +138,6 @@ Return parsed from AST HIR subject.
 hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
 /*
-Convert import AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-
-Return 1 if succeeds. Otherwise will return 0.
-*/
-int HIR_generate_import_block(ast_node_t* node, hir_ctx_t* ctx);
-
-/*
 Convert a breakpoint AST node into a HIR element. 
 Params:
     - `node` - AST node.
@@ -149,11 +151,12 @@ int HIR_generate_breakpoint_block(ast_node_t* node, hir_ctx_t* ctx);
 Convert a break AST node into a HIR element. 
 Note: ctx->carry must be a non-NULL value!
 Params:
+    - `node` - AST node.
     - `ctx` - HIR ctx.
 
 Return 1 if succeeds. Otherwise will return 0.
 */
-int HIR_generate_break_block(hir_ctx_t* ctx);
+int HIR_generate_break_block(ast_node_t* node, hir_ctx_t* ctx);
 
 /*
 Convert extern AST node into HIR element. 
@@ -368,16 +371,6 @@ Return parsed from AST HIR subject.
 hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_t* data);
 
 /*
-Convert poparg AST node into HIR element. 
-Params:
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return parsed from AST HIR subject.
-*/
-hir_subject_t* HIR_generate_poparg(hir_ctx_t* ctx, sym_table_t* smt);
-
-/*
 Convert indexation AST node into HIR element. 
 Snippet:
 ```cpl
@@ -409,5 +402,27 @@ Params:
 Return 1 if succeeds. Otherwise will return 0.
 */
 int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Will generate a CONST subject that represents the size of the input subject.
+Params:
+    - `s` - The target subject.
+    - `smt` - Symtable.
+
+Returns a Constant subject, which represents the size of the subject.
+*/
+hir_subject_t* HIR_generate_sizeof(hir_subject_t* s, sym_table_t* smt);
+
+/*
+Convert lambda AST node to a HIR element. 
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+    - `ret` - If this is a block, must be '0'.
+
+Returns the 'NULL' value or an update operator.
+*/
+hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
 #endif

@@ -1,9 +1,7 @@
-{
-    start() {
-        f64 a = 10.0;
-        f32 b = 1.1;
-        exit 1;
-    }
+start() {
+   f64 a = 10.0;
+   f32 b = 1.1;
+   exit 1;
 }
 
 : OUTPUT

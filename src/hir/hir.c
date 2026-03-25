@@ -49,32 +49,18 @@ long HIR_hash_subject(hir_subject_t* s) {
             h ^= _mix64(s->storage.var.v_id);
         break;
 
-        case HIR_F64NUMBER:
-        case HIR_I64NUMBER:
-        case HIR_U64NUMBER:
-        case HIR_F32NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_U32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_U16NUMBER:
-        case HIR_I8NUMBER:
-        case HIR_U8NUMBER:
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER: {
             const char* str = s->storage.num.value->body;
             while (*str) h = _mix64(h ^ (unsigned char)(*str++));
             break;
         }
 
-        case HIR_F64CONSTVAL:
-        case HIR_I64CONSTVAL:
-        case HIR_U64CONSTVAL:
-        case HIR_F32CONSTVAL:
-        case HIR_I32CONSTVAL:
-        case HIR_U32CONSTVAL:
-        case HIR_I16CONSTVAL:
-        case HIR_U16CONSTVAL:
-        case HIR_I8CONSTVAL:
-        case HIR_U8CONSTVAL:
+        case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
+        case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             h ^= _mix64(s->storage.cnst.value);
         break;
@@ -100,10 +86,9 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(hir_subject_t));
 
-    subj->t     = t;
-    subj->id    = _curr_id++;
-    subj->users = 1;
-    subj->ptr   = 0;
+    subj->t   = t;
+    subj->id  = _curr_id++;
+    subj->ptr = 0;
 
     switch (t) {
         case HIR_PHISET:  set_init(&subj->storage.set.h, SET_NO_CMP); break;
@@ -124,30 +109,16 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
             subj->ptr = intval;
         break;
 
-        case HIR_F64NUMBER:
-        case HIR_F32NUMBER:
-        case HIR_U64NUMBER:
-        case HIR_U32NUMBER:
-        case HIR_U16NUMBER:
-        case HIR_U8NUMBER:
-        case HIR_I64NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_I8NUMBER:
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER:
             if (strval) subj->storage.num.value = strval->copy(strval);
         break;
 
-        case HIR_F64CONSTVAL:
-        case HIR_F32CONSTVAL:
-        case HIR_U64CONSTVAL:
-        case HIR_U32CONSTVAL:
-        case HIR_U16CONSTVAL:
-        case HIR_U8CONSTVAL:
-        case HIR_I64CONSTVAL:
-        case HIR_I32CONSTVAL:
-        case HIR_I16CONSTVAL:
-        case HIR_I8CONSTVAL:
+        case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
+        case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             subj->storage.cnst.value = intval;
         break;
@@ -156,6 +127,14 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_RAWASM:
         case HIR_STRING: 
             subj->storage.str.s_id = v_id;
+        break;
+
+        case HIR_FPOS:
+            if (strval) {
+                subj->storage.pos.column = ((token_fpos_t*)strval)->column;
+                subj->storage.pos.line   = ((token_fpos_t*)strval)->line;
+                subj->storage.pos.file   = ((token_fpos_t*)strval)->file;
+            }
         break;
 
         default: break;
@@ -169,9 +148,8 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value);
     if (!ns) return NULL;
 
-    ns->t     = s->t;
-    ns->users = s->users;
-    ns->ptr   = s->ptr;
+    ns->t   = s->t;
+    ns->ptr = s->ptr;
 
     switch (ns->t) {
         case HIR_PHISET: {
@@ -208,30 +186,16 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
             ns->storage.var.v_id = s->storage.var.v_id;
         break;
 
-        case HIR_F64NUMBER:
-        case HIR_F32NUMBER:
-        case HIR_U64NUMBER:
-        case HIR_U32NUMBER:
-        case HIR_U16NUMBER:
-        case HIR_U8NUMBER:
-        case HIR_I64NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_I8NUMBER:
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER:
             ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
         break;
 
-        case HIR_F64CONSTVAL:
-        case HIR_F32CONSTVAL:
-        case HIR_U64CONSTVAL:
-        case HIR_U32CONSTVAL:
-        case HIR_U16CONSTVAL:
-        case HIR_U8CONSTVAL:
-        case HIR_I64CONSTVAL:
-        case HIR_I32CONSTVAL:
-        case HIR_I16CONSTVAL:
-        case HIR_I8CONSTVAL:
+        case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
+        case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             ns->storage.cnst.value = s->storage.cnst.value;
         break;
@@ -240,6 +204,12 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_RAWASM:
         case HIR_STRING:
             ns->storage.str.s_id = s->storage.str.s_id;
+        break;
+
+        case HIR_FPOS:
+            ns->storage.pos.column = s->storage.pos.column;
+            ns->storage.pos.line   = s->storage.pos.line;
+            ns->storage.pos.file   = s->storage.pos.file;
         break;
 
         default: break;
@@ -267,14 +237,27 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     return blk;
 }
 
-static inline hir_subject_t* _copy_label(hir_subject_t* s, int copy_label) {
+/*
+Safe copy with optional label preservation.
+Label copy means a entirely new link, that's why in some cases we need to save the
+original label.
+Params:
+    - `s` - Subject to copy.
+    - `copy_label` - If this is 1 - it will copy label subject.
+
+Returns a copy of the subject.
+*/
+static inline hir_subject_t* _safe_copy(hir_subject_t* s, int copy_label) {
     if (!s || (!copy_label && s->t == HIR_LABEL)) return s;
     return HIR_copy_subject(s);
 }
 
 hir_block_t* HIR_copy_block(hir_block_t* b, int copy_labels) {
     return HIR_create_block(
-        b->op, _copy_label(b->farg, copy_labels), _copy_label(b->sarg, copy_labels), _copy_label(b->targ, copy_labels)
+        b->op, 
+        _safe_copy(b->farg, copy_labels), 
+        _safe_copy(b->sarg, copy_labels), 
+        _safe_copy(b->targ, copy_labels)
     );
 }
 
@@ -297,6 +280,7 @@ int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos) {
 }
 
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
+    if (ctx->is_hidden) block->unused = 1;
     if (ctx->cold.is_sup && ctx->is_cold) {
         list_add(&ctx->cold.blocks, block);
         return 1;
@@ -305,7 +289,7 @@ int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
     if (!ctx || !block) return 0;
     if (!ctx->hot.h) ctx->hot.h = ctx->hot.t = block;
     else {
-        block->prev  = ctx->hot.t;
+        block->prev      = ctx->hot.t;
         ctx->hot.t->next = block;
         ctx->hot.t       = block;
     }
@@ -333,16 +317,9 @@ int HIR_unlink_block(hir_block_t* block) {
 int HIR_unload_subject(hir_subject_t* s) {
     if (!s) return 0;
     switch (s->t) {
-        case HIR_F64NUMBER:
-        case HIR_F32NUMBER:
-        case HIR_U64NUMBER:
-        case HIR_U32NUMBER:
-        case HIR_U16NUMBER:
-        case HIR_U8NUMBER:
-        case HIR_I64NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_I8NUMBER:
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_NUMBER:  destroy_string(s->storage.num.value);                                       break;
         case HIR_PHISET:  set_free_force(&s->storage.set.h);                                          break;
         case HIR_ARGLIST: list_free_force_op(&s->storage.list.h, (int (*)(void*))HIR_unload_subject); break;
@@ -354,7 +331,7 @@ int HIR_unload_subject(hir_subject_t* s) {
 }
 
 int HIR_unload_blocks(hir_block_t* block) {
-    if (!block) return -1;
+    if (!block) return 0;
     while (block) {
         hir_block_t* nxt = block->next;
         HIR_unload_subject(block->farg);
@@ -364,7 +341,7 @@ int HIR_unload_blocks(hir_block_t* block) {
         block = nxt;
     }
 
-    return 0;
+    return 1;
 }
 
 int HIR_compute_homes(hir_ctx_t* ctx) {
@@ -373,20 +350,28 @@ int HIR_compute_homes(hir_ctx_t* ctx) {
 
     hir_block_t* hh = ctx->hot.h;
     while (hh) {
-        hir_subject_t* args[] = { hh->farg, hh->sarg, hh->targ };
-        for (int i = 0; i < 3; i++) {
-            if (!args[i]) continue;
-            args[i]->home = NULL;
-            if (!HIR_is_vartype(args[i]->t)) continue;
+        switch (hh->op) {
+            case HIR_PHI:
+            case HIR_PHI_PREAMBLE: break;
+            default: {
+                hir_subject_t* args[] = { hh->farg, hh->sarg, hh->targ };
+                for (int i = 0; i < 3; i++) {
+                    if (!args[i]) continue;
+                    args[i]->home = NULL;
+                    if (!HIR_is_vartype(args[i]->t)) continue;
 
-            hir_block_t* home;
-            if (map_get(&homes, args[i]->storage.var.v_id, (void**)&home)) {
-                args[i]->home = home;
-                continue;
+                    hir_block_t* home;
+                    if (map_get(&homes, args[i]->storage.var.v_id, (void**)&home)) {
+                        args[i]->home = home;
+                        continue;
+                    }
+
+                    map_put(&homes, args[i]->storage.var.v_id, hh);
+                    args[i]->home = hh;
+                }
+                
+                break;
             }
-
-            map_put(&homes, args[i]->storage.var.v_id, hh);
-            args[i]->home = hh;
         }
 
         hh = hh->next;

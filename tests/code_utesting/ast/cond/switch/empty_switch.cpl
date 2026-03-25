@@ -1,7 +1,5 @@
-{
-    start() {
-        switch 1; {
-        }
+start() {
+    switch 1; {
     }
 }
 

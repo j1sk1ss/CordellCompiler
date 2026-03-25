@@ -30,6 +30,128 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Hidden return
+Same as it does Rust, the compiler now recognizes the next syntax:
+```cpl
+function simple() {
+    10 + 10;
+}
+```
+
+The `return` statement now optional in cases, when we're talking about the last function's block. This feature is really usefull in terms of lambda functions:
+```cpl
+: function logic(i32 a, i32 b, ptr i0 f); :
+logic(10, 123, (i32 a, i32 b) => { a + b * 100; });
+```
+
+## Lambdas!
+Now the compiler supports lambda functions. Actually, this is a syntax sugar 'cause it copies the behaviour of local functions. The syntax is next:
+```cpl
+ptr i0 f = (i32 a) => { return a; }
+ptr i0 f = () => { return 10; }
+```
+
+To start a lambda function definition you need to create a variable placeholder. Let's say we create an empty holder (i8 a). Now with the `=>` symbol we can define any logic in a scope. </br>
+
+## Constant propagation thru parameters list
+Now the constant propagation module supports propagation thru function call arguments. If we have function calls (or a function call) with the same arguments (at least on position in arguments the same) it will propagate input arguments (propagate folding further) to the function. For instance:
+```cpl
+function foo(i32 a) {
+    return a + 10;
+}
+
+start() {
+    foo(10);
+}
+```
+
+In the code above we will propagate the '10' to the function which will create the next code:
+```cpl
+function foo(i32 a) {
+    return 20;
+}
+
+start() {
+    foo(10);
+}
+```
+
+This is a simple example, but it will work with a complext cases as well.
+
+## HIR static analyzer and HIR locations
+Now the information about file location is going to HIR via a special operation and a special subject. This feature allows to expand the static analysis to HIR part. For test I've added the NULL-dereference tester and the IF-tester.
+
+## not_lazy
+Lazy logic operators are the default solution for logic in C language, and now, CPL supports the alternative approach. With this annotation the compiler will generate both sides before the final evaluation.
+
+## There is no basic scope anymore!
+Eventually, the basic scope has gone. Now, the syntax is a lot closer to C:
+```cpl
+function foo();
+start() {
+    foo();
+    exit 1;
+}
+
+: Instead of :
+{
+    function foo();
+    start() {
+        foo();
+        exit 1;
+    }
+}
+```
+
+P.S.: *It doesn't affect on the existed code, its behaviour or something like that, it just looks better.*
+
+## Remove section, align and import keywords
+Section and align was fully dublicated with annotations which is more convenient. The `import` isn't fits to a language's design from this point (headers fit better). </br>
+```cpl
+: OLD
+align(16) {
+    i32 a;
+    i32 b;
+    section(".bss") {
+        i32 c;
+        i32 d;
+    }
+}
+:
+
+@[align(16)] i32 a;
+@[align(16)] i32 b;
+@[align(16)] @[section(".bss")] i32 c;
+@[align(16)] @[section(".bss")] i32 d;
+```
+
+## sizeof
+With the `sizeof` annotation now it is possible to support the next code:
+```cpl
+arr data[256, i32];
+i32 index = 0;
+while index < @[sizeof]data; {
+    data[index] = 0;
+}
+```
+
+This annotation will give you exact size in bytes of an object:
+```cpl
+@[sizeof]1; : Will return max bytness of the system :
+
+ptr i32 a;
+@[sizeof]a; : Will return max bytness of the system :
+
+arr b[10, ptr i32];
+@[sizeof]b; : Will return max bytness of the system * 10 :
+
+str msg = "Hello world!";
+@[sizeof]msg; : Will return 13 :
+
+function foo();
+@[sizeof]foo; : Will return max bytness of the system :
+```
+
 ## Register
 Now the compiler has the `register` annotation. It simpli links a variable (only a variable) with the specific system register (index). Depends on the target architecture.
 ```cpl
@@ -269,18 +391,18 @@ function foo(...) -> i0 {
 }
 ```
 
-To pop an argument from this set, use the `poparg` keyword:
+To pop an argument from this set, use the `poparg` annotation:
 ```cpl
 function max(...) -> i0 {
-    i32 chloe = poparg as i32;
+    @[poparg] i32 chloe;
 }
 ```
 
-Also, the `poparg` keyword can be used in any function with arguments. It simply replaces any argument loading:
+Also, the `poparg` annotation can be used in any function with arguments. It simply replaces any argument loading:
 ```cpl
 function foo(i32 a, i32 b) {
-    i32 c = poparg; : a :
-    i32 d = poparg; : b :
+    @[poparg] i32 c; : a :
+    @[poparg] i32 d; : b :
 }
 ```
 

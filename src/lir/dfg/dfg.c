@@ -15,7 +15,7 @@ int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             lir_block_t* hl = cb->lmap.entry;
             while (hl) {
-                if (!hl->unused && LIR_writeop(hl->op)) {
+                if (!hl->unused && LIR_is_writeop(hl->op)) {
                     if (hl->farg->t == LIR_VARIABLE) set_add(&cb->def, (void*)hl->farg->storage.var.v_id);
                 }
 
@@ -34,7 +34,7 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
             lir_block_t* lh = cb->lmap.entry;
             while (lh) {
                 lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-                for (int i = LIR_writeop(lh->op); i < 3; i++) {
+                for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
                     if (!args[i]) continue;
                     switch (args[i]->t) {
                         case LIR_VARIABLE: set_add(&cb->use, (void*)args[i]->storage.var.v_id); break;

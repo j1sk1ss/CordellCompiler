@@ -6,7 +6,7 @@ Note: ! This shouldn't be used as the final size getter !
       bitness outcome. It doesn't know the target platform.
 Returns the variable bitness (size in bits). */
 type_size_t TKN_variable_bitness(token_t* token, char ptr) {
-    if (!token) return 8;
+    if (!token) return TYPE_FULL_SIZE;
     if (ptr && token->flags.ptr) return TYPE_FULL_SIZE;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
@@ -48,7 +48,7 @@ token_type_t TKN_get_tmp_type(token_type_t t) {
     }
 }
 
-int TKN_istmp_type(token_type_t t) {
+int TKN_is_tmp_type(token_type_t t) {
     switch (t) {
         case TMP_F64_TYPE_TOKEN:
         case TMP_F32_TYPE_TOKEN:
@@ -66,7 +66,7 @@ int TKN_istmp_type(token_type_t t) {
 }
 
 /* Return 1 if token is pointer (arr, string, ptr). Otherwise return 0. */
-int TKN_isptr(token_t* token) {
+int TKN_is_pointer(token_t* token) {
     if (!token) return 0;
     if (token->flags.ptr) return 1;
     switch (token->t_type) {
@@ -92,13 +92,13 @@ int TKN_isptr(token_t* token) {
 }
 
 /* Is token in text segment */
-int TKN_instack(token_t* token) {
+int TKN_in_stack(token_t* token) {
     if (!token) return 0;
     return !token->flags.glob && !token->flags.ro && !token->flags.ext;
 }
 
 /* Is variable occupie one slot in stack? */
-int TKN_one_slot(token_t* token) {
+int TKN_is_one_slot(token_t* token) {
     if (!token) return 0;
     if (
         token->flags.ptr > 0 &&                     /* If this is a pointer                          */
@@ -150,7 +150,7 @@ int TKN_one_slot(token_t* token) {
 }
 
 /* Is close token? */
-int TKN_isclose(token_t* token) {
+int TKN_is_close(token_t* token) {
     if (!token) return 1;
     switch (token->t_type) {
         case COMMA_TOKEN:
@@ -182,7 +182,7 @@ int TKN_is_decl(token_t* token) {
     }
 }
 
-int TKN_isblock(token_t* token) {
+int TKN_is_block(token_t* token) {
     return (
         !token || 
         (token->t_type == SCOPE_TOKEN) || 
@@ -190,7 +190,7 @@ int TKN_isblock(token_t* token) {
     );
 }
 
-int TKN_isoperand(token_t* token) {
+int TKN_is_operand(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case OR_TOKEN:
@@ -258,7 +258,7 @@ int TKN_token_priority(token_t* token) {
     }
 }
 
-int TKN_isnumeric(token_t* token) {
+int TKN_is_numeric(token_t* token) {
     if (!token) return 0;
     if (
         token->t_type == UNKNOWN_FLOAT_NUMERIC_TOKEN ||
@@ -269,7 +269,7 @@ int TKN_isnumeric(token_t* token) {
     return 0;
 }
 
-int TKN_isvariable(token_t* token) {
+int TKN_is_variable(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case VARIABLE_TOKEN:
@@ -315,7 +315,7 @@ int TKN_is_float(token_t* token) {
     }
 }
 
-int TKN_update_operator(token_t* token) {
+int TKN_is_update_operator(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case ASSIGN_TOKEN:

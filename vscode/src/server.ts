@@ -222,6 +222,14 @@ connection.onHover((params) => {
     }
   }
 
+  const ics = sem.indirectCallSites.find((c) => inRange(params.position, c.range));
+  if (ics) {
+    const value = `\`\`\`cpl
+callable ${formatType(ics.calleeType)}
+\`\`\``;
+    return { contents: { kind: MarkupKind.Markdown, value } };
+  }
+
   const fnDecl = findFuncDeclHover(sem, params.position);
   if (fnDecl) {
     const list = sem.funcs.get(fnDecl.name) ?? [fnDecl];

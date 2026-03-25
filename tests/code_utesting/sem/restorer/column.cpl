@@ -1,4 +1,3 @@
-{
 function
 foo
 (
@@ -17,14 +16,13 @@ foo
 )
 ;
 }
-}
 
 : OUTPUT
-{X}2 | {
- 2 |     function foo(i32 a) -> i32;
- 9 |     start (...)
-14 |     {
-14 |         foo(10);
-14 |     }
- 2 | }
+{X}1 | {
+ 1 |     function foo(i32 a) -> i32;
+ 8 |     start (...)
+13 |     {
+13 |         foo(10);
+13 |     }
+ 1 | }
 :

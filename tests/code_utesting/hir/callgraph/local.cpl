@@ -1,10 +1,8 @@
-{
-    function foo() {
-        function bar() {
+function foo() {
+    function bar() {
 
-        }
-        bar();
     }
+    bar();
 }
 
 : OUTPUT

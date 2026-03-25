@@ -1,76 +1,58 @@
 # Types
-Now let's talk about the language basics. This language is a static-typed language (And I'm trying to make him strong-typed as well). That's why CPL supports a cast operation such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
+This language **DOES NOT** support defined-types such as structures, classes, enums, unions and etc. Actually, it is a part of the experiment, where I'm trying to find the maximum that can perform a language without these abstract constructions. I know that it doesn't make any scence in terms of system programming where almost every driver or data-structure is presented as a 'structure'. </br>
+I don't claim that this language doesn't have anything usefull for data managment, and we can't write some sort of drivers or memory managers. Actually, we can, but before the further discussion, let's talk about the basics.
+
+## Static-Typing
+This language is a **permissively static-typed** language (And it's on the way of becoming strong-typed as well). To maintain the type consistency in a code, there is the only one way: use cast operations such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
 For instance:
 ```cpl
-i32 never = 10 as i32;
-i32 dies  = 20 as i32;
-u8 technoblade = (never + dies) as u8;
+i32 never = 10 as i32;                 : The number itself is a 64-bit wide type (on x64 systems), :
+i32 dies  = 20 as i32;                 : that's why we have to narrow it exactly to 32-bits        :
+u8 technoblade = (never + dies) as u8; : And here we narow again the product of the expression     :
 ```
 
-One note here: Actually, there is no reason to use this statement given an unavoidable implict cast. That means that the snippet above, without these `as` statements, anyway involves a cast operation. However, to support the static-typing, I'd recommend to use the `as` statement. </br>
-P.S.: *Also, the `as` keyword is really useful in terms of function overloading functions usage. We will talk about this below.*
+P.S.: *Actually, in this version of the compiler (v3.4 and lower) there is no reasonable reason to use this statement given the unavoidable implict cast. This means that the snippet above, without these `as` statements, anyway involves cast operations. However, to support the static-typing, I'd anyway recommend to use the `as` statement.* </br>
+P.S.S.: *Also, the `as` keyword is really useful in terms of function overloading functions usage. We will talk about this in the related section.*
 
 ## Primitives
-Now, when we've talked about the types system, let's discuss about types itself. Primitive type is a basic, supported by this language, data structure. This data structure can be represented as:
-- `f64`, `f32` - Real / double and float; non-floating values are converted to double if used in double operations.
-```cpl
-f64 a = 0.01;
-f32 b = 0.01;
-i32 d = 1;
-f64 c = a + b + d;
-```
+Now, when we've talked about the types system and how to maintain the static-typing, let's discuss about the types itself. A primitive type, in term of the compiler (and most of the compilers as well), is a basic data structure which holds some sort of data. It can handle from 8-bits up to 64-bits (depends on the target platform) of data, and can be treated as the next types:
 
-- `i64`, `u64` - Long / 64-bit value.
-```cpl
-i64 a = 123123123;
-u64 b = 0b1110011;
-i64 c = 0xFFFFFFF;
-```
-
-- `i32`, `u32` - Integer / 32-bit value.
-```cpl
-i32 a = 123123;
-u32 b = 0b0111;
-i32 c = 0xFFFF;
-```
-
-- `i16`, `u16` - Short / 16-bit value.
-```cpl
-i16 a = 123;
-u16 b = 0b1;
-i16 c = 0xF;
-```
-
-- `i8`, `u8` - Character / 8-bit value.
-```cpl
-i8 a = 255;
-u8 b = 0b0;
-i8 c = 0xF;
-i8 d = 'a';
-```
-
-- `i0` - Void type. Must be used only in the function return type or as a pointer. This type isn't supported by the Compiler as a regular primitive type.
-```cpl
-function cordell() -> i0;
-ptr i0 a = cordell;
-```
+| Name | Description | Example |
+|-|-|-|
+| `f64`, `f32` | Real / double and float; non-floating values are converted to double if used in double operations. | <pre><code> f64 a = 0.01; </br> f32 b = 0.01; </code></pre> |
+| `i64`, `u64` | Long / 64-bit value. | <pre><code> i64 a = 123321123; </br> u64 b = 0b11111111111111; </code></pre> |
+| `i32`, `u32` | Integer / 32-bit value. | <pre><code> i32a = 123321; </br> i32 b = 0xFFFF; </code></pre> |
+| `i16`, `u16` | Short / 16-bit value. | <pre><code> i16 a = 12332; </br> u16 b = 0xFFF; </code></pre> |
+| `i8`, `u8` | Character / 8-bit value. | <pre><code> i8 a = 'A'; </br> u8 b = 0xFF; </code></pre> |
+| `i0` | Void type. Must be used only in the function return type or as a pointer. This type isn't supported by the Compiler as a regular primitive type. | <pre><code> function foo() -> i0; </br> ptr i0 = foo; </code></pre> |
 
 `P.S.` The CPL doesn't support `booleans` itself. For this purpose you can use any `non-real` data type such as `i64`, `i32`, `u8`, `ptr i0` etc. The logic here is pretty simple:
 - `Not a Zero` is a `true` value.
 - `Zero` is a `false` value.
 
 ## Strings and arrays
-- `str` - String data type. Similar to the `ptr u8` type, but it is used for the high-level inbuild operations such as compare, len, etc. (WIP).
+Here is the only types that are not the primitive types. These structures represent continues data with the pre-defined size, and while most languages stop on the 'array' type, CPL has the 'string' type for convenient work with strings. The reason why we need independent strings is simple - a lot of tasks force us to work with strings, and if we remember, for instance, how this pipline of development proceeds in C, we can find ourselves in need of a new approach. </br>
+
+### String
+- `str` - String data type. Acts the same as the `arr [n, i8]`.
+To declare a string, you need to use the `str` keyword:
 ```cpl
 str msg = "Hello world!";
-if msg == "Hello world!"; {
-}
 ```
+This will allocate data on the stack and place a terminator at the string's end. For instance, the code above will allocate exactly 13 bytes with the `\0` character at the 12 index. </br>
 
-To be honest, the string object acts the same as it does the array object. In particular, the two declaration below are the same in terms of IR presentation:
+### How string works?
+To be honest, a string object acts the same as it does an array object. In particular, the two declarations below are the same in terms of IR presentation:
 ```cpl
 str msg1 = "Hello world!";
 arr msg2[13, i8] = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0' };
+```
+
+IR representation of these declarations almost the same:
+```
+msg1 = str_alloc("Hello world!");
+msg2 = arr_alloc(13);
+put_data(msg2, { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0' });
 ```
 
 But in difference with an array, a string has a different behaviour when it becomes a pointer:
@@ -79,31 +61,16 @@ ptr str msg1 = "Hello world!"; : <= Data allocated in the RO segment, pointer is
 str msg2 = "Hello world!";     : <= Data allocated in the stack                                 :
 ```
 
-An array can't do the same thing. Array can allocate data in stack, but can't be used as a type of a pointer (you will need to use a primitive instead). That means, that string is somehitng between an array (non-primitive) and a primitive.
+An array can't do the same thing. Array can allocate data on the stack, but can't be used as a type of a pointer (you will need to use a primitive instead). That means, that a string is something between an array (non-primitive) and a primitive.
 
-- `arr` - Array data type. Can contain any primitive type as an element type. Will allocate data in the stack or in a section (depends on the target architecture and annotations).
+### Array
+- `arr` - Array data type. Can contain any primitive type as an element type. Will allocate data on the stack or in a section (depends on the target architecture and annotations).
 ```cpl
 arr Array_1d_1[10, i32]  = { 0 };
 arr Array_1d_2[10, i32]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 arr Array_2d[2, ptr i32] = { ref Array_1d_1, ref Array_1d_2 };
 i32 a = Array_2d[0][0]; : = 0 :
 ```
-
-## Align
-A declaration of a primitive or of an array type (an array or a string) can be annotated with the `align` keyword. This keyword will add an additional padding during memory stack allocation.
-```cpl
-align(16) glob i32 a;
-start() {
-    align(8) {
-        i32 b;
-        i32 c = a;
-    }
-}
-```
-
-By default align set to platform `bitness / 8` (For instance on the `gnu_x86_64` this is 8 bytes). </br>
-The `align` keyword can be used as a modifier and as a 'scope' block. The both approaches don't change the scope of declared variables. </br>
-P.S.: *The same result can be obtained with annotation usage. We will cover this below.*
 
 ## Pointers
 - `ptr` - Pointer modifier that can be add to every primitive (and `str`, `arr`) type.
@@ -146,59 +113,3 @@ Additionally, obtaining of a dereferenced value from a pointer can be performed 
 i32 b = a_ptr[0];
 : int b = a_ptr[0] :
 ``` 
-
-## Function pointers
-A function can be stored as a pointer easilly with usage of the next code:
-```cpl
-function foo(i32 a) -> i32;
-start() {
-    ptr i0 a = foo;
-    i32 res = a(100);
-}
-```
-
-As it can be seen from the code above, 'pointer' functions don't have a signature. Such a disadvantage disables all efforts from static analysis, function overloading and default arguments. In a nutshell, it will make this:
-```cpl
-function foo(i32 a) -> i32;
-function foo(u32 a = 10) -> i0;
-function bar(i8 a = 'a');
-start() {
-    ptr i0 a = foo; : Will store function foo(i32 a) -> i32; given that this function is the top function :
-    ptr i0 b = bar;
-    b(); : Will cause an undefined behaviour given the lack of arguemnts :
-}
-```
-
-However, such an ability can make it possible to use different functions in the same context. For instance:
-```cpl
-function min(i32 a, i32 b);
-function max(i32 a, i32 b);
-function logic(ptr i0 func, i32 a, i32 b) {
-    func(a, b);
-}
-
-start() {
-    logic(min, 10, 20);
-    logic(max, 10, 20);
-}
-```
-
-**Also** a function pointer can be not only a function (sounds weird, isn't?). It can be any pointer as well:
-```cpl
-(0x100 + 0xB045)(100); : <- Valid function call that will invoke a function at 0x100 + 0xB045 address :
-i32 a = 123;
-a(100 + 123); : <- Valid function call that will invoke any function (or not) at the 223 address :
-```
-
-## Section
-A function and a global declaration can be placed in a specific section. To perform this, you will need to use the `section` keyword:
-```cpl
-section(".text") {
-    glob i32 a;
-    function foo() {}
-}
-```
-
-**Note 1:** Function prototype doesn't affected by a section. To put the function's code to a section, you need to define the function. </br>
-**Note 2:** By default all global/read-only variables and functions are placed in the platform's code section from the configuration. </br>
-**Note 3:** Local functions can't be placed in the specific section. They will stay with their parent function in the same section.

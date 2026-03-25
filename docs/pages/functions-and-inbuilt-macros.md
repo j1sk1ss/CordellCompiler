@@ -45,9 +45,8 @@ function foo(i32 a = 1, i32 b); : <= Forbidden :
 
 ### Function overloading
 Additionally, CPL supports function overloading with some flaws (All of these are based on the compiler's architecture. See the main README for more information):
-- It doesn't support overloading with the 'default' argument.
-- CPL overloading doesn't work with the 'return' type of a function.
-- Overloaded function can't be marked as a global / extern function.
+- **No return type**: CPL overloading doesn't distinguish functions by their return types.
+- **Locals only**: Overloaded function is neither a global nor extern function given the virtual names in the compiler.
 
 That means this will work:
 ```cpl
@@ -58,9 +57,9 @@ function foo(i8 a);
 
 Note: *To make sure that the compiler will choose the correct version of a function, use the 'as' keyword.*
 ```cpl
-foo(10 as i32);
+foo(10 as i32); : function foo(i32 a); :
 : i64 a; :
-foo(a as i8);
+foo(a as i8); : function foo(i8 a); :
 ```
 
 But these two snippets won't:
@@ -72,6 +71,49 @@ function foo() -> i0;
 ```cpl
 function foo(i32 a, i32 b = 1, i32 c = 1);
 function foo(i32 a, i32 b = 1);
+```
+
+## Function pointers
+A function can be easilly stored as a pointer with usage of the next code:
+```cpl
+function foo(i32 a) -> i32;
+start() {
+    ptr i0 a = foo;
+    i32 res = a(100);
+}
+```
+
+As it can be seen from the code above, the 'pointer' function doesn't have a signature. Such a disadvantage disables all efforts from static analysis, function overloading and default arguments. In a nutshell, it will make this:
+```cpl
+function foo(i32 a) -> i32;
+function foo(u32 a = 10) -> i0;
+function bar(i8 a = 'a');
+start() {
+    ptr i0 a = foo; : Will store function foo(i32 a) -> i32; given that this function is the top function :
+    ptr i0 b = bar;
+    b(); : Will cause an undefined behaviour given the lack of arguemnts :
+}
+```
+
+However, such an ability can make possible the usage of different functions in the same context. For instance:
+```cpl
+function min(i32 a, i32 b);
+function max(i32 a, i32 b);
+function logic(ptr i0 func, i32 a, i32 b) {
+    func(a, b);
+}
+
+start() {
+    logic(min, 10, 20);
+    logic(max, 10, 20);
+}
+```
+
+**Also** a function pointer can be not only a function (sounds weird, isn't?). It can be any `i0` pointer as well:
+```cpl
+((0x100 + 0xB045) as ptr i0)(100); : <- Valid function call that will invoke a function at 0xB145 address :
+ptr i0 a = 123;
+a(100 + 123); : <- Valid function call that will invoke any function (or not) at the 123 address :
 ```
 
 ## Local functions
@@ -106,25 +148,66 @@ start() {
 }
 ```
 
+P.S.: *This is a pure syntax sugar. You can define same functions at the top level. One disadvantage here: You will need to make uniqe names for them given the scope symbol resolve in the compiler.*
+
+## Lambda functions
+Lambda functions are entirely based on local functions. This means, that lambdas don't have access to the outer environment (locals of the parent function) and can serve as a convenient way of logic incapsulation without closures support. This simplifies the calling convention and local functions usage. For instance this is the comparison of a lambda and a local function:
+```cpl
+@[entry]
+function main() {
+    function local(i32 a) { return a + 10; }
+    ptr i0 lambda = (i32 a) => a + 10;
+    : local(10) == lambda(10) :
+}
+```
+
+The code above contains same functions but that are written in different ways. Speaking about lambdas - they are pretty usefull. For instance when we need to pass a logic to a function. Let's consider the example below:
+```cpl
+function foo(ptr i0 logic) {
+    return logic(10, 10);
+}
+
+start() {
+    foo((i32 a, i32 b) => { a += b; a + b; });
+}
+```
+
+To make the same thing with local or even regular functions, we will need to make next:
+```cpl
+function foo(ptr i0 logic) {
+    return logic(10, 10);
+}
+
+start() {
+    function local(i32 a, i32 b) {
+        a += b;
+        return a + b;
+    }
+    foo(local);
+}
+```
+
+The main problem - naming. Lambdas do the same logic as it do local functions, but with an anonymos name and without the essential function keyword and without the return type.
+
 ## Variadic arguments
 CPL supports variadic arguments in the same way hot it supports C language. To use the variadic arguments in a function, add the `...` lexem **as the final arguement**!
 ```cpl
 function foo(...) -> i0;
 ```
 
-To 'pop' an arguement from this set, use the `poparg` keyword. It behaves as a variable with a 'variable' value:
+To 'pop' an arguement from this set, use the `poparg` annotation. It behaves as a variable with a 'variable' value:
 ```cpl
 function foo(...) -> i0 {
-    i8 a1 = poparg as i8;
-    i8 a2 = poparg as i8;
+    @[poparg] i8 a1;
+    @[poparg] i8 a2;
 }
 ```
 
 Also, the `poparg` keyword can be used in a traditional function:
 ```cpl
 function foo(i32 a, i32 b) -> i0 {
-    i8 a1 = poparg as i8; : a :
-    i8 b1 = poparg as i8; : b :
+    @[poparg] i8 a1; : a :
+    @[poparg] i8 b1; : b :
 }
 ```
 

@@ -1,14 +1,12 @@
-{
-    start() {
-        switch 1; {
-            case 1; {}
-            default {}
-        }
+start() {
+    switch 1; {
+        case 1; {}
+        default {}
+    }
 
-        @[straight] switch 1; {
-            case 1; {}
-            default {}
-        }
+    @[straight] switch 1; {
+        case 1; {}
+        default {}
     }
 }
 
@@ -17,41 +15,41 @@
     start {
         {
             {
-                goto lb4;
-                lb6:
+                goto lb{X}
+                lb{X}
                 {
                 }
-                lb9:
+                lb{X}
                 {
                 }
-                goto lb5;
-                lb4:
+                goto lb{X}
+                lb{X}
                 i8t %0 = num? 1 < cnst? 1;
-                if i8t %0, goto lb13, else goto lb14;
-                lb13:
-                goto lb9;
-                lb14:
+                if i8t %0, goto lb{X} else goto lb{X}
+                lb{X}
+                goto lb{X}
+                lb{X}
                 i8t %1 = num? 1 > cnst? 1;
-                if i8t %1, goto lb15, else goto lb16;
-                lb15:
-                goto lb9;
-                lb16:
-                goto lb6;
-                lb5:
-                goto lb21;
-                lb23:
+                if i8t %1, goto lb{X} else goto lb{X}
+                lb{X}
+                goto lb{X}
+                lb{X}
+                goto lb{X}
+                lb{X}
+                goto lb{X}
+                lb{X}
                 {
                 }
-                lb26:
+                lb{X}
                 {
                 }
-                goto lb22;
-                lb21:
+                goto lb{X}
+                lb{X}
                 i8t %2 = num? 1 == cnst? 1;
-                if i8t %2, goto lb23, else goto lb30;
-                lb30:
-                goto lb26;
-                lb22:
+                if i8t %2, goto lb{X} else goto lb{X}
+                lb{X}
+                goto lb{X}
+                lb{X}
             }
         }
     }

@@ -6,6 +6,7 @@
 #include <std/list.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
+#include <sem/misc/warns.h>
 #include <sem/ast/ast_data.h>
 #include <sem/ast/ast_visitor.h>
 

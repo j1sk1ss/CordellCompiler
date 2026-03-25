@@ -1,8 +1,6 @@
-{
-    glob arr a[10, i32] = {0};
-    start() {
-        a[0] = 1;
-    }
+glob arr a[10, i32] = {0};
+start() {
+    a[0] = 1;
 }
 
 : OUTPUT

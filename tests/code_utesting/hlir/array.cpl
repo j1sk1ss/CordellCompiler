@@ -1,14 +1,12 @@
-{
-    start() {
-        arr a[10, i32] = {1,2,3,4,5,6,7,8,9,10};
-        a[0] = 0;
-        i32 b = a[0];
-        i32 c = dref a;
-    }
+start() {
+    arr a[10, i32] = {1,2,3,4,5,6,7,8,9,10};
+    a[0] = 0;
+    i32 b = a[0];
+    i32 c = dref a;
 }
 
 : OUTPUT
-BB{X}: start
+BB{X} start
 %0 = arr_alloc($10);
 %3 = &(%0);
 %4 = $0 * 4;

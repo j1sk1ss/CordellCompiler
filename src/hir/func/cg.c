@@ -3,15 +3,15 @@
 /*
 Create a call graph node.
 Params:
-    - `fid` - Function ID.
+    - `f_id` - Function ID.
 
 Returns a new call graph node or NULL.
 */
-static call_graph_node_t* _create_cgraph_node(long fid) {
+static call_graph_node_t* _create_cgraph_node(symbol_id_t f_id) {
     call_graph_node_t* nd = (call_graph_node_t*)mm_malloc(sizeof(call_graph_node_t));
     if (!nd) return NULL;
     str_memset(nd, 0, sizeof(call_graph_node_t));
-    nd->fid = fid;
+    nd->f_id = f_id;
     set_init(&nd->edges, SET_NO_CMP);
     return nd;
 }
@@ -19,15 +19,15 @@ static call_graph_node_t* _create_cgraph_node(long fid) {
 /*
 Create and register a new call node in the call context.
 Params:
-    - `fid` - Function ID.
+    - `f_id` - Function ID.
     - `ctx` - Call graph context.
 
 Returns 1 if succeeds. Otherwise will return 0. 
 */
-static inline int _register_func(long fid, call_graph_t* ctx) {
-    call_graph_node_t* f = _create_cgraph_node(fid);
+static inline int _register_func(symbol_id_t f_id, call_graph_t* ctx) {
+    call_graph_node_t* f = _create_cgraph_node(f_id);
     if (!f) return 0;
-    return map_put(&ctx->verts, fid, f);
+    return map_put(&ctx->verts, f_id, f);
 }
 
 /*
@@ -40,7 +40,7 @@ Params:
 
 Returns 1 if succeeds.
 */
-static int _add_vert(long src_id, long dst_id, call_graph_t* ctx) {
+static int _add_vert(symbol_id_t src_id, symbol_id_t dst_id, call_graph_t* ctx) {
     call_graph_node_t *src, *dst;
     if (
         !map_get(&ctx->verts, src_id, (void**)&src) || /* If the source ID isn't presented in the context      */
@@ -80,8 +80,8 @@ static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
             while (hh) {
-                if (HIR_funccall(hh->op) && !hh->unused) {
-                    _add_vert(fb->fid, hh->sarg->storage.str.s_id, ctx);
+                if (HIR_is_funccall(hh->op) && !hh->unused) {
+                    _add_vert(fb->f_id, hh->sarg->storage.str.s_id, ctx);
                 }
                 
                 hh = HIR_get_next(hh, cb->hmap.exit, 1);

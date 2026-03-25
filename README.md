@@ -1,26 +1,18 @@
 ![Cover](docs/media/CPL_cover.png)
 
 # Cordell Compiler
-Cordell Compiler is a compact hobby compiler for the `Cordell Programming Language` with a simple syntax, inspired by C and Rust. It is designed for studying compilation, code optimization, translation, and low-level microcode generation.
+Cordell Compiler is a compact hobby compiler for `Cordell Programming Language` which inspired by C's usafety and Rust's syntax. It is designed in the first place for studying compilation, code optimization, translation, and low-level microcode generation.
 - *This README still in progress*
 
 # Main idea of this project
-Main goal of this project is learning of compilers architecture and porting one to the `CordellOS` project (I just want to code apps for `my` OS inside `my` OS). Also, given my bias to `assembly` and `C` languages (I just love them), this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison, etc).
-
-# Used links and literature
-- Aarne Ranta. *Implementing Programming Languages. An Introduction to Compilers and Interpreters*
-- Aho, Lam, Sethi, Ullman. *Compilers: Principles, Techniques, and Tools (Dragon Book)*
-- Andrew W. Appel. *Modern Compiler Implementation in C (Tiger Book)*
-- Cytron et al. *Efficiently Computing Static Single Assignment Form and the Control Dependence Graph* (1991)
-- Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
-- Jason Robert, Carey Patterson. *Basic Instruction Scheduling (and Software Pipelining)* (2001)
+Main goal of this project is learning of compilers architecture and porting one to my another project `CordellOS` (I just want to code apps for `my` OS inside `my` OS). Also, given my bias to `assembly` and `C` languages, this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison, etc).
 
 # Summary
-This `README` file contains the main information about this compiler and the development approaches I’ve learnt while working on it. This repository also includes a `github.io` site with similar content and some interactive sections. For convenience, a `Navigation` block with quick links to the topics in this file is provided below:
+This `README` file contains the main information about this compiler and the development approaches I’ve learnt while working on it. In a nutshell - this README is an attempt to pack all usefull information for building the same optimizing compiler (or a better one). This repository also includes a [site](https://j1sk1ss.github.io/CordellCompiler/#/) with similar content and some interactive sections. For your convenience, the `Navigation` block with quick links to the topics in this file is provided.
 
 - [Introduction](#introduction)
-- [EBNF](#ebnf)
 - [Code snippet](#sample-code-snippet)
+- [Compilation pipeline](#compilation-pipeline)
 - [PP part](#pp-part)
 - [Tokenization part](#tokenization-part)
 - [Markup part](#markup-part)
@@ -60,298 +52,187 @@ This `README` file contains the main information about this compiler and the dev
 - [Codegen (nasm) part](#codegen-nasm-part)
    - [Example of generated code](#example-of-generated-code)
 
-## Project structure
-- `examples/` - CordellLanguage code examples.
-- `include/` - Include headers of this compiler and standart libs.
-- `src/` - Source files of this compiler.
-- `std/` - Standart libs that are used in this compiler.
-- `tests/` - Tests folder for this complier.
-- `vscode/` - VScode CordellLanguage extention.
-- `commits.py` - Special commit tool for better maintaining this project.
-- `Makefile` - Main build script.
-
 ## Introduction
-This compiler isn't about a complex syntax and abstractions (It doesn't even support structures `yet`). Mainly I'm trying to implement modern approuches of code optimization and observe how an input code can be transformed to `better-performance` version of itself. This `README` is a description what I did. </br> 
-Moreover I chose to take on an extra challenge — creating a programming language over supporting an existing one. This language has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and small documentation. It won't be difficult given it's lack of complex structures such as `foreach` loops, `for` loops, `structures`, etc. </br>
-While explaining each layer of the compiler, I will also provide direct examples written in this language.
+This compiler isn't about a language and a complex syntax and abstractions (CPL doesn't even support structures). Mainly I'm trying to implement modern approaches of code optimization, observe how an input code can be transformed to `better-performance` version of itself, and test some ideas such as neural networks application or compression of symtables. This `README` is a description what I've done to this moment. </br> 
+In short about the aforementioned language: CPL has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and small [documentation](j1sk1ss.github.io/CordellCompiler/). This is not related to this README, and if you're interested more in CPL over than in the compiler, check the documentation cite. </br>
 
-## EBNF
-Aforementioned language is called `Cordell Programming Language`. It's syntax mainly based on C language, but some keywords (such as `f64`, `f32`, `u64`, etc) [[?]](https://doc.rust-lang.org/book/ch03-02-data-types.html) came from Rust language, and some keywords (`ptr`) [[?]](https://teaching.idallen.com/dat2343/01f/notes/reserved_words.htm) came from Assembly. Below you can see an `EBNF` of this language.
-<details>
-<summary><strong>EBNF grammar</strong></summary>
-
-![EBNF](docs/media/EBNF.jpg)
-</details>
+P.S.: *I've already said that the language doesn't appear in the README, but while explaining each layer of the compiler, I will also provide direct examples written on this language (Its grammar almost identical to C language, which means it won't cause any problems).*
 
 ## Sample code snippet
-The code below demonstrates the main capabilities of the `CPL` language, excluding already supported features such as `while` loops, `syscalls` and `strings` (we will talk about them later). </br>
-Here we are implement the simple `strlen` function and test it on a string.
+Let's start the introduction with the simple code snippet below (in the collapsed section). It demonstrates main capabilities and a shape of `CPL` language, excluding already supported features such as `while` loops, `syscalls`, condition operators, etc. (we will talk how they work later). </br>
+Basically, every compilation or interpretation starts from a raw code. An example of a raw code, again, can be found below. This is a classic "Hello world" program, and at the end of this README we will compile it for my personal Mac15Pro 2012 (MacOS Catalina).
 
 <details>
-<summary><strong>Basic CPL code snippet</strong></summary>
+<summary><strong>The basic "Hello World" program</strong></summary>
 
 ```cpl
-{
-    function strlen(ptr i8 s) -> i64 {
-        i64 l = 0;
-        while dref s; {
-            s += 1;
-            l += 1;
-        }
+#include "print_h.cpl"
 
-        return l;
-    }
-
-    start(i64 argc, ptr u64 argv) {
-        str msg = "Hello world!";
-        syscall(0x2000004, 1, ref msg, strlen(ref msg));
-        exit 0;
-    }
+@[entry("_main")]
+function main(i32 argc, ptr ptr i8 argv) {
+    str msg = "Hello world!";
+    print(ref msg);
+    exit 0;
 }
 ```
 </details>
 
+P.S.: *The code above will be used as an example for certain sections in this README, that's why I'm strongly suggesting to expand and consider the collapsed content.*
+
+## Compilation pipeline
+<p align="center">
+  <img src="docs/media/compiler_pipeline.png">
+  <br>
+  <em>Figure 1 — Compiler pipeline</em>
+</p>
+
 ## PP part
-This compiler has to parse not only a code, but also derictives. Derictives such as `include`, `define`, `undef`, `ifdef` and `ifndef` are supported by the preprocessor. These commands act similar to C/C++ derictives, except `define` that isn't able to work as a function. </br>
-For instance:
+Before the start, we need to say that we have not only a code for compilation, but a code for pre-processing as well. Pre-processing is optional and many compilers can live without it, but considering the `header` architecture of the compiler, pre-processing - is necessary. This means that we need to process some derictives before the main compilation pipeline (similar to GCC with the `gcc -E`) such as `include`, `define`, `undef`, `ifdef` and `ifndef`. These commands act the same as it do derictives from C/C++, except `define` that isn't able to work as a function (TODO: v3.4 still doesn't support macros with different arguments). </br>
+Let's return to the snippet above and include all header files into the final code (GCC -E does the same thing before pre-processing - creates the united file with the all code):
 ```cpl
 : string_h.cpl :
-{
 #ifndef STRING_H_
 #define STRING_H_ 0
-    : Get the size of the provided string
-      Params
-        - `s` - Input string.
+: Get the size of the provided string
+    Params
+    - `s` - Input string.
 
-      Returns the size (i64). :
-    function strlen(ptr i8 s) -> i64;
+    Returns the size (i64). :
+function strlen(ptr i8 s) -> i64;
 #endif
-}
 
 : print_h.cpl :
-{
 #ifndef PRINT_H_
 #define PRINT_H_ 0
-    #include "string_h.cpl"
-    : Basic print function that is based on
-      a syscall invoke.
-      Params
-      - `msg` - Input message to print.
-      
-      Returns i0 aka nothing. :
-    function print(ptr str msg) -> i0;
+#include "string_h.cpl"
+: Basic print function that is based on
+    a syscall invoke.
+    Params
+    - `msg` - Input message to print.
+    
+    Returns i0 a/k/a nothing. :
+function print(ptr str msg) -> i0;
 #endif
-}
 
 : basic.cpl :
-{
-    #include "print_h.cpl"
-    start(i64 argc, ptr u64 argv) {
-        print("Hello world!\n");
-        exit 0;
-    }
+#include "print_h.cpl"
+@[entry("_main")]
+function main(i32 argc, ptr ptr i8 argv) {
+    str msg = "Hello world!";
+    print(ref msg);
+    exit 0;
 }
 ```
 
-Will be converted into the code below:
+Now we need to delete all comments, resolve defines and conditions. We can do this task with usage of special table which includes derictive values (something like a symtable, but without any complex structure, just a derictive name and its linked content). The condition just checks if the table has a definition for the name, and if it does, invoke the nested logic. </br>
+In a nutshell, there is how the code above will look like after all preparations:
 ```cpl
-{
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
-
-    function strlen(ptr i8 s) -> i64;
-
+function strlen(ptr i8 s) -> i64;
 #line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-
-    function print(ptr str msg) -> i0;
-
+function print(ptr str msg) -> i0;
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/basic.cpl"
-
-    start(i64 argc, ptr u64 argv) {
-        print("Hello world!\n");
-        exit 0;
-    }
+@[entry("_main")]
+function main(i32 argc, ptr ptr i8 argv) {
+    str msg = "Hello world!";
+    print(ref msg);
+    exit 0;
 }
 ```
 
+You can find a new directive `line` which simply marks blocks for the further tokenization process (We need to know where a part is came from).
+
 ## Tokenization part
-The tokenization part is responsible for splitting the input byte sequence (the result of the `fread` operation) into basic tokens. This module ignores all whitespace and separator symbols (such as `newlines` and `tabs`). It also classifies each token into one of the basic types: `number`, `string`, `delimiter`, `comma`, or `dot`.
+The tokenization part is responsible for splitting the input byte sequence (the result of the `fread` operation) into basic tokens. This module ignores all whitespace and separator symbols (such as `newlines` and `tabs`). It also classifies each token into one of the basic types: `number`, `string`, `delimiter`, `comma`, `dot` and `line_derictive`. </br>
+In a nutshell - this is a DFA which no only splits input code by spaces or commas, but unites characters with the set of rules:
+- If we met an unknown character and the current token is a numeric - we propagate the character to a number.
+- If we met an unknown numeric character and the current token is a sign - we propagate token to a number with a sign.
+- If we met an unknown numeric token and the current token is a string - we propagate the number to a string.
+- If we met a string character and the current token is a number - we propagate the string to a number.
 
 <p align="center">
   <img src="docs/media/tokenization.png">
   <br>
-  <em>Figure 1 — Basic token generation</em>
+  <em>Figure 2 — Basic token generation</em>
 </p>
-
-Code from the [Sample code snippet](#sample-code-snippet) section will produce the next list of tokens:
-<details>
-<summary><strong>List of tokens</strong></summary>
-
-```
-line=1, type=1, data=[{], 
-line=1, type=2, data=[function], 
-line=1, type=2, data=[strlen], 
-line=1, type=1, data=[(], 
-line=1, type=2, data=[ptr], 
-line=1, type=2, data=[i8], 
-line=1, type=2, data=[s], 
-line=1, type=1, data=[)], 
-line=1, type=0, data=[->], 
-line=1, type=2, data=[i64], 
-line=2, type=1, data=[{], 
-line=2, type=2, data=[i64], 
-line=2, type=2, data=[l], 
-line=2, type=0, data=[=], 
-glob line=2, type=3, data=[0], 
-line=3, type=6, data=[;], 
-line=3, type=2, data=[while], 
-line=3, type=2, data=[dref], 
-line=3, type=2, data=[s], 
-line=3, type=6, data=[;], 
-line=4, type=1, data=[{], 
-line=4, type=2, data=[s], 
-line=4, type=0, data=[+=], 
-glob line=4, type=3, data=[1], 
-line=5, type=6, data=[;], 
-line=5, type=2, data=[l], 
-line=5, type=0, data=[+=], 
-glob line=5, type=3, data=[1], 
-line=6, type=6, data=[;], 
-line=7, type=1, data=[}], 
-line=8, type=2, data=[return], 
-line=8, type=2, data=[l], 
-line=9, type=6, data=[;], 
-line=10, type=1, data=[}], 
-line=11, type=2, data=[start], 
-line=11, type=1, data=[(], 
-line=11, type=2, data=[i64], 
-line=11, type=2, data=[argc], 
-line=11, type=7, data=[,], 
-line=11, type=2, data=[ptr], 
-line=11, type=2, data=[u64], 
-line=11, type=2, data=[argv], 
-line=11, type=1, data=[)], 
-line=12, type=1, data=[{], 
-line=12, type=2, data=[str], 
-line=12, type=2, data=[msg], 
-line=12, type=0, data=[=], 
-glob line=12, type=99, data=[Hello world!], 
-line=13, type=6, data=[;], 
-line=13, type=2, data=[syscall], 
-line=13, type=1, data=[(], 
-glob line=13, type=3, data=[0], 
-line=13, type=7, data=[,], 
-glob line=13, type=3, data=[1], 
-line=13, type=7, data=[,], 
-line=13, type=2, data=[ref], 
-line=13, type=2, data=[msg], 
-line=13, type=7, data=[,], 
-line=13, type=2, data=[strlen], 
-line=13, type=1, data=[(], 
-line=13, type=2, data=[ref], 
-line=13, type=2, data=[msg], 
-line=13, type=1, data=[)], 
-line=13, type=1, data=[)], 
-line=14, type=6, data=[;], 
-line=14, type=2, data=[exit], 
-glob line=14, type=3, data=[0], 
-line=15, type=6, data=[;], 
-line=16, type=1, data=[}]
-```
-</details>
 
 ## Markup part
 The markup stage is the second part of tokenization. Usually compilers don't distinguish `tokenizator` and `markuper`, but this compiler does. Markup stage operates only on the list of tokens from `tokenizator` including `scopes` support. </br>
-The main idea is to perform basic semantic markup of variables. For instance, if we declare some `i32` variable which named `a` in a scope with `id=10`, all occurrences of `a` within the corresponding scope can be marked as having the `i32` type.
+The main idea is to perform basic semantic markup for variables. For instance, if we declare some `i32` variable with the name `a` in a scope with `id=10`, all occurrences of `a` within the corresponding scope can be marked as having the `i32` type.
 
 <p align="center">
   <img src="docs/media/markup.png">
   <br>
-  <em>Figure 2 — Token markup</em>
+  <em>Figure 3 — Token markup</em>
 </p>
 
-List of tokens from the [Tokenization part](#tokenization-part) section will produce the next list of tokens:
+Code from the [Sample code snippet](#sample-code-snippet) section will produce the next list of marked tokens:
 <details>
-<summary><strong>List of markuped tokens</strong></summary>
+<summary><strong>List of tokens</strong></summary>
 
 ```
-line=1, type=12, data=[{], 
-line=1, type=55, data=[function], 
-line=1, type=56, data=[strlen], 
-line=1, type=10, data=[(], 
-line=1, type=37, data=[i8], ptr 
-line=1, type=92, data=[s], ptr 
-line=1, type=11, data=[)], 
-line=1, type=50, data=[->], 
-line=1, type=34, data=[i64], 
-line=2, type=12, data=[{], 
-line=2, type=34, data=[i64], 
-line=2, type=89, data=[l], 
-line=2, type=73, data=[=], 
-glob line=2, type=3, data=[0], 
-line=3, type=6, data=[;], 
-line=3, type=61, data=[while], 
-line=3, type=92, data=[s], ptr dref 
-line=3, type=6, data=[;], 
-line=4, type=12, data=[{], 
-line=4, type=92, data=[s], ptr 
-line=4, type=69, data=[+=], 
-glob line=4, type=3, data=[1], 
-line=5, type=6, data=[;], 
-line=5, type=89, data=[l], 
-line=5, type=69, data=[+=], 
-glob line=5, type=3, data=[1], 
-line=6, type=6, data=[;], 
-line=7, type=13, data=[}], 
-line=8, type=48, data=[return], 
-line=8, type=89, data=[l], 
-line=9, type=6, data=[;], 
-line=10, type=13, data=[}], 
-line=11, type=47, data=[start], 
-line=11, type=10, data=[(], 
-line=11, type=34, data=[i64], 
-line=11, type=89, data=[argc], 
-line=11, type=7, data=[,], 
-line=11, type=38, data=[u64], ptr 
-line=11, type=93, data=[argv], ptr 
-line=11, type=11, data=[)], 
-line=12, type=12, data=[{], 
-line=12, type=42, data=[str], 
-line=12, type=97, data=[msg], 
-line=12, type=73, data=[=], 
-glob line=12, type=99, data=[Hello world!], 
-line=13, type=6, data=[;], 
-line=13, type=53, data=[syscall], 
-line=13, type=10, data=[(], 
-glob line=13, type=3, data=[0], 
-line=13, type=7, data=[,], 
-glob line=13, type=3, data=[1], 
-line=13, type=7, data=[,], 
-line=13, type=97, data=[msg], ref 
-line=13, type=7, data=[,], 
-line=13, type=57, data=[strlen], 
-line=13, type=10, data=[(], 
-line=13, type=97, data=[msg], ref 
-line=13, type=11, data=[)], 
-line=13, type=11, data=[)], 
-line=14, type=6, data=[;], 
-line=14, type=49, data=[exit], 
-glob line=14, type=3, data=[0], 
-line=15, type=6, data=[;], 
-line=16, type=13, data=[}]
+line=1, type=17, data=[{],
+line=3, type=1, data=[code_utesting/prep/print_h.cpl],
+line=3, type=1, data=[/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/code_utesting/prep/string_h.cpl],
+line=3, type=65, data=[function],
+line=3, type=66, data=[strlen],
+line=3, type=15, data=[(],
+line=3, type=44, data=[i8], ptr
+line=3, type=108, data=[s], ptr
+line=3, type=16, data=[)],
+line=3, type=58, data=[->],
+line=3, type=41, data=[i64],
+line=3, type=9, data=[;],
+line=7, type=1, data=[code_utesting/prep/print_h.cpl],
+line=7, type=65, data=[function],
+line=7, type=66, data=[print],
+line=7, type=15, data=[(],
+line=7, type=49, data=[str], ptr
+line=7, type=108, data=[msg], ptr
+line=7, type=16, data=[)],
+line=7, type=58, data=[->],
+line=7, type=38, data=[i0],
+line=7, type=9, data=[;],
+line=11, type=1, data=[/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmpmx4fkhq_.cpl],
+line=4, type=55, data=[start],
+line=4, type=15, data=[(],
+line=4, type=41, data=[i64],
+line=4, type=108, data=[argc],
+line=4, type=10, data=[,],
+line=4, type=45, data=[u64], ptr
+line=4, type=108, data=[argv], ptr
+line=4, type=16, data=[)],
+line=4, type=17, data=[{],
+line=5, type=49, data=[str],
+line=5, type=108, data=[msg],
+line=5, type=94, data=[=],
+line=5, type=122, data=[Hello world!],
+line=5, type=9, data=[;],
+line=6, type=67, data=[print],
+line=6, type=15, data=[(],
+line=6, type=20, data=[ref],
+line=6, type=108, data=[msg],
+line=6, type=16, data=[)],
+line=6, type=9, data=[;],
+line=7, type=57, data=[exit],
+line=7, type=5, data=[0],
+line=7, type=9, data=[;],
+line=8, type=18, data=[}],
+line=9, type=18, data=[}],
 ```
 </details>
 
 ## AST part
-Next, we need to parse this sequence of marked tokens to construct an `AST` (Abstract Syntax Tree). There are many approaches to achieve this — for example, `LL` parsing, `LR` parsing, or even `hybrid` techniques that combine `LL` and `LR`. A more complete list of parser types can be found [[here]](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books (see [Used links and literature](#used-links-and-literature) section).
+Next, we need to parse this sequence of marked tokens to build an `AST` structure (Abstract Syntax Tree). There are many approaches to achieve this — for example, `LL` parsing, `LR` parsing, or even `hybrid` techniques that combine `LL` and `LR`. A more complete list of parser types can be found [[here]](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books (see [Used links and literature](#used-links-and-literature) section). This compiler uses the `LL` appproach.
 
 <p align="center">
   <img src="docs/media/ast.png">
   <br>
-  <em>Figure 3 — Basic AST generation</em>
+  <em>Figure 4 — Basic AST generation</em>
 </p>
 
-AST that was generated from the [Markup part](#markup-part)'s list of markuped tokens:
+AST that was generated on the [Markup part](#markup-part)'s list of markuped tokens:
 <details>
 <summary><strong>Cordell Compiler's AST dump</strong></summary>
 
@@ -401,18 +282,39 @@ AST that was generated from the [Markup part](#markup-part)'s list of markuped t
 </details>
 
 ### AST optimization
-When we have a correct `AST` representation of the input code, we can optionally perform some optimizations. We will not spend much time here and will only cover a few examples. Note that `AST-level` optimizations are mostly redundant in this project (they were very usefull when this Compiler didn't have an `IR` level).
+When we have a correct `AST` representation of the input code, we can optionally perform some avaliable optimizations. We will not spend a lot of time here and will cover only a few examples. Note that `AST-level` optimizations are mostly redundant in this project (they were very usefull when this Compiler didn't have an `IR` level).
 - `Condition unrolling`. If we have an `if` statement with a constant condition, such as `if 1 { ... }`, or similar situation with a `while` keyword or a `switch` statement, we can unroll them by removing the condition and keeping only the body.
 - `Dead scope elimination`. If a scope doesn't affect the environment, it can be safely removed.
 
+To understand what they actually do, we can consider the next example of `DSE` (Dead Scope Elimination):
+```cpl
+start() {
+    {
+        i32 a = 10;
+        a += 10 * 10 - 11;
+    }
+    exit 1;
+}
+```
+
+According to the compiler's markup phase logic, the `exit` statement doesn't see (and can't) the `a` variable. Also, the scope doesn't affect on the environment (it doesn't call anything, doesn't change anything, doesn't return and exit), which means, we can safely remove it here, in the AST level. </br>
+
+P.S.: *I saved these optimizations 'cause they don't copy the existed one from HIR or LIR levels. Old versions of the compiler have more AST-level optimizations, and if you're interested, you can consider the tags v2.0 and v1.0 on GitHub.*
+
 ## HIR part
-`AST` representation of the input code must be flattened given future optimization phases. A common approach here is to convert an `AST` form into a `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
-Three-Address Code implies that there is only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`.
+`AST` representation of the input code must be flattened given future optimization phases. A common approach here is to convert an `AST` structure to a list of `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
+Three-Address Code implies that there is only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`. Also, the simple indexation command `a[x] = 0` will be converted to:
+```
+tmp_head = &a;
+tmp_off = x * sizeof(typeof(a));
+tmp_head = tmp_head + tmp_off;
+*tmp_head = 0;
+```
 
 <p align="center">
   <img src="docs/media/HIR.png">
   <br>
-  <em>Figure 4 — AST to HIR</em>
+  <em>Figure 5 — AST to HIR</em>
 </p>
 
 HIR that was obtained from the [AST part](#ast-part)'s structure transformation:
@@ -421,53 +323,18 @@ HIR that was obtained from the [AST part](#ast-part)'s structure transformation:
 
 ```
 {
+    fn _main(i32 argc, i8** argv)
     {
-        fn strlen(i8* s) -> i64
+        i32s %2 = alloc(8);
+        i32s %2 = load_starg();
+        i8s** %3 = alloc(8);
+        i8s** %3 = load_starg();
         {
-            u64s %0 = alloc(8);
-            u64s %0 = load_arg();
-            {
-                i64s %1 = alloc(8);
-                i64s %1 = num?: 0;
-                lb11:
-                u8t %5 = *(u64s %0);
-                if u8t %5, goto lb12, else goto lb13;
-                lb12:
-                {
-                    u64t %7 = num?: 1 as u64;
-                    u64t %6 = u64s %0 + u64t %7;
-                    u64s %0 = u64t %6;
-                    i64t %8 = i64s %1 + num?: 1;
-                    i64s %1 = i64t %8;
-                }
-                goto lb11;
-                lb13:
-                return i64s %1;
-            }
-        }
-        
-        start {
-            {
-                i64s %2 = alloc(8);
-                i64s %2 = load_starg();
-                u64s %3 = alloc(8);
-                u64s %3 = load_starg();
-                {
-                    {
-                        strs %4 = alloc(Hello world!);
-                        use num?: 0;
-                        use num?: 1;
-                        u64t %9 = &(strs %4);
-                        use u64t %9;
-                        u64t %10 = &(strs %4);
-                        use u64t %10;
-                        i64t %11 = call strlen(i8* s) -> i64, argc args: u64t %10 ;
-                        use i64t %11;
-                        syscall, argc: args: num?: 0 num?: 1 u64t %9 i64t %11 ;
-                        exit num?: 0;
-                    }
-                }
-            }
+            strs %4 = str_alloc(Hello world!);
+            i8t* %5 = &(strs %4);
+            use i8t* %5;
+            call print1(str* msg) -> i0, argc args(i8t* %5,);
+            exit num? 0;
         }
     }
 }
@@ -486,7 +353,7 @@ In this compiler, both approaches are implemented, but for the example, we will 
 <p align="center">
   <img src="docs/media/CFG.png">
   <br>
-  <em>Figure 5 — CFG from HIR</em>
+  <em>Figure 6 — CFG from HIR</em>
 </p>
 
 <details>
@@ -496,84 +363,84 @@ In this compiler, both approaches are implemented, but for the example, we will 
 </details>
 
 ## Dominant calculation
-With the structured `CFG`, we can move on to a `SSA` form [[?]](https://en.wikipedia.org/wiki/Static_single-assignment_form) [[?]](https://www.geeksforgeeks.org/compiler-design/static-single-assignment-with-relevant-examples/) [[?]](https://dl.acm.org/doi/10.1145/75277.75280). First of all, we need to calculate dominators [[?]](https://en.wikipedia.org/wiki/Dominator_(graph_theory)) for each block in the `CFG`. In the nutshell, a dominator of a block `Y` is a block `X` that appears on every path from the start block to `Y`. For example, the Figure 6 illustrates how this works.
+With the structured `CFG`, we can move on to a `SSA` form [[?]](https://en.wikipedia.org/wiki/Static_single-assignment_form) [[?]](https://www.geeksforgeeks.org/compiler-design/static-single-assignment-with-relevant-examples/) [[?]](https://dl.acm.org/doi/10.1145/75277.75280). First of all, we need to calculate dominators [[?]](https://en.wikipedia.org/wiki/Dominator_(graph_theory)) for each block in the `CFG`. In the nutshell, a dominator of a block `Y` is a block `X` that appears on every path from the start block to `Y`. For example, the Figure 7 illustrates how this works.
 
 <p align="center">
   <img src="docs/media/dominators.png">
   <br>
-  <em>Figure 6 — How we find a dominator</em>
+  <em>Figure 7 — How we find a dominator</em>
 </p>
 
 ### Strict dominance
 Now we need to find a strict dominator for every block in the `CFG`. The reason why we need to do this, is a placement of `phi` functions. We will talk about them later. </br>
 Strict dominance tells us which block strictly dominates another. A block `X` strictly dominates block `Y` if `X` dominates `Y` (important note here: `X != Y`). Why do we need this? The basic dominance relation marks all blocks that dominate a given block, but later analyses often require only the closest one. A block `X` is said to be the strict dominator of `Y` if there is no other block `Z` such that `Z` strictly dominates `Y` and is itself strictly dominated by `X`. </br>
-For example, Figure 7 illustrates how strict dominators are look like.
+For example, Figure 8 illustrates how strict dominators are look like.
 
 <p align="center">
   <img src="docs/media/strict_dominance.png">
   <br>
-  <em>Figure 7 — How we find a strict dominator</em>
+  <em>Figure 8 — How we find a strict dominator</em>
 </p>
 
 ### Dominance frontier
-The dominance frontier [[?]](https://pages.cs.wisc.edu/~fischer/cs701.f05/lectures/Lecture22.pdf) [[?]](https://stackoverflow.com/questions/69794988/how-to-build-dominance-frontier-for-control-flow-graph) of a block `X` is the set of blocks where the dominance of `X` ends. More precisely, it represents all the blocks that are partially influenced by `X`: `X` dominates at least one of their predecessors, but does not dominate the block itself. In other words, it marks the boundary where control flow paths from inside `X`'s dominance region meet paths coming from outside (Figure 8).
+The dominance frontier [[?]](https://pages.cs.wisc.edu/~fischer/cs701.f05/lectures/Lecture22.pdf) [[?]](https://stackoverflow.com/questions/69794988/how-to-build-dominance-frontier-for-control-flow-graph) of a block `X` is the set of blocks where the dominance of `X` ends. More precisely, it represents all the blocks that are partially influenced by `X`: `X` dominates at least one of their predecessors, but does not dominate the block itself. In other words, it marks the boundary where control flow paths from inside `X`'s dominance region meet paths coming from outside (Figure 9).
 
 <p align="center">
   <img src="docs/media/dominance_frontier.png">
   <br>
-  <em>Figure 8 — Find dominance frontier</em>
+  <em>Figure 9 — Find dominance frontier</em>
 </p>
 
 ## SSA form
 The `SSA` form performs renaming all re-assigned variables so that each assignment creates a new, unique variable. Also, modern `SSA` form is more complex then I've mentioned. They don't constrait itselves with only variables renaming for every assignment. For example, some `SSA` forms are able to handle working with arrays (indexies) [[?]](https://dl.acm.org/doi/10.1145/268946.268956). </bt>
-At this moment, CordellCompiler supports the most "basic" `SSA` form, that is presented in Figure 9.
+At this moment, CordellCompiler supports the most "basic" `SSA` form, that is presented in Figure 10.
 
 <p align="center">
   <img src="docs/media/ssa_basic.png">
   <br>
-  <em>Figure 9 — "Basic" SSA form</em>
+  <em>Figure 10 — "Basic" SSA form</em>
 </p>
 
 ### Phi function
-But if we encounter an `if` statement? I'm trying to ask, what we must do, when we aren't able to say wich uniqe variable should be used in `read` operation after constrol-flow statement? Let's consider the next example in Figure 10.
+But if we encounter an `if` statement? I'm trying to ask, what we must do, when we aren't able to say wich uniqe variable should be used in `read` operation after constrol-flow statement? Let's consider the next example in Figure 11.
 
 <p align="center">
   <img src="docs/media/ssa_problem.png">
   <br>
-  <em>Figure 10 — The "phi" problem</em>
+  <em>Figure 11 — The "phi" problem</em>
 </p>
 
-Which version of the variable `a` should be used in the declaration of `b` variable? The answer is simple — they `both`. Here’s the twist: in the `SSA` form, we can use a `φ (phi)` function, which tells the compiler which variable version to use. An example of a `φ` function is shown in Figure 11.
+Which version of the variable `a` should be used in the declaration of `b` variable? The answer is simple — they `both`. Here’s the twist: in the `SSA` form, we can use a `φ (phi)` function, which tells the compiler which variable version to use. An example of a `φ` function is shown in Figure 12.
 
 <p align="center">
   <img src="docs/media/phi_function.png">
   <br>
-  <em>Figure 11 — Phi function</em>
+  <em>Figure 12 — Phi function</em>
 </p>
 
-But how do we determine where to place this function? Here, we use previously computed dominance information. We traverse the entire symbol table of variables. For each variable, we collect the set of blocks where it is defined (either declared or assigned). Then, for each block with a definition, we take its dominance frontier blocks and insert a `φ` function there (Figure 12).
+But how do we determine where to place this function? Here, we use previously computed dominance information. We traverse the entire symbol table of variables. For each variable, we collect the set of blocks where it is defined (either declared or assigned). Then, for each block with a definition, we take its dominance frontier blocks and insert a `φ` function there (Figure 13).
 
 <p align="center">
   <img src="docs/media/phi_placement.png">
   <br>
-  <em>Figure 12 — Phi function placement</em>
+  <em>Figure 13 — Phi function placement</em>
 </p>
 
-Then, during the SSA renaming process, we keep track of each block that passes through a `φ`-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result in Figure 13.
+Then, during the SSA renaming process, we keep track of each block that passes through a `φ`-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result in Figure 14.
 
 <p align="center">
   <img src="docs/media/phi_final.png">
   <br>
-  <em>Figure 13 — Final phi function</em>
+  <em>Figure 14 — Final phi function</em>
 </p>
 
 ## DAG part
-With the complete `SSA` form, we can move on to the first optional optimizations. The first one requires building a `DAG` (Directed Acyclic Graph) [[?]](https://www.geeksforgeeks.org/compiler-design/directed-acyclic-graph-in-compiler-design-with-examples/) [[?]](https://en.wikipedia.org/wiki/Directed_acyclic_graph) representation of the code. In short, `DAG` shows how every value in the program is derived / how each variable obtains its value (with some exceptions for `arrays` and `strings`). Basic example is provided in Figure 14.
+With the complete `SSA` form, we can move on to the first optional optimizations. The first one requires building a `DAG` (Directed Acyclic Graph) [[?]](https://www.geeksforgeeks.org/compiler-design/directed-acyclic-graph-in-compiler-design-with-examples/) [[?]](https://en.wikipedia.org/wiki/Directed_acyclic_graph) representation of the code. In short, `DAG` shows how every value in the program is derived / how each variable obtains its value (with some exceptions for `arrays` and `strings`). Basic example is provided in Figure 15.
 
 <p align="center">
   <img src="docs/media/base_DAG.png">
   <br>
-  <em>Figure 14 — DAG</em>
+  <em>Figure 15 — DAG</em>
 </p>
 
 Then, when we build the "basic" `DAG`, we check and merge all nodes that share the same hash (computed as a hash of their child nodes). If the nodes are identical and the base node is located in a dominating block, we can safely merge them.
@@ -1067,3 +934,11 @@ syscall
 ; op=3
 ```
 </details>
+
+# Used links and literature
+- Aarne Ranta. *Implementing Programming Languages. An Introduction to Compilers and Interpreters*
+- Aho, Lam, Sethi, Ullman. *Compilers: Principles, Techniques, and Tools (Dragon Book)*
+- Andrew W. Appel. *Modern Compiler Implementation in C (Tiger Book)*
+- Cytron et al. *Efficiently Computing Static Single Assignment Form and the Control Dependence Graph* (1991)
+- Daniel Kusswurm. *Modern x86 Assembly Language Programming. Covers x86 64-bit, AVX, AVX2 and AVX-512. Third Edition*
+- Jason Robert, Carey Patterson. *Basic Instruction Scheduling (and Software Pipelining)* (2001)

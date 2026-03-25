@@ -18,6 +18,7 @@ export type TypeNode =
   | { kind: "prim"; name: string }
   | { kind: "ptr"; to: TypeNode }
   | { kind: "arr"; len: number | null; elem: TypeNode }
+  | { kind: "func"; params: TypeNode[]; ret: TypeNode }
   | { kind: "unknown" };
 
 export type ParamSig = {
@@ -36,6 +37,8 @@ export function formatType(t: TypeNode): string {
       return `ptr ${formatType(t.to)}`;
     case "arr":
       return `arr[${t.len ?? "?"}, ${formatType(t.elem)}]`;
+    case "func":
+      return `(${t.params.map(formatType).join(", ")}) => ${formatType(t.ret)}`;
     default:
       return "?";
   }
@@ -120,13 +123,25 @@ function sameType(a: TypeNode, b: TypeNode): boolean {
       return sameType(a.to, (b as any).to);
     case "arr":
       return a.len === (b as any).len && sameType(a.elem, (b as any).elem);
+    case "func": {
+      const bb = b as any;
+      return a.params.length === bb.params.length
+        && a.params.every((p, i) => sameType(p, bb.params[i]))
+        && sameType(a.ret, bb.ret);
+    }
     case "unknown":
       return true;
   }
 }
 
-function isCallablePtrI0(t: TypeNode): boolean {
-  return t.kind === "ptr" && t.to.kind === "prim" && t.to.name === "i0";
+function isCallableType(t: TypeNode): boolean {
+  return t.kind === "func"
+    || (t.kind === "ptr" && t.to.kind === "prim" && t.to.name === "i0");
+}
+
+function matchesCallableArity(t: TypeNode, argc: number): boolean {
+  if (t.kind === "func") return t.params.length === argc;
+  return true;
 }
 
 function sameParamIdentity(a: ParamSig[], b: ParamSig[]): boolean {
@@ -223,6 +238,25 @@ export class SemanticContext {
   hasFunctionNamed(name: string): boolean {
     const list = this.funcs.get(name);
     return !!(list && list.length > 0);
+  }
+
+  getFunctions(name: string): FuncOverloadSym[] {
+    return this.funcs.get(name) ?? [];
+  }
+
+  getFunctionValueType(name: string): TypeNode | undefined {
+    const overloads = this.getFunctions(name);
+    if (overloads.length === 1) {
+      return {
+        kind: "func",
+        params: overloads[0].params.filter((p) => !p.isVarArgs).map((p) => p.type),
+        ret: overloads[0].ret
+      };
+    }
+    if (overloads.length > 1) {
+      return { kind: "ptr", to: { kind: "prim", name: "i0" } };
+    }
+    return undefined;
   }
 
   useVar(name: string, range: Range) {
@@ -413,12 +447,19 @@ export class SemanticContext {
 
     const vt = this.getVarType(name);
     if (vt) {
-      if (isCallablePtrI0(vt)) {
+      if (isCallableType(vt)) {
+        if (!matchesCallableArity(vt, argc)) {
+          this.issues.push({
+            message: `Expression '${name}' is callable, but expects ${vt.kind === "func" ? vt.params.length : "compatible"} args`,
+            range
+          });
+          return;
+        }
         this.indirectCallSites.push({ argc, range, calleeType: vt });
         return;
       }
       this.issues.push({
-        message: `Expression '${name}' is not callable (expected ptr i0)`,
+        message: `Expression '${name}' is not callable`,
         range
       });
       return;
@@ -428,13 +469,20 @@ export class SemanticContext {
   }
 
   callIndirectExpr(calleeType: TypeNode, argc: number, range: Range) {
-    if (isCallablePtrI0(calleeType)) {
+    if (isCallableType(calleeType)) {
+      if (!matchesCallableArity(calleeType, argc)) {
+        this.issues.push({
+          message: `Expression is callable, but expects ${calleeType.kind === "func" ? calleeType.params.length : "compatible"} args`,
+          range
+        });
+        return;
+      }
       this.indirectCallSites.push({ argc, range, calleeType });
       return;
     }
 
     this.issues.push({
-      message: `Expression is not callable (expected ptr i0)`,
+      message: `Expression is not callable`,
       range
     });
   }

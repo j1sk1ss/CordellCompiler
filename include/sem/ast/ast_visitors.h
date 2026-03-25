@@ -31,13 +31,6 @@
         RST_restore_code(stdout, nd, &__s, 0); \
         set_free(&__s);                        \
 
-static inline char* format_location(token_fpos_t* p) {
-    static char buff[256] = { 0 };
-    if (p->file) snprintf(buff, sizeof(buff), "[%s:%li:%li]", p->file->body, p->line, p->column);
-    else snprintf(buff, sizeof(buff), "[%li:%li]", p->line, p->column);
-    return buff;
-}
-
 /*
 ASTWLKR_ro_assign checks illegal read-only assign.
 Example:

@@ -65,9 +65,8 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_TU16:       return "%s = %s as u16;\n";
         case LIR_TU8:        return "%s = %s as u8;\n";
 
-        case LIR_NEG:        return "not %s;\n";
         case LIR_NOT:        return "%s = !%s;\n";
-
+        
         case LIR_INC:        return "%s++;\n";
         case LIR_DEC:        return "%s--;\n";
 
@@ -113,6 +112,8 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_BREAKPOINT: return "== == brk %s == ==\n";
         case LIR_VRUSE:      return "use %s;\n";
         case LIR_EXITOP:     return "exit %s;\n";
+        case LIR_MKSCOPE:
+        case LIR_ENDSCOPE:   return "";
         default:             return "unknwn;\n";
     }
 }

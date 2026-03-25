@@ -1,9 +1,7 @@
-{
-    start() {
-        arr a[10, i32] = {0};
-        a[-1] = 0;
-        exit 1;
-    }
+start() {
+   arr a[10, i32] = {0};
+   a[-1] = 0;
+   exit 1;
 }
 
 : OUTPUT
