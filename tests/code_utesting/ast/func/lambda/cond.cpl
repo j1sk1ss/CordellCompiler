@@ -1,3 +1,4 @@
+: BUG :
 start() {
     i32 a = ((i32 a, i32 b) => { if 1; return a + b; else return a; })(10, 10);
 }

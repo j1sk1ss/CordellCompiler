@@ -39,7 +39,7 @@ digraph CFG_func0 {
   B7 [label="B7:\nentry=MKLB{X}\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
   B8 [label="B8:\nentry=MKLB{X}\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B8 -> B3 [label="jump"];
-  B9 [label="B9:\nentry=MKLB11\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
+  B9 [label="B9:\nentry=MKLB21\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B9 -> B5 [label="jump"];
   B10 [label="B10:\nentry=MKLB{X}\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B10 -> B7 [label="jump"];

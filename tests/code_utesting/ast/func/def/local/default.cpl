@@ -30,6 +30,4 @@ function foo() {
                         [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             [bar] (CALL_TOKEN, v_id=1, s_id=0)
                { scope, id=0 }
-                  [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-                  [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
 :

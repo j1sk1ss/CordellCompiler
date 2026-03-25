@@ -45,7 +45,6 @@ function foo(i32 a = 1, i32 b); : <= Forbidden :
 
 ### Function overloading
 Additionally, CPL supports function overloading with some flaws (All of these are based on the compiler's architecture. See the main README for more information):
-- **Defaults or overload**: Default arguments don't participate in the function name resolution, which means, if the `default` option is present, all overloads of this function **must** use the same defaults.
 - **No return type**: CPL overloading doesn't distinguish functions by their return types.
 - **Locals only**: Overloaded function is neither a global nor extern function given the virtual names in the compiler.
 
