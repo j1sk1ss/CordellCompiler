@@ -1,0 +1,865 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    pdftitle={CPL: Language Design and Formal-ish Specification},
+    pdfauthor={OpenAI}
+}
+
+\lstdefinelanguage{CPL}{
+  morekeywords={
+    extern,glob,ro,function,start,arr,if,else,loop,while,switch,case,default,
+    return,exit,break,lis,syscall,asm,not,ref,dref,as,ptr,str,f64,i64,u64,
+    f32,i32,u32,i16,u16,i8,u8,line,include,define,undef,ifdef,ifndef,endif,
+    section,align
+  },
+  sensitive=true,
+  morecomment=[l]{//},
+  morestring=[b]"
+}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  frame=single,
+  breaklines=true
+}
+
+\title{CPL: Language Design and Formal-ish Specification\\
+\large Techical report}
+\author{Fot Nikolaj}
+\date{03.25.2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\par CPL is a low-level experimental programming language intended for compiler construction, systems programming experiments, and educational use. Its design emphasizes explicit control flow, compact implementation, direct access to low-level mechanisms, and a deliberately small core language. The language is statically typed in a practical but permissive sense: it provides explicit types and compile-time checking, while still allowing a number of implementation-level implicit conversions. CPL does not attempt to provide memory safety. Instead, it exposes unsafe facilities such as raw pointers, explicit dereferencing, inline assembly, target-facing storage control, and manual interaction with the calling convention.
+\par This document presents a formal-ish language report for the current state of CPL. It specifies the core syntax, type system, storage model, control-flow constructs, function model, preprocessing facilities, static diagnostics, and the current status of implementation-defined and target-dependent behavior.
+\end{abstract}
+
+\section{Introduction}
+
+\par CPL is designed as a small low-level language for exploring compiler architecture and code generation. It is not intended to be a general-purpose high-level language. In particular, it intentionally omits user-defined aggregate abstractions such as \texttt{struct}, \texttt{class}, \texttt{enum}, and \texttt{union}, and instead focuses on primitive values, arrays, strings, pointers, functions, and explicit statements.
+
+The current implementation favors:
+\begin{itemize}[leftmargin=1.5em]
+    \item explicitness over abstraction,
+    \item direct control over generated code,
+    \item support for backend-oriented experimentation,
+    \item a compact frontend and semantic model,
+    \item a compiler architecture suitable for further PL and compiler research.
+\end{itemize}
+
+\par CPL should therefore be read not as a safe systems language, but as a deliberately exposed low-level language in which the programmer remains responsible for many semantic invariants.
+
+\section{Conformance and Status}
+
+\par This document is a \textbf{formal-ish} specification rather than a fully formal semantics. Some behaviors are fixed by design, while others remain implementation-defined, target-dependent, or intentionally left unspecified.
+\par The document describes the language \textbf{as currently implemented and intended}, including a number of design choices that may later be revised.
+
+The following terminology is used throughout:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{well-defined}: behavior fixed by this report,
+    \item \textbf{implementation-defined}: behavior chosen by the compiler implementation and expected to be documented,
+    \item \textbf{target-dependent}: behavior determined by the target ABI, machine model, or backend,
+    \item \textbf{undefined behavior (UB)}: behavior for which the language imposes no semantic guarantee.
+\end{itemize}
+
+\section{Translation Model}
+
+A CPL program is processed as a translation unit after preprocessing. A program may consist of multiple source files combined through preprocessing includes and external declarations.
+
+A source file may contain:
+\begin{itemize}[leftmargin=1.5em]
+    \item preprocessing directives,
+    \item imports,
+    \item external declarations,
+    \item global declarations,
+    \item function prototypes,
+    \item function definitions,
+    \item a \texttt{start} entry function.
+\end{itemize}
+
+A file without an entry point may be treated as a library unit.
+
+\section{Lexical Structure}
+
+\subsection{Tokens}
+
+The implementation distinguishes at least the following lexical categories:
+\begin{itemize}[leftmargin=1.5em]
+    \item identifiers,
+    \item integer literals,
+    \item floating-point literals,
+    \item string literals,
+    \item character literals,
+    \item comments,
+    \item end-of-line markers for preprocessing.
+\end{itemize}
+
+The following token names are assumed at the lexical level:
+\begin{itemize}[leftmargin=1.5em]
+    \item \texttt{IDENTIFIER}
+    \item \texttt{INTEGER\_LITERAL}
+    \item \texttt{FLOAT\_LITERAL}
+    \item \texttt{STRING\_LITERAL}
+    \item \texttt{CHAR\_LITERAL}
+    \item \texttt{COMMENT}
+    \item \texttt{EOL}
+\end{itemize}
+
+\subsection{Comments}
+
+Comments are supported as lexical elements and do not affect program semantics.
+
+\subsection{Keywords}
+
+The current language reserves at least the following keywords:
+
+\texttt{extern}, \texttt{glob}, \texttt{ro}, \texttt{function}, \texttt{start}, \texttt{arr}, \texttt{if}, \texttt{else}, \texttt{loop}, \texttt{while}, \texttt{switch}, \texttt{case}, \texttt{default}, \texttt{return}, \texttt{exit}, \texttt{break}, \texttt{lis}, \texttt{syscall}, \texttt{asm}, \texttt{not}, \texttt{ref}, \texttt{dref}, \texttt{as}, \texttt{ptr}, \texttt{str}, \texttt{f64}, \texttt{i64}, \texttt{u64}, \texttt{f32}, \texttt{i32}, \texttt{u32}, \texttt{i16}, \texttt{u16}, \texttt{i8}, \texttt{u8}, \texttt{line}, \texttt{include}, \texttt{define}, \texttt{undef}, \texttt{ifdef}, \texttt{ifndef}, \texttt{endif}, \texttt{section}, \texttt{align}.
+
+\subsection{Literals}
+
+The following literal classes exist:
+\begin{itemize}[leftmargin=1.5em]
+    \item integer literals,
+    \item floating-point literals,
+    \item string literals,
+    \item character literals.
+\end{itemize}
+
+Every integer literal is typed as \texttt{i64}. Every floating-point literal is typed as \texttt{f64}.
+
+This rule is semantic rather than merely lexical.
+
+\section{Concrete Syntax}
+
+The following EBNF describes the current surface syntax of the language. It is based on the current parser design and may omit some annotation-related syntax and lambda-specific sugar.
+
+\begin{lstlisting}
+identifier       = "IDENTIFIER" ;
+integer_literal  = "INTEGER_LITERAL" ;
+float_literal    = "FLOAT_LITERAL" ;
+string_literal   = "STRING_LITERAL" ;
+char_literal     = "CHAR_LITERAL" ;
+comment          = "COMMENT" ;
+eol              = "EOL" ;
+
+program        = "{" , { top_item } , "}" ;
+
+top_item       = start_function
+               | import_op
+               | extern_op
+               | pp_directive
+               | storage_opt , top_decl ;
+
+import_op      = "from" , string_literal , [ import_list ] ;
+import_list    = import_item , { "," , import_item } ;
+import_item    = identifier ;
+
+extern_op      = "extern" , ( extern_function_proto | var_prototype ) ;
+extern_function_proto
+               = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
+var_prototype  = type , identifier ;
+
+storage_opt    = [ "glob" | "ro" ] ;
+
+top_decl       = declaration | function_def | function_proto ;
+
+declaration    = var_decl | arr_decl ;
+
+function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
+function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
+start_function = "start" , "(" , [ param_list ] , ")" , block ;
+
+param_list     = param , { "," , param } ;
+param          = type , identifier , [ "=" , expression ] | "..." ;
+
+block          = "{" , { block_item } , "}" ;
+
+block_item     = statement
+               | function_def
+               | function_proto ;
+
+statement      =
+    "arr" , arr_stmt_tail
+  | pp_directive
+  | if_statement
+  | loop_statement
+  | while_statement
+  | switch_statement
+  | return_statement
+  | exit_statement
+  | break_statement
+  | lis_statement
+  | syscall_statement
+  | asm_block
+  | align_stmt
+  | comment
+  | block
+  | var_decl_starting_not_arr
+  | expression_statement ;
+
+arr_stmt_tail  =
+    identifier , "[" , integer_literal , "," , type , "]" ,
+    [ "=" , ( expression | arr_value ) ] , ";"
+  | "[" , integer_literal , "," , type , "]" , identifier ,
+    [ "=" , expression ] , ";" ;
+
+pp_directive   = "#" , pp_body , pp_end ;
+pp_end         = eol | ";" ;
+pp_body        = pp_line
+               | pp_include
+               | pp_define
+               | pp_undef
+               | pp_ifdef
+               | pp_ifndef
+               | pp_endif ;
+
+pp_line        = "line" , integer_literal , [ string_literal ] ;
+pp_include     = "include" , string_literal ;
+pp_define      = "define" , identifier , { pp_token } ;
+pp_undef       = "undef" , identifier ;
+pp_ifdef       = "ifdef" , identifier ;
+pp_ifndef      = "ifndef" , identifier ;
+pp_endif       = "endif" ;
+
+pp_token       = identifier
+               | literal
+               | keyword
+               | punct_no_semi
+               | operator ;
+
+keyword        = "extern" | "exfunc" | "glob" | "ro"
+               | "function" | "start"
+               | "arr"
+               | "if" | "else" | "loop" | "while"
+               | "switch" | "case" | "default"
+               | "return" | "exit" | "break" | "lis"
+               | "syscall" | "asm"
+               | "not" | "ref" | "dref" | "as"
+               | "ptr" | "str"
+               | "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+               | "line" | "include" | "define" | "undef" | "ifdef" | "ifndef" | "endif" ;
+
+punct_no_semi  = "{" | "}" | "(" | ")" | "[" | "]" | "," ;
+
+operator       = "->"
+               | "==" | "!=" | "<=" | ">="
+               | "<<" | ">>"
+               | "||" | "&&"
+               | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&="
+               | "="  | "<"  | ">"  | "+"  | "-"  | "*"  | "/"  | "%"  | "|"  | "^"  | "&" ;
+
+var_decl       = type , identifier , [ "=" , expression ] , ";" ;
+
+var_decl_starting_not_arr
+               = non_arr_type , identifier , [ "=" , expression ] , ";" ;
+
+non_arr_type   = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+               | "str"
+               | "ptr" , type ;
+
+arr_decl       = "arr" , identifier , "[" , integer_literal , "," , type , "]" ,
+                 [ "=" , ( expression | arr_value ) ] , ";" ;
+
+arr_value      = "{" , [ arr_value_list ] , "}" ;
+arr_value_list = expression , { "," , expression } ;
+
+if_statement   = "if" , expression , ";" , statement , [ "else" , statement ] ;
+loop_statement = "loop" , statement ;
+while_statement
+               = "while" , expression , ";" , statement ;
+
+switch_statement
+               = "switch" , expression , ";" ,
+                 "{" , { case_block } , [ default_block ] , "}" ;
+case_block     = "case" , literal , ";" , block ;
+default_block  = "default" , [ ";" ] , block ;
+
+return_statement
+               = "return" , [ expression ] , ";" ;
+exit_statement = "exit" , expression , ";" ;
+break_statement
+               = "break" , ";" ;
+lis_statement  = "lis" , [ string_literal ] , ";" ;
+
+expression_statement
+               = expression , ";" ;
+
+syscall_statement
+               = "syscall" , "(" , [ expression_list ] , ")" , ";" ;
+expression_list
+               = expression , { "," , expression } ;
+
+asm_block      = "asm" , "(" , [ asm_args ] , ")" , "{" , { asm_line } , "}" ;
+asm_args       = asm_arg , { "," , asm_arg } ;
+asm_arg        = identifier | literal ;
+asm_line       = string_literal , [ "," ] ;
+
+expression     = assign ;
+
+assign         = logical_or , [ assign_op , assign ] ;
+assign_op      = "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&=" ;
+
+logical_or     = logical_and , { "||" , logical_and } ;
+logical_and    = bit_or      , { "&&" , bit_or } ;
+
+bit_or         = bit_xor     , { "|"  , bit_xor } ;
+bit_xor        = bit_and     , { "^"  , bit_and } ;
+bit_and        = equality    , { "&"  , equality } ;
+
+equality       = relational  , { ( "==" | "!=" ) , relational } ;
+relational     = shift       , { ( "<" | "<=" | ">" | ">=" ) , shift } ;
+shift          = add         , { ( "<<" | ">>" ) , add } ;
+add            = mul         , { ( "+" | "-" ) , mul } ;
+mul            = unary       , { ( "*" | "/" | "%" ) , unary } ;
+
+unary          = unary_op , unary
+               | postfix ;
+
+unary_op       = "not" | "+" | "-" | ref_op | dref_op ;
+ref_op         = "ref" ;
+dref_op        = "dref" ;
+
+postfix        = primary , { postfix_op } ;
+postfix_op     = "(" , [ arg_list ] , ")"
+               | "[" , expression , { "," , expression } , "]"
+               | "as" , type ;
+
+primary        = literal
+               | identifier
+               | "(" , expression , ")" ;
+
+arg_list       = expression , { "," , expression } ;
+
+type           = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
+               | "str"
+               | "arr" , "[" , integer_literal , "," , type , "]"
+               | "ptr" , type ;
+
+literal        = integer_literal | float_literal | string_literal | char_literal ;
+\end{lstlisting}
+
+\subsection{Notes on Syntax Status}
+
+The grammar above reflects the current parser structure, but the following must be noted:
+\begin{itemize}[leftmargin=1.5em]
+    \item annotation syntax is not fully represented here,
+    \item lambda syntax is not yet specified in the grammar,
+    \item some historical operators may remain in the parser or grammar,
+    \item \texttt{arr a[10, i32]} is the canonical array declaration form.
+\end{itemize}
+
+\section{Type System}
+
+\subsection{Overview}
+
+CPL is statically typed, but not strictly in the sense of a sound high-level type system. Types are explicit and checked, yet the implementation permits a number of implicit conversions. The language currently includes:
+\begin{itemize}[leftmargin=1.5em]
+    \item primitive numeric types,
+    \item a string wrapper type,
+    \item arrays,
+    \item pointers.
+\end{itemize}
+
+\subsection{Primitive Numeric Types}
+
+The following primitive numeric types are supported:
+\begin{itemize}[leftmargin=1.5em]
+    \item signed integers: \texttt{i8}, \texttt{i16}, \texttt{i32}, \texttt{i64}
+    \item unsigned integers: \texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}
+    \item floating-point types: \texttt{f32}, \texttt{f64}
+\end{itemize}
+
+These types are first-class scalar values.
+
+\subsection{The \texttt{i0} Type}
+
+The special type \texttt{i0} is used as a no-value or void-like return type. A function declared with \texttt{-> i0} may use \texttt{return;} but may not use \texttt{return expr;}.
+
+A function without an explicit return type does \textbf{not} mean \texttt{i0}. Instead, such a function is treated as returning \texttt{i64} by default.
+
+\subsection{String Type}
+
+\texttt{str} is currently a wrapper over a character array, conceptually close to C-style \texttt{char[]}. It exists partly as a placeholder for future string-related work, but in the current language it should be understood as a character array abstraction rather than as a separate immutable or managed string object.
+
+Important properties of \texttt{str} in the current design:
+\begin{itemize}[leftmargin=1.5em]
+    \item it is \textbf{not} read-only by definition,
+    \item it is not a high-level string object,
+    \item in function parameters it is passed by reference rather than by value,
+    \item semantically it behaves as a wrapper around array-like storage of characters.
+\end{itemize}
+
+\subsection{Arrays}
+
+Arrays are declared using the form:
+
+\begin{lstlisting}[language=CPL]
+arr a[10, i32];
+\end{lstlisting}
+
+An array has:
+\begin{itemize}[leftmargin=1.5em]
+    \item a fixed constant length,
+    \item an element type,
+    \item storage allocated according to its declaration context.
+\end{itemize}
+
+There is currently \textbf{no implicit array-to-pointer decay}. A function expecting a reference or pointer to an array must be called explicitly with \texttt{ref a} where appropriate.
+
+\subsection{Pointers}
+
+Pointer types are written as:
+
+\begin{lstlisting}[language=CPL]
+ptr T
+\end{lstlisting}
+
+where \texttt{T} is another type.
+
+Nested pointer types are permitted:
+
+\begin{lstlisting}[language=CPL]
+ptr i32
+ptr ptr i32
+ptr str
+\end{lstlisting}
+
+Pointers expose raw memory-level programming. CPL does not provide ownership, borrowing, or safety tracking.
+
+\section{Storage Classes and Visibility}
+
+\subsection{Local Storage}
+
+Variables declared inside functions without storage modifiers are local objects, normally placed in stack-based storage.
+
+\subsection{\texttt{glob}}
+
+When applied to a variable, including primitive variables, arrays, and strings, \texttt{glob} means the object is not stored on the stack but in a section-visible static storage area. Such an object is visible throughout the file.
+
+When applied to a function, \texttt{glob} means the function may be externally visible.
+
+\subsection{\texttt{ro}}
+
+\texttt{ro} marks an object as read-only storage. Read-only objects may exist both for primitives and aggregate-like values such as arrays and strings.
+
+A variable declared outside a function must appear as \texttt{glob} or \texttt{ro}.
+
+\subsection{Top-level Declarations}
+
+At top level, variables may only exist as \texttt{glob} or \texttt{ro}. Functions may be declared or defined at top level and may also use external visibility controls.
+
+\section{Scope and Lifetime}
+
+\subsection{Lexical Scope}
+
+CPL uses lexical block scope. A declaration is visible from its point of declaration within its block and in nested blocks, unless shadowed by another declaration.
+
+\subsection{Lifetime of Local Objects}
+
+Local objects live until the end of their enclosing scope. Using a reference or pointer to such an object after the end of its lifetime is undefined behavior.
+
+\subsection{Reference-taking}
+
+The \texttt{ref} operator forms a reference-like address to an object. Because CPL does not provide formal lvalue/rvalue categories in the frontend specification, the language relies on operational restrictions: only valid addressable program entities may be referenced.
+
+\subsection{No Safe Escape Tracking}
+
+The language does not enforce safe escape analysis at the user level. A programmer may construct dangling references or pointers; such behavior is invalid.
+
+\section{Expressions}
+
+\subsection{Expression Classes}
+
+CPL expressions include:
+\begin{itemize}[leftmargin=1.5em]
+    \item literals,
+    \item identifiers,
+    \item unary operations,
+    \item binary operations,
+    \item casts,
+    \item indexing,
+    \item calls,
+    \item assignments.
+\end{itemize}
+
+Lambda expressions are implemented as syntactic sugar for hidden local functions and are therefore semantically lowered rather than directly represented as a separate runtime value class.
+
+\subsection{Literal Typing}
+
+The following literal typing rules hold:
+\begin{itemize}[leftmargin=1.5em]
+    \item every integer literal has type \texttt{i64},
+    \item every floating-point literal has type \texttt{f64}.
+\end{itemize}
+
+\subsection{Conditions}
+
+Conditions in \texttt{if}, \texttt{while}, and similar constructs must be integer-like values. Floating-point values are \textbf{not} valid condition values.
+
+\subsection{Operators and Precedence}
+
+The effective precedence structure is:
+\begin{enumerate}[leftmargin=1.8em]
+    \item postfix operations: call, indexing, cast
+    \item unary operations: \texttt{not}, unary \texttt{+}, unary \texttt{-}, \texttt{ref}, \texttt{dref}
+    \item multiplicative: \texttt{*}, \texttt{/}, \texttt{\%}
+    \item additive: \texttt{+}, \texttt{-}
+    \item shifts: \texttt{<<}, \texttt{>>}
+    \item relational: \texttt{<}, \texttt{<=}, \texttt{>}, \texttt{>=}
+    \item equality: \texttt{==}, \texttt{!=}
+    \item bitwise \texttt{\&}
+    \item bitwise \texttt{\^{}}
+    \item bitwise \texttt{|}
+    \item logical \texttt{\&\&}
+    \item logical \texttt{||}
+    \item assignment and update assignment
+\end{enumerate}
+
+Associativity rules are:
+\begin{itemize}[leftmargin=1.5em]
+    \item most binary arithmetic, comparison, bitwise, indexing, and call operations associate left to right,
+    \item unary operators associate right to left,
+    \item assignments and update assignments associate right to left,
+    \item \texttt{as} is treated left to right as a postfix cast form.
+\end{itemize}
+
+\subsection{Unary Operators}
+
+The current unary operators are:
+\begin{itemize}[leftmargin=1.5em]
+    \item \texttt{not}
+    \item unary \texttt{+}
+    \item unary \texttt{-}
+    \item \texttt{ref}
+    \item \texttt{dref}
+\end{itemize}
+
+\subsection{Casts}
+
+Casts use postfix syntax:
+
+\begin{lstlisting}[language=CPL]
+x as i32
+\end{lstlisting}
+
+The cast operator is explicit and participates at postfix precedence.
+
+\section{Implicit Conversions}
+
+\subsection{General Status}
+
+CPL currently allows implicit conversions according to implementation rules rather than a fully principled source-level conversion lattice. The language is therefore best described as having a \textbf{permissive static conversion model}.
+
+\subsection{Current Implementation Rule}
+
+The current compiler allows an implicit conversion when the source and target are sufficiently similar and when pointer/reference levels satisfy the implementation's admissibility condition. In practical terms, conversions are often allowed when:
+\begin{itemize}[leftmargin=1.5em]
+    \item the underlying subject types are considered similar,
+    \item the pointer level matches, or
+    \item both source and target fall into categories where full-machine-width representation makes explicit conversion unnecessary.
+\end{itemize}
+
+This is not yet a polished language-lawyer rule. It is an implementation-level rule that should later be refined into a proper specification table.
+
+\subsection{Consequence}
+
+As a result:
+\begin{itemize}[leftmargin=1.5em]
+    \item not all implicit conversions are semantically clean,
+    \item the language report can document the current behavior,
+    \item but future revisions should tighten this area significantly.
+\end{itemize}
+
+\section{Statements and Control Flow}
+
+\subsection{Blocks}
+
+A block introduces a new lexical scope and contains zero or more block items.
+
+\subsection{Variable Declarations}
+
+Variables may be declared either through ordinary typed declarations or array declarations.
+
+Examples:
+
+\begin{lstlisting}[language=CPL]
+i32 x = 10;
+str s = "hello";
+arr a[10, i32];
+\end{lstlisting}
+
+\subsection{\texttt{if}}
+
+The \texttt{if} statement has the form:
+
+\begin{lstlisting}[language=CPL]
+if expr; statement
+else statement
+\end{lstlisting}
+
+The semicolon after the condition is part of the syntax.
+
+\subsection{\texttt{while}}
+
+The \texttt{while} statement has the form:
+
+\begin{lstlisting}[language=CPL]
+while expr; statement
+\end{lstlisting}
+
+The condition must be non-floating-point.
+
+\subsection{\texttt{loop}}
+
+\texttt{loop} expresses an unconditional loop:
+
+\begin{lstlisting}[language=CPL]
+loop statement
+\end{lstlisting}
+
+It is typically terminated through \texttt{break} or other control transfer.
+
+\subsection{\texttt{switch}}
+
+The \texttt{switch} statement selects among literal-valued cases. Cases are block-based.
+
+\begin{lstlisting}[language=CPL]
+switch expr; {
+    case 1; { ... }
+    case 2; { ... }
+    default; { ... }
+}
+\end{lstlisting}
+
+\subsection{\texttt{return}}
+
+\texttt{return} may appear in ordinary functions. Its allowed form depends on the return type:
+\begin{itemize}[leftmargin=1.5em]
+    \item for \texttt{-> i0}, only \texttt{return;} is valid,
+    \item for ordinary typed returns, \texttt{return expr;} is expected,
+    \item for functions with omitted return type, the operational default is \texttt{i64}.
+\end{itemize}
+
+\subsection{\texttt{exit}}
+
+\texttt{exit expr;} terminates the \texttt{start} function path. A \texttt{start} function is expected to use \texttt{exit} rather than ordinary typed returns.
+
+\subsection{\texttt{break}}
+
+\texttt{break;} exits the nearest enclosing breakable construct.
+
+\section{Functions}
+
+\subsection{Ordinary Functions}
+
+Functions are declared as:
+
+\begin{lstlisting}[language=CPL]
+function name(params) -> type { ... }
+\end{lstlisting}
+
+or as prototypes:
+
+\begin{lstlisting}[language=CPL]
+function name(params) -> type;
+\end{lstlisting}
+
+If the return type is omitted, the function defaults to returning \texttt{i64}.
+
+\subsection{Parameters}
+
+Function parameters are typed and may optionally include default expressions.
+
+\subsection{Variadic Parameters}
+
+Variadic functions are supported through \texttt{...} in the parameter list.
+
+\subsection{Parameter Passing}
+
+Primitive values are passed by value. Non-primitive entities, including \texttt{str}, are not passed by value in the implementation model. \texttt{str} parameters therefore behave as reference-style parameters.
+
+\subsection{Local Functions}
+
+Functions may appear within blocks. Such functions are local in scope.
+
+\subsection{Lambdas}
+
+Lambdas are lowered into hidden local functions and passed by reference. They are therefore not modeled as closure objects. They do not capture outer environments.
+
+\section{Entry Points}
+
+The canonical entry construct is:
+
+\begin{lstlisting}[language=CPL]
+start(...) { ... }
+\end{lstlisting}
+
+A \texttt{start} function serves as the program entry point.
+
+Its completion is expected to occur through \texttt{exit expr;}.
+
+Other entry-related mechanisms may exist in the implementation, but \texttt{start} is the primary language-level entry construct.
+
+\section{Low-level and Target-facing Constructs}
+
+\subsection{\texttt{extern}}
+
+\texttt{extern} declares externally provided functions or variables.
+
+\subsection{\texttt{syscall}}
+
+\texttt{syscall(...)} performs a target-facing system call operation. Its detailed behavior is target-dependent.
+
+\subsection{\texttt{asm}}
+
+Inline assembly is written as:
+
+\begin{lstlisting}[language=CPL]
+asm(args...) {
+    "instruction"
+    "instruction"
+}
+\end{lstlisting}
+
+Its semantics depend on the target backend and assembly syntax. The compiler does not attempt to make inline assembly safe.
+
+\subsection{\texttt{lis}}
+
+\texttt{lis} exists as a statement form in the grammar. Its exact high-level semantic role should be documented separately if it remains part of the stable language surface.
+
+\section{Annotations}
+
+The current report does not fully formalize annotation syntax, but annotations are part of the language design and may affect declarations, code generation, and control-flow lowering.
+
+\subsection{\texttt{hot} and \texttt{cold}}
+
+\texttt{hot} and \texttt{cold} are intentional source-level annotations that affect lowering and placement strategy. Their semantics are part of the design on purpose and are not treated as accidental backend artifacts.
+
+In the current version, they are considered semantically meaningful layout-influencing constructs, not bugs.
+
+\subsection{Other Annotations}
+
+The implementation also refers to annotations such as alignment, section placement, and related low-level controls. These should eventually receive a dedicated normative subsection.
+
+\section{Static Diagnostics}
+
+\subsection{General Structure}
+
+The compiler performs static diagnostics, and some diagnostics are blocking.
+
+\subsection{Blocking Diagnostics}
+
+The following categories are blocking according to the current implementation:
+\begin{itemize}[leftmargin=1.5em]
+    \item assignment to read-only storage,
+    \item missing required return in ordinary functions,
+    \item missing required \texttt{exit} in \texttt{start},
+    \item not enough call arguments,
+    \item illegal array access,
+    \item invalid \texttt{exit} placement or use,
+    \item assigning the result of a no-return-value call.
+\end{itemize}
+
+These are effectively compile-time errors.
+
+\subsection{Non-blocking Diagnostics}
+
+Other diagnostics may exist as warnings or advisory checks, but only the blocking classes above are guaranteed here as hard failures in the current implementation.
+
+\section{Well-defined, Implementation-defined, and Undefined Behavior}
+
+\subsection{Well-defined Behavior}
+
+The following are part of the current intended language semantics:
+\begin{itemize}[leftmargin=1.5em]
+    \item integer literals are \texttt{i64},
+    \item floating literals are \texttt{f64},
+    \item floating-point values are not valid conditions,
+    \item \texttt{str} is a mutable wrapper over character-array storage,
+    \item arrays do not decay implicitly to pointers,
+    \item omitted function return type defaults to \texttt{i64},
+    \item \texttt{-> i0} functions may not return a value expression,
+    \item lambdas lower to hidden local functions passed by reference.
+\end{itemize}
+
+\subsection{Implementation-defined Behavior}
+
+The following are still implementation-defined or incompletely regularized:
+\begin{itemize}[leftmargin=1.5em]
+    \item the full admissibility table for implicit conversions,
+    \item exact annotation syntax in the grammar,
+    \item some interaction details between low-level storage modifiers and code generation,
+    \item some semantics of historical or rarely documented statements such as \texttt{lis}.
+\end{itemize}
+
+\subsection{Target-dependent Behavior}
+
+The following depend on the compilation target or backend:
+\begin{itemize}[leftmargin=1.5em]
+    \item pointer size,
+    \item calling convention,
+    \item external symbol linkage details,
+    \item inline assembly semantics,
+    \item system call ABI,
+    \item section layout.
+\end{itemize}
+
+\subsection{Undefined Behavior}
+
+The following are undefined behavior:
+\begin{itemize}[leftmargin=1.5em]
+    \item using references or pointers to dead local storage,
+    \item violating the semantic assumptions of low-level unsafe operations,
+    \item any invalid memory access through raw pointers,
+    \item backend-invalid or ABI-invalid use of target-facing constructs such as \texttt{asm} and \texttt{syscall}.
+\end{itemize}
+
+\section{Design Summary}
+
+CPL is a compact, explicit, and intentionally unsafe low-level language. It should be understood as a compiler-oriented experimental language rather than a production systems language. Its semantics are already structured enough to support a report-style presentation, but several parts still reflect implementation pragmatics more than a finished language design.
+
+Its strongest current characteristics are:
+\begin{itemize}[leftmargin=1.5em]
+    \item small core syntax,
+    \item explicit low-level operations,
+    \item direct support for compiler experimentation,
+    \item clear separation between primitive values and manually managed memory,
+    \item deliberate rejection of automatic high-level abstractions.
+\end{itemize}
+
+Its weakest current area is the conversion model, which still needs to be turned from an implementation rule into a principled language-level specification.
+
+\section{Future Specification Work}
+
+A stronger next revision of this report should add:
+\begin{itemize}[leftmargin=1.5em]
+    \item a dedicated annotation grammar,
+    \item a normative section on storage layout and linkage,
+    \item a source-level conversion table,
+    \item a cleaned-up semantics of references versus pointers,
+    \item a proper section on local functions and lambdas,
+    \item a precise definition of \texttt{lis},
+    \item examples of legal and illegal programs.
+\end{itemize}
+
+\end{document}
