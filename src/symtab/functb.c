@@ -106,14 +106,26 @@ symbol_id_t FNTB_add_info(
     return nnd->id;
 }
 
-int FNTB_rename_func(symbol_id_t id, string_t* name, functab_ctx_t* ctx) {
-    print_log("FNTB_rename_func(id=%llu, name=%s)", id, name->body);
+int FNTB_update_func(
+    symbol_id_t id, string_t* name, 
+    int global, int local, int entry, int naked, int vargs, /* flags */
+    functab_ctx_t* ctx
+) {
+    print_log("FNTB_update_func(id=%llu, name=%s)", id, name->body);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
-        destroy_string(fi->name);
-        destroy_string(fi->virt);
-        fi->name = name->copy(name);
-        fi->virt = _create_virt_name(id, name);
+        if (name) {
+            destroy_string(fi->name);
+            destroy_string(fi->virt);
+            fi->name = name->copy(name);
+            fi->virt = _create_virt_name(id, name);
+        }
+        
+        if (global != FIELD_NO_CHANGE) fi->flags.global = global;
+        if (local != FIELD_NO_CHANGE)  fi->flags.local  = local;
+        if (entry != FIELD_NO_CHANGE)  fi->flags.entry  = entry;
+        if (naked != FIELD_NO_CHANGE)  fi->flags.naked  = naked;
+        if (vargs != FIELD_NO_CHANGE)  fi->flags.vargs  = vargs;
         return 1;
     }
 

@@ -19,7 +19,7 @@
 
 // Function
 #define FUNCTION_COMMAND        "function"
-#define VAR_ARGUMENTS_COMMAND   "..." // TODO: Mark functions as a variadic function if it has a variadic args
+#define VAR_ARGUMENTS_COMMAND   "..."
 #define LAMBDA_COMMAND          "=>"
 
 // Modifiers

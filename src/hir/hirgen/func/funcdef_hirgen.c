@@ -19,11 +19,15 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     int argnum = 0;
     ast_node_t* t;
     for (t = node->c->siblings.n->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
-        if (t->t->t_type == VAR_ARGUMENTS_TOKEN) continue; /* Skip variadic argument, TODO: Mark function as a variadic */
+        if (t->t->t_type == VAR_ARGUMENTS_TOKEN) {
+            FNTB_update_func(fi.id, NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, &smt->f);
+            continue;
+        }
+
         HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->c));
         HIR_BLOCK2(
             ctx, 
-            fi.flags.entry ? HIR_STARGLD : HIR_FARGLD,     /* If this is an entry point, use the stload command */
+            fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, 
             HIR_SUBJ_ASTVAR(t->c), 
             HIR_SUBJ_CONST(argnum++)
         );

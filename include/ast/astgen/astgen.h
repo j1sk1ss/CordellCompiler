@@ -745,7 +745,13 @@ Returns NULL.
 */
 ast_node_t* cpl_parse_annot(PARSER_ARGS);
 
-// TODO
+/*
+Parse a lambda structure.
+Params:
+    - <parser_args>
+
+Returns NULL.
+*/
 ast_node_t* cpl_parse_lambda(PARSER_ARGS);
 
 #endif
