@@ -23,7 +23,7 @@ function main() -> i0;
 ```
 
 ## Some words about annotations
-*P.S. If you're not a system programmer, or you don't plan to use these annotations, you can safely skip this block. These annotations (as all annotations) are optional.* </br>
+*P.S. The following annotations are primarily intended for systems-level use cases* </br>
 
 ### align
 A declaration of a primitive or of an array type (an array or a string) can be annotated with the `align`. This annotation will add an additional padding during memory stack allocation.
@@ -118,59 +118,3 @@ if code == X; {
 else {
 }
 ```
-
-### hot and cold
-Before our discussion, I want to provide the most canonic example that's even possible here:
-```cpl
-@[cold] if 1; { : IF1 :
-    : something :
-}
-else { : ELSE1 :
-    : something hot :
-}
-```
-
-, and an exanple with the `switch` usage:
-```cpl
-@[no_fall]
-switch 1; {
-    @[cold] case 1; {}
-    case 2; {}
-    default {}
-}
-```
-
-Now let's discuss the features and flaws of usage of these annotations. Obviously, it's one of the forms of optimization, in other words, it accelerates the output compiled file. But in other hand, it creates a lot of possible issues if you use it in the wrong way. Let me explain:
-- The `cold` and `hot` annotations simply move the branch to the end of a function (That's all, no special operations. It happens even before CFG generation). In terms of CFG and Liveness analysis, considering the label guards, it doesn't change anything. But if we will consider the `IR` of the next code:
-```cpl
-@[cold] if 1; {
-    return 2;
-}
-else {
-}
-return 1;
-```
-
-it will convert this to the next form:
-```cpl
-if not 1; then goto lb1; else goto lb2;
-lb2: {
-} : goto to the return label :
-return 1;
-lb 1: {
-    return 2;
-} : goto to the return label :
-```
-
-And here you can see a huge problem that can lead to a lot of UBs if it doesn't receive enough attention from a programmer. If we choose to remove the output `return 1;` from the function, the code will become:
-```cpl
-if not 1; then goto lb1; else goto lb2;
-lb2: {
-} : goto to the empty space label :
-lb 1: {
-    return 2;
-} : goto to the empty space label :
-```
-
-Now the execution from the `lb2` will go straightforward to the `lb1`! </br> 
-How to solve it? The compiler supports the `return` and `exit` statements even in functions without any return type, which means, if you're planning to use these annotations, make sure that you have an essential `return <something>;` statement at the function's end.

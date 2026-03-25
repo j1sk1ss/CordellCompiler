@@ -10,8 +10,7 @@
 : OUTPUT
 BB{X} start
 %2 = &(foo0(u32 a));
-%3 = %2 as u64;
-%1 = %3;
+%1 = %2;
 stparam($10);
 call %1;
 stparam($10);

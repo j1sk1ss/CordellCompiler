@@ -24,17 +24,18 @@ start(i32 a) {
                 i32s %1 = i32t %5;
                 i64t %7 = i32s %1 as i64;
                 i64t %6 = i64t %7 == num? 20;
-                if i64t %6, goto lb{X} else goto lb{X}
+                if i64t %6, goto lb29, else goto lb30;
                 lb{X}
                 {
                     exit i32s %0;
                 }
-                goto lb{X}
+                goto lb31;
                 lb{X}
                 i32s %2 = alloc(8);
                 i32t %10 = i32s %1 + i32s %0;
                 i32s %2 = i32t %10;
             }
+            exit cnst? 0;
             lb{X}
             {
                 i32t %9 = num? 1 as i32;
@@ -42,7 +43,7 @@ start(i32 a) {
                 i32s %0 = i32t %8;
                 exit i32s %1;
             }
-            goto lb{X}
+            goto lb31;
         }
     }
 }

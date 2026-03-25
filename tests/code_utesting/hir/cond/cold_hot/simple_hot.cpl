@@ -38,6 +38,7 @@ start(i32 a) {
                 i32t %10 = i32s %1 + i32s %0;
                 i32s %2 = i32t %10;
             }
+            exit cnst? 0;
             lb{X}
             {
                 exit i32s %0;

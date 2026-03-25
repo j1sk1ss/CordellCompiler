@@ -23,4 +23,6 @@ int HIR_FUNC_set_last_return(cfg_ctx_t* cctx) {
 
         list_free(&ret_blocks);
     }
+
+    return 1;
 }

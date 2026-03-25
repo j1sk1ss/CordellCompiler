@@ -32,6 +32,7 @@ start() {
                 goto lb{X}
                 lb{X}
             }
+            exit cnst? 0;
             lb{X}
             {
                 exit num? 1;

@@ -21,7 +21,11 @@ hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     }
 
     SET_AND_DUMP_POPARG(HIR_FARGLD, argnum, { HIR_generate_block(t, ctx, smt); });
-    HIR_dump_cold(ctx);
+
+    if (list_size(&ctx->cold.blocks)) {
+        HIR_BLOCK1(ctx, HIR_FRET, HIR_SUBJ_CONST(0));
+        HIR_dump_cold(ctx);
+    }
 
     HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->sinfo.s_id));
     HIR_BLOCK0(ctx, HIR_FEND);

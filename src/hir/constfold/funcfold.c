@@ -216,8 +216,7 @@ static int _propagate_frets(cfg_ctx_t* cctx, sym_table_t* smt, map_t* frets) {
                     ) { 
                         long value = 0;
                         if (_extract_variable_value(ret, smt, &value)) {
-                            VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 0);
-                            changed = 1;
+                            changed = VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 0) || changed;
                         }
                     }
                 }

@@ -30,7 +30,12 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     }
 
     SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, { HIR_generate_block(t, ctx, smt); });
-    HIR_dump_cold(ctx);
+
+    if (list_size(&ctx->cold.blocks)) {
+        HIR_BLOCK1(ctx, fi.flags.entry ? HIR_EXITOP : HIR_FRET, HIR_SUBJ_CONST(0));
+        HIR_dump_cold(ctx);
+    }
+    
     HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
     HIR_BLOCK0(ctx, HIR_FEND);
     if (lguards) HIR_BLOCK1(ctx, HIR_MKLB, lguards);

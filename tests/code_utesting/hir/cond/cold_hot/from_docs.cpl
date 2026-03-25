@@ -21,6 +21,7 @@ function foo() -> i32 {
             lb{X}
             return num? 0;
         }
+        exit cnst? 0;
         lb{X}
         {
             return num? 2;

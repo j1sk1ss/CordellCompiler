@@ -34,12 +34,12 @@ Now, when we've talked about the types system and how to maintain the static-typ
 Here is the only types that are not the primitive types. These structures represent continues data with the pre-defined size, and while most languages stop on the 'array' type, CPL has the 'string' type for convenient work with strings. The reason why we need independent strings is simple - a lot of tasks force us to work with strings, and if we remember, for instance, how this pipline of development proceeds in C, we can find ourselves in need of a new approach. </br>
 
 ### String
-- `str` - String data type. Acts the same as the `ptr i8` type, but it's used for the high-level in-built operations such as compare, len, etc. [TODO: In the v3.4 there is still no in-built operations, which means, a programmer can safely use `ptr i8` instead].
+- `str` - String data type. Acts the same as the `arr [n, i8]`.
 To declare a string, you need to use the `str` keyword:
 ```cpl
 str msg = "Hello world!";
 ```
-This will allocate data on the stack and place a terminator at the string's end. For instance, the code above will allocate exactly 13 bytes with the `\0` character on the 12 index. </br>
+This will allocate data on the stack and place a terminator at the string's end. For instance, the code above will allocate exactly 13 bytes with the `\0` character at the 12 index. </br>
 
 ### How string works?
 To be honest, a string object acts the same as it does an array object. In particular, the two declarations below are the same in terms of IR presentation:

@@ -16,9 +16,8 @@ digraph CFG_func0 {
   B1 -> B2 [label="jump"];
   B2 [label="B2:\nentry=MKLB11\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B2 -> B3 [label="jump"];
-  B3 [label="B3:\nentry=MKLB12\nexit=ENDSCOPE\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
-  B3 -> B4 [label="fall"];
-  B4 [label="B4:\nentry=MKLB10\nexit=FRET\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
+  B3 [label="B3:\nentry=MKLB12\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B4 [label="B4:\nentry=MKLB10\nexit=FRET\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B5 [label="B5:\nentry=ENDSCOPE-1\nexit=FEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
 :
