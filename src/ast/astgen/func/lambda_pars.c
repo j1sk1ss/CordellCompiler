@@ -52,7 +52,7 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     snprintf(name, sizeof(name), "__anon_function_lambda");
     string_t* anon_name = create_string(name);
 
-    base->sinfo.v_id = FNTB_add_info(anon_name, NULL,  0, 1, 0, 0,  base->sinfo.s_id, args, NULL, &smt->f);
+    base->sinfo.v_id = FNTB_add_info(anon_name, NULL,  0, 1, 0, 0, 0,  base->sinfo.s_id, args, NULL, &smt->f);
 
     destroy_string(anon_name);
     stack_pop(&ctx->scopes.stack, NULL);

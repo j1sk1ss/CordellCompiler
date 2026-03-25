@@ -113,7 +113,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     name->sinfo.v_id = FNTB_add_info(
         name->t->body, virt_name,
-        global, local, annots.is_entry, annots.is_naked, 
+        global, local, annots.is_entry, annots.is_naked, 0, // TODO: Figure it out if this is a vararg function
         name->sinfo.s_id, args, name->c, &smt->f
     );
 

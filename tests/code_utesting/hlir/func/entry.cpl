@@ -8,6 +8,6 @@
 : OUTPUT
 BB{X} fn foo0()
 fend
-BB3: start
+BB{X} start
 send
 :
