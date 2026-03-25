@@ -126,4 +126,15 @@ Returns 1 if succeeds.
 */
 int HIR_FUNC_perform_devirt(cfg_ctx_t* cctx, sym_table_t* smt);
 
+/*
+Iterate function and find last block. If this is exit and the last block, find HIR_VRUSE, which
+signals that there is a return value.
+Note: This function will ignore if function doesn't return anything.
+Params:
+    - `cctx` - CFG context.
+
+Returns 1 if succeeds.
+*/
+int HIR_FUNC_set_last_return(cfg_ctx_t* cctx);
+
 #endif

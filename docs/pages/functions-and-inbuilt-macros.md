@@ -45,9 +45,9 @@ function foo(i32 a = 1, i32 b); : <= Forbidden :
 
 ### Function overloading
 Additionally, CPL supports function overloading with some flaws (All of these are based on the compiler's architecture. See the main README for more information):
-- It doesn't support overloading with the 'default' argument.
-- CPL overloading doesn't work with the 'return' type of a function.
-- Overloaded function can't be marked as a global / extern function.
+- **Defaults or overload**: Default arguments don't participate in the function name resolution, which means, if the `default` option is present, all overloads of this function **must** use the same defaults.
+- **No return type**: CPL overloading doesn't distinguish functions by their return types.
+- **Locals only**: Overloaded function is neither a global nor extern function given the virtual names in the compiler.
 
 That means this will work:
 ```cpl
@@ -58,9 +58,9 @@ function foo(i8 a);
 
 Note: *To make sure that the compiler will choose the correct version of a function, use the 'as' keyword.*
 ```cpl
-foo(10 as i32);
+foo(10 as i32); : function foo(i32 a); :
 : i64 a; :
-foo(a as i8);
+foo(a as i8); : function foo(i8 a); :
 ```
 
 But these two snippets won't:
@@ -152,25 +152,24 @@ start() {
 P.S.: *This is a pure syntax sugar. You can define same functions at the top level. One disadvantage here: You will need to make uniqe names for them given the scope symbol resolve in the compiler.*
 
 ## Lambda functions
-Lambda functions are entirely based on local functions. In a nutshell - this is an anonymous local function:
+Lambda functions are entirely based on local functions. This means, that lambdas don't have access to the outer environment (locals of the parent function) and can serve as a convenient way of logic incapsulation without closures support. This simplifies the calling convention and local functions usage. For instance this is the comparison of a lambda and a local function:
 ```cpl
 @[entry]
 function main() {
-    function local() {
-        return 10;
-    }
-    ptr i0 local_2 = () => { return 10; };
+    function local(i32 a) { return a + 10; }
+    ptr i0 lambda = (i32 a) => a + 10;
+    : local(10) == lambda(10) :
 }
 ```
 
-These functions are pretty usefull in terms when we need to pass a logic to a function. Let's consider the example below:
+The code above contains same functions but that are written in different ways. Speaking about lambdas - they are pretty usefull. For instance when we need to pass a logic to a function. Let's consider the example below:
 ```cpl
 function foo(ptr i0 logic) {
     return logic(10, 10);
 }
 
 start() {
-    foo((i32 a, i32 b) => { a += b; return a + b; });
+    foo((i32 a, i32 b) => { a += b; a + b; });
 }
 ```
 

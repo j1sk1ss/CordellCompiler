@@ -18,7 +18,7 @@ Params:
 
 Returns generated value from the AST node or the 'NULL' value.
 */
-static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
     int sizeof_annot = 0;
     HAS_ANNOTATION(SIZEOF_ANNOTATION, node, { sizeof_annot = 1; ctx->is_hidden = 1; });
     
@@ -56,14 +56,18 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
     }
 
     if (TKN_is_update_operator(node->t)) res = HIR_generate_update_block(node, ctx, smt, 1);
-    else if (TKN_is_operand(node->t))  res = HIR_generate_operand(node, ctx, smt);
+    else if (TKN_is_operand(node->t))    res = HIR_generate_operand(node, ctx, smt);
 
-    /* If it is hidden, it means, we're gonna extract the size of the result. */
     if (sizeof_annot) {
         hir_subject_t* size = HIR_generate_sizeof(res, smt);
         HIR_BLOCK1(ctx, HIR_VRUSE, res);
         res = size;
         ctx->is_hidden = 0;
+    }
+
+    if (!ret && res) {
+        HIR_BLOCK1(ctx, HIR_VRUSE, res);
+        return 1;
     }
 
     return res;
@@ -72,7 +76,7 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
 hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node || !node->t) return NULL;
     HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
-    return _generation_handler(node, ctx, smt);
+    return _generation_handler(node, ctx, smt, 1);
 }
 
 /*
@@ -107,9 +111,9 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         default: break;
     }
 
-    if (TKN_is_decl(node->t))          return HIR_generate_declaration_block(node, ctx, smt);
-    if (TKN_is_update_operator(node->t)) (void)HIR_generate_update_block(node, ctx, smt, 0);
-    return 1;
+    if (TKN_is_decl(node->t))            return HIR_generate_declaration_block(node, ctx, smt);
+    if (TKN_is_update_operator(node->t)) return (int)((long)HIR_generate_update_block(node, ctx, smt, 0));
+    return (int)((long)_generation_handler(node, ctx, smt, 0));
 }
 
 /*
