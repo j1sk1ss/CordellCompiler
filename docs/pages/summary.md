@@ -8,7 +8,7 @@ The **Cordell Programming Language (CPL)** is a system-level programming languag
 
 ## Key Features
 Basicly, there is nothing new was invented. This language mostly based on C language with some restrictions. But in a nutshell, there is a list of features:
-- **Statically-typed**: variables can't hold values of different types. P.S. The compiler attempts implicit conversions when assigning, that's why there is no *strong typing* in the language.
+- **Permissively statically-typed**: variables can't hold values of different types. P.S. The compiler attempts implicit conversions when assigning, that's why there is no *strong typing* in the language.
 - **No structures**: language supports only primitive types as a part of an experiment. 
 - **Deterministic control flow**: no hidden behaviors. All execution paths are explicit. The compiler can change IR, but can't change CFG (except optimizations).
 - **Optimization**: input code can be optimized by techniques such as constant propagation and folding, linear invariant code motion, peephole optimization, function inline, tail recursion elimination, cold and hot branches.

@@ -30,8 +30,7 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
         return NULL;
     }
 
-    if (consume_token(it, LAMBDA_TOKEN)) forward_token(it, 1);
-    else {
+    if (!consume_token(it, LAMBDA_TOKEN)) {
         PARSE_ERROR("Expected the 'LAMBDA_TOKEN'!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
@@ -39,7 +38,10 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     }
 
     ast_node_t* body = NULL;
-    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, base);
+    PRESERVE_AST_CARRY_ARG({ 
+        if (!consume_token(it, OPEN_BLOCK_TOKEN)) body = cpl_parse_line_scope(it, ctx, smt, 1);
+        else body = cpl_parse_scope(it, ctx, smt, 1);
+     }, base);
     if (body) AST_add_node(args, body);
     else {
         PARSE_ERROR("Error during the lambdas's body parsing!");
@@ -48,10 +50,7 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
         return NULL;
     }
 
-    char name[32];
-    snprintf(name, sizeof(name), "__anon_function_lambda");
-    string_t* anon_name = create_string(name);
-
+    string_t* anon_name = create_string("__anon_function_lambda");
     base->sinfo.v_id = FNTB_add_info(anon_name, NULL,  0, 1, 0, 0, 0,  base->sinfo.s_id, args, NULL, &smt->f);
 
     destroy_string(anon_name);

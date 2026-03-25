@@ -38,9 +38,9 @@ int HIR_FUNC_perform_devirt(cfg_ctx_t* cctx, sym_table_t* smt) {
                                 mm_free(args);
                             }
 
-                            if (fits > most_fit) {
+                            if (fits > most_fit) { // TODO: Move to hirgen, 'cause we need to figure out the further casts, etc.
                                 if (
-                                    hh->farg && 
+                                    hh->farg && // TODO: Add default arguments too
                                     func->rtype
                                 ) hh->farg->t = HIR_get_tmptype_tkn(func->rtype->t, 1);
                                 hh->sarg->storage.str.s_id = func->id;

@@ -30,6 +30,20 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Hidden return
+Same as it does Rust, the compiler now recognizes the next syntax:
+```cpl
+function simple() {
+    10 + 10;
+}
+```
+
+The `return` statement now optional in cases, when we're talking about the last function's block. This feature is really usefull in terms of lambda functions:
+```cpl
+: function logic(i32 a, i32 b, ptr i0 f); :
+logic(10, 123, (i32 a, i32 b) => { a + b * 100; });
+```
+
 ## Lambdas!
 Now the compiler supports lambda functions. Actually, this is a syntax sugar 'cause it copies the behaviour of local functions. The syntax is next:
 ```cpl

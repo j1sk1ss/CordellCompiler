@@ -15,6 +15,6 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
         }
         default: res = HIR_SUBJ_ASTVAR(node); break;
     }
-    
+
     return res;
 }

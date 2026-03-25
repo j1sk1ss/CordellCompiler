@@ -18,7 +18,7 @@ The list of all possible AST warnings that are supported by the static analyzato
 - Duplicated branches. *We can check if there is a two same branches in one `if` construction*
 - Invalid function name. *Some function names are reserved by the compiler. We can't allow user to use them*
 - Dead code. *We can find is there is a dead code in the code, and if this was an intent product*
-- Possible implicit convertion. *The compiler is a static typed, but not a strict typed. To fill this gap, the checker will inform if there is a possible future implicit cast*
+- Possible implicit convertion. *The compiler is a permissively static typed, but not a strong typed. To fill this gap, the checker will inform if there is a possible future implicit cast*
 - Inefficient `while`. *Sometimes the `loop` keyword is better than `while 1`*
 - Incorrect exit type for a function. *The `exit` keyword must be used in a function (not in a `start` function) only by one condition - there is no `start` function and this is the lowest non-local function in the file*
 - Break usage without a target. *The `break` keyword must be used only to break `loop`s and `while`s*

@@ -3,7 +3,7 @@ This language **DOES NOT** support defined-types such as structures, classes, en
 I don't claim that this language doesn't have anything usefull for data managment, and we can't write some sort of drivers or memory managers. Actually, we can, but before the further discussion, let's talk about the basics.
 
 ## Static-Typing
-This language is a **static-typed** language (And it's on the way of becoming strong-typed as well). To maintain the type consistency in a code, there is the only one way: use cast operations such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
+This language is a **permissively static-typed** language (And it's on the way of becoming strong-typed as well). To maintain the type consistency in a code, there is the only one way: use cast operations such as the `as` operation. Syntax is similar with the Rust-language cast operation `as`. </br>
 For instance:
 ```cpl
 i32 never = 10 as i32;                 : The number itself is a 64-bit wide type (on x64 systems), :
