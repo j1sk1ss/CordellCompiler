@@ -130,10 +130,19 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
         }
         /* Variable defined */
         case 2: {
-            if (!di.const_value) TRACE_add_location(&trace, &curr_loc,
-                "NULL-dereference error (variable '%s' is NULL)!", 
-                _resolve_variable_name(s->storage.var.v_id, smt)
-            );
+            if (!di.const_value) {
+                trace_location_t loc;
+                _sparce_find_variable_define_location(hb, s->storage.var.v_id, &loc);
+                TRACE_add_location(
+                    &trace, &loc, "Variable '%s' is assigned with NULL here", 
+                    _resolve_variable_name(s->storage.var.v_id, smt)
+                );
+                TRACE_add_location(&trace, &curr_loc,
+                    "NULL-dereference error (variable '%s' is NULL)!", 
+                    _resolve_variable_name(s->storage.var.v_id, smt)
+                );
+            }
+
             break;
         }
         /* Overdefined */

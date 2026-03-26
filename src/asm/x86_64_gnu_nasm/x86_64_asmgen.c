@@ -96,7 +96,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_POP:        EMIT_COMMAND("pop %s", format_lir_subject(b->farg, smt));                                          break;
         case LIR_iADD:       EMIT_COMMAND("add %s, %s", format_lir_subject(b->sarg, smt), format_lir_subject(b->targ, smt));    break;
         case LIR_iSUB:       EMIT_COMMAND("sub %s, %s", format_lir_subject(b->sarg, smt), format_lir_subject(b->targ, smt));    break;
-        case LIR_iMUL:       EMIT_COMMAND("imul %s, %s", format_lir_subject(b->sarg, smt), format_lir_subject(b->targ, smt));   break; // TODO: Is the mul is correct?
+        case LIR_iMUL:       EMIT_COMMAND("imul %s, %s", format_lir_subject(b->sarg, smt), format_lir_subject(b->targ, smt));   break;
         case LIR_DIV:        EMIT_COMMAND("div %s", format_lir_subject(b->sarg, smt));                                          break;
         case LIR_iDIV:       EMIT_COMMAND("idiv %s", format_lir_subject(b->sarg, smt));                                         break;
         case LIR_CMP:        EMIT_COMMAND("cmp %s, %s", format_lir_subject(b->farg, smt), format_lir_subject(b->sarg, smt));    break;

@@ -19,7 +19,6 @@
 #define REGST_ANNOTATION_COMMAND "register"
 #define SIZEV_ANNOTATION_COMMAND "sizeof"
 #define POPRG_ANNOTATION_COMMAND "poparg"
-// TODO: interrupt (Will generate register save at the start and the end)
 
 typedef struct {
     string_t* section;

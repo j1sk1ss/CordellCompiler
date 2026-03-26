@@ -10,4 +10,5 @@ function foo() {
 
 : OUTPUT
 [WARNING] [8{X}] NULL-dereference error (variable 'e' is NULL)!
+          [6{X}]     Variable 'e' is assigned with NULL here
 :

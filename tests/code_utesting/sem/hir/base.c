@@ -69,6 +69,7 @@ int main(int argc, char* argv[]) {
     HIR_generate(&sctx, &hirctx, &smt);
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
+    HIR_FUNC_set_last_return(&cfgctx);
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);    // Analyzation
     HIR_CG_perform_dfe(&callctx, &smt);       // Transformation
@@ -87,8 +88,10 @@ int main(int argc, char* argv[]) {
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
     int folded = 0;
     do {
+        folded = 0;
         HIR_sparse_const_propagation(&dagctx, &smt);
-        folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt);
+        folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt) || folded;
+        folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
     } while (folded);
 
     SEM_perform_hir_check(&cfgctx, &dagctx, &smt);
