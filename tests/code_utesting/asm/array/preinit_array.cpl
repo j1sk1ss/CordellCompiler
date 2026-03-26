@@ -16,7 +16,7 @@ lea r15, [rel a]
 mov rdi, r15
 mov r15, 0
 mov rax, r15
-imul rax
+imul rax, 4
 mov r15, rax
 mov r8, r15
 mov r15, r8

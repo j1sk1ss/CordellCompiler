@@ -1,18 +1,19 @@
 start() {
-    i32 a = (() => { return 10; })();
+    ptr i0 getter = () => 10;
+    exit getter();
 }
 
 : OUTPUT
 BB{X} start
-jmp lb16;
+jmp lb14;
 BB{X} lb{X}
 %1 = &(__anon_function_lambda1());
-call %1;
+%0 = %1;
+call %0;
 %2 = fret();
-%3 = %2 as i32;
-%0 = %3;
-send
+exit %2;
+BB{X}
 BB{X} fn __anon_function_lambda1()
 return $10;
-BB{X}
+fend
 :

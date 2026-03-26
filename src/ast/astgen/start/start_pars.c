@@ -36,15 +36,6 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
         return NULL;
     }
 
-    ast_node_t* body = cpl_parse_scope(it, ctx, smt, 1);
-    if (body) AST_add_node(base, body);
-    else {
-        PARSE_ERROR("Error during the parsing of the '%s' body!", START_COMMAND);
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
     string_t* main_name = create_string(CONF_get_entry_name());
     if (FNTB_get_info(main_name, -1, NULL, &smt->f)) {
         PARSE_ERROR("The main function already exists!");
@@ -57,6 +48,16 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     base->sinfo.v_id = FNTB_add_info(main_name, main_name, 1, 0, 1, 0, annots.is_naked, base->sinfo.s_id, base, NULL, &smt->f);
     destroy_string(main_name);
+
+    ast_node_t* body = NULL;
+    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, base);
+    if (body) AST_add_node(base, body);
+    else {
+        PARSE_ERROR("Error during the parsing of the '%s' body!", START_COMMAND);
+        AST_unload(base);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
 
     if (!annots.section) annots.section = create_string(CONF_get_code_section());
     SCTB_move_to_section(annots.section, base->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);

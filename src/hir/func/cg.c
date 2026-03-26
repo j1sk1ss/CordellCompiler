@@ -80,10 +80,13 @@ static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
             while (hh) {
-                if (HIR_is_funccall(hh->op) && !hh->unused) {
-                    _add_vert(fb->f_id, hh->sarg->storage.str.s_id, ctx);
-                }
-                
+                if (
+                    (
+                        HIR_is_funccall(hh->op) ||
+                        (hh->op == HIR_REF && hh->sarg->t == HIR_FNAME)
+                    ) && 
+                    !hh->unused
+                ) _add_vert(fb->f_id, hh->sarg->storage.str.s_id, ctx);
                 hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
         }
