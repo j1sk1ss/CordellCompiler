@@ -19,7 +19,7 @@ start() {
                 i32t %5 = num? 10 as i32;
             }
             lb{X}
-            [i64s %3] i64s %8 = phi(set [%7, bb6][%9, bb3]);
+            [i64s %3] i64s %8 = phi(set [{X}][{X}]);
             goto lb{X}
             lb{X}
             {

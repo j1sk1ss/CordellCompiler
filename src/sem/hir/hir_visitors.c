@@ -92,11 +92,13 @@ static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_i
             loc->file   = b->farg->storage.pos.file;
             break;
         }
-        else {
+        else { 
             if (
-                b->farg && 
-                HIR_is_vartype(b->farg->t) &&
-                b->farg->storage.var.v_id == v_id
+                b->op != HIR_PHI_PREAMBLE &&
+                (
+                    (b->op == HIR_PHI && b->sarg->storage.var.v_id == v_id) ||
+                    (b->farg && HIR_is_vartype(b->farg->t) && b->farg->storage.var.v_id == v_id)
+                )
             ) found = 1;
         }
 
@@ -146,10 +148,17 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
     }
 
     int res = 1;
-    symbol_id_t v_id;
+    symbol_id_t v_id, prev_id = s->storage.var.v_id;
     while (queue_pop(&work_vars, (void**)&v_id)) {
         list_t* possible_definitions;
         if (map_get(&ctx->definitions, (long)v_id, (void**)&possible_definitions)) {
+            trace_location_t loc;
+            _sparce_find_variable_define_location(hb, prev_id, &loc);
+            TRACE_add_location(
+                &trace, &loc, "Variable '%s' is assigned with the '%s' here", 
+                _resolve_variable_name(prev_id, smt), _resolve_variable_name(v_id, smt)
+            );
+
             foreach (symbol_id_t p_id, possible_definitions) {
                 queue_push(&work_vars, (void*)p_id);
             }
@@ -158,7 +167,10 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
         variable_info_t vi;
         if (!VRTB_get_info_id(v_id, &vi, &smt->v) || !vi.vdi.defined) continue;
         else {
-            if (vi.vdi.defined == OVERDEFINED_VARIABLE && vi.vdi.definition != vi.v_id) queue_push(&work_vars, (void*)vi.vdi.definition);
+            if (vi.vdi.defined == OVERDEFINED_VARIABLE && vi.vdi.definition != vi.v_id) {
+                queue_push(&work_vars, (void*)vi.vdi.definition);
+                prev_id = v_id;
+            }
             else {
                 if (!vi.vdi.definition) {
                     res = 0;
@@ -170,12 +182,13 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
         }
     }
 
-    if (!res) {
+    if (res) TRACE_unload_trace(&trace);
+    else {
         trace_location_t loc = { .column = ctx->curr_location.column, .file = ctx->curr_location.file, .line = ctx->curr_location.line };
         TRACE_add_location(&trace, &loc, "Possible NULL-dereference error (variable '%s' is NULL)!", _resolve_variable_name(s->storage.var.v_id, smt));
+        _print_trace(&trace);
     }
 
-    _print_trace(&trace);
     queue_free(&work_vars);
     return 1;
 }

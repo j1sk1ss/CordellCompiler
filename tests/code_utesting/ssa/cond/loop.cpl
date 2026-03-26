@@ -1,3 +1,4 @@
+: BUG :
 start() {
     i32 a = 0;
     loop {

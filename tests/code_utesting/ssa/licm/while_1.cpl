@@ -1,3 +1,4 @@
+: BUG :
 start() {
     i32 d = 0;
     while 1; {
@@ -19,15 +20,15 @@ start() {
                 i32s %0 = alloc(8);
                 i32t %2 = num? 0 as i32;
                 i32s %6 = i32t %2;
-                future: i32s %8 = previous: i32s %1;
-                future: i32s %7 = previous: i32s %6;
+                future{X} i32s %8 = previous{X} i32s %1;
+                future{X} i32s %7 = previous{X} i32s %6;
                 i64t %3 = num? 10 + num? 10;
                 i32t %4 = i64t %3 as i32;
                 lb{X}
                 [i32s %0] i32s %7 = phi(set [{X}][{X}]);
                 [i32s %1] i32s %8 = phi(set [{X}][{X}]);
-                future: i32s %9 = previous: i32s {X};
-                future: i32s %10 = previous: i32s {X};
+                future{X} i32s %9 = previous{X} i32s {X};
+                future{X} i32s %10 = previous{X} i32s {X};
                 if num? 1, goto lb{X} else goto lb{X}
                 lb{X}
                 {
@@ -39,15 +40,15 @@ start() {
                     lb{X}
                     {
                         // break;
-                        future: i32s %9 = previous: i32s {X};
-                        future: i32s %10 = previous: i32s {X};
+                        future{X} i32s %9 = previous{X} i32s {X};
+                        future{X} i32s %10 = previous{X} i32s {X};
                         goto lb{X}
                     }
                     goto lb{X}
                     lb{X}
                 }
-                future: i32s %7 = previous: i32s {X};
-                future: i32s %8 = previous: i32s {X};
+                future{X} i32s %7 = previous{X} i32s {X};
+                future{X} i32s %8 = previous{X} i32s {X};
                 goto lb{X}
                 lb{X}
                 [i32s %0] i32s %9 = phi(set [{X}][{X}]);

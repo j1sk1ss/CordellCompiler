@@ -5,5 +5,15 @@ function foo(...) {
 }
 
 : OUTPUT
-.
+{
+    fn _main(...)
+    {
+        {
+            i64s %0 = alloc(8);
+            i64s %2 = load_starg();
+            f32s* %1 = alloc(8);
+            f32s* %3 = load_starg();
+        }
+    }
+}
 :

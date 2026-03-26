@@ -1,3 +1,4 @@
+: BUG :
 function foo(i32 a);
 start() {
     loop foo(10 + 10 * 1);

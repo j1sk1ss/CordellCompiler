@@ -1,3 +1,4 @@
+: BUG :
 function foo();
 start() {
     loop foo();
