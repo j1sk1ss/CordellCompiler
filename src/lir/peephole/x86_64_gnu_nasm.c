@@ -11,8 +11,7 @@ Return 1 if the 'h' is a home for the 's'.
 static int _check_home(lir_block_t* h, lir_subject_t* s) {
     lir_subject_t* args[] = { h->farg, h->sarg, h->targ };
     for (int i = 0; i < 3; i++) {
-        if (!args[i]) continue;
-        if (args[i] == s) return 1;
+        if (args[i] && args[i] == s) return 1;
     }
 
     return 0;

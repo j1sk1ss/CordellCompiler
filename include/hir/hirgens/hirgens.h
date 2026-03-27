@@ -411,7 +411,7 @@ Params:
 
 Returns a Constant subject, which represents the size of the subject.
 */
-hir_subject_t* HIR_generate_sizeof(hir_subject_t* s, sym_table_t* smt);
+hir_subject_t* HIR_generate_sizeof(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Convert lambda AST node to a HIR element. 

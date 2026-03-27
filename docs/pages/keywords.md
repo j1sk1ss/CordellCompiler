@@ -24,6 +24,7 @@ This is a summary information about all avaliable keywords in CPL. For further i
 | `ro` | A read-only modifier. | <pre><code> ro i32 a; </code></pre> |
 | `glob` | A global modifier. | <pre><code> glob function foo(); </br> glob i32 a; </code></pre> |
 | `not` | Get a negative value from a value. Is is a high abstacted operator which doesn't just invert bits in the provided value. It returns 0 if the source value wasn't equals to 0, otherwise will return 1. | <pre><code> i32 a = not 1; </br> i32 b = not 0; </code></pre> |
+| `sizeof` | Get the size of an object | <pre><code> arr a[10, i32]; </br> i32 size = sizeof(a); </code></pre> |
 | `i8` | Signed 8-bit variable | <pre><code> i8 a = 'A'; </code></pre> |
 | `u8` | Unsigned 8-bit variable | <pre><code> u8 a = 0xFF; </code></pre> |
 | `i16` | Signed 16-bit variable | <pre><code> i16 a = 0xFFF; </code></pre> |

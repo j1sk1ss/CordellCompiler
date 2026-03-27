@@ -30,6 +30,13 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Sizeof as a keyword
+From the sizeof annotation to the sizeof keyword.
+```cpl
+: old i32 len = @[sizeof]"Hello world"; :
+i32 len = sizeof("Hello world");
+```
+
 ## Hidden return
 Same as it does Rust, the compiler now recognizes the next syntax:
 ```cpl

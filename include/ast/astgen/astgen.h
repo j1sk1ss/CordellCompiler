@@ -754,4 +754,7 @@ Returns NULL.
 */
 ast_node_t* cpl_parse_lambda(PARSER_ARGS);
 
+// TODO
+ast_node_t* cpl_parse_sizeof(PARSER_ARGS);
+
 #endif

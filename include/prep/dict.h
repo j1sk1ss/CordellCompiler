@@ -60,6 +60,7 @@
 #define ELSE_COMMAND            "else"
 #define SYSCALL_COMMAND         "syscall"
 #define ASM_COMMAND             "asm"
+#define SIZEOF_COMMAND          "sizeof"
 
 // Symbols and statements (Operands)
 /* Update lexems */

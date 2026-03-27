@@ -1,11 +1,11 @@
 start() {
-    ptr i0 f = (i32 a, i32 b) => { a + b };
+    ptr i0 f = (i32 a, i32 b) => { a + b; };
     exit f(10, 10);
 }
 
 : OUTPUT
 { scope, id=1 }
-   [start] (START_TOKEN, v_id=1, s_id=1)
+   [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
          [i0] (I0_TYPE_TOKEN, ptr, v_id=-1, s_id=0)
             [f] (I0_VARIABLE_TOKEN, ptr, v_id=0, s_id=2)

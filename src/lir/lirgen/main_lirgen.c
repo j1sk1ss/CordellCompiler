@@ -59,10 +59,7 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
             lir_subject_t* sargs = LIR_SUBJ_LIST();
             _pass_params(LIR_STSARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h);
             LIR_BLOCK3(ctx, LIR_SYSC, NULL, NULL, sargs);
-            if (h->op == HIR_STORE_SYSC) {
-                LIR_BLOCK1(ctx, LIR_LOADFRET, LIR_convert_hs_to_ls(h->farg));
-            }
-            
+            if (h->op == HIR_STORE_SYSC) LIR_BLOCK1(ctx, LIR_LOADFRET, LIR_convert_hs_to_ls(h->farg));
             break;
         }
 

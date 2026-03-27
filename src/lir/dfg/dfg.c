@@ -13,14 +13,13 @@ OUT = union(IN successors)
 int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            lir_block_t* hl = cb->lmap.entry;
+            lir_block_t* hl = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
             while (hl) {
-                if (!hl->unused && LIR_is_writeop(hl->op)) {
-                    if (hl->farg->t == LIR_VARIABLE) set_add(&cb->def, (void*)hl->farg->storage.var.v_id);
-                }
-
-                if (hl == cb->lmap.exit) break;
-                hl = hl->next;
+                if (
+                    !hl->unused && LIR_is_writeop(hl->op) &&
+                    hl->farg->t == LIR_VARIABLE
+                ) set_add(&cb->def, (void*)hl->farg->storage.var.v_id);
+                hl = LIR_get_next(hl, cb->lmap.exit, 1);
             }
         }
     }
@@ -31,12 +30,11 @@ int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
 int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            lir_block_t* lh = cb->lmap.entry;
+            lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
             while (lh) {
                 lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
                 for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
-                    if (!args[i]) continue;
-                    switch (args[i]->t) {
+                    if (args[i]) switch (args[i]->t) {
                         case LIR_VARIABLE: set_add(&cb->use, (void*)args[i]->storage.var.v_id); break;
                         case LIR_ARGLIST: {
                             foreach (lir_subject_t* arg, &args[i]->storage.list.h) {
@@ -58,6 +56,13 @@ int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
     return 1;
 }
 
+/*
+Compute the 'OUT' set during the liveness analysis.
+Params:
+    - `cfg` - CFG context.
+
+Returns 1 if succeeds.
+*/
 static int _compute_out(cfg_block_t* cfg) {
     set_t out;
     set_init(&out, SET_CMP);
@@ -69,6 +74,13 @@ static int _compute_out(cfg_block_t* cfg) {
     return 1;
 }
 
+/*
+Compute the 'IN' set during the liveness analysis.
+Params:
+    - `cfg` - CFG context.
+
+Returns 1 if succeeds.
+*/
 static int _compute_in(cfg_block_t* cfg) {
     set_t tmp;
     set_copy(&tmp, &cfg->curr_out);

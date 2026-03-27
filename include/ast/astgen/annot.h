@@ -51,7 +51,6 @@ typedef enum {
     HOT_ANNOTATION,      /* Will make the linked else branch cold     */
     COLD_ANNOTATION,     /* Will make the linked then branch hot      */
     REGISTER_ANNOTATION, /* Will link the selected register to a decl */
-    SIZEOF_ANNOTATION,   /* Will replace variable load with the const */
     POPARG_ANNOTATION,   /* Will pop value from the stack to a linked */
 } annotation_type_t;
 

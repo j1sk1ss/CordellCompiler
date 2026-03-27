@@ -15,8 +15,8 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
         while (lh) {
             if (
                 LIR_is_writeop(lh->op) &&      /* We are writing some value to register (for some reason) */
-                lh->farg->t == LIR_REGISTER /* This is a register object                               */
-            ) set_add(dirty, (void*)lh->farg->storage.reg.reg); /* We re-write value in a register     */
+                lh->farg->t == LIR_REGISTER    /* This is a register object                               */
+            ) set_add(dirty, (void*)lh->farg->storage.reg.reg);    /* We re-write value in a register     */
             lh = LIR_get_next(lh, bb->lmap.exit, 1);
         }
     }
@@ -43,12 +43,10 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
     
     lir_block_t* lh = off ? off : bbh->lmap.entry;
     while (lh) {
-        if (
+        if ( /* Remove register from the 'dirty' set if it is rewritten */
             LIR_is_writeop(lh->op) && 
             lh->farg == LIR_REGISTER
-        ) { /* Remove register from the 'dirty' set if it is rewritten */
-            set_remove(dirty, (void*)lh->farg->storage.reg.reg);
-        }
+        ) set_remove(dirty, (void*)lh->farg->storage.reg.reg);
         
         lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
         for (int i = LIR_is_writeop(lh->op); i < 3; i++) {

@@ -48,30 +48,6 @@ A function and a global declaration can be placed in a specific section. To perf
 **Note 2:** By default all global/read-only variables and functions are placed in the platform's code section from the configuration. </br>
 **Note 3:** Local functions can't be placed in the specific section. They will stay with their parent function in the same section.
 
-### sizeof
-`Sizeof` annotation is an annotation, which means it must be used in the next way:
-```cpl
-i32 a;
-i32 b = @[sizeof]a;
-```
-
-It won't work with non-variable and type objects. To gather the type's size, you will need to use a temporary variable (at least for now):
-```cpl
-i32 index;
-i64 __tmp;
-loop {
-    index += @[sizeof]__tmp;
-}
-```
-
-It supports arrays and strings, but only as a primitive:
-```cpl
-str msg = "Hello!";
-arr a[10, i64];
-i32 msg_len = @[sizeof]msg;
-i32 a_len = @[sizeof]a / @[sizeof]a[0];
-```
-
 ### register
 Register annotation is similar to C's `register` keyword which links a variable to the specific selected register:
 ```cpl

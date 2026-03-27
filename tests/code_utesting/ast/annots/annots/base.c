@@ -29,7 +29,6 @@ static const char* _fmt_annot_type(annotation_type_t t) {
         case HOT_ANNOTATION:      return "@[hot]";
         case COLD_ANNOTATION:     return "@[cold]";
         case REGISTER_ANNOTATION: return "@[register]";
-        case SIZEOF_ANNOTATION:   return "@[sizeof]";
         default: return "<unknown>";
     }
 }

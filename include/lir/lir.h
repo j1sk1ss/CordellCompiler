@@ -43,7 +43,7 @@ typedef struct {
 } lir_list_t;
 
 typedef struct {
-    long               id;
+    unsigned long      id;
     struct lir_block*  home;
     char               size;
     lir_subject_type_t t;

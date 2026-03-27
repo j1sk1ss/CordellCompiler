@@ -46,7 +46,7 @@ typedef struct {
 typedef struct {
     struct hir_block*  home;  /* Home HIR block          */
     unsigned long      hash;  /* Subject's hash          */
-    long               id;    /* Subject's ID            */
+    unsigned long      id;    /* Subject's ID            */
     hir_subject_type_t t;     /* Subject's type          */
     int                ptr;   /* Subject reference level */
     union {
@@ -111,6 +111,7 @@ int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
 int HIR_dump_cold(hir_ctx_t* ctx);
 int HIR_unlink_block(hir_block_t* block);
 int HIR_unload_subject(hir_subject_t* s);
+int HIR_unload_block(hir_block_t* block);
 int HIR_unload_blocks(hir_block_t* block);
 
 static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {

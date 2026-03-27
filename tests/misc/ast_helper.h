@@ -4,6 +4,7 @@
 #include <ast/astgen.h>
 const char* name_tkn_type(token_type_t t) {
     switch (t) {
+        case SIZEOF_TOKEN:                return "SIZEOF_TOKEN";
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
         case CALLING_TOKEN:               return "CALLING_TOKEN";
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: return "UNKNOWN_FLOAT_NUMERIC_TOKEN";

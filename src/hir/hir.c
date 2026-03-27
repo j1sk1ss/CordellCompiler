@@ -79,7 +79,7 @@ long HIR_hash_subject(hir_subject_t* s) {
 /* Global HIR block ID for a unique indexing
    which helps a lot in distinguish HIR blocks
    from each other. */
-static long _curr_id = 0;
+static unsigned long _curr_id = 0;
 
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
@@ -108,27 +108,23 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
             subj->storage.var.v_id = v_id;
             subj->ptr = intval;
         break;
-
         case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER:
             if (strval) subj->storage.num.value = strval->copy(strval);
         break;
-
         case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
         case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
         case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             subj->storage.cnst.value = intval;
         break;
-
         case HIR_FNAME:
         case HIR_RAWASM:
         case HIR_STRING: 
             subj->storage.str.s_id = v_id;
         break;
-
         case HIR_FPOS:
             if (strval) {
                 subj->storage.pos.column = ((token_fpos_t*)strval)->column;
@@ -136,7 +132,6 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
                 subj->storage.pos.file   = ((token_fpos_t*)strval)->file;
             }
         break;
-
         default: break;
     }
 
@@ -160,7 +155,6 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
 
             break;
         }
-
         case HIR_ARGLIST: {
             list_init(&ns->storage.list.h);
             hir_subject_t* arg;
@@ -170,7 +164,6 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
 
             break;
         }
-
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
         case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
@@ -185,33 +178,28 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_GLBVARI0:
             ns->storage.var.v_id = s->storage.var.v_id;
         break;
-
         case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER:
             ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
         break;
-
         case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
         case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
         case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             ns->storage.cnst.value = s->storage.cnst.value;
         break;
-
         case HIR_FNAME:
         case HIR_RAWASM:
         case HIR_STRING:
             ns->storage.str.s_id = s->storage.str.s_id;
         break;
-
         case HIR_FPOS:
             ns->storage.pos.column = s->storage.pos.column;
             ns->storage.pos.line   = s->storage.pos.line;
             ns->storage.pos.file   = s->storage.pos.file;
         break;
-
         default: break;
     }
 
@@ -330,14 +318,19 @@ int HIR_unload_subject(hir_subject_t* s) {
     return 1;
 }
 
+int HIR_unload_block(hir_block_t* block) {
+    if (!block) return 0;
+    HIR_unload_subject(block->farg);
+    HIR_unload_subject(block->sarg);
+    HIR_unload_subject(block->targ);
+    return mm_free(block);
+}
+
 int HIR_unload_blocks(hir_block_t* block) {
     if (!block) return 0;
     while (block) {
         hir_block_t* nxt = block->next;
-        HIR_unload_subject(block->farg);
-        HIR_unload_subject(block->sarg);
-        HIR_unload_subject(block->targ);
-        mm_free(block);
+        HIR_unload_block(block);
         block = nxt;
     }
 
