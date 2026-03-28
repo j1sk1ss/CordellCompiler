@@ -1,4 +1,4 @@
-ro i32 flag = 1;
+ro i32 flag = 1 as i32;
 start() {
     if flag; {
         exit 1;

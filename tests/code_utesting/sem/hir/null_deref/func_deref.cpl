@@ -1,9 +1,9 @@
 function foo(ptr i8 msg) {
-    dref msg = 0;
+    dref msg = 0 as i8;
 }
 
 function bar(ptr i8 msg) {
-    dref msg = 0;
+    dref msg = 0 as i8;
 }
 
 start() {

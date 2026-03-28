@@ -1,10 +1,10 @@
 start() {
-    i32 a = 1;
-    @[align(64)] i32 b = 1;
+    i32 a = 1 as i32;
+    @[align(64)] i32 b = 1 as i32;
 }
 
 : OUTPUT
-BB1: start
+BB{X} start
 r15 = $1;
 [rbp - 8] = r15;
 r15 = [rbp - 8];

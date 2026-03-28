@@ -1,8 +1,8 @@
 start() {
-    @[align(16)] i32 a = 0;
-    @[align(64)] i32 b = 0;
-    @[align(64)] i32 c = 0;
-    @[align(8)] i32 d = 0;
+    @[align(16)] i32 a = 0 as i32;
+    @[align(64)] i32 b = 0 as i32;
+    @[align(64)] i32 c = 0 as i32;
+    @[align(8)] i32 d = 0 as i32;
 }
 
 : OUTPUT

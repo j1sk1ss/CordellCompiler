@@ -1,5 +1,5 @@
 start() {
-    i32 size = 10;
+    i32 size = 10 as i32;
     arr a[size, i32];
 }
 

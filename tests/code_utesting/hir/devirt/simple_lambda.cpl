@@ -27,19 +27,19 @@ start() {
         {
             {
                 i32s %3 = alloc(8);
-                goto lb{X}
+                goto lb52;
                 fn __anon_function_lambda2()
                 {
                     {
                         return num? 10;
                     }
                 }
-                lb{X}
-                i0t* %7 = &(__anon_function_lambda2());
-                i64t %8 = call i0t* %7, argc args();
-                i32t %9 = i64t %8 as i32;
-                i32s %3 = i32t %9;
-                goto lb{X}
+                lb52:
+                i0t* %8 = &(__anon_function_lambda2());
+                i64t %9 = call i0t* %8, argc args();
+                i32t %7 = i64t %9 as i32;
+                i32s %3 = i32t %7;
+                goto lb79;
                 fn __anon_function_lambda3(i32 a, i32 b)
                 {
                     i32s %4 = alloc(8);
@@ -51,7 +51,7 @@ start() {
                         return i32t %10;
                     }
                 }
-                lb{X}
+                lb79:
                 i0t* %11 = &(__anon_function_lambda3(i32 a, i32 b));
                 use i0t* %11;
                 call logic0(i32 a, i32 b, i0* f), argc args(num? 10,num? 20,i0t* %11,);

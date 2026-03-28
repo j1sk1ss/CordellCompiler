@@ -1,17 +1,17 @@
 start() {
-    i32 a = 10 < 15;
+    i32 a = (10 < 15) as i32;
 }
 
 : OUTPUT
-BB{X} start
+BB1: start
 %4 = $10;
 %3 = %4;
 cmp %3, $15;
 setl al;
-%1 movzx al;
-%5 = %1;
-%2 = %5;
-%6 = %2;
+%2 movzx al;
+%5 = %2;
+%1 = %5;
+%6 = %1;
 %0 = %6;
 send
 :

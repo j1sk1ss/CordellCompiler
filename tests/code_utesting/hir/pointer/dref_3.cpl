@@ -1,9 +1,10 @@
 start() {
     ptr i8 a;
     ptr ptr i8 b;
-    dref a = 1;
+    dref a = 1 as i8;
     dref b = 1;
 }
+
 : OUTPUT
 {
     start {

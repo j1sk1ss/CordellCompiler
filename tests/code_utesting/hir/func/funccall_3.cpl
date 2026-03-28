@@ -1,7 +1,7 @@
 function foo(i32 a) -> i32;
 start() {
     ptr i0 a = foo;
-    i32 b = a(10);
+    i32 b = a(10) as i32;
 }
 
 : OUTPUT
@@ -13,9 +13,9 @@ start() {
                 i0t* %3 = &(foo0(i32 a) -> i32);
                 i0s* %1 = i0t* %3;
                 i32s %2 = alloc(8);
-                i64t %4 = call i0s* %1, argc args(num? 10,);
-                i32t %5 = i64t %4 as i32;
-                i32s %2 = i32t %5;
+                i64t %5 = call i0s* %1, argc args(num? 10,);
+                i32t %4 = i64t %5 as i32;
+                i32s %2 = i32t %4;
             }
         }
     }

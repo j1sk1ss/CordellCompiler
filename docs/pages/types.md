@@ -11,8 +11,9 @@ i32 dies  = 20 as i32;                 : that's why we have to narrow it exactly
 u8 technoblade = (never + dies) as u8; : And here we narow again the product of the expression     :
 ```
 
-P.S.: *Actually, in this version of the compiler (v3.4 and lower) there is no reasonable reason to use this statement given the unavoidable implict cast. This means that the snippet above, without these `as` statements, anyway involves cast operations. However, to support the static-typing, I'd anyway recommend to use the `as` statement.* </br>
+P.S.: *Compiler can do an implicit cast if this is a widening cast. Otherwise it will return an error!* </br>
 P.S.S.: *Also, the `as` keyword is really useful in terms of function overloading functions usage. We will talk about this in the related section.*
+P.S.S.S.: *By default all numbers are 'i64' type, which means you will need to use the 'as' keyword anywhere where you're assigning numbers to a smaller type.*
 
 ## Primitives
 Now, when we've talked about the types system and how to maintain the static-typing, let's discuss about the types itself. A primitive type, in term of the compiler (and most of the compilers as well), is a basic data structure which holds some sort of data. It can handle from 8-bits up to 64-bits (depends on the target platform) of data, and can be treated as the next types:

@@ -1,6 +1,6 @@
 start() {
-    u32 a = 0;
-    u32 b = 0;
+    u32 a = 0 as u32;
+    u32 b = 0 as u32;
     u32 c = a > b;
     u32 d = a >= b;
 }

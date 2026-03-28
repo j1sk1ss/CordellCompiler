@@ -1,8 +1,8 @@
 start() {
     i64 a;
     u64 b;
-    i32 c = sizeof(a);
-    i32 d = sizeof(b);
+    i32 c = sizeof(a) as i32;
+    i32 d = sizeof(b) as i32;
 }
 
 : OUTPUT

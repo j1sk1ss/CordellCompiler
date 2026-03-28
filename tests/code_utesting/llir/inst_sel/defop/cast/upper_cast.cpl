@@ -1,12 +1,12 @@
 start() {
-    i8 a = 1;
+    i8 a = 1 as i8;
     i16 b = a;
     i32 c = b;
     i64 d = c;
 }
 
 : OUTPUT
-BB{X} start
+BB1: start
 %8 = $1;
 %4 = %8;
 %9 = %4;

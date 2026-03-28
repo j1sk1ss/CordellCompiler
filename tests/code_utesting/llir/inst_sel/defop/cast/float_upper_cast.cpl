@@ -1,10 +1,10 @@
 start() {
-    f32 a = 1;
+    f32 a = 1 as f32;
     f64 b = a;
 }
 
 : OUTPUT
-BB{X} start
+BB1: start
 %2 cvttsd2si $1;
 %4 = %2;
 %0 = %4;

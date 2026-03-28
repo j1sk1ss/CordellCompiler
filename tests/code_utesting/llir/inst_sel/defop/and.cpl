@@ -1,24 +1,24 @@
 start() {
-    i8 a = 10 && 10;
+    i8 a = (10 && 10) as i8;
 }
 
 : OUTPUT
-BB{X} start
+BB1: start
 cmp $10, 0;
-je lb18;
-jne lb17;
-BB{X} lb{X}
+je lb21;
+jne lb20;
+BB2: lb20:
 %3 = $10;
-%1 = %3;
-jmp lb19;
-BB{X} lb{X}
+%2 = %3;
+jmp lb22;
+BB3: lb21:
 %4 = 0;
-%1 = %4;
-jmp lb19;
-BB{X} lb{X}
-%5 = %1;
-%2 = %5;
-%6 = %2;
+%2 = %4;
+jmp lb22;
+BB4: lb22:
+%5 = %2;
+%1 = %5;
+%6 = %1;
 %0 = %6;
 send
 :

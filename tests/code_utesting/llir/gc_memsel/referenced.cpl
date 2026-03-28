@@ -1,5 +1,5 @@
 start() {
-    i32 a = 0;
+    i32 a = 0 as i32;
     ptr i32 b = ref a;
 }
 

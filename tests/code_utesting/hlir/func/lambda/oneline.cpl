@@ -1,19 +1,19 @@
 start() {
     ptr i0 getter = () => 10;
-    exit getter();
+    exit getter() as i8;
 }
 
 : OUTPUT
-BB{X} start
+BB2: start
 jmp lb14;
-BB{X} lb{X}
+BB3: lb14:
 %1 = &(__anon_function_lambda1());
 %0 = %1;
 call %0;
-%2 = fret();
+%3 = fret();
+%2 = %3 as i8;
 exit %2;
-BB{X}
-BB{X} fn __anon_function_lambda1()
+BB4:
+BB5: fn __anon_function_lambda1()
 return $10;
-fend
 :

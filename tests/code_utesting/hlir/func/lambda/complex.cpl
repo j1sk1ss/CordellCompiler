@@ -1,34 +1,35 @@
 start() {
     exit ((i32 a) => {
         while a; {
-            a -= 1;
+            a -= 1 as i32;
         }
         return 0;
-    })(10);
+    })(10) as i8;
 }
 
 : OUTPUT
-BB{X} start
-jmp lb14;
-BB{X} lb{X}
-%3 = &(__anon_function_lambda1(i32 a));
+BB2: start
+jmp lb17;
+BB3: lb17:
+%4 = &(__anon_function_lambda1(i32 a));
 stparam($10);
-call %3;
-%4 = fret();
-exit %4;
-BB{X}
-BB{X} fn __anon_function_lambda1(i32 a)
+call %4;
+%5 = fret();
+%1 = %5 as i8;
+exit %1;
+BB4:
+BB5: fn __anon_function_lambda1(i32 a)
 %0 = ldparam();
-BB{X} lb{X}
+BB6: lb27:
 cmp %0, 0;
-je lb26;
-jne lb25;
-BB{X} lb{X}
+je lb29;
+jne lb28;
+BB7: lb28:
 %2 = $1 as i32;
-%1 = %0 - %2;
-%0 = %1;
-jmp lb24;
-BB{X} lb{X}
+%3 = %0 - %2;
+%0 = %3;
+jmp lb27;
+BB8: lb29:
 return $0;
-BB{X}
+BB9:
 :

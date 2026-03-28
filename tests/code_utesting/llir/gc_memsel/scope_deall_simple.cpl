@@ -1,21 +1,21 @@
 start() {
     {
-        @[align(16)] i32 a = 1;
-        @[align(16)] i32 b = 1;
+        @[align(16)] i32 a = 1 as i32;
+        @[align(16)] i32 b = 1 as i32;
     }
 
-    @[align(16)] i32 a = 1;
+    @[align(16)] i32 a = 1 as i32;
 
     {
-        @[align(16)] i32 b = 1;
-        @[align(16)] i32 c = 1;
+        @[align(16)] i32 b = 1 as i32;
+        @[align(16)] i32 c = 1 as i32;
     }
 
-    @[align(16)] i32 b = 1;
+    @[align(16)] i32 b = 1 as i32;
 }
 
 : OUTPUT
-BB{X} start
+BB1: start
 r15 = $1;
 rbx = r15;
 r15 = rbx;

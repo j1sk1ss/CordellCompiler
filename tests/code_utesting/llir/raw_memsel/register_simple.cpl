@@ -1,5 +1,5 @@
 start() {
-    @[register(0)] i32 a = 0;
+    @[register(0)] i32 a = 0 as i32;
 }
 
 : OUTPUT

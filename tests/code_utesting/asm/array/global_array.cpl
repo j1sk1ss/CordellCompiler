@@ -1,6 +1,6 @@
 glob arr a[10, i32];
 start() {
-    a[0] = 1;
+    a[0] = 1 as i32;
 }
 
 : OUTPUT
@@ -9,27 +9,27 @@ section .data
 a resd 10
 section .text
 global _main
-_main{X}
+_main:
 push rbp
 mov rbp, rsp
+mov r15, 1
+mov esi, r15
 lea r15, [rel a]
-mov rsi, r15
+mov rdi, r15
 mov r15, 0
 mov rax, r15
 imul rax, 4
 mov r15, rax
-mov rdi, r15
-mov r15, rdi
-mov rbx, r15
-mov r15, rsi
-mov rax, r15
-add rax, rbx
-mov r15, rax
 mov rdx, r15
-mov r15, 1
-mov ecx, r15
-mov r15d, ecx
-mov [rdx], r15d
+mov r15, rdx
+mov rcx, r15
+mov r15, rdi
+mov rax, r15
+add rax, rcx
+mov r15, rax
+mov rbx, r15
+mov r15d, esi
+mov [rbx], r15d
 mov rax, 0x2000001
 syscall
 :
