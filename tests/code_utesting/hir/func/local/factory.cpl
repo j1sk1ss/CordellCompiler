@@ -40,16 +40,16 @@ start() {
                 i0t* %1 = &(bar1() -> i64);
                 return i0t* %1;
             }
-            lb38:
+            lb36:
             {
-                goto lb43;
+                goto lb41;
                 fn baz2() -> i64
                 {
                     {
                         return num? 2;
                     }
                 }
-                lb43:
+                lb41:
                 i0t* %2 = &(baz2() -> i64);
                 return i0t* %2;
             }
@@ -57,15 +57,15 @@ start() {
             lb13:
             i64t %3 = i32s %0 as i64;
             i8t %4 = i64t %3 < cnst? 1;
-            if i8t %4, goto lb67, else goto lb68;
-            lb67:
-            goto lb38;
-            lb68:
+            if i8t %4, goto lb61, else goto lb62;
+            lb61:
+            goto lb36;
+            lb62:
             i8t %5 = i64t %3 > cnst? 1;
-            if i8t %5, goto lb69, else goto lb70;
-            lb69:
-            goto lb38;
-            lb70:
+            if i8t %5, goto lb63, else goto lb64;
+            lb63:
+            goto lb36;
+            lb64:
             goto lb15;
             lb14:
         }

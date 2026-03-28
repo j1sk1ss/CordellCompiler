@@ -71,6 +71,7 @@ typedef struct hir_block {
 } hir_block_t;
 
 typedef struct {
+    hir_fpos_t       pos;           /* Current pos in a file                   */
     struct {
         hir_block_t* h;             /* Current HIR head                        */
         hir_block_t* t;             /* Current HIR tail                        */

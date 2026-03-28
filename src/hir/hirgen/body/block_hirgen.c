@@ -66,7 +66,6 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
 
 hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node || !node->t) return NULL;
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
     return _generation_handler(node, ctx, smt, 1);
 }
 
@@ -123,7 +122,7 @@ static inline void _insert_scope(ast_node_t* t, hir_ctx_t* ctx, hir_operation_t 
 
 int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     for (ast_node_t* t = node; t; t = t->siblings.n) {
         if (TKN_is_block(t->t) && (!t->t || t->t->t_type != START_TOKEN)) {
             _insert_scope(t, ctx, HIR_MKSCOPE);

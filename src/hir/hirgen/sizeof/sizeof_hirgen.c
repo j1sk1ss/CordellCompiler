@@ -21,7 +21,7 @@ hir_subject_t* _get_size_as_constant(hir_subject_t* s, sym_table_t* smt) {
 }
 
 hir_subject_t* HIR_generate_sizeof(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     hir_block_t* entry  = ctx->hot.t;
     hir_subject_t* src  = HIR_generate_elem(node->c, ctx, smt);
     hir_subject_t* size = _get_size_as_constant(src, smt);

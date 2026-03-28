@@ -12,7 +12,7 @@ start() {
         {
             {
                 i32s %0 = alloc(8);
-                goto lb19;
+                goto lb16;
                 fn __anon_function_lambda1(i32 a)
                 {
                     i32s %1 = alloc(8);
@@ -21,12 +21,12 @@ start() {
                         return i32s %1;
                     }
                 }
-                lb19:
+                lb16:
                 i0t* %5 = &(__anon_function_lambda1(i32 a));
                 i64t %6 = call i0t* %5, argc args(num? 10,);
                 i32t %4 = i64t %6 as i32;
                 i32s %0 = i32t %4;
-                goto lb42;
+                goto lb38;
                 fn local2(i32 a)
                 {
                     i32s %2 = alloc(8);
@@ -35,7 +35,7 @@ start() {
                         return i32s %2;
                     }
                 }
-                lb42:
+                lb38:
                 i32s %3 = alloc(8);
                 i64t %8 = call local2(i32 a), argc args(num? 10,);
                 i32t %7 = i64t %8 as i32;

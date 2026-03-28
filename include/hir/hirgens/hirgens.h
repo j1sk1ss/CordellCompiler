@@ -38,18 +38,24 @@ Params:
 /*
 Fire a HIRGEN error.
 Params:
-    - `nd` - AST source node.
+    - `ctx` - HIR ctx.
     - `msg` - Message to fire. 
 */
-#define HIRGEN_ERROR(nd, msg, ...) \
+#define HIRGEN_ERROR(ctx, msg, ...) \
     fprintf( \
-        stderr,                                                       \
-        "[%s:%li:%li] " msg "\n",                                     \
-        (nd && nd->t->finfo.file) ? nd->t->finfo.file->body : "base", \
-        nd ? nd->t->finfo.line : 0,                                   \
-        nd ? nd->t->finfo.column : 0,                                 \
-        ##__VA_ARGS__                                                 \
+        stderr,                                       \
+        "[%s:%li:%li] " msg "\n",                     \
+        ctx->pos.file ? ctx->pos.file->body : "base", \
+        ctx->pos.line,                                \
+        ctx->pos.column,                              \
+        ##__VA_ARGS__                                 \
     )
+
+#define HIR_SET_CURRENT_POS(ctx, nd)                               \
+    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&nd->t->finfo)); \
+    ctx->pos.line   = nd->t->finfo.line;                           \
+    ctx->pos.column = nd->t->finfo.column;                         \
+    ctx->pos.file   = nd->t->finfo.file;
 
 /*
 Generate implict convertion from the one type to another. 

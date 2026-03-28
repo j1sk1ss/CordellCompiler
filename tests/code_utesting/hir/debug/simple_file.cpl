@@ -6,7 +6,7 @@ start() {
 }
 
 : OUTPUT
-setpos, line=2, column=50, file=<unknown>
+setpos, line=2, column=50, file={X}
 {
 setpos, line=1, column=10, file={X}
 setpos, line=3, column=7, file={X}
@@ -17,20 +17,17 @@ setpos, line=4, column=8, file={X}
 setpos, line=4, column=8, file={X}
 setpos, line=4, column=8, file={X}
 setpos, line=4, column=11, file={X}
-setpos, line=4, column=11, file={X}
-                if num? 1, goto lb{X} else goto lb{X}
-                lb{X}
+                if num? 1, goto lb10, else goto lb12;
+                lb10:
                 {
 setpos, line=4, column=19, file={X}
 setpos, line=4, column=19, file={X}
 setpos, line=4, column=22, file={X}
-setpos, line=4, column=22, file={X}
                     exit num? 0;
                 }
-                goto lb{X}
-                lb{X}
+                goto lb12;
+                lb12:
 setpos, line=5, column=10, file={X}
-setpos, line=5, column=13, file={X}
 setpos, line=5, column=13, file={X}
                 exit num? 1;
             }

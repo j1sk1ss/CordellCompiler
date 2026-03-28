@@ -32,8 +32,8 @@ start() {
                 goto lb12;
                 lb11:
                 {
-                    if num? 2, goto lb52, else goto lb53;
-                    lb52:
+                    if num? 2, goto lb43, else goto lb44;
+                    lb43:
                     {
                         i32s %1 = alloc(8);
                         i64t %8 = num? 10 + num? 10;
@@ -43,8 +43,8 @@ start() {
                         i32t %9 = i64t %8 as i32;
                         exit i32t %9;
                     }
-                    goto lb54;
-                    lb53:
+                    goto lb45;
+                    lb44:
                     {
                         i32s %2 = alloc(8);
                         i64t %12 = num? 10 + num? 10;
@@ -54,8 +54,8 @@ start() {
                         i32t %13 = i64t %12 as i32;
                         exit i32t %13;
                     }
-                    goto lb54;
-                    lb54:
+                    goto lb45;
+                    lb45:
                 [unused] }
                 [unused] goto lb12;
                 lb12:
