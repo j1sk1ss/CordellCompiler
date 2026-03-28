@@ -6,6 +6,6 @@ start() {
     foo(a);
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [3{X}] NULL-dereference error (variable 'p' is NULL)!
-:
+/:

@@ -6,7 +6,7 @@ function foo() {
     bar();
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CFG_func0 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
@@ -19,4 +19,4 @@ digraph CFG_func1 {
   node [shape=box, fontname="monospace"];
   B4 [label="B4:\nentry=FDCL-1\nexit=FEND\nHEAD\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
-:
+/:

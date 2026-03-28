@@ -12,7 +12,7 @@ start(i32 a) {
     exit 4;
 }
 
-: OUTPUT
+:/ OUTPUT
 setpos, line=1, column=7, file=<unknown>
 {
 setpos, line=1, column=7, file=<unknown>
@@ -76,4 +76,4 @@ setpos, line=12, column=13, file=<unknown>
         }
     }
 }
-:
+/:

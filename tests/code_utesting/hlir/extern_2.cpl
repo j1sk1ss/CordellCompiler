@@ -3,7 +3,7 @@
     extern function printf(ptr u8 fmt, ...);
 }
 
-: OUTPUT
+:/ OUTPUT
 (var) extern 0;
 (fun) extern 0;
-:
+/:

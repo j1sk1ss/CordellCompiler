@@ -5,7 +5,7 @@ start(f32 a, i32 b) {
     foo(10.0, 10.0, 1, 1);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn foo0(f32 a, f64 b, i32 c, i32 d)
 %10 = %6;
 %0 = %10;
@@ -31,4 +31,4 @@ BB{X} start
 %17 <<= %23;
 call foo0(f32 a, f64 b, i32 c, i32 d);
 send
-:
+/:

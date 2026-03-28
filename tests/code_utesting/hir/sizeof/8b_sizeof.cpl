@@ -5,7 +5,7 @@
         i32 d = sizeof(b) as i32;
     }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -22,4 +22,4 @@
         }
     }
 }
-:
+/:

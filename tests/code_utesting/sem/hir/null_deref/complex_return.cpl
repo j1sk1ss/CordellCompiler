@@ -21,7 +21,7 @@ start() {
     exit dref b;
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [13{X}] 'If' with a constant value 'true'!
 [WARNING] [10{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
           [10{X}]     Variable 'tmp' declared as a constant here!
@@ -31,4 +31,4 @@ start() {
           [14{X}]     Variable 'b' becomes NULL-value
           [14{X}]     Variable 'b' is assigned with the 'a' here
           [12{X}]     Variable 'a' is assigned with NULL here
-:
+/:

@@ -3,7 +3,7 @@ start() {
     exit getter() as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB2: start
 jmp lb14;
 BB3: lb14:
@@ -16,4 +16,4 @@ exit %2;
 BB4:
 BB5: fn __anon_function_lambda1()
 return $10;
-:
+/:

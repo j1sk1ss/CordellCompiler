@@ -19,7 +19,7 @@ start() {
     exit factory(0 as i32)() as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn factory0(i32 k) -> i0*
     {
@@ -83,4 +83,4 @@ start() {
         }
     }
 }
-:
+/:

@@ -3,7 +3,7 @@ start() {
    syscall(0, foo(), 0 + 0, 0);
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
       [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -19,4 +19,4 @@ start() {
                [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

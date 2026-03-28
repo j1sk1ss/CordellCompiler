@@ -3,7 +3,7 @@ start() {
     u64 b = a;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 %3 = $1;
 %0 = %3;
@@ -12,4 +12,4 @@ BB{X} start
 %5 = %2;
 %1 = %5;
 send
-:
+/:

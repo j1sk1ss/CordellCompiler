@@ -11,7 +11,7 @@ start() {
     exit local(1 as i32) + local(1 as i16) + local(1 as i8);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -62,4 +62,4 @@ start() {
         }
     }
 }
-:
+/:

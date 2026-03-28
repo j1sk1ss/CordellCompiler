@@ -2,7 +2,7 @@ start() {
     exit ((i32 a) => { return a * a; })(10);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -25,4 +25,4 @@ start() {
         }
     }
 }
-:
+/:

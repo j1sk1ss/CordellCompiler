@@ -3,7 +3,7 @@ start() {
     @[align(64)] i32 b = 1 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $1;
 rax = r15;
@@ -15,4 +15,4 @@ r15 = rcx;
 [rbp - 64] = r15;
 kill(5);
 send
-:
+/:

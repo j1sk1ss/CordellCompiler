@@ -2,7 +2,7 @@ start() {
     syscall(syscall(1));
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 stparam($1);
 syscall;
@@ -11,4 +11,4 @@ use %0;
 stparam(%0);
 syscall;
 send
-:
+/:

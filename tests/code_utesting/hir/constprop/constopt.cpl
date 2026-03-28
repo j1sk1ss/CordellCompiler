@@ -2,9 +2,9 @@ start() {
     i32 a = (2 * 1024) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {id: 1, tmp, i32, s_id: -1, value=2048}
 {id: 3, a, i32, s_id: 2, value=2048}
 {id: 0, a, i32, s_id: 2}
 {id: 2, tmp, f64, s_id: -1, value=2048}
-:
+/:

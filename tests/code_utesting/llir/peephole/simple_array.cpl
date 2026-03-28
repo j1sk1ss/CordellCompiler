@@ -3,7 +3,7 @@ start() {
     a[0] = 1 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 === BEFORE ===
 BB1: start
 r15 = $1;
@@ -44,4 +44,4 @@ r15 = $1;
 *(rbx) = $1;
 kill(6);
 send
-:
+/:

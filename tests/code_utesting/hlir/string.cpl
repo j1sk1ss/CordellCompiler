@@ -6,7 +6,7 @@ start() {
     ans[1] = 'g' as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %2 = str(Hello, World!) as u64;
 %0 = %2;
@@ -24,4 +24,4 @@ BB1: start
 %11 = %9 + %12;
 *(%11) = %8;
 send
-:
+/:

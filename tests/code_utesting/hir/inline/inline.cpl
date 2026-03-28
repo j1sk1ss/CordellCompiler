@@ -12,7 +12,7 @@ start() {
     i32 a = foo(10);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn foo0(i32 a) -> i32
     {
@@ -63,4 +63,4 @@ start() {
         }
     }
 }
-:
+/:

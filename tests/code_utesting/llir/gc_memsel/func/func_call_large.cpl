@@ -6,7 +6,7 @@ start() {
     foo(a, 1, 2, b, 3, 4, c, 5, 6);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $1;
 rcx = r15;
@@ -40,4 +40,4 @@ push($5);
 push($6);
 call foo0(...);
 send
-:
+/:

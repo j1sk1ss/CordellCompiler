@@ -9,7 +9,7 @@ start() {
     return 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [4{X}] 'If' with a constant value 'true'!
 [WARNING] [6{X}] NULL-dereference error (variable 'a' is NULL)!
-:
+/:

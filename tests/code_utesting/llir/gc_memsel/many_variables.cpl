@@ -20,7 +20,7 @@ start() {
     exit (a + b + c + d + e + f + g + k + l + o + u + y + x + p + q + w + r + v) as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $1;
 r13 = r15;
@@ -227,4 +227,4 @@ kill(53);
 kill(48);
 exit rdx;
 BB2:
-:
+/:

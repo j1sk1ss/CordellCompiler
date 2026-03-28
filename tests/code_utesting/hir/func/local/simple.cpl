@@ -4,7 +4,7 @@ function foo() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main()
     {
@@ -19,4 +19,4 @@ function foo() {
         }
     }
 }
-:
+/:

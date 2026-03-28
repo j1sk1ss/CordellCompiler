@@ -2,7 +2,7 @@ start() {
     i32 a = ((i32 a, i32 b) => { a + b; })(10, 10);
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
@@ -22,4 +22,4 @@ start() {
                { scope, id=0 }
                   [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                   [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

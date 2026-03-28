@@ -9,9 +9,9 @@ start() {
     dref a = 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [3{X}] 'If' with a constant value 'true'!
 [WARNING] [4{X}] 'If' with a constant value 'true'!
 [WARNING] [9{X}] Possible NULL-dereference error (variable 'a' is NULL)!
           [5{X}]     Variable 'a' becomes NULL-value
-:
+/:

@@ -7,7 +7,7 @@ start() {
     ptr f64 e = ref b;
     ptr i8 f = ref a;
 }
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -28,4 +28,4 @@ start() {
         }
     }
 }
-:
+/:

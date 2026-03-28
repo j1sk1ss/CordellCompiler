@@ -5,7 +5,7 @@ start() {
     ptr i8 d = "Hello world!" as ptr i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -22,4 +22,4 @@ start() {
         }
     }
 }
-:
+/:

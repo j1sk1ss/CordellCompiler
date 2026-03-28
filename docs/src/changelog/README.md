@@ -30,6 +30,16 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Large comment blocks
+Now the compiler supports the second set of a comment marking:
+```cpl
+: COMMENT LINE :
+
+:/
+This is: a comment too!
+/:
+```
+
 ## Sizeof as a keyword
 From the sizeof annotation to the sizeof keyword.
 ```cpl

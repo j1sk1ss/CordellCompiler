@@ -4,6 +4,6 @@ start() {
     foo(ref a);
 }
 
-: OUTPUT
+:/ OUTPUT
 id: 1, owners: 2
-:
+/:

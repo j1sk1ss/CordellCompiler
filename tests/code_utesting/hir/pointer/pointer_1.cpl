@@ -2,7 +2,7 @@ start() {
     i32 a;
     i32 b = dref ref a;
 }
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -16,4 +16,4 @@ start() {
         }
     }
 }
-:
+/:

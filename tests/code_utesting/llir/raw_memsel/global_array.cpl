@@ -3,7 +3,7 @@ start() {
     a[0] = 1 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 %0 = arr_alloc($10);
 BB1: start
 r15 = $1;
@@ -25,4 +25,4 @@ r15 = rax;
 r15 = [rbp - 8];
 *([rbp - 40]) = r15;
 send
-:
+/:

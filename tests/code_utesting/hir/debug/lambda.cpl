@@ -3,7 +3,7 @@ start() {
     foo((i32 a) => a * a);
 }
 
-: OUTPUT
+:/ OUTPUT
 setpos, line=1, column=10, file=<unknown>
 {
 setpos, line=1, column=10, file=<unknown>
@@ -38,4 +38,4 @@ setpos, line=3, column=35, file=<unknown>
         }
     }
 }
-:
+/:

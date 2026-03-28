@@ -9,7 +9,7 @@ start() {
     logic(10, 20, max);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn logic2(i32 a, i32 b, u64* perform) -> i32
     {
@@ -39,4 +39,4 @@ start() {
         }
     }
 }
-:
+/:

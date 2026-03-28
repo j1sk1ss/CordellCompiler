@@ -12,7 +12,7 @@ start() {
     exit 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -58,4 +58,4 @@ start() {
         }
     }
 }
-:
+/:

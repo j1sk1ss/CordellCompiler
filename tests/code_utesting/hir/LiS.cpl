@@ -2,7 +2,7 @@ start() {
     lis "breakpoint";
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -12,4 +12,4 @@ start() {
         }
     }
 }
-:
+/:

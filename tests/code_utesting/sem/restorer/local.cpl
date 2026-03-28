@@ -5,7 +5,7 @@ function foo() {
     bar();
 }
 
-: OUTPUT
+:/ OUTPUT
 1 | {
 1 |     function foo()
 2 |     {
@@ -15,4 +15,4 @@ function foo() {
 5 |         bar();
 2 |     }
 1 | }
-:
+/:

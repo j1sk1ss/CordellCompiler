@@ -12,7 +12,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 BB{X} lb{X}
 jmp lb{X};
@@ -33,4 +33,4 @@ jmp lb{X};
 BB{X}
 BB{X} lb{X}
 send
-:
+/:

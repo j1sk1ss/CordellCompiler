@@ -7,7 +7,7 @@ start() {
     i32 b = a(10) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn foo0(i32 a) -> i32
     {
@@ -31,4 +31,4 @@ start() {
         }
     }
 }
-:
+/:

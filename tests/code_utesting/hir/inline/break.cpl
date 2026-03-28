@@ -10,7 +10,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn foo0()
     {
@@ -42,4 +42,4 @@ start() {
         }
     }
 }
-:
+/:

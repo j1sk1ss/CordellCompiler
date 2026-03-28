@@ -5,7 +5,7 @@ start() {
     u32 d = a >= b;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %10 = $0;
 %4 = %10;
@@ -30,4 +30,4 @@ stae al;
 %17 = %7;
 %3 = %17;
 send
-:
+/:

@@ -8,7 +8,7 @@ function foo() -> i32 {
     return 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main() -> i32
     {
@@ -29,4 +29,4 @@ function foo() -> i32 {
         goto lb{X}
     }
 }
-:
+/:

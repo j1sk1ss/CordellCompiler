@@ -6,7 +6,7 @@ start(i64 argc, ptr u64 argv) {
     exit 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 #line 0 "{X}"
 #line 0 "{X}"
 function strlen(ptr i8 s) -> i64;
@@ -18,4 +18,4 @@ start(i64 argc, ptr u64 argv) {
     print(ref msg);
     exit 0;
 }
-:
+/:

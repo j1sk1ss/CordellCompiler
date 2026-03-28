@@ -6,7 +6,7 @@ start() {
     foo("Hello!");
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn foo0(str msg)
     {
@@ -30,4 +30,4 @@ start() {
         }
     }
 }
-:
+/:

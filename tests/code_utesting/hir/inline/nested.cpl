@@ -14,7 +14,7 @@ start() {
     exit baz();
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn foo0()
     {
@@ -51,4 +51,4 @@ start() {
         }
     }
 }
-:
+/:

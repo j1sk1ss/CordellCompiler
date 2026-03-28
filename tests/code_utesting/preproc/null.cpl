@@ -4,9 +4,9 @@ start() {
     exit 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 start() {
     ptr i8 a = 0 as ptr u64;
     exit 0;
 }
-:
+/:

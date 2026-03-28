@@ -6,7 +6,7 @@ start() {
     exit foo(100 as i32);
 }
 
-: OUTPUT
+:/ OUTPUT
 === BEFORE ===
 BB2: fn foo0(i32 a) -> i32
 r15 = rdi;
@@ -52,4 +52,4 @@ rdi <<= $100;
 call foo0(i32 a) -> i32;
 exit rdx;
 BB5:
-:
+/:

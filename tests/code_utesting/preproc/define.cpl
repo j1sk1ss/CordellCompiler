@@ -3,6 +3,6 @@
 #define C 1
 function a();
 
-: OUTPUT
+:/ OUTPUT
 function a();
-:
+/:

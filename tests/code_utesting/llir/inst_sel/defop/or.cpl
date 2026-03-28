@@ -2,7 +2,7 @@ start() {
     i8 a = (10 || 10) as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 cmp $10, 0;
 je lb21;
@@ -21,4 +21,4 @@ BB4: lb22:
 %6 = %1;
 %0 = %6;
 send
-:
+/:

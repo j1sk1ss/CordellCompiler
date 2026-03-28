@@ -7,7 +7,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 cmp $1, 0;
 je lb{X};
@@ -21,4 +21,4 @@ jmp lb{X};
 
 BB{X} lb{X}
 send
-:
+/:

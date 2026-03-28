@@ -4,7 +4,7 @@ start() {
     a += b += a; 
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %3 = $11 * $12;
 %5 = $10 as u64;
@@ -20,4 +20,4 @@ BB1: start
 %10 = %0 + %1;
 %0 = %10;
 send
-:
+/:

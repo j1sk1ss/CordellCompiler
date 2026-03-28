@@ -7,7 +7,7 @@ start() {
     exit foo();
 }
 
-: OUTPUT
+:/ OUTPUT
 BB2: fn foo0()
 %1 = $1 as i32;
 %0 = %1;
@@ -18,4 +18,4 @@ call foo0();
 %2 = fret();
 exit %2;
 BB5:
-:
+/:

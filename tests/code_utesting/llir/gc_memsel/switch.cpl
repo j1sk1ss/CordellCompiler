@@ -7,7 +7,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 jmp lb{X}
 BB2: lb{X}
@@ -43,4 +43,4 @@ jne lb{X}
 BB7: lb{X}
 jmp lb{X}
 BB8: lb{X}
-:
+/:

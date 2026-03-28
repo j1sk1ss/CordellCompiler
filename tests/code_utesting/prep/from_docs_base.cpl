@@ -8,7 +8,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 line=1, type={X}, data=[{],
 line=3, type={X}, data=[{X}],
 line=3, type={X}, data=[{X}],
@@ -57,4 +57,4 @@ line=7, type={X}, data=[0],
 line=7, type={X}, data=[;],
 line=8, type={X}, data=[}],
 line=9, type={X}, data=[}],
-:
+/:

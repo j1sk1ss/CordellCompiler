@@ -9,7 +9,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -53,4 +53,4 @@ start() {
         }
     }
 }
-:
+/:

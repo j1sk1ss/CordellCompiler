@@ -2,8 +2,8 @@
 @[align(64)] glob i32 b;
 @[align(64)] glob i32 c;
 
-: OUTPUT
+:/ OUTPUT
 {id: 0, a, i32, s_id: 1, align: 16}
 {id: 1, b, i32, s_id: 1, align: 64}
 {id: 2, c, i32, s_id: 1, align: 64}
-:
+/:

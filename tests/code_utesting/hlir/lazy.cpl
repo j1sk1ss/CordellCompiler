@@ -7,7 +7,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 cmp %0, 0;
 je lb27;
@@ -34,4 +34,4 @@ BB7: lb49:
 %6 = %7 as i8;
 %3 = %6;
 send
-:
+/:

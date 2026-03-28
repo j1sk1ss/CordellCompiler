@@ -6,7 +6,7 @@ start() {
     i32 e = 1 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 === BEFORE ===
 BB1: start
 r15 = $1;
@@ -39,4 +39,4 @@ rbx = $1;
 rdi = $1;
 rax = $1;
 send
-:
+/:

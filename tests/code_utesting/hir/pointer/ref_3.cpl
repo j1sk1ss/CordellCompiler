@@ -4,7 +4,7 @@ start() {
     dref foo(ref a) = 1 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -19,4 +19,4 @@ start() {
         }
     }
 }
-:
+/:

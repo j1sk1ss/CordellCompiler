@@ -2,7 +2,7 @@ start() {
     i32 a = 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 [base:2:12] Narrow implicit cast is forbidden!
 {
     start {
@@ -14,4 +14,4 @@ start() {
         }
     }
 }
-:
+/:

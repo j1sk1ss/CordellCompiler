@@ -6,7 +6,7 @@ start() {
     i32 b = local() as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -44,4 +44,4 @@ start() {
         }
     }
 }
-:
+/:

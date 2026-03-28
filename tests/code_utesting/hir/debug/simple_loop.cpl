@@ -3,7 +3,7 @@ function foo() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 setpos, line=1, column=10, file=<unknown>
 {
 setpos, line=1, column=10, file=<unknown>
@@ -28,4 +28,4 @@ setpos, line=2, column=32, file=<unknown>
         }
     }
 }
-:
+/:

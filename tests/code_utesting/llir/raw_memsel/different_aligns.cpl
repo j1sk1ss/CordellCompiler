@@ -5,7 +5,7 @@ start() {
     @[align(8)] i32 d = 0 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $0;
 [rbp - 8] = r15;
@@ -24,4 +24,4 @@ r15 = $0;
 r15 = [rbp - 176];
 [rbp - 184] = r15;
 send
-:
+/:

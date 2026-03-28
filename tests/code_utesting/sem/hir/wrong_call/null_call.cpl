@@ -3,7 +3,7 @@ start() {
     a(10);
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [3{X}] NULL-dereference error (variable 'a' is NULL)!
           [2{X}]     Variable 'a' is assigned with NULL here
-:
+/:

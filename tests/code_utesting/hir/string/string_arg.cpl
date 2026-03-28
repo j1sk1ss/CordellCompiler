@@ -4,7 +4,7 @@ start() {
     foo(msg);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -16,4 +16,4 @@ start() {
         }
     }
 }
-:
+/:

@@ -3,7 +3,7 @@ start() {
     dref a = 0 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 === BEFORE ===
 BB1: start
 r15 = $754688;
@@ -23,4 +23,4 @@ r15 = r15 ^ r15;
 rax = r15;
 *(rcx) = rax;
 send
-:
+/:

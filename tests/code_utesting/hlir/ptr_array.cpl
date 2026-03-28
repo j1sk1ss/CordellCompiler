@@ -6,7 +6,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %0 = arr_alloc($10);
 %1 = &(%0);
@@ -27,4 +27,4 @@ BB1: start
 %14 = %12 + %15;
 *(%14) = %6;
 send
-:
+/:

@@ -4,7 +4,7 @@ start() {
     a = b;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     i32g %0 = alloc(8);
     start {
@@ -19,4 +19,4 @@ start() {
         }
     }
 }
-:
+/:

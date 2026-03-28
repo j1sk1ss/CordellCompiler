@@ -2,7 +2,7 @@ start() {
     i32 a = (() => { return 10; })() as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB2: start
 jmp lb19;
 BB3: lb19:
@@ -15,4 +15,4 @@ send
 BB4: fn __anon_function_lambda1()
 return $10;
 BB5:
-:
+/:

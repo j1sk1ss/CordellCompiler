@@ -5,7 +5,7 @@ start() {
     else exit a;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $1;
 rsi = r15;
@@ -27,4 +27,4 @@ r15 = rdx;
 rdx = r15;
 exit rdx;
 BB4: lb34:
-:
+/:

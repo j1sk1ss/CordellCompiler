@@ -3,7 +3,7 @@ start() {
     exit f(10);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 jmp lb14;
 BB{X} lb{X}
@@ -19,4 +19,4 @@ BB{X} fn __anon_function_lambda1(i32 a)
 %2 = %1 * %1;
 return %2;
 BB{X}
-:
+/:

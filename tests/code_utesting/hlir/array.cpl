@@ -5,7 +5,7 @@ start() {
     i32 c = dref a;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %0 = arr_alloc($10);
 %3 = $0 as i32;
@@ -23,4 +23,4 @@ BB1: start
 %13 = *(%0);
 %2 = %13;
 send
-:
+/:

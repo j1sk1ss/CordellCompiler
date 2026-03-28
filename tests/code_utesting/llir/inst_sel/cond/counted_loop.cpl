@@ -3,7 +3,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 %2 = 10;
 %0 = %2;
@@ -23,4 +23,4 @@ jne lb{X}
 BB{X}
 BB{X} lb{X}
 send
-:
+/:

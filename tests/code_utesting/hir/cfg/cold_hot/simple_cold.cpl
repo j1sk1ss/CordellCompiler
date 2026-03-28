@@ -10,7 +10,7 @@ start(i32 a) {
     i32 d = b + a;
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CFG_func0 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
@@ -22,4 +22,4 @@ digraph CFG_func0 {
   B4 [label="B4:\nentry=MKLB26\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B5 [label="B5:\nentry=ENDSCOPE-1\nexit=HIR_STEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
-:
+/:

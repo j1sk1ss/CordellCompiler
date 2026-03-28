@@ -5,7 +5,7 @@ start() {
     i64 d = c;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %8 = $1;
 %4 = %8;
@@ -21,4 +21,4 @@ BB1: start
 %12 = %7;
 %3 = %12;
 send
-:
+/:

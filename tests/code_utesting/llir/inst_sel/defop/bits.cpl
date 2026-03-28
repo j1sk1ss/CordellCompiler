@@ -4,7 +4,7 @@ start() {
     i32 c = (10 ^ 10) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %12 = $10;
 %9 = %12;
@@ -34,4 +34,4 @@ BB1: start
 %23 = %7;
 %2 = %23;
 send
-:
+/:

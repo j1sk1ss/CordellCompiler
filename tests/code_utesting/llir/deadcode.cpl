@@ -9,7 +9,7 @@ start() {
     exit 2;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 cmp $1, 0;
 je lb{X}
@@ -20,4 +20,4 @@ BB{X} lb{X}
 exit $1;
 BB{X} lb{X}
 BB{X}
-:
+/:

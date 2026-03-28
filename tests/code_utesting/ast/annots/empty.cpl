@@ -3,6 +3,6 @@
     @[naked]
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
-:
+/:

@@ -11,7 +11,7 @@ start() {
     exit b as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB2: fn foo0(i32 a)
 r15 = rdi;
 rdx = r15;
@@ -78,4 +78,4 @@ r15 = rdx;
 rdx = r15;
 exit rdx;
 BB5:
-:
+/:

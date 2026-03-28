@@ -6,7 +6,7 @@ start() {
    a + b + c + d;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
@@ -25,4 +25,4 @@ start() {
                   [b] (I16_VARIABLE_TOKEN, v_id=1, s_id=2)
                [c] (I32_VARIABLE_TOKEN, v_id=2, s_id=2)
             [d] (I64_VARIABLE_TOKEN, v_id=3, s_id=2)
-:
+/:

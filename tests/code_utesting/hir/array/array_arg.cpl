@@ -4,7 +4,7 @@ start() {
     foo(a);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -16,4 +16,4 @@ start() {
         }
     }
 }
-:
+/:

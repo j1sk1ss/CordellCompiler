@@ -5,7 +5,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 (fun) extern 0;
 BB{X} start
 use str(Hello world! %i);
@@ -13,4 +13,4 @@ stparam(str(Hello world! %i));
 stparam($10);
 call printf0(i8* fmt, ...) -> i0;
 send
-:
+/:

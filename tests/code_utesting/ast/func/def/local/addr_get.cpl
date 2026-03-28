@@ -5,7 +5,7 @@ function foo() -> ptr u64 {
    return bar;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
       [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -20,4 +20,4 @@ function foo() -> ptr u64 {
                         [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             [return] (RETURN_TOKEN, v_id=-1, s_id=3)
                [bar] (CALL_ADDR_TOKEN, v_id=1, s_id=0)
-:
+/:

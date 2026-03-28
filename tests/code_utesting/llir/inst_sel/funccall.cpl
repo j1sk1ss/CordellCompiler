@@ -3,7 +3,7 @@ start() {
     foo(1, 2);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 %4 = $1;
 %2 <<= %4;
@@ -11,4 +11,4 @@ BB{X} start
 %3 <<= %5;
 call foo0(i32 a, i32 b);
 send
-:
+/:

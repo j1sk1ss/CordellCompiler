@@ -2,7 +2,7 @@ start() {
     exit ((i32 a) => { return a * a; })(10);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 jmp lb14;
 BB{X} lb{X}
@@ -17,4 +17,4 @@ BB{X} fn __anon_function_lambda1(i32 a)
 %1 = %0 * %0;
 return %1;
 BB{X}
-:
+/:

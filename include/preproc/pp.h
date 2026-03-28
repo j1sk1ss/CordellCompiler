@@ -28,10 +28,11 @@
 #define SCOPE_GUARDER_INIT -93
 
 typedef struct {
-    int      in_colon : 1; /* In comment section        */
-    int      in_str   : 1; /* In string                 */
-    int      in_chr   : 1; /* In character              */
-    int      esc      : 1; /* Backslash                 */
+    int      in_colon       : 1; /* In comment section        */
+    int      in_colon_slash : 1; /* Big comment section       */
+    int      in_str         : 1; /* In string                 */
+    int      in_chr         : 1; /* In character              */
+    int      esc            : 1; /* Backslash                 */
     sstack_t skips;
 } pp_cmt_state_t;
 

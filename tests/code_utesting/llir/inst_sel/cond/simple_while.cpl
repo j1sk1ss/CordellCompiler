@@ -4,7 +4,7 @@ start(i32 a) {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %3 = [rbp + 8];
 %0 = %3;
@@ -25,4 +25,4 @@ BB3: lb14:
 jmp lb13;
 BB4: lb15:
 send
-:
+/:

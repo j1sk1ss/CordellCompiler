@@ -2,6 +2,6 @@ start() {
     arr a[10, i32] = {0};
 }
 
-: OUTPUT
+:/ OUTPUT
 id: 0, a, arr, s_id: 2, align: 8
-:
+/:

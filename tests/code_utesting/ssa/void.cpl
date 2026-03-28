@@ -4,7 +4,7 @@ start() {
     a = 0x3;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -20,4 +20,4 @@ start() {
         }
     }
 }
-:
+/:

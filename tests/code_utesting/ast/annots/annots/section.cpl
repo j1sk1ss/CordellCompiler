@@ -3,5 +3,5 @@
     return 0;
 }
 
-: OUTPUT
-:
+:/ OUTPUT
+/:

@@ -12,6 +12,6 @@ start() {
     bar(1);
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [2{X}] NULL-dereference error (variable 'msg' is NULL)!
-:
+/:

@@ -2,7 +2,7 @@ start() {
     i32 a = (10 * 1024) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 === BEFORE ===
 BB1: start
 r15 = $10;
@@ -23,4 +23,4 @@ rbx = rax;
 rdx = rax;
 rcx = rax;
 send
-:
+/:

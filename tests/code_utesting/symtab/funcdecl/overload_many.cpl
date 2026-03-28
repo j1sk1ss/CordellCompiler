@@ -10,7 +10,7 @@ function foo(u8 a, u8 b);
 function foo(i8 a, u8 b);
 function foo(u8 a, i8 b);
 
-: OUTPUT
+:/ OUTPUT
 {id: 2, name: foo (virt: foo2), ext=0, glob=0, used=0, local=0, sid=1}
 {id: 9, name: foo (virt: foo9), ext=0, glob=0, used=0, local=0, sid=1}
 {id: 1, name: foo (virt: foo1), ext=0, glob=0, used=0, local=0, sid=1}
@@ -22,4 +22,4 @@ function foo(u8 a, i8 b);
 {id: 5, name: foo (virt: foo5), ext=0, glob=0, used=0, local=0, sid=1}
 {id: 6, name: foo (virt: foo6), ext=0, glob=0, used=0, local=0, sid=1}
 {id: 8, name: foo (virt: foo8), ext=0, glob=0, used=0, local=0, sid=1}
-:
+/:

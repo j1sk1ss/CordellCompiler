@@ -6,7 +6,7 @@ start() {
    dref (1 + dref 0x1 - dref dref 0x01) = 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
       [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -42,4 +42,4 @@ start() {
                            [dref] (DREF_TYPE_TOKEN, v_id=-1, s_id=0)
                               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

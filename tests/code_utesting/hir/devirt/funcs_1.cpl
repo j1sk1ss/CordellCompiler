@@ -6,7 +6,7 @@ start() {
     exit 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -20,4 +20,4 @@ start() {
         }
     }
 }
-:
+/:

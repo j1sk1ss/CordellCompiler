@@ -5,7 +5,7 @@ start() {
     i32 d = a;
     i32 f = c;
 }
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -26,4 +26,4 @@ start() {
         }
     }
 }
-:
+/:

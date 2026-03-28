@@ -5,7 +5,7 @@ function baz() {
     i32 b = (@[not_lazy] (foo() && bar())) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn baz2()
     {
@@ -39,4 +39,4 @@ function baz() {
         }
     }
 }
-:
+/:

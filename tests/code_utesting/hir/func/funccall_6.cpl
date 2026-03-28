@@ -7,7 +7,7 @@ start() {
     foo(ref a);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn foo0(i32** a)
     {
@@ -30,4 +30,4 @@ start() {
         }
     }
 }
-:
+/:

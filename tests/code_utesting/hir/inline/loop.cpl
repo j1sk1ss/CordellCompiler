@@ -10,7 +10,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn getter0()
     {
@@ -40,4 +40,4 @@ start() {
         }
     }
 }
-:
+/:

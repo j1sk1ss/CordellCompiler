@@ -3,7 +3,7 @@ start() {
     foo(100 + 1, 100 + 1);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -17,4 +17,4 @@ start() {
         }
     }
 }
-:
+/:

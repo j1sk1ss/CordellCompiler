@@ -4,7 +4,7 @@ start() {
     exit (a + b) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $1;
 rdx = r15;
@@ -25,4 +25,4 @@ r15 = r8;
 rdx = r15;
 exit rdx;
 BB2:
-:
+/:

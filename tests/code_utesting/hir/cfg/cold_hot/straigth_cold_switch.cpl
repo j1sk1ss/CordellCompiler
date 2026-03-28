@@ -9,7 +9,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CFG_func0 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
@@ -34,4 +34,4 @@ digraph CFG_func0 {
   B11 [label="B11:\nentry=MKLB20\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B12 [label="B12:\nentry=ENDSCOPE-1\nexit=HIR_STEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
-:
+/:

@@ -6,7 +6,7 @@ function foo() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: fn _main()
 %3 = $10;
 %1 = %3;
@@ -23,4 +23,4 @@ BB2: lb21:
 exit %5;
 BB3: lb23:
 fend
-:
+/:

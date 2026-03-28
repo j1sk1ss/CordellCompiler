@@ -7,7 +7,7 @@ start() {
     ptr ptr u64 b;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     i32g %0 = alloc(8);
     u64g** %1 = alloc(8);
@@ -24,4 +24,4 @@ start() {
         }
     }
 }
-:
+/:

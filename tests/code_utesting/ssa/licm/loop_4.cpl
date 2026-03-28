@@ -4,7 +4,7 @@ start() {
     loop foo(10 + 10 * 1);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -26,4 +26,4 @@ start() {
         }
     }
 }
-:
+/:

@@ -5,7 +5,7 @@ start() {
     i8 d = c as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %7 = $1;
 %0 = %7;
@@ -22,4 +22,4 @@ BB1: start
 %13 = %6;
 %3 = %13;
 send
-:
+/:

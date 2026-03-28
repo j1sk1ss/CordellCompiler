@@ -5,7 +5,7 @@ function foo() {
     i32 d = @[not_lazy] (a && b);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn foo0()
     {
@@ -35,4 +35,4 @@ function foo() {
         }
     }
 }
-:
+/:

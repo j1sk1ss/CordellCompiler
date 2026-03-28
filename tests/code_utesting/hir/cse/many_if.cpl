@@ -13,7 +13,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -63,4 +63,4 @@ start() {
         [unused] }
     [unused] }
 }
-:
+/:

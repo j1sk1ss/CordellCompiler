@@ -3,7 +3,7 @@ start() {
     i32 b = a[5];
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = &([rbp - 40]);
 rcx = r15;
@@ -25,4 +25,4 @@ r15 = r8;
 rsi = r15;
 kill(7);
 send
-:
+/:

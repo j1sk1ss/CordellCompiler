@@ -4,7 +4,7 @@ start() {
     ptr ptr i32 c = ref b;
     i32 d = dref dref c;
 }
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -24,4 +24,4 @@ start() {
         }
     }
 }
-:
+/:

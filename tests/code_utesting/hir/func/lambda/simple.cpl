@@ -3,7 +3,7 @@ start() {
     exit f(1);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -29,4 +29,4 @@ start() {
         }
     }
 }
-:
+/:

@@ -56,7 +56,7 @@ start(i64 argc, ptr ptr i8 argv) {
 }
 ```
 
-- **Comments**: Comments can be written in one line with the start and the end symbol `:` and in several lines with the same logic. Actually, this is a copy of the C's comments '/**/' (without support of the '//' comment style).
+- **Comments**: Comments can be written in one line with the start and the end symbol `:` (or `:/` with `/:`) and in several lines with the same logic. Actually, this is a copy of the C's comments '/**/' (without support of the '//' comment style), which means you have to always end your comment with the 'end' comment symbol.
 ```cpl
 : Hello there
 :
@@ -66,6 +66,8 @@ Hello there :
 :
 Hello there
 :
+:/ Large comment with a colon:
+/:
 ```
 
 - **File names**: Sneaky case for file names. If this is a 'header' file, add the `_h` path to a name

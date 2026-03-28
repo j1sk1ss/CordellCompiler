@@ -11,7 +11,7 @@ start() {
     i32 c = a;
 }
 
-: OUTPUT
+:/ OUTPUT
 {id: {X}, a, i32, s_id: 2}
 {id: {X}, b, i32, s_id: 2}
 {id: {X}, b, i32, s_id: 2, value=1}
@@ -25,4 +25,4 @@ start() {
 {id: {X}, a, i32, s_id: 2}
 {id: {X}, tmp, i32, s_id: -1, value=12}
 {id: {X}, a, i32, s_id: 2, value=12}
-:
+/:

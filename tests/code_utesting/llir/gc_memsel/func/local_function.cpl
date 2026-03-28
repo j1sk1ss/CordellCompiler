@@ -13,7 +13,7 @@ start() {
     foo();
 }
 
-: OUTPUT
+:/ OUTPUT
 BB3: fn foo0()
 r15 = $1;
 r10 = r15;
@@ -64,4 +64,4 @@ BB7:
 BB8: start
 call foo0();
 send
-:
+/:

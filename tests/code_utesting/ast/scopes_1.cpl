@@ -6,7 +6,7 @@ start() {
    i8 b;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
@@ -17,4 +17,4 @@ start() {
                [b] (I32_VARIABLE_TOKEN, v_id=1, s_id=3)
          [i8] (I8_TYPE_TOKEN, v_id=-1, s_id=0)
             [b] (I8_VARIABLE_TOKEN, v_id=2, s_id=2)
-:
+/:

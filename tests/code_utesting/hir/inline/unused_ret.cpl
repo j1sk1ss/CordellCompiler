@@ -6,7 +6,7 @@ start() {
     getter();
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn getter0() -> i32
     {
@@ -22,4 +22,4 @@ start() {
         }
     }
 }
-:
+/:

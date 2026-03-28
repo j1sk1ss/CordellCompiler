@@ -4,7 +4,7 @@ start() {
     loop foo();
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -21,4 +21,4 @@ start() {
         }
     }
 }
-:
+/:

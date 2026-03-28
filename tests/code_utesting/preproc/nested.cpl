@@ -13,8 +13,8 @@ function d();
 #undef A
 #endif
 
-: OUTPUT
+:/ OUTPUT
 function a();
 function b();
 function d();
-:
+/:

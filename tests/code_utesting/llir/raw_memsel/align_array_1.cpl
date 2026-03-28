@@ -2,7 +2,7 @@ start() {
     @[align(64)] arr a[10, i32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 [rbp - 64] = $0;
 [rbp - 60] = $1;
@@ -16,4 +16,4 @@ BB{X} start
 [rbp - 28] = $9;
 [unused] %0 = arr_alloc($10);
 send
-:
+/:

@@ -5,7 +5,7 @@ start() {
     foo(1, 2, 3, 4, 5, 6, 7, 8, 9);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn foo0(i32 a, i32 b, i32 c, i32 d, i32 e, i32 f, i32 g, i32 k, i32 l)
 r15 = rdi;
 rax = r15;
@@ -44,4 +44,4 @@ push($8);
 push($9);
 call foo0(i32 a, i32 b, i32 c, i32 d, i32 e, i32 f, i32 g, i32 k, i32 l);
 send
-:
+/:

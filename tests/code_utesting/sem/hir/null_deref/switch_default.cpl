@@ -8,7 +8,7 @@ start() {
     dref a = 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 #
 [WARNING] [3{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
           [3{X}]     Variable 'tmp' declared as a constant here!
@@ -21,4 +21,4 @@ start() {
 #
 [WARNING] [{X}] Possible NULL-dereference error (variable 'a' is NULL)!
           [{X}]     Variable 'a' becomes NULL-value
-:
+/:

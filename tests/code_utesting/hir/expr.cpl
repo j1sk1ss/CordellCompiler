@@ -4,7 +4,7 @@ start() {
     a += b += a; 
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -28,4 +28,4 @@ start() {
         }
     }
 }
-:
+/:

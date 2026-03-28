@@ -19,7 +19,7 @@ function foo() {
     return 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CFG_func0 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
@@ -57,4 +57,4 @@ digraph CFG_func2 {
   B16 [label="B16:\nentry=MKLB{X}\nexit=FRET\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B17 [label="B17:\nentry=FEND-1\nexit=FEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
-:
+/:

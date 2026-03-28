@@ -83,6 +83,14 @@
     "body": "poparg",
     "description": "CPL poparg expression"
   },
+  "CPL Ops SIZEOF": {
+    "scope": "cpl",
+    "prefix": "sizeof",
+    "body": [
+      "sizeof(${1:i32})"
+    ],
+    "description": "CPL sizeof expression"
+  },
   "CPL Types void": {
     "scope": "cpl",
     "prefix": "i0",

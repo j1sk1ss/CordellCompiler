@@ -2,7 +2,7 @@ start(i32 a) {
     a = 1 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 %2 = [rbp + 8];
 %0 = %2;
@@ -11,4 +11,4 @@ BB{X} start
 %4 = %1;
 %0 = %4;
 send
-:
+/:

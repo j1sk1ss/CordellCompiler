@@ -8,6 +8,6 @@
 function strlen(ptr i8 s) -> i64;
 #endif
 
-: OUTPUT
+:/ OUTPUT
 function strlen(ptr i8 s) -> i64;
-:
+/:

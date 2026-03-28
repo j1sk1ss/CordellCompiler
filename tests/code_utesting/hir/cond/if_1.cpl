@@ -14,7 +14,7 @@ function foo(i32 a) {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main(i32 a)
     {
@@ -60,4 +60,4 @@ function foo(i32 a) {
         }
     }
 }
-:
+/:

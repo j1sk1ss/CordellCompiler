@@ -9,7 +9,7 @@ start() {
     foo();
 }
 
-: OUTPUT
+:/ OUTPUT
 BB2: fn foo0()
 r15 = $1;
 rcx = r15;
@@ -42,4 +42,4 @@ r15 = rbx;
 rdi = r15;
 call foo0();
 send
-:
+/:

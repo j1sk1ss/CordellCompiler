@@ -19,7 +19,7 @@ function foo() {
     dref c;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main()
     {
@@ -89,4 +89,4 @@ function foo() {
         }
     }
 }
-:
+/:

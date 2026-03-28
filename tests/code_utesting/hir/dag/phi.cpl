@@ -10,7 +10,7 @@ start() {
     i32 b = a;
 }
 
-: OUTPUT
+:/ OUTPUT
 {X}
 digraph DAG {
   rankdir=TB;
@@ -34,4 +34,4 @@ digraph DAG {
   lb4 -> lb3 [label="farg"];
 }
 {X}
-:
+/:

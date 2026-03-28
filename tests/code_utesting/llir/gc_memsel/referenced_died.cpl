@@ -8,7 +8,7 @@ start() {
     b = ref c;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $1;
 rdi = r15;
@@ -47,4 +47,4 @@ rax = r15;
 kill(9);
 kill(11);
 send
-:
+/:

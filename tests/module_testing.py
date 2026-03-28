@@ -244,7 +244,7 @@ def _rewrite_test_output(path: Path, actual_output: str) -> None:
 
     text_wo_rewrite = "\n".join(lines)
 
-    marker = ": OUTPUT"
+    marker = ":/ OUTPUT"
     if marker not in text_wo_rewrite:
         raise ValueError(f"{path}: OUTPUT block not found")
 
@@ -255,7 +255,7 @@ def _rewrite_test_output(path: Path, actual_output: str) -> None:
     rewritten = f"{before}\n\n{marker}\n"
     if actual_output:
         rewritten += actual_output + "\n"
-    rewritten += ":"
+    rewritten += "/:"
 
     path.write_text(rewritten, encoding="utf-8")
 
@@ -292,17 +292,17 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
 
     text = "\n".join(header_processed)
 
-    marker = ": OUTPUT"
+    marker = ":/ OUTPUT"
     if marker not in text:
         raise ValueError(f"{path}: OUTPUT block not found")
 
     before, after = text.split(marker, 1)
     after = after.lstrip()
 
-    if not after.endswith(":"):
-        raise ValueError(f"{path}: OUTPUT block must end with ':'")
+    if not after.endswith("/:"):
+        raise ValueError(f"{path}: OUTPUT block must end with '/:'")
 
-    expected = after[:-1].rstrip()
+    expected = after[:-2].rstrip()
     return before.rstrip(), expected, flags
 
 def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:

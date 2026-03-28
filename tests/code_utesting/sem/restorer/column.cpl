@@ -17,7 +17,7 @@ foo
 ;
 }
 
-: OUTPUT
+:/ OUTPUT
 {X}1 | {
  1 |     function foo(i32 a) -> i32;
  8 |     start (...)
@@ -25,4 +25,4 @@ foo
 13 |         foo(10);
 13 |     }
  1 | }
-:
+/:

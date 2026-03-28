@@ -2,7 +2,7 @@ start() {
     i32 a = (not 1) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %4 = $1;
 %3 = %4;
@@ -14,4 +14,4 @@ BB1: start
 %7 = %1;
 %0 = %7;
 send
-:
+/:

@@ -7,7 +7,7 @@ start() {
     exit sum(10.0, 10.0) as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn sum1(f64 a, f64 b) -> f64
     {
@@ -35,4 +35,4 @@ start() {
         }
     }
 }
-:
+/:

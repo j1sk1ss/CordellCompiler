@@ -3,7 +3,7 @@ start() {
     i32 b = sizeof(a) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -16,4 +16,4 @@ start() {
         }
     }
 }
-:
+/:

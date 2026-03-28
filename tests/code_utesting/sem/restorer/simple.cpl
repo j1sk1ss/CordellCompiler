@@ -3,7 +3,7 @@ start() {
     exit a;
 }
 
-: OUTPUT
+:/ OUTPUT
 1 | {
 1 |     start ()
 2 |     {
@@ -11,4 +11,4 @@ start() {
 3 |         exit a;
 2 |     }
 1 | }
-:
+/:

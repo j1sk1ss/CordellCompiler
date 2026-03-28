@@ -8,7 +8,7 @@ start() {
     i32 b = a + 10 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 call foo0() -> i0;
 call bar1() -> i0;
@@ -18,4 +18,4 @@ call bar1() -> i0;
 %4 = %0 + %3;
 %1 = %4;
 send
-:
+/:

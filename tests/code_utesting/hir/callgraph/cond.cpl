@@ -6,10 +6,10 @@ function bar() {
     return 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CALL_GRAPH {
   rankdir=LR;
   node [shape=ellipse, fontname="monospace"];
   F1 -> F0;
 }
-:
+/:

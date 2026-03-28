@@ -10,7 +10,7 @@ start(i32 a) {
     i32 d = b + a;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -46,4 +46,4 @@ start(i32 a) {
         }
     }
 }
-:
+/:

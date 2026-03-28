@@ -7,7 +7,7 @@
 start() {
 }
 
-: OUTPUT
+:/ OUTPUT
 #line 0 "{X}.cpl"
 #line 0 "{X}.cpl"
     
@@ -29,4 +29,4 @@ function print(ptr str msg) -> i0;
 
 start() {
 }
-:
+/:

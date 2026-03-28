@@ -5,7 +5,7 @@ start() {
    exit 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [extern] (EXTERN_TOKEN, v_id=-1, s_id=0)
       [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0, ext, glob)
@@ -31,4 +31,4 @@ start() {
             { scope, id=0 }
          [exit] (EXIT_TOKEN, v_id=-1, s_id=4)
             [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

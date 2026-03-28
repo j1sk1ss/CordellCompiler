@@ -2,8 +2,8 @@ start() {
     lis;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 == == brk  == ==
 send
-:
+/:

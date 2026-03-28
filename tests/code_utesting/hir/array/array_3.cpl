@@ -4,7 +4,7 @@ start() {
     i32 c = b[0];
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -28,4 +28,4 @@ start() {
         }
     }
 }
-:
+/:

@@ -3,7 +3,7 @@ start() {
     arr b[1, ptr i32] = { ref a };
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     arrg %0 = arr_alloc(num? 1);
     start {
@@ -16,4 +16,4 @@ start() {
         }
     }
 }
-:
+/:

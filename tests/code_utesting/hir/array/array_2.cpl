@@ -3,7 +3,7 @@ start() {
     u32 b = a[0][0][0][0][0];
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -40,4 +40,4 @@ start() {
         }
     }
 }
-:
+/:

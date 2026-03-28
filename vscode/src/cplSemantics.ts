@@ -87,6 +87,46 @@ export type IndirectCallSite = {
   calleeType: TypeNode;
 };
 
+export type SizeofSite = {
+  range: Range;
+  targetType: TypeNode;
+  size: number | null;
+};
+
+export function sizeofType(t: TypeNode, opts?: { pointerSize?: number }): number | undefined {
+  const pointerSize = opts?.pointerSize ?? 8;
+
+  switch (t.kind) {
+    case "prim":
+      switch (t.name) {
+        case "i0": return 0;
+        case "i8":
+        case "u8": return 1;
+        case "i16":
+        case "u16": return 2;
+        case "i32":
+        case "u32":
+        case "f32": return 4;
+        case "i64":
+        case "u64":
+        case "f64": return 8;
+        case "str": return pointerSize;
+        default: return undefined;
+      }
+    case "ptr":
+      return pointerSize;
+    case "arr": {
+      if (t.len == null) return undefined;
+      const elem = sizeofType(t.elem, opts);
+      return elem == null ? undefined : t.len * elem;
+    }
+    case "func":
+      return pointerSize;
+    case "unknown":
+      return undefined;
+  }
+}
+
 export function formatFunctionSignature(fn: FuncOverloadSym): string {
   const paramsStr = fn.params
     .map((p) => {
@@ -103,6 +143,7 @@ export function formatFunctionSignature(fn: FuncOverloadSym): string {
 
 class Scope {
   vars = new Map<string, VarSym>();
+  funcs = new Map<string, FuncOverloadSym[]>();
   constructor(public parent?: Scope) {}
 
   resolveVar(name: string): VarSym | undefined {
@@ -111,6 +152,14 @@ class Scope {
       if (hit) return hit;
     }
     return undefined;
+  }
+
+  resolveFuncs(name: string): FuncOverloadSym[] {
+    for (let s: Scope | undefined = this; s; s = s.parent) {
+      const hit = s.funcs.get(name);
+      if (hit && hit.length) return hit;
+    }
+    return [];
   }
 }
 
@@ -212,9 +261,10 @@ export class SemanticContext {
   funcValueUses: FuncValueUse[] = [];
   callSites: CallSite[] = [];
   indirectCallSites: IndirectCallSite[] = [];
+  sizeofSites: SizeofSite[] = [];
 
   private scope: Scope = new Scope();
-  private pendingCalls: { name: string; argc: number; range: Range }[] = [];
+  private pendingCalls: { name: string; argc: number; range: Range; scope: Scope }[] = [];
 
   defineMacro(name: string, value: MacroValue, nameRange: Range, valueRange: Range, doc?: string) {
     if (this.macros.has(name)) {
@@ -236,12 +286,12 @@ export class SemanticContext {
   }
 
   hasFunctionNamed(name: string): boolean {
-    const list = this.funcs.get(name);
-    return !!(list && list.length > 0);
+    const list = this.scope.resolveFuncs(name);
+    return list.length > 0;
   }
 
   getFunctions(name: string): FuncOverloadSym[] {
-    return this.funcs.get(name) ?? [];
+    return this.scope.resolveFuncs(name);
   }
 
   getFunctionValueType(name: string): TypeNode | undefined {
@@ -272,8 +322,8 @@ export class SemanticContext {
       return;
     }
 
-    const overloads = this.funcs.get(name);
-    if (overloads && overloads.length > 0) {
+    const overloads = this.scope.resolveFuncs(name);
+    if (overloads.length > 0) {
       this.funcValueUses.push({ name, range });
       return;
     }
@@ -325,11 +375,11 @@ export class SemanticContext {
     isDefinition: boolean,
     doc?: string
   ) {
-    const list = this.funcs.get(name) ?? [];
+    const local = this.scope.funcs.get(name) ?? [];
 
-    const exact = list.find((f) => sameParamIdentity(f.params, params));
+    const exact = local.find((f) => sameParamIdentity(f.params, params));
     if (!exact) {
-      const sameTypesDifferentDefaults = list.find(
+      const sameTypesDifferentDefaults = local.find(
         (f) => sameParamTypesOnly(f.params, params) && !sameParamIdentity(f.params, params)
       );
       if (sameTypesDifferentDefaults) {
@@ -350,8 +400,11 @@ export class SemanticContext {
         doc
       };
 
-      list.push(sym);
-      this.funcs.set(name, list);
+      local.push(sym);
+      this.scope.funcs.set(name, local);
+      const all = this.funcs.get(name) ?? [];
+      all.push(sym);
+      this.funcs.set(name, all);
       return;
     }
 
@@ -413,8 +466,8 @@ export class SemanticContext {
     this.callSites.push({ name, argc, range, resolution });
   }
 
-  private resolveCall(name: string, argc: number): CallSite["resolution"] {
-    const overloads = this.funcs.get(name) ?? [];
+  private resolveCall(name: string, argc: number, scope: Scope = this.scope): CallSite["resolution"] {
+    const overloads = scope.resolveFuncs(name);
     if (overloads.length === 0) {
       return { status: "unknown", candidates: [] };
     }
@@ -433,8 +486,8 @@ export class SemanticContext {
 
   callFunc(name: string, argc: number, range: Range) {
     if (name === "syscall") return;
-    this.pendingCalls.push({ name, argc, range });
-    this.upsertCallSite(name, argc, range, this.resolveCall(name, argc));
+    this.pendingCalls.push({ name, argc, range, scope: this.scope });
+    this.upsertCallSite(name, argc, range, this.resolveCall(name, argc, this.scope));
   }
 
   callNamedOrValue(name: string, argc: number, range: Range) {
@@ -468,6 +521,14 @@ export class SemanticContext {
     this.callFunc(name, argc, range);
   }
 
+  noteSizeof(range: Range, targetType: TypeNode) {
+    this.sizeofSites.push({
+      range,
+      targetType,
+      size: sizeofType(targetType) ?? null
+    });
+  }
+
   callIndirectExpr(calleeType: TypeNode, argc: number, range: Range) {
     if (isCallableType(calleeType)) {
       if (!matchesCallableArity(calleeType, argc)) {
@@ -489,7 +550,7 @@ export class SemanticContext {
 
   finish() {
     for (const c of this.pendingCalls) {
-      const resolution = this.resolveCall(c.name, c.argc);
+      const resolution = this.resolveCall(c.name, c.argc, c.scope);
       if (resolution == undefined) continue;
       this.upsertCallSite(c.name, c.argc, c.range, resolution);
 

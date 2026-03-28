@@ -9,7 +9,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 send
-:
+/:

@@ -2,7 +2,7 @@ start() {
     exit 10 + 10;
 }
 
-: OUTPUT
+:/ OUTPUT
 === BEFORE ===
 BB{X} start
 r15 = $10;
@@ -21,4 +21,4 @@ rax = rax + $10;
 rdx = rax;
 exit rdx;
 BB{X}
-:
+/:

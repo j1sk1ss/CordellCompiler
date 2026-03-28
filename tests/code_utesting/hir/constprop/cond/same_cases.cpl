@@ -10,7 +10,7 @@ start() {
     i32 b = a;
 }
 
-: OUTPUT
+:/ OUTPUT
 {id: 2, tmp, i32, s_id: -1, value=1}
 {id: 9, a, i32, s_id: 2, value=1}
 {id: 12, a, i32, s_id: 2, value=1}
@@ -25,4 +25,4 @@ start() {
 {id: 5, tmp, i32, s_id: -1, value=1}
 {id: 6, tmp, i8, s_id: -1, value=1}
 {id: 8, a, i32, s_id: 2, value=1}
-:
+/:

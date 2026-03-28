@@ -3,7 +3,7 @@ start() {
     foo();
 }
 
-: OUTPUT
+:/ OUTPUT
 1 | {
 1 |     function foo();
 2 |     start ()
@@ -11,4 +11,4 @@ start() {
 3 |         foo();
 3 |     }
 1 | }
-:
+/:

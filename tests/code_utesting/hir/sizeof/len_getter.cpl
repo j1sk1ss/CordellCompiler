@@ -3,7 +3,7 @@ start() {
     i32 a_len = (sizeof(a) / sizeof(a[0])) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -17,4 +17,4 @@ start() {
         }
     }
 }
-:
+/:

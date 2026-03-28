@@ -5,7 +5,7 @@ start() {
     i32 l2 = sizeof("Hello world!");
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
@@ -30,4 +30,4 @@ start() {
             [l2] (I32_VARIABLE_TOKEN, v_id=3, s_id=2)
             [sizeof] (SIZEOF_TOKEN, v_id=-1, s_id=0)
                [Hello world!] (STRING_VALUE_TOKEN, v_id=0, s_id=0)
-:
+/:

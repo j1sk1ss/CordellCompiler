@@ -5,7 +5,7 @@ start() {
     i32 c = dref a;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -31,4 +31,4 @@ start() {
         }
     }
 }
-:
+/:

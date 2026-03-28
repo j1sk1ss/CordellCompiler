@@ -3,7 +3,7 @@ function foo(i32 a) {
     foo(a + 1);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main(i32 a)
     {
@@ -20,4 +20,4 @@ function foo(i32 a) {
         }
     }
 }
-:
+/:

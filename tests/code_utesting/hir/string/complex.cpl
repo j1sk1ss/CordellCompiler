@@ -5,7 +5,7 @@ start() {
     msg[1] = msg1[0];
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -35,4 +35,4 @@ start() {
         }
     }
 }
-:
+/:

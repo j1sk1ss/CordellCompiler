@@ -3,7 +3,7 @@ start() {
     a[0] = 1 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     arrg %0 = arr_alloc(num? 10);
     start {
@@ -19,4 +19,4 @@ start() {
         }
     }
 }
-:
+/:

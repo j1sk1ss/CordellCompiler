@@ -10,7 +10,7 @@ start() {
     exit 1 as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -88,4 +88,4 @@ start() {
         }
     }
 }
-:
+/:

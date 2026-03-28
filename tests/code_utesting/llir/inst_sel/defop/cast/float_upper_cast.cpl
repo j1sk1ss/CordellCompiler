@@ -3,7 +3,7 @@ start() {
     f64 b = a;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %2 cvttsd2si $1;
 %4 = %2;
@@ -12,4 +12,4 @@ BB1: start
 %5 = %3;
 %1 = %5;
 send
-:
+/:

@@ -3,7 +3,7 @@ start() {
     ptr i8 b = ref a;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 [rbp - 16] = $0;
 [rbp - 15] = $1;
@@ -21,4 +21,4 @@ r15 = rax;
 rcx = r15;
 kill(3);
 send
-:
+/:

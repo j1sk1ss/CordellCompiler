@@ -8,7 +8,7 @@
     function bar(i32 a) {}
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn foo1() -> i32
 return $0;
 
@@ -16,4 +16,4 @@ BB{X}
 BB{X} fn _main(i32 a)
 %1 = strt_loadarg();
 fend
-:
+/:

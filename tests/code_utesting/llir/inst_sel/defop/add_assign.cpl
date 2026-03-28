@@ -3,7 +3,7 @@ start() {
     a += 1 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %5 = $1;
 %1 = %5;
@@ -19,4 +19,4 @@ BB1: start
 %10 = %3;
 %0 = %10;
 send
-:
+/:

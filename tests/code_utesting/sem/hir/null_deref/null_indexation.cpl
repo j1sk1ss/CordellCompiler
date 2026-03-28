@@ -3,6 +3,6 @@ function foo() {
     a[0] = 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [3{X}] NULL-dereference error (variable 'tmp' is NULL)!
-:
+/:

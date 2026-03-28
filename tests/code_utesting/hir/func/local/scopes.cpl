@@ -12,7 +12,7 @@ start() {
     exit foo();
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     {
         fn foo0()
@@ -37,4 +37,4 @@ start() {
         }
     }
 }
-:
+/:

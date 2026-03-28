@@ -4,7 +4,7 @@ start() {
     exit (a + b) as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $1;
 rsi = r15;
@@ -25,4 +25,4 @@ r15 = r9;
 rdx = r15;
 exit rdx;
 BB2:
-:
+/:

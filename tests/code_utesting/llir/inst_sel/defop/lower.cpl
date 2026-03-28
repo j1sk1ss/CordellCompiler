@@ -2,7 +2,7 @@ start() {
     i32 a = (10 < 15) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %4 = $10;
 %3 = %4;
@@ -14,4 +14,4 @@ setl al;
 %6 = %1;
 %0 = %6;
 send
-:
+/:

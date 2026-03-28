@@ -8,7 +8,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [4:29] The reference of a temporary variable!
 4 | ptr i32 a = ref 10;
   |                 ^^
@@ -18,4 +18,4 @@
 [WARNING] [6:29] The reference of a temporary variable!
 6 | ptr i32 c = ref 10 + 10;
   |                 ^^^^^^^
-:
+/:

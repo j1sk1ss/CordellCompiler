@@ -7,7 +7,7 @@ start() {
     @[register(RCX)] i32 c = 2 as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $0;
 [rbp - 8] = r15;
@@ -22,4 +22,4 @@ r15 = $2;
 r15 = [rbp - 24];
 rcx = r15;
 send
-:
+/:

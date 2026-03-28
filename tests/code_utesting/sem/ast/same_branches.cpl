@@ -20,7 +20,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] Possible branch redundancy! The branch at [{X}] is similar to the branch at [{X}]!
  3 | if 1;
  4 | {
@@ -60,4 +60,4 @@
 12 | }
    | ^
    | ^
-:
+/:

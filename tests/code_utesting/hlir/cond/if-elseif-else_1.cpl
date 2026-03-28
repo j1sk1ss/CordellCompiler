@@ -12,7 +12,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 %0 = strt_loadarg();
 %2 = %0 as i64;
@@ -34,4 +34,4 @@ BB{X} lb{X}
 exit $3;
 BB{X}
 BB{X}
-:
+/:

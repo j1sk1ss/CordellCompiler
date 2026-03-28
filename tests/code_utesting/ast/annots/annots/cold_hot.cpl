@@ -15,9 +15,9 @@ function name() -> i32 {
     return 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 @[cold] base_token=if
 @[straight] @[no_fall] base_token=switch
 @[cold] base_token=case
 @[cold] base_token=case
-:
+/:

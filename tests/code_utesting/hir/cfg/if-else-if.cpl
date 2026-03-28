@@ -12,7 +12,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CFG_func0 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
@@ -45,4 +45,4 @@ digraph CFG_func0 {
   B12 -> B13 [label="jump"];
   B13 [label="B13:\nentry=MKLB{X}\nexit=HIR_STEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
 }
-:
+/:

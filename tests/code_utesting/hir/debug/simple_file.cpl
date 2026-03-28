@@ -5,7 +5,7 @@ start() {
     exit 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 setpos, line=2, column=50, file={X}
 {
 setpos, line=1, column=10, file={X}
@@ -34,4 +34,4 @@ setpos, line=5, column=13, file={X}
         }
     }
 }
-:
+/:

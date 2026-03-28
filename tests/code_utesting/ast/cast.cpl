@@ -3,7 +3,7 @@ start() {
    i64 b = (10 as u8 + 11 as u8) as i64;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
@@ -23,4 +23,4 @@ start() {
                   [as] (CONVERT_TOKEN, v_id=-1, s_id=0)
                      [u8] (U8_TYPE_TOKEN, v_id=-1, s_id=0)
                      [11] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

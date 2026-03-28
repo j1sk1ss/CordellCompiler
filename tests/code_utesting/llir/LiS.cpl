@@ -4,7 +4,7 @@ start() {
     exit a as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %1 = $1 as i32;
 %0 = %1;
@@ -12,4 +12,4 @@ BB1: start
 %2 = %0 as i8;
 exit %2;
 BB2:
-:
+/:

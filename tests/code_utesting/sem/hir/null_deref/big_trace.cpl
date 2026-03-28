@@ -19,7 +19,7 @@ function foo() {
     dref c;
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [5{X}] 'If' with a constant value 'true'!
 [WARNING] [8{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
           [8{X}]     Variable 'tmp' declared as a constant here!
@@ -29,4 +29,4 @@ function foo() {
           [9{X}]     Variable 'a' becomes NULL-value
           [13{X}]     Variable 'b' is assigned with the 'a' here
           [18{X}]     Variable 'c' is assigned with the 'b' here
-:
+/:

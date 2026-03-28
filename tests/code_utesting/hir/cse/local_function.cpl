@@ -6,7 +6,7 @@ start() {
     foo((10 + 10) as i32);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -34,4 +34,4 @@ start() {
         }
     }
 }
-:
+/:

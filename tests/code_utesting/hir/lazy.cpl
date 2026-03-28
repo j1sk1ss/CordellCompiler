@@ -5,7 +5,7 @@ start() {
     i8 d = (a || b) as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -38,4 +38,4 @@ start() {
         }
     }
 }
-:
+/:

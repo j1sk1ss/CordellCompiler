@@ -7,7 +7,7 @@ start() {
     ro glob ptr i32 e;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -21,4 +21,4 @@ start() {
         }
     }
 }
-:
+/:

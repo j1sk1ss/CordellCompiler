@@ -5,7 +5,7 @@ start() {
     exit get(10);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 jmp lb10;
 BB{X} lb{X}
@@ -20,4 +20,4 @@ BB{X} fn get1(i32 a) -> i32
 %1 = %2 * $10;
 return %1;
 BB{X}
-:
+/:

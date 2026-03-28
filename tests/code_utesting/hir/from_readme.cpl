@@ -11,7 +11,7 @@ function main(i32 argc, ptr ptr i8 argv) {
     exit 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main(i32 argc, i8** argv)
     {
@@ -28,4 +28,4 @@ function main(i32 argc, ptr ptr i8 argv) {
         }
     }
 }
-:
+/:

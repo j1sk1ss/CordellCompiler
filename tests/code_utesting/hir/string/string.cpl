@@ -6,7 +6,7 @@ start() {
     ans[1] = 'g' as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -31,4 +31,4 @@ start() {
         }
     }
 }
-:
+/:

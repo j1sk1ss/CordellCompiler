@@ -11,7 +11,7 @@ function foo(i32 a) {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn _main(i32 a)
 %6 = [rbp + 8];
 %0 = %6;
@@ -48,4 +48,4 @@ BB{X} lb{X}
 return %14;
 BB{X}
 BB{X}
-:
+/:

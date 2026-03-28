@@ -4,7 +4,7 @@ start() {
     exit a;
 }
 
-: OUTPUT
+:/ OUTPUT
 === BEFORE ===
 BB1: start
 r15 = $1;
@@ -35,4 +35,4 @@ rcx = rax;
 rdx = rax;
 exit rdx;
 BB2:
-:
+/:

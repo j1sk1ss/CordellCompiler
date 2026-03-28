@@ -3,7 +3,7 @@ start() {
     arr b[10, i8] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 [rbp - 16] = $0;
 [rbp - 15] = $1;
@@ -28,4 +28,4 @@ BB{X} start
 kill(2);
 kill(3);
 send
-:
+/:

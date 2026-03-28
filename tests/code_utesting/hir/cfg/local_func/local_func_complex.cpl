@@ -13,7 +13,7 @@ function foo() {
     return 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CFG_func0 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
@@ -43,4 +43,4 @@ digraph CFG_func2 {
   B12 [label="B12:\nentry=FDCL-1\nexit=FRET\nHEAD\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
   B13 [label="B13:\nentry=FEND-1\nexit=FEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
-:
+/:

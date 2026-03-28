@@ -4,7 +4,7 @@ start() {
     i32 c = (a + b) + a + (a + b) * a;
 }
 
-: OUTPUT
+:/ OUTPUT
 {id: 2, c, i32, s_id: 2}
 {id: 9, tmp, i32, s_id: -1, value=30400}
 {id: 12, c, i32, s_id: 2, value=30400}
@@ -18,4 +18,4 @@ start() {
 {id: 5, tmp, i32, s_id: -1, value=300}
 {id: 6, tmp, i32, s_id: -1, value=400}
 {id: 8, tmp, i32, s_id: -1}
-:
+/:

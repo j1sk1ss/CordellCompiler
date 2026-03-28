@@ -8,7 +8,7 @@ start() {
     i32 c = foo(a, b) as i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {id: 2, a, i32, s_id: 4}
 {id: 9, tmp, i64, s_id: -1, value=20}
 {id: 12, a, i32, s_id: 4, value=10}
@@ -24,4 +24,4 @@ start() {
 {id: 5, tmp, i32, s_id: -1, value=20}
 {id: 6, tmp, i32, s_id: -1, value=10}
 {id: 8, tmp, i32, s_id: -1, value=20}
-:
+/:

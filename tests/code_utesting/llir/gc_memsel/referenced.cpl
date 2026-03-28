@@ -3,7 +3,7 @@ start() {
     ptr i32 b = ref a;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 r15 = $0;
 rax = r15;
@@ -15,4 +15,4 @@ r15 = rdx;
 rcx = r15;
 kill(4);
 send
-:
+/:

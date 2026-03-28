@@ -4,7 +4,7 @@ function foo(...) {
     @[poparg] ptr f32 b;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main(...)
     {
@@ -16,4 +16,4 @@ function foo(...) {
         }
     }
 }
-:
+/:

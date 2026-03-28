@@ -7,7 +7,7 @@ start() {
     exit b as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB2: fn foo0()
 fend
 BB3: start
@@ -31,4 +31,4 @@ r15 = rdi;
 rdx = r15;
 exit rdx;
 BB4:
-:
+/:

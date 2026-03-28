@@ -8,7 +8,7 @@ start() {
     i32 g = f;
 }
 
-: OUTPUT
+:/ OUTPUT
 {id: 0, a, i32, s_id: 2}
 {id: 1, b, i32, s_id: 2}
 {id: 8, a, i32, s_id: 2, value=1}
@@ -24,4 +24,4 @@ start() {
 {id: 10, c, i32, s_id: 2, value=1}
 {id: 5, f, i32, s_id: 2}
 {id: 12, e, i32, s_id: 2, value=1}
-:
+/:

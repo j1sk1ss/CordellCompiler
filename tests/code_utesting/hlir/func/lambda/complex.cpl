@@ -7,7 +7,7 @@ start() {
     })(10) as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB2: start
 jmp lb17;
 BB3: lb17:
@@ -32,4 +32,4 @@ jmp lb27;
 BB8: lb29:
 return $0;
 BB9:
-:
+/:

@@ -6,7 +6,7 @@ start() {
     i32 d = a + b + c;
 }
 
-: OUTPUT
+:/ OUTPUT
 {X}
 digraph DAG {
   rankdir=TB;
@@ -34,4 +34,4 @@ digraph DAG {
   {lb0 -> lb1 [style=dashed, color=gray, label="user"];}
 }
 {X}
-:
+/:

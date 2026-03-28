@@ -3,9 +3,9 @@ function bar();
 function baz();
 start() {}
 
-: OUTPUT
+:/ OUTPUT
 digraph CALL_GRAPH {
   rankdir=LR;
   node [shape=ellipse, fontname="monospace"];
 }
-:
+/:

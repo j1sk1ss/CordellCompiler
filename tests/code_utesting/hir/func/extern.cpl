@@ -4,7 +4,7 @@ start() {
     printf(BUFFER, 10);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     (fun) extern cnst? 0;
     (var) extern cnst? 1;
@@ -17,4 +17,4 @@ start() {
         }
     }
 }
-:
+/:

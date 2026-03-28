@@ -3,7 +3,7 @@ start() {
     syscall(0, foo(), 0 + 0, 0);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -17,4 +17,4 @@ start() {
         }
     }
 }
-:
+/:

@@ -5,7 +5,7 @@ start() {
     logic(10, 20, (i32 a, i32 b) => a + b);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn logic0(i32 a, i32 b, i0* f)
     {
@@ -45,4 +45,4 @@ start() {
         }
     }
 }
-:
+/:

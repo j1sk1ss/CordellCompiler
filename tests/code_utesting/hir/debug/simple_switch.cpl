@@ -9,7 +9,7 @@ start() {
     exit 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 setpos, line=1, column=7, file=<unknown>
 {
 setpos, line=1, column=7, file=<unknown>
@@ -79,4 +79,4 @@ setpos, line=9, column=13, file=<unknown>
         }
     }
 }
-:
+/:

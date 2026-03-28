@@ -6,7 +6,7 @@ start() {
     i32 d = a - b;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 %5 = $10 as i32;
 %1 = %5;
@@ -17,4 +17,4 @@ BB1: start
 %7 = %0 - %1;
 %3 = %7;
 send
-:
+/:
