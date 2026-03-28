@@ -5,7 +5,7 @@ lir_subject_t* LIR_convert_hs_to_ls(hir_subject_t* subj) {
     switch (subj->t) {
         case HIR_F64NUMBER: case HIR_F32NUMBER: return LIR_SUBJ_NUMBER(subj->storage.num.value, 1);
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
-        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER: // TODO: Set number type in the HIRgen
         case HIR_NUMBER: return LIR_SUBJ_NUMBER(subj->storage.num.value, 0);
 
         case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:

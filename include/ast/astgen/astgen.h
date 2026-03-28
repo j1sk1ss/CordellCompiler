@@ -741,7 +741,7 @@ Parse an annotation and push it onto the stack.
 Params:
     - <parser_args>
 
-Returns NULL.
+Always returns NULL.
 */
 ast_node_t* cpl_parse_annot(PARSER_ARGS);
 
@@ -750,11 +750,17 @@ Parse a lambda structure.
 Params:
     - <parser_args>
 
-Returns NULL.
+Returns an AST node.
 */
 ast_node_t* cpl_parse_lambda(PARSER_ARGS);
 
-// TODO
+/*
+Parse the 'sizeof' keyword.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_sizeof(PARSER_ARGS);
 
 #endif
