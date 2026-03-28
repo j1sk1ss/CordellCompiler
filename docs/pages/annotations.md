@@ -11,7 +11,6 @@ Annotations are usefull tool in terms of system development. For non-system prog
 - `counter` - Make a counted loop.
 - `hot` and `cold` - Send a branch to the end of a function.
 - `register` - Will link a primitive (non-global) variable to a register.
-- `sizeof` - Will replace the next variable with its size in bytes (Acts the same as it does the similar keyword from C language).
 
 Annotations can be added for functions, function arguments and declarations:
 ```cpl

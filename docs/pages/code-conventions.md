@@ -34,9 +34,9 @@ function foo() -> i0 {
 
 - **Ifs**:
 ```cpl
-if <cond0>; {
+if cond0; {
 }
-else if <cond1>; {
+else if cond1; {
 }
 else {
 }
@@ -44,7 +44,7 @@ else {
 
 - **Loops**:
 ```cpl
-while <cond0>; {
+while cond0; {
 }
 loop {
 }
