@@ -88,22 +88,14 @@ typedef enum hir_operation {
         /* Data */
         HIR_NOT,          // x = !x
         HIR_STORE,        // x = y
-        HIR_CLNVRS,       // deallocate all unused variables
         HIR_VARDECL,      // alloc x
         HIR_ARRDECL,      // arralloc x, y (size)
         HIR_STRDECL,      // arralloc x, strlen(x)
-        HIR_PRMST,
-        HIR_PRMLD,        // load param
-        HIR_PRMPOP,       // pop params
-        HIR_FARGST,       // store function argument
         HIR_FARGLD,       // load function argument
         HIR_STARGLD,      // load start argument
-        HIR_GINDEX,       // x = y[z]
-        HIR_LINDEX,       // x[y] = z
         HIR_GDREF,        // x = [y]
         HIR_LDREF,        // [x] = y
         HIR_REF,
-        HIR_IMPORT,
         
         /* System */
         HIR_EXITOP,       // Exit with farg exit call

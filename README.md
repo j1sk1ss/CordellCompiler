@@ -1,7 +1,7 @@
 ![Cover](docs/media/CPL_cover.png)
 
 # Cordell Compiler
-Cordell Compiler is a compact hobby compiler for `Cordell Programming Language` which inspired by C's usafety and Rust's syntax. It is designed in the first place for studying compilation, code optimization, translation, and low-level microcode generation.
+Cordell Compiler is a compact hobby compiler for `Cordell Programming Language` which inspired by C's usafety and Rust's syntax. It is designed in the first place for studying compilation, code optimization, translation, and low-level microcode generation. In the second place - this is my test stand.
 - *This README still in progress*
 
 # Main idea of this project
@@ -281,9 +281,11 @@ AST that was generated on the [Markup part](#markup-part)'s list of markuped tok
 ```
 </details>
 
+At this point, we can go straingthforward either to the code-generation phase or to intermidiate representation phase. The compiler doesn't allow to skip essential phase with IR generation which means, the compiler uses the second approach.
+
 ### AST optimization
 When we have a correct `AST` representation of the input code, we can optionally perform some avaliable optimizations. We will not spend a lot of time here and will cover only a few examples. Note that `AST-level` optimizations are mostly redundant in this project (they were very usefull when this Compiler didn't have an `IR` level).
-- `Condition unrolling`. If we have an `if` statement with a constant condition, such as `if 1 { ... }`, or similar situation with a `while` keyword or a `switch` statement, we can unroll them by removing the condition and keeping only the body.
+- `Condition unrolling`. If we have an `if` statement with a constant condition, such as `if 1; { ... }`, or similar situation with a `while` keyword or a `switch` statement, we can unroll them by removing the condition and keeping only the body.
 - `Dead scope elimination`. If a scope doesn't affect the environment, it can be safely removed.
 
 To understand what they actually do, we can consider the next example of `DSE` (Dead Scope Elimination):
@@ -303,7 +305,7 @@ P.S.: *I saved these optimizations 'cause they don't copy the existed one from H
 
 ## HIR part
 `AST` representation of the input code must be flattened given future optimization phases. A common approach here is to convert an `AST` structure to a list of `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
-Three-Address Code implies that there is only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`. Also, the simple indexation command `a[x] = 0` will be converted to:
+*Three-Address Code* implies that there is only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`. Also, the simple indexation command `a[x] = 0` will be converted to:
 ```
 tmp_head = &a;
 tmp_off = x * sizeof(typeof(a));
@@ -311,13 +313,15 @@ tmp_head = tmp_head + tmp_off;
 *tmp_head = 0;
 ```
 
+Figure 5 represents the schematic view on how the `AST -> HIR` process works in this compiler. 
+
 <p align="center">
   <img src="docs/media/HIR.png">
   <br>
   <em>Figure 5 — AST to HIR</em>
 </p>
 
-HIR that was obtained from the [AST part](#ast-part)'s structure transformation:
+For instance, here is the HIR that was obtained from the [AST part](#ast-part)'s structure transformation:
 <details>
 <summary><strong>Cordell Compiler's HIR dump</strong></summary>
 
@@ -341,14 +345,16 @@ HIR that was obtained from the [AST part](#ast-part)'s structure transformation:
 ```
 </details>
 
+P.S.: *You've could noticed the updated name of the function (_main). This is a 'virtual' name of the 'start' function. Virtual names are essential thing in terms of overloading and different architectures. We will talk about them later, but at this moment, just remember that names from a user are linked to their virtual names.*
+
 ## CFG part
-With the `3AC` form of the input code, we can move on to `CFG` (Control Flow Graph) [[?]](https://en.wikipedia.org/wiki/Control-flow_graph) [[?]](https://www.geeksforgeeks.org/software-engineering/software-engineering-control-flow-graph-cfg/) creation. There are several ways to split `3AC` into basic blocks. One approach is using `leaders`, while another is to create a block for every command. The second approach is straightforward — each `3AC` instruction becomes its own block. The `leaders` approach, described in the *Dragon Book*, defines three rules for identifying the start of a block:
+Almost immediately after obtaining the complete list of `3AC` instructions, we can move on to `CFG` (Control Flow Graph) [[?]](https://en.wikipedia.org/wiki/Control-flow_graph) [[?]](https://www.geeksforgeeks.org/software-engineering/software-engineering-control-flow-graph-cfg/) generation. There are several ways to split `3AC` into basic blocks, and one of they is using `leaders`, while another is to create a block for every command. The second approach is straightforward — each `3AC` instruction becomes its own block. The `leaders` approach, described in the *Dragon Book*, defines three rules for identifying the start of a block:
 
 - The first instruction in a function.
 - The target of a JMP instruction.
 - The instruction immediately following a JMP.
 
-In this compiler, both approaches are implemented, but for the example, we will use the approach of creating a block for every command. However, further optimizations will consume CFG based on `leaders` approuch.
+P.S.: *In this compiler, both approaches are implemented, but for the example, we will use the approach from the Dragon Book*
 
 <p align="center">
   <img src="docs/media/CFG.png">
