@@ -1,6 +1,6 @@
 function foo() {
-    i32 a = 1;
-    i32 b = 1;
+    i32 a = 1 as i32;
+    i32 b = 1 as i32;
     a + b;
 }
 

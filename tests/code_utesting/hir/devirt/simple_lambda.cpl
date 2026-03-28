@@ -2,7 +2,7 @@ function logic(i32 a, i32 b, ptr i0 f) {
     return f(a, b);
 }
 start() {
-    i32 a = (() => { 10; })();
+    i32 a = (() => { 10; })() as i32;
     logic(10, 20, (i32 a, i32 b) => { a + b; });
 }
 

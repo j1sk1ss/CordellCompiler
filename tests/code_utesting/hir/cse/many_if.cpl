@@ -1,15 +1,15 @@
 start() {
     if 1; {
-        i32 a = 10 + 10;
-        exit 10 + 10;
+        i32 a = (10 + 10) as i32;
+        exit (10 + 10) as i32;
     }
     else if 2; {
-        i32 a = 10 + 10;
-        exit 10 + 10;
+        i32 a = (10 + 10) as i32;
+        exit (10 + 10) as i32;
     }
     else {
-        i32 a = 10 + 10;
-        exit 10 + 10;
+        i32 a = (10 + 10) as i32;
+        exit (10 + 10) as i32;
     }
 }
 
@@ -22,9 +22,9 @@ start() {
                 lb{X}
                 {
                     i32s %0 = alloc(8);
-                    i64t %3 = num? 10 + num? 10;
-                    i32t %4 = i64t %3 as i32;
-                    i32s %14 = i32t %4;
+                    i64t %4 = num? 10 + num? 10;
+                    i32t %3 = i64t %4 as i32;
+                    i32s %17 = i32t %3;
                     [unused] i64t %5 = num? 10 + num? 10;
                     exit i64t %3;
                 }

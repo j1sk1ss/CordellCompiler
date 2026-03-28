@@ -1,11 +1,11 @@
 : BUG :
 start() {
-    i32 a = 1;
+    i32 a = 1 as i32;
     @[no_fall]
     switch 1; {
-        case 1; { a = 1; }
-        case 2; { a = 1; }
-        default { a = 1; }
+        case 1; { a = 1 as i32; }
+        case 2; { a = 1 as i32; }
+        default { a = 1 as i32; }
     }
     i32 b = a;
 }

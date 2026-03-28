@@ -1,4 +1,4 @@
-function foo(i32 a) {
+function foo(i32 a) -> i32 {
     i32 b = a + 10;
     return b;
 }

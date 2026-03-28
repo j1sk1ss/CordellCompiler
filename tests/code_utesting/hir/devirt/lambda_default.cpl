@@ -1,9 +1,9 @@
 start() {
-    i32 a = ((i32 a) => a)(10);
+    i32 a = ((i32 a) => a)(10) as i32;
     function local(i32 a = 10) {
         return a;
     }
-    i32 b = local();
+    i32 b = local() as i32;
 }
 
 : OUTPUT

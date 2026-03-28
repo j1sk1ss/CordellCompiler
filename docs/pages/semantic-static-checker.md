@@ -20,7 +20,7 @@ The list of all possible AST warnings that are supported by the static analyzato
 - Dead code. *We can find is there is a dead code in the code, and if this was an intent product*
 - Possible implicit convertion. *The compiler is a permissively static typed, but not a strong typed. To fill this gap, the checker will inform if there is a possible future implicit cast*
 - Inefficient `while`. *Sometimes the `loop` keyword is better than `while 1`*
-- Incorrect exit type for a function. *The `exit` keyword must be used in a function (not in a `start` function) only by one condition - there is no `start` function and this is the lowest non-local function in the file*
+- Incorrect exit type for a function. *The `exit` keyword must be used in a function (not in a `start` function) only by one condition - there is no `start` function and this is an annotated with the entry annotation non-local function in the file*
 - Break usage without a target. *The `break` keyword must be used only to break `loop`s and `while`s*
 - `i0` function's return value usage. *If a function has a `i0` return type, its value can't be stored in any variable*
 - Unused expression. *Any expression that doesn't stored in a variable, used in a function, evaluated in a `if`, a `while` or a `switch` statements is an unused expression*

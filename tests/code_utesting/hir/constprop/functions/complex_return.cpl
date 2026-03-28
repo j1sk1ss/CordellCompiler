@@ -3,9 +3,9 @@ function foo(i32 a, i32 b) {
 }
 
 start() {
-    i32 a = 10;
-    i32 b = 10;
-    i32 c = foo(a, b);
+    i32 a = 10 as i32;
+    i32 b = 10 as i32;
+    i32 c = foo(a, b) as i32;
 }
 
 : OUTPUT

@@ -1,8 +1,8 @@
 @[entry]
 function foo() {
-    i32 a = 1;
+    i32 a = 1 as i32;
     if 1; {
-        a = 0;
+        a = 0 as i32;
     }
     ptr i32 b = a as ptr i32;
     exit dref b;

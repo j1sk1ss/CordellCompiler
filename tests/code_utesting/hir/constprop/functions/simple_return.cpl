@@ -3,7 +3,7 @@ function foo() {
 }
 
 start() {
-    i32 a = foo();
+    i32 a = foo() as i32;
 }
 
 : OUTPUT

@@ -3,7 +3,7 @@ function mul(i32 a, i32 b) {
 }
 
 start() {
-    i32 a = mul(2, 3);
+    i32 a = mul(2, 3) as i32;
 }
 
 : OUTPUT

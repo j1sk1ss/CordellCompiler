@@ -1,7 +1,7 @@
 start() {
-    i32 a = 1;
-    i32 b = 2;
-    i32 c = (a + b) * 3;
+    i32 a = 1 as i32;
+    i32 b = 2 as i32;
+    i32 c = (a + b) * 3 as i32;
     i32 d = (a + b) * c;
 }
 

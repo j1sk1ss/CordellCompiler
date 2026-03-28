@@ -2,10 +2,10 @@
 start() {
     i32 a;
     if 1; {
-        a = 12;
+        a = 12 as i32;
     }
     else {
-        a = 12;
+        a = 12 as i32;
     }
     i32 b = a;
 }

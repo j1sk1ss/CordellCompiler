@@ -1,8 +1,8 @@
 start() {
     str a = "Hello world!";
     str b = "Hello world!";
-    ptr i8 c = "Hello world!";
-    ptr i8 d = "Hello world!";
+    ptr i8 c = "Hello world!" as ptr i8;
+    ptr i8 d = "Hello world!" as ptr i8;
 }
 
 : OUTPUT

@@ -1,5 +1,5 @@
 start() {
-    i32 a = 1;
+    i32 a = 1 as i32;
     exit a;
 }
 
@@ -16,10 +16,12 @@ setpos, line=2, column=9, file=<unknown>
 setpos, line=2, column=9, file=<unknown>
                 i32s %0 = alloc(8);
 setpos, line=2, column=9, file=<unknown>
+setpos, line=2, column=22, file=<unknown>
+setpos, line=2, column=22, file=<unknown>
 setpos, line=2, column=18, file=<unknown>
 setpos, line=2, column=18, file=<unknown>
-setpos, line=2, column=12, file=<unknown>
                 i32t %1 = num? 1 as i32;
+setpos, line=2, column=12, file=<unknown>
                 i32s %0 = i32t %1;
 setpos, line=3, column=10, file=<unknown>
 setpos, line=3, column=13, file=<unknown>

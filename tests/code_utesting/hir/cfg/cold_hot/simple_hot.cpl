@@ -1,7 +1,7 @@
 start(i32 a) {
-    i32 b = a + 10;
-    @[hot] if b == 20; {
-        a += 1;
+    i32 b = a + 10 as i32;
+    @[hot] if b == 20 as i32; {
+        a += 1 as i32;
         exit b;
     }
     else {

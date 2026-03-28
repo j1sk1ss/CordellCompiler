@@ -4,7 +4,7 @@ function sum(f64 a, f64 b) -> f64 {
 }
 
 start() {
-    exit sum(10.0, 10.0);
+    exit sum(10.0, 10.0) as i8;
 }
 
 : OUTPUT

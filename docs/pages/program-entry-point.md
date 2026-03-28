@@ -28,8 +28,9 @@ start(...) {
 , is valid.
 
 **Note 1:** 'Start' function doesn't have a return type (you can't use the '->' modificator) and requires usage of the 'exit' keyword instead of the 'return'. Also the maximum type that can be used as a value in the 'exit' keyword is the 'u8' type. </br>
-**Note 2:** Actually, with usage of the logic that the lowest function becomes an entry point, we can set a return type:
+**Note 2:** Actually, with usage of the entry annotation, we can set a return type:
 ```cpl
+@[entry]
 function main(i32 argc, ptr ptr i8 argv) -> u8;
 ```
 **Note 3:** Entry point will generate all essential steps (stackframe allocation, entry, exit commands, etc).

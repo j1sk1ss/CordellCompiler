@@ -12,16 +12,20 @@ hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_
         )
     ) return src;
 
-    token_flags_t cnv_flags = { .ptr = ptr };
-    hir_subject_t* cnv = HIR_SUBJ_TMPVAR(t, VRTB_add_info(NULL, HIR_get_tmptkn_type(t), NO_SYMBOL_ID, &cnv_flags, &smt->v));
-    cnv->ptr = ptr;
-     
     /* If this is a pointer convertion (something to a pointer),
        the convertion becomes a basic 'as ptr' cast. 
        We perform this given the nature of pointers (pointers have the same size). */
     hir_operation_t op = HIR_get_convop(t);
-    if (cnv->ptr > 0) op = HIR_TPTR;
+    if (ptr > 0) op = HIR_TPTR;
 
+    if (HIR_get_type_size(src->t) > HIR_get_type_size(t) && op != HIR_TPTR) {
+        HIRGEN_ERROR(((ast_node_t*)NULL), "Narrow implicit cast is forbidden!");
+        return src;
+    }
+
+    token_flags_t cnv_flags = { .ptr = ptr };
+    hir_subject_t* cnv = HIR_SUBJ_TMPVAR(t, VRTB_add_info(NULL, HIR_get_tmptkn_type(t), NO_SYMBOL_ID, &cnv_flags, &smt->v));
+    cnv->ptr = ptr;
     HIR_BLOCK2(ctx, op, cnv, src);
     return cnv;
 }
