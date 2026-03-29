@@ -31,7 +31,7 @@ Logs for the first and second versions are quite short because I don’t remembe
 ----------------------------------------
 
 ## Number types
-The numbers in the compiler always were treated as `i64` values which isn't incorrect, but also isn't precise. To address this issue numbers now have the type based on its value. For instance:
+The numbers in the compiler always were treated as `i64` values which isn't incorrect, but also isn't precise. To address this issue numbers now have the type based on its own value. For instance:
 ```cpl
 100 : i8 :
 130 : u8 :
@@ -43,7 +43,7 @@ The numbers in the compiler always were treated as `i64` values which isn't inco
 P.S.: This allows the compiler move closer to the strong typing.
 
 ## Large comment blocks
-Now the compiler supports the second set of a comment marking:
+Now the compiler supports the second set of a comment creation:
 ```cpl
 : COMMENT LINE :
 
@@ -71,6 +71,9 @@ The `return` statement now optional in cases, when we're talking about the last 
 ```cpl
 : function logic(i32 a, i32 b, ptr i0 f); :
 logic(10, 123, (i32 a, i32 b) => { a + b * 100; });
+: function foo(ptr i0 f); :
+foo(() => 10);
+foo((i32 a) => a * a);
 ```
 
 ## Lambdas!
@@ -81,6 +84,19 @@ ptr i0 f = () => { return 10; }
 ```
 
 To start a lambda function definition you need to create a variable placeholder. Let's say we create an empty holder (i8 a). Now with the `=>` symbol we can define any logic in a scope. </br>
+Here is a set of possible lambdas:
+```cpl
+function foo(ptr i0 f);
+foo((i32 a, i32 b) => { if 1; return a; return b; });
+foo(
+    (i32 a, i32 b) => {
+        if 1; {
+            return a * 10;
+        }
+        return b - 10 * a;
+    }
+);
+```
 
 ## Constant propagation thru parameters list
 Now the constant propagation module supports propagation thru function call arguments. If we have function calls (or a function call) with the same arguments (at least on position in arguments the same) it will propagate input arguments (propagate folding further) to the function. For instance:
@@ -108,10 +124,46 @@ start() {
 This is a simple example, but it will work with a complext cases as well.
 
 ## HIR static analyzer and HIR locations
-Now the information about file location is going to HIR via a special operation and a special subject. This feature allows to expand the static analysis to HIR part. For test I've added the NULL-dereference tester and the IF-tester.
+Now the information about file location is going to HIR via a special operation and a special subject. This feature allows to expand the static analysis to HIR part. For test I've added the NULL-dereference tester and the IF-tester. </br>
+The code now looks next:
+```
+setpos, line=1, column=7, file=<unknown>
+{
+setpos, line=1, column=7, file=<unknown>
+setpos, line=1, column=7, file=<unknown>
+    start {
+        {
+setpos, line=2, column=9, file=<unknown>
+            {
+setpos, line=2, column=9, file=<unknown>
+setpos, line=2, column=9, file=<unknown>
+                i32s %0 = alloc(8);
+setpos, line=2, column=9, file=<unknown>
+setpos, line=2, column=22, file=<unknown>
+setpos, line=2, column=18, file=<unknown>
+                i32t %1 = i8n 1 as i32;
+setpos, line=2, column=12, file=<unknown>
+                i32s %0 = i32t %1;
+setpos, line=3, column=10, file=<unknown>
+setpos, line=3, column=13, file=<unknown>
+                exit i32s %0;
+            }
+        }
+    }
+}
+```
 
 ## not_lazy
-Lazy logic operators are the default solution for logic in C language, and now, CPL supports the alternative approach. With this annotation the compiler will generate both sides before the final evaluation.
+Lazy logic operators are the default solution for logic in C language, and now, CPL supports the alternative approach. With this annotation the compiler will generate both sides before the final evaluation. </br>
+To see the difference, let's consider the next example:
+```cpl
+function foo(); : Always returns 0 :
+function foo(i32 a);
+i32 a = foo() && foo(10);
+i32 b @[not_lazy] (foo() && foo(10));
+```
+
+The `a` variable will obtain '0' before evaluation of the 'foo(10)'. In contrast the `b` variable will obtain the same value but with the 'foo(10)' evaluation.
 
 ## There is no basic scope anymore!
 Eventually, the basic scope has gone. Now, the syntax is a lot closer to C:
@@ -135,7 +187,7 @@ start() {
 P.S.: *It doesn't affect on the existed code, its behaviour or something like that, it just looks better.*
 
 ## Remove section, align and import keywords
-Section and align was fully dublicated with annotations which is more convenient. The `import` isn't fits to a language's design from this point (headers fit better). </br>
+Section and align was fully duplicated by annotations which is more convenient. The `import` isn't fits to a language's design from this point (headers fit better). </br>
 ```cpl
 : OLD
 align(16) {
@@ -182,7 +234,8 @@ function foo();
 ```
 
 ## Register
-Now the compiler has the `register` annotation. It simpli links a variable (only a variable) with the specific system register (index). Depends on the target architecture.
+Now the compiler has the `register` annotation. It merely links a variable (only a variable) with the specific system register (index). </br>
+P.S.: *Strongly depends on the target architecture.*
 ```cpl
 #define RAX 0
 @[register(RAX)] i32 a = 1;
@@ -262,7 +315,7 @@ It must have the `ptr` keyword/s. Otherwise it won't work. </br>
 Also, now the pointer function by default is the `ptr i0` type.
 ```cpl
 function foo();
-ptr i0 a = foo();
+ptr i0 a = foo;
 a();
 ```
 
@@ -337,7 +390,7 @@ It wasn't possible before due to the lack of tokenizer's abillities. Now it's po
 Now the compiler supports function pointers! One disadvantage here: Pointed functions aren't able to support the default-args and function-overloads. To use it, you can consider the next example:
 ```cpl
 {
-    function foo(i32 a) -> i32 {
+    function foo(i32 a) => i32 {
         return a;
     }
 
@@ -387,11 +440,11 @@ else {
 ```
 
 ## Function overloads (basics)
-CorellCompiler now supports polymorphic functions. The symtax is below:
+CorellCompiler now supports overloaded functions. The symtax is below:
 ```cpl
 {
-    function chloe(i32 a, i32 b = 10) -> i0;
-    function chloe(i64 a, i32 b = 10) -> i0;
+    function chloe(i32 a, i32 b = 10) => i0;
+    function chloe(i64 a, i32 b = 10) => i0;
     start() {
         chloe(10 as i32);
         chloe(10 as i64);
@@ -402,13 +455,13 @@ CorellCompiler now supports polymorphic functions. The symtax is below:
 
 The idea that HIR level can choose a function that supports the input arguments. To help the compiler, use the `as` keyword. Additionally, functions with the 'default' argument, for instance:
 ```cpl
-function chloe(i32 a, i32 b = 10) -> i0;
+function chloe(i32 a, i32 b = 10) => i0;
 ```
 
 can't support such polymorphism. The example above works given the same number of the arguemnts. If we consider the next example:
 ```
-function chloe(i32 a, i32 b = 10) -> i0;
-function chloe(i32 a, i32 b = 10, i32 c = 10) -> i0;
+function chloe(i32 a, i16 b = 10) => i0;
+function chloe(i32 a, i32 b = 10, i32 c = 10) => i0;
 ```
 
 this mechanism won't work.
@@ -420,18 +473,18 @@ function foo(...) -> i0 {
 }
 ```
 
-To pop an argument from this set, use the `poparg` annotation:
+To pop an argument from this set, use the `poparg` keyword:
 ```cpl
 function max(...) -> i0 {
-    @[poparg] i32 chloe;
+    i32 chloe = poparg as i32;
 }
 ```
 
-Also, the `poparg` annotation can be used in any function with arguments. It simply replaces any argument loading:
+Also, the `poparg` keyword can be used in any function with arguments. It simply replaces any argument loading:
 ```cpl
 function foo(i32 a, i32 b) {
-    @[poparg] i32 c; : a :
-    @[poparg] i32 d; : b :
+    i32 c = poparg as i32; : a :
+    i32 d = poparg as i32; : b :
 }
 ```
 
@@ -449,7 +502,7 @@ For instance let's consider the next piece of code:
         - `s` - Input string.
 
       Returns the size (i64). :
-    function strlen(ptr i8 s) -> i64;
+    function strlen(ptr i8 s) => i64;
 #endif
 }
 
@@ -465,7 +518,7 @@ For instance let's consider the next piece of code:
       - `msg` - Input message to print.
       
       Returns i0 aka nothing. :
-    function print(ptr str msg) -> i0;
+    function print(ptr str msg) => i0;
 #endif
 }
 
@@ -474,13 +527,13 @@ For instance let's consider the next piece of code:
     #include "print_h.cpl"
     #include "string_h.cpl"
 
-    function foo() -> i0;
+    function foo() => i0;
     
-    function bar() -> i0 {
+    function bar() => i0 {
         foo();
     }
 
-    function foo() -> i0 {
+    function foo() => i0 {
         print("Hello world!\n");
     }
 
@@ -496,20 +549,20 @@ After the PP, we will get a new form of the code:
 {
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"    
-    function strlen(ptr i8 s) -> i64;
+    function strlen(ptr i8 s) => i64;
 #line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
-    function print(ptr str msg) -> i0;
+    function print(ptr str msg) => i0;
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"
 #line 3 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
 
-    function foo() -> i0;
+    function foo() => i0;
     
-    function bar() -> i0 {
+    function bar() => i0 {
         foo();
     }
 
-    function foo() -> i0 {
+    function foo() => i0 {
         print("Hello world!\n");
     }
 
@@ -866,7 +919,7 @@ This is the second version of this compiler (at the moment of 10.20.2025, at lea
 
 ```cplv2
 extern exfunc printf;
-function itoa(ptr i8 buffer, i32 dsize, i32 num) -> i32 {
+function itoa(ptr i8 buffer, i32 dsize, i32 num) => i32 {
     i32 index = dsize - 1;
     i32 tmp = 0;
 
