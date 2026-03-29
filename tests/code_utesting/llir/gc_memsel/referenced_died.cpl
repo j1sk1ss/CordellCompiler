@@ -24,9 +24,9 @@ r9 movzx al;
 r15 = rcx;
 rbx = r15;
 cmp r9, 0;
-je lb25;
-jne lb23;
-BB2: lb23:
+je lb23;
+jne lb21;
+BB2: lb21:
 r15 = &([rbp - 8]);
 rcx = r15;
 r15 = rcx;
@@ -34,8 +34,8 @@ rdx = r15;
 r15 = rdx;
 rbx = r15;
 kill(9);
-jmp lb25;
-BB3: lb25:
+jmp lb23;
+BB3: lb23:
 r15 = $1;
 rsi = r15;
 r15 = rsi;

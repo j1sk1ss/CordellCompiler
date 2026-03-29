@@ -24,10 +24,10 @@ digraph CFG_func0 {
   B6 [label="B6:\nentry=MKLB46\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B6 -> B11 [label="fall"];
   B6 -> B7 [label="jump"];
-  B7 [label="B7:\nentry=MKLB49\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B7 [label="B7:\nentry=MKLB50\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B7 -> B2 [label="fall"];
   B7 -> B8 [label="jump"];
-  B8 [label="B8:\nentry=MKLB52\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B8 [label="B8:\nentry=MKLB54\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B8 -> B3 [label="jump"];
   B9 [label="B9:\nentry=MKLB11\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
   B10 [label="B10:\nentry=MKLB12\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];

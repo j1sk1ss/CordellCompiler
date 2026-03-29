@@ -7,6 +7,7 @@ start() {
     ptr f64 e = ref b;
     ptr i8 f = ref a;
 }
+
 :/ OUTPUT
 {
     start {
@@ -14,7 +15,7 @@ start() {
             {
                 i8s %0 = alloc(8);
                 f64s %1 = alloc(8);
-                arrs %2 = arr_alloc(num? 10);
+                arrs %2 = arr_alloc(i8n 10);
                 i32s** %3 = alloc(8);
                 i32t** %6 = &(arrs %2);
                 i32s** %3 = i32t** %6;

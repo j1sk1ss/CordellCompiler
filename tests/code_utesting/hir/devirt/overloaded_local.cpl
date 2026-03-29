@@ -16,44 +16,44 @@ start() {
     start {
         {
             {
-                goto lb{X}
+                goto lb10;
                 fn local1(i32 a)
                 {
                     i32s %0 = alloc(8);
                     i32s %0 = load_arg();
                     {
-                        return num? 1;
+                        return i8n 1;
                     }
                 }
-                lb{X}
-                goto lb{X}
+                lb10:
+                goto lb25;
                 fn local2(i16 a)
                 {
                     i16s %1 = alloc(8);
                     i16s %1 = load_arg();
                     {
-                        return num? 2;
+                        return i8n 2;
                     }
                 }
-                lb{X}
-                goto lb{X}
+                lb25:
+                goto lb40;
                 fn local3(i8 a)
                 {
                     i8s %2 = alloc(8);
                     i8s %2 = load_arg();
                     {
-                        return num? 3;
+                        return i8n 3;
                     }
                 }
-                lb{X}
-                i32t %3 = num? 1 as i32;
+                lb40:
+                i32t %3 = i8n 1 as i32;
                 use i32t %3;
                 i64t %4 = call local1(i32 a), argc args(i32t %3,);
-                i16t %5 = num? 1 as i16;
+                i16t %5 = i8n 1 as i16;
                 use i16t %5;
                 i64t %6 = call local2(i16 a), argc args(i16t %5,);
                 i64t %7 = i64t %4 + i64t %6;
-                i8t %8 = num? 1 as i8;
+                i8t %8 = i8n 1 as i8;
                 use i8t %8;
                 i64t %9 = call local3(i8 a), argc args(i8t %8,);
                 i64t %10 = i64t %7 + i64t %9;

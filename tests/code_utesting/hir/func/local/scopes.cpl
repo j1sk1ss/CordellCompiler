@@ -18,14 +18,14 @@ start() {
         fn foo0()
         {
             {
-                return num? 1;
+                return i8n 1;
             }
         }
     }
     fn foo1()
     {
         {
-            return num? 2;
+            return i8n 2;
         }
     }
     start {

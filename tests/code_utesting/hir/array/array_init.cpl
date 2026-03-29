@@ -9,7 +9,7 @@ start() {
     start {
         {
             {
-                arrs %0 = arr_alloc(num? 123);
+                arrs %0 = arr_alloc(i8n 123);
             }
         }
     }

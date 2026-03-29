@@ -19,7 +19,7 @@ start() {
                 }
                 lb{X}
                 i0t* %2 = &(__anon_function_lambda1(i32 a));
-                i64t %3 = call i0t* %2, argc args(num? 10,);
+                i64t %3 = call i0t* %2, argc args(i8n 10,);
                 exit i64t %3;
             }
         }

@@ -24,7 +24,7 @@ function main(i32 argc, ptr ptr i8 argv) {
             i8t* %5 = &(strs %4);
             use i8t* %5;
             call print1(str* msg) -> i0, argc args(i8t* %5,);
-            exit num? 0;
+            exit i8n 0;
         }
     }
 }

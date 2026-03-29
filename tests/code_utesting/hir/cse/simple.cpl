@@ -11,10 +11,10 @@ start() {
         {
             {
                 i32s %0 = alloc(8);
-                i32t %4 = num? 10 as i32;
+                i32t %4 = i8n 10 as i32;
                 i32s %9 = i32t %4;
                 i32s %1 = alloc(8);
-                i32t %5 = num? 10 as i32;
+                i32t %5 = i8n 10 as i32;
                 i32s %10 = i32t %5;
                 i32s %2 = alloc(8);
                 i32t %6 = i32s %9 + i32s %10;

@@ -17,19 +17,19 @@ setpos, line=4, column=8, file={X}
 setpos, line=4, column=8, file={X}
 setpos, line=4, column=8, file={X}
 setpos, line=4, column=11, file={X}
-                if num? 1, goto lb10, else goto lb12;
+                if i8n 1, goto lb10, else goto lb12;
                 lb10:
                 {
 setpos, line=4, column=19, file={X}
 setpos, line=4, column=19, file={X}
 setpos, line=4, column=22, file={X}
-                    exit num? 0;
+                    exit i8n 0;
                 }
                 goto lb12;
                 lb12:
 setpos, line=5, column=10, file={X}
 setpos, line=5, column=13, file={X}
-                exit num? 1;
+                exit i8n 1;
             }
         }
     }

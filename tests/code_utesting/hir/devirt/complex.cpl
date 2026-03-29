@@ -11,13 +11,13 @@ start() {
     start {
         {
             {
-                i32t %4 = num? 10 as i32;
+                i32t %4 = i8n 10 as i32;
                 use i32t %4;
-                call chloe0(i32 a, i32 b) -> i0, argc args(i32t %4,num? 10,);
-                i64t %5 = num? 10 as i64;
+                call chloe0(i32 a, i32 b) -> i0, argc args(i32t %4,i8n 10,);
+                i64t %5 = i8n 10 as i64;
                 use i64t %5;
-                call chloe1(i64 a, i32 b) -> i0, argc args(i64t %5,num? 10,);
-                exit num? 0;
+                call chloe1(i64 a, i32 b) -> i0, argc args(i64t %5,i8n 10,);
+                exit i8n 0;
             }
         }
     }

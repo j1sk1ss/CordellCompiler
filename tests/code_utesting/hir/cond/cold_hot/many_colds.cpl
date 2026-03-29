@@ -26,44 +26,44 @@ start() {
     start {
         {
             {
-                if num? 1, goto lb{X} else goto lb{X}
-                lb{X}
+                if i8n 1, goto lb10, else goto lb11;
+                lb11:
                 {
-                    exit num? 2;
+                    exit i8n 2;
                 }
-                goto lb{X}
-                lb{X}
-                if num? 2, goto lb{X} else goto lb{X}
-                lb{X}
+                goto lb12;
+                lb12:
+                if i8n 2, goto lb28, else goto lb29;
+                lb29:
                 {
-                    exit num? 2;
+                    exit i8n 2;
                 }
-                goto lb{X}
-                lb{X}
-                if num? 3, goto lb{X} else goto lb{X}
-                lb{X}
+                goto lb30;
+                lb30:
+                if i8n 3, goto lb46, else goto lb47;
+                lb47:
                 {
-                    exit num? 2;
+                    exit i8n 2;
                 }
-                goto lb{X}
-                lb{X}
+                goto lb48;
+                lb48:
             }
             exit cnst? 0;
-            lb{X}
+            lb10:
             {
-                exit num? 1;
+                exit i8n 1;
             }
-            goto lb{X}
-            lb{X}
+            goto lb12;
+            lb28:
             {
-                exit num? 1;
+                exit i8n 1;
             }
-            goto lb{X}
-            lb{X}
+            goto lb30;
+            lb46:
             {
-                exit num? 1;
+                exit i8n 1;
             }
-            goto lb{X}
+            goto lb48;
         }
     }
 }

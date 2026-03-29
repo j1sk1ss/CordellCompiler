@@ -5,7 +5,7 @@ start() {
 
 :/ OUTPUT
 BB{X} start
-jmp lb14;
+jmp lb{X}
 BB{X} lb{X}
 %3 = &(__anon_function_lambda1(i32 a));
 %0 = %3;

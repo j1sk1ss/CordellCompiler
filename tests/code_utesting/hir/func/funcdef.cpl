@@ -18,7 +18,7 @@ function foo() -> i32 {
     fn foo1() -> i32
     {
         {
-            return num? 0;
+            return i8n 0;
         }
     }
 }

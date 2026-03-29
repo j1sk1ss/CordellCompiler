@@ -28,15 +28,15 @@ setpos, line=2, column=8, file=<unknown>
 setpos, line=2, column=15, file=<unknown>
 setpos, line=2, column=11, file=<unknown>
 setpos, line=2, column=18, file=<unknown>
-                i64t %2 = i32s %0 as i64;
-                i64t %1 = i64t %2 == num? 1;
-                if i64t %1, goto lb13, else goto lb14;
+                i32t %2 = i8n 1 as i32;
+                i32t %1 = i32s %0 == i32t %2;
+                if i32t %1, goto lb13, else goto lb14;
                 lb13:
                 {
 setpos, line=3, column=14, file=<unknown>
 setpos, line=3, column=14, file=<unknown>
 setpos, line=3, column=17, file=<unknown>
-                    exit num? 1;
+                    exit i8n 1;
                 }
                 goto lb15;
                 lb14:
@@ -46,15 +46,15 @@ setpos, line=5, column=14, file=<unknown>
 setpos, line=5, column=21, file=<unknown>
 setpos, line=5, column=17, file=<unknown>
 setpos, line=5, column=24, file=<unknown>
-                    i64t %4 = i32s %0 as i64;
-                    i64t %3 = i64t %4 == num? 2;
-                    if i64t %3, goto lb32, else goto lb33;
+                    i32t %4 = i8n 2 as i32;
+                    i32t %3 = i32s %0 == i32t %4;
+                    if i32t %3, goto lb32, else goto lb33;
                     lb32:
                     {
 setpos, line=6, column=14, file=<unknown>
 setpos, line=6, column=14, file=<unknown>
 setpos, line=6, column=17, file=<unknown>
-                        exit num? 2;
+                        exit i8n 2;
                     }
                     goto lb34;
                     lb33:
@@ -62,7 +62,7 @@ setpos, line=6, column=17, file=<unknown>
 setpos, line=9, column=14, file=<unknown>
 setpos, line=9, column=14, file=<unknown>
 setpos, line=9, column=17, file=<unknown>
-                        exit num? 3;
+                        exit i8n 3;
                     }
                     goto lb34;
                     lb34:
@@ -71,7 +71,7 @@ setpos, line=9, column=17, file=<unknown>
                 lb15:
 setpos, line=12, column=10, file=<unknown>
 setpos, line=12, column=13, file=<unknown>
-                exit num? 4;
+                exit i8n 4;
             }
         }
     }

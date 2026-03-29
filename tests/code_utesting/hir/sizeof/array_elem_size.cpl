@@ -10,7 +10,7 @@ start() {
     start {
         {
             {
-                arrs %0 = arr_alloc(num? 10);
+                arrs %0 = arr_alloc(i8n 10);
                 i32s %1 = alloc(8);
                 i32t %4 = cnst? 80 as i32;
                 i32s %1 = i32t %4;

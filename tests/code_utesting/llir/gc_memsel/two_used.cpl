@@ -16,15 +16,15 @@ rcx = r15;
 r15 = rcx;
 rax = r15;
 cmp rdx, 0;
-je lb33;
-jne lb32;
-BB2: lb32:
+je lb29;
+jne lb28;
+BB2: lb28:
 r15 = rax;
 rdx = r15;
 exit rdx;
-BB3: lb33:
+BB3: lb29:
 r15 = rdx;
 rdx = r15;
 exit rdx;
-BB4: lb34:
+BB4: lb30:
 /:

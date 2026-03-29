@@ -10,7 +10,7 @@ start() {
     start {
         {
             {
-                if num? 1, goto lb{X} else goto lb{X}
+                if i8n 1, goto lb{X} else goto lb{X}
                 lb{X}
                 {
                 }

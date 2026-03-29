@@ -24,10 +24,10 @@ function foo(i32 a) {
                 i32s %3 = alloc(8);
                 i32s %3 = load_arg();
                 {
-                    i32t %4 = num? 1 as i32;
+                    i32t %4 = i8n 1 as i32;
                     i32t %5 = i32s %2 + i32t %4;
                     i32s %2 = i32t %5;
-                    i32t %6 = num? 1 as i32;
+                    i32t %6 = i8n 1 as i32;
                     i32t %7 = i32s %3 + i32t %6;
                     i32s %3 = i32t %7;
                 }

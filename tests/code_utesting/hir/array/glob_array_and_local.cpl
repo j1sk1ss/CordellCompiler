@@ -5,13 +5,13 @@ start() {
 
 :/ OUTPUT
 {
-    arrg %0 = arr_alloc(num? 1);
+    arrg %0 = arr_alloc(i8n 1);
     start {
         {
             {
                 i32t* %2 = &(arrg %0);
                 use i32t* %2;
-                arrs %1 = arr_alloc(num? 1);
+                arrs %1 = arr_alloc(i8n 1);
             }
         }
     }

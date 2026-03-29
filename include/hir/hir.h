@@ -122,7 +122,7 @@ static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
 
 #define HIR_SUBJ_CONST(val)              HIR_create_subject(HIR_CONSTVAL, 0, NULL, val)
 #define HIR_SUBJ_FNUMBER(val)            HIR_create_subject(HIR_F64NUMBER, 0, val, 0)
-#define HIR_SUBJ_NUMBER(val)             HIR_create_subject(HIR_NUMBER, 0, val, 0)
+#define HIR_SUBJ_NUMBER(t, val)          HIR_create_subject(t, 0, val, 0)
 #define HIR_SUBJ_STKVAR(v_id, kind, ptr) HIR_create_subject(kind, v_id, NULL, ptr)
 #define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, _get_token_stktype(n->t, 0), n->t->flags.ptr)
 #define HIR_SUBJ_TMPVAR(kind, id)        HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)

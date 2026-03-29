@@ -33,7 +33,7 @@ start() {
                 fn bar1() -> i64
                 {
                     {
-                        return num? 1;
+                        return i8n 1;
                     }
                 }
                 lb20:
@@ -46,7 +46,7 @@ start() {
                 fn baz2() -> i64
                 {
                     {
-                        return num? 2;
+                        return i8n 2;
                     }
                 }
                 lb41:
@@ -73,7 +73,7 @@ start() {
     start {
         {
             {
-                i32t %7 = num? 0 as i32;
+                i32t %7 = i8n 0 as i32;
                 use i32t %7;
                 i0t* %8 = call factory0(i32 k) -> i0*, argc args(i32t %7,);
                 i64t %9 = call i0t* %8, argc args();

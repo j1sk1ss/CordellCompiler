@@ -10,12 +10,12 @@ start() {
     start {
         {
             {
-                i32t %2 = num? 10 as i32;
+                i32t %2 = i8n 10 as i32;
                 use i32t %2;
-                call foo0(i32 a, ...), argc args(i32t %2,num? 1,num? 2,num? 3,num? 4,num? 5,num? 6,);
-                i8t %3 = num? 10 as i8;
+                call foo0(i32 a, ...), argc args(i32t %2,i8n 1,i8n 2,i8n 3,i8n 4,i8n 5,i8n 6,);
+                i8t %3 = i8n 10 as i8;
                 use i8t %3;
-                call foo1(i8 a, ...), argc args(i8t %3,num? 3,num? 1,);
+                call foo1(i8 a, ...), argc args(i8t %3,i8n 3,i8n 1,);
             }
         }
     }

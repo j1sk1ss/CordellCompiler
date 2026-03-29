@@ -21,7 +21,7 @@ Notes:
 - The compiler may insert an implicit cast only when it is a widening conversion.
 - Otherwise, compilation should fail unless you write the cast explicitly with `as`.
 - The `as` keyword is also useful when selecting an overloaded function.
-- By default, numeric literals are `i64`, so assigning them to smaller integer types usually requires `as`.
+- By default, numeric literals have the type depends on its value, so assigning them to smaller integer types usually requires `as`.
 
 ## Primitive types
 A primitive type, in compiler terms, is a basic data object that stores a value directly. Depending on the target platform, primitive values can occupy from 8 bits up to 64 bits.

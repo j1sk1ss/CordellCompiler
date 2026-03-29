@@ -3,18 +3,18 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} start
-jmp lb14;
-BB{X} lb{X}
+BB2: start
+jmp lb12;
+BB3: lb12:
 %2 = &(__anon_function_lambda1(i32 a));
 stparam($10);
 call %2;
 %3 = fret();
 exit %3;
-BB{X}
-BB{X} fn __anon_function_lambda1(i32 a)
+BB4:
+BB5: fn __anon_function_lambda1(i32 a)
 %0 = ldparam();
 %1 = %0 * %0;
 return %1;
-BB{X}
+BB6:
 /:

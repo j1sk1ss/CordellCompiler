@@ -13,20 +13,20 @@ function foo() -> i32 {
     fn _main() -> i32
     {
         {
-            if num? 1, goto lb{X} else goto lb{X}
-            lb{X}
+            if i8n 1, goto lb10, else goto lb11;
+            lb11:
             {
             }
-            goto lb{X}
-            lb{X}
-            return num? 0;
+            goto lb12;
+            lb12:
+            return i8n 0;
         }
         exit cnst? 0;
-        lb{X}
+        lb10:
         {
-            return num? 2;
+            return i8n 2;
         }
-        goto lb{X}
+        goto lb12;
     }
 }
 /:

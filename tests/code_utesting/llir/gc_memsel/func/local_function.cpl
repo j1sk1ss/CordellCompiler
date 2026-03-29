@@ -23,8 +23,8 @@ r15 = $1;
 rdi = r15;
 r15 = rdi;
 r8 = r15;
-jmp lb32;
-BB4: lb32:
+jmp lb28;
+BB4: lb28:
 r15 = rbx;
 rax = r15;
 rax = rax + r8;

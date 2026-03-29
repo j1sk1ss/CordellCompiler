@@ -31,7 +31,7 @@ start() {
                 fn __anon_function_lambda2()
                 {
                     {
-                        return num? 10;
+                        return i8n 10;
                     }
                 }
                 lb45:
@@ -54,7 +54,7 @@ start() {
                 lb69:
                 i0t* %11 = &(__anon_function_lambda3(i32 a, i32 b));
                 use i0t* %11;
-                call logic0(i32 a, i32 b, i0* f), argc args(num? 10,num? 20,i0t* %11,);
+                call logic0(i32 a, i32 b, i0* f), argc args(i8n 10,i8n 20,i0t* %11,);
             }
         }
     }

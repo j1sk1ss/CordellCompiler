@@ -40,41 +40,47 @@ setpos, line=6, column=22, file=<unknown>
                 goto lb11;
                 lb10:
 setpos, line=2, column=15, file=<unknown>
-                i8t %0 = num? 1 < cnst? 2;
+                i64t %1 = i8n 1;
+                i8t %0 = i64t %1 < cnst? 2;
                 if i8t %0, goto lb30, else goto lb31;
                 lb30:
-                i8t %1 = num? 1 < cnst? 1;
-                if i8t %1, goto lb36, else goto lb37;
-                lb36:
-                goto lb24;
+                i64t %3 = i8n 1;
+                i8t %2 = i64t %3 < cnst? 1;
+                if i8t %2, goto lb37, else goto lb38;
                 lb37:
-                i8t %2 = num? 1 > cnst? 1;
-                if i8t %2, goto lb38, else goto lb39;
-                lb38:
                 goto lb24;
+                lb38:
+                i64t %5 = i8n 1;
+                i8t %4 = i64t %5 > cnst? 1;
+                if i8t %4, goto lb39, else goto lb40;
                 lb39:
+                goto lb24;
+                lb40:
                 goto lb12;
                 lb31:
-                i8t %3 = num? 1 > cnst? 2;
-                if i8t %3, goto lb32, else goto lb33;
+                i64t %7 = i8n 1;
+                i8t %6 = i64t %7 > cnst? 2;
+                if i8t %6, goto lb32, else goto lb33;
                 lb32:
-                i8t %4 = num? 1 < cnst? 3;
-                if i8t %4, goto lb46, else goto lb47;
-                lb46:
+                i64t %9 = i8n 1;
+                i8t %8 = i64t %9 < cnst? 3;
+                if i8t %8, goto lb50, else goto lb51;
+                lb50:
                 goto lb24;
-                lb47:
-                i8t %5 = num? 1 > cnst? 3;
-                if i8t %5, goto lb48, else goto lb49;
-                lb48:
+                lb51:
+                i64t %11 = i8n 1;
+                i8t %10 = i64t %11 > cnst? 3;
+                if i8t %10, goto lb52, else goto lb53;
+                lb52:
                 goto lb24;
-                lb49:
+                lb53:
                 goto lb20;
                 lb33:
                 goto lb16;
                 lb11:
 setpos, line=9, column=10, file=<unknown>
 setpos, line=9, column=13, file=<unknown>
-                exit num? 1;
+                exit i8n 1;
             }
         }
     }

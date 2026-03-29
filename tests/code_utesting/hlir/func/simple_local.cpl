@@ -6,18 +6,18 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} start
+BB2: start
 jmp lb10;
-BB{X} lb{X}
+BB3: lb10:
 stparam($10);
 call get1(i32 a) -> i32;
 %3 = fret();
 exit %3;
-BB{X}
-BB{X} fn get1(i32 a) -> i32
+BB4:
+BB5: fn get1(i32 a) -> i32
 %0 = ldparam();
-%2 = %0 as i64;
-%1 = %2 * $10;
+%2 = $10 as i32;
+%1 = %0 * %2;
 return %1;
-BB{X}
+BB6:
 /:

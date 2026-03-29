@@ -13,14 +13,14 @@ BB1: fn _main()
 %4 = %1;
 %0 = %4;
 cmp %0, 0;
-je lb23;
-jne lb21;
-BB2: lb21:
+je lb21;
+jne lb19;
+BB2: lb19:
 %6 = $1;
 %2 = %6;
 %7 = %2;
 %5 = %7;
 exit %5;
-BB3: lb23:
+BB3: lb21:
 fend
 /:

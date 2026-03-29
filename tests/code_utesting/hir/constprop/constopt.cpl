@@ -4,7 +4,8 @@ start() {
 
 :/ OUTPUT
 {id: 1, tmp, i32, s_id: -1, value=2048}
-{id: 3, a, i32, s_id: 2, value=2048}
+{id: 4, a, i32, s_id: 2, value=2048}
+{id: 3, tmp, i16, s_id: -1, value=2}
 {id: 0, a, i32, s_id: 2}
-{id: 2, tmp, f64, s_id: -1, value=2048}
+{id: 2, tmp, i16, s_id: -1, value=2048}
 /:

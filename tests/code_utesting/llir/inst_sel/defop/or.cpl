@@ -5,17 +5,17 @@ start() {
 :/ OUTPUT
 BB1: start
 cmp $10, 0;
-je lb21;
-jne lb20;
-BB2: lb21:
+je lb18;
+jne lb17;
+BB2: lb18:
 %3 = $10;
 %2 = %3;
-jmp lb22;
-BB3: lb20:
+jmp lb19;
+BB3: lb17:
 %4 = 1;
 %2 = %4;
-jmp lb22;
-BB4: lb22:
+jmp lb19;
+BB4: lb19:
 %5 = %2;
 %1 = %5;
 %6 = %1;

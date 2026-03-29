@@ -23,7 +23,7 @@ start() {
                 }
                 lb16:
                 i0t* %5 = &(__anon_function_lambda1(i32 a));
-                i64t %6 = call i0t* %5, argc args(num? 10,);
+                i64t %6 = call i0t* %5, argc args(i8n 10,);
                 i32t %4 = i64t %6 as i32;
                 i32s %0 = i32t %4;
                 goto lb38;
@@ -37,7 +37,7 @@ start() {
                 }
                 lb38:
                 i32s %3 = alloc(8);
-                i64t %8 = call local2(i32 a), argc args(num? 10,);
+                i64t %8 = call local2(i32 a), argc args(i8n 10,);
                 i32t %7 = i64t %8 as i32;
                 i32s %3 = i32t %7;
             }

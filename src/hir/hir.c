@@ -58,9 +58,6 @@ long HIR_hash_subject(hir_subject_t* s) {
             break;
         }
 
-        case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
-        case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
-        case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             h ^= _mix64(s->storage.cnst.value);
         break;
@@ -114,9 +111,6 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_NUMBER:
             if (strval) subj->storage.num.value = strval->copy(strval);
         break;
-        case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
-        case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
-        case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             subj->storage.cnst.value = intval;
         break;
@@ -184,9 +178,6 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_NUMBER:
             ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
         break;
-        case HIR_F64CONSTVAL: case HIR_F32CONSTVAL:
-        case HIR_I64CONSTVAL: case HIR_I32CONSTVAL: case HIR_I16CONSTVAL: case HIR_I8CONSTVAL:
-        case HIR_U64CONSTVAL: case HIR_U32CONSTVAL: case HIR_U16CONSTVAL: case HIR_U8CONSTVAL:
         case HIR_CONSTVAL:
             ns->storage.cnst.value = s->storage.cnst.value;
         break;

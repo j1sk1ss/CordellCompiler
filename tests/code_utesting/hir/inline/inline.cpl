@@ -19,45 +19,45 @@ start() {
         i32s %0 = alloc(8);
         i32s %0 = load_arg();
         {
-            arrs %1 = arr_alloc(num? 10);
-            i64t %4 = i32s %0 as i64;
-            i64t %3 = i64t %4 == num? 1;
-            if i64t %3, goto lb{X}, else goto lb{X};
-            lb{X}
+            arrs %1 = arr_alloc(i8n 10);
+            i32t %4 = i8n 1 as i32;
+            i32t %3 = i32s %0 == i32t %4;
+            if i32t %3, goto lb20, else goto lb21;
+            lb20:
             {
-                return num? 0;
+                return i8n 0;
             }
-            goto lb{X};
-            lb{X}
+            goto lb22;
+            lb21:
             {
-                return num? 1;
+                return i8n 1;
             }
-            goto lb{X};
-            lb{X}
+            goto lb22;
+            lb22:
         [unused] }
     [unused] }
-    [unused] 
+    [unused]
     start {
         {
             {
                 i32s %2 = alloc(8);
-                i32s %0 = num? 10;
-                arrs %1 = arr_alloc(num? 10);
-                i64t %4 = i32s %0 as i64;
-                i64t %3 = i64t %4 == num? 1;
-                if i64t %3, goto lb{X}, else goto lb{X};
-                lb{X}
+                i32s %0 = i8n 10;
+                arrs %1 = arr_alloc(i8n 10);
+                i32t %4 = i8n 1 as i32;
+                i32t %3 = i32s %0 == i32t %4;
+                if i32t %3, goto lb97, else goto lb98;
+                lb97:
                 {
-                    i32t %5 = num? 0;
+                    i32t %5 = i8n 0;
                 }
-                goto lb{X};
-                lb{X}
+                goto lb99;
+                lb98:
                 {
-                    i32t %5 = num? 1;
+                    i32t %5 = i8n 1;
                 }
-                goto lb{X};
-                lb{X}
-                [unused] i32t %5 = call foo0(i32 a) -> i32, argc args(num? 10,);
+                goto lb99;
+                lb99:
+                [unused] i32t %5 = call foo0(i32 a) -> i32, argc args(i8n 10,);
                 i32s %2 = i32t %5;
             }
         }

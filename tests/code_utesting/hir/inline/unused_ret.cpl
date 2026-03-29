@@ -11,7 +11,7 @@ start() {
     fn getter0() -> i32
     {
         {
-            return num? 100;
+            return i8n 100;
         }
     }
     start {

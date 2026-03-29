@@ -22,7 +22,7 @@ start() {
     start {
         {
             {
-                arrs %1 = arr_alloc(num? 10);
+                arrs %1 = arr_alloc(i8n 10);
                 i32t** %4 = &(arrs %1);
                 use i32t** %4;
                 call foo0(i32** a), argc args(i32t** %4,);

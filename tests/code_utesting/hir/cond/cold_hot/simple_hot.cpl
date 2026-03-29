@@ -18,15 +18,15 @@ start(i32 a) {
             i32s %0 = load_starg();
             {
                 i32s %1 = alloc(8);
-                i32t %3 = num? 10 as i32;
+                i32t %3 = i8n 10 as i32;
                 i32t %4 = i32s %0 + i32t %3;
                 i32s %1 = i32t %4;
-                i32t %5 = num? 20 as i32;
+                i32t %5 = i8n 20 as i32;
                 i32t %6 = i32s %1 == i32t %5;
                 if i32t %6, goto lb26, else goto lb27;
                 lb26:
                 {
-                    i32t %7 = num? 1 as i32;
+                    i32t %7 = i8n 1 as i32;
                     i32t %8 = i32s %0 + i32t %7;
                     i32s %0 = i32t %8;
                     exit i32s %1;

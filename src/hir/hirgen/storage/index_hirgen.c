@@ -60,11 +60,12 @@ static hir_subject_t* _get_final_head(
 
     /* The final offset for the base address is the result of the
         expression 'real_offset = offset * element_size' */
-    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(offt->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(offt->t), NO_SYMBOL_ID, NULL, &smt->v));
-    HIR_BLOCK3(
-        ctx, HIR_iMUL, real_offset, offt, 
-        HIR_generate_implconv(ctx, offt->ptr, offt->t, HIR_SUBJ_CONST(_get_pointed_element_size(base, smt)), smt)
+    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(
+        HIR_promote_types(offt->t, HIR_CONSTVAL), 
+        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(offt->t, HIR_CONSTVAL)), NO_SYMBOL_ID, NULL, &smt->v)
     );
+
+    HIR_BLOCK3(ctx, HIR_iMUL, real_offset, offt, HIR_SUBJ_CONST(_get_pointed_element_size(base, smt)));
 
     /* No we move the address (base) by the offser (addr):
         - final_head = head + real_offset */

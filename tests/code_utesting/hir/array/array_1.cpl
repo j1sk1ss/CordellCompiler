@@ -10,16 +10,16 @@ start() {
     start {
         {
             {
-                arrs %0 = arr_alloc(num? 10);
-                i32t %3 = num? 0 as i32;
+                arrs %0 = arr_alloc(i8n 10);
+                i32t %3 = i8n 0 as i32;
                 i32t* %4 = &(arrs %0);
-                i64t %5 = num? 0 * cnst? 4;
+                i64t %5 = i8n 0 * cnst? 4;
                 i32t* %7 = i64t %5 as *ptr;
                 i32t* %6 = i32t* %4 + i32t* %7;
                 *(i32t* %6) = i32t %3;
                 i32s %1 = alloc(8);
                 i32t* %8 = &(arrs %0);
-                i64t %9 = num? 0 * cnst? 4;
+                i64t %9 = i8n 0 * cnst? 4;
                 i32t* %11 = i64t %9 as *ptr;
                 i32t* %10 = i32t* %8 + i32t* %11;
                 i32t %12 = *(i32t* %10);

@@ -8,11 +8,11 @@ start() {
     start {
         {
             {
-                i64t %2 = num? 100 + num? 1;
-                use i64t %2;
-                [unused] i64t %3 = num? 100 + num? 1;
-                use i64t %2;
-                call foo0(i32 a, i32 b) -> i32, argc args(i64t %2,i64t %2,);
+                i8t %2 = i8n 100 + i8n 1;
+                use i8t %2;
+                [unused] i8t %3 = i8n 100 + i8n 1;
+                use i8t %2;
+                call foo0(i32 a, i32 b) -> i32, argc args(i8t %2,i8t %2,);
             }
         }
     }

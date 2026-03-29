@@ -12,9 +12,9 @@ start() {
     fn foo0()
     {
         {
-            arrs %0 = arr_alloc(num? 10);
+            arrs %0 = arr_alloc(i8n 10);
             i32t* %1 = &(arrs %0);
-            i64t %2 = num? 0 * cnst? 4;
+            i64t %2 = i8n 0 * cnst? 4;
             i32t* %4 = i64t %2 as *ptr;
             i32t* %3 = i32t* %1 + i32t* %4;
             i32t %5 = *(i32t* %3);
@@ -24,9 +24,9 @@ start() {
     start {
         {
             {
-                arrs %0 = arr_alloc(num? 10);
+                arrs %0 = arr_alloc(i8n 10);
                 i32t* %1 = &(arrs %0);
-                i64t %2 = num? 0 * cnst? 4;
+                i64t %2 = i8n 0 * cnst? 4;
                 i32t* %4 = i64t %2 as *ptr;
                 i32t* %3 = i32t* %1 + i32t* %4;
                 i32t %5 = *(i32t* %3);

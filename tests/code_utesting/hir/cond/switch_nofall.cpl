@@ -82,7 +82,7 @@ start() {
                 lb41:
                 goto lb18;
                 lb13:
-                i8t %10 = num? 1 as i8;
+                i8t %10 = i8n 1 as i8;
                 exit i8t %10;
             }
         }

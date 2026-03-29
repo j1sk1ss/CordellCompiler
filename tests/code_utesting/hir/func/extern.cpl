@@ -12,7 +12,7 @@ start() {
         {
             {
                 use i8g* %1;
-                excall , argc printf0(i8* fmt, ...) -> i32args(i8g* %1,num? 10,);
+                excall , argc printf0(i8* fmt, ...) -> i32args(i8g* %1,i8n 10,);
             }
         }
     }

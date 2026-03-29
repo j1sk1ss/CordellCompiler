@@ -10,7 +10,7 @@ start() {
     fn foo0()
     {
         {
-            return num? 10;
+            return i8n 10;
         }
     }
     start {
