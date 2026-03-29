@@ -30,6 +30,18 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Number types
+The numbers in the compiler always were treated as `i64` values which isn't incorrect, but also isn't precise. To address this issue numbers now have the type based on its value. For instance:
+```cpl
+100 : i8 :
+130 : u8 :
+1000 : i16 :
+50000 : u16 :
+: etc :
+```
+
+P.S.: This allows the compiler move closer to the strong typing.
+
 ## Large comment blocks
 Now the compiler supports the second set of a comment marking:
 ```cpl
