@@ -1,3 +1,4 @@
+/* Architecture dependent module wich is linked to x86_64 GNU NASM. */
 #ifndef INSTSEL_X86_64_GNU_NASM_
 #define INSTSEL_X86_64_GNU_NASM_
 

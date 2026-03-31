@@ -15,7 +15,7 @@ int HIR_unload_extended_ctx(hir_ctx_t* ctx) {
 /*
 Mix64 hash function.
 Params:
-    - x - Input value.
+    - `x` - Input value.
 
 Returns hashed value.
 */

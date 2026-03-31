@@ -5,23 +5,34 @@ Collect used registers in the provided function.
 Params:
     - `dirty` - Output set of used registers.
     - `f` - Function CFG.
+            Note: If this value is NULL, will set all registers as
+                  dirty.
 
 Return 1 if operation succeed. Otherwise will return 0.
 */
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
-    if (!f) return 0;
-    foreach (cfg_block_t* bb, &f->blocks) {
-        lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-        while (lh) {
-            if (
-                LIR_is_writeop(lh->op) &&      /* We are writing some value to register (for some reason) */
-                lh->farg->t == LIR_REGISTER    /* This is a register object                               */
-            ) set_add(dirty, (void*)lh->farg->storage.reg.reg);    /* We re-write value in a register     */
-            lh = LIR_get_next(lh, bb->lmap.exit, 1);
+    if (!f) {
+        lir_registers_t dirty_regs[] = { RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8, R9, R10, R11, R12, R13, R14, R15 };
+        for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RAX)); i++) {
+            set_add(dirty, (void*)dirty_regs[i]);
+        }
+
+        return 1;
+    }
+    else {
+        foreach (cfg_block_t* bb, &f->blocks) {
+            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+            while (lh) {
+                if (
+                    LIR_is_writeop(lh->op) &&   /* We are writing some value to register (for some reason)         */
+                    lh->farg->t == LIR_REGISTER /* This is a register object, we can say that this is a dirty one. */
+                ) set_add(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, DEFAULT_TYPE_SIZE)); 
+                lh = LIR_get_next(lh, bb->lmap.exit, 1);
+            }
         }
     }
 
-    return 0;
+    return 1;
 }
 
 static unsigned int _visit_counter = 10; /* Magic index offset */
@@ -46,15 +57,15 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
         if ( /* Remove register from the 'dirty' set if it is rewritten */
             LIR_is_writeop(lh->op) && 
             lh->farg == LIR_REGISTER
-        ) set_remove(dirty, (void*)lh->farg->storage.reg.reg);
+        ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, DEFAULT_TYPE_SIZE));
         
         lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
         for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
             if (
                 !args[i] || args[i]->t != LIR_REGISTER || 
-                !set_has(dirty, (void*)args[i]->storage.reg.reg)
+                !set_has(dirty, (void*)LIR_format_register(args[i]->storage.reg.reg, DEFAULT_TYPE_SIZE))
             ) continue; /* If this register isn't a dirty one -> skip it */
-            set_add(save, (void*)args[i]->storage.reg.reg);
+            set_add(save, (void*)LIR_format_register(args[i]->storage.reg.reg, DEFAULT_TYPE_SIZE));
         }
         
         lh = LIR_get_next(lh, bbh->lmap.exit, 1);
@@ -82,6 +93,7 @@ Params:
 Returns function or NULL.
 */
 static cfg_func_t* _find_function(symbol_id_t f_id, cfg_ctx_t* cctx) {
+    if (f_id == NO_SYMBOL_ID) return NULL;
     foreach (cfg_func_t* fb, &cctx->funcs) { 
         if (fb->f_id == f_id) return fb; 
     }
@@ -101,13 +113,16 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
                     set_init(&save_regs, SET_NO_CMP);
                     
                     _visit_counter++;
-                    _collect_in_function_reg_usage(&func_regs, _find_function(lh->farg->storage.str.sid, cctx));
+
+                    symbol_id_t f_id = lh->farg->t == LIR_FNAME ? lh->farg->storage.str.sid : NO_SYMBOL_ID;
+                    _collect_in_function_reg_usage(&func_regs, _find_function(f_id, cctx));
                     _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh);
+
                     set_foreach (long reg, &save_regs) {
                         LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
                         LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
                     }
-
+                    
                     set_free(&func_regs);
                     set_free(&save_regs);
                 }

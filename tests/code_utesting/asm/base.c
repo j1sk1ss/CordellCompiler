@@ -23,6 +23,7 @@
 #include <lir/lirgens/lirgens.h>
 #include <lir/selector/instsel.h>
 #include <lir/selector/memsel.h>
+#include <lir/selector/savereg.h>
 #include <lir/selector/x84_64_gnu_nasm.h>
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
@@ -123,6 +124,9 @@ int main(int argc, char* argv[]) {
 
     mem_selector_t mem_sel = { .select_memory = x86_64_gnu_nasm_memory_selection };
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
+
+    register_saver_t reg_save = { .save_registers = x86_64_gnu_nasm_caller_saving };
+    LIR_save_registers(&cfgctx, &reg_save);
 
     asm_gen_t asmgen = { .generator = x86_64_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);
