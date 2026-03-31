@@ -46,7 +46,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     }
 
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
-    base->sinfo.v_id = FNTB_add_info(main_name, main_name, 1, 0, 1, 0, annots.is_naked, base->sinfo.s_id, base, NULL, &smt->f);
+    base->sinfo.v_id = FNTB_add_info(main_name, main_name, 1, 0, 1, annots.is_naked, 0, base->sinfo.s_id, base, NULL, &smt->f);
     destroy_string(main_name);
 
     ast_node_t* body = NULL;

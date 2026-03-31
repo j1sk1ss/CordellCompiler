@@ -19,11 +19,8 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         }
         case LIR_STEND:
         case LIR_EXITOP: {
-            if (!fi->flags.naked) {
-                EMIT_COMMAND("mov rax, 0x2000001");
-                EMIT_COMMAND("syscall");
-            }
-
+            EMIT_COMMAND("mov rax, 0x2000001");
+            EMIT_COMMAND("syscall");
             break;
         }
         case LIR_FEND:
