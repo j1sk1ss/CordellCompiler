@@ -17,7 +17,6 @@
 #define HOTSC_ANNOTATION_COMMAND "hot"
 #define COLDS_ANNOTATION_COMMAND "cold"
 #define REGST_ANNOTATION_COMMAND "register"
-#define SIZEV_ANNOTATION_COMMAND "sizeof"
 #define POPRG_ANNOTATION_COMMAND "poparg"
 
 typedef struct {

@@ -1,11 +1,11 @@
 # Scopes
 ## Variables and lifetime
-Variables live in their declared scopes. You cannot point to variables from an outer scope. This makes the manual program stack managment a way easier given the determined behavior of the stack allocator in this compiler. 
+Variables live in their declared scopes. You cannot point to variables from an outer scope. This makes the manual program stack management a way easier given the determined behavior of the stack allocator in this compiler. 
 ```cpl
 start() {
    ptr u64 p;
    {
-      arr t[10; i32];
+      arr t[10, i32];
       p = ref t; : <= No warning here, but it still illegal :
    }             : <= array "t" died here :
 

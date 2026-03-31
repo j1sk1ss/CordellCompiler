@@ -1,5 +1,5 @@
 # Code conventions
-*P.S. It's not a thing, but I'd like to share my prefered code style through this conventions. The compiler itself doesn't care about how a code is written.* </br>
+*P.S. It's not a thing, but I'd like to share my preferred code style through this conventions. The compiler itself doesn't care about how a code is written.* </br>
 CPL encourages code mostly based on C-code conventions.
 - **Variables**: use lowercase letters and underscores
 ```cpl

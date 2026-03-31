@@ -1,5 +1,5 @@
 # Annotations
-Annotations are usefull tool in terms of system development. For non-system programmer, annotations are redundant (even the aligns and sections are avaliable by inbuilt keywords). But let's review all aavaliable annotations (at this moment):
+Annotations are useful tool in terms of system development. For non-system programmer, annotations are redundant (even the aligns and sections are available by inbuilt keywords). But let's review all available annotations (at this moment):
 - `naked` - Will disable all entry and exit routines in the final assembly code for an annotated function.
 - `align` - Will do the same work as it does the 'align' keyword.
 - `section` - Will do the same work as it does the 'section' keyword.
@@ -54,14 +54,14 @@ Register annotation is similar to C's `register` keyword which links a variable 
 @[register(RAX)] i32 a = 0; : Will put `0` to the `RAX` register :
 ```
 
-*P.S.: This annotation accepts the index of a register from mapping table (see related documentation for every supported target), and can link up to infinity variables to one register, which means - you need to pay extra attention here, if you want to play with registers byepassing the register allocator.*
+*P.S.: This annotation accepts the index of a register from mapping table (see related documentation for every supported target), and can link up to infinity variables to one register, which means - you need to pay extra attention here, if you want to play with registers bypassing the register allocator.*
 
 ### no_fall
-The switch structure is a great tool to solve a problem with multiple cases. But in C/C++/(old)Java, this structure has to be used with the `break` statement. It is neccesary considering the fallthrough from upper cases to lower cases, and can be very annoing if there is only one statement in the case, and we forced to add the `break` to close the case. </br>
+The switch structure is a great tool to solve a problem with multiple cases. But in C/C++/(old)Java, this structure has to be used with the `break` statement. It is necessary considering the fallthrough from upper cases to lower cases, and can be very annoying if there is only one statement in the case, and we forced to add the `break` to close the case. </br>
 Also, the `hot` and `cold` annotations are really sensitive to unclosed cases and functions, which means, we have to add the `break` in `cold` or `hot` cases even if we don't care about fallthrough. </br>
 To address this issue, the language supports the `no_fall` annotation that can be applied to switch structures:
 ```cpl
-@[no_fall] switch cond; {
+@[no_fall] switch condition; {
     case X; {}
     default {}
 }
@@ -69,18 +69,18 @@ To address this issue, the language supports the `no_fall` annotation that can b
 
 It will generate a break statement at the end of every case and default option:
 ```cpl
-switch cond; {
+switch condition; {
     case X; { break; }
     default { break; }
 }
 ```
 
-P.S.: *This is a pure syntax sugar. It doesn't change the behaviour of the switch in general.*
+P.S.: *This is a pure syntax sugar. It doesn't change the behavior of the switch in general.*
 
 ### straight
 By default, the `switch` structure is translated to a binary search block, which in some edge cases can increase the execution time and the final code size. To change the generation from binary search approach to a linear search (generate several `if-elseif-else` statements with direct check with case statements) you can use this annotation.
 ```cpl
-@[straight] switch cond; {
+@[straight] switch condition; {
     case X; {}
     default {}
 }
