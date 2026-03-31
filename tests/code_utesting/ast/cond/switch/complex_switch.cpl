@@ -10,7 +10,7 @@ start() {
    switch a; {}
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
@@ -36,4 +36,4 @@ start() {
          [switch] (SWITCH_TOKEN, v_id=-1, s_id=2)
             [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
             { scope, id=0 }
-:
+/:

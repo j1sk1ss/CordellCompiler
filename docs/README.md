@@ -31,7 +31,7 @@ CPL - is a low-level experimental programming language. Also, this is the main d
 
   <a href="#/pages/keywords" class="doc-card">
     <h3>Keywords</h3>
-    <p>The list of all posible keywords in the language.</p>
+    <p>The list of all possible keywords in the language.</p>
   </a>
 
   <a href="#/pages/types" class="doc-card">

@@ -9,7 +9,7 @@ start() {
    logic(10, 20, max);
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
       [min] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -56,4 +56,4 @@ start() {
                [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [20] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [max] (CALL_ADDR_TOKEN, v_id=1, s_id=0)
-:
+/:

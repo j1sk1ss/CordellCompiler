@@ -6,8 +6,8 @@ start() {
     int a = C + A - B;
 }
 
-: OUTPUT
+:/ OUTPUT
 start() {
     i32 a = 1 + 1 + 1 + 1 - 1 + 1;
 }
-:
+/:

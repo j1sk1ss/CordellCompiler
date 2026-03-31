@@ -5,7 +5,7 @@ function maxAndChloe() -> i0 {
    arr d[10, i32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
       [maxAndChloe] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -42,4 +42,4 @@ function maxAndChloe() -> i0 {
                [7] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [8] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [9] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

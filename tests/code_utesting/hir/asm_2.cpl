@@ -7,16 +7,16 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
             {
-                i64t %0 = num? 10 + num? 10;
-                use i64t %0;
+                i8t %0 = i8n 10 + i8n 10;
+                use i8t %0;
                 i32t %1 = call foo0() -> i32, argc args();
                 use i32t %1;
-                asm, args(i64t %0,i32t %1,) {
+                asm, args(i8t %0,i32t %1,) {
                 [raw, "mov rax, %0"]
                 [raw, "mov rbx, %1"]
                 [raw, "syscall"]
@@ -25,4 +25,4 @@ start() {
         }
     }
 }
-:
+/:

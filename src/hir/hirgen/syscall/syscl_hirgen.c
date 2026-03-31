@@ -1,7 +1,7 @@
 #include <hir/hirgens/hirgens.h>
 
 hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_t* args = HIR_SUBJ_LIST();
     for (ast_node_t* e = node->c; e; e = e->siblings.n) {
         hir_subject_t* el = HIR_generate_elem(e, ctx, smt);

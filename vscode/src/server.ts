@@ -21,7 +21,8 @@ import {
   SemanticContext,
   formatType,
   formatFunctionSignature,
-  FuncOverloadSym
+  FuncOverloadSym,
+  sizeofType
 } from "./cplSemantics";
 
 const connection = createConnection(ProposedFeatures.all);
@@ -169,6 +170,21 @@ function findFuncDeclHover(sem: SemanticContext, pos: Position): FuncOverloadSym
 connection.onHover((params) => {
   const sem = semByUri.get(params.textDocument.uri);
   if (!sem) return null;
+
+  const sz = sem.sizeofSites.find((s) => inRange(params.position, s.range));
+  if (sz) {
+    const computed = sz.size ?? sizeofType(sz.targetType) ?? null;
+    const value = computed == null
+      ? `\`\`\`cpl
+sizeof(${formatType(sz.targetType)}) = ?
+\`\`\`
+
+Size can't be resolved statically.`
+      : `\`\`\`cpl
+sizeof(${formatType(sz.targetType)}) = ${computed}
+\`\`\``;
+    return { contents: { kind: MarkupKind.Markdown, value } };
+  }
 
   const vu = sem.varUses.find((v) => inRange(params.position, v.range));
   if (vu) {

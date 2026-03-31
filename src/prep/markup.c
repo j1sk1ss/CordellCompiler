@@ -65,6 +65,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(BREAK_COMMAND,          BREAK_TOKEN),
     LEXEM(IF_COMMAND,             IF_TOKEN),
     LEXEM(ELSE_COMMAND,           ELSE_TOKEN),
+    LEXEM(SIZEOF_COMMAND,         SIZEOF_TOKEN),
 
     /* Binary operands. */
     LEXEM(ADDASSIGN_STATEMENT,    ADDASSIGN_TOKEN),

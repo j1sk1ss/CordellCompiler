@@ -4,7 +4,7 @@ start() {
     foo(1, 2);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn foo0(i32 a, i32 b)
 %4 = %2;
 %0 = %4;
@@ -18,4 +18,4 @@ BB{X} start
 %7 <<= %9;
 call foo0(i32 a, i32 b);
 send
-:
+/:

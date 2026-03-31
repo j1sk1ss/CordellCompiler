@@ -127,7 +127,7 @@ const KEYWORDS = new Set([
   "start","exit","function","return",
   "if","else","while","loop","switch","case","default",
   "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
-  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg",
+  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg","sizeof",
   "section","align",
   // preprocessor
   "line","include","define","undef","ifdef","ifndef","endif"
@@ -151,8 +151,11 @@ function isAlnum_(ch: string){ return /[A-Za-z0-9_]/.test(ch); }
 
 function unwrapDocComment(tokText: string): string {
   let s = tokText;
-  if (s.startsWith(":")) s = s.slice(1);
-  if (s.endsWith(":")) s = s.slice(0, -1);
+  if (s.startsWith(":/") && s.endsWith("/:")) s = s.slice(2, -2);
+  else {
+    if (s.startsWith(":")) s = s.slice(1);
+    if (s.endsWith(":")) s = s.slice(0, -1);
+  }
   s = s.replace(/\r\n/g, "\n");
 
   const lines = s.split("\n");
@@ -236,19 +239,33 @@ function lex(text: string): Token[] {
 
     if (ch === ":") {
       const start = i;
+
+      if (i + 1 < text.length && text[i + 1] === "/") {
+        i += 2;
+        while (i + 1 < text.length && !(text[i] === "/" && text[i + 1] === ":")) i++;
+        if (i + 1 < text.length) {
+          i += 2;
+          push("comment", start, i);
+          continue;
+        }
+
+        push("punc", start, start + 1);
+        i = start + 1;
+        continue;
+      }
+
       i++;
-    
       while (i < text.length && text[i] !== ":") i++;
       if (i < text.length && text[i] === ":") {
         i++;
         push("comment", start, i);
         continue;
       }
-    
+
       push("punc", start, start + 1);
       i = start + 1;
       continue;
-    }    
+    }
 
     if (ch === "\"") {
       const start = i;
@@ -496,15 +513,6 @@ class Parser {
   }
 
   private parseProgram() {
-    if (this.match("punc", "{")) {
-      while (!this.at("eof") && !this.at("punc", "}")) {
-        const before = this.i;
-        this.parseTopItem();
-        if (this.i === before) this.i++;
-      }
-      this.expect("punc", "}", "Program must end with '}'");
-    }
-
     while (!this.at("eof")) {
       const before = this.i;
       this.parseTopItem();
@@ -1236,14 +1244,14 @@ class Parser {
     }
   }
 
-  private looksLikeDeclStart(): boolean {
+  private looksLikeTypeStart(): boolean {
     const c = this.cur();
-    return (
-      (c.kind === "kw" && TYPE_KW.has(c.text)) ||
-      this.at("kw", "glob") ||
-      this.at("kw", "ro")
-    );
-  }  
+    return this.atRaw("punc", "@") || (c.kind === "kw" && TYPE_KW.has(c.text));
+  }
+
+  private looksLikeDeclStart(): boolean {
+    return this.looksLikeTypeStart() || this.at("kw", "glob") || this.at("kw", "ro");
+  }
 
   private parseVarOrArrDecl(isTopLevel: boolean) {
     const mods = this.parseStorageMods();
@@ -1544,6 +1552,33 @@ class Parser {
       return { type: { kind: "unknown" }, start: tok.start, end: tok.end };
     }
 
+    if (this.match("kw", "sizeof")) {
+      const kwTok = this.prev();
+      let targetType: TypeNode = { kind: "unknown" };
+      let end = kwTok.end;
+
+      if (this.match("punc", "(")) {
+        if (this.looksLikeTypeStart()) {
+          targetType = this.parseType();
+        } else {
+          const inner = this.parseExpression();
+          targetType = inner.type;
+        }
+        this.expect("punc", ")", "sizeof: expected ')'" );
+        end = this.prev().end;
+      } else if (this.looksLikeTypeStart()) {
+        targetType = this.parseType();
+        end = this.prev().end;
+      } else {
+        const inner = this.parseUnary();
+        targetType = inner.type;
+        end = inner.end ?? kwTok.end;
+      }
+
+      this.sem?.noteSizeof(rangeOf(this.lines, kwTok.start, end), targetType);
+      return { type: { kind: "prim", name: "u64" }, start: kwTok.start, end };
+    }
+
     if (this.at("ident")) {
       const tok = this.cur();
       const name = tok.text;
@@ -1569,7 +1604,12 @@ class Parser {
 
     if (this.at("str")) {
       const tok = this.cur(); this.i++;
-      return { type: { kind: "prim", name: "str" }, start: tok.start, end: tok.end };
+      const value = unquote(tok.text);
+      return {
+        type: { kind: "arr", len: value.length + 1, elem: { kind: "prim", name: "u8" } },
+        start: tok.start,
+        end: tok.end
+      };
     }
 
     if (this.at("char")) {

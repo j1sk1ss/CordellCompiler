@@ -85,7 +85,7 @@ static symbol_id_t _resolve_function_overload(
 }
 
 hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_t* call_subj = NULL;
     hir_operation_t st_op    = HIR_STORE_UFCLL, op = HIR_UFCLL;
     ast_node_t* args_node    = node->c->c;
@@ -116,7 +116,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     if (FNTB_get_info_id(_resolve_function_overload(call_subj, args, smt, ret, &tmp), &resolved, &smt->f)) {
         int arg_offset = 0, arg_count = list_size(&args->storage.list.h);
         fn_iterate_args (&resolved) {
-            if (arg_offset++ < arg_count || !arg->c->siblings.n) continue;
+            if (arg_offset++ < arg_count || !arg->c || !arg->c->siblings.n) continue;
             hir_subject_t* el = HIR_generate_elem(arg->c->siblings.n, ctx, smt);
             if (!HIR_is_defined_type(el->t)) {
                 HIR_BLOCK1(ctx, HIR_VRUSE, el);

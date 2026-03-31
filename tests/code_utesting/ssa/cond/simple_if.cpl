@@ -9,7 +9,7 @@ function foo() {
     return dref a + dref b;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main()
     {
@@ -39,4 +39,4 @@ function foo() {
         }
     }
 }
-:
+/:

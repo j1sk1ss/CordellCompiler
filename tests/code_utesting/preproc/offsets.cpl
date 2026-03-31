@@ -1,7 +1,7 @@
 start() {
 }
 
-: OUTPUT
+:/ OUTPUT
 start() {
 }
-:
+/:

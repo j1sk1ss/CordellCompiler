@@ -1,3 +1,4 @@
+: BUG :
 start() {
     i32 a = 0;
     loop {
@@ -7,7 +8,7 @@ start() {
     i32 b = a;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -32,4 +33,4 @@ start() {
         }
     }
 }
-:
+/:

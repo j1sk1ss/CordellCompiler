@@ -6,7 +6,7 @@ start() {
    exit not (1 + 1 + 1 * (not a));
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
@@ -38,4 +38,4 @@ start() {
                      [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                      [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
                         [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
-:
+/:

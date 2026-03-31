@@ -4,7 +4,7 @@ function foo() {
     ptr ptr i32 b = a as ptr ptr i32;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main()
     {
@@ -16,4 +16,4 @@ function foo() {
         }
     }
 }
-:
+/:

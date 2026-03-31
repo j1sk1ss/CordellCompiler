@@ -7,5 +7,5 @@ A
 #undef ASD
 :
 
-: OUTPUT
-:
+:/ OUTPUT
+/:

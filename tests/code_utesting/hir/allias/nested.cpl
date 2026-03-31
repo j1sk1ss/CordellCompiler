@@ -4,6 +4,6 @@ start() {
     ptr i32 c = b;
 }
 
-: OUTPUT
+:/ OUTPUT
 id: 0, owners: <<3 4 5>>
-:
+/:

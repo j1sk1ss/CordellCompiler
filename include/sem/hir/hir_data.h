@@ -13,7 +13,9 @@ typedef enum {
     LDREF_INST   = 1 << 2,
     GDREF_INST   = 1 << 3,
     PHI_INST     = 1 << 4,
-    UNKNOWN_INST = 1 << 5,
+    CALL         = 1 << 5,
+    RET_CALL     = 1 << 6,
+    UNKNOWN_INST = 1 << 7,
 } hir_instruction_type_t;
 
 typedef struct {

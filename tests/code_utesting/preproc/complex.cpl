@@ -8,6 +8,6 @@
 #define ASD7 ASD6
 function foo(ASD7 a);
 
-: OUTPUT
+:/ OUTPUT
 function foo(i32 a);
-:
+/:

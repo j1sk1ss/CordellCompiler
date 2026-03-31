@@ -2,13 +2,13 @@
 #define RBX 1
 #define RCX 2
 start() {
-    @[register(RAX)] i32 a = 0;
-    @[register(RBX)] i32 b = 1;
-    @[register(RCX)] i32 c = 2;
+    @[register(RAX)] i32 a = 0 as i32;
+    @[register(RBX)] i32 b = 1 as i32;
+    @[register(RCX)] i32 c = 2 as i32;
 }
 
-: OUTPUT
-BB{X} start
+:/ OUTPUT
+BB1: start
 r15 = $0;
 [rbp - 8] = r15;
 r15 = [rbp - 8];
@@ -22,4 +22,4 @@ r15 = $2;
 r15 = [rbp - 24];
 rcx = r15;
 send
-:
+/:

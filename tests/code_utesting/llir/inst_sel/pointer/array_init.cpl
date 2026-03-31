@@ -2,8 +2,8 @@ start() {
     arr a[10, i32];
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 %0 = arr_alloc($10);
 send
-:
+/:

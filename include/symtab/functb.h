@@ -3,6 +3,7 @@
 
 #include <std/str.h>
 #include <std/map.h>
+#include <std/list.h>
 #include <prep/token_types.h>
 #include <ast/ast.h>
 #include <symtab/symtab_id.h>
@@ -12,6 +13,8 @@ typedef struct {
     string_t*   virt;  /* De-virtual name       */
 
     symbol_id_t id;    /* String ID in symtable */
+    list_t      local; /* Local functions       */
+
     ast_node_t* args;  /* Input arguments       */
     ast_node_t* rtype; /* Function return type  */
 
@@ -89,6 +92,17 @@ symbol_id_t FNTB_add_info(
     int global, int local, int entry, int naked, int vargs, /* flags */
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );
+
+/*
+Register an existed function as a local function.
+Params:
+    - `f_id` - Parent function.
+    - `l_id` - Local function.
+    - `ctx` - Function symbol table.
+
+Returns 1 if succeeds, otherwise will return 0.
+*/
+int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx);
 
 /*
 Update the provided function in a symtable.

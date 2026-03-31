@@ -22,26 +22,22 @@ static int _parse_const(dag_node_t* nd, const_t* cnst, sym_table_t* smt) {
     if (!nd) return 0;
     cnst->overdefined = NO_SYMBOL_ID;
     switch (nd->src->t) {
-        case HIR_F64NUMBER: cnst->t = HIR_F64CONSTVAL; goto _complete_number_parse;
-        case HIR_I64NUMBER: cnst->t = HIR_I64CONSTVAL; goto _complete_number_parse;
-        case HIR_U64NUMBER: cnst->t = HIR_U64CONSTVAL; goto _complete_number_parse;
-        case HIR_F32NUMBER: cnst->t = HIR_F32CONSTVAL; goto _complete_number_parse;
-        case HIR_I32NUMBER: cnst->t = HIR_I32CONSTVAL; goto _complete_number_parse;
-        case HIR_U32NUMBER: cnst->t = HIR_U32CONSTVAL; goto _complete_number_parse;
-        case HIR_I16NUMBER: cnst->t = HIR_I16CONSTVAL; goto _complete_number_parse;
-        case HIR_U16NUMBER: cnst->t = HIR_U16CONSTVAL; goto _complete_number_parse;
-        case HIR_I8NUMBER:  cnst->t = HIR_I8CONSTVAL;  goto _complete_number_parse;
-        case HIR_U8NUMBER:  cnst->t = HIR_U8CONSTVAL;  goto _complete_number_parse;
-        case HIR_NUMBER:    cnst->t = HIR_CONSTVAL; {
-_complete_number_parse: {}
+        case HIR_F64NUMBER:
+        case HIR_I64NUMBER:
+        case HIR_U64NUMBER:
+        case HIR_F32NUMBER:
+        case HIR_I32NUMBER:
+        case HIR_U32NUMBER:
+        case HIR_I16NUMBER:
+        case HIR_U16NUMBER:
+        case HIR_I8NUMBER:
+        case HIR_U8NUMBER:
+        case HIR_NUMBER: {
+            cnst->t = HIR_CONSTVAL;
             cnst->value = nd->src->storage.num.value->to_llong(nd->src->storage.num.value);
             return 1;
         }
 
-        case HIR_F64CONSTVAL: case HIR_I64CONSTVAL: case HIR_U64CONSTVAL:
-        case HIR_F32CONSTVAL: case HIR_I32CONSTVAL: case HIR_U32CONSTVAL:
-        case HIR_I16CONSTVAL: case HIR_U16CONSTVAL:
-        case HIR_I8CONSTVAL:  case HIR_U8CONSTVAL:
         case HIR_CONSTVAL: {
             cnst->t = nd->src->t;
             cnst->value = nd->src->storage.cnst.value;

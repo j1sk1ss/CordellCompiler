@@ -10,7 +10,7 @@
 #endif
 }
 
-: OUTPUT
+:/ OUTPUT
 line=1, type={X}, data=[{],
 line=3, type={X}, data=[function],
 line=3, type={X}, data=[strlen],
@@ -22,4 +22,4 @@ line=3, type={X}, data=[->],
 line=3, type={X}, data=[i64],
 line=3, type={X}, data=[;],
 line=4, type={X}, data=[}],
-:
+/:

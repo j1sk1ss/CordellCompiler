@@ -88,22 +88,14 @@ typedef enum hir_operation {
         /* Data */
         HIR_NOT,          // x = !x
         HIR_STORE,        // x = y
-        HIR_CLNVRS,       // deallocate all unused variables
         HIR_VARDECL,      // alloc x
         HIR_ARRDECL,      // arralloc x, y (size)
         HIR_STRDECL,      // arralloc x, strlen(x)
-        HIR_PRMST,
-        HIR_PRMLD,        // load param
-        HIR_PRMPOP,       // pop params
-        HIR_FARGST,       // store function argument
         HIR_FARGLD,       // load function argument
         HIR_STARGLD,      // load start argument
-        HIR_GINDEX,       // x = y[z]
-        HIR_LINDEX,       // x[y] = z
         HIR_GDREF,        // x = [y]
         HIR_LDREF,        // [x] = y
         HIR_REF,
-        HIR_IMPORT,
         
         /* System */
         HIR_EXITOP,       // Exit with farg exit call
@@ -156,16 +148,6 @@ typedef enum hir_subject_type {
     HIR_STKVARI0,  // var.id
 
     HIR_CONSTVAL,  // cnst.value
-    HIR_F64CONSTVAL,
-    HIR_F32CONSTVAL,
-    HIR_U64CONSTVAL,
-    HIR_U32CONSTVAL,
-    HIR_U16CONSTVAL,
-    HIR_U8CONSTVAL,
-    HIR_I64CONSTVAL,
-    HIR_I32CONSTVAL,
-    HIR_I16CONSTVAL,
-    HIR_I8CONSTVAL,
 
     HIR_NUMBER,   // num.value
     HIR_F64NUMBER,

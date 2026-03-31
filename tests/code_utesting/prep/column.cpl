@@ -19,7 +19,7 @@ foo
 }
 }
 
-: OUTPUT
+:/ OUTPUT
 line=1, type={X}, data=[{],
 line=2, type={X}, data=[function],
 line=3, type={X}, data=[foo],
@@ -42,4 +42,4 @@ line=17, type={X}, data=[)],
 line=18, type={X}, data=[;],
 line=19, type={X}, data=[}],
 line=20, type={X}, data=[}],
-:
+/:

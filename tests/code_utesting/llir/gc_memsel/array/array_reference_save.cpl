@@ -5,7 +5,7 @@ start() {
     exit dref b;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 [rbp - 16] = $0;
 [rbp - 15] = $1;
@@ -36,4 +36,4 @@ rdx = r15;
 kill(4);
 exit rdx;
 BB4:
-:
+/:

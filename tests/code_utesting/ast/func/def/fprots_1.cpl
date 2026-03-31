@@ -2,7 +2,7 @@ function foo(i32 a);
 function bar(i64 a);
 function baz(u8 a);
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
       [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -19,4 +19,4 @@ function baz(u8 a);
       { scope, id=4 }
          [u8] (U8_TYPE_TOKEN, v_id=-1, s_id=0)
             [a] (U8_VARIABLE_TOKEN, v_id=2, s_id=4)
-:
+/:

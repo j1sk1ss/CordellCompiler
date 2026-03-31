@@ -13,7 +13,6 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_PHI:          return "PHI";
         case HIR_VRDEALL:      return "VRDEALL";
         case HIR_STARGLD:      return "STARGLD";
-        case HIR_FARGST:       return "FARGST";
         case HIR_FARGLD:       return "FARGLD";
         case HIR_UFCLL:        return "HIR_UFCLL";
         case HIR_STORE_UFCLL:  return "HIR_STORE_UFCLL";
@@ -58,18 +57,12 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_ARRDECL:      return "ARRDECL";
         case HIR_VRUSE:        return "VRUSE";
         case HIR_STRDECL:      return "STRDECL";
-        case HIR_PRMST:        return "PRMST";
-        case HIR_PRMLD:        return "PRMLD";
-        case HIR_PRMPOP:       return "PRMPOP";
         case HIR_STASM:        return "STASM";
         case HIR_ENDASM:       return "ENDASM";
-        case HIR_GINDEX:       return "GINDEX";
-        case HIR_LINDEX:       return "LINDEX";
         case HIR_GDREF:        return "GDREF";
         case HIR_LDREF:        return "LDREF";
         case HIR_REF:          return "REF";
         case HIR_EXITOP:       return "EXITOP";
-        case HIR_CLNVRS:       return "HIR_CLNVRS";
         case HIR_STEND:        return "HIR_STEND";
         case HIR_MKSCOPE:      return "MKSCOPE";
         case HIR_ENDSCOPE:     return "ENDSCOPE";
@@ -94,7 +87,6 @@ static int _depth = 0;
 static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
     switch(op) {
         case HIR_STARGLD:    return "%s = load_starg();\n";
-        case HIR_FARGST:     return "store_arg(%s);\n";
         case HIR_FARGLD:     return "%s = load_arg();\n";
         
         case HIR_TF64:       return "%s = %s as f64;\n";
@@ -162,13 +154,8 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
             }
         }
 
-        case HIR_PRMST:        return "prm_st(%s);\n";
-        case HIR_PRMLD:        return "prm_ld();\n";
-        case HIR_PRMPOP:       return "prm_pop();\n";
         case HIR_STASM:        return "asm, %s%s%s {\n";
         case HIR_ENDASM:       return "}\n";
-        case HIR_GINDEX:       return "%s = %s[%s];\n";
-        case HIR_LINDEX:       return "%s[%s] = %s;\n";
         case HIR_GDREF:        return "%s = *(%s);\n";
         case HIR_LDREF:        return "*(%s) = %s;\n";
         case HIR_REF:          return "%s = &(%s);\n";
@@ -249,18 +236,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
             case HIR_I8NUMBER:   dst += sprintf(dst, "i8n %s", s->storage.num.value->body);  break;
             case HIR_U8NUMBER:   dst += sprintf(dst, "u8n %s", s->storage.num.value->body);  break;
             case HIR_NUMBER:     dst += sprintf(dst, "num? %s", s->storage.num.value->body); break;
-
-            case HIR_F64CONSTVAL: dst += sprintf(dst, "f64c %ld", s->storage.cnst.value);   break;
-            case HIR_I64CONSTVAL: dst += sprintf(dst, "i64c %ld", s->storage.cnst.value);   break;
-            case HIR_U64CONSTVAL: dst += sprintf(dst, "u64c %ld", s->storage.cnst.value);   break;
-            case HIR_F32CONSTVAL: dst += sprintf(dst, "f32c %ld", s->storage.cnst.value);   break;
-            case HIR_I32CONSTVAL: dst += sprintf(dst, "i32c %ld", s->storage.cnst.value);   break;
-            case HIR_U32CONSTVAL: dst += sprintf(dst, "u32c %ld", s->storage.cnst.value);   break;
-            case HIR_I16CONSTVAL: dst += sprintf(dst, "i16c %ld", s->storage.cnst.value);   break;
-            case HIR_U16CONSTVAL: dst += sprintf(dst, "u16c %ld", s->storage.cnst.value);   break;
-            case HIR_I8CONSTVAL:  dst += sprintf(dst, "i8c %ld", s->storage.cnst.value);    break;
-            case HIR_U8CONSTVAL:  dst += sprintf(dst, "u8c %ld", s->storage.cnst.value);    break;
-            case HIR_CONSTVAL:    dst += sprintf(dst, "cnst? %ld", s->storage.cnst.value);  break;
+            case HIR_CONSTVAL:   dst += sprintf(dst, "cnst? %ld", s->storage.cnst.value);    break;
 
             case HIR_LABEL: dst += sprintf(dst, "lb%li", s->id); break;
             case HIR_RAWASM:

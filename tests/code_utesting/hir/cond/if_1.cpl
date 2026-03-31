@@ -14,50 +14,50 @@ function foo(i32 a) {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main(i32 a)
     {
         i32s %0 = alloc(8);
         i32s %0 = load_starg();
         {
-            i64t %2 = i32s %0 as i64;
-            i64t %1 = i64t %2 == num? 1;
-            if i64t %1, goto lb{X} else goto lb{X}
-            lb{X}
+            i32t %2 = i8n 1 as i32;
+            i32t %1 = i32s %0 == i32t %2;
+            if i32t %1, goto lb13, else goto lb14;
+            lb13:
             {
             }
-            goto lb{X}
-            lb{X}
+            goto lb15;
+            lb14:
             {
-                i64t %4 = i32s %0 as i64;
-                i64t %3 = i64t %4 == num? 2;
-                if i64t %3, goto lb{X} else goto lb{X}
-                lb{X}
+                i32t %4 = i8n 2 as i32;
+                i32t %3 = i32s %0 == i32t %4;
+                if i32t %3, goto lb28, else goto lb29;
+                lb28:
                 {
                 }
-                goto lb{X}
-                lb{X}
+                goto lb30;
+                lb29:
                 {
-                    i64t %6 = i32s %0 as i64;
-                    i64t %5 = i64t %6 == num? 3;
-                    if i64t %5, goto lb{X} else goto lb{X}
-                    lb{X}
+                    i32t %6 = i8n 3 as i32;
+                    i32t %5 = i32s %0 == i32t %6;
+                    if i32t %5, goto lb43, else goto lb44;
+                    lb43:
                     {
                     }
-                    goto lb{X}
-                    lb{X}
+                    goto lb45;
+                    lb44:
                     {
                     }
-                    goto lb{X}
-                    lb{X}
+                    goto lb45;
+                    lb45:
                 }
-                goto lb{X}
-                lb{X}
+                goto lb30;
+                lb30:
             }
-            goto lb{X}
-            lb{X}
+            goto lb15;
+            lb15:
         }
     }
 }
-:
+/:

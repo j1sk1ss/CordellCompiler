@@ -24,7 +24,7 @@ function foo() {
     dref b = 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 #
 [WARNING] [8{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
           [8{X}]     Variable 'tmp' declared as a constant here!
@@ -40,4 +40,4 @@ function foo() {
 [WARNING] [23{X}] Possible NULL-dereference error (variable 'a' is NULL)!
           [{X}]     Variable 'a' becomes NULL-value
           [{X}]     Variable 'a' becomes NULL-value
-:
+/:

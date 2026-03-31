@@ -6,7 +6,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 [ERROR]   [4:13] Too many arguments for the function='foo'!
 4 | foo(1, 2);
-:
+/:

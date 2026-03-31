@@ -16,7 +16,7 @@ start(i64 argc, ptr u64 argv) {
    exit 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [extern] (EXTERN_TOKEN, v_id=-1, s_id=0)
       [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0, ext, glob)
@@ -59,4 +59,4 @@ start(i64 argc, ptr u64 argv) {
                [factorio] (I32_VARIABLE_TOKEN, v_id=4, s_id=3)
          [exit] (EXIT_TOKEN, v_id=-1, s_id=3)
             [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

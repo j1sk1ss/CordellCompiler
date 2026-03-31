@@ -5,7 +5,7 @@ start() {
     c();
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -19,4 +19,4 @@ start() {
         }
     }
 }
-:
+/:

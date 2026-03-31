@@ -5,7 +5,7 @@ function foo() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 @[counter] base_token=loop
 @[counter] base_token=loop
-:
+/:

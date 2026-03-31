@@ -233,6 +233,32 @@ def _normalize_output(text: str) -> str:
             lines.append(line)
     return "\n".join(lines)
 
+def _rewrite_test_output(path: Path, actual_output: str) -> None:
+    text = path.read_text(encoding="utf-8")
+
+    lines = []
+    for line in text.splitlines():
+        if line.strip() == ": REWRITE :":
+            continue
+        lines.append(line)
+
+    text_wo_rewrite = "\n".join(lines)
+
+    marker = ":/ OUTPUT"
+    if marker not in text_wo_rewrite:
+        raise ValueError(f"{path}: OUTPUT block not found")
+
+    before, _ = text_wo_rewrite.split(marker, 1)
+    before = before.rstrip()
+    actual_output = actual_output.rstrip()
+
+    rewritten = f"{before}\n\n{marker}\n"
+    if actual_output:
+        rewritten += actual_output + "\n"
+    rewritten += "/:"
+
+    path.write_text(rewritten, encoding="utf-8")
+
 def _parse_test_file(path: Path) -> tuple[str, str, dict]:
     text = path.read_text(encoding="utf-8")
     flags = {
@@ -240,6 +266,7 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         "block_test": False,
         "bug":        False,
         "leak_trace": False,
+        "rewrite":    False,
     }
 
     lines = text.splitlines()
@@ -258,21 +285,24 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         if stripped == ": LEAK_TRACE :":
             flags["leak_trace"] = True
             continue
+        if stripped == ": REWRITE :":
+            flags["rewrite"] = True
+            continue
         header_processed.append(line)
 
     text = "\n".join(header_processed)
 
-    marker = ": OUTPUT"
+    marker = ":/ OUTPUT"
     if marker not in text:
         raise ValueError(f"{path}: OUTPUT block not found")
 
     before, after = text.split(marker, 1)
     after = after.lstrip()
 
-    if not after.endswith(":"):
-        raise ValueError(f"{path}: OUTPUT block must end with ':'")
+    if not after.endswith("/:"):
+        raise ValueError(f"{path}: OUTPUT block must end with '/:'")
 
-    expected = after[:-1].rstrip()
+    expected = after[:-2].rstrip()
     return before.rstrip(), expected, flags
 
 def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
@@ -336,6 +366,19 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
 
     expected_n: str = _normalize_output(expected)
     actual_n: str = _normalize_output(proc.stdout)
+
+    if flags["rewrite"]:
+        _rewrite_test_output(test_file, actual_n)
+        return {
+            "file": str(test_file),
+            "expected": expected_n,
+            "actual": actual_n,
+            "ok": True,
+            "critical": False,
+            "warning": False,
+            "diff": None,
+        }
+
     ok, why = _matches_expected(expected_n, actual_n)
     if flags["leak_trace"]:
         from leaks import find_leaks

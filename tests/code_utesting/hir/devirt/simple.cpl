@@ -4,10 +4,10 @@ function sum(f64 a, f64 b) -> f64 {
 }
 
 start() {
-    exit sum(10.0, 10.0);
+    exit sum(10.0, 10.0) as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn sum1(f64 a, f64 b) -> f64
     {
@@ -28,12 +28,11 @@ start() {
     start {
         {
             {
-                use f64n 4621819117588971520;
-                use f64n 4621819117588971520;
-                f64t %8 = call sum1(f64 a, f64 b) -> f64, argc args(f64n 4621819117588971520,f64n 4621819117588971520,);
-                exit f64t %8;
+                f64t %9 = call sum1(f64 a, f64 b) -> f64, argc args(f64n 4621819117588971520,f64n 4621819117588971520,);
+                i8t %8 = f64t %9 as i8;
+                exit i8t %8;
             }
         }
     }
 }
-:
+/:

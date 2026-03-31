@@ -8,7 +8,7 @@ function foo() {
     exit dref b;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn _main()
     {
@@ -35,4 +35,4 @@ function foo() {
         }
     }
 }
-:
+/:

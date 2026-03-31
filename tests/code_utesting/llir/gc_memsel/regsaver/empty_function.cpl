@@ -2,13 +2,13 @@ function foo() {
     return 1;
 }
 start() {
-    i32 a = 1;
+    i32 a = 1 as i32;
     foo();
-    i32 b = a + 1;
-    exit b;
+    i32 b = a + 1 as i32;
+    exit b as i8;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB2: fn foo0()
 r15 = $1;
 rax = r15;
@@ -24,18 +24,19 @@ push(r15);
 call foo0();
 r15 = pop();
 rax = pop();
-r9 movsxd r8;
-r15 = r9;
-rax = r15;
-rax = rax + $1;
-r15 = rax;
+r15 = $1;
 rdx = r15;
-r15 = rdx;
-rdi = r15;
-r15 = rdi;
+r15 = r8;
+rax = r15;
+rax = rax + rdx;
+r15 = rax;
+r9 = r15;
+r15 = r9;
 rcx = r15;
 r15 = rcx;
+rdi = r15;
+r15 = rdi;
 rdx = r15;
 exit rdx;
 BB5:
-:
+/:

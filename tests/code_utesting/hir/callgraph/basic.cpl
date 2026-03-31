@@ -3,10 +3,10 @@ start() {
     foo();
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CALL_GRAPH {
   rankdir=LR;
   node [shape=ellipse, fontname="monospace"];
   F1 -> F0;
 }
-:
+/:

@@ -46,7 +46,7 @@ typedef struct {
 typedef struct {
     struct hir_block*  home;  /* Home HIR block          */
     unsigned long      hash;  /* Subject's hash          */
-    long               id;    /* Subject's ID            */
+    unsigned long      id;    /* Subject's ID            */
     hir_subject_type_t t;     /* Subject's type          */
     int                ptr;   /* Subject reference level */
     union {
@@ -71,6 +71,7 @@ typedef struct hir_block {
 } hir_block_t;
 
 typedef struct {
+    hir_fpos_t       pos;           /* Current pos in a file                   */
     struct {
         hir_block_t* h;             /* Current HIR head                        */
         hir_block_t* t;             /* Current HIR tail                        */
@@ -111,6 +112,7 @@ int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
 int HIR_dump_cold(hir_ctx_t* ctx);
 int HIR_unlink_block(hir_block_t* block);
 int HIR_unload_subject(hir_subject_t* s);
+int HIR_unload_block(hir_block_t* block);
 int HIR_unload_blocks(hir_block_t* block);
 
 static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
@@ -120,7 +122,7 @@ static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
 
 #define HIR_SUBJ_CONST(val)              HIR_create_subject(HIR_CONSTVAL, 0, NULL, val)
 #define HIR_SUBJ_FNUMBER(val)            HIR_create_subject(HIR_F64NUMBER, 0, val, 0)
-#define HIR_SUBJ_NUMBER(val)             HIR_create_subject(HIR_NUMBER, 0, val, 0)
+#define HIR_SUBJ_NUMBER(t, val)          HIR_create_subject(t, 0, val, 0)
 #define HIR_SUBJ_STKVAR(v_id, kind, ptr) HIR_create_subject(kind, v_id, NULL, ptr)
 #define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, _get_token_stktype(n->t, 0), n->t->flags.ptr)
 #define HIR_SUBJ_TMPVAR(kind, id)        HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)

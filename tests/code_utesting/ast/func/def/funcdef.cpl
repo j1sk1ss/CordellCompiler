@@ -5,7 +5,7 @@ function foo() -> i32 {
 
 function bar(i32 a) {}
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
       [bar] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -25,4 +25,4 @@ function bar(i32 a) {}
          [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
             [a] (I32_VARIABLE_TOKEN, v_id=1, s_id=5)
          { scope, id=6 }
-:
+/:

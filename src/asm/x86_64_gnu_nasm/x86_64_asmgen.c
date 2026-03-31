@@ -96,7 +96,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_POP:        EMIT_COMMAND("pop %s", format_lir_subject(b->farg, smt));                                          break;
         case LIR_iADD:       EMIT_COMMAND("add %s, %s", format_lir_subject(b->sarg, smt), format_lir_subject(b->targ, smt));    break;
         case LIR_iSUB:       EMIT_COMMAND("sub %s, %s", format_lir_subject(b->sarg, smt), format_lir_subject(b->targ, smt));    break;
-        case LIR_iMUL:       EMIT_COMMAND("imul %s", format_lir_subject(b->sarg, smt));                                         break;
+        case LIR_iMUL:       EMIT_COMMAND("imul %s, %s", format_lir_subject(b->sarg, smt), format_lir_subject(b->targ, smt));   break;
         case LIR_DIV:        EMIT_COMMAND("div %s", format_lir_subject(b->sarg, smt));                                          break;
         case LIR_iDIV:       EMIT_COMMAND("idiv %s", format_lir_subject(b->sarg, smt));                                         break;
         case LIR_CMP:        EMIT_COMMAND("cmp %s, %s", format_lir_subject(b->farg, smt), format_lir_subject(b->sarg, smt));    break;
@@ -225,6 +225,24 @@ static cfg_func_t* _find_function_by_id(symbol_id_t id, cfg_ctx_t* ctx) {
     return NULL;
 }
 
+static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
+    cfg_func_t* fb = _find_function_by_id(f_id, cctx);
+    if (!fb || !fb->used) return 0;
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
+
+    if (fi.flags.global)   EMIT_COMMAND("global %s", fi.name->body);
+    if (fi.flags.external) EMIT_COMMAND("extern %s", fi.name->body);
+    lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
+    while (lh) {
+        _convert_lirblock_to_assembly(lh, &fi, smt, output);
+        lh = LIR_get_next(lh, fb->lmap.exit, 1);
+    }
+
+    return 1;
+}
+
 int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
     foreach (lir_block_t* lb, &cctx->outs.lout) {
         _convert_lirblock_to_assembly(lb, NULL, smt, output);
@@ -243,16 +261,11 @@ int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
         set_foreach (symbol_id_t id, &section->func) {
             func_info_t fi;
             if (!FNTB_get_info_id(id, &fi, &smt->f)) continue;
-            cfg_func_t* fb = _find_function_by_id(id, cctx);
-            if (!fb || !fb->used) continue;
-            
-            if (fi.flags.global)   EMIT_COMMAND("global %s", fi.name->body);
-            if (fi.flags.external) EMIT_COMMAND("extern %s", fi.name->body);
-            lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
-            while (lh) {
-                _convert_lirblock_to_assembly(lh, &fi, smt, output);
-                lh = LIR_get_next(lh, fb->lmap.exit, 1);
+            foreach (symbol_id_t l_id, &fi.local) {
+                _generate_function(l_id, cctx, smt, output);
             }
+
+            _generate_function(id, cctx, smt, output);
         }
     }
 

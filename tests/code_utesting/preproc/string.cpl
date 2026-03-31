@@ -10,7 +10,7 @@ function strlen(ptr i8 s) -> i64 {
     return l;
 }
 
-: OUTPUT
+:/ OUTPUT
 #line 0 "{X}.cpl"
      
 function strlen(ptr i8 s) -> i64;
@@ -26,4 +26,4 @@ function strlen(ptr i8 s) -> i64 {
 
     return l;
 }
-:
+/:

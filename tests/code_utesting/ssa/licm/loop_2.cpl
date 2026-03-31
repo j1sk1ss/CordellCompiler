@@ -9,5 +9,5 @@ start() {
     }
 }
 
-: OUTPUT
-:
+:/ OUTPUT
+/:

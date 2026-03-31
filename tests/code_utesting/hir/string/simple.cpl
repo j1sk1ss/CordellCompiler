@@ -2,7 +2,7 @@ start() {
     str msg = "Hello world!";
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -12,4 +12,4 @@ start() {
         }
     }
 }
-:
+/:

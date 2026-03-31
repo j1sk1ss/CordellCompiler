@@ -13,10 +13,10 @@ function foo2(i32 a = TEST2) {
 function foo3(i32 a) {}
 #endif
 
-: OUTPUT
+:/ OUTPUT
 function foo(i32 a = 0) {
 }
 
 function foo2(i32 a = 1) {
 }
-:
+/:

@@ -16,7 +16,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [8:16] 'Dead Code' after the termination statement!
 3 | {
 3 |     i32 a = 0;
@@ -36,4 +36,4 @@
 15 |     exit a;
    |     ^^^^^^
 13 | }
-:
+/:

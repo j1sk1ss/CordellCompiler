@@ -1,3 +1,4 @@
+: BUG :
 start() {
     i32 d = 0;
     loop {
@@ -6,7 +7,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
@@ -14,8 +15,8 @@ start() {
                 i32s %0 = alloc(8);
                 i32t %2 = num? 0 as i32;
                 i32s %6 = i32t %2;
-                future: i32s %8 = previous: i32s {X};
-                future: i32s %7 = previous: i32s {X};
+                future{X} i32s %8 = previous{X} i32s {X};
+                future{X} i32s %7 = previous{X} i32s {X};
                 i64t %3 = num? 10 + num? 10;
                 i32t %4 = i64t %3 as i32;
                 lb{X}
@@ -29,12 +30,12 @@ start() {
                     i32t %5 = i32s %7 + i32s %9;
                     i32s %10 = i32t %5;
                 }
-                future: i32s %7 = previous: i32s {X};
-                future: i32s %8 = previous: i32s {X};
+                future{X} i32s %7 = previous{X} i32s {X};
+                future{X} i32s %8 = previous{X} i32s {X};
                 goto lb{X}
                 lb{X}
             }
         }
     }
 }
-:
+/:

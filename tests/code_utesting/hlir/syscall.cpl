@@ -5,7 +5,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 call foo0() -> i32;
 %0 = fret();
@@ -18,4 +18,4 @@ stparam(%1);
 stparam($0);
 syscall;
 send
-:
+/:

@@ -8,10 +8,10 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 [raw] (link: str(mov rax, 1)), arg[];
 [raw] (link: str(mov rbx, 1)), arg[];
 [raw] (link: str(syscall)), arg[];
 send
-:
+/:

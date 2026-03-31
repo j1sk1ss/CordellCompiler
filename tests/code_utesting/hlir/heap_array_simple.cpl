@@ -1,14 +1,12 @@
-{
-    start() {
-        i32 size = 10;
-        arr a[size, i32];
-    }
+start() {
+    i32 size = 10 as i32;
+    arr a[size, i32];
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 %2 = $10 as i32;
 %0 = %2;
 %1 = arr_alloc(%0);
 send
-:
+/:

@@ -26,7 +26,7 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
     exit 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [extern] (EXTERN_TOKEN, v_id=-1, s_id=0)
       [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0, ext, glob)
@@ -87,4 +87,4 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
 ] (STRING_VALUE_TOKEN, v_id=4, s_id=0)
             [exit] (EXIT_TOKEN, v_id=-1, s_id=4)
                [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

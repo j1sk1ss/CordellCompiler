@@ -14,7 +14,7 @@ start() {
     foo(1);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn foo0(...)
 %15 = %9;
 %0 = %15;
@@ -40,4 +40,4 @@ BB{X} start
 %24 <<= %25;
 call foo0(...);
 send
-:
+/:

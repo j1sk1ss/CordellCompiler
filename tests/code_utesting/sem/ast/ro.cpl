@@ -6,8 +6,8 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 [ERROR]   [4:11] Read-only variable='a' assign!
 4 | a = 1;
   | ^   ^
-:
+/:

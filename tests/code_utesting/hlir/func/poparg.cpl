@@ -6,9 +6,9 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn _main(...)
 %0 = strt_loadarg();
 %1 = strt_loadarg();
 fend
-:
+/:

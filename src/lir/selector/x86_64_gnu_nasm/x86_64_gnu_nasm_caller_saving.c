@@ -1,7 +1,7 @@
 #include <lir/selector/x84_64_gnu_nasm.h>
 
 /*
-Collect used registers in profided function.
+Collect used registers in the provided function.
 Params:
     - `dirty` - Output set of used registers.
     - `f` - Function CFG.
@@ -15,8 +15,8 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
         while (lh) {
             if (
                 LIR_is_writeop(lh->op) &&      /* We are writing some value to register (for some reason) */
-                lh->farg->t == LIR_REGISTER /* This is a register object                               */
-            ) set_add(dirty, (void*)lh->farg->storage.reg.reg); /* We re-write value in a register     */
+                lh->farg->t == LIR_REGISTER    /* This is a register object                               */
+            ) set_add(dirty, (void*)lh->farg->storage.reg.reg);    /* We re-write value in a register     */
             lh = LIR_get_next(lh, bb->lmap.exit, 1);
         }
     }
@@ -43,19 +43,17 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
     
     lir_block_t* lh = off ? off : bbh->lmap.entry;
     while (lh) {
-        if (
+        if ( /* Remove register from the 'dirty' set if it is rewritten */
             LIR_is_writeop(lh->op) && 
             lh->farg == LIR_REGISTER
-        ) { /* Remove register from the 'dirty' set if it is rewritten */
-            set_remove(dirty, (void*)lh->farg->storage.reg.reg);
-        }
+        ) set_remove(dirty, (void*)lh->farg->storage.reg.reg);
         
         lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
         for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
             if (
                 !args[i] || args[i]->t != LIR_REGISTER || 
                 !set_has(dirty, (void*)args[i]->storage.reg.reg)
-            ) continue; /* If this register isn't dirty -> skip it */
+            ) continue; /* If this register isn't a dirty one -> skip it */
             set_add(save, (void*)args[i]->storage.reg.reg);
         }
         
@@ -83,8 +81,11 @@ Params:
 
 Returns function or NULL.
 */
-static cfg_func_t* _find_function(long f_id, cfg_ctx_t* cctx) {
-    foreach (cfg_func_t* fb, &cctx->funcs) { if (fb->f_id == f_id) return fb; }
+static cfg_func_t* _find_function(symbol_id_t f_id, cfg_ctx_t* cctx) {
+    foreach (cfg_func_t* fb, &cctx->funcs) { 
+        if (fb->f_id == f_id) return fb; 
+    }
+    
     return NULL;
 }
 

@@ -4,7 +4,7 @@ start() {
    exit 1;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [start] (START_TOKEN, v_id=0, s_id=1)
       { scope, id=2 }
@@ -20,4 +20,4 @@ start() {
             [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
          [exit] (EXIT_TOKEN, v_id=-1, s_id=2)
             [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

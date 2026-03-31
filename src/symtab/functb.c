@@ -44,6 +44,7 @@ static func_info_t* _create_func_info(
     func_info_t* fn = (func_info_t*)mm_malloc(sizeof(func_info_t));
     if (!fn) return NULL;
     str_memset(fn, 0, sizeof(func_info_t));
+    list_init(&fn->local);
     if (name) {
         fn->name = name->copy(name);
     }
@@ -106,6 +107,17 @@ symbol_id_t FNTB_add_info(
     return nnd->id;
 }
 
+int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx) {
+    print_log("FNTB_add_local(id=%llu, local=%li)", f_id, l_id);
+    func_info_t* fi;
+    if (map_get(&ctx->functb, f_id, (void**)&fi)) {
+        list_add(&fi->local, (void*)l_id);
+        return 1;
+    }
+
+    return 0;
+}
+
 int FNTB_update_func(
     symbol_id_t id, string_t* name, 
     int global, int local, int entry, int naked, int vargs, /* flags */
@@ -150,6 +162,7 @@ int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* a
 static int _function_info_unload(func_info_t* info) {
     destroy_string(info->name);
     destroy_string(info->virt);
+    list_free(&info->local);
     return mm_free(info);
 }
 

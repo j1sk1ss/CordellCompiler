@@ -8,7 +8,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn _main(i32 a)
 %0 = strt_loadarg();
 fend
@@ -16,4 +16,4 @@ BB{X} fn bar1(i32 a)
 %1 = ldparam();
 return %1;
 BB{X}
-:
+/:

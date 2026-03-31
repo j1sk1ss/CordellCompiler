@@ -13,7 +13,7 @@ start() {
     bar(20, 20);
 }
 
-: OUTPUT
+:/ OUTPUT
 {id: 2, a, i32, s_id: 4}
 {id: 9, b, i32, s_id: 4, value=20}
 {id: 1, b, i32, s_id: 2}
@@ -24,4 +24,4 @@ start() {
 {id: 5, tmp, i32, s_id: -1, value=40}
 {id: 6, a, i32, s_id: 2}
 {id: 8, a, i32, s_id: 4, value=20}
-:
+/:

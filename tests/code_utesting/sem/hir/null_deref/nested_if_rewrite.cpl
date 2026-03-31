@@ -8,7 +8,7 @@ start() {
     dref a = 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [3{X}] 'If' with a constant value 'true'!
 [WARNING] [4{X}] 'If' with a constant value 'true'!
-:
+/:

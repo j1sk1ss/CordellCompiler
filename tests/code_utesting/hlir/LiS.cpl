@@ -4,8 +4,8 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 == == brk str(breakpoint) == ==
 send
-:
+/:

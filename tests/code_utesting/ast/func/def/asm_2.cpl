@@ -7,7 +7,7 @@ start() {
    }
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
       [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -26,4 +26,4 @@ start() {
                [mov rax, %0] (STRING_VALUE_TOKEN, v_id=0, s_id=0)
                [mov rbx, %1] (STRING_VALUE_TOKEN, v_id=1, s_id=0)
                [syscall] (STRING_VALUE_TOKEN, v_id=2, s_id=0)
-:
+/:

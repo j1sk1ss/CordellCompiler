@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
     "start","exit","function","return",
     "if","else","while","loop","switch","case","default",
     "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
-    "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg","section","align"
+    "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg","sizeof","section","align"
   ];
 
   const docs: Record<string, string> = {
@@ -263,6 +263,18 @@ export function activate(context: vscode.ExtensionContext) {
   \`\`\`cpl
   u64 x = 255 as u64;
   ptr u8 p = (ref x) as ptr u8;
+  \`\`\`
+  `,
+
+    sizeof: `**sizeof** — Compile-time size query (C-like).
+
+  Works with both types and expressions.
+
+  \`\`\`cpl
+  u64 a = sizeof(i32);      : 4 :
+  u64 b = sizeof(ptr u8);   : 8 on 64-bit target :
+  u64 c = sizeof arr[16, u8];
+  u64 d = sizeof x;
   \`\`\`
   `,
   

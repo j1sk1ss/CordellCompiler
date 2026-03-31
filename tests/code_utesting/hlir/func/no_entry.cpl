@@ -1,7 +1,7 @@
 function foo() {
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn foo0()
 fend
-:
+/:

@@ -13,7 +13,7 @@
 #endif
 }
 
-: OUTPUT
+:/ OUTPUT
 line=1, type={X}, data=[{],
 line=3, type={X}, data=[{X}],
 line=3, type={X}, data=[function],
@@ -36,4 +36,4 @@ line=7, type={X}, data=[->],
 line=7, type={X}, data=[i0],
 line=7, type={X}, data=[;],
 line=8, type={X}, data=[}],
-:
+/:

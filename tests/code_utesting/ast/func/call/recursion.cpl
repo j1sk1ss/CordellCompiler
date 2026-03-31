@@ -2,7 +2,7 @@ function foo(i32 a) {
    foo(a + 1);
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
       [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -15,4 +15,4 @@ function foo(i32 a) {
                   [+] (PLUS_TOKEN, v_id=-1, s_id=0)
                      [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
                      [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-:
+/:

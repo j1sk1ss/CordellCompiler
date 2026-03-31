@@ -60,11 +60,12 @@ static hir_subject_t* _get_final_head(
 
     /* The final offset for the base address is the result of the
         expression 'real_offset = offset * element_size' */
-    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(offt->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(offt->t), NO_SYMBOL_ID, NULL, &smt->v));
-    HIR_BLOCK3(
-        ctx, HIR_iMUL, real_offset, offt, 
-        HIR_generate_implconv(ctx, offt->ptr, offt->t, HIR_SUBJ_CONST(_get_pointed_element_size(base, smt)), smt)
+    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(
+        HIR_promote_types(offt->t, HIR_CONSTVAL), 
+        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(offt->t, HIR_CONSTVAL)), NO_SYMBOL_ID, NULL, &smt->v)
     );
+
+    HIR_BLOCK3(ctx, HIR_iMUL, real_offset, offt, HIR_SUBJ_CONST(_get_pointed_element_size(base, smt)));
 
     /* No we move the address (base) by the offser (addr):
         - final_head = head + real_offset */
@@ -75,7 +76,7 @@ static hir_subject_t* _get_final_head(
 } 
 
 hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_t* base = HIR_generate_elem(node->c, ctx, smt);
     hir_subject_t* offt = HIR_generate_elem(node->c->siblings.n, ctx, smt);
     
@@ -90,7 +91,7 @@ hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sy
 }
 
 int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_t* base = HIR_generate_elem(node->c, ctx, smt);
     hir_subject_t* offt = HIR_generate_elem(node->c->siblings.n, ctx, smt);
     

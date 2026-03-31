@@ -5,7 +5,7 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 section .text
 global _main
 _main{X}
@@ -15,4 +15,4 @@ mov rax, 1
 syscall
 mov rax, 0x2000001
 syscall
-:
+/:

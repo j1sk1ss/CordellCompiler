@@ -18,7 +18,11 @@ int HIR_FUNC_set_last_return(cfg_ctx_t* cctx) {
             cfg_block_t* rblock = (cfg_block_t*)ret_blocks.h->data; 
             hir_block_t* hb = rblock->hmap.exit;
             while (hb && HIR_is_syst(hb->op)) hb = hb->prev;
-            if (hb->op == HIR_VRUSE) hb->op = HIR_FRET;
+            if (hb->op == HIR_VRUSE) {
+                hb->op = HIR_FRET;
+                rblock->hmap.exit = hb;
+            }
+            
         }
 
         list_free(&ret_blocks);

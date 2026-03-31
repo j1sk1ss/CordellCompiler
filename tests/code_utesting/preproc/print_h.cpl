@@ -11,9 +11,9 @@
 function print(ptr str msg) -> i0;
 #endif
 
-: OUTPUT
+:/ OUTPUT
 #line 0 "{X}.cpl"
 function strlen(ptr i8 s) -> i64;
 #line 3 "{X}.cpl"
 function print(ptr str msg) -> i0;
-:
+/:

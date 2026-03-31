@@ -49,7 +49,7 @@ int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, sym_table_t* smt) {
     HIRWLK_register_visitor(IF_INST, HIRWLKR_visit_ifop2_instruction, &walker, ATTENTION_LOW_LEVEL);
 
     /* High Level */
-    HIRWLK_register_visitor(GDREF_INST, HIRWLKR_visit_gdref_instruction, &walker, ATTENTION_HIGH_LEVEL);
+    HIRWLK_register_visitor(GDREF_INST | RET_CALL | CALL, HIRWLKR_visit_gdref_instruction, &walker, ATTENTION_HIGH_LEVEL);
     HIRWLK_register_visitor(LDREF_INST, HIRWLKR_visit_ldref_instruction, &walker, ATTENTION_HIGH_LEVEL);
 
     int res = HIRWLK_walk(ctx, &walker);

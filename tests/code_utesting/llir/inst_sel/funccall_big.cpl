@@ -3,7 +3,7 @@ start() {
     foo(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 %6 = $1;
 %0 <<= %6;
@@ -24,4 +24,4 @@ push($10);
 push($11);
 call foo0(...);
 send
-:
+/:

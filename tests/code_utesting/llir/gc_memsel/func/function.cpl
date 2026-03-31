@@ -6,7 +6,7 @@ start() {
     foo(1, 2);
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn foo0(i32 a, i32 b)
 r15 = rdi;
 rcx = r15;
@@ -28,4 +28,4 @@ r15 = $2;
 rsi <<= r15;
 call foo0(i32 a, i32 b);
 send
-:
+/:

@@ -2,12 +2,15 @@
 
 int HIR_get_type_size(hir_subject_type_t t) {
     switch (t) {
+        case HIR_I8NUMBER:  case HIR_U8NUMBER:
         case HIR_TMPVARI8:  case HIR_TMPVARU8:
         case HIR_STKVARI8:  case HIR_STKVARU8:
         case HIR_GLBVARI8:  case HIR_GLBVARU8:  return CONF_get_eight_bytness();
+        case HIR_I16NUMBER: case HIR_U16NUMBER:
         case HIR_TMPVARI16: case HIR_TMPVARU16:
         case HIR_STKVARI16: case HIR_STKVARU16:
         case HIR_GLBVARI16: case HIR_GLBVARU16: return CONF_get_quart_bytness();
+        case HIR_I32NUMBER: case HIR_U32NUMBER:
         case HIR_TMPVARI32: case HIR_TMPVARU32: 
         case HIR_TMPVARF32: case HIR_STKVARI32: 
         case HIR_STKVARU32: case HIR_STKVARF32:
@@ -70,22 +73,20 @@ int HIR_is_arrtype(hir_subject_type_t t) {
 
 int HIR_is_defined_type(hir_subject_type_t t) {
     switch (t) {
-        case HIR_NUMBER:
-        case HIR_I8NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_I64NUMBER:   return 1;
-        case HIR_I64CONSTVAL:
-        case HIR_I32CONSTVAL:
-        case HIR_I16CONSTVAL:
-        case HIR_I8CONSTVAL:
-        case HIR_CONSTVAL:    return 2;
+        case HIR_U8NUMBER:    case HIR_I8NUMBER:
+        case HIR_U16NUMBER:   case HIR_I16NUMBER:
+        case HIR_U32NUMBER:   case HIR_I32NUMBER:   case HIR_F32NUMBER:
+        case HIR_U64NUMBER:   case HIR_I64NUMBER:   case HIR_F64NUMBER:
+        case HIR_NUMBER:   return 1;
+        case HIR_CONSTVAL: return 2;
         default: return 0;
     }
 }
 
 int HIR_is_sign(hir_subject_type_t t) {
     switch (t) {
+        case HIR_CONSTVAL:
+        case HIR_I8NUMBER: case HIR_I16NUMBER: case HIR_I32NUMBER: case HIR_I64NUMBER:
         case HIR_TMPVARI8: case HIR_TMPVARI16: case HIR_TMPVARI32: case HIR_TMPVARI64:
         case HIR_STKVARI8: case HIR_STKVARI16: case HIR_STKVARI32: case HIR_STKVARI64:
         case HIR_GLBVARI8: case HIR_GLBVARI16: case HIR_GLBVARI32: case HIR_GLBVARI64: return 1;
@@ -96,60 +97,37 @@ int HIR_is_sign(hir_subject_type_t t) {
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b) {
     int size_a = HIR_get_type_size(a);
     int size_b = HIR_get_type_size(b);
+    int max_size = MAX(size_a, size_b);
     if (HIR_is_float(a) || HIR_is_float(b)) {
-        int max_size = size_a > size_b ? size_a : size_b;
-        return max_size <= 4 ? HIR_TMPVARF32 : HIR_TMPVARF64; 
+        return max_size <= CONF_get_half_bytness() ? HIR_TMPVARF32 : HIR_TMPVARF64; 
     }
 
     int issigned_a = HIR_is_sign(a);
     int issigned_b = HIR_is_sign(b);
-    int max_size = size_a > size_b ? size_a : size_b;
     if (issigned_a != issigned_b && size_a == size_b) {
-        switch (max_size) {
-            case 1:  return HIR_TMPVARU8;
-            case 2:  return HIR_TMPVARU16;
-            case 4:  return HIR_TMPVARU32;
-            default: return HIR_TMPVARU64;
-        }
+        if (max_size == CONF_get_eight_bytness())      return HIR_TMPVARU8;
+        else if (max_size == CONF_get_quart_bytness()) return HIR_TMPVARU16;
+        else if (max_size == CONF_get_half_bytness())  return HIR_TMPVARU32;
+        else                                           return HIR_TMPVARU64;
     }
 
-    if (size_a >= size_b) return a;
-    else return b;
+    if (size_a >= size_b) return HIR_get_tmp_type(a);
+    return HIR_get_tmp_type(b);
 }
 
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t) {
     switch (t) {
-        case HIR_TMPVARI0: 
-        case HIR_STKVARI0: 
-        case HIR_GLBVARI0:  return HIR_TMPVARI0; 
-        case HIR_TMPVARI8: 
-        case HIR_STKVARI8: 
-        case HIR_GLBVARI8:  return HIR_TMPVARI8;
-        case HIR_TMPVARI16: 
-        case HIR_STKVARI16: 
-        case HIR_GLBVARI16: return HIR_TMPVARI16;
-        case HIR_TMPVARI32: 
-        case HIR_STKVARI32: 
-        case HIR_GLBVARI32: return HIR_TMPVARI32;
-        case HIR_TMPVARU8: 
-        case HIR_STKVARU8: 
-        case HIR_GLBVARU8:  return HIR_TMPVARU8;
-        case HIR_TMPVARU16: 
-        case HIR_STKVARU16: 
-        case HIR_GLBVARU16: return HIR_TMPVARU16;
-        case HIR_TMPVARU32: 
-        case HIR_STKVARU32: 
-        case HIR_GLBVARU32: return HIR_TMPVARU32;
-        case HIR_TMPVARU64: 
-        case HIR_STKVARU64: 
-        case HIR_GLBVARU64: return HIR_TMPVARU64;
-        case HIR_TMPVARF32: 
-        case HIR_STKVARF32: 
-        case HIR_GLBVARF32: return HIR_TMPVARF32;
-        case HIR_TMPVARF64: 
-        case HIR_STKVARF64: 
-        case HIR_GLBVARF64: return HIR_TMPVARF64;
-        default:            return HIR_TMPVARI64;
+        case HIR_TMPVARI0:  case HIR_STKVARI0:  case HIR_GLBVARI0:                      return HIR_TMPVARI0; 
+        case HIR_I8NUMBER:  case HIR_TMPVARI8:  case HIR_STKVARI8:  case HIR_GLBVARI8:  return HIR_TMPVARI8;
+        case HIR_U8NUMBER:  case HIR_TMPVARU8:  case HIR_STKVARU8:  case HIR_GLBVARU8:  return HIR_TMPVARU8;
+        case HIR_I16NUMBER: case HIR_TMPVARI16: case HIR_STKVARI16: case HIR_GLBVARI16: return HIR_TMPVARI16;
+        case HIR_U16NUMBER: case HIR_TMPVARU16: case HIR_STKVARU16: case HIR_GLBVARU16: return HIR_TMPVARU16;
+        case HIR_I32NUMBER: case HIR_TMPVARI32: case HIR_STKVARI32: case HIR_GLBVARI32: return HIR_TMPVARI32;
+        case HIR_U32NUMBER: case HIR_TMPVARU32: case HIR_STKVARU32: case HIR_GLBVARU32: return HIR_TMPVARU32;
+        case HIR_U64NUMBER: case HIR_TMPVARU64: case HIR_STKVARU64: case HIR_GLBVARU64: return HIR_TMPVARU64;
+        case HIR_F32NUMBER: case HIR_TMPVARF32: case HIR_STKVARF32: case HIR_GLBVARF32: return HIR_TMPVARF32;
+        case HIR_F64NUMBER: case HIR_TMPVARF64: case HIR_STKVARF64: case HIR_GLBVARF64: return HIR_TMPVARF64;
+        default: return HIR_TMPVARI64;
     }
 }
 

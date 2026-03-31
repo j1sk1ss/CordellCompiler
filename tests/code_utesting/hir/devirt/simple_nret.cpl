@@ -5,12 +5,12 @@ start() {
     exit foo();
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn foo0()
     {
         {
-            return num? 10;
+            return i8n 10;
         }
     }
     start {
@@ -22,4 +22,4 @@ start() {
         }
     }
 }
-:
+/:

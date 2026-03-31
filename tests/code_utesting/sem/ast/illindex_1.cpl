@@ -6,8 +6,8 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 [ERROR]   [4:16] Array='a' accessed with a negative index!
 4 | a[-1];
   |   ^^
-:
+/:

@@ -6,9 +6,9 @@ Function becomes an entry point in two cases:
 
 Example without a `start` function:
 ```cpl
-function fang() -> i0; { return; }
+function fang() -> i0 { return; }
 @[entry]
-function naomi() -> i0; { exit 0; } : <= Becomes an entry point :
+function naomi() -> i0 { exit 0; } : <= Becomes an entry point :
 ```
 
 Example with a `start` start function:
@@ -27,9 +27,10 @@ start(...) {
 ```
 , is valid.
 
-**Note 1:** 'Start' function doesn't have a return type (you can't use the '->' modificator) and requires usage of the 'exit' keyword instead of the 'return'. Also the maximum type that can be used as a value in the 'exit' keyword is the 'u8' type. </br>
-**Note 2:** Actually, with usage of the logic that the lowest function becomes an entry point, we can set a return type:
+**Note 1:** 'Start' function doesn't have a return type (you can't use the '->' modification) and requires usage of the 'exit' keyword instead of the 'return'. Also the maximum type that can be used as a value in the 'exit' keyword is the 'u8' type. </br>
+**Note 2:** Actually, with usage of the entry annotation, we can set a return type:
 ```cpl
+@[entry]
 function main(i32 argc, ptr ptr i8 argv) -> u8;
 ```
 **Note 3:** Entry point will generate all essential steps (stackframe allocation, entry, exit commands, etc).

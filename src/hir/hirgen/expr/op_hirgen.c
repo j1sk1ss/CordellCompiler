@@ -1,7 +1,7 @@
 #include <hir/hirgens/hirgens.h>
 
 hir_subject_t* HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     ast_node_t* left  = node->c;
     ast_node_t* right = left->siblings.n;
 
@@ -147,7 +147,7 @@ static hir_subject_t* _generate_logic_operator(ast_node_t* op, ast_node_t* r, as
 }
 
 hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     ast_node_t* op     = node;
     ast_node_t* left   = node->c;
     ast_node_t* right  = left->siblings.n;

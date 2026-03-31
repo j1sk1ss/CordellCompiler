@@ -4,18 +4,18 @@ start() {
     };
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
             {
-                i64t %1 = num? 14 + num? 15;
-                use i64t %1;
-                [unused] i64t %2 = num? 14 + num? 15;
-                use i64t %1;
-                arrs %3 = arr_alloc(num? 10);
+                i8t %1 = i8n 14 + i8n 15;
+                use i8t %1;
+                [unused] i8t %2 = i8n 14 + i8n 15;
+                use i8t %1;
+                arrs %3 = arr_alloc(i8n 10);
             }
         }
     }
 }
-:
+/:

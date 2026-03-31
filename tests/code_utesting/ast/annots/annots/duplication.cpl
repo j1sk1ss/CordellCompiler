@@ -7,6 +7,6 @@ function foo() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 @[no_fall] @[no_fall] @[no_fall] @[no_fall] base_token=switch
-:
+/:

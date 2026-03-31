@@ -1,6 +1,7 @@
 #include <lir/lir.h>
 
-static long _curr_id = 0;
+static unsigned long _curr_id = 0;
+
 lir_subject_t* LIR_create_subject(lir_subject_type_t t, int reg, int v_id, long offset, string_t* strval, long intval, int size) {
     lir_subject_t* subj = mm_malloc(sizeof(lir_subject_t));
     if (!subj) return NULL;

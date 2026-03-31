@@ -4,7 +4,7 @@ function foo() {
     dref a = 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [2{X}] NULL-dereference error!
 [WARNING] [4{X}] NULL-dereference error (variable 'a' is NULL)!
-:
+/:

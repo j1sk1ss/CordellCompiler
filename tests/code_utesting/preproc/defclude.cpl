@@ -10,8 +10,8 @@
 #include "define.cpl"
 #endif
 
-: OUTPUT
+:/ OUTPUT
 #line 0 "{X}.cpl"
 function a(); 
 #line 2 "{X}.cpl"
-:
+/:

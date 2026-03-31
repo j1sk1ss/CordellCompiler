@@ -2,7 +2,7 @@ start() {
     arr a[10, i8] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 }
 
-: OUTPUT
+:/ OUTPUT
 BB1: start
 [rbp - 16] = $0;
 [rbp - 15] = $1;
@@ -16,4 +16,4 @@ BB1: start
 [rbp - 7] = $9;
 kill(1);
 send
-:
+/:

@@ -6,7 +6,7 @@
    i32 q6, i32 a7, i32 a8, i32 a9, i32 q10, i32 q11
 );
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
       [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -71,4 +71,4 @@
             [q10] (I32_VARIABLE_TOKEN, v_id=28, s_id=2)
          [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
             [q11] (I32_VARIABLE_TOKEN, v_id=29, s_id=2)
-:
+/:

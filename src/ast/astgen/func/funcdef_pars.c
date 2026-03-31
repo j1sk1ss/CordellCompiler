@@ -117,7 +117,8 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         name->sinfo.s_id, args, name->c, &smt->f
     );
 
-    if (!local) {
+    if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
+    else {
         if (!annots.section) annots.section = create_string(CONF_get_code_section());
         SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
     }
@@ -131,7 +132,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     ast_node_t* body = NULL;
-    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, base);
+    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, name);
     if (body) AST_add_node(args, body);
     else {
         PARSE_ERROR("Error during the function's body parsing!");

@@ -1,9 +1,9 @@
 function foo(ptr i8 msg) {
-    dref msg = 0;
+    dref msg = 0 as i8;
 }
 
 function bar(ptr i8 msg) {
-    dref msg = 0;
+    dref msg = 0 as i8;
 }
 
 start() {
@@ -12,6 +12,6 @@ start() {
     bar(1);
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [2{X}] NULL-dereference error (variable 'msg' is NULL)!
-:
+/:

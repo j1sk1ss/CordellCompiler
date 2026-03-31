@@ -3,7 +3,7 @@ function foo(i32 a, i32 b) {
     return a % b;
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} fn _main(i32 a, i32 b)
 %5 = [rbp + 8];
 %0 = %5;
@@ -19,4 +19,4 @@ edx = %3 % %1;
 %4 = %9;
 return %4;
 BB{X}
-:
+/:

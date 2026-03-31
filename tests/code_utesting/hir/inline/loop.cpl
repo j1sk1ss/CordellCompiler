@@ -10,34 +10,34 @@ start() {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn getter0()
     {
         {
-            return num? 100;
+            return i8n 100;
         }
     }
     start {
         {
             {
-                lb{X}
-                if num? 1, goto lb{X} else goto lb{X}
-                lb{X}
+                lb21:
+                if i8n 1, goto lb22, else goto lb23;
+                lb22:
                 {
-                    lb{X}
-                    if num? 1, goto lb{X} else goto lb{X}
-                    lb{X}
+                    lb29:
+                    if i8n 1, goto lb30, else goto lb31;
+                    lb30:
                     {
                         [unused] call getter0(), argc args();
                     }
-                    goto lb{X}
-                    lb{X}
+                    goto lb29;
+                    lb31:
                 }
-                goto lb{X}
-                lb{X}
+                goto lb21;
+                lb23:
             }
         }
     }
 }
-:
+/:

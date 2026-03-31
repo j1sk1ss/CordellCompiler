@@ -172,7 +172,7 @@ Params:
 
 Return NULL if not found, or base block.
 */
-cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, long lbid);
+cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, unsigned long lbid);
 
 /*
 Append HIR block to CFG. Will change entry and exit links, if they are not set yet.

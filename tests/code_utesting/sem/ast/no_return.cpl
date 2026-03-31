@@ -9,7 +9,7 @@
     start() { exit 1; }
 }
 
-: OUTPUT
+:/ OUTPUT
 [INFO]    [3:20] Used 'Fang' as a function dragon-name!
 [WARNING] [3:14] Function='fang' doesn't have the 'return' statement in all paths!
 3 | function fang() -> i32 
@@ -19,4 +19,4 @@
 5 |         return 1;
 5 |     }
 4 | }
-:
+/:

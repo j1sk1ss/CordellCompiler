@@ -7,7 +7,7 @@ start() {
    ro glob ptr i32 e;
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0, glob)
       [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
@@ -25,4 +25,4 @@ start() {
             [d] (I32_VARIABLE_TOKEN, v_id=3, s_id=3, ro)
          [i32] (I32_TYPE_TOKEN, ptr, v_id=-1, s_id=0, ro, glob)
             [e] (I32_VARIABLE_TOKEN, ptr, v_id=4, s_id=3, ro, glob)
-:
+/:

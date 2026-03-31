@@ -5,19 +5,19 @@ start() {
     foo(20 as i8);
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
             {
-                i32t %4 = num? 10 as i32;
+                i32t %4 = i8n 10 as i32;
                 use i32t %4;
-                call foo0(i32 a, i32 b), argc args(i32t %4,num? 20,);
-                i8t %5 = num? 20 as i8;
+                call foo0(i32 a, i32 b), argc args(i32t %4,i8n 20,);
+                i8t %5 = i8n 20 as i8;
                 use i8t %5;
-                call foo1(i8 a, i32 b), argc args(i8t %5,num? 20,);
+                call foo1(i8 a, i32 b), argc args(i8t %5,i8n 20,);
             }
         }
     }
 }
-:
+/:

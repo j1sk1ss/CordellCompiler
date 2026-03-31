@@ -5,7 +5,7 @@ start() {
     a = 13;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     i32g %0 = alloc(8);
     i32t %1 = num? 10 as i32;
@@ -23,4 +23,4 @@ start() {
         }
     }
 }
-:
+/:

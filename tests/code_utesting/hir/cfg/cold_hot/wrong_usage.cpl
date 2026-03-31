@@ -7,7 +7,7 @@ function foo() -> i32 {
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CFG_func0 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
@@ -20,4 +20,4 @@ digraph CFG_func0 {
   B4 [label="B4:\nentry=MKLB10\nexit=FRET\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B5 [label="B5:\nentry=ENDSCOPE-1\nexit=FEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
-:
+/:

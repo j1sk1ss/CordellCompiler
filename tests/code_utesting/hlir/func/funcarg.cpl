@@ -7,7 +7,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 call a0() -> i32;
 %2 = fret();
@@ -19,4 +19,4 @@ use %3;
 stparam(%3);
 call c2(i32 f);
 send
-:
+/:

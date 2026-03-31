@@ -6,7 +6,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 line=1, type={X}, data=[{],
 line=2, type={X}, data=[@],
 line=2, type={X}, data=[[],
@@ -33,4 +33,4 @@ line=5, type={X}, data=[)],
 line=5, type={X}, data=[{],
 line=6, type={X}, data=[}],
 line=7, type={X}, data=[}],
-:
+/:

@@ -3,6 +3,6 @@ function foo() {
     i32 b = dref a;
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [3{X}] NULL-dereference error (variable 'a' is NULL)!
-:
+/:

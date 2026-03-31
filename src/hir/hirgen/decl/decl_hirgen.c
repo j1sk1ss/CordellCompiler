@@ -21,8 +21,12 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     ast_node_t* type  = size->siblings.n;
     ast_node_t* elems = type->siblings.n;
 
+    array_info_t ai;
     variable_info_t vi;
-    if (VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v)) {
+    if (
+        VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v) && 
+        ARTB_get_info(vi.v_id, &ai, &smt->a) // TODO: Cast element to the array's element type?
+    ) {
         hir_subject_t* init_elems = HIR_SUBJ_LIST();
         for (ast_node_t* e = elems; e; e = e->siblings.n) {
             hir_subject_t* el = HIR_generate_elem(e, ctx, smt);
@@ -54,7 +58,7 @@ static int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 }
 
 int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     ast_node_t* name = node->c;
     if (!TKN_is_one_slot(name->t)) {
         return _starr_declaration(node, ctx, smt);

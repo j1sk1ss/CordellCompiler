@@ -1,10 +1,10 @@
 start() {
     u64 a = 1;
-    i8 b = a;
+    i8 b = a as i8;
 }
 
-: OUTPUT
-BB{X} start
+:/ OUTPUT
+BB1: start
 %4 = $1;
 %2 = %4;
 %5 = %2;
@@ -14,4 +14,4 @@ BB{X} start
 %7 = %3;
 %1 = %7;
 send
-:
+/:

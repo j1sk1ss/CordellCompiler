@@ -6,7 +6,7 @@ glob i32 d;
 @[section(".life-is-strange")] glob i32 t;
 ro i32 y;
 
-: OUTPUT
+:/ OUTPUT
 {id: 1, a, i32, s_id: 1, align: 8}
 {id: 4, d, i32, s_id: 1, align: 8}
 {id: 3, c, i32, s_id: 1, align: 8}
@@ -19,4 +19,4 @@ ro i32 y;
 {section='.test', <<3 2>>}
 {section='.text', 0}
 {section='.life-is-strange', 5}
-:
+/:

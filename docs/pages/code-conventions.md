@@ -1,5 +1,5 @@
 # Code conventions
-*P.S. It's not a thing, but I'd like to share my prefered code style through this conventions. The compiler itself doesn't care about how a code is written.* </br>
+*P.S. It's not a thing, but I'd like to share my preferred code style through this conventions. The compiler itself doesn't care about how a code is written.* </br>
 CPL encourages code mostly based on C-code conventions.
 - **Variables**: use lowercase letters and underscores
 ```cpl
@@ -34,9 +34,9 @@ function foo() -> i0 {
 
 - **Ifs**:
 ```cpl
-if <cond0>; {
+if cond0; {
 }
-else if <cond1>; {
+else if cond1; {
 }
 else {
 }
@@ -44,7 +44,7 @@ else {
 
 - **Loops**:
 ```cpl
-while <cond0>; {
+while cond0; {
 }
 loop {
 }
@@ -56,7 +56,7 @@ start(i64 argc, ptr ptr i8 argv) {
 }
 ```
 
-- **Comments**: Comments can be written in one line with the start and the end symbol `:` and in several lines with the same logic. Actually, this is a copy of the C's comments '/**/' (without support of the '//' comment style).
+- **Comments**: Comments can be written in one line with the start and the end symbol `:` (or `:/` with `/:`) and in several lines with the same logic. Actually, this is a copy of the C's comments '/**/' (without support of the '//' comment style), which means you have to always end your comment with the 'end' comment symbol.
 ```cpl
 : Hello there
 :
@@ -66,6 +66,8 @@ Hello there :
 :
 Hello there
 :
+:/ Large comment with a colon:
+/:
 ```
 
 - **File names**: Sneaky case for file names. If this is a 'header' file, add the `_h` path to a name

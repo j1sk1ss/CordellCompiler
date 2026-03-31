@@ -7,7 +7,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 BB{X} start
 %2 = &(foo0(u32 a));
 %1 = %2;
@@ -16,4 +16,4 @@ call %1;
 stparam($10);
 call foo0(u32 a);
 send
-:
+/:

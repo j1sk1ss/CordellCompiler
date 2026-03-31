@@ -2,7 +2,7 @@
 ## if statement
 `if` keyword similar to the `C`'s `if` statement. Key change here is the `;` token after the condition. 
 ```cpl
-if cond; {
+if condition; {
 }
 else {
 }
@@ -32,17 +32,17 @@ else                    a = 0;
 
 ## while statement
 ```cpl
-while cond; {
+while condition; {
     stmt;
     stmt;
 }
 
-while cond; stmt;
+while condition; stmt;
 ```
 
 ## loop statement
 In difference with the `while` statement, the `loop` statement allows to build efficient infinity loops for a purpose. It is a way efficient than a `while 1;` statement given the empty 'condition' body. </br>
-**Importand Note:** You *must* insert the `break` keyword somewhere in a body of this statement or use the `counter` annotation. Otherwise it will became an infinity loop.
+**Important Note:** You *must* insert the `break` keyword somewhere in a body of this statement or use the `counter` annotation. Otherwise it will became an infinity loop.
 ```cpl
 loop {
     stmt;
@@ -64,12 +64,12 @@ The `loop` statement supports the `counter` annotation. This will make a counted
 **Note 1:** `X` should be constant value (or a primitive variable that can be `inlined`). </br>
 **Note 2:** Similar to C language, the `switch` statement supports the fall 'mechanic'. It implies, that the `case` can ignore the `break` keyword. This will lead to the execution of the next case block.
 ```cpl
-switch cond; {
+switch condition; {
     case X; {}
     case Y; {
         break;
     }
-    default; {
+    default {
         break;
     }
 }

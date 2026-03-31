@@ -5,7 +5,7 @@ start() {
     foo(); bar(); baz();
 }
 
-: OUTPUT
+:/ OUTPUT
 digraph CALL_GRAPH {
   rankdir=LR;
   node [shape=ellipse, fontname="monospace"];
@@ -13,4 +13,4 @@ digraph CALL_GRAPH {
   {F3 -> F1;}
   {F3 -> F2;}
 }
-:
+/:

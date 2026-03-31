@@ -5,7 +5,7 @@
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 [WARNING] [3:16] Variable='a' without initialization!
 3 | i32 a;
-:
+/:

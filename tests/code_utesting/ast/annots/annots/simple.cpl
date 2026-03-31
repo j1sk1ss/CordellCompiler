@@ -4,6 +4,6 @@ function foo() -> i32 {
     return 0;
 }
 
-: OUTPUT
+:/ OUTPUT
 @[no_fall] base_token=switch
-:
+/:

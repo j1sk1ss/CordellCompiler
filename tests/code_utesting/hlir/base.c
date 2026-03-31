@@ -14,6 +14,7 @@
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
+#include <hir/func.h>
 // #include "../../misc/hir_helper.h"
 
 #include <lir/lirgen.h>
@@ -70,6 +71,7 @@ int main(int argc, char* argv[]) {
 
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
+    HIR_FUNC_set_last_return(&cfgctx);
 
     HIR_CFG_cleanup_navigation(&cfgctx);
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };

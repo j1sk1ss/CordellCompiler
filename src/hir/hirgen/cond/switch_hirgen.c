@@ -25,14 +25,14 @@ static int _generate_case_binary_jump(
     hir_subject_t* equals        = HIR_SUBJ_LABEL();
 
     hir_subject_t* is_lwr = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
-    HIR_BLOCK3(ctx, HIR_iLWR, is_lwr, cond, HIR_generate_implconv(ctx, cond->ptr, cond->t, HIR_SUBJ_CONST(val), smt));
+    HIR_BLOCK3(ctx, HIR_iLWR, is_lwr, HIR_generate_implconv(ctx, 0, HIR_CONSTVAL, cond, smt), HIR_SUBJ_CONST(val));
     HIR_BLOCK3(ctx, HIR_IFOP2, is_lwr, lower, eq_or_greater);
     HIR_BLOCK1(ctx, HIR_MKLB, lower);
     _generate_case_binary_jump(values, cond, left, mid - 1, def, end, ctx, smt);
 
     HIR_BLOCK1(ctx, HIR_MKLB, eq_or_greater);
     hir_subject_t* is_grt = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
-    HIR_BLOCK3(ctx, HIR_iLRG, is_grt, cond, HIR_generate_implconv(ctx, cond->ptr, cond->t, HIR_SUBJ_CONST(val), smt));
+    HIR_BLOCK3(ctx, HIR_iLRG, is_grt, HIR_generate_implconv(ctx, 0, HIR_CONSTVAL, cond, smt), HIR_SUBJ_CONST(val));
     HIR_BLOCK3(ctx, HIR_IFOP2, is_grt, greater, equals);
     HIR_BLOCK1(ctx, HIR_MKLB, greater);
     _generate_case_binary_jump(values, cond, mid + 1, right, def, end, ctx, smt);
@@ -52,7 +52,7 @@ static int _generate_sequent_jump(
     for (int i = 0; i < values_count; i++) {
         hir_subject_t* nl = HIR_SUBJ_LABEL();
         hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
-        HIR_BLOCK3(ctx, HIR_iCMP, equals, cond, HIR_SUBJ_CONST(values[i].v));
+        HIR_BLOCK3(ctx, HIR_iCMP, equals, HIR_generate_implconv(ctx, 0, HIR_CONSTVAL, cond, smt), HIR_SUBJ_CONST(values[i].v));
         HIR_BLOCK3(ctx, HIR_IFOP2, equals, values[i].l, nl);
         HIR_BLOCK1(ctx, HIR_MKLB, nl);
     }
@@ -62,7 +62,7 @@ static int _generate_sequent_jump(
 }
 
 int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&node->t->finfo));
+    HIR_SET_CURRENT_POS(ctx, node);
     int no_fall = 0, straight = 0;
     HAS_ANNOTATION(STRAIGHT_ANNOTATION, node, { straight = 1; });
     HAS_ANNOTATION(NOFALL_ANNOTATION, node, { no_fall = 1; });

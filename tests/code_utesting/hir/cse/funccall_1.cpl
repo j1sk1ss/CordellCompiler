@@ -3,18 +3,18 @@ start() {
     foo((10 + 10) + (10 + 10));
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     start {
         {
             {
-                i64t %1 = num? 10 + num? 10;
-                [unused] i64t %2 = num? 10 + num? 10;
-                i64t %3 = i64t %1 + i64t %1;
-                use i64t %3;
-                call foo0(i32 a) -> i32, argc args(i64t %3,);
+                i8t %1 = i8n 10 + i8n 10;
+                [unused] i8t %2 = i8n 10 + i8n 10;
+                i8t %3 = i8t %1 + i8t %1;
+                use i8t %3;
+                call foo0(i32 a) -> i32, argc args(i8t %3,);
             }
         }
     }
 }
-:
+/:

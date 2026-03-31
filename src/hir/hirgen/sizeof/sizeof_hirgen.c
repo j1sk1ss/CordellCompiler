@@ -1,6 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
-hir_subject_t* HIR_generate_sizeof(hir_subject_t* s, sym_table_t* smt) {
+hir_subject_t* _get_size_as_constant(hir_subject_t* s, sym_table_t* smt) {
     int size = s->ptr > 0 ? CONF_get_full_bytness() : HIR_get_type_size(s->t);
     if (HIR_is_vartype(s->t)) {
         if (HIR_is_arrtype(s->t)) {
@@ -18,4 +18,26 @@ hir_subject_t* HIR_generate_sizeof(hir_subject_t* s, sym_table_t* smt) {
     }
 
     return HIR_SUBJ_CONST(size);
+}
+
+hir_subject_t* HIR_generate_sizeof(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_SET_CURRENT_POS(ctx, node);
+    hir_block_t* entry  = ctx->hot.t;
+    hir_subject_t* src  = HIR_generate_elem(node->c, ctx, smt);
+    hir_subject_t* size = _get_size_as_constant(src, smt);
+    hir_block_t* hidden = entry->next;
+    
+    if (hidden) {
+        while (hidden) {
+            hir_block_t* next = hidden->next;
+            HIR_unload_block(hidden);
+            hidden = next;
+        }
+
+        entry->next = NULL;
+        ctx->hot.t = entry;
+    }
+
+    HIR_unload_subject(src);
+    return size;
 }

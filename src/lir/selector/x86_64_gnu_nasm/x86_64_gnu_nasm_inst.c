@@ -351,14 +351,8 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                         break;
                     }
-                    case LIR_TI64:
-                    case LIR_TI32:
-                    case LIR_TI16:
-                    case LIR_TI8:
-                    case LIR_TU64:
-                    case LIR_TU32:
-                    case LIR_TU16:
-                    case LIR_TU8: {
+                    case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8:
+                    case LIR_TU64: case LIR_TU32: case LIR_TU16: case LIR_TU8: {
                         int from_float = _is_simd_type(lh->sarg, smt);
                         int from_sign  = _is_sign_type(lh->sarg, smt);
                         int dst_size   = _get_variable_size(lh->farg->storage.var.v_id, smt);

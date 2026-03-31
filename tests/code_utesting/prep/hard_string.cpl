@@ -10,7 +10,7 @@ Hello world from the multiline!
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 line=1, type={X}, data=[{],
 line=2, type={X}, data=[start],
 line=2, type={X}, data=[(],
@@ -42,4 +42,4 @@ Hello world from the multiline!
 line=8, type={X}, data=[;],
 line=9, type={X}, data=[}],
 line=10, type={X}, data=[}]
-:
+/:

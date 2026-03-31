@@ -5,6 +5,6 @@ start() {
     i64 d = c as i64;
 }
 
-: OUTPUT
+:/ OUTPUT
 id: 0, owners: <<4 7 9 8 5 6>>
-:
+/:

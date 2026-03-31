@@ -2,7 +2,7 @@ start() {
     i32 a; i32 b; i32 c; i32 d; i32 e; i32 f; i32 g; i32 k; i32 l; i32 m; i32 n; i32 o; i32 p; i32 r; i32 s; i32 t;
 }
 
-: OUTPUT
+:/ OUTPUT
 {id: 0, a, i32, s_id: 2, align: 8}
 {id: 1, b, i32, s_id: 2, align: 8}
 {id: 8, l, i32, s_id: 2, align: 8}
@@ -19,4 +19,4 @@ start() {
 {id: 15, t, i32, s_id: 2, align: 8}
 {id: 5, f, i32, s_id: 2, align: 8}
 {id: 12, p, i32, s_id: 2, align: 8}
-:
+/:

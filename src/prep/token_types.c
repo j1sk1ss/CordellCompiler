@@ -60,7 +60,7 @@ int TKN_is_tmp_type(token_type_t t) {
         case TMP_U64_TYPE_TOKEN:
         case TMP_U32_TYPE_TOKEN:
         case TMP_U16_TYPE_TOKEN:
-        case TMP_U8_TYPE_TOKEN:  return 1;
+        case TMP_U8_TYPE_TOKEN: return 1;
         default: return 0; 
     }
 }
@@ -70,22 +70,9 @@ int TKN_is_pointer(token_t* token) {
     if (!token) return 0;
     if (token->flags.ptr) return 1;
     switch (token->t_type) {
-        case UNKNOWN_NUMERIC_TOKEN:
-        case UNKNOWN_FLOAT_NUMERIC_TOKEN:
-        case I64_VARIABLE_TOKEN:
-        case I32_VARIABLE_TOKEN:
-        case I16_VARIABLE_TOKEN:
-        case I8_VARIABLE_TOKEN:
-        case U64_VARIABLE_TOKEN:
-        case U32_VARIABLE_TOKEN:
-        case U16_VARIABLE_TOKEN:
-        case U8_VARIABLE_TOKEN:
-        case F64_VARIABLE_TOKEN:
-        case F32_VARIABLE_TOKEN:
-        case CHAR_VALUE_TOKEN:     return 0;
         case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN:   return 1;
-        default:                   return 0;
+        case STR_VARIABLE_TOKEN: return 1;
+        default:                 return 0;
     }
 
     return 0;
@@ -138,12 +125,7 @@ int TKN_is_one_slot(token_t* token) {
         case F64_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN:
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: return 1;
-        case STR_TYPE_TOKEN:
-        case ARRAY_TYPE_TOKEN:
-        case STRING_VALUE_TOKEN:
-        case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN:
-        default:                    return 0;
+        default:                          return 0;
     }
 
     return 0;
@@ -294,8 +276,6 @@ int TKN_is_sign(token_t* token, char ptr) {
     if (!token) return 0;
     if (token->flags.ptr && ptr) return 0;
     switch (token->t_type) {
-        case I64_VARIABLE_TOKEN: case I32_VARIABLE_TOKEN: case I16_VARIABLE_TOKEN: case I8_VARIABLE_TOKEN:
-        case I64_TYPE_TOKEN:     case I32_TYPE_TOKEN:     case I16_TYPE_TOKEN:     case I8_TYPE_TOKEN: return 1;
         case F64_VARIABLE_TOKEN: case F32_VARIABLE_TOKEN:
         case F64_TYPE_TOKEN:     case F32_TYPE_TOKEN:
         case U64_VARIABLE_TOKEN: case U32_VARIABLE_TOKEN: case U16_VARIABLE_TOKEN: case U8_VARIABLE_TOKEN:

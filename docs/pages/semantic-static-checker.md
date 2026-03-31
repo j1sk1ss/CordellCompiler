@@ -1,8 +1,8 @@
 # Semantic static checker
-Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. Thes static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behaviour (null-dereference, wrong casts, etc.).
+Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. This static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behavior (null-dereference, wrong casts, etc.).
 
 ## AST part
-The list of all possible AST warnings that are supported by the static analyzator is below:
+The list of all possible AST warnings that are supported by the static analyzer is below:
 - Read-only variable update. *If we have a `ro` variable, we must be sure that it never being updated somewhere*
 - Invalid variable for a function's return value. *If a function returns, for instance, a `i8` value, it must be stored in a variable with the same (or larger) type*
 - Declaration without initialization. *If we declare a variable, it'd be safer, if we add an initial value*
@@ -13,14 +13,14 @@ The list of all possible AST warnings that are supported by the static analyzato
 - Function argument type mismatch. *We must be sure, that a provided argument to a function has a data type, that can be processed by a function*
 - Unused function return value. *If a function has a return type not equal to the `i0` return type, it must be used somewhere*
 - Wrong variable for a function's return type. *If we store a function's result in a variable, we must check if the variable has a valid type and can handle the function's return value*
-- Function's return type mismatch with an actual return type. *If we return some value from a function, we must check if this is a corrent type regarding the registered information about the function*
+- Function's return type mismatch with an actual return type. *If we return some value from a function, we must check if this is a current type regarding the registered information about the function*
 - Illegal array access. *We must check if the index (constant) that being used in an array expression is valid and non-negative*
 - Duplicated branches. *We can check if there is a two same branches in one `if` construction*
 - Invalid function name. *Some function names are reserved by the compiler. We can't allow user to use them*
 - Dead code. *We can find is there is a dead code in the code, and if this was an intent product*
-- Possible implicit convertion. *The compiler is a permissively static typed, but not a strong typed. To fill this gap, the checker will inform if there is a possible future implicit cast*
+- Possible implicit conversion. *The compiler is a permissively static typed, but not a strong typed. To fill this gap, the checker will inform if there is an implicit cast*
 - Inefficient `while`. *Sometimes the `loop` keyword is better than `while 1`*
-- Incorrect exit type for a function. *The `exit` keyword must be used in a function (not in a `start` function) only by one condition - there is no `start` function and this is the lowest non-local function in the file*
+- Incorrect exit type for a function. *The `exit` keyword must be used in a function (not in a `start` function) only by one condition - there is no `start` function and this is an annotated with the entry annotation non-local function in the file*
 - Break usage without a target. *The `break` keyword must be used only to break `loop`s and `while`s*
 - `i0` function's return value usage. *If a function has a `i0` return type, its value can't be stored in any variable*
 - Unused expression. *Any expression that doesn't stored in a variable, used in a function, evaluated in a `if`, a `while` or a `switch` statements is an unused expression*
@@ -222,7 +222,7 @@ The code above will produce a ton of errors and warnings.
 **Note 2:** The static analyzer doesn't use a source file to show a error place. For these purposes, it uses the 'restorer' module that restores the code from AST.
 
 ## IR part
-The list of all possible IR warnings that are supported by the static analyzator is below:
+The list of all possible IR warnings that are supported by the static analyzer is below:
 - NULL-dereference. *If we're trying to dereference a variable (or a value) which is NULL, we must terminate compilation.*
 - Constant IF. *We can warn a user if there is a dead branch presented.*
 

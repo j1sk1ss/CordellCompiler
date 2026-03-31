@@ -208,48 +208,63 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
         size_t new_cap = n + 1;
         char* nb = (char*)realloc(*out, new_cap);
         if (!nb) return 0;
-        *out     = nb;
+        *out = nb;
         *out_cap = new_cap;
     }
 
     size_t oi = 0;
     for (size_t i = 0; in[i]; i++) {
         char c = in[i];
+        if (st->in_colon_slash) {
+            if (c == '/' && in[i + 1] == ':') {
+                st->in_colon_slash = 0;
+                i++;
+            }
 
-        if (st->in_colon) {
-            if (c == ':') st->in_colon = 0; 
             continue;
         }
-        else if (st->in_str) {
+
+        if (st->in_colon) {
+            if (c == ':') st->in_colon = 0;
+            continue;
+        }
+
+        if (st->in_str) {
             (*out)[oi++] = c;
-            if (st->esc)        st->esc    = 0;
-            else if (c == '\\') st->esc    = 1;
+            if (st->esc)        st->esc = 0;
+            else if (c == '\\') st->esc = 1;
             else if (c == '"')  st->in_str = 0;
             continue;
         }
-        else if (st->in_chr) {
+
+        if (st->in_chr) {
             (*out)[oi++] = c;
-            if (st->esc)        st->esc    = 0;
-            else if (c == '\\') st->esc    = 1;
+            if (st->esc)        st->esc = 0;
+            else if (c == '\\') st->esc = 1;
             else if (c == '\'') st->in_chr = 0;
             continue;
         }
 
-        switch (c)  {
-            case '"': { 
-                st->in_str = 1; 
-                (*out)[oi++] = c; 
-                continue; 
+        if (c == '"') {
+            st->in_str = 1;
+            (*out)[oi++] = c;
+            continue;
+        }
+
+        if (c == '\'') {
+            st->in_chr = 1;
+            (*out)[oi++] = c;
+            continue;
+        }
+
+        if (c == ':') {
+            if (in[i + 1] != '/') st->in_colon = 1;
+            else {
+                st->in_colon_slash = 1;
+                i++;
             }
-            case '\'': { 
-                st->in_chr = 1; 
-                (*out)[oi++] = c; 
-                continue; 
-            }
-            case ':': { 
-                st->in_colon = 1; 
-                continue; 
-            }
+
+            continue;
         }
 
         (*out)[oi++] = c;

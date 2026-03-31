@@ -3,7 +3,7 @@ function foo(...) {
     @[poparg] i32 b;
 }
 
-: OUTPUT
+:/ OUTPUT
 {
     fn foo0(...)
     {
@@ -15,4 +15,4 @@ function foo(...) {
         }
     }
 }
-:
+/:
