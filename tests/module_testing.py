@@ -262,11 +262,13 @@ def _rewrite_test_output(path: Path, actual_output: str) -> None:
 def _parse_test_file(path: Path) -> tuple[str, str, dict]:
     text = path.read_text(encoding="utf-8")
     flags = {
-        "test_debug": False,
-        "block_test": False,
-        "bug":        False,
-        "leak_trace": False,
-        "rewrite":    False,
+        "test_debug":    False,
+        "block_test":    False,
+        "bug":           False,
+        "leak_trace":    False,
+        "rewrite":       False,
+        "run_asm":       False,
+        "run_asm_debug": False,
     }
 
     lines = text.splitlines()
@@ -288,6 +290,12 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         if stripped == ": REWRITE :":
             flags["rewrite"] = True
             continue
+        if stripped == ": RUN_ASM :":
+            flags["run_asm"] = True
+            continue
+        if stripped == ": RUN_ASM_DEBUG :":
+            flags["run_asm_debug"] = True
+            continue
         header_processed.append(line)
 
     text = "\n".join(header_processed)
@@ -305,6 +313,74 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
     expected = after[:-2].rstrip()
     return before.rstrip(), expected, flags
 
+def _capture_process(cmd: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True
+    )
+
+def _assemble_and_run(asm_text: str, debug: bool) -> tuple[bool, str | None]:
+    with tempfile.TemporaryDirectory(prefix="cpl_asm_") as tmp_dir:
+        tmp_dir_path = Path(tmp_dir)
+
+        asm_path = tmp_dir_path / "program.asm"
+        obj_path = tmp_dir_path / "program.o"
+        exe_path = tmp_dir_path / "program.out"
+
+        asm_path.write_text(asm_text, encoding="utf-8")
+
+        if sys.platform == "darwin":
+            nasm_format = "macho64"
+        else:
+            nasm_format = "elf64"
+
+        nasm_cmd = ["nasm", "-f", nasm_format]
+        if(debug):
+            nasm_cmd.append("-g")
+        nasm_cmd.extend([str(asm_path), "-o", str(obj_path)])
+
+        nasm_proc = _capture_process(nasm_cmd)
+        if nasm_proc.returncode != 0:
+            return False, nasm_proc.stdout
+
+        if sys.platform == "darwin":
+            link_cmd = [
+                "ld",
+                "-e", "_main",
+                "-macos_version_min", "10.13",
+                "-lSystem",
+                "-o", str(exe_path),
+                str(obj_path)
+            ]
+        else:
+            link_cmd = [
+                "ld",
+                "-o", str(exe_path),
+                str(obj_path)
+            ]
+
+        link_proc = _capture_process(link_cmd)
+        if link_proc.returncode != 0:
+            return False, link_proc.stdout
+
+        if(debug):
+            debugger = "gdb"
+            if sys.platform == "darwin":
+                debugger = "lldb"
+
+            if debugger == "gdb":
+                debug_cmd = [debugger, "--args", str(exe_path)]
+            else:
+                debug_cmd = [debugger, "--", str(exe_path)]
+
+            subprocess.run(debug_cmd)
+            return True, None
+
+        run_proc = _capture_process([str(exe_path)])
+        return True, run_proc.stdout
+
 def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
     code, expected, flags = _parse_test_file(test_file)
 
@@ -319,53 +395,80 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
                 "diff": "LEAK_TRACE requested, but leak-instrumented binary was not built.",
             }
         chosen_bin = binary_leak
-        
+
     with tempfile.NamedTemporaryFile(mode="w", suffix=".cpl", encoding="utf-8", delete=False) as tmp:
         tmp.write(code)
         tmp_path = tmp.name
 
     try:
-        cmd = [ chosen_bin, tmp_path, str(test_file.parent) ]
-        if flags["test_debug"]:
-            debugger = "gdb"
-            if sys.platform == "darwin":
-                debugger = "lldb"
+        actual_output = ""
 
-            if debugger == "gdb":
-                cmd = [debugger, "--args", binary, tmp_path, str(test_file.parent)]
+        if flags["run_asm"] or flags["run_asm_debug"]:
+            compiler_proc = _capture_process([chosen_bin, tmp_path, str(test_file.parent)])
+
+            if compiler_proc.returncode != 0:
+                actual_output = compiler_proc.stdout
             else:
-                cmd = [debugger, "--", binary, tmp_path, str(test_file.parent)]
+                asm_ok, asm_output = _assemble_and_run(
+                    compiler_proc.stdout,
+                    debug=flags["run_asm_debug"]
+                )
 
-            subprocess.run(cmd)
-            return {
-                "file": str(test_file),
-                "ok": True,
-                "critical": False,
-                "warning": False,
-                "diff": None,
-            }
+                if flags["run_asm_debug"] and asm_ok:
+                    return {
+                        "file": str(test_file),
+                        "ok": True,
+                        "critical": False,
+                        "warning": False,
+                        "diff": None,
+                    }
 
-        proc = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True
-        )
+                actual_output = asm_output or ""
+
+        else:
+            cmd = [chosen_bin, tmp_path, str(test_file.parent)]
+
+            if flags["test_debug"]:
+                debugger = "gdb"
+                if sys.platform == "darwin":
+                    debugger = "lldb"
+
+                if debugger == "gdb":
+                    cmd = [debugger, "--args", binary, tmp_path, str(test_file.parent)]
+                else:
+                    cmd = [debugger, "--", binary, tmp_path, str(test_file.parent)]
+
+                subprocess.run(cmd)
+                return {
+                    "file": str(test_file),
+                    "ok": True,
+                    "critical": False,
+                    "warning": False,
+                    "diff": None,
+                }
+
+            proc = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True
+            )
+            actual_output = proc.stdout
+
     except Exception as ex:
-        os.remove(tmp_path)
         return {
-            "file":     str(test_file),
-            "ok":       False,
+            "file": str(test_file),
+            "ok": False,
             "critical": True,
-            "warning":  False,
-            "diff":     f"Subprocess error: {ex}",
+            "warning": False,
+            "diff": f"Subprocess error: {ex}",
         }
     finally:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
     expected_n: str = _normalize_output(expected)
-    actual_n: str = _normalize_output(proc.stdout)
+    actual_n: str = _normalize_output(actual_output)
 
     if flags["rewrite"]:
         _rewrite_test_output(test_file, actual_n)
@@ -380,10 +483,11 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
         }
 
     ok, why = _matches_expected(expected_n, actual_n)
+
     if flags["leak_trace"]:
         from leaks import find_leaks
         with tempfile.NamedTemporaryFile(mode="w", suffix=".mem.log", encoding="utf-8", delete=False) as lf:
-            lf.write(proc.stdout)
+            lf.write(actual_output)
             log_path = lf.name
         try:
             print("Trying to determine leaks...")

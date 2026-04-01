@@ -30,6 +30,6 @@ start() {
                 exit i32s %6;
             }
         }
-    }
+    [unused] }
 }
 /:

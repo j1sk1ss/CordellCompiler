@@ -10,20 +10,18 @@ start() {
         {
             {
                 i32s %0 = alloc(8);
-                i64t %2 = num? 11 * num? 12;
-                u64t %4 = num? 10 as u64;
-                u64t %5 = i64t %2 as u64;
-                u64t %3 = u64t %4 + u64t %5;
-                i32t %6 = u64t %3 as i32;
-                i32s %11 = i32t %6;
+                i8t %2 = i8n 11 * i8n 12;
+                i8t %3 = i8n 10 + i8t %2;
+                i32t %4 = i8t %3 as i32;
+                i32s %9 = i32t %4;
                 i32s %1 = alloc(8);
-                i64t %7 = num? 10 - num? 1;
-                i32t %8 = i64t %7 as i32;
+                i8t %5 = i8n 10 - i8n 1;
+                i32t %6 = i8t %5 as i32;
+                i32s %10 = i32t %6;
+                i32t %7 = i32s %10 + i32s %9;
+                i32s %11 = i32t %7;
+                i32t %8 = i32s %9 + i32s %11;
                 i32s %12 = i32t %8;
-                i32t %9 = i32s %12 + i32s %11;
-                i32s %13 = i32t %9;
-                i32t %10 = i32s %11 + i32s %13;
-                i32s %14 = i32t %10;
             }
         }
     }

@@ -1,14 +1,12 @@
 #include <hir/hirgens/hirgens.h>
 
 static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long value, sym_table_t* smt) {
-    string_t* counter_name = create_string("__counter");
-    hir_subject_t* counter = HIR_SUBJ_STKVAR(
-        VRTB_add_info(counter_name, I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), 
-        HIR_STKVARI64, 
-        0
-    );
-    destroy_string(counter_name);
-    
+    if (value < 0) {
+        HIRGEN_ERROR(ctx, "Counted loop with a negative counter! Counter=%li", value);
+        return 0;
+    }
+
+    hir_subject_t* counter = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), HIR_STKVARI64, 0);
     HIR_BLOCK1(ctx, HIR_VARDECL, counter);
     HIR_BLOCK2(ctx, HIR_STORE, counter, HIR_SUBJ_CONST(value));
 
@@ -29,15 +27,13 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long v
         HIR_generate_block(lbranch->c, ctx, smt);
         ctx->carry.ptr = backup;
 
-        hir_subject_t* updated_counter = HIR_SUBJ_STKVAR(
-            VRTB_add_info(NULL, TMP_I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), 
-            HIR_TMPVARI64, 
-            0
+        hir_subject_t* res = HIR_SUBJ_TMPVAR(
+            counter->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(counter->t), NO_SYMBOL_ID, NULL, &smt->v)
         );
-
-        HIR_BLOCK3(ctx, HIR_iSUB, updated_counter, counter, HIR_SUBJ_CONST(1));
-        HIR_BLOCK2(ctx, HIR_STORE, HIR_SUBJ_STKVAR(counter->storage.var.v_id, HIR_STKVARI64, 0), updated_counter);
-        HIR_BLOCK3(ctx, HIR_IFOP2, updated_counter, entry_lb, end_lb);
+        
+        HIR_BLOCK3(ctx, HIR_iSUB, res, HIR_copy_subject(counter), HIR_SUBJ_CONST(1));
+        HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(counter), res);
+        HIR_BLOCK3(ctx, HIR_IFOP2, HIR_copy_subject(counter), entry_lb, end_lb);
 
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         HIR_BLOCK1(ctx, HIR_MKLB, end_lb);

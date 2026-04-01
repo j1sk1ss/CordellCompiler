@@ -14,19 +14,19 @@ function foo() {
     {
         {
             i32s %0 = alloc(8);
-            i32t %2 = num? 1 as i32;
+            i32t %2 = i8n 1 as i32;
             i32s %6 = i32t %2;
-            future{X} i32s %7 = previous{X} i32s %6;
-            if num? 1, goto lb19, else goto lb21;
-            lb{X}
+            future: i32s %7 = previous: i32s %6;
+            if i8n 1, goto lb18, else goto lb20;
+            lb18:
             {
-                i32t %3 = num? 0 as i32;
+                i32t %3 = i8n 0 as i32;
                 i32s %9 = i32t %3;
             }
-            future{X} i32s %7 = previous{X} i32s %9;
-            goto lb21;
-            lb{X}
-            [i32s %0] i32s %7 = phi(set [%9, bb2][%6, bb1]);
+            future: i32s %7 = previous: i32s %9;
+            goto lb20;
+            lb20:
+            [i32s %0] i32s %7 = phi(set [%6, bb1][%9, bb2]);
             i32s* %1 = alloc(8);
             i32t* %4 = i32s %7 as *ptr;
             i32s* %8 = i32t* %4;

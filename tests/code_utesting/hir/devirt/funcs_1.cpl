@@ -18,6 +18,6 @@ start() {
                 exit i8n 0;
             }
         }
-    }
+    [unused] }
 }
 /:

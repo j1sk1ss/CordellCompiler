@@ -12,35 +12,35 @@ start() {
     start {
         {
             {
-                lb{X}
-                goto lb{X}
-                lb{X}
+                lb10:
+                goto lb11;
+                lb11:
                 {
                     i64s %0 = alloc(8);
                     i64s %0 = cnst? 5;
-                    lb{X}
-                    goto lb{X}
-                    lb{X}
+                    lb18:
+                    goto lb19;
+                    lb19:
                     {
                         i64s %1 = alloc(8);
                         i64s %1 = cnst? 1;
-                        lb{X}
-                        goto lb{X}
-                        lb{X}
+                        lb26:
+                        goto lb27;
+                        lb27:
                         {
                             i64t %2 = i64s %1 - cnst? 1;
                             i64s %1 = i64t %2;
-                            if i64t %2, goto lb{X} else goto lb{X}
+                            if i64s %1, goto lb26, else goto lb28;
                         }
-                        lb{X}
+                        lb28:
                         i64t %3 = i64s %0 - cnst? 1;
                         i64s %0 = i64t %3;
-                        if i64t %3, goto lb{X} else goto lb{X}
+                        if i64s %0, goto lb18, else goto lb20;
                     }
-                    lb{X}
+                    lb20:
                 }
-                goto lb{X}
-                lb{X}
+                goto lb10;
+                lb12:
             }
         }
     }

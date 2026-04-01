@@ -90,7 +90,7 @@ int LIR_unload_subject(lir_subject_t* s);
 int LIR_unload_blocks(lir_block_t* block);
                                                       /* LIR type     Reg    vID              Offset  String Int  Size */
 #define LIR_SUBJ_REG(reg, sz)      LIR_create_subject(LIR_REGISTER,   reg,   -1,                  0,   NULL, 0,   sz)
-#define LIR_SUBJ_CONST(val)        LIR_create_subject(LIR_CONSTVAL,   -1,    -1,                  0,   NULL, val, 0)
+#define LIR_SUBJ_CONST(val)        LIR_create_subject(LIR_CONSTVAL,   -1,    -1,                  0,   NULL, val, CONF_get_full_bytness())
 #define LIR_SUBJ_NUMBER(val, fl)   LIR_create_subject(LIR_NUMBER,     fl,    -1,                  0,   val,  0,   CONF_get_full_bytness())
 #define LIR_SUBJ_VAR(id, sz)       LIR_create_subject(LIR_VARIABLE,   -1,    id,                  -1,  NULL, 0,   sz)
 #define LIR_SUBJ_GLVAR(id)         LIR_create_subject(LIR_GLVARIABLE, -1,    id,                  0,   NULL, 0,   0)

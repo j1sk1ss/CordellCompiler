@@ -15,22 +15,22 @@ function foo() {
     {
         {
             i32s* %0 = alloc(8);
-            i32t* %2 = num? 1 as *ptr;
+            i32t* %2 = i8n 1 as *ptr;
             i32s* %9 = i32t* %2;
             i32s* %1 = alloc(8);
-            i32t* %3 = num? 1 as *ptr;
+            i32t* %3 = i8n 1 as *ptr;
             i32s* %10 = i32t* %3;
-            future{X} u64s* %11 = previous{X} u64s* %9;
-            if num? 1, goto lb28, else goto lb30;
-            lb{X}
+            future: u64s* %11 = previous: u64s* %9;
+            if i8n 1, goto lb26, else goto lb28;
+            lb26:
             {
-                i32t* %4 = num? 0 as *ptr;
+                i32t* %4 = i8n 0 as *ptr;
                 i32s* %12 = i32t* %4;
             }
-            future{X} u64s* %11 = previous{X} u64s* %12;
-            goto lb30;
-            lb{X}
-            [u64s %0] u64s* %11 = phi(set [%12, bb2][%9, bb1]);
+            future: u64s* %11 = previous: u64s* %12;
+            goto lb28;
+            lb28:
+            [u64s %0] u64s* %11 = phi(set [%9, bb1][%12, bb2]);
             i32t %5 = *(i32s* %10);
             i32t %7 = i32s* %11 as i32;
             i32t %6 = i32t %7 + i32t %5;

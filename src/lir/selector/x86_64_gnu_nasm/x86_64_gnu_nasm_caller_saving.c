@@ -107,24 +107,28 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
-                if (lh->op == LIR_FCLL) {
-                    set_t func_regs, save_regs;
-                    set_init(&func_regs, SET_NO_CMP);
-                    set_init(&save_regs, SET_NO_CMP);
-                    
-                    _visit_counter++;
+                switch (lh->op) {
+                    case LIR_FCLL: {
+                        set_t func_regs, save_regs;
+                        set_init(&func_regs, SET_NO_CMP);
+                        set_init(&save_regs, SET_NO_CMP);
+                        
+                        _visit_counter++;
 
-                    symbol_id_t f_id = lh->farg->t == LIR_FNAME ? lh->farg->storage.str.sid : NO_SYMBOL_ID;
-                    _collect_in_function_reg_usage(&func_regs, _find_function(f_id, cctx));
-                    _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh);
+                        symbol_id_t f_id = lh->farg->t == LIR_FNAME ? lh->farg->storage.str.sid : NO_SYMBOL_ID;
+                        _collect_in_function_reg_usage(&func_regs, _find_function(f_id, cctx));
+                        _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh);
 
-                    set_foreach (long reg, &save_regs) {
-                        LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
-                        LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
+                        set_foreach (long reg, &save_regs) {
+                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
+                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
+                        }
+                        
+                        set_free(&func_regs);
+                        set_free(&save_regs);
+                        break;
                     }
-                    
-                    set_free(&func_regs);
-                    set_free(&save_regs);
+                    default: break;
                 }
             
                 lh = LIR_get_next(lh, bb->lmap.exit, 1);

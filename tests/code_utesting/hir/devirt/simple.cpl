@@ -25,6 +25,7 @@ start() {
             return f64t %4;
         }
     }
+    [unused]
     start {
         {
             {
@@ -33,6 +34,6 @@ start() {
                 exit i8t %8;
             }
         }
-    }
+    [unused] }
 }
 /:
