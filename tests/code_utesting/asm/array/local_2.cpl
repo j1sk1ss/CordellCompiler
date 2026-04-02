@@ -23,13 +23,13 @@ mov byte [rbp - 16], 7
 mov byte [rbp - 12], 8
 mov byte [rbp - 8], 9
 mov byte [rbp - 4], 10
-lea r15, qword [rbp - 40]
+lea r15, [rbp - 40]
 mov rcx, r15
-mov r15, 0
-mov rax, r15
-imul rax, 4
-mov r15, rax
-mov rsi, r15
+mov r15b, 0
+mov al, r15b
+imul al, 4
+mov r15b, al
+movsx rsi, r15b
 mov r15, rsi
 mov rdx, r15
 mov r15, rcx
@@ -39,8 +39,8 @@ mov r15, rax
 mov r8, r15
 mov r15, r8
 mov r9d, [r15]
-mov r15d, r9d
-mov dil, r15d
+mov r15b, r9b
+mov dil, r15b
 mov r15b, dil
 mov dl, r15b
 mov rax, 0x2000001

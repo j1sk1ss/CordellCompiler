@@ -17,13 +17,13 @@ _main:
 push rbp
 mov rbp, rsp
 jmp custom_label
-mov r15, 1
-mov ecx, r15
+mov r15b, 1
+movsx ecx, r15b
 mov r15d, ecx
 mov eax, r15d
 custom_label:
-mov r15, 1
-mov dl, r15
+mov r15b, 1
+mov dl, r15b
 mov r15b, dl
 mov dl, r15b
 mov rax, 0x2000001

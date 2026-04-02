@@ -12,10 +12,10 @@ _main:
 push rbp
 mov rbp, rsp
 sub rsp, 80
-lea r15, qword [rbp - 80]
+lea r15, [rbp - 80]
 mov rcx, r15
-mov r15, rcx
-mov al, r15
+mov r15b, cl
+mov al, r15b
 mov r15b, al
 mov dl, r15b
 mov rax, 0x2000001

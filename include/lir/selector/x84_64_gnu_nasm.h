@@ -31,16 +31,6 @@ static inline int _get_ast_type_size(token_type_t t) {
     }
 }
 
-static inline int _get_variable_size(long vid, sym_table_t* smt) {
-    variable_info_t vi;
-    if (VRTB_get_info_id(vid, &vi, &smt->v)) {
-        if (vi.vfs.ptr) return DEFAULT_TYPE_SIZE;
-        return _get_ast_type_size(vi.type);
-    }
-
-    return DEFAULT_TYPE_SIZE;
-}
-
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt);
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt);
 int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx);

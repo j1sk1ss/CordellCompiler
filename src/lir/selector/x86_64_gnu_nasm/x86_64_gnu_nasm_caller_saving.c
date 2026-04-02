@@ -12,8 +12,8 @@ Return 1 if operation succeed. Otherwise will return 0.
 */
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     if (!f) {
-        lir_registers_t dirty_regs[] = { RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8, R9, R10, R11, R12, R13, R14, R15 };
-        for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RAX)); i++) {
+        lir_registers_t dirty_regs[] = { RBX, RCX, RDX, RSI, RDI, RBP, RSP, R8, R9, R10, R11, R12, R13, R14, R15 };
+        for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
             set_add(dirty, (void*)dirty_regs[i]);
         }
 

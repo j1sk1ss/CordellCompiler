@@ -12,9 +12,9 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov r15, 1
-mov rax, r15
-cmp rax, 0
+mov r15b, 1
+mov al, r15b
+cmp al, 0
 je lb11
 jne lb10
 ; BB2:

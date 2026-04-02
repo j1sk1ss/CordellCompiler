@@ -1,5 +1,5 @@
 #include <lir/peephole/peephole.h>
-
+// TODO: If we have a pop instruction, we can remove push/pop, if the register is re-written
 long LIR_peephole_get_long_number(lir_subject_t* s) {
     switch (s->t) {
         case LIR_CONSTVAL: return s->storage.cnst.value;

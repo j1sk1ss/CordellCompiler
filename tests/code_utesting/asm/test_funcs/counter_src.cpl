@@ -38,20 +38,20 @@ lb15:
 jmp lb16
 ; BB3:
 lb16:
-lea r15, qword [rbp - 16]
+lea r15, [rbp - 16]
 mov r9, r15
 push rax
-mov r15, 33554436
-mov rax, r15
+mov r15d, 33554436
+movsxd rax, r15d
 push rdi
-mov r15, 1
-mov rdi, r15
+mov r15b, 1
+movsx rdi, r15b
 push rsi
 mov r15, r9
 mov rsi, r15
 push rdx
-mov r15, 13
-mov rdx, r15
+mov r15b, 13
+movsx rdx, r15b
 syscall
 pop rdx
 pop rsi

@@ -12,15 +12,15 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov r15, 1
-mov esi, r15
+mov r15b, 1
+movsx esi, r15b
 lea r15, [rel a]
 mov rdi, r15
-mov r15, 0
-mov rax, r15
-imul rax, 4
-mov r15, rax
-mov rdx, r15
+mov r15b, 0
+mov al, r15b
+imul al, 4
+mov r15b, al
+movsx rdx, r15b
 mov r15, rdx
 mov rcx, r15
 mov r15, rdi

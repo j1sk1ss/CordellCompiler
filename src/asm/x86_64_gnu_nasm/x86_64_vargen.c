@@ -43,7 +43,7 @@ static const char* format_lir_register(lir_registers_t reg) {
     }
 }
 
-const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt) {
+const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag) {
     char* buffer = _get_buffer();
     if (!v) return "";
     switch (v->t) {
@@ -78,7 +78,7 @@ const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt) {
             if (FNTB_get_info_id(v->storage.str.sid, &fi, &smt->f)) {
                 char *local = "_cpl_%s", *global = "%s";
                 if (v->storage.str.rel) {
-                    local = "[_cpl_%s]";
+                    local = "[rel _cpl_%s]";
                     global = "[%s]";
                 }
 
@@ -113,22 +113,25 @@ const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt) {
                     }
                 }
             }
-
+            
             return "<unknown>";
         }
         case LIR_MEMORY: {
 _shifted_to_memory: {}
-            const char* modifier = "qword";
-            switch (v->size) {
-                case 4: modifier = "dword"; break;
-                case 2: modifier = "word";  break;
-                case 1: modifier = "byte";  break;
-                default: break;
+            const char* modifier = "qword ";
+            if (flag == LEA_FLAG) modifier = "";
+            else {
+                switch (v->size) {
+                    case 4: modifier = "dword "; break;
+                    case 2: modifier = "word ";  break;
+                    case 1: modifier = "byte ";  break;
+                    default: break;
+                }
             }
 
             const char* offset_base = format_lir_register(v->storage.var.base);
-            if (v->storage.var.offset > 0) snprintf(buffer, sizeof(_buffers[0]), "%s [%s - %d]", modifier, offset_base, v->storage.var.offset);
-            else snprintf(buffer, sizeof(_buffers[0]), "%s [%s + %d]", modifier, offset_base, ABS(v->storage.var.offset));
+            if (v->storage.var.offset > 0) snprintf(buffer, sizeof(_buffers[0]), "%s[%s - %d]", modifier, offset_base, v->storage.var.offset);
+            else snprintf(buffer, sizeof(_buffers[0]), "%s[%s + %d]", modifier, offset_base, ABS(v->storage.var.offset));
             return buffer;
         }
         case LIR_REGISTER: {

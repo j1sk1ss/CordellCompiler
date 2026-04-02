@@ -26,17 +26,25 @@ mov byte [rbp - 6], 100
 mov byte [rbp - 5], 33
 mov byte [rbp - 4], 10
 mov byte [rbp - 3], 0
-lea r15, qword [rbp - 16]
+lea r15, [rbp - 16]
 mov rcx, r15
-mov r15, 33554436
-mov rax, r15
-mov r15, 1
-mov rdi, r15
+push rax
+mov r15d, 33554436
+movsxd rax, r15d
+push rdi
+mov r15b, 1
+movsx rdi, r15b
+push rsi
 mov r15, rcx
 mov rsi, r15
-mov r15, 13
-mov rdx, r15
+push rdx
+mov r15b, 13
+movsx rdx, r15b
 syscall
+pop rdx
+pop rsi
+pop rdi
+pop rax
 mov rax, 0x2000001
 syscall
 /:

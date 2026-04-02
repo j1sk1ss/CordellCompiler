@@ -13,8 +13,8 @@ push rbp
 mov rbp, rsp
 mov r15d, edi
 mov ebx, r15d
-mov r15, 10
-mov edx, r15
+mov r15b, 10
+movsx edx, r15b
 mov r15d, ebx
 mov eax, r15d
 imul eax, edx
@@ -33,9 +33,17 @@ mov rbp, rsp
 jmp lb10
 ; BB3:
 lb10:
-mov r15, 10
-mov rdi, r15
+mov r15b, 10
+mov dil, r15b
+push rcx
+push rdx
+push rax
+push r15
 call _cpl_get1
+pop r15
+pop rax
+pop rdx
+pop rcx
 mov r15d, eax
 mov ecx, r15d
 mov r15d, ecx

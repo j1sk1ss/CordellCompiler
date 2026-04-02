@@ -1,8 +1,7 @@
 start() {
-    i32 a = 10;
-    i32 b = 10;
-    i32 c = ((i32 a, i32 b) => { return a + b; })(a, b) as i32;
-    exit (a + b + c) as i8;
+    i32 a = 2;
+    i32 b = ((i32 a) => a * a)(a) as i32 + '0';
+    syscall(0x2000004, 1, ref b, 1);
 }
 
 :/ OUTPUT
@@ -12,12 +11,10 @@ _cpl___anon_function_lambda1:
 push rbp
 mov rbp, rsp
 mov r15d, edi
-mov ebx, r15d
-mov r15d, esi
 mov ecx, r15d
-mov r15d, ebx
+mov r15d, ecx
 mov eax, r15d
-add eax, ecx
+imul eax, ecx
 mov r15d, eax
 mov edx, r15d
 mov r15d, edx
@@ -25,69 +22,73 @@ mov eax, r15d
 mov rsp, rbp
 pop rbp
 ret
-; BB6:
 global _main
 _main:
 push rbp
 mov rbp, rsp
 sub rsp, 8
-mov r15b, 10
+mov r15b, 2
 movsx ecx, r15b
 mov r15d, ecx
-mov r14d, r15d
-mov r15b, 10
-movsx edx, r15b
-mov r15d, edx
-mov r13d, r15d
-jmp lb32
+mov r12d, r15d
+jmp lb25
 ; BB3:
-lb32:
+lb25:
 lea r15, [rel _cpl___anon_function_lambda1]
-mov r12, r15
-mov r15d, r14d
+mov r11, r15
+mov r15d, r12d
 mov edi, r15d
-mov r15d, r13d
-mov esi, r15d
-push r15
 push r8
 push r9
 push r11
+push rsi
 push r10
 push rdx
-push r14
 push r13
-push r12
-call r12
-pop r12
+push rdi
+push r15
+call r11
+pop r15
+pop rdi
 pop r13
-pop r14
 pop rdx
 pop r10
+pop rsi
 pop r11
 pop r9
 pop r8
-pop r15
 mov r15, rax
 mov r8, r15
 mov r15d, r8d
-mov r9d, r15d
-mov r15d, r9d
+mov r13d, r15d
+mov r15b, 48
+movsx r9d, r15b
+mov r15d, r13d
 mov eax, r15d
-mov r15d, r14d
-mov eax, r15d
-add eax, r13d
+add eax, r9d
 mov r15d, eax
 mov r10d, r15d
 mov r15d, r10d
-mov eax, r15d
-add eax, eax
-mov r15d, eax
-mov r11d, r15d
-mov r15b, r11b
-mov byte [rbp - 8], r15b
-mov r15b, byte [rbp - 8]
-mov dl, r15b
+mov dword [rbp - 8], r15d
+lea r15, [rbp - 8]
+mov rdx, r15
+push rax
+mov r15d, 33554436
+movsxd rax, r15d
+push rdi
+mov r15b, 1
+movsx rdi, r15b
+push rsi
+mov r15, rdx
+mov rsi, r15
+push rdx
+mov r15b, 1
+movsx rdx, r15b
+syscall
+pop rdx
+pop rsi
+pop rdi
+pop rax
 mov rax, 0x2000001
 syscall
-; BB4:
 /:

@@ -13,9 +13,9 @@ mov rbp, rsp
 ; BB5:
 ; BB2:
 lb10:
-mov r15, 1
-mov rax, r15
-cmp rax, 0
+mov r15b, 1
+mov al, r15b
+cmp al, 0
 je lb12
 jne lb11
 ; BB3:

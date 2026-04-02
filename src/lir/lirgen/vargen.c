@@ -3,10 +3,12 @@
 lir_subject_t* LIR_convert_hs_to_ls(hir_subject_t* subj) {
     if (!subj) return NULL;
     switch (subj->t) {
-        case HIR_F64NUMBER: case HIR_F32NUMBER: return LIR_SUBJ_NUMBER(subj->storage.num.value, 1);
-        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
-        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
-        case HIR_NUMBER:   return LIR_SUBJ_NUMBER(subj->storage.num.value, 0);
+        case HIR_F64NUMBER: case HIR_F32NUMBER: return LIR_SUBJ_NUMBER(subj->storage.num.value, 1, CONF_get_full_bytness());
+        case HIR_I64NUMBER: case HIR_U64NUMBER: case HIR_NUMBER: return LIR_SUBJ_NUMBER(subj->storage.num.value, 0, CONF_get_full_bytness());
+        case HIR_I32NUMBER: case HIR_U32NUMBER: return LIR_SUBJ_NUMBER(subj->storage.num.value, 0, CONF_get_half_bytness());
+        case HIR_I16NUMBER: case HIR_U16NUMBER: return LIR_SUBJ_NUMBER(subj->storage.num.value, 0, CONF_get_quart_bytness());
+        case HIR_I8NUMBER:  case HIR_U8NUMBER:  return LIR_SUBJ_NUMBER(subj->storage.num.value, 0, CONF_get_eight_bytness());
+
         case HIR_CONSTVAL: return LIR_SUBJ_CONST(subj->storage.cnst.value);
         
         case HIR_RAWASM: return LIR_SUBJ_RAWASM(subj->storage.str.s_id);

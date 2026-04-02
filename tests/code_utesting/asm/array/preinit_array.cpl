@@ -9,16 +9,16 @@ section .data
 a dd 0,1,2,3,4
 section .text
 global _main
-_main{X}
+_main:
 push rbp
 mov rbp, rsp
 lea r15, [rel a]
 mov rdi, r15
-mov r15, 0
-mov rax, r15
-imul rax, 4
-mov r15, rax
-mov r8, r15
+mov r15b, 0
+mov al, r15b
+imul al, 4
+mov r15b, al
+movsx r8, r15b
 mov r15, r8
 mov rsi, r15
 mov r15, rdi
@@ -32,5 +32,5 @@ mov r15d, ecx
 mov edx, r15d
 mov rax, 0x2000001
 syscall
-; BB2{X}
+; BB2:
 /:

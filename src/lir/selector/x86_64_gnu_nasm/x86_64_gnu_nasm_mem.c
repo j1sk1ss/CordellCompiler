@@ -52,7 +52,7 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     }
     
     long color = 0;
-    vi.vmi.size = _get_variable_size(vi.v_id, smt);
+    vi.vmi.size = s->size;
     if (!vi.vmi.allocated) {
         if (
             colors && map_get(colors, s->storage.var.v_id, (void**)&color) &&     /* If the clor is found         */

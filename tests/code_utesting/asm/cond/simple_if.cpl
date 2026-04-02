@@ -14,21 +14,21 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov r15, 1
-mov rax, r15
-cmp rax, 0
+mov r15b, 1
+mov al, r15b
+cmp al, 0
 je lb11
 jne lb10
 ; BB2:
 lb10:
-mov r15, 1
-mov rdx, r15
+mov r15b, 1
+mov dl, r15b
 mov rax, 0x2000001
 syscall
 ; BB3:
 lb11:
-mov r15, 2
-mov rdx, r15
+mov r15b, 2
+mov dl, r15b
 mov rax, 0x2000001
 syscall
 ; BB4:
