@@ -15,10 +15,8 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-r15 = &([rbp - 16]);
-rax = r15;
-r15 = rax;
-rcx = r15;
+rax = &([rbp - 16]);
+rcx = rax;
 kill(3);
 send
 /:

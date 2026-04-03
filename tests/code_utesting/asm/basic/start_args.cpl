@@ -9,12 +9,9 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov r15d, dword [rbp + 8]
-mov eax, r15d
-mov r15, qword [rbp + 16]
-mov rax, r15
-mov r15b, 0
-mov dl, r15b
+mov eax, dword [rbp + 8]
+mov rax, qword [rbp + 16]
+mov dl, 0
 mov rax, 0x2000001
 syscall
 ; BB2:

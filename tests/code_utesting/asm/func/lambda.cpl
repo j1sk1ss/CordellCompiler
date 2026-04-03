@@ -9,8 +9,7 @@ section .text
 _cpl___anon_function_lambda1:
 push rbp
 mov rbp, rsp
-mov r15b, 10
-mov al, r15b
+mov al, 10
 mov rsp, rbp
 pop rbp
 ret
@@ -24,19 +23,14 @@ jmp lb13
 lb13:
 lea r15, [rel _cpl___anon_function_lambda1]
 mov qword [rbp - 8], r15
-mov r15, qword [rbp - 8]
-mov rdx, r15
-push rcx
+mov rdx, qword [rbp - 8]
 push rdx
-push r15
+push rcx
 call rdx
-pop r15
-pop rdx
 pop rcx
-mov r15, rax
-mov rcx, r15
-mov r15, rcx
-mov rdx, r15
+pop rdx
+mov rcx, rax
+mov rdx, rcx
 mov rax, 0x2000001
 syscall
 ; BB4:

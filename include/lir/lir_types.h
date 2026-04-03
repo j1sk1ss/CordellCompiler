@@ -62,10 +62,10 @@ typedef enum {
         LIR_ARRDECL,  // cnst_x=var_id, var_y=size, list_z=init_elems
         LIR_VLADECL, // cnst_x=var_id, var_y=size
 
-        LIR_STSARG,   // store parameter to syscall, x, cnst_y=index
-        LIR_STFARG,   // store parameter to function, x, cnst_y=index
-        LIR_LOADFARG, // load parameter in function, v=source_var, cnst_y=index
-        LIR_LOADFRET, // load funcret to dst, x=target_var
+        LIR_STSARG,   // store parameter to a syscall, x, cnst_y=index
+        LIR_STFARG,   // store parameter to a function, x, cnst_y=index
+        LIR_LOADFARG, // load parameter in a function, v=source_var, cnst_y=index
+        LIR_LOADFRET, // load funcret to a dst, x=target_var
 
         LIR_TF64,     // x = (f64)y
         LIR_TF32,     // x = (f32)y

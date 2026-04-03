@@ -5,9 +5,9 @@ start() {
 
 :/ OUTPUT
 BB1: start
-r15 = &([rbp - 8]);
-[rbp - 16] = r15;
-r15 = [rbp - 16];
-[rbp - 24] = r15;
+%3 = &([rbp - 16]);
+[rbp - 8] = %3;
+%4 = [rbp - 8];
+[rbp - 24] = %4;
 send
 /:

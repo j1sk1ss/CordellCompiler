@@ -6,23 +6,20 @@ start() {
 :/ OUTPUT
 %0 = arr_alloc($10);
 BB1: start
-r15 = $1;
-[rbp - 8] = r15;
-r15 = &(%a);
-[rbp - 16] = r15;
-r15 = $0;
-rax = r15;
+[rbp - 8] = $1;
+%8 = &(%a);
+[rbp - 16] = %8;
+rax = $0;
 rax = rax * 4;
-r15 = rax;
-[rbp - 24] = r15;
-r15 = [rbp - 24];
-[rbp - 32] = r15;
-r15 = [rbp - 16];
-rax = r15;
+%9 = rax;
+[rbp - 24] movsx %9;
+%10 = [rbp - 24];
+[rbp - 32] = %10;
+rax = [rbp - 16];
 rax = rax + [rbp - 32];
-r15 = rax;
-[rbp - 40] = r15;
-r15 = [rbp - 8];
-*([rbp - 40]) = r15;
+%11 = rax;
+[rbp - 40] = %11;
+%12 = [rbp - 8];
+*([rbp - 40]) = %12;
 send
 /:

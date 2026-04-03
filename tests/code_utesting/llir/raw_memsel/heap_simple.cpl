@@ -5,10 +5,9 @@ start() {
 
 :/ OUTPUT
 BB1: start
-r15 = $10;
-[rbp - 8] = r15;
-r15 = [rbp - 8];
-[rbp - 16] = r15;
+[rbp - 8] = $10;
+%3 = [rbp - 8];
+[rbp - 16] = %3;
 [rbp - 24] = vla([rbp - 16])
 send
 /:

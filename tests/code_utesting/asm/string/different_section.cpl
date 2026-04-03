@@ -8,16 +8,14 @@ start() {
 section .rodata
 section .text
 global _main
-_main{X}
+_main:
 push rbp
 mov rbp, rsp
-lea r15, [rel message]
-mov rax, r15
-mov r15, rax
-mov rdx, r15
+lea rax, [rel message]
+mov rdx, rax
 mov rax, 0x2000001
 syscall
-; BB2{X}
+; BB2:
 section .lis
 message db 72,101,108,108,111,32,119,111,114,108,100,33,0
 /:

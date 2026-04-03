@@ -4,12 +4,10 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} start
-%2 cvttsd2si $10;
-%4 = %2;
-%0 = %4;
+BB1: start
+%2 = $10;
+%0 cvttsd2si %2;
 %3 cvttsd2si %0;
-%5 = %3;
-%1 = %5;
+%1 = %3;
 send
 /:

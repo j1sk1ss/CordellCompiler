@@ -82,6 +82,60 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     return 1;
 }
 
+/*
+After the memory selection we should be sure that this LIR is valid. 
+Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
+ops "mem with mem", etc.
+In a nutshell, this function doesn't do anything special. It just adds additional movs to 
+temporary registers before critical operations.
+Params:
+    - `bb` - Current base block.
+    - `smt` - Symtable.
+
+Returns 1 if an operation was secceed, otherwise it will returns 0.
+*/
+static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+    while (lh) {
+        if (
+            (lh->farg && lh->sarg) &&
+            (lh->farg->t != LIR_REGISTER && lh->sarg != LIR_REGISTER) &&
+            (lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL)
+        ) {
+            lir_block_t* fix = NULL;
+            switch (lh->op) {
+                case LIR_REF: {
+                    lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, 8);
+                    fix = LIR_create_block(lh->op, tmp, lh->sarg, NULL);
+                    lh->sarg = tmp;
+                    lh->op   = LIR_iMOV;
+                    break;
+                }
+                case LIR_CVTSS2SD:  case LIR_CVTSD2SS:
+                case LIR_CVTTSS2SI: case LIR_CVTTSD2SI:
+                case LIR_MOVSX:     case LIR_MOVZX: case LIR_MOVSXD:
+                case LIR_GDREF:     case LIR_LDREF: 
+                case LIR_iMOV:      case LIR_aMOV:  case LIR_fMOV: {
+                    lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, -1);
+                    fix = LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL);
+                    lh->sarg = tmp;
+                    break;
+                }
+                default: break;
+            }
+
+            if (fix) {
+                if (bb->lmap.entry == lh) bb->lmap.entry = fix;
+                LIR_insert_block_before(fix, lh);
+            }
+        }
+
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
+    }
+
+    return 1;
+}
+
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt) {
     stack_map_t smp;
     foreach (cfg_func_t* fb, &cctx->funcs) {
@@ -172,6 +226,8 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
                 lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
+
+            _validate_selected_instuction(bb, smt);
         }
 
         /* Save the largest offset in this function for further

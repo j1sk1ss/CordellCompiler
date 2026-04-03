@@ -3,13 +3,16 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} start
-r15 = $1;
-rax <<= r15;
-r15 = $2;
-rdi <<= r15;
-r15 = $3;
-rsi <<= r15;
+BB1: start
+push(rax);
+rax <<= $1;
+push(rdi);
+rdi <<= $2;
+push(rsi);
+rsi <<= $3;
 syscall;
+rsi = pop();
+rdi = pop();
+rax = pop();
 send
 /:

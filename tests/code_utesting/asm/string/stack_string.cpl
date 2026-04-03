@@ -9,7 +9,7 @@ start() {
 section .rodata
 section .text
 global _main
-_main{X}
+_main:
 push rbp
 mov rbp, rsp
 sub rsp, 16
@@ -26,8 +26,7 @@ mov byte [rbp - 7], 108
 mov byte [rbp - 6], 100
 mov byte [rbp - 5], 33
 mov byte [rbp - 4], 0
-mov r15, qword [rbp - 16]
-mov rdi, r15
+mov rdi, qword [rbp - 16]
 call _cpl_printf0
 mov rax, 0x2000001
 syscall

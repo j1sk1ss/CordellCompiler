@@ -17,15 +17,11 @@ _main:
 push rbp
 mov rbp, rsp
 jmp custom_label
-mov r15b, 1
-movsx ecx, r15b
-mov r15d, ecx
-mov eax, r15d
+mov edx, 1
+mov ecx, edx
 custom_label:
-mov r15b, 1
-mov dl, r15b
-mov r15b, dl
-mov dl, r15b
+mov al, 1
+mov dl, al
 mov rax, 0x2000001
 syscall
 ; BB2:

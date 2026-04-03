@@ -6,10 +6,8 @@ start() {
 :/ OUTPUT
 BB1: start
 %2 cvttsd2si $1;
-%4 = %2;
-%0 = %4;
-%3 cvtss2sd %0;
-%5 = %3;
-%1 = %5;
+%0 = %2;
+%3 cvttss2si %0;
+%1 cvttsd2si %3;
 send
 /:

@@ -9,32 +9,22 @@ start() {
 :/ OUTPUT
 === BEFORE ===
 BB1: start
-r15 = $1;
-rdx = r15;
-r15 = rdx;
-rax = r15;
-r15 = $1;
-rsi = r15;
-r15 = rsi;
-rax = r15;
-r15 = $1;
-rcx = r15;
-r15 = rcx;
-rax = r15;
-r15 = $1;
-rbx = r15;
-r15 = rbx;
-rax = r15;
-r15 = $1;
-rdi = r15;
-r15 = rdi;
-rax = r15;
+rcx = $1;
+rax = rcx;
+rsi = $1;
+rax = rsi;
+rdx = $1;
+rax = rdx;
+rbx = $1;
+rax = rbx;
+rdi = $1;
+rax = rdi;
 send
 === AFTER ===
 BB1: start
-rdx = $1;
-rsi = $1;
 rcx = $1;
+rsi = $1;
+rdx = $1;
 rbx = $1;
 rdi = $1;
 rax = $1;

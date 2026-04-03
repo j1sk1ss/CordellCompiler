@@ -14,10 +14,8 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov r15, [rel BUFFER]
-mov rdi, r15
-mov r15b, 10
-mov sil, r15b
+mov rdi, [rel BUFFER]
+mov sil, 10
 call printf
 mov rax, 0x2000001
 syscall

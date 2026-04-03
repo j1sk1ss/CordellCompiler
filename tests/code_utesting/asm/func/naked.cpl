@@ -17,15 +17,13 @@ section .text
 _cpl_bar1:
 push rbp
 mov rbp, rsp
-mov r15b, 1
-mov al, r15b
+mov al, 1
 mov rsp, rbp
 pop rbp
 ret
 ; BB6:
 _cpl_foo0:
-mov r15b, 1
-mov al, r15b
+mov al, 1
 ret
 ; BB4:
 global _main
@@ -33,26 +31,17 @@ _main:
 push rbp
 mov rbp, rsp
 push rax
-push r15
 call _cpl_foo0
-pop r15
 pop rax
-mov r15b, al
-mov cl, r15b
+mov cl, al
 push rax
-push r15
 call _cpl_bar1
-pop r15
 pop rax
-mov r15b, al
-mov dl, r15b
-mov r15b, cl
-mov al, r15b
+mov dl, al
+mov al, cl
 add al, dl
-mov r15b, al
-mov bl, r15b
-mov r15b, bl
-mov al, r15b
+mov bl, al
+mov al, bl
 mov rsp, rbp
 pop rbp
 ret

@@ -11,17 +11,12 @@ section .text
 _cpl___anon_function_lambda1:
 push rbp
 mov rbp, rsp
-mov r15d, edi
-mov ebx, r15d
-mov r15d, esi
-mov ecx, r15d
-mov r15d, ebx
-mov eax, r15d
+mov ebx, edi
+mov ecx, esi
+mov eax, ebx
 add eax, ecx
-mov r15d, eax
-mov edx, r15d
-mov r15d, edx
-mov eax, r15d
+mov edx, eax
+mov eax, edx
 mov rsp, rbp
 pop rbp
 ret
@@ -31,62 +26,45 @@ _main:
 push rbp
 mov rbp, rsp
 sub rsp, 8
-mov r15b, 10
-movsx ecx, r15b
-mov r15d, ecx
-mov r14d, r15d
-mov r15b, 10
-movsx edx, r15b
-mov r15d, edx
-mov r13d, r15d
+mov ecx, 10
+mov r12d, ecx
+mov edx, 10
+mov r10d, edx
 jmp lb32
 ; BB3:
 lb32:
 lea r15, [rel _cpl___anon_function_lambda1]
-mov r12, r15
-mov r15d, r14d
-mov edi, r15d
-mov r15d, r13d
-mov esi, r15d
-push r15
-push r8
+mov qword [rbp - 8], r15
+mov edi, r12d
+mov esi, r10d
+push r12
 push r9
 push r11
 push r10
 push rdx
-push r14
 push r13
-push r12
-call r12
-pop r12
-pop r13
+push r14
+push r8
+call qword [rbp - 8]
+pop r8
 pop r14
+pop r13
 pop rdx
 pop r10
 pop r11
 pop r9
-pop r8
-pop r15
-mov r15, rax
-mov r8, r15
-mov r15d, r8d
-mov r9d, r15d
-mov r15d, r9d
-mov eax, r15d
-mov r15d, r14d
-mov eax, r15d
+pop r12
+mov r8, rax
+mov r9d, r8d
+mov r13d, r9d
+mov eax, r12d
+add eax, r10d
+mov r11d, eax
+mov eax, r11d
 add eax, r13d
-mov r15d, eax
-mov r10d, r15d
-mov r15d, r10d
-mov eax, r15d
-add eax, eax
-mov r15d, eax
-mov r11d, r15d
-mov r15b, r11b
-mov byte [rbp - 8], r15b
-mov r15b, byte [rbp - 8]
-mov dl, r15b
+mov eax, eax
+mov r14b, al
+mov dl, r14b
 mov rax, 0x2000001
 syscall
 ; BB4:

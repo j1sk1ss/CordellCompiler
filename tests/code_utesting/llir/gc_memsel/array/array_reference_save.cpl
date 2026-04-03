@@ -17,24 +17,18 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-r15 = $1;
-rax = r15;
+rax = $1;
 cmp rax, 0;
 je lb37;
 jne lb35;
 BB2: lb35:
-r15 = $0;
-rdx = r15;
+rdx = $0;
 exit rdx;
 BB3: lb37:
-r15 = &([rbp - 16]);
-rsi = r15;
-r15 = rsi;
-rcx = r15;
-r15 = rcx;
-rdx = *(r15);
-r15 = rdx;
-rdx = r15;
+rsi = &([rbp - 16]);
+rcx = rsi;
+rdx = *(rcx);
+rdx = rdx;
 kill(4);
 exit rdx;
 BB4:

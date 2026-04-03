@@ -5,17 +5,13 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} fn foo0(i32 a, i32 b)
-%4 = %2;
-%0 = %4;
-%5 = %3;
-%1 = %5;
+BB2: fn foo0(i32 a, i32 b)
+%0 = %2;
+%1 = %3;
 fend
-BB{X} start
-%8 = $1;
-%6 <<= %8;
-%9 = $2;
-%7 <<= %9;
+BB3: start
+%4 <<= $1;
+%5 <<= $2;
 call foo0(i32 a, i32 b);
 send
 /:

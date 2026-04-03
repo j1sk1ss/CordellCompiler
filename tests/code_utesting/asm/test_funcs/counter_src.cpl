@@ -28,45 +28,34 @@ mov byte [rbp - 6], 100
 mov byte [rbp - 5], 33
 mov byte [rbp - 4], 10
 mov byte [rbp - 3], 0
-mov r15, 10
-mov rcx, r15
+mov rcx, 10
 ; BB6:
-mov r15, rcx
-mov rdx, r15
+mov r9, rcx
 ; BB2:
 lb15:
 jmp lb16
 ; BB3:
 lb16:
-lea r15, [rbp - 16]
-mov r9, r15
+lea rdx, [rbp - 16]
 push rax
-mov r15d, 33554436
-movsxd rax, r15d
+mov rax, 33554436
 push rdi
-mov r15b, 1
-movsx rdi, r15b
+mov rdi, 1
 push rsi
-mov r15, r9
-mov rsi, r15
+mov rsi, rdx
 push rdx
-mov r15b, 13
-movsx rdx, r15b
+mov rdx, 13
 syscall
 pop rdx
 pop rsi
 pop rdi
 pop rax
-mov r15, rdx
-mov rax, r15
+mov rax, r9
 sub rax, 1
-mov r15, rax
-mov r8, r15
-mov r15, r8
-mov r10, r15
-mov r15, r10
-mov rdx, r15
-cmp r10, 0
+mov r10, rax
+mov r8, r10
+mov r9, r8
+cmp r8, 0
 je lb17
 jne lb15
 ; BB4:

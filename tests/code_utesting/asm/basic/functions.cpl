@@ -16,10 +16,8 @@ section .text
 _cpl_foo1:
 push rbp
 mov rbp, rsp
-mov r15d, edi
-mov ecx, r15d
-mov r15d, ecx
-mov eax, r15d
+mov ecx, edi
+mov eax, ecx
 mov rsp, rbp
 pop rbp
 ret
@@ -35,19 +33,14 @@ _main:
 push rbp
 mov rbp, rsp
 call _cpl_foo0
-mov r15b, 10
-mov dil, r15b
-push rcx
+mov dil, 10
 push rax
-push r15
+push rcx
 call _cpl_foo1
-pop r15
-pop rax
 pop rcx
-mov r15, rax
-mov rcx, r15
-mov r15, rcx
-mov rdx, r15
+pop rax
+mov rcx, rax
+mov rdx, rcx
 mov rax, 0x2000001
 syscall
 ; BB7:

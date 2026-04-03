@@ -6,21 +6,14 @@ start() {
 
 :/ OUTPUT
 BB1: start
-r15 = $1;
-rdi = r15;
-r15 = rdi;
-rdx = r15;
-r15 = $1;
-rsi = r15;
-r15 = rdx;
-rax = r15;
-rax = rax + rsi;
-r15 = rax;
-rcx = r15;
-r15 = rcx;
-r8 = r15;
-r15 = r8;
-rdx = r15;
+r8 = $1;
+rdx = r8;
+rdi = $1;
+rax = rdx;
+rax = rax + rdi;
+rsi = rax;
+rcx = rsi;
+rdx = rcx;
 exit rdx;
 BB2:
 /:

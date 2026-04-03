@@ -49,27 +49,21 @@ mov byte [rbp - 20], 110
 mov byte [rbp - 19], 33
 mov byte [rbp - 18], 10
 mov byte [rbp - 17], 0
-mov r15b, 1
-mov al, r15b
+mov al, 1
 cmp al, 0
 je lb17
 jne lb16
 ; BB2:
 lb16:
-lea r15, [rbp - 16]
-mov rcx, r15
+lea rcx, [rbp - 16]
 push rax
-mov r15d, 33554436
-movsxd rax, r15d
+mov rax, 33554436
 push rdi
-mov r15b, 1
-movsx rdi, r15b
+mov rdi, 1
 push rsi
-mov r15, rcx
-mov rsi, r15
+mov rsi, rcx
 push rdx
-mov r15b, 14
-movsx rdx, r15b
+mov rdx, 14
 syscall
 pop rdx
 pop rsi
@@ -78,20 +72,15 @@ pop rax
 jmp lb18
 ; BB3:
 lb17:
-lea r15, [rbp - 32]
-mov rcx, r15
+lea rcx, [rbp - 32]
 push rax
-mov r15d, 33554436
-movsxd rax, r15d
+mov rax, 33554436
 push rdi
-mov r15b, 1
-movsx rdi, r15b
+mov rdi, 1
 push rsi
-mov r15, rcx
-mov rsi, r15
+mov rsi, rcx
 push rdx
-mov r15b, 15
-movsx rdx, r15b
+mov rdx, 15
 syscall
 pop rdx
 pop rsi

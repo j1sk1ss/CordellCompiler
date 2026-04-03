@@ -9,10 +9,8 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov r15b, 1
-movsx ecx, r15b
-mov r15d, ecx
-mov eax, r15d
+mov ecx, 1
+mov eax, ecx
 mov rax, 0x2000001
 syscall
 /:

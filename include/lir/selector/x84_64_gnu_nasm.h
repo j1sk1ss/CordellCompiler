@@ -31,6 +31,20 @@ static inline int _get_ast_type_size(token_type_t t) {
     }
 }
 
+/*
+Create a temporary virtual variable that is linked to a physical register. 
+Note: Virtual variable is a copy of the existed one from the LIR.
+Params:
+    - `reg` - Physical register.
+    - `src` - Virtual variable base.
+    - `smt` - Symtable.
+    - `forced_size` - Force the function to create a register with the
+                      selected size regardless of the `src` size.
+                      Note: If select as a negative, won't force the function.
+
+Return the virtual variable that is linked to the physical register.
+*/
+lir_subject_t* create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size);
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt);
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt);
 int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx);

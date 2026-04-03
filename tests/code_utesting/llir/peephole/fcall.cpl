@@ -9,47 +9,38 @@ start() {
 :/ OUTPUT
 === BEFORE ===
 BB2: fn foo0(i32 a) -> i32
-r15 = rdi;
-rbx = r15;
-r15 = $100;
-rdx = r15;
-r15 = rbx;
-rax = r15;
-rax = rax + rdx;
-r15 = rax;
-rcx = r15;
-r15 = rcx;
-rax = r15;
+rdx = rdi;
+rbx = $100;
+rax = rdx;
+rax = rax + rbx;
+rcx = rax;
+rax = rcx;
 return rax;
 BB3:
 BB4: start
-r15 = $100;
-rcx = r15;
+rcx = $100;
 use rcx;
-r15 = rcx;
-rdi <<= r15;
+rdi <<= rcx;
 call foo0(i32 a) -> i32;
-r15 = rax;
-rdx = r15;
-r15 = rdx;
-rdx = r15;
+rdx = rax;
+rdx = rdx;
 exit rdx;
 BB5:
 === AFTER ===
 BB2: fn foo0(i32 a) -> i32
-rbx = rdi;
-rdx = $100;
+rdx = rdi;
+rbx = $100;
 rax = rdi;
-rax = rax + rdx;
+rax = rax + rbx;
 rcx = rax;
 return rax;
 BB3:
 BB4: start
 rcx = $100;
 use rcx;
-r15 = $100;
 rdi <<= $100;
 call foo0(i32 a) -> i32;
+rdx = rax;
 exit rdx;
 BB5:
 /:

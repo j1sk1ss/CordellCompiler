@@ -4,7 +4,7 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} start
+BB1: start
 [rbp - 16] = $0;
 [rbp - 15] = $1;
 [rbp - 14] = $2;

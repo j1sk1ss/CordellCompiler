@@ -16,15 +16,13 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-r15 = $1;
-rax = r15;
+rax = $1;
 cmp rax, 0;
 je lb37;
 kill(2);
 jne lb35;
 BB2: lb35:
-r15 = $1;
-rdx = r15;
+rdx = $1;
 exit rdx;
 BB3: lb37:
 [rbp - 16] = $0;

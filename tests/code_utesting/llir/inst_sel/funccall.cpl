@@ -4,11 +4,9 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} start
-%4 = $1;
-%2 <<= %4;
-%5 = $2;
-%3 <<= %5;
+BB1: start
+%2 <<= $1;
+%3 <<= $2;
 call foo0(i32 a, i32 b);
 send
 /:
