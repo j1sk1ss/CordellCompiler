@@ -27,7 +27,6 @@ mov byte [rbp - 5], 33
 mov byte [rbp - 4], 10
 mov byte [rbp - 3], 0
 lea rcx, [rbp - 16]
-push rax
 mov rax, 33554436
 push rdi
 mov rdi, 1
@@ -39,7 +38,6 @@ syscall
 pop rdx
 pop rsi
 pop rdi
-pop rax
 mov rax, 0x2000001
 syscall
 /:

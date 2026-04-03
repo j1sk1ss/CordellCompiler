@@ -27,7 +27,6 @@ push rbp
 mov rbp, rsp
 mov rdx, rdi
 mov ecx, esi
-push rax
 mov rax, 33554436
 push rdi
 mov rdi, 1
@@ -39,7 +38,6 @@ syscall
 pop rdx
 pop rsi
 pop rdi
-pop rax
 mov rsp, rbp
 pop rbp
 ret

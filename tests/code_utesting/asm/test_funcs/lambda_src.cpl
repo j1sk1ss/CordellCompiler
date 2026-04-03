@@ -56,7 +56,6 @@ mov r9d, eax
 mov r15d, r9d
 mov dword [rbp - 8], r15d
 lea rdx, [rbp - 8]
-push rax
 mov rax, 33554436
 push rdi
 mov rdi, 1
@@ -68,7 +67,6 @@ syscall
 pop rdx
 pop rsi
 pop rdi
-pop rax
 mov rax, 0x2000001
 syscall
 /:

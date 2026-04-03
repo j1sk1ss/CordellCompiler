@@ -10,10 +10,7 @@ Return 1 if this is a valid register.
 static inline int _is_regular_register(lir_registers_t r) {
     if (r > R15 || r < 0) return 0;
     lir_registers_t base = LIR_format_register(r, 8);
-    if (
-        base == RBP || 
-        base == RSP
-    ) return 0;
+    if (base == RBP || base == RSP) return 0;
     return 1;
 }
 

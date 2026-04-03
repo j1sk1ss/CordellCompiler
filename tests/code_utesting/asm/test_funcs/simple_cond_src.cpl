@@ -56,7 +56,6 @@ jne lb16
 ; BB2:
 lb16:
 lea rcx, [rbp - 16]
-push rax
 mov rax, 33554436
 push rdi
 mov rdi, 1
@@ -68,12 +67,10 @@ syscall
 pop rdx
 pop rsi
 pop rdi
-pop rax
 jmp lb18
 ; BB3:
 lb17:
 lea rcx, [rbp - 32]
-push rax
 mov rax, 33554436
 push rdi
 mov rdi, 1
@@ -85,11 +82,9 @@ syscall
 pop rdx
 pop rsi
 pop rdi
-pop rax
 pop rdx
 pop rsi
 pop rdi
-pop rax
 jmp lb18
 ; BB4:
 lb18:

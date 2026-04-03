@@ -209,11 +209,14 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_STSARG: {
                         int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
                         if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(RAX))) break;
-                        LIR_insert_block_before(
-                            LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 8), NULL, NULL), lh
-                        );
-                        
-                        list_add(&syscall_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
+                        if (sys_regs[lh->sarg->storage.cnst.value] != RAX) {
+                            LIR_insert_block_before(
+                                LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 8), NULL, NULL), 
+                                lh
+                            );
+                            list_add(&syscall_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
+                        }
+
                         lir_subject_t* nfarg = create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt, 8);
                         LIR_unload_subject(lh->sarg);
                         lh->op   = LIR_aMOV;
@@ -338,7 +341,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lir_subject_t* b   = lh->targ;
                         lir_subject_t* res = LIR_SUBJ_REG(AL, 1);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
-                        _insert_instruction_after(bb, LIR_create_block(LIR_MOVZX, lh->farg, res, NULL), lh);
+                        _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, res, NULL), lh);
 
                         switch (lh->op) {
                             case LIR_iCMP: _insert_instruction_after(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh); break;

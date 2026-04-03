@@ -37,7 +37,6 @@ jmp lb16
 ; BB3:
 lb16:
 lea rdx, [rbp - 16]
-push rax
 mov rax, 33554436
 push rdi
 mov rdi, 1
@@ -49,7 +48,6 @@ syscall
 pop rdx
 pop rsi
 pop rdi
-pop rax
 mov rax, r9
 sub rax, 1
 mov r10, rax
