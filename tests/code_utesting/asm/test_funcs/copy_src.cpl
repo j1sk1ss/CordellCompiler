@@ -19,21 +19,21 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-sub rsp, 48
+sub rsp, 64
 mov dword [rbp - 32], 1819043144
 mov dword [rbp - 28], 1870078063
 mov dword [rbp - 24], 560229490
 mov byte [rbp - 20], 10
 mov byte [rbp - 19], 0
-mov ecx, 0
-mov edx, ecx
+mov edx, 0
+mov ebx, edx
 ; BB5:
-mov ecx, edx
+mov edx, ebx
 ; BB2:
 lb26:
-mov r11d, 13
-mov eax, ecx
-cmp eax, r11d
+mov r12d, 13
+mov eax, edx
+cmp eax, r12d
 setl al
 movsx r15d, al
 mov dword [rbp - 40], r15d
@@ -42,31 +42,33 @@ je lb28
 jne lb27
 ; BB3:
 lb27:
-lea r8, [rbp - 32]
-mov eax, ecx
+lea r9, [rbp - 32]
+mov eax, edx
 imul eax, 1
-movsxd rsi, eax
-mov r15, rsi
+movsxd rdi, eax
+mov r15, rdi
 mov qword [rbp - 48], r15
-mov rax, r8
+mov rax, r9
 add rax, qword [rbp - 48]
-mov rdi, rax
-mov bl, [rdi]
-lea r14, [rbp - 16]
-mov eax, ecx
+mov r8, rax
+mov sil, [r8]
+lea r15, [rbp - 16]
+mov qword [rbp - 56], r15
+mov eax, edx
 imul eax, 1
-movsxd r10, eax
-mov r12, r10
-mov rax, r14
-add rax, r12
-mov rdx, rax
-mov [rdx], bl
-mov r13d, 1
-mov eax, ecx
-add eax, r13d
-mov r9d, eax
-mov eax, r9d
-mov ecx, eax
+movsxd r11, eax
+mov r13, r11
+mov rax, qword [rbp - 56]
+add rax, r13
+mov rbx, rax
+mov [rbx], sil
+mov r14d, 1
+mov eax, edx
+add eax, r14d
+mov r10d, eax
+mov r15d, r10d
+mov dword [rbp - 64], r15d
+mov edx, dword [rbp - 64]
 jmp lb26
 ; BB4:
 lb28:

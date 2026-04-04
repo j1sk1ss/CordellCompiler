@@ -14,34 +14,34 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov ecx, edi
+mov edx, edi
 ; BB5:
-mov r8d, ecx
+mov r9d, edx
 ; BB2:
 lb13:
-cmp r8d, 0
+cmp r9d, 0
 je lb15
 jne lb14
 ; BB3:
 lb14:
-lea r10, [rel _str_0_]
+lea r11, [rel _str_0_]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, r10
+mov rsi, r11
 push rdx
 mov rdx, 11
 syscall
 pop rdx
 pop rsi
 pop rdi
-mov r9d, 1
-mov eax, r8d
-sub eax, r9d
-mov r11d, eax
-mov edx, r11d
-mov r8d, edx
+mov r10d, 1
+mov eax, r9d
+sub eax, r10d
+mov r12d, eax
+mov ebx, r12d
+mov r9d, ebx
 jmp lb13
 ; BB4:
 lb15:

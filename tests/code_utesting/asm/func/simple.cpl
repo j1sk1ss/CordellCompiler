@@ -15,26 +15,22 @@ push rbp
 mov rbp, rsp
 mov dil, 10
 push rdx
-push rax
-push rcx
 call _cpl_foo0
-pop rcx
-pop rax
 pop rdx
-mov ecx, eax
-mov edx, ecx
+mov edx, eax
+mov edx, edx
 mov rax, 0x2000001
 syscall
 ; BB5:
 _cpl_foo0:
 push rbp
 mov rbp, rsp
-mov edx, edi
-mov ecx, 10
-mov eax, edx
-add eax, ecx
-mov ebx, eax
+mov ebx, edi
+mov edx, 10
 mov eax, ebx
+add eax, edx
+mov esi, eax
+mov eax, esi
 mov rsp, rbp
 pop rbp
 ret

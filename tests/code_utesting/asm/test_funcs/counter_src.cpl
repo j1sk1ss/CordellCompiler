@@ -19,32 +19,32 @@ mov dword [rbp - 12], 1870078063
 mov dword [rbp - 8], 560229490
 mov byte [rbp - 4], 10
 mov byte [rbp - 3], 0
-mov rcx, 10
+mov rdx, 10
 ; BB6:
-mov r9, rcx
+mov r10, rdx
 ; BB2:
 lb15:
 jmp lb16
 ; BB3:
 lb16:
-lea rdx, [rbp - 16]
+lea rbx, [rbp - 16]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rdx
+mov rsi, rbx
 push rdx
 mov rdx, 13
 syscall
 pop rdx
 pop rsi
 pop rdi
-mov rax, r9
+mov rax, r10
 sub rax, 1
-mov r10, rax
-mov r8, r10
-mov r9, r8
-cmp r8, 0
+mov r11, rax
+mov r9, r11
+mov r10, r9
+cmp r9, 0
 je lb17
 jne lb15
 ; BB4:

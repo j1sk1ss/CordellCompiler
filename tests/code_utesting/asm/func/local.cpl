@@ -11,12 +11,12 @@ section .text
 _cpl_get1:
 push rbp
 mov rbp, rsp
-mov edx, edi
-mov ecx, 10
-mov eax, edx
-imul eax, ecx
-mov ebx, eax
+mov ebx, edi
+mov edx, 10
 mov eax, ebx
+imul eax, edx
+mov esi, eax
+mov eax, esi
 mov rsp, rbp
 pop rbp
 ret
@@ -30,14 +30,10 @@ jmp lb10
 lb10:
 mov dil, 10
 push rdx
-push rax
-push rcx
 call _cpl_get1
-pop rcx
-pop rax
 pop rdx
-mov ecx, eax
-mov edx, ecx
+mov edx, eax
+mov edx, edx
 mov rax, 0x2000001
 syscall
 ; BB4:

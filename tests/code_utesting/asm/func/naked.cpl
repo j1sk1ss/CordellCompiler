@@ -30,18 +30,14 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-push rax
 call _cpl_foo0
-pop rax
-mov cl, al
-push rax
-call _cpl_bar1
-pop rax
 mov dl, al
-mov al, cl
-add al, dl
+call _cpl_bar1
 mov bl, al
-mov al, bl
+mov al, dl
+add al, bl
+mov sil, al
+mov al, sil
 mov rsp, rbp
 pop rbp
 ret

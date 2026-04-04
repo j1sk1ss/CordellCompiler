@@ -48,11 +48,11 @@ lir_operation_t get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* 
         if (from_float) {
             if (b->size == 4 && a->size == 8)      return LIR_CVTSS2SD;
             else if (b->size == 8 && a->size == 4) return LIR_CVTSD2SS;
-            else return base;
+            return base;
         } 
         else {
             if (a->size <= 4) return (b->size == 4) ? LIR_CVTTSS2SI : LIR_CVTTSD2SI;
-            else return (b->size == 4) ? LIR_CVTTSS2SI : LIR_CVTTSD2SI;
+            return (b->size == 4) ? LIR_CVTTSS2SI : LIR_CVTTSD2SI;
         }
     }
     else {

@@ -23,17 +23,17 @@ mov byte [rbp - 16], 7
 mov byte [rbp - 12], 8
 mov byte [rbp - 8], 9
 mov byte [rbp - 4], 10
-lea rcx, [rbp - 40]
+lea rdx, [rbp - 40]
 mov al, 0
 imul al, 4
-movsx rdi, al
-mov rsi, rdi
-mov rax, rcx
-add rax, rsi
-mov r8, rax
-mov edx, [r8]
-mov r9b, dl
-mov dl, r9b
+movsx r8, al
+mov rdi, r8
+mov rax, rdx
+add rax, rdi
+mov r9, rax
+mov ebx, [r9]
+mov r10b, bl
+mov dl, r10b
 mov rax, 0x2000001
 syscall
 ; BB2:

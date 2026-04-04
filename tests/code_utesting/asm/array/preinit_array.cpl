@@ -12,16 +12,16 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-lea rdi, [rel a]
+lea r8, [rel a]
 mov al, 0
 imul al, 4
-movsx r8, al
-mov rsi, r8
-mov rax, rdi
-add rax, rsi
-mov rdx, rax
-mov ecx, [rdx]
-mov edx, ecx
+movsx r9, al
+mov rdi, r9
+mov rax, r8
+add rax, rdi
+mov rbx, rax
+mov edx, [rbx]
+mov edx, edx
 mov rax, 0x2000001
 syscall
 ; BB2:

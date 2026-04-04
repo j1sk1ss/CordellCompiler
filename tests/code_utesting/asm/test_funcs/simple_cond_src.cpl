@@ -35,12 +35,12 @@ je lb17
 jne lb16
 ; BB2:
 lb16:
-lea rcx, [rbp - 16]
+lea rdx, [rbp - 16]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rcx
+mov rsi, rdx
 push rdx
 mov rdx, 14
 syscall
@@ -50,12 +50,12 @@ pop rdi
 jmp lb18
 ; BB3:
 lb17:
-lea rcx, [rbp - 32]
+lea rdx, [rbp - 32]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rcx
+mov rsi, rdx
 push rdx
 mov rdx, 15
 syscall

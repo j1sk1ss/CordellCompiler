@@ -15,25 +15,25 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-lea rcx, [rel _str_0_]
-mov eax, 14
-mov rdi, rcx
-mov esi, eax
+lea rdx, [rel _str_0_]
+mov ecx, 14
+mov rdi, rdx
+mov esi, ecx
 call _cpl_print0
 mov rax, 0x2000001
 syscall
 _cpl_print0:
 push rbp
 mov rbp, rsp
-mov rdx, rdi
-mov ecx, esi
+mov rbx, rdi
+mov edx, esi
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rdx
+mov rsi, rbx
 push rdx
-movsxd rdx, ecx
+movsxd rdx, edx
 syscall
 pop rdx
 pop rsi

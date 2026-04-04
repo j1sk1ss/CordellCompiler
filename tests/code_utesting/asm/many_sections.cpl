@@ -20,18 +20,14 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-push rax
 call _cpl_foo0
-pop rax
-mov rcx, rax
-push rax
-call _cpl_bar1
-pop rax
 mov rdx, rax
-mov rax, rcx
-add rax, rdx
-mov rsi, rax
-mov rdx, rsi
+call _cpl_bar1
+mov rbx, rax
+mov rax, rdx
+add rax, rbx
+mov rdi, rax
+mov rdx, rdi
 mov rax, 0x2000001
 syscall
 ; BB8:

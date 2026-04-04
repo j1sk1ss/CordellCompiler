@@ -23,14 +23,14 @@ jmp lb13
 lb13:
 lea r15, [rel _cpl___anon_function_lambda1]
 mov qword [rbp - 8], r15
-mov rdx, qword [rbp - 8]
+mov rbx, qword [rbp - 8]
+push rbx
 push rdx
-push rcx
-call rdx
-pop rcx
+call rbx
 pop rdx
-mov rcx, rax
-mov rdx, rcx
+pop rbx
+mov rdx, rax
+mov rdx, rdx
 mov rax, 0x2000001
 syscall
 ; BB4:

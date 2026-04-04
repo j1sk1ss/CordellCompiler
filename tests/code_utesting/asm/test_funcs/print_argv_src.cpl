@@ -9,23 +9,23 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov ecx, edi
-lea r13, [rsi]
-mov r9d, 1
-mov r8, r13
-mov eax, r9d
+mov edx, edi
+lea r14, [rsi]
+mov r10d, 1
+mov r9, r14
+mov eax, r10d
 imul eax, 8
-movsxd r12, eax
-mov r11, r12
-mov rax, r8
-add rax, r11
-mov r10, rax
-mov rdx, [r10]
+movsxd r13, eax
+mov r12, r13
+mov rax, r9
+add rax, r12
+mov r11, rax
+mov rbx, [r11]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rdx
+mov rsi, rbx
 push rdx
 mov rdx, 12
 syscall

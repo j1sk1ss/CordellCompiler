@@ -120,6 +120,7 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
                         _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh);
 
                         set_foreach (long reg, &save_regs) {
+                            if (reg == RAX) continue;
                             LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
                             LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
                         }

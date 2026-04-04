@@ -12,9 +12,9 @@ _main:
 push rbp
 mov rbp, rsp
 sub rsp, 80
-lea rcx, [rbp - 80]
-mov al, cl
-mov dl, al
+lea rdx, [rbp - 80]
+mov cl, dl
+mov dl, cl
 mov rax, 0x2000001
 syscall
 ; BB2:

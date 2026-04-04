@@ -17,12 +17,12 @@ mov dword [rbp - 12], 1870078063
 mov dword [rbp - 8], 560229490
 mov byte [rbp - 4], 10
 mov byte [rbp - 3], 0
-lea rcx, [rbp - 16]
+lea rdx, [rbp - 16]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rcx
+mov rsi, rdx
 push rdx
 mov rdx, 13
 syscall

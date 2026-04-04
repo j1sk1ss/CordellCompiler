@@ -11,8 +11,8 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-lea rax, [rel message]
-mov rdx, rax
+lea rcx, [rel message]
+mov rdx, rcx
 mov rax, 0x2000001
 syscall
 ; BB2:
