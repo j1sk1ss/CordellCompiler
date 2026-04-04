@@ -18,35 +18,15 @@ _main:
 push rbp
 mov rbp, rsp
 sub rsp, 32
-mov byte [rbp - 16], 70
-mov byte [rbp - 15], 105
-mov byte [rbp - 14], 114
-mov byte [rbp - 13], 115
-mov byte [rbp - 12], 116
-mov byte [rbp - 11], 32
-mov byte [rbp - 10], 111
-mov byte [rbp - 9], 112
-mov byte [rbp - 8], 116
-mov byte [rbp - 7], 105
-mov byte [rbp - 6], 111
-mov byte [rbp - 5], 110
-mov byte [rbp - 4], 33
-mov byte [rbp - 3], 10
+mov dword [rbp - 16], 1936877894
+mov dword [rbp - 12], 1886330996
+mov dword [rbp - 8], 1852795252
+mov word [rbp - 4], 2593
 mov byte [rbp - 2], 0
-mov byte [rbp - 32], 83
-mov byte [rbp - 31], 101
-mov byte [rbp - 30], 99
-mov byte [rbp - 29], 111
-mov byte [rbp - 28], 110
-mov byte [rbp - 27], 100
-mov byte [rbp - 26], 32
-mov byte [rbp - 25], 111
-mov byte [rbp - 24], 112
-mov byte [rbp - 23], 116
-mov byte [rbp - 22], 105
-mov byte [rbp - 21], 111
-mov byte [rbp - 20], 110
-mov byte [rbp - 19], 33
+mov dword [rbp - 32], 1868784979
+mov dword [rbp - 28], 1864393838
+mov dword [rbp - 24], 1869182064
+mov word [rbp - 20], 8558
 mov byte [rbp - 18], 10
 mov byte [rbp - 17], 0
 mov al, 1

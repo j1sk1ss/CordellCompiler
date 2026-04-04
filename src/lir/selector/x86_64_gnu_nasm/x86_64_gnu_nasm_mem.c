@@ -165,6 +165,12 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
+static unsigned long _pack_str_le(char* p, unsigned long n) {
+    unsigned long x = 0;
+    for (unsigned long i = 0; i < n; i++) x |= (unsigned long)p[i] << (8 * i);
+    return x;
+}
+
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt) {
     stack_map_t smp;
     foreach (cfg_func_t* fb, &cctx->funcs) {
@@ -194,16 +200,31 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             STTB_get_info_id(lh->sarg->storage.str.sid, &si, &smt->s) &&
                             ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)
                         ) {
-                            int arroff = stack_map_alloc(ALIGN(ai.size, vi.vmi.align), &smp);
-                            VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
-                            char* string = si.value->body;
-                            while (*string) {
-                                LIR_insert_block_before(
-                                    LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arroff--, 1), LIR_SUBJ_CONST(*(string++)), NULL), lh
-                                );
+                            int str_off = stack_map_alloc(ALIGN(ai.size, vi.vmi.align), &smp);
+                            VRTB_update_memory(lh->farg->storage.var.v_id, str_off, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
+                            
+                            int curr_offset = str_off;
+                            unsigned long block_size = 4;
+                            unsigned long  string_pos = 0;
+
+                            while (block_size > 0) {
+                                while (string_pos + block_size <= si.value->size) {
+                                    LIR_insert_block_before(
+                                        LIR_create_block(
+                                            LIR_iMOV, 
+                                            LIR_SUBJ_OFF(RBP, curr_offset, block_size), 
+                                            LIR_SUBJ_CONST(_pack_str_le(si.value->body + string_pos, block_size)), NULL
+                                        ), lh
+                                    );
+
+                                    curr_offset -= block_size;
+                                    string_pos += block_size;
+                                }
+
+                                block_size /= 2;
                             }
 
-                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arroff, 1), LIR_SUBJ_CONST(0), NULL), lh);
+                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, curr_offset, 1), LIR_SUBJ_CONST(0), NULL), lh);
                         }
 
                         lh->unused = 1;
