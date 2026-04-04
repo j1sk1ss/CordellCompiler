@@ -1,11 +1,11 @@
-: RUN_ASM :
-start() {
+: RUN_ASM[args=""|args="",""|args="","",""] :
+start(i32 argc, ptr ptr i8 argv) {
     @[no_fall]
-    switch 2; {
-        case 1; {
+    switch argc; {
+        case 2; {
             syscall(0x2000004, 1, ref "case 1!\n", 8);
         }
-        case 2; {
+        case 3; {
             syscall(0x2000004, 1, ref "case 2!\n", 8);
         }
         default {
@@ -15,5 +15,7 @@ start() {
 }
 
 :/ OUTPUT
+case 1!
 case 2!
+default!
 /:

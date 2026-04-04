@@ -78,6 +78,7 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_STARGLD, 0, 0, 0, 0, 1, 3.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_GDREF, 1, 0, 0, 0, 4, 1.0f, 2, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_LDREF, 0, 1, 0, 0, 3, 1.0f, 2, 0));
+        ADD_OPINF(&ops, _create_op_info(LIR_REF_GDREF, 0, 0, 0, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_REF, 0, 0, 0, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_PUSH, 0, 1, 0, 0, 2, 1.5f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_POP, 1, 0, 0, 0, 2, 1.5f, 1, 0));

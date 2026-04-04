@@ -92,13 +92,14 @@ typedef enum {
         LIR_INC,
         LIR_DEC,
 
-        LIR_fMOV,  // float move
-        LIR_fMVf,  // float to float move
-        LIR_REF,   // lea move
-        LIR_GDREF, // get value from address, x = *y
-        LIR_LDREF, // set valye by address,   *x = y
-        LIR_PUSH,  // push
-        LIR_POP,   // pop
+        LIR_fMOV,      // float move
+        LIR_fMVf,      // float to float move
+        LIR_REF,       // a = &y
+        LIR_REF_GDREF, // a = &*y
+        LIR_GDREF,     // get value from address, x = *y
+        LIR_LDREF,     // set valye by address,   *x = y
+        LIR_PUSH,      // push
+        LIR_POP,       // pop
 
     /* Integer */
         /* Binary operations */

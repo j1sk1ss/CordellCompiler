@@ -45,6 +45,45 @@ Params:
 Return the virtual variable that is linked to the physical register.
 */
 lir_subject_t* create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size);
+
+/*
+Checks a variable if it is a signed or not.
+Params:
+    - `s` - LIR subject.
+    - `smt` - Symtable.
+
+Return 1 either this is a signed variable or this isn't variable at all.
+*/
+int is_sign_type(lir_subject_t* s, sym_table_t* smt);
+
+/*
+Checks a variable is SIMD by the provided variable ID. 
+Note: SIMD in this context is a set of variable types such as 
+      F64 (tmp/stack/glb) and F32(tmp/stack/glb).
+Params:
+    - `vid` - Variable ID.
+    - `smt` - Symtable.
+
+Return 1 if the variable is SIMD.
+*/
+int is_simd_type(lir_subject_t* s, sym_table_t* smt);
+
+/*
+Get a mov operation for given input operands. Will return the base, if we 
+won't change anything.
+Note: Base by default is the 'LIR_iMOV' operation.
+Note 2: If we've choosen a base operation, we will set the size
+        of the second argument to the size of the first argument.
+Params:
+    - `a` - Destination operand.
+    - `b` - Source operand.
+    - `smt` - Symtable.
+    - `base` - Base operation.
+
+Returns a mov operation that is valid for given args.
+*/
+lir_operation_t get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* smt, lir_operation_t base);
+
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt);
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt);
 int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx);

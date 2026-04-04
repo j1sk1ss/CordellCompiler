@@ -105,6 +105,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_iADD:       return "%s = %s + %s;\n";
 
         case LIR_REF:        return "%s = &(%s);\n";
+        case LIR_REF_GDREF:  return "%s = &(*%s);\n";
         case LIR_GDREF:      return "%s = *(%s);\n";
         case LIR_LDREF:      return "*(%s) = %s;\n";
 

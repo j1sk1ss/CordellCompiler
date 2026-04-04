@@ -137,6 +137,7 @@ int LIR_is_writeop(lir_operation_t op) {
         case LIR_DIV:  
         case LIR_iDIV: 
         case LIR_GDREF:
+        case LIR_REF_GDREF:
         case LIR_REF: return 1;
         default: return LIR_is_movop(op);
     }

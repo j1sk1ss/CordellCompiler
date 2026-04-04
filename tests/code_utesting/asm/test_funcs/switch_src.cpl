@@ -1,6 +1,6 @@
-start() {
+start(i32 argc, ptr ptr i8 argv) {
     @[no_fall]
-    switch 2; {
+    switch argc; {
         case 1; {
             syscall(0x2000004, 1, ref "case 1!\n", 8);
         }
@@ -25,9 +25,11 @@ _main:
 push rbp
 mov rbp, rsp
 sub rsp, 8
-jmp lb10
+mov r12d, edi
+lea r11, [rsi]
+jmp lb16
 ; BB2:
-lb12:
+lb18:
 lea r15, [rel _str_0_]
 mov qword [rbp - 8], r15
 mov rax, 33554436
@@ -41,16 +43,15 @@ syscall
 pop rdx
 pop rsi
 pop rdi
-jmp lb11
+jmp lb17
 ; BB3:
-lb30:
-lea r15, [rel _str_1_]
-mov qword [rbp - 8], r15
+lb36:
+lea r13, [rel _str_1_]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, qword [rbp - 8]
+mov rsi, r13
 push rdx
 mov rdx, 8
 syscall
@@ -60,16 +61,15 @@ pop rdi
 pop rdx
 pop rsi
 pop rdi
-jmp lb11
+jmp lb17
 ; BB4:
-lb48:
-lea r15, [rel _str_2_]
-mov qword [rbp - 8], r15
+lb54:
+lea r13, [rel _str_2_]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, qword [rbp - 8]
+mov rsi, r13
 push rdx
 mov rdx, 9
 syscall
@@ -82,65 +82,65 @@ pop rdi
 pop rdx
 pop rsi
 pop rdi
-jmp lb11
+jmp lb17
 ; BB5:
 ; BB6:
-lb10:
-mov r9, 2
-mov rax, r9
+lb16:
+movsxd rsi, r12d
+mov rax, rsi
 cmp rax, 1
 setl al
-mov bl, al
-cmp bl, 0
-je lb69
-jne lb68
+mov r8b, al
+cmp r8b, 0
+je lb75
+jne lb74
 ; BB7:
-lb68:
-jmp lb48
+lb74:
+jmp lb54
 ; BB8:
-lb69:
-mov r8, 2
-mov rax, r8
+lb75:
+movsxd rbx, r12d
+mov rax, rbx
 cmp rax, 1
 setg al
-mov sil, al
-cmp sil, 0
-je lb71
-jne lb70
-; BB9:
-lb70:
-mov rdi, 2
-mov rax, rdi
-cmp rax, 2
-setl al
 mov dl, al
 cmp dl, 0
-je lb79
-jne lb78
-; BB10:
-lb78:
-jmp lb48
-; BB11:
-lb79:
-mov rcx, 2
+je lb77
+jne lb76
+; BB9:
+lb76:
+movsxd rcx, r12d
 mov rax, rcx
 cmp rax, 2
-setg al
+setl al
 mov r10b, al
 cmp r10b, 0
-je lb81
-jne lb80
+je lb85
+jne lb84
+; BB10:
+lb84:
+jmp lb54
+; BB11:
+lb85:
+movsxd rdi, r12d
+mov rax, rdi
+cmp rax, 2
+setg al
+mov r9b, al
+cmp r9b, 0
+je lb87
+jne lb86
 ; BB12:
-lb80:
-jmp lb48
+lb86:
+jmp lb54
 ; BB13:
-lb81:
-jmp lb30
+lb87:
+jmp lb36
 ; BB14:
-lb71:
-jmp lb12
+lb77:
+jmp lb18
 ; BB15:
-lb11:
+lb17:
 mov rax, 0x2000001
 syscall
 /:

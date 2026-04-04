@@ -9,8 +9,8 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov eax, dword [rbp + 8]
-mov rax, qword [rbp + 16]
+mov eax, edi
+lea rax, [rsi]
 mov dl, 0
 mov rax, 0x2000001
 syscall

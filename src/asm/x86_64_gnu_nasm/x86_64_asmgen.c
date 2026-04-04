@@ -88,6 +88,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_fMOV:
         case LIR_fMVf:       EMIT_COMMAND("movsd %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_REF:        EMIT_COMMAND("lea %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, LEA_FLAG));   break;
+        case LIR_REF_GDREF:  EMIT_COMMAND("lea %s, [%s]", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, LEA_FLAG)); break;
         case LIR_LDREF:      EMIT_COMMAND("mov [%s], %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_GDREF:      EMIT_COMMAND("mov %s, [%s]", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_PUSH:       EMIT_COMMAND("push %s", format_lir_subject(b->farg, smt, NO_FLAG));                                                  break;

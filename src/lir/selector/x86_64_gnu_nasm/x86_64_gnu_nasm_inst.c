@@ -1,44 +1,5 @@
 #include <lir/selector/x84_64_gnu_nasm.h>
 // TODO: Complete AVX support
-/*
-Checks a variable if it is a signed or not.
-Params:
-    - `s` - LIR subject.
-    - `smt` - Symtable.
-
-Return 1 either this is a signed variable or this isn't variable at all.
-*/
-static int _is_sign_type(lir_subject_t* s, sym_table_t* smt) {
-    if (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) return 1;
-    variable_info_t vi;
-    if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 1;
-    switch (vi.type) {
-        case U64_TYPE_TOKEN: case U32_TYPE_TOKEN:
-        case U16_TYPE_TOKEN: case U8_TYPE_TOKEN: return 0;
-        default: return 1;
-    }
-}
-
-/*
-Checks a variable is SIMD by the provided variable ID. 
-Note: SIMD in this context is a set of variable types such as 
-      F64 (tmp/stack/glb) and F32(tmp/stack/glb).
-Params:
-    - `vid` - Variable ID.
-    - `smt` - Symtable.
-
-Return 1 if the variable is SIMD.
-*/
-static int _is_simd_type(lir_subject_t* s, sym_table_t* smt) {
-    if (s->t == LIR_NUMBER) return s->storage.num.is_float;
-    if (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) return 0;
-    variable_info_t vi;
-    if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
-    switch (vi.type) {
-        case F64_TYPE_TOKEN: case F32_TYPE_TOKEN: return 1;
-        default: return 0;
-    }
-}
 
 /*
 Insert block before 'pos' block with the block entry update.
@@ -66,86 +27,6 @@ static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, li
     LIR_insert_block_after(b, pos);
 }
 
-/*
-Get a mov operation for given input operands. Will return the base, if we 
-won't change anything.
-Note: Base by default is the 'LIR_iMOV' operation.
-Note 2: If we've choosen a base operation, we will set the size
-        of the second argument to the size of the first argument.
-Params:
-    - `a` - Destination operand.
-    - `b` - Source operand.
-    - `smt` - Symtable.
-    - `base` - Base operation.
-
-Returns a mov operation that is valid for given args.
-*/
-static lir_operation_t _get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* smt, lir_operation_t base) {
-    int to_float   = _is_simd_type(a, smt);
-    int from_float = _is_simd_type(b, smt);
-
-    if (to_float) {
-        if (from_float) {
-            if (b->size == 4 && a->size == 8)      return LIR_CVTSS2SD;
-            else if (b->size == 8 && a->size == 4) return LIR_CVTSD2SS;
-            else return base;
-        } 
-        else {
-            if (a->size <= 4) return (b->size == 4) ? LIR_CVTTSS2SI : LIR_CVTTSD2SI;
-            else return (b->size == 4) ? LIR_CVTTSS2SI : LIR_CVTTSD2SI;
-        }
-    }
-    else {
-        int from_sign = _is_sign_type(b, smt);
-        int from_num  = b->t == LIR_NUMBER;
-        if (from_num) return base;
-        
-        if (from_float) {
-            if (b->size == 4) return LIR_CVTTSS2SI;
-            else return LIR_CVTTSD2SI;
-        }
-        else {
-            if (a->size <= b->size) {
-                b->size = a->size;
-                return base;
-            }
-            else {
-                if (b->size == 4 && a->size == 8) return from_sign ? LIR_MOVSXD : base;
-                else return from_sign ? LIR_MOVSX : LIR_MOVZX;
-            }
-        }
-    }
-
-    return base;
-}
-
-/*
-We need to be sure that all movs are proper. For example, we can't
-preserve some instructions that aren't valid in our architecture such
-as 'mov sil, r15' or 'mov r15, sil', etc. 
-Params:
-    - `bb` - Current base block.
-    - `smt` - Symtable.
-
-Returns 1 if an operation was secceed, otherwise it will returns 0.
-*/
-static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-    while (lh) {
-        switch (lh->op) {
-            case LIR_iMOV: case LIR_aMOV: case LIR_fMOV: {
-                lh->op = _get_proper_mov(lh->farg, lh->sarg, smt, lh->op);
-                break;
-            }
-            default: break;
-        }
-
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
-    }
-
-    return 1;
-}
-
 typedef struct {
     int reg;
     int off;
@@ -167,7 +48,7 @@ static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, s
 
     int is_float = 0;
     switch (s->t) {
-        case LIR_VARIABLE: is_float = _is_simd_type(s, smt);   break;
+        case LIR_VARIABLE: is_float = is_simd_type(s, smt);   break;
         case LIR_NUMBER:   is_float = s->storage.num.is_float; break;
         default: break;
     }
@@ -232,9 +113,21 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
                     case LIR_STARGLD: {
-                        lir_subject_t* src = LIR_SUBJ_OFF(RBP, (lh->sarg->storage.cnst.value + 1) * -8, lh->farg->size);
+                        lir_subject_t* src;
+                        switch (lh->sarg->storage.cnst.value) {
+                            case 0: {
+                                src = create_tmp(RDI, lh->farg, smt, -1);
+                                lh->op = LIR_iMOV; 
+                                break;
+                            }
+                            default: {
+                                src = create_tmp(RSI, lh->farg, smt, -1);
+                                lh->op = LIR_REF_GDREF;  
+                                break;
+                            }
+                        }
+
                         LIR_unload_subject(lh->sarg);
-                        lh->op   = LIR_iMOV;
                         lh->sarg = src;
                         break;
                     }
@@ -347,7 +240,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                             case LIR_iCMP: _insert_instruction_after(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh); break;
                             case LIR_iNMP: _insert_instruction_after(bb, LIR_create_block(LIR_STNE, res, NULL, NULL), lh); break;
                             default: {
-                                if (_is_sign_type(lh->sarg, smt) && _is_sign_type(lh->targ, smt)) {
+                                if (is_sign_type(lh->sarg, smt) && is_sign_type(lh->targ, smt)) {
                                     switch (lh->op) {
                                         case LIR_iLWR: _insert_instruction_after(bb, LIR_create_block(LIR_SETL, res, NULL, NULL), lh); break;
                                         case LIR_iLRE: _insert_instruction_after(bb, LIR_create_block(LIR_STLE, res, NULL, NULL), lh); break;
@@ -376,7 +269,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_TF64: case LIR_TF32: 
                     case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8:
                     case LIR_TU64: case LIR_TU32: case LIR_TU16: case LIR_TU8: {
-                        lh->op = _get_proper_mov(lh->farg, lh->sarg, smt, LIR_iMOV);
+                        lh->op = get_proper_mov(lh->farg, lh->sarg, smt, LIR_iMOV);
                         break;
                     }
                     default: break;
@@ -384,8 +277,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                 lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
-
-            _validate_size_movs(bb, smt);
         }
     }
 

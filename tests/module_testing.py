@@ -1,6 +1,7 @@
 import re
 import os
 import sys
+import csv
 import json
 import difflib
 import argparse
@@ -259,6 +260,72 @@ def _rewrite_test_output(path: Path, actual_output: str) -> None:
 
     path.write_text(rewritten, encoding="utf-8")
 
+
+
+def _split_unquoted(text: str, sep: str = "|") -> list[str]:
+    parts: list[str] = []
+    current: list[str] = []
+    in_quotes = False
+    i = 0
+
+    while i < len(text):
+        ch = text[i]
+
+        if ch == '"':
+            current.append(ch)
+            if in_quotes and i + 1 < len(text) and text[i + 1] == '"':
+                current.append(text[i + 1])
+                i += 1
+            else:
+                in_quotes = not in_quotes
+        elif ch == sep and not in_quotes:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(ch)
+
+        i += 1
+
+    parts.append("".join(current).strip())
+    return parts
+
+def _parse_run_asm_args(raw: str) -> list[str]:
+    raw = raw.strip()
+    if raw.endswith(","):
+        raw = raw[:-1].rstrip()
+
+    if not raw:
+        return []
+
+    return next(csv.reader([raw], skipinitialspace=True))
+
+def _parse_run_asm_cases(spec: str) -> list[list[str]]:
+    spec = spec.strip()
+    if not spec:
+        return [[]]
+
+    cases: list[list[str]] = []
+    for chunk in _split_unquoted(spec, sep="|"):
+        if not chunk:
+            continue
+
+        if not chunk.startswith("args="):
+            raise ValueError(f"Unsupported RUN_ASM option block: {chunk}")
+
+        cases.append(_parse_run_asm_args(chunk[len("args="):]))
+
+    return cases or [[]]
+
+def _parse_run_asm_directive(line: str) -> tuple[bool, bool, list[list[str]]] | None:
+    m = re.fullmatch(r":\s*(RUN_ASM|RUN_ASM_DEBUG)(?:\[(.*)\])?\s*:", line)
+    if not m:
+        return None
+
+    kind = m.group(1)
+    spec = m.group(2)
+
+    return kind == "RUN_ASM", kind == "RUN_ASM_DEBUG", _parse_run_asm_cases(spec or "")
+
 def _parse_test_file(path: Path) -> tuple[str, str, dict]:
     text = path.read_text(encoding="utf-8")
     flags = {
@@ -269,12 +336,19 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         "rewrite":       False,
         "run_asm":       False,
         "run_asm_debug": False,
+        "run_asm_cases": [[]],
     }
 
     lines = text.splitlines()
     header_processed = []
     for line in lines:
         stripped = line.strip()
+
+        run_asm_directive = _parse_run_asm_directive(stripped)
+        if run_asm_directive:
+            flags["run_asm"], flags["run_asm_debug"], flags["run_asm_cases"] = run_asm_directive
+            continue
+
         if stripped == ": TEST_DEBUG :":
             flags["test_debug"] = True
             continue
@@ -289,12 +363,6 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
             continue
         if stripped == ": REWRITE :":
             flags["rewrite"] = True
-            continue
-        if stripped == ": RUN_ASM :":
-            flags["run_asm"] = True
-            continue
-        if stripped == ": RUN_ASM_DEBUG :":
-            flags["run_asm_debug"] = True
             continue
         header_processed.append(line)
 
@@ -321,7 +389,11 @@ def _capture_process(cmd: list[str]) -> subprocess.CompletedProcess:
         text=True
     )
 
-def _assemble_and_run(asm_text: str, debug: bool) -> tuple[bool, str | None]:
+def _assemble_and_run(
+    asm_text: str,
+    debug: bool,
+    runs: list[list[str]] | None = None
+) -> tuple[bool, str | None]:
     with tempfile.TemporaryDirectory(prefix="cpl_asm_") as tmp_dir:
         tmp_dir_path = Path(tmp_dir)
 
@@ -365,21 +437,28 @@ def _assemble_and_run(asm_text: str, debug: bool) -> tuple[bool, str | None]:
         if link_proc.returncode != 0:
             return False, link_proc.stdout
 
-        if(debug):
+        run_cases = runs or [[]]
+
+        if debug:
+            debug_args = run_cases[0] if run_cases else []
             debugger = "gdb"
             if sys.platform == "darwin":
                 debugger = "lldb"
 
             if debugger == "gdb":
-                debug_cmd = [debugger, "--args", str(exe_path)]
+                debug_cmd = [debugger, "--args", str(exe_path), *debug_args]
             else:
-                debug_cmd = [debugger, "--", str(exe_path)]
+                debug_cmd = [debugger, "--", str(exe_path), *debug_args]
 
             subprocess.run(debug_cmd)
             return True, None
+        
+        outputs: list[str] = []
+        for run_args in run_cases:
+            run_proc = _capture_process([str(exe_path), *run_args])
+            outputs.append(run_proc.stdout.rstrip("\n"))
 
-        run_proc = _capture_process([str(exe_path)])
-        return True, run_proc.stdout
+        return True, "\n".join(outputs)
 
 def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
     code, expected, flags = _parse_test_file(test_file)
@@ -411,7 +490,8 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
             else:
                 asm_ok, asm_output = _assemble_and_run(
                     compiler_proc.stdout,
-                    debug=flags["run_asm_debug"]
+                    debug=flags["run_asm_debug"],
+                    runs=flags["run_asm_cases"]
                 )
 
                 if flags["run_asm_debug"] and asm_ok:
