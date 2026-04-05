@@ -89,7 +89,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_fMVf:       EMIT_COMMAND("movsd %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_REF:        EMIT_COMMAND("lea %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, LEA_FLAG));   break;
         case LIR_REF_GDREF:  EMIT_COMMAND("lea %s, [%s]", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, LEA_FLAG)); break;
-        case LIR_LDREF:      EMIT_COMMAND("mov [%s], %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));  break;
+        case LIR_LDREF:      EMIT_COMMAND("mov %s, %s", format_lir_subject(b->farg, smt, LDREF_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG)); break;
         case LIR_GDREF:      EMIT_COMMAND("mov %s, [%s]", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_PUSH:       EMIT_COMMAND("push %s", format_lir_subject(b->farg, smt, NO_FLAG));                                                  break;
         case LIR_POP:        EMIT_COMMAND("pop %s", format_lir_subject(b->farg, smt, NO_FLAG));                                                   break;
@@ -97,7 +97,8 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_iSUB:       EMIT_COMMAND("sub %s, %s", format_lir_subject(b->sarg, smt, NO_FLAG), format_lir_subject(b->targ, smt, NO_FLAG));    break;
         case LIR_iMUL:       EMIT_COMMAND("imul %s, %s", format_lir_subject(b->sarg, smt, NO_FLAG), format_lir_subject(b->targ, smt, NO_FLAG));   break;
         case LIR_DIV:        EMIT_COMMAND("div %s", format_lir_subject(b->sarg, smt, NO_FLAG));                                                   break;
-        case LIR_iDIV:       EMIT_COMMAND("idiv %s", format_lir_subject(b->sarg, smt, NO_FLAG));                                                  break;
+        case LIR_iMOD:
+        case LIR_iDIV:       EMIT_COMMAND("idiv %s", format_lir_subject(b->targ, smt, NO_FLAG));                                                  break;
         case LIR_CMP:        EMIT_COMMAND("cmp %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));    break;
         case LIR_bAND:
         case LIR_iAND:       EMIT_COMMAND("and %s, %s", format_lir_subject(b->sarg, smt, NO_FLAG), format_lir_subject(b->targ, smt, NO_FLAG));    break;

@@ -61,7 +61,7 @@ mov r13, r11
 mov rax, qword [rbp - 56]
 add rax, r13
 mov rbx, rax
-mov [rbx], sil
+mov byte [rbx], sil
 mov r14d, 1
 mov eax, edx
 add eax, r14d

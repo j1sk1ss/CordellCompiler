@@ -126,34 +126,48 @@ Returns 1 if an operation was secceed, otherwise it will returns 0.
 static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
-        if (
-            (lh->farg && lh->sarg) &&
-            (lh->farg->t != LIR_REGISTER && lh->sarg != LIR_REGISTER) &&
-            (lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL)
-        ) {
-            lir_block_t* fix = NULL;
+        list_t fixes;
+        list_init(&fixes);
+        if (lh->farg && lh->sarg) {
             switch (lh->op) {
                 case LIR_REF: {
+                    if (lh->farg->t == LIR_REGISTER) break;
                     lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, 8);
-                    fix = LIR_create_block(lh->op, tmp, lh->sarg, NULL);
+                    list_add(&fixes, LIR_create_block(LIR_REF, tmp, lh->sarg, NULL));
                     lh->sarg = tmp;
                     lh->op   = LIR_iMOV;
                     break;
                 }
-                case LIR_LDREF:
-                case LIR_CVTSS2SD:  case LIR_CVTSD2SS:
-                case LIR_CVTTSS2SI: case LIR_CVTTSD2SI:
-                case LIR_MOVSX:     case LIR_MOVZX:     case LIR_MOVSXD:
-                case LIR_iMOV:      case LIR_aMOV:      case LIR_fMOV: {
+                case LIR_CVTSS2SD: case LIR_CVTSD2SS: case LIR_CVTTSS2SI: case LIR_CVTTSD2SI:
+                case LIR_MOVSX:    case LIR_MOVZX:    case LIR_MOVSXD:
+                case LIR_iMOV:     case LIR_aMOV:     case LIR_fMOV: {
+                    if (lh->farg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) break;
                     lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, lh->farg->size);
-                    fix = LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL);
+                    list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL));
                     lh->sarg = tmp;
                     break;
                 }
+                case LIR_LDREF: {
+                    if (lh->farg->t != LIR_REGISTER) {
+                        lir_subject_t* src = create_tmp(RAX, lh->farg, smt, lh->farg->size);
+                        list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->farg, NULL));
+                        lh->farg = create_tmp(RAX, src, smt, lh->sarg->size);
+                    }
+
+                    if (lh->sarg->t != LIR_REGISTER && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL) {
+                        lir_subject_t* src = create_tmp(R15, lh->sarg, smt, lh->sarg->size);
+                        list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
+                        lh->sarg = create_tmp(R15, src, smt, lh->sarg->size);
+                    }
+
+                    break;
+                }
                 case LIR_GDREF: {
-                    if (lh->sarg == LIR_REGISTER) break;
-                    lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, lh->farg->size);
-                    fix = LIR_create_block(LIR_GDREF, tmp, lh->sarg, NULL);
+                    if (lh->farg->t == LIR_REGISTER) break;
+                    lir_subject_t* src = create_tmp(R15, lh->sarg, smt, lh->sarg->size);
+                    list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
+                    lir_subject_t* tmp = create_tmp(R15, lh->farg, smt, lh->farg->size);
+                    list_add(&fixes, LIR_create_block(LIR_GDREF, tmp, src, NULL));
                     lh->sarg = tmp;
                     lh->op   = LIR_iMOV;
                     break;
@@ -161,13 +175,16 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 default: break;
             }
 
-            if (fix) {
-                if (bb->lmap.entry == lh) bb->lmap.entry = fix;
-                LIR_insert_block_before(fix, lh);
+            if (list_size(&fixes)) {
+                foreach (lir_block_t* fix, &fixes) {
+                    if (bb->lmap.entry == lh) bb->lmap.entry = fix;
+                    LIR_insert_block_before(fix, lh);
+                }
             }
         }
 
         lh = LIR_get_next(lh, bb->lmap.exit, 1);
+        list_free(&fixes);
     }
 
     return 1;

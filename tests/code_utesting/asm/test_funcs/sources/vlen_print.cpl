@@ -33,7 +33,8 @@ mov qword [rbp - 16], r15
 mov rax, qword [rbp - 8]
 add rax, qword [rbp - 16]
 mov r14, rax
-mov r15, [r14]
+mov r15, r14
+mov r15, [r15]
 mov qword [rbp - 24], r15
 mov dword [rbp - 32], 1
 mov r15, r11
@@ -46,7 +47,8 @@ mov rbx, qword [rbp - 48]
 mov rax, qword [rbp - 40]
 add rax, rbx
 mov r12, rax
-mov r15, [r12]
+mov r15, r12
+mov r15, [r15]
 mov qword [rbp - 56], r15
 mov rdi, qword [rbp - 56]
 push rsi

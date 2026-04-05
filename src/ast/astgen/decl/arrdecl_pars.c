@@ -114,7 +114,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     }
 
     long long const_length = -1;
-    if (length->t->t_type != UNKNOWN_NUMERIC_TOKEN) name->t->flags.vla = 1;
+    if (length->t->t_type != UNKNOWN_NUMERIC_TOKEN) base->t->flags.vla = 1;
     else const_length = length->t->body->to_llong(length->t->body);
     if (consume_token(it, ASSIGN_TOKEN) && consume_token(it, OPEN_BLOCK_TOKEN)) {
         long long act_size = 0;
@@ -141,18 +141,18 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     }
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
-    name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &name->t->flags, &smt->v);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &base->t->flags, &smt->v);
     ARTB_add_info(
-        name->sinfo.v_id, const_length, name->t->flags.vla, 
+        name->sinfo.v_id, const_length, base->t->flags.vla, 
         type->t->t_type, &type->t->flags, &smt->a
     );
     
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
     if (
-        name->t->flags.glob || 
-        name->t->flags.ro
+        base->t->flags.glob || 
+        base->t->flags.ro
     ) {
-        if (!annots.section) annots.section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
+        if (!annots.section) annots.section = create_string(base->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
         SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
     }
 

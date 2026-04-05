@@ -21,7 +21,7 @@ mov rbx, rsi
 mov rax, rdx
 add rax, rbx
 mov rdi, rax
-mov [rdi], r8d
+mov dword [rdi], r8d
 mov rax, 0x2000001
 syscall
 /:

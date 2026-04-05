@@ -43,6 +43,17 @@ static const char* format_lir_register(lir_registers_t reg) {
     }
 }
 
+static const char* _get_mem_modifier(int size) {
+    const char* modifier = "qword ";
+    switch (size) {
+        case 4: modifier = "dword "; break;
+        case 2: modifier = "word ";  break;
+        case 1: modifier = "byte ";  break;
+        default: break;
+    }
+    return modifier;
+}
+
 const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag) {
     char* buffer = _get_buffer();
     if (!v) return "";
@@ -118,17 +129,8 @@ const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag) {
         }
         case LIR_MEMORY: {
 _shifted_to_memory: {}
-            const char* modifier = "qword ";
+            const char* modifier = _get_mem_modifier(v->size);
             if (flag == LEA_FLAG) modifier = "";
-            else {
-                switch (v->size) {
-                    case 4: modifier = "dword "; break;
-                    case 2: modifier = "word ";  break;
-                    case 1: modifier = "byte ";  break;
-                    default: break;
-                }
-            }
-
             const char* offset_base = format_lir_register(v->storage.var.base);
             if (v->storage.var.offset > 0) snprintf(buffer, sizeof(_buffers[0]), "%s[%s - %d]", modifier, offset_base, v->storage.var.offset);
             else snprintf(buffer, sizeof(_buffers[0]), "%s[%s + %d]", modifier, offset_base, ABS(v->storage.var.offset));
@@ -136,7 +138,21 @@ _shifted_to_memory: {}
         }
         case LIR_REGISTER: {
 _shifted_to_registers: {}
-            return format_lir_register(LIR_format_register(v->storage.reg.reg, v->size));
+            if (flag == LDREF_FLAG) {
+                snprintf(
+                    buffer, sizeof(_buffers[0]), "%s[%s]", 
+                    _get_mem_modifier(v->dsize), 
+                    format_lir_register(LIR_format_register(v->storage.reg.reg, 8))
+                );
+            }
+            else {
+                snprintf(
+                    buffer, sizeof(_buffers[0]), "%s", 
+                    format_lir_register(LIR_format_register(v->storage.reg.reg, v->size))
+                );
+            }
+
+            return buffer;
         }
 
         default: return "<unknown>";

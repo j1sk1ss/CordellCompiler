@@ -45,7 +45,8 @@ typedef struct {
 typedef struct {
     unsigned long      id;
     struct lir_block*  home;
-    char               size;
+    char               size;  /* Size of a subject              */
+    char               dsize; /* Dereferenced size of a subject */
     lir_subject_type_t t;
     union {
         lir_constant_t cnst;

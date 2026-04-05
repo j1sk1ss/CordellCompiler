@@ -162,7 +162,16 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = create_tmp(RAX, lh->farg, smt, -1);
                         break;
                     }
-                    case LIR_NOT:
+                    case LIR_NOT: {
+                        lir_subject_t* a   = create_tmp(RAX, lh->sarg, smt, -1);
+                        lir_subject_t* res = LIR_SUBJ_REG(AL, 1);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_TST, a, a, NULL), lh);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh);
+                        lh->op = LIR_iMOV;
+                        lh->sarg = res;
+                        break;
+                    }
                     case LIR_bOR:
                     case LIR_bXOR:
                     case LIR_bAND:

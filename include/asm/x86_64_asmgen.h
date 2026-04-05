@@ -25,8 +25,9 @@ Return 1 if success, otherwise - 0.
 */
 int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output);
 
-#define NO_FLAG  0
-#define LEA_FLAG 1
+#define NO_FLAG    0
+#define LEA_FLAG   1
+#define LDREF_FLAG 2
 
 /*
 Format input subject and return char*.
