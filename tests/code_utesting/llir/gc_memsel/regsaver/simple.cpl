@@ -13,47 +13,45 @@ start() {
 
 :/ OUTPUT
 BB2: fn foo0(i32 a)
-r10 = rdi;
-r9 = r10;
-rax = r9;
-rax = rax + r10;
-rdx = rax;
-r8 = $10;
-rax = rdx;
-rax = rax + r8;
-rcx = rax;
-rsi = rcx;
+r11 = rdi;
+r10 = r11;
 rax = r10;
-rax = rax + rsi;
+rax = rax + r11;
 rbx = rax;
+r9 = $10;
 rax = rbx;
+rax = rax + r9;
+rdx = rax;
+rdi = rdx;
+rax = r11;
+rax = rax + rdi;
+rsi = rax;
+rax = rsi;
 return rax;
 BB3:
 BB4: start
-r9 = $1;
-rsi = r9;
-use rsi;
-rdi <<= rsi;
-push(r8);
-push(rsi);
-push(r10);
-push(rax);
+r10 = $1;
+rdi = r10;
+use rdi;
+rdi <<= rdi;
+push(r9);
+push(r11);
+push(rbx);
 push(rdx);
-push(rcx);
+push(rdi);
 call foo0(i32 a);
-rcx = pop();
+rdi = pop();
 rdx = pop();
-rax = pop();
-r10 = pop();
-rsi = pop();
-r8 = pop();
-rcx = $10;
-rax = rsi;
-rax = rax + rcx;
-r8 = rax;
-r10 = r8;
-rdx = r10;
-rdx = rdx;
+rbx = pop();
+r11 = pop();
+r9 = pop();
+rdx = $10;
+rax = rdi;
+rax = rax + rdx;
+r9 = rax;
+r11 = r9;
+rbx = r11;
+rdx = rbx;
 exit rdx;
 BB5:
 /:

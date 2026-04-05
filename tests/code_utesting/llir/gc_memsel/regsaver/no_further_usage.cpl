@@ -11,23 +11,23 @@ start() {
 
 :/ OUTPUT
 BB2: fn foo0()
-rdx = $1;
-rsi = rdx;
-rbx = $10;
-rax = rsi;
-rax = rax + rbx;
-rcx = rax;
-rax = rcx;
+rbx = $1;
+rdi = rbx;
+rsi = $10;
+rax = rdi;
+rax = rax + rsi;
+rdx = rax;
+rax = rdx;
 return rax;
 BB3:
 BB4: start
-rdi = $1;
-rcx = rdi;
-rbx = $1;
-rax = rcx;
-rax = rax + rbx;
-rsi = rax;
-rdx = rsi;
+r8 = $1;
+rdx = r8;
+rsi = $1;
+rax = rdx;
+rax = rax + rsi;
+rdi = rax;
+rbx = rdi;
 call foo0();
 send
 /:

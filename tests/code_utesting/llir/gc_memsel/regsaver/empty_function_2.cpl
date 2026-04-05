@@ -11,16 +11,16 @@ start() {
 BB2: fn foo0()
 fend
 BB3: start
-rcx = $1;
-rdx = rcx;
+rdx = $1;
+rbx = rdx;
 call foo0();
-r8 = $1;
-rax = rdx;
-rax = rax + r8;
-r9 = rax;
-rdi = r9;
-rsi = rdi;
-rdx = rsi;
+r9 = $1;
+rax = rbx;
+rax = rax + r9;
+r10 = rax;
+r8 = r10;
+rdi = r8;
+rdx = rdi;
 exit rdx;
 BB4:
 /:

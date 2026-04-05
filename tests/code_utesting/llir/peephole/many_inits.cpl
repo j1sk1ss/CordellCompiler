@@ -9,24 +9,24 @@ start() {
 :/ OUTPUT
 === BEFORE ===
 BB1: start
-rcx = $1;
-rax = rcx;
-rsi = $1;
-rax = rsi;
 rdx = $1;
-rax = rdx;
-rbx = $1;
-rax = rbx;
+rcx = rdx;
 rdi = $1;
-rax = rdi;
+rcx = rdi;
+rbx = $1;
+rcx = rbx;
+rsi = $1;
+rcx = rsi;
+r8 = $1;
+rcx = r8;
 send
 === AFTER ===
 BB1: start
-rcx = $1;
-rsi = $1;
 rdx = $1;
-rbx = $1;
 rdi = $1;
-rax = $1;
+rbx = $1;
+rsi = $1;
+r8 = $1;
+rcx = $1;
 send
 /:

@@ -14,18 +14,16 @@ rax = $1;
 return rax;
 BB3:
 BB4: start
-rcx = $1;
-rdx = rcx;
-push(rax);
+rdx = $1;
+rbx = rdx;
 call foo0();
-rax = pop();
-r8 = $1;
-rax = rdx;
-rax = rax + r8;
-r9 = rax;
-rdi = r9;
-rsi = rdi;
-rdx = rsi;
+r9 = $1;
+rax = rbx;
+rax = rax + r9;
+r10 = rax;
+r8 = r10;
+rdi = r8;
+rdx = rdi;
 exit rdx;
 BB5:
 /:

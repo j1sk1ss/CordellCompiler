@@ -7,15 +7,15 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rcx = $1;
-rdx = rcx;
-rdi = $1;
-rdx = rdi;
-rax = rdx;
-rax = rax + rdx;
-rsi = rax;
-r8 = rsi;
-rdx = r8;
+rdx = $1;
+rbx = rdx;
+r8 = $1;
+rbx = r8;
+rax = rbx;
+rax = rax + rbx;
+rdi = rax;
+r9 = rdi;
+rdx = r9;
 exit rdx;
 BB2:
 /:

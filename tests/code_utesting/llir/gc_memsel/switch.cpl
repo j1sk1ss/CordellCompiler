@@ -20,21 +20,21 @@ BB4: lb28:
 rdx = $2;
 exit rdx;
 BB5: lb10:
-rdi = $1;
-rax = rdi;
+r8 = $1;
+rax = r8;
 cmp rax, 1;
 sete al;
-rsi movzx al;
-cmp rsi, 0;
+rdi = al;
+cmp rdi, 0;
 je lb38;
 jne lb12;
 BB6: lb38:
-rcx = $1;
-rax = rcx;
+rdx = $1;
+rax = rdx;
 cmp rax, 2;
 sete al;
-rdx movzx al;
-cmp rdx, 0;
+rbx = al;
+cmp rbx, 0;
 je lb42;
 jne lb20;
 BB7: lb42:

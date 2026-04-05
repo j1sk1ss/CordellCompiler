@@ -6,16 +6,16 @@ start() {
 :/ OUTPUT
 === BEFORE ===
 BB1: start
-rdx = $754688;
-rcx = rdx;
-rax = $0;
-*(rcx) = rax;
+rbx = $754688;
+rdx = rbx;
+rcx = $0;
+*(rdx) = rcx;
 send
 === AFTER ===
 BB1: start
+rbx = $754688;
 rdx = $754688;
-rcx = $754688;
-rax = rax ^ rax;
-*(rcx) = rax;
+rcx = rcx ^ rcx;
+*(rdx) = rcx;
 send
 /:

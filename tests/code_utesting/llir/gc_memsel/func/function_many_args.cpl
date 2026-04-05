@@ -7,15 +7,15 @@ start() {
 
 :/ OUTPUT
 BB2: fn foo0(i32 a, i32 b, i32 c, i32 d, i32 e, i32 f, i32 g, i32 k, i32 l)
-rax = rdi;
-rax = rsi;
-rax = rdx;
-rax = rcx;
-rax = r8;
-rax = r9;
-rax = [rbp + 8];
-rax = [rbp + 16];
-rax = [rbp + 24];
+rcx = rdi;
+rcx = rsi;
+rcx = rdx;
+rcx = rcx;
+rcx = r8;
+rcx = r9;
+rcx = [rbp + 8];
+rcx = [rbp + 16];
+rcx = [rbp + 24];
 fend
 BB3: start
 rdi <<= $1;

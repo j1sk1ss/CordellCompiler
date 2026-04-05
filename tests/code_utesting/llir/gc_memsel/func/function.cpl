@@ -8,12 +8,12 @@ start() {
 
 :/ OUTPUT
 BB2: fn foo0(i32 a, i32 b)
-rdx = rdi;
-rbx = rsi;
+rbx = rdi;
+rsi = rsi;
+rax = rbx;
+rax = rax + rsi;
+rdx = rax;
 rax = rdx;
-rax = rax + rbx;
-rcx = rax;
-rax = rcx;
 return rax;
 BB3:
 BB4: start

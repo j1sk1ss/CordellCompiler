@@ -16,12 +16,12 @@ BB1: start
 %10 = %0;
 cmp %10, %1;
 setb al;
-%8 movzx al;
+%8 = al;
 %2 = %8;
 %11 = %0;
 cmp %11, %1;
 stbe al;
-%9 movzx al;
+%9 = al;
 %3 = %9;
 send
 /:

@@ -25,11 +25,10 @@ BB2: lb35:
 rdx = $0;
 exit rdx;
 BB3: lb37:
-rsi = &([rbp - 16]);
-rcx = rsi;
-rdx = *(rcx);
-rdx = rdx;
-kill(4);
+rdi = &([rbp - 16]);
+rdx = rdi;
+rbx = *(rdx);
+rdx = rbx;
 exit rdx;
 BB4:
 /:

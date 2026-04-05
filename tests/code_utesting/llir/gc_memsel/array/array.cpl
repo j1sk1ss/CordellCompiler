@@ -14,6 +14,5 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-kill(1);
 send
 /:

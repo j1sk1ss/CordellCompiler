@@ -4,8 +4,8 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rax = $1;
-%3 = rax;
+rcx = $1;
+%3 = rcx;
 [rbp - 16] = %3;
 kill(2);
 send

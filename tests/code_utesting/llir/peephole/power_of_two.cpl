@@ -5,20 +5,20 @@ start() {
 :/ OUTPUT
 === BEFORE ===
 BB1: start
-rdx = $10;
-rax = rdx;
+rbx = $10;
+rax = rbx;
 rax = rax * $1024;
-rcx = rax;
-rsi movsx rcx;
-rbx = rsi;
+rdx = rax;
+rdi movsx rdx;
+rsi = rdi;
 send
 === AFTER ===
 BB1: start
-rdx = $10;
+rbx = $10;
 rax = $10;
 rax = rax << 10;
-rcx = rax;
-rsi movsx rax;
-rbx = rax;
+rdx = rax;
+rdi movsx rax;
+rsi = rax;
 send
 /:

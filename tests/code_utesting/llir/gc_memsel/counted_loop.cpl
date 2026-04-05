@@ -5,18 +5,18 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rcx = 10;
+rdx = 10;
 BB6: kill(2);
-rdx = rcx;
+rbx = rdx;
 BB2: lb12:
 jmp lb13;
 BB3: lb13:
-rax = rdx;
+rax = rbx;
 rax = rax - 1;
-rsi = rax;
+rdi = rax;
+rsi = rdi;
 rbx = rsi;
-rdx = rbx;
-cmp rbx, 0;
+cmp rsi, 0;
 je lb14;
 jne lb12;
 BB4:

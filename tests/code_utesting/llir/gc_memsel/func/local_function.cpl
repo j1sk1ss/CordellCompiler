@@ -15,33 +15,33 @@ start() {
 
 :/ OUTPUT
 BB3: fn foo0()
-r9 = $1;
-r8 = r9;
-rdx = $1;
-rsi = rdx;
+r10 = $1;
+r9 = r10;
+rbx = $1;
+rdi = rbx;
 jmp lb28;
 BB4: lb28:
-rax = r8;
-rax = rax + rsi;
-r10 = rax;
+rax = r9;
+rax = rax + rdi;
+r11 = rax;
 call bar1();
-rcx = rax;
-rbx movsxd r10;
-rax = rbx;
-rax = rax + rcx;
-rdi = rax;
-rax = rdi;
+rdx = rax;
+rsi movsxd r11;
+rax = rsi;
+rax = rax + rdx;
+r8 = rax;
+rax = r8;
 return rax;
 BB5:
 BB6: fn bar1()
-rsi = $1;
-rbx = rsi;
-rcx = $1;
-rdi = rcx;
+rdi = $1;
+rsi = rdi;
+rdx = $1;
+r8 = rdx;
+rax = rsi;
+rax = rax + r8;
+rbx = rax;
 rax = rbx;
-rax = rax + rdi;
-rdx = rax;
-rax = rdx;
 return rax;
 BB7:
 BB8: start

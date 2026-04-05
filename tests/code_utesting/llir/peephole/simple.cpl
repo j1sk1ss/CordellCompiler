@@ -7,15 +7,14 @@ start() {
 BB1: start
 rax = $10;
 rax = rax + $10;
-rcx = rax;
-rdx = rcx;
+rdx = rax;
+rdx = rdx;
 exit rdx;
 BB2:
 === AFTER ===
 BB1: start
 rax = $10;
 rax = rax + $10;
-rcx = rax;
 rdx = rax;
 exit rdx;
 BB2:

@@ -4,7 +4,6 @@ start() {
 
 :/ OUTPUT
 BB1: start
-push(rax);
 rax <<= $1;
 push(rdi);
 rdi <<= $2;
@@ -13,6 +12,5 @@ rsi <<= $3;
 syscall;
 rsi = pop();
 rdi = pop();
-rax = pop();
 send
 /:

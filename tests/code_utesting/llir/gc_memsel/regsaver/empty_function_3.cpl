@@ -9,28 +9,26 @@ start() {
 
 :/ OUTPUT
 BB2: fn foo0(i32 a, i32 b)
-rax = rdi;
-rax = rsi;
+rcx = rdi;
+rcx = rsi;
 fend
 BB3: start
-r12 = $1;
-r9 = r12;
-rdx = $1;
-use rdx;
-r10 = $1;
-use r10;
-rdi <<= rdx;
-rsi <<= r10;
-push(rax);
+r13 = $1;
+r10 = r13;
+rbx = $1;
+use rbx;
+r11 = $1;
+use r11;
+rdi <<= rbx;
+rsi <<= r11;
 call foo0(i32 a, i32 b);
-rax = pop();
-rcx = $1;
-rax = r9;
-rax = rax + rcx;
-r8 = rax;
-r11 = r8;
-r13 = r11;
-rdx = r13;
+rdx = $1;
+rax = r10;
+rax = rax + rdx;
+r9 = rax;
+r12 = r9;
+r14 = r12;
+rdx = r14;
 exit rdx;
 BB4:
 /:

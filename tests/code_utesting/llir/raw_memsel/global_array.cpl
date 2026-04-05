@@ -11,15 +11,16 @@ BB1: start
 [rbp - 16] = %8;
 rax = $0;
 rax = rax * 4;
-%9 = rax;
-[rbp - 24] movsx %9;
+%9 movsx rax;
+[rbp - 24] = %9;
 %10 = [rbp - 24];
 [rbp - 32] = %10;
 rax = [rbp - 16];
 rax = rax + [rbp - 32];
 %11 = rax;
 [rbp - 40] = %11;
-%12 = [rbp - 8];
-*([rbp - 40]) = %12;
+%12 = [rbp - 40];
+%14 = [rbp - 8];
+*(%13) = %15;
 send
 /:

@@ -5,11 +5,11 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rax = $0;
-%6 = rax;
+rcx = $0;
+%6 = rcx;
 [rbp - 8] = %6;
-rdx = &([rbp - 8]);
-rcx = rdx;
+rbx = &([rbp - 8]);
+rdx = rbx;
 kill(4);
 send
 /:

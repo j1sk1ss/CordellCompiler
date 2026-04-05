@@ -10,30 +10,30 @@ start() {
 
 :/ OUTPUT
 BB1: start
-r8 = $1;
-%15 = r8;
-[rbp - 8] = %15;
 r9 = $1;
+%15 = r9;
+[rbp - 8] = %15;
+r10 = $1;
 rax = [rbp - 8];
-cmp rax, r9;
+cmp rax, r10;
 sete al;
-rbx movzx al;
-rsi = rcx;
-cmp rbx, 0;
+rsi movsx al;
+rdi = rdx;
+cmp rsi, 0;
 je lb23;
 jne lb21;
 BB2: lb21:
-rdx = &([rbp - 8]);
-rcx = rdx;
-rsi = rcx;
+rbx = &([rbp - 8]);
+rdx = rbx;
+rdi = rdx;
 kill(9);
 jmp lb23;
 BB3: lb23:
-rdi = $1;
-%16 = rdi;
+r8 = $1;
+%16 = r8;
 [rbp - 8] = %16;
-r10 = &([rbp - 8]);
-rax = r10;
+r11 = &([rbp - 8]);
+rcx = r11;
 kill(9);
 kill(11);
 send

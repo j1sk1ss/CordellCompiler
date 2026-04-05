@@ -4,7 +4,7 @@ start(ptr i8 a) {
 
 :/ OUTPUT
 BB1: start
-%0 = [rbp + 8];
+%0 = %2;
 %1 = $1;
 *(%0) = %1;
 send
