@@ -8,14 +8,14 @@
 #include <hir/dag.h>
 
 typedef enum {
-    SETPOS_INST  = 1 << 0,
-    IF_INST      = 1 << 1,
-    LDREF_INST   = 1 << 2,
-    GDREF_INST   = 1 << 3,
-    PHI_INST     = 1 << 4,
-    CALL         = 1 << 5,
-    RET_CALL     = 1 << 6,
-    UNKNOWN_INST = 1 << 7,
+    SETPOS_INST   = 1 << 0,
+    IF_INST       = 1 << 1,
+    LDREF_INST    = 1 << 2,
+    GDREF_INST    = 1 << 3,
+    PHI_INST      = 1 << 4,
+    CALL_INST     = 1 << 5,
+    RET_CALL_INST = 1 << 6,
+    UNKNOWN_INST  = 1 << 7,
 } hir_instruction_type_t;
 
 typedef struct {

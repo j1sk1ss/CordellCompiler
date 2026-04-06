@@ -33,6 +33,10 @@ int TRACE_add_location(trace_t* trace, trace_location_t* loc, char* fmt, ...) {
     return 1;
 }
 
+int TRACE_is_empty(trace_t* trace) {
+    return !list_size(&trace->messages);
+}
+
 int TRACE_unload_trace(trace_t* trace) {
     list_free_force_op(&trace->messages, (int (*)(void*))_unload_trace_message);
     return 1;

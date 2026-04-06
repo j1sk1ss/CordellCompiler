@@ -26,6 +26,7 @@ typedef struct {
 
 int TRACE_init_trace(trace_t* trace);
 int TRACE_add_location(trace_t* trace, trace_location_t* loc, char* fmt, ...);
+int TRACE_is_empty(trace_t* trace);
 int TRACE_unload_trace(trace_t* trace);
 
 #endif

@@ -59,10 +59,10 @@ static hir_instruction_type_t _get_instruction_type(hir_operation_t t) {
     switch (t) {
         case HIR_FCLL:
         case HIR_ECLL:
-        case HIR_UFCLL:       return CALL;
+        case HIR_UFCLL:       return CALL_INST;
         case HIR_STORE_FCLL:
         case HIR_STORE_ECLL:
-        case HIR_STORE_UFCLL: return RET_CALL;
+        case HIR_STORE_UFCLL: return RET_CALL_INST;
         case HIR_PHI:         return PHI_INST;
         case HIR_IFOP2:       return IF_INST;
         case HIR_LDREF:       return LDREF_INST;

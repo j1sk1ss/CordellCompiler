@@ -245,3 +245,119 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     _print_trace(&trace);
     return 1;
 }
+
+static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int buffer_size) {
+    for (int i = 0; i < ptr; i++) {
+        buffer += snprintf(buffer, buffer_size, "ptr ");
+    }
+
+    switch (t) {
+        case HIR_STKVARSTR:  buffer += snprintf(buffer, buffer_size, "strs"); break;
+        case HIR_STKVARARR:  buffer += snprintf(buffer, buffer_size, "arrs"); break;
+        case HIR_STKVARF64:  buffer += snprintf(buffer, buffer_size, "f64s"); break;
+        case HIR_STKVARU64:  buffer += snprintf(buffer, buffer_size, "u64s"); break;
+        case HIR_STKVARI64:  buffer += snprintf(buffer, buffer_size, "i64s"); break;
+        case HIR_STKVARF32:  buffer += snprintf(buffer, buffer_size, "f32s"); break;
+        case HIR_STKVARU32:  buffer += snprintf(buffer, buffer_size, "u32s"); break;
+        case HIR_STKVARI32:  buffer += snprintf(buffer, buffer_size, "i32s"); break;
+        case HIR_STKVARU16:  buffer += snprintf(buffer, buffer_size, "u16s"); break;
+        case HIR_STKVARI16:  buffer += snprintf(buffer, buffer_size, "i16s"); break;
+        case HIR_STKVARU8:   buffer += snprintf(buffer, buffer_size, "u8s");  break;
+        case HIR_STKVARI8:   buffer += snprintf(buffer, buffer_size, "i8s");  break;
+        case HIR_STKVARI0:   buffer += snprintf(buffer, buffer_size, "i0s");  break;
+        case HIR_TMPVARSTR:  buffer += snprintf(buffer, buffer_size, "strt"); break;
+        case HIR_TMPVARARR:  buffer += snprintf(buffer, buffer_size, "arrt"); break;
+        case HIR_TMPVARF64:  buffer += snprintf(buffer, buffer_size, "f64t"); break;
+        case HIR_TMPVARU64:  buffer += snprintf(buffer, buffer_size, "u64t"); break;
+        case HIR_TMPVARI64:  buffer += snprintf(buffer, buffer_size, "i64t"); break;
+        case HIR_TMPVARF32:  buffer += snprintf(buffer, buffer_size, "f32t"); break;
+        case HIR_TMPVARU32:  buffer += snprintf(buffer, buffer_size, "u32t"); break;
+        case HIR_TMPVARI32:  buffer += snprintf(buffer, buffer_size, "i32t"); break;
+        case HIR_TMPVARU16:  buffer += snprintf(buffer, buffer_size, "u16t"); break;
+        case HIR_TMPVARI16:  buffer += snprintf(buffer, buffer_size, "i16t"); break;
+        case HIR_TMPVARU8:   buffer += snprintf(buffer, buffer_size, "u8t");  break;
+        case HIR_TMPVARI8:   buffer += snprintf(buffer, buffer_size, "i8t");  break;
+        case HIR_TMPVARI0:   buffer += snprintf(buffer, buffer_size, "i0t");  break;
+        case HIR_GLBVARSTR:  buffer += snprintf(buffer, buffer_size, "strg"); break;
+        case HIR_GLBVARARR:  buffer += snprintf(buffer, buffer_size, "arrg"); break;
+        case HIR_GLBVARF64:  buffer += snprintf(buffer, buffer_size, "f64g"); break;
+        case HIR_GLBVARU64:  buffer += snprintf(buffer, buffer_size, "u64g"); break;
+        case HIR_GLBVARI64:  buffer += snprintf(buffer, buffer_size, "i64g"); break;
+        case HIR_GLBVARF32:  buffer += snprintf(buffer, buffer_size, "f32g"); break;  
+        case HIR_GLBVARU32:  buffer += snprintf(buffer, buffer_size, "u32g"); break;
+        case HIR_GLBVARI32:  buffer += snprintf(buffer, buffer_size, "i32g"); break;
+        case HIR_GLBVARU16:  buffer += snprintf(buffer, buffer_size, "u16g"); break;
+        case HIR_GLBVARI16:  buffer += snprintf(buffer, buffer_size, "i16g"); break;
+        case HIR_GLBVARU8:   buffer += snprintf(buffer, buffer_size, "u8g");  break;
+        case HIR_GLBVARI8:   buffer += snprintf(buffer, buffer_size, "i8g");  break;
+        case HIR_GLBVARI0:   buffer += snprintf(buffer, buffer_size, "i0g");  break;
+        case HIR_F64NUMBER:  buffer += snprintf(buffer, buffer_size, "f64n"); break;
+        case HIR_I64NUMBER:  buffer += snprintf(buffer, buffer_size, "i64n"); break;
+        case HIR_U64NUMBER:  buffer += snprintf(buffer, buffer_size, "u64n"); break;
+        case HIR_F32NUMBER:  buffer += snprintf(buffer, buffer_size, "f32n"); break;
+        case HIR_I32NUMBER:  buffer += snprintf(buffer, buffer_size, "i32n"); break;
+        case HIR_U32NUMBER:  buffer += snprintf(buffer, buffer_size, "u32n"); break;
+        case HIR_I16NUMBER:  buffer += snprintf(buffer, buffer_size, "i16n"); break;
+        case HIR_U16NUMBER:  buffer += snprintf(buffer, buffer_size, "u16n"); break;  
+        case HIR_I8NUMBER:   buffer += snprintf(buffer, buffer_size, "i8n");  break;
+        case HIR_U8NUMBER:   buffer += snprintf(buffer, buffer_size, "u8n");  break;
+        case HIR_NUMBER:     buffer += snprintf(buffer, buffer_size, "num?"); break;
+        case HIR_CONSTVAL:   buffer += snprintf(buffer, buffer_size, "cnt?"); break;
+        default: break;
+    }
+
+    return 1;
+}
+
+int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    
+    func_info_t fi;
+    if (!FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)) {
+        return 1;
+    }
+
+    trace_t trace;
+    TRACE_init_trace(&trace);
+    trace_location_t curr_loc = { 
+        .column = ctx->curr_location.column, .file = ctx->curr_location.file, .line = ctx->curr_location.line 
+    };
+
+    int arg_index = 0;
+    hir_subject_t** hir_args = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
+    fn_iterate_args (&fi) {
+        if (
+            HIR_get_tmptype_tkn(arg->t, 0) != hir_args[arg_index]->t ||
+            arg->t->flags.ptr != hir_args[arg_index]->ptr
+        ) {
+            char received[64], expected[64];
+            _create_type_name(HIR_get_tmptype_tkn(arg->t, 0), arg->t->flags.ptr, expected, sizeof(expected));
+            _create_type_name(hir_args[arg_index]->t, hir_args[arg_index]->ptr, received, sizeof(received));
+
+            if (HIR_is_defined_type(hir_args[arg_index]->t)) {
+                defined_variable_t di;
+                if (!_resolve_subject_value(hir_args[arg_index], smt, &di)) continue;
+                TRACE_add_location(&trace, &curr_loc, "Value '%ld' has the '%s' type! Consider the 'as %s' command!", di.const_value, received, expected);
+            }
+            else {
+                variable_info_t vi;
+                if (!VRTB_get_info_id(hir_args[arg_index]->storage.var.v_id, &vi, &smt->v)) continue;
+                TRACE_add_location(&trace, &curr_loc, "Variable '%s' has the '%s' type! Consider the 'as %s' command!", vi.name->body, received, expected);
+                trace_location_t loc;
+                _sparce_find_variable_define_location(b, hir_args[arg_index]->storage.var.v_id, &loc);
+                TRACE_add_location(&trace, &loc, "Variable '%s' declared here!", vi.name->body);
+            }
+
+        }
+        
+        arg_index++;
+    }
+
+    if (!TRACE_is_empty(&trace)) {
+        TRACE_add_location(&trace, &curr_loc, "Function %s has some arguments, which have wrong type! Consider to use the 'as' operator!");
+    }
+
+    mm_free(hir_args);
+    _print_trace(&trace);
+    return 1;
+}
