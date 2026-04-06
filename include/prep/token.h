@@ -1,6 +1,7 @@
 #ifndef TKNZ_H_
 #define TKNZ_H_
 
+#include <position.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <stddef.h>
@@ -32,7 +33,7 @@ Params:
 
 Return pointer to a token, or the 'NULL' value if the malloc returns an error.
 */
-token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* finfo);
+token_t* TKN_create_token(token_type_t type, const char* value, file_position_t* finfo);
 
 /*
 Tokenize input file by provided FD.

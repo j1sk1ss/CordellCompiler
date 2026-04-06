@@ -424,10 +424,10 @@ int export_dot_func_hir(cfg_func_t* f) {
 
     int ishead = 1;
     foreach (cfg_block_t* cb, &f->blocks) {
-        printf("  B%ld [label=\"B%ld:\\nentry=%s%li\\nexit=%s%s",
+        printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s%s",
                cb->id, cb->id,
                cb->hmap.entry ? hir_op_to_string(cb->hmap.entry->op) : "NULL", 
-               cb->hmap.entry && cb->hmap.entry->op == HIR_MKLB ? cb->hmap.entry->farg->id : -1,
+               (cb->hmap.entry && cb->hmap.entry->op == HIR_MKLB) ? (int)cb->hmap.entry->farg->id : -1,
                cb->hmap.exit  ? hir_op_to_string(cb->hmap.exit->op)  : "NULL",
                ishead ? "\\nHEAD" : "");
 

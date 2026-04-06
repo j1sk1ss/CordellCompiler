@@ -1,6 +1,6 @@
 #include <sem/ast/ast_visitors.h>
 
-static inline char* _format_location(token_fpos_t* p) {
+static inline char* _format_location(file_position_t* p) {
     static char buff[256] = { 0 };
     if (p->file) snprintf(buff, sizeof(buff), "[%s:%li:%li]", p->file->body, p->line, p->column);
     else snprintf(buff, sizeof(buff), "[%li:%li]", p->line, p->column);

@@ -78,13 +78,13 @@ token_t* TKN_copy_token(token_t* src) {
     return tkn;
 }
 
-token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* finfo) {
+token_t* TKN_create_token(token_type_t type, const char* value, file_position_t* finfo) {
     token_t* tkn = mm_malloc(sizeof(token_t));
     if (!tkn) return NULL;
     str_memset(tkn, 0, sizeof(token_t));
     
     tkn->t_type = type;
-    if (finfo) str_memcpy(&tkn->finfo, finfo, sizeof(token_fpos_t));
+    if (finfo) str_memcpy(&tkn->finfo, finfo, sizeof(file_position_t));
     if (!value) return tkn;
 
     string_t* input = create_string((char*)value);
@@ -158,7 +158,7 @@ Params:
 
 Returns a new token or the 'NULL' value.
 */
-static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, token_fpos_t* finfo, tkn_ctx_t* ctx) {
+static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, file_position_t* finfo, tkn_ctx_t* ctx) {
     char token_buf[BUFFER_SIZE] = { 0 };
     for (ssize_t i = *off; i < bytes_read; ++i) {
         char ch = buffer[i];
@@ -289,7 +289,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
     tkn_ctx_t tkn_ctx = { 0 };
     _reset_tkn_ctx(&tkn_ctx);
 
-    token_fpos_t finfo = { .column = 1, .line = 1, .file = NULL };
+    file_position_t finfo = { .column = 1, .line = 1, .file = NULL };
     char buffer[BUFFER_SIZE] = { 0 };
 
     int file_offset = 0;
@@ -342,8 +342,8 @@ int TKN_tokenize(int fd, list_t* tkn) {
 }
 
 unsigned long TKN_hash_token(token_t* t) {
-    token_fpos_t tmp = { .column = t->finfo.column, .line = t->finfo.line, .file = t->finfo.file };
-    str_memset(&t->finfo, 0, sizeof(token_fpos_t));
+    file_position_t tmp = { .column = t->finfo.column, .line = t->finfo.line, .file = t->finfo.file };
+    str_memset(&t->finfo, 0, sizeof(file_position_t));
 
     unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
     hash ^= t->body->hash;

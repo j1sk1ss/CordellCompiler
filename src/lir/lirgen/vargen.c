@@ -14,6 +14,7 @@ lir_subject_t* LIR_convert_hs_to_ls(hir_subject_t* subj) {
         case HIR_RAWASM: return LIR_SUBJ_RAWASM(subj->storage.str.s_id);
         case HIR_STRING: return LIR_SUBJ_STRING(subj->storage.str.s_id);
         case HIR_FNAME:  return LIR_SUBJ_ADDRFUNC(subj);
+        case HIR_FPOS:   return LIR_SUBJ_LOCATION(&subj->storage.pos);
         
         case HIR_TMPVARF64: case HIR_TMPVARF32:
         case HIR_STKVARF64: case HIR_STKVARF32: 

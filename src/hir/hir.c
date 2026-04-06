@@ -121,9 +121,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         break;
         case HIR_FPOS:
             if (strval) {
-                subj->storage.pos.column = ((token_fpos_t*)strval)->column;
-                subj->storage.pos.line   = ((token_fpos_t*)strval)->line;
-                subj->storage.pos.file   = ((token_fpos_t*)strval)->file;
+                str_memcpy(&subj->storage.pos, strval, sizeof(file_position_t));
             }
         break;
         default: break;
@@ -158,6 +156,12 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
 
             break;
         }
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
+        case HIR_NUMBER:
+            ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
+        break;
         case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
         case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
@@ -170,26 +174,9 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
         case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
         case HIR_GLBVARI0:
-            ns->storage.var.v_id = s->storage.var.v_id;
-        break;
-        case HIR_F64NUMBER: case HIR_F32NUMBER:
-        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
-        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
-        case HIR_NUMBER:
-            ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
-        break;
-        case HIR_CONSTVAL:
-            ns->storage.cnst.value = s->storage.cnst.value;
-        break;
-        case HIR_FNAME:
-        case HIR_RAWASM:
-        case HIR_STRING:
-            ns->storage.str.s_id = s->storage.str.s_id;
-        break;
-        case HIR_FPOS:
-            ns->storage.pos.column = s->storage.pos.column;
-            ns->storage.pos.line   = s->storage.pos.line;
-            ns->storage.pos.file   = s->storage.pos.file;
+        case HIR_CONSTVAL:  case HIR_FNAME:     case HIR_RAWASM:
+        case HIR_STRING:    case HIR_FPOS:
+            str_memcpy(&ns->storage, &s->storage, sizeof(s->storage));
         break;
         default: break;
     }

@@ -145,26 +145,26 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
             break;
         }
 
-        case HIR_iBLFT: LIR_BLOCK3(ctx, LIR_iBLFT, LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iBRHT: LIR_BLOCK3(ctx, LIR_iBRHT, LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iLWR:  LIR_BLOCK3(ctx, LIR_iLWR,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iLRE:  LIR_BLOCK3(ctx, LIR_iLRE,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iLRG:  LIR_BLOCK3(ctx, LIR_iLRG,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iLGE:  LIR_BLOCK3(ctx, LIR_iLGE,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iCMP:  LIR_BLOCK3(ctx, LIR_iCMP,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iNMP:  LIR_BLOCK3(ctx, LIR_iNMP,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iOR:   LIR_BLOCK3(ctx, LIR_iOR,   LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iAND:  LIR_BLOCK3(ctx, LIR_iAND,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_bOR:   LIR_BLOCK3(ctx, LIR_bOR,   LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_bXOR:  LIR_BLOCK3(ctx, LIR_bXOR,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_bAND:  LIR_BLOCK3(ctx, LIR_bAND,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iMOD:  LIR_BLOCK3(ctx, LIR_iMOD,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iSUB:  LIR_BLOCK3(ctx, LIR_iSUB,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iDIV:  LIR_BLOCK3(ctx, LIR_iDIV,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iMUL:  LIR_BLOCK3(ctx, LIR_iMUL,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_iADD:  LIR_BLOCK3(ctx, LIR_iADD,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
-        case HIR_VRUSE: LIR_BLOCK1(ctx, LIR_VRUSE, LIR_convert_hs_to_ls(h->farg));                                                               break;
-
+        case HIR_iBLFT:  LIR_BLOCK3(ctx, LIR_iBLFT, LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iBRHT:  LIR_BLOCK3(ctx, LIR_iBRHT, LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iLWR:   LIR_BLOCK3(ctx, LIR_iLWR,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iLRE:   LIR_BLOCK3(ctx, LIR_iLRE,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iLRG:   LIR_BLOCK3(ctx, LIR_iLRG,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iLGE:   LIR_BLOCK3(ctx, LIR_iLGE,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iCMP:   LIR_BLOCK3(ctx, LIR_iCMP,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iNMP:   LIR_BLOCK3(ctx, LIR_iNMP,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iOR:    LIR_BLOCK3(ctx, LIR_iOR,   LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iAND:   LIR_BLOCK3(ctx, LIR_iAND,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_bOR:    LIR_BLOCK3(ctx, LIR_bOR,   LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_bXOR:   LIR_BLOCK3(ctx, LIR_bXOR,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_bAND:   LIR_BLOCK3(ctx, LIR_bAND,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iMOD:   LIR_BLOCK3(ctx, LIR_iMOD,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iSUB:   LIR_BLOCK3(ctx, LIR_iSUB,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iDIV:   LIR_BLOCK3(ctx, LIR_iDIV,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iMUL:   LIR_BLOCK3(ctx, LIR_iMUL,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_iADD:   LIR_BLOCK3(ctx, LIR_iADD,  LIR_convert_hs_to_ls(h->farg), LIR_convert_hs_to_ls(h->sarg), LIR_convert_hs_to_ls(h->targ)); break;
+        case HIR_VRUSE:  LIR_BLOCK1(ctx, LIR_VRUSE, LIR_convert_hs_to_ls(h->farg));                                                               break;
+        case HIR_SETPOS: LIR_BLOCK1(ctx, LIR_SETPOS, LIR_convert_hs_to_ls(h->farg));                                                              break;
         default: break;
     }
 

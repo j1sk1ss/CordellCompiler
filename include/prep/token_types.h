@@ -2,6 +2,7 @@
 #define TOKEN_TYPES_H_
 
 #include <config.h>
+#include <position.h>
 #include <std/str.h>
 
 typedef enum {
@@ -171,16 +172,10 @@ typedef struct {
 } token_flags_t;
 
 typedef struct {
-    long      line;
-    long      column;
-    string_t* file;
-} token_fpos_t;
-
-typedef struct {
-    token_flags_t flags;  /* Token's flags           */
-    token_type_t  t_type; /* Token's type            */
-    string_t*     body;   /* Token's body            */
-    token_fpos_t  finfo;  /* Source file information */
+    token_flags_t   flags;  /* Token's flags           */
+    token_type_t    t_type; /* Token's type            */
+    string_t*       body;   /* Token's body            */
+    file_position_t finfo;  /* Source file information */
 } token_t;
 
 token_type_t TKN_get_tmp_type(token_type_t t);

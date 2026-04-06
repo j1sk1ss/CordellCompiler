@@ -142,6 +142,7 @@ typedef enum {
     /* Other */
     LIR_RAW,
     LIR_BREAKPOINT,
+    LIR_SETPOS,
 
     /* High level operations */
         /* Stack */
@@ -156,18 +157,19 @@ typedef enum {
 } lir_operation_t;
 
 typedef enum {
-    LIR_REGISTER,   /* physical register */
-    LIR_STVARIABLE, /* stack variable    */
-    LIR_VARIABLE,   /* virtual register  */
-    LIR_GLVARIABLE, /* allocated memory  */
-    LIR_CONSTVAL,   /* constant value    */
-    LIR_NUMBER,     /* constant value    */
-    LIR_LABEL,      /* ASM label         */
-    LIR_RAWASM,     /* ASM line of code  */
-    LIR_MEMORY,     /* stack placement   */
-    LIR_FNAME,      /* function name     */
-    LIR_STRING,     /* string            */
-    LIR_ARGLIST,    /* list of LIR subj  */
+    LIR_REGISTER,   /* physical register   */
+    LIR_STVARIABLE, /* stack variable      */
+    LIR_VARIABLE,   /* virtual register    */
+    LIR_GLVARIABLE, /* allocated memory    */
+    LIR_CONSTVAL,   /* constant value      */
+    LIR_NUMBER,     /* constant value      */
+    LIR_LABEL,      /* ASM label           */
+    LIR_RAWASM,     /* ASM line of code    */
+    LIR_MEMORY,     /* stack placement     */
+    LIR_FNAME,      /* function name       */
+    LIR_STRING,     /* string              */
+    LIR_ARGLIST,    /* list of LIR subj    */
+    LIR_FPOS,       /* postion in the file */
 } lir_subject_type_t;
 
 /* This is the main register's enum.

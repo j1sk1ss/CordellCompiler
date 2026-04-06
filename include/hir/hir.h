@@ -1,6 +1,7 @@
 #ifndef HIR_H_
 #define HIR_H_
 
+#include <position.h>
 #include <std/mm.h>
 #include <std/mem.h>
 #include <std/str.h>
@@ -38,25 +39,19 @@ typedef struct {
 } hir_list_t;
 
 typedef struct {
-    long      line;
-    long      column;
-    string_t* file;
-} hir_fpos_t;
-
-typedef struct {
-    struct hir_block*  home;  /* Home HIR block          */
-    unsigned long      hash;  /* Subject's hash          */
-    unsigned long      id;    /* Subject's ID            */
-    hir_subject_type_t t;     /* Subject's type          */
-    int                ptr;   /* Subject reference level */
+    unsigned long       id;    /* Subject's ID            */
+    struct hir_block*   home;  /* Home HIR block          */
+    unsigned long       hash;  /* Subject's hash          */
+    hir_subject_type_t  t;     /* Subject's type          */
+    int                 ptr;   /* Subject reference level */
     union {
-        hir_string_t   str;
-        hir_constant_t cnst;
-        hir_number_t   num;
-        hir_variable_t var;
-        hir_set_t      set;
-        hir_list_t     list;
-        hir_fpos_t     pos;
+        hir_string_t    str;
+        hir_constant_t  cnst;
+        hir_number_t    num;
+        hir_variable_t  var;
+        hir_set_t       set;
+        hir_list_t      list;
+        file_position_t pos;
     } storage;
 } hir_subject_t;
 
@@ -71,7 +66,7 @@ typedef struct hir_block {
 } hir_block_t;
 
 typedef struct {
-    hir_fpos_t       pos;           /* Current pos in a file                   */
+    file_position_t  pos;           /* Current pos in a file                   */
     struct {
         hir_block_t* h;             /* Current HIR head                        */
         hir_block_t* t;             /* Current HIR tail                        */
