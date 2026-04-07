@@ -114,7 +114,9 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
     };
 
     defined_variable_t di;
-    _resolve_subject_value(s, smt, &di);
+    if (!_resolve_subject_value(s, smt, &di)) {
+        return 1;
+    }
 
     queue_t work_vars;
     queue_init(&work_vars);
@@ -252,57 +254,57 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
     }
 
     switch (t) {
-        case HIR_STKVARSTR:  buffer += snprintf(buffer, buffer_size, "strs"); break;
-        case HIR_STKVARARR:  buffer += snprintf(buffer, buffer_size, "arrs"); break;
-        case HIR_STKVARF64:  buffer += snprintf(buffer, buffer_size, "f64s"); break;
-        case HIR_STKVARU64:  buffer += snprintf(buffer, buffer_size, "u64s"); break;
-        case HIR_STKVARI64:  buffer += snprintf(buffer, buffer_size, "i64s"); break;
-        case HIR_STKVARF32:  buffer += snprintf(buffer, buffer_size, "f32s"); break;
-        case HIR_STKVARU32:  buffer += snprintf(buffer, buffer_size, "u32s"); break;
-        case HIR_STKVARI32:  buffer += snprintf(buffer, buffer_size, "i32s"); break;
-        case HIR_STKVARU16:  buffer += snprintf(buffer, buffer_size, "u16s"); break;
-        case HIR_STKVARI16:  buffer += snprintf(buffer, buffer_size, "i16s"); break;
-        case HIR_STKVARU8:   buffer += snprintf(buffer, buffer_size, "u8s");  break;
-        case HIR_STKVARI8:   buffer += snprintf(buffer, buffer_size, "i8s");  break;
-        case HIR_STKVARI0:   buffer += snprintf(buffer, buffer_size, "i0s");  break;
-        case HIR_TMPVARSTR:  buffer += snprintf(buffer, buffer_size, "strt"); break;
-        case HIR_TMPVARARR:  buffer += snprintf(buffer, buffer_size, "arrt"); break;
-        case HIR_TMPVARF64:  buffer += snprintf(buffer, buffer_size, "f64t"); break;
-        case HIR_TMPVARU64:  buffer += snprintf(buffer, buffer_size, "u64t"); break;
-        case HIR_TMPVARI64:  buffer += snprintf(buffer, buffer_size, "i64t"); break;
-        case HIR_TMPVARF32:  buffer += snprintf(buffer, buffer_size, "f32t"); break;
-        case HIR_TMPVARU32:  buffer += snprintf(buffer, buffer_size, "u32t"); break;
-        case HIR_TMPVARI32:  buffer += snprintf(buffer, buffer_size, "i32t"); break;
-        case HIR_TMPVARU16:  buffer += snprintf(buffer, buffer_size, "u16t"); break;
-        case HIR_TMPVARI16:  buffer += snprintf(buffer, buffer_size, "i16t"); break;
-        case HIR_TMPVARU8:   buffer += snprintf(buffer, buffer_size, "u8t");  break;
-        case HIR_TMPVARI8:   buffer += snprintf(buffer, buffer_size, "i8t");  break;
-        case HIR_TMPVARI0:   buffer += snprintf(buffer, buffer_size, "i0t");  break;
-        case HIR_GLBVARSTR:  buffer += snprintf(buffer, buffer_size, "strg"); break;
-        case HIR_GLBVARARR:  buffer += snprintf(buffer, buffer_size, "arrg"); break;
-        case HIR_GLBVARF64:  buffer += snprintf(buffer, buffer_size, "f64g"); break;
-        case HIR_GLBVARU64:  buffer += snprintf(buffer, buffer_size, "u64g"); break;
-        case HIR_GLBVARI64:  buffer += snprintf(buffer, buffer_size, "i64g"); break;
-        case HIR_GLBVARF32:  buffer += snprintf(buffer, buffer_size, "f32g"); break;  
-        case HIR_GLBVARU32:  buffer += snprintf(buffer, buffer_size, "u32g"); break;
-        case HIR_GLBVARI32:  buffer += snprintf(buffer, buffer_size, "i32g"); break;
-        case HIR_GLBVARU16:  buffer += snprintf(buffer, buffer_size, "u16g"); break;
-        case HIR_GLBVARI16:  buffer += snprintf(buffer, buffer_size, "i16g"); break;
-        case HIR_GLBVARU8:   buffer += snprintf(buffer, buffer_size, "u8g");  break;
-        case HIR_GLBVARI8:   buffer += snprintf(buffer, buffer_size, "i8g");  break;
-        case HIR_GLBVARI0:   buffer += snprintf(buffer, buffer_size, "i0g");  break;
-        case HIR_F64NUMBER:  buffer += snprintf(buffer, buffer_size, "f64n"); break;
-        case HIR_I64NUMBER:  buffer += snprintf(buffer, buffer_size, "i64n"); break;
-        case HIR_U64NUMBER:  buffer += snprintf(buffer, buffer_size, "u64n"); break;
-        case HIR_F32NUMBER:  buffer += snprintf(buffer, buffer_size, "f32n"); break;
-        case HIR_I32NUMBER:  buffer += snprintf(buffer, buffer_size, "i32n"); break;
-        case HIR_U32NUMBER:  buffer += snprintf(buffer, buffer_size, "u32n"); break;
-        case HIR_I16NUMBER:  buffer += snprintf(buffer, buffer_size, "i16n"); break;
-        case HIR_U16NUMBER:  buffer += snprintf(buffer, buffer_size, "u16n"); break;  
-        case HIR_I8NUMBER:   buffer += snprintf(buffer, buffer_size, "i8n");  break;
-        case HIR_U8NUMBER:   buffer += snprintf(buffer, buffer_size, "u8n");  break;
-        case HIR_NUMBER:     buffer += snprintf(buffer, buffer_size, "num?"); break;
-        case HIR_CONSTVAL:   buffer += snprintf(buffer, buffer_size, "cnt?"); break;
+        case HIR_STKVARSTR:
+        case HIR_TMPVARSTR:
+        case HIR_GLBVARSTR:  buffer += snprintf(buffer, buffer_size, "str"); break;
+        case HIR_GLBVARARR:
+        case HIR_STKVARARR:
+        case HIR_TMPVARARR:  buffer += snprintf(buffer, buffer_size, "arr"); break;
+        case HIR_STKVARF64:
+        case HIR_TMPVARF64:
+        case HIR_F64NUMBER:
+        case HIR_GLBVARF64:  buffer += snprintf(buffer, buffer_size, "f64"); break;
+        case HIR_STKVARU64:
+        case HIR_TMPVARU64:
+        case HIR_U64NUMBER:
+        case HIR_GLBVARU64:  buffer += snprintf(buffer, buffer_size, "u64"); break;
+        case HIR_STKVARI64:
+        case HIR_TMPVARI64:
+        case HIR_I64NUMBER:
+        case HIR_GLBVARI64:  buffer += snprintf(buffer, buffer_size, "i64"); break;
+        case HIR_STKVARF32:
+        case HIR_TMPVARF32:
+        case HIR_F32NUMBER:
+        case HIR_GLBVARF32:  buffer += snprintf(buffer, buffer_size, "f32"); break;  
+        case HIR_STKVARU32:
+        case HIR_TMPVARU32:
+        case HIR_U32NUMBER:
+        case HIR_GLBVARU32:  buffer += snprintf(buffer, buffer_size, "u32"); break;
+        case HIR_STKVARI32:
+        case HIR_TMPVARI32:
+        case HIR_I32NUMBER:
+        case HIR_GLBVARI32:  buffer += snprintf(buffer, buffer_size, "i32"); break;
+        case HIR_STKVARU16:
+        case HIR_GLBVARU16:
+        case HIR_U16NUMBER:  
+        case HIR_TMPVARU16:  buffer += snprintf(buffer, buffer_size, "u16"); break;
+        case HIR_GLBVARI16:
+        case HIR_TMPVARI16: 
+        case HIR_I16NUMBER:
+        case HIR_STKVARI16:  buffer += snprintf(buffer, buffer_size, "i16"); break;
+        case HIR_GLBVARU8: 
+        case HIR_STKVARU8: 
+        case HIR_U8NUMBER:
+        case HIR_TMPVARU8:   buffer += snprintf(buffer, buffer_size, "u8");  break;
+        case HIR_STKVARI8:
+        case HIR_GLBVARI8:
+        case HIR_I8NUMBER:
+        case HIR_TMPVARI8:   buffer += snprintf(buffer, buffer_size, "i8");  break;
+        case HIR_STKVARI0: 
+        case HIR_TMPVARI0:
+        case HIR_GLBVARI0:   buffer += snprintf(buffer, buffer_size, "i0");  break;
+        case HIR_NUMBER:     buffer += snprintf(buffer, buffer_size, "num"); break;
+        case HIR_CONSTVAL:   buffer += snprintf(buffer, buffer_size, "cnt"); break;
         default: break;
     }
 
@@ -354,7 +356,7 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     }
 
     if (!TRACE_is_empty(&trace)) {
-        TRACE_add_location(&trace, &curr_loc, "Function %s has some arguments, which have wrong type! Consider to use the 'as' operator!");
+        TRACE_add_location(&trace, &curr_loc, "Function '%s' has some arguments, which have wrong type! Consider to use the 'as' operator!", fi.name->body);
     }
 
     mm_free(hir_args);

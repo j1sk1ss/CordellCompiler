@@ -9,16 +9,15 @@ start() {
 }
 
 :/ OUTPUT
-#
-[WARNING] [3{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [3{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [3{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [3{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [3{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
-          [3{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [3{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [3{X}]     Variable 'tmp' declared as a constant here!
-#
-[WARNING] [{X}] Possible NULL-dereference error (variable 'a' is NULL)!
-          [{X}]     Variable 'a' becomes NULL-value
+[WARNING] [3:15] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [3:15]     Variable 'tmp' declared as a constant here!
+[WARNING] [3:15] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [3:15]     Variable 'tmp' declared as a constant here!
+[WARNING] [3:15] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
+          [3:15]     Variable 'tmp' declared as a constant here!
+[WARNING] [3:15] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [3:15]     Variable 'tmp' declared as a constant here!
+[WARNING] [8:13] Possible NULL-dereference error (variable 'a' is NULL)!
+          [6:23]     Variable 'a' becomes NULL-value
+          [8:13]     Variable 'a' is assigned with the 'a' here
 /:
