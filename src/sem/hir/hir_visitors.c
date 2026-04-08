@@ -311,6 +311,36 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
     return 1;
 }
 
+int HIRWLKR_wrong_ret_type(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    
+    func_info_t fi;
+    if (!FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)) {
+        return 1;
+    }
+
+    trace_t trace;
+    TRACE_init_trace(&trace);
+    trace_location_t curr_loc = { 
+        .column = ctx->curr_location.column, .file = ctx->curr_location.file, .line = ctx->curr_location.line 
+    };
+
+    char received[64], expected[64];
+    _create_type_name(HIR_get_tmptype_tkn(fi.rtype->t, 0), fi.rtype->t->flags.ptr, expected, sizeof(expected));
+    _create_type_name(b->farg->t, b->farg->ptr, received, sizeof(received));
+
+    if (
+        HIR_get_tmptype_tkn(fi.rtype, 0) != b->farg->t ||
+        fi.rtype->t->flags.ptr != b->farg->ptr
+    ) TRACE_add_location(
+        &trace, &curr_loc, "Function call of the '%s' function returns '%s' type, but is stored as the '%s' type!",
+        fi.name->body, received, expected
+    );
+
+    _print_trace(&trace);
+    return 1;
+}
+
 int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     
