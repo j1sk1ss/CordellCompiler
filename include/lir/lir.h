@@ -9,6 +9,7 @@
 #include <std/list.h>
 #include <std/stack.h>
 #include <std/stackmap.h>
+#include <symtab/symtab_id.h>
 #include <lir/lir_types.h>
 
 typedef struct {
@@ -18,7 +19,7 @@ typedef struct {
 typedef struct {
     lir_registers_t base;
     int             offset;
-    long            v_id;
+    symbol_id_t     v_id;
 } lir_variable_t;
 
 typedef struct {
@@ -35,8 +36,8 @@ typedef struct {
 } lir_label_t;
 
 typedef struct {
-    char rel : 1;
-    long sid;
+    char        rel : 1;
+    symbol_id_t sid;
 } lir_str_t;
 
 typedef struct {

@@ -86,6 +86,6 @@ lir_operation_t get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* 
 
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt);
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt);
-int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx);
+int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt);
 
 #endif

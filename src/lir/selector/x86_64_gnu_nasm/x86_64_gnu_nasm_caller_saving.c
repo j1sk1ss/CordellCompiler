@@ -101,7 +101,7 @@ static cfg_func_t* _find_function(symbol_id_t f_id, cfg_ctx_t* cctx) {
     return NULL;
 }
 
-int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
+int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
@@ -115,8 +115,22 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx) {
                         
                         _visit_counter++;
 
-                        symbol_id_t f_id = lh->farg->t == LIR_FNAME ? lh->farg->storage.str.sid : NO_SYMBOL_ID;
-                        _collect_in_function_reg_usage(&func_regs, _find_function(f_id, cctx));
+                        cfg_func_t* func = NULL;
+                        if (lh->farg->t == LIR_VARIABLE) {
+                            set_t funcs;
+                            ALLIAS_get_slaves(lh->farg->storage.var.v_id, &funcs, &smt->m);
+                            set_foreach (symbol_id_t slave_id, &funcs) {
+                                func = _find_function(slave_id, cctx);
+                                if (func) break;
+                            }
+
+                            set_free(&funcs);
+                        }
+                        else if (lh->farg->t == LIR_FNAME) {
+                            func = _find_function(lh->farg->storage.str.sid, cctx);
+                        }
+
+                        _collect_in_function_reg_usage(&func_regs, func);
                         _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh);
 
                         set_foreach (long reg, &save_regs) {

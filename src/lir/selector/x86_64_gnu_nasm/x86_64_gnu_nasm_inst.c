@@ -106,7 +106,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
                     case LIR_SYSC: {
-                        foreach (lir_registers_t rest, &syscall_regs) {
+                        foreach (long rest, &syscall_regs) {
                             LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(rest, 8), NULL, NULL), lh);
                         }
 

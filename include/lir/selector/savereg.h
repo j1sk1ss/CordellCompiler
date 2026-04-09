@@ -8,9 +8,9 @@
 #include <lir/lir_types.h>
 
 typedef struct {
-    int (*save_registers)(cfg_ctx_t*);
+    int (*save_registers)(cfg_ctx_t*, sym_table_t*);
 } register_saver_t;
 
-int LIR_save_registers(cfg_ctx_t* cctx, register_saver_t* selector);
+int LIR_save_registers(cfg_ctx_t* cctx, sym_table_t* smt, register_saver_t* selector);
 
 #endif

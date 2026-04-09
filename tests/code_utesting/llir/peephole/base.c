@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     printf("=== BEFORE ===\n");
     lir_block_t* lh = lirctx.h;
     while (lh) {
-        if (!lh->unused) print_lir_block(lh, &smt);
+        if (!lh->unused) print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     printf("\n=== AFTER ===\n");
     lh = lirctx.h;
     while (lh) {
-        if (!lh->unused) print_lir_block(lh, &smt);
+        if (!lh->unused) print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 

@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 
     lir_block_t* lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, &smt);
+        print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 
