@@ -116,7 +116,8 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
                         _visit_counter++;
 
                         cfg_func_t* func = NULL;
-                        if (lh->farg->t == LIR_VARIABLE) {
+                        if (lh->farg->t == LIR_FNAME) func = _find_function(lh->farg->storage.str.sid, cctx);
+                        else if (lh->farg->t == LIR_VARIABLE) {
                             set_t funcs;
                             ALLIAS_get_slaves(lh->farg->storage.var.v_id, &funcs, &smt->m);
                             set_foreach (symbol_id_t slave_id, &funcs) {
@@ -125,9 +126,6 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
                             }
 
                             set_free(&funcs);
-                        }
-                        else if (lh->farg->t == LIR_FNAME) {
-                            func = _find_function(lh->farg->storage.str.sid, cctx);
                         }
 
                         _collect_in_function_reg_usage(&func_regs, func);
