@@ -5,10 +5,10 @@ int TRACE_init_trace(trace_t* trace) {
     return 1;
 }
 
-static trace_message_t* _create_trace_message(trace_location_t* loc, const char* text) {
+static trace_message_t* _create_trace_message(file_position_t* loc, const char* text) {
     trace_message_t* msg = (trace_message_t*)mm_malloc(sizeof(trace_message_t));
     if (!msg) return NULL;
-    str_memcpy(&msg->location, loc, sizeof(trace_location_t));
+    str_memcpy(&msg->location, loc, sizeof(file_position_t));
     msg->message = create_string(text);
     return msg;
 }
@@ -19,7 +19,7 @@ static int _unload_trace_message(trace_message_t* msg) {
     return 1;
 }
 
-int TRACE_add_location(trace_t* trace, trace_location_t* loc, char* fmt, ...) {
+int TRACE_add_location(trace_t* trace, file_position_t* loc, char* fmt, ...) {
     char buffer[512] = { 0 };
     va_list args;
     va_start(args, fmt);

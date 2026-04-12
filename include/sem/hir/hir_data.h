@@ -19,18 +19,10 @@ typedef enum {
 } hir_instruction_type_t;
 
 typedef struct {
-    struct {
-        string_t* file;
-        long      column;
-        long      line;
-    } prev_location;
-    struct {
-        string_t* file;        /* Current file name                                  */
-        long      column;      /* Current column in the file                         */
-        long      line;        /* Current line in the file                           */
-    } curr_location;
-    map_t         definitions; /* map of id:list, possible definitions of a variable */
-    dag_ctx_t*    dctx;
+    file_position_t prev_location;
+    file_position_t curr_location;
+    map_t           definitions; /* map of id:list, possible definitions of a variable */
+    dag_ctx_t*      dctx;
 } hir_visitors_ctx_t;
 
 #define HIR_VISITOR_ARGS     hir_block_t* b, cfg_block_t* bb, sym_table_t* smt, hir_visitors_ctx_t* ctx

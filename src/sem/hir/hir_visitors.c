@@ -1,6 +1,6 @@
 #include <sem/hir/hir_visitors.h>
 
-static inline char* _format_location(trace_location_t* loc) {
+static inline char* _format_location(file_position_t* loc) {
     static char buff[256] = { 0 };
     if (loc->file) snprintf(buff, sizeof(buff), "[%s:%li:%li]", loc->file->body, loc->line, loc->column);
     else snprintf(buff, sizeof(buff), "[%li:%li]", loc->line, loc->column);
@@ -32,10 +32,8 @@ static int _print_trace(trace_t* t) {
 
 int HIRWLKR_visit_setpos_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
-    str_memcpy(&ctx->prev_location, &ctx->curr_location, sizeof(ctx->curr_location));
-    ctx->curr_location.column = b->farg->storage.pos.column;
-    ctx->curr_location.line   = b->farg->storage.pos.line;
-    ctx->curr_location.file   = b->farg->storage.pos.file;
+    str_memcpy(&ctx->prev_location, &ctx->curr_location, sizeof(file_position_t));
+    str_memcpy(&ctx->curr_location, &b->farg->storage.pos, sizeof(file_position_t));
     return 1;
 }
 
@@ -83,7 +81,7 @@ static int _resolve_subject_value(hir_subject_t* s, sym_table_t* smt, defined_va
     return 1;
 }
 
-static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_id, trace_location_t* loc) {
+static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_id, file_position_t* loc) {
     int found = 0;
     while (b) {
         if (found && b->op == HIR_SETPOS) {
@@ -108,11 +106,13 @@ static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_i
     return found;
 }
 
-static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
-    trace_location_t curr_loc = { 
-        .column = ctx->curr_location.column, .file = ctx->curr_location.file, .line = ctx->curr_location.line 
-    };
+static inline symbol_id_t _get_parent_id(symbol_id_t v_id, sym_table_t* smt) {
+    variable_info_t vi;
+    if (VRTB_get_info_id(v_id, &vi, &smt->v)) return vi.p_id;
+    return NO_SYMBOL_ID;
+}
 
+static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
     defined_variable_t di;
     if (!_resolve_subject_value(s, smt, &di)) {
         return 1;
@@ -125,21 +125,21 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
     TRACE_init_trace(&trace);
 
     switch (di.defined_value) {
-        /* Number defined */
+        /* Number defined   */
         case 1: {
-            if (!di.const_value) TRACE_add_location(&trace, &curr_loc, "NULL-dereference error!");
+            if (!di.const_value) TRACE_add_location(&trace, &ctx->curr_location, "NULL-dereference error!");
             break;
         }
         /* Variable defined */
         case 2: {
             if (!di.const_value) {
-                trace_location_t loc;
+                file_position_t loc;
                 _sparce_find_variable_define_location(hb, s->storage.var.v_id, &loc);
                 TRACE_add_location(
                     &trace, &loc, "Variable '%s' is assigned with NULL here", 
                     _resolve_variable_name(s->storage.var.v_id, smt)
                 );
-                TRACE_add_location(&trace, &curr_loc,
+                TRACE_add_location(&trace, &ctx->curr_location,
                     "NULL-dereference error (variable '%s' is NULL)!", 
                     _resolve_variable_name(s->storage.var.v_id, smt)
                 );
@@ -163,9 +163,11 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
     while (queue_pop(&work_vars, (void**)&v_id)) {
         list_t* possible_definitions;
         if (map_get(&ctx->definitions, (long)v_id, (void**)&possible_definitions)) {
-            trace_location_t loc;
+            file_position_t loc;
             _sparce_find_variable_define_location(hb, prev_id, &loc);
-            TRACE_add_location(
+            if (
+                _get_parent_id(prev_id, smt) != _get_parent_id(v_id, smt)
+            ) TRACE_add_location(
                 &trace, &loc, "Variable '%s' is assigned with the '%s' here", 
                 _resolve_variable_name(prev_id, smt), _resolve_variable_name(v_id, smt)
             );
@@ -185,7 +187,7 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
             else {
                 if (!vi.vdi.definition) {
                     res = 0;
-                    trace_location_t loc;
+                    file_position_t loc;
                     _sparce_find_variable_define_location(hb, vi.v_id, &loc);
                     TRACE_add_location(&trace, &loc, "Variable '%s' becomes NULL-value", vi.name->body);
                 }
@@ -195,8 +197,12 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
 
     if (res) TRACE_unload_trace(&trace);
     else {
-        trace_location_t loc = { .column = ctx->curr_location.column, .file = ctx->curr_location.file, .line = ctx->curr_location.line };
-        TRACE_add_location(&trace, &loc, "Possible NULL-dereference error (variable '%s' is NULL)!", _resolve_variable_name(s->storage.var.v_id, smt));
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "Possible NULL-dereference error (variable '%s' is NULL)!", 
+            _resolve_variable_name(s->storage.var.v_id, smt)
+        );
+
         _print_trace(&trace);
     }
 
@@ -220,23 +226,19 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     trace_t trace;
     TRACE_init_trace(&trace);
 
-    trace_location_t curr_loc = { 
-        .column = ctx->curr_location.column, .file = ctx->curr_location.file, .line = ctx->curr_location.line 
-    };
-
     defined_variable_t di;
     if (!_resolve_subject_value(b->farg, smt, &di)) {
         return 1;
     }
 
     switch (di.defined_value) {
-        case 1: TRACE_add_location(&trace, &curr_loc, "'If' with a constant value '%s'!", di.const_value ? "true" : "false"); break;
+        case 1: TRACE_add_location(&trace, &ctx->curr_location, "'If' with a constant value '%s'!", di.const_value ? "true" : "false"); break;
         case 2: {
-            trace_location_t loc;
+            file_position_t loc;
             _sparce_find_variable_define_location(b, b->farg->storage.var.v_id, &loc);
             TRACE_add_location(&trace, &loc, "Variable '%s' declared as a constant here!", _resolve_variable_name(b->farg->storage.var.v_id, smt));
             TRACE_add_location(
-                &trace, &curr_loc, "Condition with a constant value (variable '%s' is equals '%s' (%i))!", 
+                &trace, &ctx->curr_location, "Condition with a constant value (variable '%s' is equals '%s' (%i))!", 
                 _resolve_variable_name(b->farg->storage.var.v_id, smt), di.const_value ? "true" : "false", di.const_value
             ); 
             break;
@@ -311,36 +313,6 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
     return 1;
 }
 
-int HIRWLKR_wrong_ret_type(HIR_VISITOR_ARGS) {
-    HIR_VISITOR_ARGS_USE;
-    
-    func_info_t fi;
-    if (!FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)) {
-        return 1;
-    }
-
-    trace_t trace;
-    TRACE_init_trace(&trace);
-    trace_location_t curr_loc = { 
-        .column = ctx->curr_location.column, .file = ctx->curr_location.file, .line = ctx->curr_location.line 
-    };
-
-    char received[64], expected[64];
-    _create_type_name(HIR_get_tmptype_tkn(fi.rtype->t, 0), fi.rtype->t->flags.ptr, expected, sizeof(expected));
-    _create_type_name(b->farg->t, b->farg->ptr, received, sizeof(received));
-
-    if (
-        HIR_get_tmptype_tkn(fi.rtype, 0) != b->farg->t ||
-        fi.rtype->t->flags.ptr != b->farg->ptr
-    ) TRACE_add_location(
-        &trace, &curr_loc, "Function call of the '%s' function returns '%s' type, but is stored as the '%s' type!",
-        fi.name->body, received, expected
-    );
-
-    _print_trace(&trace);
-    return 1;
-}
-
 int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     
@@ -351,9 +323,6 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
 
     trace_t trace;
     TRACE_init_trace(&trace);
-    trace_location_t curr_loc = { 
-        .column = ctx->curr_location.column, .file = ctx->curr_location.file, .line = ctx->curr_location.line 
-    };
 
     int arg_index = 0;
     hir_subject_t** hir_args = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
@@ -369,13 +338,20 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
             if (HIR_is_defined_type(hir_args[arg_index]->t)) {
                 defined_variable_t di;
                 if (!_resolve_subject_value(hir_args[arg_index], smt, &di)) continue;
-                TRACE_add_location(&trace, &curr_loc, "Value '%ld' has the '%s' type! Consider the 'as %s' command!", di.const_value, received, expected);
+                TRACE_add_location(
+                    &trace, &ctx->curr_location, 
+                    "Value '%ld' has the '%s' type! Consider the 'as %s' command!", di.const_value, received, expected
+                );
             }
             else {
                 variable_info_t vi;
                 if (!VRTB_get_info_id(hir_args[arg_index]->storage.var.v_id, &vi, &smt->v)) continue;
-                TRACE_add_location(&trace, &curr_loc, "Variable '%s' has the '%s' type! Consider the 'as %s' command!", vi.name->body, received, expected);
-                trace_location_t loc;
+                TRACE_add_location(
+                    &trace, &ctx->curr_location, 
+                    "Variable '%s' has the '%s' type! Consider the 'as %s' command!", vi.name->body, received, expected
+                );
+
+                file_position_t loc;
                 _sparce_find_variable_define_location(b, hir_args[arg_index]->storage.var.v_id, &loc);
                 TRACE_add_location(&trace, &loc, "Variable '%s' declared here!", vi.name->body);
             }
@@ -386,7 +362,10 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     }
 
     if (!TRACE_is_empty(&trace)) {
-        TRACE_add_location(&trace, &curr_loc, "Function '%s' has some arguments, which have wrong type! Consider to use the 'as' operator!", fi.name->body);
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "Function '%s' has some arguments, which have wrong type! Consider to use the 'as' operator!", fi.name->body
+        );
     }
 
     mm_free(hir_args);
