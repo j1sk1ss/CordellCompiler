@@ -1,6 +1,14 @@
 import json
 from collections import defaultdict
-from ordered_set import OrderedSet
+try:
+    from ordered_set import OrderedSet
+except ImportError:
+    class OrderedSet(dict):
+        def add(self, item):
+            self[item] = None
+        def __iter__(self):
+            return iter(self.keys())
+
 from src.pattern import (
     Operand, OperandType, Instruction, Pattern
 )
@@ -98,6 +106,11 @@ class CodeGenerator:
 
     def _arg_ptrs(self, base_ptr: str) -> list[str]:
         return [self._arg_ptr(base_ptr, i) for i in range(3)]
+
+    def _instr_ptr(self, instr_idx: int) -> str:
+        if instr_idx == 0:
+            return "lh"
+        return f"{self.gen_info.get('functions').get('next')}(lh, bb->lmap.exit, {instr_idx})"
 
     def _first_explicit_operand_index(self, instr: Instruction) -> int:
         return self._used_args_count(instr)
@@ -251,6 +264,35 @@ class CodeGenerator:
             source_map[var_name] = temp_name
         return source_map
 
+    def _build_full_match_var_map(self, pattern: Pattern) -> dict[str, str]:
+        merged: dict[str, str] = {}
+        for i, instr in enumerate(pattern.match):
+            if not instr.operands:
+                continue
+            base_ptr = "lh" if i == 0 else f"{self.gen_info.get('functions').get('next')}(lh, bb->lmap.exit, {i})"
+            current = self._setup_var_map_for_instruction(instr, base_ptr)
+            for var_name, ptr_expr in current.items():
+                if var_name not in merged:
+                    merged[var_name] = ptr_expr
+        return merged
+
+    def _replacement_opcode_expr(self, pattern: Pattern, replace_instr: Instruction, replace_idx: int = 0) -> str:
+        replace_lir: list[str] = self.PTRN_TO_LIR.get(replace_instr.mnemonic, [])
+        if not replace_lir:
+            raise ValueError(f"Mnemonic {replace_instr.mnemonic} not found!")
+
+        if len(replace_lir) == 1:
+            return replace_lir[0]
+
+        if replace_idx < len(pattern.match) and pattern.match[replace_idx].mnemonic == replace_instr.mnemonic:
+            return f"{self._instr_ptr(replace_idx)}->op"
+
+        for i, instr in enumerate(pattern.match):
+            if instr.mnemonic == replace_instr.mnemonic:
+                return f"{self._instr_ptr(i)}->op"
+
+        return replace_lir[0]
+
     def _apply_actions(self, pattern: Pattern) -> list[str]:
         action_lines: list[str] = []
         free_fn = self.gen_info.get("functions", {}).get("free")
@@ -344,63 +386,55 @@ class CodeGenerator:
         if not pattern.replace:
             return action_lines
 
-        if pattern.replace[0].mnemonic == "delete":
+        if len(pattern.replace) == 1 and pattern.replace[0].mnemonic == "delete":
             for i in range(len(pattern.match)):
-                if i == 0:
-                    action_lines.append("lh->unused = 1;")
-                else:
-                    action_lines.append(
-                        f"{self.gen_info.get('functions').get('next')}(lh, bb->lmap.exit, {i})->unused = 1;"
-                    )
+                action_lines.append(f"{self._instr_ptr(i)}->unused = 1;")
             return action_lines
 
-        replace_instr: Instruction = pattern.replace[0]
-        replace_lir: list[str] = self.PTRN_TO_LIR.get(replace_instr.mnemonic, [])
-        if not replace_lir:
-            raise ValueError(f"Mnemonic {replace_instr.mnemonic} not found!")
-
-        action_lines.append(f"lh->op = {replace_lir[0]};")
-        match_var_map = self._setup_var_map_for_instruction(pattern.match[0], "lh")
+        match_var_map = self._build_full_match_var_map(pattern)
         source_var_map = self._capture_match_sources(action_lines, match_var_map)
         free_fn = self.gen_info.get("functions", {}).get("free")
-        assigned_ptrs: set[str] = set()
 
-        for i, operand in enumerate(replace_instr.operands):
-            if not operand or i >= 3:
-                continue
-            if i < self._first_explicit_operand_index(replace_instr):
-                continue
+        for rep_idx, replace_instr in enumerate(pattern.replace):
+            base_ptr = self._instr_ptr(rep_idx)
+            opcode_expr = self._replacement_opcode_expr(pattern, replace_instr, rep_idx)
+            action_lines.append(f"{base_ptr}->op = {opcode_expr};")
 
-            dest_ptr = self._arg_ptr("lh", i)
-            self._assign_operand_value(
-                action_lines,
-                dest_ptr,
-                operand,
-                source_var_map,
-                "lh",
-                free_fn,
-                assigned_ptrs,
-            )
+            assigned_ptrs: set[str] = set()
+            for i, operand in enumerate(replace_instr.operands):
+                if not operand or i >= 3:
+                    continue
+                if i < self._first_explicit_operand_index(replace_instr):
+                    continue
 
-        for hidden_idx, explicit_idx in self._hidden_alias_pairs(replace_instr):
-            explicit_operand = replace_instr.operands[explicit_idx]
-            if explicit_operand is None:
-                continue
-            hidden_ptr = self._arg_ptr("lh", hidden_idx)
-            self._assign_operand_value(
-                action_lines,
-                hidden_ptr,
-                explicit_operand,
-                source_var_map,
-                "lh",
-                free_fn,
-                assigned_ptrs,
-            )
+                dest_ptr = self._arg_ptr(base_ptr, i)
+                self._assign_operand_value(
+                    action_lines,
+                    dest_ptr,
+                    operand,
+                    source_var_map,
+                    base_ptr,
+                    free_fn,
+                    assigned_ptrs,
+                )
 
-        for i in range(1, len(pattern.match)):
-            action_lines.append(
-                f"{self.gen_info.get('functions').get('next')}(lh, bb->lmap.exit, {i})->unused = 1;"
-            )
+            for hidden_idx, explicit_idx in self._hidden_alias_pairs(replace_instr):
+                explicit_operand = replace_instr.operands[explicit_idx]
+                if explicit_operand is None:
+                    continue
+                hidden_ptr = self._arg_ptr(base_ptr, hidden_idx)
+                self._assign_operand_value(
+                    action_lines,
+                    hidden_ptr,
+                    explicit_operand,
+                    source_var_map,
+                    base_ptr,
+                    free_fn,
+                    assigned_ptrs,
+                )
+
+        for i in range(len(pattern.replace), len(pattern.match)):
+            action_lines.append(f"{self._instr_ptr(i)}->unused = 1;")
 
         action_lines.extend(self._apply_actions(pattern))
         return action_lines

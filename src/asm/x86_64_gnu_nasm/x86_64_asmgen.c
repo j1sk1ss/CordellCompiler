@@ -1,6 +1,7 @@
 #include <asm/x86_64_asmgen.h>
 
 static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_table_t* smt, FILE* output) {
+    if (b->unused) return 1;
     switch (b->op) {
         case LIR_FCLL:
         case LIR_ECLL: EMIT_COMMAND("call %s\n", format_lir_subject(b->farg, smt, NO_FLAG)); break;

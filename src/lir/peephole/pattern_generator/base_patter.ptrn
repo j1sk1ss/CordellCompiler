@@ -101,6 +101,12 @@ xor areg_1, areg_1
 ; CMP patterns
 ; ==================
 
+mov areg_1, areg_2
+cmp areg_1, obj_3
+->
+cmp areg_2, obj_3
+/
+
 cmp areg_1, const 0
 ->
 test areg_1, areg_1

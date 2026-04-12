@@ -248,21 +248,23 @@ class PTRNParser:
             replace_instrs: list[Instruction] = []
             
             rhs_lines = rhs_text.strip().split("\n")
-            for i, line in enumerate(rhs_lines):
+            for line in rhs_lines:
                 line = line.strip()
-                if i == len(rhs_lines) - 1:
-                    cleaned_line, action_items, bracket_type = self._extract_brackets(line)
-                    if line == 'delete':
-                        replace_instrs.append(Instruction(mnemonic='delete', operands=[]))
-                        continue
-                    else:
-                        instr: Instruction = self._parse_instruction(cleaned_line)
-                        
-                    if instr and bracket_type == "do":
-                        self._parse_brackets(action_items, instr, True)
-                        
-                    if instr:
-                        replace_instrs.append(instr)
+                if not line:
+                    continue
+
+                cleaned_line, action_items, bracket_type = self._extract_brackets(line)
+                if cleaned_line == 'delete':
+                    replace_instrs.append(Instruction(mnemonic='delete', operands=[]))
+                    continue
+
+                instr: Instruction = self._parse_instruction(cleaned_line)
+
+                if instr and bracket_type == "do":
+                    self._parse_brackets(action_items, instr, True)
+
+                if instr:
+                    replace_instrs.append(instr)
                         
             patterns.append(Pattern(
                 match=match_instrs,
