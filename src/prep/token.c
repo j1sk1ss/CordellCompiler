@@ -102,7 +102,7 @@ token_t* TKN_create_token(token_type_t type, const char* value, file_position_t*
             break;
         }
         case CHAR_VALUE_TOKEN: {
-            tkn->body = create_string_from_int(input->body[0]);
+            tkn->body   = create_string_from_int(input->body[0]);
             tkn->t_type = UNKNOWN_NUMERIC_TOKEN;
             destroy_string(input);
             break;
@@ -148,6 +148,15 @@ static inline void _reset_tkn_ctx(tkn_ctx_t* ctx) {
         char_type == new                     \
     ) ctx->ttype = res;
 
+static inline int _allowed_character_in_token(char c) {
+    switch (c) {
+        case '\\':
+        case '\'':
+        case '\"': return 0;
+        default: return 1;
+    }
+}
+
 /*
 Give the next token from the provided buffer.
 Params:
@@ -169,14 +178,6 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             ctx->is_pp = 1;
             continue;
         }
-
-        /* Special character logic
-            proceeding. Also, if we encounter backslash,
-            we must skip it. */
-        if (ct == CHAR_BACKSLASH) {
-            ctx->is_spec = !ctx->is_spec;
-            continue;
-        }
         
         if (ctx->is_spec) {
             switch (ch) {
@@ -188,6 +189,14 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             }
             
             ctx->is_spec = !ctx->is_spec;
+        }
+
+        /* Special character logic
+            proceeding. Also, if we encounter backslash,
+            we must skip it. */
+        if (ct == CHAR_BACKSLASH) {
+            ctx->is_spec = !ctx->is_spec;
+            // continue;
         }
 
         /* Markdown routine (quotes and comment flags handler) */
@@ -205,7 +214,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             finfo->line++;
             finfo->column = 1;
         }
-
+        
         /* Read and convert the input character type to a
             defined token type. */
         token_type_t char_type;
@@ -236,7 +245,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
         if (
             ctx->in_token &&                          /* If we're in the token        */
             (
-                char_type == LINE_BREAK_TOKEN ||      /* We've found a break token    */
+                char_type == LINE_BREAK_TOKEN      || /* We've found a break token    */
                 char_type == UNKNOWN_BRACKET_VALUE || /* or unknown token.            */
                 ctx->ttype != char_type               /* Or we've found another char. */
             )
@@ -269,19 +278,21 @@ _force_token_creation: {}
 
         if (char_type == LINE_BREAK_TOKEN) continue;
         if (!ctx->in_token) {
-            ctx->ttype = char_type;
+            ctx->ttype    = char_type;
             ctx->in_token = 1;
         }
 
         if (ctx->token_len + 1 > BUFFER_SIZE) {
-            print_error("Too large token is found!");
+            print_error("Token [t=%.32s...] is too big!", token_buf);
             return NULL;
         }
-
-        token_buf[ctx->token_len++] = ch;
+        
+        if (_allowed_character_in_token(ch)) {
+            token_buf[ctx->token_len++] = ch;
+        }
     }
 
-    if (ctx->in_token) goto _force_token_creation;
+    if (ctx->in_token) goto _force_token_creation; // TODO: Don't force to close a token, check if this the last 
     return NULL;
 }
 
