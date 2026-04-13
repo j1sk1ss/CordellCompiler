@@ -1,4 +1,4 @@
-: RUN_ASM[args="Hello, World!"|args="asd"|args="CooseBay"] :
+: RUN_ASM[args="Hello, world!"|args="My name is Max, and I'm from Oregon!"|args="Meh"] :
 function strlen(ptr i8 s) -> i32 {
     i32 l = 0;
     while dref s; {
@@ -10,17 +10,17 @@ function strlen(ptr i8 s) -> i32 {
 }
 
 start(i32 argc, ptr ptr i8 argv) {
-    syscall(0x2000004, 1, argv[1 as i32], strlen(argv[1 as i32]));
+    exit strlen(argv[1 as i32]) as i8;
 }
 
 :/ OUTPUT
 @case_index=0
-Hello, World!
+@exit_code=13
 ---
 @case_index=1
-asd
+@exit_code=36
 ---
 @case_index=2
-CooseBay
+@exit_code=3
 ---
 /:

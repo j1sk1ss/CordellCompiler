@@ -25,7 +25,7 @@ glob arr buffer[32, i8] = { 0 };
 
 start() {
     itoa(123321, ref buffer, sizeof(buffer) as i32);
-    syscall(0x2000004, 1, ref buffer, sizeof(buffer));
+    syscall(0x2000004, 1, ref buffer, 7);
 }
 
 :/ OUTPUT

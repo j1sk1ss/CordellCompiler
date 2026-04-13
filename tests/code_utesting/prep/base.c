@@ -40,7 +40,6 @@ int main(int argc, char* argv[]) {
 
     MRKP_mnemonics(&tokens);
     MRKP_variables(&tokens);
-
     foreach (token_t* h, &tokens) {
         printf(
             "%sline=%li, type=%i, data=[%s], %s%s\n",
@@ -51,6 +50,7 @@ int main(int argc, char* argv[]) {
             h->flags.ptr  ? "ptr "  : "", 
             h->flags.ro   ? "ro "   : ""
         );
+        fflush(stdout);
     }
 
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);

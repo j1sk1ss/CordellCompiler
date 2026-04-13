@@ -234,6 +234,72 @@ def _normalize_output(text: str) -> str:
             lines.append(line)
     return "\n".join(lines)
 
+def _parse_output_annotations(expected_text: str) -> tuple[str, dict[str, str]]:
+    annotations: dict[str, str] = {}
+    kept_lines: list[str] = []
+
+    for line in expected_text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("@") and "=" in stripped:
+            key, value = stripped[1:].split("=", 1)
+            annotations[key.strip()] = value.strip()
+            continue
+        kept_lines.append(line)
+
+    return "\n".join(kept_lines).rstrip(), annotations
+
+def _parse_output_case_blocks(expected_text: str) -> tuple[dict[int, dict[str, object]] | None, str | None]:
+    if "@case_index=" not in expected_text:
+        return None, None
+
+    blocks_raw = re.split(r"(?m)^---\s*$", expected_text)
+    cases: dict[int, dict[str, object]] = {}
+
+    for block_raw in blocks_raw:
+        block = block_raw.strip()
+        if not block:
+            continue
+
+        block_expected, block_annotations = _parse_output_annotations(block)
+
+        if "case_index" not in block_annotations:
+            return None, "Every case block must contain @case_index=N"
+
+        try:
+            case_index = int(block_annotations["case_index"])
+        except ValueError:
+            return None, f"Invalid @case_index value: {block_annotations['case_index']}"
+
+        if case_index in cases:
+            return None, f"Duplicate @case_index={case_index}"
+
+        cases[case_index] = {
+            "expected": block_expected,
+            "annotations": block_annotations,
+        }
+
+    return cases, None
+
+def _check_single_case(expected_text: str, actual_text: str, annotations: dict[str, str], actual_exit_code: int | None) -> tuple[bool, str | None]:
+    ok, why = _matches_expected(_normalize_output(expected_text), _normalize_output(actual_text))
+
+    if not ok:
+        return False, why
+
+    if "exit_code" in annotations:
+        if actual_exit_code is None:
+            return False, "Annotation @exit_code is supported only for executable runs"
+
+        try:
+            expected_exit_code = int(annotations["exit_code"])
+        except ValueError:
+            return False, f"Invalid @exit_code value: {annotations['exit_code']}"
+
+        if actual_exit_code != expected_exit_code:
+            return False, f"Exit code mismatch: expected {expected_exit_code}, actual {actual_exit_code}"
+
+    return True, None
+
 def _rewrite_test_output(path: Path, actual_output: str) -> None:
     text = path.read_text(encoding="utf-8")
 
@@ -337,6 +403,8 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         "run_asm":       False,
         "run_asm_debug": False,
         "run_asm_cases": [[]],
+        "output_annotations": {},
+        "output_case_blocks": None,
     }
 
     lines = text.splitlines()
@@ -378,7 +446,19 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
     if not after.endswith("/:"):
         raise ValueError(f"{path}: OUTPUT block must end with '/:'")
 
-    expected = after[:-2].rstrip()
+    raw_expected = after[:-2].rstrip()
+    output_case_blocks, case_error = _parse_output_case_blocks(raw_expected)
+    if case_error:
+        raise ValueError(f"{path}: {case_error}")
+
+    if output_case_blocks is not None:
+        flags["output_case_blocks"] = output_case_blocks
+        expected = raw_expected
+        flags["output_annotations"] = {}
+    else:
+        expected, output_annotations = _parse_output_annotations(raw_expected)
+        flags["output_annotations"] = output_annotations
+
     return before.rstrip(), expected, flags
 
 def _capture_process(cmd: list[str]) -> subprocess.CompletedProcess:
@@ -393,7 +473,7 @@ def _assemble_and_run(
     asm_text: str,
     debug: bool,
     runs: list[list[str]] | None = None
-) -> tuple[bool, str | None]:
+) -> tuple[bool, str | None, list[str] | None, list[int] | None]:
     with tempfile.TemporaryDirectory(prefix="cpl_asm_") as tmp_dir:
         tmp_dir_path = Path(tmp_dir)
 
@@ -415,7 +495,7 @@ def _assemble_and_run(
 
         nasm_proc = _capture_process(nasm_cmd)
         if nasm_proc.returncode != 0:
-            return False, nasm_proc.stdout
+            return False, nasm_proc.stdout, None, None
 
         if sys.platform == "darwin":
             link_cmd = [
@@ -435,7 +515,7 @@ def _assemble_and_run(
 
         link_proc = _capture_process(link_cmd)
         if link_proc.returncode != 0:
-            return False, link_proc.stdout
+            return False, link_proc.stdout, None, None
 
         run_cases = runs or [[]]
 
@@ -451,14 +531,53 @@ def _assemble_and_run(
                 debug_cmd = [debugger, "--", str(exe_path), *debug_args]
 
             subprocess.run(debug_cmd)
-            return True, None
+            return True, None, None, None
         
         outputs: list[str] = []
+        exit_codes: list[int] = []
+
         for run_args in run_cases:
             run_proc = _capture_process([str(exe_path), *run_args])
             outputs.append(run_proc.stdout.rstrip("\n"))
+            exit_codes.append(run_proc.returncode)
 
-        return True, "\n".join(outputs)
+        return True, "\n".join(outputs), outputs, exit_codes
+
+
+def _make_case_failure(case_index: int, case_expected: str, case_actual: str, case_reason: str) -> str:
+    expected_n = _normalize_output(case_expected)
+    actual_n = _normalize_output(case_actual)
+
+    parts = [f"Case {case_index} failed: {case_reason}"]
+    diff = _make_diff(expected_n, actual_n)
+    if diff:
+        parts.append("")
+        parts.append(diff)
+
+    return "\n".join(parts)
+
+def _check_output_annotations(flags: dict, actual_exit_codes: list[int] | None) -> tuple[bool, str | None]:
+    annotations = flags.get("output_annotations", {})
+
+    if "case_index" in annotations:
+        return False, "Global @case_index is not supported; use case blocks separated by ---"
+
+    if "exit_code" in annotations:
+        if actual_exit_codes is None:
+            return False, "Annotation @exit_code is supported only for executable runs"
+
+        try:
+            expected_exit_code = int(annotations["exit_code"])
+        except ValueError:
+            return False, f"Invalid @exit_code value: {annotations['exit_code']}"
+
+        if len(actual_exit_codes) != 1:
+            return False, f"@exit_code expects exactly one run, got {len(actual_exit_codes)}"
+
+        if actual_exit_codes[0] != expected_exit_code:
+            return False, f"Exit code mismatch: expected {expected_exit_code}, actual {actual_exit_codes[0]}"
+
+    return True, None
 
 def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
     code, expected, flags = _parse_test_file(test_file)
@@ -481,6 +600,8 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
 
     try:
         actual_output = ""
+        actual_outputs_by_run: list[str] | None = None
+        actual_exit_codes: list[int] | None = None
 
         if flags["run_asm"] or flags["run_asm_debug"]:
             compiler_proc = _capture_process([chosen_bin, tmp_path, str(test_file.parent)])
@@ -488,7 +609,7 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
             if compiler_proc.returncode != 0:
                 actual_output = compiler_proc.stdout
             else:
-                asm_ok, asm_output = _assemble_and_run(
+                asm_ok, asm_output, actual_outputs_by_run, actual_exit_codes = _assemble_and_run(
                     compiler_proc.stdout,
                     debug=flags["run_asm_debug"],
                     runs=flags["run_asm_cases"]
@@ -504,6 +625,8 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
                     }
 
                 actual_output = asm_output or ""
+                if actual_outputs_by_run is None:
+                    actual_outputs_by_run = [""] * len(flags["run_asm_cases"])
 
         else:
             cmd = [chosen_bin, tmp_path, str(test_file.parent)]
@@ -534,6 +657,8 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
                 text=True
             )
             actual_output = proc.stdout
+            actual_outputs_by_run = [proc.stdout]
+            actual_exit_codes = [proc.returncode]
 
     except Exception as ex:
         return {
@@ -562,7 +687,53 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
             "diff": None,
         }
 
-    ok, why = _matches_expected(expected_n, actual_n)
+    case_blocks = flags.get("output_case_blocks")
+    if case_blocks is not None:
+        if actual_exit_codes is None:
+            ok = False
+            why = "Case blocks require executable runs"
+        elif len(actual_exit_codes) != len(flags["run_asm_cases"]):
+            ok = False
+            why = f"Case count mismatch: expected {len(flags['run_asm_cases'])} runs, got {len(actual_exit_codes)}"
+        else:
+            missing = [i for i in range(len(flags["run_asm_cases"])) if i not in case_blocks]
+            extra = sorted(i for i in case_blocks if i < 0 or i >= len(flags["run_asm_cases"]))
+            if missing:
+                ok = False
+                why = "Missing case blocks for indexes: " + ", ".join(map(str, missing))
+            elif extra:
+                ok = False
+                why = "Unexpected case indexes: " + ", ".join(map(str, extra))
+            else:
+                ok = True
+                reasons: list[str] = []
+                actual_outputs = actual_outputs_by_run or []
+                for i in range(len(flags["run_asm_cases"])):
+                    case = case_blocks[i]
+                    case_actual = actual_outputs[i] if i < len(actual_outputs) else ""
+                    case_ok, case_why = _check_single_case(
+                        expected_text=case["expected"],
+                        actual_text=case_actual,
+                        annotations=case["annotations"],
+                        actual_exit_code=actual_exit_codes[i],
+                    )
+                    if not case_ok:
+                        ok = False
+                        reasons.append(_make_case_failure(
+                            case_index=i,
+                            case_expected=case["expected"],
+                            case_actual=case_actual,
+                            case_reason=case_why or "Unknown case failure",
+                        ))
+                why = "\n\n".join(reasons) if reasons else None
+    else:
+        annotations_ok, annotations_why = _check_output_annotations(flags, actual_exit_codes)
+
+        ok, why = _matches_expected(expected_n, actual_n)
+
+        if ok and not annotations_ok:
+            ok = False
+            why = annotations_why
 
     if flags["leak_trace"]:
         from leaks import find_leaks
@@ -585,6 +756,13 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
         elif flags["block_test"]:
             critical = True
 
+    diff_text = None
+    if not ok:
+        if case_blocks is not None:
+            diff_text = why
+        else:
+            diff_text = why + "\n\n" + _make_diff(expected_n, actual_n)
+
     return {
         "file": str(test_file),
         "expected": expected_n,
@@ -592,7 +770,7 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
         "ok": ok,
         "critical": critical,
         "warning": warning,
-        "diff": None if ok else (why + "\n\n" + _make_diff(expected_n, actual_n))
+        "diff": diff_text
     }
 
 def _find_test_roots(start_path: Path) -> list[Path]:

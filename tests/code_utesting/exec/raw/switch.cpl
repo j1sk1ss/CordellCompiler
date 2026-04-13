@@ -15,7 +15,13 @@ start(i32 argc, ptr ptr i8 argv) {
 }
 
 :/ OUTPUT
+@case_index=0
 case 1!
+---
+@case_index=1
 case 2!
+---
+@case_index=2
 default!
+---
 /:

@@ -8,19 +8,25 @@ start(i32 a) {
 }
 
 :/ OUTPUT
+@case_index=0
+Iteration!
+Iteration!
+Iteration!
+Iteration!
+Iteration!
+---
+@case_index=1
+Iteration!
+Iteration!
+Iteration!
+Iteration!
+---
+@case_index=2
 Iteration!
 Iteration!
 Iteration!
 Iteration!
 Iteration!
 Iteration!
-Iteration!
-Iteration!
-Iteration!
-Iteration!
-Iteration!
-Iteration!
-Iteration!
-Iteration!
-Iteration!
+---
 /:

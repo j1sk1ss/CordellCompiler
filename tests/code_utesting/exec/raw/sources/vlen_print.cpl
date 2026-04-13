@@ -1,4 +1,4 @@
-function strler(ptr i8 s) -> i32 {
+function strlen(ptr i8 s) -> i32 {
     i32 l = 0;
     while dref s; {
         l += 1 as i32;
@@ -9,7 +9,7 @@ function strler(ptr i8 s) -> i32 {
 }
 
 start(i32 argc, ptr ptr i8 argv) {
-    syscall(0x2000004, 1, argv[1 as i32], strler(argv[1 as i32]));
+    syscall(0x2000004, 1, argv[1 as i32], strlen(argv[1 as i32]));
 }
 
 :/ OUTPUT
@@ -55,7 +55,7 @@ push rsi
 push r10
 push rdx
 push rdi
-call _cpl_strler0
+call _cpl_strlen0
 pop rdi
 pop rdx
 pop r10
@@ -74,7 +74,7 @@ pop rsi
 pop rdi
 mov rax, 0x2000001
 syscall
-_cpl_strler0:
+_cpl_strlen0:
 push rbp
 mov rbp, rsp
 mov r14, rdi

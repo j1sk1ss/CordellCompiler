@@ -89,6 +89,8 @@ At the file start several flags can be placed:
 - `: BLOCK_TEST :` - If this flag is placed in a test that fails, it will fail the entire testing.
 - `: BUG :` - This flag will ignore test failing (even if there is the 'BLOCK_TEST' flag).
 - `: LEAK_TRACE :` - This flag enables the memory logging in the compiler, then uses these logs in leak tool to find the source. 
+- `: RUN_ASM :` - Build with the 'nasm' what the compiler has produced and compare the outputs.
+    - `: RUN_ASM[args=""|...] :` - `args` keyword says the tester to use an argument with execution.
 
 Also the 'OUTPUT' section has several special formattings that allow us prepare the output log verification. We need this given the compier parts, that print differently regarding the memory region of a compiler instance (for example print of a set or a map, etc. is changing over time). To tell the test framework that sometimes we can 'lower' our 'expectations' from the output log, we can use:
 - `{X}` - Accept any string here:
@@ -109,6 +111,9 @@ id 2: variable a
 {id: 0, owners: <<5 6 7 8 9 11>>}
 {id: 8, owners: <<6 7 9 11>>}
 ```
+
+- `@exit_code=X` - This command compares the exit code. Works with the `: RUN_ASM :`.
+- `@case_index=X` - The link to a argument set from the asm's `RUN_ASM[args=""|...]`
 
 The usage of these commands is below:
 ```

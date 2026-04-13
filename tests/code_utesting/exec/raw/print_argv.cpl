@@ -4,7 +4,13 @@ start(i32 argc, ptr ptr i8 argv) {
 }
 
 :/ OUTPUT
+@case_index=0
 Hello world!
+---
+@case_index=1
 World hello!
+---
+@case_index=2
 123456789123
+---
 /:
