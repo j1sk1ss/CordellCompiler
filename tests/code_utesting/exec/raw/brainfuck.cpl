@@ -1,3 +1,4 @@
+: RUN_ASM[args="++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>."] :
 function strlen(ptr i8 s) -> i32 {
     i32 l = 0;
     while dref s; {
@@ -12,17 +13,11 @@ function putc(i8 c) -> i0 {
     syscall(0x2000004, 1, ref c, 1);
 }
 
-function puts(ptr i8 msg) -> i0 {
-    syscall(0x2000004, 1, msg, strlen(msg));
-}
-
 glob arr tape[30000, i8];
 glob arr bracketmap[10000, i32];
 glob arr stack[10000, i32];
 
 start(i32 argc, ptr ptr i8 argv) {
-    puts(ref "Brainfuck interpriter! Input code: ");
-
     i32 pos = 0;
     i32 stackptr = 0;
     i32 codelength = strlen(argv[1]);
@@ -50,7 +45,7 @@ start(i32 argc, ptr ptr i8 argv) {
     i32 pc = 0;
     i32 pointer = 0;
     while pc < codelength; {
-        @[no_fall] 
+        @[no_fall]
         switch argv[1][pc]; {
             case '>'; {
                 pointer += 1;

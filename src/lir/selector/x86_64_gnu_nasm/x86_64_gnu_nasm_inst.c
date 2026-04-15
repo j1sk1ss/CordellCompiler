@@ -107,6 +107,13 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_FCLL:
                     case LIR_SYSC: {
+                        if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
+                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
+                            queue_push(&dirty_regs, (void*)((long)RCX));
+                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
+                            queue_push(&dirty_regs, (void*)((long)R11));
+                        }
+
                         long dirty;
                         while (queue_pop(&dirty_regs, (void**)&dirty)) {
                             LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
@@ -176,29 +183,19 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = res;
                         break;
                     }
+                    case LIR_iMUL:
                     case LIR_bOR:
                     case LIR_bXOR:
                     case LIR_bAND:
-                    case LIR_iMUL:
                     case LIR_iSUB:
                     case LIR_iADD: {
-                        /* Now the first argument (the result) in the next instruction, 
-                           the third without any changes, and the second in the instruction
-                           before. With this logic, we change the next instruction:
-                           ```cpl
-                           something = a <op> b;
-                           ```
-                           into the next sequence:
-                           ```cpl
-                           mov rax, a;
-                           (rax = ) op rax, b;
-                           mov something, rax;
-                           ``` */
-                        lir_subject_t* a_entry = create_tmp(RAX, lh->sarg, smt, -1);
-                        lir_subject_t* a_exit  = create_tmp(RAX, lh->farg, smt, -1);
+                        int shared_size = -1;
+                        if (lh->op == LIR_iMUL) shared_size = lh->sarg->size < 4 ? 4 : lh->sarg->size; 
+                        lir_subject_t* a_entry = create_tmp(RAX, lh->sarg, smt, shared_size);
+                        lir_subject_t* a_exit  = create_tmp(RAX, lh->farg, smt, shared_size);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
                         _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
-                        lir_subject_t* a_middle = create_tmp(RAX, lh->sarg, smt, -1);
+                        lir_subject_t* a_middle = create_tmp(RAX, lh->sarg, smt, shared_size);
                         lh->farg = lh->sarg = a_middle;
                         break;
                     }

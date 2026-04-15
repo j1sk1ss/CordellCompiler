@@ -111,30 +111,6 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
-// TODO: docs
-static int _validate_size_ops(cfg_block_t* bb) {
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-    while (lh) {
-        switch (lh->op) {
-            case LIR_bOR:
-            case LIR_bXOR:
-            case LIR_bAND:
-            case LIR_iMUL:
-            case LIR_iSUB:
-            case LIR_iADD: {
-                if (lh->sarg && lh->sarg->t == LIR_REGISTER) lh->sarg->size = 8;
-                if (lh->targ && lh->targ->t == LIR_REGISTER) lh->targ->size = 8;
-                break;
-            }
-            default: break;
-        }
-
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
-    }
-
-    return 1;
-}
-
 /*
 After the memory selection we should be sure that this LIR is valid. 
 Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
@@ -329,7 +305,6 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
             _validate_selected_instuction(bb, smt);
             _validate_size_movs(bb, smt);
-            _validate_size_ops(bb);
         }
 
         /* Save the largest offset in this function for further
