@@ -8,24 +8,36 @@ start() {
 
 :/ OUTPUT
 BB1: start
-r9 = $1;
-r14 = r9;
-r10 = $2;
-rdx = r10;
+rcx = $1;
+r9 = rcx;
+rcx = $2;
+rdx = rcx;
 rcx = $3;
-r13 = rcx;
-use r14;
+rcx = rcx;
+use r9;
 use rdx;
-use r13;
-rdi <<= r14;
+use rcx;
+push(rdi);
+rdi <<= r9;
+push(rsi);
 rsi <<= $1;
+push(rdx);
 rdx <<= $2;
+push(rcx);
 rcx <<= rdx;
+push(r8);
 r8 <<= $3;
+push(r9);
 r9 <<= $4;
-push(r13);
+push(rcx);
 push($5);
 push($6);
 call foo0(...);
+r9 = pop();
+r8 = pop();
+rcx = pop();
+rdx = pop();
+rsi = pop();
+rdi = pop();
 send
 /:

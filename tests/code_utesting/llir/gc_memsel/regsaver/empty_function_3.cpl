@@ -13,22 +13,28 @@ rcx = rdi;
 rcx = rsi;
 fend
 BB3: start
-r13 = $1;
-r10 = r13;
+rdx = $1;
+rsi = rdx;
+rdx = $1;
+use rdx;
 rbx = $1;
 use rbx;
-r11 = $1;
-use r11;
-rdi <<= rbx;
-rsi <<= r11;
+push(rdi);
+rdi <<= rdx;
+push(rsi);
+rsi <<= rbx;
+push(rcx);
 call foo0(i32 a, i32 b);
+rcx = pop();
+rsi = pop();
+rdi = pop();
 rdx = $1;
-rax = r10;
+rax = rsi;
 rax = rax + rdx;
-r9 = rax;
-r12 = r9;
-r14 = r12;
-rdx = r14;
-exit rdx;
+rcx = rax;
+rcx = rcx;
+rcx = rcx;
+rdi = rcx;
+exit rdi;
 BB4:
 /:

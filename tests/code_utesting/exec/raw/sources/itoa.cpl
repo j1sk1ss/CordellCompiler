@@ -49,7 +49,9 @@ mov edx, ecx
 push rsi
 push rdx
 push rdi
+push rcx
 call _cpl_itoa0
+pop rcx
 pop rdi
 pop rdx
 pop rsi
@@ -64,7 +66,11 @@ push rsi
 mov rsi, rdx
 push rdx
 mov rdx, 7
+push rcx
+push r11
 syscall
+pop r11
+pop rcx
 pop rdx
 pop rsi
 pop rdi
@@ -117,12 +123,12 @@ idiv rcx
 mov edx, edx
 mov dl, dl
 mov al, 48
-add rax, rdx
+add al, dl
 mov sil, al
 lea rbx, [rbp - 32]
 mov eax, r8d
-imul rax, 1
-mov rdx, rax
+imul eax, 1
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -137,7 +143,7 @@ mov edx, eax
 mov ebx, edx
 mov edx, 1
 mov eax, r8d
-add rax, rdx
+add eax, edx
 mov edx, eax
 mov edx, edx
 mov edi, ebx
@@ -181,12 +187,12 @@ jne lb117
 lb117:
 mov edx, 1
 mov eax, r8d
-sub rax, rdx
+sub eax, edx
 mov edx, eax
 lea rbx, [rbp - 32]
 mov eax, edx
-imul rax, 1
-mov rdx, rax
+imul eax, 1
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -194,8 +200,8 @@ mov rdx, rax
 mov sil, [rdx]
 mov rbx, r10
 mov eax, edi
-imul rax, 1
-mov rdx, rax
+imul eax, 1
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -203,12 +209,12 @@ mov rdx, rax
 mov byte [rdx], sil
 mov edx, 1
 mov eax, edi
-add rax, rdx
+add eax, edx
 mov edx, eax
 mov ebx, edx
 mov edx, 1
 mov eax, r8d
-sub rax, rdx
+sub eax, edx
 mov edx, eax
 mov edx, edx
 mov r8d, edx
@@ -218,8 +224,8 @@ jmp lb116
 lb118:
 mov rbx, r10
 mov eax, edi
-imul rax, 1
-mov rdx, rax
+imul eax, 1
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx

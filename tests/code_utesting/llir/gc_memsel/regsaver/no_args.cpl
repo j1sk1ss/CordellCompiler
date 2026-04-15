@@ -12,34 +12,34 @@ start() {
 
 :/ OUTPUT
 BB2: fn foo0()
-rdi = $1;
-rbx = rdi;
-r8 = $10;
-rax = rbx;
-rax = rax + r8;
-rdx = rax;
+rdx = $1;
 rdx = rdx;
-exit rdx;
+rbx = $10;
+rax = rdx;
+rax = rax + rbx;
+rcx = rax;
+rdi = rcx;
+exit rdi;
 BB3:
 BB4: start
-r9 = $1;
-rbx = r9;
+rdx = $1;
+rbx = rdx;
 push(rbx);
 push(rdx);
 push(rdi);
-push(r8);
+push(rcx);
 call foo0();
-r8 = pop();
+rcx = pop();
 rdi = pop();
 rdx = pop();
 rbx = pop();
-rdi = $1;
-rdx = rdi;
+rdx = $1;
+rdx = rdx;
 rax = rbx;
 rax = rax + rdx;
-r10 = rax;
-r8 = r10;
-rdx = r8;
-exit rdx;
+rcx = rax;
+rcx = rcx;
+rdi = rcx;
+exit rdi;
 BB5:
 /:

@@ -16,27 +16,27 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rdx = $1;
-%18 = rdx;
+rcx = $1;
+%18 = rcx;
 [rbp - 16] = %18;
-rsi = $1;
-%19 = rsi;
+rcx = $1;
+%19 = rcx;
 [rbp - 32] = %19;
 kill(12);
 kill(13);
 rcx = $1;
 %20 = rcx;
 [rbp - 16] = %20;
-r8 = $1;
-%21 = r8;
+rcx = $1;
+%21 = rcx;
 [rbp - 32] = %21;
-rbx = $1;
-%22 = rbx;
+rcx = $1;
+%22 = rcx;
 [rbp - 48] = %22;
 kill(15);
 kill(16);
-rdi = $1;
-%23 = rdi;
+rcx = $1;
+%23 = rcx;
 [rbp - 32] = %23;
 kill(14);
 kill(17);

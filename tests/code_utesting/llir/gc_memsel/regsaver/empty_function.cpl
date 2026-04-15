@@ -15,15 +15,15 @@ return rax;
 BB3:
 BB4: start
 rdx = $1;
-rbx = rdx;
+rdx = rdx;
 call foo0();
-r9 = $1;
-rax = rbx;
-rax = rax + r9;
-r10 = rax;
-r8 = r10;
-rdi = r8;
-rdx = rdi;
-exit rdx;
+rbx = $1;
+rax = rdx;
+rax = rax + rbx;
+rcx = rax;
+rcx = rcx;
+rcx = rcx;
+rdi = rcx;
+exit rdi;
 BB5:
 /:

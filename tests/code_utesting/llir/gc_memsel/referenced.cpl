@@ -8,8 +8,8 @@ BB1: start
 rcx = $0;
 %6 = rcx;
 [rbp - 8] = %6;
-rbx = &([rbp - 8]);
-rdx = rbx;
+rcx = &([rbp - 8]);
+rcx = rcx;
 kill(4);
 send
 /:

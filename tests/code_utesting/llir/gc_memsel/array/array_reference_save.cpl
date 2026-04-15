@@ -22,13 +22,13 @@ cmp rax, 0;
 je lb37;
 jne lb35;
 BB2: lb35:
-rdx = $0;
-exit rdx;
+rdi = $0;
+exit rdi;
 BB3: lb37:
-rdi = &([rbp - 16]);
-rdx = rdi;
-rbx = *(rdx);
-rdx = rbx;
-exit rdx;
+rcx = &([rbp - 16]);
+rcx = rcx;
+rcx = *(rcx);
+rdi = rcx;
+exit rdi;
 BB4:
 /:

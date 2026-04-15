@@ -6,9 +6,9 @@ start() {
 :/ OUTPUT
 BB1: start
 rcx = $1;
-rbx = rcx;
-rdx = $1;
-%6 = rdx;
+rcx = rcx;
+rcx = $1;
+%6 = rcx;
 [rbp - 64] = %6;
 kill(5);
 send

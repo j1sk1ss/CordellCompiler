@@ -5,15 +5,15 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rdi = $0;
-r8 = &([rbp - 40]);
+rsi = $0;
+rbx = &([rbp - 40]);
 rax = $5;
 rax = rax * 4;
-rbx movsx rax;
-rdx = rbx;
-rax = r8;
+rdx movsxd rax;
+rdx = rdx;
+rax = rbx;
 rax = rax + rdx;
-rsi = rax;
-*(rsi) = rdi;
+rcx = rax;
+*(rcx) = rsi;
 send
 /:

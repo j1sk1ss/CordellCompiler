@@ -7,16 +7,16 @@ start() {
 BB1: start
 rdx = 10;
 BB6: kill(2);
-rbx = rdx;
+rdx = rdx;
 BB2: lb12:
 jmp lb13;
 BB3: lb13:
-rax = rbx;
+rax = rdx;
 rax = rax - 1;
-rdi = rax;
-rsi = rdi;
-rbx = rsi;
-cmp rsi, 0;
+rdx = rax;
+rbx = rdx;
+rdx = rbx;
+cmp rbx, 0;
 je lb14;
 jne lb12;
 BB4:

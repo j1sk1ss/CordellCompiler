@@ -31,13 +31,17 @@ push rsi
 mov rsi, rdx
 push rdx
 mov rdx, 11
+push rcx
+push r11
 syscall
+pop r11
+pop rcx
 pop rdx
 pop rsi
 pop rdi
 mov edx, 1
 mov eax, ebx
-sub rax, rdx
+sub eax, edx
 mov edx, eax
 mov ebx, edx
 mov edx, 0

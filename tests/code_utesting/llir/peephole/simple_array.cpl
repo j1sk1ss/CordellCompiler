@@ -6,28 +6,27 @@ start() {
 :/ OUTPUT
 === BEFORE ===
 BB1: start
-rdi = $1;
-r8 = &([rbp - 40]);
+rsi = $1;
+rbx = &([rbp - 40]);
 rax = $0;
 rax = rax * 4;
-rbx movsx rax;
-rdx = rbx;
-rax = r8;
+rdx movsxd rax;
+rdx = rdx;
+rax = rbx;
 rax = rax + rdx;
-rsi = rax;
-*(rsi) = rdi;
+rcx = rax;
+*(rcx) = rsi;
 send
 === AFTER ===
 BB1: start
-rdi = $1;
-r8 = &([rbp - 40]);
+rsi = $1;
+rbx = &([rbp - 40]);
 rax = rax ^ rax;
 rax = rax << 2;
-rbx movsx rax;
-rdx = rax;
-rax = r8;
+rdx movsxd rax;
+rax = rbx;
 rax = rax + rdx;
-rsi = rax;
-*(rsi) = $1;
+rcx = rax;
+*(rcx) = $1;
 send
 /:

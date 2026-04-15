@@ -7,11 +7,12 @@ function foo(i32 a, i32 b) {
 BB1: fn _main(i32 a, i32 b)
 %0 = %3;
 %1 = &(*%4);
-rdx = rdx ^ rdx;
 %5 = %0;
-%5 = %5 / %1;
-%2 = %5;
-%6 = %2;
-return %6;
+%8 = %1;
+unknwn;
+%7 = %7 / %8;
+%2 = %6;
+%9 = %2;
+return %9;
 BB2:
 /:

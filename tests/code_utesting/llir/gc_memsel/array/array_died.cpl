@@ -22,8 +22,8 @@ je lb37;
 kill(2);
 jne lb35;
 BB2: lb35:
-rdx = $1;
-exit rdx;
+rdi = $1;
+exit rdi;
 BB3: lb37:
 [rbp - 16] = $0;
 [rbp - 15] = $1;

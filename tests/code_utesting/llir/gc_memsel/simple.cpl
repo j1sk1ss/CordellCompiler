@@ -4,7 +4,7 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rdx = $1;
-rcx = rdx;
+rcx = $1;
+rcx = rcx;
 send
 /:

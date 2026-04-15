@@ -7,26 +7,24 @@ start() {
 :/ OUTPUT
 === BEFORE ===
 BB1: start
-r9 = $1;
-r8 = r9;
 rdx = $1;
-rax = r8;
-rax = rax + rdx;
-rdi = rax;
-rbx = rdi;
-rdx = rbx;
-exit rdx;
+rdx = rdx;
+rbx = $1;
+rax = rdx;
+rax = rax + rbx;
+rcx = rax;
+rcx = rcx;
+rdi = rcx;
+exit rdi;
 BB2:
 === AFTER ===
 BB1: start
-r9 = $1;
-r8 = $1;
 rdx = $1;
-rax = $1;
-rax = rax + rdx;
-rdi = rax;
-rbx = rax;
-rdx = rax;
-exit rdx;
+rbx = $1;
+rax = rdx;
+rax = rax + rbx;
+rcx = rax;
+rdi = rcx;
+exit rdi;
 BB2:
 /:

@@ -8,13 +8,13 @@ start() {
 BB1: start
 rdx = $1;
 rbx = rdx;
-r8 = $1;
-r13 = r8;
+rdx = $1;
+r13 = rdx;
 rax = rbx;
 rax = rax + r13;
-rdi = rax;
-r9 = rdi;
-rdx = r9;
-exit rdx;
+rcx = rax;
+rcx = rcx;
+rdi = rcx;
+exit rdi;
 BB2:
 /:

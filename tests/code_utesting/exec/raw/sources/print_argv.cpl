@@ -14,8 +14,8 @@ lea rbx, [rsi]
 mov edx, 1
 mov rbx, rbx
 mov eax, edx
-imul rax, 8
-mov rdx, rax
+imul eax, 8
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -28,7 +28,11 @@ push rsi
 mov rsi, rdx
 push rdx
 mov rdx, 12
+push rcx
+push r11
 syscall
+pop r11
+pop rcx
 pop rdx
 pop rsi
 pop rdi

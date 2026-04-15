@@ -43,7 +43,11 @@ push rsi
 mov rsi, rdx
 push rdx
 mov rdx, 14
+push rcx
+push r11
 syscall
+pop r11
+pop rcx
 pop rdx
 pop rsi
 pop rdi
@@ -58,7 +62,11 @@ push rsi
 mov rsi, rdx
 push rdx
 mov rdx, 15
+push rcx
+push r11
 syscall
+pop r11
+pop rcx
 pop rdx
 pop rsi
 pop rdi

@@ -8,17 +8,17 @@ start() {
 :/ OUTPUT
 BB1: start
 rcx = $1;
-rdi = rcx;
-rbx = $1;
-rdx = rbx;
-cmp rdi, 0;
+rdx = rcx;
+rcx = $1;
+rcx = rcx;
+cmp rdx, 0;
 je lb29;
 jne lb28;
 BB2: lb28:
-rdx = rdx;
-exit rdx;
+rdi = rcx;
+exit rdi;
 BB3: lb29:
-rdx = rdi;
-exit rdx;
+rdi = rdx;
+exit rdi;
 BB4: lb30:
 /:

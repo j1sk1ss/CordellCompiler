@@ -47,8 +47,8 @@ lb77:
 mov edx, 1
 mov rbx, r10
 mov eax, edx
-imul rax, 8
-mov rdx, rax
+imul eax, 8
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -87,7 +87,11 @@ push rsi
 mov rsi, rdx
 push rdx
 mov rdx, 1
+push rcx
+push r11
 syscall
+pop r11
+pop rcx
 pop rdx
 pop rsi
 pop rdi
@@ -102,7 +106,11 @@ push rsi
 mov rsi, rdx
 push rdx
 mov rdx, 1
+push rcx
+push r11
 syscall
+pop r11
+pop rcx
 pop rdx
 pop rsi
 pop rdi
@@ -113,8 +121,8 @@ lb105:
 mov edx, 1
 mov rbx, r10
 mov eax, edx
-imul rax, 8
-mov rdx, rax
+imul eax, 8
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -122,8 +130,8 @@ mov rdx, rax
 mov rdx, [rdx]
 mov rbx, rdx
 mov eax, r9d
-imul rax, 1
-mov rdx, rax
+imul eax, 1
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -153,7 +161,7 @@ lb169:
 lb106:
 mov edx, 1
 mov eax, r9d
-add rax, rdx
+add eax, edx
 mov edx, eax
 mov edx, edx
 mov r9d, edx
@@ -181,7 +189,7 @@ jne lb22
 lb22:
 mov edx, 1
 mov eax, esi
-add rax, rdx
+add eax, edx
 mov edx, eax
 mov ebx, edx
 mov rdx, 1

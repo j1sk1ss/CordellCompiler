@@ -9,13 +9,13 @@ start() {
 BB1: start
 rdx = $1;
 rbx = rdx;
-r8 = $1;
-rbx = r8;
+rdx = $1;
+rbx = rdx;
 rax = rbx;
 rax = rax + rbx;
-rdi = rax;
-r9 = rdi;
-rdx = r9;
-exit rdx;
+rcx = rax;
+rcx = rcx;
+rdi = rcx;
+exit rdi;
 BB2:
 /:

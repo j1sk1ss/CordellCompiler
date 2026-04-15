@@ -47,8 +47,8 @@ lb84:
 mov edx, 1
 mov rbx, r9
 mov eax, edx
-imul rax, 8
-mov rdx, rax
+imul eax, 8
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -80,7 +80,7 @@ jmp lb112
 ; BB10:
 lb114:
 mov al, sil
-add rax, 1
+add al, 1
 mov dl, al
 mov dl, dl
 mov bl, dl
@@ -88,15 +88,15 @@ jmp lb113
 ; BB11:
 lb127:
 mov al, sil
-sub rax, 1
+sub al, 1
 mov dl, al
 mov dl, dl
 mov bl, dl
 jmp lb113
 ; BB12:
 lb140:
-mov al, sil
-imul rax, 2
+movsx eax, sil
+imul eax, 2
 mov dl, al
 mov dl, dl
 mov bl, dl
@@ -117,8 +117,8 @@ lb112:
 mov edx, 1
 mov rbx, r9
 mov eax, edx
-imul rax, 8
-mov rdx, rax
+imul eax, 8
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -126,8 +126,8 @@ mov rdx, rax
 mov rdx, [rdx]
 mov rbx, rdx
 mov eax, edi
-imul rax, 1
-mov rdx, rax
+imul eax, 1
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -178,7 +178,7 @@ lb200:
 lb113:
 mov edx, 1
 mov eax, edi
-add rax, rdx
+add eax, edx
 mov edx, eax
 mov edx, edx
 mov edi, edx
@@ -209,7 +209,7 @@ jne lb22
 lb22:
 mov edx, 1
 mov eax, esi
-add rax, rdx
+add eax, edx
 mov edx, eax
 mov ebx, edx
 mov rdx, 1

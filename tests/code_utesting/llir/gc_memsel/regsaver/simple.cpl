@@ -13,45 +13,43 @@ start() {
 
 :/ OUTPUT
 BB2: fn foo0(i32 a)
-r11 = rdi;
-r10 = r11;
-rax = r10;
-rax = rax + r11;
+rsi = rdi;
+rdx = rsi;
+rax = rdx;
+rax = rax + rsi;
 rbx = rax;
-r9 = $10;
+rdx = $10;
 rax = rbx;
-rax = rax + r9;
+rax = rax + rdx;
 rdx = rax;
-rdi = rdx;
-rax = r11;
-rax = rax + rdi;
-rsi = rax;
+rdx = rdx;
 rax = rsi;
+rax = rax + rdx;
+rcx = rax;
+rax = rcx;
 return rax;
 BB3:
 BB4: start
-r10 = $1;
-rdi = r10;
-use rdi;
-rdi <<= rdi;
-push(r9);
-push(r11);
+rdx = $1;
+rbx = rdx;
+use rbx;
+push(rdi);
+rdi <<= rbx;
 push(rbx);
 push(rdx);
-push(rdi);
+push(rcx);
 call foo0(i32 a);
-rdi = pop();
+rcx = pop();
 rdx = pop();
 rbx = pop();
-r11 = pop();
-r9 = pop();
+rdi = pop();
 rdx = $10;
-rax = rdi;
+rax = rbx;
 rax = rax + rdx;
-r9 = rax;
-r11 = r9;
-rbx = r11;
-rdx = rbx;
-exit rdx;
+rcx = rax;
+rcx = rcx;
+rcx = rcx;
+rdi = rcx;
+exit rdi;
 BB5:
 /:

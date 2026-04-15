@@ -24,8 +24,8 @@ lea rdx, [rsi]
 mov ebx, 1
 mov rsi, rdx
 mov eax, ebx
-imul rax, 8
-mov rdx, rax
+imul eax, 8
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rsi
 add rax, rdx
@@ -60,7 +60,7 @@ jne lb22
 lb22:
 mov edx, 1
 mov eax, esi
-add rax, rdx
+add eax, edx
 mov edx, eax
 mov esi, edx
 mov rdx, 1

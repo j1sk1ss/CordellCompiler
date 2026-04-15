@@ -12,7 +12,7 @@ push rbp
 mov rbp, rsp
 mov edx, edi
 mov eax, edx
-imul rax, rdx
+imul eax, edx
 mov ecx, eax
 mov eax, ecx
 mov rsp, rbp
@@ -33,6 +33,7 @@ push rdi
 mov edi, ebx
 push rbx
 push rsi
+push r11
 push rdx
 push rdi
 push rcx
@@ -40,6 +41,7 @@ call rdx
 pop rcx
 pop rdi
 pop rdx
+pop r11
 pop rsi
 pop rbx
 pop rdi
@@ -47,7 +49,7 @@ mov rdx, rax
 mov edx, edx
 mov ebx, 48
 mov eax, edx
-add rax, rbx
+add eax, ebx
 mov ecx, eax
 mov r15d, ecx
 mov dword [rbp - 8], r15d
@@ -59,7 +61,11 @@ push rsi
 mov rsi, rdx
 push rdx
 mov rdx, 1
+push rcx
+push r11
 syscall
+pop r11
+pop rcx
 pop rdx
 pop rsi
 pop rdi

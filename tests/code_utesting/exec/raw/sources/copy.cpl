@@ -43,8 +43,8 @@ jne lb27
 lb27:
 lea rbx, [rbp - 32]
 mov eax, edi
-imul rax, 1
-mov rdx, rax
+imul eax, 1
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -52,8 +52,8 @@ mov rdx, rax
 mov sil, [rdx]
 lea rbx, [rbp - 16]
 mov eax, edi
-imul rax, 1
-mov rdx, rax
+imul eax, 1
+movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
@@ -61,7 +61,7 @@ mov rdx, rax
 mov byte [rdx], sil
 mov edx, 1
 mov eax, edi
-add rax, rdx
+add eax, edx
 mov edx, eax
 mov edx, edx
 mov edi, edx
@@ -76,7 +76,11 @@ push rsi
 mov rsi, rdx
 push rdx
 mov rdx, 13
+push rcx
+push r11
 syscall
+pop r11
+pop rcx
 pop rdx
 pop rsi
 pop rdi

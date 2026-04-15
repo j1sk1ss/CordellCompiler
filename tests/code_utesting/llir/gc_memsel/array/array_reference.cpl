@@ -16,6 +16,6 @@ BB1: start
 [rbp - 8] = $8;
 [rbp - 7] = $9;
 rcx = &([rbp - 16]);
-rdx = rcx;
+rcx = rcx;
 send
 /:
