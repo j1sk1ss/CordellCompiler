@@ -106,8 +106,6 @@ int main(int argc, char* argv[]) {
     inst_selector_t inst_sel = { .select_instructions = x86_64_gnu_nasm_instruction_selection };
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
 
-    LIR_DFG_collect_defs(&cfgctx);       // Analyzation
-    LIR_DFG_collect_uses(&cfgctx);       // Analyzation
     LIR_DFG_compute_inout(&cfgctx);      // Analyzation
     LIR_DFG_create_deall(&cfgctx, &smt); // Transform
 

@@ -78,8 +78,8 @@ static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, s
 }
 
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
-    list_t syscall_regs;
-    list_init(&syscall_regs);
+    queue_t dirty_regs;
+    queue_init(&dirty_regs);
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
@@ -95,7 +95,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                                 LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 8), NULL, NULL), 
                                 lh
                             );
-                            list_add(&syscall_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
+                            queue_push(&dirty_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
                         }
 
                         lir_subject_t* nfarg = create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt, 8);
@@ -105,9 +105,11 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->farg = nfarg;
                         break;
                     }
+                    case LIR_FCLL:
                     case LIR_SYSC: {
-                        foreach (long rest, &syscall_regs) {
-                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(rest, 8), NULL, NULL), lh);
+                        long dirty;
+                        while (queue_pop(&dirty_regs, (void**)&dirty)) {
+                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
                         }
 
                         break;
@@ -135,7 +137,9 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         abi_argument_t target;
                         if (!_get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)) lh->op = LIR_PUSH;
                         else {
-                            lir_subject_t* nfarg = create_tmp(target.reg, lh->farg, smt, -1);
+                            lir_subject_t* nfarg = create_tmp(target.reg, lh->farg, smt, -1); // TODO: 8?
+                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, 8), NULL, NULL), lh);
+                            queue_push(&dirty_regs, (void*)((long)target.reg));
                             LIR_unload_subject(lh->sarg);
                             lh->op   = LIR_aMOV;
                             lh->sarg = lh->farg;
@@ -190,33 +194,38 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                            (rax = ) op rax, b;
                            mov something, rax;
                            ``` */
-                        lir_subject_t* a = create_tmp(RAX, lh->sarg, smt, -1);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
-                        _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a, NULL), lh);
-                        lh->farg = lh->sarg = a;
+                        lir_subject_t* a_entry = create_tmp(RAX, lh->sarg, smt, -1);
+                        lir_subject_t* a_exit  = create_tmp(RAX, lh->farg, smt, -1);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
+                        _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
+                        lir_subject_t* a_middle = create_tmp(RAX, lh->sarg, smt, -1);
+                        lh->farg = lh->sarg = a_middle;
                         break;
                     }
                     case LIR_FRET:
                     case LIR_EXITOP: {
                         if (!lh->farg) break;
-                        lir_subject_t* a = create_tmp(lh->op == LIR_FRET ? RAX : RDX, lh->farg, smt, -1);
+                        lir_subject_t* a = create_tmp(lh->op == LIR_FRET ? RAX : RDI, lh->farg, smt, -1);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
                         lh->farg = a;
                         break;
                     }
                     case LIR_iDIV:
                     case LIR_iMOD: {
-                        /* (rdx = ) xor rdx, rdx 
-                           We need to clear the 'rdx' register before this operation.
-                           See specifications of div operation on x86-64 GNU */
-                        _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RDX, 8), LIR_SUBJ_REG(RDX, 8), LIR_SUBJ_REG(RDX, 8)), lh);
-                        lir_subject_t* a = create_tmp(RAX, lh->sarg, smt, -1);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
+                        lir_subject_t* a_entry = create_tmp(RAX, lh->sarg, smt, 8);
+                        lir_subject_t* a_exit  = create_tmp(RAX, lh->sarg, smt, 8);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
 
+                        lir_subject_t* a_middle = create_tmp(RAX, lh->sarg, smt, 8);
                         lir_subject_t* oldres = lh->farg;
-                        lh->farg = lh->sarg = a;
+                        lh->farg = lh->sarg = a_middle;
 
-                        if (lh->op != LIR_iMOD) _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, a, NULL), lh);
+                        lir_subject_t* b = create_tmp(RCX, lh->targ, smt, 8);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
+                        lh->targ = b;
+
+                        _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
+                        if (lh->op != LIR_iMOD) _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, a_exit, NULL), lh);
                         else {
                             lh->farg = LIR_SUBJ_REG(RDX, lh->farg->size);
                             _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, lh->farg, NULL), lh);
@@ -287,6 +296,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
         }
     }
 
-    list_free(&syscall_regs);
+    queue_free(&dirty_regs);
     return 1;
 }

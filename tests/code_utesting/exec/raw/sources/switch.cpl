@@ -25,8 +25,8 @@ _main:
 push rbp
 mov rbp, rsp
 sub rsp, 8
-mov r13d, edi
-lea r12, [rsi]
+mov edx, edi
+lea rcx, [rsi]
 jmp lb16
 ; BB2:
 lb18:
@@ -46,39 +46,30 @@ pop rdi
 jmp lb17
 ; BB3:
 lb36:
-lea r14, [rel _str_1_]
+lea rdx, [rel _str_1_]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, r14
+mov rsi, rdx
 push rdx
 mov rdx, 8
 syscall
 pop rdx
 pop rsi
 pop rdi
-pop rdx
-pop rsi
-pop rdi
 jmp lb17
 ; BB4:
 lb54:
-lea r14, [rel _str_2_]
+lea rdx, [rel _str_2_]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, r14
+mov rsi, rdx
 push rdx
 mov rdx, 9
 syscall
-pop rdx
-pop rsi
-pop rdi
-pop rdx
-pop rsi
-pop rdi
 pop rdx
 pop rsi
 pop rdi
@@ -86,12 +77,12 @@ jmp lb17
 ; BB5:
 ; BB6:
 lb16:
-movsxd rdi, r13d
-mov rax, rdi
+movsxd rcx, edx
+mov rax, rcx
 cmp rax, 1
 setl al
-mov r9b, al
-cmp r9b, 0
+mov cl, al
+cmp cl, 0
 je lb75
 jne lb74
 ; BB7:
@@ -99,22 +90,22 @@ lb74:
 jmp lb54
 ; BB8:
 lb75:
-movsxd rsi, r13d
-mov rax, rsi
+movsxd rcx, edx
+mov rax, rcx
 cmp rax, 1
 setg al
-mov bl, al
-cmp bl, 0
+mov cl, al
+cmp cl, 0
 je lb77
 jne lb76
 ; BB9:
 lb76:
-movsxd rdx, r13d
-mov rax, rdx
+movsxd rcx, edx
+mov rax, rcx
 cmp rax, 2
 setl al
-mov r11b, al
-cmp r11b, 0
+mov cl, al
+cmp cl, 0
 je lb85
 jne lb84
 ; BB10:
@@ -122,12 +113,12 @@ lb84:
 jmp lb54
 ; BB11:
 lb85:
-movsxd r8, r13d
-mov rax, r8
+movsxd rcx, edx
+mov rax, rcx
 cmp rax, 2
 setg al
-mov r10b, al
-cmp r10b, 0
+mov cl, al
+cmp cl, 0
 je lb87
 jne lb86
 ; BB12:

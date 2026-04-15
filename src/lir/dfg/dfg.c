@@ -4,48 +4,46 @@ OUT - Live variables after this block
 DEF - All new variables that defined first time
 USE - All variables that has been readed by someone
 
-IN  = union(USE, (DEF - OUT))
+IN  = union(USE, (OUT - DEF))
 OUT = union(IN successors)
 */
 
 #include <lir/dfg.h>
 
-int LIR_DFG_collect_defs(cfg_ctx_t* cctx) {
-    foreach (cfg_func_t* fb, &cctx->funcs) {
-        foreach (cfg_block_t* cb, &fb->blocks) {
-            lir_block_t* hl = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
-            while (hl) {
-                if (
-                    !hl->unused && LIR_is_writeop(hl->op) &&
-                    hl->farg->t == LIR_VARIABLE
-                ) set_add(&cb->def, (void*)hl->farg->storage.var.v_id);
-                hl = LIR_get_next(hl, cb->lmap.exit, 1);
-            }
-        }
-    }
-
-    return 1;
-}
-
-int LIR_DFG_collect_uses(cfg_ctx_t* cctx) {
+static int _compute_usedef(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
             while (lh) {
-                lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-                for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
-                    if (args[i]) switch (args[i]->t) {
-                        case LIR_VARIABLE: set_add(&cb->use, (void*)args[i]->storage.var.v_id); break;
-                        case LIR_ARGLIST: {
-                            foreach (lir_subject_t* arg, &args[i]->storage.list.h) {
-                                set_add(&cb->use, (void*)arg->storage.var.v_id);
+                if (!lh->unused) {
+                    lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
+                    for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
+                        if (args[i]) switch (args[i]->t) {
+                            case LIR_VARIABLE: {
+                                if (!set_has(&cb->def, (void*)args[i]->storage.var.v_id)) {
+                                    set_add(&cb->use, (void*)args[i]->storage.var.v_id); 
+                                }
+
+                                break;
+                            }
+                            case LIR_ARGLIST: {
+                                foreach (lir_subject_t* arg, &args[i]->storage.list.h) {
+                                    if (
+                                        arg->t == LIR_VARIABLE &&
+                                        !set_has(&cb->def, (void*)arg->storage.var.v_id) 
+                                    ) set_add(&cb->use, (void*)arg->storage.var.v_id);
+                                }
+
+                                break;
                             }
 
-                            break;
+                            default: break;
                         }
-
-                        default: break;
                     }
+
+                    if (
+                        lh->farg && LIR_is_writeop(lh->op) && lh->farg->t == LIR_VARIABLE
+                    ) set_add(&cb->def, (void*)lh->farg->storage.var.v_id);
                 }
 
                 lh = LIR_get_next(lh, cb->lmap.exit, 1);
@@ -92,6 +90,7 @@ static int _compute_in(cfg_block_t* cfg) {
 }
 
 int LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
+    _compute_usedef(cctx);
     foreach (cfg_func_t* fb, &cctx->funcs) {
         while (1) {
             list_iter_t bit;

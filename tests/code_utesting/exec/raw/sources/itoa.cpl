@@ -6,7 +6,7 @@ function itoa(i32 num, ptr i8 buffer, i32 blen) -> i0 {
 
     i32 i = 0;
     arr tmp[32, i8];
-    while num > 0 as i32; {
+    while num > 0; {
         tmp[i] = '0' + (num % 10) as i8;
         num /= 10;
         i += 1;
@@ -14,17 +14,19 @@ function itoa(i32 num, ptr i8 buffer, i32 blen) -> i0 {
 
     i32 j = 0;
     while i > 0 && j < blen; {
-        buffer[j] = tmp[i];
+        buffer[j] = tmp[i - 1];
         j += 1;
         i -= 1;
     }
+
+    buffer[j] = 0;
 }
 
 glob arr buffer[32, i8] = { 0 };
 
 start() {
     itoa(123321, ref buffer, sizeof(buffer) as i32);
-    syscall(0x2000004, 1, ref buffer, sizeof(buffer));
+    syscall(0x2000004, 1, ref buffer, 7);
 }
 
 :/ OUTPUT
@@ -36,12 +38,14 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-lea r10, [rel buffer]
-mov r9d, 32
+lea rdx, [rel buffer]
+mov ecx, 32
+push rdi
 mov edi, 123321
-mov rsi, r10
-mov edx, r9d
-push rbx
+push rsi
+mov rsi, rdx
+push rdx
+mov edx, ecx
 push rsi
 push rdx
 push rdi
@@ -49,15 +53,17 @@ call _cpl_itoa0
 pop rdi
 pop rdx
 pop rsi
-pop rbx
-lea rbx, [rel buffer]
+pop rdx
+pop rsi
+pop rdi
+lea rdx, [rel buffer]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rbx
+mov rsi, rdx
 push rdx
-mov rdx, 32
+mov rdx, 7
 syscall
 pop rdx
 pop rsi
@@ -67,14 +73,11 @@ syscall
 _cpl_itoa0:
 push rbp
 mov rbp, rsp
-sub rsp, 184
-mov r15d, edi
-mov dword [rbp - 8], r15d
-mov r15, rsi
-mov qword [rbp - 16], r15
-mov r15d, edx
-mov dword [rbp - 24], r15d
-mov eax, dword [rbp - 8]
+sub rsp, 32
+mov ebx, edi
+mov r10, rsi
+mov r9d, edx
+mov eax, ebx
 test eax, eax
 sete al
 movsx edx, al
@@ -83,154 +86,145 @@ je lb21
 jne lb19
 ; BB3:
 lb19:
-mov rax, qword [rbp - 16]
-mov qword [rax], 48
+mov byte [r10], 48
 mov rsp, rbp
 pop rbp
 ret
 ; BB4:
 lb21:
-mov ebx, 0
-mov edx, ebx
+mov edx, 0
+mov edx, edx
 ; BB16:
-mov r15d, edx
-mov dword [rbp - 64], r15d
-mov ebx, dword [rbp - 8]
+mov r8d, edx
+mov edi, ebx
 ; BB5:
 lb51:
-mov r11d, 0
-mov eax, ebx
-cmp eax, r11d
+mov edx, 0
+mov eax, edi
+cmp eax, edx
 setg al
-movsx esi, al
-cmp esi, 0
+movsx edx, al
+cmp edx, 0
 je lb53
 jne lb52
 ; BB6:
 lb52:
-mov r10d, 10
-xor rdx, rdx
-mov eax, ebx
-idiv r10d
-mov r9d, edx
-mov r15b, r9b
-mov byte [rbp - 8], r15b
+mov edx, 10
+movsxd rax, edi
+movsxd rcx, edx
+cqo
+idiv rcx
+mov edx, edx
+mov dl, dl
 mov al, 48
-add al, byte [rbp - 8]
-mov r14b, al
-lea r15, [rbp - 56]
-mov qword [rbp - 72], r15
-mov eax, dword [rbp - 64]
-imul eax, 1
-movsxd r15, eax
-mov qword [rbp - 80], r15
-mov r12, qword [rbp - 80]
-mov rax, qword [rbp - 72]
-add rax, r12
+add rax, rdx
+mov sil, al
+lea rbx, [rbp - 32]
+mov eax, r8d
+imul rax, 1
 mov rdx, rax
-mov byte [rdx], r14b
-mov dword [rbp - 88], 10
-xor rdx, rdx
-mov eax, ebx
-idiv dword [rbp - 88]
-mov r8d, eax
-mov r13d, r8d
-mov edi, 1
-mov eax, dword [rbp - 64]
-add eax, edi
-mov r15d, eax
-mov dword [rbp - 96], r15d
-mov r15d, dword [rbp - 96]
-mov dword [rbp - 104], r15d
-mov ebx, r13d
-mov r15d, dword [rbp - 104]
-mov dword [rbp - 64], r15d
+mov rdx, rdx
+mov rax, rbx
+add rax, rdx
+mov rdx, rax
+mov byte [rdx], sil
+mov edx, 10
+movsxd rax, edi
+movsxd rcx, edx
+cqo
+idiv rcx
+mov edx, eax
+mov ebx, edx
+mov edx, 1
+mov eax, r8d
+add rax, rdx
+mov edx, eax
+mov edx, edx
+mov edi, ebx
+mov r8d, edx
 jmp lb51
 ; BB7:
 lb53:
-mov dword [rbp - 8], 0
-mov edx, dword [rbp - 8]
-; BB15:
-mov ebx, edx
-mov esi, dword [rbp - 64]
-; BB8:
-lb117:
-mov dword [rbp - 8], 0
-mov eax, esi
-cmp eax, dword [rbp - 8]
-setg al
-movsx r15d, al
-mov dword [rbp - 64], r15d
-cmp dword [rbp - 64], 0
-je lb129
-jne lb128
-; BB9:
-lb128:
-mov eax, dword [rbp - 72]
-cmp eax, dword [rbp - 24]
-setl al
-movsx r15d, al
-mov dword [rbp - 80], r15d
-mov edx, dword [rbp - 80]
-jmp lb130
-; BB10:
-lb129:
 mov edx, 0
-jmp lb130
-; BB11:
-lb130:
+mov edx, edx
+; BB15:
+mov edi, edx
+mov r8d, r8d
+; BB8:
+lb116:
+mov edx, 0
+mov eax, r8d
+cmp eax, edx
+setg al
+movsx edx, al
 cmp edx, 0
-je lb119
-jne lb118
+je lb128
+jne lb127
+; BB9:
+lb127:
+mov eax, edi
+cmp eax, r9d
+setl al
+movsx edx, al
+mov edx, edx
+jmp lb129
+; BB10:
+lb128:
+mov edx, 0
+jmp lb129
+; BB11:
+lb129:
+cmp edx, 0
+je lb118
+jne lb117
 ; BB12:
-lb118:
-lea r15, [rbp - 56]
-mov qword [rbp - 88], r15
-mov eax, esi
-imul eax, 1
-movsxd r15, eax
-mov qword [rbp - 96], r15
-mov r15, qword [rbp - 96]
-mov qword [rbp - 104], r15
-mov rax, qword [rbp - 88]
-add rax, qword [rbp - 104]
-mov r15, rax
-mov qword [rbp - 112], r15
-mov r15, qword [rbp - 112]
-mov r15b, [r15]
-mov byte [rbp - 120], r15b
-mov r15, qword [rbp - 16]
-mov qword [rbp - 128], r15
-mov eax, ebx
-imul eax, 1
-movsxd r15, eax
-mov qword [rbp - 136], r15
-mov r15, qword [rbp - 136]
-mov qword [rbp - 144], r15
-mov rax, qword [rbp - 128]
-add rax, qword [rbp - 144]
+lb117:
+mov edx, 1
+mov eax, r8d
+sub rax, rdx
+mov edx, eax
+lea rbx, [rbp - 32]
+mov eax, edx
+imul rax, 1
 mov rdx, rax
-mov r15b, byte [rbp - 120]
-mov byte [rdx], r15b
-mov dword [rbp - 152], 1
-mov eax, ebx
-add eax, dword [rbp - 152]
-mov r15d, eax
-mov dword [rbp - 160], r15d
-mov r15d, dword [rbp - 160]
-mov dword [rbp - 72], r15d
-mov dword [rbp - 168], 1
-mov eax, esi
-sub eax, dword [rbp - 168]
-mov r15d, eax
-mov dword [rbp - 176], r15d
-mov r15d, dword [rbp - 176]
-mov dword [rbp - 184], r15d
-mov esi, dword [rbp - 184]
-mov ebx, dword [rbp - 72]
-jmp lb117
+mov rdx, rdx
+mov rax, rbx
+add rax, rdx
+mov rdx, rax
+mov sil, [rdx]
+mov rbx, r10
+mov eax, edi
+imul rax, 1
+mov rdx, rax
+mov rdx, rdx
+mov rax, rbx
+add rax, rdx
+mov rdx, rax
+mov byte [rdx], sil
+mov edx, 1
+mov eax, edi
+add rax, rdx
+mov edx, eax
+mov ebx, edx
+mov edx, 1
+mov eax, r8d
+sub rax, rdx
+mov edx, eax
+mov edx, edx
+mov r8d, edx
+mov edi, ebx
+jmp lb116
 ; BB13:
-lb119:
+lb118:
+mov rbx, r10
+mov eax, edi
+imul rax, 1
+mov rdx, rax
+mov rdx, rdx
+mov rax, rbx
+add rax, rdx
+mov rcx, rax
+mov byte [rcx], 0
 mov rsp, rbp
 pop rbp
 ret

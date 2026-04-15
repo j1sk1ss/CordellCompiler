@@ -111,6 +111,30 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
+// TODO: docs
+static int _validate_size_ops(cfg_block_t* bb) {
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+    while (lh) {
+        switch (lh->op) {
+            case LIR_bOR:
+            case LIR_bXOR:
+            case LIR_bAND:
+            case LIR_iMUL:
+            case LIR_iSUB:
+            case LIR_iADD: {
+                if (lh->sarg && lh->sarg->t == LIR_REGISTER) lh->sarg->size = 8;
+                if (lh->targ && lh->targ->t == LIR_REGISTER) lh->targ->size = 8;
+                break;
+            }
+            default: break;
+        }
+
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
+    }
+
+    return 1;
+}
+
 /*
 After the memory selection we should be sure that this LIR is valid. 
 Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
@@ -130,10 +154,11 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
         list_init(&fixes);
         if (lh->farg && lh->sarg) {
             switch (lh->op) {
-                case LIR_REF: {
+                case LIR_REF:
+                case LIR_REF_GDREF: {
                     if (lh->farg->t == LIR_REGISTER) break;
                     lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, 8);
-                    list_add(&fixes, LIR_create_block(LIR_REF, tmp, lh->sarg, NULL));
+                    list_add(&fixes, LIR_create_block(lh->op, tmp, lh->sarg, NULL));
                     lh->sarg = tmp;
                     lh->op   = LIR_iMOV;
                     break;
@@ -229,7 +254,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             VRTB_update_memory(lh->farg->storage.var.v_id, str_off, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
                             
                             int curr_offset = str_off;
-                            unsigned long block_size = 4;
+                            unsigned long block_size  = 4;
                             unsigned long  string_pos = 0;
 
                             while (block_size > 0) {
@@ -304,6 +329,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
             _validate_selected_instuction(bb, smt);
             _validate_size_movs(bb, smt);
+            _validate_size_ops(bb);
         }
 
         /* Save the largest offset in this function for further

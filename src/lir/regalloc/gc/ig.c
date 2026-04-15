@@ -25,33 +25,124 @@ static int _add_ig_node(long v_id, igraph_t* g) {
     return map_put(&g->nodes, v_id, n);
 }
 
+static int _inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
+    set_init(use, SET_CMP);
+    set_init(def, SET_CMP);
+
+    if (!lh || lh->unused) return 1;
+
+    lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
+
+    for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
+        if (!args[i]) continue;
+
+        switch (args[i]->t) {
+            case LIR_VARIABLE: {
+                long v = args[i]->storage.var.v_id;
+                if (!set_has(def, (void*)v)) set_add(use, (void*)v);
+                break;
+            }
+
+            case LIR_ARGLIST: {
+                foreach (lir_subject_t* arg, &args[i]->storage.list.h) {
+                    if (arg->t != LIR_VARIABLE) continue;
+                    long v = arg->storage.var.v_id;
+                    if (!set_has(def, (void*)v)) set_add(use, (void*)v);
+                }
+                break;
+            }
+
+            default: break;
+        }
+    }
+
+    if (
+        LIR_is_writeop(lh->op) &&
+        lh->farg &&
+        lh->farg->t == LIR_VARIABLE
+    ) {
+        set_add(def, (void*)lh->farg->storage.var.v_id);
+    }
+
+    return 1;
+}
+
+static int _count_lir_in_block(cfg_block_t* cb) {
+    int n = 0;
+    lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
+    while (lh) {
+        n++;
+        lh = LIR_get_next(lh, cb->lmap.exit, 1);
+    }
+
+    return n;
+}
+
+static int _collect_lir_in_block(cfg_block_t* cb, lir_block_t** arr) {
+    int i = 0;
+    lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
+    while (lh) {
+        arr[i++] = lh;
+        lh = LIR_get_next(lh, cb->lmap.exit, 1);
+    }
+    
+    return 1;
+}
+
+static int _build_igraph_block(cfg_block_t* cb, igraph_t* g) {
+    int n = _count_lir_in_block(cb);
+    if (n <= 0) return 1;
+
+    lir_block_t** arr = (lir_block_t**)mm_malloc(sizeof(lir_block_t*) * n);
+    if (!arr) return 0;
+    _collect_lir_in_block(cb, arr);
+
+    set_t live;
+    set_copy(&live, &cb->curr_out);
+
+    for (int i = n - 1; i >= 0; i--) {
+        set_t use, def, tmp;
+        _inst_usedef(arr[i], &use, &def);
+
+        set_foreach (long d, &def) {
+            set_foreach (long v, &live) {
+                _igraph_add_edge(g, d, v);
+            }
+        }
+
+        set_copy(&tmp, &live);
+        set_minus_set(&tmp, &def);
+        set_free(&live);
+        set_union(&live, &tmp, &use);
+
+        set_free(&tmp);
+        set_free(&use);
+        set_free(&def);
+    }
+
+    set_free(&live);
+    mm_free(arr);
+    return 1;
+}
+
 int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     map_init(&g->nodes, MAP_NO_CMP);
 
-    /* Initially, we build an empty graph of all avaliable variable */
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
         if (
-            vi->vfs.glob || vi->vfs.ro                 || /* Global and RO types aren't in the stack                           */
-            vi->type == ARRAY_TYPE_TOKEN               || /* Array type is a head in the stack (must have a valid address)     */
-            vi->type == STR_TYPE_TOKEN                 || /* String variables act the same as it do array variables            */
-            ALLIAS_get_owners(vi->v_id, NULL, &smt->m) || /* If this variable has owners -> we need a valid point in the stack */
-            vi->vmi.align > CONF_get_full_bytness()       /* If the variable needs memory, larger than the register's maximum  */
+            vi->vfs.glob || vi->vfs.ro ||
+            vi->type == ARRAY_TYPE_TOKEN ||
+            vi->type == STR_TYPE_TOKEN ||
+            ALLIAS_get_owners(vi->v_id, NULL, &smt->m) ||
+            vi->vmi.align > CONF_get_full_bytness()
         ) continue;
+
         _add_ig_node(vi->v_id, g);
     }
 
-    /* Link all co-existing variables in the CFG */
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            set_foreach (long d, &cb->def) {
-                set_foreach (long l, &cb->curr_in) {
-                    _igraph_add_edge(g, d, l);
-                }
-
-                set_foreach (long l, &cb->curr_out) {
-                    _igraph_add_edge(g, d, l);
-                }
-            }
+            if (!_build_igraph_block(cb, g)) return 0;
         }
     }
 

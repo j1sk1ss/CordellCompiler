@@ -13,6 +13,7 @@ typedef enum {
         LIR_TST,   // test
         LIR_XCHG,  // xchg
         LIR_CDQ,   // cdq
+        LIR_CQO,
         LIR_MKLB,  // mk label
         LIR_FDCL,  // declare function
         LIR_FEND,

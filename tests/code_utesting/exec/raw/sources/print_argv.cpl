@@ -10,22 +10,22 @@ _main:
 push rbp
 mov rbp, rsp
 mov edx, edi
-lea r14, [rsi]
-mov r10d, 1
-mov r9, r14
-mov eax, r10d
-imul eax, 8
-movsxd r13, eax
-mov r12, r13
-mov rax, r9
-add rax, r12
-mov r11, rax
-mov rbx, [r11]
+lea rbx, [rsi]
+mov edx, 1
+mov rbx, rbx
+mov eax, edx
+imul rax, 8
+mov rdx, rax
+mov rdx, rdx
+mov rax, rbx
+add rax, rdx
+mov rcx, rax
+mov rdx, [rcx]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rbx
+mov rsi, rdx
 push rdx
 mov rdx, 12
 syscall

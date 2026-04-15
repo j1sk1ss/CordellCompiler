@@ -10,11 +10,11 @@ section .text
 _cpl___anon_function_lambda1:
 push rbp
 mov rbp, rsp
-mov ebx, edi
-mov eax, ebx
-imul eax, ebx
-mov edx, eax
+mov edx, edi
 mov eax, edx
+imul rax, rdx
+mov ecx, eax
+mov eax, ecx
 mov rsp, rbp
 pop rbp
 ret
@@ -24,45 +24,39 @@ push rbp
 mov rbp, rsp
 sub rsp, 8
 mov edx, 2
-mov r12d, edx
+mov ebx, edx
 jmp lb25
 ; BB3:
 lb25:
-lea r11, [rel _cpl___anon_function_lambda1]
-mov edi, r12d
-push r9
-push r11
+lea rdx, [rel _cpl___anon_function_lambda1]
+push rdi
+mov edi, ebx
 push rbx
 push rsi
-push r10
 push rdx
-push r13
-push r14
 push rdi
-call r11
+push rcx
+call rdx
+pop rcx
 pop rdi
-pop r14
-pop r13
 pop rdx
-pop r10
 pop rsi
 pop rbx
-pop r11
-pop r9
-mov r9, rax
-mov r13d, r9d
-mov r14d, 48
-mov eax, r13d
-add eax, r14d
-mov r10d, eax
-mov r15d, r10d
+pop rdi
+mov rdx, rax
+mov edx, edx
+mov ebx, 48
+mov eax, edx
+add rax, rbx
+mov ecx, eax
+mov r15d, ecx
 mov dword [rbp - 8], r15d
-lea rbx, [rbp - 8]
+lea rdx, [rbp - 8]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rbx
+mov rsi, rdx
 push rdx
 mov rdx, 1
 syscall

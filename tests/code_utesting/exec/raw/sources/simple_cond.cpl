@@ -62,9 +62,6 @@ syscall
 pop rdx
 pop rsi
 pop rdi
-pop rdx
-pop rsi
-pop rdi
 jmp lb18
 ; BB4:
 lb18:

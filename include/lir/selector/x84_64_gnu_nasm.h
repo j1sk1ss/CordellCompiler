@@ -4,6 +4,7 @@
 
 #include <std/map.h>
 #include <std/list.h>
+#include <std/queue.h>
 #include <std/stackmap.h>
 
 #include <lir/lir.h>

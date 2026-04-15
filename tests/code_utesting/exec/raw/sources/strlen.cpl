@@ -19,65 +19,61 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-sub rsp, 16
 mov edx, edi
-lea r11, [rsi]
-mov dword [rbp - 8], 1
-mov r9, r11
-mov eax, dword [rbp - 8]
-imul eax, 8
-movsxd r10, eax
-mov r12, r10
-mov rax, r9
-add rax, r12
-mov r13, rax
-mov r14, [r13]
-mov rdi, r14
-push rbx
-push rdx
+lea rdx, [rsi]
+mov ebx, 1
+mov rsi, rdx
+mov eax, ebx
+imul rax, 8
+mov rdx, rax
+mov rdx, rdx
+mov rax, rsi
+add rax, rdx
+mov rdx, rax
+mov rdx, [rdx]
+push rdi
+mov rdi, rdx
 call _cpl_strlen0
-pop rdx
-pop rbx
-mov r15d, eax
-mov dword [rbp - 16], r15d
-mov bl, byte [rbp - 16]
-mov dl, bl
+pop rdi
+mov ecx, eax
+mov cl, cl
+mov dil, cl
 mov rax, 0x2000001
 syscall
 ; BB8:
 _cpl_strlen0:
 push rbp
 mov rbp, rsp
-mov r14, rdi
+mov rbx, rdi
 mov edx, 0
-mov r13d, edx
+mov edx, edx
 ; BB9:
-mov ebx, r13d
-mov rdx, r14
+mov esi, edx
+mov rbx, rbx
 ; BB3:
 lb21:
-mov r9b, [rdx]
-cmp r9b, 0
+mov dl, [rbx]
+cmp dl, 0
 je lb23
 jne lb22
 ; BB4:
 lb22:
-mov r11d, 1
-mov eax, ebx
-add eax, r11d
-mov edi, eax
-mov esi, edi
-mov r10, 1
-mov rax, rdx
-add rax, r10
-mov r8, rax
-mov r12, r8
-mov rdx, r12
-mov ebx, esi
+mov edx, 1
+mov eax, esi
+add rax, rdx
+mov edx, eax
+mov esi, edx
+mov rdx, 1
+mov rax, rbx
+add rax, rdx
+mov rdx, rax
+mov rdx, rdx
+mov rbx, rdx
+mov esi, esi
 jmp lb21
 ; BB5:
 lb23:
-mov eax, ebx
+mov eax, esi
 mov rsp, rbp
 pop rbp
 ret

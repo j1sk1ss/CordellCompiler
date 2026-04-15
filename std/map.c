@@ -186,13 +186,12 @@ int map_equals(map_t* a, map_t* b) {
     ) return 0;
 
     for (long i = 0; i < a->capacity; i++) {
-        if (a->entries[i].used) {
-            if (
-                !b->entries[i].used ||
-                (b->entries[i].key != a->entries[i].key) ||
-                (b->entries[i].value != a->entries[i].value) 
-            ) return 0;
-        }
+        if (!a->entries[i].used) continue;
+        void* bv = NULL;
+        if (
+            !map_get(b, a->entries[i].key, (void**)&bv) || 
+            bv != a->entries[i].value
+        ) return 0;
     }
 
     return 1;

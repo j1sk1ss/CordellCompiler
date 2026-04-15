@@ -7,10 +7,31 @@ import difflib
 import argparse
 import tempfile
 import subprocess
+import signal
 
 from tqdm import tqdm
 from pathlib import Path
 from collections import Counter
+
+def _cmd_to_str(cmd: list[object]) -> str:
+    return " ".join(str(part) for part in cmd)
+
+
+def _log(message: str) -> None:
+    tqdm.write(str(message))
+
+
+def _run_interactive_command(cmd: list[str]) -> int:
+    _log("[DEBUG] interactive session started; Ctrl+C will be handled by the debugger, not by the Python runner")
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    old_sigint = signal.getsignal(signal.SIGINT)
+    try:
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        return subprocess.run(cmd).returncode
+    finally:
+        signal.signal(signal.SIGINT, old_sigint)
 
 from misc.builder import (
     CCBuilder,
@@ -481,6 +502,10 @@ def _assemble_and_run(
         obj_path = tmp_dir_path / "program.o"
         exe_path = tmp_dir_path / "program.out"
 
+        _log(f"[ASM] temporary asm: {asm_path}")
+        _log(f"[ASM] object file: {obj_path}")
+        _log(f"[ASM] executable path: {exe_path}")
+
         asm_path.write_text(asm_text, encoding="utf-8")
 
         if sys.platform == "darwin":
@@ -493,6 +518,7 @@ def _assemble_and_run(
             nasm_cmd.append("-g")
         nasm_cmd.extend([str(asm_path), "-o", str(obj_path)])
 
+        _log(f"[ASM] assembling command: {_cmd_to_str(nasm_cmd)}")
         nasm_proc = _capture_process(nasm_cmd)
         if nasm_proc.returncode != 0:
             return False, nasm_proc.stdout, None, None
@@ -513,6 +539,7 @@ def _assemble_and_run(
                 str(obj_path)
             ]
 
+        _log(f"[ASM] linking command: {_cmd_to_str(link_cmd)}")
         link_proc = _capture_process(link_cmd)
         if link_proc.returncode != 0:
             return False, link_proc.stdout, None, None
@@ -530,14 +557,18 @@ def _assemble_and_run(
             else:
                 debug_cmd = [debugger, "--", str(exe_path), *debug_args]
 
-            subprocess.run(debug_cmd)
+            _log(f"[ASM] starting debugger for executable: {exe_path}")
+            _log(f"[ASM] debugger command: {_cmd_to_str(debug_cmd)}")
+            _run_interactive_command(debug_cmd)
             return True, None, None, None
         
         outputs: list[str] = []
         exit_codes: list[int] = []
 
-        for run_args in run_cases:
-            run_proc = _capture_process([str(exe_path), *run_args])
+        for run_index, run_args in enumerate(run_cases):
+            run_cmd = [str(exe_path), *run_args]
+            _log(f"[ASM] run #{run_index}: executable={exe_path} args={run_args}")
+            run_proc = _capture_process(run_cmd)
             outputs.append(run_proc.stdout.rstrip("\n"))
             exit_codes.append(run_proc.returncode)
 
@@ -582,6 +613,8 @@ def _check_output_annotations(flags: dict, actual_exit_codes: list[int] | None) 
 def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
     code, expected, flags = _parse_test_file(test_file)
 
+    _log(f"[TEST] starting: {test_file}")
+
     chosen_bin = binary
     if flags["leak_trace"]:
         if not binary_leak:
@@ -598,13 +631,18 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
         tmp.write(code)
         tmp_path = tmp.name
 
+    _log(f"[TEST] temp source path: {tmp_path}")
+    _log(f"[TEST] executable path: {chosen_bin}")
+
     try:
         actual_output = ""
         actual_outputs_by_run: list[str] | None = None
         actual_exit_codes: list[int] | None = None
 
         if flags["run_asm"] or flags["run_asm_debug"]:
-            compiler_proc = _capture_process([chosen_bin, tmp_path, str(test_file.parent)])
+            compile_cmd = [str(chosen_bin), str(tmp_path), str(test_file.parent)]
+            _log(f"[TEST] compiler command: {_cmd_to_str(compile_cmd)}")
+            compiler_proc = _capture_process(compile_cmd)
 
             if compiler_proc.returncode != 0:
                 actual_output = compiler_proc.stdout
@@ -629,7 +667,8 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
                     actual_outputs_by_run = [""] * len(flags["run_asm_cases"])
 
         else:
-            cmd = [chosen_bin, tmp_path, str(test_file.parent)]
+            cmd = [str(chosen_bin), str(tmp_path), str(test_file.parent)]
+            _log(f"[TEST] run command: {_cmd_to_str(cmd)}")
 
             if flags["test_debug"]:
                 debugger = "gdb"
@@ -637,11 +676,12 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
                     debugger = "lldb"
 
                 if debugger == "gdb":
-                    cmd = [debugger, "--args", binary, tmp_path, str(test_file.parent)]
+                    cmd = [debugger, "--args", str(binary), str(tmp_path), str(test_file.parent)]
                 else:
-                    cmd = [debugger, "--", binary, tmp_path, str(test_file.parent)]
+                    cmd = [debugger, "--", str(binary), str(tmp_path), str(test_file.parent)]
 
-                subprocess.run(cmd)
+                _log(f"[TEST] debugger command: {_cmd_to_str(cmd)}")
+                _run_interactive_command(cmd)
                 return {
                     "file": str(test_file),
                     "ok": True,
@@ -836,6 +876,11 @@ def _entry() -> None:
         deps = root / "dependencies.json"
         base = root / "base.c"
 
+        _log(f"[BUILD] module root: {root}")
+        _log(f"[BUILD] base source: {base}")
+        _log(f"[BUILD] dependencies: {deps}")
+        _log(f"[BUILD] output dir: {module_out_dir}")
+
         with deps.open("r", encoding="utf-8") as f:
             bconf_raw = json.load(f)
 
@@ -867,6 +912,8 @@ def _entry() -> None:
             failed_modules += 1
             continue
 
+        _log(f"[BUILD] executable path: {binary}")
+
         cpl_files: list = _collect_cpl_files(root, all_roots_set)
         need_leak_bin = False
         for cpl in cpl_files:
@@ -881,6 +928,7 @@ def _entry() -> None:
         if need_leak_bin:
             leak_out_dir = module_out_dir / "_leak"
             os.makedirs(leak_out_dir, exist_ok=True)
+            _log(f"[BUILD] building leak binary in: {leak_out_dir}")
             _buf = io.StringIO()
             with redirect_stdout(_buf), redirect_stderr(_buf):
                 binary_leak = builder.build(
@@ -892,6 +940,8 @@ def _entry() -> None:
             if _out:
                 for _line in _out.rstrip("\n").splitlines():
                     tqdm.write(_line)
+            if binary_leak:
+                _log(f"[BUILD] leak executable path: {binary_leak}")
             
         if not cpl_files:
             print(f"Module {root} has no .cpl files to test.")

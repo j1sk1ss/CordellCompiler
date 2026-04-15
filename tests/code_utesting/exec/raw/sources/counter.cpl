@@ -21,30 +21,30 @@ mov byte [rbp - 4], 10
 mov byte [rbp - 3], 0
 mov rdx, 10
 ; BB6:
-mov r10, rdx
+mov rbx, rdx
 ; BB2:
 lb15:
 jmp lb16
 ; BB3:
 lb16:
-lea rbx, [rbp - 16]
+lea rdx, [rbp - 16]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, rbx
+mov rsi, rdx
 push rdx
 mov rdx, 13
 syscall
 pop rdx
 pop rsi
 pop rdi
-mov rax, r10
+mov rax, rbx
 sub rax, 1
-mov r11, rax
-mov r9, r11
-mov r10, r9
-cmp r9, 0
+mov rdx, rax
+mov rdx, rdx
+mov rbx, rdx
+cmp rdx, 0
 je lb17
 jne lb15
 ; BB4:

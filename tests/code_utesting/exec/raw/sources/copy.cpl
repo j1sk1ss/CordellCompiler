@@ -19,66 +19,61 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-sub rsp, 64
+sub rsp, 32
 mov dword [rbp - 32], 1819043144
 mov dword [rbp - 28], 1870078063
 mov dword [rbp - 24], 560229490
 mov byte [rbp - 20], 10
 mov byte [rbp - 19], 0
 mov edx, 0
-mov ebx, edx
+mov edx, edx
 ; BB5:
-mov edx, ebx
+mov edi, edx
 ; BB2:
 lb26:
-mov r12d, 13
-mov eax, edx
-cmp eax, r12d
+mov edx, 13
+mov eax, edi
+cmp eax, edx
 setl al
-movsx r15d, al
-mov dword [rbp - 40], r15d
-cmp dword [rbp - 40], 0
+movsx edx, al
+cmp edx, 0
 je lb28
 jne lb27
 ; BB3:
 lb27:
-lea r9, [rbp - 32]
-mov eax, edx
-imul eax, 1
-movsxd rdi, eax
-mov r15, rdi
-mov qword [rbp - 48], r15
-mov rax, r9
-add rax, qword [rbp - 48]
-mov r8, rax
-mov sil, [r8]
-lea r15, [rbp - 16]
-mov qword [rbp - 56], r15
-mov eax, edx
-imul eax, 1
-movsxd r11, eax
-mov r13, r11
-mov rax, qword [rbp - 56]
-add rax, r13
-mov rbx, rax
-mov byte [rbx], sil
-mov r14d, 1
-mov eax, edx
-add eax, r14d
-mov r10d, eax
-mov r15d, r10d
-mov dword [rbp - 64], r15d
-mov edx, dword [rbp - 64]
+lea rbx, [rbp - 32]
+mov eax, edi
+imul rax, 1
+mov rdx, rax
+mov rdx, rdx
+mov rax, rbx
+add rax, rdx
+mov rdx, rax
+mov sil, [rdx]
+lea rbx, [rbp - 16]
+mov eax, edi
+imul rax, 1
+mov rdx, rax
+mov rdx, rdx
+mov rax, rbx
+add rax, rdx
+mov rdx, rax
+mov byte [rdx], sil
+mov edx, 1
+mov eax, edi
+add rax, rdx
+mov edx, eax
+mov edx, edx
+mov edi, edx
 jmp lb26
 ; BB4:
 lb28:
-lea r15, [rbp - 16]
-mov qword [rbp - 48], r15
+lea rdx, [rbp - 16]
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, qword [rbp - 48]
+mov rsi, rdx
 push rdx
 mov rdx, 13
 syscall

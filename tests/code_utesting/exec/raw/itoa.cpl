@@ -1,3 +1,4 @@
+: BUG :
 : RUN_ASM :
 function itoa(i32 num, ptr i8 buffer, i32 blen) -> i0 {
     if not num; {
@@ -14,11 +15,13 @@ function itoa(i32 num, ptr i8 buffer, i32 blen) -> i0 {
     }
 
     i32 j = 0;
-    while i >= 0 && j < blen; {
-        buffer[j] = tmp[i];
+    while i > 0 && j < blen; {
+        buffer[j] = tmp[i - 1];
         j += 1;
         i -= 1;
     }
+
+    buffer[j] = 0;
 }
 
 glob arr buffer[32, i8] = { 0 };

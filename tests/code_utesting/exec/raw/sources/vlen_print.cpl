@@ -19,55 +19,44 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-sub rsp, 56
 mov edx, edi
-lea r11, [rsi]
-mov r9d, 1
-mov r15, r11
-mov qword [rbp - 8], r15
-mov eax, r9d
-imul eax, 8
-movsxd r13, eax
-mov r15, r13
-mov qword [rbp - 16], r15
-mov rax, qword [rbp - 8]
-add rax, qword [rbp - 16]
-mov r14, rax
-mov r15, r14
-mov r15, [r15]
-mov qword [rbp - 24], r15
-mov dword [rbp - 32], 1
-mov r15, r11
-mov qword [rbp - 40], r15
-mov eax, dword [rbp - 32]
-imul eax, 8
-movsxd r15, eax
-mov qword [rbp - 48], r15
-mov rbx, qword [rbp - 48]
-mov rax, qword [rbp - 40]
-add rax, rbx
-mov r12, rax
-mov r15, r12
-mov r15, [r15]
-mov qword [rbp - 56], r15
-mov rdi, qword [rbp - 56]
-push rsi
-push r10
-push rdx
+lea rsi, [rsi]
+mov edx, 1
+mov rbx, rsi
+mov eax, edx
+imul rax, 8
+mov rdx, rax
+mov rdx, rdx
+mov rax, rbx
+add rax, rdx
+mov rdx, rax
+mov r9, [rdx]
+mov edx, 1
+mov rbx, rsi
+mov eax, edx
+imul rax, 8
+mov rdx, rax
+mov rdx, rdx
+mov rax, rbx
+add rax, rdx
+mov rdx, rax
+mov rdx, [rdx]
 push rdi
+mov rdi, rdx
+push rsi
+push rdx
 call _cpl_strlen0
-pop rdi
 pop rdx
-pop r10
 pop rsi
-mov r10d, eax
+pop rdi
+mov edx, eax
 mov rax, 33554436
 push rdi
 mov rdi, 1
 push rsi
-mov rsi, qword [rbp - 24]
+mov rsi, r9
 push rdx
-movsxd rdx, r10d
+movsxd rdx, edx
 syscall
 pop rdx
 pop rsi
@@ -77,32 +66,32 @@ syscall
 _cpl_strlen0:
 push rbp
 mov rbp, rsp
-mov r14, rdi
+mov rbx, rdi
 mov edx, 0
-mov r13d, edx
+mov edx, edx
 ; BB8:
-mov edx, r13d
-mov rbx, r14
+mov edx, edx
+mov rsi, rbx
 ; BB3:
 lb21:
-mov r10b, [rbx]
-cmp r10b, 0
+mov bl, [rsi]
+cmp bl, 0
 je lb23
 jne lb22
 ; BB4:
 lb22:
-mov r12d, 1
+mov ebx, 1
 mov eax, edx
-add eax, r12d
-mov esi, eax
-mov edi, esi
-mov r11, 1
-mov rax, rbx
-add rax, r11
-mov r9, rax
-mov r8, r9
-mov rbx, r8
-mov edx, edi
+add rax, rbx
+mov edx, eax
+mov ebx, edx
+mov rdx, 1
+mov rax, rsi
+add rax, rdx
+mov rdx, rax
+mov rdx, rdx
+mov rsi, rdx
+mov edx, ebx
 jmp lb21
 ; BB5:
 lb23:

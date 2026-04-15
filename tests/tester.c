@@ -312,10 +312,6 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 
 #ifdef LIR_REGALLOC_TESTING
-    printf("LIR_DFG_collect_defs...\n");
-    LIR_DFG_collect_defs(&cfgctx);       // Analyzation
-    printf("LIR_DFG_collect_uses...\n");
-    LIR_DFG_collect_uses(&cfgctx);       // Analyzation
     printf("LIR_DFG_compute_inout...\n");
     LIR_DFG_compute_inout(&cfgctx);      // Analyzation
     printf("LIR_DFG_create_deall...\n");

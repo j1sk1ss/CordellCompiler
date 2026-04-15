@@ -34,6 +34,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
             EMIT_COMMAND("ret\n");
             break;
         }
+        case LIR_CQO:  EMIT_COMMAND("cqo\n");     break;
         case LIR_CDQ:  EMIT_COMMAND("cdq\n");     break;
         case LIR_SYSC: EMIT_COMMAND("syscall\n"); break;
         case LIR_FEXT: {
