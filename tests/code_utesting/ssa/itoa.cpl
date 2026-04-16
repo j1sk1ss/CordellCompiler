@@ -95,7 +95,7 @@ start() {
             i32t %42 = i8n 1 as i32;
             lb116:
             [i32s %3] i32s %58 = phi(set [%56, bb15][%61, bb12]);
-            [i32s %5] i32s %59 = phi(set [%57, bb15][%60, bb12]);
+            [i32s %5] i32s %59 = phi(set [%60, bb12][%57, bb15]);
             i32t %24 = i32s %58 > i32t %25;
             if i32t %24, goto lb127, else goto lb128;
             lb127:

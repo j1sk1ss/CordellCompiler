@@ -94,7 +94,7 @@ lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     return reg;
 }
 
-int LIR_is_movop(lir_operation_t op) {
+static int _is_move_write_by_value(lir_operation_t op) {
     switch (op) {
         case LIR_CDQ:
         case LIR_XCHG:
@@ -114,9 +114,15 @@ int LIR_is_movop(lir_operation_t op) {
         case LIR_MOVSX:
         case LIR_MOVSXD:
         case LIR_MOVZX:
-        case LIR_LDREF:
         case LIR_fMOV: return 1;
         default: return 0;
+    }
+}
+
+int LIR_is_movop(lir_operation_t op) {
+    switch (op) {
+        case LIR_LDREF: return 1;
+        default: return _is_move_write_by_value(op);
     }
 }
 
@@ -139,7 +145,7 @@ int LIR_is_writeop(lir_operation_t op) {
         case LIR_GDREF:
         case LIR_REF_GDREF:
         case LIR_REF: return 1;
-        default: return LIR_is_movop(op);
+        default: return _is_move_write_by_value(op);
     }
 }
 

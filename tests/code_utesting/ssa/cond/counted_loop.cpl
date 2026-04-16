@@ -19,7 +19,7 @@ start() {
                 i32t %5 = i8n 10 as i32;
             }
             lb20:
-            [i64s %3] i64s %8 = phi(set [%9, bb3][%7, bb6]);
+            [i64s %3] i64s %8 = phi(set [%7, bb6][%9, bb3]);
             goto lb21;
             lb21:
             {
@@ -27,7 +27,7 @@ start() {
                 i64s %9 = i64t %4;
                 future: i64s %8 = previous: i64s %9;
                 if i64s %9, goto lb20, else goto lb22;
-            }
+            [unused] }
             lb22:
             i32s %1 = alloc(8);
             i32s %10 = i32t %5;

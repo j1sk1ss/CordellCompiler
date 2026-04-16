@@ -34,5 +34,6 @@ function foo() {
             exit i32t %5;
         }
     }
+    [unused]
 }
 /:

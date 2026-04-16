@@ -33,7 +33,9 @@ mov rdx, rax
 mov rdx, [rdx]
 push rdi
 mov rdi, rdx
+push rdi
 call _cpl_strlen0
+pop rdi
 pop rdi
 mov ecx, eax
 mov cl, cl
@@ -49,10 +51,10 @@ mov edx, 0
 mov edx, edx
 ; BB9:
 mov esi, edx
-mov rbx, rbx
+mov rdi, rbx
 ; BB3:
 lb21:
-mov dl, [rbx]
+mov dl, [rdi]
 cmp dl, 0
 je lb23
 jne lb22
@@ -62,14 +64,14 @@ mov edx, 1
 mov eax, esi
 add eax, edx
 mov edx, eax
-mov esi, edx
+mov ebx, edx
 mov rdx, 1
-mov rax, rbx
+mov rax, rdi
 add rax, rdx
 mov rdx, rax
 mov rdx, rdx
-mov rbx, rdx
-mov esi, esi
+mov rdi, rdx
+mov esi, ebx
 jmp lb21
 ; BB5:
 lb23:

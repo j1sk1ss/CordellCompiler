@@ -172,8 +172,8 @@ cmp dl, 0
 je lb200
 jne lb153
 ; BB19:
-mov bl, sil
 lb200:
+mov bl, sil
 ; BB20:
 lb113:
 mov edx, 1

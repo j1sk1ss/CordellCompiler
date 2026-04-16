@@ -1,4 +1,3 @@
-: BUG :
 start() {
     i32 d = 0;
     loop {
@@ -13,29 +12,29 @@ start() {
         {
             {
                 i32s %0 = alloc(8);
-                i32t %2 = num? 0 as i32;
+                i32t %2 = i8n 0 as i32;
                 i32s %6 = i32t %2;
-                future{X} i32s %8 = previous{X} i32s {X};
-                future{X} i32s %7 = previous{X} i32s {X};
-                i64t %3 = num? 10 + num? 10;
-                i32t %4 = i64t %3 as i32;
-                lb{X}
-                [i32s %0] i32s %7 = phi(set [{X}][{X}]);
-                [i32s %1] i32s %8 = phi(set [{X}][{X}]);
-                goto lb{X}
-                lb{X}
+                future: i32s %8 = previous: i32s %1;
+                future: i32s %7 = previous: i32s %6;
+                i8t %3 = i8n 10 + i8n 10;
+                i32t %4 = i8t %3 as i32;
+                lb18:
+                [i32s %0] i32s %7 = phi(set [%10, bb3][%6, bb5]);
+                [i32s %1] i32s %8 = phi(set [%9, bb3][%1, bb5]);
+                goto lb19;
+                lb19:
                 {
                     i32s %8 = alloc(8);
                     i32s %9 = i32t %4;
                     i32t %5 = i32s %7 + i32s %9;
                     i32s %10 = i32t %5;
                 }
-                future{X} i32s %7 = previous{X} i32s {X};
-                future{X} i32s %8 = previous{X} i32s {X};
-                goto lb{X}
-                lb{X}
-            }
-        }
-    }
+                future: i32s %7 = previous: i32s %10;
+                future: i32s %8 = previous: i32s %9;
+                goto lb18;
+                lb20:
+            [unused] }
+        [unused] }
+    [unused] }
 }
 /:

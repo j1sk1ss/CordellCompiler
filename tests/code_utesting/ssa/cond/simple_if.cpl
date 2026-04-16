@@ -30,13 +30,14 @@ function foo() {
             future: u64s* %11 = previous: u64s* %12;
             goto lb28;
             lb28:
-            [u64s %0] u64s* %11 = phi(set [%9, bb1][%12, bb2]);
+            [u64s %0] u64s* %11 = phi(set [%12, bb2][%9, bb1]);
             i32t %5 = *(i32s* %10);
-            i32t %7 = i32s* %11 as i32;
-            i32t %6 = i32t %7 + i32t %5;
-            i32t %8 = *(i32t %6);
+            i32t* %7 = i32t %5 as *ptr;
+            i32t* %6 = i32s* %11 + i32t* %7;
+            i32t %8 = *(i32t* %6);
             return i32t %8;
         }
     }
+    [unused]
 }
 /:

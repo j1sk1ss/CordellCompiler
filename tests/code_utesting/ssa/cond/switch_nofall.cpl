@@ -24,7 +24,7 @@ start() {
                 {
                 }
                 goto lb11;
-                goto lb11;
+                [unused] goto lb11;
                 lb10:
                 i64t %1 = i8n 1;
                 i8t %0 = i64t %1 < cnst? 1;

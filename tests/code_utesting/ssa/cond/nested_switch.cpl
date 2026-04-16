@@ -55,7 +55,7 @@ function foo() {
                 }
                 future: u64s* %21 = previous: u64s* %20;
                 goto lb35;
-                goto lb35;
+                [unused] goto lb35;
                 lb34:
                 i64t %9 = i8n 1;
                 i8t %8 = i64t %9 == cnst? 1;
@@ -67,7 +67,7 @@ function foo() {
                 lb75:
                 goto lb58;
                 lb35:
-                [u64s %0] u64s* %21 = phi(set [%20, bb5][%24, bb3][%23, bb4]);
+                [u64s %0] u64s* %21 = phi(set [%23, bb4][%20, bb5][%24, bb3]);
                 i32s* %22 = i32s* %21;
             }
             future: u64s* %17 = previous: u64s* %21;
@@ -83,7 +83,7 @@ function foo() {
             goto lb28;
             lb28:
             [u64s %0] u64s* %17 = phi(set [%21, bb10][%16, bb11]);
-            [u64s %1] u64s* %18 = phi(set [%15, bb11][%22, bb10]);
+            [u64s %1] u64s* %18 = phi(set [%22, bb10][%15, bb11]);
             i32s* %2 = alloc(8);
             i32s* %19 = i32s* %18;
             i32t %13 = *(i32s* %19);

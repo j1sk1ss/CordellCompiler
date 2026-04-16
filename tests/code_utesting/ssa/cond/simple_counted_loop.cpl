@@ -13,7 +13,7 @@ start() {
                 future: i64s %3 = previous: i64s %2;
             }
             lb12:
-            [i64s %0] i64s %3 = phi(set [%4, bb3][%2, bb6]);
+            [i64s %0] i64s %3 = phi(set [%2, bb6][%4, bb3]);
             goto lb13;
             lb13:
             {
@@ -21,7 +21,7 @@ start() {
                 i64s %4 = i64t %1;
                 future: i64s %3 = previous: i64s %4;
                 if i64s %4, goto lb12, else goto lb14;
-            }
+            [unused] }
             lb14:
         }
     }

@@ -1,11 +1,10 @@
-: RUN_ASM[args="++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>."] :
+: RUN_ASM[args="++++++++[>++++++++<-]>+."|args="++[>+++++++++++++++++++++++++++++++++<-]>."|args="[>+<-]+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++."] :
 function strlen(ptr i8 s) -> i32 {
     i32 l = 0;
     while dref s; {
         l += 1 as i32;
         s += 1 as ptr i8;
     }
-
     return l;
 }
 
@@ -13,15 +12,16 @@ function putc(i8 c) -> i0 {
     syscall(0x2000004, 1, ref c, 1);
 }
 
-glob arr tape[30000, i8];
-glob arr bracketmap[10000, i32];
-glob arr stack[10000, i32];
+glob arr tape[64, i8];
+glob arr bracketmap[64, i32];
+glob arr stack[64, i32];
 
 start(i32 argc, ptr ptr i8 argv) {
     i32 pos = 0;
     i32 stackptr = 0;
-    i32 codelength = strlen(argv[1]);
-    while pos < codelength; {
+    i32 n = strlen(argv[1]);
+
+    while pos < n; {
         @[no_fall]
         @[straight]
         switch argv[1][pos]; {
@@ -32,19 +32,18 @@ start(i32 argc, ptr ptr i8 argv) {
             case ']'; {
                 if stackptr > 0; {
                     stackptr -= 1;
-                    i32 matchpos = stack[stackptr];
-                    bracketmap[pos] = matchpos;
-                    bracketmap[matchpos] = pos;
+                    i32 m = stack[stackptr];
+                    bracketmap[pos] = m;
+                    bracketmap[m] = pos;
                 }
             }
         }
-        
         pos += 1;
     }
-    
+
     i32 pc = 0;
     i32 pointer = 0;
-    while pc < codelength; {
+    while pc < n; {
         @[no_fall]
         switch argv[1][pc]; {
             case '>'; {
@@ -68,11 +67,11 @@ start(i32 argc, ptr ptr i8 argv) {
                 pc += 1;
             }
             case '['; {
-                if not tape[pointer]; pc = bracketmap[pc];
+                if not tape[pointer]; pc = bracketmap[pc] + 1;
                 else pc += 1;
             }
             case ']'; {
-                if tape[pointer]; pc = bracketmap[pc];
+                if tape[pointer]; pc = bracketmap[pc] + 1;
                 else pc += 1;
             }
             default {
@@ -86,6 +85,12 @@ start(i32 argc, ptr ptr i8 argv) {
 
 :/ OUTPUT
 @case_index=0
-Hello World!
+A
+---
+@case_index=1
+B
+---
+@case_index=2
+A
 ---
 /:

@@ -31,14 +31,14 @@ start() {
                     future: i32s %16 = previous: i32s %15;
                 }
                 lb31:
-                [i32s %0] i32s %16 = phi(set [%14, bb13][%15, bb2]);
+                [i32s %0] i32s %16 = phi(set [%15, bb2][%14, bb13]);
                 {
                     i32t %4 = i8n 2 as i32;
                     i32s %17 = i32t %4;
                     // break;
                     future: i32s %18 = previous: i32s %17;
                     goto lb19;
-                }
+                [unused] }
                 lb43:
                 {
                     i32t %5 = i8n 3 as i32;

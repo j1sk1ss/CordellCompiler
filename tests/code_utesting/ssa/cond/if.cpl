@@ -33,7 +33,7 @@ start() {
                 future: i32s %7 = previous: i32s %6;
                 goto lb20;
                 lb20:
-                [i32s %0] i32s %7 = phi(set [%6, bb3][%9, bb2]);
+                [i32s %0] i32s %7 = phi(set [%9, bb2][%6, bb3]);
                 i32s %1 = alloc(8);
                 i32s %8 = i32s %7;
             }

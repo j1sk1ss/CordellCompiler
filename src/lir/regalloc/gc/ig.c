@@ -28,27 +28,24 @@ static int _add_ig_node(long v_id, igraph_t* g) {
 static int _inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
     set_init(use, SET_CMP);
     set_init(def, SET_CMP);
-
     if (!lh || lh->unused) return 1;
 
     lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-
     for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
         if (!args[i]) continue;
-
         switch (args[i]->t) {
             case LIR_VARIABLE: {
                 long v = args[i]->storage.var.v_id;
                 if (!set_has(def, (void*)v)) set_add(use, (void*)v);
                 break;
             }
-
             case LIR_ARGLIST: {
                 foreach (lir_subject_t* arg, &args[i]->storage.list.h) {
                     if (arg->t != LIR_VARIABLE) continue;
                     long v = arg->storage.var.v_id;
                     if (!set_has(def, (void*)v)) set_add(use, (void*)v);
                 }
+                
                 break;
             }
 
@@ -60,14 +57,11 @@ static int _inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
         LIR_is_writeop(lh->op) &&
         lh->farg &&
         lh->farg->t == LIR_VARIABLE
-    ) {
-        set_add(def, (void*)lh->farg->storage.var.v_id);
-    }
-
+    ) set_add(def, (void*)lh->farg->storage.var.v_id);
     return 1;
 }
 
-static int _count_lir_in_block(cfg_block_t* cb) {
+static inline int _count_lir_in_block(cfg_block_t* cb) {
     int n = 0;
     lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
     while (lh) {
@@ -78,7 +72,7 @@ static int _count_lir_in_block(cfg_block_t* cb) {
     return n;
 }
 
-static int _collect_lir_in_block(cfg_block_t* cb, lir_block_t** arr) {
+static inline int _collect_lir_in_block(cfg_block_t* cb, lir_block_t** arr) {
     int i = 0;
     lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
     while (lh) {
@@ -103,7 +97,6 @@ static int _build_igraph_block(cfg_block_t* cb, igraph_t* g) {
     for (int i = n - 1; i >= 0; i--) {
         set_t use, def, tmp;
         _inst_usedef(arr[i], &use, &def);
-
         set_foreach (long d, &def) {
             set_foreach (long v, &live) {
                 _igraph_add_edge(g, d, v);
@@ -136,7 +129,6 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
             ALLIAS_get_owners(vi->v_id, NULL, &smt->m) ||
             vi->vmi.align > CONF_get_full_bytness()
         ) continue;
-
         _add_ig_node(vi->v_id, g);
     }
 

@@ -9,6 +9,7 @@
 #include <lir/lir.h>
 #include <lir/lirgen.h>
 
+int LIR_DFG_compute_usedef(cfg_ctx_t* cctx);
 int LIR_DFG_compute_inout(cfg_ctx_t* cctx);
 int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt);
 
