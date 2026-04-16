@@ -7,14 +7,15 @@ start() {
 === BEFORE ===
 BB1: start
 rcx = $754688;
-rcx = rcx;
+rdx = rcx;
 rcx = $0;
-*(rcx) = rcx;
+*(rdx) = rcx;
 send
 === AFTER ===
 BB1: start
 rcx = $754688;
+rdx = $754688;
 rcx = rcx ^ rcx;
-*(rcx) = rcx;
+*(rdx) = rcx;
 send
 /:

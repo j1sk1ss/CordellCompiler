@@ -50,20 +50,22 @@ start(i32 argc, ptr ptr i8 argv) {
     putdigit(bracketmap[1]);
     putdigit(bracketmap[2]);
     putdigit(bracketmap[3]);
+    putdigit(bracketmap[4]);
+    putdigit(bracketmap[5]);
     exit 0;
 }
 
 :/ OUTPUT
 @case_index=0
-3210
+321000
 ---
 @case_index=1
-5310
+530100
 ---
 @case_index=2
-1000
+100000
 ---
 @case_index=3
-4210
+421000
 ---
 /:

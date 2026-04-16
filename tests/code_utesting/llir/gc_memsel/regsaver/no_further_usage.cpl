@@ -21,8 +21,8 @@ rax = rcx;
 return rax;
 BB3:
 BB4: start
-rbx = $1;
-rdx = rbx;
+rdx = $1;
+rdx = rdx;
 rbx = $1;
 rax = rdx;
 rax = rax + rbx;

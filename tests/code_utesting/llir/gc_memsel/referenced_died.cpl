@@ -18,14 +18,13 @@ rax = [rbp - 8];
 cmp rax, rdx;
 sete al;
 rcx movsx al;
-rdx = rbx;
 cmp rcx, 0;
 je lb23;
 jne lb21;
 BB2: lb21:
 rcx = &([rbp - 8]);
 rcx = rcx;
-rdx = rcx;
+rcx = rcx;
 kill(9);
 jmp lb23;
 BB3: lb23:
@@ -35,6 +34,6 @@ rcx = $1;
 rcx = &([rbp - 8]);
 rcx = rcx;
 kill(9);
-kill(11);
+kill(10);
 send
 /:
