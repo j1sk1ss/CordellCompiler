@@ -568,13 +568,14 @@ Params:
     - `it` - Current iterator on token list.
     - `ctx` - AST ctx.
     - `smt` - Symtable pointer.
-    - `na` - No assign.
+    - `na` - No append.
              Note: By default (0), this function parses an entire 
                    expression with a assign symbol. That means, that
                    expressions such as `a = b`, `a + b = a + b` will
                    be full parsed.
-                   If you want to parse only the left part (before assign),
+                   1) If you want to parse only the left part (before assign),
                    set this flag to 1.
+                   2) If you want to parse only the primary - set this flag to 2.
 
 Returns an ast node.
 */

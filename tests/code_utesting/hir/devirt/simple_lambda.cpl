@@ -23,6 +23,7 @@ start() {
             return i64t %6;
         }
     }
+    [unused]
     start {
         {
             {
@@ -42,12 +43,12 @@ start() {
                 goto lb69;
                 fn __anon_function_lambda3(i32 a, i32 b)
                 {
-                    i32s %4 = alloc(8);
-                    i32s %4 = load_arg();
+                    i32s %3 = alloc(8);
+                    i32s %3 = load_arg();
                     i32s %5 = alloc(8);
                     i32s %5 = load_arg();
                     {
-                        i32t %10 = i32s %4 + i32s %5;
+                        i32t %10 = i32s %3 + i32s %5;
                         return i32t %10;
                     }
                 }

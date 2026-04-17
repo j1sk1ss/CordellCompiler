@@ -1,5 +1,5 @@
 start() {
-   ptr i8 msg = "Hello, World!";
+   ptr i8 msg = ref "Hello, World!";
    str ans = "Hello, User!";
 
    msg[0] = 'o';
@@ -12,7 +12,8 @@ start() {
       { scope, id=2 }
          [i8] (I8_TYPE_TOKEN, ptr, v_id=-1, s_id=0)
             [msg] (I8_VARIABLE_TOKEN, ptr, v_id=0, s_id=2)
-            [Hello, World!] (STRING_VALUE_TOKEN, v_id=0, s_id=0)
+            [ref] (REF_TYPE_TOKEN, v_id=-1, s_id=0)
+               [Hello, World!] (STRING_VALUE_TOKEN, v_id=0, s_id=0)
          [str] (STR_TYPE_TOKEN, v_id=-1, s_id=0)
             [ans] (STR_VARIABLE_TOKEN, v_id=1, s_id=2)
             [Hello, User!] (STRING_VALUE_TOKEN, v_id=1, s_id=0)

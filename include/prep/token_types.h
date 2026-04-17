@@ -59,6 +59,7 @@ typedef enum {
     TMP_U16_TYPE_TOKEN,    // tmp_u16
     TMP_U8_TYPE_TOKEN,     // tmp_u8
     TMP_I0_TYPE_TOKEN,     // tmp_i0
+    TMP_STR_TYPE_TOKEN,    // tmp_str
 
     I0_TYPE_TOKEN,         // i0
     F64_TYPE_TOKEN,        // f64

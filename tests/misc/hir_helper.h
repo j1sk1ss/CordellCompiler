@@ -271,7 +271,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                     }
                 }
                 else {
-                    dst += sprintf(dst, "unknown");
+                    dst += sprintf(dst, "unknown(%i)", s->t);
                 }
 
                 break;
@@ -304,7 +304,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                 break;
             }
 
-            default: dst += sprintf(dst, "unknw"); break;
+            default: dst += sprintf(dst, "unknown(%i)", s->t); break;
         }
     }
 

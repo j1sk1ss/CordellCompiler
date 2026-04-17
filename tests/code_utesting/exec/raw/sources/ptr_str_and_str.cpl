@@ -3,7 +3,7 @@ function putc(i8 c) -> i0 {
 }
 
 start() {
-    ptr str a = ref "AB";
+    ptr i8 a = ref "AB";
     str b = "CD";
 
     putc(a[0]);
@@ -22,22 +22,24 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-sub rsp, 16
+sub rsp, 8
 lea rdx, [rel _str_0_]
-mov r15, rdx
-mov qword [rbp - 8], r15
-mov word [rbp - 16], 17475
-mov byte [rbp - 14], 0
-mov rbx, qword [rbp - 8]
+mov rdx, rdx
+mov rsi, rdx
+mov word [rbp - 8], 17475
+mov byte [rbp - 6], 0
+mov rbx, rsi
 mov eax, 0
 imul eax, 1
 movsxd rdx, eax
+mov rdx, rdx
 mov rax, rbx
 add rax, rdx
 mov rdx, rax
-mov rdx, [rdx]
+mov dl, [rdx]
 push rdi
-mov rdi, rdx
+mov dil, dl
+push rsi
 push rdx
 push rdi
 push rcx
@@ -45,17 +47,19 @@ call _cpl_putc0
 pop rcx
 pop rdi
 pop rdx
+pop rsi
 pop rdi
-mov rbx, qword [rbp - 8]
+mov rbx, rsi
 mov eax, 1
 imul eax, 1
 movsxd rdx, eax
+mov rdx, rdx
 mov rax, rbx
 add rax, rdx
 mov rdx, rax
-mov rdx, [rdx]
+mov dl, [rdx]
 push rdi
-mov rdi, rdx
+mov dil, dl
 push rdx
 push rdi
 push rcx
@@ -64,7 +68,7 @@ pop rcx
 pop rdi
 pop rdx
 pop rdi
-lea rbx, [rbp - 16]
+lea rbx, [rbp - 8]
 mov eax, 0
 imul eax, 1
 movsxd rdx, eax
@@ -83,7 +87,7 @@ pop rcx
 pop rdi
 pop rdx
 pop rdi
-lea rbx, [rbp - 16]
+lea rbx, [rbp - 8]
 mov eax, 1
 imul eax, 1
 movsxd rdx, eax

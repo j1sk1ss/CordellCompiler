@@ -35,6 +35,7 @@ Params:
                    be full parsed.
                    If you want to parse only the left part (before assign),
                    set this flag to 1.
+                   If you want to parse only the primary - set this flag to 2.
 
 Returns an AST node.
 */
@@ -45,7 +46,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-    
+
     while (CURRENT_TOKEN) {
         switch (CURRENT_TOKEN->t_type) {
             /* Postfix tokens that are change placment in an AST tree.
@@ -99,11 +100,12 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             /* Default operators such as:
                plus, minus, multiply, etc. */
             default: {
+                if (na == 2) goto _stop_expression_parsing;
                 int p = TKN_token_priority(CURRENT_TOKEN);
                 if (
-                    p < mp  ||                                    /* Stop at a token with a lower priority   */
-                    p == -1 ||                                    /* Stop at an unknown priority             */
-                    (na && CURRENT_TOKEN->t_type == ASSIGN_TOKEN) /* Stop at an assign if there is a na == 1 */
+                    p < mp  ||                                         /* Stop at a token with a lower priority   */
+                    p == -1 ||                                         /* Stop at an unknown priority             */
+                    (na == 1 && CURRENT_TOKEN->t_type == ASSIGN_TOKEN) /* Stop at an assign if there is a na == 1 */
                 ) goto _stop_expression_parsing;
 
                 int next_mp = p + 1;
@@ -170,7 +172,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                     CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
                 ) node = cpl_parse_lambda(it, ctx, smt, 0);
                 else {
-                    node = _parse_binary_expression(it, ctx, smt, 0, na);
+                    node = _parse_binary_expression(it, ctx, smt, 0, na == 2 ? 1 : na);
                     forward_token(it, 1);
                 }
                 

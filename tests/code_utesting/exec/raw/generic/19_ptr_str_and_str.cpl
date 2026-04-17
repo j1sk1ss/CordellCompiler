@@ -4,7 +4,7 @@ function putc(i8 c) -> i0 {
 }
 
 start() {
-    ptr str a = ref "AB";
+    ptr i8 a = ref "AB";
     str b = "CD";
 
     putc(a[0]);

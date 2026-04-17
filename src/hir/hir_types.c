@@ -2,8 +2,6 @@
 
 int HIR_get_type_size(hir_subject_type_t t) {
     switch (t) {
-        case HIR_TMPVARSTR: case HIR_GLBVARSTR:
-        case HIR_STKVARSTR: /* TODO: These options aren't 1 bits actually */
         case HIR_I8NUMBER:  case HIR_U8NUMBER:
         case HIR_TMPVARI8:  case HIR_TMPVARU8:
         case HIR_STKVARI8:  case HIR_STKVARU8:

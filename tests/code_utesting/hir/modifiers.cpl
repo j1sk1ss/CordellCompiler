@@ -12,11 +12,6 @@ start() {
     start {
         {
             {
-                i32g %0 = alloc(8);
-                i32g %1 = alloc(8);
-                i32g %2 = alloc(8);
-                i32g %3 = alloc(8);
-                i32g* %4 = alloc(8);
             }
         }
     }

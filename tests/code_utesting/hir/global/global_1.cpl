@@ -6,7 +6,6 @@ start() {
 
 :/ OUTPUT
 {
-    i32g %0 = alloc(8);
     start {
         {
             {

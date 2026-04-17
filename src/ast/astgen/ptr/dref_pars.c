@@ -12,7 +12,7 @@ ast_node_t* cpl_parse_dref(PARSER_ARGS) {
     }
 
     forward_token(it, 1);
-    ast_node_t* body = cpl_parse_expression(it, ctx, smt, 1);
+    ast_node_t* body = cpl_parse_expression(it, ctx, smt, 2);
     if (body) AST_add_node(base, body);
     else {
         PARSE_ERROR("Error during the dereferense body parse! dref <exp>!");

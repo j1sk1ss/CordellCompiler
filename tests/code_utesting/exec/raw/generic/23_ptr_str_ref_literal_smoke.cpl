@@ -1,7 +1,7 @@
 : BLOCK_TEST :
 : RUN_ASM :
 start() {
-    ptr str a = ref "AB";
+    ptr i8 a = ref "AB";
     exit 0;
 }
 

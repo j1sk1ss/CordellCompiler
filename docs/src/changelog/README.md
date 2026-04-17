@@ -610,7 +610,7 @@ For instance let's consider the next piece of code:
       - `msg` - Input message to print.
       
       Returns i0 aka nothing. :
-    function print(ptr str msg) => i0;
+    function print(ptr i8 msg) => i0;
 #endif
 }
 
@@ -643,7 +643,7 @@ After the PP, we will get a new form of the code:
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"    
     function strlen(ptr i8 s) => i64;
 #line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
-    function print(ptr str msg) => i0;
+    function print(ptr i8 msg) => i0;
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"
 #line 3 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"

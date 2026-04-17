@@ -1,8 +1,7 @@
-: BUG :
 function putc(i8 c) -> i0 {
     syscall(0x2000004, 1, ref c, 1);
 }
-: TODO - Global variable declaration :
+
 glob ro i8 G = 'G';
 
 start() {

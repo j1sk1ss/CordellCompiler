@@ -8,12 +8,12 @@
     - `msg` - Input message to print.
     
     Returns i0 aka nothing. :
-function print(ptr str msg) -> i0;
+function print(ptr i8 msg) -> i0;
 #endif
 
 :/ OUTPUT
 #line 0 "{X}.cpl"
 function strlen(ptr i8 s) -> i64;
 #line 3 "{X}.cpl"
-function print(ptr str msg) -> i0;
+function print(ptr i8 msg) -> i0;
 /:
