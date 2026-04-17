@@ -46,6 +46,7 @@ push rsi
 mov rsi, rdx
 push rdx
 mov edx, ecx
+push r11
 push rsi
 push rdx
 push rdi
@@ -55,6 +56,7 @@ pop rcx
 pop rdi
 pop rdx
 pop rsi
+pop r11
 pop rdx
 pop rsi
 pop rdi
@@ -81,8 +83,8 @@ push rbp
 mov rbp, rsp
 sub rsp, 32
 mov ebx, edi
-mov r10, rsi
-mov r9d, edx
+mov r11, rsi
+mov r10d, edx
 mov eax, ebx
 test eax, eax
 sete al
@@ -92,7 +94,7 @@ je lb21
 jne lb19
 ; BB3:
 lb19:
-mov byte [r10], 48
+mov byte [r11], 48
 mov rsp, rbp
 pop rbp
 ret
@@ -101,12 +103,12 @@ lb21:
 mov edx, 0
 mov edx, edx
 ; BB16:
-mov r8d, edx
-mov edi, ebx
+mov r9d, edx
+mov r8d, ebx
 ; BB5:
 lb51:
 mov edx, 0
-mov eax, edi
+mov eax, r8d
 cmp eax, edx
 setg al
 movsx edx, al
@@ -116,38 +118,43 @@ jne lb52
 ; BB6:
 lb52:
 mov edx, 10
-movsxd rax, edi
+movsxd rax, r8d
 movsxd rcx, edx
+push rdx
 cqo
 idiv rcx
-mov edx, edx
+mov rax, rdx
+pop rdx
+mov edx, eax
 mov dl, dl
 mov al, 48
 add al, dl
-mov sil, al
+mov dil, al
 lea rbx, [rbp - 32]
-mov eax, r8d
+mov eax, r9d
 imul eax, 1
 movsxd rdx, eax
 mov rdx, rdx
 mov rax, rbx
 add rax, rdx
 mov rdx, rax
-mov byte [rdx], sil
+mov byte [rdx], dil
 mov edx, 10
-movsxd rax, edi
+movsxd rax, r8d
 movsxd rcx, edx
+push rdx
 cqo
 idiv rcx
+pop rdx
 mov edx, eax
 mov ebx, edx
 mov edx, 1
-mov eax, r8d
+mov eax, r9d
 add eax, edx
 mov edx, eax
 mov edx, edx
-mov edi, ebx
-mov r8d, edx
+mov r8d, ebx
+mov r9d, edx
 jmp lb51
 ; BB7:
 lb53:
@@ -155,7 +162,7 @@ mov edx, 0
 mov edx, edx
 ; BB15:
 mov edi, edx
-mov r8d, r8d
+mov r8d, r9d
 ; BB8:
 lb116:
 mov edx, 0
@@ -169,7 +176,7 @@ jne lb127
 ; BB9:
 lb127:
 mov eax, edi
-cmp eax, r9d
+cmp eax, r10d
 setl al
 movsx edx, al
 mov edx, edx
@@ -198,7 +205,7 @@ mov rax, rbx
 add rax, rdx
 mov rdx, rax
 mov sil, [rdx]
-mov rbx, r10
+mov rbx, r11
 mov eax, edi
 imul eax, 1
 movsxd rdx, eax
@@ -222,7 +229,7 @@ mov edi, ebx
 jmp lb116
 ; BB13:
 lb118:
-mov rbx, r10
+mov rbx, r11
 mov eax, edi
 imul eax, 1
 movsxd rdx, eax

@@ -54,7 +54,7 @@ start(i32 argc, ptr ptr i8 argv) {
                [as] (CONVERT_TOKEN, v_id=-1, s_id=0)
                   [i8] (I8_TYPE_TOKEN, v_id=-1, s_id=0)
                   [48] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [putc] (CALL_TOKEN, v_id=0, s_id=0)
+            [putc] (CALL_TOKEN, v_id=0, s_id=1)
                { scope, id=0 }
                   [c] (I8_VARIABLE_TOKEN, v_id=2, s_id=5)
    [arr] (ARRAY_TYPE_TOKEN, v_id=-1, s_id=0, glob)
@@ -73,11 +73,11 @@ start(i32 argc, ptr ptr i8 argv) {
                   [tape] (ARR_VARIABLE_TOKEN, v_id=3, s_id=1, glob)
                   [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             { scope, id=7 }
-               [putdigit] (CALL_TOKEN, v_id=1, s_id=0)
+               [putdigit] (CALL_TOKEN, v_id=1, s_id=1)
                   { scope, id=0 }
                      [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             { scope, id=6 }
-               [putdigit] (CALL_TOKEN, v_id=1, s_id=0)
+               [putdigit] (CALL_TOKEN, v_id=1, s_id=1)
                   { scope, id=0 }
                      [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
          [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)
@@ -93,11 +93,11 @@ start(i32 argc, ptr ptr i8 argv) {
                   [tape] (ARR_VARIABLE_TOKEN, v_id=3, s_id=1, glob)
                   [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             { scope, id=8 }
-               [putdigit] (CALL_TOKEN, v_id=1, s_id=0)
+               [putdigit] (CALL_TOKEN, v_id=1, s_id=1)
                   { scope, id=0 }
                      [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             { scope, id=6 }
-               [putdigit] (CALL_TOKEN, v_id=1, s_id=0)
+               [putdigit] (CALL_TOKEN, v_id=1, s_id=1)
                   { scope, id=0 }
                      [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
          [exit] (EXIT_TOKEN, v_id=-1, s_id=6)

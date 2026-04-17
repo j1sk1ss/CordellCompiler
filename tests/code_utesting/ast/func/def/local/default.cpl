@@ -28,6 +28,6 @@ function foo() {
                      [+=] (ADDASSIGN_TOKEN, v_id=-1, s_id=0)
                         [b] (I32_VARIABLE_TOKEN, v_id=1, s_id=4)
                         [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [bar] (CALL_TOKEN, v_id=1, s_id=0)
+            [bar] (CALL_TOKEN, v_id=1, s_id=3)
                { scope, id=0 }
 /:

@@ -112,7 +112,7 @@ start() {
       [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
    [start] (START_TOKEN, v_id=1, s_id=1)
       { scope, id=7 }
-         [itoa] (CALL_TOKEN, v_id=0, s_id=0)
+         [itoa] (CALL_TOKEN, v_id=0, s_id=1)
             { scope, id=0 }
                [123321] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [ref] (REF_TYPE_TOKEN, v_id=-1, s_id=0)

@@ -112,8 +112,10 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_fDIV:       EMIT_COMMAND("divsd %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_fCMP:       EMIT_COMMAND("ucomisd %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));break;
         case LIR_bXOR:       EMIT_COMMAND("xor %s, %s", format_lir_subject(b->sarg, smt, NO_FLAG), format_lir_subject(b->targ, smt, NO_FLAG));    break;
-        case LIR_bSHL:       EMIT_COMMAND("shl %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));    break;
-        case LIR_bSHR:       EMIT_COMMAND("shr %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));    break;
+        case LIR_iBLFT:
+        case LIR_bSHL:       EMIT_COMMAND("shl %s, %s", format_lir_subject(b->sarg, smt, NO_FLAG), format_lir_subject(b->targ, smt, NO_FLAG));    break;
+        case LIR_iBRHT:
+        case LIR_bSHR:       EMIT_COMMAND("shr %s, %s", format_lir_subject(b->sarg, smt, NO_FLAG), format_lir_subject(b->targ, smt, NO_FLAG));    break;
         case LIR_bSAR:       EMIT_COMMAND("sar %s, %s", format_lir_subject(b->farg, smt, NO_FLAG), format_lir_subject(b->sarg, smt, NO_FLAG));    break;
         case LIR_RAW: {
             string_t* raw_line = create_string(format_lir_subject(b->farg, smt, NO_FLAG));
@@ -210,10 +212,10 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     }
 
     switch (TKN_variable_bitness(&tmptkn, 1)) {
-        case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq 0\n", vi.name->body); break;
-        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd 0\n", vi.name->body); break;
-        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw 0\n", vi.name->body); break;
-        default:                EMIT_COMMAND("%s db 0\n", vi.name->body); break;
+        case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        default:                EMIT_COMMAND("%s db %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
     }
 
     return 1;
@@ -234,8 +236,9 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
 
-    if (fi.flags.global)   EMIT_COMMAND("global %s", fi.name->body);
-    if (fi.flags.external) EMIT_COMMAND("extern %s", fi.name->body);
+    if (fi.flags.global)     EMIT_COMMAND("global %s", fi.name->body);
+    else if (fi.flags.entry) EMIT_COMMAND("global %s", fi.virt->body);
+    if (fi.flags.external)   EMIT_COMMAND("extern %s", fi.name->body);
     lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
     while (lh) {
         _convert_lirblock_to_assembly(lh, &fi, smt, output);

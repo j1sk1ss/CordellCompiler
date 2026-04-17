@@ -33,6 +33,16 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
             }
         }
     }
+    else if (node->t->t_type == CALL_TOKEN) {
+        func_info_t funcinfo;
+        for (int s = ctx->scopes.stack.top; s >= 0; s--) {
+            if (FNTB_get_info(node->t->body, ctx->scopes.stack.data[s].d, &funcinfo, &smt->f)) {
+                node->sinfo.v_id = funcinfo.id;
+                node->sinfo.s_id = funcinfo.s_id;
+                return 1;
+            }
+        }
+    }
     else if (node->t->t_type == STRING_VALUE_TOKEN) {
         str_info_t strinfo;
         if (STTB_get_info(node->t->body, &strinfo, &smt->s)) {

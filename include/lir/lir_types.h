@@ -58,6 +58,7 @@ typedef enum {
         LIR_STARGLD,  // st load
         LIR_STARGRF,  // st ref load
 
+        LIR_VRDECL,   // cnst_x=var_id, y=value
         LIR_VRDEALL,  // cnst_x=var_id, deallocate a variable
         LIR_STRDECL,  // cnst_x=var_id, cnst_y=str_id
         LIR_ARRDECL,  // cnst_x=var_id, var_y=size, list_z=init_elems

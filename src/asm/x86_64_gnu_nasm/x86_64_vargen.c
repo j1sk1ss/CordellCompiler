@@ -89,13 +89,16 @@ const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag) {
             if (FNTB_get_info_id(v->storage.str.sid, &fi, &smt->f)) {
                 char *local = "_cpl_%s", *global = "%s";
                 if (v->storage.str.rel) {
-                    local = "[rel _cpl_%s]";
-                    global = "[%s]";
+                    local  = "[rel _cpl_%s]";
+                    global = "[rel %s]";
                 }
 
                 if (
                     fi.flags.global || fi.flags.external
                 ) snprintf(buffer, sizeof(_buffers[0]), global, fi.name->body);
+                else if (
+                    fi.flags.entry
+                ) snprintf(buffer, sizeof(_buffers[0]), global, fi.virt->body);
                 else snprintf(buffer, sizeof(_buffers[0]), local, fi.virt->body);
                 return buffer;
             }

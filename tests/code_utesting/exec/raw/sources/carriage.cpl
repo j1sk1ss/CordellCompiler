@@ -35,17 +35,17 @@ _main:
 push rbp
 mov rbp, rsp
 mov edx, edi
-lea r9, [rsi]
+lea r10, [rsi]
 mov bl, 0
 mov edx, 0
 mov edx, edx
 ; BB24:
-mov sil, bl
-mov edi, edx
+mov dil, bl
+mov r9d, edx
 ; BB8:
 lb84:
 mov edx, 1
-mov rbx, r9
+mov rbx, r10
 mov eax, edx
 imul eax, 8
 movsxd rdx, eax
@@ -57,17 +57,15 @@ mov rdx, [rdx]
 push rdi
 mov rdi, rdx
 push rbx
-push rsi
 push rdx
 push rdi
 call _cpl_strlen0
 pop rdi
 pop rdx
-pop rsi
 pop rbx
 pop rdi
 mov edx, eax
-mov eax, edi
+mov eax, r9d
 cmp eax, edx
 setl al
 movsx edx, al
@@ -79,7 +77,7 @@ lb85:
 jmp lb112
 ; BB10:
 lb114:
-mov al, sil
+mov al, dil
 add al, 1
 mov dl, al
 mov dl, dl
@@ -87,7 +85,7 @@ mov bl, dl
 jmp lb113
 ; BB11:
 lb127:
-mov al, sil
+mov al, dil
 sub al, 1
 mov dl, al
 mov dl, dl
@@ -95,7 +93,7 @@ mov bl, dl
 jmp lb113
 ; BB12:
 lb140:
-movsx eax, sil
+movsx eax, dil
 imul eax, 2
 mov dl, al
 mov dl, dl
@@ -103,10 +101,12 @@ mov bl, dl
 jmp lb113
 ; BB13:
 lb153:
-movsx rax, sil
+movsx rax, dil
 mov rcx, 2
+push rdx
 cqo
 idiv rcx
+pop rdx
 mov dl, al
 mov dl, dl
 mov bl, dl
@@ -115,7 +115,7 @@ jmp lb113
 ; BB15:
 lb112:
 mov edx, 1
-mov rbx, r9
+mov rbx, r10
 mov eax, edx
 imul eax, 8
 movsxd rdx, eax
@@ -125,7 +125,7 @@ add rax, rdx
 mov rdx, rax
 mov rdx, [rdx]
 mov rbx, rdx
-mov eax, edi
+mov eax, r9d
 imul eax, 1
 movsxd rdx, eax
 mov rdx, rdx
@@ -173,20 +173,20 @@ je lb200
 jne lb153
 ; BB19:
 lb200:
-mov bl, sil
+mov bl, dil
 ; BB20:
 lb113:
 mov edx, 1
-mov eax, edi
+mov eax, r9d
 add eax, edx
 mov edx, eax
 mov edx, edx
-mov edi, edx
-mov sil, bl
+mov r9d, edx
+mov dil, bl
 jmp lb84
 ; BB21:
 lb86:
-mov dil, sil
+mov dil, dil
 mov rax, 0x2000001
 syscall
 ; BB22:

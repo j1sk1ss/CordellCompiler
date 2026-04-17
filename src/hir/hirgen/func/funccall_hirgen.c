@@ -41,7 +41,7 @@ static symbol_id_t _resolve_function_overload(
 
     list_t funcs;
     list_init(&funcs);
-    if (FNTB_collect_info(fi.name, &funcs, &smt->f) && list_size(&funcs) > 1) {
+    if (FNTB_collect_info(fi.name, fi.s_id, &funcs, &smt->f) && list_size(&funcs) > 1) {
         int most_fit = -999;
         func_info_t* resolved = NULL;
         int arg_count = list_size(&args->storage.list.h);

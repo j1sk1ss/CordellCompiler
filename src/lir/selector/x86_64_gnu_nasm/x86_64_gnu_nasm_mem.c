@@ -271,6 +271,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             }
                             else {
                                 int el_size = _get_ast_type_size(ai.elements_info.el_type);
+                                if (ai.elements_info.el_flags.ptr) el_size = 8;
                                 int arr_off = stack_map_alloc(ALIGN(ai.size * el_size, vi.vmi.align), &smp);
                                 VRTB_update_memory(lh->farg->storage.var.v_id, arr_off, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
 
@@ -278,7 +279,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                                 foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
                                     if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
                                     LIR_insert_block_before(
-                                        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arr_off - el_pos * el_size, 1), elem, NULL), lh
+                                        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arr_off - el_pos * el_size, el_size), elem, NULL), lh
                                     );
 
                                     el_pos++;

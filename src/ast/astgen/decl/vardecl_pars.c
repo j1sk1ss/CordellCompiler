@@ -28,6 +28,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &name->t->flags, &smt->v);
     if (
+        !base->t->flags.ptr &&
         base->t->t_type == STR_TYPE_TOKEN
     ) ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &base->t->flags, &smt->a);
     var_lookup(name, ctx, smt);
@@ -48,7 +49,10 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
             return NULL;
         }
 
-        if (base->t->t_type == STR_TYPE_TOKEN) {
+        if (
+            !base->t->flags.ptr &&            /* Array can be only on a stack         */
+            base->t->t_type == STR_TYPE_TOKEN /* String is a special case of an array */
+        ) {
             ARTB_update_info(
                 name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, FIELD_NO_CHANGE, 
                 I8_TYPE_TOKEN, &base->t->flags, &smt->a
@@ -56,6 +60,9 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
             STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }
 
+        if (
+            base->t->flags.glob
+        ) VRTB_update_definition(name->sinfo.v_id, value_node->t->body->to_llong(value_node->t->body), NO_SYMBOL_ID, &smt->v, 0);
         AST_add_node(base, value_node);
     }
 

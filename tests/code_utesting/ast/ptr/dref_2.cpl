@@ -16,7 +16,7 @@ start() {
       { scope, id=3 }
          [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)
             [dref] (DREF_TYPE_TOKEN, v_id=-1, s_id=0)
-               [foo] (CALL_TOKEN, v_id=0, s_id=0)
+               [foo] (CALL_TOKEN, v_id=0, s_id=1)
                   { scope, id=0 }
             [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
          [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)
