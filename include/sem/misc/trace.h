@@ -8,6 +8,7 @@
 #include <std/mem.h>
 #include <std/str.h>
 #include <std/list.h>
+#include <sem/misc/warns.h>
 
 typedef struct {
     string_t*       message;
@@ -21,6 +22,7 @@ typedef struct {
 int TRACE_init_trace(trace_t* trace);
 int TRACE_add_location(trace_t* trace, file_position_t* loc, char* fmt, ...);
 int TRACE_is_empty(trace_t* trace);
+int TRACE_print_and_free_trace(trace_t* t);
 int TRACE_unload_trace(trace_t* trace);
 
 #endif

@@ -1,16 +1,14 @@
-{
-    function foo() -> i0 {
-        while 1; {
-            break;
-        }
+function foo() -> i0 {
+    while 1; {
+        break;
     }
 }
 
 :/ OUTPUT
-[INFO]    [3:15] Consider the usage of the 'loop' statement!
-3 | while 1;
+[INFO]    [2:11] Consider to use the 'loop' statement instead of the 'while 1;'!
+2 | while 1;
   |       ^
-4 | {
-4 |     break ;
-4 | }
+3 | {
+3 |     break ;
+3 | }
 /:

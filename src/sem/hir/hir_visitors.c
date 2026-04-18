@@ -1,12 +1,5 @@
 #include <sem/hir/hir_visitors.h>
 
-static inline char* _format_location(file_position_t* loc) {
-    static char buff[256] = { 0 };
-    if (loc->file) snprintf(buff, sizeof(buff), "[%s:%li:%li]", loc->file->body, loc->line, loc->column);
-    else snprintf(buff, sizeof(buff), "[%li:%li]", loc->line, loc->column);
-    return buff;
-}
-
 static const char* _resolve_variable_name(symbol_id_t id, sym_table_t* smt) {
     variable_info_t vi;
     do {
@@ -15,19 +8,6 @@ static const char* _resolve_variable_name(symbol_id_t id, sym_table_t* smt) {
         }
     } while (id != NO_SYMBOL_ID);
     return vi.name->body;
-}
-
-static int _print_trace(trace_t* t) {
-    list_iter_t it;
-    list_iter_tinit(&t->messages, &it);
-    trace_message_t* msg = list_iter_prev(&it);
-    if (msg) SEMANTIC_WARNING(" %s %s ", _format_location(&msg->location), msg->message->body);
-    while ((msg = list_iter_prev(&it))) {
-        EMMIT_MESSAGE(" %s     %s ", _format_location(&msg->location), msg->message->body);
-    }
-
-    TRACE_unload_trace(t);
-    return 1;
 }
 
 int HIRWLKR_visit_setpos_instruction(HIR_VISITOR_ARGS) {
@@ -153,7 +133,7 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
     }
 
     if (queue_isempty(&work_vars)) {
-        _print_trace(&trace);
+        TRACE_print_and_free_trace(&trace);
         queue_free(&work_vars);
         return 1;
     }
@@ -203,7 +183,7 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
             _resolve_variable_name(s->storage.var.v_id, smt)
         );
 
-        _print_trace(&trace);
+        TRACE_print_and_free_trace(&trace);
     }
 
     queue_free(&work_vars);
@@ -248,7 +228,7 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
         default: break;
     }
 
-    _print_trace(&trace);
+    TRACE_print_and_free_trace(&trace);
     return 1;
 }
 
@@ -366,17 +346,17 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     if (!TRACE_is_empty(&trace)) {
         TRACE_add_location(
             &trace, &ctx->curr_location, 
-            "Function '%s' has some arguments, which have wrong type! Consider to use the 'as' operator!", fi.name->body
+            "Function '%s' has some arguments, which have the wrong type! Consider to use the 'as' operator!", fi.name->body
         );
     }
 
     mm_free(hir_args);
-    _print_trace(&trace);
+    TRACE_print_and_free_trace(&trace);
     return 1;
 }
 
 int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
-    HIR_VISITOR_ARGS_USE;
+    HIR_VISITOR_ARGS_USE; // TODO: Dereference check
     if (b->op != HIR_SYSC && b->op != HIR_STORE_SYSC) return 1;
     hir_subject_t* number = list_get_head(&b->targ->storage.list.h);
     defined_variable_t di;
@@ -406,6 +386,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
                 break;
             }
 
+            /* MacOS syscall offset */
             di.const_value -= 0x2000000;
             int arg_index = 1;
             syscall_t syscall = table[di.const_value];
@@ -420,8 +401,8 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
                     _create_type_name(flatten_input[arg_index]->t, flatten_input[arg_index]->ptr, received, sizeof(received));
                     TRACE_add_location(
                         &trace, &ctx->curr_location, 
-                        "Argument %i should have the '%s' type, but the '%s' is provided! Consider to cast it.", 
-                        arg_index, expected, received
+                        "Argument %i should have the '%s' type, but the '%s' is provided! Consider to cast it with 'as %s'.", 
+                        arg_index, expected, received, expected
                     );
 
                     if (!HIR_is_defined_type(flatten_input[arg_index]->t)) {
@@ -447,6 +428,6 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     }
 
     mm_free(flatten_input);
-    _print_trace(&trace);
+    TRACE_print_and_free_trace(&trace);
     return 1;
 }

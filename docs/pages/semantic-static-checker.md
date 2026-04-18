@@ -1,5 +1,6 @@
 # Semantic static checker
-Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. This static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behavior (null-dereference, wrong casts, etc.).
+This page almost about the basics of the static analysis in CPL. To dive deeper, you can consider the related block in this documentation later. But at this moment, we need to understand what can do and can't the analyzer. </br>
+Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. This static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behavior (null-dereference, wrong casts, propagated constants (variable values), etc.).
 
 ## AST part
 The list of all possible AST warnings that are supported by the static analyzer is below:
@@ -225,6 +226,8 @@ The code above will produce a ton of errors and warnings.
 The list of all possible IR warnings that are supported by the static analyzer is below:
 - NULL-dereference. *If we're trying to dereference a variable (or a value) which is NULL, we must terminate compilation.*
 - Constant IF. *We can warn a user if there is a dead branch presented.*
+- Function checker. *We must be sure, that arguments for a function have the correct type. Otherwise, we will face some problems in the code-generation stage.*
+- Syscall checker. *We can check by the syscall's number, which syscall is invoked. With the information about platform, we can check, if arguments have the correct type.*
 
 <details>
 <summary><strong>Dereference static analysis output</strong></summary>

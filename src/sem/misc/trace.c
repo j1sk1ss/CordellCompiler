@@ -37,6 +37,26 @@ int TRACE_is_empty(trace_t* trace) {
     return !list_size(&trace->messages);
 }
 
+static inline char* _format_location(file_position_t* loc) {
+    static char buff[256] = { 0 };
+    if (loc->file) snprintf(buff, sizeof(buff), "[%s:%li:%li]", loc->file->body, loc->line, loc->column);
+    else snprintf(buff, sizeof(buff), "[%li:%li]", loc->line, loc->column);
+    return buff;
+}
+
+int TRACE_print_and_free_trace(trace_t* t) {
+    list_iter_t it;
+    list_iter_tinit(&t->messages, &it);
+    trace_message_t* msg = list_iter_prev(&it);
+    if (msg) SEMANTIC_WARNING(" %s %s ", _format_location(&msg->location), msg->message->body);
+    while ((msg = list_iter_prev(&it))) {
+        EMMIT_MESSAGE(" %s     %s ", _format_location(&msg->location), msg->message->body);
+    }
+
+    TRACE_unload_trace(t);
+    return 1;
+}
+
 int TRACE_unload_trace(trace_t* trace) {
     list_free_force_op(&trace->messages, (int (*)(void*))_unload_trace_message);
     return 1;
