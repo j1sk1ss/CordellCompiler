@@ -212,11 +212,13 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
 
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
+    if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
     return _dereference_error(b, b->sarg, smt, ctx);
 }
 
 int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
+    if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
     return _dereference_error(b, b->farg, smt, ctx);
 }
 
@@ -315,7 +317,7 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
 
 int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
-    
+    if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
     func_info_t fi;
     if (!FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)) {
         return 1;
@@ -369,6 +371,82 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     }
 
     mm_free(hir_args);
+    _print_trace(&trace);
+    return 1;
+}
+
+int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    if (b->op != HIR_SYSC && b->op != HIR_STORE_SYSC) return 1;
+    hir_subject_t* number = list_get_head(&b->targ->storage.list.h);
+    defined_variable_t di;
+    if (!_resolve_subject_value(number, smt, &di) || di.defined_value == 3) {
+        return 1;
+    }
+
+    trace_t trace;
+    TRACE_init_trace(&trace);
+
+    syscall_t* table = NULL;
+    hir_subject_t** flatten_input = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
+    switch (CONF_get_system_type()) {
+        case MACOH: {
+            int table_size = SYSCHECK_get_macos_syscall_table(&table);
+            if (di.const_value - 0x2000000 >= table_size || di.const_value - 0x2000000 < 0) {
+                TRACE_add_location(&trace, &ctx->curr_location, "MACOH doesn't have a syscall for %li value!", di.const_value);
+                if (di.defined_value == 2) {
+                    file_position_t loc;
+                    _sparce_find_variable_define_location(b, number->storage.var.v_id, &loc);
+                    TRACE_add_location(
+                        &trace, &loc, "Variable '%s' is assigned with this value here", 
+                        _resolve_variable_name(number->storage.var.v_id, smt)
+                    );
+                }
+
+                break;
+            }
+
+            di.const_value -= 0x2000000;
+            int arg_index = 1;
+            syscall_t syscall = table[di.const_value];
+
+            for (; arg_index < syscall.argc && arg_index < list_size(&b->targ->storage.list.h); arg_index++) {
+                if (
+                    HIR_get_tmp_type(flatten_input[arg_index]->t) != syscall.types[arg_index].t ||
+                    flatten_input[arg_index]->ptr != syscall.types[arg_index].ptr
+                ) {
+                    char received[64], expected[64];
+                    _create_type_name(syscall.types[arg_index].t, syscall.types[arg_index].ptr, expected, sizeof(expected));
+                    _create_type_name(flatten_input[arg_index]->t, flatten_input[arg_index]->ptr, received, sizeof(received));
+                    TRACE_add_location(
+                        &trace, &ctx->curr_location, 
+                        "Argument %i should have the '%s' type, but the '%s' is provided! Consider to cast it.", 
+                        arg_index, expected, received
+                    );
+
+                    if (!HIR_is_defined_type(flatten_input[arg_index]->t)) {
+                        file_position_t loc;
+                        _sparce_find_variable_define_location(b, flatten_input[arg_index]->storage.var.v_id, &loc);
+                        TRACE_add_location(&trace, &loc, "The variable is defined here!");
+                    }
+                }
+            }
+
+            if (!TRACE_is_empty(&trace)) {
+                TRACE_add_location(
+                    &trace, &ctx->curr_location, 
+                    "Syscall with number %i has some wrong typed arguments! It can lead to UB, consider to cast them:", 
+                    di.const_value
+                );
+            }
+
+            break;
+        }
+        case LINUX: /* TODO: */
+        default: break;
+    }
+
+    mm_free(flatten_input);
     _print_trace(&trace);
     return 1;
 }

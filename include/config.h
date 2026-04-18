@@ -3,6 +3,13 @@
 
 #include <std/mem.h>
 
+typedef enum {
+    UNKNOWN,
+    MACOH,
+    LINUX,
+    WINDOWS
+} arch_type_t;
+
 typedef const char* config_string_field_t;
 typedef const long  config_int_field_t;
 
@@ -18,6 +25,7 @@ typedef struct {
             config_int_field_t q_bytness;    /* Quart system byte size, e.g. 2 - x64 */
             config_int_field_t e_bytness;    /* Eight system byte size, e.g. 1 - x64 */
         } bytness;
+        arch_type_t            sys_type;
     } system;
 
     struct {
@@ -40,5 +48,7 @@ config_int_field_t CONF_get_full_bytness();
 config_int_field_t CONF_get_half_bytness();
 config_int_field_t CONF_get_quart_bytness();
 config_int_field_t CONF_get_eight_bytness();
+
+arch_type_t CONF_get_system_type();
 
 #endif

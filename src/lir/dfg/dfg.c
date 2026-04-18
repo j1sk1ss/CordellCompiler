@@ -10,7 +10,6 @@ OUT = union(IN successors)
 
 #include <lir/dfg.h>
 
-// TODO: docs
 int LIR_DFG_compute_usedef(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
