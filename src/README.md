@@ -14,5 +14,6 @@
 P.S.: Arch dependent files are:
 - src/asm/x86_64_gnu_nasm/*.c - Direct ASM translation.
 - src/lir/selector/x86_64_gnu_nasm/*.c - From HLIR to LLIR (from not depent to a depent version).
+- src/lir/peephole/x86_64_gnu_nasm.c - Second and third optimization passes. 
 
-And if there is a task to add a new platform, you will need to make new directories with the same logic, but related to ypur platform.
+And if there is a task to add a new platform, you will need to make new directories with the same logic, but related to your platform.
