@@ -30,24 +30,31 @@ function strlen(ptr i8 s) -> i64 {
     - `s` - A string.
     
     Returns 'i0' a/k/a nothing. /:
-function puts(str s) -> i0 {
+function puts(ptr i8 s) -> i0 {
     : Start ASM inline block with
       a support of the argument list :
     asm (s, strlen(s)) {
-        "mov rax, 1",
+        "push rdi", 
+        "push rsi", 
+        "push rdx",    :/ Guards      /:
+        "mov rax, 33554436",
         "mov rdi, 1",
-        "mov rsi, %0", : Send the 's' variable to the RSI register       :
-        "mov rdx, %1", : Send the 'strlen(s) result' to the RDX register :
-        "syscall"
+        "mov rsi, %0", :/ 's' pointer /:
+        "mov rdx, %1", :/ 's' length  /:
+        "syscall",
+        "pop rdx", 
+        "pop rsi", 
+        "pop rdi"
     }
 }
 
 : Program entry point similar to the C's entry point
   main(int argc, char* argv[]); :
 start(i64 argc, ptr ptr i8 argv) {
-    puts("Hello, World!");
+    puts(ref "Hello, World!\n");
     exit 0;
 }
+
 ``` 
 
 For comparison here is the same code snippet but on C language:

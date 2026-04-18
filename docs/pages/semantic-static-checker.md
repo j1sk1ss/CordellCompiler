@@ -3,249 +3,44 @@ This page almost about the basics of the static analysis in CPL. To dive deeper,
 Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. This static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behavior (null-dereference, wrong casts, propagated constants (variable values), etc.).
 
 ## AST part
-The list of all possible AST warnings that are supported by the static analyzer is below:
-- Read-only variable update. *If we have a `ro` variable, we must be sure that it never being updated somewhere*
-- Invalid variable for a function's return value. *If a function returns, for instance, a `i8` value, it must be stored in a variable with the same (or larger) type*
-- Declaration without initialization. *If we declare a variable, it'd be safer, if we add an initial value*
-- Wrong value type for a variable declaration. *If we declare a variable with an initial value, we must be sure, that this value can be stored in this variable*
-- Function without return. *If function has a return type not equals to the `i0` return type, it must have a `return` statement in all paths*
-- Start block without the exit. *The initial block must have an `exit` statement in all paths*
-- Function arguments number mismatch. *Function (not a function pointer) must have the exact amount of arguments as it registered in function's definition*
-- Function argument type mismatch. *We must be sure, that a provided argument to a function has a data type, that can be processed by a function*
-- Unused function return value. *If a function has a return type not equal to the `i0` return type, it must be used somewhere*
-- Wrong variable for a function's return type. *If we store a function's result in a variable, we must check if the variable has a valid type and can handle the function's return value*
-- Function's return type mismatch with an actual return type. *If we return some value from a function, we must check if this is a current type regarding the registered information about the function*
-- Illegal array access. *We must check if the index (constant) that being used in an array expression is valid and non-negative*
-- Duplicated branches. *We can check if there is a two same branches in one `if` construction*
-- Invalid function name. *Some function names are reserved by the compiler. We can't allow user to use them*
-- Dead code. *We can find is there is a dead code in the code, and if this was an intent product*
-- Possible implicit conversion. *The compiler is a permissively static typed, but not a strong typed. To fill this gap, the checker will inform if there is an implicit cast*
-- Inefficient `while`. *Sometimes the `loop` keyword is better than `while 1`*
-- Incorrect exit type for a function. *The `exit` keyword must be used in a function (not in a `start` function) only by one condition - there is no `start` function and this is an annotated with the entry annotation non-local function in the file*
-- Break usage without a target. *The `break` keyword must be used only to break `loop`s and `while`s*
-- `i0` function's return value usage. *If a function has a `i0` return type, its value can't be stored in any variable*
-- Unused expression. *Any expression that doesn't stored in a variable, used in a function, evaluated in a `if`, a `while` or a `switch` statements is an unused expression*
-- Reference to an expression. *Reference operation could be performed only on variable*
-- Non-even align. *If align of a variable or an array isn't even, we must inform the programmer about this*
+The list of all possible AST warnings that are supported by the static analyzer is below.
 
-**Note:** By default the static analysis is turned off. To turn it on, use the `--static-analysis` flag.
+| Error name                                                 | Description                                                                                                                                                                      | Example of the error                       |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Read-only variable update                                  | If a variable is marked as `ro`, it must never be updated after initialization.                                                                                                  | `ro i32 x = 1;`</br>`x = 2;`               |
+| Invalid variable for a function's return value             | If a function returns, for instance, an `i8` value, it must be stored in a variable with the same or a wider compatible type.                                                    | `function f() -> i64;`</br>`i8 x = f();`   |
+| Declaration without initialization                         | If a variable is declared without an initial value, the checker should warn about possible uninitialized usage.                                                                  | `i32 x;`                                   |
+| Wrong value type for a variable declaration                | If a variable is declared with an initial value, that value must be compatible with the variable type.                                                                           | `i8 x = 1000;`                             |
+| Function without return                                    | If a function return type is not `i0`, all control-flow paths must contain a `return` statement.                                                                                 | `function f() -> i32 { if a { return 1; } }` |
+| Start block without exit                                   | The initial `start` block must end with an `exit` statement on all control-flow paths.                                                                                           | `start { if a; { exit 0; } }`              |
+| Function arguments number mismatch                         | A function call must provide exactly the same number of arguments as defined in the function declaration.                                                                        | `function sum(i32 a, i32 b);`</br>`sum(1);`|
+| Function argument type mismatch                            | Each provided argument in a function call must have a type compatible with the corresponding function parameter.                                                                 | `function f(i32 x);`</br>`f(ref "abc");`   |
+| Unused function return value                               | If a function returns a value other than `i0`, that value should be used.                                                                                                        | `sum(1, 2);`                               |
+| Wrong variable for a function's return type                | If a function result is stored in a variable, the variable type must be compatible with the function return type.                                                                | `function f() -> i64;`</br>`i8 x = f();`   |
+| Function's return type mismatch with an actual return type | The expression in a `return` statement must match the declared return type of the function.                                                                                      | `function f() -> i8 { return 1000; }`      |
+| Illegal array access                                       | Array index used in an array access must be valid and non-negative.                                                                                                              | `a[-1]`                                    |
+| Duplicated branches                                        | Two identical branches inside one `if` construction should be reported.                                                                                                          | `if x == 1 { }`</br>`else if x == 1 { }`   |
+| Invalid function name                                      | Some function names are reserved by the compiler and must not be used by user code.                                                                                              | `function __builtin_add() -> i32 { }`      |
+| Dead code                                                  | Code that can never be executed should be reported.                                                                                                                              | `return 1; x = 2;`                         |
+| Possible implicit conversion                               | The checker should warn when a value is converted implicitly between incompatible or lossy types.                                                                                | `i8 x = i64_val;`                          |
+| Inefficient `while`                                        | In some cases `loop` is more appropriate than `while 1`.                                                                                                                         | `while 1 { }`                              |
+| Incorrect exit type for a function                         | The `exit` keyword may be used inside a non-`start` function only if this function is explicitly marked as a non-local entry point and there is no `start` function in the file. | `function foo() { exit 0; }`               |
+| Break usage without a target                               | The `break` keyword must be used only inside `loop` or `while`.                                                                                                                  | `if x; { break; }`                         |
+| `i0` function's return value usage                         | If a function returns `i0`, its result must not be stored or used as a value.                                                                                                    | `function void_fn() -> i0;`</br>`i32 x = void_fn();`|
+| Unused expression                                          | Any expression that is not stored, passed, or used in control flow should be reported.                                                                                           | `1 + 2;`                                   |
+| Reference to an expression                                 | The reference operator may only be applied to a variable, not to an arbitrary expression.                                                                                        | `ptr c = ref (a + b);`                     |
+| Non-even align                                             | If alignment of a variable or array is odd, the checker should warn about it.                                                                                                    | `@[align(3)] i32 x;`                       |
 
-For instance, let's consider the code below:
-```cpl
-{
-    #include "string_h.cpl"
-    function foo() -> i32 { return 1; }
-
-    function barBar() -> i0 { }
-
-    function BazBaz() { return 1; } 
-
-    function baz(i32 a) -> i0 {
-        if a == 0; { return 1; }
-        else { return 1; }
-
-        if a == 0; { return 1; }
-        else { }
-    }
-
-    function fang(i32 a) -> i8 {
-        if not a; { return 123321; }
-        else { }
-        return 1;
-        i32 b = 1;
-        return b;
-    }
-
-    start() {
-        i8 b;
-        ptr i8 bref = ref b;
-        ptr i8 bref1 = bref;
-        ptr i8 bref2 = bref1;
-
-        i8 a = foo();
-        i8 c = 123123;
-        u8 asd = barBar();
-        baz(1);
-        fang(10);
-        
-        break;
-        a + c;
-
-        arr array[10, i32];
-        array[-1] = 0;
-        array[12] = 0;
-        strlen("Hello!");
-    }
-}
-```
-
-The code above will produce a ton of errors and warnings.
-<details>
-<summary><strong>AST static analysis output</strong></summary>
-
-```
-[WARNING] Possible branch redundancy! The branch at [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:25] is similar to the branch at [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:25]!
-10 | if a == 0;
-10 | {
-   | ^
-10 |     return 1;
-   | ^^^^^^^^^^^^^
-10 | }
-   | ^
-11 | else {
-   | ^    ^
-11 |     return 1;
-   | ^^^^^^^^^^^^^
-11 | }
-   | ^
-   | ^
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:20:16] 'Dead Code' after the termination statement!
-18 | {
-18 |     if not a;
-18 |     {
-18 |         return 123321;
-18 |     }
-19 |     else {
-19 |     }
-20 |     return 1;
-21 |     i32 b = 1;
-   |     ^^^^^^^^^
-22 |     return b;
-18 | }
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:33:28] The function='barBar' doesn't return anything, but result is used!
-33 | u8 asd = barBar();
-   |          ^^^^^^^^
-[ERROR]   [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:41:20] Array='array' accessed with a negative index!
-41 | array[-1];
-   |       ^^
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:38:14] The expression returns value that never assigns!
-26 | {
-26 |     i8 b;
-27 |     ptr i8 bref = ref b;
-28 |     ptr i8 bref1 = bref;
-29 |     ptr i8 bref2 = bref1;
-31 |     i8 a = foo();
-32 |     i8 c = 123123;
-33 |     u8 asd = barBar();
-34 |     baz(1);
-35 |     fang(10);
-37 |     break ;
-38 |     a + c;
-   |     ^^^^^
-40 |     arr array = 10;
-41 |     array[-1] = 0;
-42 |     array[12] = 0;
-43 |     strlen(Hello!);
-26 | }
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:37:15] The 'break' statement without any statement that uses it!
-26 | {
-26 |     i8 b;
-27 |     ptr i8 bref = ref b;
-28 |     ptr i8 bref1 = bref;
-29 |     ptr i8 bref2 = bref1;
-31 |     i8 a = foo();
-32 |     i8 c = 123123;
-33 |     u8 asd = barBar();
-34 |     baz(1);
-35 |     fang(10);
-37 |     break ;
-   |     ^^^^^^
-38 |     a + c;
-40 |     arr array = 10;
-41 |     array[-1] = 0;
-42 |     array[12] = 0;
-43 |     strlen(Hello!);
-26 | }
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:35:14] Unused the function='fang's result!
-26 | {
-26 |     i8 b;
-27 |     ptr i8 bref = ref b;
-28 |     ptr i8 bref1 = bref;
-29 |     ptr i8 bref2 = bref1;
-31 |     i8 a = foo();
-32 |     i8 c = 123123;
-33 |     u8 asd = barBar();
-34 |     baz(1);
-35 |     fang(10);
-   |     ^^^^^^^^
-37 |     break ;
-38 |     a + c;
-40 |     arr array = 10;
-41 |     array[-1] = 0;
-42 |     array[12] = 0;
-43 |     strlen(Hello!);
-26 | }
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:32:26] Illegal declaration of 'c' with '123123' (Number bitness is=32, but 'i8' can handle bitness=8)!
-32 | i8 c = 123123;
-   |        ^^^^^^
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:31:15] Function='foo' return type='i32' not match to the declaration type='i8'!
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:26:15] Variable='b' without initialization!
-26 | i8 b;
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:25:11] Start doesn't have the 'exit' statement in all paths!
-25 | start ()
-25 | {
-26 |     {
-26 |         i8 b;
-27 |         ptr i8 bref = ref b;
-28 |         ptr i8 bref1 = bref;
-29 |         ptr i8 bref2 = bref1;
-31 |         i8 a = foo();
-32 |         i8 c = 123123;
-33 |         u8 asd = barBar();
-34 |         baz(1);
-35 |         fang(10);
-37 |         break ;
-38 |         a + c;
-40 |         arr array = 10;
-41 |         array[-1] = 0;
-42 |         array[12] = 0;
-43 |         strlen(Hello!);
-26 |     }
-25 | }
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:10:38] Function='baz' has the return value, but isn't supposed to!
-10 | return 1;
-   |        ^
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:11:28] Function='baz' has the return value, but isn't supposed to!
-11 | return 1;
-   |        ^
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:13:38] Function='baz' has the return value, but isn't supposed to!
-13 | return 1;
-   |        ^
-[INFO]    [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:5:22] Function name='barBar' isn't in a sneaky_case! 'camelCase'
-[WARNING] [/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/sem_test.cpl:5:14] Function='barBar' doesn't have the 'return' statement in all paths!
- 5 | function barBar() -> i0 
- 5 | {
- 5 | }
-```
-</details>
-
-**Note 1:** This isn't an entire analysis output due to the critical error with the array indexing. Such errors will block a compilation process given the importance of this kind of errors. </br>
+**Note 1:** By default the static analysis is turned off. To turn it on, use the `--static-analysis` flag. </br>
 **Note 2:** The static analyzer doesn't use a source file to show a error place. For these purposes, it uses the 'restorer' module that restores the code from AST.
 
 ## IR part
 The list of all possible IR warnings that are supported by the static analyzer is below:
-- NULL-dereference. *If we're trying to dereference a variable (or a value) which is NULL, we must terminate compilation.*
-- Constant IF. *We can warn a user if there is a dead branch presented.*
-- Function checker. *We must be sure, that arguments for a function have the correct type. Otherwise, we will face some problems in the code-generation stage.*
-- Syscall checker. *We can check by the syscall's number, which syscall is invoked. With the information about platform, we can check, if arguments have the correct type.*
 
-<details>
-<summary><strong>Dereference static analysis output</strong></summary>
-```cpl
-@[entry]
-function foo() {
-    i32 a = 1;
-    if 1; {
-        a = 0;
-    }
-    ptr i32 b = a as ptr i32;
-    exit dref b;
-}
-```
-
-```
-[WARNING] [4:11] 'If' with a constant value 'true'!
-[WARNING] [8:15] Possible NULL-dereference error (variable 'b' is NULL)!
-[WARNING] [5:11]     Variable 'a' becomes NULL-value
-```
-</details>
+| Error name       | Description                                                                                                                                   | Example                              |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| NULL dereference | If a variable or expression that may be `NULL` is dereferenced, compilation must be terminated.                                               | `ptr i32 p = 0;`</br>`x = dref p;`   |
+| NULL dereference.args | If a function dereferences an input argument, and we figure it out, that it is '0' - we must terminate compilation.                      | `ptr i32 p = 0;`</br>`foo(p);`</br>`function foo(ptr i32 b) { dref b; }` |
+| Constant `if`    | If an `if` condition is a compile-time constant, the checker may warn that one branch is dead code.                                           | `if 0 { a = 1; }`</br>`else { a = 2; }` |
+| Function checker | Function call arguments must match the declared parameter types, otherwise code generation may become invalid.                                | `function sum(i32 a, i32 b);`</br>`sum(1, "x");`|
+| Syscall checker  | Using the syscall number and the target platform, the checker can validate that the syscall exists and that its arguments have correct types. | `syscall(3, ref "fd", buf, 10);`     |
