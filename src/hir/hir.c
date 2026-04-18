@@ -108,22 +108,12 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
-        case HIR_NUMBER:
-            if (strval) subj->storage.num.value = strval->copy(strval);
-        break;
-        case HIR_CONSTVAL:
-            subj->storage.cnst.value = intval;
-        break;
+        case HIR_NUMBER: if (strval) subj->storage.num.value = strval->copy(strval); break;
+        case HIR_CONSTVAL: subj->storage.cnst.value = intval; break;
         case HIR_FNAME:
         case HIR_RAWASM:
-        case HIR_STRING: 
-            subj->storage.str.s_id = v_id;
-        break;
-        case HIR_FPOS:
-            if (strval) {
-                str_memcpy(&subj->storage.pos, strval, sizeof(file_position_t));
-            }
-        break;
+        case HIR_STRING: subj->storage.str.s_id = v_id; break;
+        case HIR_FPOS: if (strval) str_memcpy(&subj->storage.pos, strval, sizeof(file_position_t)); break;
         default: break;
     }
 

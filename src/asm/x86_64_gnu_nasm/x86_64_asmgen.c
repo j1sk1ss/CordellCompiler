@@ -3,8 +3,14 @@
 static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_table_t* smt, FILE* output) {
     if (b->unused) return 1;
     switch (b->op) {
+        case LIR_SETPOS: {
+            if (!CONF_is_debug_compilation()) break;
+            if (!b->farg->storage.pos.file) break;
+            EMIT_COMMAND("%%line %li \"%s\"", b->farg->storage.pos.line, b->farg->storage.pos.file->body);
+            break;
+        }
         case LIR_FCLL:
-        case LIR_ECLL: EMIT_COMMAND("call %s\n", format_lir_subject(b->farg, smt, NO_FLAG)); break;
+        case LIR_ECLL: EMIT_COMMAND("call %s", format_lir_subject(b->farg, smt, NO_FLAG)); break;
         case LIR_STRT:
         case LIR_FDCL: {
             EMIT_COMMAND("%s:", format_lir_subject(b->farg, smt, NO_FLAG));
@@ -27,20 +33,20 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_FEND:
         case LIR_FRET: {
             if (!fi->flags.naked) {
-                EMIT_COMMAND("mov rsp, rbp\n");
-                EMIT_COMMAND("pop rbp\n");
+                EMIT_COMMAND("mov rsp, rbp");
+                EMIT_COMMAND("pop rbp");
             }
             
-            EMIT_COMMAND("ret\n");
+            EMIT_COMMAND("ret");
             break;
         }
-        case LIR_CQO:  EMIT_COMMAND("cqo\n");     break;
-        case LIR_CDQ:  EMIT_COMMAND("cdq\n");     break;
-        case LIR_SYSC: EMIT_COMMAND("syscall\n"); break;
+        case LIR_CQO:  EMIT_COMMAND("cqo");     break;
+        case LIR_CDQ:  EMIT_COMMAND("cdq");     break;
+        case LIR_SYSC: EMIT_COMMAND("syscall"); break;
         case LIR_FEXT: {
             func_info_t curr_fi;
             if (FNTB_get_info_id(b->farg->storage.cnst.value, &curr_fi, &smt->f)) {
-                EMIT_COMMAND("extern %s\n", curr_fi.name->body);
+                EMIT_COMMAND("extern %s", curr_fi.name->body);
             }
 
             break;
@@ -48,7 +54,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_OEXT: {
             variable_info_t vi;
             if (VRTB_get_info_id(b->farg->storage.cnst.value, &vi, &smt->v)) {
-                EMIT_COMMAND("extern %s\n", vi.name->body); 
+                EMIT_COMMAND("extern %s", vi.name->body); 
             }
 
             break;

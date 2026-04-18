@@ -10,3 +10,9 @@
 | `asm/`     | Machine dependent assembler generation.                                | 3AC to ASM.         |
 | `symtab/`  | Symbol table.                                                          | -                   |
 | `config.c` | Compiler shared configuration data.                                    | -                   |
+
+P.S.: Arch dependent files are:
+- src/asm/x86_64_gnu_nasm/*.c - Direct ASM translation.
+- src/lir/selector/x86_64_gnu_nasm/*.c - From HLIR to LLIR (from not depent to a depent version).
+
+And if there is a task to add a new platform, you will need to make new directories with the same logic, but related to ypur platform.

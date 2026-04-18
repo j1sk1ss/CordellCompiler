@@ -168,6 +168,9 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
         _unload_pp_ctx(&ppctx);
         return -1;
     }
+    
+    source_pos_info_t init = { .l = 0, .n = src_path };
+    _put_line_macro(&init, src);
 
     char* src_path_ptr = strdup(src_path);
     if (!src_path_ptr) {
