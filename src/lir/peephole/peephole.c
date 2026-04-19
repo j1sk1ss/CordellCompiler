@@ -25,9 +25,13 @@ int LIR_peephole_optimization(cfg_ctx_t* cctx, peephole_t* peephole) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            peephole_first_pass(bb);
+            int optimized = 0;
+            do {
+                optimized = peephole_first_pass(bb);
+                peephole->perform_peephole(cctx);
+            } while (optimized);
         }
     }
 
-    return peephole->perform_peephole(cctx);
+    return 1;
 }

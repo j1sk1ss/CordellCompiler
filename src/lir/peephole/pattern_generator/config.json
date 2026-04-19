@@ -207,11 +207,11 @@
     "types": {
         "aconst": [
             "LIR_NUMBER",
-            "LIR_CONST"
+            "LIR_CONSTVAL"
         ],
         "const": [
             "LIR_NUMBER",
-            "LIR_CONST"
+            "LIR_CONSTVAL"
         ],
         "reg": [
             "LIR_REGISTER"
@@ -225,7 +225,7 @@
         "obj": [
             "LIR_REGISTER",
             "LIR_NUMBER",
-            "LIR_CONST",
+            "LIR_CONSTVAL",
             "LIR_MEMORY"
         ]
     },

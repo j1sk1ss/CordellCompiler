@@ -68,7 +68,7 @@ add obj, const 0                      ; X + 0 = X
 delete
 /
 
-add areg, const 1
+add areg_1, const 1
 ->
 inc areg
 /
@@ -82,12 +82,20 @@ shl areg_1, const 1
 ; SUB patterns
 ; ==================
 
+mov areg_1, areg_2
+dec areg_1
+mov areg_2, areg_1
+->
+dec areg_2
+mov areg_1, areg_2
+/
+
 sub obj, const 0                      ; X - 0 = X
 ->
 delete
 /
 
-sub areg, const 1
+sub areg_1, const 1
 ->
 dec areg
 /
