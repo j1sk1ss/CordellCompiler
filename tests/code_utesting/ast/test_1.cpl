@@ -48,12 +48,12 @@ start(i64 argc, ptr u64 argv) {
                [-=] (SUBASSIGN_TOKEN, v_id=-1, s_id=0)
                   [num] (I32_VARIABLE_TOKEN, v_id=3, s_id=3)
                   [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-         [printf] (CALL_TOKEN, v_id=0, s_id=0, ext, glob)
+         [printf] (CALL_TOKEN, v_id=0, s_id=1, ext, glob)
             { scope, id=0 }
                [Hello! %s
 ] (STRING_VALUE_TOKEN, v_id=0, s_id=0)
                [String!] (STRING_VALUE_TOKEN, v_id=1, s_id=0)
-         [printf] (CALL_TOKEN, v_id=0, s_id=0, ext, glob)
+         [printf] (CALL_TOKEN, v_id=0, s_id=1, ext, glob)
             { scope, id=0 }
                [%d] (STRING_VALUE_TOKEN, v_id=2, s_id=0)
                [factorio] (I32_VARIABLE_TOKEN, v_id=4, s_id=3)

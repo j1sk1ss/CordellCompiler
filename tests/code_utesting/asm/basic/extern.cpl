@@ -11,13 +11,11 @@ extern BUFFER
 section .data
 section .text
 global _main
-_main{X}
+_main:
 push rbp
 mov rbp, rsp
-mov r15, [rel BUFFER]
-mov rdi, r15
-mov r15, 10
-mov rsi, r15
+mov rdi, [rel BUFFER]
+mov sil, 10
 call printf
 mov rax, 0x2000001
 syscall

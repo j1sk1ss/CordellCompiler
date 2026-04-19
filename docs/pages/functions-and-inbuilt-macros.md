@@ -55,6 +55,7 @@ CPL supports function overloading, but with several restrictions that come from 
 Rules:
 - **No return-type overloading** — CPL does not distinguish overloads by return type.
 - **Local-only overloading** — overloaded functions are neither `glob` nor `extern`.
+- **Same scope** - function will search overload candidates only in the same scope with the original one.
 
 This works:
 ```cpl
@@ -63,7 +64,7 @@ function foo();
 function foo(i8 a);
 ```
 
-To make overload resolution explicit, use `as`:
+To make overload resolution explicit, use the `as` keyword:
 ```cpl
 foo(10 as i32); : function foo(i32 a); :
 : i64 a; :

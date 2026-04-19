@@ -7,19 +7,16 @@ start() {
 
 :/ OUTPUT
 {
-    i32g %0 = alloc(8);
-    i32t %1 = i8n 1 as i32;
-    i32g %0 = i32t %1;
     start {
         {
             {
-                if i32g %0, goto lb{X} else goto lb{X}
-                lb{X}
+                if i32g %0, goto lb11, else goto lb13;
+                lb11:
                 {
                     exit i8n 1;
                 }
-                goto lb{X}
-                lb{X}
+                goto lb13;
+                lb13:
             }
         }
     }

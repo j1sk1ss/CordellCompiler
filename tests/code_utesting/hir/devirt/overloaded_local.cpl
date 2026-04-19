@@ -25,6 +25,7 @@ start() {
                         return i8n 1;
                     }
                 }
+                [unused]
                 lb10:
                 goto lb25;
                 fn local2(i16 a)
@@ -35,6 +36,7 @@ start() {
                         return i8n 2;
                     }
                 }
+                [unused]
                 lb25:
                 goto lb40;
                 fn local3(i8 a)
@@ -45,6 +47,7 @@ start() {
                         return i8n 3;
                     }
                 }
+                [unused]
                 lb40:
                 i32t %3 = i8n 1 as i32;
                 use i32t %3;
@@ -60,6 +63,6 @@ start() {
                 exit i64t %10;
             }
         }
-    }
+    [unused] }
 }
 /:

@@ -11,10 +11,10 @@ int FNTB_get_info_id(symbol_id_t id, func_info_t* out, functab_ctx_t* ctx) {
     return 0;
 }
 
-int FNTB_collect_info(string_t* fname, list_t* out, functab_ctx_t* ctx) {
-    print_log("FNTB_collect_info(name=%s)", fname ? fname->body : "(null)");
+int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx) {
+    print_log("FNTB_collect_info(name=%s, s_id=%li)", fname ? fname->body : "(null)", s_id);
     map_foreach (func_info_t* fi, &ctx->functb) {
-        if (fi->name->equals(fi->name, fname)) {
+        if (fi->name->equals(fi->name, fname) && fi->s_id == s_id) {
             list_add(out, fi);
         }
     }
@@ -26,7 +26,7 @@ int FNTB_collect_info(string_t* fname, list_t* out, functab_ctx_t* ctx) {
 int FNTB_get_info(string_t* fname, symbol_id_t s_id, func_info_t* out, functab_ctx_t* ctx) {
     print_log("FNTB_get_info(name=%s, s_id=%li)", fname ? fname->body : "(null)", s_id);
     map_foreach (func_info_t* fi, &ctx->functb) {
-        if (fi->name->equals(fi->name, fname) && (s_id == FIELD_NO_CHANGE || fi->s_id == s_id)) {
+        if (fi->name->equals(fi->name, fname) && (fi->s_id == s_id)) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
             return 1;
         }

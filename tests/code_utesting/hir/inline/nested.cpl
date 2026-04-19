@@ -22,6 +22,7 @@ start() {
             return i8n 1;
         }
     }
+    [unused]
     fn bar1()
     {
         {
@@ -30,6 +31,7 @@ start() {
             return i64t %0;
         }
     }
+    [unused]
     fn baz2()
     {
         {
@@ -39,6 +41,7 @@ start() {
             return i64t %1;
         }
     }
+    [unused]
     start {
         {
             {
@@ -49,6 +52,6 @@ start() {
                 exit i64t %2;
             }
         }
-    }
+    [unused] }
 }
 /:

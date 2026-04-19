@@ -4,13 +4,11 @@ start() {
 
 :/ OUTPUT
 BB1: start
-%4 = $10;
-%3 = %4;
+%3 = $10;
 cmp %3, $10;
 sete al;
-%2 movzx al;
+%2 = al;
 %1 movsx %2;
-%5 = %1;
-%0 = %5;
+%0 = %1;
 send
 /:

@@ -27,11 +27,17 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &name->t->flags, &smt->v);
-    if (
-        base->t->t_type == STR_TYPE_TOKEN
-    ) ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &base->t->flags, &smt->a);
-    var_lookup(name, ctx, smt);
+    if (base->t->t_type == STR_TYPE_TOKEN) {
+        if (base->t->flags.ptr) {
+            PARSE_ERROR("'str' object can't be presented as a pointer! Use 'ptr i8' instead!");
+            AST_unload(base);
+            return NULL;
+        }
 
+        ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &base->t->flags, &smt->a);
+    }
+
+    var_lookup(name, ctx, smt);
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.reg, annots.align, &smt->v);
     if (!TKN_in_stack(name->t)) {
         if (!annots.section) annots.section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
@@ -48,7 +54,9 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
             return NULL;
         }
 
-        if (base->t->t_type == STR_TYPE_TOKEN) {
+        if (
+            base->t->t_type == STR_TYPE_TOKEN /* String is a special case of an array */
+        ) {
             ARTB_update_info(
                 name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, FIELD_NO_CHANGE, 
                 I8_TYPE_TOKEN, &base->t->flags, &smt->a
@@ -56,6 +64,9 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
             STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }
 
+        if (
+            base->t->flags.glob
+        ) VRTB_update_definition(name->sinfo.v_id, value_node->t->body->to_llong(value_node->t->body), NO_SYMBOL_ID, &smt->v, 0);
         AST_add_node(base, value_node);
     }
 

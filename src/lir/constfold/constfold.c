@@ -10,6 +10,7 @@ Returns 1 if fold has completed. Otherwise will return 0.
 */
 static int _apply_constfold_on_subject(lir_subject_t* s, sym_table_t* smt) {
     if (s->t != LIR_VARIABLE) return 0;
+    if (ALLIAS_get_owners(s->storage.var.v_id, NULL, &smt->m)) return 0;
     variable_info_t vi;
     if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
     if (vi.vdi.defined == DEFINED_VARIABLE) {

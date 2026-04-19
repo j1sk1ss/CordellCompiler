@@ -84,28 +84,48 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
     do {
         changed = 0;
         map_foreach (dag_node_t* nd, &dctx->dag) {
-            if (nd->op == HIR_PHI && nd->src->home && nd->src->home->targ) {
-                long first = 1, value = 0, same = 1;
-                set_foreach (int_tuple_t* t, &nd->src->home->targ->storage.set.h) {
-                    variable_info_t vi; 
-                    if (!VRTB_get_info_id(t->y, &vi, &smt->v) || vi.vdi.defined != DEFINED_VARIABLE) same = 0;
-                    else {
-                        if (first) value = vi.vdi.definition;
-                        else if (!first && value != vi.vdi.definition) same = 0;
+            switch (nd->op) {
+                case HIR_PHI: {
+                    if (!nd->src->home || !nd->src->home->targ) break;
+                    long first = 1, value = 0, same = 1;
+                    set_foreach (int_tuple_t* t, &nd->src->home->targ->storage.set.h) {
+                        variable_info_t vi; 
+                        if (!VRTB_get_info_id(t->y, &vi, &smt->v) || vi.vdi.defined != DEFINED_VARIABLE) same = 0;
+                        else {
+                            if (first) value = vi.vdi.definition;
+                            else if (!first && value != vi.vdi.definition) same = 0;
+                        }
+                        
+                        if (!same) break;
+                        first = 0;
                     }
                     
-                    if (!same) break;
-                    first = 0;
-                }
-                
-                if (same) {
-                    if (VRTB_update_definition(nd->src->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 1)) changed = 1;
-                }
-                else {
-                    if (VRTB_update_definition(nd->src->storage.var.v_id, FIELD_NO_CHANGE, nd->src->storage.var.v_id, &smt->v, 0)) changed = 1;
-                }
+                    if (same) {
+                        if (VRTB_update_definition(nd->src->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 1)) changed = 1;
+                    }
+                    else {
+                        if (VRTB_update_definition(nd->src->storage.var.v_id, FIELD_NO_CHANGE, nd->src->storage.var.v_id, &smt->v, 0)) changed = 1;
+                    }
 
-                continue;
+                    continue;
+                }
+                case HIR_GDREF: {
+                    if (!nd->src->home || !nd->src->home->farg) break;
+                    set_t slaves;
+                    if (ALLIAS_get_slaves(nd->src->home->sarg->storage.var.v_id, &slaves, &smt->m)) {
+                        set_foreach (symbol_id_t slave, &slaves) {
+                            variable_info_t vi; 
+                            if (VRTB_get_info_id(slave, &vi, &smt->v) && vi.vdi.defined == DEFINED_VARIABLE) {
+                                if (VRTB_update_definition(nd->src->storage.var.v_id, vi.vdi.definition, NO_SYMBOL_ID, &smt->v, 0)) changed = 1;
+                                break;
+                            } 
+                        }
+                    }
+
+                    set_free(&slaves);
+                    continue;
+                }
+                default: break;
             }
 
             dag_node_t* args[4] = { NULL };
@@ -115,11 +135,10 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
             }
             
             if (
-                !HIR_is_vartype(nd->src->t) ||                              /* If considered object isn't a variable, */
-                ALLIAS_get_owners(nd->src->storage.var.v_id, NULL, &smt->m) /* or it has an owner.                    */
-            ) continue;                                                     /* We skip such variables / objects given */
-                                                                            /* the necessity of preserving over       */
-                                                                            /* 'inlining'.                            */
+                !HIR_is_vartype(nd->src->t) /* If considered object isn't a variable  */
+            ) continue;                     /* We skip such variables / objects given */
+                                            /* the necessity of preserving over       */
+                                            /* 'inlining'.                            */
 
             const_t a, b;
             int a_pres = _parse_const(args[0], &a, smt);

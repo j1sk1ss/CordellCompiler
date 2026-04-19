@@ -1,16 +1,14 @@
-{
-    function foo() -> i32;
-    start() {
-        foo();
-        exit 1;
-    }
+function foo() -> i32;
+start() {
+    foo();
+    exit 1;
 }
 
 :/ OUTPUT
-[WARNING] [4:13] Unused the function='foo's result!
-4 | {
-4 |     foo();
+[WARNING] [3:9] Unused the function 'foo' result! If its result isn't used elsewhere, consider to change its return type to the 'i0' type.
+3 | {
+3 |     foo();
   |     ^^^^^
-5 |     exit 1;
-4 | }
+4 |     exit 1;
+3 | }
 /:

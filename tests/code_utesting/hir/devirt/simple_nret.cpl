@@ -20,6 +20,6 @@ start() {
                 exit i64t %0;
             }
         }
-    }
+    [unused] }
 }
 /:

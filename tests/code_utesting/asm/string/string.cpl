@@ -9,11 +9,10 @@ section .rodata
 _str_0_ db 72,101,108,108,111,32,119,111,114,108,100,33,0
 section .text
 global _main
-_main{X}
+_main:
 push rbp
 mov rbp, rsp
-mov r15, [rel _str_0_]
-mov rdi, r15
+mov rdi, [rel _str_0_]
 call _cpl_print0
 mov rax, 0x2000001
 syscall

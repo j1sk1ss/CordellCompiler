@@ -105,6 +105,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_iADD:       return "%s = %s + %s;\n";
 
         case LIR_REF:        return "%s = &(%s);\n";
+        case LIR_REF_GDREF:  return "%s = &(*%s);\n";
         case LIR_GDREF:      return "%s = *(%s);\n";
         case LIR_LDREF:      return "*(%s) = %s;\n";
 
@@ -183,8 +184,8 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
     return dst;
 }
 
-static void print_lir_block(const lir_block_t* block, sym_table_t* smt) {
-    if (!block) return;
+static void print_lir_block(const lir_block_t* block, sym_table_t* smt, int debug) {
+    if (!block || (block->op == LIR_SETPOS && !debug)) return;
     
     char arg1[256] = { 0 };
     char arg2[256] = { 0 };

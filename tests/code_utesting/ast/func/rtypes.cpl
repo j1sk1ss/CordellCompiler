@@ -1,5 +1,5 @@
 function foo() -> ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr ptr i32;
-function foo1() -> ptr str;
+function foo1() -> ptr i8;
 function foo2() -> i8;
 function foo3() -> i0;
 
@@ -11,7 +11,7 @@ function foo3() -> i0;
       { scope, id=2 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
       [foo1] (FUNC_NAME_TOKEN, v_id=1, s_id=1)
-         [str] (STR_TYPE_TOKEN, ptr, v_id=-1, s_id=0)
+         [i8] (I8_TYPE_TOKEN, ptr, v_id=-1, s_id=0)
       { scope, id=3 }
    [function] (FUNC_PROT_TOKEN, v_id=-1, s_id=0)
       [foo2] (FUNC_NAME_TOKEN, v_id=2, s_id=1)

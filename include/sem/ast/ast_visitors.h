@@ -7,6 +7,7 @@
 #include <sem/ast/ast_data.h>
 #include <sem/misc/warns.h>
 #include <sem/misc/restore.h>
+#include <sem/misc/trace.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
 

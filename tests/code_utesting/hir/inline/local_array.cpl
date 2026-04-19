@@ -21,6 +21,7 @@ start() {
             return i32t %5;
         }
     }
+    [unused]
     start {
         {
             {
@@ -35,6 +36,6 @@ start() {
                 exit i64t %6;
             }
         }
-    }
+    [unused] }
 }
 /:

@@ -23,7 +23,8 @@ start() {
                [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)
                   [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
                   [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-         [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)
-            [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
-            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+            { scope, id=2 }
+               [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)
+                  [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
+                  [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
 /:

@@ -260,7 +260,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\n\n========== LIRv1 ==========\n");
     lir_block_t* lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, &smt);
+        print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 #endif
@@ -274,7 +274,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\n\n========== LIR planned instructions ==========\n");
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, &smt);
+        print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 #endif
@@ -290,7 +290,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\n\n========== LIR selected instructions ==========\n");
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, &smt);
+        print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 #endif
@@ -305,17 +305,13 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\n\n========== LIR const folded ==========\n");
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, &smt);
+        print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 #endif
 #endif
 
 #ifdef LIR_REGALLOC_TESTING
-    printf("LIR_DFG_collect_defs...\n");
-    LIR_DFG_collect_defs(&cfgctx);       // Analyzation
-    printf("LIR_DFG_collect_uses...\n");
-    LIR_DFG_collect_uses(&cfgctx);       // Analyzation
     printf("LIR_DFG_compute_inout...\n");
     LIR_DFG_compute_inout(&cfgctx);      // Analyzation
     printf("LIR_DFG_create_deall...\n");
@@ -341,7 +337,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\n\n========== LIR planned and regalloc ==========\n");
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, &smt);
+        print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 #endif
@@ -354,7 +350,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("\n\n========== LIR peephole optimization ==========\n");
     lh = lirctx.h;
     while (lh) {
-        print_lir_block(lh, &smt);
+        print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 #endif
@@ -364,7 +360,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
     printf("LIR_save_registers...\n");
     HIR_CFG_cleanup_navigation(&cfgctx);
-    LIR_save_registers(&cfgctx, &reg_save);
+    LIR_save_registers(&cfgctx, &smt, &reg_save);
 #endif
 #endif
 

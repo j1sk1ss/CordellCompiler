@@ -4,9 +4,7 @@ start() {
 
 :/ OUTPUT
 BB1: start
-r15 = $0;
-[rbp - 8] = r15;
-r15 = [rbp - 8];
-rax = r15;
+[rbp - 8] = $0;
+rax = [rbp - 8];
 send
 /:

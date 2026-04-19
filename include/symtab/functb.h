@@ -40,12 +40,13 @@ typedef struct func_ctx {
 Collect all functions with the same name.
 Params:
     - `fname` - Target function name.
+    - `s_id` - Function's scope.
     - `out` - The output list.
     - `ctx` - Function symbol table.
 
 Returns 1 if succeeds. Otherwise will return 0.
 */
-int FNTB_collect_info(string_t* fname, list_t* out, functab_ctx_t* ctx);
+int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx);
 
 /*
 Get function from a table by the provided ID.

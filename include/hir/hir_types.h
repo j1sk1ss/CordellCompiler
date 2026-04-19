@@ -89,6 +89,7 @@ typedef enum hir_operation {
         HIR_NOT,          // x = !x
         HIR_STORE,        // x = y
         HIR_VARDECL,      // alloc x
+        HIR_GLVARDECL,    // alloc x, y=val
         HIR_ARRDECL,      // arralloc x, y (size)
         HIR_STRDECL,      // arralloc x, strlen(x)
         HIR_FARGLD,       // load function argument

@@ -78,13 +78,13 @@ token_t* TKN_copy_token(token_t* src) {
     return tkn;
 }
 
-token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* finfo) {
+token_t* TKN_create_token(token_type_t type, const char* value, file_position_t* finfo) {
     token_t* tkn = mm_malloc(sizeof(token_t));
     if (!tkn) return NULL;
     str_memset(tkn, 0, sizeof(token_t));
     
     tkn->t_type = type;
-    if (finfo) str_memcpy(&tkn->finfo, finfo, sizeof(token_fpos_t));
+    if (finfo) str_memcpy(&tkn->finfo, finfo, sizeof(file_position_t));
     if (!value) return tkn;
 
     string_t* input = create_string((char*)value);
@@ -102,7 +102,7 @@ token_t* TKN_create_token(token_type_t type, const char* value, token_fpos_t* fi
             break;
         }
         case CHAR_VALUE_TOKEN: {
-            tkn->body = create_string_from_int(input->body[0]);
+            tkn->body   = create_string_from_int(input->body[0]);
             tkn->t_type = UNKNOWN_NUMERIC_TOKEN;
             destroy_string(input);
             break;
@@ -148,6 +148,15 @@ static inline void _reset_tkn_ctx(tkn_ctx_t* ctx) {
         char_type == new                     \
     ) ctx->ttype = res;
 
+static inline int _allowed_character_in_token(char c) {
+    switch (c) {
+        case '\\':
+        case '\'':
+        case '\"': return 0;
+        default: return 1;
+    }
+}
+
 /*
 Give the next token from the provided buffer.
 Params:
@@ -158,7 +167,7 @@ Params:
 
 Returns a new token or the 'NULL' value.
 */
-static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, token_fpos_t* finfo, tkn_ctx_t* ctx) {
+static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, file_position_t* finfo, tkn_ctx_t* ctx) {
     char token_buf[BUFFER_SIZE] = { 0 };
     for (ssize_t i = *off; i < bytes_read; ++i) {
         char ch = buffer[i];
@@ -167,14 +176,6 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
 
         if (ct == CHAR_PP) {
             ctx->is_pp = 1;
-            continue;
-        }
-
-        /* Special character logic
-            proceeding. Also, if we encounter backslash,
-            we must skip it. */
-        if (ct == CHAR_BACKSLASH) {
-            ctx->is_spec = !ctx->is_spec;
             continue;
         }
         
@@ -188,6 +189,14 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             }
             
             ctx->is_spec = !ctx->is_spec;
+        }
+
+        /* Special character logic
+            proceeding. Also, if we encounter backslash,
+            we must skip it. */
+        if (ct == CHAR_BACKSLASH) {
+            ctx->is_spec = !ctx->is_spec;
+            // continue;
         }
 
         /* Markdown routine (quotes and comment flags handler) */
@@ -205,7 +214,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             finfo->line++;
             finfo->column = 1;
         }
-
+        
         /* Read and convert the input character type to a
             defined token type. */
         token_type_t char_type;
@@ -236,7 +245,7 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
         if (
             ctx->in_token &&                          /* If we're in the token        */
             (
-                char_type == LINE_BREAK_TOKEN ||      /* We've found a break token    */
+                char_type == LINE_BREAK_TOKEN      || /* We've found a break token    */
                 char_type == UNKNOWN_BRACKET_VALUE || /* or unknown token.            */
                 ctx->ttype != char_type               /* Or we've found another char. */
             )
@@ -269,19 +278,21 @@ _force_token_creation: {}
 
         if (char_type == LINE_BREAK_TOKEN) continue;
         if (!ctx->in_token) {
-            ctx->ttype = char_type;
+            ctx->ttype    = char_type;
             ctx->in_token = 1;
         }
 
         if (ctx->token_len + 1 > BUFFER_SIZE) {
-            print_error("Too large token is found!");
+            print_error("Token [t=%.32s...] is too big!", token_buf);
             return NULL;
         }
-
-        token_buf[ctx->token_len++] = ch;
+        
+        if (_allowed_character_in_token(ch)) {
+            token_buf[ctx->token_len++] = ch;
+        }
     }
 
-    if (ctx->in_token) goto _force_token_creation;
+    if (ctx->in_token) goto _force_token_creation; // TODO: Don't force to close a token, check if this the last 
     return NULL;
 }
 
@@ -289,7 +300,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
     tkn_ctx_t tkn_ctx = { 0 };
     _reset_tkn_ctx(&tkn_ctx);
 
-    token_fpos_t finfo = { .column = 1, .line = 1, .file = NULL };
+    file_position_t finfo = { .column = 1, .line = 1, .file = NULL };
     char buffer[BUFFER_SIZE] = { 0 };
 
     int file_offset = 0;
@@ -342,8 +353,8 @@ int TKN_tokenize(int fd, list_t* tkn) {
 }
 
 unsigned long TKN_hash_token(token_t* t) {
-    token_fpos_t tmp = { .column = t->finfo.column, .line = t->finfo.line, .file = t->finfo.file };
-    str_memset(&t->finfo, 0, sizeof(token_fpos_t));
+    file_position_t tmp = { .column = t->finfo.column, .line = t->finfo.line, .file = t->finfo.file };
+    str_memset(&t->finfo, 0, sizeof(file_position_t));
 
     unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
     hash ^= t->body->hash;

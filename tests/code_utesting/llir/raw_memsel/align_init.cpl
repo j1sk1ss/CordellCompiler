@@ -4,14 +4,12 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} start
-r15 = $1;
-[rbp - 8] = r15;
-r15 = [rbp - 8];
-[rbp - 16] = r15;
-r15 = $1;
-[rbp - 24] = r15;
-r15 = [rbp - 24];
-[rbp - 88] = r15;
+BB1: start
+[rbp - 8] = $1;
+%4 = [rbp - 8];
+[rbp - 16] = %4;
+[rbp - 24] = $1;
+%5 = [rbp - 24];
+[rbp - 88] = %5;
 send
 /:

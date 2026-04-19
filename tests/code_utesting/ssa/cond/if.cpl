@@ -15,25 +15,25 @@ start() {
         {
             {
                 i32s %0 = alloc(8);
-                i32t %2 = num? 0 as i32;
+                i32t %2 = i8n 0 as i32;
                 i32s %5 = i32t %2;
-                if num? 1, goto lb{X} else goto lb{X}
-                lb{X}
+                if i8n 1, goto lb18, else goto lb19;
+                lb18:
                 {
-                    i32t %3 = num? 1 as i32;
+                    i32t %3 = i8n 1 as i32;
                     i32s %9 = i32t %3;
                 }
                 future: i32s %7 = previous: i32s %9;
-                goto lb{X}
-                lb{X}
+                goto lb20;
+                lb19:
                 {
-                    i32t %4 = num? 2 as i32;
+                    i32t %4 = i8n 2 as i32;
                     i32s %6 = i32t %4;
                 }
                 future: i32s %7 = previous: i32s %6;
-                goto lb{X}
-                lb{X}
-                [i32s %0] i32s %7 = phi(set [{X}][{X}]);
+                goto lb20;
+                lb20:
+                [i32s %0] i32s %7 = phi(set [%9, bb2][%6, bb3]);
                 i32s %1 = alloc(8);
                 i32s %8 = i32s %7;
             }

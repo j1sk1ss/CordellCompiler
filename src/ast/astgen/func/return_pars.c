@@ -26,5 +26,6 @@ ast_node_t* cpl_parse_return(PARSER_ARGS) {
         return NULL;
     }
 
+    forward_token(it, 1);
     return base;
 }

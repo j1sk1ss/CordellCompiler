@@ -1,0 +1,26 @@
+: BLOCK_TEST :
+: RUN_ASM :
+function putc(i8 c) -> i0 {
+    syscall(0x2000004, 1, ref c, 1);
+}
+
+function put_digit(i64 x) -> i0 {
+    putc(('0' + x) as i8);
+}
+
+start() {
+    i64 i = 0;
+    i64 s = 0;
+
+    while i < 3; {
+        i += 1;
+        s += i;
+    }
+
+    put_digit(s);
+    exit 0;
+}
+
+:/ OUTPUT
+6
+/:

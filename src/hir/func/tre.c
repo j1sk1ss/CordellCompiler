@@ -22,9 +22,9 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
             ) exit = exit->prev; 
             
             if (
-                !HIR_is_funccall(exit->op) ||              /* If this isn't a function call instruction */
+                !HIR_is_funccall(exit->op) ||            /* If this isn't a function call instruction */
                 exit->sarg->storage.str.s_id != fb->f_id /* or this isn't a self-call.                */
-            ) continue;                                 /* We skip such instructions.                */
+            ) continue;                                  /* We skip such instructions.                */
             
             /* Skip the function's preambule:
                 - function definition

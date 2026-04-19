@@ -111,7 +111,7 @@ function strlen(ptr i8 s) -> i64;
     - `msg` - Input message to print.
     
     Returns i0 a/k/a nothing. :
-function print(ptr str msg) -> i0;
+function print(ptr i8 msg) -> i0;
 #endif
 
 : basic.cpl :
@@ -131,7 +131,7 @@ In a nutshell, there is how the code above will look like after all preparations
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
 function strlen(ptr i8 s) -> i64;
 #line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
-function print(ptr str msg) -> i0;
+function print(ptr i8 msg) -> i0;
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/basic.cpl"
 @[entry("_main")]
 function main(i32 argc, ptr ptr i8 argv) {

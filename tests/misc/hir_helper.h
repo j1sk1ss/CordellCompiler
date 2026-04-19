@@ -54,6 +54,7 @@ static const char* hir_op_to_string(hir_operation_t op) {
         case HIR_NOT:          return "NOT";
         case HIR_STORE:        return "STORE";
         case HIR_VARDECL:      return "VARDECL";
+        case HIR_GLVARDECL:    return "HIR_GLVARDECL";
         case HIR_ARRDECL:      return "ARRDECL";
         case HIR_VRUSE:        return "VRUSE";
         case HIR_STRDECL:      return "STRDECL";
@@ -147,6 +148,7 @@ static const char* hir_op_to_fmtstring(hir_operation_t op, int state) {
         case HIR_STRDECL:    return "%s = str_alloc(%s);\n";
         case HIR_VRDEALL:    return "kill %s\n";
 
+        case HIR_GLVARDECL:  return "%s = alloc(%s);\n";
         case HIR_VARDECL: {
             switch (state) {
                 case 2:  return "%s = alloc(8);\n";
@@ -269,7 +271,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                     }
                 }
                 else {
-                    dst += sprintf(dst, "unknown");
+                    dst += sprintf(dst, "unknown(%i)", s->t);
                 }
 
                 break;
@@ -302,7 +304,7 @@ static char* sprintf_hir_subject(char* dst, hir_subject_t* s, sym_table_t* smt) 
                 break;
             }
 
-            default: dst += sprintf(dst, "unknw"); break;
+            default: dst += sprintf(dst, "unknown(%i)", s->t); break;
         }
     }
 
@@ -424,10 +426,10 @@ int export_dot_func_hir(cfg_func_t* f) {
 
     int ishead = 1;
     foreach (cfg_block_t* cb, &f->blocks) {
-        printf("  B%ld [label=\"B%ld:\\nentry=%s%li\\nexit=%s%s",
+        printf("  B%ld [label=\"B%ld:\\nentry=%s%i\\nexit=%s%s",
                cb->id, cb->id,
                cb->hmap.entry ? hir_op_to_string(cb->hmap.entry->op) : "NULL", 
-               cb->hmap.entry && cb->hmap.entry->op == HIR_MKLB ? cb->hmap.entry->farg->id : -1,
+               (cb->hmap.entry && cb->hmap.entry->op == HIR_MKLB) ? (int)cb->hmap.entry->farg->id : -1,
                cb->hmap.exit  ? hir_op_to_string(cb->hmap.exit->op)  : "NULL",
                ishead ? "\\nHEAD" : "");
 

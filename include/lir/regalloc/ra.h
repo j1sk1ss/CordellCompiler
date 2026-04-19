@@ -8,6 +8,7 @@
 #include <std/list.h>
 #include <symtab/symtab.h>
 #include <hir/cfg.h>
+#include <lir/lirgen.h>
 
 typedef struct igraph_node {
     symbol_id_t v_id;     /* v_id - Link to smt.v variable                   */

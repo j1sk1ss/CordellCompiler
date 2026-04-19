@@ -43,7 +43,18 @@ static const char* format_lir_register(lir_registers_t reg) {
     }
 }
 
-const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt) {
+static const char* _get_mem_modifier(int size) {
+    const char* modifier = "qword ";
+    switch (size) {
+        case 4: modifier = "dword "; break;
+        case 2: modifier = "word ";  break;
+        case 1: modifier = "byte ";  break;
+        default: break;
+    }
+    return modifier;
+}
+
+const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag) {
     char* buffer = _get_buffer();
     if (!v) return "";
     switch (v->t) {
@@ -78,13 +89,16 @@ const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt) {
             if (FNTB_get_info_id(v->storage.str.sid, &fi, &smt->f)) {
                 char *local = "_cpl_%s", *global = "%s";
                 if (v->storage.str.rel) {
-                    local = "[_cpl_%s]";
-                    global = "[%s]";
+                    local  = "[rel _cpl_%s]";
+                    global = "[rel %s]";
                 }
 
                 if (
                     fi.flags.global || fi.flags.external
                 ) snprintf(buffer, sizeof(_buffers[0]), global, fi.name->body);
+                else if (
+                    fi.flags.entry
+                ) snprintf(buffer, sizeof(_buffers[0]), global, fi.virt->body);
                 else snprintf(buffer, sizeof(_buffers[0]), local, fi.virt->body);
                 return buffer;
             }
@@ -113,27 +127,35 @@ const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt) {
                     }
                 }
             }
-
+            
             return "<unknown>";
         }
         case LIR_MEMORY: {
 _shifted_to_memory: {}
-            const char* modifier = "qword";
-            switch (v->size) {
-                case 4: modifier = "dword"; break;
-                case 2: modifier = "word";  break;
-                case 1: modifier = "byte";  break;
-                default: break;
-            }
-
+            const char* modifier = _get_mem_modifier(v->size);
+            if (flag == LEA_FLAG) modifier = "";
             const char* offset_base = format_lir_register(v->storage.var.base);
-            if (v->storage.var.offset > 0) snprintf(buffer, sizeof(_buffers[0]), "%s [%s - %d]", modifier, offset_base, v->storage.var.offset);
-            else snprintf(buffer, sizeof(_buffers[0]), "%s [%s + %d]", modifier, offset_base, ABS(v->storage.var.offset));
+            if (v->storage.var.offset > 0) snprintf(buffer, sizeof(_buffers[0]), "%s[%s - %d]", modifier, offset_base, v->storage.var.offset);
+            else snprintf(buffer, sizeof(_buffers[0]), "%s[%s + %d]", modifier, offset_base, ABS(v->storage.var.offset));
             return buffer;
         }
         case LIR_REGISTER: {
 _shifted_to_registers: {}
-            return format_lir_register(LIR_format_register(v->storage.reg.reg, v->size));
+            if (flag == LDREF_FLAG) {
+                snprintf(
+                    buffer, sizeof(_buffers[0]), "%s[%s]", 
+                    _get_mem_modifier(v->dsize), 
+                    format_lir_register(LIR_format_register(v->storage.reg.reg, 8))
+                );
+            }
+            else {
+                snprintf(
+                    buffer, sizeof(_buffers[0]), "%s", 
+                    format_lir_register(LIR_format_register(v->storage.reg.reg, v->size))
+                );
+            }
+
+            return buffer;
         }
 
         default: return "<unknown>";

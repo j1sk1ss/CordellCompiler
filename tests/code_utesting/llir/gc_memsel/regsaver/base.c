@@ -106,8 +106,6 @@ int main(int argc, char* argv[]) {
     inst_selector_t inst_sel = { .select_instructions = x86_64_gnu_nasm_instruction_selection };
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
 
-    LIR_DFG_collect_defs(&cfgctx);       // Analyzation
-    LIR_DFG_collect_uses(&cfgctx);       // Analyzation
     LIR_DFG_compute_inout(&cfgctx);      // Analyzation
     LIR_DFG_create_deall(&cfgctx, &smt); // Transform
 
@@ -122,11 +120,11 @@ int main(int argc, char* argv[]) {
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
     register_saver_t reg_saver = { .save_registers = x86_64_gnu_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &reg_saver);
+    LIR_save_registers(&cfgctx, &smt, &reg_saver);
     
     lir_block_t* lh = lirctx.h;
     while (lh) {
-        if (!lh->unused) print_lir_block(lh, &smt);
+        if (!lh->unused) print_lir_block(lh, &smt, 0);
         lh = lh->next;
     }
 

@@ -46,7 +46,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         break;
                     }
 
-                    case HIR_STORE: case HIR_REF:
+                    case HIR_STORE: case HIR_REF: case HIR_GDREF:
                     case HIR_TPTR:
                     case HIR_TF64:  case HIR_TF32:
                     case HIR_TI64:  case HIR_TI32: case HIR_TI16:  case HIR_TI8:

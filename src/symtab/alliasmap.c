@@ -31,6 +31,21 @@ int ALLIAS_get_owners(symbol_id_t v_id, set_t* out, allias_ctx_t* ctx) {
     return 0;
 }
 
+int ALLIAS_get_slaves(symbol_id_t v_id, set_t* out, allias_ctx_t* ctx) {
+    print_log("ALLIAS_get_slaves(v_id=%li)", v_id);
+    set_init(out, SET_NO_CMP);
+
+    int has = 0;
+    map_foreach (allias_t* ai, &ctx->allias) {
+        if (set_has(&ai->owners, (void*)v_id)) {
+            set_add(out, (void*)ai->v_id);
+            has = 1;
+        }
+    }
+
+    return has;
+}
+
 int ALLIAS_add_owner(symbol_id_t v_id, symbol_id_t owner_id, allias_ctx_t* ctx) {
     print_log("ALLIAS_add_owner(v_id=%li, owner=%li)", v_id, owner_id);
     allias_t* ai;

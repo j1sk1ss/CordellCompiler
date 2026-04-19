@@ -8,8 +8,9 @@ int map_init(map_t* m, int cmp) {
     m->cmp      = cmp;
     m->compr    = 0;
     m->entries  = (map_entry_t*)mm_malloc(m->capacity * sizeof(map_entry_t));
+    if (!m->entries) return 0;
     str_memset(m->entries, 0, m->capacity * sizeof(map_entry_t));
-    return m->entries ? 1 : 0;
+    return 1;
 }
 
 int map_copy(map_t* dst, map_t* src) {
@@ -19,9 +20,15 @@ int map_copy(map_t* dst, map_t* src) {
     dst->hash     = src->hash;
     dst->cmp      = src->cmp;
     dst->compr    = src->compr;
-    dst->entries  = (map_entry_t*)mm_malloc(src->capacity * sizeof(map_entry_t));
+    dst->entries  = NULL;
+
+    if (src->capacity <= 0) return 1;
+
+    dst->entries = (map_entry_t*)mm_malloc(src->capacity * sizeof(map_entry_t));
+    if (!dst->entries) return 0;
+
     str_memcpy(dst->entries, src->entries, src->capacity * sizeof(map_entry_t));
-    return dst->entries ? 1 : 0;
+    return 1;
 }
 
 static inline unsigned long __hash(long val) {
@@ -32,7 +39,7 @@ static inline unsigned long __hash(long val) {
     return x;
 }
 
-static long _get_index(long key, long capacity) {
+static inline long _get_index(long key, long capacity) {
     return __hash(key) % capacity;
 }
 
@@ -56,12 +63,12 @@ static int _map_resize(map_t* m, long newcap) {
     long oldcap = m->capacity;
 
     m->entries = (map_entry_t*)mm_malloc(newcap * sizeof(map_entry_t));
-    str_memset(m->entries, 0, newcap * sizeof(map_entry_t));
     if (!m->entries) {
         m->entries = old_entries;
         return 0;
     }
 
+    str_memset(m->entries, 0, newcap * sizeof(map_entry_t));
     m->capacity = newcap;
     m->size = 0;
 
@@ -76,9 +83,14 @@ static int _map_resize(map_t* m, long newcap) {
 }
 
 int map_put(map_t* m, long k, void* v) {
-    if (!m) return -1;
+    if (!m) return 0;
     if (m->compr) {
+        if (k < 0 || k >= m->capacity) return 0;
+        if (!m->entries[k].used) m->size++;
+        m->entries[k].key   = k;
         m->entries[k].value = v;
+        m->entries[k].used  = 1;
+        _map_update_hash(m);
         return 1;
     }
 
@@ -97,7 +109,7 @@ int map_put(map_t* m, long k, void* v) {
             return 1;
         }
 
-        if (m->entries[idx].used && m->entries[idx].key == k) {
+        if (m->entries[idx].key == k) {
             m->entries[idx].value = v;
             _map_update_hash(m);
             return 1;
@@ -110,6 +122,8 @@ int map_put(map_t* m, long k, void* v) {
 int map_get(map_t* m, long k, void** v) {
     if (!m) return 0;
     if (m->compr) {
+        if (k < 0 || k >= m->capacity) return 0;
+        if (!m->entries[k].used) return 0;
         if (v) *v = m->entries[k].value;
         return 1;
     }
@@ -117,41 +131,57 @@ int map_get(map_t* m, long k, void** v) {
     long idx = _get_index(k, m->capacity);
     for (;;) {
         if (!m->entries[idx].used) return 0;
-        if (m->entries[idx].used && m->entries[idx].key == k) {
+
+        if (m->entries[idx].key == k) {
             if (v) *v = m->entries[idx].value;
             return 1;
         }
 
         idx = (idx + 1) % m->capacity;
     }
-
-    return 0;
 }
 
 int map_remove(map_t* m, long k) {
     if (!m) return 0;
     if (m->compr) {
+        if (k < 0 || k >= m->capacity) return 0;
+        if (!m->entries[k].used) return 0;
         m->entries[k].used  = 0;
         m->entries[k].value = NULL;
         m->size--;
+        _map_update_hash(m);
         return 1;
     }
 
     long idx = _get_index(k, m->capacity);
     for (;;) {
         if (!m->entries[idx].used) return 0;
-        if (m->entries[idx].used && m->entries[idx].key == k) {
-            m->entries[idx].used  = 0;
-            m->entries[idx].value = NULL;
-            m->size--;
-            _map_update_hash(m);
-            return 1;
+        if (m->entries[idx].key == k) {
+            break;
         }
 
         idx = (idx + 1) % m->capacity;
     }
 
-    return 0;
+    m->entries[idx].used  = 0;
+    m->entries[idx].value = NULL;
+    m->size--;
+
+    long next = (idx + 1) % m->capacity;
+    while (m->entries[next].used) {
+        long  rekey = m->entries[next].key;
+        void* reval = m->entries[next].value;
+
+        m->entries[next].used  = 0;
+        m->entries[next].value = NULL;
+        m->size--;
+
+        map_put(m, rekey, reval);
+        next = (next + 1) % m->capacity;
+    }
+
+    _map_update_hash(m);
+    return 1;
 }
 
 int map_iter_init(map_t* m, map_iter_t* it) {
@@ -186,12 +216,10 @@ int map_equals(map_t* a, map_t* b) {
     ) return 0;
 
     for (long i = 0; i < a->capacity; i++) {
-        if (a->entries[i].used) {
-            if (
-                !b->entries[i].used ||
-                (b->entries[i].key != a->entries[i].key) ||
-                (b->entries[i].value != a->entries[i].value) 
-            ) return 0;
+        if (!a->entries[i].used) continue;
+        void* bv = NULL;
+        if (!map_get(b, a->entries[i].key, (void**)&bv) || bv != a->entries[i].value) {
+            return 0;
         }
     }
 
@@ -201,14 +229,17 @@ int map_equals(map_t* a, map_t* b) {
 int map_compress(map_t* m) {
     if (m->compr) return 1;
     long max_key = -1;
+    long used_cnt = 0;
     for (long i = 0; i < m->capacity; i++) {
-        if (m->entries[i].used && m->entries[i].key > max_key) {
-            max_key = m->entries[i].key;
+        if (m->entries[i].used) {
+            used_cnt++;
+            if (m->entries[i].key > max_key) max_key = m->entries[i].key;
         }
     }
 
     if (max_key < 0) {
         m->compr = 1;
+        m->size  = 0;
         return 1;
     }
 
@@ -225,17 +256,18 @@ int map_compress(map_t* m) {
     long new_cap = max_key + 1;
     map_entry_t* nentries = (map_entry_t*)mm_realloc(m->entries, sizeof(map_entry_t) * new_cap);
     if (!nentries) return 0;
-    
-    m->entries = nentries;
+    m->entries  = nentries;
     m->capacity = new_cap;
-    m->size = new_cap;
-    m->compr = 1;
+    m->size     = used_cnt;
+    m->compr    = 1;
+    _map_update_hash(m);
     return 1;
 }
 
 int map_decompress(map_t* m) {
     if (!m->compr) return 1;
     m->compr = 0;
+    _map_update_hash(m);
     return 1;
 }
 

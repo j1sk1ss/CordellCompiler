@@ -9,7 +9,7 @@
       - `msg` - Input message to print.
       
       Returns i0 aka nothing. :
-    function print(ptr str msg) -> i0;
+    function print(ptr i8 msg) -> i0;
 #endif
 }
 
@@ -25,7 +25,7 @@ line=3, type={X}, data=[)],
 line=3, type={X}, data=[->],
 line=3, type={X}, data=[i64],
 line=3, type={X}, data=[;],
-line=7, type={X}, data=[{X}],
+line=8, type={X}, data=[{X}],
 line=7, type={X}, data=[function],
 line=7, type={X}, data=[print],
 line=7, type={X}, data=[(],

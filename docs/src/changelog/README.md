@@ -30,6 +30,134 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## syscall checker
+The static analysis tool now accepts the 'syscall' keyword. At this point, we have MACOH support ('cause I'm testing this on my MacBook tho). </br>
+The support implies that the analyzer will check if all of the arguments are correct typed for a selected syscall number. For instance:
+```cpl
+syscall(0x2000004, 1, 1, 12);
+```
+
+This is a write syscall from MACOH, and the second arguments is a STDIN / STDOUT (destination), the third one is a buffer pointer and the last one - the size of a buffer. In the case, I've passed '1' as a buffer, and it reveals that I need to cast it (at least):
+```cpl
+start() {
+    syscall(0x2000004, 1, 1, 12);
+    syscall(0x2000004, 1, 1 as ptr i0, 12 as u64);
+}
+
+:/ OUTPUT
+[WARNING] [2:41] Syscall with number 4 has some wrong typed arguments! It can lead to UB, consider to cast them:
+          [2:41]     Argument 2 should have the 'u64' type, but the 'i8' is provided! Consider to cast it.
+          [2:41]     Argument 1 should have the 'ptr i0' type, but the 'i8' is provided! Consider to cast it.
+/:
+```
+
+The information about those syscalls are stored directly in the compiler at this moment. I'd like to move it to a file, but I'll do it later. </br>
+This little change addresses the issue with cast problems. The compiler heavily depends on the correct typing (he's making a choice of a register based on the variable's type), and even the wrong cast can pass to a syscall some garbage from the stack.
+
+## No more 'ptr str'
+I've faced a lot of troubles with a support of a 'ptr str' object. It does the same what does a 'ptr i8' object, but must be threated separatly, which creates a lot of complex cases. Hense, it's a lot easier to just abolish the 'ptr str' syntax and suggest a user to use the 'ptr i8' alternative instead. It doesn't change any code generation or logic, it just says, that 'str' objects can be only on the stack, same as 'arr' objects. </br>
+You'd suggest to remove 'str's completely, but I have some plans in future to add support for an in-built string comparison. For instance, my plan is to recognize the below code as a valid code:
+```cpl
+str msg = "Hello world!";
+if msg == some_pointer as ptr i8; {
+    :/ Do something /:
+}
+```
+
+Such an operation as the presented above **must** include some object which will indicate the compiler, that we're working with a string object. This string object will contain all essential info for code generation and operation generation such as the string's length, the string's body, etc.
+
+## Brainfuck!
+Now the compiler compiles a brainfuck intepreter! The code below works!
+```cpl
+function strlen(ptr i8 s) -> i32 {
+    i32 l = 0;
+    while dref s; {
+        l += 1 as i32;
+        s += 1 as ptr i8;
+    }
+
+    return l;
+}
+
+function putc(i8 c) -> i0 {
+    syscall(0x2000004, 1, ref c, 1);
+}
+
+glob arr tape[30000, i8];
+glob arr bracketmap[10000, i32];
+glob arr stack[10000, i32];
+
+start(i32 argc, ptr ptr i8 argv) {
+    i32 pos = 0;
+    i32 stackptr = 0;
+    i32 codelength = strlen(argv[1]);
+    while pos < codelength; {
+        @[no_fall]
+        @[straight]
+        switch argv[1][pos]; {
+            case '['; {
+                stack[stackptr] = pos;
+                stackptr += 1;
+            }
+            case ']'; {
+                if stackptr > 0; {
+                    stackptr -= 1;
+                    i32 matchpos = stack[stackptr];
+                    bracketmap[pos] = matchpos;
+                    bracketmap[matchpos] = pos;
+                }
+            }
+        }
+        
+        pos += 1;
+    }
+    
+    i32 pc = 0;
+    i32 pointer = 0;
+    while pc < codelength; {
+        @[no_fall]
+        switch argv[1][pc]; {
+            case '>'; {
+                pointer += 1;
+                pc += 1;
+            }
+            case '<'; {
+                pointer -= 1;
+                pc += 1;
+            }
+            case '+'; {
+                tape[pointer] += 1;
+                pc += 1;
+            }
+            case '-'; {
+                tape[pointer] -= 1;
+                pc += 1;
+            }
+            case '.'; {
+                putc(tape[pointer]);
+                pc += 1;
+            }
+            case '['; {
+                if not tape[pointer]; pc = bracketmap[pc];
+                else pc += 1;
+            }
+            case ']'; {
+                if tape[pointer]; pc = bracketmap[pc];
+                else pc += 1;
+            }
+            default {
+                pc += 1;
+            }
+        }
+    }
+
+    exit 0;
+}
+```
+
+## Refactoring and bugfixes
+Have fixed a lot of bugs with register allocation, liveness analysis, etc. Nothing special was implemented.
+
 ## Number types
 The numbers in the compiler always were treated as `i64` values which isn't incorrect, but also isn't precise. To address this issue numbers now have the type based on its own value. For instance:
 ```cpl
@@ -518,7 +646,7 @@ For instance let's consider the next piece of code:
       - `msg` - Input message to print.
       
       Returns i0 aka nothing. :
-    function print(ptr str msg) => i0;
+    function print(ptr i8 msg) => i0;
 #endif
 }
 
@@ -551,7 +679,7 @@ After the PP, we will get a new form of the code:
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"    
     function strlen(ptr i8 s) => i64;
 #line 4 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
-    function print(ptr str msg) => i0;
+    function print(ptr i8 msg) => i0;
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/string_h.cpl"
 #line 3 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/include_test.cpl"

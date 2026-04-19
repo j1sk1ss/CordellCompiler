@@ -1,4 +1,3 @@
-: BUG :
 function foo();
 start() {
     loop foo();
@@ -9,16 +8,16 @@ start() {
     start {
         {
             {
-                lb{X}
-                goto lb{X}
-                lb{X}
+                lb10:
+                goto lb11;
+                lb11:
                 {
                     call foo0(), argc args();
                 }
-                goto lb{X}
-                lb{X}
-            }
-        }
-    }
+                goto lb10;
+                lb12:
+            [unused] }
+        [unused] }
+    [unused] }
 }
 /:

@@ -17,23 +17,18 @@ BB1: start
 [rbp - 9] = $7;
 [rbp - 8] = $8;
 [rbp - 7] = $9;
-cmp $1, 0;
-je lb{X}
-jne lb{X}
-BB2: lb{X}
-r15 = $0;
-rdx = r15;
-exit rdx;
-BB3: lb{X}
-r15 = &([rbp - 16]);
-rdx = r15;
-r15 = rdx;
-rax = r15;
-r15 = rax;
-rcx = *(r15);
-r15 = rcx;
-rdx = r15;
-kill(4);
-exit rdx;
+rax = $1;
+cmp rax, 0;
+je lb37;
+jne lb35;
+BB2: lb35:
+rdi = $0;
+exit rdi;
+BB3: lb37:
+rcx = &([rbp - 16]);
+rcx = rcx;
+rcx = *(rcx);
+rdi = rcx;
+exit rdi;
 BB4:
 /:

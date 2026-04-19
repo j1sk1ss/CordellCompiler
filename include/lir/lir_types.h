@@ -13,6 +13,7 @@ typedef enum {
         LIR_TST,   // test
         LIR_XCHG,  // xchg
         LIR_CDQ,   // cdq
+        LIR_CQO,
         LIR_MKLB,  // mk label
         LIR_FDCL,  // declare function
         LIR_FEND,
@@ -57,15 +58,16 @@ typedef enum {
         LIR_STARGLD,  // st load
         LIR_STARGRF,  // st ref load
 
+        LIR_VRDECL,   // cnst_x=var_id, y=value
         LIR_VRDEALL,  // cnst_x=var_id, deallocate a variable
         LIR_STRDECL,  // cnst_x=var_id, cnst_y=str_id
         LIR_ARRDECL,  // cnst_x=var_id, var_y=size, list_z=init_elems
         LIR_VLADECL, // cnst_x=var_id, var_y=size
 
-        LIR_STSARG,   // store parameter to syscall, x, cnst_y=index
-        LIR_STFARG,   // store parameter to function, x, cnst_y=index
-        LIR_LOADFARG, // load parameter in function, v=source_var, cnst_y=index
-        LIR_LOADFRET, // load funcret to dst, x=target_var
+        LIR_STSARG,   // store parameter to a syscall, x, cnst_y=index
+        LIR_STFARG,   // store parameter to a function, x, cnst_y=index
+        LIR_LOADFARG, // load parameter in a function, v=source_var, cnst_y=index
+        LIR_LOADFRET, // load funcret to a dst, x=target_var
 
         LIR_TF64,     // x = (f64)y
         LIR_TF32,     // x = (f32)y
@@ -92,13 +94,14 @@ typedef enum {
         LIR_INC,
         LIR_DEC,
 
-        LIR_fMOV,  // float move
-        LIR_fMVf,  // float to float move
-        LIR_REF,   // lea move
-        LIR_GDREF, // get value from address, x = *y
-        LIR_LDREF, // set valye by address,   *x = y
-        LIR_PUSH,  // push
-        LIR_POP,   // pop
+        LIR_fMOV,      // float move
+        LIR_fMVf,      // float to float move
+        LIR_REF,       // a = &y
+        LIR_REF_GDREF, // a = &*y
+        LIR_GDREF,     // get value from address, x = *y
+        LIR_LDREF,     // set valye by address,   *x = y
+        LIR_PUSH,      // push
+        LIR_POP,       // pop
 
     /* Integer */
         /* Binary operations */
@@ -141,6 +144,7 @@ typedef enum {
     /* Other */
     LIR_RAW,
     LIR_BREAKPOINT,
+    LIR_SETPOS,
 
     /* High level operations */
         /* Stack */
@@ -155,18 +159,19 @@ typedef enum {
 } lir_operation_t;
 
 typedef enum {
-    LIR_REGISTER,   /* physical register */
-    LIR_STVARIABLE, /* stack variable    */
-    LIR_VARIABLE,   /* virtual register  */
-    LIR_GLVARIABLE, /* allocated memory  */
-    LIR_CONSTVAL,   /* constant value    */
-    LIR_NUMBER,     /* constant value    */
-    LIR_LABEL,      /* ASM label         */
-    LIR_RAWASM,     /* ASM line of code  */
-    LIR_MEMORY,     /* stack placement   */
-    LIR_FNAME,      /* function name     */
-    LIR_STRING,     /* string            */
-    LIR_ARGLIST,    /* list of LIR subj  */
+    LIR_REGISTER,   /* physical register   */
+    LIR_STVARIABLE, /* stack variable      */
+    LIR_VARIABLE,   /* virtual register    */
+    LIR_GLVARIABLE, /* allocated memory    */
+    LIR_CONSTVAL,   /* constant value      */
+    LIR_NUMBER,     /* constant value      */
+    LIR_LABEL,      /* ASM label           */
+    LIR_RAWASM,     /* ASM line of code    */
+    LIR_MEMORY,     /* stack placement     */
+    LIR_FNAME,      /* function name       */
+    LIR_STRING,     /* string              */
+    LIR_ARGLIST,    /* list of LIR subj    */
+    LIR_FPOS,       /* postion in the file */
 } lir_subject_type_t;
 
 /* This is the main register's enum.

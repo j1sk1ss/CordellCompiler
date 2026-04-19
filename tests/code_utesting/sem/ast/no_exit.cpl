@@ -1,18 +1,16 @@
-{
-    start() {
-        if 1; {
-            exit 1;
-        }
+start() {
+    if 1; {
+        exit 1;
     }
 }
 
 :/ OUTPUT
-[WARNING] [2:11] Start doesn't have the 'exit' statement in all paths!
-2 | start ()
-3 | {
-3 |     if 1;
-4 |     {
-4 |         exit 1;
-4 |     }
-3 | }
+[WARNING] [1:7] Start doesn't have the 'exit' keyword on all paths!
+1 | start ()
+2 | {
+2 |     if 1;
+3 |     {
+3 |         exit 1;
+3 |     }
+2 | }
 /:

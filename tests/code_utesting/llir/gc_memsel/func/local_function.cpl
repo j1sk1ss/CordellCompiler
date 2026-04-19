@@ -15,50 +15,33 @@ start() {
 
 :/ OUTPUT
 BB3: fn foo0()
-r15 = $1;
-r10 = r15;
-r15 = r10;
-rbx = r15;
-r15 = $1;
-rdi = r15;
-r15 = rdi;
-r8 = r15;
+rdx = $1;
+rbx = rdx;
+rdx = $1;
+rdx = rdx;
 jmp lb28;
 BB4: lb28:
-r15 = rbx;
-rax = r15;
-rax = rax + r8;
-r15 = rax;
-rsi = r15;
+rax = rbx;
+rax = rax + rdx;
+rdx = rax;
 call bar1();
-r15 = rax;
-rcx = r15;
-rdx movsxd rsi;
-r15 = rdx;
-rax = r15;
-rax = rax + rcx;
-r15 = rax;
-r9 = r15;
-r15 = r9;
-rax = r15;
+rbx = rax;
+rdx movsxd rdx;
+rax = rdx;
+rax = rax + rbx;
+rcx = rax;
+rax = rcx;
 return rax;
 BB5:
 BB6: fn bar1()
-r15 = $1;
-rsi = r15;
-r15 = rsi;
-rdx = r15;
-r15 = $1;
-rcx = r15;
-r15 = rcx;
-rdi = r15;
-r15 = rdx;
-rax = r15;
-rax = rax + rdi;
-r15 = rax;
-rbx = r15;
-r15 = rbx;
-rax = r15;
+rdx = $1;
+rbx = rdx;
+rdx = $1;
+rdx = rdx;
+rax = rbx;
+rax = rax + rdx;
+rcx = rax;
+rax = rcx;
 return rax;
 BB7:
 BB8: start

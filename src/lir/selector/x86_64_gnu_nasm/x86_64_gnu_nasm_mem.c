@@ -10,14 +10,11 @@ Return 1 if this is a valid register.
 static inline int _is_regular_register(lir_registers_t r) {
     if (r > R15 || r < 0) return 0;
     lir_registers_t base = LIR_format_register(r, 8);
-    if (
-        base == RBP || 
-        base == RSP
-    ) return 0;
+    if (base == RBP || base == RSP) return 0;
     return 1;
 }
 
-static const lir_registers_t _regular_registers[] = { RAX, RCX, RDX, RBX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14 };
+static const lir_registers_t _regular_registers[] = { RCX, RDX, RBX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14 };
 
 /*
 Convert color (index) value to a register.
@@ -29,7 +26,7 @@ Params:
 Returns the converted register.
 */
 static inline lir_registers_t _convert_color_to_register(long color) {
-    if (color < 0 || color > (long)(sizeof(_regular_registers) / sizeof(_regular_registers[0]))) return -1;
+    if (color < 0 || color >= (long)(sizeof(_regular_registers) / sizeof(_regular_registers[0]))) return -1;
     return _regular_registers[color];
 }
 
@@ -52,7 +49,7 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     }
     
     long color = 0;
-    vi.vmi.size = _get_variable_size(vi.v_id, smt);
+    vi.vmi.size = s->size;
     if (!vi.vmi.allocated) {
         if (
             colors && map_get(colors, s->storage.var.v_id, (void**)&color) &&     /* If the clor is found         */
@@ -80,6 +77,124 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     }
 
     return 1;
+}
+
+/*
+We need to be sure that all movs are proper. For example, we can't
+preserve some instructions that aren't valid in our architecture such
+as 'mov sil, r15' or 'mov r15, sil', etc. 
+Params:
+    - `bb` - Current base block.
+    - `smt` - Symtable.
+
+Returns 1 if an operation was secceed, otherwise it will returns 0.
+*/
+static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+    while (lh) {
+        if (
+            (lh->farg && lh->farg->t != LIR_MEMORY) &&
+            (lh->sarg && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL)
+        ) {
+            switch (lh->op) {
+                case LIR_iMOV: case LIR_aMOV: case LIR_fMOV: {
+                    lh->op = get_proper_mov(lh->farg, lh->sarg, smt, lh->op);
+                    break;
+                }
+                default: break;
+            }
+        }
+
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
+    }
+
+    return 1;
+}
+
+/*
+After the memory selection we should be sure that this LIR is valid. 
+Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
+ops "mem with mem", etc.
+In a nutshell, this function doesn't do anything special. It just adds additional movs to 
+temporary registers before critical operations.
+Params:
+    - `bb` - Current base block.
+    - `smt` - Symtable.
+
+Returns 1 if an operation was secceed, otherwise it will returns 0.
+*/
+static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+    while (lh) {
+        list_t fixes;
+        list_init(&fixes);
+        if (lh->farg && lh->sarg) {
+            switch (lh->op) {
+                case LIR_REF:
+                case LIR_REF_GDREF: {
+                    if (lh->farg->t == LIR_REGISTER) break;
+                    lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, 8);
+                    list_add(&fixes, LIR_create_block(lh->op, tmp, lh->sarg, NULL));
+                    lh->sarg = tmp;
+                    lh->op   = LIR_iMOV;
+                    break;
+                }
+                case LIR_CVTSS2SD: case LIR_CVTSD2SS: case LIR_CVTTSS2SI: case LIR_CVTTSD2SI:
+                case LIR_MOVSX:    case LIR_MOVZX:    case LIR_MOVSXD:
+                case LIR_iMOV:     case LIR_aMOV:     case LIR_fMOV: {
+                    if (lh->farg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) break;
+                    lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, lh->farg->size);
+                    list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL));
+                    lh->sarg = tmp;
+                    break;
+                }
+                case LIR_LDREF: {
+                    if (lh->farg->t != LIR_REGISTER) {
+                        lir_subject_t* src = create_tmp(RAX, lh->farg, smt, lh->farg->size);
+                        list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->farg, NULL));
+                        lh->farg = create_tmp(RAX, src, smt, lh->sarg->size);
+                    }
+
+                    if (lh->sarg->t != LIR_REGISTER && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL) {
+                        lir_subject_t* src = create_tmp(R15, lh->sarg, smt, lh->sarg->size);
+                        list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
+                        lh->sarg = create_tmp(R15, src, smt, lh->sarg->size);
+                    }
+
+                    break;
+                }
+                case LIR_GDREF: {
+                    if (lh->farg->t == LIR_REGISTER) break;
+                    lir_subject_t* src = create_tmp(R15, lh->sarg, smt, lh->sarg->size);
+                    list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
+                    lir_subject_t* tmp = create_tmp(R15, lh->farg, smt, lh->farg->size);
+                    list_add(&fixes, LIR_create_block(LIR_GDREF, tmp, src, NULL));
+                    lh->sarg = tmp;
+                    lh->op   = LIR_iMOV;
+                    break;
+                }
+                default: break;
+            }
+
+            if (list_size(&fixes)) {
+                foreach (lir_block_t* fix, &fixes) {
+                    if (bb->lmap.entry == lh) bb->lmap.entry = fix;
+                    LIR_insert_block_before(fix, lh);
+                }
+            }
+        }
+
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
+        list_free(&fixes);
+    }
+
+    return 1;
+}
+
+static unsigned long _pack_str_le(char* p, unsigned long n) {
+    unsigned long x = 0;
+    for (unsigned long i = 0; i < n; i++) x |= (unsigned long)p[i] << (8 * i);
+    return x;
 }
 
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt) {
@@ -111,16 +226,31 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             STTB_get_info_id(lh->sarg->storage.str.sid, &si, &smt->s) &&
                             ARTB_get_info(lh->farg->storage.var.v_id, &ai, &smt->a)
                         ) {
-                            int arroff = stack_map_alloc(ALIGN(ai.size, vi.vmi.align), &smp);
-                            VRTB_update_memory(lh->farg->storage.var.v_id, arroff, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
-                            char* string = si.value->body;
-                            while (*string) {
-                                LIR_insert_block_before(
-                                    LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arroff--, 1), LIR_SUBJ_CONST(*(string++)), NULL), lh
-                                );
+                            int str_off = stack_map_alloc(ALIGN(ai.size, vi.vmi.align), &smp);
+                            VRTB_update_memory(lh->farg->storage.var.v_id, str_off, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
+                            
+                            int curr_offset = str_off;
+                            unsigned long block_size  = 4;
+                            unsigned long  string_pos = 0;
+
+                            while (block_size > 0) {
+                                while (string_pos + block_size <= si.value->size) {
+                                    LIR_insert_block_before(
+                                        LIR_create_block(
+                                            LIR_iMOV, 
+                                            LIR_SUBJ_OFF(RBP, curr_offset, block_size), 
+                                            LIR_SUBJ_CONST(_pack_str_le(si.value->body + string_pos, block_size)), NULL
+                                        ), lh
+                                    );
+
+                                    curr_offset -= block_size;
+                                    string_pos += block_size;
+                                }
+
+                                block_size /= 2;
                             }
 
-                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arroff, 1), LIR_SUBJ_CONST(0), NULL), lh);
+                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, curr_offset, 1), LIR_SUBJ_CONST(0), NULL), lh);
                         }
 
                         lh->unused = 1;
@@ -141,6 +271,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             }
                             else {
                                 int el_size = _get_ast_type_size(ai.elements_info.el_type);
+                                if (ai.elements_info.el_flags.ptr) el_size = 8;
                                 int arr_off = stack_map_alloc(ALIGN(ai.size * el_size, vi.vmi.align), &smp);
                                 VRTB_update_memory(lh->farg->storage.var.v_id, arr_off, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
 
@@ -148,7 +279,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                                 foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
                                     if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
                                     LIR_insert_block_before(
-                                        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arr_off - el_pos * el_size, 1), elem, NULL), lh
+                                        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arr_off - el_pos * el_size, el_size), elem, NULL), lh
                                     );
 
                                     el_pos++;
@@ -172,6 +303,9 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
 
                 lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
+
+            _validate_selected_instuction(bb, smt);
+            _validate_size_movs(bb, smt);
         }
 
         /* Save the largest offset in this function for further

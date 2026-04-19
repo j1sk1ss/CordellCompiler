@@ -95,6 +95,8 @@ static int _use_def_pass(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         _scope_pass(fb);
         foreach (cfg_block_t* cb, &fb->blocks) {
+            if (!cb->l && !cb->jmp) continue; /* Skip end blocks. There is no point to deallocate anything */
+
             set_t appeared;
             set_union(&appeared, &cb->curr_in, &cb->def);
 

@@ -24,9 +24,8 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     cfg_block_t* block = (cfg_block_t*)mm_malloc(sizeof(cfg_block_t));
     if (!block) return NULL;
     str_memset(block, 0, sizeof(cfg_block_t));
-    block->type       = CFG_DEFAULT_BLOCK;
-    block->hmap.entry = e;
-    block->hmap.exit  = e;
+    block->type = CFG_DEFAULT_BLOCK;
+    block->hmap.entry = block->hmap.exit = e;
     set_init(&block->visitors, SET_NO_CMP);
     set_init(&block->pred,     SET_NO_CMP);
     set_init(&block->curr_in,  SET_CMP);

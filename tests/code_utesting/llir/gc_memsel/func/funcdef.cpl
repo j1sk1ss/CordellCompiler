@@ -5,10 +5,8 @@ function foo(i32 a) {
 
 :/ OUTPUT
 BB1: fn _main(i32 a)
-r15 = [rbp + 8];
-rcx = r15;
-r15 = rcx;
-rax = r15;
+rcx = rdi;
+rax = rcx;
 return rax;
 BB2:
 /:

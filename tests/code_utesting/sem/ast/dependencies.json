@@ -10,6 +10,7 @@
         "src/sem/*.c",
         "src/sem/ast/*.c",
         "src/sem/hir/*.c",
+        "src/sem/hir/syscall/*.c",
         "src/ast/astgen/*.c", 
         "src/ast/astgen/*/*.c",
         "src/hir/*.c",

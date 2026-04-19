@@ -4,19 +4,17 @@ function foo(i32 a, i32 b) {
 }
 
 :/ OUTPUT
-BB{X} fn _main(i32 a, i32 b)
-%5 = [rbp + 8];
-%0 = %5;
-%6 = [rbp + 16];
-%1 = %6;
-rdx = rdx ^ rdx;
-%7 = %0;
-%3 = %7;
-%3 = %3 / %1;
-%8 = %3;
-%2 = %8;
+BB1: fn _main(i32 a, i32 b)
+%0 = %3;
+%1 = &(*%4);
+%5 = %0;
+%7 = %1;
+push(%8);
+unknwn;
+%6 = %6 / %7;
+%8 = pop();
+%2 = eax;
 %9 = %2;
-%4 = %9;
-return %4;
-BB{X}
+return %9;
+BB2:
 /:

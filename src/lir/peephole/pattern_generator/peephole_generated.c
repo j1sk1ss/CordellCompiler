@@ -12,20 +12,20 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
                 (lh->sarg->t == LIR_NUMBER && LIR_peephole_get_long_number(lh->sarg) == 0))) {
+                    lir_subject_t* _src_1_46 = lh->farg;
                     lh->op = LIR_TST;
-                    lir_subject_t* _src_1_34 = lh->farg;
-                    lir_subject_t* _old_35 = lh->farg;
-                    if (_old_35 != _src_1_34) {
-                        lh->farg = _src_1_34;
-                        if (_old_35 && _old_35 != lh->farg && _old_35 != lh->sarg && _old_35 != lh->targ) {
-                            LIR_unload_subject(_old_35);
+                    lir_subject_t* _old_47 = lh->farg;
+                    if (_old_47 != _src_1_46) {
+                        lh->farg = _src_1_46;
+                        if (_old_47 && _old_47 != lh->farg && _old_47 != lh->sarg && _old_47 != lh->targ) {
+                            LIR_unload_subject(_old_47);
                         }
                     }
-                    lir_subject_t* _old_36 = lh->sarg;
-                    if (_old_36 != _src_1_34) {
-                        lh->sarg = _src_1_34;
-                        if (_old_36 && _old_36 != lh->farg && _old_36 != lh->sarg && _old_36 != lh->targ) {
-                            LIR_unload_subject(_old_36);
+                    lir_subject_t* _old_48 = lh->sarg;
+                    if (_old_48 != _src_1_46) {
+                        lh->sarg = _src_1_46;
+                        if (_old_48 && _old_48 != lh->farg && _old_48 != lh->sarg && _old_48 != lh->targ) {
+                            LIR_unload_subject(_old_48);
                         }
                     }
                 }
@@ -149,8 +149,8 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
                 (lh->sarg->t == LIR_NUMBER && LIR_peephole_get_long_number(lh->sarg) == 0))) {
-                    lh->op = LIR_bXOR;
                     lir_subject_t* _src_1_1 = lh->farg;
+                    lh->op = LIR_bXOR;
                     lir_subject_t* _old_2 = lh->sarg;
                     if (_old_2 != _src_1_1) {
                         lh->sarg = _src_1_1;
@@ -182,9 +182,9 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_next(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER) &&
                 LIR_subj_equals(LIR_get_next(lh, bb->lmap.exit, 1)->farg, lh->sarg) &&
                 LIR_subj_equals(LIR_get_next(lh, bb->lmap.exit, 1)->sarg, lh->farg)) {
-                    lh->op = LIR_iMOV;
                     lir_subject_t* _src_1_5 = lh->farg;
                     lir_subject_t* _src_2_6 = lh->sarg;
+                    lh->op = lh->op;
                     lir_subject_t* _old_7 = lh->farg;
                     if (_old_7 != _src_1_5) {
                         lh->farg = _src_1_5;
@@ -197,6 +197,36 @@ int peephole_first_pass(cfg_block_t* bb) {
                         lh->sarg = _src_2_6;
                         if (_old_8 && _old_8 != lh->farg && _old_8 != lh->sarg && _old_8 != lh->targ) {
                             LIR_unload_subject(_old_8);
+                        }
+                    }
+                    LIR_get_next(lh, bb->lmap.exit, 1)->unused = 1;
+                }
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                (lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                lh->sarg &&
+                lh->sarg->t == LIR_REGISTER) &&
+                LIR_get_next(lh, bb->lmap.exit, 1) &&
+                (LIR_get_next(lh, bb->lmap.exit, 1)->op == LIR_iCMP || LIR_get_next(lh, bb->lmap.exit, 1)->op == LIR_CMP) &&
+                (LIR_get_next(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_next(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER) &&
+                LIR_subj_equals(LIR_get_next(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_41 = lh->farg;
+                    lir_subject_t* _src_2_42 = lh->sarg;
+                    lir_subject_t* _src_3_43 = LIR_get_next(lh, bb->lmap.exit, 1)->sarg;
+                    lh->op = LIR_get_next(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _old_44 = lh->farg;
+                    if (_old_44 != _src_2_42) {
+                        lh->farg = _src_2_42;
+                        if (_old_44 && _old_44 != lh->farg && _old_44 != lh->sarg && _old_44 != lh->targ) {
+                            LIR_unload_subject(_old_44);
+                        }
+                    }
+                    lir_subject_t* _old_45 = lh->sarg;
+                    if (_old_45 != _src_3_43) {
+                        lh->sarg = _src_3_43;
+                        if (_old_45 && _old_45 != lh->farg && _old_45 != lh->sarg && _old_45 != lh->targ) {
+                            LIR_unload_subject(_old_45);
                         }
                     }
                     LIR_get_next(lh, bb->lmap.exit, 1)->unused = 1;
@@ -219,27 +249,27 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
+                    lir_subject_t* _src_1_49 = lh->farg;
                     lh->op = LIR_bXOR;
-                    lir_subject_t* _src_1_37 = lh->farg;
-                    lir_subject_t* _old_38 = lh->sarg;
-                    if (_old_38 != _src_1_37) {
-                        lh->sarg = _src_1_37;
-                        if (_old_38 && _old_38 != lh->farg && _old_38 != lh->sarg && _old_38 != lh->targ) {
-                            LIR_unload_subject(_old_38);
+                    lir_subject_t* _old_50 = lh->sarg;
+                    if (_old_50 != _src_1_49) {
+                        lh->sarg = _src_1_49;
+                        if (_old_50 && _old_50 != lh->farg && _old_50 != lh->sarg && _old_50 != lh->targ) {
+                            LIR_unload_subject(_old_50);
                         }
                     }
-                    lir_subject_t* _old_39 = lh->targ;
-                    if (_old_39 != _src_1_37) {
-                        lh->targ = _src_1_37;
-                        if (_old_39 && _old_39 != lh->farg && _old_39 != lh->sarg && _old_39 != lh->targ) {
-                            LIR_unload_subject(_old_39);
+                    lir_subject_t* _old_51 = lh->targ;
+                    if (_old_51 != _src_1_49) {
+                        lh->targ = _src_1_49;
+                        if (_old_51 && _old_51 != lh->farg && _old_51 != lh->sarg && _old_51 != lh->targ) {
+                            LIR_unload_subject(_old_51);
                         }
                     }
-                    lir_subject_t* _old_40 = lh->farg;
-                    if (_old_40 != _src_1_37) {
-                        lh->farg = _src_1_37;
-                        if (_old_40 && _old_40 != lh->farg && _old_40 != lh->sarg && _old_40 != lh->targ) {
-                            LIR_unload_subject(_old_40);
+                    lir_subject_t* _old_52 = lh->farg;
+                    if (_old_52 != _src_1_49) {
+                        lh->farg = _src_1_49;
+                        if (_old_52 && _old_52 != lh->farg && _old_52 != lh->sarg && _old_52 != lh->targ) {
+                            LIR_unload_subject(_old_52);
                         }
                     }
                 }
@@ -278,9 +308,52 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_next(lh, bb->lmap.exit, 1)->sarg &&
                 LIR_get_next(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER) &&
                 LIR_subj_equals(LIR_get_next(lh, bb->lmap.exit, 1)->sarg, lh->farg)) {
-                    lh->op = LIR_bXOR;
                     lir_subject_t* _src_1_9 = lh->farg;
-                    LIR_get_next(lh, bb->lmap.exit, 1)->unused = 1;
+                    lir_subject_t* _src_2_10 = LIR_get_next(lh, bb->lmap.exit, 1)->farg;
+                    lh->op = LIR_bXOR;
+                    lir_subject_t* _old_11 = lh->sarg;
+                    if (_old_11 != _src_1_9) {
+                        lh->sarg = _src_1_9;
+                        if (_old_11 && _old_11 != lh->farg && _old_11 != lh->sarg && _old_11 != lh->targ) {
+                            LIR_unload_subject(_old_11);
+                        }
+                    }
+                    lir_subject_t* _old_12 = lh->targ;
+                    if (_old_12 != _src_1_9) {
+                        lh->targ = _src_1_9;
+                        if (_old_12 && _old_12 != lh->farg && _old_12 != lh->sarg && _old_12 != lh->targ) {
+                            LIR_unload_subject(_old_12);
+                        }
+                    }
+                    lir_subject_t* _old_13 = lh->farg;
+                    if (_old_13 != _src_1_9) {
+                        lh->farg = _src_1_9;
+                        if (_old_13 && _old_13 != lh->farg && _old_13 != lh->sarg && _old_13 != lh->targ) {
+                            LIR_unload_subject(_old_13);
+                        }
+                    }
+                    LIR_get_next(lh, bb->lmap.exit, 1)->op = LIR_bXOR;
+                    lir_subject_t* _old_14 = LIR_get_next(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_14 != _src_2_10) {
+                        LIR_get_next(lh, bb->lmap.exit, 1)->sarg = _src_2_10;
+                        if (_old_14 && _old_14 != LIR_get_next(lh, bb->lmap.exit, 1)->farg && _old_14 != LIR_get_next(lh, bb->lmap.exit, 1)->sarg && _old_14 != LIR_get_next(lh, bb->lmap.exit, 1)->targ) {
+                            LIR_unload_subject(_old_14);
+                        }
+                    }
+                    lir_subject_t* _old_15 = LIR_get_next(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_15 != _src_2_10) {
+                        LIR_get_next(lh, bb->lmap.exit, 1)->targ = _src_2_10;
+                        if (_old_15 && _old_15 != LIR_get_next(lh, bb->lmap.exit, 1)->farg && _old_15 != LIR_get_next(lh, bb->lmap.exit, 1)->sarg && _old_15 != LIR_get_next(lh, bb->lmap.exit, 1)->targ) {
+                            LIR_unload_subject(_old_15);
+                        }
+                    }
+                    lir_subject_t* _old_16 = LIR_get_next(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_16 != _src_2_10) {
+                        LIR_get_next(lh, bb->lmap.exit, 1)->farg = _src_2_10;
+                        if (_old_16 && _old_16 != LIR_get_next(lh, bb->lmap.exit, 1)->farg && _old_16 != LIR_get_next(lh, bb->lmap.exit, 1)->sarg && _old_16 != LIR_get_next(lh, bb->lmap.exit, 1)->targ) {
+                            LIR_unload_subject(_old_16);
+                        }
+                    }
                 }
                 break;
             }
@@ -312,26 +385,26 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg)) &&
                 LIR_subj_equals(lh->farg, lh->targ)) {
+                    lir_subject_t* _src_1_32 = lh->farg;
+                    lir_subject_t* _src_2_33 = lh->targ;
                     lh->op = LIR_bSHL;
-                    lir_subject_t* _src_1_25 = lh->farg;
-                    lir_subject_t* _src_2_26 = lh->targ;
-                    lir_subject_t* _old_27 = lh->sarg;
-                    if (_old_27 != _src_1_25) {
-                        lh->sarg = _src_1_25;
-                        if (_old_27 && _old_27 != lh->farg && _old_27 != lh->sarg && _old_27 != lh->targ) {
-                            LIR_unload_subject(_old_27);
+                    lir_subject_t* _old_34 = lh->sarg;
+                    if (_old_34 != _src_1_32) {
+                        lh->sarg = _src_1_32;
+                        if (_old_34 && _old_34 != lh->farg && _old_34 != lh->sarg && _old_34 != lh->targ) {
+                            LIR_unload_subject(_old_34);
                         }
                     }
-                    lir_subject_t* _old_28 = lh->targ;
+                    lir_subject_t* _old_35 = lh->targ;
                     lh->targ = LIR_SUBJ_CONST(1);
-                    if (_old_28 && _old_28 != lh->farg && _old_28 != lh->sarg && _old_28 != lh->targ) {
-                        LIR_unload_subject(_old_28);
+                    if (_old_35 && _old_35 != lh->farg && _old_35 != lh->sarg && _old_35 != lh->targ) {
+                        LIR_unload_subject(_old_35);
                     }
-                    lir_subject_t* _old_29 = lh->farg;
-                    if (_old_29 != _src_1_25) {
-                        lh->farg = _src_1_25;
-                        if (_old_29 && _old_29 != lh->farg && _old_29 != lh->sarg && _old_29 != lh->targ) {
-                            LIR_unload_subject(_old_29);
+                    lir_subject_t* _old_36 = lh->farg;
+                    if (_old_36 != _src_1_32) {
+                        lh->farg = _src_1_32;
+                        if (_old_36 && _old_36 != lh->farg && _old_36 != lh->sarg && _old_36 != lh->targ) {
+                            LIR_unload_subject(_old_36);
                         }
                     }
                 }
@@ -365,80 +438,9 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_peephole_get_long_number(lh->targ) != 1 && !(
                 	LIR_peephole_get_long_number(lh->targ) & (LIR_peephole_get_long_number(lh->targ) - 1)
                 )) {
-                    lh->op = LIR_bSHR;
-                    lir_subject_t* _src_1_10 = lh->farg;
-                    lir_subject_t* _src_2_11 = lh->targ;
-                    lir_subject_t* _old_12 = lh->sarg;
-                    if (_old_12 != _src_1_10) {
-                        lh->sarg = _src_1_10;
-                        if (_old_12 && _old_12 != lh->farg && _old_12 != lh->sarg && _old_12 != lh->targ) {
-                            LIR_unload_subject(_old_12);
-                        }
-                    }
-                    lir_subject_t* _old_13 = lh->targ;
-                    if (_old_13 != _src_2_11) {
-                        lh->targ = _src_2_11;
-                        if (_old_13 && _old_13 != lh->farg && _old_13 != lh->sarg && _old_13 != lh->targ) {
-                            LIR_unload_subject(_old_13);
-                        }
-                    }
-                    lir_subject_t* _old_14 = lh->farg;
-                    if (_old_14 != _src_1_10) {
-                        lh->farg = _src_1_10;
-                        if (_old_14 && _old_14 != lh->farg && _old_14 != lh->sarg && _old_14 != lh->targ) {
-                            LIR_unload_subject(_old_14);
-                        }
-                    }
-                    lir_subject_t* _old_15 = lh->targ;
-                    lh->targ = LIR_SUBJ_CONST(LIR_peephole_get_log2_number(_old_15));
-                    if (_old_15 && _old_15 != lh->farg && _old_15 != lh->sarg && _old_15 != lh->targ) {
-                        LIR_unload_subject(_old_15);
-                    }
-                }
-                else if (lh->op == LIR_iDIV &&
-                (lh->sarg &&
-                (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) &&
-                lh->farg &&
-                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) &&
-                LIR_subj_equals(lh->farg, lh->sarg))) {
-                    lh->unused = 1;
-                }
-                break;
-            }
-
-            case LIR_iMUL:
-             {
-                if (lh->op == LIR_iMUL &&
-                (lh->targ &&
-                (lh->targ->t == LIR_NUMBER && LIR_peephole_get_long_number(lh->targ) == 0) &&
-                LIR_subj_equals(lh->farg, lh->sarg))) {
-                    lh->op = LIR_iMOV;
-                    lir_subject_t* _old_16 = lh->sarg;
-                    lh->sarg = LIR_SUBJ_CONST(0);
-                    if (_old_16 && _old_16 != lh->farg && _old_16 != lh->sarg && _old_16 != lh->targ) {
-                        LIR_unload_subject(_old_16);
-                    }
-                }
-                else if (lh->op == LIR_iMUL &&
-                (lh->targ &&
-                (lh->targ->t == LIR_NUMBER && LIR_peephole_get_long_number(lh->targ) == 1) &&
-                LIR_subj_equals(lh->farg, lh->sarg))) {
-                    lh->unused = 1;
-                }
-                else if (lh->op == LIR_iMUL &&
-                (lh->sarg &&
-                lh->sarg->t == LIR_REGISTER &&
-                lh->targ &&
-                (lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) &&
-                lh->farg &&
-                lh->farg->t == LIR_REGISTER &&
-                LIR_subj_equals(lh->farg, lh->sarg)) &&
-                LIR_peephole_get_long_number(lh->targ) != 1 && !(
-                	LIR_peephole_get_long_number(lh->targ) & (LIR_peephole_get_long_number(lh->targ) - 1)
-                )) {
-                    lh->op = LIR_bSHL;
                     lir_subject_t* _src_1_17 = lh->farg;
                     lir_subject_t* _src_2_18 = lh->targ;
+                    lh->op = LIR_bSHR;
                     lir_subject_t* _old_19 = lh->sarg;
                     if (_old_19 != _src_1_17) {
                         lh->sarg = _src_1_17;
@@ -466,6 +468,77 @@ int peephole_first_pass(cfg_block_t* bb) {
                         LIR_unload_subject(_old_22);
                     }
                 }
+                else if (lh->op == LIR_iDIV &&
+                (lh->sarg &&
+                (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) &&
+                lh->farg &&
+                (lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL) &&
+                LIR_subj_equals(lh->farg, lh->sarg))) {
+                    lh->unused = 1;
+                }
+                break;
+            }
+
+            case LIR_iMUL:
+             {
+                if (lh->op == LIR_iMUL &&
+                (lh->targ &&
+                (lh->targ->t == LIR_NUMBER && LIR_peephole_get_long_number(lh->targ) == 0) &&
+                LIR_subj_equals(lh->farg, lh->sarg))) {
+                    lh->op = LIR_iMOV;
+                    lir_subject_t* _old_23 = lh->sarg;
+                    lh->sarg = LIR_SUBJ_CONST(0);
+                    if (_old_23 && _old_23 != lh->farg && _old_23 != lh->sarg && _old_23 != lh->targ) {
+                        LIR_unload_subject(_old_23);
+                    }
+                }
+                else if (lh->op == LIR_iMUL &&
+                (lh->targ &&
+                (lh->targ->t == LIR_NUMBER && LIR_peephole_get_long_number(lh->targ) == 1) &&
+                LIR_subj_equals(lh->farg, lh->sarg))) {
+                    lh->unused = 1;
+                }
+                else if (lh->op == LIR_iMUL &&
+                (lh->sarg &&
+                lh->sarg->t == LIR_REGISTER &&
+                lh->targ &&
+                (lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) &&
+                lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(lh->farg, lh->sarg)) &&
+                LIR_peephole_get_long_number(lh->targ) != 1 && !(
+                	LIR_peephole_get_long_number(lh->targ) & (LIR_peephole_get_long_number(lh->targ) - 1)
+                )) {
+                    lir_subject_t* _src_1_24 = lh->farg;
+                    lir_subject_t* _src_2_25 = lh->targ;
+                    lh->op = LIR_bSHL;
+                    lir_subject_t* _old_26 = lh->sarg;
+                    if (_old_26 != _src_1_24) {
+                        lh->sarg = _src_1_24;
+                        if (_old_26 && _old_26 != lh->farg && _old_26 != lh->sarg && _old_26 != lh->targ) {
+                            LIR_unload_subject(_old_26);
+                        }
+                    }
+                    lir_subject_t* _old_27 = lh->targ;
+                    if (_old_27 != _src_2_25) {
+                        lh->targ = _src_2_25;
+                        if (_old_27 && _old_27 != lh->farg && _old_27 != lh->sarg && _old_27 != lh->targ) {
+                            LIR_unload_subject(_old_27);
+                        }
+                    }
+                    lir_subject_t* _old_28 = lh->farg;
+                    if (_old_28 != _src_1_24) {
+                        lh->farg = _src_1_24;
+                        if (_old_28 && _old_28 != lh->farg && _old_28 != lh->sarg && _old_28 != lh->targ) {
+                            LIR_unload_subject(_old_28);
+                        }
+                    }
+                    lir_subject_t* _old_29 = lh->targ;
+                    lh->targ = LIR_SUBJ_CONST(LIR_peephole_get_log2_number(_old_29));
+                    if (_old_29 && _old_29 != lh->farg && _old_29 != lh->sarg && _old_29 != lh->targ) {
+                        LIR_unload_subject(_old_29);
+                    }
+                }
                 else if (lh->op == LIR_iMUL &&
                 (lh->sarg &&
                 lh->sarg->t == LIR_REGISTER &&
@@ -474,13 +547,13 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
+                    lir_subject_t* _src_1_30 = lh->farg;
                     lh->op = LIR_NOT;
-                    lir_subject_t* _src_1_23 = lh->farg;
-                    lir_subject_t* _old_24 = lh->farg;
-                    if (_old_24 != _src_1_23) {
-                        lh->farg = _src_1_23;
-                        if (_old_24 && _old_24 != lh->farg && _old_24 != lh->sarg && _old_24 != lh->targ) {
-                            LIR_unload_subject(_old_24);
+                    lir_subject_t* _old_31 = lh->farg;
+                    if (_old_31 != _src_1_30) {
+                        lh->farg = _src_1_30;
+                        if (_old_31 && _old_31 != lh->farg && _old_31 != lh->sarg && _old_31 != lh->targ) {
+                            LIR_unload_subject(_old_31);
                         }
                     }
                 }
@@ -521,27 +594,27 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
+                    lir_subject_t* _src_1_37 = lh->farg;
                     lh->op = LIR_bXOR;
-                    lir_subject_t* _src_1_30 = lh->farg;
-                    lir_subject_t* _old_31 = lh->sarg;
-                    if (_old_31 != _src_1_30) {
-                        lh->sarg = _src_1_30;
-                        if (_old_31 && _old_31 != lh->farg && _old_31 != lh->sarg && _old_31 != lh->targ) {
-                            LIR_unload_subject(_old_31);
+                    lir_subject_t* _old_38 = lh->sarg;
+                    if (_old_38 != _src_1_37) {
+                        lh->sarg = _src_1_37;
+                        if (_old_38 && _old_38 != lh->farg && _old_38 != lh->sarg && _old_38 != lh->targ) {
+                            LIR_unload_subject(_old_38);
                         }
                     }
-                    lir_subject_t* _old_32 = lh->targ;
-                    if (_old_32 != _src_1_30) {
-                        lh->targ = _src_1_30;
-                        if (_old_32 && _old_32 != lh->farg && _old_32 != lh->sarg && _old_32 != lh->targ) {
-                            LIR_unload_subject(_old_32);
+                    lir_subject_t* _old_39 = lh->targ;
+                    if (_old_39 != _src_1_37) {
+                        lh->targ = _src_1_37;
+                        if (_old_39 && _old_39 != lh->farg && _old_39 != lh->sarg && _old_39 != lh->targ) {
+                            LIR_unload_subject(_old_39);
                         }
                     }
-                    lir_subject_t* _old_33 = lh->farg;
-                    if (_old_33 != _src_1_30) {
-                        lh->farg = _src_1_30;
-                        if (_old_33 && _old_33 != lh->farg && _old_33 != lh->sarg && _old_33 != lh->targ) {
-                            LIR_unload_subject(_old_33);
+                    lir_subject_t* _old_40 = lh->farg;
+                    if (_old_40 != _src_1_37) {
+                        lh->farg = _src_1_37;
+                        if (_old_40 && _old_40 != lh->farg && _old_40 != lh->sarg && _old_40 != lh->targ) {
+                            LIR_unload_subject(_old_40);
                         }
                     }
                 }

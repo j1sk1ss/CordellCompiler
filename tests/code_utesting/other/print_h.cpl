@@ -8,5 +8,5 @@
   - `msg` - Input message to print.
   
   Returns i0 aka nothing. :
-function print(ptr str msg) -> i0;
+function print(ptr i8 msg) -> i0;
 #endif

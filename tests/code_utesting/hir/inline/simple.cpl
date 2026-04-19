@@ -14,6 +14,7 @@ start() {
             return i8n 100;
         }
     }
+    [unused]
     start {
         {
             {
@@ -22,6 +23,6 @@ start() {
                 exit i32t %0;
             }
         }
-    }
+    [unused] }
 }
 /:

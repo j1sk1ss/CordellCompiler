@@ -14,17 +14,6 @@
 #include <std/stackmap.h>
 
 /*
-Convert the HIR subject to a LIR subject.
-Note: This can look as a wrong structure for a target architecture,
-      but it will be fixed in the 'planning' part.
-Params:
-    - `subj` - HIR subject to convert.
-
-Returns a LIR variable. Otherwise will return 0.
-*/
-lir_subject_t* LIR_convert_hs_to_ls(hir_subject_t* subj);
-
-/*
 Generate a LIR code from a HIR code. Will traverse blocks in functions.
 Note: It will produce a HLIR form of a code, which means it isn't ready
       for the final ASM generation. To do this, you will need to obtain

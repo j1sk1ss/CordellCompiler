@@ -7,25 +7,22 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} fn foo0(i32 a, i32 b)
-r15 = rdi;
-rcx = r15;
-r15 = rsi;
-rbx = r15;
-r15 = rcx;
-rax = r15;
+BB2: fn foo0(i32 a, i32 b)
+rdx = rdi;
+rbx = rsi;
+rax = rdx;
 rax = rax + rbx;
-r15 = rax;
-rdx = r15;
-r15 = rdx;
-rax = r15;
+rcx = rax;
+rax = rcx;
 return rax;
-BB{X}
-BB{X} start
-r15 = $1;
-rdi <<= r15;
-r15 = $2;
-rsi <<= r15;
+BB3:
+BB4: start
+push(rdi);
+rdi <<= $1;
+push(rsi);
+rsi <<= $2;
 call foo0(i32 a, i32 b);
+rsi = pop();
+rdi = pop();
 send
 /:

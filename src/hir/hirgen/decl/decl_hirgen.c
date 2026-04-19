@@ -64,6 +64,12 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
         return _starr_declaration(node, ctx, smt);
     }
 
+    /* Don't declare a variable if it is global.
+       All essential info already in the symtable. */
+    if (!TKN_in_stack(name->t)) {
+        return 1;
+    }
+    
     HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(name));
     HAS_ANNOTATION(POPARG_ANNOTATION, node, {
         HIR_BLOCK2(ctx, ctx->carry.val2, HIR_SUBJ_ASTVAR(name), HIR_SUBJ_CONST(ctx->carry.val1++));

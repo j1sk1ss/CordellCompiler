@@ -7,9 +7,7 @@ hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
         /* Generate the basic information 
            about a new one dereferenced value. */
         hir_subject_type_t dref_type = src->t;
-        token_flags_t dref_flags = { 
-            .ptr = MAX(src->ptr - 1, 0) 
-        };
+        token_flags_t dref_flags = { .ptr = MAX(src->ptr - 1, 0) };
 
         /* If the base variable (the source) is an array,
            the dereferenced value type will be an array's element type. */

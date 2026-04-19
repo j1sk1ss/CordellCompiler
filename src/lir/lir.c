@@ -21,13 +21,11 @@ lir_subject_t* LIR_create_subject(lir_subject_type_t t, int reg, int v_id, long 
             subj->storage.var.v_id   = v_id;
             break;
         }
-        
         case LIR_MEMORY: {
             subj->storage.var.offset = offset;
             subj->storage.var.base   = reg;
             break;
         }
-
         case LIR_CONSTVAL: subj->storage.cnst.value = intval; break;
         case LIR_LABEL:    subj->storage.lb.lb_id   = v_id;   break;
         case LIR_FNAME:
@@ -41,7 +39,9 @@ lir_subject_t* LIR_create_subject(lir_subject_type_t t, int reg, int v_id, long 
             if (strval) subj->storage.num.value = strval->copy(strval);
             break;
         }
-        
+        case LIR_FPOS: {
+            if (strval) str_memcpy(&subj->storage.pos, strval, sizeof(file_position_t));
+        }
         default: break;
     }
 
@@ -67,32 +67,24 @@ lir_subject_t* LIR_copy_subject(lir_subject_t* s) {
 
             break;
         }
-
-        case LIR_REGISTER: subj->storage.reg.reg = s->storage.reg.reg; break;
+        case LIR_FPOS:
+        case LIR_REGISTER:
         case LIR_MEMORY:
         case LIR_VARIABLE:
         case LIR_GLVARIABLE:
-        case LIR_STVARIABLE: {
-            subj->storage.var.offset = s->storage.var.offset;
-            subj->storage.var.v_id   = s->storage.var.v_id;
-            subj->storage.var.base   = s->storage.var.base;
-            break;
-        }
-
-        case LIR_CONSTVAL: subj->storage.cnst.value = s->storage.cnst.value; break;
-        case LIR_LABEL:    subj->storage.lb.lb_id   = s->storage.lb.lb_id;   break;
+        case LIR_STVARIABLE:
+        case LIR_CONSTVAL:
+        case LIR_LABEL:
         case LIR_FNAME:
         case LIR_RAWASM:
         case LIR_STRING: {
-            subj->storage.str.sid = s->storage.str.sid; 
-            subj->storage.str.rel = s->storage.str.rel;
+            str_memcpy(&subj->storage, &s->storage, sizeof(s->storage));
             break;
         }
         case LIR_NUMBER: {
             if (s->storage.num.value) subj->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
             break;
         }
-        
         default: break;
     }
 

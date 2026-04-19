@@ -46,3 +46,12 @@ config_int_field_t CONF_get_eight_bytness() {
     if (!_config.system.bytness.e_bytness) return 1;
     return _config.system.bytness.e_bytness;
 }
+
+arch_type_t CONF_get_system_type() {
+    if (!_config.system.sys_type) return MACOH;
+    return _config.system.sys_type;
+}
+
+config_flag_field_t CONF_is_debug_compilation() {
+    return _config.compilation_flags.debug;
+}

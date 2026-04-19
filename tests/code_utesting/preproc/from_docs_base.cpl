@@ -11,7 +11,7 @@ start(i64 argc, ptr u64 argv) {
 #line 0 "{X}"
 function strlen(ptr i8 s) -> i64;
 #line 3 "{X}"
-function print(ptr str msg) -> i0;
+function print(ptr i8 msg) -> i0;
 #line 1 "{X}"
 start(i64 argc, ptr u64 argv) {
     str msg = "Hello world!";

@@ -13,30 +13,24 @@ global _main
 _main:
 push rbp
 mov rbp, rsp
-mov r15, 10
-mov rdi, r15
+mov dil, 10
+push rdx
 call _cpl_foo0
-mov r15d, eax
-mov ecx, r15d
-mov r15d, ecx
-mov edx, r15d
+pop rdx
+mov edx, eax
+mov edx, edx
 mov rax, 0x2000001
 syscall
 ; BB5:
 _cpl_foo0:
 push rbp
 mov rbp, rsp
-mov r15d, edi
-mov ebx, r15d
-mov r15, 10
-mov edx, r15
-mov r15d, ebx
-mov eax, r15d
+mov ebx, edi
+mov edx, 10
+mov eax, ebx
 add eax, edx
-mov r15d, eax
-mov ecx, r15d
-mov r15d, ecx
-mov eax, r15d
+mov esi, eax
+mov eax, esi
 mov rsp, rbp
 pop rbp
 ret

@@ -65,5 +65,6 @@ ast_node_t* cpl_parse_funccall(PARSER_ARGS) {
         }
     }
 
+    var_lookup(base, ctx, smt);
     return base;
 }

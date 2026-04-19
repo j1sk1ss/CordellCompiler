@@ -22,6 +22,10 @@ ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
 
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     if (carry) stack_pop(&ctx->scopes.stack, NULL);
+    if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
+        forward_token(it, 1);
+    }
+    
     return base;
 }
 

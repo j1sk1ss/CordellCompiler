@@ -62,8 +62,8 @@ start() {
     i32 a = 0;
 }
 
-: OUTPUT
-:
+:/ OUTPUT
+/:
 ``` 
 
 In this `OUTPUT` section you should past the expected output from the compiler. For instance, here is the test of AST generation:
@@ -73,7 +73,7 @@ In this `OUTPUT` section you should past the expected output from the compiler. 
     }
 }
 
-: OUTPUT
+:/ OUTPUT
 { scope, id=1 }
    [start] (START_TOKEN, v_id=0, s_id=0)
       [i64] (I64_TYPE_TOKEN, v_id=-1, s_id=0)
@@ -81,7 +81,7 @@ In this `OUTPUT` section you should past the expected output from the compiler. 
       [u64] (U64_TYPE_TOKEN, ptr, v_id=-1, s_id=0)
          [argv] (U64_VARIABLE_TOKEN, ptr, v_id=1, s_id=1)
       { scope, id=2 }
-:
+/:
 ```
 
 At the file start several flags can be placed:
@@ -89,6 +89,8 @@ At the file start several flags can be placed:
 - `: BLOCK_TEST :` - If this flag is placed in a test that fails, it will fail the entire testing.
 - `: BUG :` - This flag will ignore test failing (even if there is the 'BLOCK_TEST' flag).
 - `: LEAK_TRACE :` - This flag enables the memory logging in the compiler, then uses these logs in leak tool to find the source. 
+- `: RUN_ASM :` - Build with the 'nasm' what the compiler has produced and compare the outputs.
+    - `: RUN_ASM[args=""|...] :` - `args` keyword says the tester to use an argument with execution.
 
 Also the 'OUTPUT' section has several special formattings that allow us prepare the output log verification. We need this given the compier parts, that print differently regarding the memory region of a compiler instance (for example print of a set or a map, etc. is changing over time). To tell the test framework that sometimes we can 'lower' our 'expectations' from the output log, we can use:
 - `{X}` - Accept any string here:
@@ -110,8 +112,11 @@ id 2: variable a
 {id: 8, owners: <<6 7 9 11>>}
 ```
 
+- `@exit_code=X` - This command compares the exit code. Works with the `: RUN_ASM :`.
+- `@case_index=X` - The link to a argument set from the asm's `RUN_ASM[args=""|...]`
+
 The usage of these commands is below:
-```
+```cpl
 start() {
     i32 a;
     ptr i32 b = ref a;
@@ -120,10 +125,34 @@ start() {
     i32 f = c;
 }
 
-: OUTPUT
+:/ OUTPUT
 {id: 0, owners: <<7 9 8 5 6 11>>}
 {id: 8, owners: <<7 9 6 11>>}
-:
+/:
+```
+
+And also a runtime test is here:
+```cpl
+: BLOCK_TEST :
+: RUN_ASM[args="apple"|args="banana"] :
+function putc(i8 c) -> i0 {
+    syscall(0x2000004, 1, ref c, 1);
+}
+
+@[entry("_main")]
+function main(i32 argc, ptr ptr i8 argv) -> i0 {
+    putc(argv[1][0]);
+    exit 0;
+}
+
+:/ OUTPUT
+@case_index=0
+a
+---
+@case_index=1
+b
+---
+/:
 ```
 
 It says, that we checks if the compiler returns two lines. Then we check if both lines are presented and have the correct content.
