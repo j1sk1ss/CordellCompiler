@@ -13,5 +13,6 @@ Code can be interrupted (use `gdb`/`lldb`) with `lis` keyword. Example below:
 }
 ```
 
-**Note 1!:** Be sure that you've disabled all optimizations before the code debug given the preservation of a code from transformation.
-**Note 2!:** To make this works, use any debugging tool such as `gdb` and `lldb`.
+**Note 1!:** Be sure that you've disabled all optimizations before the code debug given the preservation of a code from transformation. </br>
+**Note 2!:** To make this works, use any debugging tool such as `gdb` and `lldb`. </br>
+**Note 3:** The compiler produces essential information for `gdb` and `lldb` debuggers which can be used in breakpoint sets, code traversal, etc. 

@@ -11,7 +11,7 @@ function fang() -> i0 { return; }
 function naomi() -> i0 { exit 0; } : <= Becomes an entry point :
 ```
 
-Example with a `start` start function:
+Example with `start` start function:
 ```cpl
 start() { exit 0; } : <= Becomes an entry point :
 function fang() -> i0; { }
@@ -33,6 +33,6 @@ start(...) {
 @[entry]
 function main(i32 argc, ptr ptr i8 argv) -> u8;
 ```
-**Note 3:** Entry point will generate all essential steps (stackframe allocation, entry, exit commands, etc).
-**Note 4:** Entry point supports the `naked` annotation which disables default stack frame allocation and exit routine.
+**Note 3:** Entry point will generate all essential steps (stackframe allocation, entry, exit commands, etc). </br>
+**Note 4:** Entry point supports the `naked` annotation which disables default stack frame allocation and exit routine. </br>
 **Note 5:** Without any entry point, a file becomes a library file after the compilation.
