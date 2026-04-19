@@ -26,18 +26,18 @@ function foo() {
 
 :/ OUTPUT
 #
-[WARNING] [8{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
-          [8{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [8{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [8{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [17{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
-          [17{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [17{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [17{X}]     Variable 'tmp' declared as a constant here!
+[WARNING] [{X}cpl:8{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
+          [{X}cpl:8{X}]     Variable 'tmp' declared as a constant here!
+[WARNING] [{X}cpl:8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [{X}cpl:8{X}]     Variable 'tmp' declared as a constant here!
+[WARNING] [{X}cpl:8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [{X}cpl:8{X}]     Variable 'tmp' declared as a constant here!
+[WARNING] [{X}cpl:17{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
+          [{X}cpl:17{X}]     Variable 'tmp' declared as a constant here!
+[WARNING] [{X}cpl:17{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+          [{X}cpl:17{X}]     Variable 'tmp' declared as a constant here!
 #
-[WARNING] [23{X}] Possible NULL-dereference error (variable 'a' is NULL)!
-          [{X}]     Variable 'a' becomes NULL-value
-          [{X}]     Variable 'a' becomes NULL-value
+[WARNING] [{X}cpl:23{X}] Possible NULL-dereference error (variable 'a' is NULL)!
+          [{X}cpl:{X}]     Variable 'a' becomes NULL-value
+          [{X}cpl:{X}]     Variable 'a' becomes NULL-value
 /:

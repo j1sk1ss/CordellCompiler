@@ -4,16 +4,16 @@ function foo() {
 }
 
 :/ OUTPUT
-setpos, line=1, column=10, file=<unknown>
+setpos, line=1, column=10, file={X}
 {
-setpos, line=1, column=10, file=<unknown>
-setpos, line=1, column=10, file=<unknown>
+setpos, line=1, column=10, file={X}
+setpos, line=1, column=10, file={X}
     fn foo0()
     {
-setpos, line=2, column=7, file=<unknown>
+setpos, line=2, column=7, file={X}
         {
-setpos, line=2, column=32, file=<unknown>
-setpos, line=2, column=32, file=<unknown>
+setpos, line=2, column=32, file={X}
+setpos, line=2, column=32, file={X}
             i64s %0 = alloc(8);
             i64s %0 = cnst? 10;
             lb12:

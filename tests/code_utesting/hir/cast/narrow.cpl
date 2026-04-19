@@ -3,7 +3,7 @@ start() {
 }
 
 :/ OUTPUT
-[base:2:12] Narrow implicit cast is forbidden!
+[{X}:2:12] Narrow implicit cast is forbidden!
 {
     start {
         {

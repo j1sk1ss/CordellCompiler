@@ -28,19 +28,19 @@ start() {
     start {
         {
             {
-                strs* %1 = alloc(8);
+                i8s* %1 = alloc(8);
                 i64t* %4 = &(AB);
-                strt* %5 = i64t* %4 as *ptr;
-                strs* %1 = strt* %5;
+                i8t* %5 = i64t* %4 as *ptr;
+                i8s* %1 = i8t* %5;
                 strs %2 = str_alloc(CD);
-                i8t* %6 = strs* %1;
+                i8t* %6 = i8s* %1;
                 i64t %7 = i8n 0 * cnst? 1;
                 i8t* %9 = i64t %7 as *ptr;
                 i8t* %8 = i8t* %6 + i8t* %9;
                 i8t %10 = *(i8t* %8);
                 use i8t %10;
                 call putc0(i8 c) -> i0, argc args(i8t %10,);
-                i8t* %11 = strs* %1;
+                i8t* %11 = i8s* %1;
                 i64t %12 = i8n 1 * cnst? 1;
                 i8t* %14 = i64t %12 as *ptr;
                 i8t* %13 = i8t* %11 + i8t* %14;

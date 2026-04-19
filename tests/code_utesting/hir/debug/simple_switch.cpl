@@ -10,36 +10,36 @@ start() {
 }
 
 :/ OUTPUT
-setpos, line=1, column=7, file=<unknown>
+setpos, line=1, column=7, file={X}
 {
-setpos, line=1, column=7, file=<unknown>
-setpos, line=1, column=7, file=<unknown>
+setpos, line=1, column=7, file={X}
+setpos, line=1, column=7, file={X}
     start {
         {
-setpos, line=2, column=12, file=<unknown>
+setpos, line=2, column=12, file={X}
             {
-setpos, line=2, column=12, file=<unknown>
-setpos, line=2, column=12, file=<unknown>
+setpos, line=2, column=12, file={X}
+setpos, line=2, column=12, file={X}
                 goto lb10;
                 lb12:
-setpos, line=3, column=24, file=<unknown>
+setpos, line=3, column=24, file={X}
                 {
                 }
                 lb16:
-setpos, line=4, column=24, file=<unknown>
+setpos, line=4, column=24, file={X}
                 {
                 }
                 lb20:
-setpos, line=5, column=24, file=<unknown>
+setpos, line=5, column=24, file={X}
                 {
                 }
                 lb24:
-setpos, line=6, column=22, file=<unknown>
+setpos, line=6, column=22, file={X}
                 {
                 }
                 goto lb11;
                 lb10:
-setpos, line=2, column=15, file=<unknown>
+setpos, line=2, column=15, file={X}
                 i64t %1 = i8n 1;
                 i8t %0 = i64t %1 < cnst? 2;
                 if i8t %0, goto lb30, else goto lb31;
@@ -78,8 +78,8 @@ setpos, line=2, column=15, file=<unknown>
                 lb33:
                 goto lb16;
                 lb11:
-setpos, line=9, column=10, file=<unknown>
-setpos, line=9, column=13, file=<unknown>
+setpos, line=9, column=10, file={X}
+setpos, line=9, column=13, file={X}
                 exit i8n 1;
             }
         }

@@ -9,6 +9,6 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [3{X}] 'If' with a constant value 'true'!
-[WARNING] [4{X}] 'If' with a constant value 'true'!
+[WARNING] [{X}cpl:3{X}] 'If' with a constant value 'true'!
+[WARNING] [{X}cpl:4{X}] 'If' with a constant value 'true'!
 /:
