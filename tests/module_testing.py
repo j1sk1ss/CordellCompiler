@@ -8,6 +8,7 @@ import argparse
 import tempfile
 import subprocess
 import signal
+import time
 
 from tqdm import tqdm
 from pathlib import Path
@@ -261,20 +262,58 @@ def _parse_output_annotations(expected_text: str) -> tuple[str, dict[str, str]]:
 
     for line in expected_text.splitlines():
         stripped = line.strip()
-        if stripped.startswith("@") and "=" in stripped:
-            key, value = stripped[1:].split("=", 1)
-            annotations[key.strip()] = value.strip()
-            continue
+        if stripped.startswith("@"):
+            body = stripped[1:].strip()
+            if body:
+                if "=" in body:
+                    key, value = body.split("=", 1)
+                    annotations[key.strip()] = value.strip()
+                else:
+                    annotations[body] = "true"
+                continue
         kept_lines.append(line)
 
     return "\n".join(kept_lines).rstrip(), annotations
 
-def _parse_output_case_blocks(expected_text: str) -> tuple[dict[int, dict[str, object]] | None, str | None]:
+def _annotation_enabled(annotations: dict[str, str], key: str) -> bool:
+    if key not in annotations:
+        return False
+
+    value = annotations[key].strip().lower()
+    return value not in {"0", "false", "no", "off"}
+
+def _parse_repeat_count(annotations: dict[str, str]) -> tuple[int | None, str | None]:
+    if "repeat" not in annotations:
+        return 1, None
+
+    raw = annotations["repeat"].strip()
+    try:
+        repeat = int(raw)
+    except ValueError:
+        return None, f"Invalid @repeat value: {raw}"
+
+    if repeat <= 0:
+        return None, f"@repeat must be a positive integer, got {repeat}"
+
+    return repeat, None
+
+def _format_duration(seconds: float | None) -> str:
+    if seconds is None:
+        return "n/a"
+    return f"{seconds:.6f}s"
+
+def _count_text_lines(text: str) -> int:
+    if not text:
+        return 0
+    return len(text.splitlines())
+
+def _parse_output_case_blocks(expected_text: str) -> tuple[dict[int, dict[str, object]] | None, dict[str, str], str | None]:
     if "@case_index=" not in expected_text:
-        return None, None
+        return None, {}, None
 
     blocks_raw = re.split(r"(?m)^---\s*$", expected_text)
     cases: dict[int, dict[str, object]] = {}
+    global_annotations: dict[str, str] = {}
 
     for block_raw in blocks_raw:
         block = block_raw.strip()
@@ -284,22 +323,26 @@ def _parse_output_case_blocks(expected_text: str) -> tuple[dict[int, dict[str, o
         block_expected, block_annotations = _parse_output_annotations(block)
 
         if "case_index" not in block_annotations:
-            return None, "Every case block must contain @case_index=N"
+            if block_expected.strip():
+                return None, {}, "Every case block must contain @case_index=N"
+
+            global_annotations.update(block_annotations)
+            continue
 
         try:
             case_index = int(block_annotations["case_index"])
         except ValueError:
-            return None, f"Invalid @case_index value: {block_annotations['case_index']}"
+            return None, {}, f"Invalid @case_index value: {block_annotations['case_index']}"
 
         if case_index in cases:
-            return None, f"Duplicate @case_index={case_index}"
+            return None, {}, f"Duplicate @case_index={case_index}"
 
         cases[case_index] = {
             "expected": block_expected,
             "annotations": block_annotations,
         }
 
-    return cases, None
+    return cases, global_annotations, None
 
 def _check_single_case(expected_text: str, actual_text: str, annotations: dict[str, str], actual_exit_code: int | None) -> tuple[bool, str | None]:
     ok, why = _matches_expected(_normalize_output(expected_text), _normalize_output(actual_text))
@@ -468,33 +511,36 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         raise ValueError(f"{path}: OUTPUT block must end with '/:'")
 
     raw_expected = after[:-2].rstrip()
-    output_case_blocks, case_error = _parse_output_case_blocks(raw_expected)
+    output_case_blocks, output_annotations, case_error = _parse_output_case_blocks(raw_expected)
     if case_error:
         raise ValueError(f"{path}: {case_error}")
 
     if output_case_blocks is not None:
         flags["output_case_blocks"] = output_case_blocks
         expected = raw_expected
-        flags["output_annotations"] = {}
+        flags["output_annotations"] = output_annotations
     else:
         expected, output_annotations = _parse_output_annotations(raw_expected)
         flags["output_annotations"] = output_annotations
 
     return before.rstrip(), expected, flags
 
-def _capture_process(cmd: list[str]) -> subprocess.CompletedProcess:
-    return subprocess.run(
+def _capture_process(cmd: list[str]) -> tuple[subprocess.CompletedProcess, float]:
+    started_at = time.perf_counter()
+    proc = subprocess.run(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True
     )
+    elapsed = time.perf_counter() - started_at
+    return proc, elapsed
 
 def _assemble_and_run(
     asm_text: str,
     debug: bool,
     runs: list[list[str]] | None = None
-) -> tuple[bool, str | None, list[str] | None, list[int] | None]:
+) -> tuple[bool, str | None, list[str] | None, list[int] | None, float | None]:
     with tempfile.TemporaryDirectory(prefix="cpl_asm_") as tmp_dir:
         tmp_dir_path = Path(tmp_dir)
 
@@ -519,9 +565,9 @@ def _assemble_and_run(
         nasm_cmd.extend([str(asm_path), "-o", str(obj_path)])
 
         _log(f"[ASM] assembling command: {_cmd_to_str(nasm_cmd)}")
-        nasm_proc = _capture_process(nasm_cmd)
+        nasm_proc, _ = _capture_process(nasm_cmd)
         if nasm_proc.returncode != 0:
-            return False, nasm_proc.stdout, None, None
+            return False, nasm_proc.stdout, None, None, None
 
         if sys.platform == "darwin":
             link_cmd = [
@@ -540,9 +586,9 @@ def _assemble_and_run(
             ]
 
         _log(f"[ASM] linking command: {_cmd_to_str(link_cmd)}")
-        link_proc = _capture_process(link_cmd)
+        link_proc, _ = _capture_process(link_cmd)
         if link_proc.returncode != 0:
-            return False, link_proc.stdout, None, None
+            return False, link_proc.stdout, None, None, None
 
         run_cases = runs or [[]]
 
@@ -560,19 +606,21 @@ def _assemble_and_run(
             _log(f"[ASM] starting debugger for executable: {exe_path}")
             _log(f"[ASM] debugger command: {_cmd_to_str(debug_cmd)}")
             _run_interactive_command(debug_cmd)
-            return True, None, None, None
+            return True, None, None, None, None
         
         outputs: list[str] = []
         exit_codes: list[int] = []
+        program_elapsed = 0.0
 
         for run_index, run_args in enumerate(run_cases):
             run_cmd = [str(exe_path), *run_args]
             _log(f"[ASM] run #{run_index}: executable={exe_path} args={run_args}")
-            run_proc = _capture_process(run_cmd)
+            run_proc, run_elapsed = _capture_process(run_cmd)
             outputs.append(run_proc.stdout.rstrip("\n"))
             exit_codes.append(run_proc.returncode)
+            program_elapsed += run_elapsed
 
-        return True, "\n".join(outputs), outputs, exit_codes
+        return True, "\n".join(outputs), outputs, exit_codes, program_elapsed
 
 
 def _make_case_failure(case_index: int, case_expected: str, case_actual: str, case_reason: str) -> str:
@@ -610,20 +658,73 @@ def _check_output_annotations(flags: dict, actual_exit_codes: list[int] | None) 
 
     return True, None
 
-def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
-    code, expected, flags = _parse_test_file(test_file)
+def _count_output_lines(expected: str, flags: dict) -> int:
+    case_blocks = flags.get("output_case_blocks")
+    if case_blocks is not None:
+        total = 0
+        for case_index in sorted(case_blocks):
+            total += _count_text_lines(case_blocks[case_index]["expected"])
+        return total
+
+    return _count_text_lines(expected)
+
+def _build_measure_info(
+    measure_time: bool,
+    test_elapsed: float,
+    program_elapsed: float | None,
+    measure_lines: bool,
+    input_lines: int,
+    output_lines: int
+) -> str | None:
+    parts: list[str] = []
+
+    if measure_time:
+        parts.append(f"test={_format_duration(test_elapsed)}")
+        if program_elapsed is not None:
+            parts.append(f"program={_format_duration(program_elapsed)}")
+
+    if measure_lines:
+        parts.append(f"input_lines={input_lines}")
+        parts.append(f"output_lines={output_lines}")
+
+    if not parts:
+        return None
+
+    return ", ".join(parts)
+
+def _run_test_once(
+    binary: str,
+    binary_leak: str | None,
+    test_file: Path,
+    code: str,
+    expected: str,
+    flags: dict,
+    measure_time: bool,
+    measure_lines: bool,
+    input_lines: int,
+    initial_output_lines: int,
+) -> dict:
+    output_lines = initial_output_lines
+    test_started_at = time.perf_counter()
+    program_elapsed: float | None = None
 
     _log(f"[TEST] starting: {test_file}")
 
     chosen_bin = binary
     if flags["leak_trace"]:
         if not binary_leak:
+            test_elapsed = time.perf_counter() - test_started_at
             return {
                 "file": str(test_file),
                 "ok": False,
                 "critical": True,
                 "warning": False,
                 "diff": "LEAK_TRACE requested, but leak-instrumented binary was not built.",
+                "metrics": _build_measure_info(measure_time, test_elapsed, None, measure_lines, input_lines, output_lines),
+                "_test_elapsed": test_elapsed,
+                "_program_elapsed": None,
+                "_input_lines": input_lines,
+                "_output_lines": output_lines,
             }
         chosen_bin = binary_leak
 
@@ -642,24 +743,31 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
         if flags["run_asm"] or flags["run_asm_debug"]:
             compile_cmd = [str(chosen_bin), str(tmp_path), str(test_file.parent)]
             _log(f"[TEST] compiler command: {_cmd_to_str(compile_cmd)}")
-            compiler_proc = _capture_process(compile_cmd)
+            compiler_proc, _ = _capture_process(compile_cmd)
+            output_lines = _count_text_lines(compiler_proc.stdout)
 
             if compiler_proc.returncode != 0:
                 actual_output = compiler_proc.stdout
             else:
-                asm_ok, asm_output, actual_outputs_by_run, actual_exit_codes = _assemble_and_run(
+                asm_ok, asm_output, actual_outputs_by_run, actual_exit_codes, program_elapsed = _assemble_and_run(
                     compiler_proc.stdout,
                     debug=flags["run_asm_debug"],
                     runs=flags["run_asm_cases"]
                 )
 
                 if flags["run_asm_debug"] and asm_ok:
+                    test_elapsed = time.perf_counter() - test_started_at
                     return {
                         "file": str(test_file),
                         "ok": True,
                         "critical": False,
                         "warning": False,
                         "diff": None,
+                        "metrics": _build_measure_info(measure_time, test_elapsed, program_elapsed, measure_lines, input_lines, output_lines),
+                        "_test_elapsed": test_elapsed,
+                        "_program_elapsed": program_elapsed,
+                        "_input_lines": input_lines,
+                        "_output_lines": output_lines,
                     }
 
                 actual_output = asm_output or ""
@@ -682,31 +790,38 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
 
                 _log(f"[TEST] debugger command: {_cmd_to_str(cmd)}")
                 _run_interactive_command(cmd)
+                test_elapsed = time.perf_counter() - test_started_at
                 return {
                     "file": str(test_file),
                     "ok": True,
                     "critical": False,
                     "warning": False,
                     "diff": None,
+                    "metrics": _build_measure_info(measure_time, test_elapsed, program_elapsed, measure_lines, input_lines, output_lines),
+                    "_test_elapsed": test_elapsed,
+                    "_program_elapsed": program_elapsed,
+                    "_input_lines": input_lines,
+                    "_output_lines": output_lines,
                 }
 
-            proc = subprocess.run(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True
-            )
+            proc, _ = _capture_process(cmd)
             actual_output = proc.stdout
             actual_outputs_by_run = [proc.stdout]
             actual_exit_codes = [proc.returncode]
 
     except Exception as ex:
+        test_elapsed = time.perf_counter() - test_started_at
         return {
             "file": str(test_file),
             "ok": False,
             "critical": True,
             "warning": False,
             "diff": f"Subprocess error: {ex}",
+            "metrics": _build_measure_info(measure_time, test_elapsed, program_elapsed, measure_lines, input_lines, output_lines),
+            "_test_elapsed": test_elapsed,
+            "_program_elapsed": program_elapsed,
+            "_input_lines": input_lines,
+            "_output_lines": output_lines,
         }
     finally:
         if os.path.exists(tmp_path):
@@ -717,6 +832,7 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
 
     if flags["rewrite"]:
         _rewrite_test_output(test_file, actual_n)
+        test_elapsed = time.perf_counter() - test_started_at
         return {
             "file": str(test_file),
             "expected": expected_n,
@@ -725,6 +841,11 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
             "critical": False,
             "warning": False,
             "diff": None,
+            "metrics": _build_measure_info(measure_time, test_elapsed, program_elapsed, measure_lines, input_lines, output_lines),
+            "_test_elapsed": test_elapsed,
+            "_program_elapsed": program_elapsed,
+            "_input_lines": input_lines,
+            "_output_lines": output_lines,
         }
 
     case_blocks = flags.get("output_case_blocks")
@@ -803,6 +924,7 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
         else:
             diff_text = why + "\n\n" + _make_diff(expected_n, actual_n)
 
+    test_elapsed = time.perf_counter() - test_started_at
     return {
         "file": str(test_file),
         "expected": expected_n,
@@ -810,8 +932,99 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
         "ok": ok,
         "critical": critical,
         "warning": warning,
-        "diff": diff_text
+        "diff": diff_text,
+        "metrics": _build_measure_info(measure_time, test_elapsed, program_elapsed, measure_lines, input_lines, output_lines),
+        "_test_elapsed": test_elapsed,
+        "_program_elapsed": program_elapsed,
+        "_input_lines": input_lines,
+        "_output_lines": output_lines,
     }
+
+def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
+    code, expected, flags = _parse_test_file(test_file)
+    annotations = flags.get("output_annotations", {})
+    measure_time = _annotation_enabled(annotations, "measure_time")
+    measure_lines = _annotation_enabled(annotations, "measure_lines")
+    repeat_count, repeat_error = _parse_repeat_count(annotations)
+    input_lines = _count_text_lines(code)
+    initial_output_lines = _count_output_lines(expected, flags)
+
+    if repeat_error is not None:
+        return {
+            "file": str(test_file),
+            "ok": False,
+            "critical": True,
+            "warning": False,
+            "diff": repeat_error,
+            "metrics": _build_measure_info(measure_time, 0.0, None, measure_lines, input_lines, initial_output_lines),
+        }
+
+    if repeat_count == 1:
+        result = _run_test_once(
+            binary=binary,
+            binary_leak=binary_leak,
+            test_file=test_file,
+            code=code,
+            expected=expected,
+            flags=flags,
+            measure_time=measure_time,
+            measure_lines=measure_lines,
+            input_lines=input_lines,
+            initial_output_lines=initial_output_lines,
+        )
+        result.pop("_test_elapsed", None)
+        result.pop("_program_elapsed", None)
+        result.pop("_input_lines", None)
+        result.pop("_output_lines", None)
+        return result
+
+    repeated_results: list[dict] = []
+    for repeat_index in range(repeat_count):
+        _log(f"[TEST] repeat {repeat_index + 1}/{repeat_count}: {test_file}")
+        result = _run_test_once(
+            binary=binary,
+            binary_leak=binary_leak,
+            test_file=test_file,
+            code=code,
+            expected=expected,
+            flags=flags,
+            measure_time=measure_time,
+            measure_lines=measure_lines,
+            input_lines=input_lines,
+            initial_output_lines=initial_output_lines,
+        )
+        repeated_results.append(result)
+        if not result.get("ok", False):
+            diff = result.get("diff")
+            prefix = f"Repeat {repeat_index + 1}/{repeat_count} failed"
+            result["diff"] = prefix if not diff else f"{prefix}\n{diff}"
+            result.pop("_test_elapsed", None)
+            result.pop("_program_elapsed", None)
+            result.pop("_input_lines", None)
+            result.pop("_output_lines", None)
+            return result
+
+    avg_test_elapsed = sum(float(r.get("_test_elapsed", 0.0) or 0.0) for r in repeated_results) / repeat_count
+    program_values = [r.get("_program_elapsed") for r in repeated_results if r.get("_program_elapsed") is not None]
+    avg_program_elapsed = None
+    if program_values:
+        avg_program_elapsed = sum(float(v) for v in program_values) / len(program_values)
+
+    output_lines = int(repeated_results[-1].get("_output_lines", initial_output_lines))
+    final_result = dict(repeated_results[-1])
+    final_result["metrics"] = _build_measure_info(
+        measure_time,
+        avg_test_elapsed,
+        avg_program_elapsed,
+        measure_lines,
+        input_lines,
+        output_lines,
+    )
+    final_result.pop("_test_elapsed", None)
+    final_result.pop("_program_elapsed", None)
+    final_result.pop("_input_lines", None)
+    final_result.pop("_output_lines", None)
+    return final_result
 
 def _find_test_roots(start_path: Path) -> list[Path]:
     roots = []
@@ -953,19 +1166,20 @@ def _entry() -> None:
     failed: int = 0
     critical_failed: bool = False
     for r in results:
+        metrics_suffix = f" [{r['metrics']}]" if r.get("metrics") else ""
         if r.get("ok", False):
-            print(f"Succeed: {r['file']}")
+            print(f"Succeed: {r['file']}{metrics_suffix}")
         else:
             failed += 1
             if r.get("warning", False):
-                print(f"\nWarning (BUG): {r['file']}")
+                print(f"\nWarning (BUG): {r['file']}{metrics_suffix}")
                 print(r["diff"])
             elif r.get("critical", False):
-                print(f"\nCRITICAL (BLOCK_TEST): {r['file']}")
+                print(f"\nCRITICAL (BLOCK_TEST): {r['file']}{metrics_suffix}")
                 print(r["diff"])
                 critical_failed = True
             else:
-                print(f"\nFailed: {r['file']}")
+                print(f"\nFailed: {r['file']}{metrics_suffix}")
                 print(r["diff"])
 
     print(f"\nSummary: {len(results)} tests run, {failed} failed, {failed_modules} modules failed to build.")

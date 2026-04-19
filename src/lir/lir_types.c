@@ -164,6 +164,8 @@ int LIR_is_readop(lir_operation_t op) {
 
 int LIR_has_sideeffect(lir_operation_t op) {
     switch (op) {
+        case LIR_PUSH:
+        case LIR_POP:
         case LIR_FRET:
         case LIR_EXITOP:
         case LIR_LDREF:

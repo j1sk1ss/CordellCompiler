@@ -9,6 +9,7 @@ Params:
 Return 1 if the 'h' is a home for the 's'.
 */
 static int _check_home(lir_block_t* h, lir_subject_t* s) {
+    if (!h || !s) return 0;
     lir_subject_t* args[] = { h->farg, h->sarg, h->targ };
     for (int i = 0; i < 3; i++) {
         if (args[i] && args[i] == s) return 1;
