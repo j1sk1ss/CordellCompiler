@@ -126,6 +126,7 @@ int main(int argc, char* argv[]) {
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
 
     HIR_sparse_const_propagation(&dagctx, &smt);
+    HIR_CFG_squeeze_blocks(&cfgctx);
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);

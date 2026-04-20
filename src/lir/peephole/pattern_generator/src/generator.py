@@ -136,16 +136,26 @@ class CodeGenerator:
 
         return var_map
 
+    def _operand_type_condition(self, operand: Operand, arg_name: str) -> str | None:
+        type_names = self.gen_info.get("types", {}).get(operand.type.value, [])
+        if not type_names:
+            return None
+
+        if len(type_names) == 1:
+            return f"{arg_name}->t == {type_names[0]}"
+
+        return "(" + " || ".join(f"{arg_name}->t == {type_name}" for type_name in type_names) + ")"
+
     def _operand_to_condition(self, operand: Operand, arg_name: str) -> str | None:
         if operand.type == OperandType.REG:
             if operand.var_name is not None and operand.value is None:
-                return f"{arg_name}->t == LIR_REGISTER"
+                return self._operand_type_condition(operand, arg_name)
             return f'{arg_name}->reg->reg == {operand.value.upper()}'
         elif operand.type == OperandType.AREG:
-            return f"{arg_name}->t == LIR_REGISTER"
+            return self._operand_type_condition(operand, arg_name)
         elif operand.type == OperandType.CONST:
             if operand.var_name is not None and operand.value is None:
-                return f"({arg_name}->t == LIR_NUMBER || {arg_name}->t == LIR_CONSTVAL)"
+                return self._operand_type_condition(operand, arg_name)
             try:
                 if operand.value.startswith("0x"):
                     value = int(operand.value, 16)
@@ -154,17 +164,21 @@ class CodeGenerator:
                 else:
                     value = int(operand.value)
                 return (
-                    f"(({arg_name}->t == LIR_NUMBER || {arg_name}->t == LIR_CONSTVAL) && "
+                    f"({self._operand_type_condition(operand, arg_name)} && "
                     f"{self.gen_info.get('functions').get('atoi')}({arg_name}) == {value})"
                 )
             except ValueError:
                 raise ValueError("There is no constant value for 'const' keyword!")
         elif operand.type == OperandType.ACONST:
-            return f"({arg_name}->t == LIR_NUMBER || {arg_name}->t == LIR_CONSTVAL)"
+            return self._operand_type_condition(operand, arg_name)
         elif operand.type == OperandType.MEM:
-            return f"{arg_name}->t == LIR_MEMORY"
+            return self._operand_type_condition(operand, arg_name)
         elif operand.type == OperandType.OBJ:
-            return None
+            return self._operand_type_condition(operand, arg_name)
+        elif operand.type == OperandType.LABEL:
+            if operand.var_name is None and operand.value is not None:
+                raise ValueError("Literal label matching is not supported yet, use label_<n> variables.")
+            return self._operand_type_condition(operand, arg_name)
         else:
             raise KeyError("Unknown operation type!")
 

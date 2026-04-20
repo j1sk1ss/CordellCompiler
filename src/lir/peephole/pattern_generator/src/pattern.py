@@ -9,6 +9,7 @@ class OperandType(Enum):
     AREG   = "areg"
     MEM    = "mem"
     OBJ    = "obj"
+    LABEL  = "label"
 
 @dataclass
 class Operand:

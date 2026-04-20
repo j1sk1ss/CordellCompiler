@@ -1,5 +1,5 @@
 : RUN_ASM :
-start() {
+@[naked] start() {
     @[counter(1000000000)] loop {
     }
     exit 0;

@@ -9,7 +9,7 @@ lir_block_t* LIR_get_next(lir_block_t* c, lir_block_t* exit, int skip) {
     if (c == exit) return NULL;
     for (; c && c != exit; c = c->next) {
         if ((c == exit) || skip-- == 0) return c;
-        if (c->unused) continue;
+        if (c->unused || c->op == LIR_BB) continue;
     }
 
     return c;

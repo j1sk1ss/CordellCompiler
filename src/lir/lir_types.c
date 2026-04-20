@@ -175,6 +175,23 @@ int LIR_has_sideeffect(lir_operation_t op) {
         case LIR_ECLL:
         case LIR_SYSC:
         case LIR_aMOV: return 1;
-        default: return 0;
+        default:       return 0;
+    }
+}
+
+int LIR_is_jumpop(lir_operation_t op) {
+    switch (op) {
+        case LIR_JMP:
+        case LIR_JL:
+        case LIR_JG:
+        case LIR_JLE:
+        case LIR_JGE:
+        case LIR_JE:
+        case LIR_JNE:
+        case LIR_JB:
+        case LIR_JA:
+        case LIR_JBE:
+        case LIR_JAE: return 1;
+        default:      return 0;
     }
 }

@@ -10,6 +10,31 @@
 #include <lir/lir_types.h>
 
 /*
+Peek the previous instruction.
+Params:
+    - c - Current LIR block.
+    - exit - The exit LIR statement. 
+             If this function reaches the exit statement, it will returns NULL.
+    - skip - The number of blocks that must be skipped by function.
+
+Return the next LIR block.
+*/
+lir_block_t* LIR_get_back_instruction(lir_block_t* c, lir_block_t* exit, int skip);
+
+/*
+Peek the next instruction.
+Note: Not the same logic with the 'LIR_get_next'.
+Params:
+    - c - Current LIR block.
+    - exit - The exit LIR statement. 
+             If this function reaches the exit statement, it will returns NULL.
+    - skip - The number of blocks that must be skipped by function.
+
+Return the next LIR block.
+*/
+lir_block_t* LIR_get_near_instruction(lir_block_t* c, lir_block_t* exit, int skip);
+
+/*
 Convert the LIR subject to long number.
 Note: This function works only with a const/number subject.
 Params:

@@ -18,73 +18,39 @@ static int _check_home(lir_block_t* h, lir_subject_t* s) {
     return 0;
 }
 
-static inline int _is_plain_mov(lir_operation_t op) {
-    return op == LIR_iMOV || op == LIR_aMOV || op == LIR_fMOV;
+static int _jumps_pass(cfg_block_t* bb) {
+    if (!bb->lmap.exit) return 0;
+    lir_block_t* l  = LIR_get_back_instruction(bb->lmap.exit, bb->lmap.entry, 0);
+    lir_block_t* ll = LIR_get_back_instruction(l, bb->lmap.entry, 1);
+    if (LIR_is_jumpop(l->op)) {
+        cfg_block_t* next_bb  = bb->l != bb ? bb->l : bb->jmp;
+        if (!next_bb) return 0;
+        lir_block_t* next_lh  = LIR_get_near_instruction(l, next_bb->lmap.exit, 1);
+        lir_block_t* entry_ln = LIR_get_near_instruction(next_bb->lmap.entry, next_bb->lmap.exit, 0);
+        if (entry_ln && entry_ln->op == LIR_MKLB && next_lh == entry_ln) {
+            if (LIR_subj_equals(l->farg, entry_ln->farg)) l->unused = 1;
+            if (ll && LIR_is_jumpop(ll->op) && LIR_subj_equals(ll->farg, entry_ln->farg)) ll->unused = 1;
+        }
+    }
+
+    return 1;
 }
 
-/*
-Second peephole optimization pass propagates mov operations.
-The main idea is to solve a 'multiple mov' issue:
-```asm
-mov rax, rbx
-mov rdx, rax
-mov rcx, rdx
-mov r12, rcx
-push r12
-```
-
-This code just can't be optimized with a pattern matcher or third phase. That's why
-we should propagate mov operations:
-```asm
-mov rax, rbx
-mov rdx, rbx
-mov rcx, rbx
-mov r12, rbx
-push r12
-```
-
-Params:
-    - `bb` - Current basic block.
-
-Return 1 if operation succeed, otherwise it will return 0.
-*/
-static int _second_pass(cfg_block_t* bb) {
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+static int _find_label_usage(cfg_func_t* fb, lir_subject_t* lb) {
+    lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
     while (lh) {
-        if (_is_plain_mov(lh->op)) {
-            lir_subject_t* src = lh->sarg;
-            lir_subject_t* dst = lh->farg;
+        if (!lh->unused && LIR_is_jumpop(lh->op) && LIR_subj_equals(lh->farg, lb)) return 1;
+        lh = LIR_get_next(lh, fb->lmap.exit, 1);
+    }
 
-            lir_block_t* currh = LIR_get_next(lh->next, bb->lmap.exit, 0);
-            while (currh) {
-                /* If we met a write operation which re-writes the destination,
-                   we can't continue our optimization anymore (dst has dead) */
-                if (LIR_is_writeop(currh->op)) {
-                    if (
-                        LIR_subj_equals(currh->farg, dst) ||
-                        LIR_subj_equals(currh->farg, src)
-                    ) break;
-                }
+    return 0;
+}
 
-                if (_is_plain_mov(currh->op)) {
-                    if (
-                        LIR_subj_equals(currh->sarg, dst) &&                    /* If instruction uses our subject          */
-                        (currh->farg->t != LIR_MEMORY || src->t != LIR_MEMORY)  /* And it is possible to use them in one op */
-                    ) {
-                        if (!_check_home(currh->sarg->home, currh->sarg)) {
-                            LIR_unload_subject(currh->sarg);
-                        }
-
-                        currh->sarg = LIR_copy_subject(src);
-                    }
-                }
-
-_next_instruction: {}
-                currh = LIR_get_next(currh, bb->lmap.exit, 1);
-            }
-        }
-
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
+static int _label_pass(cfg_func_t* fb) {
+    lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
+    while (lh) {
+        if (!lh->unused && lh->op == LIR_MKLB && !_find_label_usage(fb, lh->farg)) lh->unused = 1; 
+        lh = LIR_get_next(lh, fb->lmap.exit, 1);
     }
 
     return 1;
@@ -185,9 +151,10 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            _second_pass(bb);
+            _jumps_pass(bb);
             _cleanup_pass(bb);
         }
+        _label_pass(fb);
     }
 
     return 1;

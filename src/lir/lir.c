@@ -111,8 +111,11 @@ lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject
 }
 
 int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
-    if (!a || !b) return 0;
-    if (a->t != b->t) return 0;
+    if (
+        !a || !b ||
+        a->t != b->t
+    ) return 0;
+    if (a == b) return 1;
     switch (a->t) {
         case LIR_MEMORY:     return (a->storage.var.offset == b->storage.var.offset) && 
                                     (a->size == b->size) && 

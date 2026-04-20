@@ -246,6 +246,9 @@ Returns 1 if the opration is a write operation.
 */
 int LIR_is_writeop(lir_operation_t op);
 
+// TODO
+int LIR_is_jumpop(lir_operation_t op);
+
 /*
 Check is the LIR operation is a read operation.
 Note: Read operation is an operation that uses value from

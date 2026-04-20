@@ -181,6 +181,68 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     return 1;
 }
 
+static int _unload_cfg_block(cfg_block_t* bb) {
+    set_free(&bb->def);
+    set_free(&bb->use);
+    set_free(&bb->curr_in);
+    set_free(&bb->curr_out);
+    set_free(&bb->prev_in);
+    set_free(&bb->prev_out);
+    set_free(&bb->dom);
+    set_free(&bb->domf);
+    set_free(&bb->pred);
+    set_free(&bb->visitors);
+    set_free(&bb->phi);
+    return mm_free(bb);
+}
+
+int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx) {
+    foreach (cfg_func_t* fb, &ctx->funcs) {
+        list_iter_t it;
+        list_iter_hinit(&fb->blocks, &it);
+        cfg_block_t* cb;
+        while ((cb = (cfg_block_t*)list_iter_current(&it))) {
+            int merged = 0;
+            if (
+                (!cb->l && cb->jmp) ||
+                (cb->l && !cb->jmp)
+            ) {
+                cfg_block_t* next = cb->l ? cb->l : cb->jmp;
+                if (set_size(&next->pred) == 1 && cb != next) {
+                    hir_block_t* curr = HIR_get_next(next->hmap.entry, next->hmap.exit, 0);
+                    while (curr) {
+                        hir_block_t* tmp = HIR_get_next(curr, next->hmap.exit, 1);
+                        HIR_unlink_block(curr);
+                        HIR_insert_block_after(curr, cb->hmap.exit);
+                        cb->hmap.exit = curr;
+                        curr = tmp;
+                    }
+
+                    cb->l = next->l;
+                    if (cb->l) {
+                        set_remove(&cb->l->pred, next);
+                        set_add(&cb->l->pred, cb);
+                    }
+
+                    cb->jmp = next->jmp;
+                    if (cb->jmp) {
+                        set_remove(&cb->jmp->pred, next);
+                        set_add(&cb->jmp->pred, cb);
+                    }
+
+                    list_remove(&fb->blocks, next);
+                    _unload_cfg_block(next);
+                    merged = 1;
+                }
+            }
+
+            if (!merged) list_iter_next(&it, NULL);
+        }
+    }
+
+    return 1;
+}
+
 int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb) {
     int blocks = 0;
     hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
@@ -224,18 +286,7 @@ int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
 int HIR_CFG_unload(cfg_ctx_t* ctx) {
     foreach (cfg_func_t* fb, &ctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            set_free(&cb->def);
-            set_free(&cb->use);
-            set_free(&cb->curr_in);
-            set_free(&cb->curr_out);
-            set_free(&cb->prev_in);
-            set_free(&cb->prev_out);
-            set_free(&cb->dom);
-            set_free(&cb->domf);
-            set_free(&cb->pred);
-            set_free(&cb->visitors);
-            set_free(&cb->phi);
-            mm_free(cb);
+            _unload_cfg_block(cb);
         }
 
         set_free(&fb->leaders);
