@@ -7,8 +7,8 @@ start() {
 
 :/ OUTPUT
 BB2: start
-jmp lb10;
-BB3: lb10:
+jmp lb7;
+BB3: lb7:
 stparam($10);
 call get1(i32 a) -> i32;
 %3 = fret();

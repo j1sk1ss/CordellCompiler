@@ -51,11 +51,8 @@ Params:
         ##__VA_ARGS__                                 \
     )
 
-#define HIR_SET_CURRENT_POS(ctx, nd)                               \
-    HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(&nd->t->finfo)); \
-    ctx->pos.line   = nd->t->finfo.line;                           \
-    ctx->pos.column = nd->t->finfo.column;                         \
-    ctx->pos.file   = nd->t->finfo.file;
+int HIR_generate_position(file_position_t* pos, hir_ctx_t* ctx);
+#define HIR_SET_CURRENT_POS(ctx, nd) HIR_generate_position(&nd->t->finfo, ctx);
 
 /*
 Generate implict convertion from the one type to another. 

@@ -39,23 +39,23 @@ start() {
         i32s %2 = load_arg();
         {
             i32t %7 = not i32s %0;
-            if i32t %7, goto lb19, else goto lb21;
-            lb19:
+            if i32t %7, goto lb16, else goto lb18;
+            lb16:
             {
                 *(i8s* %1) = i8n 48;
                 return ;
             }
-            goto lb21;
-            lb21:
+            goto lb18;
+            lb18:
             i32s %3 = alloc(8);
             i32t %8 = i8n 0 as i32;
             i32s %3 = i32t %8;
             arrs %4 = arr_alloc(i8n 32);
-            lb51:
+            lb37:
             i32t %9 = i8n 0 as i32;
             i32t %10 = i32s %0 > i32t %9;
-            if i32t %10, goto lb52, else goto lb53;
-            lb52:
+            if i32t %10, goto lb38, else goto lb39;
+            lb38:
             {
                 i32t %13 = i8n 10 as i32;
                 i32t %12 = i32s %0 mod i32t %13;
@@ -73,25 +73,25 @@ start() {
                 i32t %21 = i32s %3 + i32t %22;
                 i32s %3 = i32t %21;
             }
-            goto lb51;
-            lb53:
+            goto lb37;
+            lb39:
             i32s %5 = alloc(8);
             i32t %23 = i8n 0 as i32;
             i32s %5 = i32t %23;
-            lb117:
+            lb79:
             i32t %25 = i8n 0 as i32;
             i32t %24 = i32s %3 > i32t %25;
-            if i32t %24, goto lb128, else goto lb129;
-            lb128:
+            if i32t %24, goto lb86, else goto lb87;
+            lb86:
             i32t %26 = i32s %5 < i32s %2;
             i32t %27 = i32t %26;
-            goto lb130;
-            lb129:
+            goto lb88;
+            lb87:
             i32t %27 = cnst? 0;
-            goto lb130;
-            lb130:
-            if i32t %27, goto lb118, else goto lb119;
-            lb118:
+            goto lb88;
+            lb88:
+            if i32t %27, goto lb80, else goto lb81;
+            lb80:
             {
                 i8t* %28 = &(arrs %4);
                 i64t %29 = i32s %3 * cnst? 1;
@@ -110,8 +110,8 @@ start() {
                 i32t %39 = i32s %3 - i32t %40;
                 i32s %3 = i32t %39;
             }
-            goto lb117;
-            lb119:
+            goto lb79;
+            lb81:
         }
     }
     arrg %6 = arr_alloc(i8n 32);

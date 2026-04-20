@@ -16,7 +16,7 @@ start() {
     start {
         {
             {
-                goto lb10;
+                goto lb7;
                 fn local1(i32 a)
                 {
                     i32s %0 = alloc(8);
@@ -26,8 +26,8 @@ start() {
                     }
                 }
                 [unused]
-                lb10:
-                goto lb25;
+                lb7:
+                goto lb19;
                 fn local2(i16 a)
                 {
                     i16s %1 = alloc(8);
@@ -37,8 +37,8 @@ start() {
                     }
                 }
                 [unused]
-                lb25:
-                goto lb40;
+                lb19:
+                goto lb31;
                 fn local3(i8 a)
                 {
                     i8s %2 = alloc(8);
@@ -48,7 +48,7 @@ start() {
                     }
                 }
                 [unused]
-                lb40:
+                lb31:
                 i32t %3 = i8n 1 as i32;
                 use i32t %3;
                 i64t %4 = call local1(i32 a), argc args(i32t %3,);

@@ -26,48 +26,48 @@ start() {
         i32s %0 = alloc(8);
         i32s %0 = load_arg();
         {
-            goto lb13;
-            lb15:
+            goto lb10;
+            lb12:
             {
-                goto lb20;
+                goto lb15;
                 fn bar1() -> i64
                 {
                     {
                         return i8n 1;
                     }
                 }
-                lb20:
+                lb15:
                 i0t* %1 = &(bar1() -> i64);
                 return i0t* %1;
             }
-            lb36:
+            lb27:
             {
-                goto lb41;
+                goto lb30;
                 fn baz2() -> i64
                 {
                     {
                         return i8n 2;
                     }
                 }
-                lb41:
+                lb30:
                 i0t* %2 = &(baz2() -> i64);
                 return i0t* %2;
             }
-            goto lb14;
-            lb13:
+            goto lb11;
+            lb10:
             i64t %3 = i32s %0 as i64;
             i8t %4 = i64t %3 < cnst? 1;
-            if i8t %4, goto lb61, else goto lb62;
-            lb61:
-            goto lb36;
-            lb62:
+            if i8t %4, goto lb45, else goto lb46;
+            lb45:
+            goto lb27;
+            lb46:
             i8t %5 = i64t %3 > cnst? 1;
-            if i8t %5, goto lb63, else goto lb64;
-            lb63:
-            goto lb36;
-            lb64:
-            goto lb15;
-            lb14:
+            if i8t %5, goto lb47, else goto lb48;
+            lb47:
+            goto lb27;
+            lb48:
+            goto lb12;
+            lb11:
         }
     }
     start {

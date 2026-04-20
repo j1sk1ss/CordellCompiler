@@ -199,7 +199,7 @@ _primary_resolve_complete: {}
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        PARSE_ERROR("Can't create a base for the value!");
+        PARSE_ERROR("Can't create a base for a value!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }

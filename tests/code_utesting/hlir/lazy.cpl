@@ -8,27 +8,27 @@ start() {
 :/ OUTPUT
 BB1: start
 cmp %0, 0;
-je lb22;
-jne lb21;
-BB2: lb21:
+je lb15;
+jne lb14;
+BB2: lb14:
 %5 = %1;
-jmp lb23;
-BB3: lb22:
+jmp lb16;
+BB3: lb15:
 %5 = 0;
-jmp lb23;
-BB4: lb23:
+jmp lb16;
+BB4: lb16:
 %4 = %5 as i8;
 %2 = %4;
 cmp %0, 0;
-je lb39;
-jne lb38;
-BB5: lb39:
+je lb26;
+jne lb25;
+BB5: lb26:
 %7 = %1;
-jmp lb40;
-BB6: lb38:
+jmp lb27;
+BB6: lb25:
 %7 = 1;
-jmp lb40;
-BB7: lb40:
+jmp lb27;
+BB7: lb27:
 %6 = %7 as i8;
 %3 = %6;
 send

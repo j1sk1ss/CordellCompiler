@@ -13,25 +13,25 @@ start() {
                 i32s %0 = alloc(8);
                 i32s %1 = alloc(8);
                 i8s %2 = alloc(8);
-                if i32s %0, goto lb21, else goto lb22;
-                lb21:
+                if i32s %0, goto lb14, else goto lb15;
+                lb14:
                 i32t %5 = i32s %1;
-                goto lb23;
-                lb22:
+                goto lb16;
+                lb15:
                 i32t %5 = cnst? 0;
-                goto lb23;
-                lb23:
+                goto lb16;
+                lb16:
                 i8t %4 = i32t %5 as i8;
                 i8s %2 = i8t %4;
                 i8s %3 = alloc(8);
-                if i32s %0, goto lb38, else goto lb39;
-                lb39:
+                if i32s %0, goto lb25, else goto lb26;
+                lb26:
                 i32t %7 = i32s %1;
-                goto lb40;
-                lb38:
+                goto lb27;
+                lb25:
                 i32t %7 = cnst? 1;
-                goto lb40;
-                lb40:
+                goto lb27;
+                lb27:
                 i8t %6 = i32t %7 as i8;
                 i8s %3 = i8t %6;
             }

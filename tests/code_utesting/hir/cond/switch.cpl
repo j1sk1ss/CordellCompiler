@@ -15,46 +15,46 @@ start() {
     start {
         {
             {
-                goto lb10;
-                lb12:
+                goto lb7;
+                lb9:
                 {
                 }
-                lb16:
+                lb13:
                 {
                     // break;
-                    goto lb11;
+                    goto lb8;
                 }
-                lb22:
+                lb17:
                 {
                 }
-                goto lb11;
-                lb10:
+                goto lb8;
+                lb7:
                 i64t %1 = i8n 1;
                 i8t %0 = i64t %1 < cnst? 1;
-                if i8t %0, goto lb28, else goto lb29;
-                lb28:
-                goto lb22;
-                lb29:
+                if i8t %0, goto lb23, else goto lb24;
+                lb23:
+                goto lb17;
+                lb24:
                 i64t %3 = i8n 1;
                 i8t %2 = i64t %3 > cnst? 1;
-                if i8t %2, goto lb30, else goto lb31;
-                lb30:
+                if i8t %2, goto lb25, else goto lb26;
+                lb25:
                 i64t %5 = i8n 1;
                 i8t %4 = i64t %5 < cnst? 2;
-                if i8t %4, goto lb38, else goto lb39;
-                lb38:
-                goto lb22;
-                lb39:
+                if i8t %4, goto lb33, else goto lb34;
+                lb33:
+                goto lb17;
+                lb34:
                 i64t %7 = i8n 1;
                 i8t %6 = i64t %7 > cnst? 2;
-                if i8t %6, goto lb40, else goto lb41;
-                lb40:
-                goto lb22;
-                lb41:
-                goto lb16;
-                lb31:
-                goto lb12;
-                lb11:
+                if i8t %6, goto lb35, else goto lb36;
+                lb35:
+                goto lb17;
+                lb36:
+                goto lb13;
+                lb26:
+                goto lb9;
+                lb8:
             }
         }
     }

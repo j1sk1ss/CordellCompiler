@@ -14,45 +14,45 @@ start() {
     start {
         {
             {
-                goto lb10;
-                lb28:
+                goto lb8;
+                lb20:
                 {
                     exit i8n 3;
                 }
-                goto lb11;
-                lb36:
+                goto lb9;
+                lb25:
                 {
                     exit i8n 4;
                 }
-                goto lb11;
-                goto lb11;
-                lb10:
+                goto lb9;
+                goto lb9;
+                lb8:
                 i64t %1 = i8n 1;
                 i8t %0 = i64t %1 == cnst? 1;
-                if i8t %0, goto lb12, else goto lb46;
-                lb46:
+                if i8t %0, goto lb10, else goto lb32;
+                lb32:
                 i64t %3 = i8n 1;
                 i8t %2 = i64t %3 == cnst? 2;
-                if i8t %2, goto lb20, else goto lb50;
-                lb50:
+                if i8t %2, goto lb15, else goto lb36;
+                lb36:
                 i64t %5 = i8n 1;
                 i8t %4 = i64t %5 == cnst? 3;
-                if i8t %4, goto lb28, else goto lb54;
-                lb54:
-                goto lb36;
-                lb11:
+                if i8t %4, goto lb20, else goto lb40;
+                lb40:
+                goto lb25;
+                lb9:
             }
             exit cnst? 0;
-            lb12:
+            lb10:
             {
                 exit i8n 1;
             }
-            goto lb11;
-            lb20:
+            goto lb9;
+            lb15:
             {
                 exit i8n 2;
             }
-            goto lb11;
+            goto lb9;
         }
     }
 }

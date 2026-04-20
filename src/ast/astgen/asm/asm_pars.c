@@ -12,7 +12,7 @@ ast_node_t* cpl_parse_asm(PARSER_ARGS) {
     }
     
     if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BRACKET_TOKEN' token while the parse of the '%s' statement!", ASM_COMMAND);
+        PARSE_ERROR("Expected the 'OPEN_BRACKET_TOKEN' token while parse of the '%s' statement!", ASM_COMMAND);
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -38,7 +38,7 @@ ast_node_t* cpl_parse_asm(PARSER_ARGS) {
     }
 
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token while the parse of the '%s' statement!", ASM_COMMAND);
+        PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token while parse of the '%s' statement!", ASM_COMMAND);
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;

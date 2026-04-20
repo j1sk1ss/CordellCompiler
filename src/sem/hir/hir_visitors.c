@@ -426,8 +426,8 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     if (!TRACE_is_empty(&trace)) {
         TRACE_add_location(
             &trace, &ctx->curr_location, 
-            "Syscall with number %i has some wrong typed arguments! It can lead to UB, consider to cast them:", 
-            di.const_value
+            "Syscall (%s, %s) with number %i has some wrong typed arguments! It can lead to UB, consider to cast them:", 
+            syscall.name, syscall.description, di.const_value
         );
     }
 

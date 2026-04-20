@@ -12,74 +12,70 @@ start() {
 :/ OUTPUT
 setpos, line=2, column=86, file={X}
 {
-setpos, line=1, column=7, file={X}
-setpos, line=1, column=7, file={X}
+setpos, line=1, column=7, file={X}cpl
     start {
         {
-setpos, line=2, column=12, file={X}
+setpos, line=2, column=12, file={X}cpl
             {
-setpos, line=2, column=12, file={X}
-setpos, line=2, column=12, file={X}
-                goto lb10;
-                lb12:
-setpos, line=3, column=24, file={X}
+                goto lb7;
+                lb9:
+setpos, line=3, column=24, file={X}cpl
                 {
                 }
-                lb16:
-setpos, line=4, column=24, file={X}
+                lb13:
+setpos, line=4, column=24, file={X}cpl
                 {
                 }
-                lb20:
-setpos, line=5, column=24, file={X}
+                lb17:
+setpos, line=5, column=24, file={X}cpl
                 {
                 }
-                lb24:
-setpos, line=6, column=22, file={X}
+                lb21:
+setpos, line=6, column=22, file={X}cpl
                 {
                 }
-                goto lb11;
-                lb10:
-setpos, line=2, column=15, file={X}
+                goto lb8;
+                lb7:
+setpos, line=2, column=15, file={X}cpl
                 i64t %1 = i8n 1;
                 i8t %0 = i64t %1 < cnst? 2;
-                if i8t %0, goto lb30, else goto lb31;
-                lb30:
+                if i8t %0, goto lb27, else goto lb28;
+                lb27:
                 i64t %3 = i8n 1;
                 i8t %2 = i64t %3 < cnst? 1;
-                if i8t %2, goto lb37, else goto lb38;
-                lb37:
-                goto lb24;
-                lb38:
+                if i8t %2, goto lb34, else goto lb35;
+                lb34:
+                goto lb21;
+                lb35:
                 i64t %5 = i8n 1;
                 i8t %4 = i64t %5 > cnst? 1;
-                if i8t %4, goto lb39, else goto lb40;
-                lb39:
-                goto lb24;
-                lb40:
-                goto lb12;
-                lb31:
+                if i8t %4, goto lb36, else goto lb37;
+                lb36:
+                goto lb21;
+                lb37:
+                goto lb9;
+                lb28:
                 i64t %7 = i8n 1;
                 i8t %6 = i64t %7 > cnst? 2;
-                if i8t %6, goto lb32, else goto lb33;
-                lb32:
+                if i8t %6, goto lb29, else goto lb30;
+                lb29:
                 i64t %9 = i8n 1;
                 i8t %8 = i64t %9 < cnst? 3;
-                if i8t %8, goto lb50, else goto lb51;
-                lb50:
-                goto lb24;
-                lb51:
+                if i8t %8, goto lb47, else goto lb48;
+                lb47:
+                goto lb21;
+                lb48:
                 i64t %11 = i8n 1;
                 i8t %10 = i64t %11 > cnst? 3;
-                if i8t %10, goto lb52, else goto lb53;
-                lb52:
-                goto lb24;
-                lb53:
-                goto lb20;
-                lb33:
-                goto lb16;
-                lb11:
-setpos, line=9, column=10, file={X}
-setpos, line=9, column=13, file={X}
+                if i8t %10, goto lb49, else goto lb50;
+                lb49:
+                goto lb21;
+                lb50:
+                goto lb17;
+                lb30:
+                goto lb13;
+                lb8:
+setpos, line=9, column=10, file={X}cpl
                 exit i8n 1;
             }
         }

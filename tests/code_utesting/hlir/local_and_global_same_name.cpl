@@ -35,8 +35,8 @@ stparam($71);
 call putc0(i8 c) -> i0;
 fend
 BB7: fn bar2() -> i0
-jmp lb47;
-BB8: lb47:
+jmp lb34;
+BB8: lb34:
 call foo3() -> i0;
 fend
 BB9: fn foo3() -> i0

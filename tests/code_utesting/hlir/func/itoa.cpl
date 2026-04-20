@@ -35,22 +35,22 @@ BB2: fn itoa0(i32 num, i8* buffer, i32 blen) -> i0
 %2 = ldparam();
 %7 = !%0;
 cmp %7, 0;
-je lb21;
-jne lb19;
-BB3: lb19:
+je lb18;
+jne lb16;
+BB3: lb16:
 *(%1) = $48;
 return ;
-BB4: lb21:
+BB4: lb18:
 %8 = $0 as i32;
 %3 = %8;
 %4 = arr_alloc($32);
-BB5: lb51:
+BB5: lb37:
 %9 = $0 as i32;
 %10 = %0 > %9;
 cmp %10, 0;
-je lb53;
-jne lb52;
-BB6: lb52:
+je lb39;
+jne lb38;
+BB6: lb38:
 %13 = $10 as i32;
 %12 = %0 % %13;
 %11 = %12 as i8;
@@ -66,28 +66,28 @@ BB6: lb52:
 %22 = $1 as i32;
 %21 = %3 + %22;
 %3 = %21;
-jmp lb51;
-BB7: lb53:
+jmp lb37;
+BB7: lb39:
 %23 = $0 as i32;
 %5 = %23;
-BB8: lb117:
+BB8: lb79:
 %25 = $0 as i32;
 %24 = %3 > %25;
 cmp %24, 0;
-je lb129;
-jne lb128;
-BB9: lb128:
+je lb87;
+jne lb86;
+BB9: lb86:
 %26 = %5 < %2;
 %27 = %26;
-jmp lb130;
-BB10: lb129:
+jmp lb88;
+BB10: lb87:
 %27 = 0;
-jmp lb130;
-BB11: lb130:
+jmp lb88;
+BB11: lb88:
 cmp %27, 0;
-je lb119;
-jne lb118;
-BB12: lb118:
+je lb81;
+jne lb80;
+BB12: lb80:
 %28 = &(%4);
 %29 = %3 * 1;
 %31 = %29 as u64;
@@ -104,8 +104,8 @@ BB12: lb118:
 %40 = $1 as i32;
 %39 = %3 - %40;
 %3 = %39;
-jmp lb117;
-BB13: lb119:
+jmp lb79;
+BB13: lb81:
 fend
 BB14: start
 %41 = &(%6);

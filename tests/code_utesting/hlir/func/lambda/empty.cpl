@@ -4,8 +4,8 @@ start() {
 
 :/ OUTPUT
 BB2: start
-jmp lb16;
-BB3: lb16:
+jmp lb9;
+BB3: lb9:
 %2 = &(__anon_function_lambda1());
 call %2;
 %3 = fret();

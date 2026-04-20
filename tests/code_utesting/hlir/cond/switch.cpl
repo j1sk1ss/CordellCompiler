@@ -12,47 +12,47 @@ start() {
 
 :/ OUTPUT
 BB1: start
-jmp lb10;
-BB2: lb12:
-BB3: lb16:
-jmp lb11;
+jmp lb7;
+BB2: lb9:
+BB3: lb13:
+jmp lb8;
 BB4:
-BB5: lb22:
-jmp lb11;
-BB6: lb10:
+BB5: lb17:
+jmp lb8;
+BB6: lb7:
 %1 = $1;
 %0 = %1 < 1;
 cmp %0, 0;
-je lb29;
-jne lb28;
-BB7: lb28:
-jmp lb22;
-BB8: lb29:
+je lb24;
+jne lb23;
+BB7: lb23:
+jmp lb17;
+BB8: lb24:
 %3 = $1;
 %2 = %3 > 1;
 cmp %2, 0;
-je lb31;
-jne lb30;
-BB9: lb30:
+je lb26;
+jne lb25;
+BB9: lb25:
 %5 = $1;
 %4 = %5 < 2;
 cmp %4, 0;
-je lb39;
-jne lb38;
-BB10: lb38:
-jmp lb22;
-BB11: lb39:
+je lb34;
+jne lb33;
+BB10: lb33:
+jmp lb17;
+BB11: lb34:
 %7 = $1;
 %6 = %7 > 2;
 cmp %6, 0;
-je lb41;
-jne lb40;
-BB12: lb40:
-jmp lb22;
-BB13: lb41:
-jmp lb16;
-BB14: lb31:
-jmp lb12;
-BB15: lb11:
+je lb36;
+jne lb35;
+BB12: lb35:
+jmp lb17;
+BB13: lb36:
+jmp lb13;
+BB14: lb26:
+jmp lb9;
+BB15: lb8:
 send
 /:

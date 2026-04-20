@@ -41,10 +41,10 @@ start(i32 a, ptr ptr i8 answers) {
             i32s %1 = alloc(8);
             i32t %7 = i8n 0 as i32;
             i32s %1 = i32t %7;
-            lb21:
+            lb15:
             i8t %8 = *(i8s* %0);
-            if i8t %8, goto lb22, else goto lb23;
-            lb22:
+            if i8t %8, goto lb16, else goto lb17;
+            lb16:
             {
                 i32t %9 = i8n 1 as i32;
                 i32t %10 = i32s %1 + i32t %9;
@@ -53,8 +53,8 @@ start(i32 a, ptr ptr i8 answers) {
                 i8t* %12 = i8s* %0 + i8t* %11;
                 i8s* %0 = i8t* %12;
             }
-            goto lb21;
-            lb23:
+            goto lb15;
+            lb17:
             return i32s %1;
         }
     }
@@ -65,30 +65,30 @@ start(i32 a, ptr ptr i8 answers) {
         i8s* %3 = alloc(8);
         i8s* %3 = load_arg();
         {
-            lb69:
+            lb49:
             i8t %13 = *(i8s* %2);
-            if i8t %13, goto lb77, else goto lb78;
-            lb77:
+            if i8t %13, goto lb54, else goto lb55;
+            lb54:
             i8t %14 = *(i8s* %3);
             i8t %15 = i8t %14;
-            goto lb79;
-            lb78:
+            goto lb56;
+            lb55:
             i8t %15 = cnst? 0;
-            goto lb79;
-            lb79:
-            if i8t %15, goto lb70, else goto lb71;
-            lb70:
+            goto lb56;
+            lb56:
+            if i8t %15, goto lb50, else goto lb51;
+            lb50:
             {
                 i8t %16 = *(i8s* %2);
                 i8t %17 = *(i8s* %3);
                 i8t %18 = i8t %16 != i8t %17;
-                if i8t %18, goto lb89, else goto lb91;
-                lb89:
+                if i8t %18, goto lb63, else goto lb65;
+                lb63:
                 {
                     return i8n 0;
                 }
-                goto lb91;
-                lb91:
+                goto lb65;
+                lb65:
                 i8t* %20 = i8n 1 as *ptr;
                 i8t* %19 = i8s* %2 + i8t* %20;
                 i8s* %2 = i8t* %19;
@@ -96,8 +96,8 @@ start(i32 a, ptr ptr i8 answers) {
                 i8t* %21 = i8s* %3 + i8t* %22;
                 i8s* %3 = i8t* %21;
             }
-            goto lb69;
-            lb71:
+            goto lb49;
+            lb51:
             i8t %23 = *(i8s* %2);
             i8t %24 = *(i8s* %3);
             i8t %25 = i8t %23 == i8t %24;
@@ -150,24 +150,24 @@ start(i32 a, ptr ptr i8 answers) {
                 use max;
                 i8t %40 = call strcmp1(i8* a, i8* b) -> i8, argc args(i8t* %39,max,);
                 i8t %41 = not i8t %40;
-                if i8t %41, goto lb220, else goto lb221;
-                lb220:
+                if i8t %41, goto lb157, else goto lb158;
+                lb157:
                 {
                     i64t* %42 = &(Wrong!
 );
                     use i64t* %42;
                     call print2(i8* msg) -> i0, argc args(i64t* %42,);
                 }
-                goto lb222;
-                lb221:
+                goto lb159;
+                lb158:
                 {
                     i64t* %43 = &(Correct!
 );
                     use i64t* %43;
                     call print2(i8* msg) -> i0, argc args(i64t* %43,);
                 }
-                goto lb222;
-                lb222:
+                goto lb159;
+                lb159:
             }
         }
     }

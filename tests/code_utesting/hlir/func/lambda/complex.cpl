@@ -9,8 +9,8 @@ start() {
 
 :/ OUTPUT
 BB2: start
-jmp lb14;
-BB3: lb14:
+jmp lb10;
+BB3: lb10:
 %4 = &(__anon_function_lambda1(i32 a));
 stparam($10);
 call %4;
@@ -20,16 +20,16 @@ exit %1;
 BB4:
 BB5: fn __anon_function_lambda1(i32 a)
 %0 = ldparam();
-BB6: lb24:
+BB6: lb18:
 cmp %0, 0;
-je lb26;
-jne lb25;
-BB7: lb25:
+je lb20;
+jne lb19;
+BB7: lb19:
 %2 = $1 as i32;
 %3 = %0 - %2;
 %0 = %3;
-jmp lb24;
-BB8: lb26:
+jmp lb18;
+BB8: lb20:
 return $0;
 BB9:
 /:

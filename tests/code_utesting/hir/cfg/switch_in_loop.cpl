@@ -48,12 +48,12 @@ digraph CFG_func0 {
   node [shape=box, fontname="monospace"];
   B4 [label="B4:\nentry=FDCL-1\nexit=HIR_SETPOS\nHEAD\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
   B4 -> B5 [label="fall"];
-  B5 [label="B5:\nentry=MKLB21\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
+  B5 [label="B5:\nentry=MKLB15\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
   B5 -> B6 [label="fall"];
   B5 -> B7 [label="jump"];
-  B6 [label="B6:\nentry=MKLB22\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B6 [label="B6:\nentry=MKLB16\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B6 -> B5 [label="jump"];
-  B7 [label="B7:\nentry=MKLB23\nexit=FRET\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B7 [label="B7:\nentry=MKLB17\nexit=FRET\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B8 [label="B8:\nentry=FEND-1\nexit=FEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
 digraph CFG_func1 {
@@ -71,27 +71,27 @@ digraph CFG_func3 {
   node [shape=box, fontname="monospace"];
   B11 [label="B11:\nentry=STRT-1\nexit=HIR_SETPOS\nHEAD\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
   B11 -> B12 [label="fall"];
-  B12 [label="B12:\nentry=MKLB174\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
+  B12 [label="B12:\nentry=MKLB121\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
   B12 -> B13 [label="fall"];
   B12 -> B21 [label="jump"];
-  B13 [label="B13:\nentry=MKLB175\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B13 [label="B13:\nentry=MKLB122\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B13 -> B17 [label="jump"];
-  B14 [label="B14:\nentry=MKLB188\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B14 [label="B14:\nentry=MKLB131\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B14 -> B20 [label="jump"];
-  B15 [label="B15:\nentry=MKLB202\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B15 [label="B15:\nentry=MKLB140\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B15 -> B20 [label="jump"];
   B16 [label="B16:\nentry=JMP-1\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
-  B17 [label="B17:\nentry=MKLB186\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B17 [label="B17:\nentry=MKLB129\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B17 -> B14 [label="fall"];
   B17 -> B18 [label="jump"];
-  B18 [label="B18:\nentry=MKLB236\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B18 [label="B18:\nentry=MKLB165\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B18 -> B15 [label="fall"];
   B18 -> B19 [label="jump"];
-  B19 [label="B19:\nentry=MKLB240\nexit=MKLB\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B19 [label="B19:\nentry=MKLB169\nexit=MKLB\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B19 -> B20 [label="fall"];
-  B20 [label="B20:\nentry=MKLB187\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=3"];
+  B20 [label="B20:\nentry=MKLB130\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=3"];
   B20 -> B12 [label="jump"];
-  B21 [label="B21:\nentry=MKLB176\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B21 [label="B21:\nentry=MKLB123\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B22 [label="B22:\nentry=HIR_STEND-1\nexit=HIR_STEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
 /:
