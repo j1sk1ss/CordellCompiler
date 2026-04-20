@@ -20,26 +20,26 @@ cmp %6, %2;
 sete al;
 %1 = al;
 cmp %1, 0;
-je lb14;
-jne lb13;
-BB2: lb13:
+je lb11;
+jne lb10;
+BB2: lb10:
 %7 = $1;
 return %7;
-BB3: lb14:
+BB3: lb11:
 %4 = $2;
 %8 = %0;
 cmp %8, %4;
 sete al;
 %3 = al;
 cmp %3, 0;
-je lb33;
-jne lb32;
-BB4: lb32:
+je lb24;
+jne lb23;
+BB4: lb23:
 %9 = $2;
 return %9;
-BB5: lb33:
+BB5: lb24:
 %10 = $3;
 return %10;
-BB6: lb34:
-BB7: lb15:
+BB6: lb25:
+BB7: lb12:
 /:

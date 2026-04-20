@@ -23,8 +23,10 @@ int is_sign_type(lir_subject_t* s, sym_table_t* smt) {
     variable_info_t vi;
     if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 1;
     switch (vi.type) {
-        case U64_TYPE_TOKEN: case U32_TYPE_TOKEN:
-        case U16_TYPE_TOKEN: case U8_TYPE_TOKEN: return 0;
+        case TMP_U64_TYPE_TOKEN: case TMP_U32_TYPE_TOKEN:
+        case TMP_U16_TYPE_TOKEN: case TMP_U8_TYPE_TOKEN:
+        case U64_TYPE_TOKEN:     case U32_TYPE_TOKEN:
+        case U16_TYPE_TOKEN:     case U8_TYPE_TOKEN: return 0;
         default: return 1;
     }
 }

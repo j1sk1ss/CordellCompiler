@@ -18,7 +18,7 @@ function baz() {
             i64t %5 = i64t %4;
             goto lb19;
             lb17:
-            i64t %5 = cnst? 1;
+            i64t %5 = csu8 1;
             goto lb19;
             lb19:
             i32t %2 = i64t %5 as i32;
@@ -31,7 +31,7 @@ function baz() {
             i64t %9 = i64t %8;
             goto lb34;
             lb33:
-            i64t %9 = cnst? 0;
+            i64t %9 = csu8 0;
             goto lb34;
             lb34:
             i32t %6 = i64t %9 as i32;

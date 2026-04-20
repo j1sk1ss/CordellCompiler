@@ -19,15 +19,15 @@ cmp rax, rdx;
 sete al;
 rcx movsx al;
 cmp rcx, 0;
-je lb23;
-jne lb21;
-BB2: lb21:
+je lb16;
+jne lb14;
+BB2: lb14:
 rcx = &([rbp - 8]);
 rcx = rcx;
 rcx = rcx;
 kill(9);
-jmp lb23;
-BB3: lb23:
+jmp lb16;
+BB3: lb16:
 rcx = $1;
 %16 = rcx;
 [rbp - 8] = %16;

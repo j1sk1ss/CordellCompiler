@@ -58,9 +58,10 @@ long HIR_hash_subject(hir_subject_t* s) {
             break;
         }
 
-        case HIR_CONSTVAL:
-            h ^= _mix64(s->storage.cnst.value);
-        break;
+        case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
+        case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
+        case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL: h ^= _mix64(s->storage.cnst.value); break;
 
         case HIR_FNAME:
         case HIR_RAWASM:
@@ -109,7 +110,18 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER: if (strval) subj->storage.num.value = strval->copy(strval); break;
-        case HIR_CONSTVAL: subj->storage.cnst.value = intval; break;
+        case HIR_CONSTVAL: {
+            if (intval <= CHAR_MAX)       subj->t = HIR_I8CONSTVAL;
+            else if (intval <= UCHAR_MAX) subj->t = HIR_U8CONSTVAL;
+            else if (intval <= SHRT_MAX)  subj->t = HIR_I16CONSTVAL;
+            else if (intval <= USHRT_MAX) subj->t = HIR_U16CONSTVAL;
+            else if (intval <= INT_MAX)   subj->t = HIR_I32CONSTVAL;
+            else if (intval <= UINT_MAX)  subj->t = HIR_U32CONSTVAL;
+            else if (intval <= LONG_MAX)  subj->t = HIR_I64CONSTVAL;
+            else                          subj->t = HIR_U64CONSTVAL;
+            subj->storage.cnst.value = intval;
+            break;
+        }
         case HIR_FNAME:
         case HIR_RAWASM:
         case HIR_STRING: subj->storage.str.s_id = v_id; break;
@@ -164,8 +176,12 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
         case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
         case HIR_GLBVARI0:
-        case HIR_CONSTVAL:  case HIR_FNAME:     case HIR_RAWASM:
-        case HIR_STRING:    case HIR_FPOS:
+        case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
+        case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
+        case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL:
+        case HIR_FNAME:       case HIR_RAWASM:
+        case HIR_STRING:      case HIR_FPOS:
             str_memcpy(&ns->storage, &s->storage, sizeof(s->storage));
         break;
         default: break;

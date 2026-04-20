@@ -73,7 +73,7 @@ start(i32 a, ptr ptr i8 answers) {
             i8t %15 = i8t %14;
             goto lb56;
             lb55:
-            i8t %15 = cnst? 0;
+            i8t %15 = csu8 0;
             goto lb56;
             lb56:
             if i8t %15, goto lb50, else goto lb51;
@@ -131,8 +131,8 @@ start(i32 a, ptr ptr i8 answers) {
                 use i64t* %28;
                 call print2(i8* msg) -> i0, argc args(i64t* %28,);
                 i8t** %29 = i8s** %6;
-                i64t %30 = i8n 1 * cnst? 8;
-                i8t** %32 = i64t %30 as *ptr;
+                i8t %30 = i8n 1 * csu8 8;
+                i8t** %32 = i8t %30 as *ptr;
                 i8t** %31 = i8t** %29 + i8t** %32;
                 i8t* %33 = *(i8t** %31);
                 use i8t* %33;
@@ -142,8 +142,8 @@ start(i32 a, ptr ptr i8 answers) {
                 use i64t* %34;
                 call print2(i8* msg) -> i0, argc args(i64t* %34,);
                 i8t** %35 = i8s** %6;
-                i64t %36 = i8n 1 * cnst? 8;
-                i8t** %38 = i64t %36 as *ptr;
+                i8t %36 = i8n 1 * csu8 8;
+                i8t** %38 = i8t %36 as *ptr;
                 i8t** %37 = i8t** %35 + i8t** %38;
                 i8t* %39 = *(i8t** %37);
                 use i8t* %39;

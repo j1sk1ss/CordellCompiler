@@ -21,7 +21,7 @@ function foo() -> i32 {
             lb9:
             return i8n 0;
         }
-        exit cnst? 0;
+        exit csu8 0;
         lb7:
         {
             return i8n 2;

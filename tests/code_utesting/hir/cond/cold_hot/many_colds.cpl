@@ -48,7 +48,7 @@ start() {
                 goto lb35;
                 lb35:
             }
-            exit cnst? 0;
+            exit csu8 0;
             lb7:
             {
                 exit i8n 1;

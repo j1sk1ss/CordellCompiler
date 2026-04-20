@@ -5,9 +5,9 @@ start() {
 
 :/ OUTPUT
 BB1: start
-BB2: lb10:
-jmp lb11;
-BB3: lb11:
-jmp lb10;
-BB4: lb12:
+BB2: lb7:
+jmp lb8;
+BB3: lb8:
+jmp lb7;
+BB4: lb9:
 /:

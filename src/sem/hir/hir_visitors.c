@@ -288,7 +288,11 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
         case HIR_TMPVARI0:
         case HIR_GLBVARI0:   buffer += snprintf(buffer, buffer_size, "i0");  break;
         case HIR_NUMBER:     buffer += snprintf(buffer, buffer_size, "num"); break;
-        case HIR_CONSTVAL:   buffer += snprintf(buffer, buffer_size, "cnt"); break;
+        case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
+        case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
+        case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL:
+            buffer += snprintf(buffer, buffer_size, "cnt"); break;
         default: break;
     }
 

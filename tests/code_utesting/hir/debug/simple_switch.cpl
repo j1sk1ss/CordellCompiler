@@ -37,37 +37,40 @@ setpos, line=6, column=22, file={X}cpl
                 goto lb8;
                 lb7:
 setpos, line=2, column=15, file={X}cpl
-                i64t %1 = i8n 1;
-                i8t %0 = i64t %1 < cnst? 2;
-                if i8t %0, goto lb27, else goto lb28;
+                i64t %0 = csu8 2 as i64;
+                i64t %2 = i8n 1 as i64;
+                i8t %1 = i64t %2 < i64t %0;
+                if i8t %1, goto lb27, else goto lb28;
                 lb27:
-                i64t %3 = i8n 1;
-                i8t %2 = i64t %3 < cnst? 1;
-                if i8t %2, goto lb34, else goto lb35;
-                lb34:
-                goto lb21;
+                i64t %3 = csu8 1 as i64;
+                i64t %5 = i8n 1 as i64;
+                i8t %4 = i64t %5 < i64t %3;
+                if i8t %4, goto lb35, else goto lb36;
                 lb35:
-                i64t %5 = i8n 1;
-                i8t %4 = i64t %5 > cnst? 1;
-                if i8t %4, goto lb36, else goto lb37;
-                lb36:
                 goto lb21;
+                lb36:
+                i64t %7 = i8n 1 as i64;
+                i8t %6 = i64t %7 > i64t %3;
+                if i8t %6, goto lb37, else goto lb38;
                 lb37:
+                goto lb21;
+                lb38:
                 goto lb9;
                 lb28:
-                i64t %7 = i8n 1;
-                i8t %6 = i64t %7 > cnst? 2;
-                if i8t %6, goto lb29, else goto lb30;
+                i64t %9 = i8n 1 as i64;
+                i8t %8 = i64t %9 > i64t %0;
+                if i8t %8, goto lb29, else goto lb30;
                 lb29:
-                i64t %9 = i8n 1;
-                i8t %8 = i64t %9 < cnst? 3;
-                if i8t %8, goto lb47, else goto lb48;
+                i64t %10 = csu8 3 as i64;
+                i64t %12 = i8n 1 as i64;
+                i8t %11 = i64t %12 < i64t %10;
+                if i8t %11, goto lb47, else goto lb48;
                 lb47:
                 goto lb21;
                 lb48:
-                i64t %11 = i8n 1;
-                i8t %10 = i64t %11 > cnst? 3;
-                if i8t %10, goto lb49, else goto lb50;
+                i64t %14 = i8n 1 as i64;
+                i8t %13 = i64t %14 > i64t %10;
+                if i8t %13, goto lb49, else goto lb50;
                 lb49:
                 goto lb21;
                 lb50:

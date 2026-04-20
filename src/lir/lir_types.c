@@ -133,6 +133,8 @@ int LIR_is_writeop(lir_operation_t op) {
         case LIR_bSHL:
         case LIR_bSHR:
         case LIR_bSAR:
+        case LIR_bAND:
+        case LIR_bOR:
         case LIR_fADD: 
         case LIR_fSUB: 
         case LIR_fMUL: 

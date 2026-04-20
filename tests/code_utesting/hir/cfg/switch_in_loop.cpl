@@ -87,7 +87,7 @@ digraph CFG_func3 {
   B18 [label="B18:\nentry=MKLB165\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B18 -> B15 [label="fall"];
   B18 -> B19 [label="jump"];
-  B19 [label="B19:\nentry=MKLB169\nexit=MKLB\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B19 [label="B19:\nentry=MKLB170\nexit=MKLB\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B19 -> B20 [label="fall"];
   B20 [label="B20:\nentry=MKLB130\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=3"];
   B20 -> B12 [label="jump"];

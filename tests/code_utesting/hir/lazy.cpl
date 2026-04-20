@@ -18,7 +18,7 @@ start() {
                 i32t %5 = i32s %1;
                 goto lb16;
                 lb15:
-                i32t %5 = cnst? 0;
+                i32t %5 = csu8 0;
                 goto lb16;
                 lb16:
                 i8t %4 = i32t %5 as i8;
@@ -29,7 +29,7 @@ start() {
                 i32t %7 = i32s %1;
                 goto lb27;
                 lb25:
-                i32t %7 = cnst? 1;
+                i32t %7 = csu8 1;
                 goto lb27;
                 lb27:
                 i8t %6 = i32t %7 as i8;

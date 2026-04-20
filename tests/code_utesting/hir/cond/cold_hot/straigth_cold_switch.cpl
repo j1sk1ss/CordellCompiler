@@ -27,22 +27,25 @@ start() {
                 goto lb9;
                 goto lb9;
                 lb8:
-                i64t %1 = i8n 1;
-                i8t %0 = i64t %1 == cnst? 1;
+                i64t %1 = csu8 1 as i64;
+                i64t %2 = i8n 1 as i64;
+                i8t %0 = i64t %2 == i64t %1;
                 if i8t %0, goto lb10, else goto lb32;
                 lb32:
-                i64t %3 = i8n 1;
-                i8t %2 = i64t %3 == cnst? 2;
-                if i8t %2, goto lb15, else goto lb36;
-                lb36:
-                i64t %5 = i8n 1;
-                i8t %4 = i64t %5 == cnst? 3;
-                if i8t %4, goto lb20, else goto lb40;
-                lb40:
+                i64t %4 = csu8 2 as i64;
+                i64t %5 = i8n 1 as i64;
+                i8t %3 = i64t %5 == i64t %4;
+                if i8t %3, goto lb15, else goto lb37;
+                lb37:
+                i64t %7 = csu8 3 as i64;
+                i64t %8 = i8n 1 as i64;
+                i8t %6 = i64t %8 == i64t %7;
+                if i8t %6, goto lb20, else goto lb42;
+                lb42:
                 goto lb25;
                 lb9:
             }
-            exit cnst? 0;
+            exit csu8 0;
             lb10:
             {
                 exit i8n 1;

@@ -9,7 +9,11 @@ static lir_subject_t* _convert_hs_to_ls(hir_subject_t* subj) {
         case HIR_I16NUMBER: case HIR_U16NUMBER: return LIR_SUBJ_NUMBER(subj->storage.num.value, 0, CONF_get_quart_bytness());
         case HIR_I8NUMBER:  case HIR_U8NUMBER:  return LIR_SUBJ_NUMBER(subj->storage.num.value, 0, CONF_get_eight_bytness());
 
-        case HIR_CONSTVAL: return LIR_SUBJ_CONST(subj->storage.cnst.value);
+        case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
+        case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
+        case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL:
+            return LIR_SUBJ_CONST(subj->storage.cnst.value);
         case HIR_RAWASM:   return LIR_SUBJ_RAWASM(subj->storage.str.s_id);
         case HIR_STRING:   return LIR_SUBJ_STRING(subj->storage.str.s_id);
         case HIR_FNAME:    return LIR_SUBJ_ADDRFUNC(subj);

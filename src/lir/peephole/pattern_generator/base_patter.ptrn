@@ -1,21 +1,27 @@
 ; ==================
-; MOV patterns
+; MOV and copy propagation
 ; ==================
 
-mov obj_1, obj_2 [if:equals]          ; Redundant move between two equals objects
+mov obj_1, obj_2 [if:equals]
 ->
 delete
 /
 
-mov areg_1, const 0                   ; 'xor' according to documentation is
-->                                    ; faster than 'mov'
+mov areg_1, const 0
+->
 xor areg_1, areg_1
 /
 
-mov areg_1, obj_2                     ; Redundant move operation
-mov obj_2, areg_1                     ; areg_2 already has areg_1 value
+mov areg_1, obj_2
+mov obj_2, areg_1
 ->
 mov areg_1, obj_2
+/
+
+mov areg_1, areg_2
+cmp areg_1, obj_3
+->
+cmp areg_2, obj_3
 /
 
 xor areg_1, areg_1
@@ -25,79 +31,30 @@ xor areg_1, areg_1
 xor areg_2, areg_2
 /
 
+mov areg_1, const 0
+cmp areg_1, const 0
+->
+xor areg_1, areg_1
+/
+
+mov areg_1, const 0
+test areg_1, areg_1
+->
+xor areg_1, areg_1
+/
+
 ; ==================
-; DIV and MUL patterns
+; Arithmetic identities
 ; ==================
 
-div obj, const 1
+add obj, const 0
 ->
 delete
 /
 
-div areg_1, aconst_2 [if:arg3:power2]
-->
-shr areg_1, aconst_2 [do:arg3:log2]
-/
-
-mul obj, const 0                      ; X * 0 = 0
-->                                    ; Note: xor isn't suited in this case
-mov obj, const 0                      ; due to possibility of non-register in obj variable
-/
-
-mul obj, const 1                      ; X * 1 = X
+sub obj, const 0
 ->
 delete
-/
-
-mul areg_1, aconst_2 [if:arg3:power2]
-->
-shl areg_1, aconst_2 [do:arg3:log2]
-/
-
-mul areg_1, const -1
-->
-neg areg_1
-/
-
-; ==================
-; ADD patterns
-; ==================
-
-add obj, const 0                      ; X + 0 = X
-->
-delete
-/
-
-add areg_1, const 1
-->
-inc areg
-/
-
-add areg_1, areg_2 [if:equals]
-->
-shl areg_1, const 1
-/
-
-; ==================
-; SUB patterns
-; ==================
-
-mov areg_1, areg_2
-dec areg_1
-mov areg_2, areg_1
-->
-dec areg_2
-mov areg_1, areg_2
-/
-
-sub obj, const 0                      ; X - 0 = X
-->
-delete
-/
-
-sub areg_1, const 1
-->
-dec areg
 /
 
 sub areg_1, areg_1
@@ -105,23 +62,54 @@ sub areg_1, areg_1
 xor areg_1, areg_1
 /
 
-; ==================
-; CMP patterns
-; ==================
-
-mov areg_1, areg_2
-cmp areg_1, obj_3
+mul obj, const 0
 ->
-cmp areg_2, obj_3
+mov obj, const 0
 /
+
+mul obj, const 1
+->
+delete
+/
+
+div obj, const 1
+->
+delete
+/
+
+; ==================
+; Compare / test canonicalization
+; ==================
 
 cmp areg_1, const 0
 ->
 test areg_1, areg_1
 /
 
+or areg_1, areg_1
+->
+test areg_1, areg_1
+/
+
+and areg_1, areg_1
+->
+test areg_1, areg_1
+/
+
+xor areg_1, areg_1
+cmp areg_1, const 0
+->
+xor areg_1, areg_1
+/
+
+xor areg_1, areg_1
+test areg_1, areg_1
+->
+xor areg_1, areg_1
+/
+
 ; ==================
-; Logic patterns
+; Bitwise / shift simplifications
 ; ==================
 
 and areg_1, const 0
@@ -129,7 +117,12 @@ and areg_1, const 0
 xor areg_1, areg_1
 /
 
-or areg_1, const 0
+shl obj, const 0
+->
+delete
+/
+
+shr obj, const 0
 ->
 delete
 /
@@ -140,78 +133,8 @@ not areg_1
 delete
 /
 
-; ==================
-; Cleanup patterns
-; ==================
-; Cleaning patterns without any complex logic.
-; Main goal is elemination of all invalid patters.
-
-mov aconst_1, obj
+xor areg_1, areg_1
+xor areg_1, areg_1
 ->
-delete
-/
-
-mul aconst_1, obj
-->
-delete
-/
-
-add aconst_1, obj
-->
-delete
-/
-
-sub aconst_1, obj
-->
-delete
-/
-
-div aconst_1, obj
-->
-delete
-/
-
-cmp aconst_1, obj
-->
-delete
-/
-
-test aconst_1, obj
-->
-delete
-/
-
-lea aconst_1, obj
-->
-delete
-/
-
-cvt aconst_1, obj
-->
-delete
-/
-
-cvtsi2ss aconst_1, obj
-->
-delete
-/
-
-cvtsi2sd aconst_1, obj
-->
-delete
-/
-
-movsx aconst_1, obj
-->
-delete
-/
-
-movzx aconst_1, obj
-->
-delete
-/
-
-movsxd aconst_1, obj
-->
-delete
+xor areg_1, areg_1
 /

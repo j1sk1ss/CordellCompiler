@@ -37,19 +37,19 @@ BB9: lb25:
 %5 = $1;
 %4 = %5 < 2;
 cmp %4, 0;
-je lb34;
-jne lb33;
-BB10: lb33:
+je lb33;
+jne lb32;
+BB10: lb32:
 jmp lb17;
-BB11: lb34:
+BB11: lb33:
 %7 = $1;
 %6 = %7 > 2;
 cmp %6, 0;
-je lb36;
-jne lb35;
-BB12: lb35:
+je lb35;
+jne lb34;
+BB12: lb34:
 jmp lb17;
-BB13: lb36:
+BB13: lb35:
 jmp lb13;
 BB14: lb26:
 jmp lb9;

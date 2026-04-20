@@ -201,6 +201,27 @@ class CodeGenerator:
             result = result.replace(f"%{i}", arg)
         return result
 
+    def _instruction_explicit_var_equalities(self, instr: Instruction, base_ptr: str) -> list[str]:
+        equals_fn = self.gen_info.get("functions", {}).get("equals")
+        if not equals_fn:
+            return []
+
+        equalities: list[str] = []
+        seen: dict[str, str] = {}
+        first_explicit = self._first_explicit_operand_index(instr)
+
+        for i, operand in enumerate(instr.operands):
+            if not operand or i < first_explicit or i >= 3 or not operand.var_name:
+                continue
+
+            ptr = self._arg_ptr(base_ptr, i)
+            if operand.var_name in seen:
+                equalities.append(f"{equals_fn}({seen[operand.var_name]}, {ptr})")
+            else:
+                seen[operand.var_name] = ptr
+
+        return equalities
+
     def _generate_pattern_condition(self, pattern: Pattern) -> str:
         conditions: OrderedSet = OrderedSet()
         if not pattern.match:
@@ -216,6 +237,10 @@ class CodeGenerator:
             conditions.add(self._opcode_condition(instr, base_ptr))
 
             instr_cond = self._generate_instruction_condition(instr, base_ptr)
+            local_equalities = self._instruction_explicit_var_equalities(instr, base_ptr)
+            if local_equalities:
+                local_cond = " &&\n".join(local_equalities)
+                instr_cond = f"{instr_cond} &&\n{local_cond}" if instr_cond != "1" else local_cond
             if instr_cond != "1":
                 conditions.add(f"({instr_cond})")
 

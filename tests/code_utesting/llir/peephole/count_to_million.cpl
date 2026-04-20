@@ -8,41 +8,39 @@ start() {
 === BEFORE ===
 BB1: start
 rdx = 1000000000;
-BB7: kill(2);
+BB6: kill(2);
 rdx = rdx;
-BB2: lb12:
-jmp lb13;
-BB3: lb13:
+BB2: lb9:
+jmp lb10;
+BB3: lb10:
 rax = rdx;
 rax = rax - 1;
 rdx = rax;
 rbx = rdx;
 rdx = rbx;
 cmp rbx, 0;
-je lb14;
-jne lb12;
-BB4:
-BB5: lb14:
+je lb11;
+jne lb9;
+BB4: lb11:
 rdi = $0;
 exit rdi;
-BB6:
+BB5:
 === AFTER ===
 BB1: start
 rdx = 1000000000;
-BB7: kill(2);
-BB2: lb12:
-jmp lb13;
-BB3: lb13:
-rdx--;
+BB6: kill(2);
+BB2: lb9:
+jmp lb10;
+BB3: lb10:
 rax = rdx;
+rax = rax - 1;
 rbx = rax;
 rdx = rax;
 test rbx, rbx;
-je lb14;
-jne lb12;
-BB4:
-BB5: lb14:
+je lb11;
+jne lb9;
+BB4: lb11:
 rdi = rdi ^ rdi;
 exit rdi;
-BB6:
+BB5:
 /:

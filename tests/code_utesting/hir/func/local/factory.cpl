@@ -56,13 +56,14 @@ start() {
             goto lb11;
             lb10:
             i64t %3 = i32s %0 as i64;
-            i8t %4 = i64t %3 < cnst? 1;
-            if i8t %4, goto lb45, else goto lb46;
+            i64t %4 = csu8 1 as i64;
+            i8t %5 = i64t %3 < i64t %4;
+            if i8t %5, goto lb45, else goto lb46;
             lb45:
             goto lb27;
             lb46:
-            i8t %5 = i64t %3 > cnst? 1;
-            if i8t %5, goto lb47, else goto lb48;
+            i8t %6 = i64t %3 > i64t %4;
+            if i8t %6, goto lb47, else goto lb48;
             lb47:
             goto lb27;
             lb48:
@@ -73,12 +74,12 @@ start() {
     start {
         {
             {
-                i32t %7 = i8n 0 as i32;
-                use i32t %7;
-                i0t* %8 = call factory0(i32 k) -> i0*, argc args(i32t %7,);
-                i64t %9 = call i0t* %8, argc args();
-                i8t %6 = i64t %9 as i8;
-                exit i8t %6;
+                i32t %8 = i8n 0 as i32;
+                use i32t %8;
+                i0t* %9 = call factory0(i32 k) -> i0*, argc args(i32t %8,);
+                i64t %10 = call i0t* %9, argc args();
+                i8t %7 = i64t %10 as i8;
+                exit i8t %7;
             }
         }
     }

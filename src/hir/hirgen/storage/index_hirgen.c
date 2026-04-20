@@ -61,8 +61,8 @@ static hir_subject_t* _get_final_head(
     /* The final offset for the base address is the result of the
         expression 'real_offset = offset * element_size' */
     hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(
-        HIR_promote_types(offt->t, HIR_CONSTVAL), 
-        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(offt->t, HIR_CONSTVAL)), NO_SYMBOL_ID, NULL, &smt->v)
+        HIR_promote_types(offt->t, HIR_I8CONSTVAL), 
+        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(offt->t, HIR_I8CONSTVAL)), NO_SYMBOL_ID, NULL, &smt->v)
     );
 
     HIR_BLOCK3(ctx, HIR_iMUL, real_offset, offt, HIR_SUBJ_CONST(_get_pointed_element_size(base, smt)));

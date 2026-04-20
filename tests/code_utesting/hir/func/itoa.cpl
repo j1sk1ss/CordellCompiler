@@ -62,8 +62,8 @@ start() {
                 i8t %11 = i32t %12 as i8;
                 i8t %14 = i8n 48 + i8t %11;
                 i8t* %15 = &(arrs %4);
-                i64t %16 = i32s %3 * cnst? 1;
-                i8t* %18 = i64t %16 as *ptr;
+                i32t %16 = i32s %3 * csu8 1;
+                i8t* %18 = i32t %16 as *ptr;
                 i8t* %17 = i8t* %15 + i8t* %18;
                 *(i8t* %17) = i8t %14;
                 i32t %20 = i8n 10 as i32;
@@ -87,20 +87,20 @@ start() {
             i32t %27 = i32t %26;
             goto lb88;
             lb87:
-            i32t %27 = cnst? 0;
+            i32t %27 = csu8 0;
             goto lb88;
             lb88:
             if i32t %27, goto lb80, else goto lb81;
             lb80:
             {
                 i8t* %28 = &(arrs %4);
-                i64t %29 = i32s %3 * cnst? 1;
-                i8t* %31 = i64t %29 as *ptr;
+                i32t %29 = i32s %3 * csu8 1;
+                i8t* %31 = i32t %29 as *ptr;
                 i8t* %30 = i8t* %28 + i8t* %31;
                 i8t %32 = *(i8t* %30);
                 i8t* %33 = i8s* %1;
-                i64t %34 = i32s %5 * cnst? 1;
-                i8t* %36 = i64t %34 as *ptr;
+                i32t %34 = i32s %5 * csu8 1;
+                i8t* %36 = i32t %34 as *ptr;
                 i8t* %35 = i8t* %33 + i8t* %36;
                 *(i8t* %35) = i8t %32;
                 i32t %38 = i8n 1 as i32;
@@ -120,12 +120,12 @@ start() {
             {
                 i8t* %41 = &(arrg %6);
                 use i8t* %41;
-                i32t %42 = cnst? 32 as i32;
+                i32t %42 = csu8 32 as i32;
                 use i32t %42;
                 call itoa0(i32 num, i8* buffer, i32 blen) -> i0, argc args(i32n 123321,i8t* %41,i32t %42,);
                 i8t* %43 = &(arrg %6);
                 use i8t* %43;
-                syscall, argc: args(i32n 33554436,i8n 1,i8t* %43,cnst? 32,);
+                syscall, argc: args(i32n 33554436,i8n 1,i8t* %43,csu8 32,);
             }
         }
     }

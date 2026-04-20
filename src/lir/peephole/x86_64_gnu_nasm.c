@@ -18,6 +18,10 @@ static int _check_home(lir_block_t* h, lir_subject_t* s) {
     return 0;
 }
 
+static inline int _is_plain_mov(lir_operation_t op) {
+    return op == LIR_iMOV || op == LIR_aMOV || op == LIR_fMOV;
+}
+
 /*
 Second peephole optimization pass propagates mov operations.
 The main idea is to solve a 'multiple mov' issue:
@@ -47,7 +51,7 @@ Return 1 if operation succeed, otherwise it will return 0.
 static int _second_pass(cfg_block_t* bb) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
-        if (LIR_is_movop(lh->op)) {
+        if (_is_plain_mov(lh->op)) {
             lir_subject_t* src = lh->sarg;
             lir_subject_t* dst = lh->farg;
 
@@ -62,7 +66,7 @@ static int _second_pass(cfg_block_t* bb) {
                     ) break;
                 }
 
-                if (LIR_is_movop(currh->op)) {
+                if (_is_plain_mov(currh->op)) {
                     if (
                         LIR_subj_equals(currh->sarg, dst) &&                    /* If instruction uses our subject          */
                         (currh->farg->t != LIR_MEMORY || src->t != LIR_MEMORY)  /* And it is possible to use them in one op */

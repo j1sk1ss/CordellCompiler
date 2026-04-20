@@ -11,10 +11,10 @@ BB1: start
 [rbp - 56] = %12;
 rax = $0;
 rax = rax * 4;
-%13 movsxd rax;
+%13 = rax;
 [rbp - 64] = %13;
-%14 = [rbp - 64];
-[rbp - 72] = %14;
+%14 movsx [rbp - 64];
+[rbp - 72] movsx %14;
 rax = [rbp - 56];
 rax = rax + [rbp - 72];
 %15 = rax;

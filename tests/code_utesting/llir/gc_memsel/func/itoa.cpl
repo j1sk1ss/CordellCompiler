@@ -32,16 +32,16 @@ rdx = $0;
 rdx = rdx;
 BB14: r9 = rdx;
 r8 = rbx;
-BB3: lb32:
+BB3: lb25:
 rdx = $0;
 rax = r8;
 cmp rax, rdx;
 setg al;
 rdx movsx al;
 cmp rdx, 0;
-je lb34;
-jne lb33;
-BB4: lb33:
+je lb27;
+jne lb26;
+BB4: lb26:
 rdx = $10;
 rax movsxd r8;
 rcx movsxd rdx;
@@ -58,8 +58,8 @@ rdi = rax;
 rbx = &([rbp - 32]);
 rax = r9;
 rax = rax * 1;
-rdx movsxd rax;
-rdx = rdx;
+rdx = rax;
+rdx movsxd rdx;
 rax = rbx;
 rax = rax + rdx;
 rdx = rax;
@@ -80,41 +80,41 @@ rdx = rax;
 rdx = rdx;
 r8 = rbx;
 r9 = rdx;
-jmp lb32;
-BB5: lb34:
+jmp lb25;
+BB5: lb27:
 rdx = $0;
 rdx = rdx;
 BB13: rdi = rdx;
 r8 = r9;
-BB6: lb97:
+BB6: lb67:
 rdx = $0;
 rax = r8;
 cmp rax, rdx;
 setg al;
 rdx movsx al;
 cmp rdx, 0;
-je lb109;
-jne lb108;
-BB7: lb108:
+je lb75;
+jne lb74;
+BB7: lb74:
 rax = rdi;
 cmp rax, r10;
 setl al;
 rdx movsx al;
 rdx = rdx;
-jmp lb110;
-BB8: lb109:
+jmp lb76;
+BB8: lb75:
 rdx = 0;
-jmp lb110;
-BB9: lb110:
+jmp lb76;
+BB9: lb76:
 cmp rdx, 0;
-je lb99;
-jne lb98;
-BB10: lb98:
+je lb69;
+jne lb68;
+BB10: lb68:
 rbx = &([rbp - 32]);
 rax = r8;
 rax = rax * 1;
-rdx movsxd rax;
-rdx = rdx;
+rdx = rax;
+rdx movsxd rdx;
 rax = rbx;
 rax = rax + rdx;
 rdx = rax;
@@ -122,8 +122,8 @@ rsi = *(rdx);
 rbx = r11;
 rax = rdi;
 rax = rax * 1;
-rdx movsxd rax;
-rdx = rdx;
+rdx = rax;
+rdx movsxd rdx;
 rax = rbx;
 rax = rax + rdx;
 rdx = rax;
@@ -141,8 +141,8 @@ rdx = rdx;
 r8 = rdx;
 rdi = rbx;
 kill(47);
-jmp lb97;
-BB11: lb99:
+jmp lb67;
+BB11: lb69:
 fend
 BB12: start
 rcx = &(%buffer);
