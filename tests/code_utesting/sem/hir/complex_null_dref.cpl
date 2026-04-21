@@ -9,6 +9,6 @@ function foo() {
 }
 
 :/ OUTPUT
-[WARNING] [8{X}] NULL-dereference error (variable 'e' is NULL)!
-          [6{X}]     Variable 'e' is assigned with NULL here
+[WARNING] [{X}cpl:8:21] NULL-dereference error (variable 'e' is NULL)!
+          [{X}cpl:6:17]     Variable 'e' is assigned with NULL here
 /:

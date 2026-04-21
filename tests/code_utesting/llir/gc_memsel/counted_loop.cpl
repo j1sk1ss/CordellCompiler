@@ -6,20 +6,19 @@ start() {
 :/ OUTPUT
 BB1: start
 rdx = 10;
-BB6: kill(2);
+BB5: kill(2);
 rdx = rdx;
-BB2: lb12:
-jmp lb13;
-BB3: lb13:
+BB2: lb9:
+jmp lb10;
+BB3: lb10:
 rax = rdx;
 rax = rax - 1;
 rdx = rax;
 rbx = rdx;
 rdx = rbx;
 cmp rbx, 0;
-je lb14;
-jne lb12;
-BB4:
-BB5: lb14:
+je lb11;
+jne lb9;
+BB4: lb11:
 send
 /:

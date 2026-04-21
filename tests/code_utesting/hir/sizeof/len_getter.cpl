@@ -10,8 +10,8 @@ start() {
             {
                 arrs %0 = arr_alloc(i8n 10);
                 i32s %1 = alloc(8);
-                i64t %8 = cnst? 20 / cnst? 2;
-                i32t %2 = i64t %8 as i32;
+                i8t %8 = csu8 20 / csu8 2;
+                i32t %2 = i8t %8 as i32;
                 i32s %1 = i32t %2;
             }
         }

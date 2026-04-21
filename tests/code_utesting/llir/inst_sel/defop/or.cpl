@@ -6,15 +6,15 @@ start() {
 BB1: start
 %3 = $10;
 cmp %3, 0;
-je lb18;
-jne lb17;
-BB2: lb18:
+je lb11;
+jne lb10;
+BB2: lb11:
 %2 = $10;
-jmp lb19;
-BB3: lb17:
+jmp lb12;
+BB3: lb10:
 %2 = 1;
-jmp lb19;
-BB4: lb19:
+jmp lb12;
+BB4: lb12:
 %1 = %2;
 %0 = %1;
 send

@@ -12,13 +12,13 @@ rdx = rcx;
 rcx = $1;
 rcx = rcx;
 cmp rdx, 0;
-je lb29;
-jne lb28;
-BB2: lb28:
+je lb18;
+jne lb17;
+BB2: lb17:
 rdi = rcx;
 exit rdi;
-BB3: lb29:
+BB3: lb18:
 rdi = rdx;
 exit rdi;
-BB4: lb30:
+BB4: lb19:
 /:

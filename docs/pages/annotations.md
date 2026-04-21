@@ -1,25 +1,20 @@
 # Annotations
-Annotations are useful tool in terms of system development. For non-system programmer, annotations are redundant (even the aligns and sections are available by inbuilt keywords). But let's review all available annotations (at this moment):
-- `naked` - Will disable all entry and exit routines in the final assembly code for an annotated function.
-- `align` - Will do the same work as it does the 'align' keyword.
-- `section` - Will do the same work as it does the 'section' keyword.
-- `address` - Will put a function to a specific address.
-- `entry` - Set function as an entry point of the code.
-- `no_fall` - Generate hidden break statements in cases.
-- `not_lazy` - Generate both sides of a logic expression before evaluation.
-- `straight` - Generate case choice with linear search approach.
-- `counter` - Make a counted loop.
-- `hot` and `cold` - Send a branch to the end of a function.
-- `register` - Will link a primitive (non-global) variable to a register.
+Annotations are a useful tool in terms of system development. For non-system programmer, annotations are almost redundant thought. But let's review all available annotations (at this moment):
 
-Annotations can be added for functions, function arguments and declarations:
-```cpl
-@[align(16)] i32 a;
-@[entry]
-@[naked]
-function main() -> i0;
-@[section(".bss")] glob i32 b;
-```
+| Name | Description | Example |
+|-|-|-|
+| `naked` | Will disable all entry and exit routines in the final assembly code for an annotated function ||
+| `align` | Align the declared variable with the provided integer value ||
+| `section` | Set the section for a function or a variable in the final assembly file ||
+| `address` | Will put a function to a specific address ||
+| `entry` | Set function as an entry point of the code ||
+| `no_fall` | Generate hidden break statements in cases ||
+| `not_lazy` | Generate both sides of a logic expression before evaluation ||
+| `straight` | Generate case choice with linear search approach ||
+| `counter` | Make a counted loop ||
+| `hot` | Send other branch to the end of a function ||
+| `cold` | Send a branch to the end of a function ||
+| `register` | Will link a primitive (non-global) variable to a register ||
 
 ## Some words about annotations
 *P.S. The following annotations are primarily intended for systems-level use cases* </br>

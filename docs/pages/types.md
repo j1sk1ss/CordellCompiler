@@ -28,7 +28,7 @@ A primitive type, in compiler terms, is a basic data object that stores a value 
 
 | Name | Description | Example |
 |---|---|---|
-| `f64`, `f32` | Real types. Non-floating values are converted to floating-point values when used in floating-point expressions. | <pre><code> f64 a = 0.01; </br>f32 b = 0.01; </code></pre> |
+| `f64`, `f32` | Real types. Non-floating values are converted to floating-point values when used in floating-point expressions. | <pre><code>f64 a = 0.01; </br>f32 b = 0.01; </code></pre> |
 | `i64`, `u64` | Signed and unsigned 64-bit integers. | <pre><code>i64 a = 123321123; </br>u64 b = 0b11111111111111;</code></pre> |
 | `i32`, `u32` | Signed and unsigned 32-bit integers. | <pre><code>i32 a = 123321; </br>u32 b = 0xFFFF;</code></pre> |
 | `i16`, `u16` | Signed and unsigned 16-bit integers. | <pre><code>i16 a = 12332; </br>u16 b = 0x0FFF;</code></pre> |
@@ -76,13 +76,13 @@ str msg2 = "Hello world!";         :/ <= Data is allocated on the stack         
 ```
 
 An array cannot behave exactly the same way. Arrays can allocate data on the stack, but they are not used as pointer element types in the same sense as `str`. In that sense, a string sits somewhere between an array and a primitive convenience type. </br>
-Also, there is one important note: **Strings**, which are placed as an independent string in a code are always on the **stack**. It means, every time you're working with those strings, you need to apply the 'ref' ketword. For instance:
+Also, there is one important note: **Strings**, which are placed as an independent string in a code are always on the **stack**. It means, every time you're working with these strings, you need to apply the 'ref' keyword. For instance:
 ```cpl
 function foo(ptr i8 msg) -> i0;
 foo(ref "Hello, World!\n");
 ```
 
-This is important to uderstand given the language's philosophy of being an extention for Assembly langauge. A string is placed in a '.data' section as a continues array of bytes, and it *must* be refered with the 'ref'.
+This is important to uderstand given the language's philosophy of being an extention for Assembly langauge. A string is placed in a '.data' (can be changed with the `section` annotation) section as a continues array of bytes, and it *must* be refered with the 'ref'.
 
 ### `arr`
 `arr` is the array type. It can contain any primitive element type and is allocated either on the stack or in a target-dependent section.
@@ -95,8 +95,7 @@ i32 a = array_2d[0][0]; : = 0 :
 ```
 
 ## Pointers
-`ptr` is a pointer modifier that can be applied to primitive types, `str`, and `arr`.
-
+`ptr` is a pointer modifier that can be applied to primitive types, but not for `str`, and `arr`. 
 ```cpl
 i32 f = 10;
 ptr i32 a = ref f;
@@ -104,10 +103,18 @@ ptr ptr a_ref = ref a;
 ptr i8 b = ref "Hello world";
 ```
 
-Pointer size depends on the target architecture. For example, on `x86_64_gnu_nasm`, `ptr i8` is 64 bits wide.
+For `str` and `arr` structures there is no way of creating a pointed variable. To create a pointer, use a base type of a structure (for instance `i8` for `str`):
+```cpl
+str a = "Hi!\n";
+ptr i8 b = ref a;
+arr c[10, i32];
+ptr i32 d = ref c;
+```
+
+**Note:** Pointer size depends on the target architecture. For example, on `x86_64_gnu_nasm`, `ptr i8` is equals to 64 bits wide. To determine the size, you can use the `sizeof` keyword.
 
 ## Working with pointers
-CPL provides two main operations for pointer work: `ref` and `dref`.
+CPL provides two main operations for work with pointers: the `ref` and `dref` keywords.
 
 ### `ref`
 Use `ref` to obtain a pointer to an existing value:
@@ -121,6 +128,8 @@ int a = 123;
 int* a_ptr = &a;
 :
 ```
+
+**Note:** Reference keyword can get a pointer to an expression, for instance like that: `ptr i0 a = ref (10 + 10);`. This is permitted by the static analyzer, but can be performed. It will work and it isn't UB, but I'd suggest to not do this.
 
 ### `dref`
 Use `dref` to read the value behind a pointer:

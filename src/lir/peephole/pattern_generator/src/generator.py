@@ -136,16 +136,26 @@ class CodeGenerator:
 
         return var_map
 
+    def _operand_type_condition(self, operand: Operand, arg_name: str) -> str | None:
+        type_names = self.gen_info.get("types", {}).get(operand.type.value, [])
+        if not type_names:
+            return None
+
+        if len(type_names) == 1:
+            return f"{arg_name}->t == {type_names[0]}"
+
+        return "(" + " || ".join(f"{arg_name}->t == {type_name}" for type_name in type_names) + ")"
+
     def _operand_to_condition(self, operand: Operand, arg_name: str) -> str | None:
         if operand.type == OperandType.REG:
             if operand.var_name is not None and operand.value is None:
-                return f"{arg_name}->t == LIR_REGISTER"
+                return self._operand_type_condition(operand, arg_name)
             return f'{arg_name}->reg->reg == {operand.value.upper()}'
         elif operand.type == OperandType.AREG:
-            return f"{arg_name}->t == LIR_REGISTER"
+            return self._operand_type_condition(operand, arg_name)
         elif operand.type == OperandType.CONST:
             if operand.var_name is not None and operand.value is None:
-                return f"({arg_name}->t == LIR_NUMBER || {arg_name}->t == LIR_CONSTVAL)"
+                return self._operand_type_condition(operand, arg_name)
             try:
                 if operand.value.startswith("0x"):
                     value = int(operand.value, 16)
@@ -154,17 +164,21 @@ class CodeGenerator:
                 else:
                     value = int(operand.value)
                 return (
-                    f"({arg_name}->t == LIR_NUMBER && "
+                    f"({self._operand_type_condition(operand, arg_name)} && "
                     f"{self.gen_info.get('functions').get('atoi')}({arg_name}) == {value})"
                 )
             except ValueError:
                 raise ValueError("There is no constant value for 'const' keyword!")
         elif operand.type == OperandType.ACONST:
-            return f"({arg_name}->t == LIR_NUMBER || {arg_name}->t == LIR_CONSTVAL)"
+            return self._operand_type_condition(operand, arg_name)
         elif operand.type == OperandType.MEM:
-            return f"{arg_name}->t == LIR_MEMORY"
+            return self._operand_type_condition(operand, arg_name)
         elif operand.type == OperandType.OBJ:
-            return None
+            return self._operand_type_condition(operand, arg_name)
+        elif operand.type == OperandType.LABEL:
+            if operand.var_name is None and operand.value is not None:
+                raise ValueError("Literal label matching is not supported yet, use label_<n> variables.")
+            return self._operand_type_condition(operand, arg_name)
         else:
             raise KeyError("Unknown operation type!")
 
@@ -201,6 +215,27 @@ class CodeGenerator:
             result = result.replace(f"%{i}", arg)
         return result
 
+    def _instruction_explicit_var_equalities(self, instr: Instruction, base_ptr: str) -> list[str]:
+        equals_fn = self.gen_info.get("functions", {}).get("equals")
+        if not equals_fn:
+            return []
+
+        equalities: list[str] = []
+        seen: dict[str, str] = {}
+        first_explicit = self._first_explicit_operand_index(instr)
+
+        for i, operand in enumerate(instr.operands):
+            if not operand or i < first_explicit or i >= 3 or not operand.var_name:
+                continue
+
+            ptr = self._arg_ptr(base_ptr, i)
+            if operand.var_name in seen:
+                equalities.append(f"{equals_fn}({seen[operand.var_name]}, {ptr})")
+            else:
+                seen[operand.var_name] = ptr
+
+        return equalities
+
     def _generate_pattern_condition(self, pattern: Pattern) -> str:
         conditions: OrderedSet = OrderedSet()
         if not pattern.match:
@@ -216,6 +251,10 @@ class CodeGenerator:
             conditions.add(self._opcode_condition(instr, base_ptr))
 
             instr_cond = self._generate_instruction_condition(instr, base_ptr)
+            local_equalities = self._instruction_explicit_var_equalities(instr, base_ptr)
+            if local_equalities:
+                local_cond = " &&\n".join(local_equalities)
+                instr_cond = f"{instr_cond} &&\n{local_cond}" if instr_cond != "1" else local_cond
             if instr_cond != "1":
                 conditions.add(f"({instr_cond})")
 
@@ -246,9 +285,17 @@ class CodeGenerator:
 
         return " &&\n".join(conditions) if conditions else "1"
 
-    def _release_if_unaliased_lines(self, ptr_expr: str, base_ptr: str, free_fn: str) -> list[str]:
+    def _release_if_unaliased_lines(
+        self,
+        ptr_expr: str,
+        base_ptr: str,
+        free_fn: str,
+        extra_live_ptrs: list[str] | None = None,
+    ) -> list[str]:
         guards = [f"{ptr_expr}"]
         for live_ptr in self._arg_ptrs(base_ptr):
+            guards.append(f"{ptr_expr} != {live_ptr}")
+        for live_ptr in extra_live_ptrs or []:
             guards.append(f"{ptr_expr} != {live_ptr}")
         return [f"if ({' && '.join(guards)}) {{", f"    {free_fn}({ptr_expr});", "}"]
 
@@ -264,6 +311,67 @@ class CodeGenerator:
             source_map[var_name] = temp_name
         return source_map
 
+    def _capture_match_opcodes(self, action_lines: list[str], pattern: Pattern) -> dict[int, str]:
+        opcode_map: dict[int, str] = {}
+        for i, _ in enumerate(pattern.match):
+            temp_name = self._new_temp(f"match_op_{i}")
+            action_lines.append(f"lir_operation_t {temp_name} = {self._instr_ptr(i)}->op;")
+            opcode_map[i] = temp_name
+        return opcode_map
+
+    def _capture_match_live_subjects(self, action_lines: list[str], pattern: Pattern) -> list[str]:
+        keep: list[str] = []
+        for i, _ in enumerate(pattern.match):
+            base_ptr = self._instr_ptr(i)
+            for arg_idx in range(3):
+                temp_name = self._new_temp(f"keep_{i}_{arg_idx}")
+                action_lines.append(f"lir_subject_t* {temp_name} = {self._arg_ptr(base_ptr, arg_idx)};")
+                keep.append(temp_name)
+        return keep
+
+    def _live_arg_indices(self, instr: Instruction) -> set[int]:
+        live: set[int] = set()
+        alias_pairs = self._hidden_alias_pairs(instr)
+
+        for hidden_idx, explicit_idx in alias_pairs:
+            if hidden_idx < 3:
+                live.add(hidden_idx)
+            if explicit_idx < 3:
+                live.add(explicit_idx)
+
+        first_explicit = self._first_explicit_operand_index(instr)
+        for i, operand in enumerate(instr.operands):
+            if not operand or i >= 3:
+                continue
+            if i < first_explicit:
+                continue
+            live.add(i)
+
+        return live
+
+    def _clear_dead_args(
+        self,
+        action_lines: list[str],
+        instr: Instruction,
+        base_ptr: str,
+        free_fn: str,
+        protected_ptrs: list[str],
+    ) -> None:
+        live = self._live_arg_indices(instr)
+        for i in range(3):
+            if i in live:
+                continue
+
+            arg_ptr = self._arg_ptr(base_ptr, i)
+            old_tmp = self._new_temp("old")
+            action_lines.append(f"lir_subject_t* {old_tmp} = {arg_ptr};")
+            action_lines.append(f"if ({old_tmp}) {{")
+            action_lines.append(f"    {arg_ptr} = NULL;")
+            action_lines.append("    optimized = 1;")
+            for line in self._release_if_unaliased_lines(old_tmp, base_ptr, free_fn, protected_ptrs):
+                action_lines.append(f"    {line}" if line != "}" else "    }")
+            action_lines.append("}")
+
     def _build_full_match_var_map(self, pattern: Pattern) -> dict[str, str]:
         merged: dict[str, str] = {}
         for i, instr in enumerate(pattern.match):
@@ -276,7 +384,13 @@ class CodeGenerator:
                     merged[var_name] = ptr_expr
         return merged
 
-    def _replacement_opcode_expr(self, pattern: Pattern, replace_instr: Instruction, replace_idx: int = 0) -> str:
+    def _replacement_opcode_expr(
+        self,
+        pattern: Pattern,
+        replace_instr: Instruction,
+        replace_idx: int = 0,
+        match_opcode_map: dict[int, str] | None = None,
+    ) -> str:
         replace_lir: list[str] = self.PTRN_TO_LIR.get(replace_instr.mnemonic, [])
         if not replace_lir:
             raise ValueError(f"Mnemonic {replace_instr.mnemonic} not found!")
@@ -284,16 +398,19 @@ class CodeGenerator:
         if len(replace_lir) == 1:
             return replace_lir[0]
 
+        if match_opcode_map is None:
+            match_opcode_map = {}
+
         if replace_idx < len(pattern.match) and pattern.match[replace_idx].mnemonic == replace_instr.mnemonic:
-            return f"{self._instr_ptr(replace_idx)}->op"
+            return match_opcode_map.get(replace_idx, f"{self._instr_ptr(replace_idx)}->op")
 
         for i, instr in enumerate(pattern.match):
             if instr.mnemonic == replace_instr.mnemonic:
-                return f"{self._instr_ptr(i)}->op"
+                return match_opcode_map.get(i, f"{self._instr_ptr(i)}->op")
 
         return replace_lir[0]
 
-    def _apply_actions(self, pattern: Pattern) -> list[str]:
+    def _apply_actions(self, pattern: Pattern, protected_ptrs: list[str]) -> list[str]:
         action_lines: list[str] = []
         free_fn = self.gen_info.get("functions", {}).get("free")
         sqrt_fn = self.gen_info.get("functions", {}).get("sqrt")
@@ -317,14 +434,14 @@ class CodeGenerator:
                         old_tmp = self._new_temp("old")
                         action_lines.append(f"lir_subject_t* {old_tmp} = {dest_ptr};")
                         action_lines.append(f"{dest_ptr} = LIR_SUBJ_CONST({log2_fn}({old_tmp}));")
-                        action_lines.extend(self._release_if_unaliased_lines(old_tmp, base_ptr, free_fn))
+                        action_lines.extend(self._release_if_unaliased_lines(old_tmp, base_ptr, free_fn, protected_ptrs))
                         continue
 
                     if action_name == "sqrt2" and sqrt_fn:
                         old_tmp = self._new_temp("old")
                         action_lines.append(f"lir_subject_t* {old_tmp} = {dest_ptr};")
                         action_lines.append(f"{dest_ptr} = LIR_SUBJ_CONST({sqrt_fn}({old_tmp}));")
-                        action_lines.extend(self._release_if_unaliased_lines(old_tmp, base_ptr, free_fn))
+                        action_lines.extend(self._release_if_unaliased_lines(old_tmp, base_ptr, free_fn, protected_ptrs))
                         continue
 
                     base: str = self.gen_info.get("actions").get(action_name)
@@ -357,6 +474,7 @@ class CodeGenerator:
         base_ptr: str,
         free_fn: str,
         assigned_ptrs: set[str],
+        protected_ptrs: list[str],
     ) -> None:
         if dest_ptr in assigned_ptrs:
             return
@@ -367,7 +485,8 @@ class CodeGenerator:
             action_lines.append(f"lir_subject_t* {old_tmp} = {dest_ptr};")
             action_lines.append(f"if ({old_tmp} != {src_ptr}) {{")
             action_lines.append(f"    {dest_ptr} = {src_ptr};")
-            for line in self._release_if_unaliased_lines(old_tmp, base_ptr, free_fn):
+            action_lines.append("    optimized = 1;")
+            for line in self._release_if_unaliased_lines(old_tmp, base_ptr, free_fn, protected_ptrs):
                 action_lines.append(f"    {line}" if line != "}" else "    }")
             action_lines.append("}")
             assigned_ptrs.add(dest_ptr)
@@ -378,7 +497,8 @@ class CodeGenerator:
             old_tmp = self._new_temp("old")
             action_lines.append(f"lir_subject_t* {old_tmp} = {dest_ptr};")
             action_lines.append(f"{dest_ptr} = {const_expr};")
-            action_lines.extend(self._release_if_unaliased_lines(old_tmp, base_ptr, free_fn))
+            action_lines.append("optimized = 1;")
+            action_lines.extend(self._release_if_unaliased_lines(old_tmp, base_ptr, free_fn, protected_ptrs))
             assigned_ptrs.add(dest_ptr)
 
     def _generate_pattern_action(self, pattern: Pattern) -> list[str]:
@@ -388,17 +508,28 @@ class CodeGenerator:
 
         if len(pattern.replace) == 1 and pattern.replace[0].mnemonic == "delete":
             for i in range(len(pattern.match)):
-                action_lines.append(f"{self._instr_ptr(i)}->unused = 1;")
+                ptr = self._instr_ptr(i)
+                action_lines.append(f"if (!{ptr}->unused) {{")
+                action_lines.append(f"    {ptr}->unused = 1;")
+                action_lines.append("    optimized = 1;")
+                action_lines.append("}")
             return action_lines
 
         match_var_map = self._build_full_match_var_map(pattern)
         source_var_map = self._capture_match_sources(action_lines, match_var_map)
+        match_opcode_map = self._capture_match_opcodes(action_lines, pattern)
+        protected_ptrs = list(source_var_map.values())
+        protected_ptrs.extend(self._capture_match_live_subjects(action_lines, pattern))
         free_fn = self.gen_info.get("functions", {}).get("free")
 
         for rep_idx, replace_instr in enumerate(pattern.replace):
             base_ptr = self._instr_ptr(rep_idx)
-            opcode_expr = self._replacement_opcode_expr(pattern, replace_instr, rep_idx)
-            action_lines.append(f"{base_ptr}->op = {opcode_expr};")
+            opcode_expr = self._replacement_opcode_expr(pattern, replace_instr, rep_idx, match_opcode_map)
+
+            action_lines.append(f"if ({base_ptr}->op != {opcode_expr}) {{")
+            action_lines.append(f"    {base_ptr}->op = {opcode_expr};")
+            action_lines.append("    optimized = 1;")
+            action_lines.append("}")
 
             assigned_ptrs: set[str] = set()
             for i, operand in enumerate(replace_instr.operands):
@@ -416,6 +547,7 @@ class CodeGenerator:
                     base_ptr,
                     free_fn,
                     assigned_ptrs,
+                    protected_ptrs,
                 )
 
             for hidden_idx, explicit_idx in self._hidden_alias_pairs(replace_instr):
@@ -431,12 +563,29 @@ class CodeGenerator:
                     base_ptr,
                     free_fn,
                     assigned_ptrs,
+                    protected_ptrs,
                 )
 
-        for i in range(len(pattern.replace), len(pattern.match)):
-            action_lines.append(f"{self._instr_ptr(i)}->unused = 1;")
+            self._clear_dead_args(
+                action_lines,
+                replace_instr,
+                base_ptr,
+                free_fn,
+                protected_ptrs,
+            )
 
-        action_lines.extend(self._apply_actions(pattern))
+        for i in range(len(pattern.replace), len(pattern.match)):
+            ptr = self._instr_ptr(i)
+            action_lines.append(f"if (!{ptr}->unused) {{")
+            action_lines.append(f"    {ptr}->unused = 1;")
+            action_lines.append("    optimized = 1;")
+            action_lines.append("}")
+
+        extra_actions = self._apply_actions(pattern, protected_ptrs)
+        if extra_actions:
+            action_lines.append("optimized = 1;")
+            action_lines.extend(extra_actions)
+
         return action_lines
 
     def _generate_single_pattern(self, pattern: Pattern) -> dict[str, list[str]]:
@@ -483,9 +632,10 @@ class CodeGenerator:
         b.line("/* This is a generated code. Don't change it, use the main.py instead. */")
         b.line("#include <lir/peephole/peephole.h>")
         b.open("int peephole_first_pass(cfg_block_t* bb)")
+        b.line("int optimized = 0;")
         b.line("lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);")
         b.open("while (lh)")
-        b.open("switch (lh->op)")
+        b.open("if (!lh->unused) switch (lh->op)")
 
         grouped_cases: dict[tuple[str, ...], list[str]] = defaultdict(list)
         for opcode, codes in self.generated_code.items():
@@ -523,7 +673,7 @@ class CodeGenerator:
         b.close()
         b.line("lh = LIR_get_next(lh, bb->lmap.exit, 1);")
         b.close()
-        b.line("return 1;")
+        b.line("return optimized;")
         b.close()
 
         return b.render()

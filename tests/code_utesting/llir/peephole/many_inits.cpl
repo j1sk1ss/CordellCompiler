@@ -22,10 +22,5 @@ rcx = rcx;
 send
 === AFTER ===
 BB1: start
-rcx = $1;
-rcx = $1;
-rcx = $1;
-rcx = $1;
-rcx = $1;
 send
 /:

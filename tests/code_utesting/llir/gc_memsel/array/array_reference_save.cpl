@@ -19,12 +19,12 @@ BB1: start
 [rbp - 7] = $9;
 rax = $1;
 cmp rax, 0;
-je lb37;
-jne lb35;
-BB2: lb35:
+je lb23;
+jne lb21;
+BB2: lb21:
 rdi = $0;
 exit rdi;
-BB3: lb37:
+BB3: lb23:
 rcx = &([rbp - 16]);
 rcx = rcx;
 rcx = *(rcx);

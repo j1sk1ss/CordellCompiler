@@ -4,8 +4,8 @@ start() {
 
 :/ OUTPUT
 BB2: start
-jmp lb12;
-BB3: lb12:
+jmp lb7;
+BB3: lb7:
 %2 = &(__anon_function_lambda1(i32 a));
 stparam($10);
 call %2;

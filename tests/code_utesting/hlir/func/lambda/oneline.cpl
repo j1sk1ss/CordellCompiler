@@ -5,8 +5,8 @@ start() {
 
 :/ OUTPUT
 BB2: start
-jmp lb13;
-BB3: lb13:
+jmp lb8;
+BB3: lb8:
 %1 = &(__anon_function_lambda1());
 %0 = %1;
 call %0;

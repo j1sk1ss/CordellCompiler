@@ -15,7 +15,7 @@ start() {
                 i8t %3 = i8n 10 + i8n 10;
                 i32t %2 = i8t %3 as i32;
                 i32s %6 = i32t %2;
-                goto lb23;
+                goto lb14;
                 fn foo1(i32 a)
                 {
                     i32s %1 = alloc(8);
@@ -23,7 +23,7 @@ start() {
                     {
                     }
                 }
-                lb23:
+                lb14:
                 use i32s %6;
                 call foo1(i32 a), argc args(i32s %6,);
                 [unused] i8t %5 = i8n 10 + i8n 10;

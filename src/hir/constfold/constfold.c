@@ -22,32 +22,34 @@ static int _parse_const(dag_node_t* nd, const_t* cnst, sym_table_t* smt) {
     if (!nd) return 0;
     cnst->overdefined = NO_SYMBOL_ID;
     switch (nd->src->t) {
+        case HIR_I64NUMBER: cnst->t = HIR_I64CONSTVAL; goto _parse_number_complete;
+        case HIR_U64NUMBER: cnst->t = HIR_U64CONSTVAL; goto _parse_number_complete;
+        case HIR_I32NUMBER: cnst->t = HIR_I32CONSTVAL; goto _parse_number_complete;
+        case HIR_U32NUMBER: cnst->t = HIR_U32CONSTVAL; goto _parse_number_complete;
+        case HIR_I16NUMBER: cnst->t = HIR_I16CONSTVAL; goto _parse_number_complete;
+        case HIR_U16NUMBER: cnst->t = HIR_U16CONSTVAL; goto _parse_number_complete;
+        case HIR_I8NUMBER:  cnst->t = HIR_I8CONSTVAL;  goto _parse_number_complete;
+        case HIR_U8NUMBER:  cnst->t = HIR_U8CONSTVAL;  goto _parse_number_complete;
+        case HIR_NUMBER:    cnst->t = HIR_I8CONSTVAL;  goto _parse_number_complete;
         case HIR_F64NUMBER:
-        case HIR_I64NUMBER:
-        case HIR_U64NUMBER:
         case HIR_F32NUMBER:
-        case HIR_I32NUMBER:
-        case HIR_U32NUMBER:
-        case HIR_I16NUMBER:
-        case HIR_U16NUMBER:
-        case HIR_I8NUMBER:
-        case HIR_U8NUMBER:
-        case HIR_NUMBER: {
-            cnst->t = HIR_CONSTVAL;
+        {
+_parse_number_complete: {}
             cnst->value = nd->src->storage.num.value->to_llong(nd->src->storage.num.value);
             return 1;
         }
-
-        case HIR_CONSTVAL: {
+        case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
+        case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
+        case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL: {
             cnst->t = nd->src->t;
             cnst->value = nd->src->storage.cnst.value;
             return 1;
         }
-
         default: {
             variable_info_t vi;
             if (HIR_is_vartype(nd->src->t) && VRTB_get_info_id(nd->src->storage.var.v_id, &vi, &smt->v) && vi.vdi.defined) {
-                cnst->t     = HIR_CONSTVAL;
+                cnst->t     = HIR_I64CONSTVAL;
                 cnst->value = vi.vdi.definition;
                 if (vi.vdi.defined == OVERDEFINED_VARIABLE) {
                     cnst->overdefined = vi.vdi.definition;

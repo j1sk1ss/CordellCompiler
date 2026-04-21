@@ -22,10 +22,11 @@ start() {
             return i64t %5;
         }
     }
+    [unused]
     start {
         {
             {
-                goto lb46;
+                goto lb34;
                 fn __anon_function_lambda2(i32 a, i32 b)
                 {
                     i32s %3 = alloc(8);
@@ -37,7 +38,7 @@ start() {
                         return i32t %6;
                     }
                 }
-                lb46:
+                lb34:
                 i0t* %7 = &(__anon_function_lambda2(i32 a, i32 b));
                 use i0t* %7;
                 call logic0(i32 a, i32 b, i0* f), argc args(i8n 10,i8n 20,i0t* %7,);

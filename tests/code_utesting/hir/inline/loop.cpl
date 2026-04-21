@@ -18,24 +18,25 @@ start() {
             return i8n 100;
         }
     }
+    [unused]
     start {
         {
             {
-                lb21:
-                if i8n 1, goto lb22, else goto lb23;
-                lb22:
+                lb15:
+                if i8n 1, goto lb16, else goto lb17;
+                lb16:
                 {
-                    lb29:
-                    if i8n 1, goto lb30, else goto lb31;
-                    lb30:
+                    lb21:
+                    if i8n 1, goto lb22, else goto lb23;
+                    lb22:
                     {
                         [unused] call getter0(), argc args();
                     }
-                    goto lb29;
-                    lb31:
+                    goto lb21;
+                    lb23:
                 }
-                goto lb21;
-                lb23:
+                goto lb15;
+                lb17:
             }
         }
     }

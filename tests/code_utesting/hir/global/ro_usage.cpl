@@ -10,13 +10,13 @@ start() {
     start {
         {
             {
-                if i32g %0, goto lb11, else goto lb13;
-                lb11:
+                if i32g %0, goto lb8, else goto lb10;
+                lb8:
                 {
                     exit i8n 1;
                 }
-                goto lb13;
-                lb13:
+                goto lb10;
+                lb10:
             }
         }
     }

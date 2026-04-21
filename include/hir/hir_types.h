@@ -149,6 +149,16 @@ typedef enum hir_subject_type {
     HIR_STKVARI0,  // var.id
 
     HIR_CONSTVAL,  // cnst.value
+    HIR_F64CONSTVAL,
+    HIR_F32CONSTVAL,
+    HIR_U64CONSTVAL,
+    HIR_U32CONSTVAL,
+    HIR_U16CONSTVAL,
+    HIR_I64CONSTVAL,
+    HIR_I32CONSTVAL,
+    HIR_I16CONSTVAL,
+    HIR_U8CONSTVAL,
+    HIR_I8CONSTVAL,
 
     HIR_NUMBER,   // num.value
     HIR_F64NUMBER,
@@ -156,10 +166,10 @@ typedef enum hir_subject_type {
     HIR_U64NUMBER,
     HIR_U32NUMBER,
     HIR_U16NUMBER,
-    HIR_U8NUMBER,
     HIR_I64NUMBER,
     HIR_I32NUMBER,
     HIR_I16NUMBER,
+    HIR_U8NUMBER,
     HIR_I8NUMBER,
 
     HIR_LABEL,    // id

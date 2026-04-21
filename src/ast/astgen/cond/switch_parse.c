@@ -27,14 +27,14 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
     ast_node_t* cases_scope = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (cases_scope) AST_add_node(base, cases_scope);
     else {
-        PARSE_ERROR("Can't create a base for the case scope!");
+        PARSE_ERROR("Can't create a base for a case scope!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during a parse of the '%s' statement!", SWITCH_COMMAND);
+        PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during parse of the '%s' statement!", SWITCH_COMMAND);
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;

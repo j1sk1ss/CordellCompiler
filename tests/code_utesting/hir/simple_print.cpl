@@ -13,8 +13,8 @@ start(i32 argc, ptr ptr i8 argv) {
             {
                 i32t %2 = i8n 1 as i32;
                 i8t** %3 = i8s** %1;
-                i64t %4 = i32t %2 * cnst? 8;
-                i8t** %6 = i64t %4 as *ptr;
+                i32t %4 = i32t %2 * csu8 8;
+                i8t** %6 = i32t %4 as *ptr;
                 i8t** %5 = i8t** %3 + i8t** %6;
                 i8t* %7 = *(i8t** %5);
                 use i8t* %7;

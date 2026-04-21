@@ -126,18 +126,24 @@ class PTRNParser:
             return None
         
         parts = line.split(None, 1)
-        if len(parts) != 2:
-            raise ValueError(f"Invalid instruction: {line}, Parts: {parts}")
-        
-        mnemonic, ops_part = parts
-        mnemonic = mnemonic.lower()
-        
+        mnemonic = parts[0].lower()
+
+        if mnemonic not in self.parse_info.get("used_args", {}):
+            raise ValueError(f"Unknown mnemonic: {mnemonic}")
+
         operands = []
         for _ in range(self.parse_info.get("used_args").get(mnemonic)):
             operands.append(None)
-        
+
+        if len(parts) == 1:
+            return Instruction(mnemonic=mnemonic, operands=operands)
+
+        _, ops_part = parts
         for op_text in ops_part.split(","):
-            operands.append(self._parse_operand(op_text.strip()))
+            op_text = op_text.strip()
+            if not op_text:
+                continue
+            operands.append(self._parse_operand(op_text))
         
         return Instruction(mnemonic=mnemonic, operands=operands)
     

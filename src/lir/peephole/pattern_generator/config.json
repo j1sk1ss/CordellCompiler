@@ -137,6 +137,12 @@
         ],
         "neg": [
             "LIR_NOT"
+        ],
+        "jmp": [
+            "LIR_JMP"
+        ],
+        "mklb": [
+            "LIR_MKLB"
         ]
     },
     "used_args": {
@@ -183,7 +189,9 @@
         "setae": 0,
         "dec": 0,
         "inc": 0,
-        "neg": 0
+        "neg": 0,
+        "jmp": 0,
+        "mklb": 0
     },
     "functions": {
         "atoi": "LIR_peephole_get_long_number",
@@ -191,7 +199,7 @@
         "log2": "LIR_peephole_get_log2_number",
         "equals": "LIR_subj_equals",
         "free": "LIR_unload_subject",
-        "next": "LIR_get_next"
+        "next": "LIR_get_near_instruction"
     },
     "conditions": {
         "mod2": "!(LIR_peephole_get_long_number(%1) & 1)",
@@ -207,11 +215,11 @@
     "types": {
         "aconst": [
             "LIR_NUMBER",
-            "LIR_CONST"
+            "LIR_CONSTVAL"
         ],
         "const": [
             "LIR_NUMBER",
-            "LIR_CONST"
+            "LIR_CONSTVAL"
         ],
         "reg": [
             "LIR_REGISTER"
@@ -225,8 +233,11 @@
         "obj": [
             "LIR_REGISTER",
             "LIR_NUMBER",
-            "LIR_CONST",
+            "LIR_CONSTVAL",
             "LIR_MEMORY"
+        ],
+        "label": [
+            "LIR_LABEL"
         ]
     },
     "arg_names": [

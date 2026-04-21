@@ -26,44 +26,44 @@ start() {
     start {
         {
             {
-                if i8n 1, goto lb10, else goto lb11;
-                lb11:
+                if i8n 1, goto lb7, else goto lb8;
+                lb8:
                 {
                     exit i8n 2;
                 }
-                goto lb12;
-                lb12:
-                if i8n 2, goto lb28, else goto lb29;
-                lb29:
+                goto lb9;
+                lb9:
+                if i8n 2, goto lb20, else goto lb21;
+                lb21:
                 {
                     exit i8n 2;
                 }
-                goto lb30;
-                lb30:
-                if i8n 3, goto lb46, else goto lb47;
-                lb47:
+                goto lb22;
+                lb22:
+                if i8n 3, goto lb33, else goto lb34;
+                lb34:
                 {
                     exit i8n 2;
                 }
-                goto lb48;
-                lb48:
+                goto lb35;
+                lb35:
             }
-            exit cnst? 0;
-            lb10:
+            exit csu8 0;
+            lb7:
             {
                 exit i8n 1;
             }
-            goto lb12;
-            lb28:
+            goto lb9;
+            lb20:
             {
                 exit i8n 1;
             }
-            goto lb30;
-            lb46:
+            goto lb22;
+            lb33:
             {
                 exit i8n 1;
             }
-            goto lb48;
+            goto lb35;
         }
     }
 }

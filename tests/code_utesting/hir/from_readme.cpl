@@ -23,7 +23,7 @@ function main(i32 argc, ptr ptr i8 argv) {
             strs %4 = str_alloc(Hello world!);
             i8t* %5 = &(strs %4);
             use i8t* %5;
-            call print1(str* msg) -> i0, argc args(i8t* %5,);
+            call print1(i8* msg) -> i0, argc args(i8t* %5,);
             exit i8n 0;
         }
     }

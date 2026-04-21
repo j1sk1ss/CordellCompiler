@@ -1,3 +1,4 @@
+: BUG :
 @[entry]
 function foo() {
     ptr i32 a = 1;

@@ -16,8 +16,8 @@ start() {
                 i8t %3 = i8n 10 + i8n 10;
                 i32t %2 = i8t %3 as i32;
                 i32s %6 = i32t %2;
-                if i8n 1, goto lb23, else goto lb25;
-                lb23:
+                if i8n 1, goto lb14, else goto lb16;
+                lb14:
                 {
                     i32s %1 = alloc(8);
                     [unused] i8t %5 = i8n 10 + i8n 10;
@@ -25,8 +25,8 @@ start() {
                     i32s %7 = i32t %4;
                     exit i32s %7;
                 }
-                goto lb25;
-                lb25:
+                goto lb16;
+                lb16:
                 exit i32s %6;
             }
         }

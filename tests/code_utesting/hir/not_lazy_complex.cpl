@@ -13,27 +13,27 @@ function baz() {
             i32s %0 = alloc(8);
             i64t %3 = call foo0(), argc args();
             i64t %4 = call bar1(), argc args();
-            if i64t %3, goto lb24, else goto lb25;
-            lb25:
+            if i64t %3, goto lb17, else goto lb18;
+            lb18:
             i64t %5 = i64t %4;
-            goto lb26;
-            lb24:
-            i64t %5 = cnst? 1;
-            goto lb26;
-            lb26:
+            goto lb19;
+            lb17:
+            i64t %5 = csu8 1;
+            goto lb19;
+            lb19:
             i32t %2 = i64t %5 as i32;
             i32s %0 = i32t %2;
             i32s %1 = alloc(8);
             i64t %7 = call foo0(), argc args();
             i64t %8 = call bar1(), argc args();
-            if i64t %7, goto lb45, else goto lb46;
-            lb45:
+            if i64t %7, goto lb32, else goto lb33;
+            lb32:
             i64t %9 = i64t %8;
-            goto lb47;
-            lb46:
-            i64t %9 = cnst? 0;
-            goto lb47;
-            lb47:
+            goto lb34;
+            lb33:
+            i64t %9 = csu8 0;
+            goto lb34;
+            lb34:
             i32t %6 = i64t %9 as i32;
             i32s %1 = i32t %6;
         }

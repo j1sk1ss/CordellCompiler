@@ -11,12 +11,12 @@ BB1: fn _main()
 %1 = $10;
 %0 = %1;
 cmp %0, 0;
-je lb21;
-jne lb19;
-BB2: lb19:
+je lb14;
+jne lb12;
+BB2: lb12:
 %2 = $1;
 %3 = %2;
 exit %3;
-BB3: lb21:
+BB3: lb14:
 fend
 /:

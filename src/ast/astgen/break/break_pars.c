@@ -12,7 +12,7 @@ ast_node_t* cpl_parse_break(PARSER_ARGS) {
     }
 
     if (!consume_token(it, DELIMITER_TOKEN)) {
-        PARSE_ERROR("Delimiter token isn't found!");
+        PARSE_ERROR("Delimiter token wasn't found!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;

@@ -253,6 +253,9 @@ Returns the count of HIR blocks in the BB.
 */
 int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb);
 
+// TODO
+int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx);
+
 /*
 Unload CFG.
 Params:

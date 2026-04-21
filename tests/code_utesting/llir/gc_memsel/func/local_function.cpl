@@ -19,8 +19,8 @@ rdx = $1;
 rbx = rdx;
 rdx = $1;
 rdx = rdx;
-jmp lb28;
-BB4: lb28:
+jmp lb17;
+BB4: lb17:
 rax = rbx;
 rax = rax + rdx;
 rdx = rax;

@@ -288,7 +288,11 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
         case HIR_TMPVARI0:
         case HIR_GLBVARI0:   buffer += snprintf(buffer, buffer_size, "i0");  break;
         case HIR_NUMBER:     buffer += snprintf(buffer, buffer_size, "num"); break;
-        case HIR_CONSTVAL:   buffer += snprintf(buffer, buffer_size, "cnt"); break;
+        case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
+        case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
+        case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL:
+            buffer += snprintf(buffer, buffer_size, "cnt"); break;
         default: break;
     }
 
@@ -356,7 +360,7 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
 }
 
 int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
-    HIR_VISITOR_ARGS_USE; // TODO: Dereference check
+    HIR_VISITOR_ARGS_USE;
     if (b->op != HIR_SYSC && b->op != HIR_STORE_SYSC) return 1;
     hir_subject_t* number = list_get_head(&b->targ->storage.list.h);
     defined_variable_t di;
@@ -367,66 +371,71 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     trace_t trace;
     TRACE_init_trace(&trace);
 
+    int table_size = -1;
     syscall_t* table = NULL;
     hir_subject_t** flatten_input = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
     switch (CONF_get_system_type()) {
-        case MACOH: {
-            int table_size = SYSCHECK_get_macos_syscall_table(&table);
-            if (di.const_value - 0x2000000 >= table_size || di.const_value - 0x2000000 < 0) {
-                TRACE_add_location(&trace, &ctx->curr_location, "MACOH doesn't have a syscall for %li value!", di.const_value);
-                if (di.defined_value == 2) {
-                    file_position_t loc;
-                    _sparce_find_variable_define_location(b, number->storage.var.v_id, &loc);
-                    TRACE_add_location(
-                        &trace, &loc, "Variable '%s' is assigned with this value here", 
-                        _resolve_variable_name(number->storage.var.v_id, smt)
-                    );
-                }
-
-                break;
-            }
-
+        case MACOH64: {
+            table_size = SYSCHECK_get_macoh_x86_64_syscall_table(&table);
             /* MacOS syscall offset */
             di.const_value -= 0x2000000;
-            int arg_index = 1;
-            syscall_t syscall = table[di.const_value];
-
-            for (; arg_index < syscall.argc && arg_index < list_size(&b->targ->storage.list.h); arg_index++) {
-                if (
-                    HIR_get_tmp_type(flatten_input[arg_index]->t) != syscall.types[arg_index].t ||
-                    flatten_input[arg_index]->ptr != syscall.types[arg_index].ptr
-                ) {
-                    char received[64], expected[64];
-                    _create_type_name(syscall.types[arg_index].t, syscall.types[arg_index].ptr, expected, sizeof(expected));
-                    _create_type_name(flatten_input[arg_index]->t, flatten_input[arg_index]->ptr, received, sizeof(received));
-                    TRACE_add_location(
-                        &trace, &ctx->curr_location, 
-                        "Argument %i should have the '%s' type, but the '%s' is provided! Consider to cast it with 'as %s'.", 
-                        arg_index, expected, received, expected
-                    );
-
-                    if (!HIR_is_defined_type(flatten_input[arg_index]->t)) {
-                        file_position_t loc;
-                        _sparce_find_variable_define_location(b, flatten_input[arg_index]->storage.var.v_id, &loc);
-                        TRACE_add_location(&trace, &loc, "The variable is defined here!");
-                    }
-                }
-            }
-
-            if (!TRACE_is_empty(&trace)) {
-                TRACE_add_location(
-                    &trace, &ctx->curr_location, 
-                    "Syscall with number %i has some wrong typed arguments! It can lead to UB, consider to cast them:", 
-                    di.const_value
-                );
-            }
-
             break;
         }
-        case LINUX: /* TODO: */
-        default: break;
+        case LINUX64: table_size = SYSCHECK_get_linux_x86_64_syscall_table(&table); break;
+        default: goto _force_exit_syscall_checker;
     }
 
+    if (di.const_value >= table_size || di.const_value < 0) {
+        TRACE_add_location(&trace, &ctx->curr_location, "Selected architecture doesn't have a syscall for %li value!", di.const_value);
+        if (di.defined_value == 2) {
+            file_position_t loc;
+            _sparce_find_variable_define_location(b, number->storage.var.v_id, &loc);
+            TRACE_add_location(
+                &trace, &loc, "Variable '%s' is assigned with this value here", 
+                _resolve_variable_name(number->storage.var.v_id, smt)
+            );
+        }
+        goto _force_exit_syscall_checker;
+    }
+
+    syscall_t syscall = table[di.const_value];
+    for (int arg_index = 1; arg_index < syscall.argc && arg_index < list_size(&b->targ->storage.list.h); arg_index++) {
+        int sarg_index = arg_index - 1;
+        if (
+            HIR_get_tmp_type(flatten_input[arg_index]->t) != syscall.types[sarg_index].t ||
+            flatten_input[arg_index]->ptr != syscall.types[sarg_index].ptr
+        ) {
+            char received[64] = { 0 }, expected[64] = { 0 };
+            _create_type_name(syscall.types[sarg_index].t, syscall.types[sarg_index].ptr, expected, sizeof(expected));
+            _create_type_name(flatten_input[arg_index]->t, flatten_input[arg_index]->ptr, received, sizeof(received));
+            TRACE_add_location(
+                &trace, &ctx->curr_location, 
+                "%i argument (%s, %s) should have the '%s' type, but the '%s' is provided! Consider to cast it with 'as %s'.", 
+                arg_index + 1, syscall.types[sarg_index].name, syscall.types[sarg_index].description, expected, received, expected
+            );
+
+            if (!HIR_is_defined_type(flatten_input[arg_index]->t)) {
+                file_position_t loc;
+                _sparce_find_variable_define_location(b, flatten_input[arg_index]->storage.var.v_id, &loc);
+                TRACE_add_location(&trace, &loc, "The variable is defined here!");
+            }
+
+        }
+        
+        if (syscall.types[sarg_index].dereference) {
+            _dereference_error(b, flatten_input[arg_index], smt, ctx);
+        }
+    }
+
+    if (!TRACE_is_empty(&trace)) {
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "Syscall (%s, %s) with number %i has some wrong typed arguments! It can lead to UB, consider to cast them:", 
+            syscall.name, syscall.description, di.const_value
+        );
+    }
+
+_force_exit_syscall_checker: {}
     mm_free(flatten_input);
     TRACE_print_and_free_trace(&trace);
     return 1;

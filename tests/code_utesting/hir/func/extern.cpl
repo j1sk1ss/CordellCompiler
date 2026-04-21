@@ -6,8 +6,8 @@ start() {
 
 :/ OUTPUT
 {
-    (fun) extern cnst? 0;
-    (var) extern cnst? 1;
+    (fun) extern csu8 0;
+    (var) extern csu8 1;
     start {
         {
             {

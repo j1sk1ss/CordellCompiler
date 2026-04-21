@@ -13,64 +13,47 @@ start(i32 a) {
 }
 
 :/ OUTPUT
-setpos, line=1, column=7, file=<unknown>
+setpos, line=2, column=86, file={X}
 {
-setpos, line=1, column=7, file=<unknown>
-setpos, line=1, column=7, file=<unknown>
+setpos, line=1, column=7, file={X}cpl
     start {
         {
             i32s %0 = alloc(8);
             i32s %0 = load_starg();
-setpos, line=2, column=8, file=<unknown>
+setpos, line=2, column=8, file={X}cpl
             {
-setpos, line=2, column=8, file=<unknown>
-setpos, line=2, column=8, file=<unknown>
-setpos, line=2, column=15, file=<unknown>
-setpos, line=2, column=11, file=<unknown>
-setpos, line=2, column=18, file=<unknown>
                 i32t %2 = i8n 1 as i32;
                 i32t %1 = i32s %0 == i32t %2;
-                if i32t %1, goto lb13, else goto lb14;
-                lb13:
+                if i32t %1, goto lb10, else goto lb11;
+                lb10:
                 {
-setpos, line=3, column=14, file=<unknown>
-setpos, line=3, column=14, file=<unknown>
-setpos, line=3, column=17, file=<unknown>
+setpos, line=3, column=14, file={X}cpl
                     exit i8n 1;
                 }
-                goto lb15;
-                lb14:
+                goto lb12;
+                lb11:
                 {
-setpos, line=5, column=14, file=<unknown>
-setpos, line=5, column=14, file=<unknown>
-setpos, line=5, column=21, file=<unknown>
-setpos, line=5, column=17, file=<unknown>
-setpos, line=5, column=24, file=<unknown>
+setpos, line=5, column=14, file={X}cpl
                     i32t %4 = i8n 2 as i32;
                     i32t %3 = i32s %0 == i32t %4;
-                    if i32t %3, goto lb32, else goto lb33;
-                    lb32:
+                    if i32t %3, goto lb23, else goto lb24;
+                    lb23:
                     {
-setpos, line=6, column=14, file=<unknown>
-setpos, line=6, column=14, file=<unknown>
-setpos, line=6, column=17, file=<unknown>
+setpos, line=6, column=14, file={X}cpl
                         exit i8n 2;
                     }
-                    goto lb34;
-                    lb33:
+                    goto lb25;
+                    lb24:
                     {
-setpos, line=9, column=14, file=<unknown>
-setpos, line=9, column=14, file=<unknown>
-setpos, line=9, column=17, file=<unknown>
+setpos, line=9, column=14, file={X}cpl
                         exit i8n 3;
                     }
-                    goto lb34;
-                    lb34:
+                    goto lb25;
+                    lb25:
                 }
-                goto lb15;
-                lb15:
-setpos, line=12, column=10, file=<unknown>
-setpos, line=12, column=13, file=<unknown>
+                goto lb12;
+                lb12:
+setpos, line=12, column=10, file={X}cpl
                 exit i8n 4;
             }
         }

@@ -6,7 +6,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create a base for the variable declaration type! <type> <name>!");
+        PARSE_ERROR("Can't create a base for the variable's declaration type! <type> <name>!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -48,15 +48,15 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         forward_token(it, 1);
         ast_node_t* value_node = cpl_parse_expression(it, ctx, smt, 1);
         if (!value_node) {
-            PARSE_ERROR("Error during parsing of the declaration statement!");
+            PARSE_ERROR("Error during parsing of a declaration statement!");
             AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
 
-        if (
-            base->t->t_type == STR_TYPE_TOKEN /* String is a special case of an array */
-        ) {
+        /* String is a special case of an array, which doesn't hold size and type and
+           must be treated as a variable */
+        if (base->t->t_type == STR_TYPE_TOKEN) {
             ARTB_update_info(
                 name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, FIELD_NO_CHANGE, 
                 I8_TYPE_TOKEN, &base->t->flags, &smt->a
@@ -64,7 +64,8 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
             STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }
 
-        if (
+        if ( /* If it's a global variable, it acts differently.
+                It doesn't generate any initialization code and must have a pre-compiled value */
             base->t->flags.glob
         ) VRTB_update_definition(name->sinfo.v_id, value_node->t->body->to_llong(value_node->t->body), NO_SYMBOL_ID, &smt->v, 0);
         AST_add_node(base, value_node);

@@ -10,8 +10,8 @@ rsi = $1;
 rbx = &([rbp - 40]);
 rax = $0;
 rax = rax * 4;
-rdx movsxd rax;
-rdx = rdx;
+rdx = rax;
+rdx movsx rdx;
 rax = rbx;
 rax = rax + rdx;
 rcx = rax;
@@ -22,11 +22,12 @@ BB1: start
 rsi = $1;
 rbx = &([rbp - 40]);
 rax = rax ^ rax;
-rax = rax << 2;
-rdx movsxd rax;
+rax = rax * 4;
+rdx = rax;
+rdx movsx rdx;
 rax = rbx;
 rax = rax + rdx;
 rcx = rax;
-*(rcx) = $1;
+*(rcx) = rsi;
 send
 /:

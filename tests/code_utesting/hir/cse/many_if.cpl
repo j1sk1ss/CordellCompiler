@@ -18,8 +18,8 @@ start() {
     start {
         {
             {
-                if i8n 1, goto lb10, else goto lb11;
-                lb10:
+                if i8n 1, goto lb7, else goto lb8;
+                lb7:
                 {
                     i32s %0 = alloc(8);
                     i8t %4 = i8n 10 + i8n 10;
@@ -29,11 +29,11 @@ start() {
                     i32t %5 = i8t %4 as i32;
                     exit i32t %5;
                 }
-                goto lb12;
-                lb11:
+                goto lb9;
+                lb8:
                 {
-                    if i8n 2, goto lb43, else goto lb44;
-                    lb43:
+                    if i8n 2, goto lb27, else goto lb28;
+                    lb27:
                     {
                         i32s %1 = alloc(8);
                         i8t %8 = i8n 10 + i8n 10;
@@ -43,8 +43,8 @@ start() {
                         i32t %9 = i8t %8 as i32;
                         exit i32t %9;
                     }
-                    goto lb45;
-                    lb44:
+                    goto lb29;
+                    lb28:
                     {
                         i32s %2 = alloc(8);
                         i8t %12 = i8n 10 + i8n 10;
@@ -54,11 +54,11 @@ start() {
                         i32t %13 = i8t %12 as i32;
                         exit i32t %13;
                     }
-                    goto lb45;
-                    lb45:
+                    goto lb29;
+                    lb29:
                 [unused] }
-                [unused] goto lb12;
-                lb12:
+                [unused] goto lb9;
+                lb9:
             [unused] }
         [unused] }
     [unused] }

@@ -59,7 +59,7 @@ start(i64 argc, ptr ptr i8 argv) {
 
 For comparison here is the same code snippet but on C language:
 ```c
-#include <stdio.h>
+#include "stdio.h"
 
 int main(int argc, char* argv[]) {
     puts("Hello, World!");
@@ -67,8 +67,8 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-P.S.: *The C code can looks similar to CPL code if we will abandon the stdlib. But considering that the library is exists and can be used easily, we won't consider an example without it.* </br>
-P.S.S.: *Actually, with usage of a similar header file (with the same functions set), the CPL code can looks really close to the C code with the stdlib.*
+P.S.: *The C code can looks similar to CPL code if we will abandon the stdlib.h. But considering that the library is exists and can be used easily, we won't use an example without it.* </br>
+P.S.S.: *Actually, with usage of a similar header file (with the same functions set), CPL code can looks really close to C code with the same lib.*
 
 ```cpl
 #include "stdio_h.cpl"

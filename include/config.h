@@ -5,8 +5,8 @@
 
 typedef enum {
     UNKNOWN,
-    MACOH,
-    LINUX,
+    MACOH64,
+    LINUX64,
     WINDOWS
 } arch_type_t;
 

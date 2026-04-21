@@ -23,40 +23,40 @@ function foo(i32 a) {
         {
             i32t %2 = i8n 1 as i32;
             i32t %1 = i32s %0 == i32t %2;
-            if i32t %1, goto lb13, else goto lb14;
-            lb13:
+            if i32t %1, goto lb10, else goto lb11;
+            lb10:
             {
             }
-            goto lb15;
-            lb14:
+            goto lb12;
+            lb11:
             {
                 i32t %4 = i8n 2 as i32;
                 i32t %3 = i32s %0 == i32t %4;
-                if i32t %3, goto lb28, else goto lb29;
-                lb28:
+                if i32t %3, goto lb21, else goto lb22;
+                lb21:
                 {
                 }
-                goto lb30;
-                lb29:
+                goto lb23;
+                lb22:
                 {
                     i32t %6 = i8n 3 as i32;
                     i32t %5 = i32s %0 == i32t %6;
-                    if i32t %5, goto lb43, else goto lb44;
-                    lb43:
+                    if i32t %5, goto lb32, else goto lb33;
+                    lb32:
                     {
                     }
-                    goto lb45;
-                    lb44:
+                    goto lb34;
+                    lb33:
                     {
                     }
-                    goto lb45;
-                    lb45:
+                    goto lb34;
+                    lb34:
                 }
-                goto lb30;
-                lb30:
+                goto lb23;
+                lb23:
             }
-            goto lb15;
-            lb15:
+            goto lb12;
+            lb12:
         }
     }
 }

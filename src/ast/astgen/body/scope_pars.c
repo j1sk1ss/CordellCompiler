@@ -5,7 +5,7 @@ ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
     SAVE_TOKEN_POINT;
     ast_node_t* base = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create a basic block for the scope block!");
+        PARSE_ERROR("Can't create a basic block for a scope block!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -15,7 +15,7 @@ ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
     if (body) AST_add_node(base, body);
     else {
         if (carry) stack_pop(&ctx->scopes.stack, NULL);
-        PARSE_ERROR("Error during a parse of the scope block!");
+        PARSE_ERROR("Error during parse of a scope block!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -43,7 +43,7 @@ ast_node_t* cpl_parse_scope(PARSER_ARGS) {
     ast_node_t* body = cpl_parse_block(it, ctx, smt, CLOSE_BLOCK_TOKEN);
     if (!body) {
         if (carry) stack_pop(&ctx->scopes.stack, NULL);
-        PARSE_ERROR("Error during a parse of the scope block!");
+        PARSE_ERROR("Error during parse of a scope block!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }

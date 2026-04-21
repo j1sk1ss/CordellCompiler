@@ -22,7 +22,7 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
             ast_node_t* arr_size = cpl_parse_expression(it, ctx, smt, carry);
             ast_node_t* arr_type = _parse_array_type(it, ctx, smt, carry);
             if (arr_type && arr_size) {
-                PARSE_ERROR("Can't create the size and the type for the array!");
+                PARSE_ERROR("Can't create the size and the type for an array!");
                 AST_add_node(type, arr_size);
                 AST_add_node(type, arr_type);
                 RESTORE_TOKEN_POINT;
@@ -38,7 +38,7 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
         default: {
             type = AST_create_node(CURRENT_TOKEN);
             if (!type) {
-                PARSE_ERROR("Can't create a base for the array type!");
+                PARSE_ERROR("Can't create a base for the array's type!");
                 RESTORE_TOKEN_POINT;
                 return NULL;
             }
@@ -55,7 +55,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create a base for the array declaration!");
+        PARSE_ERROR("Can't create a base for the array's declaration!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -67,14 +67,14 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
     if (name) AST_add_node(base, name);
     else {
-        PARSE_ERROR("Can't create a base for the array name!");
+        PARSE_ERROR("Can't create a base for the array's name!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     if (!consume_token(it, OPEN_INDEX_TOKEN)) {
-        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected OPEN_INDEX_TOKEN!");
+        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the 'OPEN_INDEX_TOKEN'!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -84,14 +84,14 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     ast_node_t* length = cpl_parse_expression(it, ctx, smt, 0);
     if (length) AST_add_node(base, length);
     else {
-        PARSE_ERROR("Can't create a base for the size!");
+        PARSE_ERROR("Can't create a base for the array's size!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
     
     if (CURRENT_TOKEN->t_type != COMMA_TOKEN) {
-        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected COMMA_TOKEN!");
+        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the 'COMMA_TOKEN'!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -100,14 +100,14 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     ast_node_t* type = _parse_array_type(it, ctx, smt, carry);
     if (type) AST_add_node(base, type);
     else {
-        PARSE_ERROR("Can't create a base for the array type!");
+        PARSE_ERROR("Can't create a base for the array's type!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     if (!consume_token(it, CLOSE_INDEX_TOKEN)) {
-        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected CLOSE_INDEX_TOKEN!");
+        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the 'CLOSE_INDEX_TOKEN'!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -128,7 +128,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
             ast_node_t* elem = cpl_parse_expression(it, ctx, smt, 1);
             if (elem) AST_add_node(base, elem);
             else { 
-                PARSE_ERROR("Error during parsing of the array static element!");
+                PARSE_ERROR("Error during parsing of the array's initial element!");
                 AST_unload(base);
                 RESTORE_TOKEN_POINT;
                 return NULL;

@@ -18,7 +18,7 @@ ast_node_t* cpl_parse_if(PARSER_ARGS) {
     ast_node_t* cond = cpl_parse_expression(it, ctx, smt, 1);
     if (cond) AST_add_node(base, cond);
     else {
-        PARSE_ERROR("Error during the condition parsing in the '%s' structure! %s <stmt>", IF_COMMAND, IF_COMMAND);
+        PARSE_ERROR("Error during condition parsing in the '%s' structure! %s <stmt>", IF_COMMAND, IF_COMMAND);
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -29,7 +29,7 @@ ast_node_t* cpl_parse_if(PARSER_ARGS) {
     else tbranch = cpl_parse_scope(it, ctx, smt, 1);
     if (tbranch) AST_add_node(base, tbranch);
     else {
-        PARSE_ERROR("Error during the true branch parsing in the '%s' statement!", IF_COMMAND);
+        PARSE_ERROR("Error during the 'then' branch parsing in the '%s' statement!", IF_COMMAND);
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -46,7 +46,7 @@ ast_node_t* cpl_parse_if(PARSER_ARGS) {
         
         if (fbranch) AST_add_node(base, fbranch);
         else {
-            PARSE_ERROR("Error during the false branch parsing in the '%s' statement!", IF_COMMAND);
+            PARSE_ERROR("Error during the 'else' branch parsing in the '%s' statement!", IF_COMMAND);
             AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;

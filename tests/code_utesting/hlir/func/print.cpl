@@ -17,20 +17,20 @@ BB2: fn strlen0(i8* s) -> i32
 %0 = ldparam();
 %4 = $0 as i32;
 %1 = %4;
-BB3: lb21:
+BB3: lb15:
 %5 = *(%0);
 cmp %5, 0;
-je lb23;
-jne lb22;
-BB4: lb22:
+je lb17;
+jne lb16;
+BB4: lb16:
 %6 = $1 as i32;
 %7 = %1 + %6;
 %1 = %7;
 %8 = $1 as u64;
 %9 = %0 + %8;
 %0 = %9;
-jmp lb21;
-BB5: lb23:
+jmp lb15;
+BB5: lb17:
 return %1;
 BB6:
 BB7: start
