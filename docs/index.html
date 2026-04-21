@@ -1,4 +1,4 @@
-<!-- docker run --rm \
+<!-- sudo docker run --rm \
   -p 3000:3000 \
   -v "$PWD":/site \
   -w /site \
@@ -424,11 +424,39 @@
       top: 12px !important;
     }
 
+    .benchmark-card {
+      margin: 24px 0;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .benchmark-chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 420px;
+    }
+
+    .benchmark-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .benchmark-chart {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
     @media (max-width: 900px) {
       .markdown-section { padding: 34px 22px 72px; }
       .docsify-pagination { grid-template-columns: 1fr; }
       .docsify-pagination-card.right { text-align: left; }
       .docsify-pagination-current { min-width: 0; }
+      .benchmark-chart-wrap { height: 320px; }
     }
   </style>
 </head>
@@ -448,14 +476,125 @@
       return value;
     }
 
+    window.__benchmarkCharts = new Map();
+
+    function destroyBenchmarkCharts() {
+      for (const chart of window.__benchmarkCharts.values()) {
+        chart.destroy();
+      }
+      window.__benchmarkCharts.clear();
+    }
+
+    function renderBenchmarkCharts() {
+      if (typeof Chart === 'undefined') return;
+    
+      destroyBenchmarkCharts();
+    
+      const cards = document.querySelectorAll('.benchmark-card');
+      console.log('cards=', document.querySelectorAll('.benchmark-card').length);
+      for (const card of cards) {
+        const canvas = card.querySelector('canvas.benchmark-chart');
+        console.log('card=', card, 'canvas=', canvas, 'dataset=', card.dataset);
+        if (!canvas) continue;
+    
+        try {
+          let cfg = null;
+    
+          const dataNode = card.querySelector('textarea.benchmark-data');
+          if (dataNode) {
+            cfg = JSON.parse(dataNode.value || dataNode.textContent);
+          } else {
+            const labels= (card.dataset.labels || '').split('|').map(x => x.trim()).filter(Boolean);
+            const values= (card.dataset.values || '').split('|').map(x => Number(x.trim())).filter(x => !Number.isNaN(x));
+    
+            cfg = {
+              title: card.dataset.title || '',
+              labels: labels,
+              datasets: [{
+                label: card.dataset.datasetLabel || 'Value',
+                data: values,
+                borderWidth: 1,
+                borderRadius: 8,
+                maxBarThickness: 72
+              }],
+              yLabel: card.dataset.yLabel || card.dataset.datasetLabel || 'Value',
+              tooltipSuffix: card.dataset.tooltipSuffix || ''
+            };
+          }
+    
+          if (!cfg.labels || !cfg.labels.length || !cfg.datasets || !cfg.datasets.length) {
+            throw new Error('Empty benchmark config');
+          }
+    
+          const datasets = cfg.datasets.map(ds => ({
+            borderWidth: 1,
+            borderRadius: 8,
+            maxBarThickness: 72,
+            ...ds
+          }));
+    
+          const chart = new Chart(canvas.getContext('2d'), {
+            type: cfg.type || 'bar',
+            data: {
+              labels: cfg.labels,
+              datasets: datasets
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: {
+                mode: 'index',
+                intersect: false
+              },
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'top'
+                },
+                title: {
+                  display: !!cfg.title,
+                  text: cfg.title || ''
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      const suffix = cfg.tooltipSuffix || '';
+                      const raw = context.parsed.y ?? context.raw;
+                      const value = typeof raw === 'number' ? raw.toFixed(6) : raw;
+                      return `${context.dataset.label}: ${value}${suffix}`;
+                    }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: cfg.yLabel || cfg.datasetLabel || 'Value'
+                  }
+                }
+              }
+            }
+          });
+    
+          window.__benchmarkCharts.set(canvas, chart);
+        } catch (err) {
+          const wrap = card.querySelector('.benchmark-chart-wrap');
+          if (wrap) {
+            wrap.innerHTML = `<div class="benchmark-note">Chart error: ${err.message}</div>`;
+          }
+          console.error(err);
+        }
+      }
+    }
+
     window.$docsify = {
-      name: 'Cordell Programming Language v3.4<small>Language docs & compiler internals</small>',
+      name: 'CPL v3.4<small>Language docs & compiler internals</small>',
       repo: 'https://github.com/j1sk1ss/CordellCompiler',
       homepage: 'README.md',
-      // loadNavbar: '/navbar.md',
       loadSidebar: '/sidebar.md',
       alias: {
-        // '/.*/navbar.md': '/navbar.md',
         '/.*/sidebar.md': '/sidebar.md'
       },
       subMaxLevel: 2,
@@ -470,7 +609,7 @@
         noData: 'No results found',
         depth: 3,
         hideOtherSidebarContent: false,
-        namespace: 'cordell-docs'
+        namespace: 'cpl-docs'
       },
       copyCode: {
         buttonText: 'Copy',
@@ -496,7 +635,10 @@
             if (!nav) return [];
             const seen = new Set();
             return Array.from(nav.querySelectorAll('a'))
-              .map(a => ({ href: cleanRoute(a.getAttribute('href') || ''), title: (a.textContent || '').trim() }))
+              .map(a => ({
+                href: cleanRoute(a.getAttribute('href') || ''),
+                title: (a.textContent || '').trim()
+              }))
               .filter(item => item.href.startsWith(pagePrefix))
               .filter(item => {
                 if (!item.href || seen.has(item.href)) return false;
@@ -524,12 +666,16 @@
 
           function renderPager() {
             removePager();
+
             const currentHash = normalizeHash(location.hash);
             if (!currentHash.startsWith(pagePrefix)) return;
+
             const items = getPageLinks();
             if (!items.length) return;
+
             const currentIndex = items.findIndex(item => item.href === currentHash);
             if (currentIndex === -1) return;
+
             const prev = items[currentIndex - 1];
             const current = items[currentIndex];
             const next = items[currentIndex + 1];
@@ -551,14 +697,29 @@
             article.appendChild(wrap);
           }
 
-          hook.doneEach(function() { setTimeout(renderPager, 120); });
-          window.addEventListener('hashchange', function() { setTimeout(renderPager, 120); });
+          hook.doneEach(function() {
+            setTimeout(renderPager, 120);
+          });
+
+          window.addEventListener('hashchange', function() {
+            setTimeout(renderPager, 120);
+          });
+        },
+
+        function(hook) {
+          hook.doneEach(function() {
+            setTimeout(function() {
+              renderBenchmarkCharts();
+            }, 0);
+          });
         }
       ]
     };
   </script>
 
   <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
     Prism.languages.cpl = {
       comment: { pattern: /:([\s\S]*?):/, greedy: true },
@@ -572,6 +733,7 @@
       number: /\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)\b/
     };
   </script>
+
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>

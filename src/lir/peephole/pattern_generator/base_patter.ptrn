@@ -13,6 +13,12 @@ mklb label_1
 ; ==================
 
 mov areg_1, areg_2
+test areg_1, areg_1
+->
+test areg_2, areg_2
+/
+
+mov areg_1, areg_2
 sub areg_1, obj_2
 mov obj_1, areg_1
 mov areg_2, areg_1
@@ -66,6 +72,14 @@ xor areg_1, areg_1
 ; Arithmetic identities
 ; ==================
 
+mov areg_1, areg_2
+add areg_1, areg_3
+mov areg_2, areg_1
+->
+mov areg_1, areg_2
+add areg_2, areg_3
+/
+
 add obj, const 0
 ->
 delete
@@ -74,6 +88,14 @@ delete
 sub areg_1, const 1
 ->
 dec areg_1
+/
+
+mov areg_1, areg_2
+dec areg_1
+mov areg_3, areg_1
+->
+dec areg_2
+mov areg_3, areg_2
 /
 
 mov areg_2, areg_1
