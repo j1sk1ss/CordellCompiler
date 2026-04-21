@@ -1,7 +1,24 @@
-# CPL Benchmarks
-**Important note:** I will use `GCC` as the best case scenario. Also, I will add the `asm valotile` sections to force `GCC` save the code such as an empty loop (CPL doesn't delete such code, but GCC does). 
+# CPL code performance evaluation
+**Important note:** some microbenchmarks use `asm volatile` in the C version to prevent dead-code elimination of otherwise empty or non-observable loops. CPL currently preserves such loops by default, while optimizing C compilers may remove them. These tests should therefore be interpreted as loop-overhead measurements rather than general-purpose performance benchmarks. </br>
 
-## Loops
+Versions:
+- `gcc-14`: GCC 14.2.0 (Homebrew GCC 14.2.0)
+  - Optimizations: `-O0`, `-O3`
+- `clang`: Apple clang 12.0.0 (clang-1200.0.32.29)
+  - Optimizations: `-O0`, `-O3`
+- `cpl`: CPL v3.4 (MACHO64)
+  - Optimizations: ` `, `--opt` (LICM, Peephole, CSE, DCE, Constant prop / fold) 
+
+Specs:
+- OS: MacOS Catalina 10.15.7
+- CPU: i7 3650QM, Quad-core, 2.4 GHz
+- RAM: 16 GB, DDR3, 1600 MHz
+
+Result gathering:
+  - CPL - 5 times, `py-time` total program execution time
+  - Clang / GCC - 5 times, `gnu-time` total execution time
+
+## Empty loop
 ```cpl
 @[naked] start() {
     @[counter(1000000000)] loop {
@@ -23,8 +40,8 @@ int main() {
 <div
   class="benchmark-card"
   data-title="Empty loop benchmark"
-  data-labels="gcc -O3|cpl --opt|cpl|gcc -O0"
-  data-values="0.32|0.72|1.52|3.52"
+  data-labels="cpl --opt|clang -O3|gcc-14 -O3|cpl|gcc-14 -O0|clang -O0"
+  data-values="0.72|0.748|0.758|1.52|4.290|4.641"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -34,9 +51,11 @@ int main() {
   </div>
 </div>
 
-## Fibonacci
+**Note:** The execution code size (asm) of the CPL optimized file is 18 lines (including comments such as a base block number). Were 31 lines.
+
+## Million fibonacci
 ```cpl
-@[naked] start() {
+start() {
     i32 a = 1;
     i32 b = 0;
     @[counter(1000000)] loop {
@@ -55,7 +74,6 @@ int main() {
         int tmp = a;
         a = a + b;
         b = tmp;
-        asm volatile("" : "+r"(a), "+r"(b) : : "memory");
     }
     return b;
 }
@@ -65,8 +83,8 @@ int main() {
 <div
   class="benchmark-card"
   data-title="Fibonacci benchmark"
-  data-labels="gcc -O3|gcc -O0|cpl --opt|cpl"
-  data-values="0.008467|0.1|0.41|0.52"
+  data-labels="gcc-14 -O3|cpl --opt|clang -O3|gcc-14 -O0|clang -O0|cpl"
+  data-values="0.412|0.412|0.417|0.421|0.430|0.434"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -76,7 +94,9 @@ int main() {
   </div>
 </div>
 
-## Pointer and strings
+**Note:** The execution code size (asm) of the CPL optimized file is 32 lines (including comments such as a base block number). Were 48 lines.
+
+## String iteration
 ```cpl
 start() {
     str msg = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
@@ -95,13 +115,33 @@ start() {
 
     exit acc;
 }
+
+:/ C version:
+int main() {
+    const char *msg = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
+    long outer = 0;
+    unsigned char acc = 0;
+    const char *p = msg;
+
+    while (outer < 1000000) {
+        p = msg;
+        while (*p) {
+            acc = (unsigned char)((acc + (unsigned char)*p) & 0xFF);
+            p += 1;
+        }
+        outer += 1;
+    }
+
+    return acc;
+}
+/:
 ```
 
 <div
   class="benchmark-card"
-  data-title="Fibonacci benchmark"
-  data-labels="gcc -O3|gcc -O0|cpl --opt|cpl"
-  data-values="0.03446|0.18|0.52|0.63"
+  data-title="Pointer and string traversal benchmark"
+  data-labels="clang -O3|gcc-14 -O3|cpl --opt|gcc-14 -O0|cpl|clang -O0"
+  data-values="0.430|0.470|0.52|0.566|0.603|1.002"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -110,3 +150,5 @@ start() {
     <canvas class="benchmark-chart"></canvas>
   </div>
 </div>
+
+**Note:** The execution code size (asm) of the CPL optimized file is 87 lines (including comments such as a base block number). Were 103 lines.

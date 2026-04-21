@@ -24,6 +24,11 @@ CPL - is a low-level experimental programming language. Also, this is the main d
     <p>Goals, motivation, and what the project is trying to build.</p>
   </a>
 
+  <a href="#/pages/benchmarking" class="doc-card">
+    <h3>Benchmarks</h3>
+    <p>Optimization results, summary performance, comparison with C in GCC.</p>
+  </a>
+
   <a href="#/pages/hello-world-example" class="doc-card">
     <h3>Hello world</h3>
     <p>The fastest way to see the language shape in practice.</p>

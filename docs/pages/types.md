@@ -72,17 +72,17 @@ put_data(msg2, { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0
 The important difference appears when a string is used through a pointer:
 ```cpl
 ptr i8 msg1 = ref "Hello world!"; :/ <= Data is placed in the RO segment, pointer size is target-dependent /:
-str msg2 = "Hello world!";         :/ <= Data is allocated on the stack                                     /:
+str msg2 = "Hello world!";        :/ <= Data is allocated on the stack                                     /:
 ```
 
 An array cannot behave exactly the same way. Arrays can allocate data on the stack, but they are not used as pointer element types in the same sense as `str`. In that sense, a string sits somewhere between an array and a primitive convenience type. </br>
-Also, there is one important note: **Strings**, which are placed as an independent string in a code are always on the **stack**. It means, every time you're working with these strings, you need to apply the 'ref' keyword. For instance:
+Also, there is one important note: **Strings**, which are placed as an independent string in a code are always in the **section**. It is a continues sequence of bytes, and stored not as a pointer. It means, every time you're working with these strings, you need to apply the 'ref' keyword. For instance:
 ```cpl
 function foo(ptr i8 msg) -> i0;
 foo(ref "Hello, World!\n");
 ```
 
-This is important to uderstand given the language's philosophy of being an extention for Assembly langauge. A string is placed in a '.data' (can be changed with the `section` annotation) section as a continues array of bytes, and it *must* be refered with the 'ref'.
+This is important to uderstand given the language's philosophy of being an extention for Assembly langauge. A string is placed in a '.rodata' (can be changed with the `section` annotation) section as a continues array of bytes, and it *must* be refered with the 'ref'.
 
 ### `arr`
 `arr` is the array type. It can contain any primitive element type and is allocated either on the stack or in a target-dependent section.

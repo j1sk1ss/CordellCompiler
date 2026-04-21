@@ -2,7 +2,6 @@
 Function becomes an entry point in two cases:
 - If this is a `start` function.
 - If this is an annotated with the `entry` annotation function.
-- If the produced program linked with the GCC linker, the `main` function will became an entry point.
 
 Example without a `start` function:
 ```cpl
@@ -36,3 +35,5 @@ function main(i32 argc, ptr ptr i8 argv) -> u8;
 **Note 3:** Entry point will generate all essential steps (stackframe allocation, entry, exit commands, etc). </br>
 **Note 4:** Entry point supports the `naked` annotation which disables default stack frame allocation and exit routine. </br>
 **Note 5:** Without any entry point, a file becomes a library file after the compilation.
+**Note 6:** `main` function, without an annotation, won't became an entry point. You *must* use the `entry` annotation.
+**Note 7:** If there is more than one entry points, compiler will return an error. 

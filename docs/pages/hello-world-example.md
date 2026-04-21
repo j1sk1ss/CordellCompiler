@@ -74,7 +74,7 @@ P.S.S.: *Actually, with usage of a similar header file (with the same functions 
 #include "stdio_h.cpl"
 
 @[entry("_start")] function main(i32 argc, ptr ptr i8 argv) -> i32 {
-    puts("Hello, World!");
+    puts(ref "Hello, World!");
     exit 0;
 }
 ```
