@@ -5,6 +5,6 @@ start() {
 }
 
 :/ OUTPUT
-[ERROR]   [3:9] Not enough arguments for the 'foo' function!
+[ERROR]   [{X}3:9] Not enough arguments for the 'foo' function!
 3 | foo();
 /:

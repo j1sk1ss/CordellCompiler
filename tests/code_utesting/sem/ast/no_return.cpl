@@ -8,8 +8,8 @@ function fang() -> i32 {
 start() { exit 1; }
 
 :/ OUTPUT
-[INFO]    [2:16] Used 'Fang' as a function dragon-name, and now let's play some guitar songs, I guess? Also, this type of a warning is pretty annoing, isn't it? But why did you call a function with such a name?
-[WARNING] [2:10] Function 'fang' doesn't have the 'return' keyword on all paths!
+[INFO]    [{X}2:16] Used 'Fang' as a function dragon-name, and now let's play some guitar songs, I guess? Also, this type of a warning is pretty annoing, isn't it? But why did you call a function with such a name?
+[WARNING] [{X}2:10] Function 'fang' doesn't have the 'return' keyword on all paths!
 2 | function fang() -> i32
 3 | {
 3 |     if 1;

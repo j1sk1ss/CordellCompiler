@@ -17,7 +17,7 @@
 }
 
 :/ OUTPUT
-[WARNING] [8:16] 'Dead Code' after the termination statement!
+[WARNING] [{X}8:16] 'Dead Code' after the termination statement!
 3 | {
 3 |     i32 a = 0;
 4 |     a += 1;
@@ -29,7 +29,7 @@
 9 |     return ;
   |     ^^^^^^^
 3 | }
-[WARNING] [14:14] 'Dead Code' after the termination statement!
+[WARNING] [{X}14:14] 'Dead Code' after the termination statement!
 13 | {
 13 |     i32 a = 0;
 14 |     exit 0;

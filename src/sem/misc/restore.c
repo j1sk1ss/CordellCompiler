@@ -358,7 +358,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             complex = 1;
             break;
         }
-
         case FUNC_PROT_TOKEN: {
             _rst_ln_printf(x, line, "%s %s(", FUNCTION_COMMAND, nd->c->t->body->body);
 
@@ -372,7 +371,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             if (nd->c->c) _rst_ln_printf(x, line, " -> %s", RST_restore_type(nd->c->c->t));
             break;
         }
-
         case FUNC_TOKEN: {
             _rst_ln_printf(x, line, "%s %s(", FUNCTION_COMMAND, nd->c->t->body->body);
 
@@ -394,7 +392,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             complex = 1;
             break;
         }
-
         case CALL_TOKEN: {
             _rst_ln_printf(x, line, "%s(", nd->t->body->body);
             for (ast_node_t* p = nd->c->c; p; p = p->siblings.n) {
@@ -405,7 +402,21 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             _rst_ln_puts(x, line, ")");
             break;
         }
+        case ASM_TOKEN: {
+            _rst_ln_puts(x, line, ASM_COMMAND "(");
+            ast_node_t* p;
+            for (p = nd->c; p; p = p->siblings.n) {
+                _restore_code_lines(x, p, u, indent);
+                if (p->siblings.n) _rst_ln_puts(x, line, ", ");
+            } // TODO: Fix restorers according to a new pattern on AST nodes
 
+            _rst_ln_puts(x, line, ")");
+            int p_line = _rst_line(p);
+            _rst_ln_indent(x, p_line, indent);
+            int r = _restore_code_lines(x, p, u, indent);
+            if (r < 0) _rst_ln_puts(x, p_line, ";\n");
+            break;
+        }
         case SYSCALL_TOKEN: {
             _rst_ln_puts(x, line, SYSCALL_COMMAND "(");
             for (ast_node_t* p = nd->c; p; p = p->siblings.n) {
@@ -416,7 +427,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             _rst_ln_puts(x, line, ")");
             break;
         }
-
         case EXTERN_TOKEN:     _simple_restore_lines(x, nd->c, u, indent, EXTERN_COMMAND " ");      break;
         case REF_TYPE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, REF_COMMAND " ");         break;
         case DREF_TYPE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, DREF_COMMAND " ");        break;

@@ -251,9 +251,10 @@ static int _search_term_node(ast_node_t* nd, int* found, int* type) {
 
     switch (nd->t->t_type) {
         case IF_TOKEN:
+        case LOOP_TOKEN:
         case WHILE_TOKEN: {
             ast_node_t* cnd     = nd->c;
-            ast_node_t* lbranch = cnd->siblings.n;
+            ast_node_t* lbranch = nd->t->t_type != LOOP_TOKEN ? cnd->siblings.n : nd->c;
             ast_node_t* rbranch = lbranch->siblings.n;
 
             int nret = 0, lret = 0, rret = 0;
@@ -266,7 +267,6 @@ static int _search_term_node(ast_node_t* nd, int* found, int* type) {
             if (found && nret) *found = 1;
             return 1;
         }
-
         case SWITCH_TOKEN: {
             int nret = 0, caseret = 1;
             ast_node_t* cnd   = nd->c;
@@ -281,7 +281,6 @@ static int _search_term_node(ast_node_t* nd, int* found, int* type) {
             if (nret || caseret) *found = 1;
             break;
         }
-
         case EXIT_TOKEN:   if (type) *type = 1; goto _set_found_flag;
         case RETURN_TOKEN: if (type) *type = 2;
         {
@@ -289,7 +288,6 @@ _set_found_flag: {}
             if (found) *found = 1;
             return 1;
         }
-
         default: {
             _search_term_node(nd->c, found, type);
             if (found && *found) break;
@@ -398,119 +396,6 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
         if (!_check_assign_types("Illegal argument", expected_arg, provided_arg)) {
             REBUILD_CODE_1TRG(nd, provided_arg);
         }
-    }
-
-    return 1;
-}
-
-/*
-Find if there is a final consumer for the 'src' node.
-Consumer in this terms implies a some sort of the end destination for a value.
-For instance:
-```cpl
-i32 a = b + c;
-```
-
-The 'a' variable consumes the product of a sum of the 'b' and the 'c' variable.
-But if we consider the next example:
-```cpl
-i32 a;
-b + c;
-```
-
-It still a correct expression, but it doesn't consumed by any final destination.
-Similar situation with return values from function. For instance:
-```cpl
-function abc() -> i32;
-i32 a = abc(); : Value was consumed here      :
-abc();         : Value wasn't consumed at all :
-```
-
-Params:
-    - `src` - The source value.
-    - `found` - Output node that contans additional info about
-                the consumer.
-                Note: If it's value below or equals zero - Consumer
-                      isn't found
-
-Returns 1 if it has found the consumer. Otherwise will return 0.
-*/
-static int _find_consumer(ast_node_t* src, int* found) {
-    if (!src) return 0;
-    if (*found > 0)      return 1;
-    else if (*found < 0) return 0;
-
-    switch (src->t->t_type) {
-        case SCOPE_TOKEN:
-        case FUNC_TOKEN:
-        case START_TOKEN: *found = -1; return 0;
-        default: break;
-    }
-
-    /* Consumed by a variable
-       For instance:
-        - indexing */
-    if (TKN_is_variable(src->t)) {
-        *found = 1;
-        return 1;
-    }
-
-    /* Consumed by a variable declaration
-     */
-    if (TKN_is_decl(src->t)) {
-        *found = 2;
-        return 1;
-    }
-
-    /* Consumed by a variable update such as:
-        - +=
-        - -=
-        - /=
-        etc. */
-    if (TKN_is_update_operator(src->t)) {
-        *found = 3;
-        return 1;
-    }
-
-    switch (src->t->t_type) {
-        case IF_TOKEN:
-        case WHILE_TOKEN:
-        case CALL_TOKEN: *found = 4; return 1;
-        default: break;
-    }
-
-    _find_consumer(src->p, found);
-    return 0;
-}
-
-int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
-    AST_VISITOR_ARGS_USE;
-
-    func_info_t fi;
-    if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) {
-        SEMANTIC_ERROR(
-            " %s Function '%s' isn't registered for some reason! Check previous logs!",
-            _format_location(&nd->c->t->finfo), nd->c->t->body->body
-        );
-
-        return 0;
-    }
-
-    if (!fi.rtype) return 1;
-    if (fi.rtype->t->t_type != I0_TYPE_TOKEN) {
-        int consumed = 0;
-        _find_consumer(nd->p, &consumed);
-        if (consumed <= 0) {
-            SEMANTIC_WARNING(
-                " %s Unused the function '%s' result! If its result isn't used elsewhere, consider to change "
-                "its return type to the 'i0' type.", 
-                _format_location(&nd->t->finfo), fi.name->body
-            );
-            REBUILD_CODE_1TRG(nd->p, nd);
-            return 0;
-        }
-
-        return 1;
     }
 
     return 1;
@@ -866,62 +751,27 @@ int ASTWLKR_break_without_statement(AST_VISITOR_ARGS) {
     return 1;
 }
 
+// TODO: move ASTWLKR_unused_rtype to HIR part
+int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    return 1;
+}
+
+// TODO: move ASTWLKR_noret_assign to HIR part
 int ASTWLKR_noret_assign(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
-
-    func_info_t fi;
-    if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) {
-        SEMANTIC_ERROR(
-            " %s The '%s' function isn't registered for some reason! It may happen due to a critical error.",
-            _format_location(&nd->c->t->finfo), nd->c->t->body->body
-        );
-
-        return 0;
-    }
-
-    if (!fi.rtype) return 1;
-    if (fi.rtype->t->t_type == I0_TYPE_TOKEN) {
-        int consumed = 0;
-        _find_consumer(nd->p, &consumed);
-        if (consumed > 0) {
-            SEMANTIC_WARNING(
-                " %s The '%s' function doesn't return anything, but its result is being used! It will store a garbage in a variable.", 
-                _format_location(&nd->t->finfo), fi.name->body
-            );
-            REBUILD_CODE_1TRG(nd->p, nd);
-            return 0;
-        }
-
-        return 1;
-    }
-
     return 1;
 }
 
+// TODO: move ASTWLKR_unused_expression to HIR part
 int ASTWLKR_unused_expression(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
-    int consumed = 0;
-    _find_consumer(nd, &consumed);
-    if (consumed <= 0) {
-        SEMANTIC_WARNING(
-            " %s The expression returns a value that never assigns! Consider to store it somewhere, or delete the expression.", 
-            _format_location(&nd->t->finfo)
-        );
-        REBUILD_CODE_1TRG(nd->p, nd);
-        return 0;
-    }
-
     return 1;
 }
 
+// TODO: move ASTWLKR_ref_to_expression to HIR part
 int ASTWLKR_ref_to_expression(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
-    if (!TKN_is_variable(nd->c->t)) {
-        SEMANTIC_WARNING(" %s The reference of a temporary variable! May lead to UB, consider refactoring!", _format_location(&nd->t->finfo));
-        REBUILD_CODE_1TRG(nd->p, nd->c);
-        return 0;
-    }
-
     return 1;
 }
 
@@ -933,7 +783,7 @@ int ASTWLKR_incorrect_align(AST_VISITOR_ARGS) {
     if (vi.vmi.align % 2 != 0) {
         SEMANTIC_WARNING(
             " %s The '%s' variable has align that isn't even! '%i' %% 2 != 0.", 
-            vi.name->body, _format_location(&nd->t->finfo), vi.vmi.align
+            _format_location(&nd->t->finfo), vi.name->body, vi.vmi.align
         );
         REBUILD_CODE_1TRG(nd, nd);
         return 0;

@@ -5,7 +5,7 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [3:11] Function 'foo' has the 'i32' return type, and it doesn't match to the declaration type 'u8'!
+[WARNING] [{X}3:11] Function 'foo' has the 'i32' return type, and it doesn't match to the declaration type 'u8'!
 3 | u8 a = foo();
   |        ^^^^^
 /:
