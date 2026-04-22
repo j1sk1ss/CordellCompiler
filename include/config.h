@@ -7,7 +7,7 @@ typedef enum {
     UNKNOWN,
     MACOH64,
     LINUX64,
-    WINDOWS
+    WINDOWS64
 } arch_type_t;
 
 typedef const char* config_string_field_t;

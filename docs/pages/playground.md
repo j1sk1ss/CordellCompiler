@@ -1,8 +1,7 @@
-# Hello, World! example
-The actual syntax of CPL can be presented with help of a program with a simple functionality to print a welcome message. In a nutshell, that's how we can write a basic 'hello-world' program. </br>
-P.S.: *Usage of an assembly block requires to determine the target architecture. In the case below, the target architecture is 'GNU NASM x86_64'.*
+# Playground
+Here you can play with some code snippets, and see, how the compiler behave.
 
-```cpl
+```cpl-run
 :/ Define the strlen function
   that accepts a pointer to a char array.
   Params:
@@ -52,28 +51,6 @@ function puts(ptr i8 s) -> i0 {
   main(int argc, char* argv[]); :
 start(i64 argc, ptr ptr i8 argv) {
     puts(ref "Hello, World!\n");
-    exit 0;
-}
-``` 
-
-For comparison here is the same code snippet but on C language:
-```c
-#include "stdio.h"
-
-int main(int argc, char* argv[]) {
-    puts("Hello, World!");
-    return 0;
-}
-```
-
-P.S.: *The C code can looks similar to CPL code if we will abandon the stdlib.h. But considering that the library is exists and can be used easily, we won't use an example without it.* </br>
-P.S.S.: *Actually, with usage of a similar header file (with the same functions set), CPL code can looks really close to C code with the same lib.*
-
-```cpl
-#include "stdio_h.cpl"
-
-@[entry("_start")] function main(i32 argc, ptr ptr i8 argv) -> i32 {
-    puts(ref "Hello, World!");
     exit 0;
 }
 ```

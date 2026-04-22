@@ -451,6 +451,88 @@
       height: 100% !important;
     }
 
+    .cpl-runner {
+      margin: 24px 0;
+      padding: 18px;
+      height: 50%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .cpl-runner-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .cpl-runner-title {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .cpl-runner-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease, opacity 0.15s ease;
+    }
+
+    .cpl-runner-button:hover { background: var(--brand-strong); }
+    .cpl-runner-button:disabled { opacity: 0.7; cursor: wait; }
+
+    .cpl-runner-input {
+      width: 100%;
+      min-height: 220px;
+      resize: vertical;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfefb;
+      color: var(--text);
+      font: 0.94rem/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      outline: none;
+    }
+
+    .cpl-runner-input:focus {
+      border-color: #b6d4bc;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(79, 157, 105, 0.10);
+    }
+
+    .cpl-runner-output {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfefb;
+      color: var(--text);
+      min-height: 72px;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      font: 0.92rem/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    .cpl-runner-output.is-error {
+      border-color: #e6c7c7;
+      background: #fff7f7;
+      color: #7a2e2e;
+    }
+
     @media (max-width: 900px) {
       .markdown-section { padding: 34px 22px 72px; }
       .docsify-pagination { grid-template-columns: 1fr; }
@@ -474,6 +556,15 @@
       value = value.split('?')[0];
       value = value.replace(/\/+$/, '');
       return value;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
     window.__benchmarkCharts = new Map();
@@ -619,10 +710,23 @@
       markdown: {
         renderer: {
           code: function(code, lang) {
+            if (lang === 'cpl-run') {
+              return `
+                <div class="cpl-runner" data-lang="cpl">
+                  <div class="cpl-runner-toolbar">
+                    <div class="cpl-runner-title">Interactive CPL block</div>
+                    <button class="cpl-runner-button" type="button">Run</button>
+                  </div>
+                  <textarea class="cpl-runner-input" spellcheck="false">${escapeHtml(code)}</textarea>
+                  <pre class="cpl-runner-output">Click Run to execute this example.</pre>
+                </div>
+              `;
+            }
+
             if (window.Prism && lang && Prism.languages[lang]) {
               return '<pre><code class="language-' + lang + '">' + Prism.highlight(code, Prism.languages[lang], lang) + '</code></pre>';
             }
-            return '<pre><code>' + code + '</code></pre>';
+            return '<pre><code>' + escapeHtml(code) + '</code></pre>';
           }
         }
       },
@@ -703,6 +807,78 @@
 
           window.addEventListener('hashchange', function() {
             setTimeout(renderPager, 120);
+          });
+        },
+
+        function(hook) {
+          const backendUrl = 'http://127.0.0.1:8000/cpl/run';
+
+          async function runCpl(block) {
+            const textarea = block.querySelector('.cpl-runner-input');
+            const output = block.querySelector('.cpl-runner-output');
+            const button = block.querySelector('.cpl-runner-button');
+            const lang = block.dataset.lang || 'cpl';
+
+            if (!textarea || !output || !button) return;
+
+            button.disabled = true;
+            output.classList.remove('is-error');
+            output.textContent = 'Running...';
+
+            try {
+              const response = await fetch(backendUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  lang: lang,
+                  code: textarea.value
+                })
+              });
+
+              let data = null;
+              try {
+                data = await response.json();
+              } catch (e) {
+                data = null;
+              }
+
+              if (!response.ok) {
+                const message =
+                  (data && (data.error || data.stderr || data.message)) ||
+                  `Request failed with status ${response.status}`;
+                throw new Error(message);
+              }
+
+              const parts = [];
+              if (data) {
+                if (data.stdout) parts.push(data.stdout);
+                if (data.stderr) parts.push(data.stderr);
+                if (data.result && !parts.length) parts.push(
+                  typeof data.result === 'string' ? data.result : JSON.stringify(data.result, null, 2)
+                );
+              }
+
+              output.textContent = parts.length ? parts.join('\n') : 'Execution finished with empty output.';
+            } catch (err) {
+              output.classList.add('is-error');
+              output.textContent = 'Run failed: ' + err.message;
+            } finally {
+              button.disabled = false;
+            }
+          }
+
+          hook.doneEach(function() {
+            document.querySelectorAll('.cpl-runner').forEach(block => {
+              const button = block.querySelector('.cpl-runner-button');
+              if (!button || button.dataset.bound === '1') return;
+
+              button.dataset.bound = '1';
+              button.addEventListener('click', function() {
+                runCpl(block);
+              });
+            });
           });
         },
 

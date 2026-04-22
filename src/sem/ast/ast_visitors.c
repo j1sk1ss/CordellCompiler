@@ -251,7 +251,6 @@ static int _search_term_node(ast_node_t* nd, int* found, int* type) {
 
     switch (nd->t->t_type) {
         case IF_TOKEN:
-        case LOOP_TOKEN:
         case WHILE_TOKEN: {
             ast_node_t* cnd     = nd->c;
             ast_node_t* lbranch = cnd->siblings.n;

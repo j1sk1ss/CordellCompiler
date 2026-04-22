@@ -2,6 +2,8 @@
 #define BUILDER_H_
 
 /* Base libs for STDIO with CLI and files */
+#include <errno.h>
+#include <sys/wait.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
