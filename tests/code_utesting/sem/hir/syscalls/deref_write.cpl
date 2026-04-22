@@ -3,6 +3,6 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}cpl:2:63] NULL-dereference error (variable 'tmp' is NULL)!
-          [{X}cpl:2:44]     Variable 'tmp' is assigned with NULL here
+[WARNING] [{X}2:13] NULL-dereference error (variable 'tmp' is NULL)!
+          [{X}2:13]     Variable 'tmp' is assigned with NULL here
 /:

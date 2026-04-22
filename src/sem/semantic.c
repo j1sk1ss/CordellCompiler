@@ -7,11 +7,9 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     /* Low Level */
     ASTWLK_register_visitor(DECLARATION_NODE | ASSIGN_NODE | EXPRESSION_NODE, ASTWLKR_rtype_assign, &walker, ATTENTION_LOW_LEVEL);
     ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_not_init, &walker, ATTENTION_LOW_LEVEL);
-    ASTWLK_register_visitor(CALL_NODE, ASTWLKR_unused_rtype, &walker, ATTENTION_LOW_LEVEL);
     ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_valid_function_name, &walker, ATTENTION_LOW_LEVEL);
     ASTWLK_register_visitor(IF_NODE, ASTWLKR_duplicated_branches, &walker, ATTENTION_LOW_LEVEL);
     ASTWLK_register_visitor(WHILE_NODE, ASTWLKR_inefficient_while, &walker, ATTENTION_LOW_LEVEL);
-    ASTWLK_register_visitor(EXPRESSION_NODE, ASTWLKR_unused_expression, &walker, ATTENTION_LOW_LEVEL);
     ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_incorrect_align, &walker, ATTENTION_LOW_LEVEL);
 
     /* Medium Level */
@@ -20,7 +18,6 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     ASTWLK_register_visitor(TERM_NODE, ASTWLKR_deadcode, &walker, ATTENTION_MEDIUM_LEVEL);
     ASTWLK_register_visitor(EXPRESSION_NODE, ASTWLKR_implict_convertion, &walker, ATTENTION_MEDIUM_LEVEL);
     ASTWLK_register_visitor(BREAK_NODE, ASTWLKR_break_without_statement, &walker, ATTENTION_MEDIUM_LEVEL);
-    ASTWLK_register_visitor(REF_NODE, ASTWLKR_ref_to_expression, &walker, ATTENTION_MEDIUM_LEVEL);
 
     /* High Level */
     ASTWLK_register_visitor(CALL_NODE, ASTWLKR_wrong_arg_type, &walker, ATTENTION_HIGH_LEVEL);
@@ -32,7 +29,6 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     ASTWLK_register_visitor(CALL_NODE, ASTWLKR_not_enough_args, &walker, ATTENTION_BLOCK_LEVEL);
     ASTWLK_register_visitor(INDEX_NODE, ASTWLKR_illegal_array_access, &walker, ATTENTION_BLOCK_LEVEL);
     ASTWLK_register_visitor(START_NODE | FUNCTION_NODE, ASTWLKR_wrong_exit, &walker, ATTENTION_BLOCK_LEVEL);
-    ASTWLK_register_visitor(CALL_NODE, ASTWLKR_noret_assign, &walker, ATTENTION_BLOCK_LEVEL);
 
     int res = ASTWLK_walk(actx, &walker);
     ASTWLK_unload_ctx(&walker);
@@ -48,9 +44,12 @@ int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, sym_table_t* smt) {
     HIRWLK_register_visitor(PHI_INST, HIRWLKR_visit_phi_instruction, &walker, ATTENTION_LOW_LEVEL);
     HIRWLK_register_visitor(IF_INST, HIRWLKR_visit_ifop2_instruction, &walker, ATTENTION_LOW_LEVEL);
     HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_wrong_arg_type, &walker, ATTENTION_LOW_LEVEL);
+    HIRWLK_register_visitor(CALL_INST, HIRWLKR_unused_rtype, &walker, ATTENTION_LOW_LEVEL);
+    HIRWLK_register_visitor(REF_INST, HIRWLKR_ref_to_expression, &walker, ATTENTION_LOW_LEVEL);
 
     /* Medium Level */
     HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_visit_syscall_instruction, &walker, ATTENTION_MEDIUM_LEVEL);
+    HIRWLK_register_visitor(RET_CALL_INST, HIRWLKR_noret_assign, &walker, ATTENTION_HIGH_LEVEL);
 
     /* High Level */
     HIRWLK_register_visitor(GDREF_INST | RET_CALL_INST | CALL_INST, HIRWLKR_visit_gdref_instruction, &walker, ATTENTION_HIGH_LEVEL);

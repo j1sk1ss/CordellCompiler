@@ -1,3 +1,4 @@
+: BUG :
 start() {
     function foo(ptr i32 p) -> i32 {
         return dref p;

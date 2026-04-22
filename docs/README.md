@@ -19,6 +19,11 @@ CPL - is a low-level experimental programming language. Also, this is the main d
     <p>Quick overview of the project and the documentation structure.</p>
   </a>
 
+  <a href="#/pages/playground" class="doc-card">
+    <h3>Playground</h3>
+    <p>Try the compiler by yourself! If a server is online, you can try to compile a program.</p>
+  </a>
+
   <a href="#/pages/main-idea-of-this-project" class="doc-card">
     <h3>Main idea</h3>
     <p>Goals, motivation, and what the project is trying to build.</p>

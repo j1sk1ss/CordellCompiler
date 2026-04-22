@@ -12,10 +12,12 @@ typedef enum {
     IF_INST       = 1 << 1,
     LDREF_INST    = 1 << 2,
     GDREF_INST    = 1 << 3,
-    PHI_INST      = 1 << 4,
-    CALL_INST     = 1 << 5,
-    RET_CALL_INST = 1 << 6,
-    UNKNOWN_INST  = 1 << 7,
+    REF_INST      = 1 << 4,
+    PHI_INST      = 1 << 5,
+    CALL_INST     = 1 << 6,
+    RET_CALL_INST = 1 << 7,
+    STMT_INST     = 1 << 8,
+    UNKNOWN_INST  = 1 << 9,
 } hir_instruction_type_t;
 
 typedef struct {

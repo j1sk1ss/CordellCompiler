@@ -8,6 +8,6 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}cpl:7:19] NULL-dereference error (variable 'a' is NULL)!
-          [{X}cpl:6:17]     Variable 'a' is assigned with NULL here
+[WARNING] [{X}cpl:7:10] NULL-dereference error (variable 'a' is NULL)!
+          [{X}cpl:6:14]     Variable 'a' is assigned with NULL here
 /:

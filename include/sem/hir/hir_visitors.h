@@ -23,5 +23,9 @@ int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS);
+int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS);
+int HIRWLKR_noret_assign(HIR_VISITOR_ARGS);
+int HIRWLKR_unused_expression(HIR_VISITOR_ARGS);
+int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS);
 
 #endif

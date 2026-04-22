@@ -359,6 +359,7 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     return 1;
 }
 
+// TODO: Implement a visitor which detects for dangerous syscalls
 int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op != HIR_SYSC && b->op != HIR_STORE_SYSC) return 1;
@@ -437,6 +438,87 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
 
 _force_exit_syscall_checker: {}
     mm_free(flatten_input);
+    TRACE_print_and_free_trace(&trace);
+    return 1;
+}
+
+int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+
+    func_info_t fi;
+    if (
+        (!b->sarg || b->sarg->t != HIR_FNAME) || 
+        !FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)
+    ) return 1;
+    
+    if (
+        fi.rtype && fi.rtype->t->t_type != I0_TYPE_TOKEN
+    ) {
+        trace_t trace;
+        TRACE_init_trace(&trace);
+
+        char rtype[64];
+        _create_type_name(HIR_get_tmptype_tkn(fi.rtype->t, 0), fi.rtype->t->flags.ptr, rtype, sizeof(rtype));
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "Function '%s' has the '%s' return type but the call doesn't store it anywhere else.",
+            fi.name->body, rtype
+        );
+
+        TRACE_print_and_free_trace(&trace);
+        return 0;
+    }
+
+    return 1;
+}
+
+int HIRWLKR_noret_assign(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+
+    func_info_t fi;
+    if (
+        b->sarg->t != HIR_FNAME || 
+        !FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)
+    ) return 1;
+
+    if (
+        !fi.rtype || fi.rtype->t->t_type == I0_TYPE_TOKEN
+    ) {
+        trace_t trace;
+        TRACE_init_trace(&trace);
+
+
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "Function '%s' doesn't return any value, but it used as a value. Consider to change the return type.",
+            fi.name->body
+        );
+
+        TRACE_print_and_free_trace(&trace);
+        return 0;
+    }
+
+    return 1;
+}
+
+int HIRWLKR_unused_expression(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    return 1;
+}
+
+int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+
+    trace_t trace;
+    TRACE_init_trace(&trace);
+
+    if (HIR_is_tmptype(b->sarg->t)) {
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "The danger reference to a temp value! Consider to reference from a variable with this value."
+        );
+    }
+
     TRACE_print_and_free_trace(&trace);
     return 1;
 }

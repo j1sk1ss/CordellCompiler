@@ -751,30 +751,6 @@ int ASTWLKR_break_without_statement(AST_VISITOR_ARGS) {
     return 1;
 }
 
-// TODO: move ASTWLKR_unused_rtype to HIR part
-int ASTWLKR_unused_rtype(AST_VISITOR_ARGS) {
-    AST_VISITOR_ARGS_USE;
-    return 1;
-}
-
-// TODO: move ASTWLKR_noret_assign to HIR part
-int ASTWLKR_noret_assign(AST_VISITOR_ARGS) {
-    AST_VISITOR_ARGS_USE;
-    return 1;
-}
-
-// TODO: move ASTWLKR_unused_expression to HIR part
-int ASTWLKR_unused_expression(AST_VISITOR_ARGS) {
-    AST_VISITOR_ARGS_USE;
-    return 1;
-}
-
-// TODO: move ASTWLKR_ref_to_expression to HIR part
-int ASTWLKR_ref_to_expression(AST_VISITOR_ARGS) {
-    AST_VISITOR_ARGS_USE;
-    return 1;
-}
-
 int ASTWLKR_incorrect_align(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     if (!nd->c) return 1;

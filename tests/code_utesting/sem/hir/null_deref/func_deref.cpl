@@ -7,18 +7,12 @@ function bar(ptr i8 msg) {
 }
 
 start() {
-    foo(0);
-    bar(0);
-    bar(1);
+    foo(0 as ptr i8);
+    bar(0 as ptr i8);
+    bar(1 as ptr i8);
 }
 
 :/ OUTPUT
-[WARNING] [{X}cpl:2:15] NULL-dereference error (variable 'msg' is NULL)!
-          [{X}cpl:2:15]     Variable 'msg' is assigned with NULL here
-[WARNING] [{X}cpl:10:13] Function 'foo' has some arguments, which have the wrong type! Consider to use the 'as' operator!
-          [{X}cpl:10:13]     Value '0' has the 'i8' type! Consider the 'as ptr i8' command!
-[WARNING] [{X}cpl:11:13] Function 'bar' has some arguments, which have the wrong type! Consider to use the 'as' operator!
-          [{X}cpl:11:13]     Value '0' has the 'i8' type! Consider the 'as ptr i8' command!
-[WARNING] [{X}cpl:12:13] Function 'bar' has some arguments, which have the wrong type! Consider to use the 'as' operator!
-          [{X}cpl:12:13]     Value '1' has the 'i8' type! Consider the 'as ptr i8' command!
+[WARNING] [{X}cpl:2:10] NULL-dereference error (variable 'msg' is NULL)!
+          [{X}cpl:2:10]     Variable 'msg' is assigned with NULL here
 /:

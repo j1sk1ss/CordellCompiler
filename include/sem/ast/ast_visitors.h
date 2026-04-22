@@ -161,21 +161,6 @@ Return 1 if node is correct, otherwise this function will return 0.
 int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS);
 
 /*
-ASTWLKR_unused_rtype will fire warning in situation when return value from function.
-Example:
-```cpl
-    function a() -> i32 { return 0; }
-    a(); : <= Will fire a warning : 
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Return 1 if node is correct, otherwise this function will return 0.
-*/
-int ASTWLKR_unused_rtype(AST_VISITOR_ARGS);
-
-/*
 ASTWLKR_illegal_array_access checks out-bound array access.
 Example: 
 ```cpl
@@ -333,55 +318,6 @@ Params:
 Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_break_without_statement(AST_VISITOR_ARGS);
-
-/*
-This checker checks if there is a function with i0, that is assigned
-or used anywhere.
-For instance:
-```cpl
-function ukraine() -> i0;
-i32 a = ukraine();
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Return 1 if node is correct, otherwise this function will return 0.
-*/
-int ASTWLKR_noret_assign(AST_VISITOR_ARGS);
-
-/*
-This checker checks if there is an expression that returns value that
-never assigns.
-For example:
-```cpl
-i32 a;
-i32 b;
-a + b;
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Return 1 if node is correct, otherwise this function will return 0.
-*/
-int ASTWLKR_unused_expression(AST_VISITOR_ARGS);
-
-/*
-This checker finds reference node from a non-variable subject.
-For instance:
-```cpl
-ptr i32 a = ref (10 + 10);
-ptr i32 b = ref 123;
-ptr i32 c = foo();
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Return 1 if node is correct, otherwise this function will return 0.
-*/
-int ASTWLKR_ref_to_expression(AST_VISITOR_ARGS);
 
 /*
 This checker checks for correctness of align for variables.

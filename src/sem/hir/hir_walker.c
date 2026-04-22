@@ -57,6 +57,7 @@ Returns an instruction type.
 */
 static hir_instruction_type_t _get_instruction_type(hir_operation_t t) {
     switch (t) {
+        case HIR_REF:         return REF_INST;
         case HIR_SYSC:
         case HIR_FCLL:
         case HIR_ECLL:
@@ -70,7 +71,10 @@ static hir_instruction_type_t _get_instruction_type(hir_operation_t t) {
         case HIR_LDREF:       return LDREF_INST;
         case HIR_GDREF:       return GDREF_INST;
         case HIR_SETPOS:      return SETPOS_INST;
-        default: break;
+        default: {
+            if (HIR_is_writeop(t)) return STMT_INST;
+            break;
+        }
     }
 
     return UNKNOWN_INST;
