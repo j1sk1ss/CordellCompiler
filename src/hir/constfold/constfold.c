@@ -204,18 +204,15 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                     print_debug("Convert op=%i folded to the val=%ld", nd->op, c);
                     break;
                 }
-                
                 case HIR_NOT: {
                     if (!a_pres) break;
                     if (VRTB_update_definition(nd->src->storage.var.v_id, !a.value, a.overdefined, &smt->v, 1)) changed = 1;
                     print_debug("Not op=%i folded to the val=%ld", nd->op, !a.value);
                     break;
                 }
-
                 case HIR_iADD:  c = a.value + b.value;  goto _binary_operation_fold;
                 case HIR_iSUB:  c = a.value - b.value;  goto _binary_operation_fold;
                 case HIR_iMUL:  c = a.value * b.value;  goto _binary_operation_fold;
-                case HIR_iDIV:  c = a.value / b.value;  goto _binary_operation_fold;
                 case HIR_iMOD:  c = a.value % b.value;  goto _binary_operation_fold;
                 case HIR_iLRG:  c = a.value > b.value;  goto _binary_operation_fold;
                 case HIR_iLGE:  c = a.value >= b.value; goto _binary_operation_fold;
@@ -229,6 +226,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_iBRHT: c = a.value >> b.value; goto _binary_operation_fold;
                 case HIR_bAND:  c = a.value & b.value;  goto _binary_operation_fold;
                 case HIR_bOR:   c = a.value | b.value;  goto _binary_operation_fold;
+                case HIR_iDIV:  c = a.value / (b.value == 0 ? 1 : b.value); goto _binary_operation_fold;
                 case HIR_bXOR:  c = a.value ^ b.value; {
 _binary_operation_fold: {}
                     if (!a_pres || !b_pres || a.overdefined != NO_SYMBOL_ID || b.overdefined != NO_SYMBOL_ID) break;

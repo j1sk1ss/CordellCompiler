@@ -536,10 +536,62 @@ def _capture_process(cmd: list[str]) -> tuple[subprocess.CompletedProcess, float
     elapsed = time.perf_counter() - started_at
     return proc, elapsed
 
+
+def _append_log_section(sections: list[tuple[str, str]], title: str, content: object) -> None:
+    if content is None:
+        text = ""
+    else:
+        text = str(content)
+    sections.append((title, text.rstrip("\n")))
+
+
+def _write_failure_log(test_file: Path, sections: list[tuple[str, str]]) -> str:
+    log_path = test_file.with_suffix(test_file.suffix + ".full.log")
+    lines: list[str] = []
+
+    for index, (title, content) in enumerate(sections):
+        if index > 0:
+            lines.append("")
+        lines.append(f"===== {title} =====")
+        if content:
+            lines.append(content)
+
+    log_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    return str(log_path)
+
+
+def _attach_failure_log(result: dict, test_file: Path, sections: list[tuple[str, str]]) -> dict:
+    if result.get("ok", False):
+        return result
+
+    _append_log_section(sections, "RESULT", json.dumps({
+        "file": result.get("file"),
+        "ok": result.get("ok"),
+        "critical": result.get("critical"),
+        "warning": result.get("warning"),
+        "metrics": result.get("metrics"),
+    }, ensure_ascii=False, indent=2))
+
+    if result.get("diff"):
+        _append_log_section(sections, "FAILURE REASON", result["diff"])
+
+    log_path = _write_failure_log(test_file, sections)
+    result["failure_log"] = log_path
+
+    note = f"Full log: {log_path}"
+    if result.get("diff"):
+        result["diff"] = f"{result['diff']}\n\n{note}"
+    else:
+        result["diff"] = note
+
+    return result
+
+
 def _assemble_and_run(
     asm_text: str,
     debug: bool,
-    runs: list[list[str]] | None = None
+    runs: list[list[str]] | None = None,
+    log_sections: list[tuple[str, str]] | None = None,
 ) -> tuple[bool, str | None, list[str] | None, list[int] | None, float | None]:
     with tempfile.TemporaryDirectory(prefix="cpl_asm_") as tmp_dir:
         tmp_dir_path = Path(tmp_dir)
@@ -552,6 +604,13 @@ def _assemble_and_run(
         _log(f"[ASM] object file: {obj_path}")
         _log(f"[ASM] executable path: {exe_path}")
 
+        if log_sections is not None:
+            _append_log_section(log_sections, "ASM PATHS", json.dumps({
+                "asm_path": str(asm_path),
+                "obj_path": str(obj_path),
+                "exe_path": str(exe_path),
+            }, ensure_ascii=False, indent=2))
+
         asm_path.write_text(asm_text, encoding="utf-8")
 
         if sys.platform == "darwin":
@@ -560,12 +619,19 @@ def _assemble_and_run(
             nasm_format = "elf64"
 
         nasm_cmd = ["nasm", "-f", nasm_format]
-        if(debug):
+        if debug:
             nasm_cmd.append("-g")
         nasm_cmd.extend([str(asm_path), "-o", str(obj_path)])
 
         _log(f"[ASM] assembling command: {_cmd_to_str(nasm_cmd)}")
         nasm_proc, _ = _capture_process(nasm_cmd)
+        if log_sections is not None:
+            _append_log_section(log_sections, "ASM ASSEMBLE", "\n".join([
+                f"command: {_cmd_to_str(nasm_cmd)}",
+                f"exit_code: {nasm_proc.returncode}",
+                "output:",
+                nasm_proc.stdout.rstrip("\n"),
+            ]))
         if nasm_proc.returncode != 0:
             return False, nasm_proc.stdout, None, None, None
 
@@ -587,6 +653,13 @@ def _assemble_and_run(
 
         _log(f"[ASM] linking command: {_cmd_to_str(link_cmd)}")
         link_proc, _ = _capture_process(link_cmd)
+        if log_sections is not None:
+            _append_log_section(log_sections, "ASM LINK", "\n".join([
+                f"command: {_cmd_to_str(link_cmd)}",
+                f"exit_code: {link_proc.returncode}",
+                "output:",
+                link_proc.stdout.rstrip("\n"),
+            ]))
         if link_proc.returncode != 0:
             return False, link_proc.stdout, None, None, None
 
@@ -605,9 +678,14 @@ def _assemble_and_run(
 
             _log(f"[ASM] starting debugger for executable: {exe_path}")
             _log(f"[ASM] debugger command: {_cmd_to_str(debug_cmd)}")
+            if log_sections is not None:
+                _append_log_section(log_sections, "ASM DEBUG", "\n".join([
+                    f"command: {_cmd_to_str(debug_cmd)}",
+                    "interactive debugger session was started",
+                ]))
             _run_interactive_command(debug_cmd)
             return True, None, None, None, None
-        
+
         outputs: list[str] = []
         exit_codes: list[int] = []
         program_elapsed = 0.0
@@ -619,6 +697,14 @@ def _assemble_and_run(
             outputs.append(run_proc.stdout.rstrip("\n"))
             exit_codes.append(run_proc.returncode)
             program_elapsed += run_elapsed
+            if log_sections is not None:
+                _append_log_section(log_sections, f"ASM RUN #{run_index}", "\n".join([
+                    f"command: {_cmd_to_str(run_cmd)}",
+                    f"exit_code: {run_proc.returncode}",
+                    f"elapsed: {run_elapsed:.6f}s",
+                    "output:",
+                    run_proc.stdout.rstrip("\n"),
+                ]))
 
         return True, "\n".join(outputs), outputs, exit_codes, program_elapsed
 
@@ -707,6 +793,20 @@ def _run_test_once(
     output_lines = initial_output_lines
     test_started_at = time.perf_counter()
     program_elapsed: float | None = None
+    log_sections: list[tuple[str, str]] = []
+
+    _append_log_section(log_sections, "TEST INFO", json.dumps({
+        "test_file": str(test_file),
+        "binary": str(binary),
+        "binary_leak": str(binary_leak) if binary_leak else None,
+        "measure_time": measure_time,
+        "measure_lines": measure_lines,
+        "input_lines": input_lines,
+        "expected_output_lines": initial_output_lines,
+    }, ensure_ascii=False, indent=2))
+    _append_log_section(log_sections, "FLAGS", json.dumps(flags, ensure_ascii=False, indent=2, default=str))
+    _append_log_section(log_sections, "SOURCE CODE", code)
+    _append_log_section(log_sections, "EXPECTED OUTPUT", expected)
 
     _log(f"[TEST] starting: {test_file}")
 
@@ -714,7 +814,7 @@ def _run_test_once(
     if flags["leak_trace"]:
         if not binary_leak:
             test_elapsed = time.perf_counter() - test_started_at
-            return {
+            result = {
                 "file": str(test_file),
                 "ok": False,
                 "critical": True,
@@ -726,6 +826,7 @@ def _run_test_once(
                 "_input_lines": input_lines,
                 "_output_lines": output_lines,
             }
+            return _attach_failure_log(result, test_file, log_sections)
         chosen_bin = binary_leak
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".cpl", encoding="utf-8", delete=False) as tmp:
@@ -734,6 +835,10 @@ def _run_test_once(
 
     _log(f"[TEST] temp source path: {tmp_path}")
     _log(f"[TEST] executable path: {chosen_bin}")
+    _append_log_section(log_sections, "TEMP FILE", json.dumps({
+        "tmp_source_path": tmp_path,
+        "chosen_binary": str(chosen_bin),
+    }, ensure_ascii=False, indent=2))
 
     try:
         actual_output = ""
@@ -743,8 +848,15 @@ def _run_test_once(
         if flags["run_asm"] or flags["run_asm_debug"]:
             compile_cmd = [str(chosen_bin), str(tmp_path), str(test_file.parent)]
             _log(f"[TEST] compiler command: {_cmd_to_str(compile_cmd)}")
-            compiler_proc, _ = _capture_process(compile_cmd)
+            compiler_proc, compiler_elapsed = _capture_process(compile_cmd)
             output_lines = _count_text_lines(compiler_proc.stdout)
+            _append_log_section(log_sections, "COMPILER OUTPUT", "\n".join([
+                f"command: {_cmd_to_str(compile_cmd)}",
+                f"exit_code: {compiler_proc.returncode}",
+                f"elapsed: {compiler_elapsed:.6f}s",
+                "output:",
+                compiler_proc.stdout.rstrip("\n"),
+            ]))
 
             if compiler_proc.returncode != 0:
                 actual_output = compiler_proc.stdout
@@ -752,7 +864,8 @@ def _run_test_once(
                 asm_ok, asm_output, actual_outputs_by_run, actual_exit_codes, program_elapsed = _assemble_and_run(
                     compiler_proc.stdout,
                     debug=flags["run_asm_debug"],
-                    runs=flags["run_asm_cases"]
+                    runs=flags["run_asm_cases"],
+                    log_sections=log_sections,
                 )
 
                 if flags["run_asm_debug"] and asm_ok:
@@ -789,6 +902,10 @@ def _run_test_once(
                     cmd = [debugger, "--", str(binary), str(tmp_path), str(test_file.parent)]
 
                 _log(f"[TEST] debugger command: {_cmd_to_str(cmd)}")
+                _append_log_section(log_sections, "DEBUGGER", "\n".join([
+                    f"command: {_cmd_to_str(cmd)}",
+                    "interactive debugger session was started",
+                ]))
                 _run_interactive_command(cmd)
                 test_elapsed = time.perf_counter() - test_started_at
                 return {
@@ -804,14 +921,22 @@ def _run_test_once(
                     "_output_lines": output_lines,
                 }
 
-            proc, _ = _capture_process(cmd)
+            proc, run_elapsed = _capture_process(cmd)
             actual_output = proc.stdout
             actual_outputs_by_run = [proc.stdout]
             actual_exit_codes = [proc.returncode]
+            _append_log_section(log_sections, "PROGRAM OUTPUT", "\n".join([
+                f"command: {_cmd_to_str(cmd)}",
+                f"exit_code: {proc.returncode}",
+                f"elapsed: {run_elapsed:.6f}s",
+                "output:",
+                proc.stdout.rstrip("\n"),
+            ]))
 
     except Exception as ex:
         test_elapsed = time.perf_counter() - test_started_at
-        return {
+        _append_log_section(log_sections, "EXCEPTION", repr(ex))
+        result = {
             "file": str(test_file),
             "ok": False,
             "critical": True,
@@ -823,12 +948,18 @@ def _run_test_once(
             "_input_lines": input_lines,
             "_output_lines": output_lines,
         }
+        return _attach_failure_log(result, test_file, log_sections)
     finally:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
     expected_n: str = _normalize_output(expected)
     actual_n: str = _normalize_output(actual_output)
+
+    _append_log_section(log_sections, "NORMALIZED OUTPUT", actual_n)
+    _append_log_section(log_sections, "EXIT CODES", json.dumps({
+        "actual_exit_codes": actual_exit_codes,
+    }, ensure_ascii=False, indent=2))
 
     if flags["rewrite"]:
         _rewrite_test_output(test_file, actual_n)
@@ -925,7 +1056,7 @@ def _run_test_once(
             diff_text = why + "\n\n" + _make_diff(expected_n, actual_n)
 
     test_elapsed = time.perf_counter() - test_started_at
-    return {
+    result = {
         "file": str(test_file),
         "expected": expected_n,
         "actual": actual_n,
@@ -939,6 +1070,8 @@ def _run_test_once(
         "_input_lines": input_lines,
         "_output_lines": output_lines,
     }
+    return _attach_failure_log(result, test_file, log_sections)
+
 
 def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
     code, expected, flags = _parse_test_file(test_file)
