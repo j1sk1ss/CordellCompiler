@@ -123,7 +123,8 @@ hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b)
 
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t) {
     switch (t) {
-        case HIR_TMPVARI0:    case HIR_STKVARI0:  case HIR_GLBVARI0:                                          return HIR_TMPVARI0; 
+        case HIR_TMPVARI0:    case HIR_STKVARI0:  case HIR_GLBVARI0:                                          return HIR_TMPVARI0;
+        case HIR_STRING:
         case HIR_I8CONSTVAL:  case HIR_I8NUMBER:  case HIR_TMPVARI8:  case HIR_STKVARI8:  case HIR_GLBVARI8:  return HIR_TMPVARI8;
         case HIR_U8CONSTVAL:  case HIR_U8NUMBER:  case HIR_TMPVARU8:  case HIR_STKVARU8:  case HIR_GLBVARU8:  return HIR_TMPVARU8;
         case HIR_I16CONSTVAL: case HIR_I16NUMBER: case HIR_TMPVARI16: case HIR_STKVARI16: case HIR_GLBVARI16: return HIR_TMPVARI16;

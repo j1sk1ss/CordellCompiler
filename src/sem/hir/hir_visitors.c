@@ -314,7 +314,7 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     hir_subject_t** hir_args = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
     fn_iterate_args (&fi) {
         if (
-            HIR_get_tmptype_tkn(arg->t, 0) != hir_args[arg_index]->t ||
+            HIR_get_tmptype_tkn(arg->t, 0) != HIR_get_tmp_type(hir_args[arg_index]->t) ||
             arg->t->flags.ptr != hir_args[arg_index]->ptr
         ) {
             char received[64], expected[64];

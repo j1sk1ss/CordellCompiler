@@ -28,6 +28,7 @@
 #include <lir/selector/memsel.h>
 #include <lir/selector/savereg.h>
 #include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/x84_64_macho_nasm.h>
 #include <lir/peephole/peephole.h>
 #include <lir/peephole/x84_64_gnu_nasm.h>
 #include <lir/dfg.h>
@@ -38,6 +39,7 @@
 
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm_asmgen.h>
+#include <asm/x86_64_macho_nasm_asmgen.h>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -94,7 +96,7 @@ int main(int argc, char* argv[]) {
     HIR_CFG_unload(&cfgctx);
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_LOOP_mark_loops(&cfgctx);
-    HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider);
+    // HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider); TODO!!!
     HIR_CFG_unload(&cfgctx);
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
 
@@ -130,7 +132,7 @@ int main(int argc, char* argv[]) {
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
-    inst_selector_t inst_sel = { .select_instructions = x86_64_gnu_nasm_instruction_selection };
+    inst_selector_t inst_sel = { .select_instructions = x86_64_macho_nasm_instruction_selection };
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
 
     LIR_DFG_compute_inout(&cfgctx);      // Analyzation
@@ -143,16 +145,16 @@ int main(int argc, char* argv[]) {
     regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
     LIR_regalloc(&cfgctx, &smt, &colors, &regall);      // Analyzation
 
-    mem_selector_t mem_sel = { .select_memory = x86_64_gnu_nasm_memory_selection };
+    mem_selector_t mem_sel = { .select_memory = x86_64_macho_nasm_memory_selection };
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
-    register_saver_t reg_save = { .save_registers = x86_64_gnu_nasm_caller_saving };
+    register_saver_t reg_save = { .save_registers = x86_64_macho_nasm_caller_saving };
     LIR_save_registers(&cfgctx, &smt, &reg_save);
 
     peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
     LIR_peephole_optimization(&cfgctx, &pph);
 
-    asm_gen_t asmgen = { .generator = x86_64_gnu_nasm_generate_asm };
+    asm_gen_t asmgen = { .generator = x86_64_macho_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);
 
     map_free(&colors);
