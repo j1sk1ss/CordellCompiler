@@ -7,7 +7,7 @@ Versions:
 - `clang`: Apple clang 12.0.0 (clang-1200.0.32.29)
   - Optimizations: `-O0`, `-O3`
 - `cpl`: CPL v3.4 (MACHO64)
-  - Optimizations: ` `, `--opt` (LICM, Peephole, CSE, DCE, Constant prop / fold) 
+  - Optimizations: `-O0`, `-O3` (LICM, Peephole, CSE, DCE, Constant prop / fold) 
 
 Specs:
 - OS: MacOS Catalina 10.15.7
@@ -19,6 +19,8 @@ Result gathering:
   - Clang / GCC - 5 times, `gnu-time` total execution time
 
 ## Empty loop
+This is an artificial example and it doesn't provide any real information about CPL as a compiler. But this type of tests shows that the produced by CPL assembly code is neither overwhelmed nor slow. In summary, these two snippets of code are the same, considering the fact that the CPL's snippet does include a 'hidden' variable which iterates 1 billion times. Meanwhile, the C's snippet also does include the `asm volatile` section which preserves the loop from elemination by an optimizing module.
+
 ```cpl
 @[naked] start() {
     @[counter(1000000000)] loop {
@@ -37,10 +39,12 @@ int main() {
 /:
 ```
 
+The results below shows that the optimized CPL code has the same execution time as it have both the GCC's code and CLang's code.
+
 <div
   class="benchmark-card"
   data-title="Empty loop benchmark"
-  data-labels="cpl --opt|clang -O3|gcc-14 -O3|cpl|gcc-14 -O0|clang -O0"
+  data-labels="cpl -O3|clang -O3|gcc-14 -O3|cpl -O0|gcc-14 -O0|clang -O0"
   data-values="0.722|0.748|0.758|1.52|4.290|4.641"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
@@ -83,7 +87,7 @@ int main() {
 <div
   class="benchmark-card"
   data-title="Fibonacci benchmark"
-  data-labels="gcc-14 -O3|cpl --opt|clang -O3|gcc-14 -O0|clang -O0|cpl"
+  data-labels="gcc-14 -O3|cpl -O3|clang -O3|gcc-14 -O0|clang -O0|cpl -O0"
   data-values="0.412|0.412|0.417|0.421|0.430|0.434"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
@@ -140,7 +144,7 @@ int main() {
 <div
   class="benchmark-card"
   data-title="Pointer and string traversal benchmark"
-  data-labels="clang -O3|gcc-14 -O3|cpl --opt|gcc-14 -O0|cpl|clang -O0"
+  data-labels="clang -O3|gcc-14 -O3|cpl -O3|gcc-14 -O0|cpl -O0|clang -O0"
   data-values="0.430|0.470|0.52|0.566|0.603|1.002"
   data-dataset-label="Runtime"
   data-y-label="Seconds"

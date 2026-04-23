@@ -12,6 +12,14 @@ mklb label_1
 ; MOV and copy propagation
 ; ==================
 
+mov areg_1, obj_2
+mov areg_3, areg_1
+mov areg_1, obj_4
+->
+mov areg_3, obj_2
+mov areg_1, obj_4
+/
+
 mov areg_1, areg_2
 test areg_1, areg_1
 ->

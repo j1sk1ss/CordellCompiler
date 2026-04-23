@@ -380,8 +380,7 @@ class CodeGenerator:
             base_ptr = "lh" if i == 0 else f"{self.gen_info.get('functions').get('next')}(lh, bb->lmap.exit, {i})"
             current = self._setup_var_map_for_instruction(instr, base_ptr)
             for var_name, ptr_expr in current.items():
-                if var_name not in merged:
-                    merged[var_name] = ptr_expr
+                merged[var_name] = ptr_expr
         return merged
 
     def _replacement_opcode_expr(
