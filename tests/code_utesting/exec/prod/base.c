@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     HIR_CFG_unload(&cfgctx);
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_LOOP_mark_loops(&cfgctx);
-    // HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider); TODO: Test
+    HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider);
     HIR_CFG_unload(&cfgctx);
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
 

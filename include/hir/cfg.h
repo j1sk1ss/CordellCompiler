@@ -253,7 +253,17 @@ Returns the count of HIR blocks in the BB.
 */
 int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb);
 
-// TODO
+/*
+Unite close blocks to one block. Idea is to get rid from
+a ton of small blocks that are being connected with each 
+other via one link.
+To find such blocks, we unite all block which don't have
+two links.
+Params:
+    - `ctx` - CFG context.
+
+Returns 1 if succeeds.
+*/
 int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx);
 
 /*

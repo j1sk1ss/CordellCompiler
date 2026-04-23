@@ -144,7 +144,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         abi_argument_t target;
                         if (!_get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)) lh->op = LIR_PUSH;
                         else {
-                            lir_subject_t* nfarg = create_tmp(target.reg, lh->farg, smt, -1); // TODO: 8?
+                            lir_subject_t* nfarg = create_tmp(target.reg, lh->farg, smt, -1);
                             LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, 8), NULL, NULL), lh);
                             queue_push(&dirty_regs, (void*)((long)target.reg));
                             LIR_unload_subject(lh->sarg);
@@ -160,7 +160,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lir_subject_t* nfarg;
                         if (
                             _get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)
-                        ) nfarg = create_tmp(target.reg, lh->farg, smt, -1); // TODO: 8?
+                        ) nfarg = create_tmp(target.reg, lh->farg, smt, -1);
                         else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
 
                         LIR_unload_subject(lh->sarg);

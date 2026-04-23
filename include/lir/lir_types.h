@@ -246,7 +246,13 @@ Returns 1 if the opration is a write operation.
 */
 int LIR_is_writeop(lir_operation_t op);
 
-// TODO
+/*
+Is this a jump-like operation.
+Params:
+    - `op` - LIR operation.
+
+Returns 1 if the opration is a jump-like operation.
+*/
 int LIR_is_jumpop(lir_operation_t op);
 
 /*

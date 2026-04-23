@@ -503,7 +503,7 @@ int main(int argc, char* argv[]) {
         HIR_LOOP_mark_loops(&cfgctx);
 
         if (options.config.finline) {
-            // HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider); TODO: Test
+            HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider);
             HIR_CFG_unload(&cfgctx);
             HIR_CFG_build(&hirctx, &cfgctx, &smt);
         }

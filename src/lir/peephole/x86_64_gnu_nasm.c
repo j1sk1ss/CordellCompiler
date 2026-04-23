@@ -18,7 +18,15 @@ static int _check_home(lir_block_t* h, lir_subject_t* s) {
     return 0;
 }
 
-// TODO: docs
+/*
+Delete jump which leads us to a fall block. We find a block which has a 
+jump operation at the end. If this operation jumps to the next block,
+we can remove it.
+Params:
+    - `bb` - Current base block.
+
+Returns 1 if succeeds.
+*/
 static int _jumps_pass(cfg_block_t* bb) {
     if (!bb->lmap.exit) return 0;
     lir_block_t* l  = LIR_get_back_instruction(bb->lmap.exit, bb->lmap.entry, 0);
@@ -37,7 +45,14 @@ static int _jumps_pass(cfg_block_t* bb) {
     return 1;
 }
 
-// TODO: docs
+/*
+Determine whether this label is used somewhere.
+Params:
+    - `fb` - Function block to consider.
+    - `lb` - Lable to search.
+
+Returns 1 if the lable is used somewhere in the function.
+*/
 static int _find_label_usage(cfg_func_t* fb, lir_subject_t* lb) {
     lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
     while (lh) {
@@ -48,7 +63,13 @@ static int _find_label_usage(cfg_func_t* fb, lir_subject_t* lb) {
     return 0;
 }
 
-// TODO: docs
+/*
+Remove all dangling labels which aren't used as a target somewhere else.
+Params:
+    - `fb` - Function to consideration.
+
+Returns 1 if succeeds.
+*/
 static int _label_pass(cfg_func_t* fb) {
     lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
     while (lh) {
