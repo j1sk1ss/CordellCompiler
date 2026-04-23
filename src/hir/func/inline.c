@@ -176,6 +176,8 @@ static loop_node_t* _find_loop(list_t* loops, cfg_block_t* bb) {
 
 typedef struct {
     struct { /* Information about a function        */
+        int  loop_count;     /* Loops count                                             */
+        int  loop_nested;    /* Max depth for a loop nested size                        */
         int  bb_size;        /* The source function size in base blocks                 */
         int  hir_size;       /* The source function size in hir blocks                  */
         int  funccals;       /* Count of funcalls in the function                       */
@@ -258,7 +260,17 @@ static int _collect_information(
         info->dst_info.loop_nested  = HIR_LTREE_nested_count(loop);
         info->dst_info.near_break   = _find_nearest_break(hpos, pos);
     }
+
+    ltree_ctx_t src_lctx;
+    list_init(&src_lctx.loops);
+    HIR_LTREE_build_loop_tree(f, &src_lctx);
     
+    info->src_info.loop_nested = 0;
+    foreach (loop_node_t* l, &src_lctx.loops) {
+        info->src_info.loop_nested = MAX(info->src_info.loop_nested, HIR_LTREE_nested_count(loop));
+    }
+    
+    info->src_info.loop_count = list_size(&src_lctx.loops);
     info->src_info.bb_size = list_size(&f->blocks);
     foreach (cfg_block_t* bb, &f->blocks) {
         info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
@@ -272,12 +284,13 @@ static int _collect_information(
             hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
     }
-
+    
     func_info_t fi;
     if (FNTB_get_info_id(pos->pfunc->f_id, &fi, &smt->f)) {
         info->dst_info.is_start = fi.flags.entry;
     }
-
+    
+    HIR_LTREE_unload_ctx(&src_lctx);
     return 1;
 }
 
@@ -319,7 +332,6 @@ static int _inline_candidate(
 
 int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt, int (*checker)(int*, int)) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        
         /* Collect information about the environment
            - Basic information about the loops */
         ltree_ctx_t lctx;
@@ -363,6 +375,7 @@ int HIR_FUNC_inline_euristic_desider(int* data, int size) {
     else if (parsed->src_info.bb_size <= 5)  score += 3;
     else if (parsed->src_info.bb_size <= 10) score += 2;
     else if (parsed->src_info.bb_size > 15)  score -= 3;
-    score += parsed->dst_info.loop_nested * parsed->dst_info.loop_nested;
+    score -= parsed->src_info.loop_count * (parsed->src_info.loop_nested + 1) * 2; /* If we have a loop in the source function  */
+    score += parsed->dst_info.loop_nested * parsed->dst_info.loop_nested;          /* If we're in a loop at the destination pos */
     return score >= 3;
 }
