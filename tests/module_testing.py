@@ -575,7 +575,7 @@ def _attach_failure_log(result: dict, test_file: Path, sections: list[tuple[str,
     if result.get("diff"):
         _append_log_section(sections, "FAILURE REASON", result["diff"])
 
-    log_path = _write_failure_log(test_file, sections)
+    log_path = "dummy" # _write_failure_log(test_file, sections)
     result["failure_log"] = log_path
 
     note = f"Full log: {log_path}"

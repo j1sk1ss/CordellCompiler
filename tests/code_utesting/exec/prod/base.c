@@ -41,6 +41,14 @@
 #include <asm/x86_64_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
+#define RELOAD_CFG                          \
+    HIR_CFG_unload(&cfgctx);                \
+    HIR_CFG_build(&hirctx, &cfgctx, &smt);  \
+    HIR_CG_unload(&callctx);                \
+    HIR_CG_build(&cfgctx, &callctx, &smt);  \
+    HIR_CG_perform_dfe(&callctx, &smt);     \
+    HIR_CG_apply_dfe(&cfgctx, &callctx);
+
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         fprintf(stderr, "Not enough arguments! Expected 3, got %i!\n", argc);
@@ -89,28 +97,27 @@ int main(int argc, char* argv[]) {
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
+    call_graph_t callctx;
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
 
-    HIR_FUNC_perform_tre(&cfgctx, &smt);
-    HIR_CFG_unload(&cfgctx);
-    HIR_CFG_build(&hirctx, &cfgctx, &smt);
-    HIR_LOOP_mark_loops(&cfgctx, NULL); // TODO
-    HIR_FUNC_perform_inline(&cfgctx, NULL, &smt, HIR_FUNC_inline_euristic_desider);
-    HIR_CFG_unload(&cfgctx);
-    HIR_CFG_build(&hirctx, &cfgctx, &smt);
-
     HIR_FUNC_set_last_return(&cfgctx);
+    HIR_FUNC_perform_tre(&cfgctx, &smt);
 
-    call_graph_t callctx;
-    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
-    HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+    RELOAD_CFG; // Rebuild after Last_ret + TRE
 
-    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
-    HIR_LTREE_canonicalization(&cfgctx, NULL);    // Transform
-    HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
-    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);
+    ltree_ctx_t lctx;
+    map_init(&lctx.lmap, MAP_NO_CMP);
+    HIR_LOOP_mark_loops(&cfgctx, &lctx);
+    
+    HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_euristic_desider);
+
+    RELOAD_CFG; // Rebuild after inlined functions
+
+    HIR_LTREE_canonicalization(&cfgctx, &lctx);
+    HIR_CFG_unload_domdata(&cfgctx);
+    HIR_CFG_create_domdata(&cfgctx);
 
     ssa_ctx_t ssactx;
     map_init(&ssactx.vers, MAP_NO_CMP);
@@ -118,8 +125,8 @@ int main(int argc, char* argv[]) {
     HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
     map_free_force(&ssactx.vers);
 
-    HIR_compute_homes(&hirctx);             // Analyzation
-    HIR_LTREE_licm(&cfgctx, &smt, NULL);
+    HIR_compute_homes(&hirctx);
+    HIR_LTREE_licm(&cfgctx, &lctx, &smt);
 
     HIR_CFG_make_allias(&cfgctx, &smt);
     dag_ctx_t dagctx = { .curr_id = 0 };
@@ -159,6 +166,7 @@ int main(int argc, char* argv[]) {
 
     map_free(&colors);
     LIR_unload_blocks(lirctx.h);
+    HIR_LTREE_unload_ctx(&lctx);
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.hot.h);
