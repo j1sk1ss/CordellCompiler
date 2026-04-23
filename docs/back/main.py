@@ -45,10 +45,8 @@ def _read_json() -> dict[str, Any]:
 
 def _format_output(
     compiler_stdout: str,
-    compiler_stderr: str,
     compiler_exit_code: int,
     program_stdout: str,
-    program_stderr: str,
     program_exit_code: int | None,
 ) -> str:
     parts: list[str] = []
@@ -56,11 +54,6 @@ def _format_output(
     parts.append("=== compiler stdout ===")
     parts.append(compiler_stdout.rstrip() or "<empty>")
     parts.append("")
-
-    parts.append("=== compiler stderr ===")
-    parts.append(compiler_stderr.rstrip() or "<empty>")
-    parts.append("")
-
     parts.append(f"=== compiler exit code ===\n{compiler_exit_code}")
     parts.append("")
 
@@ -68,11 +61,6 @@ def _format_output(
         parts.append("=== program stdout ===")
         parts.append(program_stdout.rstrip() or "<empty>")
         parts.append("")
-
-        parts.append("=== program stderr ===")
-        parts.append(program_stderr.rstrip() or "<empty>")
-        parts.append("")
-
         parts.append(f"=== program exit code ===\n{program_exit_code}")
 
     return "\n".join(parts).strip() + "\n"
@@ -123,11 +111,20 @@ def cpl_run():
 
             src_path.write_text(code, encoding="utf-8")
 
+            # ./ccompiler --entry-name _start --arch x86_64 --sys-type linux64 --linker ld --linker-no-pie --ro-section .rodata --glob-section .data --code-section .text 
             compile_cmd = [
                 str(COMPILER_PATH),
                 str(src_path),
                 "--ast-analysis",
                 "--ir-analysis",
+                "--entry-name", "_start",
+                "--linker", "ld",
+                "--arch", "x86_64",
+                "--sys-type", "linux64",
+                "--ro-section", ".rodata",
+                "--glob-section", ".data",
+                "--code-section", ".text",
+                "--linker-no-pie",
                 "--output",
                 str(exe_path),
             ]
@@ -182,10 +179,8 @@ def cpl_run():
             "program_exit_code": program_exit_code,
             "stdout": _format_output(
                 compiler_stdout or partial_stdout,
-                compiler_stderr or partial_stderr,
                 compiler_exit_code,
                 program_stdout,
-                program_stderr,
                 program_exit_code,
             ),
             "stderr": "Timeout while compiling or running the program.",
@@ -206,10 +201,8 @@ def cpl_run():
         "program_exit_code": program_exit_code,
         "stdout": _format_output(
             compiler_stdout,
-            compiler_stderr,
             compiler_exit_code,
             program_stdout,
-            program_stderr,
             program_exit_code,
         ),
         "stderr": "",

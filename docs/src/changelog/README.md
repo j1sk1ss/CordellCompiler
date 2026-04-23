@@ -31,13 +31,13 @@ Logs for the first and second versions are quite short because I don’t remembe
 ----------------------------------------
 
 ## syscall checker
-The static analysis tool now accepts the 'syscall' keyword. At this point, we have MACOH support ('cause I'm testing this on my MacBook tho). </br>
+The static analysis tool now accepts the 'syscall' keyword. At this point, we have MACHO support ('cause I'm testing this on my MacBook tho). </br>
 The support implies that the analyzer will check if all of the arguments are correct typed for a selected syscall number. For instance:
 ```cpl
 syscall(0x2000004, 1, 1, 12);
 ```
 
-This is a write syscall from MACOH, and the second arguments is a STDIN / STDOUT (destination), the third one is a buffer pointer and the last one - the size of a buffer. In the case, I've passed '1' as a buffer, and it reveals that I need to cast it (at least):
+This is a write syscall from MACHO, and the second arguments is a STDIN / STDOUT (destination), the third one is a buffer pointer and the last one - the size of a buffer. In the case, I've passed '1' as a buffer, and it reveals that I need to cast it (at least):
 ```cpl
 start() {
     syscall(0x2000004, 1, 1, 12);

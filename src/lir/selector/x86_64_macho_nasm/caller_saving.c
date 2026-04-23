@@ -26,7 +26,7 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
                 if (
                     LIR_is_writeop(lh->op) &&   /* We are writing some value to register (for some reason)         */
                     lh->farg->t == LIR_REGISTER /* This is a register object, we can say that this is a dirty one. */
-                ) set_add(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, DEFAULT_TYPE_SIZE)); 
+                ) set_add(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8)); 
                 lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
@@ -57,15 +57,15 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
         if ( /* Remove register from the 'dirty' set if it is rewritten */
             LIR_is_writeop(lh->op) && 
             lh->farg == LIR_REGISTER
-        ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, DEFAULT_TYPE_SIZE));
+        ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8));
         
         lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
         for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
             if (
                 !args[i] || args[i]->t != LIR_REGISTER || 
-                !set_has(dirty, (void*)LIR_format_register(args[i]->storage.reg.reg, DEFAULT_TYPE_SIZE))
+                !set_has(dirty, (void*)LIR_format_register(args[i]->storage.reg.reg, 8))
             ) continue; /* If this register isn't a dirty one -> skip it */
-            set_add(save, (void*)LIR_format_register(args[i]->storage.reg.reg, DEFAULT_TYPE_SIZE));
+            set_add(save, (void*)LIR_format_register(args[i]->storage.reg.reg, 8));
         }
         
         lh = LIR_get_next(lh, bbh->lmap.exit, 1);
@@ -133,8 +133,8 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                         set_foreach (long reg, &save_regs) {
                             if (reg == RAX) continue;
-                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
-                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, DEFAULT_TYPE_SIZE), NULL, NULL), lh);
+                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, 8), NULL, NULL), lh);
+                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, 8), NULL, NULL), lh);
                         }
                         
                         set_free(&func_regs);

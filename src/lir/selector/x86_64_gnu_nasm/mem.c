@@ -111,6 +111,21 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
+// TODO: docs
+static inline int _get_ast_type_size(token_type_t t) {
+    switch (t) {
+        case TMP_I64_TYPE_TOKEN: case TMP_U64_TYPE_TOKEN: case TMP_F64_TYPE_TOKEN:
+        case I64_TYPE_TOKEN:     case U64_TYPE_TOKEN:     case F64_TYPE_TOKEN:     return 8;
+        case TMP_I32_TYPE_TOKEN: case TMP_U32_TYPE_TOKEN: case TMP_F32_TYPE_TOKEN:
+        case I32_TYPE_TOKEN:     case U32_TYPE_TOKEN:     case F32_TYPE_TOKEN:     return 4;
+        case TMP_I16_TYPE_TOKEN: case TMP_U16_TYPE_TOKEN:
+        case I16_TYPE_TOKEN:     case U16_TYPE_TOKEN:                              return 2;
+        case TMP_I8_TYPE_TOKEN:  case TMP_U8_TYPE_TOKEN:
+        case I8_TYPE_TOKEN:      case U8_TYPE_TOKEN:                               return 1;
+        default: return 8;
+    }
+}
+
 /*
 After the memory selection we should be sure that this LIR is valid. 
 Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 

@@ -48,6 +48,7 @@
 #include <lir/selector/memsel.h>
 #include <lir/selector/savereg.h>
 #include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/x84_64_macho_nasm.h>
 
 /* Instruction scheduling */
 #include <lir/instplan/targinfo.h>
@@ -65,6 +66,7 @@
 
 /* Codegen */
 #include <asm/asmgen.h>
-#include <asm/x86_64_asmgen.h>
+#include <asm/x86_64_gnu_nasm_asmgen.h>
+#include <asm/x86_64_macho_nasm_asmgen.h>
 
 #endif

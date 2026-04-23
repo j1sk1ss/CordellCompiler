@@ -48,7 +48,7 @@ config_int_field_t CONF_get_eight_bytness() {
 }
 
 arch_type_t CONF_get_system_type() {
-    if (!_config.system.sys_type) return MACOH64;
+    if (!_config.system.sys_type) return MACHO64;
     return _config.system.sys_type;
 }
 

@@ -48,7 +48,7 @@ static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, s
 
     int is_float = 0;
     switch (s->t) {
-        case LIR_VARIABLE: is_float = is_simd_type(s, smt);   break;
+        case LIR_VARIABLE: is_float = x86_64_macho_nasm_is_simd_type(s, smt);   break;
         case LIR_NUMBER:   is_float = s->storage.num.is_float; break;
         default: break;
     }
@@ -271,7 +271,7 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                             case LIR_iCMP: _insert_instruction_after(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh); break;
                             case LIR_iNMP: _insert_instruction_after(bb, LIR_create_block(LIR_STNE, res, NULL, NULL), lh); break;
                             default: {
-                                if (is_sign_type(lh->sarg, smt) && is_sign_type(lh->targ, smt)) {
+                                if (x86_64_macho_nasm_is_sign_type(lh->sarg, smt) && x86_64_macho_nasm_is_sign_type(lh->targ, smt)) {
                                     switch (lh->op) {
                                         case LIR_iLWR: _insert_instruction_after(bb, LIR_create_block(LIR_SETL, res, NULL, NULL), lh); break;
                                         case LIR_iLRE: _insert_instruction_after(bb, LIR_create_block(LIR_STLE, res, NULL, NULL), lh); break;

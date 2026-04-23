@@ -1,5 +1,5 @@
 #include <builder.h>
-
+// TODO: Help option which reveals information about the options
 #define OPTION_INLUCDE               "-I"
 #define OPTION_OUTPUT                "--output"
 #define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
@@ -180,12 +180,12 @@ static int _parse_sys_type(const char* s, arch_type_t* out) {
         return 1;
     }
     else if (
-        !strcmp(s, "macoh64") || 
-        !strcmp(s, "MACOH64") || 
+        !strcmp(s, "macho64") || 
+        !strcmp(s, "MACHO64") || 
         !strcmp(s, "macho64") || 
         !strcmp(s, "MACHO64")
     ) {
-        *out = MACOH64;
+        *out = MACHO64;
         return 1;
     }
     else if (
@@ -302,7 +302,7 @@ static void _set_default_options(options_t* out) {
     out->config.half_bytness       = 4;
     out->config.quart_bytness      = 2;
     out->config.eight_bytness      = 1;
-    out->config.sys_type           = MACOH64;
+    out->config.sys_type           = MACHO64;
     out->config.debug              = 0;
 
     _set_optimization_profile(out, 0);
@@ -548,7 +548,13 @@ int main(int argc, char* argv[]) {
 
         lir_ctx_t lirctx = { .h = NULL, .t = NULL };
         LIR_generate(&cfgctx, &lirctx, &smt);
-        inst_selector_t inst_sel = { .select_instructions = x86_64_gnu_nasm_instruction_selection };
+        inst_selector_t inst_sel;
+        switch (CONF_get_system_type()) {
+            case MACHO64: inst_sel.select_instructions = x86_64_macho_nasm_instruction_selection; break;
+            case LINUX64: inst_sel.select_instructions = x86_64_gnu_nasm_instruction_selection; break;
+            default: break;
+        }
+
         LIR_select_instructions(&cfgctx, &smt, &inst_sel);
 
         LIR_DFG_compute_inout(&cfgctx);
@@ -585,7 +591,13 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        asm_gen_t asmgen = { .generator = x86_64_generate_asm };
+        asm_gen_t asmgen;
+        switch (CONF_get_system_type()) {
+            case MACHO64: asmgen.generator = x86_64_macho_nasm_generate_asm; break;
+            case LINUX64: asmgen.generator = x86_64_gnu_nasm_generate_asm; break;
+            default: break;
+        }
+
         ASM_generate(&cfgctx, &smt, &asmgen, asm_file);
         fclose(asm_file);
 

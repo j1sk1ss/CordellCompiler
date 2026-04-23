@@ -376,7 +376,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     syscall_t* table = NULL;
     hir_subject_t** flatten_input = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
     switch (CONF_get_system_type()) {
-        case MACOH64: {
+        case MACHO64: {
             table_size = SYSCHECK_get_macoh_x86_64_syscall_table(&table);
             /* MacOS syscall offset */
             di.const_value -= 0x2000000;
