@@ -1104,7 +1104,7 @@
               resizeObserver.observe(block);
               block.__resizeObserver = resizeObserver;
 
-              output.textContent = 'Editor ready. Tabs, syntax highlighting, autocomplete and Tab indentation are enabled.';
+              output.textContent = 'Click \'Run\' to compile and run the program!';
             } catch (err) {
               output.classList.add('is-error');
               output.textContent = 'Editor init failed: ' + err.message;

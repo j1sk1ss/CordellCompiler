@@ -1,24 +1,6 @@
 #include <lir/peephole/x84_64_gnu_nasm.h>
 
 /*
-Simple function that helps us with a 'home verification' proccess.
-Params:
-    - `h` - Expected home of the subject.
-    - `s` - Considering subject.
-
-Return 1 if the 'h' is a home for the 's'.
-*/
-static int _check_home(lir_block_t* h, lir_subject_t* s) {
-    if (!h || !s) return 0;
-    lir_subject_t* args[] = { h->farg, h->sarg, h->targ };
-    for (int i = 0; i < 3; i++) {
-        if (args[i] && args[i] == s) return 1;
-    }
-
-    return 0;
-}
-
-/*
 Delete jump which leads us to a fall block. We find a block which has a 
 jump operation at the end. If this operation jumps to the next block,
 we can remove it.
@@ -145,8 +127,8 @@ static int _recursive_cleanup(
     }
 
     if (
-        bbh->l && !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) || 
-        bbh->jmp && !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
+        (bbh->l && !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL)) || 
+        (bbh->jmp && !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL))
     ) return 0; /* If the command is used somewhere in the childs, return 0                       */
     return 1;   /* By default, if the considering command is unused elsewhere, we mark it to drop */
 }
