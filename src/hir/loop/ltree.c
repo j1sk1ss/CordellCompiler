@@ -79,9 +79,6 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
             if (set_has(&cb->dom, succ)) {
                 cfg_block_t* header = succ;
                 cfg_block_t* latch  = cb;
-                if (header->type == CFG_LOOP_HEADER) {
-                    continue;
-                }
 
                 header->type = CFG_LOOP_HEADER;
                 latch->type  = CFG_LOOP_LATCH;
@@ -126,10 +123,17 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
     return 1;
 }
 
-int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
+static int _build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {    
+    list_t* floops;
+    if (!map_get(&ctx->lmap, fb->f_id, (void**)&floops)) {
+        floops = (list_t*)mm_malloc(sizeof(list_t));
+        if (!floops) return 0;
+        list_init(floops);
+        map_put(&ctx->lmap, fb->f_id, floops);
+    }
+
     list_t rl;
     list_init(&rl);
-
     if (!_collect_loops_for_func(fb, &rl)) {
         print_error("Can't collect loop nodes from the function!");
         list_free_force_op(&rl, (int (*)(void*))_loop_node_free);
@@ -149,7 +153,7 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
             }
         }
 
-        if (!best_parent) list_push_back(&ctx->loops, ni); 
+        if (!best_parent) list_push_back(floops, ni); 
         else {
             list_push_back(&best_parent->children, ni);
             ni->p = best_parent;
@@ -160,18 +164,13 @@ int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
     return 1;
 }
 
-int HIR_LOOP_mark_loops(cfg_ctx_t* cctx) {
+int HIR_LOOP_mark_loops(cfg_ctx_t* cctx, ltree_ctx_t* lctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        ltree_ctx_t lctx;
-        list_init(&lctx.loops);
-        if (!HIR_LTREE_build_loop_tree(fb, &lctx)) {
-            print_error("Can't build the loop tree here!");
-            list_free_force_op(&lctx.loops, (int (*)(void*))_loop_node_free);
+        if (!_build_loop_tree(fb, lctx)) {
+            HIR_LTREE_unload_ctx(lctx);
             return 0;
         }
-
-        list_free_force_op(&lctx.loops, (int (*)(void *))_loop_node_free);
     }
 
     return 1;
@@ -189,10 +188,15 @@ int HIR_LTREE_nested_count(loop_node_t* node) {
 }
 
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx) {
-    foreach (loop_node_t* n, &ctx->loops) {
-        _loop_node_free(n);
+    map_foreach (list_t* loops, &ctx->lmap) {
+        foreach (loop_node_t* n, loops) {
+            _loop_node_free(n);
+        }
+
+        list_free(loops);
+        mm_free(loops);
     }
 
-    list_free_force(&ctx->loops);
+    map_free(&ctx->lmap);
     return 1;
 }

@@ -556,10 +556,10 @@ int main(int argc, char* argv[]) {
             HIR_CFG_build(&hirctx, &cfgctx, &smt);
         }
 
-        HIR_LOOP_mark_loops(&cfgctx);
+        HIR_LOOP_mark_loops(&cfgctx, NULL); // TODO
 
-        if (options.config.finline) {
-            HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider);
+        if (options.config.finline) { // TODO
+            HIR_FUNC_perform_inline(&cfgctx, NULL, &smt, HIR_FUNC_inline_euristic_desider);
             HIR_CFG_unload(&cfgctx);
             HIR_CFG_build(&hirctx, &cfgctx, &smt);
         }
@@ -572,7 +572,7 @@ int main(int argc, char* argv[]) {
         HIR_CG_apply_dfe(&cfgctx, &callctx);
 
         HIR_CFG_create_domdata(&cfgctx);
-        HIR_LTREE_canonicalization(&cfgctx);
+        HIR_LTREE_canonicalization(&cfgctx, NULL);
         HIR_CFG_unload_domdata(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
 
@@ -584,7 +584,7 @@ int main(int argc, char* argv[]) {
 
         HIR_compute_homes(&hirctx);
         if (options.config.licm) {
-            HIR_LTREE_licm(&cfgctx, &smt);
+            HIR_LTREE_licm(&cfgctx, NULL, &smt);
         }
 
         HIR_CFG_make_allias(&cfgctx, &smt);

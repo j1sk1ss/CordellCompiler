@@ -95,8 +95,8 @@ int main(int argc, char* argv[]) {
     HIR_FUNC_perform_tre(&cfgctx, &smt);
     HIR_CFG_unload(&cfgctx);
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
-    HIR_LOOP_mark_loops(&cfgctx);
-    // HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider); TODO!!!
+    HIR_LOOP_mark_loops(&cfgctx, NULL); // TODO
+    HIR_FUNC_perform_inline(&cfgctx, NULL, &smt, HIR_FUNC_inline_euristic_desider);
     HIR_CFG_unload(&cfgctx);
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
 
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
-    HIR_LTREE_canonicalization(&cfgctx);    // Transform
+    HIR_LTREE_canonicalization(&cfgctx, NULL);    // Transform
     HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
 
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     map_free_force(&ssactx.vers);
 
     HIR_compute_homes(&hirctx);             // Analyzation
-    HIR_LTREE_licm(&cfgctx, &smt);
+    HIR_LTREE_licm(&cfgctx, &smt, NULL);
 
     HIR_CFG_make_allias(&cfgctx, &smt);
     dag_ctx_t dagctx = { .curr_id = 0 };

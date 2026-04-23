@@ -84,6 +84,7 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
        - Will copy only instruction and variables
        - Will preserve old labels */
     int scopes = -1;
+    hir_subject_t* exit_label = HIR_SUBJ_LABEL();
     while (hh && hh->op != HIR_FEND) {
         hir_block_t* nblock = NULL;
         if (!hh->unused) {
@@ -112,7 +113,13 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
 
         if (nblock) {
             HIR_insert_block_before(nblock, pos);
-            if (!nentry) nentry = nblock;
+            if (hh->op == HIR_FRET) {
+                HIR_insert_block_before(HIR_create_block(HIR_JMP, exit_label, NULL, NULL), pos);
+            }
+
+            if (!nentry) {
+                nentry = nblock;
+            }
         }
         else {
 _skip_instruction: {}
@@ -134,6 +141,7 @@ _skip_instruction: {}
         hh = HIR_FUNC_get_next(hh, f, nexit, 1);
     }
 
+    HIR_insert_block_before(HIR_create_block(HIR_MKLB, exit_label, NULL, NULL), pos);
     return 1;
 }
 
@@ -252,25 +260,23 @@ Params:
 Returns 1 if succeeds.
 */
 static int _collect_information(
-    cfg_func_t* f, cfg_block_t* pos, hir_block_t* hpos, ltree_ctx_t* lctx, inline_candidate_info_t* info, sym_table_t* smt
+    cfg_func_t* f, cfg_block_t* pos, hir_block_t* hpos, 
+    list_t* src_floops, list_t* dst_floops, 
+    inline_candidate_info_t* info, sym_table_t* smt
 ) {
-    loop_node_t* loop = _find_loop(&lctx->loops, pos);
+    loop_node_t* loop = _find_loop(dst_floops, pos);
     if (loop) {
         info->dst_info.loop_size_bb = set_size(&loop->blocks);
         info->dst_info.loop_nested  = HIR_LTREE_nested_count(loop);
         info->dst_info.near_break   = _find_nearest_break(hpos, pos);
     }
-
-    ltree_ctx_t src_lctx;
-    list_init(&src_lctx.loops);
-    HIR_LTREE_build_loop_tree(f, &src_lctx);
     
     info->src_info.loop_nested = 0;
-    foreach (loop_node_t* l, &src_lctx.loops) {
+    foreach (loop_node_t* l, src_floops) {
         info->src_info.loop_nested = MAX(info->src_info.loop_nested, HIR_LTREE_nested_count(l));
     }
     
-    info->src_info.loop_count = list_size(&src_lctx.loops);
+    info->src_info.loop_count = list_size(src_floops);
     info->src_info.bb_size = list_size(&f->blocks);
     foreach (cfg_block_t* bb, &f->blocks) {
         info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
@@ -290,7 +296,6 @@ static int _collect_information(
         info->dst_info.is_start = fi.flags.entry;
     }
     
-    HIR_LTREE_unload_ctx(&src_lctx);
     return 1;
 }
 
@@ -326,24 +331,25 @@ static int _inline_candidate(
 ) {
     if (!f || !pos || !lctx) return 0;
     inline_candidate_info_t iinfo = { 0 };
-    _collect_information(f, pos, hpos, lctx, &iinfo, smt);
+
+    list_t *src_floops, *dst_floops;
+    if (!map_get(&lctx->lmap, f->f_id, (void**)&src_floops)) return 0;
+    if (!map_get(&lctx->lmap, pos->pfunc->f_id, (void**)&dst_floops)) return 0;
+
+    _collect_information(f, pos, hpos, src_floops, dst_floops, &iinfo, smt);
     return checker((int*)&iinfo, (int)sizeof(inline_candidate_info_t));
 }
 
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt, int (*checker)(int*, int)) {
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int)) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         /* Collect information about the environment
            - Basic information about the loops */
-        ltree_ctx_t lctx;
-        list_init(&lctx.loops);
-        HIR_LTREE_build_loop_tree(fb, &lctx);
-
         foreach (cfg_block_t* bb, &fb->blocks) {
             hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
             while (hh) {
                 if (HIR_is_funccall(hh->op)) {
                     cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
-                    if (_inline_candidate(trg, bb, hh, &lctx, smt, checker) && fb != trg) {
+                    if (_inline_candidate(trg, bb, hh, lctx, smt, checker) && fb != trg) {
                         _inline_arguments(trg, &hh->targ->storage.list.h, hh);
                         
                         hir_subject_t* res = NULL;
@@ -360,8 +366,6 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt, int (*checker)(in
                 hh = HIR_get_next(hh, bb->hmap.exit, 1);
             }
         }
-
-        HIR_LTREE_unload_ctx(&lctx);
     }
 
     return 1;

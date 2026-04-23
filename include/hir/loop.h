@@ -3,6 +3,7 @@
 
 #include <std/mm.h>
 #include <std/set.h>
+#include <std/map.h>
 #include <std/logg.h>
 #include <std/list.h>
 #include <hir/hir.h>
@@ -17,7 +18,7 @@ typedef struct loop_node {
 } loop_node_t;
 
 typedef struct {
-    list_t loops;
+    map_t lmap; /* f.id <-> list_t of loops */
 } ltree_ctx_t;
 
 /*
@@ -26,20 +27,22 @@ Note: Will change the cfg_block_t's type to CFG_LOOP_HEADER or CFG_LOOP_LATCH.
 Note 2: This function will produce a loop tree.
 Params:
     - `cctx` - CFG context.
+    - `lctx` - Loops context.
 
 Returns 1 if success, otherwise 0.
 */
-int HIR_LOOP_mark_loops(cfg_ctx_t* cctx);
+int HIR_LOOP_mark_loops(cfg_ctx_t* cctx, ltree_ctx_t* lctx);
 
 /*
 [Transformation] This function will search for loops, then trasform them to canonical form.
 Note: Canonical form implies pre-header existance. See REAME for additional info.
 Params:
     - `cctx` - CFG context.
+    - `lctx` - Loops context.
 
 Returns 1 if success, otherwise 0.
 */
-int HIR_LTREE_canonicalization(cfg_ctx_t* cctx);
+int HIR_LTREE_canonicalization(cfg_ctx_t* cctx, ltree_ctx_t* lctx);
 
 /*
 [Transformation] Perform LICM optimization on the canonicolized loops.
@@ -51,22 +54,12 @@ This function marks all invariant commands (mentioned not 'loop-dependend' comma
 We move these command to a new created 'preheader' block.
 Params:
     - `cctx` - CFG context.
+    - `lctx` - Loops context.
     - `smt` - Symtable.
 
 Returns 1 if succeeds.
 */
-int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt);
-
-/*
-[Analyzation] Build the loop tree. Loop tree represents loops and
-nested loops.
-Params:
-    - `fb` - Current CFG function.
-    - `ctx` - Loop tree context.
-
-Returns 1 if context builded.
-*/
-int HIR_LTREE_build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx);
+int HIR_LTREE_licm(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt);
 
 /*
 [Analyzation] Get the size of the nested loop. It means, it will

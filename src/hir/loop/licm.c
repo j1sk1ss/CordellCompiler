@@ -305,49 +305,33 @@ int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt
     return changed;
 }
 
-int HIR_LTREE_licm(cfg_ctx_t* cctx, sym_table_t* smt) {
+int HIR_LTREE_licm(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         int changed = 0;
         do {
             changed = 0;
-            ltree_ctx_t lctx;
-            list_init(&lctx.loops);
-
-            HIR_LTREE_build_loop_tree(fb, &lctx);
-            if (!list_size(&lctx.loops)) {
-                HIR_LTREE_unload_ctx(&lctx);
-                continue;
-            }
-
-            foreach (loop_node_t* root, &lctx.loops) {
+            list_t* floops;
+            if (!map_get(&lctx->lmap, fb->f_id, (void**)&floops)) continue;
+            if (!list_size(floops)) continue;
+            foreach (loop_node_t* root, floops) {
                 changed |= _licm_loop_node_process(cctx, root, smt, 1);
             }
-
-            HIR_LTREE_unload_ctx(&lctx);
         } while (changed);
     }
 
     return 1;
 }
 
-int HIR_LTREE_canonicalization(cfg_ctx_t* cctx) {
+int HIR_LTREE_canonicalization(cfg_ctx_t* cctx, ltree_ctx_t* lctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        ltree_ctx_t lctx;
-        list_init(&lctx.loops);
-
-        HIR_LTREE_build_loop_tree(fb, &lctx);
-        if (!list_size(&lctx.loops)) {
-            HIR_LTREE_unload_ctx(&lctx);
-            continue;
-        }
-        
-        foreach (loop_node_t* root, &lctx.loops) {
+        list_t* floops;
+        if (!map_get(&lctx->lmap, fb->f_id, (void**)&floops)) continue;
+        if (!list_size(floops)) continue;        
+        foreach (loop_node_t* root, floops) {
             _licm_loop_node_process(cctx, root, NULL, 0);
         }
-
-        HIR_LTREE_unload_ctx(&lctx);
     }
 
     return 1;

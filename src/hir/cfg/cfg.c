@@ -284,6 +284,7 @@ int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
 }
 
 int HIR_CFG_unload(cfg_ctx_t* ctx) {
+    ctx->cid = 0;
     foreach (cfg_func_t* fb, &ctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             _unload_cfg_block(cb);
