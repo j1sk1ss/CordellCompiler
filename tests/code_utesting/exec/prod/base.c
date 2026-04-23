@@ -37,7 +37,7 @@
 #include "../../../misc/lir_helper.h"
 
 #include <asm/asmgen.h>
-#include <asm/x86_64_asmgen.h>
+#include <asm/x86_64_gnu_nasm_asmgen.h>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
     LIR_peephole_optimization(&cfgctx, &pph);
 
-    asm_gen_t asmgen = { .generator = x86_64_generate_asm };
+    asm_gen_t asmgen = { .generator = x86_64_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);
 
     map_free(&colors);

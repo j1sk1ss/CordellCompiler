@@ -1,6 +1,6 @@
 #include <lir/selector/x84_64_gnu_nasm.h>
 
-lir_subject_t* create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size) {
+lir_subject_t* x86_64_gnu_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size) {
     variable_info_t vi = { .vmi.offset = -1 };
     token_type_t vtype = TMP_TYPE_TOKEN;
     int vsize = forced_size < 0 ? src->size : forced_size;
@@ -18,7 +18,7 @@ lir_subject_t* create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* 
     return LIR_SUBJ_VAR(cpy, vsize);
 }
 
-int is_sign_type(lir_subject_t* s, sym_table_t* smt) {
+int x86_64_gnu_nasm_is_sign_type(lir_subject_t* s, sym_table_t* smt) {
     if (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) return 1;
     variable_info_t vi;
     if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 1;
@@ -31,7 +31,7 @@ int is_sign_type(lir_subject_t* s, sym_table_t* smt) {
     }
 }
 
-int is_simd_type(lir_subject_t* s, sym_table_t* smt) {
+int x86_64_gnu_nasm_is_simd_type(lir_subject_t* s, sym_table_t* smt) {
     if (s->t == LIR_NUMBER) return s->storage.num.is_float;
     if (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) return 0;
     variable_info_t vi;
@@ -42,9 +42,9 @@ int is_simd_type(lir_subject_t* s, sym_table_t* smt) {
     }
 }
 
-lir_operation_t get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* smt, lir_operation_t base) {
-    int to_float   = is_simd_type(a, smt);
-    int from_float = is_simd_type(b, smt);
+lir_operation_t x86_64_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* smt, lir_operation_t base) {
+    int to_float   = x86_64_gnu_nasm_is_simd_type(a, smt);
+    int from_float = x86_64_gnu_nasm_is_simd_type(b, smt);
 
     if (to_float) {
         if (from_float) {
@@ -58,7 +58,7 @@ lir_operation_t get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* 
         }
     }
     else {
-        int from_sign = is_sign_type(b, smt);
+        int from_sign = x86_64_gnu_nasm_is_sign_type(b, smt);
         int from_num  = b->t == LIR_NUMBER;
         if (from_num) return base;
         

@@ -98,7 +98,7 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
         ) {
             switch (lh->op) {
                 case LIR_iMOV: case LIR_aMOV: case LIR_fMOV: {
-                    lh->op = get_proper_mov(lh->farg, lh->sarg, smt, lh->op);
+                    lh->op = x86_64_gnu_nasm_get_proper_mov(lh->farg, lh->sarg, smt, lh->op);
                     break;
                 }
                 default: break;
@@ -133,7 +133,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 case LIR_REF:
                 case LIR_REF_GDREF: {
                     if (lh->farg->t == LIR_REGISTER) break;
-                    lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, 8);
+                    lir_subject_t* tmp = x86_64_gnu_nasm_create_tmp(R15, lh->sarg, smt, 8);
                     list_add(&fixes, LIR_create_block(lh->op, tmp, lh->sarg, NULL));
                     lh->sarg = tmp;
                     lh->op   = LIR_iMOV;
@@ -143,31 +143,31 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 case LIR_MOVSX:    case LIR_MOVZX:    case LIR_MOVSXD:
                 case LIR_iMOV:     case LIR_aMOV:     case LIR_fMOV: {
                     if (lh->farg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) break;
-                    lir_subject_t* tmp = create_tmp(R15, lh->sarg, smt, lh->farg->size);
+                    lir_subject_t* tmp = x86_64_gnu_nasm_create_tmp(R15, lh->sarg, smt, lh->farg->size);
                     list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL));
                     lh->sarg = tmp;
                     break;
                 }
                 case LIR_LDREF: {
                     if (lh->farg->t != LIR_REGISTER) {
-                        lir_subject_t* src = create_tmp(RAX, lh->farg, smt, lh->farg->size);
+                        lir_subject_t* src = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, lh->farg->size);
                         list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->farg, NULL));
-                        lh->farg = create_tmp(RAX, src, smt, lh->sarg->size);
+                        lh->farg = x86_64_gnu_nasm_create_tmp(RAX, src, smt, lh->sarg->size);
                     }
 
                     if (lh->sarg->t != LIR_REGISTER && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL) {
-                        lir_subject_t* src = create_tmp(R15, lh->sarg, smt, lh->sarg->size);
+                        lir_subject_t* src = x86_64_gnu_nasm_create_tmp(R15, lh->sarg, smt, lh->sarg->size);
                         list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
-                        lh->sarg = create_tmp(R15, src, smt, lh->sarg->size);
+                        lh->sarg = x86_64_gnu_nasm_create_tmp(R15, src, smt, lh->sarg->size);
                     }
 
                     break;
                 }
                 case LIR_GDREF: {
                     if (lh->farg->t == LIR_REGISTER) break;
-                    lir_subject_t* src = create_tmp(R15, lh->sarg, smt, lh->sarg->size);
+                    lir_subject_t* src = x86_64_gnu_nasm_create_tmp(R15, lh->sarg, smt, lh->sarg->size);
                     list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
-                    lir_subject_t* tmp = create_tmp(R15, lh->farg, smt, lh->farg->size);
+                    lir_subject_t* tmp = x86_64_gnu_nasm_create_tmp(R15, lh->farg, smt, lh->farg->size);
                     list_add(&fixes, LIR_create_block(LIR_GDREF, tmp, src, NULL));
                     lh->sarg = tmp;
                     lh->op   = LIR_iMOV;

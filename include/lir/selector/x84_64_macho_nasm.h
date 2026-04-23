@@ -1,6 +1,6 @@
-/* Architecture dependent module wich is linked to x86_64 GNU NASM. */
-#ifndef INSTSEL_X86_64_GNU_NASM_LINUX_
-#define INSTSEL_X86_64_GNU_NASM_LINUX_
+/* Architecture dependent module wich is linked to x86_64 MACHO NASM. */
+#ifndef INSTSEL_X86_64_MACHO_NASM_
+#define INSTSEL_X86_64_MACHO_NASM_
 
 #include <std/map.h>
 #include <std/list.h>
@@ -45,7 +45,7 @@ Params:
 
 Return the virtual variable that is linked to the physical register.
 */
-lir_subject_t* x86_64_gnu_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size);
+lir_subject_t* x86_64_macho_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size);
 
 /*
 Checks a variable if it is a signed or not.
@@ -55,7 +55,7 @@ Params:
 
 Return 1 either this is a signed variable or this isn't variable at all.
 */
-int x86_64_gnu_nasm_is_sign_type(lir_subject_t* s, sym_table_t* smt);
+int x86_64_macho_nasm_is_sign_type(lir_subject_t* s, sym_table_t* smt);
 
 /*
 Checks a variable is SIMD by the provided variable ID. 
@@ -67,7 +67,7 @@ Params:
 
 Return 1 if the variable is SIMD.
 */
-int x86_64_gnu_nasm_is_simd_type(lir_subject_t* s, sym_table_t* smt);
+int x86_64_macho_nasm_is_simd_type(lir_subject_t* s, sym_table_t* smt);
 
 /*
 Get a mov operation for given input operands. Will return the base, if we 
@@ -83,10 +83,10 @@ Params:
 
 Returns a mov operation that is valid for given args.
 */
-lir_operation_t x86_64_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* smt, lir_operation_t base);
+lir_operation_t x86_64_macho_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* smt, lir_operation_t base);
 
-int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt);
-int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt);
-int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt);
+int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt);
+int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt);
+int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt);
 
 #endif

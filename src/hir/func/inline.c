@@ -267,7 +267,7 @@ static int _collect_information(
     
     info->src_info.loop_nested = 0;
     foreach (loop_node_t* l, &src_lctx.loops) {
-        info->src_info.loop_nested = MAX(info->src_info.loop_nested, HIR_LTREE_nested_count(loop));
+        info->src_info.loop_nested = MAX(info->src_info.loop_nested, HIR_LTREE_nested_count(l));
     }
     
     info->src_info.loop_count = list_size(&src_lctx.loops);

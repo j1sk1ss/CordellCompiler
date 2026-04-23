@@ -1,4 +1,4 @@
-#include <asm/x86_64_asmgen.h>
+#include <asm/x86_64_gnu_nasm_asmgen.h>
 
 /* Idea is to prevent the same buffer usage in the output code.
    To do this, the one approach is to use two buffers. */
@@ -54,7 +54,7 @@ static const char* _get_mem_modifier(int size) {
     return modifier;
 }
 
-const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag) {
+const char* x86_64_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag) {
     char* buffer = _get_buffer();
     if (!v) return "";
     switch (v->t) {

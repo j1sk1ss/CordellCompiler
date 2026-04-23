@@ -1,5 +1,5 @@
-#ifndef X86_64_ASM_GENERATOR_H_
-#define X86_64_ASM_GENERATOR_H_
+#ifndef X86_64_GNU_NASM_ASM_GENERATOR_H_
+#define X86_64_GNU_NASM_ASM_GENERATOR_H_
 
 #include <std/mem.h>
 #include <std/str.h>
@@ -23,7 +23,7 @@ Params:
 
 Return 1 if success, otherwise - 0.
 */
-int x86_64_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output);
+int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output);
 
 #define NO_FLAG    0
 #define LEA_FLAG   1
@@ -38,6 +38,6 @@ Params:
 
 Return 1 if success, otherwise - 0.
 */
-const char* format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag);
+const char* x86_64_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag);
 
 #endif
