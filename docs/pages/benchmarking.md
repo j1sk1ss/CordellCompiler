@@ -41,7 +41,7 @@ int main() {
   class="benchmark-card"
   data-title="Empty loop benchmark"
   data-labels="cpl --opt|clang -O3|gcc-14 -O3|cpl|gcc-14 -O0|clang -O0"
-  data-values="0.72|0.748|0.758|1.52|4.290|4.641"
+  data-values="0.722|0.748|0.758|1.52|4.290|4.641"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"

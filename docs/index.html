@@ -454,7 +454,6 @@
     .cpl-runner {
       margin: 24px 0;
       padding: 18px;
-      height: 50%;
       border: 1px solid var(--line);
       border-radius: 16px;
       background: #fff;
@@ -470,11 +469,32 @@
       flex-wrap: wrap;
     }
 
+    .cpl-runner-toolbar-left,
+    .cpl-runner-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .cpl-runner-title {
       color: var(--muted);
       font-size: 0.9rem;
       font-weight: 700;
       letter-spacing: 0.01em;
+    }
+
+    .cpl-runner-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel-soft);
+      color: var(--brand-strong);
+      font-size: 0.79rem;
+      font-weight: 700;
     }
 
     .cpl-runner-button {
@@ -495,23 +515,46 @@
     .cpl-runner-button:hover { background: var(--brand-strong); }
     .cpl-runner-button:disabled { opacity: 0.7; cursor: wait; }
 
-    .cpl-runner-input {
-      width: 100%;
-      min-height: 220px;
-      resize: vertical;
-      padding: 14px 16px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fbfefb;
+    .cpl-runner-button.secondary {
+      background: #fff;
       color: var(--text);
-      font: 0.94rem/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      outline: none;
+      border-color: var(--line);
     }
 
-    .cpl-runner-input:focus {
-      border-color: #b6d4bc;
+    .cpl-runner-button.secondary:hover { background: var(--panel-soft); }
+
+    .cpl-runner-editor-shell {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #f8fbf8;
+    }
+
+    .cpl-runner-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #f4faf5;
+    }
+
+    .cpl-runner-tab {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border: 1px solid #cfe0d2;
+      border-radius: 9px 9px 0 0;
       background: #fff;
-      box-shadow: 0 0 0 4px rgba(79, 157, 105, 0.10);
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .cpl-runner-editor {
+      width: 100%;
+      height: 320px;
     }
 
     .cpl-runner-output {
@@ -539,12 +582,15 @@
       .docsify-pagination-card.right { text-align: left; }
       .docsify-pagination-current { min-width: 0; }
       .benchmark-chart-wrap { height: 320px; }
+      .cpl-runner-editor { height: 260px; }
     }
   </style>
 </head>
 <body>
   <div id="app"></div>
-
+  <script>
+    window.CPL_RUNNER_URL='http://127.0.0.1:8000/cpl/run'; // TODO: Change
+  </script>
   <script>
     function cleanRoute(route) {
       if (!route) return '';
@@ -711,22 +757,31 @@
         renderer: {
           code: function(code, lang) {
             if (lang === 'cpl-run') {
+              const encoded = encodeURIComponent(code);
               return `
-                <div class="cpl-runner" data-lang="cpl">
+                <div class="cpl-runner" data-lang="cpl" data-code="${encoded}">
                   <div class="cpl-runner-toolbar">
-                    <div class="cpl-runner-title">Interactive CPL block</div>
-                    <button class="cpl-runner-button" type="button">Run</button>
+                    <div class="cpl-runner-toolbar-left">
+                      <div class="cpl-runner-title">CPL code editor</div>
+                      <span class="cpl-runner-badge">Powered by Monaco editor</span>
+                    </div>
+                    <div class="cpl-runner-toolbar-right">
+                      <button class="cpl-runner-button secondary" type="button" data-action="format">Format</button>
+                      <button class="cpl-runner-button" type="button" data-action="run">Run</button>
+                    </div>
                   </div>
-                  <textarea class="cpl-runner-input" spellcheck="false">${escapeHtml(code)}</textarea>
-                  <pre class="cpl-runner-output">Click Run to execute this example.</pre>
+                  <div class="cpl-runner-editor-shell">
+                    <div class="cpl-runner-tabs">
+                      <span class="cpl-runner-tab">main.cpl</span>
+                    </div>
+                    <div class="cpl-runner-editor"></div>
+                  </div>
+                  <pre class="cpl-runner-output">Editor ready. Tabs, syntax highlighting and autocomplete are enabled.</pre>
                 </div>
               `;
             }
 
-            if (window.Prism && lang && Prism.languages[lang]) {
-              return '<pre><code class="language-' + lang + '">' + Prism.highlight(code, Prism.languages[lang], lang) + '</code></pre>';
-            }
-            return '<pre><code>' + escapeHtml(code) + '</code></pre>';
+            return '<pre><code class="language-' + escapeHtml(lang || 'markup') + '">' + escapeHtml(code) + '</code></pre>';
           }
         }
       },
@@ -811,73 +866,354 @@
         },
 
         function(hook) {
-          const backendUrl = 'http://127.0.0.1:8000/cpl/run';
+          const editors = new Map();
+          let monacoReadyPromise = null;
 
-          async function runCpl(block) {
-            const textarea = block.querySelector('.cpl-runner-input');
+          function decodeCode(value) {
+            try {
+              return decodeURIComponent(value || '');
+            } catch (e) {
+              return value || '';
+            }
+          }
+
+          function ensureMonaco() {
+            if (window.monaco && window.require) return Promise.resolve(window.monaco);
+            if (monacoReadyPromise) return monacoReadyPromise;
+
+            monacoReadyPromise = new Promise((resolve, reject) => {
+              const finish = () => {
+                try {
+                  window.require.config({
+                    paths: {
+                      vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs'
+                    }
+                  });
+                  window.MonacoEnvironment = {
+                    getWorkerUrl: function() {
+                      return 'data:text/javascript;charset=utf-8,' + encodeURIComponent(`self.MonacoEnvironment={baseUrl:"https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/"};importScripts("https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/base/worker/workerMain.js");`);
+                    }
+                  };
+                  window.require(['vs/editor/editor.main'], function() {
+                    resolve(window.monaco);
+                  }, reject);
+                } catch (err) {
+                  reject(err);
+                }
+              };
+
+              if (window.require && window.require.config) {
+                finish();
+                return;
+              }
+
+              const script = document.createElement('script');
+              script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js';
+              script.onload = finish;
+              script.onerror = () => reject(new Error('Failed to load Monaco loader'));
+              document.head.appendChild(script);
+            });
+
+            return monacoReadyPromise;
+          }
+
+          function registerCplLanguage(monaco) {
+            if (window.__cplMonacoRegistered) return;
+            window.__cplMonacoRegistered = true;
+
+            monaco.languages.register({ id: 'cpl' });
+
+            monaco.languages.setMonarchTokensProvider('cpl', {
+              tokenizer: {
+                root: [
+                  [/:\//, 'comment', '@comment_block_slash'],
+                  [/:(?=\s|$)/, 'comment', '@comment_block_colon'],
+                  [/:([^:\n]|\\:)*:/, 'comment'],
+                  [/"([^"\\]|\\.)*$/, 'string.invalid'],
+                  [/"/, 'string', '@string_double'],
+                  [/'([^'\\]|\\.)*$/, 'string.invalid'],
+                  [/'/, 'string', '@string_single'],
+                  [/\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str|arr|dref|ref|ptr)\b/, 'type'],
+                  [/\b(as|extern|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not|ro|glob|lis|break|loop)\b/, 'keyword'],
+                  [/\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)\b/, 'number'],
+                  [/[a-zA-Z_][\w]*/, 'identifier'],
+                  [/[{}()\[\]]/, '@brackets'],
+                  [/[-+*/%=!<>|&.,;]/, 'delimiter']
+                ],
+                comment_block_slash: [
+                  [/\/:/, 'comment', '@pop'],
+                  [/./, 'comment'],
+                  [/\n/, 'comment']
+                ],
+                comment_block_colon: [
+                  [/^:/, 'comment', '@pop'],
+                  [/./, 'comment'],
+                  [/\n/, 'comment']
+                ],
+                string_double: [
+                  [/[^\\"]+/, 'string'],
+                  [/\\./, 'string.escape'],
+                  [/"/, 'string', '@pop']
+                ],
+                string_single: [
+                  [/[^\\']+/, 'string'],
+                  [/\\./, 'string.escape'],
+                  [/'/, 'string', '@pop']
+                ]
+              }
+            });
+
+            monaco.languages.setLanguageConfiguration('cpl', {
+              comments: { blockComment: [':', ':'] },
+              brackets: [['{', '}'], ['[', ']'], ['(', ')']],
+              autoClosingPairs: [
+                { open: '{', close: '}' },
+                { open: '[', close: ']' },
+                { open: '(', close: ')' },
+                { open: '"', close: '"' },
+                { open: "'", close: "'" }
+              ],
+              surroundingPairs: [
+                { open: '{', close: '}' },
+                { open: '[', close: ']' },
+                { open: '(', close: ')' },
+                { open: '"', close: '"' },
+                { open: "'", close: "'" }
+              ]
+            });
+
+            monaco.languages.registerCompletionItemProvider('cpl', {
+              provideCompletionItems: function() {
+                const keywords = ['as','extern','from','import','start','exit','function','return','if','else','while','switch','case','default','syscall','asm','not','ro','glob','lis','break','loop'];
+                const types = ['f64','f32','i64','i32','i16','i8','u64','u32','u16','u8','i0','str','arr','dref','ref','ptr','exfunc'];
+                const snippets = [
+                  {
+                    label: 'function',
+                    kind: monaco.languages.CompletionItemKind.Snippet,
+                    insertText: 'function ${1:name}(${2}) {\n\t$0\n}',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'Function declaration'
+                  },
+                  {
+                    label: 'if',
+                    kind: monaco.languages.CompletionItemKind.Snippet,
+                    insertText: 'if ${1:condition} {\n\t$0\n}',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'If block'
+                  },
+                  {
+                    label: 'while',
+                    kind: monaco.languages.CompletionItemKind.Snippet,
+                    insertText: 'while ${1:condition} {\n\t$0\n}',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'While loop'
+                  },
+                  {
+                    label: 'switch',
+                    kind: monaco.languages.CompletionItemKind.Snippet,
+                    insertText: 'switch ${1:value} {\n\tcase ${2:key}:\n\t\t$0\n\tdefault:\n\t\tbreak\n}',
+                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                    documentation: 'Switch block'
+                  }
+                ];
+
+                const suggestions = [
+                  ...keywords.map(label => ({ label, kind: monaco.languages.CompletionItemKind.Keyword, insertText: label })),
+                  ...types.map(label => ({ label, kind: monaco.languages.CompletionItemKind.TypeParameter, insertText: label })),
+                  ...snippets
+                ];
+                return { suggestions };
+              }
+            });
+
+            monaco.editor.defineTheme('cpl-light', {
+              base: 'vs',
+              inherit: true,
+              rules: [
+                { token: 'keyword', foreground: '2e7d4f', fontStyle: 'bold' },
+                { token: 'type', foreground: '567d2a' },
+                { token: 'comment', foreground: '7a8c80' },
+                { token: 'string', foreground: '8c4f14' },
+                { token: 'number', foreground: '7a3fb2' }
+              ],
+              colors: {
+                'editor.background': '#fbfefb',
+                'editorLineNumber.foreground': '#9ab3a1',
+                'editorLineNumber.activeForeground': '#4f9d69',
+                'editorIndentGuide.background1': '#e5efe6',
+                'editor.selectionBackground': '#d8eedc',
+                'editor.inactiveSelectionBackground': '#eaf5ec'
+              }
+            });
+          }
+
+          function simpleFormat(value) {
+            const lines = value.replace(/\r\n/g, '\n').split('\n');
+            let indent = 0;
+            return lines.map(line => {
+              const trimmed = line.trim();
+              if (!trimmed) return '';
+              if (/^[}\]]/.test(trimmed)) indent = Math.max(indent - 1, 0);
+              const result = '\t'.repeat(indent) + trimmed;
+              const opens = (trimmed.match(/[\{\[]/g) || []).length;
+              const closes = (trimmed.match(/[\}\]]/g) || []).length;
+              indent = Math.max(indent + opens - closes, 0);
+              return result;
+            }).join('\n');
+          }
+
+          async function initRunner(block) {
+            if (!block || block.dataset.monacoReady === '1') return;
+            block.dataset.monacoReady = '1';
+
+            const editorMount = block.querySelector('.cpl-runner-editor');
             const output = block.querySelector('.cpl-runner-output');
-            const button = block.querySelector('.cpl-runner-button');
-            const lang = block.dataset.lang || 'cpl';
-
-            if (!textarea || !output || !button) return;
-
-            button.disabled = true;
-            output.classList.remove('is-error');
-            output.textContent = 'Running...';
+            const code = decodeCode(block.dataset.code || '');
 
             try {
-              const response = await fetch(backendUrl, {
+              const monaco = await ensureMonaco();
+              registerCplLanguage(monaco);
+
+              const model = monaco.editor.createModel(code, 'cpl');
+              const editor = monaco.editor.create(editorMount, {
+                model,
+                theme: 'cpl-light',
+                automaticLayout: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 14,
+                lineHeight: 22,
+                tabSize: 2,
+                insertSpaces: false,
+                detectIndentation: false,
+                wordWrap: 'on',
+                quickSuggestions: true,
+                suggestOnTriggerCharacters: true,
+                tabCompletion: 'on',
+                snippetSuggestions: 'inline',
+                acceptSuggestionOnEnter: 'on',
+                formatOnPaste: true,
+                formatOnType: true,
+                roundedSelection: false,
+                padding: { top: 12, bottom: 12 }
+              });
+
+              editors.set(block, editor);
+
+              const resizeObserver = new ResizeObserver(() => editor.layout());
+              resizeObserver.observe(block);
+              block.__resizeObserver = resizeObserver;
+
+              output.textContent = 'Editor ready. Tabs, syntax highlighting, autocomplete and Tab indentation are enabled.';
+            } catch (err) {
+              output.classList.add('is-error');
+              output.textContent = 'Editor init failed: ' + err.message;
+            }
+          }
+
+          async function runCpl(block) {
+            const output= block.querySelector('.cpl-runner-output');
+            const runButton= block.querySelector('[data-action="run"]');
+            const editor= editors.get(block);
+            if (!output || !runButton || !editor) return;
+        
+            runButton.disabled= true;
+            output.classList.remove('is-error');
+            output.textContent= 'Running...';
+        
+            const code= editor.getValue();
+            const customRunner= window.CPL_RUNNER;
+            const backendUrl= window.CPL_RUNNER_URL || '/cpl/run';
+        
+            try {
+              if (customRunner && typeof customRunner.run === 'function') {
+                const result= await customRunner.run({ lang: 'cpl', code, block, editor });
+        
+                if (typeof result === 'string') {
+                  output.textContent= result || 'Execution finished with empty output.';
+                } else if (result && typeof result === 'object') {
+                  const parts= [];
+                  if (result.stdout) parts.push(result.stdout);
+                  if (result.stderr) parts.push(result.stderr);
+                  if (result.result && !parts.length) {
+                    parts.push(typeof result.result === 'string' ? result.result : JSON.stringify(result.result, null, 2));
+                  }
+                  output.textContent= parts.join('\n') || 'Execution finished with empty output.';
+                } else {
+                  output.textContent= 'Execution finished.';
+                }
+                return;
+              }
+        
+              const response= await fetch(backendUrl, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                  lang: lang,
-                  code: textarea.value
+                  lang: 'cpl',
+                  code
                 })
               });
-
-              let data = null;
+        
+              let data= null;
               try {
-                data = await response.json();
+                data= await response.json();
               } catch (e) {
-                data = null;
+                data= null;
               }
-
+        
               if (!response.ok) {
-                const message =
+                const message=
                   (data && (data.error || data.stderr || data.message)) ||
                   `Request failed with status ${response.status}`;
                 throw new Error(message);
               }
-
-              const parts = [];
+        
+              const parts= [];
               if (data) {
                 if (data.stdout) parts.push(data.stdout);
                 if (data.stderr) parts.push(data.stderr);
-                if (data.result && !parts.length) parts.push(
-                  typeof data.result === 'string' ? data.result : JSON.stringify(data.result, null, 2)
-                );
+                if (data.result && !parts.length) {
+                  parts.push(typeof data.result === 'string' ? data.result : JSON.stringify(data.result, null, 2));
+                }
               }
-
-              output.textContent = parts.length ? parts.join('\n') : 'Execution finished with empty output.';
+        
+              output.textContent= parts.join('\n') || 'Execution finished with empty output.';
             } catch (err) {
               output.classList.add('is-error');
-              output.textContent = 'Run failed: ' + err.message;
+              output.textContent= 'Run failed: ' + err.message;
             } finally {
-              button.disabled = false;
+              runButton.disabled= false;
+            }
+          }
+
+          function bindRunnerActions(block) {
+            if (!block || block.dataset.bound === '1') return;
+            block.dataset.bound = '1';
+
+            const formatButton = block.querySelector('[data-action="format"]');
+            const runButton = block.querySelector('[data-action="run"]');
+
+            if (formatButton) {
+              formatButton.addEventListener('click', function() {
+                const editor = editors.get(block);
+                if (!editor) return;
+                editor.setValue(simpleFormat(editor.getValue()));
+              });
+            }
+
+            if (runButton) {
+              runButton.addEventListener('click', function() {
+                runCpl(block);
+              });
             }
           }
 
           hook.doneEach(function() {
             document.querySelectorAll('.cpl-runner').forEach(block => {
-              const button = block.querySelector('.cpl-runner-button');
-              if (!button || button.dataset.bound === '1') return;
-
-              button.dataset.bound = '1';
-              button.addEventListener('click', function() {
-                runCpl(block);
-              });
+              bindRunnerActions(block);
+              initRunner(block);
             });
           });
         },
@@ -892,23 +1228,7 @@
       ]
     };
   </script>
-
-  <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-core.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <script>
-    Prism.languages.cpl = {
-      comment: { pattern: /:([\s\S]*?):/, greedy: true },
-      string: [
-        { pattern: /"(?:\\.|[^"\\])*"/, greedy: true },
-        { pattern: /'(?:\\.|[^'\\])*'/, greedy: true }
-      ],
-      type: /\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str|arr|dref|ref|ptr|exfunc)\b/,
-      keyword: /\b(as|extern|from|import|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not|ro|glob|lis|break|loop)\b/,
-      'function-name': /\b[a-zA-Z_]\w*(?=\s*\()/,
-      number: /\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)\b/
-    };
-  </script>
 
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>

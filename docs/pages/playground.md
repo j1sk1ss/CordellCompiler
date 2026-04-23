@@ -1,5 +1,5 @@
 # Playground
-Here you can play with some code snippets, and see, how the compiler behave.
+Here you can play with some code snippets, and see, how the compiler behaves.
 
 ```cpl-run
 :/ Define the strlen function
@@ -11,15 +11,15 @@ Here you can play with some code snippets, and see, how the compiler behave.
 function strlen(ptr i8 s) -> i64 {
     i64 l = 0;
 
-    : While pointed symbol isn't a zero value
-      continue iteration :
+    :/ While pointed symbol isn't a zero value
+      continue iteration /:
     while dref s; {
         s += 1;
         l += 1;
     }
 
-    : Return the length of the provided
-      string :
+    :/ Return the length of the provided
+      string /:
     return l;
 }
 
@@ -30,8 +30,8 @@ function strlen(ptr i8 s) -> i64 {
     
     Returns 'i0' a/k/a nothing. /:
 function puts(ptr i8 s) -> i0 {
-    : Start ASM inline block with
-      a support of the argument list :
+    :/ Start ASM inline block with
+      a support of the argument list /:
     asm (s, strlen(s)) {
         "push rdi", 
         "push rsi", 
@@ -47,8 +47,8 @@ function puts(ptr i8 s) -> i0 {
     }
 }
 
-: Program entry point similar to the C's entry point
-  main(int argc, char* argv[]); :
+:/ Program entry point similar to the C's entry point
+  main(int argc, char* argv[]); /:
 start(i64 argc, ptr ptr i8 argv) {
     puts(ref "Hello, World!\n");
     exit 0;
