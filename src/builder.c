@@ -1,5 +1,5 @@
 #include <builder.h>
-// TODO: Help option which reveals information about the options
+
 #define OPTION_INLUCDE               "-I"
 #define OPTION_OUTPUT                "--output"
 #define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
@@ -38,6 +38,62 @@
 #define OPTION_NO_CONSTANT           "--no-constant"
 #define OPTION_PEEPHOLE              "--peephole"
 #define OPTION_NO_PEEPHOLE           "--no-peephole"
+
+static int _print_help_message() {
+    fprintf(stdout, "Usage: ccpl [options] <input files>\n\n");
+
+    fprintf(stdout, "General options:\n");
+    fprintf(stdout, "  %s <dir>\t\tAdd include directory\n", OPTION_INLUCDE);
+    fprintf(stdout, "  %s <file>\tSet output file\n", OPTION_OUTPUT);
+    fprintf(stdout, "  %s\t\tEnable AST analysis\n", OPTION_ENABLE_AST_ANALYSIS);
+    fprintf(stdout, "  %s\t\tEnable IR analysis\n", OPTION_ENABLE_IR_ANALYSIS);
+    fprintf(stdout, "  %s\t\tEnable debug mode\n", OPTION_DEBUG);
+    fprintf(stdout, "  %s\t\tDisable debug mode\n", OPTION_NO_DEBUG);
+
+    fprintf(stdout, "\nOptimization options:\n");
+    fprintf(stdout, "  %s\t\tDisable optimizations\n", OPTION_NO_OPTIMIZATION);
+    fprintf(stdout, "  %s\t\tRough optimization level\n", OPTION_ROUGHT_OPTIMIZATION);
+    fprintf(stdout, "  %s\t\tGood optimization level\n", OPTION_GOOD_OPTIMIZATION);
+    fprintf(stdout, "  %s\t\tMaximum optimization level\n", OPTION_MAX_OPTIMIZATION);
+    fprintf(stdout, "  %s\t\tEnable function inlining\n", OPTION_FINLINE);
+    fprintf(stdout, "  %s\t\tDisable function inlining\n", OPTION_NO_FINLINE);
+    fprintf(stdout, "  %s\t\tEnable LICM\n", OPTION_LICM);
+    fprintf(stdout, "  %s\t\tDisable LICM\n", OPTION_NO_LICM);
+    fprintf(stdout, "  %s\t\tEnable constant propagation/folding\n", OPTION_CONSTANT);
+    fprintf(stdout, "  %s\t\tDisable constant propagation/folding\n", OPTION_NO_CONSTANT);
+    fprintf(stdout, "  %s\t\tEnable peephole optimization\n", OPTION_PEEPHOLE);
+    fprintf(stdout, "  %s\t\tDisable peephole optimization\n", OPTION_NO_PEEPHOLE);
+    fprintf(stdout, "  %s\t\tEnable TRE\n", OPTION_TRE);
+    fprintf(stdout, "  %s\t\tDisable TRE\n", OPTION_NO_TRE);
+
+    fprintf(stdout, "\nTarget options:\n");
+    fprintf(stdout, "  %s <arch>\t\tSet target architecture (x86_64, x86_32, i386)\n", OPTION_ARCH);
+    fprintf(stdout, "  %s\t\tSet full bytness (1, 2, 4, 8, ...)\n", OPTION_FULL_BYTNESS);
+    fprintf(stdout, "  %s\t\tUse half bytness (1, 2, 4, 8, ...)\n", OPTION_HALF_BYTNESS);
+    fprintf(stdout, "  %s\t\tUse quart bytness (1, 2, 4, 8, ...)\n", OPTION_QUART_BYTNESS);
+    fprintf(stdout, "  %s\t\tUse eight bytness (1, 2, 4, 8, ...)\n", OPTION_EIGHT_BYTNESS);
+    fprintf(stdout, "  %s <type>\t\tSet system type (macho64, linux64, windows64)\n", OPTION_SYS_TYPE);
+
+    fprintf(stdout, "\nAssembler options:\n");
+    fprintf(stdout, "  %s <compiler>\tSet assembler compiler (nasm, ...)\n", OPTION_ASM_COMPILER);
+    fprintf(stdout, "  %s <format>\tSet assembler format (macho64, ...)\n", OPTION_ASM_FORMAT);
+
+    fprintf(stdout, "\nLinker options:\n");
+    fprintf(stdout, "  %s <linker>\tSet linker (ld, gcc, clang, ...)\n", OPTION_LINKER);
+    fprintf(stdout, "  %s <mode>\tSet linker mode\n", OPTION_LINKER_MODE);
+    fprintf(stdout, "  %s\t\tDisable PIE\n", OPTION_LINKER_NO_PIE);
+    fprintf(stdout, "  %s\t\tEnable PIE\n", OPTION_LINKER_PIE);
+    fprintf(stdout, "  %s\t\tEnable m32 mode\n", OPTION_LINKER_M32);
+    fprintf(stdout, "  %s\t\tDisable m32 mode\n", OPTION_LINKER_NO_M32);
+    fprintf(stdout, "  %s <name>\tSet entry symbol name\n", OPTION_ENTRY_NAME);
+
+    fprintf(stdout, "\nSection options:\n");
+    fprintf(stdout, "  %s <name>\tSet read-only section name\n", OPTION_RO_SECTION);
+    fprintf(stdout, "  %s <name>\tSet global section name\n", OPTION_GLOB_SECTION);
+    fprintf(stdout, "  %s <name>\tSet code section name\n", OPTION_CODE_SECTION);
+
+    return 0;
+}
 
 typedef struct {
     struct {
@@ -425,7 +481,7 @@ _fail: {}
 
 int main(int argc, char* argv[]) {
     if (argc == 1) {
-        fprintf(stderr, "Provide any args to start!\n");
+        _print_help_message();
         return EXIT_FAILURE;
     }
 
