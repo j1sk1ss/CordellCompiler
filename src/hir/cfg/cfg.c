@@ -151,6 +151,10 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
         }
     }
 
+    return 1;
+}
+
+int HIR_CFG_remove_dead_code(cfg_ctx_t* ctx) {
     /* Clean the CFG by destroying the link from blocks,
        without any precessors (except initial). */
     foreach (cfg_func_t* fb, &ctx->funcs) {
@@ -168,7 +172,6 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
                 if (cb->l)   set_remove(&cb->l->pred, cb);
                 if (cb->jmp) set_remove(&cb->jmp->pred, cb);
                 cb->l = cb->jmp = NULL;
-
                 hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
                 while (hh) {
                     if (hh->op != HIR_MKLB) hh->unused = 1; /* We don't want to get links to nothing */

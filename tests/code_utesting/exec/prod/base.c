@@ -100,6 +100,7 @@ int main(int argc, char* argv[]) {
     call_graph_t callctx;
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
+    HIR_CG_build(&cfgctx, &callctx, &smt);
 
     HIR_FUNC_set_last_return(&cfgctx);
     HIR_FUNC_perform_tre(&cfgctx, &smt);
@@ -115,6 +116,7 @@ int main(int argc, char* argv[]) {
 
     RELOAD_CFG; // Rebuild after inlined functions
 
+    HIR_CFG_remove_dead_code(&cfgctx);
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
     HIR_CFG_unload_domdata(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
@@ -136,7 +138,6 @@ int main(int argc, char* argv[]) {
 
     HIR_sparse_const_propagation(&dagctx, &smt);
     HIR_CFG_squeeze_blocks(&cfgctx);
-
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
     inst_selector_t inst_sel = { .select_instructions = x86_64_macho_nasm_instruction_selection };

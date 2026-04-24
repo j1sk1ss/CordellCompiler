@@ -145,7 +145,7 @@ int main() {
   class="benchmark-card"
   data-title="Pointer and string traversal benchmark"
   data-labels="clang -O3|gcc-14 -O3|cpl -O3|gcc-14 -O0|cpl -O0|clang -O0"
-  data-values="0.430|0.470|0.52|0.566|0.603|1.002"
+  data-values="0.430|0.470|0.513|0.566|0.603|1.002"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
