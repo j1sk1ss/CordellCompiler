@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 
     RELOAD_CFG; // Rebuild after inlined functions
 
-    HIR_CFG_remove_dead_code(&cfgctx);
+    HIR_CFG_finilize_before_dom(&cfgctx);
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
     HIR_CFG_unload_domdata(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);

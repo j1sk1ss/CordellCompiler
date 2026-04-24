@@ -94,6 +94,7 @@ int main(int argc, char* argv[]) {
     call_graph_t callctx;
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
+    HIR_CG_build(&cfgctx, &callctx, &smt);
 
     HIR_FUNC_set_last_return(&cfgctx);
 
@@ -104,6 +105,7 @@ int main(int argc, char* argv[]) {
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
+    HIR_CFG_finilize_before_dom(&cfgctx);
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
     HIR_CFG_unload_domdata(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
@@ -117,7 +119,7 @@ int main(int argc, char* argv[]) {
     HIR_compute_homes(&hirctx);
     HIR_CFG_make_allias(&cfgctx, &smt);
 
-    HIR_CFG_squeeze_blocks(&cfgctx);
+    // HIR_CFG_squeeze_blocks(&cfgctx);
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);

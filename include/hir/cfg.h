@@ -245,7 +245,7 @@ Return 1 if success, otherwise 0.
 int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt);
 
 // TODO: docs
-int HIR_CFG_remove_dead_code(cfg_ctx_t* ctx);
+int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx);
 
 /*
 Get the count of HIR blocks in base block.

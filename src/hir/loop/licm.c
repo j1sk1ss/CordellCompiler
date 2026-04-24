@@ -468,7 +468,7 @@ int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt
     changed |= _licm_process(cctx, loop, smt, licm);
     return changed;
 }
-
+// TODO: Loop unrolling optimization
 int HIR_LTREE_licm(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;

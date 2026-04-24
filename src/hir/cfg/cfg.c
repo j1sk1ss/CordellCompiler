@@ -154,7 +154,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     return 1;
 }
 
-int HIR_CFG_remove_dead_code(cfg_ctx_t* ctx) {
+int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx) {
     /* Clean the CFG by destroying the link from blocks,
        without any precessors (except initial). */
     foreach (cfg_func_t* fb, &ctx->funcs) {

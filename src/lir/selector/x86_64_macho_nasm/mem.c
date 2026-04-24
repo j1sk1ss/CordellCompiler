@@ -308,7 +308,10 @@ int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
                     default: {
                         lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
                         for (int i = 0; i < 3; i++) {
-                            if (!args[i] || args[i]->t != LIR_VARIABLE) continue;
+                            if (
+                                !args[i] || 
+                                (args[i]->t != LIR_VARIABLE && args[i]->t != LIR_GLVARIABLE)
+                            ) continue;
                             _update_subject_memory(args[i], &smp, colors, smt);
                         }
 
