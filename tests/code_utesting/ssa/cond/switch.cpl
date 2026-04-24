@@ -22,61 +22,63 @@ start() {
             {
                 i32s %0 = alloc(8);
                 i32t %2 = i8n 0 as i32;
-                i32s %14 = i32t %2;
-                goto lb18;
-                lb20:
+                i32s %16 = i32t %2;
+                goto lb12;
+                lb14:
                 {
                     i32t %3 = i8n 1 as i32;
-                    i32s %15 = i32t %3;
-                    future: i32s %16 = previous: i32s %15;
+                    i32s %17 = i32t %3;
+                    future: i32s %18 = previous: i32s %17;
                 }
-                lb31:
-                [i32s %0] i32s %16 = phi(set [%15, bb2][%14, bb13]);
+                lb21:
+                [i32s %0] i32s %18 = phi(set [%17, bb2][%16, bb12]);
                 {
                     i32t %4 = i8n 2 as i32;
-                    i32s %17 = i32t %4;
+                    i32s %19 = i32t %4;
                     // break;
-                    future: i32s %18 = previous: i32s %17;
-                    goto lb19;
+                    future: i32s %20 = previous: i32s %19;
+                    goto lb13;
                 [unused] }
-                lb43:
+                lb29:
                 {
                     i32t %5 = i8n 3 as i32;
-                    i32s %20 = i32t %5;
+                    i32s %22 = i32t %5;
                 }
-                future: i32s %18 = previous: i32s %20;
-                goto lb19;
-                lb18:
-                i64t %7 = i8n 1;
-                i8t %6 = i64t %7 < cnst? 1;
-                if i8t %6, goto lb56, else goto lb57;
-                lb56:
-                goto lb43;
-                lb57:
-                i64t %9 = i8n 1;
-                i8t %8 = i64t %9 > cnst? 1;
-                if i8t %8, goto lb58, else goto lb59;
-                lb58:
-                i64t %11 = i8n 1;
-                i8t %10 = i64t %11 < cnst? 2;
-                if i8t %10, goto lb66, else goto lb67;
-                lb66:
-                goto lb43;
-                lb67:
-                i64t %13 = i8n 1;
-                i8t %12 = i64t %13 > cnst? 2;
-                if i8t %12, goto lb68, else goto lb69;
-                lb68:
-                goto lb43;
-                lb69:
-                future: i32s %16 = previous: i32s %14;
-                goto lb31;
-                lb59:
-                goto lb20;
-                lb19:
-                [i32s %0] i32s %18 = phi(set [%20, bb5][%17, bb3]);
+                future: i32s %20 = previous: i32s %22;
+                goto lb13;
+                lb12:
+                i64t %6 = csu8 1 as i64;
+                i64t %8 = i8n 1 as i64;
+                i8t %7 = i64t %8 < i64t %6;
+                if i8t %7, goto lb38, else goto lb39;
+                lb38:
+                goto lb29;
+                lb39:
+                i64t %10 = i8n 1 as i64;
+                i8t %9 = i64t %10 > i64t %6;
+                if i8t %9, goto lb40, else goto lb41;
+                lb40:
+                i64t %11 = csu8 2 as i64;
+                i64t %13 = i8n 1 as i64;
+                i8t %12 = i64t %13 < i64t %11;
+                if i8t %12, goto lb48, else goto lb49;
+                lb48:
+                goto lb29;
+                lb49:
+                i64t %15 = i8n 1 as i64;
+                i8t %14 = i64t %15 > i64t %11;
+                if i8t %14, goto lb50, else goto lb51;
+                lb50:
+                goto lb29;
+                lb51:
+                future: i32s %18 = previous: i32s %16;
+                goto lb21;
+                lb41:
+                goto lb14;
+                lb13:
+                [i32s %0] i32s %20 = phi(set [%19, bb3][%22, bb4]);
                 i32s %1 = alloc(8);
-                i32s %19 = i32s %18;
+                i32s %21 = i32s %20;
             }
         }
     }

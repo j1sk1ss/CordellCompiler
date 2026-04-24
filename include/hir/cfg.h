@@ -28,8 +28,8 @@ typedef struct {
     /* Basic info and content */
     long         id;
     symbol_id_t  f_id;
-    hir_map_t    hmap;     /* Mapping to exister HIR ctx */
-    lir_map_t    lmap;     /* Mapping to existed LIR ctx */
+    hir_map_t    hmap;    /* Mapping to exister HIR ctx   */
+    lir_map_t    lmap;    /* Mapping to existed LIR ctx   */
 
     /* CFG data */
     set_t        locals;  /* Local functions              */
@@ -81,10 +81,10 @@ typedef struct cfg_block {
 } cfg_block_t;
 
 typedef struct {
-    long       cid;
-    list_t     funcs; /* Function blocks                */
+    long       cid;   /* Current block number: Service info */
+    list_t     funcs; /* Function blocks                    */
     struct {
-        list_t hout;   /* HIR blocks out from a function */
+        list_t hout;  /* HIR blocks out from a function     */
         list_t lout;
     } outs;
 } cfg_ctx_t;

@@ -17,15 +17,15 @@ function foo() {
             i32t %2 = i8n 1 as i32;
             i32s %6 = i32t %2;
             future: i32s %7 = previous: i32s %6;
-            if i8n 1, goto lb18, else goto lb20;
-            lb18:
+            if i8n 1, goto lb12, else goto lb14;
+            lb12:
             {
                 i32t %3 = i8n 0 as i32;
                 i32s %9 = i32t %3;
             }
             future: i32s %7 = previous: i32s %9;
-            goto lb20;
-            lb20:
+            goto lb14;
+            lb14:
             [i32s %0] i32s %7 = phi(set [%6, bb1][%9, bb2]);
             i32s* %1 = alloc(8);
             i32t* %4 = i32s %7 as *ptr;

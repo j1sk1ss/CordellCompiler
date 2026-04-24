@@ -1,5 +1,12 @@
 #include <hir/loop.h>
 
+// TODO: docs
+static symbol_id_t _gather_base_vid(symbol_id_t v_id, sym_table_t* smt) {
+    variable_info_t vi;
+    if (!VRTB_get_info_id(v_id, &vi, &smt->v)) return v_id;
+    return vi.p_id == NO_SYMBOL_ID ? vi.v_id : _gather_base_vid(vi.p_id, smt);
+}
+
 /*
 Insert a preheader block in the CFG context before the header block.
 Params:
@@ -17,17 +24,35 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
         if (p->type == CFG_LOOP_PREHEADER) return p;
     }
 
-    /* Create the preheader block,
-       set the preheader type. */
-    cfg_block_t* preheader = HIR_CFG_create_cfg_block(NULL);
-    if (!preheader) return NULL;
-    preheader->id = cctx->cid++;
-    preheader->type = CFG_LOOP_PREHEADER;
-
-    /* Refactor the navigation. We need to set the 'l' to the current header.
-       Also, we need to refactor all links in predcessors as well */
-    preheader->l = header;
+    /* Collect external predecessors first. Do not modify header->pred
+       while iterating over it. */
+    list_t external_preds;
+    list_init(&external_preds);
     set_foreach (cfg_block_t* p, &header->pred) {
+        if (!set_has(loop, p)) list_push_back(&external_preds, p);
+    }
+
+    if (!list_size(&external_preds)) {
+        list_free(&external_preds);
+        return NULL;
+    }
+
+    /* Create the preheader block and set the preheader type. */
+    hir_block_t* anchor = HIR_create_block(HIR_NOP, NULL, NULL, NULL);
+    HIR_insert_block_before(anchor, header->hmap.entry);
+    cfg_block_t* preheader = HIR_CFG_create_cfg_block(anchor);
+    if (!preheader) {
+        list_free(&external_preds);
+        return NULL;
+    }
+
+    preheader->id    = cctx->cid++;
+    preheader->type  = CFG_LOOP_PREHEADER;
+    preheader->l     = header;
+    preheader->pfunc = header->pfunc;
+
+    /* Redirect all external predecessors from header to preheader. */
+    foreach (cfg_block_t* p, &external_preds) {
         if (set_has(loop, p)) continue; /* Skip all blocks from the current loop */
                                         /* We mustn't update blocks from the     */
                                         /* loop.                                 */
@@ -36,7 +61,9 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
         set_add(&preheader->pred, p);
         set_remove(&header->pred, p);
     }
-    
+
+    list_free(&external_preds);
+
     list_insert(&header->pfunc->blocks, preheader, header);
     set_add(&header->pred, preheader);
     return preheader;
@@ -62,6 +89,48 @@ static int _get_loop_hir_blocks(set_t* loop, set_t* b) {
     return 1;
 }
 
+// TODO: docs
+static int _hir_can_be_licm_def(hir_block_t* hh) {
+    if (
+        !hh || !HIR_is_writeop(hh->op) || HIR_is_sideeffect_op(hh->op) ||
+        !hh->farg || !HIR_is_vartype(hh->farg->t)
+    ) return 0;
+    return 1;
+}
+
+// TODO: docs
+static int _set_add_vid_with_base(set_t* s, symbol_id_t v_id, sym_table_t* smt) {
+    int changed = 0;
+    changed |= set_add(s, (void*)v_id);
+    if (smt) {
+        symbol_id_t base_id = _gather_base_vid(v_id, smt);
+        changed |= set_add(s, (void*)base_id);
+    }
+
+    return changed;
+}
+
+// TODO: docs
+static int _set_add_subject_vid_with_base(set_t* s, hir_subject_t* subj, sym_table_t* smt) {
+    if (!subj || !HIR_is_vartype(subj->t)) return 0;
+    return _set_add_vid_with_base(s, subj->storage.var.v_id, smt);
+}
+
+// TODO: docs
+static int _set_add_block_vids_with_base(set_t* s, hir_block_t* hh, sym_table_t* smt) {
+    if (!hh) return 0;
+    int changed = 0;
+    hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
+    for (int i = 0; i < 3; i++) {
+        changed |= _set_add_subject_vid_with_base(s, args[i], smt);
+    }
+
+    return changed;
+}
+
+// TODO: docs
+static int _hir_uses_any_vid_from_set(hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir);
+
 /*
 Get HIR blocks that aren't affect on the loop environment.
 For instance:
@@ -75,49 +144,48 @@ For instance:
 
 Parmas:
     - `loop_hir` - Loop HIR blocks.
-    - `invariant_defs` - 
+    - `invariant_defs` - Output set of invariant blocks which are ready to be moved.
     - `inductive` - Inductive variables set. 
                     Note: Inductive variable is a variable like `a += 1`, etc.
     
 Returns 1 if succeeds, otherwise will return 0.
 */
-static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* inductive) {
+static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* inductive, sym_table_t* smt) {
     int changed = 1;
     do {
         changed = 0;
         set_foreach (hir_block_t* hh, loop_hir) {
             if (
                 set_has(invariant_defs, hh) || /* Already in the invariant set        */
-                HIR_is_sideeffect_op(hh->op)      /* If this operation has a side effect */
+                !_hir_can_be_licm_def(hh)      /* If this operation has a side effect */
             ) continue;
 
-            int invariant = 1;
+            int invariant = !_hir_uses_any_vid_from_set(hh, inductive, smt, loop_hir);
             hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
             for (int i = HIR_is_writeop(hh->op); i < 3; i++) {
                 hir_subject_t* s = args[i];
                 if (
-                    !s ||                      /* - If this is the 'NULL' value                                */
-                    !s->home ||                /* - If this is the non-home value such as numbers, consts, etc */
-                    !HIR_is_vartype(s->t)      /* - If this isn't a variable                                   */
+                    !s ||                 /* - If this is the 'NULL' value                                */
+                    !HIR_is_vartype(s->t) /* - If this isn't a variable                                   */
                 ) continue;
 
-                /* Is this is an inductive variable */
-                if (set_has(inductive, (void*)args[i]->storage.var.v_id)) {
-                    invariant = 0;
-                    break;
-                }
-
+                symbol_id_t raw_id = s->storage.var.v_id;
+                symbol_id_t src_id = _gather_base_vid(raw_id, smt);
                 if (
-                    set_has(loop_hir, s->home) &&       /* If the variable's home within the loop            */
-                    !set_has(invariant_defs, s->home)   /* If the variable's home isn't an invariant command */
+                    set_has(inductive, (void*)raw_id) ||
+                    set_has(inductive, (void*)src_id) ||
+                    (
+                        s->home &&                           /* - If this is the non-home value such as numbers, consts, etc */
+                        set_has(loop_hir, s->home) &&         /* If the variable's home within the loop                       */
+                        !set_has(invariant_defs, s->home)     /* If the variable's home isn't an invariant command            */
+                    )
                 ) {
                     invariant = 0;
                     break;
                 }
             }
 
-            if (invariant) {
-                set_add(invariant_defs, hh);
+            if (invariant && set_add(invariant_defs, hh)) {
                 changed = 1;
             }
         }
@@ -146,35 +214,119 @@ static cfg_block_t* _get_hir_block_cfg(set_t* s, hir_block_t* trg) {
     return NULL;
 }
 
-/*
-Find variable IDs that use the provided vid variable as the source of their value.
-Params:
-    - `loop_hir` - Loop HIR commands.
-    - `s` - Output set.
-    - `vid` - Target variable ID.
-    - `smt` - Symtable.
+// TODO: docs
+static int _hir_rhs_depends_on_vid(
+    hir_block_t* hh,
+    symbol_id_t v_id,
+    sym_table_t* smt,
+    set_t* loop_hir,
+    set_t* visited
+);
 
-Returns 1 if it founds something.
-*/
-static int _find_usage(set_t* loop_hir, set_t* s, long vid, sym_table_t* smt) {
-    int res = 0;
-    set_foreach (hir_block_t* hh, loop_hir) {
-        hir_subject_t* args[2] = { hh->sarg, hh->targ };
-        for (int i = 0; i < 2; i++) {
-            hir_subject_t* ss = args[i];
-            if (!ss || !HIR_is_vartype(ss->t)) continue;
+// TODO: docs
+static int _hir_subject_depends_on_vid(
+    hir_subject_t* s,
+    symbol_id_t v_id,
+    sym_table_t* smt,
+    set_t* loop_hir,
+    set_t* visited
+) {
+    if (!s || !HIR_is_vartype(s->t)) return 0;
 
-            /* Get the base vID over the SSA form */
-            variable_info_t vi;
-            if (!VRTB_get_info_id(ss->storage.var.v_id, &vi, &smt->v)) continue;
-            long src_id = vi.p_id == NO_SYMBOL_ID ? vi.v_id : vi.p_id;
-            if (src_id == vid) {
-                set_add(s, (void*)hh->farg->storage.var.v_id);
-                res = 1;
-            }
-        }
+    symbol_id_t raw_id = s->storage.var.v_id;
+    symbol_id_t src_id = _gather_base_vid(raw_id, smt);
+    if (raw_id == v_id || src_id == v_id) return 1;
+
+    if (!s->home || !set_has(loop_hir, s->home)) return 0;
+    if (set_has(visited, s->home)) return 0;
+
+    set_add(visited, s->home);
+    return _hir_rhs_depends_on_vid(s->home, v_id, smt, loop_hir, visited);
+}
+
+// TODO: docs
+static int _hir_rhs_depends_on_vid(
+    hir_block_t* hh,
+    symbol_id_t v_id,
+    sym_table_t* smt,
+    set_t* loop_hir,
+    set_t* visited
+) {
+    if (!hh) return 0;
+    hir_subject_t* args[2] = { hh->sarg, hh->targ };
+    for (int i = 0; i < 2; i++) {
+        if (_hir_subject_depends_on_vid(args[i], v_id, smt, loop_hir, visited)) return 1;
     }
 
+    return 0;
+}
+
+// TODO: docs
+static int _hir_uses_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir) {
+    set_t visited;
+    if (!set_init(&visited, SET_NO_CMP)) return 0;
+
+    int res = _hir_rhs_depends_on_vid(hh, v_id, smt, loop_hir, &visited);
+
+    set_free(&visited);
+    return res;
+}
+
+// TODO: docs
+static int _hir_rhs_depends_on_any_vid_from_set(
+    hir_block_t* hh,
+    set_t* s,
+    sym_table_t* smt,
+    set_t* loop_hir,
+    set_t* visited
+);
+
+// TODO: docs
+static int _hir_subject_depends_on_any_vid_from_set(
+    hir_subject_t* subj,
+    set_t* s,
+    sym_table_t* smt,
+    set_t* loop_hir,
+    set_t* visited
+) {
+    if (!subj || !HIR_is_vartype(subj->t)) return 0;
+
+    symbol_id_t raw_id = subj->storage.var.v_id;
+    symbol_id_t src_id = _gather_base_vid(raw_id, smt);
+    if (set_has(s, (void*)raw_id) || set_has(s, (void*)src_id)) return 1;
+
+    if (!subj->home || !set_has(loop_hir, subj->home)) return 0;
+    if (set_has(visited, subj->home)) return 0;
+
+    set_add(visited, subj->home);
+    return _hir_rhs_depends_on_any_vid_from_set(subj->home, s, smt, loop_hir, visited);
+}
+
+// TODO: docs
+static int _hir_rhs_depends_on_any_vid_from_set(
+    hir_block_t* hh,
+    set_t* s,
+    sym_table_t* smt,
+    set_t* loop_hir,
+    set_t* visited
+) {
+    if (!hh) return 0;
+    hir_subject_t* args[2] = { hh->sarg, hh->targ };
+    for (int i = 0; i < 2; i++) {
+        if (_hir_subject_depends_on_any_vid_from_set(args[i], s, smt, loop_hir, visited)) return 1;
+    }
+
+    return 0;
+}
+
+// TODO: docs
+static int _hir_uses_any_vid_from_set(hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir) {
+    set_t visited;
+    if (!set_init(&visited, SET_NO_CMP)) return 0;
+
+    int res = _hir_rhs_depends_on_any_vid_from_set(hh, s, smt, loop_hir, &visited);
+
+    set_free(&visited);
     return res;
 }
 
@@ -196,30 +348,46 @@ Params:
 Returns 1 if succeeds.
 */
 static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt) {
-    int changed = 1;
+    int changed = 0;
+
+    set_foreach (hir_block_t* hh, loop_hir) {
+        if (_hir_can_be_licm_def(hh)) continue;
+        changed |= _set_add_block_vids_with_base(s, hh, smt);
+    }
+
+    set_foreach (hir_block_t* hh, loop_hir) {
+        if (!_hir_can_be_licm_def(hh)) continue;
+        symbol_id_t raw_id = hh->farg->storage.var.v_id;
+        symbol_id_t dst_id = _gather_base_vid(raw_id, smt);
+        if (
+            _hir_uses_vid(hh, raw_id, smt, loop_hir) ||
+            _hir_uses_vid(hh, dst_id, smt, loop_hir)
+        ) changed |= _set_add_vid_with_base(s, raw_id, smt);
+    }
+
     while (changed) {
         changed = 0;
         set_foreach (hir_block_t* hh, loop_hir) {
-            if (
-                !HIR_is_writeop(hh->op) ||      /* - If this isn't a write operation.          */
-                !hh->farg               ||      /* - If there is no first argument in command. */
-                !HIR_is_vartype(hh->farg->t) /* - If the first argument isn't a variable.   */
-            ) continue;
-
-            /* Basic vID over the SSA form */
-            long vid = hh->farg->storage.var.v_id;
-            variable_info_t vi;
-            if (VRTB_get_info_id(vid, &vi, &smt->v)) {
-                vid = vi.p_id == NO_SYMBOL_ID ? vi.v_id : vi.p_id;
+            if (!_hir_can_be_licm_def(hh)) continue;
+            symbol_id_t raw_id = hh->farg->storage.var.v_id;
+            symbol_id_t dst_id = _gather_base_vid(raw_id, smt);
+            if (set_has(s, (void*)raw_id) || set_has(s, (void*)dst_id)) continue;
+            if (_hir_uses_any_vid_from_set(hh, s, smt, loop_hir)) {
+                changed |= _set_add_vid_with_base(s, raw_id, smt);
             }
-
-            if (
-                _find_usage(loop_hir, s, vid, smt) && /* - If this variable used somewhere. */
-                set_add(s, (void*)vid)                /* - Check if we add the variable ID. */
-            ) changed = 1;
         }
     }
 
+    return 1;
+}
+
+// TODO: docs
+static int _move_to_preheader(cfg_block_t* preheader, cfg_block_t* src_cfg, hir_block_t* inv) {
+    if (!preheader || !src_cfg || !inv) return 0;
+    HIR_CFG_remove_hir_block(src_cfg, inv);
+    HIR_unlink_block(inv);
+    HIR_insert_block_after(inv, preheader->hmap.exit);
+    preheader->hmap.exit = inv;
     return 1;
 }
 
@@ -233,16 +401,16 @@ Params:
 
 Returns 1 if succeeds, otherwise will return 0. 
 */
-static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, int licm) {
-    cfg_block_t* preheader = _insert_preheader(cctx, node->header, &node->blocks);
+static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, int licm) {
+    cfg_block_t* preheader = _insert_preheader(cctx, loop->header, &loop->blocks);
     if (!preheader) return 0;
     if (!licm) return 1;
 
     set_t loop_hir, inductive, invariant_defs;
     if (
-        !set_init(&loop_hir,       SET_NO_CMP) ||
+        !set_init(&invariant_defs, SET_NO_CMP) ||
         !set_init(&inductive,      SET_NO_CMP) ||
-        !set_init(&invariant_defs, SET_NO_CMP)
+        !set_init(&loop_hir,       SET_NO_CMP)
     ) {
         set_free(&invariant_defs);
         set_free(&inductive);
@@ -250,14 +418,16 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, i
         return 0;
     }
 
-    _get_loop_hir_blocks(&node->blocks, &loop_hir);
+    _get_loop_hir_blocks(&loop->blocks, &loop_hir);
     _get_inductive_variables(&loop_hir, &inductive, smt);
-    _get_invariant_defs(&loop_hir, &invariant_defs, &inductive);
+    _get_invariant_defs(&loop_hir, &invariant_defs, &inductive, smt);
 
+    /* From an unordered set of hir blocks, we need to create an ordered
+       list. Order is based on the home function. */
     list_t linear;
     list_init(&linear);
-    foreach (cfg_block_t* cb, &node->header->pfunc->blocks) {
-        if (!set_has(&node->blocks, cb)) continue;
+    foreach (cfg_block_t* cb, &loop->header->pfunc->blocks) {
+        if (!set_has(&loop->blocks, cb)) continue;
         hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
         while (hh) {
             if (set_has(&invariant_defs, hh)) list_push_back(&linear, hh);
@@ -267,15 +437,9 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, i
 
     int changed = 0;
     foreach (hir_block_t* inv, &linear) {
-        cfg_block_t* src_cfg = _get_hir_block_cfg(&node->blocks, inv);
+        cfg_block_t* src_cfg = _get_hir_block_cfg(&loop->blocks, inv);
         if (!src_cfg) continue;
-
-        HIR_CFG_remove_hir_block(src_cfg, inv);
-        HIR_CFG_append_hir_block_back(preheader, inv);
-        HIR_unlink_block(inv);
-        HIR_insert_block_before(inv, preheader->l->hmap.entry);
-
-        changed = 1;
+        changed |= _move_to_preheader(preheader, src_cfg, inv);
     }
 
     list_free(&linear);
@@ -295,25 +459,27 @@ Params:
 
 Returns 1 if has changed, otherwise will return 0.
 */
-int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* node, sym_table_t* smt, int licm) {
+int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, int licm) {
     int changed = 0;
-    foreach (loop_node_t* ch, &node->children) {
+    foreach (loop_node_t* ch, &loop->children) {
         changed |= _licm_loop_node_process(cctx, ch, smt, licm);
     }
 
-    changed |= _licm_process(cctx, node, smt, licm);
+    changed |= _licm_process(cctx, loop, smt, licm);
     return changed;
 }
 
 int HIR_LTREE_licm(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
+        
+        list_t* floops;
+        if (!map_get(&lctx->lmap, fb->f_id, (void**)&floops)) continue;
+        if (!list_size(floops)) continue;
+
         int changed = 0;
         do {
             changed = 0;
-            list_t* floops;
-            if (!map_get(&lctx->lmap, fb->f_id, (void**)&floops)) continue;
-            if (!list_size(floops)) continue;
             foreach (loop_node_t* root, floops) {
                 changed |= _licm_loop_node_process(cctx, root, smt, 1);
             }

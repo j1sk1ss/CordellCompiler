@@ -15,17 +15,17 @@ start() {
                 i32s %0 = alloc(8);
                 i32t %2 = i8n 0 as i32;
                 i32s %4 = i32t %2;
-                lb18:
-                goto lb19;
-                lb19:
+                lb12:
+                goto lb13;
+                lb13:
                 {
                     i32t %3 = i8n 1 as i32;
                     i32s %5 = i32t %3;
                     // break;
-                    goto lb20;
+                    goto lb14;
                 [unused] }
-                [unused] goto lb18;
-                lb20:
+                [unused] goto lb12;
+                lb14:
                 i32s %1 = alloc(8);
                 i32s %6 = i32s %5;
             }

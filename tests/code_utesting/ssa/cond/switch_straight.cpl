@@ -11,28 +11,30 @@ start() {
     start {
         {
             {
-                goto lb10;
-                lb12:
+                goto lb7;
+                lb9:
                 {
                 }
-                lb16:
+                lb13:
                 {
                 }
-                lb20:
+                lb17:
                 {
                 }
-                goto lb11;
-                lb10:
-                i64t %1 = i8n 1;
-                i8t %0 = i64t %1 == cnst? 1;
-                if i8t %0, goto lb12, else goto lb26;
-                lb26:
-                i64t %3 = i8n 1;
-                i8t %2 = i64t %3 == cnst? 2;
-                if i8t %2, goto lb16, else goto lb30;
-                lb30:
-                goto lb20;
-                lb11:
+                goto lb8;
+                lb7:
+                i64t %1 = csu8 1 as i64;
+                i64t %2 = i8n 1 as i64;
+                i8t %0 = i64t %2 == i64t %1;
+                if i8t %0, goto lb9, else goto lb23;
+                lb23:
+                i64t %4 = csu8 2 as i64;
+                i64t %5 = i8n 1 as i64;
+                i8t %3 = i64t %5 == i64t %4;
+                if i8t %3, goto lb13, else goto lb28;
+                lb28:
+                goto lb17;
+                lb8:
             }
         }
     }

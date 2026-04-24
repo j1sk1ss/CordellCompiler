@@ -8,14 +8,14 @@ start() {
     start {
         {
             {
-                lb10:
-                goto lb11;
-                lb11:
+                lb8:
+                goto lb9;
+                lb9:
                 {
                     call foo0(), argc args();
                 }
-                goto lb10;
-                lb12:
+                goto lb8;
+                lb10:
             [unused] }
         [unused] }
     [unused] }

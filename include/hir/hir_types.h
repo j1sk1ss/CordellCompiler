@@ -103,6 +103,7 @@ typedef enum hir_operation {
 
         HIR_MKSCOPE,      // scope
         HIR_ENDSCOPE,     // end of scope
+    HIR_NOP,
 } hir_operation_t;
 
 typedef enum hir_subject_type {
