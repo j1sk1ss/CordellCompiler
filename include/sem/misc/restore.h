@@ -1,5 +1,5 @@
-#ifndef RESTORE_H_
-#define RESTORE_H_
+#ifndef AST_RESTORE_H_
+#define AST_RESTORE_H_
 
 #include <stdio.h>
 #include <std/mm.h>

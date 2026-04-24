@@ -6,7 +6,7 @@ function foo() {
 }
 
 :/ OUTPUT
-1 | {
+2 | {
 1 |     function foo()
 2 |     {
 2 |         function bar()
@@ -14,5 +14,5 @@ function foo() {
 4 |         }
 5 |         bar();
 2 |     }
-1 | }
+2 | }
 /:

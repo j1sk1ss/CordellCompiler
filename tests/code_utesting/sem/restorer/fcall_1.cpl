@@ -4,11 +4,11 @@ start() {
 }
 
 :/ OUTPUT
-1 | {
+2 | {
 1 |     function foo();
 2 |     start ()
 3 |     {
 3 |         foo();
 3 |     }
-1 | }
+2 | }
 /:
