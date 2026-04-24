@@ -27,4 +27,7 @@ Returns 1 if succeeds.
 */
 int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt);
 
+// TODO: docs
+int LIR_destroy_ssa(cfg_ctx_t* cctx);
+
 #endif

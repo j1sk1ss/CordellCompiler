@@ -207,8 +207,9 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
 
                         _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
-                        lir_subject_t* a_middle = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
-                        lh->farg = lh->sarg = a_middle;
+                        // lir_subject_t* a_middle = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
+                        lh->farg = a_exit;
+                        lh->sarg = a_entry;
                         break;
                     }
                     case LIR_FRET:
@@ -224,9 +225,9 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lir_subject_t* a_entry = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, 8);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
 
-                        lir_subject_t* a_middle = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, 8);
+                        // lir_subject_t* a_middle = x86_64_macho_nasm_create_tmp(RAX, lh->farg, smt, 8);
                         lir_subject_t* oldres = lh->farg;
-                        lh->farg = lh->sarg = a_middle;
+                        lh->sarg = a_entry;
 
                         lir_subject_t* b = x86_64_macho_nasm_create_tmp(RCX, lh->targ, smt, 8);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
@@ -236,7 +237,8 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
                         _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
                         if (lh->op != LIR_iMOD) {
-                            _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, LIR_SUBJ_REG(RAX, oldres->size), NULL), lh);
+                            lh->farg = x86_64_macho_nasm_create_tmp(RAX, lh->farg, smt, -1);
+                            _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, lh->farg, NULL), lh);
                             _insert_instruction_after(bb, LIR_create_block(LIR_POP, mod, NULL, NULL), lh);
                         }
                         else {

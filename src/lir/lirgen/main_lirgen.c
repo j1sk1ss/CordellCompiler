@@ -54,7 +54,7 @@ static int _translate_params_list(lir_operation_t op, lir_ctx_t* ctx, list_t* hi
 
 static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx, sym_table_t* smt) {
     switch (h->op) {
-        case HIR_PHI_PREAMBLE:
+        case HIR_PHI_PREAMBLE: return LIR_BLOCK2(ctx, LIR_aMOV, _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg));
         case HIR_STORE:   return LIR_BLOCK2(ctx, LIR_iMOV, _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg));
         case HIR_STARGLD: return LIR_BLOCK2(ctx, LIR_STARGLD, _convert_hs_to_ls(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value)); 
         case HIR_STRT:    return LIR_BLOCK1(ctx, LIR_STRT, LIR_SUBJ_FUNCNAME(h->farg));
@@ -196,6 +196,20 @@ static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym
     if (!bb->lmap.entry) bb->lmap.entry = ctx->h;
     else bb->lmap.entry = bb->lmap.entry->next;
     bb->lmap.exit = ctx->t;
+    return 1;
+}
+
+int LIR_destroy_ssa(cfg_ctx_t* cctx) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+            while (lh) {
+                if (lh->op == LIR_aMOV) lh->op = LIR_iMOV;
+                lh = LIR_get_next(lh, bb->lmap.exit, 1);
+            }
+        }
+    }
+
     return 1;
 }
 

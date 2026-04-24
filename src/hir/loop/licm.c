@@ -216,23 +216,14 @@ static cfg_block_t* _get_hir_block_cfg(set_t* s, hir_block_t* trg) {
 
 // TODO: docs
 static int _hir_rhs_depends_on_vid(
-    hir_block_t* hh,
-    symbol_id_t v_id,
-    sym_table_t* smt,
-    set_t* loop_hir,
-    set_t* visited
+    hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
 );
 
 // TODO: docs
 static int _hir_subject_depends_on_vid(
-    hir_subject_t* s,
-    symbol_id_t v_id,
-    sym_table_t* smt,
-    set_t* loop_hir,
-    set_t* visited
+    hir_subject_t* s, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
     if (!s || !HIR_is_vartype(s->t)) return 0;
-
     symbol_id_t raw_id = s->storage.var.v_id;
     symbol_id_t src_id = _gather_base_vid(raw_id, smt);
     if (raw_id == v_id || src_id == v_id) return 1;
@@ -244,13 +235,8 @@ static int _hir_subject_depends_on_vid(
     return _hir_rhs_depends_on_vid(s->home, v_id, smt, loop_hir, visited);
 }
 
-// TODO: docs
 static int _hir_rhs_depends_on_vid(
-    hir_block_t* hh,
-    symbol_id_t v_id,
-    sym_table_t* smt,
-    set_t* loop_hir,
-    set_t* visited
+    hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
     if (!hh) return 0;
     hir_subject_t* args[2] = { hh->sarg, hh->targ };
@@ -265,32 +251,21 @@ static int _hir_rhs_depends_on_vid(
 static int _hir_uses_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir) {
     set_t visited;
     if (!set_init(&visited, SET_NO_CMP)) return 0;
-
     int res = _hir_rhs_depends_on_vid(hh, v_id, smt, loop_hir, &visited);
-
     set_free(&visited);
     return res;
 }
 
 // TODO: docs
 static int _hir_rhs_depends_on_any_vid_from_set(
-    hir_block_t* hh,
-    set_t* s,
-    sym_table_t* smt,
-    set_t* loop_hir,
-    set_t* visited
+    hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 );
 
 // TODO: docs
 static int _hir_subject_depends_on_any_vid_from_set(
-    hir_subject_t* subj,
-    set_t* s,
-    sym_table_t* smt,
-    set_t* loop_hir,
-    set_t* visited
+    hir_subject_t* subj, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
     if (!subj || !HIR_is_vartype(subj->t)) return 0;
-
     symbol_id_t raw_id = subj->storage.var.v_id;
     symbol_id_t src_id = _gather_base_vid(raw_id, smt);
     if (set_has(s, (void*)raw_id) || set_has(s, (void*)src_id)) return 1;
@@ -304,11 +279,7 @@ static int _hir_subject_depends_on_any_vid_from_set(
 
 // TODO: docs
 static int _hir_rhs_depends_on_any_vid_from_set(
-    hir_block_t* hh,
-    set_t* s,
-    sym_table_t* smt,
-    set_t* loop_hir,
-    set_t* visited
+    hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
     if (!hh) return 0;
     hir_subject_t* args[2] = { hh->sarg, hh->targ };
@@ -319,13 +290,10 @@ static int _hir_rhs_depends_on_any_vid_from_set(
     return 0;
 }
 
-// TODO: docs
 static int _hir_uses_any_vid_from_set(hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir) {
     set_t visited;
     if (!set_init(&visited, SET_NO_CMP)) return 0;
-
     int res = _hir_rhs_depends_on_any_vid_from_set(hh, s, smt, loop_hir, &visited);
-
     set_free(&visited);
     return res;
 }

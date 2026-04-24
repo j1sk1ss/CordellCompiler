@@ -254,9 +254,8 @@ char tape[30000];
 int bracketmap[10000];
 int stack[10000];
 
-int my_strlen(char *s) {
+int _strlen(char *s) {
     int l= 0;
-
     while (s[l]) {
         l+= 1;
     }
@@ -264,95 +263,85 @@ int my_strlen(char *s) {
     return l;
 }
 
-void my_putc(char c) {
-    write(1,&c,1);
+void _putc(char c) {
+    write(1, &c, 1);
 }
 
-int main(int argc,char **argv) {
-    int pos= 0;
-    int stackptr= 0;
-    int codelength= my_strlen(argv[1]);
+int main(int argc, char* argv[]) {
+    int pos = 0;
+    int stackptr = 0;
+    int codelength = _strlen(argv[1]);
 
     while (pos < codelength) {
         switch (argv[1][pos]) {
             case '[': {
-                stack[stackptr]= pos;
-                stackptr+= 1;
+                stack[stackptr] = pos;
+                stackptr += 1;
                 break;
             }
-
             case ']': {
                 if (stackptr > 0) {
                     int matchpos;
-
-                    stackptr-= 1;
-                    matchpos= stack[stackptr];
-
-                    bracketmap[pos]= matchpos;
-                    bracketmap[matchpos]= pos;
+                    stackptr -= 1;
+                    matchpos = stack[stackptr];
+                    bracketmap[pos] = matchpos;
+                    bracketmap[matchpos] = pos;
                 }
                 break;
             }
         }
 
-        pos+= 1;
+        pos += 1;
     }
 
-    int pc= 0;
-    int pointer= 0;
+    int pc = 0;
+    int pointer = 0;
 
     while (pc < codelength) {
         switch (argv[1][pc]) {
             case '>': {
-                pointer+= 1;
-                pc+= 1;
+                pointer += 1;
+                pc += 1;
                 break;
             }
-
             case '<': {
                 pointer-= 1;
-                pc+= 1;
+                pc += 1;
                 break;
             }
-
             case '+': {
                 tape[pointer]+= 1;
-                pc+= 1;
+                pc += 1;
                 break;
             }
-
             case '-': {
                 tape[pointer]-= 1;
-                pc+= 1;
+                pc += 1;
                 break;
             }
-
             case '.': {
-                my_putc(tape[pointer]);
-                pc+= 1;
+                _putc(tape[pointer]);
+                pc += 1;
                 break;
             }
-
             case '[': {
                 if (!tape[pointer]) {
-                    pc= bracketmap[pc];
+                    pc = bracketmap[pc];
                 } else {
-                    pc+= 1;
+                    pc += 1;
                 }
                 break;
             }
-
             case ']': {
                 if (tape[pointer]) {
-                    pc= bracketmap[pc];
+                    pc = bracketmap[pc];
                 } else {
-                    pc+= 1;
+                    pc += 1;
                 }
                 break;
             }
-
             default: {
-                pc+= 1;
+                pc += 1;
                 break;
             }
         }
