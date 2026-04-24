@@ -6,11 +6,8 @@ function putc(i8 c) -> i0 {
 
 start() {
     i64 x = 1;
-
     switch x; {
-        case 1; {
-            putc('A');
-        }
+        case 1; { putc('A'); }
         case 2; {
             putc('B');
             break;

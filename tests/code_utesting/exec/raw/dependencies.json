@@ -20,10 +20,12 @@
         "src/lir/lirgen/misc/*.c",
         "src/lir/selector/*.c",
         "src/lir/selector/x86_64_gnu_nasm/*.c",
+        "src/lir/selector/x86_64_macho_nasm/*.c",
         "src/lir/regalloc/*.c",
         "src/lir/regalloc/gc/*.c",
         "src/asm/*.c",
         "src/asm/x86_64_gnu_nasm/*.c",
+        "src/asm/x86_64_macho_nasm/*.c",
         "std/*.c"
     ]
 }

@@ -19,6 +19,7 @@ typedef struct dag_node {
     unsigned long   hash;
     long            id;
     hir_operation_t op;
+    unsigned char   hash_busy;
 
     /* Connection with HIR */
     hir_subject_t*  src;

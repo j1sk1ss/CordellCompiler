@@ -208,7 +208,7 @@ int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx) {
                 (cb->l && !cb->jmp)
             ) {
                 cfg_block_t* next = cb->l ? cb->l : cb->jmp;
-                if (set_size(&next->pred) == 1 && cb != next) {
+                if (set_size(&next->pred) == 1 && cb != next && (next->l && next->jmp)) {
                     hir_block_t* curr = HIR_get_next(next->hmap.entry, next->hmap.exit, 0);
                     while (curr) {
                         hir_block_t* tmp = HIR_get_next(curr, next->hmap.exit, 1);
