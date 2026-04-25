@@ -1,865 +1,563 @@
-\documentclass[11pt]{article}
+\pdfoutput=1
+\documentclass[10pt,twocolumn]{article}
 
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{placeins}
 \usepackage{lmodern}
-\usepackage{amsmath,amssymb}
+\usepackage{amsmath}
+\usepackage{booktabs}
 \usepackage{enumitem}
-\usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric,decorations.pathreplacing}
 
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    urlcolor=blue,
-    pdftitle={CPL: Language Design and Formal-ish Specification},
-    pdfauthor={OpenAI}
-}
+\definecolor{cplblue}{RGB}{34,86,150}
+\definecolor{cplgreen}{RGB}{52,138,70}
+\definecolor{cplorange}{RGB}{210,130,35}
+\definecolor{cplgray}{RGB}{246,246,246}
+\definecolor{cpldark}{RGB}{35,35,35}
 
 \lstdefinelanguage{CPL}{
-  morekeywords={
-    extern,glob,ro,function,start,arr,if,else,loop,while,switch,case,default,
-    return,exit,break,lis,syscall,asm,not,ref,dref,as,ptr,str,f64,i64,u64,
-    f32,i32,u32,i16,u16,i8,u8,line,include,define,undef,ifdef,ifndef,endif,
-    section,align
-  },
+  morekeywords={function,glob,extern,start,exit,return,if,else,while,loop,break,switch,case,default,ptr,dref,ref,ro,arr,str,asm,syscall,sizeof,as,not,i0,i8,u8,i16,u16,i32,u32,i64,u64,f32,f64,include,define,ifdef,ifndef,undef,align,section,entry,naked,counter,no_fall,straight,register,hot,cold,poparg,lis},
   sensitive=true,
-  morecomment=[l]{//},
+  morecomment=[s]{:/}{/:},
   morestring=[b]"
 }
-
 \lstset{
-  basicstyle=\ttfamily\small,
-  keywordstyle=\bfseries,
+  language=CPL,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\bfseries\color{cplblue},
+  commentstyle=\itshape\color{gray},
+  stringstyle=\color{cpldark},
+  breaklines=true,
+  frame=single,
+  framerule=0.25pt,
+  rulecolor=\color{gray!45},
+  backgroundcolor=\color{cplgray},
   columns=fullflexible,
   keepspaces=true,
-  showstringspaces=false,
-  frame=single,
-  breaklines=true
+  showstringspaces=false
 }
 
-\title{CPL: Language Design and Formal-ish Specification\\
-\large Techical report}
-\author{Fot Nikolaj}
-\date{03.25.2026}
+\setlist[itemize]{leftmargin=*,nosep}
+\setlist[enumerate]{leftmargin=*,nosep}
+\newcommand{\cpl}{\textsc{CPL}}
+\newcommand{\cc}{Cordell Compiler}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{Restricted grammar and static analysis as a solution for system programming languages:\\A language technical report}
+\author{Fot Nikolai}
+\date{April 2026}
 
 \begin{document}
-
 \maketitle
 
 \begin{abstract}
-\par CPL is a low-level experimental programming language intended for compiler construction, systems programming experiments, and educational use. Its design emphasizes explicit control flow, compact implementation, direct access to low-level mechanisms, and a deliberately small core language. The language is statically typed in a practical but permissive sense: it provides explicit types and compile-time checking, while still allowing a number of implementation-level implicit conversions. CPL does not attempt to provide memory safety. Instead, it exposes unsafe facilities such as raw pointers, explicit dereferencing, inline assembly, target-facing storage control, and manual interaction with the calling convention.
-\par This document presents a formal-ish language report for the current state of CPL. It specifies the core syntax, type system, storage model, control-flow constructs, function model, preprocessing facilities, static diagnostics, and the current status of implementation-defined and target-dependent behavior.
+\par This report summarizes the documented design of the Cordell Programming Language (\cpl) and the Cordell Compiler, its restricted grammar and advanatages that are reached. The report covers the language \textbf{core}, preprocessing, tokenization and markup, \textbf{AST} and \textbf{IR} generation, CFG and SSA construction, DAG-based optimization, liveness analysis, register allocation, copy propagation, IR lowering, peephole optimization, code generation, static diagnostics, debugging, and the documented language benchmark values against GCC 14.2.0 and Apple Clang 12.0.0.
 \end{abstract}
 
 \section{Introduction}
+\par \cpl{} is documented as a small systems language and compiler project intended mainly for learning compiler architecture, experimenting with optimizations, and producing low-level code. The project is also connected with the development of operating systems, IoT-applications, etc.
+\par The project is not presented as a feature-rich general-purpose language. The documentation explicitly emphasizes low-level behavior, C-like syntax, assembly affinity, and a restricted language core. The language omits structures, classes, enums, and unions. This restriction is not accidental: it keeps the parser and language surface small so that the compiler pipeline, optimizations, and backend experiments remain the central part of the project.
 
-\par CPL is designed as a small low-level language for exploring compiler architecture and code generation. It is not intended to be a general-purpose high-level language. In particular, it intentionally omits user-defined aggregate abstractions such as \texttt{struct}, \texttt{class}, \texttt{enum}, and \texttt{union}, and instead focuses on primitive values, arrays, strings, pointers, functions, and explicit statements.
+\section{Design Goals}
+The documentation frames \cpl{} around five practical goals.
 
-The current implementation favors:
-\begin{itemize}[leftmargin=1.5em]
-    \item explicitness over abstraction,
-    \item direct control over generated code,
-    \item support for backend-oriented experimentation,
-    \item a compact frontend and semantic model,
-    \item a compiler architecture suitable for further PL and compiler research.
+\begin{itemize}
+  \item \textbf{Simplicity:} the language should stay small and explicit.
+  \item \textbf{No safety:} CPL does not attempt to provide memory safety; it prefers low-level control and diagnostics.
+  \item \textbf{Systems scope:} intended programs include bootloaders, edge DBMSs, edge file systems, primitive compilers, and small interpreters.
+  \item \textbf{Experiments:} the compiler is a test stand for optimizations, symbol-table experiments, perceptron-based heuristics, SMT ideas, and peephole DSLs.
+  \item \textbf{Education:} the repository documents a complete compiler-building journey from preprocessing to code generation.
 \end{itemize}
 
-\par CPL should therefore be read not as a safe systems language, but as a deliberately exposed low-level language in which the programmer remains responsible for many semantic invariants.
-
-\section{Conformance and Status}
-
-\par This document is a \textbf{formal-ish} specification rather than a fully formal semantics. Some behaviors are fixed by design, while others remain implementation-defined, target-dependent, or intentionally left unspecified.
-\par The document describes the language \textbf{as currently implemented and intended}, including a number of design choices that may later be revised.
-
-The following terminology is used throughout:
-\begin{itemize}[leftmargin=1.5em]
-    \item \textbf{well-defined}: behavior fixed by this report,
-    \item \textbf{implementation-defined}: behavior chosen by the compiler implementation and expected to be documented,
-    \item \textbf{target-dependent}: behavior determined by the target ABI, machine model, or backend,
-    \item \textbf{undefined behavior (UB)}: behavior for which the language imposes no semantic guarantee.
-\end{itemize}
-
-\section{Translation Model}
-
-A CPL program is processed as a translation unit after preprocessing. A program may consist of multiple source files combined through preprocessing includes and external declarations.
-
-A source file may contain:
-\begin{itemize}[leftmargin=1.5em]
-    \item preprocessing directives,
-    \item imports,
-    \item external declarations,
-    \item global declarations,
-    \item function prototypes,
-    \item function definitions,
-    \item a \texttt{start} entry function.
-\end{itemize}
-
-A file without an entry point may be treated as a library unit.
-
-\section{Lexical Structure}
-
-\subsection{Tokens}
-
-The implementation distinguishes at least the following lexical categories:
-\begin{itemize}[leftmargin=1.5em]
-    \item identifiers,
-    \item integer literals,
-    \item floating-point literals,
-    \item string literals,
-    \item character literals,
-    \item comments,
-    \item end-of-line markers for preprocessing.
-\end{itemize}
-
-The following token names are assumed at the lexical level:
-\begin{itemize}[leftmargin=1.5em]
-    \item \texttt{IDENTIFIER}
-    \item \texttt{INTEGER\_LITERAL}
-    \item \texttt{FLOAT\_LITERAL}
-    \item \texttt{STRING\_LITERAL}
-    \item \texttt{CHAR\_LITERAL}
-    \item \texttt{COMMENT}
-    \item \texttt{EOL}
-\end{itemize}
-
-\subsection{Comments}
-
-Comments are supported as lexical elements and do not affect program semantics.
-
-\subsection{Keywords}
-
-The current language reserves at least the following keywords:
-
-\texttt{extern}, \texttt{glob}, \texttt{ro}, \texttt{function}, \texttt{start}, \texttt{arr}, \texttt{if}, \texttt{else}, \texttt{loop}, \texttt{while}, \texttt{switch}, \texttt{case}, \texttt{default}, \texttt{return}, \texttt{exit}, \texttt{break}, \texttt{lis}, \texttt{syscall}, \texttt{asm}, \texttt{not}, \texttt{ref}, \texttt{dref}, \texttt{as}, \texttt{ptr}, \texttt{str}, \texttt{f64}, \texttt{i64}, \texttt{u64}, \texttt{f32}, \texttt{i32}, \texttt{u32}, \texttt{i16}, \texttt{u16}, \texttt{i8}, \texttt{u8}, \texttt{line}, \texttt{include}, \texttt{define}, \texttt{undef}, \texttt{ifdef}, \texttt{ifndef}, \texttt{endif}, \texttt{section}, \texttt{align}.
-
-\subsection{Literals}
-
-The following literal classes exist:
-\begin{itemize}[leftmargin=1.5em]
-    \item integer literals,
-    \item floating-point literals,
-    \item string literals,
-    \item character literals.
-\end{itemize}
-
-Every integer literal is typed as \texttt{i64}. Every floating-point literal is typed as \texttt{f64}.
-
-This rule is semantic rather than merely lexical.
-
-\section{Concrete Syntax}
-
-The following EBNF describes the current surface syntax of the language. It is based on the current parser design and may omit some annotation-related syntax and lambda-specific sugar.
-
-\begin{lstlisting}
-identifier       = "IDENTIFIER" ;
-integer_literal  = "INTEGER_LITERAL" ;
-float_literal    = "FLOAT_LITERAL" ;
-string_literal   = "STRING_LITERAL" ;
-char_literal     = "CHAR_LITERAL" ;
-comment          = "COMMENT" ;
-eol              = "EOL" ;
-
-program        = "{" , { top_item } , "}" ;
-
-top_item       = start_function
-               | import_op
-               | extern_op
-               | pp_directive
-               | storage_opt , top_decl ;
-
-import_op      = "from" , string_literal , [ import_list ] ;
-import_list    = import_item , { "," , import_item } ;
-import_item    = identifier ;
-
-extern_op      = "extern" , ( extern_function_proto | var_prototype ) ;
-extern_function_proto
-               = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
-var_prototype  = type , identifier ;
-
-storage_opt    = [ "glob" | "ro" ] ;
-
-top_decl       = declaration | function_def | function_proto ;
-
-declaration    = var_decl | arr_decl ;
-
-function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
-function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
-start_function = "start" , "(" , [ param_list ] , ")" , block ;
-
-param_list     = param , { "," , param } ;
-param          = type , identifier , [ "=" , expression ] | "..." ;
-
-block          = "{" , { block_item } , "}" ;
-
-block_item     = statement
-               | function_def
-               | function_proto ;
-
-statement      =
-    "arr" , arr_stmt_tail
-  | pp_directive
-  | if_statement
-  | loop_statement
-  | while_statement
-  | switch_statement
-  | return_statement
-  | exit_statement
-  | break_statement
-  | lis_statement
-  | syscall_statement
-  | asm_block
-  | align_stmt
-  | comment
-  | block
-  | var_decl_starting_not_arr
-  | expression_statement ;
-
-arr_stmt_tail  =
-    identifier , "[" , integer_literal , "," , type , "]" ,
-    [ "=" , ( expression | arr_value ) ] , ";"
-  | "[" , integer_literal , "," , type , "]" , identifier ,
-    [ "=" , expression ] , ";" ;
-
-pp_directive   = "#" , pp_body , pp_end ;
-pp_end         = eol | ";" ;
-pp_body        = pp_line
-               | pp_include
-               | pp_define
-               | pp_undef
-               | pp_ifdef
-               | pp_ifndef
-               | pp_endif ;
-
-pp_line        = "line" , integer_literal , [ string_literal ] ;
-pp_include     = "include" , string_literal ;
-pp_define      = "define" , identifier , { pp_token } ;
-pp_undef       = "undef" , identifier ;
-pp_ifdef       = "ifdef" , identifier ;
-pp_ifndef      = "ifndef" , identifier ;
-pp_endif       = "endif" ;
-
-pp_token       = identifier
-               | literal
-               | keyword
-               | punct_no_semi
-               | operator ;
-
-keyword        = "extern" | "exfunc" | "glob" | "ro"
-               | "function" | "start"
-               | "arr"
-               | "if" | "else" | "loop" | "while"
-               | "switch" | "case" | "default"
-               | "return" | "exit" | "break" | "lis"
-               | "syscall" | "asm"
-               | "not" | "ref" | "dref" | "as"
-               | "ptr" | "str"
-               | "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
-               | "line" | "include" | "define" | "undef" | "ifdef" | "ifndef" | "endif" ;
-
-punct_no_semi  = "{" | "}" | "(" | ")" | "[" | "]" | "," ;
-
-operator       = "->"
-               | "==" | "!=" | "<=" | ">="
-               | "<<" | ">>"
-               | "||" | "&&"
-               | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&="
-               | "="  | "<"  | ">"  | "+"  | "-"  | "*"  | "/"  | "%"  | "|"  | "^"  | "&" ;
-
-var_decl       = type , identifier , [ "=" , expression ] , ";" ;
-
-var_decl_starting_not_arr
-               = non_arr_type , identifier , [ "=" , expression ] , ";" ;
-
-non_arr_type   = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
-               | "str"
-               | "ptr" , type ;
-
-arr_decl       = "arr" , identifier , "[" , integer_literal , "," , type , "]" ,
-                 [ "=" , ( expression | arr_value ) ] , ";" ;
-
-arr_value      = "{" , [ arr_value_list ] , "}" ;
-arr_value_list = expression , { "," , expression } ;
-
-if_statement   = "if" , expression , ";" , statement , [ "else" , statement ] ;
-loop_statement = "loop" , statement ;
-while_statement
-               = "while" , expression , ";" , statement ;
-
-switch_statement
-               = "switch" , expression , ";" ,
-                 "{" , { case_block } , [ default_block ] , "}" ;
-case_block     = "case" , literal , ";" , block ;
-default_block  = "default" , [ ";" ] , block ;
-
-return_statement
-               = "return" , [ expression ] , ";" ;
-exit_statement = "exit" , expression , ";" ;
-break_statement
-               = "break" , ";" ;
-lis_statement  = "lis" , [ string_literal ] , ";" ;
-
-expression_statement
-               = expression , ";" ;
-
-syscall_statement
-               = "syscall" , "(" , [ expression_list ] , ")" , ";" ;
-expression_list
-               = expression , { "," , expression } ;
-
-asm_block      = "asm" , "(" , [ asm_args ] , ")" , "{" , { asm_line } , "}" ;
-asm_args       = asm_arg , { "," , asm_arg } ;
-asm_arg        = identifier | literal ;
-asm_line       = string_literal , [ "," ] ;
-
-expression     = assign ;
-
-assign         = logical_or , [ assign_op , assign ] ;
-assign_op      = "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&=" ;
-
-logical_or     = logical_and , { "||" , logical_and } ;
-logical_and    = bit_or      , { "&&" , bit_or } ;
-
-bit_or         = bit_xor     , { "|"  , bit_xor } ;
-bit_xor        = bit_and     , { "^"  , bit_and } ;
-bit_and        = equality    , { "&"  , equality } ;
-
-equality       = relational  , { ( "==" | "!=" ) , relational } ;
-relational     = shift       , { ( "<" | "<=" | ">" | ">=" ) , shift } ;
-shift          = add         , { ( "<<" | ">>" ) , add } ;
-add            = mul         , { ( "+" | "-" ) , mul } ;
-mul            = unary       , { ( "*" | "/" | "%" ) , unary } ;
-
-unary          = unary_op , unary
-               | postfix ;
-
-unary_op       = "not" | "+" | "-" | ref_op | dref_op ;
-ref_op         = "ref" ;
-dref_op        = "dref" ;
-
-postfix        = primary , { postfix_op } ;
-postfix_op     = "(" , [ arg_list ] , ")"
-               | "[" , expression , { "," , expression } , "]"
-               | "as" , type ;
-
-primary        = literal
-               | identifier
-               | "(" , expression , ")" ;
-
-arg_list       = expression , { "," , expression } ;
-
-type           = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
-               | "str"
-               | "arr" , "[" , integer_literal , "," , type , "]"
-               | "ptr" , type ;
-
-literal        = integer_literal | float_literal | string_literal | char_literal ;
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  scale=0.82, transform shape,
+  node distance=7mm and 6mm,
+  pipe/.style={draw, rounded corners=2pt, align=center, minimum height=7mm, minimum width=21mm, fill=gray!8, font=\scriptsize},
+  opt/.style={draw, rounded corners=2pt, align=center, minimum height=7mm, minimum width=24mm, fill=blue!8, font=\scriptsize},
+  ana/.style={draw, rounded corners=2pt, align=center, minimum height=7mm, minimum width=24mm, fill=orange!12, font=\scriptsize},
+  outnode/.style={draw, rounded corners=2pt, align=center, minimum height=7mm, minimum width=21mm, fill=green!10, font=\scriptsize},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\node[pipe] (src) {source};
+\node[pipe, right=of src] (pp) {PP};
+\node[pipe, right=of pp] (tok) {tokens};
+\node[pipe, right=of tok] (mark) {markup};
+\node[pipe, right=of mark] (ast) {AST};
+\node[pipe, right=of ast] (hir) {HIR};
+
+\node[pipe, below=10mm of hir] (cfg) {CFG};
+\node[ana, left=of cfg] (dom) {dominance};
+\node[ana, left=of dom] (ssa) {SSA/phi};
+\node[opt, left=of ssa] (dag) {DAG/CSE};
+\node[opt, left=of dag] (ho) {HIR opts};
+
+\node[pipe, below=10mm of ho] (lir) {LIR};
+\node[ana, right=of lir] (live) {liveness};
+\node[ana, right=of live] (reg) {registers};
+\node[opt, right=of reg] (ph) {peephole};
+\node[outnode, right=of ph] (asm) {NASM};
+\node[outnode, right=of asm] (bin) {binary/asm};
+
+\draw[arr] (src) -- (pp);
+\draw[arr] (pp) -- (tok);
+\draw[arr] (tok) -- (mark);
+\draw[arr] (mark) -- (ast);
+\draw[arr] (ast) -- (hir);
+\draw[arr] (hir.south) -- (cfg.north);
+\draw[arr] (cfg) -- (dom);
+\draw[arr] (dom) -- (ssa);
+\draw[arr] (ssa) -- (dag);
+\draw[arr] (dag) -- (ho);
+\draw[arr] (ho.south) -- (lir.north);
+\draw[arr] (lir) -- (live);
+\draw[arr] (live) -- (reg);
+\draw[arr] (reg) -- (ph);
+\draw[arr] (ph) -- (asm);
+\draw[arr] (asm) -- (bin);
+
+\node[draw, rounded corners=3pt, fit=(src)(bin)(lir), inner sep=4mm] {};
+\end{tikzpicture}
+\caption{Documentation-level compiler pipeline redrawn in TikZ.}
+\label{fig:pipeline}
+\end{figure*}
+
+\section{Language Core}
+\subsection{Types}
+\cpl{} is a permissively statically typed language. Values do not freely change type, but the compiler may insert safe widening conversions. Narrowing conversions are never implicit and must be written with \code{as}. The same explicit cast syntax is also useful when selecting an overloaded function.
+
+Primitive types include signed and unsigned integers from 8 to 64 bits, \code{f32}, \code{f64}, and \code{i0}. The \code{i0} type is a void-like type for function returns and \code{ptr i0}. The language does not have a separate Boolean type: zero means false and non-zero means true.
+
+\begin{lstlisting}[caption={Explicit casts and pointer operations.}]
+i32 a = 10 as i32;
+u8  b = (a + 20 as i32) as u8;
+ptr i32 p = ref a;
+dref p = 11 as i32;
 \end{lstlisting}
 
-\subsection{Notes on Syntax Status}
-
-The grammar above reflects the current parser structure, but the following must be noted:
-\begin{itemize}[leftmargin=1.5em]
-    \item annotation syntax is not fully represented here,
-    \item lambda syntax is not yet specified in the grammar,
-    \item some historical operators may remain in the parser or grammar,
-    \item \texttt{arr a[10, i32]} is the canonical array declaration form.
-\end{itemize}
-
-\section{Type System}
-
-\subsection{Overview}
-
-CPL is statically typed, but not strictly in the sense of a sound high-level type system. Types are explicit and checked, yet the implementation permits a number of implicit conversions. The language currently includes:
-\begin{itemize}[leftmargin=1.5em]
-    \item primitive numeric types,
-    \item a string wrapper type,
-    \item arrays,
-    \item pointers.
-\end{itemize}
-
-\subsection{Primitive Numeric Types}
-
-The following primitive numeric types are supported:
-\begin{itemize}[leftmargin=1.5em]
-    \item signed integers: \texttt{i8}, \texttt{i16}, \texttt{i32}, \texttt{i64}
-    \item unsigned integers: \texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}
-    \item floating-point types: \texttt{f32}, \texttt{f64}
-\end{itemize}
-
-These types are first-class scalar values.
-
-\subsection{The \texttt{i0} Type}
-
-The special type \texttt{i0} is used as a no-value or void-like return type. A function declared with \texttt{-> i0} may use \texttt{return;} but may not use \texttt{return expr;}.
-
-A function without an explicit return type does \textbf{not} mean \texttt{i0}. Instead, such a function is treated as returning \texttt{i64} by default.
-
-\subsection{String Type}
-
-\texttt{str} is currently a wrapper over a character array, conceptually close to C-style \texttt{char[]}. It exists partly as a placeholder for future string-related work, but in the current language it should be understood as a character array abstraction rather than as a separate immutable or managed string object.
-
-Important properties of \texttt{str} in the current design:
-\begin{itemize}[leftmargin=1.5em]
-    \item it is \textbf{not} read-only by definition,
-    \item it is not a high-level string object,
-    \item in function parameters it is passed by reference rather than by value,
-    \item semantically it behaves as a wrapper around array-like storage of characters.
-\end{itemize}
-
-\subsection{Arrays}
-
-Arrays are declared using the form:
-
-\begin{lstlisting}[language=CPL]
-arr a[10, i32];
-\end{lstlisting}
-
-An array has:
-\begin{itemize}[leftmargin=1.5em]
-    \item a fixed constant length,
-    \item an element type,
-    \item storage allocated according to its declaration context.
-\end{itemize}
-
-There is currently \textbf{no implicit array-to-pointer decay}. A function expecting a reference or pointer to an array must be called explicitly with \texttt{ref a} where appropriate.
-
-\subsection{Pointers}
-
-Pointer types are written as:
-
-\begin{lstlisting}[language=CPL]
-ptr T
-\end{lstlisting}
-
-where \texttt{T} is another type.
-
-Nested pointer types are permitted:
-
-\begin{lstlisting}[language=CPL]
-ptr i32
-ptr ptr i32
-ptr i8
-\end{lstlisting}
-
-Pointers expose raw memory-level programming. CPL does not provide ownership, borrowing, or safety tracking.
-
-\section{Storage Classes and Visibility}
-
-\subsection{Local Storage}
-
-Variables declared inside functions without storage modifiers are local objects, normally placed in stack-based storage.
-
-\subsection{\texttt{glob}}
-
-When applied to a variable, including primitive variables, arrays, and strings, \texttt{glob} means the object is not stored on the stack but in a section-visible static storage area. Such an object is visible throughout the file.
-
-When applied to a function, \texttt{glob} means the function may be externally visible.
-
-\subsection{\texttt{ro}}
-
-\texttt{ro} marks an object as read-only storage. Read-only objects may exist both for primitives and aggregate-like values such as arrays and strings.
-
-A variable declared outside a function must appear as \texttt{glob} or \texttt{ro}.
-
-\subsection{Top-level Declarations}
-
-At top level, variables may only exist as \texttt{glob} or \texttt{ro}. Functions may be declared or defined at top level and may also use external visibility controls.
-
-\section{Scope and Lifetime}
-
-\subsection{Lexical Scope}
-
-CPL uses lexical block scope. A declaration is visible from its point of declaration within its block and in nested blocks, unless shadowed by another declaration.
-
-\subsection{Lifetime of Local Objects}
-
-Local objects live until the end of their enclosing scope. Using a reference or pointer to such an object after the end of its lifetime is undefined behavior.
-
-\subsection{Reference-taking}
-
-The \texttt{ref} operator forms a reference-like address to an object. Because CPL does not provide formal lvalue/rvalue categories in the frontend specification, the language relies on operational restrictions: only valid addressable program entities may be referenced.
-
-\subsection{No Safe Escape Tracking}
-
-The language does not enforce safe escape analysis at the user level. A programmer may construct dangling references or pointers; such behavior is invalid.
-
-\section{Expressions}
-
-\subsection{Expression Classes}
-
-CPL expressions include:
-\begin{itemize}[leftmargin=1.5em]
-    \item literals,
-    \item identifiers,
-    \item unary operations,
-    \item binary operations,
-    \item casts,
-    \item indexing,
-    \item calls,
-    \item assignments.
-\end{itemize}
-
-Lambda expressions are implemented as syntactic sugar for hidden local functions and are therefore semantically lowered rather than directly represented as a separate runtime value class.
-
-\subsection{Literal Typing}
-
-The following literal typing rules hold:
-\begin{itemize}[leftmargin=1.5em]
-    \item every integer literal has type \texttt{i64},
-    \item every floating-point literal has type \texttt{f64}.
-\end{itemize}
-
-\subsection{Conditions}
-
-Conditions in \texttt{if}, \texttt{while}, and similar constructs must be integer-like values. Floating-point values are \textbf{not} valid condition values.
-
-\subsection{Operators and Precedence}
-
-The effective precedence structure is:
-\begin{enumerate}[leftmargin=1.8em]
-    \item postfix operations: call, indexing, cast
-    \item unary operations: \texttt{not}, unary \texttt{+}, unary \texttt{-}, \texttt{ref}, \texttt{dref}
-    \item multiplicative: \texttt{*}, \texttt{/}, \texttt{\%}
-    \item additive: \texttt{+}, \texttt{-}
-    \item shifts: \texttt{<<}, \texttt{>>}
-    \item relational: \texttt{<}, \texttt{<=}, \texttt{>}, \texttt{>=}
-    \item equality: \texttt{==}, \texttt{!=}
-    \item bitwise \texttt{\&}
-    \item bitwise \texttt{\^{}}
-    \item bitwise \texttt{|}
-    \item logical \texttt{\&\&}
-    \item logical \texttt{||}
-    \item assignment and update assignment
-\end{enumerate}
-
-Associativity rules are:
-\begin{itemize}[leftmargin=1.5em]
-    \item most binary arithmetic, comparison, bitwise, indexing, and call operations associate left to right,
-    \item unary operators associate right to left,
-    \item assignments and update assignments associate right to left,
-    \item \texttt{as} is treated left to right as a postfix cast form.
-\end{itemize}
-
-\subsection{Unary Operators}
-
-The current unary operators are:
-\begin{itemize}[leftmargin=1.5em]
-    \item \texttt{not}
-    \item unary \texttt{+}
-    \item unary \texttt{-}
-    \item \texttt{ref}
-    \item \texttt{dref}
-\end{itemize}
-
-\subsection{Casts}
-
-Casts use postfix syntax:
-
-\begin{lstlisting}[language=CPL]
-x as i32
-\end{lstlisting}
-
-The cast operator is explicit and participates at postfix precedence.
-
-\section{Implicit Conversions}
-
-\subsection{General Status}
-
-CPL currently allows implicit conversions according to implementation rules rather than a fully principled source-level conversion lattice. The language is therefore best described as having a \textbf{permissive static conversion model}.
-
-\subsection{Current Implementation Rule}
-
-The current compiler allows an implicit conversion when the source and target are sufficiently similar and when pointer/reference levels satisfy the implementation's admissibility condition. In practical terms, conversions are often allowed when:
-\begin{itemize}[leftmargin=1.5em]
-    \item the underlying subject types are considered similar,
-    \item the pointer level matches, or
-    \item both source and target fall into categories where full-machine-width representation makes explicit conversion unnecessary.
-\end{itemize}
-
-This is not yet a polished language-lawyer rule. It is an implementation-level rule that should later be refined into a proper specification table.
-
-\subsection{Consequence}
-
-As a result:
-\begin{itemize}[leftmargin=1.5em]
-    \item not all implicit conversions are semantically clean,
-    \item the language report can document the current behavior,
-    \item but future revisions should tighten this area significantly.
-\end{itemize}
-
-\section{Statements and Control Flow}
-
-\subsection{Blocks}
-
-A block introduces a new lexical scope and contains zero or more block items.
-
-\subsection{Variable Declarations}
-
-Variables may be declared either through ordinary typed declarations or array declarations.
-
-Examples:
-
-\begin{lstlisting}[language=CPL]
-i32 x = 10;
-str s = "hello";
-arr a[10, i32];
-\end{lstlisting}
-
-\subsection{\texttt{if}}
-
-The \texttt{if} statement has the form:
-
-\begin{lstlisting}[language=CPL]
-if expr; statement
-else statement
-\end{lstlisting}
-
-The semicolon after the condition is part of the syntax.
-
-\subsection{\texttt{while}}
-
-The \texttt{while} statement has the form:
-
-\begin{lstlisting}[language=CPL]
-while expr; statement
-\end{lstlisting}
-
-The condition must be non-floating-point.
-
-\subsection{\texttt{loop}}
-
-\texttt{loop} expresses an unconditional loop:
-
-\begin{lstlisting}[language=CPL]
-loop statement
-\end{lstlisting}
-
-It is typically terminated through \texttt{break} or other control transfer.
-
-\subsection{\texttt{switch}}
-
-The \texttt{switch} statement selects among literal-valued cases. Cases are block-based.
-
-\begin{lstlisting}[language=CPL]
-switch expr; {
-    case 1; { ... }
-    case 2; { ... }
-    default; { ... }
+The main non-primitive containers are \code{str} and \code{arr}. A stack string behaves similarly to an array of \code{i8} with a terminating zero byte. Independent string literals are stored in a read-only section and must be referred to with \code{ref}. Arrays contain primitive element types and are used with explicit indexing and pointer-style operations.
+
+\subsection{Control flow and operations}
+The documented operation set includes arithmetic, comparisons, update operations, bit operations, and logical operations. Logical \code{\&\&} and \code{||} support lazy evaluation, while \code{@[not\_lazy]} forces both sides to be generated.
+
+The control-flow syntax is C-like but intentionally explicit. An \code{if} condition is followed by a semicolon. \code{while} is the ordinary conditional loop. \code{loop} is an endless loop; it must contain \code{break} or use \code{@[counter(...)]}. \code{switch} supports C-style fallthrough, while \code{@[no\_fall]} adds hidden breaks to cases.
+
+\begin{lstlisting}[caption={Counted loop and non-fallthrough switch.}]
+@[counter(10)] loop {
+    : repeated ten times :
+}
+
+@[no_fall]
+@[straight]
+switch tag; {
+    case 1; { exit 1; }
+    default { exit 0; }
 }
 \end{lstlisting}
 
-\subsection{\texttt{return}}
+\subsection{Functions}
+Functions are declared with \code{function}. Prototypes, default arguments, overloading, local functions, function pointers, lambda functions, and variadic arguments are documented. Overloading is restricted: return-type-only overloading is forbidden, overloads are local-only, and candidates are searched in the same scope. Function pointers use \code{ptr i0}, but no signature information remains available through such a pointer.
 
-\texttt{return} may appear in ordinary functions. Its allowed form depends on the return type:
-\begin{itemize}[leftmargin=1.5em]
-    \item for \texttt{-> i0}, only \texttt{return;} is valid,
-    \item for ordinary typed returns, \texttt{return expr;} is expected,
-    \item for functions with omitted return type, the operational default is \texttt{i64}.
-\end{itemize}
+Local functions and lambdas do not capture the parent environment. Therefore they are lightweight logic containers, not full closures.
 
-\subsection{\texttt{exit}}
+\FloatBarrier
+\begin{lstlisting}[caption={Local function passed as a pointer.}]
+function apply(ptr i0 f, i32 a, i32 b) {
+    f(a, b);
+}
 
-\texttt{exit expr;} terminates the \texttt{start} function path. A \texttt{start} function is expected to use \texttt{exit} rather than ordinary typed returns.
-
-\subsection{\texttt{break}}
-
-\texttt{break;} exits the nearest enclosing breakable construct.
-
-\section{Functions}
-
-\subsection{Ordinary Functions}
-
-Functions are declared as:
-
-\begin{lstlisting}[language=CPL]
-function name(params) -> type { ... }
-\end{lstlisting}
-
-or as prototypes:
-
-\begin{lstlisting}[language=CPL]
-function name(params) -> type;
-\end{lstlisting}
-
-If the return type is omitted, the function defaults to returning \texttt{i64}.
-
-\subsection{Parameters}
-
-Function parameters are typed and may optionally include default expressions.
-
-\subsection{Variadic Parameters}
-
-Variadic functions are supported through \texttt{...} in the parameter list.
-
-\subsection{Parameter Passing}
-
-Primitive values are passed by value. Non-primitive entities, including \texttt{str}, are not passed by value in the implementation model. \texttt{str} parameters therefore behave as reference-style parameters.
-
-\subsection{Local Functions}
-
-Functions may appear within blocks. Such functions are local in scope.
-
-\subsection{Lambdas}
-
-Lambdas are lowered into hidden local functions and passed by reference. They are therefore not modeled as closure objects. They do not capture outer environments.
-
-\section{Entry Points}
-
-The canonical entry construct is:
-
-\begin{lstlisting}[language=CPL]
-start(...) { ... }
-\end{lstlisting}
-
-A \texttt{start} function serves as the program entry point.
-
-Its completion is expected to occur through \texttt{exit expr;}.
-
-Other entry-related mechanisms may exist in the implementation, but \texttt{start} is the primary language-level entry construct.
-
-\section{Low-level and Target-facing Constructs}
-
-\subsection{\texttt{extern}}
-
-\texttt{extern} declares externally provided functions or variables.
-
-\subsection{\texttt{syscall}}
-
-\texttt{syscall(...)} performs a target-facing system call operation. Its detailed behavior is target-dependent.
-
-\subsection{\texttt{asm}}
-
-Inline assembly is written as:
-
-\begin{lstlisting}[language=CPL]
-asm(args...) {
-    "instruction"
-    "instruction"
+@[entry("_start")] function main() {
+    function add(i32 a, i32 b) {
+        return a + b;
+    }
+    apply(add, 10 as i32, 20 as i32);
+    exit 0;
 }
 \end{lstlisting}
 
-Its semantics depend on the target backend and assembly syntax. The compiler does not attempt to make inline assembly safe.
+\section{Annotations and Low-Level Mechanisms}
+Annotations extend the restricted grammar without adding many new constructs. Table~\ref{tab:ann} summarizes the documented annotations.
 
-\subsection{\texttt{lis}}
+\FloatBarrier
+\begin{table}[t]
+\centering
+\caption{Documented annotation roles.}
+\label{tab:ann}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Annotation & Role \\
+\midrule
+\code{naked} & disable entry/exit routines \\
+\code{align} & align variables or arrays \\
+\code{section} & place functions/globals in sections \\
+\code{address} & place a function at an address \\
+\code{entry} & mark entry point \\
+\code{no\_fall} & add hidden breaks in switch \\
+\code{not\_lazy} & generate both logic operands \\
+\code{straight} & use linear switch search \\
+\code{counter} & make counted loop \\
+\code{hot}, \code{cold} & control branch placement \\
+\code{register} & bind local variable to register \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\texttt{lis} exists as a statement form in the grammar. Its exact high-level semantic role should be documented separately if it remains part of the stable language surface.
+Two built-in mechanisms expose low-level behavior: \code{syscall} and \code{asm}. A syscall is invoked like a function and takes a platform-dependent argument list. Inline assembly can receive CPL values and refer to them through numbered placeholders. Inline assembly is documented as not optimized by the compiler.
 
-\section{Annotations}
+\section{Front End}
+The preprocessor handles \code{include}, \code{define}, \code{undef}, \code{ifdef}, and \code{ifndef}. This is necessary because the project uses C-like header organization: headers contain prototypes and guards, while implementation files contain bodies. After preprocessing, \code{line} directives preserve source-origin information for tokenization.
 
-The current report does not fully formalize annotation syntax, but annotations are part of the language design and may affect declarations, code generation, and control-flow lowering.
+Tokenization splits the input byte sequence into basic tokens using DFA-like logic. Markup is a second token-level stage that uses scopes and declarations to attach semantic information to tokens. If \code{i32 a} is declared in a scope, later visible occurrences of \code{a} can be marked as \code{i32}.
 
-\subsection{\texttt{hot} and \texttt{cold}}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize},
+  tok/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=7mm, fill=gray!8},
+  typ/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=9mm, fill=red!10},
+  name/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=7mm, fill=orange!13},
+  op/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=7mm, fill=green!10},
+  lit/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=8mm, fill=blue!9}
+]
+\node[tok] at (0,0) {\{};
+\node[typ] at (0.6,-0.55) {i32};
+\node[name] at (1.25,-0.55) {a};
+\node[op] at (1.85,-0.55) {=};
+\node[lit] at (2.45,-0.55) {10};
+\node[tok] at (3.05,-0.55) {;};
+\node[typ] at (0.6,-1.25) {f64};
+\node[name] at (1.25,-1.25) {b};
+\node[op] at (1.85,-1.25) {=};
+\node[lit] at (2.55,-1.25) {20.0};
+\node[tok] at (3.35,-1.25) {;};
+\node[tok] at (0,-1.9) {\}};
+\draw[decorate,decoration={brace,mirror,amplitude=4pt}] (0.35,-1.65) -- (3.65,-1.65) node[midway,below=5pt,font=\scriptsize] {scope and type metadata};
+\end{tikzpicture}
+\caption{Token markup as a semantic layer over the token stream.}
+\label{fig:markup}
+\end{figure}
 
-\texttt{hot} and \texttt{cold} are intentional source-level annotations that affect lowering and placement strategy. Their semantics are part of the design on purpose and are not treated as accidental backend artifacts.
+The parser then builds an AST using an LL approach. AST-level optimizations include condition unrolling and dead-scope elimination, but the documentation treats later IR-level optimizations as the main optimization path.
 
-In the current version, they are considered semantically meaningful layout-influencing constructs, not bugs.
+\section{HIR, CFG, and SSA}
+The AST is flattened into HIR, a three-address-code-like representation. This makes later optimization easier. For example, array indexing is expanded into base-address computation, scaled offsets, address addition, and memory store operations.
 
-\subsection{Other Annotations}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=6mm,
+  box/.style={draw, rounded corners=2pt, minimum width=34mm, minimum height=7mm, align=center, font=\footnotesize, fill=gray!8},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\node[box] (a) {AST: \code{a[x] = 0}};
+\node[box, below=of a] (b) {\code{tmp\_head = \&a}};
+\node[box, below=of b] (c) {\code{tmp\_off = x * sizeof(a)}};
+\node[box, below=of c] (d) {\code{tmp\_head += tmp\_off}};
+\node[box, below=of d] (e) {\code{*tmp\_head = 0}};
+\draw[arr] (a) -- (b);
+\draw[arr] (b) -- (c);
+\draw[arr] (c) -- (d);
+\draw[arr] (d) -- (e);
+\end{tikzpicture}
+\caption{AST-to-HIR flattening into explicit address operations.}
+\label{fig:hirlower}
+\end{figure}
 
-The implementation also refers to annotations such as alignment, section placement, and related low-level controls. These should eventually receive a dedicated normative subsection.
+The CFG is generated from HIR. The documentation describes both one-block-per-command and leader-based splitting. The leader approach starts a block at the first instruction, at jump targets, and immediately after jumps.
 
-\section{Static Diagnostics}
+SSA form then renames assigned variables so that each assignment creates a unique variable version. Dominators, strict dominators, and dominance frontiers are computed to place phi functions where control-flow paths merge.
 
-\subsection{General Structure}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[scale=0.72, transform shape,
+  node distance=4mm,
+  bb/.style={draw, rounded corners=2pt, minimum width=26mm, minimum height=7mm, align=center, font=\scriptsize, fill=gray!8},
+  def/.style={bb, fill=yellow!25},
+  phi/.style={bb, fill=green!16},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\node[def] (a0) {\code{a0 = 10 as i32;}};
+\node[bb, below=of a0] (cond) {\code{if ext == 0 goto lb1;}};
+\node[def, below left=7mm and 1mm of cond] (a1) {\code{a1 = 10 as i32;}};
+\node[def, below right=7mm and 1mm of cond] (a2) {\code{a2 = 20 as i32;}};
+\node[phi, below=13mm of cond] (ph) {\code{a3 = phi(a1, a2);}};
+\node[bb, below=of ph] (use) {\code{b1 = a3;}};
+\draw[arr] (a0) -- (cond);
+\draw[arr] (cond) -- (a1);
+\draw[arr] (cond) -- (a2);
+\draw[arr] (a1) -- (ph);
+\draw[arr] (a2) -- (ph);
+\draw[arr] (ph) -- (use);
+\end{tikzpicture}
+\caption{SSA merge point with a phi function.}
+\label{fig:phi}
+\end{figure}
 
-The compiler performs static diagnostics, and some diagnostics are blocking.
+\section{Optimization}
+After SSA, the compiler can build a DAG that records how values are derived. Nodes with the same hash and compatible dominance can be merged, enabling common subexpression elimination. HIR optimizations also include constant folding and propagation, dead function elimination via a call graph, tail recursion elimination, function inlining, loop canonicalization, and LICM.
 
-\subsection{Blocking Diagnostics}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize},
+  val/.style={draw, circle, minimum size=7mm, fill=yellow!20},
+  op/.style={draw, circle, minimum size=8mm, fill=blue!12},
+  res/.style={draw, rounded corners=2pt, minimum width=13mm, minimum height=7mm, fill=green!13},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\node[val] (a1) at (0,0) {a};
+\node[val] (b1) at (1.2,0) {b};
+\node[op] (p1) at (0.6,0.9) {+};
+\node[res] (c) at (0.6,1.8) {c};
+\node[val] (a2) at (2.5,0) {a};
+\node[val] (b2) at (3.7,0) {b};
+\node[op] (p2) at (3.1,0.9) {+};
+\node[res] (d) at (3.1,1.8) {d};
+\draw[arr] (a1) -- (p1); \draw[arr] (b1) -- (p1); \draw[arr] (p1) -- (c);
+\draw[arr] (a2) -- (p2); \draw[arr] (b2) -- (p2); \draw[arr] (p2) -- (d);
+\draw[very thick, dashed, -{Latex[length=2mm]}] (p2) to[bend left] node[above,font=\scriptsize] {same hash} (p1);
+\end{tikzpicture}
+\caption{DAG-based common subexpression elimination.}
+\label{fig:dag}
+\end{figure}
 
-The following categories are blocking according to the current implementation:
-\begin{itemize}[leftmargin=1.5em]
-    \item assignment to read-only storage,
-    \item missing required return in ordinary functions,
-    \item missing required \texttt{exit} in \texttt{start},
-    \item not enough call arguments,
-    \item illegal array access,
-    \item invalid \texttt{exit} placement or use,
-    \item assigning the result of a no-return-value call.
-\end{itemize}
+Inlining uses a heuristic score. Calls in loops and calls to small functions receive positive score; large callees receive negative score. If the call becomes an inline candidate, the compiler copies the function body, replaces argument loads, and substitutes the return value.
 
-These are effectively compile-time errors.
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize},
+  codebox/.style={draw, rounded corners=2pt, align=left, fill=gray!8, inner sep=4pt, text width=34mm},
+  repl/.style={draw, rounded corners=2pt, align=left, fill=green!10, inner sep=4pt, text width=34mm},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\node[codebox] (l) at (0,0) {\code{function foo(i32 a) \{}\\\code{  a = loadparam();}\\\code{  return a + 10;}\\\code{\}}\\[1mm]\code{start() \{}\\\code{  exit foo(10);}\\\code{\}}};
+\node[repl] (r) at (5.0,0) {\code{function foo(i32 a) \{}\\\code{  a = loadparam();}\\\code{  return a + 10;}\\\code{\}}\\[1mm]\code{start() \{}\\\code{  i32 a1 = 10;}\\\code{  exit a1 + 10;}\\\code{\}}};
+\draw[arr] (l.east) -- node[above,font=\scriptsize] {inline} (r.west);
+\end{tikzpicture}
+\caption{Function inlining by body copying and return substitution.}
+\label{fig:inline}
+\end{figure}
 
-\subsection{Non-blocking Diagnostics}
+\section{LIR, Liveness, and Registers}
+LIR is a lower intermediate representation closer to target instructions. It is similar to 3AC but uses a two-address form. It bridges HIR and the target-specific assembly dialect. On x86-64, instruction selection, ABI-related pre-coloring, and register allocation become important at this level.
 
-Other diagnostics may exist as warnings or advisory checks, but only the blocking classes above are guaranteed here as hard failures in the current implementation.
+Liveness analysis computes \code{USE}, \code{DEF}, \code{IN}, and \code{OUT} for each CFG block:
+\[
+OUT[B] = \bigcup_{S \in succ(B)} IN[S]
+\]
+\[
+IN[B] = USE[B] \cup (OUT[B] - DEF[B]).
+\]
+The compiler iterates in reverse order until the sets stabilize. If a variable appears in \code{USE} or \code{DEF} but not in \code{OUT}, the compiler can mark it dead with a special \code{kill} instruction.
 
-\section{Well-defined, Implementation-defined, and Undefined Behavior}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=5mm,
+  bb/.style={draw, rounded corners=2pt, minimum width=32mm, minimum height=8mm, align=center, font=\footnotesize, fill=gray!8},
+  live/.style={draw, rounded corners=2pt, align=left, font=\scriptsize, text width=24mm, fill=orange!9, inner sep=3pt},
+  kill/.style={bb, fill=red!18},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\node[bb] (b0) {\code{b0 = 20 as i32;}};
+\node[bb, below=of b0] (b1) {\code{if b0 == 20 goto lb1;}};
+\node[kill, below=of b1] (k) {\code{kill b0;}};
+\node[bb, below=of k] (b2) {\code{lb1: exit 0;}};
+\node[live, right=6mm of b0] {IN=empty\\USE=empty\\DEF=\{b0\}\\OUT=\{b0\}};
+\node[live, right=6mm of b1] {IN=\{b0\}\\USE=\{b0\}\\DEF=empty\\OUT=empty};
+\node[live, right=6mm of b2] {IN=empty\\USE=empty\\DEF=empty\\OUT=empty};
+\draw[arr] (b0) -- (b1);
+\draw[arr] (b1) -- (k);
+\draw[arr] (k) -- (b2);
+\end{tikzpicture}
+\caption{Liveness-driven kill insertion.}
+\label{fig:liveness}
+\end{figure}
 
-\subsection{Well-defined Behavior}
+For pointers, the compiler uses an alias map. If \code{b0} owns a reference to \code{a0}, \code{a0} must not be killed while \code{b0} is live. This is stack-slot reuse and liveness protection, not Rust-style memory safety.
 
-The following are part of the current intended language semantics:
-\begin{itemize}[leftmargin=1.5em]
-    \item integer literals are \texttt{i64},
-    \item floating literals are \texttt{f64},
-    \item floating-point values are not valid conditions,
-    \item \texttt{str} is a mutable wrapper over character-array storage,
-    \item arrays do not decay implicitly to pointers,
-    \item omitted function return type defaults to \texttt{i64},
-    \item \texttt{-> i0} functions may not return a value expression,
-    \item lambdas lower to hidden local functions passed by reference.
-\end{itemize}
+Register allocation builds an interference graph. Vertices are variables; edges connect variables that are live at the same time. Coloring assigns different colors to adjacent nodes, and each color corresponds to a reusable physical register choice.
 
-\subsection{Implementation-defined Behavior}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize},
+  a/.style={draw,circle,minimum size=8mm,fill=blue!14},
+  b/.style={draw,circle,minimum size=8mm,fill=green!16},
+  c/.style={draw,circle,minimum size=8mm,fill=yellow!25},
+  d/.style={draw,circle,minimum size=8mm,fill=red!13}
+]
+\node[a] (v1) at (0,0) {v1};
+\node[b] (v2) at (1.4,0.7) {v2};
+\node[c] (v3) at (2.8,0) {v3};
+\node[b] (v4) at (0.4,-1.2) {v4};
+\node[a] (v5) at (2.1,-1.3) {v5};
+\node[d] (v6) at (3.4,-1.2) {v6};
+\foreach \x/\y in {v1/v2,v2/v3,v1/v4,v2/v4,v2/v5,v3/v5,v3/v6,v5/v6,v4/v5} \draw (\x) -- (\y);
+\end{tikzpicture}
+\caption{Interference graph coloring for register allocation.}
+\label{fig:coloring}
+\end{figure}
 
-The following are still implementation-defined or incompletely regularized:
-\begin{itemize}[leftmargin=1.5em]
-    \item the full admissibility table for implicit conversions,
-    \item exact annotation syntax in the grammar,
-    \item some interaction details between low-level storage modifiers and code generation,
-    \item some semantics of historical or rarely documented statements such as \texttt{lis}.
-\end{itemize}
+\section{Peephole Optimization and Codegen}
+The peephole optimizer performs pattern matching and replacement on LIR or assembly-like forms. The simplest documented example is replacing \code{mov rax, 0} with \code{xor rax, rax}. The project uses a PTRN DSL to generate pattern matchers instead of coding every pattern by hand.
 
-\subsection{Target-dependent Behavior}
+The documented peephole stage has three passes: pattern matching, value propagation through redundant move chains, and dead-write cleanup. Code generation then unwraps special LIR operations such as \code{EXITOP} and \code{STRT} and emits NASM assembly.
 
-The following depend on the compilation target or backend:
-\begin{itemize}[leftmargin=1.5em]
-    \item pointer size,
-    \item calling convention,
-    \item external symbol linkage details,
-    \item inline assembly semantics,
-    \item system call ABI,
-    \item section layout.
-\end{itemize}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=6mm,
+  box/.style={draw, rounded corners=2pt, minimum width=31mm, minimum height=7mm, align=center, font=\footnotesize, fill=gray!8},
+  opt/.style={box, fill=blue!8},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\node[box] (lir) {raw LIR/ASM\\move chains};
+\node[opt, below=of lir] (p1) {pass 1\\pattern match};
+\node[opt, below=of p1] (p2) {pass 2\\value propagation};
+\node[opt, below=of p2] (p3) {pass 3\\dead-write cleanup};
+\node[box, below=of p3] (asm) {NASM output\\or binary};
+\draw[arr] (lir) -- (p1);
+\draw[arr] (p1) -- (p2);
+\draw[arr] (p2) -- (p3);
+\draw[arr] (p3) -- (asm);
+\end{tikzpicture}
+\caption{Documented peephole optimization structure.}
+\label{fig:peephole}
+\end{figure}
 
-\subsection{Undefined Behavior}
+\section{Static Diagnostics and Debugging}
+The static checker has AST and IR parts. AST warnings cover read-only updates, declarations without initialization, wrong declaration values, missing returns, missing \code{exit} in \code{start}, wrong argument counts, wrong argument types, unused function results, return-type mismatches, illegal array access, duplicated branches, reserved function names, dead code, suspicious conversions, inefficient \code{while 1}, invalid \code{exit}, targetless \code{break}, misuse of \code{i0}, unused expressions, invalid \code{ref}, and non-even alignment.
 
-The following are undefined behavior:
-\begin{itemize}[leftmargin=1.5em]
-    \item using references or pointers to dead local storage,
-    \item violating the semantic assumptions of low-level unsafe operations,
-    \item any invalid memory access through raw pointers,
-    \item backend-invalid or ABI-invalid use of target-facing constructs such as \texttt{asm} and \texttt{syscall}.
-\end{itemize}
+IR analysis handles lower-level warnings such as null dereference, null dereference through arguments, constant conditions, propagated constants, wrong casts, and syscall-related checks. Static analysis is off by default and enabled with \code{--static-analysis}.
 
-\section{Design Summary}
+For debugging, the compiler can produce assembly with \code{--emit-asm}. The \code{-d} flag includes DWARF information, and \code{lis} is an interrupt point usable with \code{gdb} or \code{lldb}. The documentation recommends disabling optimizations when debugging code that must not be transformed.
 
-CPL is a compact, explicit, and intentionally unsafe low-level language. It should be understood as a compiler-oriented experimental language rather than a production systems language. Its semantics are already structured enough to support a report-style presentation, but several parts still reflect implementation pragmatics more than a finished language design.
+\section{Benchmark Methodology}
+The benchmark documentation compares GCC 14.2.0, Apple Clang 12.0.0, and CPL v3.4 on MACHO64. GCC and Clang use \code{-O0} and \code{-O3}. CPL also uses \code{-O0} and \code{-O3}; the documented \code{-O3} set includes LICM, peephole optimization, CSE, DCE, and constant propagation/folding.
 
-Its strongest current characteristics are:
-\begin{itemize}[leftmargin=1.5em]
-    \item small core syntax,
-    \item explicit low-level operations,
-    \item direct support for compiler experimentation,
-    \item clear separation between primitive values and manually managed memory,
-    \item deliberate rejection of automatic high-level abstractions.
-\end{itemize}
+\begin{table}[t]
+\centering
+\caption{Documented benchmark environment.}
+\label{tab:env}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Item & Value \\
+\midrule
+OS & MacOS Catalina 10.15.7 \\
+CPU & i7 3650QM, quad-core, 2.4 GHz \\
+RAM & 16 GB DDR3, 1600 MHz \\
+GCC & GCC 14.2.0, Homebrew \\
+Clang & Apple Clang 12.0.0 \\
+CPL & CPL v3.4, MACHO64 \\
+Runs & 5 per configuration \\
+CPL timing & \code{py-time}, after compilation \\
+C/C++ timing & \code{gnu-time}, after compilation \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-Its weakest current area is the conversion model, which still needs to be turned from an implementation rule into a principled language-level specification.
+\par The documentation warns that some C microbenchmarks use \code{asm volatile} to prevent dead-code elimination, while CPL preserves such loops by default. These tests should therefore be interpreted as loop-overhead measurements rather than broad compiler-performance benchmarks. The documentation also suggests reading CPL times conservatively, with about +30\% adjustment for possible measurement issues.
 
-\section{Future Specification Work}
+\section{Benchmark Results}
+Lower runtime is better. The following charts reproduce the raw documented values with TikZ bars.
 
-A stronger next revision of this report should add:
-\begin{itemize}[leftmargin=1.5em]
-    \item a dedicated annotation grammar,
-    \item a normative section on storage layout and linkage,
-    \item a source-level conversion table,
-    \item a cleaned-up semantics of references versus pointers,
-    \item a proper section on local functions and lambdas,
-    \item a precise definition of \texttt{lis},
-    \item examples of legal and illegal programs.
-\end{itemize}
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=0.62cm,y=0.75cm]
+\draw[->] (-0.2,0) -- (6.0,0);
+\draw[->] (0,0) -- (0,5.1) node[above,font=\scriptsize] {s};
+\foreach \y/\lab in {1/1,2/2,3/3,4/4,5/5} \draw (-0.05,\y) -- (0.05,\y) node[left,font=\scriptsize] {\lab};
+\foreach \i/\lab/\v in {0/{cpl O3}/0.702,1/{clang O3}/0.748,2/{gcc O3}/0.758,3/{cpl O0}/1.390,4/{gcc O0}/4.290,5/{clang O0}/4.641} {
+  \fill[blue!35] (\i+0.18,0) rectangle +(0.38,\v);
+  \node[rotate=50,anchor=east,font=\scriptsize] at (\i+0.37,-0.13) {\lab};
+  \node[rotate=90,anchor=west,font=\scriptsize] at (\i+0.37,\v+0.04) {\v};
+}
+\end{tikzpicture}
+\caption{Empty loop benchmark. Optimized CPL assembly: 20 lines, down from 31.}
+\label{fig:bench-empty}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=0.62cm,y=55cm]
+\draw[->] (-0.2,0.38) -- (6.0,0.38);
+\draw[->] (0,0.38) -- (0,0.452) node[above,font=\scriptsize] {s};
+\foreach \y/\lab in {0.40/0.40,0.42/0.42,0.44/0.44} \draw (-0.05,\y) -- (0.05,\y) node[left,font=\scriptsize] {\lab};
+\foreach \i/\lab/\v in {0/{gcc O3}/0.412,1/{cpl O3}/0.412,2/{clang O3}/0.417,3/{gcc O0}/0.421,4/{clang O0}/0.430,5/{cpl O0}/0.424} {
+  \fill[green!35] (\i+0.18,0.38) rectangle +(0.38,\v-0.38);
+  \node[rotate=50,anchor=east,font=\scriptsize] at (\i+0.37,0.377) {\lab};
+  \node[rotate=90,anchor=west,font=\scriptsize] at (\i+0.37,\v+0.001) {\v};
+}
+\end{tikzpicture}
+\caption{Million Fibonacci benchmark. Optimized CPL assembly: 27 lines, down from 48.}
+\label{fig:bench-fib}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=0.62cm,y=3.4cm]
+\draw[->] (-0.2,0) -- (6.0,0);
+\draw[->] (0,0) -- (0,1.12) node[above,font=\scriptsize] {s};
+\foreach \y/\lab in {0.25/0.25,0.50/0.50,0.75/0.75,1.00/1.00} \draw (-0.05,\y) -- (0.05,\y) node[left,font=\scriptsize] {\lab};
+\foreach \i/\lab/\v in {0/{clang O3}/0.430,1/{gcc O3}/0.470,2/{cpl O3}/0.513,3/{gcc O0}/0.566,4/{cpl O0}/0.583,5/{clang O0}/1.002} {
+  \fill[orange!45] (\i+0.18,0) rectangle +(0.38,\v);
+  \node[rotate=50,anchor=east,font=\scriptsize] at (\i+0.37,-0.03) {\lab};
+  \node[rotate=90,anchor=west,font=\scriptsize] at (\i+0.37,\v+0.01) {\v};
+}
+\end{tikzpicture}
+\caption{Pointer and string traversal benchmark. Optimized CPL assembly: 84 lines, down from 103.}
+\label{fig:bench-string}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=0.62cm,y=3.8cm]
+\draw[->] (-0.2,0) -- (6.0,0);
+\draw[->] (0,0) -- (0,0.92) node[above,font=\scriptsize] {s};
+\foreach \y/\lab in {0.2/0.2,0.4/0.4,0.6/0.6,0.8/0.8} \draw (-0.05,\y) -- (0.05,\y) node[left,font=\scriptsize] {\lab};
+\foreach \i/\lab/\v in {0/{clang O3}/0.403,1/{cpl O3}/0.403,2/{cpl O0}/0.450,3/{gcc O3}/0.487,4/{clang O0}/0.778,5/{gcc O0}/0.830} {
+  \fill[purple!30] (\i+0.18,0) rectangle +(0.38,\v);
+  \node[rotate=50,anchor=east,font=\scriptsize] at (\i+0.37,-0.025) {\lab};
+  \node[rotate=90,anchor=west,font=\scriptsize] at (\i+0.37,\v+0.006) {\v};
+}
+\end{tikzpicture}
+\caption{Brainfuck benchmark. Optimized CPL assembly: 516 lines, down from 769.}
+\label{fig:bench-brainfuck}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Documented CPL assembly-size reductions.}
+\label{tab:size}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Benchmark & Before & After & Reduction \\
+\midrule
+Empty loop & 31 & 20 & 35.5\% \\
+Fibonacci & 48 & 27 & 43.8\% \\
+String traversal & 103 & 84 & 18.4\% \\
+Brainfuck & 769 & 516 & 32.9\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\par The empty-loop result is best read as loop-overhead evidence because the benchmark is artificial and dead-code elimination behavior differs. Fibonacci reports optimized GCC and optimized CPL at 0.412 seconds, with optimized Clang at 0.417 seconds. String traversal reports optimized CPL slower than optimized Clang and GCC. Brainfuck reports optimized CPL and optimized Clang at 0.403 seconds, with optimized GCC at 0.487 seconds.
+
+\section{Limitations}
+This report is not an independent validation. It does not run the compiler, inspect source code, or reproduce benchmarks. All feature descriptions and measurements come from the uploaded documentation. The diagrams are TikZ reconstructions based on the documentation and reference images.
+
+\section{Conclusion}
+The documentation presents CPL as a compact, explicit, low-level language and Cordell Compiler as an end-to-end compiler laboratory. The pipeline covers preprocessing, tokenization, semantic markup, AST construction, HIR lowering, CFG and SSA, DAG-based optimization, LIR, liveness, register allocation, peephole optimization, and NASM code generation. The benchmark values suggest that the documented optimizer can generate compact and competitive code for selected small examples, while the most important contribution of the project is the coherent educational compiler pipeline.
+
+\appendix
+\section{Literature Listed in the Documentation}
+The documentation lists Aarne Ranta's compiler text, the Dragon Book, Appel's \textit{Modern Compiler Implementation in C}, Cytron et al. on SSA and control dependence, Kusswurm's x86 assembly book, and the instruction scheduling text by Jason Robert and Carey Patterson.
 
 \end{document}
