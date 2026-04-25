@@ -18,7 +18,8 @@ Result gathering:
   - CPL - 5 times, every time after compilation, `py-time` total program execution time
   - Clang / GCC - 5 times, every time after compilation, `gnu-time` total execution time
 
-*P.S.:* The results below can be considered as a valid value, but I'd suggest to add about `+30%` of consumed execution time for every CPL's result given possible issues in my measurement methods, hardware and software. Furthermore, such a suggestion is based on a `+%30` size difference between GCC's and Clang's `.asm` files with CPL's `.asm` files.
+*P.S.:* The results below can be considered as a valid value, but I'd suggest to add about `+30%` of consumed execution time for every CPL's result given possible issues in my measurement methods, hardware and software. Furthermore, such a suggestion is based on a `+%30` size difference between GCC's and Clang's `.asm` files with CPL's `.asm` files. </br>
+*P.P.S.:* This section doesn't address how optimizations are affect on the final assembly which is produced by the compiler. If you're interest how it affects, please consider the related section in the documentation (which is `WIP`).
 
 ## Empty loop
 This is an artificial example and it doesn't provide any real information about CPL as a compiler. But this type of tests shows that the produced by CPL assembly code is neither overwhelmed nor slow. In summary, these two snippets of code are the same, considering the fact that the CPL's snippet does include a 'hidden' variable which iterates 1 billion times. Meanwhile, the C's snippet also does include the `asm volatile` section which preserves the loop from elemination by an optimizing module.
@@ -47,7 +48,7 @@ The results below shows that the optimized CPL code has the same execution time 
   class="benchmark-card"
   data-title="Empty loop benchmark"
   data-labels="cpl -O3|clang -O3|gcc-14 -O3|cpl -O0|gcc-14 -O0|clang -O0"
-  data-values="0.722|0.748|0.758|1.52|4.290|4.641"
+  data-values="0.702|0.748|0.758|1.39|4.290|4.641"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -57,7 +58,7 @@ The results below shows that the optimized CPL code has the same execution time 
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 18 lines (including comments such as a base block number). Were 31 lines.
+**Note:** The execution code size (asm) of the CPL optimized file is 20 lines (including comments such as a base block number). Were 31 lines.
 
 ## Million fibonacci
 ```cpl
@@ -90,7 +91,7 @@ int main() {
   class="benchmark-card"
   data-title="Fibonacci benchmark"
   data-labels="gcc-14 -O3|cpl -O3|clang -O3|gcc-14 -O0|clang -O0|cpl -O0"
-  data-values="0.412|0.412|0.417|0.421|0.430|0.434"
+  data-values="0.412|0.412|0.417|0.421|0.430|0.424"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -100,7 +101,7 @@ int main() {
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 32 lines (including comments such as a base block number). Were 48 lines.
+**Note:** The execution code size (asm) of the CPL optimized file is 27 lines (including comments such as a base block number). Were 48 lines.
 
 ## String iteration
 ```cpl
@@ -147,7 +148,7 @@ int main() {
   class="benchmark-card"
   data-title="Pointer and string traversal benchmark"
   data-labels="clang -O3|gcc-14 -O3|cpl -O3|gcc-14 -O0|cpl -O0|clang -O0"
-  data-values="0.430|0.470|0.513|0.566|0.603|1.002"
+  data-values="0.430|0.470|0.513|0.566|0.583|1.002"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -157,7 +158,7 @@ int main() {
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 87 lines (including comments such as a base block number). Were 103 lines.
+**Note:** The execution code size (asm) of the CPL optimized file is 84 lines (including comments such as a base block number). Were 103 lines.
 
 ## Brainfuck
 
@@ -356,7 +357,7 @@ int main(int argc, char* argv[]) {
   class="benchmark-card"
   data-title="Brainfuck 'Oregon, CoosBay, I'm coming for you!' benchmark"
   data-labels="clang -O3|cpl -O3|cpl -O0|gcc-14 -O3|clang -O0|gcc-14 -O0"
-  data-values="0.403|0.403|0.411|0.487|0.778|0.830"
+  data-values="0.403|0.403|0.45|0.487|0.778|0.830"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -366,4 +367,4 @@ int main(int argc, char* argv[]) {
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 615 lines (including comments such as a base block number).  Were 769 lines.
+**Note:** The execution code size (asm) of the CPL optimized file is 516 lines. Before the `-O3` were 769 lines.

@@ -128,6 +128,15 @@ int LIR_is_movop(lir_operation_t op) {
 
 int LIR_is_writeop(lir_operation_t op) {
     switch (op) {
+        case LIR_TF64:
+        case LIR_TF32:
+        case LIR_TI64:
+        case LIR_TI32:
+        case LIR_TI16:
+        case LIR_TI8: 
+        case LIR_TU64:
+        case LIR_TU32:
+        case LIR_TU16:
         case LIR_POP:
         case LIR_bXOR:
         case LIR_bSHL:

@@ -15,15 +15,9 @@
         "src/hir/func/*.c",
         "src/hir/loop/*.c",
         "src/lir/*.c",
-        "src/lir/dfg/*.c",
         "src/lir/copyprop/*.c",
         "src/lir/lirgen/*.c",
         "src/lir/lirgen/misc/*.c",
-        "src/lir/selector/*.c",
-        "src/lir/selector/x86_64_gnu_nasm/*.c",
-        "src/lir/selector/x86_64_macho_nasm/*.c",
-        "src/lir/regalloc/*.c",
-        "src/lir/regalloc/gc/*.c",
         "std/*.c"
     ]
 }
