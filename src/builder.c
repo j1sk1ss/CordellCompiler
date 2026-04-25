@@ -556,10 +556,12 @@ int main(int argc, char* argv[]) {
             HIR_CFG_build(&hirctx, &cfgctx, &smt);
         }
 
-        HIR_LOOP_mark_loops(&cfgctx, NULL); // TODO
+        ltree_ctx_t lctx;
+        map_init(&lctx.lmap, MAP_NO_CMP);
+        HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
-        if (options.config.finline) { // TODO
-            HIR_FUNC_perform_inline(&cfgctx, NULL, &smt, HIR_FUNC_inline_euristic_desider);
+        if (options.config.finline) {
+            HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_euristic_desider);
             HIR_CFG_unload(&cfgctx);
             HIR_CFG_build(&hirctx, &cfgctx, &smt);
         }
@@ -572,7 +574,7 @@ int main(int argc, char* argv[]) {
         HIR_CG_apply_dfe(&cfgctx, &callctx);
 
         HIR_CFG_create_domdata(&cfgctx);
-        HIR_LTREE_canonicalization(&cfgctx, NULL);
+        HIR_LTREE_canonicalization(&cfgctx, &lctx);
         HIR_CFG_unload_domdata(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
 
@@ -668,6 +670,7 @@ int main(int argc, char* argv[]) {
 
         map_free(&colors);
         LIR_unload_blocks(lirctx.h);
+        HIR_LTREE_unload_ctx(&lctx);
         HIR_CG_unload(&callctx);
         HIR_CFG_unload(&cfgctx);
         HIR_unload_blocks(hirctx.hot.h);

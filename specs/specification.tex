@@ -3,14 +3,16 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{placeins}
 \usepackage{lmodern}
+\usepackage{microtype}
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{tikz}
+\usepackage{placeins}
+\usepackage[hidelinks]{hyperref}
 \usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric,decorations.pathreplacing}
 
 \definecolor{cplblue}{RGB}{34,86,150}
@@ -46,8 +48,13 @@
 \newcommand{\cpl}{\textsc{CPL}}
 \newcommand{\cc}{Cordell Compiler}
 \newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\astrep}{\textsc{AST}}
+\newcommand{\hir}{\textsc{HIR}}
+\newcommand{\lir}{\textsc{LIR}}
+\newcommand{\ssa}{\textsc{SSA}}
+\newcommand{\cfg}{\textsc{CFG}}
 
-\title{Restricted grammar and static analysis as a solution for system programming languages:\\A language technical report}
+\title{Cordell Programming Language and Compiler:\\Restricted Syntax, Explicit Low-Level Control, and Static Diagnostics for Systems Programming}
 \author{Fot Nikolai}
 \date{April 2026}
 
@@ -55,22 +62,25 @@
 \maketitle
 
 \begin{abstract}
-\par This report summarizes the documented design of the Cordell Programming Language (\cpl) and the Cordell Compiler, its restricted grammar and advanatages that are reached. The report covers the language \textbf{core}, preprocessing, tokenization and markup, \textbf{AST} and \textbf{IR} generation, CFG and SSA construction, DAG-based optimization, liveness analysis, register allocation, copy propagation, IR lowering, peephole optimization, code generation, static diagnostics, debugging, and the documented language benchmark values against GCC 14.2.0 and Apple Clang 12.0.0.
+This technical report presents the Cordell Programming Language (\cpl{}) and the Cordell Compiler, an experimental systems-programming language and end-to-end compiler pipeline. The central design choice is a deliberately restricted language surface: the language keeps C-like low-level control, pointer operations, inline assembly, explicit casts, and compiler annotations, while avoiding a large object model and complex aggregate abstractions. This restriction is used to keep parsing, lowering, static diagnostics, and backend experimentation tractable. The report describes the language core, preprocessing and lexical stages, semantic markup, \astrep{} construction, \hir{} lowering, \cfg{} and \ssa{} construction, DAG-based optimizations, liveness analysis, register allocation, peephole optimization, and NASM-oriented code generation. It also summarizes the diagnostic model and preliminary benchmark measurements against GCC 14.2.0 and Apple Clang 12.0.0. The reported results should be interpreted as project-level evidence for selected microbenchmarks rather than as an independent compiler evaluation.
 \end{abstract}
 
+\noindent\textbf{Keywords:} systems programming language; compiler construction; static analysis; SSA; register allocation; peephole optimization; low-level programming.
+
 \section{Introduction}
-\par \cpl{} is documented as a small systems language and compiler project intended mainly for learning compiler architecture, experimenting with optimizations, and producing low-level code. The project is also connected with the development of operating systems, IoT-applications, etc.
-\par The project is not presented as a feature-rich general-purpose language. The documentation explicitly emphasizes low-level behavior, C-like syntax, assembly affinity, and a restricted language core. The language omits structures, classes, enums, and unions. This restriction is not accidental: it keeps the parser and language surface small so that the compiler pipeline, optimizations, and backend experiments remain the central part of the project.
+Systems languages often expose low-level control at the cost of a large and historically accumulated surface syntax. This makes them practical for production work, but it also makes them difficult to use as compact experimental platforms for compiler construction. The Cordell Programming Language (\cpl{}) addresses a different point in the design space. It is a small systems language whose primary purpose is to support low-level programming experiments, compiler-pipeline research, and educational work on whole-compiler architecture.
 
-\section{Design Goals}
-The documentation frames \cpl{} around five practical goals.
+The project targets programs such as bootloaders, small operating-system components, edge database-management systems, edge file systems, simple compilers, and interpreters. It does not attempt to provide memory safety in the style of modern ownership-based languages. Instead, the design emphasizes explicit behavior: pointer operations are visible, casts are written by the programmer when narrowing may occur, and low-level mechanisms such as system calls and inline assembly are exposed directly.
 
+The second motivation is compiler-oriented. A smaller grammar makes it easier to construct a complete pipeline, inspect intermediate forms, and experiment with classic middle-end and backend techniques such as control-flow construction, dominance analysis, \ssa{} conversion, common subexpression elimination, liveness analysis, graph-coloring register allocation, and peephole rewriting~\cite{aho2007compilers,appel1998modern,cooper2012engineering,cytron1991ssa}.
+
+This report makes the following contributions:
 \begin{itemize}
-  \item \textbf{Simplicity:} the language should stay small and explicit.
-  \item \textbf{No safety:} CPL does not attempt to provide memory safety; it prefers low-level control and diagnostics.
-  \item \textbf{Systems scope:} intended programs include bootloaders, edge DBMSs, edge file systems, primitive compilers, and small interpreters.
-  \item \textbf{Experiments:} the compiler is a test stand for optimizations, symbol-table experiments, perceptron-based heuristics, SMT ideas, and peephole DSLs.
-  \item \textbf{Education:} the repository documents a complete compiler-building journey from preprocessing to code generation.
+  \item it gives a consolidated article-style description of the \cpl{} language core and its low-level mechanisms;
+  \item it presents the compiler pipeline from preprocessing to NASM-oriented code generation;
+  \item it describes how a restricted grammar is used together with annotations rather than a large set of language constructs;
+  \item it summarizes static diagnostics at both \astrep{} and intermediate-representation levels;
+  \item it reports preliminary benchmark values and states the limitations of these measurements.
 \end{itemize}
 
 \begin{figure*}[t]
@@ -123,15 +133,27 @@ The documentation frames \cpl{} around five practical goals.
 
 \node[draw, rounded corners=3pt, fit=(src)(bin)(lir), inner sep=4mm] {};
 \end{tikzpicture}
-\caption{Documentation-level compiler pipeline redrawn in TikZ.}
+\caption{Compiler pipeline implemented around the restricted \cpl{} language core.}
 \label{fig:pipeline}
 \end{figure*}
 
-\section{Language Core}
-\subsection{Types}
-\cpl{} is a permissively statically typed language. Values do not freely change type, but the compiler may insert safe widening conversions. Narrowing conversions are never implicit and must be written with \code{as}. The same explicit cast syntax is also useful when selecting an overloaded function.
+\section{Design Rationale}
+\subsection{Restricted language surface}
+The central language-design decision is to keep the source language small. \cpl{} deliberately omits structures, classes, enums, unions, and a rich standard-library-oriented object model. This is not meant to make the language more expressive than existing systems languages. Instead, it narrows the front-end problem and shifts the project focus toward intermediate representations, optimizations, diagnostics, and backend generation.
 
-Primitive types include signed and unsigned integers from 8 to 64 bits, \code{f32}, \code{f64}, and \code{i0}. The \code{i0} type is a void-like type for function returns and \code{ptr i0}. The language does not have a separate Boolean type: zero means false and non-zero means true.
+This restriction has three practical effects. First, the parser and semantic passes stay compact enough to be inspected and modified. Second, the compiler can expose transformations explicitly, which is useful for learning and debugging. Third, the absence of high-level aggregates reduces the number of special lowering cases in the current implementation.
+
+\subsection{Explicit control instead of implicit safety}
+The language is low-level and intentionally unsafe. It gives direct access to pointer operations, dereferencing, explicit casts, system calls, and inline assembly. This choice makes \cpl{} closer to an experimental C-like compiler laboratory than to a memory-safe language. Diagnostics are therefore used not as a formal safety guarantee, but as a practical mechanism for detecting suspicious operations and common low-level mistakes.
+
+\subsection{Annotations as controlled extensions}
+Rather than adding many special syntactic constructs, \cpl{} uses annotations for selected behavior: entry-point selection, branch-layout hints, non-fallthrough switches, counted loops, alignment, section placement, and register binding. This keeps the core grammar relatively small while still allowing low-level code-generation control.
+
+\section{Language Core}
+\subsection{Primitive types and casts}
+\cpl{} is statically typed but permissive in the direction of safe widening conversions. Narrowing conversions are never implicit and must be written with \code{as}. The same cast syntax can be used when overload resolution requires a specific argument type.
+
+Primitive types include signed and unsigned integers from 8 to 64 bits, \code{f32}, \code{f64}, and \code{i0}. The \code{i0} type acts as a void-like type for function returns and as a generic pointed-to type in \code{ptr i0}. There is no separate Boolean type: zero represents false and non-zero values represent true.
 
 \begin{lstlisting}[caption={Explicit casts and pointer operations.}]
 i32 a = 10 as i32;
@@ -142,12 +164,10 @@ dref p = 11 as i32;
 
 The main non-primitive containers are \code{str} and \code{arr}. A stack string behaves similarly to an array of \code{i8} with a terminating zero byte. Independent string literals are stored in a read-only section and must be referred to with \code{ref}. Arrays contain primitive element types and are used with explicit indexing and pointer-style operations.
 
-\subsection{Control flow and operations}
-The documented operation set includes arithmetic, comparisons, update operations, bit operations, and logical operations. Logical \code{\&\&} and \code{||} support lazy evaluation, while \code{@[not\_lazy]} forces both sides to be generated.
+\subsection{Control flow}
+The control-flow syntax is C-like but intentionally explicit. An \code{if} condition is followed by a semicolon. \code{while} is the ordinary conditional loop. \code{loop} is an endless loop; it must either contain \code{break} or be controlled by \code{@[counter(...)]}. The \code{switch} construct supports C-style fallthrough. The \code{@[no\_fall]} annotation inserts hidden breaks into cases, while \code{@[straight]} selects a linear search strategy for switch lowering.
 
-The control-flow syntax is C-like but intentionally explicit. An \code{if} condition is followed by a semicolon. \code{while} is the ordinary conditional loop. \code{loop} is an endless loop; it must contain \code{break} or use \code{@[counter(...)]}. \code{switch} supports C-style fallthrough, while \code{@[no\_fall]} adds hidden breaks to cases.
-
-\begin{lstlisting}[caption={Counted loop and non-fallthrough switch.}]
+\begin{lstlisting}[caption={Counted loop and non-fallthrough switch.}, label={lst:counted_and_switch}]
 @[counter(10)] loop {
     : repeated ten times :
 }
@@ -155,17 +175,37 @@ The control-flow syntax is C-like but intentionally explicit. An \code{if} condi
 @[no_fall]
 @[straight]
 switch tag; {
-    case 1; { exit 1; }
-    default { exit 0; }
+    case 1; { }
+    default { }
 }
 \end{lstlisting}
 
-\subsection{Functions}
-Functions are declared with \code{function}. Prototypes, default arguments, overloading, local functions, function pointers, lambda functions, and variadic arguments are documented. Overloading is restricted: return-type-only overloading is forbidden, overloads are local-only, and candidates are searched in the same scope. Function pointers use \code{ptr i0}, but no signature information remains available through such a pointer.
+\begin{lstlisting}[caption={Hidden break in a prepared switch.}, label={lst:hidden_break_switch_ir}]
+  i32s %0 = alloc(8);
+  goto lb9;
+  lb11:
+  {
+  }
+  goto lb10; // break
+  lb16:
+  {
+  }
+  goto lb10; // break
+  lb9:
+  i64t %2 = csu8 1 as i64;
+  i64t %3 = i32s %0 as i64;
+  i8t %1 = i64t %3 == i64t %2;
+  if i8t %1, goto lb11, else goto lb23;
+  lb23:
+  goto lb16;
+  lb10:
+\end{lstlisting}
 
-Local functions and lambdas do not capture the parent environment. Therefore they are lightweight logic containers, not full closures.
+\subsection{Functions and local functions}
+Functions are declared with \code{function}. The language documentation includes prototypes, default arguments, overloading, local functions, function pointers, lambda functions, and variadic arguments. Overloading is restricted: return-type-only overloading is forbidden, overloads are local-only, and candidates are searched in the same scope. Function pointers use \code{ptr i0}; no signature information remains available through such a pointer.
 
-\FloatBarrier
+Local functions and lambdas do not capture the parent environment. They are therefore lightweight logic containers rather than closures. This design keeps lowering simple and avoids introducing hidden environment objects.
+
 \begin{lstlisting}[caption={Local function passed as a pointer.}]
 function apply(ptr i0 f, i32 a, i32 b) {
     f(a, b);
@@ -181,9 +221,8 @@ function apply(ptr i0 f, i32 a, i32 b) {
 \end{lstlisting}
 
 \section{Annotations and Low-Level Mechanisms}
-Annotations extend the restricted grammar without adding many new constructs. Table~\ref{tab:ann} summarizes the documented annotations.
+Table~\ref{tab:ann} summarizes the documented annotations. These annotations provide low-level control without substantially extending the base grammar.
 
-\FloatBarrier
 \begin{table}[t]
 \centering
 \caption{Documented annotation roles.}
@@ -207,45 +246,21 @@ Annotation & Role \\
 \end{tabular}
 \end{table}
 
-Two built-in mechanisms expose low-level behavior: \code{syscall} and \code{asm}. A syscall is invoked like a function and takes a platform-dependent argument list. Inline assembly can receive CPL values and refer to them through numbered placeholders. Inline assembly is documented as not optimized by the compiler.
+Two built-in mechanisms expose behavior below the ordinary language level: \code{syscall} and \code{asm}. A syscall is invoked like a function and takes a platform-dependent argument list. Inline assembly can receive \cpl{} values and refer to them through numbered placeholders. Inline assembly is not optimized by the compiler and should be treated as an opaque operation during optimization.
 
 \section{Front End}
-The preprocessor handles \code{include}, \code{define}, \code{undef}, \code{ifdef}, and \code{ifndef}. This is necessary because the project uses C-like header organization: headers contain prototypes and guards, while implementation files contain bodies. After preprocessing, \code{line} directives preserve source-origin information for tokenization.
+\subsection{Preprocessing}
+The preprocessor supports \code{include}, \code{define}, \code{undef}, \code{ifdef}, and \code{ifndef}. This is necessary because the project uses C-like header organization: headers contain prototypes and guards, while implementation files contain function bodies. After preprocessing, line directives preserve source-origin information for the tokenizer and later diagnostics.
 
-Tokenization splits the input byte sequence into basic tokens using DFA-like logic. Markup is a second token-level stage that uses scopes and declarations to attach semantic information to tokens. If \code{i32 a} is declared in a scope, later visible occurrences of \code{a} can be marked as \code{i32}.
+\subsection{Tokenization and semantic markup}
+Tokenization splits the input byte sequence into tokens using deterministic scanning logic. Semantic markup is a second token-level stage. It uses scopes and declarations to attach semantic information to tokens before full parsing. For example, if \code{i32 a} is declared in a scope, later visible occurrences of \code{a} can be marked as references to an \code{i32} entity. This stage is not a replacement for type checking, but it gives the parser and later diagnostics a richer token stream.
 
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[
-  every node/.style={font=\footnotesize},
-  tok/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=7mm, fill=gray!8},
-  typ/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=9mm, fill=red!10},
-  name/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=7mm, fill=orange!13},
-  op/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=7mm, fill=green!10},
-  lit/.style={draw, rounded corners=1pt, minimum height=6mm, minimum width=8mm, fill=blue!9}
-]
-\node[tok] at (0,0) {\{};
-\node[typ] at (0.6,-0.55) {i32};
-\node[name] at (1.25,-0.55) {a};
-\node[op] at (1.85,-0.55) {=};
-\node[lit] at (2.45,-0.55) {10};
-\node[tok] at (3.05,-0.55) {;};
-\node[typ] at (0.6,-1.25) {f64};
-\node[name] at (1.25,-1.25) {b};
-\node[op] at (1.85,-1.25) {=};
-\node[lit] at (2.55,-1.25) {20.0};
-\node[tok] at (3.35,-1.25) {;};
-\node[tok] at (0,-1.9) {\}};
-\draw[decorate,decoration={brace,mirror,amplitude=4pt}] (0.35,-1.65) -- (3.65,-1.65) node[midway,below=5pt,font=\scriptsize] {scope and type metadata};
-\end{tikzpicture}
-\caption{Token markup as a semantic layer over the token stream.}
-\label{fig:markup}
-\end{figure}
+\subsection{AST construction}
+The parser builds an \astrep{} using an LL-style approach. Keeping the grammar restricted reduces ambiguity and keeps recursive-descent parsing practical. AST-level transformations include condition unrolling and dead-scope elimination, but the main optimization path starts after lowering to an intermediate representation.
 
-The parser then builds an AST using an LL approach. AST-level optimizations include condition unrolling and dead-scope elimination, but the documentation treats later IR-level optimizations as the main optimization path.
-
-\section{HIR, CFG, and SSA}
-The AST is flattened into HIR, a three-address-code-like representation. This makes later optimization easier. For example, array indexing is expanded into base-address computation, scaled offsets, address addition, and memory store operations.
+\section{Intermediate Representations}
+\subsection{HIR lowering}
+The \astrep{} is flattened into a three-address-code-like high-level intermediate representation. This representation makes evaluation order and temporary values explicit. For example, array indexing is expanded into base-address computation, scaled offsets, address addition, and memory store operations, as shown in Figure~\ref{fig:hirlower}.
 
 \begin{figure}[t]
 \centering
@@ -268,9 +283,10 @@ The AST is flattened into HIR, a three-address-code-like representation. This ma
 \label{fig:hirlower}
 \end{figure}
 
-The CFG is generated from HIR. The documentation describes both one-block-per-command and leader-based splitting. The leader approach starts a block at the first instruction, at jump targets, and immediately after jumps.
+\subsection{CFG and SSA}
+The \cfg{} is generated from \hir{}. The implementation supports both one-block-per-command construction and leader-based splitting. In the leader approach, a new block starts at the first instruction, at jump targets, and immediately after jumps.
 
-SSA form then renames assigned variables so that each assignment creates a unique variable version. Dominators, strict dominators, and dominance frontiers are computed to place phi functions where control-flow paths merge.
+The compiler then computes dominators, strict dominators, and dominance frontiers to construct \ssa{} form. Each assignment creates a new variable version, and phi functions are inserted where values from distinct control-flow paths merge~\cite{cytron1991ssa}. Figure~\ref{fig:phi} illustrates this form.
 
 \begin{figure}[t]
 \centering
@@ -298,8 +314,8 @@ SSA form then renames assigned variables so that each assignment creates a uniqu
 \label{fig:phi}
 \end{figure}
 
-\section{Optimization}
-After SSA, the compiler can build a DAG that records how values are derived. Nodes with the same hash and compatible dominance can be merged, enabling common subexpression elimination. HIR optimizations also include constant folding and propagation, dead function elimination via a call graph, tail recursion elimination, function inlining, loop canonicalization, and LICM.
+\section{Optimization Pipeline}
+After \ssa{} construction, the compiler can build a DAG that records how values are derived. Nodes with the same hash and compatible dominance relation can be merged, enabling common subexpression elimination. Other \hir{} optimizations include constant folding, constant propagation, dead function elimination through a call graph, tail-recursion elimination, function inlining, loop canonicalization, and loop-invariant code motion.
 
 \begin{figure}[t]
 \centering
@@ -326,28 +342,28 @@ After SSA, the compiler can build a DAG that records how values are derived. Nod
 \label{fig:dag}
 \end{figure}
 
-Inlining uses a heuristic score. Calls in loops and calls to small functions receive positive score; large callees receive negative score. If the call becomes an inline candidate, the compiler copies the function body, replaces argument loads, and substitutes the return value.
+Inlining uses a heuristic score. Calls in loops and calls to small functions receive a positive score; large callees receive a negative score. If the score passes the threshold, the compiler copies the callee body, replaces argument loads, and substitutes the returned value.
 
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}[
   every node/.style={font=\footnotesize},
-  codebox/.style={draw, rounded corners=2pt, align=left, fill=gray!8, inner sep=4pt, text width=34mm},
-  repl/.style={draw, rounded corners=2pt, align=left, fill=green!10, inner sep=4pt, text width=34mm},
+  codebox/.style={draw, rounded corners=2pt, align=left, fill=gray!8, inner sep=4pt, text width=31mm},
+  repl/.style={draw, rounded corners=2pt, align=left, fill=green!10, inner sep=4pt, text width=31mm},
   arr/.style={-{Latex[length=2mm]}, thick}
 ]
 \node[codebox] (l) at (0,0) {\code{function foo(i32 a) \{}\\\code{  a = loadparam();}\\\code{  return a + 10;}\\\code{\}}\\[1mm]\code{start() \{}\\\code{  exit foo(10);}\\\code{\}}};
-\node[repl] (r) at (5.0,0) {\code{function foo(i32 a) \{}\\\code{  a = loadparam();}\\\code{  return a + 10;}\\\code{\}}\\[1mm]\code{start() \{}\\\code{  i32 a1 = 10;}\\\code{  exit a1 + 10;}\\\code{\}}};
+\node[repl] (r) at (4.5,0) {\code{function foo(i32 a) \{}\\\code{  a = loadparam();}\\\code{  return a + 10;}\\\code{\}}\\[1mm]\code{start() \{}\\\code{  i32 a1 = 10;}\\\code{  exit a1 + 10;}\\\code{\}}};
 \draw[arr] (l.east) -- node[above,font=\scriptsize] {inline} (r.west);
 \end{tikzpicture}
 \caption{Function inlining by body copying and return substitution.}
 \label{fig:inline}
 \end{figure}
 
-\section{LIR, Liveness, and Registers}
-LIR is a lower intermediate representation closer to target instructions. It is similar to 3AC but uses a two-address form. It bridges HIR and the target-specific assembly dialect. On x86-64, instruction selection, ABI-related pre-coloring, and register allocation become important at this level.
+\section{LIR, Liveness, and Register Allocation}
+\lir{} is a lower intermediate representation closer to target instructions. It is similar to three-address code, but it uses a two-address form where appropriate. It bridges the higher-level \hir{} and target-specific assembly generation. On x86-64, this is the stage where instruction selection, ABI-related pre-coloring, and register allocation become important.
 
-Liveness analysis computes \code{USE}, \code{DEF}, \code{IN}, and \code{OUT} for each CFG block:
+Liveness analysis computes \code{USE}, \code{DEF}, \code{IN}, and \code{OUT} for each \cfg{} block:
 \[
 OUT[B] = \bigcup_{S \in succ(B)} IN[S]
 \]
@@ -380,9 +396,9 @@ The compiler iterates in reverse order until the sets stabilize. If a variable a
 \label{fig:liveness}
 \end{figure}
 
-For pointers, the compiler uses an alias map. If \code{b0} owns a reference to \code{a0}, \code{a0} must not be killed while \code{b0} is live. This is stack-slot reuse and liveness protection, not Rust-style memory safety.
+For pointers, the compiler uses an alias map. If \code{b0} owns a reference to \code{a0}, \code{a0} must not be killed while \code{b0} remains live. This is stack-slot reuse and liveness protection, not a formal memory-safety system.
 
-Register allocation builds an interference graph. Vertices are variables; edges connect variables that are live at the same time. Coloring assigns different colors to adjacent nodes, and each color corresponds to a reusable physical register choice.
+Register allocation builds an interference graph. Vertices are variables; edges connect variables that are live at the same time. Coloring assigns different colors to adjacent nodes, and each color corresponds to a reusable physical register choice~\cite{chaitin1981register}.
 
 \begin{figure}[t]
 \centering
@@ -405,10 +421,10 @@ Register allocation builds an interference graph. Vertices are variables; edges 
 \label{fig:coloring}
 \end{figure}
 
-\section{Peephole Optimization and Codegen}
-The peephole optimizer performs pattern matching and replacement on LIR or assembly-like forms. The simplest documented example is replacing \code{mov rax, 0} with \code{xor rax, rax}. The project uses a PTRN DSL to generate pattern matchers instead of coding every pattern by hand.
+\section{Peephole Optimization and Code Generation}
+The peephole optimizer performs local pattern matching and replacement on \lir{} or assembly-like forms. A typical example is replacing \code{mov rax, 0} with \code{xor rax, rax}. The project uses a PTRN domain-specific language to generate pattern matchers instead of coding every pattern by hand.
 
-The documented peephole stage has three passes: pattern matching, value propagation through redundant move chains, and dead-write cleanup. Code generation then unwraps special LIR operations such as \code{EXITOP} and \code{STRT} and emits NASM assembly.
+The documented peephole stage has three passes: pattern matching, value propagation through redundant move chains, and dead-write cleanup. Code generation then unwraps special \lir{} operations such as \code{EXITOP} and \code{STRT} and emits NASM assembly.
 
 \begin{figure}[t]
 \centering
@@ -433,14 +449,14 @@ The documented peephole stage has three passes: pattern matching, value propagat
 \end{figure}
 
 \section{Static Diagnostics and Debugging}
-The static checker has AST and IR parts. AST warnings cover read-only updates, declarations without initialization, wrong declaration values, missing returns, missing \code{exit} in \code{start}, wrong argument counts, wrong argument types, unused function results, return-type mismatches, illegal array access, duplicated branches, reserved function names, dead code, suspicious conversions, inefficient \code{while 1}, invalid \code{exit}, targetless \code{break}, misuse of \code{i0}, unused expressions, invalid \code{ref}, and non-even alignment.
+The static checker has both \astrep{} and intermediate-representation components. AST-level warnings include read-only updates, declarations without initialization, invalid declaration values, missing returns, missing \code{exit} in \code{start}, wrong argument counts, wrong argument types, unused function results, return-type mismatches, illegal array access, duplicated branches, reserved function names, dead code, suspicious conversions, inefficient \code{while 1}, invalid \code{exit}, targetless \code{break}, misuse of \code{i0}, unused expressions, invalid \code{ref}, and non-even alignment.
 
-IR analysis handles lower-level warnings such as null dereference, null dereference through arguments, constant conditions, propagated constants, wrong casts, and syscall-related checks. Static analysis is off by default and enabled with \code{--static-analysis}.
+Intermediate-representation analysis handles lower-level warnings such as null dereference, null dereference through arguments, constant conditions, propagated constants, wrong casts, and syscall-related checks. Static analysis is off by default and is enabled with \code{--static-analysis}.
 
 For debugging, the compiler can produce assembly with \code{--emit-asm}. The \code{-d} flag includes DWARF information, and \code{lis} is an interrupt point usable with \code{gdb} or \code{lldb}. The documentation recommends disabling optimizations when debugging code that must not be transformed.
 
 \section{Benchmark Methodology}
-The benchmark documentation compares GCC 14.2.0, Apple Clang 12.0.0, and CPL v3.4 on MACHO64. GCC and Clang use \code{-O0} and \code{-O3}. CPL also uses \code{-O0} and \code{-O3}; the documented \code{-O3} set includes LICM, peephole optimization, CSE, DCE, and constant propagation/folding.
+The benchmark documentation compares GCC 14.2.0, Apple Clang 12.0.0, and \cpl{} v3.4 on MACHO64. GCC and Clang use \code{-O0} and \code{-O3}. \cpl{} also uses \code{-O0} and \code{-O3}; the documented \code{-O3} set includes loop-invariant code motion, peephole optimization, common subexpression elimination, dead-code elimination, constant propagation, and constant folding.
 
 \begin{table}[t]
 \centering
@@ -455,18 +471,18 @@ CPU & i7 3650QM, quad-core, 2.4 GHz \\
 RAM & 16 GB DDR3, 1600 MHz \\
 GCC & GCC 14.2.0, Homebrew \\
 Clang & Apple Clang 12.0.0 \\
-CPL & CPL v3.4, MACHO64 \\
+\cpl{} & \cpl{} v3.4, MACHO64 \\
 Runs & 5 per configuration \\
-CPL timing & \code{py-time}, after compilation \\
+\cpl{} timing & \code{py-time}, after compilation \\
 C/C++ timing & \code{gnu-time}, after compilation \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\par The documentation warns that some C microbenchmarks use \code{asm volatile} to prevent dead-code elimination, while CPL preserves such loops by default. These tests should therefore be interpreted as loop-overhead measurements rather than broad compiler-performance benchmarks. The documentation also suggests reading CPL times conservatively, with about +30\% adjustment for possible measurement issues.
+Some C microbenchmarks use \code{asm volatile} to prevent dead-code elimination, while \cpl{} preserves such loops by default. These tests should therefore be interpreted as loop-overhead measurements rather than broad compiler-performance benchmarks. The documentation also recommends reading \cpl{} timings conservatively, with an approximate +30\% adjustment for possible measurement issues.
 
 \section{Benchmark Results}
-Lower runtime is better. The following charts reproduce the raw documented values with TikZ bars.
+Lower runtime is better. Figures~\ref{fig:bench-empty}--\ref{fig:bench-brainfuck} reproduce the documented values. Table~\ref{tab:size} reports assembly-size reductions after optimization.
 
 \begin{figure}[t]
 \centering
@@ -480,7 +496,7 @@ Lower runtime is better. The following charts reproduce the raw documented value
   \node[rotate=90,anchor=west,font=\scriptsize] at (\i+0.37,\v+0.04) {\v};
 }
 \end{tikzpicture}
-\caption{Empty loop benchmark. Optimized CPL assembly: 20 lines, down from 31.}
+\caption{Empty loop benchmark. Optimized \cpl{} assembly: 20 lines, down from 31.}
 \label{fig:bench-empty}
 \end{figure}
 
@@ -496,7 +512,7 @@ Lower runtime is better. The following charts reproduce the raw documented value
   \node[rotate=90,anchor=west,font=\scriptsize] at (\i+0.37,\v+0.001) {\v};
 }
 \end{tikzpicture}
-\caption{Million Fibonacci benchmark. Optimized CPL assembly: 27 lines, down from 48.}
+\caption{Million Fibonacci benchmark. Optimized \cpl{} assembly: 27 lines, down from 48.}
 \label{fig:bench-fib}
 \end{figure}
 
@@ -512,7 +528,7 @@ Lower runtime is better. The following charts reproduce the raw documented value
   \node[rotate=90,anchor=west,font=\scriptsize] at (\i+0.37,\v+0.01) {\v};
 }
 \end{tikzpicture}
-\caption{Pointer and string traversal benchmark. Optimized CPL assembly: 84 lines, down from 103.}
+\caption{Pointer and string traversal benchmark. Optimized \cpl{} assembly: 84 lines, down from 103.}
 \label{fig:bench-string}
 \end{figure}
 
@@ -528,13 +544,13 @@ Lower runtime is better. The following charts reproduce the raw documented value
   \node[rotate=90,anchor=west,font=\scriptsize] at (\i+0.37,\v+0.006) {\v};
 }
 \end{tikzpicture}
-\caption{Brainfuck benchmark. Optimized CPL assembly: 516 lines, down from 769.}
+\caption{Brainfuck benchmark. Optimized \cpl{} assembly: 516 lines, down from 769.}
 \label{fig:bench-brainfuck}
 \end{figure}
 
 \begin{table}[t]
 \centering
-\caption{Documented CPL assembly-size reductions.}
+\caption{Documented \cpl{} assembly-size reductions.}
 \label{tab:size}
 \begin{tabular}{@{}lrrr@{}}
 \toprule
@@ -548,16 +564,50 @@ Brainfuck & 769 & 516 & 32.9\% \\
 \end{tabular}
 \end{table}
 
-\par The empty-loop result is best read as loop-overhead evidence because the benchmark is artificial and dead-code elimination behavior differs. Fibonacci reports optimized GCC and optimized CPL at 0.412 seconds, with optimized Clang at 0.417 seconds. String traversal reports optimized CPL slower than optimized Clang and GCC. Brainfuck reports optimized CPL and optimized Clang at 0.403 seconds, with optimized GCC at 0.487 seconds.
+The empty-loop result is best read as loop-overhead evidence because the benchmark is artificial and dead-code elimination behavior differs between implementations. Fibonacci reports optimized GCC and optimized \cpl{} at 0.412 seconds, with optimized Clang at 0.417 seconds. String traversal reports optimized \cpl{} slower than optimized Clang and GCC. Brainfuck reports optimized \cpl{} and optimized Clang at 0.403 seconds, with optimized GCC at 0.487 seconds.
 
-\section{Limitations}
-This report is not an independent validation. It does not run the compiler, inspect source code, or reproduce benchmarks. All feature descriptions and measurements come from the uploaded documentation. The diagrams are TikZ reconstructions based on the documentation and reference images.
+\section{Threats to Validity and Limitations}
+This report is a technical presentation of the project rather than an independent validation. The benchmark measurements have not been reproduced in a controlled external environment. The benchmark set is small, the programs are microbenchmarks, and timing methods differ between \cpl{} and the C/C++ compilers. Some tests also use mechanisms such as \code{asm volatile}, which changes the optimization space and makes direct comparison less general.
+
+The language itself is intentionally incomplete relative to industrial systems languages. It omits complex aggregate types and does not provide formal memory-safety guarantees. These omissions are part of the experimental design, but they also limit the current range of source programs that can be naturally expressed.
 
 \section{Conclusion}
-The documentation presents CPL as a compact, explicit, low-level language and Cordell Compiler as an end-to-end compiler laboratory. The pipeline covers preprocessing, tokenization, semantic markup, AST construction, HIR lowering, CFG and SSA, DAG-based optimization, LIR, liveness, register allocation, peephole optimization, and NASM code generation. The benchmark values suggest that the documented optimizer can generate compact and competitive code for selected small examples, while the most important contribution of the project is the coherent educational compiler pipeline.
+\cpl{} and the Cordell Compiler form a compact experimental platform for systems-language and compiler-construction work. The language keeps a restricted C-like surface while exposing low-level control through explicit casts, pointers, annotations, system calls, and inline assembly. The compiler pipeline covers preprocessing, tokenization, semantic markup, \astrep{} construction, \hir{} lowering, \cfg{} and \ssa{} construction, DAG-based optimization, \lir{}, liveness analysis, register allocation, peephole rewriting, and NASM-oriented code generation.
 
-\appendix
-\section{Literature Listed in the Documentation}
-The documentation lists Aarne Ranta's compiler text, the Dragon Book, Appel's \textit{Modern Compiler Implementation in C}, Cytron et al. on SSA and control dependence, Kusswurm's x86 assembly book, and the instruction scheduling text by Jason Robert and Carey Patterson.
+The main value of the project is not that the language replaces production systems languages, but that it gives a coherent end-to-end environment for studying how source-level restrictions, compiler diagnostics, and low-level code generation interact. Future work should include a reproducible benchmark suite, clearer formalization of the language grammar and type rules, more precise alias analysis, and a broader evaluation of diagnostics on real low-level programs.
+
+\begin{thebibliography}{9}
+
+\bibitem{aho2007compilers}
+A.~V. Aho, M.~S. Lam, R.~Sethi, and J.~D. Ullman.
+\newblock \emph{Compilers: Principles, Techniques, and Tools}.
+\newblock 2nd edition, Addison-Wesley, 2007.
+
+\bibitem{appel1998modern}
+A.~W. Appel.
+\newblock \emph{Modern Compiler Implementation in C}.
+\newblock Cambridge University Press, 1998.
+
+\bibitem{cooper2012engineering}
+K.~D. Cooper and L.~Torczon.
+\newblock \emph{Engineering a Compiler}.
+\newblock 2nd edition, Morgan Kaufmann, 2012.
+
+\bibitem{cytron1991ssa}
+R.~Cytron, J.~Ferrante, B.~K. Rosen, M.~N. Wegman, and F.~K. Zadeck.
+\newblock Efficiently computing static single assignment form and the control dependence graph.
+\newblock \emph{ACM Transactions on Programming Languages and Systems}, 13(4):451--490, 1991.
+
+\bibitem{chaitin1981register}
+G.~J. Chaitin, M.~A. Auslander, A.~K. Chandra, J.~Cocke, M.~E. Hopkins, and P.~W. Markstein.
+\newblock Register allocation via coloring.
+\newblock \emph{Computer Languages}, 6(1):47--57, 1981.
+
+\bibitem{kusswurm2023x86}
+D.~Kusswurm.
+\newblock \emph{Modern X86 Assembly Language Programming}.
+\newblock 3rd edition, Apress, 2023.
+
+\end{thebibliography}
 
 \end{document}
