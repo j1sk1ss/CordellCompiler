@@ -1,6 +1,14 @@
 #include <hir/loop.h>
 
-// TODO: docs
+/*
+Get the basic id of a SSA-variable.
+Will try to find the highest id (id of a variable, id of the variable's parent, etc.).
+Params:
+    - `v_id` - Basic SSA-variable id.
+    - `smt` - Symtable.
+
+Returns the base id of a variable.
+*/
 static symbol_id_t _gather_base_vid(symbol_id_t v_id, sym_table_t* smt) {
     variable_info_t vi;
     if (!VRTB_get_info_id(v_id, &vi, &smt->v)) return v_id;
@@ -89,8 +97,14 @@ static int _get_loop_hir_blocks(set_t* loop, set_t* b) {
     return 1;
 }
 
-// TODO: docs
-static int _hir_can_be_licm_def(hir_block_t* hh) {
+/*
+Check whether the provided HIR block can be moved form a loop.
+Params:
+    - `hh` - HIR block.
+
+Returns 1 if this block can be moved.
+*/
+static inline int _hir_can_be_licm_def(hir_block_t* hh) {
     if (
         !hh || !HIR_is_writeop(hh->op) || HIR_is_sideeffect_op(hh->op) ||
         !hh->farg || !HIR_is_vartype(hh->farg->t)
@@ -98,37 +112,54 @@ static int _hir_can_be_licm_def(hir_block_t* hh) {
     return 1;
 }
 
-// TODO: docs
+/*
+Add the provided variable and its parent variable.
+Params:
+    - `s` - Output set.
+    - `v_id` - Variable's Id.
+    - `smt` - Symtable.
+*/
 static int _set_add_vid_with_base(set_t* s, symbol_id_t v_id, sym_table_t* smt) {
     int changed = 0;
     changed |= set_add(s, (void*)v_id);
-    if (smt) {
-        symbol_id_t base_id = _gather_base_vid(v_id, smt);
-        changed |= set_add(s, (void*)base_id);
-    }
-
+    symbol_id_t base_id = _gather_base_vid(v_id, smt);
+    changed |= set_add(s, (void*)base_id);
     return changed;
 }
 
-// TODO: docs
-static int _set_add_subject_vid_with_base(set_t* s, hir_subject_t* subj, sym_table_t* smt) {
-    if (!subj || !HIR_is_vartype(subj->t)) return 0;
-    return _set_add_vid_with_base(s, subj->storage.var.v_id, smt);
-}
+/*
+Add all subjects of a block to a set as a variable with its parent.
+Note: This is a wrapper.
+Params:
+    - `s` - Output set.
+    - `hh` - Block with variables.
+    - `smt` - Symtable.
 
-// TODO: docs
+Returns 1 if succeeds and has changed something.
+*/
 static int _set_add_block_vids_with_base(set_t* s, hir_block_t* hh, sym_table_t* smt) {
     if (!hh) return 0;
     int changed = 0;
     hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
     for (int i = 0; i < 3; i++) {
-        changed |= _set_add_subject_vid_with_base(s, args[i], smt);
+        if (!args[i] || !HIR_is_vartype(args[i]->t)) continue;
+        changed |= _set_add_vid_with_base(s, args[i]->storage.var.v_id, smt);
     }
 
     return changed;
 }
 
-// TODO: docs
+/*
+Check whether any subject from a block uses some variables outside.
+Params:
+    - `hh` - HIR block.
+    - `s` - Output set.
+    - `smt` - Symtable.
+    - `loop_hir` - Loop to consideration.
+    - `visited` - Guards.
+
+Returns 1 if the block does.
+*/
 static int _hir_uses_any_vid_from_set(hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir);
 
 /*
@@ -214,12 +245,30 @@ static cfg_block_t* _get_hir_block_cfg(set_t* s, hir_block_t* trg) {
     return NULL;
 }
 
-// TODO: docs
+/*
+Check whether the provided block depends on a variable which is outside.
+Params:
+    - `hh` - HIR block.
+    - `v_id` - Variable to check.
+    - `smt` - Symtable.
+    - `loop_hir` - Loop to consideration.
+
+Returns 1 if the block does.
+*/
 static int _hir_rhs_depends_on_vid(
     hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
 );
 
-// TODO: docs
+/*
+Check whether the provided subject depends on a variable which is outside.
+Params:
+    - `hh` - HIR block.
+    - `v_id` - Variable to check.
+    - `smt` - Symtable.
+    - `loop_hir` - Loop to consideration.
+
+Returns 1 if the block does.
+*/
 static int _hir_subject_depends_on_vid(
     hir_subject_t* s, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
@@ -247,7 +296,16 @@ static int _hir_rhs_depends_on_vid(
     return 0;
 }
 
-// TODO: docs
+/*
+Check whether the provided block uses a variable which is outside.
+Params:
+    - `hh` - HIR block.
+    - `v_id` - Variable to check.
+    - `smt` - Symtable.
+    - `loop_hir` - Loop to consideration.
+
+Returns 1 if the block does.
+*/
 static int _hir_uses_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir) {
     set_t visited;
     if (!set_init(&visited, SET_NO_CMP)) return 0;
@@ -256,12 +314,34 @@ static int _hir_uses_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, se
     return res;
 }
 
-// TODO: docs
+/*
+Check whether any subject from a block depends from some variables outside.
+Params:
+    - `hh` - HIR block.
+    - `s` - Output set.
+    - `smt` - Symtable.
+    - `loop_hir` - Loop to consideration.
+    - `visited` - Guards.
+
+Returns 1 if the block does.
+*/
 static int _hir_rhs_depends_on_any_vid_from_set(
     hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 );
 
-// TODO: docs
+/*
+Check whether a subject is dependent on any outside variable.
+We need to check this to be sure that we can safely move a block from
+a loop. Additionally, we can check whether a block is inductive or not.
+Params:
+    - `subj` - Subject to consideration.
+    - `s` - Output set of dependencies.
+    - `smt` - Symtable.
+    - `loop_hir` - Current loop to consideration.
+    - `visited` - Gurads.
+
+Returns 1 if the subject depends on outside data.
+*/
 static int _hir_subject_depends_on_any_vid_from_set(
     hir_subject_t* subj, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
@@ -277,7 +357,6 @@ static int _hir_subject_depends_on_any_vid_from_set(
     return _hir_rhs_depends_on_any_vid_from_set(subj->home, s, smt, loop_hir, visited);
 }
 
-// TODO: docs
 static int _hir_rhs_depends_on_any_vid_from_set(
     hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
@@ -349,8 +428,16 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
     return 1;
 }
 
-// TODO: docs
-static int _move_to_preheader(cfg_block_t* preheader, cfg_block_t* src_cfg, hir_block_t* inv) {
+/*
+Move the `inv` to a pre-header.
+Params:
+    - `preheader` - Detination base block.
+    - `src_cfg` - Source base block where the `inv` from.
+    - `inv` - Invariant HIR block.
+
+Returns 1 if succeeds.
+*/
+static inline int _move_to_preheader(cfg_block_t* preheader, cfg_block_t* src_cfg, hir_block_t* inv) {
     if (!preheader || !src_cfg || !inv) return 0;
     HIR_CFG_remove_hir_block(src_cfg, inv);
     HIR_unlink_block(inv);
@@ -436,6 +523,7 @@ int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt
     changed |= _licm_process(cctx, loop, smt, licm);
     return changed;
 }
+
 // TODO: Loop unrolling optimization
 int HIR_LTREE_licm(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {

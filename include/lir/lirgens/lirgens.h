@@ -27,7 +27,15 @@ Returns 1 if succeeds.
 */
 int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt);
 
-// TODO: docs
+/*
+Rename all 'PHI_PREAMBULE' to a default mov operations. This
+will destroy SSA-form of a code which means further optimizations 
+must use latticies ot something similar to that approach.
+Params:
+    - `cctx` - CFG context.
+
+Returns 1 if succeeds.
+*/
 int LIR_destroy_ssa(cfg_ctx_t* cctx);
 
 #endif

@@ -244,7 +244,17 @@ Return 1 if success, otherwise 0.
 */
 int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt);
 
-// TODO: docs
+/*
+Get all blocks which don't have predcessors, then check whether they
+are an entry points or not. If they aren't - remove them and clear
+its HIR blocks.
+Note: It's an important action before dominance calculation, given the
+CFG generation artifacts!
+Params:
+    - `ctx` - CFG context.
+
+Returns 1 if succeeds. 
+*/
 int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx);
 
 /*

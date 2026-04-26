@@ -43,14 +43,11 @@ Returns 1 if succeeds.
 static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new, cfg_func_t* fb) {
     while (h) {
         if (h->op != HIR_MKLB) {
-            hir_subject_t* args[3] = { h->farg, h->sarg, h->targ };
+            hir_subject_t** args[3] = { &h->farg, &h->sarg, &h->targ };
             for (int i = 0; i < 3; i++) {
-                if (args[i] && args[i]->t == HIR_LABEL && args[i]->id == old->id) {
-                    switch (i) {
-                        case 0:  h->farg = new; break;
-                        case 1:  h->sarg = new; break;
-                        default: h->targ = new; break;
-                    }
+                hir_subject_t** curr = args[i];
+                if (*curr && (*curr)->t == HIR_LABEL && (*curr)->id == old->id) {
+                    *curr = new;
                 }
             }
         }

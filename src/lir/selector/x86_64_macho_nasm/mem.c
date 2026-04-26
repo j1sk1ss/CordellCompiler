@@ -111,7 +111,13 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
-// TODO: docs
+/*
+Get the size of a token type.
+Params:
+    - `t` - Token type.
+
+Returns the size of a token type depends on the target arch.
+*/
 static inline int _get_ast_type_size(token_type_t t) {
     switch (t) {
         case TMP_I64_TYPE_TOKEN: case TMP_U64_TYPE_TOKEN: case TMP_F64_TYPE_TOKEN:
