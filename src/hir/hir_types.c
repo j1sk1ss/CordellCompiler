@@ -281,7 +281,7 @@ int HIR_is_sideeffect_op(hir_operation_t op) {
         case HIR_FCLL:
         case HIR_SYSC:
         case HIR_UFCLL:
-        case HIR_STORE:
+        // case HIR_STORE:
         case HIR_BREAK:
         case HIR_SETPOS: /* Actually, it doesn't do anything special, but otherwise it will be moved by optimizators */
         case HIR_EXITOP:

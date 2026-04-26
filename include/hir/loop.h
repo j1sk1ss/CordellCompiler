@@ -80,6 +80,9 @@ Returns the size of nested structure.
 */
 int HIR_LTREE_nested_count(loop_node_t* node);
 
+// TODO: docs
+int HIR_LOOP_perform_dle(ltree_ctx_t* lctx);
+
 /*
 Unload the loop context.
 Params:

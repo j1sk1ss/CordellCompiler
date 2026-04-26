@@ -167,10 +167,7 @@ static int _build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {
 int HIR_LOOP_mark_loops(cfg_ctx_t* cctx, ltree_ctx_t* lctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        if (!_build_loop_tree(fb, lctx)) {
-            HIR_LTREE_unload_ctx(lctx);
-            return 0;
-        }
+        if (!_build_loop_tree(fb, lctx)) return 0;
     }
 
     return 1;

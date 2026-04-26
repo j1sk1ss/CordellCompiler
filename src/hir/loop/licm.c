@@ -190,7 +190,6 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
                 set_has(invariant_defs, hh) || /* Already in the invariant set        */
                 !_hir_can_be_licm_def(hh)      /* If this operation has a side effect */
             ) continue;
-
             int invariant = !_hir_uses_any_vid_from_set(hh, inductive, smt, loop_hir);
             hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
             for (int i = HIR_is_writeop(hh->op); i < 3; i++) {
