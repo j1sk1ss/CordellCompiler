@@ -1,4 +1,3 @@
-: BUG :
 : BLOCK_TEST :
 : RUN_ASM :
 function putc(i8 c) -> i0 {
@@ -9,7 +8,7 @@ function put_digit(i64 x) -> i0 {
     putc(('0' + x) as i8);
 }
 
-function pack(i32 a, i32 b) -> i32 {
+function pack(...) -> i32 {
     @[poparg] i32 x;
     @[poparg] i32 y;
     return x * 10 + y;

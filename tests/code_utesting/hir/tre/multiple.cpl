@@ -38,6 +38,5 @@ function foo(i32 a) {
             return i64t %8;
         }
     }
-    [unused]
 }
 /:

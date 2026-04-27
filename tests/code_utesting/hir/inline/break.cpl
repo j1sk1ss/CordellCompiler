@@ -18,7 +18,6 @@ start() {
             return i8n 100;
         }
     }
-    [unused]
     start {
         {
             {
@@ -30,11 +29,12 @@ start() {
                     if i8n 1, goto lb22, else goto lb23;
                     lb22:
                     {
+                        lb35:
                         [unused] call foo0(), argc args();
                         // break;
                         goto lb23;
-                    [unused] }
-                    [unused] goto lb21;
+                    }
+                    goto lb21;
                     lb23:
                 }
                 goto lb15;

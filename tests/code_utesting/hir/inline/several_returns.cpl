@@ -22,7 +22,6 @@ start() {
             return i8n 2;
         }
     }
-    [unused]
     start {
         {
             {

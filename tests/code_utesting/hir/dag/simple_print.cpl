@@ -43,8 +43,8 @@ digraph DAG {
   lb12 -> lb11 [label="farg"];
   lb2 -> lb1 [label="farg"];
   lb2 -> lb3 [style=dashed, color=gray, label="user"];
-  lb17 -> lb18 [style=dashed, color=gray, label="user"];
   lb17 -> lb19 [style=dashed, color=gray, label="user"];
+  lb17 -> lb18 [style=dashed, color=gray, label="user"];
   lb19 -> lb17 [label="farg"];
   lb13 -> lb6 [label="farg"];
   lb13 -> lb9 [label="farg"];
@@ -52,8 +52,8 @@ digraph DAG {
   lb8 -> lb11 [style=dashed, color=gray, label="user"];
   lb5 -> lb4 [label="farg"];
   lb5 -> lb11 [style=dashed, color=gray, label="user"];
-  lb9 -> lb10 [style=dashed, color=gray, label="user"];
   lb9 -> lb13 [style=dashed, color=gray, label="user"];
+  lb9 -> lb10 [style=dashed, color=gray, label="user"];
   lb10 -> lb9 [label="farg"];
   lb1 -> lb2 [style=dashed, color=gray, label="user"];
   lb3 -> lb2 [label="farg"];

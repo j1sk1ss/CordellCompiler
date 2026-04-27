@@ -123,13 +123,13 @@ start(i32 a, ptr ptr i8 answers) {
             i8s** %6 = alloc(8);
             i8s** %6 = load_starg();
             {
-                i64t* %27 = &(Who is better? (max/chloe)
+                i8t* %27 = &(Who is better? (max/chloe)
 );
-                use i64t* %27;
-                call print2(i8* msg) -> i0, argc args(i64t* %27,);
-                i64t* %28 = &(You have written: );
-                use i64t* %28;
-                call print2(i8* msg) -> i0, argc args(i64t* %28,);
+                use i8t* %27;
+                call print2(i8* msg) -> i0, argc args(i8t* %27,);
+                i8t* %28 = &(You have written: );
+                use i8t* %28;
+                call print2(i8* msg) -> i0, argc args(i8t* %28,);
                 i8t** %29 = i8s** %6;
                 i8t %30 = i8n 1 * csu8 8;
                 i8t** %32 = i8t %30 as *ptr;
@@ -137,10 +137,10 @@ start(i32 a, ptr ptr i8 answers) {
                 i8t* %33 = *(i8t** %31);
                 use i8t* %33;
                 call print2(i8* msg) -> i0, argc args(i8t* %33,);
-                i64t* %34 = &(
+                i8t* %34 = &(
 );
-                use i64t* %34;
-                call print2(i8* msg) -> i0, argc args(i64t* %34,);
+                use i8t* %34;
+                call print2(i8* msg) -> i0, argc args(i8t* %34,);
                 i8t** %35 = i8s** %6;
                 i8t %36 = i8n 1 * csu8 8;
                 i8t** %38 = i8t %36 as *ptr;
@@ -153,18 +153,18 @@ start(i32 a, ptr ptr i8 answers) {
                 if i8t %41, goto lb157, else goto lb158;
                 lb157:
                 {
-                    i64t* %42 = &(Wrong!
+                    i8t* %42 = &(Wrong!
 );
-                    use i64t* %42;
-                    call print2(i8* msg) -> i0, argc args(i64t* %42,);
+                    use i8t* %42;
+                    call print2(i8* msg) -> i0, argc args(i8t* %42,);
                 }
                 goto lb159;
                 lb158:
                 {
-                    i64t* %43 = &(Correct!
+                    i8t* %43 = &(Correct!
 );
-                    use i64t* %43;
-                    call print2(i8* msg) -> i0, argc args(i64t* %43,);
+                    use i8t* %43;
+                    call print2(i8* msg) -> i0, argc args(i8t* %43,);
                 }
                 goto lb159;
                 lb159:

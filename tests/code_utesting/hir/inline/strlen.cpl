@@ -40,7 +40,6 @@ start(i32 argc, ptr ptr i8 argv) {
             return i32s %1;
         }
     }
-    [unused]
     start {
         {
             i32s %2 = alloc(8);

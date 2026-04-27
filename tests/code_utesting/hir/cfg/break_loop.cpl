@@ -20,7 +20,8 @@ digraph CFG_func0 {
   B4 [label="B4:\nentry=MKLB12\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B4 -> B7 [label="jump"];
   B5 [label="B5:\nentry=ENDSCOPE-1\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
-  B6 [label="B6:\nentry=MKLB14\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B5 -> B6 [label="jump"];
+  B6 [label="B6:\nentry=MKLB14\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
   B6 -> B2 [label="jump"];
   B7 [label="B7:\nentry=MKLB9\nexit=HIR_STEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
 }

@@ -15,7 +15,5 @@ start(i32 argc, ptr ptr i8 argv) {
 }
 
 :/ OUTPUT
-@measure_time
-@measure_lines
 Hello, World!
 /:

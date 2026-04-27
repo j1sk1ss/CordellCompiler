@@ -56,11 +56,11 @@ start() {
                     }
                     goto lb29;
                     lb29:
-                [unused] }
-                [unused] goto lb9;
+                }
+                goto lb9;
                 lb9:
-            [unused] }
-        [unused] }
-    [unused] }
+            }
+        }
+    }
 }
 /:

@@ -35,7 +35,6 @@ start() {
                         return i32s %2;
                     }
                 }
-                [unused]
                 lb26:
                 i32s %3 = alloc(8);
                 i64t %8 = call local2(i32 a), argc args(i8n 10,);

@@ -22,7 +22,6 @@ start() {
             return i64t %5;
         }
     }
-    [unused]
     start {
         {
             {

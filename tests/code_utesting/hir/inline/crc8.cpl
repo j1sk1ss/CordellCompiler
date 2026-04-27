@@ -103,7 +103,6 @@ start(i32 a, ptr ptr i8 b) {
             return u8t %26;
         }
     }
-    [unused]
     fn strlen1(i8* s) -> i32
     {
         i8s* %5 = alloc(8);
@@ -129,7 +128,6 @@ start(i32 a, ptr ptr i8 b) {
             return i32s %6;
         }
     }
-    [unused]
     start {
         {
             i32s %7 = alloc(8);
@@ -155,6 +153,6 @@ start(i32 a, ptr ptr i8 b) {
                 exit u8t %45;
             }
         }
-    [unused] }
+    }
 }
 /:
