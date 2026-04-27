@@ -30,5 +30,5 @@ rcx = rcx;
 rcx = *(rcx);
 rdi = rcx;
 exit rdi;
-BB4:
+BB4: send
 /:

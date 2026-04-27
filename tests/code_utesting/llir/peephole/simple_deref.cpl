@@ -14,7 +14,7 @@ send
 === AFTER ===
 BB1: start
 rcx = $754688;
-rdx = $754688;
+rdx = rcx;
 rcx = rcx ^ rcx;
 *(rdx) = rcx;
 send

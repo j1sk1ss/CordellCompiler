@@ -1,3 +1,4 @@
+: BUG :
 start() {
     i32 a = 10 as i32;
     i32 b = 20 as i32;

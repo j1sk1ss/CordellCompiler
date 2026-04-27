@@ -10,13 +10,13 @@ rax = rax + $10;
 rcx = rax;
 rdi = rcx;
 exit rdi;
-BB2:
+BB2: send
 === AFTER ===
 BB1: start
 rax = $10;
 rax = rax + $10;
 rcx = rax;
-rdi = rax;
+rdi = rcx;
 exit rdi;
-BB2:
+BB2: send
 /:

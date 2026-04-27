@@ -26,24 +26,24 @@ rax = rax + rdx;
 rdx = rax;
 call bar1();
 rbx = rax;
-rdx movsxd rdx;
+rcx movsxd rdx;
+rax = rcx;
+rax = rax + rbx;
+rcx = rax;
+rax = rcx;
+return rax;
+BB5: fend
+BB6: fn bar1()
+rcx = $1;
+rdx = rcx;
+rcx = $1;
+rbx = rcx;
 rax = rdx;
 rax = rax + rbx;
 rcx = rax;
 rax = rcx;
 return rax;
-BB5:
-BB6: fn bar1()
-rdx = $1;
-rbx = rdx;
-rdx = $1;
-rdx = rdx;
-rax = rbx;
-rax = rax + rdx;
-rcx = rax;
-rax = rcx;
-return rax;
-BB7:
+BB7: fend
 BB8: start
 call foo0();
 send

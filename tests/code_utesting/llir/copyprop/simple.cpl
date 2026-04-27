@@ -8,8 +8,6 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rcx = $1;
-rdi = rcx;
-exit rdi;
+exit $1;
 BB2: send
 /:

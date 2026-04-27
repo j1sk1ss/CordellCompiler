@@ -8,8 +8,8 @@ BB1: start
 rbx = &([rbp - 40]);
 rax = $5;
 rax = rax * 4;
-rdx = rax;
-rdx movsx rdx;
+rcx = rax;
+rdx movsx rcx;
 rax = rbx;
 rax = rax + rdx;
 rcx = rax;

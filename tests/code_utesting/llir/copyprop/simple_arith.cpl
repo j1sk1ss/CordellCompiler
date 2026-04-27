@@ -9,18 +9,9 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rbx = $10;
-rdx = $10;
-rax = rbx;
-rax = rax + rdx;
-rdx = rax;
-rax = rdx;
-rax = rax + rbx;
-rcx = rax;
-rax = rcx;
-rax = rax + rdx;
-rcx = rax;
-rdi = rcx;
-exit rdi;
+%7 = $10 + $10;
+%8 = %7 + $10;
+%9 = %8 + %7;
+exit %9;
 BB2: send
 /:

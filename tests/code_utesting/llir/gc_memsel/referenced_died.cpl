@@ -24,7 +24,7 @@ jne lb14;
 BB2: lb14:
 rcx = &([rbp - 8]);
 rcx = rcx;
-rcx = rcx;
+rcx <<= rcx;
 kill(9);
 jmp lb16;
 BB3: lb16:

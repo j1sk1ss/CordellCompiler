@@ -13,33 +13,35 @@ function foo(i32 a) {
 
 :/ OUTPUT
 BB1: fn _main(i32 a)
-%0 = %5;
+%0 = [rbp + 8];
 %2 = $1;
-%6 = %0;
-cmp %6, %2;
+%5 = %0;
+cmp %5, %2;
 sete al;
 %1 = al;
 cmp %1, 0;
 je lb11;
 jne lb10;
 BB2: lb10:
-%7 = $1;
-return %7;
+%6 = $1;
+return %6;
 BB3: lb11:
 %4 = $2;
-%8 = %0;
-cmp %8, %4;
+%7 = %0;
+cmp %7, %4;
 sete al;
 %3 = al;
 cmp %3, 0;
 je lb24;
 jne lb23;
 BB4: lb23:
-%9 = $2;
-return %9;
+%8 = $2;
+return %8;
 BB5: lb24:
-%10 = $3;
-return %10;
+%9 = $3;
+return %9;
 BB6: lb25:
+jmp lb12;
 BB7: lb12:
+fend
 /:

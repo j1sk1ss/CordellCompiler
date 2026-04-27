@@ -9,14 +9,14 @@ start() {
 :/ OUTPUT
 === BEFORE ===
 BB2: fn foo0(i32 a) -> i32
-rdx = rdi;
-rbx = $100;
-rax = rdx;
-rax = rax + rbx;
+rcx = rdi;
+rdx = $100;
+rax = rcx;
+rax = rax + rdx;
 rcx = rax;
 rax = rcx;
 return rax;
-BB3:
+BB3: fend
 BB4: start
 rdx = $100;
 use rdx;
@@ -27,25 +27,24 @@ rdi = pop();
 rcx = rax;
 rdi = rcx;
 exit rdi;
-BB5:
+BB5: send
 === AFTER ===
 BB2: fn foo0(i32 a) -> i32
-rdx = rdi;
-rbx = $100;
-rax = rdi;
-rax = rax + rbx;
-rcx = rax;
+rcx = rdi;
+rdx = $100;
+rcx = rcx + rdx;
+rax = rcx;
 return rax;
-BB3:
+BB3: fend
 BB4: start
 rdx = $100;
 use rdx;
 push(rdi);
-rdi <<= $100;
+rdi <<= rdx;
 call foo0(i32 a) -> i32;
 rdi = pop();
 rcx = rax;
-rdi = rax;
+rdi = rcx;
 exit rdi;
-BB5:
+BB5: send
 /:

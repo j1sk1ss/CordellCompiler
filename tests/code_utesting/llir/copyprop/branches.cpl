@@ -15,39 +15,26 @@ start() {
 
 :/ OUTPUT
 BB1: start
-rcx = $1;
-rdx = rcx;
+%12 = $1;
 jmp lb14;
 BB2: lb16:
-rcx = $10;
-rdx = $10;
-rax = rcx;
-rax = rax + rdx;
-rcx = rax;
-rdi = rcx;
-exit rdi;
+%5 = $10 + $10;
+exit %5;
 BB3: lb32:
-rdi = rsi;
-exit rdi;
+exit %1;
 BB4: lb14:
-rbx = 1;
-rcx movsxd rdx;
-rax = rcx;
-cmp rax, rbx;
-setl al;
-rcx = al;
-cmp rcx, 0;
+%7 = 1 as i64;
+%9 = %12 as i64;
+%8 = %9 < %7;
+cmp %8, 0;
 je lb40;
 jne lb39;
 BB5: lb39:
 jmp lb32;
 BB6: lb40:
-rcx movsxd rdx;
-rax = rcx;
-cmp rax, rbx;
-setg al;
-rcx = al;
-cmp rcx, 0;
+%11 = %12 as i64;
+%10 = %11 > %7;
+cmp %10, 0;
 je lb42;
 jne lb41;
 BB7: lb41:

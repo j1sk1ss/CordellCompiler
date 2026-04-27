@@ -5,17 +5,17 @@ function foo(i32 a, i32 b) {
 
 :/ OUTPUT
 BB1: fn _main(i32 a, i32 b)
-%0 = %3;
-%1 = &(*%4);
-%5 = %0;
-%7 = %1;
-push(%8);
+%0 = [rbp + 8];
+%1 = &([rbp + 16]);
+%3 = %0;
+%4 = %1;
+push(%5);
 unknwn;
-rdx = %6 % %7;
-rax = rdx;
-%8 = pop();
+edx = %3 % %4;
+eax = edx;
+%5 = pop();
 %2 = eax;
-%9 = %2;
-return %9;
-BB2:
+%6 = %2;
+return %6;
+BB2: fend
 /:

@@ -7,40 +7,37 @@ start() {
 :/ OUTPUT
 === BEFORE ===
 BB1: start
-rdx = 1000000000;
+rcx = 1000000000;
 BB6: kill(2);
-rdx = rdx;
+rcx <<= rcx;
 BB2: lb9:
 jmp lb10;
 BB3: lb10:
-rax = rdx;
+rax = rcx;
 rax = rax - 1;
-rdx = rax;
-rbx = rdx;
-rdx = rbx;
-cmp rbx, 0;
+rcx = rax;
+rdx = rcx;
+rcx <<= rdx;
+cmp rdx, 0;
 je lb11;
 jne lb9;
 BB4: lb11:
 rdi = $0;
 exit rdi;
-BB5:
+BB5: send
 === AFTER ===
 BB1: start
-rdx = 1000000000;
+rcx = 1000000000;
 BB6: kill(2);
 BB2: lb9:
 jmp lb10;
 BB3: lb10:
-rax = rdx;
-rax = rax - 1;
-rbx = rax;
-rdx = rax;
-test rbx, rbx;
+rcx--;
+test rcx, rcx;
 je lb11;
 jne lb9;
 BB4: lb11:
 rdi = rdi ^ rdi;
 exit rdi;
-BB5:
+BB5: send
 /:

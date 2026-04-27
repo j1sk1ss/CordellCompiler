@@ -88,7 +88,11 @@ int main(int argc, char* argv[]) {
     HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
 
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
-    HIR_LTREE_canonicalization(&cfgctx);    // Transform
+    ltree_ctx_t lctx;
+    map_init(&lctx.lmap, MAP_NO_CMP);
+    HIR_LOOP_mark_loops(&cfgctx, &lctx);
+
+    HIR_LTREE_canonicalization(&cfgctx, &lctx);    // Transform
     HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
 
@@ -130,6 +134,7 @@ int main(int argc, char* argv[]) {
 
     map_free(&colors);
     LIR_unload_blocks(lirctx.h);
+    HIR_LTREE_unload_ctx(&lctx);
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.hot.h);
