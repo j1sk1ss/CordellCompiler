@@ -32,7 +32,7 @@ BB4: lb16:
 jmp lb15;
 BB5: lb17:
 return %1;
-BB6:
+BB6: fend
 BB7: start
 %2 = strt_loadarg();
 %3 = strt_loadarg();

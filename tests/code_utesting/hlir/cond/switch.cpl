@@ -20,36 +20,38 @@ BB4:
 BB5: lb17:
 jmp lb8;
 BB6: lb7:
-%1 = $1;
-%0 = %1 < 1;
-cmp %0, 0;
+%0 = 1 as i64;
+%2 = $1 as i64;
+%1 = %2 < %0;
+cmp %1, 0;
 je lb24;
 jne lb23;
 BB7: lb23:
 jmp lb17;
 BB8: lb24:
-%3 = $1;
-%2 = %3 > 1;
-cmp %2, 0;
+%4 = $1 as i64;
+%3 = %4 > %0;
+cmp %3, 0;
 je lb26;
 jne lb25;
 BB9: lb25:
-%5 = $1;
-%4 = %5 < 2;
-cmp %4, 0;
-je lb33;
-jne lb32;
-BB10: lb32:
-jmp lb17;
-BB11: lb33:
-%7 = $1;
-%6 = %7 > 2;
+%5 = 2 as i64;
+%7 = $1 as i64;
+%6 = %7 < %5;
 cmp %6, 0;
-je lb35;
-jne lb34;
-BB12: lb34:
+je lb34;
+jne lb33;
+BB10: lb33:
 jmp lb17;
-BB13: lb35:
+BB11: lb34:
+%9 = $1 as i64;
+%8 = %9 > %5;
+cmp %8, 0;
+je lb36;
+jne lb35;
+BB12: lb35:
+jmp lb17;
+BB13: lb36:
 jmp lb13;
 BB14: lb26:
 jmp lb9;

@@ -14,5 +14,5 @@ call %2;
 send
 BB4: fn __anon_function_lambda1()
 return $10;
-BB5:
+BB5: fend
 /:

@@ -13,7 +13,7 @@ call %0;
 %3 = fret();
 %2 = %3 as i8;
 exit %2;
-BB4:
+BB4: send
 BB5: fn __anon_function_lambda1()
 return $10;
 /:
