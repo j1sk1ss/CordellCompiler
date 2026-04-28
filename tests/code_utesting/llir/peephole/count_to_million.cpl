@@ -29,15 +29,11 @@ BB5: send
 BB1: start
 rcx = 1000000000;
 BB6: kill(2);
-BB2: lb9:
-jmp lb10;
+BB2:
 BB3: lb10:
-rcx--;
-test rcx, rcx;
-je lb11;
-jne lb9;
-BB4: lb11:
-rdi = rdi ^ rdi;
+rcx = rcx - 1;
+jne lb10;
+BB4: rdi = rdi ^ rdi;
 exit rdi;
 BB5: send
 /:

@@ -58,7 +58,7 @@ The results below shows that the optimized CPL code has the same execution time 
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 20 lines (including comments such as a base block number). Were 31 lines.
+**Note:** The execution code size (asm) of the CPL optimized file is 11 lines. Were 31 lines.
 
 ## Million fibonacci
 ```cpl
@@ -367,4 +367,4 @@ int main(int argc, char* argv[]) {
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 516 lines. Before the `-O3` were 769 lines.
+**Note:** The execution code size (asm) of the CPL optimized file is 497 lines. Before the `-O3` were 769 lines.

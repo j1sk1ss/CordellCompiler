@@ -14,7 +14,7 @@ static int _jumps_pass(cfg_block_t* bb) {
     lir_block_t* l  = LIR_get_back_instruction(bb->lmap.exit, bb->lmap.entry, 0);
     lir_block_t* ll = LIR_get_back_instruction(l, bb->lmap.entry, 1);
     if (LIR_is_jumpop(l->op)) {
-        cfg_block_t* next_bb  = bb->l != bb ? bb->l : bb->jmp;
+        cfg_block_t* next_bb = bb->l != bb ? bb->l : bb->jmp;
         if (!next_bb) return 0;
         lir_block_t* next_lh  = LIR_get_near_instruction(l, next_bb->lmap.exit, 1);
         lir_block_t* entry_ln = LIR_get_near_instruction(next_bb->lmap.entry, next_bb->lmap.exit, 0);
@@ -57,6 +57,62 @@ static int _label_pass(cfg_func_t* fb) {
     while (lh) {
         if (!lh->unused && lh->op == LIR_MKLB && !_find_label_usage(fb, lh->farg)) lh->unused = 1; 
         lh = LIR_get_next(lh, fb->lmap.exit, 1);
+    }
+
+    return 1;
+}
+
+// TODO: docs
+static inline void _hide_block(cfg_block_t* bb) {
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+    while (lh) {
+        lh->unused = 1;
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
+    }
+}
+
+// TODO: docs
+static int _deep_jump_pass(cfg_func_t* fb) {
+    foreach (cfg_block_t* bb, &fb->blocks) {
+        int only_lb_and_jump = 1;
+        lir_block_t* lh = LIR_get_near_instruction(bb->lmap.entry, bb->lmap.exit, 0);
+        while (lh) {
+            if (!lh->unused && lh->op != LIR_MKLB && lh->op != LIR_JMP) {
+                only_lb_and_jump = 0;
+                break;
+            }
+
+            lh = LIR_get_near_instruction(lh, bb->lmap.exit, 1);
+        }
+        
+        lir_block_t* entry_lb  = LIR_get_near_instruction(bb->lmap.entry, bb->lmap.exit, 0);
+        lir_block_t* last_jump = LIR_get_back_instruction(bb->lmap.exit, bb->lmap.entry, 0);
+        if (
+            only_lb_and_jump && 
+            entry_lb && entry_lb->op == LIR_MKLB &&
+            last_jump && last_jump->op == LIR_JMP
+        ) { 
+            lir_subject_t* pdst = entry_lb->farg; 
+            lir_subject_t* ndst = last_jump->farg; 
+            cfg_block_t* bb_dst = bb->l ? bb->l : bb->jmp;
+            set_foreach (cfg_block_t* prev, &bb->pred) {
+                lir_block_t* l  = LIR_get_back_instruction(prev->lmap.exit, prev->lmap.entry, 0);
+                lir_block_t* ll = LIR_get_back_instruction(l, prev->lmap.entry, 1);
+                if (l && LIR_is_jumpop(l->op) && LIR_subj_equals(l->farg, pdst)) l->farg = ndst;
+                else if (ll && LIR_is_jumpop(ll->op) && LIR_subj_equals(ll->farg, pdst)) ll->farg = ndst; 
+                else continue;
+
+                if (prev->l == bb) prev->l = bb_dst;
+                if (prev->jmp == bb) prev->jmp = bb_dst;
+                if (bb_dst) {
+                    set_remove(&bb_dst->pred, bb);
+                    set_add(&bb_dst->pred, prev);
+                }
+            }
+
+            _hide_block(bb);
+            bb->l = bb->jmp = NULL;
+        }
     }
 
     return 1;
@@ -156,6 +212,8 @@ static int _cleanup_pass(cfg_block_t* bb) {
 int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
+        _deep_jump_pass(fb);
+
         foreach (cfg_block_t* bb, &fb->blocks) {
             _jumps_pass(bb);
             _cleanup_pass(bb);

@@ -20,6 +20,7 @@ lir_block_t* LIR_get_near_instruction(lir_block_t* c, lir_block_t* exit, int ski
         if ((c == exit) || skip-- == 0) return c;
     }
 
+    if (c == exit) return c;
     return NULL;
 }
 

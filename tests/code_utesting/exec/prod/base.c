@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
 
     RELOAD_CFG; // Rebuild after Last_ret + TRE
 
-    HIR_CFG_finilize_before_dom(&cfgctx);
+    // HIR_CFG_finilize_before_dom(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
     ltree_ctx_t lctx;
     map_init(&lctx.lmap, MAP_NO_CMP);

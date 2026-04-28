@@ -267,8 +267,7 @@ BB12: fend
 BB13: start
 rsi = &([rbp + 16]);
 rbx = rsi;
-rax = $1;
-rax = rax * 8;
+rax = 8;
 rdx = rax;
 rdx movsx rdx;
 rax = rbx;
@@ -277,8 +276,7 @@ rdx = rax;
 r9 = *(rdx);
 use r9;
 rbx = rsi;
-rax = $1;
-rax = rax * 8;
+rax = 8;
 rdx = rax;
 rdx movsx rdx;
 rax = rbx;
