@@ -21,6 +21,7 @@ typedef enum {
 } hir_instruction_type_t;
 
 typedef struct {
+    int             acceptable_level;
     file_position_t prev_location;
     file_position_t curr_location;
     map_t           definitions; /* map of id:list, possible definitions of a variable */

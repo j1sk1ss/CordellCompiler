@@ -334,4 +334,7 @@ Return 1 if node is correct, otherwise this function will return 0.
 */
 int ASTWLKR_incorrect_align(AST_VISITOR_ARGS);
 
+// TODO: docs
+int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS);
+
 #endif

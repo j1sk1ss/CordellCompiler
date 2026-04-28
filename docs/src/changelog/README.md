@@ -30,6 +30,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Inefficient switch
+Check whether it better to add an annotation or not. 
+
 ## syscall checker
 The static analysis tool now accepts the 'syscall' keyword. At this point, we have MACHO support ('cause I'm testing this on my MacBook tho). </br>
 The support implies that the analyzer will check if all of the arguments are correct typed for a selected syscall number. For instance:

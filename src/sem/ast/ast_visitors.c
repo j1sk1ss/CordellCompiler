@@ -767,3 +767,38 @@ int ASTWLKR_incorrect_align(AST_VISITOR_ARGS) {
 
     return 1;
 }
+
+int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    int case_count = 0;
+    for (ast_node_t* ccase = nd->c->siblings.n->c; ccase; ccase = ccase->siblings.n) {
+        case_count++;
+    }
+
+    int has_annot = 0;
+    foreach (annotation_t* annot, &nd->annots) {
+        if (annot->t == STRAIGHT_ANNOTATION) {
+            has_annot = 1;
+            break;
+        }
+    }
+
+    if (case_count < 4 && !has_annot) {
+        SEMANTIC_WARNING(
+            " %s Switch statement here has '%i' cases and uses the binary search. Consider to add @[straight].", 
+            _format_location(&nd->t->finfo), case_count
+        );
+        REBUILD_CODE_1TRG(nd, nd);
+        return 0;
+    }
+    else if (case_count > 4 && has_annot) {
+        SEMANTIC_WARNING(
+            " %s Switch statement here has '%i' cases and uses the straight search. Consider to remove @[straight].", 
+            _format_location(&nd->t->finfo), case_count
+        );
+        REBUILD_CODE_1TRG(nd, nd);
+        return 0;
+    }
+
+    return 1;
+}

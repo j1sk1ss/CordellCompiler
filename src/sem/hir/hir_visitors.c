@@ -359,7 +359,6 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     return 1;
 }
 
-// TODO: Implement a visitor which detects for dangerous syscalls
 int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op != HIR_SYSC && b->op != HIR_STORE_SYSC) return 1;
@@ -378,7 +377,6 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     switch (CONF_get_system_type()) {
         case MACHO64: {
             table_size = SYSCHECK_get_macoh_x86_64_syscall_table(&table);
-            /* MacOS syscall offset */
             di.const_value -= 0x2000000;
             break;
         }
@@ -400,6 +398,15 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     }
 
     syscall_t syscall = table[di.const_value];
+    if (syscall.side_effect < ctx->acceptable_level) {
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "Syscall %i (%s, %s) is dangerous for this level acceptance level (%i). Consider to delete this call or reduce the acceptance level.", 
+            di.const_value, syscall.name, syscall.description, ctx->acceptable_level
+        );
+        goto _force_exit_syscall_checker;
+    }
+    
     for (int arg_index = 1; arg_index < syscall.argc && arg_index < list_size(&b->targ->storage.list.h); arg_index++) {
         int sarg_index = arg_index - 1;
         if (
@@ -451,9 +458,7 @@ int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS) {
         !FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)
     ) return 1;
     
-    if (
-        fi.rtype && fi.rtype->t->t_type != I0_TYPE_TOKEN
-    ) {
+    if (fi.rtype && fi.rtype->t->t_type != I0_TYPE_TOKEN) {
         trace_t trace;
         TRACE_init_trace(&trace);
 
@@ -481,9 +486,7 @@ int HIRWLKR_noret_assign(HIR_VISITOR_ARGS) {
         !FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)
     ) return 1;
 
-    if (
-        !fi.rtype || fi.rtype->t->t_type == I0_TYPE_TOKEN
-    ) {
+    if (!fi.rtype || fi.rtype->t->t_type == I0_TYPE_TOKEN) {
         trace_t trace;
         TRACE_init_trace(&trace);
 
@@ -501,11 +504,6 @@ int HIRWLKR_noret_assign(HIR_VISITOR_ARGS) {
     return 1;
 }
 
-int HIRWLKR_unused_expression(HIR_VISITOR_ARGS) {
-    HIR_VISITOR_ARGS_USE;
-    return 1;
-}
-
 int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
 
@@ -519,6 +517,15 @@ int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS) {
         );
     }
 
+    TRACE_print_and_free_trace(&trace);
+    return 1;
+}
+
+// TODO: check for plus operaions, and if there is an aligned with an array variable, and the second one is larger than the array - fire
+int HIRWLKR_illegal_indexing(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    trace_t trace;
+    TRACE_init_trace(&trace);
     TRACE_print_and_free_trace(&trace);
     return 1;
 }
