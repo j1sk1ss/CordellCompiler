@@ -479,6 +479,14 @@ _fail: {}
     return 0;
 }
 
+#define RELOAD_CFG                          \
+    HIR_CFG_unload(&cfgctx);                \
+    HIR_CFG_build(&hirctx, &cfgctx, &smt);  \
+    HIR_CG_unload(&callctx);                \
+    HIR_CG_build(&cfgctx, &callctx, &smt);  \
+    HIR_CG_perform_dfe(&callctx, &smt);     \
+    HIR_CG_apply_dfe(&cfgctx, &callctx);
+
 int main(int argc, char* argv[]) {
     if (argc == 1) {
         _print_help_message();
@@ -547,35 +555,31 @@ int main(int argc, char* argv[]) {
         hir_ctx_t hirctx = { 0 };
         HIR_generate(&sctx, &hirctx, &smt);
 
+        call_graph_t callctx;
         cfg_ctx_t cfgctx = { .cid = 0 };
         HIR_CFG_build(&hirctx, &cfgctx, &smt);
+        HIR_CG_build(&cfgctx, &callctx, &smt);
+        HIR_FUNC_set_last_return(&cfgctx);
 
         if (options.config.tre) {
             HIR_FUNC_perform_tre(&cfgctx, &smt);
-            HIR_CFG_unload(&cfgctx);
-            HIR_CFG_build(&hirctx, &cfgctx, &smt);
+            RELOAD_CFG;
         }
-
+        
+        HIR_CFG_finilize_before_dom(&cfgctx);
+        HIR_CFG_create_domdata(&cfgctx);
         ltree_ctx_t lctx;
         map_init(&lctx.lmap, MAP_NO_CMP);
         HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
         if (options.config.finline) {
             HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_euristic_desider);
-            HIR_CFG_unload(&cfgctx);
-            HIR_CFG_build(&hirctx, &cfgctx, &smt);
+            RELOAD_CFG;
         }
 
-        HIR_FUNC_set_last_return(&cfgctx);
-
-        call_graph_t callctx;
-        HIR_CG_build(&cfgctx, &callctx, &smt);
-        HIR_CG_perform_dfe(&callctx, &smt);
-        HIR_CG_apply_dfe(&cfgctx, &callctx);
-
-        HIR_CFG_create_domdata(&cfgctx);
         HIR_LTREE_canonicalization(&cfgctx, &lctx);
         HIR_CFG_unload_domdata(&cfgctx);
+        // HIR_CFG_finilize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
 
         ssa_ctx_t ssactx;
@@ -606,14 +610,34 @@ int main(int argc, char* argv[]) {
 
         lir_ctx_t lirctx = { .h = NULL, .t = NULL };
         LIR_generate(&cfgctx, &lirctx, &smt);
-        inst_selector_t inst_sel;
+
+        register_saver_t reg_save;
+        mem_selector_t   mem_sel;
+        inst_selector_t  inst_sel;
+        peephole_t       pph;
+        regalloc_t       regall;
         switch (CONF_get_system_type()) {
-            case MACHO64: inst_sel.select_instructions = x86_64_macho_nasm_instruction_selection; break;
-            case LINUX64: inst_sel.select_instructions = x86_64_gnu_nasm_instruction_selection; break;
+            case MACHO64: {
+                inst_sel.select_instructions = x86_64_macho_nasm_instruction_selection;
+                reg_save.save_registers      = x86_64_gnu_nasm_caller_saving;
+                mem_sel.select_memory        = x86_64_macho_nasm_memory_selection;
+                regall.regallocate           = x86_64_regalloc_graph;
+                pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
+                break;
+            }
+            case LINUX64: {
+                inst_sel.select_instructions = x86_64_gnu_nasm_instruction_selection;
+                reg_save.save_registers      = x86_64_gnu_nasm_caller_saving;
+                mem_sel.select_memory        = x86_64_gnu_nasm_memory_selection;
+                regall.regallocate           = x86_64_regalloc_graph;
+                pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
+                break;
+            }
             default: break;
         }
 
         LIR_select_instructions(&cfgctx, &smt, &inst_sel);
+        LIR_destroy_ssa(&cfgctx);
 
         LIR_DFG_compute_inout(&cfgctx);
         LIR_DFG_create_deall(&cfgctx, &smt);
@@ -622,17 +646,10 @@ int main(int argc, char* argv[]) {
         map_init(&colors, MAP_NO_CMP);
         LIR_RA_init_colors(&colors, &smt);
 
-        regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
         LIR_regalloc(&cfgctx, &smt, &colors, &regall);
-
-        mem_selector_t mem_sel = { .select_memory = x86_64_gnu_nasm_memory_selection };
         LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
-
-        register_saver_t reg_save = { .save_registers = x86_64_gnu_nasm_caller_saving };
         LIR_save_registers(&cfgctx, &smt, &reg_save);
-
         if (options.config.peephole) {
-            peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
             LIR_peephole_optimization(&cfgctx, &pph);
         }
 

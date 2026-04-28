@@ -802,3 +802,9 @@ int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
 
     return 1;
 }
+
+// TODO: Check a declaration and a parent function. If the function doesn't have variadic arguments - fire.
+int ASTWLKR_poparg_in_nonargs_function(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    return 1;
+}
