@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-import argparse
 import json
-from typing import Any, Iterable
+import argparse
 
+from typing import Any, Iterable
+from dataclasses import dataclass, field
 
 TERMINATOR_OPS: set[str] = {
     "if",
@@ -13,7 +12,6 @@ TERMINATOR_OPS: set[str] = {
     "return",
     "exit",
 }
-
 
 @dataclass
 class CFGEdge:
@@ -35,21 +33,16 @@ class CFGEdge:
 
         if self.line_no is not None:
             result["line_no"] = self.line_no
-
         if self.raw is not None:
             result["raw"] = self.raw
-
         if self.label is not None:
             result["label"] = self.label
-
         if self.condition_subject is not None:
             result["condition_subject"] = self.condition_subject
-
         if self.condition_z3 is not None:
             result["condition_z3"] = str(self.condition_z3)
 
         return result
-
 
 @dataclass
 class BasicBlock:
@@ -110,7 +103,6 @@ class BasicBlock:
             ]
 
         return result
-
 
 @dataclass
 class HIRCFG:
@@ -186,7 +178,6 @@ class HIRCFG:
                 for edge in block.edges:
                     dst = edge.dst if edge.dst is not None else "<unresolved>"
                     extra = ""
-
                     if edge.kind in {"true", "false"}:
                         cond = (
                             edge.condition_z3
@@ -194,7 +185,6 @@ class HIRCFG:
                             else edge.condition_subject
                         )
                         extra = f" label={edge.label} cond={cond}"
-
                     elif edge.label is not None:
                         extra = f" label={edge.label}"
 
@@ -220,65 +210,6 @@ class HIRCFG:
 
         return "\n".join(lines)
 
-    def to_dot(self) -> str:
-        """
-        Graphviz DOT.
-
-        Usage:
-
-            python hir_cfg.py parsed.json --dot > cfg.dot
-            dot -Tpng cfg.dot -o cfg.png
-        """
-
-        lines: list[str] = []
-        lines.append("digraph HIRCFG {")
-        lines.append("  node [shape=box];")
-
-        for block in self.blocks:
-            label_lines: list[str] = [block.name]
-
-            if block.labels:
-                label_lines.append("labels: " + ", ".join(block.labels))
-
-            for instr in block.instructions:
-                raw = _dot_escape(str(instr.get("raw", "")))
-                line_no = instr.get("line_no", "?")
-                label_lines.append(f"{line_no}: {raw}")
-
-            label = "\\l".join(label_lines) + "\\l"
-
-            lines.append(
-                f'  "{_dot_escape(block.name)}" [label="{label}"];'
-            )
-
-        for block in self.blocks:
-            for edge in block.edges:
-                if edge.dst is None:
-                    missing_name = f"missing_{edge.src}_{edge.kind}_{edge.label}"
-                    lines.append(
-                        f'  "{_dot_escape(missing_name)}" '
-                        f'[label="missing label: {_dot_escape(str(edge.label))}", shape=octagon];'
-                    )
-                    dst = missing_name
-                else:
-                    dst = edge.dst
-
-                edge_label = edge.kind
-
-                if edge.kind in {"true", "false"} and edge.label:
-                    edge_label += f": {edge.label}"
-                elif edge.label:
-                    edge_label += f": {edge.label}"
-
-                lines.append(
-                    f'  "{_dot_escape(block.name)}" -> "{_dot_escape(dst)}" '
-                    f'[label="{_dot_escape(edge_label)}"];'
-                )
-
-        lines.append("}")
-        return "\n".join(lines)
-
-
 class HIRCFGBuilder:
     def __init__(
         self,
@@ -295,8 +226,6 @@ class HIRCFGBuilder:
         )
 
         self.prepared = prepared
-
-        # line_no -> z3 condition from PreparedHIR.branches
         self.branch_conditions_by_line: dict[int, Any] = (
             self._collect_prepared_branch_conditions(prepared)
         )
@@ -488,10 +417,8 @@ class HIRCFGBuilder:
                 )
             ]
 
-        if op in {"return", "exit"}:
+        if op in { "return", "exit" }:
             return []
-
-        # Should not happen if TERMINATOR_OPS and this function stay in sync.
         if next_block is None:
             return []
 
@@ -584,25 +511,18 @@ class HIRCFGBuilder:
 
         return result
 
-
 def build_hir_cfg(
     program: dict[str, Any] | str,
     *,
     prepared: Any = None,
 ) -> HIRCFG:
-    return HIRCFGBuilder(
-        program,
-        prepared=prepared,
-    ).build()
-
+    return HIRCFGBuilder(program, prepared=prepared).build()
 
 def _label_name_from_subject(subject: dict[str, Any] | None) -> str | None:
     if not subject:
         return None
-
     if subject.get("name"):
         return str(subject["name"])
-
     if subject.get("text"):
         return str(subject["text"])
 
@@ -612,10 +532,8 @@ def _label_name_from_subject(subject: dict[str, Any] | None) -> str | None:
 
     return None
 
-
 def _line_no(instr: dict[str, Any]) -> int | None:
     value = instr.get("line_no")
-
     if value is None:
         return None
 
@@ -624,85 +542,3 @@ def _line_no(instr: dict[str, Any]) -> int | None:
     except Exception:
         return None
 
-
-def _dot_escape(text: str) -> str:
-    return (
-        text
-        .replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\r", "")
-    )
-
-
-def main(argv: Iterable[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Build CFG from parsed HIR JSON.",
-    )
-
-    parser.add_argument(
-        "path",
-        nargs="?",
-        help="Path to JSON produced by hir_dump_parser.py. stdin is used if omitted.",
-    )
-
-    parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Print CFG as JSON.",
-    )
-
-    parser.add_argument(
-        "--compact",
-        action="store_true",
-        help="Compact JSON output.",
-    )
-
-    parser.add_argument(
-        "--dot",
-        action="store_true",
-        help="Print Graphviz DOT.",
-    )
-
-    parser.add_argument(
-        "--no-instructions",
-        action="store_true",
-        help="Do not include full instructions in JSON output.",
-    )
-
-    ns = parser.parse_args(
-        list(argv)
-        if argv is not None
-        else None
-    )
-
-    if ns.path:
-        with open(ns.path, "r", encoding="utf-8") as f:
-            data = f.read()
-    else:
-        import sys
-        data = sys.stdin.read()
-
-    program = json.loads(data)
-    cfg = build_hir_cfg(program)
-
-    if ns.dot:
-        print(cfg.to_dot())
-        return 0
-
-    if ns.json:
-        print(
-            json.dumps(
-                cfg.to_dict(include_instructions=not ns.no_instructions),
-                ensure_ascii=False,
-                indent=None if ns.compact else 2,
-            )
-        )
-        return 0
-
-    print(cfg.dump())
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-import argparse
-import json
 import re
-import sys
-from typing import Any, Iterable
+import json
 
+from typing import Any
+from dataclasses import dataclass, field, asdict
 
 VAR_PREFIXES: dict[str, tuple[str, str]] = {
     "strs": ("str", "stack"),
@@ -110,10 +108,8 @@ CAST_TYPES: set[str] = {
     "*ptr",
 }
 
-
 class HIRParseError(ValueError):
     pass
-
 
 @dataclass(slots=True)
 class Subject:
@@ -216,7 +212,6 @@ class Instruction:
 
         return result
 
-
 @dataclass(slots=True)
 class Program:
     instructions: list[Instruction]
@@ -228,7 +223,6 @@ class Program:
 
     def to_json(self, *, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
-
 
 class HIRDumpParser:
     def __init__(self, *, strict: bool = False) -> None:
@@ -242,7 +236,7 @@ class HIRDumpParser:
                 continue
 
             try:
-                instructions.append(self.parse_line(full_line, line_no))
+                instructions.append(self._parse_line(full_line, line_no))
             except HIRParseError:
                 if self.strict:
                     raise
@@ -258,273 +252,97 @@ class HIRDumpParser:
 
         return Program(instructions)
 
-    def parse_line(self, full_line: str, line_no: int) -> Instruction:
+    def _parse_line(self, full_line: str, line_no: int) -> Instruction:
         line = full_line.strip()
         if line == "start {":
             return self._instr("start", line_no, full_line)
-
-        if line == "{":
+        elif line == "{":
             return self._instr("scope_start", line_no, full_line)
-
-        if line == "}":
+        elif line == "}":
             return self._instr("scope_end", line_no, full_line)
-
-        if line == "// break;":
+        elif line == "// break;":
             return self._instr("break", line_no, full_line)
 
         m = re.fullmatch(r"(lb\d+):", line)
         if m:
-            return self._instr(
-                "label",
-                line_no,
-                full_line,
-                label=parse_subject(m.group(1)),
-            )
-
+            return self._instr("label", line_no, full_line, label=_parse_subject(m.group(1)))
         if line.startswith("fn "):
-            return self._instr(
-                "fn",
-                line_no,
-                full_line,
-                func=parse_subject(line[3:].strip()),
-            )
+            return self._instr("fn", line_no, full_line, func=_parse_subject(line[3:].strip()))
 
         m = re.fullmatch(r"\(fun\) extern\((.*)\);", line)
         if m:
-            return self._instr(
-                "extern_func",
-                line_no,
-                full_line,
-                func=parse_subject(m.group(1).strip()),
-            )
-
+            return self._instr("extern_func", line_no, full_line, func=_parse_subject(m.group(1).strip()))
         m = re.fullmatch(r"\(var\) extern\((.*)\);", line)
         if m:
-            return self._instr(
-                "extern_var",
-                line_no,
-                full_line,
-                arg=parse_subject(m.group(1).strip()),
-            )
-
+            return self._instr("extern_var", line_no, full_line, arg=_parse_subject(m.group(1).strip()))
         m = re.fullmatch(r"\[raw,\s*\"(.*)\"\]", line)
         if m:
-            return self._instr(
-                "raw",
-                line_no,
-                full_line,
-                text=m.group(1),
-            )
-
+            return self._instr("raw", line_no, full_line, text=m.group(1))
         m = re.fullmatch(r"asm\((.*)\)\s*\{", line)
         if m:
-            return self._instr(
-                "asm_start",
-                line_no,
-                full_line,
-                text=m.group(1),
-            )
-
+            return self._instr("asm_start", line_no, full_line, text=m.group(1))
         m = re.fullmatch(r"return\s+(.+);", line)
         if m:
-            return self._instr(
-                "return",
-                line_no,
-                full_line,
-                arg=parse_subject(m.group(1)),
-            )
-
+            return self._instr("return", line_no, full_line, arg=_parse_subject(m.group(1)))
         m = re.fullmatch(r"goto\s+(lb\d+);", line)
         if m:
-            return self._instr(
-                "goto",
-                line_no,
-                full_line,
-                target=parse_subject(m.group(1)),
-            )
-
+            return self._instr("goto", line_no, full_line, target=_parse_subject(m.group(1)))
         m = re.fullmatch(r"exit\s+(.+);", line)
         if m:
-            return self._instr(
-                "exit",
-                line_no,
-                full_line,
-                arg=parse_subject(m.group(1)),
-            )
-
-        m = re.fullmatch(
-            r"if\s+(.+),\s*goto\s+(lb\d+),\s*else\s*goto\s+(lb\d+);",
-            line,
-        )
+            return self._instr("exit", line_no, full_line, arg=_parse_subject(m.group(1)))
+        m = re.fullmatch(r"if\s+(.+),\s*goto\s+(lb\d+),\s*else\s*goto\s+(lb\d+);", line,)
         if m:
-            return self._instr(
-                "if",
-                line_no,
-                full_line,
-                cond=parse_subject(m.group(1)),
-                true_label=parse_subject(m.group(2)),
-                false_label=parse_subject(m.group(3)),
-            )
-
+            return self._instr("if", line_no, full_line, cond=_parse_subject(m.group(1)), true_label=_parse_subject(m.group(2)), false_label=_parse_subject(m.group(3)))
         m = re.fullmatch(r"breakpoint\((.*)\);", line)
         if m:
-            return self._instr(
-                "breakpoint",
-                line_no,
-                full_line,
-                arg=parse_subject(m.group(1)),
-            )
-
+            return self._instr("breakpoint", line_no, full_line, arg=_parse_subject(m.group(1)))
         m = re.fullmatch(r"use\s+(.+);", line)
         if m:
-            return self._instr(
-                "use",
-                line_no,
-                full_line,
-                arg=parse_subject(m.group(1)),
-            )
-
-        # SSA / phi helpers.
-        m = re.fullmatch(
-            r"\[SSA\]\s*future:\s*(.+)\s*<<==\s*previous:\s*(.+);",
-            line,
-        )
+            return self._instr("use", line_no, full_line, arg=_parse_subject(m.group(1)))
+        m = re.fullmatch(r"\[SSA\]\s*future:\s*(.+)\s*<<==\s*previous:\s*(.+);", line)
         if m:
-            return self._instr(
-                "phi_preamble",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-                src=parse_subject(m.group(2)),
-            )
+            return self._instr("phi_preamble", line_no, full_line, dst=_parse_subject(m.group(1)), src=_parse_subject(m.group(2)))
 
-        m = re.fullmatch(
-            r"\[base:\s*(.+)\]\s+(.+?)\s*=\s*phi\((.*)\);",
-            line,
-        )
+        m = re.fullmatch(r"\[base:\s*(.+)\]\s+(.+?)\s*=\s*phi\((.*)\);", line)
         if m:
-            return self._instr(
-                "phi",
-                line_no,
-                full_line,
-                base=parse_subject(m.group(1)),
-                dst=parse_subject(m.group(2)),
-                arg=parse_subject(m.group(3)),
-            )
-
+            return self._instr("phi", line_no, full_line, base=_parse_subject(m.group(1)), dst=_parse_subject(m.group(2)), arg=_parse_subject(m.group(3)))
         m = re.fullmatch(r"syscall\((.*)\);?", line)
         if m:
-            return self._instr(
-                "syscall",
-                line_no,
-                full_line,
-                func=parse_subject("syscall"),
-                args=parse_arglist(m.group(1)),
-            )
-
+            return self._instr("syscall", line_no, full_line, func=_parse_subject("syscall"), args=parse_arglist(m.group(1)))
         m = re.fullmatch(r"(.+?)\s*=\s*load_starg\(\);", line)
         if m:
-            return self._instr(
-                "load_starg",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-            )
-
+            return self._instr("load_starg", line_no, full_line, dst=_parse_subject(m.group(1)))
         m = re.fullmatch(r"(.+?)\s*=\s*load_arg\(\);", line)
         if m:
-            return self._instr(
-                "load_arg",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-            )
-
+            return self._instr("load_arg", line_no, full_line, dst=_parse_subject(m.group(1)))
         m = re.fullmatch(r"(.+?)\s*=\s*arr_alloc\((.*)\);", line)
         if m:
-            return self._instr(
-                "arr_alloc",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-                arg=parse_subject(m.group(2)),
-            )
-
+            return self._instr("arr_alloc", line_no, full_line, dst=_parse_subject(m.group(1)), arg=_parse_subject(m.group(2)))
         m = re.fullmatch(r"(.+?)\s*=\s*str_alloc\((.*)\);", line)
         if m:
-            return self._instr(
-                "str_alloc",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-                arg=parse_subject(m.group(2)),
-            )
-
+            return self._instr("str_alloc", line_no, full_line, dst=_parse_subject(m.group(1)), arg=_parse_subject(m.group(2)))
         m = re.fullmatch(r"(.+?)\s*=\s*alloc\((.*)\);", line)
         if m:
-            return self._instr(
-                "global_alloc",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-                arg=parse_subject(m.group(2)),
-            )
-
+            return self._instr("global_alloc", line_no, full_line, dst=_parse_subject(m.group(1)), arg=_parse_subject(m.group(2)))
         m = re.fullmatch(r"(.+?)\s*=\s*alloc;", line)
         if m:
-            return self._instr(
-                "local_alloc",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-            )
-
+            return self._instr("local_alloc", line_no, full_line, dst=_parse_subject(m.group(1)))
         m = re.fullmatch(r"(.+?)\s*=\s*\*\((.+)\);", line)
         if m:
-            return self._instr(
-                "load_ref",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-                src=parse_subject(m.group(2)),
-            )
-
+            return self._instr("load_ref", line_no, full_line, dst=_parse_subject(m.group(1)), src=_parse_subject(m.group(2)))
         m = re.fullmatch(r"\*\((.+)\)\s*=\s*(.+);", line)
         if m:
-            return self._instr(
-                "store_ref",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-                src=parse_subject(m.group(2)),
-            )
-
+            return self._instr("store_ref", line_no, full_line, dst=_parse_subject(m.group(1)), src=_parse_subject(m.group(2)))
         m = re.fullmatch(r"(.+?)\s*=\s*&\((.+)\);", line)
         if m:
-            return self._instr(
-                "ref",
-                line_no,
-                full_line,
-                dst=parse_subject(m.group(1)),
-                src=parse_subject(m.group(2)),
-            )
-
+            return self._instr("ref", line_no, full_line, dst=_parse_subject(m.group(1)), src=_parse_subject(m.group(2)))
+        
         if line.endswith(";") and " = " in line:
-            return self._parse_assignment(
-                line[:-1],
-                line_no,
-                full_line,
-            )
+            return self._parse_assignment(line[:-1], line_no, full_line)
 
         m = re.fullmatch(r"(.+?)\((.*)\);", line)
         if m:
-            return self._instr(
-                "call",
-                line_no,
-                full_line,
-                func=parse_subject(m.group(1).strip()),
-                args=parse_arglist(m.group(2)),
-            )
+            return self._instr("call", line_no, full_line, func=_parse_subject(m.group(1).strip()), args=parse_arglist(m.group(2)))
 
         raise HIRParseError(f"cannot parse line {line_no}: {full_line!r}")
 
@@ -535,71 +353,25 @@ class HIRDumpParser:
         full_line: str,
     ) -> Instruction:
         dst_text, expr = stmt.split(" = ", 1)
-        dst = parse_subject(dst_text)
+        dst = _parse_subject(dst_text)
         expr = expr.strip()
 
         m = re.fullmatch(r"(.+?)\s+as\s+(\*ptr|[fiu]\d+)", expr)
         if m and m.group(2) in CAST_TYPES:
-            return self._instr(
-                "cast",
-                line_no,
-                full_line,
-                dst=dst,
-                src=parse_subject(m.group(1)),
-                ty=m.group(2),
-            )
-
+            return self._instr("cast", line_no, full_line, dst=dst, src=_parse_subject(m.group(1)), ty=m.group(2))
         if expr.startswith("not "):
-            return self._instr(
-                "not",
-                line_no,
-                full_line,
-                dst=dst,
-                src=parse_subject(expr[4:]),
-            )
-
+            return self._instr("not", line_no, full_line, dst=dst, src=_parse_subject(expr[4:]))
         m = re.fullmatch(r"syscall\((.*)\)", expr)
         if m:
-            return self._instr(
-                "store_syscall",
-                line_no,
-                full_line,
-                dst=dst,
-                func=parse_subject("syscall"),
-                args=parse_arglist(m.group(1)),
-            )
-
+            return self._instr("store_syscall", line_no, full_line, dst=dst, func=_parse_subject("syscall"), args=parse_arglist(m.group(1)))
         m = re.fullmatch(r"(.+?)\((.*)\)", expr)
         if m:
-            return self._instr(
-                "store_call",
-                line_no,
-                full_line,
-                dst=dst,
-                func=parse_subject(m.group(1).strip()),
-                args=parse_arglist(m.group(2)),
-            )
-
-        bin_split = split_binary_expr(expr)
+            return self._instr("store_call", line_no, full_line, dst=dst, func=_parse_subject(m.group(1).strip()), args=parse_arglist(m.group(2)))
+        bin_split = _split_binary_expr(expr)
         if bin_split is not None:
             lhs_text, op, rhs_text = bin_split
-            return self._instr(
-                "binary",
-                line_no,
-                full_line,
-                dst=dst,
-                lhs=parse_subject(lhs_text),
-                rhs=parse_subject(rhs_text),
-                text=op,
-            )
-
-        return self._instr(
-            "assign",
-            line_no,
-            full_line,
-            dst=dst,
-            src=parse_subject(expr),
-        )
+            return self._instr("binary", line_no, full_line, dst=dst, lhs=_parse_subject(lhs_text), rhs=_parse_subject(rhs_text), text=op)
+        return self._instr("assign", line_no, full_line, dst=dst, src=_parse_subject(expr))
 
     def _instr(
         self,
@@ -616,10 +388,8 @@ class HIRDumpParser:
             **kwargs,
         )
 
-
-def parse_subject(text: str) -> Subject:
+def _parse_subject(text: str) -> Subject:
     text = text.strip()
-
     if not text:
         return Subject(kind="empty", text=text)
 
@@ -703,17 +473,14 @@ def parse_subject(text: str) -> Subject:
             pairs=pairs,
         )
 
-    parts = split_top_level_commas(text)
+    parts = _split_top_level_commas(text)
     if len(parts) > 1:
         return Subject(
             kind="arglist",
             text=text,
-            items=[parse_subject(part) for part in parts],
+            items=[_parse_subject(part) for part in parts],
         )
 
-    # Function declaration form:
-    #
-    #   name(type arg, ...) -> type
     m = re.fullmatch(
         r"([A-Za-z_$\.][\w$\.]*)\((.*)\)(?:\s*->\s*(.+))?",
         text,
@@ -733,68 +500,30 @@ def parse_subject(text: str) -> Subject:
             name=text,
         )
 
-    return Subject(
-        kind="raw",
-        text=text,
-        value=text,
-    )
-
+    return Subject(kind="raw", text=text, value=text)
 
 def parse_arglist(text: str) -> list[Subject]:
     text = text.strip()
-
     if not text:
         return []
 
     return [
-        parse_subject(part)
-        for part in split_top_level_commas(text)
+        _parse_subject(part)
+        for part in _split_top_level_commas(text)
     ]
 
-
-def split_binary_expr(expr: str) -> tuple[str, str, str] | None:
-    """
-    Split:
-
-        lhs OP rhs
-
-    where OP is surrounded by spaces.
-
-    This is important because operands themselves contain spaces:
-
-        i32t %1 + i32n 3
-
-    The dumper prints binary operators with spaces around them, so this split
-    is reliable for the current format.
-    """
-
+def _split_binary_expr(expr: str) -> tuple[str, str, str] | None:
     for op in BINARY_OPERATORS:
         needle = f" {op} "
         pos = expr.find(needle)
-
         if pos >= 0:
             lhs = expr[:pos].strip()
             rhs = expr[pos + len(needle):].strip()
-
             if lhs and rhs:
                 return lhs, op, rhs
-
     return None
 
-
-def split_top_level_commas(text: str) -> list[str]:
-    """
-    Split by commas, but only at top level.
-
-    Good:
-
-        i32t %1,i32n 2,u8t %3
-
-    Also safe for future nested forms:
-
-        foo(i32t %1,i32n 2),bar(u8t %3)
-    """
-
+def _split_top_level_commas(text: str) -> list[str]:
     parts: list[str] = []
     start = 0
 
@@ -836,73 +565,11 @@ def split_top_level_commas(text: str) -> list[str]:
             start = i + 1
 
     parts.append(text[start:].strip())
-
-    return [
-        part
-        for part in parts
-        if part
-    ]
-
+    return [ part for part in parts if part ]
 
 def _indent_level(full_line: str) -> int:
     spaces = len(full_line) - len(full_line.lstrip(" "))
     return spaces // 4
 
-
 def parse_hir_dump(text: str, *, strict: bool = False) -> Program:
     return HIRDumpParser(strict=strict).parse(text)
-
-
-def _main(argv: Iterable[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Parse textual HIR dump into JSON.",
-    )
-
-    parser.add_argument(
-        "path",
-        nargs="?",
-        help="HIR dump path; stdin is used when omitted",
-    )
-
-    parser.add_argument(
-        "--strict",
-        action="store_true",
-        help="fail instead of emitting op=unknown",
-    )
-
-    parser.add_argument(
-        "--compact",
-        action="store_true",
-        help="print compact JSON",
-    )
-
-    ns = parser.parse_args(
-        list(argv)
-        if argv is not None
-        else None
-    )
-
-    if ns.path:
-        with open(ns.path, "r", encoding="utf-8") as f:
-            data = f.read()
-    else:
-        data = sys.stdin.read()
-
-    program = parse_hir_dump(
-        data,
-        strict=ns.strict,
-    )
-
-    print(
-        json.dumps(
-            program.to_dict(),
-            ensure_ascii=False,
-            indent=None if ns.compact else 2,
-        )
-    )
-
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(_main())

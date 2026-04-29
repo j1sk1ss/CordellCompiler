@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-import json
-from typing import Any
-
 import z3
+import json
 
+from dataclasses import dataclass, field
+from typing import Any
 
 INT_WIDTHS: dict[str, int] = {
     "i0": 1,
@@ -148,11 +147,6 @@ def subject_display_name(subject: dict[str, Any]) -> str:
 
     return "unnamed"
 
-
-# ----------------------------
-# Prepared output
-# ----------------------------
-
 @dataclass
 class BranchInfo:
     line_no: int
@@ -161,13 +155,11 @@ class BranchInfo:
     false_label: str
     raw: str
 
-
 @dataclass
 class GotoInfo:
     line_no: int
     target_label: str
     raw: str
-
 
 @dataclass
 class PhiInfo:
@@ -177,13 +169,11 @@ class PhiInfo:
     arg: dict[str, Any] | None
     raw: str
 
-
 @dataclass
 class ReturnInfo:
     line_no: int
     value: z3.ExprRef | None
     raw: str
-
 
 @dataclass
 class SideEffectInfo:
@@ -192,39 +182,23 @@ class SideEffectInfo:
     raw: str
     data: dict[str, Any] = field(default_factory=dict)
 
-
 @dataclass
 class PreparedHIR:
     solver: z3.Solver
-
-    # Every generated z3 variable/expression by z3 symbol name.
     symbols: dict[str, z3.ExprRef] = field(default_factory=dict)
-
-    # Current SSA value for each IR variable z3_name.
     values: dict[str, z3.ExprRef] = field(default_factory=dict)
-
-    # Constraints generated from simple instructions.
     constraints: list[z3.BoolRef] = field(default_factory=list)
-
-    # Structural metadata.
     labels: dict[str, int] = field(default_factory=dict)
     branches: list[BranchInfo] = field(default_factory=list)
     gotos: list[GotoInfo] = field(default_factory=list)
     phis: list[PhiInfo] = field(default_factory=list)
     returns: list[ReturnInfo] = field(default_factory=list)
     side_effects: list[SideEffectInfo] = field(default_factory=list)
-
-    # Instructions that were recognized but intentionally not lowered fully.
     deferred: list[dict[str, Any]] = field(default_factory=list)
 
     def add_constraint(self, constraint: z3.BoolRef) -> None:
         self.constraints.append(constraint)
         self.solver.add(constraint)
-
-
-# ----------------------------
-# Main preparer
-# ----------------------------
 
 class HIRToZ3:
     def __init__(
@@ -252,42 +226,29 @@ class HIRToZ3:
 
         return self.prepared
 
-    # ----------------------------
-    # Core subject conversion
-    # ----------------------------
-
     def expr_of_subject(self, subject: dict[str, Any]) -> z3.ExprRef:
         kind = subject.get("kind")
-
         if kind == "var":
             return self.var_expr(subject)
-
-        if kind in {"number", "const"}:
+        elif kind in {"number", "const"}:
             return self.const_expr(subject)
-
-        if kind == "label":
+        elif kind == "label":
             raise HIRZ3Error(f"label is not a value expression: {subject!r}")
-
-        if kind == "symbol":
+        elif kind == "symbol":
             return self.opaque_symbol(subject)
-
-        if kind == "raw":
+        elif kind == "raw":
             return self.opaque_symbol(subject)
-
-        if kind == "empty":
+        elif kind == "empty":
             raise HIRZ3Error("empty subject cannot be converted to z3 expression")
-
-        if kind == "arglist":
+        elif kind == "arglist":
             raise HIRZ3Error("arglist cannot be converted to a single z3 expression")
-
-        if kind == "phiset":
+        elif kind == "phiset":
             raise HIRZ3Error("phiset cannot be converted without CFG/predecessor context")
 
         return self.opaque_symbol(subject)
 
     def var_expr(self, subject: dict[str, Any]) -> z3.ExprRef:
         name = subject_display_name(subject)
-
         if name in self.prepared.symbols:
             return self.prepared.symbols[name]
 
@@ -296,7 +257,6 @@ class HIRToZ3:
 
         self.prepared.symbols[name] = symbol
         self.prepared.values[name] = symbol
-
         return symbol
 
     def const_expr(self, subject: dict[str, Any]) -> z3.ExprRef:
@@ -305,15 +265,12 @@ class HIRToZ3:
 
         if ty == "i0":
             return z3.BoolVal(parse_bool_value(value))
-
         if is_int_ty(ty):
             width = bit_width(ty)
             return z3.BitVecVal(parse_int_value(value), width)
-
         if is_float_ty(ty):
             return z3.RealVal(str(value))
 
-        # Unknown numeric literal: keep as opaque constant.
         name = safe_symbol_name(f"const_{subject.get('text', value)}")
         return z3.Const(name, subject_sort(subject, ptr_bits=self.ptr_bits))
 
@@ -358,10 +315,6 @@ class HIRToZ3:
 
         return constraint
 
-    # ----------------------------
-    # Instruction lowering
-    # ----------------------------
-
     def prepare_instruction(self, instr: dict[str, Any]) -> None:
         op = instr.get("op")
 
@@ -369,52 +322,40 @@ class HIRToZ3:
             if op in {"start", "scope_start", "scope_end", "break", "raw", "asm_start"}:
                 self.defer(instr)
                 return
-
-            if op == "label":
+            elif op == "label":
                 self.lower_label(instr)
                 return
-
-            if op == "goto":
+            elif op == "goto":
                 self.lower_goto(instr)
                 return
-
-            if op == "if":
+            elif op == "if":
                 self.lower_if(instr)
                 return
-
-            if op == "return":
+            elif op == "return":
                 self.lower_return(instr)
                 return
-
-            if op in {"phi", "phi_preamble"}:
+            elif op in {"phi", "phi_preamble"}:
                 self.lower_phi(instr)
                 return
-
-            if op in {"assign", "load_arg", "load_starg"}:
+            elif op in {"assign", "load_arg", "load_starg"}:
                 self.lower_assign_like(instr)
                 return
-
-            if op == "binary":
+            elif op == "binary":
                 self.lower_binary(instr)
                 return
-
-            if op == "not":
+            elif op == "not":
                 self.lower_not(instr)
                 return
-
-            if op == "cast":
+            elif op == "cast":
                 self.lower_cast(instr)
                 return
-
-            if op in {"store_call", "store_syscall"}:
+            elif op in {"store_call", "store_syscall"}:
                 self.lower_call_with_result(instr)
                 return
-
-            if op in {"call", "syscall"}:
+            elif op in {"call", "syscall"}:
                 self.lower_call_without_result(instr)
                 return
-
-            if op in {
+            elif op in {
                 "local_alloc",
                 "global_alloc",
                 "arr_alloc",
@@ -424,20 +365,16 @@ class HIRToZ3:
             }:
                 self.lower_fresh_result(instr)
                 return
-
-            if op == "store_ref":
+            elif op == "store_ref":
                 self.lower_store_ref(instr)
                 return
-
-            if op in {"extern_func", "extern_var", "fn", "use", "breakpoint", "exit"}:
+            elif op in {"extern_func", "extern_var", "fn", "use", "breakpoint", "exit"}:
                 self.defer(instr)
                 return
-
+            
             self.defer(instr)
-
             if self.strict:
                 raise HIRZ3Error(f"unsupported instruction op={op!r}: {instr!r}")
-
         except Exception as exc:
             if self.strict:
                 raise
@@ -452,13 +389,11 @@ class HIRToZ3:
     def lower_label(self, instr: dict[str, Any]) -> None:
         label = instr.get("label") or {}
         name = str(label.get("name") or label.get("text"))
-
         self.prepared.labels[name] = int(instr.get("line_no") or -1)
 
     def lower_goto(self, instr: dict[str, Any]) -> None:
         target = instr.get("target") or {}
         label_name = str(target.get("name") or target.get("text"))
-
         self.prepared.gotos.append(
             GotoInfo(
                 line_no=int(instr.get("line_no") or -1),
@@ -510,10 +445,7 @@ class HIRToZ3:
             )
         )
 
-        self.defer(
-            instr,
-            reason="phi needs CFG predecessor/path context before lowering to z3",
-        )
+        self.defer(instr, reason="phi needs CFG predecessor/path context before lowering to z3")
 
     def lower_assign_like(self, instr: dict[str, Any]) -> None:
         dst_subject = instr["dst"]
@@ -558,8 +490,6 @@ class HIRToZ3:
         if src.sort().kind() == z3.Z3_BOOL_SORT:
             result = z3.Not(src)
         elif src.sort().kind() == z3.Z3_BV_SORT:
-            # For i0 this usually does not happen because i0 maps to Bool.
-            # If it does, treat not as logical not: src == 0.
             result = src == z3.BitVecVal(0, src.size())
         else:
             result = z3.Not(self.as_bool(src))
@@ -627,14 +557,10 @@ class HIRToZ3:
             )
         )
 
-        self.defer(
-            instr,
-            reason="call without result has side effects only; no z3 value constraint emitted",
-        )
+        self.defer(instr, reason="call without result has side effects only; no z3 value constraint emitted",)
 
     def lower_fresh_result(self, instr: dict[str, Any]) -> None:
         dst_subject = instr.get("dst")
-
         if not dst_subject:
             self.defer(instr, reason="fresh-result op without dst")
             return
@@ -672,14 +598,7 @@ class HIRToZ3:
             )
         )
 
-        self.defer(
-            instr,
-            reason="memory model is not implemented yet; store_ref recorded as side effect",
-        )
-
-    # ----------------------------
-    # Expressions
-    # ----------------------------
+        self.defer(instr, reason="memory model is not implemented yet; store_ref recorded as side effect")
 
     def binary_expr(
         self,
@@ -694,14 +613,11 @@ class HIRToZ3:
 
         if op in {"+", "-", "*", "/", "%", "<<", ">>", "&", "|", "^"}:
             return self.binary_arith_or_bitwise(lhs, rhs, op, lhs_subject=lhs_subject)
-
-        if op in {">", "<", ">=", "<=", "==", "!="}:
+        elif op in {">", "<", ">=", "<=", "==", "!="}:
             return self.binary_compare(lhs, rhs, op, lhs_subject=lhs_subject)
-
-        if op == "&&":
+        elif op == "&&":
             return z3.And(self.as_bool(lhs), self.as_bool(rhs))
-
-        if op == "||":
+        elif op == "||":
             return z3.Or(self.as_bool(lhs), self.as_bool(rhs))
 
         raise HIRZ3Error(f"unsupported binary operator: {op!r}")
@@ -720,38 +636,35 @@ class HIRToZ3:
         if lhs.sort().kind() == z3.Z3_BV_SORT:
             if op == "+":
                 return lhs + rhs
-            if op == "-":
+            elif op == "-":
                 return lhs - rhs
-            if op == "*":
+            elif op == "*":
                 return lhs * rhs
-            if op == "/":
+            elif op == "/":
                 return z3.UDiv(lhs, rhs) if is_unsigned_ty(lhs_subject.get("ty")) else lhs / rhs
-            if op == "%":
+            elif op == "%":
                 return z3.URem(lhs, rhs) if is_unsigned_ty(lhs_subject.get("ty")) else lhs % rhs
-            if op == "<<":
+            elif op == "<<":
                 return lhs << rhs
-            if op == ">>":
+            elif op == ">>":
                 return z3.LShR(lhs, rhs) if is_unsigned_ty(lhs_subject.get("ty")) else lhs >> rhs
-            if op == "&":
+            elif op == "&":
                 return lhs & rhs
-            if op == "|":
+            elif op == "|":
                 return lhs | rhs
-            if op == "^":
+            elif op == "^":
                 return lhs ^ rhs
-
-        if lhs.sort().kind() == z3.Z3_REAL_SORT:
+        elif lhs.sort().kind() == z3.Z3_REAL_SORT:
             if op == "+":
                 return lhs + rhs
-            if op == "-":
+            elif op == "-":
                 return lhs - rhs
-            if op == "*":
+            elif op == "*":
                 return lhs * rhs
-            if op == "/":
+            elif op == "/":
                 return lhs / rhs
 
-        raise HIRZ3Error(
-            f"unsupported arithmetic/bitwise operation: {lhs.sort()} {op} {rhs.sort()}"
-        )
+        raise HIRZ3Error(f"unsupported arithmetic/bitwise operation: {lhs.sort()} {op} {rhs.sort()}")
 
     def binary_compare(
         self,
@@ -772,21 +685,20 @@ class HIRToZ3:
 
             if op == ">":
                 return z3.UGT(lhs, rhs) if unsigned else lhs > rhs
-            if op == "<":
+            elif op == "<":
                 return z3.ULT(lhs, rhs) if unsigned else lhs < rhs
-            if op == ">=":
+            elif op == ">=":
                 return z3.UGE(lhs, rhs) if unsigned else lhs >= rhs
-            if op == "<=":
+            elif op == "<=":
                 return z3.ULE(lhs, rhs) if unsigned else lhs <= rhs
-
-        if lhs.sort().kind() in {z3.Z3_REAL_SORT, z3.Z3_INT_SORT}:
+        elif lhs.sort().kind() in {z3.Z3_REAL_SORT, z3.Z3_INT_SORT}:
             if op == ">":
                 return lhs > rhs
-            if op == "<":
+            elif op == "<":
                 return lhs < rhs
-            if op == ">=":
+            elif op == ">=":
                 return lhs >= rhs
-            if op == "<=":
+            elif op == "<=":
                 return lhs <= rhs
 
         raise HIRZ3Error(f"unsupported compare: {lhs.sort()} {op} {rhs.sort()}")
@@ -814,22 +726,11 @@ class HIRToZ3:
 
         return fn(*args)
 
-    # ----------------------------
-    # Coercions
-    # ----------------------------
-
     def align_binary_operands(
         self,
         lhs: z3.ExprRef,
         rhs: z3.ExprRef,
     ) -> tuple[z3.ExprRef, z3.ExprRef]:
-        """
-        Make simple numeric operands compatible.
-
-        Useful case:
-            lhs is BitVec32, rhs is BitVec8 -> extend rhs to 32.
-        """
-
         if lhs.sort() == rhs.sort():
             return lhs, rhs
 
@@ -839,7 +740,6 @@ class HIRToZ3:
 
             if lw == rw:
                 return lhs, rhs
-
             if lw > rw:
                 rhs = z3.ZeroExt(lw - rw, rhs)
                 return lhs, rhs
@@ -850,7 +750,6 @@ class HIRToZ3:
         if lhs.sort().kind() == z3.Z3_BOOL_SORT and rhs.sort().kind() == z3.Z3_BV_SORT:
             lhs = z3.If(lhs, z3.BitVecVal(1, rhs.size()), z3.BitVecVal(0, rhs.size()))
             return lhs, rhs
-
         if lhs.sort().kind() == z3.Z3_BV_SORT and rhs.sort().kind() == z3.Z3_BOOL_SORT:
             rhs = z3.If(rhs, z3.BitVecVal(1, lhs.size()), z3.BitVecVal(0, lhs.size()))
             return lhs, rhs
@@ -866,10 +765,8 @@ class HIRToZ3:
     ) -> z3.ExprRef:
         if value.sort() == target_sort:
             return value
-
         if target_sort.kind() == z3.Z3_BOOL_SORT:
             return self.as_bool(value)
-
         if target_sort.kind() == z3.Z3_BV_SORT:
             width = target_sort.size()
 
@@ -885,7 +782,6 @@ class HIRToZ3:
 
                 if current == width:
                     return value
-
                 if current < width:
                     return z3.ZeroExt(width - current, value)
 
@@ -893,27 +789,20 @@ class HIRToZ3:
 
         if target_sort.kind() == z3.Z3_REAL_SORT:
             if value.sort().kind() == z3.Z3_BV_SORT:
-                # Conservative uninterpreted conversion for now.
                 return self.fresh_value("bv_to_real", target_sort)
-
             if value.sort().kind() == z3.Z3_BOOL_SORT:
                 return z3.If(value, z3.RealVal(1), z3.RealVal(0))
 
-        raise HIRZ3Error(
-            f"cannot coerce {value} : {value.sort()} to {target_sort}"
-        )
+        raise HIRZ3Error(f"cannot coerce {value} : {value.sort()} to {target_sort}")
 
     def as_bool(self, value: z3.ExprRef) -> z3.BoolRef:
         if value.sort().kind() == z3.Z3_BOOL_SORT:
             return value
-
         if value.sort().kind() == z3.Z3_BV_SORT:
             return value != z3.BitVecVal(0, value.size())
-
         if value.sort().kind() in {z3.Z3_INT_SORT, z3.Z3_REAL_SORT}:
             return value != 0
 
-        # Opaque values: generate predicate is_true(value).
         pred_name = safe_symbol_name(f"is_true_{value.sort().name()}")
         key = (
             pred_name,
@@ -987,10 +876,6 @@ class HIRToZ3:
             f"unsupported cast from {value.sort()} to {target_ty}"
         )
 
-    # ----------------------------
-    # Defer
-    # ----------------------------
-
     def defer(
         self,
         instr: dict[str, Any],
@@ -1004,11 +889,6 @@ class HIRToZ3:
             }
         )
 
-
-# ----------------------------
-# Literal parsing
-# ----------------------------
-
 def parse_int_value(value: Any) -> int:
     if isinstance(value, int):
         return value
@@ -1017,17 +897,14 @@ def parse_int_value(value: Any) -> int:
 
     if text.startswith(("0x", "-0x", "+0x")):
         return int(text, 16)
-
     if text.startswith(("0b", "-0b", "+0b")):
         return int(text, 2)
 
     return int(text, 10)
 
-
 def parse_bool_value(value: Any) -> bool:
     if isinstance(value, bool):
         return value
-
     if isinstance(value, int):
         return value != 0
 
@@ -1035,16 +912,10 @@ def parse_bool_value(value: Any) -> bool:
 
     if text in {"true", "yes", "on"}:
         return True
-
     if text in {"false", "no", "off"}:
         return False
 
     return parse_int_value(text) != 0
-
-
-# ----------------------------
-# Public API
-# ----------------------------
 
 def prepare_hir_for_z3(
     program: dict[str, Any] | str,
@@ -1058,36 +929,13 @@ def prepare_hir_for_z3(
         strict=strict,
     ).prepare()
 
-
-# ----------------------------
-# Small CLI helper
-# ----------------------------
-
 def main() -> int:
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Prepare parsed HIR JSON for z3 and print generated constraints.",
-    )
-
-    parser.add_argument(
-        "path",
-        nargs="?",
-        help="Path to JSON produced by hir_dump_parser.py. stdin is used if omitted.",
-    )
-
-    parser.add_argument(
-        "--strict",
-        action="store_true",
-        help="Raise on unsupported instructions instead of deferring them.",
-    )
-
-    parser.add_argument(
-        "--ptr-bits",
-        type=int,
-        default=DEFAULT_PTR_BITS,
-        help="Pointer bit width. Default: 64.",
-    )
+    parser = argparse.ArgumentParser(description="Prepare parsed HIR JSON for z3 and print generated constraints.")
+    parser.add_argument("path", nargs="?", help="Path to JSON produced by hir_dump_parser.py. stdin is used if omitted.")
+    parser.add_argument("--strict", action="store_true", help="Raise on unsupported instructions instead of deferring them.")
+    parser.add_argument("--ptr-bits", type=int, default=DEFAULT_PTR_BITS, help="Pointer bit width. Default: 64.")
 
     args = parser.parse_args()
 

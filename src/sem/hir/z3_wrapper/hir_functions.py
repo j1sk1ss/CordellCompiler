@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
-from typing import Any
 
+from dataclasses import dataclass
+from typing import Any
 
 @dataclass
 class FunctionHIR:
@@ -14,10 +14,7 @@ class FunctionHIR:
     instructions: list[dict[str, Any]]
 
     def to_program(self) -> dict[str, Any]:
-        return {
-            "instructions": self.instructions,
-        }
-
+        return { "instructions": self.instructions }
 
 def split_hir_functions(program: dict[str, Any] | str) -> list[FunctionHIR]:
     if isinstance(program, str):
@@ -58,7 +55,6 @@ def split_hir_functions(program: dict[str, Any] | str) -> list[FunctionHIR]:
 
     return functions
 
-
 def select_hir_function(functions: list[FunctionHIR], name: str | None) -> FunctionHIR:
     if name is None:
         if len(functions) == 1:
@@ -74,7 +70,6 @@ def select_hir_function(functions: list[FunctionHIR], name: str | None) -> Funct
     available = ", ".join(function.name for function in functions)
     raise RuntimeError(f"unknown function {name!r}. Available: {available}")
 
-
 def _collect_function(instructions: list[dict[str, Any]], *, start_index: int, function_index: int) -> FunctionHIR:
     name = _function_name(instructions[start_index])
     items: list[dict[str, Any]] = []
@@ -83,20 +78,17 @@ def _collect_function(instructions: list[dict[str, Any]], *, start_index: int, f
 
     while index < len(instructions):
         instr = instructions[index]
-
         if index != start_index and instr.get("op") == "fn" and depth is None:
             break
 
         items.append(instr)
 
         op = instr.get("op")
-
         if op == "scope_start":
             if depth is None:
                 depth = 1
             else:
                 depth += 1
-
         elif op == "scope_end" and depth is not None:
             depth -= 1
 
@@ -114,13 +106,10 @@ def _collect_function(instructions: list[dict[str, Any]], *, start_index: int, f
         instructions=items,
     )
 
-
 def _function_name(instr: dict[str, Any]) -> str:
     func = instr.get("func") or {}
-
     if func.get("name"):
         return str(func["name"])
-
     if func.get("text"):
         return str(func["text"])
 

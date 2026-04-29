@@ -41,7 +41,8 @@ Params:
 Returns the outproduct of the expression.
 */
 static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* r, ast_node_t* l, hir_ctx_t* ctx, sym_table_t* smt) {
-    hir_subject_t* res = NULL;
+    hir_subject_t* res = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), HIR_STKVARI64, 0);
+    HIR_BLOCK1(ctx, HIR_VARDECL, res);
     hir_subject_t* lt1 = HIR_generate_elem(l, ctx, smt);
 
     hir_subject_t* true_lb  = HIR_SUBJ_LABEL();
@@ -55,19 +56,12 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
            subject (the whole expression is 1 now). */
         case OR_TOKEN: {
             HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
-
             hir_subject_t* lt2 = HIR_generate_elem(r, ctx, smt);
-            res = HIR_SUBJ_TMPVAR(
-                HIR_promote_types(lt1->t, lt2->t), 
-                VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)
-            );
-            res->ptr = MAX(lt1->ptr, lt2->ptr);
-            
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
-            HIR_BLOCK2(ctx, HIR_STORE, res, lt2);
+            HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
-            HIR_BLOCK2(ctx, HIR_STORE, res, HIR_SUBJ_CONST(1));
+            HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), HIR_SUBJ_CONST(1));
             break;
         }
         /* Lazy AND generation.
@@ -75,19 +69,13 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
            subject (the whole expression is 0 now). */
         case AND_TOKEN: {
             HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
-
             hir_subject_t* lt2 = HIR_generate_elem(r, ctx, smt);
-            res = HIR_SUBJ_TMPVAR(
-                HIR_promote_types(lt1->t, lt2->t), 
-                VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)
-            );
-            res->ptr = MAX(lt1->ptr, lt2->ptr);
-            
+            HIR_BLOCK1(ctx, HIR_VARDECL, res);
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
-            HIR_BLOCK2(ctx, HIR_STORE, res, lt2);
+            HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
-            HIR_BLOCK2(ctx, HIR_STORE, res, HIR_SUBJ_CONST(0));
+            HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), HIR_SUBJ_CONST(0));
             break;
         }
         default: break;
@@ -128,18 +116,18 @@ static hir_subject_t* _generate_logic_operator(ast_node_t* op, ast_node_t* r, as
     switch (op->t->t_type) {
         case OR_TOKEN: {
             HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
-            HIR_BLOCK2(ctx, HIR_STORE, res, lt2);
+            HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
-            HIR_BLOCK2(ctx, HIR_STORE, res, HIR_SUBJ_CONST(1));
+            HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), HIR_SUBJ_CONST(1));
             break;
         }
         case AND_TOKEN: {
             HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
-            HIR_BLOCK2(ctx, HIR_STORE, res, lt2);
+            HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
-            HIR_BLOCK2(ctx, HIR_STORE, res, HIR_SUBJ_CONST(0));
+            HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), HIR_SUBJ_CONST(0));
             break;
         }
         default: break;

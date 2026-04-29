@@ -1,21 +1,19 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-import argparse
-import json
+import z3
 import re
+import json
+import argparse
+
+from dataclasses import dataclass, field
 from typing import Any, Iterable
 
-import z3
-
 from hir_parser import parse_hir_dump
-from hir_functions import split_hir_functions, select_hir_function, FunctionHIR
+from hir_functions import split_hir_functions, select_hir_function
 from z3_first_raw import prepare_hir_for_z3
 from hir_cfg_builder import build_hir_cfg
 
-_VAR_NAME_RE = re.compile(
-    r"^(?P<ty>[A-Za-z0-9]+)_(?P<storage>tmp|stack|global)(?:_p(?P<ptr>\d+))?_(?P<id>\d+)$"
-)
+_VAR_NAME_RE = re.compile(r"^(?P<ty>[A-Za-z0-9]+)_(?P<storage>tmp|stack|global)(?:_p(?P<ptr>\d+))?_(?P<id>\d+)$")
 
 @dataclass
 class WrapperContext:
@@ -40,7 +38,6 @@ class PathState:
 
         return z3.simplify(z3.And(*self.conditions))
 
-
 @dataclass
 class CheckResult:
     title: str
@@ -50,13 +47,11 @@ class CheckResult:
     path: PathState | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
-
 @dataclass
 class InitialAssignment:
     variable: str
     value: str
     condition: z3.BoolRef
-
 
 def _load_program_from_file(path: str, *, input_kind: str, strict_parser: bool) -> dict[str, Any]:
     with open(path, "r", encoding="utf-8") as file:
@@ -68,24 +63,23 @@ def _load_program_from_file(path: str, *, input_kind: str, strict_parser: bool) 
         strict_parser=strict_parser,
     )
 
-
 def _load_program_from_text(text: str, *, input_kind: str, strict_parser: bool) -> dict[str, Any]:
-    stripped = text.lstrip()
-
     if input_kind == "json":
         return json.loads(text)
-
-    if input_kind == "dump":
+    elif input_kind == "dump":
         return parse_hir_dump(text, strict=strict_parser).to_dict()
-
-    if input_kind == "auto":
-        if stripped.startswith("{"):
+    elif input_kind == "auto":
+        try:
             return json.loads(text)
-
-        return parse_hir_dump(text, strict=strict_parser).to_dict()
+        except:
+            pass
+        
+        try:
+            return parse_hir_dump(text, strict=strict_parser).to_dict()
+        except:
+            pass
 
     raise ValueError(f"unknown input kind: {input_kind!r}")
-
 
 def _parse_initial_assignment(text: str) -> tuple[str, str]:
     if "=" not in text:
@@ -97,28 +91,22 @@ def _parse_initial_assignment(text: str) -> tuple[str, str]:
 
     if not variable:
         raise RuntimeError(f"invalid --set value {text!r}, empty variable")
-
     if not value:
         raise RuntimeError(f"invalid --set value {text!r}, empty value")
 
     return variable, value
 
-
 def _merged_z3_values(prepared: Any) -> dict[str, z3.ExprRef]:
     merged: dict[str, z3.ExprRef] = {}
-
     for name, expr in getattr(prepared, "symbols", {}).items():
         merged[name] = expr
-
     for name, expr in getattr(prepared, "values", {}).items():
         merged[name] = expr
 
     return merged
 
-
 def _resolve_assignment_variable(prepared: Any, variable: str) -> tuple[str, z3.ExprRef]:
     merged = _merged_z3_values(prepared)
-
     if variable in merged:
         return variable, merged[variable]
 
@@ -154,7 +142,6 @@ def _resolve_assignment_variable(prepared: Any, variable: str) -> tuple[str, z3.
 
     return candidates[0]
 
-
 def _build_initial_assignments(prepared: Any, assignments: list[str]) -> list[InitialAssignment]:
     result: list[InitialAssignment] = []
 
@@ -179,7 +166,6 @@ def _build_initial_assignments(prepared: Any, assignments: list[str]) -> list[In
         )
 
     return result
-
 
 def _build_context(args: argparse.Namespace) -> WrapperContext:
     full_program = _load_program_from_file(
@@ -224,7 +210,6 @@ def _build_context(args: argparse.Namespace) -> WrapperContext:
         initial_assignments=initial_assignments,
     )
 
-
 def _make_solver(prepared: Any, conditions: Iterable[z3.BoolRef] = ()) -> z3.Solver:
     solver = z3.Solver()
 
@@ -239,7 +224,6 @@ def _make_solver(prepared: Any, conditions: Iterable[z3.BoolRef] = ()) -> z3.Sol
 
     return solver
 
-
 def _iter_subjects(value: Any) -> Iterable[dict[str, Any]]:
     if isinstance(value, dict):
         if "kind" in value:
@@ -247,11 +231,9 @@ def _iter_subjects(value: Any) -> Iterable[dict[str, Any]]:
 
         for nested in value.values():
             yield from _iter_subjects(nested)
-
     elif isinstance(value, list):
         for item in value:
             yield from _iter_subjects(item)
-
 
 def _expr_from_var_subject(prepared: Any, subject: dict[str, Any]) -> z3.ExprRef:
     name = subject.get("z3_name")
@@ -270,7 +252,6 @@ def _expr_from_var_subject(prepared: Any, subject: dict[str, Any]) -> z3.ExprRef
 
     raise RuntimeError(f"variable was not prepared for z3: {name}")
 
-
 def _find_var_subject_in_block(block: Any, var_id: int, *, ty: str | None, storage: str | None) -> dict[str, Any] | None:
     fallback: dict[str, Any] | None = None
 
@@ -278,7 +259,6 @@ def _find_var_subject_in_block(block: Any, var_id: int, *, ty: str | None, stora
         for subject in _iter_subjects(instr):
             if subject.get("kind") != "var":
                 continue
-
             if int(subject.get("var_id") or -1) != var_id:
                 continue
 
@@ -287,14 +267,12 @@ def _find_var_subject_in_block(block: Any, var_id: int, *, ty: str | None, stora
 
             if ty is not None and subject.get("ty") != ty:
                 continue
-
             if storage is not None and subject.get("storage") != storage:
                 continue
 
             return subject
 
     return fallback
-
 
 def _find_phi_source_subject(ctx: WrapperContext, phi_instr: dict[str, Any], src_block: Any) -> dict[str, Any] | None:
     dst_subject = phi_instr.get("dst")
@@ -313,7 +291,6 @@ def _find_phi_source_subject(ctx: WrapperContext, phi_instr: dict[str, Any], src
 
         if not preamble_dst or not preamble_src:
             continue
-
         if preamble_dst.get("var_id") == dst_var_id:
             return preamble_src
 
@@ -336,7 +313,6 @@ def _find_phi_source_subject(ctx: WrapperContext, phi_instr: dict[str, Any], src
             return subject
 
     return None
-
 
 def _phi_constraints_for_edge(ctx: WrapperContext, edge: Any) -> list[z3.BoolRef]:
     dst_name = getattr(edge, "dst", None)
@@ -366,15 +342,12 @@ def _phi_constraints_for_edge(ctx: WrapperContext, edge: Any) -> list[z3.BoolRef
 
     return constraints
 
-
 def _phi_constraints_for_path(ctx: WrapperContext, path: PathState) -> list[z3.BoolRef]:
     constraints: list[z3.BoolRef] = []
-
     for edge in path.path_edges:
         constraints.extend(_phi_constraints_for_edge(ctx, edge))
 
     return constraints
-
 
 def _check_path_with_conditions(ctx: WrapperContext, path: PathState, extra_conditions: Iterable[z3.BoolRef]) -> tuple[z3.CheckSatResult, z3.ModelRef | None]:
     conditions = list(path.conditions)
@@ -383,38 +356,30 @@ def _check_path_with_conditions(ctx: WrapperContext, path: PathState, extra_cond
 
     return _check_with_conditions(ctx.prepared, conditions)
 
-
 def _check_with_conditions(prepared: Any, conditions: Iterable[z3.BoolRef]) -> tuple[z3.CheckSatResult, z3.ModelRef | None]:
     solver = _make_solver(prepared, conditions)
     check = solver.check()
-
     if check == z3.sat:
         return check, solver.model()
 
     return check, None
 
-
 def _as_bool_expr(expr: z3.ExprRef) -> z3.BoolRef:
     if expr.sort().kind() == z3.Z3_BOOL_SORT:
         return expr
-
-    if expr.sort().kind() == z3.Z3_BV_SORT:
+    elif expr.sort().kind() == z3.Z3_BV_SORT:
         return expr != z3.BitVecVal(0, expr.size())
-
-    if expr.sort().kind() in {z3.Z3_INT_SORT, z3.Z3_REAL_SORT}:
+    elif expr.sort().kind() in {z3.Z3_INT_SORT, z3.Z3_REAL_SORT}:
         return expr != 0
 
     raise TypeError(f"cannot convert expression to bool: {expr} : {expr.sort()}")
 
-
 def _edge_condition(edge: Any, prepared: Any) -> z3.BoolRef:
     kind = getattr(edge, "kind", None)
-
     if kind not in {"true", "false"}:
         return z3.BoolVal(True)
 
     condition = getattr(edge, "condition_z3", None)
-
     if condition is None:
         condition = _condition_from_subject(
             getattr(edge, "condition_subject", None),
@@ -422,19 +387,16 @@ def _edge_condition(edge: Any, prepared: Any) -> z3.BoolRef:
         )
 
     condition = _as_bool_expr(condition)
-
     if kind == "true":
         return condition
 
     return z3.Not(condition)
-
 
 def _condition_from_subject(subject: dict[str, Any] | None, prepared: Any) -> z3.ExprRef:
     if not subject:
         raise RuntimeError("branch edge has no z3 condition and no condition_subject")
 
     kind = subject.get("kind")
-
     if kind == "var":
         name = subject.get("z3_name")
 
@@ -446,14 +408,12 @@ def _condition_from_subject(subject: dict[str, Any] | None, prepared: Any) -> z3
 
         if name in values:
             return values[name]
-
-        if name in symbols:
+        elif name in symbols:
             return symbols[name]
 
         raise RuntimeError(f"condition variable was not prepared for z3: {name}")
 
     raise RuntimeError(f"cannot rebuild condition from subject kind={kind!r}: {subject}")
-
 
 def _fallback_z3_name_for_var(subject: dict[str, Any]) -> str:
     ty = subject.get("ty") or "unknown"
@@ -461,20 +421,15 @@ def _fallback_z3_name_for_var(subject: dict[str, Any]) -> str:
     var_id = subject.get("var_id")
     ptr = int(subject.get("ptr") or 0)
     ptr_suffix = "" if ptr == 0 else "_p" + str(ptr)
-
     return f"{ty}_{storage}{ptr_suffix}_{var_id}"
-
 
 def _block_by_name(cfg: Any, name: str) -> Any:
     return cfg.block_by_name(name)
 
-
 def _terminal_reason(block: Any) -> str | None:
     terminator = getattr(block, "terminator", None)
-
     if terminator is None:
         edges = getattr(block, "edges", [])
-
         if not edges:
             return "dead_end"
 
@@ -484,24 +439,20 @@ def _terminal_reason(block: Any) -> str | None:
 
     if op == "return":
         return "return"
-
-    if op == "exit":
+    elif op == "exit":
         return "exit"
 
     edges = getattr(block, "edges", [])
-
     if not edges:
         return f"terminal_{op}"
 
     return None
-
 
 def _enumerate_terminal_paths(cfg: Any, prepared: Any, *, max_depth: int) -> list[PathState]:
     if getattr(cfg, "entry", None) is None:
         return []
 
     results: list[PathState] = []
-
     stack: list[PathState] = [
         PathState(
             block_name=cfg.entry,
@@ -526,7 +477,6 @@ def _enumerate_terminal_paths(cfg: Any, prepared: Any, *, max_depth: int) -> lis
             continue
 
         edges = list(getattr(block, "edges", []))
-
         if not edges:
             state.end_reason = "dead_end"
             results.append(state)
@@ -544,11 +494,11 @@ def _enumerate_terminal_paths(cfg: Any, prepared: Any, *, max_depth: int) -> lis
                     depth=state.depth + 1,
                     end_reason="unresolved_edge",
                 )
+                
                 results.append(unresolved)
                 continue
 
             condition = _edge_condition(edge, prepared)
-
             stack.append(
                 PathState(
                     block_name=dst,
@@ -561,13 +511,11 @@ def _enumerate_terminal_paths(cfg: Any, prepared: Any, *, max_depth: int) -> lis
 
     return results
 
-
 def _enumerate_paths_to_block(cfg: Any, prepared: Any, *, target_block: str, max_depth: int) -> list[PathState]:
     if getattr(cfg, "entry", None) is None:
         return []
 
     results: list[PathState] = []
-
     stack: list[PathState] = [
         PathState(
             block_name=cfg.entry,
@@ -597,7 +545,6 @@ def _enumerate_paths_to_block(cfg: Any, prepared: Any, *, target_block: str, max
                 continue
 
             condition = _edge_condition(edge, prepared)
-
             stack.append(
                 PathState(
                     block_name=dst,
@@ -609,7 +556,6 @@ def _enumerate_paths_to_block(cfg: Any, prepared: Any, *, target_block: str, max
             )
 
     return results
-
 
 def _find_block_for_label(cfg: Any, label: str) -> str | None:
     label_to_block = getattr(cfg, "label_to_block", {})
@@ -629,7 +575,6 @@ def _find_block_for_label(cfg: Any, label: str) -> str | None:
 
     return None
 
-
 def _find_block_for_line(cfg: Any, line_no: int) -> str | None:
     for block in getattr(cfg, "blocks", []):
         for instr in getattr(block, "instructions", []):
@@ -638,25 +583,20 @@ def _find_block_for_line(cfg: Any, line_no: int) -> str | None:
 
     return None
 
-
 def _return_value_for_block(prepared: Any, block: Any) -> z3.ExprRef | None:
     terminator = getattr(block, "terminator", None)
-
     if not terminator or terminator.get("op") != "return":
         return None
 
     line_no = int(terminator.get("line_no") or -1)
-
     for ret in getattr(prepared, "returns", []):
         if int(getattr(ret, "line_no", -1)) == line_no:
             return getattr(ret, "value", None)
 
     return None
 
-
 def _parse_int_literal(text: str) -> int:
     return int(text, 0)
-
 
 def _parse_bool_literal(text: str) -> bool:
     lowered = text.strip().lower()
@@ -668,7 +608,6 @@ def _parse_bool_literal(text: str) -> bool:
         return False
 
     return _parse_int_literal(lowered) != 0
-
 
 def _value_for_sort(value_text: str, sort: z3.SortRef) -> z3.ExprRef:
     if sort.kind() == z3.Z3_BOOL_SORT:
@@ -684,7 +623,6 @@ def _value_for_sort(value_text: str, sort: z3.SortRef) -> z3.ExprRef:
         return z3.RealVal(value_text)
 
     raise RuntimeError(f"cannot build literal {value_text!r} for sort {sort}")
-
 
 def _find_var_candidates(prepared: Any, var_id: int, *, ty: str | None, storage: str | None) -> list[tuple[str, z3.ExprRef]]:
     merged: dict[str, z3.ExprRef] = {}
@@ -716,29 +654,11 @@ def _find_var_candidates(prepared: Any, var_id: int, *, ty: str | None, storage:
 
     return result
 
-
-def _classify_eq_checks(eq_check: z3.CheckSatResult, neq_check: z3.CheckSatResult) -> str:
-    if eq_check == z3.sat and neq_check == z3.unsat:
-        return "must_equal"
-
-    if eq_check == z3.sat and neq_check == z3.sat:
-        return "may_equal"
-
-    if eq_check == z3.unsat and neq_check == z3.sat:
-        return "cannot_equal"
-
-    if eq_check == z3.unsat and neq_check == z3.unsat:
-        return "inconsistent"
-
-    return "unknown"
-
-
 def _investigate_branches(ctx: WrapperContext) -> list[CheckResult]:
     results: list[CheckResult] = []
-
     for block in ctx.cfg.blocks:
         for edge in block.edges:
-            if edge.kind not in {"true", "false"}:
+            if edge.kind not in { "true", "false" }:
                 continue
 
             condition = _edge_condition(edge, ctx.prepared)
@@ -767,7 +687,6 @@ def _investigate_branches(ctx: WrapperContext) -> list[CheckResult]:
 
     return results
 
-
 def _investigate_paths(ctx: WrapperContext, *, max_depth: int) -> list[CheckResult]:
     path_states = _enumerate_terminal_paths(
         ctx.cfg,
@@ -776,7 +695,6 @@ def _investigate_paths(ctx: WrapperContext, *, max_depth: int) -> list[CheckResu
     )
 
     results: list[CheckResult] = []
-
     for index, path in enumerate(path_states, 1):
         condition = path.condition_expr()
         check, model = _check_with_conditions(ctx.prepared, path.conditions)
@@ -799,10 +717,8 @@ def _investigate_paths(ctx: WrapperContext, *, max_depth: int) -> list[CheckResu
 
     return results
 
-
 def _investigate_label(ctx: WrapperContext, *, label: str, max_depth: int) -> list[CheckResult]:
     target_block = _find_block_for_label(ctx.cfg, label)
-
     if target_block is None:
         raise RuntimeError(f"unknown label/block: {label!r}")
 
@@ -814,7 +730,6 @@ def _investigate_label(ctx: WrapperContext, *, label: str, max_depth: int) -> li
     )
 
     results: list[CheckResult] = []
-
     for index, path in enumerate(path_states, 1):
         condition = path.condition_expr()
         check, model = _check_with_conditions(ctx.prepared, path.conditions)
@@ -834,7 +749,6 @@ def _investigate_label(ctx: WrapperContext, *, label: str, max_depth: int) -> li
 
     return results
 
-
 def _investigate_line(ctx: WrapperContext, *, line_no: int, max_depth: int) -> list[CheckResult]:
     target_block = _find_block_for_line(ctx.cfg, line_no)
 
@@ -849,7 +763,6 @@ def _investigate_line(ctx: WrapperContext, *, line_no: int, max_depth: int) -> l
     )
 
     results: list[CheckResult] = []
-
     for index, path in enumerate(path_states, 1):
         condition = path.condition_expr()
         check, model = _check_with_conditions(ctx.prepared, path.conditions)
@@ -869,8 +782,10 @@ def _investigate_line(ctx: WrapperContext, *, line_no: int, max_depth: int) -> l
 
     return results
 
-
-def _investigate_var_eq(ctx: WrapperContext, *, var_id: int, value_text: str, ty: str | None, storage: str | None, max_depth: int) -> list[CheckResult]:
+def _investigate_var_eq(
+    ctx: WrapperContext, *, var_id: int, 
+    value_text: str, ty: str | None, storage: str | None, max_depth: int
+) -> list[CheckResult]:
     candidates = _find_var_candidates(
         ctx.prepared,
         var_id,
@@ -888,7 +803,6 @@ def _investigate_var_eq(ctx: WrapperContext, *, var_id: int, value_text: str, ty
     )
 
     results: list[CheckResult] = []
-
     for name, expr in candidates:
         value = _value_for_sort(value_text, expr.sort())
         eq_condition = expr == value
@@ -900,35 +814,20 @@ def _investigate_var_eq(ctx: WrapperContext, *, var_id: int, value_text: str, ty
         first_model: z3.ModelRef | None = None
 
         for path in paths:
-            base_check, _ = _check_path_with_conditions(
-                ctx,
-                path,
-                [],
-            )
-
+            base_check, _ = _check_path_with_conditions(ctx, path, [])
             if base_check != z3.sat:
                 continue
 
             sat_path_count += 1
 
-            eq_check, eq_model = _check_path_with_conditions(
-                ctx,
-                path,
-                [eq_condition],
-            )
-
+            eq_check, eq_model = _check_path_with_conditions(ctx, path, [eq_condition])
             if eq_check == z3.sat:
                 can_equal = True
 
                 if first_model is None:
                     first_model = eq_model
 
-            neq_check, _ = _check_path_with_conditions(
-                ctx,
-                path,
-                [neq_condition],
-            )
-
+            neq_check, _ = _check_path_with_conditions(ctx, path, [neq_condition])
             if neq_check == z3.sat:
                 can_differ = True
 
@@ -967,7 +866,6 @@ def _investigate_var_eq(ctx: WrapperContext, *, var_id: int, value_text: str, ty
         )
 
     return results
-
 
 def _print_constraints(ctx: WrapperContext) -> None:
     print(f";; function {ctx.function.name}")
@@ -1008,7 +906,6 @@ def _print_constraints(ctx: WrapperContext) -> None:
         instr = item.get("instruction", {})
         print(f"  {item.get('reason')}: {instr.get('raw')}")
 
-
 def _print_results(results: list[CheckResult], *, show_model: bool) -> None:
     if not results:
         print("no results")
@@ -1034,7 +931,6 @@ def _print_results(results: list[CheckResult], *, show_model: bool) -> None:
 
         print()
 
-
 def _format_model_lines(model: z3.ModelRef) -> list[str]:
     lines: list[str] = []
 
@@ -1047,7 +943,6 @@ def _format_model_lines(model: z3.ModelRef) -> list[str]:
         lines.append(f"{declaration.name()} = {model[declaration]}")
 
     return lines
-
 
 def _results_to_jsonable(results: list[CheckResult], *, include_model: bool) -> list[dict[str, Any]]:
     output: list[dict[str, Any]] = []
@@ -1077,32 +972,11 @@ def _results_to_jsonable(results: list[CheckResult], *, include_model: bool) -> 
 
     return output
 
-
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Investigate HIR dump with z3.",
-    )
-
-    parser.add_argument(
-        "input",
-        help="HIR dump file or parsed JSON file.",
-    )
-
-    parser.add_argument(
-        "-f",
-        "--function",
-        default=None,
-        help="Function name to investigate.",
-    )
-
-    parser.add_argument(
-        "--set",
-        dest="sets",
-        action="append",
-        default=[],
-        help="Set initial function variable value. Example: --set %%1=10 or --set i32_tmp_1=10.",
-    )
-
+    parser = argparse.ArgumentParser(description="CPL HIR to z3")
+    parser.add_argument("input", help="HIR dump file or parsed JSON file.")
+    parser.add_argument("-f", "--function", default=None, help="Function name to investigate.")
+    parser.add_argument("--set", dest="sets", action="append", default=[], help="Set initial function variable value. Example: --set %%1=10 or --set i32_tmp_1=10.")
     parser.add_argument(
         "what",
         choices=[
@@ -1118,99 +992,39 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         help="What to investigate.",
     )
 
-    parser.add_argument(
-        "targets",
-        nargs="*",
-        help="Targets for selected mode.",
-    )
-
-    parser.add_argument(
-        "--input-kind",
-        choices=["auto", "dump", "json"],
-        default="auto",
-        help="Input format.",
-    )
-
-    parser.add_argument(
-        "--ptr-bits",
-        type=int,
-        default=64,
-        help="Pointer size for z3 layer.",
-    )
-
-    parser.add_argument(
-        "--max-depth",
-        type=int,
-        default=None,
-        help="Max CFG exploration depth.",
-    )
-
-    parser.add_argument(
-        "--no-model",
-        action="store_true",
-        help="Do not print z3 model.",
-    )
-
-    parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Print machine-readable JSON.",
-    )
-
-    parser.add_argument(
-        "--strict-parser",
-        action="store_true",
-        help="Parser fails on unknown HIR lines.",
-    )
-
-    parser.add_argument(
-        "--strict-z3",
-        action="store_true",
-        help="z3 preparation fails on unsupported operations.",
-    )
-
-    parser.add_argument(
-        "--ty",
-        default=None,
-        help="Filter variable by HIR type.",
-    )
-
-    parser.add_argument(
-        "--storage",
-        choices=["tmp", "stack", "global"],
-        default=None,
-        help="Filter variable by storage class.",
-    )
-
+    parser.add_argument("targets", nargs="*", help="Targets for selected mode.")
+    parser.add_argument("--input-kind", choices=["auto", "dump", "json"], default="auto", help="Input format.")
+    parser.add_argument("--ptr-bits", type=int, default=64, help="Pointer size for z3 layer.")
+    parser.add_argument("--max-depth", type=int, default=None, help="Max CFG exploration depth.")
+    parser.add_argument("--no-model", action="store_true", help="Do not print z3 model.")
+    parser.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
+    parser.add_argument("--strict-parser", action="store_true", help="Parser fails on unknown HIR lines.")
+    parser.add_argument("--strict-z3", action="store_true", help="z3 preparation fails on unsupported operations.")
+    parser.add_argument("--ty", default=None, help="Filter variable by HIR type.")
+    parser.add_argument("--storage", choices=["tmp", "stack", "global"], default=None, help="Filter variable by storage class.")
     return parser
-
 
 def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
     if args.what in {"label", "line"} and len(args.targets) != 1:
         parser.error(f"{args.what!r} mode requires exactly one target")
-
     if args.what == "var-eq" and len(args.targets) != 2:
         parser.error("'var-eq' mode requires variable id and value")
-
 
 def _dispatch(ctx: WrapperContext, args: argparse.Namespace, *, max_depth: int) -> list[CheckResult]:
     if args.what == "branches":
         return _investigate_branches(ctx)
-
-    if args.what == "paths":
+    elif args.what == "paths":
         return _investigate_paths(
             ctx,
             max_depth=max_depth,
         )
-
-    if args.what == "label":
+    elif args.what == "label":
         return _investigate_label(
             ctx,
             label=str(args.targets[0]),
             max_depth=max_depth,
         )
-
-    if args.what == "line":
+    elif args.what == "line":
         try:
             line_no = int(str(args.targets[0]), 10)
         except ValueError as exception:
@@ -1221,8 +1035,7 @@ def _dispatch(ctx: WrapperContext, args: argparse.Namespace, *, max_depth: int) 
             line_no=line_no,
             max_depth=max_depth,
         )
-
-    if args.what == "var-eq":
+    elif args.what == "var-eq":
         try:
             var_id = int(str(args.targets[0]).lstrip("%"), 10)
         except ValueError as exception:
@@ -1239,8 +1052,7 @@ def _dispatch(ctx: WrapperContext, args: argparse.Namespace, *, max_depth: int) 
 
     raise AssertionError(f"unhandled mode: {args.what}")
 
-
-def main(argv: Iterable[str] | None = None) -> int:
+def _main(argv: Iterable[str] | None = None) -> int:
     parser = _build_arg_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
 
@@ -1300,6 +1112,6 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     return 0
 
-
 if __name__ == "__main__":
-    raise SystemExit(main())
+    _main()
+    
