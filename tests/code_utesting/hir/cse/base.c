@@ -100,11 +100,7 @@ int main(int argc, char* argv[]) {
     HIR_DAG_generate(&cfgctx, &dagctx, &smt); // Analyzation
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
     
-    hir_block_t* hh = hirctx.hot.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 0);
-        hh = hh->next;
-    }
+    DUMP_format_hirctx(&hirctx, &smt, stdout);
 
     HIR_DAG_unload(&dagctx);
     HIR_LTREE_unload_ctx(&lctx);

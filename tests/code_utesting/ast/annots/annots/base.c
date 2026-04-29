@@ -13,7 +13,6 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../../misc/ast_helper.h"
 
 static const char* _fmt_annot_type(annotation_type_t t) {
     switch (t) {

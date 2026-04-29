@@ -125,7 +125,6 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
             for (int i = 0; i < h->targ->storage.cnst.value; i++) stack_pop(params, NULL);
             return 1;
         }
-        case HIR_VRDEALL: return LIR_BLOCK1(ctx, LIR_VRDEALL, LIR_SUBJ_CONST(h->farg->storage.cnst.value));
         case HIR_STRDECL: return LIR_BLOCK2(ctx, LIR_STRDECL, _convert_hs_to_ls(h->farg), LIR_SUBJ_STRING(h->sarg->storage.str.s_id));
         case HIR_ARRDECL: {
             lir_subject_t* lir_elems = LIR_SUBJ_LIST();

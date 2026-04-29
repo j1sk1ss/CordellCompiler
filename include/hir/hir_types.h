@@ -82,7 +82,6 @@ typedef enum hir_operation {
         /* System commands */
         HIR_PHI_PREAMBLE, // x_future = x_this_block
         HIR_PHI,          // base: x, new_var y, set: z (bb, v_id)
-        HIR_VRDEALL,      // dealloc x
         HIR_VRUSE,
 
         /* Data */

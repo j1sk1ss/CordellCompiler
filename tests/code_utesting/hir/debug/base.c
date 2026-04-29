@@ -65,11 +65,7 @@ int main(int argc, char* argv[]) {
     HIR_init_extended_ctx(&hirctx);
 
     HIR_generate(&sctx, &hirctx, &smt);
-    hir_block_t* hh = hirctx.hot.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 1);
-        hh = hh->next;
-    }
+    DUMP_format_hirctx(&hirctx, &smt, stdout);
 
     HIR_unload_extended_ctx(&hirctx);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);

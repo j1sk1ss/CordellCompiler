@@ -82,11 +82,7 @@ int main(int argc, char* argv[]) {
 
     HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_euristic_desider);
 
-    hir_block_t* hh = hirctx.hot.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 0);
-        hh = hh->next;
-    }
+    DUMP_format_hirctx(&hirctx, &smt, stdout);
 
     HIR_LTREE_unload_ctx(&lctx);
     HIR_CG_unload(&callctx);

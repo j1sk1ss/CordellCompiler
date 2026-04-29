@@ -14,7 +14,6 @@ static int _count_commands(cfg_block_t* bb) {
             case HIR_ENDASM:
             case HIR_SETPOS:
             case HIR_NOP:
-            case HIR_VRDEALL:
             case HIR_PHI:
             case HIR_PHI_PREAMBLE: break;
             default: res++;

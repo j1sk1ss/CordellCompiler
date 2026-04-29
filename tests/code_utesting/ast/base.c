@@ -9,8 +9,8 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
+#include <ast/dump.h>
 #include <sem/misc/restore.h>
-#include "../../misc/ast_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    print_ast(sctx.r, 0);
+    DUMP_format_astctx(&sctx, stdout);
 
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
