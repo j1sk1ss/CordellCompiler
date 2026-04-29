@@ -10,7 +10,6 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -19,7 +18,7 @@
 #include <hir/func.h>
 #include <hir/loop.h>
 #include <hir/dag.h>
-#include "../../../misc/hir_helper.h"
+#include <hir/dump.h>
 
 #define RELOAD_CFG                          \
     HIR_CFG_unload(&cfgctx);                \

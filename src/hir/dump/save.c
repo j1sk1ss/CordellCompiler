@@ -20,10 +20,10 @@ static const char* _get_operation_template(hir_operation_t op) {
         case HIR_FCLL:         return "%s%s(%s);\n";
         case HIR_STORE_UFCLL:
         case HIR_STORE_FCLL:   return "%s = %s(%s);\n";
-        case HIR_ECLL:         return "excall %s, argc %s%s;\n";
-        case HIR_STORE_ECLL:   return "%s = excall %s, argc %s;\n";
-        case HIR_SYSC:         return "syscall, argc: %s%s%s;\n";
-        case HIR_STORE_SYSC:   return "%s = syscall, argc: %s%s;\n";
+        case HIR_ECLL:         return "%s(%s%s);\n";
+        case HIR_STORE_ECLL:   return "%s = %s(%s);\n";
+        case HIR_SYSC:         return "syscall(%s%s%s);\n";
+        case HIR_STORE_SYSC:   return "%s = syscall(%s%s);\n";
         case HIR_STRT:         return "start {\n";
         case HIR_FRET:         return "return %s;\n";
         case HIR_MKLB:         return "%s:\n";
@@ -248,7 +248,7 @@ int DUMP_format_hirctx(hir_ctx_t* ctx, sym_table_t* smt, FILE* output) {
     while (hh) {
         char line[512] = { 0 };
         curr_tab = _get_formatted_block(line, hh, smt, curr_tab);
-        fprintf(output, line);
+        fprintf(output, "%s", line);
         hh = hh->next;
     }
 

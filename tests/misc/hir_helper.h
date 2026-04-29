@@ -6,7 +6,6 @@
 #include <hir/loop.h>
 #include <hir/hir_types.h>
 #include <hir/dump.h>
-#include "ast_helper.h"
 
 static const char* _hir_op_to_string(hir_operation_t op) {
     switch(op) {
