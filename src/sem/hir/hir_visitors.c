@@ -1,5 +1,6 @@
 #include <sem/hir/hir_visitors.h>
 
+// TODO: docs
 static const char* _resolve_variable_name(symbol_id_t id, sym_table_t* smt) {
     variable_info_t vi;
     do {
@@ -61,6 +62,7 @@ static int _resolve_subject_value(hir_subject_t* s, sym_table_t* smt, defined_va
     return 1;
 }
 
+// TODO: docs
 static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_id, file_position_t* loc) {
     int found = 0;
     while (b) {
@@ -86,12 +88,14 @@ static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_i
     return found;
 }
 
+// TODO: docs
 static inline symbol_id_t _get_parent_id(symbol_id_t v_id, sym_table_t* smt) {
     variable_info_t vi;
     if (VRTB_get_info_id(v_id, &vi, &smt->v)) return vi.p_id;
     return NO_SYMBOL_ID;
 }
 
+// TODO: docs
 static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
     defined_variable_t di;
     if (!_resolve_subject_value(s, smt, &di)) {
@@ -232,6 +236,7 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     return 1;
 }
 
+// TODO: docs
 static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int buffer_size) {
     for (int i = 0; i < ptr; i++) {
         buffer += snprintf(buffer, buffer_size, "ptr ");
