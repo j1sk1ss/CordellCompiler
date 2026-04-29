@@ -7,7 +7,7 @@ start() {
     start {
         {
             {
-                breakpoint msg=breakpoint;
+                breakpoint(breakpoint);
             }
         }
     }

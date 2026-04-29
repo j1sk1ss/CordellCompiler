@@ -25,7 +25,7 @@ start() {
     start {
         {
             {
-                i32s %0 = alloc(8);
+                i32s %0 = alloc;
                 if i8n 1, goto lb41, else goto lb42;
                 lb41:
                 {
@@ -37,7 +37,7 @@ start() {
                 i32t %1 = i8n 2;
                 goto lb31;
                 lb31:
-                [unused] i32t %1 = call foo0() -> i32, argc args();
+                [unused] i32t %1 = foo0();
                 i32s %0 = i32t %1;
             }
         }

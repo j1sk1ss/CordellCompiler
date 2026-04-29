@@ -12,16 +12,16 @@ start() {
     fn foo0(...)
     {
         {
-            i64s %0 = alloc(8);
+            i64s %0 = alloc;
             i64s %2 = load_arg();
-            f32s* %1 = alloc(8);
+            f32s* %1 = alloc;
             f32s* %3 = load_arg();
         }
     }
     start {
         {
             {
-                call foo0(...), argc args();
+                foo0();
             }
         }
     }

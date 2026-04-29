@@ -10,22 +10,22 @@ start() {
     start {
         {
             {
-                i8s*** %0 = alloc(8);
-                i8s** %1 = alloc(8);
+                i8s*** %0 = alloc;
+                i8s** %1 = alloc;
                 i8t*** %4 = i8s*** %0;
                 i8t %5 = i8n 0 * csu8 8;
                 i8t*** %7 = i8t %5 as *ptr;
                 i8t*** %6 = i8t*** %4 + i8t*** %7;
                 i8t** %8 = *(i8t*** %6);
                 i8s** %1 = i8t** %8;
-                i8s* %2 = alloc(8);
+                i8s* %2 = alloc;
                 i8t** %9 = i8s** %1;
                 i8t %10 = i8n 0 * csu8 8;
                 i8t** %12 = i8t %10 as *ptr;
                 i8t** %11 = i8t** %9 + i8t** %12;
                 i8t* %13 = *(i8t** %11);
                 i8s* %2 = i8t* %13;
-                i8s %3 = alloc(8);
+                i8s %3 = alloc;
                 i8t* %14 = i8s* %2;
                 i8t %15 = i8n 0 * csu8 1;
                 i8t* %17 = i8t %15 as *ptr;

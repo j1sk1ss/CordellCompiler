@@ -6,5 +6,5 @@ start() {
 }
 
 :/ OUTPUT
-id: 0, owners: <<4 7 9 8 5 6>>
+id: 0, owners: 9 4 7 5 6 8
 /:

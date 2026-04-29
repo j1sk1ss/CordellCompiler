@@ -268,7 +268,7 @@ setpos, line=2, column=9, file=<unknown>
             {
 setpos, line=2, column=9, file=<unknown>
 setpos, line=2, column=9, file=<unknown>
-                i32s %0 = alloc(8);
+                i32s %0 = alloc;
 setpos, line=2, column=9, file=<unknown>
 setpos, line=2, column=22, file=<unknown>
 setpos, line=2, column=18, file=<unknown>

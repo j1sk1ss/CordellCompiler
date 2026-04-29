@@ -9,7 +9,7 @@ start() {
     start {
         {
             {
-                i0s* %0 = alloc(8);
+                i0s* %0 = alloc;
                 i0t* %1 = i8n 1 as *ptr;
                 i0s* %4 = i0t* %1;
                 i0t* %2 = i8n 2 as *ptr;

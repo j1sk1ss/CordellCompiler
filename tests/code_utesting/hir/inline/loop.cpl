@@ -30,7 +30,7 @@ start() {
                     lb22:
                     {
                         lb34:
-                        [unused] call getter0(), argc args();
+                        [unused] getter0();
                     }
                     goto lb21;
                     lb23:

@@ -18,7 +18,7 @@ function foo(i32 a) {
 {
     fn _main(i32 a)
     {
-        i32s %0 = alloc(8);
+        i32s %0 = alloc;
         i32s %0 = load_starg();
         {
             i32t %2 = i8n 1 as i32;

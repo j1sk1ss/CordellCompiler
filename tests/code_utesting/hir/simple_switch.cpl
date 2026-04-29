@@ -13,7 +13,7 @@ start() {
     start {
         {
             {
-                i32s %0 = alloc(8);
+                i32s %0 = alloc;
                 goto lb9;
                 lb11:
                 {

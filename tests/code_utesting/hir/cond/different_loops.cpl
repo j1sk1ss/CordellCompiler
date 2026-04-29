@@ -16,13 +16,13 @@ start() {
                 goto lb8;
                 lb8:
                 {
-                    i64s %0 = alloc(8);
+                    i64s %0 = alloc;
                     i64s %0 = csu8 5;
                     lb14:
                     goto lb15;
                     lb15:
                     {
-                        i64s %1 = alloc(8);
+                        i64s %1 = alloc;
                         i64s %1 = csu8 1;
                         lb21:
                         goto lb22;

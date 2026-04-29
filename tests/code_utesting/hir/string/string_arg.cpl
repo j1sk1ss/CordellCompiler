@@ -11,7 +11,7 @@ start() {
             {
                 strs %1 = str_alloc(Hello world!);
                 use strs %1;
-                call foo0(i8* msg), argc args(strs %1,);
+                foo0(strs %1);
             }
         }
     }

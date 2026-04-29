@@ -47,11 +47,11 @@ digraph CFG_func0 {
   B8 [label="B8:\nentry=MKLB79\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
   B8 -> B9 [label="fall"];
   B8 -> B10 [label="jump"];
-  B9 [label="B9:\nentry=MKLB86\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B9 [label="B9:\nentry=MKLB87\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B9 -> B11 [label="jump"];
-  B10 [label="B10:\nentry=MKLB87\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
+  B10 [label="B10:\nentry=MKLB88\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B10 -> B11 [label="jump"];
-  B11 [label="B11:\nentry=MKLB88\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
+  B11 [label="B11:\nentry=MKLB89\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=2"];
   B11 -> B12 [label="fall"];
   B11 -> B13 [label="jump"];
   B12 [label="B12:\nentry=MKLB80\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];

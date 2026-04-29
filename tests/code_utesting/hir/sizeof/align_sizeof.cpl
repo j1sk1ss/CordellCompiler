@@ -8,8 +8,8 @@ start() {
     start {
         {
             {
-                i8s %0 = alloc(8);
-                i32s %1 = alloc(8);
+                i8s %0 = alloc;
+                i32s %1 = alloc;
                 i32t %2 = csu8 64 as i32;
                 i32s %1 = i32t %2;
             }

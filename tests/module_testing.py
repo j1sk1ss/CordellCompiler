@@ -1073,8 +1073,11 @@ def _run_test_once(
     return _attach_failure_log(result, test_file, log_sections)
 
 
-def _run_test(binary: str, binary_leak: str | None, test_file: Path) -> dict:
+def _run_test(binary: str, binary_leak: str | None, test_file: Path, *, force_rewrite: bool = False) -> dict:
     code, expected, flags = _parse_test_file(test_file)
+    if force_rewrite:
+        flags["rewrite"] = True
+    
     annotations = flags.get("output_annotations", {})
     measure_time = _annotation_enabled(annotations, "measure_time")
     measure_lines = _annotation_enabled(annotations, "measure_lines")
@@ -1188,6 +1191,7 @@ def _entry() -> None:
     parser.add_argument('--path', required=True, help='Unit test path')
     parser.add_argument('--base', default='../')
     parser.add_argument('--compiler', default='gcc')
+    parser.add_argument('--force-rewrite', action='store_true', help='Rewrite OUTPUT blocks for all tests')
     args = parser.parse_args()
 
     test_top: Path = Path(args.path)
@@ -1293,7 +1297,7 @@ def _entry() -> None:
             print(f"Module {root} has no .cpl files to test.")
 
         for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False, position=1):
-            results.append(_run_test(binary, binary_leak, cpl))
+            results.append(_run_test(binary, binary_leak, cpl, force_rewrite=args.force_rewrite))
 
     compile_pbar.close()
     failed: int = 0

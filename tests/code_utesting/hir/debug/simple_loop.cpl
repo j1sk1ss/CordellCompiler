@@ -6,12 +6,12 @@ function foo() {
 :/ OUTPUT
 setpos, line=2, column=86, file={X}
 {
-setpos, line=1, column=10, file={X}cpl
+setpos, line=1, column=10, file={X}
     fn foo0()
     {
-setpos, line=2, column=7, file={X}cpl
+setpos, line=2, column=7, file={X}
         {
-            i64s %0 = alloc(8);
+            i64s %0 = alloc;
             i64s %0 = csu8 10;
             lb9:
             goto lb10;

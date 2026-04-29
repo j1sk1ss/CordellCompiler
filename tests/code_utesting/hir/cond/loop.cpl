@@ -9,15 +9,15 @@ start() {
     start {
         {
             {
-                lb{X}
-                goto lb{X}
-                lb{X}
+                lb7:
+                goto lb8;
+                lb8:
                 {
                     // break;
-                    goto lb{X}
+                    goto lb9;
                 }
-                goto lb{X}
-                lb{X}
+                goto lb7;
+                lb9:
             }
         }
     }

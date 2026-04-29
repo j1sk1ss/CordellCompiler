@@ -63,15 +63,15 @@ start(i32 a, ptr ptr i8 b) {
     arrg %0 = arr_alloc(i16n 256);
     fn crc80(u8* data, u32 len) -> u8
     {
-        u8s* %1 = alloc(8);
+        u8s* %1 = alloc;
         u8s* %1 = load_arg();
-        u32s %2 = alloc(8);
+        u32s %2 = alloc;
         u32s %2 = load_arg();
         {
-            u8s %3 = alloc(8);
+            u8s %3 = alloc;
             u8t %9 = i8n 0 as u8;
             u8s %3 = u8t %9;
-            u32s %4 = alloc(8);
+            u32s %4 = alloc;
             u32t %10 = i8n 0 as u32;
             u32s %4 = u32t %10;
             lb316:
@@ -105,10 +105,10 @@ start(i32 a, ptr ptr i8 b) {
     }
     fn strlen1(i8* s) -> i32
     {
-        i8s* %5 = alloc(8);
+        i8s* %5 = alloc;
         i8s* %5 = load_arg();
         {
-            i32s %6 = alloc(8);
+            i32s %6 = alloc;
             i32t %28 = i8n 0 as i32;
             i32s %6 = i32t %28;
             lb371:
@@ -130,9 +130,9 @@ start(i32 a, ptr ptr i8 b) {
     }
     start {
         {
-            i32s %7 = alloc(8);
+            i32s %7 = alloc;
             i32s %7 = load_starg();
-            i8s** %8 = alloc(8);
+            i8s** %8 = alloc;
             i8s** %8 = load_starg();
             {
                 i8t** %34 = i8s** %8;
@@ -147,9 +147,9 @@ start(i32 a, ptr ptr i8 b) {
                 i8t** %41 = i8t** %39 + i8t** %42;
                 i8t* %43 = *(i8t** %41);
                 use i8t* %43;
-                i32t %44 = call strlen1(i8* s) -> i32, argc args(i8t* %43,);
+                i32t %44 = strlen1(i8t* %43);
                 use i32t %44;
-                u8t %45 = call crc80(u8* data, u32 len) -> u8, argc args(i8t* %38,i32t %44,);
+                u8t %45 = crc80(i8t* %38, i32t %44);
                 exit u8t %45;
             }
         }

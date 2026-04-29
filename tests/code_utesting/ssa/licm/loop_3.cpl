@@ -12,7 +12,7 @@ start() {
                 goto lb9;
                 lb9:
                 {
-                    call foo0(), argc args();
+                    foo0();
                 }
                 goto lb8;
                 lb10:

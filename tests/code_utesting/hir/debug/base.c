@@ -10,7 +10,6 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -65,7 +64,7 @@ int main(int argc, char* argv[]) {
     HIR_init_extended_ctx(&hirctx);
 
     HIR_generate(&sctx, &hirctx, &smt);
-    DUMP_format_hirctx(&hirctx, &smt, stdout);
+    DUMP_format_hirctx(&hirctx, &smt, 1, 1, stdout);
 
     HIR_unload_extended_ctx(&hirctx);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);

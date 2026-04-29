@@ -9,7 +9,7 @@ start() {
         {
             {
                 arrs %0 = arr_alloc(i8n 10);
-                u32s %1 = alloc(8);
+                u32s %1 = alloc;
                 u32t***** %2 = &(arrs %0);
                 i8t %3 = i8n 0 * csu8 8;
                 u32t***** %5 = i8t %3 as *ptr;

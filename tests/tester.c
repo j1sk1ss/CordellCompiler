@@ -194,7 +194,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     
 #ifdef HIR_PRINT
     printf("\n\n========== HIRv1 ==========\n");
-    DUMP_format_hirctx(&hirctx, &smt, stdout);
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 #endif
 
 #ifdef HIR_SSA_TESTING
@@ -218,7 +218,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_LTREE_licm(&cfgctx, &smt);          // Transform
 #ifdef HIR_PRINT
     printf("\n\n========== HIRv2 ==========\n");
-    DUMP_format_hirctx(&hirctx, &smt, stdout);
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 #endif
 #ifdef HIR_DAG_TESTING
     HIR_CFG_make_allias(&cfgctx, &smt);          // Analyzation
@@ -234,7 +234,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 #ifdef HIR_PRINT
     printf("\n\n========== HIR prepared ==========\n");
-    DUMP_format_hirctx(&hirctx, &smt, stdout);
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 #endif
 #endif
 #endif

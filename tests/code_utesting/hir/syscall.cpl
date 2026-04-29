@@ -8,11 +8,11 @@ start() {
     start {
         {
             {
-                i32t %0 = call foo0() -> i32, argc args();
+                i32t %0 = foo0();
                 use i32t %0;
                 i8t %1 = i8n 0 + i8n 0;
                 use i8t %1;
-                syscall, argc: args(i8n 0,i32t %0,i8t %1,i8n 0,);
+                syscall(i8n 0, i32t %0, i8t %1, i8n 0);
             }
         }
     }

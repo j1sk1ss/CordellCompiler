@@ -10,7 +10,6 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -100,7 +99,7 @@ int main(int argc, char* argv[]) {
     HIR_DAG_generate(&cfgctx, &dagctx, &smt); // Analyzation
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
     
-    DUMP_format_hirctx(&hirctx, &smt, stdout);
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 
     HIR_DAG_unload(&dagctx);
     HIR_LTREE_unload_ctx(&lctx);

@@ -6,13 +6,13 @@ start() {
 :/ OUTPUT
 setpos, line=2, column=86, file={X}
 {
-setpos, line=1, column=10, file={X}cpl
-setpos, line=2, column=7, file={X}cpl
+setpos, line=1, column=10, file={X}
+setpos, line=2, column=7, file={X}
     start {
         {
-setpos, line=3, column=10, file={X}cpl
+setpos, line=3, column=10, file={X}
             {
-                i32t %0 = call foo0() -> i32, argc args();
+                i32t %0 = foo0();
                 exit i32t %0;
             }
         }

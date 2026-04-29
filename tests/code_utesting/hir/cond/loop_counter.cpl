@@ -8,7 +8,7 @@ start() {
     start {
         {
             {
-                i64s %0 = alloc(8);
+                i64s %0 = alloc;
                 i64s %0 = csu8 10;
                 lb9:
                 goto lb10;

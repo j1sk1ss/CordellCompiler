@@ -14,7 +14,7 @@ start() {
     start {
         {
             {
-                i32s %0 = alloc(8);
+                i32s %0 = alloc;
                 i32t %2 = i8n 0 as i32;
                 i32s %5 = i32t %2;
                 if i8n 1, goto lb12, else goto lb13;
@@ -23,18 +23,18 @@ start() {
                     i32t %3 = i8n 1 as i32;
                     i32s %9 = i32t %3;
                 }
-                future: i32s %7 = previous: i32s %9;
+                [SSA] future: i32s %7 <<== previous: i32s %9;
                 goto lb14;
                 lb13:
                 {
                     i32t %4 = i8n 2 as i32;
                     i32s %6 = i32t %4;
                 }
-                future: i32s %7 = previous: i32s %6;
+                [SSA] future: i32s %7 <<== previous: i32s %6;
                 goto lb14;
                 lb14:
-                [i32s %0] i32s %7 = phi(set [%6, bb3][%9, bb2]);
-                i32s %1 = alloc(8);
+                [base: i32s %0] i32s %7 = phi(set [%6, bb3][%9, bb2]);
+                i32s %1 = alloc;
                 i32s %8 = i32s %7;
             }
         }

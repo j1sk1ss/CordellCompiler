@@ -15,7 +15,7 @@ start() {
                 lb9:
                 {
                     use i8t %2;
-                    call foo0(i32 a), argc args(i8t %2,);
+                    foo0(i8t %2);
                 }
                 goto lb8;
                 lb10:

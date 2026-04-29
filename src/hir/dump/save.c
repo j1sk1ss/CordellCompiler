@@ -202,7 +202,7 @@ static char* _get_formatted_subject(char* dst, hir_subject_t* s, sym_table_t* sm
                 while (list_iter_next(&it, (void**)&s)) {
                     dst = _get_formatted_subject(dst, s, smt, style);
                     if (list_iter_current(&it)) {
-                        dst += sprintf(dst, ",");
+                        dst += sprintf(dst, ", ");
                     }
                 }
 
@@ -215,8 +215,18 @@ static char* _get_formatted_subject(char* dst, hir_subject_t* s, sym_table_t* sm
     return dst;
 }
 
-static int _get_formatted_block(char* dst, hir_block_t* block, sym_table_t* smt, int depth) {
+static int _get_formatted_block(char* dst, hir_block_t* block, sym_table_t* smt, int pos, int unused, int depth) {
     if (!block) return depth;
+    if (pos && block->op == HIR_SETPOS) {
+        dst += sprintf(
+            dst,
+            "setpos, line=%li, column=%li, file=%s\n", 
+            block->farg->storage.pos.line, 
+            block->farg->storage.pos.column, 
+            block->farg->storage.pos.file ? block->farg->storage.pos.file->body : "<unknown>"
+        );
+        return depth;
+    }
 
     int style = HIR_is_funccall(block->op) ? 2 : 1;
     char arg1[256] = { 0 };
@@ -232,9 +242,12 @@ static int _get_formatted_block(char* dst, hir_block_t* block, sym_table_t* smt,
     ) depth--;
 
     for (int i = 0; i < depth; i++) dst += sprintf(dst, "    ");
+    if (!unused && block->unused) goto _force_end;
+    else if (unused && block->unused) dst += sprintf(dst, "[unused] ");
     const char* fmt = _get_operation_template(block->op);
     sprintf(dst, fmt, arg1, arg2, arg3);
-
+    
+_force_end: {}
     if (
         block->op == HIR_MKSCOPE ||
         block->op == HIR_STRT
@@ -242,12 +255,12 @@ static int _get_formatted_block(char* dst, hir_block_t* block, sym_table_t* smt,
     return depth;
 }
 
-int DUMP_format_hirctx(hir_ctx_t* ctx, sym_table_t* smt, FILE* output) {
+int DUMP_format_hirctx(hir_ctx_t* ctx, sym_table_t* smt, int pos, int unused, FILE* output) {
     int curr_tab = 0;
     hir_block_t* hh = ctx->hot.h;
     while (hh) {
         char line[512] = { 0 };
-        curr_tab = _get_formatted_block(line, hh, smt, curr_tab);
+        curr_tab = _get_formatted_block(line, hh, smt, pos, unused, curr_tab);
         fprintf(output, "%s", line);
         hh = hh->next;
     }

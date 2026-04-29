@@ -15,15 +15,15 @@ function main(i32 argc, ptr ptr i8 argv) {
 {
     fn _main(i32 argc, i8** argv)
     {
-        i32s %2 = alloc(8);
+        i32s %2 = alloc;
         i32s %2 = load_starg();
-        i8s** %3 = alloc(8);
+        i8s** %3 = alloc;
         i8s** %3 = load_starg();
         {
             strs %4 = str_alloc(Hello world!);
             i8t* %5 = &(strs %4);
             use i8t* %5;
-            call print1(i8* msg) -> i0, argc args(i8t* %5,);
+            print1(i8t* %5);
             exit i8n 0;
         }
     }

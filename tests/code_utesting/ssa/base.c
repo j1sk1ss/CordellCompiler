@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     HIR_compute_homes(&hirctx);
     HIR_LTREE_licm(&cfgctx, &lctx, &smt);
 
-    DUMP_format_hirctx(&hirctx, &smt, stdout);
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);

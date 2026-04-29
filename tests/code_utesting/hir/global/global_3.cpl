@@ -16,8 +16,8 @@ start() {
                 i32g %0 = i32t %4;
                 u64t** %5 = i8n 0 as *ptr;
                 u64g** %1 = u64t** %5;
-                i32s %2 = alloc(8);
-                u64s** %3 = alloc(8);
+                i32s %2 = alloc;
+                u64s** %3 = alloc;
             }
         }
     }

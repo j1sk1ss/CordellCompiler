@@ -5,6 +5,6 @@ start() {
 }
 
 :/ OUTPUT
-{id: 0, owners: <<3 4 5 6>>}
-{id: 5, owners: <<4 6>>}
+id: 0, owners: 4 3 5 6
+id: 5, owners: 4 6
 /:

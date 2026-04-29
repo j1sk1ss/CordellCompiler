@@ -17,7 +17,8 @@ start() {
     start {
         {
             {
-                [unused] call getter0() -> i32, argc args();
+                lb20:
+                [unused] getter0();
             }
         }
     }

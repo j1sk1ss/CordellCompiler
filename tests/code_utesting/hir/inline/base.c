@@ -10,7 +10,6 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -82,7 +81,7 @@ int main(int argc, char* argv[]) {
 
     HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_euristic_desider);
 
-    DUMP_format_hirctx(&hirctx, &smt, stdout);
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 
     HIR_LTREE_unload_ctx(&lctx);
     HIR_CG_unload(&callctx);

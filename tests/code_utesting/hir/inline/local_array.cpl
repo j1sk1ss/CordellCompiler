@@ -33,7 +33,7 @@ start() {
                 i64t %6 = i32t %5;
                 goto lb42;
                 lb42:
-                [unused] i64t %6 = call foo0(), argc args();
+                [unused] i64t %6 = foo0();
                 exit i64t %6;
             }
         }

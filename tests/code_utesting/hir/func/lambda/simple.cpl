@@ -8,11 +8,11 @@ start() {
     start {
         {
             {
-                i0s* %0 = alloc(8);
+                i0s* %0 = alloc;
                 goto lb8;
                 fn __anon_function_lambda1(i32 a)
                 {
-                    i32s %1 = alloc(8);
+                    i32s %1 = alloc;
                     i32s %1 = load_arg();
                     {
                         i32t %3 = i8n 10 as i32;
@@ -23,7 +23,7 @@ start() {
                 lb8:
                 i0t* %4 = &(__anon_function_lambda1(i32 a));
                 i0s* %0 = i0t* %4;
-                i64t %5 = call i0s* %0, argc args(i8n 1,);
+                i64t %5 = i0s* %0(i8n 1);
                 exit i64t %5;
             }
         }

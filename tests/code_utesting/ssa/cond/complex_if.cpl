@@ -52,5 +52,6 @@ function foo(i32 arg) {
             exit i32t %12;
         }
     }
+    [unused]
 }
 /:

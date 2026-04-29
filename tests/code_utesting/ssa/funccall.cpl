@@ -8,7 +8,7 @@ start() {
     start {
         {
             {
-                call a0(i32 a), argc args(i8n 1,);
+                a0(i8n 1);
             }
         }
     }

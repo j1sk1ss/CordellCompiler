@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 
     HIR_LOOP_perform_dle(&lctx);
 
-    DUMP_format_hirctx(&hirctx, &smt, stdout);
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);

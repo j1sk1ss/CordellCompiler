@@ -11,7 +11,7 @@ start() {
         {
             {
                 strs %0 = str_alloc(Hello world!);
-                i8s* %1 = alloc(8);
+                i8s* %1 = alloc;
                 i8t* %2 = &(strs %0);
                 i8s* %1 = i8t* %2;
                 i8t %3 = *(strs %0);
