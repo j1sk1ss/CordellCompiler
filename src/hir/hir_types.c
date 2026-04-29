@@ -181,7 +181,11 @@ static hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
 
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (!vi) return HIR_STKVARI64;
-    if (vi->type == I0_VARIABLE_TOKEN) return HIR_STKVARI0;
+    if (
+        vi->type == I0_VARIABLE_TOKEN ||
+        vi->type == I0_TYPE_TOKEN     ||
+        vi->type == TMP_I0_TYPE_TOKEN
+    ) return HIR_STKVARI0;
 
     token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro, .glob = vi->vfs.glob } };
     type_size_t bitness = TKN_variable_bitness(&tmptkn, 1);

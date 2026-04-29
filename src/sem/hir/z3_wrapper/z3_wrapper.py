@@ -5,15 +5,13 @@ import re
 import json
 import argparse
 
-from dataclasses import dataclass, field
 from typing import Any, Iterable
+from dataclasses import dataclass, field
 
 from hir_parser import parse_hir_dump
 from hir_functions import split_hir_functions, select_hir_function
 from z3_first_raw import prepare_hir_for_z3
 from hir_cfg_builder import build_hir_cfg
-
-_VAR_NAME_RE = re.compile(r"^(?P<ty>[A-Za-z0-9]+)_(?P<storage>tmp|stack|global)(?:_p(?P<ptr>\d+))?_(?P<id>\d+)$")
 
 @dataclass
 class WrapperContext:
@@ -168,40 +166,17 @@ def _build_initial_assignments(prepared: Any, assignments: list[str]) -> list[In
     return result
 
 def _build_context(args: argparse.Namespace) -> WrapperContext:
-    full_program = _load_program_from_file(
-        args.input,
-        input_kind=args.input_kind,
-        strict_parser=args.strict_parser,
-    )
-
+    full_program = _load_program_from_file(args.input, input_kind=args.input_kind, strict_parser=args.strict_parser)
     functions = split_hir_functions(full_program)
-    function = select_hir_function(
-        functions,
-        args.function,
-    )
-
+    function = select_hir_function(functions, args.function)
     program = function.to_program()
-
-    prepared = prepare_hir_for_z3(
-        program,
-        ptr_bits=args.ptr_bits,
-        strict=args.strict_z3,
-    )
-
-    initial_assignments = _build_initial_assignments(
-        prepared,
-        args.sets,
-    )
-
+    prepared = prepare_hir_for_z3(program, ptr_bits=args.ptr_bits, strict=args.strict_z3)
+    initial_assignments = _build_initial_assignments(prepared, args.sets)
     for assignment in initial_assignments:
         prepared.constraints.append(assignment.condition)
         prepared.solver.add(assignment.condition)
 
-    cfg = build_hir_cfg(
-        program,
-        prepared=prepared,
-    )
-
+    cfg = build_hir_cfg(program, prepared=prepared)
     return WrapperContext(
         program=program,
         function=function,
@@ -212,7 +187,6 @@ def _build_context(args: argparse.Namespace) -> WrapperContext:
 
 def _make_solver(prepared: Any, conditions: Iterable[z3.BoolRef] = ()) -> z3.Solver:
     solver = z3.Solver()
-
     for constraint in getattr(prepared, "constraints", []):
         solver.add(constraint)
 
@@ -246,8 +220,7 @@ def _expr_from_var_subject(prepared: Any, subject: dict[str, Any]) -> z3.ExprRef
 
     if name in values:
         return values[name]
-
-    if name in symbols:
+    elif name in symbols:
         return symbols[name]
 
     raise RuntimeError(f"variable was not prepared for z3: {name}")
@@ -259,7 +232,7 @@ def _find_var_subject_in_block(block: Any, var_id: int, *, ty: str | None, stora
         for subject in _iter_subjects(instr):
             if subject.get("kind") != "var":
                 continue
-            if int(subject.get("var_id") or -1) != var_id:
+            elif int(subject.get("var_id") or -1) != var_id:
                 continue
 
             if fallback is None:
@@ -540,7 +513,6 @@ def _enumerate_paths_to_block(cfg: Any, prepared: Any, *, target_block: str, max
 
         for edge in reversed(edges):
             dst = getattr(edge, "dst", None)
-
             if dst is None:
                 continue
 
@@ -559,13 +531,10 @@ def _enumerate_paths_to_block(cfg: Any, prepared: Any, *, target_block: str, max
 
 def _find_block_for_label(cfg: Any, label: str) -> str | None:
     label_to_block = getattr(cfg, "label_to_block", {})
-
     if label in label_to_block:
         return label_to_block[label]
-
     if label.isdigit():
         candidate = f"lb{label}"
-
         if candidate in label_to_block:
             return label_to_block[candidate]
 
@@ -600,11 +569,9 @@ def _parse_int_literal(text: str) -> int:
 
 def _parse_bool_literal(text: str) -> bool:
     lowered = text.strip().lower()
-
     if lowered in {"true", "yes", "on"}:
         return True
-
-    if lowered in {"false", "no", "off"}:
+    elif lowered in {"false", "no", "off"}:
         return False
 
     return _parse_int_literal(lowered) != 0
@@ -612,24 +579,22 @@ def _parse_bool_literal(text: str) -> bool:
 def _value_for_sort(value_text: str, sort: z3.SortRef) -> z3.ExprRef:
     if sort.kind() == z3.Z3_BOOL_SORT:
         return z3.BoolVal(_parse_bool_literal(value_text))
-
-    if sort.kind() == z3.Z3_BV_SORT:
+    elif sort.kind() == z3.Z3_BV_SORT:
         return z3.BitVecVal(_parse_int_literal(value_text), sort.size())
-
-    if sort.kind() == z3.Z3_INT_SORT:
+    elif sort.kind() == z3.Z3_INT_SORT:
         return z3.IntVal(_parse_int_literal(value_text))
-
-    if sort.kind() == z3.Z3_REAL_SORT:
+    elif sort.kind() == z3.Z3_REAL_SORT:
         return z3.RealVal(value_text)
 
     raise RuntimeError(f"cannot build literal {value_text!r} for sort {sort}")
+
+_VAR_NAME_RE = re.compile(r"^(?P<ty>[A-Za-z0-9]+)_(?P<storage>tmp|stack|global)(?:_p(?P<ptr>\d+))?_(?P<id>\d+)$")
 
 def _find_var_candidates(prepared: Any, var_id: int, *, ty: str | None, storage: str | None) -> list[tuple[str, z3.ExprRef]]:
     merged: dict[str, z3.ExprRef] = {}
 
     for name, expr in getattr(prepared, "symbols", {}).items():
         merged[name] = expr
-
     for name, expr in getattr(prepared, "values", {}).items():
         merged[name] = expr
 
@@ -640,14 +605,11 @@ def _find_var_candidates(prepared: Any, var_id: int, *, ty: str | None, storage:
 
         if match is None:
             continue
-
-        if int(match.group("id")) != var_id:
+        elif int(match.group("id")) != var_id:
             continue
-
-        if ty is not None and match.group("ty") != ty:
+        elif ty is not None and match.group("ty") != ty:
             continue
-
-        if storage is not None and match.group("storage") != storage:
+        elif storage is not None and match.group("storage") != storage:
             continue
 
         result.append((name, expr))
@@ -663,7 +625,6 @@ def _investigate_branches(ctx: WrapperContext) -> list[CheckResult]:
 
             condition = _edge_condition(edge, ctx.prepared)
             check, model = _check_with_conditions(ctx.prepared, [condition])
-
             title = (
                 f"{block.name} --{edge.kind}/{edge.label}--> "
                 f"{edge.dst if edge.dst is not None else '<unresolved>'}"
@@ -766,7 +727,6 @@ def _investigate_line(ctx: WrapperContext, *, line_no: int, max_depth: int) -> l
     for index, path in enumerate(path_states, 1):
         condition = path.condition_expr()
         check, model = _check_with_conditions(ctx.prepared, path.conditions)
-
         results.append(
             CheckResult(
                 title=f"line {line_no} path #{index}: {' -> '.join(path.path_blocks)}",
@@ -961,7 +921,6 @@ def _results_to_jsonable(results: list[CheckResult], *, include_model: bool) -> 
                 "end_reason": result.path.end_reason,
                 "conditions": [str(condition) for condition in result.path.conditions],
             }
-
         if include_model and result.model is not None:
             item["model"] = {
                 declaration.name(): str(result.model[declaration])
@@ -979,19 +938,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--set", dest="sets", action="append", default=[], help="Set initial function variable value. Example: --set %%1=10 or --set i32_tmp_1=10.")
     parser.add_argument(
         "what",
-        choices=[
-            "cfg",
-            "dot",
-            "constraints",
-            "branches",
-            "paths",
-            "label",
-            "line",
-            "var-eq",
-        ],
+        choices=[ "cfg", "dot", "constraints", "branches", "paths", "label", "line", "var-eq" ],
         help="What to investigate.",
     )
-
     parser.add_argument("targets", nargs="*", help="Targets for selected mode.")
     parser.add_argument("--input-kind", choices=["auto", "dump", "json"], default="auto", help="Input format.")
     parser.add_argument("--ptr-bits", type=int, default=64, help="Pointer size for z3 layer.")
@@ -1061,7 +1010,6 @@ def _main(argv: Iterable[str] | None = None) -> int:
     ctx = _build_context(args)
     block_count = len(getattr(ctx.cfg, "blocks", []))
     max_depth = args.max_depth
-
     if max_depth is None:
         max_depth = max(16, block_count * 4)
 
@@ -1078,37 +1026,23 @@ def _main(argv: Iterable[str] | None = None) -> int:
             print(ctx.cfg.dump())
 
         return 0
-
-    if args.what == "dot":
+    elif args.what == "dot":
         print(ctx.cfg.to_dot())
         return 0
-
-    if args.what == "constraints":
+    elif args.what == "constraints":
         _print_constraints(ctx)
         return 0
 
-    results = _dispatch(
-        ctx,
-        args,
-        max_depth=max_depth,
-    )
-
+    results = _dispatch(ctx, args, max_depth=max_depth)
     if args.json:
         print(
             json.dumps(
-                _results_to_jsonable(
-                    results,
-                    include_model=not args.no_model,
-                ),
-                ensure_ascii=False,
-                indent=2,
+                _results_to_jsonable(results, include_model=not args.no_model),
+                ensure_ascii=False, indent=2
             )
         )
     else:
-        _print_results(
-            results,
-            show_model=not args.no_model,
-        )
+        _print_results(results, show_model=not args.no_model)
 
     return 0
 

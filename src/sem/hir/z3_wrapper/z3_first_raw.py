@@ -58,57 +58,29 @@ def bit_width(ty: str | None) -> int:
 
 
 def subject_sort(subject: dict[str, Any], *, ptr_bits: int = DEFAULT_PTR_BITS) -> z3.SortRef:
-    """
-    Convert parsed subject type to z3 sort.
-
-    Current choices:
-        i0          -> BoolSort
-        i/u 8..64   -> BitVecSort(width)
-        f32/f64     -> RealSort
-
-    f32/f64 are intentionally RealSort for now.  If you need exact IEEE-754,
-    replace them with z3.FPSort(8, 24) / z3.FPSort(11, 53) and update ops.
-
-    str/arr/pointers are opaque:
-        pointer     -> BitVecSort(ptr_bits)
-        str/arr     -> DeclareSort("HIR_str") / DeclareSort("HIR_arr")
-    """
-
     ty = subject.get("ty")
     ptr = int(subject.get("ptr") or 0)
 
     if ptr > 0:
         return z3.BitVecSort(ptr_bits)
-
-    if ty == "i0":
+    elif ty == "i0":
         return z3.BoolSort()
-
-    if is_int_ty(ty):
+    elif is_int_ty(ty):
         return z3.BitVecSort(bit_width(ty))
-
-    if is_float_ty(ty):
+    elif is_float_ty(ty):
         return z3.RealSort()
-
-    if ty == "str":
+    elif ty == "str":
         return z3.DeclareSort("HIR_str")
-
-    if ty == "arr":
+    elif ty == "arr":
         return z3.DeclareSort("HIR_arr")
-
-    if ty == "unknown":
+    elif ty == "unknown":
         return z3.DeclareSort("HIR_unknown")
 
-    # For raw/symbol subjects without type.
     return z3.DeclareSort("HIR_opaque")
 
 
 def safe_symbol_name(name: str) -> str:
-    """
-    Make a z3-friendly symbol name.
-    """
-
     out: list[str] = []
-
     for ch in name:
         if ch.isalnum() or ch == "_":
             out.append(ch)
@@ -120,12 +92,6 @@ def safe_symbol_name(name: str) -> str:
 
 
 def subject_display_name(subject: dict[str, Any]) -> str:
-    """
-    Human-facing IR-ish name.
-
-    For variables prefer z3_name from parser, otherwise build one.
-    """
-
     if subject.get("kind") == "var":
         if subject.get("z3_name"):
             return str(subject["z3_name"])
@@ -141,7 +107,6 @@ def subject_display_name(subject: dict[str, Any]) -> str:
 
     if subject.get("name"):
         return str(subject["name"])
-
     if subject.get("text"):
         return str(subject["text"])
 
@@ -765,9 +730,9 @@ class HIRToZ3:
     ) -> z3.ExprRef:
         if value.sort() == target_sort:
             return value
-        if target_sort.kind() == z3.Z3_BOOL_SORT:
+        elif target_sort.kind() == z3.Z3_BOOL_SORT:
             return self.as_bool(value)
-        if target_sort.kind() == z3.Z3_BV_SORT:
+        elif target_sort.kind() == z3.Z3_BV_SORT:
             width = target_sort.size()
 
             if value.sort().kind() == z3.Z3_BOOL_SORT:
@@ -782,7 +747,7 @@ class HIRToZ3:
 
                 if current == width:
                     return value
-                if current < width:
+                elif current < width:
                     return z3.ZeroExt(width - current, value)
 
                 return z3.Extract(width - 1, 0, value)
@@ -798,9 +763,9 @@ class HIRToZ3:
     def as_bool(self, value: z3.ExprRef) -> z3.BoolRef:
         if value.sort().kind() == z3.Z3_BOOL_SORT:
             return value
-        if value.sort().kind() == z3.Z3_BV_SORT:
+        elif value.sort().kind() == z3.Z3_BV_SORT:
             return value != z3.BitVecVal(0, value.size())
-        if value.sort().kind() in {z3.Z3_INT_SORT, z3.Z3_REAL_SORT}:
+        elif value.sort().kind() in {z3.Z3_INT_SORT, z3.Z3_REAL_SORT}:
             return value != 0
 
         pred_name = safe_symbol_name(f"is_true_{value.sort().name()}")
@@ -835,13 +800,11 @@ class HIRToZ3:
 
         if value.sort() == target_sort:
             return value
-
         if target_sort.kind() == z3.Z3_BOOL_SORT:
             return self.as_bool(value)
 
         if target_sort.kind() == z3.Z3_BV_SORT:
             width = target_sort.size()
-
             if value.sort().kind() == z3.Z3_BOOL_SORT:
                 return z3.If(
                     value,
@@ -854,8 +817,7 @@ class HIRToZ3:
 
                 if current == width:
                     return value
-
-                if current < width:
+                elif current < width:
                     if is_unsigned_ty(src_subject.get("ty")):
                         return z3.ZeroExt(width - current, value)
                     return z3.SignExt(width - current, value)
@@ -868,8 +830,7 @@ class HIRToZ3:
         if target_sort.kind() == z3.Z3_REAL_SORT:
             if value.sort().kind() == z3.Z3_BOOL_SORT:
                 return z3.If(value, z3.RealVal(1), z3.RealVal(0))
-
-            if value.sort().kind() == z3.Z3_BV_SORT:
+            elif value.sort().kind() == z3.Z3_BV_SORT:
                 return self.fresh_value("bv_to_real", target_sort)
 
         raise HIRZ3Error(
