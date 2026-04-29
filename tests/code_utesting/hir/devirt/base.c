@@ -71,11 +71,7 @@ int main(int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_FUNC_set_last_return(&cfgctx);
 
-    hir_block_t* hh = hirctx.hot.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 0);
-        hh = hh->next;
-    }
+    DUMP_format_hirctx(&hirctx, &smt, stdout);
 
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.hot.h);

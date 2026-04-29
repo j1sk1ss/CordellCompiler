@@ -1,8 +1,6 @@
-#ifndef ASTHELPER_H_
-#define ASTHELPER_H_
-#include <string.h>
-#include <ast/astgen.h>
-const char* name_tkn_type(token_type_t t) {
+#include <ast/dump.h>
+
+static const char* _name_tkn_type(token_type_t t) {
     switch (t) {
         case SIZEOF_TOKEN:                return "SIZEOF_TOKEN";
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
@@ -103,7 +101,7 @@ const char* name_tkn_type(token_type_t t) {
     }
 }
 
-const char* fmt_tkn_type(token_t* t) {
+const char* DUMP_format_token(token_t* t) {
     if (!t) return "";
 
     const char* base;
@@ -140,39 +138,43 @@ const char* fmt_tkn_type(token_t* t) {
     return buf;
 }
 
-static inline int print_ast(ast_node_t* node, int depth) {
-    if (!node) return 0;
-    for (int i = 0; i < depth; i++) printf("   ");
-    if (node->t) {
-        switch (node->t->t_type) {
-            case SCOPE_TOKEN: printf("{ scope, id=%li }\n", node->sinfo.s_id); break;
-            case LAMBDA_FUNCTION_TOKEN: printf("[lambda]\n");                  break;
-            case CALLING_TOKEN: printf("[()]\n");                              break;
-            case INDEXATION_TOKEN: printf("[[]]\n");                           break;
+static int _print_ast_node(FILE* output, ast_node_t* nd, int depth) {
+    if (!nd) return 0;
+    for (int i = 0; i < depth; i++) fprintf(output, "   ");
+    if (nd->t) {
+        switch (nd->t->t_type) {
+            case SCOPE_TOKEN: fprintf(output, "{ scope, id=%li }\n", nd->sinfo.s_id); break;
+            case LAMBDA_FUNCTION_TOKEN: fprintf(output, "[lambda]\n");                break;
+            case CALLING_TOKEN: fprintf(output, "[()]\n");                            break;
+            case INDEXATION_TOKEN: fprintf(output, "[[]]\n");                         break;
             default:
-                printf(
+                fprintf(output,
                     "[%s] (%s,%sv_id=%li, s_id=%li%s%s%s%s)\n",
-                    node->t->body->body, name_tkn_type(node->t->t_type), 
-                    node->t->flags.ptr ? " ptr, " : " ",
-                    node->sinfo.v_id, node->sinfo.s_id,
-                    node->t->flags.ro ? ", ro" : "",
-                    node->t->flags.ext ? ", ext" : "",
-                    node->t->flags.glob ? ", glob" : "",
-                    node->t->flags.vla ? ", vla" : ""
+                    nd->t->body->body, _name_tkn_type(nd->t->t_type), 
+                    nd->t->flags.ptr ? " ptr, " : " ",
+                    nd->sinfo.v_id, nd->sinfo.s_id,
+                    nd->t->flags.ro ? ", ro" : "",
+                    nd->t->flags.ext ? ", ext" : "",
+                    nd->t->flags.glob ? ", glob" : "",
+                    nd->t->flags.vla ? ", vla" : ""
                 );
             break;
         }
     }
     else {
-        printf("[ block ]\n");
+       fprintf(output, "[ block ]\n");
     }
     
-    ast_node_t* child = node->c;
+    ast_node_t* child = nd->c;
     while (child) {
-        print_ast(child, depth + 1);
+        _print_ast_node(output, child, depth + 1);
         child = child->siblings.n;
     }
     
     return 1;
 }
-#endif
+
+int DUMP_format_astctx(ast_ctx_t* ctx, FILE* output) {
+    _print_ast_node(output, ctx->r, 0);
+    return 1;
+}

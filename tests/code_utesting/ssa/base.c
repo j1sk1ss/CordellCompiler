@@ -10,7 +10,6 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include "../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -18,7 +17,7 @@
 #include <hir/ssa.h>
 #include <hir/func.h>
 #include <hir/dag.h>
-#include "../../misc/hir_helper.h"
+#include <hir/dump.h>
 
 #define RELOAD_CFG                          \
     HIR_CFG_unload(&cfgctx);                \
@@ -102,11 +101,7 @@ int main(int argc, char* argv[]) {
     HIR_compute_homes(&hirctx);
     HIR_LTREE_licm(&cfgctx, &lctx, &smt);
 
-    hir_block_t* hh = hirctx.hot.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 0);
-        hh = hh->next;
-    }
+    DUMP_format_hirctx(&hirctx, &smt, stdout);
 
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);

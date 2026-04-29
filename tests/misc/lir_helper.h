@@ -2,9 +2,9 @@
 #define LIR_HELPER_H_
 
 #include <symtab/symtab.h>
+#include <ast/dump.h>
 #include <lir/lir.h>
 #include <lir/lir_types.h>
-#include "ast_helper.h"
 #include "reg_helper.h"
 
 static const char* lir_op_to_fmtstring(lir_operation_t op) {
@@ -162,7 +162,7 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
                     if (type->t->t_type == VAR_ARGUMENTS_TOKEN) dst += sprintf(dst, "...");
                     else {
                         ast_node_t* name = t->c;
-                        dst += sprintf(dst, "%s %s", fmt_tkn_type(type->t), name->t->body->body);
+                        dst += sprintf(dst, "%s %s", DUMP_format_token(type->t), name->t->body->body);
                     }
 
                     if (t->siblings.n && t->siblings.n->t->t_type != SCOPE_TOKEN) {
@@ -173,7 +173,7 @@ static char* sprintf_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt) 
 
             dst += sprintf(dst, ")");
             if (fi.rtype) {
-                dst += sprintf(dst, " -> %s", fmt_tkn_type(fi.rtype->t));
+                dst += sprintf(dst, " -> %s", DUMP_format_token(fi.rtype->t));
             }
 
             break;
