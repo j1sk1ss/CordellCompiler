@@ -26,7 +26,7 @@ function foo() {
           [{X}8{X}]     Variable 'tmp' declared as a constant here!
 [WARNING] [{X}8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
           [{X}8{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [{X}19{X}] Possible NULL-dereference error (variable 'c' is NULL)!
+[WARNING] [{X}19{X}] NULL-dereference error (variable 'c' is NULL)!
           [{X}9{X}]     Variable 'a' becomes NULL-value
           [{X}13{X}]     Variable 'b' is assigned with the 'a' here
           [{X}18{X}]     Variable 'c' is assigned with the 'b' here

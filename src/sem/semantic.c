@@ -36,9 +36,9 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     return res;
 }
 
-int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, sym_table_t* smt) {
+int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_table_t* smt) {
     hir_walker_t walker;
-    HIRWLK_init_ctx(&walker, dctx, smt);
+    HIRWLK_init_ctx(&walker, dctx, hctx, smt);
 
     /* Low Level */
     HIRWLK_register_visitor(SETPOS_INST, HIRWLKR_visit_setpos_instruction, &walker, ATTENTION_LOW_LEVEL);

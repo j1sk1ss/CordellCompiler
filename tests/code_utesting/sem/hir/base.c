@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
         folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
     } while (folded);
 
-    SEM_perform_hir_check(&cfgctx, &dagctx, &smt);
+    SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt);
 
     HIR_DAG_unload(&dagctx);
     HIR_CG_unload(&callctx);

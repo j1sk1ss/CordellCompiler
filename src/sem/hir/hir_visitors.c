@@ -179,12 +179,13 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
         }
     }
 
-    if (res) TRACE_unload_trace(&trace);
+    int z3_answer = Z3_can_vid_be_equal(s->storage.var.v_id, 0, ctx->dump);
+    if (res || !z3_answer) TRACE_unload_trace(&trace);
     else {
         TRACE_add_location(
             &trace, &ctx->curr_location, 
-            "Possible NULL-dereference error (variable '%s' is NULL)!", 
-            _resolve_variable_name(s->storage.var.v_id, smt)
+            "%sNULL-dereference error (variable '%s' is NULL)!", 
+            z3_answer == 2 ? "Possible " : "", _resolve_variable_name(s->storage.var.v_id, smt)
         );
 
         TRACE_print_and_free_trace(&trace);

@@ -52,8 +52,12 @@ class InitialAssignment:
     condition: z3.BoolRef
 
 def _load_program_from_file(path: str, *, input_kind: str, strict_parser: bool) -> dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as file:
-        text = file.read()
+    if path == "-":
+        import sys
+        text = sys.stdin.read()
+    else:
+        with open(path, "r", encoding="utf-8") as file:
+            text = file.read()
 
     return _load_program_from_text(
         text,
@@ -1001,6 +1005,21 @@ def _dispatch(ctx: WrapperContext, args: argparse.Namespace, *, max_depth: int) 
 
     raise AssertionError(f"unhandled mode: {args.what}")
 
+def _var_eq_exit_code(results: list[CheckResult]) -> int:
+    statuses = [
+        result.extra.get("status")
+        for result in results
+    ]
+
+    if any(status == "must_equal" for status in statuses):
+        return 1
+    elif any(status == "may_equal" for status in statuses):
+        return 2
+    elif statuses and all(status == "cannot_equal" for status in statuses):
+        return 0
+
+    return 3
+
 def _main(argv: Iterable[str] | None = None) -> int:
     parser = _build_arg_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
@@ -1044,8 +1063,11 @@ def _main(argv: Iterable[str] | None = None) -> int:
     else:
         _print_results(results, show_model=not args.no_model)
 
+    if args.what == "var-eq":
+        return _var_eq_exit_code(results)
+
     return 0
 
 if __name__ == "__main__":
-    _main()
+    raise SystemExit(_main())
     

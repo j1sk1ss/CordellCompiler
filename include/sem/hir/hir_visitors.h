@@ -8,6 +8,7 @@
 #include <sem/misc/warns.h>
 #include <sem/hir/hir_data.h>
 #include <sem/hir/syscall.h>
+#include <sem/hir/z3.h>
 #include <prep/token_types.h>
 #include <ast/ast.h>
 #include <hir/hir.h>
