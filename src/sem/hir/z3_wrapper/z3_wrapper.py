@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import z3
 import re
+import os
 import json
+import hashlib
+import tempfile
 import argparse
 
 from typing import Any, Iterable
@@ -51,19 +54,114 @@ class InitialAssignment:
     value: str
     condition: z3.BoolRef
 
-def _load_program_from_file(path: str, *, input_kind: str, strict_parser: bool) -> dict[str, Any]:
+_PROGRAM_CACHE_VERSION = 1
+
+def _default_cache_dir() -> str:
+    root = os.environ.get("XDG_CACHE_HOME")
+    if root:
+        return os.path.join(root, "z3_wrapper")
+
+    return os.path.join(os.path.expanduser("~"), ".cache", "z3_wrapper")
+
+def _program_cache_path(path: str, *, input_kind: str, strict_parser: bool, cache_dir: str) -> str:
+    stat = os.stat(path)
+    key_data = {
+        "version": _PROGRAM_CACHE_VERSION,
+        "path": os.path.realpath(path),
+        "size": stat.st_size,
+        "mtime_ns": stat.st_mtime_ns,
+        "input_kind": input_kind,
+        "strict_parser": strict_parser,
+    }
+    key_text = json.dumps(key_data, sort_keys=True, separators=(",", ":"))
+    key = hashlib.sha256(key_text.encode("utf-8")).hexdigest()
+    return os.path.join(cache_dir, key + ".json")
+
+def _read_program_cache(cache_path: str) -> dict[str, Any] | None:
+    try:
+        with open(cache_path, "r", encoding="utf-8") as file:
+            cached = json.load(file)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    if cached.get("version") != _PROGRAM_CACHE_VERSION:
+        return None
+
+    program = cached.get("program")
+    if not isinstance(program, dict):
+        return None
+
+    return program
+
+def _write_program_cache(cache_path: str, program: dict[str, Any]) -> None:
+    directory = os.path.dirname(cache_path)
+
+    try:
+        os.makedirs(directory, exist_ok=True)
+
+        with tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=directory,
+            prefix=".tmp-",
+            suffix=".json",
+            delete=False,
+        ) as file:
+            tmp_path = file.name
+            json.dump(
+                {
+                    "version": _PROGRAM_CACHE_VERSION,
+                    "program": program,
+                },
+                file,
+                ensure_ascii=False,
+            )
+
+        os.replace(tmp_path, cache_path)
+    except (OSError, TypeError):
+        try:
+            os.unlink(tmp_path)
+        except (OSError, UnboundLocalError):
+            pass
+
+def _load_program_from_file(
+    path: str, *, input_kind: str, strict_parser: bool, cache_dir: str | None, no_cache: bool
+) -> dict[str, Any]:
     if path == "-":
         import sys
         text = sys.stdin.read()
-    else:
-        with open(path, "r", encoding="utf-8") as file:
-            text = file.read()
+        return _load_program_from_text(
+            text,
+            input_kind=input_kind,
+            strict_parser=strict_parser,
+        )
 
-    return _load_program_from_text(
+    resolved_cache_dir = cache_dir or _default_cache_dir()
+    cache_path = _program_cache_path(
+        path,
+        input_kind=input_kind,
+        strict_parser=strict_parser,
+        cache_dir=resolved_cache_dir,
+    )
+
+    if not no_cache:
+        cached_program = _read_program_cache(cache_path)
+        if cached_program is not None:
+            return cached_program
+
+    with open(path, "r", encoding="utf-8") as file:
+        text = file.read()
+
+    program = _load_program_from_text(
         text,
         input_kind=input_kind,
         strict_parser=strict_parser,
     )
+
+    if not no_cache:
+        _write_program_cache(cache_path, program)
+
+    return program
 
 def _load_program_from_text(text: str, *, input_kind: str, strict_parser: bool) -> dict[str, Any]:
     if input_kind == "json":
@@ -170,7 +268,13 @@ def _build_initial_assignments(prepared: Any, assignments: list[str]) -> list[In
     return result
 
 def _build_context(args: argparse.Namespace) -> WrapperContext:
-    full_program = _load_program_from_file(args.input, input_kind=args.input_kind, strict_parser=args.strict_parser)
+    full_program = _load_program_from_file(
+        args.input,
+        input_kind=args.input_kind,
+        strict_parser=args.strict_parser,
+        cache_dir=args.cache_dir,
+        no_cache=args.no_cache,
+    )
     functions = split_hir_functions(full_program)
     function = select_hir_function(functions, args.function)
     program = function.to_program()
@@ -697,8 +801,7 @@ def _investigate_label(ctx: WrapperContext, *, label: str, max_depth: int) -> li
     results: list[CheckResult] = []
     for index, path in enumerate(path_states, 1):
         condition = path.condition_expr()
-        check, model = _check_with_conditions(ctx.prepared, path.conditions)
-
+        check, model = _check_path_with_conditions(ctx, path, [])
         results.append(
             CheckResult(
                 title=f"label {label} path #{index}: {' -> '.join(path.path_blocks)}",
@@ -955,6 +1058,8 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--strict-z3", action="store_true", help="z3 preparation fails on unsupported operations.")
     parser.add_argument("--ty", default=None, help="Filter variable by HIR type.")
     parser.add_argument("--storage", choices=["tmp", "stack", "global"], default=None, help="Filter variable by storage class.")
+    parser.add_argument("--cache-dir", default=None, help="Directory for parsed input cache.")
+    parser.add_argument("--no-cache", action="store_true", help="Disable parsed input cache.")
     return parser
 
 def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
@@ -1020,6 +1125,12 @@ def _var_eq_exit_code(results: list[CheckResult]) -> int:
 
     return 3
 
+def _label_exit_code(results: list[CheckResult]) -> int:
+    if any(result.check == z3.sat for result in results):
+        return 1
+
+    return 0
+
 def _main(argv: Iterable[str] | None = None) -> int:
     parser = _build_arg_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
@@ -1063,9 +1174,10 @@ def _main(argv: Iterable[str] | None = None) -> int:
     else:
         _print_results(results, show_model=not args.no_model)
 
-    if args.what == "var-eq":
+    if args.what == "label":
+        return _label_exit_code(results)
+    elif args.what == "var-eq":
         return _var_eq_exit_code(results)
-
     return 0
 
 if __name__ == "__main__":

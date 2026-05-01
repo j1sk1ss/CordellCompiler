@@ -141,7 +141,7 @@ int _launch_z3_wrapper(FILE* f, z3_options_t* opt) {
     return 1;
 }
 
-int Z3_can_vid_be_equal(symbol_id_t v_id, long long value, FILE* dump) {
+int Z3_can_vid_be_equal(symbol_id_t v_id, long long value, string_t* f, FILE* dump) {
     char id_buf[32];
     char value_buf[32];
 
@@ -157,7 +157,23 @@ int Z3_can_vid_be_equal(symbol_id_t v_id, long long value, FILE* dump) {
         .what = "var-eq",
         .targets = targets,
         .target_count = 2,
-        .json = 1
+        .json = 1,
+        .function = f->body
+    };
+
+    return _launch_z3_wrapper(dump, &opt);
+}
+
+int Z3_can_reach_label(long l_id, string_t* f, FILE* dump) {
+    char id_buf[32];
+    snprintf(id_buf, sizeof(id_buf), "%lld", (long long)l_id);
+    const char* targets[] = { id_buf };
+    z3_options_t opt = {
+        .what = "label",
+        .targets = targets,
+        .target_count = 1,
+        .json = 1,
+        .function = f->body
     };
 
     return _launch_z3_wrapper(dump, &opt);

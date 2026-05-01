@@ -96,7 +96,7 @@ static inline symbol_id_t _get_parent_id(symbol_id_t v_id, sym_table_t* smt) {
 }
 
 // TODO: docs
-static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
+static int _dereference_error(hir_block_t* hb, hir_subject_t* s, string_t* f, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
     defined_variable_t di;
     if (!_resolve_subject_value(s, smt, &di)) {
         return 1;
@@ -179,7 +179,7 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
         }
     }
 
-    int z3_answer = Z3_can_vid_be_equal(s->storage.var.v_id, 0, ctx->dump);
+    int z3_answer = Z3_can_vid_be_equal(s->storage.var.v_id, 0, f, ctx->dump);
     if (res || !z3_answer) TRACE_unload_trace(&trace);
     else {
         TRACE_add_location(
@@ -198,13 +198,23 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
-    return _dereference_error(b, b->sarg, smt, ctx);
+    func_info_t fi;
+    if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
+        return 1;
+    }
+
+    return _dereference_error(b, b->sarg, fi.name, smt, ctx);
 }
 
 int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
-    return _dereference_error(b, b->farg, smt, ctx);
+    func_info_t fi;
+    if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
+        return 1;
+    }
+
+    return _dereference_error(b, b->farg, fi.name, smt, ctx);
 }
 
 int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
@@ -216,6 +226,19 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     defined_variable_t di;
     if (!_resolve_subject_value(b->farg, smt, &di)) {
         return 1;
+    }
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
+        return 1;
+    }
+
+    if (!Z3_can_reach_label(b->sarg->id, fi.name, ctx->dump)) {
+        TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'then' branch! Consider to refactor the code.");
+    }
+    
+    if (!Z3_can_reach_label(b->targ->id, fi.name, ctx->dump)) {
+        TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'else' branch! Consider to refactor the code.");
     }
 
     switch (di.defined_value) {
@@ -368,6 +391,11 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
 int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op != HIR_SYSC && b->op != HIR_STORE_SYSC) return 1;
+    func_info_t fi;
+    if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
+        return 1;
+    }
+
     hir_subject_t* number = list_get_head(&b->targ->storage.list.h);
     defined_variable_t di;
     if (!_resolve_subject_value(number, smt, &di) || di.defined_value == 3) {
@@ -437,7 +465,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
         }
         
         if (syscall.types[sarg_index].dereference) {
-            _dereference_error(b, flatten_input[arg_index], smt, ctx);
+            _dereference_error(b, flatten_input[arg_index], fi.name, smt, ctx);
         }
     }
 
