@@ -93,12 +93,12 @@ start(i32 argc, ptr ptr i8 argv) {
             i32t %14 = i8n 0 as i32;
             i32s %186 = i32t %14;
             [SSA] future: i32s %187 <<== previous: i32s %186;
-            [SSA] future: u64s* %188 <<== previous: u64s* %185;
+            [SSA] future: i8s* %188 <<== previous: i8s* %185;
             i32t %16 = i8n 1 as i32;
             i8t* %18 = i8n 1 as *ptr;
             lb15:
             [base: i32s %1] i32s %187 = phi(set [%186, bb71][%189, bb5]);
-            [base: u64s %0] u64s* %188 = phi(set [%185, bb71][%190, bb5]);
+            [base: i8s %0] i8s* %188 = phi(set [%190, bb5][%185, bb71]);
             i8t %15 = *(i8s* %188);
             if i8t %15, goto lb16, else goto lb17;
             lb16:
@@ -109,7 +109,7 @@ start(i32 argc, ptr ptr i8 argv) {
                 i8s* %190 = i8t* %19;
             }
             [SSA] future: i32s %187 <<== previous: i32s %189;
-            [SSA] future: u64s* %188 <<== previous: u64s* %190;
+            [SSA] future: i8s* %188 <<== previous: i8s* %190;
             goto lb15;
             lb17:
             return i32s %187;
@@ -129,411 +129,411 @@ start(i32 argc, ptr ptr i8 argv) {
     arrg %3 = arr_alloc(i8n 64);
     arrg %4 = arr_alloc(i8n 64);
     arrg %5 = arr_alloc(i8n 64);
-    start {
+    fn _main(i32 argc, i8** argv)
+    {
+        i32s %6 = alloc;
+        i32s %192 = load_starg();
+        i8s** %7 = alloc;
+        i8s** %193 = load_starg();
         {
-            i32s %6 = alloc;
-            i32s %192 = load_starg();
-            i8s** %7 = alloc;
-            i8s** %193 = load_starg();
+            i32s %8 = alloc;
+            i32t %21 = i8n 0 as i32;
+            i32s %194 = i32t %21;
+            i32s %9 = alloc;
+            i32t %22 = i8n 0 as i32;
+            i32s %195 = i32t %22;
+            i32s %10 = alloc;
+            i8t** %23 = i8s** %193;
+            i8t %24 = i8n 1 * csu8 8;
+            i8t** %26 = i8t %24 as *ptr;
+            i8t** %25 = i8t** %23 + i8t** %26;
+            i8t* %27 = *(i8t** %25);
+            use i8t* %27;
+            i32t %28 = strlen0(i8t* %27);
+            i32s %196 = i32t %28;
+            [SSA] future: i32s %197 <<== previous: i32s %194;
+            [SSA] future: i32s %198 <<== previous: i32s %195;
+            lb103:
+            [base: i32s %8] i32s %197 = phi(set [%194, bb9][%220, bb20]);
+            [base: i32s %9] i32s %198 = phi(set [%219, bb20][%195, bb9]);
+            [unused] [base: i32s %11]  = phi(set );
+            i32t %29 = i32s %197 < i32s %196;
+            if i32t %29, goto lb104, else goto lb105;
+            lb104:
             {
-                i32s %8 = alloc;
-                i32t %21 = i8n 0 as i32;
-                i32s %194 = i32t %21;
-                i32s %9 = alloc;
-                i32t %22 = i8n 0 as i32;
-                i32s %195 = i32t %22;
-                i32s %10 = alloc;
-                i8t** %23 = i8s** %193;
-                i8t %24 = i8n 1 * csu8 8;
-                i8t** %26 = i8t %24 as *ptr;
-                i8t** %25 = i8t** %23 + i8t** %26;
-                i8t* %27 = *(i8t** %25);
-                use i8t* %27;
-                i32t %28 = strlen0(i8t* %27);
-                i32s %196 = i32t %28;
-                [SSA] future: i32s %197 <<== previous: i32s %194;
-                [SSA] future: i32s %198 <<== previous: i32s %195;
-                lb103:
-                [base: i32s %8] i32s %197 = phi(set [%194, bb9][%220, bb20]);
-                [base: i32s %9] i32s %198 = phi(set [%195, bb9][%219, bb20]);
+                goto lb111;
+                lb113:
+                {
+                    i32t* %30 = &(arrg %5);
+                    i32t %31 = i32s %198 * csu8 4;
+                    i32t* %33 = i32t %31 as *ptr;
+                    i32t* %32 = i32t* %30 + i32t* %33;
+                    *(i32t* %32) = i32s %197;
+                    i32t %35 = i8n 1 as i32;
+                    i32t %34 = i32s %198 + i32t %35;
+                    i32s %225 = i32t %34;
+                }
+                [SSA] future: i32s %219 <<== previous: i32s %225;
+                goto lb112;
+                lb131:
+                {
+                    i32t %37 = i8n 0 as i32;
+                    i32t %36 = i32s %198 > i32t %37;
+                    [SSA] future: i32s %221 <<== previous: i32s %198;
+                    if i32t %36, goto lb134, else goto lb136;
+                    lb134:
+                    {
+                        i32t %39 = i8n 1 as i32;
+                        i32t %38 = i32s %198 - i32t %39;
+                        i32s %222 = i32t %38;
+                        i32s %11 = alloc;
+                        i32t* %40 = &(arrg %5);
+                        i32t %41 = i32s %222 * csu8 4;
+                        i32t* %43 = i32t %41 as *ptr;
+                        i32t* %42 = i32t* %40 + i32t* %43;
+                        i32t %44 = *(i32t* %42);
+                        i32s %223 = i32t %44;
+                        i32t* %45 = &(arrg %4);
+                        i32t %46 = i32s %197 * csu8 4;
+                        i32t* %48 = i32t %46 as *ptr;
+                        i32t* %47 = i32t* %45 + i32t* %48;
+                        *(i32t* %47) = i32s %223;
+                        i32t* %49 = &(arrg %4);
+                        i32t %50 = i32s %223 * csu8 4;
+                        i32t* %52 = i32t %50 as *ptr;
+                        i32t* %51 = i32t* %49 + i32t* %52;
+                        *(i32t* %51) = i32s %197;
+                    }
+                    [SSA] future: i32s %221 <<== previous: i32s %222;
+                    [SSA] future: i32s %224 <<== previous: i32s %223;
+                    goto lb136;
+                    lb136:
+                    [base: i32s %9] i32s %221 = phi(set [%198, bb13][%222, bb14]);
+                    [base: i32s %11] i32s %224 = phi(set [%223, bb14]);
+                }
+                [SSA] future: i32s %219 <<== previous: i32s %221;
+                goto lb112;
+                [unused] goto lb112;
+                lb111:
+                i8t** %53 = i8s** %193;
+                i8t %54 = i8n 1 * csu8 8;
+                i8t** %56 = i8t %54 as *ptr;
+                i8t** %55 = i8t** %53 + i8t** %56;
+                i8t* %57 = *(i8t** %55);
+                i8t* %58 = i8t* %57;
+                i32t %59 = i32s %197 * csu8 1;
+                i8t* %61 = i32t %59 as *ptr;
+                i8t* %60 = i8t* %58 + i8t* %61;
+                i8t %62 = *(i8t* %60);
+                i64t %64 = csu8 91 as i64;
+                i64t %65 = i8t %62 as i64;
+                i8t %63 = i64t %65 == i64t %64;
+                if i8t %63, goto lb113, else goto lb195;
+                lb195:
+                i64t %67 = csu8 93 as i64;
+                i64t %68 = i8t %62 as i64;
+                i8t %66 = i64t %68 == i64t %67;
+                if i8t %66, goto lb131, else goto lb200;
+                lb200:
+                [SSA] future: i32s %219 <<== previous: i32s %198;
+                lb112:
+                [base: i32s %9] i32s %219 = phi(set [%198, bb19][%221, bb15][%225, bb12]);
                 [unused] [base: i32s %11]  = phi(set );
-                i32t %29 = i32s %197 < i32s %196;
-                if i32t %29, goto lb104, else goto lb105;
-                lb104:
-                {
-                    goto lb111;
-                    lb113:
-                    {
-                        i32t* %30 = &(arrg %5);
-                        i32t %31 = i32s %198 * csu8 4;
-                        i32t* %33 = i32t %31 as *ptr;
-                        i32t* %32 = i32t* %30 + i32t* %33;
-                        *(i32t* %32) = i32s %197;
-                        i32t %35 = i8n 1 as i32;
-                        i32t %34 = i32s %198 + i32t %35;
-                        i32s %225 = i32t %34;
-                    }
-                    [SSA] future: i32s %219 <<== previous: i32s %225;
-                    goto lb112;
-                    lb131:
-                    {
-                        i32t %37 = i8n 0 as i32;
-                        i32t %36 = i32s %198 > i32t %37;
-                        [SSA] future: i32s %221 <<== previous: i32s %198;
-                        if i32t %36, goto lb134, else goto lb136;
-                        lb134:
-                        {
-                            i32t %39 = i8n 1 as i32;
-                            i32t %38 = i32s %198 - i32t %39;
-                            i32s %222 = i32t %38;
-                            i32s %11 = alloc;
-                            i32t* %40 = &(arrg %5);
-                            i32t %41 = i32s %222 * csu8 4;
-                            i32t* %43 = i32t %41 as *ptr;
-                            i32t* %42 = i32t* %40 + i32t* %43;
-                            i32t %44 = *(i32t* %42);
-                            i32s %223 = i32t %44;
-                            i32t* %45 = &(arrg %4);
-                            i32t %46 = i32s %197 * csu8 4;
-                            i32t* %48 = i32t %46 as *ptr;
-                            i32t* %47 = i32t* %45 + i32t* %48;
-                            *(i32t* %47) = i32s %223;
-                            i32t* %49 = &(arrg %4);
-                            i32t %50 = i32s %223 * csu8 4;
-                            i32t* %52 = i32t %50 as *ptr;
-                            i32t* %51 = i32t* %49 + i32t* %52;
-                            *(i32t* %51) = i32s %197;
-                        }
-                        [SSA] future: i32s %221 <<== previous: i32s %222;
-                        [SSA] future: i32s %224 <<== previous: i32s %223;
-                        goto lb136;
-                        lb136:
-                        [base: i32s %9] i32s %221 = phi(set [%198, bb13][%222, bb14]);
-                        [base: i32s %11] i32s %224 = phi(set [%223, bb14]);
-                    }
-                    [SSA] future: i32s %219 <<== previous: i32s %221;
-                    goto lb112;
-                    [unused] goto lb112;
-                    lb111:
-                    i8t** %53 = i8s** %193;
-                    i8t %54 = i8n 1 * csu8 8;
-                    i8t** %56 = i8t %54 as *ptr;
-                    i8t** %55 = i8t** %53 + i8t** %56;
-                    i8t* %57 = *(i8t** %55);
-                    i8t* %58 = i8t* %57;
-                    i32t %59 = i32s %197 * csu8 1;
-                    i8t* %61 = i32t %59 as *ptr;
-                    i8t* %60 = i8t* %58 + i8t* %61;
-                    i8t %62 = *(i8t* %60);
-                    i64t %64 = csu8 91 as i64;
-                    i64t %65 = i8t %62 as i64;
-                    i8t %63 = i64t %65 == i64t %64;
-                    if i8t %63, goto lb113, else goto lb195;
-                    lb195:
-                    i64t %67 = csu8 93 as i64;
-                    i64t %68 = i8t %62 as i64;
-                    i8t %66 = i64t %68 == i64t %67;
-                    if i8t %66, goto lb131, else goto lb200;
-                    lb200:
-                    [SSA] future: i32s %219 <<== previous: i32s %198;
-                    lb112:
-                    [base: i32s %9] i32s %219 = phi(set [%198, bb19][%225, bb12][%221, bb15]);
-                    [unused] [base: i32s %11]  = phi(set );
-                    i32t %70 = i8n 1 as i32;
-                    i32t %69 = i32s %197 + i32t %70;
-                    i32s %220 = i32t %69;
-                }
-                [SSA] future: i32s %197 <<== previous: i32s %220;
-                [SSA] future: i32s %198 <<== previous: i32s %219;
-                goto lb103;
-                lb105:
-                i32s %12 = alloc;
-                i32t %71 = i8n 0 as i32;
-                i32s %199 = i32t %71;
-                i32s %13 = alloc;
-                i32t %72 = i8n 0 as i32;
-                i32s %200 = i32t %72;
-                [SSA] future: i32s %201 <<== previous: i32s %199;
-                [SSA] future: i32s %202 <<== previous: i32s %200;
-                lb223:
-                [base: i32s %12] i32s %201 = phi(set [%199, bb21][%205, bb68]);
-                [base: i32s %13] i32s %202 = phi(set [%206, bb68][%200, bb21]);
-                i32t %73 = i32s %201 < i32s %196;
-                if i32t %73, goto lb224, else goto lb225;
-                lb224:
-                {
-                    goto lb231;
-                    lb233:
-                    {
-                        i32t %75 = i8n 1 as i32;
-                        i32t %74 = i32s %202 + i32t %75;
-                        i32s %214 = i32t %74;
-                        i32t %77 = i8n 1 as i32;
-                        i32t %76 = i32s %201 + i32t %77;
-                        i32s %215 = i32t %76;
-                    }
-                    [SSA] future: i32s %205 <<== previous: i32s %215;
-                    [SSA] future: i32s %206 <<== previous: i32s %214;
-                    goto lb232;
-                    lb248:
-                    {
-                        i32t %79 = i8n 1 as i32;
-                        i32t %78 = i32s %202 - i32t %79;
-                        i32s %203 = i32t %78;
-                        i32t %81 = i8n 1 as i32;
-                        i32t %80 = i32s %201 + i32t %81;
-                        i32s %204 = i32t %80;
-                    }
-                    [SSA] future: i32s %205 <<== previous: i32s %204;
-                    [SSA] future: i32s %206 <<== previous: i32s %203;
-                    goto lb232;
-                    lb263:
-                    {
-                        i8t* %82 = &(arrg %3);
-                        i32t %83 = i32s %202 * csu8 1;
-                        i8t* %85 = i32t %83 as *ptr;
-                        i8t* %84 = i8t* %82 + i8t* %85;
-                        i8t %86 = *(i8t* %84);
-                        i8t %87 = i8t %86 + i8n 1;
-                        i8t* %88 = &(arrg %3);
-                        i32t %89 = i32s %202 * csu8 1;
-                        i8t* %91 = i32t %89 as *ptr;
-                        i8t* %90 = i8t* %88 + i8t* %91;
-                        *(i8t* %90) = i8t %87;
-                        i32t %93 = i8n 1 as i32;
-                        i32t %92 = i32s %201 + i32t %93;
-                        i32s %218 = i32t %92;
-                    }
-                    [SSA] future: i32s %205 <<== previous: i32s %218;
-                    [SSA] future: i32s %206 <<== previous: i32s %202;
-                    goto lb232;
-                    lb290:
-                    {
-                        i8t* %94 = &(arrg %3);
-                        i32t %95 = i32s %202 * csu8 1;
-                        i8t* %97 = i32t %95 as *ptr;
-                        i8t* %96 = i8t* %94 + i8t* %97;
-                        i8t %98 = *(i8t* %96);
-                        i8t %99 = i8t %98 - i8n 1;
-                        i8t* %100 = &(arrg %3);
-                        i32t %101 = i32s %202 * csu8 1;
-                        i8t* %103 = i32t %101 as *ptr;
-                        i8t* %102 = i8t* %100 + i8t* %103;
-                        *(i8t* %102) = i8t %99;
-                        i32t %105 = i8n 1 as i32;
-                        i32t %104 = i32s %201 + i32t %105;
-                        i32s %216 = i32t %104;
-                    }
-                    [SSA] future: i32s %205 <<== previous: i32s %216;
-                    [SSA] future: i32s %206 <<== previous: i32s %202;
-                    goto lb232;
-                    lb317:
-                    {
-                        i8t* %106 = &(arrg %3);
-                        i32t %107 = i32s %202 * csu8 1;
-                        i8t* %109 = i32t %107 as *ptr;
-                        i8t* %108 = i8t* %106 + i8t* %109;
-                        i8t %110 = *(i8t* %108);
-                        use i8t %110;
-                        putc1(i8t %110);
-                        i32t %112 = i8n 1 as i32;
-                        i32t %111 = i32s %201 + i32t %112;
-                        i32s %217 = i32t %111;
-                    }
-                    [SSA] future: i32s %205 <<== previous: i32s %217;
-                    [SSA] future: i32s %206 <<== previous: i32s %202;
-                    goto lb232;
-                    lb338:
-                    {
-                        i8t* %113 = &(arrg %3);
-                        i32t %114 = i32s %202 * csu8 1;
-                        i8t* %116 = i32t %114 as *ptr;
-                        i8t* %115 = i8t* %113 + i8t* %116;
-                        i8t %117 = *(i8t* %115);
-                        i8t %118 = not i8t %117;
-                        if i8t %118, goto lb341, else goto lb342;
-                        lb341:
-                        {
-                            i32t* %119 = &(arrg %4);
-                            i32t %120 = i32s %201 * csu8 4;
-                            i32t* %122 = i32t %120 as *ptr;
-                            i32t* %121 = i32t* %119 + i32t* %122;
-                            i32t %123 = *(i32t* %121);
-                            i32s %209 = i32t %123;
-                        }
-                        [SSA] future: i32s %208 <<== previous: i32s %209;
-                        goto lb343;
-                        lb342:
-                        {
-                            i32t %125 = i8n 1 as i32;
-                            i32t %124 = i32s %201 + i32t %125;
-                            i32s %207 = i32t %124;
-                        }
-                        [SSA] future: i32s %208 <<== previous: i32s %207;
-                        goto lb343;
-                        lb343:
-                        [base: i32s %12] i32s %208 = phi(set [%207, bb31][%209, bb30]);
-                    }
-                    [SSA] future: i32s %205 <<== previous: i32s %208;
-                    [SSA] future: i32s %206 <<== previous: i32s %202;
-                    goto lb232;
-                    lb373:
-                    {
-                        i8t* %126 = &(arrg %3);
-                        i32t %127 = i32s %202 * csu8 1;
-                        i8t* %129 = i32t %127 as *ptr;
-                        i8t* %128 = i8t* %126 + i8t* %129;
-                        i8t %130 = *(i8t* %128);
-                        if i8t %130, goto lb376, else goto lb377;
-                        lb376:
-                        {
-                            i32t* %131 = &(arrg %4);
-                            i32t %132 = i32s %201 * csu8 4;
-                            i32t* %134 = i32t %132 as *ptr;
-                            i32t* %133 = i32t* %131 + i32t* %134;
-                            i32t %135 = *(i32t* %133);
-                            i32s %212 = i32t %135;
-                        }
-                        [SSA] future: i32s %211 <<== previous: i32s %212;
-                        goto lb378;
-                        lb377:
-                        {
-                            i32t %137 = i8n 1 as i32;
-                            i32t %136 = i32s %201 + i32t %137;
-                            i32s %210 = i32t %136;
-                        }
-                        [SSA] future: i32s %211 <<== previous: i32s %210;
-                        goto lb378;
-                        lb378:
-                        [base: i32s %12] i32s %211 = phi(set [%210, bb35][%212, bb34]);
-                    }
-                    [SSA] future: i32s %205 <<== previous: i32s %211;
-                    [SSA] future: i32s %206 <<== previous: i32s %202;
-                    goto lb232;
-                    lb407:
-                    {
-                        i32t %139 = i8n 1 as i32;
-                        i32t %138 = i32s %201 + i32t %139;
-                        i32s %213 = i32t %138;
-                    }
-                    [SSA] future: i32s %205 <<== previous: i32s %213;
-                    [SSA] future: i32s %206 <<== previous: i32s %202;
-                    goto lb232;
-                    [unused] goto lb232;
-                    lb231:
-                    i8t** %140 = i8s** %193;
-                    i8t %141 = i8n 1 * csu8 8;
-                    i8t** %143 = i8t %141 as *ptr;
-                    i8t** %142 = i8t** %140 + i8t** %143;
-                    i8t* %144 = *(i8t** %142);
-                    i8t* %145 = i8t* %144;
-                    i32t %146 = i32s %201 * csu8 1;
-                    i8t* %148 = i32t %146 as *ptr;
-                    i8t* %147 = i8t* %145 + i8t* %148;
-                    i8t %149 = *(i8t* %147);
-                    i64t %150 = csu8 60 as i64;
-                    i64t %152 = i8t %149 as i64;
-                    i8t %151 = i64t %152 < i64t %150;
-                    if i8t %151, goto lb432, else goto lb433;
-                    lb432:
-                    i64t %153 = csu8 45 as i64;
-                    i64t %155 = i8t %149 as i64;
-                    i8t %154 = i64t %155 < i64t %153;
-                    if i8t %154, goto lb440, else goto lb441;
-                    lb440:
-                    i64t %156 = csu8 43 as i64;
-                    i64t %158 = i8t %149 as i64;
-                    i8t %157 = i64t %158 < i64t %156;
-                    if i8t %157, goto lb448, else goto lb449;
-                    lb448:
-                    goto lb407;
-                    lb449:
-                    i64t %160 = i8t %149 as i64;
-                    i8t %159 = i64t %160 > i64t %156;
-                    if i8t %159, goto lb450, else goto lb451;
-                    lb450:
-                    goto lb407;
-                    lb451:
-                    goto lb263;
-                    lb441:
-                    i64t %162 = i8t %149 as i64;
-                    i8t %161 = i64t %162 > i64t %153;
-                    if i8t %161, goto lb442, else goto lb443;
-                    lb442:
-                    i64t %163 = csu8 46 as i64;
-                    i64t %165 = i8t %149 as i64;
-                    i8t %164 = i64t %165 < i64t %163;
-                    if i8t %164, goto lb460, else goto lb461;
-                    lb460:
-                    goto lb407;
-                    lb461:
-                    i64t %167 = i8t %149 as i64;
-                    i8t %166 = i64t %167 > i64t %163;
-                    if i8t %166, goto lb462, else goto lb463;
-                    lb462:
-                    goto lb407;
-                    lb463:
-                    goto lb317;
-                    lb443:
-                    goto lb290;
-                    lb433:
-                    i64t %169 = i8t %149 as i64;
-                    i8t %168 = i64t %169 > i64t %150;
-                    if i8t %168, goto lb434, else goto lb435;
-                    lb434:
-                    i64t %170 = csu8 91 as i64;
-                    i64t %172 = i8t %149 as i64;
-                    i8t %171 = i64t %172 < i64t %170;
-                    if i8t %171, goto lb472, else goto lb473;
-                    lb472:
-                    i64t %173 = csu8 62 as i64;
-                    i64t %175 = i8t %149 as i64;
-                    i8t %174 = i64t %175 < i64t %173;
-                    if i8t %174, goto lb480, else goto lb481;
-                    lb480:
-                    goto lb407;
-                    lb481:
-                    i64t %177 = i8t %149 as i64;
-                    i8t %176 = i64t %177 > i64t %173;
-                    if i8t %176, goto lb482, else goto lb483;
-                    lb482:
-                    goto lb407;
-                    lb483:
-                    goto lb233;
-                    lb473:
-                    i64t %179 = i8t %149 as i64;
-                    i8t %178 = i64t %179 > i64t %170;
-                    if i8t %178, goto lb474, else goto lb475;
-                    lb474:
-                    i64t %180 = csu8 93 as i64;
-                    i64t %182 = i8t %149 as i64;
-                    i8t %181 = i64t %182 < i64t %180;
-                    if i8t %181, goto lb492, else goto lb493;
-                    lb492:
-                    goto lb407;
-                    lb493:
-                    i64t %184 = i8t %149 as i64;
-                    i8t %183 = i64t %184 > i64t %180;
-                    if i8t %183, goto lb494, else goto lb495;
-                    lb494:
-                    goto lb407;
-                    lb495:
-                    goto lb373;
-                    lb475:
-                    goto lb338;
-                    lb435:
-                    goto lb248;
-                    lb232:
-                    [base: i32s %12] i32s %205 = phi(set [%217, bb28][%216, bb27][%208, bb32][%204, bb25][%211, bb36][%213, bb37][%215, bb24][%218, bb26]);
-                    [base: i32s %13] i32s %206 = phi(set [%202, bb36][%202, bb37][%202, bb28][%203, bb25][%202, bb32][%214, bb24][%202, bb26][%202, bb27]);
-                }
-                [SSA] future: i32s %201 <<== previous: i32s %205;
-                [SSA] future: i32s %202 <<== previous: i32s %206;
-                goto lb223;
-                lb225:
-                exit i8n 0;
+                i32t %70 = i8n 1 as i32;
+                i32t %69 = i32s %197 + i32t %70;
+                i32s %220 = i32t %69;
             }
+            [SSA] future: i32s %197 <<== previous: i32s %220;
+            [SSA] future: i32s %198 <<== previous: i32s %219;
+            goto lb103;
+            lb105:
+            i32s %12 = alloc;
+            i32t %71 = i8n 0 as i32;
+            i32s %199 = i32t %71;
+            i32s %13 = alloc;
+            i32t %72 = i8n 0 as i32;
+            i32s %200 = i32t %72;
+            [SSA] future: i32s %201 <<== previous: i32s %199;
+            [SSA] future: i32s %202 <<== previous: i32s %200;
+            lb223:
+            [base: i32s %12] i32s %201 = phi(set [%205, bb68][%199, bb21]);
+            [base: i32s %13] i32s %202 = phi(set [%200, bb21][%206, bb68]);
+            i32t %73 = i32s %201 < i32s %196;
+            if i32t %73, goto lb224, else goto lb225;
+            lb224:
+            {
+                goto lb231;
+                lb233:
+                {
+                    i32t %75 = i8n 1 as i32;
+                    i32t %74 = i32s %202 + i32t %75;
+                    i32s %214 = i32t %74;
+                    i32t %77 = i8n 1 as i32;
+                    i32t %76 = i32s %201 + i32t %77;
+                    i32s %215 = i32t %76;
+                }
+                [SSA] future: i32s %205 <<== previous: i32s %215;
+                [SSA] future: i32s %206 <<== previous: i32s %214;
+                goto lb232;
+                lb248:
+                {
+                    i32t %79 = i8n 1 as i32;
+                    i32t %78 = i32s %202 - i32t %79;
+                    i32s %203 = i32t %78;
+                    i32t %81 = i8n 1 as i32;
+                    i32t %80 = i32s %201 + i32t %81;
+                    i32s %204 = i32t %80;
+                }
+                [SSA] future: i32s %205 <<== previous: i32s %204;
+                [SSA] future: i32s %206 <<== previous: i32s %203;
+                goto lb232;
+                lb263:
+                {
+                    i8t* %82 = &(arrg %3);
+                    i32t %83 = i32s %202 * csu8 1;
+                    i8t* %85 = i32t %83 as *ptr;
+                    i8t* %84 = i8t* %82 + i8t* %85;
+                    i8t %86 = *(i8t* %84);
+                    i8t %87 = i8t %86 + i8n 1;
+                    i8t* %88 = &(arrg %3);
+                    i32t %89 = i32s %202 * csu8 1;
+                    i8t* %91 = i32t %89 as *ptr;
+                    i8t* %90 = i8t* %88 + i8t* %91;
+                    *(i8t* %90) = i8t %87;
+                    i32t %93 = i8n 1 as i32;
+                    i32t %92 = i32s %201 + i32t %93;
+                    i32s %218 = i32t %92;
+                }
+                [SSA] future: i32s %205 <<== previous: i32s %218;
+                [SSA] future: i32s %206 <<== previous: i32s %202;
+                goto lb232;
+                lb290:
+                {
+                    i8t* %94 = &(arrg %3);
+                    i32t %95 = i32s %202 * csu8 1;
+                    i8t* %97 = i32t %95 as *ptr;
+                    i8t* %96 = i8t* %94 + i8t* %97;
+                    i8t %98 = *(i8t* %96);
+                    i8t %99 = i8t %98 - i8n 1;
+                    i8t* %100 = &(arrg %3);
+                    i32t %101 = i32s %202 * csu8 1;
+                    i8t* %103 = i32t %101 as *ptr;
+                    i8t* %102 = i8t* %100 + i8t* %103;
+                    *(i8t* %102) = i8t %99;
+                    i32t %105 = i8n 1 as i32;
+                    i32t %104 = i32s %201 + i32t %105;
+                    i32s %216 = i32t %104;
+                }
+                [SSA] future: i32s %205 <<== previous: i32s %216;
+                [SSA] future: i32s %206 <<== previous: i32s %202;
+                goto lb232;
+                lb317:
+                {
+                    i8t* %106 = &(arrg %3);
+                    i32t %107 = i32s %202 * csu8 1;
+                    i8t* %109 = i32t %107 as *ptr;
+                    i8t* %108 = i8t* %106 + i8t* %109;
+                    i8t %110 = *(i8t* %108);
+                    use i8t %110;
+                    putc1(i8t %110);
+                    i32t %112 = i8n 1 as i32;
+                    i32t %111 = i32s %201 + i32t %112;
+                    i32s %217 = i32t %111;
+                }
+                [SSA] future: i32s %205 <<== previous: i32s %217;
+                [SSA] future: i32s %206 <<== previous: i32s %202;
+                goto lb232;
+                lb338:
+                {
+                    i8t* %113 = &(arrg %3);
+                    i32t %114 = i32s %202 * csu8 1;
+                    i8t* %116 = i32t %114 as *ptr;
+                    i8t* %115 = i8t* %113 + i8t* %116;
+                    i8t %117 = *(i8t* %115);
+                    i8t %118 = not i8t %117;
+                    if i8t %118, goto lb341, else goto lb342;
+                    lb341:
+                    {
+                        i32t* %119 = &(arrg %4);
+                        i32t %120 = i32s %201 * csu8 4;
+                        i32t* %122 = i32t %120 as *ptr;
+                        i32t* %121 = i32t* %119 + i32t* %122;
+                        i32t %123 = *(i32t* %121);
+                        i32s %209 = i32t %123;
+                    }
+                    [SSA] future: i32s %208 <<== previous: i32s %209;
+                    goto lb343;
+                    lb342:
+                    {
+                        i32t %125 = i8n 1 as i32;
+                        i32t %124 = i32s %201 + i32t %125;
+                        i32s %207 = i32t %124;
+                    }
+                    [SSA] future: i32s %208 <<== previous: i32s %207;
+                    goto lb343;
+                    lb343:
+                    [base: i32s %12] i32s %208 = phi(set [%207, bb31][%209, bb30]);
+                }
+                [SSA] future: i32s %205 <<== previous: i32s %208;
+                [SSA] future: i32s %206 <<== previous: i32s %202;
+                goto lb232;
+                lb373:
+                {
+                    i8t* %126 = &(arrg %3);
+                    i32t %127 = i32s %202 * csu8 1;
+                    i8t* %129 = i32t %127 as *ptr;
+                    i8t* %128 = i8t* %126 + i8t* %129;
+                    i8t %130 = *(i8t* %128);
+                    if i8t %130, goto lb376, else goto lb377;
+                    lb376:
+                    {
+                        i32t* %131 = &(arrg %4);
+                        i32t %132 = i32s %201 * csu8 4;
+                        i32t* %134 = i32t %132 as *ptr;
+                        i32t* %133 = i32t* %131 + i32t* %134;
+                        i32t %135 = *(i32t* %133);
+                        i32s %212 = i32t %135;
+                    }
+                    [SSA] future: i32s %211 <<== previous: i32s %212;
+                    goto lb378;
+                    lb377:
+                    {
+                        i32t %137 = i8n 1 as i32;
+                        i32t %136 = i32s %201 + i32t %137;
+                        i32s %210 = i32t %136;
+                    }
+                    [SSA] future: i32s %211 <<== previous: i32s %210;
+                    goto lb378;
+                    lb378:
+                    [base: i32s %12] i32s %211 = phi(set [%210, bb35][%212, bb34]);
+                }
+                [SSA] future: i32s %205 <<== previous: i32s %211;
+                [SSA] future: i32s %206 <<== previous: i32s %202;
+                goto lb232;
+                lb407:
+                {
+                    i32t %139 = i8n 1 as i32;
+                    i32t %138 = i32s %201 + i32t %139;
+                    i32s %213 = i32t %138;
+                }
+                [SSA] future: i32s %205 <<== previous: i32s %213;
+                [SSA] future: i32s %206 <<== previous: i32s %202;
+                goto lb232;
+                [unused] goto lb232;
+                lb231:
+                i8t** %140 = i8s** %193;
+                i8t %141 = i8n 1 * csu8 8;
+                i8t** %143 = i8t %141 as *ptr;
+                i8t** %142 = i8t** %140 + i8t** %143;
+                i8t* %144 = *(i8t** %142);
+                i8t* %145 = i8t* %144;
+                i32t %146 = i32s %201 * csu8 1;
+                i8t* %148 = i32t %146 as *ptr;
+                i8t* %147 = i8t* %145 + i8t* %148;
+                i8t %149 = *(i8t* %147);
+                i64t %150 = csu8 60 as i64;
+                i64t %152 = i8t %149 as i64;
+                i8t %151 = i64t %152 < i64t %150;
+                if i8t %151, goto lb432, else goto lb433;
+                lb432:
+                i64t %153 = csu8 45 as i64;
+                i64t %155 = i8t %149 as i64;
+                i8t %154 = i64t %155 < i64t %153;
+                if i8t %154, goto lb440, else goto lb441;
+                lb440:
+                i64t %156 = csu8 43 as i64;
+                i64t %158 = i8t %149 as i64;
+                i8t %157 = i64t %158 < i64t %156;
+                if i8t %157, goto lb448, else goto lb449;
+                lb448:
+                goto lb407;
+                lb449:
+                i64t %160 = i8t %149 as i64;
+                i8t %159 = i64t %160 > i64t %156;
+                if i8t %159, goto lb450, else goto lb451;
+                lb450:
+                goto lb407;
+                lb451:
+                goto lb263;
+                lb441:
+                i64t %162 = i8t %149 as i64;
+                i8t %161 = i64t %162 > i64t %153;
+                if i8t %161, goto lb442, else goto lb443;
+                lb442:
+                i64t %163 = csu8 46 as i64;
+                i64t %165 = i8t %149 as i64;
+                i8t %164 = i64t %165 < i64t %163;
+                if i8t %164, goto lb460, else goto lb461;
+                lb460:
+                goto lb407;
+                lb461:
+                i64t %167 = i8t %149 as i64;
+                i8t %166 = i64t %167 > i64t %163;
+                if i8t %166, goto lb462, else goto lb463;
+                lb462:
+                goto lb407;
+                lb463:
+                goto lb317;
+                lb443:
+                goto lb290;
+                lb433:
+                i64t %169 = i8t %149 as i64;
+                i8t %168 = i64t %169 > i64t %150;
+                if i8t %168, goto lb434, else goto lb435;
+                lb434:
+                i64t %170 = csu8 91 as i64;
+                i64t %172 = i8t %149 as i64;
+                i8t %171 = i64t %172 < i64t %170;
+                if i8t %171, goto lb472, else goto lb473;
+                lb472:
+                i64t %173 = csu8 62 as i64;
+                i64t %175 = i8t %149 as i64;
+                i8t %174 = i64t %175 < i64t %173;
+                if i8t %174, goto lb480, else goto lb481;
+                lb480:
+                goto lb407;
+                lb481:
+                i64t %177 = i8t %149 as i64;
+                i8t %176 = i64t %177 > i64t %173;
+                if i8t %176, goto lb482, else goto lb483;
+                lb482:
+                goto lb407;
+                lb483:
+                goto lb233;
+                lb473:
+                i64t %179 = i8t %149 as i64;
+                i8t %178 = i64t %179 > i64t %170;
+                if i8t %178, goto lb474, else goto lb475;
+                lb474:
+                i64t %180 = csu8 93 as i64;
+                i64t %182 = i8t %149 as i64;
+                i8t %181 = i64t %182 < i64t %180;
+                if i8t %181, goto lb492, else goto lb493;
+                lb492:
+                goto lb407;
+                lb493:
+                i64t %184 = i8t %149 as i64;
+                i8t %183 = i64t %184 > i64t %180;
+                if i8t %183, goto lb494, else goto lb495;
+                lb494:
+                goto lb407;
+                lb495:
+                goto lb373;
+                lb475:
+                goto lb338;
+                lb435:
+                goto lb248;
+                lb232:
+                [base: i32s %12] i32s %205 = phi(set [%218, bb26][%211, bb36][%213, bb37][%216, bb27][%217, bb28][%204, bb25][%208, bb32][%215, bb24]);
+                [base: i32s %13] i32s %206 = phi(set [%202, bb32][%202, bb37][%202, bb36][%214, bb24][%202, bb27][%202, bb28][%202, bb26][%203, bb25]);
+            }
+            [SSA] future: i32s %201 <<== previous: i32s %205;
+            [SSA] future: i32s %202 <<== previous: i32s %206;
+            goto lb223;
+            lb225:
+            exit i8n 0;
         }
-    [unused] }
+    }
+    [unused]
 }
 /:

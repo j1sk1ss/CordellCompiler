@@ -20,17 +20,17 @@ function foo() {
             i32s* %1 = alloc;
             i32t* %3 = i8n 1 as *ptr;
             i32s* %9 = i32t* %3;
-            [SSA] future: u64s* %10 <<== previous: u64s* %8;
+            [SSA] future: i32s* %10 <<== previous: i32s* %8;
             if i8n 1, goto lb17, else goto lb19;
             lb17:
             {
                 i32t* %4 = i8n 0 as *ptr;
                 i32s* %11 = i32t* %4;
             }
-            [SSA] future: u64s* %10 <<== previous: u64s* %11;
+            [SSA] future: i32s* %10 <<== previous: i32s* %11;
             goto lb19;
             lb19:
-            [base: u64s %0] u64s* %10 = phi(set [%11, bb2][%8, bb1]);
+            [base: i32s %0] i32s* %10 = phi(set [%8, bb1][%11, bb2]);
             i32t %5 = *(i32s* %10);
             i32t %6 = *(i32s* %9);
             i32t %7 = i32t %5 + i32t %6;

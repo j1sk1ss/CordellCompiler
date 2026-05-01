@@ -1,28 +1,51 @@
 start() {
-    i32 a = 10 + 11 * 12;
-    i32 b = 10 - 1;
-    a += b += a; 
+    ptr i32 a = 1;
+    if 1; {
+        if 2; a = 0;
+        else a = 2;
+        a = 1;
+    }
+    dref a = 0;
 }
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
+            i32s* %0 = alloc;
+            i32t* %1 = i8n 1 as *ptr;
+            i32s* %6 = i32t* %1;
+            [SSA] future: i32s* %7 <<== previous: i32s* %6;
+            if i8n 1, goto lb12, else goto lb14;
+            lb12:
             {
-                i32s %0 = alloc;
-                i8t %2 = i8n 11 * i8n 12;
-                i8t %3 = i8n 10 + i8t %2;
-                i32t %4 = i8t %3 as i32;
-                i32s %9 = i32t %4;
-                i32s %1 = alloc;
-                i8t %5 = i8n 10 - i8n 1;
-                i32t %6 = i8t %5 as i32;
-                i32s %10 = i32t %6;
-                i32t %7 = i32s %10 + i32s %9;
-                i32s %11 = i32t %7;
-                i32t %8 = i32s %9 + i32s %11;
-                i32s %12 = i32t %8;
+                if i8n 2, goto lb18, else goto lb19;
+                lb18:
+                {
+                    i32t* %2 = i8n 0 as *ptr;
+                    i32s* %11 = i32t* %2;
+                }
+                [SSA] future: i32s* %9 <<== previous: i32s* %11;
+                goto lb20;
+                lb19:
+                {
+                    i32t* %3 = i8n 2 as *ptr;
+                    i32s* %8 = i32t* %3;
+                }
+                [SSA] future: i32s* %9 <<== previous: i32s* %8;
+                goto lb20;
+                lb20:
+                [base: i32s %0] i32s* %9 = phi(set [%11, bb3][%8, bb4]);
+                i32t* %4 = i8n 1 as *ptr;
+                i32s* %10 = i32t* %4;
             }
+            [SSA] future: i32s* %7 <<== previous: i32s* %10;
+            goto lb14;
+            lb14:
+            [base: i32s %0] i32s* %7 = phi(set [%6, bb1][%10, bb5]);
+            i32t %5 = i8n 0 as i32;
+            *(i32s* %7) = i32t %5;
         }
     }
 }

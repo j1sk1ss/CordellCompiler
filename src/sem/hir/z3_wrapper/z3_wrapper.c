@@ -1,5 +1,7 @@
 #include <sem/hir/z3.h>
-
+// TODO: Switch to RUST bridge and create API for it
+//       It would be much better to have a compiled module
+//       for Z3 rather than to have to run a script every time.
 static inline int _argv_add(char** argv, int* argc, const char* arg) {
     if (*argc >= Z3_WRAPPER_MAX_ARGS - 1) return 0;
     argv[*argc] = (char*)arg;
@@ -36,7 +38,7 @@ int _launch_z3_wrapper(FILE* f, z3_options_t* opt) {
     int argc = 0;
     char* argv[Z3_WRAPPER_MAX_ARGS];
     if (!_argv_add(argv, &argc, opt->python ? opt->python : "python3")) return 0;
-    if (!_argv_add(argv, &argc, opt->script ? opt->script : Z3_SCRIPT)) return 0;
+    if (!_argv_add(argv, &argc, opt->script ? opt->script : CONF_get_z3_path())) return 0;
     if (!_argv_add(argv, &argc, "-")) return 0;
     if (!_argv_add(argv, &argc, "--input-kind")) return 0;
     if (!_argv_add(argv, &argc, opt->input_kind ? opt->input_kind : "dump")) return 0;
@@ -65,32 +67,12 @@ int _launch_z3_wrapper(FILE* f, z3_options_t* opt) {
         if (!_argv_add(argv, &argc, max_depth_buf)) return 0;
     }
 
-    if (opt->json) {
-        if (!_argv_add(argv, &argc, "--json")) return 0;
-    }
-
-    if (opt->no_model) {
-        if (!_argv_add(argv, &argc, "--no-model")) return 0;
-    }
-
-    if (opt->strict_parser) {
-        if (!_argv_add(argv, &argc, "--strict-parser")) return 0;
-    }
-
-    if (opt->strict_z3) {
-        if (!_argv_add(argv, &argc, "--strict-z3")) return 0;
-    }
-
-    if (opt->ty) {
-        if (!_argv_add(argv, &argc, "--ty")) return 0;
-        if (!_argv_add(argv, &argc, opt->ty)) return 0;
-    }
-
-    if (opt->storage) {
-        if (!_argv_add(argv, &argc, "--storage")) return 0;
-        if (!_argv_add(argv, &argc, opt->storage)) return 0;
-    }
-
+    if (opt->json && !_argv_add(argv, &argc, "--json")) return 0;
+    if (opt->no_model && !_argv_add(argv, &argc, "--no-model")) return 0;
+    if (opt->strict_parser && !_argv_add(argv, &argc, "--strict-parser")) return 0;
+    if (opt->strict_z3 && !_argv_add(argv, &argc, "--strict-z3")) return 0;
+    if (opt->ty && (!_argv_add(argv, &argc, "--ty") || !_argv_add(argv, &argc, opt->ty))) return 0;
+    if (opt->storage && (!_argv_add(argv, &argc, "--storage") || !_argv_add(argv, &argc, opt->storage))) return 0;
     if (!_argv_add(argv, &argc, opt->what)) return 0;
 
     for (int i = 0; i < opt->target_count; ++i) {
@@ -100,54 +82,28 @@ int _launch_z3_wrapper(FILE* f, z3_options_t* opt) {
     pid_t pid = fork();
     if (pid == -1) return 1;
     if (!pid) {
-        if (dup2(fileno(f), STDIN_FILENO) == -1) {
-            _exit(126);
-        }
-
+        if (dup2(fileno(f), STDIN_FILENO) == -1) _exit(126);
         int devnull = open("/dev/null", O_WRONLY);
-        if (devnull == -1) {
-            _exit(126);
-        }
-
-        if (dup2(devnull, STDOUT_FILENO) == -1) {
-            _exit(126);
-        }
-
-        if (dup2(devnull, STDERR_FILENO) == -1) {
-            _exit(126);
-        }
-
-        if (devnull > STDERR_FILENO) {
-            close(devnull);
-        }
-
+        if (devnull == -1) _exit(126);
+        if (dup2(devnull, STDOUT_FILENO) == -1) _exit(126);
+        if (dup2(devnull, STDERR_FILENO) == -1) _exit(126);
+        if (devnull > STDERR_FILENO) close(devnull);
         execvp(argv[0], argv);
         _exit(127);
     }
 
     int status = 0;
-    if (waitpid(pid, &status, 0) == -1) {
-        return 1;
-    }
-
-    if (WIFEXITED(status)) {
-        return WEXITSTATUS(status);
-    }
-
-    if (WIFSIGNALED(status)) {
-        return 128 + WTERMSIG(status);
-    }
-
+    if (waitpid(pid, &status, 0) == -1) return 1;
+    if (WIFEXITED(status)) return WEXITSTATUS(status);
+    if (WIFSIGNALED(status)) return 128 + WTERMSIG(status);
     return 1;
 }
 
-int Z3_can_vid_be_equal(symbol_id_t v_id, long long value, FILE* dump) {
+int Z3_can_vid_be_equal(symbol_id_t v_id, long long value, string_t* f, FILE* dump) {
     char id_buf[32];
     char value_buf[32];
-
     snprintf(id_buf, sizeof(id_buf), "%%%lld", (long long)v_id);
     snprintf(value_buf, sizeof(value_buf), "%lld", value);
-
     const char* targets[] = {
         id_buf,
         value_buf,
@@ -157,7 +113,23 @@ int Z3_can_vid_be_equal(symbol_id_t v_id, long long value, FILE* dump) {
         .what = "var-eq",
         .targets = targets,
         .target_count = 2,
-        .json = 1
+        .json = 1,
+        .function = f->body
+    };
+
+    return _launch_z3_wrapper(dump, &opt);
+}
+
+int Z3_can_reach_label(long l_id, string_t* f, FILE* dump) {
+    char id_buf[32];
+    snprintf(id_buf, sizeof(id_buf), "%lld", (long long)l_id);
+    const char* targets[] = { id_buf };
+    z3_options_t opt = {
+        .what = "label",
+        .targets = targets,
+        .target_count = 1,
+        .json = 1,
+        .function = f->body
     };
 
     return _launch_z3_wrapper(dump, &opt);

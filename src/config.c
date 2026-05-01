@@ -47,6 +47,14 @@ config_int_field_t CONF_get_eight_bytness() {
     return _config.system.bytness.e_bytness;
 }
 
+config_string_field_t CONF_get_z3_path() {
+    return _config.csa.z3;
+}
+
+config_int_field_t CONF_get_attention_level() {
+    return _config.csa.attention;
+}
+
 arch_type_t CONF_get_system_type() {
     if (!_config.system.sys_type) return MACHO64;
     return _config.system.sys_type;

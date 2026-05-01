@@ -7,25 +7,25 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i32s %0 = alloc;
-                i8t %1 = i8n 10 + i8n 10;
-                i32t %2 = i8t %1 as i32;
-                i32s %3 = i32t %2;
-                [unused] lb9:
-                [unused] [base: i32s %0] i32s %4 = phi(set [%3, bb3]);
-                [unused] goto lb10;
-                [unused] lb10:
-                [unused] {
-                    [unused]
-                [unused] }
-                [unused] [SSA] future: i32s %4 <<== previous: i32s %3;
-                [unused] goto lb9;
-                lb11:
+            i32s %0 = alloc;
+            i8t %1 = i8n 10 + i8n 10;
+            i32t %2 = i8t %1 as i32;
+            i32s %3 = i32t %2;
+            [unused] lb9:
+            [unused] [base: i32s %0] i32s %4 = phi(set [%3, bb3]);
+            [unused] goto lb10;
+            [unused] lb10:
+            [unused] {
+                [unused]
             [unused] }
+            [unused] [SSA] future: i32s %4 <<== previous: i32s %3;
+            [unused] goto lb9;
+            lb11:
         [unused] }
     [unused] }
+    [unused]
 }
 /:
