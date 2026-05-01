@@ -36,7 +36,7 @@ int _launch_z3_wrapper(FILE* f, z3_options_t* opt) {
     int argc = 0;
     char* argv[Z3_WRAPPER_MAX_ARGS];
     if (!_argv_add(argv, &argc, opt->python ? opt->python : "python3")) return 0;
-    if (!_argv_add(argv, &argc, opt->script ? opt->script : Z3_SCRIPT)) return 0;
+    if (!_argv_add(argv, &argc, opt->script ? opt->script : CONF_get_z3_path())) return 0;
     if (!_argv_add(argv, &argc, "-")) return 0;
     if (!_argv_add(argv, &argc, "--input-kind")) return 0;
     if (!_argv_add(argv, &argc, opt->input_kind ? opt->input_kind : "dump")) return 0;
