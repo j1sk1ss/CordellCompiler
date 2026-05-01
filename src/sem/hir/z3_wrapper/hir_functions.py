@@ -28,7 +28,7 @@ def split_hir_functions(program: dict[str, Any] | str) -> list[FunctionHIR]:
     while index < len(instructions):
         instr = instructions[index]
 
-        if instr.get("op") != "fn":
+        if instr.get("op") not in {"fn", "start"}:
             index += 1
             continue
 
@@ -78,7 +78,7 @@ def _collect_function(instructions: list[dict[str, Any]], *, start_index: int, f
 
     while index < len(instructions):
         instr = instructions[index]
-        if index != start_index and instr.get("op") == "fn" and depth is None:
+        if index != start_index and instr.get("op") in {"fn", "start"} and depth is None:
             break
 
         items.append(instr)
@@ -107,6 +107,8 @@ def _collect_function(instructions: list[dict[str, Any]], *, start_index: int, f
     )
 
 def _function_name(instr: dict[str, Any]) -> str:
+    if instr.get("op") == "start":
+        return "start"
     func = instr.get("func") or {}
     if func.get("name"):
         return str(func["name"])

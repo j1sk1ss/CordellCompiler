@@ -5,22 +5,22 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
+            i8t %1 = i8n 10 * i8n 1;
+            i8t %2 = i8n 10 + i8t %1;
+            lb8:
+            goto lb9;
+            lb9:
             {
-                i8t %1 = i8n 10 * i8n 1;
-                i8t %2 = i8n 10 + i8t %1;
-                lb8:
-                goto lb9;
-                lb9:
-                {
-                    use i8t %2;
-                    foo0(i8t %2);
-                }
-                goto lb8;
-                lb10:
-            [unused] }
+                use i8t %2;
+                foo0(i8t %2);
+            }
+            goto lb8;
+            lb10:
         [unused] }
     [unused] }
+    [unused]
 }
 /:

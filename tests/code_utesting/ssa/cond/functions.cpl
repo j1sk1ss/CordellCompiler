@@ -39,12 +39,11 @@ start() {
             lb25:
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                unsafe0(i8n 0);
-                safe1(i8n 0);
-            }
+            unsafe0(i8n 0);
+            safe1(i8n 0);
         }
     }
 }

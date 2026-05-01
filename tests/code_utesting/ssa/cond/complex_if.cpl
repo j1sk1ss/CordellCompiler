@@ -44,7 +44,7 @@ function foo(i32 arg) {
             [SSA] future: i32s %17 <<== previous: i32s %19;
             goto lb17;
             lb17:
-            [base: i32s %1] i32s %17 = phi(set [%14, bb4][%19, bb5]);
+            [base: i32s %1] i32s %17 = phi(set [%19, bb5][%14, bb4]);
             i32s* %2 = alloc;
             i32t* %11 = i32s %17 as *ptr;
             i32s* %18 = i32t* %11;

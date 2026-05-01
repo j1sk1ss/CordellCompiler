@@ -46,42 +46,42 @@ start(i32 argc, ptr ptr i8 argv) {
         }
     }
     arrg %3 = arr_alloc(i8n 16);
-    start {
+    fn _main(i32 argc, i8** argv)
+    {
+        i32s %4 = alloc;
+        i32s %34 = load_starg();
+        i8s** %5 = alloc;
+        i8s** %35 = load_starg();
         {
-            i32s %4 = alloc;
-            i32s %34 = load_starg();
-            i8s** %5 = alloc;
-            i8s** %35 = load_starg();
-            {
-                i32t* %10 = &(arrg %3);
-                i8t %11 = i8n 2 * csu8 4;
-                i32t* %13 = i8t %11 as *ptr;
-                i32t* %12 = i32t* %10 + i32t* %13;
-                i32t %14 = i8n 7 as i32;
-                *(i32t* %12) = i32t %14;
-                i32t* %15 = &(arrg %3);
-                i8t %16 = i8n 7 * csu8 4;
-                i32t* %18 = i8t %16 as *ptr;
-                i32t* %17 = i32t* %15 + i32t* %18;
-                i32t %19 = i8n 3 as i32;
-                *(i32t* %17) = i32t %19;
-                i32t* %20 = &(arrg %3);
-                i8t %21 = i8n 7 * csu8 4;
-                i32t* %23 = i8t %21 as *ptr;
-                i32t* %22 = i32t* %20 + i32t* %23;
-                i32t %24 = *(i32t* %22);
-                use i32t %24;
-                putdigit1(i32t %24);
-                i32t* %25 = &(arrg %3);
-                i8t %26 = i8n 2 * csu8 4;
-                i32t* %28 = i8t %26 as *ptr;
-                i32t* %27 = i32t* %25 + i32t* %28;
-                i32t %29 = *(i32t* %27);
-                use i32t %29;
-                putdigit1(i32t %29);
-                exit i8n 0;
-            }
+            i32t* %10 = &(arrg %3);
+            i8t %11 = i8n 2 * csu8 4;
+            i32t* %13 = i8t %11 as *ptr;
+            i32t* %12 = i32t* %10 + i32t* %13;
+            i32t %14 = i8n 7 as i32;
+            *(i32t* %12) = i32t %14;
+            i32t* %15 = &(arrg %3);
+            i8t %16 = i8n 7 * csu8 4;
+            i32t* %18 = i8t %16 as *ptr;
+            i32t* %17 = i32t* %15 + i32t* %18;
+            i32t %19 = i8n 3 as i32;
+            *(i32t* %17) = i32t %19;
+            i32t* %20 = &(arrg %3);
+            i8t %21 = i8n 7 * csu8 4;
+            i32t* %23 = i8t %21 as *ptr;
+            i32t* %22 = i32t* %20 + i32t* %23;
+            i32t %24 = *(i32t* %22);
+            use i32t %24;
+            putdigit1(i32t %24);
+            i32t* %25 = &(arrg %3);
+            i8t %26 = i8n 2 * csu8 4;
+            i32t* %28 = i8t %26 as *ptr;
+            i32t* %27 = i32t* %25 + i32t* %28;
+            i32t %29 = *(i32t* %27);
+            use i32t %29;
+            putdigit1(i32t %29);
+            exit i8n 0;
         }
-    [unused] }
+    }
+    [unused]
 }
 /:

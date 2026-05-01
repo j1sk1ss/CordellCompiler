@@ -188,9 +188,9 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     ) return HIR_STKVARI0;
 
     token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro, .glob = vi->vfs.glob } };
-    type_size_t bitness = TKN_variable_bitness(&tmptkn, 1);
+    type_size_t bitness = TKN_variable_bitness(&tmptkn, 0);
     int isfloat         = TKN_is_float(&tmptkn);
-    int issigned        = TKN_is_sign(&tmptkn, 1);
+    int issigned        = TKN_is_sign(&tmptkn, 0);
     int isarr           = vi->type == ARR_VARIABLE_TOKEN;
     int isstr           = vi->type == STR_VARIABLE_TOKEN;
 

@@ -30,32 +30,25 @@ OPAQUE_TYPES: set[str] = {
 
 DEFAULT_PTR_BITS = 64
 
-
 class HIRZ3Error(RuntimeError):
     pass
-
 
 def is_bool_ty(ty: str | None) -> bool:
     return ty == "i0"
 
-
 def is_int_ty(ty: str | None) -> bool:
     return ty in INT_WIDTHS and ty != "i0"
-
 
 def is_unsigned_ty(ty: str | None) -> bool:
     return ty is not None and ty.startswith("u")
 
-
 def is_float_ty(ty: str | None) -> bool:
     return ty in FLOAT_TYPES
-
 
 def bit_width(ty: str | None) -> int:
     if ty not in INT_WIDTHS:
         raise HIRZ3Error(f"not an integer/bitvector type: {ty!r}")
     return INT_WIDTHS[ty]
-
 
 def subject_sort(subject: dict[str, Any], *, ptr_bits: int = DEFAULT_PTR_BITS) -> z3.SortRef:
     ty = subject.get("ty")
@@ -78,7 +71,6 @@ def subject_sort(subject: dict[str, Any], *, ptr_bits: int = DEFAULT_PTR_BITS) -
 
     return z3.DeclareSort("HIR_opaque")
 
-
 def safe_symbol_name(name: str) -> str:
     out: list[str] = []
     for ch in name:
@@ -89,7 +81,6 @@ def safe_symbol_name(name: str) -> str:
 
     result = "".join(out).strip("_")
     return result or "unnamed"
-
 
 def subject_display_name(subject: dict[str, Any]) -> str:
     if subject.get("kind") == "var":
@@ -400,10 +391,14 @@ class HIRToZ3:
         )
 
     def lower_phi(self, instr: dict[str, Any]) -> None:
+        dst = instr.get("dst") or {}
+        if dst.get("kind") == "var":
+            self.var_expr(dst)
+
         self.prepared.phis.append(
             PhiInfo(
                 line_no=int(instr.get("line_no") or -1),
-                dst=instr.get("dst") or {},
+                dst=dst,
                 base=instr.get("base"),
                 arg=instr.get("arg"),
                 raw=str(instr.get("raw") or ""),
@@ -550,7 +545,6 @@ class HIRToZ3:
     def lower_store_ref(self, instr: dict[str, Any]) -> None:
         ptr = self.expr_of_subject(instr["dst"])
         value = self.expr_of_subject(instr["src"])
-
         self.prepared.side_effects.append(
             SideEffectInfo(
                 op="store_ref",
@@ -575,7 +569,6 @@ class HIRToZ3:
         rhs_subject: dict[str, Any],
     ) -> z3.ExprRef:
         lhs, rhs = self.align_binary_operands(lhs, rhs)
-
         if op in {"+", "-", "*", "/", "%", "<<", ">>", "&", "|", "^"}:
             return self.binary_arith_or_bitwise(lhs, rhs, op, lhs_subject=lhs_subject)
         elif op in {">", "<", ">=", "<=", "==", "!="}:
@@ -641,8 +634,7 @@ class HIRToZ3:
     ) -> z3.BoolRef:
         if op == "==":
             return lhs == rhs
-
-        if op == "!=":
+        elif op == "!=":
             return lhs != rhs
 
         if lhs.sort().kind() == z3.Z3_BV_SORT:
@@ -698,24 +690,21 @@ class HIRToZ3:
     ) -> tuple[z3.ExprRef, z3.ExprRef]:
         if lhs.sort() == rhs.sort():
             return lhs, rhs
-
-        if lhs.sort().kind() == z3.Z3_BV_SORT and rhs.sort().kind() == z3.Z3_BV_SORT:
+        elif lhs.sort().kind() == z3.Z3_BV_SORT and rhs.sort().kind() == z3.Z3_BV_SORT:
             lw = lhs.size()
             rw = rhs.size()
-
             if lw == rw:
                 return lhs, rhs
-            if lw > rw:
+            elif lw > rw:
                 rhs = z3.ZeroExt(lw - rw, rhs)
                 return lhs, rhs
 
             lhs = z3.ZeroExt(rw - lw, lhs)
             return lhs, rhs
-
-        if lhs.sort().kind() == z3.Z3_BOOL_SORT and rhs.sort().kind() == z3.Z3_BV_SORT:
+        elif lhs.sort().kind() == z3.Z3_BOOL_SORT and rhs.sort().kind() == z3.Z3_BV_SORT:
             lhs = z3.If(lhs, z3.BitVecVal(1, rhs.size()), z3.BitVecVal(0, rhs.size()))
             return lhs, rhs
-        if lhs.sort().kind() == z3.Z3_BV_SORT and rhs.sort().kind() == z3.Z3_BOOL_SORT:
+        elif lhs.sort().kind() == z3.Z3_BV_SORT and rhs.sort().kind() == z3.Z3_BOOL_SORT:
             rhs = z3.If(rhs, z3.BitVecVal(1, lhs.size()), z3.BitVecVal(0, lhs.size()))
             return lhs, rhs
 
@@ -946,7 +935,6 @@ def main() -> int:
     print(prepared.solver.check())
 
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

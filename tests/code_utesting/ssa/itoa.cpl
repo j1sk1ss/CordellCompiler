@@ -114,7 +114,7 @@ start() {
             [SSA] future: i64s %62 <<== previous: i64s %61;
             goto lb89;
             lb89:
-            [base: i64s %24] i64s %62 = phi(set [%66, bb9][%61, bb10]);
+            [base: i64s %24] i64s %62 = phi(set [%61, bb10][%66, bb9]);
             if i64s %62, goto lb80, else goto lb81;
             lb80:
             {
@@ -144,18 +144,17 @@ start() {
         }
     }
     arrg %6 = arr_alloc(i8n 32);
-    start {
+    fn _main()
+    {
         {
-            {
-                i8t* %48 = &(arrg %6);
-                use i8t* %48;
-                i32t %49 = csu8 32 as i32;
-                use i32t %49;
-                itoa0(i32n 123321, i8t* %48, i32t %49);
-                i8t* %50 = &(arrg %6);
-                use i8t* %50;
-                syscall(i32n 33554436, i8n 1, i8t* %50, i8n 7);
-            }
+            i8t* %48 = &(arrg %6);
+            use i8t* %48;
+            i32t %49 = csu8 32 as i32;
+            use i32t %49;
+            itoa0(i32n 123321, i8t* %48, i32t %49);
+            i8t* %50 = &(arrg %6);
+            use i8t* %50;
+            syscall(i32n 33554436, i8n 1, i8t* %50, i8n 7);
         }
     }
 }

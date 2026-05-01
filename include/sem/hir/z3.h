@@ -8,7 +8,7 @@
 #include <std/set.h>
 #include <symtab/symtab_id.h>
 
-#define Z3_SCRIPT "/Users/nikolaj/Documents/Repositories/CordellCompiler/src/sem/hir/z3_wrapper/z3_wrapper.py"
+#define Z3_SCRIPT "/home/j1sk1ss/Desktop/CordellCompiler/src/sem/hir/z3_wrapper/z3_wrapper.py"
 #define Z3_WRAPPER_MAX_ARGS 128
 
 int Z3_can_vid_be_equal(symbol_id_t v_id, long long value, string_t* f, FILE* dump);

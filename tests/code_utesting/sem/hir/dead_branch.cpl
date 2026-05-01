@@ -1,11 +1,10 @@
-: TEST_DEBUG :
 @[entry]
 function foo(i32 a) {
-    if a > 10; {
+    if a > 10 && a <= 20; {
         return 1;
     }
 
-    if a > 10; {
+    if a == 15; {
         return 10;
     }
 
@@ -13,4 +12,5 @@ function foo(i32 a) {
 }
 
 :/ OUTPUT
+[WARNING] [{X}:7:8] Can't reach the 'then' branch! Consider to refactor the code.
 /:

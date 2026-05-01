@@ -18,11 +18,10 @@ start() {
             f32s* %3 = load_arg();
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                foo0();
-            }
+            foo0();
         }
     }
 }

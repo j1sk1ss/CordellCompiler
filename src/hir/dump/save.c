@@ -24,10 +24,11 @@ static const char* _get_operation_template(hir_operation_t op) {
         case HIR_STORE_ECLL:   return "%s = %s(%s);\n";
         case HIR_SYSC:         return "syscall(%s%s%s);\n";
         case HIR_STORE_SYSC:   return "%s = syscall(%s%s);\n";
-        case HIR_STRT:         return "start {\n";
         case HIR_FRET:         return "return %s;\n";
         case HIR_MKLB:         return "%s:\n";
+        case HIR_STRT:
         case HIR_FDCL:         return "fn %s\n";
+        case HIR_STEND:
         case HIR_FEND:         return "\n";
         case HIR_FEXT:         return "(fun) extern(%s);\n";
         case HIR_OEXT:         return "(var) extern(%s);\n";
@@ -66,7 +67,6 @@ static const char* _get_operation_template(hir_operation_t op) {
         case HIR_LDREF:        return "*(%s) = %s;\n";
         case HIR_REF:          return "%s = &(%s);\n";
         case HIR_EXITOP:       return "exit %s;\n";
-        case HIR_STEND:        return "}\n";
         case HIR_PHI:          return "[base: %s] %s = phi(%s);\n";
         case HIR_MKSCOPE:      return "{\n";
         case HIR_ENDSCOPE:     return "}\n";
@@ -236,10 +236,7 @@ static int _get_formatted_block(char* dst, hir_block_t* block, sym_table_t* smt,
     char arg3[256] = { 0 };
     if (block->targ) _get_formatted_subject(arg3, block->targ, smt, style);
     
-    if (
-        block->op == HIR_ENDSCOPE ||
-        block->op == HIR_STEND
-    ) depth--;
+    if (block->op == HIR_ENDSCOPE) depth--;
 
     for (int i = 0; i < depth; i++) dst += sprintf(dst, "    ");
     if (!unused && block->unused) goto _force_end;
@@ -248,10 +245,7 @@ static int _get_formatted_block(char* dst, hir_block_t* block, sym_table_t* smt,
     sprintf(dst, fmt, arg1, arg2, arg3);
     
 _force_end: {}
-    if (
-        block->op == HIR_MKSCOPE ||
-        block->op == HIR_STRT
-    ) depth++;
+    if (block->op == HIR_MKSCOPE) depth++;
     return depth;
 }
 
