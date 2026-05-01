@@ -1,5 +1,7 @@
 #include <sem/hir/z3.h>
-
+// TODO: Switch to RUST bridge and create API for it
+//       It would be much better to have a compiled module
+//       for Z3 rather than to have to run a script every time.
 static inline int _argv_add(char** argv, int* argc, const char* arg) {
     if (*argc >= Z3_WRAPPER_MAX_ARGS - 1) return 0;
     argv[*argc] = (char*)arg;
