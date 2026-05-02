@@ -30,6 +30,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Z3
+Z3 wrapper on Python now is available for usage during the deep static analysis.
+
 ## Inefficient switch
 Check whether it better to add an annotation or not. 
 

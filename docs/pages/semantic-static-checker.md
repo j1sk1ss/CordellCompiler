@@ -1,6 +1,7 @@
 # Semantic static checker
 This page almost about the basics of the static analysis in CPL. To dive deeper, you can consider the related block in this documentation later. But at this moment, we need to understand what can do and can't the analyzer. </br>
-Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. This static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behavior (null-dereference, wrong casts, propagated constants (variable values), etc.).
+Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. This static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. </br>
+While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behavior (null-dereference, wrong casts, propagated constants (variable values), etc.) and ability to use `Z3` tool.
 
 ## AST part
 The list of all possible AST warnings that are supported by the static analyzer is below.
@@ -41,6 +42,8 @@ The list of all possible IR warnings that are supported by the static analyzer i
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | NULL dereference | If a variable or expression that may be `NULL` is dereferenced, compilation must be terminated.                                               | `ptr i32 p = 0;`</br>`x = dref p;`   |
 | NULL dereference.args | If a function dereferences an input argument, and we figure it out, that it is '0' - we must terminate compilation.                      | `ptr i32 p = 0;`</br>`foo(p);`</br>`function foo(ptr i32 b) { dref b; }` |
+| Possible dereference | With `Z3` is possible to predict whether there is a dereference of 0 or not.                                                              | `ptr i32 p = 0;`</br>`if not p; return;`</br>`x = dref p; :/ Fine /:` |
 | Constant `if`    | If an `if` condition is a compile-time constant, the checker may warn that one branch is dead code.                                           | `if 0 { a = 1; }`</br>`else { a = 2; }` |
 | Function checker | Function call arguments must match the declared parameter types, otherwise code generation may become invalid.                                | `function sum(i32 a, i32 b);`</br>`sum(1, "x");`|
 | Syscall checker  | Using the syscall number and the target platform, the checker can validate that the syscall exists and that its arguments have correct types. | `syscall(3, ref "fd", buf, 10);`     |
+| Dead branches    | With `Z3` is possible to check whether a branch is reacheble or not.                                                                          | `if 0 { :/ Dead /: }`</br>`else { :/ Alive /: }` |
