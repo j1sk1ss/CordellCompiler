@@ -27,6 +27,10 @@ config_string_field_t CONF_get_code_section() {
     return _config.system.code_section;
 }
 
+config_string_field_t CONF_get_timings() {
+    return _config.system.arch_timings;
+}
+
 config_int_field_t CONF_get_full_bytness() {
     if (!_config.system.bytness.bytness) return 8;
     return _config.system.bytness.bytness;

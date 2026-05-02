@@ -32,6 +32,7 @@ typedef struct {
             config_int_field_t e_bytness;    /* Eight system byte size, e.g. 1 - x64  */
         } bytness;
         arch_type_t            sys_type;
+        config_string_field_t  arch_timings; /* *.trg file with generated timings     */
     } system;
 
     struct {
@@ -53,6 +54,7 @@ config_string_field_t CONF_get_entry_name();
 config_string_field_t CONF_get_ro_section();
 config_string_field_t CONF_get_glob_section();
 config_string_field_t CONF_get_code_section();
+config_string_field_t CONF_get_timings();
 
 config_int_field_t CONF_get_full_bytness();
 config_int_field_t CONF_get_half_bytness();

@@ -10,11 +10,9 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
-// #include "../../misc/hir_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -23,6 +21,9 @@
 #include "../../../misc/lir_helper.h"
 
 int main(int argc, char* argv[]) {
+    config_t cfg = { .system.arch_timings = "/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl" };
+    CONF_set_config(&cfg);
+
     if (argc != 3) {
         fprintf(stderr, "Not enough arguments! Expected 3, got %i!\n", argc);
         return 1;
@@ -78,7 +79,7 @@ int main(int argc, char* argv[]) {
     LIR_generate(&cfgctx, &lirctx, &smt);
 
     target_info_t trginfo;
-    TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
+    TRGINF_load(&trginfo);
     LIR_plan_instructions(&cfgctx, &trginfo); // Transform
     TRGINF_unload(&trginfo);
 

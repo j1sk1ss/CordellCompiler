@@ -255,7 +255,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
 #ifdef LIR_INSTPLAN_TESTING
     target_info_t trginfo;
-    TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
+    TRGINF_load(&trginfo);
     LIR_plan_instructions(&cfgctx, &trginfo); // Transform
     TRGINF_unload(&trginfo);
 #ifdef LIR_PRINT

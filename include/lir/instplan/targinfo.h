@@ -2,6 +2,7 @@
 #define TARGINFO_H_
 
 #include <stdio.h>
+#include <config.h>
 #include <std/mm.h>
 #include <std/map.h>
 #include <lir/lir_types.h>
@@ -25,7 +26,7 @@ typedef struct {
     map_t      info;
 } target_info_t;
 
-int TRGINF_load(char* path, target_info_t* s);
+int TRGINF_load(target_info_t* s);
 int TRGINF_unload(target_info_t* s);
 
 #endif
