@@ -1,3 +1,4 @@
+: BUG :
 function foo(i32 a) -> i32 {
     return a - 10;
 }

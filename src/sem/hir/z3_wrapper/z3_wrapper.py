@@ -13,7 +13,17 @@ from dataclasses import dataclass, field
 
 from hir_parser import parse_hir_dump
 from hir_functions import split_hir_functions, select_hir_function
-from z3_first_raw import prepare_hir_for_z3
+from z3_build import (
+    BranchInfo,
+    GotoInfo,
+    PhiInfo,
+    ReturnInfo,
+    SideEffectInfo,
+    Z3BaseInfo,
+    DEFAULT_PTR_BITS,
+    subject_sort,
+    prepare_hir_for_z3,
+)
 from hir_cfg_builder import build_hir_cfg
 
 @dataclass
@@ -55,12 +65,12 @@ class InitialAssignment:
     condition: z3.BoolRef
 
 _PROGRAM_CACHE_VERSION = 1
+_ANALYSIS_CACHE_VERSION = 2
 
 def _default_cache_dir() -> str:
     root = os.environ.get("XDG_CACHE_HOME")
     if root:
         return os.path.join(root, "z3_wrapper")
-
     return os.path.join(os.path.expanduser("~"), ".cache", "z3_wrapper")
 
 def _program_cache_path(path: str, *, input_kind: str, strict_parser: bool, cache_dir: str) -> str:
@@ -98,7 +108,6 @@ def _write_program_cache(cache_path: str, program: dict[str, Any]) -> None:
 
     try:
         os.makedirs(directory, exist_ok=True)
-
         with tempfile.NamedTemporaryFile(
             "w",
             encoding="utf-8",
@@ -112,6 +121,366 @@ def _write_program_cache(cache_path: str, program: dict[str, Any]) -> None:
                 {
                     "version": _PROGRAM_CACHE_VERSION,
                     "program": program,
+                },
+                file,
+                ensure_ascii=False,
+            )
+
+        os.replace(tmp_path, cache_path)
+    except (OSError, TypeError):
+        try:
+            os.unlink(tmp_path)
+        except (OSError, UnboundLocalError):
+            pass
+
+def _analysis_cache_path(
+    path: str,
+    *,
+    input_kind: str,
+    strict_parser: bool,
+    function: str | None,
+    ptr_bits: int,
+    strict_z3: bool,
+    cache_dir: str,
+) -> str:
+    stat = os.stat(path)
+    key_data = {
+        "version": _ANALYSIS_CACHE_VERSION,
+        "path": os.path.realpath(path),
+        "size": stat.st_size,
+        "mtime_ns": stat.st_mtime_ns,
+        "input_kind": input_kind,
+        "strict_parser": strict_parser,
+        "function": function,
+        "ptr_bits": ptr_bits,
+        "strict_z3": strict_z3,
+    }
+    key_text = json.dumps(key_data, sort_keys=True, separators=(",", ":"))
+    key = hashlib.sha256(key_text.encode("utf-8")).hexdigest()
+    return os.path.join(cache_dir, key + ".analysis.json")
+
+def _z3_sort_to_cache(sort: z3.SortRef) -> dict[str, Any]:
+    kind = sort.kind()
+
+    if kind == z3.Z3_BOOL_SORT:
+        return { "kind": "bool" }
+    elif kind == z3.Z3_BV_SORT:
+        return { "kind": "bv", "bits": sort.size() }
+    elif kind == z3.Z3_INT_SORT:
+        return { "kind": "int" }
+    elif kind == z3.Z3_REAL_SORT:
+        return { "kind": "real" }
+
+    return { "kind": "uninterpreted", "name": str(sort.name()) }
+
+def _z3_sort_from_cache(data: dict[str, Any]) -> z3.SortRef:
+    return _z3_sort_from_cache_with_memo(data, {})
+
+def _z3_sort_from_cache_with_memo(data: dict[str, Any], memo: dict[str, z3.SortRef]) -> z3.SortRef:
+    kind = data["kind"]
+
+    if kind == "bool":
+        return z3.BoolSort()
+    elif kind == "bv":
+        return z3.BitVecSort(int(data["bits"]))
+    elif kind == "int":
+        return z3.IntSort()
+    elif kind == "real":
+        return z3.RealSort()
+    elif kind == "uninterpreted":
+        name = str(data["name"])
+        if name not in memo:
+            memo[name] = z3.DeclareSort(name)
+
+        return memo[name]
+
+    raise RuntimeError(f"unknown cached z3 sort: {kind!r}")
+
+def _z3_expr_to_cache(expr: z3.ExprRef | None) -> dict[str, Any] | None:
+    if expr is None:
+        return None
+
+    return {
+        "sexpr": expr.sexpr(),
+        "sort": _z3_sort_to_cache(expr.sort()),
+    }
+
+def _z3_symbols_to_cache(symbols: dict[str, z3.ExprRef]) -> dict[str, Any]:
+    return {
+        name: _z3_sort_to_cache(expr.sort())
+        for name, expr in symbols.items()
+    }
+
+def _z3_symbols_from_cache(
+    data: dict[str, Any],
+    sort_memo: dict[str, z3.SortRef],
+) -> dict[str, z3.ExprRef]:
+    return {
+        name: z3.Const(name, _z3_sort_from_cache_with_memo(sort_data, sort_memo))
+        for name, sort_data in data.items()
+    }
+
+def _collect_z3_function_decls(expr: z3.ExprRef | None, result: dict[str, dict[str, Any]]) -> None:
+    if expr is None:
+        return
+
+    decl = expr.decl()
+    if decl.arity() > 0 and decl.kind() == z3.Z3_OP_UNINTERPRETED:
+        name = str(decl.name())
+        result[name] = {
+            "name": name,
+            "domain": [
+                _z3_sort_to_cache(decl.domain(index))
+                for index in range(decl.arity())
+            ],
+            "range": _z3_sort_to_cache(decl.range()),
+        }
+
+    for child in expr.children():
+        _collect_z3_function_decls(child, result)
+
+def _z3_function_decls_to_cache(prepared: Z3BaseInfo) -> list[dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+
+    for constraint in prepared.constraints:
+        _collect_z3_function_decls(constraint, result)
+    for constraint in prepared.solver.assertions():
+        _collect_z3_function_decls(constraint, result)
+    for branch in prepared.branches:
+        _collect_z3_function_decls(branch.cond, result)
+    for item in prepared.returns:
+        _collect_z3_function_decls(item.value, result)
+
+    return list(result.values())
+
+def _z3_parse_env(
+    function_decls_data: list[dict[str, Any]],
+    sort_memo: dict[str, z3.SortRef],
+    *tables: dict[str, z3.ExprRef],
+) -> tuple[dict[str, z3.SortRef], dict[str, z3.FuncDeclRef]]:
+    symbols: dict[str, z3.ExprRef] = {}
+
+    for table in tables:
+        symbols.update(table)
+
+    sorts: dict[str, z3.SortRef] = {}
+    decls: dict[str, z3.FuncDeclRef] = {}
+
+    for name, expr in symbols.items():
+        decls[name] = expr.decl()
+        sort = expr.sort()
+        if sort.kind() not in {
+            z3.Z3_BOOL_SORT,
+            z3.Z3_BV_SORT,
+            z3.Z3_INT_SORT,
+            z3.Z3_REAL_SORT,
+        }:
+            sorts[str(sort.name())] = sort
+
+    for item in function_decls_data:
+        domain = [
+            _z3_sort_from_cache_with_memo(sort_data, sort_memo)
+            for sort_data in item.get("domain", [])
+        ]
+        result_sort = _z3_sort_from_cache_with_memo(item["range"], sort_memo)
+        fn = z3.Function(str(item["name"]), *domain, result_sort)
+        decls[str(item["name"])] = fn
+
+        for sort in domain + [ result_sort ]:
+            if sort.kind() not in {
+                z3.Z3_BOOL_SORT,
+                z3.Z3_BV_SORT,
+                z3.Z3_INT_SORT,
+                z3.Z3_REAL_SORT,
+            }:
+                sorts[str(sort.name())] = sort
+
+    return sorts, decls
+
+def _z3_expr_from_cache(
+    data: dict[str, Any] | None,
+    *,
+    sorts: dict[str, z3.SortRef],
+    decls: dict[str, z3.FuncDeclRef],
+) -> z3.ExprRef | None:
+    if data is None:
+        return None
+
+    sort = _z3_sort_from_cache_with_memo(data["sort"], sorts)
+    tmp = z3.Const("__z3_cache_expr", sort)
+    local_decls = dict(decls)
+    local_decls["__z3_cache_expr"] = tmp.decl()
+
+    parsed = z3.parse_smt2_string(
+        f"(assert (= __z3_cache_expr {data['sexpr']}))",
+        sorts=sorts,
+        decls=local_decls,
+    )
+
+    if len(parsed) != 1:
+        raise RuntimeError("failed to parse cached z3 expression")
+
+    return parsed[0].children()[1]
+
+def _z3_base_info_to_cache(prepared: Z3BaseInfo) -> dict[str, Any]:
+    return {
+        "solver_smt2": prepared.solver.to_smt2(),
+        "symbols": _z3_symbols_to_cache(prepared.symbols),
+        "values": _z3_symbols_to_cache(prepared.values),
+        "functions": _z3_function_decls_to_cache(prepared),
+        "labels": prepared.labels,
+        "branches": [
+            {
+                "line_no": item.line_no,
+                "cond": _z3_expr_to_cache(item.cond),
+                "true_label": item.true_label,
+                "false_label": item.false_label,
+                "raw": item.raw,
+            }
+            for item in prepared.branches
+        ],
+        "gotos": [
+            {
+                "line_no": item.line_no,
+                "target_label": item.target_label,
+                "raw": item.raw,
+            }
+            for item in prepared.gotos
+        ],
+        "phis": [
+            {
+                "line_no": item.line_no,
+                "dst": item.dst,
+                "base": item.base,
+                "arg": item.arg,
+                "raw": item.raw,
+            }
+            for item in prepared.phis
+        ],
+        "returns": [
+            {
+                "line_no": item.line_no,
+                "value": _z3_expr_to_cache(item.value),
+                "raw": item.raw,
+            }
+            for item in prepared.returns
+        ],
+        "side_effects": [
+            {
+                "line_no": item.line_no,
+                "op": item.op,
+                "raw": item.raw,
+                "data": item.data,
+            }
+            for item in prepared.side_effects
+        ],
+        "deferred": prepared.deferred,
+    }
+
+def _z3_base_info_from_cache(data: dict[str, Any]) -> Z3BaseInfo:
+    solver = z3.Solver()
+    solver.from_string(data["solver_smt2"])
+
+    sort_memo: dict[str, z3.SortRef] = {}
+    symbols = _z3_symbols_from_cache(data.get("symbols", {}), sort_memo)
+    values = _z3_symbols_from_cache(data.get("values", {}), sort_memo)
+    sorts, decls = _z3_parse_env(data.get("functions", []), sort_memo, symbols, values)
+
+    return Z3BaseInfo(
+        solver=solver,
+        symbols=symbols,
+        values=values,
+        constraints=list(solver.assertions()),
+        labels=dict(data.get("labels", {})),
+        branches=[
+            BranchInfo(
+                line_no=int(item["line_no"]),
+                cond=_z3_expr_from_cache(item["cond"], sorts=sorts, decls=decls),
+                true_label=str(item["true_label"]),
+                false_label=str(item["false_label"]),
+                raw=str(item["raw"]),
+            )
+            for item in data.get("branches", [])
+        ],
+        gotos=[
+            GotoInfo(
+                line_no=int(item["line_no"]),
+                target_label=str(item["target_label"]),
+                raw=str(item["raw"]),
+            )
+            for item in data.get("gotos", [])
+        ],
+        phis=[
+            PhiInfo(
+                line_no=int(item["line_no"]),
+                dst=item.get("dst") or {},
+                base=item.get("base"),
+                arg=item.get("arg"),
+                raw=str(item["raw"]),
+            )
+            for item in data.get("phis", [])
+        ],
+        returns=[
+            ReturnInfo(
+                line_no=int(item["line_no"]),
+                value=_z3_expr_from_cache(item.get("value"), sorts=sorts, decls=decls),
+                raw=str(item["raw"]),
+            )
+            for item in data.get("returns", [])
+        ],
+        side_effects=[
+            SideEffectInfo(
+                line_no=int(item["line_no"]),
+                op=str(item["op"]),
+                raw=str(item["raw"]),
+                data=item.get("data") or {},
+            )
+            for item in data.get("side_effects", [])
+        ],
+        deferred=list(data.get("deferred", [])),
+    )
+
+def _read_analysis_cache(cache_path: str) -> tuple[dict[str, Any], Z3BaseInfo] | None:
+    try:
+        with open(cache_path, "r", encoding="utf-8") as file:
+            cached = json.load(file)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    try:
+        if cached.get("version") != _ANALYSIS_CACHE_VERSION:
+            return None
+
+        program = cached.get("program")
+        prepared_data = cached.get("prepared")
+        if not isinstance(program, dict):
+            return None
+        elif not isinstance(prepared_data, dict):
+            return None
+
+        return program, _z3_base_info_from_cache(prepared_data)
+    except Exception:
+        return None
+
+def _write_analysis_cache(cache_path: str, program: dict[str, Any], prepared: Z3BaseInfo) -> None:
+    directory = os.path.dirname(cache_path)
+
+    try:
+        os.makedirs(directory, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=directory,
+            prefix=".tmp-",
+            suffix=".json",
+            delete=False,
+        ) as file:
+            tmp_path = file.name
+            json.dump(
+                {
+                    "version": _ANALYSIS_CACHE_VERSION,
+                    "program": program,
+                    "prepared": _z3_base_info_to_cache(prepared),
                 },
                 file,
                 ensure_ascii=False,
@@ -152,12 +521,7 @@ def _load_program_from_file(
     with open(path, "r", encoding="utf-8") as file:
         text = file.read()
 
-    program = _load_program_from_text(
-        text,
-        input_kind=input_kind,
-        strict_parser=strict_parser,
-    )
-
+    program = _load_program_from_text(text, input_kind=input_kind, strict_parser=strict_parser)
     if not no_cache:
         _write_program_cache(cache_path, program)
 
@@ -171,12 +535,12 @@ def _load_program_from_text(text: str, *, input_kind: str, strict_parser: bool) 
     elif input_kind == "auto":
         try:
             return json.loads(text)
-        except:
+        except Exception:
             pass
-        
+
         try:
             return parse_hir_dump(text, strict=strict_parser).to_dict()
-        except:
+        except Exception:
             pass
 
     raise ValueError(f"unknown input kind: {input_kind!r}")
@@ -191,7 +555,7 @@ def _parse_initial_assignment(text: str) -> tuple[str, str]:
 
     if not variable:
         raise RuntimeError(f"invalid --set value {text!r}, empty variable")
-    if not value:
+    elif not value:
         raise RuntimeError(f"invalid --set value {text!r}, empty value")
 
     return variable, value
@@ -212,31 +576,16 @@ def _resolve_assignment_variable(prepared: Any, variable: str) -> tuple[str, z3.
 
     if variable.startswith("%"):
         var_id = int(variable[1:], 10)
-        candidates = _find_var_candidates(
-            prepared,
-            var_id,
-            ty=None,
-            storage=None,
-        )
+        candidates = _find_var_candidates(prepared, var_id, ty=None, storage=None)
     elif variable.isdigit():
         var_id = int(variable, 10)
-        candidates = _find_var_candidates(
-            prepared,
-            var_id,
-            ty=None,
-            storage=None,
-        )
+        candidates = _find_var_candidates(prepared, var_id, ty=None, storage=None)
     else:
-        candidates = [
-            (name, expr)
-            for name, expr in merged.items()
-            if name == variable
-        ]
-
+        candidates = [ (name, expr) for name, expr in merged.items() if name == variable ]
+    
     if not candidates:
         raise RuntimeError(f"variable {variable!r} was not found")
-
-    if len(candidates) > 1:
+    elif len(candidates) > 1:
         names = ", ".join(name for name, _ in candidates)
         raise RuntimeError(f"variable {variable!r} is ambiguous: {names}")
 
@@ -244,30 +593,52 @@ def _resolve_assignment_variable(prepared: Any, variable: str) -> tuple[str, z3.
 
 def _build_initial_assignments(prepared: Any, assignments: list[str]) -> list[InitialAssignment]:
     result: list[InitialAssignment] = []
-
     for assignment_text in assignments:
         variable_spec, value_text = _parse_initial_assignment(assignment_text)
-        variable_name, expr = _resolve_assignment_variable(
-            prepared,
-            variable_spec,
-        )
-
-        value = _value_for_sort(
-            value_text,
-            expr.sort(),
-        )
-
-        result.append(
-            InitialAssignment(
-                variable=variable_name,
-                value=value_text,
-                condition=expr == value,
-            )
-        )
+        variable_name, expr = _resolve_assignment_variable(prepared, variable_spec)
+        value = _value_for_sort(value_text, expr.sort())
+        result.append(InitialAssignment(variable=variable_name, value=value_text, condition=expr == value))
 
     return result
 
+def _apply_initial_assignments(prepared: Any, assignments: list[InitialAssignment]) -> None:
+    for assignment in assignments:
+        prepared.constraints.append(assignment.condition)
+        prepared.solver.add(assignment.condition)
+
 def _build_context(args: argparse.Namespace) -> WrapperContext:
+    analysis_cache_path: str | None = None
+    resolved_cache_dir = args.cache_dir or _default_cache_dir()
+
+    if args.input != "-":
+        analysis_cache_path = _analysis_cache_path(
+            args.input,
+            input_kind=args.input_kind,
+            strict_parser=args.strict_parser,
+            function=args.function,
+            ptr_bits=args.ptr_bits,
+            strict_z3=args.strict_z3,
+            cache_dir=resolved_cache_dir,
+        )
+
+        if not args.no_cache:
+            cached = _read_analysis_cache(analysis_cache_path)
+            if cached is not None:
+                program, prepared = cached
+                setattr(prepared, "ptr_bits", args.ptr_bits)
+                _ensure_program_var_symbols(prepared, program)
+                initial_assignments = _build_initial_assignments(prepared, args.sets)
+                _apply_initial_assignments(prepared, initial_assignments)
+                cfg = build_hir_cfg(program, prepared=prepared)
+
+                return WrapperContext(
+                    program=program,
+                    function=None,
+                    prepared=prepared,
+                    cfg=cfg,
+                    initial_assignments=initial_assignments,
+                )
+
     full_program = _load_program_from_file(
         args.input,
         input_kind=args.input_kind,
@@ -279,10 +650,14 @@ def _build_context(args: argparse.Namespace) -> WrapperContext:
     function = select_hir_function(functions, args.function)
     program = function.to_program()
     prepared = prepare_hir_for_z3(program, ptr_bits=args.ptr_bits, strict=args.strict_z3)
+    setattr(prepared, "ptr_bits", args.ptr_bits)
+    _ensure_program_var_symbols(prepared, program)
+
+    if analysis_cache_path is not None and not args.no_cache:
+        _write_analysis_cache(analysis_cache_path, program, prepared)
+
     initial_assignments = _build_initial_assignments(prepared, args.sets)
-    for assignment in initial_assignments:
-        prepared.constraints.append(assignment.condition)
-        prepared.solver.add(assignment.condition)
+    _apply_initial_assignments(prepared, initial_assignments)
 
     cfg = build_hir_cfg(program, prepared=prepared)
     return WrapperContext(
@@ -318,20 +693,7 @@ def _iter_subjects(value: Any) -> Iterable[dict[str, Any]]:
             yield from _iter_subjects(item)
 
 def _expr_from_var_subject(prepared: Any, subject: dict[str, Any]) -> z3.ExprRef:
-    name = subject.get("z3_name")
-
-    if name is None:
-        name = _fallback_z3_name_for_var(subject)
-
-    values = getattr(prepared, "values", {})
-    symbols = getattr(prepared, "symbols", {})
-
-    if name in values:
-        return values[name]
-    elif name in symbols:
-        return symbols[name]
-
-    raise RuntimeError(f"variable was not prepared for z3: {name}")
+    return _ensure_var_subject_prepared(prepared, subject)
 
 def _find_var_subject_in_block(block: Any, var_id: int, *, ty: str | None, storage: str | None) -> dict[str, Any] | None:
     fallback: dict[str, Any] | None = None
@@ -504,6 +866,40 @@ def _fallback_z3_name_for_var(subject: dict[str, Any]) -> str:
     ptr_suffix = "" if ptr == 0 else "_p" + str(ptr)
     return f"{ty}_{storage}{ptr_suffix}_{var_id}"
 
+
+def _ensure_var_subject_prepared(prepared: Any, subject: dict[str, Any]) -> z3.ExprRef:
+    if not subject or subject.get("kind") != "var":
+        raise RuntimeError(f"expected variable subject, got: {subject!r}")
+
+    name = subject.get("z3_name")
+    if name is None:
+        name = _fallback_z3_name_for_var(subject)
+
+    values = getattr(prepared, "values", None)
+    symbols = getattr(prepared, "symbols", None)
+    if values is None or symbols is None:
+        raise RuntimeError("prepared z3 info has no symbols/values tables")
+
+    if name in values:
+        return values[name]
+
+    if name in symbols:
+        expr = symbols[name]
+        values[name] = expr
+        return expr
+
+    ptr_bits = int(getattr(prepared, "ptr_bits", DEFAULT_PTR_BITS))
+    expr = z3.Const(name, subject_sort(subject, ptr_bits=ptr_bits))
+    symbols[name] = expr
+    values[name] = expr
+    return expr
+
+
+def _ensure_program_var_symbols(prepared: Any, program: dict[str, Any]) -> None:
+    for subject in _iter_subjects(program):
+        if subject.get("kind") == "var":
+            _ensure_var_subject_prepared(prepared, subject)
+
 def _block_by_name(cfg: Any, name: str) -> Any:
     return cfg.block_by_name(name)
 
@@ -652,26 +1048,6 @@ def _find_block_for_label(cfg: Any, label: str) -> str | None:
 
     return None
 
-def _find_block_for_line(cfg: Any, line_no: int) -> str | None:
-    for block in getattr(cfg, "blocks", []):
-        for instr in getattr(block, "instructions", []):
-            if int(instr.get("line_no") or -1) == line_no:
-                return block.name
-
-    return None
-
-def _return_value_for_block(prepared: Any, block: Any) -> z3.ExprRef | None:
-    terminator = getattr(block, "terminator", None)
-    if not terminator or terminator.get("op") != "return":
-        return None
-
-    line_no = int(terminator.get("line_no") or -1)
-    for ret in getattr(prepared, "returns", []):
-        if int(getattr(ret, "line_no", -1)) == line_no:
-            return getattr(ret, "value", None)
-
-    return None
-
 def _parse_int_literal(text: str) -> int:
     return int(text, 0)
 
@@ -700,17 +1076,14 @@ _VAR_NAME_RE = re.compile(r"^(?P<ty>[A-Za-z0-9]+)_(?P<storage>tmp|stack|global)(
 
 def _find_var_candidates(prepared: Any, var_id: int, *, ty: str | None, storage: str | None) -> list[tuple[str, z3.ExprRef]]:
     merged: dict[str, z3.ExprRef] = {}
-
     for name, expr in getattr(prepared, "symbols", {}).items():
         merged[name] = expr
     for name, expr in getattr(prepared, "values", {}).items():
         merged[name] = expr
 
     result: list[tuple[str, z3.ExprRef]] = []
-
     for name, expr in sorted(merged.items()):
         match = _VAR_NAME_RE.fullmatch(name)
-
         if match is None:
             continue
         elif int(match.group("id")) != var_id:
@@ -724,80 +1097,12 @@ def _find_var_candidates(prepared: Any, var_id: int, *, ty: str | None, storage:
 
     return result
 
-def _investigate_branches(ctx: WrapperContext) -> list[CheckResult]:
-    results: list[CheckResult] = []
-    for block in ctx.cfg.blocks:
-        for edge in block.edges:
-            if edge.kind not in { "true", "false" }:
-                continue
-
-            condition = _edge_condition(edge, ctx.prepared)
-            check, model = _check_with_conditions(ctx.prepared, [condition])
-            title = (
-                f"{block.name} --{edge.kind}/{edge.label}--> "
-                f"{edge.dst if edge.dst is not None else '<unresolved>'}"
-            )
-
-            results.append(
-                CheckResult(
-                    title=title,
-                    check=check,
-                    model=model,
-                    condition=condition,
-                    extra={
-                        "src": block.name,
-                        "dst": edge.dst,
-                        "edge_kind": edge.kind,
-                        "label": edge.label,
-                        "line_no": edge.line_no,
-                    },
-                )
-            )
-
-    return results
-
-def _investigate_paths(ctx: WrapperContext, *, max_depth: int) -> list[CheckResult]:
-    path_states = _enumerate_terminal_paths(
-        ctx.cfg,
-        ctx.prepared,
-        max_depth=max_depth,
-    )
-
-    results: list[CheckResult] = []
-    for index, path in enumerate(path_states, 1):
-        condition = path.condition_expr()
-        check, model = _check_with_conditions(ctx.prepared, path.conditions)
-        end_block = _block_by_name(ctx.cfg, path.block_name)
-        return_value = _return_value_for_block(ctx.prepared, end_block)
-
-        results.append(
-            CheckResult(
-                title=f"path #{index}: {' -> '.join(path.path_blocks)}",
-                check=check,
-                model=model,
-                condition=condition,
-                path=path,
-                extra={
-                    "end_reason": path.end_reason,
-                    "return_value": str(return_value) if return_value is not None else None,
-                },
-            )
-        )
-
-    return results
-
 def _investigate_label(ctx: WrapperContext, *, label: str, max_depth: int) -> list[CheckResult]:
     target_block = _find_block_for_label(ctx.cfg, label)
     if target_block is None:
-        raise RuntimeError(f"unknown label/block: {label!r}")
+        raise RuntimeError(f"unknown label: {label!r}")
 
-    path_states = _enumerate_paths_to_block(
-        ctx.cfg,
-        ctx.prepared,
-        target_block=target_block,
-        max_depth=max_depth,
-    )
-
+    path_states = _enumerate_paths_to_block(ctx.cfg, ctx.prepared, target_block=target_block, max_depth=max_depth)
     results: list[CheckResult] = []
     for index, path in enumerate(path_states, 1):
         condition = path.condition_expr()
@@ -805,38 +1110,6 @@ def _investigate_label(ctx: WrapperContext, *, label: str, max_depth: int) -> li
         results.append(
             CheckResult(
                 title=f"label {label} path #{index}: {' -> '.join(path.path_blocks)}",
-                check=check,
-                model=model,
-                condition=condition,
-                path=path,
-                extra={
-                    "target_block": target_block,
-                },
-            )
-        )
-
-    return results
-
-def _investigate_line(ctx: WrapperContext, *, line_no: int, max_depth: int) -> list[CheckResult]:
-    target_block = _find_block_for_line(ctx.cfg, line_no)
-
-    if target_block is None:
-        raise RuntimeError(f"no CFG block contains line_no={line_no}")
-
-    path_states = _enumerate_paths_to_block(
-        ctx.cfg,
-        ctx.prepared,
-        target_block=target_block,
-        max_depth=max_depth,
-    )
-
-    results: list[CheckResult] = []
-    for index, path in enumerate(path_states, 1):
-        condition = path.condition_expr()
-        check, model = _check_with_conditions(ctx.prepared, path.conditions)
-        results.append(
-            CheckResult(
-                title=f"line {line_no} path #{index}: {' -> '.join(path.path_blocks)}",
                 check=check,
                 model=model,
                 condition=condition,
@@ -863,12 +1136,7 @@ def _investigate_var_eq(
     if not candidates:
         raise RuntimeError(f"variable id %{var_id} was not found")
 
-    paths = _enumerate_terminal_paths(
-        ctx.cfg,
-        ctx.prepared,
-        max_depth=max_depth,
-    )
-
+    paths = _enumerate_terminal_paths(ctx.cfg, ctx.prepared, max_depth=max_depth)
     results: list[CheckResult] = []
     for name, expr in candidates:
         value = _value_for_sort(value_text, expr.sort())
@@ -934,120 +1202,12 @@ def _investigate_var_eq(
 
     return results
 
-def _print_constraints(ctx: WrapperContext) -> None:
-    print(f";; function {ctx.function.name}")
-    print(";; constraints")
-
-    for constraint in ctx.prepared.constraints:
-        print(" ", constraint)
-
-    if ctx.initial_assignments:
-        print(";; initial assignments")
-
-        for assignment in ctx.initial_assignments:
-            print(f"  {assignment.variable} = {assignment.value}")
-            print(f"  {assignment.condition}")
-
-        print()
-        print(";; generated constraints")
-
-    print()
-    print(";; branches")
-
-    for branch in getattr(ctx.prepared, "branches", []):
-        print(
-            f"  line {branch.line_no}: if {branch.cond} "
-            f"then {branch.true_label} else {branch.false_label}"
-        )
-
-    print()
-    print(";; returns")
-
-    for ret in getattr(ctx.prepared, "returns", []):
-        print(f"  line {ret.line_no}: return {ret.value}")
-
-    print()
-    print(";; deferred")
-
-    for item in getattr(ctx.prepared, "deferred", []):
-        instr = item.get("instruction", {})
-        print(f"  {item.get('reason')}: {instr.get('raw')}")
-
-def _print_results(results: list[CheckResult], *, show_model: bool) -> None:
-    if not results:
-        print("no results")
-        return
-
-    for result in results:
-        print(result.title)
-        print(f"  check: {result.check}")
-
-        if result.condition is not None:
-            print(f"  path condition: {result.condition}")
-
-        if result.extra:
-            for key, value in result.extra.items():
-                if value is not None:
-                    print(f"  {key}: {value}")
-
-        if show_model and result.model is not None:
-            print("  model:")
-
-            for line in _format_model_lines(result.model):
-                print(f"    {line}")
-
-        print()
-
-def _format_model_lines(model: z3.ModelRef) -> list[str]:
-    lines: list[str] = []
-
-    declarations = sorted(
-        model.decls(),
-        key=lambda declaration: declaration.name(),
-    )
-
-    for declaration in declarations:
-        lines.append(f"{declaration.name()} = {model[declaration]}")
-
-    return lines
-
-def _results_to_jsonable(results: list[CheckResult], *, include_model: bool) -> list[dict[str, Any]]:
-    output: list[dict[str, Any]] = []
-
-    for result in results:
-        item: dict[str, Any] = {
-            "title": result.title,
-            "check": str(result.check),
-            "condition": str(result.condition) if result.condition is not None else None,
-            "extra": result.extra,
-        }
-
-        if result.path is not None:
-            item["path"] = {
-                "blocks": result.path.path_blocks,
-                "end_reason": result.path.end_reason,
-                "conditions": [str(condition) for condition in result.path.conditions],
-            }
-        if include_model and result.model is not None:
-            item["model"] = {
-                declaration.name(): str(result.model[declaration])
-                for declaration in sorted(result.model.decls(), key=lambda declaration: declaration.name())
-            }
-
-        output.append(item)
-
-    return output
-
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="CPL HIR to z3")
     parser.add_argument("input", help="HIR dump file or parsed JSON file.")
     parser.add_argument("-f", "--function", default=None, help="Function name to investigate.")
     parser.add_argument("--set", dest="sets", action="append", default=[], help="Set initial function variable value. Example: --set %%1=10 or --set i32_tmp_1=10.")
-    parser.add_argument(
-        "what",
-        choices=[ "cfg", "dot", "constraints", "branches", "paths", "label", "line", "var-eq" ],
-        help="What to investigate.",
-    )
+    parser.add_argument("what", choices=[ "label", "var-eq" ], help="What to investigate.")
     parser.add_argument("targets", nargs="*", help="Targets for selected mode.")
     parser.add_argument("--input-kind", choices=["auto", "dump", "json"], default="auto", help="Input format.")
     parser.add_argument("--ptr-bits", type=int, default=64, help="Pointer size for z3 layer.")
@@ -1057,65 +1217,33 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--strict-parser", action="store_true", help="Parser fails on unknown HIR lines.")
     parser.add_argument("--strict-z3", action="store_true", help="z3 preparation fails on unsupported operations.")
     parser.add_argument("--ty", default=None, help="Filter variable by HIR type.")
-    parser.add_argument("--storage", choices=["tmp", "stack", "global"], default=None, help="Filter variable by storage class.")
+    parser.add_argument("--storage", choices=[ "tmp", "stack", "global" ], default=None, help="Filter variable by storage class.")
     parser.add_argument("--cache-dir", default=None, help="Directory for parsed input cache.")
     parser.add_argument("--no-cache", action="store_true", help="Disable parsed input cache.")
     return parser
 
 def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
-    if args.what in {"label", "line"} and len(args.targets) != 1:
+    if args.what == "label" and len(args.targets) != 1:
         parser.error(f"{args.what!r} mode requires exactly one target")
     if args.what == "var-eq" and len(args.targets) != 2:
         parser.error("'var-eq' mode requires variable id and value")
 
 def _dispatch(ctx: WrapperContext, args: argparse.Namespace, *, max_depth: int) -> list[CheckResult]:
-    if args.what == "branches":
-        return _investigate_branches(ctx)
-    elif args.what == "paths":
-        return _investigate_paths(
-            ctx,
-            max_depth=max_depth,
-        )
-    elif args.what == "label":
-        return _investigate_label(
-            ctx,
-            label=str(args.targets[0]),
-            max_depth=max_depth,
-        )
-    elif args.what == "line":
-        try:
-            line_no = int(str(args.targets[0]), 10)
-        except ValueError as exception:
-            raise SystemExit(f"line target must be integer, got: {args.targets[0]!r}") from exception
-
-        return _investigate_line(
-            ctx,
-            line_no=line_no,
-            max_depth=max_depth,
-        )
+    if args.what == "label":
+        return _investigate_label(ctx, label=str(args.targets[0]), max_depth=max_depth)
     elif args.what == "var-eq":
         try:
             var_id = int(str(args.targets[0]).lstrip("%"), 10)
         except ValueError as exception:
             raise SystemExit(f"variable id must be integer or %integer, got: {args.targets[0]!r}") from exception
-
         return _investigate_var_eq(
-            ctx,
-            var_id=var_id,
-            value_text=str(args.targets[1]),
-            ty=args.ty,
-            storage=args.storage,
-            max_depth=max_depth,
+            ctx, var_id=var_id, value_text=str(args.targets[1]), ty=args.ty, storage=args.storage, max_depth=max_depth
         )
 
     raise AssertionError(f"unhandled mode: {args.what}")
 
 def _var_eq_exit_code(results: list[CheckResult]) -> int:
-    statuses = [
-        result.extra.get("status")
-        for result in results
-    ]
-
+    statuses = [ result.extra.get("status") for result in results ]
     if any(status == "must_equal" for status in statuses):
         return 1
     elif any(status == "may_equal" for status in statuses):
@@ -1143,37 +1271,7 @@ def _main(argv: Iterable[str] | None = None) -> int:
     if max_depth is None:
         max_depth = max(16, block_count * 4)
 
-    if args.what == "cfg":
-        if args.json:
-            print(
-                json.dumps(
-                    ctx.cfg.to_dict(include_instructions=True),
-                    ensure_ascii=False,
-                    indent=2,
-                )
-            )
-        else:
-            print(ctx.cfg.dump())
-
-        return 0
-    elif args.what == "dot":
-        print(ctx.cfg.to_dot())
-        return 0
-    elif args.what == "constraints":
-        _print_constraints(ctx)
-        return 0
-
     results = _dispatch(ctx, args, max_depth=max_depth)
-    if args.json:
-        print(
-            json.dumps(
-                _results_to_jsonable(results, include_model=not args.no_model),
-                ensure_ascii=False, indent=2
-            )
-        )
-    else:
-        _print_results(results, show_model=not args.no_model)
-
     if args.what == "label":
         return _label_exit_code(results)
     elif args.what == "var-eq":
