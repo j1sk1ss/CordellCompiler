@@ -191,6 +191,8 @@ int LIR_has_sideeffect(lir_operation_t op) {
 int LIR_is_jumpop(lir_operation_t op) {
     switch (op) {
         case LIR_JMP:
+        case LIR_JZ:
+        case LIR_JNZ:
         case LIR_JL:
         case LIR_JG:
         case LIR_JLE:

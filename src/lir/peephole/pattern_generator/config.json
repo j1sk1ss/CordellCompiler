@@ -165,7 +165,9 @@
             "LIR_SETB",
             "LIR_STAE",
             "LIR_STBE"
-        ]
+        ],
+        "jz": [ "LIR_JZ" ],
+        "jnz": [ "LIR_JNZ" ]
     },
     "used_args": {
         "base_setcc": 0,
@@ -217,7 +219,9 @@
         "jmp": 0,
         "je": 0,
         "jne": 0,
-        "mklb": 0
+        "mklb": 0,
+        "jz": 0,
+        "jnz": 0
     },
     "functions": {
         "atoi": "LIR_peephole_get_long_number",

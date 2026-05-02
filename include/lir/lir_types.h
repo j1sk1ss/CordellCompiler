@@ -35,6 +35,8 @@ typedef enum {
 
         /* Jump instructions */
         LIR_JMP,  // jmp
+        LIR_JZ,
+        LIR_JNZ,
         LIR_JL,   // jump if less (signed)
         LIR_JG,   // jump if greater (signed)
         LIR_JLE,  // jump if less or equal (signed)

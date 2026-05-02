@@ -3,11 +3,13 @@
 
 Versions:
 - `gcc-14`: GCC 14.2.0 (Homebrew GCC 14.2.0)
-  - Optimizations: `-O0`, `-O3`
+    - Optimizations: `-O0`, `-O3`
 - `clang`: Apple clang 12.0.0 (clang-1200.0.32.29)
-  - Optimizations: `-O0`, `-O3`
+    - Optimizations: `-O0`, `-O3`
 - `cpl`: CPL v3.4 (MACHO64)
-  - Optimizations: `-O0`, `-O3` (LICM, Peephole, CSE, DCE, Constant prop / fold) 
+    - Optimizations: `-O0`, `-O3` (LICM, Peephole, CSE, DCE, Constant prop / fold) 
+- `rustc`: rustc 1.87.0
+    - Optimizations: `opt-level=0`, `opt-level=2`
 
 Specs:
 - OS: MacOS Catalina 10.15.7
@@ -18,7 +20,7 @@ Result gathering:
   - CPL - 5 times, every time after compilation, `py-time` total program execution time
   - Clang / GCC - 5 times, every time after compilation, `gnu-time` total execution time
 
-*P.S.:* The results below can be considered as a valid value, but I'd suggest to add about `+30%` of consumed execution time for every CPL's result given possible issues in my measurement methods, hardware and software. Furthermore, such a suggestion is based on a `+%30` size difference between GCC's and Clang's `.asm` files with CPL's `.asm` files. </br>
+*P.S.:* The results below can be considered as a valid value, but I'd suggest to add about `+10%` of consumed execution time for every CPL's result given possible issues in my measurement methods, hardware and software. Furthermore, such a suggestion is based on a `+%10` size difference between GCC's and Clang's `.asm` files with CPL's `.asm` files. </br>
 *P.P.S.:* This section doesn't address how optimizations are affect on the final assembly which is produced by the compiler. If you're interest how it affects, please consider the related section in the documentation (which is `WIP`).
 
 ## Empty loop
@@ -40,6 +42,19 @@ int main() {
     return 0;
 }
 /:
+
+:/ Rust version
+use std::arch::asm;
+fn main() {
+    let mut a: u32 = 0;
+    while a < 1_000_000_000u32 {
+        unsafe {
+            asm!("/* {0:e} */", inout(reg) a, options(nomem, nostack));
+        }
+        a = a.wrapping_add(1);
+    }
+}
+/:
 ```
 
 The results below shows that the optimized CPL code has the same execution time as it have both the GCC's code and CLang's code.
@@ -47,8 +62,8 @@ The results below shows that the optimized CPL code has the same execution time 
 <div
   class="benchmark-card"
   data-title="Empty loop benchmark"
-  data-labels="cpl -O3|clang -O3|gcc-14 -O3|cpl -O0|gcc-14 -O0|clang -O0"
-  data-values="0.702|0.748|0.758|1.39|4.290|4.641"
+  data-labels="rustc opt-level=2|cpl -O3|clang -O3|gcc-14 -O3|cpl -O0|rustc opt-level=0|gcc-14 -O0|clang -O0"
+  data-values="0.333|0.702|0.748|0.758|1.39|3.442|4.290|4.641"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -85,13 +100,28 @@ int main() {
     return b;
 }
 /:
+
+:/ Rust version
+use std::hint::black_box;
+fn main() {
+    let mut a: i32 = 1;
+    let mut b: i32 = 0;
+    for _ in 0..1_000_000u32 {
+        let tmp = a;
+        a = a.wrapping_add(b);
+        b = tmp;
+    }
+
+    black_box(b);
+}
+/:
 ```
 
 <div
   class="benchmark-card"
   data-title="Fibonacci benchmark"
-  data-labels="gcc-14 -O3|cpl -O3|clang -O3|gcc-14 -O0|clang -O0|cpl -O0"
-  data-values="0.412|0.412|0.417|0.421|0.430|0.424"
+  data-labels="rustc opt-level=2|rustc opt-level=0|gcc-14 -O3|cpl -O3|clang -O3|gcc-14 -O0|cpl -O0|clang -O0"
+  data-values="0.335|0.337|0.412|0.412|0.417|0.421|0.424|0.430"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -142,13 +172,37 @@ int main() {
     return acc;
 }
 /:
+
+:/ Rust version
+use std::hint::black_box;
+fn main() {
+    let msg = black_box(b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/\0");
+    let limit = black_box(1_000_000i64);
+    let mut outer: i64 = 0;
+    let mut acc: u8 = 0;
+    while outer < limit {
+        let mut p = msg.as_ptr();
+
+        unsafe {
+            while *p != 0 {
+                acc = acc.wrapping_add(*p);
+                p = p.add(1);
+            }
+        }
+
+        outer += 1;
+    }
+
+    black_box(acc);
+}
+/:
 ```
 
 <div
   class="benchmark-card"
   data-title="Pointer and string traversal benchmark"
-  data-labels="clang -O3|gcc-14 -O3|cpl -O3|gcc-14 -O0|cpl -O0|clang -O0"
-  data-values="0.430|0.470|0.513|0.566|0.583|1.002"
+  data-labels="rustc opt-level=2|rustc opt-level=0|clang -O3|gcc-14 -O3|cpl -O3|gcc-14 -O0|cpl -O0|clang -O0"
+  data-values="0.332|0.348|0.430|0.470|0.513|0.566|0.583|1.002"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -351,13 +405,106 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 /:
+
+:/ Rust version
+use std::env;
+use std::io::{self, Write};
+
+static mut TAPE: [u8; 30000] = [0; 30000];
+static mut BRACKETMAP: [i32; 10000] = [0; 10000];
+static mut STACK: [i32; 10000] = [0; 10000];
+
+fn putc(c: u8) {
+    let mut out = io::stdout();
+    out.write_all(&[c]).unwrap();
+}
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2 {
+        return;
+    }
+
+    let code = args[1].as_bytes();
+    let codelength = code.len() as i32;
+    let mut pos: i32 = 0;
+    let mut stackptr: i32 = 0;
+
+    unsafe {
+        while pos < codelength {
+            match code[pos as usize] {
+                b'[' => {
+                    STACK[stackptr as usize] = pos;
+                    stackptr += 1;
+                }
+                b']' => {
+                    if stackptr > 0 {
+                        stackptr -= 1;
+                        let matchpos = STACK[stackptr as usize];
+                        BRACKETMAP[pos as usize] = matchpos;
+                        BRACKETMAP[matchpos as usize] = pos;
+                    }
+                }
+                _ => {}
+            }
+
+            pos += 1;
+        }
+
+        let mut pc: i32 = 0;
+        let mut pointer: i32 = 0;
+        while pc < codelength {
+            match code[pc as usize] {
+                b'>' => {
+                    pointer += 1;
+                    pc += 1;
+                }
+                b'<' => {
+                    pointer -= 1;
+                    pc += 1;
+                }
+                b'+' => {
+                    TAPE[pointer as usize] = TAPE[pointer as usize].wrapping_add(1);
+                    pc += 1;
+                }
+                b'-' => {
+                    TAPE[pointer as usize] = TAPE[pointer as usize].wrapping_sub(1);
+                    pc += 1;
+                }
+                b'.' => {
+                    putc(TAPE[pointer as usize]);
+                    pc += 1;
+                }
+                b'[' => {
+                    if TAPE[pointer as usize] == 0 {
+                        pc = BRACKETMAP[pc as usize];
+                    } else {
+                        pc += 1;
+                    }
+                }
+                b']' => {
+                    if TAPE[pointer as usize] != 0 {
+                        pc = BRACKETMAP[pc as usize];
+                    } else {
+                        pc += 1;
+                    }
+                }
+                _ => {
+                    pc += 1;
+                }
+            }
+        }
+    }
+}
+/:
 ```
 
 <div
   class="benchmark-card"
   data-title="Brainfuck 'Oregon, CoosBay, I'm coming for you!' benchmark"
-  data-labels="clang -O3|cpl -O3|cpl -O0|gcc-14 -O3|clang -O0|gcc-14 -O0"
-  data-values="0.403|0.403|0.45|0.487|0.778|0.830"
+  data-labels="rustc opt-level=2|rustc opt-level=0|clang -O3|cpl -O3|cpl -O0|gcc-14 -O3|clang -O0|gcc-14 -O0"
+  data-values="0.328|0.340|0.403|0.403|0.45|0.487|0.778|0.830"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"

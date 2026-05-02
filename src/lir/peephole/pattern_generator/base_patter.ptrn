@@ -149,24 +149,113 @@ delete
 /
 
 ; ==================
+; Macro-fusion aware compare / branch canonicalization
+; ==================
+
+mov areg_1, areg_2
+cmp areg_1, obj_3
+base_jmpc obj_4
+->
+cmp areg_2, obj_3
+base_jmpc obj_4
+/
+
+mov areg_1, areg_2
+test areg_1, areg_1
+base_jmpc obj_3
+->
+test areg_2, areg_2
+base_jmpc obj_3
+/
+
+cmp areg_1, const 0
+base_jmpc obj_2
+->
+test areg_1, areg_1
+base_jmpc obj_2
+/
+
+or areg_1, areg_1
+base_jmpc obj_2
+->
+test areg_1, areg_1
+base_jmpc obj_2
+/
+
+and areg_1, areg_1
+base_jmpc obj_2
+->
+test areg_1, areg_1
+base_jmpc obj_2
+/
+
+sub areg_1, const 1
+test areg_1, areg_1
+je obj_2
+->
+sub areg_1, const 1
+je obj_2
+/
+
+sub areg_1, const 1
+test areg_1, areg_1
+jz obj_2
+->
+sub areg_1, const 1
+jz obj_2
+/
+
+sub areg_1, const 1
+test areg_1, areg_1
+jne obj_2
+->
+sub areg_1, const 1
+jne obj_2
+/
+
+sub areg_1, const 1
+test areg_1, areg_1
+jnz obj_2
+->
+sub areg_1, const 1
+jnz obj_2
+/
+
+sub areg_1, const 1
+test areg_1, areg_1
+sete obj_2
+->
+sub areg_1, const 1
+sete obj_2
+/
+
+sub areg_1, const 1
+test areg_1, areg_1
+setne obj_2
+->
+sub areg_1, const 1
+setne obj_2
+/
+
+; ==================
 ; Compare / test canonicalization
 ; ==================
 
-sub areg_1, const 1
-test areg_1, areg_1
-base_setcc obj_2
-->
-sub areg_1, const 1
-base_setcc obj_2
-/
+; sub areg_1, const 1
+; test areg_1, areg_1
+; base_setcc obj_2
+; ->
+; sub areg_1, const 1
+; base_setcc obj_2
+; /
 
-sub areg_1, const 1
-test areg_1, areg_1
-base_jmpc obj_2
-->
-sub areg_1, const 1
-base_jmpc obj_2
-/
+; sub areg_1, const 1
+; test areg_1, areg_1
+; base_jmpc obj_2
+; ->
+; sub areg_1, const 1
+; base_jmpc obj_2
+; /
 
 cmp areg_1, const 0
 ->

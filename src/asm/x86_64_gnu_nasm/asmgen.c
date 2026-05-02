@@ -81,6 +81,8 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_JE:         EMIT_COMMAND("je %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
         case LIR_JLE:        EMIT_COMMAND("jle %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
         case LIR_JNE:        EMIT_COMMAND("jne %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
+        case LIR_JZ:         EMIT_COMMAND("jz %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
+        case LIR_JNZ:        EMIT_COMMAND("jnz %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
         case LIR_JL:         EMIT_COMMAND("jl %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
         case LIR_JG:         EMIT_COMMAND("jg %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
         case LIR_JGE:        EMIT_COMMAND("jge %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
