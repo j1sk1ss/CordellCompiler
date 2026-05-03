@@ -12,7 +12,6 @@ static inline int _argv_add(char** argv, int* argc, const char* arg) {
 
 typedef struct {
     const char*  python;
-    const char*  script;
     const char*  input_kind;
     const char*  function;
     const char*  what;
@@ -31,14 +30,16 @@ typedef struct {
 } z3_options_t;
 
 int _launch_z3_wrapper(FILE* f, z3_options_t* opt) {
-    if (!f || !opt || !opt->what) return 1;
-    if (fflush(f)) return 1;
-    if (fseek(f, 0, SEEK_SET)) return 1;
+    if (
+        !f || !opt || !opt->what || 
+        fflush(f) || fseek(f, 0, SEEK_SET)
+    ) return 1;
+    if (!CONF_get_z3_path()) return NULL;
 
     int argc = 0;
     char* argv[Z3_WRAPPER_MAX_ARGS];
     if (!_argv_add(argv, &argc, opt->python ? opt->python : "python3")) return 0;
-    if (!_argv_add(argv, &argc, opt->script ? opt->script : CONF_get_z3_path())) return 0;
+    if (!_argv_add(argv, &argc, CONF_get_z3_path())) return 0;
     if (!_argv_add(argv, &argc, "-")) return 0;
     if (!_argv_add(argv, &argc, "--input-kind")) return 0;
     if (!_argv_add(argv, &argc, opt->input_kind ? opt->input_kind : "dump")) return 0;

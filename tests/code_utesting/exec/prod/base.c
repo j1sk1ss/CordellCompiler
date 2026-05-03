@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     inst_selector_t inst_sel = { .select_instructions = x86_64_macho_nasm_instruction_selection };
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
 
-    LIR_destroy_ssa(&cfgctx);
+    // LIR_destroy_ssa(&cfgctx);
 
     LIR_DFG_compute_inout(&cfgctx);      // Analyzation
     LIR_DFG_create_deall(&cfgctx, &smt); // Transform

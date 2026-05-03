@@ -16,7 +16,7 @@ lir_block_t* LIR_get_near_instruction(lir_block_t* c, lir_block_t* exit, int ski
     if (!skip) return c;
     if (c == exit) return NULL;
     for (; c && c != exit; c = c->next) {
-        if (c->unused || c->op == LIR_BB || c->op == LIR_VRDEALL) continue;
+        if (c->unused || c->op == LIR_BB || c->op == LIR_VRDEALL || c->op == LIR_SETPOS) continue;
         if ((c == exit) || skip-- == 0) return c;
     }
 
@@ -50,8 +50,9 @@ int LIR_peephole_optimization(cfg_ctx_t* cctx, peephole_t* peephole) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             int optimized = 0;
             do {
-                optimized = peephole_first_pass(bb);
-                peephole->perform_peephole(cctx);
+                optimized = 0;
+                optimized |= peephole_first_pass(bb);
+                optimized |= peephole->perform_peephole(cctx);
             } while (optimized);
         }
     }

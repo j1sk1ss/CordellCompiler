@@ -101,7 +101,7 @@ typedef enum {
         LIR_REF,       // a = &y
         LIR_REF_GDREF, // a = &*y
         LIR_GDREF,     // get value from address, x = *y
-        LIR_LDREF,     // set valye by address,   *x = y
+        LIR_LDREF,     // set value by address,   *x = y
         LIR_PUSH,      // push
         LIR_POP,       // pop
 

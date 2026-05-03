@@ -21,10 +21,11 @@ static int _jumps_pass(cfg_block_t* bb) {
         if (entry_ln && entry_ln->op == LIR_MKLB && next_lh == entry_ln) {
             if (LIR_subj_equals(l->farg, entry_ln->farg)) l->unused = 1;
             if (ll && LIR_is_jumpop(ll->op) && LIR_subj_equals(ll->farg, entry_ln->farg)) ll->unused = 1;
+            return 1;
         }
     }
 
-    return 1;
+    return 0;
 }
 
 /*
@@ -38,7 +39,10 @@ Returns 1 if the lable is used somewhere in the function.
 static int _find_label_usage(cfg_func_t* fb, lir_subject_t* lb) {
     lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
     while (lh) {
-        if (!lh->unused && LIR_is_jumpop(lh->op) && LIR_subj_equals(lh->farg, lb)) return 1;
+        if (
+            !lh->unused && 
+            LIR_is_jumpop(lh->op) && LIR_subj_equals(lh->farg, lb)
+        ) return 1;
         lh = LIR_get_next(lh, fb->lmap.exit, 1);
     }
 
@@ -53,13 +57,21 @@ Params:
 Returns 1 if succeeds.
 */
 static int _label_pass(cfg_func_t* fb) {
+    int changed = 0;
     lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
     while (lh) {
-        if (!lh->unused && lh->op == LIR_MKLB && !_find_label_usage(fb, lh->farg)) lh->unused = 1; 
+        if (
+            !lh->unused && 
+            lh->op == LIR_MKLB && !_find_label_usage(fb, lh->farg)
+        ) {
+            lh->unused = 1; 
+            changed = 1;
+        }
+
         lh = LIR_get_next(lh, fb->lmap.exit, 1);
     }
 
-    return 1;
+    return changed;
 }
 
 // TODO: docs
@@ -73,11 +85,15 @@ static inline void _hide_block(cfg_block_t* bb) {
 
 // TODO: docs
 static int _deep_jump_pass(cfg_func_t* fb) {
+    int changed = 0;
     foreach (cfg_block_t* bb, &fb->blocks) {
         int only_lb_and_jump = 1;
         lir_block_t* lh = LIR_get_near_instruction(bb->lmap.entry, bb->lmap.exit, 0);
         while (lh) {
-            if (!lh->unused && lh->op != LIR_MKLB && lh->op != LIR_JMP) {
+            if (
+                !lh->unused && 
+                lh->op != LIR_MKLB && lh->op != LIR_JMP
+            ) {
                 only_lb_and_jump = 0;
                 break;
             }
@@ -102,6 +118,7 @@ static int _deep_jump_pass(cfg_func_t* fb) {
                 else if (ll && LIR_is_jumpop(ll->op) && LIR_subj_equals(ll->farg, pdst)) ll->farg = ndst; 
                 else continue;
 
+                changed = 1;
                 if (prev->l == bb) prev->l = bb_dst;
                 if (prev->jmp == bb) prev->jmp = bb_dst;
                 if (bb_dst) {
@@ -115,7 +132,7 @@ static int _deep_jump_pass(cfg_func_t* fb) {
         }
     }
 
-    return 1;
+    return changed;
 }
 
 static unsigned long long _visit_counter = 100;
@@ -155,26 +172,23 @@ static int _recursive_cleanup(
     lir_block_t* lh = off ? off : bbh->lmap.entry;
     while (lh) {
         if (!lh->unused) {
-            if (                                          
-                lh != ign &&                              /* If this isn't an ignored (likely the source) command         */
+            if (
+                lh != ign &&
                 lh->op == op &&                           /* With the same operation such as mov, add, etc.               */
                 LIR_subj_equals(lh->farg, trg) &&         /* And similar destination of the write operation               */
                 (
                     !LIR_subj_equals(lh->sarg, trg) &&    /* The second and the third arguments must be a uniq /          */
                     !LIR_subj_equals(lh->targ, trg)       /* different with the firts.                                    */
                 )                                         /* The reason is easy: We don't want to delete commad if its    */
-                                                        /* value rewritten by itself.                                   */
+                                                          /* value rewritten by itself.                                   */
             ) return 1;                                   /* That means we can safely mark the target write command       */
 
             if (
-                LIR_has_sideeffect(lh->op) ||             /* Skip reserved instruction                                    */
+                LIR_is_readop(lh->op) &&                  /* If this instruction reads second and third arguments         */
                 (
-                    LIR_is_readop(lh->op) &&              /* If this instruction reads second and third arguments         */
-                    (
-                        LIR_subj_equals(lh->farg, trg) || /* And either the first argument is equal to the target         */
-                        LIR_subj_equals(lh->sarg, trg) || /* or the second argument is equal to the target.               */
-                        LIR_subj_equals(lh->targ, trg)    /* Also we need to take care about the third argument too.      */
-                    )
+                    LIR_subj_equals(lh->farg, trg) ||     /* And either the first argument is equal to the target         */
+                    LIR_subj_equals(lh->sarg, trg) ||     /* or the second argument is equal to the target.               */
+                    LIR_subj_equals(lh->targ, trg)        /* Also we need to take care about the third argument too.      */
                 )
             ) return 0;                                   /* That means, we should mark the target write command as valid */
         }
@@ -183,44 +197,46 @@ static int _recursive_cleanup(
     }
 
     if (
-        (bbh->l && !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL)) || 
-        (bbh->jmp && !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL))
+        !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) || 
+        !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
     ) return 0; /* If the command is used somewhere in the childs, return 0                       */
     return 1;   /* By default, if the considering command is unused elsewhere, we mark it to drop */
 }
 
 static int _cleanup_pass(cfg_block_t* bb) {
+    int changed = 0;
     if (!bb) return 0;
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
         if (
-            LIR_is_writeop(lh->op) &&   /* If this is a write operation */
-            !LIR_has_sideeffect(lh->op) /* but isn't a reserved one     */
+            !lh->unused &&
+            LIR_is_writeop(lh->op) && !LIR_has_sideeffect(lh->op)
         ) {
             _visit_counter++;
             if (_recursive_cleanup(lh->op, -1, bb, lh->farg, lh, lh->next)) {
                 lh->unused = 1;
+                changed = 1;
             }
         }
 
         lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 
-    return 1;
+    return changed;
 }
 
 int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx) {
+    int changed = 0;
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        _deep_jump_pass(fb);
-
+        changed |= _deep_jump_pass(fb);
         foreach (cfg_block_t* bb, &fb->blocks) {
-            _jumps_pass(bb);
-            _cleanup_pass(bb);
+            changed |= _jumps_pass(bb);
+            changed |= _cleanup_pass(bb);
         }
 
-        _label_pass(fb);
+        changed |= _label_pass(fb);
     }
 
-    return 1;
+    return changed;
 }

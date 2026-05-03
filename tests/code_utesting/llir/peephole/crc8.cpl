@@ -194,7 +194,6 @@ BB14: send
 BB3: fn crc80(u8* data, u32 len) -> u8
 r9 = rdi;
 r8 = rsi;
-rcx = rcx ^ rcx;
 rdx = rdx ^ rdx;
 rcx = rcx ^ rcx;
 BB15: rsi <<= rdx;
@@ -237,7 +236,6 @@ BB6: lb318:
 rdx = $85;
 rax = rsi;
 rax = rax ^ rdx;
-rcx = rax;
 return rax;
 BB7: fend
 BB8: fn strlen1(i8* s) -> i32

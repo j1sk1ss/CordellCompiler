@@ -167,6 +167,7 @@ int LIR_is_readop(lir_operation_t op) {
         case LIR_FRET:
         case LIR_PUSH:
         case LIR_aMOV:
+        case LIR_LDREF:
         case LIR_VRUSE:
         case LIR_EXITOP: return 1;
         default: return LIR_is_writeop(op);

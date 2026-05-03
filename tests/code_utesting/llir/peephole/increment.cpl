@@ -20,9 +20,7 @@ BB2: send
 === AFTER ===
 BB1: start
 rcx = $1;
-rdx = $1;
-rax = rcx;
-rcx = rcx + rdx;
+rcx = rcx + $1;
 rdi = rcx;
 exit rdi;
 BB2: send

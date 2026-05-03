@@ -14,8 +14,5 @@ rcx = rcx;
 send
 === AFTER ===
 BB1: start
-rcx = $10;
-rax movsx rcx;
-rax = rax * $1024;
 send
 /:

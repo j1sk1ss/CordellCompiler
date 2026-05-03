@@ -258,7 +258,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                                 while (string_pos + block_size <= si.value->size) {
                                     LIR_insert_block_before(
                                         LIR_create_block(
-                                            LIR_iMOV, 
+                                            LIR_aMOV, 
                                             LIR_SUBJ_OFF(RBP, curr_offset, block_size), 
                                             LIR_SUBJ_CONST(_pack_str_le(si.value->body + string_pos, block_size)), NULL
                                         ), lh
@@ -271,7 +271,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                                 block_size /= 2;
                             }
 
-                            LIR_insert_block_before(LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, curr_offset, 1), LIR_SUBJ_CONST(0), NULL), lh);
+                            LIR_insert_block_before(LIR_create_block(LIR_aMOV, LIR_SUBJ_OFF(RBP, curr_offset, 1), LIR_SUBJ_CONST(0), NULL), lh);
                         }
 
                         lh->unused = 1;
@@ -300,7 +300,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                                 foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
                                     if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
                                     LIR_insert_block_before(
-                                        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RBP, arr_off - el_pos * el_size, el_size), elem, NULL), lh
+                                        LIR_create_block(LIR_aMOV, LIR_SUBJ_OFF(RBP, arr_off - el_pos * el_size, el_size), elem, NULL), lh
                                     );
 
                                     el_pos++;
@@ -334,7 +334,16 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
         if (
             fb->lmap.entry->op == LIR_FDCL || 
             fb->lmap.entry->op == LIR_STRT
-        ) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
+        ) {
+            if (smp.last_offset) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
+            else {
+                FNTB_update_func(
+                    fb->lmap.entry->farg->storage.str.sid, 
+                    NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, FIELD_NO_CHANGE, 
+                    &smt->f
+                );
+            }
+        }
     }
 
     return 1;

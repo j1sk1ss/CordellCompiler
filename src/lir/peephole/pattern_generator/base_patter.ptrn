@@ -88,6 +88,24 @@ xor areg_1, areg_1
 ; Arithmetic identities
 ; ==================
 
+mov areg_1, aconst_2
+mov areg_3, aconst_4
+add areg_1, areg_3
+->
+mov areg_1, aconst_2
+mov areg_3, aconst_4
+add areg_1, aconst_4
+/
+
+mov areg_1, aconst_2
+mov areg_3, aconst_4
+sub areg_1, areg_3
+->
+mov areg_1, aconst_2
+mov areg_3, aconst_4
+sub areg_1, aconst_4
+/
+
 mov areg_1, const 1
 mul areg_1, aconst_2
 ->
@@ -240,22 +258,6 @@ setne obj_2
 ; ==================
 ; Compare / test canonicalization
 ; ==================
-
-; sub areg_1, const 1
-; test areg_1, areg_1
-; base_setcc obj_2
-; ->
-; sub areg_1, const 1
-; base_setcc obj_2
-; /
-
-; sub areg_1, const 1
-; test areg_1, areg_1
-; base_jmpc obj_2
-; ->
-; sub areg_1, const 1
-; base_jmpc obj_2
-; /
 
 cmp areg_1, const 0
 ->
