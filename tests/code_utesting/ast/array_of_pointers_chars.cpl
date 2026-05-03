@@ -42,13 +42,15 @@ start() {
                [a] (I8_VARIABLE_TOKEN, v_id=1, s_id=4)
             [ref] (REF_TYPE_TOKEN, v_id=-1, s_id=0)
                [b] (I8_VARIABLE_TOKEN, v_id=2, s_id=4)
-         [putc] (CALL_TOKEN, v_id=0, s_id=1)
+         [()]
+            [putc] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
             { scope, id=0 }
                [dref] (DREF_TYPE_TOKEN, v_id=-1, s_id=0)
                   [[]]
                      [ps] (ARR_VARIABLE_TOKEN, v_id=3, s_id=4)
                      [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-         [putc] (CALL_TOKEN, v_id=0, s_id=1)
+         [()]
+            [putc] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
             { scope, id=0 }
                [dref] (DREF_TYPE_TOKEN, v_id=-1, s_id=0)
                   [[]]

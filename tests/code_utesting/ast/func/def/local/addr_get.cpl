@@ -19,5 +19,5 @@ function foo() -> ptr u64 {
                      [return] (RETURN_TOKEN, v_id=-1, s_id=5)
                         [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             [return] (RETURN_TOKEN, v_id=-1, s_id=3)
-               [bar] (CALL_ADDR_TOKEN, v_id=1, s_id=0)
+               [bar] (CALL_ADDR_TOKEN, v_id=1, s_id=3)
 /:

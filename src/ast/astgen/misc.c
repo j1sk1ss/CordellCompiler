@@ -18,7 +18,7 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
     var_lookup(node->c, ctx, smt);
     if (!node->t) return 0;
 
-    if (TKN_is_variable(node->t)) {
+    if (node->t->t_type == UNKNOWN_STRING_TOKEN) {
         variable_info_t varinfo = { .type = UNKNOWN_NUMERIC_TOKEN };
         for (int s = ctx->scopes.stack.top; s >= 0; s--) {
             if (VRTB_get_info(node->t->body, ctx->scopes.stack.data[s].d, &varinfo, &smt->v)) {
@@ -32,13 +32,14 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
                 return 1;
             }
         }
-    }
-    else if (node->t->t_type == CALL_TOKEN) {
+
         func_info_t funcinfo;
         for (int s = ctx->scopes.stack.top; s >= 0; s--) {
             if (FNTB_get_info(node->t->body, ctx->scopes.stack.data[s].d, &funcinfo, &smt->f)) {
-                node->sinfo.v_id = funcinfo.id;
-                node->sinfo.s_id = funcinfo.s_id;
+                node->sinfo.v_id   = funcinfo.id;
+                node->sinfo.s_id   = funcinfo.s_id;
+                node->t->flags.ext = funcinfo.flags.external;
+                node->t->t_type    = CALL_ADDR_TOKEN;
                 return 1;
             }
         }

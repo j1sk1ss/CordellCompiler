@@ -88,16 +88,16 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_t* call_subj = NULL;
     hir_operation_t st_op    = HIR_STORE_UFCLL, op = HIR_UFCLL;
-    ast_node_t* args_node    = node->c->c;
+    ast_node_t* args_node    = node->c->siblings.n->c;
     func_info_t fi = { 0 };
-    if (!FNTB_get_info_id(node->sinfo.v_id, &fi, &smt->f)) {
-        call_subj = HIR_generate_elem(node->c, ctx, smt);
-        args_node = node->c->siblings.n->c;
-    }
+    if (
+        node->c->t->t_type != FUNC_NAME_TOKEN || 
+        !FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)
+    ) call_subj = HIR_generate_elem(node->c, ctx, smt);
     else {
         op        = fi.flags.external ? HIR_ECLL : HIR_FCLL;
         st_op     = fi.flags.external ? HIR_STORE_ECLL : HIR_STORE_FCLL;
-        call_subj = HIR_SUBJ_FUNCNAME(node);
+        call_subj = HIR_SUBJ_FUNCNAME(node->c);
     }
 
     hir_subject_t* args = HIR_SUBJ_LIST();

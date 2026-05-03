@@ -26,7 +26,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     }
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
-    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &name->t->flags, &smt->v);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &base->t->flags, &smt->v);
     if (base->t->t_type == STR_TYPE_TOKEN) {
         if (base->t->flags.ptr) {
             PARSE_ERROR("'str' object can't be presented as a pointer! Use 'ptr i8' instead!");

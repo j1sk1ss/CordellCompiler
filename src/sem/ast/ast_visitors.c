@@ -102,7 +102,7 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
     ast_node_t* larg = nd->c;
     if (!larg) return 1;
     ast_node_t* rarg = larg->siblings.n;
-    if (!rarg || rarg->t->t_type != CALL_TOKEN) return 1;
+    if (!rarg || rarg->t->t_type != CALLING_TOKEN) return 1;
 
     func_info_t fi;
     if (!FNTB_get_info_id(rarg->sinfo.v_id, &fi, &smt->f)) return 1;

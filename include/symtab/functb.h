@@ -28,6 +28,7 @@ typedef struct {
         char    local    : 1;
         char    naked    : 1;
         char    vargs    : 1;
+        char    generic  : 1;
     } flags;
 } func_info_t;
 

@@ -357,7 +357,7 @@ unsigned long TKN_hash_token(token_t* t) {
     str_memset(&t->finfo, 0, sizeof(file_position_t));
 
     unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
-    hash ^= t->body->hash;
+    if (t->body) hash ^= t->body->hash;
     hash *= t->t_type;
     
     t->finfo.line   = tmp.line;

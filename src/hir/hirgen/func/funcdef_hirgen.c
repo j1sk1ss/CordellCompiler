@@ -1,9 +1,9 @@
 #include <hir/hirgens/hirgens.h>
 
-int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+int HIR_generate_function_block(ast_node_t* node, hir_subject_type_t gt, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
     func_info_t fi;
-    if (!FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)) {
+    if (!FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f) || fi.flags.generic) {
         return 0;
     }
 
@@ -33,7 +33,7 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
         );
     }
 
-    SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, { HIR_generate_block(t, ctx, smt); });
+    SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, gt, { HIR_generate_block(t, ctx, smt); });
 
     if (list_size(&ctx->cold.blocks)) {
         HIR_BLOCK1(ctx, fi.flags.entry ? HIR_EXITOP : HIR_FRET, HIR_SUBJ_CONST(0));

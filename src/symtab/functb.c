@@ -88,7 +88,7 @@ symbol_id_t FNTB_add_info(
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
     print_log(
-        "FNTB_add_info(name=%s, global=%i, ext=%i, entry=%i, naked=%i, args=%lu)", 
+        "FNTB_add_info(name=%s, global=%i, entry=%i, naked=%i, args=%lu)", 
         name ? name->body : "(null)", global, entry, naked, args ? AST_hash_node_stop(args->c, SCOPE_TOKEN) : 0
     );
     

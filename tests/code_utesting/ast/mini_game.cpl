@@ -107,50 +107,58 @@ start(i32 a, ptr ptr i8 answers) {
                [33554436] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                [msg] (I8_VARIABLE_TOKEN, ptr, v_id=4, s_id=9)
-               [strlen] (CALL_TOKEN, v_id=0, s_id=1)
+               [()]
+                  [strlen] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
                   { scope, id=0 }
                      [msg] (I8_VARIABLE_TOKEN, ptr, v_id=4, s_id=9)
    [start] (START_TOKEN, v_id=3, s_id=1)
       [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
-         [a] (I32_VARIABLE_TOKEN, ptr, v_id=5, s_id=1)
+         [a] (I32_VARIABLE_TOKEN, v_id=5, s_id=1)
       [i8] (I8_TYPE_TOKEN, ptr, v_id=-1, s_id=0)
          [answers] (I8_VARIABLE_TOKEN, ptr, v_id=6, s_id=1)
       { scope, id=11 }
-         [print] (CALL_TOKEN, v_id=2, s_id=1)
+         [()]
+            [print] (FUNC_NAME_TOKEN, v_id=2, s_id=1)
             { scope, id=0 }
                [ref] (REF_TYPE_TOKEN, v_id=-1, s_id=0)
                   [Who is better? (max/chloe)
 ] (STRING_VALUE_TOKEN, v_id=0, s_id=0)
-         [print] (CALL_TOKEN, v_id=2, s_id=1)
+         [()]
+            [print] (FUNC_NAME_TOKEN, v_id=2, s_id=1)
             { scope, id=0 }
                [ref] (REF_TYPE_TOKEN, v_id=-1, s_id=0)
                   [You have written: ] (STRING_VALUE_TOKEN, v_id=1, s_id=0)
-         [print] (CALL_TOKEN, v_id=2, s_id=1)
+         [()]
+            [print] (FUNC_NAME_TOKEN, v_id=2, s_id=1)
             { scope, id=0 }
                [[]]
                   [answers] (I8_VARIABLE_TOKEN, ptr, v_id=6, s_id=1)
                   [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-         [print] (CALL_TOKEN, v_id=2, s_id=1)
+         [()]
+            [print] (FUNC_NAME_TOKEN, v_id=2, s_id=1)
             { scope, id=0 }
                [ref] (REF_TYPE_TOKEN, v_id=-1, s_id=0)
                   [
 ] (STRING_VALUE_TOKEN, v_id=2, s_id=0)
          [if] (IF_TOKEN, v_id=-1, s_id=11)
             [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
-               [strcmp] (CALL_TOKEN, v_id=1, s_id=1)
+               [()]
+                  [strcmp] (FUNC_NAME_TOKEN, v_id=1, s_id=1)
                   { scope, id=0 }
                      [[]]
                         [answers] (I8_VARIABLE_TOKEN, ptr, v_id=6, s_id=1)
                         [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
                      [max] (STRING_VALUE_TOKEN, v_id=3, s_id=0)
             { scope, id=12 }
-               [print] (CALL_TOKEN, v_id=2, s_id=1)
+               [()]
+                  [print] (FUNC_NAME_TOKEN, v_id=2, s_id=1)
                   { scope, id=0 }
                      [ref] (REF_TYPE_TOKEN, v_id=-1, s_id=0)
                         [Wrong!
 ] (STRING_VALUE_TOKEN, v_id=4, s_id=0)
             { scope, id=11 }
-               [print] (CALL_TOKEN, v_id=2, s_id=1)
+               [()]
+                  [print] (FUNC_NAME_TOKEN, v_id=2, s_id=1)
                   { scope, id=0 }
                      [ref] (REF_TYPE_TOKEN, v_id=-1, s_id=0)
                         [Correct!

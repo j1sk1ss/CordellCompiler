@@ -49,14 +49,15 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         return NULL;
     }
 
-    if (!consume_token(it, FUNC_NAME_TOKEN)) {
-        PARSE_ERROR("Expected 'FUNC_NAME_TOKEN' token!");
+    if (!consume_token(it, UNKNOWN_STRING_TOKEN)) {
+        PARSE_ERROR("Expected 'UNKNOWN_STRING_TOKEN' token!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
+    name->t->t_type = FUNC_NAME_TOKEN;
     if (name) AST_add_node(base, name);
     else {
         PARSE_ERROR("Can't create a base for the function's name!");
@@ -65,11 +66,18 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         return NULL;
     }
 
-    if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
-        PARSE_ERROR("Expected 'OPEN_BRACKET_TOKEN' token!");
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
+    forward_token(it, 1);
+    switch (CURRENT_TOKEN->t_type) {
+        case OPEN_BRACKET_TOKEN: break;
+        case LOWER_TOKEN: { // TODO: Parse the generic type
+            break;
+        }
+        default: {
+            PARSE_ERROR("Expected either the 'OPEN_BRACKET_TOKEN' or 'LOWER_TOKEN' (<) tokens!");
+            AST_unload(base);
+            RESTORE_TOKEN_POINT;
+            return NULL;
+        }
     }
 
     ast_node_t* args = AST_create_node_bt(CREATE_SCOPE_TOKEN);
@@ -85,8 +93,6 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
     args->sinfo.s_id = ctx->scopes.s_id;
 
-    int local  = ctx->carry.ptr ? 1 : 0;
-    int global = base->t->flags.glob;
     annotations_summary_t annots = { .section = NULL, .is_entry = 0, .is_naked = 0 };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
@@ -111,8 +117,9 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         virt_name = annots.fname;
     }
 
+    int local = ctx->carry.ptr ? 1 : 0;
     name->sinfo.v_id = FNTB_add_info(
-        name->t->body, virt_name, global, local, annots.is_entry, annots.is_naked, 0,
+        name->t->body, virt_name, base->t->flags.glob, local, annots.is_entry, annots.is_naked, 0,
         name->sinfo.s_id, args, name->c, &smt->f
     );
 

@@ -29,7 +29,8 @@ typedef enum {
     INDEXATION_TOKEN,      // []
     CALLING_TOKEN,         // ()
     LAMBDA_TOKEN,          // =>
-    LAMBDA_FUNCTION_TOKEN, // () => {};     
+    LAMBDA_FUNCTION_TOKEN, // () => {};   
+    GENERIC_TYPE_TOKEN,    // T  
     OPEN_INDEX_TOKEN,      // [
     CLOSE_INDEX_TOKEN,     // ]
     OPEN_BRACKET_TOKEN,    // (
@@ -96,7 +97,6 @@ typedef enum {
     FUNC_PROT_TOKEN,       // function <name> - prototype
     FUNC_TOKEN,            // function
     FUNC_NAME_TOKEN,       // function <name>
-    CALL_TOKEN,            // fname(...)
     ADDR_CALL_TOKEN,       // something(...) - doesn't support default args, etc, but can handle addr to anything
     CALL_ADDR_TOKEN,       // fname without () operation. Means that we're working with the address of a function
     SIZEOF_TOKEN,

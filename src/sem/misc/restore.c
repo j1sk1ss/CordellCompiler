@@ -392,16 +392,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             complex = 1;
             break;
         }
-        case CALL_TOKEN: {
-            _rst_ln_printf(x, line, "%s(", nd->t->body->body);
-            for (ast_node_t* p = nd->c->c; p; p = p->siblings.n) {
-                _restore_code_lines(x, p, u, indent);
-                if (p->siblings.n) _rst_ln_puts(x, line, ", ");
-            }
-
-            _rst_ln_puts(x, line, ")");
-            break;
-        }
         case ASM_TOKEN: {
             _rst_ln_puts(x, line, ASM_COMMAND "(");
             ast_node_t *args = nd->c, *body = nd->c->siblings.n;

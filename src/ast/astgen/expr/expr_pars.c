@@ -69,6 +69,11 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     }
                     case OPEN_BRACKET_TOKEN: {
                         forward_token(it, 1);
+                        /* If it was a function addr - convert to a classic funccall */
+                        if (left->t->t_type == CALL_ADDR_TOKEN) {
+                            left->t->t_type = FUNC_NAME_TOKEN;
+                        }
+
                         target = AST_create_node_bt(CREATE_CALL_TOKEN);
                         data   = cpl_parse_call_arguments(it, ctx, smt, 0);
                         break;
@@ -149,7 +154,6 @@ _stop_expression_parsing: {}
 
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
-    
     if (TKN_is_close(CURRENT_TOKEN)) {
         PARSE_ERROR("Expected a token, but got a terminator!");
         return NULL;
@@ -186,7 +190,6 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 annotation_unreserve(ctx, annot_off);
                 return node;
             }
-            case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */
             case SIZEOF_TOKEN:    return cpl_parse_sizeof(it, ctx, smt, 0);   /* sizeof()  */
             case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
             case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */
