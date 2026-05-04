@@ -1,6 +1,6 @@
 : TEST_DEBUG :
 function foo<T>(T a, T b) -> T {
-    T d = 10;
+    T d = 10 as T;
     i32 e = 10;
     function local() -> i32 {
         return 10;
