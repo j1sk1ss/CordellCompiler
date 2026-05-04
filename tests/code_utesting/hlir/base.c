@@ -9,12 +9,12 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
+#include <ast/devirt.h>
 #include <sem/misc/restore.h>
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/func.h>
-// #include "../../misc/hir_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -65,11 +65,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_resolve_calls(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
+    
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);
+    HIR_CG_perform_dfe(&callctx, &smt);
+    HIR_CG_apply_dfe(&cfgctx, &callctx);
+
     HIR_FUNC_set_last_return(&cfgctx);
 
     HIR_CFG_cleanup_navigation(&cfgctx);
@@ -82,6 +90,7 @@ int main(int argc, char* argv[]) {
         lh = lh->next;
     }
 
+    HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     LIR_unload_blocks(lirctx.h);
     HIR_unload_blocks(hirctx.hot.h);
