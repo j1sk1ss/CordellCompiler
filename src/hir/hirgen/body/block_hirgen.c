@@ -99,7 +99,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         default: break;
     }
 
-    if (TKN_is_decl(node->t))            return HIR_generate_declaration_block(node, ctx, smt);
+    if (TKN_is_builtin_type(node->t))            return HIR_generate_declaration_block(node, ctx, smt);
     if (TKN_is_update_operator(node->t)) return (int)((long)HIR_generate_update_block(node, ctx, smt, 0));
     return (int)((long)_generation_handler(node, ctx, smt, 0));
 }

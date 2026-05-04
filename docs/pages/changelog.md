@@ -744,6 +744,7 @@ u8 c = (a + b) as u8;
 
 ## Additional operators
 Implement the next list of operators:
+
 | Operation        | Example   |
 |------------------|-----------|
 | `%=`             | `X %= Y`  |

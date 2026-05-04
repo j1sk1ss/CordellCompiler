@@ -16,6 +16,7 @@ typedef struct {
     strtb_ctx_t   s; /* Strings' symtable      */
     allias_ctx_t  m; /* alliases' Map symtable */
     sectb_ctx_t   c; /* seCtions' symtables    */
+    // TODO: Implement (take from the custom types) the types table
 } sym_table_t;
 
 /*

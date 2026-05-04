@@ -197,7 +197,7 @@ int TKN_is_pointer(token_t* token);
 int TKN_is_one_slot(token_t* token);
 int TKN_in_stack(token_t* token);
 int TKN_is_block(token_t* token);
-int TKN_is_decl(token_t* token);
+int TKN_is_builtin_type(token_t* token); // TODO: Implement the type checker which resolves type from the table
 int TKN_is_close(token_t* token);
 int TKN_is_operand(token_t* token);
 int TKN_is_numeric(token_t* token);

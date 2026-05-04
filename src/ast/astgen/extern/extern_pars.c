@@ -13,7 +13,7 @@ ast_node_t* cpl_parse_extern(PARSER_ARGS) {
     
     forward_token(it, 1);
     ast_node_t* arg = NULL;
-    if (TKN_is_decl(CURRENT_TOKEN)) {
+    if (TKN_is_builtin_type(CURRENT_TOKEN)) {
         arg = cpl_parse_variable_declaration(it, ctx, smt, carry);
         arg->t->flags.ext = 1;
     }
