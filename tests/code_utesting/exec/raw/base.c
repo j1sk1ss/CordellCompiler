@@ -10,6 +10,7 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
+#include <ast/devirt.h>
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -86,6 +87,8 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "AST tree creation error!\n");
         return 1;
     }
+
+    AST_resolve_calls(&sctx, &smt);
 
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);

@@ -51,8 +51,8 @@ static func_info_t* _create_func_info(
         fn->name = name->copy(name);
     }
 
-    fn->args          = AST_copy_node(args, 0, 0, 1, SCOPE_TOKEN);
-    fn->rtype         = AST_copy_node(rtype, 0, 0, 1, SCOPE_TOKEN);
+    fn->args          = AST_copy_node(args, 0, 0, 1, args->siblings.t);
+    fn->rtype         = AST_copy_node(rtype, 0, 0, 1, NULL);
     fn->flags.global  = global;
     fn->flags.local   = local;
     fn->flags.entry   = entry;
@@ -164,12 +164,12 @@ int FNTB_update_func(
         
         if (args) {
             AST_unload(fi->args);
-            fi->args = AST_copy_node(args, 0, 0, 1, SCOPE_TOKEN);
+            fi->args = AST_copy_node(args, 0, 0, 1, args->siblings.t);
         }
 
         if (rtype) {
             AST_unload(rtype);
-            fi->rtype = AST_copy_node(rtype, 0, 0, 1, SCOPE_TOKEN);
+            fi->rtype = AST_copy_node(rtype, 0, 0, 1, NULL);
         }
 
         return 1;
@@ -193,7 +193,7 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, token_type_t t, functab_ct
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
         func_info_t existed;
-        ast_node_t *args = AST_copy_node(fi->args, 0, 0, 1, SCOPE_TOKEN), *rtype = AST_copy_node(fi->rtype, 0, 0, 1, SCOPE_TOKEN);
+        ast_node_t *args = AST_copy_node(fi->args, 0, 0, 1, NULL), *rtype = AST_copy_node(fi->rtype, 0, 0, 1, NULL);
         _resolve_types(args, t);
         _resolve_types(rtype, t);
         if (_is_function_presented(fi->name, fi->s_id, args, t, &existed, ctx)) {

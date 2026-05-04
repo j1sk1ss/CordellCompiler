@@ -71,7 +71,7 @@ ast_node_t* AST_implement_template(ast_node_t* root, symbol_id_t f_id, sym_table
     if (f_id == NO_SYMBOL_ID) return root;
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return root;
-    ast_node_t* copy = AST_copy_node(root, 0, 0, 1, -1);
+    ast_node_t* copy = AST_copy_node(root, 0, 0, 1, NULL);
     _find_type_usage(copy, copy, fi.generic, smt);
     _find_function_declaration(copy->c, copy, smt);
     copy->c->sinfo.v_id = f_id;
