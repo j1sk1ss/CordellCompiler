@@ -72,10 +72,12 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
 
+    int generic = 0;
     forward_token(it, 1);
     switch (CURRENT_TOKEN->t_type) {
         case OPEN_BRACKET_TOKEN: break;
         case LOWER_TOKEN: {
+            generic = 1;
             forward_token(it, 1);
             TPTB_add_info(CURRENT_TOKEN->body, ctx->scopes.s_id, &smt->t);
             forward_token(it, 2);
@@ -129,7 +131,8 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     int local = ctx->carry.ptr ? 1 : 0;
     name->sinfo.v_id = FNTB_add_info(
-        name->t->body, virt_name, base->t->flags.glob, local, annots.is_entry, annots.is_naked, 0,
+        name->t->body, virt_name, 
+        base->t->flags.glob, local, annots.is_entry, annots.is_naked, 0, generic,
         name->sinfo.s_id, args, name->c, &smt->f
     );
 

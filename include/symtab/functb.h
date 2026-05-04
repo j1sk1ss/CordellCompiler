@@ -83,6 +83,8 @@ Params:
     - `local` - Is this a local function?
     - `entry` - Is this an entry function?
     - `naked` - Is this a naked function?
+    - `vargs` - Is this a vargs function?
+    - `generic` - Is this is a generic function?
     - `args` - Function's arguments from AST.
     - `rtype` - Function's return type from AST.
     - `ctx` - Function symbol table.
@@ -91,7 +93,7 @@ Returns -1 if fails or a new function's ID.
 */
 symbol_id_t FNTB_add_info(
     string_t* name, string_t* vname,
-    int global, int local, int entry, int naked, int vargs, /* flags */
+    int global, int local, int entry, int naked, int vargs, int generic, /* flags */
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );
 
