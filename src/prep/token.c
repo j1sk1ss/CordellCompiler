@@ -66,6 +66,7 @@ typedef struct {
 } tkn_ctx_t;
 
 token_t* TKN_copy_token(token_t* src) {
+    if (!src) return NULL;
     token_t* tkn = mm_malloc(sizeof(token_t));
     if (!tkn) return NULL;
     str_memcpy(tkn, src, sizeof(token_t));

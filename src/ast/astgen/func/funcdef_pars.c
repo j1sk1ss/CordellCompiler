@@ -135,7 +135,6 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         base->t->flags.glob, local, annots.is_entry, annots.is_naked, 0, generic,
         name->sinfo.s_id, args, name->c, &smt->f
     );
-    FNTB_set_root(name->sinfo.v_id, base, &smt->f);
 
     if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
     else {

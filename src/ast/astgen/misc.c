@@ -1,4 +1,3 @@
-/* Misc file */
 #include <ast/astgen/astgen.h>
 
 int annotation_reserve(ast_ctx_t* ctx) {

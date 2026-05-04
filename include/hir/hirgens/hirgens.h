@@ -6,6 +6,7 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/annot.h>
+#include <ast/devirt.h>
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 
@@ -57,7 +58,7 @@ Params:
     )
 
 int HIR_generate_position(file_position_t* pos, hir_ctx_t* ctx);
-#define HIR_SET_CURRENT_POS(ctx, nd) HIR_generate_position(&nd->t->finfo, ctx);
+#define HIR_SET_CURRENT_POS(ctx, nd) HIR_generate_position(nd->t ? &nd->t->finfo : NULL, ctx);
 
 /*
 Generate implict convertion from the one type to another. 
@@ -302,13 +303,14 @@ int HIR_generate_return_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 Convert function AST node into HIR element. 
 Params:
     - `node` - AST node.
-    - `gt` - If function is generic, provide a type for an instance.
+    - `f_id` - Provide ID if you want to overwrite the node's ID.
+    - `gen_t` - If function is generic, provide a type for an instance.
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
 Return 1 if succeeds. Otherwise will return 0.
 */
-int HIR_generate_function_block(ast_node_t* node, hir_subject_type_t gt, hir_ctx_t* ctx, sym_table_t* smt);
+int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_subject_type_t gen_t, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Convert start AST node into HIR element. 
@@ -426,13 +428,12 @@ hir_subject_t* HIR_generate_sizeof(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
 Convert lambda AST node to a HIR element. 
 Params:
     - `node` - AST node.
-    - `gt` - If function is generic, provide a type for an instance.
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
     - `ret` - If this is a block, must be '0'.
 
 Returns the 'NULL' value or an update operator.
 */
-hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_subject_type_t gt, hir_ctx_t* ctx, sym_table_t* smt, int ret);
+hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
 #endif

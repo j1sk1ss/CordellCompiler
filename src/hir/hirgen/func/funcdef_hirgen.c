@@ -1,10 +1,25 @@
 #include <hir/hirgens/hirgens.h>
 
-int HIR_generate_function_block(ast_node_t* node, hir_subject_type_t gt, hir_ctx_t* ctx, sym_table_t* smt) {
+static inline hir_subject_type_t _convert_token_type_to_hir(token_type_t t) {
+    token_t tmp = { .t_type = t };
+    return _get_token_stktype(&tmp, 0);
+}
+
+int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_subject_type_t gen_t, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
+    node = AST_implement_template(node, f_id, smt);
+
     func_info_t fi;
-    if (!FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f) || fi.flags.generic) {
-        return 0;
+    if (!FNTB_get_info_id(f_id == NO_SYMBOL_ID ? node->c->sinfo.v_id : f_id, &fi, &smt->f)) return 0;
+    if (fi.flags.generic) {
+        foreach (symbol_id_t g_id, &fi.resolutions) {
+            func_info_t g_fi;
+            if (FNTB_get_info_id(g_id, &g_fi, &smt->f)) {
+                HIR_generate_function_block(node, g_id, _convert_token_type_to_hir(g_fi.generic), ctx, smt);
+            }
+        }
+
+        return 1;
     }
 
     hir_subject_t* lguards = NULL;
@@ -20,20 +35,20 @@ int HIR_generate_function_block(ast_node_t* node, hir_subject_type_t gt, hir_ctx
     ast_node_t* t;
     for (t = node->c->siblings.n->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
         if (t->t->t_type == VAR_ARGUMENTS_TOKEN) {
-            FNTB_update_func(fi.id, NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, &smt->f);
+            FNTB_update_func(fi.id, FNTB_SET_VARGS, &smt->f);
             continue;
         }
 
-        HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->c));
+        HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR_T(t->c, gen_t));
         HIR_BLOCK2(
             ctx, 
             fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, 
-            HIR_SUBJ_ASTVAR(t->c), 
+            HIR_SUBJ_ASTVAR_T(t->c, gen_t), 
             HIR_SUBJ_CONST(argnum++)
         );
     }
 
-    SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, gt, { HIR_generate_block(t, ctx, smt); });
+    SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, gen_t, { HIR_generate_block(t, ctx, smt); });
 
     if (list_size(&ctx->cold.blocks)) {
         HIR_BLOCK1(ctx, fi.flags.entry ? HIR_EXITOP : HIR_FRET, HIR_SUBJ_CONST(0));
@@ -43,5 +58,6 @@ int HIR_generate_function_block(ast_node_t* node, hir_subject_type_t gt, hir_ctx
     HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
     HIR_BLOCK0(ctx, HIR_FEND);
     if (lguards) HIR_BLOCK1(ctx, HIR_MKLB, lguards);
+    if (f_id != NO_SYMBOL_ID) AST_destroy_template_implementation(node);
     return 1;
 }

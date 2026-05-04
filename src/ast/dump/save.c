@@ -102,11 +102,9 @@ static const char* _name_tkn_type(token_type_t t) {
     }
 }
 
-const char* DUMP_format_token(token_t* t) {
-    if (!t) return "";
-
+const char* DUMP_format_token_type(token_type_t t) {
     const char* base;
-    switch (t->t_type) {
+    switch (t) {
         case I0_TYPE_TOKEN:  base = "i0"; break;
         case I8_TYPE_TOKEN:  base = "i8"; break;
         case U8_TYPE_TOKEN:  base = "u8"; break;
@@ -121,7 +119,13 @@ const char* DUMP_format_token(token_t* t) {
         case STR_TYPE_TOKEN: base = "str"; break;
         default:             base = ""; break;
     }
+    return base;
+}
 
+const char* DUMP_format_token(token_t* t) {
+    if (!t) return "";
+
+    const char* base = DUMP_format_token_type(t->t_type);
     if (!base[0]) return "";
     int depth = t->flags.ptr;
     if (!depth) return base;

@@ -25,6 +25,7 @@ typedef struct string {
     int                (*equals)(str_self, struct string*);
     int                (*requals)(str_self, const char*);
     int                (*cat)(str_self, struct string*);
+    int                (*rcat)(str_self, const char*);
     struct string*     (*fchar)(str_self, char);
     int                (*index_of)(str_self, char);
     double             (*to_double)(str_self);

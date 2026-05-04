@@ -254,6 +254,7 @@ int TKN_is_numeric(token_t* token) {
 int TKN_is_variable(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
+        case GENERIC_VARIABLE_TOKEN:
         case VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case STR_VARIABLE_TOKEN:

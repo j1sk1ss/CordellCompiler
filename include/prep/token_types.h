@@ -141,6 +141,7 @@ typedef enum {
     OR_TOKEN,              // ||
     
     // Variables (not a type, a variable)
+    RESOLVED_TYPE_TOKEN,
     GENERIC_VARIABLE_TOKEN,
     VARIABLE_TOKEN,        // front-end tokenizer variable abstraction
     F64_VARIABLE_TOKEN,    // f64

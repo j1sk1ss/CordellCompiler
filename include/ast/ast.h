@@ -74,10 +74,11 @@ Params:
     - `sp` - Save parent link
     - `sib` - Copy siblings
     - `chld` - Copy childrens
+    - `stp` - -1 or a type where we should stop.
 
 Return pointer to new deep copied node.
 */
-ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld);
+ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld, token_type_t stp);
 
 /*
 Add clild tree node to parent.

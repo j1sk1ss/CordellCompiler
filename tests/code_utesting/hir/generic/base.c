@@ -3,14 +3,21 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "../../../misc/symtb_helper.h"
+
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include <sem/misc/restore.h>
-#include "../../../misc/symtb_helper.h"
+#include <ast/devirt.h>
+
+#include <hir/hirgen.h>
+#include <hir/hirgens/hirgens.h>
+#include <hir/dump.h>
+
+#include "../../../misc/hir_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -57,19 +64,24 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    map_foreach (variable_info_t* vi, &smt.v.vartb) {
-        printf("id: %li, %s, ", vi->v_id, vi->name->body);
-        for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
-        if (vi->vfs.glob) printf("glob ");
-        if (vi->vfs.ro)   printf("ro ");
-        printf("%s, s_id: %i, align: %i", format_tkntype(vi->type), vi->s_id, vi->vmi.align);
-        printf("\n");
-    }
+    AST_resolve_calls(&sctx, &smt);
 
+    hir_ctx_t hirctx = { 0 };
+    HIR_generate(&sctx, &hirctx, &smt);
+    
+    DUMP_format_hirctx(&hirctx, &smt, 0, 0, stdout);
+
+    HIR_unload_blocks(hirctx.hot.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);
 
     SMT_unload(&smt);
+
+    if (mm_get_allocated()) {
+        printf("\n<<ERROR>>\tMemory leak!\t%i != 0!\n", mm_get_allocated());
+        return EXIT_FAILURE;
+    }
+
     close(fd);
     return EXIT_SUCCESS;
 }
