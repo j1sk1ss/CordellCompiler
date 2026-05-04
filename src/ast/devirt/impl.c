@@ -15,13 +15,17 @@ static int _update_variable_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t n
 }
 
 // TODO: docs
-static int _find_type_usage(ast_node_t* node, ast_node_t* root, token_type_t t, sym_table_t* smt) {
+static int _find_type_usage(ast_node_t* node, ast_node_t* root, map_t* types, sym_table_t* smt) {
     if (!node) return 0;
-    _find_type_usage(node->siblings.n, root, t, smt);
-    _find_type_usage(node->c, root, t, smt);
+    _find_type_usage(node->siblings.n, root, types, smt);
+    _find_type_usage(node->c, root, types, smt);
     if (!node->t) return 0;
     if (TKN_is_builtin_type(node->t) || node->t->t_type == GENERIC_TYPE_TOKEN) {
-        if (node->t->t_type == GENERIC_TYPE_TOKEN) node->t->t_type = t;
+        long t;
+        if (
+            node->t->t_type == GENERIC_TYPE_TOKEN && 
+            map_get(types, node->sinfo.v_id, (void**)&t)
+        ) node->t->t_type = t;
         if (node->c) {
             variable_info_t vi;
             if (!VRTB_get_info_id(node->c->sinfo.v_id, &vi, &smt->v)) return 0;
@@ -69,11 +73,15 @@ static int _find_function_declaration(ast_node_t* node, ast_node_t* root, sym_ta
 
 ast_node_t* AST_implement_template(ast_node_t* root, symbol_id_t f_id, sym_table_t* smt) {
     if (f_id == NO_SYMBOL_ID) return root;
+    
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return root;
     ast_node_t* copy = AST_copy_node(root, 0, 0, 1, NULL);
-    _find_type_usage(copy, copy, fi.generic, smt);
+    
+    _find_type_usage(copy, copy, &fi.template.generic, smt);
     _find_function_declaration(copy->c, copy, smt);
+
+    AST_resolve_calls(copy, smt);
     copy->c->sinfo.v_id = f_id;
     return copy;
 }

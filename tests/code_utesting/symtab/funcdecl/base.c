@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    AST_resolve_calls(&sctx, &smt);
+    AST_resolve_calls(sctx.r, &smt);
 
     map_foreach (func_info_t* fi, &smt.f.functb) {
         printf(

@@ -55,19 +55,22 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 symbol_id_t type = type_lookup(look_next_token(it), ctx, smt);
                 if (type == NO_SYMBOL_ID && TKN_is_builtin_type(look_next_token(it))) goto _default_operator;
                 forward_token(it, 1);
-                ast_node_t* type_node = AST_create_node(CURRENT_TOKEN);
-                if (type_node) {
-                    AST_add_node(left, type_node);
-                    type_node->sinfo.v_id = type;
-                }
-                else {
-                    PARSE_ERROR("Error during a generic type operation parsing!");
-                    AST_unload(left);
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
+                do {
+                    ast_node_t* type_node = AST_create_node(CURRENT_TOKEN);
+                    if (type_node) {
+                        AST_add_node(left, type_node);
+                        type_node->sinfo.v_id = type;
+                    }
+                    else {
+                        PARSE_ERROR("Error during a generic type operation parsing!");
+                        AST_unload(left);
+                        RESTORE_TOKEN_POINT;
+                        return NULL;
+                    }
 
-                forward_token(it, 2);
+                    if (consume_token(it, COMMA_TOKEN)) forward_token(it, 1);
+                } while (CURRENT_TOKEN->t_type != LARGER_TOKEN);
+                forward_token(it, 1);
                 break;
             }
             /* Postfix tokens that are change placment in an AST tree.

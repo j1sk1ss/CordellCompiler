@@ -7,7 +7,7 @@ int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* c
     func_info_t fi;
     if (!FNTB_get_info_id(f_id == NO_SYMBOL_ID ? node->c->sinfo.v_id : f_id, &fi, &smt->f)) return 0;
     if (fi.flags.generic) {
-        foreach (symbol_id_t g_id, &fi.resolutions) {
+        foreach (symbol_id_t g_id, &fi.template.resolutions) {
             func_info_t g_fi;
             if (FNTB_get_info_id(g_id, &g_fi, &smt->f)) {
                 HIR_generate_function_block(node, g_id, ctx, smt);

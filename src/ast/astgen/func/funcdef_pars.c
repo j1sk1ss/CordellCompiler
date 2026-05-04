@@ -72,20 +72,26 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
 
-    int generic = 0;
+    list_t generic_types;
+    list_init(&generic_types);
+    
     forward_token(it, 1);
     switch (CURRENT_TOKEN->t_type) {
         case OPEN_BRACKET_TOKEN: break;
         case LOWER_TOKEN: {
-            generic = 1;
             forward_token(it, 1);
-            TPTB_add_info(CURRENT_TOKEN->body, ctx->scopes.s_id, &smt->t);
-            forward_token(it, 2);
+            do {
+                symbol_id_t t_id = TPTB_add_info(CURRENT_TOKEN->body, ctx->scopes.s_id, &smt->t);
+                if (t_id != NO_SYMBOL_ID) list_add(&generic_types, (void*)t_id);
+                if (consume_token(it, COMMA_TOKEN)) forward_token(it, 1);
+            } while (CURRENT_TOKEN->t_type != LARGER_TOKEN);
+            forward_token(it, 1);
             break;
         }
         default: {
             PARSE_ERROR("Expected either the 'OPEN_BRACKET_TOKEN' or 'LOWER_TOKEN' (<) tokens!");
             AST_unload(base);
+            list_free(&generic_types);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
@@ -99,6 +105,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     else {
         PARSE_ERROR("Can't create a base for the function's arguments!");
         AST_unload(base);
+        list_free(&generic_types);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -110,6 +117,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args)) {
         PARSE_ERROR("Can't parse function's arguments!");
         AST_unload(base);
+        list_free(&generic_types);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -132,9 +140,13 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     int local = ctx->carry.ptr ? 1 : 0;
     name->sinfo.v_id = FNTB_add_info(
         name->t->body, virt_name, 
-        base->t->flags.glob, local, annots.is_entry, annots.is_naked, 0, generic,
+        base->t->flags.glob, local, annots.is_entry, annots.is_naked, 0, list_size(&generic_types) != 0,
         name->sinfo.s_id, args, name->c, &smt->f
     );
+
+    foreach (symbol_id_t t_id, &generic_types) {
+        FNTB_register_type(name->sinfo.v_id, t_id, &smt->f);
+    }
 
     if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
     else {
@@ -156,10 +168,12 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     else {
         PARSE_ERROR("Error during the function's body parsing!");
         AST_unload(base);
+        list_free(&generic_types);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
+    list_free(&generic_types);
     stack_pop(&ctx->scopes.stack, NULL);
     return base;
 }

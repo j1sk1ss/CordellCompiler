@@ -32,8 +32,11 @@ typedef struct {
         char     generic  : 1;
     } flags;
 
-    token_type_t generic;     /* Generic base type                       */
-    list_t       resolutions; /* Resolved copies (use the generic field) */
+    struct {
+        list_t   registered_types; /* List of registered symbol_id_t types     */
+        map_t    generic;          /* Generic base types. TypeId <-> TokenType */
+        list_t   resolutions;      /* Resolved copies (use the generic field)  */
+    } template;
 } func_info_t;
 
 typedef struct func_ctx {
@@ -104,6 +107,9 @@ symbol_id_t FNTB_add_info(
 // TODO: docs
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx);
 
+// TODO: docs
+int FNTB_register_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx);
+
 /*
 Register an existed function as a local function.
 Params:
@@ -146,7 +152,7 @@ int FNTB_update_func(
 );
 
 // TODO: docs
-symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, token_type_t t, functab_ctx_t* ctx);
+symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx_t* ctx);
 
 /*
 Unload a function symtable context.

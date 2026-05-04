@@ -46,7 +46,9 @@ static func_info_t* _create_func_info(
     if (!fn) return NULL;
     str_memset(fn, 0, sizeof(func_info_t));
     list_init(&fn->local);
-    list_init(&fn->resolutions);
+    list_init(&fn->template.resolutions);
+    list_init(&fn->template.registered_types);
+    map_init(&fn->template.generic, MAP_CMP);
     if (name) {
         fn->name = name->copy(name);
     }
@@ -59,19 +61,18 @@ static func_info_t* _create_func_info(
     fn->flags.naked   = naked;
     fn->flags.vargs   = vargs;
     fn->flags.generic = generic;
-    fn->generic       = RESOLVED_TYPE_TOKEN;
     return fn;
 }
 
 static int _is_function_presented(
-    string_t* name, symbol_id_t s_id, ast_node_t* args, token_type_t gen, func_info_t* out, functab_ctx_t* ctx
+    string_t* name, symbol_id_t s_id, ast_node_t* args, map_t* gen, func_info_t* out, functab_ctx_t* ctx
 ) {
     map_foreach (func_info_t* fi, &ctx->functb) {
         if (
             (s_id == FIELD_NO_CHANGE || fi->s_id == s_id) &&
             fi->name->equals(fi->name, name) &&
             AST_hash_node_stop(args->c, SCOPE_TOKEN) == AST_hash_node_stop(fi->args->c, SCOPE_TOKEN) &&
-            fi->generic == gen
+            (!gen || map_equals(&fi->template.generic, gen))
         ) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
             return 1;
@@ -100,7 +101,7 @@ symbol_id_t FNTB_add_info(
     );
     
     func_info_t out;
-    if (_is_function_presented(name, s_id, args, RESOLVED_TYPE_TOKEN, &out, ctx)) return out.id; 
+    if (_is_function_presented(name, s_id, args, NULL, &out, ctx)) return out.id; 
 
     func_info_t* nnd = _create_func_info(name, global, local, entry, naked, vargs, generic, args, rtype);
     if (!nnd) return 0;
@@ -178,25 +179,52 @@ int FNTB_update_func(
     return 0;
 }
 
-static inline int _resolve_types(ast_node_t* node, token_type_t t) {
+int FNTB_register_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx) {
+    func_info_t* fi;
+    if (map_get(&ctx->functb, f_id, (void**)&fi)) {
+        list_add(&fi->template.registered_types, (void*)t_id);
+        return 1;
+    }
+
+    return 0;
+}
+
+static int _resolve_types(ast_node_t* node, symbol_id_t t_id, token_type_t t) {
     if (!node) return 0;
-    _resolve_types(node->siblings.n, t);
-    _resolve_types(node->c, t);
+    _resolve_types(node->siblings.n, t_id, t);
+    _resolve_types(node->c, t_id, t);
     if (!node->t) return 0;
-    if (node->t->t_type == GENERIC_TYPE_TOKEN)     node->t->t_type = t;
-    if (node->t->t_type == GENERIC_VARIABLE_TOKEN) node->t->t_type = TKN_get_var_from_type(t);
+    if (
+        node->t->t_type == GENERIC_TYPE_TOKEN &&
+        node->sinfo.v_id == t_id
+    ) node->t->t_type = t;
+    // if (node->t->t_type == GENERIC_VARIABLE_TOKEN) node->t->t_type = TKN_get_var_from_type(t);
     return 1;
 }
 
-symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, token_type_t t, functab_ctx_t* ctx) {
-    print_log("FNTB_create_resolved_copy(id=%llu, t=%i", id, t);
+symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx_t* ctx) {
+    print_log("FNTB_create_resolved_copy(id=%llu, types_count=%i)", id, list_size(types));
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
         func_info_t existed;
         ast_node_t *args = AST_copy_node(fi->args, 0, 0, 1, NULL), *rtype = AST_copy_node(fi->rtype, 0, 0, 1, NULL);
-        _resolve_types(args, t);
-        _resolve_types(rtype, t);
-        if (_is_function_presented(fi->name, fi->s_id, args, t, &existed, ctx)) {
+
+        map_t reg_types;
+        map_init(&reg_types, MAP_CMP);
+
+        token_type_t** flatten_types   = (token_type_t**)list_flatten(types);
+        symbol_id_t** flatten_types_id = (symbol_id_t**)list_flatten(&fi->template.registered_types);
+        for (int i = 0; i < MIN(list_size(types), list_size(&fi->template.registered_types)); i++) {
+            _resolve_types(args, flatten_types_id[i], flatten_types[i]);
+            _resolve_types(rtype, flatten_types_id[i], flatten_types[i]);
+            map_put(&reg_types, flatten_types_id[i], (void*)flatten_types[i]);
+        }
+
+        mm_free(flatten_types);
+        mm_free(flatten_types_id);
+        
+        if (_is_function_presented(fi->name, fi->s_id, args, &reg_types, &existed, ctx)) {
+            map_free(&reg_types);
             AST_unload(args);
             AST_unload(rtype);
             return existed.id;
@@ -211,18 +239,23 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, token_type_t t, functab_ct
         AST_unload(args);
         AST_unload(rtype);
 
-        n->generic = t;
+        map_free(&n->template.generic);
+        map_copy(&n->template.generic, &reg_types);
+        map_free(&reg_types);
+
         n->s_id    = fi->s_id;
         n->id      = ctx->curr_id++;
         n->virt    = _create_virt_name(n->id, n->name);
 
         if (n->virt) {
-            n->virt->rcat(n->virt, "__");
-            n->virt->rcat(n->virt, DUMP_format_token_type(t));
+            foreach (token_type_t t, types) {
+                n->virt->rcat(n->virt, "__");
+                n->virt->rcat(n->virt, DUMP_format_token_type(t));
+            }
         }
 
         map_put(&ctx->functb, n->id, n);
-        list_add(&fi->resolutions, (void*)n->id);
+        list_add(&fi->template.resolutions, (void*)n->id);
         return n->id;
     }
 
@@ -233,7 +266,9 @@ static int _function_info_unload(func_info_t* info) {
     destroy_string(info->name);
     destroy_string(info->virt);
     list_free(&info->local);
-    list_free(&info->resolutions);
+    list_free(&info->template.resolutions);
+    list_free(&info->template.registered_types);
+    map_free(&info->template.generic);
     if (info->args)  AST_unload(info->args);
     if (info->rtype) AST_unload(info->rtype);
     return mm_free(info);
