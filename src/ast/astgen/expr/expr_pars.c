@@ -49,6 +49,27 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
 
     while (CURRENT_TOKEN) {
         switch (CURRENT_TOKEN->t_type) {
+            /* Generic type resolution (possible) */
+            case LOWER_TOKEN: {
+                if (left->t->t_type != CALL_ADDR_TOKEN) goto _default_operator;
+                symbol_id_t type = type_lookup(look_next_token(it), ctx, smt);
+                if (type == NO_SYMBOL_ID && TKN_is_builtin_type(look_next_token(it))) goto _default_operator;
+                forward_token(it, 1);
+                ast_node_t* type_node = AST_create_node(CURRENT_TOKEN);
+                if (type_node) {
+                    AST_add_node(left, type_node);
+                    type_node->sinfo.v_id = type;
+                }
+                else {
+                    PARSE_ERROR("Error during a generic type operation parsing!");
+                    AST_unload(left);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+
+                forward_token(it, 2);
+                break;
+            }
             /* Postfix tokens that are change placment in an AST tree.
                '[]' / '()' / 'as' takes two childs: the pointer and the data. */
             case CONVERT_TOKEN:
@@ -105,6 +126,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             /* Default operators such as:
                plus, minus, multiply, etc. */
             default: {
+_default_operator: {}
                 if (na == 2) goto _stop_expression_parsing;
                 int p = TKN_token_priority(CURRENT_TOKEN);
                 if (

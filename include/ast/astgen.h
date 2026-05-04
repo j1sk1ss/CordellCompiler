@@ -24,6 +24,12 @@ static inline int forward_token(list_iter_t* it, int steps) {
     return 1;
 }
 
+// TODO: docs
+static inline token_t* look_next_token(list_iter_t* it) {
+    if (!list_iter_current(it)) return NULL;
+    return (token_t*)list_iter_current(it);
+}
+
 /*
 Check if the next token is consumed.
 Note: Before the check will move a token iterator first.
