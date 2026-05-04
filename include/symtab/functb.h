@@ -1,6 +1,6 @@
 #ifndef FUNC_TB_H_
 #define FUNC_TB_H_
-
+// TODO: Refactor here. We have two similar update functions
 #include <std/str.h>
 #include <std/map.h>
 #include <std/list.h>
@@ -17,6 +17,7 @@ typedef struct {
 
     ast_node_t* args;  /* Input arguments       */
     ast_node_t* rtype; /* Function return type  */
+    ast_node_t* root;  /* Optional root in AST  */
 
     symbol_id_t s_id;
 
@@ -127,6 +128,9 @@ Params:
 Returns 1 if succeeds.
 */
 int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
+
+// TODO: docs
+int FNTB_set_root(symbol_id_t id, ast_node_t* root, functab_ctx_t* ctx);
 
 /*
 Update an existed function.

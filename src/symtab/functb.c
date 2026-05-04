@@ -160,6 +160,17 @@ int FNTB_update_info(symbol_id_t id, int used, int entry, int ext, ast_node_t* a
     return 0;
 }
 
+int FNTB_set_root(symbol_id_t id, ast_node_t* root, functab_ctx_t* ctx) {
+    print_log("FNTB_set_root(id=%llu", id);
+    func_info_t* fi;
+    if (map_get(&ctx->functb, id, (void**)&fi)) {
+        if (root) fi->root = root;
+        return 1;
+    }
+
+    return 0;
+}
+
 static int _function_info_unload(func_info_t* info) {
     destroy_string(info->name);
     destroy_string(info->virt);
