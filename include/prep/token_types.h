@@ -29,8 +29,7 @@ typedef enum {
     INDEXATION_TOKEN,      // []
     CALLING_TOKEN,         // ()
     LAMBDA_TOKEN,          // =>
-    LAMBDA_FUNCTION_TOKEN, // () => {};   
-    GENERIC_TYPE_TOKEN,    // T  
+    LAMBDA_FUNCTION_TOKEN, // () => {};
     OPEN_INDEX_TOKEN,      // [
     CLOSE_INDEX_TOKEN,     // ]
     OPEN_BRACKET_TOKEN,    // (
@@ -62,6 +61,7 @@ typedef enum {
     TMP_I0_TYPE_TOKEN,     // tmp_i0
     TMP_STR_TYPE_TOKEN,    // tmp_str
 
+    GENERIC_TYPE_TOKEN,    // T
     I0_TYPE_TOKEN,         // i0
     F64_TYPE_TOKEN,        // f64
     F32_TYPE_TOKEN,        // f32
@@ -141,6 +141,7 @@ typedef enum {
     OR_TOKEN,              // ||
     
     // Variables (not a type, a variable)
+    GENERIC_VARIABLE_TOKEN,
     VARIABLE_TOKEN,        // front-end tokenizer variable abstraction
     F64_VARIABLE_TOKEN,    // f64
     F32_VARIABLE_TOKEN,    // f32
@@ -197,7 +198,7 @@ int TKN_is_pointer(token_t* token);
 int TKN_is_one_slot(token_t* token);
 int TKN_in_stack(token_t* token);
 int TKN_is_block(token_t* token);
-int TKN_is_builtin_type(token_t* token); // TODO: Implement the type checker which resolves type from the table
+int TKN_is_builtin_type(token_t* token);
 int TKN_is_close(token_t* token);
 int TKN_is_operand(token_t* token);
 int TKN_is_numeric(token_t* token);

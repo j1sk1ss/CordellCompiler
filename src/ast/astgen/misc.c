@@ -12,6 +12,15 @@ int annotation_unreserve(ast_ctx_t* ctx, int off) {
     return 1;
 }
 
+symbol_id_t type_lookup(token_t* t, ast_ctx_t* ctx, sym_table_t* smt) {
+    type_info_t ti;
+    for (int s = ctx->scopes.stack.top; s >= 0; s--) {
+        if (TPTB_get_info(t->body, ctx->scopes.stack.data[s].d, &ti, &smt->t)) return ti.id;
+    }
+
+    return NO_SYMBOL_ID;
+}
+
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     var_lookup(node->siblings.n, ctx, smt);

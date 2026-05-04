@@ -38,7 +38,7 @@ static const handler_t handlers[] = {
     HANDLER(cpl_parse_return,            0, RETURN_TOKEN),
     HANDLER(cpl_parse_array_declaration, 0, ARRAY_TYPE_TOKEN),
     HANDLER(
-        cpl_parse_variable_declaration, 0,
+        cpl_parse_variable_declaration, NO_SYMBOL_ID,
         STR_TYPE_TOKEN, F32_TYPE_TOKEN, F64_TYPE_TOKEN,
         I8_TYPE_TOKEN, I16_TYPE_TOKEN, I32_TYPE_TOKEN, I64_TYPE_TOKEN,
         U8_TYPE_TOKEN, U16_TYPE_TOKEN, U32_TYPE_TOKEN, U64_TYPE_TOKEN,
@@ -61,16 +61,19 @@ static const handler_t handlers[] = {
 };
 #undef HANDLER
 
-/*
-Parsers collection navigation.
-Params:
-    - `it` - Current iterator.
-    - `ctx` - AST context.
-    - `smt` - Symtable.
+// TODO: docs
+static ast_node_t* _dynamic_navigation_handler(PARSER_ARGS) {
+    PARSER_ARGS_USE;
+    symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
+    if (TKN_is_builtin_type(CURRENT_TOKEN) || type != NO_SYMBOL_ID) {
+        return cpl_parse_variable_declaration(it, ctx, smt, type);
+    }
 
-Returns an AST node.
-*/
-static ast_node_t* _navigation_handler(PARSER_ARGS) {
+    return NULL;
+}
+
+// TODO: docs
+static ast_node_t* _static_navigation_handler(PARSER_ARGS) {
     PARSER_ARGS_USE;
     for (int i = 0; i < (int)(sizeof(handlers) / sizeof(handlers[0])); i++) {
         for (int j = 0; j < handlers[i].types_count; j++) {
@@ -83,6 +86,22 @@ static ast_node_t* _navigation_handler(PARSER_ARGS) {
     return NULL;
 }
 
+/*
+Parsers collection navigation.
+Params:
+    - `it` - Current iterator.
+    - `ctx` - AST context.
+    - `smt` - Symtable.
+
+Returns an AST node.
+*/
+static ast_node_t* _navigation_handler(PARSER_ARGS) {
+    ast_node_t* dyn = _dynamic_navigation_handler(it, ctx, smt, carry);
+    if (dyn) return dyn;
+    return _static_navigation_handler(it, ctx, smt, carry);
+}
+
+// TODO: docs
 ast_node_t* cpl_parse_element(PARSER_ARGS) {
     return _navigation_handler(it, ctx, smt, carry);
 }

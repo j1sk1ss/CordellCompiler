@@ -241,6 +241,9 @@ Params:
         list_add(&nd->annots, annot);                                                      \
     }
 
+// TODO: docs
+symbol_id_t type_lookup(token_t* t, ast_ctx_t* ctx, sym_table_t* smt);
+
 /*
 Search for a variable (presented in the node) on the symtable.
 Params:

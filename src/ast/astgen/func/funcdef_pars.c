@@ -7,7 +7,10 @@ int cpl_parse_funcdef_args(PARSER_ARGS) {
     ast_node_t* trg = (ast_node_t*)carry;
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
         ast_node_t* arg = NULL;
-        if (TKN_is_builtin_type(CURRENT_TOKEN)) arg = cpl_parse_variable_declaration(it, ctx, smt, carry);
+        symbol_id_t arg_type = type_lookup(CURRENT_TOKEN, ctx, smt);
+        if (
+            TKN_is_builtin_type(CURRENT_TOKEN) || arg_type != NO_SYMBOL_ID
+        ) arg = cpl_parse_variable_declaration(it, ctx, smt, arg_type);
         else if (CURRENT_TOKEN->t_type == VAR_ARGUMENTS_TOKEN) {
             arg = AST_create_node(CURRENT_TOKEN);
             forward_token(it, 1);
@@ -66,10 +69,16 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         return NULL;
     }
 
+    stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
+    stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
+
     forward_token(it, 1);
     switch (CURRENT_TOKEN->t_type) {
         case OPEN_BRACKET_TOKEN: break;
-        case LOWER_TOKEN: { // TODO: Parse the generic type
+        case LOWER_TOKEN: {
+            forward_token(it, 1);
+            TPTB_add_info(CURRENT_TOKEN->body, ctx->scopes.s_id, &smt->t);
+            forward_token(it, 2);
             break;
         }
         default: {
@@ -81,17 +90,16 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     ast_node_t* args = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    if (args) AST_add_node(base, args);
+    if (args) {
+        AST_add_node(base, args);
+        args->sinfo.s_id = ctx->scopes.s_id;
+    }
     else {
         PARSE_ERROR("Can't create a base for the function's arguments!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-
-    stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
-    stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
-    args->sinfo.s_id = ctx->scopes.s_id;
 
     annotations_summary_t annots = { .section = NULL, .is_entry = 0, .is_naked = 0 };
     ANNOT_read_annotations(&ctx->annots, &annots);
@@ -107,6 +115,8 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     if (consume_token(it, RETURN_TYPE_TOKEN)) {
         forward_token(it, 1);
         ast_node_t* ret_type = AST_create_node(CURRENT_TOKEN);
+        ret_type->sinfo.v_id = type_lookup(ret_type->t, ctx, smt);
+        if (ret_type->sinfo.v_id != NO_SYMBOL_ID) ret_type->t->t_type = GENERIC_TYPE_TOKEN;
         AST_add_node(name, ret_type);
         forward_token(it, 1);
     }
