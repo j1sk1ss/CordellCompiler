@@ -3,7 +3,6 @@
 int HIR_init_extended_ctx(hir_ctx_t* ctx) {
     str_memset(ctx, 0, sizeof(hir_ctx_t));
     ctx->cold.is_sup = 1;
-    ctx->carry.val3 = HIR_NOTYPE;
     return list_init(&ctx->cold.blocks);
 }
 

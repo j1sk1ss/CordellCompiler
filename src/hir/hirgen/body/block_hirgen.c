@@ -83,7 +83,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
     switch (node->t->t_type) {
         case IF_TOKEN:              return HIR_generate_if_block(node, ctx, smt);
         case ASM_TOKEN:             return HIR_generate_asmblock(node, ctx, smt);
-        case FUNC_TOKEN:            return HIR_generate_function_block(node, NO_SYMBOL_ID, HIR_NOTYPE, ctx, smt);
+        case FUNC_TOKEN:            return HIR_generate_function_block(node, NO_SYMBOL_ID, ctx, smt);
         case EXIT_TOKEN:            return HIR_generate_exit_block(node, ctx, smt);
         case CALLING_TOKEN:         return (int)((long)HIR_generate_funccall(node, ctx, smt, 0));
         case LOOP_TOKEN:            return HIR_generate_loop_block(node, ctx, smt);
@@ -99,8 +99,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case LAMBDA_FUNCTION_TOKEN: return (int)((long)HIR_generate_lambda(node, ctx, smt, 0));
         default: break;
     }
-
-    if (TKN_is_builtin_type(node->t))            return HIR_generate_declaration_block(node, ctx, smt);
+    if (TKN_is_builtin_type(node->t))    return HIR_generate_declaration_block(node, ctx, smt);
     if (TKN_is_update_operator(node->t)) return (int)((long)HIR_generate_update_block(node, ctx, smt, 0));
     return (int)((long)_generation_handler(node, ctx, smt, 0));
 }

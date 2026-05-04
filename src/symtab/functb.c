@@ -16,7 +16,7 @@ int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ct
     map_foreach (func_info_t* fi, &ctx->functb) {
         if (
             fi->name->equals(fi->name, fname) && 
-            fi->s_id == s_id && !fi->flags.generic
+            fi->s_id == s_id && !fi->flags.generic && fi->s_id != NO_SYMBOL_ID
         ) list_add(out, fi);
     }
 
@@ -114,14 +114,15 @@ symbol_id_t FNTB_add_info(
     return nnd->id;
 }
 
-int FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx) {
+symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx) {
     print_log("FNTB_add_copy(id=%llu)", src->id);
     func_info_t* nnd = _create_func_info(src->name, 0, 0, 0, 0, 0, 0, src->args, src->rtype);
     if (!nnd) return NO_SYMBOL_ID;
-
     str_memcpy(&nnd->flags, &src->flags, sizeof(src->flags));
-    nnd->id = ctx->curr_id++;
-
+    nnd->id   = ctx->curr_id++;
+    nnd->virt = _create_virt_name(nnd->id, src->name);
+    nnd->s_id = NO_SYMBOL_ID;
+    map_put(&ctx->functb, nnd->id, nnd);
     return nnd->id;
 }
 

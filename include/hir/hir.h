@@ -81,7 +81,6 @@ typedef struct {
         void*        ptr;           /* pointer to a break target               */
         long         val1;          /* function's argument number              */
         long         val2;          /* function's argument load operation      */
-        long         val3;          /* function's generic type                 */
     } carry;                        /* Additional carry for any specific data  */
 } hir_ctx_t;
 
@@ -120,12 +119,6 @@ static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
 #define HIR_SUBJ_NUMBER(t, val)          HIR_create_subject(t, 0, val, 0)
 #define HIR_SUBJ_STKVAR(v_id, kind, ptr) HIR_create_subject(kind, v_id, NULL, ptr)
 #define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, _get_token_stktype(n->t, 0), n->t->flags.ptr)
-#define HIR_SUBJ_ASTVAR_T(n, gt)                                                                 \
-    HIR_SUBJ_STKVAR(                                                                             \
-        n->sinfo.v_id,                                                                           \
-        (gt == HIR_NOTYPE || n->t->t_type != GENERIC_VARIABLE_TOKEN) ? _get_token_stktype(n->t, 0) : gt, \
-        n->t->flags.ptr                                                                          \
-    )
 #define HIR_SUBJ_TMPVAR(kind, id)        HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)
 #define HIR_SUBJ_CPVAR(var, smt)         HIR_SUBJ_TMPVAR(var->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(var->t), 0, NULL, &smt->v))
 #define HIR_SUBJ_LABEL()                 HIR_create_subject(HIR_LABEL, 0, NULL, 0)

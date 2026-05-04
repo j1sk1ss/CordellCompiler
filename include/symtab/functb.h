@@ -102,7 +102,7 @@ symbol_id_t FNTB_add_info(
 );
 
 // TODO: docs
-int FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx);
+symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx);
 
 /*
 Register an existed function as a local function.

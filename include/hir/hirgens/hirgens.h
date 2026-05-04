@@ -28,18 +28,15 @@ Params:
     - `args` - Current popped arguments number.
     - `logic` - Wrapped logic. 
 */
-#define SET_AND_DUMP_POPARG(op, args, gt, logic) \
-    int pargnum =                                \
-        ctx->carry.val1,                         \
-        pargop = ctx->carry.val2,                \
-        pgt = ctx->carry.val3;                   \
-    ctx->carry.val1 = args;                      \
-    ctx->carry.val2 = op;                        \
-    ctx->carry.val3 = gt;                        \
-    logic;                                       \
-    ctx->carry.val1 = pargnum;                   \
-    ctx->carry.val2 = pargop;                    \
-    ctx->carry.val3 = pgt;
+#define SET_AND_DUMP_POPARG(op, args, logic) \
+    int pargnum =                            \
+        ctx->carry.val1,                     \
+        pargop = ctx->carry.val2;            \
+    ctx->carry.val1 = args;                  \
+    ctx->carry.val2 = op;                    \
+    logic;                                   \
+    ctx->carry.val1 = pargnum;               \
+    ctx->carry.val2 = pargop;                    
 
 /*
 Fire a HIRGEN error.
@@ -304,13 +301,12 @@ Convert function AST node into HIR element.
 Params:
     - `node` - AST node.
     - `f_id` - Provide ID if you want to overwrite the node's ID.
-    - `gen_t` - If function is generic, provide a type for an instance.
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
 Return 1 if succeeds. Otherwise will return 0.
 */
-int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_subject_type_t gen_t, hir_ctx_t* ctx, sym_table_t* smt);
+int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Convert start AST node into HIR element. 

@@ -24,7 +24,7 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
             HIR_BLOCK2(ctx, HIR_REF, res, HIR_SUBJ_FUNCNAME(node));
             break;
         }
-        default: res = HIR_SUBJ_ASTVAR_T(node, ctx->carry.val3); break;
+        default: res = HIR_SUBJ_ASTVAR(node); break;
     }
 
     return res;
