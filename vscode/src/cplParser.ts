@@ -271,7 +271,6 @@ function lex(text: string): Token[] {
       const start = i;
       i++;
       while (i < text.length) {
-        if (text[i] === "\n" || text[i] === "\r") break;
         if (text[i] === "\\" && i + 1 < text.length) { i += 2; continue; }
         if (text[i] === "\"") { i++; break; }
         i++;
@@ -401,6 +400,42 @@ class Parser {
 
   private curRaw(): Token { return this.t[this.i]; }
 
+  private prevNonEOL(): Token | undefined {
+    for (let j = this.i - 1; j >= 0; j--) {
+      if (this.t[j].kind !== "eol") return this.t[j];
+    }
+    return undefined;
+  }
+
+  private lineOfOffset(off: number): number {
+    let lo = 0, hi = this.lines.length - 1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (this.lines[mid] <= off) lo = mid + 1;
+      else hi = mid - 1;
+    }
+    return Math.max(0, hi);
+  }
+
+  private peekNonEOL(offset = 0): Token {
+    let j = this.i;
+    let seen = 0;
+    while (j < this.t.length) {
+      if (this.t[j].kind === "eol") { j++; continue; }
+      if (seen === offset) return this.t[j];
+      seen++;
+      j++;
+    }
+    return this.t[this.t.length - 1];
+  }
+
+  private atNonEOL(offset: number, kind: TokenKind, text?: string): boolean {
+    const c = this.peekNonEOL(offset);
+    if (c.kind !== kind) return false;
+    if (text !== undefined) return c.text === text;
+    return true;
+  }
+
   private at(kind: TokenKind, text?: string): boolean {
     const c = this.cur();
     if (c.kind !== kind) return false;
@@ -510,6 +545,28 @@ class Parser {
     ) this.i++;
 
     if (this.atRaw("punc", ";") || this.atRaw("eol")) this.i++;
+  }
+
+  private consumeStmtEnd(msg: string): boolean {
+    if (this.matchRaw("punc", ";")) return true;
+
+    if (this.matchRaw("eol")) {
+      while (this.matchRaw("eol")) {}
+      return true;
+    }
+
+    if (this.atRaw("eof") || this.atRaw("punc", "}")) return true;
+
+    const prevTok = this.prevNonEOL();
+    const curTok = this.curRaw();
+    if (prevTok && this.lineOfOffset(prevTok.end) < this.lineOfOffset(curTok.start)) return true;
+
+    const c = this.curRaw();
+    this.issues.push({
+      message: msg,
+      range: rangeOf(this.lines, c.start, c.end)
+    });
+    return false;
   }
 
   private parseProgram() {
@@ -738,6 +795,58 @@ class Parser {
     if (this.atRaw("punc", ";") || this.atRaw("eol")) this.i++;
   }
 
+  private parseGenericParamListAfterName(): string[] {
+    const params: string[] = [];
+    if (!this.match("op", "<")) return params;
+
+    if (this.at("op", ">")) {
+      const c = this.cur();
+      this.issues.push({
+        message: "generic parameter list cannot be empty",
+        range: rangeOf(this.lines, c.start, c.end)
+      });
+      this.i++;
+      return params;
+    }
+
+    while (!this.at("eof")) {
+      const nameTok = this.cur();
+      this.expect("ident", undefined, "generic parameter: expected identifier");
+      if (nameTok.kind === "ident") params.push(nameTok.text);
+
+      if (!this.match("punc", ",")) break;
+    }
+
+    this.expect("op", ">", "generic parameter list: expected '>'");
+    return params;
+  }
+
+  private tryParseTypeArgsBeforeCall(): boolean {
+    if (!this.at("op", "<")) return false;
+
+    const saveI = this.i;
+    const saveIssues = this.issues.length;
+
+    this.i++;
+
+    if (this.at("op", ">")) {
+      this.i = saveI;
+      this.issues.length = saveIssues;
+      return false;
+    }
+
+    this.parseType();
+    while (this.match("punc", ",")) this.parseType();
+
+    if (!this.match("op", ">") || !this.at("punc", "(")) {
+      this.i = saveI;
+      this.issues.length = saveIssues;
+      return false;
+    }
+
+    return true;
+  }
+
   private parseParamListOptInfos(): ParamInfo[] {
     const params: ParamInfo[] = [];
     if (this.at("punc", ")")) return params;
@@ -853,6 +962,7 @@ class Parser {
     const nameTok = this.cur();
     this.expect("ident", undefined, "function: expected identifier");
     const fnName = this.prev().text;
+    const typeParams = this.parseGenericParamListAfterName();
 
     this.expect("punc", "(");
     const paramsInfo = this.parseParamListOptInfos();
@@ -864,11 +974,11 @@ class Parser {
     const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
 
     if (this.match("punc", ";")) {
-      this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, false, doc);
+      this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, false, doc, typeParams);
       return;
     }
 
-    this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, true, doc);
+    this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, true, doc, typeParams);
 
     this.sem?.enterScope();
     for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
@@ -883,6 +993,7 @@ class Parser {
       const nameTok = this.cur();
       this.expect("ident", undefined, "extern function: expected identifier");
       const fnName = this.prev().text;
+      const typeParams = this.parseGenericParamListAfterName();
 
       this.expect("punc", "(");
       const params = this.parseParamListOptInfos();
@@ -894,7 +1005,7 @@ class Parser {
       this.expect("punc", ";", "extern function: expected ';'");
 
       const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
-      this.sem?.declareFunc(fnName, params, ret, fnRange, false, this.pendingDoc);
+      this.sem?.declareFunc(fnName, params, ret, fnRange, false, this.pendingDoc, typeParams);
       this.pendingDoc = undefined;
       return;
     }
@@ -1246,11 +1357,16 @@ class Parser {
 
   private looksLikeTypeStart(): boolean {
     const c = this.cur();
-    return this.atRaw("punc", "@") || (c.kind === "kw" && TYPE_KW.has(c.text));
+    return this.atRaw("punc", "@")
+      || (c.kind === "kw" && TYPE_KW.has(c.text))
+      || c.kind === "ident";
   }
 
   private looksLikeDeclStart(): boolean {
-    return this.looksLikeTypeStart() || this.at("kw", "glob") || this.at("kw", "ro");
+    if (this.at("kw", "glob") || this.at("kw", "ro")) return true;
+    if (this.atRaw("punc", "@")) return true;
+    if (this.at("kw") && TYPE_KW.has(this.cur().text)) return true;
+    return this.atNonEOL(0, "ident") && this.atNonEOL(1, "ident");
   }
 
   private parseVarOrArrDecl(isTopLevel: boolean) {
@@ -1294,7 +1410,7 @@ class Parser {
           }
         }
 
-        this.expect("punc", ";", "arr_decl: expected ';'");
+        this.consumeStmtEnd("arr_decl: expected ';' or end-of-line");
         return;
       }
     }
@@ -1310,7 +1426,17 @@ class Parser {
     else this.sem?.declareLocalVar(vName, vType, declRange, { readonly: mods.isReadonly });
 
     if (this.match("op", "=")) this.parseExpression();
-    this.expect("punc", ";", "var_decl: expected ';'");
+    this.consumeStmtEnd("var_decl: expected ';' or end-of-line");
+  }
+
+  private typeToName(t: TypeNode): string {
+    switch (t.kind) {
+      case "prim": return t.name;
+      case "ptr": return `ptr ${this.typeToName(t.to)}`;
+      case "arr": return `arr[${t.len ?? "?"}, ${this.typeToName(t.elem)}]`;
+      case "func": return "func";
+      case "unknown": return "?";
+    }
   }
 
   private parseType(): TypeNode {
@@ -1342,6 +1468,25 @@ class Parser {
     if (this.at("kw") && TYPE_KW.has(this.cur().text) && this.cur().text !== "arr" && this.cur().text !== "ptr") {
       const name = this.cur().text;
       this.i++;
+      return { kind: "prim", name };
+    }
+
+    if (this.at("ident")) {
+      let name = this.cur().text;
+      this.i++;
+
+      if (this.match("op", "<")) {
+        const args: string[] = [];
+        const first = this.parseType();
+        args.push(this.typeToName(first));
+        while (this.match("punc", ",")) {
+          const arg = this.parseType();
+          args.push(this.typeToName(arg));
+        }
+        this.expect("op", ">", "type argument list: expected '>'");
+        name += `<${args.join(", ")}>`;
+      }
+
       return { kind: "prim", name };
     }
 
@@ -1488,6 +1633,11 @@ class Parser {
     let wasCall = false;
 
     while (true) {
+      if (expr.identName && this.tryParseTypeArgsBeforeCall()) {
+        expr = { ...expr, end: this.prev().end };
+        continue;
+      }
+
       if (this.match("punc","(")) {
         wasCall = true;
         let argc = 0;
