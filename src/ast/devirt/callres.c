@@ -9,7 +9,11 @@ static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt) 
         node->t->t_type == CALLING_TOKEN      &&
         node->c->t->t_type == FUNC_NAME_TOKEN &&
         node->c->c
-    ) node->c->sinfo.v_id = FNTB_create_resolved_copy(node->c->sinfo.v_id, node->c->c->t->t_type, &smt->f);
+    ) {
+        node->c->sinfo.v_id = FNTB_create_resolved_copy(node->c->sinfo.v_id, node->c->c->t->t_type, &smt->f);
+        node->c->sinfo.s_id = NO_SYMBOL_ID;
+    }
+ 
     return 1;
 }
 
