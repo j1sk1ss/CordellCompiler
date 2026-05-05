@@ -2,20 +2,9 @@
 
 int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
-    node = AST_implement_template(node, f_id, smt);
 
     func_info_t fi;
-    if (!FNTB_get_info_id(f_id == NO_SYMBOL_ID ? node->c->sinfo.v_id : f_id, &fi, &smt->f)) return 0;
-    if (fi.flags.generic) {
-        foreach (symbol_id_t g_id, &fi.template.resolutions) {
-            func_info_t g_fi;
-            if (FNTB_get_info_id(g_id, &g_fi, &smt->f)) {
-                HIR_generate_function_block(node, g_id, ctx, smt);
-            }
-        }
-
-        return 1;
-    }
+    if (!FNTB_get_info_id(f_id == NO_SYMBOL_ID ? node->c->sinfo.v_id : f_id, &fi, &smt->f) || fi.flags.generic) return 0;
 
     hir_subject_t* lguards = NULL;
     if (fi.flags.local) {
@@ -53,6 +42,5 @@ int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* c
     HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
     HIR_BLOCK0(ctx, HIR_FEND);
     if (lguards) HIR_BLOCK1(ctx, HIR_MKLB, lguards);
-    if (f_id != NO_SYMBOL_ID) AST_destroy_template_implementation(node);
     return 1;
 }

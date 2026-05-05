@@ -26,7 +26,7 @@ ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld, ast_node_t* 
     str_memcpy(&dst->sinfo, &n->sinfo, sizeof(syntax_info_t));
 
     if (chld && n->c) {
-        if (!(stp > 0 && n->c->t && n->c == stp)) {
+        if (!(n->c->t && n->c == stp)) {
             dst->c = AST_copy_node(n->c, 0, 1, 1, stp);
             ast_node_t* cn = dst->c;
             while (cn) {
@@ -37,7 +37,7 @@ ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld, ast_node_t* 
     }
 
     if (sib && n->siblings.n) {
-        if (!(stp > 0 && n->siblings.n->t && n->siblings.n == stp)) {
+        if (!(n->siblings.n->t && n->siblings.n == stp)) {
             dst->siblings.n = AST_copy_node(n->siblings.n, 0, 1, 1, stp);
 
             ast_node_t* tail = dst->siblings.n;

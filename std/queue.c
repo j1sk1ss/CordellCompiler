@@ -88,13 +88,14 @@ int queue_free(queue_t* q) {
     return 1;
 }
 
-int queue_free_force(queue_t* q) {
+int _queue_free_force(queue_t* q, int (*fop)(void*)) {
     if (q && q->body) {
         for (int i = 0; i < q->meta.count; i++) {
             int index = (q->meta.head + i) % q->size;
             void* elem = q->body[index].data;
             if (elem) {
-                mm_free(elem);
+                if (fop) fop(elem); 
+                else mm_free(elem);
                 q->body[index].data = NULL;
             }
         }
@@ -103,8 +104,16 @@ int queue_free_force(queue_t* q) {
         q->body = NULL;
         q->meta.head = q->meta.tail = q->meta.count = 0;
         q->size = 0;
-        return 0;
+        return 1;
     }
     
-    return -1;
+    return 0;
+}
+
+int queue_free_force(queue_t* q) {
+    return _queue_free_force(q, NULL);
+}
+
+int queue_free_force_op(queue_t* q, int (*fop)(void*)) {
+    return _queue_free_force(q, fop);
 }

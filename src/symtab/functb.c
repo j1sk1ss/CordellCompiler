@@ -215,8 +215,8 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx
         token_type_t** flatten_types   = (token_type_t**)list_flatten(types);
         symbol_id_t** flatten_types_id = (symbol_id_t**)list_flatten(&fi->template.registered_types);
         for (int i = 0; i < MIN(list_size(types), list_size(&fi->template.registered_types)); i++) {
-            _resolve_types(args, flatten_types_id[i], flatten_types[i]);
-            _resolve_types(rtype, flatten_types_id[i], flatten_types[i]);
+            _resolve_types(args, (symbol_id_t)flatten_types_id[i], (token_type_t)flatten_types[i]);
+            _resolve_types(rtype, (symbol_id_t)flatten_types_id[i], (token_type_t)flatten_types[i]);
             map_put(&reg_types, flatten_types_id[i], (void*)flatten_types[i]);
         }
 
@@ -248,9 +248,9 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx
         n->virt    = _create_virt_name(n->id, n->name);
 
         if (n->virt) {
-            foreach (token_type_t t, types) {
+            foreach (token_type_t* t, types) {
                 n->virt->rcat(n->virt, "__");
-                n->virt->rcat(n->virt, DUMP_format_token_type(t));
+                n->virt->rcat(n->virt, DUMP_format_token_type((token_type_t)t));
             }
         }
 

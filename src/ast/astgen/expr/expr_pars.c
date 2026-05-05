@@ -53,13 +53,17 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             case LOWER_TOKEN: {
                 if (left->t->t_type != CALL_ADDR_TOKEN) goto _default_operator;
                 symbol_id_t type = type_lookup(look_next_token(it), ctx, smt);
-                if (type == NO_SYMBOL_ID && TKN_is_builtin_type(look_next_token(it))) goto _default_operator;
+                if (type == NO_SYMBOL_ID && !TKN_is_builtin_type(look_next_token(it))) goto _default_operator;
                 forward_token(it, 1);
                 do {
                     ast_node_t* type_node = AST_create_node(CURRENT_TOKEN);
+                    type = type_lookup(type_node->t, ctx, smt);
                     if (type_node) {
                         AST_add_node(left, type_node);
-                        type_node->sinfo.v_id = type;
+                        if (type != NO_SYMBOL_ID) {
+                            type_node->sinfo.v_id = type;
+                            type_node->t->t_type  = GENERIC_TYPE_TOKEN;
+                        }
                     }
                     else {
                         PARSE_ERROR("Error during a generic type operation parsing!");
