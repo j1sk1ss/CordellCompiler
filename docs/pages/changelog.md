@@ -5,6 +5,10 @@ Logs for the first and second versions are quite short because I don’t remembe
 ```
 ...
 ^
+[Version v3.5]
+^
+... minor changes related to v3.4 ...
+^
 [Version v3.4]
 ^
 ... minor changes related to v3.3 ...
@@ -27,6 +31,21 @@ Logs for the first and second versions are quite short because I don’t remembe
 ^
 [Version v1]
 ```
+
+----------------------------------------
+
+# Version v3.5
+Compiler now supports polymophic params. It makes possible to implement generic types and functions which creates a way to structures and user-defined types. The preparation phase (the phase before the AST phase) was refactored. </br>
+The biggest change is a new supported syntax like the next one:
+```cpl
+function foo<T>(T a) -> T {
+    return a;
+}
+foo<i32>(1);
+foo<i8>(1);
+```
+
+It creates a function for each uniqe set of types. At this point it can work with any type which can be used as an argument.
 
 ----------------------------------------
 

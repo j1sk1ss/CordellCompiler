@@ -1,5 +1,5 @@
 # TODO
-## Simple polymorphic system (Ongoing)
+## Simple polymorphic system (Completed)
 The idea is to create a placeholder type for local variables, then copy a function with the provided type. For instance let's consider the function below:
 ```cpl
 function swap<T>(ptr T a, ptr T b) -> i0 {
