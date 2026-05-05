@@ -179,6 +179,17 @@ int FNTB_update_func(
     return 0;
 }
 
+int FNTB_clear_registered_types(symbol_id_t f_id, functab_ctx_t* ctx) {
+    func_info_t* fi;
+    if (map_get(&ctx->functb, f_id, (void**)&fi)) {
+        list_free(&fi->template.registered_types);
+        list_init(&fi->template.registered_types);
+        return 1;
+    }
+
+    return 0;
+}
+
 int FNTB_register_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx) {
     func_info_t* fi;
     if (map_get(&ctx->functb, f_id, (void**)&fi)) {

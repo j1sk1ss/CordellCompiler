@@ -30,10 +30,9 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     AST_DVRT_find_templates(ctx->r, smt, &dctx);
     AST_DVRT_resolve_calls(ctx->r, smt, &dctx);
 
-    ast_node_t* devirt = AST_DVRT_pop_implementation(smt, &dctx);
-    while (devirt) {
-        AST_add_node(ctx->r, devirt);
-        devirt = AST_DVRT_pop_implementation(smt, &dctx);
+    ast_node_t* devirt;
+    while (AST_DVRT_pop_implementation(smt, &dctx, (ast_node_t**)&devirt)) {
+        if (devirt) AST_add_node(ctx->r, devirt);
     }
 
     AST_DVRT_unload_ctx(&dctx);

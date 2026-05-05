@@ -144,10 +144,6 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         name->sinfo.s_id, args, name->c, &smt->f
     );
 
-    foreach (symbol_id_t t_id, &generic_types) {
-        FNTB_register_type(name->sinfo.v_id, t_id, &smt->f);
-    }
-
     if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
     else {
         if (!annots.section) annots.section = create_string(CONF_get_code_section());
@@ -157,9 +153,19 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     ANNOT_destroy_summary(&annots);
 
     if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
+        foreach (symbol_id_t t_id, &generic_types) {
+            FNTB_register_type(name->sinfo.v_id, t_id, &smt->f);
+        }
+        
         base->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);
+        list_free(&generic_types);
         return base;
+    }
+
+    FNTB_clear_registered_types(name->sinfo.v_id, &smt->f);
+    foreach (symbol_id_t t_id, &generic_types) {
+        FNTB_register_type(name->sinfo.v_id, t_id, &smt->f);
     }
 
     ast_node_t* body = NULL;

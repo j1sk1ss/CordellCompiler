@@ -21,7 +21,7 @@ typedef struct {
 int AST_DVRT_init_ctx(devirt_ctx_t* ctx);
 int AST_DVRT_register_template(symbol_id_t f_id, ast_node_t* root, devirt_ctx_t* ctx);
 int AST_DVRT_register_implementation(symbol_id_t f_id, symbol_id_t src_id, devirt_ctx_t* ctx);
-ast_node_t* AST_DVRT_pop_implementation(sym_table_t* smt, devirt_ctx_t* ctx);
+int AST_DVRT_pop_implementation(sym_table_t* smt, devirt_ctx_t* ctx, ast_node_t** out);
 int AST_DVRT_unload_ctx(devirt_ctx_t* ctx);
 int AST_DVRT_find_templates(ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx);
 int AST_DVRT_resolve_calls(ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx);

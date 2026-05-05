@@ -4,12 +4,19 @@ static int _find_and_register_template(ast_node_t* node, sym_table_t* smt, devir
     if (!node) return 0;
     _find_and_register_template(node->siblings.n, smt, ctx);
     _find_and_register_template(node->c, smt, ctx);
-    if (!node->t) return 0;
-    if (node->t->t_type == FUNC_TOKEN) {
-        func_info_t fi;
-        if (FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f) && fi.flags.generic) {
-            AST_DVRT_register_template(fi.id, node, ctx);
+    if (!node->t || !node->c) return 0;
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)) return 0;
+
+    switch (node->t->t_type) {
+        case FUNC_TOKEN:
+        case FUNC_PROT_TOKEN: {
+            if (!fi.flags.generic) return 0;
+            AST_DVRT_register_template(fi.id, node->t->t_type == FUNC_TOKEN ? node : NULL, ctx);
+            break;
         }
+        default: break;
     }
 
     return 1;
@@ -41,11 +48,11 @@ static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt, 
             list_add(&types, (void*)type_node->t->t_type);
             type_node = type_node->siblings.n;
         }
-
+        
         string_t* section = SCTB_get_section_name(node->c->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
         if (!section) section = create_string(CONF_get_code_section());
         else section = section->copy(section);
-
+        
         symbol_id_t base = node->c->sinfo.v_id;
         node->c->sinfo.v_id = FNTB_create_resolved_copy(base, &types, &smt->f);
         node->c->sinfo.s_id = NO_SYMBOL_ID;

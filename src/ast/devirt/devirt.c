@@ -8,6 +8,8 @@ int AST_DVRT_init_ctx(devirt_ctx_t* ctx) {
 }
 
 int AST_DVRT_register_template(symbol_id_t f_id, ast_node_t* root, devirt_ctx_t* ctx) {
+    ast_node_t* prev;
+    if (map_get(&ctx->templates, f_id, (void**)&prev) && prev) return 1;
     return map_put(&ctx->templates, f_id, root);
 }
 
@@ -120,13 +122,21 @@ ast_node_t* _implement_template(ast_node_t* root, symbol_id_t f_id, sym_table_t*
     return copy;
 }
 
-ast_node_t* AST_DVRT_pop_implementation(sym_table_t* smt, devirt_ctx_t* ctx) {
+int AST_DVRT_pop_implementation(sym_table_t* smt, devirt_ctx_t* ctx, ast_node_t** out) {
     template_t* template;
-    if (!queue_pop(&ctx->to_impl, (void**)&template)) return NULL;
+    if (!queue_pop(&ctx->to_impl, (void**)&template)) return 0;
     ast_node_t* template_ast = template->root;
-    ast_node_t* prepared = _implement_template(template_ast, template->f_id, smt, ctx);
+    if (!template_ast) {
+        print_warn("Pattern has a NULL root which means, there is no pattern implementation!");
+        *out = NULL;
+    }
+    else {
+        ast_node_t* prepared = _implement_template(template_ast, template->f_id, smt, ctx);
+        *out = prepared;
+    }
+
     _unload_template(template);
-    return prepared;
+    return 1;
 }
 
 int AST_DVRT_unload_ctx(devirt_ctx_t* ctx) {

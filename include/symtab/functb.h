@@ -108,6 +108,9 @@ symbol_id_t FNTB_add_info(
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx);
 
 // TODO: docs
+int FNTB_clear_registered_types(symbol_id_t f_id, functab_ctx_t* ctx);
+
+// TODO: docs
 int FNTB_register_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx);
 
 /*
