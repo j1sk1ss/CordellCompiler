@@ -200,16 +200,37 @@ int FNTB_register_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx) {
     return 0;
 }
 
-static int _resolve_types(ast_node_t* node, symbol_id_t t_id, token_type_t t) {
+static int _resolve_types(ast_node_t* node, symbol_id_t t_id, token_type_t t, functab_ctx_t* ctx) {
     if (!node) return 0;
-    _resolve_types(node->siblings.n, t_id, t);
-    _resolve_types(node->c, t_id, t);
+    _resolve_types(node->siblings.n, t_id, t, ctx);
+    _resolve_types(node->c, t_id, t, ctx);
     if (!node->t) return 0;
     if (
         node->t->t_type == GENERIC_TYPE_TOKEN &&
         node->sinfo.v_id == t_id
     ) node->t->t_type = t;
-    // if (node->t->t_type == GENERIC_VARIABLE_TOKEN) node->t->t_type = TKN_get_var_from_type(t);
+    else if (
+        (node->t->t_type == CALLING_TOKEN && node->c->c) ||
+        (node->t->t_type == CALL_ADDR_TOKEN && node->c)
+    ) {
+        list_t types;
+        list_init(&types);
+        ast_node_t* name = node->t->t_type == CALLING_TOKEN ? node->c : node;
+        ast_node_t* type_node = name->c;
+        while (type_node) {
+            if (type_node->t->t_type == GENERIC_TYPE_TOKEN) {
+                list_free(&types);
+                return 0;
+            }
+
+            list_add(&types, (void*)type_node->t->t_type);
+            type_node = type_node->siblings.n;
+        }
+
+        name->sinfo.v_id = FNTB_create_resolved_copy(name->sinfo.v_id, &types, ctx);
+        list_free(&types);
+    }
+
     return 1;
 }
 
@@ -226,8 +247,8 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx
         token_type_t** flatten_types   = (token_type_t**)list_flatten(types);
         symbol_id_t** flatten_types_id = (symbol_id_t**)list_flatten(&fi->template.registered_types);
         for (int i = 0; i < MIN(list_size(types), list_size(&fi->template.registered_types)); i++) {
-            _resolve_types(args, (symbol_id_t)flatten_types_id[i], (token_type_t)flatten_types[i]);
-            _resolve_types(rtype, (symbol_id_t)flatten_types_id[i], (token_type_t)flatten_types[i]);
+            _resolve_types(args, (symbol_id_t)flatten_types_id[i], (token_type_t)flatten_types[i], ctx);
+            _resolve_types(rtype, (symbol_id_t)flatten_types_id[i], (token_type_t)flatten_types[i], ctx);
             map_put(&reg_types, flatten_types_id[i], (void*)flatten_types[i]);
         }
 
