@@ -10,6 +10,11 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         RESTORE_TOKEN_POINT;
         return NULL;
     }
+    
+    if (carry != NO_SYMBOL_ID) {
+        base->t->t_type  = GENERIC_TYPE_TOKEN;
+        base->sinfo.v_id = carry;
+    }
 
     annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .reg = FIELD_NO_CHANGE };
     ANNOT_read_annotations(&ctx->annots, &annots);
@@ -26,7 +31,9 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     }
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
-    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &name->t->flags, &smt->v);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &base->t->flags, &smt->v);
+    TPTB_info_add_entry(carry, name->sinfo.v_id, &smt->t);
+
     if (base->t->t_type == STR_TYPE_TOKEN) {
         if (base->t->flags.ptr) {
             PARSE_ERROR("'str' object can't be presented as a pointer! Use 'ptr i8' instead!");

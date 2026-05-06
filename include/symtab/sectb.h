@@ -27,6 +27,7 @@ typedef struct {
 
 int SCTB_move_to_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
 int SCTB_add_to_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
+string_t* SCTB_get_section_name(symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
 int SCTB_remove_from_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
 int SCTB_get_section(list_t* out, string_t* section, section_elem_type_t t, sectb_ctx_t* ctx);
 int SCTB_get_sections(list_t* out, sectb_ctx_t* ctx);

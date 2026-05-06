@@ -84,6 +84,37 @@ function foo(i32 a, i32 b = 1, i32 c = 1);
 function foo(i32 a, i32 b = 1);
 ```
 
+## Generics
+CPL supports generic functions in the way to simplify system design and reduce the final amount of lines of code. The same result can be performed with overload functions as well, but it will cost additional lines of code which is not a good way of problem solving. </br>
+In few words, the generics work almost the same as they do in Rust language. To create a generic function you will need to use `<>` placeholder in a function declaration:
+```cpl
+function chloe<MAX>(MAX a) -> MAX;
+```
+
+Then you can use this function 'template' via call with selected types:
+```cpl
+chloe<i32>(1);
+```
+
+It will create its own implementation of this function with the selected type like this:
+```
+function chloe(i32 a) -> i32;
+```
+
+Also, it is important to know, that this mechanism supports the nested generic functions which means, you actually able to use the next structure of a program:
+```cpl
+function foo<U, T>(U a, T b) -> U;
+function bar<K, L, M>() -> M {
+    K a = foo<K, L>(10, 10);
+    return a as M;
+}
+```
+
+**Note 1:** You can create default arguments in the same way as you can do this in regular functions. </br>
+**Note 2:** You can declare a generic function as a header in the same way as you can do this with a regular function. </br>
+**Note 3:** You can't use overloads with generic functions. Overloads can be used as an alternative approach if you want change the logic of a function. </br>
+**Note 4:** Lambda function can't be a generic function.
+
 ## Function pointers
 A function can be stored as a pointer:
 

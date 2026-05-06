@@ -5,6 +5,7 @@
 #include <prep/token_types.h>
 #include <ast/ast.h>
 #include <ast/astgen/astgen.h>
+#include <ast/devirt.h>
 #include <std/list.h>
 
 /*
@@ -22,6 +23,12 @@ static inline int forward_token(list_iter_t* it, int steps) {
     }
 
     return 1;
+}
+
+// TODO: docs
+static inline token_t* look_next_token(list_iter_t* it) {
+    if (!list_iter_next_top(it)) return NULL;
+    return (token_t*)list_iter_next_top(it);
 }
 
 /*

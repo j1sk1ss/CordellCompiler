@@ -336,13 +336,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
             fb->lmap.entry->op == LIR_STRT
         ) {
             if (smp.last_offset) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
-            else {
-                FNTB_update_func(
-                    fb->lmap.entry->farg->storage.str.sid, 
-                    NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, FIELD_NO_CHANGE, 
-                    &smt->f
-                );
-            }
+            else FNTB_update_func(fb->lmap.entry->farg->storage.str.sid, FNTB_SET_NAKED, &smt->f);
         }
     }
 

@@ -6,6 +6,7 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/annot.h>
+#include <ast/devirt.h>
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 
@@ -27,13 +28,15 @@ Params:
     - `args` - Current popped arguments number.
     - `logic` - Wrapped logic. 
 */
-#define SET_AND_DUMP_POPARG(op, args, logic)                 \
-    int pargnum = ctx->carry.val1, pargop = ctx->carry.val2; \
-    ctx->carry.val1 = args;                                  \
-    ctx->carry.val2 = op;                                    \
-    logic;                                                   \
-    ctx->carry.val1 = pargnum;                               \
-    ctx->carry.val2 = pargop;                                \
+#define SET_AND_DUMP_POPARG(op, args, logic) \
+    int pargnum =                            \
+        ctx->carry.val1,                     \
+        pargop = ctx->carry.val2;            \
+    ctx->carry.val1 = args;                  \
+    ctx->carry.val2 = op;                    \
+    logic;                                   \
+    ctx->carry.val1 = pargnum;               \
+    ctx->carry.val2 = pargop;                    
 
 /*
 Fire a HIRGEN error.
@@ -52,7 +55,7 @@ Params:
     )
 
 int HIR_generate_position(file_position_t* pos, hir_ctx_t* ctx);
-#define HIR_SET_CURRENT_POS(ctx, nd) HIR_generate_position(&nd->t->finfo, ctx);
+#define HIR_SET_CURRENT_POS(ctx, nd) HIR_generate_position(nd->t ? &nd->t->finfo : NULL, ctx);
 
 /*
 Generate implict convertion from the one type to another. 
@@ -297,12 +300,13 @@ int HIR_generate_return_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 Convert function AST node into HIR element. 
 Params:
     - `node` - AST node.
+    - `f_id` - Provide ID if you want to overwrite the node's ID.
     - `ctx` - HIR ctx.
     - `smt` - Symtable.
 
 Return 1 if succeeds. Otherwise will return 0.
 */
-int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Convert start AST node into HIR element. 

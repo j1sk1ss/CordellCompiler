@@ -46,7 +46,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                     }
 
                     if (unrolled_if) {
-                        ast_node_t* replacement = AST_copy_node(unrolled_if, 1, 0, 1);
+                        ast_node_t* replacement = AST_copy_node(unrolled_if, 1, 0, 1, NULL);
                         replacement->siblings.n = next;
 
                         AST_remove_node(root, t);
@@ -96,7 +96,7 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
                         }
 
                         if (unrolled_switch) {
-                            ast_node_t* replacement = AST_copy_node(unrolled_switch, 0, 0, 1);
+                            ast_node_t* replacement = AST_copy_node(unrolled_switch, 0, 0, 1, NULL);
                             replacement->siblings.n = next;
 
                             if (tprev) tprev->siblings.n = replacement;

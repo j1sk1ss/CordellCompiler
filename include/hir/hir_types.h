@@ -106,6 +106,8 @@ typedef enum hir_operation {
 } hir_operation_t;
 
 typedef enum hir_subject_type {
+    HIR_NOTYPE, // Special generic no_type entry
+
     HIR_TMPVARSTR, // tmp variables
     HIR_TMPVARARR,
     HIR_TMPVARF64,

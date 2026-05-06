@@ -7,10 +7,11 @@
 #include <prep/token.h>
 #include <prep/markup.h>
 #include <ast/ast.h>
+#include <ast/devirt.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
+#include <ast/dump.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
 #include "../../../misc/symtb_helper.h"
 
 int main(int argc, char* argv[]) {
@@ -58,11 +59,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_DVRT_resolve_calls(sctx.r, &smt);
+
     map_foreach (func_info_t* fi, &smt.f.functb) {
         printf(
-            "%sid: %li, name: %s (virt: %s), ext=%i, glob=%i, used=%i, local=%i, sid=%li\n", 
+            "%sid: %li, name: %s (virt: %s), ext=%i, glob=%i, used=%i, local=%i, sid=%li, generic=%i\n", 
             fi->flags.entry ? "[ENTRY] " : "", fi->id, fi->name->body, fi->virt->body, 
-            fi->flags.external, fi->flags.global, fi->flags.used, fi->flags.local, fi->s_id
+            fi->flags.external, fi->flags.global, fi->flags.used, fi->flags.local, fi->s_id, fi->flags.generic
         );
     }
 

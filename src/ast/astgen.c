@@ -22,7 +22,20 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     }
 
     if (!entries)         print_warn("The 'start' function isn't found!");
-    else if (entries > 1) print_error("There is more than 1 entry point in code!");
+    else if (entries > 1) print_error("There is more than 1 entry point in the code!");
+
+    devirt_ctx_t dctx;
+    AST_DVRT_init_ctx(&dctx);
+
+    AST_DVRT_find_templates(ctx->r, smt, &dctx);
+    AST_DVRT_resolve_calls(ctx->r, smt, &dctx);
+
+    ast_node_t* devirt;
+    while (AST_DVRT_pop_implementation(smt, &dctx, (ast_node_t**)&devirt)) {
+        if (devirt) AST_add_node(ctx->r, devirt);
+    }
+
+    AST_DVRT_unload_ctx(&dctx);
     return 1;
 }
 

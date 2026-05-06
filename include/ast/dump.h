@@ -7,6 +7,7 @@
 #include <prep/token.h>
 #include <prep/token_types.h>
 
+const char* DUMP_format_token_type(token_type_t t);
 const char* DUMP_format_token(token_t* t);
 int DUMP_format_astctx(ast_ctx_t* ctx, FILE* output);
 

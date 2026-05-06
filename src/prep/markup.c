@@ -130,36 +130,6 @@ int MRKP_mnemonics(list_t* tkn) {
     return map_free(&lexems);
 }
 
-typedef struct {
-    token_flags_t modifiers;
-    token_type_t  type;
-    short         scope;
-    string_t*     name;
-} variable_t;
-
-/*
-Add variable to a list.
-Params:
-    - `vars` - Variable output list.
-    - `name` - Variable name.
-    - `scope` - Variable scope.
-    - `t` - Variable type.
-    - `f` - Variable's flag.
-
-Returns 1 if succeeds.
-*/
-static int _add_variable(list_t* vars, string_t* name, short scope, token_type_t t, token_flags_t* f) {
-    variable_t* v = (variable_t*)mm_malloc(sizeof(variable_t));
-    if (!v) return 0;
-    str_memset(v, 0, sizeof(variable_t));
-    str_memcpy(&v->modifiers, f, sizeof(token_flags_t));
-    
-    v->name  = name;
-    v->scope = scope;
-    v->type  = t;
-    return list_add(vars, v);
-}
-
 /*
 Remove token from a list and unload it.
 Params:
@@ -194,7 +164,7 @@ static int _apply_modifiers(list_t* tkn) {
     while (list_iter_next(&it, (void**)&curr)) {
         token_t* next = (token_t*)list_iter_current(&it);
         if (next) switch (curr->t_type) {
-            case EXTERN_TOKEN:    cflags.ext = 1; cflags.glob = 1;           break;
+            case EXTERN_TOKEN:    cflags.ext = 1;  cflags.glob = 1;          break;
             case GLOB_TYPE_TOKEN: cflags.glob = 1; _remove_token(tkn, curr); break;
             case PTR_TYPE_TOKEN:  cflags.ptr++;    _remove_token(tkn, curr); break;
             case RO_TYPE_TOKEN:   cflags.ro   = 1; _remove_token(tkn, curr); break;
@@ -210,95 +180,5 @@ static int _apply_modifiers(list_t* tkn) {
 }
 
 int MRKP_variables(list_t* tkn) {
-    _apply_modifiers(tkn);
-
-    int s_id = 0;
-    token_type_t ctype = 0;
-
-    list_t vars;
-    list_init(&vars);
-
-    sstack_t scope_stack;
-    stack_init(&scope_stack);
-    stack_push(&scope_stack, (void*)((long)++s_id));
-
-    list_iter_t it;
-    list_iter_hinit(tkn, &it);
-    token_t* curr;
-    while (list_iter_next(&it, (void**)&curr)) {
-        switch (curr->t_type) {
-            case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
-            case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
-
-            case FUNC_TOKEN:
-            case I0_TYPE_TOKEN:
-            case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
-            case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
-            case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:
-            case I64_TYPE_TOKEN: case U64_TYPE_TOKEN: case F64_TYPE_TOKEN:
-            case STR_TYPE_TOKEN:
-            case ARRAY_TYPE_TOKEN: {
-                token_t* next = (token_t*)list_iter_current(&it);
-                if (next && (next->t_type == UNKNOWN_STRING_TOKEN)) {
-                    switch (curr->t_type) {
-                        case FUNC_TOKEN: {
-                            ctype           = CALL_TOKEN;
-                            next->t_type    = FUNC_NAME_TOKEN;
-                            next->flags.ext = curr->flags.ext;
-                            break;
-                        }
-
-                        case I0_TYPE_TOKEN:
-                        case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
-                        case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
-                        case I32_TYPE_TOKEN: case U32_TYPE_TOKEN: case F32_TYPE_TOKEN:
-                        case I64_TYPE_TOKEN: case U64_TYPE_TOKEN: case F64_TYPE_TOKEN:
-                        case STR_TYPE_TOKEN: case ARRAY_TYPE_TOKEN: ctype = VARIABLE_TOKEN; break;
-                        default: break;
-                    }
-
-                    long var_scope;
-                    stack_top(&scope_stack, (void**)&var_scope);
-                    _add_variable(&vars, next->body, var_scope, ctype, &curr->flags);
-                }
-
-                ctype = 0;
-                break;
-            }
-
-            default: break;
-        }
-    }
-
-    s_id = 0;
-    scope_stack.top = -1;
-    stack_push(&scope_stack, (void*)((long)++s_id));
-    
-    foreach (token_t* curr, tkn) {
-        switch (curr->t_type) {
-            case OPEN_BLOCK_TOKEN:  stack_push(&scope_stack, (void*)((long)++s_id)); break;
-            case CLOSE_BLOCK_TOKEN: stack_pop(&scope_stack, NULL);                   break;
-            case UNKNOWN_STRING_TOKEN: {
-                for (int s = scope_stack.top; s >= 0; s--) {
-                    short curr_s = (short)((long)scope_stack.data[s].d);
-                    foreach (variable_t* v, &vars) {
-                        if (curr->body->equals(curr->body, v->name) && v->scope == curr_s) {
-                            curr->t_type = v->type;
-                            str_memcpy(&curr->flags, &v->modifiers, sizeof(token_flags_t));
-                            goto _resolved;
-                        }
-                    }
-                }
-
-                break;
-            }
-
-            default: break;
-        }
-_resolved: {}
-    }
-
-    stack_free(&scope_stack);
-    list_free_force(&vars);
-    return 1;
+    return _apply_modifiers(tkn);
 }

@@ -26,7 +26,7 @@ Params:
 Returns 1 if succeeds.
 */
 static symbol_id_t _resolve_function_overload(
-    hir_subject_t* callee, hir_subject_t* args, sym_table_t* smt, int ret, token_t* out
+    hir_subject_t* callee, symbol_id_t s_id, hir_subject_t* args, sym_table_t* smt, int ret, token_t* out
 ) {
     out->t_type = I64_TYPE_TOKEN;
     func_info_t fi;
@@ -41,7 +41,7 @@ static symbol_id_t _resolve_function_overload(
 
     list_t funcs;
     list_init(&funcs);
-    if (FNTB_collect_info(fi.name, fi.s_id, &funcs, &smt->f) && list_size(&funcs) > 1) {
+    if (FNTB_collect_info(fi.name, s_id, &funcs, &smt->f) && list_size(&funcs) > 1) {
         int most_fit = -999;
         func_info_t* resolved = NULL;
         int arg_count = list_size(&args->storage.list.h);
@@ -88,16 +88,18 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_t* call_subj = NULL;
     hir_operation_t st_op    = HIR_STORE_UFCLL, op = HIR_UFCLL;
-    ast_node_t* args_node    = node->c->c;
+    ast_node_t* args_node    = node->c->siblings.n->c;
+    
     func_info_t fi = { 0 };
-    if (!FNTB_get_info_id(node->sinfo.v_id, &fi, &smt->f)) {
-        call_subj = HIR_generate_elem(node->c, ctx, smt);
-        args_node = node->c->siblings.n->c;
-    }
+    if (
+        node->c->t->t_type != FUNC_NAME_TOKEN || 
+        !FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)
+    ) call_subj = HIR_generate_elem(node->c, ctx, smt);
     else {
         op        = fi.flags.external ? HIR_ECLL : HIR_FCLL;
         st_op     = fi.flags.external ? HIR_STORE_ECLL : HIR_STORE_FCLL;
-        call_subj = HIR_SUBJ_FUNCNAME(node);
+        call_subj = HIR_SUBJ_FUNCNAME(node->c);
+        fi.s_id   = node->c->sinfo.s_id;
     }
 
     hir_subject_t* args = HIR_SUBJ_LIST();
@@ -113,7 +115,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     
     token_t tmp = { 0 };
     func_info_t resolved;
-    if (FNTB_get_info_id(_resolve_function_overload(call_subj, args, smt, ret, &tmp), &resolved, &smt->f)) {
+    if (FNTB_get_info_id(_resolve_function_overload(call_subj, fi.s_id, args, smt, ret, &tmp), &resolved, &smt->f)) {
         int arg_offset = 0, arg_count = list_size(&args->storage.list.h);
         fn_iterate_args (&resolved) {
             if (arg_offset++ < arg_count || !arg->c || !arg->c->siblings.n) continue;

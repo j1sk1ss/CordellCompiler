@@ -12,6 +12,7 @@
 #include <symtab/symtab.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
+#include <ast/devirt.h>
 #include <hir/hir_types.h>
 
 typedef struct {

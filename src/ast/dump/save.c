@@ -2,6 +2,8 @@
 
 static const char* _name_tkn_type(token_type_t t) {
     switch (t) {
+        case GENERIC_TYPE_TOKEN:          return "GENERIC_TYPE_TOKEN";   
+        case GENERIC_VARIABLE_TOKEN:      return "GENERIC_VARIABLE_TOKEN";
         case SIZEOF_TOKEN:                return "SIZEOF_TOKEN";
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
         case CALLING_TOKEN:               return "CALLING_TOKEN";
@@ -42,9 +44,8 @@ static const char* _name_tkn_type(token_type_t t) {
         case FUNC_PROT_TOKEN:             return "FUNC_PROT_TOKEN";
         case FUNC_TOKEN:                  return "FUNC_TOKEN";
         case FUNC_NAME_TOKEN:             return "FUNC_NAME_TOKEN";
-        case CALL_TOKEN:                  return "CALL_TOKEN";
         case ADDR_CALL_TOKEN:             return "ADDR_CALL_TOKEN";
-        case CALL_ADDR_TOKEN:                   return "CALL_ADDR_TOKEN";
+        case CALL_ADDR_TOKEN:             return "CALL_ADDR_TOKEN";
         case SWITCH_TOKEN:                return "SWITCH_TOKEN";
         case CASE_TOKEN:                  return "CASE_TOKEN";
         case DEFAULT_TOKEN:               return "DEFAULT_TOKEN";
@@ -101,11 +102,9 @@ static const char* _name_tkn_type(token_type_t t) {
     }
 }
 
-const char* DUMP_format_token(token_t* t) {
-    if (!t) return "";
-
+const char* DUMP_format_token_type(token_type_t t) {
     const char* base;
-    switch (t->t_type) {
+    switch (t) {
         case I0_TYPE_TOKEN:  base = "i0"; break;
         case I8_TYPE_TOKEN:  base = "i8"; break;
         case U8_TYPE_TOKEN:  base = "u8"; break;
@@ -120,7 +119,13 @@ const char* DUMP_format_token(token_t* t) {
         case STR_TYPE_TOKEN: base = "str"; break;
         default:             base = ""; break;
     }
+    return base;
+}
 
+const char* DUMP_format_token(token_t* t) {
+    if (!t) return "";
+
+    const char* base = DUMP_format_token_type(t->t_type);
     if (!base[0]) return "";
     int depth = t->flags.ptr;
     if (!depth) return base;

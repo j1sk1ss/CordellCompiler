@@ -266,7 +266,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     if (u && set_has(u, nd)) _rst_hl_begin(x);
 
     int complex = -1;
-    if (TKN_is_decl(nd->t) || nd->t->t_type == VAR_ARGUMENTS_TOKEN) {
+    if (TKN_is_builtin_type(nd->t) || nd->t->t_type == VAR_ARGUMENTS_TOKEN) {
         if (nd->t->t_type != ARRAY_TYPE_TOKEN) {
             _rst_ln_printf(
                 x, line, "%s%s%s%s%s",
@@ -390,16 +390,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             if (r < 0) _rst_ln_puts(x, p_line, ";\n");
 
             complex = 1;
-            break;
-        }
-        case CALL_TOKEN: {
-            _rst_ln_printf(x, line, "%s(", nd->t->body->body);
-            for (ast_node_t* p = nd->c->c; p; p = p->siblings.n) {
-                _restore_code_lines(x, p, u, indent);
-                if (p->siblings.n) _rst_ln_puts(x, line, ", ");
-            }
-
-            _rst_ln_puts(x, line, ")");
             break;
         }
         case ASM_TOKEN: {
