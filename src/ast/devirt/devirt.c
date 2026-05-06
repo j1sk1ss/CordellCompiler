@@ -80,10 +80,10 @@ static int _update_function_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t n
     _update_function_id(node->siblings.n, v_id, nv_id);
     _update_function_id(node->c, v_id, nv_id);
     if (!node->t) return 0;
-    if (node->t->t_type == FUNC_NAME_TOKEN && node->sinfo.v_id == v_id) {
-        node->sinfo.v_id = nv_id;
-    }
-
+    if (
+        (node->t->t_type == FUNC_NAME_TOKEN || node->t->t_type == LAMBDA_FUNCTION_TOKEN) && 
+        node->sinfo.v_id == v_id
+    ) node->sinfo.v_id = nv_id;
     return 1;
 }
 
@@ -93,14 +93,20 @@ static int _find_function_declaration(ast_node_t* node, ast_node_t* root, sym_ta
     _find_function_declaration(node->siblings.n, root, smt);
     _find_function_declaration(node->c, root, smt);
     if (!node->t) return 0;
+    ast_node_t* name = NULL;
     if (
         node->t->t_type == FUNC_TOKEN && 
         node->c && node->c->t->t_type == FUNC_NAME_TOKEN
-    ) {
+    ) name = node->c;
+    else if (
+        node->t->t_type == LAMBDA_FUNCTION_TOKEN
+    ) name = node;
+
+    if (name) {
         func_info_t fi;
-        if (FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)) {
-            node->c->sinfo.v_id = FNTB_add_copy(&fi, &smt->f);
-            _update_function_id(root, fi.id, node->c->sinfo.v_id);
+        if (FNTB_get_info_id(name->sinfo.v_id, &fi, &smt->f)) {
+            name->sinfo.v_id = FNTB_add_copy(&fi, &smt->f);
+            _update_function_id(root, fi.id, name->sinfo.v_id);
         }
     }
 
