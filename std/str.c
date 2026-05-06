@@ -52,6 +52,14 @@ static int _string_cat(str_self self, string_t* dst) {
     return 1;
 }
 
+static int _string_rcat(str_self self, const char* dst) {
+    string_t* dst_str = create_string(dst);
+    if (!dst_str) return 0;
+    _string_cat(self, dst_str);
+    destroy_string(dst_str);
+    return 1;
+}
+
 static long long _string_to_llong(str_self self) {
     int neg         = 1;
     long long num   = 0;
@@ -341,6 +349,7 @@ static string_t* _create_base_string(const char* s, unsigned int off, int len) {
     str->index_of    = _string_index_of;
     str->len         = _string_length;
     str->cat         = _string_cat;
+    str->rcat        = _string_rcat;
     str->to_llong    = _string_to_llong;
     str->to_ullong   = _string_to_ullong;
     str->to_double   = _string_to_double;

@@ -12,7 +12,8 @@ ast_node_t* cpl_parse_conv(PARSER_ARGS) {
     }
 
     forward_token(it, 1);
-    if (CURRENT_TOKEN && !TKN_is_decl(CURRENT_TOKEN)) {
+    symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
+    if (CURRENT_TOKEN && (!TKN_is_builtin_type(CURRENT_TOKEN) && type == NO_SYMBOL_ID)) {
         PARSE_ERROR("Expected a type of a token in a cast!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
@@ -20,7 +21,13 @@ ast_node_t* cpl_parse_conv(PARSER_ARGS) {
     }
 
     ast_node_t* type_node = AST_create_node(CURRENT_TOKEN);
-    if (type_node) AST_add_node(base, type_node);
+    if (type_node) {
+        AST_add_node(base, type_node);
+        if (type != NO_SYMBOL_ID) {
+            type_node->sinfo.v_id = type;
+            type_node->t->t_type = GENERIC_TYPE_TOKEN;
+        }
+    }
     else {
         PARSE_ERROR("Can't create a base for a type in a cast!");
         AST_unload(base);

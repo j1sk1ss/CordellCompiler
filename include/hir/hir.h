@@ -12,6 +12,7 @@
 #include <symtab/symtab.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
+#include <ast/devirt.h>
 #include <hir/hir_types.h>
 
 typedef struct {
@@ -81,6 +82,7 @@ typedef struct {
         void*        ptr;           /* pointer to a break target               */
         long         val1;          /* function's argument number              */
         long         val2;          /* function's argument load operation      */
+        void*        ptr2;          /* function's return type                  */
     } carry;                        /* Additional carry for any specific data  */
 } hir_ctx_t;
 

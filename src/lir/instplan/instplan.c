@@ -120,14 +120,12 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
 
                 break;
             }
-
             case LIR_LOADFARG:
             case LIR_LOADFRET:
             case LIR_STARGLD: {
                 _find_or_create_node(lh, dag);
                 break;
             }
-
             case LIR_iMOV:
             case LIR_TI64: case LIR_TI32:  case LIR_TI16: case LIR_TI8:
             case LIR_TU64: case LIR_TU32:  case LIR_TU16: case LIR_TU8:
@@ -137,8 +135,6 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
             case LIR_VRUSE:
             case LIR_STSARG:
             case LIR_STFARG: _link_subject_to_source(lh, lh->farg, bb, dag); break;
-            
-
             case LIR_JE:
             case LIR_JNE: {
                 instructions_dag_node_t* src  = _find_or_create_node(_find_first_cmp(lh, bb->lmap.entry), dag);
@@ -150,7 +146,6 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
 
                 break;
             }
-
             case LIR_SYSC:
             case LIR_ECLL:
             case LIR_FCLL: {
@@ -181,7 +176,6 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
 
                 break;
             }
-
             case LIR_bOR:
             case LIR_CMP:
             case LIR_iLWR:

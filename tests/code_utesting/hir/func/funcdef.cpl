@@ -9,12 +9,11 @@ function foo() -> i32 {
 {
     fn _main(i32 a)
     {
-        i32s %1 = alloc(8);
+        i32s %1 = alloc;
         i32s %1 = load_starg();
         {
         }
     }
-
     fn foo1() -> i32
     {
         {

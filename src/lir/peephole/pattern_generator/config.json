@@ -141,11 +141,37 @@
         "jmp": [
             "LIR_JMP"
         ],
+        "je": [
+            "LIR_JE"
+        ],
+        "jne": [
+            "LIR_JNE"
+        ],
         "mklb": [
             "LIR_MKLB"
-        ]
+        ],
+        "base_jmpc": [
+            "LIR_JE",
+            "LIR_JNE"
+        ],
+        "base_setcc": [
+            "LIR_SETE",
+            "LIR_STNE",
+            "LIR_SETG",
+            "LIR_STGE",
+            "LIR_SETL",
+            "LIR_STLE",
+            "LIR_SETA",
+            "LIR_SETB",
+            "LIR_STAE",
+            "LIR_STBE"
+        ],
+        "jz": [ "LIR_JZ" ],
+        "jnz": [ "LIR_JNZ" ]
     },
     "used_args": {
+        "base_setcc": 0,
+        "base_jmpc": 0,
         "mov": 0,
         "add": 1,
         "sub": 1,
@@ -191,7 +217,11 @@
         "inc": 0,
         "neg": 0,
         "jmp": 0,
-        "mklb": 0
+        "je": 0,
+        "jne": 0,
+        "mklb": 0,
+        "jz": 0,
+        "jnz": 0
     },
     "functions": {
         "atoi": "LIR_peephole_get_long_number",
@@ -234,7 +264,8 @@
             "LIR_REGISTER",
             "LIR_NUMBER",
             "LIR_CONSTVAL",
-            "LIR_MEMORY"
+            "LIR_MEMORY",
+            "LIR_LABEL"
         ],
         "label": [
             "LIR_LABEL"

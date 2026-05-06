@@ -10,7 +10,7 @@ start() {
     start {
         {
             {
-                asm, args() {
+                asm() {
                 [raw, "mov rax, 1"]
                 [raw, "syscall"]
                 }

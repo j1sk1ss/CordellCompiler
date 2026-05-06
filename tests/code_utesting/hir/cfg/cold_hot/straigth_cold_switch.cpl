@@ -18,6 +18,7 @@ digraph CFG_func0 {
   B2 [label="B2:\nentry=MKLB20\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B3 [label="B3:\nentry=MKLB25\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B4 [label="B4:\nentry=JMP-1\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
+  B4 -> B9 [label="jump"];
   B5 [label="B5:\nentry=MKLB8\nexit=IFOP2\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B5 -> B10 [label="fall"];
   B5 -> B6 [label="jump"];
@@ -29,7 +30,7 @@ digraph CFG_func0 {
   B7 -> B8 [label="jump"];
   B8 [label="B8:\nentry=MKLB42\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B8 -> B3 [label="jump"];
-  B9 [label="B9:\nentry=MKLB9\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
+  B9 [label="B9:\nentry=MKLB9\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B10 [label="B10:\nentry=MKLB10\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B11 [label="B11:\nentry=MKLB15\nexit=EXITOP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B12 [label="B12:\nentry=ENDSCOPE-1\nexit=HIR_STEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];

@@ -82,12 +82,13 @@ int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt);
 Perform inlining optimization. Will inline function that get 3 euristic score points.
 Params:
     - `cctx` - CFG.
+    - `lctx` - Loops context.
     - `smt` - Symtable.
     - `checker` - Function desider.
 
 Return 1 if success, otherwise 0.
 */
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, sym_table_t* smt, int (*checker)(int*, int));
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int));
 
 /*
 Euristic inline desider (basic option).

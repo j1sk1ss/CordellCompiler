@@ -15,10 +15,10 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
         }
 
         if (
-            curr->t->t_type == EXIT_TOKEN   ||  /* If this scope invokes an exit command  */
-            curr->t->t_type == RETURN_TOKEN ||  /* If this scope returns something        */
-            curr->t->t_type == CALL_TOKEN   ||  /* If this scope contains a function call */
-            curr->t->t_type == BREAK_TOKEN  ||  /* If this scope contains a break command */
+            curr->t->t_type == EXIT_TOKEN    || /* If this scope invokes an exit command  */
+            curr->t->t_type == RETURN_TOKEN  || /* If this scope returns something        */
+            curr->t->t_type == CALLING_TOKEN || /* If this scope contains a function call */
+            curr->t->t_type == BREAK_TOKEN   || /* If this scope contains a break command */
             curr->t->t_type == BREAKPOINT_TOKEN /* If this scope breaks an execution      */
         ) *affect = 1;
 
@@ -94,7 +94,7 @@ static int _find_scope(ast_node_t* root, int* affect, short s_id) {
         }
 
         if (
-            TKN_is_decl(curr->t) || 
+            TKN_is_builtin_type(curr->t) || 
             (TKN_is_operand(curr->t) && !TKN_is_update_operator(curr->t))
         ) {
             _find_scope(curr, affect, s_id);

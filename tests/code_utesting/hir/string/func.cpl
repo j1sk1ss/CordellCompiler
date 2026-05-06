@@ -10,7 +10,7 @@ start() {
 {
     fn foo0(str msg)
     {
-        strs %0 = alloc(8);
+        strs %0 = alloc;
         strs %0 = load_arg();
         {
             i8t %1 = i8n 65 as i8;
@@ -25,7 +25,7 @@ start() {
         {
             {
                 use Hello!;
-                call foo0(str msg), argc args(Hello!,);
+                foo0(Hello!);
             }
         }
     }

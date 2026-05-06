@@ -13,8 +13,8 @@ start() {
 digraph CALL_GRAPH {
   rankdir=LR;
   node [shape=ellipse, fontname="monospace"];
-  {F3 -> F1;}
-  {F3 -> F2;}
-  {F3 -> F0;}
+  F3 -> F0;
+  F3 -> F1;
+  F3 -> F2;
 }
 /:

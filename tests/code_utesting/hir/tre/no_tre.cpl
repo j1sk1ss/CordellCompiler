@@ -11,7 +11,7 @@ function foo(i32 a) {
 {
     fn _main(i32 a)
     {
-        i32s %0 = alloc(8);
+        i32s %0 = alloc;
         i32s %0 = load_starg();
         {
             lb38:
@@ -23,7 +23,7 @@ function foo(i32 a) {
                 i32t %4 = i8n 1 as i32;
                 i32t %3 = i32s %0 + i32t %4;
                 use i32t %3;
-                call _main(i32 a), argc args(i32t %3,);
+                _main(i32t %3);
             }
             goto lb12;
             lb12:
@@ -32,7 +32,7 @@ function foo(i32 a) {
             use i32t %5;
             i32s %0 = i32t %5;
             goto lb38;
-            [unused] call _main(i32 a), argc args(i32t %5,);
+            [unused] _main(i32t %5);
         }
     }
 }

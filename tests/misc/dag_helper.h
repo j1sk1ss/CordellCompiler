@@ -13,9 +13,7 @@ static void dump_dag_dot(dag_ctx_t* ctx, sym_table_t* smt) {
         char buff[128] = { 0 };
         char* bptr = (char*)buff;
         bptr += sprintf(bptr, "dupl: %i, base: ", set_size(&node->link));
-
-        sprintf_hir_subject(bptr, node->src, smt);
-        const char* opname = hir_op_to_string(node->op);
+        const char* opname = _hir_op_to_string(node->op);
         printf("  lb%li [label=\"%s \\n %s \\n %lu\"];\n", node->id, opname, buff, node->hash);
     }
 

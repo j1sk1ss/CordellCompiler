@@ -241,6 +241,9 @@ Params:
         list_add(&nd->annots, annot);                                                      \
     }
 
+// TODO: docs
+symbol_id_t type_lookup(token_t* t, ast_ctx_t* ctx, sym_table_t* smt);
+
 /*
 Search for a variable (presented in the node) on the symtable.
 Params:
@@ -506,26 +509,6 @@ Params:
 Returns an ast node.
 */
 ast_node_t* cpl_parse_call_arguments(PARSER_ARGS);
-
-/*
-Parse .cpl function call. Should be invoked on funccall token.
-Snippet:
-```cpl
-: function name :( : statement : ); : or :
-: function name :;
-```
-
-Note: This parser parses only already defined 'classic' functions.
-      That means, this function works only with 'function foo() / foo()', 'foo'.
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_funccall(PARSER_ARGS);
 
 /*
 Helper function for parsing function / start arguments.

@@ -35,6 +35,8 @@ typedef enum {
 
         /* Jump instructions */
         LIR_JMP,  // jmp
+        LIR_JZ,
+        LIR_JNZ,
         LIR_JL,   // jump if less (signed)
         LIR_JG,   // jump if greater (signed)
         LIR_JLE,  // jump if less or equal (signed)
@@ -99,7 +101,7 @@ typedef enum {
         LIR_REF,       // a = &y
         LIR_REF_GDREF, // a = &*y
         LIR_GDREF,     // get value from address, x = *y
-        LIR_LDREF,     // set valye by address,   *x = y
+        LIR_LDREF,     // set value by address,   *x = y
         LIR_PUSH,      // push
         LIR_POP,       // pop
 
@@ -246,7 +248,13 @@ Returns 1 if the opration is a write operation.
 */
 int LIR_is_writeop(lir_operation_t op);
 
-// TODO
+/*
+Is this a jump-like operation.
+Params:
+    - `op` - LIR operation.
+
+Returns 1 if the opration is a jump-like operation.
+*/
 int LIR_is_jumpop(lir_operation_t op);
 
 /*

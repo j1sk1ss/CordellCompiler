@@ -157,7 +157,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
 #ifdef AST_PRINT
     printf("\n\n========== AST ==========\n");
-    print_ast(sctx.r, 0);
+    DUMP_format_astctx(&sctx, stdout);
 #endif
 #endif
 
@@ -194,11 +194,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     
 #ifdef HIR_PRINT
     printf("\n\n========== HIRv1 ==========\n");
-    hir_block_t* hh = hirctx.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 0);
-        hh = hh->next;
-    }
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 #endif
 
 #ifdef HIR_SSA_TESTING
@@ -222,11 +218,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     HIR_LTREE_licm(&cfgctx, &smt);          // Transform
 #ifdef HIR_PRINT
     printf("\n\n========== HIRv2 ==========\n");
-    hh = hirctx.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 0);
-        hh = hh->next;
-    }
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 #endif
 #ifdef HIR_DAG_TESTING
     HIR_CFG_make_allias(&cfgctx, &smt);          // Analyzation
@@ -242,11 +234,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #endif
 #ifdef HIR_PRINT
     printf("\n\n========== HIR prepared ==========\n");
-    hh = hirctx.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 0);
-        hh = hh->next;
-    }
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 #endif
 #endif
 #endif
@@ -267,7 +255,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
 #ifdef LIR_INSTPLAN_TESTING
     target_info_t trginfo;
-    TRGINF_load("/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl", &trginfo);
+    TRGINF_load(&trginfo);
     LIR_plan_instructions(&cfgctx, &trginfo); // Transform
     TRGINF_unload(&trginfo);
 #ifdef LIR_PRINT

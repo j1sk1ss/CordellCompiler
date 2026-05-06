@@ -13,16 +13,16 @@ start() {
 {
     fn logic2(i32 a, i32 b, u64* perform) -> i32
     {
-        i32s %4 = alloc(8);
+        i32s %4 = alloc;
         i32s %4 = load_arg();
-        i32s %5 = alloc(8);
+        i32s %5 = alloc;
         i32s %5 = load_arg();
-        u64s* %6 = alloc(8);
+        u64s* %6 = alloc;
         u64s* %6 = load_arg();
         {
             use i32s %4;
             use i32s %5;
-            i64t %7 = call u64s* %6, argc args(i32s %4,i32s %5,);
+            i64t %7 = u64s* %6(i32s %4, i32s %5);
             return i64t %7;
         }
     }
@@ -31,10 +31,10 @@ start() {
             {
                 i0t* %8 = &(min0(i32 a, i32 b) -> i32);
                 use i0t* %8;
-                call logic2(i32 a, i32 b, u64* perform) -> i32, argc args(i8n 10,i8n 20,i0t* %8,);
+                logic2(i8n 10, i8n 20, i0t* %8);
                 i0t* %9 = &(max1(i32 a, i32 b) -> i32);
                 use i0t* %9;
-                call logic2(i32 a, i32 b, u64* perform) -> i32, argc args(i8n 10,i8n 20,i0t* %9,);
+                logic2(i8n 10, i8n 20, i0t* %9);
             }
         }
     }

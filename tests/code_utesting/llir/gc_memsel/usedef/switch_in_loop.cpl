@@ -46,56 +46,53 @@ start(i32 argc, ptr ptr i8 argv) {
 digraph CFG_func0 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
-  B4 [label="B4:\nentry=FDCL-1\nexit=HIR_SETPOS\nHEAD\nIN={}\nDEF={11,52,51}\nUSE={75}\nOUT={}\nPREDS=0"];
-  B4 -> B23 [label="fall"];
-  B23 [label="B23:\nentry=PHI_PREAMBLE-1\nexit=PHI_PREAMBLE\nIN={}\nDEF={53,54}\nUSE={52,51}\nOUT={}\nPREDS=1"];
-  B23 -> B5 [label="fall"];
-  B5 [label="B5:\nentry=MKLB15\nexit=IFOP2\nIN={}\nDEF={12}\nUSE={53}\nOUT={}\nPREDS=2"];
+  B4 [label="B4:\nentry=FDCL-1\nexit=HIR_SETPOS\nHEAD\nIN={}\nDEF={53,55,11,56,54}\nUSE={78}\nOUT={}\nPREDS=0"];
+  B4 -> B5 [label="fall"];
+  B5 [label="B5:\nentry=MKLB15\nexit=IFOP2\nIN={}\nDEF={12}\nUSE={55}\nOUT={}\nPREDS=2"];
   B5 -> B6 [label="fall"];
   B5 -> B7 [label="jump"];
-  B6 [label="B6:\nentry=MKLB16\nexit=JMP\nIN={}\nDEF={55,53,78,56,54,13,79,76,81,16,14,15}\nUSE={53,78,81,54,77,80}\nOUT={}\nPREDS=1"];
+  B6 [label="B6:\nentry=MKLB16\nexit=JMP\nIN={}\nDEF={55,82,56,80,13,79,58,81,16,57,14,15}\nUSE={55,56}\nOUT={}\nPREDS=1"];
   B6 -> B5 [label="jump"];
-  B7 [label="B7:\nentry=MKLB17\nexit=FRET\nIN={}\nDEF={82}\nUSE={54}\nOUT={}\nPREDS=1"];
+  B7 [label="B7:\nentry=MKLB17\nexit=FRET\nIN={}\nDEF={83}\nUSE={56}\nOUT={}\nPREDS=1"];
   B8 [label="B8:\nentry=FEND-1\nexit=FEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
 digraph CFG_func1 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
-  B9 [label="B9:\nentry=FDCL-1\nexit=FEND\nHEAD\nIN={}\nDEF={17,85,87,57,84,86}\nUSE={83}\nOUT={}\nPREDS=0"];
+  B9 [label="B9:\nentry=FDCL-1\nexit=FEND\nHEAD\nIN={}\nDEF={17,85,87,88,59,86}\nUSE={84}\nOUT={}\nPREDS=0"];
 }
 digraph CFG_func2 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
-  B10 [label="B10:\nentry=FDCL-1\nexit=FEND\nHEAD\nIN={}\nDEF={19,18,89,60,92,58,91,59,20}\nUSE={88,91,90}\nOUT={}\nPREDS=0"];
+  B10 [label="B10:\nentry=FDCL-1\nexit=FEND\nHEAD\nIN={}\nDEF={60,18,19,62,92,91,61,90,20}\nUSE={89}\nOUT={}\nPREDS=0"];
 }
 digraph CFG_func3 {
   rankdir=TB;
   node [shape=box, fontname="monospace"];
-  B11 [label="B11:\nentry=STRT-1\nexit=HIR_SETPOS\nHEAD\nIN={}\nDEF={66,63,23,21,95,101,61,29,26,65,28,27,64,98,100,22,97,25,24,62}\nUSE={93,97,102,96,94,100,99}\nOUT={}\nPREDS=0"];
-  B11 -> B24 [label="fall"];
-  B24 [label="B24:\nentry=PHI_PREAMBLE-1\nexit=PHI_PREAMBLE\nIN={}\nDEF={67,68,69}\nUSE={64,63,65}\nOUT={}\nPREDS=1"];
-  B24 -> B12 [label="fall"];
-  B12 [label="B12:\nentry=MKLB121\nexit=IFOP2\nIN={}\nDEF={103,30}\nUSE={67,66}\nOUT={}\nPREDS=2"];
+  B11 [label="B11:\nentry=STRT-1\nexit=HIR_SETPOS\nHEAD\nIN={}\nDEF={66,93,63,23,96,21,95,29,26,65,67,28,27,71,68,94,72,64,22,70,97,69,25,74,24,73}\nUSE={98}\nOUT={}\nPREDS=0"];
+  B11 -> B12 [label="fall"];
+  B12 [label="B12:\nentry=MKLB121\nexit=IFOP2\nIN={}\nDEF={30,99}\nUSE={70,69}\nOUT={}\nPREDS=2"];
   B12 -> B13 [label="fall"];
   B12 -> B21 [label="jump"];
   B13 [label="B13:\nentry=MKLB122\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B13 -> B17 [label="jump"];
-  B14 [label="B14:\nentry=MKLB131\nexit=JMP\nIN={}\nDEF={31,70,106,32,71,74,104}\nUSE={106,69,68,105}\nOUT={}\nPREDS=1"];
+  B14 [label="B14:\nentry=MKLB131\nexit=JMP\nIN={}\nDEF={31,32,101,77,100}\nUSE={72}\nOUT={}\nPREDS=1"];
   B14 -> B20 [label="jump"];
-  B15 [label="B15:\nentry=MKLB140\nexit=JMP\nIN={}\nDEF={107,70,71,33,34,109,73}\nUSE={68,69,109,108}\nOUT={}\nPREDS=1"];
+  B15 [label="B15:\nentry=MKLB140\nexit=JMP\nIN={}\nDEF={102,33,76,34,103}\nUSE={71}\nOUT={}\nPREDS=1"];
   B15 -> B20 [label="jump"];
   B16 [label="B16:\nentry=JMP-1\nexit=JMP\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
-  B17 [label="B17:\nentry=MKLB129\nexit=IFOP2\nIN={}\nDEF={112,115,118,37,44,38,35,43,40,46,36,116,122,113,42,39,45,119,110,121,41}\nUSE={117,120,112,115,118,114,67,121,111,62}\nOUT={}\nPREDS=1"];
+  B16 -> B20 [label="jump"];
+  B17 [label="B17:\nentry=MKLB129\nexit=IFOP2\nIN={}\nDEF={112,105,37,38,44,35,43,40,47,104,107,46,36,42,39,45,109,110,106,41,111,108}\nUSE={70,73}\nOUT={}\nPREDS=1"];
   B17 -> B14 [label="fall"];
   B17 -> B18 [label="jump"];
-  B18 [label="B18:\nentry=MKLB165\nexit=IFOP2\nIN={}\nDEF={48,123,47}\nUSE={44}\nOUT={}\nPREDS=1"];
+  B18 [label="B18:\nentry=MKLB165\nexit=IFOP2\nIN={}\nDEF={50,48,113,49}\nUSE={44}\nOUT={}\nPREDS=1"];
   B18 -> B15 [label="fall"];
   B18 -> B19 [label="jump"];
-  B19 [label="B19:\nentry=MKLB169\nexit=PHI_PREAMBLE\nIN={}\nDEF={71,70}\nUSE={69,68}\nOUT={}\nPREDS=1"];
+  B19 [label="B19:\nentry=MKLB170\nexit=MKLB\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=1"];
   B19 -> B20 [label="fall"];
-  B20 [label="B20:\nentry=MKLB130\nexit=JMP\nIN={}\nDEF={67,50,124,68,69,49,72,126}\nUSE={67,125,70,71,126}\nOUT={}\nPREDS=3"];
+  B20 [label="B20:\nentry=MKLB130\nexit=JMP\nIN={}\nDEF={70,115,75,52,51,114}\nUSE={70}\nOUT={}\nPREDS=4"];
   B20 -> B12 [label="jump"];
-  B21 [label="B21:\nentry=MKLB123\nexit=EXITOP\nIN={}\nDEF={128,129,127}\nUSE={69,68}\nOUT={}\nPREDS=1"];
+  B21 [label="B21:\nentry=MKLB123\nexit=EXITOP\nIN={}\nDEF={117,116,118}\nUSE={71,72}\nOUT={}\nPREDS=1"];
   B22 [label="B22:\nentry=HIR_STEND-1\nexit=HIR_STEND\nIN={}\nDEF={}\nUSE={}\nOUT={}\nPREDS=0"];
 }
 /:

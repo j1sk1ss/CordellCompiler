@@ -32,7 +32,7 @@
 #include "../../misc/lir_helper.h"
 
 #include <asm/asmgen.h>
-#include <asm/x86_64_asmgen.h>
+#include <asm/x86_64_gnu_nasm_asmgen.h>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     register_saver_t reg_save = { .save_registers = x86_64_gnu_nasm_caller_saving };
     LIR_save_registers(&cfgctx, &smt, &reg_save);
 
-    asm_gen_t asmgen = { .generator = x86_64_generate_asm };
+    asm_gen_t asmgen = { .generator = x86_64_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);
 
     map_free(&colors);

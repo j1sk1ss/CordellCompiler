@@ -7,6 +7,7 @@
         "src/prep/*.c",
         "src/sem/misc/*.c", 
         "src/ast/*.c",
+        "src/ast/dump/*.c",
         "src/ast/astgen/*.c", 
         "src/ast/astgen/*/*.c",
         "src/hir/*.c",
@@ -14,6 +15,7 @@
         "src/hir/cfg/*.c",
         "src/hir/loop/*.c",
         "src/hir/func/*.c",
+        "src/hir/dump/*.c",
         "std/*.c"
     ]
 }

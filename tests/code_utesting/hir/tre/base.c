@@ -10,7 +10,6 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -71,11 +70,7 @@ int main(int argc, char* argv[]) {
 
     HIR_FUNC_perform_tre(&cfgctx, &smt);
 
-    hir_block_t* hh = hirctx.hot.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 0);
-        hh = hh->next;
-    }
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.hot.h);

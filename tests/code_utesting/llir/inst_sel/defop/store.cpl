@@ -4,7 +4,7 @@ start(i32 a) {
 
 :/ OUTPUT
 BB1: start
-%0 = %2;
+%0 = [rbp + 8];
 %1 = $1;
 %0 = %1;
 send

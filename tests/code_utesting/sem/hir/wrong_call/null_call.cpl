@@ -5,5 +5,5 @@ start() {
 
 :/ OUTPUT
 [WARNING] [{X}cpl:3:12] NULL-dereference error (variable 'a' is NULL)!
-          [{X}cpl:2:16]     Variable 'a' is assigned with NULL here
+          [{X}cpl:2:13]     Variable 'a' is assigned with NULL here
 /:

@@ -66,13 +66,16 @@ typedef struct {
 } tkn_ctx_t;
 
 token_t* TKN_copy_token(token_t* src) {
+    if (!src) return NULL;
     token_t* tkn = mm_malloc(sizeof(token_t));
     if (!tkn) return NULL;
     str_memcpy(tkn, src, sizeof(token_t));
-    if (src->body) tkn->body = src->body->copy(src->body);
-    if (!tkn->body) {
-        mm_free(tkn);
-        return NULL;
+    if (src->body) {
+        tkn->body = src->body->copy(src->body);
+        if (!tkn->body) {
+            mm_free(tkn);
+            return NULL;
+        }
     }
 
     return tkn;
@@ -357,7 +360,7 @@ unsigned long TKN_hash_token(token_t* t) {
     str_memset(&t->finfo, 0, sizeof(file_position_t));
 
     unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(token_flags_t), 0);
-    hash ^= t->body->hash;
+    if (t->body) hash ^= t->body->hash;
     hash *= t->t_type;
     
     t->finfo.line   = tmp.line;

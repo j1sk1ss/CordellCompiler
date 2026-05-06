@@ -49,6 +49,34 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
 
     while (CURRENT_TOKEN) {
         switch (CURRENT_TOKEN->t_type) {
+            /* Generic type resolution (possible) */
+            case LOWER_TOKEN: {
+                if (left->t->t_type != CALL_ADDR_TOKEN) goto _default_operator;
+                symbol_id_t type = type_lookup(look_next_token(it), ctx, smt);
+                if (type == NO_SYMBOL_ID && !TKN_is_builtin_type(look_next_token(it))) goto _default_operator;
+                forward_token(it, 1);
+                do {
+                    ast_node_t* type_node = AST_create_node(CURRENT_TOKEN);
+                    type = type_lookup(type_node->t, ctx, smt);
+                    if (type_node) {
+                        AST_add_node(left, type_node);
+                        if (type != NO_SYMBOL_ID) {
+                            type_node->sinfo.v_id = type;
+                            type_node->t->t_type  = GENERIC_TYPE_TOKEN;
+                        }
+                    }
+                    else {
+                        PARSE_ERROR("Error during a generic type operation parsing!");
+                        AST_unload(left);
+                        RESTORE_TOKEN_POINT;
+                        return NULL;
+                    }
+
+                    if (consume_token(it, COMMA_TOKEN)) forward_token(it, 1);
+                } while (CURRENT_TOKEN->t_type != LARGER_TOKEN);
+                forward_token(it, 1);
+                break;
+            }
             /* Postfix tokens that are change placment in an AST tree.
                '[]' / '()' / 'as' takes two childs: the pointer and the data. */
             case CONVERT_TOKEN:
@@ -69,6 +97,11 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     }
                     case OPEN_BRACKET_TOKEN: {
                         forward_token(it, 1);
+                        /* If it was a function addr - convert to a classic funccall */
+                        if (left->t->t_type == CALL_ADDR_TOKEN) {
+                            left->t->t_type = FUNC_NAME_TOKEN;
+                        }
+
                         target = AST_create_node_bt(CREATE_CALL_TOKEN);
                         data   = cpl_parse_call_arguments(it, ctx, smt, 0);
                         break;
@@ -100,6 +133,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             /* Default operators such as:
                plus, minus, multiply, etc. */
             default: {
+_default_operator: {}
                 if (na == 2) goto _stop_expression_parsing;
                 int p = TKN_token_priority(CURRENT_TOKEN);
                 if (
@@ -149,7 +183,6 @@ _stop_expression_parsing: {}
 
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
-    
     if (TKN_is_close(CURRENT_TOKEN)) {
         PARSE_ERROR("Expected a token, but got a terminator!");
         return NULL;
@@ -168,7 +201,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
 
                 ast_node_t* node = NULL;
                 if (
-                    TKN_is_decl(CURRENT_TOKEN) || 
+                    TKN_is_builtin_type(CURRENT_TOKEN) || 
                     CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
                 ) node = cpl_parse_lambda(it, ctx, smt, 0);
                 else {
@@ -186,7 +219,6 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 annotation_unreserve(ctx, annot_off);
                 return node;
             }
-            case CALL_TOKEN:      return cpl_parse_funccall(it, ctx, smt, 0); /* call()    */
             case SIZEOF_TOKEN:    return cpl_parse_sizeof(it, ctx, smt, 0);   /* sizeof()  */
             case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
             case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */

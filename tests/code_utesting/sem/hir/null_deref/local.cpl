@@ -7,6 +7,7 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}cpl:3:25] NULL-dereference error (variable 'p' is NULL)!
+[WARNING] [{X}cpl:6:9] Function 'foo' has the 'i32' return type but the call doesn't store it anywhere else.
+[WARNING] [{X}cpl:3:16] NULL-dereference error (variable 'p' is NULL)!
           [{X}cpl:2:14]     Variable 'p' is assigned with NULL here
 /:

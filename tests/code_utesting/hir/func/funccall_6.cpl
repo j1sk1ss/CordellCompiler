@@ -11,7 +11,7 @@ start() {
 {
     fn foo0(i32** a)
     {
-        i32s** %0 = alloc(8);
+        i32s** %0 = alloc;
         i32s** %0 = load_arg();
         {
             i32t* %2 = *(i32s** %0);
@@ -25,7 +25,7 @@ start() {
                 arrs %1 = arr_alloc(i8n 10);
                 i32t** %4 = &(arrs %1);
                 use i32t** %4;
-                call foo0(i32** a), argc args(i32t** %4,);
+                foo0(i32t** %4);
             }
         }
     }

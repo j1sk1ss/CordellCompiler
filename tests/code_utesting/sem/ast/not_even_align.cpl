@@ -5,10 +5,10 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] b The '[3:28]' variable has align that isn't even! '1' % 2 != 0.
+[WARNING] [{X}3:28] The 'b' variable has align that isn't even! '1' % 2 != 0.
 3 | i32 b = 1;
   | ^^^^^^^^^
-[WARNING] a The '[1:30]' variable has align that isn't even! '7' % 2 != 0.
+[WARNING] [{X}1:30] The 'a' variable has align that isn't even! '7' % 2 != 0.
 1 | glob i32 a = 1;
   | ^^^^^^^^^^^^^^
 /:

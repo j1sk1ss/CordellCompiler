@@ -1,10 +1,10 @@
 #include <lir/instplan/targinfo.h>
 
-int TRGINF_load(char* path, target_info_t* s) {
-    print_debug("TRGINF_load(path=%s)", path);
+int TRGINF_load(target_info_t* s) {
+    print_debug("TRGINF_load(path=%s)", CONF_get_timings());
     
     map_init(&s->info, MAP_NO_CMP);
-    FILE* f = fopen(path, "rb");
+    FILE* f = fopen(CONF_get_timings(), "rb");
     if (!f) return 0;
 
     fread(s, sizeof(s->name) + sizeof(int), 1, f);

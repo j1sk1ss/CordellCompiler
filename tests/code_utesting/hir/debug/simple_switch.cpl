@@ -12,31 +12,31 @@ start() {
 :/ OUTPUT
 setpos, line=2, column=86, file={X}
 {
-setpos, line=1, column=7, file={X}cpl
+setpos, line=1, column=7, file={X}
     start {
         {
-setpos, line=2, column=12, file={X}cpl
+setpos, line=2, column=12, file={X}
             {
                 goto lb7;
                 lb9:
-setpos, line=3, column=24, file={X}cpl
+setpos, line=3, column=24, file={X}
                 {
                 }
                 lb13:
-setpos, line=4, column=24, file={X}cpl
+setpos, line=4, column=24, file={X}
                 {
                 }
                 lb17:
-setpos, line=5, column=24, file={X}cpl
+setpos, line=5, column=24, file={X}
                 {
                 }
                 lb21:
-setpos, line=6, column=22, file={X}cpl
+setpos, line=6, column=22, file={X}
                 {
                 }
                 goto lb8;
                 lb7:
-setpos, line=2, column=15, file={X}cpl
+setpos, line=2, column=15, file={X}
                 i64t %0 = csu8 2 as i64;
                 i64t %2 = i8n 1 as i64;
                 i8t %1 = i64t %2 < i64t %0;
@@ -78,7 +78,7 @@ setpos, line=2, column=15, file={X}cpl
                 lb30:
                 goto lb13;
                 lb8:
-setpos, line=9, column=10, file={X}cpl
+setpos, line=9, column=10, file={X}
                 exit i8n 1;
             }
         }

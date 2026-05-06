@@ -9,11 +9,11 @@ function foo(...) {
     fn _main(...)
     {
         {
-            i64s %0 = alloc(8);
+            i64s %0 = alloc;
             i64s %0 = load_starg();
-            f32s* %1 = alloc(8);
+            f32s* %1 = alloc;
             f32s* %1 = load_starg();
         }
-    }   
+    }
 }
 /:

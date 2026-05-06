@@ -8,5 +8,5 @@ BB1: fn _main(i32 a)
 rcx = rdi;
 rax = rcx;
 return rax;
-BB2:
+BB2: fend
 /:

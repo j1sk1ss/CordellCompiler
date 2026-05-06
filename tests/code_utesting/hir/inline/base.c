@@ -10,7 +10,6 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -75,14 +74,16 @@ int main(int argc, char* argv[]) {
     HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
 
     HIR_CFG_create_domdata(&cfgctx);
-    HIR_FUNC_perform_inline(&cfgctx, &smt, HIR_FUNC_inline_euristic_desider);
 
-    hir_block_t* hh = hirctx.hot.h;
-    while (hh) {
-        print_hir_block(hh, 1, &smt, 0);
-        hh = hh->next;
-    }
+    ltree_ctx_t lctx;
+    map_init(&lctx.lmap, MAP_NO_CMP);
+    HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
+    HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_euristic_desider);
+
+    DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
+
+    HIR_LTREE_unload_ctx(&lctx);
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.hot.h);

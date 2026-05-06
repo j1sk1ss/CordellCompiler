@@ -1,14 +1,11 @@
-#ifndef DUMP_H_
-#define DUMP_H_
+#ifndef HIR_DUMP_H_
+#define HIR_DUMP_H_
 
-#include <unistd.h>
+#include <stdio.h>
+#include <ast/dump.h>
 #include <hir/hir.h>
-#include <hir/hirgen.h>
 #include <hir/hir_types.h>
-#include <hir/cfg.h>
 
-typedef struct {
-    int fd;
-} dump_ctx_t;
+int DUMP_format_hirctx(hir_ctx_t* ctx, sym_table_t* smt, int pos, int unused, FILE* output);
 
 #endif

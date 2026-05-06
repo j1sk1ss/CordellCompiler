@@ -151,6 +151,10 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
         }
     }
 
+    return 1;
+}
+
+int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx) {
     /* Clean the CFG by destroying the link from blocks,
        without any precessors (except initial). */
     foreach (cfg_func_t* fb, &ctx->funcs) {
@@ -168,7 +172,6 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
                 if (cb->l)   set_remove(&cb->l->pred, cb);
                 if (cb->jmp) set_remove(&cb->jmp->pred, cb);
                 cb->l = cb->jmp = NULL;
-
                 hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
                 while (hh) {
                     if (hh->op != HIR_MKLB) hh->unused = 1; /* We don't want to get links to nothing */
@@ -208,7 +211,7 @@ int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx) {
                 (cb->l && !cb->jmp)
             ) {
                 cfg_block_t* next = cb->l ? cb->l : cb->jmp;
-                if (set_size(&next->pred) == 1 && cb != next) {
+                if (set_size(&next->pred) == 1 && cb != next && (next->l && next->jmp)) {
                     hir_block_t* curr = HIR_get_next(next->hmap.entry, next->hmap.exit, 0);
                     while (curr) {
                         hir_block_t* tmp = HIR_get_next(curr, next->hmap.exit, 1);
@@ -284,6 +287,7 @@ int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
 }
 
 int HIR_CFG_unload(cfg_ctx_t* ctx) {
+    ctx->cid = 0;
     foreach (cfg_func_t* fb, &ctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             _unload_cfg_block(cb);

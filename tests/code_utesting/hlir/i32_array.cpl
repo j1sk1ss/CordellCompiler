@@ -73,5 +73,5 @@ use %29;
 stparam(%29);
 call putdigit1(i32 x) -> i0;
 exit $0;
-BB6:
+BB6: send
 /:

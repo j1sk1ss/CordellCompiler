@@ -23,7 +23,7 @@ start() {
 {
     fn factory0(i32 k) -> i0*
     {
-        i32s %0 = alloc(8);
+        i32s %0 = alloc;
         i32s %0 = load_arg();
         {
             goto lb10;
@@ -76,8 +76,8 @@ start() {
             {
                 i32t %8 = i8n 0 as i32;
                 use i32t %8;
-                i0t* %9 = call factory0(i32 k) -> i0*, argc args(i32t %8,);
-                i64t %10 = call i0t* %9, argc args();
+                i0t* %9 = factory0(i32t %8);
+                i64t %10 = i0t* %9();
                 i8t %7 = i64t %10 as i8;
                 exit i8t %7;
             }

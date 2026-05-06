@@ -5,9 +5,9 @@
 
 typedef enum {
     UNKNOWN,
-    MACOH64,
+    MACHO64,
     LINUX64,
-    WINDOWS
+    WINDOWS64
 } arch_type_t;
 
 typedef const char* config_string_field_t;
@@ -15,6 +15,11 @@ typedef const long  config_int_field_t;
 typedef const char  config_flag_field_t;
 
 typedef struct {
+    struct {
+        config_string_field_t  z3;        /* Absolute path to the script */
+        config_int_field_t     attention; /* 1, 2, 3 ...                 */
+    } csa; /* CordellStaticAnalyzer */
+
     struct {
         config_string_field_t  entry_name;   /* main() name in the output ASM         */
         config_string_field_t  ro_section;   /* RO data section name, e.g. ".rodata"  */
@@ -27,6 +32,7 @@ typedef struct {
             config_int_field_t e_bytness;    /* Eight system byte size, e.g. 1 - x64  */
         } bytness;
         arch_type_t            sys_type;
+        config_string_field_t  arch_timings; /* *.trg file with generated timings     */
     } system;
 
     struct {
@@ -48,11 +54,15 @@ config_string_field_t CONF_get_entry_name();
 config_string_field_t CONF_get_ro_section();
 config_string_field_t CONF_get_glob_section();
 config_string_field_t CONF_get_code_section();
+config_string_field_t CONF_get_timings();
 
 config_int_field_t CONF_get_full_bytness();
 config_int_field_t CONF_get_half_bytness();
 config_int_field_t CONF_get_quart_bytness();
 config_int_field_t CONF_get_eight_bytness();
+
+config_string_field_t CONF_get_z3_path();
+config_int_field_t CONF_get_attention_level();
 
 config_flag_field_t CONF_is_debug_compilation();
 arch_type_t CONF_get_system_type();

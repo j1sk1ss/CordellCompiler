@@ -6,5 +6,5 @@
 }
 
 :/ OUTPUT
-[INFO]    [3:14] The function 'main' is an entry point! Consider the usage of the 'exit' statement over the 'return' statement!
+[INFO]    [{X}3:14] The function 'main' is an entry point! Consider the usage of the 'exit' statement over the 'return' statement!
 /:

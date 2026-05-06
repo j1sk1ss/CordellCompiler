@@ -329,9 +329,9 @@ For instance, here is the HIR that was obtained from the [AST part](#ast-part)'s
 {
     fn _main(i32 argc, i8** argv)
     {
-        i32s %2 = alloc(8);
+        i32s %2 = alloc;
         i32s %2 = load_starg();
-        i8s** %3 = alloc(8);
+        i8s** %3 = alloc;
         i8s** %3 = load_starg();
         {
             strs %4 = str_alloc(Hello world!);
@@ -474,20 +474,20 @@ The result of using the DAG is optimized code with Common Subexpression Eliminat
 {
     start {
         {
-            i64s %0 = alloc(8);
+            i64s %0 = alloc;
             i64s %0 = load_starg();
-            u64s %1 = alloc(8);
+            u64s %1 = alloc;
             u64s %1 = load_starg();
             {
-                i32s %2 = alloc(8);
+                i32s %2 = alloc;
                 i32t %5 = num?: 10 as i32;
                 i32s %2 = i32t %5;
-                u64s %3 = alloc(8);
+                u64s %3 = alloc;
                 u64t %6 = &(i32s %2);
                 u64s %3 = u64t %6;
                 u64t %7 = num?: 11 as u64;
                 *(u64s %3) = u64t %7;
-                i32s %4 = alloc(8);
+                i32s %4 = alloc;
                 i32t %8 = num?: 10 as i32;
                 i32s %4 = i32t %8;
                 exit i32s %4;

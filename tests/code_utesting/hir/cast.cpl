@@ -9,8 +9,8 @@ function foo() {
     fn _main()
     {
         {
-            i32s %0 = alloc(8);
-            i32s** %1 = alloc(8);
+            i32s %0 = alloc;
+            i32s** %1 = alloc;
             i32t** %2 = i32s %0 as *ptr;
             i32s** %1 = i32t** %2;
         }

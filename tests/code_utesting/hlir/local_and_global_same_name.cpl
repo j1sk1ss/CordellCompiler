@@ -47,5 +47,5 @@ BB10: start
 call bar2() -> i0;
 call foo1() -> i0;
 exit $0;
-BB11:
+BB11: send
 /:

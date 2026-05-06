@@ -1,11 +1,11 @@
 #include <sem/hir/hir_visitors.h>
 
+// TODO: docs
 static const char* _resolve_variable_name(symbol_id_t id, sym_table_t* smt) {
     variable_info_t vi;
     do {
-        if (VRTB_get_info_id(id, &vi, &smt->v)) {
-            id = vi.p_id;
-        }
+        if (VRTB_get_info_id(id, &vi, &smt->v)) id = vi.p_id;
+        else return "no-name";
     } while (id != NO_SYMBOL_ID);
     return vi.name->body;
 }
@@ -61,6 +61,7 @@ static int _resolve_subject_value(hir_subject_t* s, sym_table_t* smt, defined_va
     return 1;
 }
 
+// TODO: docs
 static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_id, file_position_t* loc) {
     int found = 0;
     while (b) {
@@ -86,28 +87,34 @@ static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_i
     return found;
 }
 
+// TODO: docs
 static inline symbol_id_t _get_parent_id(symbol_id_t v_id, sym_table_t* smt) {
     variable_info_t vi;
     if (VRTB_get_info_id(v_id, &vi, &smt->v)) return vi.p_id;
     return NO_SYMBOL_ID;
 }
 
-static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
+// TODO: docs
+static int _dereference_error(hir_block_t* hb, hir_subject_t* s, string_t* f, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
     defined_variable_t di;
-    if (!_resolve_subject_value(s, smt, &di)) {
-        return 1;
-    }
+    if (!_resolve_subject_value(s, smt, &di)) return 1;
 
-    queue_t work_vars;
+    queue_t work_vars; 
     queue_init(&work_vars);
 
     trace_t trace;
     TRACE_init_trace(&trace);
-
+    
     switch (di.defined_value) {
         /* Number defined   */
         case 1: {
-            if (!di.const_value) TRACE_add_location(&trace, &ctx->curr_location, "NULL-dereference error!");
+            if (!di.const_value) {
+                TRACE_add_location(&trace, &ctx->curr_location, "NULL-dereference error!");
+                TRACE_print_and_free_trace(&trace);
+                queue_free(&work_vars);
+                return 0;
+            }
+
             break;
         }
         /* Variable defined */
@@ -123,6 +130,9 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
                     "NULL-dereference error (variable '%s' is NULL)!", 
                     _resolve_variable_name(s->storage.var.v_id, smt)
                 );
+                TRACE_print_and_free_trace(&trace);
+                queue_free(&work_vars);
+                return 0;
             }
 
             break;
@@ -132,55 +142,53 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
         default: break;
     }
 
-    if (queue_isempty(&work_vars)) {
-        TRACE_print_and_free_trace(&trace);
-        queue_free(&work_vars);
-        return 1;
-    }
-
     int res = 1;
-    symbol_id_t v_id, prev_id = s->storage.var.v_id;
-    while (queue_pop(&work_vars, (void**)&v_id)) {
-        list_t* possible_definitions;
-        if (map_get(&ctx->definitions, (long)v_id, (void**)&possible_definitions)) {
-            file_position_t loc;
-            _sparce_find_variable_define_location(hb, prev_id, &loc);
-            if (
-                _get_parent_id(prev_id, smt) != _get_parent_id(v_id, smt)
-            ) TRACE_add_location(
-                &trace, &loc, "Variable '%s' is assigned with the '%s' here", 
-                _resolve_variable_name(prev_id, smt), _resolve_variable_name(v_id, smt)
-            );
+    if (!queue_isempty(&work_vars)) {
+        symbol_id_t v_id, prev_id = s->storage.var.v_id;
+        while (queue_pop(&work_vars, (void**)&v_id)) {
+            list_t* possible_definitions;
+            if (map_get(&ctx->definitions, (long)v_id, (void**)&possible_definitions)) {
+                file_position_t loc;
+                _sparce_find_variable_define_location(hb, prev_id, &loc);
+                if (
+                    _get_parent_id(prev_id, smt) != _get_parent_id(v_id, smt)
+                ) TRACE_add_location(
+                    &trace, &loc, "Variable '%s' is assigned with the '%s' here", 
+                    _resolve_variable_name(prev_id, smt), _resolve_variable_name(v_id, smt)
+                );
 
-            foreach (symbol_id_t p_id, possible_definitions) {
-                queue_push(&work_vars, (void*)p_id);
+                foreach (symbol_id_t p_id, possible_definitions) {
+                    queue_push(&work_vars, (void*)p_id);
+                }
             }
-        }
 
-        variable_info_t vi;
-        if (!VRTB_get_info_id(v_id, &vi, &smt->v) || !vi.vdi.defined) continue;
-        else {
-            if (vi.vdi.defined == OVERDEFINED_VARIABLE && vi.vdi.definition != vi.v_id) {
-                queue_push(&work_vars, (void*)vi.vdi.definition);
-                prev_id = v_id;
-            }
+            variable_info_t vi;
+            if (!VRTB_get_info_id(v_id, &vi, &smt->v) || !vi.vdi.defined) continue;
             else {
-                if (!vi.vdi.definition) {
-                    res = 0;
-                    file_position_t loc;
-                    _sparce_find_variable_define_location(hb, vi.v_id, &loc);
-                    TRACE_add_location(&trace, &loc, "Variable '%s' becomes NULL-value", vi.name->body);
+                if (vi.vdi.defined == OVERDEFINED_VARIABLE && vi.vdi.definition != vi.v_id) {
+                    queue_push(&work_vars, (void*)vi.vdi.definition);
+                    prev_id = v_id;
+                }
+                else {
+                    if (!vi.vdi.definition) {
+                        res = 0;
+                        file_position_t loc;
+                        _sparce_find_variable_define_location(hb, vi.v_id, &loc);
+                        TRACE_add_location(&trace, &loc, "Variable '%s' becomes NULL-value", vi.name->body);
+                    }
                 }
             }
         }
     }
 
-    if (res) TRACE_unload_trace(&trace);
+    int z3_answer = Z3_can_vid_be_equal(s->storage.var.v_id, 0, f, ctx->dump);
+    if (res && !z3_answer) TRACE_unload_trace(&trace);
     else {
+        printf("z3=%i\n", z3_answer);
         TRACE_add_location(
             &trace, &ctx->curr_location, 
-            "Possible NULL-dereference error (variable '%s' is NULL)!", 
-            _resolve_variable_name(s->storage.var.v_id, smt)
+            "%sNULL-dereference error (variable '%s' is NULL)!", 
+            z3_answer == 2 ? "Possible " : "", _resolve_variable_name(s->storage.var.v_id, smt)
         );
 
         TRACE_print_and_free_trace(&trace);
@@ -193,27 +201,45 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, sym_table_t* sm
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
-    return _dereference_error(b, b->sarg, smt, ctx);
+    func_info_t fi;
+    if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
+        return 1;
+    }
+
+    return _dereference_error(b, b->sarg, fi.virt, smt, ctx);
 }
 
 int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
-    return _dereference_error(b, b->farg, smt, ctx);
+    func_info_t fi;
+    if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
+        return 1;
+    }
+
+    return _dereference_error(b, b->farg, fi.virt, smt, ctx);
 }
 
 int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
 
-    trace_t trace;
-    TRACE_init_trace(&trace);
-
-    defined_variable_t di;
-    if (!_resolve_subject_value(b->farg, smt, &di)) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
         return 1;
     }
+    
+    trace_t trace;
+    TRACE_init_trace(&trace);
+    if (!Z3_can_reach_label(b->sarg->id, fi.virt, ctx->dump)) {
+        TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'then' branch! Consider to refactor the code.");
+    }
+    
+    if (!Z3_can_reach_label(b->targ->id, fi.virt, ctx->dump)) {
+        TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'else' branch! Consider to refactor the code.");
+    }
 
-    switch (di.defined_value) {
+    defined_variable_t di;
+    if (_resolve_subject_value(b->farg, smt, &di)) switch (di.defined_value) {
         case 1: TRACE_add_location(&trace, &ctx->curr_location, "'If' with a constant value '%s'!", di.const_value ? "true" : "false"); break;
         case 2: {
             file_position_t loc;
@@ -227,11 +253,12 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
         }
         default: break;
     }
-
+    
     TRACE_print_and_free_trace(&trace);
     return 1;
 }
 
+// TODO: docs
 static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int buffer_size) {
     for (int i = 0; i < ptr; i++) {
         buffer += snprintf(buffer, buffer_size, "ptr ");
@@ -314,7 +341,7 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     hir_subject_t** hir_args = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
     fn_iterate_args (&fi) {
         if (
-            HIR_get_tmptype_tkn(arg->t, 0) != hir_args[arg_index]->t ||
+            HIR_get_tmptype_tkn(arg->t, 0) != HIR_get_tmp_type(hir_args[arg_index]->t) ||
             arg->t->flags.ptr != hir_args[arg_index]->ptr
         ) {
             char received[64], expected[64];
@@ -362,6 +389,11 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
 int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op != HIR_SYSC && b->op != HIR_STORE_SYSC) return 1;
+    func_info_t fi;
+    if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
+        return 1;
+    }
+
     hir_subject_t* number = list_get_head(&b->targ->storage.list.h);
     defined_variable_t di;
     if (!_resolve_subject_value(number, smt, &di) || di.defined_value == 3) {
@@ -375,9 +407,8 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     syscall_t* table = NULL;
     hir_subject_t** flatten_input = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
     switch (CONF_get_system_type()) {
-        case MACOH64: {
+        case MACHO64: {
             table_size = SYSCHECK_get_macoh_x86_64_syscall_table(&table);
-            /* MacOS syscall offset */
             di.const_value -= 0x2000000;
             break;
         }
@@ -399,6 +430,15 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     }
 
     syscall_t syscall = table[di.const_value];
+    if (syscall.side_effect < ctx->acceptable_level) {
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "Syscall %i (%s, %s) is dangerous for this level acceptance level (%i). Consider to delete this call or reduce the acceptance level.", 
+            di.const_value, syscall.name, syscall.description, ctx->acceptable_level
+        );
+        goto _force_exit_syscall_checker;
+    }
+    
     for (int arg_index = 1; arg_index < syscall.argc && arg_index < list_size(&b->targ->storage.list.h); arg_index++) {
         int sarg_index = arg_index - 1;
         if (
@@ -423,7 +463,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
         }
         
         if (syscall.types[sarg_index].dereference) {
-            _dereference_error(b, flatten_input[arg_index], smt, ctx);
+            _dereference_error(b, flatten_input[arg_index], fi.virt, smt, ctx);
         }
     }
 
@@ -437,6 +477,87 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
 
 _force_exit_syscall_checker: {}
     mm_free(flatten_input);
+    TRACE_print_and_free_trace(&trace);
+    return 1;
+}
+
+int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+
+    func_info_t fi;
+    if (
+        (!b->sarg || b->sarg->t != HIR_FNAME) || 
+        !FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)
+    ) return 1;
+    
+    if (fi.rtype && fi.rtype->t->t_type != I0_TYPE_TOKEN) {
+        trace_t trace;
+        TRACE_init_trace(&trace);
+
+        char rtype[64];
+        _create_type_name(HIR_get_tmptype_tkn(fi.rtype->t, 0), fi.rtype->t->flags.ptr, rtype, sizeof(rtype));
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "Function '%s' has the '%s' return type but the call doesn't store it anywhere else.",
+            fi.name->body, rtype
+        );
+
+        TRACE_print_and_free_trace(&trace);
+        return 0;
+    }
+
+    return 1;
+}
+
+int HIRWLKR_noret_assign(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+
+    func_info_t fi;
+    if (
+        b->sarg->t != HIR_FNAME || 
+        !FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)
+    ) return 1;
+
+    if (!fi.rtype || fi.rtype->t->t_type == I0_TYPE_TOKEN) {
+        trace_t trace;
+        TRACE_init_trace(&trace);
+
+
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "Function '%s' doesn't return any value, but it used as a value. Consider to change the return type.",
+            fi.name->body
+        );
+
+        TRACE_print_and_free_trace(&trace);
+        return 0;
+    }
+
+    return 1;
+}
+
+int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+
+    trace_t trace;
+    TRACE_init_trace(&trace);
+
+    if (HIR_is_tmptype(b->sarg->t)) {
+        TRACE_add_location(
+            &trace, &ctx->curr_location, 
+            "The danger reference to a temp value! Consider to reference from a variable with this value."
+        );
+    }
+
+    TRACE_print_and_free_trace(&trace);
+    return 1;
+}
+
+// TODO: check for plus operaions, and if there is an aligned with an array variable, and the second one is larger than the array - fire
+int HIRWLKR_illegal_indexing(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    trace_t trace;
+    TRACE_init_trace(&trace);
     TRACE_print_and_free_trace(&trace);
     return 1;
 }

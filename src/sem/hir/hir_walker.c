@@ -40,11 +40,13 @@ int HIRWLK_register_visitor(unsigned int trg, int (*perform)(HIR_VISITOR_ARGS), 
     return list_add(&ctx->visitors, w);
 }
 
-int HIRWLK_init_ctx(hir_walker_t* ctx, dag_ctx_t* dctx, sym_table_t* smt) {
+int HIRWLK_init_ctx(hir_walker_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_table_t* smt) {
     str_memset(ctx, 0, sizeof(hir_walker_t));
     map_init(&ctx->vctx.definitions, MAP_NO_CMP);
     ctx->smt = smt;
     ctx->vctx.dctx = dctx;
+    ctx->vctx.dump = tmpfile();
+    DUMP_format_hirctx(hctx, smt, 0, 0, ctx->vctx.dump);
     return list_init(&ctx->visitors);
 }
 
@@ -57,6 +59,7 @@ Returns an instruction type.
 */
 static hir_instruction_type_t _get_instruction_type(hir_operation_t t) {
     switch (t) {
+        case HIR_REF:         return REF_INST;
         case HIR_SYSC:
         case HIR_FCLL:
         case HIR_ECLL:
@@ -70,7 +73,10 @@ static hir_instruction_type_t _get_instruction_type(hir_operation_t t) {
         case HIR_LDREF:       return LDREF_INST;
         case HIR_GDREF:       return GDREF_INST;
         case HIR_SETPOS:      return SETPOS_INST;
-        default: break;
+        default: {
+            if (HIR_is_writeop(t)) return STMT_INST;
+            break;
+        }
     }
 
     return UNKNOWN_INST;
@@ -122,5 +128,6 @@ static int _free_definitions_entry(list_t* l) {
 int HIRWLK_unload_ctx(hir_walker_t* ctx) {
     map_free_force_op(&ctx->vctx.definitions, (int (*)(void*))_free_definitions_entry);
     list_free_force_op(&ctx->visitors, (int (*)(void *))_unload_sem_handler);
+    fclose(ctx->vctx.dump);
     return mm_free(ctx);
 }

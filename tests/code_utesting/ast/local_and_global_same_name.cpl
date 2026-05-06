@@ -39,7 +39,8 @@ start() {
          [i0] (I0_TYPE_TOKEN, v_id=-1, s_id=0)
       { scope, id=4 }
          { scope, id=5 }
-            [putc] (CALL_TOKEN, v_id=0, s_id=1)
+            [()]
+               [putc] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
                { scope, id=0 }
                   [71] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
    [function] (FUNC_TOKEN, v_id=-1, s_id=0)
@@ -52,16 +53,20 @@ start() {
                   [i0] (I0_TYPE_TOKEN, v_id=-1, s_id=0)
                { scope, id=8 }
                   { scope, id=9 }
-                     [putc] (CALL_TOKEN, v_id=0, s_id=1)
+                     [()]
+                        [putc] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
                         { scope, id=0 }
                            [76] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [foo] (CALL_TOKEN, v_id=3, s_id=7)
+            [()]
+               [foo] (FUNC_NAME_TOKEN, v_id=3, s_id=7)
                { scope, id=0 }
    [start] (START_TOKEN, v_id=4, s_id=1)
       { scope, id=10 }
-         [bar] (CALL_TOKEN, v_id=2, s_id=1)
+         [()]
+            [bar] (FUNC_NAME_TOKEN, v_id=2, s_id=1)
             { scope, id=0 }
-         [foo] (CALL_TOKEN, v_id=1, s_id=1)
+         [()]
+            [foo] (FUNC_NAME_TOKEN, v_id=1, s_id=1)
             { scope, id=0 }
          [exit] (EXIT_TOKEN, v_id=-1, s_id=10)
             [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)

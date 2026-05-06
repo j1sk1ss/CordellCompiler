@@ -21,12 +21,9 @@ int map_copy(map_t* dst, map_t* src) {
     dst->cmp      = src->cmp;
     dst->compr    = src->compr;
     dst->entries  = NULL;
-
     if (src->capacity <= 0) return 1;
-
     dst->entries = (map_entry_t*)mm_malloc(src->capacity * sizeof(map_entry_t));
     if (!dst->entries) return 0;
-
     str_memcpy(dst->entries, src->entries, src->capacity * sizeof(map_entry_t));
     return 1;
 }

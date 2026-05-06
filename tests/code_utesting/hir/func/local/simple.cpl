@@ -9,13 +9,13 @@ function foo() {
     fn _main()
     {
         {
-            goto lb{X}
+            goto lb7;
             fn bar1()
             {
                 {
                 }
             }
-            lb{X}
+            lb7:
         }
     }
 }

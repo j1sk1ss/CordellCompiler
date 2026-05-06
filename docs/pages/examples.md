@@ -99,7 +99,7 @@ glob arr stack[10000, i32];
 
 @[entry]
 function brainfuck() {
-    puts("Brainfuck interpriter! Input code: ");
+    puts(ref "Brainfuck interpriter! Input code: ");
 
     i32 pos = 0;
     i32 stackptr = 0;

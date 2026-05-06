@@ -1,12 +1,19 @@
 #include <hir/dag.h>
 
 unsigned long HIR_DAG_compute_hash(dag_node_t* nd) {
+    if (!nd) return 0;
+    if (nd->hash_busy) {
+        return HIR_hash_subject(nd->src);
+    }
+
     if (!set_size(&nd->args)) return HIR_hash_subject(nd->src);
+    nd->hash_busy = 1;
     unsigned long h = nd->op * 1315423911UL;
     set_foreach (dag_node_t* arg, &nd->args) {
         h ^= HIR_DAG_compute_hash(arg) + 0x9e3779b97f4a7c15UL + (h << 6) + (h >> 2);
     }
 
+    nd->hash_busy = 0;
     return h;
 }
 

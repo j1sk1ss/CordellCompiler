@@ -5,7 +5,7 @@ function foo() -> i0 {
 }
 
 :/ OUTPUT
-[INFO]    [2:11] Consider to use the 'loop' statement instead of the 'while 1;'!
+[INFO]    [{X}2:11] Consider to use the 'loop' statement instead of the 'while 1;'!
 2 | while 1;
   |       ^
 3 | {

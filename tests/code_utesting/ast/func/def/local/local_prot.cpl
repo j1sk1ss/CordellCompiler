@@ -24,7 +24,8 @@ function foo() -> ptr i0 {
                { scope, id=5 }
                   { scope, id=6 }
                      [return] (RETURN_TOKEN, v_id=-1, s_id=6)
-                        [bar] (CALL_TOKEN, v_id=1, s_id=3)
+                        [()]
+                           [bar] (FUNC_NAME_TOKEN, v_id=1, s_id=3)
                            { scope, id=0 }
             [function] (FUNC_TOKEN, v_id=-1, s_id=0)
                [bar] (FUNC_NAME_TOKEN, v_id=1, s_id=3)
@@ -33,5 +34,5 @@ function foo() -> ptr i0 {
                      [return] (RETURN_TOKEN, v_id=-1, s_id=8)
                         [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
             [return] (RETURN_TOKEN, v_id=-1, s_id=3)
-               [baz] (CALL_ADDR_TOKEN, v_id=2, s_id=0)
+               [baz] (CALL_ADDR_TOKEN, v_id=2, s_id=3)
 /:

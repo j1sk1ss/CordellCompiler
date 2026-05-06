@@ -31,7 +31,7 @@ start() {
     start {
         {
             {
-                i64t %0 = call foo1(), argc args();
+                i64t %0 = foo1();
                 exit i64t %0;
             }
         }

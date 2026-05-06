@@ -64,53 +64,53 @@ start(i32 a, ptr ptr i8 b) {
 BB3: fn crc80(u8* data, u32 len) -> u8
 r9 = rdi;
 r8 = rsi;
-rdx = $0;
-rbx = rdx;
-rdx = $0;
-rdx = rdx;
-BB15: rdi = rdx;
-rsi = rbx;
+rcx = $0;
+rdx = rcx;
+rcx = $0;
+rcx = rcx;
+BB15: rsi <<= rdx;
+rdi <<= rcx;
 BB4: lb316:
 rax = rdi;
 cmp rax, r8;
 setb al;
-rdx movsx al;
-cmp rdx, 0;
+rcx movsx al;
+cmp rcx, 0;
 je lb318;
 jne lb317;
 BB5: lb317:
 rbx = r9;
 rax = rdi;
 rax = rax * 1;
-rdx = rax;
-rdx movsxd rdx;
+rcx = rax;
+rdx movsxd rcx;
 rax = rbx;
 rax = rax + rdx;
-rdx = rax;
-rdx = *(rdx);
-rax = rdx;
+rcx = rax;
+rcx = *(rcx);
+rax = rcx;
 rax = rax ^ rsi;
-rdx = rax;
-rax = rdx;
+rcx = rax;
+rax = rcx;
 rax = rax & $255;
-rdx = rax;
+rcx = rax;
 rbx = &(%_table);
-rax movsx rdx;
+rax movsx rcx;
 rax = rax * 1;
-rdx = rax;
-rdx movzx rdx;
+rcx = rax;
+rdx movzx rcx;
 rax = rbx;
 rax = rax + rdx;
-rdx = rax;
-rdx = *(rdx);
-rbx = rdx;
+rcx = rax;
+rcx = *(rcx);
+rbx = rcx;
 rdx = $1;
 rax = rdi;
 rax = rax + rdx;
-rdx = rax;
-rdx = rdx;
-rsi = rbx;
-rdi = rdx;
+rcx = rax;
+rcx = rcx;
+rsi <<= rbx;
+rdi <<= rcx;
 jmp lb316;
 BB6: lb318:
 rdx = $85;
@@ -119,39 +119,39 @@ rax = rax ^ rdx;
 rcx = rax;
 rax = rcx;
 return rax;
-BB7:
+BB7: fend
 BB8: fn strlen1(i8* s) -> i32
-rbx = rdi;
-rdx = $0;
-rdx = rdx;
-BB16: rsi = rbx;
-rbx = rdx;
+rdx = rdi;
+rcx = $0;
+rcx = rcx;
+BB16: rbx <<= rcx;
+rsi <<= rdx;
 BB9: lb371:
-rdx = *(rsi);
-cmp rdx, 0;
+rcx = *(rsi);
+cmp rcx, 0;
 je lb373;
 jne lb372;
 BB10: lb372:
 rdx = $1;
 rax = rbx;
 rax = rax + rdx;
-rdx = rax;
-rbx = rdx;
+rcx = rax;
+rbx = rcx;
 rdx = $1;
 rax = rsi;
 rax = rax + rdx;
-rdx = rax;
-rdx = rdx;
-rbx = rbx;
-rsi = rdx;
+rcx = rax;
+rcx = rcx;
+rbx <<= rbx;
+rsi <<= rcx;
 jmp lb371;
 BB11: lb373:
 rax = rbx;
 return rax;
-BB12:
+BB12: fend
 BB13: start
-rdx = rdi;
-rsi = &(*rsi);
+rdx = [rbp + 8];
+rsi = &([rbp + 16]);
 rbx = rsi;
 rax = $1;
 rax = rax * 8;
@@ -188,102 +188,96 @@ rdi = pop();
 rcx = rax;
 rdi = rcx;
 exit rdi;
-BB14:
+BB14: send
 === AFTER ===
 %0 = arr_alloc($256);
 BB3: fn crc80(u8* data, u32 len) -> u8
 r9 = rdi;
 r8 = rsi;
 rdx = rdx ^ rdx;
-rbx = rbx ^ rbx;
-rdx = rdx ^ rdx;
-BB15: rdi = rdx;
-rsi = rbx;
+rcx = rcx ^ rcx;
+BB15: rsi <<= rdx;
+rdi <<= rcx;
 BB4: lb316:
 cmp rdi, r8;
 setb al;
-rdx movsx al;
-test rdx, rdx;
+rcx movsx al;
+test rcx, rcx;
 je lb318;
-jne lb317;
-BB5: lb317:
-rbx = r9;
+BB5: rbx = r9;
 rax = rdi;
-rdx = rax;
-rdx movsxd rdx;
-rax = r9;
-rax = rax + rdx;
-rdx = rax;
-rdx = *(rdx);
-rax = rdx;
-rax = rax ^ rsi;
-rax = rax & $255;
-rdx = rax;
-rbx = &(%_table);
-rax movsx rdx;
-rdx = rax;
-rdx movzx rdx;
+rcx = rax;
+rdx movsxd rcx;
 rax = rbx;
 rax = rax + rdx;
-rdx = rax;
-rdx = *(rdx);
-rbx = rdx;
+rcx = rax;
+rcx = *(rcx);
+rax = rcx;
+rax = rax ^ rsi;
+rax = rax & $255;
+rcx = rax;
+rbx = &(%_table);
+rax movsx rcx;
+rcx = rax;
+rdx movzx rcx;
+rax = rbx;
+rax = rax + rdx;
+rcx = rax;
+rcx = *(rcx);
+rbx = rcx;
 rdx = $1;
 rax = rdi;
 rax = rax + rdx;
-rdx = rax;
-rsi = rbx;
-rdi = rdx;
+rcx = rax;
+rsi <<= rbx;
+rdi <<= rcx;
 jmp lb316;
 BB6: lb318:
 rdx = $85;
 rax = rsi;
 rax = rax ^ rdx;
-rcx = rax;
 return rax;
-BB7:
+BB7: fend
 BB8: fn strlen1(i8* s) -> i32
-rbx = rdi;
-rdx = rdx ^ rdx;
-BB16: rsi = rbx;
-rbx = rdx;
+rdx = rdi;
+rcx = rcx ^ rcx;
+BB16: rbx <<= rcx;
+rsi <<= rdx;
 BB9: lb371:
-rdx = *(rsi);
-test rdx, rdx;
+rcx = *(rsi);
+test rcx, rcx;
 je lb373;
-jne lb372;
-BB10: lb372:
-rdx = $1;
+BB10: rdx = $1;
 rax = rbx;
 rax = rax + rdx;
-rbx = rax;
+rcx = rax;
+rbx = rcx;
 rdx = $1;
 rax = rsi;
 rax = rax + rdx;
-rdx = rax;
-rsi = rdx;
+rcx = rax;
+rsi <<= rcx;
 jmp lb371;
 BB11: lb373:
 rax = rbx;
 return rax;
-BB12:
+BB12: fend
 BB13: start
-rsi = &(*rsi);
-rax = $1;
-rax = rax * 8;
+rsi = &([rbp + 16]);
+rbx = rsi;
+rax = 8;
 rdx = rax;
 rdx movsx rdx;
-rax = rsi;
+rax = rbx;
 rax = rax + rdx;
 rdx = rax;
 r9 = *(rdx);
 use r9;
 rbx = rsi;
-rax = $1;
-rax = rax * 8;
+rax = 8;
 rdx = rax;
 rdx movsx rdx;
-rax = rsi;
+rax = rbx;
 rax = rax + rdx;
 rdx = rax;
 rdx = *(rdx);
@@ -297,12 +291,12 @@ use rdx;
 push(rdi);
 rdi <<= r9;
 push(rsi);
-rsi <<= rax;
+rsi <<= rdx;
 call crc80(u8* data, u32 len) -> u8;
 rsi = pop();
 rdi = pop();
 rcx = rax;
-rdi = rax;
+rdi = rcx;
 exit rdi;
-BB14:
+BB14: send
 /:

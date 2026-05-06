@@ -20,24 +20,27 @@ BB4: lb20:
 rdi = $2;
 exit rdi;
 BB5: lb8:
+rdx = 1;
 rcx = $1;
 rax = rcx;
-cmp rax, 1;
+cmp rax, rdx;
 sete al;
 rcx = al;
 cmp rcx, 0;
 je lb27;
 jne lb10;
 BB6: lb27:
+rdx = 2;
 rcx = $1;
 rax = rcx;
-cmp rax, 2;
+cmp rax, rdx;
 sete al;
 rcx = al;
 cmp rcx, 0;
-je lb31;
+je lb32;
 jne lb15;
-BB7: lb31:
+BB7: lb32:
 jmp lb20;
 BB8: lb9:
+send
 /:

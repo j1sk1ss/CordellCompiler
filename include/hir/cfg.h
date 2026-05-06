@@ -28,8 +28,8 @@ typedef struct {
     /* Basic info and content */
     long         id;
     symbol_id_t  f_id;
-    hir_map_t    hmap;     /* Mapping to exister HIR ctx */
-    lir_map_t    lmap;     /* Mapping to existed LIR ctx */
+    hir_map_t    hmap;    /* Mapping to exister HIR ctx   */
+    lir_map_t    lmap;    /* Mapping to existed LIR ctx   */
 
     /* CFG data */
     set_t        locals;  /* Local functions              */
@@ -81,10 +81,10 @@ typedef struct cfg_block {
 } cfg_block_t;
 
 typedef struct {
-    long       cid;
-    list_t     funcs; /* Function blocks                */
+    long       cid;   /* Current block number: Service info */
+    list_t     funcs; /* Function blocks                    */
     struct {
-        list_t hout;   /* HIR blocks out from a function */
+        list_t hout;  /* HIR blocks out from a function     */
         list_t lout;
     } outs;
 } cfg_ctx_t;
@@ -245,6 +245,19 @@ Return 1 if success, otherwise 0.
 int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Get all blocks which don't have predcessors, then check whether they
+are an entry points or not. If they aren't - remove them and clear
+its HIR blocks.
+Note: It's an important action before dominance calculation, given the
+CFG generation artifacts!
+Params:
+    - `ctx` - CFG context.
+
+Returns 1 if succeeds. 
+*/
+int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx);
+
+/*
 Get the count of HIR blocks in base block.
 Params:
     - `bb` - Basic block.
@@ -253,7 +266,17 @@ Returns the count of HIR blocks in the BB.
 */
 int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb);
 
-// TODO
+/*
+Unite close blocks to one block. Idea is to get rid from
+a ton of small blocks that are being connected with each 
+other via one link.
+To find such blocks, we unite all block which don't have
+two links.
+Params:
+    - `ctx` - CFG context.
+
+Returns 1 if succeeds.
+*/
 int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx);
 
 /*

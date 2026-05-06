@@ -8,5 +8,5 @@ start() {
 }
 
 :/ OUTPUT
-id: 0, owners: <<9 4 3 10 6 8>>
+id: 0, owners: 9 4 3 10 6 8
 /:

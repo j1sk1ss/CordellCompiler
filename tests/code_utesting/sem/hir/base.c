@@ -21,6 +21,9 @@
 #include <sem/semantic.h>
 
 int main(int argc, char* argv[]) {
+    config_t cfg = { .csa.z3 = "/Users/nikolaj/Documents/Repositories/CordellCompiler/src/sem/hir/z3_wrapper/z3_wrapper.py" };
+    CONF_set_config(&cfg);
+
     if (argc != 3) {
         fprintf(stderr, "Not enough arguments! Expected 3, got %i!\n", argc);
         return 1;
@@ -94,7 +97,7 @@ int main(int argc, char* argv[]) {
         folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
     } while (folded);
 
-    SEM_perform_hir_check(&cfgctx, &dagctx, &smt);
+    SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt);
 
     HIR_DAG_unload(&dagctx);
     HIR_CG_unload(&callctx);

@@ -7,10 +7,10 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [5:18] Illegal argument of 'i8' with 'a'! 'i8' can't handle bitness 'max'!
+[WARNING] [{X}5:18] Illegal argument of 'i8' with 'a'! 'i8' can't handle bitness 'max'!
 5 | foo(ref a);
   |     ^^^^^
-[WARNING] [3:18] Illegal argument of 'i8' with '65535' (Number's bitness is 'max/4', but 'i8' can handle bitness 'max/8')!
+[WARNING] [{X}3:18] Illegal argument of 'i8' with '65535' (Number's bitness is 'max/4', but 'i8' can handle bitness 'max/8')!
 3 | foo(65535);
   |     ^^^^^
 /:

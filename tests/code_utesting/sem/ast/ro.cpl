@@ -5,7 +5,7 @@ start() {
 }
 
 :/ OUTPUT
-[ERROR]   [3:7] Read-only variable 'a' is used to store a value!
+[ERROR]   [{X}3:7] Read-only variable 'a' is used to store a value!
 3 | a = 1;
   | ^   ^
 /:

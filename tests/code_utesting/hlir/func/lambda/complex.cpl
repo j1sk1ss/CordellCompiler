@@ -17,7 +17,7 @@ call %4;
 %5 = fret();
 %1 = %5 as i8;
 exit %1;
-BB4:
+BB4: send
 BB5: fn __anon_function_lambda1(i32 a)
 %0 = ldparam();
 BB6: lb18:
@@ -31,5 +31,5 @@ BB7: lb19:
 jmp lb18;
 BB8: lb20:
 return $0;
-BB9:
+BB9: fend
 /:

@@ -1,60 +1,60 @@
 CC ?= gcc
 
 CFLAGS = -Wall -Wno-int-conversion -g -Iinclude
+LDFLAGS =
 
-ERROR_LOGS ?= 1
-WARN_LOGS ?= 1
-INFO_LOGS ?= 1
-DEBUG_LOGS ?= 1
-IO_LOGS ?= 1
+ERROR_LOGS ?= 0
+WARN_LOGS ?= 0
+INFO_LOGS ?= 0
+DEBUG_LOGS ?= 0
+IO_LOGS ?= 0
 MEM_LOGS ?= 0
-LOGGING_LOGS ?= 1
-SPECIAL_LOGS ?= 1
+LOGGING_LOGS ?= 0
+SPECIAL_LOGS ?= 0
 
-AVALIABLE_MEMORY ?= 300000
-CFLAGS += -DALLOC_BUFFER_SIZE=$(AVALIABLE_MEMORY)
+AVAILABLE_MEMORY ?= 300000
+CFLAGS += -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY)
 
-ifeq ($(ERROR_LOGS), 1)
+ifeq ($(ERROR_LOGS),1)
 	CFLAGS += -DERROR_LOGS
 endif
 
-ifeq ($(WARN_LOGS), 1)
+ifeq ($(WARN_LOGS),1)
 	CFLAGS += -DWARNING_LOGS
 endif
 
-ifeq ($(INFO_LOGS), 1)
+ifeq ($(INFO_LOGS),1)
 	CFLAGS += -DINFO_LOGS
 endif
 
-ifeq ($(DEBUG_LOGS), 1)
+ifeq ($(DEBUG_LOGS),1)
 	CFLAGS += -DDEBUG_LOGS
 endif
 
-ifeq ($(IO_LOGS), 1)
+ifeq ($(IO_LOGS),1)
 	CFLAGS += -DIO_OPERATION_LOGS
 endif
 
-ifeq ($(MEM_LOGS), 1)
+ifeq ($(MEM_LOGS),1)
 	CFLAGS += -DMEM_OPERATION_LOGS
 endif
 
-ifeq ($(LOGGING_LOGS), 1)
+ifeq ($(LOGGING_LOGS),1)
 	CFLAGS += -DLOGGING_LOGS
 endif
 
-ifeq ($(SPECIAL_LOGS), 1)
+ifeq ($(SPECIAL_LOGS),1)
 	CFLAGS += -DSPECIAL_LOGS
 endif
 
-SOURCES := $(shell find src std -type f -name '*.c')
-
-OUTPUT = builds/ccompiler_all.o
+SOURCES := $(sort $(shell find src std -type f -name '*.c'))
+OUTPUT = builds/ccompiler
 
 all: $(OUTPUT)
 
 $(OUTPUT): $(SOURCES)
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -DPRINT_PARSE -r $(SOURCES) -o $@
+	$(CC) $(CFLAGS) -DPRINT_PARSE $(SOURCES) -o $@ $(LDFLAGS)
 
 clean:
 	rm -rf builds

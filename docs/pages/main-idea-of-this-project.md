@@ -1,7 +1,7 @@
 # Main idea of this project
 ## Why I need a compiler?
 The initial goal of this project (the compiler + language) was learning of compilers architecture and porting one to [CordellOS](https://github.com/j1sk1ss/CordellOS.PETPRJ) project (my initial idea was to have an opportunity to code programs for my own OS inside my own OS). </br>
-Additionally, an optimizing compiler with a simple pipeline is a perfect ground for conducting any tests such as compressed symtables, DBMSs as symtables, perceptrons for inlines, switches and SMT solvers, DSL for peephole phases, etc.
+Additionally, an optimizing compiler with a simple pipeline is a perfect ground for conducting any tests such as compressed symtables, DBMSs as symtables, perceptrons for inlines, switches and SMT solvers (Z3), DSL for peephole phases, etc.
 
 ## Why I need a language?
 To support existed languages (such as C, Rust, Go, JS, Java etc.) I need to implement a complex parser which will consume a lot of development time. According to the main idea which is prioritizing the optimization over a syntax and parsing - support of an existing language is redundant. </br>

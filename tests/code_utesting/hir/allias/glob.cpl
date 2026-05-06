@@ -4,5 +4,5 @@ start() {
 }
 
 :/ OUTPUT
-id: 0, owners: <<3 2>>
+id: 0, owners: 3 2
 /:

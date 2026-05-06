@@ -11,10 +11,10 @@ stparam($10);
 call %2;
 %3 = fret();
 exit %3;
-BB4:
+BB4: send
 BB5: fn __anon_function_lambda1(i32 a)
 %0 = ldparam();
 %1 = %0 * %0;
 return %1;
-BB6:
+BB6: fend
 /:

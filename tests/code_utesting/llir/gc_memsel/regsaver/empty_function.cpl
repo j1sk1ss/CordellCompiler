@@ -12,18 +12,18 @@ start() {
 BB2: fn foo0()
 rax = $1;
 return rax;
-BB3:
+BB3: fend
 BB4: start
-rdx = $1;
-rdx = rdx;
+rcx = $1;
+rcx = rcx;
 call foo0();
-rbx = $1;
-rax = rdx;
-rax = rax + rbx;
+rdx = $1;
+rax = rcx;
+rax = rax + rdx;
 rcx = rax;
 rcx = rcx;
 rcx = rcx;
 rdi = rcx;
 exit rdi;
-BB5:
+BB5: send
 /:

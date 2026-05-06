@@ -10,7 +10,6 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -77,8 +76,12 @@ int main(int argc, char* argv[]) {
     HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
     HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
 
+    ltree_ctx_t lctx;
+    map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
-    HIR_LTREE_canonicalization(&cfgctx);    // Transform
+    HIR_LOOP_mark_loops(&cfgctx, &lctx);
+
+    HIR_LTREE_canonicalization(&cfgctx, &lctx);    // Transform
     HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
 
@@ -89,7 +92,7 @@ int main(int argc, char* argv[]) {
     map_free_force(&ssactx.vers);
 
     HIR_compute_homes(&hirctx);             // Analyzation
-    HIR_LTREE_licm(&cfgctx, &smt);          // Transform
+    HIR_LTREE_licm(&cfgctx, &lctx, &smt);          // Transform
 
     HIR_CFG_make_allias(&cfgctx, &smt);
     dag_ctx_t dagctx = { .curr_id = 0 };
@@ -97,9 +100,10 @@ int main(int argc, char* argv[]) {
     HIR_DAG_generate(&cfgctx, &dagctx, &smt); // Analyzation
     HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
     
-    dump_dag_dot(&dagctx, &smt);
+    dump_dag_dot(&dagctx, &smt); // TODO: Fix these tests with a base
 
     HIR_DAG_unload(&dagctx);
+    HIR_LTREE_unload_ctx(&lctx);
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.hot.h);

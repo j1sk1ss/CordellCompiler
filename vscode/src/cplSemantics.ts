@@ -57,6 +57,7 @@ export type VarSym = {
 export type FuncOverloadSym = {
   kind: "func";
   name: string;
+  typeParams?: string[];
   params: ParamSig[];
   ret: TypeNode;
   decls: Range[];
@@ -136,9 +137,10 @@ export function formatFunctionSignature(fn: FuncOverloadSym): string {
     .join(", ");
 
   const retStr = formatType(fn.ret);
+  const typeParamsStr = fn.typeParams?.length ? `<${fn.typeParams.join(", ")}>` : "";
   return retStr === "i0"
-    ? `function ${fn.name}(${paramsStr})`
-    : `function ${fn.name}(${paramsStr}) -> ${retStr}`;
+    ? `function ${fn.name}${typeParamsStr}(${paramsStr})`
+    : `function ${fn.name}${typeParamsStr}(${paramsStr}) -> ${retStr}`;
 }
 
 class Scope {
@@ -373,7 +375,8 @@ export class SemanticContext {
     ret: TypeNode,
     range: Range,
     isDefinition: boolean,
-    doc?: string
+    doc?: string,
+    typeParams?: string[]
   ) {
     const local = this.scope.funcs.get(name) ?? [];
 
@@ -392,6 +395,7 @@ export class SemanticContext {
       const sym: FuncOverloadSym = {
         kind: "func",
         name,
+        typeParams,
         params,
         ret,
         decls: isDefinition ? [] : [range],

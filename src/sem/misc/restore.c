@@ -266,7 +266,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     if (u && set_has(u, nd)) _rst_hl_begin(x);
 
     int complex = -1;
-    if (TKN_is_decl(nd->t) || nd->t->t_type == VAR_ARGUMENTS_TOKEN) {
+    if (TKN_is_builtin_type(nd->t) || nd->t->t_type == VAR_ARGUMENTS_TOKEN) {
         if (nd->t->t_type != ARRAY_TYPE_TOKEN) {
             _rst_ln_printf(
                 x, line, "%s%s%s%s%s",
@@ -358,7 +358,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             complex = 1;
             break;
         }
-
         case FUNC_PROT_TOKEN: {
             _rst_ln_printf(x, line, "%s %s(", FUNCTION_COMMAND, nd->c->t->body->body);
 
@@ -372,7 +371,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             if (nd->c->c) _rst_ln_printf(x, line, " -> %s", RST_restore_type(nd->c->c->t));
             break;
         }
-
         case FUNC_TOKEN: {
             _rst_ln_printf(x, line, "%s %s(", FUNCTION_COMMAND, nd->c->t->body->body);
 
@@ -394,18 +392,21 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             complex = 1;
             break;
         }
-
-        case CALL_TOKEN: {
-            _rst_ln_printf(x, line, "%s(", nd->t->body->body);
-            for (ast_node_t* p = nd->c->c; p; p = p->siblings.n) {
-                _restore_code_lines(x, p, u, indent);
-                if (p->siblings.n) _rst_ln_puts(x, line, ", ");
+        case ASM_TOKEN: {
+            _rst_ln_puts(x, line, ASM_COMMAND "(");
+            ast_node_t *args = nd->c, *body = nd->c->siblings.n;
+            for (ast_node_t* arg = args->c; arg; arg = arg->siblings.n) {
+                _restore_code_lines(x, arg, u, indent);
+                if (arg->siblings.n) _rst_ln_puts(x, line, ", ");
             }
 
             _rst_ln_puts(x, line, ")");
+            int p_line = _rst_line(body);
+            _rst_ln_indent(x, p_line, indent);
+            _restore_code_lines(x, body, u, indent);
+            complex = 1;
             break;
         }
-
         case SYSCALL_TOKEN: {
             _rst_ln_puts(x, line, SYSCALL_COMMAND "(");
             for (ast_node_t* p = nd->c; p; p = p->siblings.n) {
@@ -416,7 +417,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             _rst_ln_puts(x, line, ")");
             break;
         }
-
         case EXTERN_TOKEN:     _simple_restore_lines(x, nd->c, u, indent, EXTERN_COMMAND " ");      break;
         case REF_TYPE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, REF_COMMAND " ");         break;
         case DREF_TYPE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, DREF_COMMAND " ");        break;
@@ -426,19 +426,29 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
         case RETURN_TOKEN:     _simple_restore_lines(x, nd->c, u, indent, RETURN_COMMAND " ");      break;
         case BREAK_TOKEN:      _simple_restore_lines(x, NULL, u, indent, BREAK_COMMAND " ");        break;
         case BREAKPOINT_TOKEN: _simple_restore_lines(x, nd->c, u, indent, BREAKPOINT_COMMAND " ");  break;
-
         case CONVERT_TOKEN: {
             if (nd->c && nd->c->siblings.n) _restore_code_lines(x, nd->c->siblings.n, u, indent);
-            _rst_ln_printf(x, line, "%s %s", CONVERT_COMMAND, RST_restore_type(nd->c->t));
+            _rst_ln_printf(x, line, " %s %s", CONVERT_COMMAND, RST_restore_type(nd->c->t));
             break;
         }
-
+        case CASE_TOKEN:
+        case DEFAULT_TOKEN:
+        case SWITCH_TOKEN:
         case WHILE_TOKEN: {
-            _rst_ln_puts(x, line, WHILE_COMAND " ");
-            if (nd->c) _restore_code_lines(x, nd->c, u, indent);
-            _rst_ln_puts(x, line, ";\n");
+            switch (nd->t->t_type) {
+                case WHILE_TOKEN:  _rst_ln_puts(x, line, WHILE_COMAND " ");    break;
+                case SWITCH_TOKEN: _rst_ln_puts(x, line, SWITCH_COMMAND " ");  break;
+                case CASE_TOKEN:   _rst_ln_puts(x, line, CASE_COMMAND " ");    break;
+                default:           _rst_ln_puts(x, line, DEFAULT_COMMAND " "); break; 
+            }
+            
+            if (nd->c && nd->t->t_type != DEFAULT_TOKEN) {
+                int r = _restore_code_lines(x, nd->c, u, indent);
+                if (r < 0) _rst_ln_puts(x, line, ";\n");
+            }
 
             ast_node_t* body = nd->c ? nd->c->siblings.n : NULL;
+            if (nd->t->t_type == DEFAULT_TOKEN) body = nd->c;
             int body_line = _rst_line(body);
             _rst_ln_indent(x, body_line, indent);
             _restore_code_lines(x, body, u, indent);
@@ -446,7 +456,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             complex = 1;
             break;
         }
-
         case IF_TOKEN: {
             _rst_ln_puts(x, line, IF_COMMAND " ");
             if (nd->c) _restore_code_lines(x, nd->c, u, indent);
@@ -469,7 +478,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             complex = 1;
             break;
         }
-
         case SCOPE_TOKEN: {
             _rst_ln_puts(x, line, "{\n");
             for (ast_node_t* c = nd->c; c; c = c->siblings.n) {
@@ -483,7 +491,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             complex = 1;
             break;
         }
-
         default: break;
     }
 

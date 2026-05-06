@@ -10,12 +10,12 @@ start() {
     start {
         {
             {
-                i32s %0 = alloc(8);
-                u32s %1 = alloc(8);
-                i32s %2 = alloc(8);
+                i32s %0 = alloc;
+                u32s %1 = alloc;
+                i32s %2 = alloc;
                 i32t %4 = csu8 4 as i32;
                 i32s %2 = i32t %4;
-                i32s %3 = alloc(8);
+                i32s %3 = alloc;
                 i32t %5 = csu8 4 as i32;
                 i32s %3 = i32t %5;
             }

@@ -1,18 +1,46 @@
 {
   "name": "CPL",
   "scopeName": "source.cpl",
-  "fileTypes": ["cpl"],
+  "fileTypes": [
+    "cpl"
+  ],
   "patterns": [
-    { "include": "#comments" },
-    { "include": "#annotations" },
-    { "include": "#preprocessor" },
-    { "include": "#strings" },
-    { "include": "#numbers" },
-    { "include": "#keywords" },
-    { "include": "#types" },
-    { "include": "#modifiers" },
-    { "include": "#functions" },
-    { "include": "#variables" }
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#annotations"
+    },
+    {
+      "include": "#preprocessor"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#functionDefinitions"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#genericTypes"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#modifiers"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#variables"
+    }
   ],
   "repository": {
     "comments": {
@@ -21,52 +49,66 @@
           "name": "comment.block.cpl",
           "begin": ":/",
           "beginCaptures": {
-            "0": { "name": "punctuation.definition.comment.begin.cpl" }
+            "0": {
+              "name": "punctuation.definition.comment.begin.cpl"
+            }
           },
           "end": "/:",
           "endCaptures": {
-            "0": { "name": "punctuation.definition.comment.end.cpl" }
+            "0": {
+              "name": "punctuation.definition.comment.end.cpl"
+            }
           }
         },
         {
           "name": "comment.block.cpl",
           "begin": ":",
           "beginCaptures": {
-            "0": { "name": "punctuation.definition.comment.begin.cpl" }
+            "0": {
+              "name": "punctuation.definition.comment.begin.cpl"
+            }
           },
           "end": ":",
           "endCaptures": {
-            "0": { "name": "punctuation.definition.comment.end.cpl" }
+            "0": {
+              "name": "punctuation.definition.comment.end.cpl"
+            }
           }
         }
       ]
     },
-
     "annotations": {
       "patterns": [
         {
           "name": "meta.annotation.cpl",
           "begin": "@(\\[)",
           "beginCaptures": {
-            "0": { "name": "meta.annotation.cpl" },
-            "1": { "name": "punctuation.definition.annotation.begin.cpl" }
+            "0": {
+              "name": "meta.annotation.cpl"
+            },
+            "1": {
+              "name": "punctuation.definition.annotation.begin.cpl"
+            }
           },
           "end": "(\\])",
           "endCaptures": {
-            "0": { "name": "punctuation.definition.annotation.end.cpl" }
+            "0": {
+              "name": "punctuation.definition.annotation.end.cpl"
+            }
           },
           "contentName": "storage.type.annotation.cpl"
         }
       ]
     },
-
     "preprocessor": {
       "patterns": [
         {
           "name": "meta.preprocessor.cpl",
           "begin": "^(\\s*)(#)\\s*(?=(?:line|include|define|undef|ifdef|ifndef|endif)\\b)",
           "beginCaptures": {
-            "2": { "name": "punctuation.definition.directive.cpl" }
+            "2": {
+              "name": "punctuation.definition.directive.cpl"
+            }
           },
           "end": "$",
           "patterns": [
@@ -74,16 +116,25 @@
               "name": "keyword.control.directive.cpl",
               "match": "\\b(line|include|define|undef|ifdef|ifndef|endif)\\b"
             },
-            { "include": "#strings" },
-            { "include": "#numbers" },
-            { "include": "#types" },
-            { "include": "#modifiers" },
-            { "include": "#variables" }
+            {
+              "include": "#strings"
+            },
+            {
+              "include": "#numbers"
+            },
+            {
+              "include": "#types"
+            },
+            {
+              "include": "#modifiers"
+            },
+            {
+              "include": "#variables"
+            }
           ]
         }
       ]
     },
-
     "keywords": {
       "patterns": [
         {
@@ -116,7 +167,6 @@
         }
       ]
     },
-
     "types": {
       "patterns": [
         {
@@ -129,7 +179,6 @@
         }
       ]
     },
-
     "modifiers": {
       "patterns": [
         {
@@ -138,7 +187,6 @@
         }
       ]
     },
-
     "functions": {
       "patterns": [
         {
@@ -151,7 +199,6 @@
         }
       ]
     },
-
     "strings": {
       "patterns": [
         {
@@ -164,7 +211,6 @@
         }
       ]
     },
-
     "numbers": {
       "patterns": [
         {
@@ -177,35 +223,42 @@
         }
       ]
     },
-
     "variables": {
       "patterns": [
         {
           "name": "variable.other.definition.cpl",
           "match": "\\barr\\s+([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*\\[)",
           "captures": {
-            "1": { "name": "variable.other.definition.cpl" }
+            "1": {
+              "name": "variable.other.definition.cpl"
+            }
           }
         },
         {
           "name": "variable.other.definition.cpl",
           "match": "\\barr\\s*\\[[^\\]\\r\\n]+\\]\\s+([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*(?:=|;|,|\\)))",
           "captures": {
-            "1": { "name": "variable.other.definition.cpl" }
+            "1": {
+              "name": "variable.other.definition.cpl"
+            }
           }
         },
         {
           "name": "variable.other.definition.cpl",
           "match": "\\b(?:ptr\\s+)+(?:f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*(?:=|;|,|\\)|\\[))",
           "captures": {
-            "1": { "name": "variable.other.definition.cpl" }
+            "1": {
+              "name": "variable.other.definition.cpl"
+            }
           }
         },
         {
           "name": "variable.other.definition.cpl",
           "match": "\\b(?:f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str)\\s+([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*(?:=|;|,|\\)|\\[))",
           "captures": {
-            "1": { "name": "variable.other.definition.cpl" }
+            "1": {
+              "name": "variable.other.definition.cpl"
+            }
           }
         },
         {
@@ -215,6 +268,57 @@
         {
           "name": "variable.other.cpl",
           "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    },
+    "functionDefinitions": {
+      "patterns": [
+        {
+          "name": "meta.function.definition.cpl",
+          "begin": "\\b(function)\\s+([A-Za-z_][A-Za-z0-9_]*)(\\s*<)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.declaration.function.cpl"
+            },
+            "2": {
+              "name": "entity.name.function.definition.cpl"
+            },
+            "3": {
+              "name": "punctuation.definition.generic.begin.cpl"
+            }
+          },
+          "end": ">",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.generic.end.cpl"
+            }
+          },
+          "patterns": [
+            {
+              "name": "storage.type.generic.cpl",
+              "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
+            },
+            {
+              "name": "punctuation.separator.generic.cpl",
+              "match": ","
+            }
+          ]
+        }
+      ]
+    },
+    "genericTypes": {
+      "patterns": [
+        {
+          "name": "storage.type.generic.cpl",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b(?=\\s+[A-Za-z_][A-Za-z0-9_]*)"
+        },
+        {
+          "name": "storage.type.generic.cpl",
+          "match": "(?<=<)\\s*\\b[A-Z][A-Za-z0-9_]*\\b(?=\\s*(?:,|>))"
+        },
+        {
+          "name": "storage.type.generic.cpl",
+          "match": "(?<=,)\\s*\\b[A-Z][A-Za-z0-9_]*\\b(?=\\s*(?:,|>))"
         }
       ]
     }

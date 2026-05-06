@@ -6,6 +6,7 @@ static inline int _compare_pos_to_pos(file_position_t* a, file_position_t* b) {
 }
 
 int HIR_generate_position(file_position_t* pos, hir_ctx_t* ctx) {
+    if (!pos) return 0;
     if (_compare_pos_to_pos(&ctx->pos, pos)) return 1;
     HIR_BLOCK1(ctx, HIR_SETPOS, HIR_SUBJ_LOCATION(pos));
     str_memcpy(&ctx->pos, pos, sizeof(file_position_t));

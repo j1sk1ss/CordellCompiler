@@ -11,5 +11,5 @@ BB1: start
 == == brk str(test) == ==
 %2 = %0 as i8;
 exit %2;
-BB2:
+BB2: send
 /:

@@ -13,11 +13,11 @@ stparam($10);
 call get1(i32 a) -> i32;
 %3 = fret();
 exit %3;
-BB4:
+BB4: send
 BB5: fn get1(i32 a) -> i32
 %0 = ldparam();
 %2 = $10 as i32;
 %1 = %0 * %2;
 return %1;
-BB6:
+BB6: fend
 /:

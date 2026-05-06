@@ -123,7 +123,8 @@ hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b)
 
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t) {
     switch (t) {
-        case HIR_TMPVARI0:    case HIR_STKVARI0:  case HIR_GLBVARI0:                                          return HIR_TMPVARI0; 
+        case HIR_TMPVARI0:    case HIR_STKVARI0:  case HIR_GLBVARI0:                                          return HIR_TMPVARI0;
+        case HIR_STRING:
         case HIR_I8CONSTVAL:  case HIR_I8NUMBER:  case HIR_TMPVARI8:  case HIR_STKVARI8:  case HIR_GLBVARI8:  return HIR_TMPVARI8;
         case HIR_U8CONSTVAL:  case HIR_U8NUMBER:  case HIR_TMPVARU8:  case HIR_STKVARU8:  case HIR_GLBVARU8:  return HIR_TMPVARU8;
         case HIR_I16CONSTVAL: case HIR_I16NUMBER: case HIR_TMPVARI16: case HIR_STKVARI16: case HIR_GLBVARI16: return HIR_TMPVARI16;
@@ -180,12 +181,16 @@ static hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
 
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (!vi) return HIR_STKVARI64;
-    if (vi->type == I0_VARIABLE_TOKEN) return HIR_STKVARI0;
+    if (
+        vi->type == I0_VARIABLE_TOKEN ||
+        vi->type == I0_TYPE_TOKEN     ||
+        vi->type == TMP_I0_TYPE_TOKEN
+    ) return HIR_STKVARI0;
 
     token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro, .glob = vi->vfs.glob } };
-    type_size_t bitness = TKN_variable_bitness(&tmptkn, 1);
+    type_size_t bitness = TKN_variable_bitness(&tmptkn, 0);
     int isfloat         = TKN_is_float(&tmptkn);
-    int issigned        = TKN_is_sign(&tmptkn, 1);
+    int issigned        = TKN_is_sign(&tmptkn, 0);
     int isarr           = vi->type == ARR_VARIABLE_TOKEN;
     int isstr           = vi->type == STR_VARIABLE_TOKEN;
 
@@ -271,6 +276,7 @@ int HIR_is_commutative_op(hir_operation_t op) {
 
 int HIR_is_sideeffect_op(hir_operation_t op) {
     switch (op) {
+        case HIR_NOP:
         case HIR_JMP:
         case HIR_PHI:
         case HIR_MKLB:
@@ -279,7 +285,7 @@ int HIR_is_sideeffect_op(hir_operation_t op) {
         case HIR_FCLL:
         case HIR_SYSC:
         case HIR_UFCLL:
-        case HIR_STORE:
+        // case HIR_STORE:
         case HIR_BREAK:
         case HIR_SETPOS: /* Actually, it doesn't do anything special, but otherwise it will be moved by optimizators */
         case HIR_EXITOP:

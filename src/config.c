@@ -27,6 +27,10 @@ config_string_field_t CONF_get_code_section() {
     return _config.system.code_section;
 }
 
+config_string_field_t CONF_get_timings() {
+    return _config.system.arch_timings;
+}
+
 config_int_field_t CONF_get_full_bytness() {
     if (!_config.system.bytness.bytness) return 8;
     return _config.system.bytness.bytness;
@@ -47,8 +51,16 @@ config_int_field_t CONF_get_eight_bytness() {
     return _config.system.bytness.e_bytness;
 }
 
+config_string_field_t CONF_get_z3_path() {
+    return _config.csa.z3;
+}
+
+config_int_field_t CONF_get_attention_level() {
+    return _config.csa.attention;
+}
+
 arch_type_t CONF_get_system_type() {
-    if (!_config.system.sys_type) return MACOH64;
+    if (!_config.system.sys_type) return MACHO64;
     return _config.system.sys_type;
 }
 

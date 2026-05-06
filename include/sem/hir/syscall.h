@@ -4,20 +4,21 @@
 #include <hir/hir.h>
 
 typedef struct {
-    hir_subject_type_t t;
-    int                ptr;
-    int                dereference;
-    const char*        name;
-    const char*        description;
+    hir_subject_type_t t;           /* HIR type               */
+    int                ptr;         /* Reference level        */
+    int                dereference; /* Will deredference?     */
+    const char*        name;        /* Argument's name        */
+    const char*        description; /* Argument's description */
 } expected_type_t;
 
 typedef struct {
-    unsigned long   number;
-    int             argc;
-    expected_type_t types[10];
-    expected_type_t rtype;
-    const char*     name;
-    const char*     description;
+    unsigned long   number;         /* Syscall number                   */
+    int             argc;           /* Arguments count                  */
+    expected_type_t types[10];      /* Arguments' types                 */
+    expected_type_t rtype;          /* Return's type                    */
+    const char*     name;           /* Syscall name                     */
+    const char*     description;    /* Syscall description              */
+    int             side_effect;    /* Side effect level (0 - critical) */
 } syscall_t;
 
 #define ET(_type, _ptr, _deref, _name, _descr) \

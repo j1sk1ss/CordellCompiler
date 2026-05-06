@@ -5,6 +5,6 @@ start() {
 }
 
 :/ OUTPUT
-[ERROR]   [3:9] Too many arguments for the 'foo' function!
+[ERROR]   [{X}3:9] Too many arguments for the 'foo' function!
 3 | foo(1, 2);
 /:

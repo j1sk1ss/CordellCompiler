@@ -11,7 +11,7 @@ start() {
             {
                 arrs %1 = arr_alloc(i8n 10);
                 use arrs %1;
-                call foo0(i32* a), argc args(arrs %1,);
+                foo0(arrs %1);
             }
         }
     }

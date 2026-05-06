@@ -10,7 +10,7 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}cpl:4:11] 'If' with a constant value 'true'!
-[WARNING] [{X}cpl:6:25] NULL-dereference error (variable 'a' is NULL)!
-          [{X}cpl:5:11]     Variable 'a' is assigned with NULL here
+[WARNING] [{X}cpl:4:8] 'If' with a constant value 'true'!
+[WARNING] [{X}cpl:6:16] NULL-dereference error (variable 'a' is NULL)!
+          [{X}cpl:5:14]     Variable 'a' is assigned with NULL here
 /:

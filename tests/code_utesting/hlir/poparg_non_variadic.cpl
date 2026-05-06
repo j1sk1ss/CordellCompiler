@@ -48,7 +48,7 @@ BB6: fn pack2(i32 a, i32 b) -> i32
 %11 = %4 * %12;
 %13 = %11 + %5;
 return %13;
-BB7:
+BB7: fend
 BB8: start
 %14 = $3 as i32;
 use %14;
@@ -70,5 +70,5 @@ use %19;
 stparam(%19);
 call put_digit1(i64 x) -> i0;
 exit $0;
-BB9:
+BB9: send
 /:

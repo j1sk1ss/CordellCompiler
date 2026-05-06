@@ -13,16 +13,16 @@ start() {
     start {
         {
             {
-                i8s %0 = alloc(8);
-                f64s %1 = alloc(8);
+                i8s %0 = alloc;
+                f64s %1 = alloc;
                 arrs %2 = arr_alloc(i8n 10);
-                i32s** %3 = alloc(8);
+                i32s** %3 = alloc;
                 i32t** %6 = &(arrs %2);
                 i32s** %3 = i32t** %6;
-                f64s* %4 = alloc(8);
+                f64s* %4 = alloc;
                 f64t* %7 = &(f64s %1);
                 f64s* %4 = f64t* %7;
-                i8s* %5 = alloc(8);
+                i8s* %5 = alloc;
                 i8t* %8 = &(i8s %0);
                 i8s* %5 = i8t* %8;
             }

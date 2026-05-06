@@ -8,13 +8,13 @@ start() {
     start {
         {
             {
-                lb{X}
-                if i8n 1, goto lb{X} else goto lb{X}
-                lb{X}
+                lb7:
+                if i8n 1, goto lb8, else goto lb9;
+                lb8:
                 {
                 }
-                goto lb{X}
-                lb{X}
+                goto lb7;
+                lb9:
             }
         }
     }

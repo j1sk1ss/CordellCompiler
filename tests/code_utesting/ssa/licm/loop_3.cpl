@@ -5,19 +5,19 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
+            lb8:
+            goto lb9;
+            lb9:
             {
-                lb10:
-                goto lb11;
-                lb11:
-                {
-                    call foo0(), argc args();
-                }
-                goto lb10;
-                lb12:
-            [unused] }
+                foo0();
+            }
+            goto lb8;
+            lb10:
         [unused] }
     [unused] }
+    [unused]
 }
 /:

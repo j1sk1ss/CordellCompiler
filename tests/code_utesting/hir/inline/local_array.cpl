@@ -21,7 +21,6 @@ start() {
             return i32t %5;
         }
     }
-    [unused]
     start {
         {
             {
@@ -32,10 +31,12 @@ start() {
                 i32t* %3 = i32t* %1 + i32t* %4;
                 i32t %5 = *(i32t* %3);
                 i64t %6 = i32t %5;
-                [unused] i64t %6 = call foo0(), argc args();
+                goto lb42;
+                lb42:
+                [unused] i64t %6 = foo0();
                 exit i64t %6;
             }
         }
-    [unused] }
+    }
 }
 /:

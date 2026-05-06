@@ -128,6 +128,15 @@ int LIR_is_movop(lir_operation_t op) {
 
 int LIR_is_writeop(lir_operation_t op) {
     switch (op) {
+        case LIR_TF64:
+        case LIR_TF32:
+        case LIR_TI64:
+        case LIR_TI32:
+        case LIR_TI16:
+        case LIR_TI8: 
+        case LIR_TU64:
+        case LIR_TU32:
+        case LIR_TU16:
         case LIR_POP:
         case LIR_bXOR:
         case LIR_bSHL:
@@ -158,6 +167,7 @@ int LIR_is_readop(lir_operation_t op) {
         case LIR_FRET:
         case LIR_PUSH:
         case LIR_aMOV:
+        case LIR_LDREF:
         case LIR_VRUSE:
         case LIR_EXITOP: return 1;
         default: return LIR_is_writeop(op);
@@ -182,6 +192,8 @@ int LIR_has_sideeffect(lir_operation_t op) {
 int LIR_is_jumpop(lir_operation_t op) {
     switch (op) {
         case LIR_JMP:
+        case LIR_JZ:
+        case LIR_JNZ:
         case LIR_JL:
         case LIR_JG:
         case LIR_JLE:

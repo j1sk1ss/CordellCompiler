@@ -12,38 +12,114 @@ int peephole_first_pass(cfg_block_t* bb) {
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
-                ((lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->sarg) == 0))) {
-                    lir_subject_t* _src_1_209 = lh->farg;
-                    lir_operation_t _match_op_0_210 = lh->op;
-                    lir_subject_t* _keep_0_0_211 = lh->farg;
-                    lir_subject_t* _keep_0_1_212 = lh->sarg;
-                    lir_subject_t* _keep_0_2_213 = lh->targ;
+                ((lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->sarg) == 0)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_JE || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_JNE) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL))) {
+                    lir_subject_t* _src_1_324 = lh->farg;
+                    lir_subject_t* _src_2_325 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_326 = lh->op;
+                    lir_operation_t _match_op_1_327 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_328 = lh->farg;
+                    lir_subject_t* _keep_0_1_329 = lh->sarg;
+                    lir_subject_t* _keep_0_2_330 = lh->targ;
+                    lir_subject_t* _keep_1_0_331 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_332 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_333 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_TST) {
                         lh->op = LIR_TST;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_214 = lh->farg;
-                    if (_old_214 != _src_1_209) {
-                        lh->farg = _src_1_209;
+                    lir_subject_t* _old_334 = lh->farg;
+                    if (_old_334 != _src_1_324) {
+                        lh->farg = _src_1_324;
                         optimized = 1;
-                        if (_old_214 && _old_214 != lh->farg && _old_214 != lh->sarg && _old_214 != lh->targ && _old_214 != _src_1_209 && _old_214 != _keep_0_0_211 && _old_214 != _keep_0_1_212 && _old_214 != _keep_0_2_213) {
-                            LIR_unload_subject(_old_214);
+                        if (_old_334 && _old_334 != lh->farg && _old_334 != lh->sarg && _old_334 != lh->targ && _old_334 != _src_1_324 && _old_334 != _src_2_325 && _old_334 != _keep_0_0_328 && _old_334 != _keep_0_1_329 && _old_334 != _keep_0_2_330 && _old_334 != _keep_1_0_331 && _old_334 != _keep_1_1_332 && _old_334 != _keep_1_2_333) {
+                            LIR_unload_subject(_old_334);
                         }
                     }
-                    lir_subject_t* _old_215 = lh->sarg;
-                    if (_old_215 != _src_1_209) {
-                        lh->sarg = _src_1_209;
+                    lir_subject_t* _old_335 = lh->sarg;
+                    if (_old_335 != _src_1_324) {
+                        lh->sarg = _src_1_324;
                         optimized = 1;
-                        if (_old_215 && _old_215 != lh->farg && _old_215 != lh->sarg && _old_215 != lh->targ && _old_215 != _src_1_209 && _old_215 != _keep_0_0_211 && _old_215 != _keep_0_1_212 && _old_215 != _keep_0_2_213) {
-                            LIR_unload_subject(_old_215);
+                        if (_old_335 && _old_335 != lh->farg && _old_335 != lh->sarg && _old_335 != lh->targ && _old_335 != _src_1_324 && _old_335 != _src_2_325 && _old_335 != _keep_0_0_328 && _old_335 != _keep_0_1_329 && _old_335 != _keep_0_2_330 && _old_335 != _keep_1_0_331 && _old_335 != _keep_1_1_332 && _old_335 != _keep_1_2_333) {
+                            LIR_unload_subject(_old_335);
                         }
                     }
-                    lir_subject_t* _old_216 = lh->targ;
-                    if (_old_216) {
+                    lir_subject_t* _old_336 = lh->targ;
+                    if (_old_336) {
                         lh->targ = NULL;
                         optimized = 1;
-                        if (_old_216 && _old_216 != lh->farg && _old_216 != lh->sarg && _old_216 != lh->targ && _old_216 != _src_1_209 && _old_216 != _keep_0_0_211 && _old_216 != _keep_0_1_212 && _old_216 != _keep_0_2_213) {
-                            LIR_unload_subject(_old_216);
+                        if (_old_336 && _old_336 != lh->farg && _old_336 != lh->sarg && _old_336 != lh->targ && _old_336 != _src_1_324 && _old_336 != _src_2_325 && _old_336 != _keep_0_0_328 && _old_336 != _keep_0_1_329 && _old_336 != _keep_0_2_330 && _old_336 != _keep_1_0_331 && _old_336 != _keep_1_1_332 && _old_336 != _keep_1_2_333) {
+                            LIR_unload_subject(_old_336);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_1_327) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_1_327;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_337 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_337 != _src_2_325) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_325;
+                        optimized = 1;
+                        if (_old_337 && _old_337 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_337 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_337 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_337 != _src_1_324 && _old_337 != _src_2_325 && _old_337 != _keep_0_0_328 && _old_337 != _keep_0_1_329 && _old_337 != _keep_0_2_330 && _old_337 != _keep_1_0_331 && _old_337 != _keep_1_1_332 && _old_337 != _keep_1_2_333) {
+                            LIR_unload_subject(_old_337);
+                        }
+                    }
+                    lir_subject_t* _old_338 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_338) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_338 && _old_338 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_338 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_338 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_338 != _src_1_324 && _old_338 != _src_2_325 && _old_338 != _keep_0_0_328 && _old_338 != _keep_0_1_329 && _old_338 != _keep_0_2_330 && _old_338 != _keep_1_0_331 && _old_338 != _keep_1_1_332 && _old_338 != _keep_1_2_333) {
+                            LIR_unload_subject(_old_338);
+                        }
+                    }
+                    lir_subject_t* _old_339 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_339) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_339 && _old_339 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_339 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_339 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_339 != _src_1_324 && _old_339 != _src_2_325 && _old_339 != _keep_0_0_328 && _old_339 != _keep_0_1_329 && _old_339 != _keep_0_2_330 && _old_339 != _keep_1_0_331 && _old_339 != _keep_1_1_332 && _old_339 != _keep_1_2_333) {
+                            LIR_unload_subject(_old_339);
+                        }
+                    }
+                }
+                else if ((lh->op == LIR_iCMP || lh->op == LIR_CMP) &&
+                (lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                lh->sarg &&
+                ((lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->sarg) == 0))) {
+                    lir_subject_t* _src_1_492 = lh->farg;
+                    lir_operation_t _match_op_0_493 = lh->op;
+                    lir_subject_t* _keep_0_0_494 = lh->farg;
+                    lir_subject_t* _keep_0_1_495 = lh->sarg;
+                    lir_subject_t* _keep_0_2_496 = lh->targ;
+                    if (lh->op != LIR_TST) {
+                        lh->op = LIR_TST;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_497 = lh->farg;
+                    if (_old_497 != _src_1_492) {
+                        lh->farg = _src_1_492;
+                        optimized = 1;
+                        if (_old_497 && _old_497 != lh->farg && _old_497 != lh->sarg && _old_497 != lh->targ && _old_497 != _src_1_492 && _old_497 != _keep_0_0_494 && _old_497 != _keep_0_1_495 && _old_497 != _keep_0_2_496) {
+                            LIR_unload_subject(_old_497);
+                        }
+                    }
+                    lir_subject_t* _old_498 = lh->sarg;
+                    if (_old_498 != _src_1_492) {
+                        lh->sarg = _src_1_492;
+                        optimized = 1;
+                        if (_old_498 && _old_498 != lh->farg && _old_498 != lh->sarg && _old_498 != lh->targ && _old_498 != _src_1_492 && _old_498 != _keep_0_0_494 && _old_498 != _keep_0_1_495 && _old_498 != _keep_0_2_496) {
+                            LIR_unload_subject(_old_498);
+                        }
+                    }
+                    lir_subject_t* _old_499 = lh->targ;
+                    if (_old_499) {
+                        lh->targ = NULL;
+                        optimized = 1;
+                        if (_old_499 && _old_499 != lh->farg && _old_499 != lh->sarg && _old_499 != lh->targ && _old_499 != _src_1_492 && _old_499 != _keep_0_0_494 && _old_499 != _keep_0_1_495 && _old_499 != _keep_0_2_496) {
+                            LIR_unload_subject(_old_499);
                         }
                     }
                 }
@@ -60,7 +136,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
-                    lir_subject_t* _src_1_1 = lh->farg;
+                    lir_subject_t* _src_1_1 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_operation_t _match_op_0_2 = lh->op;
                     lir_operation_t _match_op_1_3 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_4 = lh->farg;
@@ -127,11 +203,205 @@ int peephole_first_pass(cfg_block_t* bb) {
                 break;
             }
 
+            case LIR_SETL:
+             {
+                if (lh->op == LIR_SETL &&
+                (lh->farg &&
+                lh->farg->t == LIR_REGISTER) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_MOVSX &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_TST &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg, lh->farg) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg)) {
+                    lir_subject_t* _src_1_13 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _src_2_14 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_15 = lh->op;
+                    lir_operation_t _match_op_1_16 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_17 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_18 = lh->farg;
+                    lir_subject_t* _keep_0_1_19 = lh->sarg;
+                    lir_subject_t* _keep_0_2_20 = lh->targ;
+                    lir_subject_t* _keep_1_0_21 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_22 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_23 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_24 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_25 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_26 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != LIR_SETL) {
+                        lh->op = LIR_SETL;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_27 = lh->farg;
+                    if (_old_27 != _src_1_13) {
+                        lh->farg = _src_1_13;
+                        optimized = 1;
+                        if (_old_27 && _old_27 != lh->farg && _old_27 != lh->sarg && _old_27 != lh->targ && _old_27 != _src_1_13 && _old_27 != _src_2_14 && _old_27 != _keep_0_0_18 && _old_27 != _keep_0_1_19 && _old_27 != _keep_0_2_20 && _old_27 != _keep_1_0_21 && _old_27 != _keep_1_1_22 && _old_27 != _keep_1_2_23 && _old_27 != _keep_2_0_24 && _old_27 != _keep_2_1_25 && _old_27 != _keep_2_2_26) {
+                            LIR_unload_subject(_old_27);
+                        }
+                    }
+                    lir_subject_t* _old_28 = lh->sarg;
+                    if (_old_28) {
+                        lh->sarg = NULL;
+                        optimized = 1;
+                        if (_old_28 && _old_28 != lh->farg && _old_28 != lh->sarg && _old_28 != lh->targ && _old_28 != _src_1_13 && _old_28 != _src_2_14 && _old_28 != _keep_0_0_18 && _old_28 != _keep_0_1_19 && _old_28 != _keep_0_2_20 && _old_28 != _keep_1_0_21 && _old_28 != _keep_1_1_22 && _old_28 != _keep_1_2_23 && _old_28 != _keep_2_0_24 && _old_28 != _keep_2_1_25 && _old_28 != _keep_2_2_26) {
+                            LIR_unload_subject(_old_28);
+                        }
+                    }
+                    lir_subject_t* _old_29 = lh->targ;
+                    if (_old_29) {
+                        lh->targ = NULL;
+                        optimized = 1;
+                        if (_old_29 && _old_29 != lh->farg && _old_29 != lh->sarg && _old_29 != lh->targ && _old_29 != _src_1_13 && _old_29 != _src_2_14 && _old_29 != _keep_0_0_18 && _old_29 != _keep_0_1_19 && _old_29 != _keep_0_2_20 && _old_29 != _keep_1_0_21 && _old_29 != _keep_1_1_22 && _old_29 != _keep_1_2_23 && _old_29 != _keep_2_0_24 && _old_29 != _keep_2_1_25 && _old_29 != _keep_2_2_26) {
+                            LIR_unload_subject(_old_29);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_TST) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_TST;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_30 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_30 != _src_1_13) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_1_13;
+                        optimized = 1;
+                        if (_old_30 && _old_30 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_30 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_30 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_30 != _src_1_13 && _old_30 != _src_2_14 && _old_30 != _keep_0_0_18 && _old_30 != _keep_0_1_19 && _old_30 != _keep_0_2_20 && _old_30 != _keep_1_0_21 && _old_30 != _keep_1_1_22 && _old_30 != _keep_1_2_23 && _old_30 != _keep_2_0_24 && _old_30 != _keep_2_1_25 && _old_30 != _keep_2_2_26) {
+                            LIR_unload_subject(_old_30);
+                        }
+                    }
+                    lir_subject_t* _old_31 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_31 != _src_1_13) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_1_13;
+                        optimized = 1;
+                        if (_old_31 && _old_31 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_31 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_31 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_31 != _src_1_13 && _old_31 != _src_2_14 && _old_31 != _keep_0_0_18 && _old_31 != _keep_0_1_19 && _old_31 != _keep_0_2_20 && _old_31 != _keep_1_0_21 && _old_31 != _keep_1_1_22 && _old_31 != _keep_1_2_23 && _old_31 != _keep_2_0_24 && _old_31 != _keep_2_1_25 && _old_31 != _keep_2_2_26) {
+                            LIR_unload_subject(_old_31);
+                        }
+                    }
+                    lir_subject_t* _old_32 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_32) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_32 && _old_32 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_32 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_32 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_32 != _src_1_13 && _old_32 != _src_2_14 && _old_32 != _keep_0_0_18 && _old_32 != _keep_0_1_19 && _old_32 != _keep_0_2_20 && _old_32 != _keep_1_0_21 && _old_32 != _keep_1_1_22 && _old_32 != _keep_1_2_23 && _old_32 != _keep_2_0_24 && _old_32 != _keep_2_1_25 && _old_32 != _keep_2_2_26) {
+                            LIR_unload_subject(_old_32);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                break;
+            }
+
             case LIR_aMOV:
             case LIR_fMOV:
             case LIR_iMOV:
              {
                 if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                (lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                lh->sarg &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_LABEL)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg, lh->farg) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_33 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _src_2_34 = lh->sarg;
+                    lir_subject_t* _src_3_35 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_4_36 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_operation_t _match_op_0_37 = lh->op;
+                    lir_operation_t _match_op_1_38 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_39 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_40 = lh->farg;
+                    lir_subject_t* _keep_0_1_41 = lh->sarg;
+                    lir_subject_t* _keep_0_2_42 = lh->targ;
+                    lir_subject_t* _keep_1_0_43 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_44 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_45 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_46 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_47 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_48 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != _match_op_0_37) {
+                        lh->op = _match_op_0_37;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_49 = lh->farg;
+                    if (_old_49 != _src_3_35) {
+                        lh->farg = _src_3_35;
+                        optimized = 1;
+                        if (_old_49 && _old_49 != lh->farg && _old_49 != lh->sarg && _old_49 != lh->targ && _old_49 != _src_1_33 && _old_49 != _src_2_34 && _old_49 != _src_3_35 && _old_49 != _src_4_36 && _old_49 != _keep_0_0_40 && _old_49 != _keep_0_1_41 && _old_49 != _keep_0_2_42 && _old_49 != _keep_1_0_43 && _old_49 != _keep_1_1_44 && _old_49 != _keep_1_2_45 && _old_49 != _keep_2_0_46 && _old_49 != _keep_2_1_47 && _old_49 != _keep_2_2_48) {
+                            LIR_unload_subject(_old_49);
+                        }
+                    }
+                    lir_subject_t* _old_50 = lh->sarg;
+                    if (_old_50 != _src_2_34) {
+                        lh->sarg = _src_2_34;
+                        optimized = 1;
+                        if (_old_50 && _old_50 != lh->farg && _old_50 != lh->sarg && _old_50 != lh->targ && _old_50 != _src_1_33 && _old_50 != _src_2_34 && _old_50 != _src_3_35 && _old_50 != _src_4_36 && _old_50 != _keep_0_0_40 && _old_50 != _keep_0_1_41 && _old_50 != _keep_0_2_42 && _old_50 != _keep_1_0_43 && _old_50 != _keep_1_1_44 && _old_50 != _keep_1_2_45 && _old_50 != _keep_2_0_46 && _old_50 != _keep_2_1_47 && _old_50 != _keep_2_2_48) {
+                            LIR_unload_subject(_old_50);
+                        }
+                    }
+                    lir_subject_t* _old_51 = lh->targ;
+                    if (_old_51) {
+                        lh->targ = NULL;
+                        optimized = 1;
+                        if (_old_51 && _old_51 != lh->farg && _old_51 != lh->sarg && _old_51 != lh->targ && _old_51 != _src_1_33 && _old_51 != _src_2_34 && _old_51 != _src_3_35 && _old_51 != _src_4_36 && _old_51 != _keep_0_0_40 && _old_51 != _keep_0_1_41 && _old_51 != _keep_0_2_42 && _old_51 != _keep_1_0_43 && _old_51 != _keep_1_1_44 && _old_51 != _keep_1_2_45 && _old_51 != _keep_2_0_46 && _old_51 != _keep_2_1_47 && _old_51 != _keep_2_2_48) {
+                            LIR_unload_subject(_old_51);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_1_38) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_1_38;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_52 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_52 != _src_1_33) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_1_33;
+                        optimized = 1;
+                        if (_old_52 && _old_52 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_52 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_52 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_52 != _src_1_33 && _old_52 != _src_2_34 && _old_52 != _src_3_35 && _old_52 != _src_4_36 && _old_52 != _keep_0_0_40 && _old_52 != _keep_0_1_41 && _old_52 != _keep_0_2_42 && _old_52 != _keep_1_0_43 && _old_52 != _keep_1_1_44 && _old_52 != _keep_1_2_45 && _old_52 != _keep_2_0_46 && _old_52 != _keep_2_1_47 && _old_52 != _keep_2_2_48) {
+                            LIR_unload_subject(_old_52);
+                        }
+                    }
+                    lir_subject_t* _old_53 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_53 != _src_4_36) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_4_36;
+                        optimized = 1;
+                        if (_old_53 && _old_53 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_53 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_53 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_53 != _src_1_33 && _old_53 != _src_2_34 && _old_53 != _src_3_35 && _old_53 != _src_4_36 && _old_53 != _keep_0_0_40 && _old_53 != _keep_0_1_41 && _old_53 != _keep_0_2_42 && _old_53 != _keep_1_0_43 && _old_53 != _keep_1_1_44 && _old_53 != _keep_1_2_45 && _old_53 != _keep_2_0_46 && _old_53 != _keep_2_1_47 && _old_53 != _keep_2_2_48) {
+                            LIR_unload_subject(_old_53);
+                        }
+                    }
+                    lir_subject_t* _old_54 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_54) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_54 && _old_54 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_54 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_54 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_54 != _src_1_33 && _old_54 != _src_2_34 && _old_54 != _src_3_35 && _old_54 != _src_4_36 && _old_54 != _keep_0_0_40 && _old_54 != _keep_0_1_41 && _old_54 != _keep_0_2_42 && _old_54 != _keep_1_0_43 && _old_54 != _keep_1_1_44 && _old_54 != _keep_1_2_45 && _old_54 != _keep_2_0_46 && _old_54 != _keep_2_1_47 && _old_54 != _keep_2_2_48) {
+                            LIR_unload_subject(_old_54);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -144,42 +414,42 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
-                    lir_subject_t* _src_1_13 = lh->farg;
-                    lir_subject_t* _src_2_14 = lh->sarg;
-                    lir_operation_t _match_op_0_15 = lh->op;
-                    lir_operation_t _match_op_1_16 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_subject_t* _keep_0_0_17 = lh->farg;
-                    lir_subject_t* _keep_0_1_18 = lh->sarg;
-                    lir_subject_t* _keep_0_2_19 = lh->targ;
-                    lir_subject_t* _keep_1_0_20 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_21 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_22 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _src_1_55 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_56 = lh->sarg;
+                    lir_operation_t _match_op_0_57 = lh->op;
+                    lir_operation_t _match_op_1_58 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_59 = lh->farg;
+                    lir_subject_t* _keep_0_1_60 = lh->sarg;
+                    lir_subject_t* _keep_0_2_61 = lh->targ;
+                    lir_subject_t* _keep_1_0_62 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_63 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_64 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_TST) {
                         lh->op = LIR_TST;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_23 = lh->farg;
-                    if (_old_23 != _src_2_14) {
-                        lh->farg = _src_2_14;
+                    lir_subject_t* _old_65 = lh->farg;
+                    if (_old_65 != _src_2_56) {
+                        lh->farg = _src_2_56;
                         optimized = 1;
-                        if (_old_23 && _old_23 != lh->farg && _old_23 != lh->sarg && _old_23 != lh->targ && _old_23 != _src_1_13 && _old_23 != _src_2_14 && _old_23 != _keep_0_0_17 && _old_23 != _keep_0_1_18 && _old_23 != _keep_0_2_19 && _old_23 != _keep_1_0_20 && _old_23 != _keep_1_1_21 && _old_23 != _keep_1_2_22) {
-                            LIR_unload_subject(_old_23);
+                        if (_old_65 && _old_65 != lh->farg && _old_65 != lh->sarg && _old_65 != lh->targ && _old_65 != _src_1_55 && _old_65 != _src_2_56 && _old_65 != _keep_0_0_59 && _old_65 != _keep_0_1_60 && _old_65 != _keep_0_2_61 && _old_65 != _keep_1_0_62 && _old_65 != _keep_1_1_63 && _old_65 != _keep_1_2_64) {
+                            LIR_unload_subject(_old_65);
                         }
                     }
-                    lir_subject_t* _old_24 = lh->sarg;
-                    if (_old_24 != _src_2_14) {
-                        lh->sarg = _src_2_14;
+                    lir_subject_t* _old_66 = lh->sarg;
+                    if (_old_66 != _src_2_56) {
+                        lh->sarg = _src_2_56;
                         optimized = 1;
-                        if (_old_24 && _old_24 != lh->farg && _old_24 != lh->sarg && _old_24 != lh->targ && _old_24 != _src_1_13 && _old_24 != _src_2_14 && _old_24 != _keep_0_0_17 && _old_24 != _keep_0_1_18 && _old_24 != _keep_0_2_19 && _old_24 != _keep_1_0_20 && _old_24 != _keep_1_1_21 && _old_24 != _keep_1_2_22) {
-                            LIR_unload_subject(_old_24);
+                        if (_old_66 && _old_66 != lh->farg && _old_66 != lh->sarg && _old_66 != lh->targ && _old_66 != _src_1_55 && _old_66 != _src_2_56 && _old_66 != _keep_0_0_59 && _old_66 != _keep_0_1_60 && _old_66 != _keep_0_2_61 && _old_66 != _keep_1_0_62 && _old_66 != _keep_1_1_63 && _old_66 != _keep_1_2_64) {
+                            LIR_unload_subject(_old_66);
                         }
                     }
-                    lir_subject_t* _old_25 = lh->targ;
-                    if (_old_25) {
+                    lir_subject_t* _old_67 = lh->targ;
+                    if (_old_67) {
                         lh->targ = NULL;
                         optimized = 1;
-                        if (_old_25 && _old_25 != lh->farg && _old_25 != lh->sarg && _old_25 != lh->targ && _old_25 != _src_1_13 && _old_25 != _src_2_14 && _old_25 != _keep_0_0_17 && _old_25 != _keep_0_1_18 && _old_25 != _keep_0_2_19 && _old_25 != _keep_1_0_20 && _old_25 != _keep_1_1_21 && _old_25 != _keep_1_2_22) {
-                            LIR_unload_subject(_old_25);
+                        if (_old_67 && _old_67 != lh->farg && _old_67 != lh->sarg && _old_67 != lh->targ && _old_67 != _src_1_55 && _old_67 != _src_2_56 && _old_67 != _keep_0_0_59 && _old_67 != _keep_0_1_60 && _old_67 != _keep_0_2_61 && _old_67 != _keep_1_0_62 && _old_67 != _keep_1_1_63 && _old_67 != _keep_1_2_64) {
+                            LIR_unload_subject(_old_67);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused) {
@@ -197,14 +467,14 @@ int peephole_first_pass(cfg_block_t* bb) {
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_MEMORY) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_LABEL) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg)) &&
@@ -219,78 +489,78 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, lh->farg) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 3)->farg, lh->sarg) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 3)->sarg, lh->farg)) {
-                    lir_subject_t* _src_1_26 = lh->farg;
-                    lir_subject_t* _src_2_27 = lh->sarg;
-                    lir_operation_t _match_op_0_28 = lh->op;
-                    lir_operation_t _match_op_1_29 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_30 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
-                    lir_operation_t _match_op_3_31 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->op;
-                    lir_subject_t* _keep_0_0_32 = lh->farg;
-                    lir_subject_t* _keep_0_1_33 = lh->sarg;
-                    lir_subject_t* _keep_0_2_34 = lh->targ;
-                    lir_subject_t* _keep_1_0_35 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_36 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_37 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    lir_subject_t* _keep_2_0_38 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_subject_t* _keep_2_1_39 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
-                    lir_subject_t* _keep_2_2_40 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
-                    lir_subject_t* _keep_3_0_41 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->farg;
-                    lir_subject_t* _keep_3_1_42 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->sarg;
-                    lir_subject_t* _keep_3_2_43 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->targ;
+                    lir_subject_t* _src_1_68 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->sarg;
+                    lir_subject_t* _src_2_69 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->farg;
+                    lir_operation_t _match_op_0_70 = lh->op;
+                    lir_operation_t _match_op_1_71 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_72 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_operation_t _match_op_3_73 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->op;
+                    lir_subject_t* _keep_0_0_74 = lh->farg;
+                    lir_subject_t* _keep_0_1_75 = lh->sarg;
+                    lir_subject_t* _keep_0_2_76 = lh->targ;
+                    lir_subject_t* _keep_1_0_77 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_78 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_79 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_80 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_81 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_82 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    lir_subject_t* _keep_3_0_83 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->farg;
+                    lir_subject_t* _keep_3_1_84 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->sarg;
+                    lir_subject_t* _keep_3_2_85 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->targ;
                     if (lh->op != LIR_iSUB) {
                         lh->op = LIR_iSUB;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_44 = lh->sarg;
-                    if (_old_44 != _src_2_27) {
-                        lh->sarg = _src_2_27;
+                    lir_subject_t* _old_86 = lh->sarg;
+                    if (_old_86 != _src_2_69) {
+                        lh->sarg = _src_2_69;
                         optimized = 1;
-                        if (_old_44 && _old_44 != lh->farg && _old_44 != lh->sarg && _old_44 != lh->targ && _old_44 != _src_1_26 && _old_44 != _src_2_27 && _old_44 != _keep_0_0_32 && _old_44 != _keep_0_1_33 && _old_44 != _keep_0_2_34 && _old_44 != _keep_1_0_35 && _old_44 != _keep_1_1_36 && _old_44 != _keep_1_2_37 && _old_44 != _keep_2_0_38 && _old_44 != _keep_2_1_39 && _old_44 != _keep_2_2_40 && _old_44 != _keep_3_0_41 && _old_44 != _keep_3_1_42 && _old_44 != _keep_3_2_43) {
-                            LIR_unload_subject(_old_44);
+                        if (_old_86 && _old_86 != lh->farg && _old_86 != lh->sarg && _old_86 != lh->targ && _old_86 != _src_1_68 && _old_86 != _src_2_69 && _old_86 != _keep_0_0_74 && _old_86 != _keep_0_1_75 && _old_86 != _keep_0_2_76 && _old_86 != _keep_1_0_77 && _old_86 != _keep_1_1_78 && _old_86 != _keep_1_2_79 && _old_86 != _keep_2_0_80 && _old_86 != _keep_2_1_81 && _old_86 != _keep_2_2_82 && _old_86 != _keep_3_0_83 && _old_86 != _keep_3_1_84 && _old_86 != _keep_3_2_85) {
+                            LIR_unload_subject(_old_86);
                         }
                     }
-                    lir_subject_t* _old_45 = lh->targ;
-                    if (_old_45 != _src_2_27) {
-                        lh->targ = _src_2_27;
+                    lir_subject_t* _old_87 = lh->targ;
+                    if (_old_87 != _src_2_69) {
+                        lh->targ = _src_2_69;
                         optimized = 1;
-                        if (_old_45 && _old_45 != lh->farg && _old_45 != lh->sarg && _old_45 != lh->targ && _old_45 != _src_1_26 && _old_45 != _src_2_27 && _old_45 != _keep_0_0_32 && _old_45 != _keep_0_1_33 && _old_45 != _keep_0_2_34 && _old_45 != _keep_1_0_35 && _old_45 != _keep_1_1_36 && _old_45 != _keep_1_2_37 && _old_45 != _keep_2_0_38 && _old_45 != _keep_2_1_39 && _old_45 != _keep_2_2_40 && _old_45 != _keep_3_0_41 && _old_45 != _keep_3_1_42 && _old_45 != _keep_3_2_43) {
-                            LIR_unload_subject(_old_45);
+                        if (_old_87 && _old_87 != lh->farg && _old_87 != lh->sarg && _old_87 != lh->targ && _old_87 != _src_1_68 && _old_87 != _src_2_69 && _old_87 != _keep_0_0_74 && _old_87 != _keep_0_1_75 && _old_87 != _keep_0_2_76 && _old_87 != _keep_1_0_77 && _old_87 != _keep_1_1_78 && _old_87 != _keep_1_2_79 && _old_87 != _keep_2_0_80 && _old_87 != _keep_2_1_81 && _old_87 != _keep_2_2_82 && _old_87 != _keep_3_0_83 && _old_87 != _keep_3_1_84 && _old_87 != _keep_3_2_85) {
+                            LIR_unload_subject(_old_87);
                         }
                     }
-                    lir_subject_t* _old_46 = lh->farg;
-                    if (_old_46 != _src_2_27) {
-                        lh->farg = _src_2_27;
+                    lir_subject_t* _old_88 = lh->farg;
+                    if (_old_88 != _src_2_69) {
+                        lh->farg = _src_2_69;
                         optimized = 1;
-                        if (_old_46 && _old_46 != lh->farg && _old_46 != lh->sarg && _old_46 != lh->targ && _old_46 != _src_1_26 && _old_46 != _src_2_27 && _old_46 != _keep_0_0_32 && _old_46 != _keep_0_1_33 && _old_46 != _keep_0_2_34 && _old_46 != _keep_1_0_35 && _old_46 != _keep_1_1_36 && _old_46 != _keep_1_2_37 && _old_46 != _keep_2_0_38 && _old_46 != _keep_2_1_39 && _old_46 != _keep_2_2_40 && _old_46 != _keep_3_0_41 && _old_46 != _keep_3_1_42 && _old_46 != _keep_3_2_43) {
-                            LIR_unload_subject(_old_46);
+                        if (_old_88 && _old_88 != lh->farg && _old_88 != lh->sarg && _old_88 != lh->targ && _old_88 != _src_1_68 && _old_88 != _src_2_69 && _old_88 != _keep_0_0_74 && _old_88 != _keep_0_1_75 && _old_88 != _keep_0_2_76 && _old_88 != _keep_1_0_77 && _old_88 != _keep_1_1_78 && _old_88 != _keep_1_2_79 && _old_88 != _keep_2_0_80 && _old_88 != _keep_2_1_81 && _old_88 != _keep_2_2_82 && _old_88 != _keep_3_0_83 && _old_88 != _keep_3_1_84 && _old_88 != _keep_3_2_85) {
+                            LIR_unload_subject(_old_88);
                         }
                     }
-                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_0_28) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_0_28;
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_0_70) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_0_70;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_47 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    if (_old_47 != _src_1_26) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_1_26;
+                    lir_subject_t* _old_89 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_89 != _src_1_68) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_1_68;
                         optimized = 1;
-                        if (_old_47 && _old_47 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_47 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_47 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_47 != _src_1_26 && _old_47 != _src_2_27 && _old_47 != _keep_0_0_32 && _old_47 != _keep_0_1_33 && _old_47 != _keep_0_2_34 && _old_47 != _keep_1_0_35 && _old_47 != _keep_1_1_36 && _old_47 != _keep_1_2_37 && _old_47 != _keep_2_0_38 && _old_47 != _keep_2_1_39 && _old_47 != _keep_2_2_40 && _old_47 != _keep_3_0_41 && _old_47 != _keep_3_1_42 && _old_47 != _keep_3_2_43) {
-                            LIR_unload_subject(_old_47);
+                        if (_old_89 && _old_89 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_89 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_89 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_89 != _src_1_68 && _old_89 != _src_2_69 && _old_89 != _keep_0_0_74 && _old_89 != _keep_0_1_75 && _old_89 != _keep_0_2_76 && _old_89 != _keep_1_0_77 && _old_89 != _keep_1_1_78 && _old_89 != _keep_1_2_79 && _old_89 != _keep_2_0_80 && _old_89 != _keep_2_1_81 && _old_89 != _keep_2_2_82 && _old_89 != _keep_3_0_83 && _old_89 != _keep_3_1_84 && _old_89 != _keep_3_2_85) {
+                            LIR_unload_subject(_old_89);
                         }
                     }
-                    lir_subject_t* _old_48 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    if (_old_48 != _src_1_26) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_1_26;
+                    lir_subject_t* _old_90 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_90 != _src_1_68) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_1_68;
                         optimized = 1;
-                        if (_old_48 && _old_48 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_48 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_48 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_48 != _src_1_26 && _old_48 != _src_2_27 && _old_48 != _keep_0_0_32 && _old_48 != _keep_0_1_33 && _old_48 != _keep_0_2_34 && _old_48 != _keep_1_0_35 && _old_48 != _keep_1_1_36 && _old_48 != _keep_1_2_37 && _old_48 != _keep_2_0_38 && _old_48 != _keep_2_1_39 && _old_48 != _keep_2_2_40 && _old_48 != _keep_3_0_41 && _old_48 != _keep_3_1_42 && _old_48 != _keep_3_2_43) {
-                            LIR_unload_subject(_old_48);
+                        if (_old_90 && _old_90 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_90 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_90 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_90 != _src_1_68 && _old_90 != _src_2_69 && _old_90 != _keep_0_0_74 && _old_90 != _keep_0_1_75 && _old_90 != _keep_0_2_76 && _old_90 != _keep_1_0_77 && _old_90 != _keep_1_1_78 && _old_90 != _keep_1_2_79 && _old_90 != _keep_2_0_80 && _old_90 != _keep_2_1_81 && _old_90 != _keep_2_2_82 && _old_90 != _keep_3_0_83 && _old_90 != _keep_3_1_84 && _old_90 != _keep_3_2_85) {
+                            LIR_unload_subject(_old_90);
                         }
                     }
-                    lir_subject_t* _old_49 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    if (_old_49) {
+                    lir_subject_t* _old_91 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_91) {
                         LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
                         optimized = 1;
-                        if (_old_49 && _old_49 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_49 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_49 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_49 != _src_1_26 && _old_49 != _src_2_27 && _old_49 != _keep_0_0_32 && _old_49 != _keep_0_1_33 && _old_49 != _keep_0_2_34 && _old_49 != _keep_1_0_35 && _old_49 != _keep_1_1_36 && _old_49 != _keep_1_2_37 && _old_49 != _keep_2_0_38 && _old_49 != _keep_2_1_39 && _old_49 != _keep_2_2_40 && _old_49 != _keep_3_0_41 && _old_49 != _keep_3_1_42 && _old_49 != _keep_3_2_43) {
-                            LIR_unload_subject(_old_49);
+                        if (_old_91 && _old_91 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_91 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_91 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_91 != _src_1_68 && _old_91 != _src_2_69 && _old_91 != _keep_0_0_74 && _old_91 != _keep_0_1_75 && _old_91 != _keep_0_2_76 && _old_91 != _keep_1_0_77 && _old_91 != _keep_1_1_78 && _old_91 != _keep_1_2_79 && _old_91 != _keep_2_0_80 && _old_91 != _keep_2_1_81 && _old_91 != _keep_2_2_82 && _old_91 != _keep_3_0_83 && _old_91 != _keep_3_1_84 && _old_91 != _keep_3_2_85) {
+                            LIR_unload_subject(_old_91);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
@@ -304,9 +574,9 @@ int peephole_first_pass(cfg_block_t* bb) {
                 }
                 else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
-                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY) &&
+                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 lh->sarg &&
-                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY)) &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL)) &&
                 LIR_subj_equals(lh->farg, lh->sarg)) {
                     if (!lh->unused) {
                         lh->unused = 1;
@@ -318,37 +588,37 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
                 ((lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->sarg) == 0))) {
-                    lir_subject_t* _src_1_50 = lh->farg;
-                    lir_operation_t _match_op_0_51 = lh->op;
-                    lir_subject_t* _keep_0_0_52 = lh->farg;
-                    lir_subject_t* _keep_0_1_53 = lh->sarg;
-                    lir_subject_t* _keep_0_2_54 = lh->targ;
+                    lir_subject_t* _src_1_92 = lh->farg;
+                    lir_operation_t _match_op_0_93 = lh->op;
+                    lir_subject_t* _keep_0_0_94 = lh->farg;
+                    lir_subject_t* _keep_0_1_95 = lh->sarg;
+                    lir_subject_t* _keep_0_2_96 = lh->targ;
                     if (lh->op != LIR_bXOR) {
                         lh->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_55 = lh->sarg;
-                    if (_old_55 != _src_1_50) {
-                        lh->sarg = _src_1_50;
+                    lir_subject_t* _old_97 = lh->sarg;
+                    if (_old_97 != _src_1_92) {
+                        lh->sarg = _src_1_92;
                         optimized = 1;
-                        if (_old_55 && _old_55 != lh->farg && _old_55 != lh->sarg && _old_55 != lh->targ && _old_55 != _src_1_50 && _old_55 != _keep_0_0_52 && _old_55 != _keep_0_1_53 && _old_55 != _keep_0_2_54) {
-                            LIR_unload_subject(_old_55);
+                        if (_old_97 && _old_97 != lh->farg && _old_97 != lh->sarg && _old_97 != lh->targ && _old_97 != _src_1_92 && _old_97 != _keep_0_0_94 && _old_97 != _keep_0_1_95 && _old_97 != _keep_0_2_96) {
+                            LIR_unload_subject(_old_97);
                         }
                     }
-                    lir_subject_t* _old_56 = lh->targ;
-                    if (_old_56 != _src_1_50) {
-                        lh->targ = _src_1_50;
+                    lir_subject_t* _old_98 = lh->targ;
+                    if (_old_98 != _src_1_92) {
+                        lh->targ = _src_1_92;
                         optimized = 1;
-                        if (_old_56 && _old_56 != lh->farg && _old_56 != lh->sarg && _old_56 != lh->targ && _old_56 != _src_1_50 && _old_56 != _keep_0_0_52 && _old_56 != _keep_0_1_53 && _old_56 != _keep_0_2_54) {
-                            LIR_unload_subject(_old_56);
+                        if (_old_98 && _old_98 != lh->farg && _old_98 != lh->sarg && _old_98 != lh->targ && _old_98 != _src_1_92 && _old_98 != _keep_0_0_94 && _old_98 != _keep_0_1_95 && _old_98 != _keep_0_2_96) {
+                            LIR_unload_subject(_old_98);
                         }
                     }
-                    lir_subject_t* _old_57 = lh->farg;
-                    if (_old_57 != _src_1_50) {
-                        lh->farg = _src_1_50;
+                    lir_subject_t* _old_99 = lh->farg;
+                    if (_old_99 != _src_1_92) {
+                        lh->farg = _src_1_92;
                         optimized = 1;
-                        if (_old_57 && _old_57 != lh->farg && _old_57 != lh->sarg && _old_57 != lh->targ && _old_57 != _src_1_50 && _old_57 != _keep_0_0_52 && _old_57 != _keep_0_1_53 && _old_57 != _keep_0_2_54) {
-                            LIR_unload_subject(_old_57);
+                        if (_old_99 && _old_99 != lh->farg && _old_99 != lh->sarg && _old_99 != lh->targ && _old_99 != _src_1_92 && _old_99 != _keep_0_0_94 && _old_99 != _keep_0_1_95 && _old_99 != _keep_0_2_96) {
+                            LIR_unload_subject(_old_99);
                         }
                     }
                 }
@@ -356,51 +626,51 @@ int peephole_first_pass(cfg_block_t* bb) {
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
-                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY)) &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_MEMORY) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->sarg) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg, lh->farg)) {
-                    lir_subject_t* _src_1_58 = lh->farg;
-                    lir_subject_t* _src_2_59 = lh->sarg;
-                    lir_operation_t _match_op_0_60 = lh->op;
-                    lir_operation_t _match_op_1_61 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_subject_t* _keep_0_0_62 = lh->farg;
-                    lir_subject_t* _keep_0_1_63 = lh->sarg;
-                    lir_subject_t* _keep_0_2_64 = lh->targ;
-                    lir_subject_t* _keep_1_0_65 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_66 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_67 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    if (lh->op != _match_op_0_60) {
-                        lh->op = _match_op_0_60;
+                    lir_subject_t* _src_1_100 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _src_2_101 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_102 = lh->op;
+                    lir_operation_t _match_op_1_103 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_104 = lh->farg;
+                    lir_subject_t* _keep_0_1_105 = lh->sarg;
+                    lir_subject_t* _keep_0_2_106 = lh->targ;
+                    lir_subject_t* _keep_1_0_107 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_108 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_109 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (lh->op != _match_op_0_102) {
+                        lh->op = _match_op_0_102;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_68 = lh->farg;
-                    if (_old_68 != _src_1_58) {
-                        lh->farg = _src_1_58;
+                    lir_subject_t* _old_110 = lh->farg;
+                    if (_old_110 != _src_1_100) {
+                        lh->farg = _src_1_100;
                         optimized = 1;
-                        if (_old_68 && _old_68 != lh->farg && _old_68 != lh->sarg && _old_68 != lh->targ && _old_68 != _src_1_58 && _old_68 != _src_2_59 && _old_68 != _keep_0_0_62 && _old_68 != _keep_0_1_63 && _old_68 != _keep_0_2_64 && _old_68 != _keep_1_0_65 && _old_68 != _keep_1_1_66 && _old_68 != _keep_1_2_67) {
-                            LIR_unload_subject(_old_68);
+                        if (_old_110 && _old_110 != lh->farg && _old_110 != lh->sarg && _old_110 != lh->targ && _old_110 != _src_1_100 && _old_110 != _src_2_101 && _old_110 != _keep_0_0_104 && _old_110 != _keep_0_1_105 && _old_110 != _keep_0_2_106 && _old_110 != _keep_1_0_107 && _old_110 != _keep_1_1_108 && _old_110 != _keep_1_2_109) {
+                            LIR_unload_subject(_old_110);
                         }
                     }
-                    lir_subject_t* _old_69 = lh->sarg;
-                    if (_old_69 != _src_2_59) {
-                        lh->sarg = _src_2_59;
+                    lir_subject_t* _old_111 = lh->sarg;
+                    if (_old_111 != _src_2_101) {
+                        lh->sarg = _src_2_101;
                         optimized = 1;
-                        if (_old_69 && _old_69 != lh->farg && _old_69 != lh->sarg && _old_69 != lh->targ && _old_69 != _src_1_58 && _old_69 != _src_2_59 && _old_69 != _keep_0_0_62 && _old_69 != _keep_0_1_63 && _old_69 != _keep_0_2_64 && _old_69 != _keep_1_0_65 && _old_69 != _keep_1_1_66 && _old_69 != _keep_1_2_67) {
-                            LIR_unload_subject(_old_69);
+                        if (_old_111 && _old_111 != lh->farg && _old_111 != lh->sarg && _old_111 != lh->targ && _old_111 != _src_1_100 && _old_111 != _src_2_101 && _old_111 != _keep_0_0_104 && _old_111 != _keep_0_1_105 && _old_111 != _keep_0_2_106 && _old_111 != _keep_1_0_107 && _old_111 != _keep_1_1_108 && _old_111 != _keep_1_2_109) {
+                            LIR_unload_subject(_old_111);
                         }
                     }
-                    lir_subject_t* _old_70 = lh->targ;
-                    if (_old_70) {
+                    lir_subject_t* _old_112 = lh->targ;
+                    if (_old_112) {
                         lh->targ = NULL;
                         optimized = 1;
-                        if (_old_70 && _old_70 != lh->farg && _old_70 != lh->sarg && _old_70 != lh->targ && _old_70 != _src_1_58 && _old_70 != _src_2_59 && _old_70 != _keep_0_0_62 && _old_70 != _keep_0_1_63 && _old_70 != _keep_0_2_64 && _old_70 != _keep_1_0_65 && _old_70 != _keep_1_1_66 && _old_70 != _keep_1_2_67) {
-                            LIR_unload_subject(_old_70);
+                        if (_old_112 && _old_112 != lh->farg && _old_112 != lh->sarg && _old_112 != lh->targ && _old_112 != _src_1_100 && _old_112 != _src_2_101 && _old_112 != _keep_0_0_104 && _old_112 != _keep_0_1_105 && _old_112 != _keep_0_2_106 && _old_112 != _keep_1_0_107 && _old_112 != _keep_1_1_108 && _old_112 != _keep_1_2_109) {
+                            LIR_unload_subject(_old_112);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused) {
@@ -418,45 +688,45 @@ int peephole_first_pass(cfg_block_t* bb) {
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_MEMORY)) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_LABEL)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
-                    lir_subject_t* _src_1_71 = lh->farg;
-                    lir_subject_t* _src_2_72 = lh->sarg;
-                    lir_subject_t* _src_3_73 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_operation_t _match_op_0_74 = lh->op;
-                    lir_operation_t _match_op_1_75 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_subject_t* _keep_0_0_76 = lh->farg;
-                    lir_subject_t* _keep_0_1_77 = lh->sarg;
-                    lir_subject_t* _keep_0_2_78 = lh->targ;
-                    lir_subject_t* _keep_1_0_79 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_80 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_81 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    if (lh->op != _match_op_1_75) {
-                        lh->op = _match_op_1_75;
+                    lir_subject_t* _src_1_113 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_114 = lh->sarg;
+                    lir_subject_t* _src_3_115 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_operation_t _match_op_0_116 = lh->op;
+                    lir_operation_t _match_op_1_117 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_118 = lh->farg;
+                    lir_subject_t* _keep_0_1_119 = lh->sarg;
+                    lir_subject_t* _keep_0_2_120 = lh->targ;
+                    lir_subject_t* _keep_1_0_121 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_122 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_123 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (lh->op != _match_op_1_117) {
+                        lh->op = _match_op_1_117;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_82 = lh->farg;
-                    if (_old_82 != _src_2_72) {
-                        lh->farg = _src_2_72;
+                    lir_subject_t* _old_124 = lh->farg;
+                    if (_old_124 != _src_2_114) {
+                        lh->farg = _src_2_114;
                         optimized = 1;
-                        if (_old_82 && _old_82 != lh->farg && _old_82 != lh->sarg && _old_82 != lh->targ && _old_82 != _src_1_71 && _old_82 != _src_2_72 && _old_82 != _src_3_73 && _old_82 != _keep_0_0_76 && _old_82 != _keep_0_1_77 && _old_82 != _keep_0_2_78 && _old_82 != _keep_1_0_79 && _old_82 != _keep_1_1_80 && _old_82 != _keep_1_2_81) {
-                            LIR_unload_subject(_old_82);
+                        if (_old_124 && _old_124 != lh->farg && _old_124 != lh->sarg && _old_124 != lh->targ && _old_124 != _src_1_113 && _old_124 != _src_2_114 && _old_124 != _src_3_115 && _old_124 != _keep_0_0_118 && _old_124 != _keep_0_1_119 && _old_124 != _keep_0_2_120 && _old_124 != _keep_1_0_121 && _old_124 != _keep_1_1_122 && _old_124 != _keep_1_2_123) {
+                            LIR_unload_subject(_old_124);
                         }
                     }
-                    lir_subject_t* _old_83 = lh->sarg;
-                    if (_old_83 != _src_3_73) {
-                        lh->sarg = _src_3_73;
+                    lir_subject_t* _old_125 = lh->sarg;
+                    if (_old_125 != _src_3_115) {
+                        lh->sarg = _src_3_115;
                         optimized = 1;
-                        if (_old_83 && _old_83 != lh->farg && _old_83 != lh->sarg && _old_83 != lh->targ && _old_83 != _src_1_71 && _old_83 != _src_2_72 && _old_83 != _src_3_73 && _old_83 != _keep_0_0_76 && _old_83 != _keep_0_1_77 && _old_83 != _keep_0_2_78 && _old_83 != _keep_1_0_79 && _old_83 != _keep_1_1_80 && _old_83 != _keep_1_2_81) {
-                            LIR_unload_subject(_old_83);
+                        if (_old_125 && _old_125 != lh->farg && _old_125 != lh->sarg && _old_125 != lh->targ && _old_125 != _src_1_113 && _old_125 != _src_2_114 && _old_125 != _src_3_115 && _old_125 != _keep_0_0_118 && _old_125 != _keep_0_1_119 && _old_125 != _keep_0_2_120 && _old_125 != _keep_1_0_121 && _old_125 != _keep_1_1_122 && _old_125 != _keep_1_2_123) {
+                            LIR_unload_subject(_old_125);
                         }
                     }
-                    lir_subject_t* _old_84 = lh->targ;
-                    if (_old_84) {
+                    lir_subject_t* _old_126 = lh->targ;
+                    if (_old_126) {
                         lh->targ = NULL;
                         optimized = 1;
-                        if (_old_84 && _old_84 != lh->farg && _old_84 != lh->sarg && _old_84 != lh->targ && _old_84 != _src_1_71 && _old_84 != _src_2_72 && _old_84 != _src_3_73 && _old_84 != _keep_0_0_76 && _old_84 != _keep_0_1_77 && _old_84 != _keep_0_2_78 && _old_84 != _keep_1_0_79 && _old_84 != _keep_1_1_80 && _old_84 != _keep_1_2_81) {
-                            LIR_unload_subject(_old_84);
+                        if (_old_126 && _old_126 != lh->farg && _old_126 != lh->sarg && _old_126 != lh->targ && _old_126 != _src_1_113 && _old_126 != _src_2_114 && _old_126 != _src_3_115 && _old_126 != _keep_0_0_118 && _old_126 != _keep_0_1_119 && _old_126 != _keep_0_2_120 && _old_126 != _keep_1_0_121 && _old_126 != _keep_1_1_122 && _old_126 != _keep_1_2_123) {
+                            LIR_unload_subject(_old_126);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused) {
@@ -476,41 +746,41 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
                 ((LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg) == 0)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
-                    lir_subject_t* _src_1_101 = lh->farg;
-                    lir_operation_t _match_op_0_102 = lh->op;
-                    lir_operation_t _match_op_1_103 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_subject_t* _keep_0_0_104 = lh->farg;
-                    lir_subject_t* _keep_0_1_105 = lh->sarg;
-                    lir_subject_t* _keep_0_2_106 = lh->targ;
-                    lir_subject_t* _keep_1_0_107 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_108 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_109 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _src_1_143 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_144 = lh->op;
+                    lir_operation_t _match_op_1_145 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_146 = lh->farg;
+                    lir_subject_t* _keep_0_1_147 = lh->sarg;
+                    lir_subject_t* _keep_0_2_148 = lh->targ;
+                    lir_subject_t* _keep_1_0_149 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_150 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_151 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_bXOR) {
                         lh->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_110 = lh->sarg;
-                    if (_old_110 != _src_1_101) {
-                        lh->sarg = _src_1_101;
+                    lir_subject_t* _old_152 = lh->sarg;
+                    if (_old_152 != _src_1_143) {
+                        lh->sarg = _src_1_143;
                         optimized = 1;
-                        if (_old_110 && _old_110 != lh->farg && _old_110 != lh->sarg && _old_110 != lh->targ && _old_110 != _src_1_101 && _old_110 != _keep_0_0_104 && _old_110 != _keep_0_1_105 && _old_110 != _keep_0_2_106 && _old_110 != _keep_1_0_107 && _old_110 != _keep_1_1_108 && _old_110 != _keep_1_2_109) {
-                            LIR_unload_subject(_old_110);
+                        if (_old_152 && _old_152 != lh->farg && _old_152 != lh->sarg && _old_152 != lh->targ && _old_152 != _src_1_143 && _old_152 != _keep_0_0_146 && _old_152 != _keep_0_1_147 && _old_152 != _keep_0_2_148 && _old_152 != _keep_1_0_149 && _old_152 != _keep_1_1_150 && _old_152 != _keep_1_2_151) {
+                            LIR_unload_subject(_old_152);
                         }
                     }
-                    lir_subject_t* _old_111 = lh->targ;
-                    if (_old_111 != _src_1_101) {
-                        lh->targ = _src_1_101;
+                    lir_subject_t* _old_153 = lh->targ;
+                    if (_old_153 != _src_1_143) {
+                        lh->targ = _src_1_143;
                         optimized = 1;
-                        if (_old_111 && _old_111 != lh->farg && _old_111 != lh->sarg && _old_111 != lh->targ && _old_111 != _src_1_101 && _old_111 != _keep_0_0_104 && _old_111 != _keep_0_1_105 && _old_111 != _keep_0_2_106 && _old_111 != _keep_1_0_107 && _old_111 != _keep_1_1_108 && _old_111 != _keep_1_2_109) {
-                            LIR_unload_subject(_old_111);
+                        if (_old_153 && _old_153 != lh->farg && _old_153 != lh->sarg && _old_153 != lh->targ && _old_153 != _src_1_143 && _old_153 != _keep_0_0_146 && _old_153 != _keep_0_1_147 && _old_153 != _keep_0_2_148 && _old_153 != _keep_1_0_149 && _old_153 != _keep_1_1_150 && _old_153 != _keep_1_2_151) {
+                            LIR_unload_subject(_old_153);
                         }
                     }
-                    lir_subject_t* _old_112 = lh->farg;
-                    if (_old_112 != _src_1_101) {
-                        lh->farg = _src_1_101;
+                    lir_subject_t* _old_154 = lh->farg;
+                    if (_old_154 != _src_1_143) {
+                        lh->farg = _src_1_143;
                         optimized = 1;
-                        if (_old_112 && _old_112 != lh->farg && _old_112 != lh->sarg && _old_112 != lh->targ && _old_112 != _src_1_101 && _old_112 != _keep_0_0_104 && _old_112 != _keep_0_1_105 && _old_112 != _keep_0_2_106 && _old_112 != _keep_1_0_107 && _old_112 != _keep_1_1_108 && _old_112 != _keep_1_2_109) {
-                            LIR_unload_subject(_old_112);
+                        if (_old_154 && _old_154 != lh->farg && _old_154 != lh->sarg && _old_154 != lh->targ && _old_154 != _src_1_143 && _old_154 != _keep_0_0_146 && _old_154 != _keep_0_1_147 && _old_154 != _keep_0_2_148 && _old_154 != _keep_1_0_149 && _old_154 != _keep_1_1_150 && _old_154 != _keep_1_2_151) {
+                            LIR_unload_subject(_old_154);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused) {
@@ -531,41 +801,222 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
-                    lir_subject_t* _src_1_113 = lh->farg;
-                    lir_operation_t _match_op_0_114 = lh->op;
-                    lir_operation_t _match_op_1_115 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_subject_t* _keep_0_0_116 = lh->farg;
-                    lir_subject_t* _keep_0_1_117 = lh->sarg;
-                    lir_subject_t* _keep_0_2_118 = lh->targ;
-                    lir_subject_t* _keep_1_0_119 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_120 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_121 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _src_1_155 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_156 = lh->op;
+                    lir_operation_t _match_op_1_157 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_158 = lh->farg;
+                    lir_subject_t* _keep_0_1_159 = lh->sarg;
+                    lir_subject_t* _keep_0_2_160 = lh->targ;
+                    lir_subject_t* _keep_1_0_161 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_162 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_163 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_bXOR) {
                         lh->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_122 = lh->sarg;
-                    if (_old_122 != _src_1_113) {
-                        lh->sarg = _src_1_113;
+                    lir_subject_t* _old_164 = lh->sarg;
+                    if (_old_164 != _src_1_155) {
+                        lh->sarg = _src_1_155;
                         optimized = 1;
-                        if (_old_122 && _old_122 != lh->farg && _old_122 != lh->sarg && _old_122 != lh->targ && _old_122 != _src_1_113 && _old_122 != _keep_0_0_116 && _old_122 != _keep_0_1_117 && _old_122 != _keep_0_2_118 && _old_122 != _keep_1_0_119 && _old_122 != _keep_1_1_120 && _old_122 != _keep_1_2_121) {
-                            LIR_unload_subject(_old_122);
+                        if (_old_164 && _old_164 != lh->farg && _old_164 != lh->sarg && _old_164 != lh->targ && _old_164 != _src_1_155 && _old_164 != _keep_0_0_158 && _old_164 != _keep_0_1_159 && _old_164 != _keep_0_2_160 && _old_164 != _keep_1_0_161 && _old_164 != _keep_1_1_162 && _old_164 != _keep_1_2_163) {
+                            LIR_unload_subject(_old_164);
                         }
                     }
-                    lir_subject_t* _old_123 = lh->targ;
-                    if (_old_123 != _src_1_113) {
-                        lh->targ = _src_1_113;
+                    lir_subject_t* _old_165 = lh->targ;
+                    if (_old_165 != _src_1_155) {
+                        lh->targ = _src_1_155;
                         optimized = 1;
-                        if (_old_123 && _old_123 != lh->farg && _old_123 != lh->sarg && _old_123 != lh->targ && _old_123 != _src_1_113 && _old_123 != _keep_0_0_116 && _old_123 != _keep_0_1_117 && _old_123 != _keep_0_2_118 && _old_123 != _keep_1_0_119 && _old_123 != _keep_1_1_120 && _old_123 != _keep_1_2_121) {
-                            LIR_unload_subject(_old_123);
+                        if (_old_165 && _old_165 != lh->farg && _old_165 != lh->sarg && _old_165 != lh->targ && _old_165 != _src_1_155 && _old_165 != _keep_0_0_158 && _old_165 != _keep_0_1_159 && _old_165 != _keep_0_2_160 && _old_165 != _keep_1_0_161 && _old_165 != _keep_1_1_162 && _old_165 != _keep_1_2_163) {
+                            LIR_unload_subject(_old_165);
                         }
                     }
-                    lir_subject_t* _old_124 = lh->farg;
-                    if (_old_124 != _src_1_113) {
-                        lh->farg = _src_1_113;
+                    lir_subject_t* _old_166 = lh->farg;
+                    if (_old_166 != _src_1_155) {
+                        lh->farg = _src_1_155;
                         optimized = 1;
-                        if (_old_124 && _old_124 != lh->farg && _old_124 != lh->sarg && _old_124 != lh->targ && _old_124 != _src_1_113 && _old_124 != _keep_0_0_116 && _old_124 != _keep_0_1_117 && _old_124 != _keep_0_2_118 && _old_124 != _keep_1_0_119 && _old_124 != _keep_1_1_120 && _old_124 != _keep_1_2_121) {
-                            LIR_unload_subject(_old_124);
+                        if (_old_166 && _old_166 != lh->farg && _old_166 != lh->sarg && _old_166 != lh->targ && _old_166 != _src_1_155 && _old_166 != _keep_0_0_158 && _old_166 != _keep_0_1_159 && _old_166 != _keep_0_2_160 && _old_166 != _keep_1_0_161 && _old_166 != _keep_1_1_162 && _old_166 != _keep_1_2_163) {
+                            LIR_unload_subject(_old_166);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                (lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                lh->sarg &&
+                (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_CONSTVAL)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iADD &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, lh->farg) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg)) {
+                    lir_subject_t* _src_1_167 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _src_2_168 = lh->sarg;
+                    lir_subject_t* _src_3_169 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    lir_subject_t* _src_4_170 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_operation_t _match_op_0_171 = lh->op;
+                    lir_operation_t _match_op_1_172 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_173 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_174 = lh->farg;
+                    lir_subject_t* _keep_0_1_175 = lh->sarg;
+                    lir_subject_t* _keep_0_2_176 = lh->targ;
+                    lir_subject_t* _keep_1_0_177 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_178 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_179 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_180 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_181 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_182 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != _match_op_0_171) {
+                        lh->op = _match_op_0_171;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_183 = lh->farg;
+                    if (_old_183 != _src_1_167) {
+                        lh->farg = _src_1_167;
+                        optimized = 1;
+                        if (_old_183 && _old_183 != lh->farg && _old_183 != lh->sarg && _old_183 != lh->targ && _old_183 != _src_1_167 && _old_183 != _src_2_168 && _old_183 != _src_3_169 && _old_183 != _src_4_170 && _old_183 != _keep_0_0_174 && _old_183 != _keep_0_1_175 && _old_183 != _keep_0_2_176 && _old_183 != _keep_1_0_177 && _old_183 != _keep_1_1_178 && _old_183 != _keep_1_2_179 && _old_183 != _keep_2_0_180 && _old_183 != _keep_2_1_181 && _old_183 != _keep_2_2_182) {
+                            LIR_unload_subject(_old_183);
+                        }
+                    }
+                    lir_subject_t* _old_184 = lh->sarg;
+                    if (_old_184 != _src_2_168) {
+                        lh->sarg = _src_2_168;
+                        optimized = 1;
+                        if (_old_184 && _old_184 != lh->farg && _old_184 != lh->sarg && _old_184 != lh->targ && _old_184 != _src_1_167 && _old_184 != _src_2_168 && _old_184 != _src_3_169 && _old_184 != _src_4_170 && _old_184 != _keep_0_0_174 && _old_184 != _keep_0_1_175 && _old_184 != _keep_0_2_176 && _old_184 != _keep_1_0_177 && _old_184 != _keep_1_1_178 && _old_184 != _keep_1_2_179 && _old_184 != _keep_2_0_180 && _old_184 != _keep_2_1_181 && _old_184 != _keep_2_2_182) {
+                            LIR_unload_subject(_old_184);
+                        }
+                    }
+                    lir_subject_t* _old_185 = lh->targ;
+                    if (_old_185) {
+                        lh->targ = NULL;
+                        optimized = 1;
+                        if (_old_185 && _old_185 != lh->farg && _old_185 != lh->sarg && _old_185 != lh->targ && _old_185 != _src_1_167 && _old_185 != _src_2_168 && _old_185 != _src_3_169 && _old_185 != _src_4_170 && _old_185 != _keep_0_0_174 && _old_185 != _keep_0_1_175 && _old_185 != _keep_0_2_176 && _old_185 != _keep_1_0_177 && _old_185 != _keep_1_1_178 && _old_185 != _keep_1_2_179 && _old_185 != _keep_2_0_180 && _old_185 != _keep_2_1_181 && _old_185 != _keep_2_2_182) {
+                            LIR_unload_subject(_old_185);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_1_172) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_1_172;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_186 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_186 != _src_3_169) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_3_169;
+                        optimized = 1;
+                        if (_old_186 && _old_186 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_186 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_186 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_186 != _src_1_167 && _old_186 != _src_2_168 && _old_186 != _src_3_169 && _old_186 != _src_4_170 && _old_186 != _keep_0_0_174 && _old_186 != _keep_0_1_175 && _old_186 != _keep_0_2_176 && _old_186 != _keep_1_0_177 && _old_186 != _keep_1_1_178 && _old_186 != _keep_1_2_179 && _old_186 != _keep_2_0_180 && _old_186 != _keep_2_1_181 && _old_186 != _keep_2_2_182) {
+                            LIR_unload_subject(_old_186);
+                        }
+                    }
+                    lir_subject_t* _old_187 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_187 != _src_4_170) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_4_170;
+                        optimized = 1;
+                        if (_old_187 && _old_187 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_187 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_187 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_187 != _src_1_167 && _old_187 != _src_2_168 && _old_187 != _src_3_169 && _old_187 != _src_4_170 && _old_187 != _keep_0_0_174 && _old_187 != _keep_0_1_175 && _old_187 != _keep_0_2_176 && _old_187 != _keep_1_0_177 && _old_187 != _keep_1_1_178 && _old_187 != _keep_1_2_179 && _old_187 != _keep_2_0_180 && _old_187 != _keep_2_1_181 && _old_187 != _keep_2_2_182) {
+                            LIR_unload_subject(_old_187);
+                        }
+                    }
+                    lir_subject_t* _old_188 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_188) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_188 && _old_188 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_188 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_188 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_188 != _src_1_167 && _old_188 != _src_2_168 && _old_188 != _src_3_169 && _old_188 != _src_4_170 && _old_188 != _keep_0_0_174 && _old_188 != _keep_0_1_175 && _old_188 != _keep_0_2_176 && _old_188 != _keep_1_0_177 && _old_188 != _keep_1_1_178 && _old_188 != _keep_1_2_179 && _old_188 != _keep_2_0_180 && _old_188 != _keep_2_1_181 && _old_188 != _keep_2_2_182) {
+                            LIR_unload_subject(_old_188);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op != LIR_iADD) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op = LIR_iADD;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_189 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    if (_old_189 != _src_1_167) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg = _src_1_167;
+                        optimized = 1;
+                        if (_old_189 && _old_189 != LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg && _old_189 != LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg && _old_189 != LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ && _old_189 != _src_1_167 && _old_189 != _src_2_168 && _old_189 != _src_3_169 && _old_189 != _src_4_170 && _old_189 != _keep_0_0_174 && _old_189 != _keep_0_1_175 && _old_189 != _keep_0_2_176 && _old_189 != _keep_1_0_177 && _old_189 != _keep_1_1_178 && _old_189 != _keep_1_2_179 && _old_189 != _keep_2_0_180 && _old_189 != _keep_2_1_181 && _old_189 != _keep_2_2_182) {
+                            LIR_unload_subject(_old_189);
+                        }
+                    }
+                    lir_subject_t* _old_190 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (_old_190 != _src_4_170) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ = _src_4_170;
+                        optimized = 1;
+                        if (_old_190 && _old_190 != LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg && _old_190 != LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg && _old_190 != LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ && _old_190 != _src_1_167 && _old_190 != _src_2_168 && _old_190 != _src_3_169 && _old_190 != _src_4_170 && _old_190 != _keep_0_0_174 && _old_190 != _keep_0_1_175 && _old_190 != _keep_0_2_176 && _old_190 != _keep_1_0_177 && _old_190 != _keep_1_1_178 && _old_190 != _keep_1_2_179 && _old_190 != _keep_2_0_180 && _old_190 != _keep_2_1_181 && _old_190 != _keep_2_2_182) {
+                            LIR_unload_subject(_old_190);
+                        }
+                    }
+                    lir_subject_t* _old_191 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    if (_old_191 != _src_1_167) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg = _src_1_167;
+                        optimized = 1;
+                        if (_old_191 && _old_191 != LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg && _old_191 != LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg && _old_191 != LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ && _old_191 != _src_1_167 && _old_191 != _src_2_168 && _old_191 != _src_3_169 && _old_191 != _src_4_170 && _old_191 != _keep_0_0_174 && _old_191 != _keep_0_1_175 && _old_191 != _keep_0_2_176 && _old_191 != _keep_1_0_177 && _old_191 != _keep_1_1_178 && _old_191 != _keep_1_2_179 && _old_191 != _keep_2_0_180 && _old_191 != _keep_2_1_181 && _old_191 != _keep_2_2_182) {
+                            LIR_unload_subject(_old_191);
+                        }
+                    }
+                }
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                (lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                lh->sarg &&
+                ((lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->sarg) == 1)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMUL &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_CONSTVAL) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_192 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_193 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_operation_t _match_op_0_194 = lh->op;
+                    lir_operation_t _match_op_1_195 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_196 = lh->farg;
+                    lir_subject_t* _keep_0_1_197 = lh->sarg;
+                    lir_subject_t* _keep_0_2_198 = lh->targ;
+                    lir_subject_t* _keep_1_0_199 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_200 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_201 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (lh->op != _match_op_0_194) {
+                        lh->op = _match_op_0_194;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_202 = lh->farg;
+                    if (_old_202 != _src_1_192) {
+                        lh->farg = _src_1_192;
+                        optimized = 1;
+                        if (_old_202 && _old_202 != lh->farg && _old_202 != lh->sarg && _old_202 != lh->targ && _old_202 != _src_1_192 && _old_202 != _src_2_193 && _old_202 != _keep_0_0_196 && _old_202 != _keep_0_1_197 && _old_202 != _keep_0_2_198 && _old_202 != _keep_1_0_199 && _old_202 != _keep_1_1_200 && _old_202 != _keep_1_2_201) {
+                            LIR_unload_subject(_old_202);
+                        }
+                    }
+                    lir_subject_t* _old_203 = lh->sarg;
+                    if (_old_203 != _src_2_193) {
+                        lh->sarg = _src_2_193;
+                        optimized = 1;
+                        if (_old_203 && _old_203 != lh->farg && _old_203 != lh->sarg && _old_203 != lh->targ && _old_203 != _src_1_192 && _old_203 != _src_2_193 && _old_203 != _keep_0_0_196 && _old_203 != _keep_0_1_197 && _old_203 != _keep_0_2_198 && _old_203 != _keep_1_0_199 && _old_203 != _keep_1_1_200 && _old_203 != _keep_1_2_201) {
+                            LIR_unload_subject(_old_203);
+                        }
+                    }
+                    lir_subject_t* _old_204 = lh->targ;
+                    if (_old_204) {
+                        lh->targ = NULL;
+                        optimized = 1;
+                        if (_old_204 && _old_204 != lh->farg && _old_204 != lh->sarg && _old_204 != lh->targ && _old_204 != _src_1_192 && _old_204 != _src_2_193 && _old_204 != _keep_0_0_196 && _old_204 != _keep_0_1_197 && _old_204 != _keep_0_2_198 && _old_204 != _keep_1_0_199 && _old_204 != _keep_1_1_200 && _old_204 != _keep_1_2_201) {
+                            LIR_unload_subject(_old_204);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused) {
@@ -596,75 +1047,75 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, lh->sarg) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg, lh->farg)) {
-                    lir_subject_t* _src_1_125 = lh->farg;
-                    lir_subject_t* _src_2_126 = lh->sarg;
-                    lir_subject_t* _src_3_127 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    lir_operation_t _match_op_0_128 = lh->op;
-                    lir_operation_t _match_op_1_129 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_130 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
-                    lir_subject_t* _keep_0_0_131 = lh->farg;
-                    lir_subject_t* _keep_0_1_132 = lh->sarg;
-                    lir_subject_t* _keep_0_2_133 = lh->targ;
-                    lir_subject_t* _keep_1_0_134 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_135 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_136 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    lir_subject_t* _keep_2_0_137 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_subject_t* _keep_2_1_138 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
-                    lir_subject_t* _keep_2_2_139 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
-                    if (lh->op != _match_op_0_128) {
-                        lh->op = _match_op_0_128;
+                    lir_subject_t* _src_1_205 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _src_2_206 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _src_3_207 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_operation_t _match_op_0_208 = lh->op;
+                    lir_operation_t _match_op_1_209 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_210 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_211 = lh->farg;
+                    lir_subject_t* _keep_0_1_212 = lh->sarg;
+                    lir_subject_t* _keep_0_2_213 = lh->targ;
+                    lir_subject_t* _keep_1_0_214 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_215 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_216 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_217 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_218 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_219 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != _match_op_0_208) {
+                        lh->op = _match_op_0_208;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_140 = lh->farg;
-                    if (_old_140 != _src_1_125) {
-                        lh->farg = _src_1_125;
+                    lir_subject_t* _old_220 = lh->farg;
+                    if (_old_220 != _src_1_205) {
+                        lh->farg = _src_1_205;
                         optimized = 1;
-                        if (_old_140 && _old_140 != lh->farg && _old_140 != lh->sarg && _old_140 != lh->targ && _old_140 != _src_1_125 && _old_140 != _src_2_126 && _old_140 != _src_3_127 && _old_140 != _keep_0_0_131 && _old_140 != _keep_0_1_132 && _old_140 != _keep_0_2_133 && _old_140 != _keep_1_0_134 && _old_140 != _keep_1_1_135 && _old_140 != _keep_1_2_136 && _old_140 != _keep_2_0_137 && _old_140 != _keep_2_1_138 && _old_140 != _keep_2_2_139) {
-                            LIR_unload_subject(_old_140);
+                        if (_old_220 && _old_220 != lh->farg && _old_220 != lh->sarg && _old_220 != lh->targ && _old_220 != _src_1_205 && _old_220 != _src_2_206 && _old_220 != _src_3_207 && _old_220 != _keep_0_0_211 && _old_220 != _keep_0_1_212 && _old_220 != _keep_0_2_213 && _old_220 != _keep_1_0_214 && _old_220 != _keep_1_1_215 && _old_220 != _keep_1_2_216 && _old_220 != _keep_2_0_217 && _old_220 != _keep_2_1_218 && _old_220 != _keep_2_2_219) {
+                            LIR_unload_subject(_old_220);
                         }
                     }
-                    lir_subject_t* _old_141 = lh->sarg;
-                    if (_old_141 != _src_2_126) {
-                        lh->sarg = _src_2_126;
+                    lir_subject_t* _old_221 = lh->sarg;
+                    if (_old_221 != _src_2_206) {
+                        lh->sarg = _src_2_206;
                         optimized = 1;
-                        if (_old_141 && _old_141 != lh->farg && _old_141 != lh->sarg && _old_141 != lh->targ && _old_141 != _src_1_125 && _old_141 != _src_2_126 && _old_141 != _src_3_127 && _old_141 != _keep_0_0_131 && _old_141 != _keep_0_1_132 && _old_141 != _keep_0_2_133 && _old_141 != _keep_1_0_134 && _old_141 != _keep_1_1_135 && _old_141 != _keep_1_2_136 && _old_141 != _keep_2_0_137 && _old_141 != _keep_2_1_138 && _old_141 != _keep_2_2_139) {
-                            LIR_unload_subject(_old_141);
+                        if (_old_221 && _old_221 != lh->farg && _old_221 != lh->sarg && _old_221 != lh->targ && _old_221 != _src_1_205 && _old_221 != _src_2_206 && _old_221 != _src_3_207 && _old_221 != _keep_0_0_211 && _old_221 != _keep_0_1_212 && _old_221 != _keep_0_2_213 && _old_221 != _keep_1_0_214 && _old_221 != _keep_1_1_215 && _old_221 != _keep_1_2_216 && _old_221 != _keep_2_0_217 && _old_221 != _keep_2_1_218 && _old_221 != _keep_2_2_219) {
+                            LIR_unload_subject(_old_221);
                         }
                     }
-                    lir_subject_t* _old_142 = lh->targ;
-                    if (_old_142) {
+                    lir_subject_t* _old_222 = lh->targ;
+                    if (_old_222) {
                         lh->targ = NULL;
                         optimized = 1;
-                        if (_old_142 && _old_142 != lh->farg && _old_142 != lh->sarg && _old_142 != lh->targ && _old_142 != _src_1_125 && _old_142 != _src_2_126 && _old_142 != _src_3_127 && _old_142 != _keep_0_0_131 && _old_142 != _keep_0_1_132 && _old_142 != _keep_0_2_133 && _old_142 != _keep_1_0_134 && _old_142 != _keep_1_1_135 && _old_142 != _keep_1_2_136 && _old_142 != _keep_2_0_137 && _old_142 != _keep_2_1_138 && _old_142 != _keep_2_2_139) {
-                            LIR_unload_subject(_old_142);
+                        if (_old_222 && _old_222 != lh->farg && _old_222 != lh->sarg && _old_222 != lh->targ && _old_222 != _src_1_205 && _old_222 != _src_2_206 && _old_222 != _src_3_207 && _old_222 != _keep_0_0_211 && _old_222 != _keep_0_1_212 && _old_222 != _keep_0_2_213 && _old_222 != _keep_1_0_214 && _old_222 != _keep_1_1_215 && _old_222 != _keep_1_2_216 && _old_222 != _keep_2_0_217 && _old_222 != _keep_2_1_218 && _old_222 != _keep_2_2_219) {
+                            LIR_unload_subject(_old_222);
                         }
                     }
                     if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_iADD) {
                         LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_iADD;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_143 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    if (_old_143 != _src_2_126) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_2_126;
+                    lir_subject_t* _old_223 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_223 != _src_2_206) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_2_206;
                         optimized = 1;
-                        if (_old_143 && _old_143 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_143 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_143 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_143 != _src_1_125 && _old_143 != _src_2_126 && _old_143 != _src_3_127 && _old_143 != _keep_0_0_131 && _old_143 != _keep_0_1_132 && _old_143 != _keep_0_2_133 && _old_143 != _keep_1_0_134 && _old_143 != _keep_1_1_135 && _old_143 != _keep_1_2_136 && _old_143 != _keep_2_0_137 && _old_143 != _keep_2_1_138 && _old_143 != _keep_2_2_139) {
-                            LIR_unload_subject(_old_143);
+                        if (_old_223 && _old_223 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_223 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_223 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_223 != _src_1_205 && _old_223 != _src_2_206 && _old_223 != _src_3_207 && _old_223 != _keep_0_0_211 && _old_223 != _keep_0_1_212 && _old_223 != _keep_0_2_213 && _old_223 != _keep_1_0_214 && _old_223 != _keep_1_1_215 && _old_223 != _keep_1_2_216 && _old_223 != _keep_2_0_217 && _old_223 != _keep_2_1_218 && _old_223 != _keep_2_2_219) {
+                            LIR_unload_subject(_old_223);
                         }
                     }
-                    lir_subject_t* _old_144 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    if (_old_144 != _src_3_127) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = _src_3_127;
+                    lir_subject_t* _old_224 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_224 != _src_3_207) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = _src_3_207;
                         optimized = 1;
-                        if (_old_144 && _old_144 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_144 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_144 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_144 != _src_1_125 && _old_144 != _src_2_126 && _old_144 != _src_3_127 && _old_144 != _keep_0_0_131 && _old_144 != _keep_0_1_132 && _old_144 != _keep_0_2_133 && _old_144 != _keep_1_0_134 && _old_144 != _keep_1_1_135 && _old_144 != _keep_1_2_136 && _old_144 != _keep_2_0_137 && _old_144 != _keep_2_1_138 && _old_144 != _keep_2_2_139) {
-                            LIR_unload_subject(_old_144);
+                        if (_old_224 && _old_224 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_224 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_224 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_224 != _src_1_205 && _old_224 != _src_2_206 && _old_224 != _src_3_207 && _old_224 != _keep_0_0_211 && _old_224 != _keep_0_1_212 && _old_224 != _keep_0_2_213 && _old_224 != _keep_1_0_214 && _old_224 != _keep_1_1_215 && _old_224 != _keep_1_2_216 && _old_224 != _keep_2_0_217 && _old_224 != _keep_2_1_218 && _old_224 != _keep_2_2_219) {
+                            LIR_unload_subject(_old_224);
                         }
                     }
-                    lir_subject_t* _old_145 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    if (_old_145 != _src_2_126) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_126;
+                    lir_subject_t* _old_225 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_225 != _src_2_206) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_206;
                         optimized = 1;
-                        if (_old_145 && _old_145 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_145 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_145 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_145 != _src_1_125 && _old_145 != _src_2_126 && _old_145 != _src_3_127 && _old_145 != _keep_0_0_131 && _old_145 != _keep_0_1_132 && _old_145 != _keep_0_2_133 && _old_145 != _keep_1_0_134 && _old_145 != _keep_1_1_135 && _old_145 != _keep_1_2_136 && _old_145 != _keep_2_0_137 && _old_145 != _keep_2_1_138 && _old_145 != _keep_2_2_139) {
-                            LIR_unload_subject(_old_145);
+                        if (_old_225 && _old_225 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_225 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_225 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_225 != _src_1_205 && _old_225 != _src_2_206 && _old_225 != _src_3_207 && _old_225 != _keep_0_0_211 && _old_225 != _keep_0_1_212 && _old_225 != _keep_0_2_213 && _old_225 != _keep_1_0_214 && _old_225 != _keep_1_1_215 && _old_225 != _keep_1_2_216 && _old_225 != _keep_2_0_217 && _old_225 != _keep_2_1_218 && _old_225 != _keep_2_2_219) {
+                            LIR_unload_subject(_old_225);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
@@ -678,9 +1129,14 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->sarg &&
                 lh->sarg->t == LIR_REGISTER) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
-                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_DEC &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
-                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iSUB &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ &&
+                ((LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ) == 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
@@ -689,75 +1145,73 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_REGISTER) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg, lh->farg)) {
-                    lir_subject_t* _src_1_154 = lh->farg;
-                    lir_subject_t* _src_2_155 = lh->sarg;
-                    lir_subject_t* _src_3_156 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_157 = lh->op;
-                    lir_operation_t _match_op_1_158 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_159 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
-                    lir_subject_t* _keep_0_0_160 = lh->farg;
-                    lir_subject_t* _keep_0_1_161 = lh->sarg;
-                    lir_subject_t* _keep_0_2_162 = lh->targ;
-                    lir_subject_t* _keep_1_0_163 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_164 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_165 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    lir_subject_t* _keep_2_0_166 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_subject_t* _keep_2_1_167 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
-                    lir_subject_t* _keep_2_2_168 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
-                    if (lh->op != LIR_DEC) {
-                        lh->op = LIR_DEC;
+                    lir_subject_t* _src_1_226 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _src_2_227 = lh->sarg;
+                    lir_subject_t* _src_3_228 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_229 = lh->op;
+                    lir_operation_t _match_op_1_230 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_231 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_232 = lh->farg;
+                    lir_subject_t* _keep_0_1_233 = lh->sarg;
+                    lir_subject_t* _keep_0_2_234 = lh->targ;
+                    lir_subject_t* _keep_1_0_235 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_236 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_237 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_238 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_239 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_240 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != LIR_iSUB) {
+                        lh->op = LIR_iSUB;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_169 = lh->farg;
-                    if (_old_169 != _src_2_155) {
-                        lh->farg = _src_2_155;
+                    lir_subject_t* _old_241 = lh->sarg;
+                    if (_old_241 != _src_2_227) {
+                        lh->sarg = _src_2_227;
                         optimized = 1;
-                        if (_old_169 && _old_169 != lh->farg && _old_169 != lh->sarg && _old_169 != lh->targ && _old_169 != _src_1_154 && _old_169 != _src_2_155 && _old_169 != _src_3_156 && _old_169 != _keep_0_0_160 && _old_169 != _keep_0_1_161 && _old_169 != _keep_0_2_162 && _old_169 != _keep_1_0_163 && _old_169 != _keep_1_1_164 && _old_169 != _keep_1_2_165 && _old_169 != _keep_2_0_166 && _old_169 != _keep_2_1_167 && _old_169 != _keep_2_2_168) {
-                            LIR_unload_subject(_old_169);
+                        if (_old_241 && _old_241 != lh->farg && _old_241 != lh->sarg && _old_241 != lh->targ && _old_241 != _src_1_226 && _old_241 != _src_2_227 && _old_241 != _src_3_228 && _old_241 != _keep_0_0_232 && _old_241 != _keep_0_1_233 && _old_241 != _keep_0_2_234 && _old_241 != _keep_1_0_235 && _old_241 != _keep_1_1_236 && _old_241 != _keep_1_2_237 && _old_241 != _keep_2_0_238 && _old_241 != _keep_2_1_239 && _old_241 != _keep_2_2_240) {
+                            LIR_unload_subject(_old_241);
                         }
                     }
-                    lir_subject_t* _old_170 = lh->sarg;
-                    if (_old_170) {
-                        lh->sarg = NULL;
+                    lir_subject_t* _old_242 = lh->targ;
+                    lh->targ = LIR_SUBJ_CONST(1);
+                    optimized = 1;
+                    if (_old_242 && _old_242 != lh->farg && _old_242 != lh->sarg && _old_242 != lh->targ && _old_242 != _src_1_226 && _old_242 != _src_2_227 && _old_242 != _src_3_228 && _old_242 != _keep_0_0_232 && _old_242 != _keep_0_1_233 && _old_242 != _keep_0_2_234 && _old_242 != _keep_1_0_235 && _old_242 != _keep_1_1_236 && _old_242 != _keep_1_2_237 && _old_242 != _keep_2_0_238 && _old_242 != _keep_2_1_239 && _old_242 != _keep_2_2_240) {
+                        LIR_unload_subject(_old_242);
+                    }
+                    lir_subject_t* _old_243 = lh->farg;
+                    if (_old_243 != _src_2_227) {
+                        lh->farg = _src_2_227;
                         optimized = 1;
-                        if (_old_170 && _old_170 != lh->farg && _old_170 != lh->sarg && _old_170 != lh->targ && _old_170 != _src_1_154 && _old_170 != _src_2_155 && _old_170 != _src_3_156 && _old_170 != _keep_0_0_160 && _old_170 != _keep_0_1_161 && _old_170 != _keep_0_2_162 && _old_170 != _keep_1_0_163 && _old_170 != _keep_1_1_164 && _old_170 != _keep_1_2_165 && _old_170 != _keep_2_0_166 && _old_170 != _keep_2_1_167 && _old_170 != _keep_2_2_168) {
-                            LIR_unload_subject(_old_170);
+                        if (_old_243 && _old_243 != lh->farg && _old_243 != lh->sarg && _old_243 != lh->targ && _old_243 != _src_1_226 && _old_243 != _src_2_227 && _old_243 != _src_3_228 && _old_243 != _keep_0_0_232 && _old_243 != _keep_0_1_233 && _old_243 != _keep_0_2_234 && _old_243 != _keep_1_0_235 && _old_243 != _keep_1_1_236 && _old_243 != _keep_1_2_237 && _old_243 != _keep_2_0_238 && _old_243 != _keep_2_1_239 && _old_243 != _keep_2_2_240) {
+                            LIR_unload_subject(_old_243);
                         }
                     }
-                    lir_subject_t* _old_171 = lh->targ;
-                    if (_old_171) {
-                        lh->targ = NULL;
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_0_229) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_0_229;
                         optimized = 1;
-                        if (_old_171 && _old_171 != lh->farg && _old_171 != lh->sarg && _old_171 != lh->targ && _old_171 != _src_1_154 && _old_171 != _src_2_155 && _old_171 != _src_3_156 && _old_171 != _keep_0_0_160 && _old_171 != _keep_0_1_161 && _old_171 != _keep_0_2_162 && _old_171 != _keep_1_0_163 && _old_171 != _keep_1_1_164 && _old_171 != _keep_1_2_165 && _old_171 != _keep_2_0_166 && _old_171 != _keep_2_1_167 && _old_171 != _keep_2_2_168) {
-                            LIR_unload_subject(_old_171);
+                    }
+                    lir_subject_t* _old_244 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_244 != _src_3_228) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_3_228;
+                        optimized = 1;
+                        if (_old_244 && _old_244 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_244 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_244 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_244 != _src_1_226 && _old_244 != _src_2_227 && _old_244 != _src_3_228 && _old_244 != _keep_0_0_232 && _old_244 != _keep_0_1_233 && _old_244 != _keep_0_2_234 && _old_244 != _keep_1_0_235 && _old_244 != _keep_1_1_236 && _old_244 != _keep_1_2_237 && _old_244 != _keep_2_0_238 && _old_244 != _keep_2_1_239 && _old_244 != _keep_2_2_240) {
+                            LIR_unload_subject(_old_244);
                         }
                     }
-                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_0_157) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_0_157;
+                    lir_subject_t* _old_245 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_245 != _src_2_227) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_2_227;
                         optimized = 1;
-                    }
-                    lir_subject_t* _old_172 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    if (_old_172 != _src_3_156) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_3_156;
-                        optimized = 1;
-                        if (_old_172 && _old_172 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_172 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_172 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_172 != _src_1_154 && _old_172 != _src_2_155 && _old_172 != _src_3_156 && _old_172 != _keep_0_0_160 && _old_172 != _keep_0_1_161 && _old_172 != _keep_0_2_162 && _old_172 != _keep_1_0_163 && _old_172 != _keep_1_1_164 && _old_172 != _keep_1_2_165 && _old_172 != _keep_2_0_166 && _old_172 != _keep_2_1_167 && _old_172 != _keep_2_2_168) {
-                            LIR_unload_subject(_old_172);
+                        if (_old_245 && _old_245 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_245 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_245 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_245 != _src_1_226 && _old_245 != _src_2_227 && _old_245 != _src_3_228 && _old_245 != _keep_0_0_232 && _old_245 != _keep_0_1_233 && _old_245 != _keep_0_2_234 && _old_245 != _keep_1_0_235 && _old_245 != _keep_1_1_236 && _old_245 != _keep_1_2_237 && _old_245 != _keep_2_0_238 && _old_245 != _keep_2_1_239 && _old_245 != _keep_2_2_240) {
+                            LIR_unload_subject(_old_245);
                         }
                     }
-                    lir_subject_t* _old_173 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    if (_old_173 != _src_2_155) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_2_155;
-                        optimized = 1;
-                        if (_old_173 && _old_173 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_173 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_173 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_173 != _src_1_154 && _old_173 != _src_2_155 && _old_173 != _src_3_156 && _old_173 != _keep_0_0_160 && _old_173 != _keep_0_1_161 && _old_173 != _keep_0_2_162 && _old_173 != _keep_1_0_163 && _old_173 != _keep_1_1_164 && _old_173 != _keep_1_2_165 && _old_173 != _keep_2_0_166 && _old_173 != _keep_2_1_167 && _old_173 != _keep_2_2_168) {
-                            LIR_unload_subject(_old_173);
-                        }
-                    }
-                    lir_subject_t* _old_174 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    if (_old_174) {
+                    lir_subject_t* _old_246 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_246) {
                         LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
                         optimized = 1;
-                        if (_old_174 && _old_174 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_174 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_174 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_174 != _src_1_154 && _old_174 != _src_2_155 && _old_174 != _src_3_156 && _old_174 != _keep_0_0_160 && _old_174 != _keep_0_1_161 && _old_174 != _keep_0_2_162 && _old_174 != _keep_1_0_163 && _old_174 != _keep_1_1_164 && _old_174 != _keep_1_2_165 && _old_174 != _keep_2_0_166 && _old_174 != _keep_2_1_167 && _old_174 != _keep_2_2_168) {
-                            LIR_unload_subject(_old_174);
+                        if (_old_246 && _old_246 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_246 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_246 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_246 != _src_1_226 && _old_246 != _src_2_227 && _old_246 != _src_3_228 && _old_246 != _keep_0_0_232 && _old_246 != _keep_0_1_233 && _old_246 != _keep_0_2_234 && _old_246 != _keep_1_0_235 && _old_246 != _keep_1_1_236 && _old_246 != _keep_1_2_237 && _old_246 != _keep_2_0_238 && _old_246 != _keep_2_1_239 && _old_246 != _keep_2_2_240) {
+                            LIR_unload_subject(_old_246);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
@@ -771,9 +1225,14 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->sarg &&
                 lh->sarg->t == LIR_REGISTER) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
-                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_DEC &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
-                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iSUB &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ &&
+                ((LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ) == 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
@@ -783,74 +1242,258 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, lh->sarg) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg, lh->farg)) {
-                    lir_subject_t* _src_2_175 = lh->farg;
-                    lir_subject_t* _src_1_176 = lh->sarg;
-                    lir_operation_t _match_op_0_177 = lh->op;
-                    lir_operation_t _match_op_1_178 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_179 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
-                    lir_subject_t* _keep_0_0_180 = lh->farg;
-                    lir_subject_t* _keep_0_1_181 = lh->sarg;
-                    lir_subject_t* _keep_0_2_182 = lh->targ;
-                    lir_subject_t* _keep_1_0_183 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_184 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_185 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    lir_subject_t* _keep_2_0_186 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_subject_t* _keep_2_1_187 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
-                    lir_subject_t* _keep_2_2_188 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
-                    if (lh->op != LIR_DEC) {
-                        lh->op = LIR_DEC;
+                    lir_subject_t* _src_2_247 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _src_1_248 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_249 = lh->op;
+                    lir_operation_t _match_op_1_250 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_251 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_252 = lh->farg;
+                    lir_subject_t* _keep_0_1_253 = lh->sarg;
+                    lir_subject_t* _keep_0_2_254 = lh->targ;
+                    lir_subject_t* _keep_1_0_255 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_256 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_257 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_258 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_259 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_260 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != _match_op_0_249) {
+                        lh->op = _match_op_0_249;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_189 = lh->farg;
-                    if (_old_189 != _src_1_176) {
-                        lh->farg = _src_1_176;
+                    lir_subject_t* _old_261 = lh->farg;
+                    if (_old_261 != _src_2_247) {
+                        lh->farg = _src_2_247;
                         optimized = 1;
-                        if (_old_189 && _old_189 != lh->farg && _old_189 != lh->sarg && _old_189 != lh->targ && _old_189 != _src_2_175 && _old_189 != _src_1_176 && _old_189 != _keep_0_0_180 && _old_189 != _keep_0_1_181 && _old_189 != _keep_0_2_182 && _old_189 != _keep_1_0_183 && _old_189 != _keep_1_1_184 && _old_189 != _keep_1_2_185 && _old_189 != _keep_2_0_186 && _old_189 != _keep_2_1_187 && _old_189 != _keep_2_2_188) {
-                            LIR_unload_subject(_old_189);
+                        if (_old_261 && _old_261 != lh->farg && _old_261 != lh->sarg && _old_261 != lh->targ && _old_261 != _src_2_247 && _old_261 != _src_1_248 && _old_261 != _keep_0_0_252 && _old_261 != _keep_0_1_253 && _old_261 != _keep_0_2_254 && _old_261 != _keep_1_0_255 && _old_261 != _keep_1_1_256 && _old_261 != _keep_1_2_257 && _old_261 != _keep_2_0_258 && _old_261 != _keep_2_1_259 && _old_261 != _keep_2_2_260) {
+                            LIR_unload_subject(_old_261);
                         }
                     }
-                    lir_subject_t* _old_190 = lh->sarg;
-                    if (_old_190) {
-                        lh->sarg = NULL;
+                    lir_subject_t* _old_262 = lh->sarg;
+                    if (_old_262 != _src_1_248) {
+                        lh->sarg = _src_1_248;
                         optimized = 1;
-                        if (_old_190 && _old_190 != lh->farg && _old_190 != lh->sarg && _old_190 != lh->targ && _old_190 != _src_2_175 && _old_190 != _src_1_176 && _old_190 != _keep_0_0_180 && _old_190 != _keep_0_1_181 && _old_190 != _keep_0_2_182 && _old_190 != _keep_1_0_183 && _old_190 != _keep_1_1_184 && _old_190 != _keep_1_2_185 && _old_190 != _keep_2_0_186 && _old_190 != _keep_2_1_187 && _old_190 != _keep_2_2_188) {
-                            LIR_unload_subject(_old_190);
+                        if (_old_262 && _old_262 != lh->farg && _old_262 != lh->sarg && _old_262 != lh->targ && _old_262 != _src_2_247 && _old_262 != _src_1_248 && _old_262 != _keep_0_0_252 && _old_262 != _keep_0_1_253 && _old_262 != _keep_0_2_254 && _old_262 != _keep_1_0_255 && _old_262 != _keep_1_1_256 && _old_262 != _keep_1_2_257 && _old_262 != _keep_2_0_258 && _old_262 != _keep_2_1_259 && _old_262 != _keep_2_2_260) {
+                            LIR_unload_subject(_old_262);
                         }
                     }
-                    lir_subject_t* _old_191 = lh->targ;
-                    if (_old_191) {
+                    lir_subject_t* _old_263 = lh->targ;
+                    if (_old_263) {
                         lh->targ = NULL;
                         optimized = 1;
-                        if (_old_191 && _old_191 != lh->farg && _old_191 != lh->sarg && _old_191 != lh->targ && _old_191 != _src_2_175 && _old_191 != _src_1_176 && _old_191 != _keep_0_0_180 && _old_191 != _keep_0_1_181 && _old_191 != _keep_0_2_182 && _old_191 != _keep_1_0_183 && _old_191 != _keep_1_1_184 && _old_191 != _keep_1_2_185 && _old_191 != _keep_2_0_186 && _old_191 != _keep_2_1_187 && _old_191 != _keep_2_2_188) {
-                            LIR_unload_subject(_old_191);
+                        if (_old_263 && _old_263 != lh->farg && _old_263 != lh->sarg && _old_263 != lh->targ && _old_263 != _src_2_247 && _old_263 != _src_1_248 && _old_263 != _keep_0_0_252 && _old_263 != _keep_0_1_253 && _old_263 != _keep_0_2_254 && _old_263 != _keep_1_0_255 && _old_263 != _keep_1_1_256 && _old_263 != _keep_1_2_257 && _old_263 != _keep_2_0_258 && _old_263 != _keep_2_1_259 && _old_263 != _keep_2_2_260) {
+                            LIR_unload_subject(_old_263);
                         }
                     }
-                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_0_177) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_0_177;
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_iSUB) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_iSUB;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_192 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    if (_old_192 != _src_2_175) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_175;
+                    lir_subject_t* _old_264 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_264 != _src_1_248) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_1_248;
                         optimized = 1;
-                        if (_old_192 && _old_192 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_192 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_192 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_192 != _src_2_175 && _old_192 != _src_1_176 && _old_192 != _keep_0_0_180 && _old_192 != _keep_0_1_181 && _old_192 != _keep_0_2_182 && _old_192 != _keep_1_0_183 && _old_192 != _keep_1_1_184 && _old_192 != _keep_1_2_185 && _old_192 != _keep_2_0_186 && _old_192 != _keep_2_1_187 && _old_192 != _keep_2_2_188) {
-                            LIR_unload_subject(_old_192);
+                        if (_old_264 && _old_264 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_264 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_264 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_264 != _src_2_247 && _old_264 != _src_1_248 && _old_264 != _keep_0_0_252 && _old_264 != _keep_0_1_253 && _old_264 != _keep_0_2_254 && _old_264 != _keep_1_0_255 && _old_264 != _keep_1_1_256 && _old_264 != _keep_1_2_257 && _old_264 != _keep_2_0_258 && _old_264 != _keep_2_1_259 && _old_264 != _keep_2_2_260) {
+                            LIR_unload_subject(_old_264);
                         }
                     }
-                    lir_subject_t* _old_193 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    if (_old_193 != _src_2_175) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_2_175;
+                    lir_subject_t* _old_265 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = LIR_SUBJ_CONST(1);
+                    optimized = 1;
+                    if (_old_265 && _old_265 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_265 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_265 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_265 != _src_2_247 && _old_265 != _src_1_248 && _old_265 != _keep_0_0_252 && _old_265 != _keep_0_1_253 && _old_265 != _keep_0_2_254 && _old_265 != _keep_1_0_255 && _old_265 != _keep_1_1_256 && _old_265 != _keep_1_2_257 && _old_265 != _keep_2_0_258 && _old_265 != _keep_2_1_259 && _old_265 != _keep_2_2_260) {
+                        LIR_unload_subject(_old_265);
+                    }
+                    lir_subject_t* _old_266 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_266 != _src_1_248) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_1_248;
                         optimized = 1;
-                        if (_old_193 && _old_193 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_193 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_193 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_193 != _src_2_175 && _old_193 != _src_1_176 && _old_193 != _keep_0_0_180 && _old_193 != _keep_0_1_181 && _old_193 != _keep_0_2_182 && _old_193 != _keep_1_0_183 && _old_193 != _keep_1_1_184 && _old_193 != _keep_1_2_185 && _old_193 != _keep_2_0_186 && _old_193 != _keep_2_1_187 && _old_193 != _keep_2_2_188) {
-                            LIR_unload_subject(_old_193);
+                        if (_old_266 && _old_266 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_266 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_266 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_266 != _src_2_247 && _old_266 != _src_1_248 && _old_266 != _keep_0_0_252 && _old_266 != _keep_0_1_253 && _old_266 != _keep_0_2_254 && _old_266 != _keep_1_0_255 && _old_266 != _keep_1_1_256 && _old_266 != _keep_1_2_257 && _old_266 != _keep_2_0_258 && _old_266 != _keep_2_1_259 && _old_266 != _keep_2_2_260) {
+                            LIR_unload_subject(_old_266);
                         }
                     }
-                    lir_subject_t* _old_194 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    if (_old_194) {
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                (lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                lh->sarg &&
+                lh->sarg->t == LIR_REGISTER) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iCMP || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_CMP) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_LABEL)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_JE || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_JNE) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_281 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_282 = lh->sarg;
+                    lir_subject_t* _src_3_283 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _src_4_284 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_285 = lh->op;
+                    lir_operation_t _match_op_1_286 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_287 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_288 = lh->farg;
+                    lir_subject_t* _keep_0_1_289 = lh->sarg;
+                    lir_subject_t* _keep_0_2_290 = lh->targ;
+                    lir_subject_t* _keep_1_0_291 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_292 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_293 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_294 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_295 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_296 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != _match_op_1_286) {
+                        lh->op = _match_op_1_286;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_297 = lh->farg;
+                    if (_old_297 != _src_2_282) {
+                        lh->farg = _src_2_282;
+                        optimized = 1;
+                        if (_old_297 && _old_297 != lh->farg && _old_297 != lh->sarg && _old_297 != lh->targ && _old_297 != _src_1_281 && _old_297 != _src_2_282 && _old_297 != _src_3_283 && _old_297 != _src_4_284 && _old_297 != _keep_0_0_288 && _old_297 != _keep_0_1_289 && _old_297 != _keep_0_2_290 && _old_297 != _keep_1_0_291 && _old_297 != _keep_1_1_292 && _old_297 != _keep_1_2_293 && _old_297 != _keep_2_0_294 && _old_297 != _keep_2_1_295 && _old_297 != _keep_2_2_296) {
+                            LIR_unload_subject(_old_297);
+                        }
+                    }
+                    lir_subject_t* _old_298 = lh->sarg;
+                    if (_old_298 != _src_3_283) {
+                        lh->sarg = _src_3_283;
+                        optimized = 1;
+                        if (_old_298 && _old_298 != lh->farg && _old_298 != lh->sarg && _old_298 != lh->targ && _old_298 != _src_1_281 && _old_298 != _src_2_282 && _old_298 != _src_3_283 && _old_298 != _src_4_284 && _old_298 != _keep_0_0_288 && _old_298 != _keep_0_1_289 && _old_298 != _keep_0_2_290 && _old_298 != _keep_1_0_291 && _old_298 != _keep_1_1_292 && _old_298 != _keep_1_2_293 && _old_298 != _keep_2_0_294 && _old_298 != _keep_2_1_295 && _old_298 != _keep_2_2_296) {
+                            LIR_unload_subject(_old_298);
+                        }
+                    }
+                    lir_subject_t* _old_299 = lh->targ;
+                    if (_old_299) {
+                        lh->targ = NULL;
+                        optimized = 1;
+                        if (_old_299 && _old_299 != lh->farg && _old_299 != lh->sarg && _old_299 != lh->targ && _old_299 != _src_1_281 && _old_299 != _src_2_282 && _old_299 != _src_3_283 && _old_299 != _src_4_284 && _old_299 != _keep_0_0_288 && _old_299 != _keep_0_1_289 && _old_299 != _keep_0_2_290 && _old_299 != _keep_1_0_291 && _old_299 != _keep_1_1_292 && _old_299 != _keep_1_2_293 && _old_299 != _keep_2_0_294 && _old_299 != _keep_2_1_295 && _old_299 != _keep_2_2_296) {
+                            LIR_unload_subject(_old_299);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_2_287) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_2_287;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_300 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_300 != _src_4_284) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_4_284;
+                        optimized = 1;
+                        if (_old_300 && _old_300 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_300 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_300 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_300 != _src_1_281 && _old_300 != _src_2_282 && _old_300 != _src_3_283 && _old_300 != _src_4_284 && _old_300 != _keep_0_0_288 && _old_300 != _keep_0_1_289 && _old_300 != _keep_0_2_290 && _old_300 != _keep_1_0_291 && _old_300 != _keep_1_1_292 && _old_300 != _keep_1_2_293 && _old_300 != _keep_2_0_294 && _old_300 != _keep_2_1_295 && _old_300 != _keep_2_2_296) {
+                            LIR_unload_subject(_old_300);
+                        }
+                    }
+                    lir_subject_t* _old_301 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_301) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_301 && _old_301 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_301 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_301 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_301 != _src_1_281 && _old_301 != _src_2_282 && _old_301 != _src_3_283 && _old_301 != _src_4_284 && _old_301 != _keep_0_0_288 && _old_301 != _keep_0_1_289 && _old_301 != _keep_0_2_290 && _old_301 != _keep_1_0_291 && _old_301 != _keep_1_1_292 && _old_301 != _keep_1_2_293 && _old_301 != _keep_2_0_294 && _old_301 != _keep_2_1_295 && _old_301 != _keep_2_2_296) {
+                            LIR_unload_subject(_old_301);
+                        }
+                    }
+                    lir_subject_t* _old_302 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_302) {
                         LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
                         optimized = 1;
-                        if (_old_194 && _old_194 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_194 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_194 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_194 != _src_2_175 && _old_194 != _src_1_176 && _old_194 != _keep_0_0_180 && _old_194 != _keep_0_1_181 && _old_194 != _keep_0_2_182 && _old_194 != _keep_1_0_183 && _old_194 != _keep_1_1_184 && _old_194 != _keep_1_2_185 && _old_194 != _keep_2_0_186 && _old_194 != _keep_2_1_187 && _old_194 != _keep_2_2_188) {
-                            LIR_unload_subject(_old_194);
+                        if (_old_302 && _old_302 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_302 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_302 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_302 != _src_1_281 && _old_302 != _src_2_282 && _old_302 != _src_3_283 && _old_302 != _src_4_284 && _old_302 != _keep_0_0_288 && _old_302 != _keep_0_1_289 && _old_302 != _keep_0_2_290 && _old_302 != _keep_1_0_291 && _old_302 != _keep_1_1_292 && _old_302 != _keep_1_2_293 && _old_302 != _keep_2_0_294 && _old_302 != _keep_2_1_295 && _old_302 != _keep_2_2_296) {
+                            LIR_unload_subject(_old_302);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                (lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                lh->sarg &&
+                lh->sarg->t == LIR_REGISTER) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_TST &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_JE || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_JNE) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_303 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_304 = lh->sarg;
+                    lir_subject_t* _src_3_305 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_306 = lh->op;
+                    lir_operation_t _match_op_1_307 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_308 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_309 = lh->farg;
+                    lir_subject_t* _keep_0_1_310 = lh->sarg;
+                    lir_subject_t* _keep_0_2_311 = lh->targ;
+                    lir_subject_t* _keep_1_0_312 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_313 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_314 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_315 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_316 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_317 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != LIR_TST) {
+                        lh->op = LIR_TST;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_318 = lh->farg;
+                    if (_old_318 != _src_2_304) {
+                        lh->farg = _src_2_304;
+                        optimized = 1;
+                        if (_old_318 && _old_318 != lh->farg && _old_318 != lh->sarg && _old_318 != lh->targ && _old_318 != _src_1_303 && _old_318 != _src_2_304 && _old_318 != _src_3_305 && _old_318 != _keep_0_0_309 && _old_318 != _keep_0_1_310 && _old_318 != _keep_0_2_311 && _old_318 != _keep_1_0_312 && _old_318 != _keep_1_1_313 && _old_318 != _keep_1_2_314 && _old_318 != _keep_2_0_315 && _old_318 != _keep_2_1_316 && _old_318 != _keep_2_2_317) {
+                            LIR_unload_subject(_old_318);
+                        }
+                    }
+                    lir_subject_t* _old_319 = lh->sarg;
+                    if (_old_319 != _src_2_304) {
+                        lh->sarg = _src_2_304;
+                        optimized = 1;
+                        if (_old_319 && _old_319 != lh->farg && _old_319 != lh->sarg && _old_319 != lh->targ && _old_319 != _src_1_303 && _old_319 != _src_2_304 && _old_319 != _src_3_305 && _old_319 != _keep_0_0_309 && _old_319 != _keep_0_1_310 && _old_319 != _keep_0_2_311 && _old_319 != _keep_1_0_312 && _old_319 != _keep_1_1_313 && _old_319 != _keep_1_2_314 && _old_319 != _keep_2_0_315 && _old_319 != _keep_2_1_316 && _old_319 != _keep_2_2_317) {
+                            LIR_unload_subject(_old_319);
+                        }
+                    }
+                    lir_subject_t* _old_320 = lh->targ;
+                    if (_old_320) {
+                        lh->targ = NULL;
+                        optimized = 1;
+                        if (_old_320 && _old_320 != lh->farg && _old_320 != lh->sarg && _old_320 != lh->targ && _old_320 != _src_1_303 && _old_320 != _src_2_304 && _old_320 != _src_3_305 && _old_320 != _keep_0_0_309 && _old_320 != _keep_0_1_310 && _old_320 != _keep_0_2_311 && _old_320 != _keep_1_0_312 && _old_320 != _keep_1_1_313 && _old_320 != _keep_1_2_314 && _old_320 != _keep_2_0_315 && _old_320 != _keep_2_1_316 && _old_320 != _keep_2_2_317) {
+                            LIR_unload_subject(_old_320);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_2_308) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_2_308;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_321 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_321 != _src_3_305) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_3_305;
+                        optimized = 1;
+                        if (_old_321 && _old_321 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_321 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_321 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_321 != _src_1_303 && _old_321 != _src_2_304 && _old_321 != _src_3_305 && _old_321 != _keep_0_0_309 && _old_321 != _keep_0_1_310 && _old_321 != _keep_0_2_311 && _old_321 != _keep_1_0_312 && _old_321 != _keep_1_1_313 && _old_321 != _keep_1_2_314 && _old_321 != _keep_2_0_315 && _old_321 != _keep_2_1_316 && _old_321 != _keep_2_2_317) {
+                            LIR_unload_subject(_old_321);
+                        }
+                    }
+                    lir_subject_t* _old_322 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_322) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_322 && _old_322 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_322 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_322 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_322 != _src_1_303 && _old_322 != _src_2_304 && _old_322 != _src_3_305 && _old_322 != _keep_0_0_309 && _old_322 != _keep_0_1_310 && _old_322 != _keep_0_2_311 && _old_322 != _keep_1_0_312 && _old_322 != _keep_1_1_313 && _old_322 != _keep_1_2_314 && _old_322 != _keep_2_0_315 && _old_322 != _keep_2_1_316 && _old_322 != _keep_2_2_317) {
+                            LIR_unload_subject(_old_322);
+                        }
+                    }
+                    lir_subject_t* _old_323 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_323) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_323 && _old_323 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_323 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_323 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_323 != _src_1_303 && _old_323 != _src_2_304 && _old_323 != _src_3_305 && _old_323 != _keep_0_0_309 && _old_323 != _keep_0_1_310 && _old_323 != _keep_0_2_311 && _old_323 != _keep_1_0_312 && _old_323 != _keep_1_1_313 && _old_323 != _keep_1_2_314 && _old_323 != _keep_2_0_315 && _old_323 != _keep_2_1_316 && _old_323 != _keep_2_2_317) {
+                            LIR_unload_subject(_old_323);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
@@ -871,38 +1514,118 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg) &&
-                LIR_subj_equals(lh->sarg, lh->targ))) {
-                    lir_subject_t* _src_1_225 = lh->farg;
-                    lir_operation_t _match_op_0_226 = lh->op;
-                    lir_subject_t* _keep_0_0_227 = lh->farg;
-                    lir_subject_t* _keep_0_1_228 = lh->sarg;
-                    lir_subject_t* _keep_0_2_229 = lh->targ;
+                LIR_subj_equals(lh->sarg, lh->targ)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_JE || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_JNE) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL))) {
+                    lir_subject_t* _src_1_356 = lh->farg;
+                    lir_subject_t* _src_2_357 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_358 = lh->op;
+                    lir_operation_t _match_op_1_359 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_360 = lh->farg;
+                    lir_subject_t* _keep_0_1_361 = lh->sarg;
+                    lir_subject_t* _keep_0_2_362 = lh->targ;
+                    lir_subject_t* _keep_1_0_363 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_364 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_365 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_TST) {
                         lh->op = LIR_TST;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_230 = lh->farg;
-                    if (_old_230 != _src_1_225) {
-                        lh->farg = _src_1_225;
+                    lir_subject_t* _old_366 = lh->farg;
+                    if (_old_366 != _src_1_356) {
+                        lh->farg = _src_1_356;
                         optimized = 1;
-                        if (_old_230 && _old_230 != lh->farg && _old_230 != lh->sarg && _old_230 != lh->targ && _old_230 != _src_1_225 && _old_230 != _keep_0_0_227 && _old_230 != _keep_0_1_228 && _old_230 != _keep_0_2_229) {
-                            LIR_unload_subject(_old_230);
+                        if (_old_366 && _old_366 != lh->farg && _old_366 != lh->sarg && _old_366 != lh->targ && _old_366 != _src_1_356 && _old_366 != _src_2_357 && _old_366 != _keep_0_0_360 && _old_366 != _keep_0_1_361 && _old_366 != _keep_0_2_362 && _old_366 != _keep_1_0_363 && _old_366 != _keep_1_1_364 && _old_366 != _keep_1_2_365) {
+                            LIR_unload_subject(_old_366);
                         }
                     }
-                    lir_subject_t* _old_231 = lh->sarg;
-                    if (_old_231 != _src_1_225) {
-                        lh->sarg = _src_1_225;
+                    lir_subject_t* _old_367 = lh->sarg;
+                    if (_old_367 != _src_1_356) {
+                        lh->sarg = _src_1_356;
                         optimized = 1;
-                        if (_old_231 && _old_231 != lh->farg && _old_231 != lh->sarg && _old_231 != lh->targ && _old_231 != _src_1_225 && _old_231 != _keep_0_0_227 && _old_231 != _keep_0_1_228 && _old_231 != _keep_0_2_229) {
-                            LIR_unload_subject(_old_231);
+                        if (_old_367 && _old_367 != lh->farg && _old_367 != lh->sarg && _old_367 != lh->targ && _old_367 != _src_1_356 && _old_367 != _src_2_357 && _old_367 != _keep_0_0_360 && _old_367 != _keep_0_1_361 && _old_367 != _keep_0_2_362 && _old_367 != _keep_1_0_363 && _old_367 != _keep_1_1_364 && _old_367 != _keep_1_2_365) {
+                            LIR_unload_subject(_old_367);
                         }
                     }
-                    lir_subject_t* _old_232 = lh->targ;
-                    if (_old_232) {
+                    lir_subject_t* _old_368 = lh->targ;
+                    if (_old_368) {
                         lh->targ = NULL;
                         optimized = 1;
-                        if (_old_232 && _old_232 != lh->farg && _old_232 != lh->sarg && _old_232 != lh->targ && _old_232 != _src_1_225 && _old_232 != _keep_0_0_227 && _old_232 != _keep_0_1_228 && _old_232 != _keep_0_2_229) {
-                            LIR_unload_subject(_old_232);
+                        if (_old_368 && _old_368 != lh->farg && _old_368 != lh->sarg && _old_368 != lh->targ && _old_368 != _src_1_356 && _old_368 != _src_2_357 && _old_368 != _keep_0_0_360 && _old_368 != _keep_0_1_361 && _old_368 != _keep_0_2_362 && _old_368 != _keep_1_0_363 && _old_368 != _keep_1_1_364 && _old_368 != _keep_1_2_365) {
+                            LIR_unload_subject(_old_368);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_1_359) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_1_359;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_369 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_369 != _src_2_357) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_357;
+                        optimized = 1;
+                        if (_old_369 && _old_369 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_369 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_369 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_369 != _src_1_356 && _old_369 != _src_2_357 && _old_369 != _keep_0_0_360 && _old_369 != _keep_0_1_361 && _old_369 != _keep_0_2_362 && _old_369 != _keep_1_0_363 && _old_369 != _keep_1_1_364 && _old_369 != _keep_1_2_365) {
+                            LIR_unload_subject(_old_369);
+                        }
+                    }
+                    lir_subject_t* _old_370 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_370) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_370 && _old_370 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_370 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_370 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_370 != _src_1_356 && _old_370 != _src_2_357 && _old_370 != _keep_0_0_360 && _old_370 != _keep_0_1_361 && _old_370 != _keep_0_2_362 && _old_370 != _keep_1_0_363 && _old_370 != _keep_1_1_364 && _old_370 != _keep_1_2_365) {
+                            LIR_unload_subject(_old_370);
+                        }
+                    }
+                    lir_subject_t* _old_371 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_371) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_371 && _old_371 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_371 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_371 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_371 != _src_1_356 && _old_371 != _src_2_357 && _old_371 != _keep_0_0_360 && _old_371 != _keep_0_1_361 && _old_371 != _keep_0_2_362 && _old_371 != _keep_1_0_363 && _old_371 != _keep_1_1_364 && _old_371 != _keep_1_2_365) {
+                            LIR_unload_subject(_old_371);
+                        }
+                    }
+                }
+                else if (lh->op == LIR_bAND &&
+                (lh->sarg &&
+                lh->sarg->t == LIR_REGISTER &&
+                lh->targ &&
+                lh->targ->t == LIR_REGISTER &&
+                lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(lh->farg, lh->sarg) &&
+                LIR_subj_equals(lh->sarg, lh->targ))) {
+                    lir_subject_t* _src_1_508 = lh->farg;
+                    lir_operation_t _match_op_0_509 = lh->op;
+                    lir_subject_t* _keep_0_0_510 = lh->farg;
+                    lir_subject_t* _keep_0_1_511 = lh->sarg;
+                    lir_subject_t* _keep_0_2_512 = lh->targ;
+                    if (lh->op != LIR_TST) {
+                        lh->op = LIR_TST;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_513 = lh->farg;
+                    if (_old_513 != _src_1_508) {
+                        lh->farg = _src_1_508;
+                        optimized = 1;
+                        if (_old_513 && _old_513 != lh->farg && _old_513 != lh->sarg && _old_513 != lh->targ && _old_513 != _src_1_508 && _old_513 != _keep_0_0_510 && _old_513 != _keep_0_1_511 && _old_513 != _keep_0_2_512) {
+                            LIR_unload_subject(_old_513);
+                        }
+                    }
+                    lir_subject_t* _old_514 = lh->sarg;
+                    if (_old_514 != _src_1_508) {
+                        lh->sarg = _src_1_508;
+                        optimized = 1;
+                        if (_old_514 && _old_514 != lh->farg && _old_514 != lh->sarg && _old_514 != lh->targ && _old_514 != _src_1_508 && _old_514 != _keep_0_0_510 && _old_514 != _keep_0_1_511 && _old_514 != _keep_0_2_512) {
+                            LIR_unload_subject(_old_514);
+                        }
+                    }
+                    lir_subject_t* _old_515 = lh->targ;
+                    if (_old_515) {
+                        lh->targ = NULL;
+                        optimized = 1;
+                        if (_old_515 && _old_515 != lh->farg && _old_515 != lh->sarg && _old_515 != lh->targ && _old_515 != _src_1_508 && _old_515 != _keep_0_0_510 && _old_515 != _keep_0_1_511 && _old_515 != _keep_0_2_512) {
+                            LIR_unload_subject(_old_515);
                         }
                     }
                 }
@@ -914,37 +1637,37 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
-                    lir_subject_t* _src_1_257 = lh->farg;
-                    lir_operation_t _match_op_0_258 = lh->op;
-                    lir_subject_t* _keep_0_0_259 = lh->farg;
-                    lir_subject_t* _keep_0_1_260 = lh->sarg;
-                    lir_subject_t* _keep_0_2_261 = lh->targ;
+                    lir_subject_t* _src_1_540 = lh->farg;
+                    lir_operation_t _match_op_0_541 = lh->op;
+                    lir_subject_t* _keep_0_0_542 = lh->farg;
+                    lir_subject_t* _keep_0_1_543 = lh->sarg;
+                    lir_subject_t* _keep_0_2_544 = lh->targ;
                     if (lh->op != LIR_bXOR) {
                         lh->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_262 = lh->sarg;
-                    if (_old_262 != _src_1_257) {
-                        lh->sarg = _src_1_257;
+                    lir_subject_t* _old_545 = lh->sarg;
+                    if (_old_545 != _src_1_540) {
+                        lh->sarg = _src_1_540;
                         optimized = 1;
-                        if (_old_262 && _old_262 != lh->farg && _old_262 != lh->sarg && _old_262 != lh->targ && _old_262 != _src_1_257 && _old_262 != _keep_0_0_259 && _old_262 != _keep_0_1_260 && _old_262 != _keep_0_2_261) {
-                            LIR_unload_subject(_old_262);
+                        if (_old_545 && _old_545 != lh->farg && _old_545 != lh->sarg && _old_545 != lh->targ && _old_545 != _src_1_540 && _old_545 != _keep_0_0_542 && _old_545 != _keep_0_1_543 && _old_545 != _keep_0_2_544) {
+                            LIR_unload_subject(_old_545);
                         }
                     }
-                    lir_subject_t* _old_263 = lh->targ;
-                    if (_old_263 != _src_1_257) {
-                        lh->targ = _src_1_257;
+                    lir_subject_t* _old_546 = lh->targ;
+                    if (_old_546 != _src_1_540) {
+                        lh->targ = _src_1_540;
                         optimized = 1;
-                        if (_old_263 && _old_263 != lh->farg && _old_263 != lh->sarg && _old_263 != lh->targ && _old_263 != _src_1_257 && _old_263 != _keep_0_0_259 && _old_263 != _keep_0_1_260 && _old_263 != _keep_0_2_261) {
-                            LIR_unload_subject(_old_263);
+                        if (_old_546 && _old_546 != lh->farg && _old_546 != lh->sarg && _old_546 != lh->targ && _old_546 != _src_1_540 && _old_546 != _keep_0_0_542 && _old_546 != _keep_0_1_543 && _old_546 != _keep_0_2_544) {
+                            LIR_unload_subject(_old_546);
                         }
                     }
-                    lir_subject_t* _old_264 = lh->farg;
-                    if (_old_264 != _src_1_257) {
-                        lh->farg = _src_1_257;
+                    lir_subject_t* _old_547 = lh->farg;
+                    if (_old_547 != _src_1_540) {
+                        lh->farg = _src_1_540;
                         optimized = 1;
-                        if (_old_264 && _old_264 != lh->farg && _old_264 != lh->sarg && _old_264 != lh->targ && _old_264 != _src_1_257 && _old_264 != _keep_0_0_259 && _old_264 != _keep_0_1_260 && _old_264 != _keep_0_2_261) {
-                            LIR_unload_subject(_old_264);
+                        if (_old_547 && _old_547 != lh->farg && _old_547 != lh->sarg && _old_547 != lh->targ && _old_547 != _src_1_540 && _old_547 != _keep_0_0_542 && _old_547 != _keep_0_1_543 && _old_547 != _keep_0_2_544) {
+                            LIR_unload_subject(_old_547);
                         }
                     }
                 }
@@ -961,38 +1684,118 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg) &&
-                LIR_subj_equals(lh->sarg, lh->targ))) {
-                    lir_subject_t* _src_1_217 = lh->farg;
-                    lir_operation_t _match_op_0_218 = lh->op;
-                    lir_subject_t* _keep_0_0_219 = lh->farg;
-                    lir_subject_t* _keep_0_1_220 = lh->sarg;
-                    lir_subject_t* _keep_0_2_221 = lh->targ;
+                LIR_subj_equals(lh->sarg, lh->targ)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_JE || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_JNE) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL))) {
+                    lir_subject_t* _src_1_340 = lh->farg;
+                    lir_subject_t* _src_2_341 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_342 = lh->op;
+                    lir_operation_t _match_op_1_343 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_344 = lh->farg;
+                    lir_subject_t* _keep_0_1_345 = lh->sarg;
+                    lir_subject_t* _keep_0_2_346 = lh->targ;
+                    lir_subject_t* _keep_1_0_347 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_348 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_349 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_TST) {
                         lh->op = LIR_TST;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_222 = lh->farg;
-                    if (_old_222 != _src_1_217) {
-                        lh->farg = _src_1_217;
+                    lir_subject_t* _old_350 = lh->farg;
+                    if (_old_350 != _src_1_340) {
+                        lh->farg = _src_1_340;
                         optimized = 1;
-                        if (_old_222 && _old_222 != lh->farg && _old_222 != lh->sarg && _old_222 != lh->targ && _old_222 != _src_1_217 && _old_222 != _keep_0_0_219 && _old_222 != _keep_0_1_220 && _old_222 != _keep_0_2_221) {
-                            LIR_unload_subject(_old_222);
+                        if (_old_350 && _old_350 != lh->farg && _old_350 != lh->sarg && _old_350 != lh->targ && _old_350 != _src_1_340 && _old_350 != _src_2_341 && _old_350 != _keep_0_0_344 && _old_350 != _keep_0_1_345 && _old_350 != _keep_0_2_346 && _old_350 != _keep_1_0_347 && _old_350 != _keep_1_1_348 && _old_350 != _keep_1_2_349) {
+                            LIR_unload_subject(_old_350);
                         }
                     }
-                    lir_subject_t* _old_223 = lh->sarg;
-                    if (_old_223 != _src_1_217) {
-                        lh->sarg = _src_1_217;
+                    lir_subject_t* _old_351 = lh->sarg;
+                    if (_old_351 != _src_1_340) {
+                        lh->sarg = _src_1_340;
                         optimized = 1;
-                        if (_old_223 && _old_223 != lh->farg && _old_223 != lh->sarg && _old_223 != lh->targ && _old_223 != _src_1_217 && _old_223 != _keep_0_0_219 && _old_223 != _keep_0_1_220 && _old_223 != _keep_0_2_221) {
-                            LIR_unload_subject(_old_223);
+                        if (_old_351 && _old_351 != lh->farg && _old_351 != lh->sarg && _old_351 != lh->targ && _old_351 != _src_1_340 && _old_351 != _src_2_341 && _old_351 != _keep_0_0_344 && _old_351 != _keep_0_1_345 && _old_351 != _keep_0_2_346 && _old_351 != _keep_1_0_347 && _old_351 != _keep_1_1_348 && _old_351 != _keep_1_2_349) {
+                            LIR_unload_subject(_old_351);
                         }
                     }
-                    lir_subject_t* _old_224 = lh->targ;
-                    if (_old_224) {
+                    lir_subject_t* _old_352 = lh->targ;
+                    if (_old_352) {
                         lh->targ = NULL;
                         optimized = 1;
-                        if (_old_224 && _old_224 != lh->farg && _old_224 != lh->sarg && _old_224 != lh->targ && _old_224 != _src_1_217 && _old_224 != _keep_0_0_219 && _old_224 != _keep_0_1_220 && _old_224 != _keep_0_2_221) {
-                            LIR_unload_subject(_old_224);
+                        if (_old_352 && _old_352 != lh->farg && _old_352 != lh->sarg && _old_352 != lh->targ && _old_352 != _src_1_340 && _old_352 != _src_2_341 && _old_352 != _keep_0_0_344 && _old_352 != _keep_0_1_345 && _old_352 != _keep_0_2_346 && _old_352 != _keep_1_0_347 && _old_352 != _keep_1_1_348 && _old_352 != _keep_1_2_349) {
+                            LIR_unload_subject(_old_352);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != _match_op_1_343) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = _match_op_1_343;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_353 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_353 != _src_2_341) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_341;
+                        optimized = 1;
+                        if (_old_353 && _old_353 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_353 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_353 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_353 != _src_1_340 && _old_353 != _src_2_341 && _old_353 != _keep_0_0_344 && _old_353 != _keep_0_1_345 && _old_353 != _keep_0_2_346 && _old_353 != _keep_1_0_347 && _old_353 != _keep_1_1_348 && _old_353 != _keep_1_2_349) {
+                            LIR_unload_subject(_old_353);
+                        }
+                    }
+                    lir_subject_t* _old_354 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_354) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_354 && _old_354 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_354 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_354 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_354 != _src_1_340 && _old_354 != _src_2_341 && _old_354 != _keep_0_0_344 && _old_354 != _keep_0_1_345 && _old_354 != _keep_0_2_346 && _old_354 != _keep_1_0_347 && _old_354 != _keep_1_1_348 && _old_354 != _keep_1_2_349) {
+                            LIR_unload_subject(_old_354);
+                        }
+                    }
+                    lir_subject_t* _old_355 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_355) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_355 && _old_355 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_355 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_355 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_355 != _src_1_340 && _old_355 != _src_2_341 && _old_355 != _keep_0_0_344 && _old_355 != _keep_0_1_345 && _old_355 != _keep_0_2_346 && _old_355 != _keep_1_0_347 && _old_355 != _keep_1_1_348 && _old_355 != _keep_1_2_349) {
+                            LIR_unload_subject(_old_355);
+                        }
+                    }
+                }
+                else if (lh->op == LIR_bOR &&
+                (lh->sarg &&
+                lh->sarg->t == LIR_REGISTER &&
+                lh->targ &&
+                lh->targ->t == LIR_REGISTER &&
+                lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(lh->farg, lh->sarg) &&
+                LIR_subj_equals(lh->sarg, lh->targ))) {
+                    lir_subject_t* _src_1_500 = lh->farg;
+                    lir_operation_t _match_op_0_501 = lh->op;
+                    lir_subject_t* _keep_0_0_502 = lh->farg;
+                    lir_subject_t* _keep_0_1_503 = lh->sarg;
+                    lir_subject_t* _keep_0_2_504 = lh->targ;
+                    if (lh->op != LIR_TST) {
+                        lh->op = LIR_TST;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_505 = lh->farg;
+                    if (_old_505 != _src_1_500) {
+                        lh->farg = _src_1_500;
+                        optimized = 1;
+                        if (_old_505 && _old_505 != lh->farg && _old_505 != lh->sarg && _old_505 != lh->targ && _old_505 != _src_1_500 && _old_505 != _keep_0_0_502 && _old_505 != _keep_0_1_503 && _old_505 != _keep_0_2_504) {
+                            LIR_unload_subject(_old_505);
+                        }
+                    }
+                    lir_subject_t* _old_506 = lh->sarg;
+                    if (_old_506 != _src_1_500) {
+                        lh->sarg = _src_1_500;
+                        optimized = 1;
+                        if (_old_506 && _old_506 != lh->farg && _old_506 != lh->sarg && _old_506 != lh->targ && _old_506 != _src_1_500 && _old_506 != _keep_0_0_502 && _old_506 != _keep_0_1_503 && _old_506 != _keep_0_2_504) {
+                            LIR_unload_subject(_old_506);
+                        }
+                    }
+                    lir_subject_t* _old_507 = lh->targ;
+                    if (_old_507) {
+                        lh->targ = NULL;
+                        optimized = 1;
+                        if (_old_507 && _old_507 != lh->farg && _old_507 != lh->sarg && _old_507 != lh->targ && _old_507 != _src_1_500 && _old_507 != _keep_0_0_502 && _old_507 != _keep_0_1_503 && _old_507 != _keep_0_2_504) {
+                            LIR_unload_subject(_old_507);
                         }
                     }
                 }
@@ -1003,11 +1806,11 @@ int peephole_first_pass(cfg_block_t* bb) {
              {
                 if (lh->op == LIR_bSHL &&
                 (lh->sarg &&
-                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY) &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL) &&
                 lh->targ &&
                 ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 0) &&
                 lh->farg &&
-                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY) &&
+                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
                     if (!lh->unused) {
                         lh->unused = 1;
@@ -1021,11 +1824,11 @@ int peephole_first_pass(cfg_block_t* bb) {
              {
                 if (lh->op == LIR_bSHR &&
                 (lh->sarg &&
-                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY) &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL) &&
                 lh->targ &&
                 ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 0) &&
                 lh->farg &&
-                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY) &&
+                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
                     if (!lh->unused) {
                         lh->unused = 1;
@@ -1053,70 +1856,70 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg, lh->farg)) {
-                    lir_subject_t* _src_1_85 = lh->farg;
-                    lir_subject_t* _src_2_86 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_87 = lh->op;
-                    lir_operation_t _match_op_1_88 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_subject_t* _keep_0_0_89 = lh->farg;
-                    lir_subject_t* _keep_0_1_90 = lh->sarg;
-                    lir_subject_t* _keep_0_2_91 = lh->targ;
-                    lir_subject_t* _keep_1_0_92 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_93 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_94 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _src_1_127 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _src_2_128 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_129 = lh->op;
+                    lir_operation_t _match_op_1_130 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_131 = lh->farg;
+                    lir_subject_t* _keep_0_1_132 = lh->sarg;
+                    lir_subject_t* _keep_0_2_133 = lh->targ;
+                    lir_subject_t* _keep_1_0_134 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_135 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_136 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_bXOR) {
                         lh->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_95 = lh->sarg;
-                    if (_old_95 != _src_1_85) {
-                        lh->sarg = _src_1_85;
+                    lir_subject_t* _old_137 = lh->sarg;
+                    if (_old_137 != _src_1_127) {
+                        lh->sarg = _src_1_127;
                         optimized = 1;
-                        if (_old_95 && _old_95 != lh->farg && _old_95 != lh->sarg && _old_95 != lh->targ && _old_95 != _src_1_85 && _old_95 != _src_2_86 && _old_95 != _keep_0_0_89 && _old_95 != _keep_0_1_90 && _old_95 != _keep_0_2_91 && _old_95 != _keep_1_0_92 && _old_95 != _keep_1_1_93 && _old_95 != _keep_1_2_94) {
-                            LIR_unload_subject(_old_95);
+                        if (_old_137 && _old_137 != lh->farg && _old_137 != lh->sarg && _old_137 != lh->targ && _old_137 != _src_1_127 && _old_137 != _src_2_128 && _old_137 != _keep_0_0_131 && _old_137 != _keep_0_1_132 && _old_137 != _keep_0_2_133 && _old_137 != _keep_1_0_134 && _old_137 != _keep_1_1_135 && _old_137 != _keep_1_2_136) {
+                            LIR_unload_subject(_old_137);
                         }
                     }
-                    lir_subject_t* _old_96 = lh->targ;
-                    if (_old_96 != _src_1_85) {
-                        lh->targ = _src_1_85;
+                    lir_subject_t* _old_138 = lh->targ;
+                    if (_old_138 != _src_1_127) {
+                        lh->targ = _src_1_127;
                         optimized = 1;
-                        if (_old_96 && _old_96 != lh->farg && _old_96 != lh->sarg && _old_96 != lh->targ && _old_96 != _src_1_85 && _old_96 != _src_2_86 && _old_96 != _keep_0_0_89 && _old_96 != _keep_0_1_90 && _old_96 != _keep_0_2_91 && _old_96 != _keep_1_0_92 && _old_96 != _keep_1_1_93 && _old_96 != _keep_1_2_94) {
-                            LIR_unload_subject(_old_96);
+                        if (_old_138 && _old_138 != lh->farg && _old_138 != lh->sarg && _old_138 != lh->targ && _old_138 != _src_1_127 && _old_138 != _src_2_128 && _old_138 != _keep_0_0_131 && _old_138 != _keep_0_1_132 && _old_138 != _keep_0_2_133 && _old_138 != _keep_1_0_134 && _old_138 != _keep_1_1_135 && _old_138 != _keep_1_2_136) {
+                            LIR_unload_subject(_old_138);
                         }
                     }
-                    lir_subject_t* _old_97 = lh->farg;
-                    if (_old_97 != _src_1_85) {
-                        lh->farg = _src_1_85;
+                    lir_subject_t* _old_139 = lh->farg;
+                    if (_old_139 != _src_1_127) {
+                        lh->farg = _src_1_127;
                         optimized = 1;
-                        if (_old_97 && _old_97 != lh->farg && _old_97 != lh->sarg && _old_97 != lh->targ && _old_97 != _src_1_85 && _old_97 != _src_2_86 && _old_97 != _keep_0_0_89 && _old_97 != _keep_0_1_90 && _old_97 != _keep_0_2_91 && _old_97 != _keep_1_0_92 && _old_97 != _keep_1_1_93 && _old_97 != _keep_1_2_94) {
-                            LIR_unload_subject(_old_97);
+                        if (_old_139 && _old_139 != lh->farg && _old_139 != lh->sarg && _old_139 != lh->targ && _old_139 != _src_1_127 && _old_139 != _src_2_128 && _old_139 != _keep_0_0_131 && _old_139 != _keep_0_1_132 && _old_139 != _keep_0_2_133 && _old_139 != _keep_1_0_134 && _old_139 != _keep_1_1_135 && _old_139 != _keep_1_2_136) {
+                            LIR_unload_subject(_old_139);
                         }
                     }
                     if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_bXOR) {
                         LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_98 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    if (_old_98 != _src_2_86) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_2_86;
+                    lir_subject_t* _old_140 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_140 != _src_2_128) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = _src_2_128;
                         optimized = 1;
-                        if (_old_98 && _old_98 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_98 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_98 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_98 != _src_1_85 && _old_98 != _src_2_86 && _old_98 != _keep_0_0_89 && _old_98 != _keep_0_1_90 && _old_98 != _keep_0_2_91 && _old_98 != _keep_1_0_92 && _old_98 != _keep_1_1_93 && _old_98 != _keep_1_2_94) {
-                            LIR_unload_subject(_old_98);
+                        if (_old_140 && _old_140 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_140 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_140 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_140 != _src_1_127 && _old_140 != _src_2_128 && _old_140 != _keep_0_0_131 && _old_140 != _keep_0_1_132 && _old_140 != _keep_0_2_133 && _old_140 != _keep_1_0_134 && _old_140 != _keep_1_1_135 && _old_140 != _keep_1_2_136) {
+                            LIR_unload_subject(_old_140);
                         }
                     }
-                    lir_subject_t* _old_99 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
-                    if (_old_99 != _src_2_86) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = _src_2_86;
+                    lir_subject_t* _old_141 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_141 != _src_2_128) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = _src_2_128;
                         optimized = 1;
-                        if (_old_99 && _old_99 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_99 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_99 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_99 != _src_1_85 && _old_99 != _src_2_86 && _old_99 != _keep_0_0_89 && _old_99 != _keep_0_1_90 && _old_99 != _keep_0_2_91 && _old_99 != _keep_1_0_92 && _old_99 != _keep_1_1_93 && _old_99 != _keep_1_2_94) {
-                            LIR_unload_subject(_old_99);
+                        if (_old_141 && _old_141 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_141 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_141 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_141 != _src_1_127 && _old_141 != _src_2_128 && _old_141 != _keep_0_0_131 && _old_141 != _keep_0_1_132 && _old_141 != _keep_0_2_133 && _old_141 != _keep_1_0_134 && _old_141 != _keep_1_1_135 && _old_141 != _keep_1_2_136) {
+                            LIR_unload_subject(_old_141);
                         }
                     }
-                    lir_subject_t* _old_100 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    if (_old_100 != _src_2_86) {
-                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_86;
+                    lir_subject_t* _old_142 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_142 != _src_2_128) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_128;
                         optimized = 1;
-                        if (_old_100 && _old_100 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_100 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_100 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_100 != _src_1_85 && _old_100 != _src_2_86 && _old_100 != _keep_0_0_89 && _old_100 != _keep_0_1_90 && _old_100 != _keep_0_2_91 && _old_100 != _keep_1_0_92 && _old_100 != _keep_1_1_93 && _old_100 != _keep_1_2_94) {
-                            LIR_unload_subject(_old_100);
+                        if (_old_142 && _old_142 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_142 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_142 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_142 != _src_1_127 && _old_142 != _src_2_128 && _old_142 != _keep_0_0_131 && _old_142 != _keep_0_1_132 && _old_142 != _keep_0_2_133 && _old_142 != _keep_1_0_134 && _old_142 != _keep_1_1_135 && _old_142 != _keep_1_2_136) {
+                            LIR_unload_subject(_old_142);
                         }
                     }
                 }
@@ -1136,41 +1939,41 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
                 ((LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg) == 0)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
-                    lir_subject_t* _src_1_233 = lh->farg;
-                    lir_operation_t _match_op_0_234 = lh->op;
-                    lir_operation_t _match_op_1_235 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_subject_t* _keep_0_0_236 = lh->farg;
-                    lir_subject_t* _keep_0_1_237 = lh->sarg;
-                    lir_subject_t* _keep_0_2_238 = lh->targ;
-                    lir_subject_t* _keep_1_0_239 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_240 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_241 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _src_1_516 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_517 = lh->op;
+                    lir_operation_t _match_op_1_518 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_519 = lh->farg;
+                    lir_subject_t* _keep_0_1_520 = lh->sarg;
+                    lir_subject_t* _keep_0_2_521 = lh->targ;
+                    lir_subject_t* _keep_1_0_522 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_523 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_524 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_bXOR) {
                         lh->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_242 = lh->sarg;
-                    if (_old_242 != _src_1_233) {
-                        lh->sarg = _src_1_233;
+                    lir_subject_t* _old_525 = lh->sarg;
+                    if (_old_525 != _src_1_516) {
+                        lh->sarg = _src_1_516;
                         optimized = 1;
-                        if (_old_242 && _old_242 != lh->farg && _old_242 != lh->sarg && _old_242 != lh->targ && _old_242 != _src_1_233 && _old_242 != _keep_0_0_236 && _old_242 != _keep_0_1_237 && _old_242 != _keep_0_2_238 && _old_242 != _keep_1_0_239 && _old_242 != _keep_1_1_240 && _old_242 != _keep_1_2_241) {
-                            LIR_unload_subject(_old_242);
+                        if (_old_525 && _old_525 != lh->farg && _old_525 != lh->sarg && _old_525 != lh->targ && _old_525 != _src_1_516 && _old_525 != _keep_0_0_519 && _old_525 != _keep_0_1_520 && _old_525 != _keep_0_2_521 && _old_525 != _keep_1_0_522 && _old_525 != _keep_1_1_523 && _old_525 != _keep_1_2_524) {
+                            LIR_unload_subject(_old_525);
                         }
                     }
-                    lir_subject_t* _old_243 = lh->targ;
-                    if (_old_243 != _src_1_233) {
-                        lh->targ = _src_1_233;
+                    lir_subject_t* _old_526 = lh->targ;
+                    if (_old_526 != _src_1_516) {
+                        lh->targ = _src_1_516;
                         optimized = 1;
-                        if (_old_243 && _old_243 != lh->farg && _old_243 != lh->sarg && _old_243 != lh->targ && _old_243 != _src_1_233 && _old_243 != _keep_0_0_236 && _old_243 != _keep_0_1_237 && _old_243 != _keep_0_2_238 && _old_243 != _keep_1_0_239 && _old_243 != _keep_1_1_240 && _old_243 != _keep_1_2_241) {
-                            LIR_unload_subject(_old_243);
+                        if (_old_526 && _old_526 != lh->farg && _old_526 != lh->sarg && _old_526 != lh->targ && _old_526 != _src_1_516 && _old_526 != _keep_0_0_519 && _old_526 != _keep_0_1_520 && _old_526 != _keep_0_2_521 && _old_526 != _keep_1_0_522 && _old_526 != _keep_1_1_523 && _old_526 != _keep_1_2_524) {
+                            LIR_unload_subject(_old_526);
                         }
                     }
-                    lir_subject_t* _old_244 = lh->farg;
-                    if (_old_244 != _src_1_233) {
-                        lh->farg = _src_1_233;
+                    lir_subject_t* _old_527 = lh->farg;
+                    if (_old_527 != _src_1_516) {
+                        lh->farg = _src_1_516;
                         optimized = 1;
-                        if (_old_244 && _old_244 != lh->farg && _old_244 != lh->sarg && _old_244 != lh->targ && _old_244 != _src_1_233 && _old_244 != _keep_0_0_236 && _old_244 != _keep_0_1_237 && _old_244 != _keep_0_2_238 && _old_244 != _keep_1_0_239 && _old_244 != _keep_1_1_240 && _old_244 != _keep_1_2_241) {
-                            LIR_unload_subject(_old_244);
+                        if (_old_527 && _old_527 != lh->farg && _old_527 != lh->sarg && _old_527 != lh->targ && _old_527 != _src_1_516 && _old_527 != _keep_0_0_519 && _old_527 != _keep_0_1_520 && _old_527 != _keep_0_2_521 && _old_527 != _keep_1_0_522 && _old_527 != _keep_1_1_523 && _old_527 != _keep_1_2_524) {
+                            LIR_unload_subject(_old_527);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused) {
@@ -1195,41 +1998,41 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
-                    lir_subject_t* _src_1_245 = lh->farg;
-                    lir_operation_t _match_op_0_246 = lh->op;
-                    lir_operation_t _match_op_1_247 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_subject_t* _keep_0_0_248 = lh->farg;
-                    lir_subject_t* _keep_0_1_249 = lh->sarg;
-                    lir_subject_t* _keep_0_2_250 = lh->targ;
-                    lir_subject_t* _keep_1_0_251 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_252 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_253 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _src_1_528 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_529 = lh->op;
+                    lir_operation_t _match_op_1_530 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_531 = lh->farg;
+                    lir_subject_t* _keep_0_1_532 = lh->sarg;
+                    lir_subject_t* _keep_0_2_533 = lh->targ;
+                    lir_subject_t* _keep_1_0_534 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_535 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_536 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_bXOR) {
                         lh->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_254 = lh->sarg;
-                    if (_old_254 != _src_1_245) {
-                        lh->sarg = _src_1_245;
+                    lir_subject_t* _old_537 = lh->sarg;
+                    if (_old_537 != _src_1_528) {
+                        lh->sarg = _src_1_528;
                         optimized = 1;
-                        if (_old_254 && _old_254 != lh->farg && _old_254 != lh->sarg && _old_254 != lh->targ && _old_254 != _src_1_245 && _old_254 != _keep_0_0_248 && _old_254 != _keep_0_1_249 && _old_254 != _keep_0_2_250 && _old_254 != _keep_1_0_251 && _old_254 != _keep_1_1_252 && _old_254 != _keep_1_2_253) {
-                            LIR_unload_subject(_old_254);
+                        if (_old_537 && _old_537 != lh->farg && _old_537 != lh->sarg && _old_537 != lh->targ && _old_537 != _src_1_528 && _old_537 != _keep_0_0_531 && _old_537 != _keep_0_1_532 && _old_537 != _keep_0_2_533 && _old_537 != _keep_1_0_534 && _old_537 != _keep_1_1_535 && _old_537 != _keep_1_2_536) {
+                            LIR_unload_subject(_old_537);
                         }
                     }
-                    lir_subject_t* _old_255 = lh->targ;
-                    if (_old_255 != _src_1_245) {
-                        lh->targ = _src_1_245;
+                    lir_subject_t* _old_538 = lh->targ;
+                    if (_old_538 != _src_1_528) {
+                        lh->targ = _src_1_528;
                         optimized = 1;
-                        if (_old_255 && _old_255 != lh->farg && _old_255 != lh->sarg && _old_255 != lh->targ && _old_255 != _src_1_245 && _old_255 != _keep_0_0_248 && _old_255 != _keep_0_1_249 && _old_255 != _keep_0_2_250 && _old_255 != _keep_1_0_251 && _old_255 != _keep_1_1_252 && _old_255 != _keep_1_2_253) {
-                            LIR_unload_subject(_old_255);
+                        if (_old_538 && _old_538 != lh->farg && _old_538 != lh->sarg && _old_538 != lh->targ && _old_538 != _src_1_528 && _old_538 != _keep_0_0_531 && _old_538 != _keep_0_1_532 && _old_538 != _keep_0_2_533 && _old_538 != _keep_1_0_534 && _old_538 != _keep_1_1_535 && _old_538 != _keep_1_2_536) {
+                            LIR_unload_subject(_old_538);
                         }
                     }
-                    lir_subject_t* _old_256 = lh->farg;
-                    if (_old_256 != _src_1_245) {
-                        lh->farg = _src_1_245;
+                    lir_subject_t* _old_539 = lh->farg;
+                    if (_old_539 != _src_1_528) {
+                        lh->farg = _src_1_528;
                         optimized = 1;
-                        if (_old_256 && _old_256 != lh->farg && _old_256 != lh->sarg && _old_256 != lh->targ && _old_256 != _src_1_245 && _old_256 != _keep_0_0_248 && _old_256 != _keep_0_1_249 && _old_256 != _keep_0_2_250 && _old_256 != _keep_1_0_251 && _old_256 != _keep_1_1_252 && _old_256 != _keep_1_2_253) {
-                            LIR_unload_subject(_old_256);
+                        if (_old_539 && _old_539 != lh->farg && _old_539 != lh->sarg && _old_539 != lh->targ && _old_539 != _src_1_528 && _old_539 != _keep_0_0_531 && _old_539 != _keep_0_1_532 && _old_539 != _keep_0_2_533 && _old_539 != _keep_1_0_534 && _old_539 != _keep_1_1_535 && _old_539 != _keep_1_2_536) {
+                            LIR_unload_subject(_old_539);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused) {
@@ -1257,41 +2060,41 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
-                    lir_subject_t* _src_1_265 = lh->farg;
-                    lir_operation_t _match_op_0_266 = lh->op;
-                    lir_operation_t _match_op_1_267 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_subject_t* _keep_0_0_268 = lh->farg;
-                    lir_subject_t* _keep_0_1_269 = lh->sarg;
-                    lir_subject_t* _keep_0_2_270 = lh->targ;
-                    lir_subject_t* _keep_1_0_271 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_subject_t* _keep_1_1_272 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_subject_t* _keep_1_2_273 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _src_1_548 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_operation_t _match_op_0_549 = lh->op;
+                    lir_operation_t _match_op_1_550 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_subject_t* _keep_0_0_551 = lh->farg;
+                    lir_subject_t* _keep_0_1_552 = lh->sarg;
+                    lir_subject_t* _keep_0_2_553 = lh->targ;
+                    lir_subject_t* _keep_1_0_554 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_555 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_556 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     if (lh->op != LIR_bXOR) {
                         lh->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_274 = lh->sarg;
-                    if (_old_274 != _src_1_265) {
-                        lh->sarg = _src_1_265;
+                    lir_subject_t* _old_557 = lh->sarg;
+                    if (_old_557 != _src_1_548) {
+                        lh->sarg = _src_1_548;
                         optimized = 1;
-                        if (_old_274 && _old_274 != lh->farg && _old_274 != lh->sarg && _old_274 != lh->targ && _old_274 != _src_1_265 && _old_274 != _keep_0_0_268 && _old_274 != _keep_0_1_269 && _old_274 != _keep_0_2_270 && _old_274 != _keep_1_0_271 && _old_274 != _keep_1_1_272 && _old_274 != _keep_1_2_273) {
-                            LIR_unload_subject(_old_274);
+                        if (_old_557 && _old_557 != lh->farg && _old_557 != lh->sarg && _old_557 != lh->targ && _old_557 != _src_1_548 && _old_557 != _keep_0_0_551 && _old_557 != _keep_0_1_552 && _old_557 != _keep_0_2_553 && _old_557 != _keep_1_0_554 && _old_557 != _keep_1_1_555 && _old_557 != _keep_1_2_556) {
+                            LIR_unload_subject(_old_557);
                         }
                     }
-                    lir_subject_t* _old_275 = lh->targ;
-                    if (_old_275 != _src_1_265) {
-                        lh->targ = _src_1_265;
+                    lir_subject_t* _old_558 = lh->targ;
+                    if (_old_558 != _src_1_548) {
+                        lh->targ = _src_1_548;
                         optimized = 1;
-                        if (_old_275 && _old_275 != lh->farg && _old_275 != lh->sarg && _old_275 != lh->targ && _old_275 != _src_1_265 && _old_275 != _keep_0_0_268 && _old_275 != _keep_0_1_269 && _old_275 != _keep_0_2_270 && _old_275 != _keep_1_0_271 && _old_275 != _keep_1_1_272 && _old_275 != _keep_1_2_273) {
-                            LIR_unload_subject(_old_275);
+                        if (_old_558 && _old_558 != lh->farg && _old_558 != lh->sarg && _old_558 != lh->targ && _old_558 != _src_1_548 && _old_558 != _keep_0_0_551 && _old_558 != _keep_0_1_552 && _old_558 != _keep_0_2_553 && _old_558 != _keep_1_0_554 && _old_558 != _keep_1_1_555 && _old_558 != _keep_1_2_556) {
+                            LIR_unload_subject(_old_558);
                         }
                     }
-                    lir_subject_t* _old_276 = lh->farg;
-                    if (_old_276 != _src_1_265) {
-                        lh->farg = _src_1_265;
+                    lir_subject_t* _old_559 = lh->farg;
+                    if (_old_559 != _src_1_548) {
+                        lh->farg = _src_1_548;
                         optimized = 1;
-                        if (_old_276 && _old_276 != lh->farg && _old_276 != lh->sarg && _old_276 != lh->targ && _old_276 != _src_1_265 && _old_276 != _keep_0_0_268 && _old_276 != _keep_0_1_269 && _old_276 != _keep_0_2_270 && _old_276 != _keep_1_0_271 && _old_276 != _keep_1_1_272 && _old_276 != _keep_1_2_273) {
-                            LIR_unload_subject(_old_276);
+                        if (_old_559 && _old_559 != lh->farg && _old_559 != lh->sarg && _old_559 != lh->targ && _old_559 != _src_1_548 && _old_559 != _keep_0_0_551 && _old_559 != _keep_0_1_552 && _old_559 != _keep_0_2_553 && _old_559 != _keep_1_0_554 && _old_559 != _keep_1_1_555 && _old_559 != _keep_1_2_556) {
+                            LIR_unload_subject(_old_559);
                         }
                     }
                     if (!LIR_get_near_instruction(lh, bb->lmap.exit, 1)->unused) {
@@ -1306,11 +2109,11 @@ int peephole_first_pass(cfg_block_t* bb) {
              {
                 if (lh->op == LIR_iADD &&
                 (lh->sarg &&
-                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY) &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL) &&
                 lh->targ &&
                 ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 0) &&
                 lh->farg &&
-                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY) &&
+                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
                     if (!lh->unused) {
                         lh->unused = 1;
@@ -1324,11 +2127,11 @@ int peephole_first_pass(cfg_block_t* bb) {
              {
                 if (lh->op == LIR_iDIV &&
                 (lh->sarg &&
-                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY) &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL) &&
                 lh->targ &&
                 ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 1) &&
                 lh->farg &&
-                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY) &&
+                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
                     if (!lh->unused) {
                         lh->unused = 1;
@@ -1342,42 +2145,42 @@ int peephole_first_pass(cfg_block_t* bb) {
              {
                 if (lh->op == LIR_iMUL &&
                 (lh->sarg &&
-                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY) &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL) &&
                 lh->targ &&
                 ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 0) &&
                 lh->farg &&
-                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY) &&
+                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
-                    lir_operation_t _match_op_0_203 = lh->op;
-                    lir_subject_t* _keep_0_0_204 = lh->farg;
-                    lir_subject_t* _keep_0_1_205 = lh->sarg;
-                    lir_subject_t* _keep_0_2_206 = lh->targ;
+                    lir_operation_t _match_op_0_275 = lh->op;
+                    lir_subject_t* _keep_0_0_276 = lh->farg;
+                    lir_subject_t* _keep_0_1_277 = lh->sarg;
+                    lir_subject_t* _keep_0_2_278 = lh->targ;
                     if (lh->op != LIR_iMOV) {
                         lh->op = LIR_iMOV;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_207 = lh->sarg;
+                    lir_subject_t* _old_279 = lh->sarg;
                     lh->sarg = LIR_SUBJ_CONST(0);
                     optimized = 1;
-                    if (_old_207 && _old_207 != lh->farg && _old_207 != lh->sarg && _old_207 != lh->targ && _old_207 != _keep_0_0_204 && _old_207 != _keep_0_1_205 && _old_207 != _keep_0_2_206) {
-                        LIR_unload_subject(_old_207);
+                    if (_old_279 && _old_279 != lh->farg && _old_279 != lh->sarg && _old_279 != lh->targ && _old_279 != _keep_0_0_276 && _old_279 != _keep_0_1_277 && _old_279 != _keep_0_2_278) {
+                        LIR_unload_subject(_old_279);
                     }
-                    lir_subject_t* _old_208 = lh->targ;
-                    if (_old_208) {
+                    lir_subject_t* _old_280 = lh->targ;
+                    if (_old_280) {
                         lh->targ = NULL;
                         optimized = 1;
-                        if (_old_208 && _old_208 != lh->farg && _old_208 != lh->sarg && _old_208 != lh->targ && _old_208 != _keep_0_0_204 && _old_208 != _keep_0_1_205 && _old_208 != _keep_0_2_206) {
-                            LIR_unload_subject(_old_208);
+                        if (_old_280 && _old_280 != lh->farg && _old_280 != lh->sarg && _old_280 != lh->targ && _old_280 != _keep_0_0_276 && _old_280 != _keep_0_1_277 && _old_280 != _keep_0_2_278) {
+                            LIR_unload_subject(_old_280);
                         }
                     }
                 }
                 else if (lh->op == LIR_iMUL &&
                 (lh->sarg &&
-                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY) &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL) &&
                 lh->targ &&
                 ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 1) &&
                 lh->farg &&
-                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY) &&
+                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
                     if (!lh->unused) {
                         lh->unused = 1;
@@ -1391,53 +2194,11 @@ int peephole_first_pass(cfg_block_t* bb) {
              {
                 if (lh->op == LIR_iSUB &&
                 (lh->sarg &&
-                lh->sarg->t == LIR_REGISTER &&
-                lh->targ &&
-                ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 1) &&
-                lh->farg &&
-                lh->farg->t == LIR_REGISTER &&
-                LIR_subj_equals(lh->farg, lh->sarg))) {
-                    lir_subject_t* _src_1_146 = lh->farg;
-                    lir_operation_t _match_op_0_147 = lh->op;
-                    lir_subject_t* _keep_0_0_148 = lh->farg;
-                    lir_subject_t* _keep_0_1_149 = lh->sarg;
-                    lir_subject_t* _keep_0_2_150 = lh->targ;
-                    if (lh->op != LIR_DEC) {
-                        lh->op = LIR_DEC;
-                        optimized = 1;
-                    }
-                    lir_subject_t* _old_151 = lh->farg;
-                    if (_old_151 != _src_1_146) {
-                        lh->farg = _src_1_146;
-                        optimized = 1;
-                        if (_old_151 && _old_151 != lh->farg && _old_151 != lh->sarg && _old_151 != lh->targ && _old_151 != _src_1_146 && _old_151 != _keep_0_0_148 && _old_151 != _keep_0_1_149 && _old_151 != _keep_0_2_150) {
-                            LIR_unload_subject(_old_151);
-                        }
-                    }
-                    lir_subject_t* _old_152 = lh->sarg;
-                    if (_old_152) {
-                        lh->sarg = NULL;
-                        optimized = 1;
-                        if (_old_152 && _old_152 != lh->farg && _old_152 != lh->sarg && _old_152 != lh->targ && _old_152 != _src_1_146 && _old_152 != _keep_0_0_148 && _old_152 != _keep_0_1_149 && _old_152 != _keep_0_2_150) {
-                            LIR_unload_subject(_old_152);
-                        }
-                    }
-                    lir_subject_t* _old_153 = lh->targ;
-                    if (_old_153) {
-                        lh->targ = NULL;
-                        optimized = 1;
-                        if (_old_153 && _old_153 != lh->farg && _old_153 != lh->sarg && _old_153 != lh->targ && _old_153 != _src_1_146 && _old_153 != _keep_0_0_148 && _old_153 != _keep_0_1_149 && _old_153 != _keep_0_2_150) {
-                            LIR_unload_subject(_old_153);
-                        }
-                    }
-                }
-                else if (lh->op == LIR_iSUB &&
-                (lh->sarg &&
-                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY) &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL) &&
                 lh->targ &&
                 ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 0) &&
                 lh->farg &&
-                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY) &&
+                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
                     if (!lh->unused) {
                         lh->unused = 1;
@@ -1453,38 +2214,596 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg) &&
                 LIR_subj_equals(lh->sarg, lh->targ))) {
-                    lir_subject_t* _src_1_195 = lh->farg;
-                    lir_operation_t _match_op_0_196 = lh->op;
-                    lir_subject_t* _keep_0_0_197 = lh->farg;
-                    lir_subject_t* _keep_0_1_198 = lh->sarg;
-                    lir_subject_t* _keep_0_2_199 = lh->targ;
+                    lir_subject_t* _src_1_267 = lh->farg;
+                    lir_operation_t _match_op_0_268 = lh->op;
+                    lir_subject_t* _keep_0_0_269 = lh->farg;
+                    lir_subject_t* _keep_0_1_270 = lh->sarg;
+                    lir_subject_t* _keep_0_2_271 = lh->targ;
                     if (lh->op != LIR_bXOR) {
                         lh->op = LIR_bXOR;
                         optimized = 1;
                     }
-                    lir_subject_t* _old_200 = lh->sarg;
-                    if (_old_200 != _src_1_195) {
-                        lh->sarg = _src_1_195;
+                    lir_subject_t* _old_272 = lh->sarg;
+                    if (_old_272 != _src_1_267) {
+                        lh->sarg = _src_1_267;
                         optimized = 1;
-                        if (_old_200 && _old_200 != lh->farg && _old_200 != lh->sarg && _old_200 != lh->targ && _old_200 != _src_1_195 && _old_200 != _keep_0_0_197 && _old_200 != _keep_0_1_198 && _old_200 != _keep_0_2_199) {
-                            LIR_unload_subject(_old_200);
+                        if (_old_272 && _old_272 != lh->farg && _old_272 != lh->sarg && _old_272 != lh->targ && _old_272 != _src_1_267 && _old_272 != _keep_0_0_269 && _old_272 != _keep_0_1_270 && _old_272 != _keep_0_2_271) {
+                            LIR_unload_subject(_old_272);
                         }
                     }
-                    lir_subject_t* _old_201 = lh->targ;
-                    if (_old_201 != _src_1_195) {
-                        lh->targ = _src_1_195;
+                    lir_subject_t* _old_273 = lh->targ;
+                    if (_old_273 != _src_1_267) {
+                        lh->targ = _src_1_267;
                         optimized = 1;
-                        if (_old_201 && _old_201 != lh->farg && _old_201 != lh->sarg && _old_201 != lh->targ && _old_201 != _src_1_195 && _old_201 != _keep_0_0_197 && _old_201 != _keep_0_1_198 && _old_201 != _keep_0_2_199) {
-                            LIR_unload_subject(_old_201);
+                        if (_old_273 && _old_273 != lh->farg && _old_273 != lh->sarg && _old_273 != lh->targ && _old_273 != _src_1_267 && _old_273 != _keep_0_0_269 && _old_273 != _keep_0_1_270 && _old_273 != _keep_0_2_271) {
+                            LIR_unload_subject(_old_273);
                         }
                     }
-                    lir_subject_t* _old_202 = lh->farg;
-                    if (_old_202 != _src_1_195) {
-                        lh->farg = _src_1_195;
+                    lir_subject_t* _old_274 = lh->farg;
+                    if (_old_274 != _src_1_267) {
+                        lh->farg = _src_1_267;
                         optimized = 1;
-                        if (_old_202 && _old_202 != lh->farg && _old_202 != lh->sarg && _old_202 != lh->targ && _old_202 != _src_1_195 && _old_202 != _keep_0_0_197 && _old_202 != _keep_0_1_198 && _old_202 != _keep_0_2_199) {
-                            LIR_unload_subject(_old_202);
+                        if (_old_274 && _old_274 != lh->farg && _old_274 != lh->sarg && _old_274 != lh->targ && _old_274 != _src_1_267 && _old_274 != _keep_0_0_269 && _old_274 != _keep_0_1_270 && _old_274 != _keep_0_2_271) {
+                            LIR_unload_subject(_old_274);
                         }
+                    }
+                }
+                else if (lh->op == LIR_iSUB &&
+                (lh->sarg &&
+                lh->sarg->t == LIR_REGISTER &&
+                lh->targ &&
+                ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 1) &&
+                lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(lh->farg, lh->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_TST &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_JE &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_372 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_373 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_374 = lh->op;
+                    lir_operation_t _match_op_1_375 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_376 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_377 = lh->farg;
+                    lir_subject_t* _keep_0_1_378 = lh->sarg;
+                    lir_subject_t* _keep_0_2_379 = lh->targ;
+                    lir_subject_t* _keep_1_0_380 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_381 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_382 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_383 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_384 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_385 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != LIR_iSUB) {
+                        lh->op = LIR_iSUB;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_386 = lh->sarg;
+                    if (_old_386 != _src_1_372) {
+                        lh->sarg = _src_1_372;
+                        optimized = 1;
+                        if (_old_386 && _old_386 != lh->farg && _old_386 != lh->sarg && _old_386 != lh->targ && _old_386 != _src_1_372 && _old_386 != _src_2_373 && _old_386 != _keep_0_0_377 && _old_386 != _keep_0_1_378 && _old_386 != _keep_0_2_379 && _old_386 != _keep_1_0_380 && _old_386 != _keep_1_1_381 && _old_386 != _keep_1_2_382 && _old_386 != _keep_2_0_383 && _old_386 != _keep_2_1_384 && _old_386 != _keep_2_2_385) {
+                            LIR_unload_subject(_old_386);
+                        }
+                    }
+                    lir_subject_t* _old_387 = lh->targ;
+                    lh->targ = LIR_SUBJ_CONST(1);
+                    optimized = 1;
+                    if (_old_387 && _old_387 != lh->farg && _old_387 != lh->sarg && _old_387 != lh->targ && _old_387 != _src_1_372 && _old_387 != _src_2_373 && _old_387 != _keep_0_0_377 && _old_387 != _keep_0_1_378 && _old_387 != _keep_0_2_379 && _old_387 != _keep_1_0_380 && _old_387 != _keep_1_1_381 && _old_387 != _keep_1_2_382 && _old_387 != _keep_2_0_383 && _old_387 != _keep_2_1_384 && _old_387 != _keep_2_2_385) {
+                        LIR_unload_subject(_old_387);
+                    }
+                    lir_subject_t* _old_388 = lh->farg;
+                    if (_old_388 != _src_1_372) {
+                        lh->farg = _src_1_372;
+                        optimized = 1;
+                        if (_old_388 && _old_388 != lh->farg && _old_388 != lh->sarg && _old_388 != lh->targ && _old_388 != _src_1_372 && _old_388 != _src_2_373 && _old_388 != _keep_0_0_377 && _old_388 != _keep_0_1_378 && _old_388 != _keep_0_2_379 && _old_388 != _keep_1_0_380 && _old_388 != _keep_1_1_381 && _old_388 != _keep_1_2_382 && _old_388 != _keep_2_0_383 && _old_388 != _keep_2_1_384 && _old_388 != _keep_2_2_385) {
+                            LIR_unload_subject(_old_388);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_JE) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_JE;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_389 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_389 != _src_2_373) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_373;
+                        optimized = 1;
+                        if (_old_389 && _old_389 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_389 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_389 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_389 != _src_1_372 && _old_389 != _src_2_373 && _old_389 != _keep_0_0_377 && _old_389 != _keep_0_1_378 && _old_389 != _keep_0_2_379 && _old_389 != _keep_1_0_380 && _old_389 != _keep_1_1_381 && _old_389 != _keep_1_2_382 && _old_389 != _keep_2_0_383 && _old_389 != _keep_2_1_384 && _old_389 != _keep_2_2_385) {
+                            LIR_unload_subject(_old_389);
+                        }
+                    }
+                    lir_subject_t* _old_390 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_390) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_390 && _old_390 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_390 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_390 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_390 != _src_1_372 && _old_390 != _src_2_373 && _old_390 != _keep_0_0_377 && _old_390 != _keep_0_1_378 && _old_390 != _keep_0_2_379 && _old_390 != _keep_1_0_380 && _old_390 != _keep_1_1_381 && _old_390 != _keep_1_2_382 && _old_390 != _keep_2_0_383 && _old_390 != _keep_2_1_384 && _old_390 != _keep_2_2_385) {
+                            LIR_unload_subject(_old_390);
+                        }
+                    }
+                    lir_subject_t* _old_391 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_391) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_391 && _old_391 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_391 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_391 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_391 != _src_1_372 && _old_391 != _src_2_373 && _old_391 != _keep_0_0_377 && _old_391 != _keep_0_1_378 && _old_391 != _keep_0_2_379 && _old_391 != _keep_1_0_380 && _old_391 != _keep_1_1_381 && _old_391 != _keep_1_2_382 && _old_391 != _keep_2_0_383 && _old_391 != _keep_2_1_384 && _old_391 != _keep_2_2_385) {
+                            LIR_unload_subject(_old_391);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                else if (lh->op == LIR_iSUB &&
+                (lh->sarg &&
+                lh->sarg->t == LIR_REGISTER &&
+                lh->targ &&
+                ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 1) &&
+                lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(lh->farg, lh->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_TST &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_JZ &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_392 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_393 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_394 = lh->op;
+                    lir_operation_t _match_op_1_395 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_396 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_397 = lh->farg;
+                    lir_subject_t* _keep_0_1_398 = lh->sarg;
+                    lir_subject_t* _keep_0_2_399 = lh->targ;
+                    lir_subject_t* _keep_1_0_400 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_401 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_402 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_403 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_404 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_405 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != LIR_iSUB) {
+                        lh->op = LIR_iSUB;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_406 = lh->sarg;
+                    if (_old_406 != _src_1_392) {
+                        lh->sarg = _src_1_392;
+                        optimized = 1;
+                        if (_old_406 && _old_406 != lh->farg && _old_406 != lh->sarg && _old_406 != lh->targ && _old_406 != _src_1_392 && _old_406 != _src_2_393 && _old_406 != _keep_0_0_397 && _old_406 != _keep_0_1_398 && _old_406 != _keep_0_2_399 && _old_406 != _keep_1_0_400 && _old_406 != _keep_1_1_401 && _old_406 != _keep_1_2_402 && _old_406 != _keep_2_0_403 && _old_406 != _keep_2_1_404 && _old_406 != _keep_2_2_405) {
+                            LIR_unload_subject(_old_406);
+                        }
+                    }
+                    lir_subject_t* _old_407 = lh->targ;
+                    lh->targ = LIR_SUBJ_CONST(1);
+                    optimized = 1;
+                    if (_old_407 && _old_407 != lh->farg && _old_407 != lh->sarg && _old_407 != lh->targ && _old_407 != _src_1_392 && _old_407 != _src_2_393 && _old_407 != _keep_0_0_397 && _old_407 != _keep_0_1_398 && _old_407 != _keep_0_2_399 && _old_407 != _keep_1_0_400 && _old_407 != _keep_1_1_401 && _old_407 != _keep_1_2_402 && _old_407 != _keep_2_0_403 && _old_407 != _keep_2_1_404 && _old_407 != _keep_2_2_405) {
+                        LIR_unload_subject(_old_407);
+                    }
+                    lir_subject_t* _old_408 = lh->farg;
+                    if (_old_408 != _src_1_392) {
+                        lh->farg = _src_1_392;
+                        optimized = 1;
+                        if (_old_408 && _old_408 != lh->farg && _old_408 != lh->sarg && _old_408 != lh->targ && _old_408 != _src_1_392 && _old_408 != _src_2_393 && _old_408 != _keep_0_0_397 && _old_408 != _keep_0_1_398 && _old_408 != _keep_0_2_399 && _old_408 != _keep_1_0_400 && _old_408 != _keep_1_1_401 && _old_408 != _keep_1_2_402 && _old_408 != _keep_2_0_403 && _old_408 != _keep_2_1_404 && _old_408 != _keep_2_2_405) {
+                            LIR_unload_subject(_old_408);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_JZ) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_JZ;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_409 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_409 != _src_2_393) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_393;
+                        optimized = 1;
+                        if (_old_409 && _old_409 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_409 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_409 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_409 != _src_1_392 && _old_409 != _src_2_393 && _old_409 != _keep_0_0_397 && _old_409 != _keep_0_1_398 && _old_409 != _keep_0_2_399 && _old_409 != _keep_1_0_400 && _old_409 != _keep_1_1_401 && _old_409 != _keep_1_2_402 && _old_409 != _keep_2_0_403 && _old_409 != _keep_2_1_404 && _old_409 != _keep_2_2_405) {
+                            LIR_unload_subject(_old_409);
+                        }
+                    }
+                    lir_subject_t* _old_410 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_410) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_410 && _old_410 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_410 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_410 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_410 != _src_1_392 && _old_410 != _src_2_393 && _old_410 != _keep_0_0_397 && _old_410 != _keep_0_1_398 && _old_410 != _keep_0_2_399 && _old_410 != _keep_1_0_400 && _old_410 != _keep_1_1_401 && _old_410 != _keep_1_2_402 && _old_410 != _keep_2_0_403 && _old_410 != _keep_2_1_404 && _old_410 != _keep_2_2_405) {
+                            LIR_unload_subject(_old_410);
+                        }
+                    }
+                    lir_subject_t* _old_411 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_411) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_411 && _old_411 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_411 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_411 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_411 != _src_1_392 && _old_411 != _src_2_393 && _old_411 != _keep_0_0_397 && _old_411 != _keep_0_1_398 && _old_411 != _keep_0_2_399 && _old_411 != _keep_1_0_400 && _old_411 != _keep_1_1_401 && _old_411 != _keep_1_2_402 && _old_411 != _keep_2_0_403 && _old_411 != _keep_2_1_404 && _old_411 != _keep_2_2_405) {
+                            LIR_unload_subject(_old_411);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                else if (lh->op == LIR_iSUB &&
+                (lh->sarg &&
+                lh->sarg->t == LIR_REGISTER &&
+                lh->targ &&
+                ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 1) &&
+                lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(lh->farg, lh->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_TST &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_JNE &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_412 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_413 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_414 = lh->op;
+                    lir_operation_t _match_op_1_415 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_416 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_417 = lh->farg;
+                    lir_subject_t* _keep_0_1_418 = lh->sarg;
+                    lir_subject_t* _keep_0_2_419 = lh->targ;
+                    lir_subject_t* _keep_1_0_420 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_421 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_422 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_423 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_424 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_425 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != LIR_iSUB) {
+                        lh->op = LIR_iSUB;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_426 = lh->sarg;
+                    if (_old_426 != _src_1_412) {
+                        lh->sarg = _src_1_412;
+                        optimized = 1;
+                        if (_old_426 && _old_426 != lh->farg && _old_426 != lh->sarg && _old_426 != lh->targ && _old_426 != _src_1_412 && _old_426 != _src_2_413 && _old_426 != _keep_0_0_417 && _old_426 != _keep_0_1_418 && _old_426 != _keep_0_2_419 && _old_426 != _keep_1_0_420 && _old_426 != _keep_1_1_421 && _old_426 != _keep_1_2_422 && _old_426 != _keep_2_0_423 && _old_426 != _keep_2_1_424 && _old_426 != _keep_2_2_425) {
+                            LIR_unload_subject(_old_426);
+                        }
+                    }
+                    lir_subject_t* _old_427 = lh->targ;
+                    lh->targ = LIR_SUBJ_CONST(1);
+                    optimized = 1;
+                    if (_old_427 && _old_427 != lh->farg && _old_427 != lh->sarg && _old_427 != lh->targ && _old_427 != _src_1_412 && _old_427 != _src_2_413 && _old_427 != _keep_0_0_417 && _old_427 != _keep_0_1_418 && _old_427 != _keep_0_2_419 && _old_427 != _keep_1_0_420 && _old_427 != _keep_1_1_421 && _old_427 != _keep_1_2_422 && _old_427 != _keep_2_0_423 && _old_427 != _keep_2_1_424 && _old_427 != _keep_2_2_425) {
+                        LIR_unload_subject(_old_427);
+                    }
+                    lir_subject_t* _old_428 = lh->farg;
+                    if (_old_428 != _src_1_412) {
+                        lh->farg = _src_1_412;
+                        optimized = 1;
+                        if (_old_428 && _old_428 != lh->farg && _old_428 != lh->sarg && _old_428 != lh->targ && _old_428 != _src_1_412 && _old_428 != _src_2_413 && _old_428 != _keep_0_0_417 && _old_428 != _keep_0_1_418 && _old_428 != _keep_0_2_419 && _old_428 != _keep_1_0_420 && _old_428 != _keep_1_1_421 && _old_428 != _keep_1_2_422 && _old_428 != _keep_2_0_423 && _old_428 != _keep_2_1_424 && _old_428 != _keep_2_2_425) {
+                            LIR_unload_subject(_old_428);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_JNE) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_JNE;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_429 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_429 != _src_2_413) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_413;
+                        optimized = 1;
+                        if (_old_429 && _old_429 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_429 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_429 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_429 != _src_1_412 && _old_429 != _src_2_413 && _old_429 != _keep_0_0_417 && _old_429 != _keep_0_1_418 && _old_429 != _keep_0_2_419 && _old_429 != _keep_1_0_420 && _old_429 != _keep_1_1_421 && _old_429 != _keep_1_2_422 && _old_429 != _keep_2_0_423 && _old_429 != _keep_2_1_424 && _old_429 != _keep_2_2_425) {
+                            LIR_unload_subject(_old_429);
+                        }
+                    }
+                    lir_subject_t* _old_430 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_430) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_430 && _old_430 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_430 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_430 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_430 != _src_1_412 && _old_430 != _src_2_413 && _old_430 != _keep_0_0_417 && _old_430 != _keep_0_1_418 && _old_430 != _keep_0_2_419 && _old_430 != _keep_1_0_420 && _old_430 != _keep_1_1_421 && _old_430 != _keep_1_2_422 && _old_430 != _keep_2_0_423 && _old_430 != _keep_2_1_424 && _old_430 != _keep_2_2_425) {
+                            LIR_unload_subject(_old_430);
+                        }
+                    }
+                    lir_subject_t* _old_431 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_431) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_431 && _old_431 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_431 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_431 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_431 != _src_1_412 && _old_431 != _src_2_413 && _old_431 != _keep_0_0_417 && _old_431 != _keep_0_1_418 && _old_431 != _keep_0_2_419 && _old_431 != _keep_1_0_420 && _old_431 != _keep_1_1_421 && _old_431 != _keep_1_2_422 && _old_431 != _keep_2_0_423 && _old_431 != _keep_2_1_424 && _old_431 != _keep_2_2_425) {
+                            LIR_unload_subject(_old_431);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                else if (lh->op == LIR_iSUB &&
+                (lh->sarg &&
+                lh->sarg->t == LIR_REGISTER &&
+                lh->targ &&
+                ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 1) &&
+                lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(lh->farg, lh->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_TST &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_JNZ &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_432 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_433 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_434 = lh->op;
+                    lir_operation_t _match_op_1_435 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_436 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_437 = lh->farg;
+                    lir_subject_t* _keep_0_1_438 = lh->sarg;
+                    lir_subject_t* _keep_0_2_439 = lh->targ;
+                    lir_subject_t* _keep_1_0_440 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_441 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_442 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_443 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_444 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_445 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != LIR_iSUB) {
+                        lh->op = LIR_iSUB;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_446 = lh->sarg;
+                    if (_old_446 != _src_1_432) {
+                        lh->sarg = _src_1_432;
+                        optimized = 1;
+                        if (_old_446 && _old_446 != lh->farg && _old_446 != lh->sarg && _old_446 != lh->targ && _old_446 != _src_1_432 && _old_446 != _src_2_433 && _old_446 != _keep_0_0_437 && _old_446 != _keep_0_1_438 && _old_446 != _keep_0_2_439 && _old_446 != _keep_1_0_440 && _old_446 != _keep_1_1_441 && _old_446 != _keep_1_2_442 && _old_446 != _keep_2_0_443 && _old_446 != _keep_2_1_444 && _old_446 != _keep_2_2_445) {
+                            LIR_unload_subject(_old_446);
+                        }
+                    }
+                    lir_subject_t* _old_447 = lh->targ;
+                    lh->targ = LIR_SUBJ_CONST(1);
+                    optimized = 1;
+                    if (_old_447 && _old_447 != lh->farg && _old_447 != lh->sarg && _old_447 != lh->targ && _old_447 != _src_1_432 && _old_447 != _src_2_433 && _old_447 != _keep_0_0_437 && _old_447 != _keep_0_1_438 && _old_447 != _keep_0_2_439 && _old_447 != _keep_1_0_440 && _old_447 != _keep_1_1_441 && _old_447 != _keep_1_2_442 && _old_447 != _keep_2_0_443 && _old_447 != _keep_2_1_444 && _old_447 != _keep_2_2_445) {
+                        LIR_unload_subject(_old_447);
+                    }
+                    lir_subject_t* _old_448 = lh->farg;
+                    if (_old_448 != _src_1_432) {
+                        lh->farg = _src_1_432;
+                        optimized = 1;
+                        if (_old_448 && _old_448 != lh->farg && _old_448 != lh->sarg && _old_448 != lh->targ && _old_448 != _src_1_432 && _old_448 != _src_2_433 && _old_448 != _keep_0_0_437 && _old_448 != _keep_0_1_438 && _old_448 != _keep_0_2_439 && _old_448 != _keep_1_0_440 && _old_448 != _keep_1_1_441 && _old_448 != _keep_1_2_442 && _old_448 != _keep_2_0_443 && _old_448 != _keep_2_1_444 && _old_448 != _keep_2_2_445) {
+                            LIR_unload_subject(_old_448);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_JNZ) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_JNZ;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_449 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_449 != _src_2_433) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_433;
+                        optimized = 1;
+                        if (_old_449 && _old_449 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_449 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_449 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_449 != _src_1_432 && _old_449 != _src_2_433 && _old_449 != _keep_0_0_437 && _old_449 != _keep_0_1_438 && _old_449 != _keep_0_2_439 && _old_449 != _keep_1_0_440 && _old_449 != _keep_1_1_441 && _old_449 != _keep_1_2_442 && _old_449 != _keep_2_0_443 && _old_449 != _keep_2_1_444 && _old_449 != _keep_2_2_445) {
+                            LIR_unload_subject(_old_449);
+                        }
+                    }
+                    lir_subject_t* _old_450 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_450) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_450 && _old_450 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_450 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_450 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_450 != _src_1_432 && _old_450 != _src_2_433 && _old_450 != _keep_0_0_437 && _old_450 != _keep_0_1_438 && _old_450 != _keep_0_2_439 && _old_450 != _keep_1_0_440 && _old_450 != _keep_1_1_441 && _old_450 != _keep_1_2_442 && _old_450 != _keep_2_0_443 && _old_450 != _keep_2_1_444 && _old_450 != _keep_2_2_445) {
+                            LIR_unload_subject(_old_450);
+                        }
+                    }
+                    lir_subject_t* _old_451 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_451) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_451 && _old_451 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_451 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_451 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_451 != _src_1_432 && _old_451 != _src_2_433 && _old_451 != _keep_0_0_437 && _old_451 != _keep_0_1_438 && _old_451 != _keep_0_2_439 && _old_451 != _keep_1_0_440 && _old_451 != _keep_1_1_441 && _old_451 != _keep_1_2_442 && _old_451 != _keep_2_0_443 && _old_451 != _keep_2_1_444 && _old_451 != _keep_2_2_445) {
+                            LIR_unload_subject(_old_451);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                else if (lh->op == LIR_iSUB &&
+                (lh->sarg &&
+                lh->sarg->t == LIR_REGISTER &&
+                lh->targ &&
+                ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 1) &&
+                lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(lh->farg, lh->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_TST &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_SETE &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_452 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_453 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_454 = lh->op;
+                    lir_operation_t _match_op_1_455 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_456 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_457 = lh->farg;
+                    lir_subject_t* _keep_0_1_458 = lh->sarg;
+                    lir_subject_t* _keep_0_2_459 = lh->targ;
+                    lir_subject_t* _keep_1_0_460 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_461 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_462 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_463 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_464 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_465 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != LIR_iSUB) {
+                        lh->op = LIR_iSUB;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_466 = lh->sarg;
+                    if (_old_466 != _src_1_452) {
+                        lh->sarg = _src_1_452;
+                        optimized = 1;
+                        if (_old_466 && _old_466 != lh->farg && _old_466 != lh->sarg && _old_466 != lh->targ && _old_466 != _src_1_452 && _old_466 != _src_2_453 && _old_466 != _keep_0_0_457 && _old_466 != _keep_0_1_458 && _old_466 != _keep_0_2_459 && _old_466 != _keep_1_0_460 && _old_466 != _keep_1_1_461 && _old_466 != _keep_1_2_462 && _old_466 != _keep_2_0_463 && _old_466 != _keep_2_1_464 && _old_466 != _keep_2_2_465) {
+                            LIR_unload_subject(_old_466);
+                        }
+                    }
+                    lir_subject_t* _old_467 = lh->targ;
+                    lh->targ = LIR_SUBJ_CONST(1);
+                    optimized = 1;
+                    if (_old_467 && _old_467 != lh->farg && _old_467 != lh->sarg && _old_467 != lh->targ && _old_467 != _src_1_452 && _old_467 != _src_2_453 && _old_467 != _keep_0_0_457 && _old_467 != _keep_0_1_458 && _old_467 != _keep_0_2_459 && _old_467 != _keep_1_0_460 && _old_467 != _keep_1_1_461 && _old_467 != _keep_1_2_462 && _old_467 != _keep_2_0_463 && _old_467 != _keep_2_1_464 && _old_467 != _keep_2_2_465) {
+                        LIR_unload_subject(_old_467);
+                    }
+                    lir_subject_t* _old_468 = lh->farg;
+                    if (_old_468 != _src_1_452) {
+                        lh->farg = _src_1_452;
+                        optimized = 1;
+                        if (_old_468 && _old_468 != lh->farg && _old_468 != lh->sarg && _old_468 != lh->targ && _old_468 != _src_1_452 && _old_468 != _src_2_453 && _old_468 != _keep_0_0_457 && _old_468 != _keep_0_1_458 && _old_468 != _keep_0_2_459 && _old_468 != _keep_1_0_460 && _old_468 != _keep_1_1_461 && _old_468 != _keep_1_2_462 && _old_468 != _keep_2_0_463 && _old_468 != _keep_2_1_464 && _old_468 != _keep_2_2_465) {
+                            LIR_unload_subject(_old_468);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_SETE) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_SETE;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_469 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_469 != _src_2_453) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_453;
+                        optimized = 1;
+                        if (_old_469 && _old_469 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_469 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_469 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_469 != _src_1_452 && _old_469 != _src_2_453 && _old_469 != _keep_0_0_457 && _old_469 != _keep_0_1_458 && _old_469 != _keep_0_2_459 && _old_469 != _keep_1_0_460 && _old_469 != _keep_1_1_461 && _old_469 != _keep_1_2_462 && _old_469 != _keep_2_0_463 && _old_469 != _keep_2_1_464 && _old_469 != _keep_2_2_465) {
+                            LIR_unload_subject(_old_469);
+                        }
+                    }
+                    lir_subject_t* _old_470 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_470) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_470 && _old_470 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_470 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_470 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_470 != _src_1_452 && _old_470 != _src_2_453 && _old_470 != _keep_0_0_457 && _old_470 != _keep_0_1_458 && _old_470 != _keep_0_2_459 && _old_470 != _keep_1_0_460 && _old_470 != _keep_1_1_461 && _old_470 != _keep_1_2_462 && _old_470 != _keep_2_0_463 && _old_470 != _keep_2_1_464 && _old_470 != _keep_2_2_465) {
+                            LIR_unload_subject(_old_470);
+                        }
+                    }
+                    lir_subject_t* _old_471 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_471) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_471 && _old_471 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_471 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_471 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_471 != _src_1_452 && _old_471 != _src_2_453 && _old_471 != _keep_0_0_457 && _old_471 != _keep_0_1_458 && _old_471 != _keep_0_2_459 && _old_471 != _keep_1_0_460 && _old_471 != _keep_1_1_461 && _old_471 != _keep_1_2_462 && _old_471 != _keep_2_0_463 && _old_471 != _keep_2_1_464 && _old_471 != _keep_2_2_465) {
+                            LIR_unload_subject(_old_471);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                else if (lh->op == LIR_iSUB &&
+                (lh->sarg &&
+                lh->sarg->t == LIR_REGISTER &&
+                lh->targ &&
+                ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 1) &&
+                lh->farg &&
+                lh->farg->t == LIR_REGISTER &&
+                LIR_subj_equals(lh->farg, lh->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_TST &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
+                LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_STNE &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL)) &&
+                LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
+                    lir_subject_t* _src_1_472 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _src_2_473 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_operation_t _match_op_0_474 = lh->op;
+                    lir_operation_t _match_op_1_475 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
+                    lir_operation_t _match_op_2_476 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
+                    lir_subject_t* _keep_0_0_477 = lh->farg;
+                    lir_subject_t* _keep_0_1_478 = lh->sarg;
+                    lir_subject_t* _keep_0_2_479 = lh->targ;
+                    lir_subject_t* _keep_1_0_480 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    lir_subject_t* _keep_1_1_481 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    lir_subject_t* _keep_1_2_482 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    lir_subject_t* _keep_2_0_483 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
+                    lir_subject_t* _keep_2_1_484 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
+                    lir_subject_t* _keep_2_2_485 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->targ;
+                    if (lh->op != LIR_iSUB) {
+                        lh->op = LIR_iSUB;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_486 = lh->sarg;
+                    if (_old_486 != _src_1_472) {
+                        lh->sarg = _src_1_472;
+                        optimized = 1;
+                        if (_old_486 && _old_486 != lh->farg && _old_486 != lh->sarg && _old_486 != lh->targ && _old_486 != _src_1_472 && _old_486 != _src_2_473 && _old_486 != _keep_0_0_477 && _old_486 != _keep_0_1_478 && _old_486 != _keep_0_2_479 && _old_486 != _keep_1_0_480 && _old_486 != _keep_1_1_481 && _old_486 != _keep_1_2_482 && _old_486 != _keep_2_0_483 && _old_486 != _keep_2_1_484 && _old_486 != _keep_2_2_485) {
+                            LIR_unload_subject(_old_486);
+                        }
+                    }
+                    lir_subject_t* _old_487 = lh->targ;
+                    lh->targ = LIR_SUBJ_CONST(1);
+                    optimized = 1;
+                    if (_old_487 && _old_487 != lh->farg && _old_487 != lh->sarg && _old_487 != lh->targ && _old_487 != _src_1_472 && _old_487 != _src_2_473 && _old_487 != _keep_0_0_477 && _old_487 != _keep_0_1_478 && _old_487 != _keep_0_2_479 && _old_487 != _keep_1_0_480 && _old_487 != _keep_1_1_481 && _old_487 != _keep_1_2_482 && _old_487 != _keep_2_0_483 && _old_487 != _keep_2_1_484 && _old_487 != _keep_2_2_485) {
+                        LIR_unload_subject(_old_487);
+                    }
+                    lir_subject_t* _old_488 = lh->farg;
+                    if (_old_488 != _src_1_472) {
+                        lh->farg = _src_1_472;
+                        optimized = 1;
+                        if (_old_488 && _old_488 != lh->farg && _old_488 != lh->sarg && _old_488 != lh->targ && _old_488 != _src_1_472 && _old_488 != _src_2_473 && _old_488 != _keep_0_0_477 && _old_488 != _keep_0_1_478 && _old_488 != _keep_0_2_479 && _old_488 != _keep_1_0_480 && _old_488 != _keep_1_1_481 && _old_488 != _keep_1_2_482 && _old_488 != _keep_2_0_483 && _old_488 != _keep_2_1_484 && _old_488 != _keep_2_2_485) {
+                            LIR_unload_subject(_old_488);
+                        }
+                    }
+                    if (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op != LIR_STNE) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op = LIR_STNE;
+                        optimized = 1;
+                    }
+                    lir_subject_t* _old_489 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
+                    if (_old_489 != _src_2_473) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg = _src_2_473;
+                        optimized = 1;
+                        if (_old_489 && _old_489 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_489 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_489 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_489 != _src_1_472 && _old_489 != _src_2_473 && _old_489 != _keep_0_0_477 && _old_489 != _keep_0_1_478 && _old_489 != _keep_0_2_479 && _old_489 != _keep_1_0_480 && _old_489 != _keep_1_1_481 && _old_489 != _keep_1_2_482 && _old_489 != _keep_2_0_483 && _old_489 != _keep_2_1_484 && _old_489 != _keep_2_2_485) {
+                            LIR_unload_subject(_old_489);
+                        }
+                    }
+                    lir_subject_t* _old_490 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
+                    if (_old_490) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg = NULL;
+                        optimized = 1;
+                        if (_old_490 && _old_490 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_490 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_490 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_490 != _src_1_472 && _old_490 != _src_2_473 && _old_490 != _keep_0_0_477 && _old_490 != _keep_0_1_478 && _old_490 != _keep_0_2_479 && _old_490 != _keep_1_0_480 && _old_490 != _keep_1_1_481 && _old_490 != _keep_1_2_482 && _old_490 != _keep_2_0_483 && _old_490 != _keep_2_1_484 && _old_490 != _keep_2_2_485) {
+                            LIR_unload_subject(_old_490);
+                        }
+                    }
+                    lir_subject_t* _old_491 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
+                    if (_old_491) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ = NULL;
+                        optimized = 1;
+                        if (_old_491 && _old_491 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg && _old_491 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg && _old_491 != LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ && _old_491 != _src_1_472 && _old_491 != _src_2_473 && _old_491 != _keep_0_0_477 && _old_491 != _keep_0_1_478 && _old_491 != _keep_0_2_479 && _old_491 != _keep_1_0_480 && _old_491 != _keep_1_1_481 && _old_491 != _keep_1_2_482 && _old_491 != _keep_2_0_483 && _old_491 != _keep_2_1_484 && _old_491 != _keep_2_2_485) {
+                            LIR_unload_subject(_old_491);
+                        }
+                    }
+                    if (!LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused) {
+                        LIR_get_near_instruction(lh, bb->lmap.exit, 2)->unused = 1;
+                        optimized = 1;
                     }
                 }
                 break;

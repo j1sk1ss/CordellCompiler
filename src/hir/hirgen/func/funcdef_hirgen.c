@@ -1,11 +1,10 @@
 #include <hir/hirgens/hirgens.h>
 
-int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
+
     func_info_t fi;
-    if (!FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)) {
-        return 0;
-    }
+    if (!FNTB_get_info_id(f_id == NO_SYMBOL_ID ? node->c->sinfo.v_id : f_id, &fi, &smt->f) || fi.flags.generic) return 0;
 
     hir_subject_t* lguards = NULL;
     if (fi.flags.local) {
@@ -20,7 +19,7 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     ast_node_t* t;
     for (t = node->c->siblings.n->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
         if (t->t->t_type == VAR_ARGUMENTS_TOKEN) {
-            FNTB_update_func(fi.id, NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, &smt->f);
+            FNTB_update_func(fi.id, FNTB_SET_VARGS, &smt->f);
             continue;
         }
 
@@ -33,7 +32,7 @@ int HIR_generate_function_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
         );
     }
 
-    SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, { HIR_generate_block(t, ctx, smt); });
+    SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, fi.rtype ? fi.rtype->t : NULL, { HIR_generate_block(t, ctx, smt); });
 
     if (list_size(&ctx->cold.blocks)) {
         HIR_BLOCK1(ctx, fi.flags.entry ? HIR_EXITOP : HIR_FRET, HIR_SUBJ_CONST(0));

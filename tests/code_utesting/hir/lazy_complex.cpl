@@ -10,31 +10,34 @@ function baz() {
     fn baz2()
     {
         {
-            i32s %0 = alloc(8);
-            i64t %3 = call foo0(), argc args();
-            if i64t %3, goto lb13, else goto lb14;
-            lb14:
-            i64t %4 = call bar1(), argc args();
-            i64t %5 = i64t %4;
-            goto lb15;
-            lb13:
-            i64t %5 = csu8 1;
-            goto lb15;
+            i32s %0 = alloc;
+            i64s %3 = alloc;
+            i64t %4 = foo0();
+            if i64t %4, goto lb14, else goto lb15;
             lb15:
-            i32t %2 = i64t %5 as i32;
+            i64t %5 = bar1();
+            i64s %3 = i64t %5;
+            goto lb16;
+            lb14:
+            i64s %3 = csu8 1;
+            goto lb16;
+            lb16:
+            i32t %2 = i64s %3 as i32;
             i32s %0 = i32t %2;
-            i32s %1 = alloc(8);
-            i64t %7 = call foo0(), argc args();
-            if i64t %7, goto lb28, else goto lb29;
-            lb28:
-            i64t %8 = call bar1(), argc args();
-            i64t %9 = i64t %8;
-            goto lb30;
-            lb29:
-            i64t %9 = csu8 0;
-            goto lb30;
-            lb30:
-            i32t %6 = i64t %9 as i32;
+            i32s %1 = alloc;
+            i64s %7 = alloc;
+            i64t %8 = foo0();
+            if i64t %8, goto lb31, else goto lb32;
+            lb31:
+            i64t %9 = bar1();
+            i64s %7 = alloc;
+            i64s %7 = i64t %9;
+            goto lb33;
+            lb32:
+            i64s %7 = csu8 0;
+            goto lb33;
+            lb33:
+            i32t %6 = i64s %7 as i32;
             i32s %1 = i32t %6;
         }
     }

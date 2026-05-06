@@ -7,6 +7,6 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}cpl:3:11] Condition with a constant value (variable 'a' is equals 'true' (1))!
-          [{X}cpl:3:11]     Variable 'a' declared as a constant here!
+[WARNING] [{X}cpl:3:8] Condition with a constant value (variable 'a' is equals 'true' (1))!
+          [{X}cpl:3:8]     Variable 'a' declared as a constant here!
 /:

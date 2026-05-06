@@ -10,11 +10,11 @@ start() {
     start {
         {
             {
-                i32t %2 = call a0() -> i32, argc args();
+                i32t %2 = a0();
                 use i32t %2;
-                i32t %3 = call b1(i32 g) -> i32, argc args(i32t %2,);
+                i32t %3 = b1(i32t %2);
                 use i32t %3;
-                call c2(i32 f), argc args(i32t %3,);
+                c2(i32t %3);
             }
         }
     }

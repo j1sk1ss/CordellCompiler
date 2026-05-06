@@ -8,7 +8,7 @@ start() {
     start {
         {
             {
-                call foo0(i32 a, i64 b) -> i0, argc args(i8n 1,i8n 1,);
+                foo0(i8n 1, i8n 1);
             }
         }
     }
