@@ -4,7 +4,7 @@ function foo<T>(T a, T b) -> T {
     function local() -> i32 {
         return 10;
     }
-    return d + local();
+    return d + local() as T;
 }
 
 start() {
@@ -40,14 +40,15 @@ start() {
             fn local5() -> i32
             {
                 {
-                    return i8n 10;
+                    i32t %18 = i8n 10 as i32;
+                    return i32t %18;
                 }
             }
             lb43:
-            i32t %18 = local5();
-            i32t %20 = i8s %5 as i32;
-            i32t %19 = i32t %20 + i32t %18;
-            return i32t %19;
+            i32t %20 = local5();
+            i8t %19 = i32t %20 as i8;
+            i8t %21 = i8s %5 + i8t %19;
+            return i8t %21;
         }
     }
     fn foo4__u8(u8 a, u8 b) -> u8
@@ -58,23 +59,24 @@ start() {
         u8s %10 = load_arg();
         {
             u8s %9 = alloc;
-            u8t %21 = i8n 10 as u8;
-            u8s %9 = u8t %21;
+            u8t %22 = i8n 10 as u8;
+            u8s %9 = u8t %22;
             i32s %8 = alloc;
-            i32t %22 = i8n 10 as i32;
-            i32s %8 = i32t %22;
-            goto lb81;
+            i32t %23 = i8n 10 as i32;
+            i32s %8 = i32t %23;
+            goto lb82;
             fn local6() -> i32
             {
                 {
-                    return i8n 10;
+                    i32t %24 = i8n 10 as i32;
+                    return i32t %24;
                 }
             }
-            lb81:
-            i32t %23 = local6();
-            i32t %25 = u8s %9 as i32;
-            i32t %24 = i32t %25 + i32t %23;
-            return i32t %24;
+            lb82:
+            i32t %26 = local6();
+            u8t %25 = i32t %26 as u8;
+            u8t %27 = u8s %9 + u8t %25;
+            return u8t %27;
         }
     }
 }
