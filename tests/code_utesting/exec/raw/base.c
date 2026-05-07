@@ -88,8 +88,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    AST_DVRT_resolve_calls(sctx.r, &smt);
-
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
