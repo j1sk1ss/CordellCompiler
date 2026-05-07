@@ -241,7 +241,16 @@ Params:
         list_add(&nd->annots, annot);                                                      \
     }
 
-// TODO: docs
+/*
+Resolve type ID by its name and scope id. Will lookup the type in the current 
+scope ID from the context.
+Params:
+    - `t` - Token which represents the type.
+    - `ctx` - AST context.
+    - `smt` - Symtable.
+
+Returns NO_SYMBOL_ID if it isn't a registered type or id from the table.
+*/
 symbol_id_t type_lookup(token_t* t, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*

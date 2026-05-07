@@ -25,7 +25,13 @@ static inline int forward_token(list_iter_t* it, int steps) {
     return 1;
 }
 
-// TODO: docs
+/*
+Peek the next token in the querry.
+Params:
+    - `it` - Current iterator.
+
+Returns NULL or a token.
+*/
 static inline token_t* look_next_token(list_iter_t* it) {
     if (!list_iter_next_top(it)) return NULL;
     return (token_t*)list_iter_next_top(it);

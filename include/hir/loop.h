@@ -80,7 +80,18 @@ Returns the size of nested structure.
 */
 int HIR_LTREE_nested_count(loop_node_t* node);
 
-// TODO: docs
+/*
+Delete all empty loops such as:
+```cpl
+loop {
+}
+```
+, and etc.
+Params:
+    - `lctx` - Loop tree context.
+
+Returns 1 if succeeds.
+*/
 int HIR_LOOP_perform_dle(ltree_ctx_t* lctx);
 
 /*
