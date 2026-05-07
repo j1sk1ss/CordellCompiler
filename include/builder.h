@@ -40,6 +40,9 @@
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
 
+/* HLIR copy prop */
+#include <lir/copyprop.h>
+
 /* HLIR constfold part */
 #include <lir/constfold.h>
 

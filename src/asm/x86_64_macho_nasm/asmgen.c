@@ -244,9 +244,9 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
 
-    if (fi.flags.global)     EMIT_COMMAND("global %s", fi.name->body);
-    else if (fi.flags.entry) EMIT_COMMAND("global %s", fi.virt->body);
-    if (fi.flags.external)   EMIT_COMMAND("extern %s", fi.name->body);
+    if (fi.flags.entry)       EMIT_COMMAND("global %s", fi.virt->body);
+    else if (fi.flags.global) EMIT_COMMAND("global %s", fi.name->body);
+    if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
     lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
     while (lh) {
         _convert_lirblock_to_assembly(lh, &fi, smt, output);
