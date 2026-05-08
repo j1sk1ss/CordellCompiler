@@ -103,6 +103,12 @@ int LIR_copy_propagation(cfg_ctx_t* cctx) {
                     case LIR_TU8: if (
                         lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL
                     ) break;
+                    case LIR_LOADFRET:
+                    case LIR_LOADFARG:
+                    case LIR_STARGLD: {
+                        goto _go_to_default;
+                        // TODO:
+                    }
                     case LIR_aMOV:
                     case LIR_iMOV: {
                         if (lh->farg->t != LIR_VARIABLE) break;
@@ -118,6 +124,7 @@ int LIR_copy_propagation(cfg_ctx_t* cctx) {
                         break;
                     }
                     default: {
+_go_to_default: {}
                         if (
                             LIR_is_readop(lh->op) &&
                             lh->op != LIR_aMOV &&    /* Reserved mov operations which must be saved    */

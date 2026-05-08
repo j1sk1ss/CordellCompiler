@@ -17,7 +17,7 @@ start(i32 argc, ptr ptr i8 argv) {
         }
     }
 
-    exit pc;
+    exit pc as u8;
 }
 
 :/ OUTPUT

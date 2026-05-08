@@ -45,12 +45,11 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
         return NULL;
     }
 
-    string_t* virt_name = NULL;
-    if (annots.is_entry) {
-        if (!annots.fname) annots.fname = main_name->copy(main_name);  
-        virt_name = annots.fname;
+    if (!annots.fname) {
+        annots.fname = main_name->copy(main_name);
     }
 
+    string_t* virt_name = annots.fname;
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     base->sinfo.v_id = FNTB_add_info(
         main_name, virt_name, 1, 0, 1, annots.is_naked, 0, 0, base->sinfo.s_id, base, NULL, &smt->f

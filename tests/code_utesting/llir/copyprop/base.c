@@ -10,7 +10,6 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -80,12 +79,14 @@ int main(int argc, char* argv[]) {
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
-    call_graph_t callctx;
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
 
     HIR_FUNC_set_last_return(&cfgctx);
 
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);
+    
     RELOAD_CFG; // Rebuild after Last_ret + TRE
 
     HIR_CFG_create_domdata(&cfgctx);

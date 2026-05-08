@@ -10,7 +10,7 @@ start() {
         i += 1;
     }
 
-    exit acc & 0xFF;
+    exit (acc & 0xFF) as u8;
 }
 
 :/ OUTPUT
