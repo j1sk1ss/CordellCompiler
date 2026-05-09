@@ -78,13 +78,14 @@ int HIR_is_defined_type(hir_subject_type_t t) {
     switch (t) {
         case HIR_U8NUMBER:    case HIR_I8NUMBER:
         case HIR_U16NUMBER:   case HIR_I16NUMBER:
-        case HIR_U32NUMBER:   case HIR_I32NUMBER:   case HIR_F32NUMBER:
-        case HIR_U64NUMBER:   case HIR_I64NUMBER:   case HIR_F64NUMBER:
+        case HIR_U32NUMBER:   case HIR_I32NUMBER: case HIR_F32NUMBER:
+        case HIR_U64NUMBER:   case HIR_I64NUMBER: case HIR_F64NUMBER:
         case HIR_NUMBER:   return 1;
         case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
         case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
         case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
-        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL: return 2;
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL: 
+        case HIR_CONSTVAL: return 2;
         default: return 0;
     }
 }
@@ -421,4 +422,33 @@ int HIR_is_float(hir_subject_type_t t) {
         case HIR_TMPVARF32: return 1;
         default: return 0;
     }
+}
+
+typedef enum {
+    HIR_OPERATION_CAST_TYPE,
+    HIR_OPERATION_NOTYPE
+} hir_operation_type_t;
+
+hir_operation_type_t _get_operation_type(hir_operation_t op) {
+    switch (op) {
+        case HIR_TPTR:
+        case HIR_TF64:
+        case HIR_TF32:
+        case HIR_TI64:
+        case HIR_TI32:
+        case HIR_TI16:
+        case HIR_TI8: 
+        case HIR_TU64:
+        case HIR_TU32:
+        case HIR_TU16:
+        case HIR_TU8:  return HIR_OPERATION_CAST_TYPE;
+        default:       return HIR_OPERATION_NOTYPE;
+    }
+}
+
+int HIR_is_operations_similar(hir_operation_t a, hir_operation_t b) {
+    hir_operation_type_t aa = _get_operation_type(a);
+    return (
+        aa == _get_operation_type(b) && aa == HIR_OPERATION_CAST_TYPE
+    ) || a == b;
 }

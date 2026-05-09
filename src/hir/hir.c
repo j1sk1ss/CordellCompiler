@@ -132,6 +132,53 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
     return subj;
 }
 
+int HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b) {
+    if (!a || !b) return 0;
+    if (a == b) return 1;
+    switch (a->t) {
+        case HIR_PHISET:  return (a->t == b->t) && (set_size(&a->storage.set.h) == set_size(&b->storage.set.h));     break;
+        case HIR_ARGLIST: return (a->t == b->t) && (list_size(&a->storage.list.h) == list_size(&b->storage.list.h)); break;
+        case HIR_TMPVARSTR: case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
+        case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
+        case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
+        case HIR_TMPVARI0:
+        case HIR_STKVARSTR: case HIR_STKVARARR: case HIR_STKVARF64: case HIR_STKVARU64:
+        case HIR_STKVARI64: case HIR_STKVARF32: case HIR_STKVARU32: case HIR_STKVARI32:
+        case HIR_STKVARU16: case HIR_STKVARI16: case HIR_STKVARU8:  case HIR_STKVARI8:
+        case HIR_STKVARI0:
+        case HIR_GLBVARSTR: case HIR_GLBVARARR: case HIR_GLBVARF64: case HIR_GLBVARU64:
+        case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
+        case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
+        case HIR_GLBVARI0: return HIR_is_vartype(b->t) && (a->ptr == b->ptr);
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
+        case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
+        case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
+        case HIR_NUMBER:   return (HIR_is_defined_type(b->t) == 1) && a->storage.num.value->equals(a->storage.num.value, b->storage.num.value);
+        case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
+        case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
+        case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL: 
+        case HIR_CONSTVAL: return (HIR_is_defined_type(b->t) == 2) && (a->storage.cnst.value == b->storage.cnst.value);
+        default: return 1;
+    }
+}
+
+int HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b) {
+    hir_subject_t* aa[] = { a->farg, a->sarg, a->targ };
+    hir_subject_t* bb[] = { b->farg, b->sarg, b->targ };
+    for (int i = 0; i < 3; i++) {
+        if (!aa[i] && !bb[i]) continue;
+        if (
+            !aa[i] || !bb[i] ||
+            !HIR_subject_shallow_equals(aa[i], bb[i]) ||
+            HIR_is_sign(aa[i]->t) != HIR_is_sign(bb[i]->t) ||
+            HIR_get_type_size(aa[i]->t) < HIR_get_type_size(bb[i]->t)
+        ) return 0;
+    }
+
+    return HIR_is_operations_similar(a->op, b->op);
+}
+
 hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     if (!s) return NULL;
     hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value);

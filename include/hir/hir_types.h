@@ -215,5 +215,6 @@ int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
 int HIR_is_sideeffect_op(hir_operation_t op);
 token_type_t HIR_get_tmptkn_type(hir_subject_type_t t);
 int HIR_is_float(hir_subject_type_t t);
+int HIR_is_operations_similar(hir_operation_t a, hir_operation_t b);
 
 #endif

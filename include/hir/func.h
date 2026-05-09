@@ -111,4 +111,7 @@ Returns 1 if succeeds.
 */
 int HIR_FUNC_set_last_return(cfg_ctx_t* cctx);
 
+// TODO: docs
+int HIR_FUNC_delete_duplicated_functions(cfg_ctx_t* ctx);
+
 #endif
