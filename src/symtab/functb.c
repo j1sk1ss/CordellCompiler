@@ -119,10 +119,16 @@ symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx) {
     print_log("FNTB_add_copy(id=%llu)", src->id);
     func_info_t* nnd = _create_func_info(src->name, 0, 0, 0, 0, 0, 0, src->args, src->rtype);
     if (!nnd) return NO_SYMBOL_ID;
+    
     str_memcpy(&nnd->flags, &src->flags, sizeof(src->flags));
     nnd->id   = ctx->curr_id++;
     nnd->virt = _create_virt_name(nnd->id, src->name);
     nnd->s_id = NO_SYMBOL_ID;
+
+    foreach (symbol_id_t t_id, &src->template.registered_types) {
+        list_add(&nnd->template.registered_types, (void*)t_id);
+    }
+
     map_put(&ctx->functb, nnd->id, nnd);
     return nnd->id;
 }
@@ -169,7 +175,7 @@ int FNTB_update_func(
         }
 
         if (rtype) {
-            AST_unload(rtype);
+            AST_unload(fi->rtype);
             fi->rtype = AST_copy_node(rtype, 0, 0, 1, NULL);
         }
 
@@ -261,7 +267,7 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx
             AST_unload(rtype);
             return existed.id;
         }
-
+        
         func_info_t* n = _create_func_info(
             fi->name, 
             fi->flags.global, fi->flags.local, fi->flags.entry, fi->flags.naked, fi->flags.vargs, 0,
@@ -278,7 +284,7 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx
         n->s_id    = fi->s_id;
         n->id      = ctx->curr_id++;
         n->virt    = _create_virt_name(n->id, n->name);
-
+        
         if (n->virt) {
             foreach (token_type_t* t, types) {
                 n->virt->rcat(n->virt, "__");

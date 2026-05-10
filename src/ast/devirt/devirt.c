@@ -57,7 +57,7 @@ static int _find_type_usage(ast_node_t* node, ast_node_t* root, map_t* types, sy
     _find_type_usage(node->c, root, types, smt);
     if (!node->t) return 0;
     if (TKN_is_builtin_type(node->t) || node->t->t_type == GENERIC_TYPE_TOKEN) {
-        long t;
+        long t = GENERIC_TYPE_TOKEN;
         if (
             node->t->t_type == GENERIC_TYPE_TOKEN && 
             map_get(types, node->sinfo.v_id, (void**)&t)
@@ -88,25 +88,40 @@ static int _update_function_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t n
 }
 
 // TODO: docs
-static int _find_function_declaration(ast_node_t* node, ast_node_t* root, sym_table_t* smt) {
+static int _find_function_declaration(ast_node_t* node, ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx) {
     if (!node) return 0;
-    _find_function_declaration(node->siblings.n, root, smt);
-    _find_function_declaration(node->c, root, smt);
+    _find_function_declaration(node->siblings.n, root, smt, ctx);
+    _find_function_declaration(node->c, root, smt, ctx);
     if (!node->t) return 0;
-    ast_node_t* name = NULL;
-    if (
-        node->t->t_type == FUNC_TOKEN && 
-        node->c && node->c->t->t_type == FUNC_NAME_TOKEN
-    ) name = node->c;
-    else if (
-        node->t->t_type == LAMBDA_FUNCTION_TOKEN
-    ) name = node;
+    ast_node_t *name = NULL, *args = NULL, *rtype = NULL;
+    switch (node->t->t_type) {
+        case FUNC_TOKEN: {
+            name  = node->c;
+            rtype = name->c;
+            args  = name->siblings.n;
+            break;
+        }
+        case LAMBDA_FUNCTION_TOKEN: {
+            name = node;
+            args = name->c;
+            break;
+        }
+        default: break;
+    }
 
     if (name) {
         func_info_t fi;
         if (FNTB_get_info_id(name->sinfo.v_id, &fi, &smt->f)) {
             name->sinfo.v_id = FNTB_add_copy(&fi, &smt->f);
+            FNTB_update_func(
+                name->sinfo.v_id, NULL, 
+                FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 
+                args, rtype, &smt->f
+            );
             _update_function_id(root, fi.id, name->sinfo.v_id);
+            if (fi.flags.generic) {
+                AST_DVRT_register_template(name->sinfo.v_id, node, ctx);
+            }
         }
     }
 
@@ -121,7 +136,7 @@ ast_node_t* _implement_template(ast_node_t* root, symbol_id_t f_id, sym_table_t*
     ast_node_t* copy = AST_copy_node(root, 0, 0, 1, NULL);
     
     _find_type_usage(copy, copy, &fi.template.generic, smt);
-    _find_function_declaration(copy->c, copy, smt);
+    _find_function_declaration(copy->c, copy, smt, ctx);
 
     AST_DVRT_resolve_calls(copy, smt, ctx);
     copy->c->sinfo.v_id = f_id;

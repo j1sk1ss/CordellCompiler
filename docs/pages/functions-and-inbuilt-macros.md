@@ -114,6 +114,17 @@ function bar<K, L, M>() -> M {
 **Note 2:** You can declare a generic function as a header in the same way as you can do this with a regular function. </br>
 **Note 3:** You can't use overloads with generic functions. Overloads can be used as an alternative approach if you want change the logic of a function. </br>
 **Note 4:** Lambda function can't be a generic function.
+**Note 5:** You can use generic types either in local functions or lamda functions as well, but only if they are declared in a generic function:
+```cpl
+function generic<T>() -> T {
+    function _local(T a) -> T;  :/ Prototype of a local function /:
+    function _local(T a) -> T { :/ Generic local function        /:
+        return a * 2;
+    }
+    return ((T a) => a * a)(_local(1 as T)) as T;
+}
+generic<i8>(); :/ 4 /:
+```
 
 ## Function pointers
 A function can be stored as a pointer:

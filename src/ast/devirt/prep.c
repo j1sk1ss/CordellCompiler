@@ -7,15 +7,14 @@ static int _find_and_register_template(ast_node_t* node, sym_table_t* smt, devir
     if (!node->t || !node->c) return 0;
 
     func_info_t fi;
-    if (!FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)) return 0;
+    if (
+        !FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f) ||
+        !fi.flags.generic
+    ) return 0;
 
     switch (node->t->t_type) {
         case FUNC_TOKEN:
-        case FUNC_PROT_TOKEN: {
-            if (!fi.flags.generic) return 0;
-            AST_DVRT_register_template(fi.id, node->t->t_type == FUNC_TOKEN ? node : NULL, ctx);
-            break;
-        }
+        case FUNC_PROT_TOKEN: AST_DVRT_register_template(fi.id, node->t->t_type == FUNC_TOKEN ? node : NULL, ctx);
         default: break;
     }
 

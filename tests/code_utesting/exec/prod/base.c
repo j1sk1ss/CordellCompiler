@@ -102,6 +102,7 @@ int main(int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_CG_build(&cfgctx, &callctx, &smt);
 
+    HIR_FUNC_delete_duplicated_functions(&cfgctx);
     HIR_FUNC_set_last_return(&cfgctx);
     HIR_FUNC_perform_tre(&cfgctx, &smt);
 

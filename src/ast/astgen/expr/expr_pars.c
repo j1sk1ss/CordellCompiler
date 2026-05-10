@@ -199,8 +199,10 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 forward_token(it, 1);
                 int annot_off = annotation_reserve(ctx);
 
+                symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
                 ast_node_t* node = NULL;
                 if (
+                    type != NO_SYMBOL_ID || 
                     TKN_is_builtin_type(CURRENT_TOKEN) || 
                     CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
                 ) node = cpl_parse_lambda(it, ctx, smt, 0);
