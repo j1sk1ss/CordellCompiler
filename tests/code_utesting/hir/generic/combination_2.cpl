@@ -25,7 +25,6 @@ start() {
             bar5__i32__i8(i32s %7, i8n 1);
         }
     }
-    goto lb30;
     fn bar5__i32__i8(i32 b, i32 c) -> i32
     {
         i32s %10 = alloc;
@@ -36,6 +35,5 @@ start() {
             i8s %8 = alloc;
         }
     }
-    lb30:
 }
 /:

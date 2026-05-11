@@ -36,25 +36,48 @@ int AST_DVRT_register_implementation(symbol_id_t f_id, symbol_id_t src_id, devir
     return queue_push(&ctx->to_impl, tmpl);
 }
 
-// TODO: docs
+/*
+Change all encounters of a variable with a copy ID.
+Params:
+    - `node` - Root node.
+    - `v_id` - Old variable Id.
+    - `nv_id` - New variable Id.
+    - `t` - New token type for a generic variables.
+
+Returns 1 if succeeds.
+*/
 static int _update_variable_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, token_type_t t) {
     if (!node) return 0;
     _update_variable_id(node->siblings.n, v_id, nv_id, t);
     _update_variable_id(node->c, v_id, nv_id, t);
     if (!node->t) return 0;
-    if (TKN_is_variable(node->t) && node->sinfo.v_id == v_id) {
+    if (
+        TKN_is_variable(node->t) && 
+        node->sinfo.v_id == v_id
+    ) {
         node->sinfo.v_id = nv_id;
-        if (node->t->t_type == GENERIC_VARIABLE_TOKEN) node->t->t_type = t;
+        if (node->t->t_type == GENERIC_VARIABLE_TOKEN) {
+            node->t->t_type = t;
+        }
     }
 
     return 1;
 }
 
-// TODO: docs
-static int _find_type_usage(ast_node_t* node, ast_node_t* root, map_t* types, sym_table_t* smt) {
+/*
+Find any occurance of a generic type and replace it with implementation map.
+Params:
+    - `node` - Root node.
+    - `root` - Root node copy.
+    - `types` - Types map for a function.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds.
+*/
+static int _find_type_usage_and_replace(ast_node_t* node, ast_node_t* root, map_t* types, sym_table_t* smt) {
     if (!node) return 0;
-    _find_type_usage(node->siblings.n, root, types, smt);
-    _find_type_usage(node->c, root, types, smt);
+    _find_type_usage_and_replace(node->siblings.n, root, types, smt);
+    _find_type_usage_and_replace(node->c, root, types, smt);
     if (!node->t) return 0;
     if (TKN_is_builtin_type(node->t) || node->t->t_type == GENERIC_TYPE_TOKEN) {
         long t = GENERIC_TYPE_TOKEN;
@@ -74,7 +97,15 @@ static int _find_type_usage(ast_node_t* node, ast_node_t* root, map_t* types, sy
     return 1;
 }
 
-// TODO: docs
+/*
+Find all function names and replace its Id with a new one.
+Params:
+    - `node` - Root node.
+    - `v_id` - Old function Id.
+    - `nv_id` - New function Id.
+
+Returns 1 if succeeds.
+*/
 static int _update_function_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id) {
     if (!node) return 0;
     _update_function_id(node->siblings.n, v_id, nv_id);
@@ -87,11 +118,20 @@ static int _update_function_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t n
     return 1;
 }
 
-// TODO: docs
-static int _find_function_declaration(ast_node_t* node, ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx) {
+/*
+Find any local function declaration (lambda as well) and replace it with a copy.
+Params:
+    - `node` - Root node.
+    - `root` - Root node copy.
+    - `smt` - Symtable.
+    - `ctx` - Devirt context.
+
+Returns 1 if succeeds. 
+*/
+static int _find_function_declaration_and_replace(ast_node_t* node, ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx) {
     if (!node) return 0;
-    _find_function_declaration(node->siblings.n, root, smt, ctx);
-    _find_function_declaration(node->c, root, smt, ctx);
+    _find_function_declaration_and_replace(node->siblings.n, root, smt, ctx);
+    _find_function_declaration_and_replace(node->c, root, smt, ctx);
     if (!node->t) return 0;
     ast_node_t *name = NULL, *args = NULL, *rtype = NULL;
     switch (node->t->t_type) {
@@ -115,7 +155,8 @@ static int _find_function_declaration(ast_node_t* node, ast_node_t* root, sym_ta
             name->sinfo.v_id = FNTB_add_copy(&fi, &smt->f);
             FNTB_update_func(
                 name->sinfo.v_id, NULL, 
-                FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 
+                /* Generic is not a local anymore 'cause it will be generated not in a parent function */
+                FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, !fi.flags.generic, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 
                 args, rtype, &smt->f
             );
             _update_function_id(root, fi.id, name->sinfo.v_id);
@@ -128,15 +169,24 @@ static int _find_function_declaration(ast_node_t* node, ast_node_t* root, sym_ta
     return 1;
 }
 
-// TODO: docs
+/*
+Take a copy of a template and replace its types with the implementation types.
+Params:
+    - `root` - Template root node.
+    - `f_id` - Implementation function Id.
+    - `smt` - Symtable.
+    - `ctx` - Devir context.
+
+Returns 1 if succeeds.
+*/
 ast_node_t* _implement_template(ast_node_t* root, symbol_id_t f_id, sym_table_t* smt, devirt_ctx_t* ctx) {
     if (f_id == NO_SYMBOL_ID) return root;
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return root;
     ast_node_t* copy = AST_copy_node(root, 0, 0, 1, NULL);
     
-    _find_type_usage(copy, copy, &fi.template.generic, smt);
-    _find_function_declaration(copy->c, copy, smt, ctx);
+    _find_type_usage_and_replace(copy, copy, &fi.template.generic, smt);
+    _find_function_declaration_and_replace(copy->c, copy, smt, ctx);
 
     AST_DVRT_resolve_calls(copy, smt, ctx);
     copy->c->sinfo.v_id = f_id;

@@ -7,7 +7,7 @@ start() {
         a = a + b;
         b = tmp;
     }
-    exit b;
+    exit b as u8;
 }
 
 :/ OUTPUT
