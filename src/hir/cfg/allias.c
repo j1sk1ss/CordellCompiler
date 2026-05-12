@@ -65,7 +65,7 @@ Params:
     - `cctx` - CFG context.
     - `smt` - Symtable.
 
-Return 1 if operation succeed.
+Returns 1 on success.
 */
 int _mark_copies(symbol_id_t master, symbol_id_t slave, cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {

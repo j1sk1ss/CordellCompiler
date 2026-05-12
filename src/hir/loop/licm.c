@@ -83,7 +83,7 @@ Params:
     - `loop` - Loop blocks.
     - `b` - Output set of HIR blocks.
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _get_loop_hir_blocks(set_t* loop, set_t* b) {
     set_foreach (cfg_block_t* bb, loop) {
@@ -155,10 +155,10 @@ Params:
     - `hh` - HIR block.
     - `s` - Output set.
     - `smt` - Symtable.
-    - `loop_hir` - Loop to consideration.
+    - `loop_hir` - Loop to consider.
     - `visited` - Guards.
 
-Returns 1 if the block does.
+Returns 1 if the block matches.
 */
 static int _hir_uses_any_vid_from_set(hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir);
 
@@ -179,7 +179,7 @@ Parmas:
     - `inductive` - Inductive variables set. 
                     Note: Inductive variable is a variable like `a += 1`, etc.
     
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* inductive, sym_table_t* smt) {
     int changed = 1;
@@ -250,9 +250,9 @@ Params:
     - `hh` - HIR block.
     - `v_id` - Variable to check.
     - `smt` - Symtable.
-    - `loop_hir` - Loop to consideration.
+    - `loop_hir` - Loop to consider.
 
-Returns 1 if the block does.
+Returns 1 if the block matches.
 */
 static int _hir_rhs_depends_on_vid(
     hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
@@ -264,9 +264,9 @@ Params:
     - `hh` - HIR block.
     - `v_id` - Variable to check.
     - `smt` - Symtable.
-    - `loop_hir` - Loop to consideration.
+    - `loop_hir` - Loop to consider.
 
-Returns 1 if the block does.
+Returns 1 if the block matches.
 */
 static int _hir_subject_depends_on_vid(
     hir_subject_t* s, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
@@ -301,9 +301,9 @@ Params:
     - `hh` - HIR block.
     - `v_id` - Variable to check.
     - `smt` - Symtable.
-    - `loop_hir` - Loop to consideration.
+    - `loop_hir` - Loop to consider.
 
-Returns 1 if the block does.
+Returns 1 if the block matches.
 */
 static int _hir_uses_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir) {
     set_t visited;
@@ -319,10 +319,10 @@ Params:
     - `hh` - HIR block.
     - `s` - Output set.
     - `smt` - Symtable.
-    - `loop_hir` - Loop to consideration.
+    - `loop_hir` - Loop to consider.
     - `visited` - Guards.
 
-Returns 1 if the block does.
+Returns 1 if the block matches.
 */
 static int _hir_rhs_depends_on_any_vid_from_set(
     hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
@@ -333,10 +333,10 @@ Check whether a subject is dependent on any outside variable.
 We need to check this to be sure that we can safely move a block from
 a loop. Additionally, we can check whether a block is inductive or not.
 Params:
-    - `subj` - Subject to consideration.
+    - `subj` - Subject to consider.
     - `s` - Output set of dependencies.
     - `smt` - Symtable.
-    - `loop_hir` - Current loop to consideration.
+    - `loop_hir` - Current loop to consider.
     - `visited` - Gurads.
 
 Returns 1 if the subject depends on outside data.
@@ -453,7 +453,7 @@ Params:
     - `smt` - Symtable.
     - `licm` - Perfrorm LICM operation?
 
-Returns 1 if succeeds, otherwise will return 0. 
+Returns 1 on success, otherwise 0.
 */
 static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, int licm) {
     cfg_block_t* preheader = _insert_preheader(cctx, loop->header, &loop->blocks);
@@ -511,7 +511,7 @@ Params:
     - `smt` - Symtable.
     - `licm` - Perform LICM transformation.
 
-Returns 1 if has changed, otherwise will return 0.
+Returns 1 if it changed something, otherwise 0.
 */
 int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, int licm) {
     int changed = 0;

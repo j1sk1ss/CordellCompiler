@@ -260,7 +260,7 @@ Params:
     - `ctx` - AST context.
     - `smt` - Symtable.
 
-Return 1 if succeed.
+Returns 1 on success.
 */
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt);
 
@@ -528,7 +528,7 @@ Params:
     - `ctx` - AST ctx.
     - `smt` - Symtable pointer.
 
-Returns 0 if something went wrong. Otherwise will return 1.
+Returns 0 if something went wrong, otherwise 1.
 */
 int cpl_parse_funcdef_args(PARSER_ARGS);
 

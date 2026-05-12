@@ -34,16 +34,24 @@ Returns 1 if succeeds.
 int LIR_DFG_compute_inout(cfg_ctx_t* cctx);
 
 /*
-Put deallocate commands where it needed.
+Put deallocate commands where needed.
 Params:
     - `cctx` - CFG context.
-    - `smt` - Symteable.
+    - `smt` - Symtable.
 
 Returns 1 if succeeds.
 */
 int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt);
 
-// TODO: docs
+/*
+Sort phi-move groups according to assigned register colors to avoid clobbering
+source registers before they are copied.
+Params:
+    - `cctx` - CFG context.
+    - `colors` - Map from variable ids to allocated registers.
+
+Returns 1 on success, otherwise 0.
+*/
 int LIR_RA_sort_phi_movs(cfg_ctx_t* cctx, map_t* colors);
 
 #endif

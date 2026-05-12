@@ -66,7 +66,7 @@ Params:
     - `f` - Basic function.
     - `ctx` - CFG context.
 
-Return 1 if the block was sucesfully appended.
+Returns 1 if the block was appended successfully.
 */
 static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, cfg_ctx_t* ctx) {
     cfg_block_t* b = HIR_CFG_create_cfg_block(entry);
@@ -143,7 +143,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
         }
     }
 
-    /* Register successors and precessors */
+    /* Register successors and predecessors */
     foreach (cfg_func_t* fb, &ctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             if (cb->l)   set_add(&cb->l->pred, cb);
@@ -156,7 +156,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
 
 int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx) {
     /* Clean the CFG by destroying the link from blocks,
-       without any precessors (except initial). */
+       without any predecessors (except initial). */
     foreach (cfg_func_t* fb, &ctx->funcs) {
         int first = 1;
         foreach (cfg_block_t* cb, &fb->blocks) {
@@ -165,7 +165,7 @@ int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx) {
                 continue;
             }
 
-            /* This block doesn't have any precessors, which means,
+            /* This block doesn't have any predecessors, which means,
                we need to destroy link from this block (this is the dead end),
                and mark all related HIR blocks as unused blocks. */
             if (!set_size(&cb->pred)) {

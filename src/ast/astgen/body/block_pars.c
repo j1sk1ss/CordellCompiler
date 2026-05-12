@@ -17,8 +17,8 @@ typedef struct {
         .types_count = (int)sizeof((const token_type_t[]){ __VA_ARGS__ }) / sizeof(token_type_t) \
     }
 
-/* Token handlers. The main point where the parser decide which parser
-must be invoked for the provided token.
+/* Token handlers. The main point where the parser decides which parser
+must handle the provided token.
 Note: ! If you're extending the parser, add a new handler here ! */
 static const handler_t handlers[] = {
     HANDLER(cpl_parse_annot,             0, ANNOTATION_TOKEN),
@@ -146,10 +146,10 @@ ast_node_t* cpl_parse_block(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != carry) {
         ast_node_t* block = cpl_parse_element(it, ctx, smt, carry);
-        if (block) AST_add_node(base, block);  /* If we parse succesfully, add a product to the body */
-        else if (!forward_token(it, 1)) break; /* If there is a error, proceed the next token        */
+        if (block) AST_add_node(base, block);  /* If parsing succeeds, add the parsed node to the body */
+        else if (!forward_token(it, 1)) break; /* If there is an error, advance to the next token      */
     }
 
-    forward_token(it, 1); /* Move from the parser */
+    forward_token(it, 1); /* Move past the block terminator */
     return base;
 }

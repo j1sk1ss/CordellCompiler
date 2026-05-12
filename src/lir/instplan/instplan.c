@@ -64,7 +64,7 @@ Params:
     - exit - Search exit point.
     - trg - Target first argument.
 
-Return NULL if there is no command with a first argument equals to 'trg'.
+Return NULL if there is no command with a first argument equal to 'trg'.
 */
 static lir_block_t* _find_src(lir_block_t* lh, lir_block_t* exit, lir_subject_t* trg) {
     while (lh) {
@@ -106,7 +106,7 @@ Params:
     - bb - Current BaseBlock.
     - dag - Instruction DAG context.
 
-Return 1 if DAG construction is succeed.
+Returns 1 if DAG construction succeeds.
 */
 static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);

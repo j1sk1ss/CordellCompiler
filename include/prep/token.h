@@ -60,7 +60,7 @@ Deallocated space that was claimed by the token.
 Params:
     - `t` - Token.
 
-Return 1 if allocation was succeed, otherwise return 0.
+Returns 1 if allocation succeeded, otherwise 0.
 */
 int TKN_unload_token(token_t* t);
 

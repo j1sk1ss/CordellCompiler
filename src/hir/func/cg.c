@@ -22,7 +22,7 @@ Params:
     - `f_id` - Function ID.
     - `ctx` - Call graph context.
 
-Returns 1 if succeeds. Otherwise will return 0. 
+Returns 1 on success, otherwise 0.
 */
 static inline int _register_func(symbol_id_t f_id, call_graph_t* ctx) {
     call_graph_node_t* f = _create_cgraph_node(f_id);
@@ -73,7 +73,7 @@ Params:
     - `cctx` - CFG context.
     - `ctx` - Call graph context.
 
-Returns 1 if succeeds. Oterwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {

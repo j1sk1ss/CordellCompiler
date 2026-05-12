@@ -43,7 +43,7 @@ Example:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_ro_assign(AST_VISITOR_ARGS);
 
@@ -58,7 +58,7 @@ Example:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_rtype_assign(AST_VISITOR_ARGS);
 
@@ -72,7 +72,7 @@ Example:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_not_init(AST_VISITOR_ARGS);
 
@@ -87,7 +87,7 @@ If value has different with declaration type, will file a warning.
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS);
 
@@ -106,7 +106,7 @@ Example:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_no_return(AST_VISITOR_ARGS);
 
@@ -125,7 +125,7 @@ Example:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_no_exit(AST_VISITOR_ARGS);
 
@@ -141,7 +141,7 @@ Example:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_not_enough_args(AST_VISITOR_ARGS);
 
@@ -156,7 +156,7 @@ Example:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS);
 
@@ -171,7 +171,7 @@ Example:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS);
 
@@ -195,7 +195,7 @@ will produce branch redundancy warning.
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS);
 
@@ -209,7 +209,7 @@ ASTWLKR_valid_function_name checks function name for next options:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_valid_function_name(AST_VISITOR_ARGS);
 
@@ -223,7 +223,7 @@ For instance:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS);
 
@@ -241,7 +241,7 @@ For instance:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_deadcode(AST_VISITOR_ARGS);
 
@@ -251,7 +251,7 @@ This isn't a important warning, but still essential for supporting well-typed ap
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_implict_convertion(AST_VISITOR_ARGS);
 
@@ -274,7 +274,7 @@ performance.
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_inefficient_while(AST_VISITOR_ARGS);
 
@@ -293,7 +293,7 @@ For instance:
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_wrong_exit(AST_VISITOR_ARGS);
 
@@ -315,7 +315,7 @@ loop {
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_break_without_statement(AST_VISITOR_ARGS);
 
@@ -330,7 +330,7 @@ May be a mistake. We need fire a warning.
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_incorrect_align(AST_VISITOR_ARGS);
 
@@ -340,7 +340,7 @@ and annotations.
 Params:
     - AST_VISITOR_ARGS - Default AST visitor args.
 
-Return 1 if node is correct, otherwise this function will return 0.
+Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS);
 

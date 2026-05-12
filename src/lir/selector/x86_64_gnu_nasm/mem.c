@@ -5,7 +5,7 @@ If this is a regular (avaliable for a variable usage) register.
 Params:
     - `r` - Register.
 
-Return 1 if this is a valid register.
+Returns 1 if this is a valid register.
 */
 static inline int _is_regular_register(lir_registers_t r) {
     if (r > R15 || r < 0) return 0;
@@ -38,7 +38,7 @@ Params:
     - `colors` - Register allocation result.
     - `smt` - Symtable.
 
-Return 1 if operation succeed. Otherwise it will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* colors, sym_table_t* smt) {
     variable_info_t vi;
@@ -87,7 +87,7 @@ Params:
     - `bb` - Current base block.
     - `smt` - Symtable.
 
-Returns 1 if an operation was secceed, otherwise it will returns 0.
+Returns 1 if the operation succeeds, otherwise 0.
 */
 static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
@@ -142,7 +142,7 @@ Params:
     - `bb` - Current base block.
     - `smt` - Symtable.
 
-Returns 1 if an operation was secceed, otherwise it will returns 0.
+Returns 1 if the operation succeeds, otherwise 0.
 */
 static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
@@ -234,7 +234,7 @@ Check whether a memory stack is used in a function.
 Params:
     - `fb` - Function block.
 
-Returns 1 if a memory was used, 0 otherwise.
+Returns 1 if memory is used, otherwise 0.
 */
 static int _verify_memory_usage(cfg_func_t* fb) {
     foreach (cfg_block_t* bb, &fb->blocks) {

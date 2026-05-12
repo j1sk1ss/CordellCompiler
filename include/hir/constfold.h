@@ -14,7 +14,7 @@ Params:
     - `dctx` - DAG context.
     - `smt` - Symtable.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt);
 

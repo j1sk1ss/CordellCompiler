@@ -50,7 +50,7 @@ Params:
     - `src` - Considering block.
     - `s` - Considering subject.
 
-Returns 1 if suceed.
+Returns 1 on success.
 */
 static inline void _prepare_subject(hir_block_t* src, hir_subject_t* s) {
     if (s->home && s->home != src && _check_home(s->home, s)) s->home->unused = 1;

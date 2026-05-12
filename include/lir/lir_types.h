@@ -234,7 +234,7 @@ Note: Move-like operation is an operation that moves some data
 Params:
     - `op` - LIR operation.
 
-Returns 1 if the opration is a move-like operation.
+Returns 1 if the operation is a move-like operation.
 */
 int LIR_is_movop(lir_operation_t op);
 
@@ -245,7 +245,7 @@ Note: Write operation is an operation that writes something
 Params:
     - `op` - LIR operation.
 
-Returns 1 if the opration is a write operation.
+Returns 1 if the operation is a write operation.
 */
 int LIR_is_writeop(lir_operation_t op);
 
@@ -254,7 +254,7 @@ Is this a jump-like operation.
 Params:
     - `op` - LIR operation.
 
-Returns 1 if the opration is a jump-like operation.
+Returns 1 if the operation is a jump-like operation.
 */
 int LIR_is_jumpop(lir_operation_t op);
 
@@ -275,7 +275,7 @@ For instance: function call can, write and exit as well.
 Params:
     - `op` - LIR operation.
 
-Returns 1 if the operation has side effect.
+Returns 1 if the operation has a side effect.
 */ 
 int LIR_has_sideeffect(lir_operation_t op);
 

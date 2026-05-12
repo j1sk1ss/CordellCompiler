@@ -23,7 +23,7 @@ typedef struct mm_block {
 Init first memory block in memory manager.
 
 Return -1 if something goes wrong.
-Return 1 if success init.
+Returns 1 if initialization succeeds.
 */
 int mm_init();
 
@@ -61,7 +61,7 @@ Params:
     - ptr - Pointer to allocated data.
 
 Return -1 if something goes wrong.
-Return 1 if free success.
+Returns 1 if freeing succeeds.
 */
 int mm_base_free(const char* f, int l, void* ptr);
 #define mm_free(ptr) mm_base_free(__FILE__, __LINE__, ptr);

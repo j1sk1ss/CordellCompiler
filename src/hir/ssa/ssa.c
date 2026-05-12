@@ -13,7 +13,7 @@ Params:
     - `id` - The source variable ID (Or the head variable ID).
     - `cid` - Current variable ID.
 
-Returns 1 if all succeed. Otherwise will return 0.
+Returns 1 if all operations succeed, otherwise 0.
 */
 static int _add_varver(map_t* vers, symbol_id_t id, symbol_id_t cid) {
     varver_t* vv = (varver_t*)mm_malloc(sizeof(varver_t));
@@ -43,7 +43,7 @@ Params:
     - `h` - HIR block for rename.
     - `ctx` - SSA context.
 
-Returns 1 if all succeed. Otherwise will return 0.
+Returns 1 if all operations succeed, otherwise 0.
 */
 static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
     hir_subject_t* args[3] = { h->farg, h->sarg, h->targ };
@@ -117,7 +117,7 @@ Params:
     - `b` - Previous variable ID.
     - `smt` - Symtable.
 
-Returns 1 if all succeed. Otherwise will return 0.
+Returns 1 if all operations succeed, otherwise 0.
 */
 static int _insert_phi_preamble(cfg_block_t* block, long bid, symbol_id_t a, symbol_id_t b, sym_table_t* smt) {
     if (a == b) return 1;     /* Check is this isn't the same variables */
@@ -168,7 +168,7 @@ Params:
     - `prev_bid` - [Service information] For inital value use '-1'.
     - `smt` - Symtable.
 
-Returns 1 if succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
     if (!b || set_has(&b->visitors, (void*)prev_bid)) return 0;

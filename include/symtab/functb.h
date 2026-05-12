@@ -52,7 +52,7 @@ Params:
     - `out` - The output list.
     - `ctx` - Function symbol table.
 
-Returns 1 if succeeds. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx);
 
@@ -63,7 +63,7 @@ Params:
     - `out` - Function output body.
     - `ctx` - Function symbol table.
 
-Returns 1 if succeeds. Otherwise will return 0. 
+Returns 1 on success, otherwise 0.
 */
 int FNTB_get_info_id(symbol_id_t id, func_info_t* out, functab_ctx_t* ctx);
 
@@ -75,7 +75,7 @@ Params:
     - `out` - Function output body.
     - `ctx` - Function symbol table.
 
-Returns 1 if succeeds. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int FNTB_get_info(string_t* fname, symbol_id_t s_id, func_info_t* out, functab_ctx_t* ctx);
 
@@ -144,7 +144,7 @@ Params:
     - `l_id` - Local function.
     - `ctx` - Function symbol table.
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx);
 
@@ -168,7 +168,7 @@ Params:
     - `rtype` - Function's return type from AST.
     - `ctx` - Function symtable context.
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int FNTB_update_func(
     symbol_id_t id, 

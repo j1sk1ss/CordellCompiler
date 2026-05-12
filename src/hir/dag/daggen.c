@@ -8,7 +8,7 @@ Params:
     - `farg` - First DAG's argument.
     - `sarg` - Second DAG's argument.
 
-Return 1 if succeed.
+Returns 1 on success.
 */
 static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* farg, dag_node_t* sarg) {
     map_put(&dctx->groups, dst->hash, dst);

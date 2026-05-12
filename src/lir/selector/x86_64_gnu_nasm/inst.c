@@ -40,7 +40,7 @@ Params:
     - `out` - Output information placeholder.
     - `smt` - Symtable.
 
-Returns 1 if this is a register value, otherwise (stack) will return 0.
+Returns 1 if this is a register value, otherwise 0.
 */
 static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, sym_table_t* smt) {
     int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };

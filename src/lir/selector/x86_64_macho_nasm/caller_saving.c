@@ -8,7 +8,7 @@ Params:
             Note: If this value is NULL, will set all registers as
                   dirty.
 
-Return 1 if operation succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     if (!f) {
@@ -45,7 +45,7 @@ Params:
     - `bbh` - Current BasicBlock.
     - `off` - Lir block off.
 
-Return 1 if operation succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
     if (!bbh || !set_size(dirty)) return 0;

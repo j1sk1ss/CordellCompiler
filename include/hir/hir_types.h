@@ -206,7 +206,7 @@ If the provided subject is a number or a constant.
 Params:
     - `t` - Subject's type.
 
-Returns 1 if this is a number, 2 - if this is a constant. 
+Returns 1 if this is a number, 2 if this is a constant.
 Returns 0 - if this neither a number nor a constant.
 */
 int HIR_is_defined_type(hir_subject_type_t t);

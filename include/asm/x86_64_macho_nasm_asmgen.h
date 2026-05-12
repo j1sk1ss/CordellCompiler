@@ -21,7 +21,7 @@ Params:
 - `smt` - Symtable.
 - `output` - Output location for generated ASM.
 
-Return 1 if success, otherwise - 0.
+Returns 1 on success, otherwise 0.
 */
 int x86_64_macho_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output);
 
@@ -36,7 +36,7 @@ Params:
 - `smt` - Symtable.
 - `flag` - Special flag for instruction emit.
 
-Return 1 if success, otherwise - 0.
+Returns 1 on success, otherwise 0.
 */
 const char* x86_64_macho_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag);
 

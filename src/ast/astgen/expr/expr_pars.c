@@ -78,7 +78,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 break;
             }
             /* Postfix tokens that are change placment in an AST tree.
-               '[]' / '()' / 'as' takes two childs: the pointer and the data. */
+               '[]' / '()' / 'as' takes two children: the pointer and the data. */
             case CONVERT_TOKEN:
             case OPEN_INDEX_TOKEN:
             case OPEN_BRACKET_TOKEN: {

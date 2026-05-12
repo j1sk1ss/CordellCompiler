@@ -1,6 +1,13 @@
 #include <lir/copyprop.h>
 
-// TODO: docs
+/*
+Add variables referenced by a subject to the USE set.
+Params:
+    - `use` - USE set to update.
+    - `arg` - LIR subject to inspect.
+
+Returns 1 if subject was handled, otherwise 0.
+*/
 static int _mark_used_var(set_t* use, lir_subject_t* arg) {
     if (!arg) return 0;
     if (arg->t == LIR_VARIABLE) {
@@ -69,7 +76,15 @@ int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
     return 1;
 }
 
-// TODO: docs
+/*
+Replace readable operands with their propagated copy when a mapping exists.
+Params:
+    - `l` - LIR block to rewrite.
+    - `gen` - Map from variable/register keys to copied subjects.
+    - `t` - Subject type to replace.
+
+Returns 1 if succeeds.
+*/
 static int _replace_with_copy(lir_block_t* l, map_t* gen, lir_subject_type_t t) {
     lir_subject_t** args[] = { &l->farg, &l->sarg, &l->targ };
     for (int i = LIR_is_writeop(l->op); i < 3; i++) {

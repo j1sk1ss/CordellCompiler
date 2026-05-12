@@ -481,11 +481,11 @@ Check the string's case style.
 Params: 
     - `s` - String.
     
-Return -1 when encounter with unknown format
-Return 0 if input string format is camelCase
-Return 1 if input string format is PascalCase
-Return 2 if input string format is kebab-case
-Return 3 if input string format is snake_case
+Returns -1 for an unknown format.
+Returns 0 if the input string is camelCase.
+Returns 1 if the input string is PascalCase.
+Returns 2 if the input string is kebab-case.
+Returns 3 if the input string is snake_case.
 */
 static int _determine_string_style(const char* s) {
     int has_upper = 0;
@@ -607,7 +607,7 @@ Params:
     - `nd` - Base function node.
     - `rtype` - Function return type.
 
-Returns 1 if return types are equals.
+Returns 1 if return types are equal.
 */
 static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* rtype) {
     if (!nd) return 0;

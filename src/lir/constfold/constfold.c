@@ -6,7 +6,7 @@ Params:
     - `s` - LIR subject for constant fold.
     - `smt` - Symtable.
 
-Returns 1 if fold has completed. Otherwise will return 0.
+Returns 1 if folding completed, otherwise 0.
 */
 static int _apply_constfold_on_subject(lir_subject_t* s, sym_table_t* smt) {
     if (s->t != LIR_VARIABLE) return 0;

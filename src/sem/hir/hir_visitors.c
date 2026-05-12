@@ -127,7 +127,7 @@ Params:
     - `smt` - Symtable.
     - `ctx` - HIR visitors context.
 
-Returns 1 if check succeeds. Otherwise it will return 0.
+Returns 1 if the check succeeds, otherwise 0.
 */
 static int _dereference_error(hir_block_t* hb, hir_subject_t* s, string_t* f, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
     defined_variable_t di;
@@ -300,7 +300,7 @@ Params:
     - `buffer` - Output buffer.
     - `buffer_size` - Output buffer size.
 
-Returns 1 if operation succeed. Otherwise it will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int buffer_size) {
     for (int i = 0; i < ptr; i++) {

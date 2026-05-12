@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
     
-    HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_euristic_desider);
+    HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_heuristic_desider);
 
     RELOAD_CFG; // Rebuild after inlined functions
 

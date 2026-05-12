@@ -94,7 +94,13 @@ lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     return reg;
 }
 
-// TODO: docs
+/*
+Check whether an operation writes its destination by moving a value into it.
+Params:
+    - `op` - LIR operation.
+
+Returns 1 if operation is a value-moving write, otherwise 0.
+*/
 static int _is_move_write_by_value(lir_operation_t op) {
     switch (op) {
         case LIR_CDQ:

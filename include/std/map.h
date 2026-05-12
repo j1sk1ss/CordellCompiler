@@ -50,7 +50,7 @@ Params:
               Note: map_equals works only with two m.cmp maps.
               Note 2: Use MAP_NO_CMP and MAP_CMP flags for this field.
 
-Return 1 if init routine success, otherwise this function will return 0.
+Returns 1 if initialization succeeds, otherwise 0.
 */
 int map_init(map_t* m, int cmp);
 
@@ -63,7 +63,7 @@ Params:
             Note: Data can be not only an allocated data. 
                   For instance, to store integeres, just provide them with (void*).
 
-Return 1 if put routine success, otherwise this function will return 0.
+Returns 1 if insertion succeeds, otherwise 0.
 */
 int map_put(map_t* m, long k, void* v);
 
@@ -76,7 +76,7 @@ Params:
             Note: This function will return POINTER to object, not a copy.
             Note 2: To retrive a value, use (void**)&something structure.
 
-Return 1 if get routine success, otherwise this function will return 0.
+Returns 1 if lookup succeeds, otherwise 0.
 */
 int map_get(map_t* m, long k, void** v);
 
@@ -87,7 +87,7 @@ Params:
     - `dst` - Destination map for copy process.
     - `src` - Source map, where data is taken.
 
-Return 1 if copy routine success, otherwise this function will return 0.
+Returns 1 if copying succeeds, otherwise 0.
 */
 int map_copy(map_t* dst, map_t* src);
 
@@ -99,7 +99,7 @@ Params:
     - `m` - Map object.
     - `k` - Object key for remove.
 
-Return 1 if remove routine success, otherwise this function will return 0.
+Returns 1 if removal succeeds, otherwise 0.
 */
 int map_remove(map_t* m, long k);
 
@@ -109,7 +109,7 @@ Params:
     - `m` - Map object for iteration.
     - `it` - Iterator.
 
-Return 1 if init routine success, otherwise this function will return 0.
+Returns 1 if initialization succeeds, otherwise 0.
 */
 int map_iter_init(map_t* m, map_iter_t* it);
 
@@ -121,7 +121,7 @@ Params:
             Note: This function will return POINTER to object, not a copy.
             Note 2: To retrive a value, use (void**)&something structure.
 
-Return 1 if this is not an end, otherwise will return 0.
+Returns 1 if this is not the end, otherwise 0.
 */
 int map_iter_next(map_iter_t* it, void** d);
 
@@ -141,7 +141,7 @@ Params:
     - `f` - First map.
     - `s` - Second map.
 
-Return 1 if maps are equal, otherwise this function will return 0.
+Returns 1 if maps are equal, otherwise 0.
 */
 int map_equals(map_t* f, map_t* s);
 
@@ -160,7 +160,7 @@ Note: This function will set compr flag to 1. This will change behaviour of next
 Params:
     - `m` - Map object.
 
-Return 1 if compress routine success, otherwise this function will return 0.
+Returns 1 if compression succeeds, otherwise 0.
 */
 int map_compress(map_t* m);
 
@@ -169,7 +169,7 @@ Counter-operation to map_compress. Simply recalculates possitions of each entry 
 Params:
     - `m` - Map object.
 
-Return 1 if decompress routine success, otherwise this function will return 0.
+Returns 1 if decompression succeeds, otherwise 0.
 */
 int map_decompress(map_t* m);
 
@@ -179,7 +179,7 @@ Note: This function won't to deallocate values in entries.
 Params:
     - `m` - Map objects.
 
-Return 1 if free routine success, otherwise this function will return 0.
+Returns 1 if freeing succeeds, otherwise 0.
 */
 int map_free(map_t* m);
 
@@ -188,7 +188,7 @@ map_free_force dealocates occupied memory for map.
 Params:
     - `m` - Map objects.
 
-Return 1 if free routine success, otherwise this function will return 0.
+Returns 1 if freeing succeeds, otherwise 0.
 */
 int map_free_force(map_t* m);
 
@@ -198,7 +198,7 @@ Params:
     - `m` - Map objects.
     - `op` - Element deallocation function.
 
-Return 1 if free routine success, otherwise this function will return 0.
+Returns 1 if freeing succeeds, otherwise 0.
 */
 int map_free_force_op(map_t* m, int (*op)(void*));
 

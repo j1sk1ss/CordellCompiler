@@ -157,13 +157,18 @@ int LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
 }
 
 typedef struct {
-    lir_block_t p;
-    long        dst_reg;
-    long        src_reg;
-    int         done;
+    lir_block_t     p;
+    lir_registers_t dst_reg;
+    lir_registers_t src_reg;
+    char            done : 1;
 } phi_copy_t;
 
-// TODO: docs
+/*
+Save the mutable payload of a LIR block into temporary storage.
+Params:
+    - `p` - Destination payload storage.
+    - `lh` - Source LIR block.
+*/
 static inline void _save_payload(lir_block_t* p, lir_block_t* lh) {
     p->op     = lh->op;
     p->farg   = lh->farg;
@@ -172,7 +177,12 @@ static inline void _save_payload(lir_block_t* p, lir_block_t* lh) {
     p->unused = lh->unused;
 }
 
-// TODO: docs
+/*
+Restore the mutable payload of a LIR block from temporary storage.
+Params:
+    - `lh` - Destination LIR block.
+    - `p` - Source payload storage.
+*/
 static inline void _load_payload(lir_block_t* lh, lir_block_t* p) {
     lh->op     = p->op;
     lh->farg   = p->farg;
@@ -181,14 +191,21 @@ static inline void _load_payload(lir_block_t* lh, lir_block_t* p) {
     lh->unused = p->unused;
 }
 
-// TODO: docs
-static int _subj_reg(lir_subject_t* s, map_t* colors, long* reg) {
+/*
+Resolve the register assigned to a LIR subject.
+Params:
+    - `s` - LIR subject to inspect.
+    - `colors` - Map from variable ids to allocated registers.
+    - `reg` - Output register.
+
+Returns 1 if register was resolved, otherwise 0.
+*/
+static int _subj_reg(lir_subject_t* s, map_t* colors, lir_registers_t* reg) {
     if (!s) return 0;
     if (s->t == LIR_VARIABLE) {
-        void* color = NULL;
-        long v = s->storage.var.v_id;
-        if (!map_get(colors, v, &color)) return 0;
-        *reg = (long)color;
+        long color;
+        if (!map_get(colors, s->storage.var.v_id, (void**)&color)) return 0;
+        *reg = color;
         return 1;
     }
 
@@ -200,7 +217,16 @@ static int _subj_reg(lir_subject_t* s, map_t* colors, long* reg) {
     return 0;
 }
 
-// TODO: docs
+/*
+Check whether a copy destination is still needed as a source by another
+pending phi copy.
+Params:
+    - `copies` - Phi copy array.
+    - `n` - Number of phi copies.
+    - `i` - Copy index to check.
+
+Returns 1 if destination register is used as a pending source, otherwise 0.
+*/
 static int _dst_used_as_src(phi_copy_t* copies, int n, int i) {
     for (int j = 0; j < n; j++) {
         if (i == j || copies[j].done) continue;
@@ -210,11 +236,19 @@ static int _dst_used_as_src(phi_copy_t* copies, int n, int i) {
     return 0;
 }
 
-// TODO: docs
+/*
+Sort an array of phi moves so each move is emitted after all reads of its
+destination register are finished.
+Params:
+    - `nodes` - Phi move nodes to reorder.
+    - `n` - Number of nodes.
+    - `colors` - Map from variable ids to allocated registers.
+
+Returns 1 if sorting succeeds, otherwise 0.
+*/
 static int _sort_phi_array(lir_block_t** nodes, int n, map_t* colors) {
     phi_copy_t* copies = (phi_copy_t*)mm_malloc(sizeof(phi_copy_t) * n);
     if (!copies) return 0;
-
     for (int i = 0; i < n; i++) {
         _save_payload(&copies[i].p, nodes[i]);
         copies[i].done = 0;
@@ -257,7 +291,15 @@ static int _sort_phi_array(lir_block_t** nodes, int n, map_t* colors) {
     return 1;
 }
 
-// TODO: docs
+/*
+Sort a contiguous group of phi moves.
+Params:
+    - `first` - First phi move in the group.
+    - `last` - Block after the last phi move.
+    - `colors` - Map from variable ids to allocated registers.
+
+Returns 1 if sorting succeeds, otherwise 0.
+*/
 static int _sort_phi_group(lir_block_t* first, lir_block_t* last, map_t* colors) {
     if (!first || first == last) return 1;
 
@@ -303,7 +345,6 @@ int LIR_RA_sort_phi_movs(cfg_ctx_t* cctx, map_t* colors) {
                     after->op == LIR_phiMOV &&
                     !after->unused
                 ) after = LIR_get_next(after, cb->lmap.exit, 1);
-                
                 if (first != after && !_sort_phi_group(first, after, colors)) {
                     return 0;
                 }

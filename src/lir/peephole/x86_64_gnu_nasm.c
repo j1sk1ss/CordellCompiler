@@ -32,9 +32,9 @@ static int _jumps_pass(cfg_block_t* bb) {
 Determine whether this label is used somewhere.
 Params:
     - `fb` - Function block to consider.
-    - `lb` - Lable to search.
+    - `lb` - Label to search.
 
-Returns 1 if the lable is used somewhere in the function.
+Returns 1 if the label is used somewhere in the function.
 */
 static int _find_label_usage(cfg_func_t* fb, lir_subject_t* lb) {
     lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
@@ -52,7 +52,7 @@ static int _find_label_usage(cfg_func_t* fb, lir_subject_t* lb) {
 /*
 Remove all dangling labels which aren't used as a target somewhere else.
 Params:
-    - `fb` - Function to consideration.
+    - `fb` - Function to consider.
 
 Returns 1 if succeeds.
 */
@@ -91,7 +91,7 @@ static inline void _hide_block(cfg_block_t* bb) {
 Remove jump-only CFG blocks by redirecting their predecessors to the final
 jump target and hiding the intermediate block.
 Params:
-    - `fb` - Function to consideration.
+    - `fb` - Function to consider.
 
 Returns 1 if CFG was changed, otherwise 0.
 */
@@ -149,10 +149,10 @@ static int _deep_jump_pass(cfg_func_t* fb) {
 static unsigned long long _visit_counter = 100;
 
 /*
-Recursive cleanup will clean each block from the CFG with one simple rule:
-If there is a WRITE operation, it may be eliminated, if:
-    - Either further code doesn't use it's value or /
-    - further code rewrites it's value.
+Recursive cleanup visits CFG blocks with one simple rule:
+a WRITE operation may be eliminated if:
+    - further code doesn't use its value, or
+    - further code rewrites its value.
 
 Params:
     - `op` - Write operation type.
@@ -160,12 +160,12 @@ Params:
                    given a different nature of some operations.
     - `pred` - Service argument. For initial call use '-1'.
     - `bbh` - Head Basic Block.
-    - `trg` - Target WRITE location in the considering lir block.
+    - `trg` - Target WRITE location in the considered LIR block.
     - `ign` - Service argument. For initial call use a parent of the 'trg' argument.
     - `off` - Service argument. For initial call use 'ign->next'.
 
-Return 1 if the considering lir block can be marked as unused.
-Retrun 0 if the considering lir block can't be marked as unused.
+Returns 1 if the considered LIR block can be marked as unused.
+Returns 0 if the considered LIR block can't be marked as unused.
 */
 static int _recursive_cleanup(
     lir_operation_t op, long pred, cfg_block_t* bbh, lir_subject_t* trg, lir_block_t* ign, lir_block_t* off
@@ -189,8 +189,8 @@ static int _recursive_cleanup(
                 LIR_subj_equals(lh->farg, trg) &&         /* And similar destination of the write operation               */
                 (
                     !LIR_subj_equals(lh->sarg, trg) &&    /* The second and the third arguments must be a uniq /          */
-                    !LIR_subj_equals(lh->targ, trg)       /* different with the firts.                                    */
-                )                                         /* The reason is easy: We don't want to delete commad if its    */
+                    !LIR_subj_equals(lh->targ, trg)       /* different with the first.                                    */
+                )                                         /* The reason is easy: We don't want to delete command if its    */
                                                           /* value rewritten by itself.                                   */
             ) return 1;                                   /* That means we can safely mark the target write command       */
 
@@ -210,7 +210,7 @@ static int _recursive_cleanup(
     if (
         !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) || 
         !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
-    ) return 0; /* If the command is used somewhere in the childs, return 0                       */
+    ) return 0; /* If the command is used somewhere in the children, return 0                       */
     return 1;   /* By default, if the considering command is unused elsewhere, we mark it to drop */
 }
 
