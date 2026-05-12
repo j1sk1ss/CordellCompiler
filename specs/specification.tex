@@ -3,6 +3,7 @@
 \usepackage[a4paper,margin=0.75in]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage{lmodern}
 \usepackage{microtype}
 \usepackage{booktabs}
 \usepackage{longtable}
@@ -57,26 +58,26 @@
   captionpos=b,
 }
 
-\title{Cordell Programming Language: A Lightweight Systems Language and Compiler Testbed}
-\author{Author Name\\Affiliation\\\texttt{email@example.com}}
-\date{Technical Report Draft, CPL v3.5}
+\title{Cordell Programming Language and Compiler: A Lightweight Systems-Language Testbed}
+\author{Cordell Compiler Project}
+\date{Technical Report, implementation snapshot of 2026-05-12}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-\par Cordell Programming Language (CPL) is a deliberately restricted systems programming language and compiler infrastructure designed for low-level experimentation. Its syntax is close to C and assembly in intent, but it avoids implementing a C subset. The language exposes explicit control over pointers, arrays, strings, entry points, system calls, inline assembly, and system-oriented annotations, while intentionally avoiding structures, classes, enums, garbage collection, memory safety guarantees, and production-language ecosystem assumptions. The compiler is organized as a multi-stage pipeline from preprocessing and tokenization to AST construction, semantic checking, IR generation, SSA construction, high-level and low-level optimization, instruction selection, register allocation, assembly emission, and linking. This report documents the current language core, compiler pipeline, implemented static diagnostics, optimization passes, testing infrastructure, target status, preliminary microbenchmarks, limitations, and related work. The goal is not to present CPL as a verified or production-ready replacement for C or Rust, but as a compact experimental platform for studying compiler architecture, systems-language design, optimization, and diagnostics.
+\par Cordell Programming Language (CPL) is a deliberately restricted systems programming language and compiler infrastructure designed for low-level experimentation. Its syntax is close to C and assembly in intent, but it does not implement a C subset. The language exposes explicit control over primitive values, pointers, arrays, strings, entry points, system calls, inline assembly, and system-oriented annotations, while intentionally omitting structures, classes, enums, garbage collection, memory-safety guarantees, and production-language ecosystem assumptions. The compiler is organized as a multi-stage pipeline from preprocessing and tokenization to AST construction, semantic checking, HIR generation, SSA construction, high-level optimization, LIR lowering, instruction selection, register allocation, assembly emission, and linking. This report documents the current language core, compiler pipeline, implemented diagnostics, optimization passes, testing infrastructure, target status, preliminary microbenchmarks, limitations, and related work. The goal is not to present CPL as a verified or production-ready replacement for established systems languages such as C or Rust, but as a compact experimental platform for studying compiler architecture, systems-language design, optimization, and diagnostics.
 \end{abstract}
 
 \section{Introduction}
-\par Systems programming languages expose machine-level details while attempting to keep programs tractable. Mature languages such as C~\cite{}, C++~\cite{}, Rust~\cite{}, and Zig~\cite{} provide large ecosystems, but their full syntactic and semantic complexity makes them expensive targets for compiler experiments. Conversely, many teaching compilers (such as "Writing A Compiler in Go"~\cite{}) are intentionally small but do not expose enough low-level mechanisms to study system-oriented code generation, platform-specific interfaces, and optimization under realistic constraints.
-\par CPL is not a C subset. A faithful C-like subset would either require a substantially more complex parser and semantic model, or would create misleading expectations that the rest of C should also be supported. The current design instead favors an LL(1)-oriented grammar~\cite{}, explicit syntax for functions and pointer-like operations, and compiler-supported low-level constructs.
+\par Systems programming languages expose machine-level details while attempting to keep programs tractable. Mature languages such as C~\cite{ritchie1978c,kernighan1988c}, C++~\cite{stroustrup2007cpp,stroustrup2013cpp}, Rust~\cite{klabnik2023rust,jung2018rustbelt}, and Zig~\cite{ziglangref} provide large ecosystems, but their full syntactic and semantic complexity makes them expensive targets for compiler experiments. Conversely, many teaching compilers are intentionally small but do not expose enough low-level mechanisms to study system-oriented code generation, platform-specific interfaces, and optimization under realistic constraints.
+\par CPL is not a C subset. A faithful C-like subset would either require a substantially more complex parser and semantic model, or would create misleading expectations that the rest of C should also be supported. The current design instead favors a compact parser-friendly grammar, explicit syntax for functions and pointer-like operations, and compiler-supported low-level constructs.
 
-\par The contribution of this report is a consolidated technical description of CPL v3.5~\cite{}:
+\par The contribution of this report is a consolidated technical description of the current Cordell compiler implementation:
 \begin{itemize}[leftmargin=*]
   \item a concise language overview and design rationale;
   \item the current multi-stage compiler pipeline;
-  \item the high IR, high-low IR, low-low IR, and assembly form of a small example;
+  \item the HIR, LIR, selected LIR, and assembly form of a small example;
   \item the implemented static-analysis split between AST and IR diagnostics, including Z3-backed reasoning for selected conditions;
   \item the optimization passes currently documented for the compiler;
   \item preliminary microbenchmark results and their limitations;
@@ -94,7 +95,7 @@
 \par The language deliberately avoids a large surface syntax. Instead of emulating all of C, CPL provides a compact grammar and a small set of orthogonal features. This keeps parsing and lowering simple enough for compiler experimentation.
 
 \paragraph{Compiler experimentation.}
-\par The compiler is a testbed for SSA construction, static diagnostics, constant propagation, constant folding, common subexpression elimination, loop-invariant code motion, peephole transformations, branch layout annotations, tail-recursion elimination, and register-allocation-sensitive low-level optimization.
+\par The compiler is a testbed for SSA construction~\cite{cytron1991ssa}, static diagnostics, constant propagation, constant folding, common subexpression elimination, loop-invariant code motion, peephole transformations, branch layout annotations, tail-recursion elimination, and register-allocation-sensitive low-level optimization.
 
 \paragraph{System-oriented portability.}
 \par CPL tries to minimize dependencies on a host standard library. The long-term intent is that the compiler and its runtime support can be ported to small or custom operating systems by providing basic I/O and platform APIs.
@@ -226,7 +227,7 @@ These annotations are not intended to make CPL a high-level language. Their role
 
 \subsection{Pipeline}
 
-Figure~\ref{fig:compiler-pipeline} presents the current CPL compiler architecture. The frontend performs preprocessing, tokenization, AST construction, and early semantic checking. The middle-end then constructs HIR, converts it to SSA, runs SSA-level semantic checking based on symbolic reasoning and Z3, and applies high-level optimizations. The backend lowers the program to HLIR and target-sensitive low-level IR, performs scheduling and copy propagation, selects instructions, allocates registers, applies late peephole cleanup, and finally emits assembly for the system linker.
+Figure~\ref{fig:compiler-pipeline} presents the current CPL compiler architecture as implemented in the repository. The frontend performs preprocessing, tokenization, AST construction, and early semantic checking. The middle-end constructs HIR, converts it to SSA~\cite{cytron1991ssa}, runs SSA-level semantic checking with a Z3-backed symbolic layer~\cite{deMoura2008z3}, and applies HIR-level optimizations. The backend lowers the program to LIR, performs LIR data-flow and copy-propagation passes, selects target-sensitive instructions, allocates registers, applies late peephole cleanup, and finally emits assembly for an external assembler/linker toolchain.
 
 \begin{figure*}[t]
 \centering
@@ -250,10 +251,10 @@ Figure~\ref{fig:compiler-pipeline} presents the current CPL compiler architectur
 \node[stage, left=0.55cm of hir] (ssa) {SSA\\Construction};
 \node[stage, left=0.55cm of ssa] (ssasem) {SSA-Level\\Semantic Checker\\(Z3)};
 \node[stage, left=0.55cm of ssasem] (opt) {SSA/HIR\\Optimizations};
-\node[stage, left=0.55cm of opt] (hlir) {HLIR\\Lowering};
+\node[stage, left=0.55cm of opt] (hlir) {LIR\\Lowering};
 
 % Row 3
-\node[stage, below=1.55cm of hlir] (sched) {Instruction\\Scheduling};
+\node[stage, below=1.55cm of hlir] (sched) {LIR Data-Flow\\Passes};
 \node[stage, right=0.55cm of sched] (copy1) {Copy\\Propagation};
 \node[stage, right=0.55cm of copy1] (isel) {Instruction\\Selection};
 \node[stage, right=0.55cm of isel] (ra) {Register\\Allocation};
@@ -325,9 +326,9 @@ fn _main0() {
 }
 \end{lstlisting}
 
-After lowering to High Low IR (HLIR), the program is represented as a basic-block sequence.
+After lowering to LIR, the program is represented as a basic-block sequence.
 
-\begin{lstlisting}[caption={High Low IR form.}]
+\begin{lstlisting}[caption={LIR form before target-sensitive selection.}]
 BB1: start
 %2 = $1 as i32;
 %0 = %2;
@@ -339,9 +340,9 @@ exit %4;
 BB2: send
 \end{lstlisting}
 
-A later Low Low IR (LLIR) form contains target-dependent register choices.
+A later selected LIR form contains target-dependent register choices.
 
-\begin{lstlisting}[caption={Low LIR form.}]
+\begin{lstlisting}[caption={Selected LIR form.}]
 BB1: start
 rcx = $1;
 rcx = rcx;
@@ -356,7 +357,7 @@ exit rdi;
 BB2: send
 \end{lstlisting}
 
-The final optimized Mach-O style assembly for this example collapses the computation to a short sequence.
+The final optimized Mach-O assembly for this example collapses the computation to a short sequence.
 
 \begin{lstlisting}[caption={Generated assembly.}]
 section .text
@@ -371,12 +372,12 @@ syscall
 
 \subsection{Backends and Target Status}
 
-\par The current stable target is x86\_64 Mach-O in configurations that avoid the known function-inlining issues. An x86\_64 Linux target is implemented but less tested. Planned targets include x86\_32 Linux, x86\_16 Linux, and i386 variants. The compiler can use \texttt{ld}, \texttt{clang}, or \texttt{gcc} as linkers; when external symbols are involved, \texttt{clang} or \texttt{gcc} are typically more convenient.
+\par The implemented backends in this snapshot are x86\_64 Mach-O/NASM and x86\_64 GNU/Linux NASM. The repository contains selectors, memory selection, caller-saving logic, and assembly generators for both paths, with Mach-O used as the default configuration in the command-line driver. The Linux path is present and exercised by parts of the test infrastructure, but it should be treated as less mature than the Mach-O path. The command-line driver also exposes architecture/system options for planned or partial configurations such as x86\_32, i386, and windows64; those should be read as configuration surface rather than publication-ready target support. The compiler can use \texttt{ld}, \texttt{clang}, or \texttt{gcc} as linkers; when external symbols are involved, \texttt{clang} or \texttt{gcc} are typically more convenient.
 
 \section{Static Diagnostics}
 CPL contains a two-level diagnostic subsystem. The first level operates on the AST and targets source-structure issues such as read-only variable updates, declaration problems, return mismatches, wrong argument counts, incompatible argument types, unused return values, illegal array access, duplicated branches, invalid function names, dead code, lossy implicit conversions, inefficient infinite loops, invalid \texttt{exit} usage, break statements without legal targets, invalid use of \texttt{i0}, unused expressions, invalid references, and suspicious alignment requests.
 
-The second level is intentionally placed after SSA construction. At this point the compiler has explicit use-definition chains and phi nodes, so the checker can reason about values and path conditions in a more structured form than in the original HIR. Z3-backed symbolic execution is applied on SSA-form HIR to detect definite null dereferences, null values passed into dereferencing functions, possible null dereferences under path-dependent conditions, and constant branches. This ordering is important: the solver-facing analysis works on SSA-form HIR rather than on pre-SSA HIR, because SSA simplifies symbolic value tracking and makes the generated constraints easier to relate to compiler variables.
+The second level is intentionally placed after SSA construction~\cite{cytron1991ssa}. At this point the compiler has explicit use-definition chains and phi nodes, so the checker can reason about values and path conditions in a more structured form than in the original HIR. Z3-backed symbolic execution~\cite{deMoura2008z3} is applied on SSA-form HIR to detect definite null dereferences, null values passed into dereferencing functions, possible null dereferences under path-dependent conditions, and constant branches. This ordering is important: the solver-facing analysis works on SSA-form HIR rather than on pre-SSA HIR, because SSA simplifies symbolic value tracking and makes the generated constraints easier to relate to compiler variables.
 
 The analysis is diagnostic rather than protective. It does not implement memory safety, ownership, or aliasing restrictions, and it does not prevent undefined behavior caused by dangling pointers, unsafe inline assembly, invalid external interfaces, or target-specific misuse.
 
@@ -408,27 +409,27 @@ python3 z3_wrapper.py input.hir \
 
 \section{Optimization Passes}
 
-Table~\ref{tab:optimizations} summarizes the implemented optimization passes and their current optimization levels.
+Table~\ref{tab:optimizations} summarizes the implemented optimization passes and how they are enabled by the command-line optimization profiles in the current driver. The driver uses \texttt{-O0} as the default, enables LICM, constant optimization, and peephole cleanup at \texttt{-O2}, and additionally enables LIR copy propagation and tail-recursion elimination at \texttt{-O3}. Function inlining is controlled by an explicit flag rather than by the profile helper.
 
-\begin{table}[htbp]
+\begin{table*}[t]
 \centering
 \caption{Optimization passes implemented in the current CPL compiler.}
 \label{tab:optimizations}
-\begin{tabular}{p{0.22\linewidth}p{0.43\linewidth}p{0.18\linewidth}}
+\begin{tabular}{p{0.24\linewidth}p{0.50\linewidth}p{0.16\linewidth}}
 \toprule
 Pass & IR level and role & Level \\
 \midrule
-LICM & Works on SSA High IR; hoists loop-invariant expressions. & \texttt{-O2} \\
-Peephole & Works on Low IR after instruction selection and register allocation. & \texttt{-O2} \\
-CSE & Works on SSA IR using a DAG-based approach. & current optimized pipeline \\
-DCE & Works during High IR CFG generation; unreachable code is marked unused and skipped by later lowering. & \texttt{-O0} and above \\
-Constant propagation/folding & Works on High IR, then Low IR, then selected Low IR during assembly generation. & \texttt{-O1} \\
-Function inlining & Works on High IR before SSA using a heuristic over source and destination control-flow properties. & \texttt{-O2}, known bugs \\
-Tail-recursion elimination & Works on High IR and rewrites tail self-calls to loops. & \texttt{-O2} \\
-Hot/cold placement & Implemented during AST-to-IR generation as annotation-driven branch layout. & \texttt{-O0} and above \\
+LICM & Works on SSA HIR; hoists loop-invariant expressions after loop canonicalization. & \texttt{-O2} and above \\
+Peephole & Works on selected LIR after instruction selection, register allocation, memory selection, and caller-saving insertion. & \texttt{-O2} and above \\
+DAG rebuild and sparse constant propagation & Works on HIR via DAG generation and CFG rebuild before lowering to LIR. & \texttt{-O2} and above \\
+Dead-function elimination & Builds and applies a call graph before later HIR transformations. & default pipeline \\
+LIR copy propagation and unused-variable dropping & Rewrites propagated LIR operands and removes unused variable writes. & \texttt{-O3} \\
+Tail-recursion elimination & Works on HIR and rewrites tail self-calls to loops before SSA construction. & \texttt{-O3} \\
+Function inlining & Works on HIR before SSA using a heuristic over source and destination control-flow properties. & explicit flag; known bugs \\
+Hot/cold placement & Implemented during AST-to-HIR generation as annotation-driven branch layout. & default pipeline \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{Loop-Invariant Code Motion}
 
@@ -667,7 +668,7 @@ This testing setup does not amount to a proof of correctness. It is nevertheless
 
 The current evaluation should be read as a preliminary microbenchmark study rather than a broad performance claim. The chosen kernels are intentionally small and expose loop overhead, arithmetic simplification, and pointer-heavy traversal. They are useful for inspecting generated code and optimization effects, but they are not a substitute for large application benchmarks.
 
-All available timings were collected on macOS Catalina 10.15.7 using an Intel i7-3650QM CPU at 2.4 GHz and 16 GB DDR3 memory. The compared tools were GCC 14.2.0, Apple Clang 12.0.0, CPL v3.4 for MACHO64, and rustc 1.87.0. GCC and Clang were tested at \texttt{-O0} and \texttt{-O3}, CPL at \texttt{-O0} and \texttt{-O3}, and Rust at \texttt{opt-level=0} and \texttt{opt-level=2}. Each timing was gathered five times after compilation. The measurements use different timing wrappers for CPL and for the C-family baselines, so the numbers should be interpreted conservatively. In particular, the empty-loop benchmark should be understood as a loop-overhead test: the C baseline uses \texttt{asm volatile} to prevent the compiler from deleting the loop.
+All available timings were collected on macOS Catalina 10.15.7 using an Intel i7-3650QM CPU at 2.4 GHz and 16 GB DDR3 memory. The compared tools were GCC 14.2.0, Apple Clang 12.0.0, a Mach-O Cordell compiler build, and rustc 1.87.0. GCC and Clang were tested at \texttt{-O0} and \texttt{-O3}, CPL at \texttt{-O0} and \texttt{-O3}, and Rust at \texttt{opt-level=0} and \texttt{opt-level=2}. Each timing was gathered five times after compilation. The measurements use different timing wrappers for CPL and for the C-family baselines, so the numbers should be interpreted conservatively. In particular, the empty-loop benchmark should be understood as a loop-overhead test: the C baseline uses \texttt{asm volatile} to prevent the compiler from deleting the loop.
 
 \subsection{Benchmarked Kernels}
 
@@ -769,25 +770,26 @@ String traversal & 0.513 & 0.430 & 0.470 & 0.332 \\
 \label{fig:bench-optimized}
 \end{figure*}
 
-The results suggest that optimized CPL code is competitive with the optimized C-family baselines for the small kernels considered here, especially on the Fibonacci benchmark. The string-traversal kernel remains slower than Clang, GCC, and Rust, which indicates that pointer-heavy workloads are a more demanding target for the current backend.
+The results show that optimized CPL code can produce compact and reasonably fast machine code for these small kernels. They should not be generalized to whole-program performance. The string-traversal kernel remains slower than Clang, GCC, and Rust, which indicates that pointer-heavy workloads are a more demanding target for the current backend.
 
 \subsection{Effect of Optimization within CPL}
 
 Figure~\ref{fig:bench-cpl-levels} shows the effect of CPL optimization alone by comparing \texttt{-O0} and \texttt{-O3}. The empty loop benefits the most, which is consistent with the late peephole simplifications described earlier.
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-    width=0.78\textwidth,
-    height=0.28\textheight,
+    width=0.96\columnwidth,
+    height=0.22\textheight,
     ybar,
-    bar width=12pt,
+    bar width=8pt,
     ymin=0,
     ylabel={Runtime (s)},
     symbolic x coords={Empty loop,Fibonacci,String traversal},
     xtick=data,
-    legend style={at={(0.5,-0.18)},anchor=north,legend columns=2},
+    x tick label style={rotate=18,anchor=east,font=\scriptsize},
+    legend style={at={(0.5,-0.28)},anchor=north,legend columns=2,font=\scriptsize},
     ymajorgrids=true,
     grid style={dashed,gray!30},
     enlarge x limits=0.25,
@@ -803,11 +805,10 @@ Figure~\ref{fig:bench-cpl-levels} shows the effect of CPL optimization alone by 
 \end{tikzpicture}
 \caption{Optimization effect within CPL.}
 \label{fig:bench-cpl-levels}
-\end{figure*}
+\end{figure}
 
 The optimized CPL assembly sizes reported for these kernels are compact: 11 lines for the empty loop, 17 lines for Fibonacci, and 84 lines for string traversal. These values are not a full proxy for performance, but they do suggest that the backend is capable of collapsing simple kernels to short instruction sequences.
 
-\clearpage
 \section{Limitations and Threats to Validity}
 
 The current report should be read with the following limitations in mind.
@@ -819,7 +820,7 @@ CPL does not currently provide a mechanized semantics, compiler-correctness proo
 The static analyzer can find selected problems, but CPL intentionally does not implement an ownership or borrowing discipline.
 
 \paragraph{Limited target validation.}
-The stable target is x86\_64 Mach-O in configurations that avoid the known inlining issues. x86\_64 Linux is implemented but less tested. Other targets should be treated as future or experimental.
+The most exercised path is x86\_64 Mach-O/NASM. x86\_64 GNU/Linux NASM is implemented but less tested. Other architecture and system-type options exposed by the driver should be treated as planned or partial support unless backed by dedicated tests.
 
 \paragraph{Known function-inlining bugs.}
 Function inlining exists, but it is not stable enough to be used as an unconditional compiler-quality claim.
@@ -827,8 +828,8 @@ Function inlining exists, but it is not stable enough to be used as an unconditi
 \paragraph{Small benchmark suite.}
 The benchmark suite consists of microbenchmarks and small interpreters. It does not include large applications, compiler self-hosting, broad target comparisons, or Linux x86\_64 replication.
 
-\paragraph{Version mismatch in evaluation.}
-The report describes CPL v3.5, while the available benchmark dataset was collected for CPL v3.4 MACHO64. The benchmark data should therefore be treated as historical preliminary evidence rather than a complete v3.5 evaluation.
+\paragraph{Evaluation snapshot.}
+The benchmark data was collected for a particular Mach-O compiler snapshot and hardware configuration. It should therefore be treated as preliminary evidence for the implementation direction rather than as a complete evaluation of every backend and optimization combination.
 
 \paragraph{Inline assembly opacity.}
 Inline assembly is copied into the output after placeholder substitution and is not optimized by the compiler. This can invalidate assumptions made by surrounding optimization passes if the programmer uses labels, jumps, or unpreserved registers in fragile ways.
@@ -844,7 +845,7 @@ LLVM is a modular compiler infrastructure designed to support program analysis a
 CPL's SSA stage connects to the long-standing use of SSA as a representation for data-flow optimization~\cite{cytron1991ssa}. The current implementation uses SSA as one stage in a larger HIR-to-LIR pipeline rather than as a complete formal IR specification. The symbolic analysis layer uses Z3, an SMT solver widely used for program analysis and verification-oriented tooling~\cite{deMoura2008z3}.
 
 \paragraph{Verified systems languages and compilers.}
-Cogent presents a restricted systems language with a self-certifying compiler and Isabelle/HOL artifacts~\cite{oconnor2016cogent}. Low* embeds verified low-level programming in F* and provides memory safety and verification support~\cite{protzenko2017lowstar}. Jasmin targets efficient and formally verified cryptographic implementations~\cite{arranzolmos2025jasmin}. CompCert is a formally verified C compiler with machine-checked semantic preservation guarantees~\cite{compcert}. CPL differs from all of these: it does not claim verified compilation, formal semantics, memory safety, or cryptographic security preservation.
+Cogent presents a restricted systems language with a self-certifying compiler and Isabelle/HOL artifacts~\cite{oconnor2016cogent}. Low* embeds verified low-level programming in F* and provides memory safety and verification support~\cite{protzenko2017lowstar}. Jasmin targets efficient and formally verified cryptographic implementations~\cite{arranzolmos2025jasmin}. CompCert is a formally verified C compiler with machine-checked semantic preservation guarantees~\cite{leroy2009compcert,compcert}. CPL differs from all of these: it does not claim verified compilation, formal semantics, memory safety, or cryptographic security preservation.
 
 \paragraph{Implementation reports for smaller languages.}
 The Dino implementation report is close in genre: it documents language implementation decisions, VM/JIT design, and benchmark-driven implementation experience~\cite{makarov2016dino}. The improved GP 2 compiler work shows how implementation changes to an experimental language compiler can yield substantial performance improvements~\cite{campbell2020gp2}. GNU epsilon provides a different example of a minimalistic language core intended for extensibility and analysis~\cite{saiu2012epsilon}. These works motivate reporting not only language syntax, but also implementation architecture and measured effects.
@@ -877,73 +878,7 @@ Structures, classes, enums, and related user-defined aggregate types remain outs
 CPL is a compact low-level language and compiler infrastructure for studying systems-language design and compiler implementation. It combines explicit low-level constructs, a restricted syntax, a multi-stage compiler pipeline, static diagnostics, SSA-based optimization, low-level backend passes, and target-specific assembly generation. Its value lies in being small enough to inspect and modify while still exposing problems that arise in real compilers: lowering boundaries, register allocation, branch layout, null reasoning, inline assembly opacity, and benchmark interpretation. The current implementation is not formally verified, memory-safe, production-ready, or self-hosting. Within those limits, CPL provides a useful experimental platform for compiler architecture and systems-programming research.
 
 
-\begin{thebibliography}{99}
-
-\bibitem{lattner2004llvm}
-Chris Lattner and Vikram Adve.
-\newblock {LLVM}: A Compilation Framework for Lifelong Program Analysis and Transformation.
-\newblock In \emph{Proceedings of the International Symposium on Code Generation and Optimization}, pages 75--88, 2004.
-
-\bibitem{cytron1991ssa}
-Ron Cytron, Jeanne Ferrante, Barry K. Rosen, Mark N. Wegman, and F. Kenneth Zadeck.
-\newblock Efficiently Computing Static Single Assignment Form and the Control Dependence Graph.
-\newblock \emph{ACM Transactions on Programming Languages and Systems}, 13(4):451--490, 1991.
-
-\bibitem{deMoura2008z3}
-Leonardo de Moura and Nikolaj Bj{\o}rner.
-\newblock {Z3}: An Efficient {SMT} Solver.
-\newblock In \emph{Tools and Algorithms for the Construction and Analysis of Systems}, pages 337--340, 2008.
-
-\bibitem{yang2011csmith}
-Xuejun Yang, Yang Chen, Eric Eide, and John Regehr.
-\newblock Finding and Understanding Bugs in {C} Compilers.
-\newblock In \emph{Proceedings of the 32nd ACM SIGPLAN Conference on Programming Language Design and Implementation}, pages 283--294, 2011.
-
-\bibitem{compcert}
-The CompCert Project.
-\newblock The {CompCert} Verified Compiler.
-\newblock Project documentation, accessed 2026-05-08.
-
-\bibitem{oconnor2016cogent}
-Liam O'Connor, Christine Rizkallah, Zilin Chen, Sidney Amani, Japheth Lim, Yutaka Nagashima, Thomas Sewell, Alex Hixon, Gabriele Keller, Toby Murray, and Gerwin Klein.
-\newblock {COGENT}: Certified Compilation for a Functional Systems Language.
-\newblock arXiv:1601.05520, 2016.
-
-\bibitem{protzenko2017lowstar}
-Jonathan Protzenko, Jean-Karim Zinzindohoue, Aseem Rastogi, Tahina Ramananandro, Peng Wang, Santiago Zanella-Beguelin, Antoine Delignat-Lavaud, Catalin Hritcu, Karthikeyan Bhargavan, Cedric Fournet, and Nikhil Swamy.
-\newblock Verified Low-Level Programming Embedded in {F*}.
-\newblock arXiv:1703.00053, 2017.
-
-\bibitem{arranzolmos2025jasmin}
-Santiago Arranz-Olmos, Gilles Barthe, Lionel Blatter, Benjamin Gregoire, Vincent Laporte, and Paolo Torrini.
-\newblock The {Jasmin} Compiler Preserves Cryptographic Security.
-\newblock arXiv:2511.11292, 2025.
-
-\bibitem{makarov2016dino}
-Vladimir N. Makarov.
-\newblock Implementation of the Programming Language {Dino} -- A Case Study in Dynamic Language Performance.
-\newblock arXiv:1604.01290, 2016.
-
-\bibitem{campbell2020gp2}
-Graham Campbell, Jack Romo, and Detlef Plump.
-\newblock The Improved {GP} 2 Compiler.
-\newblock arXiv:2010.03993, 2020.
-
-\bibitem{saiu2012epsilon}
-Luca Saiu.
-\newblock {GNU} epsilon -- an extensible programming language.
-\newblock arXiv:1212.5210, 2012.
-
-\bibitem{barbosa2023petit}
-Raul Brajczewski Barbosa.
-\newblock {Petit} programming language and compiler.
-\newblock arXiv:2311.14443, 2023.
-
-\bibitem{berezun2022wheel}
-Daniil Berezun and Dmitry Boulytchev.
-\newblock Reimplementing the Wheel: Teaching Compilers with a Small Self-Contained One.
-\newblock arXiv:2207.12698, 2022.
-
-\end{thebibliography}
+\bibliographystyle{plain}
+\bibliography{links}
 
 \end{document}
