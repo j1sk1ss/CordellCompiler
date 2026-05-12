@@ -43,4 +43,7 @@ Returns 1 if succeeds.
 */
 int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt);
 
+// TODO: docs
+int LIR_RA_sort_phi_movs(cfg_ctx_t* cctx, map_t* colors);
+
 #endif

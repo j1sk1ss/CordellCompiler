@@ -121,10 +121,10 @@ int main(int argc, char* argv[]) {
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
     inst_selector_t inst_sel = { .select_instructions = x86_64_macho_nasm_instruction_selection };
-    LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
+    LIR_select_instructions(&cfgctx, &smt, &inst_sel);
 
-    LIR_DFG_compute_inout(&cfgctx);      // Analyzation
-    LIR_DFG_create_deall(&cfgctx, &smt); // Transform
+    LIR_DFG_compute_inout(&cfgctx);
+    LIR_DFG_create_deall(&cfgctx, &smt);
 
     map_t colors;
     map_init(&colors, MAP_NO_CMP);
@@ -135,6 +135,9 @@ int main(int argc, char* argv[]) {
 
     mem_selector_t mem_sel = { .select_memory = x86_64_macho_nasm_memory_selection };
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
+
+    LIR_RA_sort_phi_movs(&cfgctx, &colors);
+    LIR_destroy_ssa(&cfgctx);
 
     lir_block_t* lh = lirctx.h;
     while (lh) {

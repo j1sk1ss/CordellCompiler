@@ -81,12 +81,12 @@ start(i32 a, ptr ptr i8 b) {
 
 :/ OUTPUT
 @case_index=0
-@exit_code=163
+@exit_code=149
 ---
 @case_index=1
-@exit_code=93
+@exit_code=49
 ---
 @case_index=2
-@exit_code=130
+@exit_code=54
 ---
 /:

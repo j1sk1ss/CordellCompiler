@@ -39,6 +39,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_MOVZX:      return "%s movzx %s;\n";
         case LIR_MOVSXD:     return "%s movsxd %s;\n";
         case LIR_aMOV:       return "%s <<= %s;\n";
+        case LIR_phiMOV:     return "[SSA] %s = %s;\n";
         case LIR_iMOV:       return "%s = %s;\n";
 
         case LIR_STARGLD:    return "%s = strt_loadarg();\n";

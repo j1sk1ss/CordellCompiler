@@ -164,6 +164,9 @@ int main(int argc, char* argv[]) {
     mem_selector_t mem_sel = { .select_memory = x86_64_macho_nasm_memory_selection };
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
+    LIR_RA_sort_phi_movs(&cfgctx, &colors);
+    LIR_destroy_ssa(&cfgctx);
+
     register_saver_t reg_save = { .save_registers = x86_64_macho_nasm_caller_saving };
     LIR_save_registers(&cfgctx, &smt, &reg_save);
 

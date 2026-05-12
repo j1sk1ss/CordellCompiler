@@ -23,6 +23,7 @@
 #include <lir/selector/instsel.h>
 #include <lir/selector/memsel.h>
 #include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/x84_64_macho_nasm.h>
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
@@ -105,14 +106,21 @@ int main(int argc, char* argv[]) {
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
-    inst_selector_t inst_sel = { .select_instructions = x86_64_gnu_nasm_instruction_selection };
+    inst_selector_t inst_sel = { .select_instructions = x86_64_macho_nasm_instruction_selection };
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
 
-    LIR_DFG_compute_usedef(&cfgctx);      // Analyzation
+    LIR_DFG_compute_inout(&cfgctx);
+
     foreach (cfg_func_t* fb, &cfgctx.funcs) {
         export_dot_func_hir(fb);
     }
     
+    lir_block_t* lh = lirctx.h;
+    while (lh) {
+        if (!lh->unused) print_lir_block(lh, &smt, 0);
+        lh = lh->next;
+    }
+
     LIR_unload_blocks(lirctx.h);
     HIR_LTREE_unload_ctx(&lctx);
     HIR_CG_unload(&callctx);

@@ -218,6 +218,30 @@ static unsigned long _pack_str_le(char* p, unsigned long n) {
     return x;
 }
 
+/*
+Check whether a memory stack is used in a function.
+Params:
+    - `fb` - Function block.
+
+Returns 1 if a memory was used, 0 otherwise.
+*/
+static int _verify_memory_usage(cfg_func_t* fb) {
+    foreach (cfg_block_t* bb, &fb->blocks) {
+        lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+        while (lh) {
+            lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
+            for (int i = 0; i < 3; i++) {
+                if (!args[i]) continue;
+                if (args[i]->t == LIR_MEMORY) return 1;
+            }
+
+            lh = LIR_get_next(lh, bb->lmap.exit, 1);
+        }
+    }
+
+    return 0;
+}
+
 int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt) {
     stack_map_t smp;
     foreach (cfg_func_t* fb, &cctx->funcs) {
@@ -338,7 +362,7 @@ int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
             fb->lmap.entry->op == LIR_FDCL || 
             fb->lmap.entry->op == LIR_STRT
         ) {
-            if (smp.last_offset) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
+            if (smp.last_offset || _verify_memory_usage(fb)) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
             else FNTB_update_func(fb->lmap.entry->farg->storage.str.sid, FNTB_SET_NAKED, &smt->f);
         }
     }

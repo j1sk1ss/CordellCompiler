@@ -162,9 +162,8 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                             _get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)
                         ) nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
                         else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
-
                         LIR_unload_subject(lh->sarg);
-                        lh->op   = LIR_iMOV;
+                        lh->op   = LIR_phiMOV;
                         lh->sarg = nfarg;
                         break;
                     }
