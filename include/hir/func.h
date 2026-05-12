@@ -111,7 +111,13 @@ Returns 1 if succeeds.
 */
 int HIR_FUNC_set_last_return(cfg_ctx_t* cctx);
 
-// TODO: docs
+/*
+Delete duplicated functions from the CFG.
+Params:
+    - `ctx` - CFG context.
+
+Returns 1 if operation succeed. Otherwise it will return 0.
+*/
 int HIR_FUNC_delete_duplicated_functions(cfg_ctx_t* ctx);
 
 #endif

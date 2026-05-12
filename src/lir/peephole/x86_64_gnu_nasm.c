@@ -74,7 +74,11 @@ static int _label_pass(cfg_func_t* fb) {
     return changed;
 }
 
-// TODO: docs
+/*
+Mark all LIR blocks in a CFG block as unused.
+Params:
+    - `bb` - CFG block to hide.
+*/
 static inline void _hide_block(cfg_block_t* bb) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
     while (lh) {
@@ -83,7 +87,14 @@ static inline void _hide_block(cfg_block_t* bb) {
     }
 }
 
-// TODO: docs
+/*
+Remove jump-only CFG blocks by redirecting their predecessors to the final
+jump target and hiding the intermediate block.
+Params:
+    - `fb` - Function to consideration.
+
+Returns 1 if CFG was changed, otherwise 0.
+*/
 static int _deep_jump_pass(cfg_func_t* fb) {
     int changed = 0;
     foreach (cfg_block_t* bb, &fb->blocks) {

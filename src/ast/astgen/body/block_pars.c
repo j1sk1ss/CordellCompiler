@@ -61,7 +61,15 @@ static const handler_t handlers[] = {
 };
 #undef HANDLER
 
-// TODO: docs
+/*
+Try to parse declarations that depend on symbols known only at parse time.
+Params:
+    - `it` - Current iterator.
+    - `ctx` - AST context.
+    - `smt` - Symtable.
+
+Returns an AST node if token starts a dynamic declaration. Otherwise returns NULL.
+*/
 static ast_node_t* _dynamic_navigation_handler(PARSER_ARGS) {
     PARSER_ARGS_USE;
     symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
@@ -75,7 +83,15 @@ static ast_node_t* _dynamic_navigation_handler(PARSER_ARGS) {
     return NULL;
 }
 
-// TODO: docs
+/*
+Try to parse current token using the static token-to-parser handler table.
+Params:
+    - `it` - Current iterator.
+    - `ctx` - AST context.
+    - `smt` - Symtable.
+
+Returns an AST node if token was handled. Otherwise returns NULL.
+*/
 static ast_node_t* _static_navigation_handler(PARSER_ARGS) {
     PARSER_ARGS_USE;
     for (int i = 0; i < (int)(sizeof(handlers) / sizeof(handlers[0])); i++) {
@@ -104,7 +120,15 @@ static ast_node_t* _navigation_handler(PARSER_ARGS) {
     return _static_navigation_handler(it, ctx, smt, carry);
 }
 
-// TODO: docs
+/*
+Parse one element from the current parser position.
+Params:
+    - `it` - Current iterator.
+    - `ctx` - AST context.
+    - `smt` - Symtable.
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_element(PARSER_ARGS) {
     return _navigation_handler(it, ctx, smt, carry);
 }
