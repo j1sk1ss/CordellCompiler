@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
-    LIR_copy_propagation(&cfgctx);
+    LIR_variable_copy_propagation(&cfgctx);
     LIR_drop_unused_variables(&cfgctx);
     
     lir_block_t* lh = lirctx.h;

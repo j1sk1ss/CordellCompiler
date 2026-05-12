@@ -94,6 +94,7 @@ lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     return reg;
 }
 
+// TODO: docs
 static int _is_move_write_by_value(lir_operation_t op) {
     switch (op) {
         case LIR_CDQ:

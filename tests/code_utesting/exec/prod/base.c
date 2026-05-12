@@ -34,7 +34,6 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include <lir/regalloc/x84_64_gnu_nasm.h>
 #include "../../../misc/lir_helper.h"
 
 #include <asm/asmgen.h>
@@ -143,7 +142,7 @@ int main(int argc, char* argv[]) {
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
 
-    LIR_copy_propagation(&cfgctx);
+    LIR_variable_copy_propagation(&cfgctx);
     LIR_drop_unused_variables(&cfgctx);
 
     inst_selector_t inst_sel = { .select_instructions = x86_64_macho_nasm_instruction_selection };
@@ -157,9 +156,7 @@ int main(int argc, char* argv[]) {
     map_t colors;
     map_init(&colors, MAP_NO_CMP);
     LIR_RA_init_colors(&colors, &smt);
-    
-    regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
-    LIR_regalloc(&cfgctx, &smt, &colors, &regall);      // Analyzation
+    LIR_regalloc(&cfgctx, &smt, &colors);
 
     mem_selector_t mem_sel = { .select_memory = x86_64_macho_nasm_memory_selection };
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform

@@ -1,5 +1,6 @@
 #include <lir/copyprop.h>
 
+// TODO: docs
 static int _mark_used_var(set_t* use, lir_subject_t* arg) {
     if (!arg) return 0;
     if (arg->t == LIR_VARIABLE) {
@@ -68,14 +69,19 @@ int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
     return 1;
 }
 
-static int _replace_with_copy(lir_block_t* l, map_t* gen) {
+// TODO: docs
+static int _replace_with_copy(lir_block_t* l, map_t* gen, lir_subject_type_t t) {
     lir_subject_t** args[] = { &l->farg, &l->sarg, &l->targ };
     for (int i = LIR_is_writeop(l->op); i < 3; i++) {
         lir_subject_t** curr = args[i];
         lir_subject_t* dst;
         if (
-            *curr && (*curr)->t == LIR_VARIABLE && 
-            map_get(gen, (*curr)->storage.var.v_id, (void**)&dst)
+            *curr && (*curr)->t == t && 
+            map_get(
+                gen, 
+                t == LIR_VARIABLE ? (*curr)->storage.var.v_id : LIR_format_register((*curr)->storage.reg.reg, 1), 
+                (void**)&dst
+            )
         ) {
             if ((*curr)->home == l) LIR_unload_subject(*curr);
             *curr = LIR_copy_subject(dst);
@@ -87,7 +93,7 @@ static int _replace_with_copy(lir_block_t* l, map_t* gen) {
     return 1;
 }
 
-int LIR_copy_propagation(cfg_ctx_t* cctx) {
+int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         set_t non_ssa;
         set_init(&non_ssa, SET_NO_CMP);
@@ -103,16 +109,10 @@ int LIR_copy_propagation(cfg_ctx_t* cctx) {
                     case LIR_TU8: if (
                         lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL
                     ) break;
-                    case LIR_LOADFRET:
-                    case LIR_LOADFARG:
-                    case LIR_STARGLD: {
-                        goto _go_to_default;
-                        // TODO:
-                    }
                     case LIR_aMOV:
                     case LIR_iMOV: {
                         if (lh->farg->t != LIR_VARIABLE) break;
-                        _replace_with_copy(lh, &gen);
+                        _replace_with_copy(lh, &gen, LIR_VARIABLE);
                         if (
                             lh->op != LIR_aMOV &&
                             (
@@ -124,12 +124,11 @@ int LIR_copy_propagation(cfg_ctx_t* cctx) {
                         break;
                     }
                     default: {
-_go_to_default: {}
                         if (
                             LIR_is_readop(lh->op) &&
                             lh->op != LIR_aMOV &&    /* Reserved mov operations which must be saved    */
                             lh->op != LIR_REF        /* Reference demands its own independent variable */
-                        ) _replace_with_copy(lh, &gen);
+                        ) _replace_with_copy(lh, &gen, LIR_VARIABLE);
                         break;
                     }
                 }
@@ -143,4 +142,8 @@ _go_to_default: {}
     }
     
     return 1;
+}
+
+int LIR_register_copy_propagation(cfg_ctx_t* cctx) {
+    return 1; // TODO: noservative in base-block propagation?
 }

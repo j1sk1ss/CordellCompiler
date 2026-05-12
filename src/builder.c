@@ -644,7 +644,7 @@ int main(int argc, char* argv[]) {
         LIR_generate(&cfgctx, &lirctx, &smt);
 
         if (options.config.copy_prop) {
-            LIR_copy_propagation(&cfgctx);
+            LIR_variable_copy_propagation(&cfgctx);
             LIR_drop_unused_variables(&cfgctx);
         }
 
@@ -652,13 +652,11 @@ int main(int argc, char* argv[]) {
         mem_selector_t   mem_sel;
         inst_selector_t  inst_sel;
         peephole_t       pph;
-        regalloc_t       regall;
         switch (CONF_get_system_type()) {
             case MACHO64: {
                 inst_sel.select_instructions = x86_64_macho_nasm_instruction_selection;
                 reg_save.save_registers      = x86_64_gnu_nasm_caller_saving;
                 mem_sel.select_memory        = x86_64_macho_nasm_memory_selection;
-                regall.regallocate           = x86_64_regalloc_graph;
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
                 break;
             }
@@ -666,7 +664,6 @@ int main(int argc, char* argv[]) {
                 inst_sel.select_instructions = x86_64_gnu_nasm_instruction_selection;
                 reg_save.save_registers      = x86_64_gnu_nasm_caller_saving;
                 mem_sel.select_memory        = x86_64_gnu_nasm_memory_selection;
-                regall.regallocate           = x86_64_regalloc_graph;
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
                 break;
             }
@@ -683,7 +680,7 @@ int main(int argc, char* argv[]) {
         map_init(&colors, MAP_NO_CMP);
         LIR_RA_init_colors(&colors, &smt);
 
-        LIR_regalloc(&cfgctx, &smt, &colors, &regall);
+        LIR_regalloc(&cfgctx, &smt, &colors);
         LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
         LIR_save_registers(&cfgctx, &smt, &reg_save);
         if (options.config.peephole) {

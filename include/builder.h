@@ -61,7 +61,6 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include <lir/regalloc/x84_64_gnu_nasm.h>
 
 /* Peephole optimization */
 #include <lir/peephole/peephole.h>
