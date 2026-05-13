@@ -77,7 +77,7 @@ Params:
     - `ctx` - HIR context.
     - `smt` - Symtable.
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     switch (node->t->t_type) {

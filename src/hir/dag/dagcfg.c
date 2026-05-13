@@ -29,10 +29,8 @@ Params:
 Returns 1 if the subject is a child of the block.
 */
 static int _check_home(hir_block_t* h, hir_subject_t* s) {
-    hir_subject_t* args[] = { h->farg, h->sarg, h->targ };
-    for (int i = 0; i < 3; i++) {
-        if (!args[i]) continue;
-        if (args[i] == s) return 1;
+    iterate_hir_args(hir_subject_t* arg, h, 0) {
+        if (arg == s) return 1;
     }
 
     return 0;
@@ -50,7 +48,7 @@ Params:
     - `src` - Considering block.
     - `s` - Considering subject.
 
-Returns 1 if suceed.
+Returns 1 on success.
 */
 static inline void _prepare_subject(hir_block_t* src, hir_subject_t* s) {
     if (s->home && s->home != src && _check_home(s->home, s)) s->home->unused = 1;
@@ -65,12 +63,10 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                 hh->op != HIR_PHI && 
                 hh->op != HIR_PHI_PREAMBLE
             ) {
-                hir_subject_t* nodes[3] = { hh->farg, hh->sarg, hh->targ };
-                for (int i = HIR_is_writeop(hh->op); i < 3; i++) {
-                    if (!nodes[i]) continue;
-                    if (nodes[i]->t == HIR_ARGLIST) {
+                iterate_ref_hir_args(hir_subject_t** arg, hh, HIR_is_writeop(hh->op)) {
+                    if ((*arg)->t == HIR_ARGLIST) {
                         list_iter_t el_it;
-                        list_iter_hinit(&nodes[i]->storage.list.h, &el_it);
+                        list_iter_hinit(&(*arg)->storage.list.h, &el_it);
                         hir_subject_t* s;
                         while ((s = (hir_subject_t*)list_iter_current(&el_it))) {
                             hir_subject_t* n = _apply_dag_on_block(s, dctx);
@@ -84,13 +80,10 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                         }
                     }
                     else {
-                        hir_subject_t* s = _apply_dag_on_block(nodes[i], dctx);
-                        if (s) { 
-                            switch (i) {
-                                case 0: _prepare_subject(hh, hh->farg); hh->farg = s; break;
-                                case 1: _prepare_subject(hh, hh->sarg); hh->sarg = s; break;
-                                case 2: _prepare_subject(hh, hh->targ); hh->targ = s; break;
-                            }
+                        hir_subject_t* s = _apply_dag_on_block(*arg, dctx);
+                        if (s) {
+                            _prepare_subject(hh, *arg);
+                            *arg = s;
                         }
                     }
                 }

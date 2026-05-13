@@ -29,7 +29,7 @@ Params:
     - `cctx` - CFG context.
     - `lctx` - Loops context.
 
-Returns 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_LOOP_mark_loops(cfg_ctx_t* cctx, ltree_ctx_t* lctx);
 
@@ -40,7 +40,7 @@ Params:
     - `cctx` - CFG context.
     - `lctx` - Loops context.
 
-Returns 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_LTREE_canonicalization(cfg_ctx_t* cctx, ltree_ctx_t* lctx);
 
@@ -80,7 +80,18 @@ Returns the size of nested structure.
 */
 int HIR_LTREE_nested_count(loop_node_t* node);
 
-// TODO: docs
+/*
+Delete all empty loops such as:
+```cpl
+loop {
+}
+```
+, and etc.
+Params:
+    - `lctx` - Loop tree context.
+
+Returns 1 if succeeds.
+*/
 int HIR_LOOP_perform_dle(ltree_ctx_t* lctx);
 
 /*

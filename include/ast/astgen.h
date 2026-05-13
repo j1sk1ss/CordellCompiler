@@ -25,7 +25,13 @@ static inline int forward_token(list_iter_t* it, int steps) {
     return 1;
 }
 
-// TODO: docs
+/*
+Peek the next token in the querry.
+Params:
+    - `it` - Current iterator.
+
+Returns NULL or a token.
+*/
 static inline token_t* look_next_token(list_iter_t* it) {
     if (!list_iter_next_top(it)) return NULL;
     return (token_t*)list_iter_next_top(it);
@@ -38,7 +44,7 @@ Params:
     - `it` - Iterator.
     - `t` - Target token's type.
 
-Returns 1 if a token is consumed. Otherwise will return 0.
+Returns 1 if a token is consumed, otherwise 0.
 */
 static inline int consume_token(list_iter_t* it, token_type_t t) {
     if (!forward_token(it, 1)) return 0;
@@ -63,7 +69,7 @@ Params:
     - `ctx` - AST ctx.
     - `smt` - Symtable.
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt);
 

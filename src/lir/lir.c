@@ -111,25 +111,22 @@ lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject
 }
 
 int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
-    if (
-        !a || !b ||
-        a->t != b->t
-    ) return 0;
+    if (!a || !b || a->t != b->t) return 0;
     if (a == b) return 1;
     switch (a->t) {
-        case LIR_MEMORY:     return (a->storage.var.offset == b->storage.var.offset) && 
-                                    (a->size == b->size) && 
-                                    (a->storage.var.base == b->storage.var.base);
-        case LIR_VARIABLE:   return a->storage.var.v_id == b->storage.var.v_id;
         case LIR_CONSTVAL:   return a->storage.cnst.value == b->storage.cnst.value;
+        case LIR_LABEL:      return a->storage.lb.lb_id == b->storage.lb.lb_id;
+        case LIR_STRING:     return a->storage.str.sid == b->storage.str.sid;
+        case LIR_VARIABLE:   return a->storage.var.v_id == b->storage.var.v_id;
+        case LIR_MEMORY:     return (a->size == b->size) && 
+                                    (a->storage.var.offset == b->storage.var.offset) && 
+                                    (a->storage.var.base == b->storage.var.base);
         case LIR_GLVARIABLE:
         case LIR_STVARIABLE: return (a->storage.var.offset == b->storage.var.offset) && 
                                     (a->storage.var.v_id == b->storage.var.v_id);
         case LIR_REGISTER:   return LIR_format_register(a->storage.reg.reg, 1) == LIR_format_register(b->storage.reg.reg, 1);
         case LIR_NUMBER:     return a->storage.num.value->equals(a->storage.num.value, b->storage.num.value) &&
                                     a->storage.num.is_float == b->storage.num.is_float;
-        case LIR_LABEL:      return a->storage.lb.lb_id == b->storage.lb.lb_id;
-        case LIR_STRING:     return a->storage.str.sid == b->storage.str.sid;
         default:             return 0;
     }
 }

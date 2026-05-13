@@ -35,7 +35,7 @@ Params:
     - `s` - LIR subject.
     - `smt` - Symtable.
 
-Return 1 either this is a signed variable or this isn't variable at all.
+Returns 1 if this is a signed variable or not a variable at all.
 */
 int x86_64_macho_nasm_is_sign_type(lir_subject_t* s, sym_table_t* smt);
 

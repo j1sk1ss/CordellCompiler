@@ -8,7 +8,7 @@ Params:
     - `args` - Input parameters.
     - `fcalls` - FUnction calls map.
 
-Returns 1 if registration was success, otherwise it returs 0.
+Returns 1 if registration succeeded, otherwise 0.
 */
 static int _register_params(symbol_id_t f_id, list_t* args, map_t* fcalls) {
     list_t* rargs;
@@ -71,7 +71,7 @@ Params:
     - `smt` - Symtable.
     - `val` - Output location.
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _extract_variable_value(hir_subject_t* s, sym_table_t* smt, long* val) {
     switch (HIR_is_defined_type(s->t)) {
@@ -98,7 +98,7 @@ Params:
     - `smt` - Symtable.
     - `fcalls` - Function call map.
 
-Returns 1 if the function has propagated something, otherwise will return 0.
+Returns 1 if the function propagated something, otherwise 0.
 */
 static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
     int changed = 0;
@@ -200,7 +200,7 @@ Params:
     - `smt` - Symtable.
     - `frets` - Function returns map.
 
-Returns 1 if it has changes something, otherwise will return 0.
+Returns 1 if it changed something, otherwise 0.
 */
 static int _propagate_frets(cfg_ctx_t* cctx, sym_table_t* smt, map_t* frets) {
     int changed = 0;

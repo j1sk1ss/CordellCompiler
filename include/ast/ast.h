@@ -73,7 +73,7 @@ Params:
     - `n` - Source target node
     - `sp` - Save parent link
     - `sib` - Copy siblings
-    - `chld` - Copy childrens
+    - `chld` - Copied children.
     - `stp` - -1 or a type where we should stop.
 
 Return pointer to new deep copied node.
@@ -86,7 +86,7 @@ Params:
     - `parent` - Parent tree node.
     - `child` - Tree node that will be added as child to parent node.
 
-Return 1 if addition was success.
+Returns 1 if the child was added.
 Return -1 if something goes wrong.
 */
 int AST_add_node(ast_node_t* parent, ast_node_t* child);
@@ -95,19 +95,19 @@ int AST_add_node(ast_node_t* parent, ast_node_t* child);
 Remove clild tree node to parent.
 Params:
     - `parent` - Parent tree node.
-    - `child` - Tree node that will be removed from childs in parent node.
+    - `child` - Tree node that will be removed from children in parent node.
 
-Return 1 if remove was success.
+Returns 1 if the child was removed.
 Return -1 if something goes wrong.
 */
 int AST_remove_node(ast_node_t* parent, ast_node_t* child);
 
 /*
-Unload syntax tree with all childs and siblings.
+Unload syntax tree with all children and siblings.
 Params:
     - `node` - Tree head.
 
-Return 1 if free success.
+Returns 1 if freeing succeeds.
 Return -1 if something goes wrong.
 */
 int AST_unload(ast_node_t* node);

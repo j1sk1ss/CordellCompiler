@@ -165,7 +165,7 @@ Params:
     - `nd` - AST node.
     - `ctx` - Walker context.
 
-Returns 1 if succeeds. Otherwise returns 0 - Semantic block of a compilation.
+Returns 1 on success, otherwise 0.
 */
 static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
     if (!nd) return 0;

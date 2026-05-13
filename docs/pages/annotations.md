@@ -1,90 +1,131 @@
 # Annotations
-Annotations are a useful tool in terms of system development. For non-system programmer, annotations are almost redundant thought. But let's review all available annotations (at this moment):
 
-| Name | Description | Example |
-|-|-|-|
-| `naked` | Will disable all entry and exit routines in the final assembly code for an annotated function | `@[naked] start() {}` |
-| `align` | Align the declared variable with the provided integer value | `@[align(16)] glob i32 a;` |
-| `section` | Set the section for a function or a variable in the final assembly file | `@[section(".data")] glob i32 a;` |
-| `address` | Will put a function to a specific address | `@[address(0xFFABB1)] start() {}` |
-| `entry` | Set function as an entry point of the code | `@[entry("_arch_start")] function main();` |
-| `no_fall` | Generate hidden break statements in cases | `@[no_fall] switch X; { case 1; {} }` |
-| `not_lazy` | Generate both sides of a logic expression before evaluation | `@[not_lazy] (1 \|\| 1)` |
-| `straight` | Generate case choice with linear search approach | `@[straight] switch X; { case 1; {} }` |
-| `counter` | Make a counted loop | `@[counter(100)] loop {}` |
-| `hot` | Send other branch to the end of a function | `@[hot] if 1; something; else something;` |
-| `cold` | Send a branch to the end of a function | `switch X; { @[cond] case 1; { break; } case 2; {} }` |
-| `register` | Will link a primitive (non-global) variable to a register | `@[register(RAX)] i32 a = 0;` |
+Annotations extend the small core syntax without adding many dedicated keywords. They are written before the construct they affect:
 
-## Some words about annotations
-*P.S. The following annotations are primarily intended for systems-level use cases* </br>
-
-### align
-A declaration of a primitive or of an array type (an array or a string) can be annotated with the `align`. This annotation will add an additional padding during memory stack allocation.
 ```cpl
-@[align(16)] glob i32 a;
+@[entry("_main")]
+function main() -> i0 {
+    exit 0;
+}
+```
+
+## Available annotations
+
+| Annotation | Applies to | Meaning |
+|---|---|---|
+| `@[entry]`, `@[entry("name")]` | function | mark function as program entry point |
+| `@[naked]` | function or `start` | suppress normal entry/exit routines |
+| `@[align(N)]` | variable or array declaration | request memory alignment |
+| `@[section("name")]` | global variable or function | place symbol into a section |
+| `@[address(N)]` | function | request a fixed address where supported by backend/configuration |
+| `@[no_fall]` | `switch` | insert implicit breaks for cases |
+| `@[straight]` | `switch` | generate linear case selection |
+| `@[counter(N)]` | `loop` | create a counted loop |
+| `@[hot]` | branch/case | mark branch as hot for layout |
+| `@[cold]` | branch/case | mark branch as cold for layout |
+| `@[not_lazy]` | logical expression | evaluate both sides of `&&`/`\|\|` |
+| `@[register(N)]` | local primitive variable | bind variable to a target register index |
+| `@[poparg]` | local declaration | read the next function argument |
+
+## Entry and naked
+
+```cpl
+@[entry("_main")]
+function main() -> i0 {
+    exit 0;
+}
+
+@[naked]
 start() {
-    @[align(8)] i32 b;
-    @[align(8)] i32 c = a;
+    asm() {
+        "ret"
+    }
 }
 ```
 
-By default align set to platform `bitness / 8` (For instance on the `gnu_x86_64` this is 8 bytes).
+Use `@[naked]` only for code that fully controls its own prologue, epilogue, and exit behavior.
 
-### section
-A function and a global declaration can be placed in a specific section. To perform this, you will need to use the `section` annotation:
+## Alignment and sections
+
 ```cpl
-    @[section(".lis")] glob i32 a;
-    @[section(".lis")] function foo() {}
-```
+@[align(16)]
+glob i32 value = 1;
 
-**Note 1:** Function prototype doesn't affected by a section. To put the function's code to a section, you need to define the function. </br>
-**Note 2:** By default all global/read-only variables and functions are placed in the platform's code section from the configuration. </br>
-**Note 3:** Local functions can't be placed in the specific section. They will stay with their parent function in the same section.
+@[section(".my_data")]
+glob i32 other = 2;
 
-### register
-Register annotation is similar to C's `register` keyword which links a variable to the specific selected register:
-```cpl
-#define RAX 0
-@[register(RAX)] i32 a = 0; : Will put `0` to the `RAX` register :
-```
-
-*P.S.: This annotation accepts the index of a register from mapping table (see related documentation for every supported target), and can link up to infinity variables to one register, which means - you need to pay extra attention here, if you want to play with registers bypassing the register allocator.*
-
-### no_fall
-The switch structure is a great tool to solve a problem with multiple cases. But in C/C++/(old)Java, this structure has to be used with the `break` statement. It is necessary considering the fallthrough from upper cases to lower cases, and can be very annoying if there is only one statement in the case, and we forced to add the `break` to close the case. </br>
-Also, the `hot` and `cold` annotations are really sensitive to unclosed cases and functions, which means, we have to add the `break` in `cold` or `hot` cases even if we don't care about fallthrough. </br>
-To address this issue, the language supports the `no_fall` annotation that can be applied to switch structures:
-```cpl
-@[no_fall] switch condition; {
-    case X; {}
-    default {}
+@[section(".my_text")]
+function helper() -> i0 {
+    return;
 }
 ```
 
-It will generate a break statement at the end of every case and default option:
+Default sections are target/config dependent. The CLI exposes `--ro-section`, `--glob-section`, and `--code-section`.
+
+## Switch annotations
+
+`@[no_fall]` removes the need to write `break` at the end of every case:
+
 ```cpl
-switch condition; {
-    case X; { break; }
-    default { break; }
+@[no_fall]
+switch code; {
+    case 'A'; { putc('A'); }
+    case 'B'; { putc('B'); }
+    default  { putc('?'); }
 }
 ```
 
-P.S.: *This is a pure syntax sugar. It doesn't change the behavior of the switch in general.*
+`@[straight]` asks the compiler to use a linear search instead of the default binary-search-style generation:
 
-### straight
-By default, the `switch` structure is translated to a binary search block, which in some edge cases can increase the execution time and the final code size. To change the generation from binary search approach to a linear search (generate several `if-elseif-else` statements with direct check with case statements) you can use this annotation.
 ```cpl
-@[straight] switch condition; {
-    case X; {}
-    default {}
+@[straight]
+switch code; {
+    case 1; { putc('1'); }
+    default { putc('?'); }
 }
 ```
 
-It will be considered same as this code:
+## Branch layout
+
+`@[hot]` and `@[cold]` are hints for branch placement on an `if` statement:
+
 ```cpl
-if code == X; {
+@[hot] if likely; {
+    putc('H');
 }
 else {
+    putc('C');
 }
 ```
+
+Use them as layout hints, not as semantic requirements.
+
+## Counted loop
+
+```cpl
+@[counter(10)]
+loop {
+    putc('x');
+}
+```
+
+The counter value must be constant.
+
+## Register and poparg
+
+`@[register(N)]` binds a local primitive variable to a target register index:
+
+```cpl
+#define RAX 0
+@[register(RAX)] i64 value = 10;
+```
+
+`@[poparg]` reads arguments from the current call context:
+
+```cpl
+function take(...) -> i0 {
+    @[poparg] i64 first;
+}
+```
+
+Both annotations are low-level and target-sensitive.

@@ -34,7 +34,6 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include <lir/regalloc/x84_64_gnu_nasm.h>
 #include "../../../misc/lir_helper.h"
 
 #include <asm/asmgen.h>
@@ -102,6 +101,7 @@ int main(int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_CG_build(&cfgctx, &callctx, &smt);
 
+    HIR_FUNC_delete_duplicated_functions(&cfgctx);
     HIR_FUNC_set_last_return(&cfgctx);
     HIR_FUNC_perform_tre(&cfgctx, &smt);
 
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
     
-    HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_euristic_desider);
+    HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_heuristic_desider);
 
     RELOAD_CFG; // Rebuild after inlined functions
 
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
 
-    LIR_copy_propagation(&cfgctx);
+    LIR_variable_copy_propagation(&cfgctx);
     LIR_drop_unused_variables(&cfgctx);
 
     inst_selector_t inst_sel = { .select_instructions = x86_64_macho_nasm_instruction_selection };
@@ -156,12 +156,13 @@ int main(int argc, char* argv[]) {
     map_t colors;
     map_init(&colors, MAP_NO_CMP);
     LIR_RA_init_colors(&colors, &smt);
-    
-    regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
-    LIR_regalloc(&cfgctx, &smt, &colors, &regall);      // Analyzation
+    LIR_regalloc(&cfgctx, &smt, &colors);
 
     mem_selector_t mem_sel = { .select_memory = x86_64_macho_nasm_memory_selection };
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
+
+    LIR_RA_sort_phi_movs(&cfgctx, &colors);
+    LIR_destroy_ssa(&cfgctx);
 
     register_saver_t reg_save = { .save_registers = x86_64_macho_nasm_caller_saving };
     LIR_save_registers(&cfgctx, &smt, &reg_save);

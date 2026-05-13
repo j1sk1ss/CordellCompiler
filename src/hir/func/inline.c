@@ -43,9 +43,7 @@ Returns 1 if succeeds.
 static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new, cfg_func_t* fb) {
     while (h) {
         if (h->op != HIR_MKLB) {
-            hir_subject_t** args[3] = { &h->farg, &h->sarg, &h->targ };
-            for (int i = 0; i < 3; i++) {
-                hir_subject_t** curr = args[i];
+            iterate_ref_hir_args(hir_subject_t** curr, h, 0) {
                 if (*curr && (*curr)->t == HIR_LABEL && (*curr)->id == old->id) {
                     *curr = new;
                 }
@@ -297,10 +295,10 @@ static int _collect_information(
 }
 
 /*
-Euristic function for evaluating an inline candidate.
+Heuristic function for evaluating an inline candidate.
 Note 1: If this function returns 1 - the provided function
         can be inlined.
-Note 2: This function collects the next information about
+Note 2: This function collects the following information about
         a function:
         - The function size:
             - Base blocks count.
@@ -368,7 +366,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt
     return 1;
 }
 
-int HIR_FUNC_inline_euristic_desider(int* data, int size) {
+int HIR_FUNC_inline_heuristic_desider(int* data, int size) {
     if (!data || size != sizeof(inline_candidate_info_t)) return 0;
     inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
     int score = 0;

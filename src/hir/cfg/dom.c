@@ -97,7 +97,7 @@ Note: Additionally, this function connects dominators with each other
 Params:
     - `fb` - Current function.
 
-Returns 1 if succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _build_domtree(cfg_func_t* fb) {
     foreach (cfg_block_t* cb, &fb->blocks) {

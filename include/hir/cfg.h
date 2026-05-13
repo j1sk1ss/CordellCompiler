@@ -95,7 +95,7 @@ Note: Will free and re-init all sets related to visitors, etc.
 Params:
     - `cctx` - CFG.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx);
 
@@ -104,7 +104,7 @@ Perform cleanup operation for CFG block. Will clean all tmp information, like le
 Params:
     - `cctx` - CFG.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx);
 
@@ -113,7 +113,7 @@ Compute dominance frontier based on dominance data.
 Params:
     - `func` - CFG func.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_compute_domf(cfg_func_t* func);
 
@@ -122,7 +122,7 @@ Compute dominance based on function CFG.
 Params:
     - `func` - CFG func.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_compute_dom(cfg_func_t* func);
 
@@ -131,7 +131,7 @@ Compute strict dominance based on CFG dominance.
 Params:
     - `func` - CFG func.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_compute_sdom(cfg_func_t* func);
 
@@ -140,7 +140,7 @@ Compute all dominance-related data (dominance, strict dominance, dominance front
 Params:
     - `func` - CFG func.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_create_domdata(cfg_ctx_t* cctx);
 
@@ -149,7 +149,7 @@ Compute all dominance-related data (dominance, strict dominance, dominance front
 Params:
     - `func` - CFG func.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_unload_domdata(cfg_ctx_t* cctx);
 
@@ -160,7 +160,7 @@ Params:
     - `ctx` - CFG.
     - `smt` - Symtable.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_split_by_functions(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt);
 
@@ -180,7 +180,7 @@ Params:
     - `bb` - Base block.
     - `hh` - HIR block.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh);
 
@@ -190,7 +190,7 @@ Params:
     - `bb` - Base block.
     - `hh` - HIR block.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh);
 
@@ -210,7 +210,7 @@ Params:
     - `b` - Base block.
     - `next` - Next base block in function list.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next);
 
@@ -219,7 +219,7 @@ Complete leaders list in function CFG.
 Params:
     - `ctx` - CFG.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_mark_leaders(cfg_ctx_t* ctx);
 
@@ -229,7 +229,7 @@ Params:
     - `cctx` - CFG.
     - `smt` - Symtable.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt);
 
@@ -240,7 +240,7 @@ Params:
     - `ctx` - CFG ctx.
     - `smt` - Symtable.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt);
 
@@ -284,7 +284,7 @@ Unload CFG.
 Params:
     - `ctx` - CFG.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CFG_unload(cfg_ctx_t* ctx);
 

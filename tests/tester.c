@@ -66,7 +66,6 @@
 #ifdef LIR_REGALLOC_TESTING
     #include <lir/dfg.h>
     #include <lir/regalloc/regalloc.h>
-    #include <lir/regalloc/x84_64_gnu_nasm.h>
     #include "misc/ral_helper.h"
 #endif
 #ifdef LIR_PEEPHOLE_TESTING
@@ -310,9 +309,8 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     printf("LIR_RA_init_colors...\n");
     LIR_RA_init_colors(&colors, &smt);
     
-    regalloc_t regall = { .regallocate = x86_64_regalloc_graph };
     printf("LIR_regalloc...\n");
-    LIR_regalloc(&cfgctx, &smt, &colors, &regall); // Analyzation
+    LIR_regalloc(&cfgctx, &smt, &colors); // Analyzation
 
     mem_selector_t mem_sel = { 
         .select_memory = x86_64_gnu_nasm_memory_selection

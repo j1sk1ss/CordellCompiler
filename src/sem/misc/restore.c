@@ -49,7 +49,7 @@ static inline int _rst_digits(int v) {
 }
 
 /* 
-Get the largest .line value from the node and its childs.
+Get the largest .line value from the node and its children.
 Params:
     - `nd` - AST node.
     - `mx` - Current largest line.

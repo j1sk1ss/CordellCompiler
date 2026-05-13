@@ -29,7 +29,7 @@ function swap1(ptr u8 a, ptr u8 b) -> i0 {
 swap1(ref a, ref b);
 ```
 
-It will work perfectly in the existed pipline given the overload system. It won't conflict with the overload system thougth, 'cause these options chaise two different goals. The generics are a convenient way for handling the same logic for different types, and the overloads are a way of making the same name avaliable for different logic. Indeed, the last one could replace the first, but it will require to create a ton of code for each type (regardless user-defined types as well) to reach the same functionality. For instance:
+It should work well with the existing pipeline and overload system. It should not conflict with overloads because these features solve different problems. Generics are a convenient way to reuse the same logic for different types, while overloads make the same name available for different logic. Overloads could replace generics in some cases, but that would require writing a lot of duplicated code for each type. For instance:
 ```cpl
 function sum<T>(T a, T b) -> T {
     return a + b;

@@ -1,79 +1,64 @@
 # Hello, World! example
-The actual syntax of CPL can be presented with help of a program with a simple functionality to print a welcome message. In a nutshell, that's how we can write a basic 'hello-world' program. </br>
-P.S.: *Usage of an assembly block requires to determine the target architecture. In the case below, the target architecture is 'GNU NASM x86_64'.*
+
+The smallest useful CPL program has an entry point and exits explicitly:
 
 ```cpl
-:/ Define the strlen function
-  that accepts a pointer to a char array.
-  Params:
-    - `s` - Pointer to a string.
+start() {
+    exit 0;
+}
+```
 
-  Return a length of the string. /:
+To print a character on macOS x86-64, call the platform `write` syscall directly:
+
+```cpl
+start() {
+    i8 c = 'S';
+    syscall(0x2000004, 1, ref c, 1);
+    exit 0;
+}
+```
+
+`syscall` is target-dependent: syscall numbers and ABI details differ between macOS and Linux.
+
+## A small print helper
+
+```cpl
 function strlen(ptr i8 s) -> i64 {
     i64 l = 0;
-
-    : While pointed symbol isn't a zero value
-      continue iteration :
     while dref s; {
         s += 1;
         l += 1;
     }
 
-    : Return the length of the provided
-      string :
     return l;
 }
 
-:/ Define the puts function
-  that accepts a pointer to a string object.
-  Params:
-    - `s` - A string.
-    
-    Returns 'i0' a/k/a nothing. /:
 function puts(ptr i8 s) -> i0 {
-    : Start ASM inline block with
-      a support of the argument list :
-    asm (s, strlen(s)) {
-        "push rdi", 
-        "push rsi", 
-        "push rdx",    :/ Guards      /:
-        "mov rax, 33554436",
-        "mov rdi, 1",
-        "mov rsi, %0", :/ 's' pointer /:
-        "mov rdx, %1", :/ 's' length  /:
-        "syscall",
-        "pop rdx", 
-        "pop rsi", 
-        "pop rdi"
-    }
+    syscall(0x2000004, 1, s, strlen(s));
 }
 
-: Program entry point similar to the C's entry point
-  main(int argc, char* argv[]); :
-start(i64 argc, ptr ptr i8 argv) {
+start() {
     puts(ref "Hello, World!\n");
     exit 0;
 }
-``` 
-
-For comparison here is the same code snippet but on C language:
-```c
-#include "stdio.h"
-
-int main(int argc, char* argv[]) {
-    puts("Hello, World!");
-    return 0;
-}
 ```
 
-P.S.: *The C code can looks similar to CPL code if we will abandon the stdlib.h. But considering that the library is exists and can be used easily, we won't use an example without it.* </br>
-P.S.S.: *Actually, with usage of a similar header file (with the same functions set), CPL code can looks really close to C code with the same lib.*
+String literals are stored as read-only byte sequences. Pass them to `ptr i8` parameters with `ref`.
+
+## Entry annotation form
+
+Instead of `start`, a normal function can be marked as the program entry:
 
 ```cpl
-#include "stdio_h.cpl"
+function putc(i8 c) -> i0 {
+    syscall(0x2000004, 1, ref c, 1);
+}
 
-@[entry("_start")] function main(i32 argc, ptr ptr i8 argv) -> i32 {
-    puts(ref "Hello, World!");
+@[entry("_main")]
+function main() -> i0 {
+    putc('E');
     exit 0;
 }
 ```
+
+An entry function should use `exit`, not `return`, to finish the process.

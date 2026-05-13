@@ -12,7 +12,7 @@ start() {
         i += 1;
     }
 
-    exit acc;
+    exit acc as u8;
 }
 
 :/ OUTPUT

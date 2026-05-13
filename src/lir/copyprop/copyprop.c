@@ -1,5 +1,13 @@
 #include <lir/copyprop.h>
 
+/*
+Add variables referenced by a subject to the USE set.
+Params:
+    - `use` - USE set to update.
+    - `arg` - LIR subject to inspect.
+
+Returns 1 if subject was handled, otherwise 0.
+*/
 static int _mark_used_var(set_t* use, lir_subject_t* arg) {
     if (!arg) return 0;
     if (arg->t == LIR_VARIABLE) {
@@ -29,9 +37,8 @@ int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
                 if (!lh->unused) {
-                    lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
-                    for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
-                        _mark_used_var(&use, args[i]);
+                    iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+                        _mark_used_var(&use, arg);
                     }
 
                     switch (lh->op) {
@@ -68,14 +75,25 @@ int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
     return 1;
 }
 
-static int _replace_with_copy(lir_block_t* l, map_t* gen) {
-    lir_subject_t** args[] = { &l->farg, &l->sarg, &l->targ };
-    for (int i = LIR_is_writeop(l->op); i < 3; i++) {
-        lir_subject_t** curr = args[i];
+/*
+Replace readable operands with their propagated copy when a mapping exists.
+Params:
+    - `l` - LIR block to rewrite.
+    - `gen` - Map from variable/register keys to copied subjects.
+    - `t` - Subject type to replace.
+
+Returns 1 if succeeds.
+*/
+static int _replace_with_copy(lir_block_t* l, map_t* gen, lir_subject_type_t t) {
+    iterate_ref_lir_args(lir_subject_t** curr, l, LIR_is_writeop(l->op)) {
         lir_subject_t* dst;
         if (
-            *curr && (*curr)->t == LIR_VARIABLE && 
-            map_get(gen, (*curr)->storage.var.v_id, (void**)&dst)
+            (*curr)->t == t && 
+            map_get(
+                gen, 
+                t == LIR_VARIABLE ? (*curr)->storage.var.v_id : LIR_format_register((*curr)->storage.reg.reg, 1), 
+                (void**)&dst
+            )
         ) {
             if ((*curr)->home == l) LIR_unload_subject(*curr);
             *curr = LIR_copy_subject(dst);
@@ -87,7 +105,7 @@ static int _replace_with_copy(lir_block_t* l, map_t* gen) {
     return 1;
 }
 
-int LIR_copy_propagation(cfg_ctx_t* cctx) {
+int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         set_t non_ssa;
         set_init(&non_ssa, SET_NO_CMP);
@@ -106,7 +124,7 @@ int LIR_copy_propagation(cfg_ctx_t* cctx) {
                     case LIR_aMOV:
                     case LIR_iMOV: {
                         if (lh->farg->t != LIR_VARIABLE) break;
-                        _replace_with_copy(lh, &gen);
+                        _replace_with_copy(lh, &gen, LIR_VARIABLE);
                         if (
                             lh->op != LIR_aMOV &&
                             (
@@ -122,7 +140,7 @@ int LIR_copy_propagation(cfg_ctx_t* cctx) {
                             LIR_is_readop(lh->op) &&
                             lh->op != LIR_aMOV &&    /* Reserved mov operations which must be saved    */
                             lh->op != LIR_REF        /* Reference demands its own independent variable */
-                        ) _replace_with_copy(lh, &gen);
+                        ) _replace_with_copy(lh, &gen, LIR_VARIABLE);
                         break;
                     }
                 }
@@ -136,4 +154,8 @@ int LIR_copy_propagation(cfg_ctx_t* cctx) {
     }
     
     return 1;
+}
+
+int LIR_register_copy_propagation(cfg_ctx_t* cctx) {
+    return 1; // TODO: noservative in base-block propagation?
 }

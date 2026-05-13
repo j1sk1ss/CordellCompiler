@@ -14,10 +14,10 @@ Peek the previous instruction.
 Params:
     - c - Current LIR block.
     - exit - The exit LIR statement. 
-             If this function reaches the exit statement, it will returns NULL.
+             If this function reaches the exit statement, it will return NULL.
     - skip - The number of blocks that must be skipped by function.
 
-Return the next LIR block.
+Returns the next LIR block.
 */
 lir_block_t* LIR_get_back_instruction(lir_block_t* c, lir_block_t* exit, int skip);
 
@@ -27,10 +27,10 @@ Note: Not the same logic with the 'LIR_get_next'.
 Params:
     - c - Current LIR block.
     - exit - The exit LIR statement. 
-             If this function reaches the exit statement, it will returns NULL.
+             If this function reaches the exit statement, it will return NULL.
     - skip - The number of blocks that must be skipped by function.
 
-Return the next LIR block.
+Returns the next LIR block.
 */
 lir_block_t* LIR_get_near_instruction(lir_block_t* c, lir_block_t* exit, int skip);
 
@@ -40,7 +40,7 @@ Note: This function works only with a const/number subject.
 Params:
     - `s` - The LIR subject.
 
-Return the long nummber represented by this subject.
+Returns the long number represented by this subject.
 */
 long LIR_peephole_get_long_number(lir_subject_t* s);
 
@@ -50,7 +50,7 @@ Note: This function works only with a const/number subject.
 Params:
     - `s` - The LIR subject.
 
-Return the long nummber sqrt from this subject.
+Returns the integer square root of this subject.
 */
 long LIR_peephole_get_sqrt_number(lir_subject_t* s);
 
@@ -60,7 +60,7 @@ Note: This function works only with a const/number subject.
 Params:
     - `s` - The LIR subject.
 
-Return the long nummber log2 from this subject.
+Returns the integer log2 of this subject.
 */
 long LIR_peephole_get_log2_number(lir_subject_t* s);
 
@@ -74,7 +74,7 @@ Note: This phase must be generated with PTRN DSL application.
 Params:
     - `bb` - Basic block.
 
-Return 1 if phase optimizes something.
+Returns 1 if the phase optimizes something.
 */
 int peephole_first_pass(cfg_block_t* bb);
 
@@ -94,7 +94,7 @@ Params:
     - `cctx` - CFG with the HIR and the LIR.
     - `peephole` - Architecture dependent peephole second phase implementation.
 
-Return 1 or 0.
+Returns 1 if optimization succeeds, otherwise 0.
 */
 int LIR_peephole_optimization(cfg_ctx_t* cctx, peephole_t* peephole);
 

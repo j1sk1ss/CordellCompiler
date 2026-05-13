@@ -31,7 +31,7 @@ Params:
     - `cctx` - CFG context.
     - `ctx` - Call graph context.
 
-Returns 1 if operation succeed. Otherwise it will return 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CG_apply_dfe(cfg_ctx_t* cctx, call_graph_t* ctx);
 
@@ -44,7 +44,7 @@ Params:
     - `ctx` - Call graph itself.
     - `smt` - Symtable.
 
-Returns 1 if operation succeed. Otherwise it will return 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt);
 
@@ -55,7 +55,7 @@ Params:
     - `ctx` - Call graph context.
     - `smt` - Symtable.
 
-Returns 1 if operation succeed. Otherwise it will return 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt);
 
@@ -64,7 +64,7 @@ Unload call graph.
 Params:
     - `ctx` - Call graph.
 
-Returns 1 if operation succeed. Otherwise it will return 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_CG_unload(call_graph_t* ctx);
 
@@ -74,31 +74,31 @@ Params:
     - `cctx` - CFG.
     - `smt` - Symtable.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt);
 
 /*
-Perform inlining optimization. Will inline function that get 3 euristic score points.
+Perform inlining optimization. Inlines functions that get 3 heuristic score points.
 Params:
     - `cctx` - CFG.
     - `lctx` - Loops context.
     - `smt` - Symtable.
-    - `checker` - Function desider.
+    - `checker` - Function decider.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int));
 
 /*
-Euristic inline desider (basic option).
+Heuristic inline decider (basic option).
 Params:
-    - `data` - Desider data.
-    - `size` - Desider data size.
+    - `data` - Decider data.
+    - `size` - Decider data size.
 
 Returns 1 if function must be inlined.
 */
-int HIR_FUNC_inline_euristic_desider(int* data, int size);
+int HIR_FUNC_inline_heuristic_desider(int* data, int size);
 
 /*
 Iterate function and find last block. If this is exit and the last block, find HIR_VRUSE, which
@@ -110,5 +110,14 @@ Params:
 Returns 1 if succeeds.
 */
 int HIR_FUNC_set_last_return(cfg_ctx_t* cctx);
+
+/*
+Delete duplicated functions from the CFG.
+Params:
+    - `ctx` - CFG context.
+
+Returns 1 on success, otherwise 0.
+*/
+int HIR_FUNC_delete_duplicated_functions(cfg_ctx_t* ctx);
 
 #endif

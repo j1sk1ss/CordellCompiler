@@ -2,6 +2,7 @@
   - [Summary](/pages/summary.md)
   - [Main idea of this project](/pages/main-idea-of-this-project.md)
   - [Used links and literature](/pages/used-links-and-literature.md)
+  - [Compiler usage](/pages/compiler-usage.md)
   - [Hello world example](/pages/hello-world-example.md)
   - [Code conventions](/pages/code-conventions.md)
   - [Program entry point](/pages/program-entry-point.md)

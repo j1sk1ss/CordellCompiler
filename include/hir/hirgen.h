@@ -13,7 +13,7 @@ Params:
     - `hctx` - HIR context.
     - `smt` - Symtable.
 
-Return 1 or 0 that depends on success or failure.
+Returns 1 on success, otherwise 0.
 */
 int HIR_generate(ast_ctx_t* sctx, hir_ctx_t* hctx, sym_table_t* smt);
 
@@ -25,7 +25,7 @@ Params:
                If this function reaches the exit statement, it will return NULL.
     - `skip` - The number of blocks that must be skipped by function.
 
-Return the next HIR block.
+Returns the next HIR block.
 */
 hir_block_t* HIR_get_next(hir_block_t* c, hir_block_t* exit, int skip);
 

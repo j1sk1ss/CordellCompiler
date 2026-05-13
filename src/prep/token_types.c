@@ -65,7 +65,7 @@ int TKN_is_tmp_type(token_type_t t) {
     }
 }
 
-/* Return 1 if token is pointer (arr, string, ptr). Otherwise return 0. */
+/* Returns 1 if token is a pointer (arr, string, ptr), otherwise 0. */
 int TKN_is_pointer(token_t* token) {
     if (!token) return 0;
     if (token->flags.ptr) return 1;

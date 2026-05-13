@@ -28,16 +28,6 @@ void* str_memset(void* ptr, unsigned char v, unsigned long n) {
     return ptr;
 }
 
-int str_memcmp(const void* dst, const void* src, unsigned long n) {
-    for (unsigned short i = 0; i < n; i++) {
-        if (((const unsigned char*)dst)[i] != ((const unsigned char*)src)[i]) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
 unsigned long long str_dob2bits(double d) {
     unsigned long long bits = 0;
     str_memcpy(&bits, &d, sizeof(d));

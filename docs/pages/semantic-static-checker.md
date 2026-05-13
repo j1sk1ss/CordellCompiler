@@ -1,49 +1,67 @@
 # Semantic static checker
-This page almost about the basics of the static analysis in CPL. To dive deeper, you can consider the related block in this documentation later. But at this moment, we need to understand what can do and can't the analyzer. </br>
-Cordell Compiler implements a simple static analysis tool for a basic code-checking before compilation. This static analysis tool is divided by two different parts: the *AST analysis* and the *IR analysis*. </br>
-While the *AST analysis* commonly address general problems with typos and programmer errors (duplicated branches, wrong names, wrong arguments count, etc.), the *IR analysis* gives us essential information about possible program behavior (null-dereference, wrong casts, propagated constants (variable values), etc.) and ability to use `Z3` tool.
 
-## AST part
-The list of all possible AST warnings that are supported by the static analyzer is below.
+The compiler has two optional analysis stages:
 
-| Error name                                                 | Description                                                                                                                                                                      | Example of the error                       |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| Read-only variable update                                  | If a variable is marked as `ro`, it must never be updated after initialization.                                                                                                  | `ro i32 x = 1;`</br>`x = 2;`               |
-| Invalid variable for a function's return value             | If a function returns, for instance, an `i8` value, it must be stored in a variable with the same or a wider compatible type.                                                    | `function f() -> i64;`</br>`i8 x = f();`   |
-| Declaration without initialization                         | If a variable is declared without an initial value, the checker should warn about possible uninitialized usage.                                                                  | `i32 x;`                                   |
-| Wrong value type for a variable declaration                | If a variable is declared with an initial value, that value must be compatible with the variable type.                                                                           | `i8 x = 1000;`                             |
-| Function without return                                    | If a function return type is not `i0`, all control-flow paths must contain a `return` statement.                                                                                 | `function f() -> i32 { if a { return 1; } }` |
-| Start block without exit                                   | The initial `start` block must end with an `exit` statement on all control-flow paths.                                                                                           | `start { if a; { exit 0; } }`              |
-| Function arguments number mismatch                         | A function call must provide exactly the same number of arguments as defined in the function declaration.                                                                        | `function sum(i32 a, i32 b);`</br>`sum(1);`|
-| Function argument type mismatch                            | Each provided argument in a function call must have a type compatible with the corresponding function parameter.                                                                 | `function f(i32 x);`</br>`f(ref "abc");`   |
-| Unused function return value                               | If a function returns a value other than `i0`, that value should be used.                                                                                                        | `sum(1, 2);`                               |
-| Wrong variable for a function's return type                | If a function result is stored in a variable, the variable type must be compatible with the function return type.                                                                | `function f() -> i64;`</br>`i8 x = f();`   |
-| Function's return type mismatch with an actual return type | The expression in a `return` statement must match the declared return type of the function.                                                                                      | `function f() -> i8 { return 1000; }`      |
-| Illegal array access                                       | Array index used in an array access must be valid and non-negative.                                                                                                              | `a[-1]`                                    |
-| Duplicated branches                                        | Two identical branches inside one `if` construction should be reported.                                                                                                          | `if x == 1 { }`</br>`else if x == 1 { }`   |
-| Invalid function name                                      | Some function names are reserved by the compiler and must not be used by user code.                                                                                              | `function __builtin_add() -> i32 { }`      |
-| Dead code                                                  | Code that can never be executed should be reported.                                                                                                                              | `return 1; x = 2;`                         |
-| Possible implicit conversion                               | The checker should warn when a value is converted implicitly between incompatible or lossy types.                                                                                | `i8 x = i64_val;`                          |
-| Inefficient `while`                                        | In some cases `loop` is more appropriate than `while 1`.                                                                                                                         | `while 1 { }`                              |
-| Incorrect exit type for a function                         | The `exit` keyword may be used inside a non-`start` function only if this function is explicitly marked as a non-local entry point and there is no `start` function in the file. | `function foo() { exit 0; }`               |
-| Break usage without a target                               | The `break` keyword must be used only inside `loop` or `while`.                                                                                                                  | `if x; { break; }`                         |
-| `i0` function's return value usage                         | If a function returns `i0`, its result must not be stored or used as a value.                                                                                                    | `function void_fn() -> i0;`</br>`i32 x = void_fn();`|
-| Unused expression                                          | Any expression that is not stored, passed, or used in control flow should be reported.                                                                                           | `1 + 2;`                                   |
-| Reference to an expression                                 | The reference operator may only be applied to a variable, not to an arbitrary expression.                                                                                        | `ptr c = ref (a + b);`                     |
-| Non-even align                                             | If alignment of a variable or array is odd, the checker should warn about it.                                                                                                    | `@[align(3)] i32 x;`                       |
+- AST analysis, enabled with `--ast-analysis`;
+- HIR/IR analysis, enabled with `--ir-analysis`.
 
-**Note 1:** By default the static analysis is turned off. To turn it on, use the `--static-analysis` flag. </br>
-**Note 2:** The static analyzer doesn't use a source file to show a error place. For these purposes, it uses the 'restorer' module that restores the code from AST.
+```bash
+./builds/ccompiler --ast-analysis --ir-analysis main.cpl
+```
 
-## IR part
-The list of all possible IR warnings that are supported by the static analyzer is below:
+These checks are intentionally lightweight. They help catch mistakes before or during lowering, but CPL is still an unsafe low-level language.
 
-| Error name       | Description                                                                                                                                   | Example                              |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| NULL dereference | If a variable or expression that may be `NULL` is dereferenced, compilation must be terminated.                                               | `ptr i32 p = 0;`</br>`x = dref p;`   |
-| NULL dereference.args | If a function dereferences an input argument, and we figure it out, that it is '0' - we must terminate compilation.                      | `ptr i32 p = 0;`</br>`foo(p);`</br>`function foo(ptr i32 b) { dref b; }` |
-| Possible dereference | With `Z3` is possible to predict whether there is a dereference of 0 or not.                                                              | `ptr i32 p = 0;`</br>`if not p; return;`</br>`x = dref p; :/ Fine /:` |
-| Constant `if`    | If an `if` condition is a compile-time constant, the checker may warn that one branch is dead code.                                           | `if 0 { a = 1; }`</br>`else { a = 2; }` |
-| Function checker | Function call arguments must match the declared parameter types, otherwise code generation may become invalid.                                | `function sum(i32 a, i32 b);`</br>`sum(1, "x");`|
-| Syscall checker  | Using the syscall number and the target platform, the checker can validate that the syscall exists and that its arguments have correct types. | `syscall(3, ref "fd", buf, 10);`     |
-| Dead branches    | With `Z3` is possible to check whether a branch is reacheble or not.                                                                          | `if 0 { :/ Dead /: }`</br>`else { :/ Alive /: }` |
+## AST analysis
+
+AST analysis works on the parsed source structure and symbol tables. It is meant to catch source-level mistakes such as:
+
+- updating a `ro` variable;
+- using a return value with an incompatible type;
+- declaring a variable without initialization and then using it unsafely;
+- returning a value that does not match the function return type;
+- missing `return` in a non-`i0` function;
+- missing `exit` in an entry point;
+- wrong function argument count or type;
+- unused non-`i0` function return value;
+- invalid array access;
+- duplicated branches;
+- dead code;
+- suspicious implicit conversions;
+- `break` outside a loop or switch;
+- using an `i0` result as a value;
+- odd alignment in `@[align(N)]`.
+
+Example:
+
+```cpl
+ro i32 x = 1;
+
+start() {
+    x = 2; : AST analysis should report read-only update :
+    exit 0;
+}
+```
+
+## HIR/IR analysis
+
+IR analysis runs after HIR and CFG construction. It can reason about lower-level program behavior and target-sensitive operations.
+
+Typical checks include:
+
+- null dereference;
+- possible null dereference through function arguments;
+- constant `if` conditions and dead branches;
+- function call type checks after lowering;
+- syscall validation for the selected target platform.
+
+Example:
+
+```cpl
+start() {
+    ptr i32 p = 0 as ptr i32;
+    i32 x = dref p;
+    exit x as u8;
+}
+```
+
+The project also contains Z3-related code for deeper reasoning in HIR checks. Treat this as an experimental analysis path rather than as a full formal verification system.

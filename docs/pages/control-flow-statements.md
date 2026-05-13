@@ -1,78 +1,101 @@
 # Control flow statements
-## if statement
-`if` keyword similar to the `C`'s `if` statement. Key change here is the `;` token after the condition. 
+
+CPL control-flow syntax is C-like, but conditions are followed by `;`.
+
+## `if` and `else`
+
 ```cpl
 if condition; {
+    statement;
 }
 else {
+    statement;
 }
 ```
 
-For instance:
+Single-statement branches are also supported:
+
 ```cpl
-i32 a = 10;
-i32 b = 11;
-if a == 12 && b < 12; {
-    a = 10;
-}
-else {
-    a = 12;
+start() {
+    i64 x = 2;
+    if x == 1; putc('A');
+    else if x == 2; putc('B');
+    else putc('C');
+    exit 0;
 }
 ```
 
-Or without a scope symbol:
-```cpl
-i32 a1 = 12;
-i32 a;
+## `while`
 
-if a1 > 10 && a1 <= 20; a = 10;
-else if a1 > 20;        a = 20;
-else                    a = 0;
-```
-
-## while statement
 ```cpl
 while condition; {
-    stmt;
-    stmt;
+    statement;
 }
 
-while condition; stmt;
+while condition; statement;
 ```
 
-## loop statement
-In difference with the `while` statement, the `loop` statement allows to build efficient infinity loops for a purpose. It is a way efficient than a `while 1;` statement given the empty 'condition' body. </br>
-**Important Note:** You *must* insert the `break` keyword somewhere in a body of this statement or use the `counter` annotation. Otherwise it will became an infinity loop.
+Example:
+
+```cpl
+function strlen(ptr i8 s) -> i64 {
+    i64 l = 0;
+    while dref s; {
+        s += 1;
+        l += 1;
+    }
+    return l;
+}
+```
+
+## `loop`
+
+`loop` creates an unconditional loop:
+
 ```cpl
 loop {
-    stmt;
-    stmt;
+    if done; break;
 }
-
-loop stmt;
 ```
 
-The `loop` statement supports the `counter` annotation. This will make a counted loop with the fixed amount of iterations:
+A counted loop can be created with `@[counter]`:
+
 ```cpl
 @[counter(10)] loop {
+    putc('x');
 }
 ```
 
-**Note:** The `counter` annotation accepts only constants which doesn't allow to create variable loop durations with variables. To do this, you still will need to use the traditional `while` or `loop` with the end `if` statement.
+`@[counter]` accepts a constant.
 
-## switch statement
-**Note 1:** `X` should be constant value (or a primitive variable that can be `inlined`). </br>
-**Note 2:** Similar to C language, the `switch` statement supports the fall 'mechanic'. It implies, that the `case` can ignore the `break` keyword. This will lead to the execution of the next case block.
+## `switch`
+
 ```cpl
-switch condition; {
-    case X; {}
-    case Y; {
+switch value; {
+    case 1; {
+        putc('A');
+        break;
+    }
+    case 2; {
+        putc('B');
         break;
     }
     default {
+        putc('?');
         break;
     }
 }
 ```
 
-**Note 3:** *The switch statement is generated with the usage of a binary search approach by default (see Annotations about other options). This means, consider this structure over the multiple ifs.* </br>
+Cases fall through unless you use `break` or annotate the switch with `@[no_fall]`:
+
+```cpl
+@[no_fall]
+switch code; {
+    case 'A'; { putc('A'); }
+    case 'B'; { putc('B'); }
+    default  { putc('?'); }
+}
+```
+
+By default, `switch` is generated through a binary-search-style decision tree. Use `@[straight]` to request linear case selection.

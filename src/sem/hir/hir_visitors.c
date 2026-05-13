@@ -1,6 +1,13 @@
 #include <sem/hir/hir_visitors.h>
 
-// TODO: docs
+/*
+Resolve the original variable name by walking through parent variable ids.
+Params:
+    - `id` - Variable symbol id.
+    - `smt` - Symtable.
+
+Returns variable name if it was found. Otherwise returns "no-name".
+*/
 static const char* _resolve_variable_name(symbol_id_t id, sym_table_t* smt) {
     variable_info_t vi;
     do {
@@ -61,7 +68,16 @@ static int _resolve_subject_value(hir_subject_t* s, sym_table_t* smt, defined_va
     return 1;
 }
 
-// TODO: docs
+/*
+Find a source location where the variable was defined by scanning backwards
+from the provided HIR block.
+Params:
+    - `b` - HIR block to start scanning from.
+    - `v_id` - Variable symbol id.
+    - `loc` - Output source location.
+
+Returns 1 if variable definition was found, otherwise 0.
+*/
 static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_id, file_position_t* loc) {
     int found = 0;
     while (b) {
@@ -87,14 +103,32 @@ static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_i
     return found;
 }
 
-// TODO: docs
+/*
+Get parent variable symbol id.
+Params:
+    - `v_id` - Variable symbol id.
+    - `smt` - Symtable.
+
+Returns parent variable symbol id if it was found. Otherwise returns NO_SYMBOL_ID.
+*/
 static inline symbol_id_t _get_parent_id(symbol_id_t v_id, sym_table_t* smt) {
     variable_info_t vi;
     if (VRTB_get_info_id(v_id, &vi, &smt->v)) return vi.p_id;
     return NO_SYMBOL_ID;
 }
 
-// TODO: docs
+/*
+Check whether a dereferenced subject can be equal to NULL and report an error
+trace when it can.
+Params:
+    - `hb` - HIR block where dereference is performed.
+    - `s` - Dereferenced subject.
+    - `f` - Function virtual form for Z3 checks.
+    - `smt` - Symtable.
+    - `ctx` - HIR visitors context.
+
+Returns 1 if the check succeeds, otherwise 0.
+*/
 static int _dereference_error(hir_block_t* hb, hir_subject_t* s, string_t* f, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
     defined_variable_t di;
     if (!_resolve_subject_value(s, smt, &di)) return 1;
@@ -258,7 +292,16 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     return 1;
 }
 
-// TODO: docs
+/*
+Create a readable type name for a HIR subject type.
+Params:
+    - `t` - HIR subject type.
+    - `ptr` - Pointer indirection level.
+    - `buffer` - Output buffer.
+    - `buffer_size` - Output buffer size.
+
+Returns 1 on success, otherwise 0.
+*/
 static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int buffer_size) {
     for (int i = 0; i < ptr; i++) {
         buffer += snprintf(buffer, buffer_size, "ptr ");

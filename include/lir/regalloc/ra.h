@@ -50,7 +50,7 @@ Params:
     - `g` - Graph itself.
     - `smt` - Symtable.
 
-Returns 1 if succeeds. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt);
 

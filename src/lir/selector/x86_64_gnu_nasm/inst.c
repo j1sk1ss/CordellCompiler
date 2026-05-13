@@ -40,7 +40,7 @@ Params:
     - `out` - Output information placeholder.
     - `smt` - Symtable.
 
-Returns 1 if this is a register value, otherwise (stack) will return 0.
+Returns 1 if this is a register value, otherwise 0.
 */
 static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, sym_table_t* smt) {
     int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
@@ -162,9 +162,8 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                             _get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)
                         ) nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
                         else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
-
                         LIR_unload_subject(lh->sarg);
-                        lh->op   = LIR_iMOV;
+                        lh->op   = LIR_phiMOV;
                         lh->sarg = nfarg;
                         break;
                     }

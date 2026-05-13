@@ -77,7 +77,7 @@ Params:
     - `out` - Output file path.
     - `out_sz` - Max output file path size.
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int PP_file_path_from_fp(FILE* fp, char* out, size_t out_sz);
 
@@ -102,7 +102,7 @@ Params:
     - `out_sz` - Include path max size.
     - `is_system` - Is this is a system lib? <>
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int PP_parse_include_arg(const char* p, char* out, size_t out_sz, int* is_system);
 
@@ -115,7 +115,7 @@ Params:
     - `out` - Output clean line.
     - `out_cap` - Output line max size.
 
-Returns 0 if fails, otherwise will return 1.
+Returns 0 on failure, otherwise 1.
 */
 int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size_t* out_cap);
 
@@ -128,7 +128,7 @@ Params:
     - `value_out` - Value body.
     - `value_sz` - Max value body size.
 
-Returns 1 if succeeds. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int PP_parse_define_arg(
     const char* p,
@@ -145,7 +145,7 @@ Params:
     - `out_cap` - Output size.
     - `dtcx` - Define table context.
 
-Returns 0 if fails or doesn't change anything, otherwise will return 1.
+Returns 0 on failure or if nothing changed, otherwise 1.
 */
 int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, deftb_t* dctx);
 

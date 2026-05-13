@@ -11,7 +11,7 @@ Params:
              Note: This variable must be a 'base' variable.
                    This means that variable mustn't be a copy.
 
-Returns 1 if PHI function insert succeed. Otherwise will return 0.
+Returns 1 if PHI insertion succeeds, otherwise 0.
 */
 static int _insert_phi_instr(cfg_block_t* b, variable_info_t* vi) {
     if (!b || !b->hmap.entry) return 0;
@@ -41,7 +41,7 @@ Params:
     - `cctx` - CFG func.
     - `out` - Output set where collected all base-blocks.
 
-Return 1 if success, otherwise 0.
+Returns 1 on success, otherwise 0.
 */
 static int _collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
     foreach (cfg_func_t* fb, &cctx->funcs) {

@@ -40,7 +40,7 @@ Params:
     - `ctx` - CFG context.
     - `smt` - Symtable.
 
-Returns 1 if succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static cfg_func_t* _add_funcblock(hir_block_t* entry, cfg_ctx_t* ctx, sym_table_t* smt) {
     func_info_t fi;

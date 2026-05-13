@@ -94,6 +94,13 @@ lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
     return reg;
 }
 
+/*
+Check whether an operation writes its destination by moving a value into it.
+Params:
+    - `op` - LIR operation.
+
+Returns 1 if operation is a value-moving write, otherwise 0.
+*/
 static int _is_move_write_by_value(lir_operation_t op) {
     switch (op) {
         case LIR_CDQ:
@@ -109,6 +116,7 @@ static int _is_move_write_by_value(lir_operation_t op) {
         case LIR_CVTSI2SD:
         case LIR_CVTSS2SD:
         case LIR_CVTSD2SS:
+        case LIR_phiMOV:
         case LIR_aMOV:
         case LIR_iMOV:
         case LIR_MOVSX:
@@ -166,6 +174,7 @@ int LIR_is_readop(lir_operation_t op) {
         case LIR_CMP:
         case LIR_FRET:
         case LIR_PUSH:
+        case LIR_phiMOV:
         case LIR_aMOV:
         case LIR_LDREF:
         case LIR_VRUSE:
@@ -184,6 +193,7 @@ int LIR_has_sideeffect(lir_operation_t op) {
         case LIR_FCLL:
         case LIR_ECLL:
         case LIR_SYSC:
+        case LIR_phiMOV:
         case LIR_aMOV: return 1;
         default:       return 0;
     }

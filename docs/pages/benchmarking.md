@@ -120,8 +120,8 @@ fn main() {
 <div
   class="benchmark-card"
   data-title="Fibonacci benchmark"
-  data-labels="rustc opt-level=2|rustc opt-level=0|gcc-14 -O3|cpl -O3|clang -O3|gcc-14 -O0|cpl -O0|clang -O0"
-  data-values="0.335|0.337|0.412|0.412|0.417|0.421|0.424|0.430"
+  data-labels="rustc opt-level=2|rustc opt-level=0|cpl -O3|gcc-14 -O3|clang -O3|gcc-14 -O0|cpl -O0|clang -O0"
+  data-values="0.335|0.337|0.407|0.412|0.417|0.421|0.424|0.430"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"

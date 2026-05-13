@@ -89,7 +89,7 @@ Params:
     - `cctx` - CFG context.
     - `ctx` - Walker context.
 
-Returns 1 if succeeds. Otherwise returns 0 - Semantic block of a compilation.
+Returns 1 on success, otherwise 0.
 */
 static int _cfg_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
     if (!cctx || !ctx) return 0;

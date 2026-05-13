@@ -21,7 +21,7 @@ Params:
     - `cctx` - CFG context.
     - `smt` - Symtable.
 
-Returns 1 if operation succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt);
 
@@ -35,7 +35,7 @@ Params:
     - `ctx` - SSA context.
     - `smt` - Symtable.
 
-Returns 1 if operation succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int HIR_SSA_rename(cfg_ctx_t* cctx, ssa_ctx_t* ctx, sym_table_t* smt);
 

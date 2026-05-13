@@ -17,8 +17,8 @@ typedef struct {
         .types_count = (int)sizeof((const token_type_t[]){ __VA_ARGS__ }) / sizeof(token_type_t) \
     }
 
-/* Token handlers. The main point where the parser decide which parser
-must be invoked for the provided token.
+/* Token handlers. The main point where the parser decides which parser
+must handle the provided token.
 Note: ! If you're extending the parser, add a new handler here ! */
 static const handler_t handlers[] = {
     HANDLER(cpl_parse_annot,             0, ANNOTATION_TOKEN),
@@ -61,7 +61,15 @@ static const handler_t handlers[] = {
 };
 #undef HANDLER
 
-// TODO: docs
+/*
+Try to parse declarations that depend on symbols known only at parse time.
+Params:
+    - `it` - Current iterator.
+    - `ctx` - AST context.
+    - `smt` - Symtable.
+
+Returns an AST node if token starts a dynamic declaration. Otherwise returns NULL.
+*/
 static ast_node_t* _dynamic_navigation_handler(PARSER_ARGS) {
     PARSER_ARGS_USE;
     symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
@@ -75,7 +83,15 @@ static ast_node_t* _dynamic_navigation_handler(PARSER_ARGS) {
     return NULL;
 }
 
-// TODO: docs
+/*
+Try to parse current token using the static token-to-parser handler table.
+Params:
+    - `it` - Current iterator.
+    - `ctx` - AST context.
+    - `smt` - Symtable.
+
+Returns an AST node if token was handled. Otherwise returns NULL.
+*/
 static ast_node_t* _static_navigation_handler(PARSER_ARGS) {
     PARSER_ARGS_USE;
     for (int i = 0; i < (int)(sizeof(handlers) / sizeof(handlers[0])); i++) {
@@ -104,7 +120,15 @@ static ast_node_t* _navigation_handler(PARSER_ARGS) {
     return _static_navigation_handler(it, ctx, smt, carry);
 }
 
-// TODO: docs
+/*
+Parse one element from the current parser position.
+Params:
+    - `it` - Current iterator.
+    - `ctx` - AST context.
+    - `smt` - Symtable.
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_element(PARSER_ARGS) {
     return _navigation_handler(it, ctx, smt, carry);
 }
@@ -122,10 +146,10 @@ ast_node_t* cpl_parse_block(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != carry) {
         ast_node_t* block = cpl_parse_element(it, ctx, smt, carry);
-        if (block) AST_add_node(base, block);  /* If we parse succesfully, add a product to the body */
-        else if (!forward_token(it, 1)) break; /* If there is a error, proceed the next token        */
+        if (block) AST_add_node(base, block);  /* If parsing succeeds, add the parsed node to the body */
+        else if (!forward_token(it, 1)) break; /* If there is an error, advance to the next token      */
     }
 
-    forward_token(it, 1); /* Move from the parser */
+    forward_token(it, 1); /* Move past the block terminator */
     return base;
 }

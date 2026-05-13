@@ -18,7 +18,7 @@ dref p = 0; : <= Pointer to 'freed' location :
 Params:
     - `fb` - Current function CFG part.
 
-Returns 1 if succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _scope_pass(cfg_func_t* fb) {
     sstack_t scopes;
@@ -70,7 +70,7 @@ Params:
     - `id` - Variable ID.
     - `bb` - Current Basic Block.
 
-Returns 1 if succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _already_deallocated(long id, cfg_block_t* bb) {
     lir_block_t* lh = bb->lmap.exit;
@@ -89,7 +89,7 @@ Params:
     - `cctx` - CFG context.
     - `smt` - Symtable.
 
-Returns 1 if succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _use_def_pass(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {

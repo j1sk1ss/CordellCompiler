@@ -5,7 +5,7 @@ If this is a regular (avaliable for a variable usage) register.
 Params:
     - `r` - Register.
 
-Return 1 if this is a valid register.
+Returns 1 if this is a valid register.
 */
 static inline int _is_regular_register(lir_registers_t r) {
     if (r > R15 || r < 0) return 0;
@@ -38,7 +38,7 @@ Params:
     - `colors` - Register allocation result.
     - `smt` - Symtable.
 
-Return 1 if operation succeed. Otherwise it will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* colors, sym_table_t* smt) {
     variable_info_t vi;
@@ -87,7 +87,7 @@ Params:
     - `bb` - Current base block.
     - `smt` - Symtable.
 
-Returns 1 if an operation was secceed, otherwise it will returns 0.
+Returns 1 if the operation succeeds, otherwise 0.
 */
 static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
@@ -142,7 +142,7 @@ Params:
     - `bb` - Current base block.
     - `smt` - Symtable.
 
-Returns 1 if an operation was secceed, otherwise it will returns 0.
+Returns 1 if the operation succeeds, otherwise 0.
 */
 static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
@@ -212,10 +212,43 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
+/*
+Pack up to `sizeof(unsigned long)` bytes from `p` into an integer using
+little-endian byte order.
+Params:
+    - `p` - Source byte buffer.
+    - `n` - Number of bytes to pack.
+
+Returns the packed integer value.
+*/
 static unsigned long _pack_str_le(char* p, unsigned long n) {
     unsigned long x = 0;
     for (unsigned long i = 0; i < n; i++) x |= (unsigned long)p[i] << (8 * i);
     return x;
+}
+
+// TODO: Move common functions (between backends) to a shared directory
+// TODO: Linux -11 crash
+/*
+Check whether a memory stack is used in a function.
+Params:
+    - `fb` - Function block.
+
+Returns 1 if memory is used, otherwise 0.
+*/
+static int _verify_memory_usage(cfg_func_t* fb) {
+    foreach (cfg_block_t* bb, &fb->blocks) {
+        lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+        while (lh) {
+            iterate_lir_args(lir_subject_t* arg, lh, 0) {
+                if (arg->t == LIR_MEMORY) return 1;
+            }
+
+            lh = LIR_get_next(lh, bb->lmap.exit, 1);
+        }
+    }
+
+    return 0;
 }
 
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt) {
@@ -312,10 +345,9 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                         break;
                     }
                     default: {
-                        lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
-                        for (int i = 0; i < 3; i++) {
-                            if (!args[i] || args[i]->t != LIR_VARIABLE) continue;
-                            _update_subject_memory(args[i], &smp, colors, smt);
+                        iterate_lir_args(lir_subject_t* arg, lh, 0) {
+                            if (arg->t != LIR_VARIABLE) continue;
+                            _update_subject_memory(arg, &smp, colors, smt);
                         }
 
                         break;
@@ -335,7 +367,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
             fb->lmap.entry->op == LIR_FDCL || 
             fb->lmap.entry->op == LIR_STRT
         ) {
-            if (smp.last_offset) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
+            if (smp.last_offset || _verify_memory_usage(fb)) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
             else FNTB_update_func(fb->lmap.entry->farg->storage.str.sid, FNTB_SET_NAKED, &smt->f);
         }
     }

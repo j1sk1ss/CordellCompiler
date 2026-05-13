@@ -1,39 +1,67 @@
 # Program entry point
-Function becomes an entry point in two cases:
-- If this is a `start` function.
-- If this is an annotated with the `entry` annotation function.
 
-Example without a `start` function:
-```cpl
-function fang() -> i0 { return; }
-@[entry]
-function naomi() -> i0 { exit 0; } : <= Becomes an entry point :
-```
+A CPL file can define an executable entry point in two ways:
 
-Example with `start` start function:
-```cpl
-start() { exit 0; } : <= Becomes an entry point :
-function fang() -> i0; { }
-function naomi() -> i0; { }
-```
+- with the `start` keyword;
+- with `@[entry]` or `@[entry("symbol_name")]` on a function.
 
-As you've noticed, the `start` keyword can have arguments (`start(i32 argc, ptr ptr i8 argv)`) and can ignore them (`start()`). The both cases are valid. Also, the `start` keyword can use variadic arguments, which says that the code below:
+## `start`
+
 ```cpl
-start(...) {
-    @[poparg] i32 argc;
-    @[poparg] ptr ptr i8 argv;
+start() {
+    exit 0;
 }
 ```
-, is valid.
 
-**Note 1:** 'Start' function doesn't have a return type (you can't use the '->' modification) and requires usage of the 'exit' keyword instead of the 'return'. Also the maximum type that can be used as a value in the 'exit' keyword is the 'u8' type. </br>
-**Note 2:** Actually, with usage of the entry annotation, we can set a return type:
+`start` does not declare a return type. It may accept arguments:
+
+```cpl
+start(i64 argc, ptr ptr i8 argv) {
+    exit 0;
+}
+```
+
+It can also be variadic and read arguments with `@[poparg]`:
+
+```cpl
+start(...) {
+    @[poparg] i64 argc;
+    @[poparg] ptr ptr i8 argv;
+    exit 0;
+}
+```
+
+## `@[entry]`
+
+`@[entry]` turns a normal function into the entry point:
+
 ```cpl
 @[entry]
-function main(i32 argc, ptr ptr i8 argv) -> u8;
+function main() -> i0 {
+    exit 0;
+}
 ```
-**Note 3:** Entry point will generate all essential steps (stackframe allocation, entry, exit commands, etc). </br>
-**Note 4:** Entry point supports the `naked` annotation which disables default stack frame allocation and exit routine. </br>
-**Note 5:** Without any entry point, a file becomes a library file after the compilation.
-**Note 6:** `main` function, without an annotation, won't became an entry point. You *must* use the `entry` annotation.
-**Note 7:** If there is more than one entry points, compiler will return an error. 
+
+The default emitted entry symbol comes from the compiler configuration. It is `_main` by default. You can override it in source:
+
+```cpl
+@[entry("_start")]
+function main() -> i0 {
+    exit 0;
+}
+```
+
+or from the command line:
+
+```bash
+./builds/ccompiler --entry-name _start main.cpl
+```
+
+## Rules
+
+- An entry point should finish with `exit <code>;`.
+- `exit` accepts a process exit code; keep it in the 0..255 range.
+- A plain function named `main` is not special unless it has `@[entry]`.
+- More than one entry point is an error.
+- If a file has no entry point, it can still be compiled as part of a larger build or used as a library-like unit.
+- `@[naked]` can be used on an entry point when you want to suppress normal entry/exit routines.

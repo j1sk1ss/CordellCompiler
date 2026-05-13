@@ -99,8 +99,10 @@ Return `i64`:hash.
 long HIR_hash_subject(hir_subject_t* s);
 
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval);
+int HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b);
 hir_subject_t* HIR_copy_subject(hir_subject_t* s);
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
+int HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b);
 hir_block_t* HIR_copy_block(hir_block_t* b, int copy_labels);
 int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
 int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);
@@ -141,5 +143,28 @@ static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
 #define HIR_BLOCK2(ctx, op, fa, sa) HIR_append_block(HIR_create_block((op), (fa), (sa), NULL), (ctx))
 /* [hot] ctx, op, x, y, z */
 #define HIR_BLOCK3(ctx, op, fa, sa, ta) HIR_append_block(HIR_create_block((op), (fa), (sa), (ta)), (ctx))
+
+#define CONCAT2(a,b) a##b
+#define CONCAT(a,b)  CONCAT2(a,b)
+
+#define iterate_hir_args(v, block, off)                                                     \
+    hir_subject_t* CONCAT(__args_, __LINE__)[] = { block->farg, block->sarg, block->targ }; \
+    for (int i = off; i < 3; i++)                                                           \
+        for (                                                                               \
+            v = CONCAT(__args_, __LINE__)[i];                                               \
+            CONCAT(__args_, __LINE__)[i];                                                   \
+            CONCAT(__args_, __LINE__)[i] = NULL                                             \
+        )                                                                                   \
+            if (CONCAT(__args_, __LINE__)[i])
+
+#define iterate_ref_hir_args(v, block, off)                                                     \
+    hir_subject_t** CONCAT(__args_, __LINE__)[] = { &block->farg, &block->sarg, &block->targ }; \
+    for (int i = off; i < 3; i++)                                                               \
+        for (                                                                                   \
+            v = CONCAT(__args_, __LINE__)[i];                                                   \
+            CONCAT(__args_, __LINE__)[i];                                                       \
+            CONCAT(__args_, __LINE__)[i] = NULL                                                 \
+        )                                                                                       \
+            if (CONCAT(__args_, __LINE__)[i] && *CONCAT(__args_, __LINE__)[i])
 
 #endif

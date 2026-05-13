@@ -38,6 +38,9 @@
 #define OPTION_NO_CONSTANT           "--no-constant"
 #define OPTION_PEEPHOLE              "--peephole"
 #define OPTION_NO_PEEPHOLE           "--no-peephole"
+#define OPTION_EMIT_AST              "--emit-ast"
+#define OPTION_EMIT_IR               "--emit-ir"
+#define OPTION_EMIT_ASM              "--emit-asm"
 
 static int _print_help_message() {
     fprintf(stdout, "Usage: ccpl [options] <input files>\n\n");
@@ -92,6 +95,10 @@ static int _print_help_message() {
     fprintf(stdout, "  %s <name>\tSet global section name\n", OPTION_GLOB_SECTION);
     fprintf(stdout, "  %s <name>\tSet code section name\n", OPTION_CODE_SECTION);
 
+    fprintf(stdout, "\nEmit options:\n");
+    fprintf(stdout, "  %s\t\tEmit AST as output.ast file\n", OPTION_EMIT_AST);
+    fprintf(stdout, "  %s\t\tEmit IR as output.hir file\n", OPTION_EMIT_IR);
+    fprintf(stdout, "  %s\t\tEmit produced assembly code instead executable file\n", OPTION_EMIT_ASM);
     return 0;
 }
 
@@ -125,7 +132,11 @@ typedef struct {
         int          licm;
         int          constant;
         int          peephole;
+        int          copy_prop;
         int          debug;
+        int          emit_ast;
+        int          emit_ir;
+        int          emit_asm;
     } config;
     struct {
         int          ast_analysis;
@@ -177,13 +188,9 @@ static int _run_tool(const char* tool, char* const argv[]) {
 
 static int _compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path) {
     char* const cmd[] = {
-        (char*)options->tools.asm_compiler,
-        "-f",
-        (char*)options->tools.asm_format,
-        (char*)asm_path,
-        "-o",
-        (char*)obj_path,
-        NULL,
+        (char*)options->tools.asm_compiler, "-f",
+        (char*)options->tools.asm_format, (char*)asm_path, "-o",
+        (char*)obj_path, NULL
     };
 
     return _run_tool(options->tools.asm_compiler, cmd);
@@ -201,11 +208,13 @@ static int _link_objects(const options_t* options, char* const objects[], int ob
         if (options->tools.linker_no_pie) cmd[j++] = "-no-pie";
         if (options->tools.linker_m32) cmd[j++] = "-m32";
     }
+    
     cmd[j++] = "-o";
     cmd[j++] = options->locations.output ? options->locations.output : "a.out";
     for (int i = 0; i < objects_count; i++) {
         cmd[j++] = objects[i];
     }
+
     cmd[j] = NULL;
 
     int ok = _run_tool(options->tools.linker, cmd);
@@ -215,12 +224,10 @@ static int _link_objects(const options_t* options, char* const objects[], int ob
 
 static int _parse_long_arg(const char* s, long* out) {
     if (!s || !out) return 0;
-
     char* end = NULL;
     errno = 0;
     long v = strtol(s, &end, 10);
-    if (errno || !end || *end != '\0') return 0;
-
+    if (errno || !end || *end) return 0;
     *out = v;
     return 1;
 }
@@ -265,19 +272,21 @@ static int _parse_sys_type(const char* s, arch_type_t* out) {
 static void _set_optimization_profile(options_t* out, int level) {
     if (!out) return;
 
-    out->config.tre = 0;
-    out->config.finline = 0;
-    out->config.licm = 0;
+    out->config.tre      = 0;
+    out->config.finline  = 0;
+    out->config.licm     = 0;
     out->config.constant = 0;
     out->config.peephole = 0;
 
     if (level >= 2) {
-        out->config.licm = 1;
+        out->config.licm     = 1;
         out->config.constant = 1;
         out->config.peephole = 1;
     }
+
     if (level >= 3) {
-        out->config.tre = 1;
+        out->config.copy_prop = 1;
+        out->config.tre       = 1;
     }
 }
 
@@ -326,9 +335,9 @@ static config_t _make_config(const options_t* options) {
             .sys_type = options->config.sys_type,
         },
         .optimization_flags = {
-            .tre = options->config.tre ? 1 : 0,
-            .finline = options->config.finline ? 1 : 0,
-            .licm = options->config.licm ? 1 : 0,
+            .tre      = options->config.tre ? 1 : 0,
+            .finline  = options->config.finline ? 1 : 0,
+            .licm     = options->config.licm ? 1 : 0,
             .constant = options->config.constant ? 1 : 0,
             .peephole = options->config.peephole ? 1 : 0,
         },
@@ -445,24 +454,27 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             if (i + 1 >= argc || !_parse_sys_type(argv[i + 1], &out->config.sys_type)) goto _fail;
             i++;
         }
-        else if (!strcmp(argv[i], OPTION_TRE)) out->config.tre = 1;
-        else if (!strcmp(argv[i], OPTION_NO_TRE)) out->config.tre = 0;
-        else if (!strcmp(argv[i], OPTION_FINLINE)) out->config.finline = 1;
-        else if (!strcmp(argv[i], OPTION_NO_FINLINE)) out->config.finline = 0;
-        else if (!strcmp(argv[i], OPTION_LICM)) out->config.licm = 1;
-        else if (!strcmp(argv[i], OPTION_NO_LICM)) out->config.licm = 0;
-        else if (!strcmp(argv[i], OPTION_CONSTANT)) out->config.constant = 1;
-        else if (!strcmp(argv[i], OPTION_NO_CONSTANT)) out->config.constant = 0;
-        else if (!strcmp(argv[i], OPTION_PEEPHOLE)) out->config.peephole = 1;
-        else if (!strcmp(argv[i], OPTION_NO_PEEPHOLE)) out->config.peephole = 0;
-        else if (!strcmp(argv[i], OPTION_ENABLE_AST_ANALYSIS)) out->flags.ast_analysis = 1;
-        else if (!strcmp(argv[i], OPTION_ENABLE_IR_ANALYSIS)) out->flags.hir_analysis = 1;
-        else if (!strcmp(argv[i], OPTION_DEBUG)) out->config.debug = 1;
-        else if (!strcmp(argv[i], OPTION_NO_DEBUG)) out->config.debug = 0;
-        else if (!strcmp(argv[i], OPTION_NO_OPTIMIZATION)) _set_optimization_profile(out, 0);
-        else if (!strcmp(argv[i], OPTION_ROUGHT_OPTIMIZATION)) _set_optimization_profile(out, 1);
-        else if (!strcmp(argv[i], OPTION_GOOD_OPTIMIZATION)) _set_optimization_profile(out, 2);
-        else if (!strcmp(argv[i], OPTION_MAX_OPTIMIZATION)) _set_optimization_profile(out, 3);
+        else if (!strcmp(argv[i], OPTION_TRE))                  out->config.tre = 1;
+        else if (!strcmp(argv[i], OPTION_NO_TRE))               out->config.tre = 0;
+        else if (!strcmp(argv[i], OPTION_FINLINE))              out->config.finline = 1;
+        else if (!strcmp(argv[i], OPTION_NO_FINLINE))           out->config.finline = 0;
+        else if (!strcmp(argv[i], OPTION_LICM))                 out->config.licm = 1;
+        else if (!strcmp(argv[i], OPTION_NO_LICM))              out->config.licm = 0;
+        else if (!strcmp(argv[i], OPTION_CONSTANT))             out->config.constant = 1;
+        else if (!strcmp(argv[i], OPTION_NO_CONSTANT))          out->config.constant = 0;
+        else if (!strcmp(argv[i], OPTION_PEEPHOLE))             out->config.peephole = 1;
+        else if (!strcmp(argv[i], OPTION_NO_PEEPHOLE))          out->config.peephole = 0;
+        else if (!strcmp(argv[i], OPTION_ENABLE_AST_ANALYSIS))  out->flags.ast_analysis = 1;
+        else if (!strcmp(argv[i], OPTION_ENABLE_IR_ANALYSIS))   out->flags.hir_analysis = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_AST))             out->config.emit_ast = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_IR))              out->config.emit_ir = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_ASM))             out->config.emit_asm = 1;
+        else if (!strcmp(argv[i], OPTION_DEBUG))                out->config.debug = 1;
+        else if (!strcmp(argv[i], OPTION_NO_DEBUG))             out->config.debug = 0;
+        else if (!strcmp(argv[i], OPTION_NO_OPTIMIZATION))      _set_optimization_profile(out, 0);
+        else if (!strcmp(argv[i], OPTION_ROUGHT_OPTIMIZATION))  _set_optimization_profile(out, 1);
+        else if (!strcmp(argv[i], OPTION_GOOD_OPTIMIZATION))    _set_optimization_profile(out, 2);
+        else if (!strcmp(argv[i], OPTION_MAX_OPTIMIZATION))     _set_optimization_profile(out, 3);
         else if (argv[i][0] == '-') {
             goto _fail;
         }
@@ -548,6 +560,14 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
+        if (options.config.emit_ast) {
+            FILE* ast_file = fopen("output.ast", "w");
+            if (ast_file) {
+                DUMP_format_astctx(&sctx, ast_file);
+                fclose(ast_file);
+            }
+        }
+
         if (options.flags.ast_analysis) {
             SEM_perform_ast_check(&sctx, &smt);
         }
@@ -555,10 +575,14 @@ int main(int argc, char* argv[]) {
         hir_ctx_t hirctx = { 0 };
         HIR_generate(&sctx, &hirctx, &smt);
 
-        call_graph_t callctx;
         cfg_ctx_t cfgctx = { .cid = 0 };
         HIR_CFG_build(&hirctx, &cfgctx, &smt);
+        
+        call_graph_t callctx;
         HIR_CG_build(&cfgctx, &callctx, &smt);
+        HIR_CG_perform_dfe(&callctx, &smt);
+        HIR_CG_apply_dfe(&cfgctx, &callctx);
+
         HIR_FUNC_set_last_return(&cfgctx);
 
         if (options.config.tre) {
@@ -573,7 +597,7 @@ int main(int argc, char* argv[]) {
         HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
         if (options.config.finline) {
-            HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_euristic_desider);
+            HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_heuristic_desider);
             RELOAD_CFG;
         }
 
@@ -608,20 +632,31 @@ int main(int argc, char* argv[]) {
             SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt);
         }
 
+        if (options.config.emit_ir) {
+            FILE* ir_file = fopen("output.ir", "w");
+            if (ir_file) {
+                DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
+                fclose(ir_file);
+            }
+        }
+
         lir_ctx_t lirctx = { .h = NULL, .t = NULL };
         LIR_generate(&cfgctx, &lirctx, &smt);
+
+        if (options.config.copy_prop) {
+            LIR_variable_copy_propagation(&cfgctx);
+            LIR_drop_unused_variables(&cfgctx);
+        }
 
         register_saver_t reg_save;
         mem_selector_t   mem_sel;
         inst_selector_t  inst_sel;
         peephole_t       pph;
-        regalloc_t       regall;
         switch (CONF_get_system_type()) {
             case MACHO64: {
                 inst_sel.select_instructions = x86_64_macho_nasm_instruction_selection;
                 reg_save.save_registers      = x86_64_gnu_nasm_caller_saving;
                 mem_sel.select_memory        = x86_64_macho_nasm_memory_selection;
-                regall.regallocate           = x86_64_regalloc_graph;
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
                 break;
             }
@@ -629,7 +664,6 @@ int main(int argc, char* argv[]) {
                 inst_sel.select_instructions = x86_64_gnu_nasm_instruction_selection;
                 reg_save.save_registers      = x86_64_gnu_nasm_caller_saving;
                 mem_sel.select_memory        = x86_64_gnu_nasm_memory_selection;
-                regall.regallocate           = x86_64_regalloc_graph;
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
                 break;
             }
@@ -646,7 +680,7 @@ int main(int argc, char* argv[]) {
         map_init(&colors, MAP_NO_CMP);
         LIR_RA_init_colors(&colors, &smt);
 
-        LIR_regalloc(&cfgctx, &smt, &colors, &regall);
+        LIR_regalloc(&cfgctx, &smt, &colors);
         LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
         LIR_save_registers(&cfgctx, &smt, &reg_save);
         if (options.config.peephole) {
@@ -673,7 +707,15 @@ int main(int argc, char* argv[]) {
             default: break;
         }
 
-        ASM_generate(&cfgctx, &smt, &asmgen, asm_file);
+        if (!options.config.emit_asm) ASM_generate(&cfgctx, &smt, &asmgen, asm_file); 
+        else {
+            FILE* asm_emit = fopen("output.s", "w");
+            if (asm_emit) {
+                ASM_generate(&cfgctx, &smt, &asmgen, asm_emit);
+                fclose(asm_emit);
+            }
+        }
+
         fclose(asm_file);
 
         if (!_compile_asm_to_object(&options, asm_path, obj_path)) {

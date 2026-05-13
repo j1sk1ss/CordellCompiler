@@ -52,7 +52,7 @@ Params:
     - `out` - The output list.
     - `ctx` - Function symbol table.
 
-Returns 1 if succeeds. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx);
 
@@ -63,7 +63,7 @@ Params:
     - `out` - Function output body.
     - `ctx` - Function symbol table.
 
-Returns 1 if succeeds. Otherwise will return 0. 
+Returns 1 on success, otherwise 0.
 */
 int FNTB_get_info_id(symbol_id_t id, func_info_t* out, functab_ctx_t* ctx);
 
@@ -75,7 +75,7 @@ Params:
     - `out` - Function output body.
     - `ctx` - Function symbol table.
 
-Returns 1 if succeeds. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int FNTB_get_info(string_t* fname, symbol_id_t s_id, func_info_t* out, functab_ctx_t* ctx);
 
@@ -104,13 +104,37 @@ symbol_id_t FNTB_add_info(
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );
 
-// TODO: docs
+/*
+Create a copy of a function. Will copy all fields except locals.
+Params:
+    - `src` - Function to copy.
+    - `ctx` - Symtable context.
+
+Returns the ID of a copied function.
+*/
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx);
 
-// TODO: docs
+/*
+Reset registered types for a function. Can be useful in the situation
+when you re-register a function from a prototype to an implementation.
+Params:
+    - `f_id` - Function ID.
+    - `ctx` - Symtable context.
+
+Returns 1 if succeeds.
+*/
 int FNTB_clear_registered_types(symbol_id_t f_id, functab_ctx_t* ctx);
 
-// TODO: docs
+/*
+Add a generic type for a function. This function adds a type obly if it is
+a generic type. Consider to add the type to a symtable first.
+Params:
+    - `f_id` - Function ID.
+    - `t_id` - Type ID.
+    - `ctx` - Symtable context.
+
+Returns 1 if succeeds.
+*/
 int FNTB_register_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx);
 
 /*
@@ -120,7 +144,7 @@ Params:
     - `l_id` - Local function.
     - `ctx` - Function symbol table.
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx);
 
@@ -144,7 +168,7 @@ Params:
     - `rtype` - Function's return type from AST.
     - `ctx` - Function symtable context.
 
-Returns 1 if succeeds, otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 int FNTB_update_func(
     symbol_id_t id, 
@@ -154,7 +178,16 @@ int FNTB_update_func(
     functab_ctx_t* ctx
 );
 
-// TODO: docs
+/*
+Create a copy with resolved generic types. Will create a copy with a modified name. Consider
+to check whether a function with the provided types already exists.
+Params:
+    - `id` - Source founction (template function).
+    - `types` - List of provided token types.
+    - `ctx` - Symtable context.
+
+Returns the ID of a new function.
+*/
 symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx_t* ctx);
 
 /*

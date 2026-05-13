@@ -2,7 +2,7 @@
 
 hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt) {
     if (
-        HIR_similar_type(t, src->t) && /* This types are similar   */
+        HIR_similar_type(t, src->t) && /* These types are similar  */
         (
             src->ptr == ptr ||         /* Reference level the same */
             (

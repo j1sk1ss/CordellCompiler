@@ -1,146 +1,140 @@
 # Types
-CPL **does not** support user-defined types such as structures, classes, enums, unions, and similar abstractions. This is an intentional part of the experiment: the goal is to see how far a language can go without those constructs.
 
-That limitation doesn't mean the language is useless for low-level work. It simply means the language stays focused on a smaller core. Before discussing arrays, strings, and pointers, it is better to start with the type system itself.
-
-## Static typing
-CPL is a **permissively statically typed** language. It is not fully strong-typed, but it still requires explicit control over type changes.
-
-The core rule is simple:
-- **Widening conversions** may be inserted implicitly by the compiler.
-- **Narrowing conversions are never implicit and are allowed only with the `as` keyword.**
-
-The `as` syntax is similar to Rust:
-```cpl
-i32 never = 10 as i32;                 : The literal is i64 by default on x64 targets.      :
-i32 dies  = 20 as i32;                 : Narrowing to 32 bits must be explicit.             :
-u8 technoblade = (never + dies) as u8; : Narrowing the result of an expression is explicit. :
-```
-
-Notes:
-- The compiler may insert an implicit cast only when it is a widening conversion.
-- Otherwise, compilation should fail unless you write the cast explicitly with `as`.
-- The `as` keyword is also useful when selecting an overloaded function.
-- By default, numeric literals have the type depends on its value, so assigning them to smaller integer types usually requires `as`.
+CPL does not support user-defined structures, classes, enums, or unions. The current language core consists of primitive types, pointers, strings, and arrays.
 
 ## Primitive types
-A primitive type, in compiler terms, is a basic data object that stores a value directly. Depending on the target platform, primitive values can occupy from 8 bits up to 64 bits.
 
-| Name | Description | Example |
-|---|---|---|
-| `f64`, `f32` | Real types. Non-floating values are converted to floating-point values when used in floating-point expressions. | <pre><code>f64 a = 0.01; </br>f32 b = 0.01; </code></pre> |
-| `i64`, `u64` | Signed and unsigned 64-bit integers. | <pre><code>i64 a = 123321123; </br>u64 b = 0b11111111111111;</code></pre> |
-| `i32`, `u32` | Signed and unsigned 32-bit integers. | <pre><code>i32 a = 123321; </br>u32 b = 0xFFFF;</code></pre> |
-| `i16`, `u16` | Signed and unsigned 16-bit integers. | <pre><code>i16 a = 12332; </br>u16 b = 0x0FFF;</code></pre> |
-| `i8`, `u8` | Signed and unsigned 8-bit integers. | <pre><code>i8 a = 'A'; </br>u8 b = 0xFF;</code></pre> |
-| `i0` | Void type. It is intended for function return types and `ptr i0`. It is not a regular value type. | <pre><code>function foo() -> i0; </br>ptr i0 p = foo;</code></pre> |
+| Type | Meaning |
+|---|---|
+| `i8`, `i16`, `i32`, `i64` | signed integers |
+| `u8`, `u16`, `u32`, `u64` | unsigned integers |
+| `f32`, `f64` | floating-point values |
+| `i0` | void-like type, mainly for function return types and `ptr i0` |
+
+Examples:
+
+```cpl
+i8  c = 'A';
+u8  b = 0xFF;
+i32 x = 10 as i32;
+i64 y = 123456;
+f64 z = 0.25;
+```
+
+## Static typing and casts
+
+CPL is statically typed, but the compiler may insert implicit widening conversions. Narrowing conversions must be written explicitly with `as`.
+
+```cpl
+i64 wide = 10;
+i8 narrow = wide as i8;
+```
+
+`as` is also useful when selecting an overloaded function:
+
+```cpl
+function put(i8 x) -> i0;
+function put(i64 x) -> i0;
+
+put(1 as i8);
+```
 
 ## Boolean-like logic
-CPL does not provide a dedicated boolean type. For boolean-like logic, use a non-floating primitive type such as `i64`, `i32`, `u8`, or `ptr i0`.
 
-The convention is simple:
-- `0` means `false`
-- any non-zero value means `true`
+CPL has no dedicated boolean type. Conditions use primitive values:
 
-## Strings and arrays
-The main non-primitive data containers in CPL are **strings** and **arrays**. Both represent contiguous data with a predefined size.
-
-### `str`
-`str` is the built-in string type. In practice, it behaves similarly to `arr [n, i8]`.
-
-```cpl
-str msg = "Hello world!";
-```
-
-This allocates the string on the stack and appends the terminating `\0` byte. In the example above, the object occupies 13 bytes.
-
-### How `str` works
-A string object behaves similarly to an array object. The declarations below are almost equivalent at the IR level:
-
-```cpl
-str msg1 = "Hello world!";
-arr msg2[13, i8] = { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0' };
-```
-
-Approximate IR form:
-```text
-msg1 = str_alloc("Hello world!");
-msg2 = arr_alloc(13);
-put_data(msg2, { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\0' });
-```
-
-The important difference appears when a string is used through a pointer:
-```cpl
-ptr i8 msg1 = ref "Hello world!"; :/ <= Data is placed in the RO segment, pointer size is target-dependent /:
-str msg2 = "Hello world!";        :/ <= Data is allocated on the stack                                     /:
-```
-
-An array cannot behave exactly the same way. Arrays can allocate data on the stack, but they are not used as pointer element types in the same sense as `str`. In that sense, a string sits somewhere between an array and a primitive convenience type. </br>
-Also, there is one important note: **Strings**, which are placed as an independent string in a code are always in the **section**. It is a continues sequence of bytes, and stored not as a pointer. It means, every time you're working with these strings, you need to apply the 'ref' keyword. For instance:
-```cpl
-function foo(ptr i8 msg) -> i0;
-foo(ref "Hello, World!\n");
-```
-
-This is important to uderstand given the language's philosophy of being an extention for Assembly langauge. A string is placed in a '.rodata' (can be changed with the `section` annotation) section as a continues array of bytes, and it *must* be refered with the 'ref'.
-
-### `arr`
-`arr` is the array type. It can contain any primitive element type and is allocated either on the stack or in a target-dependent section.
-
-```cpl
-arr array_1d_1[10, i32]  = { 0 };
-arr array_1d_2[10, i32]  = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-arr array_2d[2, ptr i32] = { ref array_1d_1, ref array_1d_2 };
-i32 a = array_2d[0][0]; : = 0 :
-```
+- `0` is false;
+- any non-zero value is true.
 
 ## Pointers
-`ptr` is a pointer modifier that can be applied to primitive types, but not for `str`, and `arr`. 
-```cpl
-i32 f = 10;
-ptr i32 a = ref f;
-ptr ptr a_ref = ref a;
-ptr i8 b = ref "Hello world";
-```
 
-For `str` and `arr` structures there is no way of creating a pointed variable. To create a pointer, use a base type of a structure (for instance `i8` for `str`):
-```cpl
-str a = "Hi!\n";
-ptr i8 b = ref a;
-arr c[10, i32];
-ptr i32 d = ref c;
-```
-
-**Note:** Pointer size depends on the target architecture. For example, on `x86_64_gnu_nasm`, `ptr i8` is equals to 64 bits wide. To determine the size, you can use the `sizeof` keyword.
-
-## Working with pointers
-CPL provides two main operations for work with pointers: the `ref` and `dref` keywords.
-
-### `ref`
-Use `ref` to obtain a pointer to an existing value:
+Use `ptr` to declare a pointer, `ref` to take an address, and `dref` to read through a pointer.
 
 ```cpl
-i32 a = 123;
-ptr i32 a_ptr = ref a;
-
-: C alternative:
-int a = 123;
-int* a_ptr = &a;
-:
+i32 value = 123;
+ptr i32 p = ref value;
+i32 copy = dref p;
 ```
 
-**Note:** Reference keyword can get a pointer to an expression, for instance like that: `ptr i0 a = ref (10 + 10);`. This is permitted by the static analyzer, but can be performed. It will work and it isn't UB, but I'd suggest to not do this.
-
-### `dref`
-Use `dref` to read the value behind a pointer:
+Indexed pointer access is also supported:
 
 ```cpl
-i32 b = dref a_ptr;
-: int b = *a_ptr; :
+i32 first = p[0];
 ```
 
-An indexed form may also be used:
+Pointers can be chained:
+
 ```cpl
-i32 b = a_ptr[0];
-: int b = a_ptr[0]; :
+ptr i32 p = ref value;
+ptr ptr i32 pp = ref p;
 ```
+
+`ptr i0` is commonly used for untyped pointers and function pointers.
+
+## Strings
+
+`str` allocates a mutable string object:
+
+```cpl
+str msg = "Hello";
+```
+
+A string literal by itself is stored as read-only data. Pass it to a `ptr i8` parameter with `ref`:
+
+```cpl
+function puts(ptr i8 s) -> i0;
+
+puts(ref "Hello\n");
+```
+
+You can also take a pointer to a `str` object:
+
+```cpl
+str msg = "Hello\n";
+puts(ref msg);
+```
+
+## Arrays
+
+Arrays use the syntax `arr name[length, type]`.
+
+```cpl
+arr a[3, i8] = { 'A', 'B', 'C' };
+i8 second = a[1];
+```
+
+Arrays can contain primitive types or pointers:
+
+```cpl
+arr row1[3, i32] = { 1, 2, 3 };
+arr row2[3, i32] = { 4, 5, 6 };
+arr rows[2, ptr i32] = { ref row1, ref row2 };
+
+i32 x = rows[1][0];
+```
+
+Global and read-only arrays are placed into target-dependent sections. Local arrays are allocated in function-local storage.
+
+## `glob`, `ro`, and `extern`
+
+`glob` makes a symbol global:
+
+```cpl
+glob i32 counter = 0;
+glob function exported() -> i0;
+```
+
+`ro` marks data as read-only:
+
+```cpl
+ro i32 answer = 42;
+```
+
+`extern` declares a symbol provided by another object or library:
+
+```cpl
+extern function puts(ptr i8 s) -> i32;
+extern i32 errno;
+```
+
+External symbols must be linked correctly by the final toolchain.

@@ -8,7 +8,7 @@ Params:
             Note: If this value is NULL, will set all registers as
                   dirty.
 
-Return 1 if operation succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     if (!f) {
@@ -45,7 +45,7 @@ Params:
     - `bbh` - Current BasicBlock.
     - `off` - Lir block off.
 
-Return 1 if operation succeed. Otherwise will return 0.
+Returns 1 on success, otherwise 0.
 */
 static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
     if (!bbh || !set_size(dirty)) return 0;
@@ -59,13 +59,12 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
             lh->farg == LIR_REGISTER
         ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8));
         
-        lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-        for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
+        iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
             if (
-                !args[i] || args[i]->t != LIR_REGISTER || 
-                !set_has(dirty, (void*)LIR_format_register(args[i]->storage.reg.reg, 8))
+                arg->t != LIR_REGISTER || 
+                !set_has(dirty, (void*)LIR_format_register(arg->storage.reg.reg, 8))
             ) continue; /* If this register isn't a dirty one -> skip it */
-            set_add(save, (void*)LIR_format_register(args[i]->storage.reg.reg, 8));
+            set_add(save, (void*)LIR_format_register(arg->storage.reg.reg, 8));
         }
         
         lh = LIR_get_next(lh, bbh->lmap.exit, 1);
