@@ -473,11 +473,11 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     }
 
     syscall_t syscall = table[di.const_value];
-    if (syscall.side_effect < ctx->acceptable_level) {
+    if (syscall.security > ctx->acceptable_level) {
         TRACE_add_location(
             &trace, &ctx->curr_location, 
-            "Syscall %i (%s, %s) is dangerous for this level acceptance level (%i). Consider to delete this call or reduce the acceptance level.", 
-            di.const_value, syscall.name, syscall.description, ctx->acceptable_level
+            "Syscall %i (%s, %s) has security level %i and is dangerous for this acceptance level (%i). Consider deleting this call or reducing the acceptance level.",
+            di.const_value, syscall.name, syscall.description, syscall.security, ctx->acceptable_level
         );
         goto _force_exit_syscall_checker;
     }
