@@ -140,10 +140,9 @@ Returns 1 if succeeds and has changed something.
 static int _set_add_block_vids_with_base(set_t* s, hir_block_t* hh, sym_table_t* smt) {
     if (!hh) return 0;
     int changed = 0;
-    hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
-    for (int i = 0; i < 3; i++) {
-        if (!args[i] || !HIR_is_vartype(args[i]->t)) continue;
-        changed |= _set_add_vid_with_base(s, args[i]->storage.var.v_id, smt);
+    iterate_hir_args(hir_subject_t* arg, hh, 0) {
+        if (!HIR_is_vartype(arg->t)) continue;
+        changed |= _set_add_vid_with_base(s, arg->storage.var.v_id, smt);
     }
 
     return changed;
@@ -191,23 +190,17 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
                 !_hir_can_be_licm_def(hh)      /* If this operation has a side effect */
             ) continue;
             int invariant = !_hir_uses_any_vid_from_set(hh, inductive, smt, loop_hir);
-            hir_subject_t* args[3] = { hh->farg, hh->sarg, hh->targ };
-            for (int i = HIR_is_writeop(hh->op); i < 3; i++) {
-                hir_subject_t* s = args[i];
-                if (
-                    !s ||                 /* - If this is the 'NULL' value                                */
-                    !HIR_is_vartype(s->t) /* - If this isn't a variable                                   */
-                ) continue;
-
-                symbol_id_t raw_id = s->storage.var.v_id;
+            iterate_hir_args(hir_subject_t* arg, hh, HIR_is_writeop(hh->op)) {
+                if (!HIR_is_vartype(arg->t)) continue;
+                symbol_id_t raw_id = arg->storage.var.v_id;
                 symbol_id_t src_id = _gather_base_vid(raw_id, smt);
                 if (
                     set_has(inductive, (void*)raw_id) ||
                     set_has(inductive, (void*)src_id) ||
                     (
-                        s->home &&                           /* - If this is the non-home value such as numbers, consts, etc */
-                        set_has(loop_hir, s->home) &&         /* If the variable's home within the loop                       */
-                        !set_has(invariant_defs, s->home)     /* If the variable's home isn't an invariant command            */
+                        arg->home &&                        /* - If this is the non-home value such as numbers, consts, etc */
+                        set_has(loop_hir, arg->home) &&     /* If the variable's home within the loop                       */
+                        !set_has(invariant_defs, arg->home) /* If the variable's home isn't an invariant command            */
                     )
                 ) {
                     invariant = 0;
@@ -287,9 +280,8 @@ static int _hir_rhs_depends_on_vid(
     hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
     if (!hh) return 0;
-    hir_subject_t* args[2] = { hh->sarg, hh->targ };
-    for (int i = 0; i < 2; i++) {
-        if (_hir_subject_depends_on_vid(args[i], v_id, smt, loop_hir, visited)) return 1;
+    iterate_hir_args(hir_subject_t* arg, hh, 1) {
+        if (_hir_subject_depends_on_vid(arg, v_id, smt, loop_hir, visited)) return 1;
     }
 
     return 0;
@@ -360,9 +352,8 @@ static int _hir_rhs_depends_on_any_vid_from_set(
     hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
     if (!hh) return 0;
-    hir_subject_t* args[2] = { hh->sarg, hh->targ };
-    for (int i = 0; i < 2; i++) {
-        if (_hir_subject_depends_on_any_vid_from_set(args[i], s, smt, loop_hir, visited)) return 1;
+    iterate_hir_args(hir_subject_t* arg, hh, 1) {
+        if (_hir_subject_depends_on_any_vid_from_set(arg, s, smt, loop_hir, visited)) return 1;
     }
 
     return 0;

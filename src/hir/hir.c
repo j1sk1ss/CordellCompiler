@@ -378,20 +378,18 @@ int HIR_compute_homes(hir_ctx_t* ctx) {
             case HIR_PHI:
             case HIR_PHI_PREAMBLE: break;
             default: {
-                hir_subject_t* args[] = { hh->farg, hh->sarg, hh->targ };
-                for (int i = 0; i < 3; i++) {
-                    if (!args[i]) continue;
-                    args[i]->home = NULL;
-                    if (!HIR_is_vartype(args[i]->t)) continue;
+                iterate_hir_args(hir_subject_t* arg, hh, 0) {
+                    arg->home = NULL;
+                    if (!HIR_is_vartype(arg->t)) continue;
 
                     hir_block_t* home;
-                    if (map_get(&homes, args[i]->storage.var.v_id, (void**)&home)) {
-                        args[i]->home = home;
+                    if (map_get(&homes, arg->storage.var.v_id, (void**)&home)) {
+                        arg->home = home;
                         continue;
                     }
 
-                    map_put(&homes, args[i]->storage.var.v_id, hh);
-                    args[i]->home = hh;
+                    map_put(&homes, arg->storage.var.v_id, hh);
+                    arg->home = hh;
                 }
                 
                 break;

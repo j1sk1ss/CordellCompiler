@@ -92,13 +92,12 @@ int HIR_FUNC_delete_duplicated_functions(cfg_ctx_t* ctx) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
             while (hh) {
-                hir_subject_t* args[] = { hh->farg, hh->sarg, hh->targ };
-                for (int i = 0; i < 3; i++) {
-                    if (!args[i] || args[i]->t != HIR_FNAME) continue;
-                    symbol_id_t old_id = args[i]->storage.str.s_id;
+                iterate_hir_args(hir_subject_t* arg, hh, 0) {
+                    if (arg->t != HIR_FNAME) continue;
+                    symbol_id_t old_id = arg->storage.str.s_id;
                     symbol_id_t new_id = _resolve(&replacements, old_id);
                     if (old_id != new_id) {
-                        args[i]->storage.str.s_id = new_id;
+                        arg->storage.str.s_id = new_id;
                     }
                 }
 

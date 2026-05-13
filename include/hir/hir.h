@@ -144,4 +144,27 @@ static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
 /* [hot] ctx, op, x, y, z */
 #define HIR_BLOCK3(ctx, op, fa, sa, ta) HIR_append_block(HIR_create_block((op), (fa), (sa), (ta)), (ctx))
 
+#define CONCAT2(a,b) a##b
+#define CONCAT(a,b)  CONCAT2(a,b)
+
+#define iterate_hir_args(v, block, off)                                                     \
+    hir_subject_t* CONCAT(__args_, __LINE__)[] = { block->farg, block->sarg, block->targ }; \
+    for (int i = off; i < 3; i++)                                                           \
+        for (                                                                               \
+            v = CONCAT(__args_, __LINE__)[i];                                               \
+            CONCAT(__args_, __LINE__)[i];                                                   \
+            CONCAT(__args_, __LINE__)[i] = NULL                                             \
+        )                                                                                   \
+            if (CONCAT(__args_, __LINE__)[i])
+
+#define iterate_ref_hir_args(v, block, off)                                                     \
+    hir_subject_t** CONCAT(__args_, __LINE__)[] = { &block->farg, &block->sarg, &block->targ }; \
+    for (int i = off; i < 3; i++)                                                               \
+        for (                                                                                   \
+            v = CONCAT(__args_, __LINE__)[i];                                                   \
+            CONCAT(__args_, __LINE__)[i];                                                       \
+            CONCAT(__args_, __LINE__)[i] = NULL                                                 \
+        )                                                                                       \
+            if (CONCAT(__args_, __LINE__)[i] && *CONCAT(__args_, __LINE__)[i])
+
 #endif

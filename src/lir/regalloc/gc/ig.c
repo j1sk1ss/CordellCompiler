@@ -1,12 +1,13 @@
 #include <lir/regalloc/ra.h>
 
-igraph_node_t* LIR_RA_find_ig_node(igraph_t* g, long v_id) {
+igraph_node_t* LIR_RA_find_ig_node(igraph_t* g, symbol_id_t v_id) {
     igraph_node_t* n;
     if (map_get(&g->nodes, v_id, (void**)&n)) return n;
     return NULL;
 }
 
-static int _igraph_add_edge(igraph_t* g, long v1, long v2) {
+// TODO: docs
+static int _igraph_add_edge(igraph_t* g, symbol_id_t v1, symbol_id_t v2) {
     if (v1 == v2) return 0;
     igraph_node_t* n1 = LIR_RA_find_ig_node(g, v1);
     igraph_node_t* n2 = LIR_RA_find_ig_node(g, v2);
@@ -16,33 +17,23 @@ static int _igraph_add_edge(igraph_t* g, long v1, long v2) {
     return 1;
 }
 
-static int _add_ig_node(long v_id, igraph_t* g) {
-    igraph_node_t* n = (igraph_node_t*)mm_malloc(sizeof(igraph_node_t));
-    if (!n) return 0;
-    str_memset(n, 0, sizeof(igraph_node_t));
-    n->v_id = v_id;
-    set_init(&n->v, SET_NO_CMP);
-    return map_put(&g->nodes, v_id, n);
-}
-
+// TODO: docs
 static int _inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
     set_init(use, SET_CMP);
     set_init(def, SET_CMP);
     if (!lh || lh->unused) return 1;
 
-    lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-    for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
-        if (!args[i]) continue;
-        switch (args[i]->t) {
+    iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+        switch (arg->t) {
             case LIR_VARIABLE: {
-                long v = args[i]->storage.var.v_id;
+                long v = arg->storage.var.v_id;
                 if (!set_has(def, (void*)v)) set_add(use, (void*)v);
                 break;
             }
             case LIR_ARGLIST: {
-                foreach (lir_subject_t* arg, &args[i]->storage.list.h) {
-                    if (arg->t != LIR_VARIABLE) continue;
-                    long v = arg->storage.var.v_id;
+                foreach (lir_subject_t* param, &arg->storage.list.h) {
+                    if (param->t != LIR_VARIABLE) continue;
+                    long v = param->storage.var.v_id;
                     if (!set_has(def, (void*)v)) set_add(use, (void*)v);
                 }
                 
@@ -52,7 +43,7 @@ static int _inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
             default: break;
         }
     }
-
+    
     if (
         LIR_is_writeop(lh->op) &&
         lh->farg &&
@@ -61,6 +52,7 @@ static int _inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
     return 1;
 }
 
+// TODO: docs
 static inline int _count_lir_in_block(cfg_block_t* cb) {
     int n = 0;
     lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
@@ -72,6 +64,7 @@ static inline int _count_lir_in_block(cfg_block_t* cb) {
     return n;
 }
 
+// TODO: docs
 static inline int _collect_lir_in_block(cfg_block_t* cb, lir_block_t** arr) {
     int i = 0;
     lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
@@ -83,6 +76,7 @@ static inline int _collect_lir_in_block(cfg_block_t* cb, lir_block_t** arr) {
     return 1;
 }
 
+// TODO: docs
 static int _build_igraph_block(cfg_block_t* cb, igraph_t* g) {
     int n = _count_lir_in_block(cb);
     if (n <= 0) return 1;
@@ -93,12 +87,11 @@ static int _build_igraph_block(cfg_block_t* cb, igraph_t* g) {
 
     set_t live;
     set_copy(&live, &cb->curr_out);
-
     for (int i = n - 1; i >= 0; i--) {
         set_t use, def, tmp;
         _inst_usedef(arr[i], &use, &def);
-        set_foreach (long d, &def) {
-            set_foreach (long v, &live) {
+        set_foreach (symbol_id_t d, &def) {
+            set_foreach (symbol_id_t v, &live) {
                 _igraph_add_edge(g, d, v);
             }
         }
@@ -118,14 +111,23 @@ static int _build_igraph_block(cfg_block_t* cb, igraph_t* g) {
     return 1;
 }
 
+// TODO: docs
+static inline int _add_ig_node(symbol_id_t v_id, igraph_t* g) {
+    igraph_node_t* n = (igraph_node_t*)mm_malloc(sizeof(igraph_node_t));
+    if (!n) return 0;
+    str_memset(n, 0, sizeof(igraph_node_t));
+    n->v_id = v_id;
+    set_init(&n->v, SET_NO_CMP);
+    return map_put(&g->nodes, v_id, n);
+}
+
 int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
     map_init(&g->nodes, MAP_NO_CMP);
-
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
         if (
-            vi->vfs.glob || vi->vfs.ro ||
-            vi->type == ARRAY_TYPE_TOKEN ||
-            vi->type == STR_TYPE_TOKEN ||
+            vi->vfs.glob || vi->vfs.ro                 ||
+            vi->type == ARRAY_TYPE_TOKEN               ||
+            vi->type == STR_TYPE_TOKEN                 ||
             ALLIAS_get_owners(vi->v_id, NULL, &smt->m) ||
             vi->vmi.align > CONF_get_full_bytness()
         ) continue;

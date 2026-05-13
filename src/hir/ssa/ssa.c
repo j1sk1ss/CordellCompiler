@@ -46,15 +46,13 @@ Params:
 Returns 1 if all operations succeed, otherwise 0.
 */
 static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
-    hir_subject_t* args[3] = { h->farg, h->sarg, h->targ };
-    for (int i = HIR_is_writeop(h->op); i < 3; i++) {
-        if (!args[i]) continue;
-        if (HIR_is_vartype(args[i]->t)) {
-            varver_t* vv = _get_varver(args[i]->storage.var.v_id, ctx);
-            if (vv) args[i]->storage.var.v_id = vv->curr_id;
+    iterate_hir_args(hir_subject_t* arg, h, HIR_is_writeop(h->op)) {
+        if (HIR_is_vartype(arg->t)) {
+            varver_t* vv = _get_varver(arg->storage.var.v_id, ctx);
+            if (vv) arg->storage.var.v_id = vv->curr_id;
         }
-        else if (args[i]->t == HIR_ARGLIST) {
-            foreach (hir_subject_t* s, &args[i]->storage.list.h) {
+        else if (arg->t == HIR_ARGLIST) {
+            foreach (hir_subject_t* s, &arg->storage.list.h) {
                 if (!HIR_is_vartype(s->t)) continue;
                 varver_t* vv = _get_varver(s->storage.var.v_id, ctx);
                 if (vv) s->storage.var.v_id = vv->curr_id;

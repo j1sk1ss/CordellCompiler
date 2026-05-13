@@ -240,10 +240,8 @@ static int _verify_memory_usage(cfg_func_t* fb) {
     foreach (cfg_block_t* bb, &fb->blocks) {
         lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
         while (lh) {
-            lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
-            for (int i = 0; i < 3; i++) {
-                if (!args[i]) continue;
-                if (args[i]->t == LIR_MEMORY) return 1;
+            iterate_lir_args(lir_subject_t* arg, lh, 0) {
+                if (arg->t == LIR_MEMORY) return 1;
             }
 
             lh = LIR_get_next(lh, bb->lmap.exit, 1);
@@ -347,10 +345,9 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                         break;
                     }
                     default: {
-                        lir_subject_t* args[] = { lh->farg, lh->sarg, lh->targ };
-                        for (int i = 0; i < 3; i++) {
-                            if (!args[i] || args[i]->t != LIR_VARIABLE) continue;
-                            _update_subject_memory(args[i], &smp, colors, smt);
+                        iterate_lir_args(lir_subject_t* arg, lh, 0) {
+                            if (arg->t != LIR_VARIABLE) continue;
+                            _update_subject_memory(arg, &smp, colors, smt);
                         }
 
                         break;

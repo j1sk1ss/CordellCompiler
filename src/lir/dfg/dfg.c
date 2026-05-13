@@ -39,9 +39,8 @@ static int _lir_inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
         return 0;
     }
 
-    lir_subject_t* args[3] = { lh->farg, lh->sarg, lh->targ };
-    for (int i = LIR_is_writeop(lh->op); i < 3; i++) {
-        _add_vars_from_subject(use, args[i]);
+    iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+        _add_vars_from_subject(use, arg);
     }
 
     if (LIR_is_writeop(lh->op)) {

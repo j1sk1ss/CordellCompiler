@@ -43,9 +43,7 @@ Returns 1 if succeeds.
 static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new, cfg_func_t* fb) {
     while (h) {
         if (h->op != HIR_MKLB) {
-            hir_subject_t** args[3] = { &h->farg, &h->sarg, &h->targ };
-            for (int i = 0; i < 3; i++) {
-                hir_subject_t** curr = args[i];
+            iterate_ref_hir_args(hir_subject_t** curr, h, 0) {
                 if (*curr && (*curr)->t == HIR_LABEL && (*curr)->id == old->id) {
                     *curr = new;
                 }
