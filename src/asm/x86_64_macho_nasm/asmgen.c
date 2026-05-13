@@ -1,6 +1,15 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
-// TODO: docs
+/*
+Convert one LIR block into x86_64 Mach-O NASM assembly and write it to output.
+Params:
+    - `b` - LIR block to emit.
+    - `fi` - Current function info for prologue/epilogue generation.
+    - `smt` - Symtable used to resolve symbols.
+    - `output` - Output assembly stream.
+
+Returns 1 if succeeds.
+*/
 static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_table_t* smt, FILE* output) {
     if (b->unused) return 1;
     switch (b->op) {
@@ -158,7 +167,15 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
     return 1;
 }
 
-// TODO: docs
+/*
+Emit an independent read-only string into the current assembly section.
+Params:
+    - `id` - String symbol ID.
+    - `smt` - Symtable that stores string information.
+    - `output` - Output assembly stream.
+
+Returns 1 if succeeds.
+*/
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
@@ -174,7 +191,15 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
-// TODO: docs
+/*
+Emit storage for a non-external variable into the current assembly section.
+Params:
+    - `id` - Variable symbol ID.
+    - `smt` - Symtable used to resolve variable and array metadata.
+    - `output` - Output assembly stream.
+
+Returns 1 on success, otherwise 0.
+*/
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
     if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext) return 0;
@@ -232,7 +257,16 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
-// TODO: docs
+/*
+Emit assembly for a used CFG function.
+Params:
+    - `f_id` - Function symbol ID.
+    - `cctx` - CFG context with function LIR maps.
+    - `smt` - Symtable used to resolve function metadata.
+    - `output` - Output assembly stream.
+
+Returns 1 on success, otherwise 0.
+*/
 static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
     cfg_func_t* fb;
     if (!map_get(&cctx->fmap, f_id, (void**)&fb) || !fb || !fb->used) return 0;

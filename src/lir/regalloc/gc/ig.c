@@ -6,7 +6,15 @@ igraph_node_t* LIR_RA_find_ig_node(igraph_t* g, symbol_id_t v_id) {
     return NULL;
 }
 
-// TODO: docs
+/*
+Add an undirected interference edge between two graph nodes.
+Params:
+    - `g` - Interference graph.
+    - `v1` - First variable ID.
+    - `v2` - Second variable ID.
+
+Returns 1 on success, otherwise 0.
+*/
 static int _igraph_add_edge(igraph_t* g, symbol_id_t v1, symbol_id_t v2) {
     if (v1 == v2) return 0;
     igraph_node_t* n1 = LIR_RA_find_ig_node(g, v1);
@@ -17,7 +25,15 @@ static int _igraph_add_edge(igraph_t* g, symbol_id_t v1, symbol_id_t v2) {
     return 1;
 }
 
-// TODO: docs
+/*
+Collect use and def variable sets for a single LIR instruction.
+Params:
+    - `lh` - LIR instruction.
+    - `use` - Output set of variables read before definition.
+    - `def` - Output set of variables defined by the instruction.
+
+Returns 1 if succeeds.
+*/
 static int _inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
     set_init(use, SET_CMP);
     set_init(def, SET_CMP);
@@ -52,7 +68,13 @@ static int _inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
     return 1;
 }
 
-// TODO: docs
+/*
+Count LIR instructions in a CFG block.
+Params:
+    - `cb` - CFG block to inspect.
+
+Returns number of LIR instructions in the block.
+*/
 static inline int _count_lir_in_block(cfg_block_t* cb) {
     int n = 0;
     lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
@@ -64,7 +86,14 @@ static inline int _count_lir_in_block(cfg_block_t* cb) {
     return n;
 }
 
-// TODO: docs
+/*
+Collect LIR instructions from a CFG block into a preallocated array.
+Params:
+    - `cb` - CFG block to inspect.
+    - `arr` - Output array with enough capacity for all block instructions.
+
+Returns 1 if succeeds.
+*/
 static inline int _collect_lir_in_block(cfg_block_t* cb, lir_block_t** arr) {
     int i = 0;
     lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
@@ -76,7 +105,14 @@ static inline int _collect_lir_in_block(cfg_block_t* cb, lir_block_t** arr) {
     return 1;
 }
 
-// TODO: docs
+/*
+Build interference edges for one CFG block using backward liveness.
+Params:
+    - `cb` - CFG block with live-out information.
+    - `g` - Interference graph to update.
+
+Returns 1 on success, otherwise 0.
+*/
 static int _build_igraph_block(cfg_block_t* cb, igraph_t* g) {
     int n = _count_lir_in_block(cb);
     if (n <= 0) return 1;
@@ -111,7 +147,14 @@ static int _build_igraph_block(cfg_block_t* cb, igraph_t* g) {
     return 1;
 }
 
-// TODO: docs
+/*
+Create and register an interference graph node for a variable.
+Params:
+    - `v_id` - Variable ID.
+    - `g` - Interference graph.
+
+Returns 1 on success, otherwise 0.
+*/
 static inline int _add_ig_node(symbol_id_t v_id, igraph_t* g) {
     igraph_node_t* n = (igraph_node_t*)mm_malloc(sizeof(igraph_node_t));
     if (!n) return 0;
