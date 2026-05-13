@@ -1,17 +1,48 @@
 # Binary and unary operations
-Obviously this language supports the certain set of binary operations from C-language, Rust-language, Python, etc.
 
-| Operation              | Description                                 | Example    | Associativity |
-|------------------------|---------------------------------------------|------------|---------------|
-| `+`                    | Addition                                    | `X` + `Y`  | Left to Right |
-| `-`                    | Subtraction                                 | `X` - `Y`  | Left to Right |
-| `*`                    | Multiplication                              | `X` * `Y`  | Left to Right |
-| `/`                    | Division                                    | `X` / `Y`  | Left to Right |
-| `%`                    | Module                                      | `X` % `Y`  | Left to Right |
-| `==`                   | Equality                                    | `X` == `Y` | Left to Right |
-| `!=`                   | Inequality                                  | `X` != `Y` | Left to Right |
-| `not`                  | Negation                                    | not `X`    | Right to Left |
-| `+=` `-=` `*=` `/=` `&=` `\|=` `%=` | Update operations              | `X` += `Y` | Right to Left |
-| `>` `>=` `<` `<=`      | Comparison                                  | `X` >= `Y` | Left to Right |
-| `&&` `\|\|`            | Logic operations (Lazy Evaluations support) | `X` && `Y` | Left to Right |
-| `>>` `<<` `&` `\|` `^` | Bit operations                              | `X` >> `Y` | Left to Right |
+CPL supports C-like arithmetic, comparison, logical, bitwise, assignment, and cast expressions.
+
+| Operation | Description | Example |
+|---|---|---|
+| `+`, `-`, `*`, `/`, `%` | arithmetic | `(1 + 2) * 3 - 2` |
+| `==`, `!=`, `<`, `<=`, `>`, `>=` | comparisons | `x == 1`, `x <= 20` |
+| `&&`, `\|\|` | logical AND/OR with lazy evaluation by default | `a && b` |
+| `not` | boolean-like negation | `not x` |
+| `&`, `\|`, `^`, `<<`, `>>` | bitwise operations | `mask & 0xFF` |
+| `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `\|=`, `^=` | assignment and update | `x += 1` |
+| `as` | explicit conversion | `('0' + x) as i8` |
+
+## Precedence example
+
+```cpl
+function putc(i8 c) -> i0 {
+    syscall(0x2000004, 1, ref c, 1);
+}
+
+function put_digit(i64 x) -> i0 {
+    putc(('0' + x) as i8);
+}
+
+start() {
+    i64 x = (1 + 2) * 3 - 2;
+    put_digit(x);
+    exit 0;
+}
+```
+
+## Boolean-like values
+
+CPL has no separate boolean type. For conditions:
+
+- `0` means false;
+- any non-zero primitive value means true.
+
+`not x` returns `1` when `x` is zero and `0` otherwise. It is not a raw bitwise inversion.
+
+## Lazy and non-lazy logic
+
+`&&` and `||` are lazy by default. Use `@[not_lazy]` when both sides must be evaluated before the logical operation:
+
+```cpl
+@[not_lazy] (left() && right());
+```

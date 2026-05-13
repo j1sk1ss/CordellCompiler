@@ -3,7 +3,7 @@
 # Cordell Programming Language
 
 <p class="hero-note">
-CPL - is a low-level experimental programming language. Also, this is the main documentation site.
+CPL is a low-level experimental programming language. This site is the main user documentation for the language and compiler.
 </p>
 
 <div class="hero-actions">
@@ -27,6 +27,11 @@ CPL - is a low-level experimental programming language. Also, this is the main d
   <a href="#/pages/main-idea-of-this-project" class="doc-card">
     <h3>Main idea</h3>
     <p>Goals, motivation, and what the project is trying to build.</p>
+  </a>
+
+  <a href="#/pages/compiler-usage" class="doc-card">
+    <h3>Compiler usage</h3>
+    <p>Build the compiler, choose a target, emit assembly, and run analysis passes.</p>
   </a>
 
   <a href="#/pages/benchmarking" class="doc-card">

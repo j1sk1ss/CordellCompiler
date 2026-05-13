@@ -1,33 +1,107 @@
 # Macros & include
-The compiler includes a preprocessor that will take care about statements such as `#include`, `#define`, `#ifdef`, `#ifndef` and `#undef`. Most of them act similar to `C/C++`. For example, `#include` statement must be used only with a 'header' file. How to create a 'header' file? </br>
-For example, we have a file with the implemented string function:
-```cpl
-{
-    function strlen(ptr i8 s) -> i64 {
-        i64 l = 0;
-        while dref s; {
-            s += 1;
-            l += 1;
-        }
 
-        return l;
+CPL has a small preprocessor. It runs before tokenization and supports:
+
+- `#include`
+- `#define`
+- `#undef`
+- `#ifdef`
+- `#ifndef`
+
+It also inserts `#line` markers internally so diagnostics and later compiler stages can track source locations after includes are expanded.
+
+## Includes
+
+Quoted includes first search relative to the current file:
+
+```cpl
+#include "print_h.cpl"
+```
+
+System-style includes search the directory passed with `-I`:
+
+```cpl
+#include <print_h.cpl>
+```
+
+Example command:
+
+```bash
+./builds/ccompiler -I examples --output app main.cpl
+```
+
+## Header pattern
+
+Implementation file:
+
+```cpl
+function strlen(ptr i8 s) -> i64 {
+    i64 l = 0;
+    while dref s; {
+        s += 1;
+        l += 1;
     }
+
+    return l;
 }
 ```
 
-This function is independent from others and can exist without any dependencies. But how to use this function in other files? We need to create a 'header' file:
+Header file:
+
 ```cpl
-{
 #ifndef STRING_H_
 #define STRING_H_ 0
-    : Get the size of the provided string
-      Params
-        - `s` - Input string.
 
-      Returns the size (i64). :
-    function strlen(ptr i8 s) -> i64;
+function strlen(ptr i8 s) -> i64;
+
 #endif
-}
-``` 
+```
 
-This header file includes only the prototype and guards.
+Use the header from another file:
+
+```cpl
+#include "string_h.cpl"
+
+start() {
+    i64 n = strlen(ref "abc");
+    exit n as u8;
+}
+```
+
+## Defines
+
+`#define` performs identifier replacement. Function-like macro definitions may be parsed enough to skip their parameter list, but function-style macro expansion is not implemented as a C-compatible feature.
+
+```cpl
+#define COUNT 3
+
+arr data[COUNT, i8] = { 'A', 'B', 'C' };
+```
+
+Conditional compilation:
+
+```cpl
+#ifndef PRINT_H_
+#define PRINT_H_ 0
+function print(ptr i8 s) -> i0;
+#endif
+```
+
+Remove a definition:
+
+```cpl
+#undef PRINT_H_
+```
+
+## Comments
+
+CPL uses colon comments:
+
+```cpl
+: one-line comment :
+
+:/ block comment
+   across several lines /:
+```
+
+The preprocessor removes these comments before tokenization while preserving strings and character literals.

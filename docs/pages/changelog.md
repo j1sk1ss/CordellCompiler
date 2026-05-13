@@ -642,8 +642,8 @@ function foo(i32 a, i32 b) {
 ```
 
 # Version v3.3
-CPL-preprocessing derictives and new include system. </br>
-Now this compiler supports derictives such as `define`, `undef`, `ifdef` and `ifndef`. Also it supports the `include` statement. For more information, check the main README file. </br>
+CPL preprocessing directives and a new include system. </br>
+Now this compiler supports directives such as `define`, `undef`, `ifdef` and `ifndef`. It also supports the `include` statement. For more information, check the main README file. </br>
 For instance let's consider the next piece of code:
 ```cpl
 : string_h.cpl :
@@ -726,7 +726,7 @@ After the PP, we will get a new form of the code:
 }
 ```
 
-The `line` derictive here is serving only one purpose - Tell to the tokenizer, where we are.
+The `line` directive here serves only one purpose: it tells the tokenizer where we are.
 
 ----------------------------------------
 
@@ -863,13 +863,13 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
 Also, this version of compiler now operated with ACT (automated commit tool). This tool also is simple, but makes commit section more readeble and "atomic".
 
 ### Caller-saving
-In the instruction and the memory selection stage here is a one additional step. Now we procceed register saving step for pushing and poping all used in function registers.
+Instruction selection and memory selection now have one additional step: register saving for pushing and popping all registers used in a function.
 
 ### Documentation update
 LIR part now is more complex then it was earlier, that's why I start documentation sync process.
 
 ### Major refactoring
-With custom memmory manager, it's really simple to fix memleaks in entier project. Also, for better code reading in future, I spend some time to make large code refactoring.
+With a custom memory manager, it is much easier to fix memory leaks across the entire project. Also, to improve future code readability, I spent some time on a large refactoring pass.
 
 ### Fixes in inline function
 Now inline operation will copy not only variables, now it copies arrays with array elements (if array is local and placed in stack). Also, now SSA renames arrays (local arrays) in same way as it works with variables. Additional function for array's symtable copy function implemented.
@@ -1141,7 +1141,7 @@ function itoa ptr buffer; int dsize; int num; {
 }
 ```
 
-This version wasn't "friendly" as it became now (in the terms of a syntax and a code style). Also, here is the how program's body was looks like:
+This version was not as friendly as the current one in terms of syntax and code style. Here is how the program body looked:
 
 ```cplv1
 start
