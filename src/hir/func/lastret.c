@@ -2,30 +2,26 @@
 
 int HIR_FUNC_set_last_return(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        list_t ret_blocks;
-        list_init(&ret_blocks);
-
-        int entry = 1;
+        cfg_block_t* rblock = NULL;
+        int entry = 1, rcount = 0;
         foreach (cfg_block_t* bb, &fb->blocks) {
             if (!bb->l && !bb->jmp && (set_size(&bb->pred) || entry)) {
-                list_add(&ret_blocks, bb);
+                if (rcount++ > 1) goto _skip_function;
+                rblock = bb;
             }
 
             entry = 0;
         }
         
-        if (list_size(&ret_blocks) == 1) {
-            cfg_block_t* rblock = (cfg_block_t*)ret_blocks.h->data; 
+        if (rblock) {
             hir_block_t* hb = rblock->hmap.exit;
             while (hb && HIR_is_syst(hb->op)) hb = hb->prev;
             if (hb->op == HIR_VRUSE) {
                 hb->op = HIR_FRET;
                 rblock->hmap.exit = hb;
             }
-            
         }
-
-        list_free(&ret_blocks);
+_skip_function: {}
     }
 
     return 1;

@@ -83,6 +83,7 @@ typedef struct cfg_block {
 typedef struct {
     long       cid;   /* Current block number: Service info */
     list_t     funcs; /* Function blocks                    */
+    map_t      fmap;  /* Function map id<->function_block   */
     struct {
         list_t hout;  /* HIR blocks out from a function     */
         list_t lout;

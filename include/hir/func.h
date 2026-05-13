@@ -102,7 +102,16 @@ int HIR_FUNC_inline_heuristic_desider(int* data, int size);
 
 /*
 Iterate function and find last block. If this is exit and the last block, find HIR_VRUSE, which
-signals that there is a return value.
+signals that there is a return value. Simple example:
+```cpl
+function foo() {
+    i32 a = 1;
+    i32 tmp;
+    : tmp = : a + 10;
+    : use(tmp); :
+    return tmp;
+}
+```
 Note: This function will ignore if function doesn't return anything.
 Params:
     - `cctx` - CFG context.

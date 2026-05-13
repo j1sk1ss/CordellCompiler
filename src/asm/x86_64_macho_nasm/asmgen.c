@@ -1,5 +1,6 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
+// TODO: docs
 static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_table_t* smt, FILE* output) {
     if (b->unused) return 1;
     switch (b->op) {
@@ -157,6 +158,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
     return 1;
 }
 
+// TODO: docs
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
@@ -172,6 +174,7 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
+// TODO: docs
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
     if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext) return 0;
@@ -229,17 +232,10 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
-static cfg_func_t* _find_function_by_id(symbol_id_t id, cfg_ctx_t* ctx) {
-    foreach (cfg_func_t* fb, &ctx->funcs) {
-        if (fb->f_id == id) return fb;
-    }
-
-    return NULL;
-}
-
+// TODO: docs
 static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
-    cfg_func_t* fb = _find_function_by_id(f_id, cctx);
-    if (!fb || !fb->used) return 0;
+    cfg_func_t* fb;
+    if (!map_get(&cctx->fmap, f_id, (void**)&fb) || !fb || !fb->used) return 0;
 
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
