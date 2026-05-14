@@ -11,10 +11,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CPLv3</title>
 
-  <link rel="icon" type="image/png" sizes="32x32" href="/CPL_logo.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/CPL_logo.png">
-  <link rel="shortcut icon" href="CPL_logo.png">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,22 +18,25 @@
 
   <style>
     :root {
-      --bg: #ffffff;
+      --bg: #fbf8f4;
       --panel: #ffffff;
-      --panel-soft: #f7f3ee;
-      --panel-muted: #efe7dd;
-      --text: #2a2521;
-      --muted: #665a51;
-      --line: #ddd3c8;
-      --ink: #111111;
-      --ink-soft: #24211f;
+      --panel-soft: #f6efe8;
+      --panel-muted: #eadfd6;
+      --text: #2f2925;
+      --muted: #6e6259;
+      --line: #dfd3c8;
+      --ink: #17110f;
+      --ink-soft: #231a17;
+      --ink-warm: #2a211d;
       --brand: #f46623;
-      --brand-strong: #b7410e;
-      --brand-deep: #7c2d12;
+      --brand-strong: #c74616;
+      --brand-deep: #8a2f13;
       --brand-soft: #fff0e7;
-      --shadow: 0 8px 18px rgba(42, 37, 33, 0.08);
-      --content-max: 1040px;
-      --radius: 8px;
+      --shadow: 0 1px 2px rgba(47, 41, 37, 0.08);
+      --lift-shadow: 5px 5px 0 rgba(244, 102, 35, 0.88);
+      --lift-shadow-dark: 5px 5px 0 rgba(0, 0, 0, 0.34);
+      --content-max: 1080px;
+      --radius: 4px;
     }
 
     * { box-sizing: border-box; }
@@ -45,16 +44,24 @@
     html, body {
       margin: 0;
       padding: 0;
-      background:
-        linear-gradient(90deg, rgba(244, 102, 35, 0.07) 0, rgba(244, 102, 35, 0.07) 1px, transparent 1px),
-        var(--bg);
-      background-size: 42px 42px;
+      background: var(--bg);
       color: var(--text);
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     body {
       letter-spacing: 0;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      z-index: 80;
+      background: var(--brand);
     }
 
     .app-name {
@@ -86,7 +93,8 @@
     .sidebar {
       background: var(--ink-soft);
       border-right: 0;
-      box-shadow: 8px 0 0 rgba(244, 102, 35, 0.08);
+      box-shadow: none;
+      padding-top: 4px;
     }
 
     .sidebar-nav {
@@ -192,14 +200,61 @@
     .search .matching-post { border-bottom-color: var(--line); }
     .search .matching-post:last-child { border-bottom: 0; }
 
-    .content { padding-top: 0; }
+    .app-nav {
+      position: fixed;
+      top: 4px;
+      right: 0;
+      left: 300px;
+      z-index: 60;
+      height: 56px;
+      margin: 0;
+      padding: 0 34px;
+      background: var(--ink);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .app-nav ul {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 2px;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .app-nav li { margin: 0; }
+
+    .app-nav a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 56px;
+      padding: 0 12px;
+      color: #f7eee7 !important;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      text-decoration: none !important;
+      letter-spacing: 0.02em;
+      border-bottom: 3px solid transparent;
+    }
+
+    .app-nav a:hover {
+      color: #ffffff !important;
+      border-bottom-color: var(--brand);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .content { padding-top: 60px; }
 
     .markdown-section {
       max-width: var(--content-max);
       margin: 0 auto;
       padding: 48px 56px 84px;
       color: var(--text);
-      background: rgba(255, 255, 255, 0.96);
+      background: #fff;
+      border-left: 1px solid rgba(216, 199, 184, 0.55);
+      border-right: 1px solid rgba(216, 199, 184, 0.55);
     }
 
     .markdown-section > *:first-child { margin-top: 0 !important; }
@@ -217,6 +272,7 @@
       font-size: clamp(2.45rem, 5vw, 3.85rem);
       line-height: 1.02;
       margin-bottom: 0.46em;
+      text-wrap: balance;
     }
 
     .markdown-section h2 {
@@ -236,6 +292,16 @@
 
     .markdown-section strong { color: var(--text); }
     .markdown-section em { color: var(--muted); }
+
+    .change-date {
+      display: block;
+      margin: -0.25rem 0 0.85rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      line-height: 1.35;
+    }
 
     .markdown-section a {
       color: var(--brand-deep);
@@ -259,11 +325,13 @@
     }
 
     .markdown-section pre {
+      position: relative;
       background: #1f1b18 !important;
       border: 1px solid #1f1b18;
       border-radius: var(--radius);
-      padding: 16px !important;
+      padding: 18px 16px 16px !important;
       box-shadow: var(--shadow);
+      overflow: auto;
     }
 
     .markdown-section pre code {
@@ -272,6 +340,37 @@
       padding: 0;
       color: #f9f2ec;
       font-size: 0.94rem;
+      line-height: 1.58;
+    }
+
+    .markdown-section pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 3px 8px 4px;
+      background: rgba(244, 102, 35, 0.16);
+      border-left: 1px solid rgba(244, 102, 35, 0.28);
+      border-bottom: 1px solid rgba(244, 102, 35, 0.28);
+      color: #f2c7b2;
+      font-size: 0.68rem;
+      font-weight: 800;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .token.comment { color: #9b8f86; font-style: italic; }
+    .token.string,
+    .token.char { color: #d9b889; }
+    .token.keyword { color: #ff8752; font-weight: 700; }
+    .token.type { color: #f3d26a; }
+    .token.number { color: #9fd6ff; }
+    .token.operator,
+    .token.punctuation { color: #e6d7ca; }
+    .token.annotation,
+    .token.preprocessor { color: #b8e986; }
+    .token.function { color: #8ecae6; }
     }
 
     .markdown-section table {
@@ -298,45 +397,80 @@
       color: #ffffff;
     }
 
+    .cpl-home {
+      margin: -48px -56px 0;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .cpl-home-hero {
+      display: block;
+      min-height: 420px;
+      padding: 74px 56px 64px;
+      background: var(--ink);
+      border-bottom: 4px solid var(--brand);
+    }
+
+    .cpl-home-hero h1 {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      line-height: 0.92;
+      letter-spacing: 0;
+      max-width: 760px;
+    }
+
+    .cpl-home-hero h1::after {
+      content: "";
+      display: block;
+      width: 84px;
+      height: 6px;
+      margin-top: 24px;
+      background: var(--brand);
+    }
+
     .hero-kicker {
       display: inline-block;
-      margin-bottom: 14px;
-      padding: 7px 11px;
+      margin-bottom: 20px;
+      padding: 0;
       border-radius: 0;
-      background: var(--ink);
-      color: #ffffff;
-      font-size: 0.82rem;
+      background: transparent;
+      color: var(--brand);
+      font-size: 0.86rem;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
     }
 
     .hero-note {
-      max-width: 700px;
-      font-size: 1.15rem;
-      color: var(--muted);
-      margin: 0 0 24px;
+      max-width: 760px;
+      margin: 28px 0 28px;
+      color: #efe4dc !important;
+      font-size: 1.26rem !important;
+      line-height: 1.62 !important;
     }
 
     .hero-actions {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
-      margin: 18px 0 26px;
+      margin: 18px 0 24px;
     }
 
     .hero-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 42px;
+      min-height: 44px;
       padding: 0 18px;
-      border-radius: var(--radius);
+      border-radius: 0;
       text-decoration: none !important;
       font-weight: 800;
-      border: 2px solid transparent;
+      border: 1px solid transparent;
       text-transform: uppercase;
       letter-spacing: 0.03em;
+      box-shadow: none;
+      transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
     }
 
     .hero-button.primary {
@@ -344,38 +478,106 @@
       color: #111111 !important;
     }
 
-    .hero-button.primary:hover { background: #ff7a3d; }
+    .hero-button.primary:hover {
+      background: #ff7a3d;
+      box-shadow: var(--lift-shadow-dark);
+      transform: translate(-3px, -3px);
+    }
 
     .hero-button.secondary {
       background: #fff;
       color: var(--text) !important;
-      border-color: var(--ink);
+      border-color: #fff;
     }
 
-    .hero-button.secondary:hover { background: var(--panel-soft); }
+    .hero-button.secondary:hover {
+      background: var(--panel-soft);
+      box-shadow: var(--lift-shadow-dark);
+      transform: translate(-3px, -3px);
+    }
+
+    .cpl-command {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+      max-width: 560px;
+      margin-top: 22px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: #0f0b0a;
+      color: #f9f2ec;
+      font: 0.94rem/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    .cpl-command span {
+      color: var(--brand);
+      font-weight: 800;
+    }
+
+    .cpl-command code {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #f9f2ec;
+      overflow-wrap: anywhere;
+    }
+
+    .cpl-home-band {
+      padding: 52px 56px 58px;
+      background: var(--bg);
+      color: var(--text);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cpl-home-band.dark {
+      background: #fff;
+      color: var(--text);
+    }
+
+    .cpl-home-band h2 {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+      color: inherit;
+      max-width: 760px;
+      font-size: clamp(1.9rem, 3vw, 2.9rem);
+      line-height: 1.08;
+      text-transform: none;
+    }
+
+    .cpl-home-band.dark p,
+    .cpl-home-band.dark li {
+      color: var(--muted);
+    }
+
+    .hero-kicker {
+      display: inline-block;
+    }
 
     .doc-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 14px;
-      margin-top: 20px;
+      margin-top: 22px;
     }
 
     .doc-card {
       display: block;
       padding: 18px;
-      border-radius: var(--radius);
+      border-radius: 0;
       border: 1px solid var(--line);
       background: #fff;
       color: inherit !important;
       text-decoration: none !important;
       box-shadow: none;
+      transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
     }
 
     .doc-card:hover {
       border-color: var(--ink);
-      box-shadow: 5px 5px 0 var(--brand);
-      transform: translate(-2px, -2px);
+      box-shadow: var(--lift-shadow);
+      transform: translate(-3px, -3px);
     }
 
     .doc-card h3 {
@@ -389,6 +591,47 @@
       color: var(--muted);
       font-size: 0.95rem;
       line-height: 1.6;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .feature-card {
+      padding: 22px;
+      border-left: 4px solid var(--brand);
+      background: #fff;
+      color: var(--text);
+      box-shadow: none;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+    }
+
+    .feature-card:hover {
+      border-top-color: var(--ink);
+      border-right-color: var(--ink);
+      border-bottom-color: var(--ink);
+      box-shadow: var(--lift-shadow);
+      transform: translate(-3px, -3px);
+    }
+
+    .feature-card h3 {
+      margin: 0 0 10px;
+      color: var(--ink);
+      font-size: 1.16rem;
+      text-transform: uppercase;
+    }
+
+    .feature-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.62;
     }
 
     .section-note {
@@ -416,6 +659,13 @@
       border-radius: var(--radius);
       background: #fff;
       padding: 14px 16px;
+      transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+    }
+
+    .docsify-pagination-card:hover {
+      border-color: var(--ink);
+      box-shadow: var(--lift-shadow);
+      transform: translate(-3px, -3px);
     }
 
     .docsify-pagination-card.right { text-align: right; }
@@ -549,10 +799,14 @@
       color: #111111;
       font-weight: 800;
       cursor: pointer;
-      transition: background 0.15s ease, opacity 0.15s ease;
+      transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease, opacity 0.15s ease;
     }
 
-    .cpl-runner-button:hover { background: #ff7a3d; }
+    .cpl-runner-button:hover {
+      background: #ff7a3d;
+      box-shadow: 4px 4px 0 rgba(23, 17, 15, 0.26);
+      transform: translate(-2px, -2px);
+    }
     .cpl-runner-button:disabled { opacity: 0.7; cursor: wait; }
 
     .cpl-runner-button.secondary {
@@ -617,19 +871,61 @@
     }
 
     @media (max-width: 900px) {
+      .app-nav {
+        left: 0;
+        height: auto;
+        min-height: 52px;
+        padding: 0 16px;
+      }
+      .app-nav ul {
+        justify-content: flex-start;
+        overflow-x: auto;
+      }
+      .app-nav a {
+        min-height: 52px;
+        white-space: nowrap;
+      }
+      .content { padding-top: 58px; }
       .markdown-section { padding: 34px 22px 72px; }
+      .cpl-home { margin: -34px -22px 0; }
+      .cpl-home-hero {
+        min-height: auto;
+        padding: 48px 22px 46px;
+      }
+      .cpl-home-band { padding: 34px 22px 42px; }
+      .feature-grid { grid-template-columns: 1fr; }
       .docsify-pagination { grid-template-columns: 1fr; }
       .docsify-pagination-card.right { text-align: left; }
       .docsify-pagination-current { min-width: 0; }
       .benchmark-chart-wrap { height: 320px; }
       .cpl-runner-editor { height: 260px; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero-button,
+      .doc-card,
+      .feature-card,
+      .docsify-pagination-card,
+      .cpl-runner-button {
+        transition: none;
+      }
+
+      .hero-button:hover,
+      .doc-card:hover,
+      .feature-card:hover,
+      .docsify-pagination-card:hover,
+      .cpl-runner-button:hover {
+        transform: none;
+      }
+    }
   </style>
 </head>
 <body>
   <div id="app"></div>
   <script>
-    window.CPL_RUNNER_URL='http://127.0.0.1:8000/cpl/run'; // TODO: Change
+    window.CPL_RUNNER_URL = /^(127\.0\.0\.1|localhost)$/.test(location.hostname)
+      ? 'http://127.0.0.1:8000/cpl/run'
+      : '';
   </script>
   <script>
     function cleanRoute(route) {
@@ -651,6 +947,126 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function spanToken(type, value) {
+      return '<span class="token ' + type + '">' + escapeHtml(value) + '</span>';
+    }
+
+    function highlightCpl(code) {
+      const keywords = new Set([
+        'as', 'break', 'case', 'default', 'else', 'exit', 'extern', 'function',
+        'glob', 'if', 'loop', 'return', 'ro', 'start', 'switch', 'while'
+      ]);
+      const types = new Set([
+        'arr', 'dref', 'f32', 'f64', 'i0', 'i8', 'i16', 'i32', 'i64',
+        'ptr', 'ref', 'str', 'u8', 'u16', 'u32', 'u64'
+      ]);
+      const builtins = new Set(['asm', 'sizeof', 'syscall']);
+
+      let out = '';
+      let i = 0;
+
+      while (i < code.length) {
+        const rest = code.slice(i);
+
+        if (rest.startsWith(':/')) {
+          const end = code.indexOf('/:', i + 2);
+          const value = end === -1 ? code.slice(i) : code.slice(i, end + 2);
+          out += spanToken('comment', value);
+          i += value.length;
+          continue;
+        }
+
+        if (code[i] === ':' && (i === 0 || code[i - 1] === '\n' || /\s/.test(code[i - 1]))) {
+          const end = code.indexOf(':', i + 1);
+          const newline = code.indexOf('\n', i + 1);
+          if (end !== -1 && (newline === -1 || end < newline)) {
+            const value = code.slice(i, end + 1);
+            out += spanToken('comment', value);
+            i += value.length;
+            continue;
+          }
+        }
+
+        if (code[i] === '#') {
+          const end = code.indexOf('\n', i + 1);
+          const value = end === -1 ? code.slice(i) : code.slice(i, end);
+          out += spanToken('preprocessor', value);
+          i += value.length;
+          continue;
+        }
+
+        if (rest.startsWith('@[')) {
+          const end = code.indexOf(']', i + 2);
+          const value = end === -1 ? code.slice(i) : code.slice(i, end + 1);
+          out += spanToken('annotation', value);
+          i += value.length;
+          continue;
+        }
+
+        if (code[i] === '"' || code[i] === "'") {
+          const quote = code[i];
+          let j = i + 1;
+          while (j < code.length) {
+            if (code[j] === '\\') {
+              j += 2;
+              continue;
+            }
+            if (code[j] === quote) {
+              j += 1;
+              break;
+            }
+            j += 1;
+          }
+          out += spanToken(quote === '"' ? 'string' : 'char', code.slice(i, j));
+          i = j;
+          continue;
+        }
+
+        const number = rest.match(/^(0[xX][0-9a-fA-F]+|0[bB][01]+|[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/);
+        if (number) {
+          out += spanToken('number', number[0]);
+          i += number[0].length;
+          continue;
+        }
+
+        const word = rest.match(/^[A-Za-z_][A-Za-z0-9_]*/);
+        if (word) {
+          const value = word[0];
+          const next = code.slice(i + value.length).match(/^\s*\(/);
+          if (keywords.has(value)) out += spanToken('keyword', value);
+          else if (types.has(value)) out += spanToken('type', value);
+          else if (builtins.has(value)) out += spanToken('keyword', value);
+          else if (next) out += spanToken('function', value);
+          else out += escapeHtml(value);
+          i += value.length;
+          continue;
+        }
+
+        const op = rest.match(/^(=>|->|==|!=|<=|>=|\+=|-=|\*=|\/=|%=|&&|\|\||[{}\(\)\[\],.;:+\-*\/%=&|!<>])/);
+        if (op) {
+          out += spanToken(/[{}()[\],.;:]/.test(op[0]) ? 'punctuation' : 'operator', op[0]);
+          i += op[0].length;
+          continue;
+        }
+
+        out += escapeHtml(code[i]);
+        i += 1;
+      }
+
+      return out;
+    }
+
+    function highlightCode(code, lang) {
+      const normalized = (lang || 'markup').toLowerCase();
+      if (normalized === 'cpl') return highlightCpl(code);
+
+      if (window.Prism && Prism.languages && Prism.languages[normalized]) {
+        return Prism.highlight(code, Prism.languages[normalized], normalized);
+      }
+
+      return escapeHtml(code);
     }
 
     window.__benchmarkCharts = new Map();
@@ -770,9 +1186,15 @@
       name: 'CPL v3.5<small>Language docs & compiler internals</small>',
       repo: 'https://github.com/j1sk1ss/CordellCompiler',
       homepage: 'README.md',
-      loadSidebar: '/sidebar.md',
+      loadSidebar: 'sidebar.md',
+      loadNavbar: 'navbar.md',
+      mergeNavbar: true,
+      requestHeaders: {
+        'cache-control': 'no-cache'
+      },
       alias: {
-        '/.*/sidebar.md': '/sidebar.md'
+        '/.*/sidebar.md': 'sidebar.md',
+        '/.*/navbar.md': 'navbar.md'
       },
       subMaxLevel: 2,
       maxLevel: 3,
@@ -786,7 +1208,7 @@
         noData: 'No results found',
         depth: 3,
         hideOtherSidebarContent: false,
-        namespace: 'cpl-docs'
+        namespace: 'cpl-docs-pages-v2'
       },
       copyCode: {
         buttonText: 'Copy',
@@ -821,7 +1243,8 @@
               `;
             }
 
-            return '<pre><code class="language-' + escapeHtml(lang || 'markup') + '">' + escapeHtml(code) + '</code></pre>';
+            const language = String(lang || 'markup').toLowerCase();
+            return '<pre data-lang="' + escapeHtml(language) + '"><code class="language-' + escapeHtml(language) + '">' + highlightCode(code, language) + '</code></pre>';
           }
         }
       },
@@ -1145,7 +1568,11 @@
               resizeObserver.observe(block);
               block.__resizeObserver = resizeObserver;
 
-              output.textContent = 'Click \'Run\' to compile and run the program!';
+              if (window.CPL_RUNNER_URL || (window.CPL_RUNNER && typeof window.CPL_RUNNER.run === 'function')) {
+                output.textContent = 'Click \'Run\' to compile and run the program!';
+              } else {
+                output.textContent = 'Live execution is disabled in this static deployment. The editor remains available for reading and formatting examples.';
+              }
             } catch (err) {
               output.classList.add('is-error');
               output.textContent = 'Editor init failed: ' + err.message;
@@ -1184,6 +1611,10 @@
                   output.textContent= 'Execution finished.';
                 }
                 return;
+              }
+
+              if (!window.CPL_RUNNER_URL) {
+                throw new Error('Runner backend is not configured for this static deployment.');
               }
         
               const response= await fetch(backendUrl, {

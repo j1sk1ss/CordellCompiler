@@ -1,1 +1,0 @@
-* [DAG part](#dag-part)
