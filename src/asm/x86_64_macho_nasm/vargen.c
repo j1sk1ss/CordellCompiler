@@ -13,7 +13,7 @@ static inline char* _get_buffer() {
     return curr_buffer;
 }
 
-static const char* format_lir_register(lir_registers_t reg) {
+static const char* _format_lir_register(lir_registers_t reg) {
     switch (reg) {
         /* AVX registers */
         case XMM0: return "xmm0"; case XMM1: return "xmm1"; case XMM2: return "xmm2"; case XMM3: return "xmm3"; 
@@ -134,7 +134,7 @@ const char* x86_64_macho_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* 
 _shifted_to_memory: {}
             const char* modifier = _get_mem_modifier(v->size);
             if (flag == LEA_FLAG) modifier = "";
-            const char* offset_base = format_lir_register(v->storage.var.base);
+            const char* offset_base = _format_lir_register(v->storage.var.base);
             if (v->storage.var.offset > 0) snprintf(buffer, sizeof(_buffers[0]), "%s[%s - %d]", modifier, offset_base, v->storage.var.offset);
             else snprintf(buffer, sizeof(_buffers[0]), "%s[%s + %d]", modifier, offset_base, ABS(v->storage.var.offset));
             return buffer;
@@ -145,13 +145,13 @@ _shifted_to_registers: {}
                 snprintf(
                     buffer, sizeof(_buffers[0]), "%s[%s]", 
                     _get_mem_modifier(v->dsize), 
-                    format_lir_register(LIR_format_register(v->storage.reg.reg, 8))
+                    _format_lir_register(LIR_format_register(v->storage.reg.reg, 8))
                 );
             }
             else {
                 snprintf(
                     buffer, sizeof(_buffers[0]), "%s", 
-                    format_lir_register(LIR_format_register(v->storage.reg.reg, v->size))
+                    _format_lir_register(LIR_format_register(v->storage.reg.reg, v->size))
                 );
             }
 
