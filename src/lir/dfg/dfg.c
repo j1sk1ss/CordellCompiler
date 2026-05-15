@@ -67,8 +67,14 @@ int LIR_DFG_compute_usedef(cfg_ctx_t* cctx) {
                 set_copy(&real_use, &inst_use);
                 set_minus_set(&real_use, &cb->def);
 
-                set_union(&cb->use, &cb->use, &real_use);
-                set_union(&cb->def, &cb->def, &inst_def);
+                set_t next_use, next_def;
+                set_union(&next_use, &cb->use, &real_use);
+                set_union(&next_def, &cb->def, &inst_def);
+
+                set_free(&cb->use);
+                set_free(&cb->def);
+                cb->use = next_use;
+                cb->def = next_def;
 
                 set_free(&real_use);
                 set_free(&inst_use);
@@ -92,8 +98,18 @@ Returns 1 if succeeds.
 static int _compute_out(cfg_block_t* cfg) {
     set_t out;
     set_init(&out, SET_CMP);
-    if (cfg->l)   set_union(&out, &out, &cfg->l->curr_in);
-    if (cfg->jmp) set_union(&out, &out, &cfg->jmp->curr_in);
+    if (cfg->l) {
+        set_t next_out;
+        set_union(&next_out, &out, &cfg->l->curr_in);
+        set_free(&out);
+        out = next_out;
+    }
+    if (cfg->jmp) {
+        set_t next_out;
+        set_union(&next_out, &out, &cfg->jmp->curr_in);
+        set_free(&out);
+        out = next_out;
+    }
     set_free(&cfg->curr_out);
     set_copy(&cfg->curr_out, &out);
     set_free(&out);
