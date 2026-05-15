@@ -1,3 +1,4 @@
+: ASM_ARCH=x86_64_macho :
 : BLOCK_TEST :
 : RUN_ASM :
 function strlen(ptr i8 s) -> i64 {

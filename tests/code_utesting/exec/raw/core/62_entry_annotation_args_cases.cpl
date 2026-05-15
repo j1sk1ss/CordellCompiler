@@ -1,3 +1,4 @@
+: ASM_ARCH=x86_64_macho :
 : BLOCK_TEST :
 : RUN_ASM[args="apple"|args="banana"] :
 function putc(i8 c) -> i0 {

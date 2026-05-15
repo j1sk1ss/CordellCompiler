@@ -1,3 +1,4 @@
+: ASM_ARCH=x86_64_macho :
 : RUN_ASM :
 :/ Define the strlen function
   that accepts a pointer to a char array.

@@ -25,14 +25,12 @@
 #include <lir/selector/memsel.h>
 #include <lir/selector/savereg.h>
 #include <lir/selector/x86_64_macho_nasm.h>
-#include <lir/selector/x86_64_gnu_nasm.h>
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
 #include "../../../misc/lir_helper.h"
 
 #include <asm/asmgen.h>
-#include <asm/x86_64_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #define RELOAD_CFG                          \
@@ -98,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     HIR_FUNC_set_last_return(&cfgctx);
 
-    RELOAD_CFG; // Rebuild after Last_ret + TRE
+    RELOAD_CFG;
 
     HIR_CFG_create_domdata(&cfgctx);
     ltree_ctx_t lctx;
@@ -112,36 +110,39 @@ int main(int argc, char* argv[]) {
 
     ssa_ctx_t ssactx;
     map_init(&ssactx.vers, MAP_NO_CMP);
-    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
-    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
+    HIR_SSA_insert_phi(&cfgctx, &smt);
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt);
     map_free_force(&ssactx.vers);
 
     HIR_compute_homes(&hirctx);
     HIR_CFG_make_allias(&cfgctx, &smt);
 
-    // HIR_CFG_squeeze_blocks(&cfgctx);
-
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
     inst_selector_t inst_sel = { .select_instructions = x86_64_macho_nasm_instruction_selection };
-    LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
+    LIR_select_instructions(&cfgctx, &smt, &inst_sel);
 
-    LIR_DFG_compute_inout(&cfgctx);      // Analyzation
-    LIR_DFG_create_deall(&cfgctx, &smt); // Transform
+    LIR_DFG_compute_inout(&cfgctx);
+    LIR_DFG_create_deall(&cfgctx, &smt);
 
     map_t colors;
     map_init(&colors, MAP_NO_CMP);
     LIR_RA_init_colors(&colors, &smt);
     LIR_regalloc(&cfgctx, &smt, &colors);
-
-    mem_selector_t mem_sel = { .select_memory = x86_64_macho_nasm_memory_selection };
-    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
-
     LIR_RA_sort_phi_movs(&cfgctx, &colors);
+
+    mem_selector_t mem_sel = { 
+        .select_memory   = x86_64_macho_nasm_memory_selection, 
+        .validate_memory = x86_64_macho_nasm_memory_validation 
+    };
+    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
+
     LIR_destroy_ssa(&cfgctx);
 
     register_saver_t reg_save = { .save_registers = x86_64_macho_nasm_caller_saving };
     LIR_save_registers(&cfgctx, &smt, &reg_save);
+
+    LIR_validate_memory(&cfgctx, &smt, &mem_sel);
 
     asm_gen_t asmgen = { .generator = x86_64_macho_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);

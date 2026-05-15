@@ -1,3 +1,4 @@
+: ASM_ARCH=x86_64_macho :
 : RUN_ASM[args="max"|args="chloe"] :
 function strlen(ptr i8 s) -> i32 {
     i32 l = 0;

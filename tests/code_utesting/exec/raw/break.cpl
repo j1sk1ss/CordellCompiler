@@ -1,3 +1,4 @@
+: ASM_ARCH=x86_64_macho :
 : RUN_ASM[args="","",""|args="",""|args="","","",""] :
 start(i32 a) {
     loop {
