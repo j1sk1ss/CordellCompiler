@@ -23,13 +23,13 @@
 #include <lir/selector/instsel.h>
 #include <lir/selector/memsel.h>
 #include <lir/selector/savereg.h>
-#include <lir/selector/x84_64_gnu_nasm.h>
-#include <lir/selector/x84_64_macho_nasm.h>
+#include <lir/selector/x86_64_gnu_nasm.h>
+#include <lir/selector/x86_64_macho_nasm.h>
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
 #include <lir/peephole/peephole.h>
-#include <lir/peephole/x84_64_gnu_nasm.h>
+#include <lir/peephole/x86_64_gnu_nasm.h>
 #include "../../../misc/lir_helper.h"
 
 #include <asm/asmgen.h>

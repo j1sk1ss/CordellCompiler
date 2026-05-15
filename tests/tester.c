@@ -57,7 +57,7 @@
     #include <lir/selector/instsel.h>
     #include <lir/selector/memsel.h>
     #include <lir/selector/savereg.h>
-    #include <lir/selector/x84_64_gnu_nasm.h>
+    #include <lir/selector/x86_64_gnu_nasm.h>
 #endif
 #ifdef LIR_INSTPLAN_TESTING
     #include <lir/instplan/targinfo.h>
@@ -70,7 +70,7 @@
 #endif
 #ifdef LIR_PEEPHOLE_TESTING
     #include <lir/peephole/peephole.h>
-    #include <lir/peephole/x84_64_gnu_nasm.h>
+    #include <lir/peephole/x86_64_gnu_nasm.h>
 #endif
     #include "misc/lir_helper.h"
 #endif

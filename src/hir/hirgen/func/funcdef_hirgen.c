@@ -15,7 +15,11 @@ int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* c
     HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(node->c));
     HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
 
-    int argnum = 0;
+    int argnum = 0, arg_count = 0;
+    for (ast_node_t* tmp = node->c->siblings.n->c; tmp && tmp->t && tmp->t->t_type != SCOPE_TOKEN; tmp = tmp->siblings.n) {
+        arg_count++;
+    }
+
     ast_node_t* t;
     for (t = node->c->siblings.n->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
         if (t->t->t_type == VAR_ARGUMENTS_TOKEN) {
@@ -24,12 +28,14 @@ int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* c
         }
 
         HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->c));
-        HIR_BLOCK2(
+        HIR_BLOCK3(
             ctx, 
             fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, 
             HIR_SUBJ_ASTVAR(t->c), 
-            HIR_SUBJ_CONST(argnum++)
+            HIR_SUBJ_CONST(argnum),
+            HIR_SUBJ_CONST(arg_count - argnum)
         );
+        argnum++;
     }
 
     SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, argnum, fi.rtype ? fi.rtype->t : NULL, { HIR_generate_block(t, ctx, smt); });

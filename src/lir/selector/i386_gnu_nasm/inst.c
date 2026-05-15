@@ -68,12 +68,12 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lir_subject_t* src;
                         switch (lh->sarg->storage.cnst.value) {
                             case 0: {
-                                src = LIR_SUBJ_OFF(EBP, -8, 4);
+                                src = LIR_SUBJ_OFF(EBP, -4, 4);
                                 lh->op = LIR_iMOV; 
                                 break;
                             }
                             default: {
-                                src = LIR_SUBJ_OFF(EBP, -12, 4);
+                                src = LIR_SUBJ_OFF(EBP, -8, 4);
                                 lh->op = LIR_REF;  
                                 break;
                             }
@@ -85,7 +85,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_STFARG: lh->op = LIR_PUSH; break;
                     case LIR_LOADFARG: {
-                        lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->sarg->storage.cnst.value + 2) * -4, lh->farg->size);
+                        lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->targ->storage.cnst.value + 1) * -4, lh->farg->size);
                         LIR_unload_subject(lh->sarg);
                         lh->op   = LIR_phiMOV;
                         lh->sarg = nfarg;

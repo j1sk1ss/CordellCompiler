@@ -103,7 +103,6 @@ Returns 1 if operation is a value-moving write, otherwise 0.
 */
 static int _is_move_write_by_value(lir_operation_t op) {
     switch (op) {
-        case LIR_CDQ:
         case LIR_XCHG:
         case LIR_STARGLD:
         case LIR_STARGRF:

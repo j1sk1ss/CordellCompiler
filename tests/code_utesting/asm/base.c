@@ -23,7 +23,7 @@
 #include <lir/selector/instsel.h>
 #include <lir/selector/memsel.h>
 #include <lir/selector/savereg.h>
-#include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/x86_64_gnu_nasm.h>
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>

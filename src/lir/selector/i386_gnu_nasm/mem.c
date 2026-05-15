@@ -14,7 +14,7 @@ static inline int _is_regular_register(lir_registers_t r) {
     return 1;
 }
 
-static const lir_registers_t _regular_registers[] = { EBX, ESI };
+static const lir_registers_t _regular_registers[] = { EBX, EDX };
 
 /*
 Convert color (index) value to a register.
@@ -80,38 +80,6 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
 }
 
 /*
-We need to be sure that all movs are proper. For example, we can't
-preserve some instructions that aren't valid in our architecture such
-as 'mov sil, r15' or 'mov r15, sil', etc. 
-Params:
-    - `bb` - Current base block.
-    - `smt` - Symtable.
-
-Returns 1 if the operation succeeds, otherwise 0.
-*/
-static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-    while (lh) {
-        if (
-            (lh->farg && lh->farg->t != LIR_MEMORY) &&
-            (lh->sarg && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL)
-        ) {
-            switch (lh->op) {
-                case LIR_iMOV: case LIR_aMOV: case LIR_fMOV: {
-                    lh->op = i386_gnu_nasm_get_proper_mov(lh->farg, lh->sarg, smt, lh->op);
-                    break;
-                }
-                default: break;
-            }
-        }
-
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
-    }
-
-    return 1;
-}
-
-/*
 Get the size of a token type.
 Params:
     - `t` - Token type.
@@ -130,87 +98,6 @@ static inline int _get_ast_type_size(token_type_t t) {
         case I8_TYPE_TOKEN:      case U8_TYPE_TOKEN:                           return 1;
         default: return 4;
     }
-}
-
-/*
-After the memory selection we should be sure that this LIR is valid. 
-Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
-ops "mem with mem", etc.
-In a nutshell, this function doesn't do anything special. It just adds additional movs to 
-temporary registers before critical operations.
-Params:
-    - `bb` - Current base block.
-    - `smt` - Symtable.
-
-Returns 1 if the operation succeeds, otherwise 0.
-*/
-static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-    while (lh) {
-        list_t fixes;
-        list_init(&fixes);
-        if (lh->farg && lh->sarg) {
-            switch (lh->op) {
-                case LIR_REF:
-                case LIR_REF_GDREF: {
-                    if (lh->farg->t == LIR_REGISTER) break;
-                    lir_subject_t* tmp = i386_gnu_nasm_create_tmp(EDI, lh->sarg, smt, 4);
-                    list_add(&fixes, LIR_create_block(lh->op, tmp, lh->sarg, NULL));
-                    lh->sarg = tmp;
-                    lh->op   = LIR_iMOV;
-                    break;
-                }
-                case LIR_CVTSS2SD: case LIR_CVTSD2SS: case LIR_CVTTSS2SI: case LIR_CVTTSD2SI:
-                case LIR_CVTSI2SS: case LIR_CVTSI2SD:
-                case LIR_MOVSX:    case LIR_MOVZX:
-                case LIR_iMOV:     case LIR_aMOV:     case LIR_fMOV: {
-                    if (lh->farg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) break;
-                    lir_subject_t* tmp = i386_gnu_nasm_create_tmp(EDI, lh->sarg, smt, lh->farg->size);
-                    list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL));
-                    lh->sarg = tmp;
-                    break;
-                }
-                case LIR_LDREF: {
-                    if (lh->farg->t != LIR_REGISTER) {
-                        lir_subject_t* src = i386_gnu_nasm_create_tmp(EAX, lh->farg, smt, lh->farg->size);
-                        list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->farg, NULL));
-                        lh->farg = i386_gnu_nasm_create_tmp(EAX, src, smt, lh->sarg->size);
-                    }
-
-                    if (lh->sarg->t != LIR_REGISTER && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL) {
-                        lir_subject_t* src = i386_gnu_nasm_create_tmp(EDI, lh->sarg, smt, lh->sarg->size);
-                        list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
-                        lh->sarg = i386_gnu_nasm_create_tmp(EDI, src, smt, lh->sarg->size);
-                    }
-
-                    break;
-                }
-                case LIR_GDREF: {
-                    if (lh->farg->t == LIR_REGISTER) break;
-                    lir_subject_t* src = i386_gnu_nasm_create_tmp(EDI, lh->sarg, smt, lh->sarg->size);
-                    list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
-                    lir_subject_t* tmp = i386_gnu_nasm_create_tmp(EDI, lh->farg, smt, lh->farg->size);
-                    list_add(&fixes, LIR_create_block(LIR_GDREF, tmp, src, NULL));
-                    lh->sarg = tmp;
-                    lh->op   = LIR_iMOV;
-                    break;
-                }
-                default: break;
-            }
-
-            if (list_size(&fixes)) {
-                foreach (lir_block_t* fix, &fixes) {
-                    if (bb->lmap.entry == lh) bb->lmap.entry = fix;
-                    LIR_insert_block_before(fix, lh);
-                }
-            }
-        }
-
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
-        list_free(&fixes);
-    }
-
-    return 1;
 }
 
 /*
@@ -357,9 +244,6 @@ int i386_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* 
 
                 lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
-
-            _validate_selected_instuction(bb, smt);
-            _validate_size_movs(bb, smt);
         }
 
         /* Save the largest offset in this function for further
@@ -370,6 +254,130 @@ int i386_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* 
         ) {
             if (smp.last_offset || _verify_memory_usage(fb)) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
             else FNTB_update_func(fb->lmap.entry->farg->storage.str.sid, FNTB_SET_NAKED, &smt->f);
+        }
+    }
+
+    return 1;
+}
+
+/*
+We need to be sure that all movs are proper. For example, we can't
+preserve some instructions that aren't valid in our architecture such
+as 'mov sil, r15' or 'mov r15, sil', etc. 
+Params:
+    - `bb` - Current base block.
+    - `smt` - Symtable.
+
+Returns 1 if the operation succeeds, otherwise 0.
+*/
+static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+    while (lh) {
+        if (
+            (lh->farg && lh->farg->t != LIR_MEMORY) &&
+            (lh->sarg && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL)
+        ) {
+            switch (lh->op) {
+                case LIR_iMOV: case LIR_aMOV: case LIR_fMOV: case LIR_phiMOV: {
+                    lh->op = i386_gnu_nasm_get_proper_mov(lh->farg, lh->sarg, smt, lh->op);
+                    break;
+                }
+                default: break;
+            }
+        }
+
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
+    }
+
+    return 1;
+}
+
+/*
+After the memory selection we should be sure that this LIR is valid. 
+Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
+ops "mem with mem", etc.
+In a nutshell, this function doesn't do anything special. It just adds additional movs to 
+temporary registers before critical operations.
+Params:
+    - `bb` - Current base block.
+    - `smt` - Symtable.
+
+Returns 1 if the operation succeeds, otherwise 0.
+*/
+static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
+    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+    while (lh) {
+        list_t fixes;
+        list_init(&fixes);
+        if (lh->farg && lh->sarg) {
+            switch (lh->op) {
+                case LIR_REF:
+                case LIR_REF_GDREF: {
+                    if (lh->farg->t == LIR_REGISTER) break;
+                    lir_subject_t* tmp = i386_gnu_nasm_create_tmp(EDI, lh->sarg, smt, 4);
+                    list_add(&fixes, LIR_create_block(lh->op, tmp, lh->sarg, NULL));
+                    lh->sarg = tmp;
+                    lh->op   = LIR_iMOV;
+                    break;
+                }
+                case LIR_CVTSS2SD: case LIR_CVTSD2SS: case LIR_CVTTSS2SI: case LIR_CVTTSD2SI:
+                case LIR_CVTSI2SS: case LIR_CVTSI2SD:
+                case LIR_MOVSX:    case LIR_MOVZX:    case LIR_phiMOV:
+                case LIR_iMOV:     case LIR_aMOV:     case LIR_fMOV: {
+                    if (lh->farg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) break;
+                    lir_subject_t* tmp = i386_gnu_nasm_create_tmp(ECX, lh->sarg, smt, lh->farg->size);
+                    list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL));
+                    lh->sarg = tmp;
+                    break;
+                }
+                case LIR_LDREF: {
+                    if (lh->farg->t != LIR_REGISTER) {
+                        lir_subject_t* src = i386_gnu_nasm_create_tmp(EAX, lh->farg, smt, lh->farg->size);
+                        list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->farg, NULL));
+                        lh->farg = i386_gnu_nasm_create_tmp(EAX, src, smt, lh->sarg->size);
+                    }
+
+                    if (lh->sarg->t != LIR_REGISTER && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL) {
+                        lir_subject_t* src = i386_gnu_nasm_create_tmp(ECX, lh->sarg, smt, lh->sarg->size);
+                        list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
+                        lh->sarg = i386_gnu_nasm_create_tmp(ECX, src, smt, lh->sarg->size);
+                    }
+
+                    break;
+                }
+                case LIR_GDREF: {
+                    if (lh->farg->t == LIR_REGISTER && lh->sarg->t != LIR_MEMORY) break;
+                    lir_subject_t* src = i386_gnu_nasm_create_tmp(ECX, lh->sarg, smt, lh->sarg->size);
+                    list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
+                    lir_subject_t* tmp = i386_gnu_nasm_create_tmp(ECX, lh->farg, smt, lh->farg->size);
+                    list_add(&fixes, LIR_create_block(LIR_GDREF, tmp, src, NULL));
+                    lh->sarg = tmp;
+                    lh->op   = LIR_iMOV;
+                    break;
+                }
+                default: break;
+            }
+
+            if (list_size(&fixes)) {
+                foreach (lir_block_t* fix, &fixes) {
+                    if (bb->lmap.entry == lh) bb->lmap.entry = fix;
+                    LIR_insert_block_before(fix, lh);
+                }
+            }
+        }
+
+        lh = LIR_get_next(lh, bb->lmap.exit, 1);
+        list_free(&fixes);
+    }
+
+    return 1;
+}
+
+int i386_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            _validate_size_movs(bb, smt);
+            _validate_selected_instuction(bb, smt);
         }
     }
 

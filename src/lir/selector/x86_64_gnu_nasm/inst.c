@@ -1,4 +1,4 @@
-#include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/x86_64_gnu_nasm.h>
 // TODO: Complete AVX support
 
 /*
@@ -42,7 +42,7 @@ Params:
 
 Returns 1 if this is a register value, otherwise 0.
 */
-static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, sym_table_t* smt) {
+static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argument_t* out, sym_table_t* smt) {
     int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
     int simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
 
@@ -55,7 +55,7 @@ static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, s
 
     if (!is_float) {
         if (index >= (long)(sizeof(dec_abi_regs) / sizeof(RDI))) {
-            out->off = (index - (long)(sizeof(dec_abi_regs) / sizeof(RDI)) + 1) * -8;
+            out->off = (offset - (long)(sizeof(dec_abi_regs) / sizeof(RDI)) + 1) * -8;
             return 0;
         }
         else {
@@ -65,7 +65,7 @@ static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, s
     }
     else {
         if (index >= (long)(sizeof(simd_abi_regs) / sizeof(XMM0))) {
-            out->off = (index - (long)(sizeof(simd_abi_regs) / sizeof(XMM0)) + 1) * -8;
+            out->off = (offset - (long)(sizeof(simd_abi_regs) / sizeof(XMM0)) + 1) * -8;
             return 0;
         }
         else {
@@ -142,7 +142,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_STFARG: {
                         abi_argument_t target;
-                        if (!_get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)) lh->op = LIR_PUSH;
+                        if (!_get_abi_argument(lh->sarg->storage.cnst.value, 0, lh->farg, &target, smt)) lh->op = LIR_PUSH;
                         else {
                             lir_subject_t* nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
                             LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, 8), NULL, NULL), lh);
@@ -159,7 +159,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         abi_argument_t target;
                         lir_subject_t* nfarg;
                         if (
-                            _get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, smt)
+                            _get_abi_argument(lh->sarg->storage.cnst.value, lh->targ->storage.cnst.value, lh->farg, &target, smt)
                         ) nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
                         else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
                         LIR_unload_subject(lh->sarg);
@@ -228,13 +228,13 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lir_subject_t* oldres = lh->farg;
                         lh->sarg = a_entry;
 
-                        lir_subject_t* b = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, 8);
+                        lir_subject_t* b = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, MAX(lh->targ->size, 4));
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                         lh->targ = b;
 
                         lir_subject_t* mod = x86_64_gnu_nasm_create_tmp(RDX, lh->farg, smt, 8);
                         _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_CDQ, NULL, NULL, NULL), lh);
                         if (lh->op != LIR_iMOD) {
                             lh->farg = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
                             _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, lh->farg, NULL), lh);

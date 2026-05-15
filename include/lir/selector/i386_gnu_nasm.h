@@ -70,5 +70,6 @@ lir_operation_t i386_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* b,
 int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt);
 int i386_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt);
 int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt);
+int i386_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt);
 
 #endif

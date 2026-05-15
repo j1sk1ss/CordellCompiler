@@ -1,4 +1,4 @@
-#include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/x86_64_gnu_nasm.h>
 
 /*
 Collect used registers in the provided function.
