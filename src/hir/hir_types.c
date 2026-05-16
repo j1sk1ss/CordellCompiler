@@ -378,30 +378,39 @@ int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b) {
 
 token_type_t HIR_get_tmptkn_type(hir_subject_type_t t) {
     switch (t) {
+        case HIR_F32NUMBER:
         case HIR_GLBVARF32:
         case HIR_STKVARF32:
         case HIR_TMPVARF32: return TMP_F32_TYPE_TOKEN;
+        case HIR_I64NUMBER:
         case HIR_GLBVARI64:
         case HIR_STKVARI64:
         case HIR_TMPVARI64: return TMP_I64_TYPE_TOKEN;
+        case HIR_I32NUMBER:
         case HIR_GLBVARI32:
         case HIR_STKVARI32:
         case HIR_TMPVARI32: return TMP_I32_TYPE_TOKEN;
+        case HIR_I16NUMBER:
         case HIR_GLBVARI16:
         case HIR_STKVARI16:
         case HIR_TMPVARI16: return TMP_I16_TYPE_TOKEN;
+        case HIR_I8NUMBER:
         case HIR_GLBVARI8:
         case HIR_STKVARI8:
         case HIR_TMPVARI8:  return TMP_I8_TYPE_TOKEN;
+        case HIR_U64NUMBER:
         case HIR_GLBVARU64:
         case HIR_STKVARU64:
         case HIR_TMPVARU64: return TMP_U64_TYPE_TOKEN;
+        case HIR_U32NUMBER:
         case HIR_GLBVARU32:
         case HIR_STKVARU32:
         case HIR_TMPVARU32: return TMP_U32_TYPE_TOKEN;
+        case HIR_U16NUMBER:
         case HIR_GLBVARU16:
         case HIR_STKVARU16:
         case HIR_TMPVARU16: return TMP_U16_TYPE_TOKEN;
+        case HIR_U8NUMBER:
         case HIR_TMPVARU8:
         case HIR_STKVARU8:
         case HIR_GLBVARU8:  return TMP_U8_TYPE_TOKEN; 

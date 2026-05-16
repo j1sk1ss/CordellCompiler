@@ -309,6 +309,19 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     while (lh) {
         list_t fixes;
         list_init(&fixes);
+        if (lh->farg) {
+            switch (lh->op) {
+                case LIR_PUSH: {
+                    if (lh->farg->t != LIR_NUMBER && lh->farg->t != LIR_CONSTVAL) break;
+                    lir_subject_t* tmp = i386_gnu_nasm_create_tmp(ECX, lh->farg, smt, MAX(lh->farg->size, 2));
+                    list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->farg, NULL));
+                    lh->farg = tmp;
+                    break;
+                }
+                default: break;
+            }
+        }
+
         if (lh->farg && lh->sarg) {
             switch (lh->op) {
                 case LIR_REF:
@@ -357,12 +370,12 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 }
                 default: break;
             }
-
-            if (list_size(&fixes)) {
-                foreach (lir_block_t* fix, &fixes) {
-                    if (bb->lmap.entry == lh) bb->lmap.entry = fix;
-                    LIR_insert_block_before(fix, lh);
-                }
+        }
+        
+        if (list_size(&fixes)) {
+            foreach (lir_block_t* fix, &fixes) {
+                if (bb->lmap.entry == lh) bb->lmap.entry = fix;
+                LIR_insert_block_before(fix, lh);
             }
         }
 

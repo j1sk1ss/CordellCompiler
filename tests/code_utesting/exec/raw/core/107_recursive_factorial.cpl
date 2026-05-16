@@ -9,7 +9,7 @@ function fact(i32 n) -> i32 {
 }
 
 start() {
-    exit fact(5) as u8;
+    exit fact(5 as i32) as u8;
 }
 
 :/ OUTPUT

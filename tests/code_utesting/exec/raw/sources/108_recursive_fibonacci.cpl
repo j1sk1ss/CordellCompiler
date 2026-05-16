@@ -1,4 +1,4 @@
-: RUN_ASM :
+: TEST_DEBUG :
 
 function fib(i32 n) -> i32 {
     if n < 2; {

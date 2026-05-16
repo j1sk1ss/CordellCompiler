@@ -134,7 +134,7 @@ _shifted_to_registers: {}
                 snprintf(
                     buffer, sizeof(_buffers[0]), "%s[%s]", 
                     _get_mem_modifier(v->dsize), 
-                    _format_lir_register(LIR_format_register(v->storage.reg.reg, 8))
+                    _format_lir_register(LIR_format_register(v->storage.reg.reg, 4))
                 );
             }
             else {

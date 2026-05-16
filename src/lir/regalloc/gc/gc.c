@@ -1,9 +1,37 @@
 #include <lir/regalloc/ra.h>
 
+static long _precolored_reg_to_color(lir_registers_t reg) {
+    if (CONF_get_full_bytness() == 4) {
+        switch (LIR_format_register(reg, 4)) {
+            case EBX: return 0;
+            case EDX: return 1;
+            default:  return reg;
+        }
+    }
+
+    switch (LIR_format_register(reg, 8)) {
+        case RCX: return 0;
+        case RDX: return 1;
+        case RBX: return 2;
+        case RSI: return 3;
+        case RDI: return 4;
+        case R8:  return 5;
+        case R9:  return 6;
+        case R10: return 7;
+        case R11: return 8;
+        case R12: return 9;
+        case R13: return 10;
+        case R14: return 11;
+        default: break;
+    }
+    return reg;
+}
+
 int LIR_RA_init_colors(map_t* colors, sym_table_t* smt) {
     print_log("LIR_RA_init_colors()");
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
-        map_put(colors, vi->v_id, (void*)((long)vi->vmi.reg));
+        long color = vi->vmi.reg >= 0 ? _precolored_reg_to_color(vi->vmi.reg) : vi->vmi.reg;
+        map_put(colors, vi->v_id, (void*)color);
     }
 
     return 1;

@@ -83,7 +83,11 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = src;
                         break;
                     }
-                    case LIR_STFARG: lh->op = LIR_PUSH; break;
+                    case LIR_STFARG: {
+                        lh->op         = LIR_PUSH;
+                        lh->farg->size = MAX(lh->farg->size, 2);
+                        break;
+                    }
                     case LIR_LOADFARG: {
                         lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->targ->storage.cnst.value + 1) * -4, lh->farg->size);
                         LIR_unload_subject(lh->sarg);

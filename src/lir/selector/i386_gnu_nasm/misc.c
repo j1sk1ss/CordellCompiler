@@ -75,7 +75,7 @@ lir_operation_t i386_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* b,
             if (a->size > b->size) return i386_gnu_nasm_is_sign_type(b, smt) ? LIR_MOVSX : LIR_MOVZX;
             else {
                 b->size = a->size;
-                return base;
+                return LIR_iMOV;
             }
         }
     }

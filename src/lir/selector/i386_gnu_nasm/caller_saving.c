@@ -110,7 +110,7 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
 
                         _collect_in_function_reg_usage(&func_regs, func);
-                        _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh);
+                        _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh->next);
 
                         set_foreach (long reg, &save_regs) {
                             if (reg == EAX) continue;

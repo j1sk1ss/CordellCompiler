@@ -155,12 +155,12 @@ int main(int argc, char* argv[]) {
     map_init(&colors, MAP_NO_CMP);
     LIR_RA_init_colors(&colors, &smt);
     LIR_regalloc(&cfgctx, &smt, &colors);
-    LIR_RA_sort_phi_movs(&cfgctx, &colors);
 
     mem_selector_t mem_sel = { 
         .select_memory   = x86_64_gnu_nasm_memory_selection, 
-        .validate_memory = x86_64_gnu_nasm_memory_validation 
+        .validate_memory = x86_64_gnu_nasm_memory_validation
     };
+    LIR_RA_sort_phi_movs(&cfgctx, &colors);
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
     LIR_destroy_ssa(&cfgctx);
