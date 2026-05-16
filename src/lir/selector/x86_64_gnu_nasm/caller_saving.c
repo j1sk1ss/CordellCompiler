@@ -83,6 +83,18 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
     return 0;
 }
 
+static int _is_function_arg(lir_registers_t r) {
+    int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
+    int simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
+    for (int i = 0; i < sizeof(dec_abi_regs) / sizeof(dec_abi_regs[0]); i++) {
+        if (dec_abi_regs[i] == r) return 1;
+    }
+    for (int i = 0; i < sizeof(simd_abi_regs) / sizeof(simd_abi_regs[0]); i++) {
+        if (simd_abi_regs[i] == r) return 1;
+    }
+    return 0;
+}
+
 static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
     lir_subject_t* last = NULL;
     while (lh && lh != ex) {
@@ -90,6 +102,11 @@ static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
             last = lh->farg;
             goto _next_inst;
         }
+        if (
+            !last && LIR_is_movop(lh->op) && 
+            lh->farg && lh->farg->t == LIR_REGISTER && 
+            _is_function_arg(lh->farg->storage.reg.reg)
+        ) goto _next_inst;
         if (last && LIR_is_movop(lh->op) && LIR_subj_equals(last, lh->farg)) {
             last = NULL;
             goto _next_inst;
@@ -140,10 +157,11 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
                         _collect_in_function_reg_usage(&func_regs, func);
                         _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh->next);
 
+                        lir_block_t *pre = _find_pre_argload(lh->prev, bb->lmap.exit), *post = _find_post_argunload(lh->next, bb->lmap.exit);
                         set_foreach (long reg, &save_regs) {
                             if (reg == RAX) continue;
-                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, 8), NULL, NULL), _find_pre_argload(lh->prev, bb->lmap.exit));
-                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, 8), NULL, NULL), _find_post_argunload(lh->next, bb->lmap.exit));
+                            LIR_insert_block_after(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, 8), NULL, NULL), pre);
+                            LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, 8), NULL, NULL), post);
                         }
                         
                         set_free(&func_regs);

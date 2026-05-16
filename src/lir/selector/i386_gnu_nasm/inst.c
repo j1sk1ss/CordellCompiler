@@ -65,9 +65,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_SYSC: {
                         long dirty;
                         while (queue_pop(&dirty_regs, (void**)&dirty)) {
-                            if (dirty >= 0) {
-                                LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 4), NULL, NULL), lh);
-                            }
+                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 4), NULL, NULL), lh);
                         }
 
                         break;

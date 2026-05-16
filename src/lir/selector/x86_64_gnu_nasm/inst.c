@@ -108,7 +108,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_FCLL: {
                         if (clean_stack) {
-                            LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 8), LIR_SUBJ_REG(ESP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
+                            LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
                             clean_stack = 0;
                         }
                     }
