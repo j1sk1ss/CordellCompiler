@@ -154,7 +154,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
                             vi.vfs.glob || vi.vmi.offset == -1
                         ) lh->unused = 1;
-                        else stack_map_free(vi.vmi.offset, ALIGN(vi.vmi.size, vi.vmi.align), &smp);
+                        // else stack_map_free(vi.vmi.offset, ALIGN(vi.vmi.size, vi.vmi.align), &smp);
                         break;
                     }
                     case LIR_STRDECL: {
@@ -309,6 +309,19 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     while (lh) {
         list_t fixes;
         list_init(&fixes);
+        if (lh->farg) {
+            switch (lh->op) {
+                case LIR_PUSH: {
+                    if (lh->farg->t != LIR_NUMBER && lh->farg->t != LIR_CONSTVAL) break;
+                    lir_subject_t* tmp = x86_64_gnu_nasm_create_tmp(ECX, lh->farg, smt, MAX(lh->farg->size, 2));
+                    list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->farg, NULL));
+                    lh->farg = tmp;
+                    break;
+                }
+                default: break;
+            }
+        }
+
         if (lh->farg && lh->sarg) {
             switch (lh->op) {
                 case LIR_REF:
@@ -358,11 +371,12 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 default: break;
             }
 
-            if (list_size(&fixes)) {
-                foreach (lir_block_t* fix, &fixes) {
-                    if (bb->lmap.entry == lh) bb->lmap.entry = fix;
-                    LIR_insert_block_before(fix, lh);
-                }
+        }
+
+        if (list_size(&fixes)) {
+            foreach (lir_block_t* fix, &fixes) {
+                if (bb->lmap.entry == lh) bb->lmap.entry = fix;
+                LIR_insert_block_before(fix, lh);
             }
         }
 

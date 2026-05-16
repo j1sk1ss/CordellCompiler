@@ -30,6 +30,7 @@ static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, li
 int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     queue_t dirty_regs;
     queue_init(&dirty_regs);
+    int clean_stack = 0;
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
@@ -55,11 +56,18 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->farg = nfarg;
                         break;
                     }
-                    case LIR_FCLL:
+                    case LIR_FCLL: {
+                        if (clean_stack) {
+                            LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(clean_stack)), lh);
+                            clean_stack = 0;
+                        }
+                    }
                     case LIR_SYSC: {
                         long dirty;
                         while (queue_pop(&dirty_regs, (void**)&dirty)) {
-                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 4), NULL, NULL), lh);
+                            if (dirty >= 0) {
+                                LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 4), NULL, NULL), lh);
+                            }
                         }
 
                         break;
@@ -85,7 +93,8 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_STFARG: {
                         lh->op         = LIR_PUSH;
-                        lh->farg->size = MAX(lh->farg->size, 2);
+                        lh->farg->size = 4;
+                        clean_stack   += 4;
                         break;
                     }
                     case LIR_LOADFARG: {
@@ -113,6 +122,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_iBRHT: case LIR_iBLFT:
                     case LIR_bOR:   case LIR_bXOR: case LIR_bAND:
                     case LIR_iMUL:  case LIR_iSUB: case LIR_iADD: {
+                        if (lh->farg->t == LIR_REGISTER && lh->sarg->t == LIR_REGISTER) break;
                         int shared_size = -1;
                         if (lh->op == LIR_iMUL) shared_size = lh->sarg->size < 2 ? 2 : lh->sarg->size; 
                         lir_subject_t* a_entry = i386_gnu_nasm_create_tmp(EAX, lh->sarg, smt, shared_size);

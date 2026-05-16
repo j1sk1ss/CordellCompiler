@@ -80,6 +80,7 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     queue_t dirty_regs;
     queue_init(&dirty_regs);
+    int clean_stack = 0;
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
@@ -105,7 +106,12 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->farg = nfarg;
                         break;
                     }
-                    case LIR_FCLL:
+                    case LIR_FCLL: {
+                        if (clean_stack) {
+                            LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 8), LIR_SUBJ_REG(ESP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
+                            clean_stack = 0;
+                        }
+                    }
                     case LIR_SYSC: {
                         if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
                             LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
@@ -161,7 +167,11 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         if (
                             _get_abi_argument(lh->sarg->storage.cnst.value, lh->targ->storage.cnst.value, lh->farg, &target, smt)
                         ) nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
-                        else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
+                        else {
+                            nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
+                            clean_stack += target.off;
+                        }
+                        
                         LIR_unload_subject(lh->sarg);
                         lh->op   = LIR_phiMOV;
                         lh->sarg = nfarg;
@@ -182,14 +192,10 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = res;
                         break;
                     }
-                    case LIR_iBRHT:
-                    case LIR_iBLFT:
-                    case LIR_iMUL:
-                    case LIR_bOR:
-                    case LIR_bXOR:
-                    case LIR_bAND:
-                    case LIR_iSUB:
-                    case LIR_iADD: {
+                    case LIR_iBRHT: case LIR_iBLFT:
+                    case LIR_bOR:   case LIR_bXOR: case LIR_bAND:
+                    case LIR_iMUL:  case LIR_iSUB: case LIR_iADD: {
+                        if (lh->farg->t == LIR_REGISTER && lh->sarg->t == LIR_REGISTER) break;
                         int shared_size = -1;
                         if (lh->op == LIR_iMUL) shared_size = lh->sarg->size < 4 ? 4 : lh->sarg->size; 
                         lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);

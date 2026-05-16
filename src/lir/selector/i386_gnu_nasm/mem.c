@@ -154,7 +154,8 @@ int i386_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* 
                             !VRTB_get_info_id(lh->farg->storage.cnst.value, &vi, &smt->v) || 
                             vi.vfs.glob || vi.vmi.offset == -1
                         ) lh->unused = 1;
-                        else stack_map_free(vi.vmi.offset, ALIGN(vi.vmi.size, vi.vmi.align), &smp);
+                        // FIXME: Non-DFS deallocation breaks current layout
+                        // else stack_map_free(vi.vmi.offset, ALIGN(vi.vmi.size, vi.vmi.align), &smp);
                         break;
                     }
                     case LIR_STRDECL: {

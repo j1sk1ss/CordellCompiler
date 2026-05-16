@@ -69,7 +69,7 @@ lir_operation_t x86_64_macho_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t
         else {
             if (a->size <= b->size) {
                 b->size = a->size;
-                return base;
+                return LIR_iMOV;
             }
             else {
                 if (b->size == 4 && a->size == 8) return from_sign ? LIR_MOVSXD : base;

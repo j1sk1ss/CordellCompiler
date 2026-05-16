@@ -83,6 +83,35 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
     return 0;
 }
 
+// TODO: sync with others + validate this logic
+static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
+    lir_subject_t* last = NULL;
+    while (lh && lh != ex) {
+        if (lh->op == LIR_PUSH) {
+            last = lh->farg;
+            goto _next_inst;
+        }
+        if (last && LIR_is_movop(lh->op) && LIR_subj_equals(last, lh->farg)) {
+            last = NULL;
+            goto _next_inst;
+        }
+        return lh;
+_next_inst: {}
+        lh = lh->prev;
+    }
+
+    return NULL;
+}
+
+static inline lir_block_t* _find_post_argunload(lir_block_t* lh, lir_block_t* ex) {
+    while (lh && lh != ex) {
+        if (lh->op != LIR_POP && lh->op != LIR_iADD) return lh;
+        lh = lh->next;
+    }
+
+    return NULL;
+}
+
 int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
@@ -110,12 +139,12 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
                         }
 
                         _collect_in_function_reg_usage(&func_regs, func);
-                        _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh);
+                        _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh->next);
 
                         set_foreach (long reg, &save_regs) {
                             if (reg == RAX) continue;
-                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, 8), NULL, NULL), lh);
-                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, 8), NULL, NULL), lh);
+                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, 8), NULL, NULL), _find_pre_argload(lh->prev, bb->lmap.exit));
+                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, 8), NULL, NULL), _find_post_argunload(lh->next, bb->lmap.exit));
                         }
                         
                         set_free(&func_regs);
