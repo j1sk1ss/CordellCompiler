@@ -1,43 +1,58 @@
 # Summary
 
-The **Cordell Programming Language (CPL)** is a small experimental systems language and a compiler playground. The language is intentionally close to C in shape, but it uses its own syntax for pointers, annotations, local functions, lambdas, and explicit casts.
+The **Cordell Programming Language (CPL)** is a small experimental systems language and compiler infrastructure. Its surface syntax is intentionally close to low-level C-like programming, but it is not a C subset. The project is primarily a compact testbed for compiler construction: parsing, semantic analysis, intermediate representations, optimization, register allocation, assembly generation, and diagnostics.
 
-The project is primarily about compiler construction: preprocessing, tokenization, AST generation, semantic checks, HIR/CFG/SSA transformations, LIR generation, register allocation, peephole optimization, and NASM code generation.
+This documentation is organized in the same way as documentation for mature languages: a learning path, a language reference, compiler/toolchain notes, and project-status material are separated so that each page has a clear role.
+
+## Intended audience
+
+CPL documentation is written for:
+
+- readers who want a concise description of the current language;
+- compiler and programming-language instructors evaluating the design and implementation;
+- students who want to follow a complete compiler pipeline in a real codebase;
+- contributors who need to know which behavior is supported, experimental, or intentionally absent.
 
 ## What CPL is for
 
 CPL is intended for:
 
-- learning compiler architecture on a real codebase;
-- low-level experiments where direct memory access and assembly are acceptable;
-- small programs, interpreters, bootstrapping experiments, and system-oriented prototypes;
-- testing optimization passes and static analysis ideas.
+- studying compiler architecture on a working implementation;
+- low-level experiments where direct memory access, explicit entry points, syscalls, and inline assembly are acceptable;
+- testing optimization passes and static-analysis ideas;
+- writing small system-oriented examples, interpreters, and benchmarks.
 
-CPL is not designed as a safe or general-purpose application language. It has no borrow checker, no memory safety model, and no user-defined structures/classes/enums in the current implementation.
+CPL is not intended to be a safe production language. It has no borrow checker, no garbage collector, no formal memory-safety model, and no production ecosystem.
 
-## Main language features
+## Language core
 
-- Primitive integer and floating-point types: `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`, `f32`, `f64`, and `i0`.
-- `ptr` pointers with `ref` and `dref`.
-- `str` strings and `arr` arrays.
-- `if`, `else`, `while`, `loop`, `switch`, `case`, `default`, and `break`.
-- Functions, prototypes, default arguments, overloads, generic functions, local functions, lambdas, and function pointers.
-- `glob`, `ro`, and `extern` declarations.
-- `syscall` and inline `asm`.
-- A small preprocessor with `#include`, `#define`, `#undef`, `#ifdef`, and `#ifndef`.
-- Annotations such as `entry`, `naked`, `section`, `align`, `counter`, `no_fall`, `straight`, `hot`, `cold`, `not_lazy`, `register`, and `poparg`.
+The current language core includes:
+
+- primitive signed and unsigned integer types, floating-point types, and `i0`;
+- explicit `ptr`, `ref`, and `dref` pointer operations;
+- `str` strings and fixed-size `arr` arrays;
+- `if`, `else`, `while`, `loop`, `switch`, `case`, `default`, and `break`;
+- functions, prototypes, default arguments, overloads, generic functions, local functions, lambdas, and function pointers;
+- `glob`, `ro`, and `extern` declarations;
+- `syscall` and inline `asm`;
+- a small preprocessor with include, define, undef, ifdef, and ifndef directives;
+- annotations for entry points, sections, alignment, switch lowering, branch layout, counted loops, register placement, and varargs.
+
+The current implementation intentionally does not include user-defined structures, classes, enums, traits, modules, a package manager, exceptions, or memory-safety guarantees.
 
 ## Compiler pipeline
 
-The current compiler pipeline is:
+The compiler currently follows this pipeline:
 
 1. Preprocess input files.
 2. Tokenize and mark up tokens.
 3. Build AST and symbol tables.
 4. Optionally run AST semantic analysis.
 5. Generate HIR.
-6. Build CFG and call graph.
+6. Build CFG and call graph information.
 7. Apply HIR-level transformations and optimizations.
 8. Generate LIR.
-9. Select instructions, allocate registers, select memory, and optionally run peephole optimization.
-10. Generate NASM assembly, assemble it, and link the final executable.
+9. Select instructions, allocate registers, select memory locations, and optionally run peephole optimization.
+10. Generate NASM assembly, assemble object files, and link the final executable.
+
+For implementation-level details, see [Compiler architecture](#/pages/compiler-architecture). For command-line usage, see [Compiler usage](#/pages/compiler-usage).

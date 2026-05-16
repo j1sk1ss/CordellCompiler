@@ -108,6 +108,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     list_init(&ctx->funcs);
     list_init(&ctx->outs.hout);
     list_init(&ctx->outs.lout);
+    map_init(&ctx->fmap, MAP_NO_CMP);
 
     HIR_CFG_split_by_functions(hctx, ctx, smt); /* Split input flatten instructions to          */
                                                 /* the list of functions.                       */
@@ -302,5 +303,6 @@ int HIR_CFG_unload(cfg_ctx_t* ctx) {
     list_free_force(&ctx->funcs);
     list_free(&ctx->outs.hout);
     list_free(&ctx->outs.lout);
+    map_free(&ctx->fmap);
     return 1;
 }

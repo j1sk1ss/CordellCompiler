@@ -1,5 +1,8 @@
 # CPL code performance evaluation
-**Important note:** some microbenchmarks use `asm volatile` in the C version to prevent dead-code elimination of otherwise empty or non-observable loops. CPL currently preserves such loops by default, while optimizing C compilers may remove them. These tests should therefore be interpreted as loop-overhead measurements rather than general-purpose performance benchmarks. </br>
+
+This page records preliminary microbenchmarks for the current compiler implementation. The results are useful for observing code generation and optimization behavior, but they should not be read as a comprehensive performance claim.
+
+Some microbenchmarks use `asm volatile` in the C version to prevent dead-code elimination of otherwise empty or non-observable loops. CPL currently preserves such loops by default, while optimizing C compilers may remove them. These tests should therefore be interpreted as loop-overhead measurements rather than general-purpose performance benchmarks.
 
 Versions:
 - `gcc-14`: GCC 14.2.0 (Homebrew GCC 14.2.0)
@@ -20,11 +23,10 @@ Result gathering:
   - CPL - 5 times, every time after compilation, `py-time` total program execution time
   - Clang / GCC - 5 times, every time after compilation, `gnu-time` total execution time
 
-*P.S.:* The results below can be considered as a valid value, but I'd suggest to add about `+10%` of consumed execution time for every CPL's result given possible issues in my measurement methods, hardware and software. Furthermore, such a suggestion is based on a `+%10` size difference between GCC's and Clang's `.asm` files with CPL's `.asm` files. </br>
-*P.P.S.:* This section doesn't address how optimizations are affect on the final assembly which is produced by the compiler. If you're interest how it affects, please consider the related section in the documentation (which is `WIP`).
+The measurements below should be treated as approximate. They were gathered on one machine, with a small number of runs, and without the statistical controls normally expected from a formal performance study. The benchmark code is still useful for comparing generated assembly and checking whether optimization passes have the intended local effect.
 
 ## Empty loop
-This is an artificial example and it doesn't provide any real information about CPL as a compiler. But this type of tests shows that the produced by CPL assembly code is neither overwhelmed nor slow. In summary, these two snippets of code are the same, considering the fact that the CPL's snippet does include a 'hidden' variable which iterates 1 billion times. Meanwhile, the C's snippet also does include the `asm volatile` section which preserves the loop from elemination by an optimizing module.
+This is an artificial example. It mostly measures loop overhead and preservation of a counted loop. The C version uses `asm volatile` to prevent the loop from being removed by the optimizing compiler; the CPL version uses `@[counter]`, which introduces the hidden loop counter used by the compiler.
 
 ```cpl
 @[naked] start() {

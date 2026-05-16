@@ -1,14 +1,19 @@
 ![Cover](docs/media/CPL_cover.png)
 
 # Cordell Compiler
-Cordell Compiler is a compact hobby compiler for `Cordell Programming Language` which inspired by C's usafety and Rust's syntax. It is designed in the first place for studying compilation, code optimization, translation, and low-level microcode generation. In the second place - this is my test stand.
-- *This README still in progress*
+Cordell Compiler is a compact hobby compiler for the `Cordell Programming Language` (CPL), inspired by C's low-level explicitness and parts of Rust's syntax. Its primary purpose is to study compilation, code optimization, translation, and low-level code generation. It is also my personal testbed for compiler experiments.
+
+- *This README is still in progress.*
 
 # Main idea of this project
-Main goal of this project is learning of compilers architecture and porting one to my another project `CordellOS` (I just want to code apps for `my` OS inside `my` OS). Also, given my bias to `assembly` and `C` languages, this language will stay "low-level" as it possible, but some features can be added in future with strings (inbuild concat, comparison, etc).
+The main goal of this project is to learn compiler architecture and eventually port the compiler to my other project, `CordellOS`. The personal motivation is simple: I want to write programs for my own OS inside my own OS.
+
+Given my bias toward `assembly` and `C`, CPL is intended to stay as low-level as possible. Some convenience features may still be added later, especially around strings, such as built-in concatenation and comparison.
 
 # Summary
-This `README` file contains the main information about this compiler and the development approaches I’ve learnt while working on it. In a nutshell - this README is an attempt to pack all usefull information for building the same optimizing compiler (or a better one). This repository also includes a [site](https://j1sk1ss.github.io/CordellCompiler/#/) with similar content and some interactive sections. For your convenience, the `Navigation` block with quick links to the topics in this file is provided.
+This `README` contains the main information about the compiler and the implementation approaches I learned while building it. In short, it is an attempt to collect the most useful notes for building a similar optimizing compiler, or a better one.
+
+This repository also includes a [documentation site](https://j1sk1ss.github.io/CordellCompiler/#/) with related content and interactive sections. The navigation below provides quick links to the main topics in this file.
 
 - [Introduction](#introduction)
 - [Code snippet](#sample-code-snippet)
@@ -20,7 +25,7 @@ This `README` file contains the main information about this compiler and the dev
    - [AST optimization](#ast-optimization)
 - [HIR part](#hir-part)
 - [CFG part](#cfg-part)
-- [Dominant calculation](#dominant-calculation)
+- [Dominator calculation](#dominator-calculation)
    - [Strict dominance](#strict-dominance)
    - [Dominance frontier](#dominance-frontier)
 - [SSA form](#ssa-form)
@@ -37,7 +42,7 @@ This `README` file contains the main information about this compiler and the dev
 - [LIR instruction planning](#lir-instruction-planning)
 - [LIR (x86_64) instruction selection](#lir-x86_64-instruction-selection)
 - [LIR applying const propagation](#lir-applying-const-propagation)
-- [LIR x86_64 example](#lir-x86_64-example)
+- [From HIR to LIR example](#from-hir-to-lir-example)
 - [Liveness analyzer part](#liveness-analyzer-part)
    - [USE and DEF](#use-and-def)
    - [IN and OUT](#in-and-out)
@@ -45,7 +50,7 @@ This `README` file contains the main information about this compiler and the dev
 - [Register allocation part](#register-allocation-part)
    - [Graph coloring](#graph-coloring)
 - [LIR peephole optimization](#lir-peephole-optimization)
-   - [PTRN domain specific language](#ptrn-domain-specific-language)
+   - [PTRN domain-specific language](#ptrn-domain-specific-language)
    - [First pass](#first-pass)
    - [Second pass](#second-pass)
    - [Third pass](#third-pass)
@@ -53,14 +58,16 @@ This `README` file contains the main information about this compiler and the dev
    - [Example of generated code](#example-of-generated-code)
 
 ## Introduction
-This compiler isn't about a language and a complex syntax and abstractions (CPL doesn't even support structures). Mainly I'm trying to implement modern approaches of code optimization, observe how an input code can be transformed to `better-performance` version of itself, and test some ideas such as neural networks application or compression of symtables. This `README` is a description what I've done to this moment. </br> 
-In short about the aforementioned language: CPL has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and small [documentation](j1sk1ss.github.io/CordellCompiler/). This is not related to this README, and if you're interested more in CPL over than in the compiler, check the documentation cite. </br>
+This compiler is not primarily about creating a language with complex syntax and high-level abstractions. CPL does not even support structures. The main goal is to implement modern code optimization techniques, observe how input code can be transformed into a higher-performance version of itself, and test ideas such as neural-network-based heuristics and compressed symbol tables. This `README` describes what has been implemented so far. </br>
 
-P.S.: *I've already said that the language doesn't appear in the README, but while explaining each layer of the compiler, I will also provide direct examples written on this language (Its grammar almost identical to C language, which means it won't cause any problems).*
+In short, CPL has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and a small [documentation site](https://j1sk1ss.github.io/CordellCompiler/). If you are more interested in the language than in the compiler pipeline, start with the documentation site. </br>
+
+P.S.: *The language itself is not the main subject of this README, but while explaining each compiler layer I will use direct examples written in CPL. Its surface grammar is close enough to C-like languages to make the examples readable.*
 
 ## Sample code snippet
-Let's start the introduction with the simple code snippet below (in the collapsed section). It demonstrates main capabilities and a shape of `CPL` language, excluding already supported features such as `while` loops, `syscalls`, condition operators, etc. (we will talk how they work later). </br>
-Basically, every compilation or interpretation starts from a raw code. An example of a raw code, again, can be found below. This is a classic "Hello world" program, and at the end of this README we will compile it for my personal Mac15Pro 2012 (MacOS Catalina).
+Let us start with the simple code snippet below. It demonstrates the general shape of CPL, while leaving out some already supported features such as `while` loops, `syscall`, and condition operators, which are described later. </br>
+
+Every compilation starts from raw source code. The example below is a classic "Hello world" program. Later in this README, this example is compiled for my MacBook Pro 15" 2012 running macOS Catalina.
 
 <details>
 <summary><strong>The basic "Hello World" program</strong></summary>
@@ -77,7 +84,7 @@ function main(i32 argc, ptr ptr i8 argv) {
 ```
 </details>
 
-P.S.: *The code above will be used as an example for certain sections in this README, that's why I'm strongly suggesting to expand and consider the collapsed content.*
+P.S.: *The code above is used in several later sections, so it is worth expanding the block and keeping it in mind.*
 
 ## Compilation pipeline
 <p align="center">
@@ -87,8 +94,9 @@ P.S.: *The code above will be used as an example for certain sections in this RE
 </p>
 
 ## PP part
-Before the start, we need to say that we have not only a code for compilation, but a code for pre-processing as well. Pre-processing is optional and many compilers can live without it, but considering the `header` architecture of the compiler, pre-processing - is necessary. This means that we need to process some derictives before the main compilation pipeline (similar to GCC with the `gcc -E`) such as `include`, `define`, `undef`, `ifdef` and `ifndef`. These commands act the same as it do derictives from C/C++, except `define` that isn't able to work as a function (TODO: v3.4 still doesn't support macros with different arguments). </br>
-Let's return to the snippet above and include all header files into the final code (GCC -E does the same thing before pre-processing - creates the united file with the all code):
+Before the main compiler pipeline starts, source code may need preprocessing. Preprocessing is optional in many compilers, but it is necessary here because CPL uses a header-style organization. This stage handles directives similar to `gcc -E`, including `include`, `define`, `undef`, `ifdef`, and `ifndef`. These directives behave similarly to their C/C++ counterparts, except that `define` does not currently support function-like macros with different arguments. </br>
+
+Let us return to the snippet above and include all header files into the final code. This is similar to what `gcc -E` does when it creates a single preprocessed translation unit:
 ```cpl
 : string_h.cpl :
 #ifndef STRING_H_
@@ -110,7 +118,7 @@ function strlen(ptr i8 s) -> i64;
     Params
     - `msg` - Input message to print.
     
-    Returns i0 a/k/a nothing. :
+    Returns i0, which means "nothing". :
 function print(ptr i8 msg) -> i0;
 #endif
 
@@ -124,8 +132,9 @@ function main(i32 argc, ptr ptr i8 argv) {
 }
 ```
 
-Now we need to delete all comments, resolve defines and conditions. We can do this task with usage of special table which includes derictive values (something like a symtable, but without any complex structure, just a derictive name and its linked content). The condition just checks if the table has a definition for the name, and if it does, invoke the nested logic. </br>
-In a nutshell, there is how the code above will look like after all preparations:
+Now the compiler removes comments and resolves definitions and conditional directives. This is done with a small directive table: conceptually similar to a symbol table, but much simpler, storing only a directive name and its linked content. Conditional preprocessing checks whether a name exists in this table and then decides whether to emit the nested code. </br>
+
+In short, the code above looks like this after preprocessing:
 ```cpl
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/print_h.cpl"
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/string_h.cpl"
@@ -141,15 +150,16 @@ function main(i32 argc, ptr ptr i8 argv) {
 }
 ```
 
-You can find a new directive `line` which simply marks blocks for the further tokenization process (We need to know where a part is came from).
+The generated `line` directive marks source locations for the later tokenization process. The tokenizer needs this information to know where each preprocessed fragment came from.
 
 ## Tokenization part
-The tokenization part is responsible for splitting the input byte sequence (the result of the `fread` operation) into basic tokens. This module ignores all whitespace and separator symbols (such as `newlines` and `tabs`). It also classifies each token into one of the basic types: `number`, `string`, `delimiter`, `comma`, `dot` and `line_derictive`. </br>
-In a nutshell - this is a DFA which no only splits input code by spaces or commas, but unites characters with the set of rules:
-- If we met an unknown character and the current token is a numeric - we propagate the character to a number.
-- If we met an unknown numeric character and the current token is a sign - we propagate token to a number with a sign.
-- If we met an unknown numeric token and the current token is a string - we propagate the number to a string.
-- If we met a string character and the current token is a number - we propagate the string to a number.
+The tokenization stage splits the input byte sequence, produced by `fread`, into basic tokens. This module ignores whitespace and separator symbols such as newlines and tabs. It also classifies tokens into basic categories such as `number`, `string`, `delimiter`, `comma`, `dot`, and `line_directive`. </br>
+
+In short, this stage is a DFA that does more than split input by spaces or commas. It combines characters according to rules such as:
+- If an unknown character appears while the current token is numeric, the character is appended to the number.
+- If an unknown numeric character appears while the current token is a sign, the sign is converted into a signed number.
+- If an unknown numeric token appears while the current token is a string, the number is appended to the string.
+- If a string character appears while the current token is numeric, the character is appended to the number.
 
 <p align="center">
   <img src="docs/media/tokenization.png">
@@ -158,7 +168,7 @@ In a nutshell - this is a DFA which no only splits input code by spaces or comma
 </p>
 
 ## Markup part
-The markup stage is the second part of tokenization. Usually compilers don't distinguish `tokenizator` and `markuper`, but this compiler does. Markup stage operates only on the list of tokens from `tokenizator` including `scopes` support. </br>
+The markup stage is the second part of token processing. Most compilers do not separate the tokenizer and markup stage in this way, but this compiler does. The markup stage operates on the token list produced by the tokenizer and adds scope-aware semantic information. </br>
 The main idea is to perform basic semantic markup for variables. For instance, if we declare some `i32` variable with the name `a` in a scope with `id=10`, all occurrences of `a` within the corresponding scope can be marked as having the `i32` type.
 
 <p align="center">
@@ -167,7 +177,7 @@ The main idea is to perform basic semantic markup for variables. For instance, i
   <em>Figure 3 — Token markup</em>
 </p>
 
-Code from the [Sample code snippet](#sample-code-snippet) section will produce the next list of marked tokens:
+The code from the [Sample code snippet](#sample-code-snippet) section produces the following list of marked tokens:
 <details>
 <summary><strong>List of tokens</strong></summary>
 
@@ -224,7 +234,7 @@ line=9, type=18, data=[}],
 </details>
 
 ## AST part
-Next, we need to parse this sequence of marked tokens to build an `AST` structure (Abstract Syntax Tree). There are many approaches to achieve this — for example, `LL` parsing, `LR` parsing, or even `hybrid` techniques that combine `LL` and `LR`. A more complete list of parser types can be found [[here]](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books (see [Used links and literature](#used-links-and-literature) section). This compiler uses the `LL` appproach.
+Next, we need to parse this sequence of marked tokens to build an `AST` structure (Abstract Syntax Tree). There are many approaches to achieve this, for example `LL` parsing, `LR` parsing, or hybrid techniques that combine `LL` and `LR`. A more complete list of parser types can be found [[here]](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books (see [Used links and literature](#used-links-and-literature) section). This compiler uses the `LL` approach.
 
 <p align="center">
   <img src="docs/media/ast.png">
@@ -232,7 +242,7 @@ Next, we need to parse this sequence of marked tokens to build an `AST` structur
   <em>Figure 4 — Basic AST generation</em>
 </p>
 
-AST that was generated on the [Markup part](#markup-part)'s list of markuped tokens:
+The AST generated from the [Markup part](#markup-part)'s list of marked tokens:
 <details>
 <summary><strong>Cordell Compiler's AST dump</strong></summary>
 
@@ -281,12 +291,12 @@ AST that was generated on the [Markup part](#markup-part)'s list of markuped tok
 ```
 </details>
 
-At this point, we can go straingthforward either to the code-generation phase or to intermidiate representation phase. The compiler doesn't allow to skip essential phase with IR generation which means, the compiler uses the second approach.
+At this point, a compiler could either go straight to code generation or first lower the program into an intermediate representation. Cordell Compiler does not allow skipping the IR phase, so it uses the second approach.
 
 ### AST optimization
-When we have a correct `AST` representation of the input code, we can optionally perform some avaliable optimizations. We will not spend a lot of time here and will cover only a few examples. Note that `AST-level` optimizations are mostly redundant in this project (they were very usefull when this Compiler didn't have an `IR` level).
+Once we have a correct `AST` representation of the input code, we can optionally apply several available optimizations. We will not spend much time here and will cover only a few examples. Note that `AST-level` optimizations are mostly redundant in the current compiler; they were much more useful before the project had an `IR` level.
 - `Condition unrolling`. If we have an `if` statement with a constant condition, such as `if 1; { ... }`, or similar situation with a `while` keyword or a `switch` statement, we can unroll them by removing the condition and keeping only the body.
-- `Dead scope elimination`. If a scope doesn't affect the environment, it can be safely removed.
+- `Dead scope elimination`. If a scope does not affect the environment, it can be safely removed.
 
 To understand what they actually do, we can consider the next example of `DSE` (Dead Scope Elimination):
 ```cpl
@@ -299,13 +309,13 @@ start() {
 }
 ```
 
-According to the compiler's markup phase logic, the `exit` statement doesn't see (and can't) the `a` variable. Also, the scope doesn't affect on the environment (it doesn't call anything, doesn't change anything, doesn't return and exit), which means, we can safely remove it here, in the AST level. </br>
+According to the compiler's markup logic, the `exit` statement cannot see the variable `a`. The scope also has no effect on the surrounding environment: it does not call anything, change anything outside the scope, return, or exit. Therefore, this scope can be safely removed at the AST level. </br>
 
-P.S.: *I saved these optimizations 'cause they don't copy the existed one from HIR or LIR levels. Old versions of the compiler have more AST-level optimizations, and if you're interested, you can consider the tags v2.0 and v1.0 on GitHub.*
+P.S.: *I kept these optimizations because they do not duplicate the existing HIR or LIR optimizations. Older compiler versions had more AST-level optimizations; see the v2.0 and v1.0 tags on GitHub if you are interested.*
 
 ## HIR part
-`AST` representation of the input code must be flattened given future optimization phases. A common approach here is to convert an `AST` structure to a list of `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
-*Three-Address Code* implies that there is only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`. Also, the simple indexation command `a[x] = 0` will be converted to:
+The `AST` representation of the input code must be flattened for later optimization phases. A common approach is to convert the `AST` structure into a list of `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
+*Three-Address Code* implies that there are only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`. Also, the simple indexing command `a[x] = 0` will be converted to:
 ```
 tmp_head = &a;
 tmp_off = x * sizeof(typeof(a));
@@ -313,7 +323,7 @@ tmp_head = tmp_head + tmp_off;
 *tmp_head = 0;
 ```
 
-Figure 5 represents the schematic view on how the `AST -> HIR` process works in this compiler. 
+Figure 5 shows a schematic view of how the `AST -> HIR` process works in this compiler.
 
 <p align="center">
   <img src="docs/media/HIR.png">
@@ -345,16 +355,16 @@ For instance, here is the HIR that was obtained from the [AST part](#ast-part)'s
 ```
 </details>
 
-P.S.: *You've could noticed the updated name of the function (_main). This is a 'virtual' name of the 'start' function. Virtual names are essential thing in terms of overloading and different architectures. We will talk about them later, but at this moment, just remember that names from a user are linked to their virtual names.*
+P.S.: *You may have noticed the updated function name, `_main`. This is the virtual name of the `start` function. Virtual names are important for overloading and for different target architectures. For now, the key point is that user-facing names are linked to compiler-level virtual names.*
 
 ## CFG part
-Almost immediately after obtaining the complete list of `3AC` instructions, we can move on to `CFG` (Control Flow Graph) [[?]](https://en.wikipedia.org/wiki/Control-flow_graph) [[?]](https://www.geeksforgeeks.org/software-engineering/software-engineering-control-flow-graph-cfg/) generation. There are several ways to split `3AC` into basic blocks, and one of they is using `leaders`, while another is to create a block for every command. The second approach is straightforward — each `3AC` instruction becomes its own block. The `leaders` approach, described in the *Dragon Book*, defines three rules for identifying the start of a block:
+After obtaining the complete list of `3AC` instructions, we can move on to `CFG` (Control Flow Graph) [[?]](https://en.wikipedia.org/wiki/Control-flow_graph) [[?]](https://www.geeksforgeeks.org/software-engineering/software-engineering-control-flow-graph-cfg/) generation. There are several ways to split `3AC` into basic blocks. One is to use `leaders`; another is to create a block for every command. The second approach is straightforward: each `3AC` instruction becomes its own block. The `leaders` approach, described in the *Dragon Book*, defines three rules for identifying the start of a block:
 
 - The first instruction in a function.
 - The target of a JMP instruction.
 - The instruction immediately following a JMP.
 
-P.S.: *In this compiler, both approaches are implemented, but for the example, we will use the approach from the Dragon Book*
+P.S.: *Both approaches are implemented in this compiler, but this example uses the Dragon Book approach.*
 
 <p align="center">
   <img src="docs/media/CFG.png">
@@ -368,8 +378,8 @@ P.S.: *In this compiler, both approaches are implemented, but for the example, w
 ![markup](docs/media/CFG_example.png)
 </details>
 
-## Dominant calculation
-With the structured `CFG`, we can move on to a `SSA` form [[?]](https://en.wikipedia.org/wiki/Static_single-assignment_form) [[?]](https://www.geeksforgeeks.org/compiler-design/static-single-assignment-with-relevant-examples/) [[?]](https://dl.acm.org/doi/10.1145/75277.75280). First of all, we need to calculate dominators [[?]](https://en.wikipedia.org/wiki/Dominator_(graph_theory)) for each block in the `CFG`. In the nutshell, a dominator of a block `Y` is a block `X` that appears on every path from the start block to `Y`. For example, the Figure 7 illustrates how this works.
+## Dominator calculation
+With the structured `CFG`, we can move on to `SSA` form [[?]](https://en.wikipedia.org/wiki/Static_single-assignment_form) [[?]](https://www.geeksforgeeks.org/compiler-design/static-single-assignment-with-relevant-examples/) [[?]](https://dl.acm.org/doi/10.1145/75277.75280). First, we need to calculate dominators [[?]](https://en.wikipedia.org/wiki/Dominator_(graph_theory)) for each block in the `CFG`. In short, a dominator of a block `Y` is a block `X` that appears on every path from the start block to `Y`. Figure 7 illustrates how this works.
 
 <p align="center">
   <img src="docs/media/dominators.png">
@@ -378,9 +388,9 @@ With the structured `CFG`, we can move on to a `SSA` form [[?]](https://en.wikip
 </p>
 
 ### Strict dominance
-Now we need to find a strict dominator for every block in the `CFG`. The reason why we need to do this, is a placement of `phi` functions. We will talk about them later. </br>
+Now we need to find a strict dominator for every block in the `CFG`. This is needed for placing `phi` functions, which are described later. </br>
 Strict dominance tells us which block strictly dominates another. A block `X` strictly dominates block `Y` if `X` dominates `Y` (important note here: `X != Y`). Why do we need this? The basic dominance relation marks all blocks that dominate a given block, but later analyses often require only the closest one. A block `X` is said to be the strict dominator of `Y` if there is no other block `Z` such that `Z` strictly dominates `Y` and is itself strictly dominated by `X`. </br>
-For example, Figure 8 illustrates how strict dominators are look like.
+Figure 8 shows what strict dominators look like.
 
 <p align="center">
   <img src="docs/media/strict_dominance.png">
@@ -394,12 +404,12 @@ The dominance frontier [[?]](https://pages.cs.wisc.edu/~fischer/cs701.f05/lectur
 <p align="center">
   <img src="docs/media/dominance_frontier.png">
   <br>
-  <em>Figure 9 — Find dominance frontier</em>
+  <em>Figure 9 — Finding the dominance frontier</em>
 </p>
 
 ## SSA form
-The `SSA` form performs renaming all re-assigned variables so that each assignment creates a new, unique variable. Also, modern `SSA` form is more complex then I've mentioned. They don't constrait itselves with only variables renaming for every assignment. For example, some `SSA` forms are able to handle working with arrays (indexies) [[?]](https://dl.acm.org/doi/10.1145/268946.268956). </bt>
-At this moment, CordellCompiler supports the most "basic" `SSA` form, that is presented in Figure 10.
+The `SSA` form renames all reassigned variables so that each assignment creates a new, unique variable. Modern `SSA` forms are more complex than this short description suggests; they are not limited to variable renaming after each assignment. For example, some `SSA` forms can handle arrays and indexes [[?]](https://dl.acm.org/doi/10.1145/268946.268956). </br>
+At this moment, CordellCompiler supports the most "basic" `SSA` form, as presented in Figure 10.
 
 <p align="center">
   <img src="docs/media/ssa_basic.png">
@@ -408,7 +418,7 @@ At this moment, CordellCompiler supports the most "basic" `SSA` form, that is pr
 </p>
 
 ### Phi function
-But if we encounter an `if` statement? I'm trying to ask, what we must do, when we aren't able to say wich uniqe variable should be used in `read` operation after constrol-flow statement? Let's consider the next example in Figure 11.
+But what happens when we encounter an `if` statement? What should we do when we cannot determine which unique variable version must be used in a `read` operation after a control-flow statement? Consider the example in Figure 11.
 
 <p align="center">
   <img src="docs/media/ssa_problem.png">
@@ -416,7 +426,7 @@ But if we encounter an `if` statement? I'm trying to ask, what we must do, when 
   <em>Figure 11 — The "phi" problem</em>
 </p>
 
-Which version of the variable `a` should be used in the declaration of `b` variable? The answer is simple — they `both`. Here’s the twist: in the `SSA` form, we can use a `φ (phi)` function, which tells the compiler which variable version to use. An example of a `φ` function is shown in Figure 12.
+Which version of the variable `a` should be used in the declaration of `b`? The answer is simple: `both`. In `SSA` form, we use a `φ (phi)` function, which tells the compiler which variable version to use depending on the incoming control-flow edge. An example of a `φ` function is shown in Figure 12.
 
 <p align="center">
   <img src="docs/media/phi_function.png">
@@ -441,7 +451,7 @@ Then, during the SSA renaming process, we keep track of each block that passes t
 </p>
 
 ## DAG part
-With the complete `SSA` form, we can move on to the first optional optimizations. The first one requires building a `DAG` (Directed Acyclic Graph) [[?]](https://www.geeksforgeeks.org/compiler-design/directed-acyclic-graph-in-compiler-design-with-examples/) [[?]](https://en.wikipedia.org/wiki/Directed_acyclic_graph) representation of the code. In short, `DAG` shows how every value in the program is derived / how each variable obtains its value (with some exceptions for `arrays` and `strings`). Basic example is provided in Figure 15.
+With the complete `SSA` form, we can move on to the first optional optimizations. The first one requires building a `DAG` (Directed Acyclic Graph) [[?]](https://www.geeksforgeeks.org/compiler-design/directed-acyclic-graph-in-compiler-design-with-examples/) [[?]](https://en.wikipedia.org/wiki/Directed_acyclic_graph) representation of the code. In short, the `DAG` shows how every value in the program is derived and how each variable obtains its value, with some exceptions for `arrays` and `strings`. A basic example is provided in Figure 15.
 
 <p align="center">
   <img src="docs/media/base_DAG.png">
@@ -499,18 +509,18 @@ The result of using the DAG is optimized code with Common Subexpression Eliminat
 </details>
 
 ## HIR optimization
-Before we going any further, we should optimize our HIR with avaliable meta-information from this level. The simplest optimization here is the `constant fold` optimization due to availability of `DAG`. Same situation with `DFE` optimization. Let's speak about this approaches. 
+Before going further, we should optimize HIR using the metadata available at this level. The simplest optimization here is constant folding based on the `DAG`. The same idea applies to `DFE`. Let us discuss these approaches.
 
 ### Constant folding / propagation (First pass)
-With formed `DAG` we can tell wich value is assigned to each variable. We don't transform code at this stage, we only define variable values in symtable. Also, we track arithmetics, that's why we can perform simple operations with already defined variables from symtable.
+With the formed `DAG`, we can determine which value is assigned to each variable. This stage does not transform code directly; it records variable values in the symbol table. We also track arithmetic, which allows simple operations over already known symbol-table values.
 ![hir_constfold](docs/media/HIR_constfold.png)
 
 ### Dead Function Elimination (DFE)
-Dead function elimination, similar to `HIR` constant folding, won't transform source code. Instead of transformation, this optimization will mark all unused functions as unused. This approuch based on `Call Graph`, that can be seen below.
+Dead function elimination, similar to `HIR` constant folding, does not transform source code directly. Instead, it marks unused functions as unused. This approach is based on a `Call Graph`, shown below.
 ![hir_callgraph](docs/media/CallGraph.png)
 
 ### Tail Recursion Elimination (TRE)
-Tail recursion elimination (based on CFG) find all functions where happens self-invoking at the end. The simplest example here is below:
+Tail recursion elimination, based on the CFG, finds functions that call themselves in tail position. The simplest example is below:
 ```cpl
 function foo(i32 a = 10) -> i8 {
    if a > 20; { return a; }
@@ -518,7 +528,7 @@ function foo(i32 a = 10) -> i8 {
 }
 ```
 
-When we found such function, we determine if it ready for `TRE`. Then we transform it into the cycle:
+When such a function is found, the compiler determines whether it is ready for `TRE`. Then it transforms the recursion into a loop:
 ```cpl
 function foo(i32 a = 10) -> i8 {
 lbX:
@@ -528,34 +538,34 @@ goto lbX;
 }
 ```
 
-This optimization save us from stackframe allocation that has high price, especially if recursion occurs frequently.
+This optimization avoids repeated stack-frame allocation, which can be expensive when recursion occurs frequently.
 
 ### Function inlining
-The function inlining happens, when function call gets 3 or more euristic score. What the euristic score? Each function call evaluated with the next params:
-- Is function call in cycle? `+2`
-- One from the following:
-   - Is function size (in BaseBlocks) lower then 2? `+3`
-   - Is function size (in BaseBlocks) lower then 5? `+2`
-   - Is function size (in BaseBlocks) lower then 10? `+1`
-   - Is function size (in BaseBlocks) larger then 15? `-3`
+Function inlining happens when a function call gets a heuristic score of 3 or more. Each function call is evaluated with the following parameters:
+- Is the function call inside a loop? `+2`
+- One of the following:
+   - Is the function size, measured in basic blocks, smaller than 2? `+3`
+   - Is the function size smaller than 5? `+2`
+   - Is the function size smaller than 10? `+1`
+   - Is the function size larger than 15? `-3`
 
-When function call marked as `inline candidate`, compiler simply copy all contents from function body, replace argument assign and return:
+When a function call is marked as an `inline candidate`, the compiler copies the function body and rewrites argument assignments and returns:
 ![func_inline](docs/media/inline.png)
 
 ### Loop canonicalization
-Loop canonicalization is the important step before the LICM optimization. The main idea of this stage - is to create one entry and exit point in the loop. Let's consider next `CFG`: 
+Loop canonicalization is an important step before LICM. The main idea of this stage is to create one entry point and one exit point for the loop. Consider the following `CFG`:
 ![CFG_before_canon](docs/media/CFG_loop_before_canon.png)
 
-Main problem here, that we have `critical edge` from `BB1` to `BB3`, that permits us from motion some redundant code from loop. To solve it, we can simply create a `preheader` base block:
+The main problem is the `critical edge` from `BB1` to `BB3`, which prevents us from moving some redundant code out of the loop. To solve it, we create a `preheader` basic block:
 ![CFG_loop_preheader](docs/media/CFG_loop_preheader.png)
 
 ### Loop Invariant Code Motion (LICM)
-Which `HIR` operations we can safely move from loop?
-- Those which didn't use inductive variables
-- Those which didn't use loop variables
+Which `HIR` operations can be safely moved out of a loop?
+- Operations that do not use induction variables.
+- Operations that do not use loop variables.
 
 ## LIR part
-In the same way as during `HIR` generation, we now produce an intermediate representation similar to `3AC` — but using only two addresses. This step is relatively straightforward, as it primarily involves adapting instructions to the target machine’s addressing model. Because the exact implementation depends heavily on the target architecture (register count, instruction set, addressing modes, etc.), we typically don’t spend much time optimizing or generalizing this layer. Its main goal is simply to bridge the high-level `HIR` representation and the target-specific assembly form, ensuring that each instruction can be directly translated to a valid machine instruction.
+In the same way as during `HIR` generation, we now produce an intermediate representation similar to `3AC`, but using only two addresses. This step is relatively straightforward, as it primarily involves adapting instructions to the target machine's addressing model. Because the exact implementation depends heavily on the target architecture (register count, instruction set, addressing modes, etc.), we typically do not spend much time optimizing or generalizing this layer. Its main goal is simply to bridge the high-level `HIR` representation and the target-specific assembly form, ensuring that each instruction can be directly translated to a valid machine instruction.
 ![lir_gen](docs/media/lir_gen.png)
 
 ## LIR instruction planning
@@ -563,7 +573,7 @@ In the same way as during `HIR` generation, we now produce an intermediate repre
 ## LIR applying const propagation
 
 ## Liveness analyzer part
-Several optimization techniques are based on data-flow analysis. Data-flow analysis itself relies on liveness analysis, which in turn depends on the program’s `SSA` form and control-flow graph (CFG). Now that we have established these fundamental representations, we can proceed with the `USE–DEF–IN–OUT` computation process.
+Several optimization techniques are based on data-flow analysis. Data-flow analysis itself relies on liveness analysis, which in turn depends on the program's `SSA` form and control-flow graph (CFG). Now that we have established these fundamental representations, we can proceed with the `USE-DEF-IN-OUT` computation process.
 
 ### USE and DEF
 `USE` and `DEF` are two sets associated with every `CFG` block. These sets represent all definitions and usages of variables within the block (recall that the code is already in `SSA` form). In short:
@@ -572,7 +582,7 @@ Several optimization techniques are based on data-flow analysis. Data-flow analy
 ![use_def](docs/media/use_def.png)
 
 ### IN and OUT
-`IN` and `OUT` is a little bit complex part here. 
+`IN` and `OUT` are a slightly more complex part of the analysis.
 ```
 OUT[B] = union(IN[S])
 IN[B]  = union(USE[B], OUT[B] − DEF[B])
@@ -589,7 +599,7 @@ After each iteration, the current values are copied into the corresponding prime
 ![in_out](docs/media/in_out.png)
 
 ### Point of deallocation
-At this point, we can determine where each variable dies. If a variable appears in the `IN` or `DEF` set but is not present in the `OUT` set, it means the variable is no longer used after this block, and we can safely insert a special `kill` instruction to mark it as dead. However, an important detail arises when dealing with pointer types. To handle them correctly, we construct a special structure called an `aliasmap`, which tracks ownership relationships between variables. This map records which variable owns another — meaning that one variable’s lifetime depends on another’s. For example, in code like this:
+At this point, we can determine where each variable dies. If a variable appears in the `IN` or `DEF` set but is not present in the `OUT` set, it means the variable is no longer used after this block, and we can safely insert a special `kill` instruction to mark it as dead. However, an important detail arises when dealing with pointer types. To handle them correctly, we construct a special structure called an `aliasmap`, which tracks ownership relationships between variables. This map records which variable owns another, meaning that one variable's lifetime depends on another's. For example, in code like this:
 ```cpl
 {
    i32 a0 = 10;
@@ -601,7 +611,7 @@ the variable `a` is owned by `b`, so we must not kill `a` while `b` is still ali
 ![kill_var](docs/media/kill_var.png)
 
 ## Register allocation part
-Now that we have the `IN`, `OUT`, `DEF`, and `USE` sets, we can construct an interference graph. The idea is straightforward: we create a vertex for each variable in the symbol table, and then, for every `CFG` block, we connect (i.e., add an edge between) each variable from the block’s `DEF` set with every variable from its `OUT` set. This connection represents that these two variables are live at the same time. The resulting structure is the interference graph, where:
+Now that we have the `IN`, `OUT`, `DEF`, and `USE` sets, we can construct an interference graph. The idea is straightforward: we create a vertex for each variable in the symbol table, and then, for every `CFG` block, we connect (i.e., add an edge between) each variable from the block's `DEF` set with every variable from its `OUT` set. This connection represents that these two variables are live at the same time. The resulting structure is the interference graph, where:
 - Vertices represent program variables.
 - Edges represent liveness conflicts (interference) between variables.
 ![ig](docs/media/not_colored_ig.png)
@@ -611,22 +621,22 @@ Now we can determine which variables can share the same register using graph col
 ![colored_ig](docs/media/colored_ig.png)
 
 ## LIR peephole optimization
-Peephole optimization [[?]](https://www.geeksforgeeks.org/compiler-design/peephole-optimization-in-compiler-design/) is the one of the easiest and the one of the impactful optimizations (At least in this compiler). In a nutshell, this optimization simply does a pattern matching and replacing similar it does a regular expression. It finds patterns in an assembly code / a LIR representation that are inefficient and replaces it with efficient synonyms. </br>
-The simplest example here, is the replacing of one inefficient command with an efficient one:
+Peephole optimization [[?]](https://www.geeksforgeeks.org/compiler-design/peephole-optimization-in-compiler-design/) is one of the simplest and most impactful optimizations in this compiler. In short, this optimization performs pattern matching and replacement, similar in spirit to regular expressions. It finds inefficient patterns in assembly code or LIR and replaces them with more efficient equivalents. </br>
+The simplest example is replacing one inefficient command with a better one:
 ```asm
-; mox rax, 0
+; mov rax, 0
 xor rax, rax
 ```
 
-### PTRN domain specific language
-As it was mentioned before, the peephole optimization mostly is based on patterns. The problem here that there is a lot of existed patterns for optimization of Assembly language. It would be really inconvenient to try implement these patterns in C language by hand (regarding the necessity of the CordellCompiler's LIR support). </br>
-To solve this problem, we can use the DSL language that produces such optimizers for LIR representation. To see more information about this DSL, see [this](src/lir/peephole/pattern_generator/README.md) README file.
+### PTRN domain-specific language
+As mentioned above, peephole optimization is mostly based on patterns. The problem is that there are many existing optimization patterns for assembly-like languages. Implementing all of them by hand in C would be inconvenient, especially because the optimizer must work over Cordell Compiler's LIR representation. </br>
+To solve this problem, the compiler uses a small DSL that generates optimizers for LIR. For more information about this DSL, see [this README](src/lir/peephole/pattern_generator/README.md).
 
 ### First pass
-The first pass of the peeophole optimizator is a pattern matcher pass. This pass involves the aforementioned before generated pattern matcher function.
+The first pass of the peephole optimizer is a pattern-matching pass. It uses the generated pattern matcher described above.
 
 ### Second pass
-The second pass propogates values to destroy a complex sequence of redundant mov operations. Here I'm implying the next sequence of commands as a complex sequence of redundant movs:
+The second pass propagates values to remove complex sequences of redundant `mov` operations. The following command sequence is an example:
 ```asm
 mov rax, rbx
 mov rdx, rax
@@ -636,7 +646,7 @@ mov r11, r10
 mov rax, r10
 ``` 
 
-Such a bizarre code is produced after HIR and LIR optimizations. After the second pass, the code above is transformed into the code below:
+Such code can be produced after HIR and LIR optimizations. After the second pass, the code above is transformed into:
 ```asm
 mov rax, rbx
 mov rdx, rbx
@@ -647,8 +657,8 @@ mov rax, rbx
 ```
 
 ### Third pass
-Now, when we've obtained the optimized version of a code, we need to clean it. To do this task, we can simply use CFG and check, if the considering register in current line (For instance let's take the `mov rax, rbx` line) is used in a read operation, and if it used, skip it. Otherwise, if it somewhere is used in a write operation (before any read operation) we can safely drop this line. </br>
-As we can see, the `rax` register, after the second pass, is only used in the write operation at the end of the code snippet. It signals, that we can safely drop this line.
+Once we have an optimized version of the code, we need to clean it up. To do this, we use the CFG and check whether the target register in the current line is used in a read operation. For example, consider `mov rax, rbx`: if `rax` is read later, we keep the instruction. If it is overwritten before any read, we can safely drop the line. </br>
+After the second pass, `rax` is only used in a write operation at the end of the snippet, so the first line can be safely dropped.
 ```asm
 ; mov rax, rbx [dropped]
 mov rdx, rbx
@@ -658,7 +668,7 @@ mov r11, rbx
 mov rax, rbx
 ```
 
-Additionally, if a register doesn't affect on a program environment (e.g. isn't used in a syscall, function call, etc), it also can be safely marked as `dropped`:
+Additionally, if a register does not affect the program environment, for example if it is not used in a syscall or function call, it can also be safely marked as `dropped`:
 ```asm
 ; mov rax, rbx [dropped]
 ; mov rdx, rbx [dropped]
@@ -668,12 +678,14 @@ Additionally, if a register doesn't affect on a program environment (e.g. isn't 
 ; mov rax, rbx [dropped]
 ```
 
-P.S. This is a pretty synthetic example, thought.
+P.S. This is a fairly synthetic example, though.
+
+## From HIR to LIR example
 
 <details>
 <summary><strong>From HIR to LIR example</strong></summary>
 
-From the HIR we can produce a high level of the LIR:
+From the HIR we can produce a high-level LIR form:
 ```
 fn strlen(i8* s) -> i64
 {
@@ -732,7 +744,7 @@ start {
 </details>
 
 ## LIR x86_64 instruction selection
-Next step is LIR lowering. The most common way here - instruction selection. This is the first machine-depended step in compiler, that's why here we have some abstractions and implementations of different asm dialetcs (e.g., nasm x86_64 gnu, at&at x86_64 gnu, etc.).
+The next step is LIR lowering. The most common approach here is instruction selection. This is the first machine-dependent compiler step, so this layer contains abstractions and implementations for different assembly dialects, for example NASM x86_64 GNU and Mach-O x86_64 NASM.
 
 <details>
 <summary><strong>LIR selected instructions</strong></summary>
@@ -805,11 +817,13 @@ start {
 
 </details>
 
-Maybe you have notice, that we also apply register allocation here. The reason why we wait till this stage, is `pre-coloring`. Main idea, that we precolor some variables with already known registers like `rax` and `rbx` in arithmetics, `rdi`, `rsi`... in ABI function call etc.
+You may have noticed that register allocation is also applied here. The reason we wait until this stage is `pre-coloring`. The main idea is to pre-color some variables with already known registers, such as `rax` and `rbx` for arithmetic or `rdi`, `rsi`, and related registers for ABI function calls.
 
 ## Codegen (nasm) part
 After completing the full code transformation pipeline, we can safely convert our `LIR` form into the `ASM` form, with a few small tricks applied during the unwrap process of special `LIR` instructions such as `EXITOP`, `STRT`, and others.
 ![lir2asm](docs/media/LIR_to_ASM.png)
+
+### Example of generated code
 
 <details>
 <summary><strong>Final ASM</strong></summary>

@@ -1,5 +1,15 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
+/*
+Convert one LIR block into x86_64 Mach-O NASM assembly and write it to output.
+Params:
+    - `b` - LIR block to emit.
+    - `fi` - Current function info for prologue/epilogue generation.
+    - `smt` - Symtable used to resolve symbols.
+    - `output` - Output assembly stream.
+
+Returns 1 if succeeds.
+*/
 static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_table_t* smt, FILE* output) {
     if (b->unused) return 1;
     switch (b->op) {
@@ -59,72 +69,78 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
 
             break;
         }
-        case LIR_BREAKPOINT: EMIT_COMMAND("int3 ; %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                  break;
-        case LIR_BB:         EMIT_COMMAND("\n; BB%ld:", b->farg->storage.cnst.value);                                                                                                 break;
-        case LIR_TST:        EMIT_COMMAND("test %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));   break;
-        case LIR_XCHG:       EMIT_COMMAND("xchg %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));   break;
-        case LIR_MKLB:       EMIT_COMMAND("%s:", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
-        case LIR_SETL:       EMIT_COMMAND("setl %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
-        case LIR_SETG:       EMIT_COMMAND("setg %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
-        case LIR_STLE:       EMIT_COMMAND("setle %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
-        case LIR_STGE:       EMIT_COMMAND("setge %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
-        case LIR_SETE:       EMIT_COMMAND("sete %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
-        case LIR_STNE:       EMIT_COMMAND("setne %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
-        case LIR_SETB:       EMIT_COMMAND("setb %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
-        case LIR_SETA:       EMIT_COMMAND("seta %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
-        case LIR_STBE:       EMIT_COMMAND("setbe %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
-        case LIR_STAE:       EMIT_COMMAND("setae %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
-        case LIR_NOT:        EMIT_COMMAND("neg %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_INC:        EMIT_COMMAND("inc %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_DEC:        EMIT_COMMAND("dec %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_JMP:        EMIT_COMMAND("jmp %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_JE:         EMIT_COMMAND("je %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
-        case LIR_JLE:        EMIT_COMMAND("jle %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_JNE:        EMIT_COMMAND("jne %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_JZ:         EMIT_COMMAND("jz %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
-        case LIR_JNZ:        EMIT_COMMAND("jnz %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_JL:         EMIT_COMMAND("jl %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
-        case LIR_JG:         EMIT_COMMAND("jg %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
-        case LIR_JGE:        EMIT_COMMAND("jge %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_JA:         EMIT_COMMAND("ja %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
-        case LIR_JAE:        EMIT_COMMAND("jae %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_JB:         EMIT_COMMAND("jb %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
-        case LIR_JBE:        EMIT_COMMAND("jbe %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
+        case LIR_BREAKPOINT: EMIT_COMMAND("int3 ; %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
+        case LIR_BB:         EMIT_COMMAND("\n; BB%ld:", b->farg->storage.cnst.value);                                                                                                    break;
+        case LIR_TST:        EMIT_COMMAND("test %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));      break;
+        case LIR_XCHG:       EMIT_COMMAND("xchg %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));      break;
+        case LIR_MKLB:       EMIT_COMMAND("%s:", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                           break;
+        case LIR_SETL:       EMIT_COMMAND("setl %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                       break;
+        case LIR_SETG:       EMIT_COMMAND("setg %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                       break;
+        case LIR_STLE:       EMIT_COMMAND("setle %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
+        case LIR_STGE:       EMIT_COMMAND("setge %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
+        case LIR_SETE:       EMIT_COMMAND("sete %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                       break;
+        case LIR_STNE:       EMIT_COMMAND("setne %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
+        case LIR_SETB:       EMIT_COMMAND("setb %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                       break;
+        case LIR_SETA:       EMIT_COMMAND("seta %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                       break;
+        case LIR_STBE:       EMIT_COMMAND("setbe %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
+        case LIR_STAE:       EMIT_COMMAND("setae %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
+        case LIR_NOT:        EMIT_COMMAND("neg %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_INC:        EMIT_COMMAND("inc %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_DEC:        EMIT_COMMAND("dec %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_JMP:        EMIT_COMMAND("jmp %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_JE:         EMIT_COMMAND("je %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                         break;
+        case LIR_JLE:        EMIT_COMMAND("jle %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_JNE:        EMIT_COMMAND("jne %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_JZ:         EMIT_COMMAND("jz %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                         break;
+        case LIR_JNZ:        EMIT_COMMAND("jnz %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_JL:         EMIT_COMMAND("jl %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                         break;
+        case LIR_JG:         EMIT_COMMAND("jg %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                         break;
+        case LIR_JGE:        EMIT_COMMAND("jge %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_JA:         EMIT_COMMAND("ja %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                         break;
+        case LIR_JAE:        EMIT_COMMAND("jae %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_JB:         EMIT_COMMAND("jb %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                         break;
+        case LIR_JBE:        EMIT_COMMAND("jbe %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
         case LIR_aMOV:
-        case LIR_iMOV:       EMIT_COMMAND("mov %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));    break;
-        case LIR_MOVZX:      EMIT_COMMAND("movzx %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
-        case LIR_MOVSX:      EMIT_COMMAND("movsx %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
-        case LIR_MOVSXD:     EMIT_COMMAND("movsxd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG)); break;
+        case LIR_iMOV:       EMIT_COMMAND("mov %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));       break;
+        case LIR_MOVZX:      EMIT_COMMAND("movzx %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_MOVSX:      EMIT_COMMAND("movsx %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_MOVSXD:     EMIT_COMMAND("movsxd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));    break;
+        case LIR_CVTTSS2SI:  EMIT_COMMAND("cvttss2si %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG)); break;
+        case LIR_CVTTSD2SI:  EMIT_COMMAND("cvttsd2si %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG)); break;
+        case LIR_CVTSI2SS:   EMIT_COMMAND("cvtsi2ss %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
+        case LIR_CVTSI2SD:   EMIT_COMMAND("cvtsi2sd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
+        case LIR_CVTSS2SD:   EMIT_COMMAND("cvtss2sd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
+        case LIR_CVTSD2SS:   EMIT_COMMAND("cvtsd2ss %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_fMOV:
-        case LIR_fMVf:       EMIT_COMMAND("movsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
-        case LIR_REF:        EMIT_COMMAND("lea %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));   break;
-        case LIR_REF_GDREF:  EMIT_COMMAND("lea %s, [%s]", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG)); break;
-        case LIR_LDREF:      EMIT_COMMAND("mov %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, LDREF_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG)); break;
-        case LIR_GDREF:      EMIT_COMMAND("mov %s, [%s]", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
-        case LIR_PUSH:       EMIT_COMMAND("push %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
-        case LIR_POP:        EMIT_COMMAND("pop %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
-        case LIR_iADD:       EMIT_COMMAND("add %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));    break;
-        case LIR_iSUB:       EMIT_COMMAND("sub %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));    break;
-        case LIR_iMUL:       EMIT_COMMAND("imul %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));   break;
-        case LIR_DIV:        EMIT_COMMAND("div %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));                                                                     break;
+        case LIR_fMVf:       EMIT_COMMAND("movsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_REF:        EMIT_COMMAND("lea %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));      break;
+        case LIR_REF_GDREF:  EMIT_COMMAND("lea %s, [%s]", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));    break;
+        case LIR_LDREF:      EMIT_COMMAND("mov %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, LDREF_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));    break;
+        case LIR_GDREF:      EMIT_COMMAND("mov %s, [%s]", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_PUSH:       EMIT_COMMAND("push %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                       break;
+        case LIR_POP:        EMIT_COMMAND("pop %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_iADD:       EMIT_COMMAND("add %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
+        case LIR_iSUB:       EMIT_COMMAND("sub %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
+        case LIR_iMUL:       EMIT_COMMAND("imul %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));      break;
+        case LIR_DIV:        EMIT_COMMAND("div %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));                                                                        break;
         case LIR_iMOD:
-        case LIR_iDIV:       EMIT_COMMAND("idiv %s", x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));                                                                    break;
-        case LIR_CMP:        EMIT_COMMAND("cmp %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));    break;
+        case LIR_iDIV:       EMIT_COMMAND("idiv %s", x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));                                                                       break;
+        case LIR_CMP:        EMIT_COMMAND("cmp %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));       break;
         case LIR_bAND:
-        case LIR_iAND:       EMIT_COMMAND("and %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));    break;
+        case LIR_iAND:       EMIT_COMMAND("and %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_bOR:
-        case LIR_iOR:        EMIT_COMMAND("or %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));     break;
-        case LIR_fADD:       EMIT_COMMAND("addsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
-        case LIR_fSUB:       EMIT_COMMAND("subsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
-        case LIR_fMUL:       EMIT_COMMAND("mulsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
-        case LIR_fDIV:       EMIT_COMMAND("divsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
-        case LIR_fCMP:       EMIT_COMMAND("ucomisd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));break;
-        case LIR_bXOR:       EMIT_COMMAND("xor %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));    break;
+        case LIR_iOR:        EMIT_COMMAND("or %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));        break;
+        case LIR_fADD:       EMIT_COMMAND("addsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_fSUB:       EMIT_COMMAND("subsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_fMUL:       EMIT_COMMAND("mulsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_fDIV:       EMIT_COMMAND("divsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_fCMP:       EMIT_COMMAND("ucomisd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));   break;
+        case LIR_bXOR:       EMIT_COMMAND("xor %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_iBLFT:
-        case LIR_bSHL:       EMIT_COMMAND("shl %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));    break;
+        case LIR_bSHL:       EMIT_COMMAND("shl %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_iBRHT:
-        case LIR_bSHR:       EMIT_COMMAND("shr %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));    break;
-        case LIR_bSAR:       EMIT_COMMAND("sar %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));    break;
+        case LIR_bSHR:       EMIT_COMMAND("shr %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
+        case LIR_bSAR:       EMIT_COMMAND("sar %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));       break;
         case LIR_RAW: {
             string_t* raw_line = create_string(x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
             int percent_pos = raw_line->index_of(raw_line, '%');
@@ -157,6 +173,15 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
     return 1;
 }
 
+/*
+Emit an independent read-only string into the current assembly section.
+Params:
+    - `id` - String symbol ID.
+    - `smt` - Symtable that stores string information.
+    - `output` - Output assembly stream.
+
+Returns 1 if succeeds.
+*/
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
@@ -172,6 +197,15 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
+/*
+Emit storage for a non-external variable into the current assembly section.
+Params:
+    - `id` - Variable symbol ID.
+    - `smt` - Symtable used to resolve variable and array metadata.
+    - `output` - Output assembly stream.
+
+Returns 1 on success, otherwise 0.
+*/
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
     if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext) return 0;
@@ -229,17 +263,19 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
-static cfg_func_t* _find_function_by_id(symbol_id_t id, cfg_ctx_t* ctx) {
-    foreach (cfg_func_t* fb, &ctx->funcs) {
-        if (fb->f_id == id) return fb;
-    }
+/*
+Emit assembly for a used CFG function.
+Params:
+    - `f_id` - Function symbol ID.
+    - `cctx` - CFG context with function LIR maps.
+    - `smt` - Symtable used to resolve function metadata.
+    - `output` - Output assembly stream.
 
-    return NULL;
-}
-
+Returns 1 on success, otherwise 0.
+*/
 static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
-    cfg_func_t* fb = _find_function_by_id(f_id, cctx);
-    if (!fb || !fb->used) return 0;
+    cfg_func_t* fb;
+    if (!map_get(&cctx->fmap, f_id, (void**)&fb) || !fb || !fb->used) return 0;
 
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;

@@ -1,4 +1,4 @@
-#include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/x86_64_gnu_nasm.h>
 
 lir_subject_t* x86_64_gnu_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size) {
     token_type_t vtype = TMP_TYPE_TOKEN;
@@ -69,7 +69,7 @@ lir_operation_t x86_64_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* 
         else {
             if (a->size <= b->size) {
                 b->size = a->size;
-                return base;
+                return LIR_iMOV;
             }
             else {
                 if (b->size == 4 && a->size == 8) return from_sign ? LIR_MOVSXD : base;

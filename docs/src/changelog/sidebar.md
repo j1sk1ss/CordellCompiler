@@ -1,8 +1,0 @@
-* [CPL changelog](#cpl-changelog)
-* [Version v3.4](#version-v34)
-* [Version v3.3](#version-v33)
-* [Version v3.2](#version-v32)
-* [Version v3.1](#version-v31)
-* [Version v3](#version-v3)
-* [Version v2](#version-v2)
-* [Version v1](#version-v1)

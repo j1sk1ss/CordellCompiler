@@ -14,8 +14,9 @@ start() {
 }
 ```
 
-**Note 1:** Example above will cause a memory corruption error instead of the `SF` due the stack allocation method in CPL. (The pointer after the scope is pointing to the already allocated area. However, the compiler can use this area for the another array / variable, etc.). </br>
-**Note 2:** This compiler tries to `kill` all variables / arrays / strings outside their scopes, even if they are used as a referenced value somewhere else in the further code. </br>
+**Note 1:** The example above can cause memory corruption rather than a simple segmentation fault. After the scope ends, the pointer may still point to a stack slot that the compiler is allowed to reuse for another local value.
+
+**Note 2:** The compiler tries to kill variables, arrays, and strings outside their scopes even if a pointer to that storage is still used later. CPL currently has no borrow checker or lifetime analysis that would make such code safe.
 **Note 3:** In the example above, execution may be success (further code can ignore the 'freed' space in the stack and prefer the register placement for new variables), but it is still the Undefined Behavior. 
 
 ## Visibility rules

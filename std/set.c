@@ -75,9 +75,7 @@ int set_union(set_t* dst, set_t* a, set_t* b) {
         set_add(&tmp, data);
     }
 
-    set_free(dst);
-    set_copy(dst, &tmp);
-    set_free(&tmp);
+    *dst = tmp;
     return 1;
 }
 

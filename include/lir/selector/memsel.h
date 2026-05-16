@@ -9,8 +9,10 @@
 
 typedef struct {
     int (*select_memory)(cfg_ctx_t*, map_t*, sym_table_t*);
+    int (*validate_memory)(cfg_ctx_t*, sym_table_t*);
 } mem_selector_t;
 
 int LIR_select_memory(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt, mem_selector_t* selector);
+int LIR_validate_memory(cfg_ctx_t* cctx, sym_table_t* smt, mem_selector_t* selector);
 
 #endif

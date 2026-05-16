@@ -11,22 +11,26 @@ Params:
 Returns 1 if succeeds.
 */
 static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
-    list_iter_t it;
-    list_iter_hinit(args, &it);
+    int index = 0, size = list_size(args);
+    hir_subject_t** args_flatten = (hir_subject_t**)list_flatten(args);
+    if (!args_flatten) return 0;
 
-    hir_block_t* hh = HIR_FUNC_get_next(NULL, f, NULL, 0);
-    while (hh) {
-        if (hh->op == HIR_FARGLD) {
-            hir_block_t* nblock = HIR_copy_block(hh, 1);
-            nblock->op = HIR_STORE;
-            HIR_unload_subject(nblock->sarg);
-            list_iter_next(&it, (void**)&nblock->sarg);
-            HIR_insert_block_before(nblock, pos);
+    foreach (cfg_block_t* bb, &f->blocks) {
+        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
+        while (hh && index < size) {
+            if (hh->op == HIR_FARGLD) {
+                hir_block_t* copy = HIR_copy_block(hh, 1);
+                HIR_unload_subject(copy->sarg);
+                copy->op   = HIR_STORE;
+                copy->sarg = HIR_copy_subject(args_flatten[index++]);
+                HIR_insert_block_before(copy, pos);
+            }
+
+            hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
-
-        hh = HIR_FUNC_get_next(hh, f, NULL, 1);
     }
 
+    mm_free(args_flatten);
     return 1;
 }
 
@@ -44,9 +48,10 @@ static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* o
     while (h) {
         if (h->op != HIR_MKLB) {
             iterate_ref_hir_args(hir_subject_t** curr, h, 0) {
-                if (*curr && (*curr)->t == HIR_LABEL && (*curr)->id == old->id) {
-                    *curr = new;
-                }
+                if (
+                    (*curr)->t == HIR_LABEL && 
+                    (*curr)->id == old->id
+                ) *curr = new;
             }
         }
 
@@ -138,22 +143,6 @@ _skip_instruction: {}
 
     HIR_insert_block_before(HIR_create_block(HIR_MKLB, exit_label, NULL, NULL), pos);
     return 1;
-}
-
-/*
-Get function from the CFG context by the provided function ID.
-Params:
-    - `cctx` - CFG context.
-    - `f_id` - Function ID.
-
-Returns either a function pointer or the NULL value.
-*/
-static inline cfg_func_t* _get_funcblock(cfg_ctx_t* cctx, long f_id) {
-    foreach (cfg_func_t* fb, &cctx->funcs) {
-        if (fb->f_id == f_id) return fb;
-    }
-
-    return NULL;
 }
 
 /*
@@ -343,18 +332,20 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt
             hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
             while (hh) {
                 if (HIR_is_funccall(hh->op)) {
-                    cfg_func_t* trg = _get_funcblock(cctx, hh->sarg->storage.str.s_id);
-                    if (_inline_candidate(trg, bb, hh, lctx, smt, checker) && fb != trg) {
-                        _inline_arguments(trg, &hh->targ->storage.list.h, hh);
-                        
-                        hir_subject_t* res = NULL;
-                        if (
-                            hh->op == HIR_STORE_FCLL || 
-                            hh->op == HIR_STORE_ECLL
-                        ) res = hh->farg;
-                        
-                        _inline_function(trg, res, hh);
-                        hh->unused = 1;
+                    cfg_func_t* trg;
+                    if (map_get(&cctx->fmap, hh->sarg->storage.str.s_id, (void**)&trg)) {
+                        if (_inline_candidate(trg, bb, hh, lctx, smt, checker) && fb != trg) {
+                            _inline_arguments(trg, &hh->targ->storage.list.h, hh);
+                            
+                            hir_subject_t* res = NULL;
+                            if (
+                                hh->op == HIR_STORE_FCLL || 
+                                hh->op == HIR_STORE_ECLL
+                            ) res = hh->farg;
+                            
+                            _inline_function(trg, res, hh);
+                            hh->unused = 1;
+                        }
                     }
                 }
 

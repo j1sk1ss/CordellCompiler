@@ -1,5 +1,0 @@
-* [CFG part](#cfg-part)
-  * [Example of CFG](#example-of-cfg)
-* [Dominant calculation](#dominant-calculation)
-  * [Strict dominance](#strict-dominance)
-  * [Dominance frontier](#dominance-frontier)
