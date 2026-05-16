@@ -50,7 +50,7 @@ static int _scope_pass(cfg_func_t* fb) {
                 if (!stack_top(&scopes, (void**)&scope_defs)) break;
                 if (
                     LIR_is_writeop(lh->op) && 
-                    lh->farg->t == LIR_VARIABLE
+                    lh->farg && lh->farg->t == LIR_VARIABLE
                 ) list_add(scope_defs, (void*)lh->farg->storage.var.v_id);
                 break;
             }

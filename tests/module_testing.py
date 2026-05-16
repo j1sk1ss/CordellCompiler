@@ -40,6 +40,93 @@ from misc.builder import (
     CCBuilderConfig
 )
 
+ASM_ARCH_BY_BASE_NAME: dict[str, str] = {
+    "x86_64_macho_nasm_base.c": "x86_64_nasm_macho",
+    "x86_64_gnu_nasm_base.c": "x86_64_nasm_gnu",
+    "i386_gnu_nasm_base.c": "i386_nasm_gnu",
+    "i386_gnu_nasm_base": "i386_nasm_gnu",
+}
+
+ASM_ARCH_ALIASES: dict[str, str] = {
+    "x86_64_macho_nasm": "x86_64_nasm_macho",
+    "x86_64_nasm_macho": "x86_64_nasm_macho",
+    "x86_64_gnu_nasm": "x86_64_nasm_gnu",
+    "x86_64_nasm_gnu": "x86_64_nasm_gnu",
+    "i386_gnu_nasm": "i386_nasm_gnu",
+    "i386_nasm_gnu": "i386_nasm_gnu",
+}
+
+
+def _normalize_asm_arch(raw: str) -> str:
+    value = raw.strip()
+    return ASM_ARCH_ALIASES.get(value, value)
+
+
+def _parse_asm_arch_directive(line: str) -> set[str] | None:
+    stripped = line.strip()
+    if stripped.startswith(":") and stripped.endswith(":"):
+        stripped = stripped[1:-1].strip()
+
+    m = re.fullmatch(r"ASM_ARCH\s*=\s*(.+)", stripped)
+    if not m:
+        return None
+
+    archs = {
+        _normalize_asm_arch(part)
+        for part in m.group(1).split(",")
+        if part.strip()
+    }
+    return archs
+
+
+def _format_asm_arches(archs: set[str] | None) -> str:
+    if not archs:
+        return ""
+    return ",".join(sorted(archs))
+
+
+def _format_current_asm_arch(asm_arch: str | None) -> str:
+    return asm_arch or "base"
+
+
+def _format_result_subject(result: dict) -> str:
+    return f"[{_format_current_asm_arch(result.get('asm_arch'))}] {result['file']}"
+
+
+def _test_matches_asm_arch(flags: dict, asm_arch: str | None) -> bool:
+    requested: set[str] | None = flags.get("asm_arches")
+    if not requested:
+        return True
+
+    # A plain base.c is treated as the shared base for all architectures.
+    if asm_arch is None:
+        return True
+
+    return asm_arch in requested
+
+
+def _asm_arch_can_run_on_host(asm_arch: str | None) -> bool:
+    if asm_arch is None:
+        return True
+
+    if asm_arch == "x86_64_nasm_macho":
+        return sys.platform == "darwin"
+
+    if asm_arch in {"x86_64_nasm_gnu", "i386_nasm_gnu"}:
+        return sys.platform != "darwin"
+
+    return True
+
+
+def _host_asm_arch_skip_reason(asm_arch: str | None) -> str | None:
+    if _asm_arch_can_run_on_host(asm_arch):
+        return None
+
+    if asm_arch == "x86_64_nasm_macho":
+        return "x86_64_nasm_macho executable tests are supported only on macOS"
+
+    return f"{asm_arch} executable tests are not supported on this host"
+
 def _line_matches(expected_line: str, actual_line: str) -> bool:
     if expected_line.strip() == "{X}":
         return True
@@ -467,6 +554,7 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         "run_asm":       False,
         "run_asm_debug": False,
         "run_asm_cases": [[]],
+        "asm_arches":    None,
         "output_annotations": {},
         "output_case_blocks": None,
     }
@@ -479,6 +567,11 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         run_asm_directive = _parse_run_asm_directive(stripped)
         if run_asm_directive:
             flags["run_asm"], flags["run_asm_debug"], flags["run_asm_cases"] = run_asm_directive
+            continue
+
+        asm_arches = _parse_asm_arch_directive(stripped)
+        if asm_arches is not None:
+            flags["asm_arches"] = asm_arches
             continue
 
         if stripped == ": TEST_DEBUG :":
@@ -592,6 +685,7 @@ def _assemble_and_run(
     debug: bool,
     runs: list[list[str]] | None = None,
     log_sections: list[tuple[str, str]] | None = None,
+    asm_arch: str | None = None,
 ) -> tuple[bool, str | None, list[str] | None, list[int] | None, float | None]:
     with tempfile.TemporaryDirectory(prefix="cpl_asm_") as tmp_dir:
         tmp_dir_path = Path(tmp_dir)
@@ -613,7 +707,17 @@ def _assemble_and_run(
 
         asm_path.write_text(asm_text, encoding="utf-8")
 
-        if sys.platform == "darwin":
+        skip_reason = _host_asm_arch_skip_reason(asm_arch)
+        if skip_reason is not None:
+            return False, f"{skip_reason}; host={sys.platform}", None, None, None
+
+        if asm_arch == "x86_64_nasm_macho":
+            nasm_format = "macho64"
+        elif asm_arch == "x86_64_nasm_gnu":
+            nasm_format = "elf64"
+        elif asm_arch == "i386_nasm_gnu":
+            nasm_format = "elf32"
+        elif sys.platform == "darwin":
             nasm_format = "macho64"
         else:
             nasm_format = "elf64"
@@ -635,7 +739,7 @@ def _assemble_and_run(
         if nasm_proc.returncode != 0:
             return False, nasm_proc.stdout, None, None, None
 
-        if sys.platform == "darwin":
+        if asm_arch == "x86_64_nasm_macho" or (asm_arch is None and sys.platform == "darwin"):
             link_cmd = [
                 "ld",
                 "-e", "_main",
@@ -644,9 +748,18 @@ def _assemble_and_run(
                 "-o", str(exe_path),
                 str(obj_path)
             ]
+        elif asm_arch == "i386_nasm_gnu":
+            link_cmd = [
+                "ld",
+                "-e", "_main",
+                "-m", "elf_i386",
+                "-o", str(exe_path),
+                str(obj_path)
+            ]
         else:
             link_cmd = [
                 "ld",
+                "-e", "_main",
                 "-o", str(exe_path),
                 str(obj_path)
             ]
@@ -789,6 +902,7 @@ def _run_test_once(
     measure_lines: bool,
     input_lines: int,
     initial_output_lines: int,
+    asm_arch: str | None = None,
 ) -> dict:
     output_lines = initial_output_lines
     test_started_at = time.perf_counter()
@@ -799,6 +913,7 @@ def _run_test_once(
         "test_file": str(test_file),
         "binary": str(binary),
         "binary_leak": str(binary_leak) if binary_leak else None,
+        "asm_arch": asm_arch,
         "measure_time": measure_time,
         "measure_lines": measure_lines,
         "input_lines": input_lines,
@@ -866,6 +981,7 @@ def _run_test_once(
                     debug=flags["run_asm_debug"],
                     runs=flags["run_asm_cases"],
                     log_sections=log_sections,
+                    asm_arch=asm_arch,
                 )
 
                 if flags["run_asm_debug"] and asm_ok:
@@ -1073,11 +1189,44 @@ def _run_test_once(
     return _attach_failure_log(result, test_file, log_sections)
 
 
-def _run_test(binary: str, binary_leak: str | None, test_file: Path, *, force_rewrite: bool = False) -> dict:
+def _run_test(
+    binary: str,
+    binary_leak: str | None,
+    test_file: Path,
+    *,
+    force_rewrite: bool = False,
+    asm_arch: str | None = None,
+) -> dict:
     code, expected, flags = _parse_test_file(test_file)
     if force_rewrite:
         flags["rewrite"] = True
-    
+
+    if not _test_matches_asm_arch(flags, asm_arch):
+        return {
+            "file": str(test_file),
+            "asm_arch": asm_arch,
+            "ok": True,
+            "skipped": True,
+            "critical": False,
+            "warning": False,
+            "diff": None,
+            "metrics": f"ASM_ARCH={_format_asm_arches(flags.get('asm_arches'))}, current={asm_arch}",
+        }
+
+    if flags["run_asm"] or flags["run_asm_debug"]:
+        skip_reason = _host_asm_arch_skip_reason(asm_arch)
+        if skip_reason is not None:
+            return {
+                "file": str(test_file),
+                "asm_arch": asm_arch,
+                "ok": True,
+                "skipped": True,
+                "critical": False,
+                "warning": False,
+                "diff": None,
+                "metrics": f"{skip_reason}; host={sys.platform}",
+            }
+
     annotations = flags.get("output_annotations", {})
     measure_time = _annotation_enabled(annotations, "measure_time")
     measure_lines = _annotation_enabled(annotations, "measure_lines")
@@ -1088,6 +1237,7 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path, *, force_re
     if repeat_error is not None:
         return {
             "file": str(test_file),
+            "asm_arch": asm_arch,
             "ok": False,
             "critical": True,
             "warning": False,
@@ -1107,7 +1257,9 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path, *, force_re
             measure_lines=measure_lines,
             input_lines=input_lines,
             initial_output_lines=initial_output_lines,
+            asm_arch=asm_arch,
         )
+        result["asm_arch"] = asm_arch
         result.pop("_test_elapsed", None)
         result.pop("_program_elapsed", None)
         result.pop("_input_lines", None)
@@ -1128,12 +1280,14 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path, *, force_re
             measure_lines=measure_lines,
             input_lines=input_lines,
             initial_output_lines=initial_output_lines,
+            asm_arch=asm_arch,
         )
         repeated_results.append(result)
         if not result.get("ok", False):
             diff = result.get("diff")
             prefix = f"Repeat {repeat_index + 1}/{repeat_count} failed"
             result["diff"] = prefix if not diff else f"{prefix}\n{diff}"
+            result["asm_arch"] = asm_arch
             result.pop("_test_elapsed", None)
             result.pop("_program_elapsed", None)
             result.pop("_input_lines", None)
@@ -1148,6 +1302,7 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path, *, force_re
 
     output_lines = int(repeated_results[-1].get("_output_lines", initial_output_lines))
     final_result = dict(repeated_results[-1])
+    final_result["asm_arch"] = asm_arch
     final_result["metrics"] = _build_measure_info(
         measure_time,
         avg_test_elapsed,
@@ -1162,11 +1317,32 @@ def _run_test(binary: str, binary_leak: str | None, test_file: Path, *, force_re
     final_result.pop("_output_lines", None)
     return final_result
 
+def _find_arch_base_files(root: Path) -> list[tuple[str, Path]]:
+    result: list[tuple[str, Path]] = []
+    for base_name, asm_arch in ASM_ARCH_BY_BASE_NAME.items():
+        base_path = root / base_name
+        if base_path.is_file():
+            result.append((asm_arch, base_path))
+
+    result.sort(key=lambda item: item[0])
+    return result
+
+
+def _find_module_base_variants(root: Path) -> list[tuple[str | None, Path]]:
+    base = root / "base.c"
+    if base.is_file():
+        return [(None, base)]
+
+    return _find_arch_base_files(root)
+
+
 def _find_test_roots(start_path: Path) -> list[Path]:
     roots = []
     for root, _, _ in os.walk(start_path):
         root_path = Path(root)
-        if (root_path / "base.c").is_file() and (root_path / "dependencies.json").is_file():
+        if not (root_path / "dependencies.json").is_file():
+            continue
+        if _find_module_base_variants(root_path):
             roots.append(root_path)
 
     return roots
@@ -1203,30 +1379,37 @@ def _entry() -> None:
 
     all_roots = _find_test_roots(test_top)
     if not all_roots:
-        print(f"No test modules found (no base.c + dependencies.json) under {test_top}", file=sys.stderr)
+        print(f"No test modules found (no base.c/architecture base + dependencies.json) under {test_top}", file=sys.stderr)
         sys.exit(1)
+
+    build_jobs: list[tuple[Path, str | None, Path]] = []
+    for root in all_roots:
+        for asm_arch, base in _find_module_base_variants(root):
+            build_jobs.append((root, asm_arch, base))
 
     all_roots_set: set[Path] = set(all_roots)
     results: list[dict] = []
     failed_modules: int = 0
 
     compile_pbar = tqdm(
-        total=len(all_roots),
+        total=len(build_jobs),
         desc="Modules compiled",
         unit="module",
         dynamic_ncols=True,
         position=0
     )
 
-    for root in all_roots:
+    for root, asm_arch, base in build_jobs:
         rel: Path = root.relative_to(test_top)
         module_out_dir: Path = Path(args.output_dir) / rel
+        if asm_arch is not None:
+            module_out_dir = module_out_dir / asm_arch
         os.makedirs(module_out_dir, exist_ok=True)
 
         deps = root / "dependencies.json"
-        base = root / "base.c"
 
         _log(f"[BUILD] module root: {root}")
+        _log(f"[BUILD] asm arch: {asm_arch or 'base'}")
         _log(f"[BUILD] base source: {base}")
         _log(f"[BUILD] dependencies: {deps}")
         _log(f"[BUILD] output dir: {module_out_dir}")
@@ -1258,7 +1441,7 @@ def _entry() -> None:
         compile_pbar.update(1)
 
         if not binary:
-            print(f"Failed to build module {root}, skipping its tests.", file=sys.stderr)
+            print(f"Failed to build module {root} [{_format_current_asm_arch(asm_arch)}], skipping its tests.", file=sys.stderr)
             failed_modules += 1
             continue
 
@@ -1297,29 +1480,39 @@ def _entry() -> None:
             print(f"Module {root} has no .cpl files to test.")
 
         for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False, position=1):
-            results.append(_run_test(binary, binary_leak, cpl, force_rewrite=args.force_rewrite))
+            results.append(_run_test(
+                binary,
+                binary_leak,
+                cpl,
+                force_rewrite=args.force_rewrite,
+                asm_arch=asm_arch,
+            ))
 
     compile_pbar.close()
     failed: int = 0
+    skipped: int = 0
     critical_failed: bool = False
     for r in results:
         metrics_suffix = f" [{r['metrics']}]" if r.get("metrics") else ""
-        if r.get("ok", False):
-            print(f"Succeed: {r['file']}{metrics_suffix}")
+        if r.get("skipped", False):
+            skipped += 1
+            print(f"Skipped: {_format_result_subject(r)}{metrics_suffix}")
+        elif r.get("ok", False):
+            print(f"Succeed: {_format_result_subject(r)}{metrics_suffix}")
         else:
             failed += 1
             if r.get("warning", False):
-                print(f"\nWarning (BUG): {r['file']}{metrics_suffix}")
+                print(f"\nWarning (BUG): {_format_result_subject(r)}{metrics_suffix}")
                 print(r["diff"])
             elif r.get("critical", False):
-                print(f"\nCRITICAL (BLOCK_TEST): {r['file']}{metrics_suffix}")
+                print(f"\nCRITICAL (BLOCK_TEST): {_format_result_subject(r)}{metrics_suffix}")
                 print(r["diff"])
                 critical_failed = True
             else:
-                print(f"\nFailed: {r['file']}{metrics_suffix}")
+                print(f"\nFailed: {_format_result_subject(r)}{metrics_suffix}")
                 print(r["diff"])
 
-    print(f"\nSummary: {len(results)} tests run, {failed} failed, {failed_modules} modules failed to build.")
+    print(f"\nSummary: {len(results)} tests run, {skipped} skipped, {failed} failed, {failed_modules} modules failed to build.")
     if critical_failed:
         print("\nCritical failure detected. Stopping immediately.")
         sys.exit(2)

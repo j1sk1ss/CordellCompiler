@@ -69,7 +69,7 @@ typedef enum {
 
         LIR_STSARG,   // store parameter to a syscall, x, cnst_y=index
         LIR_STFARG,   // store parameter to a function, x, cnst_y=index
-        LIR_LOADFARG, // load parameter in a function, v=source_var, cnst_y=index
+        LIR_LOADFARG, // load parameter in a function, v=source_var, cnst_y=index, cnst_z=args-index
         LIR_LOADFRET, // load funcret to a dst, x=target_var
 
         LIR_TF64,     // x = (f64)y

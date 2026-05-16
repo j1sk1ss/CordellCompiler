@@ -20,7 +20,7 @@
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
 #include <lir/selector/instsel.h>
-#include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/x86_64_gnu_nasm.h>
 #include "../../../misc/lir_helper.h"
 
 int main(int argc, char* argv[]) {

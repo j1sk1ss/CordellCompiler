@@ -1,0 +1,19 @@
+: RUN_ASM :
+
+function len(ptr i8 msg) -> i32 {
+    i32 n = 0;
+
+    while msg[n] != 0; {
+        n += 1;
+    }
+
+    return n;
+}
+
+start() {
+    exit len(ref "Cordell") as u8;
+}
+
+:/ OUTPUT
+@exit_code=7
+/:

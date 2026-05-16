@@ -1,4 +1,4 @@
-#include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/x86_64_gnu_nasm.h>
 
 /*
 Collect used registers in the provided function.
@@ -56,7 +56,8 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
     while (lh) {
         if ( /* Remove register from the 'dirty' set if it is rewritten */
             LIR_is_writeop(lh->op) && 
-            lh->farg == LIR_REGISTER
+            lh->farg->t == LIR_REGISTER &&
+            !LIR_subj_equals(lh->farg, lh->sarg)
         ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8));
         
         iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
@@ -73,17 +74,62 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
     set_t copy;
 
     set_copy(&copy, dirty);
-    _collect_out_function_reg_usage(&copy, save, bbh->l, off);
+    _collect_out_function_reg_usage(&copy, save, bbh->l, NULL);
     set_free(&copy);
     
     set_copy(&copy, dirty);
-    _collect_out_function_reg_usage(&copy, save, bbh->jmp, off);
+    _collect_out_function_reg_usage(&copy, save, bbh->jmp, NULL);
     set_free(&copy);
 
     return 0;
 }
 
-int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
+static int _is_function_arg(lir_registers_t r) {
+    lir_registers_t dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
+    lir_registers_t simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
+    for (int i = 0; i < (int)(sizeof(dec_abi_regs) / sizeof(dec_abi_regs[0])); i++) {
+        if (dec_abi_regs[i] == r) return 1;
+    }
+    for (int i = 0; i < (int)(sizeof(simd_abi_regs) / sizeof(simd_abi_regs[0])); i++) {
+        if (simd_abi_regs[i] == r) return 1;
+    }
+    return 0;
+}
+
+static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
+    lir_subject_t* last = NULL;
+    while (lh && lh != ex) {
+        if (lh->op == LIR_PUSH) {
+            last = lh->farg;
+            goto _next_inst;
+        }
+        if (
+            !last && LIR_is_movop(lh->op) && 
+            lh->farg && lh->farg->t == LIR_REGISTER && 
+            _is_function_arg(lh->farg->storage.reg.reg)
+        ) goto _next_inst;
+        if (last && LIR_is_movop(lh->op) && LIR_subj_equals(last, lh->farg)) {
+            last = NULL;
+            goto _next_inst;
+        }
+        return lh;
+_next_inst: {}
+        lh = lh->prev;
+    }
+
+    return NULL;
+}
+
+static inline lir_block_t* _find_post_argunload(lir_block_t* lh, lir_block_t* ex) {
+    while (lh && lh != ex) {
+        if (lh->op != LIR_POP && lh->op != LIR_iADD) return lh;
+        lh = lh->next;
+    }
+
+    return NULL;
+}
+
+int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
@@ -109,13 +155,32 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
                             set_free(&funcs);
                         }
 
-                        _collect_in_function_reg_usage(&func_regs, func);
-                        _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh);
+                        queue_t work_list;
+                        queue_init(&work_list);
+                        queue_push(&work_list, func);
 
+                        while (queue_pop(&work_list, (void**)&func)) {
+                            if (!func) continue;
+                            _collect_in_function_reg_usage(&func_regs, func);
+                            call_graph_node_t* call;
+                            if (map_get(&calls->verts, func->f_id, (void**)&call)) {
+                                set_foreach(call_graph_node_t* f, &call->edges) {
+                                    cfg_block_t* another;
+                                    if (f != call && map_get(&cctx->fmap, f->f_id, (void**)&another)) {
+                                        queue_push(&work_list, another);
+                                    }
+                                }
+                            }
+                        }
+
+                        _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh->next);
+                        queue_free(&work_list);
+                        
+                        lir_block_t *pre = _find_pre_argload(lh->prev, bb->lmap.exit), *post = _find_post_argunload(lh->next, bb->lmap.exit);
                         set_foreach (long reg, &save_regs) {
                             if (reg == RAX) continue;
-                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, 8), NULL, NULL), lh);
-                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, 8), NULL, NULL), lh);
+                            LIR_insert_block_after(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, 8), NULL, NULL), pre);
+                            LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, 8), NULL, NULL), post);
                         }
                         
                         set_free(&func_regs);

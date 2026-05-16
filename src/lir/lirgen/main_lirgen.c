@@ -63,7 +63,7 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
         case HIR_EXITOP:  return LIR_BLOCK1(ctx, LIR_EXITOP, _convert_hs_to_ls(h->farg));
         case HIR_FDCL:    return LIR_BLOCK1(ctx, LIR_FDCL, LIR_SUBJ_FUNCNAME(h->farg));
         case HIR_FRET:    return LIR_BLOCK1(ctx, LIR_FRET, _convert_hs_to_ls(h->farg));
-        case HIR_FARGLD:  return LIR_BLOCK2(ctx, LIR_LOADFARG, _convert_hs_to_ls(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value));
+        case HIR_FARGLD:  return LIR_BLOCK3(ctx, LIR_LOADFARG, _convert_hs_to_ls(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value), LIR_SUBJ_CONST(h->targ->storage.cnst.value));
         case HIR_UFCLL:
         case HIR_FCLL:
         case HIR_ECLL: 

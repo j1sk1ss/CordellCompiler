@@ -10,30 +10,33 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include <ast/devirt.h>
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/func.h>
+#include <hir/dag.h>
+#include <hir/constfold.h>
 #include "../../../misc/hir_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
+#include <lir/constfold.h>
+#include <lir/copyprop.h>
 #include <lir/selector/instsel.h>
 #include <lir/selector/memsel.h>
 #include <lir/selector/savereg.h>
-#include <lir/selector/x84_64_macho_nasm.h>
-#include <lir/selector/x84_64_gnu_nasm.h>
+#include <lir/selector/i386_gnu_nasm.h>
+#include <lir/peephole/peephole.h>
+#include <lir/peephole/x86_64_gnu_nasm.h>
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
 #include "../../../misc/lir_helper.h"
 
 #include <asm/asmgen.h>
-#include <asm/x86_64_gnu_nasm_asmgen.h>
-#include <asm/x86_64_macho_nasm_asmgen.h>
+#include <asm/i386_gnu_nasm_asmgen.h>
 
 #define RELOAD_CFG                          \
     HIR_CFG_unload(&cfgctx);                \
@@ -50,6 +53,16 @@ int main(int argc, char* argv[]) {
     }
 
     mm_init();
+
+    config_t cfg = {
+        .system.bytness = {
+            .bytness = 4,
+            .h_bytness = 4,
+            .q_bytness = 2,
+            .e_bytness = 1
+        }
+    };
+    CONF_set_config(&cfg);
 
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
@@ -96,18 +109,25 @@ int main(int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_CG_build(&cfgctx, &callctx, &smt);
 
+    HIR_FUNC_delete_duplicated_functions(&cfgctx);
     HIR_FUNC_set_last_return(&cfgctx);
+    HIR_FUNC_perform_tre(&cfgctx, &smt);
 
     RELOAD_CFG; // Rebuild after Last_ret + TRE
 
+    // HIR_CFG_finilize_before_dom(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
     ltree_ctx_t lctx;
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
+    
+    HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_heuristic_desider);
 
-    HIR_CFG_finilize_before_dom(&cfgctx);
+    RELOAD_CFG; // Rebuild after inlined functions
+
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
     HIR_CFG_unload_domdata(&cfgctx);
+    HIR_CFG_finilize_before_dom(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
 
     ssa_ctx_t ssactx;
@@ -117,14 +137,26 @@ int main(int argc, char* argv[]) {
     map_free_force(&ssactx.vers);
 
     HIR_compute_homes(&hirctx);
+    HIR_LTREE_licm(&cfgctx, &lctx, &smt);
+
     HIR_CFG_make_allias(&cfgctx, &smt);
+    dag_ctx_t dagctx = { .curr_id = 0 };
+    HIR_DAG_init(&dagctx);                       // Analyzation
+    HIR_DAG_generate(&cfgctx, &dagctx, &smt);    // Analyzation
+    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
 
-    // HIR_CFG_squeeze_blocks(&cfgctx);
-
+    HIR_sparse_const_propagation(&dagctx, &smt);
+    HIR_CFG_squeeze_blocks(&cfgctx);
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
-    inst_selector_t inst_sel = { .select_instructions = x86_64_macho_nasm_instruction_selection };
+
+    LIR_variable_copy_propagation(&cfgctx);
+    LIR_drop_unused_variables(&cfgctx);
+
+    inst_selector_t inst_sel = { .select_instructions = i386_gnu_nasm_instruction_selection };
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
+
+    // LIR_destroy_ssa(&cfgctx);
 
     LIR_DFG_compute_inout(&cfgctx);      // Analyzation
     LIR_DFG_create_deall(&cfgctx, &smt); // Transform
@@ -134,16 +166,24 @@ int main(int argc, char* argv[]) {
     LIR_RA_init_colors(&colors, &smt);
     LIR_regalloc(&cfgctx, &smt, &colors);
 
-    mem_selector_t mem_sel = { .select_memory = x86_64_macho_nasm_memory_selection };
-    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
-
+    mem_selector_t mem_sel = { 
+        .select_memory   = i386_gnu_nasm_memory_selection, 
+        .validate_memory = i386_gnu_nasm_memory_validation
+    };
     LIR_RA_sort_phi_movs(&cfgctx, &colors);
+    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
+
     LIR_destroy_ssa(&cfgctx);
 
-    register_saver_t reg_save = { .save_registers = x86_64_macho_nasm_caller_saving };
+    register_saver_t reg_save = { .save_registers = i386_gnu_nasm_caller_saving };
     LIR_save_registers(&cfgctx, &smt, &reg_save);
 
-    asm_gen_t asmgen = { .generator = x86_64_macho_nasm_generate_asm };
+    peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
+    LIR_peephole_optimization(&cfgctx, &pph);
+
+    LIR_validate_memory(&cfgctx, &smt, &mem_sel);
+
+    asm_gen_t asmgen = { .generator = i386_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);
 
     map_free(&colors);

@@ -88,21 +88,31 @@ int HIR_SSA_insert_phi(cfg_ctx_t* cctx, sym_table_t* smt) {
         int changed = 0;
         do {
             changed = 0;
+            set_t pending;
+            set_init(&pending, SET_NO_CMP);
+
             set_foreach (cfg_block_t* defb, &defs) {
                 set_foreach (cfg_block_t* front, &defb->domf) {
                     if (!set_has(&front->phi, (void*)vh->v_id)) {
                         if (!_insert_phi_instr(front, vh)) {
                             print_error("PHI function can't be append to the 'front' block!");
+                            set_free(&pending);
                             set_free(&defs);
                             return 0;
                         }
 
-                        if (set_add(&defs, front)) {
+                        if (!set_has(&defs, front) && set_add(&pending, front)) {
                             changed = 1;
                         }
                     }
                 }
             }
+
+            set_foreach (cfg_block_t* front, &pending) {
+                set_add(&defs, front);
+            }
+
+            set_free(&pending);
         } while (changed);
 
         set_free(&defs);

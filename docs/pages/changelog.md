@@ -36,6 +36,9 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## i386
+Compiler now has the i386 as a target architecture. 
+
 # Version v3.5
 <div class="change-date">Date: 2026-05-06</div>
 Compiler now supports polymophic params. It makes possible to implement generic types and functions which creates a way to structures and user-defined types. The preparation phase (the phase before the AST phase) was refactored. </br>
