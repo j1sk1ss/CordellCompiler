@@ -13,6 +13,7 @@
 #include <symtab/symtab.h>
 #include <prep/token_types.h>
 #include <hir/cfg.h>
+#include <hir/func.h>
 
 /*
 Create a temporary virtual variable that is linked to a physical register. 
@@ -69,7 +70,7 @@ lir_operation_t x86_64_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* 
 
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt);
 int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* smt);
-int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt);
+int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_t* smt);
 int x86_64_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt);
 
 #endif

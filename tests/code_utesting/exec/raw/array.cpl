@@ -1,4 +1,4 @@
-: ASM_ARCH=x86_64_macho :
+: ASM_ARCH=x86_64_nasm_macho :
 : RUN_ASM[args="[][]"|args="[[[[]]]]"|args="[[]"] :
 function strlen(ptr i8 s) -> i32 {
     i32 l = 0;

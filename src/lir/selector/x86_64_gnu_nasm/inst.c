@@ -262,12 +262,8 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->farg = a;
                         break;
                     }
-                    case LIR_iLWR:
-                    case LIR_iLRE:
-                    case LIR_iLRG:
-                    case LIR_iLGE:
-                    case LIR_iCMP:
-                    case LIR_iNMP: {
+                    case LIR_iLWR: case LIR_iLRE: case LIR_iLRG: case LIR_iLGE:
+                    case LIR_iCMP: case LIR_iNMP: {
                         lir_subject_t* a   = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, -1);
                         lir_subject_t* b   = lh->targ;
                         lir_subject_t* res = LIR_SUBJ_REG(AL, 1);

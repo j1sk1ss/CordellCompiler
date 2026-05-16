@@ -56,7 +56,8 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
     while (lh) {
         if ( /* Remove register from the 'dirty' set if it is rewritten */
             LIR_is_writeop(lh->op) && 
-            lh->farg->t == LIR_REGISTER
+            lh->farg->t == LIR_REGISTER &&
+            !LIR_subj_equals(lh->farg, lh->sarg)
         ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 4));
         
         iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
@@ -111,7 +112,7 @@ static inline lir_block_t* _find_post_argunload(lir_block_t* lh, lir_block_t* ex
     return NULL;
 }
 
-int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
+int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
@@ -137,8 +138,26 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
                             set_free(&funcs);
                         }
 
-                        _collect_in_function_reg_usage(&func_regs, func);
+                        queue_t work_list;
+                        queue_init(&work_list);
+                        queue_push(&work_list, func);
+
+                        while (queue_pop(&work_list, (void**)&func)) {
+                            if (!func) continue;
+                            _collect_in_function_reg_usage(&func_regs, func);
+                            call_graph_node_t* call;
+                            if (map_get(&calls->verts, func->f_id, (void**)&call)) {
+                                set_foreach(call_graph_node_t* f, &call->edges) {
+                                    cfg_block_t* another;
+                                    if (f != call && map_get(&cctx->fmap, f->f_id, (void**)&another)) {
+                                        queue_push(&work_list, another);
+                                    }
+                                }
+                            }
+                        }
+
                         _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh->next);
+                        queue_free(&work_list);
 
                         set_foreach (long reg, &save_regs) {
                             if (reg == EAX) continue;

@@ -108,7 +108,7 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_FCLL: {
                         if (clean_stack) {
-                            LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 8), LIR_SUBJ_REG(ESP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
+                            LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
                             clean_stack = 0;
                         }
                     }
@@ -262,12 +262,8 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->farg = a;
                         break;
                     }
-                    case LIR_iLWR:
-                    case LIR_iLRE:
-                    case LIR_iLRG:
-                    case LIR_iLGE:
-                    case LIR_iCMP:
-                    case LIR_iNMP: {
+                    case LIR_iLWR: case LIR_iLRE: case LIR_iLRG: case LIR_iLGE:
+                    case LIR_iCMP: case LIR_iNMP: {
                         lir_subject_t* a   = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, -1);
                         lir_subject_t* b   = lh->targ;
                         lir_subject_t* res = LIR_SUBJ_REG(AL, 1);

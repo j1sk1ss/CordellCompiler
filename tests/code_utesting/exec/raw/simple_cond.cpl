@@ -1,4 +1,4 @@
-: ASM_ARCH=x86_64_macho :
+: ASM_ARCH=x86_64_nasm_macho :
 : RUN_ASM :
 start() {
     str fst = "First option!\n";

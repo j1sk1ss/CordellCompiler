@@ -1,4 +1,4 @@
-: ASM_ARCH=x86_64_macho :
+: ASM_ARCH=x86_64_nasm_macho :
 : BLOCK_TEST :
 : RUN_ASM :
 #define TEMP_FLAG 0

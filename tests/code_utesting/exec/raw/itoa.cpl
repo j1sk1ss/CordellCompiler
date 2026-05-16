@@ -1,4 +1,4 @@
-: ASM_ARCH=x86_64_macho :
+: ASM_ARCH=x86_64_nasm_macho :
 : BUG :
 : RUN_ASM :
 function itoa(i32 num, ptr i8 buffer, i32 blen) -> i0 {
