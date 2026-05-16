@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     LIR_destroy_ssa(&cfgctx);
 
     register_saver_t reg_save = { .save_registers = x86_64_gnu_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &smt, &reg_save);
+    LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
 
     LIR_validate_memory(&cfgctx, &smt, &mem_sel);
 
