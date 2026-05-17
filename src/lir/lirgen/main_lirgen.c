@@ -42,11 +42,14 @@ static lir_subject_t* _convert_hs_to_ls(hir_subject_t* subj) {
 }
 
 static int _translate_params_list(lir_operation_t op, lir_ctx_t* ctx, list_t* hir_args, list_t* lir_args) {
-    int argnum = 0;
-    foreach (hir_subject_t* hir_arg, hir_args) {
+    int argnum = 0, arg_count = list_size(hir_args) - 1;
+    list_iter_t it;
+    list_iter_tinit(hir_args, &it);
+    hir_subject_t* hir_arg;
+    while ((hir_arg = list_iter_prev(&it))) {
         lir_subject_t* lir_arg = _convert_hs_to_ls(hir_arg);
         list_add(lir_args, lir_arg);
-        LIR_BLOCK2(ctx, op, lir_arg, LIR_SUBJ_CONST(argnum++));
+        LIR_BLOCK2(ctx, op, lir_arg, LIR_SUBJ_CONST(arg_count - argnum++));
     }
 
     return 1;

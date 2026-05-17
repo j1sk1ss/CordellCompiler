@@ -12,7 +12,7 @@ Returns 1 on success, otherwise 0.
 */
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     if (!f) {
-        lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP, ESP };
+        lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP };
         for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(dirty_regs[0])); i++) {
             set_add(dirty, (void*)dirty_regs[i]);
         }
@@ -143,8 +143,8 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_
                         queue_push(&work_list, func);
 
                         while (queue_pop(&work_list, (void**)&func)) {
-                            if (!func) continue;
                             _collect_in_function_reg_usage(&func_regs, func);
+                            if (!func) continue;
                             call_graph_node_t* call;
                             if (map_get(&calls->verts, func->f_id, (void**)&call)) {
                                 set_foreach(call_graph_node_t* f, &call->edges) {

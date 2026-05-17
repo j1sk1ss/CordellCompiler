@@ -99,7 +99,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
                     case LIR_LOADFARG: {
-                        lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->targ->storage.cnst.value + !fi.flags.naked) * -4, lh->farg->size);
+                        lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->sarg->storage.cnst.value + !fi.flags.naked + 1) * -4, lh->farg->size);
                         LIR_unload_subject(lh->sarg);
                         lh->op   = LIR_phiMOV;
                         lh->sarg = nfarg;

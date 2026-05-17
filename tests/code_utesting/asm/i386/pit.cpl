@@ -30,19 +30,23 @@ mov ebx, eax
 mov bx, bx
 mov dx, bx
 mov bl, 54
-push 67
+push edx
 push ebx
+push 67
 call i386_outb
 add esp, 8
+pop edx
 mov bx, 255
 mov ax, dx
 and ax, bx
 mov bx, ax
 mov bl, bl
-push 64
+push edx
 push ebx
+push 64
 call i386_outb
 add esp, 8
+pop edx
 mov bx, 8
 mov ax, dx
 mov cl, bx
@@ -53,8 +57,8 @@ mov ax, bx
 and ax, dx
 mov bx, ax
 mov bl, bl
-push 64
 push ebx
+push 64
 call i386_outb
 add esp, 8
 ret

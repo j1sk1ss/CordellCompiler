@@ -17,8 +17,8 @@ mov ebx, 10
 mov edx, ebx
 mov ebx, 10
 mov ebx, ebx
-push edx
 push ebx
+push edx
 call _cpl_sum2__i64__u8
 add esp, 8
 mov bl, al
