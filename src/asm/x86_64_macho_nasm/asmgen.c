@@ -298,7 +298,10 @@ int x86_64_macho_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* outp
     }
 
     map_foreach (section_info_t* section, &smt->c.sectb) {
-        EMIT_COMMAND("section %s", section->name->body);
+        if (!section->name->requals(section->name, CONF_get_no_section())) {
+            EMIT_COMMAND("section %s", section->name->body);
+        }
+        
         set_foreach (symbol_id_t id, &section->vars) {
             _generate_variable(id, smt, output);
         }

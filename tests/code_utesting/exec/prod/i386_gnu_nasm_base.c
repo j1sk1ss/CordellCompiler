@@ -44,7 +44,7 @@
     HIR_CG_unload(&callctx);                \
     HIR_CG_build(&cfgctx, &callctx, &smt);  \
     HIR_CG_perform_dfe(&callctx, &smt);     \
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_CG_apply_dfe(&cfgctx, &smt);
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {

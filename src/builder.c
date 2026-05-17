@@ -497,7 +497,7 @@ _fail: {}
     HIR_CG_unload(&callctx);                \
     HIR_CG_build(&cfgctx, &callctx, &smt);  \
     HIR_CG_perform_dfe(&callctx, &smt);     \
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_CG_apply_dfe(&cfgctx, &smt);
 
 int main(int argc, char* argv[]) {
     if (argc == 1) {
@@ -581,7 +581,7 @@ int main(int argc, char* argv[]) {
         call_graph_t callctx;
         HIR_CG_build(&cfgctx, &callctx, &smt);
         HIR_CG_perform_dfe(&callctx, &smt);
-        HIR_CG_apply_dfe(&cfgctx, &callctx);
+        HIR_CG_apply_dfe(&cfgctx, &smt);
 
         HIR_FUNC_set_last_return(&cfgctx);
 
@@ -682,7 +682,7 @@ int main(int argc, char* argv[]) {
 
         LIR_regalloc(&cfgctx, &smt, &colors);
         LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
-        LIR_save_registers(&cfgctx, &smt, &reg_save);
+        LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
         if (options.config.peephole) {
             LIR_peephole_optimization(&cfgctx, &pph);
         }

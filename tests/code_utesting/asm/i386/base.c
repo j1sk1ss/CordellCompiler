@@ -39,7 +39,7 @@
     HIR_CG_unload(&callctx);                \
     HIR_CG_build(&cfgctx, &callctx, &smt);  \
     HIR_CG_perform_dfe(&callctx, &smt);     \
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_CG_apply_dfe(&cfgctx, &smt);
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     HIR_FUNC_set_last_return(&cfgctx);
 
-    RELOAD_CFG; // Rebuild after Last_ret + TRE
+    RELOAD_CFG;
 
     HIR_CFG_create_domdata(&cfgctx);
     ltree_ctx_t lctx;
@@ -120,22 +120,20 @@ int main(int argc, char* argv[]) {
 
     ssa_ctx_t ssactx;
     map_init(&ssactx.vers, MAP_NO_CMP);
-    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
-    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
+    HIR_SSA_insert_phi(&cfgctx, &smt);
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt);
     map_free_force(&ssactx.vers);
 
     HIR_compute_homes(&hirctx);
     HIR_CFG_make_allias(&cfgctx, &smt);
 
-    // HIR_CFG_squeeze_blocks(&cfgctx);
-
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
     inst_selector_t inst_sel = { .select_instructions = i386_gnu_nasm_instruction_selection };
-    LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
+    LIR_select_instructions(&cfgctx, &smt, &inst_sel);
 
-    LIR_DFG_compute_inout(&cfgctx);      // Analyzation
-    LIR_DFG_create_deall(&cfgctx, &smt); // Transform
+    LIR_DFG_compute_inout(&cfgctx);
+    LIR_DFG_create_deall(&cfgctx, &smt);
 
     map_t colors;
     map_init(&colors, MAP_NO_CMP);
@@ -143,13 +141,13 @@ int main(int argc, char* argv[]) {
     LIR_regalloc(&cfgctx, &smt, &colors);
 
     mem_selector_t mem_sel = { .select_memory = i386_gnu_nasm_memory_selection };
-    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
+    LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
 
     LIR_RA_sort_phi_movs(&cfgctx, &colors);
     LIR_destroy_ssa(&cfgctx);
 
     register_saver_t reg_save = { .save_registers = i386_gnu_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &smt, &reg_save);
+    LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
 
     asm_gen_t asmgen = { .generator = i386_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);

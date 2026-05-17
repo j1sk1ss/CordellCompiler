@@ -146,7 +146,8 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
     else {
-        if (!annots.section) annots.section = create_string(CONF_get_code_section());
+        if (annots.is_nosec) annots.section      = create_string(CONF_get_no_section());
+        else if (!annots.section) annots.section = create_string(CONF_get_code_section());
         SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
     }
 

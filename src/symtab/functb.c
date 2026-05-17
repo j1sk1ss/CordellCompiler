@@ -105,7 +105,8 @@ symbol_id_t FNTB_add_info(
 
     func_info_t* nnd = _create_func_info(name, global, local, entry, naked, vargs, generic, args, rtype);
     if (!nnd) return 0;
-    nnd->s_id = s_id;
+    nnd->s_id       = s_id;
+    nnd->flags.used = global;
     
     nnd->id = ctx->curr_id++;
     if (!vname) nnd->virt = _create_virt_name(nnd->id, name);

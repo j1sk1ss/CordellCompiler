@@ -12,7 +12,7 @@ static set_t* _get_target(section_elem_type_t t, section_info_t* section) {
 static section_info_t* _create_section(string_t* name) {
     section_info_t* s = (section_info_t*)mm_malloc(sizeof(section_info_t));
     if (!s) return NULL;
-    s->name = name->copy(name);
+    if (name) s->name = name->copy(name);
     set_init(&s->vars, SET_NO_CMP);
     set_init(&s->func, SET_NO_CMP);
     set_init(&s->strs, SET_NO_CMP);
@@ -38,11 +38,13 @@ int SCTB_remove_from_section(string_t* section, symbol_id_t id, section_elem_typ
 }
 
 int SCTB_add_to_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx) {
-    print_log("SCTB_add_to_section(section=%s, id=%li, t=%i)", section->body, id, t);
+    print_log("SCTB_add_to_section(section=%s, id=%li, t=%i)", section ? section->body : "(null)", id, t);
+    long section_address = section ? (long)section->hash : 0;
+    
     section_info_t* info;
-    if (!map_get(&ctx->sectb, (long)section->hash, (void**)&info)) {
+    if (!map_get(&ctx->sectb, section_address, (void**)&info)) {
         info = _create_section(section);
-        if (!map_put(&ctx->sectb, (long)section->hash, info)) {
+        if (!map_put(&ctx->sectb, section_address, info)) {
             _unload_secinfo(info);
             return 0;
         }
@@ -62,7 +64,7 @@ string_t* SCTB_get_section_name(symbol_id_t id, section_elem_type_t t, sectb_ctx
 }
 
 int SCTB_move_to_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx) {
-    print_log("SCTB_move_to_section(section=%s, id=%li, t=%i)", section->body, id, t);
+    print_log("SCTB_move_to_section(section=%s, id=%li, t=%i)", section ? section->body : "(null)", id, t);
     string_t* ps = SCTB_get_section_name(id, t, ctx);
     if (ps) SCTB_remove_from_section(ps, id, t, ctx);
     return SCTB_add_to_section(section, id, t, ctx);

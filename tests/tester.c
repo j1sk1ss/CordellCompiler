@@ -188,7 +188,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
     HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &smt);    // Analyzation
     call_graph_print_dot(&callctx);
     
 #ifdef HIR_PRINT

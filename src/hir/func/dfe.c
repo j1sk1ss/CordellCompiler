@@ -34,15 +34,15 @@ int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt) {
     return 1;
 }
 
-int HIR_CG_apply_dfe(cfg_ctx_t* cctx, call_graph_t* ctx) {
-    call_graph_node_t* nd;
+int HIR_CG_apply_dfe(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        if (!map_get(&ctx->verts, fb->f_id, (void**)&nd)) {
+        func_info_t fi;
+        if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) {
             fb->used = 0;
             continue;
         }
-
-        fb->used = nd->flag;
+        
+        fb->used = fi.flags.used;
     }
 
     return 1;

@@ -13,7 +13,7 @@
 #include <hir/loop.h>
 
 typedef struct {
-    char  flag : 1;
+    char  flag;
     long  f_id;
     set_t edges;
 } call_graph_node_t;
@@ -29,11 +29,11 @@ Note: Will mark functions as unused if they aren't connected to each other
 in call graph.
 Params:
     - `cctx` - CFG context.
-    - `ctx` - Call graph context.
+    - `smt` - Symbol table.
 
 Returns 1 on success, otherwise 0.
 */
-int HIR_CG_apply_dfe(cfg_ctx_t* cctx, call_graph_t* ctx);
+int HIR_CG_apply_dfe(cfg_ctx_t* cctx, sym_table_t* smt);
 
 /*
 [Analyzation] Perform basic call graph generation.

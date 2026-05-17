@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);
     HIR_CG_perform_dfe(&callctx, &smt);
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_CG_apply_dfe(&cfgctx, &smt);
 
     HIR_FUNC_set_last_return(&cfgctx);
 

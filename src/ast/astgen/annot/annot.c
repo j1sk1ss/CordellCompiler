@@ -33,6 +33,7 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
                 summary->fname = annot->data.fname ? annot->data.fname->copy(annot->data.fname) : NULL;
                 break;
             }
+            case NOSECTION_ANNOTATION: summary->is_nosec = 1;                break;
             case ALIGN_ANNOTATION: summary->align = annot->data.align;       break;
             case NAKED_ANNOTATION: summary->is_naked = 1;                    break;
             case NOFALL_ANNOTATION: summary->is_nofall = 1;                  break;
