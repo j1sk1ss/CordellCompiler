@@ -389,9 +389,19 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
 
 int i386_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
+        func_info_t fi;
+        if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
             _validate_size_movs(bb, smt);
             _validate_selected_instuction(bb, smt);
+            if (fi.flags.naked != 1) continue;
+            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
+            while (lh) {
+                iterate_lir_args(lir_subject_t* s, lh, 0) {
+                    if (s->t == LIR_MEMORY && s->storage.var.base == EBP) s->storage.var.base = ESP;
+                }
+                lh = LIR_get_next(lh, bb->lmap.exit, 1);
+            }
         }
     }
 

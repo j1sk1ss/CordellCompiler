@@ -1,5 +1,11 @@
 #include <builder.h>
 
+#define CCPL_VERSION                 "3.5"
+
+#define OPTION_HELP_SHORT            "-h"
+#define OPTION_HELP                  "--help"
+#define OPTION_VERSION_SHORT         "-v"
+#define OPTION_VERSION               "--version"
 #define OPTION_INLUCDE               "-I"
 #define OPTION_OUTPUT                "--output"
 #define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
@@ -19,6 +25,7 @@
 #define OPTION_LINKER_PIE            "--linker-pie"
 #define OPTION_LINKER_M32            "--linker-m32"
 #define OPTION_LINKER_NO_M32         "--linker-no-m32"
+#define OPTION_NO_COMPILE            "--no-compile"
 #define OPTION_ENTRY_NAME            "--entry-name"
 #define OPTION_RO_SECTION            "--ro-section"
 #define OPTION_GLOB_SECTION          "--glob-section"
@@ -41,64 +48,111 @@
 #define OPTION_EMIT_AST              "--emit-ast"
 #define OPTION_EMIT_IR               "--emit-ir"
 #define OPTION_EMIT_ASM              "--emit-asm"
+#define OPTION_AST_OUTPUT            "--ast-output"
+#define OPTION_IR_OUTPUT             "--ir-output"
+#define OPTION_ASM_OUTPUT            "--asm-output"
+
+typedef struct {
+    const char* option;
+    const char* argument;
+    const char* description;
+} cli_help_option_t;
+
+static void _print_version(FILE* stream) {
+    fprintf(stream, "ccpl %s\n", CCPL_VERSION);
+}
+
+static void _print_help_row(FILE* stream, const cli_help_option_t* row) {
+    char label[64];
+    if (row->argument && row->argument[0]) {
+        snprintf(label, sizeof(label), "%s %s", row->option, row->argument);
+    }
+    else {
+        snprintf(label, sizeof(label), "%s", row->option);
+    }
+
+    fprintf(stream, "  %-28s %s\n", label, row->description);
+}
+
+static void _print_help_section(FILE* stream, const char* title, const cli_help_option_t* rows, size_t count) {
+    fprintf(stream, "\n%s:\n", title);
+    for (size_t i = 0; i < count; i++) {
+        _print_help_row(stream, &rows[i]);
+    }
+}
 
 static int _print_help_message() {
-    fprintf(stdout, "Usage: ccpl [options] <input files>\n\n");
+    static const cli_help_option_t general_options[] = {
+        { OPTION_HELP_SHORT ", " OPTION_HELP, NULL, "Show this help message" },
+        { OPTION_VERSION_SHORT ", " OPTION_VERSION, NULL, "Show compiler version" },
+        { OPTION_INLUCDE, "<dir>", "Add include directory" },
+        { OPTION_OUTPUT, "<file>", "Set output file" },
+        { OPTION_ENABLE_AST_ANALYSIS, NULL, "Enable AST analysis" },
+        { OPTION_ENABLE_IR_ANALYSIS, NULL, "Enable IR analysis" },
+        { OPTION_DEBUG, NULL, "Enable debug mode" },
+        { OPTION_NO_DEBUG, NULL, "Disable debug mode" },
+    };
+    static const cli_help_option_t optimization_options[] = {
+        { OPTION_NO_OPTIMIZATION, NULL, "Disable optimizations" },
+        { OPTION_ROUGHT_OPTIMIZATION, NULL, "Rough optimization level" },
+        { OPTION_GOOD_OPTIMIZATION, NULL, "Good optimization level" },
+        { OPTION_MAX_OPTIMIZATION, NULL, "Maximum optimization level" },
+        { OPTION_FINLINE, NULL, "Enable function inlining" },
+        { OPTION_NO_FINLINE, NULL, "Disable function inlining" },
+        { OPTION_LICM, NULL, "Enable LICM" },
+        { OPTION_NO_LICM, NULL, "Disable LICM" },
+        { OPTION_CONSTANT, NULL, "Enable constant propagation/folding" },
+        { OPTION_NO_CONSTANT, NULL, "Disable constant propagation/folding" },
+        { OPTION_PEEPHOLE, NULL, "Enable peephole optimization" },
+        { OPTION_NO_PEEPHOLE, NULL, "Disable peephole optimization" },
+        { OPTION_TRE, NULL, "Enable TRE" },
+        { OPTION_NO_TRE, NULL, "Disable TRE" },
+    };
+    static const cli_help_option_t target_options[] = {
+        { OPTION_ARCH, "<arch>", "Set target architecture (x86_64, x86, i386)" },
+        { OPTION_FULL_BYTNESS, "<size>", "Set full bytness" },
+        { OPTION_HALF_BYTNESS, "<size>", "Set half bytness" },
+        { OPTION_QUART_BYTNESS, "<size>", "Set quart bytness" },
+        { OPTION_EIGHT_BYTNESS, "<size>", "Set eight bytness" },
+        { OPTION_SYS_TYPE, "<type>", "Set system type (macho64, linux64, i386, windows64)" },
+    };
+    static const cli_help_option_t assembler_options[] = {
+        { OPTION_ASM_COMPILER, "<compiler>", "Set assembler compiler (nasm, ...)" },
+        { OPTION_ASM_FORMAT, "<format>", "Set assembler format (macho64, elf64, elf32, ...)" },
+    };
+    static const cli_help_option_t linker_options[] = {
+        { OPTION_LINKER, "<linker>", "Set linker (ld, gcc, clang, ...)" },
+        { OPTION_LINKER_MODE, "<mode>", "Set linker mode (c, driver, raw, ld)" },
+        { OPTION_NO_COMPILE, NULL, "Stop after assembly generation" },
+        { OPTION_LINKER_NO_PIE, NULL, "Disable PIE" },
+        { OPTION_LINKER_PIE, NULL, "Enable PIE" },
+        { OPTION_LINKER_M32, NULL, "Enable m32 mode" },
+        { OPTION_LINKER_NO_M32, NULL, "Disable m32 mode" },
+        { OPTION_ENTRY_NAME, "<name>", "Set entry symbol name" },
+    };
+    static const cli_help_option_t section_options[] = {
+        { OPTION_RO_SECTION, "<name>", "Set read-only section name" },
+        { OPTION_GLOB_SECTION, "<name>", "Set global section name" },
+        { OPTION_CODE_SECTION, "<name>", "Set code section name" },
+    };
+    static const cli_help_option_t emit_options[] = {
+        { OPTION_EMIT_AST, NULL, "Emit AST dump" },
+        { OPTION_AST_OUTPUT, "<file>", "Set AST dump output path" },
+        { OPTION_EMIT_IR, NULL, "Emit HIR dump" },
+        { OPTION_IR_OUTPUT, "<file>", "Set HIR dump output path" },
+        { OPTION_EMIT_ASM, NULL, "Emit produced assembly code" },
+        { OPTION_ASM_OUTPUT, "<file>", "Set assembly output path" },
+    };
 
-    fprintf(stdout, "General options:\n");
-    fprintf(stdout, "  %s <dir>\t\tAdd include directory\n", OPTION_INLUCDE);
-    fprintf(stdout, "  %s <file>\tSet output file\n", OPTION_OUTPUT);
-    fprintf(stdout, "  %s\t\tEnable AST analysis\n", OPTION_ENABLE_AST_ANALYSIS);
-    fprintf(stdout, "  %s\t\tEnable IR analysis\n", OPTION_ENABLE_IR_ANALYSIS);
-    fprintf(stdout, "  %s\t\tEnable debug mode\n", OPTION_DEBUG);
-    fprintf(stdout, "  %s\t\tDisable debug mode\n", OPTION_NO_DEBUG);
-
-    fprintf(stdout, "\nOptimization options:\n");
-    fprintf(stdout, "  %s\t\tDisable optimizations\n", OPTION_NO_OPTIMIZATION);
-    fprintf(stdout, "  %s\t\tRough optimization level\n", OPTION_ROUGHT_OPTIMIZATION);
-    fprintf(stdout, "  %s\t\tGood optimization level\n", OPTION_GOOD_OPTIMIZATION);
-    fprintf(stdout, "  %s\t\tMaximum optimization level\n", OPTION_MAX_OPTIMIZATION);
-    fprintf(stdout, "  %s\t\tEnable function inlining\n", OPTION_FINLINE);
-    fprintf(stdout, "  %s\t\tDisable function inlining\n", OPTION_NO_FINLINE);
-    fprintf(stdout, "  %s\t\tEnable LICM\n", OPTION_LICM);
-    fprintf(stdout, "  %s\t\tDisable LICM\n", OPTION_NO_LICM);
-    fprintf(stdout, "  %s\t\tEnable constant propagation/folding\n", OPTION_CONSTANT);
-    fprintf(stdout, "  %s\t\tDisable constant propagation/folding\n", OPTION_NO_CONSTANT);
-    fprintf(stdout, "  %s\t\tEnable peephole optimization\n", OPTION_PEEPHOLE);
-    fprintf(stdout, "  %s\t\tDisable peephole optimization\n", OPTION_NO_PEEPHOLE);
-    fprintf(stdout, "  %s\t\tEnable TRE\n", OPTION_TRE);
-    fprintf(stdout, "  %s\t\tDisable TRE\n", OPTION_NO_TRE);
-
-    fprintf(stdout, "\nTarget options:\n");
-    fprintf(stdout, "  %s <arch>\t\tSet target architecture (x86_64, x86_32, i386)\n", OPTION_ARCH);
-    fprintf(stdout, "  %s\t\tSet full bytness (1, 2, 4, 8, ...)\n", OPTION_FULL_BYTNESS);
-    fprintf(stdout, "  %s\t\tUse half bytness (1, 2, 4, 8, ...)\n", OPTION_HALF_BYTNESS);
-    fprintf(stdout, "  %s\t\tUse quart bytness (1, 2, 4, 8, ...)\n", OPTION_QUART_BYTNESS);
-    fprintf(stdout, "  %s\t\tUse eight bytness (1, 2, 4, 8, ...)\n", OPTION_EIGHT_BYTNESS);
-    fprintf(stdout, "  %s <type>\t\tSet system type (macho64, linux64, windows64)\n", OPTION_SYS_TYPE);
-
-    fprintf(stdout, "\nAssembler options:\n");
-    fprintf(stdout, "  %s <compiler>\tSet assembler compiler (nasm, ...)\n", OPTION_ASM_COMPILER);
-    fprintf(stdout, "  %s <format>\tSet assembler format (macho64, ...)\n", OPTION_ASM_FORMAT);
-
-    fprintf(stdout, "\nLinker options:\n");
-    fprintf(stdout, "  %s <linker>\tSet linker (ld, gcc, clang, ...)\n", OPTION_LINKER);
-    fprintf(stdout, "  %s <mode>\tSet linker mode\n", OPTION_LINKER_MODE);
-    fprintf(stdout, "  %s\t\tDisable PIE\n", OPTION_LINKER_NO_PIE);
-    fprintf(stdout, "  %s\t\tEnable PIE\n", OPTION_LINKER_PIE);
-    fprintf(stdout, "  %s\t\tEnable m32 mode\n", OPTION_LINKER_M32);
-    fprintf(stdout, "  %s\t\tDisable m32 mode\n", OPTION_LINKER_NO_M32);
-    fprintf(stdout, "  %s <name>\tSet entry symbol name\n", OPTION_ENTRY_NAME);
-
-    fprintf(stdout, "\nSection options:\n");
-    fprintf(stdout, "  %s <name>\tSet read-only section name\n", OPTION_RO_SECTION);
-    fprintf(stdout, "  %s <name>\tSet global section name\n", OPTION_GLOB_SECTION);
-    fprintf(stdout, "  %s <name>\tSet code section name\n", OPTION_CODE_SECTION);
-
-    fprintf(stdout, "\nEmit options:\n");
-    fprintf(stdout, "  %s\t\tEmit AST as output.ast file\n", OPTION_EMIT_AST);
-    fprintf(stdout, "  %s\t\tEmit IR as output.hir file\n", OPTION_EMIT_IR);
-    fprintf(stdout, "  %s\t\tEmit produced assembly code instead executable file\n", OPTION_EMIT_ASM);
+    _print_version(stdout);
+    fprintf(stdout, "Usage: ccpl [options] <input files>\n");
+    _print_help_section(stdout, "General options", general_options, sizeof(general_options) / sizeof(general_options[0]));
+    _print_help_section(stdout, "Optimization options", optimization_options, sizeof(optimization_options) / sizeof(optimization_options[0]));
+    _print_help_section(stdout, "Target options", target_options, sizeof(target_options) / sizeof(target_options[0]));
+    _print_help_section(stdout, "Assembler options", assembler_options, sizeof(assembler_options) / sizeof(assembler_options[0]));
+    _print_help_section(stdout, "Linker options", linker_options, sizeof(linker_options) / sizeof(linker_options[0]));
+    _print_help_section(stdout, "Section options", section_options, sizeof(section_options) / sizeof(section_options[0]));
+    _print_help_section(stdout, "Emit options", emit_options, sizeof(emit_options) / sizeof(emit_options[0]));
     return 0;
 }
 
@@ -108,6 +162,9 @@ typedef struct {
         const char** files;
         int          files_count;
         char*        output;
+        char*        ast_output;
+        char*        ir_output;
+        char*        asm_output;
     } locations;
     struct {
         const char*  asm_compiler;
@@ -141,6 +198,9 @@ typedef struct {
     struct {
         int          ast_analysis;
         int          hir_analysis;
+        int          show_help;
+        int          show_version;
+        int          no_compile;
     } flags;
 } options_t;
 
@@ -222,6 +282,10 @@ static int _link_objects(const options_t* options, char* const objects[], int ob
     return ok;
 }
 
+static const char* _output_path_or_default(const char* path, const char* fallback) {
+    return path ? path : fallback;
+}
+
 static int _parse_long_arg(const char* s, long* out) {
     if (!s || !out) return 0;
     char* end = NULL;
@@ -259,6 +323,12 @@ static int _parse_sys_type(const char* s, arch_type_t* out) {
         return 1;
     }
     else if (
+        !strcmp(s, "i386")
+    ) {
+        *out = I386;
+        return 1;
+    }
+    else if (
         !strcmp(s, "windows64") || 
         !strcmp(s, "WINDOWS64")
     ) {
@@ -272,11 +342,12 @@ static int _parse_sys_type(const char* s, arch_type_t* out) {
 static void _set_optimization_profile(options_t* out, int level) {
     if (!out) return;
 
-    out->config.tre      = 0;
-    out->config.finline  = 0;
-    out->config.licm     = 0;
-    out->config.constant = 0;
-    out->config.peephole = 0;
+    out->config.tre       = 0;
+    out->config.finline   = 0;
+    out->config.licm      = 0;
+    out->config.constant  = 0;
+    out->config.peephole  = 0;
+    out->config.copy_prop = 0;
 
     if (level >= 2) {
         out->config.licm     = 1;
@@ -287,20 +358,22 @@ static void _set_optimization_profile(options_t* out, int level) {
     if (level >= 3) {
         out->config.copy_prop = 1;
         out->config.tre       = 1;
+        out->config.finline   = 1;
     }
 }
 
 static void _set_arch_profile(options_t* out, const char* arch) {
     if (!out || !arch) return;
     if (
-        !strcmp(arch, "x86") || 
+        !strcmp(arch, "x86")  || 
         !strcmp(arch, "i386") || 
         !strcmp(arch, "ia32")
     ) {
         out->config.full_bytness  = 4;
-        out->config.half_bytness  = 2;
-        out->config.quart_bytness = 1;
+        out->config.half_bytness  = 4;
+        out->config.quart_bytness = 2;
         out->config.eight_bytness = 1;
+        out->config.sys_type      = I386;
         out->tools.asm_format     = "elf32";
         out->tools.linker_m32     = 1;
         return;
@@ -335,9 +408,9 @@ static config_t _make_config(const options_t* options) {
             .sys_type = options->config.sys_type,
         },
         .optimization_flags = {
-            .tre      = options->config.tre ? 1 : 0,
-            .finline  = options->config.finline ? 1 : 0,
-            .licm     = options->config.licm ? 1 : 0,
+            .tre      = options->config.tre      ? 1 : 0,
+            .finline  = options->config.finline  ? 1 : 0,
+            .licm     = options->config.licm     ? 1 : 0,
             .constant = options->config.constant ? 1 : 0,
             .peephole = options->config.peephole ? 1 : 0,
         },
@@ -383,7 +456,13 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
     if (!out->locations.files) return 0;
 
     for (int i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], OPTION_OUTPUT)) {
+        if (!strcmp(argv[i], OPTION_HELP_SHORT) || !strcmp(argv[i], OPTION_HELP)) {
+            out->flags.show_help = 1;
+        }
+        else if (!strcmp(argv[i], OPTION_VERSION_SHORT) || !strcmp(argv[i], OPTION_VERSION)) {
+            out->flags.show_version = 1;
+        }
+        else if (!strcmp(argv[i], OPTION_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.output = argv[++i];
         }
@@ -410,14 +489,15 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_LINKER_MODE)) {
             if (i + 1 >= argc) goto _fail;
             const char* mode = argv[++i];
-            if (!strcmp(mode, "c") || !strcmp(mode, "driver")) out->tools.linker_use_c_driver = 1;
+            if (!strcmp(mode, "c") || !strcmp(mode, "driver")) out->tools.linker_use_c_driver    = 1;
             else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver = 0;
             else goto _fail;
         }
+        else if (!strcmp(argv[i], OPTION_NO_COMPILE)) out->flags.no_compile = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE)) out->tools.linker_no_pie = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_PIE)) out->tools.linker_no_pie = 0;
-        else if (!strcmp(argv[i], OPTION_LINKER_M32)) out->tools.linker_m32 = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32)) out->tools.linker_m32 = 0;
+        else if (!strcmp(argv[i], OPTION_LINKER_PIE))    out->tools.linker_no_pie = 0;
+        else if (!strcmp(argv[i], OPTION_LINKER_M32))    out->tools.linker_m32    = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32)) out->tools.linker_m32    = 0;
         else if (!strcmp(argv[i], OPTION_ENTRY_NAME)) {
             if (i + 1 >= argc) goto _fail;
             out->config.entry_name = argv[++i];
@@ -454,33 +534,48 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             if (i + 1 >= argc || !_parse_sys_type(argv[i + 1], &out->config.sys_type)) goto _fail;
             i++;
         }
-        else if (!strcmp(argv[i], OPTION_TRE))                  out->config.tre = 1;
-        else if (!strcmp(argv[i], OPTION_NO_TRE))               out->config.tre = 0;
-        else if (!strcmp(argv[i], OPTION_FINLINE))              out->config.finline = 1;
-        else if (!strcmp(argv[i], OPTION_NO_FINLINE))           out->config.finline = 0;
-        else if (!strcmp(argv[i], OPTION_LICM))                 out->config.licm = 1;
-        else if (!strcmp(argv[i], OPTION_NO_LICM))              out->config.licm = 0;
-        else if (!strcmp(argv[i], OPTION_CONSTANT))             out->config.constant = 1;
-        else if (!strcmp(argv[i], OPTION_NO_CONSTANT))          out->config.constant = 0;
-        else if (!strcmp(argv[i], OPTION_PEEPHOLE))             out->config.peephole = 1;
-        else if (!strcmp(argv[i], OPTION_NO_PEEPHOLE))          out->config.peephole = 0;
+        else if (!strcmp(argv[i], OPTION_TRE))                  out->config.tre         = 1;
+        else if (!strcmp(argv[i], OPTION_NO_TRE))               out->config.tre         = 0;
+        else if (!strcmp(argv[i], OPTION_FINLINE))              out->config.finline     = 1;
+        else if (!strcmp(argv[i], OPTION_NO_FINLINE))           out->config.finline     = 0;
+        else if (!strcmp(argv[i], OPTION_LICM))                 out->config.licm        = 1;
+        else if (!strcmp(argv[i], OPTION_NO_LICM))              out->config.licm        = 0;
+        else if (!strcmp(argv[i], OPTION_CONSTANT))             out->config.constant    = 1;
+        else if (!strcmp(argv[i], OPTION_NO_CONSTANT))          out->config.constant    = 0;
+        else if (!strcmp(argv[i], OPTION_PEEPHOLE))             out->config.peephole    = 1;
+        else if (!strcmp(argv[i], OPTION_NO_PEEPHOLE))          out->config.peephole    = 0;
         else if (!strcmp(argv[i], OPTION_ENABLE_AST_ANALYSIS))  out->flags.ast_analysis = 1;
         else if (!strcmp(argv[i], OPTION_ENABLE_IR_ANALYSIS))   out->flags.hir_analysis = 1;
-        else if (!strcmp(argv[i], OPTION_EMIT_AST))             out->config.emit_ast = 1;
-        else if (!strcmp(argv[i], OPTION_EMIT_IR))              out->config.emit_ir = 1;
-        else if (!strcmp(argv[i], OPTION_EMIT_ASM))             out->config.emit_asm = 1;
-        else if (!strcmp(argv[i], OPTION_DEBUG))                out->config.debug = 1;
-        else if (!strcmp(argv[i], OPTION_NO_DEBUG))             out->config.debug = 0;
+        else if (!strcmp(argv[i], OPTION_EMIT_AST))             out->config.emit_ast     = 1;
+        else if (!strcmp(argv[i], OPTION_AST_OUTPUT)) {
+            if (i + 1 >= argc) goto _fail;
+            out->locations.ast_output = argv[++i];
+            out->config.emit_ast = 1;
+        }
+        else if (!strcmp(argv[i], OPTION_EMIT_IR))              out->config.emit_ir      = 1;
+        else if (!strcmp(argv[i], OPTION_IR_OUTPUT)) {
+            if (i + 1 >= argc) goto _fail;
+            out->locations.ir_output = argv[++i];
+            out->config.emit_ir = 1;
+        }
+        else if (!strcmp(argv[i], OPTION_EMIT_ASM))             out->config.emit_asm     = 1;
+        else if (!strcmp(argv[i], OPTION_ASM_OUTPUT)) {
+            if (i + 1 >= argc) goto _fail;
+            out->locations.asm_output = argv[++i];
+            out->config.emit_asm = 1;
+        }
+        else if (!strcmp(argv[i], OPTION_DEBUG))                out->config.debug       = 1;
+        else if (!strcmp(argv[i], OPTION_NO_DEBUG))             out->config.debug       = 0;
         else if (!strcmp(argv[i], OPTION_NO_OPTIMIZATION))      _set_optimization_profile(out, 0);
         else if (!strcmp(argv[i], OPTION_ROUGHT_OPTIMIZATION))  _set_optimization_profile(out, 1);
         else if (!strcmp(argv[i], OPTION_GOOD_OPTIMIZATION))    _set_optimization_profile(out, 2);
         else if (!strcmp(argv[i], OPTION_MAX_OPTIMIZATION))     _set_optimization_profile(out, 3);
-        else if (argv[i][0] == '-') {
-            goto _fail;
-        }
-        else {
-            out->locations.files[out->locations.files_count++] = argv[i];
-        }
+        else if (argv[i][0] == '-') goto _fail;
+        else out->locations.files[out->locations.files_count++] = argv[i];
+    }
+
+    if (out->flags.no_compile) {
+        out->config.emit_asm = 1;
     }
 
     return 1;
@@ -513,6 +608,24 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    if (options.flags.show_help) {
+        _print_help_message();
+        mm_free((void*)options.locations.files);
+        return EXIT_SUCCESS;
+    }
+
+    if (options.flags.show_version) {
+        _print_version(stdout);
+        mm_free((void*)options.locations.files);
+        return EXIT_SUCCESS;
+    }
+
+    if (options.locations.files_count == 0) {
+        fprintf(stderr, "No input files\n");
+        mm_free((void*)options.locations.files);
+        return EXIT_FAILURE;
+    }
+
     config_t conf = _make_config(&options);
     if (!CONF_set_config(&conf)) {
         fprintf(stderr, "Can't initialize compilation config\n");
@@ -524,6 +637,7 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Can't allocate object files array\n");
         return EXIT_FAILURE;
     }
+    memset(object_files, 0, (size_t)options.locations.files_count * sizeof(*object_files));
 
     for (int i = 0; i < options.locations.files_count; i++) {
         int fd = open(options.locations.files[i], O_RDONLY);
@@ -561,11 +675,14 @@ int main(int argc, char* argv[]) {
         }
 
         if (options.config.emit_ast) {
-            FILE* ast_file = fopen("output.ast", "w");
-            if (ast_file) {
-                DUMP_format_astctx(&sctx, ast_file);
-                fclose(ast_file);
+            const char* ast_output = _output_path_or_default(options.locations.ast_output, "output.ast");
+            FILE* ast_file = fopen(ast_output, "w");
+            if (!ast_file) {
+                fprintf(stderr, "Can't open AST output file %s: %s\n", ast_output, strerror(errno));
+                return 1;
             }
+            DUMP_format_astctx(&sctx, ast_file);
+            fclose(ast_file);
         }
 
         if (options.flags.ast_analysis) {
@@ -580,15 +697,15 @@ int main(int argc, char* argv[]) {
         
         call_graph_t callctx;
         HIR_CG_build(&cfgctx, &callctx, &smt);
-        HIR_CG_perform_dfe(&callctx, &smt);
-        HIR_CG_apply_dfe(&cfgctx, &smt);
 
+        HIR_FUNC_delete_duplicated_functions(&cfgctx);
         HIR_FUNC_set_last_return(&cfgctx);
 
         if (options.config.tre) {
             HIR_FUNC_perform_tre(&cfgctx, &smt);
-            RELOAD_CFG;
         }
+
+        RELOAD_CFG;
         
         HIR_CFG_finilize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
@@ -603,7 +720,7 @@ int main(int argc, char* argv[]) {
 
         HIR_LTREE_canonicalization(&cfgctx, &lctx);
         HIR_CFG_unload_domdata(&cfgctx);
-        // HIR_CFG_finilize_before_dom(&cfgctx);
+        HIR_CFG_finilize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
 
         ssa_ctx_t ssactx;
@@ -614,7 +731,7 @@ int main(int argc, char* argv[]) {
 
         HIR_compute_homes(&hirctx);
         if (options.config.licm) {
-            HIR_LTREE_licm(&cfgctx, NULL, &smt);
+            HIR_LTREE_licm(&cfgctx, &lctx, &smt);
         }
 
         HIR_CFG_make_allias(&cfgctx, &smt);
@@ -633,11 +750,14 @@ int main(int argc, char* argv[]) {
         }
 
         if (options.config.emit_ir) {
-            FILE* ir_file = fopen("output.ir", "w");
-            if (ir_file) {
-                DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
-                fclose(ir_file);
+            const char* ir_output = _output_path_or_default(options.locations.ir_output, "output.ir");
+            FILE* ir_file = fopen(ir_output, "w");
+            if (!ir_file) {
+                fprintf(stderr, "Can't open HIR output file %s: %s\n", ir_output, strerror(errno));
+                return 1;
             }
+            DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
+            fclose(ir_file);
         }
 
         lir_ctx_t lirctx = { .h = NULL, .t = NULL };
@@ -648,15 +768,16 @@ int main(int argc, char* argv[]) {
             LIR_drop_unused_variables(&cfgctx);
         }
 
-        register_saver_t reg_save;
-        mem_selector_t   mem_sel;
-        inst_selector_t  inst_sel;
-        peephole_t       pph;
+        register_saver_t reg_save = { 0 };
+        mem_selector_t   mem_sel  = { 0 };
+        inst_selector_t  inst_sel = { 0 };
+        peephole_t       pph      = { 0 };
         switch (CONF_get_system_type()) {
             case MACHO64: {
                 inst_sel.select_instructions = x86_64_macho_nasm_instruction_selection;
-                reg_save.save_registers      = x86_64_gnu_nasm_caller_saving;
+                reg_save.save_registers      = x86_64_macho_nasm_caller_saving;
                 mem_sel.select_memory        = x86_64_macho_nasm_memory_selection;
+                mem_sel.validate_memory      = x86_64_macho_nasm_memory_validation;
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
                 break;
             }
@@ -664,6 +785,15 @@ int main(int argc, char* argv[]) {
                 inst_sel.select_instructions = x86_64_gnu_nasm_instruction_selection;
                 reg_save.save_registers      = x86_64_gnu_nasm_caller_saving;
                 mem_sel.select_memory        = x86_64_gnu_nasm_memory_selection;
+                mem_sel.validate_memory      = x86_64_gnu_nasm_memory_validation;
+                pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
+                break;
+            }
+            case I386: {
+                inst_sel.select_instructions = i386_gnu_nasm_instruction_selection;
+                reg_save.save_registers      = i386_gnu_nasm_caller_saving;
+                mem_sel.select_memory        = i386_gnu_nasm_memory_selection;
+                mem_sel.validate_memory      = i386_gnu_nasm_memory_validation;
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
                 break;
             }
@@ -671,7 +801,6 @@ int main(int argc, char* argv[]) {
         }
 
         LIR_select_instructions(&cfgctx, &smt, &inst_sel);
-        LIR_destroy_ssa(&cfgctx);
 
         LIR_DFG_compute_inout(&cfgctx);
         LIR_DFG_create_deall(&cfgctx, &smt);
@@ -681,11 +810,14 @@ int main(int argc, char* argv[]) {
         LIR_RA_init_colors(&colors, &smt);
 
         LIR_regalloc(&cfgctx, &smt, &colors);
+        LIR_RA_sort_phi_movs(&cfgctx, &colors);
         LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
+        LIR_destroy_ssa(&cfgctx);
         LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
         if (options.config.peephole) {
             LIR_peephole_optimization(&cfgctx, &pph);
         }
+        LIR_validate_memory(&cfgctx, &smt, &mem_sel);
 
         char* asm_path = _make_temp_path();
         char* obj_path = _make_temp_path();
@@ -700,32 +832,43 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        asm_gen_t asmgen;
+        asm_gen_t asmgen = { 0 };
         switch (CONF_get_system_type()) {
             case MACHO64: asmgen.generator = x86_64_macho_nasm_generate_asm; break;
             case LINUX64: asmgen.generator = x86_64_gnu_nasm_generate_asm; break;
+            case I386:    asmgen.generator = i386_gnu_nasm_generate_asm;    break;
             default: break;
         }
 
-        if (!options.config.emit_asm) ASM_generate(&cfgctx, &smt, &asmgen, asm_file); 
-        else {
-            FILE* asm_emit = fopen("output.s", "w");
-            if (asm_emit) {
-                ASM_generate(&cfgctx, &smt, &asmgen, asm_emit);
-                fclose(asm_emit);
+        ASM_generate(&cfgctx, &smt, &asmgen, asm_file); 
+        if (options.config.emit_asm) {
+            const char* asm_output = _output_path_or_default(options.locations.asm_output, "output.s");
+            FILE* asm_emit = fopen(asm_output, "w");
+            if (!asm_emit) {
+                fprintf(stderr, "Can't open ASM output file %s: %s\n", asm_output, strerror(errno));
+                return 1;
             }
+            ASM_generate(&cfgctx, &smt, &asmgen, asm_emit);
+            fclose(asm_emit);
         }
 
         fclose(asm_file);
 
-        if (!_compile_asm_to_object(&options, asm_path, obj_path)) {
-            fprintf(stderr, "ASM compilation failed for %s\n", options.locations.files[i]);
-            return 1;
+        if (options.flags.no_compile) {
+            unlink(asm_path);
+            mm_free(asm_path);
+            mm_free(obj_path);
         }
+        else {
+            if (!_compile_asm_to_object(&options, asm_path, obj_path)) {
+                fprintf(stderr, "ASM compilation failed for %s\n", options.locations.files[i]);
+                return 1;
+            }
 
-        unlink(asm_path);
-        mm_free(asm_path);
-        object_files[i] = obj_path;
+            unlink(asm_path);
+            mm_free(asm_path);
+            object_files[i] = obj_path;
+        }
 
         map_free(&colors);
         LIR_unload_blocks(lirctx.h);
@@ -740,7 +883,7 @@ int main(int argc, char* argv[]) {
         close(fd);
     }
 
-    if (options.locations.files_count > 0) {
+    if (!options.flags.no_compile && options.locations.files_count > 0) {
         if (!_link_objects(&options, object_files, options.locations.files_count)) {
             fprintf(stderr, "Linking failed\n");
             return 1;

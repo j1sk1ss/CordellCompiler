@@ -27,7 +27,7 @@ typedef struct {
         char     entry    : 1;
         char     used     : 1;
         char     local    : 1;
-        char     naked    : 1;
+        char     naked;
         char     vargs    : 1;
         char     generic  : 1;
     } flags;

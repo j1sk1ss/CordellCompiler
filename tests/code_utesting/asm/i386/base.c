@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
 
     config_t cfg = {
         .system.bytness = {
-            .bytness = 4,
+            .bytness   = 4,
             .h_bytness = 4,
             .q_bytness = 2,
             .e_bytness = 1
