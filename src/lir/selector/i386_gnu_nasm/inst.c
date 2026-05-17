@@ -34,6 +34,9 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
+
+        func_info_t fi;
+        if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
             while (lh) {
@@ -96,7 +99,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
                     case LIR_LOADFARG: {
-                        lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->targ->storage.cnst.value + 1) * -4, lh->farg->size);
+                        lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->targ->storage.cnst.value + !fi.flags.naked) * -4, lh->farg->size);
                         LIR_unload_subject(lh->sarg);
                         lh->op   = LIR_phiMOV;
                         lh->sarg = nfarg;

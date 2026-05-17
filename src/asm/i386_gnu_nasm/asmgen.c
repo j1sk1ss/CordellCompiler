@@ -34,13 +34,13 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
 
             break;
         }
-        case LIR_STEND:
+        case LIR_STEND: if (fi->flags.naked == 1) break;
         case LIR_EXITOP: {
             EMIT_COMMAND("mov eax, 1");
             EMIT_COMMAND("int 0x80");
             break;
         }
-        case LIR_FEND:
+        case LIR_FEND:  if (fi->flags.naked == 1) break;
         case LIR_FRET: {
             if (!fi->flags.naked) {
                 EMIT_COMMAND("mov esp, ebp");
@@ -50,8 +50,8 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
             EMIT_COMMAND("ret");
             break;
         }
-        case LIR_CQO:  EMIT_COMMAND("cqo");     break;
-        case LIR_CDQ:  EMIT_COMMAND("cdq");     break;
+        case LIR_CQO:  EMIT_COMMAND("cqo");      break;
+        case LIR_CDQ:  EMIT_COMMAND("cdq");      break;
         case LIR_SYSC: EMIT_COMMAND("int 0x80"); break;
         case LIR_FEXT: {
             func_info_t curr_fi;

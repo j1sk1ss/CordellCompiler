@@ -115,10 +115,9 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
             return LIR_BLOCK2(ctx, LIR_RAW, LIR_SUBJ_RAWASM(h->farg->storage.str.s_id), subj);
         }
         case HIR_STASM: {
-            list_iter_t it;
-            list_iter_tinit(&h->targ->storage.list.h, &it);
-            hir_subject_t* s;
-            while ((s = list_iter_prev(&it))) stack_push(params, s);
+            foreach (hir_subject_t* s, &h->targ->storage.list.h) {
+                stack_push(params, s);
+            }
             return 1;
         }
         case HIR_ENDASM: {
