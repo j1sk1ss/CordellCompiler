@@ -7,18 +7,17 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                arrs %0 = arr_alloc(i8n 10);
-                arrs %1 = arr_alloc(i8n 15);
-                i32s %2 = alloc;
-                i32t %4 = csu8 40 as i32;
-                i32s %2 = i32t %4;
-                i32s %3 = alloc;
-                i32t %5 = csu8 15 as i32;
-                i32s %3 = i32t %5;
-            }
+            arrs %0 = arr_alloc(i8n 10);
+            arrs %1 = arr_alloc(i8n 15);
+            i32s %2 = alloc;
+            i32t %4 = csu8 40 as i32;
+            i32s %2 = i32t %4;
+            i32s %3 = alloc;
+            i32t %5 = csu8 15 as i32;
+            i32s %3 = i32t %5;
         }
     }
 }

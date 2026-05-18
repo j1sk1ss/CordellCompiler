@@ -5,17 +5,16 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
+            lb7:
+            if i8n 1, goto lb8, else goto lb9;
+            lb8:
             {
-                lb7:
-                if i8n 1, goto lb8, else goto lb9;
-                lb8:
-                {
-                }
-                goto lb7;
-                lb9:
             }
+            goto lb7;
+            lb9:
         }
     }
 }

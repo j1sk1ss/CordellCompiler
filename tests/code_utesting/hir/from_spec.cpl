@@ -6,7 +6,7 @@ start() {
 
 :/ OUTPUT
 {
-    fn _main0()
+    fn _main()
     {
         {
             i32s %0 = alloc;

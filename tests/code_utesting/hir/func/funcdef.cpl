@@ -17,7 +17,8 @@ function foo() -> i32 {
     fn foo1() -> i32
     {
         {
-            return i8n 0;
+            i32t %2 = i8n 0 as i32;
+            return i32t %2;
         }
     }
 }

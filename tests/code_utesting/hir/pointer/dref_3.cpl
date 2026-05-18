@@ -7,16 +7,15 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i8s* %0 = alloc;
-                i8s** %1 = alloc;
-                i8t %2 = i8n 1 as i8;
-                *(i8s* %0) = i8t %2;
-                i8t* %3 = i8n 1 as *ptr;
-                *(i8s** %1) = i8t* %3;
-            }
+            i8s* %0 = alloc;
+            i8s** %1 = alloc;
+            i8t %2 = i8n 1 as i8;
+            *(i8s* %0) = i8t %2;
+            i8t* %3 = i8n 1 as *ptr;
+            *(i8s** %1) = i8t* %3;
         }
     }
 }

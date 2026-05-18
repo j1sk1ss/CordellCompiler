@@ -21,12 +21,11 @@ start() {
             *(i8t* %4) = i8t %1;
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                use Hello!;
-                foo0(Hello!);
-            }
+            use Hello!;
+            foo0(Hello!);
         }
     }
 }

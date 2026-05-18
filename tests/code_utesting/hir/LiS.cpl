@@ -4,11 +4,10 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                breakpoint(breakpoint);
-            }
+            breakpoint(breakpoint);
         }
     }
 }

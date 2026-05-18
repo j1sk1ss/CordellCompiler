@@ -8,12 +8,11 @@ start() {
 {
     (fun) extern(csu8 0);
     (var) extern(csu8 1);
-    start {
+    fn _main()
+    {
         {
-            {
-                use i8g* %1;
-                (printf0i8g* %1, i8n 10);
-            }
+            use i8g* %1;
+            (printf0i8g* %1, i8n 10);
         }
     }
 }

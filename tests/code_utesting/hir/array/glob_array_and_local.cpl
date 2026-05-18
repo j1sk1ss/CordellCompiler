@@ -6,13 +6,12 @@ start() {
 :/ OUTPUT
 {
     arrg %0 = arr_alloc(i8n 1);
-    start {
+    fn _main()
+    {
         {
-            {
-                i32t* %2 = &(arrg %0);
-                use i32t* %2;
-                arrs %1 = arr_alloc(i8n 1);
-            }
+            i32t* %2 = &(arrg %0);
+            use i32t* %2;
+            arrs %1 = arr_alloc(i8n 1);
         }
     }
 }

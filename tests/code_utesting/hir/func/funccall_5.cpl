@@ -1,7 +1,7 @@
 function min(i32 a, i32 b) -> i32;
 function max(i32 a, i32 b) -> i32;
 function logic(i32 a, i32 b, ptr u64 perform) -> i32 {
-    return perform(a, b);
+    return perform(a, b) as i32;
 }
 
 start() {
@@ -22,20 +22,20 @@ start() {
         {
             use i32s %4;
             use i32s %5;
-            i64t %7 = u64s* %6(i32s %4, i32s %5);
-            return i64t %7;
+            i64t %8 = u64s* %6(i32s %4, i32s %5);
+            i32t %7 = i64t %8 as i32;
+            return i32t %7;
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                i0t* %8 = &(min0(i32 a, i32 b) -> i32);
-                use i0t* %8;
-                logic2(i8n 10, i8n 20, i0t* %8);
-                i0t* %9 = &(max1(i32 a, i32 b) -> i32);
-                use i0t* %9;
-                logic2(i8n 10, i8n 20, i0t* %9);
-            }
+            i0t* %9 = &(min0(i32 a, i32 b) -> i32);
+            use i0t* %9;
+            logic2(i8n 10, i8n 20, i0t* %9);
+            i0t* %10 = &(max1(i32 a, i32 b) -> i32);
+            use i0t* %10;
+            logic2(i8n 10, i8n 20, i0t* %10);
         }
     }
 }

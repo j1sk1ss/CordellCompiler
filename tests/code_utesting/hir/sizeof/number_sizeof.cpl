@@ -4,13 +4,12 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i32s %0 = alloc;
-                i32t %1 = csu8 1 as i32;
-                i32s %0 = i32t %1;
-            }
+            i32s %0 = alloc;
+            i32t %1 = csu8 1 as i32;
+            i32s %0 = i32t %1;
         }
     }
 }

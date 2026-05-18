@@ -9,10 +9,9 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-            }
         }
     }
 }

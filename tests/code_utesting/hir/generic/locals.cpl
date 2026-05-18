@@ -31,7 +31,7 @@ start() {
                 }
             }
             lb17:
-            goto lb32;
+            goto lb33;
             fn __anon_function_lambda5(i64 a)
             {
                 i64s %2 = alloc;
@@ -41,7 +41,7 @@ start() {
                     use i64t %6;
                 }
             }
-            lb32:
+            lb33:
             i0t* %7 = &(__anon_function_lambda5(i64 a));
             i64t %8 = _local6(i8n 1);
             use i64t %8;
