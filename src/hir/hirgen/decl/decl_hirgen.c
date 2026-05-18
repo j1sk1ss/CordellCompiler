@@ -30,9 +30,14 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
         hir_subject_t* init_elems = HIR_SUBJ_LIST();
         for (ast_node_t* e = elems; e; e = e->siblings.n) {
             hir_subject_t* el = HIR_generate_elem(e, ctx, smt);
+            if (!el) continue;
             if (vi.vfs.glob) {
-                ARTB_add_elems(vi.v_id, el->storage.num.value->to_llong(el->storage.num.value), &smt->a);
-                HIR_unload_subject(el);
+                if (!HIR_is_defined_type(el->t)) {
+                    HIRGEN_ERROR(ctx, "Array declaration: global initializer element must be a constant numeric value!");
+                }
+                else {
+                    ARTB_add_elems(vi.v_id, el->storage.num.value->to_llong(el->storage.num.value), &smt->a);
+                }
             }
             else {
                 hir_subject_t* element = el;

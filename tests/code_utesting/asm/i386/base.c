@@ -140,7 +140,10 @@ int main(int argc, char* argv[]) {
     LIR_RA_init_colors(&colors, &smt);
     LIR_regalloc(&cfgctx, &smt, &colors);
 
-    mem_selector_t mem_sel = { .select_memory = i386_gnu_nasm_memory_selection };
+    mem_selector_t mem_sel = { 
+        .select_memory   = i386_gnu_nasm_memory_selection, 
+        .validate_memory = i386_gnu_nasm_memory_validation 
+    };
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
 
     LIR_RA_sort_phi_movs(&cfgctx, &colors);
@@ -148,6 +151,8 @@ int main(int argc, char* argv[]) {
 
     register_saver_t reg_save = { .save_registers = i386_gnu_nasm_caller_saving };
     LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
+
+    LIR_validate_memory(&cfgctx, &smt, &mem_sel);
 
     asm_gen_t asmgen = { .generator = i386_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);

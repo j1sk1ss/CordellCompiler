@@ -1,3 +1,4 @@
+: TEST_DEBUG :
 extern function kprintf(ptr i8 fmt, ...) -> i0;
 extern function i386_inb(u16 port) -> i8;
 extern function i386_outb(u16 port, u8 data) -> i0;
@@ -161,21 +162,19 @@ function _keyboard_flush_output() -> i0 {
 }
 
 function i386_keyboard_handler(ptr i0 _) -> i0{
-    i8 character = i386_inb(0x60);
-    if character < 0 || character >= 128; return;
+    u8 scancode = i386_inb(0x60);
+    u8 key = scancode & 0x7F;
 
-    _key_pressed[character as i32] = 0;
-    if not (character & 0x80); {
-        _key_pressed[character as i32] = 1;
-        _curr_char = _alphabet[character as i32];
-        if _key_pressed[LSHIFT] || _key_pressed[RSHIFT]; _curr_char = _shift_alphabet[character as i32];
-        if _curr_char == LSHIFT_BUTTON || _curr_char == RSHIFT_BUTTON; return;
+    if scancode & 0x80; {
+        _key_pressed[key as i32] = 0;
+        return;
     }
 
-    if _key_pressed[LSHIFT] || _key_pressed[RSHIFT]; {
-        _key_pressed[LSHIFT] = 0;
-        _key_pressed[RSHIFT] = 0;
-    }
+    _key_pressed[key as i32] = 1;
+    _curr_char = _alphabet[key as i32];
+
+    if _key_pressed[LSHIFT] || _key_pressed[RSHIFT];
+        _curr_char = _shift_alphabet[key as i32];
 }
 
 glob function i386_init_keyboard() -> i0 {
@@ -191,7 +190,7 @@ glob function i386_init_keyboard() -> i0 {
     else kprintf(ref "System flag unset.\t");
     if status & (1 << 3); kprintf(ref "Command/Data -> PS/2 device.\t");
     else kprintf(ref "Command/Data -> PS/2 controller.\t");
-    if status & (1 << 6); kprintf("Timeout error.\t");
+    if status & (1 << 6); kprintf(ref "Timeout error.\t");
     else kprintf(ref "No timeout error.\t");
     if status & (1 << 7); kprintf(ref "Parity error. ");
     else kprintf(ref "No parity error.");
@@ -226,3 +225,7 @@ glob function pop_character() -> i8 {
     _curr_char = EMPTY_KEYBOARD;
     return character;
 }
+
+:/ OUTPUT
+.
+/:

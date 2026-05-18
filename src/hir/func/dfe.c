@@ -19,19 +19,20 @@ static int _mark_block(call_graph_node_t* nd, call_graph_t* ctx) {
 }
 
 int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt) {
-    call_graph_node_t* entry;
-    if (!map_get(&ctx->verts, ctx->e_fid, (void**)&entry)) return 0;
-    _mark_block(entry, ctx);
-
-    map_foreach (call_graph_node_t* nd, &ctx->verts) {
-        func_info_t fi;
-        if (!FNTB_get_info_id(nd->f_id, &fi, &smt->f)) continue;
-        FNTB_update_func(
-            nd->f_id, NULL,
-            fi.flags.global ? 1 : nd->flag, 
-            FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, NULL, NULL, 
-            &smt->f
-        );
+    foreach (symbol_id_t e_fid, &ctx->entries) {
+        call_graph_node_t* entry;
+        if (!map_get(&ctx->verts, e_fid, (void**)&entry)) continue;
+        _mark_block(entry, ctx);
+        map_foreach (call_graph_node_t* nd, &ctx->verts) {
+            func_info_t fi;
+            if (!FNTB_get_info_id(nd->f_id, &fi, &smt->f)) continue;
+            FNTB_update_func(
+                nd->f_id, NULL,
+                fi.flags.global ? 1 : nd->flag, 
+                FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, NULL, NULL, 
+                &smt->f
+            );
+        }
     }
 
     return 1;

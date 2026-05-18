@@ -44,6 +44,11 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
     hir_subject_t* res = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), HIR_STKVARI64, 0);
     HIR_BLOCK1(ctx, HIR_VARDECL, res);
     hir_subject_t* lt1 = HIR_generate_elem(l, ctx, smt);
+    if (!lt1) {
+        HIRGEN_ERROR(ctx, "Operand: left part generation error!");
+        HIR_unload_subject(res);
+        return NULL;
+    }
 
     hir_subject_t* true_lb  = HIR_SUBJ_LABEL();
     hir_subject_t* false_lb = HIR_SUBJ_LABEL();
@@ -57,6 +62,12 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
         case OR_TOKEN: {
             HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
             hir_subject_t* lt2 = HIR_generate_elem(r, ctx, smt);
+            if (!lt2) {
+                HIRGEN_ERROR(ctx, "Operand: right part generation error!");
+                HIR_unload_subject(res);
+                return NULL;
+            }
+
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
             HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
@@ -70,6 +81,12 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
         case AND_TOKEN: {
             HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
             hir_subject_t* lt2 = HIR_generate_elem(r, ctx, smt);
+            if (!lt2) {
+                HIRGEN_ERROR(ctx, "Operand: right part generation error!");
+                HIR_unload_subject(res);
+                return NULL;
+            }
+
             HIR_BLOCK1(ctx, HIR_VARDECL, res);
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
             HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
@@ -100,6 +117,13 @@ Returns the outproduct of the expression.
 static hir_subject_t* _generate_logic_operator(ast_node_t* op, ast_node_t* r, ast_node_t* l, hir_ctx_t* ctx, sym_table_t* smt) {
     hir_subject_t* lt1 = HIR_generate_elem(l, ctx, smt);
     hir_subject_t* lt2 = HIR_generate_elem(r, ctx, smt);
+    if (!lt1 || !lt2) {
+        HIRGEN_ERROR(ctx, "Operand: argument generation error!");
+        HIR_unload_subject(lt1);
+        HIR_unload_subject(lt2);
+        return NULL;
+    }
+
     hir_subject_t* res = HIR_SUBJ_TMPVAR(
         HIR_promote_types(lt1->t, lt2->t), 
         VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)
@@ -154,6 +178,13 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
         default: {
             hir_subject_t* lt1 = HIR_generate_elem(left, ctx, smt);
             hir_subject_t* lt2 = HIR_generate_elem(right, ctx, smt);
+            if (!lt1 || !lt2) {
+                HIRGEN_ERROR(ctx, "Operand: argument generation error!");
+                HIR_unload_subject(lt1);
+                HIR_unload_subject(lt2);
+                return NULL;
+            }
+
             res = HIR_SUBJ_TMPVAR(
                 HIR_promote_types(lt1->t, lt2->t), 
                 VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)

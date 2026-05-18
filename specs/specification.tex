@@ -129,7 +129,7 @@ start() {
 }
 \end{lstlisting}
 
-\par The entry point may accept arguments, such as \texttt{argc} and \texttt{argv}, and can be annotated for platform-specific entry behavior. The \texttt{naked} annotation disables default entry and exit routines, which is useful for system-level code that must manage its own prologue and epilogue.
+\par The entry point may accept arguments, such as \texttt{argc} and \texttt{argv}, and can be annotated for platform-specific entry behavior. The \texttt{naked} annotation disables default entry and exit routines, which is useful for system-level code that must manage its own prologue and epilogue. On i386 this also affects how stack arguments are addressed, as discussed in Section~\ref{sec:i386-abi}.
 
 \subsection{Types}
 \par CPL uses permissive static typing. Variables do not dynamically change type, widening conversions may be inserted implicitly, and narrowing conversions require an explicit \texttt{as} cast. The primitive integer and floating-point types include \texttt{i8}, \texttt{u8}, \texttt{i16}, \texttt{u16}, \texttt{i32}, \texttt{u32}, \texttt{i64}, \texttt{u64}, \texttt{f32}, \texttt{f64}, and the void-like function return type \texttt{i0}. Boolean-like logic follows the C convention: zero is false and non-zero is true.
@@ -379,6 +379,64 @@ syscall
 
 \par The implemented backends in this snapshot are x86\_64 Mach-O/NASM, x86\_64 GNU/Linux NASM, and i386 GNU/Linux NASM. The repository contains selectors, memory selection, caller-saving logic, and assembly generators for these paths, with Mach-O used as the default configuration in the command-line driver. The Linux x86\_64 path is present and exercised by parts of the test infrastructure, but it should be treated as less mature than the Mach-O path. The i386 path is a newer target, but it is already useful for freestanding and operating-system-oriented assembly generation tests. Other architecture and system options, such as windows64, should be read as configuration surface rather than publication-ready target support. The compiler can use \texttt{ld}, \texttt{clang}, or \texttt{gcc} as linkers; when external symbols are involved, \texttt{clang} or \texttt{gcc} are typically more convenient.
 
+\subsection{i386 ABI Notes}
+\label{sec:i386-abi}
+
+\par The i386 backend is intended to interoperate with simple C-style kernel code. Global CPL functions are emitted as externally visible symbols and follow the target's stack-based calling convention closely enough to be called from C support code when matching prototypes are used. This ABI boundary is deliberately plain: primitive arguments are passed through the caller's stack frame, return values use the target return register convention, and \texttt{extern} declarations describe symbols implemented outside the CPL module.
+
+\par The \texttt{naked} annotation is the main exception to the ordinary function-frame shape. In a normal i386 function, the compiler may establish an \texttt{ebp}-based frame. After the usual prologue, \texttt{[ebp + 4]} contains the return address, \texttt{[ebp + 8]} contains the first argument, and \texttt{[ebp + 12]} contains the second argument. In a \texttt{naked} function, the generated prologue and epilogue are suppressed. There is no saved base pointer at the top of the frame, so argument access is based on \texttt{esp}: the return address is at \texttt{[esp]}, the first argument is at \texttt{[esp + 4]}, and the second argument is at \texttt{[esp + 8]}. This is important for OSDev-style helpers whose stack layout must match the processor's expectations exactly.
+
+\begin{lstlisting}[language=CPL,caption={A naked i386 helper whose arguments are addressed from \texttt{esp}.},label={lst:i386-naked-abi}]
+@[nosection]
+@[naked]
+glob function i386_switch2user(u32 eip, u32 esp) -> i0 {
+    asm(eip, esp) {
+        "cli",
+        "push 0x23",
+        "push %1",
+        "push 0x202",
+        "push 0x1b",
+        "push %0",
+        "iretd"
+    }
+}
+\end{lstlisting}
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+    >=Latex,
+    cell/.style={draw, text width=3.55cm, minimum height=0.56cm, inner xsep=0pt, align=center, font=\footnotesize},
+    note/.style={font=\footnotesize, align=center},
+    marker/.style={font=\footnotesize, anchor=east},
+    arrow/.style={-{Latex[length=1.6mm,width=1.2mm]}, semithick}
+]
+
+\node[note] at (0, 0.85) {Normal i386 function after prologue};
+\node[cell, fill=black!4] (n0) at (0, 0) {\texttt{[ebp + 12]} second argument};
+\node[cell, fill=black!4, below=0cm of n0] (n1) {\texttt{[ebp + 8]} first argument};
+\node[cell, fill=black!8, below=0cm of n1] (n2) {\texttt{[ebp + 4]} return address};
+\node[cell, fill=black!12, below=0cm of n2] (n3) {\texttt{[ebp]} saved \texttt{ebp}};
+\node[cell, fill=black!2, below=0cm of n3] (n4) {locals / spills};
+\node[marker] at ([xshift=-0.62cm]n3.west) {\texttt{ebp}};
+\draw[arrow] ([xshift=-0.56cm]n3.west) -- ([xshift=-0.08cm]n3.west);
+\node[marker] at ([xshift=-0.62cm]n4.west) {\texttt{esp}};
+\draw[arrow] ([xshift=-0.56cm]n4.west) -- ([xshift=-0.08cm]n4.west);
+
+\node[note] at (5.3, 0.85) {Naked i386 function at entry};
+\node[cell, fill=black!4] (k0) at (5.3, 0) {\texttt{[esp + 8]} second argument};
+\node[cell, fill=black!4, below=0cm of k0] (k1) {\texttt{[esp + 4]} first argument};
+\node[cell, fill=black!8, below=0cm of k1] (k2) {\texttt{[esp]} return address};
+\node[cell, fill=black!2, below=0cm of k2] (k3) {caller stack};
+\node[marker] at ([xshift=-0.62cm]k2.west) {\texttt{esp}};
+\draw[arrow] ([xshift=-0.56cm]k2.west) -- ([xshift=-0.08cm]k2.west);
+\end{tikzpicture}%
+\caption{i386 stack view for ordinary and \texttt{naked} CPL functions. Without \texttt{push ebp; mov ebp, esp}, the backend addresses arguments from \texttt{esp} rather than from \texttt{ebp}. The \texttt{naked} form is useful for OSDev routines such as interrupt-return frame builders, but it makes the programmer responsible for preserving the expected stack shape.}
+\label{fig:i386-naked-stack}
+\end{figure*}
+
+\par Figure~\ref{fig:i386-naked-stack} shows the practical effect. The same two source parameters occupy different textual address forms depending on whether a frame pointer was created. For the helper in Listing~\ref{lst:i386-naked-abi}, the backend must materialize the CPL parameters from \texttt{[esp + 4]} and \texttt{[esp + 8]} before expanding the inline assembly placeholders. After user assembly begins to push interrupt-frame words, \texttt{esp} changes normally, so hand-written instructions must be written with that movement in mind.
+
 \section{Static Diagnostics}
 \par CPL contains a two-level diagnostic subsystem. The first level operates on the AST and targets source-structure issues such as read-only variable updates, declaration problems, return mismatches, wrong argument counts, incompatible argument types, unused return values, illegal array access, duplicated branches, invalid function names, dead code, lossy implicit conversions, inefficient infinite loops, invalid \texttt{exit} usage, break statements without legal targets, invalid use of \texttt{i0}, unused expressions, invalid references, and suspicious alignment requests.
 
@@ -559,61 +617,82 @@ start(i64 argc, ptr ptr i8 argv) {
 
 \subsection{Operating-System Code on i386}
 
-\par A practical use case for CPL is small freestanding routines used by an operating-system kernel. The i386 backend was added to support this style of code: globally visible routines can be emitted as NASM-compatible 32-bit assembly, while inline assembly keeps exact control over privileged instructions and interrupt-frame layout.
+\par A practical use case for CPL is small freestanding routines used by an operating-system kernel. The i386 backend was added to support this style of code: globally visible routines can be emitted as NASM-compatible 32-bit assembly, while \texttt{extern} declarations make it possible to integrate CPL modules with C kernel code. In practice, this means that most driver logic can stay in CPL, while the smallest hardware primitives, runtime hooks, and printing functions are supplied by C or by a platform support layer.
 
-\par Listing~\ref{lst:i386-switch-user} is adapted from a real kernel helper. The function prepares segment registers, pushes an i386 interrupt-return frame, and transfers execution to ring 3 with \texttt{iretd}. The \texttt{naked} annotation is essential here. It suppresses the usual generated function frame, so the compiler does not emit a prologue such as \texttt{push ebp; mov ebp, esp}. As a result, the first stack argument remains at \texttt{[esp + 4]} and the second at \texttt{[esp + 8]}; in a non-naked function that used a saved frame pointer, equivalent argument access would normally be based on the post-prologue frame layout.
+\par Listing~\ref{lst:i386-keyboard} is adapted from the repository's working PS/2 keyboard driver example. The driver uses CPL for state, scancode tables, polling loops, interrupt-handler logic, and exported initialization functions. Hardware-specific operations such as byte I/O and IRQ registration are declared as external functions. Those symbols may be implemented in C, or by C functions that contain the necessary compiler intrinsics or inline assembly. This keeps most of the driver out of raw assembler without hiding the machine boundary.
 
-\begin{lstlisting}[language=CPL,caption={i386 ring-transition helper using a naked CPL function.},label={lst:i386-switch-user}]
-@[nosection]
-@[naked]
-glob function i386_switch2user(u32 eip, u32 esp) -> i0 {
-    asm(eip, esp) {
-        "cli",
-        "mov ax, 0x23",
-        "mov ds, ax",
-        "mov es, ax",
-        "mov fs, ax",
-        "mov gs, ax",
-        "push 0x23",
-        "push %1",
-        "push 0x202",
-        "push 0x1b",
-        "push %0",
-        "iretd"
+\begin{lstlisting}[language=CPL,caption={Excerpt from an i386 PS/2 keyboard driver using C externs.},label={lst:i386-keyboard}]
+extern function kprintf(ptr i8 fmt, ...) -> i0;
+extern function i386_inb(u16 port) -> i8;
+extern function i386_outb(u16 port, u8 data) -> i0;
+extern function i386_irq_registerHandler(i32 irq, ptr i0 handler) -> i0;
+
+#define KBD_DATA_PORT           0x60
+#define KBD_STATUS_PORT         0x64
+#define KBD_COMMAND_PORT        0x64
+#define KBD_STATUS_OUTPUT_FULL  0x01
+#define KBD_STATUS_INPUT_FULL   0x02
+#define KBD_CMD_READ_CONFIG     0x20
+#define KBD_CMD_WRITE_CONFIG    0x60
+#define KBD_CMD_ENABLE_PORT1    0xAE
+#define KBD_CONFIG_IRQ1         0x01
+#define KBD_CONFIG_PORT1_CLOCK  0x10
+
+glob i8 _curr_char = '\15';
+glob arr _key_pressed[128, u8] = { 0 };
+
+function _keyboard_wait_input_clear() -> i8 {
+    i32 timeout = 100000;
+    while i386_inb(KBD_STATUS_PORT) & KBD_STATUS_INPUT_FULL; {
+        timeout -= 1;
+        if timeout <= 0; return 0;
     }
+    return 1;
+}
+
+function _keyboard_write_command(u8 command) -> i32 {
+    if not _keyboard_wait_input_clear(); return 0;
+    i386_outb(KBD_COMMAND_PORT, command);
+    return 1;
+}
+
+function i386_keyboard_handler(ptr i0 _) -> i0 {
+    i8 character = i386_inb(KBD_DATA_PORT);
+    if character < 0 || character >= 128; return;
+
+    _key_pressed[character as i32] = 0;
+    if not (character & 0x80); {
+        _key_pressed[character as i32] = 1;
+        _curr_char = _alphabet[character as i32];
+    }
+}
+
+glob function i386_init_keyboard() -> i0 {
+    u8 config = 0;
+    if _keyboard_write_command(KBD_CMD_READ_CONFIG);
+        _keyboard_read_data(ref config);
+
+    config |= KBD_CONFIG_IRQ1;
+    config &= 0xFF ^ KBD_CONFIG_PORT1_CLOCK;
+    if _keyboard_write_command(KBD_CMD_WRITE_CONFIG);
+        _keyboard_write_data(config);
+
+    _keyboard_write_command(KBD_CMD_ENABLE_PORT1);
+    i386_irq_registerHandler(1, i386_keyboard_handler);
 }
 \end{lstlisting}
 
-\par The corresponding generated i386 assembly loads the CPL parameters directly from the caller's stack before expanding the inline assembly placeholders:
+\par From the C side, the imported and exported symbols are ordinary low-level ABI boundaries. For example, the platform layer can provide byte-port primitives and the kernel can call the CPL initialization routine through matching prototypes:
 
-\begin{lstlisting}[caption={Generated i386 assembly for the ring-transition helper.}]
-global i386_switch2user
-i386_switch2user:
-mov ebx, dword [esp + 8]
-mov edx, dword [esp + 4]
-cli
-mov ax, 0x23
-mov ds, ax
-mov es, ax
-mov fs, ax
-mov gs, ax
-push 0x23
-push ebx
-push 0x202
-push 0x1b
-push edx
-iretd
+\begin{lstlisting}[language=C,caption={C boundary for the CPL keyboard driver.}]
+uint8_t i386_inb(uint16_t port);
+void i386_outb(uint16_t port, uint8_t data);
+void i386_irq_registerHandler(int irq, void (*handler)(void*));
+
+void i386_init_keyboard(void);
 \end{lstlisting}
 
-\par Because the function is emitted as a global cdecl-compatible symbol, it can also be called directly from C kernel code. A matching C prototype is:
-
-\begin{lstlisting}[language=C,caption={C prototype for calling the CPL i386 helper.}]
-void __attribute__((cdecl)) i386_switch2user(void* entry, void* stack);
-\end{lstlisting}
-
-\par Using CPL instead of raw assembler keeps these routines within the compiler pipeline: declarations and calls can still participate in static diagnostics, symbol checking, and target-specific regression tests. The CPL source also documents the function interface and placeholder binding more directly than a standalone assembly file, which improves readability without removing access to exact machine instructions.
-
-\par This example illustrates why CPL exposes annotations and inline assembly instead of hiding every backend detail behind a high-level ABI. Kernel code often needs a function body that is exactly the machine sequence expected by the processor. A smaller helper from the same i386 test set flushes the task-state segment by emitting \texttt{ltr 0x28}; unlike the ring-transition helper, it does not need \texttt{naked}, so a normal \texttt{ret} remains appropriate after the inline assembly.
+\par This is the preferred shape for larger system code. CPL can express the driver's control flow and data structures, the compiler can still perform parsing, HIR construction, diagnostics, and target-specific regression tests, and the C boundary isolates the operations that are genuinely platform-specific. Inline \texttt{asm} remains useful for tiny routines that must be exactly a particular instruction sequence, such as loading the task-state segment or constructing an interrupt-return frame, but it is not required for every hardware-facing driver.
 
 \section{Testing Infrastructure}
 

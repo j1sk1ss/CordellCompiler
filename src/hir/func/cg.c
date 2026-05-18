@@ -59,8 +59,11 @@ Params:
 Returns 1 if succeeds.
 */
 static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
+    list_init(&ctx->entries);
     map_foreach (func_info_t* fi, &smt->f.functb) {
-        if (fi->flags.entry) ctx->e_fid = fi->id;
+        if (
+            fi->flags.entry || fi->flags.global
+        ) list_add(&ctx->entries, (void*)fi->id);
         _register_func(fi->id, ctx);
     }
 
@@ -106,5 +109,6 @@ int HIR_CG_unload(call_graph_t* ctx) {
         set_free(&node->edges);
     }
 
+    list_free(&ctx->entries);
     return map_free_force(&ctx->verts);
 }
