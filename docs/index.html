@@ -525,8 +525,8 @@
     .feature-card::before,
     .docsify-pagination-card::before,
     .cpl-runner-button::before {
-      top: -1.5px;
-      left: calc(100% - 1px);
+      top: -2px;
+      left: calc(100% + 0.5px);
       width: calc(var(--iso-depth) + 1px);
       height: calc(100% + var(--iso-depth) + 1px);
       background: var(--extrude-side);
@@ -534,7 +534,7 @@
       clip-path: polygon(
         0 0,
         100% var(--iso-depth),
-        100% calc(100% - 1px),
+        100% calc(100% + 0.5px),
         0 calc(100% - var(--iso-depth) - 1px)
       );
       -webkit-mask: linear-gradient(#000 0 0) left / 0 100% no-repeat;
@@ -547,9 +547,9 @@
     .feature-card::after,
     .docsify-pagination-card::after,
     .cpl-runner-button::after {
-      top: calc(100% - 1px);
+      top: calc(100% - 0px);
       left: -2.7px;
-      width: calc(100% + var(--iso-depth) + 3px);
+      width: calc(100% + var(--iso-depth) + 2.5px);
       height: calc(var(--iso-depth) + 1px);
       background: var(--extrude-bottom);
       border-top: 0;
