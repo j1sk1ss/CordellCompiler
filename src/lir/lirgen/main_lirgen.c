@@ -118,13 +118,22 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
             return LIR_BLOCK2(ctx, LIR_RAW, LIR_SUBJ_RAWASM(h->farg->storage.str.s_id), subj);
         }
         case HIR_STASM: {
-            foreach (hir_subject_t* s, &h->targ->storage.list.h) {
+            list_iter_t it;
+            list_iter_tinit(&h->targ->storage.list.h, &it);
+            hir_subject_t* s;
+            while ((s = list_iter_prev(&it))) {
                 stack_push(params, s);
             }
+            
             return 1;
         }
         case HIR_ENDASM: {
-            for (int i = 0; i < h->targ->storage.cnst.value; i++) stack_pop(params, NULL);
+            for (int i = 0; i < h->targ->storage.cnst.value; i++) {
+                hir_subject_t* s;
+                if (stack_pop(params, (void**)&s)) {
+                    LIR_BLOCK1(ctx, LIR_VRUSE, _convert_hs_to_ls(s));
+                }
+            }
             return 1;
         }
         case HIR_STRDECL: return LIR_BLOCK2(ctx, LIR_STRDECL, _convert_hs_to_ls(h->farg), LIR_SUBJ_STRING(h->sarg->storage.str.s_id));

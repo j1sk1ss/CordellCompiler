@@ -29,8 +29,8 @@ int 0x80
 _cpl_sum2__i64__u8:
 push ebp
 mov ebp, esp
-mov ebx, dword [ebp + 12]
-mov edx, dword [ebp + 8]
+mov ebx, dword [ebp + 8]
+mov edx, dword [ebp + 12]
 mov eax, ebx
 add eax, edx
 mov ebx, eax
