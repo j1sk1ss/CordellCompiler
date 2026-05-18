@@ -156,7 +156,7 @@ static inline int _allowed_character_in_token(char c) {
         case '\\':
         case '\'':
         case '\"': return 0;
-        default: return 1;
+        default:   return 1;
     }
 }
 
@@ -175,37 +175,50 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
     for (ssize_t i = *off; i < bytes_read; ++i) {
         char ch = buffer[i];
         char_type_t ct = _get_char_type(ch);
+        int was_spec = ctx->is_spec;
         finfo->column++;
 
-        if (ct == CHAR_PP) {
+        if (!was_spec && !ctx->squt && !ctx->mqut && ct == CHAR_PP) {
             ctx->is_pp = 1;
             continue;
         }
         
-        if (ctx->is_spec) {
+        if (was_spec) {
             switch (ch) {
-                case '0': ch = '\0'; break;
+                case '0': ch = 0;    break;
+                case '1': ch = 1;    break;
+                case '2': ch = 2;    break;
+                case '3': ch = 3;    break;
+                case '4': ch = 4;    break;
+                case '5': ch = 5;    break;
+                case '6': ch = 6;    break;
+                case '7': ch = 7;    break;
+                case 'b': ch = '\b'; break;
                 case 'n': ch = '\n'; break;
                 case 't': ch = '\t'; break;
                 case 'r': ch = '\r'; break;
                 default: break;
             }
             
-            ctx->is_spec = !ctx->is_spec;
+            ctx->is_spec = 0;
         }
 
         /* Special character logic
             proceeding. Also, if we encounter backslash,
             we must skip it. */
-        if (ct == CHAR_BACKSLASH) {
-            ctx->is_spec = !ctx->is_spec;
-            // continue;
+        if (!was_spec && ct == CHAR_BACKSLASH) {
+            ctx->is_spec = 1;
+            continue;
         }
 
         /* Markdown routine (quotes and comment flags handler) */
-        if (ct == CHAR_SING_QUOTE || ct == CHAR_QUOTE) {
-            if (ct == CHAR_SING_QUOTE) ctx->squt = !ctx->squt;
-            else if (ct == CHAR_QUOTE) ctx->mqut = !ctx->mqut;
+        if (!was_spec && ct == CHAR_SING_QUOTE && !ctx->mqut) {
+            ctx->squt = !ctx->squt;
+            continue;
+        }
+
+        if (!was_spec && ct == CHAR_QUOTE && !ctx->squt) {
+            ctx->mqut = !ctx->mqut;
             continue;
         }
         
@@ -290,9 +303,12 @@ _force_token_creation: {}
             return NULL;
         }
         
-        if (_allowed_character_in_token(ch)) {
-            token_buf[ctx->token_len++] = ch;
-        }
+        if (
+            _allowed_character_in_token(ch)                ||
+            (was_spec && !_allowed_character_in_token(ch)) ||
+            (ctx->squt && ct == CHAR_QUOTE)                ||
+            (ctx->mqut && ct == CHAR_SING_QUOTE)
+        ) token_buf[ctx->token_len++] = ch;
     }
 
     if (ctx->in_token) goto _force_token_creation; // TODO: Don't force to close a token, check if this the last 

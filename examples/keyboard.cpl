@@ -117,7 +117,8 @@ glob arr _key_pressed[128, u8] = { 0 };
 function _keyboard_wait_input_clear() -> i8 {
     i32 timeout = 100000;
     while i386_inb(KBD_STATUS_PORT) & KBD_STATUS_INPUT_FULL; {
-        if --timeout <= 0; return 0;
+        timeout -= 1;
+        if timeout <= 0; return 0;
     }
 
     return 1;
@@ -126,7 +127,8 @@ function _keyboard_wait_input_clear() -> i8 {
 function _keyboard_wait_output_full() -> i32 {
     i32 timeout = 100000;
     while not (i386_inb(KBD_STATUS_PORT) & KBD_STATUS_OUTPUT_FULL); {
-        if --timeout <= 0; return 0;
+        timeout -= 1;
+        if timeout <= 0; return 0;
     }
 
     return 1;
@@ -152,7 +154,8 @@ function _keyboard_read_data(ptr u8 data) -> i8 {
 
 function _keyboard_flush_output() -> i0 {
     i32 timeout = 32;
-    while (i386_inb(KBD_STATUS_PORT) & KBD_STATUS_OUTPUT_FULL) && (--timeout > 0); {
+    while (i386_inb(KBD_STATUS_PORT) & KBD_STATUS_OUTPUT_FULL) && (timeout > 0); {
+        timeout -= 1;
         i386_inb(KBD_DATA_PORT);
     }
 }
@@ -179,28 +182,28 @@ glob function i386_init_keyboard() -> i0 {
     _keyboard_flush_output();
 
     u8 status = i386_inb(KBD_STATUS_PORT);
-    kprintf("[KEYBOARD INFO]: ( ");
-    if status & (1 << 0); kprintf("Output buffer full.\t");
-    else kprintf("Output buffer empty.\t");
-    if status & (1 << 1); kprintf("Input buffer full.\t");
-    else kprintf("Input buffer empty.\t");
-    if status & (1 << 2); kprintf("System flag set.\t");
-    else kprintf("System flag unset.\t");
-    if status & (1 << 3); kprintf("Command/Data -> PS/2 device.\t");
-    else kprintf("Command/Data -> PS/2 controller.\t");
+    kprintf(ref "[KEYBOARD INFO]: ( ");
+    if status & (1 << 0); kprintf(ref "Output buffer full.\t");
+    else kprintf(ref "Output buffer empty.\t");
+    if status & (1 << 1); kprintf(ref "Input buffer full.\t");
+    else kprintf(ref "Input buffer empty.\t");
+    if status & (1 << 2); kprintf(ref "System flag set.\t");
+    else kprintf(ref "System flag unset.\t");
+    if status & (1 << 3); kprintf(ref "Command/Data -> PS/2 device.\t");
+    else kprintf(ref "Command/Data -> PS/2 controller.\t");
     if status & (1 << 6); kprintf("Timeout error.\t");
-    else kprintf("No timeout error.\t");
-    if status & (1 << 7); kprintf("Parity error. ");
-    else kprintf("No parity error.");
-    kprintf(")\n");
+    else kprintf(ref "No timeout error.\t");
+    if status & (1 << 7); kprintf(ref "Parity error. ");
+    else kprintf(ref "No parity error.");
+    kprintf(ref ")\n");
 
     u8 config = 0;
     if 
         not _keyboard_write_command(KBD_CMD_READ_CONFIG) || 
         not _keyboard_read_data(ref config); 
-    kprintf("PS/2 config byte unavailable, trying to continue.\n");
+    kprintf(ref "PS/2 config byte unavailable, trying to continue.\n");
     else {
-        kprintf("PS/2 config byte: %x\n", config);
+        kprintf(ref "PS/2 config byte: %x\n", config);
         config |= KBD_CONFIG_IRQ1;
         config &= 0xFF ^ KBD_CONFIG_PORT1_CLOCK;
         if _keyboard_write_command(KBD_CMD_WRITE_CONFIG); {
@@ -223,7 +226,3 @@ glob function pop_character() -> i8 {
     _curr_char = EMPTY_KEYBOARD;
     return character;
 }
-
-:/ OUTPUT
-.
-/:
