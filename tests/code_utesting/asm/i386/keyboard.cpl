@@ -162,21 +162,19 @@ function _keyboard_flush_output() -> i0 {
 }
 
 function i386_keyboard_handler(ptr i0 _) -> i0{
-    i8 character = i386_inb(0x60);
-    if character < 0 || character >= 128; return;
+    u8 scancode = i386_inb(0x60);
+    u8 key = scancode & 0x7F;
 
-    _key_pressed[character as i32] = 0;
-    if not (character & 0x80); {
-        _key_pressed[character as i32] = 1;
-        _curr_char = _alphabet[character as i32];
-        if _key_pressed[LSHIFT] || _key_pressed[RSHIFT]; _curr_char = _shift_alphabet[character as i32];
-        if _curr_char == LSHIFT_BUTTON || _curr_char == RSHIFT_BUTTON; return;
+    if scancode & 0x80; {
+        _key_pressed[key as i32] = 0;
+        return;
     }
 
-    if _key_pressed[LSHIFT] || _key_pressed[RSHIFT]; {
-        _key_pressed[LSHIFT] = 0;
-        _key_pressed[RSHIFT] = 0;
-    }
+    _key_pressed[key as i32] = 1;
+    _curr_char = _alphabet[key as i32];
+
+    if _key_pressed[LSHIFT] || _key_pressed[RSHIFT];
+        _curr_char = _shift_alphabet[key as i32];
 }
 
 glob function i386_init_keyboard() -> i0 {

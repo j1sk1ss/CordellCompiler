@@ -184,22 +184,28 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
         }
         
         if (was_spec) {
-            switch (ch) {
-                case '0': ch = 0;    break;
-                case '1': ch = 1;    break;
-                case '2': ch = 2;    break;
-                case '3': ch = 3;    break;
-                case '4': ch = 4;    break;
-                case '5': ch = 5;    break;
-                case '6': ch = 6;    break;
-                case '7': ch = 7;    break;
-                case 'b': ch = '\b'; break;
-                case 'n': ch = '\n'; break;
-                case 't': ch = '\t'; break;
-                case 'r': ch = '\r'; break;
-                default: break;
+            if (ch >= '0' && ch <= '7') {
+                unsigned char value = ch - '0';
+                for (int j = 0; j < 2 && i + 1 < bytes_read; j++) {
+                    char next = buffer[i + 1];
+                    if (next < '0' || next > '7') break;
+                    value = (value << 3) + (next - '0');
+                    i++;
+                    finfo->column++;
+                }
+
+                ch = value;
             }
-            
+            else {
+                switch (ch) {
+                    case 'b': ch = '\b'; break;
+                    case 'n': ch = '\n'; break;
+                    case 't': ch = '\t'; break;
+                    case 'r': ch = '\r'; break;
+                    default: break;
+                }
+            }
+
             ctx->is_spec = 0;
         }
 
