@@ -19,8 +19,8 @@ typedef struct {
 } call_graph_node_t;
 
 typedef struct {
-    long  e_fid;
-    map_t verts;
+    list_t entries;
+    map_t  verts;
 } call_graph_t;
 
 /*
