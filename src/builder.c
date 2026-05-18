@@ -6,8 +6,10 @@
 #define OPTION_HELP                  "--help"
 #define OPTION_VERSION_SHORT         "-v"
 #define OPTION_VERSION               "--version"
+#define OPTION_PREPROCESS_ONLY       "-E"
 #define OPTION_INLUCDE               "-I"
 #define OPTION_OUTPUT                "--output"
+#define OPTION_WITHOUT_COMPILATION   "--without-compilation"
 #define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
 #define OPTION_ENABLE_IR_ANALYSIS    "--ir-analysis"
 #define OPTION_DEBUG                 "--debug"
@@ -85,6 +87,8 @@ static int _print_help_message() {
     static const cli_help_option_t general_options[] = {
         { OPTION_HELP_SHORT ", " OPTION_HELP, NULL, "Show this help message" },
         { OPTION_VERSION_SHORT ", " OPTION_VERSION, NULL, "Show compiler version" },
+        { OPTION_PREPROCESS_ONLY, NULL, "Run preprocessor only" },
+        { OPTION_WITHOUT_COMPILATION, NULL, "Build AST and HIR, then stop without compilation" },
         { OPTION_INLUCDE, "<dir>", "Add include directory" },
         { OPTION_OUTPUT, "<file>", "Set output file" },
         { OPTION_ENABLE_AST_ANALYSIS, NULL, "Enable AST analysis" },
@@ -200,6 +204,8 @@ typedef struct {
         int          hir_analysis;
         int          show_help;
         int          show_version;
+        int          preprocess_only;
+        int          without_compilation;
         int          no_compile;
     } flags;
 } options_t;
@@ -244,6 +250,18 @@ static int _run_tool(const char* tool, char* const argv[]) {
     }
 
     return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+}
+
+static int _copy_fd_to_stream(int fd, FILE* stream) {
+    char buffer[4096];
+    ssize_t nread = 0;
+
+    while ((nread = read(fd, buffer, sizeof(buffer))) > 0) {
+        size_t written = fwrite(buffer, 1, (size_t)nread, stream);
+        if (written != (size_t)nread) return 0;
+    }
+
+    return nread == 0 && !ferror(stream);
 }
 
 static int _compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path) {
@@ -462,6 +480,12 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_VERSION_SHORT) || !strcmp(argv[i], OPTION_VERSION)) {
             out->flags.show_version = 1;
         }
+        else if (!strcmp(argv[i], OPTION_PREPROCESS_ONLY)) {
+            out->flags.preprocess_only = 1;
+        }
+        else if (!strcmp(argv[i], OPTION_WITHOUT_COMPILATION)) {
+            out->flags.without_compilation = 1;
+        }
         else if (!strcmp(argv[i], OPTION_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.output = argv[++i];
@@ -653,6 +677,29 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
+        if (options.flags.preprocess_only) {
+            FILE* output = stdout;
+            if (options.locations.output) {
+                output = fopen(options.locations.output, "w");
+                if (!output) {
+                    fprintf(stderr, "Can't open output file %s: %s\n", options.locations.output, strerror(errno));
+                    close(fd);
+                    return 1;
+                }
+            }
+
+            if (!_copy_fd_to_stream(fd, output)) {
+                fprintf(stderr, "Can't write preprocessed output for %s\n", options.locations.files[i]);
+                if (output != stdout) fclose(output);
+                close(fd);
+                return 1;
+            }
+
+            if (output != stdout) fclose(output);
+            close(fd);
+            continue;
+        }
+
         list_t tokens;
         list_init(&tokens);
         if (!TKN_tokenize(fd, &tokens) || !list_size(&tokens)) {
@@ -691,6 +738,27 @@ int main(int argc, char* argv[]) {
 
         hir_ctx_t hirctx = { 0 };
         HIR_generate(&sctx, &hirctx, &smt);
+
+        if (options.flags.without_compilation && options.config.emit_ir) {
+            const char* ir_output = _output_path_or_default(options.locations.ir_output, "output.ir");
+            FILE* ir_file = fopen(ir_output, "w");
+            if (!ir_file) {
+                fprintf(stderr, "Can't open HIR output file %s: %s\n", ir_output, strerror(errno));
+                return 1;
+            }
+            DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
+            fclose(ir_file);
+        }
+
+        if (options.flags.without_compilation) {
+            HIR_unload_blocks(hirctx.hot.h);
+            list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
+            AST_unload_ctx(&sctx);
+
+            SMT_unload(&smt);
+            close(fd);
+            continue;
+        }
 
         cfg_ctx_t cfgctx = { .cid = 0 };
         HIR_CFG_build(&hirctx, &cfgctx, &smt);
@@ -883,7 +951,12 @@ int main(int argc, char* argv[]) {
         close(fd);
     }
 
-    if (!options.flags.no_compile && options.locations.files_count > 0) {
+    if (
+        !options.flags.no_compile &&
+        !options.flags.preprocess_only &&
+        !options.flags.without_compilation &&
+        options.locations.files_count > 0
+    ) {
         if (!_link_objects(&options, object_files, options.locations.files_count)) {
             fprintf(stderr, "Linking failed\n");
             return 1;
@@ -899,6 +972,5 @@ int main(int argc, char* argv[]) {
 
     mm_free(object_files);
     mm_free((void*)options.locations.files);
-
     return EXIT_SUCCESS;
 }
