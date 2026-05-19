@@ -195,6 +195,11 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = res;
                         break;
                     }
+                    case LIR_NEG: {
+                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, LIR_copy_subject(lh->farg), lh->sarg, NULL), lh);
+                        lh->sarg = LIR_copy_subject(lh->farg);
+                        break;
+                    }
                     case LIR_iBRHT: case LIR_iBLFT:
                     case LIR_bOR:   case LIR_bXOR: case LIR_bAND:
                     case LIR_iMUL:  case LIR_iSUB: case LIR_iADD: {

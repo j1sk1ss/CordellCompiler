@@ -204,7 +204,7 @@ glob function i386_init_keyboard() -> i0 {
     else {
         kprintf(ref "PS/2 config byte: %x\n", config);
         config |= KBD_CONFIG_IRQ1;
-        config &= 0xFF ^ KBD_CONFIG_PORT1_CLOCK;
+        config &= neg KBD_CONFIG_PORT1_CLOCK;
         if _keyboard_write_command(KBD_CMD_WRITE_CONFIG); {
             _keyboard_write_data(config);
         }
