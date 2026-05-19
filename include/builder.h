@@ -73,4 +73,114 @@
 #include <asm/i386_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
+#define CCPL_VERSION                 "3.5.1"
+
+#define OPTION_HELP_SHORT            "-h"
+#define OPTION_HELP                  "--help"
+#define OPTION_VERSION_SHORT         "-v"
+#define OPTION_VERSION               "--version"
+#define OPTION_PREPROCESS_ONLY       "-E"
+#define OPTION_INLUCDE               "-I"
+#define OPTION_OUTPUT                "--output"
+#define OPTION_WITHOUT_COMPILATION   "--without-compilation"
+#define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
+#define OPTION_ENABLE_IR_ANALYSIS    "--ir-analysis"
+#define OPTION_DEBUG                 "--debug"
+#define OPTION_NO_DEBUG              "--no-debug"
+#define OPTION_NO_OPTIMIZATION       "-O0"
+#define OPTION_ROUGHT_OPTIMIZATION   "-O1"
+#define OPTION_GOOD_OPTIMIZATION     "-O2"
+#define OPTION_MAX_OPTIMIZATION      "-O3"
+#define OPTION_ARCH                  "--arch"
+#define OPTION_ASM_COMPILER          "--asm-compiler"
+#define OPTION_ASM_FORMAT            "--asm-format"
+#define OPTION_LINKER                "--linker"
+#define OPTION_LINKER_MODE           "--linker-mode"
+#define OPTION_LINKER_NO_PIE         "--linker-no-pie"
+#define OPTION_LINKER_PIE            "--linker-pie"
+#define OPTION_LINKER_M32            "--linker-m32"
+#define OPTION_LINKER_NO_M32         "--linker-no-m32"
+#define OPTION_NO_COMPILE            "--no-compile"
+#define OPTION_ENTRY_NAME            "--entry-name"
+#define OPTION_RO_SECTION            "--ro-section"
+#define OPTION_GLOB_SECTION          "--glob-section"
+#define OPTION_CODE_SECTION          "--code-section"
+#define OPTION_FULL_BYTNESS          "--full-bytness"
+#define OPTION_HALF_BYTNESS          "--half-bytness"
+#define OPTION_QUART_BYTNESS         "--quart-bytness"
+#define OPTION_EIGHT_BYTNESS         "--eight-bytness"
+#define OPTION_SYS_TYPE              "--sys-type"
+#define OPTION_TRE                   "--tre"
+#define OPTION_NO_TRE                "--no-tre"
+#define OPTION_FINLINE               "--finline"
+#define OPTION_NO_FINLINE            "--no-finline"
+#define OPTION_LICM                  "--licm"
+#define OPTION_NO_LICM               "--no-licm"
+#define OPTION_CONSTANT              "--constant"
+#define OPTION_NO_CONSTANT           "--no-constant"
+#define OPTION_PEEPHOLE              "--peephole"
+#define OPTION_NO_PEEPHOLE           "--no-peephole"
+#define OPTION_EMIT_AST              "--emit-ast"
+#define OPTION_EMIT_IR               "--emit-ir"
+#define OPTION_EMIT_ASM              "--emit-asm"
+#define OPTION_AST_OUTPUT            "--ast-output"
+#define OPTION_IR_OUTPUT             "--ir-output"
+#define OPTION_ASM_OUTPUT            "--asm-output"
+
+typedef struct {
+    const char* option;
+    const char* argument;
+    const char* description;
+} cli_help_option_t;
+
+typedef struct {
+    struct {
+        const char*  include;
+        const char** files;
+        int          files_count;
+        char*        output;
+        char*        ast_output;
+        char*        ir_output;
+        char*        asm_output;
+    } locations;
+    struct {
+        const char*  asm_compiler;
+        const char*  asm_format;
+        const char*  linker;
+        int          linker_use_c_driver;
+        int          linker_no_pie;
+        int          linker_m32;
+    } tools;
+    struct {
+        const char*  entry_name;
+        const char*  ro_section;
+        const char*  glob_section;
+        const char*  code_section;
+        long         full_bytness;
+        long         half_bytness;
+        long         quart_bytness;
+        long         eight_bytness;
+        arch_type_t  sys_type;
+        int          tre;
+        int          finline;
+        int          licm;
+        int          constant;
+        int          peephole;
+        int          copy_prop;
+        int          debug;
+        int          emit_ast;
+        int          emit_ir;
+        int          emit_asm;
+    } config;
+    struct {
+        int          ast_analysis;
+        int          hir_analysis;
+        int          show_help;
+        int          show_version;
+        int          preprocess_only;
+        int          without_compilation;
+        int          no_compile;
+    } flags;
+} options_t;
+
 #endif

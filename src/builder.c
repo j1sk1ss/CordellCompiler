@@ -1,78 +1,13 @@
 #include <builder.h>
 
-#define CCPL_VERSION                 "3.5"
-
-#define OPTION_HELP_SHORT            "-h"
-#define OPTION_HELP                  "--help"
-#define OPTION_VERSION_SHORT         "-v"
-#define OPTION_VERSION               "--version"
-#define OPTION_PREPROCESS_ONLY       "-E"
-#define OPTION_INLUCDE               "-I"
-#define OPTION_OUTPUT                "--output"
-#define OPTION_WITHOUT_COMPILATION   "--without-compilation"
-#define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
-#define OPTION_ENABLE_IR_ANALYSIS    "--ir-analysis"
-#define OPTION_DEBUG                 "--debug"
-#define OPTION_NO_DEBUG              "--no-debug"
-#define OPTION_NO_OPTIMIZATION       "-O0"
-#define OPTION_ROUGHT_OPTIMIZATION   "-O1"
-#define OPTION_GOOD_OPTIMIZATION     "-O2"
-#define OPTION_MAX_OPTIMIZATION      "-O3"
-#define OPTION_ARCH                  "--arch"
-#define OPTION_ASM_COMPILER          "--asm-compiler"
-#define OPTION_ASM_FORMAT            "--asm-format"
-#define OPTION_LINKER                "--linker"
-#define OPTION_LINKER_MODE           "--linker-mode"
-#define OPTION_LINKER_NO_PIE         "--linker-no-pie"
-#define OPTION_LINKER_PIE            "--linker-pie"
-#define OPTION_LINKER_M32            "--linker-m32"
-#define OPTION_LINKER_NO_M32         "--linker-no-m32"
-#define OPTION_NO_COMPILE            "--no-compile"
-#define OPTION_ENTRY_NAME            "--entry-name"
-#define OPTION_RO_SECTION            "--ro-section"
-#define OPTION_GLOB_SECTION          "--glob-section"
-#define OPTION_CODE_SECTION          "--code-section"
-#define OPTION_FULL_BYTNESS          "--full-bytness"
-#define OPTION_HALF_BYTNESS          "--half-bytness"
-#define OPTION_QUART_BYTNESS         "--quart-bytness"
-#define OPTION_EIGHT_BYTNESS         "--eight-bytness"
-#define OPTION_SYS_TYPE              "--sys-type"
-#define OPTION_TRE                   "--tre"
-#define OPTION_NO_TRE                "--no-tre"
-#define OPTION_FINLINE               "--finline"
-#define OPTION_NO_FINLINE            "--no-finline"
-#define OPTION_LICM                  "--licm"
-#define OPTION_NO_LICM               "--no-licm"
-#define OPTION_CONSTANT              "--constant"
-#define OPTION_NO_CONSTANT           "--no-constant"
-#define OPTION_PEEPHOLE              "--peephole"
-#define OPTION_NO_PEEPHOLE           "--no-peephole"
-#define OPTION_EMIT_AST              "--emit-ast"
-#define OPTION_EMIT_IR               "--emit-ir"
-#define OPTION_EMIT_ASM              "--emit-asm"
-#define OPTION_AST_OUTPUT            "--ast-output"
-#define OPTION_IR_OUTPUT             "--ir-output"
-#define OPTION_ASM_OUTPUT            "--asm-output"
-
-typedef struct {
-    const char* option;
-    const char* argument;
-    const char* description;
-} cli_help_option_t;
-
-static void _print_version(FILE* stream) {
+static inline void _print_version(FILE* stream) {
     fprintf(stream, "ccpl %s\n", CCPL_VERSION);
 }
 
 static void _print_help_row(FILE* stream, const cli_help_option_t* row) {
     char label[64];
-    if (row->argument && row->argument[0]) {
-        snprintf(label, sizeof(label), "%s %s", row->option, row->argument);
-    }
-    else {
-        snprintf(label, sizeof(label), "%s", row->option);
-    }
-
+    if (row->argument && row->argument[0]) snprintf(label, sizeof(label), "%s %s", row->option, row->argument);
+    else snprintf(label, sizeof(label), "%s", row->option);
     fprintf(stream, "  %-28s %s\n", label, row->description);
 }
 
@@ -160,63 +95,11 @@ static int _print_help_message() {
     return 0;
 }
 
-typedef struct {
-    struct {
-        const char*  include;
-        const char** files;
-        int          files_count;
-        char*        output;
-        char*        ast_output;
-        char*        ir_output;
-        char*        asm_output;
-    } locations;
-    struct {
-        const char*  asm_compiler;
-        const char*  asm_format;
-        const char*  linker;
-        int          linker_use_c_driver;
-        int          linker_no_pie;
-        int          linker_m32;
-    } tools;
-    struct {
-        const char*  entry_name;
-        const char*  ro_section;
-        const char*  glob_section;
-        const char*  code_section;
-        long         full_bytness;
-        long         half_bytness;
-        long         quart_bytness;
-        long         eight_bytness;
-        arch_type_t  sys_type;
-        int          tre;
-        int          finline;
-        int          licm;
-        int          constant;
-        int          peephole;
-        int          copy_prop;
-        int          debug;
-        int          emit_ast;
-        int          emit_ir;
-        int          emit_asm;
-    } config;
-    struct {
-        int          ast_analysis;
-        int          hir_analysis;
-        int          show_help;
-        int          show_version;
-        int          preprocess_only;
-        int          without_compilation;
-        int          no_compile;
-    } flags;
-} options_t;
-
 static char* _dup_string(const char* s) {
     if (!s) return NULL;
-
     size_t n = strlen(s) + 1;
     char* out = mm_malloc(n);
     if (!out) return NULL;
-
     memcpy(out, s, n);
     return out;
 }
@@ -225,7 +108,6 @@ static char* _make_temp_path(void) {
     char template[] = "/tmp/builder-XXXXXX";
     int fd = mkstemp(template);
     if (fd < 0) return NULL;
-
     close(fd);
     return _dup_string(template);
 }
@@ -237,7 +119,7 @@ static int _run_tool(const char* tool, char* const argv[]) {
         return 0;
     }
 
-    if (pid == 0) {
+    if (!pid) {
         execvp(tool, argv);
         perror(tool);
         _exit(127);
@@ -253,9 +135,8 @@ static int _run_tool(const char* tool, char* const argv[]) {
 }
 
 static int _copy_fd_to_stream(int fd, FILE* stream) {
-    char buffer[4096];
+    char buffer[4096] = { 0 };
     ssize_t nread = 0;
-
     while ((nread = read(fd, buffer, sizeof(buffer))) > 0) {
         size_t written = fwrite(buffer, 1, (size_t)nread, stream);
         if (written != (size_t)nread) return 0;
@@ -316,40 +197,23 @@ static int _parse_long_arg(const char* s, long* out) {
 
 static int _parse_sys_type(const char* s, arch_type_t* out) {
     if (!s || !out) return 0;
-
-    if (
-        !strcmp(s, "unknown") || 
-        !strcmp(s, "UNKNOWN")
-    ) {
+    if (!strcmp(s, "unknown")) {
         *out = UNKNOWN;
         return 1;
     }
-    else if (
-        !strcmp(s, "macho64") || 
-        !strcmp(s, "MACHO64") || 
-        !strcmp(s, "macho64") || 
-        !strcmp(s, "MACHO64")
-    ) {
+    else if (!strcmp(s, "macho64")) {
         *out = MACHO64;
         return 1;
     }
-    else if (
-        !strcmp(s, "linux64") || 
-        !strcmp(s, "LINUX64")
-    ) {
+    else if (!strcmp(s, "linux64")) {
         *out = LINUX64;
         return 1;
     }
-    else if (
-        !strcmp(s, "i386")
-    ) {
+    else if (!strcmp(s, "i386")) {
         *out = I386;
         return 1;
     }
-    else if (
-        !strcmp(s, "windows64") || 
-        !strcmp(s, "WINDOWS64")
-    ) {
+    else if (!strcmp(s, "windows64")) {
         *out = WINDOWS64;
         return 1;
     }
@@ -368,9 +232,9 @@ static void _set_optimization_profile(options_t* out, int level) {
     out->config.copy_prop = 0;
 
     if (level >= 2) {
-        out->config.licm     = 1;
-        out->config.constant = 1;
-        out->config.peephole = 1;
+        out->config.licm      = 1;
+        out->config.constant  = 1;
+        out->config.peephole  = 1;
     }
 
     if (level >= 3) {
@@ -413,27 +277,27 @@ static void _set_arch_profile(options_t* out, const char* arch) {
 static config_t _make_config(const options_t* options) {
     config_t conf = {
         .system = {
-            .entry_name = options->config.entry_name,
-            .ro_section = options->config.ro_section,
-            .glob_section = options->config.glob_section,
-            .code_section = options->config.code_section,
-            .bytness = {
-                .bytness = options->config.full_bytness,
-                .h_bytness = options->config.half_bytness,
-                .q_bytness = options->config.quart_bytness,
-                .e_bytness = options->config.eight_bytness,
+            .entry_name     = options->config.entry_name,
+            .ro_section     = options->config.ro_section,
+            .glob_section   = options->config.glob_section,
+            .code_section   = options->config.code_section,
+            .bytness        = {
+                .bytness    = options->config.full_bytness,
+                .h_bytness  = options->config.half_bytness,
+                .q_bytness  = options->config.quart_bytness,
+                .e_bytness  = options->config.eight_bytness,
             },
-            .sys_type = options->config.sys_type,
+            .sys_type       = options->config.sys_type,
         },
         .optimization_flags = {
-            .tre      = options->config.tre      ? 1 : 0,
-            .finline  = options->config.finline  ? 1 : 0,
-            .licm     = options->config.licm     ? 1 : 0,
-            .constant = options->config.constant ? 1 : 0,
-            .peephole = options->config.peephole ? 1 : 0,
+            .tre            = options->config.tre      ? 1 : 0,
+            .finline        = options->config.finline  ? 1 : 0,
+            .licm           = options->config.licm     ? 1 : 0,
+            .constant       = options->config.constant ? 1 : 0,
+            .peephole       = options->config.peephole ? 1 : 0,
         },
-        .compilation_flags = {
-            .debug = options->config.debug ? 1 : 0,
+        .compilation_flags  = {
+            .debug          = options->config.debug ? 1 : 0,
         },
     };
 
@@ -442,14 +306,12 @@ static config_t _make_config(const options_t* options) {
 
 static void _set_default_options(options_t* out) {
     memset(out, 0, sizeof(*out));
-
     out->tools.asm_compiler        = "nasm";
     out->tools.asm_format          = "macho64";
     out->tools.linker              = "clang";
     out->tools.linker_use_c_driver = 1;
     out->tools.linker_no_pie       = 0;
     out->tools.linker_m32          = 0;
-
     out->config.entry_name         = "_main";
     out->config.ro_section         = "__TEXT,__const";
     out->config.glob_section       = "__DATA,__data";
@@ -460,32 +322,20 @@ static void _set_default_options(options_t* out) {
     out->config.eight_bytness      = 1;
     out->config.sys_type           = MACHO64;
     out->config.debug              = 0;
-
     _set_optimization_profile(out, 0);
 }
 
 static int _parse_input_args(char* argv[], int argc, options_t* out) {
-    if (!argv || argc <= 0 || !out) {
-        return 0;
-    }
-
+    if (!argv || argc <= 0 || !out) return 0;
     _set_default_options(out);
     out->locations.files = mm_malloc((size_t)argc * sizeof(*out->locations.files));
     if (!out->locations.files) return 0;
 
     for (int i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], OPTION_HELP_SHORT) || !strcmp(argv[i], OPTION_HELP)) {
-            out->flags.show_help = 1;
-        }
-        else if (!strcmp(argv[i], OPTION_VERSION_SHORT) || !strcmp(argv[i], OPTION_VERSION)) {
-            out->flags.show_version = 1;
-        }
-        else if (!strcmp(argv[i], OPTION_PREPROCESS_ONLY)) {
-            out->flags.preprocess_only = 1;
-        }
-        else if (!strcmp(argv[i], OPTION_WITHOUT_COMPILATION)) {
-            out->flags.without_compilation = 1;
-        }
+        if (!strcmp(argv[i], OPTION_HELP_SHORT) || !strcmp(argv[i], OPTION_HELP))            out->flags.show_help           = 1;
+        else if (!strcmp(argv[i], OPTION_VERSION_SHORT) || !strcmp(argv[i], OPTION_VERSION)) out->flags.show_version        = 1;
+        else if (!strcmp(argv[i], OPTION_PREPROCESS_ONLY))                                   out->flags.preprocess_only     = 1;
+        else if (!strcmp(argv[i], OPTION_WITHOUT_COMPILATION))                               out->flags.without_compilation = 1;
         else if (!strcmp(argv[i], OPTION_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.output = argv[++i];
@@ -513,11 +363,11 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_LINKER_MODE)) {
             if (i + 1 >= argc) goto _fail;
             const char* mode = argv[++i];
-            if (!strcmp(mode, "c") || !strcmp(mode, "driver")) out->tools.linker_use_c_driver    = 1;
-            else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver = 0;
+            if (!strcmp(mode, "c") || !strcmp(mode, "driver"))    out->tools.linker_use_c_driver    = 1;
+            else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver    = 0;
             else goto _fail;
         }
-        else if (!strcmp(argv[i], OPTION_NO_COMPILE)) out->flags.no_compile = 1;
+        else if (!strcmp(argv[i], OPTION_NO_COMPILE))    out->flags.no_compile    = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE)) out->tools.linker_no_pie = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_PIE))    out->tools.linker_no_pie = 0;
         else if (!strcmp(argv[i], OPTION_LINKER_M32))    out->tools.linker_m32    = 1;
@@ -570,7 +420,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_NO_PEEPHOLE))          out->config.peephole    = 0;
         else if (!strcmp(argv[i], OPTION_ENABLE_AST_ANALYSIS))  out->flags.ast_analysis = 1;
         else if (!strcmp(argv[i], OPTION_ENABLE_IR_ANALYSIS))   out->flags.hir_analysis = 1;
-        else if (!strcmp(argv[i], OPTION_EMIT_AST))             out->config.emit_ast     = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_AST))             out->config.emit_ast    = 1;
         else if (!strcmp(argv[i], OPTION_AST_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.ast_output = argv[++i];
@@ -828,7 +678,7 @@ int main(int argc, char* argv[]) {
             fclose(ir_file);
         }
 
-        lir_ctx_t lirctx = { .h = NULL, .t = NULL };
+        lir_ctx_t lirctx = { 0 };
         LIR_generate(&cfgctx, &lirctx, &smt);
 
         if (options.config.copy_prop) {
@@ -836,11 +686,12 @@ int main(int argc, char* argv[]) {
             LIR_drop_unused_variables(&cfgctx);
         }
 
-        register_saver_t reg_save = { 0 };
-        mem_selector_t   mem_sel  = { 0 };
-        inst_selector_t  inst_sel = { 0 };
-        peephole_t       pph      = { 0 };
+        inst_selector_t  inst_sel;
+        register_saver_t reg_save;
+        mem_selector_t   mem_sel;
+        peephole_t       pph;
         switch (CONF_get_system_type()) {
+            default:
             case MACHO64: {
                 inst_sel.select_instructions = x86_64_macho_nasm_instruction_selection;
                 reg_save.save_registers      = x86_64_macho_nasm_caller_saving;
@@ -865,7 +716,6 @@ int main(int argc, char* argv[]) {
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
                 break;
             }
-            default: break;
         }
 
         LIR_select_instructions(&cfgctx, &smt, &inst_sel);
@@ -882,9 +732,11 @@ int main(int argc, char* argv[]) {
         LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
         LIR_destroy_ssa(&cfgctx);
         LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
+
         if (options.config.peephole) {
             LIR_peephole_optimization(&cfgctx, &pph);
         }
+        
         LIR_validate_memory(&cfgctx, &smt, &mem_sel);
 
         char* asm_path = _make_temp_path();
