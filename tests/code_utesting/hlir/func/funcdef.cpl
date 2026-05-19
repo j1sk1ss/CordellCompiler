@@ -9,11 +9,11 @@
 }
 
 :/ OUTPUT
-BB{X} fn foo1() -> i32
-return $0;
-
-BB{X} 
-BB{X} fn _main(i32 a)
+BB2: fn foo1() -> i32
+%2 = $0 as i32;
+return %2;
+BB3: fend
+BB4: fn _main(i32 a)
 %1 = strt_loadarg();
 fend
 /:

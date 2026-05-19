@@ -66,6 +66,7 @@ static const char* lir_op_to_fmtstring(lir_operation_t op) {
         case LIR_TU16:       return "%s = %s as u16;\n";
         case LIR_TU8:        return "%s = %s as u8;\n";
 
+        case LIR_NEG:        return "%s = ~%s;\n";
         case LIR_NOT:        return "%s = !%s;\n";
         
         case LIR_INC:        return "%s++;\n";

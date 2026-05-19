@@ -15,6 +15,7 @@ static const char* _name_tkn_type(token_type_t t) {
         case DREF_TYPE_TOKEN:             return "DREF_TYPE_TOKEN";
         case REF_TYPE_TOKEN:              return "REF_TYPE_TOKEN";
         case NEGATIVE_TOKEN:              return "NEGATIVE_TOKEN";
+        case NOT_TOKEN:                   return "NOT_TOKEN";
         case VAR_ARGUMENTS_TOKEN:         return "VAR_ARGUMENTS_TOKEN";
         case I0_TYPE_TOKEN:               return "I0_TYPE_TOKEN";
         case F64_TYPE_TOKEN:              return "F64_TYPE_TOKEN";

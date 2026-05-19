@@ -84,7 +84,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_SETA:       EMIT_COMMAND("seta %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                   break;
         case LIR_STBE:       EMIT_COMMAND("setbe %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                  break;
         case LIR_STAE:       EMIT_COMMAND("setae %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                  break;
-        case LIR_NOT:        EMIT_COMMAND("neg %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
+        case LIR_NEG:        EMIT_COMMAND("neg %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
         case LIR_INC:        EMIT_COMMAND("inc %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
         case LIR_DEC:        EMIT_COMMAND("dec %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
         case LIR_JMP:        EMIT_COMMAND("jmp %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;

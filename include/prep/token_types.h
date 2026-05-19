@@ -43,7 +43,8 @@ typedef enum {
     PTR_TYPE_TOKEN,        // ptr
     RO_TYPE_TOKEN,         // ro
     GLOB_TYPE_TOKEN,       // glob
-    NEGATIVE_TOKEN,        // not
+    NOT_TOKEN,             // not
+    NEGATIVE_TOKEN,        // neg
 
     // Data types
     VAR_ARGUMENTS_TOKEN,   // ...

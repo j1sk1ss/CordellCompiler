@@ -8,17 +8,14 @@
 }
 
 :/ OUTPUT
-BB{X} start
+BB1: start
 cmp $1, 0;
-je lb{X};
-jne lb{X};
-
-BB{X} lb{X}
-jmp lb{X};
-
-BB{X} lb{X}
-jmp lb{X};
-
-BB{X} lb{X}
+je lb9;
+jne lb8;
+BB2: lb8:
+jmp lb10;
+BB3: lb9:
+jmp lb10;
+BB4: lb10:
 send
 /:

@@ -37,6 +37,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(RO_COMMAND,             RO_TYPE_TOKEN),
     LEXEM(GLOB_COMMAND,           GLOB_TYPE_TOKEN),
     LEXEM(NEGATIVE_COMMAND,       NEGATIVE_TOKEN),
+    LEXEM(NOT_COMMAND,            NOT_TOKEN),
 
     /* Variable tokens. */
     LEXEM(I0_VARIABLE,            I0_TYPE_TOKEN),

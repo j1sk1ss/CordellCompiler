@@ -342,6 +342,9 @@ Params:
 
 Return parsed from AST HIR subject.
 */
+hir_subject_t* HIR_generate_not(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+// TODO: docs
 hir_subject_t* HIR_generate_neg(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*

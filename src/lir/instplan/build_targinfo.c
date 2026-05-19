@@ -95,6 +95,7 @@ int main(int argc, char* argv[]) {
         ADD_OPINF(&ops, _create_op_info(LIR_iNMP, 0, 0, 1, 0, 1, 2.0f, 1, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_iAND, 0, 0, 1, 0, 1, 2.0f, 1, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_iOR, 0, 0, 1, 0, 1, 2.0f, 1, 1));
+        ADD_OPINF(&ops, _create_op_info(LIR_NEG, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_NOT, 0, 0, 1, 0, 1, 2.0f, 1, 0));
         ADD_OPINF(&ops, _create_op_info(LIR_bAND, 0, 0, 1, 0, 1, 2.0f, 1, 1));
         ADD_OPINF(&ops, _create_op_info(LIR_bOR, 0, 0, 1, 0, 1, 2.0f, 1, 1));

@@ -83,6 +83,12 @@
     "body": "poparg",
     "description": "CPL poparg expression"
   },
+  "CPL Ops NEG": {
+    "scope": "cpl",
+    "prefix": "neg",
+    "body": "neg ${1:x}",
+    "description": "CPL bitwise inversion expression"
+  },
   "CPL Ops SIZEOF": {
     "scope": "cpl",
     "prefix": "sizeof",

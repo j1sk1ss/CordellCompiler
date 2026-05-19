@@ -28,7 +28,8 @@
 #define PTR_COMMAND             "ptr"
 #define RO_COMMAND              "ro"
 #define GLOB_COMMAND            "glob"
-#define NEGATIVE_COMMAND        "not"
+#define NEGATIVE_COMMAND        "neg"
+#define NOT_COMMAND             "not"
 
 // Types
 #define I0_VARIABLE             "i0"

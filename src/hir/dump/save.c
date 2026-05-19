@@ -54,6 +54,7 @@ static const char* _get_operation_template(hir_operation_t op) {
         case HIR_bXOR:         return "%s = %s ^ %s;\n";
         case HIR_RAW:          return "[raw, \"%s\"]\n";
         case HIR_IFOP2:        return "if %s, goto %s, else goto %s;\n";
+        case HIR_NEG:          return "%s = neg %s;\n";
         case HIR_NOT:          return "%s = not %s;\n";
         case HIR_STORE:        return "%s = %s;\n";
         case HIR_VRUSE:        return "use %s;\n";

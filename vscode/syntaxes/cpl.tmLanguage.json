@@ -163,7 +163,7 @@
         },
         {
           "name": "keyword.other.operatorlike.cpl",
-          "match": "\\b(as|ref|dref|not)\\b"
+          "match": "\\b(as|ref|dref|not|neg)\\b"
         }
       ]
     },

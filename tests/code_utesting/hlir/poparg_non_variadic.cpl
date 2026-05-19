@@ -24,10 +24,10 @@ BB4: fn putc0(i8 c) -> i0
 %0 = ldparam();
 %7 = &(%0);
 use %7;
-stparam($33554436);
 stparam($1);
 stparam(%7);
 stparam($1);
+stparam($33554436);
 syscall;
 fend
 BB5: fn put_digit1(i64 x) -> i0
@@ -54,8 +54,8 @@ BB8: start
 use %14;
 %15 = $4 as i32;
 use %15;
-stparam(%14);
 stparam(%15);
+stparam(%14);
 call pack2(i32 a, i32 b) -> i32;
 %16 = fret();
 %6 = %16;
@@ -69,6 +69,7 @@ call put_digit1(i64 x) -> i0;
 use %19;
 stparam(%19);
 call put_digit1(i64 x) -> i0;
-exit $0;
+%21 = $0 as u8;
+exit %21;
 BB9: send
 /:

@@ -8,7 +8,7 @@
 }
 
 :/ OUTPUT
-BB{X} start
+BB1: start
 %2 = &(foo0(u32 a));
 %1 = %2;
 stparam($10);

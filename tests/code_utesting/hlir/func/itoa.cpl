@@ -35,22 +35,22 @@ BB2: fn itoa0(i32 num, i8* buffer, i32 blen) -> i0
 %2 = ldparam();
 %7 = !%0;
 cmp %7, 0;
-je lb18;
-jne lb16;
-BB3: lb16:
+je lb21;
+jne lb19;
+BB3: lb19:
 *(%1) = $48;
 return ;
-BB4: lb18:
+BB4: lb21:
 %8 = $0 as i32;
 %3 = %8;
 %4 = arr_alloc($32);
-BB5: lb37:
+BB5: lb40:
 %9 = $0 as i32;
 %10 = %0 > %9;
 cmp %10, 0;
-je lb39;
-jne lb38;
-BB6: lb38:
+je lb42;
+jne lb41;
+BB6: lb41:
 %13 = $10 as i32;
 %12 = %0 % %13;
 %11 = %12 as i8;
@@ -66,29 +66,29 @@ BB6: lb38:
 %22 = $1 as i32;
 %21 = %3 + %22;
 %3 = %21;
-jmp lb37;
-BB7: lb39:
+jmp lb40;
+BB7: lb42:
 %23 = $0 as i32;
 %5 = %23;
-BB8: lb79:
+BB8: lb82:
 %26 = $0 as i32;
 %25 = %3 > %26;
 cmp %25, 0;
-je lb88;
-jne lb87;
-BB9: lb87:
+je lb91;
+jne lb90;
+BB9: lb90:
 %27 = %5 < %2;
 %28 = %27 as i64;
 %24 = %28;
-jmp lb89;
-BB10: lb88:
+jmp lb92;
+BB10: lb91:
 %24 = 0;
-jmp lb89;
-BB11: lb89:
+jmp lb92;
+BB11: lb92:
 cmp %24, 0;
-je lb81;
-jne lb80;
-BB12: lb80:
+je lb84;
+jne lb83;
+BB12: lb83:
 %29 = &(%4);
 %30 = %3 * 1;
 %32 = %30 as u64;
@@ -105,24 +105,25 @@ BB12: lb80:
 %41 = $1 as i32;
 %40 = %3 - %41;
 %3 = %40;
-jmp lb79;
-BB13: lb81:
+jmp lb82;
+BB13: lb84:
 fend
 BB14: start
 %42 = &(%6);
 use %42;
 %43 = 32 as i32;
 use %43;
-stparam($123321);
-stparam(%42);
 stparam(%43);
+stparam(%42);
+stparam($123321);
 call itoa0(i32 num, i8* buffer, i32 blen) -> i0;
 %44 = &(%6);
 use %44;
-stparam($33554436);
-stparam($1);
-stparam(%44);
 stparam(32);
+stparam(%44);
+stparam($1);
+stparam($33554436);
 syscall;
 send
+<<ERROR>>	Memory leak!	336 != 0!
 /:

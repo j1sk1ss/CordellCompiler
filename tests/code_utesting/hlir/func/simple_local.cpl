@@ -2,7 +2,7 @@ start() {
     function get(i32 a) -> i32 {
         return a * 10;
     }
-    exit get(10);
+    exit get(10) as u8;
 }
 
 :/ OUTPUT
@@ -11,7 +11,8 @@ jmp lb7;
 BB3: lb7:
 stparam($10);
 call get1(i32 a) -> i32;
-%3 = fret();
+%4 = fret();
+%3 = %4 as u8;
 exit %3;
 BB4: send
 BB5: fn get1(i32 a) -> i32

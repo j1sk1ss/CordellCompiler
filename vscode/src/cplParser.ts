@@ -127,7 +127,7 @@ const KEYWORDS = new Set([
   "start","exit","function","return",
   "if","else","while","loop","switch","case","default",
   "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
-  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg","sizeof",
+  "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","neg","poparg","sizeof",
   "section","align",
   // preprocessor
   "line","include","define","undef","ifdef","ifndef","endif"
@@ -1610,7 +1610,7 @@ class Parser {
   }
 
   private parseUnary(): ExprInfo {
-    if (this.at("kw") && ["not","ref","dref"].includes(this.cur().text)) {
+    if (this.at("kw") && ["not","neg","ref","dref"].includes(this.cur().text)) {
       const opTok = this.cur();
       this.i++;
       const inner = this.parseUnary();

@@ -141,7 +141,7 @@ start(i32 a, ptr ptr i8 answers) {
                   [
 ] (STRING_VALUE_TOKEN, v_id=2, s_id=0)
          [if] (IF_TOKEN, v_id=-1, s_id=11)
-            [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+            [not] (NOT_TOKEN, v_id=-1, s_id=0)
                [()]
                   [strcmp] (FUNC_NAME_TOKEN, v_id=1, s_id=1)
                   { scope, id=0 }

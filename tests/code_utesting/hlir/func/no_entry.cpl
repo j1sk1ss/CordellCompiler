@@ -2,6 +2,6 @@ function foo() {
 }
 
 :/ OUTPUT
-BB{X} fn foo0()
+BB1: fn foo0()
 fend
 /:

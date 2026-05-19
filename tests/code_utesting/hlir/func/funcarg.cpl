@@ -8,7 +8,7 @@
 }
 
 :/ OUTPUT
-BB{X} start
+BB1: start
 call a0() -> i32;
 %2 = fret();
 use %2;

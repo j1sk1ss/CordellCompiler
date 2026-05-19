@@ -163,6 +163,7 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
         case HIR_TU8:   return LIR_BLOCK2(ctx, LIR_TU8,  _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg));
         case HIR_JMP:   return LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));
         case HIR_MKLB:  return LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id));
+        case HIR_NEG:   return LIR_BLOCK2(ctx, LIR_NEG, _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg));
         case HIR_NOT:   return LIR_BLOCK2(ctx, LIR_NOT, _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg)); 
         case HIR_IFOP2: {
             LIR_BLOCK2(ctx, LIR_CMP, _convert_hs_to_ls(h->farg), LIR_SUBJ_CONST(0));

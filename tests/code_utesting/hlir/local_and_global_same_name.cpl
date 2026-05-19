@@ -24,10 +24,10 @@ BB5: fn putc0(i8 c) -> i0
 %0 = ldparam();
 %1 = &(%0);
 use %1;
-stparam($33554436);
 stparam($1);
 stparam(%1);
 stparam($1);
+stparam($33554436);
 syscall;
 fend
 BB6: fn foo1() -> i0
@@ -35,8 +35,8 @@ stparam($71);
 call putc0(i8 c) -> i0;
 fend
 BB7: fn bar2() -> i0
-jmp lb34;
-BB8: lb34:
+jmp lb35;
+BB8: lb35:
 call foo3() -> i0;
 fend
 BB9: fn foo3() -> i0
@@ -46,6 +46,7 @@ fend
 BB10: start
 call bar2() -> i0;
 call foo1() -> i0;
-exit $0;
+%2 = $0 as u8;
+exit %2;
 BB11: send
 /:

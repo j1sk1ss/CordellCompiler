@@ -108,6 +108,7 @@ static int _is_move_write_by_value(lir_operation_t op) {
         case LIR_STARGRF:
         case LIR_LOADFRET:
         case LIR_LOADFARG:
+        case LIR_NEG:
         case LIR_NOT:
         case LIR_CVTTSS2SI:
         case LIR_CVTTSD2SI:

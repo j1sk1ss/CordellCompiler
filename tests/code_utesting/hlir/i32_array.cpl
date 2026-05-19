@@ -24,10 +24,10 @@ BB3: fn putc0(i8 c) -> i0
 %0 = ldparam();
 %6 = &(%0);
 use %6;
-stparam($33554436);
 stparam($1);
 stparam(%6);
 stparam($1);
+stparam($33554436);
 syscall;
 fend
 BB4: fn putdigit1(i32 x) -> i0
@@ -72,6 +72,7 @@ call putdigit1(i32 x) -> i0;
 use %29;
 stparam(%29);
 call putdigit1(i32 x) -> i0;
-exit $0;
+%30 = $0 as u8;
+exit %30;
 BB6: send
 /:

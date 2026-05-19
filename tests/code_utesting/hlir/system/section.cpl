@@ -4,7 +4,7 @@
 }
 
 start() {
-    exit foo();
+    exit foo() as u8;
 }
 
 :/ OUTPUT
@@ -15,7 +15,8 @@ return %0;
 BB3: fend
 BB4: start
 call foo0();
-%2 = fret();
+%3 = fret();
+%2 = %3 as u8;
 exit %2;
 BB5: send
 /:

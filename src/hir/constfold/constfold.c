@@ -204,6 +204,12 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                     print_debug("Convert op=%i folded to the val=%ld", nd->op, c);
                     break;
                 }
+                case HIR_NEG: {
+                    if (!a_pres) break;
+                    if (VRTB_update_definition(nd->src->storage.var.v_id, ~a.value, a.overdefined, &smt->v, 1)) changed = 1;
+                    print_debug("Not op=%i folded to the val=%ld", nd->op, ~a.value);
+                    break;
+                }
                 case HIR_NOT: {
                     if (!a_pres) break;
                     if (VRTB_update_definition(nd->src->storage.var.v_id, !a.value, a.overdefined, &smt->v, 1)) changed = 1;

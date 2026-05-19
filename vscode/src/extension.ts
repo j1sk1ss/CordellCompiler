@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
     "start","exit","function","return",
     "if","else","while","loop","switch","case","default",
     "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
-    "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","poparg","sizeof","section","align"
+    "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","neg","poparg","sizeof","section","align"
   ];
 
   const docs: Record<string, string> = {
@@ -246,6 +246,13 @@ export function activate(context: vscode.ExtensionContext) {
   
   \`\`\`cpl
   i32 x = not 0; : 1 :
+  \`\`\`
+  `,
+  
+    neg: `**neg** — Bitwise NOT / bit inversion.
+  
+  \`\`\`cpl
+  u8 x = neg 0; : bitwise inversion :
   \`\`\`
   `,
   

@@ -69,7 +69,7 @@ start(i32 argc, ptr ptr i8 argv) {
          [argv] (I8_VARIABLE_TOKEN, ptr, v_id=5, s_id=1)
       { scope, id=6 }
          [if] (IF_TOKEN, v_id=-1, s_id=6)
-            [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+            [not] (NOT_TOKEN, v_id=-1, s_id=0)
                [[]]
                   [tape] (ARR_VARIABLE_TOKEN, v_id=3, s_id=1, glob)
                   [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
@@ -91,7 +91,7 @@ start(i32 argc, ptr ptr i8 argv) {
                [i8] (I8_TYPE_TOKEN, v_id=-1, s_id=0)
                [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
          [if] (IF_TOKEN, v_id=-1, s_id=6)
-            [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+            [not] (NOT_TOKEN, v_id=-1, s_id=0)
                [[]]
                   [tape] (ARR_VARIABLE_TOKEN, v_id=3, s_id=1, glob)
                   [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)

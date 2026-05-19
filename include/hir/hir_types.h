@@ -85,6 +85,7 @@ typedef enum hir_operation {
         HIR_VRUSE,
 
         /* Data */
+        HIR_NEG,          // x = ~x
         HIR_NOT,          // x = !x
         HIR_STORE,        // x = y
         HIR_VARDECL,      // alloc x

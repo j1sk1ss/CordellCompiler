@@ -6,8 +6,8 @@
 }
 
 :/ OUTPUT
-BB{X} fn foo0()
+BB2: fn foo0()
 fend
-BB{X} start
+BB3: start
 send
 /:

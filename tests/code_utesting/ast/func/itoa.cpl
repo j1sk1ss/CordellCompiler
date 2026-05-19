@@ -41,7 +41,7 @@ start() {
             [blen] (I32_VARIABLE_TOKEN, v_id=2, s_id=2)
          { scope, id=3 }
             [if] (IF_TOKEN, v_id=-1, s_id=3)
-               [not] (NEGATIVE_TOKEN, v_id=-1, s_id=0)
+               [not] (NOT_TOKEN, v_id=-1, s_id=0)
                   [num] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
                { scope, id=4 }
                   [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)

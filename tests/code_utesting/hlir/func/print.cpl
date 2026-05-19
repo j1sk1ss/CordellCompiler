@@ -17,20 +17,20 @@ BB2: fn strlen0(i8* s) -> i32
 %0 = ldparam();
 %4 = $0 as i32;
 %1 = %4;
-BB3: lb15:
+BB3: lb16:
 %5 = *(%0);
 cmp %5, 0;
-je lb17;
-jne lb16;
-BB4: lb16:
+je lb18;
+jne lb17;
+BB4: lb17:
 %6 = $1 as i32;
 %7 = %1 + %6;
 %1 = %7;
 %8 = $1 as u64;
 %9 = %0 + %8;
 %0 = %9;
-jmp lb15;
-BB5: lb17:
+jmp lb16;
+BB5: lb18:
 return %1;
 BB6: fend
 BB7: start
@@ -54,10 +54,10 @@ stparam(%21);
 call strlen0(i8* s) -> i32;
 %22 = fret();
 use %22;
-stparam($33554436);
-stparam($1);
-stparam(%15);
 stparam(%22);
+stparam(%15);
+stparam($1);
+stparam($33554436);
 syscall;
 send
 /:

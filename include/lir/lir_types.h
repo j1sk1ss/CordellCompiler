@@ -94,6 +94,7 @@ typedef enum {
         LIR_MOVSXD,
 
         LIR_NOT,
+        LIR_NEG,
         LIR_INC,
         LIR_DEC,
 
