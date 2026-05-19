@@ -161,7 +161,6 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                     print_debug("Store operation folded into val=%ld", nd->op, a.value);
                     break;
                 }
-
                 case HIR_TF64:
                 case HIR_TF32: {
                     if (!a_pres) break;
@@ -171,7 +170,6 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                     print_debug("Convert op=%i folded to the val=%ld", nd->op, c);
                     break;
                 }
-
                 case HIR_TI64:
                 case HIR_TI32:
                 case HIR_TI16:
@@ -232,7 +230,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_iBRHT: c = a.value >> b.value; goto _binary_operation_fold;
                 case HIR_bAND:  c = a.value & b.value;  goto _binary_operation_fold;
                 case HIR_bOR:   c = a.value | b.value;  goto _binary_operation_fold;
-                case HIR_iDIV:  c = a.value / (b.value == 0 ? 1 : b.value); goto _binary_operation_fold;
+                case HIR_iDIV:  c = a.value / (!b.value ? 1 : b.value); goto _binary_operation_fold;
                 case HIR_bXOR:  c = a.value ^ b.value; {
 _binary_operation_fold: {}
                     if (!a_pres || !b_pres || a.overdefined != NO_SYMBOL_ID || b.overdefined != NO_SYMBOL_ID) break;

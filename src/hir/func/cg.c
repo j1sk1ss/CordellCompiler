@@ -80,9 +80,8 @@ Returns 1 on success, otherwise 0.
 */
 static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        foreach (cfg_block_t* cb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
-            while (hh) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            iterate_hir_instructions (bb) {
                 if (
                     (
                         HIR_is_funccall(hh->op) ||
@@ -90,7 +89,6 @@ static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
                     ) && 
                     !hh->unused
                 ) _add_vert(fb->f_id, hh->sarg->storage.str.s_id, ctx);
-                hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
         }
     }

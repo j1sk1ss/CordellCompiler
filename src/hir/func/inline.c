@@ -16,8 +16,8 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     if (!args_flatten) return 0;
 
     foreach (cfg_block_t* bb, &f->blocks) {
-        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-        while (hh && index < size) {
+        iterate_hir_instructions (bb) {
+            if (index >= size) break;
             if (hh->op == HIR_FARGLD) {
                 hir_block_t* copy = HIR_copy_block(hh, 1);
                 HIR_unload_subject(copy->sarg);
@@ -25,8 +25,6 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
                 copy->sarg = HIR_copy_subject(args_flatten[index++]);
                 HIR_insert_block_before(copy, pos);
             }
-
-            hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
     }
 
@@ -47,7 +45,7 @@ Returns 1 if succeeds.
 static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new, cfg_func_t* fb) {
     while (h) {
         if (h->op != HIR_MKLB) {
-            iterate_ref_hir_args(hir_subject_t** curr, h, 0) {
+            iterate_ref_hir_args (hir_subject_t** curr, h, 0) {
                 if (
                     (*curr)->t == HIR_LABEL && 
                     (*curr)->id == old->id
@@ -264,14 +262,12 @@ static int _collect_information(
     info->src_info.bb_size = list_size(&f->blocks);
     foreach (cfg_block_t* bb, &f->blocks) {
         info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
-        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-        while (hh) {
+        iterate_hir_instructions (bb) {
             if (HIR_is_funccall(hh->op)) info->src_info.funccals++;
             if (
                 hh->op == HIR_SYSC || 
                 hh->op == HIR_STORE_SYSC
             ) info->src_info.syscalls++; 
-            hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
     }
     
@@ -329,8 +325,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt
         /* Collect information about the environment
            - Basic information about the loops */
         foreach (cfg_block_t* bb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-            while (hh) {
+            iterate_hir_instructions (bb) {
                 if (HIR_is_funccall(hh->op)) {
                     cfg_func_t* trg;
                     if (map_get(&cctx->fmap, hh->sarg->storage.str.s_id, (void**)&trg)) {
@@ -348,8 +343,6 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt
                         }
                     }
                 }
-
-                hh = HIR_get_next(hh, bb->hmap.exit, 1);
             }
         }
     }

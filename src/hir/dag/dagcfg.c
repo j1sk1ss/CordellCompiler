@@ -29,7 +29,7 @@ Params:
 Returns 1 if the subject is a child of the block.
 */
 static int _check_home(hir_block_t* h, hir_subject_t* s) {
-    iterate_hir_args(hir_subject_t* arg, h, 0) {
+    iterate_hir_args (hir_subject_t* arg, h, 0) {
         if (arg == s) return 1;
     }
 
@@ -63,7 +63,7 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                 hh->op != HIR_PHI && 
                 hh->op != HIR_PHI_PREAMBLE
             ) {
-                iterate_ref_hir_args(hir_subject_t** arg, hh, HIR_is_writeop(hh->op)) {
+                iterate_ref_hir_args (hir_subject_t** arg, hh, HIR_is_writeop(hh->op)) {
                     if ((*arg)->t == HIR_ARGLIST) {
                         list_iter_t el_it;
                         list_iter_hinit(&(*arg)->storage.list.h, &el_it);

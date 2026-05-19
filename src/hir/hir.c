@@ -378,7 +378,7 @@ int HIR_compute_homes(hir_ctx_t* ctx) {
             case HIR_PHI:
             case HIR_PHI_PREAMBLE: break;
             default: {
-                iterate_hir_args(hir_subject_t* arg, hh, 0) {
+                iterate_hir_args (hir_subject_t* arg, hh, 0) {
                     arg->home = NULL;
                     if (!HIR_is_vartype(arg->t)) continue;
 

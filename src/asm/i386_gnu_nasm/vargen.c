@@ -25,8 +25,7 @@ static const char* _format_lir_register(lir_registers_t reg) {
         case AX:   return "ax";   case BX:   return "bx";   case CX:   return "cx";   case DX:   return "dx";   
         case SI:   return "si";   case DI:   return "di";   case BP:   return "bp";   case SP:   return "sp";
         /* 8-bit */
-        case AL:   return "al";   case BL:   return "bl";   case CL:   return "cl";   case DL:   return "dl";   
-        case SIL:  return "sil";  case DIL:  return "dil";  case BPL:  return "bpl";  case SPL:  return "spl";  
+        case AL:   return "al";   case BL:   return "bl";   case CL:   return "cl";   case DL:   return "dl";
         case AH:   return "ah";   case BH:   return "bh";   case CH:   return "ch";   case DH:   return "dh";
         default:   return "<unknown>";
     }
@@ -40,6 +39,7 @@ static const char* _get_mem_modifier(int size) {
         case 1: modifier = "byte ";  break;
         default: break;
     }
+    
     return modifier;
 }
 

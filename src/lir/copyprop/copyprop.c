@@ -34,10 +34,9 @@ int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
         set_init(&use, SET_NO_CMP);
         set_init(&def, SET_NO_CMP);
         foreach (cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 if (!lh->unused) {
-                    iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+                    iterate_lir_args (lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
                         _mark_used_var(&use, arg);
                     }
 
@@ -56,8 +55,6 @@ int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
                         default: break;
                     }
                 }
-
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
 
@@ -85,7 +82,7 @@ Params:
 Returns 1 if succeeds.
 */
 static int _replace_with_copy(lir_block_t* l, map_t* gen, lir_subject_type_t t) {
-    iterate_ref_lir_args(lir_subject_t** curr, l, LIR_is_writeop(l->op)) {
+    iterate_ref_lir_args (lir_subject_t** curr, l, LIR_is_writeop(l->op)) {
         lir_subject_t* dst;
         if (
             (*curr)->t == t && 
@@ -112,8 +109,7 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
         map_t gen;
         map_init(&gen, MAP_NO_CMP);
         foreach (cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 if (!lh->unused) switch (lh->op) {
                     case LIR_TF64: case LIR_TF32:
                     case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8: 
@@ -144,8 +140,6 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
                         break;
                     }
                 }
-
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
 

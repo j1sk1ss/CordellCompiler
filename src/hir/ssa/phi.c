@@ -46,15 +46,14 @@ Returns 1 on success, otherwise 0.
 static int _collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-        foreach (cfg_block_t* cb, &fb->blocks) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
             int has_def = 0;
-            hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
-            while (hh) {
+            iterate_hir_instructions (bb) {
                 if (HIR_is_writeop(hh->op)) {
                     if (
-                        hh->farg &&                     /* - If the first argument is presented */
-                        HIR_is_vartype(hh->farg->t) &&  /* - If this is a variable              */
-                        !HIR_is_tmptype(hh->farg->t)    /* - and not a tmp type                 */
+                        hh->farg &&                    /* - If the first argument is presented */
+                        HIR_is_vartype(hh->farg->t) && /* - If this is a variable              */
+                        !HIR_is_tmptype(hh->farg->t)   /* - and not a tmp type                 */
                     ) {
                         if (hh->farg->storage.var.v_id == v_id) {
                             has_def = 1;
@@ -62,12 +61,10 @@ static int _collect_defs_by_id(long v_id, cfg_ctx_t* cctx, set_t* out) {
                         }
                     }
                 }
-                
-                hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
 
             if (has_def) {
-                set_add(out, cb);
+                set_add(out, bb);
             }
         }
     }

@@ -69,9 +69,8 @@ Returns 1 on success.
 */
 int _mark_copies(symbol_id_t master, symbol_id_t slave, cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        foreach (cfg_block_t* cb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
-            while (hh) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            iterate_hir_instructions (bb) {
                 symbol_id_t temp_master = _get_temporal_master_id(hh, master);
                 if (
                     temp_master != NO_SYMBOL_ID
@@ -81,8 +80,6 @@ int _mark_copies(symbol_id_t master, symbol_id_t slave, cfg_ctx_t* cctx, sym_tab
                     ALLIAS_add_owner(slave, temp_master, &smt->m);
                     _mark_copies(temp_master, slave, cctx, smt);
                 }
-
-                hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
         }
     }
@@ -92,9 +89,8 @@ int _mark_copies(symbol_id_t master, symbol_id_t slave, cfg_ctx_t* cctx, sym_tab
 
 int HIR_CFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        foreach (cfg_block_t* cb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
-            while (hh) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            iterate_hir_instructions (bb) {
                 if (hh->op == HIR_REF) {
                     symbol_id_t slave = hh->sarg->storage.var.v_id;
                     if (
@@ -105,8 +101,6 @@ int HIR_CFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt) {
                     ALLIAS_add_owner(slave, master, &smt->m);
                     _mark_copies(master, slave, cctx, smt);
                 }
-
-                hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
         }
     }

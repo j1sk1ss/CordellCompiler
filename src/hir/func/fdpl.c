@@ -10,10 +10,8 @@ Returns 1 if succeeds.
 */
 static int _put_blocks_to_queue(cfg_func_t* fb, queue_t* out) {
     foreach (cfg_block_t* bb, &fb->blocks) {
-        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-        while (hh) {
+        iterate_hir_instructions (bb) {
             queue_push(out, hh);
-            hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
     }
 
@@ -36,17 +34,15 @@ static int _function_cmp(cfg_func_t* a, cfg_func_t* b) {
 
     int res = 1;
     foreach (cfg_block_t* bb, &b->blocks) {
-        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
         hir_block_t* a_hh;
-        while (hh && queue_pop(&aa, (void**)&a_hh)) {
+        iterate_hir_instructions (bb) {
+            if (!queue_pop(&aa, (void**)&a_hh)) break;
             if (!HIR_is_syst(hh->op)) {
                 if (!a_hh || !HIR_block_shallow_equals(hh, a_hh)) {
                     res = 0;
                     goto _forced_exit_of_cmp;
                 }
             }
-
-            hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
     }
 
@@ -122,9 +118,8 @@ int HIR_FUNC_delete_duplicated_functions(cfg_ctx_t* ctx) {
     foreach (cfg_func_t* fb, &ctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-            while (hh) {
-                iterate_hir_args(hir_subject_t* arg, hh, 0) {
+            iterate_hir_instructions (bb) {
+                iterate_hir_args (hir_subject_t* arg, hh, 0) {
                     if (arg->t != HIR_FNAME) continue;
                     symbol_id_t old_id = arg->storage.str.s_id;
                     symbol_id_t new_id = _resolve(&replacements, old_id);
@@ -132,8 +127,6 @@ int HIR_FUNC_delete_duplicated_functions(cfg_ctx_t* ctx) {
                         arg->storage.str.s_id = new_id;
                     }
                 }
-
-                hh = HIR_get_next(hh, bb->hmap.exit, 1);
             }
         }
     }

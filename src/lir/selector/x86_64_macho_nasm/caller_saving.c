@@ -21,13 +21,11 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     }
     else {
         foreach (cfg_block_t* bb, &f->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 if (
                     LIR_is_writeop(lh->op) &&   /* We are writing some value to register (for some reason)         */
                     lh->farg->t == LIR_REGISTER /* This is a register object, we can say that this is a dirty one. */
-                ) set_add(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8)); 
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
+                ) set_add(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8));
             }
         }
     }
@@ -60,7 +58,7 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
             !LIR_subj_equals(lh->farg, lh->sarg)
         ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8));
         
-        iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+        iterate_lir_args (lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
             if (
                 arg->t != LIR_REGISTER || 
                 !set_has(dirty, (void*)LIR_format_register(arg->storage.reg.reg, 8))
@@ -135,8 +133,7 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_ta
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 switch (lh->op) {
                     case LIR_FCLL: {
                         set_t func_regs, save_regs;
@@ -191,8 +188,6 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_ta
                     }
                     default: break;
                 }
-            
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
     }

@@ -283,10 +283,8 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     if (fi.flags.entry)       EMIT_COMMAND("global %s", fi.virt->body);
     else if (fi.flags.global) EMIT_COMMAND("global %s", fi.name->body);
     if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
-    lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (fb) {
         _convert_lirblock_to_assembly(lh, &fi, smt, output);
-        lh = LIR_get_next(lh, fb->lmap.exit, 1);
     }
 
     return 1;

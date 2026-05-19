@@ -24,8 +24,7 @@ static int _scope_pass(cfg_func_t* fb) {
     sstack_t scopes;
     stack_init(&scopes);
 
-    lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (fb) {
         switch (lh->op) {
             case LIR_MKSCOPE: {
                 list_t* scope_defs = (list_t*)mm_malloc(sizeof(list_t));
@@ -55,8 +54,6 @@ static int _scope_pass(cfg_func_t* fb) {
                 break;
             }
         }
-
-        lh = LIR_get_next(lh, fb->lmap.exit, 1);
     }
 
 _forced_exit: {}

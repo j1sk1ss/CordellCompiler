@@ -109,8 +109,7 @@ Params:
 Returns 1 if DAG construction succeeds.
 */
 static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (bb) {
         switch (lh->op) {
             case LIR_ARRDECL: {
                 foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
@@ -214,8 +213,6 @@ static int _build_instructions_dag(cfg_block_t* bb, instructions_dag_t* dag) {
 
             default: break;
         }
-        
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 
     map_foreach (instructions_dag_node_t* nd, &dag->alive_edges) {

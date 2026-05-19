@@ -87,10 +87,8 @@ Returns 1 on success, otherwise 0.
 */
 static int _get_loop_hir_blocks(set_t* loop, set_t* b) {
     set_foreach (cfg_block_t* bb, loop) {
-        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-        while (hh) {
+        iterate_hir_instructions (bb) {
             set_add(b, hh);
-            hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
     }
 
@@ -140,7 +138,7 @@ Returns 1 if succeeds and has changed something.
 static int _set_add_block_vids_with_base(set_t* s, hir_block_t* hh, sym_table_t* smt) {
     if (!hh) return 0;
     int changed = 0;
-    iterate_hir_args(hir_subject_t* arg, hh, 0) {
+    iterate_hir_args (hir_subject_t* arg, hh, 0) {
         if (!HIR_is_vartype(arg->t)) continue;
         changed |= _set_add_vid_with_base(s, arg->storage.var.v_id, smt);
     }
@@ -190,7 +188,7 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
                 !_hir_can_be_licm_def(hh)      /* If this operation has a side effect */
             ) continue;
             int invariant = !_hir_uses_any_vid_from_set(hh, inductive, smt, loop_hir);
-            iterate_hir_args(hir_subject_t* arg, hh, HIR_is_writeop(hh->op)) {
+            iterate_hir_args (hir_subject_t* arg, hh, HIR_is_writeop(hh->op)) {
                 if (!HIR_is_vartype(arg->t)) continue;
                 symbol_id_t raw_id = arg->storage.var.v_id;
                 symbol_id_t src_id = _gather_base_vid(raw_id, smt);
@@ -227,10 +225,8 @@ Returns the CFG block or the 'NULL' value.
 */
 static cfg_block_t* _get_hir_block_cfg(set_t* s, hir_block_t* trg) {
     set_foreach (cfg_block_t* bb, s) {
-        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-        while (hh) {
+        iterate_hir_instructions (bb) {
             if (hh == trg) return bb;
-            hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
     }
 
@@ -280,7 +276,7 @@ static int _hir_rhs_depends_on_vid(
     hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
     if (!hh) return 0;
-    iterate_hir_args(hir_subject_t* arg, hh, 1) {
+    iterate_hir_args (hir_subject_t* arg, hh, 1) {
         if (_hir_subject_depends_on_vid(arg, v_id, smt, loop_hir, visited)) return 1;
     }
 
@@ -352,7 +348,7 @@ static int _hir_rhs_depends_on_any_vid_from_set(
     hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
     if (!hh) return 0;
-    iterate_hir_args(hir_subject_t* arg, hh, 1) {
+    iterate_hir_args (hir_subject_t* arg, hh, 1) {
         if (_hir_subject_depends_on_any_vid_from_set(arg, s, smt, loop_hir, visited)) return 1;
     }
 
@@ -471,12 +467,10 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, i
        list. Order is based on the home function. */
     list_t linear;
     list_init(&linear);
-    foreach (cfg_block_t* cb, &loop->header->pfunc->blocks) {
-        if (!set_has(&loop->blocks, cb)) continue;
-        hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
-        while (hh) {
+    foreach (cfg_block_t* bb, &loop->header->pfunc->blocks) {
+        if (!set_has(&loop->blocks, bb)) continue;
+        iterate_hir_instructions (bb) {
             if (set_has(&invariant_defs, hh)) list_push_back(&linear, hh);
-            hh = HIR_get_next(hh, cb->hmap.exit, 1);
         }
     }
 
