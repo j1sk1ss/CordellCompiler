@@ -40,10 +40,10 @@ Logs for the first and second versions are quite short because I don’t remembe
 <div class="change-date">Date: 2026-05-19</div>
 Now the compiler has a mechanism to invert the variable on bitness level. To perform this, you can use the next keyword:
 ```cpl
-i32 a = neg 1; : 254 :
+u8 a = neg 1; : 254 :
 ```
 
-P.S.: The `not` command looks really similar with the `neg` command, but works much different.
+P.S.: The `not` command looks similar to `neg`, but works much differently. `not` is boolean-like negation, while `neg` flips bits. On x86 targets CPL `neg` is emitted with the machine `not` instruction, not the arithmetic `neg` instruction.
 
 ## i386
 <div class="change-date">Date: 2026-05-16</div>
