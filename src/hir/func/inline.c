@@ -362,3 +362,30 @@ int HIR_FUNC_inline_heuristic_desider(int* data, int size) {
     score += parsed->dst_info.loop_nested * parsed->dst_info.loop_nested;          /* If we're in a loop at the destination pos */
     return score >= 3;
 }
+
+int HIR_FUNC_inline_model_desider(int* data, int size) {
+    if (!data || size != sizeof(inline_candidate_info_t)) return 0;
+    inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
+
+    double x[INLINE_FEATURE_COUNT] = { 0 };
+    // x[INLINE_FEATURE_CALLER_BLOCK_ID] = 10;
+    x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_IS_DOM]     = parsed->dst_info.is_dom;
+    x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_NEAR_BREAK] = parsed->dst_info.near_break;
+    // x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_SAME_INST_BEFORE] = 0;
+    // x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_SAME_INST_AFTER] = 0;
+    x[INLINE_FEATURE_CALLEE_INFO_BB_COUNT]               = parsed->src_info.bb_size;
+    x[INLINE_FEATURE_CALLEE_INFO_FUNCCALLS]              = parsed->src_info.funccals;
+    x[INLINE_FEATURE_CALLEE_INFO_IR_COUNT]               = parsed->src_info.hir_size;
+    x[INLINE_FEATURE_CALLEE_INFO_IS_START]               = parsed->dst_info.is_start;
+    x[INLINE_FEATURE_CALLEE_INFO_SYSCALLS]               = parsed->src_info.syscalls;
+    x[INLINE_FEATURE_CALLER_LOOP_INFO_LOOP_NESTED]       = parsed->dst_info.loop_nested;
+    x[INLINE_FEATURE_CALLER_LOOP_INFO_LOOP_SIZE_BB]      = parsed->dst_info.loop_size_bb;
+    x[INLINE_FEATURE_CALLER_LOOP_INFO_LOOP_SIZE_IR]      = parsed->dst_info.loop_size_hir;
+    // x[INLINE_FEATURE_CALLER_HAS_LOOP_INFO] = 1;
+    x[INLINE_FEATURE_CALLER_NEAR_BREAK_MISSING]          = parsed->dst_info.near_break;
+    // x[INLINE_FEATURE_CALLEE_IS_LEAF] = 1;
+    // x[INLINE_FEATURE_CALLEE_CALLS_PER_BB] = 0;
+    // x[INLINE_FEATURE_CALLEE_IR_PER_BB] = 4;
+
+    return inline_model_predict(x);
+}

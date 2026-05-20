@@ -11,6 +11,7 @@
 #include <hir/hir.h>
 #include <hir/cfg.h>
 #include <hir/loop.h>
+#include <hir/inline_model.h>
 
 typedef struct {
     char  flag;
@@ -99,6 +100,9 @@ Params:
 Returns 1 if function must be inlined.
 */
 int HIR_FUNC_inline_heuristic_desider(int* data, int size);
+
+// TODO: docs
+int HIR_FUNC_inline_model_desider(int* data, int size);
 
 /*
 Iterate function and find last block. If this is exit and the last block, find HIR_VRUSE, which
