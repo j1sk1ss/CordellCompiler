@@ -4,7 +4,7 @@ function foo() {
 }
 
 start() {
-    exit foo();
+    exit foo() as u8;
 }
 
 :/ OUTPUT
@@ -21,21 +21,21 @@ start() {
             return i32t %5;
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                arrs %0 = arr_alloc(i8n 10);
-                i32t* %1 = &(arrs %0);
-                i8t %2 = i8n 0 * csu8 4;
-                i32t* %4 = i8t %2 as *ptr;
-                i32t* %3 = i32t* %1 + i32t* %4;
-                i32t %5 = *(i32t* %3);
-                i64t %6 = i32t %5;
-                goto lb42;
-                lb42:
-                [unused] i64t %6 = foo0();
-                exit i64t %6;
-            }
+            arrs %0 = arr_alloc(i8n 10);
+            i32t* %1 = &(arrs %0);
+            i8t %2 = i8n 0 * csu8 4;
+            i32t* %4 = i8t %2 as *ptr;
+            i32t* %3 = i32t* %1 + i32t* %4;
+            i32t %5 = *(i32t* %3);
+            i64t %7 = i32t %5;
+            goto lb43;
+            lb43:
+            [unused] i64t %7 = foo0();
+            u8t %6 = i64t %7 as u8;
+            exit u8t %6;
         }
     }
 }

@@ -272,6 +272,24 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
+static lir_block_t* _create_push_arg_mov(lir_subject_t* dst, lir_subject_t* src, sym_table_t* smt) {
+    lir_operation_t movop = LIR_iMOV;
+    lir_subject_t* movdst = dst;
+
+    if (
+        src->size == 4 && !x86_64_macho_nasm_is_sign_type(src, smt) &&
+        src->t != LIR_NUMBER && src->t != LIR_CONSTVAL
+    ) {
+        movdst = LIR_copy_subject(dst);
+        movdst->size = 4;
+    }
+    else {
+        movop = x86_64_macho_nasm_get_proper_mov(dst, src, smt, LIR_iMOV);
+    }
+
+    return LIR_create_block(movop, movdst, src, NULL);
+}
+
 /*
 After the memory selection we should be sure that this LIR is valid. 
 Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
@@ -286,15 +304,27 @@ Returns 1 if the operation succeeds, otherwise 0.
 */
 static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     iterate_lir_instructions (bb) {
-        list_t fixes;
+        list_t fixes, post_fixes;
         list_init(&fixes);
+        list_init(&post_fixes);
         if (lh->farg) {
             switch (lh->op) {
                 case LIR_PUSH: {
-                    if (lh->farg->t != LIR_NUMBER && lh->farg->t != LIR_CONSTVAL) break;
-                    lir_subject_t* tmp = x86_64_macho_nasm_create_tmp(ECX, lh->farg, smt, MAX(lh->farg->size, 2));
-                    list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->farg, NULL));
+                    if (lh->farg->size == 8) break;
+                    lir_subject_t* tmp = x86_64_macho_nasm_create_tmp(R15, lh->farg, smt, 8);
+                    list_add(&fixes, _create_push_arg_mov(tmp, lh->farg, smt));
                     lh->farg = tmp;
+                    break;
+                }
+                case LIR_POP: {
+                    if (lh->farg->size == 8) break;
+                    lir_subject_t* dst = lh->farg;
+                    lir_subject_t* tmp = x86_64_macho_nasm_create_tmp(R15, dst, smt, 8);
+                    lir_subject_t* narrowed = LIR_copy_subject(tmp);
+                    narrowed->size = dst->size;
+
+                    lh->farg = tmp;
+                    list_add(&post_fixes, LIR_create_block(LIR_iMOV, dst, narrowed, NULL));
                     break;
                 }
                 default: break;
@@ -359,7 +389,13 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
             }
         }
 
+        foreach (lir_block_t* fix, &post_fixes) {
+            if (bb->lmap.exit == lh) bb->lmap.exit = fix;
+            LIR_insert_block_after(fix, lh);
+        }
+
         list_free(&fixes);
+        list_free(&post_fixes);
     }
 
     return 1;
@@ -386,4 +422,3 @@ int x86_64_macho_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
 
     return 1;
 }
-

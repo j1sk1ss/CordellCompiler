@@ -755,8 +755,8 @@ int main(int argc, char* argv[]) {
         asm_gen_t asmgen = { 0 };
         switch (CONF_get_system_type()) {
             case MACHO64: asmgen.generator = x86_64_macho_nasm_generate_asm; break;
-            case LINUX64: asmgen.generator = x86_64_gnu_nasm_generate_asm; break;
-            case I386:    asmgen.generator = i386_gnu_nasm_generate_asm;    break;
+            case LINUX64: asmgen.generator = x86_64_gnu_nasm_generate_asm;   break;
+            case I386:    asmgen.generator = i386_gnu_nasm_generate_asm;     break;
             default: break;
         }
 

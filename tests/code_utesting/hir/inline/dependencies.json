@@ -9,6 +9,7 @@
         "src/ast/*.c",
         "src/ast/dump/*.c",
         "src/ast/astgen/*.c", 
+        "src/ast/devirt/*.c",
         "src/ast/astgen/*/*.c",
         "src/hir/*.c",
         "src/hir/hirgen/*/*.c",

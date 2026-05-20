@@ -13,49 +13,52 @@ start(i32 a) {
 }
 
 :/ OUTPUT
-setpos, line=2, column=86, file={X}
+setpos, line=2, column=86, file=<unknown>
 {
-setpos, line=1, column=7, file={X}
-    start {
+setpos, line=1, column=7, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmphp69ltrs.cpl
+    fn _main(i32 a)
+    {
+        i32s %0 = alloc;
+        i32s %0 = load_starg();
+setpos, line=2, column=8, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmphp69ltrs.cpl
         {
-            i32s %0 = alloc;
-            i32s %0 = load_starg();
-setpos, line=2, column=8, file={X}
+            i32t %2 = i8n 1 as i32;
+            i32t %1 = i32s %0 == i32t %2;
+            if i32t %1, goto lb10, else goto lb11;
+            lb10:
             {
-                i32t %2 = i8n 1 as i32;
-                i32t %1 = i32s %0 == i32t %2;
-                if i32t %1, goto lb10, else goto lb11;
-                lb10:
-                {
-setpos, line=3, column=14, file={X}
-                    exit i8n 1;
-                }
-                goto lb12;
-                lb11:
-                {
-setpos, line=5, column=14, file={X}
-                    i32t %4 = i8n 2 as i32;
-                    i32t %3 = i32s %0 == i32t %4;
-                    if i32t %3, goto lb23, else goto lb24;
-                    lb23:
-                    {
-setpos, line=6, column=14, file={X}
-                        exit i8n 2;
-                    }
-                    goto lb25;
-                    lb24:
-                    {
-setpos, line=9, column=14, file={X}
-                        exit i8n 3;
-                    }
-                    goto lb25;
-                    lb25:
-                }
-                goto lb12;
-                lb12:
-setpos, line=12, column=10, file={X}
-                exit i8n 4;
+setpos, line=3, column=14, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmphp69ltrs.cpl
+                u8t %3 = i8n 1 as u8;
+                exit u8t %3;
             }
+            goto lb12;
+            lb11:
+            {
+setpos, line=5, column=14, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmphp69ltrs.cpl
+                i32t %5 = i8n 2 as i32;
+                i32t %4 = i32s %0 == i32t %5;
+                if i32t %4, goto lb24, else goto lb25;
+                lb24:
+                {
+setpos, line=6, column=14, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmphp69ltrs.cpl
+                    u8t %6 = i8n 2 as u8;
+                    exit u8t %6;
+                }
+                goto lb26;
+                lb25:
+                {
+setpos, line=9, column=14, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmphp69ltrs.cpl
+                    u8t %7 = i8n 3 as u8;
+                    exit u8t %7;
+                }
+                goto lb26;
+                lb26:
+            }
+            goto lb12;
+            lb12:
+setpos, line=12, column=10, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmphp69ltrs.cpl
+            u8t %8 = i8n 4 as u8;
+            exit u8t %8;
         }
     }
 }

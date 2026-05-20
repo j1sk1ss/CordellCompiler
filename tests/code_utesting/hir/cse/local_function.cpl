@@ -8,29 +8,28 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
+            i32s %0 = alloc;
+            i8t %3 = i8n 10 + i8n 10;
+            i32t %2 = i8t %3 as i32;
+            i32s %6 = i32t %2;
+            goto lb14;
+            fn foo1(i32 a)
             {
-                i32s %0 = alloc;
-                i8t %3 = i8n 10 + i8n 10;
-                i32t %2 = i8t %3 as i32;
-                i32s %6 = i32t %2;
-                goto lb14;
-                fn foo1(i32 a)
+                i32s %1 = alloc;
+                i32s %7 = load_arg();
                 {
-                    i32s %1 = alloc;
-                    i32s %7 = load_arg();
-                    {
-                    }
                 }
-                lb14:
-                use i32s %6;
-                foo1(i32s %6);
-                [unused] i8t %5 = i8n 10 + i8n 10;
-                i32t %4 = i8t %3 as i32;
-                use i32t %4;
-                foo1(i32t %4);
             }
+            lb14:
+            use i32s %6;
+            foo1(i32s %6);
+            [unused] i8t %5 = i8n 10 + i8n 10;
+            i32t %4 = i8t %3 as i32;
+            use i32t %4;
+            foo1(i32t %4);
         }
     }
 }

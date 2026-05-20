@@ -7,18 +7,17 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                strs %0 = str_alloc(Hello world!);
-                strs %1 = str_alloc(Hello world!);
-                i8s* %2 = alloc;
-                i8t* %4 = Hello world! as *ptr;
-                i8s* %6 = i8t* %4;
-                i8s* %3 = alloc;
-                i8t* %5 = Hello world! as *ptr;
-                i8s* %7 = i8t* %5;
-            }
+            strs %0 = str_alloc(Hello world!);
+            strs %1 = str_alloc(Hello world!);
+            i8s* %2 = alloc;
+            i8t* %4 = Hello world! as *ptr;
+            i8s* %6 = i8t* %4;
+            i8s* %3 = alloc;
+            i8t* %5 = Hello world! as *ptr;
+            i8s* %7 = i8t* %5;
         }
     }
 }

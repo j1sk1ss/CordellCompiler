@@ -23,39 +23,38 @@ start() {
             return i64t %6;
         }
     }
-    start {
+    fn _main()
+    {
         {
+            i32s %3 = alloc;
+            goto lb35;
+            fn __anon_function_lambda2()
             {
-                i32s %3 = alloc;
-                goto lb32;
-                fn __anon_function_lambda2()
                 {
-                    {
-                        return i8n 10;
-                    }
+                    return i8n 10;
                 }
-                lb32:
-                i0t* %8 = &(__anon_function_lambda2());
-                i64t %9 = i0t* %8();
-                i32t %7 = i64t %9 as i32;
-                i32s %3 = i32t %7;
-                goto lb49;
-                fn __anon_function_lambda3(i32 a, i32 b)
-                {
-                    i32s %3 = alloc;
-                    i32s %3 = load_arg();
-                    i32s %5 = alloc;
-                    i32s %5 = load_arg();
-                    {
-                        i32t %10 = i32s %3 + i32s %5;
-                        return i32t %10;
-                    }
-                }
-                lb49:
-                i0t* %11 = &(__anon_function_lambda3(i32 a, i32 b));
-                use i0t* %11;
-                logic0(i8n 10, i8n 20, i0t* %11);
             }
+            lb35:
+            i0t* %8 = &(__anon_function_lambda2());
+            i64t %9 = i0t* %8();
+            i32t %7 = i64t %9 as i32;
+            i32s %3 = i32t %7;
+            goto lb52;
+            fn __anon_function_lambda3(i32 a, i32 b)
+            {
+                i32s %4 = alloc;
+                i32s %4 = load_arg();
+                i32s %5 = alloc;
+                i32s %5 = load_arg();
+                {
+                    i32t %10 = i32s %4 + i32s %5;
+                    return i32t %10;
+                }
+            }
+            lb52:
+            i0t* %11 = &(__anon_function_lambda3(i32 a, i32 b));
+            use i0t* %11;
+            logic0(i8n 10, i8n 20, i0t* %11);
         }
     }
 }

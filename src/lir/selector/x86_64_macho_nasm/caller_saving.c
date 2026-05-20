@@ -83,6 +83,7 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
 }
 
 static int _is_function_arg(lir_registers_t r) {
+    r = LIR_format_register(r, 8);
     lir_registers_t dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
     lir_registers_t simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
     for (int i = 0; i < (int)(sizeof(dec_abi_regs) / sizeof(dec_abi_regs[0])); i++) {
@@ -92,6 +93,11 @@ static int _is_function_arg(lir_registers_t r) {
         if (simd_abi_regs[i] == r) return 1;
     }
     return 0;
+}
+
+static int _same_full_register(lir_subject_t* a, lir_subject_t* b) {
+    if (!a || !b || a->t != LIR_REGISTER || b->t != LIR_REGISTER) return 0;
+    return LIR_format_register(a->storage.reg.reg, 8) == LIR_format_register(b->storage.reg.reg, 8);
 }
 
 
@@ -108,7 +114,7 @@ static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
             lh->farg && lh->farg->t == LIR_REGISTER && 
             _is_function_arg(lh->farg->storage.reg.reg)
         ) goto _next_inst;
-        if (last && LIR_is_movop(lh->op) && LIR_subj_equals(last, lh->farg)) {
+        if (last && LIR_is_movop(lh->op) && (LIR_subj_equals(last, lh->farg) || _same_full_register(last, lh->farg))) {
             last = NULL;
             goto _next_inst;
         }
@@ -120,9 +126,24 @@ _next_inst: {}
     return NULL;
 }
 
-static inline lir_block_t* _find_post_argunload(lir_block_t* lh, lir_block_t* ex) {
+static int _count_post_argload_pushes(lir_block_t* pre, lir_block_t* call) {
+    int count = 0;
+    lir_block_t* lh = pre ? pre->next : NULL;
+    while (lh && lh != call) {
+        lir_block_t* next = lh->next;
+        if (lh->op == LIR_PUSH && lh->farg && lh->farg->t == LIR_REGISTER && _is_function_arg(lh->farg->storage.reg.reg)) count++;
+        lh = next;
+    }
+    return count;
+}
+
+static inline lir_block_t* _find_post_argunload(lir_block_t* lh, lir_block_t* ex, int skip_pops) {
     while (lh && lh != ex) {
-        if (lh->op != LIR_POP && lh->op != LIR_iADD) return lh;
+        if (lh->op == LIR_POP && skip_pops-- > 0) {
+            lh = lh->next;
+            continue;
+        }
+        if (lh->op != LIR_iADD) return lh;
         lh = lh->next;
     }
 
@@ -175,11 +196,25 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_ta
                         _collect_out_function_reg_usage(&func_regs, &save_regs, bb, lh->next);
                         queue_free(&work_list);
 
-                        lir_block_t *pre = _find_pre_argload(lh->prev, bb->lmap.exit), *post = _find_post_argunload(lh->next, bb->lmap.exit);
+                        lir_block_t* pre = _find_pre_argload(lh->prev, bb->lmap.exit);
+                        lir_block_t* post = _find_post_argunload(lh->next, bb->lmap.exit, _count_post_argload_pushes(pre, lh));
+                        
+                        long regs[32];
+                        int regs_count = 0;
                         set_foreach (long reg, &save_regs) {
-                            if (reg == RAX) continue;
-                            LIR_insert_block_after(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(reg, 8), NULL, NULL), pre);
-                            LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(reg, 8), NULL, NULL), post);
+                            if (reg == RAX || regs_count >= (int)(sizeof(regs) / sizeof(regs[0]))) continue;
+                            regs[regs_count++] = reg;
+                        }
+
+                        lir_block_t* push_pos = pre;
+                        for (int i = 0; i < regs_count; i++) {
+                            lir_block_t* push = LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(regs[i], 8), NULL, NULL);
+                            LIR_insert_block_after(push, push_pos);
+                            push_pos = push;
+                        }
+
+                        for (int i = regs_count - 1; i >= 0; i--) {
+                            LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(regs[i], 8), NULL, NULL), post);
                         }
                         
                         set_free(&func_regs);

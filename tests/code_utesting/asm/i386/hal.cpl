@@ -45,12 +45,14 @@ HAL_initialize:
 push ebp
 mov ebp, esp
 sub esp, 16
-lea dword [ebp - 4], [rel _str_0_]
+lea edi, [rel _str_0_]
+mov dword [ebp - 4], edi
 push dword [ebp - 4]
 call kprintf
 add esp, 4
 call i386_gdt_initialize
-lea dword [ebp - 8], [rel _str_1_]
+lea edi, [rel _str_1_]
+mov dword [ebp - 8], edi
 push dword [ebp - 8]
 call kprintf
 add esp, 4

@@ -81,7 +81,7 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
 
     return 0;
 }
-// TODO: sync with others + validate this logic
+
 static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
     lir_subject_t* last = NULL;
     while (lh && lh != ex) {

@@ -2,10 +2,10 @@ start(i32 a) {
     i32 b = a + 10 as i32;
     @[hot] if b == 20 as i32; {
         a += 1 as i32;
-        exit b;
+        exit b as u8;
     }
     else {
-        exit a;
+        exit a as u8;
     }
     i32 d = b + a;
 }
