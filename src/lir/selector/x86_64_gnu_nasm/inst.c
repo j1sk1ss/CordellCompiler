@@ -53,9 +53,14 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
         default: break;
     }
 
+    if (fi->flags.vargs) {
+        out->off = (index + !fi->flags.naked + 1) * -8;
+        return 0;
+    }
+
     if (!is_float) {
         if (index >= (long)(sizeof(dec_abi_regs) / sizeof(RDI))) {
-            out->off = (offset - (long)(sizeof(dec_abi_regs) / sizeof(RDI)) + !fi->flags.naked) * -8;
+            out->off = (index - (long)(sizeof(dec_abi_regs) / sizeof(RDI)) + !fi->flags.naked + 1) * -8;
             return 0;
         }
         else {
@@ -65,13 +70,36 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
     }
     else {
         if (index >= (long)(sizeof(simd_abi_regs) / sizeof(XMM0))) {
-            out->off = (offset - (long)(sizeof(simd_abi_regs) / sizeof(XMM0)) + !fi->flags.naked) * -8;
+            out->off = (index - (long)(sizeof(simd_abi_regs) / sizeof(XMM0)) + !fi->flags.naked + 1) * -8;
             return 0;
         }
         else {
             out->reg = simd_abi_regs[index];
             return 1;
         }
+    }
+
+    return 0;
+}
+
+// TODO: docs
+static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
+    int res = 0;
+    fn_iterate_args (&fi) {
+        if (arg->t && arg->t->t_type != VAR_ARGUMENTS_TOKEN) res++;
+    }
+
+    return res;
+}
+
+// TODO: docs
+static int _get_call_info(lir_block_t* arg, cfg_block_t* bb, func_info_t* out, sym_table_t* smt) {
+    for (lir_block_t* curr = arg->next; curr; curr = LIR_get_next(curr, bb->lmap.exit, 1)) {
+        if (curr->op != LIR_FCLL && curr->op != LIR_ECLL) continue;
+        if (!curr->farg || curr->farg->t != LIR_FNAME) return 0;
+        return FNTB_get_info_id(curr->farg->storage.str.sid, out, &smt->f);
     }
 
     return 0;
@@ -109,12 +137,13 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
                     case LIR_REF_ARGS: {
-                        // TODO: Push regs and then stack
+                        lh->op   = LIR_REF;
+                        lh->sarg = LIR_SUBJ_OFF(RBP, (!fi.flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -8, 8);
                         break;
                     }
                     case LIR_FCLL: {
                         func_info_t callee;
-                        if (!FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f)) break;
+                        if (!lh->farg || lh->farg->t != LIR_FNAME || !FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f)) break;
                         if (callee.flags.vargs) { // TODO: pass SSE count
                             LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8)), lh);
                         }
@@ -159,8 +188,13 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
                     case LIR_STFARG: {
+                        func_info_t callee;
+                        if (!_get_call_info(lh, bb, &callee, smt)) callee = fi;
                         abi_argument_t target;
-                        if (!_get_abi_argument(lh->sarg->storage.cnst.value, 0, lh->farg, &target, &fi, smt)) lh->op = LIR_PUSH;
+                        if (!_get_abi_argument(lh->sarg->storage.cnst.value, 0, lh->farg, &target, &callee, smt)) {
+                            lh->op = LIR_PUSH;
+                            clean_stack += 8;
+                        }
                         else {
                             lir_subject_t* nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
                             LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, 8), NULL, NULL), lh);
@@ -179,11 +213,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         if (
                             _get_abi_argument(lh->sarg->storage.cnst.value, lh->targ->storage.cnst.value, lh->farg, &target, &fi, smt)
                         ) nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
-                        else {
-                            nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
-                            clean_stack += target.off;
-                        }
-                        
+                        else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
                         LIR_unload_subject(lh->sarg);
                         lh->op   = LIR_phiMOV;
                         lh->sarg = nfarg;
@@ -251,13 +281,13 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lir_subject_t* oldres = lh->farg;
                         lh->sarg = a_entry;
 
-                        lir_subject_t* b = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, MAX(lh->targ->size, 4));
+                        lir_subject_t* b = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, 8);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                         lh->targ = b;
 
                         lir_subject_t* mod = x86_64_gnu_nasm_create_tmp(RDX, lh->farg, smt, 8);
                         _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_CDQ, NULL, NULL, NULL), lh);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
                         if (lh->op != LIR_iMOD) {
                             lh->farg = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
                             _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, lh->farg, NULL), lh);

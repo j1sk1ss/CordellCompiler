@@ -27,6 +27,18 @@ static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, li
     LIR_insert_block_after(b, pos);
 }
 
+// TODO: docs
+static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
+    int res = 0;
+    fn_iterate_args (&fi) {
+        if (arg->t && arg->t->t_type != VAR_ARGUMENTS_TOKEN) res++;
+    }
+
+    return res;
+}
+
 int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     queue_t dirty_regs;
     queue_init(&dirty_regs);
@@ -60,12 +72,12 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_REF_ARGS: {
                         lh->op   = LIR_REF;
-                        lh->sarg = LIR_SUBJ_OFF(EBP, (!fi.flags.naked + 1) * -4, 4);
+                        lh->sarg = LIR_SUBJ_OFF(EBP, (!fi.flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -4, 4);
                         break;
                     }
                     case LIR_FCLL: {
                         func_info_t callee;
-                        if (!FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f)) break;
+                        if (!lh->farg || lh->farg->t != LIR_FNAME || !FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f)) break;
                         if (callee.flags.vargs) { // TODO: pass SSE count
                             LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RAX, 4), LIR_SUBJ_REG(RAX, 4), LIR_SUBJ_REG(RAX, 4)), lh);
                         }
@@ -105,7 +117,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_STFARG: {
                         lh->op         = LIR_PUSH;
                         lh->farg->size = 4;
-                        clean_stack   += 4;
+                        clean_stack    += 4;
                         break;
                     }
                     case LIR_LOADFARG: {

@@ -84,7 +84,7 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
         res->ptr = ((hir_subject_t*)ctx->carry.ptr3)->ptr;
         HIR_BLOCK3(
             ctx, HIR_iADD, res, HIR_copy_subject((hir_subject_t*)ctx->carry.ptr3), 
-            HIR_SUBJ_CONST(decl->ptr ? CONF_get_full_bytness() : HIR_get_type_size(decl->t))
+            HIR_SUBJ_CONST(CONF_get_full_bytness())
         );
         HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject((hir_subject_t*)ctx->carry.ptr3), res);
         return 1;

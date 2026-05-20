@@ -88,7 +88,7 @@ typedef enum hir_operation {
         HIR_NEG,          // x = ~x
         HIR_NOT,          // x = !x
         HIR_STORE,        // x = y
-        HIR_REF_ARGS,     // x = &(args);
+        HIR_REF_ARGS,     // x - pointer to the stack's head
         HIR_VARDECL,      // alloc x
         HIR_ARRDECL,      // arralloc x, y (size)
         HIR_STRDECL,      // arralloc x, strlen(x)

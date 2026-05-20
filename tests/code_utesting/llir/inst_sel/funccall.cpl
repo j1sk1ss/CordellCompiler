@@ -5,8 +5,12 @@ start() {
 
 :/ OUTPUT
 BB1: start
-%2 <<= $1;
-%3 <<= $2;
+push(rsi);
+%2 <<= $2;
+push(rdi);
+%3 <<= $1;
 call foo0(i32 a, i32 b);
+rdi = pop();
+rsi = pop();
 send
 /:

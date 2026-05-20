@@ -36,6 +36,11 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## actual poparg
+<div class="change-date">Date: 2026-05-20</div>
+Poparg annotation now works, but different as it does ABI va_list. The source idea was to create a convenient tool of variadic arguments usage, and at this moment it can't be performed with the ABI capability. </br>
+ABI requires us to support register arguments as well as we support stack arguments. It creates a requirement of a structure such as 'va_list', which isn't convinient. For now I'm forcing the compiler to push all parameters to stack if we're calling a variadinc function.  
+
 ## neg
 <div class="change-date">Date: 2026-05-19</div>
 Now the compiler has a mechanism to invert the variable on bitness level. To perform this, you can use the next keyword:

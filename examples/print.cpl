@@ -1,5 +1,5 @@
-function _strlen(ptr i8 s) -> i64 {
-    i64 l = 0;
+function _strlen(ptr i8 s) -> i32 {
+    i32 l = 0;
     while dref s; {
         s += 1;
         l += 1;
@@ -9,13 +9,21 @@ function _strlen(ptr i8 s) -> i64 {
 }
 
 function _putc(i8 c) -> i0 {
-    syscall(0x2000004, 1, ref c, 1);
+    syscall(1, 1, ref c, 1);
 }
 
-function _putn(i32 a) -> i0 {
+function _putn(i32 a, i32 r) -> i0 {
+    arr buffer[32, i8];
+    i32 pos = 0;
     while a > 0; {
-        _putc(a % 10 + '0');
-        a /= 10;
+        buffer[pos] = ((a % r) + '0') as i8;
+        a /= r;
+        pos += 1;
+    }
+    pos -= 1;
+    while pos >= 0; {
+        _putc(buffer[pos]);
+        pos -= 1;
     }
 }
 
@@ -28,34 +36,39 @@ function _puts(ptr i8 s) -> i0 {
 
 function printf(ptr i8 fmt, ...) {
     i32 index = 0;
-    i64 fmt_len = _strlen(fmt);
-    while index < fmt_len; {
+    while index < _strlen(fmt); {
+        @[straight]
+        @[no_fall]
         switch fmt[index]; {
             case '%'; {
-                i8 mode = fmt[index += 1];
-                @[poparg] ptr i8 data;
-                switch mode; {
+                i8 mode = fmt[index + 1];
+                @[straight] switch mode; {
                     case 's'; {
-                        _puts(data);
+                        @[poparg] ptr i8 s;
+                        _puts(s);
                         break;
                     }
                     case 'u'; {}
                     case 'i'; {}
                     case 'l'; {}
                     case 'd'; {
-                        _putn(data);
+                        @[poparg] i32 n;
+                        _putn(n, 10 as i32);
                         break;
                     }
                 }
 
-                break;
+                index += 1;
             }
             default {
                 _putc(fmt[index]);
-                break;
             }
         }
 
         index += 1;
     }
+}
+
+start() {
+    printf(ref "Hello! %s, %i %i %i\n", ref "Oregon!", 10 as i32, 11 as i32, 12 as i32);
 }

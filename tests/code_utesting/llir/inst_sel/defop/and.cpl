@@ -4,17 +4,18 @@ start() {
 
 :/ OUTPUT
 BB1: start
+%4 = $10;
+cmp %4, 0;
+je lb12;
+jne lb11;
+BB2: lb11:
 %3 = $10;
-cmp %3, 0;
-je lb11;
-jne lb10;
-BB2: lb10:
-%2 = $10;
-jmp lb12;
-BB3: lb11:
+%2 = %3;
+jmp lb13;
+BB3: lb12:
 %2 = 0;
-jmp lb12;
-BB4: lb12:
+jmp lb13;
+BB4: lb13:
 %1 = %2;
 %0 = %1;
 send
