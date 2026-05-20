@@ -108,6 +108,10 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->farg = nfarg;
                         break;
                     }
+                    case LIR_REF_ARGS: {
+                        // TODO: Push regs and then stack
+                        break;
+                    }
                     case LIR_FCLL: {
                         func_info_t callee;
                         if (!FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f)) break;
