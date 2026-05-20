@@ -74,10 +74,10 @@ start(i32 a, ptr ptr i8 b) {
             u32s %4 = alloc;
             u32t %10 = i8n 0 as u32;
             u32s %4 = u32t %10;
-            lb316:
+            lb318:
             u32t %11 = u32s %4 < u32s %2;
-            if u32t %11, goto lb317, else goto lb318;
-            lb317:
+            if u32t %11, goto lb319, else goto lb320;
+            lb319:
             {
                 u8t* %12 = u8s* %1;
                 u32t %13 = u32s %4 * csu8 1;
@@ -96,8 +96,8 @@ start(i32 a, ptr ptr i8 b) {
                 u32t %24 = u32s %4 + u32t %25;
                 u32s %4 = u32t %24;
             }
-            goto lb316;
-            lb318:
+            goto lb318;
+            lb320:
             u8t %27 = i8n 85 as u8;
             u8t %26 = u8s %3 ^ u8t %27;
             return u8t %26;
@@ -111,10 +111,10 @@ start(i32 a, ptr ptr i8 b) {
             i32s %6 = alloc;
             i32t %28 = i8n 0 as i32;
             i32s %6 = i32t %28;
-            lb371:
+            lb374:
             i8t %29 = *(i8s* %5);
-            if i8t %29, goto lb372, else goto lb373;
-            lb372:
+            if i8t %29, goto lb375, else goto lb376;
+            lb375:
             {
                 i32t %31 = i8n 1 as i32;
                 i32t %30 = i32s %6 + i32t %31;
@@ -123,35 +123,34 @@ start(i32 a, ptr ptr i8 b) {
                 i8t* %32 = i8s* %5 + i8t* %33;
                 i8s* %5 = i8t* %32;
             }
-            goto lb371;
-            lb373:
+            goto lb374;
+            lb376:
             return i32s %6;
         }
     }
-    start {
+    fn _main(i32 a, i8** b)
+    {
+        i32s %7 = alloc;
+        i32s %7 = load_starg();
+        i8s** %8 = alloc;
+        i8s** %8 = load_starg();
         {
-            i32s %7 = alloc;
-            i32s %7 = load_starg();
-            i8s** %8 = alloc;
-            i8s** %8 = load_starg();
-            {
-                i8t** %34 = i8s** %8;
-                i8t %35 = i8n 1 * csu8 8;
-                i8t** %37 = i8t %35 as *ptr;
-                i8t** %36 = i8t** %34 + i8t** %37;
-                i8t* %38 = *(i8t** %36);
-                use i8t* %38;
-                i8t** %39 = i8s** %8;
-                i8t %40 = i8n 1 * csu8 8;
-                i8t** %42 = i8t %40 as *ptr;
-                i8t** %41 = i8t** %39 + i8t** %42;
-                i8t* %43 = *(i8t** %41);
-                use i8t* %43;
-                i32t %44 = strlen1(i8t* %43);
-                use i32t %44;
-                u8t %45 = crc80(i8t* %38, i32t %44);
-                exit u8t %45;
-            }
+            i8t** %34 = i8s** %8;
+            i8t %35 = i8n 1 * csu8 8;
+            i8t** %37 = i8t %35 as *ptr;
+            i8t** %36 = i8t** %34 + i8t** %37;
+            i8t* %38 = *(i8t** %36);
+            use i8t* %38;
+            i8t** %39 = i8s** %8;
+            i8t %40 = i8n 1 * csu8 8;
+            i8t** %42 = i8t %40 as *ptr;
+            i8t** %41 = i8t** %39 + i8t** %42;
+            i8t* %43 = *(i8t** %41);
+            use i8t* %43;
+            i32t %44 = strlen1(i8t* %43);
+            use i32t %44;
+            u8t %45 = crc80(i8t* %38, i32t %44);
+            exit u8t %45;
         }
     }
 }

@@ -7,16 +7,15 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i32t %2 = i8n 10 as i32;
-                use i32t %2;
-                foo0(i32t %2, i8n 1, i8n 2, i8n 3, i8n 4, i8n 5, i8n 6);
-                i8t %3 = i8n 10 as i8;
-                use i8t %3;
-                foo1(i8t %3);
-            }
+            i32t %2 = i8n 10 as i32;
+            use i32t %2;
+            foo0(i32t %2, i8n 1, i8n 2, i8n 3, i8n 4, i8n 5, i8n 6);
+            i8t %3 = i8n 10 as i8;
+            use i8t %3;
+            foo1(i8t %3);
         }
     }
 }

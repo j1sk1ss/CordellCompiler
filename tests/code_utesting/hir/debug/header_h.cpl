@@ -1,8 +1,8 @@
 function foo() -> i0;
 
 :/ OUTPUT
-setpos, line=2, column=86, file={X}
+setpos, line=2, column=86, file=<unknown>
 {
-setpos, line=1, column=10, file={X}
+setpos, line=1, column=10, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmpgdw6n52c.cpl
 }
 /:

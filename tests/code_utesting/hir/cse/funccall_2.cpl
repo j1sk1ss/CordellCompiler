@@ -5,15 +5,14 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i8t %2 = i8n 100 + i8n 1;
-                use i8t %2;
-                [unused] i8t %3 = i8n 100 + i8n 1;
-                use i8t %2;
-                foo0(i8t %2, i8t %2);
-            }
+            i8t %2 = i8n 100 + i8n 1;
+            use i8t %2;
+            [unused] i8t %3 = i8n 100 + i8n 1;
+            use i8t %2;
+            foo0(i8t %2, i8t %2);
         }
     }
 }

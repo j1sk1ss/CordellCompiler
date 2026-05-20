@@ -10,12 +10,12 @@ function foo(i32 a) {
         i32s %0 = alloc;
         i32s %0 = load_starg();
         {
-            lb20:
+            lb21:
             i32t %2 = i8n 1 as i32;
             i32t %1 = i32s %0 + i32t %2;
             use i32t %1;
             i32s %0 = i32t %1;
-            goto lb20;
+            goto lb21;
             [unused] _main(i32t %1);
         }
     }

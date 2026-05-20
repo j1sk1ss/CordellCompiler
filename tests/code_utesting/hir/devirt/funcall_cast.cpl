@@ -5,11 +5,10 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                foo0(i8n 1, i8n 1);
-            }
+            foo0(i8n 1, i8n 1);
         }
     }
 }

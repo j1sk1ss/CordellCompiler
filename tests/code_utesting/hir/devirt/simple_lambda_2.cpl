@@ -22,26 +22,25 @@ start() {
             return i64t %5;
         }
     }
-    start {
+    fn _main()
+    {
         {
+            goto lb37;
+            fn __anon_function_lambda2(i32 a, i32 b)
             {
-                goto lb34;
-                fn __anon_function_lambda2(i32 a, i32 b)
+                i32s %3 = alloc;
+                i32s %3 = load_arg();
+                i32s %4 = alloc;
+                i32s %4 = load_arg();
                 {
-                    i32s %3 = alloc;
-                    i32s %3 = load_arg();
-                    i32s %4 = alloc;
-                    i32s %4 = load_arg();
-                    {
-                        i32t %6 = i32s %3 + i32s %4;
-                        return i32t %6;
-                    }
+                    i32t %6 = i32s %3 + i32s %4;
+                    return i32t %6;
                 }
-                lb34:
-                i0t* %7 = &(__anon_function_lambda2(i32 a, i32 b));
-                use i0t* %7;
-                logic0(i8n 10, i8n 20, i0t* %7);
             }
+            lb37:
+            i0t* %7 = &(__anon_function_lambda2(i32 a, i32 b));
+            use i0t* %7;
+            logic0(i8n 10, i8n 20, i0t* %7);
         }
     }
 }

@@ -9,23 +9,22 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i32t %9 = i8n 10 as i32;
-                use i32t %9;
-                i32t %10 = i8n 10 as i32;
-                use i32t %10;
-                foo0(i32t %9, i32t %10);
-                i8t %11 = i8n 10 as i8;
-                use i8t %11;
-                i32t %12 = i8n 10 as i32;
-                use i32t %12;
-                foo1(i8t %11, i32t %12, i8n 20);
-                i16t %13 = i8n 10 as i16;
-                use i16t %13;
-                foo2(i16t %13, i8n 30, i8n 40, i8n 40);
-            }
+            i32t %9 = i8n 10 as i32;
+            use i32t %9;
+            i32t %10 = i8n 10 as i32;
+            use i32t %10;
+            foo0(i32t %9, i32t %10);
+            i8t %11 = i8n 10 as i8;
+            use i8t %11;
+            i32t %12 = i8n 10 as i32;
+            use i32t %12;
+            foo1(i8t %11, i32t %12, i8n 20);
+            i16t %13 = i8n 10 as i16;
+            use i16t %13;
+            foo2(i16t %13, i8n 30, i8n 40, i8n 40);
         }
     }
 }

@@ -15,31 +15,34 @@ start() {
             if i8n 1, goto lb7, else goto lb9;
             lb7:
             {
-                return i8n 1;
+                i32t %1 = i8n 1 as i32;
+                return i32t %1;
             }
             goto lb9;
             lb9:
-            return i8n 2;
+            i32t %2 = i8n 2 as i32;
+            return i32t %2;
         }
     }
-    start {
+    fn _main()
+    {
         {
+            i32s %0 = alloc;
+            if i8n 1, goto lb47, else goto lb48;
+            lb47:
             {
-                i32s %0 = alloc;
-                if i8n 1, goto lb41, else goto lb42;
-                lb41:
-                {
-                    i32t %1 = i8n 1;
-                    goto lb31;
-                }
-                goto lb42;
-                lb42:
-                i32t %1 = i8n 2;
-                goto lb31;
-                lb31:
-                [unused] i32t %1 = foo0();
-                i32s %0 = i32t %1;
+                i32t %1 = i8n 1 as i32;
+                i32t %3 = i32t %1;
+                goto lb33;
             }
+            goto lb48;
+            lb48:
+            i32t %2 = i8n 2 as i32;
+            i32t %3 = i32t %2;
+            goto lb33;
+            lb33:
+            [unused] i32t %3 = foo0();
+            i32s %0 = i32t %3;
         }
     }
 }
