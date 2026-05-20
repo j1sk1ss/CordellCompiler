@@ -60,7 +60,7 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
 
     if (!is_float) {
         if (index >= (long)(sizeof(dec_abi_regs) / sizeof(RDI))) {
-            out->off = (index - (long)(sizeof(dec_abi_regs) / sizeof(RDI)) + !fi->flags.naked + 1) * -8;
+            out->off = (offset - (long)(sizeof(dec_abi_regs) / sizeof(RDI)) + !fi->flags.naked + 1) * -8;
             return 0;
         }
         else {
@@ -70,7 +70,7 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
     }
     else {
         if (index >= (long)(sizeof(simd_abi_regs) / sizeof(XMM0))) {
-            out->off = (index - (long)(sizeof(simd_abi_regs) / sizeof(XMM0)) + !fi->flags.naked + 1) * -8;
+            out->off = (offset - (long)(sizeof(simd_abi_regs) / sizeof(XMM0)) + !fi->flags.naked + 1) * -8;
             return 0;
         }
         else {
@@ -142,12 +142,11 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
                     case LIR_FCLL: {
-                        func_info_t callee;
-                        if (!lh->farg || lh->farg->t != LIR_FNAME || !FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f)) break;
-                        if (callee.flags.vargs) { // TODO: pass SSE count
-                            LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8)), lh);
-                        }
-
+                        // func_info_t callee;
+                        // if (
+                        //     lh->farg && lh->farg->t == LIR_FNAME && FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) &&
+                        //     callee.flags.vargs
+                        // ) LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8)), lh);
                         if (clean_stack) {
                             LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
                             clean_stack = 0;
