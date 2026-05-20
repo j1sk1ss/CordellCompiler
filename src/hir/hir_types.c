@@ -320,6 +320,7 @@ int HIR_is_writeop(hir_operation_t op) {
     switch (op) {
         case HIR_REF:
         case HIR_FARGLD:
+        case HIR_REF_ARGS:
         case HIR_ARRDECL:
         case HIR_STARGLD:
         case HIR_STORE_ECLL:

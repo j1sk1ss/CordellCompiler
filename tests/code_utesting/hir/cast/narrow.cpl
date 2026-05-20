@@ -3,7 +3,7 @@ start() {
 }
 
 :/ OUTPUT
-[/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp44ag7g5m.cpl:2:9] Narrow implicit cast is forbidden!
+[/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmpxq5ei0ub.cpl:2:9] Narrow implicit cast is forbidden!
 {
     fn _main()
     {

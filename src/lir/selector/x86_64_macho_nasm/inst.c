@@ -109,6 +109,12 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
                     case LIR_FCLL: {
+                        func_info_t callee;
+                        if (!FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f)) break;
+                        if (callee.flags.vargs) { // TODO: pass SSE count
+                            LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8)), lh);
+                        }
+
                         if (clean_stack) {
                             LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
                             clean_stack = 0;

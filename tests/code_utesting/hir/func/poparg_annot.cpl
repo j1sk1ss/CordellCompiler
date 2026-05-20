@@ -7,11 +7,16 @@ function foo(...) {
 {
     fn foo0(...)
     {
+        i0s* %2 = &(*)
         {
             i32s %0 = alloc;
-            i32s %0 = load_arg();
+            i32s %0 = *(i0s* %2);
+            i0t* %3 = i0s* %2 + csu8 4;
+            i0s* %2 = i0t* %3;
             i32s %1 = alloc;
-            i32s %1 = load_arg();
+            i32s %1 = *(i0s* %2);
+            i0t* %4 = i0s* %2 + csu8 4;
+            i0s* %2 = i0t* %4;
         }
     }
 }

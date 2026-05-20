@@ -58,9 +58,9 @@ static const char* _get_operation_template(hir_operation_t op) {
         case HIR_NOT:          return "%s = not %s;\n";
         case HIR_STORE:        return "%s = %s;\n";
         case HIR_VRUSE:        return "use %s;\n";
+        case HIR_REF_ARGS:     return "%s = &(*)\n";
         case HIR_ARRDECL:      return "%s = arr_alloc(%s);\n";
         case HIR_STRDECL:      return "%s = str_alloc(%s);\n";
-        case HIR_GLVARDECL:    return "%s = alloc(%s);\n";
         case HIR_VARDECL:      return "%s = alloc;\n";
         case HIR_STASM:        return "asm(%s%s%s) {\n";
         case HIR_ENDASM:       return "}\n";

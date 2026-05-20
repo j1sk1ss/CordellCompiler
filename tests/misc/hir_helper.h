@@ -53,7 +53,6 @@ static const char* _hir_op_to_string(hir_operation_t op) {
         case HIR_NOT:          return "NOT";
         case HIR_STORE:        return "STORE";
         case HIR_VARDECL:      return "VARDECL";
-        case HIR_GLVARDECL:    return "HIR_GLVARDECL";
         case HIR_ARRDECL:      return "ARRDECL";
         case HIR_VRUSE:        return "VRUSE";
         case HIR_STRDECL:      return "STRDECL";
