@@ -320,37 +320,8 @@ static int _inline_candidate(
     return checker((int*)&iinfo, (int)sizeof(inline_candidate_info_t));
 }
 
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int)) {
-    foreach (cfg_func_t* fb, &cctx->funcs) {
-        /* Collect information about the environment
-           - Basic information about the loops */
-        foreach (cfg_block_t* bb, &fb->blocks) {
-            iterate_hir_instructions (bb) {
-                if (HIR_is_funccall(hh->op)) {
-                    cfg_func_t* trg;
-                    if (map_get(&cctx->fmap, hh->sarg->storage.str.s_id, (void**)&trg)) {
-                        if (_inline_candidate(trg, bb, hh, lctx, smt, checker) && fb != trg) {
-                            _inline_arguments(trg, &hh->targ->storage.list.h, hh);
-                            
-                            hir_subject_t* res = NULL;
-                            if (
-                                hh->op == HIR_STORE_FCLL || 
-                                hh->op == HIR_STORE_ECLL
-                            ) res = hh->farg;
-                            
-                            _inline_function(trg, res, hh);
-                            hh->unused = 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
 
-    return 1;
-}
-
-int HIR_FUNC_inline_heuristic_desider(int* data, int size) {
+static int _inline_heuristic_desider(int* data, int size) {
     if (!data || size != sizeof(inline_candidate_info_t)) return 0;
     inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
     int score = 0;
@@ -363,7 +334,7 @@ int HIR_FUNC_inline_heuristic_desider(int* data, int size) {
     return score >= 3;
 }
 
-int HIR_FUNC_inline_model_desider(int* data, int size) {
+static int _inline_model_desider(int* data, int size) {
     if (!data || size != sizeof(inline_candidate_info_t)) return 0;
     inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
 
@@ -388,4 +359,43 @@ int HIR_FUNC_inline_model_desider(int* data, int size) {
     // x[INLINE_FEATURE_CALLEE_IR_PER_BB] = 4;
 
     return inline_model_predict(x);
+}
+
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        /* Collect information about the environment
+           - Basic information about the loops */
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            iterate_hir_instructions (bb) {
+                if (HIR_is_funccall(hh->op)) {
+                    func_info_t trg_fi;
+                    if (!FNTB_get_info_id(hh->sarg->storage.str.s_id, &trg_fi, &smt->f)) continue;
+                    cfg_func_t* trg;
+                    if (!map_get(&cctx->fmap, hh->sarg->storage.str.s_id, (void**)&trg)) continue;
+
+                    if (
+                        trg_fi.flags.inln == ALWAYS_INLINE ||
+                        (
+                            trg_fi.flags.inln != NEVER_INLINE &&
+                            _inline_candidate(
+                                trg, bb, hh, lctx, smt, 
+                                trg_fi.flags.inln == MODEL_INLINE ? _inline_model_desider : _inline_heuristic_desider
+                            ) && fb != trg
+                        )
+                    ) {
+                        hir_subject_t* res = NULL;
+                        if (
+                            hh->op == HIR_STORE_FCLL || 
+                            hh->op == HIR_STORE_ECLL
+                        ) res = hh->farg;
+                        _inline_arguments(trg, &hh->targ->storage.list.h, hh);
+                        _inline_function(trg, res, hh);
+                        hh->unused = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    return 1;
 }

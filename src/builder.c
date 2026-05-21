@@ -632,7 +632,7 @@ int main(int argc, char* argv[]) {
         HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
         if (options.config.finline) {
-            HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_heuristic_desider);
+            HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
             RELOAD_CFG;
         }
 

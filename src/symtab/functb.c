@@ -39,7 +39,7 @@ int FNTB_get_info(string_t* fname, symbol_id_t s_id, func_info_t* out, functab_c
 
 static func_info_t* _create_func_info(
     string_t* name, 
-    int global, int local, int entry, int naked, int vargs, int generic, /* flags */
+    int global, int local, int entry, int naked, int vargs, int generic, int inln, /* flags */
     ast_node_t* args, ast_node_t* rtype
 ) {
     func_info_t* fn = (func_info_t*)mm_malloc(sizeof(func_info_t));
@@ -61,6 +61,7 @@ static func_info_t* _create_func_info(
     fn->flags.naked   = naked;
     fn->flags.vargs   = vargs;
     fn->flags.generic = generic;
+    fn->flags.inln    = inln;
     return fn;
 }
 
@@ -92,7 +93,7 @@ static string_t* _create_virt_name(symbol_id_t id, string_t* name) {
 
 symbol_id_t FNTB_add_info(
     string_t* name, string_t* vname,
-    int global, int local, int entry, int naked, int vargs, int generic, /* flags */
+    int global, int local, int entry, int naked, int vargs, int generic, int inln, /* flags */
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
     print_log(
@@ -103,7 +104,7 @@ symbol_id_t FNTB_add_info(
     func_info_t out;
     if (_is_function_presented(name, s_id, args, NULL, &out, ctx)) return out.id; 
 
-    func_info_t* nnd = _create_func_info(name, global, local, entry, naked, vargs, generic, args, rtype);
+    func_info_t* nnd = _create_func_info(name, global, local, entry, naked, vargs, generic, inln, args, rtype);
     if (!nnd) return 0;
     nnd->s_id       = s_id;
     nnd->flags.used = global;
@@ -118,7 +119,7 @@ symbol_id_t FNTB_add_info(
 
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx) {
     print_log("FNTB_add_copy(id=%llu)", src->id);
-    func_info_t* nnd = _create_func_info(src->name, 0, 0, 0, 0, 0, 0, src->args, src->rtype);
+    func_info_t* nnd = _create_func_info(src->name, 0, 0, 0, 0, 0, 0, 0, src->args, src->rtype);
     if (!nnd) return NO_SYMBOL_ID;
     
     str_memcpy(&nnd->flags, &src->flags, sizeof(src->flags));
@@ -271,7 +272,7 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx
         
         func_info_t* n = _create_func_info(
             fi->name, 
-            fi->flags.global, fi->flags.local, fi->flags.entry, fi->flags.naked, fi->flags.vargs, 0,
+            fi->flags.global, fi->flags.local, fi->flags.entry, fi->flags.naked, fi->flags.vargs, 0, fi->flags.inln,
             args, rtype
         );
         

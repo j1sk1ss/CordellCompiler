@@ -20,9 +20,19 @@
 #define REGST_ANNOTATION_COMMAND "register"
 #define POPRG_ANNOTATION_COMMAND "poparg"
 
+#define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
+#define INLNE_YES_OPTION         "always"
+#define INLNE_NO_OPTION          "never"
+#define INLINE_MODEL_OPTION      "model"
+#define ALWAYS_INLINE            1
+#define NEVER_INLINE             2
+#define SOFT_YES_INLINE          3
+#define MODEL_INLINE             4
+
 typedef struct {
     string_t* section;
     string_t* fname;
+    int       do_inline; /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
     int       align;
     long      address;
     long      counter;
@@ -54,17 +64,19 @@ typedef enum {
     COLD_ANNOTATION,      /* Will make the linked then branch hot      */
     REGISTER_ANNOTATION,  /* Will link the selected register to a decl */
     POPARG_ANNOTATION,    /* Will pop value from the stack to a linked */
+    INLINE_ANNOTATION,    /* Will change inline decider result         */
 } annotation_type_t;
 
 typedef struct {
     annotation_type_t t;
     union {
-        int           align;   /* ALIGN_ANNOTATION    */
-        string_t*     fname;   /* ENTRY_ANNOTATION    */
-        string_t*     section; /* SECTION_ANNOTATION  */
-        long          address; /* ADDRESS_ANNOTATION  */
-        long          counter; /* COUNTER_ANNOTATION  */
-        short         regval;  /* REGISTER_ANNOTATION */
+        int           align;      /* ALIGN_ANNOTATION    */
+        string_t*     fname;      /* ENTRY_ANNOTATION    */
+        string_t*     section;    /* SECTION_ANNOTATION  */
+        string_t*     inline_opt; /* INLINE_ANNOTATION   */
+        long          address;    /* ADDRESS_ANNOTATION  */
+        long          counter;    /* COUNTER_ANNOTATION  */
+        short         regval;     /* REGISTER_ANNOTATION */
     } data;
 } annotation_t;
 

@@ -36,6 +36,18 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## inline annotation
+<div class="change-date">Date: 2026-05-21</div>
+Add an annotation which helps the compiler to figure out whether he should or not inline a function. This annotation works the same as it does the similar annotation in Rust language. For instance:
+```cpl
+@[inline] function foo(); :/ Function will be inlined with higher odds /:
+@[inline(always)] function bar(); :/ Will inline the function under any circumstances /:
+@[inline(never)] function baz(); :/ Will skip this function /:
+@[inline(model)] function chloe(); :/ ! Experimental ! The model will decide whether a function will be inlined /:
+```
+
+This is actually an experiment. I'd like to see how backed and compact models can perform in optimizing compilers. Also, I'd like to understand how much is portable such a model. At this point I'm working with mainly C-based data, and trying to implement obtained models in a C-like compiler which should demonstate satisfied results. But in the future I'll try the same experiment with Python and Lua.
+
 ## actual poparg
 <div class="change-date">Date: 2026-05-20</div>
 Poparg annotation now works, but different as it does ABI va_list. The source idea was to create a convenient tool of variadic arguments usage, and at this moment it can't be performed with the ABI capability. </br>

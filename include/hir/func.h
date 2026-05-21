@@ -85,24 +85,10 @@ Params:
     - `cctx` - CFG.
     - `lctx` - Loops context.
     - `smt` - Symtable.
-    - `checker` - Function decider.
 
 Returns 1 on success, otherwise 0.
 */
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int));
-
-/*
-Heuristic inline decider (basic option).
-Params:
-    - `data` - Decider data.
-    - `size` - Decider data size.
-
-Returns 1 if function must be inlined.
-*/
-int HIR_FUNC_inline_heuristic_desider(int* data, int size);
-
-// TODO: docs
-int HIR_FUNC_inline_model_desider(int* data, int size);
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt);
 
 /*
 Iterate function and find last block. If this is exit and the last block, find HIR_VRUSE, which

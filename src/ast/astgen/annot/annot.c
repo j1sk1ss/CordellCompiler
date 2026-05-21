@@ -6,12 +6,13 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, string_t* data, long 
     str_memset(annot, 0, sizeof(annotation_t));
     annot->t = t;
     switch (t) {
-        case ALIGN_ANNOTATION:    annot->data.align = (int)value;                 break;
-        case SECTION_ANNOTATION:  annot->data.section = data->copy(data);         break;
-        case ADDRESS_ANNOTATION:  annot->data.address = value;                    break;
-        case COUNTER_ANNOTATION:  annot->data.counter = value;                    break;
-        case REGISTER_ANNOTATION: annot->data.regval = (short)value;              break;
-        case ENTRY_ANNOTATION:    if (data) annot->data.fname = data->copy(data); break;
+        case INLINE_ANNOTATION:   if (data) annot->data.inline_opt = data->copy(data); break;
+        case ALIGN_ANNOTATION:    annot->data.align = (int)value;                      break;
+        case SECTION_ANNOTATION:  annot->data.section = data->copy(data);              break;
+        case ADDRESS_ANNOTATION:  annot->data.address = value;                         break;
+        case COUNTER_ANNOTATION:  annot->data.counter = value;                         break;
+        case REGISTER_ANNOTATION: annot->data.regval = (short)value;                   break;
+        case ENTRY_ANNOTATION:    if (data) annot->data.fname = data->copy(data);      break;
         default: break;
     }
 
@@ -22,6 +23,16 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
     annotation_t* annot;
     while (stack_pop(annots, (void**)&annot)) {
         switch (annot->t) {
+            case INLINE_ANNOTATION: {
+                if (!annot->data.inline_opt) summary->do_inline = SOFT_YES_INLINE;
+                else {
+                    if (annot->data.inline_opt->requals(annot->data.inline_opt, INLNE_YES_OPTION))         summary->do_inline = ALWAYS_INLINE;
+                    else if (annot->data.inline_opt->requals(annot->data.inline_opt, INLNE_NO_OPTION))     summary->do_inline = NEVER_INLINE;
+                    else if (annot->data.inline_opt->requals(annot->data.inline_opt, INLINE_MODEL_OPTION)) summary->do_inline = MODEL_INLINE;
+                }
+
+                break;
+            }
             case SECTION_ANNOTATION: {
                 if (summary->section) destroy_string(summary->section);
                 summary->section = annot->data.section->copy(annot->data.section); 
@@ -62,8 +73,9 @@ int ANNOT_destroy_summary(annotations_summary_t* summray) {
 
 int ANNOT_destroy_annotation(annotation_t* annot) {
     switch (annot->t) {
-        case SECTION_ANNOTATION: destroy_string(annot->data.section);                      break;
-        case ENTRY_ANNOTATION:   if (annot->data.fname) destroy_string(annot->data.fname); break;
+        case SECTION_ANNOTATION: destroy_string(annot->data.section);                                break;
+        case ENTRY_ANNOTATION:   if (annot->data.fname) destroy_string(annot->data.fname);           break;
+        case INLINE_ANNOTATION:  if (annot->data.inline_opt) destroy_string(annot->data.inline_opt); break;
         default: break;
     }
 
