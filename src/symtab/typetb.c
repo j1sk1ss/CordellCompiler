@@ -26,6 +26,19 @@ symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, typet
     return info->id;
 }
 
+int TPTB_add_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx) {
+    type_info_t *p_ti, *c_ti;
+    if (
+        map_get(&ctx->typetb, p_id, (void**)&p_ti) &&
+        map_get(&ctx->typetb, c_id, (void**)&c_ti)
+    ) {
+        list_add(&p_ti->link.c, (void*)c_id);
+        c_ti->link.p = p_id;
+    }
+
+    return 0;
+}
+
 int TPTB_info_add_entry(symbol_id_t id, symbol_id_t vid, typetab_ctx_t* ctx) {
     if (id == NO_SYMBOL_ID) return 1;
     type_info_t* info;
@@ -39,9 +52,9 @@ int TPTB_info_add_entry(symbol_id_t id, symbol_id_t vid, typetab_ctx_t* ctx) {
 }
 
 int TPTB_get_info_id(symbol_id_t id, type_info_t* info, typetab_ctx_t* ctx) {
-    type_info_t ti;
+    type_info_t* ti;
     if (map_get(&ctx->typetb, id, (void**)&ti)) {
-        if (info) str_memcpy(info, &ti, sizeof(type_info_t));
+        if (info) str_memcpy(info, ti, sizeof(type_info_t));
         return 1;
     }
 
@@ -49,8 +62,8 @@ int TPTB_get_info_id(symbol_id_t id, type_info_t* info, typetab_ctx_t* ctx) {
 }
 
 type_type_t TPTB_get_type_type_id(symbol_id_t id, typetab_ctx_t* ctx) {
-    type_info_t ti;
-    if (map_get(&ctx->typetb, id, (void**)&ti)) return ti.t;
+    type_info_t* ti;
+    if (map_get(&ctx->typetb, id, (void**)&ti)) return ti->t;
     return 0;
 }
 
