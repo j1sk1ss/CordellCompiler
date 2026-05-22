@@ -681,53 +681,8 @@ Returns an ast node.
 */
 ast_node_t* cpl_parse_conv(PARSER_ARGS);
 
-/*
-Parse .cpl 'ref' command. Should be invoked on a 'ref' token.
-Snippet:
-```cpl
-i32 b = ref variable;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_ref(PARSER_ARGS);
-
-/*
-Parse .cpl 'dref' command. Should be invoked on a 'dref' token.
-Snippet:
-```cpl
-i32 b = dref variable;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_dref(PARSER_ARGS);
-
-/*
-Parse .cpl 'neg' command. Should be invoked on a 'neg' token.
-Snippet:
-```cpl
-i32 b = neg variable;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_neg(PARSER_ARGS);
+// TODO: docs
+ast_node_t* cpl_parse_unary(PARSER_ARGS);
 
 /*
 Parse an annotation and push it onto the stack.

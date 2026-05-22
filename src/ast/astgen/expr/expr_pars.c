@@ -221,12 +221,12 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 annotation_unreserve(ctx, annot_off);
                 return node;
             }
-            case SIZEOF_TOKEN:    return cpl_parse_sizeof(it, ctx, smt, 0);   /* sizeof()  */
-            case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
-            case NOT_TOKEN:                                                   /* not       */
-            case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */
-            case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt, 0);      /* ref       */
-            case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt, 0);     /* dref      */
+            case SIZEOF_TOKEN:    return cpl_parse_sizeof(it, ctx, smt, 0);
+            case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);
+            case NOT_TOKEN:
+            case NEGATIVE_TOKEN:
+            case REF_TYPE_TOKEN:
+            case DREF_TYPE_TOKEN: return cpl_parse_unary(it, ctx, smt, 0);
             default: goto _primary_resolve_complete;
         }
     }
