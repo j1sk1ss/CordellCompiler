@@ -1,12 +1,5 @@
 #include <symtab/typetb.h>
 
-/*
-Create a new entry for a type.
-Params:
-    - `lv` - Linked Variable.
-
-Returns NULL or a new entry.
-*/
 static type_entry_info_t* _create_entry(symbol_id_t lv) {
     type_entry_info_t* entry = (type_entry_info_t*)mm_malloc(sizeof(type_entry_info_t));
     if (!entry) return NULL;
