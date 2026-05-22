@@ -1,4 +1,77 @@
 # TODO
+## Containers
+The idea is to create structures but with some features. For instance, a container will have an ability of function holding with self argument support. It means, the CPL will support the next syntax:
+```cpl
+container storage {
+    u32 wood  = 100;
+    u32 steel = 100;
+    u64 money = 0;
+
+    function sell_wood(self) -> i0 {
+        self.wood -= 100;
+        self.money += 100;
+    }
+}
+
+start() {
+    storage s;
+    s.sell_wood();
+}
+```
+
+In a nutshell, this code will be translated in the next IR:
+```cpl
+start() {
+    u8* s = arrdecl(16);
+    u32* tmp1 = s;
+    *tmp1 = 100;
+    u32* tmp2 = s + sizeof(u32);
+    *tmp2 = 100;
+    u64* tmp3 = s + sizeof(u32) + sizeof(u32);
+    *tmp3 = 0;
+    storage__sell_wood(s);
+}
+
+fn storage__sell_wood(u8* ptr) {
+    u32* tmp1 = ptr;
+    *tmp1 -= 100;
+    u64* tmp2 = ptr + sizeof(u32);
+    *tmp2 += 100;
+}
+```
+
+This is the final feature that I want to add to the CPL. </br>
+**Important note:** Overloads and generics must work the same, which means the next code must be valid as well:
+```cpl
+container generic {
+    function sum<T, U>(self, ptr T a, U b) -> i0 {
+        return;
+    }
+}
+
+start() {
+    generic g;
+    g.sum<i8, i8>(1, 1);
+}
+```
+
+*P.S.:* Generics won't support containers. No ```sum<generic, i0>()```, etc. </br>
+*P.P.S.:* No nested containers:
+```cpl
+container a {
+    container b {
+
+    } :/ Illegal /:
+}
+``` 
+*P.P.P.S.:* By the way, there is a way how you can use a container in a container:
+```cpl
+container a {
+    ptr a next;
+    ptr b next;
+}
+```
+
 ## Simple polymorphic system (Completed)
 The idea is to create a placeholder type for local variables, then copy a function with the provided type. For instance let's consider the function below:
 ```cpl

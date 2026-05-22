@@ -92,6 +92,9 @@ typedef enum {
     SCOPE_TOKEN,           // {  }
     ANNOTATION_TOKEN,      // @
 
+    CONTAINER_TOKEN,
+    MEMBER_ACCESS_TOKEN,
+
     // Function
     ASM_TOKEN,             // asm
     SYSCALL_TOKEN,         // syscall

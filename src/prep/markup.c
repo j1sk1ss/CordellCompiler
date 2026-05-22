@@ -22,6 +22,9 @@ static const markup_token_t _lexems[] = {
     LEXEM(OPEN_BRACKET,           OPEN_BRACKET_TOKEN),
     LEXEM(CLOSE_BRACKET,          CLOSE_BRACKET_TOKEN),
 
+    LEXEM(CONTAINER_COMMAND,      CONTAINER_TOKEN),
+    LEXEM(MEMBER_ACCESS_COMMAND,  MEMBER_ACCESS_TOKEN),
+
     /* Function and jmp tokens. */
     LEXEM(FUNCTION_COMMAND,       FUNC_TOKEN),
     LEXEM(RETURN_COMMAND,         RETURN_TOKEN),

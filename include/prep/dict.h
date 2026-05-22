@@ -17,6 +17,9 @@
 #define RETURN_COMMAND          "return"
 #define CLOSE_BLOCK             "}"
 
+#define CONTAINER_COMMAND       "container"
+#define MEMBER_ACCESS_COMMAND   "."
+
 // Function
 #define FUNCTION_COMMAND        "function"
 #define VAR_ARGUMENTS_COMMAND   "..."
