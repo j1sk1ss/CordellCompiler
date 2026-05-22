@@ -19,50 +19,50 @@ extern i386_outb
 section .text
 global i386_pit_init
 i386_pit_init:
-mov ebx, 100
-mov eax, 1193180
-mov ecx, ebx
-push edx
-cdq
-idiv ecx
-pop edx
-mov ebx, eax
-mov bx, bx
-mov dx, bx
-mov bl, 54
-push edx
-push ebx
-mov ecx, 67
-push ecx
-call i386_outb
-add esp, 8
-pop edx
-mov bx, 255
-mov ax, dx
-and ax, bx
-mov bx, ax
-mov bl, bl
-push edx
-push ebx
-mov ecx, 64
-push ecx
-call i386_outb
-add esp, 8
-pop edx
-mov bx, 8
-mov ax, dx
-mov cl, bl
-shr ax, cl
-mov bx, ax
-mov dx, 255
-mov ax, bx
-and ax, dx
-mov bx, ax
-mov bl, bl
-push ebx
-mov ecx, 64
-push ecx
-call i386_outb
-add esp, 8
-ret
+    mov     ebx, 100
+    mov     eax, 1193180
+    mov     ecx, ebx
+    push    edx
+    cdq
+    idiv    ecx
+    pop     edx
+    mov     ebx, eax
+    mov     bx, bx
+    mov     dx, bx
+    mov     bl, 54
+    push    edx
+    push    ebx
+    mov     ecx, 67
+    push    ecx
+    call    i386_outb
+    add     esp, 8
+    pop     edx
+    mov     bx, 255
+    mov     ax, dx
+    and     ax, bx
+    mov     bx, ax
+    mov     bl, bl
+    push    edx
+    push    ebx
+    mov     ecx, 64
+    push    ecx
+    call    i386_outb
+    add     esp, 8
+    pop     edx
+    mov     bx, 8
+    mov     ax, dx
+    mov     cl, bl
+    shr     ax, cl
+    mov     bx, ax
+    mov     dx, 255
+    mov     ax, bx
+    and     ax, dx
+    mov     bx, ax
+    mov     bl, bl
+    push    ebx
+    mov     ecx, 64
+    push    ecx
+    call    i386_outb
+    add     esp, 8
+    ret
 /:

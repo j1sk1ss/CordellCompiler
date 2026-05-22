@@ -185,7 +185,7 @@ Returns 1 if succeeds.
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
-        fprintf(output, "_str_%li_ db ", si.id);
+        EMIT_PART_COMMAND("_str_%li_ db ", si.id);
         char* data = si.value->body;
         while (*data) {
             fprintf(output, "%i,", *(data++));
@@ -254,10 +254,10 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     }
 
     switch (TKN_variable_bitness(&tmptkn, 1)) {
-        case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        default:                EMIT_COMMAND("%s db %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        default:                EMIT_COMMAND("%s db %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
     }
 
     return 1;

@@ -13,31 +13,31 @@ start() {
 section .text
 global _main
 _main:
-mov ebx, 10
-mov edx, ebx
-mov ebx, 10
-mov ebx, ebx
-push ebx
-push edx
-call _cpl_sum2__i64__u8
-add esp, 8
-mov bl, al
-mov bl, bl
-mov eax, 1
-int 0x80
+    mov     ebx, 10
+    mov     edx, ebx
+    mov     ebx, 10
+    mov     ebx, ebx
+    push    ebx
+    push    edx
+    call    _cpl_sum2__i64__u8
+    add     esp, 8
+    mov     bl, al
+    mov     bl, bl
+    mov     eax, 1
+    int     0x80
 ; BB3:
 _cpl_sum2__i64__u8:
-push ebp
-mov ebp, esp
-mov ebx, dword [ebp + 8]
-mov edx, dword [ebp + 12]
-mov eax, ebx
-add eax, edx
-mov ebx, eax
-mov bl, bl
-mov al, bl
-mov esp, ebp
-pop ebp
-ret
+    push    ebp
+    mov     ebp, esp
+    mov     ebx, dword [ebp + 8]
+    mov     edx, dword [ebp + 12]
+    mov     eax, ebx
+    add     eax, edx
+    mov     ebx, eax
+    mov     bl, bl
+    mov     al, bl
+    mov     esp, ebp
+    pop     ebp
+    ret
 ; BB5:
 /:

@@ -33,66 +33,66 @@ extern i386_isr_initialize
 extern i386_irq_initialize
 extern TSS_init
 section .rodata
-_str_1_ db 71,68,84,9,0
-_str_4_ db 73,82,81,9,0
-_str_3_ db 73,83,82,9,0
-_str_0_ db 72,65,76,58,32,40,0
-_str_5_ db 84,83,83,41,10,0
-_str_2_ db 73,68,84,9,0
+_str_1_                  db      71,68,84,9,0
+_str_4_                  db      73,82,81,9,0
+_str_3_                  db      73,83,82,9,0
+_str_0_                  db      72,65,76,58,32,40,0
+_str_5_                  db      84,83,83,41,10,0
+_str_2_                  db      73,68,84,9,0
 section .text
 global HAL_initialize
 HAL_initialize:
-push ebp
-mov ebp, esp
-sub esp, 16
-lea edi, [rel _str_0_]
-mov dword [ebp - 4], edi
-push dword [ebp - 4]
-call kprintf
-add esp, 4
-call i386_gdt_initialize
-lea edi, [rel _str_1_]
-mov dword [ebp - 8], edi
-push dword [ebp - 8]
-call kprintf
-add esp, 4
-call i386_idt_initialize
-lea ebx, [rel _str_2_]
-push ebx
-call kprintf
-add esp, 4
-call i386_isr_initialize
-lea ebx, [rel _str_3_]
-push ebx
-call kprintf
-add esp, 4
-call i386_irq_initialize
-mov ebx, eax
-cmp ebx, 0
-je lb54
-jne lb52
+    push    ebp
+    mov     ebp, esp
+    sub     esp, 16
+    lea     edi, [rel _str_0_]
+    mov     dword [ebp - 4], edi
+    push    dword [ebp - 4]
+    call    kprintf
+    add     esp, 4
+    call    i386_gdt_initialize
+    lea     edi, [rel _str_1_]
+    mov     dword [ebp - 8], edi
+    push    dword [ebp - 8]
+    call    kprintf
+    add     esp, 4
+    call    i386_idt_initialize
+    lea     ebx, [rel _str_2_]
+    push    ebx
+    call    kprintf
+    add     esp, 4
+    call    i386_isr_initialize
+    lea     ebx, [rel _str_3_]
+    push    ebx
+    call    kprintf
+    add     esp, 4
+    call    i386_irq_initialize
+    mov     ebx, eax
+    cmp     ebx, 0
+    je      lb54
+    jne     lb52
 ; BB2:
 lb52:
-lea ebx, [rel _str_4_]
-push ebx
-call kprintf
-add esp, 4
-jmp lb54
+    lea     ebx, [rel _str_4_]
+    push    ebx
+    call    kprintf
+    add     esp, 4
+    jmp     lb54
 ; BB3:
 lb54:
-mov edx, 5
-mov dword [ebp - 12], 16
-mov ebx, 0
-push ebx
-push dword [ebp - 12]
-push edx
-call TSS_init
-add esp, 12
-lea ebx, [rel _str_5_]
-push ebx
-call kprintf
-add esp, 4
-mov esp, ebp
-pop ebp
-ret
+    mov     edx, 5
+    mov     dword [ebp - 12], 16
+    mov     ebx, 0
+    push    ebx
+    push    dword [ebp - 12]
+    push    edx
+    call    TSS_init
+    add     esp, 12
+    lea     ebx, [rel _str_5_]
+    push    ebx
+    call    kprintf
+    add     esp, 4
+    mov     esp, ebp
+    pop     ebp
+    ret
 /:
