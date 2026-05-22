@@ -16,12 +16,31 @@ static type_info_t* _create_type_info(string_t* name) {
 }
 
 symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, typetab_ctx_t* ctx) {
-    if (TPTB_get_info(name, s_id, NULL, ctx)) return -1;
+    if (TPTB_get_info(name, s_id, NULL, ctx)) return NO_SYMBOL_ID;
     type_info_t* info = _create_type_info(name);
-    if (!info) return -1;
+    if (!info) return NO_SYMBOL_ID;
     info->id   = ctx->curr_id++;
     info->s_id = s_id;
     info->t    = t;
+    map_put(&ctx->typetb, info->id, info);
+    return info->id;
+}
+
+symbol_id_t TPTB_add_info_from_token_type(string_t* name, symbol_id_t s_id, token_type_t t, typetab_ctx_t* ctx) {
+    if (TPTB_get_info(name, s_id, NULL, ctx)) return NO_SYMBOL_ID;
+    type_info_t* info = _create_type_info(name);
+    if (!info) return NO_SYMBOL_ID;
+    info->id = ctx->curr_id++;
+    info->tt = t;
+    if (
+        t == GENERIC_TYPE_TOKEN || 
+        t == GENERIC_VARIABLE_TOKEN
+    ) info->t = TYPE_GENERICS;
+    else if (
+        t == CUSTOM_TYPE_TOKEN ||
+        t == CUSTOM_VARIABLE_TOKEN
+    ) info->t = TYPE_CUSTOM;
+    else info->t = TYPE_PRIMITIVE;
     map_put(&ctx->typetb, info->id, info);
     return info->id;
 }
