@@ -7,10 +7,8 @@
 section .bss
 global _main
 _main:
-push rbp
-mov rbp, rsp
-mov edx, 1
-mov ecx, edx
-mov rax, 0x2000001
-syscall
+    mov     ecx, 1
+    mov     ecx, ecx
+    mov     rax, 60
+    syscall
 /:

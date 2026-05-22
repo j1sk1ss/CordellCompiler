@@ -10,11 +10,9 @@ start() {
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-mov edx, 1
-mov ecx, edx
-mov ecx, rsi
-mov rax, 0x2000001
-syscall
+    mov     ecx, 1
+    mov     ecx, ecx
+    mov     ecx, rsi
+    mov     rax, 60
+    syscall
 /:

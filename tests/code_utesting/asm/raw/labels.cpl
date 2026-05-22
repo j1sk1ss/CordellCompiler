@@ -14,15 +14,16 @@ start() {
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-jmp custom_label
-mov ebx, 1
-mov edx, ebx
+    jmp     custom_label
+    mov     ecx, 1
+    mov     ecx, ecx
 custom_label:
-mov cl, 1
-mov dl, cl
-mov rax, 0x2000001
-syscall
+    mov     cl, 1
+    mov     cl, cl
+    mov     dil, cl
+    mov     rax, 60
+    syscall
 ; BB2:
+    mov     rax, 60
+    syscall
 /:

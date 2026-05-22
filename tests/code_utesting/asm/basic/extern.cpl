@@ -12,11 +12,13 @@ section .data
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-mov rdi, [rel BUFFER]
-mov sil, 10
-call printf
-mov rax, 0x2000001
-syscall
+    push    rsi
+    mov     sil, 10
+    push    rdi
+    mov     rdi, qword [rel BUFFER]
+    call    printf
+    pop     rdi
+    pop     rsi
+    mov     rax, 60
+    syscall
 /:

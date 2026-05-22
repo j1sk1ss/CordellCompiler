@@ -8,15 +8,14 @@ start() {
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-; BB5:
 ; BB2:
-lb10:
-jmp lb11
+lb7:
+    jmp     lb8
 ; BB3:
-lb11:
-jmp lb10
+lb8:
+    jmp     lb7
 ; BB4:
-lb12:
+lb9:
+    mov     rax, 60
+    syscall
 /:

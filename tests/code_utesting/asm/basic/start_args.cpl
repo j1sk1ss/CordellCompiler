@@ -7,12 +7,15 @@ start(i32 argc, ptr ptr i8 argv) {
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-mov ecx, edi
-lea rcx, [rsi]
-mov dl, 0
-mov rax, 0x2000001
-syscall
+    push    rbp
+    mov     rbp, rsp
+    mov     ecx, qword [rbp + 8]
+    lea     rcx, [rbp + 16]
+    mov     cl, 0
+    mov     dil, cl
+    mov     rax, 60
+    syscall
 ; BB2:
+    mov     rax, 60
+    syscall
 /:

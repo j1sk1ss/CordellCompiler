@@ -10,20 +10,18 @@ start() {
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-mov al, 1
-cmp al, 0
-je lb11
-jne lb10
+    mov     al, 1
+    cmp     al, 0
+    je      lb8
+    jne     lb7
 ; BB2:
-lb10:
-jmp lb12
+lb7:
+    jmp     lb9
 ; BB3:
-lb11:
-jmp lb12
+lb8:
+    jmp     lb9
 ; BB4:
-lb12:
-mov rax, 0x2000001
-syscall
+lb9:
+    mov     rax, 60
+    syscall
 /:

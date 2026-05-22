@@ -9,13 +9,14 @@ section .rodata
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-lea rcx, [rel message]
-mov rdx, rcx
-mov rax, 0x2000001
-syscall
+    lea     rcx, qword [rel message]
+    mov     cl, cl
+    mov     dil, cl
+    mov     rax, 60
+    syscall
 ; BB2:
+    mov     rax, 60
+    syscall
 section .lis
-message db 72,101,108,108,111,32,119,111,114,108,100,33,0
+message                  db      72,101,108,108,111,32,119,111,114,108,100,33,0
 /:
