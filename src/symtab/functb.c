@@ -187,7 +187,18 @@ int FNTB_update_func(
     return 0;
 }
 
-int FNTB_clear_registered_types(symbol_id_t f_id, functab_ctx_t* ctx) {
+int FNTB_has_generic_types(symbol_id_t f_id, functab_ctx_t* ctx) {
+    print_log("FNTB_has_generic_types(id=%llu)", f_id);
+    func_info_t* fi;
+    if (map_get(&ctx->functb, f_id, (void**)&fi) && list_size(&fi->template.registered_types)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int FNTB_clear_generic_types(symbol_id_t f_id, functab_ctx_t* ctx) {
+    print_log("FNTB_clear_generic_types(id=%llu)", f_id);
     func_info_t* fi;
     if (map_get(&ctx->functb, f_id, (void**)&fi)) {
         list_free(&fi->template.registered_types);
@@ -198,7 +209,8 @@ int FNTB_clear_registered_types(symbol_id_t f_id, functab_ctx_t* ctx) {
     return 0;
 }
 
-int FNTB_register_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx) {
+int FNTB_register_generic_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx) {
+    print_log("FNTB_register_generic_type(id=%llu, t=%s)", f_id, t_id);
     func_info_t* fi;
     if (map_get(&ctx->functb, f_id, (void**)&fi)) {
         list_add(&fi->template.registered_types, (void*)t_id);
@@ -315,5 +327,6 @@ static int _function_info_unload(func_info_t* info) {
 }
 
 int FNTB_unload(functab_ctx_t* ctx) {
+    print_log("FNTB_unload()");
     return map_free_force_op(&ctx->functb, (int (*)(void *))_function_info_unload);
 }

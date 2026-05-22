@@ -62,7 +62,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                         AST_add_node(left, type_node);
                         if (type != NO_SYMBOL_ID) {
                             type_node->sinfo.v_id = type;
-                            type_node->t->t_type  = GENERIC_TYPE_TOKEN;
+                            type_node->t->t_type  = EXTRACT_TYPE_TYPE(type, smt);
                         }
                     }
                     else {

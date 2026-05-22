@@ -116,6 +116,9 @@ Returns the ID of a copied function.
 */
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx);
 
+// TODO: docs
+int FNTB_has_generic_types(symbol_id_t f_id, functab_ctx_t* ctx);
+
 /*
 Reset registered types for a function. Can be useful in the situation
 when you re-register a function from a prototype to an implementation.
@@ -125,7 +128,7 @@ Params:
 
 Returns 1 if succeeds.
 */
-int FNTB_clear_registered_types(symbol_id_t f_id, functab_ctx_t* ctx);
+int FNTB_clear_generic_types(symbol_id_t f_id, functab_ctx_t* ctx);
 
 /*
 Add a generic type for a function. This function adds a type obly if it is
@@ -137,7 +140,7 @@ Params:
 
 Returns 1 if succeeds.
 */
-int FNTB_register_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx);
+int FNTB_register_generic_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx);
 
 /*
 Register an existed function as a local function.

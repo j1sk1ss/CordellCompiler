@@ -2,6 +2,7 @@
 
 static const char* _name_tkn_type(token_type_t t) {
     switch (t) {
+        case CUSTOM_TYPE_TOKEN:           return "CUSTOM_TYPE_TOKEN";
         case GENERIC_TYPE_TOKEN:          return "GENERIC_TYPE_TOKEN";   
         case GENERIC_VARIABLE_TOKEN:      return "GENERIC_VARIABLE_TOKEN";
         case SIZEOF_TOKEN:                return "SIZEOF_TOKEN";

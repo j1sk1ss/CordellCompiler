@@ -2,7 +2,7 @@
 
 int annotation_reserve(ast_ctx_t* ctx) {
     int prev_off = ctx->an_off;
-    ctx->an_off = ctx->annots.top + 1;
+    ctx->an_off  = ctx->annots.top + 1;
     return prev_off;
 }
 

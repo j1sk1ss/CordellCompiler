@@ -12,8 +12,8 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     }
     
     if (carry != NO_SYMBOL_ID) {
-        base->t->t_type  = GENERIC_TYPE_TOKEN;
         base->sinfo.v_id = carry;
+        base->t->t_type  = EXTRACT_TYPE_TYPE(carry, smt);
     }
 
     annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .reg = FIELD_NO_CHANGE };

@@ -314,6 +314,7 @@ int TKN_is_update_operator(token_t* token) {
 
 token_type_t TKN_get_var_from_type(token_type_t t) {
     switch (t) {
+        case CUSTOM_TYPE_TOKEN:  return CUSTOM_VARIABLE_TOKEN;
         case GENERIC_TYPE_TOKEN: return GENERIC_VARIABLE_TOKEN;
         case STR_TYPE_TOKEN:     return STR_VARIABLE_TOKEN;
         case ARRAY_TYPE_TOKEN:   return ARR_VARIABLE_TOKEN;

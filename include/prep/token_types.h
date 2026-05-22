@@ -62,6 +62,7 @@ typedef enum {
     TMP_I0_TYPE_TOKEN,     // tmp_i0
     TMP_STR_TYPE_TOKEN,    // tmp_str
 
+    CUSTOM_TYPE_TOKEN,     // ?
     GENERIC_TYPE_TOKEN,    // T
     I0_TYPE_TOKEN,         // i0
     F64_TYPE_TOKEN,        // f64
@@ -143,6 +144,7 @@ typedef enum {
     
     // Variables (not a type, a variable)
     RESOLVED_TYPE_TOKEN,
+    CUSTOM_VARIABLE_TOKEN,
     GENERIC_VARIABLE_TOKEN,
     VARIABLE_TOKEN,        // front-end tokenizer variable abstraction
     F64_VARIABLE_TOKEN,    // f64

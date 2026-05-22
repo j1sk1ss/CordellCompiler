@@ -15,12 +15,13 @@ static type_info_t* _create_type_info(string_t* name) {
     return info;
 }
 
-symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, typetab_ctx_t* ctx) {
+symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, typetab_ctx_t* ctx) {
     if (TPTB_get_info(name, s_id, NULL, ctx)) return -1;
     type_info_t* info = _create_type_info(name);
     if (!info) return -1;
     info->id   = ctx->curr_id++;
     info->s_id = s_id;
+    info->t    = t;
     map_put(&ctx->typetb, info->id, info);
     return info->id;
 }
@@ -28,9 +29,7 @@ symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, typetab_ctx_t* ctx) 
 int TPTB_info_add_entry(symbol_id_t id, symbol_id_t vid, typetab_ctx_t* ctx) {
     if (id == NO_SYMBOL_ID) return 1;
     type_info_t* info;
-    if (!map_get(&ctx->typetb, id, (void**)&info)) {
-        return 0;
-    }
+    if (!map_get(&ctx->typetb, id, (void**)&info)) return 0;
 
     type_entry_info_t* entry = _create_entry(vid);
     if (!entry) return 0;
@@ -40,12 +39,18 @@ int TPTB_info_add_entry(symbol_id_t id, symbol_id_t vid, typetab_ctx_t* ctx) {
 }
 
 int TPTB_get_info_id(symbol_id_t id, type_info_t* info, typetab_ctx_t* ctx) {
-    type_info_t* ti;
+    type_info_t ti;
     if (map_get(&ctx->typetb, id, (void**)&ti)) {
-        if (info) str_memcpy(info, ti, sizeof(type_info_t));
+        if (info) str_memcpy(info, &ti, sizeof(type_info_t));
         return 1;
     }
 
+    return 0;
+}
+
+type_type_t TPTB_get_type_type_id(symbol_id_t id, typetab_ctx_t* ctx) {
+    type_info_t ti;
+    if (map_get(&ctx->typetb, id, (void**)&ti)) return ti.t;
     return 0;
 }
 
