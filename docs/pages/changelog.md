@@ -36,6 +36,47 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Containers!: Basics
+<div class="change-date">Date: 2026-05-23</div>
+It is really convenient to have a structure which can store different types, isn't it? Now the CPL supports the next syntax:
+
+```cpl
+container node {
+    i32 a;
+    i32 b;
+}
+
+node nd;
+nd.a = 0;
+nd.b = 0;
+```
+
+At this point this is only a container, which means it can store primitives only (and pointers). For instance:
+```cpl
+container a {
+}
+container s {
+    ptr i32 a;
+    f64 b;
+    ptr i8 msg;
+    ptr a d;
+
+    str msg;       :/ Illegal! /:
+    a nested;      :/ Illegal! /:
+    arr k[10, u8]; :/ Illegal! /:
+}
+```
+
+Also you can't create an array of containers as well:
+```cpl
+container a {
+}
+
+arr b[10, a]; :/ Illegal! /:
+```
+
+*P.S.:* This is the first version of containers.
+
 ## inline annotation
 <div class="change-date">Date: 2026-05-21</div>
 Add an annotation which helps the compiler to figure out whether he should or not inline a function. This annotation works the same as it does the similar annotation in Rust language. For instance:

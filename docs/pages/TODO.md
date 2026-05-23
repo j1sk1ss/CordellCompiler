@@ -5,7 +5,7 @@ The idea is to create structures but with some features. For instance, a contain
 container storage {
     u32 wood  = 100;
     u32 steel = 100;
-    u64 money = 0;
+    u64 money;
 
     function sell_wood(self) -> i0 {
         self.wood -= 100;

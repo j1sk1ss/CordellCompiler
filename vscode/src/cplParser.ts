@@ -124,7 +124,7 @@ type ParseIssue = { message: string; range: Range };
 
 const KEYWORDS = new Set([
   // top-level / statements
-  "start","exit","function","return",
+  "start","exit","function","container","return",
   "if","else","while","loop","switch","case","default",
   "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
   "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","neg","poparg","sizeof",
@@ -143,7 +143,7 @@ const OPERATORS = [
   "+","-","*","/","%","|","^","&","<",">", "->", "=>", "..."
 ].sort((a,b) => b.length-a.length);
 
-const PUNC = new Set(["{","}","(",")","[","]",",",";","#","@"]);
+const PUNC = new Set(["{","}","(",")","[","]",",",";","#","@","."]);
 
 function isAlpha(ch: string) { return /[A-Za-z]/.test(ch); }
 function isDigit(ch: string) { return /[0-9]/.test(ch); }
@@ -669,6 +669,14 @@ class Parser {
       }
     }
 
+    if (this.match("kw", "container")) {
+      const doc = this.pendingDoc;
+      this.pendingDoc = undefined;
+      this.parseContainerAfterKeyword(doc);
+      this.clearPendingMetadata();
+      return;
+    }
+
     if (this.match("kw", "function")) {
       const doc = this.pendingDoc;
       this.pendingDoc = undefined;
@@ -847,7 +855,7 @@ class Parser {
     return true;
   }
 
-  private parseParamListOptInfos(): ParamInfo[] {
+  private parseParamListOptInfos(selfType?: TypeNode): ParamInfo[] {
     const params: ParamInfo[] = [];
     if (this.at("punc", ")")) return params;
   
@@ -901,6 +909,21 @@ class Parser {
         break;
       }
   
+      if (selfType && this.at("ident") && this.cur().text === "self") {
+        const nameTok = this.cur();
+        this.i++;
+
+        params.push({
+          name: "self",
+          type: selfType,
+          hasDefault: false,
+          range: rangeOf(this.lines, nameTok.start, nameTok.end)
+        });
+
+        if (!this.match("punc", ",")) break;
+        continue;
+      }
+
       const t = this.parseType();
       this.parseInlineAnnotations();
   
@@ -986,6 +1009,111 @@ class Parser {
     this.parseBlock();
 
     this.sem?.exitScope();
+  }
+
+
+
+  private parseContainerAfterKeyword(doc?: string) {
+    const nameTok = this.cur();
+    this.expect("ident", undefined, "container: expected identifier");
+    const containerName = this.prev().text;
+    const containerRange = rangeOf(this.lines, nameTok.start, nameTok.end);
+
+    this.sem?.declareContainer(containerName, containerRange, doc);
+
+    this.expect("punc", "{", "container: expected '{'");
+    while (!this.at("eof") && !this.at("punc", "}")) {
+      if (this.atRaw("comment")) {
+        const tok = this.curRaw();
+        this.i++;
+        const itemDoc = unwrapDocComment(tok.text);
+        if (itemDoc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + itemDoc) : itemDoc;
+        continue;
+      }
+
+      if (this.atRaw("punc", "@")) {
+        const ann = this.parseAnnotation();
+        if (ann) this.pendingAnnotations.push(ann);
+        continue;
+      }
+
+      if (this.atRaw("punc", "#")) {
+        this.parsePPDirective();
+        continue;
+      }
+
+      if (this.match("kw", "function")) {
+        const itemDoc = this.pendingDoc;
+        this.pendingDoc = undefined;
+        this.parseContainerMethodAfterKeyword(containerName, itemDoc);
+        this.clearPendingMetadata();
+        continue;
+      }
+
+      if (this.looksLikeDeclStart()) {
+        this.parseContainerFieldDecl(containerName);
+        this.pendingDoc = undefined;
+        this.clearPendingMetadata();
+        continue;
+      }
+
+      const c = this.cur();
+      this.issues.push({
+        message: "container: expected field or method",
+        range: rangeOf(this.lines, c.start, c.end)
+      });
+      this.syncToStatementEnd();
+      this.clearPendingMetadata();
+    }
+
+    this.expect("punc", "}", "container: expected '}'");
+  }
+
+  private parseContainerMethodAfterKeyword(containerName: string, doc?: string) {
+    const nameTok = this.cur();
+    this.expect("ident", undefined, "container method: expected identifier");
+    const fnName = this.prev().text;
+    const typeParams = this.parseGenericParamListAfterName();
+
+    this.expect("punc", "(");
+    const selfType: TypeNode = { kind: "container", name: containerName };
+    const paramsInfo = this.parseParamListOptInfos(selfType);
+    this.expect("punc", ")");
+
+    let ret: TypeNode = { kind: "prim", name: "i0" };
+    if (this.match("op", "->")) ret = this.parseType();
+
+    const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
+
+    if (this.match("punc", ";")) {
+      this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams);
+      return;
+    }
+
+    this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, true, doc, typeParams);
+
+    this.sem?.enterScope();
+    for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
+
+    this.parseBlock();
+
+    this.sem?.exitScope();
+  }
+
+  private parseContainerFieldDecl(containerName: string) {
+    const mods = this.parseStorageMods();
+    this.parseInlineAnnotations();
+
+    const fieldType = this.parseType();
+    const nameTok = this.cur();
+    this.expect("ident", undefined, "container field: expected identifier");
+    const fieldName = this.prev().text;
+
+    const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
+    this.sem?.declareContainerField(containerName, fieldName, fieldType, declRange, { readonly: mods.isReadonly });
+
+    if (this.match("op", "=")) this.parseExpression();
+    this.consumeStmtEnd("container field: expected ';' or end-of-line");
   }
 
   private parseExternOp() {
@@ -1132,6 +1260,14 @@ class Parser {
           }
           this.i = modsPos;
         }
+      }
+
+      if (this.match("kw", "container")) {
+        const doc = this.pendingDoc;
+        this.pendingDoc = undefined;
+        this.parseContainerAfterKeyword(doc);
+        this.clearPendingMetadata();
+        continue;
       }
 
       if (this.match("kw", "function")) {
@@ -1435,6 +1571,7 @@ class Parser {
       case "ptr": return `ptr ${this.typeToName(t.to)}`;
       case "arr": return `arr[${t.len ?? "?"}, ${this.typeToName(t.elem)}]`;
       case "func": return "func";
+      case "container": return t.name;
       case "unknown": return "?";
     }
   }
@@ -1468,7 +1605,7 @@ class Parser {
     if (this.at("kw") && TYPE_KW.has(this.cur().text) && this.cur().text !== "arr" && this.cur().text !== "ptr") {
       const name = this.cur().text;
       this.i++;
-      return { kind: "prim", name };
+      return this.sem?.containerTypeForName(name) ?? { kind: "prim", name };
     }
 
     if (this.at("ident")) {
@@ -1487,7 +1624,7 @@ class Parser {
         name += `<${args.join(", ")}>`;
       }
 
-      return { kind: "prim", name };
+      return this.sem?.containerTypeForName(name) ?? { kind: "prim", name };
     }
 
     this.expect("kw", undefined, "Expected a type keyword");
@@ -1658,6 +1795,21 @@ class Parser {
         }
 
         expr = { type: { kind: "unknown" }, start: expr.start, end: endTok.end };
+        continue;
+      }
+
+      if (this.match("punc", ".")) {
+        const memberTok = this.cur();
+        this.expect("ident", undefined, "member access: expected identifier after '.'");
+        const memberName = this.prev().text;
+        const memberRange = rangeOf(this.lines, memberTok.start, memberTok.end);
+
+        if (expr.identName && !expr.isSyscall) {
+          this.sem?.useVar(expr.identName, rangeOf(this.lines, expr.start ?? 0, expr.end ?? (expr.start ?? 0)));
+        }
+
+        const memberType = this.sem?.getContainerMemberType(expr.type, memberName, memberRange) ?? { kind: "unknown" };
+        expr = { type: memberType, start: expr.start, end: memberTok.end };
         continue;
       }
 

@@ -139,7 +139,7 @@
       "patterns": [
         {
           "name": "keyword.declaration.function.cpl",
-          "match": "\\bfunction\\b"
+          "match": "\\b(function|container)\\b"
         },
         {
           "name": "keyword.control.cpl",
@@ -176,6 +176,10 @@
         {
           "name": "storage.type.other.cpl",
           "match": "\\b(str|arr|ptr)\\b"
+        },
+        {
+          "name": "storage.type.user.cpl",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s+[A-Za-z_][A-Za-z0-9_]*\\s*(?:=|;|,|\\)|\\[))"
         }
       ]
     },
@@ -190,12 +194,16 @@
     "functions": {
       "patterns": [
         {
+          "name": "entity.name.type.container.cpl",
+          "match": "(?<=\\bcontainer\\s+)[A-Za-z_][A-Za-z0-9_]*"
+        },
+        {
           "name": "entity.name.function.definition.cpl",
           "match": "(?<=\\bfunction\\s+)[A-Za-z_][A-Za-z0-9_]*"
         },
         {
           "name": "entity.name.function.call.cpl",
-          "match": "\\b(?!if\\b|while\\b|switch\\b|asm\\b|syscall\\b|start\\b|function\\b|section\\b|align\\b)[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()"
+          "match": "\\b(?!if\\b|while\\b|switch\\b|asm\\b|syscall\\b|start\\b|function\\b|container\\b|section\\b|align\\b)[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()"
         }
       ]
     },
