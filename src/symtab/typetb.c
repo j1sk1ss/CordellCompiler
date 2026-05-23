@@ -15,7 +15,7 @@ static type_info_t* _create_type_info(string_t* name) {
     info->link.name = NULL;
     if (name) info->name = name->copy(name);
     else info->name = NULL;
-    info->size = 0;
+    str_memset(&info->memory, 0, sizeof(info->memory));
     return info;
 }
 
@@ -33,9 +33,10 @@ symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, typet
 symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, typetab_ctx_t* ctx) {
     type_info_t* info = _create_type_info(NULL);
     if (!info) return NO_SYMBOL_ID;
-    info->id   = ctx->curr_id++;
-    info->s_id = s_id;
-    info->tt   = t->t_type;
+    info->id         = ctx->curr_id++;
+    info->s_id       = s_id;
+    info->memory.tt  = t->t_type;
+    info->memory.ptr = t->flags.ptr;
     if (
         t->t_type == GENERIC_TYPE_TOKEN || 
         t->t_type == GENERIC_VARIABLE_TOKEN
@@ -47,10 +48,10 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, typetab_ctx_t
     else info->t = TYPE_PRIMITIVE;
 
     switch (TKN_variable_bitness(t, 1)) {
-        case TYPE_FULL_SIZE:    info->size = CONF_get_full_bytness();  break;
-        case TYPE_HALF_SIZE:    info->size = CONF_get_half_bytness();  break;
-        case TYPE_QUARTER_SIZE: info->size = CONF_get_quart_bytness(); break;
-        default:                info->size = CONF_get_eight_bytness(); break;
+        case TYPE_FULL_SIZE:    info->memory.size = CONF_get_full_bytness();  break;
+        case TYPE_HALF_SIZE:    info->memory.size = CONF_get_half_bytness();  break;
+        case TYPE_QUARTER_SIZE: info->memory.size = CONF_get_quart_bytness(); break;
+        default:                info->memory.size = CONF_get_eight_bytness(); break;
     }
 
     map_put(&ctx->typetb, info->id, info);
@@ -70,7 +71,7 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, typeta
             c_ti->link.name = name->copy(name);
         }
 
-        p_ti->size += c_ti->size;
+        p_ti->memory.size += c_ti->memory.size;
         return 1;
     }
 
@@ -97,7 +98,7 @@ long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* c
     foreach (symbol_id_t c_id, &p_ti->link.c) {
         if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
         if (tc_id == c_id) return offset;
-        offset += c_ti->size;
+        offset += c_ti->memory.size;
     }
 
     return -1;

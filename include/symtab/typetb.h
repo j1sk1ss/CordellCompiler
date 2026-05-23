@@ -19,17 +19,22 @@ typedef struct {
 } type_entry_info_t;
 
 typedef struct {
-    list_t          entries; /* Primitive entries   */
-    string_t*       name;    /* Type name           */
-    symbol_id_t     s_id;
-    symbol_id_t     id;
-    type_type_t     t;       /* type's type         */
-    token_type_t    tt;      /* primitive type      */
-    long            size;    /* Type's size (hook)  */
+    list_t           entries; /* Primitive entries   */
+    string_t*        name;    /* Type name           */
+    symbol_id_t      s_id;
+    symbol_id_t      id;
+    type_type_t      t;       /* type's type         */
+    
     struct {
-        list_t      c;
-        symbol_id_t p;
-        string_t*   name;    /* Linked name         */
+        token_type_t tt;      /* primitive type      */
+        long         size;    /* Type's size (hook)  */
+        int          ptr;
+    } memory;
+    
+    struct {
+        list_t       c;
+        symbol_id_t  p;
+        string_t*    name;    /* Linked name         */
     } link;
 } type_info_t;
 

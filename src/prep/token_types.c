@@ -279,6 +279,8 @@ int TKN_is_sign(token_t* token, char ptr) {
     if (!token) return 0;
     if (token->flags.ptr && ptr) return 0;
     switch (token->t_type) {
+        case CUSTOM_VARIABLE_TOKEN:
+        case CUSTOM_TYPE_TOKEN:
         case F64_VARIABLE_TOKEN: case F32_VARIABLE_TOKEN:
         case F64_TYPE_TOKEN:     case F32_TYPE_TOKEN:
         case U64_VARIABLE_TOKEN: case U32_VARIABLE_TOKEN: case U16_VARIABLE_TOKEN: case U8_VARIABLE_TOKEN:

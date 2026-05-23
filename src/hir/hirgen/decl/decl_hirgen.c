@@ -53,10 +53,20 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     return 1;
 }
 
-static inline int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    if (node->t->t_type == ARRAY_TYPE_TOKEN)    return _arr_declaration(node, ctx, smt);
-    else if (node->t->t_type == STR_TYPE_TOKEN) return _str_declaration(node, ctx, smt);
+static int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    type_info_t ti;
+    if (!TPTB_get_info_id(node->sinfo.t_id, &ti, &smt->t)) return 0;
+    HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(node->c), HIR_SUBJ_CONST(ti.memory.size), HIR_SUBJ_LIST());
     return 1;
+}
+
+static inline int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    switch (node->t->t_type) {
+        case ARRAY_TYPE_TOKEN:  return _arr_declaration(node, ctx, smt);
+        case STR_TYPE_TOKEN:    return _str_declaration(node, ctx, smt);
+        case CUSTOM_TYPE_TOKEN: return _cnt_declaration(node, ctx, smt);
+        default: return 1;
+    }
 }
 
 int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
