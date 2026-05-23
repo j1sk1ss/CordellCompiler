@@ -80,8 +80,40 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             /* Member access */
             case DOT_TOKEN: {
                 forward_token(it, 1);
-                // ast_node_t* base   = AST_create_node_bt(CREATE_ACCESS_TOKEN);
-                // ast_node_t* member = cpl_parse_expression(it, ctx, smt, 1); // TODO
+
+                ast_node_t* base = AST_create_node_bt(CREATE_ACCESS_TOKEN);
+                if (!base) {
+                    AST_unload(left);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+
+                ast_node_t* member = AST_create_node(CURRENT_TOKEN);
+                if (!member) {
+                    AST_unload(base);
+                    AST_unload(left);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+
+                symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
+                if (field_type == NO_SYMBOL_ID) {
+                    PARSE_ERROR("Unknown container field!");
+                    AST_unload(base);
+                    AST_unload(left);
+                    AST_unload(member);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+
+                base->sinfo.t_id   = field_type;
+                member->sinfo.t_id = field_type;
+
+                AST_add_node(base, left);
+                AST_add_node(base, member);
+
+                left = base;
+                forward_token(it, 1);
                 break;
             }
             /* Postfix tokens that are change placment in an AST tree.

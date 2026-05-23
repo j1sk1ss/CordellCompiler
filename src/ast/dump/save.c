@@ -155,7 +155,7 @@ static int _print_ast_node(FILE* output, ast_node_t* nd, int depth) {
             case LAMBDA_FUNCTION_TOKEN: fprintf(output, "[lambda]\n");                          break;
             case CALLING_TOKEN:         fprintf(output, "[()]\n");                              break;
             case INDEXATION_TOKEN:      fprintf(output, "[[]]\n");                              break;
-            case MEMBER_ACCESS_TOKEN:   fprintf(output, "[.]\n");                               break;
+            case MEMBER_ACCESS_TOKEN:   fprintf(output, "[., type=%li]\n", nd->sinfo.t_id);     break;
             default: {
                 fprintf(output,
                     "[%s] (%s,%sv_id=%li, t_id=%li, s_id=%li%s%s%s%s)\n",
