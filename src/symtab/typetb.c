@@ -32,6 +32,29 @@ symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int a
     return info->id;
 }
 
+symbol_id_t TPTB_add_copy(symbol_id_t id, token_t* t, typetab_ctx_t* ctx) {
+    type_info_t* ti;
+    if (!map_get(&ctx->typetb, id, (void**)&ti)) return NO_SYMBOL_ID;
+
+    type_info_t* info = _create_type_info(ti->name);
+    if (!info) return NO_SYMBOL_ID;
+
+    info->t            = ti->t;
+    info->memory.size  = ti->memory.size;
+    info->link.p       = ti->link.p;
+    info->memory.align = ti->memory.align;
+    if (ti->link.name) info->link.name = ti->link.name->copy(ti->link.name);
+    foreach (symbol_id_t c_id, &ti->link.c) {
+        list_add(&info->link.c, (void*)c_id);
+    }
+
+    info->memory.tt  = t->t_type;
+    info->memory.ptr = t->flags.ptr;
+    info->id         = ctx->curr_id++;
+    map_put(&ctx->typetb, info->id, info);
+    return info->id;
+}
+
 symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, typetab_ctx_t* ctx) {
     type_info_t* info = _create_type_info(NULL);
     if (!info) return NO_SYMBOL_ID;
@@ -101,7 +124,7 @@ long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* c
     foreach (symbol_id_t c_id, &p_ti->link.c) {
         if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
         if (tc_id == c_id) return offset;
-        offset += ALIGN(c_ti->memory.size, p_ti->memory.align);
+        offset += ALIGN(c_ti->memory.ptr ? CONF_get_full_bytness() : c_ti->memory.size, p_ti->memory.align);
     }
 
     return -1;

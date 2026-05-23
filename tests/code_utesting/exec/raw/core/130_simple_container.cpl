@@ -1,4 +1,3 @@
-: ONLY_THIS :
 : RUN_ASM :
 
 container storage {
