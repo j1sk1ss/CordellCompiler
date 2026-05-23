@@ -102,7 +102,7 @@ static int _replace_with_copy(lir_block_t* l, map_t* gen, lir_subject_type_t t) 
     return 1;
 }
 
-int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
+int LIR_variable_copy_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         set_t non_ssa;
         set_init(&non_ssa, SET_NO_CMP);
@@ -120,6 +120,8 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
                     case LIR_aMOV:
                     case LIR_iMOV: {
                         if (lh->farg->t != LIR_VARIABLE) break;
+                        variable_info_t vi;
+                        if (!VRTB_get_info_id(lh->farg->storage.var.v_id, &vi, &smt->v) || vi.vfs.glob) break;
                         _replace_with_copy(lh, &gen, LIR_VARIABLE);
                         if (
                             lh->op != LIR_aMOV &&

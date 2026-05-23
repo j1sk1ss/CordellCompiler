@@ -407,6 +407,39 @@ class Parser {
     return undefined;
   }
 
+  private parseConstArrayLen(msg: string): number | null {
+    const tok = this.cur();
+  
+    if (this.match("int")) {
+      return parseIntLiteral(tok.text);
+    }
+  
+    if (this.match("ident")) {
+      const macro = this.sem?.macros.get(tok.text);
+      const r = rangeOf(this.lines, tok.start, tok.end);
+  
+      if (macro?.value.kind === "number") {
+        this.sem?.useMacro(tok.text, r);
+        return macro.value.value;
+      }
+  
+      this.issues.push({
+        message: `${msg}: expected integer literal or numeric macro`,
+        range: r
+      });
+  
+      return null;
+    }
+  
+    this.issues.push({
+      message: `${msg}: expected integer literal or numeric macro`,
+      range: rangeOf(this.lines, tok.start, tok.end)
+    });
+  
+    if (!this.at("eof")) this.i++;
+    return null;
+  }
+
   private lineOfOffset(off: number): number {
     let lo = 0, hi = this.lines.length - 1;
     while (lo <= hi) {
@@ -742,6 +775,11 @@ class Parser {
 
           if (this.includeSeen.has(res.filePath)) return;
           this.includeSeen.add(res.filePath);
+          
+          if (this.sem) {
+            collectDefines(res.text, this.sem);
+          }
+          
           const p2 = new Parser(res.text, this.sem, this.include, this.includeSeen, res.filePath);
           p2.run();
         }
@@ -1520,9 +1558,7 @@ class Parser {
 
         this.expect("punc", "[", "arr_decl: expected '['");
 
-        const lenTok = this.cur();
-        this.expect("int", undefined, "arr_decl: expected integer literal length");
-        const len = parseIntLiteral(lenTok.text);
+        const len = this.parseConstArrayLen("arr_decl");
 
         this.expect("punc", ",", "arr_decl: expected ',' between size and type");
         const elemType = this.parseType();
@@ -1586,9 +1622,7 @@ class Parser {
 
     if (this.match("kw", "arr")) {
       if (this.match("punc", "[")) {
-        const lenTok = this.cur();
-        this.expect("int", undefined, "arr type: expected integer literal");
-        const len = parseIntLiteral(lenTok.text);
+        const len = this.parseConstArrayLen("arr type");
 
         this.expect("punc", ",", "arr type: expected ','");
         const elem = this.parseType();

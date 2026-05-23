@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
 
-    LIR_variable_copy_propagation(&cfgctx);
+    LIR_variable_copy_propagation(&cfgctx, &smt);
     LIR_drop_unused_variables(&cfgctx);
 
     inst_selector_t inst_sel = { .select_instructions = i386_gnu_nasm_instruction_selection };

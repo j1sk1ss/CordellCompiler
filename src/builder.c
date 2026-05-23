@@ -682,7 +682,7 @@ int main(int argc, char* argv[]) {
         LIR_generate(&cfgctx, &lirctx, &smt);
 
         if (options.config.copy_prop) {
-            LIR_variable_copy_propagation(&cfgctx);
+            LIR_variable_copy_propagation(&cfgctx, &smt);
             LIR_drop_unused_variables(&cfgctx);
         }
 

@@ -20,7 +20,10 @@ ast_node_t* cpl_parse_sizeof(PARSER_ARGS) {
     
     forward_token(it, 1);
     ast_node_t* body = cpl_parse_expression(it, ctx, smt, 1);
-    if (body) AST_add_node(base, body);
+    if (body) {
+        AST_add_node(base, body);
+        body->sinfo.t_id = type_lookup(body->t, ctx, smt);
+    }
     else {
         PARSE_ERROR("Error during the sizeof body parse! sizeof(<exp>)!");
         AST_unload(base);
