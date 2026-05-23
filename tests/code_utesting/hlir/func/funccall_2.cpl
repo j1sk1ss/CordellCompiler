@@ -14,6 +14,6 @@ BB1: start
 stparam($10);
 call %1;
 stparam($10);
-call foo0(u32 a);
+call foo0;
 send
 /:

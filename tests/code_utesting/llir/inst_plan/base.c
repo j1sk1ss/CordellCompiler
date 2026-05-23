@@ -18,7 +18,6 @@
 #include <lir/lirgens/lirgens.h>
 #include <lir/instplan/targinfo.h>
 #include <lir/instplan/instplan.h>
-#include "../../../misc/lir_helper.h"
 
 int main(int argc, char* argv[]) {
     config_t cfg = { .system.arch_timings = "/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl" };
@@ -83,11 +82,7 @@ int main(int argc, char* argv[]) {
     LIR_plan_instructions(&cfgctx, &trginfo); // Transform
     TRGINF_unload(&trginfo);
 
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 
     LIR_unload_blocks(lirctx.h);
     HIR_unload_blocks(hirctx.hot.h);

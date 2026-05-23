@@ -116,7 +116,7 @@ use %43;
 stparam(%43);
 stparam(%42);
 stparam($123321);
-call itoa0(i32 num, i8* buffer, i32 blen) -> i0;
+call itoa0;
 %44 = &(%6);
 use %44;
 stparam(32);
@@ -125,5 +125,4 @@ stparam($1);
 stparam($33554436);
 syscall;
 send
-<<ERROR>>	Memory leak!	336 != 0!
 /:

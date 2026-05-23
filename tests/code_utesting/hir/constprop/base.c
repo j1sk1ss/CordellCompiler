@@ -19,7 +19,7 @@
 
 #include <hir/dag.h>
 #include <hir/constfold.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {

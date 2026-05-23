@@ -10,19 +10,16 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/func.h>
-// #include "../../misc/hir_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
 #include <lir/selector/instsel.h>
 #include <lir/selector/memsel.h>
 #include <lir/selector/x86_64_gnu_nasm.h>
-#include "../../../misc/lir_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -91,11 +88,7 @@ int main(int argc, char* argv[]) {
     mem_selector_t mem_sel = { .select_memory = x86_64_gnu_nasm_memory_selection };
     LIR_select_memory(&cfgctx, NULL, &smt, &mem_sel);  // Transform
 
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 
     LIR_unload_blocks(lirctx.h);
     HIR_unload_blocks(hirctx.hot.h);

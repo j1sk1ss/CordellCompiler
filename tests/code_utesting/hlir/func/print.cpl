@@ -51,7 +51,7 @@ use %15;
 %21 = *(%19);
 use %21;
 stparam(%21);
-call strlen0(i8* s) -> i32;
+call strlen0;
 %22 = fret();
 use %22;
 stparam(%22);

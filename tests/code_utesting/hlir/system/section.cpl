@@ -14,7 +14,7 @@ BB2: fn foo0()
 return %0;
 BB3: fend
 BB4: start
-call foo0();
+call foo0;
 %3 = fret();
 %2 = %3 as u8;
 exit %2;

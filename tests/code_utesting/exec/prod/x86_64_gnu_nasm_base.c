@@ -18,7 +18,7 @@
 #include <hir/func.h>
 #include <hir/dag.h>
 #include <hir/constfold.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -33,7 +33,7 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include "../../../misc/lir_helper.h"
+#include <lir/dump.h>
 
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm_asmgen.h>

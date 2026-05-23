@@ -17,7 +17,7 @@
 #include <hir/ssa.h>
 
 #include <hir/dag.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {

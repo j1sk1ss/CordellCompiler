@@ -16,7 +16,7 @@
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/func.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -30,7 +30,7 @@
 #include <lir/regalloc/regalloc.h>
 #include <lir/peephole/peephole.h>
 #include <lir/peephole/x86_64_gnu_nasm.h>
-#include "../../../misc/lir_helper.h"
+#include <lir/dump.h>
 
 #include <asm/asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
     register_saver_t reg_save = { .save_registers = x86_64_macho_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &smt, &reg_save);
+    LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
 
     peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
     LIR_peephole_optimization(&cfgctx, &pph);

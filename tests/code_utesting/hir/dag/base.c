@@ -15,7 +15,7 @@
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
 #include <hir/ssa.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 #include <hir/dag.h>
 #include "../../../misc/dag_helper.h"

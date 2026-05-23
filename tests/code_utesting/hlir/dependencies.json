@@ -17,6 +17,7 @@
         "src/hir/func/*.c",
         "src/hir/loop/*.c",
         "src/lir/*.c",
+        "src/lir/dump/*.c",
         "src/lir/lirgen/*.c",
         "src/lir/lirgen/misc/*.c",
         "std/*.c"

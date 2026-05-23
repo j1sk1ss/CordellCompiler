@@ -32,20 +32,20 @@ syscall;
 fend
 BB6: fn foo1() -> i0
 stparam($71);
-call putc0(i8 c) -> i0;
+call putc0;
 fend
 BB7: fn bar2() -> i0
 jmp lb35;
 BB8: lb35:
-call foo3() -> i0;
+call foo3;
 fend
 BB9: fn foo3() -> i0
 stparam($76);
-call putc0(i8 c) -> i0;
+call putc0;
 fend
 BB10: start
-call bar2() -> i0;
-call foo1() -> i0;
+call bar2;
+call foo1;
 %2 = $0 as u8;
 exit %2;
 BB11: send

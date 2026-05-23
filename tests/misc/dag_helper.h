@@ -1,6 +1,6 @@
 #ifndef DAG_HELPER_H_
 #define DAG_HELPER_H_
-#include "hir_helper.h"
+#include "cfg_helper.h"
 #include <hir/hir_types.h>
 #include <hir/dag.h>
 static void dump_dag_dot(dag_ctx_t* ctx, sym_table_t* smt) {

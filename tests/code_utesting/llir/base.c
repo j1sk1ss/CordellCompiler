@@ -10,15 +10,13 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../misc/ast_helper.h"
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
-// #include "../../misc/hir_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
-#include "../../misc/lir_helper.h"
+#include <lir/dump.h>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -75,11 +73,7 @@ int main(int argc, char* argv[]) {
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
 
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, &smt, 0, 1, stdout);
 
     LIR_unload_blocks(lirctx.h);
     HIR_unload_blocks(hirctx.hot.h);
