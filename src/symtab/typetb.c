@@ -16,16 +16,18 @@ static type_info_t* _create_type_info(string_t* name) {
     if (name) info->name = name->copy(name);
     else info->name = NULL;
     str_memset(&info->memory, 0, sizeof(info->memory));
+    info->memory.align = CONF_get_eight_bytness();
     return info;
 }
 
-symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, typetab_ctx_t* ctx) {
+symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int align, typetab_ctx_t* ctx) {
     if (TPTB_get_info(name, s_id, NULL, ctx)) return NO_SYMBOL_ID;
     type_info_t* info = _create_type_info(name);
     if (!info) return NO_SYMBOL_ID;
-    info->id   = ctx->curr_id++;
-    info->s_id = s_id;
-    info->t    = t;
+    info->id           = ctx->curr_id++;
+    info->s_id         = s_id;
+    info->t            = t;
+    info->memory.align = align;
     map_put(&ctx->typetb, info->id, info);
     return info->id;
 }
@@ -71,8 +73,8 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long s
             c_ti->link.name = name->copy(name);
         }
 
-        if (size == FIELD_NO_CHANGE) p_ti->memory.size += c_ti->memory.size;
-        else p_ti->memory.size += size;
+        if (size == FIELD_NO_CHANGE) p_ti->memory.size += ALIGN(c_ti->memory.size, p_ti->memory.align);
+        else                         p_ti->memory.size += ALIGN(size, p_ti->memory.align);
         return 1;
     }
 
@@ -99,7 +101,7 @@ long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* c
     foreach (symbol_id_t c_id, &p_ti->link.c) {
         if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
         if (tc_id == c_id) return offset;
-        offset += c_ti->memory.size;
+        offset += ALIGN(c_ti->memory.size, p_ti->memory.align);
     }
 
     return -1;

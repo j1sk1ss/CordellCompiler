@@ -1,10 +1,12 @@
+@[align(1)]
 container a {
     i64 kek;
     i32 f;
 }
 
+@[align(1)]
 container b {
-    i8 lol;
+    i8    lol;
     ptr a k;
 }
 

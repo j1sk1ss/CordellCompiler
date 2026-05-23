@@ -26,6 +26,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     else {
         PARSE_ERROR("Can't create a base for the variable's name! <type> <name>!");
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -39,10 +40,22 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         if (base->t->flags.ptr) {
             PARSE_ERROR("'str' object can't be presented as a pointer! Use 'ptr i8' instead!");
             AST_unload(base);
+            ANNOT_destroy_summary(&annots);
             return NULL;
         }
 
         ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &base->t->flags, &smt->a);
+    }
+    else if (base->t->t_type == CUSTOM_TYPE_TOKEN) {
+        type_info_t ti;
+        if (!TPTB_get_info_id(carry, &ti, &smt->t)) {
+            PARSE_ERROR("Unknown custom type!");
+            AST_unload(base);
+            ANNOT_destroy_summary(&annots);
+            return NULL;
+        }
+
+        ARTB_add_info(name->sinfo.v_id, ti.memory.size, 0, U8_TYPE_TOKEN, &base->t->flags, &smt->a);
     }
 
     var_lookup(name, ctx, smt);
@@ -58,6 +71,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         if (!value_node) {
             PARSE_ERROR("Error during parsing of a declaration statement!");
             AST_unload(base);
+            ANNOT_destroy_summary(&annots);
             RESTORE_TOKEN_POINT;
             return NULL;
         }

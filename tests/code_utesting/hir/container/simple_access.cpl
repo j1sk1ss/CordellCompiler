@@ -1,5 +1,6 @@
+@[align(1)]
 container node {
-    i32 a;
+    i32     a;
     ptr i32 b;
 }
 

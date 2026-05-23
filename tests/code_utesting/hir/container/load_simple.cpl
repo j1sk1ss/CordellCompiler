@@ -1,3 +1,4 @@
+@[align(1)]
 container a {
     i32 a;
     i32 b;

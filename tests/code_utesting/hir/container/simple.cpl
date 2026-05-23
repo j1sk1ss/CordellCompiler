@@ -1,5 +1,6 @@
+@[align(1)]
 container s {
-    i8 a;
+    i8  a;
     i16 b;
     i32 c;
     i64 d;
