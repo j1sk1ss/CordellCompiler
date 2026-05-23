@@ -12,7 +12,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     }
     
     if (carry != NO_SYMBOL_ID) {
-        base->sinfo.v_id = carry;
+        base->sinfo.t_id = carry;
         base->t->t_type  = EXTRACT_TYPE_TYPE(carry, smt);
     }
 

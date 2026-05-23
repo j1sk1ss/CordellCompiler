@@ -125,9 +125,9 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     if (consume_token(it, RETURN_TYPE_TOKEN)) {
         forward_token(it, 1);
         ast_node_t* ret_type = AST_create_node(CURRENT_TOKEN);
-        ret_type->sinfo.v_id = type_lookup(ret_type->t, ctx, smt);
-        if (ret_type->sinfo.v_id != NO_SYMBOL_ID) {
-            ret_type->t->t_type = EXTRACT_TYPE_TYPE(ret_type->sinfo.v_id, smt);
+        ret_type->sinfo.t_id = type_lookup(ret_type->t, ctx, smt);
+        if (ret_type->sinfo.t_id != NO_SYMBOL_ID) {
+            ret_type->t->t_type = EXTRACT_TYPE_TYPE(ret_type->sinfo.t_id, smt);
         }
         
         AST_add_node(name, ret_type);

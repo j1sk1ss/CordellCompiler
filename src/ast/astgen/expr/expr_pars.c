@@ -61,7 +61,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     if (type_node) {
                         AST_add_node(left, type_node);
                         if (type != NO_SYMBOL_ID) {
-                            type_node->sinfo.v_id = type;
+                            type_node->sinfo.t_id = type;
                             type_node->t->t_type  = EXTRACT_TYPE_TYPE(type, smt);
                         }
                     }
@@ -75,6 +75,13 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     if (consume_token(it, COMMA_TOKEN)) forward_token(it, 1);
                 } while (CURRENT_TOKEN->t_type != LARGER_TOKEN);
                 forward_token(it, 1);
+                break;
+            }
+            /* Member access */
+            case DOT_TOKEN: {
+                forward_token(it, 1);
+                // ast_node_t* base   = AST_create_node_bt(CREATE_ACCESS_TOKEN);
+                // ast_node_t* member = cpl_parse_expression(it, ctx, smt, 1); // TODO
                 break;
             }
             /* Postfix tokens that are change placment in an AST tree.

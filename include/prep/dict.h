@@ -18,7 +18,7 @@
 #define CLOSE_BLOCK             "}"
 
 #define CONTAINER_COMMAND       "container"
-#define MEMBER_ACCESS_COMMAND   "."
+#define DOT_COMMAND             "."
 
 // Function
 #define FUNCTION_COMMAND        "function"

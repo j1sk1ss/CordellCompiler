@@ -24,62 +24,62 @@ start() {
 
 :/ OUTPUT
 { scope, id=1 }
-   [function] (FUNC_TOKEN, v_id=-1, s_id=0)
-      [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
+   [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+      [foo] (FUNC_NAME_TOKEN, v_id=0, t_id=-1, s_id=1)
       { scope, id=2 }
-         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
-            [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [a] (I32_VARIABLE_TOKEN, v_id=0, t_id=-1, s_id=2)
          { scope, id=3 }
-            [+=] (ADDASSIGN_TOKEN, v_id=-1, s_id=0)
-               [a] (I32_VARIABLE_TOKEN, v_id=0, s_id=2)
-               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-   [function] (FUNC_TOKEN, v_id=-1, s_id=0)
-      [bar] (FUNC_NAME_TOKEN, v_id=1, s_id=1)
-         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
+            [+=] (ADDASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+               [a] (I32_VARIABLE_TOKEN, v_id=0, t_id=-1, s_id=2)
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+   [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+      [bar] (FUNC_NAME_TOKEN, v_id=1, t_id=-1, s_id=1)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       { scope, id=4 }
-         [i16] (I16_TYPE_TOKEN, v_id=-1, s_id=0)
-            [a] (I16_VARIABLE_TOKEN, v_id=1, s_id=4)
+         [i16] (I16_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [a] (I16_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=4)
          { scope, id=5 }
-            [*=] (MULASSIGN_TOKEN, v_id=-1, s_id=0)
-               [a] (I16_VARIABLE_TOKEN, v_id=1, s_id=4)
-               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [return] (RETURN_TOKEN, v_id=-1, s_id=5)
-               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-   [function] (FUNC_TOKEN, v_id=-1, s_id=0)
-      [baz] (FUNC_NAME_TOKEN, v_id=2, s_id=1)
-         [i0] (I0_TYPE_TOKEN, v_id=-1, s_id=0)
+            [*=] (MULASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+               [a] (I16_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=4)
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [return] (RETURN_TOKEN, v_id=-1, t_id=-1, s_id=5)
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+   [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+      [baz] (FUNC_NAME_TOKEN, v_id=2, t_id=-1, s_id=1)
+         [i0] (I0_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       { scope, id=6 }
-         [u64] (U64_TYPE_TOKEN, v_id=-1, s_id=0)
-            [a] (U64_VARIABLE_TOKEN, v_id=2, s_id=6)
+         [u64] (U64_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [a] (U64_VARIABLE_TOKEN, v_id=2, t_id=-1, s_id=6)
          { scope, id=7 }
-            [/=] (DIVASSIGN_TOKEN, v_id=-1, s_id=0)
-               [a] (U64_VARIABLE_TOKEN, v_id=2, s_id=6)
-               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-   [function] (FUNC_TOKEN, v_id=-1, s_id=0)
-      [fang] (FUNC_NAME_TOKEN, v_id=3, s_id=1)
+            [/=] (DIVASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+               [a] (U64_VARIABLE_TOKEN, v_id=2, t_id=-1, s_id=6)
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+   [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+      [fang] (FUNC_NAME_TOKEN, v_id=3, t_id=-1, s_id=1)
       { scope, id=8 }
-         [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
-            [a] (I32_VARIABLE_TOKEN, v_id=3, s_id=8)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [a] (I32_VARIABLE_TOKEN, v_id=3, t_id=-1, s_id=8)
          { scope, id=9 }
-            [+=] (ADDASSIGN_TOKEN, v_id=-1, s_id=0)
-               [a] (I32_VARIABLE_TOKEN, v_id=3, s_id=8)
-               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-   [start] (START_TOKEN, v_id=4, s_id=1)
+            [+=] (ADDASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+               [a] (I32_VARIABLE_TOKEN, v_id=3, t_id=-1, s_id=8)
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+   [start] (START_TOKEN, v_id=4, t_id=-1, s_id=1)
       { scope, id=10 }
          [()]
-            [foo] (FUNC_NAME_TOKEN, v_id=0, s_id=1)
-            { scope, id=0 }
-               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+            [foo] (FUNC_NAME_TOKEN, v_id=0, t_id=-1, s_id=1)
+            { scope, id=-1 }
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
          [()]
-            [bar] (FUNC_NAME_TOKEN, v_id=1, s_id=1)
-            { scope, id=0 }
-               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+            [bar] (FUNC_NAME_TOKEN, v_id=1, t_id=-1, s_id=1)
+            { scope, id=-1 }
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
          [()]
-            [baz] (FUNC_NAME_TOKEN, v_id=2, s_id=1)
-            { scope, id=0 }
-               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+            [baz] (FUNC_NAME_TOKEN, v_id=2, t_id=-1, s_id=1)
+            { scope, id=-1 }
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
          [()]
-            [fang] (FUNC_NAME_TOKEN, v_id=3, s_id=1)
-            { scope, id=0 }
-               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+            [fang] (FUNC_NAME_TOKEN, v_id=3, t_id=-1, s_id=1)
+            { scope, id=-1 }
+               [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
 /:

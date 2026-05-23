@@ -94,6 +94,7 @@ typedef enum {
 
     CONTAINER_TOKEN,
     MEMBER_ACCESS_TOKEN,
+    DOT_TOKEN,
 
     // Function
     ASM_TOKEN,             // asm

@@ -107,9 +107,9 @@ static const char* _name_tkn_type(token_type_t t) {
 const char* DUMP_format_token_type(token_type_t t) {
     const char* base;
     switch (t) {
-        case I0_TYPE_TOKEN:  base = "i0"; break;
-        case I8_TYPE_TOKEN:  base = "i8"; break;
-        case U8_TYPE_TOKEN:  base = "u8"; break;
+        case I0_TYPE_TOKEN:  base = "i0";  break;
+        case I8_TYPE_TOKEN:  base = "i8";  break;
+        case U8_TYPE_TOKEN:  base = "u8";  break;
         case I16_TYPE_TOKEN: base = "i16"; break;
         case U16_TYPE_TOKEN: base = "u16"; break;
         case I32_TYPE_TOKEN: base = "i32"; break;
@@ -119,7 +119,7 @@ const char* DUMP_format_token_type(token_type_t t) {
         case U64_TYPE_TOKEN: base = "u64"; break;
         case F64_TYPE_TOKEN: base = "f64"; break;
         case STR_TYPE_TOKEN: base = "str"; break;
-        default:             base = ""; break;
+        default:             base = "";    break;
     }
     return base;
 }
@@ -150,26 +150,25 @@ static int _print_ast_node(FILE* output, ast_node_t* nd, int depth) {
     for (int i = 0; i < depth; i++) fprintf(output, "   ");
     if (nd->t) {
         switch (nd->t->t_type) {
-            case SCOPE_TOKEN: fprintf(output, "{ scope, id=%li }\n", nd->sinfo.s_id); break;
-            case LAMBDA_FUNCTION_TOKEN: fprintf(output, "[lambda]\n");                break;
-            case CALLING_TOKEN: fprintf(output, "[()]\n");                            break;
-            case INDEXATION_TOKEN: fprintf(output, "[[]]\n");                         break;
-            default:
+            case SCOPE_TOKEN:           fprintf(output, "{ scope, id=%li }\n", nd->sinfo.s_id); break;
+            case LAMBDA_FUNCTION_TOKEN: fprintf(output, "[lambda]\n");                          break;
+            case CALLING_TOKEN:         fprintf(output, "[()]\n");                              break;
+            case INDEXATION_TOKEN:      fprintf(output, "[[]]\n");                              break;
+            case MEMBER_ACCESS_TOKEN:   fprintf(output, "[.]\n");                               break;
+            default: {
                 fprintf(output,
-                    "[%s] (%s,%sv_id=%li, s_id=%li%s%s%s%s)\n",
+                    "[%s] (%s,%sv_id=%li, t_id=%li, s_id=%li%s%s%s%s)\n",
                     nd->t->body->body, _name_tkn_type(nd->t->t_type), 
-                    nd->t->flags.ptr ? " ptr, " : " ",
-                    nd->sinfo.v_id, nd->sinfo.s_id,
-                    nd->t->flags.ro ? ", ro" : "",
-                    nd->t->flags.ext ? ", ext" : "",
+                    nd->t->flags.ptr ?  " ptr, " : " ",
+                    nd->sinfo.v_id, nd->sinfo.t_id, nd->sinfo.s_id,
+                    nd->t->flags.ro ?   ", ro"   : "",
+                    nd->t->flags.ext ?  ", ext"  : "",
                     nd->t->flags.glob ? ", glob" : "",
-                    nd->t->flags.vla ? ", vla" : ""
+                    nd->t->flags.vla ?  ", vla"  : ""
                 );
-            break;
+                break;
+            }
         }
-    }
-    else {
-       fprintf(output, "[ block ]\n");
     }
     
     ast_node_t* child = nd->c;

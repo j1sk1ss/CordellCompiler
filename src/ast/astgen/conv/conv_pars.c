@@ -27,7 +27,7 @@ ast_node_t* cpl_parse_conv(PARSER_ARGS) {
     if (type_node) {
         AST_add_node(base, type_node);
         if (type != NO_SYMBOL_ID) {
-            type_node->sinfo.v_id = type;
+            type_node->sinfo.t_id = type;
             type_node->t->t_type  = EXTRACT_TYPE_TYPE(type, smt);
         }
     }

@@ -10,8 +10,9 @@
 #include <ast/astgen/annot.h>
 
 typedef struct {
-    symbol_id_t s_id;  /* Scope ID    */
-    symbol_id_t v_id;  /* Variable ID */
+    symbol_id_t s_id; /* Scope ID  */
+    symbol_id_t v_id; /* Object ID */
+    symbol_id_t t_id; /* Type ID   */
 } syntax_info_t;
 
 typedef struct ast_node {

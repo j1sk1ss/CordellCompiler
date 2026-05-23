@@ -6,18 +6,18 @@ start() {
 
 :/ OUTPUT
 { scope, id=1 }
-   [start] (START_TOKEN, v_id=0, s_id=1)
+   [start] (START_TOKEN, v_id=0, t_id=-1, s_id=1)
       { scope, id=2 }
-         [arr] (ARRAY_TYPE_TOKEN, v_id=-1, s_id=0)
-            [a] (ARR_VARIABLE_TOKEN, v_id=0, s_id=2)
-            [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [i32] (I32_TYPE_TOKEN, v_id=-1, s_id=0)
-            [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-         [=] (ASSIGN_TOKEN, v_id=-1, s_id=0)
+         [arr] (ARRAY_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [a] (ARR_VARIABLE_TOKEN, v_id=0, t_id=-1, s_id=2)
+            [10] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+         [=] (ASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
             [[]]
-               [a] (ARR_VARIABLE_TOKEN, v_id=0, s_id=2)
-               [-1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-            [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
-         [exit] (EXIT_TOKEN, v_id=-1, s_id=2)
-            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, s_id=0)
+               [a] (ARR_VARIABLE_TOKEN, v_id=0, t_id=-1, s_id=2)
+               [-1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+         [exit] (EXIT_TOKEN, v_id=-1, t_id=-1, s_id=2)
+            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
 /:

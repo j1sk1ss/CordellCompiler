@@ -23,6 +23,7 @@
 #define CREATE_INDEX_TOKEN  TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_CALL_TOKEN   TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_LAMBDA_TOKEN TKN_create_token(LAMBDA_FUNCTION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_ACCESS_TOKEN TKN_create_token(MEMBER_ACCESS_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \

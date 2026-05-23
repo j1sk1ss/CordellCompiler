@@ -6,6 +6,8 @@ ast_node_t* AST_create_node(token_t* tkn) {
     str_memset(node, 0, sizeof(ast_node_t));
     node->t          = tkn;
     node->sinfo.v_id = NO_SYMBOL_ID;
+    node->sinfo.t_id = NO_SYMBOL_ID;
+    node->sinfo.s_id = NO_SYMBOL_ID;
     list_init(&node->annots);
     return node;
 }

@@ -1,6 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
+ast_node_t* cpl_parse_contdot(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
