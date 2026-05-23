@@ -9,7 +9,7 @@ function foo(ptr node nd) {
 
 :/ OUTPUT
 {
-    fn foo0( nd)
+    fn foo0(u8* nd)
     {
         u8s* %2 = alloc;
         u8s* %2 = load_arg();

@@ -110,6 +110,7 @@ const char* DUMP_format_token_type(token_type_t t) {
     switch (t) {
         case I0_TYPE_TOKEN:  base = "i0";  break;
         case I8_TYPE_TOKEN:  base = "i8";  break;
+        case CUSTOM_TYPE_TOKEN:
         case U8_TYPE_TOKEN:  base = "u8";  break;
         case I16_TYPE_TOKEN: base = "i16"; break;
         case U16_TYPE_TOKEN: base = "u16"; break;

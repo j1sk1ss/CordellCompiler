@@ -58,7 +58,7 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, typetab_ctx_t
     return info->id;
 }
 
-int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, typetab_ctx_t* ctx) {
+int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long size, typetab_ctx_t* ctx) {
     type_info_t *p_ti, *c_ti;
     if (
         map_get(&ctx->typetb, p_id, (void**)&p_ti) &&
@@ -71,7 +71,8 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, typeta
             c_ti->link.name = name->copy(name);
         }
 
-        p_ti->memory.size += c_ti->memory.size;
+        if (size == FIELD_NO_CHANGE) p_ti->memory.size += c_ti->memory.size;
+        else p_ti->memory.size += size;
         return 1;
     }
 

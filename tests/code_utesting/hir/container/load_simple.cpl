@@ -15,10 +15,12 @@ start() {
     {
         {
             u8s %2 = arr_alloc(csu8 8);
-            u8t %3 = u8s %2 + csu8 0;
-            *(u8t %3) = i8n 0;
-            u8t %4 = u8s %2 + csu8 4;
-            *(u8t %4) = i8n 1;
+            u8t* %3 = &(u8s %2);
+            u8t %4 = u8t* %3 + csu8 0;
+            *(u8t %4) = i8n 0;
+            u8t* %5 = &(u8s %2);
+            u8t %6 = u8t* %5 + csu8 4;
+            *(u8t %6) = i8n 1;
         }
     }
 }

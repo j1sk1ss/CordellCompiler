@@ -18,13 +18,15 @@ start() {
     fn _main()
     {
         {
-            u8s %4 = arr_alloc(csu8 13);
+            u8s %4 = arr_alloc(csu8 9);
             i32s %5 = alloc;
-            u8t %6 = u8s %4 + csu8 1;
-            i8t %7 = *(u8t %6);
-            u8t %8 = i8t %7 + csu8 8;
-            i32t %9 = *(u8t %8);
-            i32s %5 = i32t %9;
+            u8t* %6 = &(u8s %4);
+            u8t %7 = u8t* %6 + csu8 1;
+            i8t %8 = *(u8t %7);
+            i8t* %9 = &(i8t %8);
+            u8t %10 = i8t* %9 + csu8 8;
+            i32t %11 = *(u8t %10);
+            i32s %5 = i32t %11;
         }
     }
 }

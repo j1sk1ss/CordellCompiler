@@ -39,7 +39,10 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
             }
 
             decl->sinfo.t_id = type;
-            TPTB_add_as_child(name->sinfo.t_id, type, decl->c->t->body, &smt->t);
+            TPTB_add_as_child(
+                name->sinfo.t_id, type, decl->c->t->body, 
+                decl->t->flags.ptr ? CONF_get_full_bytness() : FIELD_NO_CHANGE, &smt->t
+            );
         }
     }
     else {

@@ -46,7 +46,7 @@ typedef struct {
 symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, typetab_ctx_t* ctx);
 symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, typetab_ctx_t* ctx);
 long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* ctx);
-int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, typetab_ctx_t* ctx);
+int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long size, typetab_ctx_t* ctx);
 int TPTB_info_add_entry(symbol_id_t id, symbol_id_t vid, typetab_ctx_t* ctx);
 int TPTB_get_info_id(symbol_id_t id, type_info_t* info, typetab_ctx_t* ctx);
 symbol_id_t TPTB_resolve_child(symbol_id_t p_id, string_t* name, typetab_ctx_t* ctx);
