@@ -95,7 +95,9 @@ int TKN_is_one_slot(token_t* token) {
                 token->t_type != STR_TYPE_TOKEN     && 
                 token->t_type != STR_VARIABLE_TOKEN &&
                 token->t_type != ARRAY_TYPE_TOKEN   &&
-                token->t_type != ARR_VARIABLE_TOKEN
+                token->t_type != ARR_VARIABLE_TOKEN &&
+                token->t_type != CUSTOM_TYPE_TOKEN  &&
+                token->t_type != CUSTOM_VARIABLE_TOKEN
             )
         )
     ) return 1;

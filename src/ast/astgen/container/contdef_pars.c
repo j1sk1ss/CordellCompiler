@@ -35,7 +35,7 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
             else type = type_lookup(decl->t, ctx, smt);
 
             if (type == NO_SYMBOL_ID) {
-                type = TPTB_add_info_from_token_type(decl->sinfo.s_id, decl->t->t_type, &smt->t);
+                type = TPTB_add_info_from_token(decl->sinfo.s_id, decl->t, &smt->t);
             }
 
             decl->sinfo.t_id = type;
