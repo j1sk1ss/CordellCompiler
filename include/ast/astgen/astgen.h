@@ -519,4 +519,7 @@ Returns an AST node.
 */
 ast_node_t* cpl_parse_sizeof(PARSER_ARGS);
 
+// TODO: docs
+ast_node_t* cpl_parse_contdef(PARSER_ARGS);
+
 #endif

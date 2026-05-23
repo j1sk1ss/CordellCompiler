@@ -12,6 +12,7 @@ typedef struct {
     symbol_id_t            s_id;     /* Scope ID                         */
     string_t*              name;    
     token_type_t           type;     /* Variable type                    */
+    symbol_id_t            t_id;     /* Varaible's type ID               */
 
     struct {
         char               vla  : 1; /* Point to vla, can't be reused    */
@@ -46,6 +47,7 @@ typedef struct {
 
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx);
 int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx, int rewrite);
+int VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx);
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx);
 int VRTB_get_info(string_t* vname, symbol_id_t scope, variable_info_t* info, vartab_ctx_t* ctx);
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx);

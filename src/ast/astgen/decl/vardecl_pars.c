@@ -33,6 +33,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &base->t->flags, &smt->v);
     TPTB_info_add_entry(carry, name->sinfo.v_id, &smt->t);
+    VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, carry, &smt->v);
 
     if (base->t->t_type == STR_TYPE_TOKEN) {
         if (base->t->flags.ptr) {

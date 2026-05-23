@@ -32,6 +32,7 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
             if (VRTB_get_info(node->t->body, ctx->scopes.stack.data[s].d, &varinfo, &smt->v)) {
                 node->sinfo.v_id    = varinfo.v_id;
                 node->sinfo.s_id    = varinfo.s_id;
+                node->sinfo.t_id    = varinfo.t_id;
                 node->t->flags.vla  = varinfo.vfs.vla;
                 node->t->flags.ptr  = varinfo.vfs.ptr;
                 node->t->flags.ro   = varinfo.vfs.ro;

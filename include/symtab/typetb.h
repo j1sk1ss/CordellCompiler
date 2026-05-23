@@ -28,6 +28,7 @@ typedef struct {
     struct {
         list_t      c;
         symbol_id_t p;
+        string_t*   name;    /* Linked name         */
     } link;
 } type_info_t;
 
@@ -37,8 +38,8 @@ typedef struct {
 } typetab_ctx_t;
 
 symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, typetab_ctx_t* ctx);
-symbol_id_t TPTB_add_info_from_token_type(string_t* name, symbol_id_t s_id, token_type_t t, typetab_ctx_t* ctx);
-int TPTB_add_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx);
+symbol_id_t TPTB_add_info_from_token_type(symbol_id_t s_id, token_type_t t, typetab_ctx_t* ctx);
+int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, typetab_ctx_t* ctx);
 int TPTB_info_add_entry(symbol_id_t id, symbol_id_t vid, typetab_ctx_t* ctx);
 int TPTB_get_info_id(symbol_id_t id, type_info_t* info, typetab_ctx_t* ctx);
 type_type_t TPTB_get_type_type_id(symbol_id_t id, typetab_ctx_t* ctx);

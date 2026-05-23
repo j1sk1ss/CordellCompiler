@@ -18,13 +18,13 @@ start() {
          [T] (GENERIC_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
       { scope, id=2 }
          [T] (GENERIC_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
-            [a] (GENERIC_VARIABLE_TOKEN, v_id=0, t_id=-1, s_id=2)
+            [a] (GENERIC_VARIABLE_TOKEN, v_id=0, t_id=0, s_id=2)
          { scope, id=3 }
    [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [bar] (FUNC_NAME_TOKEN, v_id=1, t_id=-1, s_id=1)
       { scope, id=4 }
          [U] (GENERIC_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
-            [a] (GENERIC_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=4)
+            [a] (GENERIC_VARIABLE_TOKEN, v_id=1, t_id=1, s_id=4)
          { scope, id=5 }
    [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [baz] (FUNC_NAME_TOKEN, v_id=2, t_id=-1, s_id=1)
@@ -54,13 +54,13 @@ start() {
       [bar] (FUNC_NAME_TOKEN, v_id=5, t_id=-1, s_id=1)
       { scope, id=4 }
          [U] (I8_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
-            [a] (I8_VARIABLE_TOKEN, v_id=2, t_id=-1, s_id=4)
+            [a] (I8_VARIABLE_TOKEN, v_id=2, t_id=1, s_id=4)
          { scope, id=5 }
    [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [foo] (FUNC_NAME_TOKEN, v_id=6, t_id=-1, s_id=1)
          [T] (U32_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
       { scope, id=2 }
          [T] (U32_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
-            [a] (U32_VARIABLE_TOKEN, v_id=3, t_id=-1, s_id=2)
+            [a] (U32_VARIABLE_TOKEN, v_id=3, t_id=0, s_id=2)
          { scope, id=3 }
 /:
