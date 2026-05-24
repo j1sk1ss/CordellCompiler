@@ -57,12 +57,12 @@ function malloc(i64 size) -> ptr i0 {
         curr = curr.next;
     }
 
-    return NULL; :/ TODO: xor al, al, but should be rax! /:
+    return NULL;
 }
 
 function dealloc(ptr i0 mem) -> i0 {
     if not mem; {
-        return; :/ TODO: Check inline with early return /:
+        return;
     }
 
     ptr u8 block_mem = mem as ptr u8;
@@ -85,4 +85,4 @@ start() {
     buffer[0] = 'A';
     buffer[1] = 'M';
     syscall(0x2000004, 1, buffer, 4);
-} :/ TODO: add 1 return code by default /:
+}

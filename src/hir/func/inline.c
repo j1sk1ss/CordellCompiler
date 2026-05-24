@@ -84,7 +84,7 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
     int scopes = -1;
     hir_subject_t* exit_label = HIR_SUBJ_LABEL();
     while (hh && hh->op != HIR_FEND) {
-        hir_block_t* nblock = NULL;
+        hir_block_t  *nblock = NULL, *rlb = NULL;
         if (!hh->unused) {
             nblock = HIR_copy_block(hh, 0);
             switch (hh->op) {
@@ -97,6 +97,7 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
                     break;
                 }
                 case HIR_FRET: {
+                    rlb = HIR_create_block(HIR_JMP, exit_label, NULL, NULL);
                     if (!res) goto _skip_instruction;
                     else {
                         nblock->op   = HIR_STORE;
@@ -111,10 +112,6 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
 
         if (nblock) {
             HIR_insert_block_before(nblock, pos);
-            if (hh->op == HIR_FRET) {
-                HIR_insert_block_before(HIR_create_block(HIR_JMP, exit_label, NULL, NULL), pos);
-            }
-
             if (!nentry) {
                 nentry = nblock;
             }
@@ -122,6 +119,11 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
         else {
 _skip_instruction: {}
             HIR_unload_blocks(nblock);
+        }
+
+        if (rlb) {
+            HIR_insert_block_before(rlb, pos);
+            rlb = NULL;
         }
 
         hh = HIR_FUNC_get_next(hh, f, NULL, 1);

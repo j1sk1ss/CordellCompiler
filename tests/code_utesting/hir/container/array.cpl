@@ -1,5 +1,4 @@
-: ONLY_THIS :
-: TEST_DEBUG :
+: REWRITE :
 container data {
     arr padding[10, i32];
     i32 a;
