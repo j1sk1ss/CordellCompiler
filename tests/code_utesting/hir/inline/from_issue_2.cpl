@@ -1,4 +1,3 @@
-: ONLY_THIS :
 function dealloc(ptr i0 mem) -> i0 {
     if not mem; {
         return;
