@@ -19,7 +19,7 @@
 #define COLDS_ANNOTATION_COMMAND "cold"
 #define REGST_ANNOTATION_COMMAND "register"
 #define POPRG_ANNOTATION_COMMAND "poparg"
-#define STATC_ANNOTATION_COMMAND "static"
+#define SSELF_ANNOTATION_COMMAND "self"
 
 #define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
 #define INLNE_YES_OPTION         "always"
@@ -47,7 +47,7 @@ typedef struct {
     char      is_hot      : 1;
     char      is_cold     : 1;
     char      is_argpop   : 1;
-    char      is_static   : 1;
+    char      is_self     : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -67,7 +67,7 @@ typedef enum {
     REGISTER_ANNOTATION,  /* Will link the selected register to a decl  */
     POPARG_ANNOTATION,    /* Will pop value from the stack to a linked  */
     INLINE_ANNOTATION,    /* Will change inline decider result          */
-    STATIC_ANNOTATION,    /* Will tell devirt that a function is static */
+    SELF_ANNOTATION,    /* Will tell devirt that a function is static */
 } annotation_type_t;
 
 typedef struct {

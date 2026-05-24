@@ -30,7 +30,7 @@ typedef struct {
         char     naked;
         char     vargs    : 1;
         char     generic  : 1;
-        char     stat     : 1;
+        char     self     : 1;
         char     inln;
     } flags;
 

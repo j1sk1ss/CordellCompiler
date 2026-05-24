@@ -1,9 +1,8 @@
-: BUG :
 container storage {
+    @[self]
     function init<T>(ptr storage self) -> T {
     }
 
-    @[static]
     function sum<T, U>(T a, U b) -> U {
         return a as U + b;
     }
@@ -27,7 +26,7 @@ start() {
             sum3__i8__u8(i8n 1, i8n 2);
         }
     }
-    fn sum3__i8__u8( a,  b) ->
+    fn sum3__i8__u8(i8 a, u8 b) -> u8
     {
         i8s %5 = alloc;
         i8s %5 = load_arg();
@@ -36,11 +35,10 @@ start() {
         {
             u8t %7 = i8s %5 as u8;
             u8t %8 = u8t %7 + u8s %4;
-            i8t %9 = u8t %8 as i8;
-            return i8t %9;
+            return u8t %8;
         }
     }
-    fn init4__i32(u8* self) ->
+    fn init4__i32(u8* self) -> i32
     {
         u8s* %0 = alloc;
         u8s* %0 = load_arg();

@@ -95,16 +95,20 @@ int AST_DVRT_resolve_calls(ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx
 
 static int _find_and_cut_container_function(ast_node_t* node, string_t* container, queue_t* funcs) {
     if (!node) return 0;
+    int found_func = 0;
     if (
         node->t && container &&
         (node->t->t_type == FUNC_PROT_TOKEN || node->t->t_type == FUNC_TOKEN)
     ) {
-        if (node->p) AST_remove_node(node->p, node);
         queue_push(funcs, node);
-        return 1;
+        found_func = 1;
     }
 
     _find_and_cut_container_function(node->siblings.n, container, funcs);
+    if (found_func) {
+        if (node->p) AST_remove_node(node->p, node);
+        return 1;
+    }
 
     if (
         node->t && 

@@ -107,7 +107,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     if (
                         c_ti.t == TYPE_METHOD && 
                         FNTB_get_info_id(member->sinfo.v_id, &fi, &smt->f) &&
-                        !fi.flags.stat
+                        fi.flags.self
                     ) member->self = left;
                     else AST_unload(left);
                     

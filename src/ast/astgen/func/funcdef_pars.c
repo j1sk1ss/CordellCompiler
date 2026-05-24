@@ -143,7 +143,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     int local = ctx->carry.ptr ? 1 : 0;
     name->sinfo.v_id = FNTB_add_info(
         name->t->body, virt_name, 
-        base->t->flags.glob, local, annots.is_entry, annots.is_naked != 0, 0, list_size(&generic_types) != 0, annots.do_inline, annots.is_static,
+        base->t->flags.glob, local, annots.is_entry, annots.is_naked != 0, 0, list_size(&generic_types) != 0, annots.do_inline, annots.is_self,
         name->sinfo.s_id, args, name->c, &smt->f
     );
 

@@ -30,7 +30,7 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     
     ast_node_t* method;
     while (queue_pop(&methods, (void**)&method)) {
-        AST_add_node(ctx->r, method);
+        AST_insert_node(ctx->r, method);
     }
 
     queue_free(&methods);
