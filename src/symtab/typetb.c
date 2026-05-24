@@ -13,6 +13,7 @@ static type_info_t* _create_type_info(string_t* name) {
     list_init(&info->entries);
     list_init(&info->link.c);
     info->link.name = NULL;
+    info->link.p = NO_SYMBOL_ID;
     if (name) info->name = name->copy(name);
     else info->name = NULL;
     str_memset(&info->memory, 0, sizeof(info->memory));
@@ -55,13 +56,16 @@ symbol_id_t TPTB_add_copy(symbol_id_t id, token_t* t, typetab_ctx_t* ctx) {
     return info->id;
 }
 
-symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, typetab_ctx_t* ctx) {
+symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v_id, typetab_ctx_t* ctx) {
     type_info_t* info = _create_type_info(NULL);
     if (!info) return NO_SYMBOL_ID;
+
+    info->link.v_id  = v_id;
     info->id         = ctx->curr_id++;
     info->s_id       = s_id;
     info->memory.tt  = t->t_type;
     info->memory.ptr = t->flags.ptr;
+
     if (
         t->t_type == GENERIC_TYPE_TOKEN || 
         t->t_type == GENERIC_VARIABLE_TOKEN
@@ -70,13 +74,19 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, typetab_ctx_t
         t->t_type == CUSTOM_TYPE_TOKEN ||
         t->t_type == CUSTOM_VARIABLE_TOKEN
     ) info->t = TYPE_CUSTOM;
+    else if (
+        t->t_type == FUNC_PROT_TOKEN ||
+        t->t_type == FUNC_TOKEN
+    ) info->t = TYPE_METHOD;
     else info->t = TYPE_PRIMITIVE;
 
-    switch (TKN_variable_bitness(t, 1)) {
-        case TYPE_FULL_SIZE:    info->memory.size = CONF_get_full_bytness();  break;
-        case TYPE_HALF_SIZE:    info->memory.size = CONF_get_half_bytness();  break;
-        case TYPE_QUARTER_SIZE: info->memory.size = CONF_get_quart_bytness(); break;
-        default:                info->memory.size = CONF_get_eight_bytness(); break;
+    if (info->t == TYPE_PRIMITIVE) {
+        switch (TKN_variable_bitness(t, 1)) {
+            case TYPE_FULL_SIZE:    info->memory.size = CONF_get_full_bytness();  break;
+            case TYPE_HALF_SIZE:    info->memory.size = CONF_get_half_bytness();  break;
+            case TYPE_QUARTER_SIZE: info->memory.size = CONF_get_quart_bytness(); break;
+            default:                info->memory.size = CONF_get_eight_bytness(); break;
+        }
     }
 
     map_put(&ctx->typetb, info->id, info);

@@ -1804,7 +1804,7 @@ class Parser {
     let wasCall = false;
 
     while (true) {
-      if (expr.identName && this.tryParseTypeArgsBeforeCall()) {
+      if (this.tryParseTypeArgsBeforeCall()) {
         expr = { ...expr, end: this.prev().end };
         continue;
       }

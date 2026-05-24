@@ -16,19 +16,20 @@ typedef struct {
 } syntax_info_t;
 
 typedef struct ast_node {
-    token_t*             t;  /* Linked AST token                           */
-                             /* Note: This token mustn't be freed manualy! */
-    token_t*             bt; /* Backup AST token                           */
-                             /* Note: If it isn't the 'NULL' value,        */ 
-                             /* must be freed manualy!                     */
-    struct ast_node*     p;  /* Parent pointer                             */
-    struct ast_node*     c;  /* Child pointer                              */
+    token_t*             t;    /* Linked AST token                           */
+                               /* Note: This token mustn't be freed manualy! */
+    token_t*             bt;   /* Backup AST token                           */
+                               /* Note: If it isn't the 'NULL' value,        */ 
+                               /* must be freed manualy!                     */
+    struct ast_node*     p;    /* Parent pointer                             */
+    struct ast_node*     c;    /* Child pointer                              */
+    struct ast_node*     self; /* Hidden linked node for Call nodes only!    */
     struct {
-        struct ast_node* n;  /* Siblings next pointer                      */
-        struct ast_node* t;  /* Siblings list tail                         */
+        struct ast_node* n;    /* Siblings next pointer                      */
+        struct ast_node* t;    /* Siblings list tail                         */
     } siblings;
-    list_t           annots; /* Attached annotations to this node          */
-    syntax_info_t    sinfo;  /* Scope information for the current node     */
+    list_t           annots;   /* Attached annotations to this node          */
+    syntax_info_t    sinfo;    /* Scope information for the current node     */
 } ast_node_t;
 
 typedef struct {
@@ -91,6 +92,9 @@ Returns 1 if the child was added.
 Return -1 if something goes wrong.
 */
 int AST_add_node(ast_node_t* parent, ast_node_t* child);
+
+// TODO: docs
+int AST_insert_node(ast_node_t* parent, ast_node_t* child);
 
 /*
 Remove clild tree node to parent.

@@ -30,6 +30,7 @@ typedef struct {
         char     naked;
         char     vargs    : 1;
         char     generic  : 1;
+        char     stat     : 1;
         char     inln;
     } flags;
 
@@ -94,6 +95,7 @@ Params:
     - `vargs` - Is this a vargs function?
     - `generic` - Is this is a generic function?
     - `inln` - Inline status.
+    - `stat` - Is this is a static function?
     - `args` - Function's arguments from AST.
     - `rtype` - Function's return type from AST.
     - `ctx` - Function symbol table.
@@ -102,7 +104,7 @@ Returns -1 if fails or a new function's ID.
 */
 symbol_id_t FNTB_add_info(
     string_t* name, string_t* vname,
-    int global, int local, int entry, int naked, int vargs, int generic, int inln, /* flags */
+    int global, int local, int entry, int naked, int vargs, int generic, int inln, int stat, /* flags */
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );
 

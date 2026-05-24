@@ -80,8 +80,9 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             /* Member access */
             case DOT_TOKEN: {
                 forward_token(it, 1);
-                ast_node_t* base = AST_create_node_bt(CREATE_ACCESS_TOKEN);
-                if (!base) {
+                symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
+                if (field_type == NO_SYMBOL_ID) {
+                    PARSE_ERROR("Unknown container field!");
                     AST_unload(left);
                     RESTORE_TOKEN_POINT;
                     return NULL;
@@ -89,18 +90,35 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
 
                 ast_node_t* member = AST_create_node(CURRENT_TOKEN);
                 if (!member) {
-                    AST_unload(base);
                     AST_unload(left);
                     RESTORE_TOKEN_POINT;
                     return NULL;
                 }
 
-                symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
-                if (field_type == NO_SYMBOL_ID) {
-                    PARSE_ERROR("Unknown container field!");
-                    AST_unload(base);
+                type_info_t c_ti;
+                TPTB_get_info_id(field_type, &c_ti, &smt->t);
+                /* If this type is a method, we must stop going, remember
+                   existed chain in the 'left' as a self pointer. */
+                if (c_ti.t == TYPE_METHOD) {
+                    member->sinfo.v_id = c_ti.link.v_id;
+                    member->t->t_type  = CALL_ADDR_TOKEN;
+
+                    func_info_t fi;
+                    if (
+                        c_ti.t == TYPE_METHOD && 
+                        FNTB_get_info_id(member->sinfo.v_id, &fi, &smt->f) &&
+                        !fi.flags.stat
+                    ) member->self = left;
+                    else AST_unload(left);
+                    
+                    left = member;
+                    forward_token(it, 1);
+                    break;
+                }
+
+                ast_node_t* base = AST_create_node_bt(CREATE_ACCESS_TOKEN);
+                if (!base) {
                     AST_unload(left);
-                    AST_unload(member);
                     RESTORE_TOKEN_POINT;
                     return NULL;
                 }
@@ -142,6 +160,21 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
 
                         target = AST_create_node_bt(CREATE_CALL_TOKEN);
                         data   = cpl_parse_call_arguments(it, ctx, smt, 0);
+                        if (left->self) {
+                            symbol_id_t self_type = left->self->sinfo.t_id;
+                            type_info_t self_ti;
+                            TPTB_get_info_id(self_type, &self_ti, &smt->t);
+                            if (
+                                (!self_ti.memory.ptr && self_ti.link.p != NO_SYMBOL_ID) ||
+                                (!left->self->t->flags.ptr && self_ti.link.p == NO_SYMBOL_ID)
+                            ) {
+                                WRAP_REFERENCE_NODE(left->self);
+                            }
+
+                            AST_insert_node(data, left->self);
+                            left->self = NULL;
+                        }
+
                         break;
                     }
                     default: break;

@@ -74,6 +74,24 @@ int AST_add_node(ast_node_t* parent, ast_node_t* child) {
     return 1;
 }
 
+int AST_insert_node(ast_node_t* parent, ast_node_t* child) {
+    if (!parent || !child) return 0;
+    child->p = parent;
+    if (!parent->c) {
+        parent->c = child;
+        child->siblings.n = NULL;
+        child->siblings.t = NULL;
+    }
+    else {
+        ast_node_t* old_first = parent->c;
+        child->siblings.n = old_first;
+        child->siblings.t = old_first->siblings.t ? old_first->siblings.t : old_first;
+        parent->c = child;
+    }
+
+    return 1;
+}
+
 int AST_remove_node(ast_node_t* parent, ast_node_t* child) {
     if (!parent || !child) return 0;
 

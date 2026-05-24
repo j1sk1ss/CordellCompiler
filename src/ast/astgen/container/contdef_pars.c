@@ -35,18 +35,12 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
     if (decls) {
         AST_add_node(base, decls);
         for (ast_node_t* decl = decls->c; decl; decl = decl->siblings.n) {
-            if (decl->c->t->t_type == FUNC_NAME_TOKEN) continue;
-
             symbol_id_t type = NO_SYMBOL_ID;
             if (decl->sinfo.t_id != NO_SYMBOL_ID) type = decl->sinfo.t_id;
             else type = type_lookup(decl->t, ctx, smt);
 
-            if (type == NO_SYMBOL_ID) {
-                type = TPTB_add_info_from_token(decl->sinfo.s_id, decl->t, &smt->t);
-            }
-            else {
-                type = TPTB_add_copy(type, decl->t, &smt->t);
-            }
+            if (type == NO_SYMBOL_ID) type = TPTB_add_info_from_token(decl->sinfo.s_id, decl->t, decl->c->sinfo.v_id, &smt->t);
+            else type = TPTB_add_copy(type, decl->t, &smt->t);
 
             decl->sinfo.t_id = type;
             TPTB_add_as_child(

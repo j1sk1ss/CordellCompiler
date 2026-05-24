@@ -24,6 +24,17 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     if (!entries)         print_warn("The 'start' function isn't found!");
     else if (entries > 1) print_error("There is more than 1 entry point in the code!");
 
+    queue_t methods;
+    queue_init(&methods);
+    AST_DVRT_move_container_functions(ctx->r, &methods);
+    
+    ast_node_t* method;
+    while (queue_pop(&methods, (void**)&method)) {
+        AST_add_node(ctx->r, method);
+    }
+
+    queue_free(&methods);
+
     devirt_ctx_t dctx;
     AST_DVRT_init_ctx(&dctx);
 
