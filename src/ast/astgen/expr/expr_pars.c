@@ -80,7 +80,6 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             /* Member access */
             case DOT_TOKEN: {
                 forward_token(it, 1);
-
                 ast_node_t* base = AST_create_node_bt(CREATE_ACCESS_TOKEN);
                 if (!base) {
                     AST_unload(left);
