@@ -1,5 +1,3 @@
-/* Declaration statement parser.
-   - arr <name>[<size>, <primitive_type>] = { decl }; */
 #include <ast/astgen/astgen.h>
 
 /*
@@ -122,26 +120,48 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     long long const_length = -1;
     if (length->t->t_type != UNKNOWN_NUMERIC_TOKEN) base->t->flags.vla = 1;
     else const_length = length->t->body->to_llong(length->t->body);
-    if (consume_token(it, ASSIGN_TOKEN) && consume_token(it, OPEN_BLOCK_TOKEN)) {
-        long long act_size = 0;
+    if (consume_token(it, ASSIGN_TOKEN)) {
         forward_token(it, 1);
-        while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BLOCK_TOKEN) {
-            if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
+        switch (CURRENT_TOKEN->t_type) {
+            case OPEN_BLOCK_TOKEN: {
+                long long act_size = 0;
                 forward_token(it, 1);
-                continue;
-            }
+                while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BLOCK_TOKEN) {
+                    if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
+                        forward_token(it, 1);
+                        continue;
+                    }
 
-            ast_node_t* elem = cpl_parse_expression(it, ctx, smt, 1);
-            if (elem) AST_add_node(base, elem);
-            else { 
-                PARSE_ERROR("Error during parsing of the array's initial element!");
-                AST_unload(base);
-                ANNOT_destroy_summary(&annots);
-                RESTORE_TOKEN_POINT;
-                return NULL;
-            }
+                    ast_node_t* elem = cpl_parse_expression(it, ctx, smt, 1);
+                    if (elem) AST_add_node(base, elem);
+                    else { 
+                        PARSE_ERROR("Error during parsing of the array's initial element!");
+                        AST_unload(base);
+                        ANNOT_destroy_summary(&annots);
+                        RESTORE_TOKEN_POINT;
+                        return NULL;
+                    }
 
-            const_length = MAX(const_length, act_size++);
+                    const_length = MAX(const_length, act_size++);
+                }
+
+                break;
+            }
+            case STRING_VALUE_TOKEN: {
+                ast_node_t* elem = AST_create_node(CURRENT_TOKEN);
+                if (elem) AST_add_node(base, elem);
+                else { 
+                    PARSE_ERROR("Error during parsing of the array's initial element!");
+                    AST_unload(base);
+                    ANNOT_destroy_summary(&annots);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+                
+                const_length = MAX(const_length, CURRENT_TOKEN->body->len(CURRENT_TOKEN->body) + 1);
+                break;
+            }
+            default: break;
         }
 
         forward_token(it, 1);
@@ -152,10 +172,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, &type->t->flags, &smt->a);
     
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
-    if (
-        base->t->flags.glob || 
-        base->t->flags.ro
-    ) {
+    if (base->t->flags.glob || base->t->flags.ro) {
         if (!annots.section) annots.section = create_string(base->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
         SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
     }

@@ -1,6 +1,6 @@
 start() {
    ptr i8 msg = ref "Hello, World!";
-   str ans = "Hello, User!";
+   arr ans[0, i8] = "Hello, User!";
 
    msg[0] = 'o';
    ans[1] = 'g';

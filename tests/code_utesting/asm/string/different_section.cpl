@@ -1,4 +1,4 @@
-@[section(".lis")] glob str message = "Hello world!";
+@[section(".lis")] glob arr message[0, i8] = "Hello world!";
 start() {
     exit ref message;
 }

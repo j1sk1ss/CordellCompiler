@@ -36,27 +36,11 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     TPTB_info_add_entry(carry, name->sinfo.v_id, &smt->t);
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, carry, &smt->v);
 
-    if (base->t->t_type == STR_TYPE_TOKEN) {
-        if (base->t->flags.ptr) {
-            PARSE_ERROR("'str' object can't be presented as a pointer! Use 'ptr i8' instead!");
-            AST_unload(base);
-            ANNOT_destroy_summary(&annots);
-            return NULL;
-        }
-
-        ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &base->t->flags, &smt->a);
-    }
-    else if (base->t->t_type == CUSTOM_TYPE_TOKEN) {
-        type_info_t ti;
-        if (!TPTB_get_info_id(carry, &ti, &smt->t)) {
-            PARSE_ERROR("Unknown custom type!");
-            AST_unload(base);
-            ANNOT_destroy_summary(&annots);
-            return NULL;
-        }
-
-        ARTB_add_info(name->sinfo.v_id, ti.memory.size, 0, U8_TYPE_TOKEN, &base->t->flags, &smt->a);
-    }
+    type_info_t ti;
+    if (
+        base->t->t_type == CUSTOM_TYPE_TOKEN && 
+        TPTB_get_info_id(carry, &ti, &smt->t)
+    ) ARTB_add_info(name->sinfo.v_id, ti.memory.size, 0, U8_TYPE_TOKEN, &base->t->flags, &smt->a);
 
     var_lookup(name, ctx, smt);
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.reg, annots.align, &smt->v);
@@ -74,16 +58,6 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
             ANNOT_destroy_summary(&annots);
             RESTORE_TOKEN_POINT;
             return NULL;
-        }
-
-        /* String is a special case of an array, which doesn't hold size and type and
-           must be treated as a variable */
-        if (base->t->t_type == STR_TYPE_TOKEN) {
-            ARTB_update_info(
-                name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, FIELD_NO_CHANGE, 
-                I8_TYPE_TOKEN, &base->t->flags, &smt->a
-            );
-            STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }
 
         if ( /* If it's a global variable, it acts differently.

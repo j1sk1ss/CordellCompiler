@@ -202,7 +202,7 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     }
     
     if (isarr) return HIR_STKVARARR;
-    if (isstr) return HIR_STKVARSTR;
+    if (isstr) return HIR_STKVARSTR; // TODO: remove deprecated str objects
     if (!isfloat) {
         switch (bitness) {
             case TYPE_EIGHTH_SIZE:  return issigned ? HIR_STKVARI8 : HIR_STKVARU8;

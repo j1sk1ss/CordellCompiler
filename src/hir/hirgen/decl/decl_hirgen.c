@@ -2,7 +2,9 @@
 
 static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name  = node->c;
-    ast_node_t* value = name->siblings.n;
+    ast_node_t* size  = name->siblings.n;
+    ast_node_t* type  = size->siblings.n;
+    ast_node_t* value = type->siblings.n;
     HIR_BLOCK2(ctx, HIR_STRDECL, HIR_SUBJ_ASTVAR(name), HIR_SUBJ_STRING(value));
 
     variable_info_t vi;
@@ -20,6 +22,10 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     ast_node_t* size  = name->siblings.n;
     ast_node_t* type  = size->siblings.n;
     ast_node_t* elems = type->siblings.n;
+
+    if (elems->t->t_type == STRING_VALUE_TOKEN) {
+        return _str_declaration(node, ctx, smt);
+    }
 
     array_info_t ai;
     variable_info_t vi;
@@ -63,7 +69,6 @@ static int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
 static inline int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     switch (node->t->t_type) {
         case ARRAY_TYPE_TOKEN:  return _arr_declaration(node, ctx, smt);
-        case STR_TYPE_TOKEN:    return _str_declaration(node, ctx, smt);
         case CUSTOM_TYPE_TOKEN: return _cnt_declaration(node, ctx, smt);
         default: return 1;
     }
