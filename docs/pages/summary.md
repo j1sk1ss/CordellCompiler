@@ -38,7 +38,7 @@ The current language core includes:
 - a small preprocessor with include, define, undef, ifdef, and ifndef directives;
 - annotations for entry points, sections, alignment, switch lowering, branch layout, counted loops, register placement, and varargs.
 
-The current implementation intentionally does not include user-defined structures, classes, enums, traits, modules, a package manager, exceptions, or memory-safety guarantees.
+The current implementation intentionally does not include enums, modules, a package manager, exceptions, or memory-safety guarantees.
 
 ## Compiler pipeline
 
