@@ -215,6 +215,7 @@ int TKN_is_sign(token_t* token, char ptr);
 int TKN_is_float(token_t* token);
 int TKN_is_update_operator(token_t* token);
 type_size_t TKN_variable_bitness(token_t* token, char ptr);
+long TKN_convert_type_size(type_size_t t);
 int TKN_token_priority(token_t* token);
 token_type_t TKN_get_var_from_type(token_type_t t);
 

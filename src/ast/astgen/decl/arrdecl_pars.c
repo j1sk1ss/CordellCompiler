@@ -142,10 +142,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &base->t->flags, &smt->v);
-    ARTB_add_info(
-        name->sinfo.v_id, const_length, base->t->flags.vla, 
-        type->t->t_type, &type->t->flags, &smt->a
-    );
+    ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, &type->t->flags, &smt->a);
     
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
     if (
@@ -154,6 +151,14 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     ) {
         if (!annots.section) annots.section = create_string(base->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
         SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
+    }
+
+    if (ctx->t_id != NO_SYMBOL_ID) { // TODO: !!!
+        base->sinfo.t_id = TPTB_add_info_from_token(base->sinfo.s_id, type->t, NO_SYMBOL_ID, &smt->t);
+        TPTB_add_as_child(
+            ctx->t_id, base->sinfo.t_id, name->t->body, 
+            const_length * TKN_convert_type_size(TKN_variable_bitness(type->t, 1)), &smt->t
+        );
     }
 
     ANNOT_destroy_summary(&annots);

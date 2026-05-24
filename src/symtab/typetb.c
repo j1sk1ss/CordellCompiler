@@ -81,12 +81,7 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v
     else info->t = TYPE_PRIMITIVE;
 
     if (info->t == TYPE_PRIMITIVE) {
-        switch (TKN_variable_bitness(t, 1)) {
-            case TYPE_FULL_SIZE:    info->memory.size = CONF_get_full_bytness();  break;
-            case TYPE_HALF_SIZE:    info->memory.size = CONF_get_half_bytness();  break;
-            case TYPE_QUARTER_SIZE: info->memory.size = CONF_get_quart_bytness(); break;
-            default:                info->memory.size = CONF_get_eight_bytness(); break;
-        }
+        info->memory.size = TKN_convert_type_size(TKN_variable_bitness(t, 1));
     }
 
     map_put(&ctx->typetb, info->id, info);

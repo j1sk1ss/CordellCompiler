@@ -31,6 +31,15 @@ type_size_t TKN_variable_bitness(token_t* token, char ptr) {
     }
 } 
 
+long TKN_convert_type_size(type_size_t t) {
+    switch (t) {
+        case TYPE_FULL_SIZE:    return CONF_get_full_bytness();
+        case TYPE_HALF_SIZE:    return CONF_get_half_bytness();
+        case TYPE_QUARTER_SIZE: return CONF_get_quart_bytness();
+        default:                return CONF_get_eight_bytness();
+    }
+}
+
 token_type_t TKN_get_tmp_type(token_type_t t) {
     switch (t) {
         case F64_TYPE_TOKEN: return TMP_F64_TYPE_TOKEN;
