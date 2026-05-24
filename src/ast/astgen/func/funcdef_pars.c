@@ -147,6 +147,11 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         name->sinfo.s_id, args, name->c, &smt->f
     );
 
+    if (ctx->t_id != NO_SYMBOL_ID) {
+        symbol_id_t type = TPTB_add_info_from_token(base->sinfo.s_id, base->t, base->c->sinfo.v_id, &smt->t);
+        TPTB_add_as_child(ctx->t_id, type, name->t->body, FIELD_NO_CHANGE, &smt->t);
+    }
+
     if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
     else { /* Local function doesn't have a section. It copies position of its parent */
         if (annots.is_nosec)      annots.section = create_string(CONF_get_no_section());

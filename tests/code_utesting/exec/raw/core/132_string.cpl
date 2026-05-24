@@ -1,21 +1,11 @@
+: ONLY_THIS :
+: RUN_ASM :
 container string {
     ptr i8 body;
 
     @[self]
-    function new(ptr string self, ptr i8 data) -> i0 {
+    function init(ptr string self, ptr i8 data) -> i0 {
         self.body = data;
-    }
-
-    @[self]
-    function strlen(ptr string self) -> i32 {
-        i32 index = 0;
-        ptr i8 s = self.body;
-        while dref s; {
-            index += 1;
-            s += 1;
-        }
-
-        return index;
     }
 
     @[self]
@@ -35,9 +25,13 @@ container string {
 
 start() {
     string msg;
-    msg.new("Hello, World!");
+    msg.init(ref "Hello, World!");
     string other;
-    other.new("Hello, World!");
-    if msg.equals(other); exit 1;
+    other.init(ref "Hello, World!");
+    if msg.equals(ref other); exit 1;
     exit 0;
 }
+
+:/ OUTPUT
+@exit_code=1
+/:

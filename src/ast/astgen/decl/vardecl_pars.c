@@ -93,6 +93,18 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         AST_add_node(base, value_node);
     }
 
+    if (ctx->t_id != NO_SYMBOL_ID) {
+        symbol_id_t type = NO_SYMBOL_ID;
+        if (base->sinfo.t_id != NO_SYMBOL_ID) type = base->sinfo.t_id;
+        else type = type_lookup(base->t, ctx, smt);
+        if (type == NO_SYMBOL_ID) type = TPTB_add_info_from_token(base->sinfo.s_id, base->t, NO_SYMBOL_ID, &smt->t);
+        else type = TPTB_add_copy(type, base->t, &smt->t);
+        base->sinfo.t_id = type;
+        TPTB_add_as_child(
+            ctx->t_id, type, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : FIELD_NO_CHANGE, &smt->t
+        );
+    }
+
     ANNOT_destroy_summary(&annots);
     return base;
 }

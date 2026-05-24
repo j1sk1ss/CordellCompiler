@@ -31,24 +31,10 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
     }
 
     forward_token(it, 1);
+    ctx->t_id = name->sinfo.t_id;
     ast_node_t* decls = cpl_parse_scope(it, ctx, smt, 0);
-    if (decls) {
-        AST_add_node(base, decls);
-        for (ast_node_t* decl = decls->c; decl; decl = decl->siblings.n) {
-            symbol_id_t type = NO_SYMBOL_ID;
-            if (decl->sinfo.t_id != NO_SYMBOL_ID) type = decl->sinfo.t_id;
-            else type = type_lookup(decl->t, ctx, smt);
-
-            if (type == NO_SYMBOL_ID) type = TPTB_add_info_from_token(decl->sinfo.s_id, decl->t, decl->c->sinfo.v_id, &smt->t);
-            else type = TPTB_add_copy(type, decl->t, &smt->t);
-
-            decl->sinfo.t_id = type;
-            TPTB_add_as_child(
-                name->sinfo.t_id, type, decl->c->t->body, 
-                decl->t->flags.ptr ? CONF_get_full_bytness() : FIELD_NO_CHANGE, &smt->t
-            );
-        }
-    }
+    ctx->t_id = NO_SYMBOL_ID;
+    if (decls) AST_add_node(base, decls);
     else {
         PARSE_ERROR("Can't parse the container's body!");
         AST_unload(base);
