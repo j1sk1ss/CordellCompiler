@@ -26,8 +26,8 @@ lir_subject_t* LIR_create_subject(lir_subject_type_t t, int reg, int v_id, long 
             subj->storage.var.base   = reg;
             break;
         }
-        case LIR_CONSTVAL: subj->storage.cnst.value = intval; break;
         case LIR_LABEL:    subj->storage.lb.lb_id   = v_id;   break;
+        case LIR_CONSTVAL: subj->storage.cnst.value = intval; break;
         case LIR_FNAME:
         case LIR_RAWASM:
         case LIR_STRING: {
@@ -68,16 +68,16 @@ lir_subject_t* LIR_copy_subject(lir_subject_t* s) {
             break;
         }
         case LIR_FPOS:
-        case LIR_REGISTER:
-        case LIR_MEMORY:
-        case LIR_VARIABLE:
-        case LIR_GLVARIABLE:
-        case LIR_STVARIABLE:
-        case LIR_CONSTVAL:
         case LIR_LABEL:
         case LIR_FNAME:
         case LIR_RAWASM:
-        case LIR_STRING: {
+        case LIR_MEMORY:
+        case LIR_STRING:
+        case LIR_CONSTVAL:
+        case LIR_REGISTER:
+        case LIR_VARIABLE:
+        case LIR_GLVARIABLE:
+        case LIR_STVARIABLE: {
             str_memcpy(&subj->storage, &s->storage, sizeof(s->storage));
             break;
         }

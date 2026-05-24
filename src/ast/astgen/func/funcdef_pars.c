@@ -118,6 +118,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         PARSE_ERROR("Can't parse function's arguments!");
         AST_unload(base);
         list_free(&generic_types);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }

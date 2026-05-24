@@ -136,31 +136,14 @@ int LIR_is_movop(lir_operation_t op) {
 
 int LIR_is_writeop(lir_operation_t op) {
     switch (op) {
-        case LIR_TF64:
-        case LIR_TF32:
-        case LIR_TI64:
-        case LIR_TI32:
-        case LIR_TI16:
-        case LIR_TI8: 
-        case LIR_TU64:
-        case LIR_TU32:
-        case LIR_TU16:
+        case LIR_TF64: case LIR_TF32:
+        case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8: 
+        case LIR_TU64: case LIR_TU32: case LIR_TU16:
         case LIR_POP:
-        case LIR_bXOR:
-        case LIR_bSHL:
-        case LIR_bSHR:
-        case LIR_bSAR:
-        case LIR_bAND:
-        case LIR_bOR:
-        case LIR_fADD: 
-        case LIR_fSUB: 
-        case LIR_fMUL: 
-        case LIR_fDIV: 
-        case LIR_iADD: 
-        case LIR_iSUB: 
-        case LIR_iMUL: 
+        case LIR_bXOR: case LIR_bSHL: case LIR_bSHR: case LIR_bSAR: case LIR_bAND: case LIR_bOR:
+        case LIR_fADD: case LIR_fSUB: case LIR_fMUL: case LIR_fDIV: 
+        case LIR_iADD: case LIR_iSUB: case LIR_iMUL: case LIR_iDIV: 
         case LIR_DIV:  
-        case LIR_iDIV: 
         case LIR_GDREF:
         case LIR_REF_GDREF:
         case LIR_REF: return 1;

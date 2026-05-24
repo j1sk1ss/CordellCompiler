@@ -25,6 +25,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)base)) {
         PARSE_ERROR("Can't parse start's arguments!");
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -32,6 +33,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
         PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' in a body of the '%s' statement! %s( ... ) { ... }!", START_COMMAND, START_COMMAND);
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -41,6 +43,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
         PARSE_ERROR("The main function already exists!");
         AST_unload(base);
         destroy_string(main_name);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -62,6 +65,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     else {
         PARSE_ERROR("Error during the parsing of the '%s' body!", START_COMMAND);
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }

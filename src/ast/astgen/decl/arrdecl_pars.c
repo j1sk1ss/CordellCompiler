@@ -69,6 +69,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     else {
         PARSE_ERROR("Can't create a base for the array's name!");
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -76,6 +77,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     if (!consume_token(it, OPEN_INDEX_TOKEN)) {
         PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the 'OPEN_INDEX_TOKEN'!");
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -86,6 +88,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     else {
         PARSE_ERROR("Can't create a base for the array's size!");
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -93,6 +96,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     if (CURRENT_TOKEN->t_type != COMMA_TOKEN) {
         PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the 'COMMA_TOKEN'!");
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -102,6 +106,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     else {
         PARSE_ERROR("Can't create a base for the array's type!");
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -109,6 +114,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     if (!consume_token(it, CLOSE_INDEX_TOKEN)) {
         PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the 'CLOSE_INDEX_TOKEN'!");
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -130,6 +136,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
             else { 
                 PARSE_ERROR("Error during parsing of the array's initial element!");
                 AST_unload(base);
+                ANNOT_destroy_summary(&annots);
                 RESTORE_TOKEN_POINT;
                 return NULL;
             }

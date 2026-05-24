@@ -1,13 +1,9 @@
 #include <ast/astgen/astgen.h>
 
 static token_t* _extract_token_from_brackets(list_iter_t* it) {
-    if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
-        return NULL;
-    }
-
+    if (!consume_token(it, OPEN_BRACKET_TOKEN)) return NULL;
     forward_token(it, 1);
     token_t* content = CURRENT_TOKEN;
-
     if (consume_token(it, CLOSE_BRACKET_TOKEN)) forward_token(it, 1);
     else return NULL;
     return content;

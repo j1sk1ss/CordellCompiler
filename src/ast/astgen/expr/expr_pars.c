@@ -141,10 +141,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 int annot_off = annotation_reserve(ctx);
                 ast_node_t *target = NULL, *data = NULL;
                 switch (CURRENT_TOKEN->t_type) {
-                    case CONVERT_TOKEN: {
-                        target = cpl_parse_conv(it, ctx, smt, 0);
-                        break;
-                    }
+                    case CONVERT_TOKEN: target = cpl_parse_conv(it, ctx, smt, 0); break;
                     case OPEN_INDEX_TOKEN: {
                         forward_token(it, 1);
                         target = AST_create_node_bt(CREATE_INDEX_TOKEN);
@@ -161,9 +158,8 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                         target = AST_create_node_bt(CREATE_CALL_TOKEN);
                         data   = cpl_parse_call_arguments(it, ctx, smt, 0);
                         if (left->self) {
-                            symbol_id_t self_type = left->self->sinfo.t_id;
                             type_info_t self_ti;
-                            TPTB_get_info_id(self_type, &self_ti, &smt->t);
+                            TPTB_get_info_id(left->self->sinfo.t_id, &self_ti, &smt->t);
                             if (
                                 (!self_ti.memory.ptr && self_ti.link.p != NO_SYMBOL_ID) ||
                                 (!left->self->t->flags.ptr && self_ti.link.p == NO_SYMBOL_ID)
@@ -273,7 +269,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
                 ast_node_t* node = NULL;
                 if (
-                    type != NO_SYMBOL_ID || 
+                    type != NO_SYMBOL_ID               || 
                     TKN_is_builtin_type(CURRENT_TOKEN) || 
                     CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
                 ) node = cpl_parse_lambda(it, ctx, smt, 0);
@@ -312,7 +308,7 @@ _primary_resolve_complete: {}
 
     switch (node->t->t_type) {
         case STRING_VALUE_TOKEN: {
-            node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
+            node->sinfo.v_id  = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
             string_t* section = create_string(CONF_get_ro_section());
             SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
             destroy_string(section);
