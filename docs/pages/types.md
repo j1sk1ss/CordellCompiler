@@ -71,29 +71,6 @@ ptr ptr i32 pp = ref p;
 
 `ptr i0` is commonly used for untyped pointers and function pointers.
 
-## Strings
-
-`str` allocates a mutable string object:
-
-```cpl
-str msg = "Hello";
-```
-
-A string literal by itself is stored as read-only data. Pass it to a `ptr i8` parameter with `ref`:
-
-```cpl
-function puts(ptr i8 s) -> i0;
-
-puts(ref "Hello\n");
-```
-
-You can also take a pointer to a `str` object:
-
-```cpl
-str msg = "Hello\n";
-puts(ref msg);
-```
-
 ## Arrays
 
 Arrays use the syntax `arr name[length, type]`.
@@ -113,7 +90,11 @@ arr rows[2, ptr i32] = { ref row1, ref row2 };
 i32 x = rows[1][0];
 ```
 
-Global and read-only arrays are placed into target-dependent sections. Local arrays are allocated in function-local storage.
+Global and read-only arrays are placed into target-dependent sections. Local arrays are allocated in function-local storage. </br>
+To store a string you can use the next example:
+```cpl
+arr msg[0, i8] = "Hello world!";
+```
 
 ## `glob`, `ro`, and `extern`
 
