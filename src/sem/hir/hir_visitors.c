@@ -308,9 +308,6 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
     }
 
     switch (t) {
-        case HIR_STKVARSTR:
-        case HIR_TMPVARSTR:
-        case HIR_GLBVARSTR:  buffer += snprintf(buffer, buffer_size, "str"); break;
         case HIR_GLBVARARR:
         case HIR_STKVARARR:
         case HIR_TMPVARARR:  buffer += snprintf(buffer, buffer_size, "arr"); break;

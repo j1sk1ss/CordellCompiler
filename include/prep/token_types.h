@@ -75,7 +75,6 @@ typedef enum {
     U32_TYPE_TOKEN,        // u32
     U16_TYPE_TOKEN,        // u16
     U8_TYPE_TOKEN,         // u8
-    STR_TYPE_TOKEN,        // str
     ARRAY_TYPE_TOKEN,      // arr
     
     // Convert statements
@@ -162,7 +161,6 @@ typedef enum {
     U32_VARIABLE_TOKEN,    // u32
     U16_VARIABLE_TOKEN,    // u16
     U8_VARIABLE_TOKEN,     // u8
-    STR_VARIABLE_TOKEN,    // str
     ARR_VARIABLE_TOKEN,    // arr
 
     // Values

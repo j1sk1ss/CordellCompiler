@@ -49,7 +49,6 @@
 #define U32_VARIABLE            "u32"
 #define U16_VARIABLE            "u16"
 #define U8_VARIABLE             "u8"
-#define STR_VARIABLE            "str"
 #define ARR_VARIABLE            "arr"
 
 #define CONVERT_COMMAND         "as"

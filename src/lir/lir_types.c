@@ -103,25 +103,25 @@ Returns 1 if operation is a value-moving write, otherwise 0.
 */
 static int _is_move_write_by_value(lir_operation_t op) {
     switch (op) {
+        case LIR_NEG:
+        case LIR_NOT:
+        case LIR_aMOV:
+        case LIR_iMOV:
         case LIR_XCHG:
+        case LIR_MOVZX:
+        case LIR_MOVSX:
+        case LIR_phiMOV:
+        case LIR_MOVSXD:
         case LIR_STARGLD:
         case LIR_STARGRF:
         case LIR_LOADFRET:
         case LIR_LOADFARG:
-        case LIR_NEG:
-        case LIR_NOT:
-        case LIR_CVTTSS2SI:
-        case LIR_CVTTSD2SI:
         case LIR_CVTSI2SS:
         case LIR_CVTSI2SD:
         case LIR_CVTSS2SD:
         case LIR_CVTSD2SS:
-        case LIR_phiMOV:
-        case LIR_aMOV:
-        case LIR_iMOV:
-        case LIR_MOVSX:
-        case LIR_MOVSXD:
-        case LIR_MOVZX:
+        case LIR_CVTTSS2SI:
+        case LIR_CVTTSD2SI:
         case LIR_fMOV: return 1;
         default: return 0;
     }

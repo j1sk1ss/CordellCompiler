@@ -70,8 +70,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case FUNC_TOKEN:         return FUNCTION_NODE;
         
         case INDEXATION_TOKEN:   return INDEX_NODE;
-        case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN: return DEF_ARRAY_NODE;
+        case ARR_VARIABLE_TOKEN: return DEF_ARRAY_NODE;
 
         case CHAR_VALUE_TOKEN:
         case STRING_VALUE_TOKEN:

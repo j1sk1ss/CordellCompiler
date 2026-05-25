@@ -30,7 +30,6 @@ static const char* _name_tkn_type(token_type_t t) {
         case U32_TYPE_TOKEN:              return "U32_TYPE_TOKEN";
         case U16_TYPE_TOKEN:              return "U16_TYPE_TOKEN";
         case U8_TYPE_TOKEN:               return "U8_TYPE_TOKEN";
-        case STR_TYPE_TOKEN:              return "STR_TYPE_TOKEN";
         case ARRAY_TYPE_TOKEN:            return "ARRAY_TYPE_TOKEN";
         case CONVERT_TOKEN:               return "CONVERT_TOKEN";
         case IMPORT_TOKEN:                return "IMPORT_TOKEN";
@@ -96,7 +95,6 @@ static const char* _name_tkn_type(token_type_t t) {
         case U32_VARIABLE_TOKEN:          return "U32_VARIABLE_TOKEN";
         case U16_VARIABLE_TOKEN:          return "U16_VARIABLE_TOKEN";
         case U8_VARIABLE_TOKEN:           return "U8_VARIABLE_TOKEN";
-        case STR_VARIABLE_TOKEN:          return "STR_VARIABLE_TOKEN";
         case ARR_VARIABLE_TOKEN:          return "ARR_VARIABLE_TOKEN";
         case STRING_VALUE_TOKEN:          return "STRING_VALUE_TOKEN";
         case CHAR_VALUE_TOKEN:            return "CHAR_VALUE_TOKEN";
@@ -120,7 +118,6 @@ const char* DUMP_format_token_type(token_type_t t) {
         case I64_TYPE_TOKEN: base = "i64"; break;
         case U64_TYPE_TOKEN: base = "u64"; break;
         case F64_TYPE_TOKEN: base = "f64"; break;
-        case STR_TYPE_TOKEN: base = "str"; break;
         default:             base = "";    break;
     }
     return base;

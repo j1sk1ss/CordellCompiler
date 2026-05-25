@@ -1,9 +1,9 @@
-function foo(str msg) {
+function foo(ptr i8 msg) {
     msg[0] = 'A' as i8;
 }
 
 start() {
-    foo("Hello!");
+    foo(ref "Hello!");
 }
 
 :/ OUTPUT

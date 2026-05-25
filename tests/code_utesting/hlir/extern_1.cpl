@@ -1,6 +1,6 @@
 extern function printf(ptr i8 fmt, ...) -> i0;
 start() {
-    printf("Hello world! %i", 10);
+    printf(ref "Hello world! %i", 10);
 }
 
 :/ OUTPUT

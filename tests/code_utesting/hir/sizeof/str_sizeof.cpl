@@ -1,6 +1,6 @@
 start() {
-    str a = "Hello world1";
-    str b = "world2";
+    arr a[0, i8] = "Hello world1";
+    arr b[0, i8] = "world2";
     i32 c = sizeof(a) as i32;
     i32 d = sizeof(b) as i32;
 }

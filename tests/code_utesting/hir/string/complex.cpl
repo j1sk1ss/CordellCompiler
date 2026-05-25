@@ -1,5 +1,5 @@
 start() {
-    str msg = "Hello world!";
+    arr msg[0, i8] = "Hello world!";
     ptr i8 msg1 = ref msg;
     msg1[0] = dref msg;
     msg[1] = msg1[0];

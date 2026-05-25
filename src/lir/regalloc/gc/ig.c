@@ -166,7 +166,6 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
         if (
             vi->vfs.glob || vi->vfs.ro                 ||
             vi->type == ARRAY_TYPE_TOKEN               ||
-            vi->type == STR_TYPE_TOKEN                 ||
             ALLIAS_get_owners(vi->v_id, NULL, &smt->m) ||
             vi->vmi.align > CONF_get_full_bytness()
         ) continue;

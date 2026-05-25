@@ -54,7 +54,6 @@ static const markup_token_t _lexems[] = {
     LEXEM(U32_VARIABLE,           U32_TYPE_TOKEN),
     LEXEM(U16_VARIABLE,           U16_TYPE_TOKEN),
     LEXEM(U8_VARIABLE,            U8_TYPE_TOKEN),
-    LEXEM(STR_VARIABLE,           STR_TYPE_TOKEN),
     LEXEM(ARR_VARIABLE,           ARRAY_TYPE_TOKEN),
 
     /* Cast token */
