@@ -1,5 +1,4 @@
 : RUN_ASM :
-
 container node {
     ptr node next;
     i32      val;

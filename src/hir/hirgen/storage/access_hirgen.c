@@ -21,7 +21,10 @@ hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx,
     HIR_SET_CURRENT_POS(ctx, node);
     type_info_t ti;
     hir_subject_t* head = _point_to_field(node, ctx, &ti, smt);
-    token_t tmp = { .t_type = ti.memory.tt, .flags.ptr = ti.memory.ptr };
+
+    variable_info_t vi;
+    VRTB_get_info_id(ti.link.v_id, &vi, &smt->v);
+    token_t tmp = { .t_type = vi.type, .flags.ptr = vi.vfs.ptr };
 
     hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, NULL, &smt->v));
     value->ptr = tmp.flags.ptr;
@@ -34,9 +37,14 @@ int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_
     HIR_SET_CURRENT_POS(ctx, node);
     type_info_t ti;
     hir_subject_t* head = _point_to_field(node, ctx, &ti, smt);
-    token_t tmp = { .t_type = ti.memory.tt, .flags.ptr = ti.memory.ptr };
 
-    /* If we're dealing with a pointer, we must be ready */
+    variable_info_t vi;
+    VRTB_get_info_id(ti.link.v_id, &vi, &smt->v);
+    token_t tmp = { .t_type = vi.type, .flags.ptr = vi.vfs.ptr };
+
+    /* If we're dealing with a pointer, we add one level of reference,
+       given the nature of IR and because we need to preserve the pointer's
+       level after container's dereference */
     if (tmp.flags.ptr) {
         head->ptr += tmp.flags.ptr;
     }

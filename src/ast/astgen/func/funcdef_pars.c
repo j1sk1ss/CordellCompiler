@@ -113,12 +113,16 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     annotations_summary_t annots = { .section = NULL, .is_entry = 0, .is_naked = 0 };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
+    symbol_id_t preserved_tid = ctx->t_id;
+    ctx->t_id = NO_SYMBOL_ID;
+    
     forward_token(it, 1);
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args)) {
         PARSE_ERROR("Can't parse function's arguments!");
         AST_unload(base);
         list_free(&generic_types);
         ANNOT_destroy_summary(&annots);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -148,9 +152,9 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         name->sinfo.s_id, args, name->c, &smt->f
     );
 
-    if (ctx->t_id != NO_SYMBOL_ID) {
+    if (preserved_tid != NO_SYMBOL_ID) {
         symbol_id_t type = TPTB_add_info_from_token(base->sinfo.s_id, base->t, base->c->sinfo.v_id, &smt->t);
-        TPTB_add_as_child(ctx->t_id, type, name->t->body, FIELD_NO_CHANGE, &smt->t);
+        TPTB_add_as_child(preserved_tid, type, name->t->body, FIELD_NO_CHANGE, &smt->t);
     }
 
     if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
@@ -172,6 +176,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         
         base->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);
+        ctx->t_id = preserved_tid;
         list_free(&generic_types);
         return base;
     }
@@ -189,10 +194,12 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         PARSE_ERROR("Error during the function's body parsing!");
         AST_unload(base);
         list_free(&generic_types);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
+    ctx->t_id = preserved_tid;
     list_free(&generic_types);
     stack_pop(&ctx->scopes.stack, NULL);
     return base;

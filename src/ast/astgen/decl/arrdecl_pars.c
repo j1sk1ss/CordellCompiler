@@ -177,12 +177,9 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
         SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
     }
 
-    if (ctx->t_id != NO_SYMBOL_ID) { // TODO: !!!
-        base->sinfo.t_id = TPTB_add_info_from_token(base->sinfo.s_id, type->t, NO_SYMBOL_ID, &smt->t);
-        TPTB_add_as_child(
-            ctx->t_id, base->sinfo.t_id, name->t->body, 
-            const_length * TKN_convert_type_size(TKN_variable_bitness(type->t, 1)), &smt->t
-        );
+    if (ctx->t_id != NO_SYMBOL_ID) {
+        base->sinfo.t_id = TPTB_add_info_from_token(base->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);
+        TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, FIELD_NO_CHANGE, &smt->t);
     }
 
     ANNOT_destroy_summary(&annots);

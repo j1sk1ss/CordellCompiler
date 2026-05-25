@@ -160,8 +160,10 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                         if (left->self) {
                             type_info_t self_ti;
                             TPTB_get_info_id(left->self->sinfo.t_id, &self_ti, &smt->t);
+                            variable_info_t self_vi;
+                            VRTB_get_info_id(self_ti.link.v_id, &self_vi, &smt->v);
                             if (
-                                (!self_ti.memory.ptr && self_ti.link.p != NO_SYMBOL_ID) ||
+                                (!self_vi.vfs.ptr && self_ti.link.p != NO_SYMBOL_ID) ||
                                 (!left->self->t->flags.ptr && self_ti.link.p == NO_SYMBOL_ID)
                             ) {
                                 WRAP_REFERENCE_NODE(left->self);

@@ -23,9 +23,13 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
     args->sinfo.s_id = ctx->scopes.s_id;
 
+    symbol_id_t preserved_tid = ctx->t_id;
+    ctx->t_id = NO_SYMBOL_ID;
+
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args)) {
         PARSE_ERROR("Can't parse lambdas's arguments!");
         AST_unload(base);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -33,6 +37,7 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     if (!consume_token(it, LAMBDA_TOKEN)) {
         PARSE_ERROR("Expected the 'LAMBDA_TOKEN'!");
         AST_unload(base);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -51,10 +56,12 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     else {
         PARSE_ERROR("Error during the lambdas's body parsing!");
         AST_unload(base);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
+    ctx->t_id = preserved_tid;
     stack_pop(&ctx->scopes.stack, NULL);
     return base;
 }
