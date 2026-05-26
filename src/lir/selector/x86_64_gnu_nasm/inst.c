@@ -122,8 +122,8 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
                         if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(RAX))) break;
                         if (sys_regs[lh->sarg->storage.cnst.value] != RAX) {
-                            LIR_insert_block_before(
-                                LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 8), NULL, NULL), 
+                            _insert_instruction_before(
+                                bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 8), NULL, NULL), 
                                 lh
                             );
                             queue_push(&dirty_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
@@ -141,6 +141,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = LIR_SUBJ_OFF(RBP, (!fi.flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -8, 8);
                         break;
                     }
+                    case LIR_ECLL:
                     case LIR_FCLL: {
                         // func_info_t callee;
                         // if (
@@ -148,22 +149,22 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         //     callee.flags.vargs
                         // ) LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8)), lh);
                         if (clean_stack) {
-                            LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
+                            _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
                             clean_stack = 0;
                         }
                         __attribute__ ((fallthrough));
                     }
                     case LIR_SYSC: {
                         if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
-                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
+                            _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
                             queue_push(&dirty_regs, (void*)((long)RCX));
-                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
+                            _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
                             queue_push(&dirty_regs, (void*)((long)R11));
                         }
 
                         long dirty;
                         while (queue_pop(&dirty_regs, (void**)&dirty)) {
-                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
+                            _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
                         }
 
                         break;

@@ -56,8 +56,8 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int sys_regs[] = { EAX, EBX, ECX, EDX, ESI, EDI, EBP };
                         if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(EAX))) break;
                         if (sys_regs[lh->sarg->storage.cnst.value] != EAX) {
-                            LIR_insert_block_before(
-                                LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 4), NULL, NULL), 
+                            _insert_instruction_before(
+                                bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 4), NULL, NULL), 
                                 lh
                             );
                             queue_push(&dirty_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
@@ -75,6 +75,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->sarg = LIR_SUBJ_OFF(EBP, (!fi.flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -4, 4);
                         break;
                     }
+                    case LIR_ECLL:
                     case LIR_FCLL: {
                         // func_info_t callee; TODO
                         // if (
@@ -82,7 +83,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         //     callee.flags.vargs
                         // ) LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(EAX, 4), LIR_SUBJ_REG(EAX, 4), LIR_SUBJ_REG(EAX, 4)), lh);
                         if (clean_stack) {
-                            LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(clean_stack)), lh);
+                            _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(clean_stack)), lh);
                             clean_stack = 0;
                         }
                         __attribute__ ((fallthrough));
@@ -90,7 +91,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_SYSC: {
                         long dirty;
                         while (queue_pop(&dirty_regs, (void**)&dirty)) {
-                            LIR_insert_block_after(LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 4), NULL, NULL), lh);
+                            _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 4), NULL, NULL), lh);
                         }
 
                         break;

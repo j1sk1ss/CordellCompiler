@@ -138,6 +138,10 @@ static int _deep_jump_pass(cfg_func_t* fb) {
 
 static unsigned long long _visit_counter = 100;
 
+static int _is_stack_pointer_subject(lir_subject_t* s) {
+    return s && s->t == LIR_REGISTER && LIR_format_register(s->storage.reg.reg, 8) == RSP;
+}
+
 /*
 Recursive cleanup visits CFG blocks with one simple rule:
 a WRITE operation may be eliminated if:
@@ -210,6 +214,7 @@ static int _cleanup_pass(cfg_block_t* bb) {
     iterate_lir_instructions (bb) {
         if (
             !lh->unused &&
+            !_is_stack_pointer_subject(lh->farg) &&
             LIR_is_writeop(lh->op) && !LIR_has_sideeffect(lh->op)
         ) {
             _visit_counter++;
