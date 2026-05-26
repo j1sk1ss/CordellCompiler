@@ -60,6 +60,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx;
     HIR_init_extended_ctx(&hirctx);
 

@@ -57,6 +57,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     map_foreach (variable_info_t* vi, &smt.v.vartb) {
         printf("id: %li, %s, ", vi->v_id, vi->name->body);
         for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");

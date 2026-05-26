@@ -47,6 +47,18 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
     return type;
 }
 
+static long _get_array_field_size(long length, ast_node_t* type, sym_table_t* smt) {
+    if (!type || length < 0) return FIELD_NO_CHANGE;
+    if (type->t->flags.ptr) return length * CONF_get_full_bytness();
+
+    if (type->t->t_type == CUSTOM_TYPE_TOKEN && type->sinfo.t_id != NO_SYMBOL_ID) {
+        type_info_t ti;
+        if (TPTB_get_info_id(type->sinfo.t_id, &ti, &smt->t)) return length * ti.memory.size;
+    }
+
+    return length * TKN_convert_type_size(TKN_variable_bitness(type->t, 1));
+}
+
 ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
@@ -179,7 +191,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
     if (ctx->t_id != NO_SYMBOL_ID) {
         base->sinfo.t_id = TPTB_add_info_from_token(base->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);
-        TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, FIELD_NO_CHANGE, &smt->t);
+        TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, _get_array_field_size(const_length, type, smt), &smt->t);
     }
 
     ANNOT_destroy_summary(&annots);

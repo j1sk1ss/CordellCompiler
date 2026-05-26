@@ -148,6 +148,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
     RST_restore_code(stdout, sctx.r, NULL, 0);
 #ifdef AST_OPT_TESTING
     OPT_condunroll(&sctx); // Transform

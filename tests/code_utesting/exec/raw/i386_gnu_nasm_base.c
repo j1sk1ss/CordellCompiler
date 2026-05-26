@@ -96,6 +96,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 

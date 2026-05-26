@@ -77,6 +77,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     queue_t work;
     queue_init(&work);
     queue_push(&work, sctx.r);

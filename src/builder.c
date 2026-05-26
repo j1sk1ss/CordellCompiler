@@ -520,6 +520,20 @@ int main(int argc, char* argv[]) {
     }
     memset(object_files, 0, (size_t)options.locations.files_count * sizeof(*object_files));
 
+    list_t* token_lists = mm_malloc((size_t)options.locations.files_count * sizeof(*token_lists));
+    if (!token_lists && options.locations.files_count > 0) {
+        fprintf(stderr, "Can't allocate token lists array\n");
+        return EXIT_FAILURE;
+    }
+    memset(token_lists, 0, (size_t)options.locations.files_count * sizeof(*token_lists));
+    int token_lists_count = 0;
+
+    sym_table_t smt;
+    SMT_init(&smt);
+
+    ast_ctx_t sctx;
+    AST_init_ctx(&sctx);
+
     for (int i = 0; i < options.locations.files_count; i++) {
         int fd = open(options.locations.files[i], O_RDONLY);
         if (fd < 0) {
@@ -557,24 +571,29 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        list_t tokens;
-        list_init(&tokens);
-        if (!TKN_tokenize(fd, &tokens) || !list_size(&tokens)) {
+        list_t* tokens = &token_lists[i];
+        list_init(tokens);
+        token_lists_count = i + 1;
+        if (!TKN_tokenize(fd, tokens) || !list_size(tokens)) {
             fprintf(stderr, "ERROR! tkn == NULL!\n");
             return 1;
         }
 
-        MRKP_mnemonics(&tokens);
-        MRKP_variables(&tokens);
+        MRKP_mnemonics(tokens);
+        MRKP_variables(tokens);
 
-        sym_table_t smt;
-        SMT_init(&smt);
-
-        ast_ctx_t sctx;
-        AST_init_ctx(&sctx);
-
-        if (!AST_parse_tokens(&tokens, &sctx, &smt)) {
+        if (!AST_parse_tokens(tokens, &sctx, &smt)) {
             fprintf(stderr, "AST tree creation error!\n");
+            return 1;
+        }
+
+        if (i + 1 < options.locations.files_count) {
+            close(fd);
+            continue;
+        }
+
+        if (!AST_finalize_parse(&sctx, &smt)) {
+            fprintf(stderr, "AST finalization error!\n");
             return 1;
         }
 
@@ -609,7 +628,9 @@ int main(int argc, char* argv[]) {
 
         if (options.flags.without_compilation) {
             HIR_unload_blocks(hirctx.hot.h);
-            list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
+            for (int j = 0; j < token_lists_count; j++) {
+                list_free_force_op(&token_lists[j], (int (*)(void *))TKN_unload_token);
+            }
             AST_unload_ctx(&sctx);
 
             SMT_unload(&smt);
@@ -794,7 +815,7 @@ int main(int argc, char* argv[]) {
 
             unlink(asm_path);
             mm_free(asm_path);
-            object_files[i] = obj_path;
+            object_files[0] = obj_path;
         }
 
         map_free(&colors);
@@ -803,7 +824,9 @@ int main(int argc, char* argv[]) {
         HIR_CG_unload(&callctx);
         HIR_CFG_unload(&cfgctx);
         HIR_unload_blocks(hirctx.hot.h);
-        list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
+        for (int j = 0; j < token_lists_count; j++) {
+            list_free_force_op(&token_lists[j], (int (*)(void *))TKN_unload_token);
+        }
         AST_unload_ctx(&sctx);
 
         SMT_unload(&smt);
@@ -816,7 +839,7 @@ int main(int argc, char* argv[]) {
         !options.flags.without_compilation &&
         options.locations.files_count > 0
     ) {
-        if (!_link_objects(&options, object_files, options.locations.files_count)) {
+        if (!_link_objects(&options, object_files, 1)) {
             fprintf(stderr, "Linking failed\n");
             return 1;
         }
@@ -830,6 +853,7 @@ int main(int argc, char* argv[]) {
     }
 
     mm_free(object_files);
+    mm_free(token_lists);
     mm_free((void*)options.locations.files);
     return EXIT_SUCCESS;
 }

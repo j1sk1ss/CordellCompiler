@@ -59,6 +59,12 @@ static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt, 
     ) name = node;
 
     if (name && name->c) {
+        func_info_t fi;
+        if (
+            !FNTB_get_info_id(name->sinfo.v_id, &fi, &smt->f) ||
+            !fi.flags.generic
+        ) return 1;
+
         list_t types;
         list_init(&types);
         ast_node_t* type_node = name->c;

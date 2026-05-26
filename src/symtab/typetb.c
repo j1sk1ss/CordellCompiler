@@ -91,6 +91,9 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v
         t->t_type == FUNC_PROT_TOKEN ||
         t->t_type == FUNC_TOKEN
     ) info->t = TYPE_METHOD;
+    else if (
+        t->t_type == ARRAY_TYPE_TOKEN
+    ) info->t = TYPE_ARRAY;
     else info->t = TYPE_PRIMITIVE;
 
     info->memory.size = 0;
