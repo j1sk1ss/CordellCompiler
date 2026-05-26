@@ -9,6 +9,7 @@
 #define ALIGN_ANNOTATION_COMMAND "align"
 #define NAKED_ANNOTATION_COMMAND "naked"
 #define SECTN_ANNOTATION_COMMAND "section"
+#define NOSEC_ANNOTATION_COMMAND "nosection"
 #define ADDRS_ANNOTATION_COMMAND "address"
 #define NOFAL_ANNOTATION_COMMAND "no_fall"
 #define NTLAZ_ANNOTATION_COMMAND "not_lazy"
@@ -18,14 +19,26 @@
 #define COLDS_ANNOTATION_COMMAND "cold"
 #define REGST_ANNOTATION_COMMAND "register"
 #define POPRG_ANNOTATION_COMMAND "poparg"
+#define SSELF_ANNOTATION_COMMAND "self"
+
+#define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
+#define INLNE_YES_OPTION         "always"
+#define INLNE_NO_OPTION          "never"
+#define INLINE_MODEL_OPTION      "model"
+#define ALWAYS_INLINE            1
+#define NEVER_INLINE             2
+#define SOFT_YES_INLINE          3
+#define MODEL_INLINE             4
 
 typedef struct {
     string_t* section;
     string_t* fname;
+    int       do_inline; /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
     int       align;
     long      address;
     long      counter;
     short     reg;
+    char      is_nosec    : 1;
     char      is_naked    : 1;
     char      is_entry    : 1;
     char      is_nofall   : 1;
@@ -34,34 +47,39 @@ typedef struct {
     char      is_hot      : 1;
     char      is_cold     : 1;
     char      is_argpop   : 1;
+    char      is_self     : 1;
 } annotations_summary_t;
 
 typedef enum {
     UNKNOWN_ANNOTATION,
-    ALIGN_ANNOTATION,    /* Set the align of a declaration            */
-    SECTION_ANNOTATION,  /* Put a declration or function to a section */
-    NAKED_ANNOTATION,    /* Don't unpack START, FDECL                 */
-    ADDRESS_ANNOTATION,  /* Where place the object?                   */
-    ENTRY_ANNOTATION,    /* Is this an entry function?                */
-    NOFALL_ANNOTATION,   /* switch with a break as a default command  */
-    NOTLAZY_ANNOTATION,  /* && and || with full evaluation            */
-    STRAIGHT_ANNOTATION, /* switch based on if-elseif-else            */
-    COUNTER_ANNOTATION,  /* hidden counter-break instructure          */
-    HOT_ANNOTATION,      /* Will make the linked else branch cold     */
-    COLD_ANNOTATION,     /* Will make the linked then branch hot      */
-    REGISTER_ANNOTATION, /* Will link the selected register to a decl */
-    POPARG_ANNOTATION,   /* Will pop value from the stack to a linked */
+    ALIGN_ANNOTATION,     /* Set the align of a declaration             */
+    SECTION_ANNOTATION,   /* Put a declration or function to a section  */
+    NOSECTION_ANNOTATION, /* Put a declaration or function out a sec    */
+    NAKED_ANNOTATION,     /* Don't unpack START, FDECL                  */
+    ADDRESS_ANNOTATION,   /* Where place the object?                    */
+    ENTRY_ANNOTATION,     /* Is this an entry function?                 */
+    NOFALL_ANNOTATION,    /* switch with a break as a default command   */
+    NOTLAZY_ANNOTATION,   /* && and || with full evaluation             */
+    STRAIGHT_ANNOTATION,  /* switch based on if-elseif-else             */
+    COUNTER_ANNOTATION,   /* hidden counter-break instructure           */
+    HOT_ANNOTATION,       /* Will make the linked else branch cold      */
+    COLD_ANNOTATION,      /* Will make the linked then branch hot       */
+    REGISTER_ANNOTATION,  /* Will link the selected register to a decl  */
+    POPARG_ANNOTATION,    /* Will pop value from the stack to a linked  */
+    INLINE_ANNOTATION,    /* Will change inline decider result          */
+    SELF_ANNOTATION,    /* Will tell devirt that a function is static */
 } annotation_type_t;
 
 typedef struct {
     annotation_type_t t;
     union {
-        int           align;   /* ALIGN_ANNOTATION    */
-        string_t*     fname;   /* ENTRY_ANNOTATION    */
-        string_t*     section; /* SECTION_ANNOTATION  */
-        long          address; /* ADDRESS_ANNOTATION  */
-        long          counter; /* COUNTER_ANNOTATION  */
-        short         regval;  /* REGISTER_ANNOTATION */
+        int           align;      /* ALIGN_ANNOTATION    */
+        string_t*     fname;      /* ENTRY_ANNOTATION    */
+        string_t*     section;    /* SECTION_ANNOTATION  */
+        string_t*     inline_opt; /* INLINE_ANNOTATION   */
+        long          address;    /* ADDRESS_ANNOTATION  */
+        long          counter;    /* COUNTER_ANNOTATION  */
+        short         regval;     /* REGISTER_ANNOTATION */
     } data;
 } annotation_t;
 

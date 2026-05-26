@@ -4,12 +4,12 @@ function foo() {
 }
 
 :/ OUTPUT
-setpos, line=2, column=86, file={X}
+setpos, line=2, column=86, file=<unknown>
 {
-setpos, line=1, column=10, file={X}
+setpos, line=1, column=10, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp5li6qtp0.cpl
     fn foo0()
     {
-setpos, line=2, column=7, file={X}
+setpos, line=2, column=7, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp5li6qtp0.cpl
         {
             i64s %0 = alloc;
             i64s %0 = csu8 10;

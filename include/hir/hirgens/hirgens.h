@@ -28,18 +28,21 @@ Params:
     - `args` - Current popped arguments number.
     - `logic` - Wrapped logic. 
 */
-#define SET_AND_DUMP_POPARG(op, args, rtype, logic) \
+#define SET_AND_DUMP_POPARG(op, args, rtype, vargs, logic) \
     long pargnum =                           \
         ctx->carry.val1,                     \
         pargop = ctx->carry.val2;            \
-    void* prtype = ctx->carry.ptr2;          \
+    void *prtype = ctx->carry.ptr2,          \
+         *pvargs = ctx->carry.ptr3;          \
     ctx->carry.val1 = args;                  \
     ctx->carry.val2 = op;                    \
     ctx->carry.ptr2 = rtype;                 \
+    ctx->carry.ptr3 = vargs;                 \
     logic;                                   \
     ctx->carry.val1 = pargnum;               \
     ctx->carry.val2 = pargop;                \
-    ctx->carry.ptr2 = prtype;   
+    ctx->carry.ptr2 = prtype;                \
+    ctx->carry.ptr3 = pvargs;
 
 /*
 Fire a HIRGEN error.
@@ -342,6 +345,9 @@ Params:
 
 Return parsed from AST HIR subject.
 */
+hir_subject_t* HIR_generate_not(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+// TODO: docs
 hir_subject_t* HIR_generate_neg(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
@@ -434,5 +440,10 @@ Params:
 Returns the 'NULL' value or an update operator.
 */
 hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
+
+// TODO: docs
+hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+hir_subject_t* HIR_generate_ref_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

@@ -16,7 +16,7 @@
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/func.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -27,7 +27,6 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include "../../../misc/lir_helper.h"
 
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm_asmgen.h>
@@ -39,7 +38,7 @@
     HIR_CG_unload(&callctx);                \
     HIR_CG_build(&cfgctx, &callctx, &smt);  \
     HIR_CG_perform_dfe(&callctx, &smt);     \
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_CG_apply_dfe(&cfgctx, &smt);
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -85,6 +84,8 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "AST tree creation error!\n");
         return 1;
     }
+
+    AST_finalize_parse(&sctx, &smt);
 
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
@@ -136,11 +137,7 @@ int main(int argc, char* argv[]) {
     LIR_RA_sort_phi_movs(&cfgctx, &colors);
     LIR_destroy_ssa(&cfgctx);
 
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        if (!lh->unused) print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 
     map_free(&colors);
     LIR_unload_blocks(lirctx.h);

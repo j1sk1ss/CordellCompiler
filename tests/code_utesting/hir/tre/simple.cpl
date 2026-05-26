@@ -14,21 +14,21 @@ function foo(i32 a) {
         i32s %0 = alloc;
         i32s %0 = load_starg();
         {
-            lb31:
+            lb32:
             i32t %2 = i8n 10 as i32;
             i32t %1 = i32s %0 > i32t %2;
-            if i32t %1, goto lb10, else goto lb12;
-            lb10:
+            if i32t %1, goto lb11, else goto lb13;
+            lb11:
             {
                 return ;
             }
-            goto lb12;
-            lb12:
+            goto lb13;
+            lb13:
             i32t %4 = i8n 1 as i32;
             i32t %3 = i32s %0 + i32t %4;
             use i32t %3;
             i32s %0 = i32t %3;
-            goto lb31;
+            goto lb32;
             [unused] _main(i32t %3);
         }
     }

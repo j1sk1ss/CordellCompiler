@@ -19,17 +19,22 @@ cmp %1, 0;
 je lb11;
 jne lb10;
 BB2: lb10:
-exit $1;
+%3 = $1 as u8;
+exit %3;
 BB3: lb11:
-%4 = $2 as i32;
-%3 = %0 == %4;
-cmp %3, 0;
-je lb24;
-jne lb23;
-BB4: lb23:
-exit $2;
-BB5: lb24:
-exit $3;
-BB6: lb25:
+%5 = $2 as i32;
+%4 = %0 == %5;
+cmp %4, 0;
+je lb25;
+jne lb24;
+BB4: lb24:
+%6 = $2 as u8;
+exit %6;
+BB5: lb25:
+%7 = $3 as u8;
+exit %7;
+BB6: lb26:
+jmp lb12;
 BB7: lb12:
+send
 /:

@@ -1,4 +1,4 @@
-glob str msg = "Hello world";
+glob arr msg[0, i8] = "Hello world";
 
 :/ OUTPUT
 {

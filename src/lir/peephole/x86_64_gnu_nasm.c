@@ -37,13 +37,11 @@ Params:
 Returns 1 if the label is used somewhere in the function.
 */
 static int _find_label_usage(cfg_func_t* fb, lir_subject_t* lb) {
-    lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (fb) {
         if (
             !lh->unused && 
             LIR_is_jumpop(lh->op) && LIR_subj_equals(lh->farg, lb)
         ) return 1;
-        lh = LIR_get_next(lh, fb->lmap.exit, 1);
     }
 
     return 0;
@@ -58,8 +56,7 @@ Returns 1 if succeeds.
 */
 static int _label_pass(cfg_func_t* fb) {
     int changed = 0;
-    lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (fb) {
         if (
             !lh->unused && 
             lh->op == LIR_MKLB && !_find_label_usage(fb, lh->farg)
@@ -67,8 +64,6 @@ static int _label_pass(cfg_func_t* fb) {
             lh->unused = 1; 
             changed = 1;
         }
-
-        lh = LIR_get_next(lh, fb->lmap.exit, 1);
     }
 
     return changed;
@@ -80,10 +75,8 @@ Params:
     - `bb` - CFG block to hide.
 */
 static inline void _hide_block(cfg_block_t* bb) {
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (bb) {
         lh->unused = 1;
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 }
 
@@ -99,8 +92,7 @@ static int _deep_jump_pass(cfg_func_t* fb) {
     int changed = 0;
     foreach (cfg_block_t* bb, &fb->blocks) {
         int only_lb_and_jump = 1;
-        lir_block_t* lh = LIR_get_near_instruction(bb->lmap.entry, bb->lmap.exit, 0);
-        while (lh) {
+        iterate_lir_instructions (bb) {
             if (
                 !lh->unused && 
                 lh->op != LIR_MKLB && lh->op != LIR_JMP
@@ -108,8 +100,6 @@ static int _deep_jump_pass(cfg_func_t* fb) {
                 only_lb_and_jump = 0;
                 break;
             }
-
-            lh = LIR_get_near_instruction(lh, bb->lmap.exit, 1);
         }
         
         lir_block_t* entry_lb  = LIR_get_near_instruction(bb->lmap.entry, bb->lmap.exit, 0);
@@ -217,8 +207,7 @@ static int _recursive_cleanup(
 static int _cleanup_pass(cfg_block_t* bb) {
     int changed = 0;
     if (!bb) return 0;
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (bb) {
         if (
             !lh->unused &&
             LIR_is_writeop(lh->op) && !LIR_has_sideeffect(lh->op)
@@ -229,8 +218,6 @@ static int _cleanup_pass(cfg_block_t* bb) {
                 changed = 1;
             }
         }
-
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 
     return changed;

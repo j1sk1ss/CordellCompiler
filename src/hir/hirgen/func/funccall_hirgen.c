@@ -29,6 +29,8 @@ static symbol_id_t _resolve_function_overload(
     hir_subject_t* callee, symbol_id_t s_id, hir_subject_t* args, sym_table_t* smt, int ret, token_t* out
 ) {
     out->t_type = I64_TYPE_TOKEN;
+    if (!callee) return NO_SYMBOL_ID;
+
     func_info_t fi;
     if (
         callee->t != HIR_FNAME || 
@@ -88,6 +90,11 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_t* call_subj = NULL;
     hir_operation_t st_op    = HIR_STORE_UFCLL, op = HIR_UFCLL;
+    if (!node || !node->c || !node->c->siblings.n) {
+        HIRGEN_ERROR(ctx, "Function call: malformed AST node!");
+        return NULL;
+    }
+
     ast_node_t* args_node    = node->c->siblings.n->c;
     
     func_info_t fi = { 0 };
@@ -101,10 +108,22 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         call_subj = HIR_SUBJ_FUNCNAME(node->c);
         fi.s_id   = node->c->sinfo.s_id;
     }
+    
+    if (!call_subj) {
+        HIRGEN_ERROR(ctx, "Function call: callee generation error!");
+        return NULL;
+    }
 
     hir_subject_t* args = HIR_SUBJ_LIST();
     for (ast_node_t* arg = args_node; arg; arg = arg->siblings.n) {
         hir_subject_t* el = HIR_generate_elem(arg, ctx, smt);
+        if (!el) {
+            HIRGEN_ERROR(ctx, "Function call: argument generation error!");
+            HIR_unload_subject(args);
+            HIR_unload_subject(call_subj);
+            return NULL;
+        }
+
         if (!HIR_is_defined_type(el->t)) {
             HIR_BLOCK1(ctx, HIR_VRUSE, el);
             el = HIR_copy_subject(el);

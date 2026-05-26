@@ -10,6 +10,6 @@
 }
 
 :/ OUTPUT
-BB{X} start
+BB1: start
 send
 /:

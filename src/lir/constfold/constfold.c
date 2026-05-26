@@ -25,9 +25,8 @@ static int _apply_constfold_on_subject(lir_subject_t* s, sym_table_t* smt) {
 int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
-                iterate_lir_args(lir_subject_t* arg, lh, 0) {
+            iterate_lir_instructions (bb) {
+                iterate_lir_args (lir_subject_t* arg, lh, 0) {
                     switch (arg->t) {
                         case LIR_ARGLIST: {
                             foreach (lir_subject_t* s, &arg->storage.list.h) {
@@ -39,8 +38,6 @@ int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
                         default: _apply_constfold_on_subject(arg, smt); break;
                     }
                 }
-
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
     }

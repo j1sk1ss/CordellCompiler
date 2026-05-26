@@ -7,6 +7,7 @@ typedef enum {
     UNKNOWN,
     MACHO64,
     LINUX64,
+    I386,
     WINDOWS64
 } arch_type_t;
 
@@ -54,6 +55,7 @@ config_string_field_t CONF_get_entry_name();
 config_string_field_t CONF_get_ro_section();
 config_string_field_t CONF_get_glob_section();
 config_string_field_t CONF_get_code_section();
+config_string_field_t CONF_get_no_section();
 config_string_field_t CONF_get_timings();
 
 config_int_field_t CONF_get_full_bytness();

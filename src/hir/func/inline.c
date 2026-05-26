@@ -16,8 +16,8 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     if (!args_flatten) return 0;
 
     foreach (cfg_block_t* bb, &f->blocks) {
-        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-        while (hh && index < size) {
+        iterate_hir_instructions (bb) {
+            if (index >= size) break;
             if (hh->op == HIR_FARGLD) {
                 hir_block_t* copy = HIR_copy_block(hh, 1);
                 HIR_unload_subject(copy->sarg);
@@ -25,8 +25,6 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
                 copy->sarg = HIR_copy_subject(args_flatten[index++]);
                 HIR_insert_block_before(copy, pos);
             }
-
-            hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
     }
 
@@ -47,7 +45,7 @@ Returns 1 if succeeds.
 static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new, cfg_func_t* fb) {
     while (h) {
         if (h->op != HIR_MKLB) {
-            iterate_ref_hir_args(hir_subject_t** curr, h, 0) {
+            iterate_ref_hir_args (hir_subject_t** curr, h, 0) {
                 if (
                     (*curr)->t == HIR_LABEL && 
                     (*curr)->id == old->id
@@ -86,7 +84,7 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
     int scopes = -1;
     hir_subject_t* exit_label = HIR_SUBJ_LABEL();
     while (hh && hh->op != HIR_FEND) {
-        hir_block_t* nblock = NULL;
+        hir_block_t  *nblock = NULL, *rlb = NULL;
         if (!hh->unused) {
             nblock = HIR_copy_block(hh, 0);
             switch (hh->op) {
@@ -99,6 +97,7 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
                     break;
                 }
                 case HIR_FRET: {
+                    rlb = HIR_create_block(HIR_JMP, exit_label, NULL, NULL);
                     if (!res) goto _skip_instruction;
                     else {
                         nblock->op   = HIR_STORE;
@@ -113,10 +112,6 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
 
         if (nblock) {
             HIR_insert_block_before(nblock, pos);
-            if (hh->op == HIR_FRET) {
-                HIR_insert_block_before(HIR_create_block(HIR_JMP, exit_label, NULL, NULL), pos);
-            }
-
             if (!nentry) {
                 nentry = nblock;
             }
@@ -124,6 +119,11 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
         else {
 _skip_instruction: {}
             HIR_unload_blocks(nblock);
+        }
+
+        if (rlb) {
+            HIR_insert_block_before(rlb, pos);
+            rlb = NULL;
         }
 
         hh = HIR_FUNC_get_next(hh, f, NULL, 1);
@@ -264,14 +264,12 @@ static int _collect_information(
     info->src_info.bb_size = list_size(&f->blocks);
     foreach (cfg_block_t* bb, &f->blocks) {
         info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
-        hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-        while (hh) {
+        iterate_hir_instructions (bb) {
             if (HIR_is_funccall(hh->op)) info->src_info.funccals++;
             if (
                 hh->op == HIR_SYSC || 
                 hh->op == HIR_STORE_SYSC
             ) info->src_info.syscalls++; 
-            hh = HIR_get_next(hh, bb->hmap.exit, 1);
         }
     }
     
@@ -324,40 +322,8 @@ static int _inline_candidate(
     return checker((int*)&iinfo, (int)sizeof(inline_candidate_info_t));
 }
 
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int)) {
-    foreach (cfg_func_t* fb, &cctx->funcs) {
-        /* Collect information about the environment
-           - Basic information about the loops */
-        foreach (cfg_block_t* bb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-            while (hh) {
-                if (HIR_is_funccall(hh->op)) {
-                    cfg_func_t* trg;
-                    if (map_get(&cctx->fmap, hh->sarg->storage.str.s_id, (void**)&trg)) {
-                        if (_inline_candidate(trg, bb, hh, lctx, smt, checker) && fb != trg) {
-                            _inline_arguments(trg, &hh->targ->storage.list.h, hh);
-                            
-                            hir_subject_t* res = NULL;
-                            if (
-                                hh->op == HIR_STORE_FCLL || 
-                                hh->op == HIR_STORE_ECLL
-                            ) res = hh->farg;
-                            
-                            _inline_function(trg, res, hh);
-                            hh->unused = 1;
-                        }
-                    }
-                }
 
-                hh = HIR_get_next(hh, bb->hmap.exit, 1);
-            }
-        }
-    }
-
-    return 1;
-}
-
-int HIR_FUNC_inline_heuristic_desider(int* data, int size) {
+static int _inline_heuristic_desider(int* data, int size) {
     if (!data || size != sizeof(inline_candidate_info_t)) return 0;
     inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
     int score = 0;
@@ -368,4 +334,70 @@ int HIR_FUNC_inline_heuristic_desider(int* data, int size) {
     score -= parsed->src_info.loop_count * (parsed->src_info.loop_nested + 1) * 2; /* If we have a loop in the source function  */
     score += parsed->dst_info.loop_nested * parsed->dst_info.loop_nested;          /* If we're in a loop at the destination pos */
     return score >= 3;
+}
+
+static int _inline_model_desider(int* data, int size) {
+    if (!data || size != sizeof(inline_candidate_info_t)) return 0;
+    inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
+
+    double x[INLINE_FEATURE_COUNT] = { 0 };
+    // x[INLINE_FEATURE_CALLER_BLOCK_ID] = 10;
+    x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_IS_DOM]     = parsed->dst_info.is_dom;
+    x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_NEAR_BREAK] = parsed->dst_info.near_break;
+    // x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_SAME_INST_BEFORE] = 0;
+    // x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_SAME_INST_AFTER] = 0;
+    x[INLINE_FEATURE_CALLEE_INFO_BB_COUNT]               = parsed->src_info.bb_size;
+    x[INLINE_FEATURE_CALLEE_INFO_FUNCCALLS]              = parsed->src_info.funccals;
+    x[INLINE_FEATURE_CALLEE_INFO_IR_COUNT]               = parsed->src_info.hir_size;
+    x[INLINE_FEATURE_CALLEE_INFO_IS_START]               = parsed->dst_info.is_start;
+    x[INLINE_FEATURE_CALLEE_INFO_SYSCALLS]               = parsed->src_info.syscalls;
+    x[INLINE_FEATURE_CALLER_LOOP_INFO_LOOP_NESTED]       = parsed->dst_info.loop_nested;
+    x[INLINE_FEATURE_CALLER_LOOP_INFO_LOOP_SIZE_BB]      = parsed->dst_info.loop_size_bb;
+    x[INLINE_FEATURE_CALLER_LOOP_INFO_LOOP_SIZE_IR]      = parsed->dst_info.loop_size_hir;
+    // x[INLINE_FEATURE_CALLER_HAS_LOOP_INFO] = 1;
+    x[INLINE_FEATURE_CALLER_NEAR_BREAK_MISSING]          = parsed->dst_info.near_break;
+    // x[INLINE_FEATURE_CALLEE_IS_LEAF] = 1;
+    // x[INLINE_FEATURE_CALLEE_CALLS_PER_BB] = 0;
+    // x[INLINE_FEATURE_CALLEE_IR_PER_BB] = 4;
+
+    return inline_model_predict(x);
+}
+
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        /* Collect information about the environment
+           - Basic information about the loops */
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            iterate_hir_instructions (bb) {
+                if (HIR_is_funccall(hh->op)) {
+                    func_info_t trg_fi;
+                    if (!FNTB_get_info_id(hh->sarg->storage.str.s_id, &trg_fi, &smt->f)) continue;
+                    cfg_func_t* trg;
+                    if (!map_get(&cctx->fmap, hh->sarg->storage.str.s_id, (void**)&trg)) continue;
+
+                    if (
+                        trg_fi.flags.inln == ALWAYS_INLINE ||
+                        (
+                            trg_fi.flags.inln != NEVER_INLINE &&
+                            _inline_candidate(
+                                trg, bb, hh, lctx, smt, 
+                                trg_fi.flags.inln == MODEL_INLINE ? _inline_model_desider : _inline_heuristic_desider
+                            ) && fb != trg
+                        )
+                    ) {
+                        hir_subject_t* res = NULL;
+                        if (
+                            hh->op == HIR_STORE_FCLL || 
+                            hh->op == HIR_STORE_ECLL
+                        ) res = hh->farg;
+                        _inline_arguments(trg, &hh->targ->storage.list.h, hh);
+                        _inline_function(trg, res, hh);
+                        hh->unused = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    return 1;
 }

@@ -17,6 +17,7 @@
   - [Control flow statements](pages/control-flow-statements.md)
   - [Functions and built-ins](pages/functions-and-inbuilt-macros.md)
   - [Scopes](pages/scopes.md)
+  - [Containers](pages/containers.md)
   - [Annotations](pages/annotations.md)
   - [Macros & include](pages/macros-amp-include.md)
   - [Keywords](pages/keywords.md)

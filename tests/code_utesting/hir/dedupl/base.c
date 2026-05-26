@@ -18,7 +18,7 @@
 #include <hir/dump.h>
 #include <hir/cfg.h>
 
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -65,6 +65,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
     
@@ -74,7 +76,7 @@ int main(int argc, char* argv[]) {
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);
     HIR_CG_perform_dfe(&callctx, &smt);
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_CG_apply_dfe(&cfgctx, &smt);
 
     HIR_FUNC_delete_duplicated_functions(&cfgctx);
 

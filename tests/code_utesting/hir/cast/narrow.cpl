@@ -3,14 +3,13 @@ start() {
 }
 
 :/ OUTPUT
-[/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmpcj8wm8ki.cpl:2:9] Narrow implicit cast is forbidden!
+[{X}:2:9] Narrow implicit cast is forbidden!
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i32s %0 = alloc;
-                i32s %0 = i64n 10000000000;
-            }
+            i32s %0 = alloc;
+            i32s %0 = i64n 10000000000;
         }
     }
 }

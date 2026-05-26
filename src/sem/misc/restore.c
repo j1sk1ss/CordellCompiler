@@ -6,8 +6,6 @@ const char* RST_restore_type(token_t* t) {
         case VAR_ARGUMENTS_TOKEN:   return VAR_ARGUMENTS_COMMAND;
         case ARRAY_TYPE_TOKEN:
         case ARR_VARIABLE_TOKEN:    return ARR_VARIABLE;
-        case STR_TYPE_TOKEN:
-        case STR_VARIABLE_TOKEN:    return !t->flags.ptr ? STR_VARIABLE : "ptr " STR_VARIABLE;
         case I0_VARIABLE_TOKEN:
         case I0_TYPE_TOKEN:         return !t->flags.ptr ? I0_VARIABLE  : "ptr " I0_VARIABLE;
         case I8_VARIABLE_TOKEN:

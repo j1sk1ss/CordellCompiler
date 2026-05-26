@@ -44,7 +44,7 @@
     #include <hir/func.h>
     #include <hir/loop.h>
 #endif
-    #include "misc/hir_helper.h"
+    #include "misc/cfg_helper.h"
 #endif
 
 #ifdef LIR_TESTING
@@ -72,7 +72,7 @@
     #include <lir/peephole/peephole.h>
     #include <lir/peephole/x86_64_gnu_nasm.h>
 #endif
-    #include "misc/lir_helper.h"
+    #include <lir/dump.h>
 #endif
 
 #ifdef CODEGEN_TESTING
@@ -148,6 +148,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
     RST_restore_code(stdout, sctx.r, NULL, 0);
 #ifdef AST_OPT_TESTING
     OPT_condunroll(&sctx); // Transform
@@ -188,7 +189,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
     HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &smt);    // Analyzation
     call_graph_print_dot(&callctx);
     
 #ifdef HIR_PRINT
@@ -245,11 +246,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_generate(&cfgctx, &lirctx, &smt);        // Analyzation
 #ifdef LIR_PRINT
     printf("\n\n========== LIRv1 ==========\n");
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 #endif
 
 #ifdef LIR_INSTPLAN_TESTING
@@ -259,11 +256,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     TRGINF_unload(&trginfo);
 #ifdef LIR_PRINT
     printf("\n\n========== LIR planned instructions ==========\n");
-    lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 #endif
 #endif
 
@@ -275,11 +268,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_select_instructions(&cfgctx, &smt, &inst_sel); // Transform
 #ifdef LIR_PRINT
     printf("\n\n========== LIR selected instructions ==========\n");
-    lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 #endif
 #endif
 
@@ -290,11 +279,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_apply_sparse_const_propagation(&cfgctx, &smt); // Transform
 #ifdef LIR_PRINT
     printf("\n\n========== LIR const folded ==========\n");
-    lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 #endif
 #endif
 
@@ -321,11 +306,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 #ifdef LIR_PRINT
     printf("Register colors:\n"); colors_regalloc_dump_dot(&colors);
     printf("\n\n========== LIR planned and regalloc ==========\n");
-    lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 #endif
 #endif
 
@@ -334,11 +315,7 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
     LIR_peephole_optimization(&cfgctx, &pph);
 #ifdef LIR_PRINT
     printf("\n\n========== LIR peephole optimization ==========\n");
-    lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 #endif
     register_saver_t reg_save = {
         .save_registers = x86_64_gnu_nasm_caller_saving

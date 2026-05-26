@@ -4,7 +4,7 @@ CPL is an experimental language and compiler implementation. This page states th
 
 ## Current status
 
-The compiler can build and run non-trivial low-level examples, including pointer-heavy code, string traversal, direct syscall usage, inline assembly, and benchmark programs. The documentation currently describes CPL v3.5-era behavior.
+The compiler can build and run non-trivial low-level examples, including pointer-heavy code, string traversal, direct syscall usage, inline assembly, containers, and benchmark programs. The documentation currently describes CPL v3.5-era behavior.
 
 The implementation includes:
 
@@ -25,6 +25,7 @@ The language currently supports:
 - primitive integer and floating-point types;
 - pointer operations through `ptr`, `ref`, and `dref`;
 - strings and fixed-size arrays;
+- user-defined value-layout containers with fields, nested containers, array fields, generic functions, and explicit `@[self]` methods;
 - basic control flow and switch lowering annotations;
 - functions, overloads, generic functions, default arguments, local functions, lambdas, and function pointers;
 - direct syscalls and inline assembly;
@@ -35,7 +36,7 @@ The language currently supports:
 
 CPL currently does not support:
 
-- user-defined structures, classes, enums, traits, or modules;
+- classes, enums, traits, modules, inheritance, or virtual dispatch;
 - memory safety guarantees;
 - ownership, borrowing, or lifetime checking;
 - a stable ABI or package ecosystem;

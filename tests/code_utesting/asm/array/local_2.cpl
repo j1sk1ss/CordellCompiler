@@ -10,31 +10,34 @@ start() {
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-sub rsp, 40
-mov byte [rbp - 40], 1
-mov byte [rbp - 36], 2
-mov byte [rbp - 32], 3
-mov byte [rbp - 28], 4
-mov byte [rbp - 24], 5
-mov byte [rbp - 20], 6
-mov byte [rbp - 16], 7
-mov byte [rbp - 12], 8
-mov byte [rbp - 8], 9
-mov byte [rbp - 4], 10
-lea rdx, [rbp - 40]
-mov al, 0
-imul al, 4
-movsx r8, al
-mov rdi, r8
-mov rax, rdx
-add rax, rdi
-mov r9, rax
-mov ebx, [r9]
-mov r10b, bl
-mov dl, r10b
-mov rax, 0x2000001
-syscall
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 40
+    mov     dword [rbp - 40], 1
+    mov     dword [rbp - 36], 2
+    mov     dword [rbp - 32], 3
+    mov     dword [rbp - 28], 4
+    mov     dword [rbp - 24], 5
+    mov     dword [rbp - 20], 6
+    mov     dword [rbp - 16], 7
+    mov     dword [rbp - 12], 8
+    mov     dword [rbp - 8], 9
+    mov     dword [rbp - 4], 10
+    lea     rbx, [rbp - 40]
+    mov     eax, 0
+    imul    eax, 4
+    mov     cl, eax
+    movsx   rdx, cl
+    mov     rax, rbx
+    add     rax, rdx
+    mov     rcx, rax
+    mov     ecx, [rcx]
+    mov     cl, cl
+    mov     cl, cl
+    mov     dil, cl
+    mov     rax, 60
+    syscall
 ; BB2:
+    mov     rax, 60
+    syscall
 /:

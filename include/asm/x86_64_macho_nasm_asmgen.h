@@ -4,15 +4,13 @@
 #include <std/mem.h>
 #include <std/str.h>
 #include <std/math.h>
+#include <asm/formatters/nasm_formatter.h>
 #include <prep/token_types.h>
 #include <symtab/symtab.h>
 #include <hir/hir.h>
 #include <hir/cfg.h>
 #include <lir/lir.h>
 #include <lir/lirgen.h>
-
-#define EMIT_COMMAND(cmd, ...)      fprintf(output, cmd "\n", ##__VA_ARGS__)
-#define EMIT_PART_COMMAND(cmd, ...) fprintf(output, cmd, ##__VA_ARGS__)
 
 /*
 Main generator script. Generation based on linear LIR instead of LIR CFG.

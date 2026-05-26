@@ -43,7 +43,8 @@ typedef enum {
     PTR_TYPE_TOKEN,        // ptr
     RO_TYPE_TOKEN,         // ro
     GLOB_TYPE_TOKEN,       // glob
-    NEGATIVE_TOKEN,        // not
+    NOT_TOKEN,             // not
+    NEGATIVE_TOKEN,        // neg
 
     // Data types
     VAR_ARGUMENTS_TOKEN,   // ...
@@ -61,6 +62,7 @@ typedef enum {
     TMP_I0_TYPE_TOKEN,     // tmp_i0
     TMP_STR_TYPE_TOKEN,    // tmp_str
 
+    CUSTOM_TYPE_TOKEN,     // ?
     GENERIC_TYPE_TOKEN,    // T
     I0_TYPE_TOKEN,         // i0
     F64_TYPE_TOKEN,        // f64
@@ -73,7 +75,6 @@ typedef enum {
     U32_TYPE_TOKEN,        // u32
     U16_TYPE_TOKEN,        // u16
     U8_TYPE_TOKEN,         // u8
-    STR_TYPE_TOKEN,        // str
     ARRAY_TYPE_TOKEN,      // arr
     
     // Convert statements
@@ -89,6 +90,10 @@ typedef enum {
     RETURN_TYPE_TOKEN,     // ->
     SCOPE_TOKEN,           // {  }
     ANNOTATION_TOKEN,      // @
+
+    CONTAINER_TOKEN,
+    MEMBER_ACCESS_TOKEN,
+    DOT_TOKEN,
 
     // Function
     ASM_TOKEN,             // asm
@@ -142,6 +147,7 @@ typedef enum {
     
     // Variables (not a type, a variable)
     RESOLVED_TYPE_TOKEN,
+    CUSTOM_VARIABLE_TOKEN,
     GENERIC_VARIABLE_TOKEN,
     VARIABLE_TOKEN,        // front-end tokenizer variable abstraction
     F64_VARIABLE_TOKEN,    // f64
@@ -155,7 +161,6 @@ typedef enum {
     U32_VARIABLE_TOKEN,    // u32
     U16_VARIABLE_TOKEN,    // u16
     U8_VARIABLE_TOKEN,     // u8
-    STR_VARIABLE_TOKEN,    // str
     ARR_VARIABLE_TOKEN,    // arr
 
     // Values
@@ -208,6 +213,7 @@ int TKN_is_sign(token_t* token, char ptr);
 int TKN_is_float(token_t* token);
 int TKN_is_update_operator(token_t* token);
 type_size_t TKN_variable_bitness(token_t* token, char ptr);
+long TKN_convert_type_size(type_size_t t);
 int TKN_token_priority(token_t* token);
 token_type_t TKN_get_var_from_type(token_type_t t);
 

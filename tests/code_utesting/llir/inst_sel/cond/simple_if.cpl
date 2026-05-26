@@ -16,7 +16,8 @@ jne lb12;
 BB2: lb12:
 %2 = $1;
 %3 = %2;
-exit %3;
+%4 = %3;
+exit %4;
 BB3: lb14:
 fend
 /:

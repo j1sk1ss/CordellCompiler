@@ -103,24 +103,25 @@ Returns 1 if operation is a value-moving write, otherwise 0.
 */
 static int _is_move_write_by_value(lir_operation_t op) {
     switch (op) {
+        case LIR_NEG:
+        case LIR_NOT:
+        case LIR_aMOV:
+        case LIR_iMOV:
         case LIR_XCHG:
+        case LIR_MOVZX:
+        case LIR_MOVSX:
+        case LIR_phiMOV:
+        case LIR_MOVSXD:
         case LIR_STARGLD:
         case LIR_STARGRF:
         case LIR_LOADFRET:
         case LIR_LOADFARG:
-        case LIR_NOT:
-        case LIR_CVTTSS2SI:
-        case LIR_CVTTSD2SI:
         case LIR_CVTSI2SS:
         case LIR_CVTSI2SD:
         case LIR_CVTSS2SD:
         case LIR_CVTSD2SS:
-        case LIR_phiMOV:
-        case LIR_aMOV:
-        case LIR_iMOV:
-        case LIR_MOVSX:
-        case LIR_MOVSXD:
-        case LIR_MOVZX:
+        case LIR_CVTTSS2SI:
+        case LIR_CVTTSD2SI:
         case LIR_fMOV: return 1;
         default: return 0;
     }
@@ -135,31 +136,14 @@ int LIR_is_movop(lir_operation_t op) {
 
 int LIR_is_writeop(lir_operation_t op) {
     switch (op) {
-        case LIR_TF64:
-        case LIR_TF32:
-        case LIR_TI64:
-        case LIR_TI32:
-        case LIR_TI16:
-        case LIR_TI8: 
-        case LIR_TU64:
-        case LIR_TU32:
-        case LIR_TU16:
+        case LIR_TF64: case LIR_TF32:
+        case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8: 
+        case LIR_TU64: case LIR_TU32: case LIR_TU16:
         case LIR_POP:
-        case LIR_bXOR:
-        case LIR_bSHL:
-        case LIR_bSHR:
-        case LIR_bSAR:
-        case LIR_bAND:
-        case LIR_bOR:
-        case LIR_fADD: 
-        case LIR_fSUB: 
-        case LIR_fMUL: 
-        case LIR_fDIV: 
-        case LIR_iADD: 
-        case LIR_iSUB: 
-        case LIR_iMUL: 
+        case LIR_bXOR: case LIR_bSHL: case LIR_bSHR: case LIR_bSAR: case LIR_bAND: case LIR_bOR:
+        case LIR_fADD: case LIR_fSUB: case LIR_fMUL: case LIR_fDIV: 
+        case LIR_iADD: case LIR_iSUB: case LIR_iMUL: case LIR_iDIV: 
         case LIR_DIV:  
-        case LIR_iDIV: 
         case LIR_GDREF:
         case LIR_REF_GDREF:
         case LIR_REF: return 1;

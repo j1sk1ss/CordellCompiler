@@ -80,6 +80,11 @@ typedef struct cfg_block {
     set_t             prev_out; /* Prev IN{} set               */
 } cfg_block_t;
 
+#define iterate_hir_instructions(bb) \
+    for (hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0); hh; hh = HIR_get_next(hh, bb->hmap.exit, 1))
+#define iterate_lir_instructions(bb) \
+    for (lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0); lh; lh = LIR_get_next(lh, bb->lmap.exit, 1))
+
 typedef struct {
     long       cid;   /* Current block number: Service info */
     list_t     funcs; /* Function blocks                    */

@@ -1,198 +1,3 @@
-/* Main parser logic. This parser bases on the BNF that is provided below:
-identifier       = "IDENTIFIER" ;
-integer_literal  = "INTEGER_LITERAL" ;
-float_literal    = "FLOAT_LITERAL" ;
-string_literal   = "STRING_LITERAL" ;
-char_literal     = "CHAR_LITERAL" ;
-comment          = "COMMENT" ;
-eol              = "EOL" ;
-
-program        = "{" , { top_item } , "}" ;
-
-top_item       = start_function
-               | import_op
-               | extern_op
-               | pp_directive
-               | storage_opt , top_decl ;
-
-import_op      = "from" , string_literal , , [ import_list ] ;
-import_list    = import_item , { "," , import_item } ;
-import_item    = identifier ;
-
-extern_op = "extern" , ( extern_function_proto | var_prototype ) ;
-extern_function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
-var_prototype      = type , identifier ;
-
-storage_opt    = [ "glob" | "ro" ] ;
-
-top_decl       = declaration | function_def | function_proto ;
-
-declaration    = var_decl | arr_decl ;
-
-function_def   = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , block ;
-function_proto = "function" , identifier , "(" , [ param_list ] , ")" , [ "->" , type ] , ";" ;
-start_function = "start" , "(" , [ param_list ] , ")" , block ;
-
-param_list     = param , { "," , param } ;
-param          = type , identifier , [ "=" , expression ] | "..." ;
-
-block          = "{" , { block_item } , "}" ;
-
-block_item     = statement
-               | function_def
-               | function_proto ;
-
-statement =
-    "arr" , arr_stmt_tail
-  | pp_directive
-  | if_statement
-  | loop_statement
-  | while_statement
-  | switch_statement
-  | return_statement
-  | exit_statement
-  | break_statement
-  | lis_statement
-  | syscall_statement
-  | asm_block
-  | align_stmt
-  | comment
-  | block
-  | var_decl_starting_not_arr
-  | expression_statement ;
-
-arr_stmt_tail =
-    identifier , "[" , integer_literal , "," , type , "]" , [ "=" , ( expression | arr_value ) ] , ";"
-  | "[" , integer_literal , "," , type , "]" , identifier , [ "=" , expression ] , ";" ;
-
-pp_directive   = "#" , pp_body , pp_end ;
-pp_end         = eol | ";" ;
-pp_body        = pp_line
-               | pp_include
-               | pp_define
-               | pp_undef
-               | pp_ifdef
-               | pp_ifndef
-               | pp_endif ;
-
-pp_line        = "line" , integer_literal , [ string_literal ] ;
-pp_include     = "include" , string_literal ;
-pp_define      = "define" , identifier , { pp_token } ;
-pp_undef       = "undef" , identifier ;
-pp_ifdef       = "ifdef" , identifier ;
-pp_ifndef      = "ifndef" , identifier ;
-pp_endif       = "endif" ;
-
-pp_token       = identifier
-               | literal
-               | keyword
-               | punct_no_semi
-               | operator ;
-
-keyword        = "extern" | "exfunc" | "glob" | "ro"
-               | "function" | "start"
-               | "arr"
-               | "if" | "else" | "loop" | "while"
-               | "switch" | "case" | "default"
-               | "return" | "exit" | "break" | "lis"
-               | "syscall" | "asm"
-               | "not" | "ref" | "dref" | "as"
-               | "ptr" | "str"
-               | "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
-               | "line" | "include" | "define" | "undef" | "ifdef" | "ifndef" | "endif"
-               | "section" | "align" ;
-
-punct_no_semi  = "{" | "}" | "(" | ")" | "[" | "]" | "," ;
-
-operator       = "->"
-               | "==" | "!=" | "<=" | ">="
-               | "<<" | ">>"
-               | "||" | "&&"
-               | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&="
-               | "="  | "<"  | ">"  | "+"  | "-"  | "*"  | "/"  | "%"  | "|"  | "^"  | "&" ;
-
-var_decl       = type , identifier , [ "=" , expression ] , ";" ;
-
-var_decl_starting_not_arr = non_arr_type , identifier , [ "=" , expression ] , ";" ;
-
-non_arr_type   = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
-               | "str"
-               | "ptr" , type ;
-
-arr_decl       = "arr" , identifier , "[" , integer_literal , "," , type , "]" ,
-                 [ "=" , ( expression | arr_value ) ] , ";" ;
-
-arr_value      = "{" , [ arr_value_list ] , "}" ;
-arr_value_list = expression , { "," , expression } ;
-
-if_statement     = "if" , expression , ";" , statement , [ "else" , statement ] ;
-loop_statement   = "loop" , statement ;
-while_statement  = "while" , expression , ";" , statement ;
-
-switch_statement = "switch" , expression , ";" ,
-                   "{" , { case_block } , [ default_block ] , "}" ;
-case_block       = "case" , literal , ";" , block ;
-default_block    = "default" , [ ";" ] , block ;
-
-return_statement = "return" , [ expression ] , ";" ;
-exit_statement   = "exit" , expression , ";" ;
-break_statement  = "break" , ";" ;
-lis_statement    = "lis" , [ string_literal ] , ";" ;
-
-expression_statement = expression , ";" ;
-
-syscall_statement = "syscall" , "(" , [ expression_list ] , ")" , ";" ;
-expression_list   = expression , { "," , expression } ;
-
-asm_block      = "asm" , "(" , [ asm_args ] , ")" , "{" , { asm_line } , "}" ;
-asm_args       = asm_arg , { "," , asm_arg } ;
-asm_arg        = identifier | literal ;
-asm_line       = string_literal , [ "," ] ;
-
-expression     = assign ;
-
-assign         = logical_or , [ assign_op , assign ] ;
-assign_op      = "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "|=" | "^=" | "&=" | "||=" | "&&=" ;
-
-logical_or     = logical_and , { "||" , logical_and } ;
-logical_and    = bit_or      , { "&&" , bit_or } ;
-
-bit_or         = bit_xor     , { "|"  , bit_xor } ;
-bit_xor        = bit_and     , { "^"  , bit_and } ;
-bit_and        = equality    , { "&"  , equality } ;
-
-equality       = relational  , { ( "==" | "!=" ) , relational } ;
-relational     = shift       , { ( "<" | "<=" | ">" | ">=" ) , shift } ;
-shift          = add         , { ( "<<" | ">>" ) , add } ;
-add            = mul         , { ( "+" | "-" ) , mul } ;
-mul            = unary       , { ( "*" | "/" | "%" ) , unary } ;
-
-unary          = unary_op , unary
-               | postfix ;
-
-unary_op       = "not" | "+" | "-" | ref_op | dref_op ;
-ref_op         = "ref" ;
-dref_op        = "dref" ;
-
-postfix        = primary , { postfix_op } ;
-postfix_op     = "(" , [ arg_list ] , ")"
-               | "[" , expression , { "," , expression } , "]"
-               | "as" , type ;
-
-primary        = literal
-               | identifier
-               | "(" , expression , ")" ;
-
-arg_list       = expression , { "," , expression } ;
-
-type           = "f64" | "i64" | "u64" | "f32" | "i32" | "u32" | "i16" | "u16" | "i8" | "u8"
-               | "str"
-               | "arr" , "[" , integer_literal , "," , type , "]"
-               | "ptr" , type ;
-
-literal        = integer_literal | float_literal | string_literal | char_literal ;
-*/
-
 #ifndef CPL_PARSER_H_
 #define CPL_PARSER_H_
 
@@ -218,6 +23,12 @@ literal        = integer_literal | float_literal | string_literal | char_literal
 #define CREATE_INDEX_TOKEN  TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_CALL_TOKEN   TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_LAMBDA_TOKEN TKN_create_token(LAMBDA_FUNCTION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_ACCESS_TOKEN TKN_create_token(MEMBER_ACCESS_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+
+#define WRAP_REFERENCE_NODE(nd) \
+    ast_node_t* __pp = AST_create_node_bt(TKN_create_token(REF_TYPE_TOKEN, "ref", NULL)); \
+    AST_add_node(__pp, nd);                                                               \
+    nd = __pp;                                                                            \
 
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
@@ -252,6 +63,8 @@ Params:
 Returns NO_SYMBOL_ID if it isn't a registered type or id from the table.
 */
 symbol_id_t type_lookup(token_t* t, ast_ctx_t* ctx, sym_table_t* smt);
+#define EXTRACT_TYPE_TYPE(id, smt) \
+    TPTB_get_type_type_id(id, &smt->t) == TYPE_GENERICS ? GENERIC_TYPE_TOKEN : CUSTOM_TYPE_TOKEN
 
 /*
 Search for a variable (presented in the node) on the symtable.
@@ -681,53 +494,8 @@ Returns an ast node.
 */
 ast_node_t* cpl_parse_conv(PARSER_ARGS);
 
-/*
-Parse .cpl 'ref' command. Should be invoked on a 'ref' token.
-Snippet:
-```cpl
-i32 b = ref variable;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_ref(PARSER_ARGS);
-
-/*
-Parse .cpl 'dref' command. Should be invoked on a 'dref' token.
-Snippet:
-```cpl
-i32 b = dref variable;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_dref(PARSER_ARGS);
-
-/*
-Parse .cpl 'neg' command. Should be invoked on a 'neg' token.
-Snippet:
-```cpl
-i32 b = neg variable;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_neg(PARSER_ARGS);
+// TODO: docs
+ast_node_t* cpl_parse_unary(PARSER_ARGS);
 
 /*
 Parse an annotation and push it onto the stack.
@@ -755,5 +523,8 @@ Params:
 Returns an AST node.
 */
 ast_node_t* cpl_parse_sizeof(PARSER_ARGS);
+
+// TODO: docs
+ast_node_t* cpl_parse_contdef(PARSER_ARGS);
 
 #endif

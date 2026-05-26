@@ -11,7 +11,6 @@ This page lists the language keywords that are recognized by the current tokeniz
 | `glob` | global symbol | `glob i32 counter = 0;` |
 | `ro` | read-only data | `ro i32 answer = 42;` |
 | `arr` | array declaration | `arr a[3, i8] = { 'A', 'B', 'C' };` |
-| `str` | string object | `str msg = "hello";` |
 
 ## Types and pointer operators
 
@@ -47,3 +46,4 @@ This page lists the language keywords that are recognized by the current tokeniz
 | `syscall` | target-dependent system call | `syscall(0x2000004, 1, ref c, 1);` |
 | `asm` | inline assembly block | `asm(x) { "mov rax, %0" }` |
 | `not` | boolean-like negation | `not x` |
+| `neg` | bitwise inversion | `neg x` |

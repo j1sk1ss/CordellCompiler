@@ -19,14 +19,13 @@ start() {
             use i32t %3;
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                arrs %1 = arr_alloc(i8n 10);
-                i32t** %4 = &(arrs %1);
-                use i32t** %4;
-                foo0(i32t** %4);
-            }
+            arrs %1 = arr_alloc(i8n 10);
+            i32t** %4 = &(arrs %1);
+            use i32t** %4;
+            foo0(i32t** %4);
         }
     }
 }

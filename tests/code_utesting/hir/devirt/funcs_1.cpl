@@ -8,15 +8,15 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                foo0();
-                i32t %1 = i8n 10 as i32;
-                use i32t %1;
-                foo1(i32t %1);
-                exit i8n 0;
-            }
+            foo0();
+            i32t %1 = i8n 10 as i32;
+            use i32t %1;
+            foo1(i32t %1);
+            u8t %2 = i8n 0 as u8;
+            exit u8t %2;
         }
     }
 }

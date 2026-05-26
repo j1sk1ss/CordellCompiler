@@ -1,6 +1,6 @@
 function printf(ptr i8 fmt);
 start() {
-    str msg = "Hello world!";
+    arr msg[0, i8] = "Hello world!";
     printf(msg);
 }
 
@@ -10,15 +10,17 @@ section .rodata
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-sub rsp, 16
-mov dword [rbp - 16], 1819043144
-mov dword [rbp - 12], 1870078063
-mov dword [rbp - 8], 560229490
-mov byte [rbp - 4], 0
-mov rdi, qword [rbp - 16]
-call _cpl_printf0
-mov rax, 0x2000001
-syscall
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 16
+    mov     dword [rbp - 16], 1819043144
+    mov     dword [rbp - 12], 1870078063
+    mov     dword [rbp - 8], 560229490
+    mov     byte [rbp - 4], 0
+    push    rdi
+    mov     rdi, qword [rbp - 16]
+    call    _cpl_printf0
+    pop     rdi
+    mov     rax, 60
+    syscall
 /:

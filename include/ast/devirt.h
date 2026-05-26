@@ -13,9 +13,9 @@ typedef struct {
 } template_t;
 
 typedef struct {
-    map_t templates; /* FuncId <-> Template                                 */
-    queue_t to_impl; /* The list which contains templates to implementation */
-    set_t   impl;    /* FuncId that are implemented                         */
+    map_t   templates; /* FuncId <-> Template                                 */
+    queue_t to_impl;   /* The list which contains templates to implementation */
+    set_t   impl;      /* FuncId that are implemented                         */
 } devirt_ctx_t;
 
 int AST_DVRT_init_ctx(devirt_ctx_t* ctx);
@@ -25,5 +25,6 @@ int AST_DVRT_pop_implementation(sym_table_t* smt, devirt_ctx_t* ctx, ast_node_t*
 int AST_DVRT_unload_ctx(devirt_ctx_t* ctx);
 int AST_DVRT_find_templates(ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx);
 int AST_DVRT_resolve_calls(ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx);
+int AST_DVRT_move_container_functions(ast_node_t* root, queue_t* out);
 
 #endif

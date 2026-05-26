@@ -9,7 +9,7 @@ function foo() {
 }
 
 start() {
-    exit foo();
+    exit foo() as u8;
 }
 
 :/ OUTPUT
@@ -28,12 +28,12 @@ start() {
             return i8n 2;
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                i64t %0 = foo1();
-                exit i64t %0;
-            }
+            i64t %1 = foo1();
+            u8t %0 = i64t %1 as u8;
+            exit u8t %0;
         }
     }
 }

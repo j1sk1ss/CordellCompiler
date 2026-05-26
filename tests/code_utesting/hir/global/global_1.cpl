@@ -6,15 +6,14 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i32s %1 = alloc;
-                i32t %2 = i8n 1 as i32;
-                i32t %3 = i32g %0 + i32t %2;
-                i32s %1 = i32t %3;
-                i32g %0 = i32s %1;
-            }
+            i32s %1 = alloc;
+            i32t %2 = i8n 1 as i32;
+            i32t %3 = i32g %0 + i32t %2;
+            i32s %1 = i32t %3;
+            i32g %0 = i32s %1;
         }
     }
 }

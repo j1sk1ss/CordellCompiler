@@ -34,10 +34,9 @@ int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
         set_init(&use, SET_NO_CMP);
         set_init(&def, SET_NO_CMP);
         foreach (cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 if (!lh->unused) {
-                    iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+                    iterate_lir_args (lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
                         _mark_used_var(&use, arg);
                     }
 
@@ -56,8 +55,6 @@ int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
                         default: break;
                     }
                 }
-
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
 
@@ -85,7 +82,7 @@ Params:
 Returns 1 if succeeds.
 */
 static int _replace_with_copy(lir_block_t* l, map_t* gen, lir_subject_type_t t) {
-    iterate_ref_lir_args(lir_subject_t** curr, l, LIR_is_writeop(l->op)) {
+    iterate_ref_lir_args (lir_subject_t** curr, l, LIR_is_writeop(l->op)) {
         lir_subject_t* dst;
         if (
             (*curr)->t == t && 
@@ -105,15 +102,16 @@ static int _replace_with_copy(lir_block_t* l, map_t* gen, lir_subject_type_t t) 
     return 1;
 }
 
-int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
+int LIR_variable_copy_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         set_t non_ssa;
         set_init(&non_ssa, SET_NO_CMP);
         map_t gen;
         map_init(&gen, MAP_NO_CMP);
         foreach (cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
+                long sarg_size = 0;
+                if (lh->sarg) sarg_size = lh->sarg->size;
                 if (!lh->unused) switch (lh->op) {
                     case LIR_TF64: case LIR_TF32:
                     case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8: 
@@ -121,9 +119,12 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
                     case LIR_TU8: if (
                         lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL
                     ) break;
+                    sarg_size = lh->farg->size;
                     case LIR_aMOV:
                     case LIR_iMOV: {
                         if (lh->farg->t != LIR_VARIABLE) break;
+                        variable_info_t vi;
+                        if (!VRTB_get_info_id(lh->farg->storage.var.v_id, &vi, &smt->v) || vi.vfs.glob) break;
                         _replace_with_copy(lh, &gen, LIR_VARIABLE);
                         if (
                             lh->op != LIR_aMOV &&
@@ -131,7 +132,12 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
                                 lh->sarg->t != LIR_VARIABLE ||
                                 !set_has(&non_ssa, (void*)lh->sarg->storage.var.v_id)
                             )
-                        ) map_put(&gen, lh->farg->storage.var.v_id, LIR_copy_subject(lh->sarg));
+                        ) {
+                            lir_subject_t* sarg_copy = LIR_copy_subject(lh->sarg);
+                            sarg_copy->size = sarg_size;
+                            map_put(&gen, lh->farg->storage.var.v_id, sarg_copy);
+                        }
+
                         if (lh->op == LIR_aMOV) set_add(&non_ssa, (void*)lh->farg->storage.var.v_id);
                         break;
                     }
@@ -144,8 +150,6 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx) {
                         break;
                     }
                 }
-
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
 

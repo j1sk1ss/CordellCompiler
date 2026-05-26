@@ -6,7 +6,7 @@ function putc(i8 c) -> i0 {
 
 start() {
     ptr i8 a = ref "AB";
-    str b = "CD";
+    arr b[0, i8] = "CD";
 
     putc(a[0]);
     putc(a[1]);

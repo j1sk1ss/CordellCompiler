@@ -49,8 +49,7 @@ typedef enum {
         LIR_JAE,  // jump if above or equal (unsigned >=)
 
         /* Data commands */
-        LIR_RESV,
-        LIR_VDCL,
+        LIR_REF_ARGS,
 
     /* Register */
         /* Operations */
@@ -94,6 +93,7 @@ typedef enum {
         LIR_MOVSXD,
 
         LIR_NOT,
+        LIR_NEG,
         LIR_INC,
         LIR_DEC,
 
@@ -151,7 +151,6 @@ typedef enum {
 
     /* High level operations */
         /* Stack */
-        LIR_RSVSTK, // Reserve stackframe
         LIR_MKSCOPE,
         LIR_ENDSCOPE,
 

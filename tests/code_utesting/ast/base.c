@@ -57,6 +57,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
     DUMP_format_astctx(&sctx, stdout);
 
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);

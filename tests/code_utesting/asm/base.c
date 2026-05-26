@@ -16,7 +16,7 @@
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/func.h>
-#include "../../misc/hir_helper.h"
+#include "../../misc/cfg_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -27,7 +27,7 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include "../../misc/lir_helper.h"
+#include <lir/dump.h>
 
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm_asmgen.h>
@@ -77,6 +77,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
@@ -87,12 +89,16 @@ int main(int argc, char* argv[]) {
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
     HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &smt);        // Analyzation
 
-    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
-    HIR_LTREE_canonicalization(&cfgctx);    // Transform
-    HIR_CFG_unload_domdata(&cfgctx);        // Analyzation
-    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+    ltree_ctx_t lctx;
+    map_init(&lctx.lmap, MAP_NO_CMP);
+    HIR_LOOP_mark_loops(&cfgctx, &lctx);
+
+    HIR_CFG_create_domdata(&cfgctx);            // Analyzation
+    HIR_LTREE_canonicalization(&cfgctx, &lctx); // Transform
+    HIR_CFG_unload_domdata(&cfgctx);            // Analyzation
+    HIR_CFG_create_domdata(&cfgctx);            // Analyzation
 
     ssa_ctx_t ssactx;
     map_init(&ssactx.vers, MAP_NO_CMP);
@@ -120,7 +126,7 @@ int main(int argc, char* argv[]) {
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
     register_saver_t reg_save = { .save_registers = x86_64_gnu_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &smt, &reg_save);
+    LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
 
     asm_gen_t asmgen = { .generator = x86_64_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);

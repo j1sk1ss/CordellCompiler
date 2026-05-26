@@ -3,7 +3,7 @@ function foo(i32 a) -> i32 {
 }
 
 start() {
-    exit foo(10);
+    exit foo(10) as u8;
 }
 
 :/ OUTPUT
@@ -11,28 +11,25 @@ start() {
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-mov dil, 10
-push rdx
-call _cpl_foo0
-pop rdx
-mov edx, eax
-mov edx, edx
-mov rax, 0x2000001
-syscall
+    push    rdi
+    mov     dil, 10
+    call    _cpl_foo0
+    pop     rdi
+    mov     ecx, eax
+    mov     cl, cl
+    mov     dil, cl
+    mov     rax, 60
+    syscall
 ; BB5:
+    mov     rax, 60
+    syscall
 _cpl_foo0:
-push rbp
-mov rbp, rsp
-mov ebx, edi
-mov edx, 10
-mov eax, ebx
-add eax, edx
-mov esi, eax
-mov eax, esi
-mov rsp, rbp
-pop rbp
-ret
+    mov     edx, 10
+    mov     eax, ecx
+    add     eax, edx
+    mov     ecx, eax
+    mov     eax, ecx
+    ret
 ; BB3:
+    ret
 /:

@@ -8,39 +8,38 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
+            i32s %0 = alloc;
+            goto lb9;
+            fn __anon_function_lambda1(i32 a)
             {
-                i32s %0 = alloc;
-                goto lb9;
-                fn __anon_function_lambda1(i32 a)
+                i32s %1 = alloc;
+                i32s %1 = load_arg();
                 {
-                    i32s %1 = alloc;
-                    i32s %1 = load_arg();
-                    {
-                        return i32s %1;
-                    }
+                    return i32s %1;
                 }
-                lb9:
-                i0t* %5 = &(__anon_function_lambda1(i32 a));
-                i64t %6 = i0t* %5(i8n 10);
-                i32t %4 = i64t %6 as i32;
-                i32s %0 = i32t %4;
-                goto lb26;
-                fn local2(i32 a)
-                {
-                    i32s %2 = alloc;
-                    i32s %2 = load_arg();
-                    {
-                        return i32s %2;
-                    }
-                }
-                lb26:
-                i32s %3 = alloc;
-                i64t %8 = local2(i8n 10);
-                i32t %7 = i64t %8 as i32;
-                i32s %3 = i32t %7;
             }
+            lb9:
+            i0t* %5 = &(__anon_function_lambda1(i32 a));
+            i64t %6 = i0t* %5(i8n 10);
+            i32t %4 = i64t %6 as i32;
+            i32s %0 = i32t %4;
+            goto lb27;
+            fn local2(i32 a)
+            {
+                i32s %2 = alloc;
+                i32s %2 = load_arg();
+                {
+                    return i32s %2;
+                }
+            }
+            lb27:
+            i32s %3 = alloc;
+            i64t %8 = local2(i8n 10);
+            i32t %7 = i64t %8 as i32;
+            i32s %3 = i32t %7;
         }
     }
 }

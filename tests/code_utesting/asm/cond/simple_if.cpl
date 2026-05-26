@@ -12,22 +12,24 @@ start() {
 section .text
 global _main
 _main:
-push rbp
-mov rbp, rsp
-mov al, 1
-cmp al, 0
-je lb11
-jne lb10
+    mov     al, 1
+    cmp     al, 0
+    je      lb8
+    jne     lb7
 ; BB2:
-lb10:
-mov dl, 1
-mov rax, 0x2000001
-syscall
+lb7:
+    mov     cl, 1
+    mov     dil, cl
+    mov     rax, 60
+    syscall
 ; BB3:
-lb11:
-mov dl, 2
-mov rax, 0x2000001
-syscall
+lb8:
+    mov     cl, 2
+    mov     dil, cl
+    mov     rax, 60
+    syscall
 ; BB4:
-lb12:
+lb9:
+    mov     rax, 60
+    syscall
 /:

@@ -7,12 +7,12 @@ start() {
 section .text
 global _main
 _main:
-mov al, 10
-add al, 10
-mov bl, al
-mov bl, bl
-mov bl, bl
-mov eax, 1
-int 0x80
+    mov     al, 10
+    add     al, 10
+    mov     bl, al
+    mov     bl, bl
+    mov     bl, bl
+    mov     eax, 1
+    int     0x80
 ; BB2:
 /:

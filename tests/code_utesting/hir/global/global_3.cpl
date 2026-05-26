@@ -9,16 +9,15 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i32t %4 = i8n 10 as i32;
-                i32g %0 = i32t %4;
-                u64t** %5 = i8n 0 as *ptr;
-                u64g** %1 = u64t** %5;
-                i32s %2 = alloc;
-                u64s** %3 = alloc;
-            }
+            i32t %4 = i8n 10 as i32;
+            i32g %0 = i32t %4;
+            u64t** %5 = i8n 0 as *ptr;
+            u64g** %1 = u64t** %5;
+            i32s %2 = alloc;
+            u64s** %3 = alloc;
         }
     }
 }

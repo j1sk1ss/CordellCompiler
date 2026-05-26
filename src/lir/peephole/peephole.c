@@ -1,6 +1,6 @@
 #include <lir/peephole/peephole.h>
 // TODO: If we have a pop instruction, we can remove push/pop, if the register is re-written
-
+// TODO: Some platforms can do push imm, some don't. At this point we don't support push imm, but why not?
 lir_block_t* LIR_get_back_instruction(lir_block_t* c, lir_block_t* exit, int skip) {
     if (!skip) return c;
     if (c == exit) return NULL;

@@ -17,6 +17,42 @@
     ],
     "description": "Function prototype (return type optional)"
   },
+  "container-definition": {
+    "scope": "cpl",
+    "prefix": "container",
+    "body": [
+      "container ${1:name} {",
+      "\t${2:u32 field = 0;}",
+      "",
+      "\tfunction ${3:method}(self) -> i0 {",
+      "\t\t${0}",
+      "\t}",
+      "}"
+    ],
+    "description": "Struct-like container with fields and methods"
+  },
+  "container-method": {
+    "scope": "cpl",
+    "prefix": "cmethod",
+    "body": [
+      "function ${1:name}(self${2})${3: -> ${4:i0}} {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Container method with self parameter"
+  },
+  "container-field-access": {
+    "scope": "cpl",
+    "prefix": "field",
+    "body": "${1:self}.${0:field}",
+    "description": "Container field access"
+  },
+  "CPL Keywords Container": {
+    "scope": "cpl",
+    "prefix": "container",
+    "body": "container",
+    "description": "CPL keyword"
+  },
   "import-op": {
     "scope": "cpl",
     "prefix": "from",
@@ -82,6 +118,12 @@
     "prefix": "poparg",
     "body": "poparg",
     "description": "CPL poparg expression"
+  },
+  "CPL Ops NEG": {
+    "scope": "cpl",
+    "prefix": "neg",
+    "body": "neg ${1:x}",
+    "description": "CPL bitwise inversion expression"
   },
   "CPL Ops SIZEOF": {
     "scope": "cpl",

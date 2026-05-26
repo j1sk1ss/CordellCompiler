@@ -11,15 +11,16 @@ start() {
     fn getter0() -> i32
     {
         {
-            return i8n 100;
+            i32t %0 = i8n 100 as i32;
+            return i32t %0;
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                lb20:
-                [unused] getter0();
-            }
+            i32t %0 = i8n 100 as i32;
+            lb21:
+            [unused] getter0();
         }
     }
 }

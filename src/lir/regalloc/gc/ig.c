@@ -39,7 +39,7 @@ static int _inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
     set_init(def, SET_CMP);
     if (!lh || lh->unused) return 1;
 
-    iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+    iterate_lir_args (lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
         switch (arg->t) {
             case LIR_VARIABLE: {
                 long v = arg->storage.var.v_id;
@@ -75,12 +75,10 @@ Params:
 
 Returns number of LIR instructions in the block.
 */
-static inline int _count_lir_in_block(cfg_block_t* cb) {
+static inline int _count_lir_in_block(cfg_block_t* bb) {
     int n = 0;
-    lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (bb) {
         n++;
-        lh = LIR_get_next(lh, cb->lmap.exit, 1);
     }
 
     return n;
@@ -94,12 +92,10 @@ Params:
 
 Returns 1 if succeeds.
 */
-static inline int _collect_lir_in_block(cfg_block_t* cb, lir_block_t** arr) {
+static inline int _collect_lir_in_block(cfg_block_t* bb, lir_block_t** arr) {
     int i = 0;
-    lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (bb) {
         arr[i++] = lh;
-        lh = LIR_get_next(lh, cb->lmap.exit, 1);
     }
     
     return 1;
@@ -170,7 +166,6 @@ int LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt) {
         if (
             vi->vfs.glob || vi->vfs.ro                 ||
             vi->type == ARRAY_TYPE_TOKEN               ||
-            vi->type == STR_TYPE_TOKEN                 ||
             ALLIAS_get_owners(vi->v_id, NULL, &smt->m) ||
             vi->vmi.align > CONF_get_full_bytness()
         ) continue;

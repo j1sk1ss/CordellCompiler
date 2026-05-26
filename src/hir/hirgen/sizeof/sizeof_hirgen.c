@@ -22,6 +22,20 @@ hir_subject_t* _get_size_as_constant(hir_subject_t* s, sym_table_t* smt) {
 
 hir_subject_t* HIR_generate_sizeof(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
+    if (
+        TKN_is_builtin_type(node->c->t) ||
+        node->c->sinfo.t_id != NO_SYMBOL_ID
+    ) {
+        if (node->c->sinfo.t_id != NO_SYMBOL_ID) {
+            type_info_t ti;
+            if (TPTB_get_info_id(node->c->sinfo.t_id, &ti, &smt->t)) {
+                return HIR_SUBJ_CONST(ti.memory.size);
+            }
+        }
+
+        return HIR_SUBJ_CONST(HIR_get_type_size(HIR_get_tmptype_tkn(node->c->t, 1)));
+    }
+
     hir_block_t* entry  = ctx->hot.t;
     hir_subject_t* src  = HIR_generate_elem(node->c, ctx, smt);
     hir_subject_t* size = _get_size_as_constant(src, smt);

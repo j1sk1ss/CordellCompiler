@@ -46,7 +46,7 @@ Params:
 Returns 1 if all operations succeed, otherwise 0.
 */
 static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
-    iterate_hir_args(hir_subject_t* arg, h, HIR_is_writeop(h->op)) {
+    iterate_hir_args (hir_subject_t* arg, h, HIR_is_writeop(h->op)) {
         if (HIR_is_vartype(arg->t)) {
             varver_t* vv = _get_varver(arg->storage.var.v_id, ctx);
             if (vv) arg->storage.var.v_id = vv->curr_id;
@@ -168,11 +168,10 @@ Params:
 
 Returns 1 on success, otherwise 0.
 */
-static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
-    if (!b || set_has(&b->visitors, (void*)prev_bid)) return 0;
+static int _iterate_block(cfg_block_t* bb, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
+    if (!bb || set_has(&bb->visitors, (void*)prev_bid)) return 0;
 
-    hir_block_t* hh = HIR_get_next(b->hmap.entry, b->hmap.exit, 0);
-    while (hh) {
+    iterate_hir_instructions (bb) {
         switch (hh->op) {
             /* Special PHI function logic implies handling the phi set in command.
             In other words, we take a new variable ID from the VRTB_add_copy function (If it doesn't exist).
@@ -205,7 +204,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                         }
 
                         vv->curr_id = future_id;
-                        _insert_phi_preamble(b, prev_bid, future_id, prev_id, smt);
+                        _insert_phi_preamble(bb, prev_bid, future_id, prev_id, smt);
                     }
                 }
 
@@ -242,15 +241,13 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
                 break;
             }
         }
-
-        hh = HIR_get_next(hh, b->hmap.exit, 1);
     }
 
-    set_add(&b->visitors, (void*)prev_bid);
+    set_add(&bb->visitors, (void*)prev_bid);
 
-    if (!b->jmp || !b->l) {
-        _iterate_block(b->jmp, ctx, b->id, smt);
-        _iterate_block(b->l, ctx, b->id, smt);
+    if (!bb->jmp || !bb->l) {
+        _iterate_block(bb->jmp, ctx, bb->id, smt);
+        _iterate_block(bb->l, ctx, bb->id, smt);
     }
     else {
         map_t saved;
@@ -259,7 +256,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
             _add_varver(&saved, s->v_id, s->curr_id);
         }
 
-        _iterate_block(b->jmp, ctx, b->id, smt);
+        _iterate_block(bb->jmp, ctx, bb->id, smt);
         map_free_force(&ctx->vers);
         map_init(&ctx->vers, MAP_NO_CMP);
         
@@ -267,7 +264,7 @@ static int _iterate_block(cfg_block_t* b, ssa_ctx_t* ctx, long prev_bid, sym_tab
             _add_varver(&ctx->vers, s->v_id, s->curr_id);
         }
         
-        _iterate_block(b->l, ctx, b->id, smt);
+        _iterate_block(bb->l, ctx, bb->id, smt);
         map_free_force(&saved);
     }
 
@@ -283,10 +280,8 @@ Returns 1 if succeeds.
 */
 static int _clear_phi_functions(cfg_func_t* fb) {
     foreach (cfg_block_t* bb, &fb->blocks) {
-        hir_block_t* hb = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-        while (hb) {
-            if (hb->op == HIR_PHI && !set_size(&hb->targ->storage.set.h)) hb->unused = 1;
-            hb = HIR_get_next(hb, bb->hmap.exit, 1);
+        iterate_hir_instructions (bb) {
+            if (hh->op == HIR_PHI && !set_size(&hh->targ->storage.set.h)) hh->unused = 1;
         }
     }
 

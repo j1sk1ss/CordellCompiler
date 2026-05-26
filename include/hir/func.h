@@ -11,16 +11,17 @@
 #include <hir/hir.h>
 #include <hir/cfg.h>
 #include <hir/loop.h>
+#include <hir/inline_model.h>
 
 typedef struct {
-    char  flag : 1;
+    char  flag;
     long  f_id;
     set_t edges;
 } call_graph_node_t;
 
 typedef struct {
-    long  e_fid;
-    map_t verts;
+    list_t entries;
+    map_t  verts;
 } call_graph_t;
 
 /*
@@ -29,11 +30,11 @@ Note: Will mark functions as unused if they aren't connected to each other
 in call graph.
 Params:
     - `cctx` - CFG context.
-    - `ctx` - Call graph context.
+    - `smt` - Symbol table.
 
 Returns 1 on success, otherwise 0.
 */
-int HIR_CG_apply_dfe(cfg_ctx_t* cctx, call_graph_t* ctx);
+int HIR_CG_apply_dfe(cfg_ctx_t* cctx, sym_table_t* smt);
 
 /*
 [Analyzation] Perform basic call graph generation.
@@ -84,21 +85,10 @@ Params:
     - `cctx` - CFG.
     - `lctx` - Loops context.
     - `smt` - Symtable.
-    - `checker` - Function decider.
 
 Returns 1 on success, otherwise 0.
 */
-int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int));
-
-/*
-Heuristic inline decider (basic option).
-Params:
-    - `data` - Decider data.
-    - `size` - Decider data size.
-
-Returns 1 if function must be inlined.
-*/
-int HIR_FUNC_inline_heuristic_desider(int* data, int size);
+int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt);
 
 /*
 Iterate function and find last block. If this is exit and the last block, find HIR_VRUSE, which

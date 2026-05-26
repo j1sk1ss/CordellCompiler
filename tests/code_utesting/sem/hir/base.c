@@ -68,6 +68,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
     cfg_ctx_t cfgctx = { .cid = 0 };
@@ -76,7 +78,7 @@ int main(int argc, char* argv[]) {
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);    // Analyzation
     HIR_CG_perform_dfe(&callctx, &smt);       // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);      // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &smt);      // Analyzation
     HIR_CFG_create_domdata(&cfgctx);          // Analyzation
     ssa_ctx_t ssactx;
     map_init(&ssactx.vers, MAP_NO_CMP);

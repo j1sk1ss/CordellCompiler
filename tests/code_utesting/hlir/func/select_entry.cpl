@@ -7,8 +7,8 @@
 }
 
 :/ OUTPUT
-BB{X} fn foo0()
+BB2: fn foo0()
 fend
-BB{X} fn _main()
+BB3: fn _main()
 fend
 /:

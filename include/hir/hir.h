@@ -83,6 +83,7 @@ typedef struct {
         long         val1;          /* function's argument number              */
         long         val2;          /* function's argument load operation      */
         void*        ptr2;          /* function's return type                  */
+        void*        ptr3;          /* function's varargs hidden variable      */
     } carry;                        /* Additional carry for any specific data  */
 } hir_ctx_t;
 

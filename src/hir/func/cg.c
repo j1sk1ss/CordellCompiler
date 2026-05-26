@@ -59,8 +59,11 @@ Params:
 Returns 1 if succeeds.
 */
 static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
+    list_init(&ctx->entries);
     map_foreach (func_info_t* fi, &smt->f.functb) {
-        if (fi->flags.entry) ctx->e_fid = fi->id;
+        if (
+            fi->flags.entry || fi->flags.global
+        ) list_add(&ctx->entries, (void*)fi->id);
         _register_func(fi->id, ctx);
     }
 
@@ -77,9 +80,8 @@ Returns 1 on success, otherwise 0.
 */
 static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        foreach (cfg_block_t* cb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
-            while (hh) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            iterate_hir_instructions (bb) {
                 if (
                     (
                         HIR_is_funccall(hh->op) ||
@@ -87,7 +89,6 @@ static int _connect_edges(cfg_ctx_t* cctx, call_graph_t* ctx) {
                     ) && 
                     !hh->unused
                 ) _add_vert(fb->f_id, hh->sarg->storage.str.s_id, ctx);
-                hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
         }
     }
@@ -106,5 +107,6 @@ int HIR_CG_unload(call_graph_t* ctx) {
         set_free(&node->edges);
     }
 
+    list_free(&ctx->entries);
     return map_free_force(&ctx->verts);
 }

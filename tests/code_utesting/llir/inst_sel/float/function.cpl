@@ -7,26 +7,26 @@ start(f32 a, i32 b) {
 
 :/ OUTPUT
 BB2: fn foo0(f32 a, f64 b, i32 c, i32 d)
-%0 = %6;
-%1 = %7;
-%2 = %8;
-%3 = %9;
+[SSA] %0 = %6;
+[SSA] %1 = %7;
+[SSA] %2 = %8;
+[SSA] %3 = %9;
 fend
 BB3: start
 %4 = [rbp + 8];
 %5 = &([rbp + 16]);
-push(rdi);
-%10 <<= $4621819117588971520;
-push(rsi);
-%11 <<= $4621819117588971520;
-push(rdx);
-%12 <<= $1;
 push(rcx);
-%13 <<= $1;
+%10 <<= $1;
+push(rdx);
+%11 <<= $1;
+push(rsi);
+%12 <<= $4621819117588971520;
+push(rdi);
+%13 <<= $4621819117588971520;
 call foo0(f32 a, f64 b, i32 c, i32 d);
-rcx = pop();
-rdx = pop();
-rsi = pop();
 rdi = pop();
+rsi = pop();
+rdx = pop();
+rcx = pop();
 send
 /:

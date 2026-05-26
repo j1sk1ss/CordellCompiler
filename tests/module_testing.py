@@ -551,6 +551,7 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         "bug":           False,
         "leak_trace":    False,
         "rewrite":       False,
+        "only_this":     False,
         "run_asm":       False,
         "run_asm_debug": False,
         "run_asm_cases": [[]],
@@ -588,6 +589,9 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
             continue
         if stripped == ": REWRITE :":
             flags["rewrite"] = True
+            continue
+        if stripped == ": ONLY_THIS :":
+            flags["only_this"] = True
             continue
         header_processed.append(line)
 
@@ -1361,6 +1365,24 @@ def _collect_cpl_files(root: Path, all_roots: set[Path]) -> list[Path]:
         pass
     return cpl_files
 
+
+def _test_file_has_only_this(path: Path) -> bool:
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip() == ":/ OUTPUT":
+                break
+            if line.strip() == ": ONLY_THIS :":
+                return True
+    except Exception:
+        pass
+
+    return False
+
+
+def _select_only_this_tests(cpl_files: list[Path]) -> list[Path]:
+    return [cpl for cpl in cpl_files if _test_file_has_only_this(cpl)]
+
+
 def _entry() -> None:
     parser = argparse.ArgumentParser(description='Compiler simple unit testing script')
     parser.add_argument('--output-dir', default='./bin')
@@ -1382,12 +1404,28 @@ def _entry() -> None:
         print(f"No test modules found (no base.c/architecture base + dependencies.json) under {test_top}", file=sys.stderr)
         sys.exit(1)
 
+    all_roots_set: set[Path] = set(all_roots)
+    cpl_files_by_root: dict[Path, list[Path]] = {}
+    selected_cpl_files_by_root: dict[Path, list[Path]] = {}
+
+    for root in all_roots:
+        cpl_files = _collect_cpl_files(root, all_roots_set)
+        cpl_files_by_root[root] = cpl_files
+        selected_cpl_files_by_root[root] = _select_only_this_tests(cpl_files)
+
+    only_this_active = any(selected_cpl_files_by_root[root] for root in all_roots)
+    if only_this_active:
+        cpl_files_by_root = selected_cpl_files_by_root
+        selected_count = sum(len(cpl_files) for cpl_files in cpl_files_by_root.values())
+        _log(f"[ONLY_THIS] selected tests: {selected_count}")
+
     build_jobs: list[tuple[Path, str | None, Path]] = []
     for root in all_roots:
+        if only_this_active and not cpl_files_by_root[root]:
+            continue
         for asm_arch, base in _find_module_base_variants(root):
             build_jobs.append((root, asm_arch, base))
 
-    all_roots_set: set[Path] = set(all_roots)
     results: list[dict] = []
     failed_modules: int = 0
 
@@ -1447,7 +1485,7 @@ def _entry() -> None:
 
         _log(f"[BUILD] executable path: {binary}")
 
-        cpl_files: list = _collect_cpl_files(root, all_roots_set)
+        cpl_files: list[Path] = cpl_files_by_root[root]
         need_leak_bin = False
         for cpl in cpl_files:
             try:

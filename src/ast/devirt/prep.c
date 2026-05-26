@@ -59,6 +59,12 @@ static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt, 
     ) name = node;
 
     if (name && name->c) {
+        func_info_t fi;
+        if (
+            !FNTB_get_info_id(name->sinfo.v_id, &fi, &smt->f) ||
+            !fi.flags.generic
+        ) return 1;
+
         list_t types;
         list_init(&types);
         ast_node_t* type_node = name->c;
@@ -91,4 +97,33 @@ static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt, 
 
 int AST_DVRT_resolve_calls(ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx) {
     return _find_and_register_resolved_call(root, smt, ctx);
+}
+
+static int _find_and_cut_container_function(ast_node_t* node, string_t* container, queue_t* funcs) {
+    if (!node) return 0;
+    int found_func = 0;
+    if (
+        node->t && container &&
+        (node->t->t_type == FUNC_PROT_TOKEN || node->t->t_type == FUNC_TOKEN)
+    ) {
+        queue_push(funcs, node);
+        found_func = 1;
+    }
+
+    _find_and_cut_container_function(node->siblings.n, container, funcs);
+    if (found_func) {
+        if (node->p) AST_remove_node(node->p, node);
+        return 1;
+    }
+
+    if (
+        node->t && 
+        node->t->t_type == CONTAINER_TOKEN
+    ) container = node->t->body;
+    _find_and_cut_container_function(node->c, container, funcs);
+    return 1;
+}
+
+int AST_DVRT_move_container_functions(ast_node_t* root, queue_t* out) {
+    return _find_and_cut_container_function(root, NULL, out);
 }

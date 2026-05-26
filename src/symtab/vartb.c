@@ -51,6 +51,18 @@ int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefi
     return 0;    
 }
 
+int VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx) {
+    print_log("VRTB_update_type(id=%li, t=%i, t_id=%li)", id, t, t_id);
+    variable_info_t* vi;
+    if (map_get(&ctx->vartb, id, (void**)&vi)) {
+        if (t != FIELD_NO_CHANGE)    vi->type = t;
+        if (t_id != FIELD_NO_CHANGE) vi->t_id = t_id;
+        return 1;
+    }
+
+    return 0;    
+}
+
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx) {
     variable_info_t* vi;
     if (map_get(&ctx->vartb, id, (void**)&vi)) {
@@ -92,8 +104,9 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
     var->vmi.align  = CONF_get_full_bytness();
 
     var->vdi.defined = UNDEFINED_VARIABLE;
-    var->p_id = NO_SYMBOL_ID;
-    var->type = type;
+    var->p_id        = NO_SYMBOL_ID;
+    var->type        = type;
+    var->t_id        = NO_SYMBOL_ID;
     return var;
 }
 

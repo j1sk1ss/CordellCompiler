@@ -3,7 +3,7 @@ function getter() -> i32 {
 }
 
 start() {
-    exit getter();
+    exit getter() as u8;
 }
 
 :/ OUTPUT
@@ -11,18 +11,20 @@ start() {
     fn getter0() -> i32
     {
         {
-            return i8n 100;
+            i32t %0 = i8n 100 as i32;
+            return i32t %0;
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                i32t %0 = i8n 100;
-                goto lb21;
-                lb21:
-                [unused] i32t %0 = getter0();
-                exit i32t %0;
-            }
+            i32t %0 = i8n 100 as i32;
+            i32t %2 = i32t %0;
+            goto lb23;
+            lb23:
+            [unused] i32t %2 = getter0();
+            u8t %1 = i32t %2 as u8;
+            exit u8t %1;
         }
     }
 }

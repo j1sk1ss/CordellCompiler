@@ -23,11 +23,10 @@ start() {
             return i32t %4;
         }
     }
-    start {
+    fn _main()
+    {
         {
-            {
-                foo0();
-            }
+            foo0();
         }
     }
 }

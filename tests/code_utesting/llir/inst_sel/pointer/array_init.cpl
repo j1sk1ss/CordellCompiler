@@ -3,7 +3,7 @@ start() {
 }
 
 :/ OUTPUT
-BB{X} start
+BB1: start
 %0 = arr_alloc($10);
 send
 /:

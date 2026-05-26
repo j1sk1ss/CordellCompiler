@@ -34,13 +34,15 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
 
             break;
         }
-        case LIR_STEND:
+        case LIR_STEND: if (fi->flags.naked == 1) break;
+                        __attribute__ ((fallthrough));
         case LIR_EXITOP: {
             EMIT_COMMAND("mov rax, 60");
             EMIT_COMMAND("syscall");
             break;
         }
-        case LIR_FEND:
+        case LIR_FEND:  if (fi->flags.naked == 1) break;
+                        __attribute__ ((fallthrough));
         case LIR_FRET: {
             if (!fi->flags.naked) {
                 EMIT_COMMAND("mov rsp, rbp");
@@ -84,7 +86,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_SETA:       EMIT_COMMAND("seta %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
         case LIR_STBE:       EMIT_COMMAND("setbe %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
         case LIR_STAE:       EMIT_COMMAND("setae %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                    break;
-        case LIR_NOT:        EMIT_COMMAND("neg %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
+        case LIR_NEG:        EMIT_COMMAND("not %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
         case LIR_INC:        EMIT_COMMAND("inc %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
         case LIR_DEC:        EMIT_COMMAND("dec %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
         case LIR_JMP:        EMIT_COMMAND("jmp %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                      break;
@@ -185,7 +187,7 @@ Returns 1 if succeeds.
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
-        fprintf(output, "_str_%li_ db ", si.id);
+        EMIT_PART_COMMAND("_str_%li_ db ", si.id);
         char* data = si.value->body;
         while (*data) {
             fprintf(output, "%i,", *(data++));
@@ -254,10 +256,10 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     }
 
     switch (TKN_variable_bitness(&tmptkn, 1)) {
-        case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        default:                EMIT_COMMAND("%s db %li\n", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        default:                EMIT_COMMAND("%s db %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
     }
 
     return 1;
@@ -283,10 +285,8 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     if (fi.flags.entry)       EMIT_COMMAND("global %s", fi.virt->body);
     else if (fi.flags.global) EMIT_COMMAND("global %s", fi.name->body);
     if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
-    lir_block_t* lh = LIR_get_next(fb->lmap.entry, fb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (fb) {
         _convert_lirblock_to_assembly(lh, &fi, smt, output);
-        lh = LIR_get_next(lh, fb->lmap.exit, 1);
     }
 
     return 1;
@@ -298,7 +298,10 @@ int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output
     }
 
     map_foreach (section_info_t* section, &smt->c.sectb) {
-        EMIT_COMMAND("section %s", section->name->body);
+        if (!section->name->requals(section->name, CONF_get_no_section())) {
+            EMIT_COMMAND("section %s", section->name->body);
+        }
+        
         set_foreach (symbol_id_t id, &section->vars) {
             _generate_variable(id, smt, output);
         }

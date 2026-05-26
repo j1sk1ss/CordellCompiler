@@ -8,17 +8,17 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i32t %4 = i8n 10 as i32;
-                use i32t %4;
-                chloe0(i32t %4, i8n 10);
-                i64t %5 = i8n 10 as i64;
-                use i64t %5;
-                chloe1(i64t %5, i8n 10);
-                exit i8n 0;
-            }
+            i32t %4 = i8n 10 as i32;
+            use i32t %4;
+            chloe0(i32t %4, i8n 10);
+            i64t %5 = i8n 10 as i64;
+            use i64t %5;
+            chloe1(i64t %5, i8n 10);
+            u8t %6 = i8n 0 as u8;
+            exit u8t %6;
         }
     }
 }

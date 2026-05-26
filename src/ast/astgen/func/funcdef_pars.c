@@ -81,7 +81,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         case LOWER_TOKEN: {
             forward_token(it, 1);
             do {
-                symbol_id_t t_id = TPTB_add_info(CURRENT_TOKEN->body, ctx->scopes.s_id, &smt->t);
+                symbol_id_t t_id = TPTB_add_info(CURRENT_TOKEN->body, ctx->scopes.s_id, TYPE_GENERICS, FIELD_NO_CHANGE, &smt->t);
                 if (t_id != NO_SYMBOL_ID) list_add(&generic_types, (void*)t_id);
                 if (consume_token(it, COMMA_TOKEN)) forward_token(it, 1);
             } while (CURRENT_TOKEN->t_type != LARGER_TOKEN);
@@ -113,11 +113,16 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     annotations_summary_t annots = { .section = NULL, .is_entry = 0, .is_naked = 0 };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
+    symbol_id_t preserved_tid = ctx->t_id;
+    ctx->t_id = NO_SYMBOL_ID;
+    
     forward_token(it, 1);
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args)) {
         PARSE_ERROR("Can't parse function's arguments!");
         AST_unload(base);
         list_free(&generic_types);
+        ANNOT_destroy_summary(&annots);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -125,8 +130,11 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     if (consume_token(it, RETURN_TYPE_TOKEN)) {
         forward_token(it, 1);
         ast_node_t* ret_type = AST_create_node(CURRENT_TOKEN);
-        ret_type->sinfo.v_id = type_lookup(ret_type->t, ctx, smt);
-        if (ret_type->sinfo.v_id != NO_SYMBOL_ID) ret_type->t->t_type = GENERIC_TYPE_TOKEN;
+        ret_type->sinfo.t_id = type_lookup(ret_type->t, ctx, smt);
+        if (ret_type->sinfo.t_id != NO_SYMBOL_ID) {
+            ret_type->t->t_type = EXTRACT_TYPE_TYPE(ret_type->sinfo.t_id, smt);
+        }
+        
         AST_add_node(name, ret_type);
         forward_token(it, 1);
     }
@@ -140,32 +148,43 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     int local = ctx->carry.ptr ? 1 : 0;
     name->sinfo.v_id = FNTB_add_info(
         name->t->body, virt_name, 
-        base->t->flags.glob, local, annots.is_entry, annots.is_naked, 0, list_size(&generic_types) != 0,
+        base->t->flags.glob, local, annots.is_entry, annots.is_naked != 0, 0, list_size(&generic_types) != 0, annots.do_inline, annots.is_self,
         name->sinfo.s_id, args, name->c, &smt->f
     );
 
+    if (preserved_tid != NO_SYMBOL_ID) {
+        symbol_id_t type = TPTB_add_info_from_token(base->sinfo.s_id, base->t, base->c->sinfo.v_id, &smt->t);
+        TPTB_add_as_child(preserved_tid, type, name->t->body, FIELD_NO_CHANGE, &smt->t);
+    }
+
     if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
-    else {
-        if (!annots.section) annots.section = create_string(CONF_get_code_section());
+    else { /* Local function doesn't have a section. It copies position of its parent */
+        if (annots.is_nosec)      annots.section = create_string(CONF_get_no_section());
+        else if (!annots.section) annots.section = create_string(CONF_get_code_section());
         SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
     }
 
     ANNOT_destroy_summary(&annots);
 
+    /* Prototype detected */
     if (CURRENT_TOKEN->t_type == DELIMITER_TOKEN) {
-        foreach (symbol_id_t t_id, &generic_types) {
-            FNTB_register_type(name->sinfo.v_id, t_id, &smt->f);
+        if (!FNTB_has_generic_types(name->sinfo.v_id, &smt->f)) {
+            foreach (symbol_id_t t_id, &generic_types) {
+                FNTB_register_generic_type(name->sinfo.v_id, t_id, &smt->f);
+            }
         }
         
         base->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);
+        ctx->t_id = preserved_tid;
         list_free(&generic_types);
         return base;
     }
 
-    FNTB_clear_registered_types(name->sinfo.v_id, &smt->f);
+    /* Implementation rewrites prototype's types */
+    FNTB_clear_generic_types(name->sinfo.v_id, &smt->f);
     foreach (symbol_id_t t_id, &generic_types) {
-        FNTB_register_type(name->sinfo.v_id, t_id, &smt->f);
+        FNTB_register_generic_type(name->sinfo.v_id, t_id, &smt->f);
     }
 
     ast_node_t* body = NULL;
@@ -175,10 +194,12 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         PARSE_ERROR("Error during the function's body parsing!");
         AST_unload(base);
         list_free(&generic_types);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
+    ctx->t_id = preserved_tid;
     list_free(&generic_types);
     stack_pop(&ctx->scopes.stack, NULL);
     return base;

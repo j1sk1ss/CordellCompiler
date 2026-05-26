@@ -6,15 +6,14 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i8t %1 = i8n 14 + i8n 15;
-                use i8t %1;
-                [unused] i8t %2 = i8n 14 + i8n 15;
-                use i8t %1;
-                arrs %3 = arr_alloc(i8n 10);
-            }
+            i8t %1 = i8n 14 + i8n 15;
+            use i8t %1;
+            [unused] i8t %2 = i8n 14 + i8n 15;
+            use i8t %1;
+            arrs %3 = arr_alloc(i8n 10);
         }
     }
 }

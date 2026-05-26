@@ -12,7 +12,7 @@ Returns 1 on success, otherwise 0.
 */
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     if (!f) {
-        lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP, ESP };
+        lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP };
         for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(dirty_regs[0])); i++) {
             set_add(dirty, (void*)dirty_regs[i]);
         }
@@ -21,13 +21,11 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     }
     else {
         foreach (cfg_block_t* bb, &f->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 if (
                     LIR_is_writeop(lh->op) &&   /* We are writing some value to register (for some reason)         */
                     lh->farg->t == LIR_REGISTER /* This is a register object, we can say that this is a dirty one. */
-                ) set_add(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 4)); 
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
+                ) set_add(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 4));
             }
         }
     }
@@ -60,7 +58,7 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
             !LIR_subj_equals(lh->farg, lh->sarg)
         ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 4));
         
-        iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+        iterate_lir_args (lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
             if (
                 arg->t != LIR_REGISTER || 
                 !set_has(dirty, (void*)LIR_format_register(arg->storage.reg.reg, 4))
@@ -83,7 +81,7 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
 
     return 0;
 }
-// TODO: sync with others + validate this logic
+
 static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
     lir_subject_t* last = NULL;
     while (lh && lh != ex) {
@@ -116,8 +114,7 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 switch (lh->op) {
                     case LIR_FCLL: {
                         set_t func_regs, save_regs;
@@ -143,8 +140,8 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_
                         queue_push(&work_list, func);
 
                         while (queue_pop(&work_list, (void**)&func)) {
-                            if (!func) continue;
                             _collect_in_function_reg_usage(&func_regs, func);
+                            if (!func) continue;
                             call_graph_node_t* call;
                             if (map_get(&calls->verts, func->f_id, (void**)&call)) {
                                 set_foreach(call_graph_node_t* f, &call->edges) {
@@ -171,8 +168,6 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_
                     }
                     default: break;
                 }
-            
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
     }

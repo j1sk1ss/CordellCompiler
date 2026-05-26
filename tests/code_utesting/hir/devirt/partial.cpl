@@ -11,45 +11,44 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                i32t %9 = i8n 10 as i32;
-                use i32t %9;
-                i32t %10 = i8n 10 as i32;
-                use i32t %10;
-                i32t %11 = i8n 10 as i32;
-                use i32t %11;
-                foo0(i32t %9, i32t %10, i32t %11);
-                i32t %12 = i8n 10 as i32;
-                use i32t %12;
-                i8t %13 = i8n 10 as i8;
-                use i8t %13;
-                i8t %14 = i8n 10 as i8;
-                use i8t %14;
-                foo1(i32t %12, i8t %13, i8t %14);
-                i32t %15 = i8n 10 as i32;
-                use i32t %15;
-                i8t %16 = i8n 10 as i8;
-                use i8t %16;
-                i16t %17 = i8n 10 as i16;
-                use i16t %17;
-                foo1(i32t %15, i8t %16, i16t %17);
-                i16t %18 = i8n 10 as i16;
-                use i16t %18;
-                i16t %19 = i8n 10 as i16;
-                use i16t %19;
-                i8t %20 = i8n 10 as i8;
-                use i8t %20;
-                foo2(i16t %18, i16t %19, i8t %20);
-                i32t %21 = i8n 10 as i32;
-                use i32t %21;
-                i8t %22 = i8n 10 as i8;
-                use i8t %22;
-                i16t %23 = i8n 10 as i16;
-                use i16t %23;
-                foo1(i32t %21, i8t %22, i16t %23);
-            }
+            i32t %9 = i8n 10 as i32;
+            use i32t %9;
+            i32t %10 = i8n 10 as i32;
+            use i32t %10;
+            i32t %11 = i8n 10 as i32;
+            use i32t %11;
+            foo0(i32t %9, i32t %10, i32t %11);
+            i32t %12 = i8n 10 as i32;
+            use i32t %12;
+            i8t %13 = i8n 10 as i8;
+            use i8t %13;
+            i8t %14 = i8n 10 as i8;
+            use i8t %14;
+            foo1(i32t %12, i8t %13, i8t %14);
+            i32t %15 = i8n 10 as i32;
+            use i32t %15;
+            i8t %16 = i8n 10 as i8;
+            use i8t %16;
+            i16t %17 = i8n 10 as i16;
+            use i16t %17;
+            foo1(i32t %15, i8t %16, i16t %17);
+            i16t %18 = i8n 10 as i16;
+            use i16t %18;
+            i16t %19 = i8n 10 as i16;
+            use i16t %19;
+            i8t %20 = i8n 10 as i8;
+            use i8t %20;
+            foo2(i16t %18, i16t %19, i8t %20);
+            i32t %21 = i8n 10 as i32;
+            use i32t %21;
+            i8t %22 = i8n 10 as i8;
+            use i8t %22;
+            i16t %23 = i8n 10 as i16;
+            use i16t %23;
+            foo1(i32t %21, i8t %22, i16t %23);
         }
     }
 }

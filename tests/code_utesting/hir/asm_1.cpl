@@ -7,13 +7,12 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                asm() {
-                [raw, "mov rax, 1"]
-                [raw, "syscall"]
-                }
+            asm() {
+            [raw, "mov rax, 1"]
+            [raw, "syscall"]
             }
         }
     }

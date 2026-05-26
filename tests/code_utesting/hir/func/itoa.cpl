@@ -39,23 +39,23 @@ start() {
         i32s %2 = load_arg();
         {
             i32t %7 = not i32s %0;
-            if i32t %7, goto lb16, else goto lb18;
-            lb16:
+            if i32t %7, goto lb19, else goto lb21;
+            lb19:
             {
                 *(i8s* %1) = i8n 48;
                 return ;
             }
-            goto lb18;
-            lb18:
+            goto lb21;
+            lb21:
             i32s %3 = alloc;
             i32t %8 = i8n 0 as i32;
             i32s %3 = i32t %8;
             arrs %4 = arr_alloc(i8n 32);
-            lb37:
+            lb40:
             i32t %9 = i8n 0 as i32;
             i32t %10 = i32s %0 > i32t %9;
-            if i32t %10, goto lb38, else goto lb39;
-            lb38:
+            if i32t %10, goto lb41, else goto lb42;
+            lb41:
             {
                 i32t %13 = i8n 10 as i32;
                 i32t %12 = i32s %0 % i32t %13;
@@ -73,28 +73,28 @@ start() {
                 i32t %21 = i32s %3 + i32t %22;
                 i32s %3 = i32t %21;
             }
-            goto lb37;
-            lb39:
+            goto lb40;
+            lb42:
             i32s %5 = alloc;
             i32t %23 = i8n 0 as i32;
             i32s %5 = i32t %23;
-            lb79:
+            lb82:
             i64s %24 = alloc;
             i32t %26 = i8n 0 as i32;
             i32t %25 = i32s %3 > i32t %26;
-            if i32t %25, goto lb87, else goto lb88;
-            lb87:
+            if i32t %25, goto lb90, else goto lb91;
+            lb90:
             i32t %27 = i32s %5 < i32s %2;
             i64s %24 = alloc;
             i64t %28 = i32t %27 as i64;
             i64s %24 = i64t %28;
-            goto lb89;
-            lb88:
+            goto lb92;
+            lb91:
             i64s %24 = csu8 0;
-            goto lb89;
-            lb89:
-            if i64s %24, goto lb80, else goto lb81;
-            lb80:
+            goto lb92;
+            lb92:
+            if i64s %24, goto lb83, else goto lb84;
+            lb83:
             {
                 i8t* %29 = &(arrs %4);
                 i32t %30 = i32s %3 * csu8 1;
@@ -113,23 +113,22 @@ start() {
                 i32t %40 = i32s %3 - i32t %41;
                 i32s %3 = i32t %40;
             }
-            goto lb79;
-            lb81:
+            goto lb82;
+            lb84:
         }
     }
     arrg %6 = arr_alloc(i8n 32);
-    start {
+    fn _main()
+    {
         {
-            {
-                i8t* %42 = &(arrg %6);
-                use i8t* %42;
-                i32t %43 = csu8 32 as i32;
-                use i32t %43;
-                itoa0(i32n 123321, i8t* %42, i32t %43);
-                i8t* %44 = &(arrg %6);
-                use i8t* %44;
-                syscall(i32n 33554436, i8n 1, i8t* %44, csu8 32);
-            }
+            i8t* %42 = &(arrg %6);
+            use i8t* %42;
+            i32t %43 = csu8 32 as i32;
+            use i32t %43;
+            itoa0(i32n 123321, i8t* %42, i32t %43);
+            i8t* %44 = &(arrg %6);
+            use i8t* %44;
+            syscall(i32n 33554436, i8n 1, i8t* %44, csu8 32);
         }
     }
 }

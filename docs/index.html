@@ -16,6 +16,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/buble.css" />
 
+  <script>
+    (function() {
+      const route = (location.hash || '').split('?')[0].replace(/\/+$/, '');
+      const isHome = !route || route === '#' || route === '#/' || route === '#/README' || route === '#/README.md';
+      document.documentElement.classList.toggle('cpl-home-route', isHome);
+    })();
+  </script>
+
   <style>
     :root {
       --bg: #fbf8f4;
@@ -33,8 +41,10 @@
       --brand-deep: #8a2f13;
       --brand-soft: #fff0e7;
       --shadow: 0 1px 2px rgba(47, 41, 37, 0.08);
-      --lift-shadow: 5px 5px 0 rgba(244, 102, 35, 0.88);
-      --lift-shadow-dark: 5px 5px 0 rgba(0, 0, 0, 0.34);
+      --extrude-side: #f46623;
+      --extrude-bottom: #b63e14;
+      --extrude-line: #17110f;
+      --iso-depth: 8px;
       --content-max: 1080px;
       --radius: 4px;
     }
@@ -247,6 +257,23 @@
 
     .content { padding-top: 60px; }
 
+    html.cpl-home-route .sidebar,
+    html.cpl-home-route .sidebar-toggle,
+    body.cpl-home-route .sidebar,
+    body.cpl-home-route .sidebar-toggle {
+      display: none;
+    }
+
+    html.cpl-home-route .app-nav,
+    body.cpl-home-route .app-nav {
+      left: 0;
+    }
+
+    html.cpl-home-route .content,
+    body.cpl-home-route .content {
+      left: 0;
+    }
+
     .markdown-section {
       max-width: var(--content-max);
       margin: 0 auto;
@@ -371,7 +398,6 @@
     .token.annotation,
     .token.preprocessor { color: #b8e986; }
     .token.function { color: #8ecae6; }
-    }
 
     .markdown-section table {
       display: table;
@@ -470,7 +496,94 @@
       text-transform: uppercase;
       letter-spacing: 0.03em;
       box-shadow: none;
-      transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+      position: relative;
+      z-index: 0;
+      isolation: isolate;
+      transition: background 0.14s ease, border-color 0.14s ease, transform 0.18s ease;
+    }
+
+    .hero-button::before,
+    .hero-button::after,
+    .doc-card::before,
+    .doc-card::after,
+    .feature-card::before,
+    .feature-card::after,
+    .docsify-pagination-card::before,
+    .docsify-pagination-card::after,
+    .cpl-runner-button::before,
+    .cpl-runner-button::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      opacity: 1;
+      border: 1px solid var(--extrude-line);
+      pointer-events: none;
+    }
+
+    .hero-button::before,
+    .doc-card::before,
+    .feature-card::before,
+    .docsify-pagination-card::before,
+    .cpl-runner-button::before {
+      top: -2px;
+      left: calc(100% + 0.5px);
+      width: calc(var(--iso-depth) + 1px);
+      height: calc(100% + var(--iso-depth) + 1px);
+      background: var(--extrude-side);
+      border-left: 0;
+      clip-path: polygon(
+        0 0,
+        100% var(--iso-depth),
+        100% calc(100% + 0.5px),
+        0 calc(100% - var(--iso-depth) - 1px)
+      );
+      -webkit-mask: linear-gradient(#000 0 0) left / 0 100% no-repeat;
+      mask: linear-gradient(#000 0 0) left / 0 100% no-repeat;
+      transition: -webkit-mask-size 0.18s ease, mask-size 0.18s ease;
+    }
+
+    .hero-button::after,
+    .doc-card::after,
+    .feature-card::after,
+    .docsify-pagination-card::after,
+    .cpl-runner-button::after {
+      top: calc(100% - 0px);
+      left: -2.7px;
+      width: calc(100% + var(--iso-depth) + 2.5px);
+      height: calc(var(--iso-depth) + 1px);
+      background: var(--extrude-bottom);
+      border-top: 0;
+      clip-path: polygon(
+        1px 0,
+        calc(100% - var(--iso-depth) - 1px) 0,
+        100% 100%,
+        calc(var(--iso-depth) + 1px) 100%
+      );
+      -webkit-mask: linear-gradient(#000 0 0) top / 100% 0 no-repeat;
+      mask: linear-gradient(#000 0 0) top / 100% 0 no-repeat;
+      transition: -webkit-mask-size 0.18s ease, mask-size 0.18s ease;
+    }
+
+    .hero-button:hover,
+    .doc-card:hover,
+    .feature-card:hover,
+    .docsify-pagination-card:hover,
+    .cpl-runner-button:hover {
+      transform: translate(calc(var(--iso-depth) * -1), calc(var(--iso-depth) * -1));
+    }
+
+    .hero-button:hover::before,
+    .doc-card:hover::before,
+    .feature-card:hover::before,
+    .docsify-pagination-card:hover::before,
+    .cpl-runner-button:hover::before,
+    .hero-button:hover::after,
+    .doc-card:hover::after,
+    .feature-card:hover::after,
+    .docsify-pagination-card:hover::after,
+    .cpl-runner-button:hover::after {
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
     }
 
     .hero-button.primary {
@@ -480,8 +593,6 @@
 
     .hero-button.primary:hover {
       background: #ff7a3d;
-      box-shadow: var(--lift-shadow-dark);
-      transform: translate(-3px, -3px);
     }
 
     .hero-button.secondary {
@@ -492,8 +603,6 @@
 
     .hero-button.secondary:hover {
       background: var(--panel-soft);
-      box-shadow: var(--lift-shadow-dark);
-      transform: translate(-3px, -3px);
     }
 
     .cpl-command {
@@ -571,13 +680,14 @@
       color: inherit !important;
       text-decoration: none !important;
       box-shadow: none;
-      transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+      position: relative;
+      z-index: 0;
+      isolation: isolate;
+      transition: border-color 0.14s ease, transform 0.18s ease;
     }
 
     .doc-card:hover {
       border-color: var(--ink);
-      box-shadow: var(--lift-shadow);
-      transform: translate(-3px, -3px);
     }
 
     .doc-card h3 {
@@ -609,15 +719,16 @@
       border-top: 1px solid var(--line);
       border-right: 1px solid var(--line);
       border-bottom: 1px solid var(--line);
-      transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+      position: relative;
+      z-index: 0;
+      isolation: isolate;
+      transition: border-color 0.14s ease, transform 0.18s ease;
     }
 
     .feature-card:hover {
       border-top-color: var(--ink);
       border-right-color: var(--ink);
       border-bottom-color: var(--ink);
-      box-shadow: var(--lift-shadow);
-      transform: translate(-3px, -3px);
     }
 
     .feature-card h3 {
@@ -659,13 +770,14 @@
       border-radius: var(--radius);
       background: #fff;
       padding: 14px 16px;
-      transition: border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease;
+      position: relative;
+      z-index: 0;
+      isolation: isolate;
+      transition: border-color 0.14s ease, transform 0.18s ease;
     }
 
     .docsify-pagination-card:hover {
       border-color: var(--ink);
-      box-shadow: var(--lift-shadow);
-      transform: translate(-3px, -3px);
     }
 
     .docsify-pagination-card.right { text-align: right; }
@@ -799,13 +911,14 @@
       color: #111111;
       font-weight: 800;
       cursor: pointer;
-      transition: background 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, transform 0.14s ease, opacity 0.15s ease;
+      position: relative;
+      z-index: 0;
+      isolation: isolate;
+      transition: background 0.14s ease, border-color 0.14s ease, opacity 0.15s ease, transform 0.18s ease;
     }
 
     .cpl-runner-button:hover {
       background: #ff7a3d;
-      box-shadow: 4px 4px 0 rgba(23, 17, 15, 0.26);
-      transform: translate(-2px, -2px);
     }
     .cpl-runner-button:disabled { opacity: 0.7; cursor: wait; }
 
@@ -906,7 +1019,17 @@
       .doc-card,
       .feature-card,
       .docsify-pagination-card,
-      .cpl-runner-button {
+      .cpl-runner-button,
+      .hero-button::before,
+      .hero-button::after,
+      .doc-card::before,
+      .doc-card::after,
+      .feature-card::before,
+      .feature-card::after,
+      .docsify-pagination-card::before,
+      .docsify-pagination-card::after,
+      .cpl-runner-button::before,
+      .cpl-runner-button::after {
         transition: none;
       }
 
@@ -914,8 +1037,32 @@
       .doc-card:hover,
       .feature-card:hover,
       .docsify-pagination-card:hover,
-      .cpl-runner-button:hover {
+      .cpl-runner-button:hover,
+      .hero-button:hover::before,
+      .doc-card:hover::before,
+      .feature-card:hover::before,
+      .docsify-pagination-card:hover::before,
+      .cpl-runner-button:hover::before,
+      .hero-button:hover::after,
+      .doc-card:hover::after,
+      .feature-card:hover::after,
+      .docsify-pagination-card:hover::after,
+      .cpl-runner-button:hover::after {
         transform: none;
+      }
+
+      .hero-button:hover::before,
+      .doc-card:hover::before,
+      .feature-card:hover::before,
+      .docsify-pagination-card:hover::before,
+      .cpl-runner-button:hover::before,
+      .hero-button:hover::after,
+      .doc-card:hover::after,
+      .feature-card:hover::after,
+      .docsify-pagination-card:hover::after,
+      .cpl-runner-button:hover::after {
+        -webkit-mask-size: 0 0;
+        mask-size: 0 0;
       }
     }
   </style>
@@ -923,9 +1070,31 @@
 <body>
   <div id="app"></div>
   <script>
-    window.CPL_RUNNER_URL = /^(127\.0\.0\.1|localhost)$/.test(location.hostname)
-      ? 'http://127.0.0.1:8000/cpl/run'
-      : '';
+    window.CPL_RUNNER_URL = window.CPL_RUNNER_URL || (
+      /^(127\.0\.0\.1|localhost)$/.test(location.hostname)
+        ? 'http://127.0.0.1:8000/cpl/run'
+        : '/cpl/run'
+    );
+    window.CPL_RUNNER_STUB = window.CPL_RUNNER_STUB || async function(payload) {
+      await new Promise(resolve => setTimeout(resolve, 280));
+      return {
+        success: true,
+        stdout: [
+          '=== backend stub ===',
+          'POST ' + window.CPL_RUNNER_URL,
+          'Compilation and execution endpoint is not connected in this environment yet.',
+          '',
+          'Payload accepted:',
+          '- lang: ' + payload.lang,
+          '- code size: ' + payload.code.length + ' bytes',
+          '',
+          'Production backend should return stdout/stderr/compiler metadata with the same JSON shape.'
+        ].join('\n'),
+        stderr: '',
+        compiler_exit_code: 0,
+        program_exit_code: 0
+      };
+    };
   </script>
   <script>
     function cleanRoute(route) {
@@ -960,7 +1129,7 @@
       ]);
       const types = new Set([
         'arr', 'dref', 'f32', 'f64', 'i0', 'i8', 'i16', 'i32', 'i64',
-        'ptr', 'ref', 'str', 'u8', 'u16', 'u32', 'u64'
+        'ptr', 'ref', 'container', 'u8', 'u16', 'u32', 'u64'
       ]);
       const builtins = new Set(['asm', 'sizeof', 'syscall']);
 
@@ -1183,7 +1352,7 @@
     }
 
     window.$docsify = {
-      name: 'CPL v3.5<small>Language docs & compiler internals</small>',
+      name: 'CPL v3.6<small>Language docs & compiler internals</small>',
       repo: 'https://github.com/j1sk1ss/CordellCompiler',
       homepage: 'README.md',
       loadSidebar: 'sidebar.md',
@@ -1224,8 +1393,8 @@
                 <div class="cpl-runner" data-lang="cpl" data-code="${encoded}">
                   <div class="cpl-runner-toolbar">
                     <div class="cpl-runner-toolbar-left">
-                      <div class="cpl-runner-title">CPL code editor</div>
-                      <span class="cpl-runner-badge">Powered by Monaco editor</span>
+                      <div class="cpl-runner-title">CPL playground</div>
+                      <span class="cpl-runner-badge">Compile and run via backend</span>
                     </div>
                     <div class="cpl-runner-toolbar-right">
                       <button class="cpl-runner-button secondary" type="button" data-action="format">Format</button>
@@ -1238,7 +1407,7 @@
                     </div>
                     <div class="cpl-runner-editor"></div>
                   </div>
-                  <pre class="cpl-runner-output">Editor ready. Tabs, syntax highlighting and autocomplete are enabled.</pre>
+                  <pre class="cpl-runner-output">Ready to run. The browser will POST this code to the CPL backend.</pre>
                 </div>
               `;
             }
@@ -1249,6 +1418,19 @@
         }
       },
       plugins: [
+        function(hook) {
+          function updateShellRoute() {
+            const route = cleanRoute(location.hash);
+            const isHome = !route || route === '#' || route === '#/' || route === '#/README' || route === '#/README.md';
+            document.documentElement.classList.toggle('cpl-home-route', isHome);
+            document.body.classList.toggle('cpl-home-route', isHome);
+          }
+
+          hook.ready(updateShellRoute);
+          hook.doneEach(updateShellRoute);
+          window.addEventListener('hashchange', updateShellRoute);
+        },
+
         function(hook) {
           const pagePrefix = '#/pages/';
 
@@ -1396,7 +1578,7 @@
                   [/"/, 'string', '@string_double'],
                   [/'([^'\\]|\\.)*$/, 'string.invalid'],
                   [/'/, 'string', '@string_single'],
-                  [/\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str|arr|dref|ref|ptr)\b/, 'type'],
+                  [/\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|container|arr|dref|ref|ptr)\b/, 'type'],
                   [/\b(as|extern|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not|ro|glob|lis|break|loop)\b/, 'keyword'],
                   [/\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)\b/, 'number'],
                   [/[a-zA-Z_][\w]*/, 'identifier'],
@@ -1448,7 +1630,7 @@
             monaco.languages.registerCompletionItemProvider('cpl', {
               provideCompletionItems: function() {
                 const keywords = ['as','extern','from','import','start','exit','function','return','if','else','while','switch','case','default','syscall','asm','not','ro','glob','lis','break','loop'];
-                const types = ['f64','f32','i64','i32','i16','i8','u64','u32','u16','u8','i0','str','arr','dref','ref','ptr','exfunc'];
+                const types = ['f64','f32','i64','i32','i16','i8','u64','u32','u16','u8','i0','container','arr','dref','ref','ptr','exfunc'];
                 const snippets = [
                   {
                     label: 'function',
@@ -1568,11 +1750,7 @@
               resizeObserver.observe(block);
               block.__resizeObserver = resizeObserver;
 
-              if (window.CPL_RUNNER_URL || (window.CPL_RUNNER && typeof window.CPL_RUNNER.run === 'function')) {
-                output.textContent = 'Click \'Run\' to compile and run the program!';
-              } else {
-                output.textContent = 'Live execution is disabled in this static deployment. The editor remains available for reading and formatting examples.';
-              }
+              output.textContent = 'Click \'Run\' to compile and run the program.';
             } catch (err) {
               output.classList.add('is-error');
               output.textContent = 'Editor init failed: ' + err.message;
@@ -1613,20 +1791,25 @@
                 return;
               }
 
-              if (!window.CPL_RUNNER_URL) {
-                throw new Error('Runner backend is not configured for this static deployment.');
+              let response = null;
+              const payload = { lang: 'cpl', code };
+
+              try {
+                response= await fetch(backendUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(payload)
+                });
+              } catch (networkError) {
+                if (window.CPL_RUNNER_STUB && typeof window.CPL_RUNNER_STUB === 'function') {
+                  const stubResult = await window.CPL_RUNNER_STUB(payload, networkError);
+                  output.textContent = stubResult.stdout || 'Backend stub completed.';
+                  return;
+                }
+                throw networkError;
               }
-        
-              const response= await fetch(backendUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  lang: 'cpl',
-                  code
-                })
-              });
         
               let data= null;
               try {
@@ -1636,6 +1819,11 @@
               }
         
               if (!response.ok) {
+                if ((response.status === 404 || response.status === 405) && window.CPL_RUNNER_STUB && typeof window.CPL_RUNNER_STUB === 'function') {
+                  const stubResult = await window.CPL_RUNNER_STUB(payload);
+                  output.textContent = stubResult.stdout || 'Backend stub completed.';
+                  return;
+                }
                 const message=
                   (data && (data.error || data.stderr || data.message)) ||
                   `Request failed with status ${response.status}`;

@@ -27,9 +27,11 @@ typedef struct {
         char     entry    : 1;
         char     used     : 1;
         char     local    : 1;
-        char     naked    : 1;
+        char     naked;
         char     vargs    : 1;
         char     generic  : 1;
+        char     self     : 1;
+        char     inln;
     } flags;
 
     struct {
@@ -92,6 +94,8 @@ Params:
     - `naked` - Is this a naked function?
     - `vargs` - Is this a vargs function?
     - `generic` - Is this is a generic function?
+    - `inln` - Inline status.
+    - `stat` - Is this is a static function?
     - `args` - Function's arguments from AST.
     - `rtype` - Function's return type from AST.
     - `ctx` - Function symbol table.
@@ -100,7 +104,7 @@ Returns -1 if fails or a new function's ID.
 */
 symbol_id_t FNTB_add_info(
     string_t* name, string_t* vname,
-    int global, int local, int entry, int naked, int vargs, int generic, /* flags */
+    int global, int local, int entry, int naked, int vargs, int generic, int inln, int stat, /* flags */
     symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );
 
@@ -114,6 +118,9 @@ Returns the ID of a copied function.
 */
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx);
 
+// TODO: docs
+int FNTB_has_generic_types(symbol_id_t f_id, functab_ctx_t* ctx);
+
 /*
 Reset registered types for a function. Can be useful in the situation
 when you re-register a function from a prototype to an implementation.
@@ -123,7 +130,7 @@ Params:
 
 Returns 1 if succeeds.
 */
-int FNTB_clear_registered_types(symbol_id_t f_id, functab_ctx_t* ctx);
+int FNTB_clear_generic_types(symbol_id_t f_id, functab_ctx_t* ctx);
 
 /*
 Add a generic type for a function. This function adds a type obly if it is
@@ -135,7 +142,7 @@ Params:
 
 Returns 1 if succeeds.
 */
-int FNTB_register_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx);
+int FNTB_register_generic_type(symbol_id_t f_id, symbol_id_t t_id, functab_ctx_t* ctx);
 
 /*
 Register an existed function as a local function.
@@ -150,7 +157,7 @@ int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx);
 
 #define FNTB_SET_EXTERNAL NULL, FIELD_NO_CHANGE, 1, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, NULL, NULL
 #define FNTB_SET_VARGS    NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, NULL, NULL
-#define FNTB_SET_NAKED    NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, FIELD_NO_CHANGE, NULL, NULL
+#define FNTB_SET_NAKED    NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 2, FIELD_NO_CHANGE, NULL, NULL
 /*
 Update an existed function.
 Note: Will update the virtual name of a function.

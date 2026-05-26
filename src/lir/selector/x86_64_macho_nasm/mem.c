@@ -115,13 +115,10 @@ Returns 1 if memory is used, otherwise 0.
 */
 static int _verify_memory_usage(cfg_func_t* fb) {
     foreach (cfg_block_t* bb, &fb->blocks) {
-        lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-        while (lh) {
-            iterate_lir_args(lir_subject_t* arg, lh, 0) {
+        iterate_lir_instructions (bb) {
+            iterate_lir_args (lir_subject_t* arg, lh, 0) {
                 if (arg->t == LIR_MEMORY) return 1;
             }
-
-            lh = LIR_get_next(lh, bb->lmap.exit, 1);
         }
     }
 
@@ -134,8 +131,7 @@ int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
         if (!fb->used) continue;
         stack_map_init(0, &smp);
         foreach (cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 switch (lh->op) {
                     case LIR_VRDEALL: {
                         variable_info_t vi;
@@ -222,7 +218,7 @@ int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
                         break;
                     }
                     default: {
-                        iterate_lir_args(lir_subject_t* arg, lh, 0) {
+                        iterate_lir_args (lir_subject_t* arg, lh, 0) {
                             if (arg->t != LIR_VARIABLE) continue;
                             _update_subject_memory(arg, &smp, colors, smt);
                         }
@@ -230,8 +226,6 @@ int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
                         break;
                     }
                 }
-
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
 
@@ -260,8 +254,7 @@ Params:
 Returns 1 if the operation succeeds, otherwise 0.
 */
 static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-    while (lh) {
+    iterate_lir_instructions (bb) {
         if (
             (lh->farg && lh->farg->t != LIR_MEMORY) &&
             (lh->sarg && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL)
@@ -274,11 +267,27 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
                 default: break;
             }
         }
-
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 
     return 1;
+}
+
+static lir_block_t* _create_push_arg_mov(lir_subject_t* dst, lir_subject_t* src, sym_table_t* smt) {
+    lir_operation_t movop = LIR_iMOV;
+    lir_subject_t* movdst = dst;
+
+    if (
+        src->size == 4 && !x86_64_macho_nasm_is_sign_type(src, smt) &&
+        src->t != LIR_NUMBER && src->t != LIR_CONSTVAL
+    ) {
+        movdst = LIR_copy_subject(dst);
+        movdst->size = 4;
+    }
+    else {
+        movop = x86_64_macho_nasm_get_proper_mov(dst, src, smt, LIR_iMOV);
+    }
+
+    return LIR_create_block(movop, movdst, src, NULL);
 }
 
 /*
@@ -294,17 +303,28 @@ Params:
 Returns 1 if the operation succeeds, otherwise 0.
 */
 static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
-    lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-    while (lh) {
-        list_t fixes;
+    iterate_lir_instructions (bb) {
+        list_t fixes, post_fixes;
         list_init(&fixes);
+        list_init(&post_fixes);
         if (lh->farg) {
             switch (lh->op) {
                 case LIR_PUSH: {
-                    if (lh->farg->t != LIR_NUMBER && lh->farg->t != LIR_CONSTVAL) break;
-                    lir_subject_t* tmp = x86_64_macho_nasm_create_tmp(ECX, lh->farg, smt, MAX(lh->farg->size, 2));
-                    list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->farg, NULL));
+                    if (lh->farg->size == 8) break;
+                    lir_subject_t* tmp = x86_64_macho_nasm_create_tmp(R15, lh->farg, smt, 8);
+                    list_add(&fixes, _create_push_arg_mov(tmp, lh->farg, smt));
                     lh->farg = tmp;
+                    break;
+                }
+                case LIR_POP: {
+                    if (lh->farg->size == 8) break;
+                    lir_subject_t* dst = lh->farg;
+                    lir_subject_t* tmp = x86_64_macho_nasm_create_tmp(R15, dst, smt, 8);
+                    lir_subject_t* narrowed = LIR_copy_subject(tmp);
+                    narrowed->size = dst->size;
+
+                    lh->farg = tmp;
+                    list_add(&post_fixes, LIR_create_block(LIR_iMOV, dst, narrowed, NULL));
                     break;
                 }
                 default: break;
@@ -369,8 +389,13 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
             }
         }
 
-        lh = LIR_get_next(lh, bb->lmap.exit, 1);
+        foreach (lir_block_t* fix, &post_fixes) {
+            if (bb->lmap.exit == lh) bb->lmap.exit = fix;
+            LIR_insert_block_after(fix, lh);
+        }
+
         list_free(&fixes);
+        list_free(&post_fixes);
     }
 
     return 1;
@@ -378,12 +403,22 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
 
 int x86_64_macho_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
+        func_info_t fi;
+        if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
             _validate_size_movs(bb, smt);
             _validate_selected_instuction(bb, smt);
+            if (fi.flags.naked != 1) continue;
+            iterate_lir_instructions (bb) {
+                iterate_lir_args (lir_subject_t* s, lh, 0) {
+                    if (
+                        s->t == LIR_MEMORY && 
+                        s->storage.var.base == RBP
+                    ) s->storage.var.base = RSP;
+                }
+            }
         }
     }
 
     return 1;
 }
-

@@ -4,29 +4,28 @@ start() {
 }
 
 :/ OUTPUT
-setpos, line=2, column=86, file={X}
+setpos, line=2, column=86, file=<unknown>
 {
-setpos, line=1, column=10, file={X}
-setpos, line=2, column=7, file={X}
-    start {
+setpos, line=1, column=10, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmplhycfips.cpl
+setpos, line=2, column=7, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmplhycfips.cpl
+    fn _main()
+    {
+setpos, line=3, column=9, file=/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmplhycfips.cpl
         {
-setpos, line=3, column=9, file={X}
+            goto lb10;
+            fn __anon_function_lambda2(i32 a)
             {
-                goto lb10;
-                fn __anon_function_lambda2(i32 a)
+                i32s %1 = alloc;
+                i32s %1 = load_arg();
                 {
-                    i32s %1 = alloc;
-                    i32s %1 = load_arg();
-                    {
-                        i32t %2 = i32s %1 * i32s %1;
-                        use i32t %2;
-                    }
+                    i32t %2 = i32s %1 * i32s %1;
+                    use i32t %2;
                 }
-                lb10:
-                i0t* %3 = &(__anon_function_lambda2(i32 a));
-                use i0t* %3;
-                foo0(i0t* %3);
             }
+            lb10:
+            i0t* %3 = &(__anon_function_lambda2(i32 a));
+            use i0t* %3;
+            foo0(i0t* %3);
         }
     }
 }

@@ -27,6 +27,18 @@ static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, li
     LIR_insert_block_after(b, pos);
 }
 
+// TODO: docs
+static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
+    int res = 0;
+    fn_iterate_args (&fi) {
+        if (arg->t && arg->t->t_type != VAR_ARGUMENTS_TOKEN) res++;
+    }
+
+    return res;
+}
+
 int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     queue_t dirty_regs;
     queue_init(&dirty_regs);
@@ -34,9 +46,11 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
+
+        func_info_t fi;
+        if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 switch (lh->op) {
                     case LIR_STSARG: {
                         int sys_regs[] = { EAX, EBX, ECX, EDX, ESI, EDI, EBP };
@@ -56,11 +70,22 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lh->farg = nfarg;
                         break;
                     }
+                    case LIR_REF_ARGS: {
+                        lh->op   = LIR_REF;
+                        lh->sarg = LIR_SUBJ_OFF(EBP, (!fi.flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -4, 4);
+                        break;
+                    }
                     case LIR_FCLL: {
+                        // func_info_t callee; TODO
+                        // if (
+                        //     lh->farg && lh->farg->t == LIR_FNAME && FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) &&
+                        //     callee.flags.vargs
+                        // ) LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(EAX, 4), LIR_SUBJ_REG(EAX, 4), LIR_SUBJ_REG(EAX, 4)), lh);
                         if (clean_stack) {
                             LIR_insert_block_after(LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(clean_stack)), lh);
                             clean_stack = 0;
                         }
+                        __attribute__ ((fallthrough));
                     }
                     case LIR_SYSC: {
                         long dirty;
@@ -92,11 +117,11 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     case LIR_STFARG: {
                         lh->op         = LIR_PUSH;
                         lh->farg->size = 4;
-                        clean_stack   += 4;
+                        clean_stack    += 4;
                         break;
                     }
                     case LIR_LOADFARG: {
-                        lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->targ->storage.cnst.value + 1) * -4, lh->farg->size);
+                        lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->sarg->storage.cnst.value + !fi.flags.naked + 1) * -4, lh->farg->size);
                         LIR_unload_subject(lh->sarg);
                         lh->op   = LIR_phiMOV;
                         lh->sarg = nfarg;
@@ -115,6 +140,11 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         _insert_instruction_before(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh);
                         lh->op = LIR_iMOV;
                         lh->sarg = res;
+                        break;
+                    }
+                    case LIR_NEG: {
+                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, LIR_copy_subject(lh->farg), lh->sarg, NULL), lh);
+                        lh->sarg = LIR_copy_subject(lh->farg);
                         break;
                     }
                     case LIR_iBRHT: case LIR_iBLFT:
@@ -262,8 +292,6 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     default: break;
                 }
-
-                lh = LIR_get_next(lh, bb->lmap.exit, 1);
             }
         }
     }

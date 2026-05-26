@@ -17,10 +17,7 @@ function put_digit(i64 x) -> i0 {
     putc(('0' + x) as i8);
 }
 
-start(...) {
-    @[poparg] i64 argc;
-    @[poparg] ptr ptr i8 argv;
-
+start(i64 argc, ptr ptr i8 argv) {
     put_digit(argc);
     put_digit(strlen(argv[1]));
     exit 0;

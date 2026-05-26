@@ -7,17 +7,17 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
+            if i32g %0, goto lb8, else goto lb10;
+            lb8:
             {
-                if i32g %0, goto lb8, else goto lb10;
-                lb8:
-                {
-                    exit i8n 1;
-                }
-                goto lb10;
-                lb10:
+                u8t %1 = i8n 1 as u8;
+                exit u8t %1;
             }
+            goto lb10;
+            lb10:
         }
     }
 }

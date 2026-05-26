@@ -1,48 +1,88 @@
-{
-    glob arr _mm_head[100000, i8];
-    glob arr _blocks_info[100000, i32];
+#define ALLOC_BUFFER_SIZE 100000
+#define NULL              0 as ptr i0
+#define NULL_MM_NODE      0 as ptr mm_node
 
-    glob function memset(ptr u8 buffer, i32 val, i64 size) {
-        i64 index = 0;
-        while index < size; {
-            buffer[index] = val;
-            index = index + 1;
-        }
+container mm_node {
+    u64         size;
+    i8          free;
+    ptr mm_node next;
+}
 
-        return 1;
+glob arr _mm_head[ALLOC_BUFFER_SIZE, u8];
+glob ptr u8 _head;
+
+function init() -> i0 {
+    _head = (ref _mm_head) as ptr u8;
+    ptr mm_node curr = _head;
+    curr.size = ALLOC_BUFFER_SIZE - sizeof(mm_node);
+    curr.free = 1;
+    curr.next = NULL_MM_NODE;
+}
+
+function align8(i64 size) -> i64 {
+    return (size + 7) / 8 * 8;
+}
+
+function malloc(i64 size) -> ptr i0 {
+    if size <= 0; {
+        return NULL;
     }
 
-    glob function malloc(i64 size) {
-        if size > 0; {
-            i32 block_index = 0;
-            ptr u8 curr_mem = _mm_head;
-            while block_index < 100000; {
-                if not _blocks_info[block_index]; {
-                    _blocks_info[block_index] = 1;
-                    _blocks_info[block_index + 1] = size;
-                    _blocks_info[block_index + 2] = curr_mem;
-                    return curr_mem;
-                }
+    size = align8(size);
+    ptr mm_node curr = _head;
 
-                curr_mem = curr_mem + _blocks_info[block_index + 1];
-                block_index = block_index + 3;
+    while curr != NULL_MM_NODE; {
+        if curr.free && curr.size >= size; {
+            if curr.size >= size + sizeof(mm_node) + 8; {
+                ptr u8 new_block_mem = curr as ptr u8;
+                new_block_mem = new_block_mem + sizeof(mm_node) + size;
+
+                ptr mm_node new_block = new_block_mem as ptr mm_node;
+                new_block.size = curr.size - size - sizeof(mm_node);
+                new_block.free = 1;
+                new_block.next = curr.next;
+
+                curr.size = size;
+                curr.next = new_block;
             }
+
+            curr.free = 0;
+
+            ptr u8 result = curr as ptr u8;
+            result = result + sizeof(mm_node);
+
+            return result as ptr i0;
         }
 
-        return -1;
+        curr = curr.next;
     }
 
-    glob function free(ptr i32 mem) {
-        i32 block_index = 0;
-        while block_index < 100000; {
-            if _blocks_info[block_index + 2] == mem; {
-                _blocks_info[block_index] = 0;
-                return 1;
-            }
+    return NULL;
+}
 
-            block_index = block_index + 3;
-        }
-
-        return 1;
+function dealloc(ptr i0 mem) -> i0 {
+    if not mem; {
+        return;
     }
+
+    ptr u8 block_mem = mem as ptr u8;
+    block_mem = block_mem - sizeof(mm_node);
+
+    ptr mm_node block = block_mem as ptr mm_node;
+    block.free = 1;
+}
+
+start() {
+    init();
+    ptr u8 buffer = malloc(10) as ptr u8;
+    buffer[0] = 'M';
+    buffer[1] = 'a';
+    buffer[2] = 'x';
+    buffer[3] = '\n';
+    syscall(0x2000004, 1, buffer, 4);
+    dealloc(buffer);
+    buffer = malloc(10) as ptr u8;
+    buffer[0] = 'A';
+    buffer[1] = 'M';
+    syscall(0x2000004, 1, buffer, 4);
 }

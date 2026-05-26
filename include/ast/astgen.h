@@ -74,6 +74,16 @@ Returns 1 on success, otherwise 0.
 int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Resolve AST-level generated implementations after all input files are parsed.
+Params:
+    - `ctx` - AST ctx.
+    - `smt` - Symtable.
+
+Returns 1 on success, otherwise 0.
+*/
+int AST_finalize_parse(ast_ctx_t* ctx, sym_table_t* smt);
+
+/*
 Unload an AST context.
 Params:
     - `ctx` - AST context.

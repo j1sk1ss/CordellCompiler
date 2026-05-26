@@ -18,7 +18,7 @@
 #include <hir/func.h>
 #include <hir/dag.h>
 #include <hir/constfold.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -33,7 +33,7 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include "../../../misc/lir_helper.h"
+#include <lir/dump.h>
 
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm_asmgen.h>
@@ -44,7 +44,7 @@
     HIR_CG_unload(&callctx);                \
     HIR_CG_build(&cfgctx, &callctx, &smt);  \
     HIR_CG_perform_dfe(&callctx, &smt);     \
-    HIR_CG_apply_dfe(&cfgctx, &callctx);
+    HIR_CG_apply_dfe(&cfgctx, &smt);
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -91,6 +91,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
@@ -111,7 +113,7 @@ int main(int argc, char* argv[]) {
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
     
-    HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt, HIR_FUNC_inline_heuristic_desider);
+    HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
 
     RELOAD_CFG; // Rebuild after inlined functions
 
@@ -140,7 +142,7 @@ int main(int argc, char* argv[]) {
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
 
-    LIR_variable_copy_propagation(&cfgctx);
+    LIR_variable_copy_propagation(&cfgctx, &smt);
     LIR_drop_unused_variables(&cfgctx);
 
     inst_selector_t inst_sel = { .select_instructions = x86_64_gnu_nasm_instruction_selection };
@@ -166,7 +168,7 @@ int main(int argc, char* argv[]) {
     LIR_destroy_ssa(&cfgctx);
 
     register_saver_t reg_save = { .save_registers = x86_64_gnu_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &smt, &reg_save);
+    LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
 
     peephole_t pph = { .perform_peephole = x86_64_gnu_nasm_peephole_optimization };
     LIR_peephole_optimization(&cfgctx, &pph);

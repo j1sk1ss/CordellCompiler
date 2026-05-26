@@ -57,6 +57,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    AST_finalize_parse(&sctx, &smt);
+
     set_t s;
     set_init(&s, SET_NO_CMP);
     RST_restore_code(stdout, sctx.r, &s, 0);

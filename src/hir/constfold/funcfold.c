@@ -48,15 +48,12 @@ Returns 1 if succeeds.
 static int _register_fcalls(cfg_ctx_t* cctx, map_t* fcalls) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-            while (hh) {
+            iterate_hir_instructions (bb) {
                 switch (hh->op) {
                     case HIR_FCLL:
                     case HIR_STORE_FCLL: _register_params(hh->sarg->storage.str.s_id, &hh->targ->storage.list.h, fcalls); break;
                     default: break;
                 }
-
-                hh = HIR_get_next(hh, bb->hmap.exit, 1);
             }
         }
     }
@@ -109,8 +106,7 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
         int param_index = 0;
         void** registered_params = list_flatten(rargs);
         foreach (cfg_block_t* bb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-            while (hh) {
+            iterate_hir_instructions (bb) {
                 if (hh->op == HIR_FARGLD) {
                     long value = 0;
                     hir_subject_t* folded = (hir_subject_t*)registered_params[param_index++];
@@ -122,8 +118,6 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
                         changed = 1;
                     }
                 }
-
-                hh = HIR_get_next(hh, bb->hmap.exit, 1);
             }
         }
 
@@ -148,10 +142,8 @@ static int _unload_fcalls(list_t* l) {
 int HIR_sparse_const_funcall_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
     map_t fcalls;
     map_init(&fcalls, MAP_NO_CMP);
-
     _register_fcalls(cctx, &fcalls);
     int res = _propagate_params(cctx, smt, &fcalls);
-
     map_free_force_op(&fcalls, (int (*)(void*))_unload_fcalls);
     return res;
 }
@@ -206,8 +198,7 @@ static int _propagate_frets(cfg_ctx_t* cctx, sym_table_t* smt, map_t* frets) {
     int changed = 0;
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-            while (hh) {
+            iterate_hir_instructions (bb) {
                 if (HIR_is_ret_funccall(hh->op)) {
                     hir_subject_t* ret;
                     if (
@@ -220,8 +211,6 @@ static int _propagate_frets(cfg_ctx_t* cctx, sym_table_t* smt, map_t* frets) {
                         }
                     }
                 }
-
-                hh = HIR_get_next(hh, bb->hmap.exit, 1);
             }
         }
     }

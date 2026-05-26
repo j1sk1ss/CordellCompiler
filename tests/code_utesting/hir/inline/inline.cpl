@@ -22,46 +22,49 @@ start() {
             arrs %1 = arr_alloc(i8n 10);
             i32t %4 = i8n 1 as i32;
             i32t %3 = i32s %0 == i32t %4;
-            if i32t %3, goto lb15, else goto lb16;
-            lb15:
-            {
-                return i8n 0;
-            }
-            goto lb17;
+            if i32t %3, goto lb16, else goto lb17;
             lb16:
             {
-                return i8n 1;
+                i32t %5 = i8n 0 as i32;
+                return i32t %5;
             }
-            goto lb17;
+            goto lb18;
             lb17:
+            {
+                i32t %6 = i8n 1 as i32;
+                return i32t %6;
+            }
+            goto lb18;
+            lb18:
         }
     }
-    start {
+    fn _main()
+    {
         {
+            i32s %2 = alloc;
+            i32s %0 = i8n 10;
+            arrs %1 = arr_alloc(i8n 10);
+            i32t %4 = i8n 1 as i32;
+            i32t %3 = i32s %0 == i32t %4;
+            if i32t %3, goto lb80, else goto lb81;
+            lb80:
             {
-                i32s %2 = alloc;
-                i32s %0 = i8n 10;
-                arrs %1 = arr_alloc(i8n 10);
-                i32t %4 = i8n 1 as i32;
-                i32t %3 = i32s %0 == i32t %4;
-                if i32t %3, goto lb71, else goto lb72;
-                lb71:
-                {
-                    i32t %5 = i8n 0;
-                    goto lb48;
-                }
-                goto lb73;
-                lb72:
-                {
-                    i32t %5 = i8n 1;
-                    goto lb48;
-                }
-                goto lb73;
-                lb73:
-                lb48:
-                [unused] i32t %5 = foo0(i8n 10);
-                i32s %2 = i32t %5;
+                i32t %5 = i8n 0 as i32;
+                i32t %7 = i32t %5;
+                goto lb53;
             }
+            goto lb82;
+            lb81:
+            {
+                i32t %6 = i8n 1 as i32;
+                i32t %7 = i32t %6;
+                goto lb53;
+            }
+            goto lb82;
+            lb82:
+            lb53:
+            [unused] i32t %7 = foo0(i8n 10);
+            i32s %2 = i32t %7;
         }
     }
 }

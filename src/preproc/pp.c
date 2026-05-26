@@ -1,5 +1,14 @@
 #include <preproc/pp.h>
 
+/*
+Create source position info for a preprocessor source file.
+Params:
+    - `f` - Opened source file.
+    - `name` - Source file path.
+    - `l` - Initial source line number.
+
+Returns created source info or NULL.
+*/
 static inline source_pos_info_t* _create_info(FILE* f, char* name, int l) {
     source_pos_info_t* inf = (source_pos_info_t*)malloc(sizeof(source_pos_info_t));
     if (!inf) return NULL;
@@ -11,6 +20,13 @@ static inline source_pos_info_t* _create_info(FILE* f, char* name, int l) {
     return inf;
 }
 
+/*
+Destroy source position info.
+Params:
+    - `inf` - Source info to destroy.
+
+Returns 1 if succeeds.
+*/
 static int _destroy_info(source_pos_info_t* inf) {
     if (!inf) return 0;
     if (inf->f) fclose(inf->f);
@@ -21,7 +37,7 @@ static int _destroy_info(source_pos_info_t* inf) {
 }
 
 /*
-Init a PP ontext.
+Init a PP context.
 Params:
     - `ctx` - PP context.
 
@@ -40,14 +56,8 @@ Params:
 Returns 1 if succeeds.
 */
 static int _unload_pp_ctx(pp_ctx_t* ctx) {
-    FILE* fp;
-    while (stack_pop(&ctx->sources, (void**)&fp)) {
-        if (fp) fclose(fp);
-    }
-
     MCTB_unload(&ctx->defines);
     stack_free_force_op(&ctx->sources, (int (*)(void*))_destroy_info);
-
     if (ctx->line)    free(ctx->line);
     if (ctx->clean)   free(ctx->clean);
     if (ctx->defined) free(ctx->defined);
@@ -60,40 +70,83 @@ static int _unload_pp_ctx(pp_ctx_t* ctx) {
     return 1;
 }
 
+/*
+Try to open a file and push it as a new source.
+Params:
+    - `st` - Source stack.
+    - `full_path` - Path to the source file.
+
+Returns 1 if the source was opened and pushed.
+*/
 static int _try_push_path(sstack_t* st, char* full_path) {
     FILE* inc = fopen(full_path, "r");
     if (!inc) return 0;
-    
     source_pos_info_t* inf = _create_info(inc, full_path, 0);
     if (!inf || !stack_push(st, inf)) {
-        _destroy_info(inf);
-        fclose(inc);
+        if (inf) _destroy_info(inf);
+        else fclose(inc);
         return 0;
     }
     
     return 1;
 }
 
-static int _push_include(FILE* curr, sstack_t* st, finder_ctx_t* fctx, char* inc_name, int is_system) {
+/*
+Check whether include path is explicitly relative.
+Params:
+    - `inc_name` - Include path.
+
+Returns 1 if include starts with './' or '../'.
+*/
+static inline int _is_relative_include(const char* inc_name) {
+    return inc_name &&
+           (
+               !strncmp(inc_name, "./",  2) ||
+               !strncmp(inc_name, "../", 3)
+           );
+}
+
+/*
+Try to push an include relative to the current source file.
+Params:
+    - `st` - Source stack.
+    - `curr_name` - Current source file path.
+    - `inc_name` - Include path from directive.
+
+Returns 1 if the relative include was opened and pushed.
+*/
+static int _try_push_relative(sstack_t* st, const char* curr_name, char* inc_name) {
+    if (!st || !curr_name || !*curr_name || !inc_name || !*inc_name) return 0;
+    char full[PP_PATH_MAX]    = { 0 };
+    char dir_buf[PP_PATH_MAX] = { 0 };
+    strncpy(dir_buf, curr_name, sizeof(dir_buf));
+    dir_buf[sizeof(dir_buf) - 1] = 0;
+    const char* dir = dirname(dir_buf);
+    int w = snprintf(full, sizeof(full), "%s/%s", dir, inc_name);
+    if (w <= 0 || (size_t)w >= sizeof(full)) return 0;
+    return _try_push_path(st, full);
+}
+
+/*
+Search and push an include file.
+Params:
+    - `curr_name` - Current source file path.
+    - `st` - Source stack.
+    - `fctx` - Finder context with include search path.
+    - `inc_name` - Include path from directive.
+    - `is_system` - Whether include uses system-style '<...>' form.
+
+Returns 1 if the include file was found and pushed.
+*/
+static int _push_include(const char* curr_name, sstack_t* st, finder_ctx_t* fctx, char* inc_name, int is_system) {
     if (!st || !inc_name || !*inc_name) return 0;
     if (inc_name[0] == '/') {
         return _try_push_path(st, inc_name) ? 1 : 0;
     }
 
     char full[PP_PATH_MAX] = { 0 };
-    if (!is_system) {
-        char curr_path[PP_PATH_MAX] = { 0 };
-        char dir_buf[PP_PATH_MAX]   = { 0 };
-        if (PP_file_path_from_fp(curr, curr_path, sizeof(curr_path))) {
-            strncpy(dir_buf, curr_path, sizeof(dir_buf));
-            dir_buf[sizeof(dir_buf) - 1] = 0;
-
-            const char* dir = dirname(dir_buf);
-            int w = snprintf(full, sizeof(full), "%s/%s", dir, inc_name);
-            if (w > 0 && (size_t)w < sizeof(full)) {
-                if (_try_push_path(st, full)) return 1;
-            }
-        }
+    if (!is_system || _is_relative_include(inc_name)) {
+        if (_try_push_relative(st, curr_name, inc_name)) return 1;
     }
 
     if (fctx && fctx->bpath && fctx->bpath[0]) {
@@ -107,6 +160,14 @@ static int _push_include(FILE* curr, sstack_t* st, finder_ctx_t* fctx, char* inc
 }
 
 static char* _l = NULL;
+/*
+Delay line output by one call.
+Params:
+    - `l` - Line to print on the next call.
+    - `out` - Output stream.
+
+Returns nothing.
+*/
 static void _lazy_fputs(char* l, FILE* out) {
     if (_l) fputs(_l, out);
     if (_l) {
@@ -114,11 +175,17 @@ static void _lazy_fputs(char* l, FILE* out) {
         _l = NULL;
     }
     
-    if (l) {
-        _l  = strdup(l);
-    }
+    if (l) _l  = strdup(l);
 }
 
+/*
+Put source location macro into the output stream.
+Params:
+    - `d` - Source info to print.
+    - `o` - Output stream.
+
+Returns nothing.
+*/
 static inline void _put_line_macro(source_pos_info_t* d, FILE* o) {
     static char lder[512] = { 0 };
     snprintf(lder, sizeof(lder), "\n#line %i \"%s\"\n", d->l, d->n);
@@ -126,7 +193,7 @@ static inline void _put_line_macro(source_pos_info_t* d, FILE* o) {
 }
 
 /*
-Check if this is a permitted character.
+Check whether this is a permitted character.
 Params:
     - `p` - Input character (1 byte or more than 1 byte size).
 
@@ -172,16 +239,9 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
     source_pos_info_t init = { .l = 0, .n = src_path };
     _put_line_macro(&init, src);
 
-    char* src_path_ptr = strdup(src_path);
-    if (!src_path_ptr) {
-        _unload_pp_ctx(&ppctx);
-        return -1;
-    }
-
-    source_pos_info_t* info = _create_info(src, src_path_ptr, 0);
+    source_pos_info_t* info = _create_info(src, src_path, 0);
     if (!info || !stack_push(&ppctx.sources, info)) {
         if (info) _destroy_info(info);
-        else free(src_path_ptr);
         _unload_pp_ctx(&ppctx);
         return -1;
     }
@@ -253,7 +313,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
                     return -1;
                 }
 
-                if (!_push_include(inf->f, &ppctx.sources, fctx, inc_name, is_system)) {
+                if (!_push_include(inf->n, &ppctx.sources, fctx, inc_name, is_system)) {
                     _unload_pp_ctx(&ppctx);
                     return -1;
                 }

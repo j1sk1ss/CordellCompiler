@@ -2,9 +2,8 @@
 
 static int _count_commands(cfg_block_t* bb) {
     int res = 0;
-    hir_block_t* hb = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-    while (hb) {
-        switch (hb->op) {
+    iterate_hir_instructions (bb) {
+        switch (hh->op) {
             case HIR_IFOP2:
             case HIR_JMP:
             case HIR_MKLB:
@@ -18,8 +17,6 @@ static int _count_commands(cfg_block_t* bb) {
             case HIR_PHI_PREAMBLE: break;
             default: res++;
         }
-
-        hb = HIR_get_next(hb, bb->hmap.exit, 1);
     }
 
     return res;
@@ -37,10 +34,8 @@ static int _mark_loop_dead(loop_node_t* root) {
 
     if (!loop_content) {
         set_foreach (cfg_block_t* bb, &root->blocks) {
-            hir_block_t* hb = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-            while (hb) {
-                hb->unused = 1;
-                hb = HIR_get_next(hb, bb->hmap.exit, 1);
+            iterate_hir_instructions (bb) {
+                hh->unused = 1;
             }
         }
     }

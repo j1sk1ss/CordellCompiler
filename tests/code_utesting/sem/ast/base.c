@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    AST_finalize_parse(&sctx, &smt);
     SEM_perform_ast_check(&sctx, &smt);
 
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);

@@ -36,13 +36,131 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Containers!: Methods and Static functions
+<div class="change-date">Date: 2026-05-23</div>
+Container can contain a function. There is no hidden pointer or whatsoever:
+
+```cpl
+container node {
+    function init(ptr node self) -> i0 {
+    }
+}
+
+start() {
+    node a;
+    a.init();
+}
+```
+
+Actually, parser simply passes a self node to a calling object with reference or without. The first 'self' argument is mandatory if you want to work with a container. If you want just a convenient namespace, use the `static` annotation:
+
+```cpl
+container std {
+    @[static]
+    function sum(i32 a, i32 b) -> i32 {
+        return a + b;
+    }
+}
+
+start() {
+    std s;
+    s.sum();
+}
+```
+
+I'm not planning to create a static containers for now, which means there is no way to create a real namespace. Containers are structures from C, but with come additional features. </br>
+Also generics work the same with containers:
+
+```cpl
+container math {
+    @[static]
+    function sum<T>(T a, T b) -> T {
+        return a + b;
+    }
+}
+
+start() {
+    math m;
+    i32 a = m.sum<i32>(1, 1);
+}
+```
+
+## Containers!: Basics
+<div class="change-date">Date: 2026-05-23</div>
+It is really convenient to have a structure which can store different types, isn't it? Now the CPL supports the next syntax:
+
+```cpl
+container node {
+    i32 a;
+    i32 b;
+}
+
+node nd;
+nd.a = 0;
+nd.b = 0;
+```
+
+At this point this is only a container, which means it can store primitives only (and pointers). For instance:
+```cpl
+container a {
+}
+container s {
+    ptr i32 a;
+    f64 b;
+    ptr i8 msg;
+    ptr a d;
+
+    str msg;       :/ Illegal! /:
+    a nested;      :/ Illegal! /:
+    arr k[10, u8]; :/ Illegal! /:
+}
+```
+
+Also you can't create an array of containers as well:
+```cpl
+container a {
+}
+
+arr b[10, a]; :/ Illegal! /:
+```
+
+*P.S.:* This is the first version of containers.
+
+## inline annotation
+<div class="change-date">Date: 2026-05-21</div>
+Add an annotation which helps the compiler to figure out whether he should or not inline a function. This annotation works the same as it does the similar annotation in Rust language. For instance:
+```cpl
+@[inline] function foo(); :/ Function will be inlined with higher odds /:
+@[inline(always)] function bar(); :/ Will inline the function under any circumstances /:
+@[inline(never)] function baz(); :/ Will skip this function /:
+@[inline(model)] function chloe(); :/ ! Experimental ! The model will decide whether a function will be inlined /:
+```
+
+This is actually an experiment. I'd like to see how backed and compact models can perform in optimizing compilers. Also, I'd like to understand how much is portable such a model. At this point I'm working with mainly C-based data, and trying to implement obtained models in a C-like compiler which should demonstate satisfied results. But in the future I'll try the same experiment with Python and Lua.
+
+## actual poparg
+<div class="change-date">Date: 2026-05-20</div>
+Poparg annotation now works, but different as it does ABI va_list. The source idea was to create a convenient tool of variadic arguments usage, and at this moment it can't be performed with the ABI capability. </br>
+ABI requires us to support register arguments as well as we support stack arguments. It creates a requirement of a structure such as 'va_list', which isn't convinient. For now I'm forcing the compiler to push all parameters to stack if we're calling a variadinc function.  
+
+## neg
+<div class="change-date">Date: 2026-05-19</div>
+Now the compiler has a mechanism to invert the variable on bitness level. To perform this, you can use the next keyword:
+```cpl
+u8 a = neg 1; : 254 :
+```
+
+P.S.: The `not` command looks similar to `neg`, but works much differently. `not` is boolean-like negation, while `neg` flips bits. On x86 targets CPL `neg` is emitted with the machine `not` instruction, not the arithmetic `neg` instruction.
+
 ## i386
+<div class="change-date">Date: 2026-05-16</div>
 Compiler now has the i386 as a target architecture. 
 
 # Version v3.5
 <div class="change-date">Date: 2026-05-06</div>
 Compiler now supports polymophic params. It makes possible to implement generic types and functions which creates a way to structures and user-defined types. The preparation phase (the phase before the AST phase) was refactored. </br>
 The biggest change is a new supported syntax like the next one:
+
 ```cpl
 function foo<T>(T a) -> T {
     return a;

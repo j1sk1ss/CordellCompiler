@@ -2,7 +2,7 @@
 : RUN_ASM :
 start() {
     arr dst[13, i8];
-    str src = "Hello world!\n";
+    arr src[0, i8] = "Hello world!\n";
     
     i32 index = 0;
     while index < 13; {

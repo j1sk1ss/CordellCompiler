@@ -39,7 +39,7 @@ static int _lir_inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
         return 0;
     }
 
-    iterate_lir_args(lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+    iterate_lir_args (lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
         _add_vars_from_subject(use, arg);
     }
 
@@ -52,35 +52,32 @@ static int _lir_inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
 
 int LIR_DFG_compute_usedef(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        foreach (cfg_block_t* cb, &fb->blocks) {
-            set_free(&cb->use);
-            set_free(&cb->def);
-            set_init(&cb->use, SET_CMP);
-            set_init(&cb->def, SET_CMP);
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            set_free(&bb->use);
+            set_free(&bb->def);
+            set_init(&bb->use, SET_CMP);
+            set_init(&bb->def, SET_CMP);
 
-            lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
-            while (lh) {
+            iterate_lir_instructions (bb) {
                 set_t inst_use, inst_def, real_use;
 
                 _lir_inst_usedef(lh, &inst_use, &inst_def);
 
                 set_copy(&real_use, &inst_use);
-                set_minus_set(&real_use, &cb->def);
+                set_minus_set(&real_use, &bb->def);
 
                 set_t next_use, next_def;
-                set_union(&next_use, &cb->use, &real_use);
-                set_union(&next_def, &cb->def, &inst_def);
+                set_union(&next_use, &bb->use, &real_use);
+                set_union(&next_def, &bb->def, &inst_def);
 
-                set_free(&cb->use);
-                set_free(&cb->def);
-                cb->use = next_use;
-                cb->def = next_def;
+                set_free(&bb->use);
+                set_free(&bb->def);
+                bb->use = next_use;
+                bb->def = next_def;
 
                 set_free(&real_use);
                 set_free(&inst_use);
                 set_free(&inst_def);
-
-                lh = LIR_get_next(lh, cb->lmap.exit, 1);
             }
         }
     }

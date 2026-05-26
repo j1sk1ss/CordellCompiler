@@ -22,6 +22,9 @@ static const markup_token_t _lexems[] = {
     LEXEM(OPEN_BRACKET,           OPEN_BRACKET_TOKEN),
     LEXEM(CLOSE_BRACKET,          CLOSE_BRACKET_TOKEN),
 
+    LEXEM(CONTAINER_COMMAND,      CONTAINER_TOKEN),
+    LEXEM(DOT_COMMAND,            DOT_TOKEN),
+
     /* Function and jmp tokens. */
     LEXEM(FUNCTION_COMMAND,       FUNC_TOKEN),
     LEXEM(RETURN_COMMAND,         RETURN_TOKEN),
@@ -37,6 +40,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(RO_COMMAND,             RO_TYPE_TOKEN),
     LEXEM(GLOB_COMMAND,           GLOB_TYPE_TOKEN),
     LEXEM(NEGATIVE_COMMAND,       NEGATIVE_TOKEN),
+    LEXEM(NOT_COMMAND,            NOT_TOKEN),
 
     /* Variable tokens. */
     LEXEM(I0_VARIABLE,            I0_TYPE_TOKEN),
@@ -50,7 +54,6 @@ static const markup_token_t _lexems[] = {
     LEXEM(U32_VARIABLE,           U32_TYPE_TOKEN),
     LEXEM(U16_VARIABLE,           U16_TYPE_TOKEN),
     LEXEM(U8_VARIABLE,            U8_TYPE_TOKEN),
-    LEXEM(STR_VARIABLE,           STR_TYPE_TOKEN),
     LEXEM(ARR_VARIABLE,           ARRAY_TYPE_TOKEN),
 
     /* Cast token */

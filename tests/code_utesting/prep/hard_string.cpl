@@ -1,10 +1,10 @@
 {
     start() {
-        str comm = " Hello world: This is a comment-like string!:: ";
-        str nline = " \n\n\n\n ";
-        str carriage_return = " \r\r ";
+        arr comm[0, i8] = " Hello world: This is a comment-like string!:: ";
+        arr nline[0, i8] = " \n\n\n\n ";
+        arr carriage_return[0, i8] = " \r\r ";
 
-        str multiline = "
+        arr multiline[0, i8] = "
 Hello world from the multiline!
 ";
     }

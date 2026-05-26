@@ -20,7 +20,7 @@ start() {
         i8s %3 = alloc;
         i8s %3 = load_arg();
         {
-            goto lb26;
+            goto lb27;
             fn __anon_function_lambda5(i32 b)
             {
                 i32s %2 = alloc;
@@ -30,7 +30,7 @@ start() {
                     use i32t %7;
                 }
             }
-            lb26:
+            lb27:
             i0t* %8 = &(__anon_function_lambda5(i32 b));
             use i8s %3;
             i64t %9 = i0t* %8(i8s %3);
@@ -43,7 +43,7 @@ start() {
         i32s %5 = alloc;
         i32s %5 = load_arg();
         {
-            goto lb55;
+            goto lb58;
             fn __anon_function_lambda6(i32 b)
             {
                 i32s %4 = alloc;
@@ -53,7 +53,7 @@ start() {
                     use i32t %11;
                 }
             }
-            lb55:
+            lb58:
             i0t* %12 = &(__anon_function_lambda6(i32 b));
             use i32s %5;
             i64t %13 = i0t* %12(i32s %5);

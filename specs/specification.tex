@@ -30,7 +30,7 @@
 }
 
 \lstdefinelanguage{CPL}{
-  morekeywords={start,function,glob,extern,return,exit,if,else,while,loop,switch,case,default,break,syscall,asm,dref,ref,ptr,ro,arr,str,sizeof,as,not,use,goto,phi,alloc,load_starg},
+  morekeywords={start,function,glob,extern,return,exit,if,else,while,loop,switch,case,default,break,syscall,asm,dref,ref,ptr,ro,arr,str,container,self,sizeof,as,not,use,goto,phi,alloc,load_starg},
   sensitive=true,
   morecomment=[s]{:/}{/:},
   morestring=[b]",
@@ -58,20 +58,19 @@
   captionpos=b,
 }
 
-\title{Cordell Programming Language and Compiler: A Lightweight Systems-Language Testbed}
+\title{Cordell Programming Language (CPL): A Lightweight Systems-Language Testbed}
 \author{
-  Cordell Compiler Project\\[0.3em]
-  \normalsize Nikolai Fot\\
-  \normalsize Compiler Technology Department,\\
+  \normalsize Nikolai Fot \and
+  \normalsize Alexander Vinarskiy \\
+  \normalsize Compiler Technology Department, \\
   \normalsize Ivannikov Institute for System Programming of the Russian Academy of Sciences (ISP RAS)
 }
-\date{Technical Report, implementation snapshot of 2026-05-12}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-\par Cordell Programming Language (CPL) is a deliberately restricted systems programming language and compiler infrastructure designed for low-level experimentation. Its syntax is close to C and assembly in intent, but it does not implement a C subset. The language exposes explicit control over primitive values, pointers, arrays, strings, entry points, system calls, inline assembly, and system-oriented annotations, while intentionally omitting structures, classes, enums, garbage collection, memory-safety guarantees, and production-language ecosystem assumptions. The compiler is organized as a multi-stage pipeline from preprocessing and tokenization to AST construction, semantic checking, HIR generation, SSA construction, high-level optimization, LIR lowering, instruction selection, register allocation, assembly emission, and linking. This report documents the current language core, compiler pipeline, implemented diagnostics, optimization passes, testing infrastructure, target status, preliminary microbenchmarks, limitations, and related work. The goal is not to present CPL as a verified or production-ready replacement for established systems languages such as C or Rust, but as a compact experimental platform for studying compiler architecture, systems-language design, optimization, and diagnostics.
+\par Cordell Programming Language (CPL) is a deliberately restricted systems programming language and compiler infrastructure designed for low-level experimentation. Its syntax is close to C and assembly in intent, but it does not implement a C subset. The language exposes explicit control over primitive values, pointers, arrays, strings, lightweight containers, entry points, system calls, inline assembly, and system-oriented annotations, while intentionally omitting classes, enums, garbage collection, memory-safety guarantees, and production-language ecosystem assumptions. The compiler is organized as a multi-stage pipeline from preprocessing and tokenization to AST construction, semantic checking, HIR generation, SSA construction, high-level optimization, LIR lowering, instruction selection, register allocation, assembly emission, and linking. This report documents the current language core, compiler pipeline, implemented diagnostics, optimization passes, testing infrastructure, target status, preliminary microbenchmarks, limitations, and related work. The goal is not to present CPL as a verified or production-ready replacement for established systems languages such as C or Rust, but as a compact experimental platform for studying compiler architecture, systems-language design, optimization, and diagnostics.
 \end{abstract}
 
 \section{Introduction}
@@ -94,13 +93,13 @@
 \par CPL is designed around five goals.
 
 \paragraph{Low-level explicitness.}
-\par The language is intended to stay close to assembly and C. It exposes pointers, explicit dereferencing, direct system calls, inline assembly, manual entry points, and annotations for low-level placement and control.
+\par The language is intended to stay close to assembly and C. It exposes pointers, explicit dereferencing, C-like containers, direct system calls, inline assembly, manual entry points, and annotations for low-level placement and control.
 
 \paragraph{Small and readable core.}
 \par The language deliberately avoids a large surface syntax. Instead of emulating all of C, CPL provides a compact grammar and a small set of orthogonal features. This keeps parsing and lowering simple enough for compiler experimentation.
 
 \paragraph{Compiler experimentation.}
-\par The compiler is a testbed for SSA construction~\cite{cytron1991ssa}, static diagnostics, constant propagation, constant folding, common subexpression elimination, loop-invariant code motion, peephole transformations, branch layout annotations, tail-recursion elimination, and register-allocation-sensitive low-level optimization.
+\par The compiler is a testbed for SSA construction~\cite{cytron1991ssa}, static diagnostics, constant propagation, constant folding, common subexpression elimination, loop-invariant code motion, peephole transformations, branch layout annotations, tail-recursion elimination, function-inlining heuristics, compact neural-model-guided inlining experiments, and register-allocation-sensitive low-level optimization.
 
 \paragraph{System-oriented portability.}
 \par CPL tries to minimize dependencies on a host standard library. The long-term intent is that the compiler and its runtime support can be ported to small or custom operating systems by providing basic I/O and platform APIs.
@@ -118,7 +117,7 @@
   \item a general-purpose standard library or package ecosystem.
 \end{itemize}
 
-\par The absence of structures is an intentional restriction of the current core. It keeps the language focused on primitive values, pointers, arrays, functions, and explicit low-level constructs.
+\par CPL supports lightweight containers as C-like aggregates, but deliberately avoids classes, constructors, destructors, inheritance, traits, and ownership-based object models. This keeps the language focused on primitive values, pointers, arrays, containers, functions, and explicit low-level constructs.
 
 \section{Language Overview}
 \subsection{Program Entry}
@@ -130,7 +129,7 @@ start() {
 }
 \end{lstlisting}
 
-\par The entry point may accept arguments, such as \texttt{argc} and \texttt{argv}, and can be annotated for platform-specific entry behavior. The \texttt{naked} annotation disables default entry and exit routines, which is useful for system-level code that must manage its own prologue and epilogue.
+\par The entry point may accept arguments, such as \texttt{argc} and \texttt{argv}, and can be annotated for platform-specific entry behavior. The \texttt{naked} annotation disables default entry and exit routines, which is useful for system-level code that must manage its own prologue and epilogue. On i386 this also affects how stack arguments are addressed, as discussed in Section~\ref{sec:i386-abi}.
 
 \subsection{Types}
 \par CPL uses permissive static typing. Variables do not dynamically change type, widening conversions may be inserted implicitly, and narrowing conversions require an explicit \texttt{as} cast. The primitive integer and floating-point types include \texttt{i8}, \texttt{u8}, \texttt{i16}, \texttt{u16}, \texttt{i32}, \texttt{u32}, \texttt{i64}, \texttt{u64}, \texttt{f32}, \texttt{f64}, and the void-like function return type \texttt{i0}. Boolean-like logic follows the C convention: zero is false and non-zero is true.
@@ -145,13 +144,68 @@ i32 y = dref p;
 dref p = y + 1;
 \end{lstlisting}
 
-\par Strings and arrays are distinct built-in containers. A \texttt{str} allocates a terminated byte sequence, while \texttt{arr} declares a fixed-size array. String literals placed independently in code reside in a read-only section-like area and must be referenced explicitly.
+\par Strings and arrays are distinct built-in containers. A \texttt{arr[0, i8]} allocates a terminated byte sequence, while \texttt{arr} declares a fixed-size array. String literals placed independently in code reside in a read-only section-like area and must be referenced explicitly.
 
 \begin{lstlisting}[language=CPL,caption={Strings and arrays.}]
-str msg = "Hello world!";
+arr msg[0, i8] = "Hello world!";
 arr xs[4, i32] = { 1, 2, 3, 4 };
 ptr i8 p = ref "Hello, World!\n";
 \end{lstlisting}
+
+\subsection{Containers}
+
+\par CPL containers are lightweight C-like aggregate types. They group fields of different types in one named layout and are intended for explicit systems code rather than for object-oriented programming.
+
+\begin{lstlisting}[language=CPL,caption={A simple CPL container.}]
+container pair {
+    i32 first;
+    i32 second;
+}
+\end{lstlisting}
+
+\par By default, container fields use the target architecture's default maximum alignment policy. A container can override this with the \texttt{align} annotation. For example, \texttt{@[align(1)]} requests a packed layout, which is useful when the programmer needs byte-exact representation.
+
+\begin{lstlisting}[language=CPL,caption={Packed container layout.}]
+@[align(1)]
+container packed_value {
+    i8 a;
+    i16 b;
+    i32 c;
+} :/ packed, occupies 7 bytes on the stack /:
+\end{lstlisting}
+
+\par In addition to fields, a container may declare functions. These functions are ordinary CPL functions attached syntactically to the container definition. They do not make the container a class, and they do not introduce implicit constructors or destructors.
+
+\begin{lstlisting}[language=CPL,caption={Container function.}]
+container counter {
+    function default_value() -> i32 {
+        return 100;
+    }
+}
+
+counter c;
+c.default_value();
+\end{lstlisting}
+
+\par The \texttt{self} annotation marks a container function whose first explicit argument is the receiver pointer. Calls to such functions may use method-like syntax, and the parser can pass the container pointer automatically. This is syntax sugar only: a \texttt{self} function must still declare its receiver argument explicitly.
+
+\begin{lstlisting}[language=CPL,caption={A self container function.}]
+container counter {
+    i32 val;
+
+    @[self]
+    function init(ptr counter self) -> i0 {
+        self.val = 0;
+    }
+}
+
+counter c;
+c.init();
+c.val; :/ 0 /:
+\end{lstlisting}
+
+\par Containers should therefore be treated as modified C structures with optional attached functions. Initialization, cleanup, and ownership-like behavior must be written explicitly by the programmer.
+
 
 \subsection{Control Flow}
 \par CPL provides \texttt{if}, \texttt{while}, \texttt{loop}, and \texttt{switch}. A semicolon separates the condition from the body in conditional constructs. The \texttt{loop} construct represents an infinite loop unless terminated with \texttt{break} or annotated with \texttt{@[counter(n)]}. The \texttt{switch} construct supports fallthrough by default, while \texttt{@[no\_fall]} inserts break-like behavior into cases.
@@ -197,11 +251,11 @@ asm(a, ret) {
 }
 \end{lstlisting}
 
-Inline assembly is intentionally powerful and fragile. It is copied close to directly into the generated assembly after placeholder substitution, so the programmer must preserve registers and match the selected target syntax. The compiler does not optimize inside inline assembly blocks.
+\par Inline assembly is intentionally powerful and fragile. It is copied close to directly into the generated assembly after placeholder substitution, so the programmer must preserve registers and match the selected target syntax. The compiler does not optimize inside inline assembly blocks.
 
 \subsection{Annotations}
 
-Annotations extend the small grammar with low-level behavior. Table~\ref{tab:annotations} summarizes the system-oriented annotations currently available in the implementation.
+\par Annotations extend the small grammar with low-level behavior. Table~\ref{tab:annotations} summarizes the system-oriented annotations currently available in the implementation.
 
 \begin{table*}[t]
 \centering
@@ -215,6 +269,7 @@ Annotation & Purpose & Example \\
 \texttt{naked} & Disable default entry and exit routines. & \texttt{@[naked] start()} \\
 \texttt{align} & Align a local or global object. & \texttt{@[align(16)] glob i32 a;} \\
 \texttt{section} & Place code or data in a target section. & \texttt{@[section(".data")]} \\
+\texttt{nosection} & Emit a declaration without an explicit section directive. & \texttt{@[nosection] glob function f()} \\
 \texttt{address} & Place a function at a specific address. & \texttt{@[address(0x1000)]} \\
 \texttt{entry} & Mark a function as an entry point. & \texttt{@[entry("\_start")]} \\
 \texttt{no\_fall} & Insert break-like behavior in switch cases. & \texttt{@[no\_fall] switch x;} \\
@@ -222,17 +277,39 @@ Annotation & Purpose & Example \\
 \texttt{counter} & Generate a counted loop. & \texttt{@[counter(100)] loop} \\
 \texttt{hot}/\texttt{cold} & Influence branch layout. & \texttt{@[cold] if cond;} \\
 \texttt{register} & Bind a primitive variable to a register index. & \texttt{@[register(RAX)] i32 x;} \\
+\texttt{self} & Mark a container function whose explicit receiver pointer can be passed through method-like syntax. & \texttt{@[self] function init(ptr T self)} \\
+\texttt{inline} & Influence the function-inlining decision. & \texttt{@[inline(always)] function f()} \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-These annotations are not intended to make CPL a high-level language. Their role is to expose system-level control without expanding the core grammar.
+\par These annotations are not intended to make CPL a high-level language. Their role is to expose system-level control without turning the language into a high-level object-oriented system.
+
+\subsection{Inlining Annotations}
+
+\par CPL provides an \texttt{inline} annotation to help the optimizer decide whether a function should be expanded at its call sites. The annotation is intentionally close in spirit to the similarly named Rust annotation: it does not change the source-level meaning of the function, but it communicates an optimization preference to the compiler.
+
+\begin{lstlisting}[language=CPL,caption={Inlining annotations.}]
+@[inline]
+function foo(); :/ Function will be inlined with higher odds /:
+
+@[inline(always)]
+function bar(); :/ Will inline the function under any circumstances /:
+
+@[inline(never)]
+function baz(); :/ Will skip this function /:
+
+@[inline(model)]
+function chloe(); :/ Experimental: compact model decides /:
+\end{lstlisting}
+
+\par The plain \texttt{@[inline]} form raises the probability that the ordinary inliner will select the function. The \texttt{@[inline(always)]} form asks the compiler to inline the function whenever inlining is technically possible. The \texttt{@[inline(never)]} form blocks inlining for the annotated function. The experimental \texttt{@[inline(model)]} form delegates the choice to a compact neural-network model trained or configured for inlining decisions. This mode is intended for lightweight compiler-internal inference, not for large external model calls, so the decision can remain part of the optimization pipeline.
 
 \section{Compiler Architecture}
 
 \subsection{Pipeline}
 
-Figure~\ref{fig:compiler-pipeline} presents the current CPL compiler architecture as implemented in the repository. The frontend performs preprocessing, tokenization, AST construction, and early semantic checking. The middle-end constructs HIR, converts it to SSA~\cite{cytron1991ssa}, runs SSA-level semantic checking with a Z3-backed symbolic layer~\cite{deMoura2008z3}, and applies HIR-level optimizations. The backend lowers the program to LIR, performs LIR data-flow and copy-propagation passes, selects target-sensitive instructions, allocates registers, applies late peephole cleanup, and finally emits assembly for an external assembler/linker toolchain.
+\par Figure~\ref{fig:compiler-pipeline} presents the current CPL compiler architecture as implemented in the repository. The frontend performs preprocessing, tokenization, AST construction, and early semantic checking. The middle-end constructs HIR, converts it to SSA~\cite{cytron1991ssa}, runs SSA-level semantic checking with a Z3-backed symbolic layer~\cite{deMoura2008z3}, and applies HIR-level optimizations. The backend lowers the program to LIR, performs LIR data-flow and copy-propagation passes, selects target-sensitive instructions, allocates registers, applies late peephole cleanup, and finally emits assembly for an external assembler/linker toolchain.
 
 \begin{figure*}[t]
 \centering
@@ -301,11 +378,11 @@ Figure~\ref{fig:compiler-pipeline} presents the current CPL compiler architectur
 \label{fig:compiler-pipeline}
 \end{figure*}
 
-This organization deliberately separates source-level analysis, SSA construction, symbolic checking, high-level optimization, lowering, instruction selection, register allocation, and late cleanup. The separation makes the implementation suitable not only for code generation, but also for experiments with IR design, pass placement, and target-specific transformations.
+\par This organization deliberately separates source-level analysis, SSA construction, symbolic checking, high-level optimization, lowering, instruction selection, register allocation, and late cleanup. The separation makes the implementation suitable not only for code generation, but also for experiments with IR design, pass placement, and target-specific transformations.
 
 \subsection{Worked Example}
 
-Listing~\ref{lst:example-cpl} shows a minimal program used to illustrate the compiler forms.
+\par Listing~\ref{lst:example-cpl} shows a minimal program used to illustrate the compiler forms.
 
 \begin{lstlisting}[language=CPL,caption={Input CPL program.},label={lst:example-cpl}]
 start() {
@@ -315,7 +392,7 @@ start() {
 }
 \end{lstlisting}
 
-The corresponding HIR uses stack variables with an \texttt{s} suffix and temporaries with a \texttt{t} suffix.
+\par The corresponding HIR uses stack variables with an \texttt{s} suffix and temporaries with a \texttt{t} suffix.
 
 \begin{lstlisting}[caption={High IR (HIR) form for Listing~\ref{lst:example-cpl}.}]
 fn _main0() {
@@ -331,7 +408,7 @@ fn _main0() {
 }
 \end{lstlisting}
 
-After lowering to LIR, the program is represented as a basic-block sequence.
+\par After lowering to LIR, the program is represented as a basic-block sequence.
 
 \begin{lstlisting}[caption={LIR form before target-sensitive selection.}]
 BB1: start
@@ -345,7 +422,7 @@ exit %4;
 BB2: send
 \end{lstlisting}
 
-A later selected LIR form contains target-dependent register choices.
+\par A later selected LIR form contains target-dependent register choices.
 
 \begin{lstlisting}[caption={Selected LIR form.}]
 BB1: start
@@ -362,7 +439,7 @@ exit rdi;
 BB2: send
 \end{lstlisting}
 
-The final optimized Mach-O assembly for this example collapses the computation to a short sequence.
+\par The final optimized Mach-O assembly for this example collapses the computation to a short sequence.
 
 \begin{lstlisting}[caption={Generated assembly.}]
 section .text
@@ -377,14 +454,72 @@ syscall
 
 \subsection{Backends and Target Status}
 
-\par The implemented backends in this snapshot are x86\_64 Mach-O/NASM and x86\_64 GNU/Linux NASM. The repository contains selectors, memory selection, caller-saving logic, and assembly generators for both paths, with Mach-O used as the default configuration in the command-line driver. The Linux path is present and exercised by parts of the test infrastructure, but it should be treated as less mature than the Mach-O path. The command-line driver also exposes architecture/system options for planned or partial configurations such as x86\_32, i386, and windows64; those should be read as configuration surface rather than publication-ready target support. The compiler can use \texttt{ld}, \texttt{clang}, or \texttt{gcc} as linkers; when external symbols are involved, \texttt{clang} or \texttt{gcc} are typically more convenient.
+\par The implemented backends in this snapshot are x86\_64 Mach-O/NASM, x86\_64 GNU/Linux NASM, and i386 GNU/Linux NASM. The repository contains selectors, memory selection, caller-saving logic, and assembly generators for these paths, with Mach-O used as the default configuration in the command-line driver. The Linux x86\_64 path is present and exercised by parts of the test infrastructure, but it should be treated as less mature than the Mach-O path. The i386 path is a newer target, but it is already useful for freestanding and operating-system-oriented assembly generation tests. Other architecture and system options, such as windows64, should be read as configuration surface rather than publication-ready target support. The compiler can use \texttt{ld}, \texttt{clang}, or \texttt{gcc} as linkers; when external symbols are involved, \texttt{clang} or \texttt{gcc} are typically more convenient.
+
+\subsection{i386 ABI Notes}
+\label{sec:i386-abi}
+
+\par The i386 backend is intended to interoperate with simple C-style kernel code. Global CPL functions are emitted as externally visible symbols and follow the target's stack-based calling convention closely enough to be called from C support code when matching prototypes are used. This ABI boundary is deliberately plain: primitive arguments are passed through the caller's stack frame, return values use the target return register convention, and \texttt{extern} declarations describe symbols implemented outside the CPL module.
+
+\par The \texttt{naked} annotation is the main exception to the ordinary function-frame shape. In a normal i386 function, the compiler may establish an \texttt{ebp}-based frame. After the usual prologue, \texttt{[ebp + 4]} contains the return address, \texttt{[ebp + 8]} contains the first argument, and \texttt{[ebp + 12]} contains the second argument. In a \texttt{naked} function, the generated prologue and epilogue are suppressed. There is no saved base pointer at the top of the frame, so argument access is based on \texttt{esp}: the return address is at \texttt{[esp]}, the first argument is at \texttt{[esp + 4]}, and the second argument is at \texttt{[esp + 8]}. This is important for OSDev-style helpers whose stack layout must match the processor's expectations exactly.
+
+\begin{lstlisting}[language=CPL,caption={A naked i386 helper whose arguments are addressed from \texttt{esp}.},label={lst:i386-naked-abi}]
+@[nosection]
+@[naked]
+glob function i386_switch2user(u32 eip, u32 esp) -> i0 {
+    asm(eip, esp) {
+        "cli",
+        "push 0x23",
+        "push %1",
+        "push 0x202",
+        "push 0x1b",
+        "push %0",
+        "iretd"
+    }
+}
+\end{lstlisting}
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+    >=Latex,
+    cell/.style={draw, text width=3.55cm, minimum height=0.56cm, inner xsep=0pt, align=center, font=\footnotesize},
+    note/.style={font=\footnotesize, align=center},
+    marker/.style={font=\footnotesize, anchor=east},
+    arrow/.style={-{Latex[length=1.6mm,width=1.2mm]}, semithick}
+]
+
+\node[note] at (0, 0.85) {Normal i386 function after prologue};
+\node[cell, fill=black!4] (n0) at (0, 0) {\texttt{[ebp + 12]} second argument};
+\node[cell, fill=black!4, below=0cm of n0] (n1) {\texttt{[ebp + 8]} first argument};
+\node[cell, fill=black!8, below=0cm of n1] (n2) {\texttt{[ebp + 4]} return address};
+\node[cell, fill=black!12, below=0cm of n2] (n3) {\texttt{[ebp]} saved \texttt{ebp}};
+\node[cell, fill=black!2, below=0cm of n3] (n4) {locals / spills};
+\node[marker] at ([xshift=-0.62cm]n3.west) {\texttt{ebp}};
+\draw[arrow] ([xshift=-0.56cm]n3.west) -- ([xshift=-0.08cm]n3.west);
+\node[marker] at ([xshift=-0.62cm]n4.west) {\texttt{esp}};
+\draw[arrow] ([xshift=-0.56cm]n4.west) -- ([xshift=-0.08cm]n4.west);
+
+\node[note] at (5.3, 0.85) {Naked i386 function at entry};
+\node[cell, fill=black!4] (k0) at (5.3, 0) {\texttt{[esp + 8]} second argument};
+\node[cell, fill=black!4, below=0cm of k0] (k1) {\texttt{[esp + 4]} first argument};
+\node[cell, fill=black!8, below=0cm of k1] (k2) {\texttt{[esp]} return address};
+\node[cell, fill=black!2, below=0cm of k2] (k3) {caller stack};
+\node[marker] at ([xshift=-0.62cm]k2.west) {\texttt{esp}};
+\draw[arrow] ([xshift=-0.56cm]k2.west) -- ([xshift=-0.08cm]k2.west);
+\end{tikzpicture}%
+\caption{i386 stack view for ordinary and \texttt{naked} CPL functions. Without \texttt{push ebp; mov ebp, esp}, the backend addresses arguments from \texttt{esp} rather than from \texttt{ebp}. The \texttt{naked} form is useful for OSDev routines such as interrupt-return frame builders, but it makes the programmer responsible for preserving the expected stack shape.}
+\label{fig:i386-naked-stack}
+\end{figure*}
+
+\par Figure~\ref{fig:i386-naked-stack} shows the practical effect. The same two source parameters occupy different textual address forms depending on whether a frame pointer was created. For the helper in Listing~\ref{lst:i386-naked-abi}, the backend must materialize the CPL parameters from \texttt{[esp + 4]} and \texttt{[esp + 8]} before expanding the inline assembly placeholders. After user assembly begins to push interrupt-frame words, \texttt{esp} changes normally, so hand-written instructions must be written with that movement in mind.
 
 \section{Static Diagnostics}
-CPL contains a two-level diagnostic subsystem. The first level operates on the AST and targets source-structure issues such as read-only variable updates, declaration problems, return mismatches, wrong argument counts, incompatible argument types, unused return values, illegal array access, duplicated branches, invalid function names, dead code, lossy implicit conversions, inefficient infinite loops, invalid \texttt{exit} usage, break statements without legal targets, invalid use of \texttt{i0}, unused expressions, invalid references, and suspicious alignment requests.
+\par CPL contains a two-level diagnostic subsystem. The first level operates on the AST and targets source-structure issues such as read-only variable updates, declaration problems, return mismatches, wrong argument counts, incompatible argument types, unused return values, illegal array access, duplicated branches, invalid function names, dead code, lossy implicit conversions, inefficient infinite loops, invalid \texttt{exit} usage, break statements without legal targets, invalid use of \texttt{i0}, unused expressions, invalid references, and suspicious alignment requests.
 
-The second level is intentionally placed after SSA construction~\cite{cytron1991ssa}. At this point the compiler has explicit use-definition chains and phi nodes, so the checker can reason about values and path conditions in a more structured form than in the original HIR. Z3-backed symbolic execution~\cite{deMoura2008z3} is applied on SSA-form HIR to detect definite null dereferences, null values passed into dereferencing functions, possible null dereferences under path-dependent conditions, and constant branches. This ordering is important: the solver-facing analysis works on SSA-form HIR rather than on pre-SSA HIR, because SSA simplifies symbolic value tracking and makes the generated constraints easier to relate to compiler variables.
+\par The second level is intentionally placed after SSA construction~\cite{cytron1991ssa}. At this point the compiler has explicit use-definition chains and phi nodes, so the checker can reason about values and path conditions in a more structured form than in the original HIR. Z3-backed symbolic execution~\cite{deMoura2008z3} is applied on SSA-form HIR to detect definite null dereferences, null values passed into dereferencing functions, possible null dereferences under path-dependent conditions, and constant branches. This ordering is important: the solver-facing analysis works on SSA-form HIR rather than on pre-SSA HIR, because SSA simplifies symbolic value tracking and makes the generated constraints easier to relate to compiler variables.
 
-The analysis is diagnostic rather than protective. It does not implement memory safety, ownership, or aliasing restrictions, and it does not prevent undefined behavior caused by dangling pointers, unsafe inline assembly, invalid external interfaces, or target-specific misuse.
+\par The analysis is diagnostic rather than protective. It does not implement memory safety, ownership, or aliasing restrictions, and it does not prevent undefined behavior caused by dangling pointers, unsafe inline assembly, invalid external interfaces, or target-specific misuse.
 
 \begin{lstlisting}[language=CPL,caption={Example that triggers SSA-level null-dereference diagnostics.}]
 start() {
@@ -396,7 +531,7 @@ start() {
 }
 \end{lstlisting}
 
-A representative diagnostic sequence for this example reports both that the return value of \texttt{foo(a)} is ignored and that \texttt{p} may be dereferenced while equal to null. More complex inputs additionally trigger path-sensitive reports, for example when one branch makes a pointer definitely null while another makes it only conditionally null.
+\par A representative diagnostic sequence for this example reports both that the return value of \texttt{foo(a)} is ignored and that \texttt{p} may be dereferenced while equal to null. More complex inputs additionally trigger path-sensitive reports, for example when one branch makes a pointer definitely null while another makes it only conditionally null.
 
 \subsection{Z3-Backed Symbolic Layer}
 \par The SSA-level checker is implemented as a symbolic layer over the HIR control-flow graph. The analyzer prepares HIR expressions as Z3 formulas, preserves symbolic names for compiler variables, and augments path conditions with phi-node constraints when control-flow edges enter SSA merge points. This design makes it possible to ask local reachability and value questions over the same representation that the optimizer sees.
@@ -414,7 +549,7 @@ python3 z3_wrapper.py input.hir \
 
 \section{Optimization Passes}
 
-Table~\ref{tab:optimizations} summarizes the implemented optimization passes and how they are enabled by the command-line optimization profiles in the current driver. The driver uses \texttt{-O0} as the default, enables LICM, constant optimization, and peephole cleanup at \texttt{-O2}, and additionally enables LIR copy propagation and tail-recursion elimination at \texttt{-O3}. Function inlining is controlled by an explicit flag rather than by the profile helper.
+\par Table~\ref{tab:optimizations} summarizes the implemented optimization passes and how they are enabled by the command-line optimization profiles in the current driver. The driver uses \texttt{-O0} as the default, enables LICM, constant optimization, and peephole cleanup at \texttt{-O2}, and additionally enables LIR copy propagation and tail-recursion elimination at \texttt{-O3}. Function inlining is controlled by an explicit flag rather than by the profile helper, and source annotations can bias or override the ordinary heuristic. CPL also includes an experimental model-guided inlining mode based on compact neural-network models.
 
 \begin{table*}[t]
 \centering
@@ -430,15 +565,14 @@ DAG rebuild and sparse constant propagation & Works on HIR via DAG generation an
 Dead-function elimination & Builds and applies a call graph before later HIR transformations. & default pipeline \\
 LIR copy propagation and unused-variable dropping & Rewrites propagated LIR operands and removes unused variable writes. & \texttt{-O3} \\
 Tail-recursion elimination & Works on HIR and rewrites tail self-calls to loops before SSA construction. & \texttt{-O3} \\
-Function inlining & Works on HIR before SSA using a heuristic over source and destination control-flow properties. & explicit flag; known bugs \\
+Function inlining & Works on HIR before SSA using a heuristic over source and destination control-flow properties; may also be guided by \texttt{inline}, \texttt{inline(always)}, \texttt{inline(never)}, or experimental compact neural-model decisions. & explicit flag; known bugs \\
 Hot/cold placement & Implemented during AST-to-HIR generation as annotation-driven branch layout. & default pipeline \\
 \bottomrule
 \end{tabular}
 \end{table*}
-
 \subsection{Loop-Invariant Code Motion}
 
-LICM operates on SSA High IR. A loop body that repeatedly computes a constant expression such as \texttt{10 + 10} can have this computation moved before the loop, with phi nodes preserving loop-carried values.
+\par LICM operates on SSA High IR. A loop body that repeatedly computes a constant expression such as \texttt{10 + 10} can have this computation moved before the loop, with phi nodes preserving loop-carried values.
 
 \Needspace{14\baselineskip}
 \begin{lstlisting}[language=CPL,caption={LICM source pattern.}]
@@ -453,7 +587,7 @@ start() {
 
 \subsection{Peephole Optimization}
 
-Peephole optimization runs late, after instruction selection and register allocation. It removes redundant register-to-itself moves, simplifies decrement-and-branch sequences, and can replace zero materialization with xor-style idioms where applicable.
+\par Peephole optimization runs late, after instruction selection and register allocation. It removes redundant register-to-itself moves, simplifies decrement-and-branch sequences, and can replace zero materialization with xor-style idioms where applicable.
 
 \begin{lstlisting}[caption={Peephole effect on a counted empty loop.}]
 Before:
@@ -473,9 +607,9 @@ jne lb10;
 
 \subsection{PTRN: A Peephole Pattern DSL}
 
-The late peephole pass is not only a collection of handwritten rewrites. CPL also uses \texttt{PTRN}, a small domain-specific language for generating peephole optimization patterns. The motivation is practical: low-level instruction cleanup often consists of many small local rewrites, and encoding them in C by hand makes the pass difficult to extend. PTRN provides a declarative syntax for matching short Low LIR instruction sequences and replacing them with simpler or more efficient sequences.
+\par The late peephole pass is not only a collection of handwritten rewrites. CPL also uses \texttt{PTRN}, a small domain-specific language for generating peephole optimization patterns. The motivation is practical: low-level instruction cleanup often consists of many small local rewrites, and encoding them in C by hand makes the pass difficult to extend. PTRN provides a declarative syntax for matching short Low LIR instruction sequences and replacing them with simpler or more efficient sequences.
 
-A PTRN file consists of rewrite rules separated by \texttt{/}. The left-hand side describes a sequence to match; the right-hand side after \texttt{->} describes the replacement. Pattern objects abstract over concrete Low LIR operands: \texttt{areg\_N} tracks a repeated abstract register, \texttt{aconst\_N} tracks a repeated abstract constant, \texttt{mem\_N} matches memory locations, and \texttt{obj} can match an arbitrary object. Conditions such as \texttt{[if:equals]}, \texttt{[if:arg2:zero]}, or \texttt{[if:arg2:mod2]} restrict a match, while actions can transform matched constants in the replacement.
+\par A PTRN file consists of rewrite rules separated by \texttt{/}. The left-hand side describes a sequence to match; the right-hand side after \texttt{->} describes the replacement. Pattern objects abstract over concrete Low LIR operands: \texttt{areg\_N} tracks a repeated abstract register, \texttt{aconst\_N} tracks a repeated abstract constant, \texttt{mem\_N} matches memory locations, and \texttt{obj} can match an arbitrary object. Conditions such as \texttt{[if:equals]}, \texttt{[if:arg2:zero]}, or \texttt{[if:arg2:mod2]} restrict a match, while actions can transform matched constants in the replacement.
 
 \begin{lstlisting}[language=PTRN,caption={Examples of PTRN peephole rules.}]
 ; Remove a jump that immediately targets the next label.
@@ -498,15 +632,20 @@ xor areg_1, areg_1
 /
 \end{lstlisting}
 
-The generated C code is then used by the low-level peephole pass. This keeps the compiler backend extensible: adding a new local simplification can be done by adding a pattern rule rather than modifying the peephole engine directly. The approach is intentionally modest; PTRN does not replace global optimization or data-flow analysis. Its role is to make late instruction cleanup explicit, testable, and easier to maintain.
+\par The generated C code is then used by the low-level peephole pass. This keeps the compiler backend extensible: adding a new local simplification can be done by adding a pattern rule rather than modifying the peephole engine directly. The approach is intentionally modest; PTRN does not replace global optimization or data-flow analysis. Its role is to make late instruction cleanup explicit, testable, and easier to maintain.
+
 
 \subsection{Function Inlining}
 
-The function-inlining pass works on High IR before SSA construction. It uses a heuristic that rewards small source functions, penalizes loop-heavy callees, and rewards call sites inside nested loops. The documented heuristic returns true when the score is at least 3. The pass exists, but the current implementation has known bugs and should not be presented as fully stable.
+\par The function-inlining pass works on High IR before SSA construction. In its ordinary heuristic mode, it rewards small source functions, penalizes loop-heavy callees, and rewards call sites inside nested loops. The documented heuristic returns true when the score is at least 3. Source annotations can then bias or override this heuristic.
+
+\par The plain \texttt{@[inline]} form increases the odds that a function will be inlined. The \texttt{@[inline(always)]} form asks the compiler to inline the function whenever it can technically do so. The \texttt{@[inline(never)]} form disables inlining for the function. These annotations affect optimization only; they do not change the source-level meaning of a function.
+
+\par The experimental \texttt{@[inline(model)]} form delegates the inlining choice to compact neural-network models. The goal is to evaluate whether a small learned policy can improve local inlining choices without making the compiler depend on a large external service or heavyweight runtime. The model receives compiler-extracted features and returns a decision or score for the inlining pass. The pass exists, but the current implementation has known bugs and should not be presented as fully stable.
 
 \section{Examples and Use Cases}
 
-The current examples exercise core low-level features rather than large application workloads.
+\par The current examples exercise core low-level features rather than large application workloads.
 
 \begin{table}[htbp]
 \centering
@@ -523,7 +662,7 @@ Memory and file helpers & Header-style declarations, syscall wrappers, pointer a
 \end{tabular}
 \end{table}
 
-Listing~\ref{lst:hello} shows a compact Hello World program using a direct syscall wrapper.
+\par Listing~\ref{lst:hello} shows a compact Hello World program using a direct syscall wrapper.
 
 \begin{lstlisting}[language=CPL,caption={Hello World with explicit syscall wrapper.},label={lst:hello}]
 function strlen(ptr i8 s) -> i64 {
@@ -557,13 +696,92 @@ start(i64 argc, ptr ptr i8 argv) {
 }
 \end{lstlisting}
 
+\subsection{Operating-System Code on i386}
+
+\par A practical use case for CPL is small freestanding routines used by an operating-system kernel. The i386 backend was added to support this style of code: globally visible routines can be emitted as NASM-compatible 32-bit assembly, while \texttt{extern} declarations make it possible to integrate CPL modules with C kernel code. In practice, this means that most driver logic can stay in CPL, while the smallest hardware primitives, runtime hooks, and printing functions are supplied by C or by a platform support layer.
+
+\par Listing~\ref{lst:i386-keyboard} is adapted from the repository's working PS/2 keyboard driver example. The driver uses CPL for state, scancode tables, polling loops, interrupt-handler logic, and exported initialization functions. Hardware-specific operations such as byte I/O and IRQ registration are declared as external functions. Those symbols may be implemented in C, or by C functions that contain the necessary compiler intrinsics or inline assembly. This keeps most of the driver out of raw assembler without hiding the machine boundary.
+
+\begin{lstlisting}[language=CPL,caption={Excerpt from an i386 PS/2 keyboard driver using C externs.},label={lst:i386-keyboard}]
+extern function kprintf(ptr i8 fmt, ...) -> i0;
+extern function i386_inb(u16 port) -> i8;
+extern function i386_outb(u16 port, u8 data) -> i0;
+extern function i386_irq_registerHandler(i32 irq, ptr i0 handler) -> i0;
+
+#define KBD_DATA_PORT           0x60
+#define KBD_STATUS_PORT         0x64
+#define KBD_COMMAND_PORT        0x64
+#define KBD_STATUS_OUTPUT_FULL  0x01
+#define KBD_STATUS_INPUT_FULL   0x02
+#define KBD_CMD_READ_CONFIG     0x20
+#define KBD_CMD_WRITE_CONFIG    0x60
+#define KBD_CMD_ENABLE_PORT1    0xAE
+#define KBD_CONFIG_IRQ1         0x01
+#define KBD_CONFIG_PORT1_CLOCK  0x10
+
+glob i8 _curr_char = '\15';
+glob arr _key_pressed[128, u8] = { 0 };
+
+function _keyboard_wait_input_clear() -> i8 {
+    i32 timeout = 100000;
+    while i386_inb(KBD_STATUS_PORT) & KBD_STATUS_INPUT_FULL; {
+        timeout -= 1;
+        if timeout <= 0; return 0;
+    }
+    return 1;
+}
+
+function _keyboard_write_command(u8 command) -> i32 {
+    if not _keyboard_wait_input_clear(); return 0;
+    i386_outb(KBD_COMMAND_PORT, command);
+    return 1;
+}
+
+function i386_keyboard_handler(ptr i0 _) -> i0 {
+    i8 character = i386_inb(KBD_DATA_PORT);
+    if character < 0 || character >= 128; return;
+
+    _key_pressed[character as i32] = 0;
+    if not (character & 0x80); {
+        _key_pressed[character as i32] = 1;
+        _curr_char = _alphabet[character as i32];
+    }
+}
+
+glob function i386_init_keyboard() -> i0 {
+    u8 config = 0;
+    if _keyboard_write_command(KBD_CMD_READ_CONFIG);
+        _keyboard_read_data(ref config);
+
+    config |= KBD_CONFIG_IRQ1;
+    config &= 0xFF ^ KBD_CONFIG_PORT1_CLOCK;
+    if _keyboard_write_command(KBD_CMD_WRITE_CONFIG);
+        _keyboard_write_data(config);
+
+    _keyboard_write_command(KBD_CMD_ENABLE_PORT1);
+    i386_irq_registerHandler(1, i386_keyboard_handler);
+}
+\end{lstlisting}
+
+\par From the C side, the imported and exported symbols are ordinary low-level ABI boundaries. For example, the platform layer can provide byte-port primitives and the kernel can call the CPL initialization routine through matching prototypes:
+
+\begin{lstlisting}[language=C,caption={C boundary for the CPL keyboard driver.}]
+uint8_t i386_inb(uint16_t port);
+void i386_outb(uint16_t port, uint8_t data);
+void i386_irq_registerHandler(int irq, void (*handler)(void*));
+
+void i386_init_keyboard(void);
+\end{lstlisting}
+
+\par This is the preferred shape for larger system code. CPL can express the driver's control flow and data structures, the compiler can still perform parsing, HIR construction, diagnostics, and target-specific regression tests, and the C boundary isolates the operations that are genuinely platform-specific. Inline \texttt{asm} remains useful for tiny routines that must be exactly a particular instruction sequence, such as loading the task-state segment or constructing an interrupt-return frame, but it is not required for every hardware-facing driver.
+
 \section{Testing Infrastructure}
 
-The compiler is tested with a phase-oriented framework rather than only through end-to-end examples. The core idea is to make each compiler stage observable: a test can stop after preprocessing, tokenization, AST generation, semantic analysis, HIR construction, SSA construction, DAG construction, constant-folding analysis, LIR construction, instruction selection, instruction planning, register allocation, peephole optimization, assembly generation, or assembly-level constant folding. This makes regressions easier to localize than in a purely black-box compiler test.
+\par The compiler is tested with a phase-oriented framework rather than only through end-to-end examples. The core idea is to make each compiler stage observable: a test can stop after preprocessing, tokenization, AST generation, semantic analysis, HIR construction, SSA construction, DAG construction, constant-folding analysis, LIR construction, instruction selection, instruction planning, register allocation, peephole optimization, assembly generation, or assembly-level constant folding. This makes regressions easier to localize than in a purely black-box compiler test.
 
 \subsection{Integrated Pipeline Testing}
 
-The integration tester is built around a dedicated test driver that exercises the full compilation pipeline while allowing individual sections to be enabled or disabled at compile time. The active section is selected by a module argument. A typical invocation is:
+\par The integration tester is built around a dedicated test driver that exercises the full compilation pipeline while allowing individual sections to be enabled or disabled at compile time. The active section is selected by a module argument. A typical invocation is:
 
 \begin{lstlisting}[caption={Integrated testing command.}]
 python3 integrated_testing.py --run --module <name> \
@@ -572,7 +790,7 @@ python3 integrated_testing.py --run --module <name> \
     --extra-flags <flag>
 \end{lstlisting}
 
-The current module set covers the main compiler phases:
+\par The current module set covers the main compiler phases:
 
 \begin{table*}[t]
 \centering
@@ -593,7 +811,7 @@ Frontend & HIR / SSA & LIR / backend & Assembly \\
 \end{tabular}
 \end{table*}
 
-For example, a basic assembly-generation regression test can be run by selecting the \texttt{asm} module. Memory-manager diagnostics can also be enabled through an extra compile-time flag and then post-processed by a leak analysis script.
+\par For example, a basic assembly-generation regression test can be run by selecting the \texttt{asm} module. Memory-manager diagnostics can also be enabled through an extra compile-time flag and then post-processed by a leak analysis script.
 
 \begin{lstlisting}[caption={Assembly and leak-oriented test invocations.}]
 python3 integrated_testing.py --run --module asm
@@ -606,19 +824,19 @@ python3 leaks.py --log-path <path_to_log>
 
 \subsection{Module Tests}
 
-In addition to integration testing, the compiler has a module-level unit testing mode. A module test directory contains a C test harness and a dependency description. The harness computes the expected result for the selected compiler component, while the dependency file describes which compiler modules must be linked for the test. This mode is invoked as follows:
+\par In addition to integration testing, the compiler has a module-level unit testing mode. A module test directory contains a C test harness and a dependency description. The harness computes the expected result for the selected compiler component, while the dependency file describes which compiler modules must be linked for the test. This mode is invoked as follows:
 
 \begin{lstlisting}[caption={Module testing command.}]
 python3 module_testing.py --path <path>
 \end{lstlisting}
 
-This separation is useful for testing compiler internals whose output is not naturally observable through a final executable. For example, AST construction, ownership-like metadata, data-flow sets, or register-allocation artifacts may be compared against expected textual output.
+\par This separation is useful for testing compiler internals whose output is not naturally observable through a final executable. For example, AST construction, ownership-like metadata, data-flow sets, or register-allocation artifacts may be compared against expected textual output.
 
 \subsection{Test Oracle Format}
 
-CPL test files include an \texttt{OUTPUT} block that defines the expected compiler or runtime output. The framework also supports test flags placed at the beginning of a file. The most important flags are \texttt{: RUN\_ASM :}, which builds and executes the generated assembly; \texttt{: RUN\_ASM[args=...] :}, which executes the same test with several argument sets; \texttt{: BLOCK\_TEST :}, which makes a failing test fail the whole run; \texttt{: BUG :}, which records an expected failing test; \texttt{: TEST\_DEBUG :}, which runs under \texttt{gdb} or \texttt{lldb}; and \texttt{: LEAK\_TRACE :}, which enables memory logging for leak localization.
+\par CPL test files include an \texttt{OUTPUT} block that defines the expected compiler or runtime output. The framework also supports test flags placed at the beginning of a file. The most important flags are \texttt{: RUN\_ASM :}, which builds and executes the generated assembly; \texttt{: RUN\_ASM[args=...] :}, which executes the same test with several argument sets; \texttt{: BLOCK\_TEST :}, which makes a failing test fail the whole run; \texttt{: BUG :}, which records an expected failing test; \texttt{: TEST\_DEBUG :}, which runs under \texttt{gdb} or \texttt{lldb}; and \texttt{: LEAK\_TRACE :}, which enables memory logging for leak localization.
 
-The oracle language is intentionally tolerant where compiler dumps contain unstable identifiers. The marker \texttt{\{X\}} accepts an arbitrary substring, \texttt{\{content\}} requires a line to occur somewhere in the output, and \texttt{<<content>>} checks that a line contains a space-insensitive sequence. Runtime tests can also assert exit codes and select per-argument expected outputs through \texttt{@exit\_code} and \texttt{@case\_index}.
+\par The oracle language is intentionally tolerant where compiler dumps contain unstable identifiers. The marker \texttt{\{X\}} accepts an arbitrary substring, \texttt{\{content\}} requires a line to occur somewhere in the output, and \texttt{<<content>>} checks that a line contains a space-insensitive sequence. Runtime tests can also assert exit codes and select per-argument expected outputs through \texttt{@exit\_code} and \texttt{@case\_index}.
 
 \begin{lstlisting}[language=CPL,caption={Runtime test with multiple argument cases.}]
 : RUN_ASM[args="apple"|args="banana"] :
@@ -644,7 +862,7 @@ b
 
 \subsection{Representative Regression Programs}
 
-The supplied regression programs exercise both language features and backend behavior. They are also useful as benchmark kernels because the same \texttt{OUTPUT} blocks can request repeated measurements and generated-assembly line counts.
+\par The supplied regression programs exercise both language features and backend behavior. They are also useful as benchmark kernels because the same \texttt{OUTPUT} blocks can request repeated measurements and generated-assembly line counts.
 
 \begin{table*}[t]
 \centering
@@ -667,17 +885,17 @@ Test program & Purpose \\
 \end{tabular}
 \end{table*}
 
-This testing setup does not amount to a proof of correctness. It is nevertheless important for a multi-stage compiler because it checks both internal forms and executable behavior, supports expected-failure tracking, and provides a practical way to detect regressions in individual passes before they are hidden by later lowering stages.
+\par This testing setup does not amount to a proof of correctness. It is nevertheless important for a multi-stage compiler because it checks both internal forms and executable behavior, supports expected-failure tracking, and provides a practical way to detect regressions in individual passes before they are hidden by later lowering stages.
 
 \section{Preliminary Evaluation}
 
-The current evaluation should be read as a preliminary microbenchmark study rather than a broad performance claim. The chosen kernels are intentionally small and expose loop overhead, arithmetic simplification, and pointer-heavy traversal. They are useful for inspecting generated code and optimization effects, but they are not a substitute for large application benchmarks.
+\par The current evaluation should be read as a preliminary microbenchmark study rather than a broad performance claim. The chosen kernels are intentionally small and expose loop overhead, arithmetic simplification, and pointer-heavy traversal. They are useful for inspecting generated code and optimization effects, but they are not a substitute for large application benchmarks.
 
-All available timings were collected on macOS Catalina 10.15.7 using an Intel i7-3650QM CPU at 2.4 GHz and 16 GB DDR3 memory. The compared tools were GCC 14.2.0, Apple Clang 12.0.0, a Mach-O Cordell compiler build, and rustc 1.87.0. GCC and Clang were tested at \texttt{-O0} and \texttt{-O3}, CPL at \texttt{-O0} and \texttt{-O3}, and Rust at \texttt{opt-level=0} and \texttt{opt-level=2}. Each timing was gathered five times after compilation. The measurements use different timing wrappers for CPL and for the C-family baselines, so the numbers should be interpreted conservatively. In particular, the empty-loop benchmark should be understood as a loop-overhead test: the C baseline uses \texttt{asm volatile} to prevent the compiler from deleting the loop.
+\par All available timings were collected on macOS Catalina 10.15.7 using an Intel i7-3650QM CPU at 2.4 GHz and 16 GB DDR3 memory. The compared tools were GCC 14.2.0, Apple Clang 12.0.0, a Mach-O Cordell compiler build, and rustc 1.87.0. GCC and Clang were tested at \texttt{-O0} and \texttt{-O3}, CPL at \texttt{-O0} and \texttt{-O3}, and Rust at \texttt{opt-level=0} and \texttt{opt-level=2}. Each timing was gathered five times after compilation. The measurements use different timing wrappers for CPL and for the C-family baselines, so the numbers should be interpreted conservatively. In particular, the empty-loop benchmark should be understood as a loop-overhead test: the C baseline uses \texttt{asm volatile} to prevent the compiler from deleting the loop.
 
 \subsection{Benchmarked Kernels}
 
-Listing~\ref{lst:bench-empty} shows the counted empty loop used to evaluate loop overhead and late low-level simplification.
+\par Listing~\ref{lst:bench-empty} shows the counted empty loop used to evaluate loop overhead and late low-level simplification.
 
 \begin{lstlisting}[language=CPL,caption={Empty-loop benchmark kernel.},label={lst:bench-empty}]
 @[naked] start() {
@@ -687,7 +905,7 @@ Listing~\ref{lst:bench-empty} shows the counted empty loop used to evaluate loop
 }
 \end{lstlisting}
 
-Listing~\ref{lst:bench-fib} shows the Fibonacci kernel used to exercise simple arithmetic and loop-carried values.
+\par Listing~\ref{lst:bench-fib} shows the Fibonacci kernel used to exercise simple arithmetic and loop-carried values.
 
 \begin{lstlisting}[language=CPL,caption={Fibonacci benchmark kernel.},label={lst:bench-fib}]
 start() {
@@ -702,7 +920,7 @@ start() {
 }
 \end{lstlisting}
 
-Listing~\ref{lst:bench-str} shows the string-traversal kernel, which is more representative of pointer-based code generation.
+\par Listing~\ref{lst:bench-str} shows the string-traversal kernel, which is more representative of pointer-based code generation.
 
 \begin{lstlisting}[language=CPL,caption={String-traversal benchmark kernel.},label={lst:bench-str},basicstyle=\ttfamily\tiny]
 start() {
@@ -726,7 +944,7 @@ start() {
 
 \subsection{Optimized Runtimes}
 
-Table~\ref{tab:benchmarks} reports the optimized runtimes. Figure~\ref{fig:bench-optimized} visualizes the same measurements.
+\par Table~\ref{tab:benchmarks} reports the optimized runtimes. Figure~\ref{fig:bench-optimized} visualizes the same measurements.
 
 \begin{table*}[t]
 \centering
@@ -775,11 +993,11 @@ String traversal & 0.513 & 0.430 & 0.470 & 0.332 \\
 \label{fig:bench-optimized}
 \end{figure*}
 
-The results show that optimized CPL code can produce compact and reasonably fast machine code for these small kernels. They should not be generalized to whole-program performance. The string-traversal kernel remains slower than Clang, GCC, and Rust, which indicates that pointer-heavy workloads are a more demanding target for the current backend.
+\par The results show that optimized CPL code can produce compact and reasonably fast machine code for these small kernels. They should not be generalized to whole-program performance. The string-traversal kernel remains slower than Clang, GCC, and Rust, which indicates that pointer-heavy workloads are a more demanding target for the current backend.
 
 \subsection{Effect of Optimization within CPL}
 
-Figure~\ref{fig:bench-cpl-levels} shows the effect of CPL optimization alone by comparing \texttt{-O0} and \texttt{-O3}. The empty loop benefits the most, which is consistent with the late peephole simplifications described earlier.
+\par Figure~\ref{fig:bench-cpl-levels} shows the effect of CPL optimization alone by comparing \texttt{-O0} and \texttt{-O3}. The empty loop benefits the most, which is consistent with the late peephole simplifications described earlier.
 
 \begin{figure}[t]
 \centering
@@ -812,61 +1030,62 @@ Figure~\ref{fig:bench-cpl-levels} shows the effect of CPL optimization alone by 
 \label{fig:bench-cpl-levels}
 \end{figure}
 
-The optimized CPL assembly sizes reported for these kernels are compact: 11 lines for the empty loop, 17 lines for Fibonacci, and 84 lines for string traversal. These values are not a full proxy for performance, but they do suggest that the backend is capable of collapsing simple kernels to short instruction sequences.
+\par The optimized CPL assembly sizes reported for these kernels are compact: 11 lines for the empty loop, 17 lines for Fibonacci, and 84 lines for string traversal. These values are not a full proxy for performance, but they do suggest that the backend is capable of collapsing simple kernels to short instruction sequences.
 
 \section{Limitations and Threats to Validity}
 
-The current report should be read with the following limitations in mind.
+\par The current report should be read with the following limitations in mind.
 
 \paragraph{No formal semantics or proof.}
-CPL does not currently provide a mechanized semantics, compiler-correctness proof, or translation validation.
+\par CPL does not currently provide a mechanized semantics, compiler-correctness proof, or translation validation.
 
 \paragraph{No memory safety.}
-The static analyzer can find selected problems, but CPL intentionally does not implement an ownership or borrowing discipline.
+\par The static analyzer can find selected problems, but CPL intentionally does not implement an ownership or borrowing discipline.
 
 \paragraph{Limited target validation.}
-The most exercised path is x86\_64 Mach-O/NASM. x86\_64 GNU/Linux NASM is implemented but less tested. Other architecture and system-type options exposed by the driver should be treated as planned or partial support unless backed by dedicated tests.
+\par The most exercised path is x86\_64 Mach-O/NASM. x86\_64 GNU/Linux NASM is implemented but less tested. The i386 GNU/Linux NASM backend has dedicated assembly-generation tests and real operating-system helper examples, but it is newer and has not yet been evaluated with the same breadth as the Mach-O path. Other architecture and system-type options exposed by the driver should be treated as planned or partial support unless backed by dedicated tests.
 
 \paragraph{Known function-inlining bugs.}
-Function inlining exists, but it is not stable enough to be used as an unconditional compiler-quality claim.
+\par Function inlining exists, including annotation-driven and experimental model-guided modes, but it is not stable enough to be used as an unconditional compiler-quality claim. The compact neural-model mode should be treated as an experiment rather than as a validated optimization policy.
 
 \paragraph{Small benchmark suite.}
-The benchmark suite consists of microbenchmarks and small interpreters. It does not include large applications, compiler self-hosting, broad target comparisons, or Linux x86\_64 replication.
+\par The benchmark suite consists of microbenchmarks and small interpreters. It does not include large applications, compiler self-hosting, broad target comparisons, or Linux x86\_64 replication.
 
 \paragraph{Evaluation snapshot.}
-The benchmark data was collected for a particular Mach-O compiler snapshot and hardware configuration. It should therefore be treated as preliminary evidence for the implementation direction rather than as a complete evaluation of every backend and optimization combination.
+\par The benchmark data was collected for a particular Mach-O compiler snapshot and hardware configuration. It should therefore be treated as preliminary evidence for the implementation direction rather than as a complete evaluation of every backend and optimization combination.
 
 \paragraph{Inline assembly opacity.}
-Inline assembly is copied into the output after placeholder substitution and is not optimized by the compiler. This can invalidate assumptions made by surrounding optimization passes if the programmer uses labels, jumps, or unpreserved registers in fragile ways.
+\par Inline assembly is copied into the output after placeholder substitution and is not optimized by the compiler. This can invalidate assumptions made by surrounding optimization passes if the programmer uses labels, jumps, or unpreserved registers in fragile ways.
 
 \section{Related Work}
 
-CPL is best understood as a small systems-language and compiler-construction testbed, not as a verified or production language.
+\par CPL is best understood as a small systems-language and compiler-construction testbed, not as a verified or production language.
 
 \paragraph{Compiler frameworks.}
-LLVM is a modular compiler infrastructure designed to support program analysis and transformation over a common low-level representation~\cite{lattner2004llvm}. CPL is much smaller and does not attempt to provide a general reusable ecosystem, but it shares the idea that intermediate representations are central to optimization and backend experimentation.
+\par LLVM is a modular compiler infrastructure designed to support program analysis and transformation over a common low-level representation~\cite{lattner2004llvm}. CPL is much smaller and does not attempt to provide a general reusable ecosystem, but it shares the idea that intermediate representations are central to optimization and backend experimentation.
 
 \paragraph{SSA and optimization.}
-CPL's SSA stage connects to the long-standing use of SSA as a representation for data-flow optimization~\cite{cytron1991ssa}. The current implementation uses SSA as one stage in a larger HIR-to-LIR pipeline rather than as a complete formal IR specification. The symbolic analysis layer uses Z3, an SMT solver widely used for program analysis and verification-oriented tooling~\cite{deMoura2008z3}.
+\par CPL's SSA stage connects to the long-standing use of SSA as a representation for data-flow optimization~\cite{cytron1991ssa}. The current implementation uses SSA as one stage in a larger HIR-to-LIR pipeline rather than as a complete formal IR specification. The symbolic analysis layer uses Z3, an SMT solver widely used for program analysis and verification-oriented tooling~\cite{deMoura2008z3}.
 
 \paragraph{Verified systems languages and compilers.}
-Cogent presents a restricted systems language with a self-certifying compiler and Isabelle/HOL artifacts~\cite{oconnor2016cogent}. Low* embeds verified low-level programming in F* and provides memory safety and verification support~\cite{protzenko2017lowstar}. Jasmin targets efficient and formally verified cryptographic implementations~\cite{arranzolmos2025jasmin}. CompCert is a formally verified C compiler with machine-checked semantic preservation guarantees~\cite{leroy2009compcert,compcert}. CPL differs from all of these: it does not claim verified compilation, formal semantics, memory safety, or cryptographic security preservation.
+\par Cogent presents a restricted systems language with a self-certifying compiler and Isabelle/HOL artifacts~\cite{oconnor2016cogent}. Low* embeds verified low-level programming in F* and provides memory safety and verification support~\cite{protzenko2017lowstar}. Jasmin targets efficient and formally verified cryptographic implementations~\cite{arranzolmos2025jasmin}. CompCert is a formally verified C compiler with machine-checked semantic preservation guarantees~\cite{leroy2009compcert,compcert}. CPL differs from all of these: it does not claim verified compilation, formal semantics, memory safety, or cryptographic security preservation.
 
 \paragraph{Implementation reports for smaller languages.}
-The Dino implementation report is close in genre: it documents language implementation decisions, VM/JIT design, and benchmark-driven implementation experience~\cite{makarov2016dino}. The improved GP 2 compiler work shows how implementation changes to an experimental language compiler can yield substantial performance improvements~\cite{campbell2020gp2}. GNU epsilon provides a different example of a minimalistic language core intended for extensibility and analysis~\cite{saiu2012epsilon}. These works motivate reporting not only language syntax, but also implementation architecture and measured effects.
+\par The Dino implementation report is close in genre: it documents language implementation decisions, VM/JIT design, and benchmark-driven implementation experience~\cite{makarov2016dino}. The improved GP 2 compiler work shows how implementation changes to an experimental language compiler can yield substantial performance improvements~\cite{campbell2020gp2}. GNU epsilon provides a different example of a minimalistic language core intended for extensibility and analysis~\cite{saiu2012epsilon}. These works motivate reporting not only language syntax, but also implementation architecture and measured effects.
 
 \paragraph{Educational compilers.}
-Petit and small self-contained compiler courses emphasize educational compiler construction, staged language growth, and transparent implementation~\cite{barbosa2023petit,berezun2022wheel}. CPL has an educational motivation, but differs by exposing system-level constructs such as syscalls, inline assembly, low-level annotations, and explicit backend concerns.
+\par Petit and small self-contained compiler courses emphasize educational compiler construction, staged language growth, and transparent implementation~\cite{barbosa2023petit,berezun2022wheel}. CPL has an educational motivation, but differs by exposing system-level constructs such as syscalls, inline assembly, low-level annotations, and explicit backend concerns.
 
 \paragraph{Compiler testing.}
-Csmith demonstrates the effectiveness of randomized differential testing for finding C compiler bugs~\cite{yang2011csmith}. CPL currently does not include a comparable fuzzing methodology. Such testing is an important direction for future work, especially because the compiler contains multiple lowering and optimization stages.
+\par Csmith demonstrates the effectiveness of randomized differential testing for finding C compiler bugs~\cite{yang2011csmith}. CPL currently does not include a comparable fuzzing methodology. Such testing is an important direction for future work, especially because the compiler contains multiple lowering and optimization stages.
 
 \section{Future Work}
 
-The most important next steps are:
+\par The most important next steps are:
 \begin{itemize}[leftmargin=*]
   \item strengthen Linux x86\_64 target validation;
-  \item repair known function-inlining bugs;
+  \item broaden i386 validation beyond assembly-generation tests and kernel helper routines;
+  \item repair known function-inlining bugs and validate the compact neural-model-guided inline mode;
   \item publish reproducible benchmark scripts and raw data;
   \item extend the existing phase-oriented test suite with differential and randomized testing inspired by compiler-fuzzing work;
   \item document the IR formats more formally;
@@ -876,11 +1095,11 @@ The most important next steps are:
   \item expand the set of real programs beyond microbenchmarks and small interpreters.
 \end{itemize}
 
-Structures, classes, enums, and related user-defined aggregate types remain outside the current core by design. They may be studied separately, but this report treats their absence as part of CPL's deliberate restriction rather than a missing feature in the current language model.
+\par Classes, enums, constructors, destructors, inheritance, and ownership-oriented aggregate models remain outside the current core by design. Containers provide a deliberately small C-like aggregate mechanism, but richer user-defined type systems may be studied separately. This report treats that restriction as part of CPL's deliberate language model rather than as an accidental omission.
 
 \section{Conclusion}
 
-CPL is a compact low-level language and compiler infrastructure for studying systems-language design and compiler implementation. It combines explicit low-level constructs, a restricted syntax, a multi-stage compiler pipeline, static diagnostics, SSA-based optimization, low-level backend passes, and target-specific assembly generation. Its value lies in being small enough to inspect and modify while still exposing problems that arise in real compilers: lowering boundaries, register allocation, branch layout, null reasoning, inline assembly opacity, and benchmark interpretation. The current implementation is not formally verified, memory-safe, production-ready, or self-hosting. Within those limits, CPL provides a useful experimental platform for compiler architecture and systems-programming research.
+\par CPL is a compact low-level language and compiler infrastructure for studying systems-language design and compiler implementation. It combines explicit low-level constructs, lightweight containers, a restricted syntax, a multi-stage compiler pipeline, static diagnostics, SSA-based optimization, annotation-guided and experimental model-guided inlining, low-level backend passes, and target-specific assembly generation. Its value lies in being small enough to inspect and modify while still exposing problems that arise in real compilers: lowering boundaries, register allocation, branch layout, null reasoning, inline assembly opacity, and benchmark interpretation. The current implementation is not formally verified, memory-safe, production-ready, or self-hosting. Within those limits, CPL provides a useful experimental platform for compiler architecture and systems-programming research.
 
 
 \bibliographystyle{plain}

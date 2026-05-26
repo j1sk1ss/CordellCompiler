@@ -17,6 +17,10 @@
 #define RETURN_COMMAND          "return"
 #define CLOSE_BLOCK             "}"
 
+#define CONTAINER_COMMAND       "container"
+#define DOT_COMMAND             "."
+#define SELF_COMMAND            "self"
+
 // Function
 #define FUNCTION_COMMAND        "function"
 #define VAR_ARGUMENTS_COMMAND   "..."
@@ -28,7 +32,8 @@
 #define PTR_COMMAND             "ptr"
 #define RO_COMMAND              "ro"
 #define GLOB_COMMAND            "glob"
-#define NEGATIVE_COMMAND        "not"
+#define NEGATIVE_COMMAND        "neg"
+#define NOT_COMMAND             "not"
 
 // Types
 #define I0_VARIABLE             "i0"
@@ -44,7 +49,6 @@
 #define U32_VARIABLE            "u32"
 #define U16_VARIABLE            "u16"
 #define U8_VARIABLE             "u8"
-#define STR_VARIABLE            "str"
 #define ARR_VARIABLE            "arr"
 
 #define CONVERT_COMMAND         "as"

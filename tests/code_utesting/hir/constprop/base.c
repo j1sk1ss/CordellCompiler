@@ -19,7 +19,7 @@
 
 #include <hir/dag.h>
 #include <hir/constfold.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -66,6 +66,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
@@ -75,7 +77,7 @@ int main(int argc, char* argv[]) {
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
     HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &smt);    // Analyzation
 
     ltree_ctx_t lctx;
     map_init(&lctx.lmap, MAP_NO_CMP);

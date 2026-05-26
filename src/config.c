@@ -27,6 +27,10 @@ config_string_field_t CONF_get_code_section() {
     return _config.system.code_section;
 }
 
+config_string_field_t CONF_get_no_section() {
+    return "__cpl_no_section";
+}
+
 config_string_field_t CONF_get_timings() {
     return _config.system.arch_timings;
 }

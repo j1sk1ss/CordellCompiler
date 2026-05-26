@@ -19,12 +19,14 @@ function foo() -> i32 {
             }
             goto lb9;
             lb9:
-            return i8n 0;
+            i32t %1 = i8n 0 as i32;
+            return i32t %1;
         }
         exit csu8 0;
         lb7:
         {
-            return i8n 2;
+            i32t %0 = i8n 2 as i32;
+            return i32t %0;
         }
         goto lb9;
     }

@@ -87,6 +87,7 @@ Returns a token with a type.
 static inline token_t* _get_base_type_token(ast_node_t* nd, int* ptr) {
     switch (nd->t->t_type) {
         case REF_TYPE_TOKEN: if (ptr) *ptr = TYPE_FULL_SIZE;
+        case NOT_TOKEN:
         case NEGATIVE_TOKEN:
         case DREF_TYPE_TOKEN:
         case CONVERT_TOKEN:  return nd->c->t;

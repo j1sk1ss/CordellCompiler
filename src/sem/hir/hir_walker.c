@@ -96,19 +96,16 @@ static int _cfg_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
     
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
-            hir_block_t* hb = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-            while (hb) {
+            iterate_hir_instructions (bb) {
                 foreach (hir_sem_handler_t* v, &ctx->visitors) {
-                    if (_get_instruction_type(hb->op) & v->w->trg) {
-                        int res = v->w->perform(hb, bb, ctx->smt, &ctx->vctx);
+                    if (_get_instruction_type(hh->op) & v->w->trg) {
+                        int res = v->w->perform(hh, bb, ctx->smt, &ctx->vctx);
                         if (
                             !res && 
                             v->l == ATTENTION_BLOCK_LEVEL
                         ) return -1;
                     }
                 }
-                
-                hb = HIR_get_next(hb, bb->hmap.exit, 1);
             }
         }
     }

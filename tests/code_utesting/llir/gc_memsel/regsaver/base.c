@@ -16,7 +16,7 @@
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/func.h>
-#include "../../../../misc/hir_helper.h"
+#include "../../../../misc/cfg_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -27,7 +27,6 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include "../../../../misc/lir_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -74,6 +73,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
@@ -83,7 +84,7 @@ int main(int argc, char* argv[]) {
     call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
     HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
-    HIR_CG_apply_dfe(&cfgctx, &callctx);    // Analyzation
+    HIR_CG_apply_dfe(&cfgctx, &smt);    // Analyzation
 
     HIR_CFG_create_domdata(&cfgctx);        // Analyzation
     ltree_ctx_t lctx;
@@ -120,13 +121,9 @@ int main(int argc, char* argv[]) {
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
     register_saver_t reg_saver = { .save_registers = x86_64_gnu_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &smt, &reg_saver);
+    LIR_save_registers(&cfgctx, &callctx, &smt, &reg_saver);
     
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        if (!lh->unused) print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 
     map_free(&colors);
     LIR_unload_blocks(lirctx.h);

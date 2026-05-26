@@ -136,7 +136,7 @@
             "LIR_INC"
         ],
         "neg": [
-            "LIR_NOT"
+            "LIR_NEG"
         ],
         "jmp": [
             "LIR_JMP"

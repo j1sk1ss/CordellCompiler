@@ -6,13 +6,12 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
-            {
-                arrs %1 = arr_alloc(i8n 10);
-                use arrs %1;
-                foo0(arrs %1);
-            }
+            arrs %1 = arr_alloc(i8n 10);
+            use arrs %1;
+            foo0(arrs %1);
         }
     }
 }

@@ -85,10 +85,11 @@ typedef enum hir_operation {
         HIR_VRUSE,
 
         /* Data */
+        HIR_NEG,          // x = ~x
         HIR_NOT,          // x = !x
         HIR_STORE,        // x = y
+        HIR_REF_ARGS,     // x - pointer to the stack's head
         HIR_VARDECL,      // alloc x
-        HIR_GLVARDECL,    // alloc x, y=val
         HIR_ARRDECL,      // arralloc x, y (size)
         HIR_STRDECL,      // arralloc x, strlen(x)
         HIR_FARGLD,       // load function argument
@@ -108,8 +109,7 @@ typedef enum hir_operation {
 typedef enum hir_subject_type {
     HIR_NOTYPE, // Special generic no_type entry
 
-    HIR_TMPVARSTR, // tmp variables
-    HIR_TMPVARARR,
+    HIR_TMPVARARR, // tmp variables
     HIR_TMPVARF64,
     HIR_TMPVARU64,
     HIR_TMPVARI64,
@@ -122,8 +122,7 @@ typedef enum hir_subject_type {
     HIR_TMPVARI8,
     HIR_TMPVARI0,
 
-    HIR_GLBVARSTR, // global variables
-    HIR_GLBVARARR,
+    HIR_GLBVARARR, // global variables
     HIR_GLBVARF64,
     HIR_GLBVARU64,
     HIR_GLBVARI64,
@@ -136,8 +135,7 @@ typedef enum hir_subject_type {
     HIR_GLBVARI8,
     HIR_GLBVARI0,
 
-    HIR_STKVARSTR, // local (stack) variables
-    HIR_STKVARARR,
+    HIR_STKVARARR, // local (stack) variables
     HIR_STKVARF64,
     HIR_STKVARU64,
     HIR_STKVARI64,

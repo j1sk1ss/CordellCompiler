@@ -5,21 +5,20 @@ start() {
 
 :/ OUTPUT
 {
-    start {
+    fn _main()
+    {
         {
+            i64s %0 = alloc;
+            i64s %0 = csu8 10;
+            lb9:
+            goto lb10;
+            lb10:
             {
-                i64s %0 = alloc;
-                i64s %0 = csu8 10;
-                lb9:
-                goto lb10;
-                lb10:
-                {
-                }
-                i64t %1 = i64s %0 - csu8 1;
-                i64s %0 = i64t %1;
-                if i64s %0, goto lb9, else goto lb11;
-                lb11:
             }
+            i64t %1 = i64s %0 - csu8 1;
+            i64s %0 = i64t %1;
+            if i64s %0, goto lb9, else goto lb11;
+            lb11:
         }
     }
 }

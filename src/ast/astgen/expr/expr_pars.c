@@ -61,8 +61,8 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     if (type_node) {
                         AST_add_node(left, type_node);
                         if (type != NO_SYMBOL_ID) {
-                            type_node->sinfo.v_id = type;
-                            type_node->t->t_type  = GENERIC_TYPE_TOKEN;
+                            type_node->sinfo.t_id = type;
+                            type_node->t->t_type  = EXTRACT_TYPE_TYPE(type, smt);
                         }
                     }
                     else {
@@ -77,6 +77,62 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 forward_token(it, 1);
                 break;
             }
+            /* Member access */
+            case DOT_TOKEN: {
+                forward_token(it, 1);
+                symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
+                if (field_type == NO_SYMBOL_ID) {
+                    PARSE_ERROR("Unknown container field!");
+                    AST_unload(left);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+
+                ast_node_t* member = AST_create_node(CURRENT_TOKEN);
+                if (!member) {
+                    AST_unload(left);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+
+                type_info_t c_ti;
+                TPTB_get_info_id(field_type, &c_ti, &smt->t);
+                /* If this type is a method, we must stop going, remember
+                   existed chain in the 'left' as a self pointer. */
+                if (c_ti.t == TYPE_METHOD) {
+                    member->sinfo.v_id = c_ti.link.v_id;
+                    member->t->t_type  = CALL_ADDR_TOKEN;
+
+                    func_info_t fi;
+                    if (
+                        c_ti.t == TYPE_METHOD && 
+                        FNTB_get_info_id(member->sinfo.v_id, &fi, &smt->f) &&
+                        fi.flags.self
+                    ) member->self = left;
+                    else AST_unload(left);
+                    
+                    left = member;
+                    forward_token(it, 1);
+                    break;
+                }
+
+                ast_node_t* base = AST_create_node_bt(CREATE_ACCESS_TOKEN);
+                if (!base) {
+                    AST_unload(left);
+                    RESTORE_TOKEN_POINT;
+                    return NULL;
+                }
+
+                base->sinfo.t_id   = field_type;
+                member->sinfo.t_id = field_type;
+
+                AST_add_node(base, left);
+                AST_add_node(base, member);
+
+                left = base;
+                forward_token(it, 1);
+                break;
+            }
             /* Postfix tokens that are change placment in an AST tree.
                '[]' / '()' / 'as' takes two children: the pointer and the data. */
             case CONVERT_TOKEN:
@@ -85,10 +141,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 int annot_off = annotation_reserve(ctx);
                 ast_node_t *target = NULL, *data = NULL;
                 switch (CURRENT_TOKEN->t_type) {
-                    case CONVERT_TOKEN: {
-                        target = cpl_parse_conv(it, ctx, smt, 0);
-                        break;
-                    }
+                    case CONVERT_TOKEN: target = cpl_parse_conv(it, ctx, smt, 0); break;
                     case OPEN_INDEX_TOKEN: {
                         forward_token(it, 1);
                         target = AST_create_node_bt(CREATE_INDEX_TOKEN);
@@ -104,6 +157,22 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
 
                         target = AST_create_node_bt(CREATE_CALL_TOKEN);
                         data   = cpl_parse_call_arguments(it, ctx, smt, 0);
+                        if (left->self) {
+                            type_info_t self_ti;
+                            TPTB_get_info_id(left->self->sinfo.t_id, &self_ti, &smt->t);
+                            variable_info_t self_vi;
+                            VRTB_get_info_id(self_ti.link.v_id, &self_vi, &smt->v);
+                            if (
+                                (!self_vi.vfs.ptr && self_ti.link.p != NO_SYMBOL_ID) ||
+                                (!left->self->t->flags.ptr && self_ti.link.p == NO_SYMBOL_ID)
+                            ) {
+                                WRAP_REFERENCE_NODE(left->self);
+                            }
+
+                            AST_insert_node(data, left->self);
+                            left->self = NULL;
+                        }
+
                         break;
                     }
                     default: break;
@@ -202,7 +271,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
                 ast_node_t* node = NULL;
                 if (
-                    type != NO_SYMBOL_ID || 
+                    type != NO_SYMBOL_ID               || 
                     TKN_is_builtin_type(CURRENT_TOKEN) || 
                     CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
                 ) node = cpl_parse_lambda(it, ctx, smt, 0);
@@ -221,11 +290,12 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 annotation_unreserve(ctx, annot_off);
                 return node;
             }
-            case SIZEOF_TOKEN:    return cpl_parse_sizeof(it, ctx, smt, 0);   /* sizeof()  */
-            case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);  /* syscall() */
-            case NEGATIVE_TOKEN:  return cpl_parse_neg(it, ctx, smt, 0);      /* neg       */
-            case REF_TYPE_TOKEN:  return cpl_parse_ref(it, ctx, smt, 0);      /* ref       */
-            case DREF_TYPE_TOKEN: return cpl_parse_dref(it, ctx, smt, 0);     /* dref      */
+            case SIZEOF_TOKEN:    return cpl_parse_sizeof(it, ctx, smt, 0);
+            case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);
+            case NOT_TOKEN:
+            case NEGATIVE_TOKEN:
+            case REF_TYPE_TOKEN:
+            case DREF_TYPE_TOKEN: return cpl_parse_unary(it, ctx, smt, 0);
             default: goto _primary_resolve_complete;
         }
     }
@@ -240,7 +310,7 @@ _primary_resolve_complete: {}
 
     switch (node->t->t_type) {
         case STRING_VALUE_TOKEN: {
-            node->sinfo.v_id = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
+            node->sinfo.v_id  = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
             string_t* section = create_string(CONF_get_ro_section());
             SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
             destroy_string(section);

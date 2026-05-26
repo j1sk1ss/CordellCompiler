@@ -1,6 +1,6 @@
 : RUN_ASM :
 start() {
-    str msg = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
+    arr msg[0, i8] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
     i64 outer = 0;
     u8 acc = 0;
     ptr i8 p = ref msg;

@@ -27,9 +27,8 @@ int HIR_DAG_init(dag_ctx_t* dctx) {
 
 int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        foreach (cfg_block_t* cb, &fb->blocks) {
-            hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
-            while (hh) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            iterate_hir_instructions (bb) {
                 switch (hh->op) {
                     case HIR_PHI:
                     // case HIR_PHI_PREAMBLE:
@@ -42,10 +41,9 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         if (!dst) break;
                         dst->op   = hh->op;
                         dst->hash = HIR_DAG_compute_hash(dst);
-                        dst->home = cb;
+                        dst->home = bb;
                         break;
                     }
-
                     case HIR_STORE: case HIR_REF: case HIR_GDREF:
                     case HIR_TPTR:
                     case HIR_TF64:  case HIR_TF32:
@@ -53,7 +51,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                     case HIR_TU64:  case HIR_TU32: case HIR_TU16:  case HIR_TU8:
                     case HIR_iADD:  case HIR_iSUB: case HIR_iMUL:  case HIR_iDIV:
                     case HIR_iMOD:  case HIR_iLRG: case HIR_iLGE:  case HIR_iLWR:
-                    case HIR_iLRE:  case HIR_iCMP: case HIR_iNMP:  case HIR_NOT:
+                    case HIR_iLRE:  case HIR_iCMP: case HIR_iNMP:  case HIR_NOT:   case HIR_NEG:
                     case HIR_iAND:  case HIR_iOR:  case HIR_iBLFT: case HIR_iBRHT:
                     case HIR_bAND:  case HIR_bOR:  case HIR_bXOR: {
                         dag_node_t* farg = DAG_GET_NODE(dctx, hh->sarg);
@@ -62,7 +60,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         if (!dst) break;
 
                         dst->op   = hh->op;
-                        dst->home = cb;
+                        dst->home = bb;
 
                         if (HIR_is_commutative_op(hh->op)) {
                             if (farg) set_add(&dst->args, farg);
@@ -107,8 +105,6 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
 
                     default: break;
                 }
-
-                hh = HIR_get_next(hh, cb->hmap.exit, 1);
             }
         }
     }

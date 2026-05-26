@@ -57,6 +57,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     map_foreach (func_info_t* fi, &smt.f.functb) {
         printf(
             "%sid: %li, name: %s (virt: %s), ext=%i, glob=%i, used=%i, local=%i, sid=%li\n", 

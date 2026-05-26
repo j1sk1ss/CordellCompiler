@@ -7,6 +7,6 @@ start() {
 section .text
 global _main
 _main:
-mov rax, 0x2000001
-syscall
+    mov     rax, 60
+    syscall
 /:
