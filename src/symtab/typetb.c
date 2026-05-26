@@ -1,12 +1,5 @@
 #include <symtab/typetb.h>
 
-static type_entry_info_t* _create_entry(symbol_id_t lv) {
-    type_entry_info_t* entry = (type_entry_info_t*)mm_malloc(sizeof(type_entry_info_t));
-    if (!entry) return NULL;
-    entry->vid = lv;
-    return entry;
-}
-
 static type_info_t* _create_type_info(string_t* name) {
     type_info_t* info = (type_info_t*)mm_malloc(sizeof(type_info_t));
     if (!info) return NULL;

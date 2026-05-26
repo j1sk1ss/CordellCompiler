@@ -2,10 +2,13 @@
 
 static hir_subject_t* _point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t* field_info, sym_table_t* smt) {
     hir_subject_t* base = NULL;
-    if (root->c && root->c->t && root->c->t->t_type == MEMBER_ACCESS_TOKEN) {
+    if (
+        !root->c || !root->c->t || 
+        root->c->t->t_type != MEMBER_ACCESS_TOKEN
+    ) base = HIR_generate_elem(root->c, ctx, smt);
+    else {
         type_info_t parent_field;
         base = _point_to_field(root->c, ctx, &parent_field, smt);
-
         variable_info_t parent_var;
         if (
             parent_field.t != TYPE_ARRAY &&
@@ -13,17 +16,11 @@ static hir_subject_t* _point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_inf
             parent_var.vfs.ptr
         ) {
             token_t tmp = { .t_type = parent_var.type, .flags.ptr = parent_var.vfs.ptr };
-            hir_subject_t* value = HIR_SUBJ_TMPVAR(
-                HIR_get_tmptype_tkn(&tmp, 0),
-                VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, NULL, &smt->v)
-            );
+            hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, NULL, &smt->v));
             value->ptr = tmp.flags.ptr;
             HIR_BLOCK2(ctx, HIR_GDREF, value, base);
             base = value;
         }
-    }
-    else {
-        base = HIR_generate_elem(root->c, ctx, smt);
     }
 
     if (!base->ptr) {
@@ -46,10 +43,7 @@ static hir_subject_t* _load_array_field_head(hir_subject_t* head, array_info_t* 
     token_flags_t flags = ai->elements_info.el_flags;
     flags.ptr++;
 
-    hir_subject_t* value = HIR_SUBJ_TMPVAR(
-        HIR_get_tmptype_tkn(&tmp, 0),
-        VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, &flags, &smt->v)
-    );
+    hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, &flags, &smt->v));
     value->ptr = flags.ptr;
 
     HIR_BLOCK2(ctx, HIR_STORE, value, head);

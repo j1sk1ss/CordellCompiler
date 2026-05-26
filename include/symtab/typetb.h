@@ -17,10 +17,6 @@ typedef enum {
 } type_type_t;
 
 typedef struct {
-    symbol_id_t vid; /* Registered variable */
-} type_entry_info_t;
-
-typedef struct {
     symbol_id_t      id;
     symbol_id_t      p;
 
