@@ -55,7 +55,7 @@
         <div class="doc-grid">
             <a href="#/pages/types" class="doc-card">
                 <h3>Types and memory</h3>
-                <p>Primitive values, pointers, strings, arrays, storage classes, and external symbols.</p>
+                <p>Primitive values, pointers, strings, arrays, containers, storage classes, and external symbols.</p>
             </a>
             <a href="#/pages/functions-and-inbuilt-macros" class="doc-card">
                 <h3>Functions</h3>
@@ -63,7 +63,7 @@
             </a>
             <a href="#/pages/containers" class="doc-card">
                 <h3>Containers</h3>
-                <p>Self calls, structures and custom types.</p>
+                <p>Value-layout custom types, nested fields, array fields, and explicit self calls.</p>
             </a>
             <a href="#/pages/compiler-usage" class="doc-card">
                 <h3>Compiler usage</h3>
