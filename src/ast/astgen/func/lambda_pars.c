@@ -23,9 +23,13 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
     args->sinfo.s_id = ctx->scopes.s_id;
 
+    symbol_id_t preserved_tid = ctx->t_id;
+    ctx->t_id = NO_SYMBOL_ID;
+
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args)) {
         PARSE_ERROR("Can't parse lambdas's arguments!");
         AST_unload(base);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -33,12 +37,13 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     if (!consume_token(it, LAMBDA_TOKEN)) {
         PARSE_ERROR("Expected the 'LAMBDA_TOKEN'!");
         AST_unload(base);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     string_t* anon_name = create_string("__anon_function_lambda");
-    base->sinfo.v_id = FNTB_add_info(anon_name, NULL,  0, 1, 0, 0, 0, 0, 0, base->sinfo.s_id, args, NULL, &smt->f);
+    base->sinfo.v_id = FNTB_add_info(anon_name, NULL,  0, 1, 0, 0, 0, 0, 0, 0, base->sinfo.s_id, args, NULL, &smt->f);
     FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, base->sinfo.v_id, &smt->f);
     destroy_string(anon_name);
 
@@ -51,10 +56,12 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     else {
         PARSE_ERROR("Error during the lambdas's body parsing!");
         AST_unload(base);
+        ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
+    ctx->t_id = preserved_tid;
     stack_pop(&ctx->scopes.stack, NULL);
     return base;
 }

@@ -18,7 +18,7 @@
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
-#include "../../misc/lir_helper.h"
+#include <lir/dump.h>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -65,6 +65,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
@@ -82,11 +84,7 @@ int main(int argc, char* argv[]) {
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
 
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, &smt, 0, 1, stdout);
 
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);

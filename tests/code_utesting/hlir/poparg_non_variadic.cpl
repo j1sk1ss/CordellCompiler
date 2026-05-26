@@ -37,13 +37,11 @@ BB5: fn put_digit1(i64 x) -> i0
 %8 = %9 as i8;
 use %8;
 stparam(%8);
-call putc0(i8 c) -> i0;
+call putc0;
 fend
 BB6: fn pack2(i32 a, i32 b) -> i32
 %2 = ldparam();
 %3 = ldparam();
-%4 = ldparam();
-%5 = ldparam();
 %12 = $10 as i32;
 %11 = %4 * %12;
 %13 = %11 + %5;
@@ -56,19 +54,19 @@ use %14;
 use %15;
 stparam(%15);
 stparam(%14);
-call pack2(i32 a, i32 b) -> i32;
+call pack2;
 %16 = fret();
 %6 = %16;
 %18 = $10 as i32;
 %17 = %6 / %18;
 use %17;
 stparam(%17);
-call put_digit1(i64 x) -> i0;
+call put_digit1;
 %20 = $10 as i32;
 %19 = %6 % %20;
 use %19;
 stparam(%19);
-call put_digit1(i64 x) -> i0;
+call put_digit1;
 %21 = $0 as u8;
 exit %21;
 BB9: send

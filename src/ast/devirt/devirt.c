@@ -83,7 +83,7 @@ static int _find_type_usage_and_replace(ast_node_t* node, ast_node_t* root, map_
         long t = GENERIC_TYPE_TOKEN;
         if (
             node->t->t_type == GENERIC_TYPE_TOKEN && 
-            map_get(types, node->sinfo.v_id, (void**)&t)
+            map_get(types, node->sinfo.t_id, (void**)&t)
         ) node->t->t_type = t;
         if (node->c) {
             variable_info_t vi;

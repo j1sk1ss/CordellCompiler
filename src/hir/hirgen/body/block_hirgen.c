@@ -21,16 +21,17 @@ Returns generated value from the AST node or the 'NULL' value.
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {    
     hir_subject_t* res = NULL;
     switch (node->t->t_type) {
-        case CALLING_TOKEN:               res = HIR_generate_funccall(node, ctx, smt, 1);     break;
-        case SIZEOF_TOKEN:                res = HIR_generate_sizeof(node, ctx, smt);          break;
-        case SYSCALL_TOKEN:               res = HIR_generate_syscall(node, ctx, smt, 1);      break;
-        case CONVERT_TOKEN:               res = HIR_generate_explconv(node, ctx, smt);        break;
-        case NEGATIVE_TOKEN:              res = HIR_generate_neg(node, ctx, smt);             break;
-        case NOT_TOKEN:                   res = HIR_generate_not(node, ctx, smt);             break;
-        case REF_TYPE_TOKEN:              res = HIR_generate_ref(node, ctx, smt);             break;
-        case DREF_TYPE_TOKEN:             res = HIR_generate_dref(node, ctx, smt, NULL);      break;
-        case INDEXATION_TOKEN:            res = HIR_generate_load_indexation(node, ctx, smt); break;
-        case LAMBDA_FUNCTION_TOKEN:       res = HIR_generate_lambda(node, ctx, smt, 1);       break;
+        case CALLING_TOKEN:               res = HIR_generate_funccall(node, ctx, smt, 1);        break;
+        case SIZEOF_TOKEN:                res = HIR_generate_sizeof(node, ctx, smt);             break;
+        case SYSCALL_TOKEN:               res = HIR_generate_syscall(node, ctx, smt, 1);         break;
+        case CONVERT_TOKEN:               res = HIR_generate_explconv(node, ctx, smt);           break;
+        case NEGATIVE_TOKEN:              res = HIR_generate_neg(node, ctx, smt);                break;
+        case NOT_TOKEN:                   res = HIR_generate_not(node, ctx, smt);                break;
+        case REF_TYPE_TOKEN:              res = HIR_generate_ref(node, ctx, smt);                break;
+        case DREF_TYPE_TOKEN:             res = HIR_generate_dref(node, ctx, smt, NULL);         break;
+        case INDEXATION_TOKEN:            res = HIR_generate_load_indexation(node, ctx, smt);    break;
+        case MEMBER_ACCESS_TOKEN:         res = HIR_generate_load_member_access(node, ctx, smt); break;
+        case LAMBDA_FUNCTION_TOKEN:       res = HIR_generate_lambda(node, ctx, smt, 1);          break;
         /* We skip assign nodes above given the next logic, 
            where we generate the special load sequence */
         case CALL_ADDR_TOKEN:
@@ -46,8 +47,8 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case U64_VARIABLE_TOKEN:
         case F64_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN:
         case STRING_VALUE_TOKEN:
+        case CUSTOM_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN:
         case GENERIC_VARIABLE_TOKEN:
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: res = HIR_generate_load(node, ctx, smt);            break;
@@ -100,7 +101,11 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case LAMBDA_FUNCTION_TOKEN: return (int)((long)HIR_generate_lambda(node, ctx, smt, 0));
         default: break;
     }
-    if (TKN_is_builtin_type(node->t))    return HIR_generate_declaration_block(node, ctx, smt);
+
+    if (
+        TKN_is_builtin_type(node->t) ||
+        node->t->t_type == CUSTOM_TYPE_TOKEN
+    ) return HIR_generate_declaration_block(node, ctx, smt);
     if (TKN_is_update_operator(node->t)) return (int)((long)HIR_generate_update_block(node, ctx, smt, 0));
     return (int)((long)_generation_handler(node, ctx, smt, 0));
 }

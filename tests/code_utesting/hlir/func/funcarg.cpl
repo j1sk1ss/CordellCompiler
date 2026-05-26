@@ -9,14 +9,14 @@
 
 :/ OUTPUT
 BB1: start
-call a0() -> i32;
+call a0;
 %2 = fret();
 use %2;
 stparam(%2);
-call b1(i32 g) -> i32;
+call b1;
 %3 = fret();
 use %3;
 stparam(%3);
-call c2(i32 f);
+call c2;
 send
 /:

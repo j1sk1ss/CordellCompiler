@@ -10,11 +10,6 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         RESTORE_TOKEN_POINT;
         return NULL;
     }
-    
-    if (carry != NO_SYMBOL_ID) {
-        base->sinfo.v_id = carry;
-        base->t->t_type  = EXTRACT_TYPE_TYPE(carry, smt);
-    }
 
     annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .reg = FIELD_NO_CHANGE };
     ANNOT_read_annotations(&ctx->annots, &annots);
@@ -26,24 +21,31 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     else {
         PARSE_ERROR("Can't create a base for the variable's name! <type> <name>!");
         AST_unload(base);
+        ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
-    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &base->t->flags, &smt->v);
-    TPTB_info_add_entry(carry, name->sinfo.v_id, &smt->t);
-
-    if (base->t->t_type == STR_TYPE_TOKEN) {
-        if (base->t->flags.ptr) {
-            PARSE_ERROR("'str' object can't be presented as a pointer! Use 'ptr i8' instead!");
-            AST_unload(base);
-            return NULL;
-        }
-
-        ARTB_add_info(name->sinfo.v_id, 0, 0, I8_TYPE_TOKEN, &base->t->flags, &smt->a);
+    if (carry != NO_SYMBOL_ID) {
+        base->sinfo.t_id = carry;
+        base->t->t_type  = EXTRACT_TYPE_TYPE(carry, smt);
     }
 
+    /* Register a variable in the symtable and update its type
+       from the carry, if we're working with a dynamic type. */
+    stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &base->t->flags, &smt->v);
+    VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, carry, &smt->v);
+
+    /* If this is a custom type variable, register it as an array as well. */
+    type_info_t ti;
+    if (
+        base->t->t_type == CUSTOM_TYPE_TOKEN && 
+        TPTB_get_info_id(carry, &ti, &smt->t)
+    ) ARTB_add_info(name->sinfo.v_id, ti.memory.size, 0, U8_TYPE_TOKEN, &base->t->flags, &smt->a);
+
+    /* Update variable's memory flags according to the provided annotations
+       and move it to a corresponding section. */
     var_lookup(name, ctx, smt);
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.reg, annots.align, &smt->v);
     if (!TKN_in_stack(name->t)) {
@@ -57,18 +59,9 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         if (!value_node) {
             PARSE_ERROR("Error during parsing of a declaration statement!");
             AST_unload(base);
+            ANNOT_destroy_summary(&annots);
             RESTORE_TOKEN_POINT;
             return NULL;
-        }
-
-        /* String is a special case of an array, which doesn't hold size and type and
-           must be treated as a variable */
-        if (base->t->t_type == STR_TYPE_TOKEN) {
-            ARTB_update_info(
-                name->sinfo.v_id, value_node->t->body->len(value_node->t->body) + 1, FIELD_NO_CHANGE, 
-                I8_TYPE_TOKEN, &base->t->flags, &smt->a
-            );
-            STTB_update_info(value_node->sinfo.v_id, NULL, STR_ARRAY_VALUE, &smt->s);
         }
 
         if ( /* If it's a global variable, it acts differently.
@@ -76,6 +69,16 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
             base->t->flags.glob
         ) VRTB_update_definition(name->sinfo.v_id, value_node->t->body->to_llong(value_node->t->body), NO_SYMBOL_ID, &smt->v, 0);
         AST_add_node(base, value_node);
+    }
+
+    /* Register the variable as a basic type of the parent type,
+       if this is a declaraion in a type. */
+    if (ctx->t_id != NO_SYMBOL_ID) {
+        if (base->sinfo.t_id != NO_SYMBOL_ID) base->sinfo.t_id = base->sinfo.t_id;
+        else                                  base->sinfo.t_id = type_lookup(base->t, ctx, smt);
+        if (base->sinfo.t_id == NO_SYMBOL_ID) base->sinfo.t_id = TPTB_add_info_from_token(base->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);
+        else                                  base->sinfo.t_id = TPTB_add_copy(base->sinfo.t_id, name->sinfo.v_id, base->t->flags.ptr, &smt->t);
+        TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : FIELD_NO_CHANGE, &smt->t);
     }
 
     ANNOT_destroy_summary(&annots);

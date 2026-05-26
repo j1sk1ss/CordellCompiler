@@ -441,4 +441,9 @@ Returns the 'NULL' value or an update operator.
 */
 hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
+// TODO: docs
+hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+hir_subject_t* HIR_generate_ref_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
+
 #endif

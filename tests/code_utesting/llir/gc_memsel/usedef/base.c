@@ -16,7 +16,7 @@
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/func.h>
-#include "../../../../misc/hir_helper.h"
+#include "../../../../misc/cfg_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -27,8 +27,6 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include <lir/regalloc/x86_64_gnu_nasm.h>
-#include "../../../../misc/lir_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -75,6 +73,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
@@ -115,11 +115,7 @@ int main(int argc, char* argv[]) {
         export_dot_func_hir(fb);
     }
     
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        if (!lh->unused) print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 0, stdout);
 
     LIR_unload_blocks(lirctx.h);
     HIR_LTREE_unload_ctx(&lctx);

@@ -40,7 +40,7 @@ CPL does not currently aim to provide:
 - formal verification of the compiler;
 - C source compatibility;
 - a production standard library;
-- user-defined structures, classes, enums, traits, or modules;
+- classes, enums, traits, modules, inheritance, or virtual dispatch;
 - a package manager or stable public ecosystem.
 
 ## Positioning

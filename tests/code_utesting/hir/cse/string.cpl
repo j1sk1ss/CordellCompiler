@@ -1,6 +1,6 @@
 start() {
-    str a = "Hello world!";
-    str b = "Hello world!";
+    arr a[0, i8] = "Hello world!";
+    arr b[0, i8] = "Hello world!";
     ptr i8 c = "Hello world!" as ptr i8;
     ptr i8 d = "Hello world!" as ptr i8;
 }

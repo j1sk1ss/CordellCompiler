@@ -18,7 +18,7 @@
 #include <hir/func.h>
 #include <hir/dag.h>
 #include <hir/constfold.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
@@ -33,7 +33,7 @@
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
-#include "../../../misc/lir_helper.h"
+#include <lir/dump.h>
 
 #include <asm/asmgen.h>
 #include <asm/i386_gnu_nasm_asmgen.h>
@@ -101,6 +101,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
@@ -150,7 +152,7 @@ int main(int argc, char* argv[]) {
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
 
-    LIR_variable_copy_propagation(&cfgctx);
+    LIR_variable_copy_propagation(&cfgctx, &smt);
     LIR_drop_unused_variables(&cfgctx);
 
     inst_selector_t inst_sel = { .select_instructions = i386_gnu_nasm_instruction_selection };

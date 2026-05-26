@@ -77,7 +77,7 @@ Every compilation starts from raw source code. The example below is a classic "H
 
 @[entry("_main")]
 function main(i32 argc, ptr ptr i8 argv) {
-    str msg = "Hello world!";
+    arr msg[0, i8] = "Hello world!";
     print(ref msg);
     exit 0;
 }
@@ -126,7 +126,7 @@ function print(ptr i8 msg) -> i0;
 #include "print_h.cpl"
 @[entry("_main")]
 function main(i32 argc, ptr ptr i8 argv) {
-    str msg = "Hello world!";
+    arr msg[0, i8] = "Hello world!";
     print(ref msg);
     exit 0;
 }
@@ -144,7 +144,7 @@ function print(ptr i8 msg) -> i0;
 #line 2 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/test_code/preproc/basic.cpl"
 @[entry("_main")]
 function main(i32 argc, ptr ptr i8 argv) {
-    str msg = "Hello world!";
+    arr msg[0, i8] = "Hello world!";
     print(ref msg);
     exit 0;
 }
@@ -347,7 +347,7 @@ For instance, here is the HIR that was obtained from the [AST part](#ast-part)'s
             strs %4 = str_alloc(Hello world!);
             i8t* %5 = &(strs %4);
             use i8t* %5;
-            call print1(str* msg) -> i0, argc args(i8t* %5,);
+            call print1(ptr i8* msg) -> i0, argc args(i8t* %5,);
             exit num? 0;
         }
     }

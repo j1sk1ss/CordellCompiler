@@ -11,7 +11,7 @@ function strlen(ptr i8 s) -> i32 {
 }
 
 start(i32 argc, ptr ptr i8 argv) {
-    str msg = "Hello, World!\n";
+    arr msg[0, i8] = "Hello, World!\n";
     syscall(0x2000004, 1, ref msg, strlen(ref msg));
 }
 

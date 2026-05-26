@@ -19,6 +19,7 @@ export type TypeNode =
   | { kind: "ptr"; to: TypeNode }
   | { kind: "arr"; len: number | null; elem: TypeNode }
   | { kind: "func"; params: TypeNode[]; ret: TypeNode }
+  | { kind: "container"; name: string }
   | { kind: "unknown" };
 
 export type ParamSig = {
@@ -39,6 +40,8 @@ export function formatType(t: TypeNode): string {
       return `arr[${t.len ?? "?"}, ${formatType(t.elem)}]`;
     case "func":
       return `(${t.params.map(formatType).join(", ")}) => ${formatType(t.ret)}`;
+    case "container":
+      return t.name;
     default:
       return "?";
   }
@@ -63,6 +66,15 @@ export type FuncOverloadSym = {
   decls: Range[];
   def?: Range;
   primaryRange: Range;
+  doc?: string;
+};
+
+export type ContainerSym = {
+  kind: "container";
+  name: string;
+  fields: Map<string, VarSym>;
+  methods: Map<string, FuncOverloadSym[]>;
+  range: Range;
   doc?: string;
 };
 
@@ -123,6 +135,8 @@ export function sizeofType(t: TypeNode, opts?: { pointerSize?: number }): number
     }
     case "func":
       return pointerSize;
+    case "container":
+      return undefined;
     case "unknown":
       return undefined;
   }
@@ -180,6 +194,8 @@ function sameType(a: TypeNode, b: TypeNode): boolean {
         && a.params.every((p, i) => sameType(p, bb.params[i]))
         && sameType(a.ret, bb.ret);
     }
+    case "container":
+      return a.name === (b as any).name;
     case "unknown":
       return true;
   }
@@ -253,6 +269,8 @@ export class SemanticContext {
 
   funcs = new Map<string, FuncOverloadSym[]>();
   globals = new Map<string, VarSym>();
+  containers = new Map<string, ContainerSym>();
+  containerDecls: ContainerSym[] = [];
 
   macros = new Map<string, MacroSym>();
   macroDecls: MacroSym[] = [];
@@ -267,6 +285,166 @@ export class SemanticContext {
 
   private scope: Scope = new Scope();
   private pendingCalls: { name: string; argc: number; range: Range; scope: Scope }[] = [];
+
+  hasContainer(name: string): boolean {
+    return this.containers.has(name);
+  }
+
+  containerTypeForName(name: string): TypeNode {
+    return this.containers.has(name) ? { kind: "container", name } : { kind: "prim", name };
+  }
+
+  private containerNameFromType(t: TypeNode): string | undefined {
+    if (t.kind === "container") return t.name;
+    if (t.kind === "prim" && this.containers.has(t.name)) return t.name;
+
+    if (t.kind === "ptr") {
+      const inner = this.containerNameFromType(t.to);
+      if (inner) return inner;
+    }
+
+    return undefined;
+  }
+
+  declareContainer(name: string, range: Range, doc?: string) {
+    if (this.containers.has(name)) {
+      this.issues.push({ message: `Container '${name}' already declared`, range });
+      return;
+    }
+
+    const sym: ContainerSym = {
+      kind: "container",
+      name,
+      fields: new Map<string, VarSym>(),
+      methods: new Map<string, FuncOverloadSym[]>(),
+      range,
+      doc
+    };
+
+    this.containers.set(name, sym);
+    this.containerDecls.push(sym);
+  }
+
+  declareContainerField(containerName: string, name: string, type: TypeNode, range: Range, opts?: { readonly?: boolean }) {
+    const container = this.containers.get(containerName);
+    if (!container) {
+      this.issues.push({ message: `Unknown container '${containerName}'`, range });
+      return;
+    }
+
+    if (container.fields.has(name)) {
+      this.issues.push({ message: `Field '${containerName}.${name}' already declared`, range });
+      return;
+    }
+
+    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
+    container.fields.set(name, sym);
+    this.varDecls.push(sym);
+  }
+
+  declareContainerMethod(
+    containerName: string,
+    name: string,
+    params: ParamSig[],
+    ret: TypeNode,
+    range: Range,
+    isDefinition: boolean,
+    doc?: string,
+    typeParams?: string[]
+  ) {
+    const container = this.containers.get(containerName);
+    if (!container) {
+      this.issues.push({ message: `Unknown container '${containerName}'`, range });
+      return;
+    }
+
+    const local = container.methods.get(name) ?? [];
+    const exact = local.find((f) => sameParamIdentity(f.params, params));
+
+    if (!exact) {
+      const sameTypesDifferentDefaults = local.find(
+        (f) => sameParamTypesOnly(f.params, params) && !sameParamIdentity(f.params, params)
+      );
+      if (sameTypesDifferentDefaults) {
+        this.issues.push({
+          message: `Method '${containerName}.${name}' overload differs only by default arguments`,
+          range
+        });
+      }
+
+      const sym: FuncOverloadSym = {
+        kind: "func",
+        name,
+        typeParams,
+        params,
+        ret,
+        decls: isDefinition ? [] : [range],
+        def: isDefinition ? range : undefined,
+        primaryRange: range,
+        doc
+      };
+
+      local.push(sym);
+      container.methods.set(name, local);
+      return;
+    }
+
+    if (!sameType(exact.ret, ret)) {
+      this.issues.push({
+        message: `Method '${containerName}.${name}' overload with same parameters has different return type`,
+        range
+      });
+      return;
+    }
+
+    if (doc && !exact.doc) exact.doc = doc;
+
+    if (isDefinition) {
+      if (exact.def) {
+        this.issues.push({ message: `Method '${containerName}.${name}' overload already defined`, range });
+        return;
+      }
+      exact.def = range;
+      exact.primaryRange = range;
+      return;
+    }
+
+    exact.decls.push(range);
+    if (!exact.def && exact.decls.length === 1) exact.primaryRange = exact.decls[0];
+  }
+
+  getContainerMemberType(baseType: TypeNode, memberName: string, range: Range): TypeNode {
+    const containerName = this.containerNameFromType(baseType);
+    if (!containerName) {
+      if (baseType.kind !== "unknown") {
+        this.issues.push({ message: `Type '${formatType(baseType)}' has no members`, range });
+      }
+      return { kind: "unknown" };
+    }
+
+    const container = this.containers.get(containerName);
+    if (!container) return { kind: "unknown" };
+
+    const field = container.fields.get(memberName);
+    if (field) {
+      this.varUses.push({ name: `${containerName}.${memberName}`, type: field.type, range });
+      return field.type;
+    }
+
+    const methods = container.methods.get(memberName) ?? [];
+    if (methods.length === 1) {
+      const fn = methods[0];
+      const params = fn.params[0]?.name === "self" ? fn.params.slice(1) : fn.params;
+      return { kind: "func", params: params.filter((p) => !p.isVarArgs).map((p) => p.type), ret: fn.ret };
+    }
+
+    if (methods.length > 1) {
+      return { kind: "ptr", to: { kind: "prim", name: "i0" } };
+    }
+
+    this.issues.push({ message: `Unknown member '${containerName}.${memberName}'`, range });
+    return { kind: "unknown" };
+  }
 
   defineMacro(name: string, value: MacroValue, nameRange: Range, valueRange: Range, doc?: string) {
     if (this.macros.has(name)) {

@@ -1,6 +1,6 @@
 function foo(ptr i8 msg);
 start() {
-    str msg = "Hello world!";
+    arr msg[0, i8] = "Hello world!";
     foo(msg);
 }
 

@@ -1,8 +1,7 @@
 #include <hir/hirgen.h>
 
 int HIR_generate(ast_ctx_t* sctx, hir_ctx_t* hctx, sym_table_t* smt) {
-    HIR_generate_block(sctx->r, hctx, smt);
-    return 1;
+    return HIR_generate_block(sctx->r, hctx, smt);
 }
 
 hir_block_t* HIR_get_next(hir_block_t* c, hir_block_t* exit, int skip) {

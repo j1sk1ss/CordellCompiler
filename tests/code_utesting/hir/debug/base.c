@@ -13,7 +13,7 @@
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -59,6 +59,8 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "AST tree creation error!\n");
         return 1;
     }
+
+    AST_finalize_parse(&sctx, &smt);
 
     hir_ctx_t hirctx;
     HIR_init_extended_ctx(&hirctx);

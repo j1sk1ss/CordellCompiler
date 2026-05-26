@@ -31,6 +31,15 @@ type_size_t TKN_variable_bitness(token_t* token, char ptr) {
     }
 } 
 
+long TKN_convert_type_size(type_size_t t) {
+    switch (t) {
+        case TYPE_FULL_SIZE:    return CONF_get_full_bytness();
+        case TYPE_HALF_SIZE:    return CONF_get_half_bytness();
+        case TYPE_QUARTER_SIZE: return CONF_get_quart_bytness();
+        default:                return CONF_get_eight_bytness();
+    }
+}
+
 token_type_t TKN_get_tmp_type(token_type_t t) {
     switch (t) {
         case F64_TYPE_TOKEN: return TMP_F64_TYPE_TOKEN;
@@ -70,8 +79,7 @@ int TKN_is_pointer(token_t* token) {
     if (!token) return 0;
     if (token->flags.ptr) return 1;
     switch (token->t_type) {
-        case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN: return 1;
+        case ARR_VARIABLE_TOKEN: return 1;
         default:                 return 0;
     }
 
@@ -92,10 +100,10 @@ int TKN_is_one_slot(token_t* token) {
         (
             token->flags.ptr > 0 ||                 /* And if this a pointer to an array or a string */
             (                                       /* It must be a pointer to a pointer             */
-                token->t_type != STR_TYPE_TOKEN     && 
-                token->t_type != STR_VARIABLE_TOKEN &&
                 token->t_type != ARRAY_TYPE_TOKEN   &&
-                token->t_type != ARR_VARIABLE_TOKEN
+                token->t_type != ARR_VARIABLE_TOKEN &&
+                token->t_type != CUSTOM_TYPE_TOKEN  &&
+                token->t_type != CUSTOM_VARIABLE_TOKEN
             )
         )
     ) return 1;
@@ -158,7 +166,6 @@ int TKN_is_builtin_type(token_t* token) {
         case I64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
-        case STR_TYPE_TOKEN:
         case ARRAY_TYPE_TOKEN: return 1;
         default:               return 0;
     }
@@ -257,7 +264,6 @@ int TKN_is_variable(token_t* token) {
         case GENERIC_VARIABLE_TOKEN:
         case VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
-        case STR_VARIABLE_TOKEN:
         case F64_VARIABLE_TOKEN:
         case F32_VARIABLE_TOKEN:
         case I64_VARIABLE_TOKEN:
@@ -277,6 +283,8 @@ int TKN_is_sign(token_t* token, char ptr) {
     if (!token) return 0;
     if (token->flags.ptr && ptr) return 0;
     switch (token->t_type) {
+        case CUSTOM_VARIABLE_TOKEN:
+        case CUSTOM_TYPE_TOKEN:
         case F64_VARIABLE_TOKEN: case F32_VARIABLE_TOKEN:
         case F64_TYPE_TOKEN:     case F32_TYPE_TOKEN:
         case U64_VARIABLE_TOKEN: case U32_VARIABLE_TOKEN: case U16_VARIABLE_TOKEN: case U8_VARIABLE_TOKEN:
@@ -316,7 +324,6 @@ token_type_t TKN_get_var_from_type(token_type_t t) {
     switch (t) {
         case CUSTOM_TYPE_TOKEN:  return CUSTOM_VARIABLE_TOKEN;
         case GENERIC_TYPE_TOKEN: return GENERIC_VARIABLE_TOKEN;
-        case STR_TYPE_TOKEN:     return STR_VARIABLE_TOKEN;
         case ARRAY_TYPE_TOKEN:   return ARR_VARIABLE_TOKEN;
         case F64_TYPE_TOKEN:     return F64_VARIABLE_TOKEN;
         case F32_TYPE_TOKEN:     return F32_VARIABLE_TOKEN;

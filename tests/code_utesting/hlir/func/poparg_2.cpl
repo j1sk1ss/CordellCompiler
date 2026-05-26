@@ -7,7 +7,5 @@
 
 :/ OUTPUT
 BB1: start
-%0 = strt_loadarg();
-%1 = strt_loadarg();
 send
 /:

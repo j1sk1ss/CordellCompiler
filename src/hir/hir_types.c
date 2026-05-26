@@ -59,8 +59,7 @@ int HIR_is_vartype(hir_subject_type_t t) {
         case HIR_GLBVARI16: case HIR_GLBVARU16: 
         case HIR_GLBVARI32: case HIR_GLBVARU32: 
         case HIR_GLBVARF32: case HIR_GLBVARI64: 
-        case HIR_GLBVARU64: case HIR_GLBVARF64: 
-        case HIR_STKVARSTR: case HIR_GLBVARSTR:
+        case HIR_GLBVARU64: case HIR_GLBVARF64:
         case HIR_STKVARARR: case HIR_GLBVARARR: return 1;
         default: return 0;
     }
@@ -68,7 +67,6 @@ int HIR_is_vartype(hir_subject_type_t t) {
 
 int HIR_is_arrtype(hir_subject_type_t t) {
     switch (t) {
-        case HIR_TMPVARSTR: case HIR_STKVARSTR: case HIR_GLBVARSTR:
         case HIR_TMPVARARR: case HIR_STKVARARR: case HIR_GLBVARARR: return 1;
         default: return 0;
     }
@@ -183,8 +181,8 @@ static hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (!vi) return HIR_STKVARI64;
     if (
-        vi->type == I0_VARIABLE_TOKEN ||
         vi->type == I0_TYPE_TOKEN     ||
+        vi->type == I0_VARIABLE_TOKEN ||
         vi->type == TMP_I0_TYPE_TOKEN
     ) return HIR_STKVARI0;
 
@@ -193,16 +191,13 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     int isfloat         = TKN_is_float(&tmptkn);
     int issigned        = TKN_is_sign(&tmptkn, 0);
     int isarr           = vi->type == ARR_VARIABLE_TOKEN;
-    int isstr           = vi->type == STR_VARIABLE_TOKEN;
 
     if (!TKN_in_stack(&tmptkn)) {
         if (isarr) return HIR_GLBVARARR;
-        if (isstr) return HIR_GLBVARSTR;
         return _get_glbtype(bitness, isfloat, issigned);
     }
     
     if (isarr) return HIR_STKVARARR;
-    if (isstr) return HIR_STKVARSTR;
     if (!isfloat) {
         switch (bitness) {
             case TYPE_EIGHTH_SIZE:  return issigned ? HIR_STKVARI8 : HIR_STKVARU8;

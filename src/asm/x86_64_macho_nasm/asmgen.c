@@ -35,12 +35,14 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
             break;
         }
         case LIR_STEND: if (fi->flags.naked == 1) break;
+                        __attribute__ ((fallthrough));
         case LIR_EXITOP: {
             EMIT_COMMAND("mov rax, 0x2000001");
             EMIT_COMMAND("syscall");
             break;
         }
         case LIR_FEND:  if (fi->flags.naked == 1) break;
+                        __attribute__ ((fallthrough));
         case LIR_FRET: {
             if (!fi->flags.naked) {
                 EMIT_COMMAND("mov rsp, rbp");

@@ -6,6 +6,8 @@ ast_node_t* AST_create_node(token_t* tkn) {
     str_memset(node, 0, sizeof(ast_node_t));
     node->t          = tkn;
     node->sinfo.v_id = NO_SYMBOL_ID;
+    node->sinfo.t_id = NO_SYMBOL_ID;
+    node->sinfo.s_id = NO_SYMBOL_ID;
     list_init(&node->annots);
     return node;
 }
@@ -67,6 +69,24 @@ int AST_add_node(ast_node_t* parent, ast_node_t* child) {
             sibling->siblings.t->siblings.n = child;
             sibling->siblings.t = child;
         }
+    }
+
+    return 1;
+}
+
+int AST_insert_node(ast_node_t* parent, ast_node_t* child) {
+    if (!parent || !child) return 0;
+    child->p = parent;
+    if (!parent->c) {
+        parent->c = child;
+        child->siblings.n = NULL;
+        child->siblings.t = NULL;
+    }
+    else {
+        ast_node_t* old_first = parent->c;
+        child->siblings.n = old_first;
+        child->siblings.t = old_first->siblings.t ? old_first->siblings.t : old_first;
+        parent->c = child;
     }
 
     return 1;

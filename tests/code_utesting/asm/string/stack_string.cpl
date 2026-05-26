@@ -1,6 +1,6 @@
 function printf(ptr i8 fmt);
 start() {
-    str msg = "Hello world!";
+    arr msg[0, i8] = "Hello world!";
     printf(msg);
 }
 

@@ -1,5 +1,5 @@
 start() {
-    str msg = "Hello world!";
+    arr msg[0, i8] = "Hello world!";
 }
 
 :/ OUTPUT

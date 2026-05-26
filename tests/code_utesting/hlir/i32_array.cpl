@@ -39,7 +39,7 @@ BB4: fn putdigit1(i32 x) -> i0
 %2 = %9;
 use %2;
 stparam(%2);
-call putc0(i8 c) -> i0;
+call putc0;
 fend
 BB5: start
 %4 = strt_loadarg();
@@ -63,7 +63,7 @@ BB5: start
 %24 = *(%22);
 use %24;
 stparam(%24);
-call putdigit1(i32 x) -> i0;
+call putdigit1;
 %25 = &(%3);
 %26 = $2 * 4;
 %28 = %26 as u64;
@@ -71,7 +71,7 @@ call putdigit1(i32 x) -> i0;
 %29 = *(%27);
 use %29;
 stparam(%29);
-call putdigit1(i32 x) -> i0;
+call putdigit1;
 %30 = $0 as u8;
 exit %30;
 BB6: send

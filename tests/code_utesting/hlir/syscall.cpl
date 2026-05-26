@@ -7,7 +7,7 @@
 
 :/ OUTPUT
 BB1: start
-call foo0() -> i32;
+call foo0;
 %0 = fret();
 use %0;
 %1 = $0 + $0;

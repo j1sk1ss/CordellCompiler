@@ -1,13 +1,9 @@
 #include <ast/astgen/astgen.h>
 
 static token_t* _extract_token_from_brackets(list_iter_t* it) {
-    if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
-        return NULL;
-    }
-
+    if (!consume_token(it, OPEN_BRACKET_TOKEN)) return NULL;
     forward_token(it, 1);
     token_t* content = CURRENT_TOKEN;
-
     if (consume_token(it, CLOSE_BRACKET_TOKEN)) forward_token(it, 1);
     else return NULL;
     return content;
@@ -38,6 +34,7 @@ static annotation_t* _parse_annotation_content(list_iter_t* it) {
     ADD_ANNOTATION_HANDLER(REGST_ANNOTATION_COMMAND, REGISTER_ANNOTATION);
     ADD_ANNOTATION_HANDLER(POPRG_ANNOTATION_COMMAND, POPARG_ANNOTATION);
     ADD_ANNOTATION_HANDLER(INLNE_ANNOTATION_COMMAND, INLINE_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(SSELF_ANNOTATION_COMMAND, SELF_ANNOTATION);
     return ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, FIELD_NO_CHANGE);
 }
 #undef ADD_ANNOTATION_HANDLER

@@ -8,7 +8,12 @@
 
 :/ OUTPUT
 BB1: fn _main(...)
-%0 = strt_loadarg();
-%1 = strt_loadarg();
+unknwn;
+%0 = *(%2);
+%3 = %2 + 8;
+%2 = %3;
+%1 = *(%2);
+%4 = %2 + 8;
+%2 = %4;
 fend
 /:

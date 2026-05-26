@@ -75,7 +75,6 @@ typedef enum {
     U32_TYPE_TOKEN,        // u32
     U16_TYPE_TOKEN,        // u16
     U8_TYPE_TOKEN,         // u8
-    STR_TYPE_TOKEN,        // str
     ARRAY_TYPE_TOKEN,      // arr
     
     // Convert statements
@@ -91,6 +90,10 @@ typedef enum {
     RETURN_TYPE_TOKEN,     // ->
     SCOPE_TOKEN,           // {  }
     ANNOTATION_TOKEN,      // @
+
+    CONTAINER_TOKEN,
+    MEMBER_ACCESS_TOKEN,
+    DOT_TOKEN,
 
     // Function
     ASM_TOKEN,             // asm
@@ -158,7 +161,6 @@ typedef enum {
     U32_VARIABLE_TOKEN,    // u32
     U16_VARIABLE_TOKEN,    // u16
     U8_VARIABLE_TOKEN,     // u8
-    STR_VARIABLE_TOKEN,    // str
     ARR_VARIABLE_TOKEN,    // arr
 
     // Values
@@ -211,6 +213,7 @@ int TKN_is_sign(token_t* token, char ptr);
 int TKN_is_float(token_t* token);
 int TKN_is_update_operator(token_t* token);
 type_size_t TKN_variable_bitness(token_t* token, char ptr);
+long TKN_convert_type_size(type_size_t t);
 int TKN_token_priority(token_t* token);
 token_type_t TKN_get_var_from_type(token_type_t t);
 

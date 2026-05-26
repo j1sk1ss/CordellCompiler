@@ -15,7 +15,7 @@
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
 #include <hir/ssa.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 #include <hir/dag.h>
 #include "../../../misc/dag_helper.h"
@@ -64,6 +64,8 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "AST tree creation error!\n");
         return 1;
     }
+
+    AST_finalize_parse(&sctx, &smt);
 
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);

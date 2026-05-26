@@ -80,7 +80,6 @@ static char* _get_formatted_subject(char* dst, hir_subject_t* s, sym_table_t* sm
     if (!s) return dst;
     if (HIR_is_vartype(s->t)) {
         switch (s->t) {
-            case HIR_STKVARSTR:  dst += sprintf(dst, "strs"); break;
             case HIR_STKVARARR:  dst += sprintf(dst, "arrs"); break;
             case HIR_STKVARF64:  dst += sprintf(dst, "f64s"); break;
             case HIR_STKVARU64:  dst += sprintf(dst, "u64s"); break;
@@ -93,7 +92,6 @@ static char* _get_formatted_subject(char* dst, hir_subject_t* s, sym_table_t* sm
             case HIR_STKVARU8:   dst += sprintf(dst, "u8s");  break;
             case HIR_STKVARI8:   dst += sprintf(dst, "i8s");  break;
             case HIR_STKVARI0:   dst += sprintf(dst, "i0s");  break;
-            case HIR_TMPVARSTR:  dst += sprintf(dst, "strt"); break;
             case HIR_TMPVARARR:  dst += sprintf(dst, "arrt"); break;
             case HIR_TMPVARF64:  dst += sprintf(dst, "f64t"); break;
             case HIR_TMPVARU64:  dst += sprintf(dst, "u64t"); break;
@@ -106,7 +104,6 @@ static char* _get_formatted_subject(char* dst, hir_subject_t* s, sym_table_t* sm
             case HIR_TMPVARU8:   dst += sprintf(dst, "u8t");  break;
             case HIR_TMPVARI8:   dst += sprintf(dst, "i8t");  break;
             case HIR_TMPVARI0:   dst += sprintf(dst, "i0t");  break;
-            case HIR_GLBVARSTR:  dst += sprintf(dst, "strg"); break;
             case HIR_GLBVARARR:  dst += sprintf(dst, "arrg"); break;
             case HIR_GLBVARF64:  dst += sprintf(dst, "f64g"); break;
             case HIR_GLBVARU64:  dst += sprintf(dst, "u64g"); break;

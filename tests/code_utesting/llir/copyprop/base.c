@@ -16,12 +16,11 @@
 #include <hir/cfg.h>
 #include <hir/ssa.h>
 #include <hir/func.h>
-#include "../../../misc/hir_helper.h"
+#include "../../../misc/cfg_helper.h"
 
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
 #include <lir/copyprop.h>
-#include "../../../misc/lir_helper.h"
 
 #define RELOAD_CFG                          \
     HIR_CFG_unload(&cfgctx);                \
@@ -76,6 +75,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
@@ -109,14 +110,10 @@ int main(int argc, char* argv[]) {
 
     lir_ctx_t lirctx = { .h = NULL, .t = NULL };
     LIR_generate(&cfgctx, &lirctx, &smt);
-    LIR_variable_copy_propagation(&cfgctx);
+    LIR_variable_copy_propagation(&cfgctx, &smt);
     LIR_drop_unused_variables(&cfgctx);
     
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        if (!lh->unused) print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 
     LIR_unload_blocks(lirctx.h);
     HIR_LTREE_unload_ctx(&lctx);

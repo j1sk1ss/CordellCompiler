@@ -10,7 +10,7 @@ BB2: start
 jmp lb7;
 BB3: lb7:
 stparam($10);
-call get1(i32 a) -> i32;
+call get1;
 %4 = fret();
 %3 = %4 as u8;
 exit %3;

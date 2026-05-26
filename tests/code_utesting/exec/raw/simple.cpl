@@ -1,7 +1,7 @@
 : ASM_ARCH=x86_64_nasm_macho :
 : RUN_ASM :
 start() {
-    str msg = "Hello world!\n";
+    arr msg[0, i8] = "Hello world!\n";
     syscall(0x2000004, 1, ref msg, 13);
 }
 

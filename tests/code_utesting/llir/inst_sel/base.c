@@ -19,7 +19,6 @@
 #include <lir/lirgens/lirgens.h>
 #include <lir/selector/instsel.h>
 #include <lir/selector/x86_64_gnu_nasm.h>
-#include "../../../misc/lir_helper.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -66,6 +65,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    AST_finalize_parse(&sctx, &smt);
+
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
@@ -85,11 +86,7 @@ int main(int argc, char* argv[]) {
     inst_selector_t inst_sel = { .select_instructions = x86_64_gnu_nasm_instruction_selection };
     LIR_select_instructions(&cfgctx, &smt, &inst_sel);
 
-    lir_block_t* lh = lirctx.h;
-    while (lh) {
-        print_lir_block(lh, &smt, 0);
-        lh = lh->next;
-    }
+    DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 
     LIR_unload_blocks(lirctx.h);
     HIR_unload_blocks(hirctx.hot.h);

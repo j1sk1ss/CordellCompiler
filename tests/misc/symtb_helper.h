@@ -8,7 +8,6 @@
 const char* format_tkntype(token_type_t t) {
     switch (t) {
         case ARRAY_TYPE_TOKEN: return "arr";
-        case STR_TYPE_TOKEN:   return "str";
         case TMP_F64_TYPE_TOKEN:
         case F64_TYPE_TOKEN:   return "f64";
         case TMP_F32_TYPE_TOKEN:

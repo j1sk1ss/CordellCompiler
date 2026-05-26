@@ -1129,7 +1129,7 @@
       ]);
       const types = new Set([
         'arr', 'dref', 'f32', 'f64', 'i0', 'i8', 'i16', 'i32', 'i64',
-        'ptr', 'ref', 'str', 'u8', 'u16', 'u32', 'u64'
+        'ptr', 'ref', 'container', 'u8', 'u16', 'u32', 'u64'
       ]);
       const builtins = new Set(['asm', 'sizeof', 'syscall']);
 
@@ -1352,7 +1352,7 @@
     }
 
     window.$docsify = {
-      name: 'CPL v3.5<small>Language docs & compiler internals</small>',
+      name: 'CPL v3.6<small>Language docs & compiler internals</small>',
       repo: 'https://github.com/j1sk1ss/CordellCompiler',
       homepage: 'README.md',
       loadSidebar: 'sidebar.md',
@@ -1578,7 +1578,7 @@
                   [/"/, 'string', '@string_double'],
                   [/'([^'\\]|\\.)*$/, 'string.invalid'],
                   [/'/, 'string', '@string_single'],
-                  [/\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|str|arr|dref|ref|ptr)\b/, 'type'],
+                  [/\b(f64|f32|i64|i32|i16|i8|u64|u32|u16|u8|i0|container|arr|dref|ref|ptr)\b/, 'type'],
                   [/\b(as|extern|start|exit|function|return|if|else|while|switch|case|default|syscall|asm|not|ro|glob|lis|break|loop)\b/, 'keyword'],
                   [/\b(0[xX][0-9a-fA-F]+|0[bB][01]+|0[0-7]+|[0-9]*\.?[0-9]+([eE][+-]?[0-9]+)?)\b/, 'number'],
                   [/[a-zA-Z_][\w]*/, 'identifier'],
@@ -1630,7 +1630,7 @@
             monaco.languages.registerCompletionItemProvider('cpl', {
               provideCompletionItems: function() {
                 const keywords = ['as','extern','from','import','start','exit','function','return','if','else','while','switch','case','default','syscall','asm','not','ro','glob','lis','break','loop'];
-                const types = ['f64','f32','i64','i32','i16','i8','u64','u32','u16','u8','i0','str','arr','dref','ref','ptr','exfunc'];
+                const types = ['f64','f32','i64','i32','i16','i8','u64','u32','u16','u8','i0','container','arr','dref','ref','ptr','exfunc'];
                 const snippets = [
                   {
                     label: 'function',
