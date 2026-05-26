@@ -426,32 +426,65 @@
     .cpl-home {
       margin: -48px -56px 0;
       color: var(--text);
-      background: #fff;
+      background: var(--ink);
     }
 
     .cpl-home-hero {
       display: block;
-      min-height: 420px;
-      padding: 74px 56px 64px;
-      background: var(--ink);
-      border-bottom: 4px solid var(--brand);
+      min-height: calc(100vh - 60px);
+      padding: clamp(64px, 9vw, 96px) 56px clamp(48px, 8vw, 72px);
+      background: #17100e;
+      border-bottom: 0;
     }
 
-    .cpl-home-hero h1 {
+    .cpl-home-hero > div {
+      max-width: 980px;
+    }
+
+    .cpl-home-hero h1,
+    .hero-title {
       margin: 0;
       color: #fff;
-      font-size: clamp(3.5rem, 8vw, 7rem);
-      line-height: 0.92;
+      font-size: clamp(4.8rem, 9vw, 8.25rem);
+      line-height: 0.78;
       letter-spacing: 0;
-      max-width: 760px;
+      max-width: 900px;
+      font-weight: 800;
     }
 
-    .cpl-home-hero h1::after {
+    .hero-title span {
+      position: relative;
+      display: block;
+      width: fit-content;
+      max-width: 100%;
+      white-space: nowrap;
+    }
+
+    .hero-title span:first-child {
+      z-index: 1;
+    }
+
+    .hero-title-mark {
+      z-index: 2;
+      margin-top: -0.08em;
+      margin-bottom: -0.08em;
+      padding: 0.08em 0.12em 0.15em;
+      background: #42abe0;
+      color: #fff;
+      line-height: 0.86;
+    }
+
+    .hero-title span:last-child {
+      z-index: 3;
+    }
+
+    .cpl-home-hero h1::after,
+    .hero-title::after {
       content: "";
       display: block;
       width: 84px;
       height: 6px;
-      margin-top: 24px;
+      margin-top: 34px;
       background: var(--brand);
     }
 
@@ -469,11 +502,11 @@
     }
 
     .hero-note {
-      max-width: 760px;
+      max-width: 780px;
       margin: 28px 0 28px;
       color: #efe4dc !important;
-      font-size: 1.26rem !important;
-      line-height: 1.62 !important;
+      font-size: 1.24rem !important;
+      line-height: 1.55 !important;
     }
 
     .hero-actions {
@@ -488,7 +521,7 @@
       align-items: center;
       justify-content: center;
       min-height: 44px;
-      padding: 0 18px;
+      padding: 0 20px;
       border-radius: 0;
       text-decoration: none !important;
       font-weight: 800;
@@ -1004,6 +1037,25 @@
       .cpl-home-hero {
         min-height: auto;
         padding: 48px 22px 46px;
+      }
+      .cpl-home-hero h1,
+      .hero-title {
+        font-size: clamp(3.1rem, 16vw, 5.6rem);
+        line-height: 0.82;
+      }
+      .hero-title span {
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+      .hero-title-mark {
+        margin-top: -0.04em;
+        margin-bottom: -0.04em;
+        padding-right: 0.08em;
+        padding-left: 0.08em;
+      }
+      .hero-note {
+        font-size: 1.08rem !important;
+        line-height: 1.55 !important;
       }
       .cpl-home-band { padding: 34px 22px 42px; }
       .feature-grid { grid-template-columns: 1fr; }
