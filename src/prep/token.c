@@ -182,6 +182,11 @@ static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off,
             ctx->is_pp = 1;
             continue;
         }
+
+        if (
+            ctx->in_token && !ctx->squt && !ctx->mqut &&
+            (ct == CHAR_SING_QUOTE || ct == CHAR_QUOTE)
+        ) goto _force_token_creation;
         
         if (was_spec) {
             if (ch >= '0' && ch <= '7') {
