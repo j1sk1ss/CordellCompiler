@@ -174,6 +174,12 @@ typedef struct {
         int  hir_size;       /* The source function size in hir blocks                  */
         int  funccals;       /* Count of funcalls in the function                       */
         int  syscalls;       /* Count of syscalls in the function                       */
+        char has_inline_mod; /* Whether the function has or not an inline modifier      */
+        char has_sideeff;    /* Whether the function has a syscall, memmory, etc.       */
+        int  ifs_count;      /* How many ifs in the functions                           */
+        int  returns_count;  /* How many returns in the function                        */
+        int  params_count;   /* How mny parameters in the function's signature          */
+        char is_void_ret;    /* Whether the function returns void                       */
     } src_info;
     struct { /* Information about the dest location */
         int  loop_nested;    /* If it in a loop, is it a nested loop? And how deep?     */
@@ -183,7 +189,12 @@ typedef struct {
         int  near_break;     /* Distance to nearest 'break' statement or -1             */
         char is_dom;         /* Is this function will go to one of the branches?        */
         char is_start;       /* Is this is a start function?                            */
+        int  params_count;   /* How mny parameters in the function's signature          */
     } dst_info;
+    struct {
+        char in_same_file;   /* Whether functions in the same file                      */
+        char in_same_dir;    /* Whether functions in the same directory                 */
+    } general_info;
 } inline_candidate_info_t;
 
 /*
@@ -232,6 +243,26 @@ static int _find_nearest_break(hir_block_t* pos, cfg_block_t* ibb) {
     return -1;
 }
 
+// TODO: docs
+static file_position_t* _find_first_pos(cfg_func_t* f) {
+    foreach (cfg_block_t* bb, &f->blocks) {
+        iterate_hir_instructions (bb) {
+            if (hh->op == HIR_FPOS) return &hh->farg->storage.pos;
+        }
+    }
+
+    return NULL;
+}
+
+// TODO: docs
+static inline int _count_params(cfg_func_t* f, sym_table_t* smt) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(f->f_id, &fi, &smt->f)) return 0;
+    int count = 0;
+    for (ast_node_t* arg = fi.args->c; arg; arg = arg->siblings.n) count++;
+    return count;
+}
+
 /*
 Collect essential information for inline candidate decisiion.
 Params:
@@ -254,6 +285,18 @@ static int _collect_information(
         info->dst_info.loop_nested  = HIR_LTREE_nested_count(loop);
         info->dst_info.near_break   = _find_nearest_break(hpos, pos);
     }
+
+    file_position_t *src_pos = _find_first_pos(f), *dst_pos = _find_first_pos(pos->pfunc);
+    if (
+        src_pos && dst_pos &&
+        src_pos->file && dst_pos->file
+    ) {
+        info->general_info.in_same_file = is_same_file(src_pos->file, dst_pos->file);
+        info->general_info.in_same_dir  = is_same_dir(src_pos->file, dst_pos->file);
+    }
+
+    info->dst_info.params_count = _count_params(pos->pfunc, smt);
+    info->src_info.params_count = _count_params(f, smt);
     
     info->src_info.loop_nested = 0;
     foreach (loop_node_t* l, src_floops) {
@@ -265,6 +308,11 @@ static int _collect_information(
     foreach (cfg_block_t* bb, &f->blocks) {
         info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
         iterate_hir_instructions (bb) {
+            if (
+                hh->op == HIR_FRET || 
+                hh->op == HIR_EXITOP
+            ) info->src_info.returns_count++;
+            if (hh->op == HIR_IFOP2) info->src_info.ifs_count++;
             if (HIR_is_funccall(hh->op)) info->src_info.funccals++;
             if (
                 hh->op == HIR_SYSC || 
@@ -278,6 +326,14 @@ static int _collect_information(
         info->dst_info.is_start = fi.flags.entry;
     }
     
+    if (FNTB_get_info_id(f->f_id, &fi, &smt->f)) {
+        if (
+            fi.rtype && 
+            fi.rtype->t->t_type == I0_TYPE_TOKEN && !fi.rtype->t->flags.ptr
+        ) info->src_info.is_void_ret = 1;
+        if (fi.flags.inln == SOFT_YES_INLINE) info->src_info.has_inline_mod = 1;
+    }
+
     return 1;
 }
 
@@ -341,24 +397,18 @@ static int _inline_model_desider(int* data, int size) {
     inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
 
     double x[INLINE_FEATURE_COUNT] = { 0 };
-    // x[INLINE_FEATURE_CALLER_BLOCK_ID] = 10;
-    x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_IS_DOM]     = parsed->dst_info.is_dom;
-    x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_NEAR_BREAK] = parsed->dst_info.near_break;
-    // x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_SAME_INST_BEFORE] = 0;
-    // x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_SAME_INST_AFTER] = 0;
-    x[INLINE_FEATURE_CALLEE_INFO_BB_COUNT]               = parsed->src_info.bb_size;
-    x[INLINE_FEATURE_CALLEE_INFO_FUNCCALLS]              = parsed->src_info.funccals;
-    x[INLINE_FEATURE_CALLEE_INFO_IR_COUNT]               = parsed->src_info.hir_size;
-    x[INLINE_FEATURE_CALLEE_INFO_IS_START]               = parsed->dst_info.is_start;
-    x[INLINE_FEATURE_CALLEE_INFO_SYSCALLS]               = parsed->src_info.syscalls;
-    x[INLINE_FEATURE_CALLER_LOOP_INFO_LOOP_NESTED]       = parsed->dst_info.loop_nested;
-    x[INLINE_FEATURE_CALLER_LOOP_INFO_LOOP_SIZE_BB]      = parsed->dst_info.loop_size_bb;
-    x[INLINE_FEATURE_CALLER_LOOP_INFO_LOOP_SIZE_IR]      = parsed->dst_info.loop_size_hir;
-    // x[INLINE_FEATURE_CALLER_HAS_LOOP_INFO] = 1;
-    x[INLINE_FEATURE_CALLER_NEAR_BREAK_MISSING]          = parsed->dst_info.near_break;
-    // x[INLINE_FEATURE_CALLEE_IS_LEAF] = 1;
-    // x[INLINE_FEATURE_CALLEE_CALLS_PER_BB] = 0;
-    // x[INLINE_FEATURE_CALLEE_IR_PER_BB] = 4;
+    x[INLINE_FEATURE_SITE_CALLEE_IN_SAME_FILE]             = parsed->general_info.in_same_file;
+    x[INLINE_FEATURE_SITE_CALLEE_IN_SAME_DIR]              = parsed->general_info.in_same_dir;
+    x[INLINE_FEATURE_CALLEE_SIGNATURE_HAS_INLINE_MODIFIER] = parsed->src_info.has_inline_mod;
+    x[INLINE_FEATURE_CALLEE_AST_HAS_SIDE_EFFECTS]          = parsed->src_info.has_sideeff;
+    x[INLINE_FEATURE_CALLEE_INFO_IR_COUNT]                 = parsed->src_info.hir_size;
+    x[INLINE_FEATURE_CALLEE_INFO_FUNCCALLS]                = parsed->src_info.funccals;
+    x[INLINE_FEATURE_CALLEE_AST_BRANCH_COUNT]              = parsed->src_info.ifs_count;
+    x[INLINE_FEATURE_CALLEE_BODY_RETURN_COUNT]             = parsed->src_info.returns_count;
+    x[INLINE_FEATURE_CALLEE_SIGNATURE_PARAM_COUNT]         = parsed->src_info.params_count;
+    x[INLINE_FEATURE_CALLEE_SIGNATURE_RETURNS_VOID]        = parsed->src_info.is_void_ret;
+    x[INLINE_FEATURE_CALLER_CALLSITE_ARG_COUNT]            = parsed->dst_info.params_count;
+    x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_IS_DOM]       = parsed->dst_info.is_dom;
 
     return inline_model_predict(x);
 }
