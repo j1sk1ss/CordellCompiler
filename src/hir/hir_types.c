@@ -231,6 +231,20 @@ int HIR_is_syst(hir_operation_t op) {
     }  
 }
 
+int HIR_is_not_real(hir_operation_t op) {
+    switch (op) {
+        case HIR_NOP:
+        case HIR_PHI:
+        case HIR_VRUSE:
+        case HIR_BREAK:
+        case HIR_STASM:
+        case HIR_ENDASM:
+        case HIR_BREAKPOINT:
+        case HIR_SETPOS: return 1;
+        default: return HIR_is_syst(op);
+    }
+}
+
 int HIR_is_term(hir_operation_t op) {
     if (
         op == HIR_EXITOP ||

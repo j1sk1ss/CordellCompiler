@@ -247,12 +247,11 @@ int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx) {
     return 1;
 }
 
-int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb) {
+int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb, int debug) {
     int blocks = 0;
-    hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0);
-    while (hh) {
+    iterate_hir_instructions (bb) {
+        if (!debug && HIR_is_not_real(hh->op)) continue;
         blocks++;
-        hh = HIR_get_next(hh, bb->hmap.exit, 1);
     }
 
     return blocks;

@@ -247,7 +247,7 @@ static int _find_nearest_break(hir_block_t* pos, cfg_block_t* ibb) {
 static file_position_t* _find_first_pos(cfg_func_t* f) {
     foreach (cfg_block_t* bb, &f->blocks) {
         iterate_hir_instructions (bb) {
-            if (hh->op == HIR_FPOS) return &hh->farg->storage.pos;
+            if (hh->op == HIR_SETPOS) return &hh->farg->storage.pos;
         }
     }
 
@@ -306,7 +306,7 @@ static int _collect_information(
     info->src_info.loop_count = list_size(src_floops);
     info->src_info.bb_size = list_size(&f->blocks);
     foreach (cfg_block_t* bb, &f->blocks) {
-        info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb);
+        info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb, 0);
         iterate_hir_instructions (bb) {
             if (
                 hh->op == HIR_FRET || 
@@ -318,7 +318,9 @@ static int _collect_information(
                 hh->op == HIR_SYSC || 
                 hh->op == HIR_STORE_SYSC
             ) info->src_info.syscalls++; 
+            if (hh->op == HIR_LDREF) info->src_info.has_sideeff = 1;
         }
+        if (info->src_info.syscalls) info->src_info.has_sideeff = 1;
     }
     
     func_info_t fi;

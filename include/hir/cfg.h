@@ -267,10 +267,11 @@ int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx);
 Get the count of HIR blocks in base block.
 Params:
     - `bb` - Basic block.
+    - `debug` - Include debug and other non-functional blocks?
 
 Returns the count of HIR blocks in the BB.
 */
-int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb);
+int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb, int debug);
 
 /*
 Unite close blocks to one block. Idea is to get rid from

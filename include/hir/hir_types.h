@@ -196,6 +196,7 @@ int HIR_is_tmptype(hir_subject_type_t t);
 int HIR_is_conv(hir_operation_t op);
 int HIR_is_writeop(hir_operation_t op);
 int HIR_is_term(hir_operation_t op);
+int HIR_is_not_real(hir_operation_t op);
 int HIR_is_syst(hir_operation_t op);
 int HIR_is_commutative_op(hir_operation_t op);
 
