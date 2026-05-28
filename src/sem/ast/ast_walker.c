@@ -66,12 +66,17 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case LOOP_TOKEN:         return LOOP_NODE;
         case WHILE_TOKEN:        return WHILE_NODE;
         case START_TOKEN:        return START_NODE;
+        case CALLING_TOKEN:
         case ADDR_CALL_TOKEN:    return CALL_NODE;
         case FUNC_TOKEN:         return FUNCTION_NODE;
+        case CONTAINER_TOKEN:    return CONTAINER_NODE;
+        case MEMBER_ACCESS_TOKEN:return MEMBER_NODE;
         
         case INDEXATION_TOKEN:   return INDEX_NODE;
         case ARR_VARIABLE_TOKEN: return DEF_ARRAY_NODE;
 
+        case CUSTOM_VARIABLE_TOKEN:
+        case GENERIC_VARIABLE_TOKEN:
         case CHAR_VALUE_TOKEN:
         case STRING_VALUE_TOKEN:
         case I0_VARIABLE_TOKEN:
@@ -87,6 +92,8 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case F64_VARIABLE_TOKEN: return VARIABLE_NODE;
 
         case I0_TYPE_TOKEN:
+        case CUSTOM_TYPE_TOKEN:
+        case GENERIC_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
         case F32_TYPE_TOKEN:
         case I64_TYPE_TOKEN:

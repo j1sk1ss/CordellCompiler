@@ -319,7 +319,15 @@ _primary_resolve_complete: {}
         default: break;
     }
 
-    var_lookup(node, ctx, smt);
+    if (
+        !var_lookup(node, ctx, smt) && 
+        node->t->t_type == UNKNOWN_STRING_TOKEN
+    ) {
+        PARSE_ERROR("'%s' symbol is undefined!", node->t->body->body);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+    
     forward_token(it, 1);
     return node;
 }

@@ -6,6 +6,15 @@ const char* RST_restore_type(token_t* t) {
         case VAR_ARGUMENTS_TOKEN:   return VAR_ARGUMENTS_COMMAND;
         case ARRAY_TYPE_TOKEN:
         case ARR_VARIABLE_TOKEN:    return ARR_VARIABLE;
+        case CUSTOM_TYPE_TOKEN:
+        case CUSTOM_VARIABLE_TOKEN:
+        case GENERIC_TYPE_TOKEN:
+        case GENERIC_VARIABLE_TOKEN: {
+            static char buf[256];
+            if (!t->flags.ptr) return t->body ? t->body->body : "";
+            snprintf(buf, sizeof(buf), "ptr %s", t->body ? t->body->body : "");
+            return buf;
+        }
         case I0_VARIABLE_TOKEN:
         case I0_TYPE_TOKEN:         return !t->flags.ptr ? I0_VARIABLE  : "ptr " I0_VARIABLE;
         case I8_VARIABLE_TOKEN:
@@ -264,7 +273,12 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     if (u && set_has(u, nd)) _rst_hl_begin(x);
 
     int complex = -1;
-    if (TKN_is_builtin_type(nd->t) || nd->t->t_type == VAR_ARGUMENTS_TOKEN) {
+    if (
+        TKN_is_builtin_type(nd->t) ||
+        nd->t->t_type == CUSTOM_TYPE_TOKEN ||
+        nd->t->t_type == GENERIC_TYPE_TOKEN ||
+        nd->t->t_type == VAR_ARGUMENTS_TOKEN
+    ) {
         if (nd->t->t_type != ARRAY_TYPE_TOKEN) {
             _rst_ln_printf(
                 x, line, "%s%s%s%s%s",
@@ -307,7 +321,12 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     }
     else if (
         TKN_is_numeric(nd->t)  ||
-        TKN_is_variable(nd->t)
+        nd->t->t_type == UNKNOWN_STRING_TOKEN ||
+        TKN_is_variable(nd->t) ||
+        nd->t->t_type == CUSTOM_VARIABLE_TOKEN ||
+        nd->t->t_type == GENERIC_VARIABLE_TOKEN ||
+        nd->t->t_type == CALL_ADDR_TOKEN ||
+        nd->t->t_type == FUNC_NAME_TOKEN
     ) _rst_ln_puts(x, line, nd->t->body->body);
     else if (
         nd->t->t_type == STRING_VALUE_TOKEN
@@ -319,16 +338,44 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     
     switch (nd->t->t_type) {
         case CALLING_TOKEN: {
-            if (!TKN_is_variable(nd->c->t)) _rst_ln_puts(x, line, "(");
+            if (!nd->c) break;
+
+            int simple_callee = (
+                TKN_is_variable(nd->c->t) ||
+                nd->c->t->t_type == CUSTOM_VARIABLE_TOKEN ||
+                nd->c->t->t_type == GENERIC_VARIABLE_TOKEN ||
+                nd->c->t->t_type == FUNC_NAME_TOKEN ||
+                nd->c->t->t_type == CALL_ADDR_TOKEN
+            );
+            if (!simple_callee) _rst_ln_puts(x, line, "(");
             _restore_code_lines(x, nd->c, u, indent);
-            if (!TKN_is_variable(nd->c->t)) _rst_ln_puts(x, line, ")");
+            if (!simple_callee) _rst_ln_puts(x, line, ")");
 
             _rst_ln_puts(x, line, "(");
-            for (ast_node_t* arg = nd->c->siblings.n->c; arg; arg = arg->siblings.n) {
-                _restore_code_lines(x, nd->c->siblings.n->c, u, indent);
+            ast_node_t* args = nd->c->siblings.n ? nd->c->siblings.n->c : NULL;
+            for (ast_node_t* arg = args; arg; arg = arg->siblings.n) {
+                _restore_code_lines(x, arg, u, indent);
                 if (arg->siblings.n) _rst_ln_puts(x, line, ", ");
             }
             _rst_ln_puts(x, line, ")");
+            break;
+        }
+        case MEMBER_ACCESS_TOKEN: {
+            _restore_code_lines(x, nd->c, u, indent);
+            _rst_ln_puts(x, line, ".");
+            _restore_code_lines(x, nd->c ? nd->c->siblings.n : NULL, u, indent);
+            break;
+        }
+        case CONTAINER_TOKEN: {
+            ast_node_t* name = nd->c;
+            ast_node_t* body = name ? name->siblings.n : NULL;
+            _rst_ln_printf(x, line, "%s %s\n", CONTAINER_COMMAND, name && name->t ? name->t->body->body : "");
+
+            int body_line = _rst_line(body);
+            _rst_ln_indent(x, body_line, indent);
+            _restore_code_lines(x, body, u, indent);
+
+            complex = 1;
             break;
         }
         case INDEXATION_TOKEN: {
@@ -418,6 +465,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
         case EXTERN_TOKEN:     _simple_restore_lines(x, nd->c, u, indent, EXTERN_COMMAND " ");      break;
         case REF_TYPE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, REF_COMMAND " ");         break;
         case DREF_TYPE_TOKEN:  _simple_restore_lines(x, nd->c, u, indent, DREF_COMMAND " ");        break;
+        case NOT_TOKEN:        _simple_restore_lines(x, nd->c, u, indent, NOT_COMMAND " ");         break;
         case NEGATIVE_TOKEN:   _simple_restore_lines(x, nd->c, u, indent, NEGATIVE_COMMAND " ");    break;
         case LOOP_TOKEN:       _simple_restore_lines(x, nd->c, u, indent, LOOP_COMMAND);            break;
         case EXIT_TOKEN:       _simple_restore_lines(x, nd->c, u, indent, EXIT_COMMAND " ");        break;

@@ -19,7 +19,9 @@ typedef enum {
     VARIABLE_NODE    = 1 << 14,
     INDEX_NODE       = 1 << 15,
     REF_NODE         = 1 << 16,
-    UNKNOWN_NODE     = 1 << 17,
+    CONTAINER_NODE   = 1 << 17,
+    MEMBER_NODE      = 1 << 18,
+    UNKNOWN_NODE     = 1 << 19,
 } ast_node_type_t;
 
 typedef struct {

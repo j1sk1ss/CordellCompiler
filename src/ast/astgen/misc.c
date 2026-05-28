@@ -22,8 +22,8 @@ symbol_id_t type_lookup(token_t* t, ast_ctx_t* ctx, sym_table_t* smt) {
 
 int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
-    var_lookup(node->siblings.n, ctx, smt);
-    var_lookup(node->c, ctx, smt);
+    int found = var_lookup(node->siblings.n, ctx, smt);
+    found |= var_lookup(node->c, ctx, smt);
     if (!node->t) return 0;
 
     if (node->t->t_type == UNKNOWN_STRING_TOKEN) {
@@ -65,5 +65,5 @@ int var_lookup(ast_node_t* node, ast_ctx_t* ctx, sym_table_t* smt) {
         }
     }
 
-    return 0;
+    return found;
 }
