@@ -153,7 +153,7 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
 
     ast_node_t* larg = nd->c;
     if (!larg) return 1;
-
+    if (nd->t->t_type == CUSTOM_TYPE_TOKEN) return 1;
     if (
         nd->p &&      /* If we have a parent     */
         nd->p->p &&   /* The parent has a parent */
@@ -170,6 +170,10 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
             nd->p->p->t->t_type == FUNC_PROT_TOKEN
         )
     ) return 1;
+
+    foreach (annotation_t* annot, &nd->annots) {
+        if (annot->t == POPARG_ANNOTATION) return 1;
+    }
 
     ast_node_t* rarg = larg->siblings.n;
     if (!rarg) {
@@ -226,7 +230,10 @@ static token_t* _get_token_from_ast(ast_node_t* n, int* ptr, sym_table_t* smt) {
 }
 
 static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r, sym_table_t* smt) {
-    if (!l || !r) return 0;
+    if (
+        !l || !r || 
+        l->t->t_type == VAR_ARGUMENTS_TOKEN || r->t->t_type == VAR_ARGUMENTS_TOKEN
+    ) return 0;
 
     int ltptr = 0, rtptr = 0;
     token_t* lt = _get_token_from_ast(l, &ltptr, smt);
@@ -368,7 +375,7 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
 
     int has_ret = 0;
     _search_term_node(nd->c, &has_ret, NULL); 
-    if (!has_ret && fi.rtype->t->t_type != I0_TYPE_TOKEN) {
+    if (!has_ret && fi.rtype && (fi.rtype->t->t_type != I0_TYPE_TOKEN || fi.rtype->t->flags.ptr)) {
         SEMANTIC_WARNING(
             " %s Function '%s' doesn't have the 'return' keyword on all paths!", 
             _format_location(&nd->t->finfo), nd->c->t->body->body
@@ -426,7 +433,7 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
         return 0;
     }
 
-    if (provided_arg && (!expected_arg || expected_arg->t->t_type == SCOPE_TOKEN)) {
+    if (provided_arg && (!expected_arg || expected_arg->t->t_type == SCOPE_TOKEN) && !fi.flags.vargs) {
         SEMANTIC_ERROR(
             " %s Too many arguments for the '%s' function!",
             _format_location(callee && callee->t ? &callee->t->finfo : &nd->t->finfo),
@@ -688,8 +695,8 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
         case RETURN_TOKEN: {
             int ptr = 0;
             token_t* rval = _get_token_from_ast(nd->c, &ptr, smt);
-            if (!rval && rtype->t_type == I0_TYPE_TOKEN) return 1;
-            if (rval && rtype->t_type == I0_TYPE_TOKEN) {
+            if (!rval && rtype->t_type == I0_TYPE_TOKEN && !rtype->flags.ptr) return 1;
+            if (rval && rtype->t_type == I0_TYPE_TOKEN && !rtype->flags.ptr) {
                 SEMANTIC_WARNING(
                     " %s Function='%s' has its return value, but isn't supposed to!", 
                     _format_location(&rval->finfo), fname
@@ -851,7 +858,7 @@ int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
         }
     }
 
-    if (case_count < 4 && !has_annot) {
+    if (case_count < 10 && !has_annot) {
         SEMANTIC_WARNING(
             " %s Switch statement here has '%i' cases and uses the binary search. Consider to add @[straight].", 
             _format_location(&nd->t->finfo), case_count
@@ -859,7 +866,7 @@ int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
         REBUILD_CODE_1TRG(nd, nd);
         return 0;
     }
-    else if (case_count > 4 && has_annot) {
+    else if (case_count > 10 && has_annot) {
         SEMANTIC_WARNING(
             " %s Switch statement here has '%i' cases and uses the straight search. Consider to remove @[straight].", 
             _format_location(&nd->t->finfo), case_count

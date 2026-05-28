@@ -19,7 +19,7 @@ container string {
     }
 
     @[self]
-    function equals(ptr string self, ptr string other) -> i0 {
+    function equals(ptr string self, ptr string other) -> i8 {
         ptr i8 s1 = self.body;
         ptr i8 s2 = other.body;
 
@@ -29,15 +29,16 @@ container string {
             s2 += 1;
         }
 
-        return not dref s1 && not dref s2;
+        return (not dref s1 && not dref s2) as i8;
     }
 }
 
+@[entry("main")]
 start() {
     string msg;
-    msg.new("Hello, World!");
+    msg.new(ref "Hello, World!");
     string other;
-    other.new("Hello, World!");
-    if msg.equals(other); exit 1;
+    other.new(ref "Hello, World!");
+    if msg.equals(ref other); exit 1;
     exit 0;
 }
