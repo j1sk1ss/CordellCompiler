@@ -15,6 +15,28 @@ static symbol_id_t _gather_base_vid(symbol_id_t v_id, sym_table_t* smt) {
     return vi.p_id == NO_SYMBOL_ID ? vi.v_id : _gather_base_vid(vi.p_id, smt);
 }
 
+// TODO: docs
+static int _redirect_preheader_jump(cfg_block_t* pred, cfg_block_t* header, hir_subject_t* preheader_label) {
+    if (
+        !pred || !header || 
+        !preheader_label || !pred->hmap.exit
+    ) return 0;
+    switch (pred->hmap.exit->op) {
+        case HIR_JMP: {
+            if (pred->jmp == header) pred->hmap.exit->farg = preheader_label;
+            break;
+        }
+        case HIR_IFOP2: {
+            if (pred->l == header)   pred->hmap.exit->sarg = preheader_label;
+            if (pred->jmp == header) pred->hmap.exit->targ = preheader_label;
+            break;
+        }
+        default: break;
+    }
+
+    return 1;
+}
+
 /*
 Insert a preheader block in the CFG context before the header block.
 Params:
@@ -46,7 +68,8 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
     }
 
     /* Create the preheader block and set the preheader type. */
-    hir_block_t* anchor = HIR_create_block(HIR_NOP, NULL, NULL, NULL);
+    hir_subject_t* preheader_label = HIR_SUBJ_LABEL();
+    hir_block_t* anchor = HIR_create_block(HIR_MKLB, preheader_label, NULL, NULL);
     HIR_insert_block_before(anchor, header->hmap.entry);
     cfg_block_t* preheader = HIR_CFG_create_cfg_block(anchor);
     if (!preheader) {
@@ -64,6 +87,7 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
         if (set_has(loop, p)) continue; /* Skip all blocks from the current loop */
                                         /* We mustn't update blocks from the     */
                                         /* loop.                                 */
+        _redirect_preheader_jump(p, header, preheader_label);
         if (p->l && p->l == header)     p->l   = preheader;
         if (p->jmp && p->jmp == header) p->jmp = preheader;
         set_add(&preheader->pred, p);

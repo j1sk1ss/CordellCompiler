@@ -26,17 +26,19 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     str_memset(block, 0, sizeof(cfg_block_t));
     block->type = CFG_DEFAULT_BLOCK;
     block->hmap.entry = block->hmap.exit = e;
-    set_init(&block->visitors, SET_NO_CMP);
-    set_init(&block->pred,     SET_NO_CMP);
-    set_init(&block->curr_in,  SET_CMP);
-    set_init(&block->curr_out, SET_CMP);
-    set_init(&block->prev_in,  SET_CMP);
-    set_init(&block->prev_out, SET_CMP);
-    set_init(&block->def,      SET_NO_CMP);
-    set_init(&block->use,      SET_CMP);
-    set_init(&block->domf,     SET_NO_CMP);
-    set_init(&block->dom,      SET_CMP);
-    set_init(&block->phi,      SET_NO_CMP);
+    set_init(&block->visitors,  SET_NO_CMP);
+    set_init(&block->pred,      SET_NO_CMP);
+    set_init(&block->curr_in,   SET_CMP);
+    set_init(&block->curr_out,  SET_CMP);
+    set_init(&block->prev_in,   SET_CMP);
+    set_init(&block->prev_out,  SET_CMP);
+    set_init(&block->def,       SET_NO_CMP);
+    set_init(&block->use,       SET_CMP);
+    set_init(&block->domf,      SET_NO_CMP);
+    set_init(&block->dom,       SET_CMP);
+    set_init(&block->phi,       SET_NO_CMP);
+    set_init(&block->copy_gen,  SET_NO_CMP);
+    set_init(&block->copy_kill, SET_NO_CMP);
     return block;
 }
 
@@ -197,6 +199,8 @@ static int _unload_cfg_block(cfg_block_t* bb) {
     set_free(&bb->pred);
     set_free(&bb->visitors);
     set_free(&bb->phi);
+    set_free(&bb->copy_gen);
+    set_free(&bb->copy_kill);
     return mm_free(bb);
 }
 
@@ -277,6 +281,12 @@ int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
             
             set_free(&cb->prev_out);
             set_init(&cb->prev_out, SET_CMP);
+
+            set_free(&cb->copy_gen);
+            set_init(&cb->copy_gen, SET_NO_CMP);
+
+            set_free(&cb->copy_kill);
+            set_init(&cb->copy_kill, SET_NO_CMP);
         }
 
         set_free(&fb->leaders);

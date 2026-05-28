@@ -78,6 +78,10 @@ typedef struct cfg_block {
     set_t             curr_out; /* Current OUT{} set           */
     set_t             prev_in;  /* Prev IN{} set               */
     set_t             prev_out; /* Prev IN{} set               */
+
+    /* Copy propagation */
+    set_t             copy_gen;  /* Generated copy targets      */
+    set_t             copy_kill; /* Killed copy targets         */
 } cfg_block_t;
 
 #define iterate_hir_instructions(bb) \
