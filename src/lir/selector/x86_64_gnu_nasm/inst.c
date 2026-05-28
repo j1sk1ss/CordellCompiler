@@ -53,7 +53,10 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
         default: break;
     }
 
-    if (fi->flags.vargs) {
+    if (
+        fi->flags.vargs && 
+        !fi->flags.external /* CPL ABI works only with CPL functions */
+    ) {
         out->off = (index + !fi->flags.naked + 1) * -8;
         return 0;
     }
@@ -143,11 +146,6 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_ECLL:
                     case LIR_FCLL: {
-                        // func_info_t callee;
-                        // if (
-                        //     lh->farg && lh->farg->t == LIR_FNAME && FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) &&
-                        //     callee.flags.vargs
-                        // ) LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_REG(RAX, 8)), lh);
                         if (clean_stack) {
                             _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
                             clean_stack = 0;

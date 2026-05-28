@@ -22,12 +22,7 @@ int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* c
 
     ast_node_t* t;
     for (t = node->c->siblings.n->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
-        if (t->t->t_type == VAR_ARGUMENTS_TOKEN) {
-            FNTB_update_func(fi.id, FNTB_SET_VARGS, &smt->f);
-            fi.flags.vargs = 1;
-            continue;
-        }
-
+        if (t->t->t_type == VAR_ARGUMENTS_TOKEN) break;
         HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->c));
         HIR_BLOCK3(
             ctx, 

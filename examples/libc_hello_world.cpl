@@ -2,6 +2,6 @@
 
 @[entry("main")]
 function main(i32 argc, ptr ptr i8 argv) {
-    printf(ref "Hello world!");
+    printf(ref "Hello world from %s!\n", argv[0]);
     exit 0;
 }

@@ -77,11 +77,6 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     }
                     case LIR_ECLL:
                     case LIR_FCLL: {
-                        // func_info_t callee; TODO
-                        // if (
-                        //     lh->farg && lh->farg->t == LIR_FNAME && FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) &&
-                        //     callee.flags.vargs
-                        // ) LIR_insert_block_before(LIR_create_block(LIR_bXOR, LIR_SUBJ_REG(EAX, 4), LIR_SUBJ_REG(EAX, 4), LIR_SUBJ_REG(EAX, 4)), lh);
                         if (clean_stack) {
                             _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(clean_stack)), lh);
                             clean_stack = 0;

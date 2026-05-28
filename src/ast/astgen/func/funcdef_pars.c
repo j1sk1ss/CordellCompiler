@@ -145,10 +145,20 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         virt_name = annots.fname;
     }
 
+    int vargs = 0;
     int local = ctx->carry.ptr ? 1 : 0;
+
+    ast_node_t* t;
+    for (t = args->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
+        if (t->t->t_type == VAR_ARGUMENTS_TOKEN) {
+            vargs = 1;
+            break;
+        }
+    }
+
     name->sinfo.v_id = FNTB_add_info(
         name->t->body, virt_name, 
-        base->t->flags.glob, local, annots.is_entry, annots.is_naked != 0, 0, list_size(&generic_types) != 0, annots.do_inline, annots.is_self,
+        base->t->flags.glob, local, annots.is_entry, annots.is_naked != 0, vargs, list_size(&generic_types) != 0, annots.do_inline, annots.is_self,
         name->sinfo.s_id, args, name->c, &smt->f
     );
 
