@@ -3,29 +3,35 @@
 
 #define NULL 0
 
+@[like_c]
 container cpl_file {
     i64 _opaque;
 }
 
+@[like_c]
 container cpl_locale {
     i64 _opaque;
 }
 
+@[like_c]
 container c_div {
     i32 quot;
     i32 rem;
 }
 
+@[like_c]
 container c_ldiv {
     i64 quot;
     i64 rem;
 }
 
+@[like_c]
 container c_lldiv {
     i64 quot;
     i64 rem;
 }
 
+@[like_c]
 container c_tm {
     i32 tm_sec;
     i32 tm_min;
@@ -38,6 +44,7 @@ container c_tm {
     i32 tm_isdst;
 }
 
+@[like_c]
 container c_lconv {
     ptr i8 decimal_point;
     ptr i8 thousands_sep;

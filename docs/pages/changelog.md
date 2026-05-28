@@ -36,6 +36,15 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Containers!: Like C annotation
+<div class="change-date">Date: 2026-05-28</div>
+It is essential to support C library, which means we need to prepare our containers and the compiler's ABI to work with C properly. No you're able to make containers to be C-like:
+```cpl
+@[like_c]
+container a {
+}
+```
+
 ## Containers!: Methods and Static functions
 <div class="change-date">Date: 2026-05-23</div>
 Container can contain a function. There is no hidden pointer or whatsoever:
