@@ -1,9 +1,12 @@
+#include "libc/stdlib_h.cpl"
+#include "libc/string_h.cpl"
+
 container string {
     ptr i8 body;
 
     @[self]
     function new(ptr string self, ptr i8 data) -> i0 {
-        self.body = data;
+        self.body = strdup(data);
     }
 
     @[self]
@@ -22,7 +25,6 @@ container string {
     function equals(ptr string self, ptr string other) -> i8 {
         ptr i8 s1 = self.body;
         ptr i8 s2 = other.body;
-
         while dref s1 && dref s2; {
             if dref s1 != dref s2; return 0;
             s1 += 1;
@@ -30,6 +32,24 @@ container string {
         }
 
         return (not dref s1 && not dref s2) as i8;
+    }
+
+    @[self]
+    function equals(ptr string self, ptr i8 other) -> i8 {
+        ptr i8 s1 = self.body;
+        while dref s1 && dref other; {
+            if dref s1 != dref other; return 0;
+            s1 += 1;
+            other += 1;
+        }
+
+        return (not dref s1 && not dref other) as i8;
+    }
+
+    @[self]
+    function destroy(ptr string self) -> i0 {
+        free(self.body);
+        self.body = 0;
     }
 }
 
@@ -39,6 +59,12 @@ start() {
     msg.new(ref "Hello, World!");
     string other;
     other.new(ref "Hello, World!");
-    if msg.equals(ref other); exit 1;
-    exit 0;
+
+    i8 res = 0;
+    if msg.equals(ref other); res += 1;
+    if msg.equals(ref "Hello, World!"); res += 1;
+
+    msg.destroy();
+    other.destroy();
+    exit res;
 }

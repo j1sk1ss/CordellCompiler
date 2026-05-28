@@ -141,7 +141,7 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
                         if (lh->op == LIR_aMOV) set_add(&non_ssa, (void*)lh->farg->storage.var.v_id);
                         break;
                     }
-                    default: {
+                    default: { // TODO: Rewrite, it should respect dead-branches
                         if (
                             LIR_is_readop(lh->op) &&
                             lh->op != LIR_aMOV &&    /* Reserved mov operations which must be saved    */

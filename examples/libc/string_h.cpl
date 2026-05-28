@@ -26,4 +26,6 @@ extern function strcspn(ptr i8 s, ptr i8 reject) -> u64;
 extern function strtok(ptr i8 s, ptr i8 delim) -> ptr i8;
 extern function strerror(i32 errnum) -> ptr i8;
 
+extern function strdup(ptr i8 p) -> ptr i8;
+
 #endif

@@ -96,7 +96,7 @@ int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_
     hir_subject_t* target = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, NULL, &smt->v));
     target->ptr = head->ptr;
     
-    HIR_BLOCK2(ctx, HIR_STORE, target, head);
+    HIR_BLOCK2(ctx, HIR_TPTR, target, head);
     HIR_BLOCK2(ctx, HIR_LDREF, target, HIR_generate_implconv(ctx, tmp.flags.ptr, HIR_get_tmptype_tkn(&tmp, 0), data, smt));
     return 1;
 }
