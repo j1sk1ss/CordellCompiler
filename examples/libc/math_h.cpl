@@ -1,0 +1,48 @@
+#ifndef CPL_MATH_H_
+#define CPL_MATH_H_ 0
+
+#define HUGE_VAL 1.0e999
+#define INFINITY 1.0e999
+#define NAN 0.0
+
+extern function acos(f64 x) -> f64;
+extern function asin(f64 x) -> f64;
+extern function atan(f64 x) -> f64;
+extern function atan2(f64 y, f64 x) -> f64;
+extern function cos(f64 x) -> f64;
+extern function sin(f64 x) -> f64;
+extern function tan(f64 x) -> f64;
+extern function cosh(f64 x) -> f64;
+extern function sinh(f64 x) -> f64;
+extern function tanh(f64 x) -> f64;
+extern function exp(f64 x) -> f64;
+extern function frexp(f64 x, ptr i32 exp) -> f64;
+extern function ldexp(f64 x, i32 exp) -> f64;
+extern function log(f64 x) -> f64;
+extern function log10(f64 x) -> f64;
+extern function modf(f64 x, ptr f64 iptr) -> f64;
+extern function pow(f64 x, f64 y) -> f64;
+extern function sqrt(f64 x) -> f64;
+extern function ceil(f64 x) -> f64;
+extern function fabs(f64 x) -> f64;
+extern function floor(f64 x) -> f64;
+extern function fmod(f64 x, f64 y) -> f64;
+
+extern function acosf(f32 x) -> f32;
+extern function asinf(f32 x) -> f32;
+extern function atanf(f32 x) -> f32;
+extern function atan2f(f32 y, f32 x) -> f32;
+extern function cosf(f32 x) -> f32;
+extern function sinf(f32 x) -> f32;
+extern function tanf(f32 x) -> f32;
+extern function expf(f32 x) -> f32;
+extern function logf(f32 x) -> f32;
+extern function log10f(f32 x) -> f32;
+extern function powf(f32 x, f32 y) -> f32;
+extern function sqrtf(f32 x) -> f32;
+extern function ceilf(f32 x) -> f32;
+extern function fabsf(f32 x) -> f32;
+extern function floorf(f32 x) -> f32;
+extern function fmodf(f32 x, f32 y) -> f32;
+
+#endif
