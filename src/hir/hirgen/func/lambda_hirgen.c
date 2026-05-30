@@ -13,19 +13,8 @@ hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(node));
     HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(node->c->sinfo.s_id));
 
-    int argnum = 0, arg_count = 0;
-    for (ast_node_t* tmp = node->c->c; tmp && tmp->t && tmp->t->t_type != SCOPE_TOKEN; tmp = tmp->siblings.n) {
-        arg_count++;
-    }
-
-    ast_node_t* t;
-    for (t = node->c->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
-        HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->c));
-        HIR_BLOCK3(ctx, HIR_FARGLD, HIR_SUBJ_ASTVAR(t->c), HIR_SUBJ_CONST(argnum), HIR_SUBJ_CONST(arg_count - argnum));
-        argnum++;
-    }
-
-    SET_AND_DUMP_POPARG(HIR_FARGLD, argnum, NULL, NULL, { HIR_generate_block(t, ctx, smt); });
+    ast_node_t* body = HIR_generate_argument_load(node->c, ctx, &fi);
+    SET_AND_DUMP_POPARG(HIR_FARGLD, NULL, NULL, { HIR_generate_block(body, ctx, smt); });
 
     if (list_size(&ctx->cold.blocks)) {
         HIR_BLOCK1(ctx, HIR_FRET, HIR_SUBJ_CONST(0));

@@ -25,8 +25,8 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case SIZEOF_TOKEN:                res = HIR_generate_sizeof(node, ctx, smt);             break;
         case SYSCALL_TOKEN:               res = HIR_generate_syscall(node, ctx, smt, 1);         break;
         case CONVERT_TOKEN:               res = HIR_generate_explconv(node, ctx, smt);           break;
-        case NEGATIVE_TOKEN:              res = HIR_generate_neg(node, ctx, smt);                break;
-        case NOT_TOKEN:                   res = HIR_generate_not(node, ctx, smt);                break;
+        case NEGATIVE_TOKEN:              res = HIR_generate_unary(node, ctx, HIR_NEG, smt);     break;
+        case NOT_TOKEN:                   res = HIR_generate_unary(node, ctx, HIR_NOT, smt);     break;
         case REF_TYPE_TOKEN:              res = HIR_generate_ref(node, ctx, smt);                break;
         case DREF_TYPE_TOKEN:             res = HIR_generate_dref(node, ctx, smt, NULL);         break;
         case INDEXATION_TOKEN:            res = HIR_generate_load_indexation(node, ctx, smt);    break;

@@ -1,36 +1,33 @@
 #include <hir/hirgens/hirgens.h>
 
 // TODO: docs
-static int _fit_arg_shape(ast_node_t* arg, hir_subject_t* hir_arg) {
+static inline int _fit_arg_shape(ast_node_t* arg, hir_subject_t* hir_arg) {
     if (
         !arg || !arg->t || !hir_arg ||
         (arg->t->flags.ptr != hir_arg->ptr)
     ) return -1;
-    hir_subject_type_t expected = HIR_get_tmptype_tkn(arg->t, !arg->t->flags.ptr);
-    if (HIR_get_convop(HIR_get_tmp_type(hir_arg->t)) != HIR_get_convop(expected)) return -1;
+    if (
+        HIR_get_convop(HIR_get_tmp_type(hir_arg->t)) !=                 /* Provided */
+        HIR_get_convop(HIR_get_tmptype_tkn(arg->t, !arg->t->flags.ptr)) /* Expected */
+    ) return -1;
     return 0;
 }
 
 // TODO: docs
-static inline symbol_id_t _get_subject_type_id(hir_subject_t* subj, sym_table_t* smt) {
-    if (!subj || !HIR_is_vartype(subj->t)) return NO_SYMBOL_ID;
-    variable_info_t vi;
-    if (!VRTB_get_info_id(subj->storage.var.v_id, &vi, &smt->v)) return NO_SYMBOL_ID;
-    return vi.t_id;
-}
-
-// TODO: docs
-static int _fit_custom_type(ast_node_t* arg, hir_subject_t* hir_arg, sym_table_t* smt) {
+static inline int _fit_custom_type(ast_node_t* arg, hir_subject_t* hir_arg, sym_table_t* smt) {
     if (
-        !arg || !arg->t ||
+        !arg || !arg->t || !hir_arg || !HIR_is_vartype(hir_arg->t) ||
         (
             arg->t->t_type != CUSTOM_TYPE_TOKEN && 
             arg->t->t_type != CUSTOM_VARIABLE_TOKEN
         )
     ) return 0;
-    symbol_id_t actual   = _get_subject_type_id(hir_arg, smt);
-    if (arg->sinfo.t_id == NO_SYMBOL_ID || actual == NO_SYMBOL_ID) return -1;
-    return arg->sinfo.t_id == actual ? 1 : -1;
+    variable_info_t vi;
+    if (!VRTB_get_info_id(hir_arg->storage.var.v_id, &vi, &smt->v)) return 0;
+    if (arg->sinfo.t_id == NO_SYMBOL_ID || vi.v_id == NO_SYMBOL_ID) return -1;
+    return arg->sinfo.t_id == vi.v_id ? 
+            1 : /* If types are equal */
+            -1; /* otherwise - punish */
 }
 
 /*

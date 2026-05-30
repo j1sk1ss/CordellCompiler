@@ -28,18 +28,14 @@ Params:
     - `args` - Current popped arguments number.
     - `logic` - Wrapped logic. 
 */
-#define SET_AND_DUMP_POPARG(op, args, rtype, vargs, logic) \
-    long pargnum =                           \
-        ctx->carry.val1,                     \
-        pargop = ctx->carry.val2;            \
+#define SET_AND_DUMP_POPARG(op, rtype, vargs, logic) \
+    long pargop  = ctx->carry.val2;          \
     void *prtype = ctx->carry.ptr2,          \
          *pvargs = ctx->carry.ptr3;          \
-    ctx->carry.val1 = args;                  \
     ctx->carry.val2 = op;                    \
     ctx->carry.ptr2 = rtype;                 \
     ctx->carry.ptr3 = vargs;                 \
     logic;                                   \
-    ctx->carry.val1 = pargnum;               \
     ctx->carry.val2 = pargop;                \
     ctx->carry.ptr2 = prtype;                \
     ctx->carry.ptr3 = pvargs;
@@ -62,6 +58,9 @@ Params:
 
 int HIR_generate_position(file_position_t* pos, hir_ctx_t* ctx);
 #define HIR_SET_CURRENT_POS(ctx, nd) HIR_generate_position(nd->t ? &nd->t->finfo : NULL, ctx);
+
+// TODO: docs
+ast_node_t* HIR_generate_argument_load(ast_node_t* args, hir_ctx_t* ctx, func_info_t* fi);
 
 /*
 Generate implict convertion from the one type to another. 
@@ -336,19 +335,8 @@ Returns 1 on success, otherwise 0.
 */
 int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert neg AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return parsed from AST HIR subject.
-*/
-hir_subject_t* HIR_generate_not(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
-
 // TODO: docs
-hir_subject_t* HIR_generate_neg(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+hir_subject_t* HIR_generate_unary(ast_node_t* node, hir_ctx_t* ctx, hir_operation_t op, sym_table_t* smt);
 
 /*
 Create referenced subject from the source. 
@@ -443,7 +431,7 @@ hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
 
 // TODO: docs
 hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
-hir_subject_t* HIR_generate_ref_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t* field_info, sym_table_t* smt);
 int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif
