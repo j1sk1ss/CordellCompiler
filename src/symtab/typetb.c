@@ -52,7 +52,19 @@ symbol_id_t TPTB_add_copy(symbol_id_t id, symbol_id_t nv_id, int ptr, typetab_ct
     return info->id;
 }
 
+static inline symbol_id_t _get_type_by_token(token_t* t, typetab_ctx_t* ctx) {
+    if (!t) return NO_SYMBOL_ID;
+    map_foreach (type_info_t* ti, &ctx->typetb) {
+        if (ti->t == t->t_type && ti->memory.ptr == t->flags.ptr) return ti->id;
+    }
+
+    return NO_SYMBOL_ID;
+}
+
 symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v_id, typetab_ctx_t* ctx) {
+    symbol_id_t existed = _get_type_by_token(t, ctx);
+    if (existed != NO_SYMBOL_ID) return existed;
+    
     type_info_t* info = _create_type_info(NULL);
     if (!info) return NO_SYMBOL_ID;
 

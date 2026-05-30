@@ -178,7 +178,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
         forward_token(it, 1);
     }
-
+// TODO: register all types in types table, than use in hir everywhere 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &base->t->flags, &smt->v);
     ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, &type->t->flags, &smt->a);

@@ -73,12 +73,12 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
 
     /* Register the variable as a basic type of the parent type,
        if this is a declaraion in a type. */
+    if (base->sinfo.t_id != NO_SYMBOL_ID) base->sinfo.t_id = base->sinfo.t_id; // TODO: Figure out how to create similar types etc, maybe copy in containers?
+    else                                  base->sinfo.t_id = type_lookup(base->t, ctx, smt); // TODO: refactor types system
+    if (base->sinfo.t_id == NO_SYMBOL_ID) base->sinfo.t_id = TPTB_add_info_from_token(base->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);
+    else                                  base->sinfo.t_id = TPTB_add_copy(base->sinfo.t_id, name->sinfo.v_id, base->t->flags.ptr, &smt->t);
     if (ctx->t_id != NO_SYMBOL_ID) {
-        if (base->sinfo.t_id != NO_SYMBOL_ID) base->sinfo.t_id = base->sinfo.t_id;
-        else                                  base->sinfo.t_id = type_lookup(base->t, ctx, smt);
-        if (base->sinfo.t_id == NO_SYMBOL_ID) base->sinfo.t_id = TPTB_add_info_from_token(base->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);
-        else                                  base->sinfo.t_id = TPTB_add_copy(base->sinfo.t_id, name->sinfo.v_id, base->t->flags.ptr, &smt->t);
-        TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : FIELD_NO_CHANGE, &smt->t);
+       TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : FIELD_NO_CHANGE, &smt->t);
     }
 
     ANNOT_destroy_summary(&annots);

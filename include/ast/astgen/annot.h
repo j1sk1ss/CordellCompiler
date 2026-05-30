@@ -4,7 +4,7 @@
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/stack.h>
-
+// TODO: union annotation
 #define ENTRY_ANNOTATION_COMMAND "entry"
 #define ALIGN_ANNOTATION_COMMAND "align"
 #define NAKED_ANNOTATION_COMMAND "naked"
