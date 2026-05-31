@@ -20,7 +20,12 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
             break;
         }
         case LIR_FCLL:
-        case LIR_ECLL: EMIT_COMMAND("call %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG)); break;
+        case LIR_ECLL: {
+            func_info_t fi;
+            if (FNTB_get_info_id(b->farg->storage.str.sid, &fi, &smt->f) && fi.flags.vargs) EMIT_COMMAND("xor rax, rax");
+            EMIT_COMMAND("call %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG)); 
+            break;
+        }
         case LIR_STRT:
         case LIR_FDCL: {
             EMIT_COMMAND("%s:", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));

@@ -41,12 +41,16 @@ int STTB_get_info(string_t* value, str_info_t* info, strtb_ctx_t* ctx) {
 
 symbol_id_t STTB_add_info(string_t* value, str_type_t t, strtb_ctx_t* ctx) {
     print_log("STTB_add_info(value=%s, t=%i)", value->body, t);
+    str_info_t other;
+    if (STTB_get_info(value, &other, ctx) && other.t == t) return other.id;
+    
     str_info_t* nnd = (str_info_t*)mm_malloc(sizeof(str_info_t));
     if (!nnd) return NO_SYMBOL_ID;
-    nnd->id = ctx->curr_id++;
-    nnd->t  = t;
 
+    nnd->id    = ctx->curr_id++;
+    nnd->t     = t;
     nnd->value = value->copy(value);
+
     map_put(&ctx->strtb, nnd->id, nnd);
     return nnd->id;
 }

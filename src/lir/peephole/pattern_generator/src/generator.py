@@ -215,6 +215,17 @@ class CodeGenerator:
             result = result.replace(f"%{i}", arg)
         return result
 
+    def _special_condition(
+        self,
+        condition_name: str,
+        operand_ptr: str,
+        pattern: Pattern,
+    ) -> str | None:
+        if condition_name == "dead_after":
+            return f"_peephole_subject_dead_after(bb, {operand_ptr}, {self._instr_ptr(len(pattern.match))})"
+
+        return None
+
     def _instruction_explicit_var_equalities(self, instr: Instruction, base_ptr: str) -> list[str]:
         equals_fn = self.gen_info.get("functions", {}).get("equals")
         if not equals_fn:
@@ -267,9 +278,15 @@ class CodeGenerator:
             current_var_map = self._setup_var_map_for_instruction(instr, base_ptr)
             all_var_maps.append(current_var_map)
 
-            for op in instr.operands:
+            for op_idx, op in enumerate(instr.operands):
                 if op and op.conditions:
                     for conds in op.conditions:
+                        operand_ptr = self._canonical_operand_ptr(instr, base_ptr, op_idx)
+                        special = self._special_condition(conds.get("value"), operand_ptr, pattern)
+                        if special:
+                            conditions.add(special)
+                            continue
+
                         base: str = self.gen_info.get("conditions").get(conds.get("value"))
                         if base:
                             conditions.add(self._apply_condact_template(base, *current_var_map.values()))
@@ -630,6 +647,58 @@ class CodeGenerator:
 
         b.line("/* This is a generated code. Don't change it, use the main.py instead. */")
         b.line("#include <lir/peephole/peephole.h>")
+        b.line("")
+        b.line("static unsigned long long _peephole_visit_counter = 100;")
+        b.line("")
+        b.open("static int _peephole_subject_is_read(lir_block_t* lh, lir_subject_t* subj)")
+        b.line("return LIR_is_readop(lh->op) && (")
+        b.level += 1
+        b.line("LIR_subj_equals(lh->farg, subj) ||")
+        b.line("LIR_subj_equals(lh->sarg, subj) ||")
+        b.line("LIR_subj_equals(lh->targ, subj)")
+        b.level -= 1
+        b.line(");")
+        b.close()
+        b.line("")
+        b.open("static int _peephole_subject_is_overwritten(lir_block_t* lh, lir_subject_t* subj)")
+        b.line("return LIR_is_movop(lh->op) &&")
+        b.level += 1
+        b.line("LIR_subj_equals(lh->farg, subj) &&")
+        b.line("!LIR_subj_equals(lh->sarg, subj) &&")
+        b.line("!LIR_subj_equals(lh->targ, subj);")
+        b.level -= 1
+        b.close()
+        b.line("")
+        b.open("static int _peephole_subject_dead_after_rec(long pred, cfg_block_t* bb, lir_subject_t* subj, lir_block_t* start)")
+        b.line("if (!bb) return 1;")
+        b.open("if (bb->visited != _peephole_visit_counter)")
+        b.line("set_free(&bb->visitors);")
+        b.line("set_init(&bb->visitors, SET_NO_CMP);")
+        b.close()
+        b.line("")
+        b.line("if (set_has(&bb->visitors, (void*)pred)) return 1;")
+        b.line("bb->visited = _peephole_visit_counter;")
+        b.line("set_add(&bb->visitors, (void*)pred);")
+        b.line("")
+        b.line("lir_block_t* lh = start ? start : bb->lmap.entry;")
+        b.open("while (lh && lh != bb->lmap.exit)")
+        b.open("if (!lh->unused)")
+        b.line("if (_peephole_subject_is_overwritten(lh, subj)) return 1;")
+        b.line("if (_peephole_subject_is_read(lh, subj)) return 0;")
+        b.close()
+        b.line("lh = LIR_get_next(lh, bb->lmap.exit, 1);")
+        b.close()
+        b.line("")
+        b.line("return _peephole_subject_dead_after_rec(bb->id, bb->l, subj, NULL) &&")
+        b.line("       _peephole_subject_dead_after_rec(bb->id, bb->jmp, subj, NULL);")
+        b.close()
+        b.line("")
+        b.open("static int _peephole_subject_dead_after(cfg_block_t* bb, lir_subject_t* subj, lir_block_t* start)")
+        b.line("if (!subj) return 1;")
+        b.line("_peephole_visit_counter++;")
+        b.line("return _peephole_subject_dead_after_rec(-1, bb, subj, start);")
+        b.close()
+        b.line("")
         b.open("int peephole_first_pass(cfg_block_t* bb)")
         b.line("int optimized = 0;")
         b.line("lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);")

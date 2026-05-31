@@ -166,7 +166,11 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long o
         }
         
         if (overrite_size != FIELD_NO_CHANGE) c_ti->memory.size = overrite_size;
-        p_ti->memory.size += ALIGN(c_ti->memory.size, p_ti->memory.align);
+        if (p_ti->memory.align != -1) p_ti->memory.size += ALIGN(c_ti->memory.size, p_ti->memory.align);
+        else {
+            p_ti->memory.size += ALIGN(c_ti->memory.size, c_ti->memory.size);
+            p_ti->memory.size = ALIGN(p_ti->memory.size, c_ti->memory.size);
+        }
         return 1;
     }
 
@@ -193,8 +197,16 @@ long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* c
     long offset = 0;
     foreach (symbol_id_t c_id, &p_ti->link.c) {
         if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
-        if (tc_id == c_id) return offset;
-        offset += ALIGN(c_ti->memory.ptr ? CONF_get_full_bytness() : c_ti->memory.size, p_ti->memory.align);
+        long size = c_ti->memory.ptr ? CONF_get_full_bytness() : c_ti->memory.size;
+        if (p_ti->memory.align == -1) {
+            offset = ALIGN(offset, size);
+            if (tc_id == c_id) return offset;
+            offset += size;
+        }
+        else {
+            if (tc_id == c_id) return offset;
+            offset += ALIGN(size, p_ti->memory.align);
+        }
     }
 
     return -1;

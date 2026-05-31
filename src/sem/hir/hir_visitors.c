@@ -558,11 +558,12 @@ int HIRWLKR_noret_assign(HIR_VISITOR_ARGS) {
         !FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)
     ) return 1;
 
-    if (!fi.rtype || fi.rtype->t->t_type == I0_TYPE_TOKEN) {
+    if (
+        !fi.rtype || 
+        (fi.rtype->t->t_type == I0_TYPE_TOKEN && !fi.rtype->t->flags.ptr)
+    ) {
         trace_t trace;
         TRACE_init_trace(&trace);
-
-
         TRACE_add_location(
             &trace, &ctx->curr_location, 
             "Function '%s' doesn't return any value, but it used as a value. Consider to change the return type.",

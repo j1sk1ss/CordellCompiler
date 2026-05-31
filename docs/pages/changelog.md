@@ -1,8 +1,6 @@
 # CPL changelog
 Logs for the first and second versions are quite short because I don’t remember exactly what was introduced and when. However, this page lists most of the major changes. In fact, it was created mainly to document the project’s evolution in a clear way, without a need to read through all of the commits.
 
-`First recorded` dates are taken from git history and mean the first commit where the changelog entry text was found. For older entries, the search includes the previous changelog path and the root project README, because the changelog was moved during documentation restructuring.
-
 ## Structure
 ```
 ...
@@ -55,6 +53,16 @@ smt[0][0] = 0;
 ```
 
 This is a major change, but it doesn't change anything visual, which means it won't receive a lot of attention, but it still important.
+
+## Containers!: Like C annotation
+<div class="change-date">Date: 2026-05-28</div>
+It is essential to support C library, which means we need to prepare our containers and the compiler's ABI to work with C properly. No you're able to make containers to be C-like:
+
+```cpl
+@[like_c]
+container a {
+}
+```
 
 ## Containers!: Methods and Static functions
 <div class="change-date">Date: 2026-05-23</div>
@@ -149,6 +157,7 @@ arr b[10, a]; :/ Illegal! /:
 ## inline annotation
 <div class="change-date">Date: 2026-05-21</div>
 Add an annotation which helps the compiler to figure out whether he should or not inline a function. This annotation works the same as it does the similar annotation in Rust language. For instance:
+
 ```cpl
 @[inline] function foo(); :/ Function will be inlined with higher odds /:
 @[inline(always)] function bar(); :/ Will inline the function under any circumstances /:
@@ -166,6 +175,7 @@ ABI requires us to support register arguments as well as we support stack argume
 ## neg
 <div class="change-date">Date: 2026-05-19</div>
 Now the compiler has a mechanism to invert the variable on bitness level. To perform this, you can use the next keyword:
+
 ```cpl
 u8 a = neg 1; : 254 :
 ```
@@ -205,11 +215,13 @@ Check whether it better to add an annotation or not.
 <div class="change-date">Date: 2026-04-18</div>
 The static analysis tool now accepts the 'syscall' keyword. At this point, we have MACHO support ('cause I'm testing this on my MacBook tho). </br>
 The support implies that the analyzer will check if all of the arguments are correct typed for a selected syscall number. For instance:
+
 ```cpl
 syscall(0x2000004, 1, 1, 12);
 ```
 
 This is a write syscall from MACHO, and the second arguments is a STDIN / STDOUT (destination), the third one is a buffer pointer and the last one - the size of a buffer. In the case, I've passed '1' as a buffer, and it reveals that I need to cast it (at least):
+
 ```cpl
 start() {
     syscall(0x2000004, 1, 1, 12);
@@ -230,6 +242,7 @@ This little change addresses the issue with cast problems. The compiler heavily 
 <div class="change-date">Date: 2026-04-18</div>
 I've faced a lot of troubles with a support of a 'ptr str' object. It does the same what does a 'ptr i8' object, but must be threated separatly, which creates a lot of complex cases. Hense, it's a lot easier to just abolish the 'ptr str' syntax and suggest a user to use the 'ptr i8' alternative instead. It doesn't change any code generation or logic, it just says, that 'str' objects can be only on the stack, same as 'arr' objects. </br>
 You'd suggest to remove 'str's completely, but I have some plans in future to add support for an in-built string comparison. For instance, my plan is to recognize the below code as a valid code:
+
 ```cpl
 str msg = "Hello world!";
 if msg == some_pointer as ptr i8; {
@@ -242,6 +255,7 @@ Such an operation as the presented above **must** include some object which will
 ## Brainfuck!
 <div class="change-date">Date: 2026-04-17</div>
 Now the compiler compiles a brainfuck intepreter! The code below works!
+
 ```cpl
 function strlen(ptr i8 s) -> i32 {
     i32 l = 0;
@@ -336,6 +350,7 @@ Have fixed a lot of bugs with register allocation, liveness analysis, etc. Nothi
 ## Number types
 <div class="change-date">Date: 2026-03-29</div>
 The numbers in the compiler always were treated as `i64` values which isn't incorrect, but also isn't precise. To address this issue numbers now have the type based on its own value. For instance:
+
 ```cpl
 100 : i8 :
 130 : u8 :
@@ -349,6 +364,7 @@ P.S.: This allows the compiler move closer to the strong typing.
 ## Large comment blocks
 <div class="change-date">Date: 2026-03-29</div>
 Now the compiler supports the second set of a comment creation:
+
 ```cpl
 : COMMENT LINE :
 
@@ -360,6 +376,7 @@ This is: a comment too!
 ## Sizeof as a keyword
 <div class="change-date">Date: 2026-03-27</div>
 From the sizeof annotation to the sizeof keyword.
+
 ```cpl
 : old i32 len = @[sizeof]"Hello world"; :
 i32 len = sizeof("Hello world");
@@ -368,6 +385,7 @@ i32 len = sizeof("Hello world");
 ## Hidden return
 <div class="change-date">Date: 2026-03-25</div>
 Same as it does Rust, the compiler now recognizes the next syntax:
+
 ```cpl
 function simple() {
     10 + 10;
@@ -375,6 +393,7 @@ function simple() {
 ```
 
 The `return` statement now optional in cases, when we're talking about the last function's block. This feature is really usefull in terms of lambda functions:
+
 ```cpl
 : function logic(i32 a, i32 b, ptr i0 f); :
 logic(10, 123, (i32 a, i32 b) => { a + b * 100; });
@@ -386,6 +405,7 @@ foo((i32 a) => a * a);
 ## Lambdas!
 <div class="change-date">Date: 2026-03-24</div>
 Now the compiler supports lambda functions. Actually, this is a syntax sugar 'cause it copies the behaviour of local functions. The syntax is next:
+
 ```cpl
 ptr i0 f = (i32 a) => { return a; }
 ptr i0 f = () => { return 10; }
@@ -393,6 +413,7 @@ ptr i0 f = () => { return 10; }
 
 To start a lambda function definition you need to create a variable placeholder. Let's say we create an empty holder (i8 a). Now with the `=>` symbol we can define any logic in a scope. </br>
 Here is a set of possible lambdas:
+
 ```cpl
 function foo(ptr i0 f);
 foo((i32 a, i32 b) => { if 1; return a; return b; });
@@ -409,6 +430,7 @@ foo(
 ## Constant propagation thru parameters list
 <div class="change-date">Date: 2026-03-20</div>
 Now the constant propagation module supports propagation thru function call arguments. If we have function calls (or a function call) with the same arguments (at least on position in arguments the same) it will propagate input arguments (propagate folding further) to the function. For instance:
+
 ```cpl
 function foo(i32 a) {
     return a + 10;
@@ -420,6 +442,7 @@ start() {
 ```
 
 In the code above we will propagate the '10' to the function which will create the next code:
+
 ```cpl
 function foo(i32 a) {
     return 20;
@@ -436,6 +459,7 @@ This is a simple example, but it will work with a complext cases as well.
 <div class="change-date">Date: 2026-03-15</div>
 Now the information about file location is going to HIR via a special operation and a special subject. This feature allows to expand the static analysis to HIR part. For test I've added the NULL-dereference tester and the IF-tester. </br>
 The code now looks next:
+
 ```
 setpos, line=1, column=7, file=<unknown>
 {
@@ -467,6 +491,7 @@ setpos, line=3, column=13, file=<unknown>
 <div class="change-date">Date: 2026-03-12</div>
 Lazy logic operators are the default solution for logic in C language, and now, CPL supports the alternative approach. With this annotation the compiler will generate both sides before the final evaluation. </br>
 To see the difference, let's consider the next example:
+
 ```cpl
 function foo(); : Always returns 0 :
 function foo(i32 a);
@@ -479,6 +504,7 @@ The `a` variable will obtain '0' before evaluation of the 'foo(10)'. In contrast
 ## There is no basic scope anymore!
 <div class="change-date">Date: 2026-03-12</div>
 Eventually, the basic scope has gone. Now, the syntax is a lot closer to C:
+
 ```cpl
 function foo();
 start() {
@@ -501,6 +527,7 @@ P.S.: *It doesn't affect on the existed code, its behaviour or something like th
 ## Remove section, align and import keywords
 <div class="change-date">Date: 2026-03-11</div>
 Section and align was fully duplicated by annotations which is more convenient. The `import` isn't fits to a language's design from this point (headers fit better). </br>
+
 ```cpl
 : OLD
 align(16) {
@@ -522,6 +549,7 @@ align(16) {
 ## sizeof
 <div class="change-date">Date: 2026-03-09</div>
 With the `sizeof` annotation now it is possible to support the next code:
+
 ```cpl
 arr data[256, i32];
 i32 index = 0;
@@ -531,6 +559,7 @@ while index < @[sizeof]data; {
 ```
 
 This annotation will give you exact size in bytes of an object:
+
 ```cpl
 @[sizeof]1; : Will return max bytness of the system :
 
@@ -551,6 +580,7 @@ function foo();
 <div class="change-date">Date: 2026-03-04</div>
 Now the compiler has the `register` annotation. It merely links a variable (only a variable) with the specific system register (index). </br>
 P.S.: *Strongly depends on the target architecture.*
+
 ```cpl
 #define RAX 0
 @[register(RAX)] i32 a = 1;
@@ -562,6 +592,7 @@ mov rax, 1
 ## Cold/Hot
 <div class="change-date">Date: 2026-03-03</div>
 With the `hot` and `cold` annotations now it becomes possible to generate cold sections. It works with simple ifs (if-else) and switches. For instance:
+
 ```cpl
 @[cold] if 1; { : IF1 :
     : something :
@@ -572,6 +603,7 @@ else { : ELSE1 :
 ```
 
 The `cold` annotation will move the `IF1` branch to the end of a function and save the `ELSE1` branch. The same situation with the `switch` statement with one change - the `switch` doesn't support `hot` annotations (they just can't figure it out which sections will go to cold. They all?). For instance:
+
 ```cpl
 @[no_fall]
 switch 1; {
@@ -590,6 +622,7 @@ I remember that CPL is a system programming language which means it can handle t
 ## Align and Section keyword
 <div class="change-date">Date: 2026-02-28</div>
 For system programming is essential to have the 'section' and the 'align' modifiers. Now the compiler supports the next syntax:
+
 ```cpl
 section(".text") {
     glob i32 a;
@@ -606,6 +639,7 @@ section(".text") {
 ## Annotations
 <div class="change-date">Date: 2026-02-28</div>
 The second way of the section and align (not only) definition - is an annotation. The syntax is similar to Rust:
+
 ```cpl
 @[section(".text")]
 @[naked]
@@ -627,12 +661,14 @@ The `align` and the `section` keywords do the same work as it do annotations but
 ## i0 variable type
 <div class="change-date">Date: 2026-02-25</div>
 The `i0` variable type now is possible to use for variables. 
+
 ```cpl
 ptr i0 a;
 ```
 
 It must have the `ptr` keyword/s. Otherwise it won't work. </br>
 Also, now the pointer function by default is the `ptr i0` type.
+
 ```cpl
 function foo();
 ptr i0 a = foo;
@@ -642,6 +678,7 @@ a();
 ## Local functions
 <div class="change-date">Date: 2026-02-25</div>
 Same as in Rust, functions can define another functions in their body:
+
 ```cpl
 function foo() -> i0 {
     function bar() -> i32 {
@@ -652,6 +689,7 @@ function foo() -> i0 {
 ```
 
 These functions can be optimized as a regular one. Also, these functions (at this moment) don't have any access for outer variables:
+
 ```cpl
 function var_decl() -> i0 {
     i32 a;
@@ -663,6 +701,7 @@ function var_decl() -> i0 {
 ```
 
 Also, such functions can be used as a return value when you want to implement something like a 'function factory':
+
 ```cpl
 function factory(i32 key) -> ptr u64 {
     switch key; {
@@ -690,6 +729,7 @@ start() {
 ## Scope functions
 <div class="change-date">Date: 2026-02-25</div>
 At this moment a pretty useless feature of the compiler:
+
 ```cpl
 {
     function foo();
@@ -698,11 +738,13 @@ At this moment a pretty useless feature of the compiler:
     function foo();
 }
 ```
+
 Scopes now participate in function symbol resolution.
 
 ## Function return type new semantic
 <div class="change-date">Date: 2026-02-17</div>
 The semantic of the CPL has moved a bit towards Rust language. Now instead of the '=>' as a rtype, you will need to use the '->'.
+
 ```cpl
 function foo() -> i0; : instead of function foo() => i0; :
 ```
@@ -712,6 +754,7 @@ It wasn't possible before due to the lack of tokenizer's abillities. Now it's po
 ## Pointer calls
 <div class="change-date">Date: 2026-02-17</div>
 Now the compiler supports function pointers! One disadvantage here: Pointed functions aren't able to support the default-args and function-overloads. To use it, you can consider the next example:
+
 ```cpl
 {
     function foo(i32 a) => i32 {
@@ -731,12 +774,14 @@ Old (or traditional) function calls work the same as before this update.
 ## Matricies!
 <div class="change-date">Date: 2026-02-15</div>
 Now the compiler supports multi-indexation!
+
 ```cpl
 extern ptr ptr u32 matrix;
 matrix[0][0] = 1;
 ```
 
 To declare matricies, you will still need to use regular arrays:
+
 ```cpl
 arr a[2, u32];
 arr b[2, u32];
@@ -749,25 +794,23 @@ c[1][0] = 1; : b[0] :
 ## if-elseif-else syntax support
 <div class="change-date">Date: 2026-02-13</div>
 Now this compiler supports the next code snippet:
+
 ```cpl
 if a; {
-
 }
 else if b; {
-
 }
 else if c; {
-
 }
-: ... :
+:/ ... /:
 else {
-    
 }
 ```
 
 ## Function overloads (basics)
 <div class="change-date">Date: 2026-02-17</div>
 CorellCompiler now supports overloaded functions. The symtax is below:
+
 ```cpl
 {
     function chloe(i32 a, i32 b = 10) => i0;
@@ -781,11 +824,13 @@ CorellCompiler now supports overloaded functions. The symtax is below:
 ```
 
 The idea that HIR level can choose a function that supports the input arguments. To help the compiler, use the `as` keyword. Additionally, functions with the 'default' argument, for instance:
+
 ```cpl
 function chloe(i32 a, i32 b = 10) => i0;
 ```
 
 can't support such polymorphism. The example above works given the same number of the arguemnts. If we consider the next example:
+
 ```
 function chloe(i32 a, i16 b = 10) => i0;
 function chloe(i32 a, i32 b = 10, i32 c = 10) => i0;
@@ -796,12 +841,14 @@ this mechanism won't work.
 ## Variadic arguments
 <div class="change-date">Date: 2026-01-19</div>
 Now CPL supports variadic arguments! The syntax is similar to C language:
+
 ```cpl
 function foo(...) -> i0 {
 }
 ```
 
 To pop an argument from this set, use the `poparg` keyword:
+
 ```cpl
 function max(...) -> i0 {
     i32 chloe = poparg as i32;
@@ -809,6 +856,7 @@ function max(...) -> i0 {
 ```
 
 Also, the `poparg` keyword can be used in any function with arguments. It simply replaces any argument loading:
+
 ```cpl
 function foo(i32 a, i32 b) {
     i32 c = poparg as i32; : a :
@@ -821,6 +869,7 @@ function foo(i32 a, i32 b) {
 CPL preprocessing directives and a new include system. </br>
 Now this compiler supports directives such as `define`, `undef`, `ifdef` and `ifndef`. It also supports the `include` statement. For more information, check the main README file. </br>
 For instance let's consider the next piece of code:
+
 ```cpl
 : string_h.cpl :
 {
@@ -874,6 +923,7 @@ For instance let's consider the next piece of code:
 ```
 
 After the PP, we will get a new form of the code:
+
 ```cpl
 {
 #line 0 "/Users/nikolaj/Documents/Repositories/CordellCompiler/tests/dummy_data/print_h.cpl"
@@ -909,12 +959,14 @@ The `line` directive here serves only one purpose: it tells the tokenizer where 
 ## LiS message
 <div class="change-date">Date: 2026-01-05</div>
 The `lis` statement now accepts a message for a convenient debug.
+
 ```cpl
 lis;                 : <= Old, but still recognizeble by the compiler :
 lis "Debug line #1"; : <= New :
 ```
 
 These messages will be placed in a final `.asm` file. With the `gdb` the source decompiled file will provide a line where it stops. Produced `.asm` file will include these comments as showed below:
+
 ```asm
 mov rax, 1
 int3 ; Debug line #1
@@ -923,6 +975,7 @@ int3 ; Debug line #1
 ## neg, ref and dref now have their own parser
 <div class="change-date">Date: 2026-01-04</div>
 Previously, these staements were affect as flags in tokens. Such a mechanic was unconvenient in cases like below:
+
 ```cpl
 i32 a = not (c + b);
 dref (a + 0x7C00) = 0xDEADBEEF;
@@ -934,6 +987,7 @@ Now these statements have their own AST and HIR handlers.
 <div class="change-date">Date: 2026-01-03</div>
 The CPL language now supports the casting operation. </br>
 For instance:
+
 ```cpl
 i32 a = 10 as i32;
 i32 b = 10 as i32;
@@ -954,6 +1008,7 @@ Implement the next list of operators:
 ## Loop statement
 <div class="change-date">Date: 2026-01-01</div>
 Now the `CPL` supports the `loop` statement!
+
 ```cpl
 loop {
     break;
@@ -965,6 +1020,7 @@ This statement the same with the `loop` from Rust.
 ## Break statement
 <div class="change-date">Date: 2026-01-01</div>
 Now the `CPL` supports the `break` statement!
+
 ```cpl
 while 1; {
     break;
@@ -991,6 +1047,7 @@ For optimization purpose was implemented a string object. This object responses 
 # Version v3.2
 <div class="change-date">Date: 2025-11-27</div>
 Now I'm working in the ISP RAS as Research Assistant in the Compiler Department (Static Analyzation team). With some additional experience, now I'm able to implement static analysis in CPL. The basic module contains the semantic entry-point, ast and hir folders. AST folder contains entry point for AST-walker and AST-walker behaviour-scripts. Main idea is simple: We have a walker, that has linked list of actions for different node-types:
+
 ```c
 typedef enum {
     EXPRESSION_NODE  = 1 << 0,
@@ -1028,6 +1085,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
 ```
 
 The simplest handler is a ASTWLKR_ro_assign handler. Here is the it's source code:
+
 ```c
 // #define AST_VISITOR_ARGS ast_node_t* nd, sym_table_t* smt
 int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
@@ -1084,6 +1142,7 @@ Constant propagation based on DAG and updates data in variable's symtable (works
 
 ### LIR peephole optimization
 <div class="change-date">Date: 2025-11-09</div>
+
 | Original Instruction        | Optimized Instruction | Explanation |
 |-----------------------------|-----------------------|-------------|
 | `mov rax, 0`                | `xor rax, rax`        | Zeroes the register without writing to memory; resets flags; usually faster and smaller than `mov`. |
@@ -1106,6 +1165,7 @@ Regallocation moved from HIR level to LIR level. Planning to add support of line
 ### Instruction selection
 <div class="change-date">Date: 2025-11-02</div>
 Module for instruction selecting (template section) implemented. In few words: This module lower abstraction to be closer with target machine. Example below.
+
 ```lirv1
 fn strlen(i8* s) -> i64
 {
@@ -1144,6 +1204,7 @@ fn strlen(i8* s) -> i64
 ```
 
 Transforms into the code with the support of ABI and specific machine registers (`rax`, `rbx`, `rcx`):
+
 ```lirv2
 fn strlen(i8* s) -> i64
 {
@@ -1201,6 +1262,7 @@ New LIR level. Instead straigthforward LIR generation, now this is a another 3AC
 ### Inlining 
 <div class="change-date">Date: 2025-11-01</div>
 Function inlined if it reach score higher than 2 points.
+
 ```c
 static int _inline_candidate(cfg_func_t* f, cfg_block_t* pos) {
     if (!f) return 0;
@@ -1253,6 +1315,7 @@ HIR_DAG_sparse_const_propagation function was implemented. Also there is the new
 ### Debug features of CPL
 <div class="change-date">Date: 2025-11-01</div>
 Additional instruction called `lis` (Interesting abbreviation, isn't? This is a LinearIsStop? or is a LiveInputStage? Or... nevermind) and used for setting breakpoints in the code. For example:
+
 ```cpl
 start() {
     i32 a = 10;
@@ -1321,6 +1384,7 @@ Some improvements in typing (now we're able to use Rust-like statements such as 
 # Version v1
 <div class="change-date">Date: 2025-10-21</div>
 This is the first version of this compiler. The last commit before v2 was in the middle of summer of 2025. Main features of this version is a [`token` -> `AST` -> `ASM`] structure, basic `NASM`-syntax code generation, examples like `brainfuck interpreter`, etc. The most interesting part, in my opinion, is the syntax:
+
 ```cplv1
 function itoa ptr buffer; int dsize; int num; {
     int index = dsize - 1;
@@ -1374,6 +1438,7 @@ exit 1;
 ```
 
 Here is a sample from the old README of a function declaration:
+
 ```cplv1
 function [name] [type1] arg1; [type2] arg2; ...; fstart 
 : code ... :
@@ -1381,6 +1446,7 @@ fend [expression]; : return value :
 ```
 
 Functions were able to handle only the one possible output. Also these functions were have only one possible exit: `fend`. Similar situation with the `if` statement:
+
 ```cplv1
 if a > b; ifstart
 : code ... :
@@ -1388,6 +1454,7 @@ ifend
 ```
 
 Also that's how I was thinking users should define arrays:
+
 ```cplv1
 arr sarr 5 int = 1 2 3 4 5;
 ```

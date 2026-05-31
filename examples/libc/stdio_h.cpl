@@ -1,0 +1,62 @@
+#ifndef CPL_STDIO_H_
+#define CPL_STDIO_H_ 0
+
+#include "stddef_h.cpl"
+#include "types_h.cpl"
+
+#define EOF          -1
+#define SEEK_SET     0
+#define SEEK_CUR     1
+#define SEEK_END     2
+#define BUFSIZ       8192
+#define FILENAME_MAX 4096
+#define FOPEN_MAX    16
+#define TMP_MAX      238328
+#define L_tmpnam     20
+
+extern function remove(ptr i8 path) -> i32;
+extern function rename(ptr i8 old_path, ptr i8 new_path) -> i32;
+extern function tmpfile() -> ptr cpl_file;
+extern function tmpnam(ptr i8 s) -> ptr i8;
+
+extern function fclose(ptr cpl_file stream) -> i32;
+extern function fflush(ptr cpl_file stream) -> i32;
+extern function fopen(ptr i8 path, ptr i8 mode) -> ptr i8;
+extern function freopen(ptr i8 path, ptr i8 mode, ptr cpl_file stream) -> ptr i8;
+extern function setbuf(ptr cpl_file stream, ptr i8 buf) -> i0;
+extern function setvbuf(ptr cpl_file stream, ptr i8 buf, i32 mode, u64 size) -> i32;
+
+extern function fprintf(ptr cpl_file stream, ptr i8 fmt, ...) -> i32;
+extern function fscanf(ptr cpl_file stream, ptr i8 fmt, ...) -> i32;
+extern function printf(ptr i8 fmt, ...) -> i32;
+extern function scanf(ptr i8 fmt, ...) -> i32;
+extern function snprintf(ptr i8 s, u64 n, ptr i8 fmt, ...) -> i32;
+extern function sprintf(ptr i8 s, ptr i8 fmt, ...) -> i32;
+extern function sscanf(ptr i8 s, ptr i8 fmt, ...) -> i32;
+
+extern function fgetc(ptr cpl_file stream) -> i32;
+extern function fgets(ptr i8 s, i32 n, ptr cpl_file stream) -> ptr i8;
+extern function fputc(i32 c, ptr cpl_file stream) -> i32;
+extern function fputs(ptr i8 s, ptr cpl_file stream) -> i32;
+extern function getc(ptr cpl_file stream) -> i32;
+extern function getchar() -> i32;
+extern function gets(ptr i8 s) -> ptr i8;
+extern function putc(i32 c, ptr cpl_file stream) -> i32;
+extern function putchar(i32 c) -> i32;
+extern function puts(ptr i8 s) -> i32;
+extern function ungetc(i32 c, ptr cpl_file stream) -> i32;
+
+extern function fread(ptr i0 pointer, u64 size, u64 count, ptr cpl_file stream) -> u64;
+extern function fwrite(ptr i0 pointer, u64 size, u64 count, ptr cpl_file stream) -> u64;
+extern function fgetpos(ptr cpl_file stream, ptr i0 pos) -> i32;
+extern function fseek(ptr cpl_file stream, i64 offset, i32 whence) -> i32;
+extern function fsetpos(ptr cpl_file stream, ptr i0 pos) -> i32;
+extern function ftell(ptr cpl_file stream) -> i64;
+extern function rewind(ptr cpl_file stream) -> i0;
+
+extern function clearerr(ptr cpl_file stream) -> i0;
+extern function feof(ptr cpl_file stream) -> i32;
+extern function ferror(ptr cpl_file stream) -> i32;
+extern function perror(ptr i8 s) -> i0;
+
+#endif

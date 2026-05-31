@@ -53,9 +53,10 @@ lir_subject_t* LIR_copy_subject(lir_subject_t* s) {
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(lir_subject_t));
 
-    subj->t    = s->t;
-    subj->size = (char)s->size;
-    subj->id   = _curr_id++;
+    subj->t     = s->t;
+    subj->size  = s->size;
+    subj->dsize = s->dsize;
+    subj->id    = _curr_id++;
 
     switch (s->t) {
         case LIR_ARGLIST: {

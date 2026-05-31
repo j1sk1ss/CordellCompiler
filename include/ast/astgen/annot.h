@@ -7,6 +7,7 @@
 // TODO: union annotation
 #define ENTRY_ANNOTATION_COMMAND "entry"
 #define ALIGN_ANNOTATION_COMMAND "align"
+#define LIKEC_ANNOTATION_COMMAND "like_c"
 #define NAKED_ANNOTATION_COMMAND "naked"
 #define SECTN_ANNOTATION_COMMAND "section"
 #define NOSEC_ANNOTATION_COMMAND "nosection"
@@ -48,6 +49,7 @@ typedef struct {
     char      is_cold     : 1;
     char      is_argpop   : 1;
     char      is_self     : 1;
+    char      is_like_c   : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -67,7 +69,8 @@ typedef enum {
     REGISTER_ANNOTATION,  /* Will link the selected register to a decl  */
     POPARG_ANNOTATION,    /* Will pop value from the stack to a linked  */
     INLINE_ANNOTATION,    /* Will change inline decider result          */
-    SELF_ANNOTATION,    /* Will tell devirt that a function is static */
+    SELF_ANNOTATION,      /* Will tell devirt that a function is static */
+    LIKEC_ANNOTATION,     /* Will tell container to generate C offsets  */
 } annotation_type_t;
 
 typedef struct {

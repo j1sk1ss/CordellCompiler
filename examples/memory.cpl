@@ -8,8 +8,8 @@ container mm_node {
     ptr mm_node next;
 }
 
-glob arr _mm_head[ALLOC_BUFFER_SIZE, u8];
-glob ptr u8 _head;
+@[section(".bss")] glob arr _mm_head[ALLOC_BUFFER_SIZE, u8];
+glob ptr u8 _head = 0;
 
 function init() -> i0 {
     _head = (ref _mm_head) as ptr u8;
@@ -72,17 +72,19 @@ function dealloc(ptr i0 mem) -> i0 {
     block.free = 1;
 }
 
+@[entry("main")]
 start() {
     init();
-    ptr u8 buffer = malloc(10) as ptr u8;
+    ptr u8 buffer = malloc(10 as i64) as ptr u8;
     buffer[0] = 'M';
     buffer[1] = 'a';
     buffer[2] = 'x';
     buffer[3] = '\n';
-    syscall(0x2000004, 1, buffer, 4);
-    dealloc(buffer);
-    buffer = malloc(10) as ptr u8;
+    syscall(1, 1, buffer, 4);
+    dealloc(buffer as ptr i0);
+    buffer = malloc(10 as i64) as ptr u8;
     buffer[0] = 'A';
     buffer[1] = 'M';
-    syscall(0x2000004, 1, buffer, 4);
+    syscall(1, 1, buffer, 4);
+    exit 0;
 }

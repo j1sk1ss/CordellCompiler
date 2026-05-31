@@ -1,7 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
-// TODO: docs
-static hir_subject_t* _point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t* field_info, sym_table_t* smt) {
+hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t* field_info, sym_table_t* smt) {
     hir_subject_t* base = NULL;
     if (
         !root->c || !root->c->t || 
@@ -12,7 +11,7 @@ static hir_subject_t* _point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_inf
     }
     else {
         type_info_t parent_field;
-        base = _point_to_field(root->c, ctx, &parent_field, smt);
+        base = HIR_point_to_field(root->c, ctx, &parent_field, smt);
         variable_info_t parent_var;
         if (
             parent_field.t != TYPE_ARRAY &&
@@ -62,7 +61,8 @@ static hir_subject_t* _load_array_field_head(hir_subject_t* head, array_info_t* 
 hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
     type_info_t ti;
-    hir_subject_t* head = _point_to_field(node, ctx, &ti, smt);
+    hir_subject_t* head = HIR_point_to_field(node, ctx, &ti, smt);
+
     array_info_t ai;
     if (
         ti.t == TYPE_ARRAY && 
@@ -80,16 +80,10 @@ hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx,
     return value;
 }
 
-hir_subject_t* HIR_generate_ref_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
-    HIR_SET_CURRENT_POS(ctx, node);
-    type_info_t ti;
-    return _point_to_field(node, ctx, &ti, smt);
-}
-
 int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
     type_info_t ti;
-    hir_subject_t* head = _point_to_field(node, ctx, &ti, smt);
+    hir_subject_t* head = HIR_point_to_field(node, ctx, &ti, smt);
 
     variable_info_t vi;
     VRTB_get_info_id(ti.link.v_id, &vi, &smt->v);
@@ -105,7 +99,7 @@ int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_
     hir_subject_t* target = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, NULL, &smt->v));
     target->ptr = head->ptr;
     
-    HIR_BLOCK2(ctx, HIR_STORE, target, head);
+    HIR_BLOCK2(ctx, HIR_TPTR, target, head);
     HIR_BLOCK2(ctx, HIR_LDREF, target, HIR_generate_implconv(ctx, tmp.flags.ptr, HIR_get_tmptype_tkn(&tmp, 0), data, smt));
     return 1;
 }
