@@ -1,4 +1,3 @@
-: ONLY_THIS :
 container node {
     i32 a;
     i32 b;
@@ -35,5 +34,4 @@ start() {
         }
     }
 }
-<<ERROR>>	Memory leak!	336 != 0!
 /:

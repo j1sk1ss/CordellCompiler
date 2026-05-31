@@ -18,6 +18,11 @@ Returns an AST node.
 */
 static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
 
+#define WRAP_REFERENCE_NODE(nd) \
+    ast_node_t* __pp = AST_create_node_bt(TKN_create_token(REF_TYPE_TOKEN, "ref", NULL)); \
+    AST_add_node(__pp, nd);                                                               \
+    nd = __pp;                                                                            \
+
 /*
 Parse expression that looks like: <stmt> <op> <stmt>. 
 Note: <stmt> here can be either a simple <(a..> or a complex sub-stmt.
@@ -164,7 +169,11 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                             VRTB_get_info_id(self_ti.link.v_id, &self_vi, &smt->v);
                             if (
                                 (!self_vi.vfs.ptr && self_ti.link.p != NO_SYMBOL_ID) ||
-                                (!left->self->t->flags.ptr && self_ti.link.p == NO_SYMBOL_ID)
+                                (
+                                    !left->self->t->flags.ptr &&                 /* If self doesn't referenced                       */
+                                    left->self->t->t_type != INDEXATION_TOKEN && /* Any indexation operation already have referenced */
+                                    self_ti.link.p == NO_SYMBOL_ID               /* And this isn't a field in a container            */
+                                )
                             ) {
                                 WRAP_REFERENCE_NODE(left->self);
                             }

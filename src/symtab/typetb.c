@@ -10,7 +10,7 @@ static type_info_t* _create_type_info(string_t* name) {
     info->link.name = NULL;
     info->link.p    = NO_SYMBOL_ID;
     info->link.v_id = NO_SYMBOL_ID;
-    info->token_type = UNKNOWN_STRING_TOKEN;
+    info->tt        = UNKNOWN_STRING_TOKEN;
     if (name) info->name = name->copy(name);
     else info->name = NULL;
     str_memset(&info->memory, 0, sizeof(info->memory));
@@ -27,12 +27,12 @@ symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int a
     info->s_id         = s_id;
     info->t            = t;
     switch (t) {
-        case TYPE_GENERICS:  info->token_type = GENERIC_TYPE_TOKEN; break;
-        case TYPE_CUSTOM:    info->token_type = CUSTOM_TYPE_TOKEN;  break;
-        case TYPE_METHOD:    info->token_type = FUNC_TOKEN;         break;
-        case TYPE_ARRAY:     info->token_type = ARRAY_TYPE_TOKEN;   break;
+        case TYPE_GENERICS:  info->tt = GENERIC_TYPE_TOKEN; break;
+        case TYPE_CUSTOM:    info->tt = CUSTOM_TYPE_TOKEN;  break;
+        case TYPE_METHOD:    info->tt = FUNC_TOKEN;         break;
+        case TYPE_ARRAY:     info->tt = ARRAY_TYPE_TOKEN;   break;
         case TYPE_PRIMITIVE:
-        default:             info->token_type = UNKNOWN_STRING_TOKEN; break;
+        default:             info->tt = UNKNOWN_STRING_TOKEN; break;
     }
     info->memory.align = align;
     map_put(&ctx->typetb, info->id, info);
@@ -50,7 +50,7 @@ symbol_id_t TPTB_add_copy(symbol_id_t id, symbol_id_t nv_id, int ptr, typetab_ct
     info->p            = id;
     info->s_id         = ti->s_id;
     info->t            = ti->t;
-    info->token_type   = ti->token_type;
+    info->tt   = ti->tt;
     info->memory.size  = ti->memory.size;
     info->memory.ptr   = ptr;
     info->link.p       = ti->link.p;
@@ -70,7 +70,7 @@ static inline symbol_id_t _get_type_by_token(token_t* t, typetab_ctx_t* ctx) {
     if (!t) return NO_SYMBOL_ID;
     if (t->t_type == ARRAY_TYPE_TOKEN) return NO_SYMBOL_ID;
     map_foreach (type_info_t* ti, &ctx->typetb) {
-        if (ti->token_type != t->t_type || ti->memory.ptr != t->flags.ptr) continue;
+        if (ti->tt != t->t_type || ti->memory.ptr != t->flags.ptr) continue;
         if (ti->link.v_id != NO_SYMBOL_ID || ti->link.name) continue;
         if (!t->body && !ti->name) return ti->id;
         if (t->body && ti->name && t->body->equals(t->body, ti->name)) return ti->id;
@@ -90,7 +90,7 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v
     info->id         = ctx->curr_id++;
     info->s_id       = s_id;
     info->memory.ptr = t->flags.ptr;
-    info->token_type = t->t_type;
+    info->tt         = t->t_type;
 
     switch (t->t_type) {
         case GENERIC_TYPE_TOKEN:
@@ -218,7 +218,7 @@ type_type_t TPTB_get_type_type_id(symbol_id_t id, typetab_ctx_t* ctx) {
 
 token_type_t TPTB_get_token_type_id(symbol_id_t id, typetab_ctx_t* ctx) {
     type_info_t* ti;
-    if (map_get(&ctx->typetb, id, (void**)&ti)) return ti->token_type;
+    if (map_get(&ctx->typetb, id, (void**)&ti)) return ti->tt;
     return CUSTOM_TYPE_TOKEN;
 }
 

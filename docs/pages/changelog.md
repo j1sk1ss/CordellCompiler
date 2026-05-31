@@ -36,6 +36,26 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Containers!: Arrays
+<div class="change-date">Date: 2026-05-31</div>
+Containers now can be packed in an array:
+```cpl
+container str {
+    ptr i8 body;
+    i32    size;
+}
+
+arr smth[10, str];
+```
+
+Also, this update has changed type system, that's why now we can create matricies:
+```cpl
+arr smt[10, arr[10, i32]];
+smt[0][0] = 0;
+```
+
+This is a major change, but it doesn't change anything visual, which means it won't receive a lot of attention, but it still important.
+
 ## Containers!: Methods and Static functions
 <div class="change-date">Date: 2026-05-23</div>
 Container can contain a function. There is no hidden pointer or whatsoever:

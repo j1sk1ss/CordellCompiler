@@ -1,4 +1,3 @@
-: ONLY_THIS :
 start() {
     arr something[10, arr[10, i32]];
     ptr i32 a = ref something[0];
@@ -35,5 +34,4 @@ start() {
         }
     }
 }
-<<ERROR>>	Memory leak!	352 != 0!
 /:

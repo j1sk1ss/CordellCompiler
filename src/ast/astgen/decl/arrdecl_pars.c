@@ -83,17 +83,17 @@ static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_tab
     if (type->t->t_type != ARRAY_TYPE_TOKEN) {
         type->sinfo.t_id = type_lookup(type->t, ctx, smt);
         if (type->sinfo.t_id == NO_SYMBOL_ID) type->sinfo.t_id = TPTB_add_info_from_token(type->sinfo.s_id, type->t, NO_SYMBOL_ID, &smt->t);
-
         return type->sinfo.t_id;
     }
 
     ast_node_t* length     = type->c;
     ast_node_t* elem_type  = length ? length->siblings.n : NULL;
     long long const_length = -1;
-    if (length && length->t->t_type == UNKNOWN_NUMERIC_TOKEN) {
-        const_length = length->t->body->to_llong(length->t->body);
-    }
-
+    if (
+        length && 
+        length->t->t_type == UNKNOWN_NUMERIC_TOKEN
+    ) const_length = length->t->body->to_llong(length->t->body);
+    
     _resolve_array_type(elem_type, ctx, smt);
     long size = _get_array_field_size(const_length, elem_type, ctx, smt);
     type->sinfo.t_id = TPTB_add_info_from_token(type->sinfo.s_id, type->t, NO_SYMBOL_ID, &smt->t);

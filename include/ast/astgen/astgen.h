@@ -25,11 +25,6 @@
 #define CREATE_LAMBDA_TOKEN TKN_create_token(LAMBDA_FUNCTION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_ACCESS_TOKEN TKN_create_token(MEMBER_ACCESS_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 
-#define WRAP_REFERENCE_NODE(nd) \
-    ast_node_t* __pp = AST_create_node_bt(TKN_create_token(REF_TYPE_TOKEN, "ref", NULL)); \
-    AST_add_node(__pp, nd);                                                               \
-    nd = __pp;                                                                            \
-
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
         stderr,                                                                                  \
