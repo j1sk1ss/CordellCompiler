@@ -182,6 +182,10 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     ast_node_t* tmp = left;
                     left = target;
                     if (tmp) AST_add_node(left, tmp);
+                    if (
+                        tmp && 
+                        left->t->t_type == INDEXATION_TOKEN
+                    ) left->sinfo.t_id = TPTB_get_first_child(tmp->sinfo.t_id, &smt->t);
                     if (data) {
                         AST_add_node(left, data);
                         forward_token(it, 1);
@@ -271,8 +275,8 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
                 ast_node_t* node = NULL;
                 if (
-                    type != NO_SYMBOL_ID               || 
-                    TKN_is_builtin_type(CURRENT_TOKEN) || 
+                    type != NO_SYMBOL_ID ||
+                    TKN_is_builtin_type(CURRENT_TOKEN) ||
                     CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
                 ) node = cpl_parse_lambda(it, ctx, smt, 0);
                 else {

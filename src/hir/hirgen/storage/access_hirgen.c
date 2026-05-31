@@ -5,7 +5,12 @@ static hir_subject_t* _point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_inf
     if (
         !root->c || !root->c->t || 
         root->c->t->t_type != MEMBER_ACCESS_TOKEN
-    ) base = HIR_generate_elem(root->c, ctx, smt);
+    ) {
+        if (root->c && root->c->t && root->c->t->t_type == INDEXATION_TOKEN) {
+            base = HIR_generate_ref_indexation(root->c, ctx, smt);
+        }
+        else base = HIR_generate_elem(root->c, ctx, smt);
+    }
     else {
         type_info_t parent_field;
         base = _point_to_field(root->c, ctx, &parent_field, smt);

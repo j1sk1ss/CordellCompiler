@@ -18,17 +18,29 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
             type = AST_create_node(CURRENT_TOKEN);
             forward_token(it, 2);
             ast_node_t* arr_size = cpl_parse_expression(it, ctx, smt, carry);
-            ast_node_t* arr_type = _parse_array_type(it, ctx, smt, carry);
-            if (arr_type && arr_size) {
-                PARSE_ERROR("Can't create the size and the type for an array!");
-                AST_add_node(type, arr_size);
-                AST_add_node(type, arr_type);
+            if (CURRENT_TOKEN->t_type != COMMA_TOKEN) {
+                PARSE_ERROR("Can't parse nested array type! Expected the 'COMMA_TOKEN'!");
+                AST_unload(type);
+                AST_unload(arr_size);
                 RESTORE_TOKEN_POINT;
                 return NULL;
             }
+
+            ast_node_t* arr_type = _parse_array_type(it, ctx, smt, carry);
+            if (
+                arr_type && arr_size && 
+                consume_token(it, CLOSE_INDEX_TOKEN)
+            ) {
+                AST_add_node(type, arr_size);
+                AST_add_node(type, arr_type);
+            }
             else {
+                PARSE_ERROR("Can't create the size and the type for an array!");
+                AST_unload(type);
                 AST_unload(arr_size);
                 AST_unload(arr_type);
+                RESTORE_TOKEN_POINT;
+                return NULL;
             }
 
             break;
@@ -47,16 +59,47 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
     return type;
 }
 
-static long _get_array_field_size(long length, ast_node_t* type, sym_table_t* smt) {
-    if (!type || length < 0) return FIELD_NO_CHANGE;
-    if (type->t->flags.ptr) return length * CONF_get_full_bytness();
+static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_table_t* smt);
 
-    if (type->t->t_type == CUSTOM_TYPE_TOKEN && type->sinfo.t_id != NO_SYMBOL_ID) {
-        type_info_t ti;
-        if (TPTB_get_info_id(type->sinfo.t_id, &ti, &smt->t)) return length * ti.memory.size;
+static long _get_array_field_size(long length, ast_node_t* type, ast_ctx_t* ctx, sym_table_t* smt) {
+    if (!type || length < 0) return FIELD_NO_CHANGE;
+    if (type->sinfo.t_id == NO_SYMBOL_ID) type->sinfo.t_id = _resolve_array_type(type, ctx, smt);
+
+    long element_size = TPTB_get_memory_size_id(type->sinfo.t_id, &smt->t);
+    if (element_size == FIELD_NO_CHANGE) {
+        type->sinfo.t_id = TPTB_add_info_from_token(type->sinfo.s_id, type->t, NO_SYMBOL_ID, &smt->t);
+        element_size = TPTB_get_memory_size_id(type->sinfo.t_id, &smt->t);
     }
 
-    return length * TKN_convert_type_size(TKN_variable_bitness(type->t, 1));
+    return element_size == FIELD_NO_CHANGE ? FIELD_NO_CHANGE : length * element_size;
+}
+
+static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_table_t* smt) {
+    if (!type) return NO_SYMBOL_ID;
+    if (type->sinfo.t_id != NO_SYMBOL_ID) return type->sinfo.t_id;
+
+    /* Array of non-array types, we lazy create a type and checks whether it is a new
+       one */
+    if (type->t->t_type != ARRAY_TYPE_TOKEN) {
+        type->sinfo.t_id = type_lookup(type->t, ctx, smt);
+        if (type->sinfo.t_id == NO_SYMBOL_ID) type->sinfo.t_id = TPTB_add_info_from_token(type->sinfo.s_id, type->t, NO_SYMBOL_ID, &smt->t);
+
+        return type->sinfo.t_id;
+    }
+
+    ast_node_t* length     = type->c;
+    ast_node_t* elem_type  = length ? length->siblings.n : NULL;
+    long long const_length = -1;
+    if (length && length->t->t_type == UNKNOWN_NUMERIC_TOKEN) {
+        const_length = length->t->body->to_llong(length->t->body);
+    }
+
+    _resolve_array_type(elem_type, ctx, smt);
+    long size = _get_array_field_size(const_length, elem_type, ctx, smt);
+    type->sinfo.t_id = TPTB_add_info_from_token(type->sinfo.s_id, type->t, NO_SYMBOL_ID, &smt->t);
+    TPTB_set_memory_size_id(type->sinfo.t_id, size, &smt->t);
+    TPTB_link_child(type->sinfo.t_id, elem_type->sinfo.t_id, &smt->t);
+    return type->sinfo.t_id;
 }
 
 ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
@@ -178,10 +221,15 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
         forward_token(it, 1);
     }
-// TODO: register all types in types table, than use in hir everywhere 
+
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
+    _resolve_array_type(type, ctx, smt);
     name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &base->t->flags, &smt->v);
     ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, &type->t->flags, &smt->a);
+    base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);
+    TPTB_set_memory_size_id(base->sinfo.t_id, _get_array_field_size(const_length, type, ctx, smt), &smt->t);
+    TPTB_link_child(base->sinfo.t_id, type->sinfo.t_id, &smt->t);
+    VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);
     
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
     if (base->t->flags.glob || base->t->flags.ro) {
@@ -190,8 +238,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     }
 
     if (ctx->t_id != NO_SYMBOL_ID) {
-        base->sinfo.t_id = TPTB_add_info_from_token(base->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);
-        TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, _get_array_field_size(const_length, type, smt), &smt->t);
+        TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, _get_array_field_size(const_length, type, ctx, smt), &smt->t);
     }
 
     ANNOT_destroy_summary(&annots);

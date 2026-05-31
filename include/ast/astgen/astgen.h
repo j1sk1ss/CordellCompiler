@@ -64,7 +64,7 @@ Returns NO_SYMBOL_ID if it isn't a registered type or id from the table.
 */
 symbol_id_t type_lookup(token_t* t, ast_ctx_t* ctx, sym_table_t* smt);
 #define EXTRACT_TYPE_TYPE(id, smt) \
-    TPTB_get_type_type_id(id, &smt->t) == TYPE_GENERICS ? GENERIC_TYPE_TOKEN : CUSTOM_TYPE_TOKEN
+    TPTB_get_token_type_id(id, &smt->t)
 
 /*
 Search for a variable (presented in the node) on the symtable.

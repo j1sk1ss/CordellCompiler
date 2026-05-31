@@ -20,6 +20,17 @@ static int _get_pointed_element_size(hir_subject_t* base, sym_table_t* smt) {
         el_size = ai.elements_info.el_flags.ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmptype_tkn(&tmp, 0));
     }
 
+    variable_info_t vi;
+    if (
+        HIR_is_arrtype(base->t) &&
+        VRTB_get_info_id(base->storage.var.v_id, &vi, &smt->v) &&
+        vi.t_id != NO_SYMBOL_ID
+    ) {
+        symbol_id_t elem_type = TPTB_get_first_child(vi.t_id, &smt->t);
+        long type_size = TPTB_get_memory_size_id(elem_type, &smt->t);
+        if (type_size != FIELD_NO_CHANGE) el_size = type_size;
+    }
+
     return el_size;
 }
 
@@ -88,6 +99,15 @@ hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sy
     
     HIR_BLOCK2(ctx, HIR_GDREF, res, final_head);
     return res;
+}
+
+hir_subject_t* HIR_generate_ref_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    HIR_SET_CURRENT_POS(ctx, node);
+    hir_subject_t* base = HIR_generate_elem(node->c, ctx, smt);
+    hir_subject_t* offt = HIR_generate_elem(node->c->siblings.n, ctx, smt);
+
+    hir_subject_type_t indexed_type;
+    return _get_final_head(base, offt, ctx, smt, &indexed_type);
 }
 
 int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt) {

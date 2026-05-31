@@ -23,6 +23,7 @@ typedef struct {
     string_t*        name;    /* Type name           */
     symbol_id_t      s_id;
     type_type_t      t;       /* type's type         */
+    token_type_t     token_type;
     
     struct {
         long         size;    /* Type's size (hook)  */
@@ -46,12 +47,17 @@ typedef struct {
 symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int align, typetab_ctx_t* ctx);
 symbol_id_t TPTB_add_copy(symbol_id_t id, symbol_id_t nv_id, int ptr, typetab_ctx_t* ctx);
 symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v_id, typetab_ctx_t* ctx);
+long TPTB_get_memory_size_id(symbol_id_t id, typetab_ctx_t* ctx);
+int TPTB_set_memory_size_id(symbol_id_t id, long size, typetab_ctx_t* ctx);
+int TPTB_link_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx);
+symbol_id_t TPTB_get_first_child(symbol_id_t p_id, typetab_ctx_t* ctx);
 long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* ctx);
 int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long overrite_size, typetab_ctx_t* ctx);
 int TPTB_get_info_id(symbol_id_t id, type_info_t* info, typetab_ctx_t* ctx);
 symbol_id_t TPTB_resolve_child(symbol_id_t p_id, string_t* name, typetab_ctx_t* ctx);
 type_type_t TPTB_get_type_type_id(symbol_id_t id, typetab_ctx_t* ctx);
-int TPTB_get_info(string_t* name, symbol_id_t s_id, type_info_t* info, typetab_ctx_t* ctx);
+token_type_t TPTB_get_token_type_id(symbol_id_t id, typetab_ctx_t* ctx);
+int TPTB_get_info(string_t* name, symbol_id_t s_id, int ptr, type_info_t* info, typetab_ctx_t* ctx);
 int TPTB_unload(typetab_ctx_t* ctx);
 
 #endif

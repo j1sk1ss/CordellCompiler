@@ -401,6 +401,7 @@ Params:
 Return parsed from AST HIR subject.
 */
 hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+hir_subject_t* HIR_generate_ref_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
 Convert indexation AST node into HIR element. 

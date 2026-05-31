@@ -53,7 +53,13 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
             }
         }
 
-        HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(name), HIR_generate_elem(size, ctx, smt), init_elems);
+        hir_subject_t* alloc_size = HIR_generate_elem(size, ctx, smt);
+        if (!ai.vla && vi.t_id != NO_SYMBOL_ID) {
+            long type_size = TPTB_get_memory_size_id(vi.t_id, &smt->t);
+            if (type_size != FIELD_NO_CHANGE) alloc_size = HIR_SUBJ_CONST(type_size);
+        }
+
+        HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(name), alloc_size, init_elems);
     }
 
     return 1;
