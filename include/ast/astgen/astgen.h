@@ -25,11 +25,6 @@
 #define CREATE_LAMBDA_TOKEN TKN_create_token(LAMBDA_FUNCTION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_ACCESS_TOKEN TKN_create_token(MEMBER_ACCESS_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 
-#define WRAP_REFERENCE_NODE(nd) \
-    ast_node_t* __pp = AST_create_node_bt(TKN_create_token(REF_TYPE_TOKEN, "ref", NULL)); \
-    AST_add_node(__pp, nd);                                                               \
-    nd = __pp;                                                                            \
-
 #define PARSE_ERROR(msg, ...) \
     fprintf( \
         stderr,                                                                                  \
@@ -64,7 +59,7 @@ Returns NO_SYMBOL_ID if it isn't a registered type or id from the table.
 */
 symbol_id_t type_lookup(token_t* t, ast_ctx_t* ctx, sym_table_t* smt);
 #define EXTRACT_TYPE_TYPE(id, smt) \
-    TPTB_get_type_type_id(id, &smt->t) == TYPE_GENERICS ? GENERIC_TYPE_TOKEN : CUSTOM_TYPE_TOKEN
+    TPTB_get_token_type_id(id, &smt->t)
 
 /*
 Search for a variable (presented in the node) on the symtable.
