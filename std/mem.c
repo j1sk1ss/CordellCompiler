@@ -14,6 +14,13 @@ void* str_memcpy(void* dst, const void* src, unsigned long n) {
     return dst;
 }
 
+int str_memcmp(void* dst, const void* src, unsigned long n) {
+    unsigned char *s1 = (unsigned char*)dst;
+    const unsigned char *s2 = (const unsigned char*)src;
+    while (n-- > 0) if (*s1++ != *s2++) return 0;
+    return 1;
+}
+
 void* str_memset(void* ptr, unsigned char v, unsigned long n) {
     unsigned int num_dwords  = n / 4;
     unsigned int num_bytes   = n % 4;

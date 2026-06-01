@@ -14,7 +14,7 @@ static int _jumps_pass(cfg_block_t* bb) {
     lir_block_t* l  = LIR_get_back_instruction(bb->lmap.exit, bb->lmap.entry, 0);
     lir_block_t* ll = LIR_get_back_instruction(l, bb->lmap.entry, 1);
     if (LIR_is_jumpop(l->op)) {
-        cfg_block_t* next_bb = bb->l != bb ? bb->l : bb->jmp;
+        cfg_block_t* next_bb = (bb->l && bb->l != bb) ? bb->l : bb->jmp;
         if (!next_bb) return 0;
         lir_block_t* next_lh  = LIR_get_near_instruction(l, next_bb->lmap.exit, 1);
         lir_block_t* entry_ln = LIR_get_near_instruction(next_bb->lmap.entry, next_bb->lmap.exit, 0);

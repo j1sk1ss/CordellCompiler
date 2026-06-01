@@ -52,11 +52,8 @@ static hir_subject_t* _get_final_head(
     hir_subject_t* offt = HIR_generate_elem(offt_node, ctx, smt);
     hir_subject_t* head = HIR_reference_subject(base, smt, 0);
     hir_operation_t base_op = HIR_STORE;
-
-    if (!indexed_type) {
-        hir_subject_type_t _dummy;
-        indexed_type = &_dummy;
-    }
+    hir_subject_type_t _dummy;
+    if (!indexed_type) indexed_type = &_dummy;
 
     array_info_t ai;
     *indexed_type = base->t;

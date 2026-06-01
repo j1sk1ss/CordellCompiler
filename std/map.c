@@ -15,13 +15,13 @@ int map_init(map_t* m, int cmp) {
 
 int map_copy(map_t* dst, map_t* src) {
     if (!dst || !src) return 0;
+    if (src->capacity <= 0 || !src->entries) return map_init(dst, src->cmp);
     dst->capacity = src->capacity;
     dst->size     = src->size;
     dst->hash     = src->hash;
     dst->cmp      = src->cmp;
     dst->compr    = src->compr;
     dst->entries  = NULL;
-    if (src->capacity <= 0) return 1;
     dst->entries = (map_entry_t*)mm_malloc(src->capacity * sizeof(map_entry_t));
     if (!dst->entries) return 0;
     str_memcpy(dst->entries, src->entries, src->capacity * sizeof(map_entry_t));
@@ -118,6 +118,7 @@ int map_put(map_t* m, long k, void* v) {
 
 int map_get(map_t* m, long k, void** v) {
     if (!m) return 0;
+    if (m->capacity <= 0 || !m->entries) return 0;
     if (m->compr) {
         if (k < 0 || k >= m->capacity) return 0;
         if (!m->entries[k].used) return 0;
@@ -140,6 +141,7 @@ int map_get(map_t* m, long k, void** v) {
 
 int map_remove(map_t* m, long k) {
     if (!m) return 0;
+    if (m->capacity <= 0 || !m->entries) return 0;
     if (m->compr) {
         if (k < 0 || k >= m->capacity) return 0;
         if (!m->entries[k].used) return 0;

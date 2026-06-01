@@ -204,6 +204,18 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
+static long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* elem_tkn, sym_table_t* smt) {
+    long type_size = TPTB_get_memory_size_id(vi->t_id, &smt->t);
+    if (type_size != FIELD_NO_CHANGE) return type_size;
+
+    switch (TKN_variable_bitness(elem_tkn, 1)) {
+        case TYPE_FULL_SIZE:
+        case TYPE_HALF_SIZE:    return ai->size * 4;
+        case TYPE_QUARTER_SIZE: return ai->size * 2;
+        default:                return ai->size;
+    }
+}
+
 /*
 Emit storage for a non-external variable into the current assembly section.
 Params:
@@ -224,11 +236,12 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
         token_t tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
         /* Simple reservation with the unitialized data */
         if (!list_size(&ai.elems)) {
+            long reserve_size = _array_reserve_size(&vi, &ai, &tmptkn, smt);
             switch (TKN_variable_bitness(&tmptkn, 1)) {
                 case TYPE_FULL_SIZE:
-                case TYPE_HALF_SIZE:    EMIT_COMMAND("%s resd %ld", vi.name->body, ai.size); break;
-                case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s resw %ld", vi.name->body, ai.size); break;
-                default:                EMIT_COMMAND("%s resb %ld", vi.name->body, ai.size); break;
+                case TYPE_HALF_SIZE:    EMIT_COMMAND("%s resd %ld", vi.name->body, reserve_size / 4); break;
+                case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s resw %ld", vi.name->body, reserve_size / 2); break;
+                default:                EMIT_COMMAND("%s resb %ld", vi.name->body, reserve_size);     break;
             }
         }
         /* Reservation with the initialized data */

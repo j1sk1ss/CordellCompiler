@@ -26,27 +26,27 @@
 
 @[inline(always)]
 function _get_limit_low(u32 limit) -> u16 {
-    limit & 0xFFFF;
+    (limit & 0xFFFF) as u16;
 }
 
 @[inline(always)]
 function _get_base_low(u32 base) -> u16 {
-    base & 0xFFFF;
+    (base & 0xFFFF) as u16;
 }
 
 @[inline(always)]
 function _get_base_middle(u32 base) -> u8 {
-    (base >> 16) & 0xFF;
+    ((base >> 16) & 0xFF) as u8;
 }
 
 @[inline(always)]
 function _get_flags_limit_high(u32 limit, u8 flags) -> u8 {
-    ((limit >> 16) & 0xF) | (flags & 0xF0);
+    (((limit >> 16) & 0xF) | (flags & 0xF0)) as u8;
 }
 
 @[inline(always)]
 function _get_base_high(u32 base) -> u8 {
-    ((base >> 24) & 0xFF);
+    (((base >> 24) & 0xFF)) as u8;
 }
 
 glob function i386_gdt_initialize() -> i0;

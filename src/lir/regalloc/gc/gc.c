@@ -40,7 +40,7 @@ int LIR_RA_init_colors(map_t* colors, sym_table_t* smt) {
 int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     print_log("LIR_RA_color_igraph()");
     if (!g || !colors) return 0;
-    
+
     int node_count = g->nodes.size;
     if (!node_count) return 1;
     
@@ -50,15 +50,16 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     int* degrees    = (int*)mm_malloc(node_count * sizeof(int));
     long* v_ids     = (long*)mm_malloc(node_count * sizeof(long));
     char* processed = (char*)mm_malloc(node_count);
-    str_memset(processed, 1, node_count);
-    
+
     if (!degrees || !v_ids || !processed) {
         mm_free(degrees);
         mm_free(v_ids);
         mm_free(processed);
         return 0;
     }
-    
+
+    str_memset(processed, 1, node_count);
+
     int i = 0;
     map_foreach (igraph_node_t* n, &g->nodes) {
         v_ids[i]     = n->v_id;

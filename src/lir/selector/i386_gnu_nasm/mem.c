@@ -347,6 +347,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                         lh->sarg = i386_gnu_nasm_create_tmp(ECX, src, smt, lh->sarg->size);
                     }
 
+                    if (lh->sarg->t == LIR_REGISTER) lh->sarg->size = lh->farg->dsize;
                     break;
                 }
                 case LIR_GDREF: {

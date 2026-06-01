@@ -10,6 +10,7 @@ container gdt_entry {
     u8  base_high;
 
     @[self]
+    @[inline(never)]
     function set(ptr gdt_entry self, u32 base, u32 limit, u8 access, u8 flags) -> i0 {
         self.limit_low        = _get_limit_low(limit);
         self.base_low         = _get_base_low(base);
@@ -32,7 +33,7 @@ container gdt_descriptor {
     }
 }
 
-@[section(".bss")] glob arr _gdt[6, gdt_entry]; :/ TODO: Globals don't allocate enough space /:
+@[section(".bss")] glob arr _gdt[6, gdt_entry];
 @[section(".bss")] glob gdt_descriptor _descriptor; 
 
 @[inline(never)]
@@ -53,7 +54,7 @@ function i386_gdt_load(ptr gdt_descriptor d, u16 cs, u16 ds) -> i0 {
 }
 
 glob function i386_gdt_initialize() -> i0 { :/ TODO: split declaration /:
-    _gdt[0].set(0, 0, 0, 0);
+    _gdt[0].set(0, 0, 0, 0);                :/ TODO: If there is a lot of inlines (many copies, etc), copyprop is dying /:
     _gdt[1].set(0, 0xFFFFF,
         (GDT_ACCESS_SEGMENT_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE),
         (GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K));

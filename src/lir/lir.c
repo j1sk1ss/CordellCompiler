@@ -36,6 +36,7 @@ lir_subject_t* LIR_create_subject(lir_subject_type_t t, int reg, int v_id, long 
             break;
         }
         case LIR_NUMBER: {
+            subj->storage.num.is_float = reg ? 1 : 0;
             if (strval) subj->storage.num.value = strval->copy(strval);
             break;
         }
@@ -83,6 +84,7 @@ lir_subject_t* LIR_copy_subject(lir_subject_t* s) {
             break;
         }
         case LIR_NUMBER: {
+            subj->storage.num.is_float = s->storage.num.is_float;
             if (s->storage.num.value) subj->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
             break;
         }
@@ -117,7 +119,10 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
     switch (a->t) {
         case LIR_CONSTVAL:   return a->storage.cnst.value == b->storage.cnst.value;
         case LIR_LABEL:      return a->storage.lb.lb_id == b->storage.lb.lb_id;
-        case LIR_STRING:     return a->storage.str.sid == b->storage.str.sid;
+        case LIR_RAWASM:
+        case LIR_FNAME:
+        case LIR_STRING:     return a->storage.str.sid == b->storage.str.sid &&
+                                    a->storage.str.rel == b->storage.str.rel;
         case LIR_VARIABLE:   return a->storage.var.v_id == b->storage.var.v_id;
         case LIR_MEMORY:     return (a->size == b->size) && 
                                     (a->storage.var.offset == b->storage.var.offset) && 
@@ -126,8 +131,24 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
         case LIR_STVARIABLE: return (a->storage.var.offset == b->storage.var.offset) && 
                                     (a->storage.var.v_id == b->storage.var.v_id);
         case LIR_REGISTER:   return LIR_format_register(a->storage.reg.reg, 1) == LIR_format_register(b->storage.reg.reg, 1);
-        case LIR_NUMBER:     return a->storage.num.value->equals(a->storage.num.value, b->storage.num.value) &&
-                                    a->storage.num.is_float == b->storage.num.is_float;
+        case LIR_NUMBER: {
+            if (a->storage.num.is_float != b->storage.num.is_float) return 0;
+            if (!a->storage.num.value || !b->storage.num.value) return a->storage.num.value == b->storage.num.value;
+            return a->storage.num.value->equals(a->storage.num.value, b->storage.num.value);
+        }
+        case LIR_FPOS:       return str_memcmp(&a->storage.pos, &b->storage.pos, sizeof(file_position_t));
+        case LIR_ARGLIST: {
+            if (a->storage.list.h.s != b->storage.list.h.s) return 0;
+            list_node_t* an = a->storage.list.h.h;
+            list_node_t* bn = b->storage.list.h.h;
+            while (an && bn) {
+                if (!LIR_subj_equals((lir_subject_t*)an->data, (lir_subject_t*)bn->data)) return 0;
+                an = an->n;
+                bn = bn->n;
+            }
+            
+            return !an && !bn;
+        }
         default:             return 0;
     }
 }
