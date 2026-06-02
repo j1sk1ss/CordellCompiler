@@ -61,6 +61,8 @@
 /* Liveness analysis + Register allocation */
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
+#include <lir/regalloc/i386_gnu_precolor.h>
+#include <lir/regalloc/x86_64_gnu_precolor.h>
 #include <lir/regalloc/regalloc.h>
 
 /* Peephole optimization */

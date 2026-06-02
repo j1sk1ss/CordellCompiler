@@ -69,17 +69,10 @@ lir_subject_t* LIR_copy_subject(lir_subject_t* s) {
 
             break;
         }
-        case LIR_FPOS:
-        case LIR_LABEL:
-        case LIR_FNAME:
-        case LIR_RAWASM:
-        case LIR_MEMORY:
-        case LIR_STRING:
-        case LIR_CONSTVAL:
-        case LIR_REGISTER:
-        case LIR_VARIABLE:
-        case LIR_GLVARIABLE:
-        case LIR_STVARIABLE: {
+        case LIR_FPOS:       case LIR_LABEL:    case LIR_FNAME:
+        case LIR_RAWASM:     case LIR_MEMORY:   case LIR_STRING:
+        case LIR_CONSTVAL:   case LIR_REGISTER: case LIR_VARIABLE:
+        case LIR_GLVARIABLE: case LIR_STVARIABLE: {
             str_memcpy(&subj->storage, &s->storage, sizeof(s->storage));
             break;
         }
