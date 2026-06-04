@@ -4,6 +4,7 @@ int SMT_init(sym_table_t* smt) {
     smt->v.curr_id = 0;
     smt->s.curr_id = 0;
     smt->f.curr_id = 0;
+    smt->t.curr_id = 0;
     return map_init(&smt->v.vartb,  MAP_NO_CMP) &&
            map_init(&smt->s.strtb,  MAP_NO_CMP) &&
            map_init(&smt->f.functb, MAP_NO_CMP) &&

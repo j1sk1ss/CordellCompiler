@@ -1,0 +1,29 @@
+#ifndef CPL_UNISTD_H_
+#define CPL_UNISTD_H_ 0
+
+#include "stddef_h.cpl"
+
+#define STDIN_FILENO  0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+
+extern function read(i32 fd, ptr i0 buf, u64 count) -> i64;
+extern function write(i32 fd, ptr i0 buf, u64 count) -> i64;
+extern function close(i32 fd) -> i32;
+extern function lseek(i32 fd, i64 offset, i32 whence) -> i64;
+extern function unlink(ptr i8 path) -> i32;
+extern function rmdir(ptr i8 path) -> i32;
+extern function chdir(ptr i8 path) -> i32;
+extern function getcwd(ptr i8 buf, u64 size) -> ptr i8;
+extern function access(ptr i8 path, i32 mode) -> i32;
+extern function dup(i32 old_fd) -> i32;
+extern function dup2(i32 old_fd, i32 new_fd) -> i32;
+extern function pipe(ptr i32 pipefd) -> i32;
+extern function fork() -> i32;
+extern function execve(ptr i8 path, ptr ptr i8 argv, ptr ptr i8 envp) -> i32;
+extern function getpid() -> i32;
+extern function getppid() -> i32;
+extern function sleep(u32 seconds) -> u32;
+extern function usleep(u32 usec) -> i32;
+
+#endif

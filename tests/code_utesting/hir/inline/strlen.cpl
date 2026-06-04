@@ -47,11 +47,11 @@ start(i32 argc, ptr ptr i8 argv) {
         i8s** %3 = alloc;
         i8s** %3 = load_starg();
         {
-            strs %4 = str_alloc(Hello, World!
+            arrs %4 = str_alloc(Hello, World!
 );
-            i8t* %11 = &(strs %4);
+            i8t* %11 = &(arrs %4);
             use i8t* %11;
-            i8t* %12 = &(strs %4);
+            i8t* %12 = &(arrs %4);
             use i8t* %12;
             i32t %13 = strlen0(i8t* %12);
             use i32t %13;

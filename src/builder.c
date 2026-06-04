@@ -718,6 +718,7 @@ int main(int argc, char* argv[]) {
         register_saver_t reg_save;
         mem_selector_t   mem_sel;
         peephole_t       pph;
+        long (*precolor)(lir_registers_t);
         switch (CONF_get_system_type()) {
             default:
             case MACHO64: {
@@ -726,6 +727,7 @@ int main(int argc, char* argv[]) {
                 mem_sel.select_memory        = x86_64_macho_nasm_memory_selection;
                 mem_sel.validate_memory      = x86_64_macho_nasm_memory_validation;
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
+                precolor                     = x86_64_gnu_precolored_reg_to_color;
                 break;
             }
             case LINUX64: {
@@ -734,6 +736,7 @@ int main(int argc, char* argv[]) {
                 mem_sel.select_memory        = x86_64_gnu_nasm_memory_selection;
                 mem_sel.validate_memory      = x86_64_gnu_nasm_memory_validation;
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
+                precolor                     = x86_64_gnu_precolored_reg_to_color;
                 break;
             }
             case I386: {
@@ -742,6 +745,7 @@ int main(int argc, char* argv[]) {
                 mem_sel.select_memory        = i386_gnu_nasm_memory_selection;
                 mem_sel.validate_memory      = i386_gnu_nasm_memory_validation;
                 pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
+                precolor                     = i386_gnu_precolored_reg_to_color;
                 break;
             }
         }
@@ -753,7 +757,7 @@ int main(int argc, char* argv[]) {
 
         map_t colors;
         map_init(&colors, MAP_NO_CMP);
-        LIR_RA_init_colors(&colors, &smt);
+        LIR_RA_init_colors(&colors, &smt, precolor);
 
         LIR_regalloc(&cfgctx, &smt, &colors);
         LIR_RA_sort_phi_movs(&cfgctx, &colors);

@@ -94,7 +94,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                             else {
                                 if (dst != existed) {
                                     map_remove(&dctx->dag, HIR_hash_subject(dst->src));
-                                    HIR_DAG_unload_node(dst);
+                                    if (!set_size(&dst->users)) HIR_DAG_unload_node(dst);
                                     set_add(&existed->link, (void*)HIR_hash_subject(hh->farg));
                                 }
                             }

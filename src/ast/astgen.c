@@ -13,8 +13,7 @@ static int _append_root_children(ast_node_t* dst, ast_node_t* src) {
     while (src->c) {
         ast_node_t* child = src->c;
         src->c = child->siblings.n;
-        child->siblings.n = NULL;
-        child->siblings.t = NULL;
+        child->siblings.n = child->siblings.t = NULL;
         AST_add_node(dst, child);
     }
 

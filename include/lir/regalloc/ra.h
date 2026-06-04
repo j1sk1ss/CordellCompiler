@@ -28,10 +28,11 @@ Note 2: By default, all variables !must! have -1 in the register field!
 Params:
     - `colors` - Colored map.
     - `smt` - Symtable.
+    - `preccolor` - Function which precolors registers as 'not safe for work'.
 
 Returns 1 if it succeeds.
 */
-int LIR_RA_init_colors(map_t* colors, sym_table_t* smt);
+int LIR_RA_init_colors(map_t* colors, sym_table_t* smt, long (*precolor)(lir_registers_t));
 
 /*
 Find a node from the interference graph.

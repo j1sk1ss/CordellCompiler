@@ -9,25 +9,37 @@ function main() -> i0 {
 }
 ```
 
+The parser accepts the form `@[name]` and, for annotations that need a value, `@[name(value)]`. The value is read as the single token inside parentheses: numeric annotations convert it to an integer, while `entry`, `section`, and `inline` keep it as text.
+
 ## Available annotations
 
 | Annotation | Applies to | Meaning |
 |---|---|---|
-| `@[entry]`, `@[entry("name")]` | function | mark function as program entry point |
+| `@[entry]`, `@[entry("name")]` | function or `start` | mark the function as the program entry; without `name`, the configured entry symbol is used |
 | `@[naked]` | function or `start` | suppress normal entry/exit routines |
-| `@[align(N)]` | variable or array declaration | request memory alignment |
-| `@[section("name")]` | global variable or function | place symbol into a section |
-| `@[address(N)]` | function | request a fixed address where supported by backend/configuration |
-| `@[no_fall]` | `switch` | insert implicit breaks for cases |
-| `@[straight]` | `switch` | generate linear case selection |
-| `@[counter(N)]` | `loop` | create a counted loop |
-| `@[hot]` | branch/case | mark branch as hot for layout |
-| `@[cold]` | branch/case | mark branch as cold for layout |
-| `@[not_lazy]` | logical expression | evaluate both sides of `&&`/`\|\|` |
-| `@[register(N)]` | local primitive variable | bind variable to a target register index |
-| `@[poparg]` | local declaration | read the next function argument |
+| `@[section("name")]` | global variable, global array, function, or `start` | place the symbol into a named section |
+| `@[nosection]` | global function | place the function into the configured no-section bucket |
+| `@[align(N)]` | variable, array, or container | request memory/container alignment |
+| `@[register(N)]` | variable declaration | bind the variable to a target register index |
+| `@[poparg]` | variable declaration in a variadic context | read the next variadic argument into this declaration |
+| `@[inline]` | function | increase the inliner preference |
+| `@[inline(always)]` | function | force the inline decision toward always inline |
+| `@[inline(never)]` | function | force the inline decision toward never inline |
+| `@[inline(model)]` | function | use the model-based inline mode |
+| `@[self]` | container function | mark the function as an explicit-self method for container call rewriting |
+| `@[abi]` | function | mark the function as ABI-compatible |
+| `@[weak]` | function | mark the function as a weak symbol |
+| `@[like_c]` | container | use C-like field layout handling instead of the requested CPL alignment value |
+| `@[no_fall]` | `switch` | make switch cases behave as if they end with `break` |
+| `@[straight]` | `switch` | force linear switch selection |
+| `@[counter(N)]` | `loop` | generate a counted loop |
+| `@[hot]` | `if` | make the false branch cold for layout |
+| `@[cold]` | `if` or switch `case` | make the true branch, or the annotated case, cold for layout |
+| `@[not_lazy]` | logical expression | evaluate both sides of `&&` or `\|\|` |
 
-## Entry and naked
+The compiler also parses `@[address(N)]` and `@[union]`, but the current implementation does not connect their summary fields to code generation or container layout yet. Treat them as reserved/internal until that changes.
+
+## Entry, naked, sections
 
 ```cpl
 @[entry("_main")]
@@ -41,11 +53,25 @@ start() {
         "ret"
     }
 }
+
+@[section(".my_text")]
+function helper() -> i0 {
+    return;
+}
 ```
 
-Use `@[naked]` only for code that fully controls its own prologue, epilogue, and exit behavior.
+Use `@[naked]` only for code that fully controls its own prologue, epilogue, and exit behavior. Default sections are target/config dependent. The CLI exposes `--ro-section`, `--glob-section`, and `--code-section`.
 
-## Alignment and sections
+`@[nosection]` is currently handled for global functions:
+
+```cpl
+@[nosection]
+function raw_helper() -> i0 {
+    return;
+}
+```
+
+## Data layout
 
 ```cpl
 @[align(16)]
@@ -54,13 +80,62 @@ glob i32 value = 1;
 @[section(".my_data")]
 glob i32 other = 2;
 
-@[section(".my_text")]
-function helper() -> i0 {
-    return;
+@[align(1)]
+container packed {
+    i8  a;
+    i16 b;
+}
+
+@[like_c]
+container c_layout {
+    i8  tag;
+    i64 value;
 }
 ```
 
-Default sections are target/config dependent. The CLI exposes `--ro-section`, `--glob-section`, and `--code-section`.
+`@[align(N)]` affects variables, arrays, and container field layout. `@[like_c]` is only read when defining a container.
+
+## Function hints and symbols
+
+```cpl
+@[inline(always)]
+function add(i64 a, i64 b) -> i64 {
+    return a + b;
+}
+
+@[weak]
+@[abi]
+function external_hook() -> i0;
+```
+
+`@[inline]` without an option is a soft preference. Supported options are `always`, `never`, and `model`.
+
+`@[abi]` and `@[weak]` are low-level symbol/interop flags used by the function table and backend path.
+
+## Container self methods
+
+Use `@[self]` when a container function should receive the object being called on. The function must declare an explicit first parameter for that receiver, usually `ptr <container> self`.
+
+```cpl
+container counter {
+    i32 value;
+
+    @[self]
+    function add(ptr counter self, i32 delta) -> i0 {
+        self.value += delta;
+    }
+}
+
+start() {
+    counter c;
+    c.value = 10;
+    c.add(7);
+
+    exit c.value as u8;
+}
+```
+
+The call `c.add(7)` is lowered as a normal function call where `ref c` is passed as the explicit `self` argument.
 
 ## Switch annotations
 
@@ -87,7 +162,7 @@ switch code; {
 
 ## Branch layout
 
-`@[hot]` and `@[cold]` are hints for branch placement on an `if` statement:
+`@[hot]` and `@[cold]` are layout hints for `if` statements:
 
 ```cpl
 @[hot] if likely; {
@@ -98,7 +173,7 @@ else {
 }
 ```
 
-Use them as layout hints, not as semantic requirements.
+On `if`, `@[hot]` makes the false branch cold; `@[cold]` makes the true branch cold. On `switch`, `@[cold]` can be attached to a case body.
 
 ## Counted loop
 
@@ -111,20 +186,37 @@ loop {
 
 The counter value must be constant.
 
+## Logical evaluation
+
+By default, logical operators are lazy. Attach `@[not_lazy]` to force both sides to be generated:
+
+```cpl
+if (@[not_lazy] left() && right()); {
+    putc('y');
+}
+```
+
 ## Register and poparg
 
-`@[register(N)]` binds a local primitive variable to a target register index:
+`@[register(N)]` binds a variable to a target register index:
 
 ```cpl
 #define RAX 0
 @[register(RAX)] i64 value = 10;
 ```
 
-`@[poparg]` reads arguments from the current call context:
+`@[poparg]` reads arguments from the current variadic call context:
 
 ```cpl
 function take(...) -> i0 {
     @[poparg] i64 first;
+    @[poparg] i64 second;
+}
+
+start(...) {
+    @[poparg] i64 argc;
+    @[poparg] ptr ptr i8 argv;
+    exit 0;
 }
 ```
 

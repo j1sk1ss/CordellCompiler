@@ -1,0 +1,19 @@
+#ifndef CPL_TIME_H_
+#define CPL_TIME_H_ 0
+
+#include "stddef_h.cpl"
+#include "types_h.cpl"
+
+#define CLOCKS_PER_SEC 1000000
+
+extern function clock() -> i64;
+extern function time(ptr i64 timer) -> i64;
+extern function difftime(i64 end_time, i64 begin_time) -> f64;
+extern function mktime(ptr c_tm tm) -> i64;
+extern function asctime(ptr c_tm tm) -> ptr i8;
+extern function ctime(ptr i64 timer) -> ptr i8;
+extern function gmtime(ptr i64 timer) -> ptr c_tm;
+extern function localtime(ptr i64 timer) -> ptr c_tm;
+extern function strftime(ptr i8 s, u64 max_size, ptr i8 format, ptr c_tm tm) -> u64;
+
+#endif

@@ -153,12 +153,7 @@ static int _find_function_declaration_and_replace(ast_node_t* node, ast_node_t* 
         func_info_t fi;
         if (FNTB_get_info_id(name->sinfo.v_id, &fi, &smt->f)) {
             name->sinfo.v_id = FNTB_add_copy(&fi, &smt->f);
-            FNTB_update_func(
-                name->sinfo.v_id, NULL, 
-                /* Generic is not a local anymore 'cause it will be generated not in a parent function */
-                FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, !fi.flags.generic, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 
-                args, rtype, &smt->f
-            );
+            FNTB_update_func(name->sinfo.v_id, NULL, FNTB_SET_GENERIC(!fi.flags.generic), args, rtype, &smt->f);
             _update_function_id(root, fi.id, name->sinfo.v_id);
             if (fi.flags.generic) {
                 AST_DVRT_register_template(name->sinfo.v_id, node, ctx);

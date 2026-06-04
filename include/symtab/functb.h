@@ -10,34 +10,35 @@
 #include <symtab/symtab_id.h>
 
 typedef struct {
-    string_t*    name;  /* Base function name    */
-    string_t*    virt;  /* De-virtual name       */
+    signed char global;   /* keyword   */
+    signed char abi;      /* annot     */
+    signed char weak;     /* annot     */
+    signed char external; /* keyword   */
+    signed char entry;    /* annot/sys */
+    signed char used;     /* sys       */
+    signed char local;    /* sys       */
+    signed char vargs;    /* sys       */
+    signed char generic;  /* sys       */
+    signed char self;     /* annot     */
+    signed char naked;    /* 1 / 0   */ /* annot */
+    signed char inln;     /* 1, 2, 3 */ /* annot */
+} func_info_flags_t;
 
-    symbol_id_t  id;    /* String ID in symtable */
-    list_t       local; /* Local functions       */
+typedef struct {
+    symbol_id_t       id;               /* ID in the symtable                       */
+    symbol_id_t       s_id;
 
-    ast_node_t*  args;  /* Input arguments       */
-    ast_node_t*  rtype; /* Function return type  */
-
-    symbol_id_t  s_id;
-
+    string_t*         name;             /* Base function name                       */
+    string_t*         virt;             /* De-virtual name                          */
+    func_info_flags_t flags;
+    
+    list_t            local;            /* Local functions                          */
+    ast_node_t*       args;             /* Input arguments                          */
+    ast_node_t*       rtype;            /* Function return type                     */
     struct {
-        char     global   : 1;
-        char     external : 1;
-        char     entry    : 1;
-        char     used     : 1;
-        char     local    : 1;
-        char     naked;
-        char     vargs    : 1;
-        char     generic  : 1;
-        char     self     : 1;
-        char     inln;
-    } flags;
-
-    struct {
-        list_t   registered_types; /* List of registered symbol_id_t types     */
-        map_t    generic;          /* Generic base types. TypeId <-> TokenType */
-        list_t   resolutions;      /* Resolved copies (use the generic field)  */
+        list_t        registered_types; /* List of registered symbol_id_t types     */
+        map_t         generic;          /* Generic base types. TypeId <-> TokenType */
+        list_t        resolutions;      /* Resolved copies (use the generic field)  */
     } template;
 } func_info_t;
 
@@ -88,14 +89,7 @@ Params:
                Note: Will copy the provided name.
     - `vname` - Vartual function's name.
                 Note: May be the 'NULL' value.
-    - `global` - Is this function global?
-    - `local` - Is this a local function?
-    - `entry` - Is this an entry function?
-    - `naked` - Is this a naked function?
-    - `vargs` - Is this a vargs function?
-    - `generic` - Is this is a generic function?
-    - `inln` - Inline status.
-    - `stat` - Is this is a static function?
+    - `flags` - Function's flags.
     - `args` - Function's arguments from AST.
     - `rtype` - Function's return type from AST.
     - `ctx` - Function symbol table.
@@ -103,9 +97,7 @@ Params:
 Returns -1 if fails or a new function's ID.
 */
 symbol_id_t FNTB_add_info(
-    string_t* name, string_t* vname,
-    int global, int local, int entry, int naked, int vargs, int generic, int inln, int stat, /* flags */
-    symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
+    string_t* name, string_t* vname, func_info_flags_t flags, symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );
 
 /*
@@ -155,9 +147,15 @@ Returns 1 on success, otherwise 0.
 */
 int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx);
 
-#define FNTB_SET_EXTERNAL NULL, FIELD_NO_CHANGE, 1, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, NULL, NULL
-#define FNTB_SET_VARGS    NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 1, NULL, NULL
-#define FNTB_SET_NAKED    NULL, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, 2, FIELD_NO_CHANGE, NULL, NULL
+#define FNTB_ONLY_FLAGS(flags) NULL, flags, NULL, NULL
+#define FNTB_SET_EXTERNAL ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=1, .entry=-1, .used=-1, \
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
+#define FNTB_SET_NAKED(n) ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1, \
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=(n), .inln=-1 })
+#define FNTB_SET_GENERIC(n) ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1, \
+    .local=-1, .vargs=-1, .generic=(n), .self=-1, .naked=-1, .inln=-1 })
+#define FNTB_SET_USED(n) ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=(n), \
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
 /*
 Update an existed function.
 Note: Will update the virtual name of a function.
@@ -178,11 +176,7 @@ Params:
 Returns 1 on success, otherwise 0.
 */
 int FNTB_update_func(
-    symbol_id_t id, 
-    string_t* name, 
-    int used, int external, int global, int local, int entry, int naked, int vargs, /* flags */
-    ast_node_t* args, ast_node_t* rtype,
-    functab_ctx_t* ctx
+    symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 );
 
 /*

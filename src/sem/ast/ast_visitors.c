@@ -97,6 +97,28 @@ static inline token_t* _get_base_type_token(ast_node_t* nd, int* ptr) {
     return nd->t;
 }
 
+static inline ast_node_t* _call_args(ast_node_t* nd) {
+    if (!nd || !nd->c) return NULL;
+    if (nd->t && nd->t->t_type == CALLING_TOKEN) {
+        return nd->c->siblings.n ? nd->c->siblings.n->c : NULL;
+    }
+
+    return nd->c->c;
+}
+
+static inline ast_node_t* _call_callee(ast_node_t* nd) {
+    if (!nd) return NULL;
+    return nd->t && nd->t->t_type == CALLING_TOKEN ? nd->c : nd;
+}
+
+static int _has_parent_token(ast_node_t* nd, token_type_t t) {
+    for (ast_node_t* p = nd ? nd->p : NULL; p; p = p->p) {
+        if (p->t && p->t->t_type == t) return 1;
+    }
+
+    return 0;
+}
+
 int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     
@@ -106,7 +128,7 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
     if (!rarg || rarg->t->t_type != CALLING_TOKEN) return 1;
 
     func_info_t fi;
-    if (!FNTB_get_info_id(rarg->sinfo.v_id, &fi, &smt->f)) return 1;
+    if (!rarg->c || !FNTB_get_info_id(rarg->c->sinfo.v_id, &fi, &smt->f)) return 1;
     if (!fi.rtype) return 1;
 
     int ptr = 0;
@@ -126,9 +148,12 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
 
 int ASTWLKR_not_init(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
+    if (nd->t->t_type == ARRAY_TYPE_TOKEN) return 1;
+    if (_has_parent_token(nd, CONTAINER_TOKEN)) return 1;
+
     ast_node_t* larg = nd->c;
     if (!larg) return 1;
-
+    if (nd->t->t_type == CUSTOM_TYPE_TOKEN) return 1;
     if (
         nd->p &&      /* If we have a parent     */
         nd->p->p &&   /* The parent has a parent */
@@ -145,6 +170,10 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
             nd->p->p->t->t_type == FUNC_PROT_TOKEN
         )
     ) return 1;
+
+    foreach (annotation_t* annot, &nd->annots) {
+        if (annot->t == POPARG_ANNOTATION) return 1;
+    }
 
     ast_node_t* rarg = larg->siblings.n;
     if (!rarg) {
@@ -171,12 +200,23 @@ static type_size_t _get_token_bitness(token_t* tkn) {
     }
 }
 
-static token_t* _get_token_from_ast(ast_node_t* n, int* ptr) {
+static token_t* _get_token_from_ast(ast_node_t* n, int* ptr, sym_table_t* smt) {
     if (!n || !n->t) return NULL;
+    if (n->t->t_type == CALLING_TOKEN) {
+        func_info_t fi;
+        if (
+            n->c &&
+            FNTB_get_info_id(n->c->sinfo.v_id, &fi, &smt->f) &&
+            fi.rtype
+        ) return fi.rtype->t;
+
+        return NULL;
+    }
+
     if (TKN_is_operand(n->t)) {
         int lptr = 0, rptr = 0;
-        token_t* l = _get_token_from_ast(n->c, &lptr);
-        token_t* r = _get_token_from_ast(n->c->siblings.n, &rptr);
+        token_t* l = _get_token_from_ast(n->c, &lptr, smt);
+        token_t* r = _get_token_from_ast(n->c->siblings.n, &rptr, smt);
 
         if (!l && !r) return NULL;
         else if (!l) return r;
@@ -189,25 +229,31 @@ static token_t* _get_token_from_ast(ast_node_t* n, int* ptr) {
     return _get_base_type_token(n, ptr);
 }
 
-static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
-    if (!l || !r) return 0;
+static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r, sym_table_t* smt) {
+    if (
+        !l || !r || 
+        l->t->t_type == VAR_ARGUMENTS_TOKEN || r->t->t_type == VAR_ARGUMENTS_TOKEN
+    ) return 0;
 
     int ltptr = 0, rtptr = 0;
-    token_t* lt = _get_token_from_ast(l, &ltptr);
-    token_t* rt = _get_token_from_ast(r, &rtptr);
+    token_t* lt = _get_token_from_ast(l, &ltptr, smt);
+    token_t* rt = _get_token_from_ast(r, &rtptr, smt);
+    if (!lt || !rt || !lt->body || !rt->body) return 1;
 
-    if (MAX(_get_token_bitness(lt), (type_size_t)ltptr) < MAX(_get_token_bitness(rt), (type_size_t)rtptr)) {
+    type_size_t lb = l->t->t_type == DREF_TYPE_TOKEN ? TKN_variable_bitness(lt, 0) : _get_token_bitness(lt);
+    type_size_t rb = r->t->t_type == DREF_TYPE_TOKEN ? TKN_variable_bitness(rt, 0) : _get_token_bitness(rt);
+    if (MAX(lb, (type_size_t)ltptr) < MAX(rb, (type_size_t)rtptr)) {
         if (TKN_is_numeric(rt)) {
             SEMANTIC_WARNING(
                 " %s %s of '%s' with '%s' (Number's bitness is '%s', but '%s' can handle bitness '%s')!", _format_location(&rt->finfo), msg,
-                lt->body->body, rt->body->body, _fmt_type_size(_get_token_bitness(rt)), 
-                RST_restore_type(lt), _fmt_type_size(_get_token_bitness(lt))
+                lt->body->body, rt->body->body, _fmt_type_size(rb), 
+                RST_restore_type(lt), _fmt_type_size(lb)
             );
         }
         else {
             SEMANTIC_WARNING(
                 " %s %s of '%s' with '%s'! '%s' can't handle bitness '%s'!", _format_location(&rt->finfo), msg,
-                lt->body->body, rt->body->body, RST_restore_type(lt), _fmt_type_size(MAX(_get_token_bitness(rt), (type_size_t)rtptr))
+                lt->body->body, rt->body->body, RST_restore_type(lt), _fmt_type_size(MAX(rb, (type_size_t)rtptr))
             );
         }
 
@@ -219,11 +265,26 @@ static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r) {
 
 int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
+    if (nd->t->t_type == ARRAY_TYPE_TOKEN) {
+        ast_node_t* name = nd->c;
+        ast_node_t* size = name ? name->siblings.n : NULL;
+        ast_node_t* type = size ? size->siblings.n : NULL;
+        ast_node_t* init = type ? type->siblings.n : NULL;
+        for (; init; init = init->siblings.n) {
+            if (!_check_assign_types("Illegal declaration", type, init, smt)) {
+                REBUILD_CODE_1TRG(nd, init);
+                return 0;
+            }
+        }
+
+        return 1;
+    }
+
     ast_node_t* larg = nd->c;
     if (!larg) return 1;
     ast_node_t* rarg = larg->siblings.n;
     if (!rarg) return 1;
-    if (!_check_assign_types("Illegal declaration", larg, rarg)) {
+    if (!_check_assign_types("Illegal declaration", larg, rarg, smt)) {
         REBUILD_CODE_1TRG(nd, rarg);
         return 0;
     }
@@ -314,7 +375,7 @@ int ASTWLKR_no_return(AST_VISITOR_ARGS) {
 
     int has_ret = 0;
     _search_term_node(nd->c, &has_ret, NULL); 
-    if (!has_ret && fi.rtype->t->t_type != I0_TYPE_TOKEN) {
+    if (!has_ret && fi.rtype && (fi.rtype->t->t_type != I0_TYPE_TOKEN || fi.rtype->t->flags.ptr)) {
         SEMANTIC_WARNING(
             " %s Function '%s' doesn't have the 'return' keyword on all paths!", 
             _format_location(&nd->t->finfo), nd->c->t->body->body
@@ -344,16 +405,18 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
 
     func_info_t fi;
-    if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) {
+    ast_node_t* callee = _call_callee(nd);
+    if (!callee || !FNTB_get_info_id(callee->sinfo.v_id, &fi, &smt->f)) {
         SEMANTIC_ERROR(
             " %s Function '%s' isn't registered for some reason! Check previous logs!",
-            _format_location(&nd->c->t->finfo), nd->c->t->body->body
+            _format_location((callee && callee->t) ? &callee->t->finfo : &nd->t->finfo),
+            callee && callee->t ? callee->t->body->body : ""
         );
 
         return 0;
     }
 
-    ast_node_t* provided_arg = nd->c->c;
+    ast_node_t* provided_arg = _call_args(nd);
     ast_node_t* expected_arg = fi.args->c;
     for (
         ; provided_arg && expected_arg && expected_arg->t->t_type != SCOPE_TOKEN; 
@@ -361,13 +424,21 @@ int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
     );
 
     if (!provided_arg && (expected_arg && expected_arg->t->t_type != SCOPE_TOKEN)) {
-        SEMANTIC_ERROR(" %s Not enough arguments for the '%s' function!", _format_location(&nd->t->finfo), nd->t->body->body);
+        SEMANTIC_ERROR(
+            " %s Not enough arguments for the '%s' function!",
+            _format_location(callee && callee->t ? &callee->t->finfo : &nd->t->finfo),
+            callee && callee->t ? callee->t->body->body : ""
+        );
         REBUILD_CODE_1TRG(nd, NULL);
         return 0;
     }
 
-    if (provided_arg && (!expected_arg || expected_arg->t->t_type == SCOPE_TOKEN)) {
-        SEMANTIC_ERROR(" %s Too many arguments for the '%s' function!", _format_location(&nd->t->finfo), nd->t->body->body);
+    if (provided_arg && (!expected_arg || expected_arg->t->t_type == SCOPE_TOKEN) && !fi.flags.vargs) {
+        SEMANTIC_ERROR(
+            " %s Too many arguments for the '%s' function!",
+            _format_location(callee && callee->t ? &callee->t->finfo : &nd->t->finfo),
+            callee && callee->t ? callee->t->body->body : ""
+        );
         REBUILD_CODE_1TRG(nd, NULL);
         return 0;
     }
@@ -379,22 +450,24 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
 
     func_info_t fi;
-    if (!FNTB_get_info_id(nd->sinfo.v_id, &fi, &smt->f)) {
+    ast_node_t* callee = _call_callee(nd);
+    if (!callee || !FNTB_get_info_id(callee->sinfo.v_id, &fi, &smt->f)) {
         SEMANTIC_ERROR(
             " %s Function '%s' isn't registered for some reason! Check previous logs!",
-            _format_location(&nd->c->t->finfo), nd->c->t->body->body
+            _format_location((callee && callee->t) ? &callee->t->finfo : &nd->t->finfo),
+            callee && callee->t ? callee->t->body->body : ""
         );
 
         return 0;
     }
 
-    ast_node_t* provided_arg = nd->c->c;
+    ast_node_t* provided_arg = _call_args(nd);
     ast_node_t* expected_arg = fi.args->c;
     for (
         ; provided_arg && expected_arg && expected_arg->t->t_type != SCOPE_TOKEN; 
         provided_arg = provided_arg->siblings.n, expected_arg = expected_arg->siblings.n
     ) {
-        if (!_check_assign_types("Illegal argument", expected_arg, provided_arg)) {
+        if (!_check_assign_types("Illegal argument", expected_arg, provided_arg, smt)) {
             REBUILD_CODE_1TRG(nd, provided_arg);
         }
     }
@@ -610,10 +683,10 @@ Params:
 
 Returns 1 if return types are equal.
 */
-static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* rtype) {
+static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* rtype, sym_table_t* smt) {
     if (!nd) return 0;
     if (!nd->t) {
-        _check_return_statement(fname, nd->c, rtype);
+        _check_return_statement(fname, nd->c, rtype, smt);
         return 0;
     }
 
@@ -621,9 +694,9 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
         case EXIT_TOKEN:
         case RETURN_TOKEN: {
             int ptr = 0;
-            token_t* rval = _get_token_from_ast(nd->c, &ptr);
-            if (!rval && rtype->t_type == I0_TYPE_TOKEN) return 1;
-            if (rval && rtype->t_type == I0_TYPE_TOKEN) {
+            token_t* rval = _get_token_from_ast(nd->c, &ptr, smt);
+            if (!rval && rtype->t_type == I0_TYPE_TOKEN && !rtype->flags.ptr) return 1;
+            if (rval && rtype->t_type == I0_TYPE_TOKEN && !rtype->flags.ptr) {
                 SEMANTIC_WARNING(
                     " %s Function='%s' has its return value, but isn't supposed to!", 
                     _format_location(&rval->finfo), fname
@@ -631,7 +704,8 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
                 REBUILD_CODE_1TRG(nd, nd->c);
                 return 0;
             }
-
+            
+            if (!rval) return 1;
             if (MAX(_get_token_bitness(rval), (type_size_t)ptr) > _get_token_bitness(rtype)) {
                 SEMANTIC_WARNING(
                     " %s Function '%s' has the wrong return value, that must be the '%s', but isn't!", 
@@ -644,8 +718,8 @@ static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* r
             break;
         }
         default: {
-            _check_return_statement(fname, nd->c, rtype);
-            _check_return_statement(fname, nd->siblings.n, rtype);
+            _check_return_statement(fname, nd->c, rtype, smt);
+            _check_return_statement(fname, nd->siblings.n, rtype, smt);
             break;
         }
     }
@@ -669,7 +743,7 @@ int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS) {
         return 1;
     }
 
-    return _check_return_statement(fi.name->body, nd->c, fi.rtype->t);
+    return _check_return_statement(fi.name->body, nd->c, fi.rtype->t, smt);
 }
 
 int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
@@ -689,7 +763,7 @@ int ASTWLKR_implict_convertion(AST_VISITOR_ARGS) {
     if (!larg) return 1;
     ast_node_t* rarg = larg->siblings.n;
     if (!rarg) return 1;
-    if (!_check_assign_types("Implict convertion detected", larg, rarg)) {
+    if (!_check_assign_types("Implict convertion detected", larg, rarg, smt)) {
         REBUILD_CODE_1TRG(nd, rarg);
         return 0;
     }
@@ -784,7 +858,7 @@ int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
         }
     }
 
-    if (case_count < 4 && !has_annot) {
+    if (case_count < 10 && !has_annot) {
         SEMANTIC_WARNING(
             " %s Switch statement here has '%i' cases and uses the binary search. Consider to add @[straight].", 
             _format_location(&nd->t->finfo), case_count
@@ -792,7 +866,7 @@ int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
         REBUILD_CODE_1TRG(nd, nd);
         return 0;
     }
-    else if (case_count > 4 && has_annot) {
+    else if (case_count > 10 && has_annot) {
         SEMANTIC_WARNING(
             " %s Switch statement here has '%i' cases and uses the straight search. Consider to remove @[straight].", 
             _format_location(&nd->t->finfo), case_count

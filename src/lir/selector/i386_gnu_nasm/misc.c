@@ -16,7 +16,9 @@ lir_subject_t* i386_gnu_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src,
     
     symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, NULL, &smt->v);
     VRTB_update_memory(cpy, FIELD_NO_CHANGE, vsize, reg, FIELD_NO_CHANGE, &smt->v);
-    return LIR_SUBJ_VAR(cpy, vsize);
+    lir_subject_t* new = LIR_SUBJ_VAR(cpy, vsize);
+    new->dsize = src->dsize;
+    return new;
 }
 
 static int _is_f64_type(lir_subject_t* s, sym_table_t* smt) {

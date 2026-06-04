@@ -47,6 +47,8 @@
       --iso-depth: 8px;
       --content-max: 1080px;
       --radius: 4px;
+      --monkey-arm-angle: 0deg;
+      --monkey-scale: 1;
     }
 
     * { box-sizing: border-box; }
@@ -426,32 +428,119 @@
     .cpl-home {
       margin: -48px -56px 0;
       color: var(--text);
-      background: #fff;
+      background: transparent;
+      isolation: isolate;
     }
 
     .cpl-home-hero {
       display: block;
-      min-height: 420px;
-      padding: 74px 56px 64px;
-      background: var(--ink);
-      border-bottom: 4px solid var(--brand);
+      position: relative;
+      min-height: calc(100vh - 60px);
+      padding: clamp(64px, 9vw, 96px) 56px clamp(48px, 8vw, 72px);
+      background: rgba(23, 16, 14, 0.94);
+      border-bottom: 0;
     }
 
-    .cpl-home-hero h1 {
+    .cpl-home-hero > div {
+      position: relative;
+      z-index: 2;
+      max-width: 980px;
+    }
+
+    .cpl-home-hero > div:not(.cpl-scroll-monkey) {
+      position: relative;
+      z-index: 2;
+    }
+
+    .cpl-home-hero > .cpl-scroll-monkey {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      width: 100%;
+      max-width: none;
+      max-height: none;
+      pointer-events: none;
+      opacity: 0.28;
+      filter: drop-shadow(18px 22px 0 rgba(47, 41, 37, 0.12));
+    }
+
+    .cpl-scroll-monkey-art {
+      position: absolute;
+      right: clamp(-250px, -11vw, -96px);
+      bottom: clamp(-112px, -8vh, -52px);
+      width: 689px;
+      height: 512px;
+      transform: scale(var(--monkey-scale, 1.28));
+      transform-origin: right bottom;
+    }
+
+    .cpl-scroll-monkey-base,
+    .cpl-scroll-monkey-arm {
+      position: absolute;
+      inset: 0;
+      width: 689px;
+      height: 512px;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .cpl-scroll-monkey-base {
+      z-index: 1;
+    }
+
+    .cpl-scroll-monkey-arm {
+      z-index: 2;
+      transform-origin: 267px 222px;
+      transform: rotate(var(--monkey-arm-angle));
+      transition: transform 0.04s linear;
+    }
+
+    .cpl-home-hero h1,
+    .hero-title {
+      position: relative;
+      z-index: 2;
       margin: 0;
       color: #fff;
-      font-size: clamp(3.5rem, 8vw, 7rem);
-      line-height: 0.92;
+      font-size: clamp(4rem, 6.2vw, 6.4rem);
+      line-height: 0.82;
       letter-spacing: 0;
-      max-width: 760px;
+      max-width: min(900px, 78vw);
+      font-weight: 800;
     }
 
-    .cpl-home-hero h1::after {
+    .hero-title span {
+      position: relative;
+      display: block;
+      width: fit-content;
+      max-width: 100%;
+      white-space: nowrap;
+    }
+
+    .hero-title span:first-child {
+      z-index: 1;
+    }
+
+    .hero-title-mark {
+      z-index: 2;
+      margin-top: -0.08em;
+      margin-bottom: -0.08em;
+      padding: 0.08em 0.12em 0.15em;
+      background: #42abe0;
+      color: #fff;
+      line-height: 0.86;
+    }
+
+    .hero-title span:last-child {
+      z-index: 3;
+    }
+
+    .cpl-home-hero h1::after,
+    .hero-title::after {
       content: "";
       display: block;
       width: 84px;
       height: 6px;
-      margin-top: 24px;
+      margin-top: 34px;
       background: var(--brand);
     }
 
@@ -469,11 +558,11 @@
     }
 
     .hero-note {
-      max-width: 760px;
+      max-width: 780px;
       margin: 28px 0 28px;
       color: #efe4dc !important;
-      font-size: 1.26rem !important;
-      line-height: 1.62 !important;
+      font-size: 1.24rem !important;
+      line-height: 1.55 !important;
     }
 
     .hero-actions {
@@ -488,7 +577,7 @@
       align-items: center;
       justify-content: center;
       min-height: 44px;
-      padding: 0 18px;
+      padding: 0 20px;
       border-radius: 0;
       text-decoration: none !important;
       font-weight: 800;
@@ -1002,8 +1091,38 @@
       .markdown-section { padding: 34px 22px 72px; }
       .cpl-home { margin: -34px -22px 0; }
       .cpl-home-hero {
+        display: block;
         min-height: auto;
         padding: 48px 22px 46px;
+      }
+      .cpl-home-hero > .cpl-scroll-monkey {
+        opacity: 0.26;
+        filter: drop-shadow(10px 12px 0 rgba(0, 0, 0, 0.14));
+      }
+      .cpl-scroll-monkey-art {
+        right: -190px;
+        bottom: -54px;
+        transform-origin: right bottom;
+      }
+      .cpl-home-hero h1,
+      .hero-title {
+        max-width: 100%;
+        font-size: clamp(3.1rem, 16vw, 5.6rem);
+        line-height: 0.82;
+      }
+      .hero-title span {
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+      .hero-title-mark {
+        margin-top: -0.04em;
+        margin-bottom: -0.04em;
+        padding-right: 0.08em;
+        padding-left: 0.08em;
+      }
+      .hero-note {
+        font-size: 1.08rem !important;
+        line-height: 1.55 !important;
       }
       .cpl-home-band { padding: 34px 22px 42px; }
       .feature-grid { grid-template-columns: 1fr; }
@@ -1063,6 +1182,10 @@
       .cpl-runner-button:hover::after {
         -webkit-mask-size: 0 0;
         mask-size: 0 0;
+      }
+
+      .cpl-scroll-monkey-arm {
+        transition: none;
       }
     }
   </style>
@@ -1351,6 +1474,65 @@
       }
     }
 
+    const cplMonkeyScrollController = (function() {
+      const startAngle = 0;
+      const endAngle = 92;
+      let ticking = false;
+      let bound = false;
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function isHomeRoute() {
+        const route = cleanRoute(location.hash);
+        return !route || route === '#' || route === '#/' || route === '#/README' || route === '#/README.md';
+      }
+
+      function getScrollTop() {
+        return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      }
+
+      function update() {
+        ticking = false;
+
+        const root = document.documentElement;
+        const monkey = document.querySelector('.cpl-scroll-monkey');
+        if (!monkey || !isHomeRoute()) {
+          root.style.setProperty('--monkey-arm-angle', startAngle + 'deg');
+          return;
+        }
+
+        const rect = monkey.getBoundingClientRect();
+        const scale = clamp(Math.min(rect.width / 689, rect.height / 512), 0.72, 1.82);
+        root.style.setProperty('--monkey-scale', scale);
+
+        const home = document.querySelector('.cpl-home');
+        const scrollRange = Math.max(1, (home ? home.offsetHeight : document.documentElement.scrollHeight) - window.innerHeight);
+        const progress = clamp(getScrollTop() / scrollRange, 0, 1);
+        const angle = startAngle + (endAngle - startAngle) * progress;
+        root.style.setProperty('--monkey-arm-angle', angle.toFixed(2) + 'deg');
+      }
+
+      function requestUpdate() {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(update);
+      }
+
+      function init() {
+        if (!bound) {
+          bound = true;
+          window.addEventListener('scroll', requestUpdate, { passive: true });
+          window.addEventListener('resize', requestUpdate);
+          window.addEventListener('hashchange', requestUpdate);
+        }
+        requestUpdate();
+      }
+
+      return { init, update: requestUpdate };
+    })();
+
     window.$docsify = {
       name: 'CPL v3.6<small>Language docs & compiler internals</small>',
       repo: 'https://github.com/j1sk1ss/CordellCompiler',
@@ -1427,7 +1609,10 @@
           }
 
           hook.ready(updateShellRoute);
-          hook.doneEach(updateShellRoute);
+          hook.doneEach(function() {
+            updateShellRoute();
+            cplMonkeyScrollController.init();
+          });
           window.addEventListener('hashchange', updateShellRoute);
         },
 

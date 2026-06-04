@@ -1,8 +1,18 @@
 <div class="cpl-home">
     <section class="cpl-home-hero">
+        <div class="cpl-scroll-monkey" aria-hidden="true">
+            <div class="cpl-scroll-monkey-art">
+                <img class="cpl-scroll-monkey-base" src="bg/base.png" alt="" />
+                <img class="cpl-scroll-monkey-arm" src="bg/arm.png" alt="" />
+            </div>
+        </div>
         <div>
         <div class="hero-kicker">Language and compiler documentation</div>
-            <h1>Cordell Programming Language</h1>
+            <h1 class="hero-title">
+                <span>Cordell</span>
+                <span class="hero-title-mark">Programming</span>
+                <span>Language</span>
+            </h1>
             <p class="hero-note">CPL is a deliberately small systems-language experiment and compiler infrastructure for studying parsing, semantic diagnostics, intermediate representations, optimization, register allocation, and assembly generation.</p>
             <div class="hero-actions">
             <a href="#/pages/summary" class="hero-button primary">Overview</a>

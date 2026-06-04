@@ -20,7 +20,12 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
             break;
         }
         case LIR_FCLL:
-        case LIR_ECLL: EMIT_COMMAND("call %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG)); break;
+        case LIR_ECLL: {
+            func_info_t fi;
+            if (FNTB_get_info_id(b->farg->storage.str.sid, &fi, &smt->f) && fi.flags.vargs) EMIT_COMMAND("xor rax, rax");
+            EMIT_COMMAND("call %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG)); 
+            break;
+        }
         case LIR_STRT:
         case LIR_FDCL: {
             EMIT_COMMAND("%s:", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
@@ -199,6 +204,18 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
+static long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* elem_tkn, sym_table_t* smt) {
+    long type_size = TPTB_get_memory_size_id(vi->t_id, &smt->t);
+    if (type_size != FIELD_NO_CHANGE) return type_size;
+
+    switch (TKN_variable_bitness(elem_tkn, 1)) {
+        case TYPE_FULL_SIZE:    return ai->size * 8;
+        case TYPE_HALF_SIZE:    return ai->size * 4;
+        case TYPE_QUARTER_SIZE: return ai->size * 2;
+        default:                return ai->size;
+    }
+}
+
 /*
 Emit storage for a non-external variable into the current assembly section.
 Params:
@@ -219,11 +236,12 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
         token_t tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
         /* Simple reservation with the unitialized data */
         if (!list_size(&ai.elems)) {
+            long reserve_size = _array_reserve_size(&vi, &ai, &tmptkn, smt);
             switch (TKN_variable_bitness(&tmptkn, 1)) {
-                case TYPE_FULL_SIZE:    EMIT_COMMAND("%s resq %ld", vi.name->body, ai.size); break;
-                case TYPE_HALF_SIZE:    EMIT_COMMAND("%s resd %ld", vi.name->body, ai.size); break;
-                case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s resw %ld", vi.name->body, ai.size); break;
-                default:                EMIT_COMMAND("%s resb %ld", vi.name->body, ai.size); break;
+                case TYPE_FULL_SIZE:    EMIT_COMMAND("%s resq %ld", vi.name->body, reserve_size / 8); break;
+                case TYPE_HALF_SIZE:    EMIT_COMMAND("%s resd %ld", vi.name->body, reserve_size / 4); break;
+                case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s resw %ld", vi.name->body, reserve_size / 2); break;
+                default:                EMIT_COMMAND("%s resb %ld", vi.name->body, reserve_size);     break;
             }
         }
         /* Reservation with the initialized data */
@@ -282,8 +300,11 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
 
-    if (fi.flags.entry)       EMIT_COMMAND("global %s", fi.virt->body);
-    else if (fi.flags.global) EMIT_COMMAND("global %s", fi.name->body);
+    const char* name = NULL;
+    if (fi.flags.entry)       name = fi.virt->body;
+    else if (fi.flags.global) name = fi.name->body;
+    EMIT_COMMAND("global %s", name);
+    if (fi.flags.weak)        EMIT_COMMAND(".weak_definition %s", name);
     if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
     iterate_lir_instructions (fb) {
         _convert_lirblock_to_assembly(lh, &fi, smt, output);

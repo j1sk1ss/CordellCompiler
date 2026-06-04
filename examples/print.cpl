@@ -34,7 +34,7 @@ function _puts(ptr i8 s) -> i0 {
     }
 }
 
-function printf(ptr i8 fmt, ...) {
+function printf(ptr i8 fmt, ...) -> i0 {
     i32 index = 0;
     while index < _strlen(fmt); {
         @[straight]
@@ -69,6 +69,8 @@ function printf(ptr i8 fmt, ...) {
     }
 }
 
+@[entry("main")]
 start() {
     printf(ref "Hello! %s, %i %i %i\n", ref "Oregon!", 10 as i32, 11 as i32, 12 as i32);
+    exit 0;
 }

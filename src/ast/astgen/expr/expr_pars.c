@@ -18,6 +18,11 @@ Returns an AST node.
 */
 static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
 
+#define WRAP_REFERENCE_NODE(nd) \
+    ast_node_t* __pp = AST_create_node_bt(TKN_create_token(REF_TYPE_TOKEN, "ref", NULL)); \
+    AST_add_node(__pp, nd);                                                               \
+    nd = __pp;                                                                            \
+
 /*
 Parse expression that looks like: <stmt> <op> <stmt>. 
 Note: <stmt> here can be either a simple <(a..> or a complex sub-stmt.
@@ -164,7 +169,11 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                             VRTB_get_info_id(self_ti.link.v_id, &self_vi, &smt->v);
                             if (
                                 (!self_vi.vfs.ptr && self_ti.link.p != NO_SYMBOL_ID) ||
-                                (!left->self->t->flags.ptr && self_ti.link.p == NO_SYMBOL_ID)
+                                (
+                                    !left->self->t->flags.ptr &&                 /* If self doesn't referenced                       */
+                                    left->self->t->t_type != INDEXATION_TOKEN && /* Any indexation operation already have referenced */
+                                    self_ti.link.p == NO_SYMBOL_ID               /* And this isn't a field in a container            */
+                                )
                             ) {
                                 WRAP_REFERENCE_NODE(left->self);
                             }
@@ -182,6 +191,10 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     ast_node_t* tmp = left;
                     left = target;
                     if (tmp) AST_add_node(left, tmp);
+                    if (
+                        tmp && 
+                        left->t->t_type == INDEXATION_TOKEN
+                    ) left->sinfo.t_id = TPTB_get_first_child(tmp->sinfo.t_id, &smt->t);
                     if (data) {
                         AST_add_node(left, data);
                         forward_token(it, 1);
@@ -271,8 +284,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
                 ast_node_t* node = NULL;
                 if (
-                    type != NO_SYMBOL_ID               || 
-                    TKN_is_builtin_type(CURRENT_TOKEN) || 
+                    type != NO_SYMBOL_ID ||
                     CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
                 ) node = cpl_parse_lambda(it, ctx, smt, 0);
                 else {
@@ -319,7 +331,7 @@ _primary_resolve_complete: {}
         default: break;
     }
 
-    var_lookup(node, ctx, smt);
+    var_lookup(node, ctx, smt); // TODO: AST checker for unkown variables / types, etc.
     forward_token(it, 1);
     return node;
 }

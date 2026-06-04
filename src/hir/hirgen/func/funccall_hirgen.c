@@ -1,5 +1,35 @@
 #include <hir/hirgens/hirgens.h>
 
+// TODO: docs
+static inline int _fit_arg_shape(ast_node_t* arg, hir_subject_t* hir_arg) {
+    if (
+        !arg || !arg->t || !hir_arg ||
+        (arg->t->flags.ptr != hir_arg->ptr)
+    ) return -1;
+    if (
+        HIR_get_convop(HIR_get_tmp_type(hir_arg->t)) !=                 /* Provided */
+        HIR_get_convop(HIR_get_tmptype_tkn(arg->t, !arg->t->flags.ptr)) /* Expected */
+    ) return -1;
+    return 0;
+}
+
+// TODO: docs
+static inline int _fit_custom_type(ast_node_t* arg, hir_subject_t* hir_arg, sym_table_t* smt) {
+    if (
+        !arg || !arg->t || !hir_arg || !HIR_is_vartype(hir_arg->t) ||
+        (
+            arg->t->t_type != CUSTOM_TYPE_TOKEN && 
+            arg->t->t_type != CUSTOM_VARIABLE_TOKEN
+        )
+    ) return 0;
+    variable_info_t vi;
+    if (!VRTB_get_info_id(hir_arg->storage.var.v_id, &vi, &smt->v)) return 0;
+    if (arg->sinfo.t_id == NO_SYMBOL_ID || vi.v_id == NO_SYMBOL_ID) return -1;
+    return arg->sinfo.t_id == vi.v_id ? 
+            1 : /* If types are equal */
+            -1; /* otherwise - punish */
+}
+
 /*
 De-overload for functions in HIR.
 The idea to determine which function is beign called:
@@ -43,7 +73,10 @@ static symbol_id_t _resolve_function_overload(
 
     list_t funcs;
     list_init(&funcs);
-    if (FNTB_collect_info(fi.name, s_id, &funcs, &smt->f) && list_size(&funcs) > 1) {
+    if (
+        FNTB_collect_info(fi.name, s_id, &funcs, &smt->f) && 
+        list_size(&funcs) > 1
+    ) {
         int most_fit = -999;
         func_info_t* resolved = NULL;
         int arg_count = list_size(&args->storage.list.h);
@@ -62,9 +95,8 @@ static symbol_id_t _resolve_function_overload(
                     if (arg_count <= arg_index || arg->t->t_type == VAR_ARGUMENTS_TOKEN) break;
                     hir_subject_t* hir_arg = (hir_subject_t*)fl_args[arg_index++];
                     if (!hir_arg) continue;
-                    if (HIR_get_convop(hir_arg->t) != HIR_get_convop(HIR_get_tmptype_tkn(arg->t, 1))) {
-                        fits--;
-                    }
+                    fits += _fit_arg_shape(arg, hir_arg);
+                    fits += _fit_custom_type(arg, hir_arg, smt);
                 }
 
                 mm_free(fl_args);
@@ -106,7 +138,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         op        = fi.flags.external ? HIR_ECLL : HIR_FCLL;
         st_op     = fi.flags.external ? HIR_STORE_ECLL : HIR_STORE_FCLL;
         call_subj = HIR_SUBJ_FUNCNAME(node->c);
-        fi.s_id   = node->c->sinfo.s_id;
+        if (node->c->sinfo.s_id != NO_SYMBOL_ID) fi.s_id = node->c->sinfo.s_id;
     }
     
     if (!call_subj) {

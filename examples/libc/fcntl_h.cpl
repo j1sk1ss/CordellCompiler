@@ -1,0 +1,28 @@
+#ifndef CPL_FCNTL_H_
+#define CPL_FCNTL_H_ 0
+
+#define O_RDONLY    0
+#define O_WRONLY    1
+#define O_RDWR      2
+#define O_CREAT     64
+#define O_EXCL      128
+#define O_NOCTTY    256
+#define O_TRUNC     512
+#define O_APPEND    1024
+#define O_NONBLOCK  2048
+
+#define S_IRUSR 256
+#define S_IWUSR 128
+#define S_IXUSR 64
+#define S_IRGRP 32
+#define S_IWGRP 16
+#define S_IXGRP 8
+#define S_IROTH 4
+#define S_IWOTH 2
+#define S_IXOTH 1
+
+@[abi] extern function open(ptr i8 path, i32 flags, ...) -> i32;
+@[abi] extern function creat(ptr i8 path, i32 mode) -> i32;
+@[abi] extern function fcntl(i32 fd, i32 cmd, ...) -> i32;
+
+#endif

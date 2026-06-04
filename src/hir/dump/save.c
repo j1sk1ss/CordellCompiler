@@ -20,7 +20,7 @@ static const char* _get_operation_template(hir_operation_t op) {
         case HIR_FCLL:         return "%s%s(%s);\n";
         case HIR_STORE_UFCLL:
         case HIR_STORE_FCLL:   return "%s = %s(%s);\n";
-        case HIR_ECLL:         return "%s(%s%s);\n";
+        case HIR_ECLL:         return "%s%s(%s);\n";
         case HIR_STORE_ECLL:   return "%s = %s(%s);\n";
         case HIR_SYSC:         return "syscall(%s%s%s);\n";
         case HIR_STORE_SYSC:   return "%s = syscall(%s%s);\n";

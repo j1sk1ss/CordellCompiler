@@ -236,7 +236,7 @@ int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
             fb->lmap.entry->op == LIR_STRT
         ) {
             if (smp.last_offset || _verify_memory_usage(fb)) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
-            else FNTB_update_func(fb->lmap.entry->farg->storage.str.sid, FNTB_SET_NAKED, &smt->f);
+            else FNTB_update_func(fb->lmap.entry->farg->storage.str.sid, FNTB_ONLY_FLAGS(FNTB_SET_NAKED(2)), &smt->f);
         }
     }
 
@@ -365,6 +365,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                         lh->sarg = x86_64_macho_nasm_create_tmp(R15, src, smt, lh->sarg->size);
                     }
 
+                    if (lh->sarg->t == LIR_REGISTER) lh->sarg->size = lh->farg->dsize;
                     break;
                 }
                 case LIR_GDREF: {

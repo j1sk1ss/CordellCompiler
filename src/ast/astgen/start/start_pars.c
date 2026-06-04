@@ -55,7 +55,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     string_t* virt_name = annots.fname;
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     base->sinfo.v_id = FNTB_add_info(
-        main_name, virt_name, 1, 0, 1, annots.is_naked, 0, 0, 0, 0, base->sinfo.s_id, base, NULL, &smt->f
+        main_name, virt_name, (func_info_flags_t){ .entry = 1, .global = 1, .naked = annots.is_naked }, base->sinfo.s_id, base, NULL, &smt->f
     );
     destroy_string(main_name);
 

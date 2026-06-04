@@ -26,12 +26,7 @@ int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt) {
         map_foreach (call_graph_node_t* nd, &ctx->verts) {
             func_info_t fi;
             if (!FNTB_get_info_id(nd->f_id, &fi, &smt->f)) continue;
-            FNTB_update_func(
-                nd->f_id, NULL,
-                fi.flags.global ? 1 : nd->flag, 
-                FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, NULL, NULL, 
-                &smt->f
-            );
+            FNTB_update_func(nd->f_id, FNTB_ONLY_FLAGS(FNTB_SET_USED(fi.flags.global ? 1 : nd->flag)), &smt->f);
         }
     }
 

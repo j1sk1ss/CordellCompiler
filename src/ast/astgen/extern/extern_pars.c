@@ -19,7 +19,7 @@ ast_node_t* cpl_parse_extern(PARSER_ARGS) {
     }
     else if (CURRENT_TOKEN->t_type == FUNC_TOKEN) {
         arg = cpl_parse_function(it, ctx, smt, carry);
-        if (!FNTB_update_func(arg->c->sinfo.v_id, FNTB_SET_EXTERNAL, &smt->f)) {
+        if (!FNTB_update_func(arg->c->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL), &smt->f)) {
             PARSE_ERROR("Function update error!");
             AST_unload(arg);
             AST_unload(base);

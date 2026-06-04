@@ -1,5 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
+// TODO: docs
 static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name  = node->c;
     ast_node_t* size  = name->siblings.n;
@@ -17,6 +18,7 @@ static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     return 1;
 }
 
+// TODO: docs
 static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name  = node->c;
     ast_node_t* size  = name->siblings.n;
@@ -53,19 +55,32 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
             }
         }
 
-        HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(name), HIR_generate_elem(size, ctx, smt), init_elems);
+        hir_subject_t* alloc_size = NULL;
+        if (
+            ai.vla || 
+            vi.t_id == NO_SYMBOL_ID
+        ) alloc_size = HIR_generate_elem(size, ctx, smt);
+        else {
+            long type_size = TPTB_get_memory_size_id(vi.t_id, &smt->t);
+            if (type_size == FIELD_NO_CHANGE) type_size = 0;
+            alloc_size = HIR_SUBJ_CONST(type_size);
+        }
+
+        HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(name), alloc_size, init_elems);
     }
 
     return 1;
 }
 
-static int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+// TODO: docs
+static inline int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     type_info_t ti;
     if (!TPTB_get_info_id(node->sinfo.t_id, &ti, &smt->t)) return 0;
     HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(node->c), HIR_SUBJ_CONST(ti.memory.size), HIR_SUBJ_LIST());
     return 1;
 }
 
+// TODO: docs
 static inline int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     switch (node->t->t_type) {
         case ARRAY_TYPE_TOKEN:  return _arr_declaration(node, ctx, smt);

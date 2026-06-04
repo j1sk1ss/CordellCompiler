@@ -61,6 +61,8 @@
 /* Liveness analysis + Register allocation */
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
+#include <lir/regalloc/i386_gnu_precolor.h>
+#include <lir/regalloc/x86_64_gnu_precolor.h>
 #include <lir/regalloc/regalloc.h>
 
 /* Peephole optimization */
@@ -73,7 +75,7 @@
 #include <asm/i386_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
-#define CCPL_VERSION                 "3.6:2405.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.2:0606.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #define OPTION_HELP_SHORT            "-h"
 #define OPTION_HELP                  "--help"
