@@ -37,11 +37,7 @@ int FNTB_get_info(string_t* fname, symbol_id_t s_id, func_info_t* out, functab_c
     return 0;
 }
 
-static func_info_t* _create_func_info(
-    string_t* name, 
-    int global, int local, int entry, int naked, int vargs, int generic, int inln, int self, /* flags */
-    ast_node_t* args, ast_node_t* rtype
-) {
+static func_info_t* _create_func_info(string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype) {
     func_info_t* fn = (func_info_t*)mm_malloc(sizeof(func_info_t));
     if (!fn) return NULL;
     str_memset(fn, 0, sizeof(func_info_t));
@@ -49,20 +45,10 @@ static func_info_t* _create_func_info(
     list_init(&fn->template.resolutions);
     list_init(&fn->template.registered_types);
     map_init(&fn->template.generic, MAP_CMP);
-    if (name) {
-        fn->name = name->copy(name);
-    }
-
-    fn->args          = AST_copy_node(args, 0, 0, 1, args->siblings.t);
-    fn->rtype         = AST_copy_node(rtype, 0, 0, 1, NULL);
-    fn->flags.global  = global;
-    fn->flags.local   = local;
-    fn->flags.entry   = entry;
-    fn->flags.naked   = naked;
-    fn->flags.vargs   = vargs;
-    fn->flags.generic = generic;
-    fn->flags.inln    = inln;
-    fn->flags.self    = self;
+    if (name) fn->name = name->copy(name);
+    fn->args  = AST_copy_node(args, 0, 0, 1, args->siblings.t);
+    fn->rtype = AST_copy_node(rtype, 0, 0, 1, NULL);
+    fn->flags = flags;
     return fn;
 }
 
@@ -93,22 +79,20 @@ static string_t* _create_virt_name(symbol_id_t id, string_t* name) {
 }
 
 symbol_id_t FNTB_add_info(
-    string_t* name, string_t* vname,
-    int global, int local, int entry, int naked, int vargs, int generic, int inln, int self, /* flags */
-    symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
+    string_t* name, string_t* vname, func_info_flags_t flags, symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
     print_log(
         "FNTB_add_info(name=%s, global=%i, entry=%i, naked=%i, args=%lu)", 
-        name ? name->body : "(null)", global, entry, naked, args ? AST_hash_node_stop(args->c, SCOPE_TOKEN) : 0
+        name ? name->body : "(null)", flags.global, flags.entry, flags.naked, args ? AST_hash_node_stop(args->c, SCOPE_TOKEN) : 0
     );
     
     func_info_t out;
     if (_is_function_presented(name, s_id, args, NULL, &out, ctx)) return out.id; 
 
-    func_info_t* nnd = _create_func_info(name, global, local, entry, naked, vargs, generic, inln, self, args, rtype);
+    func_info_t* nnd = _create_func_info(name, flags, args, rtype);
     if (!nnd) return 0;
     nnd->s_id       = s_id;
-    nnd->flags.used = global;
+    nnd->flags.used = flags.global;
     
     nnd->id = ctx->curr_id++;
     if (!vname) nnd->virt = _create_virt_name(nnd->id, name);
@@ -120,7 +104,7 @@ symbol_id_t FNTB_add_info(
 
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx) {
     print_log("FNTB_add_copy(id=%llu)", src->id);
-    func_info_t* nnd = _create_func_info(src->name, 0, 0, 0, 0, 0, 0, 0, 0, src->args, src->rtype);
+    func_info_t* nnd = _create_func_info(src->name, (func_info_flags_t){ 0 }, src->args, src->rtype);
     if (!nnd) return NO_SYMBOL_ID;
     
     str_memcpy(&nnd->flags, &src->flags, sizeof(src->flags));
@@ -148,11 +132,7 @@ int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx) {
 }
 
 int FNTB_update_func(
-    symbol_id_t id, 
-    string_t* name, 
-    int used, int external, int global, int local, int entry, int naked, int vargs, /* flags */
-    ast_node_t* args, ast_node_t* rtype,
-    functab_ctx_t* ctx
+    symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
     print_log("FNTB_update_func(id=%llu, name=%s)", id, name->body);
     func_info_t* fi;
@@ -164,13 +144,13 @@ int FNTB_update_func(
             fi->virt = _create_virt_name(id, name);
         }
         
-        if (global != FIELD_NO_CHANGE)   fi->flags.global   = global;
-        if (local != FIELD_NO_CHANGE)    fi->flags.local    = local;
-        if (entry != FIELD_NO_CHANGE)    fi->flags.entry    = entry;
-        if (naked != FIELD_NO_CHANGE)    fi->flags.naked    = naked;
-        if (vargs != FIELD_NO_CHANGE)    fi->flags.vargs    = vargs;
-        if (used != FIELD_NO_CHANGE)     fi->flags.used     = used;
-        if (external != FIELD_NO_CHANGE) fi->flags.external = external;
+        if (flags.global != FIELD_NO_CHANGE)   fi->flags.global   = flags.global;
+        if (flags.local != FIELD_NO_CHANGE)    fi->flags.local    = flags.local;
+        if (flags.entry != FIELD_NO_CHANGE)    fi->flags.entry    = flags.entry;
+        if (flags.naked != FIELD_NO_CHANGE)    fi->flags.naked    = flags.naked;
+        if (flags.vargs != FIELD_NO_CHANGE)    fi->flags.vargs    = flags.vargs;
+        if (flags.used != FIELD_NO_CHANGE)     fi->flags.used     = flags.used;
+        if (flags.external != FIELD_NO_CHANGE) fi->flags.external = flags.external;
         
         if (args) {
             AST_unload(fi->args);
@@ -283,11 +263,8 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx
             return existed.id;
         }
         
-        func_info_t* n = _create_func_info(
-            fi->name, 
-            fi->flags.global, fi->flags.local, fi->flags.entry, fi->flags.naked, fi->flags.vargs, 0, fi->flags.inln, fi->flags.self,
-            args, rtype
-        );
+        func_info_t* n   = _create_func_info(fi->name, fi->flags, args, rtype);
+        n->flags.generic = 0;
         
         AST_unload(args);
         AST_unload(rtype);

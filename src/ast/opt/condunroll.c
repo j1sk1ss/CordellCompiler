@@ -62,7 +62,6 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
 
                     break;
                 }
-
                 case SWITCH_TOKEN: {
                     ast_node_t* stmt  = t->c;
                     ast_node_t* cases = stmt->siblings.n;
@@ -111,7 +110,6 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
 
                     break;
                 }
-
                 case WHILE_TOKEN: {
                     ast_node_t* condition = t->c;
                     _clean_blocks(condition->siblings.n, ctx);
@@ -126,7 +124,6 @@ static int _clean_blocks(ast_node_t* root, ast_ctx_t* ctx) {
 
                     break;
                 }
-
                 case FUNC_TOKEN: _clean_blocks(t->c->siblings.n->siblings.n, ctx); break;
                 default: break;
             }
