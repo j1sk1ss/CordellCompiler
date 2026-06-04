@@ -1,5 +1,11 @@
 <div class="cpl-home">
     <section class="cpl-home-hero">
+        <div class="cpl-scroll-monkey" aria-hidden="true">
+            <div class="cpl-scroll-monkey-art">
+                <img class="cpl-scroll-monkey-base" src="bg/base.png" alt="" />
+                <img class="cpl-scroll-monkey-arm" src="bg/arm.png" alt="" />
+            </div>
+        </div>
         <div>
         <div class="hero-kicker">Language and compiler documentation</div>
             <h1 class="hero-title">
