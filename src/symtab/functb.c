@@ -104,10 +104,9 @@ symbol_id_t FNTB_add_info(
 
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx) {
     print_log("FNTB_add_copy(id=%llu)", src->id);
-    func_info_t* nnd = _create_func_info(src->name, (func_info_flags_t){ 0 }, src->args, src->rtype);
+    func_info_t* nnd = _create_func_info(src->name, src->flags, src->args, src->rtype);
     if (!nnd) return NO_SYMBOL_ID;
     
-    str_memcpy(&nnd->flags, &src->flags, sizeof(src->flags));
     nnd->id   = ctx->curr_id++;
     nnd->virt = _create_virt_name(nnd->id, src->name);
     nnd->s_id = NO_SYMBOL_ID;

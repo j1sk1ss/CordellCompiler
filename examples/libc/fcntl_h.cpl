@@ -21,8 +21,8 @@
 #define S_IWOTH 2
 #define S_IXOTH 1
 
-extern function open(ptr i8 path, i32 flags, ...) -> i32;
-extern function creat(ptr i8 path, i32 mode) -> i32;
-extern function fcntl(i32 fd, i32 cmd, ...) -> i32;
+@[abi] extern function open(ptr i8 path, i32 flags, ...) -> i32;
+@[abi] extern function creat(ptr i8 path, i32 mode) -> i32;
+@[abi] extern function fcntl(i32 fd, i32 cmd, ...) -> i32;
 
 #endif

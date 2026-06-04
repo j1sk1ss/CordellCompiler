@@ -4,10 +4,12 @@
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/stack.h>
-// TODO: union annotation
 #define ENTRY_ANNOTATION_COMMAND "entry"
 #define ALIGN_ANNOTATION_COMMAND "align"
 #define LIKEC_ANNOTATION_COMMAND "like_c"
+#define UNION_ANNOTATION_COMMAND "union"
+#define WEAKS_ANNOTATION_COMMAND "weak"
+#define ABICC_ANNOTATION_COMMAND "abi"
 #define NAKED_ANNOTATION_COMMAND "naked"
 #define SECTN_ANNOTATION_COMMAND "section"
 #define NOSEC_ANNOTATION_COMMAND "nosection"
@@ -50,6 +52,9 @@ typedef struct {
     char      is_argpop   : 1;
     char      is_self     : 1;
     char      is_like_c   : 1;
+    char      is_union    : 1;
+    char      is_weak     : 1;
+    char      is_abi      : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -71,6 +76,9 @@ typedef enum {
     INLINE_ANNOTATION,    /* Will change inline decider result          */
     SELF_ANNOTATION,      /* Will tell devirt that a function is static */
     LIKEC_ANNOTATION,     /* Will tell container to generate C offsets  */
+    UNION_ANNOTATION,     /* Will tell container to store fields union  */
+    WEAK_ANNOTATION,      /* Will mark a function as weak               */
+    ABI_ANNOTATION,       /* Will mark a function as ABI-compatible     */
 } annotation_type_t;
 
 typedef struct {

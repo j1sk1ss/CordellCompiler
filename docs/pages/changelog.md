@@ -34,6 +34,21 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## ABI and weak annotations
+<div class="change-date">Date: 2026-06-04</div>
+Two new function annotations were added for low-level interop and linker-visible metadata:
+
+```cpl
+@[abi]
+extern function something(...) -> i0;
+
+@[weak]
+function fallback() -> i0 {
+}
+```
+
+The `abi` annotation marks a function as ABI-compatible, while `weak` lets the assembly backend emit weak symbol information for the linker.
+
 ## Containers!: Arrays
 <div class="change-date">Date: 2026-05-31</div>
 Containers now can be packed in an array:

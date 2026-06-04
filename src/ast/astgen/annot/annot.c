@@ -55,6 +55,9 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
             case POPARG_ANNOTATION:    summary->is_argpop   = 1;                   break;
             case SELF_ANNOTATION:      summary->is_self     = 1;                   break;
             case LIKEC_ANNOTATION:     summary->is_like_c   = 1;                   break;
+            case UNION_ANNOTATION:     summary->is_union    = 1;                   break;
+            case WEAK_ANNOTATION:      summary->is_weak     = 1;                   break;
+            case ABI_ANNOTATION:       summary->is_abi      = 1;                   break;
             case REGISTER_ANNOTATION:  summary->reg         = annot->data.regval;  break;
             case COUNTER_ANNOTATION:   summary->counter     = annot->data.counter; break;
             case ADDRESS_ANNOTATION:   summary->address     = annot->data.address; break;
