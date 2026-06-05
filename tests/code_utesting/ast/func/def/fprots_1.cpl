@@ -7,16 +7,16 @@ function baz(u8 a);
    [function] (FUNC_PROT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [foo] (FUNC_NAME_TOKEN, v_id=0, t_id=-1, s_id=1)
       { scope, id=2 }
-         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
             [a] (I32_VARIABLE_TOKEN, v_id=0, t_id=-1, s_id=2)
    [function] (FUNC_PROT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [bar] (FUNC_NAME_TOKEN, v_id=1, t_id=-1, s_id=1)
       { scope, id=3 }
-         [i64] (I64_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+         [i64] (I64_TYPE_TOKEN, v_id=-1, t_id=3, s_id=-1)
             [a] (I64_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=3)
    [function] (FUNC_PROT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [baz] (FUNC_NAME_TOKEN, v_id=2, t_id=-1, s_id=1)
       { scope, id=4 }
-         [u8] (U8_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+         [u8] (U8_TYPE_TOKEN, v_id=-1, t_id=5, s_id=-1)
             [a] (U8_VARIABLE_TOKEN, v_id=2, t_id=-1, s_id=4)
 /:

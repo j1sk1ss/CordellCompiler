@@ -42,7 +42,10 @@
       "scope": [
         "storage.type.primitive.cpl",
         "source.cpl storage.type.primitive",
-        "storage.type"
+        "storage.type",
+        "storage.type.user.cpl",
+        "entity.name.type.container.cpl",
+        "meta.array.element-type.cpl storage.type.user.cpl"
       ],
       "settings": {
         "foreground": "#4fbf4f"

@@ -10,8 +10,8 @@ function foo(...) {
       { scope, id=2 }
          [...] (VAR_ARGUMENTS_TOKEN, v_id=-1, t_id=-1, s_id=-1)
          { scope, id=3 }
-            [i64] (I64_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [i64] (I64_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
                [a] (I64_VARIABLE_TOKEN, v_id=0, t_id=-1, s_id=3)
-            [f32] (F32_TYPE_TOKEN, ptr, v_id=-1, t_id=-1, s_id=-1)
+            [f32] (F32_TYPE_TOKEN, ptr, v_id=-1, t_id=3, s_id=-1)
                [b] (F32_VARIABLE_TOKEN, ptr, v_id=1, t_id=-1, s_id=3)
 /:

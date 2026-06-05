@@ -263,5 +263,21 @@
       "@[$2]"
     ],
     "description": "Two stacked annotations"
+  },
+  "generic-function-definition": {
+    "scope": "cpl",
+    "prefix": "gfunction",
+    "body": [
+      "function ${1:name}<${2:T}>(${2:T} ${3:a})${4: -> ${2:T}} {",
+      "\t${0:return ${3:a};}",
+      "}"
+    ],
+    "description": "Generic function definition"
+  },
+  "generic-function-call": {
+    "scope": "cpl",
+    "prefix": "gcall",
+    "body": "${1:container}.${2:function}<${3:i32}>(${0})",
+    "description": "Generic function or container method call"
   }
 }

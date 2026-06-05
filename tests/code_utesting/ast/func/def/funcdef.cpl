@@ -10,11 +10,11 @@ function bar(i32 a) {}
    [function] (FUNC_PROT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [bar] (FUNC_NAME_TOKEN, v_id=0, t_id=-1, s_id=1)
       { scope, id=2 }
-         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
             [a] (I32_VARIABLE_TOKEN, v_id=0, t_id=-1, s_id=2)
    [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [foo] (FUNC_NAME_TOKEN, v_id=1, t_id=-1, s_id=1)
-         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
       { scope, id=3 }
          { scope, id=4 }
             [return] (RETURN_TOKEN, v_id=-1, t_id=-1, s_id=4)
@@ -22,7 +22,7 @@ function bar(i32 a) {}
    [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [bar] (FUNC_NAME_TOKEN, v_id=0, t_id=-1, s_id=1)
       { scope, id=5 }
-         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
-            [a] (I32_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=5)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=2, s_id=-1)
+            [a] (I32_VARIABLE_TOKEN, v_id=1, t_id=0, s_id=5)
          { scope, id=6 }
 /:

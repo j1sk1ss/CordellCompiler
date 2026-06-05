@@ -180,6 +180,15 @@
         {
           "name": "storage.type.user.cpl",
           "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s+[A-Za-z_][A-Za-z0-9_]*\\s*(?:=|;|,|\\)|\\[))"
+        },
+        {
+          "name": "meta.array.element-type.cpl",
+          "match": "(,\\s*)([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*\\])",
+          "captures": {
+            "2": {
+              "name": "storage.type.user.cpl"
+            }
+          }
         }
       ]
     },
@@ -202,8 +211,38 @@
           "match": "(?<=\\bfunction\\s+)[A-Za-z_][A-Za-z0-9_]*"
         },
         {
+          "name": "meta.function.call.generic.cpl",
+          "begin": "\\b(?!if\\b|while\\b|switch\\b|asm\\b|syscall\\b|start\\b|function\\b|container\\b|section\\b|align\\b)([A-Za-z_][A-Za-z0-9_]*)(\\s*)(<)(?=[^>\\r\\n]*>\\s*\\()",
+          "beginCaptures": {
+            "1": {
+              "name": "entity.name.function.call.cpl"
+            },
+            "3": {
+              "name": "punctuation.definition.generic.begin.cpl"
+            }
+          },
+          "end": ">",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.generic.end.cpl"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#types"
+            },
+            {
+              "include": "#genericTypes"
+            },
+            {
+              "name": "punctuation.separator.generic.cpl",
+              "match": ","
+            }
+          ]
+        },
+        {
           "name": "entity.name.function.call.cpl",
-          "match": "\\b(?!if\\b|while\\b|switch\\b|asm\\b|syscall\\b|start\\b|function\\b|container\\b|section\\b|align\\b)[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()"
+          "match": "\\b(?!if\\b|while\\b|switch\\b|asm\\b|syscall\\b|start\\b|function\\b|container\\b|section\\b|align\\b)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s*(?:<[^>\\r\\n]*>\\s*)?\\()"
         }
       ]
     },

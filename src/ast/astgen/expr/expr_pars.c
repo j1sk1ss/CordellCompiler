@@ -85,6 +85,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             /* Member access */
             case DOT_TOKEN: {
                 forward_token(it, 1);
+                if (left->sinfo.t_id == NO_SYMBOL_ID) left->sinfo.t_id = type_lookup(left->t, ctx, smt);
                 symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
                 if (field_type == NO_SYMBOL_ID) {
                     PARSE_ERROR("Unknown container field!");

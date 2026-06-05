@@ -32,7 +32,7 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
 
     forward_token(it, 1);
     ctx->t_id = name->sinfo.t_id;
-    ast_node_t* decls = cpl_parse_scope(it, ctx, smt, 0);
+    ast_node_t* decls = cpl_parse_scope(it, ctx, smt, 1);
     ctx->t_id = NO_SYMBOL_ID;
     if (decls) AST_add_node(base, decls);
     else {

@@ -99,13 +99,13 @@ start() {
                            [c] (GENERIC_VARIABLE_TOKEN, v_id=9, t_id=1, s_id=4)
                            [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
             [()]
-               [bar] (FUNC_NAME_TOKEN, v_id=7, t_id=-1, s_id=-1)
+               [bar] (FUNC_NAME_TOKEN, v_id=8, t_id=-1, s_id=-1)
                   [T] (I32_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
                { scope, id=-1 }
                   [a] (I32_VARIABLE_TOKEN, v_id=11, t_id=0, s_id=2)
                   [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
    [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
-      [bar] (FUNC_NAME_TOKEN, v_id=7, t_id=-1, s_id=3)
+      [bar] (FUNC_NAME_TOKEN, v_id=8, t_id=-1, s_id=3)
          [U] (I32_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
       { scope, id=4 }
          [T] (I32_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
@@ -114,7 +114,7 @@ start() {
             [c] (I32_VARIABLE_TOKEN, v_id=15, t_id=1, s_id=4)
          { scope, id=5 }
             [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
-               [baz] (FUNC_NAME_TOKEN, v_id=8, t_id=-1, s_id=5)
+               [baz] (FUNC_NAME_TOKEN, v_id=9, t_id=-1, s_id=5)
                   [K] (GENERIC_TYPE_TOKEN, v_id=-1, t_id=2, s_id=-1)
                { scope, id=6 }
                   [T] (I32_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
@@ -127,14 +127,14 @@ start() {
                      [return] (RETURN_TOKEN, v_id=-1, t_id=-1, s_id=7)
                         [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
             [()]
-               [baz] (FUNC_NAME_TOKEN, v_id=9, t_id=-1, s_id=-1)
+               [baz] (FUNC_NAME_TOKEN, v_id=10, t_id=-1, s_id=-1)
                   [U] (I32_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
                { scope, id=-1 }
                   [b] (I32_VARIABLE_TOKEN, v_id=16, t_id=0, s_id=4)
                   [c] (I32_VARIABLE_TOKEN, v_id=15, t_id=1, s_id=4)
                   [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
    [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
-      [baz] (FUNC_NAME_TOKEN, v_id=9, t_id=-1, s_id=5)
+      [baz] (FUNC_NAME_TOKEN, v_id=10, t_id=-1, s_id=5)
          [K] (I32_TYPE_TOKEN, v_id=-1, t_id=2, s_id=-1)
       { scope, id=6 }
          [T] (I32_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
