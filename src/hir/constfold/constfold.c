@@ -114,7 +114,10 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_GDREF: {
                     if (!nd->src->home || !nd->src->home->farg) break;
                     set_t slaves;
-                    if (ALLIAS_get_slaves(nd->src->home->sarg->storage.var.v_id, &slaves, &smt->m)) {
+                    if (
+                        nd->src->home->sarg && 
+                        ALLIAS_get_slaves(nd->src->home->sarg->storage.var.v_id, &slaves, &smt->m)
+                    ) {
                         set_foreach (symbol_id_t slave, &slaves) {
                             variable_info_t vi; 
                             if (VRTB_get_info_id(slave, &vi, &smt->v) && vi.vdi.defined == DEFINED_VARIABLE) {

@@ -9,7 +9,7 @@ function _strlen(ptr i8 s) -> i32 {
 }
 
 function _putc(i8 c) -> i0 {
-    syscall(1, 1, ref c, 1);
+    syscall(0x2000004, 1, ref c, 1);
 }
 
 function _putn(i32 a, i32 r) -> i0 {
@@ -69,7 +69,7 @@ function printf(ptr i8 fmt, ...) -> i0 {
     }
 }
 
-@[entry("main")]
+: @[entry("main")] :
 start() {
     printf(ref "Hello! %s, %i %i %i\n", ref "Oregon!", 10 as i32, 11 as i32, 12 as i32);
     exit 0;
