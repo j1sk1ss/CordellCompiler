@@ -62,12 +62,14 @@ function helper() -> i0 {
 
 Use `@[naked]` only for code that fully controls its own prologue, epilogue, and exit behavior. Default sections are target/config dependent. The CLI exposes `--ro-section`, `--glob-section`, and `--code-section`.
 
-`@[nosection]` is currently handled for global functions:
+`@[nosection]` is currently handled for functions:
 
 ```cpl
-@[nosection]
-function raw_helper() -> i0 {
-    return;
+@[nosection] glob function tss_flush() -> i0 {
+    asm() {
+        "mov ax, 0x28",
+        "ltr ax"
+    }
 }
 ```
 

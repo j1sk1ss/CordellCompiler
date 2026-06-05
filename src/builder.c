@@ -661,7 +661,12 @@ int main(int argc, char* argv[]) {
 
         if (options.config.finline) {
             HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
+            HIR_LTREE_unload_ctx(&lctx);
             RELOAD_CFG;
+            HIR_CFG_finilize_before_dom(&cfgctx);
+            HIR_CFG_create_domdata(&cfgctx);
+            map_init(&lctx.lmap, MAP_NO_CMP);
+            HIR_LOOP_mark_loops(&cfgctx, &lctx);
         }
 
         HIR_LTREE_canonicalization(&cfgctx, &lctx);

@@ -116,6 +116,7 @@ type ExprInfo = {
   type: TypeNode;
   identName?: string;
   isSyscall?: boolean;
+  isTypeName?: boolean;
   start?: number;
   end?: number;
 };
@@ -1536,11 +1537,37 @@ class Parser {
       || c.kind === "ident";
   }
 
+  private looksLikeGenericTypeDeclStart(): boolean {
+    if (!this.atNonEOL(0, "ident") || !this.atNonEOL(1, "op", "<")) return false;
+
+    let depth = 0;
+    for (let off = 1; off < 64; off++) {
+      const tok = this.peekNonEOL(off);
+      if (tok.kind === "eof") return false;
+
+      if (tok.kind === "op" && tok.text === "<") {
+        depth++;
+        continue;
+      }
+
+      if (tok.kind === "op" && tok.text === ">") {
+        depth--;
+        if (depth === 0) {
+          return this.peekNonEOL(off + 1).kind === "ident";
+        }
+        continue;
+      }
+    }
+
+    return false;
+  }
+
   private looksLikeDeclStart(): boolean {
     if (this.at("kw", "glob") || this.at("kw", "ro")) return true;
     if (this.atRaw("punc", "@")) return true;
     if (this.at("kw") && TYPE_KW.has(this.cur().text)) return true;
-    return this.atNonEOL(0, "ident") && this.atNonEOL(1, "ident");
+    return (this.atNonEOL(0, "ident") && this.atNonEOL(1, "ident"))
+      || this.looksLikeGenericTypeDeclStart();
   }
 
   private parseVarOrArrDecl(isTopLevel: boolean) {
@@ -1821,7 +1848,7 @@ class Parser {
         const callRange = rangeOf(this.lines, expr.start ?? endTok.start, endTok.end);
 
         if (expr.isSyscall) {
-        } else if (expr.identName) {
+        } else if (expr.identName && !expr.isTypeName) {
           this.sem?.noteCallSite(expr.identName, callRange);
           this.sem?.callNamedOrValue(expr.identName, argc, callRange);
         } else {
@@ -1838,7 +1865,7 @@ class Parser {
         const memberName = this.prev().text;
         const memberRange = rangeOf(this.lines, memberTok.start, memberTok.end);
 
-        if (expr.identName && !expr.isSyscall) {
+        if (expr.identName && !expr.isSyscall && !expr.isTypeName) {
           this.sem?.useVar(expr.identName, rangeOf(this.lines, expr.start ?? 0, expr.end ?? (expr.start ?? 0)));
         }
 
@@ -1848,10 +1875,19 @@ class Parser {
       }
 
       if (this.match("punc","[")) {
+        if (expr.identName && !expr.isSyscall && !expr.isTypeName) {
+          this.sem?.useVar(expr.identName, rangeOf(this.lines, expr.start ?? 0, expr.end ?? (expr.start ?? 0)));
+        }
+
         this.parseExpression();
         while (this.match("punc",",")) this.parseExpression();
         this.expect("punc","]");
-        expr = { type: { kind: "unknown" }, start: expr.start, end: this.prev().end };
+
+        let indexedType: TypeNode = { kind: "unknown" };
+        if (expr.type.kind === "arr") indexedType = expr.type.elem;
+        else if (expr.type.kind === "ptr") indexedType = expr.type.to;
+
+        expr = { type: indexedType, start: expr.start, end: this.prev().end };
         continue;
       }
 
@@ -1864,7 +1900,7 @@ class Parser {
       break;
     }
 
-    if (expr.identName && !wasCall && !expr.isSyscall) {
+    if (expr.identName && !wasCall && !expr.isSyscall && !expr.isTypeName) {
       this.sem?.useVar(expr.identName, rangeOf(this.lines, expr.start ?? 0, expr.end ?? (expr.start ?? 0)));
     }
 
@@ -1920,11 +1956,22 @@ class Parser {
       const name = tok.text;
       this.i++;
 
-      let t: TypeNode = { kind: "unknown" };
       const vt = this.sem?.getVarType(name);
-      if (vt) t = vt;
-      else t = this.sem?.getFunctionValueType(name) ?? t;
+      if (vt) {
+        return { type: vt, identName: name, start: tok.start, end: tok.end };
+      }
 
+      if (this.sem?.hasContainer(name)) {
+        return {
+          type: { kind: "container", name },
+          identName: name,
+          isTypeName: true,
+          start: tok.start,
+          end: tok.end
+        };
+      }
+
+      const t = this.sem?.getFunctionValueType(name) ?? { kind: "unknown" as const };
       return { type: t, identName: name, start: tok.start, end: tok.end };
     }
 

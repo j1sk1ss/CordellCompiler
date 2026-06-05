@@ -303,9 +303,12 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     const char* name = NULL;
     if (fi.flags.entry)       name = fi.virt->body;
     else if (fi.flags.global) name = fi.name->body;
-    EMIT_COMMAND("global %s", name);
-    if (fi.flags.weak)        EMIT_COMMAND(".weak_definition %s", name);
     if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
+    if (name) {
+        EMIT_COMMAND("global %s", name);
+        if (fi.flags.weak)        EMIT_COMMAND(".weak_definition %s", name);
+    }
+
     iterate_lir_instructions (fb) {
         _convert_lirblock_to_assembly(lh, &fi, smt, output);
     }

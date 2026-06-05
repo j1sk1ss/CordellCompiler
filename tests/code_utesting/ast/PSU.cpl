@@ -29,20 +29,20 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
 :/ OUTPUT
 { scope, id=1 }
    [extern] (EXTERN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
-      [function] (FUNC_PROT_TOKEN, v_id=-1, t_id=-1, s_id=-1, ext, glob)
+      [function] (FUNC_PROT_TOKEN, v_id=-1, t_id=-1, s_id=-1, ext)
          [printf] (FUNC_NAME_TOKEN, v_id=0, t_id=-1, s_id=1)
             [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
          { scope, id=2 }
-            [i8] (I8_TYPE_TOKEN, ptr, v_id=-1, t_id=-1, s_id=-1)
+            [i8] (I8_TYPE_TOKEN, ptr, v_id=-1, t_id=1, s_id=-1)
                [fmt] (I8_VARIABLE_TOKEN, ptr, v_id=0, t_id=-1, s_id=2)
             [...] (VAR_ARGUMENTS_TOKEN, v_id=-1, t_id=-1, s_id=-1)
    [function] (FUNC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [main] (FUNC_NAME_TOKEN, v_id=1, t_id=-1, s_id=1)
          [i8] (I8_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       { scope, id=3 }
-         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+         [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=3, s_id=-1)
             [argc] (I32_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=3)
-         [i8] (I8_TYPE_TOKEN, ptr, v_id=-1, t_id=-1, s_id=-1)
+         [i8] (I8_TYPE_TOKEN, ptr, v_id=-1, t_id=5, s_id=-1)
             [argv] (I8_VARIABLE_TOKEN, ptr, v_id=2, t_id=-1, s_id=3)
          { scope, id=4 }
             [loop] (LOOP_TOKEN, v_id=-1, t_id=-1, s_id=4)
@@ -53,7 +53,7 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
                         [Hello from loop which iterates 10 times!
 ] (STRING_VALUE_TOKEN, v_id=0, t_id=-1, s_id=-1)
             [switch] (SWITCH_TOKEN, v_id=-1, t_id=-1, s_id=4)
-               [argc] (I32_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=3)
+               [argc] (I32_VARIABLE_TOKEN, v_id=1, t_id=3, s_id=3)
                { scope, id=-1 }
                   [case] (CASE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
                      [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
@@ -64,7 +64,7 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
                               [The first argument is %s
 ] (STRING_VALUE_TOKEN, v_id=1, t_id=-1, s_id=-1)
                               [[]]
-                                 [argv] (I8_VARIABLE_TOKEN, ptr, v_id=2, t_id=-1, s_id=3)
+                                 [argv] (I8_VARIABLE_TOKEN, ptr, v_id=2, t_id=5, s_id=3)
                                  [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
                   [default] (DEFAULT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
                      { scope, id=7 }
@@ -73,10 +73,10 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
                            { scope, id=-1 }
                               [Too many arguments! %i != 1
 ] (STRING_VALUE_TOKEN, v_id=2, t_id=-1, s_id=-1)
-                              [argc] (I32_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=3)
+                              [argc] (I32_VARIABLE_TOKEN, v_id=1, t_id=3, s_id=3)
             [if] (IF_TOKEN, v_id=-1, t_id=-1, s_id=4)
                [==] (COMPARE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
-                  [argc] (I32_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=3)
+                  [argc] (I32_VARIABLE_TOKEN, v_id=1, t_id=3, s_id=3)
                   [2] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
                { scope, id=8 }
                   [()]

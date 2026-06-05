@@ -81,7 +81,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         case LOWER_TOKEN: {
             forward_token(it, 1);
             do {
-                symbol_id_t t_id = TPTB_add_info(CURRENT_TOKEN->body, ctx->scopes.s_id, TYPE_GENERICS, FIELD_NO_CHANGE, &smt->t);
+                symbol_id_t t_id = TPTB_add_info(CURRENT_TOKEN->body, ctx->scopes.s_id, TYPE_GENERICS, FIELD_NO_CHANGE, 0, &smt->t);
                 if (t_id != NO_SYMBOL_ID) list_add(&generic_types, (void*)t_id);
                 if (consume_token(it, COMMA_TOKEN)) forward_token(it, 1);
             } while (CURRENT_TOKEN->t_type != LARGER_TOKEN);

@@ -113,7 +113,7 @@ container game {
     }
 }
 
-@[entry("main")]
+: @[entry("main")] :
 start() {
     game g;
     g.new();

@@ -3,7 +3,7 @@
 
 :/ OUTPUT
 { scope, id=1 }
-   [i0] (I0_TYPE_TOKEN, ptr, v_id=-1, t_id=-1, s_id=-1, glob)
+   [i0] (I0_TYPE_TOKEN, ptr, v_id=-1, t_id=1, s_id=-1, glob)
       [printf] (I0_VARIABLE_TOKEN, ptr, v_id=0, t_id=-1, s_id=1, glob)
    [function] (FUNC_PROT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
       [foo] (FUNC_NAME_TOKEN, v_id=0, t_id=-1, s_id=1)
