@@ -114,6 +114,8 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_GDREF: {
                     if (!nd->src->home || !nd->src->home->farg) break;
                     set_t slaves;
+                    set_init(&slaves, SET_NO_CMP);
+                    
                     if (
                         nd->src->home->sarg && 
                         ALLIAS_get_slaves(nd->src->home->sarg->storage.var.v_id, &slaves, &smt->m)
@@ -220,7 +222,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_iADD:  c = a.value + b.value;  goto _binary_operation_fold;
                 case HIR_iSUB:  c = a.value - b.value;  goto _binary_operation_fold;
                 case HIR_iMUL:  c = a.value * b.value;  goto _binary_operation_fold;
-                case HIR_iMOD:  c = a.value % b.value;  goto _binary_operation_fold;
+                case HIR_iMOD:  c = a.value % (!b.value ? 1 : b.value); goto _binary_operation_fold;
                 case HIR_iLRG:  c = a.value > b.value;  goto _binary_operation_fold;
                 case HIR_iLGE:  c = a.value >= b.value; goto _binary_operation_fold;
                 case HIR_iLWR:  c = a.value < b.value;  goto _binary_operation_fold;
@@ -237,6 +239,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_bXOR:  c = a.value ^ b.value; {
 _binary_operation_fold: {}
                     if (!a_pres || !b_pres || a.overdefined != NO_SYMBOL_ID || b.overdefined != NO_SYMBOL_ID) break;
+                    if ((nd->op == HIR_iDIV || nd->op == HIR_iMOD) && !b.value) break;
                     if (VRTB_update_definition(nd->src->storage.var.v_id, c, NO_SYMBOL_ID, &smt->v, 1)) changed = 1;
                     print_debug("%ld op=%i %ld folded into val=%i", a.value, nd->op, b.value, c);
                     break;

@@ -69,7 +69,7 @@ function printf(ptr i8 fmt, ...) -> i0 {
     }
 }
 
-: @[entry("main")] :
+@[entry("main")]
 start() {
     printf(ref "Hello! %s, %i %i %i\n", ref "Oregon!", 10 as i32, 11 as i32, 12 as i32);
     exit 0;
