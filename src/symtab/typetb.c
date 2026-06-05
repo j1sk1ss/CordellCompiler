@@ -11,21 +11,23 @@ static type_info_t* _create_type_info(string_t* name) {
     info->link.p    = NO_SYMBOL_ID;
     info->link.v_id = NO_SYMBOL_ID;
     info->tt        = UNKNOWN_STRING_TOKEN;
+
     if (name) info->name = name->copy(name);
     else info->name = NULL;
+    
     str_memset(&info->memory, 0, sizeof(info->memory));
     info->memory.align = CONF_get_eight_bytness();
-    
     return info;
 }
 
-symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int align, typetab_ctx_t* ctx) {
+symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int align, int multiple, typetab_ctx_t* ctx) {
     if (TPTB_get_info(name, s_id, 0, NULL, ctx)) return NO_SYMBOL_ID;
     type_info_t* info = _create_type_info(name);
     if (!info) return NO_SYMBOL_ID;
-    info->id           = ctx->curr_id++;
-    info->s_id         = s_id;
-    info->t            = t;
+    info->id   = ctx->curr_id++;
+    info->s_id = s_id;
+    info->t    = t;
+
     switch (t) {
         case TYPE_GENERICS:  info->tt = GENERIC_TYPE_TOKEN; break;
         case TYPE_CUSTOM:    info->tt = CUSTOM_TYPE_TOKEN;  break;
@@ -34,7 +36,9 @@ symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int a
         case TYPE_PRIMITIVE:
         default:             info->tt = UNKNOWN_STRING_TOKEN; break;
     }
-    info->memory.align = align;
+
+    info->memory.align    = align;
+    info->memory.multiple = multiple;
     map_put(&ctx->typetb, info->id, info);
     return info->id;
 }
@@ -47,21 +51,23 @@ symbol_id_t TPTB_add_copy(symbol_id_t id, symbol_id_t nv_id, int ptr, typetab_ct
     type_info_t* info = _create_type_info(ti->name);
     if (!info) return NO_SYMBOL_ID;
 
-    info->p            = id;
-    info->s_id         = ti->s_id;
-    info->t            = ti->t;
-    info->tt   = ti->tt;
-    info->memory.size  = ti->memory.size;
-    info->memory.ptr   = ptr;
-    info->link.p       = ti->link.p;
-    info->link.v_id    = nv_id;
-    info->memory.align = ti->memory.align;
+    info->p               = id;
+    info->s_id            = ti->s_id;
+    info->t               = ti->t;
+    info->tt              = ti->tt;
+    info->memory.size     = ti->memory.size;
+    info->memory.ptr      = ptr;
+    info->memory.multiple = ti->memory.multiple;
+    info->link.p          = ti->link.p;
+    info->link.v_id       = nv_id;
+    info->memory.align    = ti->memory.align;
+
     if (ti->link.name) info->link.name = ti->link.name->copy(ti->link.name);
     foreach (symbol_id_t c_id, &ti->link.c) {
         list_add(&info->link.c, (void*)c_id);
     }
 
-    info->id         = ctx->curr_id++;
+    info->id = ctx->curr_id++;
     map_put(&ctx->typetb, info->id, info);
     return info->id;
 }
@@ -166,11 +172,11 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long o
         }
         
         if (overrite_size != FIELD_NO_CHANGE) c_ti->memory.size = overrite_size;
-        if (p_ti->memory.align != -1) p_ti->memory.size += ALIGN(c_ti->memory.size, p_ti->memory.align);
-        else {
-            p_ti->memory.size += ALIGN(c_ti->memory.size, c_ti->memory.size);
-            p_ti->memory.size = ALIGN(p_ti->memory.size, c_ti->memory.size);
-        }
+
+        if (!p_ti->memory.multiple)        p_ti->memory.size = MAX(p_ti->memory.size, ALIGN(c_ti->memory.size, p_ti->memory.align));
+        else if (p_ti->memory.align != -1) p_ti->memory.size += ALIGN(c_ti->memory.size, p_ti->memory.align);
+        else                               p_ti->memory.size += ALIGN(c_ti->memory.size, c_ti->memory.size);
+        if (p_ti->memory.align == -1)      p_ti->memory.size = ALIGN(p_ti->memory.size, c_ti->memory.size);
         return 1;
     }
 
@@ -193,6 +199,7 @@ symbol_id_t TPTB_resolve_child(symbol_id_t p_id, string_t* name, typetab_ctx_t* 
 long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* ctx) {
     type_info_t *p_ti, *c_ti;
     if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return -1;
+    if (!p_ti->memory.multiple) return 0;
 
     long offset = 0;
     foreach (symbol_id_t c_id, &p_ti->link.c) {

@@ -20,7 +20,7 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
     if (name) {
         AST_add_node(base, name);
         stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
-        name->sinfo.t_id = TPTB_add_info(name->t->body, name->sinfo.s_id, TYPE_CUSTOM, annots.is_like_c ? -1 : annots.align, &smt->t);
+        name->sinfo.t_id = TPTB_add_info(name->t->body, name->sinfo.s_id, TYPE_CUSTOM, annots.is_like_c ? -1 : annots.align, !annots.is_union, &smt->t);
         name->t->t_type  = CUSTOM_TYPE_TOKEN;
     }
     else {

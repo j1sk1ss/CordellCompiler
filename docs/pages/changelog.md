@@ -1,38 +1,33 @@
 # CPL changelog
 Logs for the first and second versions are quite short because I don’t remember exactly what was introduced and when. However, this page lists most of the major changes. In fact, it was created mainly to document the project’s evolution in a clear way, without a need to read through all of the commits.
 
-## Structure
-```
-...
-^
-[Version v3.5]
-^
-... minor changes related to v3.4 ...
-^
-[Version v3.4]
-^
-... minor changes related to v3.3 ...
-^
-[Version v3.3]
-^
-... minor changes related to v3.2 ...
-^
-[Version v3.2]
-^
-... minor changes related to v3.1 ...
-^
-[Version v3.1]
-^
-... minor changes related to v3 ...
-^
-[Version v3]
-^
-[Version v2]
-^
-[Version v1]
+----------------------------------------
+
+## Union annotation
+<div class="change-date">Date: 2026-06-05</div>
+Container can be a union:
+
+```cpl
+@[union]
+container cntr {
+    i32    a;
+    i8     b;
+    ptr i0 addr;
+} :/ Size is 8 /:
 ```
 
-----------------------------------------
+Unions also accept `@[align(X)]` and `@[like_c]` annotations, which makes them pretty useful in system development:
+
+```cpl
+@[like_c]
+@[union]
+container dev {
+    i8  size8;
+    i16 size16;
+    i32 size32;
+    i64 size64;
+}
+```
 
 ## ABI and weak annotations
 <div class="change-date">Date: 2026-06-04</div>
