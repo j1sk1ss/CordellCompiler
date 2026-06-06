@@ -101,9 +101,10 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
                     if (!res) goto _skip_instruction;
                     else {
                         nblock->op   = HIR_STORE;
-                        nblock->sarg = hh->farg;
+                        HIR_unload_subject(nblock->sarg);
+                        nblock->sarg = HIR_copy_subject(hh->farg);
                         HIR_unload_subject(nblock->farg);
-                        nblock->farg = res;
+                        nblock->farg = HIR_copy_subject(res);
                     }
                 }
                 default: break;
