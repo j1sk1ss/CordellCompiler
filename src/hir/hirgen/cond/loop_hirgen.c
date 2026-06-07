@@ -30,10 +30,10 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long c
         HIR_BLOCK1(ctx, HIR_MKLB, body_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         
-        void* backup = ctx->carry.ptr;
-        ctx->carry.ptr = end_lb;
+        hir_subject_t* backup = ctx->carry.brk;
+        ctx->carry.brk = end_lb;
         HIR_generate_block(lbranch->c, ctx, smt);
-        ctx->carry.ptr = backup;
+        ctx->carry.brk = backup;
 
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         if (!counter) HIR_BLOCK1(ctx, HIR_JMP, entry_lb);

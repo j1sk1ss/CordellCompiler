@@ -104,23 +104,23 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     
     HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(name));
     HAS_ANNOTATION(POPARG_ANNOTATION, node, {
-        if (!ctx->carry.ptr3) {
+        if (!ctx->carry.varg) {
             HIRGEN_ERROR(ctx, POPRG_ANNOTATION_COMMAND " can't be used in this function!");
             return 0;
         }
 
         hir_subject_t* decl = HIR_SUBJ_ASTVAR(name);
-        HIR_BLOCK2(ctx, HIR_GDREF, decl, HIR_copy_subject((hir_subject_t*)ctx->carry.ptr3));
+        HIR_BLOCK2(ctx, HIR_GDREF, decl, HIR_copy_subject(ctx->carry.varg));
         hir_subject_t* res = HIR_SUBJ_TMPVAR(
-            ((hir_subject_t*)ctx->carry.ptr3)->t, 
-            VRTB_add_info(NULL, HIR_get_tmptkn_type(((hir_subject_t*)ctx->carry.ptr3)->t), NO_SYMBOL_ID, NULL, &smt->v)
+            ctx->carry.varg->t, 
+            VRTB_add_info(NULL, HIR_get_tmptkn_type(ctx->carry.varg->t), NO_SYMBOL_ID, NULL, &smt->v)
         );
-        res->ptr = ((hir_subject_t*)ctx->carry.ptr3)->ptr;
+        res->ptr = ctx->carry.varg->ptr;
         HIR_BLOCK3(
-            ctx, HIR_iADD, res, HIR_copy_subject((hir_subject_t*)ctx->carry.ptr3), 
+            ctx, HIR_iADD, res, HIR_copy_subject(ctx->carry.varg), 
             HIR_SUBJ_CONST(CONF_get_full_bytness())
         );
-        HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject((hir_subject_t*)ctx->carry.ptr3), res);
+        HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(ctx->carry.varg), res);
         return 1;
     });
 

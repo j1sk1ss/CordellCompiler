@@ -67,24 +67,22 @@ typedef struct hir_block {
 } hir_block_t;
 
 typedef struct {
-    file_position_t  pos;           /* Current pos in a file                   */
+    file_position_t    pos;           /* Current pos in a file                   */
     struct {
-        hir_block_t* h;             /* Current HIR head                        */
-        hir_block_t* t;             /* Current HIR tail                        */
+        hir_block_t*   h;             /* Current HIR head                        */
+        hir_block_t*   t;             /* Current HIR tail                        */
     } hot;
     struct {
-        char         is_sup : 1;    /* Is cold section is supported by ctx     */
-        list_t       blocks;        /* Cold blocks storage for further place   */
+        char           is_sup : 1;    /* Is cold section is supported by ctx     */
+        list_t         blocks;        /* Cold blocks storage for further place   */
     } cold;
-    char             is_cold   : 1; /* If 1 - we save all input blocks as cold */
-    char             is_hidden : 1; /* If 1 - we will ignore all blocks        */
+    char               is_cold   : 1; /* If 1 - we save all input blocks as cold */
+    char               is_hidden : 1; /* If 1 - we will ignore all blocks        */
     struct {
-        void*        ptr;           /* pointer to a break target               */
-        long         val1;          /* function's argument number              */
-        long         val2;          /* function's argument load operation      */
-        void*        ptr2;          /* function's return type                  */
-        void*        ptr3;          /* function's varargs hidden variable      */
-    } carry;                        /* Additional carry for any specific data  */
+        hir_subject_t* brk;           /* pointer to a break target               */
+        token_t*       rtype;         /* function's return type                  */
+        hir_subject_t* varg;          /* function's varargs hidden variable      */
+    } carry;                          /* Additional carry for any specific data  */
 } hir_ctx_t;
 
 int HIR_init_extended_ctx(hir_ctx_t* ctx);

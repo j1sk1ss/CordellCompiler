@@ -28,17 +28,14 @@ Params:
     - `args` - Current popped arguments number.
     - `logic` - Wrapped logic. 
 */
-#define SET_AND_DUMP_POPARG(op, rtype, vargs, logic) \
-    long pargop  = ctx->carry.val2;          \
-    void *prtype = ctx->carry.ptr2,          \
-         *pvargs = ctx->carry.ptr3;          \
-    ctx->carry.val2 = op;                    \
-    ctx->carry.ptr2 = rtype;                 \
-    ctx->carry.ptr3 = vargs;                 \
+#define SET_AND_DUMP_POPARG(r, vargs, logic) \
+    void *prtype = ctx->carry.rtype,         \
+         *pvargs = ctx->carry.varg;          \
+    ctx->carry.rtype = r;                    \
+    ctx->carry.varg = vargs;                 \
     logic;                                   \
-    ctx->carry.val2 = pargop;                \
-    ctx->carry.ptr2 = prtype;                \
-    ctx->carry.ptr3 = pvargs;
+    ctx->carry.rtype = prtype;               \
+    ctx->carry.varg = pvargs;
 
 /*
 Fire a HIRGEN error.
