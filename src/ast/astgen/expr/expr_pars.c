@@ -332,7 +332,7 @@ _primary_resolve_complete: {}
         default: break;
     }
 
-    var_lookup(node, ctx, smt); // TODO: AST checker for unkown variables / types, etc.
+    var_lookup(node, ctx, smt);
     forward_token(it, 1);
     return node;
 }

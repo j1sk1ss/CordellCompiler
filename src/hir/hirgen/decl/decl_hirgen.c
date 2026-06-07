@@ -104,7 +104,11 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     
     HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(name));
     HAS_ANNOTATION(POPARG_ANNOTATION, node, {
-        if (!ctx->carry.ptr3) return 0;
+        if (!ctx->carry.ptr3) {
+            HIRGEN_ERROR(ctx, POPRG_ANNOTATION_COMMAND " can't be used in this function!");
+            return 0;
+        }
+
         hir_subject_t* decl = HIR_SUBJ_ASTVAR(name);
         HIR_BLOCK2(ctx, HIR_GDREF, decl, HIR_copy_subject((hir_subject_t*)ctx->carry.ptr3));
         hir_subject_t* res = HIR_SUBJ_TMPVAR(
