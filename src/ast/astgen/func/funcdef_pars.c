@@ -146,7 +146,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     int vargs = 0;
-    int local = ctx->carry.ptr ? 1 : 0;
+    int local = ctx->carry.pfunc != NO_SYMBOL_ID ? 1 : 0;
 
     ast_node_t* t;
     for (t = args->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
@@ -170,7 +170,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         TPTB_add_as_child(preserved_tid, type, name->t->body, FIELD_NO_CHANGE, &smt->t);
     }
 
-    if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
+    if (local) FNTB_add_local(ctx->carry.pfunc, name->sinfo.v_id, &smt->f);
     else { /* Local function doesn't have a section. It copies position of its parent */
         if (annots.is_nosec)      annots.section = create_string(CONF_get_no_section());
         else if (!annots.section) annots.section = create_string(CONF_get_code_section());
@@ -201,7 +201,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     ast_node_t* body = NULL;
-    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, name);
+    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, name->sinfo.v_id);
     if (body) AST_add_node(args, body);
     else {
         PARSE_ERROR("Error during the function's body parsing!");
