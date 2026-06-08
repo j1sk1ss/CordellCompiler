@@ -115,7 +115,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     symbol_id_t preserved_tid = ctx->t_id;
     ctx->t_id = NO_SYMBOL_ID;
-    
+
     forward_token(it, 1);
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args)) {
         PARSE_ERROR("Can't parse function's arguments!");
@@ -154,6 +154,15 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
             vargs = 1;
             break;
         }
+    }
+
+    if (annots.base_type) {
+        token_t tmp = { .body = annots.base_type };
+        symbol_id_t base_tid = type_lookup(&tmp, ctx, smt);
+        type_info_t ti;
+        if (
+            TPTB_get_info_id(base_tid, &ti, &smt->t)
+        ) name->sinfo.s_id = ti.s_id + 1; /* Type Id + 1 == Type's scope */
     }
 
     name->sinfo.v_id = FNTB_add_info(

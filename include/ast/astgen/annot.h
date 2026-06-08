@@ -23,6 +23,7 @@
 #define REGST_ANNOTATION_COMMAND "register"
 #define POPRG_ANNOTATION_COMMAND "poparg"
 #define SSELF_ANNOTATION_COMMAND "self"
+#define IMPLT_ANNOTATION_COMMAND "impl"
 
 #define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
 #define INLNE_YES_OPTION         "always"
@@ -36,6 +37,7 @@
 typedef struct {
     string_t* section;
     string_t* fname;
+    string_t* base_type;
     int       do_inline; /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
     int       align;
     long      address;
@@ -79,18 +81,20 @@ typedef enum {
     UNION_ANNOTATION,     /* Will tell container to store fields union  */
     WEAK_ANNOTATION,      /* Will mark a function as weak               */
     ABI_ANNOTATION,       /* Will mark a function as ABI-compatible     */
+    IMPLEMENT_ANNOTATION, /* Will mark function as an implementation    */
 } annotation_type_t;
 
 typedef struct {
     annotation_type_t t;
     union {
-        int           align;      /* ALIGN_ANNOTATION    */
-        string_t*     fname;      /* ENTRY_ANNOTATION    */
-        string_t*     section;    /* SECTION_ANNOTATION  */
-        string_t*     inline_opt; /* INLINE_ANNOTATION   */
-        long          address;    /* ADDRESS_ANNOTATION  */
-        long          counter;    /* COUNTER_ANNOTATION  */
-        short         regval;     /* REGISTER_ANNOTATION */
+        int           align;      /* ALIGN_ANNOTATION     */
+        string_t*     fname;      /* ENTRY_ANNOTATION     */
+        string_t*     section;    /* SECTION_ANNOTATION   */
+        string_t*     inline_opt; /* INLINE_ANNOTATION    */
+        string_t*     base_type;  /* IMPLEMENT_ANNOTATION */
+        long          address;    /* ADDRESS_ANNOTATION   */
+        long          counter;    /* COUNTER_ANNOTATION   */
+        short         regval;     /* REGISTER_ANNOTATION  */
     } data;
 } annotation_t;
 

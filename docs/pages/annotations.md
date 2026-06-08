@@ -36,6 +36,8 @@ The parser accepts the form `@[name]` and, for annotations that need a value, `@
 | `@[hot]` | `if` | make the false branch cold for layout |
 | `@[cold]` | `if` or switch `case` | make the true branch, or the annotated case, cold for layout |
 | `@[not_lazy]` | logical expression | evaluate both sides of `&&` or `\|\|` |
+| `@[union]` | container | will allocate memory only for the biggest field |
+| `@[impl(N)]` | container function | Mark a function as an implementation for a container function |
 
 The compiler also parses `@[address(N)]` and `@[union]`, but the current implementation does not connect their summary fields to code generation or container layout yet. Treat them as reserved/internal until that changes.
 
