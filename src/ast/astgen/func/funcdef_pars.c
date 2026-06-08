@@ -191,6 +191,8 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         stack_pop(&ctx->scopes.stack, NULL);
         ctx->t_id = preserved_tid;
         list_free(&generic_types);
+
+        FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL), &smt->f);
         return base;
     }
 
@@ -215,5 +217,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     ctx->t_id = preserved_tid;
     list_free(&generic_types);
     stack_pop(&ctx->scopes.stack, NULL);
+
+    FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_UNSET_EXTERNAL), &smt->f);
     return base;
 }
