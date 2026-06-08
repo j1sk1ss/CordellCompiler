@@ -222,7 +222,6 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_iADD:  c = a.value + b.value;  goto _binary_operation_fold;
                 case HIR_iSUB:  c = a.value - b.value;  goto _binary_operation_fold;
                 case HIR_iMUL:  c = a.value * b.value;  goto _binary_operation_fold;
-                case HIR_iMOD:  c = a.value % (!b.value ? 1 : b.value); goto _binary_operation_fold;
                 case HIR_iLRG:  c = a.value > b.value;  goto _binary_operation_fold;
                 case HIR_iLGE:  c = a.value >= b.value; goto _binary_operation_fold;
                 case HIR_iLWR:  c = a.value < b.value;  goto _binary_operation_fold;
@@ -235,6 +234,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_iBRHT: c = a.value >> b.value; goto _binary_operation_fold;
                 case HIR_bAND:  c = a.value & b.value;  goto _binary_operation_fold;
                 case HIR_bOR:   c = a.value | b.value;  goto _binary_operation_fold;
+                case HIR_iMOD:  c = a.value % (!b.value ? 1 : b.value); goto _binary_operation_fold;
                 case HIR_iDIV:  c = a.value / (!b.value ? 1 : b.value); goto _binary_operation_fold;
                 case HIR_bXOR:  c = a.value ^ b.value; {
 _binary_operation_fold: {}
