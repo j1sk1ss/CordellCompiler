@@ -258,8 +258,9 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt);
 Get all blocks which don't have predcessors, then check whether they
 are an entry points or not. If they aren't - remove them and clear
 its HIR blocks.
-Note: It's an important action before dominance calculation, given the
+Note 1: It's an important action before dominance calculation, given the
 CFG generation artifacts!
+Note 2: Perform this operation !ONLY! before the !LAST! dominance calculation. 
 Params:
     - `ctx` - CFG context.
 

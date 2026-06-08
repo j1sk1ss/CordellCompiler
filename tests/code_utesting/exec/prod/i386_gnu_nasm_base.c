@@ -56,12 +56,17 @@ int main(int argc, char* argv[]) {
     mm_init();
 
     config_t cfg = {
+        .system.entry_name = "_main",
+        .system.ro_section = ".rodata",
+        .system.glob_section = ".data",
+        .system.code_section = ".text",
         .system.bytness = {
             .bytness = 4,
             .h_bytness = 4,
             .q_bytness = 2,
             .e_bytness = 1
-        }
+        },
+        .system.sys_type = I386,
     };
     CONF_set_config(&cfg);
 
@@ -125,8 +130,12 @@ int main(int argc, char* argv[]) {
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
     
     HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
-
+    HIR_LTREE_unload_ctx(&lctx);
     RELOAD_CFG; // Rebuild after inlined functions
+    // HIR_CFG_finilize_before_dom(&cfgctx);
+    HIR_CFG_create_domdata(&cfgctx);
+    map_init(&lctx.lmap, MAP_NO_CMP);
+    HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
     HIR_CFG_unload_domdata(&cfgctx);

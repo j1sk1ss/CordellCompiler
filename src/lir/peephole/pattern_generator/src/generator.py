@@ -328,12 +328,25 @@ class CodeGenerator:
             source_map[var_name] = temp_name
         return source_map
 
-    def _capture_match_opcodes(self, action_lines: list[str], pattern: Pattern) -> dict[int, str]:
+    def _capture_needed_match_opcodes(
+        self,
+        action_lines: list[str],
+        pattern: Pattern,
+    ) -> dict[int, str]:
         opcode_map: dict[int, str] = {}
-        for i, _ in enumerate(pattern.match):
-            temp_name = self._new_temp(f"match_op_{i}")
-            action_lines.append(f"lir_operation_t {temp_name} = {self._instr_ptr(i)}->op;")
-            opcode_map[i] = temp_name
+        needed_indices: set[int] = set()
+
+        for rep_idx, replace_instr in enumerate(pattern.replace):
+            source_idx = self._replacement_opcode_source_index(pattern, replace_instr, rep_idx)
+            if source_idx is not None:
+                needed_indices.add(source_idx)
+
+        for instr_idx in range(len(pattern.match)):
+            temp_name = self._new_temp(f"match_op_{instr_idx}")
+            if instr_idx in needed_indices:
+                action_lines.append(f"lir_operation_t {temp_name} = {self._instr_ptr(instr_idx)}->op;")
+                opcode_map[instr_idx] = temp_name
+
         return opcode_map
 
     def _capture_match_live_subjects(self, action_lines: list[str], pattern: Pattern) -> list[str]:
@@ -400,29 +413,42 @@ class CodeGenerator:
                 merged[var_name] = ptr_expr
         return merged
 
-    def _replacement_opcode_expr(
+    def _replacement_opcode_source_index(
         self,
         pattern: Pattern,
         replace_instr: Instruction,
         replace_idx: int = 0,
-        match_opcode_map: dict[int, str] | None = None,
-    ) -> str:
+    ) -> int | None:
         replace_lir: list[str] = self.PTRN_TO_LIR.get(replace_instr.mnemonic, [])
         if not replace_lir:
             raise ValueError(f"Mnemonic {replace_instr.mnemonic} not found!")
 
         if len(replace_lir) == 1:
-            return replace_lir[0]
-
-        if match_opcode_map is None:
-            match_opcode_map = {}
+            return None
 
         if replace_idx < len(pattern.match) and pattern.match[replace_idx].mnemonic == replace_instr.mnemonic:
-            return match_opcode_map.get(replace_idx, f"{self._instr_ptr(replace_idx)}->op")
+            return replace_idx
 
         for i, instr in enumerate(pattern.match):
             if instr.mnemonic == replace_instr.mnemonic:
-                return match_opcode_map.get(i, f"{self._instr_ptr(i)}->op")
+                return i
+
+        return None
+
+    def _replacement_opcode_expr(
+        self,
+        pattern: Pattern,
+        replace_instr: Instruction,
+        replace_idx: int,
+        match_opcode_map: dict[int, str],
+    ) -> str:
+        replace_lir: list[str] = self.PTRN_TO_LIR.get(replace_instr.mnemonic, [])
+        if not replace_lir:
+            raise ValueError(f"Mnemonic {replace_instr.mnemonic} not found!")
+
+        source_idx = self._replacement_opcode_source_index(pattern, replace_instr, replace_idx)
+        if source_idx is not None:
+            return match_opcode_map[source_idx]
 
         return replace_lir[0]
 
@@ -533,14 +559,19 @@ class CodeGenerator:
 
         match_var_map = self._build_full_match_var_map(pattern)
         source_var_map = self._capture_match_sources(action_lines, match_var_map)
-        match_opcode_map = self._capture_match_opcodes(action_lines, pattern)
+        match_opcode_map = self._capture_needed_match_opcodes(action_lines, pattern)
         protected_ptrs = list(source_var_map.values())
         protected_ptrs.extend(self._capture_match_live_subjects(action_lines, pattern))
         free_fn = self.gen_info.get("functions", {}).get("free")
 
         for rep_idx, replace_instr in enumerate(pattern.replace):
             base_ptr = self._instr_ptr(rep_idx)
-            opcode_expr = self._replacement_opcode_expr(pattern, replace_instr, rep_idx, match_opcode_map)
+            opcode_expr = self._replacement_opcode_expr(
+                pattern,
+                replace_instr,
+                rep_idx,
+                match_opcode_map,
+            )
 
             action_lines.append(f"if ({base_ptr}->op != {opcode_expr}) {{")
             action_lines.append(f"    {base_ptr}->op = {opcode_expr};")
