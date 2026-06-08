@@ -67,7 +67,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL))) {
                     lir_subject_t* _src_1_349 = lh->farg;
                     lir_subject_t* _src_2_350 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_351 = lh->op;
                     lir_operation_t _match_op_1_352 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_353 = lh->farg;
                     lir_subject_t* _keep_0_1_354 = lh->sarg;
@@ -138,7 +137,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->sarg &&
                 ((lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->sarg) == 0))) {
                     lir_subject_t* _src_1_517 = lh->farg;
-                    lir_operation_t _match_op_0_518 = lh->op;
                     lir_subject_t* _keep_0_0_519 = lh->farg;
                     lir_subject_t* _keep_0_1_520 = lh->sarg;
                     lir_subject_t* _keep_0_2_521 = lh->targ;
@@ -185,8 +183,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_1 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_2 = lh->op;
-                    lir_operation_t _match_op_1_3 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_4 = lh->farg;
                     lir_subject_t* _keep_0_1_5 = lh->sarg;
                     lir_subject_t* _keep_0_2_6 = lh->targ;
@@ -274,9 +270,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg)) {
                     lir_subject_t* _src_1_13 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
                     lir_subject_t* _src_2_14 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_15 = lh->op;
-                    lir_operation_t _match_op_1_16 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_17 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_18 = lh->farg;
                     lir_subject_t* _keep_0_1_19 = lh->sarg;
                     lir_subject_t* _keep_0_2_20 = lh->targ;
@@ -379,7 +372,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_4_36 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
                     lir_operation_t _match_op_0_37 = lh->op;
                     lir_operation_t _match_op_1_38 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_39 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_40 = lh->farg;
                     lir_subject_t* _keep_0_1_41 = lh->sarg;
                     lir_subject_t* _keep_0_2_42 = lh->targ;
@@ -466,8 +458,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_55 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_56 = lh->sarg;
-                    lir_operation_t _match_op_0_57 = lh->op;
-                    lir_operation_t _match_op_1_58 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_59 = lh->farg;
                     lir_subject_t* _keep_0_1_60 = lh->sarg;
                     lir_subject_t* _keep_0_2_61 = lh->targ;
@@ -542,9 +532,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_1_68 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->sarg;
                     lir_subject_t* _src_2_69 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->farg;
                     lir_operation_t _match_op_0_70 = lh->op;
-                    lir_operation_t _match_op_1_71 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_72 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
-                    lir_operation_t _match_op_3_73 = LIR_get_near_instruction(lh, bb->lmap.exit, 3)->op;
                     lir_subject_t* _keep_0_0_74 = lh->farg;
                     lir_subject_t* _keep_0_1_75 = lh->sarg;
                     lir_subject_t* _keep_0_2_76 = lh->targ;
@@ -639,7 +626,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->sarg &&
                 ((lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->sarg) == 0))) {
                     lir_subject_t* _src_1_92 = lh->farg;
-                    lir_operation_t _match_op_0_93 = lh->op;
                     lir_subject_t* _keep_0_0_94 = lh->farg;
                     lir_subject_t* _keep_0_1_95 = lh->sarg;
                     lir_subject_t* _keep_0_2_96 = lh->targ;
@@ -688,7 +674,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_1_100 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
                     lir_subject_t* _src_2_101 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_operation_t _match_op_0_102 = lh->op;
-                    lir_operation_t _match_op_1_103 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_104 = lh->farg;
                     lir_subject_t* _keep_0_1_105 = lh->sarg;
                     lir_subject_t* _keep_0_2_106 = lh->targ;
@@ -744,7 +729,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_1_113 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_114 = lh->sarg;
                     lir_subject_t* _src_3_115 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
-                    lir_operation_t _match_op_0_116 = lh->op;
                     lir_operation_t _match_op_1_117 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_118 = lh->farg;
                     lir_subject_t* _keep_0_1_119 = lh->sarg;
@@ -798,8 +782,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 ((LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg) == 0)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_143 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_144 = lh->op;
-                    lir_operation_t _match_op_1_145 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_146 = lh->farg;
                     lir_subject_t* _keep_0_1_147 = lh->sarg;
                     lir_subject_t* _keep_0_2_148 = lh->targ;
@@ -853,8 +835,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_155 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_156 = lh->op;
-                    lir_operation_t _match_op_1_157 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_158 = lh->farg;
                     lir_subject_t* _keep_0_1_159 = lh->sarg;
                     lir_subject_t* _keep_0_2_160 = lh->targ;
@@ -922,7 +902,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_4_170 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
                     lir_operation_t _match_op_0_171 = lh->op;
                     lir_operation_t _match_op_1_172 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_173 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_174 = lh->farg;
                     lir_subject_t* _keep_0_1_175 = lh->sarg;
                     lir_subject_t* _keep_0_2_176 = lh->targ;
@@ -1045,7 +1024,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_4_195 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
                     lir_operation_t _match_op_0_196 = lh->op;
                     lir_operation_t _match_op_1_197 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_198 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_199 = lh->farg;
                     lir_subject_t* _keep_0_1_200 = lh->sarg;
                     lir_subject_t* _keep_0_2_201 = lh->targ;
@@ -1158,7 +1136,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_1_217 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_218 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     lir_operation_t _match_op_0_219 = lh->op;
-                    lir_operation_t _match_op_1_220 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_221 = lh->farg;
                     lir_subject_t* _keep_0_1_222 = lh->sarg;
                     lir_subject_t* _keep_0_2_223 = lh->targ;
@@ -1226,8 +1203,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_2_231 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
                     lir_subject_t* _src_3_232 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ;
                     lir_operation_t _match_op_0_233 = lh->op;
-                    lir_operation_t _match_op_1_234 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_235 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_236 = lh->farg;
                     lir_subject_t* _keep_0_1_237 = lh->sarg;
                     lir_subject_t* _keep_0_2_238 = lh->targ;
@@ -1326,8 +1301,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_2_252 = lh->sarg;
                     lir_subject_t* _src_3_253 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
                     lir_operation_t _match_op_0_254 = lh->op;
-                    lir_operation_t _match_op_1_255 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_256 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_257 = lh->farg;
                     lir_subject_t* _keep_0_1_258 = lh->sarg;
                     lir_subject_t* _keep_0_2_259 = lh->targ;
@@ -1423,8 +1396,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_2_272 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg;
                     lir_subject_t* _src_1_273 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
                     lir_operation_t _match_op_0_274 = lh->op;
-                    lir_operation_t _match_op_1_275 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_276 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_277 = lh->farg;
                     lir_subject_t* _keep_0_1_278 = lh->sarg;
                     lir_subject_t* _keep_0_2_279 = lh->targ;
@@ -1514,7 +1485,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_2_307 = lh->sarg;
                     lir_subject_t* _src_3_308 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
                     lir_subject_t* _src_4_309 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_310 = lh->op;
                     lir_operation_t _match_op_1_311 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_operation_t _match_op_2_312 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_313 = lh->farg;
@@ -1608,8 +1578,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                     lir_subject_t* _src_1_328 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_329 = lh->sarg;
                     lir_subject_t* _src_3_330 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_331 = lh->op;
-                    lir_operation_t _match_op_1_332 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_operation_t _match_op_2_333 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_334 = lh->farg;
                     lir_subject_t* _keep_0_1_335 = lh->sarg;
@@ -1701,7 +1669,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL))) {
                     lir_subject_t* _src_1_381 = lh->farg;
                     lir_subject_t* _src_2_382 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_383 = lh->op;
                     lir_operation_t _match_op_1_384 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_385 = lh->farg;
                     lir_subject_t* _keep_0_1_386 = lh->sarg;
@@ -1776,7 +1743,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(lh->farg, lh->sarg) &&
                 LIR_subj_equals(lh->sarg, lh->targ))) {
                     lir_subject_t* _src_1_533 = lh->farg;
-                    lir_operation_t _match_op_0_534 = lh->op;
                     lir_subject_t* _keep_0_0_535 = lh->farg;
                     lir_subject_t* _keep_0_1_536 = lh->sarg;
                     lir_subject_t* _keep_0_2_537 = lh->targ;
@@ -1818,7 +1784,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
                     lir_subject_t* _src_1_565 = lh->farg;
-                    lir_operation_t _match_op_0_566 = lh->op;
                     lir_subject_t* _keep_0_0_567 = lh->farg;
                     lir_subject_t* _keep_0_1_568 = lh->sarg;
                     lir_subject_t* _keep_0_2_569 = lh->targ;
@@ -1871,7 +1836,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL))) {
                     lir_subject_t* _src_1_365 = lh->farg;
                     lir_subject_t* _src_2_366 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_367 = lh->op;
                     lir_operation_t _match_op_1_368 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_369 = lh->farg;
                     lir_subject_t* _keep_0_1_370 = lh->sarg;
@@ -1946,7 +1910,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(lh->farg, lh->sarg) &&
                 LIR_subj_equals(lh->sarg, lh->targ))) {
                     lir_subject_t* _src_1_525 = lh->farg;
-                    lir_operation_t _match_op_0_526 = lh->op;
                     lir_subject_t* _keep_0_0_527 = lh->farg;
                     lir_subject_t* _keep_0_1_528 = lh->sarg;
                     lir_subject_t* _keep_0_2_529 = lh->targ;
@@ -2038,8 +2001,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg, lh->farg)) {
                     lir_subject_t* _src_1_127 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg;
                     lir_subject_t* _src_2_128 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_129 = lh->op;
-                    lir_operation_t _match_op_1_130 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_131 = lh->farg;
                     lir_subject_t* _keep_0_1_132 = lh->sarg;
                     lir_subject_t* _keep_0_2_133 = lh->targ;
@@ -2120,8 +2081,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 ((LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg) == 0)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_541 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_542 = lh->op;
-                    lir_operation_t _match_op_1_543 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_544 = lh->farg;
                     lir_subject_t* _keep_0_1_545 = lh->sarg;
                     lir_subject_t* _keep_0_2_546 = lh->targ;
@@ -2179,8 +2138,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_553 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_554 = lh->op;
-                    lir_operation_t _match_op_1_555 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_556 = lh->farg;
                     lir_subject_t* _keep_0_1_557 = lh->sarg;
                     lir_subject_t* _keep_0_2_558 = lh->targ;
@@ -2241,8 +2198,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->targ)) &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_573 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
-                    lir_operation_t _match_op_0_574 = lh->op;
-                    lir_operation_t _match_op_1_575 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
                     lir_subject_t* _keep_0_0_576 = lh->farg;
                     lir_subject_t* _keep_0_1_577 = lh->sarg;
                     lir_subject_t* _keep_0_2_578 = lh->targ;
@@ -2331,7 +2286,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 lh->farg &&
                 (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 LIR_subj_equals(lh->farg, lh->sarg))) {
-                    lir_operation_t _match_op_0_300 = lh->op;
                     lir_subject_t* _keep_0_0_301 = lh->farg;
                     lir_subject_t* _keep_0_1_302 = lh->sarg;
                     lir_subject_t* _keep_0_2_303 = lh->targ;
@@ -2395,7 +2349,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(lh->farg, lh->sarg) &&
                 LIR_subj_equals(lh->sarg, lh->targ))) {
                     lir_subject_t* _src_1_292 = lh->farg;
-                    lir_operation_t _match_op_0_293 = lh->op;
                     lir_subject_t* _keep_0_0_294 = lh->farg;
                     lir_subject_t* _keep_0_1_295 = lh->sarg;
                     lir_subject_t* _keep_0_2_296 = lh->targ;
@@ -2450,9 +2403,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_397 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_398 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_399 = lh->op;
-                    lir_operation_t _match_op_1_400 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_401 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_402 = lh->farg;
                     lir_subject_t* _keep_0_1_403 = lh->sarg;
                     lir_subject_t* _keep_0_2_404 = lh->targ;
@@ -2543,9 +2493,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_417 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_418 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_419 = lh->op;
-                    lir_operation_t _match_op_1_420 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_421 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_422 = lh->farg;
                     lir_subject_t* _keep_0_1_423 = lh->sarg;
                     lir_subject_t* _keep_0_2_424 = lh->targ;
@@ -2636,9 +2583,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_437 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_438 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_439 = lh->op;
-                    lir_operation_t _match_op_1_440 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_441 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_442 = lh->farg;
                     lir_subject_t* _keep_0_1_443 = lh->sarg;
                     lir_subject_t* _keep_0_2_444 = lh->targ;
@@ -2729,9 +2673,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_457 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_458 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_459 = lh->op;
-                    lir_operation_t _match_op_1_460 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_461 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_462 = lh->farg;
                     lir_subject_t* _keep_0_1_463 = lh->sarg;
                     lir_subject_t* _keep_0_2_464 = lh->targ;
@@ -2822,9 +2763,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_477 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_478 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_479 = lh->op;
-                    lir_operation_t _match_op_1_480 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_481 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_482 = lh->farg;
                     lir_subject_t* _keep_0_1_483 = lh->sarg;
                     lir_subject_t* _keep_0_2_484 = lh->targ;
@@ -2915,9 +2853,6 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, lh->farg)) {
                     lir_subject_t* _src_1_497 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg;
                     lir_subject_t* _src_2_498 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg;
-                    lir_operation_t _match_op_0_499 = lh->op;
-                    lir_operation_t _match_op_1_500 = LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op;
-                    lir_operation_t _match_op_2_501 = LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op;
                     lir_subject_t* _keep_0_0_502 = lh->farg;
                     lir_subject_t* _keep_0_1_503 = lh->sarg;
                     lir_subject_t* _keep_0_2_504 = lh->targ;

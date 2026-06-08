@@ -71,18 +71,20 @@ hir_block_t* HIR_FUNC_get_next(hir_block_t* curr, cfg_func_t* fb, hir_block_t* o
         (opt_exit && curr == opt_exit)
     ) return NULL;
     while (curr) {
+        curr = curr->next;
+        if (!curr) break;
+
         hir_block_t* nstart = _check_is_local(curr, &fb->locals);
         if (nstart) {
-            curr = nstart->next;
+            curr = nstart;
             continue;
         }
 
         if (
             curr == fb->hmap.exit          ||
             (opt_exit && curr == opt_exit) ||
-            (!curr->unused && skip-- <= 0)
+            (!curr->unused && --skip <= 0)
         ) break;
-        curr = curr->next;
     }
 
     return curr;

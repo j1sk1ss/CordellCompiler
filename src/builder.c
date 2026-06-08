@@ -42,6 +42,8 @@ static int _print_help_message() {
         { OPTION_NO_LICM, NULL, "Disable LICM" },
         { OPTION_CONSTANT, NULL, "Enable constant propagation/folding" },
         { OPTION_NO_CONSTANT, NULL, "Disable constant propagation/folding" },
+        { OPTION_COPYPROP, NULL, "Enable LIR copy propagation" },
+        { OPTION_NO_COPYPROP, NULL, "Disable LIR copy propagation" },
         { OPTION_PEEPHOLE, NULL, "Enable peephole optimization" },
         { OPTION_NO_PEEPHOLE, NULL, "Disable peephole optimization" },
         { OPTION_TRE, NULL, "Enable TRE" },
@@ -63,6 +65,7 @@ static int _print_help_message() {
         { OPTION_LINKER, "<linker>", "Set linker (ld, gcc, clang, ...)" },
         { OPTION_LINKER_MODE, "<mode>", "Set linker mode (c, driver, raw, ld)" },
         { OPTION_NO_COMPILE, NULL, "Stop after assembly generation" },
+        { OPTION_NO_OBJECT_BUILD, NULL, "Stop after assembly generation without building an object file" },
         { OPTION_LINKER_NO_PIE, NULL, "Disable PIE" },
         { OPTION_LINKER_PIE, NULL, "Enable PIE" },
         { OPTION_LINKER_M32, NULL, "Enable m32 mode" },
@@ -79,6 +82,8 @@ static int _print_help_message() {
         { OPTION_AST_OUTPUT, "<file>", "Set AST dump output path" },
         { OPTION_EMIT_IR, NULL, "Emit HIR dump" },
         { OPTION_IR_OUTPUT, "<file>", "Set HIR dump output path" },
+        { OPTION_EMIT_LIR, NULL, "Emit LIR dump" },
+        { OPTION_LIR_OUTPUT, "<file>", "Set LIR dump output path" },
         { OPTION_EMIT_ASM, NULL, "Emit produced assembly code" },
         { OPTION_ASM_OUTPUT, "<file>", "Set assembly output path" },
     };
@@ -374,11 +379,12 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver    = 0;
             else goto _fail;
         }
-        else if (!strcmp(argv[i], OPTION_NO_COMPILE))    out->flags.no_compile    = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE)) out->tools.linker_no_pie = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_PIE))    out->tools.linker_no_pie = 0;
-        else if (!strcmp(argv[i], OPTION_LINKER_M32))    out->tools.linker_m32    = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32)) out->tools.linker_m32    = 0;
+        else if (!strcmp(argv[i], OPTION_NO_COMPILE))      out->flags.no_compile      = 1;
+        else if (!strcmp(argv[i], OPTION_NO_OBJECT_BUILD)) out->flags.no_object_build = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE))   out->tools.linker_no_pie   = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_PIE))      out->tools.linker_no_pie   = 0;
+        else if (!strcmp(argv[i], OPTION_LINKER_M32))      out->tools.linker_m32      = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32))   out->tools.linker_m32      = 0;
         else if (!strcmp(argv[i], OPTION_ENTRY_NAME)) {
             if (i + 1 >= argc) goto _fail;
             out->config.entry_name = argv[++i];
@@ -423,6 +429,8 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_NO_LICM))              out->config.licm        = 0;
         else if (!strcmp(argv[i], OPTION_CONSTANT))             out->config.constant    = 1;
         else if (!strcmp(argv[i], OPTION_NO_CONSTANT))          out->config.constant    = 0;
+        else if (!strcmp(argv[i], OPTION_COPYPROP))             out->config.copy_prop   = 1;
+        else if (!strcmp(argv[i], OPTION_NO_COPYPROP))          out->config.copy_prop   = 0;
         else if (!strcmp(argv[i], OPTION_PEEPHOLE))             out->config.peephole    = 1;
         else if (!strcmp(argv[i], OPTION_NO_PEEPHOLE))          out->config.peephole    = 0;
         else if (!strcmp(argv[i], OPTION_ENABLE_AST_ANALYSIS))  out->flags.ast_analysis = 1;
@@ -438,6 +446,12 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             if (i + 1 >= argc) goto _fail;
             out->locations.ir_output = argv[++i];
             out->config.emit_ir = 1;
+        }
+        else if (!strcmp(argv[i], OPTION_EMIT_LIR))             out->config.emit_lir     = 1;
+        else if (!strcmp(argv[i], OPTION_LIR_OUTPUT)) {
+            if (i + 1 >= argc) goto _fail;
+            out->locations.lir_output = argv[++i];
+            out->config.emit_lir = 1;
         }
         else if (!strcmp(argv[i], OPTION_EMIT_ASM))             out->config.emit_asm     = 1;
         else if (!strcmp(argv[i], OPTION_ASM_OUTPUT)) {
@@ -455,7 +469,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else out->locations.files[out->locations.files_count++] = argv[i];
     }
 
-    if (out->flags.no_compile) {
+    if (out->flags.no_compile || out->flags.no_object_build) {
         out->config.emit_asm = 1;
     }
 
@@ -653,7 +667,7 @@ int main(int argc, char* argv[]) {
 
         RELOAD_CFG;
         
-        HIR_CFG_finilize_before_dom(&cfgctx);
+        // HIR_CFG_finilize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
         ltree_ctx_t lctx;
         map_init(&lctx.lmap, MAP_NO_CMP);
@@ -663,7 +677,7 @@ int main(int argc, char* argv[]) {
             HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
             HIR_LTREE_unload_ctx(&lctx);
             RELOAD_CFG;
-            HIR_CFG_finilize_before_dom(&cfgctx);
+            // HIR_CFG_finilize_before_dom(&cfgctx);
             HIR_CFG_create_domdata(&cfgctx);
             map_init(&lctx.lmap, MAP_NO_CMP);
             HIR_LOOP_mark_loops(&cfgctx, &lctx);
@@ -713,6 +727,17 @@ int main(int argc, char* argv[]) {
 
         lir_ctx_t lirctx = { 0 };
         LIR_generate(&cfgctx, &lirctx, &smt);
+
+        if (options.config.emit_lir) {
+            const char* lir_output = _output_path_or_default(options.locations.lir_output, "output.lir");
+            FILE* lir_file = fopen(lir_output, "w");
+            if (!lir_file) {
+                fprintf(stderr, "Can't open LIR output file %s: %s\n", lir_output, strerror(errno));
+                return 1;
+            }
+            DUMP_format_lirctx(&lirctx, &smt, 0, 0, lir_file);
+            fclose(lir_file);
+        }
 
         if (options.config.copy_prop) {
             LIR_variable_copy_propagation(&cfgctx, &smt);
@@ -811,7 +836,7 @@ int main(int argc, char* argv[]) {
 
         fclose(asm_file);
 
-        if (options.flags.no_compile) {
+        if (options.flags.no_compile || options.flags.no_object_build) {
             unlink(asm_path);
             mm_free(asm_path);
             mm_free(obj_path);
@@ -844,6 +869,7 @@ int main(int argc, char* argv[]) {
 
     if (
         !options.flags.no_compile &&
+        !options.flags.no_object_build &&
         !options.flags.preprocess_only &&
         !options.flags.without_compilation &&
         options.locations.files_count > 0
