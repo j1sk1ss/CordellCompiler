@@ -28,8 +28,8 @@ static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, li
 }
 
 typedef struct {
-    int reg;
-    int off;
+    lir_registers_t reg;
+    int             off;
 } abi_argument_t;
 
 /*
@@ -48,8 +48,8 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
 
     int is_float = 0;
     switch (s->t) {
-        case LIR_VARIABLE: is_float = x86_64_gnu_nasm_is_simd_type(s, smt);   break;
-        case LIR_NUMBER:   is_float = s->storage.num.is_float; break;
+        case LIR_VARIABLE: is_float = x86_64_gnu_nasm_is_simd_type(s, smt); break;
+        case LIR_NUMBER:   is_float = s->storage.num.is_float;                break;
         default: break;
     }
 
@@ -58,28 +58,23 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
         return 0;
     }
 
+    int *regs = NULL, regs_count = 0;
     if (!is_float) {
-        if (index >= (long)(sizeof(dec_abi_regs) / sizeof(RDI))) {
-            out->off = (offset - (long)(sizeof(dec_abi_regs) / sizeof(RDI)) + !fi->flags.naked + 1) * -8;
-            return 0;
-        }
-        else {
-            out->reg = dec_abi_regs[index];
-            return 1;
-        }
+        regs       = dec_abi_regs;
+        regs_count = (int)(sizeof(dec_abi_regs) / sizeof(RAX));
     }
     else {
-        if (index >= (long)(sizeof(simd_abi_regs) / sizeof(XMM0))) {
-            out->off = (offset - (long)(sizeof(simd_abi_regs) / sizeof(XMM0)) + !fi->flags.naked + 1) * -8;
-            return 0;
-        }
-        else {
-            out->reg = simd_abi_regs[index];
-            return 1;
-        }
+        regs       = simd_abi_regs;
+        regs_count = (int)(sizeof(simd_abi_regs) / sizeof(XMM0));
     }
 
-    return 0;
+    if (index >= regs_count) {
+        out->off = (offset - regs_count + !fi->flags.naked + 1) * -8;
+        return 0;
+    }
+    
+    out->reg = regs[index];
+    return 1;
 }
 
 // TODO: docs

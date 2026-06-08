@@ -60,11 +60,11 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
 
     int *regs = NULL, regs_count = 0;
     if (!is_float) {
-        regs       = &dec_abi_regs;
+        regs       = dec_abi_regs;
         regs_count = (int)(sizeof(dec_abi_regs) / sizeof(RAX));
     }
     else {
-        regs       = &simd_abi_regs;
+        regs       = simd_abi_regs;
         regs_count = (int)(sizeof(simd_abi_regs) / sizeof(XMM0));
     }
 
