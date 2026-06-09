@@ -287,7 +287,7 @@ Returns 1 on success, otherwise 0.
 */
 static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
     func_info_t fi;
-    if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
+    if (!FNTB_get_info_id(f_id, &fi, &smt->f) || !fi.flags.used) return 0;
     
     if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.name->body);
     else { 
