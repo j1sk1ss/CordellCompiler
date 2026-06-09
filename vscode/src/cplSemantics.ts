@@ -47,7 +47,8 @@ export function formatType(t: TypeNode): string {
   }
 }
 
-export type Issue = { message: string; range: Range };
+export type IssueSeverity = "error" | "warning" | "information" | "hint";
+export type Issue = { message: string; range: Range; severity?: IssueSeverity };
 
 export type VarSym = {
   kind: "var";
@@ -55,6 +56,7 @@ export type VarSym = {
   type: TypeNode;
   range: Range;
   readonly?: boolean;
+  annotations?: string[];
 };
 
 export type FuncOverloadSym = {
@@ -67,6 +69,10 @@ export type FuncOverloadSym = {
   def?: Range;
   primaryRange: Range;
   doc?: string;
+  annotations?: string[];
+  weak?: boolean;
+  selfMethod?: boolean;
+  implContainer?: string;
 };
 
 export type ContainerSym = {
@@ -76,6 +82,9 @@ export type ContainerSym = {
   methods: Map<string, FuncOverloadSym[]>;
   range: Range;
   doc?: string;
+  annotations?: string[];
+  isUnion?: boolean;
+  likeC?: boolean;
 };
 
 export type CallSite = {
@@ -264,6 +273,51 @@ function expectedArityString(fn: FuncOverloadSym): string {
   return `${minArgs}..${maxArgs}`;
 }
 
+
+function parseAnnotationRaw(raw: string): { name: string; arg?: string } {
+  const t = raw.trim();
+  const m = /^([A-Za-z_]\w*)\s*(?:\((.*)\))?$/.exec(t);
+  if (!m) return { name: t };
+  return { name: m[1], arg: m[2]?.trim() };
+}
+
+function hasAnnotation(annotations: string[] | undefined, name: string): boolean {
+  return (annotations ?? []).some((a) => parseAnnotationRaw(a).name === name);
+}
+
+export function annotationArg(annotations: string[] | undefined, name: string): string | undefined {
+  const hit = (annotations ?? []).map(parseAnnotationRaw).find((a) => a.name === name);
+  return hit?.arg;
+}
+
+export function formatAnnotations(annotations: string[] | undefined): string {
+  return (annotations ?? []).map((a) => `@[${a}]`).join(" ");
+}
+
+function mergeAnnotations(...lists: (string[] | undefined)[]): string[] | undefined {
+  const out: string[] = [];
+  for (const list of lists) {
+    for (const a of list ?? []) {
+      if (!out.includes(a)) out.push(a);
+    }
+  }
+  return out.length ? out : undefined;
+}
+
+function stripAnnotationStringValue(value: string | undefined): string | undefined {
+  if (value == null) return undefined;
+  const t = value.trim();
+  if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) return t.slice(1, -1);
+  return t;
+}
+
+function typeMentionsContainer(t: TypeNode, containerName: string): boolean {
+  if (t.kind === "container") return t.name === containerName;
+  if (t.kind === "prim") return t.name === containerName;
+  if (t.kind === "ptr") return typeMentionsContainer(t.to, containerName);
+  return false;
+}
+
 export class SemanticContext {
   issues: Issue[] = [];
 
@@ -286,6 +340,19 @@ export class SemanticContext {
   private scope: Scope = new Scope();
   private pendingCalls: { name: string; argc: number; range: Range; scope: Scope }[] = [];
 
+
+  addWarning(message: string, range: Range) {
+    this.issues.push({ message, range, severity: "warning" });
+  }
+
+  hasGlobal(name: string): boolean {
+    return this.globals.has(name);
+  }
+
+  hasMacro(name: string): boolean {
+    return this.macros.has(name);
+  }
+
   hasContainer(name: string): boolean {
     return this.containers.has(name);
   }
@@ -306,7 +373,7 @@ export class SemanticContext {
     return undefined;
   }
 
-  declareContainer(name: string, range: Range, doc?: string) {
+  declareContainer(name: string, range: Range, doc?: string, annotations?: string[]) {
     if (this.containers.has(name)) {
       this.issues.push({ message: `Container '${name}' already declared`, range });
       return;
@@ -318,14 +385,17 @@ export class SemanticContext {
       fields: new Map<string, VarSym>(),
       methods: new Map<string, FuncOverloadSym[]>(),
       range,
-      doc
+      doc,
+      annotations,
+      isUnion: hasAnnotation(annotations, "union"),
+      likeC: hasAnnotation(annotations, "like_c")
     };
 
     this.containers.set(name, sym);
     this.containerDecls.push(sym);
   }
 
-  declareContainerField(containerName: string, name: string, type: TypeNode, range: Range, opts?: { readonly?: boolean }) {
+  declareContainerField(containerName: string, name: string, type: TypeNode, range: Range, opts?: { readonly?: boolean; annotations?: string[] }) {
     const container = this.containers.get(containerName);
     if (!container) {
       this.issues.push({ message: `Unknown container '${containerName}'`, range });
@@ -337,7 +407,7 @@ export class SemanticContext {
       return;
     }
 
-    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
+    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly, annotations: opts?.annotations };
     container.fields.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -350,16 +420,42 @@ export class SemanticContext {
     range: Range,
     isDefinition: boolean,
     doc?: string,
-    typeParams?: string[]
+    typeParams?: string[],
+    annotations?: string[],
+    opts?: { fromImpl?: boolean }
   ) {
     const container = this.containers.get(containerName);
     if (!container) {
-      this.issues.push({ message: `Unknown container '${containerName}'`, range });
+      this.issues.push({
+        message: opts?.fromImpl
+          ? `@[impl(${containerName})]: container '${containerName}' not found. Include or declare the container before this function.`
+          : `Unknown container '${containerName}'`,
+        range
+      });
       return;
     }
 
     const local = container.methods.get(name) ?? [];
     const exact = local.find((f) => sameParamIdentity(f.params, params));
+
+    // For @[impl(Container)] the header/container prototype is the source of truth.
+    // The implementation inherits annotations from the matching container method,
+    // so it does not need to repeat @[self], @[inline(...)], @[weak], etc.
+    const inheritedAnnotations = opts?.fromImpl && exact
+      ? mergeAnnotations(exact.annotations, annotations)
+      : annotations;
+
+    const hasSelf = hasAnnotation(inheritedAnnotations, "self") || (opts?.fromImpl && exact?.selfMethod === true);
+    const first = params[0];
+    if (hasSelf) {
+      if (!first || first.name !== "self") {
+        this.addWarning(`@[self] method '${containerName}.${name}' should have first parameter named 'self'`, range);
+      } else if (!typeMentionsContainer(first.type, containerName)) {
+        this.addWarning(`@[self] receiver '${first.name}' should have type '${containerName}' or 'ptr ${containerName}'`, first.range);
+      }
+    } else if (first?.name === "self" && !opts?.fromImpl) {
+      this.addWarning(`Method '${containerName}.${name}' has receiver 'self'. Add @[self] if object calls must pass the receiver automatically.`, first.range);
+    }
 
     if (!exact) {
       const sameTypesDifferentDefaults = local.find(
@@ -372,6 +468,7 @@ export class SemanticContext {
         });
       }
 
+      const implContainer = opts?.fromImpl ? containerName : stripAnnotationStringValue(annotationArg(inheritedAnnotations, "impl"));
       const sym: FuncOverloadSym = {
         kind: "func",
         name,
@@ -381,7 +478,11 @@ export class SemanticContext {
         decls: isDefinition ? [] : [range],
         def: isDefinition ? range : undefined,
         primaryRange: range,
-        doc
+        doc,
+        annotations: inheritedAnnotations,
+        weak: hasAnnotation(inheritedAnnotations, "weak"),
+        selfMethod: hasAnnotation(inheritedAnnotations, "self") || params[0]?.name === "self",
+        implContainer
       };
 
       local.push(sym);
@@ -399,6 +500,15 @@ export class SemanticContext {
 
     if (doc && !exact.doc) exact.doc = doc;
 
+    if (inheritedAnnotations?.length) {
+      exact.annotations = mergeAnnotations(exact.annotations, inheritedAnnotations);
+      exact.weak = exact.weak || hasAnnotation(inheritedAnnotations, "weak");
+      exact.selfMethod = exact.selfMethod || hasAnnotation(inheritedAnnotations, "self") || exact.params[0]?.name === "self";
+      exact.implContainer = exact.implContainer ?? (opts?.fromImpl ? containerName : stripAnnotationStringValue(annotationArg(inheritedAnnotations, "impl")));
+    } else if (opts?.fromImpl) {
+      exact.implContainer = exact.implContainer ?? containerName;
+    }
+
     if (isDefinition) {
       if (exact.def) {
         this.issues.push({ message: `Method '${containerName}.${name}' overload already defined`, range });
@@ -408,6 +518,7 @@ export class SemanticContext {
       exact.primaryRange = range;
       return;
     }
+
 
     exact.decls.push(range);
     if (!exact.def && exact.decls.length === 1) exact.primaryRange = exact.decls[0];
@@ -434,7 +545,7 @@ export class SemanticContext {
     const methods = container.methods.get(memberName) ?? [];
     if (methods.length === 1) {
       const fn = methods[0];
-      const params = fn.params[0]?.name === "self" ? fn.params.slice(1) : fn.params;
+      const params = (fn.selfMethod || fn.params[0]?.name === "self") ? fn.params.slice(1) : fn.params;
       return { kind: "func", params: params.filter((p) => !p.isVarArgs).map((p) => p.type), ret: fn.ret };
     }
 
@@ -444,6 +555,18 @@ export class SemanticContext {
 
     this.issues.push({ message: `Unknown member '${containerName}.${memberName}'`, range });
     return { kind: "unknown" };
+  }
+
+  getContainerMembersForType(baseType: TypeNode): { containerName: string; fields: VarSym[]; methods: FuncOverloadSym[] } | undefined {
+    const containerName = this.containerNameFromType(baseType);
+    if (!containerName) return undefined;
+    const container = this.containers.get(containerName);
+    if (!container) return undefined;
+    return {
+      containerName,
+      fields: [...container.fields.values()],
+      methods: [...container.methods.values()].flat()
+    };
   }
 
   defineMacro(name: string, value: MacroValue, nameRange: Range, valueRange: Range, doc?: string) {
@@ -523,12 +646,12 @@ export class SemanticContext {
     name: string,
     type: TypeNode,
     range: Range,
-    opts?: { readonly?: boolean }
+    opts?: { readonly?: boolean; annotations?: string[] }
   ) {
     if (this.globals.has(name)) {
       this.issues.push({ message: `Global '${name}' already declared`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
+    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly, annotations: opts?.annotations };
     this.globals.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -537,12 +660,12 @@ export class SemanticContext {
     name: string,
     type: TypeNode,
     range: Range,
-    opts?: { readonly?: boolean }
+    opts?: { readonly?: boolean; annotations?: string[] }
   ) {
     if (this.scope.vars.has(name)) {
       this.issues.push({ message: `Variable '${name}' already declared in this scope`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
+    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly, annotations: opts?.annotations };
     this.scope.vars.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -554,9 +677,15 @@ export class SemanticContext {
     range: Range,
     isDefinition: boolean,
     doc?: string,
-    typeParams?: string[]
+    typeParams?: string[],
+    annotations?: string[]
   ) {
     const local = this.scope.funcs.get(name) ?? [];
+
+    const implContainer = stripAnnotationStringValue(annotationArg(annotations, "impl"));
+    if (hasAnnotation(annotations, "self") && !implContainer) {
+      this.addWarning(`@[self] on top-level function '${name}' has no container target. Use @[impl(Container)] or move the function into a container.`, range);
+    }
 
     const exact = local.find((f) => sameParamIdentity(f.params, params));
     if (!exact) {
@@ -579,7 +708,11 @@ export class SemanticContext {
         decls: isDefinition ? [] : [range],
         def: isDefinition ? range : undefined,
         primaryRange: range,
-        doc
+        doc,
+        annotations,
+        weak: hasAnnotation(annotations, "weak"),
+        selfMethod: hasAnnotation(annotations, "self"),
+        implContainer
       };
 
       local.push(sym);
@@ -599,6 +732,12 @@ export class SemanticContext {
     }
 
     if (doc && !exact.doc) exact.doc = doc;
+    if (annotations?.length) {
+      exact.annotations = [...(exact.annotations ?? []), ...annotations].filter((v, i, a) => a.indexOf(v) === i);
+      exact.weak = exact.weak || hasAnnotation(annotations, "weak");
+      exact.selfMethod = exact.selfMethod || hasAnnotation(annotations, "self") || exact.params[0]?.name === "self";
+      exact.implContainer = exact.implContainer ?? stripAnnotationStringValue(annotationArg(annotations, "impl"));
+    }
 
     if (isDefinition) {
       if (exact.def) {

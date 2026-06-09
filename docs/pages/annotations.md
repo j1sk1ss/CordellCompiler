@@ -36,8 +36,10 @@ The parser accepts the form `@[name]` and, for annotations that need a value, `@
 | `@[hot]` | `if` | make the false branch cold for layout |
 | `@[cold]` | `if` or switch `case` | make the true branch, or the annotated case, cold for layout |
 | `@[not_lazy]` | logical expression | evaluate both sides of `&&` or `\|\|` |
+| `@[union]` | container | lay out all fields at offset zero and allocate enough memory for the largest field |
+| `@[impl(N)]` | container function | mark a standalone function as an implementation for container `N` |
 
-The compiler also parses `@[address(N)]` and `@[union]`, but the current implementation does not connect their summary fields to code generation or container layout yet. Treat them as reserved/internal until that changes.
+The compiler also parses `@[address(N)]`, but the current implementation does not connect its summary field to code generation yet. Treat it as reserved/internal until that changes.
 
 ## Entry, naked, sections
 
@@ -93,9 +95,15 @@ container c_layout {
     i8  tag;
     i64 value;
 }
+
+@[union]
+container word_view {
+    u32 word;
+    arr bytes[4, u8];
+}
 ```
 
-`@[align(N)]` affects variables, arrays, and container field layout. `@[like_c]` is only read when defining a container.
+`@[align(N)]` affects variables, arrays, and container field layout. `@[like_c]` and `@[union]` are only read when defining a container.
 
 ## Function hints and symbols
 

@@ -60,14 +60,6 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_CQO:  EMIT_COMMAND("cqo");      break;
         case LIR_CDQ:  EMIT_COMMAND("cdq");      break;
         case LIR_SYSC: EMIT_COMMAND("int 0x80"); break;
-        case LIR_FEXT: {
-            func_info_t curr_fi;
-            if (FNTB_get_info_id(b->farg->storage.cnst.value, &curr_fi, &smt->f)) {
-                EMIT_COMMAND("extern %s", curr_fi.name->body);
-            }
-
-            break;
-        }
         case LIR_OEXT: {
             variable_info_t vi;
             if (VRTB_get_info_id(b->farg->storage.cnst.value, &vi, &smt->v)) {
@@ -294,16 +286,19 @@ Params:
 Returns 1 on success, otherwise 0.
 */
 static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
+    func_info_t fi;
+    if (!FNTB_get_info_id(f_id, &fi, &smt->f) || !fi.flags.used) return 0;
+    
+    if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.name->body);
+    else { 
+        const char* modifier = fi.flags.weak ? ":function weak" : "";
+        if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
+        else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.name->body, modifier);
+        if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
+    }
+
     cfg_func_t* fb;
     if (!map_get(&cctx->fmap, f_id, (void**)&fb) || !fb || !fb->used) return 0;
-
-    func_info_t fi;
-    if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
-
-    const char* modifier = fi.flags.weak ? ":function weak" : "";
-    if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
-    else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.name->body, modifier);
-    if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
     iterate_lir_instructions (fb) {
         _convert_lirblock_to_assembly(lh, &fi, smt, output);
     }

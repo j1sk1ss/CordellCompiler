@@ -181,12 +181,26 @@ function destroyBenchmarkCharts() {
 }
 
 function renderBenchmarkCharts() {
-  if (typeof Chart === 'undefined') return;
-
   destroyBenchmarkCharts();
 
   const cards = document.querySelectorAll('.benchmark-card');
+  if (typeof Chart === 'undefined') {
+    for (const card of cards) {
+      const wrap = card.querySelector('.benchmark-chart-wrap');
+      const next = wrap ? wrap.nextElementSibling : null;
+      if (wrap && !(next && next.classList && next.classList.contains('benchmark-note'))) {
+        const note = document.createElement('div');
+        note.className = 'benchmark-note';
+        note.textContent = 'Chart.js is still loading or unavailable.';
+        wrap.insertAdjacentElement('afterend', note);
+      }
+    }
+    return;
+  }
+
   for (const card of cards) {
+    card.querySelectorAll('.benchmark-note').forEach(note => note.remove());
+
     const canvas = card.querySelector('canvas.benchmark-chart');
     if (!canvas) continue;
 
@@ -252,7 +266,7 @@ function renderBenchmarkCharts() {
               callbacks: {
                 label: function(context) {
                   const suffix = cfg.tooltipSuffix || '';
-                  const raw = context.parsed.y ?? context.raw;
+                  const raw = context.parsed && typeof context.parsed.y !== 'undefined' ? context.parsed.y : context.raw;
                   const value = typeof raw === 'number' ? raw.toFixed(6) : raw;
                   return `${context.dataset.label}: ${value}${suffix}`;
                 }
@@ -281,6 +295,10 @@ function renderBenchmarkCharts() {
     }
   }
 }
+
+window.addEventListener('load', function() {
+  setTimeout(renderBenchmarkCharts, 0);
+});
 
 const cplMonkeyScrollController = (function() {
   const startAngle = 0;
@@ -343,6 +361,43 @@ const cplMonkeyScrollController = (function() {
   return { init, update: requestUpdate };
 })();
 
+function renderCplRunnerMarkup(code) {
+  const encoded = encodeURIComponent(code || '');
+  return `
+    <div class="cpl-runner" data-lang="cpl" data-code="${encoded}">
+      <div class="cpl-runner-toolbar">
+        <div class="cpl-runner-toolbar-left">
+          <div class="cpl-runner-title">CPL playground</div>
+          <span class="cpl-runner-badge">Compile and run via backend</span>
+        </div>
+        <div class="cpl-runner-toolbar-right">
+          <button class="cpl-runner-button secondary" type="button" data-action="format">Format</button>
+          <button class="cpl-runner-button" type="button" data-action="run">Run</button>
+        </div>
+      </div>
+      <div class="cpl-runner-editor-shell">
+        <div class="cpl-runner-tabs">
+          <span class="cpl-runner-tab">main.cpl</span>
+        </div>
+        <div class="cpl-runner-editor"></div>
+      </div>
+      <pre class="cpl-runner-output">Ready to run. The browser will POST this code to the CPL backend.</pre>
+    </div>
+  `;
+}
+
+function notifyCplContentReady(root) {
+  let event;
+  try {
+    event = new CustomEvent('cpl:content-ready', { detail: { root: root || document } });
+  } catch (e) {
+    event = document.createEvent('Event');
+    event.initEvent('cpl:content-ready', true, true);
+    event.detail = { root: root || document };
+  }
+  document.dispatchEvent(event);
+}
+
 window.$docsify = {
   name: 'CPL v3.6<small>Language docs & compiler internals</small>',
   repo: 'https://github.com/j1sk1ss/CordellCompiler',
@@ -380,28 +435,7 @@ window.$docsify = {
     renderer: {
       code: function(code, lang) {
         if (lang === 'cpl-run') {
-          const encoded = encodeURIComponent(code);
-          return `
-            <div class="cpl-runner" data-lang="cpl" data-code="${encoded}">
-              <div class="cpl-runner-toolbar">
-                <div class="cpl-runner-toolbar-left">
-                  <div class="cpl-runner-title">CPL playground</div>
-                  <span class="cpl-runner-badge">Compile and run via backend</span>
-                </div>
-                <div class="cpl-runner-toolbar-right">
-                  <button class="cpl-runner-button secondary" type="button" data-action="format">Format</button>
-                  <button class="cpl-runner-button" type="button" data-action="run">Run</button>
-                </div>
-              </div>
-              <div class="cpl-runner-editor-shell">
-                <div class="cpl-runner-tabs">
-                  <span class="cpl-runner-tab">main.cpl</span>
-                </div>
-                <div class="cpl-runner-editor"></div>
-              </div>
-              <pre class="cpl-runner-output">Ready to run. The browser will POST this code to the CPL backend.</pre>
-            </div>
-          `;
+          return renderCplRunnerMarkup(code);
         }
 
         const language = String(lang || 'markup').toLowerCase();
@@ -896,6 +930,7 @@ window.$docsify = {
           record.html = renderMarkdown(markdown);
           body.innerHTML = record.html;
           bindDocumentBodyLinks(body);
+          notifyCplContentReady(body);
           record.loaded = true;
         } catch (err) {
           body.innerHTML = '<p>Could not open file: ' + escapeHtml(err.message) + '</p>';
@@ -932,6 +967,7 @@ window.$docsify = {
               const body = win.querySelector('.win95-doc-body');
               body.innerHTML = record.html;
               bindDocumentBodyLinks(body);
+              notifyCplContentReady(body);
             }
           } else {
             const titleNode = win.querySelector('.win95-window-title');
@@ -1426,6 +1462,30 @@ window.$docsify = {
         }).join('\n');
       }
 
+      function hydrateRunnerFallbacks(root) {
+        const scope = root || document;
+        scope.querySelectorAll('pre[data-lang="cpl-run"], pre > code.language-cpl-run').forEach(node => {
+          const pre = node.tagName === 'PRE' ? node : node.closest('pre');
+          if (!pre || pre.dataset.runnerHydrated === '1') return;
+          pre.dataset.runnerHydrated = '1';
+
+          const codeNode = pre.querySelector('code');
+          const code = codeNode ? codeNode.textContent : pre.textContent;
+          const holder = document.createElement('div');
+          holder.innerHTML = renderCplRunnerMarkup(code || '');
+          pre.replaceWith(holder.firstElementChild);
+        });
+      }
+
+      function hydrateRunners(root) {
+        const scope = root || document;
+        hydrateRunnerFallbacks(scope);
+        scope.querySelectorAll('.cpl-runner').forEach(block => {
+          bindRunnerActions(block);
+          initRunner(block);
+        });
+      }
+
       async function initRunner(block) {
         if (!block || block.dataset.monacoReady === '1') return;
         block.dataset.monacoReady = '1';
@@ -1589,10 +1649,11 @@ window.$docsify = {
       }
 
       hook.doneEach(function() {
-        document.querySelectorAll('.cpl-runner').forEach(block => {
-          bindRunnerActions(block);
-          initRunner(block);
-        });
+        hydrateRunners(document);
+      });
+
+      document.addEventListener('cpl:content-ready', function(event) {
+        hydrateRunners(event.detail && event.detail.root ? event.detail.root : document);
       });
     },
 
@@ -1601,6 +1662,10 @@ window.$docsify = {
         setTimeout(function() {
           renderBenchmarkCharts();
         }, 0);
+      });
+
+      document.addEventListener('cpl:content-ready', function() {
+        setTimeout(renderBenchmarkCharts, 0);
       });
     }
   ]

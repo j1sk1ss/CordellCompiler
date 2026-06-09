@@ -44,14 +44,14 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
 
     string_t* anon_name = create_string("__anon_function_lambda");
     base->sinfo.v_id = FNTB_add_info(anon_name, NULL,  (func_info_flags_t){ .local = 1 }, base->sinfo.s_id, args, NULL, &smt->f);
-    FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, base->sinfo.v_id, &smt->f);
+    FNTB_add_local(ctx->carry.pfunc, base->sinfo.v_id, &smt->f);
     destroy_string(anon_name);
 
     ast_node_t* body = NULL;
     PRESERVE_AST_CARRY_ARG({ 
         if (!consume_token(it, OPEN_BLOCK_TOKEN)) body = cpl_parse_line_scope(it, ctx, smt, 1);
         else body = cpl_parse_scope(it, ctx, smt, 1);
-     }, base);
+     }, base->sinfo.v_id);
     if (body) AST_add_node(args, body);
     else {
         PARSE_ERROR("Error during the lambdas's body parsing!");

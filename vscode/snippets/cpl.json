@@ -24,22 +24,24 @@
       "container ${1:name} {",
       "\t${2:u32 field = 0;}",
       "",
-      "\tfunction ${3:method}(self) -> i0 {",
+      "\t@[self]",
+      "\tfunction ${3:method}(ptr ${1:name} self${4})${5: -> ${6:i0}} {",
       "\t\t${0}",
       "\t}",
       "}"
     ],
-    "description": "Struct-like container with fields and methods"
+    "description": "Struct-like container with annotated self method"
   },
   "container-method": {
     "scope": "cpl",
     "prefix": "cmethod",
     "body": [
-      "function ${1:name}(self${2})${3: -> ${4:i0}} {",
+      "@[self]",
+      "function ${1:name}(ptr ${2:Container} self${3})${4: -> ${5:i0}} {",
       "\t${0}",
       "}"
     ],
-    "description": "Container method with self parameter"
+    "description": "Container method with explicit @[self] receiver"
   },
   "container-field-access": {
     "scope": "cpl",
@@ -279,5 +281,61 @@
     "prefix": "gcall",
     "body": "${1:container}.${2:function}<${3:i32}>(${0})",
     "description": "Generic function or container method call"
+  },
+  "annotation-weak": {
+    "scope": "cpl",
+    "prefix": "weakann",
+    "body": [
+      "@[weak]"
+    ],
+    "description": "Weak function symbol annotation"
+  },
+  "annotation-self": {
+    "scope": "cpl",
+    "prefix": "selfann",
+    "body": [
+      "@[self]"
+    ],
+    "description": "Explicit self receiver annotation for container methods"
+  },
+  "annotation-union": {
+    "scope": "cpl",
+    "prefix": "unionann",
+    "body": [
+      "@[union]"
+    ],
+    "description": "Union-like container layout annotation"
+  },
+  "annotation-impl": {
+    "scope": "cpl",
+    "prefix": "implann",
+    "body": [
+      "@[impl(${1:Container})]"
+    ],
+    "description": "Attach top-level function implementation to a container"
+  },
+  "container-impl-method": {
+    "scope": "cpl",
+    "prefix": "implmethod",
+    "body": [
+      "@[impl(${1:Container})]",
+      "@[self]",
+      "function ${2:name}(ptr ${1:Container} self${3})${4: -> ${5:i0}} {",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Top-level container method implementation with @[impl] and @[self]"
+  },
+  "union-container-definition": {
+    "scope": "cpl",
+    "prefix": "unioncontainer",
+    "body": [
+      "@[union]",
+      "container ${1:name} {",
+      "\t${2:u64 value;}",
+      "\t${0}",
+      "}"
+    ],
+    "description": "Container with union-like layout annotation"
   }
 }

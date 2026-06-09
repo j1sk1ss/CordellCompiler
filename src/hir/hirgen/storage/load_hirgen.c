@@ -24,7 +24,14 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
             HIR_BLOCK2(ctx, HIR_REF, res, HIR_SUBJ_FUNCNAME(node));
             break;
         }
-        default: res = HIR_SUBJ_ASTVAR(node); break;
+        default: {
+            if (node->sinfo.v_id == NO_SYMBOL_ID) {
+                HIRGEN_ERROR(ctx, "Unknown variable '%s'!", node->t->body->body);
+                return NULL;
+            }
+
+            res = HIR_SUBJ_ASTVAR(node);
+        }
     }
 
     return res;

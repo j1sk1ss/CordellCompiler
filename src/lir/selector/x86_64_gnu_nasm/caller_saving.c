@@ -35,6 +35,29 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
 
 static unsigned int _visit_counter = 10; /* Magic index offset */
 
+static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
+    if (!bbh || !set_size(dirty)) return;
+
+    lir_block_t* lh = off ? off : bbh->lmap.entry;
+    while (lh) {
+        if (
+            LIR_is_writeop(lh->op) &&
+            lh->farg->t == LIR_REGISTER &&
+            !LIR_subj_equals(lh->farg, lh->sarg)
+        ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8));
+
+        iterate_lir_args (lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
+            if (
+                arg->t != LIR_REGISTER ||
+                !set_has(dirty, (void*)LIR_format_register(arg->storage.reg.reg, 8))
+            ) continue;
+            set_add(save, (void*)LIR_format_register(arg->storage.reg.reg, 8));
+        }
+
+        lh = LIR_get_next(lh, bbh->lmap.exit, 1);
+    }
+}
+
 /*
 Collect register usage in the further CFG.
 Params:
@@ -48,26 +71,12 @@ Returns 1 on success, otherwise 0.
 static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
     if (!bbh || !set_size(dirty)) return 0;
     if (bbh->visited != _visit_counter) bbh->visited = _visit_counter;
-    else return 0;
-    
-    lir_block_t* lh = off ? off : bbh->lmap.entry;
-    while (lh) {
-        if ( /* Remove register from the 'dirty' set if it is rewritten */
-            LIR_is_writeop(lh->op) && 
-            lh->farg->t == LIR_REGISTER &&
-            !LIR_subj_equals(lh->farg, lh->sarg)
-        ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8));
-        
-        iterate_lir_args (lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
-            if (
-                arg->t != LIR_REGISTER || 
-                !set_has(dirty, (void*)LIR_format_register(arg->storage.reg.reg, 8))
-            ) continue; /* If this register isn't a dirty one -> skip it */
-            set_add(save, (void*)LIR_format_register(arg->storage.reg.reg, 8));
-        }
-        
-        lh = LIR_get_next(lh, bbh->lmap.exit, 1);
+    else {
+        _collect_local_out_function_reg_usage(dirty, save, bbh, off);
+        return 0;
     }
+
+    _collect_local_out_function_reg_usage(dirty, save, bbh, off);
 
     set_t copy;
 

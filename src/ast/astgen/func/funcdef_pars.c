@@ -115,7 +115,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     symbol_id_t preserved_tid = ctx->t_id;
     ctx->t_id = NO_SYMBOL_ID;
-    
+
     forward_token(it, 1);
     if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args)) {
         PARSE_ERROR("Can't parse function's arguments!");
@@ -146,7 +146,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     int vargs = 0;
-    int local = ctx->carry.ptr ? 1 : 0;
+    int local = ctx->carry.pfunc != NO_SYMBOL_ID ? 1 : 0;
 
     ast_node_t* t;
     for (t = args->c; t && t->t && t->t->t_type != SCOPE_TOKEN; t = t->siblings.n) {
@@ -154,6 +154,15 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
             vargs = 1;
             break;
         }
+    }
+
+    if (annots.base_type) {
+        token_t tmp = { .body = annots.base_type };
+        symbol_id_t base_tid = type_lookup(&tmp, ctx, smt);
+        type_info_t ti;
+        if (
+            TPTB_get_info_id(base_tid, &ti, &smt->t)
+        ) name->sinfo.s_id = ti.cs_id;
     }
 
     name->sinfo.v_id = FNTB_add_info(
@@ -164,13 +173,13 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         },
         name->sinfo.s_id, args, name->c, &smt->f
     );
-
+    
     if (preserved_tid != NO_SYMBOL_ID) {
         symbol_id_t type = TPTB_add_info_from_token(base->sinfo.s_id, base->t, base->c->sinfo.v_id, &smt->t);
         TPTB_add_as_child(preserved_tid, type, name->t->body, FIELD_NO_CHANGE, &smt->t);
     }
 
-    if (local) FNTB_add_local(((ast_node_t*)ctx->carry.ptr)->sinfo.v_id, name->sinfo.v_id, &smt->f);
+    if (local) FNTB_add_local(ctx->carry.pfunc, name->sinfo.v_id, &smt->f);
     else { /* Local function doesn't have a section. It copies position of its parent */
         if (annots.is_nosec)      annots.section = create_string(CONF_get_no_section());
         else if (!annots.section) annots.section = create_string(CONF_get_code_section());
@@ -191,6 +200,8 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         stack_pop(&ctx->scopes.stack, NULL);
         ctx->t_id = preserved_tid;
         list_free(&generic_types);
+
+        FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(2)), &smt->f);
         return base;
     }
 
@@ -201,7 +212,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     ast_node_t* body = NULL;
-    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, name);
+    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, name->sinfo.v_id);
     if (body) AST_add_node(args, body);
     else {
         PARSE_ERROR("Error during the function's body parsing!");
@@ -215,5 +226,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     ctx->t_id = preserved_tid;
     list_free(&generic_types);
     stack_pop(&ctx->scopes.stack, NULL);
+
+    FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(0)), &smt->f);
     return base;
 }

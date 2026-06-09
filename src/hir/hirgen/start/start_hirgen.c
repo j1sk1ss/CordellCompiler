@@ -13,7 +13,7 @@ int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt)
         HIR_BLOCK2(ctx, HIR_STARGLD, HIR_SUBJ_ASTVAR(t->c), HIR_SUBJ_CONST(argnum++));
     }
 
-    SET_AND_DUMP_POPARG(HIR_STARGLD, NULL, NULL, { HIR_generate_block(t, ctx, smt); });
+    SET_AND_DUMP_POPARG(NULL, NULL, { HIR_generate_block(t, ctx, smt); });
     
     if (list_size(&ctx->cold.blocks)) {
         HIR_BLOCK1(ctx, HIR_EXITOP, HIR_SUBJ_CONST(0));

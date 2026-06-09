@@ -33,16 +33,16 @@ typedef struct ast_node {
 } ast_node_t;
 
 typedef struct {
-    ast_node_t*  r;      /* AST root.                                */
+    ast_node_t*     r;      /* AST root.                                */
     struct {
-        int      s_id;   /* Current scope id.                        */
-        sstack_t stack;  /* Scope id stack.                          */
+        int         s_id;   /* Current scope id.                        */
+        sstack_t    stack;  /* Scope id stack.                          */
     } scopes;
-    symbol_id_t  t_id;   /* Current type id.                         */
-    sstack_t     annots; /* Annotations                              */
-    int          an_off; /* Annotations reserved offset              */
+    symbol_id_t     t_id;   /* Current type id.                         */
+    sstack_t        annots; /* Annotations                              */
+    int             an_off; /* Annotations reserved offset              */
     struct {
-        void*    ptr;    /* Parent function pointer                  */
+        symbol_id_t pfunc;  /* Parent function pointer                  */
     } carry;
 } ast_ctx_t;
 

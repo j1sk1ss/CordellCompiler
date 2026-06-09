@@ -1,136 +1,102 @@
-#include "libc/stdlib_h.cpl"
-#include "libc/string_h.cpl"
-#include "libc/stdio_h.cpl"
+#include "game_h.cpl"
 
-container game {
-    ptr i8 map;
-    i32    width;
-    i32    height;
-    i32    px;
-    i32    py;
-    i8     has_key;
-    i8     running;
-    i8     won;
+@[impl(game)]
+function new(ptr game self) -> i0 {
+    self.width   = 7;
+    self.height  = 5;
+    self.map     = strdup(ref "########...K.##.###.##...E.########");
+    self.px      = 1;
+    self.py      = 1;
+    self.has_key = 0;
+    self.running = 1;
+    self.won     = 0;
+}
 
-    @[self]
-    function new(ptr game self) -> i0 {
-        self.width  = 7;
-        self.height = 5;
+@[impl(game)]
+function index(ptr game self, i32 x, i32 y) -> i32 {
+    y * self.width + x;
+}
 
-        self.map = strdup(ref "########...K.##.###.##...E.########");
-        self.px  = 1;
-        self.py  = 1;
+@[impl(game)]
+function cell(ptr game self, i32 x, i32 y) -> ptr i8 {
+    self.map + self.index(x, y) as ptr i8;
+}
 
-        self.has_key = 0;
-        self.running = 1;
-        self.won     = 0;
-    }
+@[impl(game)]
+function draw(ptr game self) -> i0 {
+    i32 y = 0;
 
-    @[self]
-    function index(ptr game self, i32 x, i32 y) -> i32 {
-        return y * self.width + x;
-    }
+    while y < self.height; {
+        i32 x = 0;
 
-    @[self]
-    function cell(ptr game self, i32 x, i32 y) -> ptr i8 {
-        return self.map + self.index(x, y) as ptr i8;
-    }
-
-    @[self]
-    function draw(ptr game self) -> i0 {
-        i32 y = 0;
-
-        while y < self.height; {
-            i32 x = 0;
-
-            while x < self.width; {
-                i32 pos = self.index(x, y);
-                i32 player_pos = self.index(self.px, self.py);
-
-                i8 ch = (dref (self.map + pos)) as i8;
-                if pos == player_pos; {
-                    ch = 64;
-                }
-
-                putchar(ch as i32);
-                x += 1;
+        while x < self.width; {
+            i32 pos = self.index(x, y);
+            i32 player_pos = self.index(self.px, self.py);
+            i8 ch = dref (self.map + pos as ptr i8);
+            if pos == player_pos; {
+                ch = 64;
             }
 
-            putchar(10);
-            y += 1;
+            putchar(ch);
+            x += 1;
         }
 
-        if self.has_key; puts(ref "Key: yes");
-        if not self.has_key; puts(ref "Key: no");
-        puts(ref "Move: w/a/s/d, quit: q");
+        putchar('\n');
+        y += 1;
     }
 
-    @[self]
-    function step(ptr game self, i32 input) -> i0 {
-        if input == 'q'; {
+    if self.has_key; puts(ref "Key: yes");
+    if not self.has_key; puts(ref "Key: no");
+    puts(ref "Move: w/a/s/d, quit: q");
+}
+
+@[impl(game)]
+function step(ptr game self, i32 input) -> i0 {
+    if input == 'q'; {
+        self.running = 0;
+        return;
+    }
+
+    i32 nx = self.px;
+    i32 ny = self.py;
+
+    @[no_fall]
+    @[straight]
+    switch input; {
+        case 'w'; { ny -= 1; }
+        case 's'; { ny += 1; }
+        case 'a'; { nx -= 1; }
+        case 'd'; { nx += 1; }
+    }
+
+    ptr i8 target_ptr = self.cell(nx, ny);
+    i8 target = dref target_ptr;
+    if target == '#'; {
+        return;
+    }
+
+    if target == 'K'; {
+        self.has_key = 1;
+        dref target_ptr = '.';
+    }
+
+    if target == 'E'; {
+        if self.has_key; {
+            self.won = 1;
             self.running = 0;
             return;
         }
 
-        i32 nx = self.px;
-        i32 ny = self.py;
-
-        if input == 'w'; ny -= 1;
-        if input == 's'; ny += 1;
-        if input == 'a'; nx -= 1;
-        if input == 'd'; nx += 1;
-
-        ptr i8 target_ptr = self.cell(nx, ny);
-        i8 target = dref target_ptr;
-        if target == '#'; {
-            return;
-        }
-
-        if target == 'K'; {
-            self.has_key = 1;
-            dref target_ptr = '.';
-        }
-
-        if target == 'E'; {
-            if self.has_key; {
-                self.won = 1;
-                self.running = 0;
-                return;
-            }
-
-            puts(ref "Door is locked. Find the key!");
-            return;
-        }
-
-        self.px = nx;
-        self.py = ny;
+        puts(ref "Door is locked. Find the key!");
+        return;
     }
 
-    @[self]
-    function destroy(ptr game self) -> i0 {
-        free(self.map);
-        self.map = 0 as ptr i8;
-    }
+    self.px = nx;
+    self.py = ny;
 }
 
-: @[entry("main")] :
-start() {
-    game g;
-    g.new();
-
-    while g.running; {
-        g.draw();
-
-        i32 input = getchar();
-        if input != 10; {
-            g.step(input);
-        }
-    }
-
-    if g.won; puts(ref "You escaped!");
-    if not g.won; puts(ref "Game over.");
-    
-    g.destroy();
-    if g.won; exit 0;
-    exit 1;
+@[impl(game)]
+function destroy(ptr game self) -> i0 {
+    free(self.map);
+    self.map = 0 as ptr i8;
 }

@@ -21,3 +21,5 @@ __pycache__
 *.bbl
 *.blg
 *.s
+*.ir
+*.lir

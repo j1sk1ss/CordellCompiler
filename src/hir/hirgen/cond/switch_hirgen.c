@@ -81,8 +81,8 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 
     hir_subject_t* end_lb = HIR_SUBJ_LABEL();
     for (ast_node_t* curr_case = cases->c; curr_case; curr_case = curr_case->siblings.n) {        
-        void* backup = ctx->carry.ptr;
-        ctx->carry.ptr = end_lb;
+        hir_subject_t* backup = ctx->carry.brk;
+        ctx->carry.brk = end_lb;
 
         int prev_cold = ctx->is_cold;
         HAS_ANNOTATION(COLD_ANNOTATION, curr_case, { ctx->is_cold = 1; });
@@ -100,7 +100,7 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
             cases_count++;
         }
 
-        ctx->carry.ptr = backup;
+        ctx->carry.brk = backup;
         if (no_fall) {
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
         }

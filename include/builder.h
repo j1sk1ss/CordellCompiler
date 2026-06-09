@@ -39,6 +39,7 @@
 /* HLIR generation */
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
+#include <lir/dump.h>
 
 /* HLIR copy prop */
 #include <lir/copyprop.h>
@@ -75,7 +76,7 @@
 #include <asm/i386_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
-#define CCPL_VERSION                 "3.6.2:0606.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.3:0806.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #define OPTION_HELP_SHORT            "-h"
 #define OPTION_HELP                  "--help"
@@ -103,6 +104,7 @@
 #define OPTION_LINKER_M32            "--linker-m32"
 #define OPTION_LINKER_NO_M32         "--linker-no-m32"
 #define OPTION_NO_COMPILE            "--no-compile"
+#define OPTION_NO_OBJECT_BUILD       "--no-object-build"
 #define OPTION_ENTRY_NAME            "--entry-name"
 #define OPTION_RO_SECTION            "--ro-section"
 #define OPTION_GLOB_SECTION          "--glob-section"
@@ -120,13 +122,17 @@
 #define OPTION_NO_LICM               "--no-licm"
 #define OPTION_CONSTANT              "--constant"
 #define OPTION_NO_CONSTANT           "--no-constant"
+#define OPTION_COPYPROP              "--copyprop"
+#define OPTION_NO_COPYPROP           "--no-copyprop"
 #define OPTION_PEEPHOLE              "--peephole"
 #define OPTION_NO_PEEPHOLE           "--no-peephole"
 #define OPTION_EMIT_AST              "--emit-ast"
 #define OPTION_EMIT_IR               "--emit-ir"
+#define OPTION_EMIT_LIR              "--emit-lir"
 #define OPTION_EMIT_ASM              "--emit-asm"
 #define OPTION_AST_OUTPUT            "--ast-output"
 #define OPTION_IR_OUTPUT             "--ir-output"
+#define OPTION_LIR_OUTPUT            "--lir-output"
 #define OPTION_ASM_OUTPUT            "--asm-output"
 
 typedef struct {
@@ -143,6 +149,7 @@ typedef struct {
         char*        output;
         char*        ast_output;
         char*        ir_output;
+        char*        lir_output;
         char*        asm_output;
     } locations;
     struct {
@@ -172,6 +179,7 @@ typedef struct {
         int          debug;
         int          emit_ast;
         int          emit_ir;
+        int          emit_lir;
         int          emit_asm;
     } config;
     struct {
@@ -182,6 +190,7 @@ typedef struct {
         int          preprocess_only;
         int          without_compilation;
         int          no_compile;
+        int          no_object_build;
     } flags;
 } options_t;
 

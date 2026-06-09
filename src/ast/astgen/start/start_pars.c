@@ -60,7 +60,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     destroy_string(main_name);
 
     ast_node_t* body = NULL;
-    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, base);
+    PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, base->sinfo.v_id);
     if (body) AST_add_node(base, body);
     else {
         PARSE_ERROR("Error during the parsing of the '%s' body!", START_COMMAND);

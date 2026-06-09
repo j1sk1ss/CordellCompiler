@@ -55,6 +55,21 @@ int main(int argc, char* argv[]) {
 
     mm_init();
 
+    config_t cfg = {
+        .system.entry_name = "_main",
+        .system.ro_section = "__TEXT,__const",
+        .system.glob_section = "__DATA,__data",
+        .system.code_section = "__TEXT,__text",
+        .system.bytness = {
+            .bytness = 8,
+            .h_bytness = 4,
+            .q_bytness = 2,
+            .e_bytness = 1
+        },
+        .system.sys_type = MACHO64,
+    };
+    CONF_set_config(&cfg);
+
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
         fprintf(stderr, "File %s isn't found!\n", argv[1]);
@@ -115,8 +130,12 @@ int main(int argc, char* argv[]) {
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
     
     HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
-
+    HIR_LTREE_unload_ctx(&lctx);
     RELOAD_CFG; // Rebuild after inlined functions
+    // HIR_CFG_finilize_before_dom(&cfgctx);
+    HIR_CFG_create_domdata(&cfgctx);
+    map_init(&lctx.lmap, MAP_NO_CMP);
+    HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
     HIR_CFG_unload_domdata(&cfgctx);

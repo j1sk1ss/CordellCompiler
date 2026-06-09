@@ -270,9 +270,9 @@ static int _compute_block_copy_sets(cfg_block_t* bb, sym_table_t* smt, set_t* ad
             set_remove(&bb->copy_gen, (void*)lh->farg->storage.var.v_id);
         }
 
-        if (_is_copy_candidate(lh, smt, addr_taken, NULL)) {
-            set_add(&bb->copy_gen, (void*)lh->farg->storage.var.v_id);
-        }
+        if (
+            _is_copy_candidate(lh, smt, addr_taken, NULL)
+        ) set_add(&bb->copy_gen, (void*)lh->farg->storage.var.v_id);
     }
 
     return 1;
@@ -283,9 +283,10 @@ static int _collect_address_taken_variables(cfg_func_t* fb, set_t* addr_taken) {
     set_init(addr_taken, SET_NO_CMP);
     foreach (cfg_block_t* bb, &fb->blocks) {
         iterate_lir_instructions (bb) {
-            if (!lh->unused && lh->op == LIR_aMOV && lh->farg && lh->farg->t == LIR_VARIABLE) {
-                set_add(addr_taken, (void*)lh->farg->storage.var.v_id);
-            }
+            if (
+                !lh->unused && 
+                lh->op == LIR_aMOV && lh->farg && lh->farg->t == LIR_VARIABLE
+            ) set_add(addr_taken, (void*)lh->farg->storage.var.v_id);
         }
     }
 
@@ -359,8 +360,7 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
                 map_t new_in;
                 _build_block_in(&new_in, bb, &out_by_block);
 
-                map_t* old_in = NULL;
-                map_t* old_out = NULL;
+                map_t *old_in = NULL, *old_out = NULL;
                 map_get(&in_by_block, bb->id, (void**)&old_in);
                 map_get(&out_by_block, bb->id, (void**)&old_out);
                 if (!_map_subjects_equal(old_in, &new_in)) {
@@ -404,8 +404,4 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
     }
     
     return 1;
-}
-
-int LIR_register_copy_propagation(cfg_ctx_t* cctx) {
-    return 1; // TODO: noservative in base-block propagation?
 }

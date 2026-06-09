@@ -22,6 +22,7 @@ typedef struct {
 
     string_t*        name;    /* Type name           */
     symbol_id_t      s_id;
+    symbol_id_t      cs_id;   /* Child's scope Id    */
     type_type_t      t;       /* type's type         */
     token_type_t     tt;
     

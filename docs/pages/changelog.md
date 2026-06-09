@@ -3,6 +3,31 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Impl annotation
+<div class="change-date">Date: 2026-06-08</div>
+Container can include an implementation of a function or not:
+
+```cpl
+container math {
+    function add(i32 a, i32 b) {
+        return a + b;
+    }
+}
+```
+
+It will create an implementation in every object file. It is convenient when you don't want to share symbols among files, but now you can create a separated implementation:
+
+```cpl
+container math {
+    glob function add(i32 a, i32 b);
+}
+
+@[impl(math)]
+function add(i32 a, i32 b) {
+    return a + b;
+}
+```
+
 ## Union annotation
 <div class="change-date">Date: 2026-06-05</div>
 Container can be a union:
@@ -47,6 +72,7 @@ The `abi` annotation marks a function as ABI-compatible, while `weak` lets the a
 ## Containers!: Arrays
 <div class="change-date">Date: 2026-05-31</div>
 Containers now can be packed in an array:
+
 ```cpl
 container str {
     ptr i8 body;

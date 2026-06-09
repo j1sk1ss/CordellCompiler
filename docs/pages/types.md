@@ -1,6 +1,6 @@
 # Types
 
-CPL's type system is intentionally small. The current language core consists of primitive types, pointers, strings, arrays, and user-defined value-layout containers. CPL does not support classes, enums, traits, modules, or unions.
+CPL's type system is intentionally small. The current language core consists of primitive types, pointers, strings, arrays, and user-defined value-layout containers. CPL does not support classes, enums, traits, modules, or automatic memory-safety guarantees.
 
 ## Primitive types
 
@@ -98,7 +98,7 @@ arr msg[0, i8] = "Hello world!";
 
 ## Containers
 
-Containers are user-defined value-layout types, similar in spirit to C structs. They can contain primitive fields, pointer fields, arrays, other containers, and functions.
+Containers are user-defined value-layout types, similar in spirit to C structs. They can contain primitive fields, pointer fields, arrays, other containers, and functions. A container can also be marked with `@[union]`, in which case its fields share storage like a C union.
 
 ```cpl
 container point {
@@ -122,7 +122,7 @@ l.b.y = 2;
 l.color[0] = 255 as i8;
 ```
 
-Container functions can be regular functions, generic functions, or self-style methods with the `@[self]` annotation and an explicit pointer receiver. See [Containers](#/pages/containers) for the full syntax and examples.
+Container functions can be regular functions, generic functions, or self-style methods with the `@[self]` annotation and an explicit pointer receiver. Implementations can live inside the container body or be provided later with `@[impl(container_name)]`. See [Containers](#/pages/containers) for the full syntax and examples.
 
 ## `glob`, `ro`, and `extern`
 

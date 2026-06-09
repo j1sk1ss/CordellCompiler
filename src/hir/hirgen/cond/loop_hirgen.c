@@ -1,5 +1,17 @@
 #include <hir/hirgens/hirgens.h>
 
+// TODO: docs
+static inline hir_subject_type_t _get_valid_sizes(long val) {
+    if (val <= CHAR_MAX)       return HIR_STKVARI8;
+    else if (val <= UCHAR_MAX) return HIR_STKVARU8;
+    else if (val <= SHRT_MAX)  return HIR_STKVARI16;
+    else if (val <= USHRT_MAX) return HIR_STKVARU16;
+    else if (val <= INT_MAX)   return HIR_STKVARI32;
+    else if (val <= UINT_MAX)  return HIR_STKVARU32;
+    else if (val <= LONG_MAX)  return HIR_STKVARI64;
+    else                       return HIR_STKVARU64;
+}
+
 /*
 Generates a counted (or not) loop.
 Params:
@@ -13,7 +25,8 @@ Returns 1 if succeeds.
 static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long count, sym_table_t* smt) {
     hir_subject_t* counter = NULL;
     if (count >= 0) {
-        counter = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), HIR_STKVARI64, 0);
+        hir_subject_type_t tt = _get_valid_sizes(count);
+        counter = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, HIR_get_tmptkn_type(tt), NO_SYMBOL_ID, NULL, &smt->v), tt, 0);
         HIR_BLOCK1(ctx, HIR_VARDECL, counter);
         HIR_BLOCK2(ctx, HIR_STORE, counter, HIR_SUBJ_CONST(count));
     }
@@ -30,10 +43,10 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long c
         HIR_BLOCK1(ctx, HIR_MKLB, body_lb);
         HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         
-        void* backup = ctx->carry.ptr;
-        ctx->carry.ptr = end_lb;
+        hir_subject_t* backup = ctx->carry.brk;
+        ctx->carry.brk = end_lb;
         HIR_generate_block(lbranch->c, ctx, smt);
-        ctx->carry.ptr = backup;
+        ctx->carry.brk = backup;
 
         HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
         if (!counter) HIR_BLOCK1(ctx, HIR_JMP, entry_lb);

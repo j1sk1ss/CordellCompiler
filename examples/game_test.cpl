@@ -1,0 +1,23 @@
+#include "game_h.cpl"
+
+@[entry("main")]
+start() {
+    game g;
+    g.new();
+
+    while g.running; {
+        g.draw();
+
+        i32 input = getchar();
+        if input != 10; {
+            g.step(input);
+        }
+    }
+
+    if g.won; puts(ref "You escaped!");
+    if not g.won; puts(ref "Game over.");
+    
+    g.destroy();
+    if g.won; exit 0;
+    exit 1;
+}

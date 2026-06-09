@@ -1,5 +1,5 @@
 import { Range, Position } from "vscode-languageserver/node";
-import { SemanticContext, MacroValue, TypeNode } from "./cplSemantics";
+import { SemanticContext, MacroValue, TypeNode, annotationArg } from "./cplSemantics";
 
 function buildLineStarts(text: string): number[] {
   const starts = [0];
@@ -43,6 +43,19 @@ function parseMacroValue(raw: string): MacroValue {
   if (/^-?\d+$/.test(t)) return { kind: "number", value: Number.parseInt(t, 10) };
 
   return { kind: "raw", text: t };
+}
+
+
+function annotationArgText(annotations: string[], name: string): string | undefined {
+  const raw = annotationArg(annotations, name);
+  if (raw == null) return undefined;
+  const t = raw.trim();
+  if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) return t.slice(1, -1);
+  return t;
+}
+
+function hasAnnotationText(annotations: string[], name: string): boolean {
+  return annotations.some((a) => /^([A-Za-z_]\w*)/.exec(a.trim())?.[1] === name);
 }
 
 function collectDefines(text: string, sem: SemanticContext) {
@@ -121,7 +134,7 @@ type ExprInfo = {
   end?: number;
 };
 
-type ParseIssue = { message: string; range: Range };
+type ParseIssue = { message: string; range: Range; severity?: "error" | "warning" | "information" | "hint" };
 
 const KEYWORDS = new Set([
   // top-level / statements
@@ -385,6 +398,7 @@ class Parser {
     this.t = lex(text);
     this.sem = sem;
     this.filePath = filePath;
+    if (filePath) this.includeSeen.add(filePath);
   }
 
   run(): ParseIssue[] {
@@ -509,6 +523,39 @@ class Parser {
 
   private clearPendingMetadata() {
     this.pendingAnnotations = [];
+  }
+
+
+  private currentAnnotations(): string[] {
+    return [...this.pendingAnnotations];
+  }
+
+  private takeAnnotations(): string[] {
+    const annotations = this.currentAnnotations();
+    this.pendingAnnotations = [];
+    return annotations;
+  }
+
+  private parseIncludedFile(incPath: string, range: Range): boolean {
+    if (!this.include) return false;
+
+    const res = this.include(incPath, this.filePath);
+    if (!res) {
+      this.issues.push({
+        message: `#include not found: ${incPath}`,
+        range
+      });
+      return false;
+    }
+
+    if (this.includeSeen.has(res.filePath)) return true;
+    this.includeSeen.add(res.filePath);
+
+    if (this.sem) collectDefines(res.text, this.sem);
+
+    const p2 = new Parser(res.text, this.sem, this.include, this.includeSeen, res.filePath);
+    p2.run();
+    return true;
   }
 
   private parseInlineAnnotations() {
@@ -648,21 +695,36 @@ class Parser {
 
     if (this.match("kw", "from")) {
       this.expect("str", undefined, "from: expected string literal");
+      const moduleTok = this.prev();
+      const modulePath = unquote(moduleTok.text);
       this.expect("kw", "import", "from: expected 'import'");
 
-      const importedFuncType: TypeNode = { kind: "ptr", to: { kind: "prim", name: "i0" } };
+      const imported: { name: string; range: Range }[] = [];
       if (this.at("ident")) {
         while (true) {
           const idTok = this.cur();
           this.expect("ident", undefined, "import: expected identifier");
-          const name = this.prev().text;
-          const r = rangeOf(this.lines, idTok.start, idTok.end);
-          this.sem?.declareGlobalVar(name, importedFuncType, r, { readonly: true });
+          const importName = this.prev().text;
+          imported.push({ name: importName, range: rangeOf(this.lines, idTok.start, idTok.end) });
           if (!this.match("punc", ",")) break;
         }
       }
 
       this.match("punc", ";");
+      this.parseIncludedFile(modulePath, rangeOf(this.lines, moduleTok.start, moduleTok.end));
+
+      const importedFuncType: TypeNode = { kind: "ptr", to: { kind: "prim", name: "i0" } };
+      for (const item of imported) {
+        if (
+          !this.sem?.hasFunctionNamed(item.name) &&
+          !this.sem?.hasContainer(item.name) &&
+          !this.sem?.hasGlobal(item.name) &&
+          !this.sem?.hasMacro(item.name)
+        ) {
+          this.sem?.declareGlobalVar(item.name, importedFuncType, item.range, { readonly: true });
+        }
+      }
+
       this.pendingDoc = undefined;
       this.clearPendingMetadata();
       return;
@@ -758,32 +820,11 @@ class Parser {
 
       case "include": {
         this.expect("str", undefined, "#include: expected string literal");
-        const lit = this.prev().text;
-        const incPath = unquote(lit);
+        const litTok = this.prev();
+        const incPath = unquote(litTok.text);
       
         this.consumePPLineEnd();
-      
-        if (this.include) {
-          const res = this.include(incPath, this.filePath);
-          if (!res) {
-            this.issues.push({
-              message: `#include not found: ${incPath}`,
-              range: rangeOf(this.lines, name.start, name.end)
-            });
-          
-            return;
-          }    
-
-          if (this.includeSeen.has(res.filePath)) return;
-          this.includeSeen.add(res.filePath);
-          
-          if (this.sem) {
-            collectDefines(res.text, this.sem);
-          }
-          
-          const p2 = new Parser(res.text, this.sem, this.include, this.includeSeen, res.filePath);
-          p2.run();
-        }
+        this.parseIncludedFile(incPath, rangeOf(this.lines, litTok.start, litTok.end));
 
         return;
       }              
@@ -1021,6 +1062,7 @@ class Parser {
   }
 
   private parseFunctionAfterKeyword(doc?: string) {
+    const annotations = this.takeAnnotations();
     const nameTok = this.cur();
     this.expect("ident", undefined, "function: expected identifier");
     const fnName = this.prev().text;
@@ -1033,14 +1075,22 @@ class Parser {
     let ret: TypeNode = { kind: "prim", name: "i0" };
     if (this.match("op", "->")) ret = this.parseType();
 
+    this.clearPendingMetadata();
     const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
+    const implContainer = annotationArgText(annotations, "impl");
 
     if (this.match("punc", ";")) {
-      this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, false, doc, typeParams);
+      this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, false, doc, typeParams, annotations);
+      if (implContainer) {
+        this.sem?.declareContainerMethod(implContainer, fnName, paramsInfo, ret, fnRange, false, doc, typeParams, annotations, { fromImpl: true });
+      }
       return;
     }
 
-    this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, true, doc, typeParams);
+    this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, true, doc, typeParams, annotations);
+    if (implContainer) {
+      this.sem?.declareContainerMethod(implContainer, fnName, paramsInfo, ret, fnRange, true, doc, typeParams, annotations, { fromImpl: true });
+    }
 
     this.sem?.enterScope();
     for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
@@ -1053,12 +1103,13 @@ class Parser {
 
 
   private parseContainerAfterKeyword(doc?: string) {
+    const annotations = this.takeAnnotations();
     const nameTok = this.cur();
     this.expect("ident", undefined, "container: expected identifier");
     const containerName = this.prev().text;
     const containerRange = rangeOf(this.lines, nameTok.start, nameTok.end);
 
-    this.sem?.declareContainer(containerName, containerRange, doc);
+    this.sem?.declareContainer(containerName, containerRange, doc, annotations);
 
     this.expect("punc", "{", "container: expected '{'");
     while (!this.at("eof") && !this.at("punc", "}")) {
@@ -1109,6 +1160,7 @@ class Parser {
   }
 
   private parseContainerMethodAfterKeyword(containerName: string, doc?: string) {
+    const annotations = this.takeAnnotations();
     const nameTok = this.cur();
     this.expect("ident", undefined, "container method: expected identifier");
     const fnName = this.prev().text;
@@ -1122,14 +1174,15 @@ class Parser {
     let ret: TypeNode = { kind: "prim", name: "i0" };
     if (this.match("op", "->")) ret = this.parseType();
 
+    this.clearPendingMetadata();
     const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
 
     if (this.match("punc", ";")) {
-      this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams);
+      this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams, annotations);
       return;
     }
 
-    this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, true, doc, typeParams);
+    this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, true, doc, typeParams, annotations);
 
     this.sem?.enterScope();
     for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
@@ -1142,6 +1195,7 @@ class Parser {
   private parseContainerFieldDecl(containerName: string) {
     const mods = this.parseStorageMods();
     this.parseInlineAnnotations();
+    const annotations = this.takeAnnotations();
 
     const fieldType = this.parseType();
     const nameTok = this.cur();
@@ -1149,13 +1203,15 @@ class Parser {
     const fieldName = this.prev().text;
 
     const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
-    this.sem?.declareContainerField(containerName, fieldName, fieldType, declRange, { readonly: mods.isReadonly });
+    this.sem?.declareContainerField(containerName, fieldName, fieldType, declRange, { readonly: mods.isReadonly, annotations });
 
     if (this.match("op", "=")) this.parseExpression();
     this.consumeStmtEnd("container field: expected ';' or end-of-line");
   }
 
   private parseExternOp() {
+    const annotations = this.takeAnnotations();
+
     if (this.match("kw", "function")) {
       const nameTok = this.cur();
       this.expect("ident", undefined, "extern function: expected identifier");
@@ -1169,17 +1225,21 @@ class Parser {
       let ret: TypeNode = { kind: "prim", name: "i0" };
       if (this.match("op", "->")) ret = this.parseType();
 
+      this.clearPendingMetadata();
       this.expect("punc", ";", "extern function: expected ';'");
 
       const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
-      this.sem?.declareFunc(fnName, params, ret, fnRange, false, this.pendingDoc, typeParams);
+      this.sem?.declareFunc(fnName, params, ret, fnRange, false, this.pendingDoc, typeParams, annotations);
       this.pendingDoc = undefined;
       return;
     }
 
-    this.parseType();
+    const varType = this.parseType();
+    const nameTok = this.cur();
     this.expect("ident", undefined, "extern var: expected identifier");
+    const varName = this.prev().text;
     this.match("punc", ";");
+    this.sem?.declareGlobalVar(varName, varType, rangeOf(this.lines, nameTok.start, nameTok.end), { readonly: true, annotations });
     this.pendingDoc = undefined;
   }
 
@@ -1573,6 +1633,7 @@ class Parser {
   private parseVarOrArrDecl(isTopLevel: boolean) {
     const mods = this.parseStorageMods();
     this.parseInlineAnnotations();
+    const annotations = this.takeAnnotations();
     if (this.at("kw", "arr")) {
       const t2 = this.t[this.i + 1];
       const t3 = this.t[this.i + 2];
@@ -1592,8 +1653,8 @@ class Parser {
 
         const arrType: TypeNode = { kind: "arr", len: Number.isFinite(len) ? len : null, elem: elemType };
         const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
-        if (isTopLevel) this.sem?.declareGlobalVar(arrName, arrType, declRange, { readonly: mods.isReadonly });
-        else this.sem?.declareLocalVar(arrName, arrType, declRange, { readonly: mods.isReadonly });
+        if (isTopLevel) this.sem?.declareGlobalVar(arrName, arrType, declRange, { readonly: mods.isReadonly, annotations });
+        else this.sem?.declareLocalVar(arrName, arrType, declRange, { readonly: mods.isReadonly, annotations });
 
         this.expect("punc", "]", "arr_decl: expected ']'");
 
@@ -1621,8 +1682,8 @@ class Parser {
     const vName = this.prev().text;
 
     const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
-    if (isTopLevel) this.sem?.declareGlobalVar(vName, vType, declRange, { readonly: mods.isReadonly });
-    else this.sem?.declareLocalVar(vName, vType, declRange, { readonly: mods.isReadonly });
+    if (isTopLevel) this.sem?.declareGlobalVar(vName, vType, declRange, { readonly: mods.isReadonly, annotations });
+    else this.sem?.declareLocalVar(vName, vType, declRange, { readonly: mods.isReadonly, annotations });
 
     if (this.match("op", "=")) this.parseExpression();
     this.consumeStmtEnd("var_decl: expected ';' or end-of-line");

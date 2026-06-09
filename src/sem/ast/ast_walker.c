@@ -55,25 +55,25 @@ Returns a node type.
 */
 static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
     switch (tkn) {
-        case REF_TYPE_TOKEN:     return REF_NODE;
-        case BREAK_TOKEN:        return BREAK_NODE;
+        case REF_TYPE_TOKEN:       return REF_NODE;
+        case BREAK_TOKEN:          return BREAK_NODE;
         case DEFAULT_TOKEN:
-        case CASE_TOKEN:         return CASE_NODE;
-        case SWITCH_TOKEN:       return SWITCH_NODE;
+        case CASE_TOKEN:           return CASE_NODE;
+        case SWITCH_TOKEN:         return SWITCH_NODE;
         case RETURN_TOKEN:
-        case EXIT_TOKEN:         return TERM_NODE;
-        case IF_TOKEN:           return IF_NODE;
-        case LOOP_TOKEN:         return LOOP_NODE;
-        case WHILE_TOKEN:        return WHILE_NODE;
-        case START_TOKEN:        return START_NODE;
+        case EXIT_TOKEN:           return TERM_NODE;
+        case IF_TOKEN:             return IF_NODE;
+        case LOOP_TOKEN:           return LOOP_NODE;
+        case WHILE_TOKEN:          return WHILE_NODE;
+        case START_TOKEN:          return START_NODE;
         case CALLING_TOKEN:
-        case ADDR_CALL_TOKEN:    return CALL_NODE;
-        case FUNC_TOKEN:         return FUNCTION_NODE;
-        case CONTAINER_TOKEN:    return CONTAINER_NODE;
-        case MEMBER_ACCESS_TOKEN:return MEMBER_NODE;
+        case ADDR_CALL_TOKEN:      return CALL_NODE;
+        case FUNC_TOKEN:           return FUNCTION_NODE;
+        case CONTAINER_TOKEN:      return CONTAINER_NODE;
+        case MEMBER_ACCESS_TOKEN:  return MEMBER_NODE;
         
-        case INDEXATION_TOKEN:   return INDEX_NODE;
-        case ARR_VARIABLE_TOKEN: return DEF_ARRAY_NODE;
+        case INDEXATION_TOKEN:     return INDEX_NODE;
+        case ARR_VARIABLE_TOKEN:   return DEF_ARRAY_NODE;
 
         case CUSTOM_VARIABLE_TOKEN:
         case GENERIC_VARIABLE_TOKEN:
@@ -89,7 +89,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case F32_VARIABLE_TOKEN:
         case I64_VARIABLE_TOKEN:
         case U64_VARIABLE_TOKEN:
-        case F64_VARIABLE_TOKEN: return VARIABLE_NODE;
+        case F64_VARIABLE_TOKEN:   return VARIABLE_NODE;
 
         case I0_TYPE_TOKEN:
         case CUSTOM_TYPE_TOKEN:
@@ -104,7 +104,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case U32_TYPE_TOKEN:
         case U16_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
-        case ARRAY_TYPE_TOKEN:    return DECLARATION_NODE;
+        case ARRAY_TYPE_TOKEN:     return DECLARATION_NODE;
 
         case ASSIGN_TOKEN:
         case ADDASSIGN_TOKEN:
@@ -133,7 +133,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case NCOMPARE_TOKEN:
         case LARGEREQ_TOKEN:
         case BITMOVE_LEFT_TOKEN:
-        case BITMOVE_RIGHT_TOKEN:   return EXPRESSION_NODE;
+        case BITMOVE_RIGHT_TOKEN:  return EXPRESSION_NODE;
         default: break;
     }
 

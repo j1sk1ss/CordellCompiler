@@ -71,7 +71,7 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                         while ((s = (hir_subject_t*)list_iter_current(&el_it))) {
                             hir_subject_t* n = _apply_dag_on_block(s, dctx);
                             if (n) {
-                                list_iter_set(&el_it, n);
+                                list_iter_set(&el_it, HIR_copy_subject(n));
                                 if (s->home) s->home->unused = 1;
                                 else HIR_unload_subject(s);
                             }
@@ -83,7 +83,7 @@ int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {
                         hir_subject_t* s = _apply_dag_on_block(*arg, dctx);
                         if (s) {
                             _prepare_subject(hh, *arg);
-                            *arg = s;
+                            *arg = HIR_copy_subject(s);
                         }
                     }
                 }

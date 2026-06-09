@@ -53,7 +53,7 @@ int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* c
         HIR_BLOCK1(ctx, HIR_REF_ARGS, vargs);
     }
 
-    SET_AND_DUMP_POPARG(fi.flags.entry ? HIR_STARGLD : HIR_FARGLD, fi.rtype ? fi.rtype->t : NULL, vargs, { 
+    SET_AND_DUMP_POPARG(fi.rtype ? fi.rtype->t : NULL, vargs, { 
         HIR_generate_block(body, ctx, smt); 
     });
 

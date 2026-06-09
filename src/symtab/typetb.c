@@ -7,6 +7,7 @@ static type_info_t* _create_type_info(string_t* name) {
 
     info->p         = NO_SYMBOL_ID;
     info->s_id      = NO_SYMBOL_ID;
+    info->cs_id     = NO_SYMBOL_ID;
     info->link.name = NULL;
     info->link.p    = NO_SYMBOL_ID;
     info->link.v_id = NO_SYMBOL_ID;
@@ -139,6 +140,7 @@ int TPTB_link_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx) {
         map_get(&ctx->typetb, c_id, (void**)&c_ti)
     ) {
         list_add(&p_ti->link.c, (void*)c_id);
+        if (p_ti->cs_id == NO_SYMBOL_ID) p_ti->cs_id = c_ti->s_id;
         return 1;
     }
 
