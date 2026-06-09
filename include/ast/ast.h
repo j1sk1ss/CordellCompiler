@@ -94,7 +94,15 @@ Return -1 if something goes wrong.
 */
 int AST_add_node(ast_node_t* parent, ast_node_t* child);
 
-// TODO: docs
+/*
+Insert child tree node at the beginning of the parent's child list.
+Params:
+    - `parent` - Parent tree node.
+    - `child` - Tree node that will become the first child.
+
+Returns 1 if the child was inserted.
+Returns 0 if something goes wrong.
+*/
 int AST_insert_node(ast_node_t* parent, ast_node_t* child);
 
 /*

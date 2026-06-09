@@ -102,14 +102,31 @@ static int _replace_with_copy(lir_block_t* l, map_t* gen, lir_subject_type_t t) 
     return 1;
 }
 
-// TODO: docs
+/*
+Check whether a subject is a non-global variable.
+Params:
+    - `s` - LIR subject to inspect.
+    - `smt` - Symtable.
+
+Returns 1 for a local variable, otherwise 0.
+*/
 static inline int _is_local_variable(lir_subject_t* s, sym_table_t* smt) {
     if (!s || s->t != LIR_VARIABLE) return 0;
     variable_info_t vi;
     return VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v) && !vi.vfs.glob;
 }
 
-// TODO: docs
+/*
+Check whether an instruction can generate a copy-propagation fact.
+Only local destinations are accepted; address-taken variables are skipped.
+Params:
+    - `lh` - LIR instruction to inspect.
+    - `smt` - Symtable.
+    - `addr_taken` - Set of variables whose address is taken.
+    - `src_size` - Optional output for propagated source size.
+
+Returns 1 if the instruction is a safe copy candidate, otherwise 0.
+*/
 static int _is_copy_candidate(lir_block_t* lh, sym_table_t* smt, set_t* addr_taken, long* src_size) {
     if (!lh || !_is_local_variable(lh->farg, smt)) return 0;
     if (set_has(addr_taken, (void*)lh->farg->storage.var.v_id)) return 0;
@@ -140,7 +157,17 @@ static int _is_copy_candidate(lir_block_t* lh, sym_table_t* smt, set_t* addr_tak
     return 1;
 }
 
-// TODO: docs
+/*
+Store a copied subject in the propagation map.
+Replaces and unloads any previous value with the same key.
+Params:
+    - `m` - Propagation map.
+    - `key` - Variable or register key.
+    - `src` - Subject to copy.
+    - `src_size` - Size to assign to the stored copy.
+
+Returns 1 if succeeds.
+*/
 static int _map_put_subject_copy(map_t* m, long key, lir_subject_t* src, long src_size) {
     lir_subject_t* old = NULL;
     if (map_get(m, key, (void**)&old)) LIR_unload_subject(old);
@@ -150,7 +177,14 @@ static int _map_put_subject_copy(map_t* m, long key, lir_subject_t* src, long sr
     return map_put(m, key, copy);
 }
 
-// TODO: docs
+/*
+Deep-copy a propagation map with LIR subjects as values.
+Params:
+    - `dst` - Destination map to initialize and fill.
+    - `src` - Source map.
+
+Returns 1 if succeeds.
+*/
 static int _map_copy_subjects(map_t* dst, map_t* src) {
     map_init(dst, src->cmp);
     for (long i = 0; i < src->capacity; i++) {
@@ -162,13 +196,27 @@ static int _map_copy_subjects(map_t* dst, map_t* src) {
     return 1;
 }
 
-// TODO: docs
+/*
+Replace destination map contents with a deep copy of the source map.
+Params:
+    - `dst` - Destination map to overwrite.
+    - `src` - Source map.
+
+Returns 1 if succeeds.
+*/
 static inline int _map_assign_subjects(map_t* dst, map_t* src) {
     map_free_force_op(dst, (int (*)(void*))LIR_unload_subject);
     return _map_copy_subjects(dst, src);
 }
 
-// TODO: docs
+/*
+Compare two propagation maps by key set and subject equality.
+Params:
+    - `a` - First map.
+    - `b` - Second map.
+
+Returns 1 if maps contain equal subjects for equal keys, otherwise 0.
+*/
 static int _map_subjects_equal(map_t* a, map_t* b) {
     if (a->size != b->size) return 0;
     for (long i = 0; i < a->capacity; i++) {
@@ -183,7 +231,16 @@ static int _map_subjects_equal(map_t* a, map_t* b) {
     return 1;
 }
 
-// TODO: docs
+/*
+Build the meet of two propagation maps.
+Keeps only facts present in both maps with equal copied subjects.
+Params:
+    - `dst` - Destination map to initialize and fill.
+    - `a` - First source map.
+    - `b` - Second source map.
+
+Returns 1 if succeeds.
+*/
 static int _map_intersect_subjects(map_t* dst, map_t* a, map_t* b) {
     map_init(dst, MAP_NO_CMP);
     for (long i = 0; i < a->capacity; i++) {
@@ -201,7 +258,15 @@ static int _map_intersect_subjects(map_t* dst, map_t* a, map_t* b) {
     return 1;
 }
 
-// TODO: docs
+/*
+Remove all propagation facts invalidated by a variable write.
+Kills the variable itself and every fact that reads from it.
+Params:
+    - `m` - Propagation map to update.
+    - `v_id` - Written variable id.
+
+Returns 1 if succeeds.
+*/
 static int _map_kill_variable(map_t* m, symbol_id_t v_id) {
     lir_subject_t* old = NULL;
     if (map_get(m, v_id, (void**)&old)) {
@@ -228,7 +293,16 @@ static int _map_kill_variable(map_t* m, symbol_id_t v_id) {
     return 1;
 }
 
-// TODO: docs
+/*
+Apply copy-propagation transfer rules for one instruction.
+Params:
+    - `lh` - LIR instruction.
+    - `state` - Current propagation state.
+    - `smt` - Symtable.
+    - `addr_taken` - Set of variables whose address is taken.
+
+Returns 1 if succeeds.
+*/
 static int _transfer_instruction(lir_block_t* lh, map_t* state, sym_table_t* smt, set_t* addr_taken) {
     if (!lh || lh->unused) return 1;
     if (LIR_is_writeop(lh->op) && lh->farg && lh->farg->t == LIR_VARIABLE) {
@@ -243,7 +317,17 @@ static int _transfer_instruction(lir_block_t* lh, map_t* state, sym_table_t* smt
     return 1;
 }
 
-// TODO: docs
+/*
+Compute the output propagation state for a basic block.
+Params:
+    - `bb` - Basic block to transfer through.
+    - `in` - Input propagation state.
+    - `out` - Output propagation state to overwrite.
+    - `smt` - Symtable.
+    - `addr_taken` - Set of variables whose address is taken.
+
+Returns 1 if succeeds.
+*/
 static int _transfer_block(cfg_block_t* bb, map_t* in, map_t* out, sym_table_t* smt, set_t* addr_taken) {
     map_t tmp;
     _map_copy_subjects(&tmp, in);
@@ -256,7 +340,15 @@ static int _transfer_block(cfg_block_t* bb, map_t* in, map_t* out, sym_table_t* 
     return 1;
 }
 
-// TODO: docs
+/*
+Compute block-local copy gen/kill summaries.
+Params:
+    - `bb` - Basic block to inspect.
+    - `smt` - Symtable.
+    - `addr_taken` - Set of variables whose address is taken.
+
+Returns 1 if succeeds.
+*/
 static int _compute_block_copy_sets(cfg_block_t* bb, sym_table_t* smt, set_t* addr_taken) {
     set_free(&bb->copy_gen);
     set_init(&bb->copy_gen, SET_NO_CMP);
@@ -278,7 +370,14 @@ static int _compute_block_copy_sets(cfg_block_t* bb, sym_table_t* smt, set_t* ad
     return 1;
 }
 
-// TODO: docs
+/*
+Collect variables whose address is materialized in a function.
+Params:
+    - `fb` - Function CFG.
+    - `addr_taken` - Output set to initialize and fill.
+
+Returns 1 if succeeds.
+*/
 static int _collect_address_taken_variables(cfg_func_t* fb, set_t* addr_taken) {
     set_init(addr_taken, SET_NO_CMP);
     foreach (cfg_block_t* bb, &fb->blocks) {
@@ -293,7 +392,16 @@ static int _collect_address_taken_variables(cfg_func_t* fb, set_t* addr_taken) {
     return 1;
 }
 
-// TODO: docs
+/*
+Build a block input state from predecessor output states.
+The meet operation keeps only facts agreed on by every predecessor.
+Params:
+    - `dst` - Destination input state to initialize and fill.
+    - `bb` - Basic block whose predecessors are read.
+    - `out_by_block` - Map from block id to output state.
+
+Returns 1 if succeeds.
+*/
 static int _build_block_in(map_t* dst, cfg_block_t* bb, map_t* out_by_block) {
     map_init(dst, MAP_NO_CMP);
     int first = 1;
@@ -316,7 +424,16 @@ static int _build_block_in(map_t* dst, cfg_block_t* bb, map_t* out_by_block) {
     return 1;
 }
 
-// TODO: docs
+/*
+Rewrite readable operands in a basic block using available copy facts.
+Params:
+    - `bb` - Basic block to rewrite.
+    - `in` - Input propagation state.
+    - `smt` - Symtable.
+    - `addr_taken` - Set of variables whose address is taken.
+
+Returns 1 if succeeds.
+*/
 static int _rewrite_block(cfg_block_t* bb, map_t* in, sym_table_t* smt, set_t* addr_taken) {
     map_t state;
     _map_copy_subjects(&state, in);

@@ -56,7 +56,15 @@ Params:
 int HIR_generate_position(file_position_t* pos, hir_ctx_t* ctx);
 #define HIR_SET_CURRENT_POS(ctx, nd) HIR_generate_position(nd->t ? &nd->t->finfo : NULL, ctx);
 
-// TODO: docs
+/*
+Generate HIR loads for function arguments and declare them in the current scope.
+Params:
+    - `args` - Function argument list AST node.
+    - `ctx` - HIR ctx.
+    - `fi` - Function metadata.
+
+Returns the first AST node after the argument list, usually the function body.
+*/
 ast_node_t* HIR_generate_argument_load(ast_node_t* args, hir_ctx_t* ctx, func_info_t* fi);
 
 /*
@@ -332,7 +340,16 @@ Returns 1 on success, otherwise 0.
 */
 int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-// TODO: docs
+/*
+Convert unary AST node into a HIR operation.
+Params:
+    - `node` - Unary AST node.
+    - `ctx` - HIR ctx.
+    - `op` - HIR unary operation to emit.
+    - `smt` - Symtable.
+
+Return generated HIR subject.
+*/
 hir_subject_t* HIR_generate_unary(ast_node_t* node, hir_ctx_t* ctx, hir_operation_t op, sym_table_t* smt);
 
 /*
@@ -427,7 +444,15 @@ Returns the 'NULL' value or an update operator.
 */
 hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
-// TODO: docs
+/*
+Convert member access AST node into a HIR load.
+Params:
+    - `node` - Member access AST node.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Return loaded member value.
+*/
 hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t* field_info, sym_table_t* smt);
 int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);

@@ -27,7 +27,16 @@ static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, li
     LIR_insert_block_after(b, pos);
 }
 
-// TODO: docs
+/*
+Count fixed function arguments.
+Variadic marker arguments are not counted because they do not occupy a
+regular named-argument slot.
+Params:
+    - `f_id` - Function id.
+    - `smt` - Symtable.
+
+Returns count of presented non-variadic arguments.
+*/
 static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;

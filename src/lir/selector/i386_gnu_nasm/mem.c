@@ -115,8 +115,6 @@ static unsigned long _pack_str_le(char* p, unsigned long n) {
     return x;
 }
 
-// TODO: Move common functions (between backends) to a shared directory
-// TODO: Linux -11 crash
 /*
 Check whether a memory stack is used in a function.
 Params:

@@ -110,7 +110,14 @@ Returns the ID of a copied function.
 */
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx);
 
-// TODO: docs
+/*
+Check whether a function has registered generic types.
+Params:
+    - `f_id` - Function ID.
+    - `ctx` - Symtable context.
+
+Returns 1 if generic types are registered, otherwise 0.
+*/
 int FNTB_has_generic_types(symbol_id_t f_id, functab_ctx_t* ctx);
 
 /*

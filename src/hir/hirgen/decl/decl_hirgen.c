@@ -1,6 +1,15 @@
 #include <hir/hirgens/hirgens.h>
 
-// TODO: docs
+/*
+Generate HIR for a string declaration.
+Global strings are also copied into array metadata for static initialization.
+Params:
+    - `node` - Declaration AST node.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds.
+*/
 static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name  = node->c;
     ast_node_t* size  = name->siblings.n;
@@ -18,7 +27,17 @@ static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     return 1;
 }
 
-// TODO: docs
+/*
+Generate HIR for an array declaration and its initializer.
+Global arrays receive constant initializer values in array metadata; local
+arrays keep runtime initializer subjects in the HIR declaration.
+Params:
+    - `node` - Declaration AST node.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds.
+*/
 static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name  = node->c;
     ast_node_t* size  = name->siblings.n;
@@ -72,7 +91,15 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     return 1;
 }
 
-// TODO: docs
+/*
+Generate allocation HIR for a custom container declaration.
+Params:
+    - `node` - Declaration AST node.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds, otherwise 0.
+*/
 static inline int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     type_info_t ti;
     if (!TPTB_get_info_id(node->sinfo.t_id, &ti, &smt->t)) return 0;
@@ -80,7 +107,15 @@ static inline int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     return 1;
 }
 
-// TODO: docs
+/*
+Dispatch declarations that need storage larger than a scalar stack slot.
+Params:
+    - `node` - Declaration AST node.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds.
+*/
 static inline int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     switch (node->t->t_type) {
         case ARRAY_TYPE_TOKEN:  return _arr_declaration(node, ctx, smt);

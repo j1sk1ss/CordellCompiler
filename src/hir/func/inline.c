@@ -244,7 +244,13 @@ static int _find_nearest_break(hir_block_t* pos, cfg_block_t* ibb) {
     return -1;
 }
 
-// TODO: docs
+/*
+Find the first source position emitted inside a function.
+Params:
+    - `f` - Function CFG.
+
+Returns pointer to the first stored file position, or NULL if none exists.
+*/
 static file_position_t* _find_first_pos(cfg_func_t* f) {
     foreach (cfg_block_t* bb, &f->blocks) {
         iterate_hir_instructions (bb) {
@@ -255,7 +261,14 @@ static file_position_t* _find_first_pos(cfg_func_t* f) {
     return NULL;
 }
 
-// TODO: docs
+/*
+Count parameters declared in a function signature.
+Params:
+    - `f` - Function CFG.
+    - `smt` - Symtable.
+
+Returns parameter count, or 0 if function metadata is unavailable.
+*/
 static inline int _count_params(cfg_func_t* f, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(f->f_id, &fi, &smt->f)) return 0;

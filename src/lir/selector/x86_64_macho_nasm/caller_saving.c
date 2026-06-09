@@ -100,8 +100,6 @@ static int _same_full_register(lir_subject_t* a, lir_subject_t* b) {
     return LIR_format_register(a->storage.reg.reg, 8) == LIR_format_register(b->storage.reg.reg, 8);
 }
 
-
-// TODO: sync with others + validate this logic
 static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
     lir_subject_t* last = NULL;
     while (lh && lh != ex) {

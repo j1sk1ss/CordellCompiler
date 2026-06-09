@@ -1,6 +1,14 @@
 #include <hir/hirgens/hirgens.h>
 
-// TODO: docs
+/*
+Check whether a generated HIR argument has the AST argument shape.
+Compares pointer depth and scalar conversion class.
+Params:
+    - `arg` - AST argument node.
+    - `hir_arg` - Generated HIR argument subject.
+
+Returns 0 if shapes match, otherwise -1.
+*/
 static inline int _fit_arg_shape(ast_node_t* arg, hir_subject_t* hir_arg) {
     if (
         !arg || !arg->t || !hir_arg ||
@@ -13,7 +21,15 @@ static inline int _fit_arg_shape(ast_node_t* arg, hir_subject_t* hir_arg) {
     return 0;
 }
 
-// TODO: docs
+/*
+Score a custom type argument match for overload resolution.
+Params:
+    - `arg` - AST argument node.
+    - `hir_arg` - Generated HIR argument subject.
+    - `smt` - Symtable.
+
+Returns 1 for an exact custom type match, -1 for mismatch, or 0 if not applicable.
+*/
 static inline int _fit_custom_type(ast_node_t* arg, hir_subject_t* hir_arg, sym_table_t* smt) {
     if (
         !arg || !arg->t || !hir_arg || !HIR_is_vartype(hir_arg->t) ||

@@ -15,7 +15,15 @@ static symbol_id_t _gather_base_vid(symbol_id_t v_id, sym_table_t* smt) {
     return vi.p_id == NO_SYMBOL_ID ? vi.v_id : _gather_base_vid(vi.p_id, smt);
 }
 
-// TODO: docs
+/*
+Redirect a predecessor's branch target from the loop header to the preheader.
+Params:
+    - `pred` - External predecessor block.
+    - `header` - Original loop header.
+    - `preheader_label` - Label emitted for the inserted preheader block.
+
+Returns 1 if succeeds, otherwise 0.
+*/
 static int _redirect_preheader_jump(cfg_block_t* pred, cfg_block_t* header, hir_subject_t* preheader_label) {
     if (
         !pred || !header || 

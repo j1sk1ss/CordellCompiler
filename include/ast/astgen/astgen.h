@@ -489,7 +489,13 @@ Returns an ast node.
 */
 ast_node_t* cpl_parse_conv(PARSER_ARGS);
 
-// TODO: docs
+/*
+Parse a unary expression.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_unary(PARSER_ARGS);
 
 /*
@@ -519,7 +525,13 @@ Returns an AST node.
 */
 ast_node_t* cpl_parse_sizeof(PARSER_ARGS);
 
-// TODO: docs
+/*
+Parse a container definition.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_contdef(PARSER_ARGS);
 
 #endif

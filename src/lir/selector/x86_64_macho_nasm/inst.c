@@ -77,7 +77,16 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
     return 1;
 }
 
-// TODO: docs
+/*
+Count fixed function arguments.
+Variadic marker arguments are not counted because they do not occupy a
+regular named-argument slot.
+Params:
+    - `f_id` - Function id.
+    - `smt` - Symtable.
+
+Returns count of presented non-variadic arguments.
+*/
 static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
@@ -89,7 +98,16 @@ static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
     return res;
 }
 
-// TODO: docs
+/*
+Find callee metadata for the call that consumes an argument setup block.
+Params:
+    - `arg` - Argument setup instruction.
+    - `bb` - Basic block that owns the instruction.
+    - `out` - Output function information.
+    - `smt` - Symtable.
+
+Returns 1 if a following named call was found and resolved, otherwise 0.
+*/
 static int _get_call_info(lir_block_t* arg, cfg_block_t* bb, func_info_t* out, sym_table_t* smt) {
     for (lir_block_t* curr = arg->next; curr; curr = LIR_get_next(curr, bb->lmap.exit, 1)) {
         if (curr->op != LIR_FCLL && curr->op != LIR_ECLL) continue;
