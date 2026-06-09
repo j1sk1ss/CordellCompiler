@@ -34,6 +34,37 @@ container packed {
 
 The packed example above occupies less space than the default-aligned form, but may generate less natural memory accesses for the target.
 
+Use `@[like_c]` when the container should follow the C-style layout path used by the compiler instead of the default CPL alignment request. This is mostly useful for ABI-facing declarations that mirror libc or OS structures.
+
+```cpl
+@[like_c]
+container c_pair {
+    i32 left;
+    i8  tag;
+    i32 right;
+}
+```
+
+## Union Containers
+
+`@[union]` makes a container store all fields at offset zero. The container size is based on the largest field rather than the sum of all fields, similar to a C union.
+
+```cpl
+@[union]
+container word_view {
+    u32 word;
+    arr bytes[4, u8];
+}
+
+start() {
+    word_view v;
+    v.word = 0x41424344;
+    exit v.bytes[0];
+}
+```
+
+Only one interpretation should be considered active at a time. CPL does not track active union members, so type punning through a union is explicit low-level code.
+
 ## Field Types
 
 Containers may hold primitive fields, pointer fields, arrays, and other containers.
@@ -122,6 +153,26 @@ start() {
 }
 ```
 
+Defining a function body directly inside a container creates an implementation wherever that container declaration is parsed. For header-style code, prefer a prototype in the container and a separate implementation marked with `@[impl(<container>)]`:
+
+```cpl
+container math_box {
+    function add(i32 a, i32 b) -> i32;
+}
+
+@[impl(math_box)]
+function add(i32 a, i32 b) -> i32 {
+    return a + b;
+}
+
+start() {
+    math_box box;
+    exit box.add(20, 22) as u8;
+}
+```
+
+`@[impl(math_box)]` attaches the standalone function to the `math_box` container declaration. This is the preferred pattern when a `.cpl` header declares a container API and another file provides the implementation.
+
 Container functions can also be generic. Generic container functions use the same explicit type-argument syntax as regular generic functions:
 
 ```cpl
@@ -167,9 +218,12 @@ container counter {
     i32 value;
 
     @[self]
-    function add(ptr counter self, i32 delta) -> i0 {
-        self.value += delta;
-    }
+    function add(ptr counter self, i32 delta) -> i0;
+}
+
+@[impl(counter)]
+function add(ptr counter self, i32 delta) -> i0 {
+    self.value += delta;
 }
 
 start() {
@@ -187,6 +241,7 @@ The call `c.add(7)` is lowered as a normal function call where `ref c` is passed
 
 - the function is marked with `@[self]`;
 - the first parameter has a type compatible with the receiver, normally `ptr counter self`;
+- a separated implementation uses `@[impl(counter)]`;
 - all mutation is explicit through that pointer.
 
 Methods can also call methods on nested container fields:
