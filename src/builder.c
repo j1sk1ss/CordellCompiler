@@ -136,7 +136,7 @@ static int _run_tool(const char* tool, char* const argv[]) {
         return 0;
     }
 
-    return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    return WIFEXITED(status) && !WEXITSTATUS(status);
 }
 
 static int _copy_fd_to_stream(int fd, FILE* stream) {

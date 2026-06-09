@@ -162,7 +162,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         type_info_t ti;
         if (
             TPTB_get_info_id(base_tid, &ti, &smt->t)
-        ) name->sinfo.s_id = ti.s_id + 1; /* Type Id + 1 == Type's scope */
+        ) name->sinfo.s_id = ti.cs_id;
     }
 
     name->sinfo.v_id = FNTB_add_info(
@@ -173,7 +173,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         },
         name->sinfo.s_id, args, name->c, &smt->f
     );
-
+    
     if (preserved_tid != NO_SYMBOL_ID) {
         symbol_id_t type = TPTB_add_info_from_token(base->sinfo.s_id, base->t, base->c->sinfo.v_id, &smt->t);
         TPTB_add_as_child(preserved_tid, type, name->t->body, FIELD_NO_CHANGE, &smt->t);
@@ -201,7 +201,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         ctx->t_id = preserved_tid;
         list_free(&generic_types);
 
-        FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL), &smt->f);
+        FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(2)), &smt->f);
         return base;
     }
 
@@ -227,6 +227,6 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     list_free(&generic_types);
     stack_pop(&ctx->scopes.stack, NULL);
 
-    FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_UNSET_EXTERNAL), &smt->f);
+    FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(0)), &smt->f);
     return base;
 }
