@@ -122,7 +122,7 @@ l.b.y = 2;
 l.color[0] = 255 as i8;
 ```
 
-Container functions can be regular functions, generic functions, or self-style methods with the `@[self]` annotation and an explicit pointer receiver. Implementations can live inside the container body or be provided later with `@[impl(container_name)]`. See [Containers](#/pages/containers) for the full syntax and examples.
+Container functions can be regular functions, generic functions, or self-style methods with the `@[self]` annotation and an explicit pointer receiver. Implementations can live inside the container body or be provided later with `container_name::function_name`. See [Containers](#/pages/containers) for the full syntax and examples.
 
 ## `glob`, `ro`, and `extern`
 

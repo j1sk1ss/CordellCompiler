@@ -1,0 +1,36 @@
+container lst {
+    function new() {
+        0;
+    }
+}
+
+start() {
+    lst::new();
+}
+
+:/ OUTPUT
+line=2, type=1, data=[{X}.cpl],
+line=1, type=67, data=[container],
+line=1, type=5, data=[lst],
+line=1, type=20, data=[{],
+line=2, type=75, data=[function],
+line=2, type=5, data=[new],
+line=2, type=18, data=[(],
+line=2, type=19, data=[)],
+line=2, type=20, data=[{],
+line=3, type=6, data=[0],
+line=3, type=10, data=[;],
+line=4, type=21, data=[}],
+line=5, type=21, data=[}],
+line=7, type=61, data=[start],
+line=7, type=18, data=[(],
+line=7, type=19, data=[)],
+line=7, type=20, data=[{],
+line=8, type=5, data=[lst],
+line=8, type=70, data=[::],
+line=8, type=5, data=[new],
+line=8, type=18, data=[(],
+line=8, type=19, data=[)],
+line=8, type=10, data=[;],
+line=9, type=21, data=[}],
+/:

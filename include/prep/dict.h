@@ -19,6 +19,7 @@
 
 #define CONTAINER_COMMAND       "container"
 #define DOT_COMMAND             "."
+#define STAT_COMMAND            "::"
 #define SELF_COMMAND            "self"
 
 // Function

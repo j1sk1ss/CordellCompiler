@@ -91,9 +91,10 @@ typedef enum {
     SCOPE_TOKEN,           // {  }
     ANNOTATION_TOKEN,      // @
 
-    CONTAINER_TOKEN,
+    CONTAINER_TOKEN,       // container
     MEMBER_ACCESS_TOKEN,
-    DOT_TOKEN,
+    DOT_TOKEN,             // .
+    STAT_TOKEN,            // ::
 
     // Function
     ASM_TOKEN,             // asm

@@ -8,10 +8,7 @@ import {
   ProposedFeatures,
   TextDocumentSyncKind,
   Position,
-  MarkupKind,
-  CompletionItemKind,
-  InsertTextFormat,
-  FileChangeType
+  MarkupKind
 } from "vscode-languageserver/node";
 
 import * as fs from "fs";
@@ -24,9 +21,7 @@ import {
   SemanticContext,
   formatType,
   formatFunctionSignature,
-  formatAnnotations,
   FuncOverloadSym,
-  ContainerSym,
   sizeofType
 } from "./cplSemantics";
 
@@ -34,26 +29,12 @@ const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 const semByUri = new Map<string, SemanticContext>();
-let workspaceFolderPaths: string[] = [];
 
-connection.onInitialize((params: InitializeParams): InitializeResult => {
-  workspaceFolderPaths = (params.workspaceFolders ?? [])
-    .map((f) => uriToFsPath(f.uri))
-    .filter((p): p is string => !!p);
-
-  const root = params.rootUri ? uriToFsPath(params.rootUri) : undefined;
-  if (root && !workspaceFolderPaths.includes(root)) workspaceFolderPaths.push(root);
-
+connection.onInitialize((_params: InitializeParams): InitializeResult => {
   return {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
-      hoverProvider: true,
-      completionProvider: {
-        triggerCharacters: ["@", "[", "(", "."]
-      },
-      workspace: {
-        workspaceFolders: { supported: true }
-      }
+      hoverProvider: true
     }
   };
 });
@@ -70,8 +51,7 @@ function uriToFsPath(uri: string): string | undefined {
 
 function makeIncludeResolver(
   documents: TextDocuments<TextDocument>,
-  rootDocFsPath?: string,
-  workspaceRoots: string[] = []
+  rootDocFsPath?: string
 ): IncludeResolver {
   return (includePath, fromFilePath) => {
     const inc = includePath.replace(/\\/g, "/");
@@ -81,33 +61,20 @@ function makeIncludeResolver(
       : rootDocFsPath ? path.dirname(rootDocFsPath)
       : process.cwd();
 
-    const bases = [baseDir, ...workspaceRoots].filter((v, i, a) => v && a.indexOf(v) === i);
-    const rawCandidates = path.isAbsolute(inc)
-      ? [inc]
-      : bases.map((base) => path.resolve(base, inc));
+    const resolved = path.isAbsolute(inc) ? inc : path.resolve(baseDir, inc);
 
-    const candidates: string[] = [];
-    for (const c of rawCandidates) {
-      candidates.push(c);
-      if (!path.extname(c)) {
-        candidates.push(`${c}.cpl`, `${c}_h.cpl`, `${c}.h`);
+    try {
+      const uri = pathToFileURL(resolved).toString();
+      const openDoc = documents.get(uri);
+      if (openDoc) return { text: openDoc.getText(), filePath: resolved };
+    } catch {}
+
+    try {
+      if (fs.existsSync(resolved)) {
+        const text = fs.readFileSync(resolved, "utf8");
+        return { text, filePath: resolved };
       }
-    }
-
-    for (const resolved of candidates.filter((v, i, a) => a.indexOf(v) === i)) {
-      try {
-        const uri = pathToFileURL(resolved).toString();
-        const openDoc = documents.get(uri);
-        if (openDoc) return { text: openDoc.getText(), filePath: resolved };
-      } catch {}
-
-      try {
-        if (fs.existsSync(resolved)) {
-          const text = fs.readFileSync(resolved, "utf8");
-          return { text, filePath: resolved };
-        }
-      } catch {}
-    }
+    } catch {}
 
     return undefined;
   };
@@ -117,17 +84,13 @@ async function validateTextDocument(doc: TextDocument) {
   const text = doc.getText();
 
   const docFsPath = uriToFsPath(doc.uri);
-  const include = makeIncludeResolver(documents, docFsPath, workspaceFolderPaths);
+  const include = makeIncludeResolver(documents, docFsPath);
 
   const { issues, sem } = analyze(text, include, docFsPath);
   semByUri.set(doc.uri, sem);
 
   const diags: Diagnostic[] = issues.map((e) => ({
-    severity:
-      e.severity === "warning" ? DiagnosticSeverity.Warning
-      : e.severity === "information" ? DiagnosticSeverity.Information
-      : e.severity === "hint" ? DiagnosticSeverity.Hint
-      : DiagnosticSeverity.Error,
+    severity: DiagnosticSeverity.Error,
     range: e.range,
     message: e.message,
     source: "cpl-ls"
@@ -160,10 +123,6 @@ function renderOverloads(
 
   if (ordered.length === 1) {
     lines.push("```cpl", formatFunctionSignature(ordered[0]), "```");
-    const ann = formatAnnotations(ordered[0].annotations);
-    if (ann) lines.push("", `_Annotations: ${ann}_`);
-    if (ordered[0].weak) lines.push("", "_Weak symbol_");
-    if (ordered[0].implContainer) lines.push("", `_Container impl: ${ordered[0].implContainer}_`);
     if (ordered[0].doc?.trim()) {
       lines.push("", ordered[0].doc);
     }
@@ -183,13 +142,6 @@ function renderOverloads(
     const sig = formatFunctionSignature(fn);
     const marker = selected === fn ? "- **(selected)** " : "- ";
     lines.push(`${marker}\`${sig}\``);
-  }
-
-  if (selected) {
-    const ann = formatAnnotations(selected.annotations);
-    if (ann) lines.push("", `_Annotations: ${ann}_`);
-    if (selected.weak) lines.push("", "_Weak symbol_");
-    if (selected.implContainer) lines.push("", `_Container impl: ${selected.implContainer}_`);
   }
 
   if (selected?.doc?.trim()) {
@@ -214,118 +166,6 @@ function findFuncDeclHover(sem: SemanticContext, pos: Position): FuncOverloadSym
   }
   return undefined;
 }
-
-
-function findContainerDeclHover(sem: SemanticContext, pos: Position): ContainerSym | undefined {
-  for (const c of sem.containerDecls) {
-    if (inRange(pos, c.range)) return c;
-  }
-  return undefined;
-}
-
-function renderContainer(container: ContainerSym): string {
-  const lines: string[] = [];
-  lines.push(`**container ${container.name}**`, "");
-
-  const annotations = formatAnnotations(container.annotations);
-  if (annotations) lines.push(`_Annotations: ${annotations}_`, "");
-  if (container.isUnion) lines.push("Union layout: memory is reserved for the largest field.", "");
-  if (container.likeC) lines.push("C-like field layout handling is requested.", "");
-
-  if (container.fields.size) {
-    lines.push("Fields:");
-    for (const f of container.fields.values()) lines.push(`- \`${formatType(f.type)} ${f.name}\``);
-    lines.push("");
-  }
-
-  const methods = [...container.methods.entries()];
-  if (methods.length) {
-    lines.push("Methods:");
-    for (const [, overloads] of methods) {
-      for (const fn of overloads) {
-        const params = (fn.selfMethod || fn.params[0]?.name === "self") ? fn.params.slice(1) : fn.params;
-        const callSig = `${fn.name}(${params.map((p) => p.isVarArgs ? "..." : `${formatType(p.type)} ${p.name}`).join(", ")})`;
-        lines.push(`- \`${callSig}\``);
-      }
-    }
-    lines.push("");
-  }
-
-  if (container.doc?.trim()) lines.push(container.doc);
-  return lines.join("\n").trimEnd();
-}
-
-function completionAnnotations() {
-  return [
-    { label: "self", detail: "@[self] explicit container receiver", insertText: "self]", kind: CompletionItemKind.Property },
-    { label: "impl", detail: "@[impl(Container)] implement container method; inherits prototype annotations", insertText: "impl(${1:Container})]", kind: CompletionItemKind.Property, insertTextFormat: InsertTextFormat.Snippet },
-    { label: "union", detail: "@[union] union-like container layout", insertText: "union]", kind: CompletionItemKind.Property },
-    { label: "weak", detail: "@[weak] weak function symbol", insertText: "weak]", kind: CompletionItemKind.Property },
-    { label: "like_c", detail: "@[like_c] C-like container layout", insertText: "like_c]", kind: CompletionItemKind.Property },
-    { label: "abi", detail: "@[abi] ABI-compatible function", insertText: "abi]", kind: CompletionItemKind.Property },
-    { label: "inline", detail: "@[inline(always|never|model)] inline hint", insertText: "inline(${1:always})]", kind: CompletionItemKind.Property, insertTextFormat: InsertTextFormat.Snippet },
-    { label: "section", detail: "@[section(\"name\")] place symbol into section", insertText: "section(\"${1:.text}\")]", kind: CompletionItemKind.Property, insertTextFormat: InsertTextFormat.Snippet },
-    { label: "align", detail: "@[align(N)] alignment", insertText: "align(${1:16})]", kind: CompletionItemKind.Property, insertTextFormat: InsertTextFormat.Snippet }
-  ];
-}
-
-
-connection.onCompletion((params) => {
-  const doc = documents.get(params.textDocument.uri);
-  if (!doc) return [];
-
-  const sem = semByUri.get(params.textDocument.uri);
-  const offset = doc.offsetAt(params.position);
-  const before = doc.getText().slice(0, offset);
-
-  if (/@\[\s*impl\(\s*[A-Za-z_]*$/.test(before)) {
-    return [...(sem?.containers.values() ?? [])].map((c) => ({
-      label: c.name,
-      kind: CompletionItemKind.Struct,
-      detail: `container ${c.name}`,
-      insertText: c.name
-    }));
-  }
-
-  if (/@\[\s*[A-Za-z_]*$/.test(before)) {
-    return completionAnnotations();
-  }
-
-  const memberMatch = /([A-Za-z_]\w*)\.$/.exec(before);
-  if (memberMatch && sem) {
-    const baseType = sem.getVarType(memberMatch[1]);
-    const members = baseType ? sem.getContainerMembersForType(baseType) : undefined;
-    if (members) {
-      const fieldItems = members.fields.map((f) => ({
-        label: f.name,
-        kind: CompletionItemKind.Field,
-        detail: `${formatType(f.type)} ${members.containerName}.${f.name}`,
-        insertText: f.name
-      }));
-      const methodItems = members.methods.map((m) => {
-        const params = (m.selfMethod || m.params[0]?.name === "self") ? m.params.slice(1) : m.params;
-        return {
-          label: m.name,
-          kind: CompletionItemKind.Method,
-          detail: `${members.containerName}.${m.name}(${params.map((p) => p.isVarArgs ? "..." : `${formatType(p.type)} ${p.name}`).join(", ")})`,
-          insertText: m.name
-        };
-      });
-      return [...fieldItems, ...methodItems];
-    }
-  }
-
-  if (sem) {
-    return [...sem.containers.values()].map((c) => ({
-      label: c.name,
-      kind: CompletionItemKind.Struct,
-      detail: `container ${c.name}`,
-      insertText: c.name
-    }));
-  }
-
-  return [];
-});
 
 connection.onHover((params) => {
   const sem = semByUri.get(params.textDocument.uri);
@@ -406,15 +246,11 @@ callable ${formatType(ics.calleeType)}
     return { contents: { kind: MarkupKind.Markdown, value } };
   }
 
-  const containerDecl = findContainerDeclHover(sem, params.position);
-  if (containerDecl) {
-    return { contents: { kind: MarkupKind.Markdown, value: renderContainer(containerDecl) } };
-  }
-
   const fnDecl = findFuncDeclHover(sem, params.position);
   if (fnDecl) {
-    const list = sem.funcs.get(fnDecl.name) ?? [fnDecl];
-    const value = renderOverloads(list, { selected: fnDecl, title: `Function ${fnDecl.name}` });
+    const displayName = fnDecl.containerName ? `${fnDecl.containerName}::${fnDecl.name}` : fnDecl.name;
+    const list = sem.funcs.get(displayName) ?? sem.funcs.get(fnDecl.name) ?? [fnDecl];
+    const value = renderOverloads(list, { selected: fnDecl, title: `Function ${displayName}` });
     return { contents: { kind: MarkupKind.Markdown, value } };
   }
 
@@ -427,19 +263,9 @@ callable ${formatType(ics.calleeType)}
   return null;
 });
 
-function validateOpenDocuments() {
-  for (const doc of documents.all()) void validateTextDocument(doc);
-}
-
 documents.onDidChangeContent((change) => validateTextDocument(change.document));
 documents.onDidOpen((e) => validateTextDocument(e.document));
-documents.onDidSave(() => validateOpenDocuments());
-
-connection.onDidChangeWatchedFiles((params) => {
-  if (params.changes.some((c) => c.type === FileChangeType.Changed || c.type === FileChangeType.Created || c.type === FileChangeType.Deleted)) {
-    validateOpenDocuments();
-  }
-});
+documents.onDidSave((e) => validateTextDocument(e.document));
 
 documents.listen(connection);
 connection.listen();

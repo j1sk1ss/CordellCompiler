@@ -59,7 +59,25 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         return NULL;
     }
 
+    string_t* base_type = NULL;
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
+    if (!name) {
+        PARSE_ERROR("Can't create a base for the function's name!");
+        AST_unload(base);
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+    
+    if (
+        consume_token(it, STAT_TOKEN) && 
+        consume_token(it, UNKNOWN_STRING_TOKEN)
+    ) {
+        base_type = name->t->body->copy(name->t->body);
+        AST_unload(name);
+        name = AST_create_node(CURRENT_TOKEN);
+        forward_token(it, 1);
+    }
+    
     name->t->t_type = FUNC_NAME_TOKEN;
     if (name) AST_add_node(base, name);
     else {
@@ -74,8 +92,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     list_t generic_types;
     list_init(&generic_types);
-    
-    forward_token(it, 1);
+
     switch (CURRENT_TOKEN->t_type) {
         case OPEN_BRACKET_TOKEN: break;
         case LOWER_TOKEN: {
@@ -156,13 +173,14 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         }
     }
 
-    if (annots.base_type) {
-        token_t tmp = { .body = annots.base_type };
+    if (base_type) {
+        token_t tmp = { .body = base_type };
         symbol_id_t base_tid = type_lookup(&tmp, ctx, smt);
         type_info_t ti;
         if (
             TPTB_get_info_id(base_tid, &ti, &smt->t)
         ) name->sinfo.s_id = ti.cs_id;
+        destroy_string(base_type);
     }
 
     name->sinfo.v_id = FNTB_add_info(

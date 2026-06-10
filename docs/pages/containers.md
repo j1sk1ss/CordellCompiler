@@ -153,15 +153,14 @@ start() {
 }
 ```
 
-Defining a function body directly inside a container creates an implementation wherever that container declaration is parsed. For header-style code, prefer a prototype in the container and a separate implementation marked with `@[impl(<container>)]`:
+Defining a function body directly inside a container creates an implementation wherever that container declaration is parsed. For header-style code, prefer a prototype in the container and a separate implementation marked with `<container>::<function>`:
 
 ```cpl
 container math_box {
     function add(i32 a, i32 b) -> i32;
 }
 
-@[impl(math_box)]
-function add(i32 a, i32 b) -> i32 {
+function math_box::add(i32 a, i32 b) -> i32 {
     return a + b;
 }
 
@@ -170,8 +169,6 @@ start() {
     exit box.add(20, 22) as u8;
 }
 ```
-
-`@[impl(math_box)]` attaches the standalone function to the `math_box` container declaration. This is the preferred pattern when a `.cpl` header declares a container API and another file provides the implementation.
 
 Container functions can also be generic. Generic container functions use the same explicit type-argument syntax as regular generic functions:
 
@@ -221,8 +218,7 @@ container counter {
     function add(ptr counter self, i32 delta) -> i0;
 }
 
-@[impl(counter)]
-function add(ptr counter self, i32 delta) -> i0 {
+function counter::add(ptr counter self, i32 delta) -> i0 {
     self.value += delta;
 }
 
@@ -241,7 +237,7 @@ The call `c.add(7)` is lowered as a normal function call where `ref c` is passed
 
 - the function is marked with `@[self]`;
 - the first parameter has a type compatible with the receiver, normally `ptr counter self`;
-- a separated implementation uses `@[impl(counter)]`;
+- a separated implementation uses `counter::add`;
 - all mutation is explicit through that pointer.
 
 Methods can also call methods on nested container fields:

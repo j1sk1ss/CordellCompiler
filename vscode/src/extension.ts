@@ -26,16 +26,26 @@ export function activate(context: vscode.ExtensionContext) {
   `,
   
     function: `**function** — Function definition.
+
+  Associated/static methods can be declared as \`function Type::method(...)\`.
   
   \`\`\`cpl
   function abs(i32 x) -> i32 {
     if x < 0; { return x * -1; }
     return x;
   }
+
+  function node::new(i32 value) -> node {
+    node n;
+    n.value = value;
+    return n;
+  }
   \`\`\`
   `,
 
     container: `**container** — Struct-like container with fields and methods.
+
+  Use \`.\` for instance methods with \`self\`, and \`::\` for associated/static methods without \`self\`.
 
   \`\`\`cpl
   container storage {
@@ -43,15 +53,23 @@ export function activate(context: vscode.ExtensionContext) {
     u64 money;
 
     @[self]
-    function sell_wood(ptr storage self) -> i0 {
+    function sell_wood() -> i0 {
       self.wood -= 100;
       self.money += 100;
     }
   }
 
+    function new() -> storage {
+      storage s;
+      s.wood = 100;
+      s.money = 0;
+      return s;
+    }
+
   start() {
-    storage s;
-    s.sell_wood();
+    storage s = storage::new();
+    s.new();       : also valid: namespace method through instance :
+    s.sell_wood(); : @[self] method :
   }
   \`\`\`
   `,
@@ -294,60 +312,6 @@ export function activate(context: vscode.ExtensionContext) {
   \`\`\`
   `,
 
-    self: `**@[self]** — Marks a container method with an explicit receiver.
-
-  Use it when object-call syntax must pass the object into the first parameter.
-
-  \`\`\`cpl
-  container counter {
-    i32 value;
-
-    @[self]
-    function add(ptr counter self, i32 delta) -> i0 {
-      self.value += delta;
-    }
-  }
-
-  start() {
-    counter c;
-    c.add(7); : lowered as add(ref c, 7) :
-  }
-  \`\`\`
-  `,
-
-    impl: `**@[impl(Container)]** — Attaches a top-level function to a container method declaration.
-
-  Put the method prototype with annotations in the container, often in a \`*_h.cpl\` header. The implementation inherits those annotations, so \`@[self]\`, \`@[inline(...)]\`, \`@[weak]\`, etc. do not need to be repeated.
-
-  \`\`\`cpl
-  #include "counter_h.cpl"
-
-  @[impl(counter)]
-  function add(ptr counter self, i32 delta) -> i0 {
-    self.value += delta;
-  }
-  \`\`\`
-  `,
-
-    union: `**@[union]** — Container layout hint: allocate storage like a union, by the largest field.
-
-  \`\`\`cpl
-  @[union]
-  container value {
-    i64 as_i64;
-    f64 as_f64;
-  }
-  \`\`\`
-  `,
-
-    weak: `**@[weak]** — Marks a function as a weak symbol.
-
-  \`\`\`cpl
-  @[weak]
-  function hook() -> i0;
-  \`\`\`
-  `,
-
     sizeof: `**sizeof** — Compile-time size query (C-like).
 
   Works with both types and expressions.
@@ -392,7 +356,7 @@ export function activate(context: vscode.ExtensionContext) {
   
   Declaration form (grammar \`arr_decl\`):
   \`\`\`cpl
-  arr buf[16 u8] = {1,2,3};
+  arr buf[16, u8] = {1,2,3};
   \`\`\`
   
   Type form (grammar \`arr[<int>, <type>]\`):
@@ -473,10 +437,7 @@ export function activate(context: vscode.ExtensionContext) {
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: "file", language: "cpl" }],
     synchronize: {
-      fileEvents: [
-        vscode.workspace.createFileSystemWatcher("**/*.cpl"),
-        vscode.workspace.createFileSystemWatcher("**/*.h")
-      ]
+      fileEvents: vscode.workspace.createFileSystemWatcher("**/*.cpl")
     }
   };
 

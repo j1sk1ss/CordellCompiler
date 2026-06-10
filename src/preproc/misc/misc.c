@@ -258,6 +258,13 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
         }
 
         if (c == ':') {
+            if (in[i + 1] == ':') {
+                (*out)[oi++] = ':';
+                (*out)[oi++] = ':';
+                i++;
+                continue;
+            }
+
             if (in[i + 1] != '/') st->in_colon = 1;
             else {
                 st->in_colon_slash = 1;

@@ -5,17 +5,15 @@ container node {
     function destroy(ptr node self) -> i0;
 }
 
-@[impl(node)] 
-function new() -> ptr node {
+function node::new() -> ptr node {
     0;
 }
 
-@[impl(node)]
-function destroy(ptr node self) -> i0 {
+function node::destroy(ptr node self) -> i0 {
 }
 
 start() {
-    ptr node nd = node.new();
+    ptr node nd = node::new();
     nd.destroy();
 }
 

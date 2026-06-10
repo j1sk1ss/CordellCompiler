@@ -83,12 +83,15 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 break;
             }
             /* Member access */
+            case STAT_TOKEN: left->sinfo.t_id = type_lookup(left->t, ctx, smt);
             case DOT_TOKEN: {
                 forward_token(it, 1);
-                if (left->sinfo.t_id == NO_SYMBOL_ID) left->sinfo.t_id = type_lookup(left->t, ctx, smt);
                 symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
-                if (field_type == NO_SYMBOL_ID) {
-                    PARSE_ERROR("Unknown container field!");
+                if (
+                    left->sinfo.t_id == NO_SYMBOL_ID || 
+                    field_type == NO_SYMBOL_ID
+                ) {
+                    PARSE_ERROR("Unknown container or a container's field!");
                     AST_unload(left);
                     RESTORE_TOKEN_POINT;
                     return NULL;

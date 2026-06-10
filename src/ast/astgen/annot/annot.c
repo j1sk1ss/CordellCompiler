@@ -13,7 +13,6 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, string_t* data, long 
         case SECTION_ANNOTATION:   annot->data.section = data->copy(data);              break;
         case ENTRY_ANNOTATION:     if (data) annot->data.fname = data->copy(data);      break;
         case INLINE_ANNOTATION:    if (data) annot->data.inline_opt = data->copy(data); break;
-        case IMPLEMENT_ANNOTATION: if (data) annot->data.base_type = data->copy(data);  break;
         default: break;
     }
 
@@ -45,11 +44,6 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
                 summary->fname = annot->data.fname ? annot->data.fname->copy(annot->data.fname) : NULL;
                 break;
             }
-            case IMPLEMENT_ANNOTATION: {
-                if (summary->base_type) destroy_string(summary->base_type);
-                summary->base_type = annot->data.base_type->copy(annot->data.base_type); 
-                break;
-            }
             case NOSECTION_ANNOTATION: summary->is_nosec    = 1;                   break;
             case ALIGN_ANNOTATION:     summary->align       = annot->data.align;   break;
             case NAKED_ANNOTATION:     summary->is_naked    = 1;                   break;
@@ -77,18 +71,16 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
 }
 
 int ANNOT_destroy_summary(annotations_summary_t* summray) {
-    if (summray->section)   destroy_string(summray->section);
-    if (summray->fname)     destroy_string(summray->fname);
-    if (summray->base_type) destroy_string(summray->base_type);
+    if (summray->section) destroy_string(summray->section);
+    if (summray->fname)   destroy_string(summray->fname);
     return 1;
 }
 
 int ANNOT_destroy_annotation(annotation_t* annot) {
     switch (annot->t) {
-        case SECTION_ANNOTATION:   destroy_string(annot->data.section);                                break;
-        case ENTRY_ANNOTATION:     if (annot->data.fname) destroy_string(annot->data.fname);           break;
-        case INLINE_ANNOTATION:    if (annot->data.inline_opt) destroy_string(annot->data.inline_opt); break;
-        case IMPLEMENT_ANNOTATION: if (annot->data.base_type) destroy_string(annot->data.base_type);   break;
+        case SECTION_ANNOTATION: destroy_string(annot->data.section);                                break;
+        case ENTRY_ANNOTATION:   if (annot->data.fname) destroy_string(annot->data.fname);           break;
+        case INLINE_ANNOTATION:  if (annot->data.inline_opt) destroy_string(annot->data.inline_opt); break;
         default: break;
     }
 

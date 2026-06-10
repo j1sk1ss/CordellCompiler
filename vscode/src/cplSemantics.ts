@@ -47,8 +47,7 @@ export function formatType(t: TypeNode): string {
   }
 }
 
-export type IssueSeverity = "error" | "warning" | "information" | "hint";
-export type Issue = { message: string; range: Range; severity?: IssueSeverity };
+export type Issue = { message: string; range: Range };
 
 export type VarSym = {
   kind: "var";
@@ -56,12 +55,13 @@ export type VarSym = {
   type: TypeNode;
   range: Range;
   readonly?: boolean;
-  annotations?: string[];
 };
 
 export type FuncOverloadSym = {
   kind: "func";
   name: string;
+  containerName?: string;
+  isSelfMethod?: boolean;
   typeParams?: string[];
   params: ParamSig[];
   ret: TypeNode;
@@ -69,10 +69,6 @@ export type FuncOverloadSym = {
   def?: Range;
   primaryRange: Range;
   doc?: string;
-  annotations?: string[];
-  weak?: boolean;
-  selfMethod?: boolean;
-  implContainer?: string;
 };
 
 export type ContainerSym = {
@@ -82,9 +78,6 @@ export type ContainerSym = {
   methods: Map<string, FuncOverloadSym[]>;
   range: Range;
   doc?: string;
-  annotations?: string[];
-  isUnion?: boolean;
-  likeC?: boolean;
 };
 
 export type CallSite = {
@@ -152,6 +145,7 @@ export function sizeofType(t: TypeNode, opts?: { pointerSize?: number }): number
 }
 
 export function formatFunctionSignature(fn: FuncOverloadSym): string {
+  const displayName = fn.containerName ? `${fn.containerName}::${fn.name}` : fn.name;
   const paramsStr = fn.params
     .map((p) => {
       if (p.isVarArgs) return "...";
@@ -162,8 +156,8 @@ export function formatFunctionSignature(fn: FuncOverloadSym): string {
   const retStr = formatType(fn.ret);
   const typeParamsStr = fn.typeParams?.length ? `<${fn.typeParams.join(", ")}>` : "";
   return retStr === "i0"
-    ? `function ${fn.name}${typeParamsStr}(${paramsStr})`
-    : `function ${fn.name}${typeParamsStr}(${paramsStr}) -> ${retStr}`;
+    ? `function ${displayName}${typeParamsStr}(${paramsStr})`
+    : `function ${displayName}${typeParamsStr}(${paramsStr}) -> ${retStr}`;
 }
 
 class Scope {
@@ -273,51 +267,6 @@ function expectedArityString(fn: FuncOverloadSym): string {
   return `${minArgs}..${maxArgs}`;
 }
 
-
-function parseAnnotationRaw(raw: string): { name: string; arg?: string } {
-  const t = raw.trim();
-  const m = /^([A-Za-z_]\w*)\s*(?:\((.*)\))?$/.exec(t);
-  if (!m) return { name: t };
-  return { name: m[1], arg: m[2]?.trim() };
-}
-
-function hasAnnotation(annotations: string[] | undefined, name: string): boolean {
-  return (annotations ?? []).some((a) => parseAnnotationRaw(a).name === name);
-}
-
-export function annotationArg(annotations: string[] | undefined, name: string): string | undefined {
-  const hit = (annotations ?? []).map(parseAnnotationRaw).find((a) => a.name === name);
-  return hit?.arg;
-}
-
-export function formatAnnotations(annotations: string[] | undefined): string {
-  return (annotations ?? []).map((a) => `@[${a}]`).join(" ");
-}
-
-function mergeAnnotations(...lists: (string[] | undefined)[]): string[] | undefined {
-  const out: string[] = [];
-  for (const list of lists) {
-    for (const a of list ?? []) {
-      if (!out.includes(a)) out.push(a);
-    }
-  }
-  return out.length ? out : undefined;
-}
-
-function stripAnnotationStringValue(value: string | undefined): string | undefined {
-  if (value == null) return undefined;
-  const t = value.trim();
-  if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) return t.slice(1, -1);
-  return t;
-}
-
-function typeMentionsContainer(t: TypeNode, containerName: string): boolean {
-  if (t.kind === "container") return t.name === containerName;
-  if (t.kind === "prim") return t.name === containerName;
-  if (t.kind === "ptr") return typeMentionsContainer(t.to, containerName);
-  return false;
-}
-
 export class SemanticContext {
   issues: Issue[] = [];
 
@@ -339,19 +288,7 @@ export class SemanticContext {
 
   private scope: Scope = new Scope();
   private pendingCalls: { name: string; argc: number; range: Range; scope: Scope }[] = [];
-
-
-  addWarning(message: string, range: Range) {
-    this.issues.push({ message, range, severity: "warning" });
-  }
-
-  hasGlobal(name: string): boolean {
-    return this.globals.has(name);
-  }
-
-  hasMacro(name: string): boolean {
-    return this.macros.has(name);
-  }
+  private pendingAssociatedCalls: { containerName: string; name: string; argc: number; range: Range }[] = [];
 
   hasContainer(name: string): boolean {
     return this.containers.has(name);
@@ -359,6 +296,28 @@ export class SemanticContext {
 
   containerTypeForName(name: string): TypeNode {
     return this.containers.has(name) ? { kind: "container", name } : { kind: "prim", name };
+  }
+
+  private qualifiedMethodName(containerName: string, name: string): string {
+    return `${containerName}::${name}`;
+  }
+
+  private isInstanceMethod(fn: FuncOverloadSym): boolean {
+    return !!fn.isSelfMethod || fn.params[0]?.name === "self";
+  }
+
+  private isAssociatedMethod(fn: FuncOverloadSym): boolean {
+    return !this.isInstanceMethod(fn);
+  }
+
+  private functionTypeFromMethod(fn: FuncOverloadSym, omitSelf: boolean): TypeNode {
+    const hasExplicitSelfParam = fn.params[0]?.name === "self";
+    const params = omitSelf && hasExplicitSelfParam ? fn.params.slice(1) : fn.params;
+    return {
+      kind: "func",
+      params: params.filter((p) => !p.isVarArgs).map((p) => p.type),
+      ret: fn.ret
+    };
   }
 
   private containerNameFromType(t: TypeNode): string | undefined {
@@ -373,7 +332,7 @@ export class SemanticContext {
     return undefined;
   }
 
-  declareContainer(name: string, range: Range, doc?: string, annotations?: string[]) {
+  declareContainer(name: string, range: Range, doc?: string) {
     if (this.containers.has(name)) {
       this.issues.push({ message: `Container '${name}' already declared`, range });
       return;
@@ -385,17 +344,14 @@ export class SemanticContext {
       fields: new Map<string, VarSym>(),
       methods: new Map<string, FuncOverloadSym[]>(),
       range,
-      doc,
-      annotations,
-      isUnion: hasAnnotation(annotations, "union"),
-      likeC: hasAnnotation(annotations, "like_c")
+      doc
     };
 
     this.containers.set(name, sym);
     this.containerDecls.push(sym);
   }
 
-  declareContainerField(containerName: string, name: string, type: TypeNode, range: Range, opts?: { readonly?: boolean; annotations?: string[] }) {
+  declareContainerField(containerName: string, name: string, type: TypeNode, range: Range, opts?: { readonly?: boolean }) {
     const container = this.containers.get(containerName);
     if (!container) {
       this.issues.push({ message: `Unknown container '${containerName}'`, range });
@@ -407,7 +363,7 @@ export class SemanticContext {
       return;
     }
 
-    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly, annotations: opts?.annotations };
+    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
     container.fields.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -421,41 +377,16 @@ export class SemanticContext {
     isDefinition: boolean,
     doc?: string,
     typeParams?: string[],
-    annotations?: string[],
-    opts?: { fromImpl?: boolean }
+    opts?: { self?: boolean }
   ) {
     const container = this.containers.get(containerName);
     if (!container) {
-      this.issues.push({
-        message: opts?.fromImpl
-          ? `@[impl(${containerName})]: container '${containerName}' not found. Include or declare the container before this function.`
-          : `Unknown container '${containerName}'`,
-        range
-      });
+      this.issues.push({ message: `Unknown container '${containerName}'`, range });
       return;
     }
 
     const local = container.methods.get(name) ?? [];
     const exact = local.find((f) => sameParamIdentity(f.params, params));
-
-    // For @[impl(Container)] the header/container prototype is the source of truth.
-    // The implementation inherits annotations from the matching container method,
-    // so it does not need to repeat @[self], @[inline(...)], @[weak], etc.
-    const inheritedAnnotations = opts?.fromImpl && exact
-      ? mergeAnnotations(exact.annotations, annotations)
-      : annotations;
-
-    const hasSelf = hasAnnotation(inheritedAnnotations, "self") || (opts?.fromImpl && exact?.selfMethod === true);
-    const first = params[0];
-    if (hasSelf) {
-      if (!first || first.name !== "self") {
-        this.addWarning(`@[self] method '${containerName}.${name}' should have first parameter named 'self'`, range);
-      } else if (!typeMentionsContainer(first.type, containerName)) {
-        this.addWarning(`@[self] receiver '${first.name}' should have type '${containerName}' or 'ptr ${containerName}'`, first.range);
-      }
-    } else if (first?.name === "self" && !opts?.fromImpl) {
-      this.addWarning(`Method '${containerName}.${name}' has receiver 'self'. Add @[self] if object calls must pass the receiver automatically.`, first.range);
-    }
 
     if (!exact) {
       const sameTypesDifferentDefaults = local.find(
@@ -468,25 +399,27 @@ export class SemanticContext {
         });
       }
 
-      const implContainer = opts?.fromImpl ? containerName : stripAnnotationStringValue(annotationArg(inheritedAnnotations, "impl"));
       const sym: FuncOverloadSym = {
         kind: "func",
         name,
+        containerName,
+        isSelfMethod: opts?.self || params[0]?.name === "self",
         typeParams,
         params,
         ret,
         decls: isDefinition ? [] : [range],
         def: isDefinition ? range : undefined,
         primaryRange: range,
-        doc,
-        annotations: inheritedAnnotations,
-        weak: hasAnnotation(inheritedAnnotations, "weak"),
-        selfMethod: hasAnnotation(inheritedAnnotations, "self") || params[0]?.name === "self",
-        implContainer
+        doc
       };
 
       local.push(sym);
       container.methods.set(name, local);
+
+      const qualifiedName = this.qualifiedMethodName(containerName, name);
+      const all = this.funcs.get(qualifiedName) ?? [];
+      all.push(sym);
+      this.funcs.set(qualifiedName, all);
       return;
     }
 
@@ -499,15 +432,7 @@ export class SemanticContext {
     }
 
     if (doc && !exact.doc) exact.doc = doc;
-
-    if (inheritedAnnotations?.length) {
-      exact.annotations = mergeAnnotations(exact.annotations, inheritedAnnotations);
-      exact.weak = exact.weak || hasAnnotation(inheritedAnnotations, "weak");
-      exact.selfMethod = exact.selfMethod || hasAnnotation(inheritedAnnotations, "self") || exact.params[0]?.name === "self";
-      exact.implContainer = exact.implContainer ?? (opts?.fromImpl ? containerName : stripAnnotationStringValue(annotationArg(inheritedAnnotations, "impl")));
-    } else if (opts?.fromImpl) {
-      exact.implContainer = exact.implContainer ?? containerName;
-    }
+    if (opts?.self) exact.isSelfMethod = true;
 
     if (isDefinition) {
       if (exact.def) {
@@ -518,7 +443,6 @@ export class SemanticContext {
       exact.primaryRange = range;
       return;
     }
-
 
     exact.decls.push(range);
     if (!exact.def && exact.decls.length === 1) exact.primaryRange = exact.decls[0];
@@ -545,8 +469,7 @@ export class SemanticContext {
     const methods = container.methods.get(memberName) ?? [];
     if (methods.length === 1) {
       const fn = methods[0];
-      const params = (fn.selfMethod || fn.params[0]?.name === "self") ? fn.params.slice(1) : fn.params;
-      return { kind: "func", params: params.filter((p) => !p.isVarArgs).map((p) => p.type), ret: fn.ret };
+      return this.functionTypeFromMethod(fn, this.isInstanceMethod(fn));
     }
 
     if (methods.length > 1) {
@@ -557,16 +480,25 @@ export class SemanticContext {
     return { kind: "unknown" };
   }
 
-  getContainerMembersForType(baseType: TypeNode): { containerName: string; fields: VarSym[]; methods: FuncOverloadSym[] } | undefined {
-    const containerName = this.containerNameFromType(baseType);
-    if (!containerName) return undefined;
+  getAssociatedMemberType(containerName: string, memberName: string, range: Range): TypeNode {
     const container = this.containers.get(containerName);
-    if (!container) return undefined;
-    return {
-      containerName,
-      fields: [...container.fields.values()],
-      methods: [...container.methods.values()].flat()
-    };
+    if (!container) {
+      this.issues.push({ message: `Unknown container '${containerName}'`, range });
+      return { kind: "unknown" };
+    }
+
+    const methods = container.methods.get(memberName) ?? [];
+    const associatedMethods = methods.filter((fn) => this.isAssociatedMethod(fn));
+
+    if (associatedMethods.length === 1) {
+      return this.functionTypeFromMethod(associatedMethods[0], false);
+    }
+
+    if (associatedMethods.length > 1) {
+      return { kind: "ptr", to: { kind: "prim", name: "i0" } };
+    }
+
+    return { kind: "unknown" };
   }
 
   defineMacro(name: string, value: MacroValue, nameRange: Range, valueRange: Range, doc?: string) {
@@ -646,12 +578,12 @@ export class SemanticContext {
     name: string,
     type: TypeNode,
     range: Range,
-    opts?: { readonly?: boolean; annotations?: string[] }
+    opts?: { readonly?: boolean }
   ) {
     if (this.globals.has(name)) {
       this.issues.push({ message: `Global '${name}' already declared`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly, annotations: opts?.annotations };
+    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
     this.globals.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -660,12 +592,12 @@ export class SemanticContext {
     name: string,
     type: TypeNode,
     range: Range,
-    opts?: { readonly?: boolean; annotations?: string[] }
+    opts?: { readonly?: boolean }
   ) {
     if (this.scope.vars.has(name)) {
       this.issues.push({ message: `Variable '${name}' already declared in this scope`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly, annotations: opts?.annotations };
+    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
     this.scope.vars.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -677,15 +609,9 @@ export class SemanticContext {
     range: Range,
     isDefinition: boolean,
     doc?: string,
-    typeParams?: string[],
-    annotations?: string[]
+    typeParams?: string[]
   ) {
     const local = this.scope.funcs.get(name) ?? [];
-
-    const implContainer = stripAnnotationStringValue(annotationArg(annotations, "impl"));
-    if (hasAnnotation(annotations, "self") && !implContainer) {
-      this.addWarning(`@[self] on top-level function '${name}' has no container target. Use @[impl(Container)] or move the function into a container.`, range);
-    }
 
     const exact = local.find((f) => sameParamIdentity(f.params, params));
     if (!exact) {
@@ -708,11 +634,7 @@ export class SemanticContext {
         decls: isDefinition ? [] : [range],
         def: isDefinition ? range : undefined,
         primaryRange: range,
-        doc,
-        annotations,
-        weak: hasAnnotation(annotations, "weak"),
-        selfMethod: hasAnnotation(annotations, "self"),
-        implContainer
+        doc
       };
 
       local.push(sym);
@@ -732,12 +654,6 @@ export class SemanticContext {
     }
 
     if (doc && !exact.doc) exact.doc = doc;
-    if (annotations?.length) {
-      exact.annotations = [...(exact.annotations ?? []), ...annotations].filter((v, i, a) => a.indexOf(v) === i);
-      exact.weak = exact.weak || hasAnnotation(annotations, "weak");
-      exact.selfMethod = exact.selfMethod || hasAnnotation(annotations, "self") || exact.params[0]?.name === "self";
-      exact.implContainer = exact.implContainer ?? stripAnnotationStringValue(annotationArg(annotations, "impl"));
-    }
 
     if (isDefinition) {
       if (exact.def) {
@@ -805,6 +721,32 @@ export class SemanticContext {
     return { status: "ambiguous", candidates: arityMatches };
   }
 
+  private resolveAssociatedCall(containerName: string, name: string, argc: number): CallSite["resolution"] {
+    const container = this.containers.get(containerName);
+    if (!container) {
+      return { status: "unknown", candidates: [] };
+    }
+
+    const allMethods = container.methods.get(name) ?? [];
+    const overloads = allMethods.filter((fn) => this.isAssociatedMethod(fn));
+    if (overloads.length === 0) {
+      return allMethods.length > 0
+        ? { status: "no_match", candidates: allMethods }
+        : { status: "unknown", candidates: [] };
+    }
+
+    const arityMatches = overloads.filter((fn) => matchesArity(fn, argc));
+    if (arityMatches.length === 0) {
+      return { status: "no_match", candidates: overloads };
+    }
+
+    if (arityMatches.length === 1) {
+      return { status: "resolved", candidates: arityMatches, selected: arityMatches[0] };
+    }
+
+    return { status: "ambiguous", candidates: arityMatches };
+  }
+
   callFunc(name: string, argc: number, range: Range) {
     if (name === "syscall") return;
     this.pendingCalls.push({ name, argc, range, scope: this.scope });
@@ -842,6 +784,13 @@ export class SemanticContext {
     this.callFunc(name, argc, range);
   }
 
+  callAssociatedMethod(containerName: string, name: string, argc: number, range: Range) {
+    const qualifiedName = this.qualifiedMethodName(containerName, name);
+    const resolution = this.resolveAssociatedCall(containerName, name, argc);
+    this.pendingAssociatedCalls.push({ containerName, name, argc, range });
+    this.upsertCallSite(qualifiedName, argc, range, resolution);
+  }
+
   noteSizeof(range: Range, targetType: TypeNode) {
     this.sizeofSites.push({
       range,
@@ -851,6 +800,8 @@ export class SemanticContext {
   }
 
   callIndirectExpr(calleeType: TypeNode, argc: number, range: Range) {
+    if (calleeType.kind === "unknown") return;
+
     if (isCallableType(calleeType)) {
       if (!matchesCallableArity(calleeType, argc)) {
         this.issues.push({
@@ -870,6 +821,48 @@ export class SemanticContext {
   }
 
   finish() {
+    for (const c of this.pendingAssociatedCalls) {
+      const qualifiedName = this.qualifiedMethodName(c.containerName, c.name);
+      const resolution = this.resolveAssociatedCall(c.containerName, c.name, c.argc);
+      if (resolution == undefined) continue;
+      this.upsertCallSite(qualifiedName, c.argc, c.range, resolution);
+
+      if (resolution.status === "unknown") {
+        const container = this.containers.get(c.containerName);
+        this.issues.push({
+          message: container
+            ? `Unknown associated method '${qualifiedName}'`
+            : `Unknown container '${c.containerName}'`,
+          range: c.range
+        });
+        continue;
+      }
+
+      if (resolution.status === "no_match") {
+        const onlyInstance = resolution.candidates.length > 0
+          && resolution.candidates.every((fn) => this.isInstanceMethod(fn));
+
+        if (onlyInstance) {
+          this.issues.push({
+            message: `Associated call '${qualifiedName}' refers to an instance method; use '.' on a value`,
+            range: c.range
+          });
+          continue;
+        }
+
+        const expected = resolution.candidates
+          .map(expectedArityString)
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .join(" | ");
+
+        this.issues.push({
+          message: `Call '${qualifiedName}': no matching overload for ${c.argc} args (available: ${expected || "none"})`,
+          range: c.range
+        });
+        continue;
+      }
+    }
+
     for (const c of this.pendingCalls) {
       const resolution = this.resolveCall(c.name, c.argc, c.scope);
       if (resolution == undefined) continue;
@@ -895,6 +888,7 @@ export class SemanticContext {
 
     }
 
+    this.pendingAssociatedCalls = [];
     this.pendingCalls = [];
   }
 }

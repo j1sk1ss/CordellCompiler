@@ -76,7 +76,7 @@ static ast_node_t* _dynamic_navigation_handler(PARSER_ARGS) {
     symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
     if (
         CURRENT_TOKEN->t_type != ARRAY_TYPE_TOKEN &&
-        (look_next_token(it) && look_next_token(it)->t_type != DOT_TOKEN) &&
+        (look_next_token(it) && look_next_token(it)->t_type != STAT_TOKEN) &&
         (TKN_is_builtin_type(CURRENT_TOKEN) || type != NO_SYMBOL_ID)
     ) return cpl_parse_variable_declaration(it, ctx, smt, type);
     return NULL;

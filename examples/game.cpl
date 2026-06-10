@@ -1,7 +1,6 @@
 #include "game_h.cpl"
 
-@[impl(game)]
-function new(ptr game self) -> i0 {
+function game::new(ptr game self) -> i0 {
     self.width   = 7;
     self.height  = 5;
     self.map     = strdup(ref "########...K.##.###.##...E.########");
@@ -12,18 +11,15 @@ function new(ptr game self) -> i0 {
     self.won     = 0;
 }
 
-@[impl(game)]
-function index(ptr game self, i32 x, i32 y) -> i32 {
+function game::index(ptr game self, i32 x, i32 y) -> i32 {
     y * self.width + x;
 }
 
-@[impl(game)]
-function cell(ptr game self, i32 x, i32 y) -> ptr i8 {
+function game::cell(ptr game self, i32 x, i32 y) -> ptr i8 {
     self.map + self.index(x, y) as ptr i8;
 }
 
-@[impl(game)]
-function draw(ptr game self) -> i0 {
+function game::draw(ptr game self) -> i0 {
     i32 y = 0;
 
     while y < self.height; {
@@ -50,8 +46,7 @@ function draw(ptr game self) -> i0 {
     puts(ref "Move: w/a/s/d, quit: q");
 }
 
-@[impl(game)]
-function step(ptr game self, i32 input) -> i0 {
+function game::step(ptr game self, i32 input) -> i0 {
     if input == 'q'; {
         self.running = 0;
         return;
@@ -95,8 +90,7 @@ function step(ptr game self, i32 input) -> i0 {
     self.py = ny;
 }
 
-@[impl(game)]
-function destroy(ptr game self) -> i0 {
+function game::destroy(ptr game self) -> i0 {
     free(self.map);
     self.map = 0 as ptr i8;
 }

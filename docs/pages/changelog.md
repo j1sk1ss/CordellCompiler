@@ -3,6 +3,28 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## :: for implementation
+<div class="change-date">Date: 2026-06-10</div>
+Instead of the 'impl' annotation, I've decided to use '::':
+
+```cpl
+container math {
+    function add(i32 a, i32 b);
+}
+
+function math::add(i32 a, i32 b) {
+    return a + b;
+}
+
+start() {
+    math mt;
+    mt.add(1, 1);    : Instance :
+    math::add(1, 1); : Static   :
+}
+```
+
+P.S.: *Comments are the same, just strict `::` now considered as a container access*
+
 ## Impl annotation
 <div class="change-date">Date: 2026-06-08</div>
 Container can include an implementation of a function or not:

@@ -24,6 +24,7 @@ static const markup_token_t _lexems[] = {
 
     LEXEM(CONTAINER_COMMAND,      CONTAINER_TOKEN),
     LEXEM(DOT_COMMAND,            DOT_TOKEN),
+    LEXEM(STAT_COMMAND,           STAT_TOKEN),
 
     /* Function and jmp tokens. */
     LEXEM(FUNCTION_COMMAND,       FUNC_TOKEN),

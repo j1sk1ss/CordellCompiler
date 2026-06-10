@@ -20,9 +20,9 @@ container node {
 }
 
 start() {
-    ptr string message = string.new();
+    ptr string message = string::new();
     message.destroy();
-    ptr node nd = node.new();
+    ptr node nd = node::new();
 }
 
 :/ OUTPUT
