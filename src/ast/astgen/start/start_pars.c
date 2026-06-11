@@ -6,13 +6,13 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create a base for the '%s' statement!", START_COMMAND);
+        PARSE_ERROR("Can't create a base for the 'start' statement!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BRACKET_TOKEN' token during a parse of the '%s' statement!", START_COMMAND);
+        PARSE_ERROR("Expected the '(' token during a parse of the 'start' statement!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -31,7 +31,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     }
 
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' in a body of the '%s' statement! %s( ... ) { ... }!", START_COMMAND, START_COMMAND);
+        PARSE_ERROR("Expected the '{' in a body of the 'start' statement! start( ... ) { ... }!");
         AST_unload(base);
         ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
@@ -63,7 +63,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, base->sinfo.v_id);
     if (body) AST_add_node(base, body);
     else {
-        PARSE_ERROR("Error during the parsing of the '%s' body!", START_COMMAND);
+        PARSE_ERROR("Error during the parsing of the 'start' body!");
         AST_unload(base);
         ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;

@@ -6,7 +6,7 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create a base for a '%s' structure!", SWITCH_COMMAND);
+        PARSE_ERROR("Can't create a base for a 'switch' structure!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -18,7 +18,7 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
     ast_node_t* stmt = cpl_parse_expression(it, ctx, smt, 1);
     if (stmt) AST_add_node(base, stmt);
     else {
-        PARSE_ERROR("Error during the parsing of the '%s' statement! %s <stmt>!", SWITCH_COMMAND, SWITCH_COMMAND);
+        PARSE_ERROR("Error during the parsing of the 'switch' statement!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -34,7 +34,7 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
     }
 
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during parse of the '%s' statement!", SWITCH_COMMAND);
+        PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during parse of the 'switch' statement!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -42,9 +42,9 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
 
     forward_token(it, 1);
     while (
-        CURRENT_TOKEN->t_type == ANNOTATION_TOKEN ||
-        CURRENT_TOKEN->t_type == CASE_TOKEN       || 
-        CURRENT_TOKEN->t_type == DEFAULT_TOKEN
+        CURRENT_TOKEN->t_type == CASE_TOKEN    || 
+        CURRENT_TOKEN->t_type == DEFAULT_TOKEN ||
+        CURRENT_TOKEN->t_type == ANNOTATION_TOKEN 
     ) {
         if (CURRENT_TOKEN->t_type == ANNOTATION_TOKEN) {
             cpl_parse_annot(it, ctx, smt, carry);
@@ -53,8 +53,9 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
         }
 
         ast_node_t* case_node = AST_create_node(CURRENT_TOKEN);
-        if (!case_node) {
-            PARSE_ERROR("Can't create a base for the case in the '%s' statement!", SWITCH_COMMAND);
+        if (case_node) AST_add_node(cases_scope, case_node);
+        else {
+            PARSE_ERROR("Can't create a base for the case in the 'switch' statement!");
             AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
@@ -69,21 +70,16 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
         }
 
         if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
-            PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during a parse of the '%s' statement!", SWITCH_COMMAND);
-            AST_unload(case_node);
+            PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during a parse of the 'switch' statement!");
             AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
 
         ast_node_t* case_body = cpl_parse_scope(it, ctx, smt, 1);
-        if (case_body) {
-            AST_add_node(case_node, case_body);
-            AST_add_node(cases_scope, case_node);
-        }
+        if (case_body) AST_add_node(case_node, case_body);
         else {
             PARSE_ERROR("Error during the parsing process for the case!");
-            AST_unload(case_node);
             AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;

@@ -19,7 +19,7 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
             forward_token(it, 2);
             ast_node_t* arr_size = cpl_parse_expression(it, ctx, smt, carry);
             if (CURRENT_TOKEN->t_type != COMMA_TOKEN) {
-                PARSE_ERROR("Can't parse nested array type! Expected the 'COMMA_TOKEN'!");
+                PARSE_ERROR("Can't parse nested array type! Expected the ',' token!");
                 AST_unload(type);
                 AST_unload(arr_size);
                 RESTORE_TOKEN_POINT;
@@ -95,9 +95,8 @@ static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_tab
     ) const_length = length->t->body->to_llong(length->t->body);
     
     _resolve_array_type(elem_type, ctx, smt);
-    long size = _get_array_field_size(const_length, elem_type, ctx, smt);
     type->sinfo.t_id = TPTB_add_info_from_token(type->sinfo.s_id, type->t, NO_SYMBOL_ID, &smt->t);
-    TPTB_set_memory_size_id(type->sinfo.t_id, size, &smt->t);
+    TPTB_set_memory_size_id(type->sinfo.t_id, _get_array_field_size(const_length, elem_type, ctx, smt), &smt->t);
     TPTB_link_child(type->sinfo.t_id, elem_type->sinfo.t_id, &smt->t);
     return type->sinfo.t_id;
 }
@@ -128,7 +127,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     }
 
     if (!consume_token(it, OPEN_INDEX_TOKEN)) {
-        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the 'OPEN_INDEX_TOKEN'!");
+        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the '[' token!");
         AST_unload(base);
         ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
@@ -147,7 +146,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     }
     
     if (CURRENT_TOKEN->t_type != COMMA_TOKEN) {
-        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the 'COMMA_TOKEN'!");
+        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the ',' token!");
         AST_unload(base);
         ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
@@ -165,7 +164,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     }
 
     if (!consume_token(it, CLOSE_INDEX_TOKEN)) {
-        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the 'CLOSE_INDEX_TOKEN'!");
+        PARSE_ERROR("Error during array parsing! arr <name>[<size>, <type>]! Expected the ']' token!");
         AST_unload(base);
         ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
@@ -224,6 +223,7 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     _resolve_array_type(type, ctx, smt);
+    
     name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &base->t->flags, &smt->v);
     ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, &type->t->flags, &smt->a);
     base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);

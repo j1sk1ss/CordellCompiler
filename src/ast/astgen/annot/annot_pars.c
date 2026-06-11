@@ -48,12 +48,17 @@ ast_node_t* cpl_parse_annot(PARSER_ARGS) {
     SAVE_TOKEN_POINT;
     
     if (!consume_token(it, OPEN_INDEX_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_INDEX_TOKEN'!");
+        PARSE_ERROR("'@' should be followed by '['!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    forward_token(it, 1);
+    if (!consume_token(it, UNKNOWN_STRING_TOKEN)) {
+        PARSE_ERROR("Expected the 'unknown string' token after the annotation's start!");
+        RESTORE_TOKEN_POINT;
+        return NULL;
+    }
+
     annotation_t* annot = _parse_annotation_content(it);
     if (annot) stack_push(&ctx->annots, annot);
     else {

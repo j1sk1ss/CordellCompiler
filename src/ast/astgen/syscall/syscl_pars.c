@@ -12,7 +12,7 @@ ast_node_t* cpl_parse_syscall(PARSER_ARGS) {
     }
 
     if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BRACKET_TOKEN' token during a parse of the '%s' statement!", SYSCALL_COMMAND);
+        PARSE_ERROR("Expected the 'OPEN_BRACKET_TOKEN' token during a parse of the 'syscall' statement!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;

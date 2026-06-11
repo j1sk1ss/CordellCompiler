@@ -6,7 +6,7 @@ ast_node_t* cpl_parse_breakpoint(PARSER_ARGS) {
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
     if (!node) {
-        PARSE_ERROR("Can't create a base for the '%s' statement!", BREAKPOINT_COMMAND);
+        PARSE_ERROR("Can't create a base for the 'lis' statement!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -14,14 +14,14 @@ ast_node_t* cpl_parse_breakpoint(PARSER_ARGS) {
     if (consume_token(it, STRING_VALUE_TOKEN)) {
         ast_node_t* info = AST_create_node(CURRENT_TOKEN);
         if (!node) {
-            PARSE_ERROR("Can't create a base for the '%s' message!", BREAKPOINT_COMMAND);
+            PARSE_ERROR("Can't create a base for the 'lis' message!");
             AST_unload(node);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
 
-        if ((info->sinfo.v_id = STTB_add_info(info->t->body, STR_COMMENT, &smt->s)) < 0) {
-            PARSE_ERROR("Can't register the '%s' for the '%s' statement!", info->t->body->body, BREAKPOINT_COMMAND);
+        if ((info->sinfo.v_id = STTB_add_info(info->t->body, STR_COMMENT, &smt->s)) == NO_SYMBOL_ID) {
+            PARSE_ERROR("Can't register the '%s' for the 'lis' statement!", info->t->body->body);
             AST_unload(node);
             RESTORE_TOKEN_POINT;
             return NULL;

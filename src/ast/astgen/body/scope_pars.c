@@ -35,7 +35,7 @@ ast_node_t* cpl_parse_scope(PARSER_ARGS) {
     if (carry) stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
     if (CURRENT_TOKEN->t_type == OPEN_BLOCK_TOKEN) forward_token(it, 1);
     else {
-        PARSE_ERROR("Expect the 'OPEN_BLOCK_TOKEN' token!");
+        PARSE_ERROR("Expect the '{' token!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }

@@ -6,7 +6,7 @@ ast_node_t* cpl_parse_exit(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create the base for the '%s' statement!", EXIT_COMMAND);
+        PARSE_ERROR("Can't create the base for the 'exit' statement!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -17,7 +17,7 @@ ast_node_t* cpl_parse_exit(PARSER_ARGS) {
     ast_node_t* value = cpl_parse_expression(it, ctx, smt, 1);
     if (value) AST_add_node(base, value);
     else {
-        PARSE_ERROR("Error during a parse of the '%s' statement! '%s' <stmt>!", EXIT_COMMAND, EXIT_COMMAND);
+        PARSE_ERROR("Error during a parse of the 'exit' statement! 'exit' <stmt>!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;

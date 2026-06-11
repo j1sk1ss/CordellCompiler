@@ -6,7 +6,7 @@ ast_node_t* cpl_parse_while(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create a base for the '%s' statement!", WHILE_COMAND);
+        PARSE_ERROR("Can't create a base for the 'while' statement!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -17,7 +17,7 @@ ast_node_t* cpl_parse_while(PARSER_ARGS) {
     ast_node_t* stmt = cpl_parse_expression(it, ctx, smt, 1);
     if (stmt) AST_add_node(base, stmt);
     else {
-        PARSE_ERROR("Error during parsing process of a condition in the '%s' statement!", WHILE_COMAND);
+        PARSE_ERROR("Error during parsing process of a condition in the 'while' statement!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -25,10 +25,11 @@ ast_node_t* cpl_parse_while(PARSER_ARGS) {
 
     ast_node_t* body = NULL;
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) body = cpl_parse_line_scope(it, ctx, smt, 1);
-    else body = cpl_parse_scope(it, ctx, smt, 1);
+    else                                      body = cpl_parse_scope(it, ctx, smt, 1);
+    
     if (body) AST_add_node(base, body);
     else {
-        PARSE_ERROR("Error during parsing in the '%s' statement body!", WHILE_COMAND);
+        PARSE_ERROR("Error during parsing in the 'while' statement body!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
