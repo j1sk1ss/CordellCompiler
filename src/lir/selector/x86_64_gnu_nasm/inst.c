@@ -249,19 +249,24 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         break;
                     }
                     case LIR_iBRHT: case LIR_iBLFT:
+                    case LIR_bSHR:  case LIR_bSHL:
                     case LIR_bOR:   case LIR_bXOR: case LIR_bAND:
                     case LIR_iMUL:  case LIR_iSUB: case LIR_iADD: {
-                        if (lh->farg->t == LIR_REGISTER && lh->sarg->t == LIR_REGISTER) break;
+                        int is_shift = 
+                            lh->op == LIR_iBRHT || lh->op == LIR_iBLFT ||
+                            lh->op == LIR_bSHR  || lh->op == LIR_bSHL;
+                        if (
+                            !is_shift &&
+                            lh->farg->t == LIR_REGISTER && 
+                            lh->sarg->t == LIR_REGISTER
+                        ) break;
                         int shared_size = -1;
                         if (lh->op == LIR_iMUL) shared_size = lh->sarg->size < 4 ? 4 : lh->sarg->size; 
                         lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
                         lir_subject_t* a_exit  = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, shared_size);
                         _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
 
-                        if (
-                            lh->op == LIR_iBRHT || 
-                            lh->op == LIR_iBLFT
-                        ) {
+                        if (is_shift) {
                             lir_subject_t* b_entry = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, 1);
                             _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b_entry, lh->targ, NULL), lh);
                             lh->targ = b_entry;

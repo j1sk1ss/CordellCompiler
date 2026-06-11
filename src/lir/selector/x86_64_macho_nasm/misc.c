@@ -10,7 +10,7 @@ lir_subject_t* x86_64_macho_nasm_create_tmp(lir_registers_t reg, lir_subject_t* 
         VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)
     ) {
         vtype = vi.type;
-        vsize = vi.vfs.ptr > 0 ? 8 : vsize;
+        if (forced_size < 0 && vi.vfs.ptr > 0) vsize = 8;
     }
     
     symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, NULL, &smt->v);
