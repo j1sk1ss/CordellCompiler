@@ -309,24 +309,20 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
 }
 
 int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
-    foreach (lir_block_t* lb, &cctx->outs.lout) {
-        _convert_lirblock_to_assembly(lb, NULL, smt, output);
-    }
-
-    map_foreach (section_info_t* section, &smt->c.sectb) {
+    foreach (section_info_t* section, &smt->c.sorted.sectb) {
         if (!section->name->requals(section->name, CONF_get_no_section())) {
             EMIT_COMMAND("section %s", section->name->body);
         }
         
-        set_foreach (symbol_id_t id, &section->vars) {
+        foreach (symbol_id_t id, &section->sorted.vars) {
             _generate_variable(id, smt, output);
         }
 
-        set_foreach (symbol_id_t id, &section->strs) {
+        foreach (symbol_id_t id, &section->sorted.strs) {
             _generate_ro_string(id, smt, output);
         }
 
-        set_foreach (symbol_id_t id, &section->func) {
+        foreach (symbol_id_t id, &section->sorted.func) {
             func_info_t fi;
             if (!FNTB_get_info_id(id, &fi, &smt->f)) continue;
             foreach (symbol_id_t l_id, &fi.local) {
@@ -335,6 +331,10 @@ int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output
 
             _generate_function(id, cctx, smt, output);
         }
+    }
+
+    foreach (lir_block_t* lb, &cctx->outs.lout) {
+        _convert_lirblock_to_assembly(lb, NULL, smt, output);
     }
 
     return 1;
