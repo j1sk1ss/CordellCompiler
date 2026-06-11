@@ -28,7 +28,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         }
         case LIR_STRT:
         case LIR_FDCL: {
-            EMIT_COMMAND("%s:", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
+            if (!fi->flags.onlybody) EMIT_COMMAND("%s:", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
             if (!fi->flags.naked) {
                 EMIT_COMMAND("push ebp");
                 EMIT_COMMAND("mov ebp, esp");
@@ -289,12 +289,14 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f) || !fi.flags.used) return 0;
     
-    if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.name->body);
-    else { 
-        const char* modifier = fi.flags.weak ? ":function weak" : "";
-        if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
-        else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.name->body, modifier);
-        if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
+    if (!fi.flags.onlybody) {
+        if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.name->body);
+        else { 
+            const char* modifier = fi.flags.weak ? ":function weak" : "";
+            if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
+            else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.name->body, modifier);
+            if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
+        }
     }
 
     cfg_func_t* fb;

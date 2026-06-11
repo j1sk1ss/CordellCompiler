@@ -3,6 +3,31 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## only_body annotation
+<div class="change-date">Date: 2026-06-11</div>
+Sometimes there is a desire to write low-level information which neither is not a function nor variable. For instance: `[bits 16]`. Now, CPL functions can be placed with the `only_body` annotation:
+
+```cpl
+@[only_body]
+function __head() {
+    asm() { "[bits 16]" }
+}
+start() {
+    exit 1;
+}
+```
+
+The code above will work as a header for a file:
+
+```asm
+[bits 16]
+global _start
+_start:
+    ; logic
+```
+
+The annotation will tell to the compiler to ignore all information about the '__head' function and use only its body. The importnat part here - '__head' still exists, which means compiler can and will optimize it.
+
 ## :: for implementation
 <div class="change-date">Date: 2026-06-10</div>
 Instead of the 'impl' annotation, I've decided to use '::':

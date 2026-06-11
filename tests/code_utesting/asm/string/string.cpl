@@ -12,8 +12,9 @@ global _main
 _main:
     push    rdi
     mov     rdi, [rel _str_0_]
-    call    _cpl_print0
+    call    print
     pop     rdi
     mov     rax, 60
     syscall
+extern print
 /:

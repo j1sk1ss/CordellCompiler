@@ -26,6 +26,7 @@ The parser accepts the form `@[name]` and, for annotations that need a value, `@
 | `@[inline(always)]` | function | force the inline decision toward always inline |
 | `@[inline(never)]` | function | force the inline decision toward never inline |
 | `@[inline(model)]` | function | use the model-based inline mode |
+| `@[only_body]` | function | exclude all entry and exit routine, just the function's body |
 | `@[self]` | container function | mark the function as an explicit-self method for container call rewriting |
 | `@[abi]` | function | mark the function as ABI-compatible |
 | `@[weak]` | function | mark the function as a weak symbol |

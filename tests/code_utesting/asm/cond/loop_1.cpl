@@ -13,10 +13,11 @@ lb8:
     jmp     lb9
 ; BB3:
 lb9:
-    call    _cpl_foo0
+    call    foo
     jmp     lb8
 ; BB4:
 lb10:
     mov     rax, 60
     syscall
+extern foo
 /:
