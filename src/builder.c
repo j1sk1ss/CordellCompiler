@@ -728,17 +728,6 @@ int main(int argc, char* argv[]) {
         lir_ctx_t lirctx = { 0 };
         LIR_generate(&cfgctx, &lirctx, &smt);
 
-        if (options.config.emit_lir) {
-            const char* lir_output = _output_path_or_default(options.locations.lir_output, "output.lir");
-            FILE* lir_file = fopen(lir_output, "w");
-            if (!lir_file) {
-                fprintf(stderr, "Can't open LIR output file %s: %s\n", lir_output, strerror(errno));
-                return 1;
-            }
-            DUMP_format_lirctx(&lirctx, &smt, 0, 0, lir_file);
-            fclose(lir_file);
-        }
-
         if (options.config.copy_prop) {
             LIR_variable_copy_propagation(&cfgctx, &smt);
             LIR_drop_unused_variables(&cfgctx);
@@ -784,6 +773,17 @@ int main(int argc, char* argv[]) {
 
         LIR_DFG_compute_inout(&cfgctx);
         LIR_DFG_create_deall(&cfgctx, &smt);
+
+        if (options.config.emit_lir) {
+            const char* lir_output = _output_path_or_default(options.locations.lir_output, "output.lir");
+            FILE* lir_file = fopen(lir_output, "w");
+            if (!lir_file) {
+                fprintf(stderr, "Can't open LIR output file %s: %s\n", lir_output, strerror(errno));
+                return 1;
+            }
+            DUMP_format_lirctx(&lirctx, &smt, 0, 0, lir_file);
+            fclose(lir_file);
+        }
 
         map_t colors;
         map_init(&colors, MAP_NO_CMP);
