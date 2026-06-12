@@ -314,6 +314,9 @@ int i386_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) 
     map_foreach (section_info_t* section, &smt->c.sectb) {
         if (!section->name->requals(section->name, CONF_get_no_section())) {
             EMIT_COMMAND("section %s", section->name->body);
+            if (section->align != FIELD_NO_CHANGE) {
+                EMIT_COMMAND("align %i", section->align);
+            }
         }
 
         set_foreach (symbol_id_t id, &section->vars) {

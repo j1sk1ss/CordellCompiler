@@ -1,18 +1,22 @@
 #include <ast/astgen/annot.h>
 
-annotation_t* ANNOT_create_annotation(annotation_type_t t, string_t* data, long value) {
+annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* fp, annotation_param_t* sp) {
     annotation_t* annot = (annotation_t*)mm_malloc(sizeof(annotation_t));
     if (!annot) return NULL;
     str_memset(annot, 0, sizeof(annotation_t));
     annot->t = t;
     switch (t) {
-        case ADDRESS_ANNOTATION:   annot->data.address = value;                         break;
-        case COUNTER_ANNOTATION:   annot->data.counter = value;                         break;
-        case ALIGN_ANNOTATION:     annot->data.align = (int)value;                      break;
-        case REGISTER_ANNOTATION:  annot->data.regval = (short)value;                   break;
-        case SECTION_ANNOTATION:   annot->data.section = data->copy(data);              break;
-        case ENTRY_ANNOTATION:     if (data) annot->data.fname = data->copy(data);      break;
-        case INLINE_ANNOTATION:    if (data) annot->data.inline_opt = data->copy(data); break;
+        case ADDRESS_ANNOTATION:   annot->data.address = fp->value;                                       break;
+        case COUNTER_ANNOTATION:   annot->data.counter = fp->value;                                       break;
+        case ALIGN_ANNOTATION:     annot->data.align = (int)fp->value;                                    break;
+        case REGISTER_ANNOTATION:  annot->data.regval = (short)fp->value;                                 break;
+        case ENTRY_ANNOTATION:     if (fp->string) annot->data.fname = fp->string->copy(fp->string);      break;
+        case INLINE_ANNOTATION:    if (fp->string) annot->data.inline_opt = fp->string->copy(fp->string); break;
+        case SECTION_ANNOTATION: {
+            annot->data.section = fp->string->copy(fp->string);
+            annot->data.align   = sp->value;
+            break;
+        }
         default: break;
     }
 
@@ -36,6 +40,7 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
             case SECTION_ANNOTATION: {
                 if (summary->section) destroy_string(summary->section);
                 summary->section = annot->data.section->copy(annot->data.section); 
+                summary->salign  = annot->data.align;
                 break;
             }
             case ENTRY_ANNOTATION: {

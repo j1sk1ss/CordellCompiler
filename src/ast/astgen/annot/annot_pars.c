@@ -1,24 +1,41 @@
 #include <ast/astgen/astgen.h>
 
-static token_t* _extract_token_from_brackets(list_iter_t* it) {
-    if (!consume_token(it, OPEN_BRACKET_TOKEN)) return NULL;
-    forward_token(it, 1);
-    token_t* content = CURRENT_TOKEN;
-    if (consume_token(it, CLOSE_BRACKET_TOKEN)) forward_token(it, 1);
-    else return NULL;
-    return content;
+static int _extract_params_from_brackets(list_iter_t* it, token_t** first, token_t** second) {
+    if (!consume_token(it, OPEN_BRACKET_TOKEN)) return 1;
+    while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
+        if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
+            forward_token(it, 1);
+            continue;
+        }
+
+        if (!*first) *first = CURRENT_TOKEN;
+        else if (!*second) *second = CURRENT_TOKEN;
+
+        forward_token(it, 1);
+    }
+
+    if (!CURRENT_TOKEN) return 0;
+    consume_token(it, CLOSE_BRACKET_TOKEN);
+    return 1;
 }
 
-#define ADD_ANNOTATION_HANDLER(n, t)                                           \
-    if (raw_annot->requals(raw_annot, n)) {                                    \
-        return ANNOT_create_annotation(                                        \
-            t, content ? content->body : NULL,                                 \
-            content ? content->body->to_llong(content->body) : FIELD_NO_CHANGE \
-        );                                                                     \
+#define PACK_PARAM(t, box) \
+    (box)->string = t ? t->body : NULL; \
+    (box)->value  = t ? t->body->to_llong(t->body) : FIELD_NO_CHANGE;
+#define ADD_ANNOTATION_HANDLER(n, t)               \
+    if (raw_annot->requals(raw_annot, n)) {        \
+        return ANNOT_create_annotation(n, &a, &b); \
     }
 static annotation_t* _parse_annotation_content(list_iter_t* it) {
+    token_t *fp = NULL, *sp = NULL;
     string_t* raw_annot = CURRENT_TOKEN->body;
-    token_t* content    = _extract_token_from_brackets(it);
+
+    _extract_params_from_brackets(it, &fp, &sp);
+
+    annotation_param_t a, b;
+    PACK_PARAM(fp, &a);
+    PACK_PARAM(sp, &b);
+
     ADD_ANNOTATION_HANDLER(SECTN_ANNOTATION_COMMAND, SECTION_ANNOTATION);
     ADD_ANNOTATION_HANDLER(NOSEC_ANNOTATION_COMMAND, NOSECTION_ANNOTATION);
     ADD_ANNOTATION_HANDLER(ALIGN_ANNOTATION_COMMAND, ALIGN_ANNOTATION);
@@ -42,6 +59,7 @@ static annotation_t* _parse_annotation_content(list_iter_t* it) {
     return ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, FIELD_NO_CHANGE);
 }
 #undef ADD_ANNOTATION_HANDLER
+#undef PACK_PARAM
 
 ast_node_t* cpl_parse_annot(PARSER_ARGS) {
     PARSER_ARGS_USE;

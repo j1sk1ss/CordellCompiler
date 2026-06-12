@@ -201,7 +201,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     else { /* Local function doesn't have a section. It copies position of its parent */
         if (annots.is_nosec)      annots.section = create_string(CONF_get_no_section());
         else if (!annots.section) annots.section = create_string(CONF_get_code_section());
-        SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
+        SCTB_move_to_section(annots.section, annots.salign, name->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
     }
 
     ANNOT_destroy_summary(&annots);

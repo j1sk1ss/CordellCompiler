@@ -50,7 +50,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.reg, annots.align, &smt->v);
     if (!TKN_in_stack(name->t)) {
         if (!annots.section) annots.section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
-        SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
+        SCTB_move_to_section(annots.section, annots.salign, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
     }
 
     if (consume_token(it, ASSIGN_TOKEN)) {

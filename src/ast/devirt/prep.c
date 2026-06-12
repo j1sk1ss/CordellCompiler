@@ -87,7 +87,7 @@ static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt, 
         name->sinfo.s_id = NO_SYMBOL_ID;
         AST_DVRT_register_implementation(name->sinfo.v_id, base, ctx);
         
-        SCTB_add_to_section(section, name->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
+        SCTB_add_to_section(section, FIELD_NO_CHANGE, name->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
         destroy_string(section);
         list_free(&types);
     }
