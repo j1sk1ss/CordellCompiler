@@ -186,7 +186,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         int arg_offset = 0, arg_count = list_size(&args->storage.list.h);
         fn_iterate_args (&resolved) {
             if (arg_offset++ < arg_count || !arg->c || !arg->c->siblings.n) continue;
-            hir_subject_t* el = HIR_generate_elem(arg->c->siblings.n, ctx, smt);
+            hir_subject_t* el = HIR_generate_elem(arg->c->siblings.n->c, ctx, smt);
             if (!HIR_is_defined_type(el->t)) {
                 HIR_BLOCK1(ctx, HIR_VRUSE, el);
                 el = HIR_copy_subject(el);

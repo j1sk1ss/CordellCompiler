@@ -44,6 +44,7 @@ static inline int NASMFMT_is_data_op(const char* token, size_t len) {
            NASMFMT_token_is(token, len, "dw")   ||
            NASMFMT_token_is(token, len, "dd")   ||
            NASMFMT_token_is(token, len, "dq")   ||
+           NASMFMT_token_is(token, len, "times") ||
            NASMFMT_token_is(token, len, "resb") ||
            NASMFMT_token_is(token, len, "resw") ||
            NASMFMT_token_is(token, len, "resd") ||
@@ -127,12 +128,20 @@ static inline void NASMFMT_emit_part_command(FILE* output, const char* fmt, ...)
     NASMFMT_emit_formatted_line(output, buffer, 0);
 }
 
+static inline void NASMFMT_emit_data_label(FILE* output, const char* label) {
+    NASMFMT_emit_command(output, "%s:", label);
+}
+
 #ifndef EMIT_COMMAND
 #define EMIT_COMMAND(cmd, ...) NASMFMT_emit_command(output, cmd, ##__VA_ARGS__)
 #endif
 
 #ifndef EMIT_PART_COMMAND
 #define EMIT_PART_COMMAND(cmd, ...) NASMFMT_emit_part_command(output, cmd, ##__VA_ARGS__)
+#endif
+
+#ifndef EMIT_DATA_LABEL
+#define EMIT_DATA_LABEL(label) NASMFMT_emit_data_label(output, label)
 #endif
 
 #endif

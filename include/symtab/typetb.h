@@ -60,6 +60,9 @@ symbol_id_t TPTB_resolve_child(symbol_id_t p_id, string_t* name, typetab_ctx_t* 
 type_type_t TPTB_get_type_type_id(symbol_id_t id, typetab_ctx_t* ctx);
 token_type_t TPTB_get_token_type_id(symbol_id_t id, typetab_ctx_t* ctx);
 int TPTB_get_info(string_t* name, symbol_id_t s_id, int ptr, type_info_t* info, typetab_ctx_t* ctx);
+int TPTB_find_type_init_slot(
+    symbol_id_t t_id, long target_slot, long base_offset, long* current_slot, long* slot_offset, long* slot_size, typetab_ctx_t* ctx
+);
 int TPTB_unload(typetab_ctx_t* ctx);
 
 #endif

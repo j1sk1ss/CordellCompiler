@@ -53,24 +53,9 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         SCTB_move_to_section(annots.section, annots.salign, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
     }
 
-    if (consume_token(it, ASSIGN_TOKEN)) {
-        forward_token(it, 1);
-        ast_node_t* value_node = cpl_parse_expression(it, ctx, smt, 1);
-        if (!value_node) {
-            PARSE_ERROR("Error during parsing of a declaration statement!");
-            AST_unload(base);
-            ANNOT_destroy_summary(&annots);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
-
-        if ( /* If it's a global variable, it acts differently.
-                It doesn't generate any initialization code and must have a pre-compiled value */
-            base->t->flags.glob
-        ) VRTB_update_definition(name->sinfo.v_id, value_node->t->body->to_llong(value_node->t->body), NO_SYMBOL_ID, &smt->v, 0);
-        AST_add_node(base, value_node);
-    }
-
+    ast_node_t* init_values = cpl_parse_declaration_value(it, ctx, smt, 0);
+    if (init_values) AST_add_node(base, init_values);
+    
     /* Register the variable as a basic type of the parent type,
        if this is a declaraion in a type. */
     symbol_id_t declared_type = base->sinfo.t_id;

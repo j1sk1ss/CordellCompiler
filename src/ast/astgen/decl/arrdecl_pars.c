@@ -174,52 +174,8 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     long long const_length = -1;
     if (length->t->t_type != UNKNOWN_NUMERIC_TOKEN) base->t->flags.vla = 1;
     else const_length = length->t->body->to_llong(length->t->body);
-    if (consume_token(it, ASSIGN_TOKEN)) {
-        forward_token(it, 1);
-        switch (CURRENT_TOKEN->t_type) {
-            case OPEN_BLOCK_TOKEN: {
-                long long act_size = 0;
-                forward_token(it, 1);
-                while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BLOCK_TOKEN) {
-                    if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
-                        forward_token(it, 1);
-                        continue;
-                    }
-
-                    ast_node_t* elem = cpl_parse_expression(it, ctx, smt, 1);
-                    if (elem) AST_add_node(base, elem);
-                    else { 
-                        PARSE_ERROR("Error during parsing of the array's initial element!");
-                        AST_unload(base);
-                        ANNOT_destroy_summary(&annots);
-                        RESTORE_TOKEN_POINT;
-                        return NULL;
-                    }
-
-                    const_length = MAX(const_length, act_size++);
-                }
-
-                break;
-            }
-            case STRING_VALUE_TOKEN: {
-                ast_node_t* elem = AST_create_node(CURRENT_TOKEN);
-                if (elem) AST_add_node(base, elem);
-                else { 
-                    PARSE_ERROR("Error during parsing of the array's initial element!");
-                    AST_unload(base);
-                    ANNOT_destroy_summary(&annots);
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
-                
-                const_length = MAX(const_length, CURRENT_TOKEN->body->len(CURRENT_TOKEN->body) + 1);
-                break;
-            }
-            default: break;
-        }
-
-        forward_token(it, 1);
-    }
+    ast_node_t* init_values = cpl_parse_declaration_value(it, ctx, smt, &const_length);
+    if (init_values) AST_add_node(base, init_values);
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     _resolve_array_type(type, ctx, smt);

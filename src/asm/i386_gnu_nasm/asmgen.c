@@ -199,13 +199,53 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
 static long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* elem_tkn, sym_table_t* smt) {
     long type_size = TPTB_get_memory_size_id(vi->t_id, &smt->t);
     if (type_size != FIELD_NO_CHANGE) return type_size;
-
     switch (TKN_variable_bitness(elem_tkn, 1)) {
         case TYPE_FULL_SIZE:
         case TYPE_HALF_SIZE:    return ai->size * 4;
         case TYPE_QUARTER_SIZE: return ai->size * 2;
         default:                return ai->size;
     }
+}
+
+// TODO: docs
+static inline void _emit_zero_bytes(string_t* name, long count, FILE* output) {
+    if (count <= 0) return;
+    if (name) EMIT_COMMAND("%s times %ld db 0", name->body, count);
+    else EMIT_COMMAND("times %ld db 0", count);
+}
+
+// TODO: docs
+static inline void _emit_typed_value(string_t* name, long size, long value, FILE* output) {
+    const char* op = size == 4 ? "dd" : size == 2 ? "dw" : "db";
+    if (name) EMIT_COMMAND("%s %s %ld", name->body, op, value);
+    else EMIT_COMMAND("%s %ld", op, value);
+}
+
+// TODO: docs
+static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sym_table_t* smt, FILE* output) {
+    long reserve_size = _array_reserve_size(vi, ai, NULL, smt);
+    long value = 0;
+    long value_count = list_size(&ai->elems);
+    long emitted_end = 0;
+    list_iter_t values;
+    list_iter_hinit(&ai->elems, &values);
+
+    EMIT_DATA_LABEL(vi->name->body);
+    for (long slot = 0;; slot++) {
+        long slot_offset = 0, slot_size = 0, __dummy = 0;
+        if (!TPTB_find_type_init_slot(vi->t_id, slot, 0, &__dummy, &slot_offset, &slot_size, &smt->t)) break;
+
+        long padding = slot_offset - emitted_end;
+        _emit_zero_bytes(NULL, padding, output);
+        if (slot < value_count) list_iter_next(&values, (void**)&value);
+
+        _emit_typed_value(NULL, slot_size, value, output);
+
+        emitted_end = slot_offset + slot_size;
+    }
+
+    _emit_zero_bytes(NULL, reserve_size - emitted_end, output);
+    return 1;
 }
 
 /*
@@ -238,6 +278,15 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
         }
         /* Reservation with the initialized data */
         else {
+            type_info_t ti;
+            if (
+                TPTB_get_info_id(vi.t_id, &ti, &smt->t) &&
+                (ti.t == TYPE_CUSTOM || (
+                    ti.t == TYPE_ARRAY &&
+                    TPTB_get_type_type_id(TPTB_get_first_child(vi.t_id, &smt->t), &smt->t) == TYPE_CUSTOM
+                ))
+            ) return _generate_typed_initializer(&vi, &ai, smt, output);
+
             switch (TKN_variable_bitness(&tmptkn, 1)) {
                 case TYPE_FULL_SIZE:
                 case TYPE_HALF_SIZE:    EMIT_PART_COMMAND("%s dd ", vi.name->body); break;

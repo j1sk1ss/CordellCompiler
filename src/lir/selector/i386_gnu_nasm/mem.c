@@ -207,16 +207,23 @@ int i386_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* 
                                 break;
                             }
                             else {
-                                int el_size = _get_ast_type_size(ai.elements_info.el_type);
-                                if (ai.elements_info.el_flags.ptr) el_size = 4;
-                                int arr_off = stack_map_alloc(ALIGN(ai.size * el_size, vi.vmi.align), &smp);
-                                VRTB_update_memory(lh->farg->storage.var.v_id, arr_off, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
+                                long reserve_size = TPTB_get_memory_size_id(vi.t_id, &smt->t);
+                                if (reserve_size == FIELD_NO_CHANGE) {
+                                    int el_size  = ai.elements_info.el_flags.ptr ? 4 : _get_ast_type_size(ai.elements_info.el_type);
+                                    reserve_size = ai.size * el_size;
+                                }
 
-                                int el_pos = 0;
+                                int arr_off = stack_map_alloc(ALIGN(reserve_size, vi.vmi.align), &smp);
+                                VRTB_update_memory(lh->farg->storage.var.v_id, arr_off, reserve_size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
+
+                                long el_pos = 0;
                                 foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
                                     if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
+
+                                    long el_offset = 0, el_size = 0, __dummy = 0;
+                                    if (!TPTB_find_type_init_slot(vi.t_id, el_pos, 0, &__dummy, &el_offset, &el_size, &smt->t)) break;
                                     LIR_insert_block_before(
-                                        LIR_create_block(LIR_aMOV, LIR_SUBJ_OFF(EBP, arr_off - el_pos * el_size, el_size), elem, NULL), lh
+                                        LIR_create_block(LIR_aMOV, LIR_SUBJ_OFF(EBP, arr_off - el_offset, el_size), elem, NULL), lh
                                     );
 
                                     el_pos++;
