@@ -4,7 +4,7 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
-    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .reg = FIELD_NO_CHANGE };
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1, .reg = FIELD_NO_CHANGE };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);

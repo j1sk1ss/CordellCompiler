@@ -3,9 +3,39 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Section alignment
+<div class="change-date">Date: 2026-06-12</div>
+Section annotation now can have an align modifier which helps us to align an entire section. For instance:
+
+```cpl
+@[section(".text", 16)]
+glob i32 bloated = 0;
+
+@[section(".text", 16)]
+function aligned_func() {
+    i32 a;
+    arr test[10, i32];
+}
+```
+
+The second optional parameter in the section annotation now is responsible for section alignment. </br>
+Why we need this? The `GRUB2` bootloader requires us to write a boot script, which looks like the next one:
+
+```asm
+; code ...
+section .bss
+align 16
+stack_bottom:
+	resb 16384 ; 16 KiB
+stack_top:
+; code ...
+```
+
+By default, there was no way to set align to a section. Now this is possible.
+
 ## only_body annotation
 <div class="change-date">Date: 2026-06-11</div>
-Sometimes there is a desire to write low-level information which neither is not a function nor variable. For instance: `[bits 16]`. Now, CPL functions can be placed with the `only_body` annotation:
+Sometimes there is a desire to write low-level information which neither is not a function nor variable. For instance: `[bits 16]`. Now, CPL functions can be used with the `only_body` annotation:
 
 ```cpl
 @[only_body]
@@ -1423,7 +1453,7 @@ This is the third version of this compiler. Was performed a full structure trans
 ----------------------------------------
 
 # Version v2
-<div class="change-date">Date: 2025-10-21</div>
+<div class="change-date">Date: 2025-09-01</div>
 This is the second version of this compiler (at the moment of 10.20.2025, at least a stable work version). Main features is a full code refactoring of the `token` part and the `AST` generation. Also perform a cleanup and implement the basic `LIR`. The main improvement was in the syntax of the `CP-language` (Improve the gramma).
 
 ```cplv2
@@ -1465,7 +1495,7 @@ Some improvements in typing (now we're able to use Rust-like statements such as 
 ----------------------------------------
 
 # Version v1
-<div class="change-date">Date: 2025-10-21</div>
+<div class="change-date">Date: 2025-06-18</div>
 This is the first version of this compiler. The last commit before v2 was in the middle of summer of 2025. Main features of this version is a [`token` -> `AST` -> `ASM`] structure, basic `NASM`-syntax code generation, examples like `brainfuck interpreter`, etc. The most interesting part, in my opinion, is the syntax:
 
 ```cplv1

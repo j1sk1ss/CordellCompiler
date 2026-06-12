@@ -1,4 +1,3 @@
-: ONLY_THIS :
 container node {
     function new() -> ptr node;
     @[self] 

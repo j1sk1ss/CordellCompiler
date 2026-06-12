@@ -1,4 +1,3 @@
-: ONLY_THIS :
 @[only_body]
 @[naked]
 @[nosection]

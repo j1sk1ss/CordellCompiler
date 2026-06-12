@@ -2,6 +2,7 @@
 
 static int _extract_params_from_brackets(list_iter_t* it, token_t** first, token_t** second) {
     if (!consume_token(it, OPEN_BRACKET_TOKEN)) return 1;
+    forward_token(it, 1);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
         if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
             forward_token(it, 1);
@@ -24,7 +25,7 @@ static int _extract_params_from_brackets(list_iter_t* it, token_t** first, token
     (box)->value  = t ? t->body->to_llong(t->body) : FIELD_NO_CHANGE;
 #define ADD_ANNOTATION_HANDLER(n, t)               \
     if (raw_annot->requals(raw_annot, n)) {        \
-        return ANNOT_create_annotation(n, &a, &b); \
+        return ANNOT_create_annotation(t, &a, &b); \
     }
 static annotation_t* _parse_annotation_content(list_iter_t* it) {
     token_t *fp = NULL, *sp = NULL;
@@ -35,7 +36,7 @@ static annotation_t* _parse_annotation_content(list_iter_t* it) {
     annotation_param_t a, b;
     PACK_PARAM(fp, &a);
     PACK_PARAM(sp, &b);
-
+    
     ADD_ANNOTATION_HANDLER(SECTN_ANNOTATION_COMMAND, SECTION_ANNOTATION);
     ADD_ANNOTATION_HANDLER(NOSEC_ANNOTATION_COMMAND, NOSECTION_ANNOTATION);
     ADD_ANNOTATION_HANDLER(ALIGN_ANNOTATION_COMMAND, ALIGN_ANNOTATION);

@@ -11,7 +11,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         return NULL;
     }
 
-    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .reg = FIELD_NO_CHANGE };
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1, .reg = -1 };
     ANNOT_read_annotations(&ctx->annots, &annots);
     if (annots.is_argpop) list_add(&base->annots, ANNOT_create_annotation(POPARG_ANNOTATION, NULL, 0));
 

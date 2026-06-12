@@ -96,7 +96,10 @@ typedef struct {
     union {
         int           align;      /* ALIGN_ANNOTATION     */
         string_t*     fname;      /* ENTRY_ANNOTATION     */
-        string_t*     section;    /* SECTION_ANNOTATION   */
+        struct {
+            string_t* section;
+            int       align;
+        } section;                /* SECTION_ANNOTATION   */
         string_t*     inline_opt; /* INLINE_ANNOTATION    */
         long          address;    /* ADDRESS_ANNOTATION   */
         long          counter;    /* COUNTER_ANNOTATION   */

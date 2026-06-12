@@ -127,7 +127,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         return NULL;
     }
 
-    annotations_summary_t annots = { .section = NULL, .is_entry = 0, .is_naked = 0 };
+    annotations_summary_t annots = { .section = NULL, .salign = -1, .is_entry = 0, .is_naked = 0 };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
     symbol_id_t preserved_tid = ctx->t_id;

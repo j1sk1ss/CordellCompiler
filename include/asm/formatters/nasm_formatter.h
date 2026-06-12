@@ -35,6 +35,7 @@ static inline int NASMFMT_is_directive(const char* token, size_t len) {
     return NASMFMT_token_is(token, len, "section") ||
            NASMFMT_token_is(token, len, "global")  ||
            NASMFMT_token_is(token, len, "extern")  ||
+           NASMFMT_token_is(token, len, "align")   ||
            NASMFMT_token_is(token, len, "%line");
 }
 
