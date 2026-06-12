@@ -22,6 +22,7 @@ typedef struct {
     signed char self;     /* annot     */
     signed char naked;    /* 1 / 0   */ /* annot */
     signed char inln;     /* 1, 2, 3 */ /* annot */
+    signed char onlybody; /* annot     */
 } func_info_flags_t;
 
 typedef struct {

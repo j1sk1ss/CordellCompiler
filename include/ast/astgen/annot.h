@@ -14,6 +14,7 @@
 #define NAKED_ANNOTATION_COMMAND "naked"
 #define SECTN_ANNOTATION_COMMAND "section"
 #define NOSEC_ANNOTATION_COMMAND "nosection"
+#define BODYO_ANNOTATION_COMMAND "only_body"
 #define ADDRS_ANNOTATION_COMMAND "address"
 #define NOFAL_ANNOTATION_COMMAND "no_fall"
 #define NTLAZ_ANNOTATION_COMMAND "not_lazy"
@@ -62,30 +63,32 @@ typedef struct {
     char      is_union    : 1;
     char      is_weak     : 1;
     char      is_abi      : 1;
+    char      is_onlybody : 1;
 } annotations_summary_t;
 
 typedef enum {
     UNKNOWN_ANNOTATION,
-    ALIGN_ANNOTATION,     /* Set the align of a declaration             */
-    SECTION_ANNOTATION,   /* Put a declration or function to a section  */
-    NOSECTION_ANNOTATION, /* Put a declaration or function out a sec    */
-    NAKED_ANNOTATION,     /* Don't unpack START, FDECL                  */
-    ADDRESS_ANNOTATION,   /* Where place the object?                    */
-    ENTRY_ANNOTATION,     /* Is this an entry function?                 */
-    NOFALL_ANNOTATION,    /* switch with a break as a default command   */
-    NOTLAZY_ANNOTATION,   /* && and || with full evaluation             */
-    STRAIGHT_ANNOTATION,  /* switch based on if-elseif-else             */
-    COUNTER_ANNOTATION,   /* hidden counter-break instructure           */
-    HOT_ANNOTATION,       /* Will make the linked else branch cold      */
-    COLD_ANNOTATION,      /* Will make the linked then branch hot       */
-    REGISTER_ANNOTATION,  /* Will link the selected register to a decl  */
-    POPARG_ANNOTATION,    /* Will pop value from the stack to a linked  */
-    INLINE_ANNOTATION,    /* Will change inline decider result          */
-    SELF_ANNOTATION,      /* Will tell devirt that a function is static */
-    LIKEC_ANNOTATION,     /* Will tell container to generate C offsets  */
-    UNION_ANNOTATION,     /* Will tell container to store fields union  */
-    WEAK_ANNOTATION,      /* Will mark a function as weak               */
-    ABI_ANNOTATION,       /* Will mark a function as ABI-compatible     */
+    ALIGN_ANNOTATION,     /* Set the align of a declaration                 */
+    SECTION_ANNOTATION,   /* Put a declration or function to a section      */
+    NOSECTION_ANNOTATION, /* Put a declaration or function out a sec        */
+    NAKED_ANNOTATION,     /* Don't unpack START, FDECL                      */
+    ADDRESS_ANNOTATION,   /* Where place the object?                        */
+    ENTRY_ANNOTATION,     /* Is this an entry function?                     */
+    NOFALL_ANNOTATION,    /* switch with a break as a default command       */
+    NOTLAZY_ANNOTATION,   /* && and || with full evaluation                 */
+    STRAIGHT_ANNOTATION,  /* switch based on if-elseif-else                 */
+    COUNTER_ANNOTATION,   /* hidden counter-break instructure               */
+    HOT_ANNOTATION,       /* Will make the linked else branch cold          */
+    COLD_ANNOTATION,      /* Will make the linked then branch hot           */
+    REGISTER_ANNOTATION,  /* Will link the selected register to a decl      */
+    POPARG_ANNOTATION,    /* Will pop value from the stack to a linked      */
+    INLINE_ANNOTATION,    /* Will change inline decider result              */
+    SELF_ANNOTATION,      /* Will tell devirt that a function is static     */
+    LIKEC_ANNOTATION,     /* Will tell container to generate C offsets      */
+    UNION_ANNOTATION,     /* Will tell container to store fields union      */
+    WEAK_ANNOTATION,      /* Will mark a function as weak                   */
+    ABI_ANNOTATION,       /* Will mark a function as ABI-compatible         */
+    ONLYBODY_ANNOTATION,  /* Will say that the function is just a container */
 } annotation_type_t;
 
 typedef struct {

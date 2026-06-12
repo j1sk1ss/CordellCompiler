@@ -28,7 +28,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         }
         case LIR_STRT:
         case LIR_FDCL: {
-            EMIT_COMMAND("%s:", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
+            if (!fi->flags.onlybody) EMIT_COMMAND("%s:", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
             if (!fi->flags.naked) {
                 EMIT_COMMAND("push rbp");
                 EMIT_COMMAND("mov rbp, rsp");
@@ -289,12 +289,14 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f) || !fi.flags.used) return 0;
     
-    if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.name->body);
-    else { 
-        const char* modifier = fi.flags.weak ? ":function weak" : "";
-        if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
-        else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.name->body, modifier);
-        if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
+    if (!fi.flags.onlybody) {
+        if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.name->body);
+        else { 
+            const char* modifier = fi.flags.weak ? ":function weak" : "";
+            if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
+            else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.name->body, modifier);
+            if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
+        }
     }
 
     cfg_func_t* fb;
@@ -307,11 +309,7 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
 }
 
 int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
-    foreach (lir_block_t* lb, &cctx->outs.lout) {
-        _convert_lirblock_to_assembly(lb, NULL, smt, output);
-    }
-
-    map_foreach (section_info_t* section, &smt->c.sectb) {
+    foreach (section_info_t* section, &smt->c.sorted.sectb) {
         if (!section->name->requals(section->name, CONF_get_no_section())) {
             EMIT_COMMAND("section %s", section->name->body);
             if (section->align != FIELD_NO_CHANGE) {
@@ -319,15 +317,15 @@ int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output
             }
         }
         
-        set_foreach (symbol_id_t id, &section->vars) {
+        foreach (symbol_id_t id, &section->sorted.vars) {
             _generate_variable(id, smt, output);
         }
 
-        set_foreach (symbol_id_t id, &section->strs) {
+        foreach (symbol_id_t id, &section->sorted.strs) {
             _generate_ro_string(id, smt, output);
         }
 
-        set_foreach (symbol_id_t id, &section->func) {
+        foreach (symbol_id_t id, &section->sorted.func) {
             func_info_t fi;
             if (!FNTB_get_info_id(id, &fi, &smt->f)) continue;
             foreach (symbol_id_t l_id, &fi.local) {
@@ -336,6 +334,10 @@ int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output
 
             _generate_function(id, cctx, smt, output);
         }
+    }
+
+    foreach (lir_block_t* lb, &cctx->outs.lout) {
+        _convert_lirblock_to_assembly(lb, NULL, smt, output);
     }
 
     return 1;

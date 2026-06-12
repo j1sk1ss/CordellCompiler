@@ -246,8 +246,10 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
             fb->lmap.entry->op == LIR_FDCL || 
             fb->lmap.entry->op == LIR_STRT
         ) {
+            func_info_t fi;
+            if (!FNTB_get_info_id(fb->lmap.entry->farg->storage.str.sid, &fi, &smt->f)) return 0;
             if (smp.last_offset || _verify_memory_usage(fb)) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
-            else FNTB_update_func(fb->lmap.entry->farg->storage.str.sid, FNTB_ONLY_FLAGS(FNTB_SET_NAKED(2)), &smt->f);
+            else FNTB_update_func(fb->lmap.entry->farg->storage.str.sid, FNTB_ONLY_FLAGS(FNTB_SET_NAKED(fi.flags.naked == 1 ? 1 : 2)), &smt->f);
         }
     }
 

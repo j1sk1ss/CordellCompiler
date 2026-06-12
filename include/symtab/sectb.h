@@ -15,15 +15,23 @@ typedef enum {
 } section_elem_type_t;
 
 typedef struct {
-    string_t* name;
-    set_t     vars; /* :symbol_id_t */
-    set_t     func; /* :symbol_id_t */
-    set_t     strs; /* :symbol_id_t */
-    int       align;
+    string_t*  name;
+    set_t      vars; /* :symbol_id_t */
+    set_t      func; /* :symbol_id_t */
+    set_t      strs; /* :symbol_id_t */
+    int        align;
+    struct {
+        list_t vars;
+        list_t func;
+        list_t strs;
+    } sorted;
 } section_info_t;
 
 typedef struct {
-    map_t sectb;    /* :section_info_t */
+    map_t      sectb;    /* :section_info_t */
+    struct {
+        list_t sectb;
+    } sorted;
 } sectb_ctx_t;
 
 int SCTB_move_to_section(string_t* section, int align, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);

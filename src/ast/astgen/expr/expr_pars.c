@@ -83,7 +83,8 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 break;
             }
             /* Member access */
-            case STAT_TOKEN: left->sinfo.t_id = type_lookup(left->t, ctx, smt);
+            case STAT_TOKEN: left->sinfo.t_id = type_lookup(left->t, ctx, smt); 
+                             __attribute__ ((fallthrough));
             case DOT_TOKEN: {
                 forward_token(it, 1);
                 symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
