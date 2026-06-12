@@ -516,6 +516,14 @@ class Parser {
     return false;
   }
 
+  private skipInnerComments() {
+    while (true) {
+      while (this.t[this.i]?.kind === "eol") this.i++;
+      if (this.t[this.i]?.kind !== "comment") break;
+      this.i++;
+    }
+  }
+
   private clearPendingMetadata() {
     this.pendingAnnotations = [];
   }
@@ -1561,9 +1569,12 @@ class Parser {
       }
       this.expect("punc", ")");
       this.expect("punc", "{");
+      this.skipInnerComments();
       while (!this.at("eof") && !this.at("punc", "}")) {
         this.expect("str", undefined, "asm_line: expected string literal");
+        this.skipInnerComments();
         this.match("punc", ",");
+        this.skipInnerComments();
       }
       this.expect("punc", "}");
       return;
@@ -1657,9 +1668,16 @@ class Parser {
     if (!this.match("op", "=")) return;
 
     if (this.match("punc", "{")) {
+      this.skipInnerComments();
       if (!this.at("punc", "}")) {
         this.parseExpression();
-        while (this.match("punc", ",")) this.parseExpression();
+        this.skipInnerComments();
+        while (this.match("punc", ",")) {
+          this.skipInnerComments();
+          if (this.at("punc", "}")) break;
+          this.parseExpression();
+          this.skipInnerComments();
+        }
       }
       this.expect("punc", "}", "arr_value: expected '}'");
       return;
@@ -1772,7 +1790,28 @@ class Parser {
     if (!this.at("eof")) this.i++;
   }
 
-  private parseExpression(): ExprInfo { return this.parseAssign(); }
+  private parseExpression(): ExprInfo { this.skipInnerComments(); return this.parseAssign(); }
+
+  private parseInitializerList(): ExprInfo {
+    const lbrace = this.cur();
+    this.expect("punc", "{", "initializer list: expected '{'");
+    this.skipInnerComments();
+
+    if (!this.at("punc", "}")) {
+      this.parseExpression();
+      this.skipInnerComments();
+      while (this.match("punc", ",")) {
+        this.skipInnerComments();
+        if (this.at("punc", "}")) break;
+        this.parseExpression();
+        this.skipInnerComments();
+      }
+    }
+
+    this.expect("punc", "}", "initializer list: expected '}'");
+    const endTok = this.prev();
+    return { type: { kind: "unknown" }, start: lbrace.start, end: endTok.end };
+  }
 
   private tryParseLambda(): ExprInfo | undefined {
     const saveI = this.i;
@@ -2006,7 +2045,11 @@ class Parser {
   }
 
   private parsePrimary(): ExprInfo {
+    this.skipInnerComments();
     this.parseInlineAnnotations();
+    this.skipInnerComments();
+
+    if (this.at("punc", "{")) return this.parseInitializerList();
 
     const lambda = this.tryParseLambda();
     if (lambda) return lambda;

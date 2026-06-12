@@ -16,7 +16,8 @@ start() {
       { scope, id=3 }
          [i0] (I0_TYPE_TOKEN, ptr, v_id=-1, t_id=3, s_id=-1)
             [a] (I0_VARIABLE_TOKEN, ptr, v_id=1, t_id=-1, s_id=3)
-            [foo] (CALL_ADDR_TOKEN, v_id=0, t_id=-1, s_id=1)
+            [=] (ASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+               [foo] (CALL_ADDR_TOKEN, v_id=0, t_id=-1, s_id=1)
          [()]
             [a] (I0_VARIABLE_TOKEN, ptr, v_id=1, t_id=3, s_id=3)
             { scope, id=-1 }

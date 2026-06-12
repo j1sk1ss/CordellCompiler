@@ -3,7 +3,7 @@
   "displayName": "CPL - VSCode language support and simple analysis",
   "description": "VS Code extention for CPL",
   "icon": "./cpl.png",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "j1sk1ss",
   "engines": {
     "vscode": "^1.80.0"

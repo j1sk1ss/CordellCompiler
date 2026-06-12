@@ -29,13 +29,14 @@ start() {
             [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
          [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=6, s_id=-1)
             [b] (I32_VARIABLE_TOKEN, v_id=3, t_id=1, s_id=3)
-            [+] (PLUS_TOKEN, v_id=-1, t_id=-1, s_id=-1)
-               [as] (CONVERT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
-                  [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
-                  [., type=4]
+            [=] (ASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+               [+] (PLUS_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+                  [as] (CONVERT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+                     [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
+                     [., type=4]
+                        [nd] (CUSTOM_VARIABLE_TOKEN, v_id=2, t_id=5, s_id=3)
+                        [b] (UNKNOWN_STRING_TOKEN, v_id=-1, t_id=4, s_id=-1)
+                  [., type=2]
                      [nd] (CUSTOM_VARIABLE_TOKEN, v_id=2, t_id=5, s_id=3)
-                     [b] (UNKNOWN_STRING_TOKEN, v_id=-1, t_id=4, s_id=-1)
-               [., type=2]
-                  [nd] (CUSTOM_VARIABLE_TOKEN, v_id=2, t_id=5, s_id=3)
-                  [a] (UNKNOWN_STRING_TOKEN, v_id=-1, t_id=2, s_id=-1)
+                     [a] (UNKNOWN_STRING_TOKEN, v_id=-1, t_id=2, s_id=-1)
 /:

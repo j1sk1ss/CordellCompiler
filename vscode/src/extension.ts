@@ -66,8 +66,10 @@ export function activate(context: vscode.ExtensionContext) {
       return s;
     }
 
+  glob storage initial = {100, 0};
+
   start() {
-    storage s = storage::new();
+    storage s = {100, 0};
     s.new();       : also valid: namespace method through instance :
     s.sell_wood(); : @[self] method :
   }

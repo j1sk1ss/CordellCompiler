@@ -1,37 +1,32 @@
+@[align(1)]
 container framebuffer {
     u32 mode; 
     u32 x;
     u32 y;
     u32 bitness;
 
-    @[self] 
-    @[inline(model)]
-    function init(ptr framebuffer self) -> i0 {
-        self.mode    = 0;
-        self.x       = 640;
-        self.y       = 480;
-        self.bitness = 32;
-    }
 }
 
+@[align(1)]
 container mb_header {
     u32         magic;
     u32         flags;
     u32         check;
     arr         padding[5, u32];
     framebuffer fb;
-
-    @[self] 
-    @[inline(model)]
-    function init(ptr mb_header self) -> i0 {
-        self.fb.init();
-        self.magic = 0x1BADB002;
-        self.flags = (1 << 0) | (1 << 1) | (1 << 2);
-    }
 }
 
 @[section(".multiboot", 4)]
-glob mb_header _header;
+glob mb_header _header = { 
+    :/ magic   /: 0x1BADB002, 
+    :/ flags   /: 7, 
+    :/ check   /: 3830599671, 
+    :/ padding /: 0, 0, 0, 0, 0, 
+    :/ mode    /: 0, 
+    :/ x       /: 640, 
+    :/ y       /: 480, 
+    :/ bitness /: 32 
+};
 
 container stack {
     arr padding[16384, u8];
@@ -40,24 +35,31 @@ container stack {
 @[section(".bss", 16)] 
 glob stack _stack;
 
-function kernel_main(i32 argc, ptr ptr i8 argv) -> i0;
+@[section(".text")] function kmain(u32 mb_info, u32 magic, u32 esp) -> i0;
 
 @[section(".text")]
 @[entry("_start")]
 @[naked]
 function main() -> i0 {
-    _header.init();
+    @[register(4)] u32 magic;
+    @[register(5)] u32 mb_info;
+    asm(magic, mb_info) {
+        "mov %0, eax", :/ save magic /:
+        "mov %1, ebx"  :/ save multiboot info /:
+    }
 
-    asm(ref _stack) {
+    asm(ref _stack + sizeof(stack)) {
         "mov esp, %0",
-        "push esp",
-        "push eax",
-        "push ebx",
         "cli",
         "xor ebp, ebp"
     }
 
-    kernel_main(0, 0);
+    u32 stack_top = 0;
+    asm(stack_top) {
+        "mov %0, esp"
+    }
+
+    kmain(mb_info, magic, stack_top);
 
     asm() {
         ".hang: hlt",
