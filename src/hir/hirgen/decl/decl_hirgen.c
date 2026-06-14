@@ -67,7 +67,7 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     ast_node_t* elems = type->siblings.n;
 
     if (
-        elems->c && 
+        elems && elems->c && 
         elems->c->t->t_type == STRING_VALUE_TOKEN
     ) return _str_declaration(node, ctx, smt);
     

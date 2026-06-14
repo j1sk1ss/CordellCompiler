@@ -4,64 +4,65 @@
 container string {
     ptr i8 body;
 
-    @[self]
-    function new(ptr string self, ptr i8 data) -> i0 {
-        self.body = strdup(data);
+    function new(ptr i8 data) -> ptr string;
+    @[self] function strlen(ptr string self) -> i32;
+    @[self] function equals(ptr string self, ptr string other) -> i8;
+    @[self] function equals(ptr string self, ptr i8 other) -> i8;
+    @[self] function destroy(ptr string self) -> i0;
+}
+
+function string::new(ptr i8 data) -> ptr string {
+    ptr string self = malloc(sizeof(string)) as ptr string;
+    self.body = strdup(data);
+    return self;
+}
+
+function string::strlen(ptr string self) -> i32 {
+    i32 index = 0;
+    ptr i8 s = self.body;
+    while dref s; {
+        index += 1;
+        s += 1;
     }
 
-    @[self]
-    function strlen(ptr string self) -> i32 {
-        i32 index = 0;
-        ptr i8 s = self.body;
-        while dref s; {
-            index += 1;
-            s += 1;
-        }
+    return index;
+}
 
-        return index;
+function string::equals(ptr string self, ptr string other) -> i8 {
+    ptr i8 s1 = self.body;
+    ptr i8 s2 = other.body;
+    while dref s1 && dref s2; {
+        if dref s1 != dref s2; return 0;
+        s1 += 1;
+        s2 += 1;
     }
 
-    @[self]
-    function equals(ptr string self, ptr string other) -> i8 {
-        ptr i8 s1 = self.body;
-        ptr i8 s2 = other.body;
-        while dref s1 && dref s2; {
-            if dref s1 != dref s2; return 0;
-            s1 += 1;
-            s2 += 1;
-        }
+    return (not dref s1 && not dref s2) as i8;
+}
 
-        return (not dref s1 && not dref s2) as i8;
+function string::equals(ptr string self, ptr i8 other) -> i8 {
+    ptr i8 s1 = self.body;
+    while dref s1 && dref other; {
+        if dref s1 != dref other; return 0;
+        s1 += 1;
+        other += 1;
     }
 
-    @[self]
-    function equals(ptr string self, ptr i8 other) -> i8 {
-        ptr i8 s1 = self.body;
-        while dref s1 && dref other; {
-            if dref s1 != dref other; return 0;
-            s1 += 1;
-            other += 1;
-        }
+    return (not dref s1 && not dref other) as i8;
+}
 
-        return (not dref s1 && not dref other) as i8;
-    }
-
-    @[self]
-    function destroy(ptr string self) -> i0 {
-        free(self.body);
-        self.body = 0;
-    }
+function string::destroy(ptr string self) -> i0 {
+    free(self.body);
+    free(self);
 }
 
 @[entry("main")]
 start() {
-    string msg;
-    msg.new(ref "Hello, World!");
-    string other;
-    other.new(ref "Hello, World!");
+    ptr string msg = string::new(ref "Hello, World!");
+    ptr string other = string::new(ref "Hello, World!");
 
     i8 res = 0;
-    if msg.equals(ref other); res += 1;
+    if msg.equals(other); res += 1;
     if msg.equals(ref "Hello, World!"); res += 1;
 
     msg.destroy();

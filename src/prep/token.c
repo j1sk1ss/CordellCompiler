@@ -49,7 +49,7 @@ static char_type_t _get_char_type(unsigned char ch) {
         case '/':  case '*':
         case '%':  case '=':
         case '<':  case '>':
-        case '!':
+        case '^':  case '!':
         case '&':  case '|':  return CHAR_SIGN;
         default:   return CHAR_OTHER;
     }

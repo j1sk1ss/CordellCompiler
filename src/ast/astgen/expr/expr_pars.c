@@ -289,8 +289,8 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
                 ast_node_t* node = NULL;
                 if (
-                    type != NO_SYMBOL_ID ||
-                    CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
+                    type != NO_SYMBOL_ID || TKN_is_builtin_type(CURRENT_TOKEN) ||  /* We found a type         */
+                    CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN                   /* We found a closed token */
                 ) node = cpl_parse_lambda(it, ctx, smt, 0);
                 else {
                     node = _parse_binary_expression(it, ctx, smt, 0, na == 2 ? 1 : na);

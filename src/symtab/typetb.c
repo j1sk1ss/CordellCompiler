@@ -132,7 +132,18 @@ int TPTB_set_memory_size_id(symbol_id_t id, long size, typetab_ctx_t* ctx) {
     return 1;
 }
 
+static inline symbol_id_t _resolve_parent(symbol_id_t c, typetab_ctx_t* ctx) {
+    type_info_t* c_ti;
+    while (
+        map_get(&ctx->typetb, c, (void**)&c_ti) &&
+        c_ti->p != NO_SYMBOL_ID
+    ) c = c_ti->p;
+    return c;
+}
+
 int TPTB_link_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx) {
+    p_id = _resolve_parent(p_id, ctx);
+
     type_info_t *p_ti, *c_ti;
     if (
         p_id != c_id &&
@@ -148,6 +159,8 @@ int TPTB_link_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx) {
 }
 
 symbol_id_t TPTB_get_first_child(symbol_id_t p_id, typetab_ctx_t* ctx) {
+    p_id = _resolve_parent(p_id, ctx);
+
     type_info_t* p_ti;
     if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return NO_SYMBOL_ID;
     if (!p_ti->link.c.s) return NO_SYMBOL_ID;
@@ -155,17 +168,14 @@ symbol_id_t TPTB_get_first_child(symbol_id_t p_id, typetab_ctx_t* ctx) {
 }
 
 int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long overrite_size, typetab_ctx_t* ctx) {
+    p_id = _resolve_parent(p_id, ctx);
+
     type_info_t *p_ti, *c_ti;
     if (
         p_id != c_id &&
         map_get(&ctx->typetb, p_id, (void**)&p_ti) &&
         map_get(&ctx->typetb, c_id, (void**)&c_ti)
     ) {
-        map_foreach (type_info_t* another, &ctx->typetb) {
-            if (another->p != p_id || another->id == p_id) continue;
-            TPTB_add_as_child(another->id, c_id, name, overrite_size, ctx);
-        }
-
         list_add(&p_ti->link.c, (void*)c_id);
         c_ti->link.p = p_id;
         if (name) {
@@ -178,7 +188,7 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long o
         if (!p_ti->memory.multiple)        p_ti->memory.size = MAX(p_ti->memory.size, ALIGN(c_ti->memory.size, p_ti->memory.align));
         else if (p_ti->memory.align != -1) p_ti->memory.size += ALIGN(c_ti->memory.size, p_ti->memory.align);
         else                               p_ti->memory.size += ALIGN(c_ti->memory.size, c_ti->memory.size);
-        if (p_ti->memory.align == -1)      p_ti->memory.size = ALIGN(p_ti->memory.size, c_ti->memory.size);
+        // if (p_ti->memory.align == -1)      p_ti->memory.size = ALIGN(p_ti->memory.size, c_ti->memory.size);
         return 1;
     }
 
@@ -186,6 +196,8 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long o
 }
 
 symbol_id_t TPTB_resolve_child(symbol_id_t p_id, string_t* name, typetab_ctx_t* ctx) {
+    p_id = _resolve_parent(p_id, ctx);
+
     type_info_t *p_ti, *c_ti;
     if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return NO_SYMBOL_ID;
     
@@ -199,6 +211,8 @@ symbol_id_t TPTB_resolve_child(symbol_id_t p_id, string_t* name, typetab_ctx_t* 
 }
 
 long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* ctx) {
+    p_id = _resolve_parent(p_id, ctx);
+
     type_info_t *p_ti, *c_ti;
     if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return -1;
     if (!p_ti->memory.multiple) return 0;
