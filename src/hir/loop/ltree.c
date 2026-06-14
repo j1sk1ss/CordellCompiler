@@ -15,6 +15,7 @@ static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, s
     n->p      = NULL;
     list_init(&n->children);
     set_copy(&n->blocks, loop_blocks);
+    set_init(&n->ind, SET_NO_CMP);
     return n;
 }
 
@@ -53,6 +54,7 @@ static int _loop_node_free(loop_node_t* n) {
 
     list_free(&n->children);
     set_free(&n->blocks);
+    set_free(&n->ind);
     mm_free(n);
     return 1;
 }

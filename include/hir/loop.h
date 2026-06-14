@@ -10,10 +10,11 @@
 #include <hir/cfg.h>
 
 typedef struct loop_node {
-    cfg_block_t*      header;   /* Loop header         */
-    cfg_block_t*      latch;    /* Loop latch          */
-    set_t             blocks;   /* cfg_block_t* blocks */
-    list_t            children; /* loop_node_t* nested */
+    cfg_block_t*      header;   /* Loop header                */
+    cfg_block_t*      latch;    /* Loop latch                 */
+    set_t             blocks;   /* cfg_block_t* blocks        */
+    list_t            children; /* loop_node_t* nested        */
+    set_t             ind;      /* Inductive variables (v_id) */
     struct loop_node* p;
 } loop_node_t;
 

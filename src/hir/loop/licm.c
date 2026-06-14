@@ -444,21 +444,23 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, i
     if (!preheader) return 0;
     if (!licm) return 1;
 
-    set_t loop_hir, inductive, invariant_defs;
+    set_t loop_hir, invariant_defs;
     if (
         !set_init(&invariant_defs, SET_NO_CMP) ||
-        !set_init(&inductive,      SET_NO_CMP) ||
         !set_init(&loop_hir,       SET_NO_CMP)
     ) {
         set_free(&invariant_defs);
-        set_free(&inductive);
         set_free(&loop_hir);
         return 0;
     }
 
     _get_loop_hir_blocks(&loop->blocks, &loop_hir);
-    _get_inductive_variables(&loop_hir, &inductive, smt);
-    _get_invariant_defs(&loop_hir, &invariant_defs, &inductive, smt);
+
+    set_free(&loop->ind);
+    set_init(&loop->ind, SET_NO_CMP);
+
+    _get_inductive_variables(&loop_hir, &loop->ind, smt);
+    _get_invariant_defs(&loop_hir, &invariant_defs, &loop->ind, smt);
 
     /* From an unordered set of hir blocks, we need to create an ordered
        list. Order is based on the home function. */
@@ -480,7 +482,6 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, i
 
     list_free(&linear);
     set_free(&invariant_defs);
-    set_free(&inductive);
     set_free(&loop_hir);
     return changed;
 }
