@@ -89,16 +89,14 @@ int HIR_CFG_compute_sdom(cfg_func_t* fb) {
     return 1;
 }
 
-/*
-Build a dominatiors tree based on the provided CFG's blocks list.
+/* Build a dominatiors tree based on the provided CFG's blocks list.
 The main idea here is to connect all dominators with their domination.
 Note: Additionally, this function connects dominators with each other 
       by sibling pointers.
 Params:
     - `fb` - Current function.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _build_domtree(cfg_func_t* fb) {
     foreach (cfg_block_t* cb, &fb->blocks) {
         if (
@@ -112,14 +110,12 @@ static int _build_domtree(cfg_func_t* fb) {
     return 1;
 }
 
-/*
-Compute the dominance frontier (recursively).
+/* Compute the dominance frontier (recursively).
 We add dominator as dominance frontier to the related set if:
     - this is a next block for the current block.
     - its dominator isn't the current block.
 Params:
-    - `b` - Current BasicBlock.
-*/
+    - `b` - Current BasicBlock. */
 static void _compute_domf_rec(cfg_block_t* b) {
     if (b->l && b->l->sdom != b)     set_add(&b->domf, b->l);
     if (b->jmp && b->jmp->sdom != b) set_add(&b->domf, b->jmp);

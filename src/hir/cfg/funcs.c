@@ -12,14 +12,12 @@ cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, unsigned long lbid) {
     return NULL;
 }
 
-/*
-Create a function block.
+/* Create a function block.
 Params:
     - `entry` - Function's entry HIR block.
     - `end` - Functions's exit HIR block.
 
-Return NULL or pointer to the function block.
-*/
+Return NULL or pointer to the function block. */
 static cfg_func_t* _create_funcblock(hir_block_t* entry) {
     cfg_func_t* b = (cfg_func_t*)mm_malloc(sizeof(cfg_func_t));
     if (!b) return NULL;
@@ -31,8 +29,7 @@ static cfg_func_t* _create_funcblock(hir_block_t* entry) {
     return b;
 }
 
-/*
-Create and append a function block to the functions list.
+/* Create and append a function block to the functions list.
 Note: Will check if function is presented in the symtable.
 Params:
     - `entry` - Function's entry HIR block.
@@ -40,8 +37,7 @@ Params:
     - `ctx` - CFG context.
     - `smt` - Symtable.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static cfg_func_t* _add_funcblock(hir_block_t* entry, cfg_ctx_t* ctx, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(entry->farg->storage.str.s_id, &fi, &smt->f)) return 0;
@@ -55,6 +51,14 @@ static cfg_func_t* _add_funcblock(hir_block_t* entry, cfg_ctx_t* ctx, sym_table_
     return b;
 }
 
+/* Skip the entire local function. The task is simple - check whether locals are exist,
+then find a function which was met, and then get its end and move on to the next block.
+Params:
+    - `curr` - Curent HIR block (possible local function entry).
+    - `locals` - Set of local functions IDs.
+
+Returns an end block of a function if we met a local function start, 
+otherwise will return NULL. */
 static inline hir_block_t* _check_is_local(hir_block_t* curr, set_t* locals) {
     if (!set_size(locals)) return NULL;
     set_foreach (cfg_func_t* fb, locals) {

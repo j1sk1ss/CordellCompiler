@@ -110,15 +110,6 @@ Returns 1 on success, otherwise 0.
 int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx);
 
 /*
-Perform cleanup operation for CFG block. Will clean all tmp information, like leaders, prev_in/out.
-Params:
-    - `cctx` - CFG.
-
-Returns 1 on success, otherwise 0.
-*/
-int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx);
-
-/*
 Compute dominance frontier based on dominance data.
 Params:
     - `func` - CFG func.
@@ -185,16 +176,6 @@ Return NULL if not found, or base block.
 cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, unsigned long lbid);
 
 /*
-Append HIR block to CFG. Will change entry and exit links, if they are not set yet.
-Params:
-    - `bb` - Base block.
-    - `hh` - HIR block.
-
-Returns 1 on success, otherwise 0.
-*/
-int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh);
-
-/*
 Remove HIR block to CFG. Will change entry and exit links, if they are not set yet.
 Params:
     - `bb` - Base block.
@@ -212,17 +193,6 @@ Params:
 Return cfg base block or NULL if something goes wrong.
 */
 cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e);
-
-/*
-Insert CFG base block into function list of blocks.
-Params:
-    - `f` - Function CFG.
-    - `b` - Base block.
-    - `next` - Next base block in function list.
-
-Returns 1 on success, otherwise 0.
-*/
-int HIR_CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* next);
 
 /*
 Complete leaders list in function CFG.
