@@ -6,8 +6,7 @@ typedef struct {
     hir_subject_type_t t;
 } const_t;
 
-/*
-Parse input DAG node as a constant.
+/* Parse input DAG node as a constant.
 Note: Will work only with a NUMBER or CONSTANT DAG node.
 Params:
     - `nd` - End DAG node.
@@ -16,8 +15,7 @@ Params:
     - `cnst` - Const placeholder.
     - `smt` - Symtable.
 
-Returns 1 if parsing succeeded, otherwise 0.
-*/
+Returns 1 if parsing succeeded, otherwise 0. */
 static int _parse_const(dag_node_t* nd, const_t* cnst, sym_table_t* smt) {
     if (!nd) return 0;
     cnst->overdefined = NO_SYMBOL_ID;
@@ -63,14 +61,12 @@ _parse_number_complete: {}
     }
 }
 
-/*
-Flatten the arguments of the provided DAG node.
+/* Flatten the arguments of the provided DAG node.
 Params:
     - `nd` - DAG node.
     - `args` - Output flatten array.
 
-Returns 1 if arguments are flattened, otherwise 0.
-*/
+Returns 1 if arguments are flattened, otherwise 0. */
 static int _const_args(dag_node_t* nd, dag_node_t** args, int args_size) {
     int i = 0;
     set_foreach (dag_node_t* arg, &nd->args) {

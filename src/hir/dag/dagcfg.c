@@ -52,7 +52,7 @@ Returns 1 on success.
 */
 static inline void _prepare_subject(hir_block_t* src, hir_subject_t* s) {
     if (s->home && s->home != src && _check_home(s->home, s)) s->home->unused = 1;
-    else HIR_unload_subject(s);
+    else                                                      HIR_unload_subject(s);
 }
 
 int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {

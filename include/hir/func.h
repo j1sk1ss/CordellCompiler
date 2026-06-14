@@ -21,8 +21,8 @@ typedef struct {
 } call_graph_node_t;
 
 typedef struct {
-    list_t entries;
-    map_t  verts;
+    list_t entries; /* Possible entry points to a program (glob / entry) */
+    map_t  verts;   /* Existed functions in a program                    */
 } call_graph_t;
 
 /*
@@ -113,11 +113,13 @@ int HIR_FUNC_set_last_return(cfg_ctx_t* cctx);
 
 /*
 Delete duplicated functions from the CFG.
+P.S.: This function won't delete function, it will just mark them as an
+      'unused' function.
 Params:
     - `ctx` - CFG context.
 
 Returns 1 on success, otherwise 0.
 */
-int HIR_FUNC_delete_duplicated_functions(cfg_ctx_t* ctx);
+int HIR_FUNC_set_unused_duplicated_functions(cfg_ctx_t* ctx);
 
 #endif

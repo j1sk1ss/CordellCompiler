@@ -658,7 +658,7 @@ int main(int argc, char* argv[]) {
         call_graph_t callctx;
         HIR_CG_build(&cfgctx, &callctx, &smt);
 
-        HIR_FUNC_delete_duplicated_functions(&cfgctx);
+        HIR_FUNC_set_unused_duplicated_functions(&cfgctx);
         HIR_FUNC_set_last_return(&cfgctx);
 
         if (options.config.tre) {
@@ -684,6 +684,8 @@ int main(int argc, char* argv[]) {
         }
 
         HIR_LTREE_canonicalization(&cfgctx, &lctx);
+        HIR_LOOP_perform_dle(&lctx);
+
         HIR_CFG_unload_domdata(&cfgctx);
         HIR_CFG_finilize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
@@ -705,7 +707,13 @@ int main(int argc, char* argv[]) {
         if (options.config.constant) {
             HIR_DAG_generate(&cfgctx, &dagctx, &smt);
             HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
-            HIR_sparse_const_propagation(&dagctx, &smt);
+            int folded = 0;
+            do {
+                folded = 0;
+                HIR_sparse_const_propagation(&dagctx, &smt);
+                folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt) || folded;
+                folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
+            } while (folded);
         }
 
         HIR_CFG_squeeze_blocks(&cfgctx);

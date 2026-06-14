@@ -1,15 +1,13 @@
 #include <hir/constfold.h>
 
-/*
-Register a new parameters list for a function. We need to be sure, that
+/* Register a new parameters list for a function. We need to be sure, that
 all function calls have the same list of arguments.
 Params:
     - `f_id` - Function's ID.
     - `args` - Input parameters.
     - `fcalls` - FUnction calls map.
 
-Returns 1 if registration succeeded, otherwise 0.
-*/
+Returns 1 if registration succeeded, otherwise 0. */
 static int _register_params(symbol_id_t f_id, list_t* args, map_t* fcalls) {
     list_t* rargs;
     if (map_get(fcalls, f_id, (void**)&rargs)) {
@@ -37,14 +35,12 @@ static int _register_params(symbol_id_t f_id, list_t* args, map_t* fcalls) {
     return 1;
 }
 
-/*
-Register a new function call in function call map.
+/* Register a new function call in function call map.
 Params:
     - `cctx` - CFG context.
     - `fcalls` - Function call map.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _register_fcalls(cfg_ctx_t* cctx, map_t* fcalls) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
@@ -61,15 +57,13 @@ static int _register_fcalls(cfg_ctx_t* cctx, map_t* fcalls) {
     return 1;
 }
 
-/*
-Extract defined value form a subject.
+/* Extract defined value form a subject.
 Params:
     - `s` - Subject for extraction.
     - `smt` - Symtable.
     - `val` - Output location.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _extract_variable_value(hir_subject_t* s, sym_table_t* smt, long* val) {
     switch (HIR_is_defined_type(s->t)) {
         case 1: *val = s->storage.num.value->to_llong(s->storage.num.value); return 1;
@@ -88,15 +82,13 @@ static int _extract_variable_value(hir_subject_t* s, sym_table_t* smt, long* val
     return 0;
 }
 
-/*
-Propagate parameters and replace the load arguments with the defined value.
+/* Propagate parameters and replace the load arguments with the defined value.
 Params:
     - `cctx` - CFG context.
     - `smt` - Symtable.
     - `fcalls` - Function call map.
 
-Returns 1 if the function propagated something, otherwise 0.
-*/
+Returns 1 if the function propagated something, otherwise 0. */
 static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
     int changed = 0;
     foreach (cfg_func_t* fb, &cctx->funcs) {
@@ -127,13 +119,11 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
     return changed;
 }
 
-/*
-Unload function call map.
+/* Unload function call map.
 Params:
     - `l` - Entry list.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _unload_fcalls(list_t* l) {
     list_free(l);
     return mm_free(l);
@@ -148,15 +138,13 @@ int HIR_sparse_const_funcall_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
     return res;
 }
 
-/*
-Collect and register function's return if the function has single return,
+/* Collect and register function's return if the function has single return,
 and it has a return in general.
 Params:
     - `cctx` - CFG context.
     - `frets` - Function returns map.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _collect_frets(cfg_ctx_t* cctx, map_t* frets) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         list_t ret_blocks;
@@ -184,16 +172,14 @@ static int _collect_frets(cfg_ctx_t* cctx, map_t* frets) {
     return 1;
 }
 
-/*
-If there is a defined return, we can replace a function call of the function
+/* If there is a defined return, we can replace a function call of the function
 with its defined return.
 Params:
     - `cctx` - CFG context.
     - `smt` - Symtable.
     - `frets` - Function returns map.
 
-Returns 1 if it changed something, otherwise 0.
-*/
+Returns 1 if it changed something, otherwise 0. */
 static int _propagate_frets(cfg_ctx_t* cctx, sym_table_t* smt, map_t* frets) {
     int changed = 0;
     foreach (cfg_func_t* fb, &cctx->funcs) {

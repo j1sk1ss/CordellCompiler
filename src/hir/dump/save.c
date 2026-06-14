@@ -1,5 +1,6 @@
 #include <hir/dump.h>
 
+// TODO: docs
 static const char* _get_operation_template(hir_operation_t op) {
     switch(op) {
         case HIR_STARGLD:      return "%s = load_starg();\n";
@@ -76,6 +77,7 @@ static const char* _get_operation_template(hir_operation_t op) {
     }
 }
 
+// TODO: docs
 static char* _get_formatted_subject(char* dst, hir_subject_t* s, sym_table_t* smt, int style) {
     if (!s) return dst;
     if (HIR_is_vartype(s->t)) {
@@ -213,14 +215,14 @@ static char* _get_formatted_subject(char* dst, hir_subject_t* s, sym_table_t* sm
     return dst;
 }
 
+// TODO: docs
 static int _get_formatted_block(char* dst, hir_block_t* block, sym_table_t* smt, int pos, int unused, int depth) {
     if (!block) return depth;
     if (pos && block->op == HIR_SETPOS) {
         dst += sprintf(
             dst,
             "setpos, line=%li, column=%li, file=%s\n", 
-            block->farg->storage.pos.line, 
-            block->farg->storage.pos.column, 
+            block->farg->storage.pos.line,  block->farg->storage.pos.column, 
             block->farg->storage.pos.file ? block->farg->storage.pos.file->body : "<unknown>"
         );
         return depth;

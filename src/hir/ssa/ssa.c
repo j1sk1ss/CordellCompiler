@@ -6,15 +6,13 @@ typedef struct {
     symbol_id_t v_id;
 } varver_t;
 
-/*
-Add variable version placeholder to the versions map.
+/* Add variable version placeholder to the versions map.
 Params:
     - `vers` - Versions map.
     - `id` - The source variable ID (Or the head variable ID).
     - `cid` - Current variable ID.
 
-Returns 1 if all operations succeed, otherwise 0.
-*/
+Returns 1 if all operations succeed, otherwise 0. */
 static int _add_varver(map_t* vers, symbol_id_t id, symbol_id_t cid) {
     varver_t* vv = (varver_t*)mm_malloc(sizeof(varver_t));
     if (!vv) return 0;
@@ -23,28 +21,24 @@ static int _add_varver(map_t* vers, symbol_id_t id, symbol_id_t cid) {
     return map_put(vers, id, (void*)vv);
 }
 
-/*
-Retrieve variable information placeholder from the versions map.
+/* Retrieve variable information placeholder from the versions map.
 Params:
     - `v_id` - Variable 'base' ID.
     - `ctx` - SSA context.
 
-Returns variable information or NULL.
-*/
+Returns variable information or NULL. */
 static inline varver_t* _get_varver(symbol_id_t v_id, ssa_ctx_t* ctx) {
     varver_t* vi;
     if (map_get(&ctx->vers, v_id, (void**)&vi)) return vi;
     return NULL;
 }
 
-/*
-Rename the provided HIR block with current SSA context.
+/* Rename the provided HIR block with current SSA context.
 Params:
     - `h` - HIR block for rename.
     - `ctx` - SSA context.
 
-Returns 1 if all operations succeed, otherwise 0.
-*/
+Returns 1 if all operations succeed, otherwise 0. */
 static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
     iterate_hir_args (hir_subject_t* arg, h, HIR_is_writeop(h->op)) {
         if (HIR_is_vartype(arg->t)) {
@@ -63,8 +57,7 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
     return 1;
 }
 
-/*
-Insert PHI preambule to the previous block.
+/* Insert PHI preambule to the previous block.
 The idea is simple: We need to assist the compiler with future SSA form destruction. 
 To perform this, we can mark for the compiler, how variables are linked with each other.
 For instance:
@@ -115,8 +108,7 @@ Params:
     - `b` - Previous variable ID.
     - `smt` - Symtable.
 
-Returns 1 if all operations succeed, otherwise 0.
-*/
+Returns 1 if all operations succeed, otherwise 0. */
 static int _insert_phi_preamble(cfg_block_t* block, long bid, symbol_id_t a, symbol_id_t b, sym_table_t* smt) {
     if (a == b) return 1;     /* Check is this isn't the same variables */
     variable_info_t avi, bvi; /* Check is these variables are existing  */
@@ -158,16 +150,14 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, symbol_id_t a, sym
     return 1;
 }
 
-/*
-Base routine for block SSA processing.
+/* Base routine for block SSA processing.
 Params:
     - `b` - Current BaseBlock.
     - `ctx` - SSA context.
     - `prev_bid` - [Service information] For inital value use '-1'.
     - `smt` - Symtable.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _iterate_block(cfg_block_t* bb, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
     if (!bb || set_has(&bb->visitors, (void*)prev_bid)) return 0;
 
@@ -271,13 +261,11 @@ static int _iterate_block(cfg_block_t* bb, ssa_ctx_t* ctx, long prev_bid, sym_ta
     return 1;
 }
 
-/*
-If there is an empty phi-function (for some reason), we need to get rid of it.
+/* If there is an empty phi-function (for some reason), we need to get rid of it.
 Params:
     - `fb` - Function block to clean.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _clear_phi_functions(cfg_func_t* fb) {
     foreach (cfg_block_t* bb, &fb->blocks) {
         iterate_hir_instructions (bb) {

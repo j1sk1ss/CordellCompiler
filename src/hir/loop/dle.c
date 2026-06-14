@@ -1,19 +1,12 @@
 #include <hir/loop.h>
 
-static int _count_commands(cfg_block_t* bb) {
+// TODO: docs
+static inline int _count_commands(cfg_block_t* bb) {
     int res = 0;
     iterate_hir_instructions (bb) {
         switch (hh->op) {
-            case HIR_IFOP2:
-            case HIR_JMP:
-            case HIR_MKLB:
-            case HIR_MKSCOPE:
-            case HIR_ENDSCOPE:
-            case HIR_STASM:
-            case HIR_ENDASM:
-            case HIR_SETPOS:
-            case HIR_NOP:
-            case HIR_PHI:
+            case HIR_IFOP2: case HIR_JMP:    case HIR_MKLB:   case HIR_MKSCOPE: case HIR_ENDSCOPE:
+            case HIR_STASM: case HIR_ENDASM: case HIR_SETPOS: case HIR_NOP:     case HIR_PHI:
             case HIR_PHI_PREAMBLE: break;
             default: res++;
         }
@@ -22,6 +15,7 @@ static int _count_commands(cfg_block_t* bb) {
     return res;
 }
 
+// TODO: docs
 static int _mark_loop_dead(loop_node_t* root) {
     foreach (loop_node_t* ch, &root->children) {
         _mark_loop_dead(ch);

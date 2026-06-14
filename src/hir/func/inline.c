@@ -1,15 +1,13 @@
 #include <hir/func.h>
 
-/*
-Replace function argument pushing with the argument assigning.
+/* Replace function argument pushing with the argument assigning.
 Params:
     - `f` - Current function.
     - `args` - Function's argument list.
     - `pos` - Current position in the HIR.
               Note: This is the point, where inline must start.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     int index = 0, size = list_size(args);
     hir_subject_t** args_flatten = (hir_subject_t**)list_flatten(args);
@@ -32,16 +30,14 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     return 1;
 }
 
-/*
-Find old labels and replace them with a new one.
+/* Find old labels and replace them with a new one.
 Params:
     - `h` - HIR entry block.
     - `e` - HIR exit block.
     - `lb` - Old labels.
     - `new` - New labels.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new, cfg_func_t* fb) {
     while (h) {
         if (h->op != HIR_MKLB) {
@@ -59,8 +55,7 @@ static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* o
     return 1;
 }
 
-/*
-Insert function body into the source HIR position.
+/* Insert function body into the source HIR position.
 Params:
     - `f` - Current function.
     - `res` - The target save point for the function call.
@@ -69,8 +64,7 @@ Params:
     - `pos` - Current position in the HIR.
               Note: This is the point, where inline must start.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos) {
     hir_block_t *nentry = NULL, *nexit = pos;
     hir_block_t* hh = HIR_FUNC_get_next(NULL, f, NULL, 0);
@@ -244,13 +238,11 @@ static int _find_nearest_break(hir_block_t* pos, cfg_block_t* ibb) {
     return -1;
 }
 
-/*
-Find the first source position emitted inside a function.
+/* Find the first source position emitted inside a function.
 Params:
     - `f` - Function CFG.
 
-Returns pointer to the first stored file position, or NULL if none exists.
-*/
+Returns pointer to the first stored file position, or NULL if none exists. */
 static file_position_t* _find_first_pos(cfg_func_t* f) {
     foreach (cfg_block_t* bb, &f->blocks) {
         iterate_hir_instructions (bb) {
@@ -261,14 +253,12 @@ static file_position_t* _find_first_pos(cfg_func_t* f) {
     return NULL;
 }
 
-/*
-Count parameters declared in a function signature.
+/* Count parameters declared in a function signature.
 Params:
     - `f` - Function CFG.
     - `smt` - Symtable.
 
-Returns parameter count, or 0 if function metadata is unavailable.
-*/
+Returns parameter count, or 0 if function metadata is unavailable. */
 static inline int _count_params(cfg_func_t* f, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(f->f_id, &fi, &smt->f)) return 0;
@@ -277,8 +267,7 @@ static inline int _count_params(cfg_func_t* f, sym_table_t* smt) {
     return count;
 }
 
-/*
-Collect essential information for inline candidate decisiion.
+/* Collect essential information for inline candidate decisiion.
 Params:
     - `f` - Target function to inline.
     - `pos` - BB position for inline.
@@ -286,8 +275,7 @@ Params:
     - `lctx` - Loops context.
     - `info` - Output information.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _collect_information(
     cfg_func_t* f, cfg_block_t* pos, hir_block_t* hpos, 
     list_t* src_floops, list_t* dst_floops, 
@@ -353,8 +341,7 @@ static int _collect_information(
     return 1;
 }
 
-/*
-Heuristic function for evaluating an inline candidate.
+/* Heuristic function for evaluating an inline candidate.
 Note 1: If this function returns 1 - the provided function
         can be inlined.
 Note 2: This function collects the following information about
@@ -378,8 +365,7 @@ Params:
     - `hpos` - Source HIR position.
     - `lctx` - Source block loop environment.
 
-Returns 1 if the provided function can be inlined.
-*/
+Returns 1 if the provided function can be inlined. */
 static int _inline_candidate(
     cfg_func_t* f, cfg_block_t* pos, hir_block_t* hpos, ltree_ctx_t* lctx, sym_table_t* smt, int (*checker)(int*, int)
 ) {
