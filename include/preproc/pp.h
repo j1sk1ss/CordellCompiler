@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
+#include <config.h>
 #include <std/str.h>
 #include <std/stack.h>
 #include <preproc/mctb.h>

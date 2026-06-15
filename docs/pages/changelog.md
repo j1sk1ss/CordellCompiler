@@ -3,6 +3,27 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Arch flags in the pre-processor
+<div class="change-date">Date: 2026-06-15</div>
+The pre-processor now has a set of pre-init flags and defines. On of the is a set of arch flags (`CCPL_MACHO64`, `CCPL_GNU64`, `CCPL_GNUI386` and `CCPL_WINDOWS64`):
+
+```cpl
+#ifdef CCPL_MACHO64
+    :/ MACHO64 specific code /:
+#endif
+#ifdef CCPL_GNU64
+    :/ GNU x86_64 specific code /:
+#endif
+#ifdef CCPL_GNUI386
+    :/ GNU i386 specific code /:
+#endif
+#ifdef CCPL_WINDOWS64
+    :/ Windows specific code /:
+#endif
+```
+
+P.S.: *At this point, GNU x86_64/i386 are the same (in general), but there is no way to check two flags at the same time.*
+
 ## Section alignment
 <div class="change-date">Date: 2026-06-12</div>
 Section annotation now can have an align modifier which helps us to align an entire section. For instance:
