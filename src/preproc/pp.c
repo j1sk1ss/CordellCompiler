@@ -39,7 +39,7 @@ Params:
 Returns 1 if succeeds. */
 static inline int _init_pp_ctx(pp_ctx_t* ctx) {
     memset(ctx, 0, sizeof(pp_ctx_t));
-    return MCTB_init(&ctx->defines) && stack_init(&ctx->sources);
+    return map_init(&ctx->defines.t, MAP_NO_CMP) && stack_init(&ctx->sources);
 }
 
 /* Cleanup all mess that we've produced.

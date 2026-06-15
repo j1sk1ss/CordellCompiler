@@ -370,7 +370,6 @@ int TKN_tokenize(int fd, list_t* tkn) {
                     list_add(tkn, fname);
                     break;
                 }
-
                 default: list_add(tkn, token); break;
             }
         }

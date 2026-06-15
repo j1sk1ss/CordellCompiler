@@ -99,7 +99,7 @@ static inline int _is_ident_cont(unsigned char c) {
     return (c == '_') || isalnum(c); 
 }
 
-static int _ensure_cap(char** out, size_t* cap, size_t need) {
+static inline int _ensure_cap(char** out, size_t* cap, size_t need) {
     if (need <= *cap) return 1;
     size_t nc = (*cap ? *cap : 64);
     while (nc < need) nc *= 2;
@@ -110,7 +110,7 @@ static int _ensure_cap(char** out, size_t* cap, size_t need) {
     return 1;
 }
 
-static int _append_mem(char** out, size_t* cap, size_t* oi, const char* p, size_t n) {
+static inline int _append_mem(char** out, size_t* cap, size_t* oi, const char* p, size_t n) {
     if (!_ensure_cap(out, cap, (*oi) + n + 1)) return 0;
     memcpy((*out) + (*oi), p, n);
     *oi += n;
@@ -118,7 +118,7 @@ static int _append_mem(char** out, size_t* cap, size_t* oi, const char* p, size_
     return 1;
 }
 
-static int _append_ch(char** out, size_t* cap, size_t* oi, char c) {
+static inline int _append_ch(char** out, size_t* cap, size_t* oi, char c) {
     return _append_mem(out, cap, oi, &c, 1);
 }
 
@@ -192,14 +192,15 @@ int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, d
     for (int pass = 0; pass < PP_MAX_PASSES; pass++) {
         int changed = _resolve_defines(*in, out, out_cap, dctx);
         if (changed < 0) return 0;
-        if (changed == 0) return 1;
+        if (!changed) return 1;
 
-        char* ts = *in; *in = *out; *out = ts;
+        char *ts = *in; *in = *out; *out = ts;
         size_t tcap = *in_cap; *in_cap = *out_cap; *out_cap = tcap;
     }
     
     return 1;
 }
+#undef PP_MAX_PASSES
 
 int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size_t* out_cap) {
     if (!in || !st || !out || !out_cap) return 0;
@@ -228,50 +229,49 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
             if (c == ':') st->in_colon = 0;
             continue;
         }
-
-        if (st->in_str) {
+        else if (st->in_str) {
             (*out)[oi++] = c;
-            if (st->esc)        st->esc = 0;
-            else if (c == '\\') st->esc = 1;
+            if (st->esc)        st->esc    = 0;
+            else if (c == '\\') st->esc    = 1;
             else if (c == '"')  st->in_str = 0;
             continue;
         }
-
-        if (st->in_chr) {
+        else if (st->in_chr) {
             (*out)[oi++] = c;
-            if (st->esc)        st->esc = 0;
-            else if (c == '\\') st->esc = 1;
+            if (st->esc)        st->esc    = 0;
+            else if (c == '\\') st->esc    = 1;
             else if (c == '\'') st->in_chr = 0;
             continue;
         }
 
-        if (c == '"') {
-            st->in_str = 1;
-            (*out)[oi++] = c;
-            continue;
-        }
-
-        if (c == '\'') {
-            st->in_chr = 1;
-            (*out)[oi++] = c;
-            continue;
-        }
-
-        if (c == ':') {
-            if (in[i + 1] == ':') {
-                (*out)[oi++] = ':';
-                (*out)[oi++] = ':';
-                i++;
+        switch (c) {
+            case '"': {
+                st->in_str = 1;
+                (*out)[oi++] = c;
                 continue;
             }
-
-            if (in[i + 1] != '/') st->in_colon = 1;
-            else {
-                st->in_colon_slash = 1;
-                i++;
+            case '\'': {
+                st->in_chr = 1;
+                (*out)[oi++] = c;
+                continue;
             }
+            case ':': {
+                if (in[i + 1] == ':') {
+                    (*out)[oi++] = ':';
+                    (*out)[oi++] = ':';
+                    i++;
+                    continue;
+                }
 
-            continue;
+                if (in[i + 1] != '/') st->in_colon = 1;
+                else {
+                    st->in_colon_slash = 1;
+                    i++;
+                }
+
+                continue;
+            }
+            default: break;
         }
 
         (*out)[oi++] = c;
@@ -281,13 +281,8 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
     return 1;
 }
 
-int PP_parse_define_arg(
-    const char* p,
-    char* name_out,  size_t name_sz,
-    char* value_out, size_t value_sz
-) {
+int PP_parse_define_arg(const char* p, char* name_out,  size_t name_sz, char* value_out, size_t value_sz) {
     if (!p || !name_out || !name_sz) return 0;
-
     while (*p == ' ' || *p == '\t') p++;
     if (!_is_ident_start(*p)) return 0;
 

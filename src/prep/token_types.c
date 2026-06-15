@@ -53,7 +53,7 @@ token_type_t TKN_get_tmp_type(token_type_t t) {
         case U32_TYPE_TOKEN: return TMP_U32_TYPE_TOKEN;
         case U16_TYPE_TOKEN: return TMP_U16_TYPE_TOKEN;
         case U8_TYPE_TOKEN:  return TMP_U8_TYPE_TOKEN;
-        default: return TMP_I64_TYPE_TOKEN;
+        default:             return TMP_I64_TYPE_TOKEN;
     }
 }
 
@@ -173,7 +173,7 @@ int TKN_is_builtin_type(token_t* token) {
 
 int TKN_is_block(token_t* token) {
     return (
-        !token || 
+        !token                         || 
         (token->t_type == SCOPE_TOKEN) || 
         (token->t_type == START_TOKEN)
     );

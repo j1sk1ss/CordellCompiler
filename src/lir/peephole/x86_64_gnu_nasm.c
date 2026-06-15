@@ -60,10 +60,7 @@ static int _label_pass(cfg_func_t* fb) {
         if (
             !lh->unused && 
             lh->op == LIR_MKLB && !_find_label_usage(fb, lh->farg)
-        ) {
-            lh->unused = 1; 
-            changed = 1;
-        }
+        ) lh->unused = changed = 1;
     }
 
     return changed;
@@ -184,7 +181,7 @@ static int _recursive_cleanup(
                 (
                     !LIR_subj_equals(lh->sarg, trg) &&    /* The second and the third arguments must be a uniq /          */
                     !LIR_subj_equals(lh->targ, trg)       /* different with the first.                                    */
-                )                                         /* The reason is easy: We don't want to delete command if its    */
+                )                                         /* The reason is easy: We don't want to delete command if its   */
                                                           /* value rewritten by itself.                                   */
             ) return 1;                                   /* That means we can safely mark the target write command       */
 
@@ -204,7 +201,7 @@ static int _recursive_cleanup(
     if (
         !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) || 
         !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
-    ) return 0; /* If the command is used somewhere in the children, return 0                       */
+    ) return 0; /* If the command is used somewhere in the children, return 0                     */
     return 1;   /* By default, if the considering command is unused elsewhere, we mark it to drop */
 }
 

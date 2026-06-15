@@ -1,21 +1,5 @@
 #include <symtab/strtb.h>
 
-int STTB_update_info(symbol_id_t id, string_t* value, str_type_t t, strtb_ctx_t* ctx) {
-    print_log("STTB_update_info(id=%li, value=%s, t=%i)", id, value->body, t);
-    str_info_t* si;
-    if (map_get(&ctx->strtb, id, (void**)&si)) {
-        si->t = t;
-        if (value) {
-            if (si->value) destroy_string(si->value);
-            si->value = value->copy(value);
-        }
-
-        return 1;
-    }
-
-    return 0;    
-}
-
 int STTB_get_info_id(symbol_id_t id, str_info_t* info, strtb_ctx_t* ctx) {
     print_log("STTB_get_info_id(id=%li)", id);
     str_info_t* si;
@@ -28,7 +12,7 @@ int STTB_get_info_id(symbol_id_t id, str_info_t* info, strtb_ctx_t* ctx) {
 }
 
 int STTB_get_info(string_t* value, str_info_t* info, strtb_ctx_t* ctx) {
-    print_log("STTB_get_info_id(value=%s)", value->body);
+    print_log("STTB_get_info(value=%s)", value->body);
     map_foreach (str_info_t* si, &ctx->strtb) {
         if (si->value->equals(si->value, value)) {
             if (info) str_memcpy(info, si, sizeof(str_info_t));
