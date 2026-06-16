@@ -3,6 +3,10 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## No more AST-level optimization
+<div class="change-date">Date: 2026-06-15</div>
+The oldest optimizations now deleted from the compiler. They weren't used in the pipeline, which means this change doesn't affect anything.
+
 ## Arch flags in the pre-processor
 <div class="change-date">Date: 2026-06-15</div>
 The pre-processor now has a set of pre-init flags and defines. On of the is a set of arch flags (`CCPL_MACHO64`, `CCPL_GNU64`, `CCPL_GNUI386` and `CCPL_WINDOWS64`):
@@ -59,8 +63,8 @@ By default, there was no way to set align to a section. Now this is possible.
 Sometimes there is a desire to write low-level information which neither is not a function nor variable. For instance: `[bits 16]`. Now, CPL functions can be used with the `only_body` annotation:
 
 ```cpl
-@[only_body]
-function __head() {
+@[only_body] :/ This function should be glob to be preserved in the final code /:
+glob function __head() {
     asm() { "[bits 16]" }
 }
 start() {
