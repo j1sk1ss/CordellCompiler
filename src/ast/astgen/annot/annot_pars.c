@@ -9,9 +9,8 @@ static int _extract_params_from_brackets(list_iter_t* it, token_t** first, token
             continue;
         }
 
-        if (!*first) *first = CURRENT_TOKEN;
+        if (!*first)       *first  = CURRENT_TOKEN;
         else if (!*second) *second = CURRENT_TOKEN;
-
         forward_token(it, 1);
     }
 

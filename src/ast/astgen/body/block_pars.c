@@ -1,4 +1,3 @@
-/* Main parser logic / navigation */
 #include <ast/astgen/astgen.h>
 
 typedef struct {
@@ -60,15 +59,13 @@ static const handler_t handlers[] = {
 };
 #undef HANDLER
 
-/*
-Try to parse declarations that depend on symbols known only at parse time.
+/* Try to parse declarations that depend on symbols known only at parse time.
 Params:
     - `it` - Current iterator.
     - `ctx` - AST context.
     - `smt` - Symtable.
 
-Returns an AST node if token starts a dynamic declaration. Otherwise returns NULL.
-*/
+Returns an AST node if token starts a dynamic declaration. Otherwise returns NULL. */
 static ast_node_t* _dynamic_navigation_handler(PARSER_ARGS) {
     PARSER_ARGS_USE;
     symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
@@ -80,15 +77,13 @@ static ast_node_t* _dynamic_navigation_handler(PARSER_ARGS) {
     return NULL;
 }
 
-/*
-Try to parse current token using the static token-to-parser handler table.
+/* Try to parse current token using the static token-to-parser handler table.
 Params:
     - `it` - Current iterator.
     - `ctx` - AST context.
     - `smt` - Symtable.
 
-Returns an AST node if token was handled. Otherwise returns NULL.
-*/
+Returns an AST node if token was handled. Otherwise returns NULL. */
 static ast_node_t* _static_navigation_handler(PARSER_ARGS) {
     PARSER_ARGS_USE;
     for (int i = 0; i < (int)(sizeof(handlers) / sizeof(handlers[0])); i++) {
@@ -102,30 +97,26 @@ static ast_node_t* _static_navigation_handler(PARSER_ARGS) {
     return NULL;
 }
 
-/*
-Parsers collection navigation.
+/* Parsers collection navigation.
 Params:
     - `it` - Current iterator.
     - `ctx` - AST context.
     - `smt` - Symtable.
 
-Returns an AST node.
-*/
+Returns an AST node. */
 static ast_node_t* _navigation_handler(PARSER_ARGS) {
     ast_node_t* dyn = _dynamic_navigation_handler(it, ctx, smt, carry);
     if (dyn) return dyn;
     return _static_navigation_handler(it, ctx, smt, carry);
 }
 
-/*
-Parse one element from the current parser position.
+/* Parse one element from the current parser position.
 Params:
     - `it` - Current iterator.
     - `ctx` - AST context.
     - `smt` - Symtable.
 
-Returns an AST node.
-*/
+Returns an AST node. */
 ast_node_t* cpl_parse_element(PARSER_ARGS) {
     return _navigation_handler(it, ctx, smt, carry);
 }

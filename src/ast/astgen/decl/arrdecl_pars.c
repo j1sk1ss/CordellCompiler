@@ -1,12 +1,10 @@
 #include <ast/astgen/astgen.h>
 
-/*
-Parse a type of an array. Handle recursive array types.
+/* Parse a type of an array. Handle recursive array types.
 Params:
     - <Parser args> - Arguments.
 
-Returns an AST node of a type.
-*/
+Returns an AST node of a type. */
 static ast_node_t* _parse_array_type(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
@@ -180,21 +178,19 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     _resolve_array_type(type, ctx, smt);
     
-    name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &base->t->flags, &smt->v);
-    ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, &type->t->flags, &smt->a);
-    base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);
-    TPTB_set_memory_size_id(base->sinfo.t_id, _get_array_field_size(const_length, type, ctx, smt), &smt->t);
-    TPTB_link_child(base->sinfo.t_id, type->sinfo.t_id, &smt->t);
-    VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);
-    
+    long array_size  = _get_array_field_size(const_length, type, ctx, smt);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, &base->t->flags, &smt->v); /* register as a variable                   */ 
+    base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);             /* register as a type                       */
+    ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, &type->t->flags, &smt->a);  /* register as an array                     */
+    TPTB_set_memory_size_id(base->sinfo.t_id, array_size, &smt->t);                                                /* select the type of the array             */
+    TPTB_link_child(base->sinfo.t_id, type->sinfo.t_id, &smt->t);                                                  /*                                          */
+    VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);                                /* link type to the variable's id           */
+    TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, array_size, &smt->t);                            /* ling array to a container (if it exists) */
+
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
-    if (base->t->flags.glob || base->t->flags.ro) {
+    if (!TKN_in_stack(base->t)) {
         if (!annots.section) annots.section = create_string(base->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
         SCTB_move_to_section(annots.section, annots.salign, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
-    }
-
-    if (ctx->t_id != NO_SYMBOL_ID) {
-        TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, _get_array_field_size(const_length, type, ctx, smt), &smt->t);
     }
 
     ANNOT_destroy_summary(&annots);

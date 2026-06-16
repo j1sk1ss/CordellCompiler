@@ -63,11 +63,6 @@ symbol_id_t TPTB_add_copy(symbol_id_t id, symbol_id_t nv_id, int ptr, typetab_ct
     info->link.v_id       = nv_id;
     info->memory.align    = ti->memory.align;
 
-    if (ti->link.name) info->link.name = ti->link.name->copy(ti->link.name);
-    foreach (symbol_id_t c_id, &ti->link.c) {
-        list_add(&info->link.c, (void*)c_id);
-    }
-
     info->id = ctx->curr_id++;
     map_put(&ctx->typetb, info->id, info);
     return info->id;
@@ -168,6 +163,7 @@ symbol_id_t TPTB_get_first_child(symbol_id_t p_id, typetab_ctx_t* ctx) {
 }
 
 int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long overrite_size, typetab_ctx_t* ctx) {
+    if (p_id == NO_SYMBOL_ID) return 0;
     p_id = _resolve_parent(p_id, ctx);
 
     type_info_t *p_ti, *c_ti;
