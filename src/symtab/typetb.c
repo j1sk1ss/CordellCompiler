@@ -107,7 +107,7 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v
 
     info->memory.size = 0;
     if (info->t == TYPE_PRIMITIVE) {
-        info->memory.size = TKN_convert_type_size(TKN_variable_bitness(t, 1));
+        info->memory.size = TKN_convert_type_size(TKN_variable_bitness(t, 0));
     }
 
     map_put(&ctx->typetb, info->id, info);
@@ -162,6 +162,14 @@ symbol_id_t TPTB_get_first_child(symbol_id_t p_id, typetab_ctx_t* ctx) {
     return (symbol_id_t)list_get_head(&p_ti->link.c);
 }
 
+symbol_id_t TPTB_get_indexed_type(symbol_id_t id, typetab_ctx_t* ctx) {
+    type_info_t ti;
+    if (!TPTB_get_info_id(id, &ti, ctx)) return NO_SYMBOL_ID;
+    if (ti.memory.ptr) return TPTB_add_copy(id, NO_SYMBOL_ID, ti.memory.ptr - 1, ctx);
+    if (ti.t == TYPE_ARRAY) return TPTB_get_first_child(id, ctx);
+    return NO_SYMBOL_ID;
+}
+
 int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long overrite_size, typetab_ctx_t* ctx) {
     if (p_id == NO_SYMBOL_ID) return 0;
     p_id = _resolve_parent(p_id, ctx);
@@ -179,11 +187,15 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long o
             c_ti->link.name = name->copy(name);
         }
         
-        if (overrite_size != FIELD_NO_CHANGE) c_ti->memory.size = overrite_size;
+        long field_size = c_ti->memory.size;
+        if (overrite_size != FIELD_NO_CHANGE) {
+            field_size = overrite_size;
+            if (!c_ti->memory.ptr) c_ti->memory.size = overrite_size;
+        }
 
-        if (!p_ti->memory.multiple)        p_ti->memory.size = MAX(p_ti->memory.size, ALIGN(c_ti->memory.size, p_ti->memory.align));
-        else if (p_ti->memory.align != -1) p_ti->memory.size += ALIGN(c_ti->memory.size, p_ti->memory.align);
-        else                               p_ti->memory.size += ALIGN(c_ti->memory.size, c_ti->memory.size);
+        if (!p_ti->memory.multiple)        p_ti->memory.size = MAX(p_ti->memory.size, ALIGN(field_size, p_ti->memory.align));
+        else if (p_ti->memory.align != -1) p_ti->memory.size += ALIGN(field_size, p_ti->memory.align);
+        else                               p_ti->memory.size += ALIGN(field_size, field_size);
         // if (p_ti->memory.align == -1)      p_ti->memory.size = ALIGN(p_ti->memory.size, c_ti->memory.size);
         return 1;
     }

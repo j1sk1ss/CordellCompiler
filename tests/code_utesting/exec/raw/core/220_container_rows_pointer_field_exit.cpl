@@ -1,4 +1,6 @@
-: BUG :
+: BLOCK_TEST :
+: RUN_ASM :
+
 container row_table {
     arr rows[2, ptr i32];
 
@@ -9,14 +11,14 @@ container row_table {
 }
 
 start() {
-    arr left[3, i32] = { 1, 2, 3 };
+    arr left[3, i32]  = { 1,  2,  3  };
     arr right[3, i32] = { 10, 20, 30 };
 
     row_table t;
     t.rows[0] = ref left;
     t.rows[1] = ref right;
 
-    exit (t.get(1, 2) + t.get(0, 1) + 10) as u8;
+    exit (t.get(1 as i32, 2 as i32) + t.get(0 as i32, 1 as i32) + 10) as u8;
 }
 
 :/ OUTPUT

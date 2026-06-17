@@ -20,11 +20,10 @@ container wrapped_view {
 
 start() {
     wrapped_view w;
-    w.tag = 2;
-    w.view.half = 0;
-    w.view.bytes[0] = 19;
-    w.view.bytes[1] = 21;
-
+    w.tag           = 2 as i8;
+    w.view.half     = 0 as u16;
+    w.view.bytes[0] = 19 as u8;
+    w.view.bytes[1] = 21 as u8;
     exit w.total() as u8;
 }
 

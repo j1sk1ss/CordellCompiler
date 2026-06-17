@@ -23,7 +23,7 @@ start() {
     d.funcs[0] = inc;
     d.funcs[1] = twice;
 
-    exit (d.run(0, 20) + d.run(1, 10) + 1) as u8;
+    exit (d.run(0 as i32, 20 as i32) + d.run(1 as i32, 10 as i32) + 1) as u8;
 }
 
 :/ OUTPUT

@@ -1,6 +1,5 @@
 : BLOCK_TEST :
 : RUN_ASM :
-
 container int_box {
     i32 value;
 

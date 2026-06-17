@@ -53,6 +53,7 @@ long TPTB_get_memory_size_id(symbol_id_t id, typetab_ctx_t* ctx);
 int TPTB_set_memory_size_id(symbol_id_t id, long size, typetab_ctx_t* ctx);
 int TPTB_link_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx);
 symbol_id_t TPTB_get_first_child(symbol_id_t p_id, typetab_ctx_t* ctx);
+symbol_id_t TPTB_get_indexed_type(symbol_id_t id, typetab_ctx_t* ctx);
 long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* ctx);
 int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long overrite_size, typetab_ctx_t* ctx);
 int TPTB_get_info_id(symbol_id_t id, type_info_t* info, typetab_ctx_t* ctx);

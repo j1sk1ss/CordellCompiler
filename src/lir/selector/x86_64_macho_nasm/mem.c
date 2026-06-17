@@ -1,12 +1,10 @@
 #include <lir/selector/x86_64_macho_nasm.h>
 
-/*
-If this is a regular (avaliable for a variable usage) register.
+/* If this is a regular (avaliable for a variable usage) register.
 Params:
     - `r` - Register.
 
-Returns 1 if this is a valid register.
-*/
+Returns 1 if this is a valid register. */
 static inline int _is_regular_register(lir_registers_t r) {
     if (r > R15 || r < 0) return 0;
     lir_registers_t base = LIR_format_register(r, 8);
@@ -16,30 +14,26 @@ static inline int _is_regular_register(lir_registers_t r) {
 
 static const lir_registers_t _regular_registers[] = { RCX, RDX, RBX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14 };
 
-/*
-Convert color (index) value to a register.
+/* Convert color (index) value to a register.
 The idea, that colors don't care about special and reserved registers (such as RSP, RBP, etc.),
 that's why we need to convert it properly.
 Params:
     - `color` - Color to convert.
 
-Returns the converted register.
-*/
+Returns the converted register. */
 static inline lir_registers_t _convert_color_to_register(long color) {
     if (color < 0 || color >= (long)(sizeof(_regular_registers) / sizeof(_regular_registers[0]))) return -1;
     return _regular_registers[color];
 }
 
-/*
-Update information about memory allocation in the provided lir subject.
+/* Update information about memory allocation in the provided lir subject.
 Params:
     - `s` - The considering lir subject.
     - `smp` - Stack map for register spilling.
     - `colors` - Register allocation result.
     - `smt` - Symtable.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* colors, sym_table_t* smt) {
     variable_info_t vi;
     if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
@@ -79,13 +73,11 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     return 1;
 }
 
-/*
-Get the size of a token type.
+/* Get the size of a token type.
 Params:
     - `t` - Token type.
 
-Returns the size of a token type depends on the target arch.
-*/
+Returns the size of a token type depends on the target arch. */
 static inline int _get_ast_type_size(token_type_t t) {
     switch (t) {
         case TMP_I64_TYPE_TOKEN: case TMP_U64_TYPE_TOKEN: case TMP_F64_TYPE_TOKEN:
@@ -106,13 +98,11 @@ static unsigned long _pack_str_le(char* p, unsigned long n) {
     return x;
 }
 
-/*
-Check whether a memory stack is used in a function.
+/* Check whether a memory stack is used in a function.
 Params:
     - `fb` - Function block.
 
-Returns 1 if memory is used, otherwise 0.
-*/
+Returns 1 if memory is used, otherwise 0. */
 static int _verify_memory_usage(cfg_func_t* fb) {
     foreach (cfg_block_t* bb, &fb->blocks) {
         iterate_lir_instructions (bb) {
@@ -252,16 +242,14 @@ int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
     return 1;
 }
 
-/*
-We need to be sure that all movs are proper. For example, we can't
+/* We need to be sure that all movs are proper. For example, we can't
 preserve some instructions that aren't valid in our architecture such
 as 'mov sil, r15' or 'mov r15, sil', etc. 
 Params:
     - `bb` - Current base block.
     - `smt` - Symtable.
 
-Returns 1 if the operation succeeds, otherwise 0.
-*/
+Returns 1 if the operation succeeds, otherwise 0. */
 static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
     iterate_lir_instructions (bb) {
         if (
@@ -299,8 +287,7 @@ static lir_block_t* _create_push_arg_mov(lir_subject_t* dst, lir_subject_t* src,
     return LIR_create_block(movop, movdst, src, NULL);
 }
 
-/*
-After the memory selection we should be sure that this LIR is valid. 
+/* After the memory selection we should be sure that this LIR is valid. 
 Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
 ops "mem with mem", etc.
 In a nutshell, this function doesn't do anything special. It just adds additional movs to 
@@ -309,8 +296,7 @@ Params:
     - `bb` - Current base block.
     - `smt` - Symtable.
 
-Returns 1 if the operation succeeds, otherwise 0.
-*/
+Returns 1 if the operation succeeds, otherwise 0. */
 static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     iterate_lir_instructions (bb) {
         list_t fixes, post_fixes;
@@ -357,8 +343,9 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 case LIR_iMOV:     case LIR_aMOV:     case LIR_fMOV: {
                     if (lh->farg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) break;
                     lir_subject_t* tmp = x86_64_macho_nasm_create_tmp(R15, lh->sarg, smt, lh->farg->size);
-                    list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL));
+                    list_add(&fixes, LIR_create_block(lh->op, tmp, lh->sarg, NULL));
                     lh->sarg = tmp;
+                    lh->op   = LIR_iMOV;
                     break;
                 }
                 case LIR_LDREF: {
@@ -416,8 +403,8 @@ int x86_64_macho_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            _validate_size_movs(bb, smt);
             _validate_selected_instuction(bb, smt);
+            _validate_size_movs(bb, smt);
             if (fi.flags.naked != 1) continue;
             iterate_lir_instructions (bb) {
                 iterate_lir_args (lir_subject_t* s, lh, 0) {

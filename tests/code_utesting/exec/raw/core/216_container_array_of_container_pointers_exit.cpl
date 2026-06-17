@@ -1,4 +1,5 @@
-: BUG :
+: BLOCK_TEST :
+: RUN_ASM :
 
 container node {
     i32 value;

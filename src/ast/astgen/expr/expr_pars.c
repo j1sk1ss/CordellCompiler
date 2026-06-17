@@ -1,7 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-/*
-Parse left part of a stmt.
+/* Parse left part of a stmt.
 Params:
     - `it` - Current iterator.
     - `ctx` - AST context.
@@ -14,8 +13,7 @@ Params:
                    If you want to parse only the left part (before assign),
                    set this flag to 1.
 
-Returns an AST node.
-*/
+Returns an AST node. */
 static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
 
 #define WRAP_REFERENCE_NODE(nd) \
@@ -23,8 +21,7 @@ static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
     AST_add_node(__pp, nd);                                                               \
     nd = __pp;                                                                            \
 
-/*
-Parse expression that looks like: <stmt> <op> <stmt>. 
+/* Parse expression that looks like: <stmt> <op> <stmt>. 
 Note: <stmt> here can be either a simple <(a..> or a complex sub-stmt.
 Params:
     - `it` - Current iterator.
@@ -42,8 +39,7 @@ Params:
                    set this flag to 1.
                    If you want to parse only the primary - set this flag to 2.
 
-Returns an AST node.
-*/
+Returns an AST node. */
 static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int mp, int na) {
     SAVE_TOKEN_POINT;
     ast_node_t* left = _parse_primary(it, ctx, smt, na);
@@ -197,9 +193,8 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     left = target;
                     if (tmp) AST_add_node(left, tmp);
                     if (
-                        tmp && 
-                        left->t->t_type == INDEXATION_TOKEN
-                    ) left->sinfo.t_id = TPTB_get_first_child(tmp->sinfo.t_id, &smt->t);
+                        tmp && left->t->t_type == INDEXATION_TOKEN
+                    ) left->sinfo.t_id = TPTB_get_indexed_type(tmp->sinfo.t_id, &smt->t);
                     if (data) {
                         AST_add_node(left, data);
                         forward_token(it, 1);
