@@ -17,13 +17,11 @@ unsigned long HIR_DAG_compute_hash(dag_node_t* nd) {
     return h;
 }
 
-/*
-Create a new DAG node from the source HIR subject.
+/* Create a new DAG node from the source HIR subject.
 Params:
     - `src` - HIR subject.
 
-Returns a new DAG node or NULL.
-*/
+Returns a new DAG node or NULL. */
 static dag_node_t* _create_node(hir_subject_t* src) {
     dag_node_t* nd = (dag_node_t*)mm_malloc(sizeof(dag_node_t));
     if (!nd) return NULL;

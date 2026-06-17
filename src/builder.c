@@ -5,7 +5,7 @@ static inline void _print_version(FILE* stream) {
 }
 
 static inline void _print_help_row(FILE* stream, const cli_help_option_t* row) {
-    char label[64];
+    char label[64] = { 0 };
     if (row->argument && row->argument[0]) snprintf(label, sizeof(label), "%s %s", row->option, row->argument);
     else snprintf(label, sizeof(label), "%s", row->option);
     fprintf(stream, "  %-28s %s\n", label, row->description);

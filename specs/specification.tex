@@ -60,7 +60,7 @@
   captionpos=b,
 }
 
-\title{Cordell Programming Language: Typed OS Interfaces in a Compact SSA-Based Compiler}
+\title{Minimal extention for C-language as a compact system programming language}
 \author{
   \normalsize Nikolai Fot \and
   \normalsize Alexander Vinarskiy \\
@@ -73,13 +73,12 @@
 \maketitle
 
 \begin{abstract}
-\par This report investigates whether a compact systems language can expose the binary layout and machine-interface controls required by freestanding software while retaining a conventional optimizing pipeline and SSA-based static diagnostics. Cordell Programming Language (CPL) provides primitive values, pointers, arrays, aggregates and unions, entry-point and section control, system calls, and inline assembly without implementing the full semantics of C. Three questions structure the study: whether typed CPL can express representative kernel boundaries with assembly confined to irreducibly machine-specific operations; whether its generated code is comparable to mature compilers on selected small kernels; and whether SSA plus SMT provides a useful basis for path-sensitive diagnostics. Compiler version 3.6.4 is examined through its HIR/LIR pipeline, Z3 integration, PTRN peephole language, x86-64 and i386 backends, a Multiboot bootstrap case study, and three microbenchmarks. The case study demonstrates typed expression of boot-header layout, section placement, stack allocation, and kernel transfer. CPL matches or approaches Clang and GCC on the two arithmetic-loop kernels reported here, but trails all compared compilers on pointer-heavy string traversal. The diagnostic architecture is demonstrated functionally, but precision and scalability are not quantified. The evidence therefore supports feasibility, not general performance, correctness, or diagnostic-effectiveness claims.
+\par The paper investigates whether a compact systems language can expose the binary layout and machine-interface controls required by freestanding software while retaining a conventional optimizing pipeline and SSA-based static diagnostics. Cordell Programming Language (CPL) provides primitive values, pointers, arrays, aggregates and unions, entry-point and section control, system calls, and inline assembly without implementing the full semantics of C. Paper covers general implementation of the language, its grammar, its pipeline and overall possible use-cases. The developed language intentionally stays close to C language which helps in demonstration of possible extention of existed languages with modern syntax approaches such as generic functions, structure method containers, overloads, etc.
 \end{abstract}
 
 \section{Introduction}
 \par Systems programming languages expose machine-level details while attempting to keep programs tractable. Mature languages such as C~\cite{ritchie1978c,kernighan1988c}, C++~\cite{stroustrup2007cpp,stroustrup2013cpp}, Rust~\cite{klabnik2023rust,jung2018rustbelt}, and Zig~\cite{ziglangref} provide large ecosystems, but their full syntactic and semantic complexity makes them expensive targets for compiler experiments. Conversely, many teaching compilers are intentionally small but do not expose enough low-level mechanisms to study system-oriented code generation, platform-specific interfaces, and optimization under realistic constraints.
 \par CPL is not a C subset. A faithful C-like subset would either require a substantially more complex parser and semantic model, or would create misleading expectations that the rest of C should also be supported. The current design instead favors a compact parser-friendly grammar, explicit syntax for functions and pointer-like operations, and compiler-supported low-level constructs.
-
 \par The central research problem is the tension between implementation compactness and systems-level adequacy. Reducing a language and compiler makes experimentation and inspection easier, but can remove the layout controls, ABI mechanisms, analyses, and backend structure needed for realistic low-level programs. This report studies how far a compact implementation can preserve those capabilities without claiming the safety, verification, or maturity of established systems toolchains.
 
 \par The contributions of this report are:
@@ -91,26 +90,8 @@
   \item an SSA/SMT diagnostic architecture whose demonstrated capabilities and unmeasured properties are reported separately.
 \end{itemize}
 
-\par Unless stated otherwise, implementation claims refer to compiler version \texttt{3.6.4:1106.26} and the source snapshot dated June 13, 2026. This explicit snapshot boundary is necessary because the language and compiler are under active development.
-
-\section{Research Questions and Scope}
-\label{sec:rqs}
-
-\paragraph{RQ1: Systems expressiveness.}
-\par To what extent can a compact typed language represent freestanding kernel interfaces that are conventionally written in assembly? The Multiboot case study evaluates header layout, section alignment, linker-visible entry points, stack construction, boot-register capture, and transfer to a kernel routine. Evidence is qualitative and artifact-based; no claim is made that CPL eliminates assembly.
-
-\paragraph{RQ2: Generated-code performance.}
-\par How does optimized CPL code compare with Clang, GCC, and Rust on small kernels that stress loop overhead, scalar recurrence, and pointer traversal? The available evidence consists of three five-run microbenchmarks. It can identify workload-specific strengths and weaknesses but cannot establish whole-program competitiveness or statistical significance.
-
-\paragraph{RQ3: SSA/SMT diagnostics.}
-\par Does SSA-form HIR provide a workable representation for path-sensitive Z3 queries beyond AST-local diagnostics? The report demonstrates null and reachability query construction. Analysis time, false-positive rate, and false-negative rate have not been measured, so diagnostic effectiveness remains an open empirical question.
-
-\paragraph{RQ4: Optimization attribution.}
-\par Which HIR and LIR passes account for changes in execution time and code size? The current measurements compare optimization profiles but do not provide pass-by-pass ablation. RQ4 is therefore stated to define the required experiment and is not answered by the present dataset.
-
 \subsection{Design Scope}
 \par The language stays close to assembly and C by exposing pointers, explicit dereferencing, C-like containers, direct system calls, inline assembly, manual entry points, and annotations for placement and control. It deliberately avoids reproducing the full C grammar and semantics. The compiler includes enough phase separation to study SSA construction~\cite{cytron1991ssa}, diagnostics, scalar optimization, low-level selection, register allocation, and peephole rewriting.
-
 \par CPL minimizes dependencies on a host standard library. In the evaluated snapshot, x86-64 Mach-O is the default and most extensively exercised backend. The x86-64 Linux and i386 Linux paths are implemented and covered by targeted tests, although their validation remains narrower.
 
 \subsection{Non-Goals}
@@ -175,7 +156,7 @@ container pair {
 \begin{lstlisting}[language=CPL,caption={Packed container layout.}]
 @[align(1)]
 container packed_value {
-    i8 a;
+    i8  a;
     i16 b;
     i32 c;
 } :/ packed, occupies 7 bytes on the stack /:
@@ -185,9 +166,12 @@ container packed_value {
 
 \begin{lstlisting}[language=CPL,caption={Container function.}]
 container counter {
-    function default_value() -> i32 {
-        return 100;
-    }
+    @[inline(always)]
+    function default_value() -> i32;
+}
+
+function counter::default_value() -> i32 {
+    return 100;
 }
 
 counter c;
@@ -219,10 +203,10 @@ c.val; :/ 0 /:
 @[like_c]
 @[union]
 container device_value {
-    i8  size8;
-    i16 size16;
-    i32 size32;
-    i64 size64;
+    i8  size_8;
+    i16 size_16;
+    i32 size_32;
+    i64 size_64;
 }
 \end{lstlisting}
 
@@ -231,7 +215,7 @@ container device_value {
 \begin{lstlisting}[language=CPL,caption={Arrays of containers and nested arrays.}]
 container string_view {
     ptr i8 data;
-    i32 length;
+    i32    length;
 }
 
 arr views[10, string_view];
@@ -250,17 +234,12 @@ function math::add(i32 a, i32 b) -> i32 {
 }
 \end{lstlisting}
 
-
 \subsection{Control Flow}
 \par CPL provides \texttt{if}, \texttt{while}, \texttt{loop}, and \texttt{switch}. A semicolon separates the condition from the body in conditional constructs. The \texttt{loop} construct represents an infinite loop unless terminated with \texttt{break} or annotated with \texttt{@[counter(n)]}. The \texttt{switch} construct supports fallthrough by default, while \texttt{@[no\_fall]} inserts break-like behavior into cases.
 
-\begin{lstlisting}[language=CPL,caption={Control flow.}]
-if x > 0; {
-    x -= 1;
-} 
-else {
-    x = 0;
-}
+\begin{lstlisting}[language=CPL, caption={Control flow.}]
+if x > 0; x -= 1;
+else      x = 0;
 
 @[counter(10)] loop {
     x += 1;
@@ -270,7 +249,7 @@ else {
 \subsection{Functions}
 \par Functions are declared with the \texttt{function} keyword. CPL supports prototypes, default arguments, local functions, function overloading with restrictions, generic functions, function pointers, lambdas without closure capture, and variadic arguments. Global functions use \texttt{glob} when their symbol name must be preserved for external linkage.
 
-\begin{lstlisting}[language=CPL,caption={Function forms.}]
+\begin{lstlisting}[language=CPL, caption={Function forms.}]
 function add(i32 a, i32 b = 1) -> i32 {
     return a + b;
 }
@@ -283,7 +262,7 @@ glob function exported(i32 x) -> i32;
 \subsection{System-Level Facilities}
 \par CPL provides two built-in low-level mechanisms: \texttt{syscall} and \texttt{asm}. A \texttt{syscall} expression is target-dependent and accepts a platform-specific argument list. Inline assembly supports argument substitution through numbered placeholders.
 
-\begin{lstlisting}[language=CPL,caption={Inline assembly with placeholders.}]
+\begin{lstlisting}[language=CPL, caption={Inline assembly with placeholders.}]
 i32 a = 0;
 i32 ret;
 asm(a, ret) {
@@ -310,23 +289,23 @@ asm(a, ret) {
 \toprule
 Annotation & Purpose & Example & Maturity \\
 \midrule
-\texttt{naked} & Disable default entry and exit routines. & \texttt{@[naked] start()} & stable \\
-\texttt{align} & Align a local or global object. & \texttt{@[align(16)] glob i32 a;} & stable \\
-\texttt{section} & Place code or data in a target section. & \texttt{@[section(".data")]} & stable \\
-\texttt{nosection} & Emit a declaration without an explicit section directive. & \texttt{@[nosection] glob function f()} & stable \\
-\texttt{entry} & Mark a function as an entry point. & \texttt{@[entry("\_start")]} & stable \\
-\texttt{no\_fall} & Insert break-like behavior in switch cases. & \texttt{@[no\_fall] switch x;} & stable \\
-\texttt{straight} & Use linear switch selection. & \texttt{@[straight] switch x;} & stable \\
-\texttt{counter} & Generate a counted loop. & \texttt{@[counter(100)] loop} & stable \\
+\texttt{naked}             & Disable default entry and exit routines. & \texttt{@[naked] start()} & stable \\
+\texttt{align}             & Align a local or global object. & \texttt{@[align(16)] glob i32 a;} & stable \\
+\texttt{section}           & Place code or data in a target section. & \texttt{@[section(".data")]} & stable \\
+\texttt{nosection}         & Emit a declaration without an explicit section directive. & \texttt{@[nosection] glob function f()} & stable \\
+\texttt{entry}             & Mark a function as an entry point. & \texttt{@[entry("\_start")]} & stable \\
+\texttt{no\_fall}          & Insert break-like behavior in switch cases. & \texttt{@[no\_fall] switch x;} & stable \\
+\texttt{straight}          & Use linear switch selection. & \texttt{@[straight] switch x;} & stable \\
+\texttt{counter}           & Generate a counted loop. & \texttt{@[counter(100)] loop} & stable \\
 \texttt{hot}/\texttt{cold} & Influence branch layout. & \texttt{@[cold] if cond;} & stable \\
-\texttt{register} & Bind a primitive variable to a register index. & \texttt{@[register(RAX)] i32 x;} & stable \\
-\texttt{self} & Mark a container method whose explicit receiver pointer can be passed through method-like syntax. & \texttt{@[self] function init(ptr T self)} & stable \\
-\texttt{poparg} & Influence argument popping at a low-level call boundary. & \texttt{@[poparg]} & stable \\
-\texttt{like\_c} & Request C-ABI-like padding and layout behavior for a container. & \texttt{@[like\_c] container T \{...\}} & stable \\
-\texttt{union} & Give all fields of a container offset zero. & \texttt{@[union] container U \{...\}} & implemented \\
-\texttt{abi} & Mark an external function declaration as ABI-compatible. & \texttt{@[abi] extern function f(...)} & implemented \\
-\texttt{weak} & Emit a weak linker symbol for a function. & \texttt{@[weak] function f()} & implemented \\
-\texttt{only\_body} & Emit only the lowered body of a function, without its symbol label or ordinary wrapper. & \texttt{@[only\_body] function h()} & experimental \\
+\texttt{register}          & Bind a primitive variable to a register index. & \texttt{@[register(RAX)] i32 x;} & stable \\
+\texttt{self}              & Mark a container method whose explicit receiver pointer can be passed through method-like syntax. & \texttt{@[self] function init(ptr T self)} & stable \\
+\texttt{poparg}            & Influence argument popping at a low-level call boundary. & \texttt{@[poparg]} & stable \\
+\texttt{like\_c}           & Request C-ABI-like padding and layout behavior for a container. & \texttt{@[like\_c] container T \{...\}} & stable \\
+\texttt{union}             & Give all fields of a container offset zero. & \texttt{@[union] container U \{...\}} & implemented \\
+\texttt{abi}               & Mark an external function declaration as ABI-compatible. & \texttt{@[abi] extern function f(...)} & implemented \\
+\texttt{weak}              & Emit a weak linker symbol for a function. & \texttt{@[weak] function f()} & implemented \\
+\texttt{only\_body}        & Emit only the lowered body of a function, without its symbol label or ordinary wrapper. & \texttt{@[only\_body] function h()} & experimental \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -469,7 +448,7 @@ fn _main0() {
     i32t %3 = i8n 2 as i32;
     i32s %1 = i32t %3;
     i32t %5 = i32s %0 + i32s %1;
-    u8t %4 = i32t %5 as u8;
+    u8t %4  = i32t %5 as u8;
     exit u8t %4;
 }
 \end{lstlisting}
@@ -477,14 +456,15 @@ fn _main0() {
 \par After lowering to LIR, the program is represented as a basic-block sequence.
 
 \begin{lstlisting}[caption={LIR form before target-sensitive selection.}]
-BB1: start
-%2 = $1 as i32;
-%0 = %2;
-%3 = $2 as i32;
-%1 = %3;
-%5 = %0 + %1;
-%4 = %5 as u8;
-exit %4;
+BB1: start {
+    %2 = $1 as i32;
+    %0 = %2;
+    %3 = $2 as i32;
+    %1 = %3;
+    %5 = %0 + %1;
+    %4 = %5 as u8;
+    exit %4;
+    }
 BB2: send
 \end{lstlisting}
 
@@ -529,11 +509,11 @@ syscall
 \label{tab:backend-maturity}
 \begin{tabular}{p{0.24\linewidth}p{0.20\linewidth}p{0.32\linewidth}}
 \toprule
-Target & Assembler format & Status \\
+Target        & Assembler format & Status                       \\
 \midrule
-x86-64 Mach-O & \texttt{macho64} & default; broadest coverage \\
-x86-64 Linux & \texttt{elf64} & implemented; targeted tests \\
-i386 Linux & \texttt{elf32} & implemented; kernel examples \\
+x86-64 Mach-O & \texttt{macho64} & default; broadest coverage   \\
+x86-64 Linux  & \texttt{elf64}   & implemented; targeted tests  \\
+i386 Linux    & \texttt{elf32}   & implemented; kernel examples \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -542,7 +522,6 @@ i386 Linux & \texttt{elf32} & implemented; kernel examples \\
 \label{sec:i386-abi}
 
 \par The i386 backend follows a simple C-style stack ABI for exported functions and extern declarations. Primitive arguments are passed through the caller's stack frame, return values use the target return-register convention, and \texttt{extern} declarations describe symbols implemented outside the CPL module. Global CPL functions are emitted as externally visible symbols and can be called from C support code when matching prototypes are used.
-
 \par The \texttt{naked} annotation is the main exception to the ordinary function-frame shape. In a normal i386 function, the compiler may establish an \texttt{ebp}-based frame: \texttt{[ebp + 4]} contains the return address, \texttt{[ebp + 8]} the first argument, and \texttt{[ebp + 12]} the second. A naked function suppresses the generated prologue and epilogue, so the corresponding locations are \texttt{[esp]}, \texttt{[esp + 4]}, and \texttt{[esp + 8]}. Figure~\ref{fig:i386-naked-stack} presents this difference.
 
 \begin{figure*}[t]
@@ -579,8 +558,7 @@ i386 Linux & \texttt{elf32} & implemented; kernel examples \\
 \end{figure*}
 
 \begin{lstlisting}[language=CPL,caption={A naked i386 helper whose arguments are addressed from \texttt{esp}.},label={lst:i386-naked-abi}]
-@[nosection]
-@[naked]
+@[nosection] @[naked]
 glob function i386_switch2user(u32 eip, u32 esp) -> i0 {
     asm(eip, esp) {
         "cli",
@@ -598,9 +576,7 @@ glob function i386_switch2user(u32 eip, u32 esp) -> i0 {
 
 \section{Static Diagnostics}
 \par CPL contains a two-level diagnostic subsystem. The first level operates on the AST and targets source-structure issues such as read-only variable updates, declaration problems, return mismatches, wrong argument counts, incompatible argument types, unused return values, illegal array access, duplicated branches, invalid function names, dead code, lossy implicit conversions, inefficient infinite loops, invalid \texttt{exit} usage, break statements without legal targets, invalid use of \texttt{i0}, unused expressions, invalid references, and suspicious alignment requests.
-
 \par The second level is intentionally placed after SSA construction~\cite{cytron1991ssa}. At this point the compiler has explicit use-definition chains and phi nodes, so the checker can reason about values and path conditions in a more structured form than in the original HIR. Z3-backed symbolic execution~\cite{deMoura2008z3} is applied on SSA-form HIR to detect definite null dereferences, null values passed into dereferencing functions, possible null dereferences under path-dependent conditions, and constant branches. This ordering is important: the solver-facing analysis works on SSA-form HIR rather than on pre-SSA HIR, because SSA simplifies symbolic value tracking and makes the generated constraints easier to relate to compiler variables.
-
 \par The analysis is diagnostic rather than protective. It does not implement memory safety, ownership, or aliasing restrictions, and it does not prevent undefined behavior caused by dangling pointers, unsafe inline assembly, invalid external interfaces, or target-specific misuse.
 
 \begin{lstlisting}[language=CPL,caption={Example that triggers SSA-level null-dereference diagnostics.}]
@@ -620,9 +596,7 @@ start() {
 \par The current wrapper accepts either parsed JSON or textual HIR dumps, can select a particular function, builds a CFG, and then dispatches solver-backed queries. Two query modes are especially useful for development: \texttt{label}, which checks whether a label can be reached under satisfiable path conditions, and \texttt{var-eq}, which checks whether a selected variable can, must, or cannot equal a given value. The wrapper also supports initial assignments, pointer-width configuration, strict parsing modes, and cached parsing/analysis artifacts. These features keep the solver path useful not only for compiler diagnostics, but also for investigating IR examples during pass development.
 
 \begin{lstlisting}[caption={Representative interface to the symbolic query layer.}]
-analyze-hir --function entry \
-    --pointer-width 64 \
-    variable-equals temporary_7 0
+analyze-hir --function entry --pointer-width 64 variable-equals temporary_7 0
 \end{lstlisting}
 
 \par This subsystem should be understood as an experimental symbolic analysis component, not as a formal verification framework. Z3 is used to answer bounded path and value questions that are helpful for diagnostics such as null-dereference detection and unreachable-code reasoning. It does not by itself provide a complete semantic proof of CPL programs or of compiler transformations~\cite{deMoura2008z3}.
@@ -674,24 +648,23 @@ start() {
 
 \begin{lstlisting}[caption={Peephole effect on a counted empty loop.}]
 Before:
-rax = rcx;
-rax = rax - 1;
-rcx = rax;
-rdx = rcx;
-cmp rdx, 0;
-je lb11;
-jne lb9;
+    rax = rcx;
+    rax = rax - 1;
+    rcx = rax;
+    rdx = rcx;
+    cmp rdx, 0;
+    je lb11;
+    jne lb9;
 
 After:
-rcx = rcx - 1;
-jne lb10;
+    rcx = rcx - 1;
+    jne lb10;
 \end{lstlisting}
 
 
 \subsection{PTRN: A Peephole Pattern DSL}
 
 \par The late peephole pass is not only a collection of handwritten rewrites. CPL also uses \texttt{PTRN}, a small domain-specific language for generating peephole optimization patterns. The motivation is practical: low-level instruction cleanup often consists of many small local rewrites, and encoding them in C by hand makes the pass difficult to extend. PTRN provides a declarative syntax for matching short Low LIR instruction sequences and replacing them with simpler or more efficient sequences.
-
 \par A PTRN file consists of rewrite rules separated by \texttt{/}. The left-hand side describes a sequence to match; the right-hand side after \texttt{->} describes the replacement. Pattern objects abstract over concrete Low LIR operands: \texttt{areg\_N} tracks a repeated abstract register, \texttt{aconst\_N} tracks a repeated abstract constant, \texttt{mem\_N} matches memory locations, and \texttt{obj} can match an arbitrary object. Conditions such as \texttt{[if:equals]}, \texttt{[if:arg2:zero]}, or \texttt{[if:arg2:mod2]} restrict a match, while actions can transform matched constants in the replacement.
 
 \begin{lstlisting}[language=PTRN,caption={Examples of PTRN peephole rules.}]
@@ -716,7 +689,6 @@ xor areg_1, areg_1
 \end{lstlisting}
 
 \par The generated C code is then used by the low-level peephole pass. This keeps the compiler backend extensible: adding a new local simplification can be done by adding a pattern rule rather than modifying the peephole engine directly. The approach is intentionally modest; PTRN does not replace global optimization or data-flow analysis. Its role is to make late instruction cleanup explicit, testable, and easier to maintain.
-
 \par The report does not attribute an independent performance improvement to PTRN because the available benchmark data measures the complete optimization pipeline. PTRN is therefore evaluated here as an implementation mechanism for declarative and generated local rewrites, rather than as an isolated source of speedup.
 
 \subsection{Excluded Experimental Passes}
@@ -784,7 +756,6 @@ function i386_keyboard_handler(ptr i0 _) -> i0 {
 \label{sec:multiboot}
 
 \par A second i386 use case is replacement of a conventional assembly bootstrap with a mostly typed CPL translation unit. Multiboot version 0.6.96 requires a 32-bit-aligned header within the first 8192 bytes of the operating-system image. The header begins with the magic value \texttt{0x1BADB002}; its magic, flags, and checksum fields must sum to zero modulo \(2^{32}\). At transfer of control, \texttt{EAX} contains the Multiboot boot-loader magic, \texttt{EBX} points to the boot-information structure, and the operating system must establish its own stack~\cite{multiboot096}.
-
 \par Listing~\ref{lst:multiboot-cpl} expresses these requirements through packed containers, explicit section placement and alignment, a linker-visible entry symbol, and register-bound source variables. Inline assembly remains necessary for instructions whose effects are not represented by ordinary CPL expressions, including loading \texttt{esp}, disabling interrupts, and halting the processor. The header layout, static storage, and call into the kernel routine remain visible to the type system and normal compiler pipeline.
 
 \begin{lstlisting}[language=CPL,caption={Abridged Multiboot-compatible i386 entry unit.},label={lst:multiboot-cpl},basicstyle=\ttfamily\tiny]
@@ -801,16 +772,7 @@ container multiboot_header {
 }
 
 @[section(".multiboot", 4)]
-glob multiboot_header header = {
-    :/ magic    /: 0x1BADB002,
-    :/ flags    /: 7,
-    :/ checksum /: 3830599671,
-    :/ reserved /: 0, 0, 0, 0, 0,
-    :/ mode     /: 0,
-    :/ width    /: 640,
-    :/ height   /: 480,
-    :/ depth    /: 32
-};
+glob multiboot_header header = { 0x1BADB002, 7, 3830599671, 0, 0, 0, 0, 0, 0, 640, 480, 32 };
 
 container kernel_stack {
     arr storage[16384, u8];
@@ -851,9 +813,7 @@ function main() -> i0 {
 \section{Testing Infrastructure}
 
 \par The compiler is tested with a phase-oriented framework rather than only through end-to-end examples. The central principle is phase observability: tests can inspect preprocessing, tokenization, AST construction, semantic analysis, HIR generation, SSA construction, DAG construction, constant-folding analysis, LIR construction, instruction selection, register allocation, peephole optimization, assembly generation, or assembly-level constant folding. This makes regressions easier to localize than in a purely black-box compiler test.
-
 \par CPL tests use an \texttt{OUTPUT} oracle embedded in source files. The oracle can match runtime output, exit codes, and selected compiler dumps. It also supports tolerant matching for unstable compiler-generated identifiers, so tests can focus on semantically important output instead of on incidental temporary names. Runtime tests can run generated assembly and can use multiple argument cases inside one file.
-
 \par Two flags are especially important for the current workflow. \texttt{BUG} marks an expected failing test and keeps known defects visible without making the entire test run unusable. \texttt{LEAK\_TRACE} enables memory-operation logging for leak localization in compiler-internal tests. Together with phase observability, these mechanisms support regression tracking across frontend, middle-end, backend, and runtime behavior.
 
 \begin{table*}[t]
@@ -960,13 +920,13 @@ start() {
 \caption{Mean optimized benchmark runtimes in seconds over five runs. Lower is better; dispersion data is unavailable.}
 \label{tab:benchmarks}
 \begin{tabular}{lrrrr}
-\toprule
-Benchmark & CPL \texttt{-O3} & Clang \texttt{-O3} & GCC \texttt{-O3} & Rust opt-level=2 \\
-\midrule
-Empty loop & 0.702 & 0.748 & 0.758 & 0.333 \\
-Fibonacci & 0.412 & 0.417 & 0.412 & 0.335 \\
-String traversal & 0.513 & 0.430 & 0.470 & 0.332 \\
-\bottomrule
+    \toprule
+    Benchmark        & CPL \texttt{-O3} & Clang \texttt{-O3} & GCC \texttt{-O3} & Rust opt-level=2 \\
+    \midrule
+    Empty loop       & 0.702            & 0.748              & 0.758            & 0.333            \\
+    Fibonacci        & 0.412            & 0.417              & 0.412            & 0.335            \\
+    String traversal & 0.513            & 0.430              & 0.470            & 0.332            \\
+    \bottomrule
 \end{tabular}
 \end{table*}
 
@@ -1126,8 +1086,6 @@ CPL & compact source language and compiler & inspectable OS/compiler experiments
 
 \par The report therefore establishes feasibility of a compact source language that combines OS-facing controls with a conventional optimizing pipeline and SSA/SMT analysis. It does not establish compiler correctness, memory safety, general performance competitiveness, backend maturity, or diagnostic effectiveness. Those claims require the formalization, differential validation, expanded benchmarks, hardware-counter measurements, and labeled diagnostic evaluation specified in the future-work program.
 
-
-
 \appendix
 
 \section{Abridged BNF Grammar of CPL}
@@ -1187,7 +1145,6 @@ stmt_end       ::= ";" | end_of_line
 \end{lstlisting}
 
 \par The current keyword set is: \texttt{start}, \texttt{exit}, \texttt{function}, \texttt{container}, \texttt{return}, \texttt{if}, \texttt{else}, \texttt{while}, \texttt{loop}, \texttt{switch}, \texttt{case}, \texttt{default}, \texttt{glob}, \texttt{ro}, \texttt{dref}, \texttt{ref}, \texttt{ptr}, \texttt{lis}, \texttt{break}, \texttt{extern}, \texttt{from}, \texttt{import}, \texttt{syscall}, \texttt{asm}, \texttt{as}, \texttt{f64}, \texttt{f32}, \texttt{i64}, \texttt{i32}, \texttt{i16}, \texttt{i8}, \texttt{u64}, \texttt{u32}, \texttt{u16}, \texttt{u8}, \texttt{i0}, \texttt{str}, \texttt{arr}, \texttt{not}, \texttt{neg}, \texttt{poparg}, \texttt{sizeof}, \texttt{section}, \texttt{align}, \texttt{line}, \texttt{include}, \texttt{define}, \texttt{undef}, \texttt{ifdef}, \texttt{ifndef}, and \texttt{endif}. Containers may contain scalar fields, pointer fields, and array fields; method-like calls are supported through explicit receiver parameters marked with \texttt{@[self]}. The \texttt{@[like\_c]} annotation is used to document C-ABI-like container padding and layout intent.
-
 
 \bibliographystyle{plain}
 \bibliography{links}

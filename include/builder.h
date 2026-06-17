@@ -21,8 +21,6 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include <ast/opt/condunroll.h>
-#include <ast/opt/deadscope.h>
 
 /* HIR generation part and CFG generation part */
 #include <hir/hirgen.h>
@@ -76,7 +74,7 @@
 #include <asm/i386_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
-#define CCPL_VERSION                 "3.6.5:1406.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.5.1:1706.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #define OPTION_HELP_SHORT            "-h"
 #define OPTION_HELP                  "--help"
@@ -170,27 +168,27 @@ typedef struct {
         long         quart_bytness;
         long         eight_bytness;
         arch_type_t  sys_type;
-        int          tre;
-        int          finline;
-        int          licm;
-        int          constant;
-        int          peephole;
-        int          copy_prop;
-        int          debug;
-        int          emit_ast;
-        int          emit_ir;
-        int          emit_lir;
-        int          emit_asm;
+        int          tre                  : 1;
+        int          finline              : 1;
+        int          licm                 : 1;
+        int          constant             : 1;
+        int          peephole             : 1;
+        int          copy_prop            : 1;
+        int          debug                : 1;
+        int          emit_ast             : 1;
+        int          emit_ir              : 1;
+        int          emit_lir             : 1;
+        int          emit_asm             : 1;
     } config;
     struct {
-        int          ast_analysis;
-        int          hir_analysis;
-        int          show_help;
-        int          show_version;
-        int          preprocess_only;
-        int          without_compilation;
-        int          no_compile;
-        int          no_object_build;
+        int          ast_analysis         : 1;
+        int          hir_analysis         : 1;
+        int          show_help            : 1;
+        int          show_version         : 1;
+        int          preprocess_only      : 1;
+        int          without_compilation  : 1;
+        int          no_compile           : 1;
+        int          no_object_build      : 1;
     } flags;
 } options_t;
 

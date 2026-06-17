@@ -77,7 +77,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case ASM_TOKEN:             return HIR_generate_asmblock(node, ctx, smt);
         case FUNC_TOKEN:            return HIR_generate_function_block(node, NO_SYMBOL_ID, ctx, smt);
         case EXIT_TOKEN:            return HIR_generate_exit_block(node, ctx, smt);
-        case CALLING_TOKEN:         return (int)((long)HIR_generate_funccall(node, ctx, smt, 0));
+        case CALLING_TOKEN:         return HIR_generate_funccall(node, ctx, smt, 0) == NULL;
         case LOOP_TOKEN:            return HIR_generate_loop_block(node, ctx, smt);
         case BREAK_TOKEN:           return HIR_generate_break_block(node, ctx);
         case WHILE_TOKEN:           return HIR_generate_while_block(node, ctx, smt);
@@ -86,9 +86,9 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case RETURN_TOKEN:          return HIR_generate_return_block(node, ctx, smt);
         case EXTERN_TOKEN:          return HIR_generate_extern_block(node, ctx);
         case ASSIGN_TOKEN:          return HIR_generate_assignment_block(node, ctx, smt);
-        case SYSCALL_TOKEN:         return (int)((long)HIR_generate_syscall(node, ctx, smt, 0));
+        case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 0) == NULL;
         case BREAKPOINT_TOKEN:      return HIR_generate_breakpoint_block(node, ctx);
-        case LAMBDA_FUNCTION_TOKEN: return (int)((long)HIR_generate_lambda(node, ctx, smt, 0));
+        case LAMBDA_FUNCTION_TOKEN: return HIR_generate_lambda(node, ctx, smt, 0) == NULL;
         default: break;
     }
 
@@ -96,8 +96,8 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         TKN_is_builtin_type(node->t) ||
         node->t->t_type == CUSTOM_TYPE_TOKEN
     ) return HIR_generate_declaration_block(node, ctx, smt);
-    if (TKN_is_update_operator(node->t)) return (int)((long)HIR_generate_update_block(node, ctx, smt, 0));
-    return (int)((long)_generation_handler(node, ctx, smt, 0));
+    if (TKN_is_update_operator(node->t)) return HIR_generate_update_block(node, ctx, smt, 0) == NULL;
+    return _generation_handler(node, ctx, smt, 0) != NULL;
 }
 
 /* We need to save scopes from the AST.

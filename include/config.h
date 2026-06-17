@@ -49,24 +49,20 @@ typedef struct {
     } compilation_flags;
 } config_t;
 
-int CONF_set_config(config_t* conf);
-
+int                   CONF_set_config(config_t* conf);
 config_string_field_t CONF_get_entry_name();
 config_string_field_t CONF_get_ro_section();
 config_string_field_t CONF_get_glob_section();
 config_string_field_t CONF_get_code_section();
 config_string_field_t CONF_get_no_section();
 config_string_field_t CONF_get_timings();
-
-config_int_field_t CONF_get_full_bytness();
-config_int_field_t CONF_get_half_bytness();
-config_int_field_t CONF_get_quart_bytness();
-config_int_field_t CONF_get_eight_bytness();
-
+config_int_field_t    CONF_get_full_bytness();
+config_int_field_t    CONF_get_half_bytness();
+config_int_field_t    CONF_get_quart_bytness();
+config_int_field_t    CONF_get_eight_bytness();
 config_string_field_t CONF_get_z3_path();
-config_int_field_t CONF_get_attention_level();
-
-config_flag_field_t CONF_is_debug_compilation();
-arch_type_t CONF_get_system_type();
+config_int_field_t    CONF_get_attention_level();
+config_flag_field_t   CONF_is_debug_compilation();
+arch_type_t           CONF_get_system_type();
 
 #endif

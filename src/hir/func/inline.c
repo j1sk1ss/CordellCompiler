@@ -140,14 +140,12 @@ _skip_instruction: {}
     return 1;
 }
 
-/*
-Find loop where the input bb is present.
+/* Find loop where the input bb is present.
 Params:
     - `loops` - Current list of loops.
     - `bb` - The target base block.
 
-Returns a loop node where the base block is present. 
-*/
+Returns a loop node where the base block is present. */
 static loop_node_t* _find_loop(list_t* loops, cfg_block_t* bb) {
     foreach (loop_node_t* ln, loops) {
         loop_node_t* found = _find_loop(&ln->children, bb);
@@ -192,15 +190,13 @@ typedef struct {
     } general_info;
 } inline_candidate_info_t;
 
-/*
-How many commands between the 'pos' command and a break command?
+/* How many commands between the 'pos' command and a break command?
 Params:
     - `pos` - Current HIR block position.
               Note: Initialy must be the 'NULL' value.
     - `ibb` - Initial base block.
 
-Returns how many commands.
-*/
+Returns how many commands. */
 static int _find_nearest_break(hir_block_t* pos, cfg_block_t* ibb) {
     set_t visited;
     set_init(&visited, SET_NO_CMP);
