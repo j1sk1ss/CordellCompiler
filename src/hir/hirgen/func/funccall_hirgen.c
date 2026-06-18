@@ -202,7 +202,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     }
 
     hir_subject_t* res = HIR_SUBJ_TMPVAR(
-        HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, &tmp.flags, &smt->v)
+        HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, tmp.flags, &smt->v)
     );
     
     res->ptr = fi.rtype ? fi.rtype->t->flags.ptr : 0;

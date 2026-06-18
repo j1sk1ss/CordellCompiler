@@ -34,7 +34,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     /* Register a variable in the symtable and update its type
        from the carry, if we're working with a dynamic type. */
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
-    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &base->t->flags, &smt->v);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, base->t->flags, &smt->v);
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, carry, &smt->v);
 
     /* If this is a custom type variable, register it as an array as well. */

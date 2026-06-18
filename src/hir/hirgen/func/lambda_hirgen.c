@@ -27,8 +27,7 @@ hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
 
     if (!ret) return NULL;
 
-    token_flags_t res_flags = { .ptr = 1 };    
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_TMPVARI0, VRTB_add_info(NULL, TMP_I0_TYPE_TOKEN, NO_SYMBOL_ID, &res_flags, &smt->v));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_TMPVARI0, VRTB_add_info(NULL, TMP_I0_TYPE_TOKEN, NO_SYMBOL_ID, (basic_object_info_t){ .ptr = 1 }, &smt->v));
     res->ptr = 1;
     
     HIR_BLOCK2(ctx, HIR_REF, res, HIR_SUBJ_FUNCNAME(node));

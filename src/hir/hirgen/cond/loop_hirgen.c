@@ -32,7 +32,7 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long c
     hir_subject_t* counter = NULL;
     if (count >= 0) {
         hir_subject_type_t tt = _get_valid_sizes(count);
-        counter = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, HIR_get_tmptkn_type(tt), NO_SYMBOL_ID, NULL, &smt->v), tt, 0);
+        counter = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, HIR_get_tmptkn_type(tt), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v), tt, 0);
         HIR_BLOCK1(ctx, HIR_VARDECL, counter);
         HIR_BLOCK2(ctx, HIR_STORE, counter, HIR_SUBJ_CONST(count));
     }
@@ -58,7 +58,7 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, long c
         if (!counter) HIR_BLOCK1(ctx, HIR_JMP, entry_lb);
         else {
             hir_subject_t* res = HIR_SUBJ_TMPVAR(
-                counter->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(counter->t), NO_SYMBOL_ID, NULL, &smt->v)
+                counter->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(counter->t), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
             );
             HIR_BLOCK3(ctx, HIR_iSUB, res, HIR_copy_subject(counter), HIR_SUBJ_CONST(1));
             HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(counter), res);

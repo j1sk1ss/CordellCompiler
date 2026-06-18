@@ -13,7 +13,7 @@ lir_subject_t* x86_64_macho_nasm_create_tmp(lir_registers_t reg, lir_subject_t* 
         if (forced_size < 0 && vi.vfs.ptr > 0) vsize = 8;
     }
     
-    symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, NULL, &smt->v);
+    symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v);
     VRTB_update_memory(cpy, FIELD_NO_CHANGE, vsize, reg, FIELD_NO_CHANGE, &smt->v);
     lir_subject_t* new = LIR_SUBJ_VAR(cpy, vsize);
     new->dsize = src->dsize;

@@ -178,13 +178,14 @@ typedef struct {
     char glob : 1; /* Is global flag    */
     char ext  : 1; /* Is extern flag    */
     char vla  : 1; /* Is vla allocated  */
-} token_flags_t;
+} basic_object_info_t;
+#define EMPTY_BASIC_FLAGS (basic_object_info_t){ 0 }
 
 typedef struct {
-    token_flags_t   flags;  /* Token's flags           */
-    token_type_t    t_type; /* Token's type            */
-    string_t*       body;   /* Token's body            */
-    file_position_t finfo;  /* Source file information */
+    basic_object_info_t flags;  /* Token's flags           */
+    token_type_t        t_type; /* Token's type            */
+    string_t*           body;   /* Token's body            */
+    file_position_t     finfo;  /* Source file information */
 } token_t;
 
 token_type_t TKN_get_tmp_type(token_type_t t);

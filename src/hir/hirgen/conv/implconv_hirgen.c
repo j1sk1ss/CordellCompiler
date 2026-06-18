@@ -23,8 +23,7 @@ hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_
         return src;
     }
 
-    token_flags_t cnv_flags = { .ptr = ptr };
-    hir_subject_t* cnv = HIR_SUBJ_TMPVAR(t, VRTB_add_info(NULL, HIR_get_tmptkn_type(t), NO_SYMBOL_ID, &cnv_flags, &smt->v));
+    hir_subject_t* cnv = HIR_SUBJ_TMPVAR(t, VRTB_add_info(NULL, HIR_get_tmptkn_type(t), NO_SYMBOL_ID, (basic_object_info_t){ .ptr = ptr }, &smt->v));
     cnv->ptr = ptr;
     HIR_BLOCK2(ctx, op, cnv, src);
     return cnv;

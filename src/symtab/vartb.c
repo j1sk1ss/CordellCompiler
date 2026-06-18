@@ -84,20 +84,14 @@ int VRTB_get_info(string_t* varname, symbol_id_t s_id, variable_info_t* info, va
     return 0;
 }
 
-static variable_info_t* _create_variable_info(string_t* name, token_type_t type, symbol_id_t s_id, token_flags_t* flags) {
+static variable_info_t* _create_variable_info(string_t* name, token_type_t type, symbol_id_t s_id, basic_object_info_t flags) {
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
     str_memset(var, 0, sizeof(variable_info_t));
 
     var->s_id = s_id;
     if (name) var->name = name->copy(name);
-    if (flags) {
-        var->vfs.vla  = flags->vla;
-        var->vfs.ptr  = flags->ptr;
-        var->vfs.glob = flags->glob;
-        var->vfs.ro   = flags->ro;
-        var->vfs.ext  = flags->ext;
-    }
+    var->vfs = flags;
 
     var->vmi.reg    = -1;
     var->vmi.offset = -1;
@@ -112,7 +106,7 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
 
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     print_log("VRTB_add_copy(v_id=%i)", src->v_id);
-    variable_info_t* nnd = _create_variable_info(NULL, src->type, src->s_id, NULL);
+    variable_info_t* nnd = _create_variable_info(NULL, src->type, src->s_id, (basic_object_info_t){ 0 });
     if (!nnd) return NO_SYMBOL_ID;
     
     str_memcpy(nnd, src, sizeof(variable_info_t));
@@ -128,7 +122,7 @@ symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     return nnd->v_id;
 }
 
-symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t s_id, token_flags_t* flags, vartab_ctx_t* ctx) {
+symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t s_id, basic_object_info_t flags, vartab_ctx_t* ctx) {
     print_log("VRTB_add_info(name=%s, type=%i, s_id=%i)", name ? name->body : "(null)", type, s_id);
     variable_info_t* nnd = _create_variable_info(name, type, s_id, flags);
     if (!nnd) return NO_SYMBOL_ID;

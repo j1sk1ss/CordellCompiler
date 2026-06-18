@@ -21,10 +21,10 @@ hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t*
             parent_var.vfs.ptr
         ) {
             token_t tmp = { .t_type = parent_var.type, .flags.ptr = parent_var.vfs.ptr };
-            hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, NULL, &smt->v));
+            hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
             value->ptr = tmp.flags.ptr;
 
-            hir_subject_t* ref_base = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, NULL, &smt->v));
+            hir_subject_t* ref_base = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
             ref_base->ptr = base->ptr + 1;
             HIR_BLOCK2(ctx, HIR_TPTR, ref_base, base);
 
@@ -40,7 +40,7 @@ hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t*
     }
 
     long offset = TPTB_get_child_offset(root->c->sinfo.t_id, root->sinfo.t_id, &smt->t);
-    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(HIR_STKVARU8, VRTB_add_info(NULL, TMP_U8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
+    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(HIR_STKVARU8, VRTB_add_info(NULL, TMP_U8_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     real_offset->ptr = base->ptr;
 
     TPTB_get_info_id(root->sinfo.t_id, field_info, &smt->t);
@@ -48,8 +48,7 @@ hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t*
     return real_offset;
 }
 
-/*
-Load the pointer stored in an array field header.
+/* Load the pointer stored in an array field header.
 Array fields keep the element buffer head separately from the container field.
 Params:
     - `head` - Address of the array field header.
@@ -57,13 +56,12 @@ Params:
     - `ctx` - HIR context.
     - `smt` - Symtable.
 
-Returns a temporary subject that points to the first array element.
-*/
-static hir_subject_t* _load_array_field_head(hir_subject_t* head, array_info_t* ai, hir_ctx_t* ctx, sym_table_t* smt) {
+Returns a temporary subject that points to the first array element. */
+static inline hir_subject_t* _load_array_field_head(hir_subject_t* head, array_info_t* ai, hir_ctx_t* ctx, sym_table_t* smt) {
     token_t tmp = { .t_type = ai->elements_info.el_type };
     ai->elements_info.el_flags.ptr++;
     hir_subject_t* value = HIR_SUBJ_TMPVAR(
-        HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, &ai->elements_info.el_flags, &smt->v)
+        HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, ai->elements_info.el_flags, &smt->v)
     );
     value->ptr = ai->elements_info.el_flags.ptr;
     HIR_BLOCK2(ctx, HIR_TPTR, value, head);
@@ -85,7 +83,7 @@ hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx,
     VRTB_get_info_id(ti.link.v_id, &vi, &smt->v);
     token_t tmp = { .t_type = vi.type, .flags.ptr = vi.vfs.ptr };
 
-    hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, NULL, &smt->v));
+    hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     value->ptr = tmp.flags.ptr;
 
     HIR_BLOCK2(ctx, HIR_GDREF, value, head);
@@ -98,7 +96,7 @@ int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_
     hir_subject_t* head = HIR_point_to_field(node, ctx, &ti, smt);
 
     variable_info_t vi;
-    VRTB_get_info_id(ti.link.v_id, &vi, &smt->v);
+    if (!VRTB_get_info_id(ti.link.v_id, &vi, &smt->v)) return 0;
     token_t tmp = { .t_type = vi.type, .flags.ptr = vi.vfs.ptr };
 
     /* If we're dealing with a pointer, we add one level of reference,
@@ -108,7 +106,7 @@ int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_
         head->ptr += tmp.flags.ptr;
     }
 
-    hir_subject_t* target = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, NULL, &smt->v));
+    hir_subject_t* target = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     target->ptr = head->ptr;
     
     HIR_BLOCK2(ctx, HIR_TPTR, target, head);

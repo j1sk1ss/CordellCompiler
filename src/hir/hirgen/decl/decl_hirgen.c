@@ -156,7 +156,7 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
         HIR_BLOCK2(ctx, HIR_GDREF, decl, HIR_copy_subject(ctx->carry.varg));
         hir_subject_t* res = HIR_SUBJ_TMPVAR(
             ctx->carry.varg->t, 
-            VRTB_add_info(NULL, HIR_get_tmptkn_type(ctx->carry.varg->t), NO_SYMBOL_ID, NULL, &smt->v)
+            VRTB_add_info(NULL, HIR_get_tmptkn_type(ctx->carry.varg->t), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
         );
         res->ptr = ctx->carry.varg->ptr;
         HIR_BLOCK3(

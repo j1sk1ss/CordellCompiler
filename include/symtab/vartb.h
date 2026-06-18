@@ -13,14 +13,7 @@ typedef struct {
     string_t*              name;    
     token_type_t           type;     /* Variable type                    */
     symbol_id_t            t_id;     /* Varaible's type ID               */
-
-    struct {
-        char               vla  : 1; /* Point to vla, can't be reused    */
-        char               ptr;      /* PTR type == maximum size in arch */
-        char               ro   : 1; /* Declaration RO flag              */
-        char               glob : 1; /* Declaration global flag          */
-        char               ext  : 1; /* Is an external variable          */
-    } vfs; /* VariableFlags          */
+    basic_object_info_t    vfs;
 
     struct {
         short              align;
@@ -51,7 +44,7 @@ int VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx)
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx);
 int VRTB_get_info(string_t* vname, symbol_id_t scope, variable_info_t* info, vartab_ctx_t* ctx);
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx);
-symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t scope, token_flags_t* flags, vartab_ctx_t* ctx);
+symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t scope, basic_object_info_t flags, vartab_ctx_t* ctx);
 int VRTB_unload(vartab_ctx_t* ctx);
 
 #endif
