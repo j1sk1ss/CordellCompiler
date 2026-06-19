@@ -1,14 +1,12 @@
 #include <ast/devirt.h>
 
-/*
-Search for templates in an AST tree and register them.
+/* Search for templates in an AST tree and register them.
 Params:
     - `node` - Root node.
     - `smt` - Symtable.
     - `ctx` - Devirt context.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _find_and_register_template(ast_node_t* node, sym_table_t* smt, devirt_ctx_t* ctx) {
     if (!node) return 0;
     _find_and_register_template(node->siblings.n, smt, ctx);
@@ -34,15 +32,13 @@ int AST_DVRT_find_templates(ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ct
     return _find_and_register_template(root, smt, ctx);
 }
 
-/*
-Find a call of a generic function and create an implementation.
+/* Find a call of a generic function and create an implementation.
 Params:
     - `node` - Root node.
     - `smt` - Symtable.
     - `ctx` - Devirt context.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt, devirt_ctx_t* ctx) {
     if (!node) return 0;
     _find_and_register_resolved_call(node->siblings.n, smt, ctx);

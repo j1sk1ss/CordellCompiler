@@ -280,7 +280,15 @@ static int _hir_subject_depends_on_vid(
     return _hir_rhs_depends_on_vid(s->home, v_id, smt, loop_hir, visited);
 }
 
-// TODO: docs
+/* Check whether the RHS of a HIR block depends on a variable.
+Params:
+    - `hh` - HIR block.
+    - `v_id` - Variable to check.
+    - `smt` - Symtable.
+    - `loop_hir` - Loop to consider.
+    - `visited` - Guards.
+
+Returns 1 if the block depends on the variable. */
 static int _hir_rhs_depends_on_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited) {
     if (!hh) return 0;
     iterate_hir_args (hir_subject_t* arg, hh, 1) {
@@ -345,7 +353,15 @@ static int _hir_subject_depends_on_any_vid_from_set(
     return _hir_rhs_depends_on_any_vid_from_set(subj->home, s, smt, loop_hir, visited);
 }
 
-// TODO: docs
+/* Check whether any RHS subject from a block depends on variables from a set.
+Params:
+    - `hh` - HIR block.
+    - `s` - Set of variable IDs.
+    - `smt` - Symtable.
+    - `loop_hir` - Current loop to consider.
+    - `visited` - Guards.
+
+Returns 1 if the block depends on any variable from the set. */
 static int _hir_rhs_depends_on_any_vid_from_set(
     hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
@@ -357,7 +373,14 @@ static int _hir_rhs_depends_on_any_vid_from_set(
     return 0;
 }
 
-// TODO: docs
+/* Check whether a HIR block uses any variable from a set.
+Params:
+    - `hh` - HIR block.
+    - `s` - Set of variable IDs.
+    - `smt` - Symtable.
+    - `loop_hir` - Current loop to consider.
+
+Returns 1 if the block uses any variable from the set. */
 static int _hir_uses_any_vid_from_set(hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir) {
     set_t visited;
     if (!set_init(&visited, SET_NO_CMP)) return 0;

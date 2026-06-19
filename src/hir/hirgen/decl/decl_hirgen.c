@@ -25,7 +25,16 @@ static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     return 1;
 }
 
-// TODO: docs
+/* Generate HIR subjects for declaration initializer elements.
+Global initializers are copied into array metadata, while local initializers
+are collected into a HIR subject list.
+Params:
+    - `vi` - Variable metadata for the declaration.
+    - `elems` - AST node that contains initializer elements.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns a HIR subject list with local initializer elements. */
 static hir_subject_t* _generate_init_args(variable_info_t* vi, ast_node_t* elems, hir_ctx_t* ctx, sym_table_t* smt) {
     hir_subject_t* init_elems = HIR_SUBJ_LIST();
     if (!elems) return init_elems;

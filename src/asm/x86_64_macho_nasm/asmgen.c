@@ -1,15 +1,13 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
-/*
-Convert one LIR block into x86_64 Mach-O NASM assembly and write it to output.
+/* Convert one LIR block into x86_64 Mach-O NASM assembly and write it to output.
 Params:
     - `b` - LIR block to emit.
     - `fi` - Current function info for prologue/epilogue generation.
     - `smt` - Symtable used to resolve symbols.
     - `output` - Output assembly stream.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_table_t* smt, FILE* output) {
     if (b->unused) return 1;
     switch (b->op) {
@@ -172,15 +170,13 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
     return 1;
 }
 
-/*
-Emit an independent read-only string into the current assembly section.
+/* Emit an independent read-only string into the current assembly section.
 Params:
     - `id` - String symbol ID.
     - `smt` - Symtable that stores string information.
     - `output` - Output assembly stream.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
@@ -196,10 +192,9 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
-static long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* elem_tkn, sym_table_t* smt) {
+static inline long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* elem_tkn, sym_table_t* smt) {
     long type_size = TPTB_get_memory_size_id(vi->t_id, &smt->t);
     if (type_size != FIELD_NO_CHANGE) return type_size;
-
     switch (TKN_variable_bitness(elem_tkn, 1)) {
         case TYPE_FULL_SIZE:    return ai->size * 8;
         case TYPE_HALF_SIZE:    return ai->size * 4;
@@ -208,26 +203,39 @@ static long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* 
     }
 }
 
-// TODO: docs
+/* Emit zero-filled bytes, optionally prefixed with a data label.
+Params:
+    - `name` - Optional label to emit before the reservation.
+    - `count` - Number of zero bytes to emit.
+    - `output` - Output assembly stream. */
 static inline void _emit_zero_bytes(string_t* name, long count, FILE* output) {
     if (count <= 0) return;
     if (name) EMIT_COMMAND("%s times %ld db 0", name->body, count);
-    else EMIT_COMMAND("times %ld db 0", count);
+    else      EMIT_COMMAND("times %ld db 0", count);
 }
 
-// TODO: docs
+/* Emit an integer value with the NASM directive matching its slot size.
+Params:
+    - `name` - Optional label to emit before the value.
+    - `size` - Slot size in bytes.
+    - `value` - Integer initializer value.
+    - `output` - Output assembly stream. */
 static inline void _emit_typed_value(string_t* name, long size, long value, FILE* output) {
     const char* op = size == 8 ? "dq" : size == 4 ? "dd" : size == 2 ? "dw" : "db";
     if (name) EMIT_COMMAND("%s %s %ld", name->body, op, value);
-    else EMIT_COMMAND("%s %ld", op, value);
+    else      EMIT_COMMAND("%s %ld", op, value);
 }
 
-// TODO: docs
+/* Emit a typed aggregate initializer using type-layout slots and padding.
+Params:
+    - `vi` - Variable metadata for the aggregate.
+    - `ai` - Array metadata that stores initializer elements.
+    - `smt` - Symtable used to resolve type layout.
+    - `output` - Output assembly stream.
+
+Returns 1 if succeeds. */
 static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sym_table_t* smt, FILE* output) {
-    long reserve_size = _array_reserve_size(vi, ai, NULL, smt);
-    long value = 0;
-    long value_count = list_size(&ai->elems);
-    long emitted_end = 0;
+    long emitted_end = 0, value = 0, value_count = list_size(&ai->elems), reserve_size = _array_reserve_size(vi, ai, NULL, smt);
     list_iter_t values;
     list_iter_hinit(&ai->elems, &values);
 

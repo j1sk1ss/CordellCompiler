@@ -117,7 +117,12 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
     return 1;
 }
 
-// TODO: docs
+/* Build and store a nested loop tree for a CFG function.
+Params:
+    - `fb` - CFG function to analyze.
+    - `ctx` - Loop tree context that stores loops per function.
+
+Returns 1 if succeeds. */
 static int _build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {    
     list_t* floops;
     if (!map_get(&ctx->lmap, fb->f_id, (void**)&floops)) {

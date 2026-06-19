@@ -534,7 +534,13 @@ Returns an AST node.
 */
 ast_node_t* cpl_parse_contdef(PARSER_ARGS);
 
-// TODO: docs
+/*
+Parse a declaration initializer value.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_declaration_value(PARSER_ARGS);
 
 #endif

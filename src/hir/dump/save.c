@@ -1,6 +1,10 @@
 #include <hir/dump.h>
 
-// TODO: docs
+/* Get a printf-style template for a HIR operation dump line.
+Params:
+    - `op` - HIR operation to format.
+
+Returns a format string for the operation. */
 static const char* _get_operation_template(hir_operation_t op) {
     switch(op) {
         case HIR_STARGLD:      return "%s = load_starg();\n";
@@ -77,7 +81,14 @@ static const char* _get_operation_template(hir_operation_t op) {
     }
 }
 
-// TODO: docs
+/* Format a HIR subject into the dump buffer.
+Params:
+    - `dst` - Output buffer cursor.
+    - `s` - Subject to format.
+    - `smt` - Symtable used to resolve symbol names.
+    - `style` - Formatting style for variable names.
+
+Returns the advanced output buffer cursor. */
 static char* _get_formatted_subject(char* dst, hir_subject_t* s, sym_table_t* smt, int style) {
     if (!s) return dst;
     if (HIR_is_vartype(s->t)) {
@@ -215,7 +226,16 @@ static char* _get_formatted_subject(char* dst, hir_subject_t* s, sym_table_t* sm
     return dst;
 }
 
-// TODO: docs
+/* Format a HIR block and append it to the dump buffer.
+Params:
+    - `dst` - Output buffer.
+    - `block` - HIR block to format.
+    - `smt` - Symtable used to resolve symbols.
+    - `pos` - Whether to include position markers.
+    - `unused` - Whether to include unused blocks.
+    - `depth` - Current indentation depth.
+
+Returns the updated indentation depth. */
 static int _get_formatted_block(char* dst, hir_block_t* block, sym_table_t* smt, int pos, int unused, int depth) {
     if (!block) return depth;
     if (pos && block->op == HIR_SETPOS) {

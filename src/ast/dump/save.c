@@ -131,7 +131,7 @@ const char* DUMP_format_token(token_t* t) {
     int depth = t->flags.ptr;
     if (!depth) return base;
 
-    static char buf[64];
+    static char buf[64] = { 0 };
     size_t base_len = strlen(base);
     if (base_len + depth >= sizeof(buf)) {
         depth = (int)(sizeof(buf) - base_len - 1);
@@ -158,12 +158,12 @@ static int _print_ast_node(FILE* output, ast_node_t* nd, int depth) {
                 fprintf(output,
                     "[%s] (%s,%sv_id=%li, t_id=%li, s_id=%li%s%s%s%s)\n",
                     nd->t->body->body, _name_tkn_type(nd->t->t_type), 
-                    nd->t->flags.ptr ?  " ptr, " : " ",
+                    nd->t->flags.ptr  ? " ptr, " : " ",
                     nd->sinfo.v_id, nd->sinfo.t_id, nd->sinfo.s_id,
-                    nd->t->flags.ro ?   ", ro"   : "",
-                    nd->t->flags.ext ?  ", ext"  : "",
+                    nd->t->flags.ro   ? ", ro"   : "",
+                    nd->t->flags.ext  ? ", ext"  : "",
                     nd->t->flags.glob ? ", glob" : "",
-                    nd->t->flags.vla ?  ", vla"  : ""
+                    nd->t->flags.vla  ? ", vla"  : ""
                 );
                 break;
             }

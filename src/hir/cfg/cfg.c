@@ -160,7 +160,11 @@ int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx) {
     return 1;
 }
 
-// TODO: docs
+/* Free CFG block analysis sets and the block itself.
+Params:
+    - `bb` - CFG block to unload.
+
+Returns 1 if succeeds. */
 static int _unload_cfg_block(cfg_block_t* bb) {
     set_free(&bb->def);
     set_free(&bb->use);

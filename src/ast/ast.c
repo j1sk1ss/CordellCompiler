@@ -5,9 +5,7 @@ ast_node_t* AST_create_node(token_t* tkn) {
     if (!node) return NULL;
     str_memset(node, 0, sizeof(ast_node_t));
     node->t          = tkn;
-    node->sinfo.v_id = NO_SYMBOL_ID;
-    node->sinfo.t_id = NO_SYMBOL_ID;
-    node->sinfo.s_id = NO_SYMBOL_ID;
+    node->sinfo.v_id = node->sinfo.t_id = node->sinfo.s_id = NO_SYMBOL_ID;
     list_init(&node->annots);
     return node;
 }
@@ -51,7 +49,6 @@ ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld, ast_node_t* 
     }
 
     if (sp) dst->p = NULL;
-
     return dst;
 }
 
@@ -78,15 +75,14 @@ int AST_insert_node(ast_node_t* parent, ast_node_t* child) {
     if (!parent || !child) return 0;
     child->p = parent;
     if (!parent->c) {
-        parent->c = child;
-        child->siblings.n = NULL;
-        child->siblings.t = NULL;
+        parent->c         = child;
+        child->siblings.n = child->siblings.t = NULL;
     }
     else {
         ast_node_t* old_first = parent->c;
-        child->siblings.n = old_first;
-        child->siblings.t = old_first->siblings.t ? old_first->siblings.t : old_first;
-        parent->c = child;
+        child->siblings.n     = old_first;
+        child->siblings.t     = old_first->siblings.t ? old_first->siblings.t : old_first;
+        parent->c             = child;
     }
 
     return 1;
@@ -128,8 +124,7 @@ int AST_unload(ast_node_t* node) {
     return 1;
 }
 
-/*
-Recursively hash the input node.
+/* Recursively hash the input node.
 Params:
     - `n` - Input node.
     - `s` - Hash the sibling node?
@@ -137,14 +132,13 @@ Params:
                   a hash from the sibling node.
     - `stp` - Stop token type.
 
-Returns a hash based on the provided node.
-*/
+Returns a hash based on the provided node. */
 static unsigned long _hash_ast_node(ast_node_t* n, int s, token_type_t stp) {
     if (!n || !n->t || n->t->t_type == stp) return 0;
     unsigned long hash = 0;
     if (n->t) hash ^= TKN_hash_token(n->t);
-    if (s) hash ^= _hash_ast_node(n->siblings.n, 1, stp);
-    hash ^= _hash_ast_node(n->c, 1, stp);
+    if (s)    hash ^= _hash_ast_node(n->siblings.n, 1, stp);
+              hash ^= _hash_ast_node(n->c, 1, stp);
     return hash;
 }
 

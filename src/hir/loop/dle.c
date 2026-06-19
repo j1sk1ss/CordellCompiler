@@ -1,6 +1,11 @@
 #include <hir/loop.h>
 
-// TODO: docs
+/* Count live commands in a CFG block, ignoring loop-control and inductive updates.
+Params:
+    - `bb` - CFG block to inspect.
+    - `ind` - Set of inductive variable IDs.
+
+Returns the number of live commands. */
 static inline int _count_commands(cfg_block_t* bb, set_t* ind) {
     int res = 0;
     iterate_hir_instructions (bb) {
@@ -21,7 +26,11 @@ static inline int _count_commands(cfg_block_t* bb, set_t* ind) {
     return res;
 }
 
-// TODO: docs
+/* Mark loop instructions as dead when the loop has no live content.
+Params:
+    - `root` - Loop tree node to process.
+
+Returns 1 if succeeds. */
 static int _mark_loop_dead(loop_node_t* root) {
     foreach (loop_node_t* ch, &root->children) {
         _mark_loop_dead(ch);
