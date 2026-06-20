@@ -60,39 +60,39 @@
   captionpos=b,
 }
 
-\title{Minimal extention for C-language as a compact system programming language}
+\title{CPL: A Compact C-like Systems Language with Explicit Low-Level Control}
 \author{
   \normalsize Nikolai Fot \and
   \normalsize Alexander Vinarskiy \\
   \normalsize Compiler Technology Department, \\
   \normalsize Ivannikov Institute for System Programming of the Russian Academy of Sciences (ISP RAS)
 }
-\date{June 13, 2026}
+\date{}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-\par The paper investigates whether a compact systems language can expose the binary layout and machine-interface controls required by freestanding software while retaining a conventional optimizing pipeline and SSA-based static diagnostics. Cordell Programming Language (CPL) provides primitive values, pointers, arrays, aggregates and unions, entry-point and section control, system calls, and inline assembly without implementing the full semantics of C. Paper covers general implementation of the language, its grammar, its pipeline and overall possible use-cases. The developed language intentionally stays close to C language which helps in demonstration of possible extention of existed languages with modern syntax approaches such as generic functions, structure method containers, overloads, etc.
+\par This paper presents Cordell Programming Language (CPL), a compact C-like systems language that keeps C's direct access to memory, layout, and machine interfaces while experimenting with a smaller grammar and selected conveniences from newer languages. CPL provides primitive values, pointers, arrays, containers with methods, unions, generic functions, overloads, entry-point and section control, system calls, and inline assembly without attempting source compatibility with full C. The article describes the language design, compiler pipeline, target backends, static-analysis architecture, and OS-facing use cases, then evaluates the prototype backend with reproducible x86\_64 and i386 microbenchmarks against C compiler baselines.
 \end{abstract}
 
 \section{Introduction}
 \par Systems programming languages expose machine-level details while attempting to keep programs tractable. Mature languages such as C~\cite{ritchie1978c,kernighan1988c}, C++~\cite{stroustrup2007cpp,stroustrup2013cpp}, Rust~\cite{klabnik2023rust,jung2018rustbelt}, and Zig~\cite{ziglangref} provide large ecosystems, but their full syntactic and semantic complexity makes them expensive targets for compiler experiments. Conversely, many teaching compilers are intentionally small but do not expose enough low-level mechanisms to study system-oriented code generation, platform-specific interfaces, and optimization under realistic constraints.
-\par CPL is not a C subset. A faithful C-like subset would either require a substantially more complex parser and semantic model, or would create misleading expectations that the rest of C should also be supported. The current design instead favors a compact parser-friendly grammar, explicit syntax for functions and pointer-like operations, and compiler-supported low-level constructs.
-\par The central research problem is the tension between implementation compactness and systems-level adequacy. Reducing a language and compiler makes experimentation and inspection easier, but can remove the layout controls, ABI mechanisms, analyses, and backend structure needed for realistic low-level programs. This report studies how far a compact implementation can preserve those capabilities without claiming the safety, verification, or maturity of established systems toolchains.
+\par CPL is not a C subset. A faithful C-like subset would either require a substantially more complex parser and semantic model, or would create misleading expectations that the rest of C should also be supported. The design instead favors a compact parser-friendly grammar, explicit syntax for functions and pointer-like operations, and compiler-supported low-level constructs.
+\par The central research problem is the tension between implementation compactness and systems-level adequacy. Reducing a language and compiler makes experimentation and inspection easier, but can remove the layout controls, ABI mechanisms, analyses, and backend structure needed for realistic low-level programs. This article studies CPL as a C-like language design that keeps the directness of C while experimenting with a smaller grammar and selected modern conveniences.
 
-\par The contributions of this report are:
+\par The contributions of this article are:
 \begin{itemize}[leftmargin=*]
   \item a compact systems-language design combining typed data layout with explicit entry-point, section, register, syscall, and inline-assembly controls;
   \item a multi-stage implementation with HIR, SSA, LIR, instruction selection, register allocation, and generated peephole rewrites;
   \item a qualitative Multiboot case study showing which bootstrap responsibilities can be represented in typed CPL and which remain assembly-specific;
-  \item preliminary performance evidence that distinguishes arithmetic-loop behavior from pointer-heavy behavior;
-  \item an SSA/SMT diagnostic architecture whose demonstrated capabilities and unmeasured properties are reported separately.
+  \item preliminary performance evidence across x86-64 and i386 Linux backends;
+  \item an SSA/SMT diagnostic architecture whose demonstrated capabilities and unmeasured properties are separated from implementation claims.
 \end{itemize}
 
 \subsection{Design Scope}
 \par The language stays close to assembly and C by exposing pointers, explicit dereferencing, C-like containers, direct system calls, inline assembly, manual entry points, and annotations for placement and control. It deliberately avoids reproducing the full C grammar and semantics. The compiler includes enough phase separation to study SSA construction~\cite{cytron1991ssa}, diagnostics, scalar optimization, low-level selection, register allocation, and peephole rewriting.
-\par CPL minimizes dependencies on a host standard library. In the evaluated snapshot, x86-64 Mach-O is the default and most extensively exercised backend. The x86-64 Linux and i386 Linux paths are implemented and covered by targeted tests, although their validation remains narrower.
+\par CPL minimizes dependencies on a host standard library. The compiler supports x86-64 Mach-O, x86-64 Linux, and i386 Linux assembly paths. The Mach-O path is the oldest backend, while the Linux paths are important for freestanding and OS-oriented examples.
 
 \subsection{Non-Goals}
 \par CPL does not claim any of the following properties:
@@ -278,7 +278,7 @@ asm(a, ret) {
 
 \subsection{Annotations}
 
-\par Annotations extend the small grammar with low-level behavior. Table~\ref{tab:annotations} summarizes the system-oriented annotations currently available in the implementation. The maturity column separates stable annotations from annotations whose behavior is still target-dependent or known to be experimental.
+\par Annotations extend the small grammar with low-level behavior. Table~\ref{tab:annotations} summarizes the system-oriented annotations available in the implementation. The maturity column separates stable annotations from annotations whose behavior is target-dependent or experimental.
 
 \begin{table*}[t]
 \centering
@@ -315,7 +315,7 @@ Annotation & Purpose & Example & Maturity \\
 \subsection{Core Static and Dynamic Model}
 \label{sec:formal-core}
 
-\par The complete language is defined by the implementation, but the safety-relevant core used in this report can be stated independently. Let primitive types be \(b \in \{\texttt{i8},\ldots,\texttt{u64},\texttt{f32},\texttt{f64},\texttt{i0}\}\), and let
+\par The complete language is defined by the implementation, but the safety-relevant core used in this article can be stated independently. Let primitive types be \(b \in \{\texttt{i8},\ldots,\texttt{u64},\texttt{f32},\texttt{f64},\texttt{i0}\}\), and let
 \[
 \tau ::= b \mid \texttt{ptr}\ \tau \mid \texttt{arr}[n,\tau] \mid C,
 \]
@@ -348,7 +348,7 @@ For assignment through a pointer,
 \langle \sigma,\texttt{dref}\ \ell = v\rangle \rightarrow
 \langle \sigma[\ell \mapsto v],v\rangle.
 \]
-Container field access is reduced by adding the target-dependent field offset to the base location; union fields have offset zero. Function calls evaluate arguments, establish parameter bindings, execute the body, and yield the explicit return value. Inline assembly, syscalls, and target annotations are modeled as externally defined transitions because their behavior depends on the selected ABI and machine. These rules define the report's core reasoning model, not a mechanized semantics or a proof that every compiler pass preserves it.
+Container field access is reduced by adding the target-dependent field offset to the base location; union fields have offset zero. Function calls evaluate arguments, establish parameter bindings, execute the body, and yield the explicit return value. Inline assembly, syscalls, and target annotations are modeled as externally defined transitions because their behavior depends on the selected ABI and machine. These rules define the article's core reasoning model, not a mechanized semantics or a proof that every compiler pass preserves it.
 
 \section{Compiler Architecture}
 
@@ -500,12 +500,12 @@ syscall
 
 \subsection{Backends and Target Status}
 
-\par The implemented backends in this snapshot are x86\_64 Mach-O/NASM, x86\_64 GNU/Linux NASM, and i386 GNU/Linux NASM. Each path includes instruction selection, memory selection, caller-saving logic, and assembly generation. Mach-O is the default configuration and has the broadest test coverage. Linux x86\_64 and i386 are exercised by dedicated compiler and assembly-generation tests; the i386 path additionally supports kernel-oriented examples. Other architecture and system options exposed by configuration code are outside the evaluated target set. The compiler can invoke \texttt{ld}, \texttt{clang}, or \texttt{gcc} for linking.
+\par The implemented backends are x86\_64 Mach-O/NASM, x86\_64 GNU/Linux NASM, and i386 GNU/Linux NASM. Each path includes instruction selection, memory selection, caller-saving logic, and assembly generation. Mach-O is the default configuration and has the broadest test coverage. Linux x86\_64 and i386 are exercised by dedicated compiler and assembly-generation tests; the i386 path additionally supports kernel-oriented examples. Other architecture and system options exposed by configuration code are outside the evaluated target set. The compiler can invoke \texttt{ld}, \texttt{clang}, or \texttt{gcc} for linking.
 
 \begin{table}[t]
 \centering
 \footnotesize
-\caption{Backend maturity in the current CPL compiler snapshot.}
+\caption{Backend maturity in the CPL compiler prototype.}
 \label{tab:backend-maturity}
 \begin{tabular}{p{0.24\linewidth}p{0.20\linewidth}p{0.32\linewidth}}
 \toprule
@@ -593,7 +593,7 @@ start() {
 
 \subsection{Z3-Backed Symbolic Layer}
 \par The SSA-level checker is implemented as a symbolic layer over the HIR control-flow graph. The analyzer prepares HIR expressions as Z3 formulas, preserves symbolic names for compiler variables, and augments path conditions with phi-node constraints when control-flow edges enter SSA merge points. This design makes it possible to ask local reachability and value questions over the same representation that the optimizer sees.
-\par The current wrapper accepts either parsed JSON or textual HIR dumps, can select a particular function, builds a CFG, and then dispatches solver-backed queries. Two query modes are especially useful for development: \texttt{label}, which checks whether a label can be reached under satisfiable path conditions, and \texttt{var-eq}, which checks whether a selected variable can, must, or cannot equal a given value. The wrapper also supports initial assignments, pointer-width configuration, strict parsing modes, and cached parsing/analysis artifacts. These features keep the solver path useful not only for compiler diagnostics, but also for investigating IR examples during pass development.
+\par The wrapper accepts either parsed JSON or textual HIR dumps, can select a particular function, builds a CFG, and then dispatches solver-backed queries. Two query modes are especially useful for development: \texttt{label}, which checks whether a label can be reached under satisfiable path conditions, and \texttt{var-eq}, which checks whether a selected variable can, must, or cannot equal a given value. The wrapper also supports initial assignments, pointer-width configuration, strict parsing modes, and cached parsing/analysis artifacts. These features keep the solver path useful not only for compiler diagnostics, but also for investigating IR examples during pass development.
 
 \begin{lstlisting}[caption={Representative interface to the symbolic query layer.}]
 analyze-hir --function entry --pointer-width 64 variable-equals temporary_7 0
@@ -611,7 +611,7 @@ analyze-hir --function entry --pointer-width 64 variable-equals temporary_7 0
 
 \begin{table*}[t]
 \centering
-\caption{Optimization passes implemented in the current CPL compiler.}
+\caption{Optimization passes implemented in the CPL compiler prototype.}
 \label{tab:optimizations}
 \begin{tabular}{p{0.24\linewidth}p{0.50\linewidth}p{0.16\linewidth}}
 \toprule
@@ -689,11 +689,11 @@ xor areg_1, areg_1
 \end{lstlisting}
 
 \par The generated C code is then used by the low-level peephole pass. This keeps the compiler backend extensible: adding a new local simplification can be done by adding a pattern rule rather than modifying the peephole engine directly. The approach is intentionally modest; PTRN does not replace global optimization or data-flow analysis. Its role is to make late instruction cleanup explicit, testable, and easier to maintain.
-\par The report does not attribute an independent performance improvement to PTRN because the available benchmark data measures the complete optimization pipeline. PTRN is therefore evaluated here as an implementation mechanism for declarative and generated local rewrites, rather than as an isolated source of speedup.
+\par This article does not attribute an independent performance improvement to PTRN because the available benchmark data measures the complete optimization pipeline. PTRN is therefore evaluated here as an implementation mechanism for declarative and generated local rewrites, rather than as an isolated source of speedup.
 
 \subsection{Excluded Experimental Passes}
 
-\par The implementation contains heuristic and model-guided function-inlining experiments. They are not part of the evaluated \texttt{-O0}/\texttt{-O2}/\texttt{-O3} evidence in this report. Known call-site rewriting defects and the absence of model, dataset, and accuracy documentation make performance results involving these modes uninterpretable. They are therefore treated as implementation prototypes rather than research results.
+\par The implementation contains heuristic and model-guided function-inlining experiments. They are not part of the evaluated \texttt{-O0}/\texttt{-O2}/\texttt{-O3} evidence in this article. Known call-site rewriting defects and the absence of model, dataset, and accuracy documentation make performance results involving these modes uninterpretable. They are therefore treated as implementation prototypes rather than research results.
 
 \section{Examples and Use Cases}
 
@@ -814,7 +814,7 @@ function main() -> i0 {
 
 \par The compiler is tested with a phase-oriented framework rather than only through end-to-end examples. The central principle is phase observability: tests can inspect preprocessing, tokenization, AST construction, semantic analysis, HIR generation, SSA construction, DAG construction, constant-folding analysis, LIR construction, instruction selection, register allocation, peephole optimization, assembly generation, or assembly-level constant folding. This makes regressions easier to localize than in a purely black-box compiler test.
 \par CPL tests use an \texttt{OUTPUT} oracle embedded in source files. The oracle can match runtime output, exit codes, and selected compiler dumps. It also supports tolerant matching for unstable compiler-generated identifiers, so tests can focus on semantically important output instead of on incidental temporary names. Runtime tests can run generated assembly and can use multiple argument cases inside one file.
-\par Two flags are especially important for the current workflow. \texttt{BUG} marks an expected failing test and keeps known defects visible without making the entire test run unusable. \texttt{LEAK\_TRACE} enables memory-operation logging for leak localization in compiler-internal tests. Together with phase observability, these mechanisms support regression tracking across frontend, middle-end, backend, and runtime behavior.
+\par Two flags are especially important for this workflow. \texttt{BUG} marks an expected failing test and keeps known defects visible without making the entire test run unusable. \texttt{LEAK\_TRACE} enables memory-operation logging for leak localization in compiler-internal tests. Together with phase observability, these mechanisms support regression tracking across frontend, middle-end, backend, and runtime behavior.
 
 \begin{table*}[t]
 \centering
@@ -837,95 +837,81 @@ Frontend & HIR / SSA & LIR / backend & Assembly \\
 
 \par The regression corpus covers simple output programs, counted loops, CRC-style table traversal, arithmetic and function-call kernels, Fibonacci, switch dispatch, and a larger Brainfuck interpreter. It also includes OS-oriented i386 examples. This testing setup is not a proof of correctness, but it checks internal forms and executable behavior and provides a practical mechanism for detecting pass-level regressions.
 
-\section{Evaluation and Evidence}
+\section{Experimental Evaluation}
 \label{sec:evaluation}
 
-\par The evaluation combines one qualitative systems case study with a preliminary microbenchmark study. Table~\ref{tab:rq-evidence} states which research questions receive evidence and prevents unmeasured properties from being inferred from implementation descriptions.
+\par The evaluation combines a qualitative systems case study with a microbenchmark study. Table~\ref{tab:rq-evidence} summarizes which research questions receive evidence and separates measured behavior from properties that are only supported by the implementation design.
 
 \begin{table*}[t]
 \centering
-\caption{Evidence available for the research questions.}
+\caption{Evaluation evidence and limitations for the research questions.}
 \label{tab:rq-evidence}
 \begin{tabular}{p{0.08\linewidth}p{0.30\linewidth}p{0.35\linewidth}p{0.17\linewidth}}
 \toprule
 RQ & Evidence & Supported conclusion & Status \\
 \midrule
 RQ1 & Multiboot entry unit and i386 kernel helpers & Typed CPL represents layout, sections, symbols, stack storage, and higher-level control transfer; machine-register and privileged operations still require assembly. & partially answered \\
-RQ2 & Three five-run microbenchmarks against Clang, GCC, and Rust & Arithmetic-loop results are close to Clang/GCC; pointer traversal is slower than every baseline. & preliminary answer \\
+RQ2 & Seven ten-run microbenchmarks against GCC and Clang on Linux x86\_64 and i386 & CPL is close on the empty counted loop, but mature C optimizers are substantially faster on arithmetic, branch, call, table, and pointer-string kernels. i386 increases pressure on CPL's lowering and register allocation. & preliminary answer \\
 RQ3 & Implemented SSA-to-Z3 query layer and diagnostic examples & The representation supports path-conditioned null and reachability queries; precision and cost are unknown. & architectural only \\
 RQ4 & \texttt{-O0}/\texttt{-O3} aggregate comparison & Optimization profiles affect runtime, but individual pass contributions and code-size effects cannot be identified. & unanswered \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-\par The chosen kernels expose loop overhead, arithmetic simplification, and pointer-heavy traversal. They are useful for identifying workload-specific behavior but are not a substitute for a standard benchmark suite or kernel-level performance comparison.
+\par The chosen kernels expose loop overhead, arithmetic recurrence, predictable branching, function-call overhead, global table traversal, pointer-heavy string traversal, and a short Fibonacci dependency chain. They are useful for identifying workload-specific behavior but are not a substitute for a standard benchmark suite or kernel-level performance comparison.
 
-\par All available timings were collected on macOS Catalina 10.15.7 using an Intel i7-3650QM CPU at 2.4 GHz and 16 GB DDR3 memory. The compared tools were GCC 14.2.0, Apple Clang 12.0.0, a Mach-O Cordell compiler build, and rustc 1.87.0. GCC and Clang were tested at \texttt{-O0} and \texttt{-O3}, CPL at \texttt{-O0} and \texttt{-O3}, and Rust at \texttt{opt-level=0} and \texttt{opt-level=2}. Each reported value is the arithmetic mean of five runs after compilation. Raw repetitions and dispersion statistics were not retained; the table therefore does not support statistical significance claims. The measurements also use different timing wrappers for CPL and the C-family baselines and must be interpreted conservatively. The empty-loop benchmark is a loop-overhead test: the C baseline uses \texttt{asm volatile} to prevent deletion of the loop.
+\par The microbenchmarks compare CPL with GCC and Clang C baselines on x86\_64 Linux and i386 Linux targets. GCC, Clang, and CPL are tested at \texttt{-O0} and \texttt{-O3}. CPL sources are emitted as NASM assembly, assembled with \texttt{nasm}, and linked with \texttt{ld -e \_main}. The C baselines use freestanding \texttt{\_main} entry points to avoid libc and CRT-startup differences. Each reported runtime is the arithmetic mean of ten executions of one produced binary. The harness and raw repetitions are stored in \texttt{specs/run\_compiler\_microbenches.py} and \texttt{specs/compiler\_microbench\_results.json}. The empty-loop benchmark is a loop-overhead test: the C baseline uses \texttt{asm volatile} to prevent deletion of the loop.
 
 \subsection{Benchmarked Kernels}
 
-\par Listing~\ref{lst:bench-empty} presents the counted empty loop used to evaluate loop overhead and late low-level simplification.
-
-\begin{lstlisting}[language=CPL,caption={Empty-loop benchmark kernel.},label={lst:bench-empty}]
-@[naked] start() {
-    @[counter(1000000000)] loop {
-    }
-    exit 0;
-}
-\end{lstlisting}
-
-\par Listing~\ref{lst:bench-fib} presents the Fibonacci kernel used to exercise simple arithmetic and loop-carried values.
-
-\begin{lstlisting}[language=CPL,caption={Fibonacci benchmark kernel.},label={lst:bench-fib}]
-start() {
-    i32 a = 1;
-    i32 b = 0;
-    @[counter(1000000)] loop {
-        i32 tmp = a;
-        a = a + b;
-        b = tmp;
-    }
-    exit b;
-}
-\end{lstlisting}
-
-\par Listing~\ref{lst:bench-str} presents the string-traversal kernel, which is more representative of pointer-based code generation.
-
-\begin{lstlisting}[language=CPL,caption={String-traversal benchmark kernel.},label={lst:bench-str},basicstyle=\ttfamily\tiny]
-start() {
-    str msg = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
-    i64 outer = 0;
-    u8 acc = 0;
-    ptr i8 p = ref msg;
-
-    while outer < 1000000; {
-        p = ref msg;
-        while dref p; {
-            acc = (acc + dref p) & 0xFF;
-            p += 1;
-        }
-        outer += 1;
-    }
-
-    exit acc;
-}
-\end{lstlisting}
-
-\subsection{Optimized Runtimes}
-
-\par Table~\ref{tab:benchmarks} reports the optimized runtimes. Figure~\ref{fig:bench-optimized} visualizes the same measurements.
+\par Table~\ref{tab:bench-kernels} lists the benchmark snippets. The benchmark harness extracts the executable CPL block from each file before the \texttt{OUTPUT} test-runner section.
 
 \begin{table*}[t]
 \centering
-\caption{Mean optimized benchmark runtimes in seconds over five runs. Lower is better; dispersion data is unavailable.}
-\label{tab:benchmarks}
-\begin{tabular}{lrrrr}
+\caption{Microbenchmark kernels.}
+\label{tab:bench-kernels}
+\begin{tabular}{lll}
     \toprule
-    Benchmark        & CPL \texttt{-O3} & Clang \texttt{-O3} & GCC \texttt{-O3} & Rust opt-level=2 \\
+    Kernel & CPL source & Main behavior \\
     \midrule
-    Empty loop       & 0.702            & 0.748              & 0.758            & 0.333            \\
-    Fibonacci        & 0.412            & 0.417              & 0.412            & 0.335            \\
-    String traversal & 0.513            & 0.430              & 0.470            & 0.332            \\
+    Empty counted loop & \texttt{02\_count\_to\_billion.cpl} & preserved one-billion-iteration counter loop \\
+    Arithmetic recurrence & \texttt{04\_arith\_mix.cpl} & repeated byte-masked integer recurrence \\
+    Hot branch loop & \texttt{05\_branch\_hot.cpl} & predictable branch in a 200M-iteration loop \\
+    Hot function call & \texttt{06\_function\_call\_hot.cpl} & small function called in a 100M-iteration loop \\
+    Global table traversal & \texttt{07\_table\_sum\_hot.cpl} & repeated scan of a global byte table \\
+    Pointer string scan & \texttt{08\_pointer\_string\_scan.cpl} & repeated pointer walk over a string literal \\
+    Fibonacci recurrence & \texttt{09\_fibonacci.cpl} & short loop-carried arithmetic dependency \\
+    \bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Optimized Runtimes}
+
+\par Table~\ref{tab:benchmarks} reports the optimized and unoptimized runtimes. Figure~\ref{fig:bench-optimized} visualizes the optimized measurements.
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\caption{Mean benchmark runtimes in seconds over ten runs. Lower is better.}
+\label{tab:benchmarks}
+\begin{tabular}{llrrrrrr}
+    \toprule
+    Target & Benchmark & CPL \texttt{-O3} & GCC \texttt{-O3} & Clang \texttt{-O3} & CPL \texttt{-O0} & GCC \texttt{-O0} & Clang \texttt{-O0} \\
+    \midrule
+    x86\_64 & Empty loop       & 0.261887 & 0.260706 & 0.261217 & 0.943493 & 2.732771 & 2.743791 \\
+    x86\_64 & Arithmetic       & 0.319541 & 0.264630 & 0.021762 & 0.420121 & 0.472506 & 0.426030 \\
+    x86\_64 & Branch           & 0.263617 & 0.080978 & 0.056354 & 0.469712 & 0.522766 & 0.520616 \\
+    x86\_64 & Function call    & 0.151619 & 0.105209 & 0.026664 & 0.286096 & 0.286031 & 0.315833 \\
+    x86\_64 & Table traversal  & 0.091685 & 0.002133 & 0.002328 & 0.143158 & 0.119041 & 0.140017 \\
+    x86\_64 & String scan      & 0.084198 & 0.004427 & 0.000176 & 0.135586 & 0.095225 & 0.106931 \\
+    x86\_64 & Fibonacci        & 0.000938 & 0.000467 & 0.000470 & 0.001268 & 0.002113 & 0.002122 \\
+    i386 & Empty loop       & 0.261450 & 0.261913 & 0.261629 & 0.951507 & 2.744684 & 2.751128 \\
+    i386 & Arithmetic       & 0.474456 & 0.327300 & 0.021911 & 0.540225 & 0.535768 & 0.433954 \\
+    i386 & Branch           & 0.381038 & 0.150469 & 0.072008 & 0.464537 & 0.470560 & 0.415575 \\
+    i386 & Function call    & 0.330364 & 0.163568 & 0.026601 & 0.399027 & 0.396996 & 0.374836 \\
+    i386 & Table traversal  & 0.112236 & 0.009064 & 0.002387 & 0.194468 & 0.121796 & 0.132445 \\
+    i386 & String scan      & 0.142074 & 0.030128 & 0.000196 & 0.191890 & 0.094678 & 0.106399 \\
+    i386 & Fibonacci        & 0.002809 & 0.000456 & 0.000479 & 0.002066 & 0.002117 & 0.002140 \\
     \bottomrule
 \end{tabular}
 \end{table*}
@@ -940,9 +926,10 @@ start() {
     bar width=8pt,
     ymin=0,
     ylabel={Runtime (s)},
-    symbolic x coords={Empty loop,Fibonacci,String traversal},
+    symbolic x coords={Empty,Arith,Branch,Call,Table,String,Fib},
     xtick=data,
-    legend style={at={(0.5,-0.16)},anchor=north,legend columns=4},
+    x tick label style={rotate=18,anchor=east,font=\scriptsize},
+    legend style={at={(0.5,-0.20)},anchor=north,legend columns=3},
     ymajorgrids=true,
     grid style={dashed,gray!30},
     enlarge x limits=0.18,
@@ -951,22 +938,21 @@ start() {
     point meta=rawy,
     every node near coord/.append style={font=\scriptsize}
 ]
-\addplot coordinates {(Empty loop,0.702) (Fibonacci,0.412) (String traversal,0.513)};
-\addplot coordinates {(Empty loop,0.748) (Fibonacci,0.417) (String traversal,0.430)};
-\addplot coordinates {(Empty loop,0.758) (Fibonacci,0.412) (String traversal,0.470)};
-\addplot coordinates {(Empty loop,0.333) (Fibonacci,0.335) (String traversal,0.332)};
-\legend{CPL \texttt{-O3},Clang \texttt{-O3},GCC \texttt{-O3},Rust opt-level=2}
+\addplot coordinates {(Empty,0.261887) (Arith,0.319541) (Branch,0.263617) (Call,0.151619) (Table,0.091685) (String,0.084198) (Fib,0.000938)};
+\addplot coordinates {(Empty,0.260706) (Arith,0.264630) (Branch,0.080978) (Call,0.105209) (Table,0.002133) (String,0.004427) (Fib,0.000467)};
+\addplot coordinates {(Empty,0.261217) (Arith,0.021762) (Branch,0.056354) (Call,0.026664) (Table,0.002328) (String,0.000176) (Fib,0.000470)};
+\legend{CPL \texttt{-O3},GCC \texttt{-O3},Clang \texttt{-O3}}
 \end{axis}
 \end{tikzpicture}
-\caption{Optimized runtimes for the three benchmark kernels.}
+\caption{x86\_64 optimized runtimes for the benchmark kernels. The full x86\_64/i386 table is reported in Table~\ref{tab:benchmarks}.}
 \label{fig:bench-optimized}
 \end{figure*}
 
-\par For RQ2, CPL is within 1.2\% of the fastest Clang/GCC result on Fibonacci and is 6.1--7.4\% faster than those two C compilers on the empty-loop measurement. Rust is substantially faster on both kernels. On string traversal, CPL is 9.1\% slower than GCC, 19.3\% slower than Clang, and 54.5\% slower than Rust. The evidence therefore supports a narrow statement: the current backend approaches mature C compilers on the measured scalar loops but underperforms on pointer-heavy traversal. Possible causes include additional pointer moves, weaker address-generation simplification, and missed induction-variable transformations. These explanations are hypotheses until tested using decoded instruction counts and hardware counters.
+\par For RQ2, CPL is effectively tied with GCC and Clang on the preserved empty counted loop on both x86\_64 and i386. On x86\_64, CPL is also within the same millisecond-scale range on Fibonacci, but GCC and Clang are faster on the other optimized kernels. On i386, CPL slows down more strongly on 64-bit arithmetic, function calls, pointer-string traversal, and Fibonacci, which is consistent with higher pressure from 32-bit register allocation and 64-bit operation lowering. The largest gaps remain table traversal and pointer string scanning, where the C compilers appear to perform stronger loop and memory simplification. These explanations remain hypotheses until validated with decoded instruction counts and hardware counters.
 
 \subsection{Effect of Optimization within CPL}
 
-\par Figure~\ref{fig:bench-cpl-levels} presents the effect of CPL optimization alone by comparing \texttt{-O0} and \texttt{-O3}. The empty loop benefits the most, which is consistent with the late low-level simplifications described earlier. Within CPL, LICM affects loop-invariant HIR expressions, peephole cleanup removes redundant selected-LIR instructions, and copy propagation reduces low-level temporary traffic after lowering. Because no pass-by-pass ablation was performed, the observed improvement cannot be assigned to an individual optimization.
+\par Figure~\ref{fig:bench-cpl-levels} presents the effect of CPL optimization alone by comparing \texttt{-O0} and \texttt{-O3} on both evaluated architectures. CPL \texttt{-O3} improves most measured kernels, but i386 Fibonacci is a counterexample in these measurements. Within CPL, LICM affects loop-invariant HIR expressions, peephole cleanup removes redundant selected-LIR instructions, and copy propagation reduces low-level temporary traffic after lowering. Because no pass-by-pass ablation was performed, the observed improvement cannot be assigned to an individual optimization.
 
 \begin{figure}[t]
 \centering
@@ -978,7 +964,7 @@ start() {
     bar width=8pt,
     ymin=0,
     ylabel={Runtime (s)},
-    symbolic x coords={Empty loop,Fibonacci,String traversal},
+    symbolic x coords={Empty,Arith,Branch,Call,Table,String,Fib},
     xtick=data,
     x tick label style={rotate=18,anchor=east,font=\scriptsize},
     legend style={at={(0.5,-0.28)},anchor=north,legend columns=2,font=\scriptsize},
@@ -990,9 +976,11 @@ start() {
     point meta=rawy,
     every node near coord/.append style={font=\scriptsize}
 ]
-\addplot coordinates {(Empty loop,1.390) (Fibonacci,0.424) (String traversal,0.583)};
-\addplot coordinates {(Empty loop,0.702) (Fibonacci,0.412) (String traversal,0.513)};
-\legend{CPL \texttt{-O0},CPL \texttt{-O3}}
+\addplot coordinates {(Empty,0.943493) (Arith,0.420121) (Branch,0.469712) (Call,0.286096) (Table,0.143158) (String,0.135586) (Fib,0.001268)};
+\addplot coordinates {(Empty,0.261887) (Arith,0.319541) (Branch,0.263617) (Call,0.151619) (Table,0.091685) (String,0.084198) (Fib,0.000938)};
+\addplot coordinates {(Empty,0.951507) (Arith,0.540225) (Branch,0.464537) (Call,0.399027) (Table,0.194468) (String,0.191890) (Fib,0.002066)};
+\addplot coordinates {(Empty,0.261450) (Arith,0.474456) (Branch,0.381038) (Call,0.330364) (Table,0.112236) (String,0.142074) (Fib,0.002809)};
+\legend{x86\_64 CPL \texttt{-O0},x86\_64 CPL \texttt{-O3},i386 CPL \texttt{-O0},i386 CPL \texttt{-O3}}
 \end{axis}
 \end{tikzpicture}
 \caption{Optimization effect within CPL.}
@@ -1018,19 +1006,19 @@ start() {
 \par Heuristic and model-guided inlining modes exist in the implementation but are excluded from the evaluated optimization profiles and contribution claims because their correctness and effectiveness have not been established.
 
 \paragraph{Small benchmark suite.}
-\par The benchmark suite consists of microbenchmarks and small interpreters. It does not include large applications, compiler self-hosting, SPEC-style workloads, kernel compilation workloads, broad target comparisons, or Linux x86\_64 replication.
+\par The benchmark suite consists of microbenchmarks. It does not include large applications, compiler self-hosting, SPEC-style workloads, kernel compilation workloads, broad target comparisons, or enough kernels to characterize general performance.
 
 \paragraph{Single-machine measurements.}
-\par Measurements were performed on a single machine, macOS 10.15.7 with an Intel i7-3650QM. Results may vary across processors, operating systems, assemblers, linkers, and timing wrappers.
+\par Measurements were performed on a single Linux x86\_64 host while targeting both x86\_64 and i386 binaries. Results may vary across processors, operating systems, assemblers, linkers, and timing wrappers.
 
 \paragraph{No cache or memory-hierarchy analysis.}
-\par The current evaluation does not include cache-miss counters, branch-misprediction counters, memory-bandwidth measurements, or other memory-hierarchy analysis. Pointer-heavy results such as string traversal should therefore be interpreted cautiously.
+\par The evaluation does not include cache-miss counters, branch-misprediction counters, memory-bandwidth measurements, or other memory-hierarchy analysis. Pointer-heavy results such as string traversal should therefore be interpreted cautiously.
 
 \paragraph{No differential fuzzing campaign.}
 \par The phase-oriented regression suite checks known examples and internal representations, but it does not provide randomized differential validation against a reference interpreter or a semantically equivalent C subset. Compiler reliability beyond the covered tests is therefore not quantified.
 
-\paragraph{Evaluation snapshot.}
-\par The benchmark data was collected for a particular Mach-O compiler snapshot and hardware configuration. It should therefore be treated as preliminary evidence for the implementation direction rather than as a complete evaluation of every backend and optimization combination.
+\paragraph{Evaluation scope.}
+\par The benchmark data should be treated as prototype evidence for the implementation direction rather than as a complete evaluation of every backend and optimization combination.
 
 \paragraph{Inline assembly opacity.}
 \par Inline assembly is copied into the output after placeholder substitution and is not optimized by the compiler. This can invalidate assumptions made by surrounding optimization passes if the programmer uses labels, jumps, or unpreserved registers in fragile ways.
@@ -1062,7 +1050,7 @@ CPL & compact source language and compiler & inspectable OS/compiler experiments
 
 \par The closest implementation-scale comparators are QBE and TinyCC, but each leaves a different gap. QBE provides a compact backend rather than a source language with typed OS-facing constructs. TinyCC provides practical C compatibility, but inherits the full complexity and expectations of C and is not organized as a small SSA/SMT experimentation platform. Zig provides substantially stronger language and ecosystem support, while CompCert, Cogent, and Low* provide assurance that CPL does not claim.
 
-\par The resulting niche is narrow: CPL combines an inspectable source language, explicit boot- and kernel-facing controls, a multi-stage optimizing pipeline, and an experimental SSA/SMT diagnostic layer in one compact implementation. This is a research gap only in the sense of an engineering combination, not evidence of superiority. CPL currently lacks the formal assurance of verified systems, the validation methodology exemplified by Csmith~\cite{yang2011csmith}, and the benchmark breadth and backend maturity of production compilers. The report's contribution is therefore the design and feasibility evidence for that combination.
+\par The resulting niche is narrow: CPL combines an inspectable source language, explicit boot- and kernel-facing controls, a multi-stage optimizing pipeline, and an experimental SSA/SMT diagnostic layer in one compact implementation. This is a research gap only in the sense of an engineering combination, not evidence of superiority. CPL lacks the formal assurance of verified systems, the validation methodology exemplified by Csmith~\cite{yang2011csmith}, and the benchmark breadth and backend maturity of production compilers. The article's contribution is therefore the design and feasibility evidence for that combination.
 
 \section{Future Work}
 
@@ -1078,20 +1066,20 @@ CPL & compact source language and compiler & inspectable OS/compiler experiments
   \item keep function inlining outside performance claims until correctness regressions are resolved; evaluate learned inlining only after publishing its features, dataset, model, and decision metrics.
 \end{itemize}
 
-\par Classes, enums, constructors, destructors, inheritance, and ownership-oriented aggregate models remain outside the current core by design. Containers provide a deliberately small C-like aggregate mechanism, but richer user-defined type systems may be studied separately. This report treats that restriction as part of CPL's deliberate language model rather than as an accidental omission.
+\par Classes, enums, constructors, destructors, inheritance, and ownership-oriented aggregate models remain outside the core language by design. Containers provide a deliberately small C-like aggregate mechanism, but richer user-defined type systems may be studied separately. This article treats that restriction as part of CPL's deliberate language model rather than as an accidental omission.
 
 \section{Conclusion}
 
-\par RQ1 is supported by the Multiboot case study: CPL represents binary layout, aligned sections, symbols, stack storage, and transfer to typed kernel code, while register capture and privileged instructions remain explicit assembly. RQ2 receives only preliminary support: CPL approaches Clang and GCC on the measured scalar loops but is slower on pointer traversal and substantially behind Rust in all three measurements. RQ3 is answered architecturally rather than quantitatively: SSA-form HIR supports path-conditioned Z3 queries, but diagnostic precision and cost are unknown. RQ4 remains unanswered because no pass-level ablation or machine-code-size study was performed.
+\par RQ1 is supported by the Multiboot case study: CPL represents binary layout, aligned sections, symbols, stack storage, and transfer to typed kernel code, while register capture and privileged instructions remain explicit assembly. RQ2 receives only preliminary support: CPL is competitive on the preserved empty-loop kernel on both x86\_64 and i386, but optimized GCC and Clang are faster on the arithmetic, branch, call, table-traversal, and pointer-string kernels; i386 also exposes weaker CPL behavior on 64-bit arithmetic-heavy kernels. RQ3 is answered architecturally rather than quantitatively: SSA-form HIR supports path-conditioned Z3 queries, but diagnostic precision and cost are unknown. RQ4 remains unanswered because no pass-level ablation or machine-code-size study was performed.
 
-\par The report therefore establishes feasibility of a compact source language that combines OS-facing controls with a conventional optimizing pipeline and SSA/SMT analysis. It does not establish compiler correctness, memory safety, general performance competitiveness, backend maturity, or diagnostic effectiveness. Those claims require the formalization, differential validation, expanded benchmarks, hardware-counter measurements, and labeled diagnostic evaluation specified in the future-work program.
+\par The article therefore establishes feasibility of a compact C-like source language that combines OS-facing controls with a conventional optimizing pipeline and SSA/SMT analysis. It does not establish compiler correctness, memory safety, general performance competitiveness, backend maturity, or diagnostic effectiveness. Those claims require the formalization, differential validation, expanded benchmarks, hardware-counter measurements, and labeled diagnostic evaluation specified in the future-work program.
 
 \appendix
 
 \section{Abridged BNF Grammar of CPL}
 \label{app:cpl-bnf}
 
-\par This appendix gives an abridged grammar reconstructed from the parser implementation in the evaluated snapshot. It documents principal forms rather than a complete formal operational semantics.
+\par This appendix gives an abridged grammar reconstructed from the parser implementation. It documents principal forms rather than a complete formal operational semantics.
 
 \begin{lstlisting}[caption={Abridged CPL grammar.}]
 program        ::= top_item*
@@ -1144,7 +1132,7 @@ pp_directive   ::= "#" ("line" | "include" | "define" | "undef"
 stmt_end       ::= ";" | end_of_line
 \end{lstlisting}
 
-\par The current keyword set is: \texttt{start}, \texttt{exit}, \texttt{function}, \texttt{container}, \texttt{return}, \texttt{if}, \texttt{else}, \texttt{while}, \texttt{loop}, \texttt{switch}, \texttt{case}, \texttt{default}, \texttt{glob}, \texttt{ro}, \texttt{dref}, \texttt{ref}, \texttt{ptr}, \texttt{lis}, \texttt{break}, \texttt{extern}, \texttt{from}, \texttt{import}, \texttt{syscall}, \texttt{asm}, \texttt{as}, \texttt{f64}, \texttt{f32}, \texttt{i64}, \texttt{i32}, \texttt{i16}, \texttt{i8}, \texttt{u64}, \texttt{u32}, \texttt{u16}, \texttt{u8}, \texttt{i0}, \texttt{str}, \texttt{arr}, \texttt{not}, \texttt{neg}, \texttt{poparg}, \texttt{sizeof}, \texttt{section}, \texttt{align}, \texttt{line}, \texttt{include}, \texttt{define}, \texttt{undef}, \texttt{ifdef}, \texttt{ifndef}, and \texttt{endif}. Containers may contain scalar fields, pointer fields, and array fields; method-like calls are supported through explicit receiver parameters marked with \texttt{@[self]}. The \texttt{@[like\_c]} annotation is used to document C-ABI-like container padding and layout intent.
+\par The keyword set is: \texttt{start}, \texttt{exit}, \texttt{function}, \texttt{container}, \texttt{return}, \texttt{if}, \texttt{else}, \texttt{while}, \texttt{loop}, \texttt{switch}, \texttt{case}, \texttt{default}, \texttt{glob}, \texttt{ro}, \texttt{dref}, \texttt{ref}, \texttt{ptr}, \texttt{lis}, \texttt{break}, \texttt{extern}, \texttt{from}, \texttt{import}, \texttt{syscall}, \texttt{asm}, \texttt{as}, \texttt{f64}, \texttt{f32}, \texttt{i64}, \texttt{i32}, \texttt{i16}, \texttt{i8}, \texttt{u64}, \texttt{u32}, \texttt{u16}, \texttt{u8}, \texttt{i0}, \texttt{str}, \texttt{arr}, \texttt{not}, \texttt{neg}, \texttt{poparg}, \texttt{sizeof}, \texttt{section}, \texttt{align}, \texttt{line}, \texttt{include}, \texttt{define}, \texttt{undef}, \texttt{ifdef}, \texttt{ifndef}, and \texttt{endif}. Containers may contain scalar fields, pointer fields, and array fields; method-like calls are supported through explicit receiver parameters marked with \texttt{@[self]}. The \texttt{@[like\_c]} annotation is used to document C-ABI-like container padding and layout intent.
 
 \bibliographystyle{plain}
 \bibliography{links}

@@ -1,71 +1,116 @@
 # CPL code performance evaluation
 
-This page records preliminary microbenchmarks for the current compiler implementation. The results are useful for observing code generation and optimization behavior, but they should not be read as a comprehensive performance claim.
+This page records the current Linux x86-64 and i386 microbenchmark run for CPL code generation. The benchmark source of truth is `specs/run_compiler_microbenches.py`; raw commands, exit codes, compile times, and ten runtime repetitions are stored in `specs/compiler_microbench_results.json`.
 
-Some microbenchmarks use `asm volatile` in the C version to prevent dead-code elimination of otherwise empty or non-observable loops. CPL currently preserves such loops by default, while optimizing C compilers may remove them. These tests should therefore be interpreted as loop-overhead measurements rather than general-purpose performance benchmarks.
+The current comparison intentionally uses only the compilers available in the system toolchain: CPL, GCC, and Clang.
+
+## Setup
 
 Versions:
-- `gcc-14`: GCC 14.2.0 (Homebrew GCC 14.2.0)
-    - Optimizations: `-O0`, `-O3`
-- `clang`: Apple clang 12.0.0 (clang-1200.0.32.29)
-    - Optimizations: `-O0`, `-O3`
-- `cpl`: CPL v3.4 (MACHO64)
-    - Optimizations: `-O0`, `-O3` (LICM, Peephole, CSE, DCE, Constant prop / fold) 
-- `rustc`: rustc 1.87.0
-    - Optimizations: `opt-level=0`, `opt-level=2`
+- `cplc`: ccpl 3.6.5.1:1706.26
+- `gcc`: GCC 15.2.1 20260123 (Red Hat 15.2.1-7)
+- `clang`: Clang 21.1.8 (Fedora 21.1.8-4.fc43)
+- `nasm`: NASM 2.16.03
+- `ld`: GNU ld 2.45.1
 
-Specs:
-- OS: MacOS Catalina 10.15.7
-- CPU: i7 3650QM, Quad-core, 2.4 GHz
-- RAM: 16 GB, DDR3, 1600 MHz
+Host:
+- OS: Linux 7.0.12-101.fc43.x86_64
+- Host architecture: x86_64
+- Target architectures: x86-64 Linux and i386 Linux
+- Runs: 10 per produced binary
 
-Result gathering:
-  - CPL - 5 times, every time after compilation, `py-time` total program execution time
-  - Clang / GCC - 5 times, every time after compilation, `gnu-time` total execution time
+The compiler was built with:
 
-The measurements below should be treated as approximate. They were gathered on one machine, with a small number of runs, and without the statistical controls normally expected from a formal performance study. The benchmark code is still useful for comparing generated assembly and checking whether optimization passes have the intended local effect.
-
-## Empty loop
-This is an artificial example. It mostly measures loop overhead and preservation of a counted loop. The C version uses `asm volatile` to prevent the loop from being removed by the optimizing compiler; the CPL version uses `@[counter]`, which introduces the hidden loop counter used by the compiler.
-
-```cpl
-@[naked] start() {
-    @[counter(1000000000)] loop {
-    }
-    exit 0;
-}
-
-:/ C version:
-int main() {
-    unsigned a = 0;
-    for (; a < 1000000000u; ++a) {
-        asm volatile("" : "+r"(a));
-    }
-    return 0;
-}
-/:
-
-:/ Rust version
-use std::arch::asm;
-fn main() {
-    let mut a: u32 = 0;
-    while a < 1_000_000_000u32 {
-        unsafe {
-            asm!("/* {0:e} */", inout(reg) a, options(nomem, nostack));
-        }
-        a = a.wrapping_add(1);
-    }
-}
-/:
+```bash
+make BUILD=release PRINT_PARSE=0
 ```
 
-The results below shows that the optimized CPL code has the same execution time as it have both the GCC's code and CLang's code.
+CPL binaries were built through an explicit assembly path. For x86-64 the target triple is `--arch x86_64 --sys-type linux64 --asm-format elf64`; for i386 it is `--arch i386 --sys-type i386 --asm-format elf32`.
+
+```bash
+./builds/linux-x86_64/cplc -O3 \
+  --arch x86_64 \
+  --sys-type linux64 \
+  --asm-format elf64 \
+  --emit-asm \
+  --asm-output /tmp/bench.asm \
+  --no-compile \
+  /tmp/bench.cpl
+
+nasm -f elf64 /tmp/bench.asm -o /tmp/bench.o
+ld -e _main -o /tmp/bench /tmp/bench.o
+
+nasm -f elf32 /tmp/bench.asm -o /tmp/bench.o
+ld -m elf_i386 -e _main -o /tmp/bench /tmp/bench.o
+```
+
+GCC and Clang baselines use freestanding `_main` entry points so i386 does not depend on 32-bit libc or CRT startup files:
+
+```bash
+gcc -m64 -O3 -std=c11 -ffreestanding -nostdlib -fno-pie -no-pie -Wl,-e,_main bench.c -o bench_gcc_x64
+clang -m64 -O3 -std=c11 -ffreestanding -nostdlib -fno-pie -no-pie -Wl,-e,_main bench.c -o bench_clang_x64
+
+gcc -m32 -mstackrealign -O3 -std=c11 -ffreestanding -nostdlib -fno-pie -no-pie -Wl,-e,_main bench.c -o bench_gcc_i386
+clang -m32 -mstackrealign -O3 -std=c11 -ffreestanding -nostdlib -fno-pie -no-pie -Wl,-e,_main bench.c -o bench_clang_i386
+```
+
+All benchmarked binaries returned the expected exit code in all ten runs.
+
+## Benchmarked Snippets
+
+The CPL snippets come from `tests/code_utesting/exec/prod`:
+
+| Benchmark | CPL source | Expected exit |
+|---|---|---:|
+| Empty counted loop | `02_count_to_billion.cpl` | 0 |
+| Arithmetic recurrence | `04_arith_mix.cpl` | 1 |
+| Hot branch loop | `05_branch_hot.cpl` | 7 |
+| Hot function call | `06_function_call_hot.cpl` | 13 |
+| Global table traversal | `07_table_sum_hot.cpl` | 32 |
+| Pointer string scan | `08_pointer_string_scan.cpl` | 64 |
+| Fibonacci recurrence | `09_fibonacci.cpl` | 187 |
+
+These examples cover loop overhead, scalar recurrence, predictable branching, function calls, global array traversal, pointer/string traversal, and a short loop-carried dependency.
+
+## Runtime Summary
+
+Mean runtime in seconds over ten runs. Lower is better.
+
+### x86-64 Linux
+
+| Benchmark | CPL -O3 | GCC -O3 | Clang -O3 | CPL -O0 | GCC -O0 | Clang -O0 |
+|---|---:|---:|---:|---:|---:|---:|
+| Empty counted loop | 0.261887 | 0.260706 | 0.261217 | 0.943493 | 2.732771 | 2.743791 |
+| Arithmetic recurrence | 0.319541 | 0.264630 | 0.021762 | 0.420121 | 0.472506 | 0.426030 |
+| Hot branch loop | 0.263617 | 0.080978 | 0.056354 | 0.469712 | 0.522766 | 0.520616 |
+| Hot function call | 0.151619 | 0.105209 | 0.026664 | 0.286096 | 0.286031 | 0.315833 |
+| Global table traversal | 0.091685 | 0.002133 | 0.002328 | 0.143158 | 0.119041 | 0.140017 |
+| Pointer string scan | 0.084198 | 0.004427 | 0.000176 | 0.135586 | 0.095225 | 0.106931 |
+| Fibonacci recurrence | 0.000938 | 0.000467 | 0.000470 | 0.001268 | 0.002113 | 0.002122 |
+
+### i386 Linux
+
+| Benchmark | CPL -O3 | GCC -O3 | Clang -O3 | CPL -O0 | GCC -O0 | Clang -O0 |
+|---|---:|---:|---:|---:|---:|---:|
+| Empty counted loop | 0.261450 | 0.261913 | 0.261629 | 0.951507 | 2.744684 | 2.751128 |
+| Arithmetic recurrence | 0.474456 | 0.327300 | 0.021911 | 0.540225 | 0.535768 | 0.433954 |
+| Hot branch loop | 0.381038 | 0.150469 | 0.072008 | 0.464537 | 0.470560 | 0.415575 |
+| Hot function call | 0.330364 | 0.163568 | 0.026601 | 0.399027 | 0.396996 | 0.374836 |
+| Global table traversal | 0.112236 | 0.009064 | 0.002387 | 0.194468 | 0.121796 | 0.132445 |
+| Pointer string scan | 0.142074 | 0.030128 | 0.000196 | 0.191890 | 0.094678 | 0.106399 |
+| Fibonacci recurrence | 0.002809 | 0.000456 | 0.000479 | 0.002066 | 0.002117 | 0.002140 |
+
+The empty counted loop is the closest optimized result on both architectures: CPL, GCC, and Clang are all around 0.26 seconds. The arithmetic, branch, call, table, and string examples show the expected gap between this experimental backend and mature C optimizers. i386 particularly stresses CPL's register allocation and 64-bit arithmetic lowering.
+
+## Empty Counted Loop
+
+Source: `tests/code_utesting/exec/prod/02_count_to_billion.cpl`
 
 <div
   class="benchmark-card"
-  data-title="Empty loop benchmark"
-  data-labels="rustc opt-level=2|cpl -O3|clang -O3|gcc-14 -O3|cpl -O0|rustc opt-level=0|gcc-14 -O0|clang -O0"
-  data-values="0.333|0.702|0.748|0.758|1.39|3.442|4.290|4.641"
+  data-title="Empty counted loop, x86-64"
+  data-labels="gcc -O3|clang -O3|cpl -O3|cpl -O0|gcc -O0|clang -O0"
+  data-values="0.260706|0.261217|0.261887|0.943493|2.732771|2.743791"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -75,55 +120,11 @@ The results below shows that the optimized CPL code has the same execution time 
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 11 lines. Were 31 lines.
-
-## Million fibonacci
-```cpl
-start() {
-    i32 a = 1;
-    i32 b = 0;
-    @[counter(1000000)] loop {
-        i32 tmp = a;
-        a = a + b;
-        b = tmp;
-    }
-    exit b;
-}
-
-:/ C version
-int main() {
-    int a = 1;
-    int b = 0;
-    for (int i = 0; i < 1000000u; ++i) {
-        int tmp = a;
-        a = a + b;
-        b = tmp;
-    }
-    return b;
-}
-/:
-
-:/ Rust version
-use std::hint::black_box;
-fn main() {
-    let mut a: i32 = 1;
-    let mut b: i32 = 0;
-    for _ in 0..1_000_000u32 {
-        let tmp = a;
-        a = a.wrapping_add(b);
-        b = tmp;
-    }
-
-    black_box(b);
-}
-/:
-```
-
 <div
   class="benchmark-card"
-  data-title="Fibonacci benchmark"
-  data-labels="rustc opt-level=2|rustc opt-level=0|cpl -O3|gcc-14 -O3|clang -O3|gcc-14 -O0|cpl -O0|clang -O0"
-  data-values="0.335|0.337|0.407|0.412|0.417|0.421|0.424|0.430"
+  data-title="Empty counted loop, i386"
+  data-labels="cpl -O3|clang -O3|gcc -O3|cpl -O0|gcc -O0|clang -O0"
+  data-values="0.261450|0.261629|0.261913|0.951507|2.744684|2.751128"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -133,78 +134,15 @@ fn main() {
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 17 lines. Were 40 lines.
+## Arithmetic Recurrence
 
-## String iteration
-```cpl
-start() {
-    arr msg[0, i8] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
-    i64 outer = 0;
-    u8 acc = 0;
-    ptr i8 p = ref msg;
-
-    while outer < 1000000; {
-        p = ref msg;
-        while dref p; {
-            acc = (acc + dref p) & 0xFF;
-            p += 1;
-        }
-        outer += 1;
-    }
-
-    exit acc;
-}
-
-:/ C version:
-int main() {
-    const char *msg = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/";
-    long outer = 0;
-    unsigned char acc = 0;
-    const char *p = msg;
-
-    while (outer < 1000000) {
-        p = msg;
-        while (*p) {
-            acc = (unsigned char)((acc + (unsigned char)*p) & 0xFF);
-            p += 1;
-        }
-        outer += 1;
-    }
-
-    return acc;
-}
-/:
-
-:/ Rust version
-use std::hint::black_box;
-fn main() {
-    let msg = black_box(b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/\0");
-    let limit = black_box(1_000_000i64);
-    let mut outer: i64 = 0;
-    let mut acc: u8 = 0;
-    while outer < limit {
-        let mut p = msg.as_ptr();
-
-        unsafe {
-            while *p != 0 {
-                acc = acc.wrapping_add(*p);
-                p = p.add(1);
-            }
-        }
-
-        outer += 1;
-    }
-
-    black_box(acc);
-}
-/:
-```
+Source: `tests/code_utesting/exec/prod/04_arith_mix.cpl`
 
 <div
   class="benchmark-card"
-  data-title="Pointer and string traversal benchmark"
-  data-labels="rustc opt-level=2|rustc opt-level=0|clang -O3|gcc-14 -O3|cpl -O3|gcc-14 -O0|cpl -O0|clang -O0"
-  data-values="0.332|0.348|0.430|0.470|0.513|0.566|0.583|1.002"
+  data-title="Arithmetic recurrence, x86-64"
+  data-labels="clang -O3|gcc -O3|cpl -O3|cpl -O0|clang -O0|gcc -O0"
+  data-values="0.021762|0.264630|0.319541|0.420121|0.426030|0.472506"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -214,299 +152,11 @@ fn main() {
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 84 lines (including comments such as a base block number). Were 103 lines.
-
-## Brainfuck
-
-```cpl
-function strlen(ptr i8 s) -> i32 {
-    i32 l = 0;
-    while dref s; {
-        l += 1;
-        s += 1;
-    }
-
-    return l;
-}
-
-function putc(i8 c) -> i0 {
-    syscall(0x2000004, 1, ref c, 1);
-}
-
-glob arr tape[30000, i8];
-glob arr bracketmap[10000, i32];
-glob arr stack[10000, i32];
-
-start(i32 argc, ptr ptr i8 argv) {
-    i32 pos = 0;
-    i32 stackptr = 0;
-    i32 codelength = strlen(argv[1]);
-    while pos < codelength; {
-        @[no_fall]
-        @[straight]
-        switch argv[1][pos]; {
-            case '['; {
-                stack[stackptr] = pos;
-                stackptr += 1;
-            }
-            case ']'; {
-                if stackptr > 0; {
-                    stackptr -= 1;
-                    i32 matchpos = stack[stackptr];
-                    bracketmap[pos] = matchpos;
-                    bracketmap[matchpos] = pos;
-                }
-            }
-        }
-        
-        pos += 1;
-    }
-    
-    i32 pc = 0;
-    i32 pointer = 0;
-    while pc < codelength; {
-        @[no_fall]
-        switch argv[1][pc]; {
-            case '>'; {
-                pointer += 1;
-                pc += 1;
-            }
-            case '<'; {
-                pointer -= 1;
-                pc += 1;
-            }
-            case '+'; {
-                tape[pointer] += 1;
-                pc += 1;
-            }
-            case '-'; {
-                tape[pointer] -= 1;
-                pc += 1;
-            }
-            case '.'; {
-                putc(tape[pointer]);
-                pc += 1;
-            }
-            case '['; {
-                if not tape[pointer]; pc = bracketmap[pc];
-                else pc += 1;
-            }
-            case ']'; {
-                if tape[pointer]; pc = bracketmap[pc];
-                else pc += 1;
-            }
-            default {
-                pc += 1;
-            }
-        }
-    }
-
-    exit 0;
-}
-
-:/ C version:
-#include <unistd.h>
-
-char tape[30000];
-int bracketmap[10000];
-int stack[10000];
-
-int _strlen(char *s) {
-    int l= 0;
-    while (s[l]) {
-        l+= 1;
-    }
-
-    return l;
-}
-
-void _putc(char c) {
-    write(1, &c, 1);
-}
-
-int main(int argc, char* argv[]) {
-    int pos = 0;
-    int stackptr = 0;
-    int codelength = _strlen(argv[1]);
-
-    while (pos < codelength) {
-        switch (argv[1][pos]) {
-            case '[': {
-                stack[stackptr] = pos;
-                stackptr += 1;
-                break;
-            }
-            case ']': {
-                if (stackptr > 0) {
-                    int matchpos;
-                    stackptr -= 1;
-                    matchpos = stack[stackptr];
-                    bracketmap[pos] = matchpos;
-                    bracketmap[matchpos] = pos;
-                }
-                break;
-            }
-        }
-
-        pos += 1;
-    }
-
-    int pc = 0;
-    int pointer = 0;
-
-    while (pc < codelength) {
-        switch (argv[1][pc]) {
-            case '>': {
-                pointer += 1;
-                pc += 1;
-                break;
-            }
-            case '<': {
-                pointer-= 1;
-                pc += 1;
-                break;
-            }
-            case '+': {
-                tape[pointer]+= 1;
-                pc += 1;
-                break;
-            }
-            case '-': {
-                tape[pointer]-= 1;
-                pc += 1;
-                break;
-            }
-            case '.': {
-                _putc(tape[pointer]);
-                pc += 1;
-                break;
-            }
-            case '[': {
-                if (!tape[pointer]) {
-                    pc = bracketmap[pc];
-                } else {
-                    pc += 1;
-                }
-                break;
-            }
-            case ']': {
-                if (tape[pointer]) {
-                    pc = bracketmap[pc];
-                } else {
-                    pc += 1;
-                }
-                break;
-            }
-            default: {
-                pc += 1;
-                break;
-            }
-        }
-    }
-
-    return 0;
-}
-/:
-
-:/ Rust version
-use std::env;
-use std::io::{self, Write};
-
-static mut TAPE: [u8; 30000] = [0; 30000];
-static mut BRACKETMAP: [i32; 10000] = [0; 10000];
-static mut STACK: [i32; 10000] = [0; 10000];
-
-fn putc(c: u8) {
-    let mut out = io::stdout();
-    out.write_all(&[c]).unwrap();
-}
-
-fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    if args.len() < 2 {
-        return;
-    }
-
-    let code = args[1].as_bytes();
-    let codelength = code.len() as i32;
-    let mut pos: i32 = 0;
-    let mut stackptr: i32 = 0;
-
-    unsafe {
-        while pos < codelength {
-            match code[pos as usize] {
-                b'[' => {
-                    STACK[stackptr as usize] = pos;
-                    stackptr += 1;
-                }
-                b']' => {
-                    if stackptr > 0 {
-                        stackptr -= 1;
-                        let matchpos = STACK[stackptr as usize];
-                        BRACKETMAP[pos as usize] = matchpos;
-                        BRACKETMAP[matchpos as usize] = pos;
-                    }
-                }
-                _ => {}
-            }
-
-            pos += 1;
-        }
-
-        let mut pc: i32 = 0;
-        let mut pointer: i32 = 0;
-        while pc < codelength {
-            match code[pc as usize] {
-                b'>' => {
-                    pointer += 1;
-                    pc += 1;
-                }
-                b'<' => {
-                    pointer -= 1;
-                    pc += 1;
-                }
-                b'+' => {
-                    TAPE[pointer as usize] = TAPE[pointer as usize].wrapping_add(1);
-                    pc += 1;
-                }
-                b'-' => {
-                    TAPE[pointer as usize] = TAPE[pointer as usize].wrapping_sub(1);
-                    pc += 1;
-                }
-                b'.' => {
-                    putc(TAPE[pointer as usize]);
-                    pc += 1;
-                }
-                b'[' => {
-                    if TAPE[pointer as usize] == 0 {
-                        pc = BRACKETMAP[pc as usize];
-                    } else {
-                        pc += 1;
-                    }
-                }
-                b']' => {
-                    if TAPE[pointer as usize] != 0 {
-                        pc = BRACKETMAP[pc as usize];
-                    } else {
-                        pc += 1;
-                    }
-                }
-                _ => {
-                    pc += 1;
-                }
-            }
-        }
-    }
-}
-/:
-```
-
 <div
   class="benchmark-card"
-  data-title="Brainfuck 'Oregon, CoosBay, I'm coming for you!' benchmark"
-  data-labels="rustc opt-level=2|rustc opt-level=0|clang -O3|cpl -O3|cpl -O0|gcc-14 -O3|clang -O0|gcc-14 -O0"
-  data-values="0.328|0.340|0.403|0.403|0.45|0.487|0.778|0.830"
+  data-title="Arithmetic recurrence, i386"
+  data-labels="clang -O3|gcc -O3|clang -O0|cpl -O3|gcc -O0|cpl -O0"
+  data-values="0.021911|0.327300|0.433954|0.474456|0.535768|0.540225"
   data-dataset-label="Runtime"
   data-y-label="Seconds"
   data-tooltip-suffix=" s"
@@ -516,4 +166,166 @@ fn main() {
   </div>
 </div>
 
-**Note:** The execution code size (asm) of the CPL optimized file is 500 lines. Before the `-O3` were 699 lines.
+## Hot Branch Loop
+
+Source: `tests/code_utesting/exec/prod/05_branch_hot.cpl`
+
+<div
+  class="benchmark-card"
+  data-title="Hot branch loop, x86-64"
+  data-labels="clang -O3|gcc -O3|cpl -O3|cpl -O0|clang -O0|gcc -O0"
+  data-values="0.056354|0.080978|0.263617|0.469712|0.520616|0.522766"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+<div
+  class="benchmark-card"
+  data-title="Hot branch loop, i386"
+  data-labels="clang -O3|gcc -O3|cpl -O3|clang -O0|cpl -O0|gcc -O0"
+  data-values="0.072008|0.150469|0.381038|0.415575|0.464537|0.470560"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+## Hot Function Call
+
+Source: `tests/code_utesting/exec/prod/06_function_call_hot.cpl`
+
+<div
+  class="benchmark-card"
+  data-title="Hot function call, x86-64"
+  data-labels="clang -O3|gcc -O3|cpl -O3|cpl -O0|gcc -O0|clang -O0"
+  data-values="0.026664|0.105209|0.151619|0.286096|0.286031|0.315833"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+<div
+  class="benchmark-card"
+  data-title="Hot function call, i386"
+  data-labels="clang -O3|gcc -O3|cpl -O3|clang -O0|gcc -O0|cpl -O0"
+  data-values="0.026601|0.163568|0.330364|0.374836|0.396996|0.399027"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+## Global Table Traversal
+
+Source: `tests/code_utesting/exec/prod/07_table_sum_hot.cpl`
+
+<div
+  class="benchmark-card"
+  data-title="Global table traversal, x86-64"
+  data-labels="gcc -O3|clang -O3|cpl -O3|gcc -O0|clang -O0|cpl -O0"
+  data-values="0.002133|0.002328|0.091685|0.119041|0.140017|0.143158"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+<div
+  class="benchmark-card"
+  data-title="Global table traversal, i386"
+  data-labels="clang -O3|gcc -O3|cpl -O3|gcc -O0|clang -O0|cpl -O0"
+  data-values="0.002387|0.009064|0.112236|0.121796|0.132445|0.194468"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+## Pointer String Scan
+
+Source: `tests/code_utesting/exec/prod/08_pointer_string_scan.cpl`
+
+<div
+  class="benchmark-card"
+  data-title="Pointer string scan, x86-64"
+  data-labels="clang -O3|gcc -O3|cpl -O3|gcc -O0|clang -O0|cpl -O0"
+  data-values="0.000176|0.004427|0.084198|0.095225|0.106931|0.135586"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+<div
+  class="benchmark-card"
+  data-title="Pointer string scan, i386"
+  data-labels="clang -O3|gcc -O3|gcc -O0|clang -O0|cpl -O3|cpl -O0"
+  data-values="0.000196|0.030128|0.094678|0.106399|0.142074|0.191890"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+## Fibonacci Recurrence
+
+Source: `tests/code_utesting/exec/prod/09_fibonacci.cpl`
+
+<div
+  class="benchmark-card"
+  data-title="Fibonacci recurrence, x86-64"
+  data-labels="gcc -O3|clang -O3|cpl -O3|cpl -O0|clang -O0|gcc -O0"
+  data-values="0.000467|0.000470|0.000938|0.001268|0.002113|0.002122"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+<div
+  class="benchmark-card"
+  data-title="Fibonacci recurrence, i386"
+  data-labels="gcc -O3|clang -O3|cpl -O0|gcc -O0|clang -O0|cpl -O3"
+  data-values="0.000456|0.000479|0.002066|0.002117|0.002140|0.002809"
+  data-dataset-label="Runtime"
+  data-y-label="Seconds"
+  data-tooltip-suffix=" s"
+>
+  <div class="benchmark-chart-wrap">
+    <canvas class="benchmark-chart"></canvas>
+  </div>
+</div>
+
+## Notes
+
+The benchmark is still a microbenchmark suite, not a whole-program performance claim. The table and string scans are especially sensitive to how aggressively C compilers simplify loops and memory reads. The raw JSON keeps the exact commands and run values so failures or suspicious outliers can be audited instead of papered over.

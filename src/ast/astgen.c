@@ -29,7 +29,7 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     if (!ctx->r) {
         stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
         ctx->r = cpl_parse_block(&it, ctx, smt, EOF_TOKEN);
-        return 0;
+        return ctx->r != NULL;
     }
 
     ast_node_t* root = cpl_parse_block(&it, ctx, smt, EOF_TOKEN);
