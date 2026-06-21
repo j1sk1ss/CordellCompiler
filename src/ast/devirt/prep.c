@@ -101,14 +101,12 @@ static int _find_and_cut_container_function(ast_node_t* node, string_t* containe
     if (
         node->t && container &&
         (node->t->t_type == FUNC_PROT_TOKEN || node->t->t_type == FUNC_TOKEN)
-    ) {
-        queue_push(funcs, node);
-        found_func = 1;
-    }
-
+    ) found_func = 1;
+    
     _find_and_cut_container_function(node->siblings.n, container, funcs);
     if (found_func) {
         if (node->p) AST_remove_node(node->p, node);
+        queue_push(funcs, node);
         return 1;
     }
 
