@@ -45,6 +45,7 @@ int HIRWLK_init_ctx(hir_walker_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_tab
     map_init(&ctx->vctx.definitions, MAP_NO_CMP);
     ctx->smt = smt;
     ctx->vctx.dctx = dctx;
+    ctx->vctx.z3 = NULL;
     ctx->vctx.dump = tmpfile();
     DUMP_format_hirctx(hctx, smt, 0, 0, ctx->vctx.dump);
     return list_init(&ctx->visitors);
@@ -114,7 +115,12 @@ static int _cfg_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
 }
 
 int HIRWLK_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
-    return _cfg_walk(cctx, ctx);
+    if (!ctx) return 0;
+    ctx->vctx.z3 = Z3A_create(cctx, ctx->smt);
+    int result = _cfg_walk(cctx, ctx);
+    Z3A_unload(ctx->vctx.z3);
+    ctx->vctx.z3 = NULL;
+    return result;
 }
 
 static int _free_definitions_entry(list_t* l) {

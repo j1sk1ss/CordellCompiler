@@ -4,6 +4,7 @@
 #include <sem/misc/warns.h>
 #include <sem/hir/hir_data.h>
 #include <sem/hir/hir_visitor.h>
+#include <sem/hir/z3_wrapper.h>
 
 typedef struct {
     attention_level_t l;

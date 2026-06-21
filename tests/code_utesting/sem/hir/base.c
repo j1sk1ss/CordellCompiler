@@ -21,7 +21,7 @@
 #include <sem/semantic.h>
 
 int main(int argc, char* argv[]) {
-    config_t cfg = { .csa.z3 = "/Users/nikolaj/Documents/Repositories/CordellCompiler/src/sem/hir/z3_wrapper/z3_wrapper.py" };
+    config_t cfg = { 0 };
     CONF_set_config(&cfg);
 
     if (argc != 3) {

@@ -17,7 +17,6 @@ typedef const char  config_flag_field_t;
 
 typedef struct {
     struct {
-        config_string_field_t  z3;        /* Absolute path to the script */
         config_int_field_t     attention; /* 1, 2, 3 ...                 */
     } csa; /* CordellStaticAnalyzer */
 
@@ -60,7 +59,6 @@ config_int_field_t    CONF_get_full_bytness();
 config_int_field_t    CONF_get_half_bytness();
 config_int_field_t    CONF_get_quart_bytness();
 config_int_field_t    CONF_get_eight_bytness();
-config_string_field_t CONF_get_z3_path();
 config_int_field_t    CONF_get_attention_level();
 config_flag_field_t   CONF_is_debug_compilation();
 arch_type_t           CONF_get_system_type();

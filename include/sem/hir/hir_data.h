@@ -28,6 +28,7 @@ typedef struct {
     file_position_t curr_location;
     map_t           definitions; /* map of id:list, possible definitions of a variable */
     dag_ctx_t*      dctx;
+    z3_analyzer_t*  z3;
     FILE*           dump;
 } hir_visitors_ctx_t;
 

@@ -4,6 +4,25 @@ BUILD ?= debug
 AVAILABLE_MEMORY ?= 16777216
 LOGS ?=
 PRINT_PARSE ?= 1
+ENABLE_Z3 ?= auto
+
+Z3_AVAILABLE := $(shell pkg-config --exists z3 2>/dev/null && echo 1 || echo 0)
+ifeq ($(ENABLE_Z3),auto)
+	Z3_ENABLED := $(Z3_AVAILABLE)
+else
+	Z3_ENABLED := $(ENABLE_Z3)
+endif
+
+ifeq ($(Z3_ENABLED),1)
+	Z3_CFLAGS ?= $(shell pkg-config --cflags z3 2>/dev/null)
+	Z3_LDLIBS ?= $(shell pkg-config --libs z3 2>/dev/null)
+	ifeq ($(strip $(Z3_LDLIBS)),)
+		Z3_LDLIBS = -lz3
+	endif
+else
+	Z3_CFLAGS :=
+	Z3_LDLIBS :=
+endif
 
 PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | tr '[:upper:]' '[:lower:]')
 
@@ -25,6 +44,11 @@ endif
 
 ifeq ($(PRINT_PARSE),1)
 	CPPFLAGS += -DPRINT_PARSE
+endif
+
+ifeq ($(Z3_ENABLED),1)
+	CPPFLAGS += -DCPL_ENABLE_Z3 $(Z3_CFLAGS)
+	LDLIBS += $(Z3_LDLIBS)
 endif
 
 ifneq ($(filter error,$(LOGS)),)
@@ -80,6 +104,11 @@ print-config:
 	@echo "CFLAGS=$(CFLAGS)"
 	@echo "LDFLAGS=$(LDFLAGS)"
 	@echo "LDLIBS=$(LDLIBS)"
+	@echo "ENABLE_Z3=$(ENABLE_Z3)"
+	@echo "Z3_AVAILABLE=$(Z3_AVAILABLE)"
+	@echo "Z3_ENABLED=$(Z3_ENABLED)"
+	@echo "Z3_CFLAGS=$(Z3_CFLAGS)"
+	@echo "Z3_LDLIBS=$(Z3_LDLIBS)"
 	@echo "LOGS=$(LOGS)"
 
 .PHONY: all clean print-sources print-config

@@ -129,7 +129,7 @@ Params:
 
 Returns 1 if the check succeeds, otherwise 0.
 */
-static int _dereference_error(hir_block_t* hb, hir_subject_t* s, string_t* f, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
+static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
     defined_variable_t di;
     if (!_resolve_subject_value(s, smt, &di)) return 1;
 
@@ -215,10 +215,9 @@ static int _dereference_error(hir_block_t* hb, hir_subject_t* s, string_t* f, sy
         }
     }
 
-    int z3_answer = Z3_can_vid_be_equal(s->storage.var.v_id, 0, f, ctx->dump);
+    int z3_answer = Z3_can_vid_be_equal_ctx(ctx->z3, bb->pfunc, s->storage.var.v_id, 0);
     if (res && !z3_answer) TRACE_unload_trace(&trace);
     else {
-        printf("z3=%i\n", z3_answer);
         TRACE_add_location(
             &trace, &ctx->curr_location, 
             "%sNULL-dereference error (variable '%s' is NULL)!", 
@@ -240,7 +239,7 @@ int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS) {
         return 1;
     }
 
-    return _dereference_error(b, b->sarg, fi.virt, smt, ctx);
+    return _dereference_error(b, bb, b->sarg, smt, ctx);
 }
 
 int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS) {
@@ -251,7 +250,7 @@ int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS) {
         return 1;
     }
 
-    return _dereference_error(b, b->farg, fi.virt, smt, ctx);
+    return _dereference_error(b, bb, b->farg, smt, ctx);
 }
 
 int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
@@ -264,11 +263,11 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     
     trace_t trace;
     TRACE_init_trace(&trace);
-    if (!Z3_can_reach_label(b->sarg->id, fi.virt, ctx->dump)) {
+    if (!Z3_can_reach_label_ctx(ctx->z3, bb->pfunc, b->sarg->id)) {
         TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'then' branch! Consider to refactor the code.");
     }
     
-    if (!Z3_can_reach_label(b->targ->id, fi.virt, ctx->dump)) {
+    if (!Z3_can_reach_label_ctx(ctx->z3, bb->pfunc, b->targ->id)) {
         TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'else' branch! Consider to refactor the code.");
     }
 
@@ -503,7 +502,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
         }
         
         if (syscall.types[sarg_index].dereference) {
-            _dereference_error(b, flatten_input[arg_index], fi.virt, smt, ctx);
+            _dereference_error(b, bb, flatten_input[arg_index], smt, ctx);
         }
     }
 
